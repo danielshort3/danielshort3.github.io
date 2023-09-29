@@ -1,0 +1,794 @@
+/* Reset some default browser styles */
+body, h1, h2, h3, p {
+  margin: 0;
+  padding: 0;
+}
+
+/* Global styles */
+body {
+  font-family: 'Poppins', sans-serif;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  color: #333;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Style the header */
+header {
+  background: linear-gradient(to bottom right, #343a40, #212529);
+  color: white;
+  text-align: center;
+  position: relative;
+  top: 0;
+  z-index: 1000;
+}
+
+/* Style the sections */
+section {
+  padding: 20px;
+  margin: 20px;
+  margin-left: auto;
+  margin-right: auto;
+  min-width: 300px;
+  max-width: 1200px;
+  width: calc(100% - 40px); /* Reduced the total width by 20px on each side */
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  flex: 1;
+}
+
+/* Style the footer */
+footer {
+  background: #343a40;
+  color: white;
+  text-align: center;
+  padding: 1em;
+  margin-top: auto;
+}
+
+/* Initially set the content to invisible */
+main {
+  opacity: 0;
+}
+
+/* Social icons */
+.social-icons {
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 1em;
+  margin-left: auto;
+}
+
+.social-icons a {
+  padding: 3px;
+  color: white;
+  transition: transform .3s;
+  font-size: 24px;  /* Set the initial size of the icons */
+}
+
+.social-icons a:hover {
+  transform: scale(1.2);
+}
+
+#projects .project-card {
+  border: 1px solid #ccc;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Call to Action (CTA) */
+#cta {
+  flex-grow: 0; /* Add this line */
+  height: 300px; /* Maximum height */
+  overflow: auto; /* Adds scroll if content overflows */
+  text-align: center;
+}
+
+#intro-with-image-and-quote {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: row; /* ensures elements are in a row */
+}
+
+#intro-with-image-and-quote .container {
+  display: flex;
+  flex-direction: row;
+  align-items: center; /* Vertically centers the elements */
+  width: 100%; /* takes the full width of the parent */
+}
+
+#intro-with-image-and-quote .text-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column; /* stacks text elements vertically */
+  justify-content: center; /* vertically centers text elements */
+}
+
+#intro-with-image-and-quote .intro-text {
+  text-align: center;
+  margin-bottom: 5%; /* gives some space below the intro text */
+  margin-left: 10%; /* gives some space below the intro text */
+  margin-right: 10%; /* gives some space below the intro text */
+  font-size: 1.5em; /* optional font size */
+}
+
+#intro-with-image-and-quote .quote {
+  text-align: center; /* aligns the text to the left */
+  font-size: 1.5em;
+  font-style: italic;
+}
+
+#intro-with-image-and-quote .image {
+  flex: 1;
+  max-width: 40%;
+  min-width: 300px;
+}
+
+#intro-with-image-and-quote img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px; /* Optional for rounded corners */
+}
+
+
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.grid-container-2x2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-item {
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: all 0.3s ease-in-out;  /* Smooth transition */
+}
+
+/* Hover effect */
+.grid-item:hover {
+  background-color: #f6f6f6;  /* Change background color */
+  transform: scale(1.03);  /* Slightly enlarge the item */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);  /* Add more shadow */
+}
+
+.grid-item i {
+  font-size: 2em;
+}
+
+.grid-item p {
+  font-size: 1em;
+}
+
+.grid-item small {
+  font-size: 0.8em;
+  display: block;  /* Ensures the text appears on a new line */
+}
+
+.grid-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.text-part a, .text-part {
+  color: blue !important;  /* Make text blue */
+  text-decoration: underline !important;  /* Underline the text */
+}
+
+.icon-info i {
+  color: black;  /* Make icon black */
+}
+
+.grid-text-link {
+  color: blue; /* Set the text to blue */
+  text-decoration: underline; /* Underline the text */
+}
+
+.icon-info i {
+  color: black;  /* Set the icon color to black */
+}
+
+.icon-info p a,
+.icon-info p a:hover,
+.icon-info p a:visited {
+  color: inherit; /* To keep the text color unchanged */
+  text-decoration: underline; /* To underline the text */
+}
+
+
+/* Updated styles */
+.header-container {
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  padding: 0.5em;
+  background: linear-gradient(to bottom right, #343a40, #212529);
+  color: white;
+  position: relative;
+  top: 0;
+  z-index: 1000;
+}
+
+.header-text, .social-icons {
+  flex-shrink: 0;  /* Make sure these elements do not shrink */
+}
+
+.header-section {
+  display: flex;
+  justify-content: center;
+  flex: 1;  /* Grow to take the available space */
+  align-items: center;
+  gap: 4em;
+}
+
+.header-text {
+  top: 10px;
+  left: 10px;
+  text-align: left;
+  margin-right: auto;
+  vertical-align: middle;
+}
+
+.header-text a {
+  padding: 20px;
+  text-decoration: none;
+  color: white;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;  /* Ensure vertical alignment */
+  gap: 1em;
+  margin: auto;
+}
+
+.nav-links a {
+  text-decoration: none;
+  padding: 10px;
+  color: white;
+  transition: transform .3s;
+}
+
+.nav-links a:hover {
+  transform: scale(1.2);
+}
+  /* Adjust CTA Section */
+  #cta {
+  }
+
+#cta {
+  text-align: center;
+  height: auto;
+}
+
+#cta-link {  /* New CSS */
+  display: block;
+  height: 100%;
+  width: 100%;
+  text-decoration: none;
+  color: inherit;
+}
+
+#cta h1 {
+  font-size: 48px;  /* You can adjust the size as you like */
+}
+
+/* Modified styles for the filter menu */
+#filter-menu {
+  display: flex;
+  justify-content: center;  /* Changed to center align */
+  margin-bottom: 20px;
+  margin-top: 40px;
+  gap: 3%;
+}
+
+/* Style for an active button */
+#filter-menu .active {
+  background-color: #7a7f84; /* New color that matches your theme */
+  color: #ffffff;
+  transition: background-color 0.3s, color 0.3s; /* Added transition for color and background color */
+  transform: scale(1.2); /* Added scaling for active button */
+}
+
+#filter-menu button {
+  padding: 10px 20px;  /* Increased padding for sleeker look */
+  cursor: pointer;
+  border: none;  /* Removes the default border */
+  border-radius: 20px;  /* Rounded corners */
+  background-color: #343a40;  /* Same color as your header for consistency */
+  color: white;  /* Text color */
+  transition: transform 0.3s, background-color 0.3s, color 0.3s; /* Added transition for transform, color, and background color */
+  width: 100px;  /* Fixed width */
+  text-align: center;  /* Center the text */
+  
+}
+
+#filter-menu button:hover {
+  transform: scale(1.2);
+}
+
+/* Hide the projects by default */
+.project-card[data-visible="false"] {
+  display: none;
+  opacity: 0; /* set opacity to 0 */
+}
+
+.project-card[data-visible="true"] {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
+}
+
+.project-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0px 20px; /* Vertical gap of 0, horizontal gap of 20px */
+  align-items: start;  /* Add this line to prevent stretching */
+  align-content: start; /* Aligns the grid rows to the start */
+  height: 100vh;  /* Sets the height to 100% of the viewport height */
+  flex: 1;
+  padding: 20px 20px 0 20px;
+}
+
+.project-card {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+  opacity: 1; /* set opacity to 1 */
+  transition: opacity 0.4s ease-in-out; /* Add transition for opacity */
+  cursor: pointer;  /* Add this line */
+}
+
+.project-card img {
+  width: 100%;  /* Takes up full width of the container */
+  height: 100%;  /* Takes up full height of the container */
+  object-fit: contain;  /* Make sure the entire image is visible */
+  object-position: center;  /* Center the image within the frame */
+  transition: filter 0.5s ease;
+  z-index: 1; /* Behind the text */
+}
+
+.project-card.fade-out {
+  opacity: 0;  /* Add fade-out effect */
+}
+
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0);
+  transition: background-color 0.5s ease;
+  z-index: 2;
+}
+
+.project-title {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  width: 100%;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: 2; /* In front of the image */
+}
+
+.project-subtitle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: 2; /* In front of the image */
+}
+
+.project-card:hover .overlay {
+  background-color: rgba(0, 0, 0, 0.5);  /* Make it a transparent gray */
+}
+
+.project-card:hover .project-title,
+.project-card:hover .project-subtitle {
+  opacity: 1;
+}
+
+.project-card[data-title]:hover::before {
+  content: attr(data-title);
+  display: block;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  width: 100%;
+  text-align: center;
+  padding: 5px 0;
+}
+
+.project-card::before {
+  content: attr(data-title);
+  display: none;
+  /* More styles like color, background etc. */
+}
+
+.project-card::after {
+  content: attr(data-description);
+  display: none;
+  /* More styles */
+}
+
+.project-card:hover::before,
+.project-card:hover::after {
+  display: block;
+  position: absolute;
+}
+
+.modal {
+    opacity: 0;
+    transition: opacity 0.5s ease-out;  /* Add transition */
+    display: none;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.7);
+    z-index: 1;
+}
+
+.modal.show {
+  opacity: 1;
+}
+
+/* Define slide-down and fade-in animations */
+@keyframes slideDownFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modify .modal-content */
+.modal-content {
+    position: relative;
+    margin: 10% auto; /* Vertically center */
+    padding: 20px;
+    max-width: 80%;  /* maximum width */
+    max-height: 70vh;  /* vh stands for viewport height */
+    overflow: auto; /* Enable vertical scrolling */
+    background-color: #fff;
+    /* Add animation */
+    animation: slideDownFadeIn 0.5s ease-out;
+}
+
+/* Modify .modal */
+.modal {
+    display: none;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.7);
+    z-index: 1;
+    /* Add fading to modal background */
+    animation: fadeIn 0.5s ease-out;
+}
+
+.modal-title {
+    font-size: 1.7em;
+    text-align: center;
+}
+
+.modal-text {
+  margin-left: 20%; /* gives some space below the intro text */
+  margin-right: 20%; /* gives some space below the intro text */
+}
+
+/* Define fade-in for modal background */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* New CSS to resize the image */
+.modal-content img {
+  max-width: 80%;
+  display: block;
+  margin: auto;
+  margin-bottom: 10px;
+}
+
+
+.no-hover:hover .overlay,
+.no-hover:hover .project-title,
+.no-hover:hover .project-subtitle {
+  background-color: rgba(0, 0, 0, 0) !important;
+  opacity: 0 !important;
+}
+
+/* CSS to disable hover effect */
+.no-hover:hover {
+  /* Reset or override any hover effects here */
+  transform: none;
+  background-color: initial; /* or whatever your default background color is */
+}
+
+.full-width-frame {
+  width: 100%;
+  height: 400px; /* or whatever height you want */
+}
+
+  .desktop-only {
+    display: inline;
+  }
+
+/* Style for #prevBtn and #nextBtn */
+#prevBtn, #nextBtn {
+  padding: 1% 2%; /* Similar to your other buttons */
+  cursor: pointer;
+  border: none;  /* Removes the default border */
+  border-radius: 20px;  /* Rounded corners to match your other UI components */
+  background-color: #343a40;  /* Same color as your header for consistency */
+  color: white;  /* Text color to match your theme */
+  font-family: 'Poppins', sans-serif; /* Consistency in font */
+  transition: transform 0.3s, background-color 0.3s, color 0.3s; /* Transition effects */
+  margin: 1%;
+  z-index: 2;
+}
+
+#prevBtn:hover, #nextBtn:hover {
+  background-color: #7a7f84; /* A different shade for hover, can be adjusted */
+}
+
+.scrolling-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  overflow: hidden;
+}
+
+.skill-box {
+  position: relative;
+  width: 100%;
+  height: 50px;
+  overflow: hidden;
+  font-size: 1.5em; /* optional font size */
+  text-align: center;
+  z-index: 0; /* set this below .fade-layer */
+}
+
+.skill-box:hover {
+    background-color: #f6f6f6;  /* Change background color */
+}
+
+/* Modified styles for fading */
+.fade-layer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 10%; /* Adjust width as needed */
+  z-index: 1;  /* above .skill-box and below .arrow-button */
+  pointer-events: none;
+  height: 100%;
+}
+
+.fade-left {
+  left: 5%; /* Adjust to the inside edge of the left arrow */
+  background: linear-gradient(to right, white, rgba(255,255,255,0));
+}
+
+.fade-right {
+  right: 5%; /* Adjust to the inside edge of the right arrow */
+  background: linear-gradient(to left, white, rgba(255,255,255,0));
+}
+
+.skill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 1s ease-in-out, opacity 0s;
+  transform: translateX(100%);
+  opacity: 1;
+}
+
+.skill.leaving {
+  transition: transform 1s ease-in-out;
+}
+
+.skill.active {
+  transition: transform 1s ease-in-out;
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.skill.invisible {
+  opacity: 0;
+}
+
+.skill.leaving-left {
+  transform: translateX(-100%);
+}
+
+.skill.leaving-right {
+  transform: translateX(100%);
+}
+
+.skill.entering-left {
+  transform: translateX(-100%);
+}
+
+.skill.entering-right {
+  transform: translateX(100%);
+}
+
+.close {
+  position: absolute;
+  top: 0;
+  right: 2%;
+  font-size: 48px;  /* Increase font size */
+  cursor: pointer;
+}
+
+.notch-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.notch {
+  width: 10px;
+  height: 10px;
+  background: grey;
+  margin: 0 5px;
+  border-radius: 50%;
+}
+
+.notch.active {
+  background: black;
+  cursor: default;
+}
+
+.section-title {
+    text-align: center; 
+    margin-bottom: 10px
+}
+
+@media (max-width: 768px) {
+  .header-container {
+    display: flex;
+    flex-direction: column;
+    position: relative; /* To allow for absolute positioning of social icons */
+  }
+  
+  .header-text {
+    text-align: left;
+    order: 1; /* Place it at the top */
+  }
+
+.header-text a {
+  padding: 10px;
+  text-decoration: none;
+  color: white;
+}
+
+  .header-section {
+    order: 3; /* Place it at the bottom */
+    text-align: center;
+  }
+
+  .nav-links {
+  display: flex;
+  justify-content: center;  /* Center the items horizontally */
+  width: 100%;
+  }
+
+  .social-icons {
+    position: absolute;
+    display: flex;
+    gap: 1em;
+    vertical-align: center;
+    order: 2; /* Although it's positioned absolutely, it's good to keep the order for clarity */
+  }
+
+.social-icons a {
+    padding: 5px;
+
+}
+  .grid-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+  /* Style for the filter menu on mobile */
+  #filter-menu {
+    flex-direction: column;
+    padding: 10%;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  /* Adjust the layout of project cards */
+  .project-grid {
+    grid-template-columns: repeat(1, 2fr);
+    gap: 0px;
+ }
+
+  /* Adjust the layout of the intro section */
+  #intro-with-image-and-quote {
+    flex-direction: column;
+  }
+
+  #intro-with-image-and-quote .container {
+    flex-direction: column;
+  }
+
+  #intro-with-image-and-quote img {
+    max-width: 100%;
+  }
+
+
+  .desktop-only {
+    display: none;
+  }
+
+.skill-box {
+  position: relative;
+  width: 100%;
+  height: 80px;
+  overflow: hidden;
+  font-size: 1.2em; /* optional font size */
+  text-align: center
+}
+
+#filter-menu {
+  gap: 24px;
+}
+
+#filter-menu button {
+  width: auto;  /* Fixed width */
+  text-align: center;  /* Center the text */
+  
+}
+
+.modal-text {
+  margin-left: 0; /* gives some space below the intro text */
+  margin-right: 0; /* gives some space below the intro text */
+}
+}
