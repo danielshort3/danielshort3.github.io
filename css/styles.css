@@ -553,7 +553,8 @@ main {
 
 /* Style for #prevBtn and #nextBtn */
 #prevBtn, #nextBtn {
-  padding: 1% 2%; /* Similar to your other buttons */
+  width: 50px;
+  height: 30px;
   cursor: pointer;
   border: none;  /* Removes the default border */
   border-radius: 20px;  /* Rounded corners to match your other UI components */
@@ -561,8 +562,15 @@ main {
   color: white;  /* Text color to match your theme */
   font-family: 'Poppins', sans-serif; /* Consistency in font */
   transition: transform 0.3s, background-color 0.3s, color 0.3s; /* Transition effects */
-  margin: 1%;
   z-index: 2;
+}
+
+#prevBtn {
+    margin-left: 15px;
+}
+
+#nextBtn {
+    margin-right: 15px;
 }
 
 #prevBtn:hover, #nextBtn:hover {
@@ -597,19 +605,19 @@ main {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 10%; /* Adjust width as needed */
+  width: 50px; /* Adjust width as needed */
   z-index: 1;  /* above .skill-box and below .arrow-button */
   pointer-events: none;
   height: 100%;
 }
 
 .fade-left {
-  left: 5%; /* Adjust to the inside edge of the left arrow */
+  left: 50px; /* Adjust to the inside edge of the left arrow */
   background: linear-gradient(to right, white, rgba(255,255,255,0));
 }
 
 .fade-right {
-  right: 5%; /* Adjust to the inside edge of the right arrow */
+  right: 50px; /* Adjust to the inside edge of the right arrow */
   background: linear-gradient(to left, white, rgba(255,255,255,0));
 }
 
