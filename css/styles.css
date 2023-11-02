@@ -137,6 +137,17 @@ main {
   border-radius: 10px; /* Optional for rounded corners */
 }
 
+.images-container {
+  display: flex; /* Use flexbox to lay out the images next to each other */
+  justify-content: center; /* Center the images horizontally */
+  align-items: center; /* Center the images vertically */
+}
+
+.output-image {
+  width: 50%; /* Each image will take up half the width of the images-container */
+  object-fit: cover; /* This ensures the images cover the area without stretching */
+  height: auto; /* This will maintain the aspect ratio of the images */
+}
 
 .grid-container {
   display: grid;
