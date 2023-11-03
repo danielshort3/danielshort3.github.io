@@ -1,25 +1,28 @@
 ﻿document.addEventListener("DOMContentLoaded", () => {
   // Insert navigation and social media links
-    document.getElementById("combined-header-nav").insertAdjacentHTML('beforeend', `
-      <div class="header-container">
-        <div class="header-text">
-          <h1><a href="index.html">Daniel Short</a></h1>
-        </div>
-        <div class="header-section">
-          <div class="nav-links" id="nav-links"> <!-- Added ID for toggling -->
-            <a href="index.html">About Me</a>
-            <a href="projects.html">Projects</a>
-            <a href="contact.html">Contact</a>
-            <a href="documents/Resume.pdf" target="_blank" class="resume-link">Resume</a>
-          </div>
-        </div>
-        <div class="social-icons">
-          <a href="mailto:danielshort3@gmail.com" target="_blank"><i class="fas fa-envelope"></i></a>
-          <a href="https://www.linkedin.com/in/danielshort3/" target="_blank"><i class="fab fa-linkedin-in"></i></a>
-          <a href="https://github.com/danielshort3" target="_blank"><i class="fab fa-github"></i></a>
+  document.getElementById("combined-header-nav").insertAdjacentHTML('beforeend', `
+    <div class="header-container">
+     <a href="index.html" class="header-text">
+       <div class="header-logo">
+        <img src="images/logo.png" alt="Daniel Short Logo" id="logo" />
+      </div>
+        <h1 class="header-name">aniel Short</h1>
+      </a>
+      <div class="header-section">
+        <div class="nav-links" id="nav-links"> <!-- Added ID for toggling -->
+          <a href="index.html">About Me</a>
+          <a href="projects.html">Projects</a>
+          <a href="contact.html">Contact</a>
+          <a href="documents/Resume.pdf" target="_blank" class="resume-link">Resume</a>
         </div>
       </div>
-    `);
+      <div class="social-icons">
+        <a href="mailto:danielshort3@gmail.com" target="_blank"><i class="fas fa-envelope"></i></a>
+        <a href="https://www.linkedin.com/in/danielshort3/" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+        <a href="https://github.com/danielshort3" target="_blank"><i class="fab fa-github"></i></a>
+      </div>
+    </div>
+  `);
 
 
 
