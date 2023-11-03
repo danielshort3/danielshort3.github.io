@@ -144,7 +144,7 @@ main {
 }
 
 .output-image {
-  width: 50%; /* Each image will take up half the width of the images-container */
+  width: 40%; /* Each image will take up half the width of the images-container */
   object-fit: cover; /* This ensures the images cover the area without stretching */
   height: auto; /* This will maintain the aspect ratio of the images */
 }
@@ -234,8 +234,19 @@ main {
   z-index: 1000;
 }
 
+.header-logo img {
+  max-height: 30px; /* Makes the logo's height not exceed the container's height */
+  width: auto; /* Maintains the aspect ratio */
+  /* Vertically center the logo if necessary */
+  display: block;
+  margin: 0 auto;
+  padding-left: 10px; 
+}
+
 .header-text, .social-icons {
   flex-shrink: 0;  /* Make sure these elements do not shrink */
+  display: flex;
+  align-items: center; /* This will vertically center the items */
 }
 
 .header-section {
@@ -252,12 +263,18 @@ main {
   text-align: left;
   margin-right: auto;
   vertical-align: middle;
+  text-decoration: none; /* Removes the underline from links */
+  color: inherit; /* Inherits the color from the parent element, if needed */
 }
 
 .header-text a {
-  padding: 20px;
+  padding: 3px;
   text-decoration: none;
   color: white;
+}
+
+.header-name {
+    padding-left: 3px;
 }
 
 .nav-links {
@@ -714,6 +731,15 @@ main {
     flex-direction: column;
     position: relative; /* To allow for absolute positioning of social icons */
   }
+
+    .header-logo img {
+      max-height: 30px; /* Makes the logo's height not exceed the container's height */
+      width: auto; /* Maintains the aspect ratio */
+      /* Vertically center the logo if necessary */
+      display: block;
+      margin: 0 auto;
+      padding-left: 10px; 
+    }
   
   .header-text {
     text-align: left;
@@ -721,7 +747,7 @@ main {
   }
 
 .header-text a {
-  padding: 10px;
+  padding-left: 3px;
   text-decoration: none;
   color: white;
 }
