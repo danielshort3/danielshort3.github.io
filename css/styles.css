@@ -433,6 +433,7 @@ main {
   z-index: 2; /* In front of the image */
 }
 
+
 .project-card:hover .overlay {
   background-color: rgba(0, 0, 0, 0.5);  /* Make it a transparent gray */
 }
@@ -473,23 +474,6 @@ main {
   position: absolute;
 }
 
-.modal {
-    opacity: 0;
-    transition: opacity 0.5s ease-out;  /* Add transition */
-    display: none;
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.7);
-    z-index: 1;
-}
-
-.modal.show {
-  opacity: 1;
-}
-
 /* Define slide-down and fade-in animations */
 @keyframes slideDownFadeIn {
   0% {
@@ -502,18 +486,6 @@ main {
   }
 }
 
-/* Modify .modal-content */
-.modal-content {
-    position: relative;
-    margin: 10% auto; /* Vertically center */
-    padding: 20px;
-    max-width: 80%;  /* maximum width */
-    max-height: 70vh;  /* vh stands for viewport height */
-    overflow: auto; /* Enable vertical scrolling */
-    background-color: #fff;
-    /* Add animation */
-    animation: slideDownFadeIn 0.5s ease-out;
-}
 
 /* Modify .modal */
 .modal {
@@ -525,37 +497,288 @@ main {
     height: 100%;
     background-color: rgba(0,0,0,0.7);
     z-index: 1;
-    /* Add fading to modal background */
     animation: fadeIn 0.5s ease-out;
+    opacity: 0;
+    transition: opacity 0.5s ease-out;
 }
 
+.modal.show {
+    opacity: 1;
+}
+
+/* Modify .modal-content */
+.modal-content {
+    position: relative;
+    margin: 5% auto;
+    padding: 0;
+    max-width: 90%;
+    max-height: 80vh;
+    overflow: auto;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    animation: slideDownFadeIn 0.5s ease-out;
+}
+
+/* Modal title and strip */
 .modal-title {
     font-size: 1.7em;
     text-align: center;
+    margin: 0;
+    margin-bottom: 20px;
+    font-weight: bold;
 }
 
+.modal-title-strip {
+    background-color: #343a40;
+    color: white;
+    text-align: center;
+    padding: 10px 0;
+    margin-bottom: 20px;
+    border-radius: 10px 10px 0 0;
+    position: relative;
+    top: 0;
+}
+
+/* Modal text */
 .modal-text {
-  margin-left: 20%; /* gives some space below the intro text */
-  margin-right: 20%; /* gives some space below the intro text */
+    flex: 1;
+    margin: 0 auto;
+    width: 80%;
+    font-size: 1.1em;
+    line-height: 1.6;
+    color: #333;
 }
 
-/* Define fade-in for modal background */
-@keyframes fadeIn {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
+.modal-text h4 {
+    margin-bottom: 10px;
+    font-size: 1.2em;
+    color: #343a40;
 }
 
-/* New CSS to resize the image */
+.modal-text ul {
+    padding-left: 20px;
+}
+
+/* Image resizing in modal content */
 .modal-content img {
-  max-width: 80%;
-  display: block;
-  margin: auto;
-  margin-bottom: 10px;
+    max-width: 100%;
+    display: block;
+    border-radius: 10px;
 }
+
+/* Project card footer */
+.project-card-footer, .modal-header-details {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 10px;
+    background-color: #f6f6f6;
+    border-top: 1px solid #ddd;
+    border-radius: 0 0 10px 10px;
+}
+
+.project-card-footer a img {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+.modal-header-details a img {
+    margin-right: 10px;
+    vertical-align: middle;
+}
+.modal-header-details a.icon {
+    width: 48px;
+    height: 48px;
+}
+
+.modal-header-details {
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 20px;
+}
+
+.modal-header-details p {
+    margin: 0;
+}
+
+/* Modal close button */
+.close {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 48px;
+    cursor: pointer;
+    color: #FFF;
+    z-index: 2;
+}
+
+/* Modal tools and download sections */
+.modal-tools, .modal-download {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.modal-tools p, .modal-download p {
+    margin: 5px 0;
+}
+
+.modal-tools a, .modal-download a {
+    display: inline-block;
+    margin: 0 5px;
+}
+
+.tool-icons {
+    display: flex;
+    justify-content: center;
+}
+
+.download-icons {
+    display: flex;
+    justify-content: center;
+}
+
+.icon {
+    width: 32px;
+    height: 32px;
+}
+
+/* Vertical boundary */
+.vertical-boundary {
+    width: 1px;
+    height: 100%;
+    background-color: #ddd;
+    margin: 0 10px;
+}
+
+/* Modal body */
+.modal-body {
+    display: flex;
+    padding: 20px;
+    align-items: flex-start;
+    gap: 20px;
+    position: relative;
+    top: 0;
+}
+
+/* Modal image */
+.modal-image {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-image img {
+    max-width: 100%;
+    border-radius: 10px;
+}
+
+/* Media query for small screens */
+@media (max-width: 768px) {
+    .modal-header-details {
+        flex-direction: row;
+        justify-content: space-around;
+    }
+
+    .modal-tools, .modal-download {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .modal-tools p, .modal-download p {
+        margin-bottom: 5px;
+        text-align: center;
+    }
+
+    .vertical-boundary {
+        height: auto;
+        align-self: stretch;
+    }
+
+    .modal-body {
+        flex-direction: column;
+    }
+
+    .modal-image {
+        margin-top: 20px;
+    }
+
+    .modal-tools a.icon, .modal-download a.icon {
+        width: 24px;
+        height: 24px;
+    }
+}
+
+/* Media query for large screens */
+@media (min-width: 769px) {
+    .modal-header-details {
+        flex-direction: row;
+        justify-content: center;
+    }
+
+    .modal-tools, .modal-download {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .modal-tools {
+        width: 50%;
+        display: flex;
+        justify-content: center;
+    }
+
+    .modal-download {
+        width: 50%;
+        display: flex;
+        justify-content: center;
+    }
+
+    .modal-tools p, .modal-download p {
+        margin-right: 10px;
+    }
+
+    .tool-icons {
+        justify-content: flex-start;
+    }
+
+    .download-icons {
+        justify-content: flex-start;
+    }
+
+    .vertical-boundary {
+        height: auto;
+        align-self: stretch;
+    }
+
+    .modal-header-details a.icon {
+        width: 48px;
+        height: 48px;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 .no-hover:hover .overlay,
@@ -832,10 +1055,4 @@ main {
   width: auto;  /* Fixed width */
   text-align: center;  /* Center the text */
   
-}
-
-.modal-text {
-  margin-left: 0; /* gives some space below the intro text */
-  margin-right: 0; /* gives some space below the intro text */
-}
 }
