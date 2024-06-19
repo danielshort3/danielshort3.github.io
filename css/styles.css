@@ -525,7 +525,8 @@ main {
     font-size: 1.7em;
     text-align: center;
     margin: 0;
-    margin-bottom: 20px;
+    margin-top: 25px;
+    margin-bottom: 25px;
     font-weight: bold;
 }
 
@@ -572,7 +573,8 @@ main {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    padding: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
     background-color: #f6f6f6;
     border-top: 1px solid #ddd;
     border-radius: 0 0 10px 10px;
@@ -586,7 +588,6 @@ main {
 }
 
 .modal-header-details a img {
-    margin-right: 10px;
     vertical-align: middle;
 }
 .modal-header-details a.icon {
@@ -600,8 +601,36 @@ main {
 }
 
 .modal-header-details p {
+    align-items: center;
     margin: 0;
 }
+
+
+
+.modal-half {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.icon-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+
+.modal-header-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+
+
 
 /* Modal close button */
 .close {
