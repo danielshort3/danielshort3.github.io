@@ -552,6 +552,7 @@ main {
 }
 
 .modal-text h4 {
+    margin-top: 0px;
     margin-bottom: 10px;
     font-size: 1.2em;
     color: #343a40;
@@ -597,7 +598,6 @@ main {
 
 .modal-header-details {
     border-bottom: 1px solid #ddd;
-    margin-bottom: 20px;
 }
 
 .modal-header-details p {
