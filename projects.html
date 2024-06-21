@@ -157,6 +157,17 @@
             "url": "https://github.com/danielshort3/mssql",
             "image": "images/project_12.png"
           }
+        },
+        {
+          "@type": "ListItem",
+          "position": 13,
+          "item": {
+            "@type": "CreativeWork",
+            "name": "Sentence Embeddings",
+            "description": "Compared various pretrained models to search for meaning in documents.",
+            "url": "https://github.com/danielshort3/Sentence-Embeddings",
+            "image": "images/project_13.png"
+          }
         }
       ]
     }
@@ -908,6 +919,69 @@
           </div>
       </div>
     </div>
+
+    <!-- Project 13: Sentence Embeddings -->
+    <div class="project-card" onclick="showModal('project13-modal')">
+      <div class="overlay"></div>
+      <div class="project-title">Sentence Embeddings</div>
+      <div class="project-subtitle">Natural Language Processing</div>
+      <p><span data-tools="PyTorch, Sentence Transformers"></span></p>
+      <img src="images/project_13.png" alt="Project 13">
+    </div>
+
+    <!-- Modal for Project 13 -->
+    <div id="project13-modal" class="modal">
+      <div class="modal-content">
+          <span class="close" onclick="closeModal('project13-modal')">&times;</span>
+          <div class="modal-title-strip">
+              <h3 class="modal-title">Sentence Embeddings</h3>
+          </div>
+          <div class="modal-header-details">
+              <div class="modal-half modal-tools">
+                  <p><strong>Tools</strong></p>
+                  <div class="download-icons">
+                      <a>
+                          <img src="images/python-icon.png" alt="PyTorch" class="icon">
+                      </a>
+                  </div>
+              </div>
+              <div class="vertical-boundary"></div>
+              <div class="modal-half modal-download">
+                  <p><strong>Downloads</strong></p>
+                  <div class="download-icons">
+                      <a href="https://github.com/danielshort3/sentence-embeddings" target="_blank">
+                          <img src="images/github-icon.png" alt="GitHub Repository" class="icon">
+                      </a>
+                      <a href="documents/Project_13.pdf" target="_blank">
+                          <img src="images/pdf-icon.png" alt="PDF" class="icon">
+                      </a>
+                      <a href="documents/Project_13.ipynb" target="_blank">
+                          <img src="images/jupyter-icon.png" alt="Jupyter Notebook" class="icon">
+                      </a>
+                  </div>
+              </div>
+          </div>
+          <div class="modal-body">
+              <div class="modal-text">
+                  <h4>Process:</h4>
+                  <ul>
+                      <li>Loaded and cleaned the text data, segmenting it into individual sentences.</li>
+                      <li>DevelopedApplied various pre-trained sentence-transformer models to encode the sentences and the input query.</li>
+                      <li>Calculated cosine similarity scores to rank sentences based on their relevance to the input query.</li>
+                  </ul>
+                  <h4>Results:</h4>
+                  <ul>
+                      <li>Successfully identified and highlighted the most relevant sentences in large text documents.</li>
+                      <li>Demonstrated the effectiveness of different pre-trained models in accurately ranking sentence relevance.</li>
+                  </ul>
+              </div>
+              <div class="modal-image">
+                  <img src="images/project_13.png" alt="Project 13 Visualizations">
+              </div>
+          </div>
+      </div>
+    </div>
+
 
   </section>
 
