@@ -119,7 +119,7 @@
           "position": 9,
           "item": {
             "@type": "CreativeWork",
-            "name": "Variational Autoencoder",
+            "name": "Handwritten Digit Generator",
             "description": "Encodes input images into a latent space and then decode the latent space, creating unique digits.",
             "url": "https://github.com/danielshort3/Variational-Autoencoder/",
             "image": "images/project_9.png"
@@ -163,8 +163,8 @@
           "position": 13,
           "item": {
             "@type": "CreativeWork",
-            "name": "Sentence Embeddings",
-            "description": "Compared various pretrained models to search for meaning in documents.",
+            "name": "Smart Sentence Finder",
+            "description": "Compared various pretrained models to search for meaning in documents using embeddings.",
             "url": "https://github.com/danielshort3/Sentence-Embeddings",
             "image": "images/project_13.png"
           }
@@ -674,7 +674,7 @@
     <!-- Project 9: Variational Autoencoder -->
     <div class="project-card" onclick="showModal('project9-modal')">
       <div class="overlay"></div>
-      <div class="project-title">Variational Autoencoder</div>
+      <div class="project-title">Handwritten Digit Generator</div>
       <div class="project-subtitle">Machine Learning</div>
       <p><span data-tools="Python"></span></p>
       <img src="images/project_9.png" alt="Project 9 VAE">
@@ -685,7 +685,7 @@
       <div class="modal-content">
           <span class="close" onclick="closeModal('project9-modal')">&times;</span>
           <div class="modal-title-strip">
-              <h3 class="modal-title">Variational Autoencoder</h3>
+              <h3 class="modal-title">Handwritten Digit Generator</h3>
           </div>
           <div class="modal-header-details">
               <div class="modal-half modal-tools">
@@ -724,7 +724,7 @@
                   <ul>
                       <li>Visualized original and reconstructed images to assess model performance.</li>
                       <li>Explored the latent space using PCA, t-SNE, and UMAP.</li>
-                      <li>Performed clustering analysis and identified outliers in the latent space.</li>
+                      <li>Generated unique digit images from the learned latent space.</li>
                   </ul>
               </div>
               <div class="modal-image">
@@ -920,10 +920,10 @@
       </div>
     </div>
 
-    <!-- Project 13: Sentence Embeddings -->
+    <!-- Project 13: Smart Sentence Finder -->
     <div class="project-card" onclick="showModal('project13-modal')">
       <div class="overlay"></div>
-      <div class="project-title">Sentence Embeddings</div>
+      <div class="project-title">Smart Sentence Finder</div>
       <div class="project-subtitle">Natural Language Processing</div>
       <p><span data-tools="PyTorch, Sentence Transformers"></span></p>
       <img src="images/project_13.png" alt="Project 13">
@@ -934,7 +934,7 @@
       <div class="modal-content">
           <span class="close" onclick="closeModal('project13-modal')">&times;</span>
           <div class="modal-title-strip">
-              <h3 class="modal-title">Sentence Embeddings</h3>
+              <h3 class="modal-title">Smart Sentence Finder</h3>
           </div>
           <div class="modal-header-details">
               <div class="modal-half modal-tools">
@@ -966,7 +966,7 @@
                   <h4>Process:</h4>
                   <ul>
                       <li>Loaded and cleaned the text data, segmenting it into individual sentences.</li>
-                      <li>DevelopedApplied various pre-trained sentence-transformer models to encode the sentences and the input query.</li>
+                      <li>Applied various pre-trained sentence-transformer models to encode the sentences and the input query into embeddings.</li>
                       <li>Calculated cosine similarity scores to rank sentences based on their relevance to the input query.</li>
                   </ul>
                   <h4>Results:</h4>
