@@ -3,10 +3,7 @@
   document.getElementById("combined-header-nav").insertAdjacentHTML('beforeend', `
     <div class="header-container">
      <a href="index.html" class="header-text">
-       <div class="header-logo">
-        <img src="images/logo.png" alt="Daniel Short Logo" id="logo" />
-      </div>
-        <h1 class="header-name">aniel Short</h1>
+        <h1 class="header-name">Daniel Short</h1>
       </a>
       <div class="header-section">
         <div class="nav-links" id="nav-links"> <!-- Added ID for toggling -->
