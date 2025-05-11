@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio │ Daniel Short</title>
+
+  <!-- GA-4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-0VL37MQ62P"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-0VL37MQ62P');
+  </script>
+
+  <!-- styles -->
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="icon" href="images/logo.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap" rel="stylesheet">
+
+  <meta name="description"
+        content="Curated portfolio of data-analytics, ML, and visualisation projects by Daniel Short.">
+</head>
+
+<body data-page="portfolio">
+
+  <!-- nav is injected by common.js -->
+  <header id="combined-header-nav"></header>
+
+  <!-- hero -->
+  <section class="hero">
+    <div class="wrapper">
+      <h1>Portfolio Showcase</h1>
+      <p>A selection of projects that highlight my analytical mindset and technical depth.</p>
+    </div>
+  </section>
+
+  <!-- filter buttons -->
+  <section class="reveal interest-pad" id="filters">
+    <div class="wrapper" style="text-align:center">
+      <nav id="filter-menu" role="tablist">
+        <button data-filter="all"     class="btn-secondary" role="tab" aria-selected="true">All</button>
+        <button data-filter="Python"  class="btn-secondary" role="tab">Python</button>
+        <button data-filter="SQL"     class="btn-secondary" role="tab">SQL</button>
+        <button data-filter="Excel"   class="btn-secondary" role="tab">Excel</button>
+        <button data-filter="Tableau" class="btn-secondary" role="tab">Tableau</button>
+      </nav>
+    </div>
+  </section>
+
+  <!-- dynamic grid + modals -->
+  <section id="projects" class="grid reveal"></section>
+  <div id="modals"></div>
+
+  <!-- footer is injected by common.js -->
+  <footer></footer>
+
+  <!-- scripts -->
+  <script defer src="js/common.js"></script>
+  <script defer src="js/portfolio.js"></script>
+</body>
+</html>
