@@ -1,301 +1,329 @@
-﻿document.addEventListener("DOMContentLoaded", () => {
-  // Insert navigation and social media links
-  document.getElementById("combined-header-nav").insertAdjacentHTML('beforeend', `
-    <div class="header-container">
-     <a href="index.html" class="header-text">
-        <h1 class="header-name">Daniel Short</h1>
-      </a>
-      <div class="header-section">
-        <div class="nav-links" id="nav-links"> <!-- Added ID for toggling -->
-          <a href="index.html">About Me</a>
-          <a href="projects.html">Projects</a>
-          <a href="contact.html">Contact</a>
-          <a href="documents/Resume.pdf" target="_blank" class="resume-link">Resume</a>
-        </div>
-      </div>
-      <div class="social-icons">
-        <a href="mailto:danielshort3@gmail.com" target="_blank"><i class="fas fa-envelope"></i></a>
-        <a href="https://www.linkedin.com/in/danielshort3/" target="_blank"><i class="fab fa-linkedin-in"></i></a>
-        <a href="https://github.com/danielshort3" target="_blank"><i class="fab fa-github"></i></a>
-      </div>
-    </div>
-  `);
+﻿/* ───────────────────────────────────────────────────────────
+ common.js • site-wide UX helpers          (v2 • lean core)
+ ▸ Everything portfolio-specific now lives in portfolio.js
+─────────────────────────────────────────────────────────── */
+(() => {
+  "use strict";
 
+  /* shorthand helpers */
+  const   $ = (sel,  ctx = document) => ctx.querySelector(sel);
+  const  $$ = (sel,  ctx = document) => [...ctx.querySelectorAll(sel)];
+  const on  = (node, evt, fn, opt)  => node && node.addEventListener(evt, fn, opt);
+  const run = fn  => typeof fn === "function" && fn();
 
+  /* utility – match <body data-page=""> against strings */
+  const isPage = (...names) => names.includes(document.body.dataset.page);
 
-  const filterButtons = document.querySelectorAll("#filter-menu button");
-  const projectCards = document.querySelectorAll("#projects .project-card");
+  /* ───────────────────────── DOM READY BOOTSTRAP ─────────────────────── */
+  document.addEventListener("DOMContentLoaded", () => {
+    injectNav();
+    injectFooter();
+    if (isPage("home")) run(window.buildFeaturedCarousel);  // optional helper
 
-  projectCards.forEach(card => card.dataset.visible = "true");
+    initReveal();
+    setScrollbarVar();
+    initChevronHint();
+    initCertTicker();
 
-  const projectsSection = document.getElementById("projects");
-  const navigationPane = document.getElementById("combined-header-nav");
+    if (isPage("portfolio"))     run(window.buildPortfolio);       // called once
+    if (isPage("home"))      run(initSkillPopups);      // ← new line
 
-filterButtons.forEach(button => {
-  button.addEventListener("click", (event) => {
-    
-    // Step 1: Remove '.active' from all buttons
-    filterButtons.forEach(btn => {
-      btn.classList.remove("active");
-    });
+  });
 
-    // Step 2: Add '.active' to the clicked button
-    event.target.classList.add("active");
+  /* ╭───────────────────── REVEAL-ON-SCROLL ────────────────────╮ */
+  function initReveal(){
+    const io = new IntersectionObserver(
+      (ents, o) => ents.forEach(e=>{
+        if (e.isIntersecting){ e.target.classList.add("active"); o.unobserve(e.target); }
+      }),
+      { threshold:.15 }
+    );
+    $$(".reveal:not(.no-reveal)").forEach(el => io.observe(el));
+  }
 
-    const filter = event.target.dataset.filter.split(',');
+  /* ╭────────── compensate for native scrollbar width ──────────╮ */
+  const setScrollbarVar = () => {
+    const sb = window.innerWidth - document.documentElement.clientWidth;
+    document.documentElement.style.setProperty("--scrollbar", `${sb}px`);
+  };
 
-      // Set initial condition: Add 'fade-out' class
-        projectCards.forEach(card => {
-          card.classList.add("fade-out");
-        });
+  /* ╭──────────────────── SCROLL HINT CHEVRON ──────────────────╮ */
+  function initChevronHint(){
+    const chev = $(".chevron-hint");
+    if (!chev) return;
 
-        // First timeout to handle fade-out
-        setTimeout(() => {
-          projectCards.forEach(card => {
-            const tools = card.querySelector("[data-tools]").dataset.tools.split(',');
-            card.dataset.visible = filter.includes("all") || filter.some(f => tools.includes(f)) ? "true" : "false";
+    const toggle = () => chev.classList.toggle("hide", window.scrollY > 40);
+    on(window,"scroll", toggle, { passive:true });
+    toggle();                               // initial state
 
-            // Remove the fade-out class but wait for some time
-            setTimeout(() => {
-              card.classList.remove("fade-out");
-            }, 20); // a slight delay to allow the browser to recognize the changes
-
-          });
-
-          // Existing code for scroll and align
-          const offsetTop = projectsSection.getBoundingClientRect().top + window.pageYOffset;
-          const navHeight = navigationPane.offsetHeight;
-
-          // Only execute if window width is 768 pixels or less (mobile view)
-          if (window.innerWidth <= 768) {
-            window.scrollTo({
-              top: offsetTop - navHeight,
-              behavior: 'smooth'
-            });
-          }
-
-        }, 400); // existing 400ms timeout
+    /* click ► scroll to next section */
+    $$(".scroll-indicator").forEach(ind=>{
+      on(ind,"click",()=>{
+        const next = ind.closest(".hero")?.nextElementSibling;
+        (next || window).scrollBy({ top: next ? 0 : window.innerHeight*0.8,
+                                    behavior:"smooth" });
+        ind.classList.add("hidden");
       });
     });
-
-  // Check for hash and open corresponding modal
-  const initialHash = window.location.hash.substr(1);  // Remove the '#'
-  if (initialHash && document.getElementById(initialHash)) {
-    showModal(initialHash);
   }
 
+  /* ╭──────────────────── CERTIFICATION TICKER ─────────────────╮ */
+    function initCertTicker () {
+      const track = document.querySelector(".cert-track");
+      if (!track) return;
 
-  // Modal handling (Test rigorously on mobile)
-  const modals = document.querySelectorAll('.modal');
-  
-  modals.forEach(modal => modal.addEventListener('click', event => {
-    if (event.target === modal) {
-      closeModal(modal.id);
+      /* constants + state -------------------------------------------------- */
+      const GAP   = 160,       // space between tiles
+            BASE  =  90,       // auto-scroll px/s
+            DRAG  =   6;       // drag-to-click threshold px
+
+      let v = BASE, target = BASE;     // velocity, velocity target
+      let bandW, stripW = 0;           // viewport width, total strip width
+      let down = false, moved = false, sx = 0, lx = 0, cancelClk = false;
+
+      const originals = [...track.children];
+      const tiles     = [...originals];   // originals + all clones
+
+      const setPos = (el, x) => {
+        el.dataset.x = x;
+        el.style.transform = `translateX(${x}px)`;
+      };
+
+    /* ----- lay out + clone --------------------------------------------- */
+    const fill = () => {
+      /* wipe old clones */
+      tiles.slice(originals.length).forEach(el => el.remove());
+      tiles.length = originals.length;
+      stripW = 0;
+
+      /* lay out originals */
+      originals.forEach((t, i) => {
+        const w = t.offsetWidth + GAP;
+        Object.assign(t.dataset, { w, orig: i });
+        setPos(t, stripW);
+        stripW += w;
+      });
+
+      const baseW = stripW;                          // ① width of originals
+      bandW = track.getBoundingClientRect().width;   // ② viewport width
+
+      /* clone whole rows until first clone is ≥ 1 viewport away --------- */
+      while (stripW < baseW + bandW) {               // ③ new stop-condition
+        originals.forEach(src => {
+          const clone = src.cloneNode(true);
+          track.appendChild(clone);                  // must be in DOM first
+          const w = clone.offsetWidth + GAP;
+          Object.assign(clone.dataset, { w, orig: +src.dataset.orig });
+          setPos(clone, stripW);
+          stripW += w;
+          tiles.push(clone);
+        });
+      }
+    };
+
+      /* wait for images, then build strip; rebuild on resize -------------- */
+      window.addEventListener("load", fill);
+      window.addEventListener("resize", fill);
+
+      /* hover pause ------------------------------------------------------- */
+      track.addEventListener("mouseenter", () => (target = 0));
+      track.addEventListener("mouseleave", () => (target = BASE));
+
+      /* drag -------------------------------------------------------------- */
+      const move = dx =>
+        tiles.forEach(t => {
+          let x = +t.dataset.x + dx,
+            w = +t.dataset.w;
+          x =
+            dx < 0
+              ? x + w <= 0
+                ? x + stripW
+                : x
+              : x >= bandW
+              ? x - stripW
+              : x;
+          setPos(t, x);
+        });
+
+      const up = () => {
+        if (moved) cancelClk = true;
+        down = moved = false;
+        track.classList.remove("dragging");
+        ["pointermove", "pointerup", "pointercancel"].forEach(e =>
+          window.removeEventListener(e, up)
+        );
+      };
+
+      track.addEventListener("pointerdown", e => {
+        if (e.button) return;
+        down = true;
+        sx = lx = e.clientX;
+
+        const onMove = e => {
+          if (!down) return;
+          const dxT = e.clientX - sx;
+          if (!moved && Math.abs(dxT) >= DRAG) {
+            moved = true;
+            track.classList.add("dragging");
+          }
+          if (moved) {
+            move(e.clientX - lx);
+            lx = e.clientX;
+            e.preventDefault();
+          }
+        };
+
+        window.addEventListener("pointermove", onMove);
+        window.addEventListener("pointerup", up, { once: true });
+        window.addEventListener("pointercancel", up, { once: true });
+      });
+
+      track.addEventListener(
+        "click",
+        e => {
+          if (cancelClk) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            cancelClk = false;
+          }
+        },
+        true
+      );
+
+      /* auto-scroll ------------------------------------------------------- */
+      let last = performance.now();
+      (function loop(now) {
+        const dt = (now - last) / 1000;
+        last = now;
+        v += (target - v) * Math.min(1, dt * 4); // ease toward target
+
+        if (!down && !moved) {
+          tiles.forEach(t => {
+            let x = +t.dataset.x - v * dt,
+              w = +t.dataset.w;
+            if (x < -w) x += stripW;
+            setPos(t, x);
+          });
+        }
+        requestAnimationFrame(loop);
+      })(last);
     }
-  }));
-});
 
-let currentOpenModal = null;
+  /* ╭──────────────────────── NAV & FOOTER ─────────────────────╮ */
+  function injectNav(){
+    const host=$("#combined-header-nav");
+    if(!host) return;
 
-function closeModal(modalId) {
-  const modal = document.getElementById(modalId);
-  modal.style.display = 'none';
-  modal.style.zIndex = '';  // Reset z-index value
-  
-  // Optionally, re-enable interactions with other elements
-  document.body.style.pointerEvents = 'auto';
+    const animate = !sessionStorage.getItem("navEntryPlayed");
+    sessionStorage.setItem("navEntryPlayed","yes");
 
-  currentOpenModal = null;
-  
-  toggleHoverOnProjectCards('remove');
-}
+    host.innerHTML=`
+      <nav class="nav ${animate?"animate-entry":""}">
+        <div class="wrapper">
+          <a href="index.html" class="brand">
+            <img src="images/logo.png" alt="DS logo" class="brand-logo">
+            <span class="brand-name">Daniel Short │ Data & Insights</span>
+          </a>
+          <!-- new ↓ button lives beside the logo -->
+          <button id="nav-toggle"
+                  class="burger"
+                  aria-label="Toggle navigation"
+                  aria-expanded="false">
+            <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+          </button>
 
-function toggleHoverOnProjectCards(action) {
-  const projectCards = document.querySelectorAll('.project-card');
-  projectCards.forEach(card => {
-    card.classList[action]('no-hover');
-  });
-}
+          <!-- unchanged links – give wrapper a data-attr so we can slide it -->
+          <nav class="nav-row" data-collapsible>
+            <a href="index.html"           class="btn-secondary nav-link">Home</a>
+            <a href="portfolio.html"       class="btn-secondary nav-link">Portfolio</a>
+            <a href="contributions.html"   class="btn-secondary nav-link">Contributions</a>
+            <a href="contact.html"         class="btn-secondary nav-link">Contact</a>
+            <a href="documents/Resume.pdf" class="btn-secondary nav-link" target="_blank" download>Resume</a>
+          </nav>
+        </div>
+      </nav>`;
 
-function showModal(modalId) {
-document.body.style.overflow = 'hidden';
- if (currentOpenModal) {
-    closeModal(currentOpenModal);
-  }
+    /* highlight current page */
+    const cur = location.pathname.split("/").pop() || "index.html";
+    $$(".nav-link").forEach(l=>{
+      if (l.getAttribute("href")===cur){
+        l.classList.replace("btn-secondary","btn-primary");
+        l.setAttribute("aria-current","page");
+      }
+    });
 
-  const modal = document.getElementById(modalId);
-  modal.classList.add('show');  // Add 'show' class
-  modal.style.display = 'block';
-  modal.style.zIndex = 1000;
+      /* hamburger behaviour */
+    const burger = host.querySelector("#nav-toggle");
+    const menu   = host.querySelector(".nav-row");
 
-  // Optionally, disable interactions with other elements
-  document.body.style.pointerEvents = 'none';
-  modal.style.pointerEvents = 'auto';
+    if (burger && menu){
+      burger.addEventListener("click", () => {
 
-  window.location.hash = modalId;
-  currentOpenModal = modalId;
+        /* ①  Find the **visible** fixed header bar the burger sits in  */
+        const headerBar = burger.closest(".nav") || host;
 
-  toggleHoverOnProjectCards('add');
-}
+        /* ②  Measure its distance from the top of the viewport         */
+        const headerBottom = headerBar.getBoundingClientRect().bottom;
 
-function closeModal(modalId) {
-  const modal = document.getElementById(modalId);
-  modal.classList.remove('show');  // Remove 'show' class
+        /* ③  Position the drawer right below it                        */
+        menu.style.top = `${headerBottom}px`;
 
-  // Use a timeout to match the transition time to hide the modal
-  setTimeout(() => {
-    modal.style.display = 'none';
-    modal.style.zIndex = '';  // Reset z-index value
-  }, 500);  // 500ms matches the CSS transition time
+        /* ④  DEBUG so you can verify the number                        */
+        console.log("[NAV] header bottom =", headerBottom, "→ drawer top =", menu.style.top);
 
-  // Optionally, re-enable interactions with other elements
-  document.body.style.pointerEvents = 'auto';
-  document.body.style.overflow = 'auto';  // Enable background scroll
-
-  // Replace the current history entry without affecting the view
-  history.replaceState(null, document.title, window.location.pathname + window.location.search);
-
-  currentOpenModal = null;
-
-  toggleHoverOnProjectCards('remove');
-}
-
-let counter = 1;
-let intervalId;
-let isTransitioning = false;
-
-// Count the number of skill elements
-const numberOfSkills = document.querySelectorAll('.skill').length;
-
-// Modify the createNotches function to remove click event listeners
-function createNotches() {
-  const notchContainer = document.querySelector('.notch-container');
-  for (let i = 1; i <= numberOfSkills; i++) {
-    const notch = document.createElement('div');
-    notch.classList.add('notch');
-    notch.id = `notch${i}`;
-    // Removed event listener to make notch non-clickable
-    notchContainer.appendChild(notch);
-  }
-}
-
-function updateActiveNotch() {
-  // Remove 'active', 'leaving' and 'incoming' classes from all notches
-  document.querySelectorAll('.notch').forEach(n => {
-    n.classList.remove('active', 'leaving', 'incoming');
-  });
-
-  // Add 'active' class to the currently active notch
-  document.getElementById(`notch${counter}`).classList.add('active');
-
-  // Calculate the next notch
-  const nextCounter = (counter % numberOfSkills) + 1;
-
-  // Add 'incoming' class to the next notch
-  document.getElementById(`notch${nextCounter}`).classList.add('incoming');
-}
-
-function cycleSkills(direction = 'forward', targetCounter = null) {
-  if (isTransitioning) return;
-
-  isTransitioning = true;
-
-  clearInterval(intervalId);
-  startInterval();
-
-  const oldSkill = document.querySelector('.skill.active');
-
-  if (oldSkill) {
-    oldSkill.classList.remove('active');
-    oldSkill.classList.add('leaving');
-  }
-
-  let slideFrom = 'none'; // By default, do not slide from any direction
-  if (targetCounter !== null) {
-    slideFrom = targetCounter > counter ? 'right' : 'left';
-    counter = targetCounter;
-  } else {
-    if (direction === 'forward') {
-      counter = (counter % numberOfSkills) + 1;
-      slideFrom = 'right';
-    } else {
-      counter = ((counter - 2 + numberOfSkills) % numberOfSkills) + 1;
-      slideFrom = 'left';
+        /* ⑤  Toggle drawer open / closed                               */
+        const open = menu.classList.toggle("open");
+        burger.setAttribute("aria-expanded", open);
+      });
     }
   }
 
-  const newSkill = document.getElementById(`skill${counter}`);
-  
-  newSkill.classList.remove('leaving');
-  newSkill.classList.add('active');
-  
-  // Temporarily disable transitions to set the initial position
-  newSkill.style.transition = 'none';
-  oldSkill.style.transition = 'none';
-  
-  // Set the starting position
-  newSkill.style.transform = (slideFrom === 'right') ? 'translateX(100%)' : 'translateX(-100%)';
-  oldSkill.style.transform = 'translateX(0)';
-  
-  // Force a DOM reflow
-  newSkill.getBoundingClientRect();
-  oldSkill.getBoundingClientRect();
-  
-  // Re-enable the transitions
-  newSkill.style.transition = 'transform 1s ease-in-out';
-  oldSkill.style.transition = 'transform 1s ease-in-out';
-  
-  // Animate to the final position
-  newSkill.style.transform = 'translateX(0)';
-  oldSkill.style.transform = (direction === 'forward') ? 'translateX(-100%)' : 'translateX(100%)';
-
-  updateActiveNotch();
-
-  // Reset after transition
-  newSkill.addEventListener('transitionend', function() {
-    isTransitioning = false;
-    oldSkill.classList.remove('leaving');
-    oldSkill.style.transition = 'none';
-  }, { once: true });
-}
-
-
-
-
-// Initialize the notches and first active notch
-createNotches();
-updateActiveNotch();
-
-// Initialize the first skill as active
-document.getElementById(`skill${counter}`).classList.add('active');
-
-// Function to start the interval
-function startInterval() {
-  intervalId = setInterval(function() {
-    cycleSkills('forward');
-  }, 3000); // Interval time
-}
-
-// Start the interval initially
-startInterval();
-
-// Listen for visibility changes
-document.addEventListener('visibilitychange', function() {
-  if (document.hidden) {
-    clearInterval(intervalId);
-  } else {
-    startInterval();
+  function injectFooter(){
+    const f=$("footer");
+    if(!f) return;
+    f.classList.add("footer");
+    f.innerHTML=`
+      <div class="social">
+        <a class="btn-icon" href="mailto:danielshort3@gmail.com" aria-label="Email"><i class="fas fa-envelope"></i></a>
+        <a class="btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+        <a class="btn-icon" href="https://github.com/danielshort3" target="_blank" aria-label="GitHub"><i class="fab fa-github"></i></a>
+      </div>
+      <p>© 2025 Daniel Short. All rights reserved.</p>`;
   }
-});
 
-// Add event listeners for buttons
-document.getElementById('prevBtn').addEventListener('click', function() {
-  if (isTransitioning) return; // If a transition is ongoing, do nothing
-  cycleSkills('backward');
-});
 
-document.getElementById('nextBtn').addEventListener('click', function() {
-  if (isTransitioning) return; // If a transition is ongoing, do nothing
-  cycleSkills('forward');
-});
+    /* ╭────────── Home-page skill pop-ups (no duplication) ─────────╮ */
+    function initSkillPopups(){
+      if (!document.body.dataset.page?.includes("home")) return;
 
+      const modalsRoot = $("#modals") || (()=> {
+        const d = document.createElement("div");
+        d.id="modals"; document.body.appendChild(d); return d;
+      })();
+
+      /* build modals once using the shared portfolio helper */
+      window.PROJECTS.forEach(p=>{
+        if ($("#"+p.id+"-modal")) return;          // already exists
+        const m = document.createElement("div");
+        m.className="modal"; m.id=`${p.id}-modal`;
+        m.innerHTML = window.generateProjectModal(p);
+        modalsRoot.appendChild(m);
+      });
+
+      /* click tile → open */
+      $$(".skill-link").forEach(btn=>{
+        on(btn,"click",e=>{
+          e.preventDefault();
+          openModal(btn.dataset.project);
+        });
+      });
+
+      if (location.hash) openModal(location.hash.slice(1));
+    }
+
+    /* call it during DOMContentLoaded */
+    document.addEventListener("DOMContentLoaded", ()=> {
+      if (window.buildPortfolio) run(initSkillPopups);
+    });
+
+})();   /* end common.js IIFE */
