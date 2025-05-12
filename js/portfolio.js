@@ -369,7 +369,7 @@ window.generateProjectModal = function(p){
 };
 
 /* ────────────────────────────────────────────────────────────
-   DOM-builder
+   DOM-builder  (loads all projects immediately)
    ------------------------------------------------------------------
    • Builds cards inside  #projects
    • Builds modals inside #modals
@@ -396,7 +396,7 @@ function buildPortfolio() {
       <div class="overlay"></div>
       <div class="project-title">${p.title}</div>
       <div class="project-subtitle">${p.subtitle}</div>
-      <img src="${p.image}" alt="${p.title}" loading="lazy">`);
+      <img src="${p.image}" alt="${p.title}" loading="eager">`);
     card.dataset.index = i;
     card.dataset.tags  = p.tools.join(",");
     card.addEventListener("click", () => openModal(p.id));
@@ -409,75 +409,37 @@ function buildPortfolio() {
     modals.appendChild(modal);
   });
 
-  /* ripple-in once grid enters the viewport ------------------------- */
-  new IntersectionObserver((e,o)=>{
-    if (!e[0].isIntersecting) return;
-    [...grid.children].forEach((c,i)=>{
-      c.style.animationDelay = `${i*80}ms`;
-      c.classList.add("ripple-in");
-    });
-    o.disconnect();
-  },{threshold:.15}).observe(grid);
-
-  /* ➋ Build filter-button counts ----------------------------------- */
-  const counts = { all : window.PROJECTS.length };
-  window.PROJECTS.forEach(p => p.tools.forEach(t => counts[t]=(counts[t]||0)+1));
-  [...menu.children].forEach(btn=>{
-    const tag = btn.dataset.filter;
-    btn.innerHTML = `${btn.textContent.trim()} ${(counts[tag]||0)}/${counts.all}`;
+  /* ➋ Animate cards right away (no IntersectionObserver) ----------- */
+  [...grid.children].forEach((c, i) => {
+    c.style.animationDelay = `${i * 80}ms`;
+    c.classList.add("ripple-in");
   });
 
-  /* ➌ Filter behaviour (fade-out → update → fade-in) ---------------- */
-  menu.addEventListener("click", e=>{
+  /* ➌ Build filter-button counts ----------------------------------- */
+  const counts = { all: window.PROJECTS.length };
+  window.PROJECTS.forEach(p => p.tools.forEach(t => counts[t] = (counts[t] || 0) + 1));
+  [...menu.children].forEach(btn => {
+    const tag = btn.dataset.filter;
+    btn.innerHTML = `${btn.textContent.trim()} ${(counts[tag] || 0)}/${counts.all}`;
+  });
+
+  /* ➍ Filter behaviour (fade-out → update → fade-in) --------------- */
+  menu.addEventListener("click", e => {
     if (!e.target.dataset.filter) return;
 
     /* button UI */
-    [...menu.children].forEach(b=>{
-      b.classList.replace("btn-primary","btn-secondary");
-      b.setAttribute("aria-selected","false");
+    [...menu.children].forEach(b => {
+      b.classList.replace("btn-primary", "btn-secondary");
+      b.setAttribute("aria-selected", "false");
     });
-    e.target.classList.replace("btn-secondary","btn-primary");
-    e.target.setAttribute("aria-selected","true");
+    e.target.classList.replace("btn-secondary", "btn-primary");
+    e.target.setAttribute("aria-selected", "true");
 
     const tag = e.target.dataset.filter;
-    const startH = grid.offsetHeight;
-    grid.style.height = `${startH}px`;
-    grid.classList.add("grid-fade");
-
-    setTimeout(()=>{
-      /* show / hide cards */
-      [...grid.children].forEach(c=>{
-        c.style.display = tag==="all" || c.dataset.tags.includes(tag) ? "" : "none";
-      });
-
-      /* animate height change */
-      const endH = grid.scrollHeight;
-      grid.style.height = `${endH}px`;
-
-      const reveal = () => {
-        grid.style.height = "";
-        [...grid.children].filter(c=>c.style.display!=="none").forEach((c,i)=>{
-          c.classList.remove("ripple-in");
-          void c.offsetWidth;                  // reflow
-          c.style.animationDelay = `${i*80}ms`;
-          c.classList.add("ripple-in");
-        });
-        grid.classList.remove("grid-fade");
-      };
-
-      if (startH !== endH) {
-        grid.addEventListener("transitionend", e=>{
-          if (e.propertyName==="height") reveal();
-        },{once:true});
-        setTimeout(reveal, 100);               // safety-net
-      } else reveal();
-    }, 300);                                   // matches CSS fade-out
+    [...grid.children].forEach(card => {
+      card.classList.toggle("hide", tag !== "all" && !card.dataset.tags.includes(tag));
+    });
   });
-    const deepId = location.hash.slice(1);
-    if (deepId && window.PROJECTS.some(p => p.id === deepId)) {
-      openModal(deepId);
-    }
-
 }
 
 /* ➍ Modal open / focus-trap / close --------------------------------- */

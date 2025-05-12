@@ -834,3 +834,60 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
   width:30px;height:30px;
 }
 
+/* ───── NAV ─────────────────────────────────────────────── */
+.nav{
+  position:fixed;inset:0 auto auto 0;          /* stay at very top */
+  width:100%;z-index:1001;                      /* above dim-layer */
+  background:var(--surface);                    /* ☑ solid colour */
+  /* ✂ remove the old rgba() bg + backdrop-filter lines */
+}
+
+/* == GLOBAL DIM-LAYER when mobile drawer is open ========= */
+body.menu-open::before{
+  content:"";
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.65);
+  z-index:1000;                /* just under the header & drawer */
+  pointer-events:none;         /* clicks still reach the drawer */
+}
+
+/* == HERO no longer hides under the fixed header ========= */
+.hero{padding-top:var(--nav-height,72px);}       /* pushes content down */
+
+/* == DISABLE scroll-reveal animation on mobile ============ */
+@media(max-width:768px){
+  .reveal{opacity:1 !important;transform:none !important;}
+}
+
+/* == MOBILE header breathing room & font-scaling ========= */
+@media(max-width:768px){
+  .nav .wrapper{
+    padding-inline:clamp(12px,4vw,24px);        /* shrink side gaps */
+    gap:clamp(12px,3vw,28px);
+  }
+  .brand-logo{height:48px;}
+  .brand-name{
+    font-size:clamp(16px,5vw,20px);             /* responsive text */
+  }
+
+    .wrapper{margin-inline:2%}
+}
+
+/* put this right after the :root block or in your global-layout section */
+:root{ --nav-height:72px; }      /* if you don’t already have it */
+
+body{
+  /* keeps every page below the sticky/fixed header */
+  padding-top:var(--nav-height,72px);
+}
+
+/* ─── GLOBAL FADE + BLUR LAYER (matches modal) ───────────── */
+body::before{
+  content:"";                    /* always present, but invisible…   */
+  position:fixed;inset:0;
+  background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:blur(4px);     /* identical to modal backdrop      */
+  opacity:0;pointer-events:none; z-index:1000;
+  transition:opacity .45s ease;  /* smooth fade, same timing curve   */
+}
+body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
