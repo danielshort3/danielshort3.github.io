@@ -274,6 +274,7 @@
         /* ⑤  Toggle drawer open / closed                               */
         const open = menu.classList.toggle("open");
         burger.setAttribute("aria-expanded", open);
+        document.body.classList.toggle("menu-open", open);
       });
     }
   }
