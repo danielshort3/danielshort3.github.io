@@ -852,7 +852,11 @@ body.menu-open::before{
 }
 
 /* == HERO no longer hides under the fixed header ========= */
-.hero{padding-top:var(--nav-height,72px);}       /* pushes content down */
+.hero{
+    padding-top:var(--nav-height,72px);
+    padding-bottom:72px;
+}       /* pushes content down */
+
 
 /* == DISABLE scroll-reveal animation on mobile ============ */
 @media(max-width:768px){

@@ -73,18 +73,22 @@
       if (!track) return;
 
       /* constants + state -------------------------------------------------- */
-      const GAP   = 160,       // space between tiles
-            BASE  =  90,       // auto-scroll px/s
-            DRAG  =   6;       // drag-to-click threshold px
+      const GAP   = 160,          // space between tiles
+            BASE  =  90,          // auto-scroll px/s
+            DRAG  =  15;          // <- bigger: ignore finger jitter
 
-      let v = BASE, target = BASE;     // velocity, velocity target
-      let bandW, stripW = 0;           // viewport width, total strip width
-      let down = false, moved = false, sx = 0, lx = 0, cancelClk = false;
+      let v = BASE, target = BASE;    // velocity, velocity target
+      let bandW, stripW = 0;
+
+      let down = false, moved = false;
+      let sx   = 0,     lx    = 0;
+      let paused = false;            // <- NEW: true only while dragging
+      let cancelClk = false;
 
       const originals = [...track.children];
-      const tiles     = [...originals];   // originals + all clones
+      const tiles     = [...originals];
 
-      const setPos = (el, x) => {
+      const setPos = (el,x) => {
         el.dataset.x = x;
         el.style.transform = `translateX(${x}px)`;
       };
@@ -121,52 +125,52 @@
       }
     };
 
-      /* wait for images, then build strip; rebuild on resize -------------- */
+      /* wait for images, then build strip; rebuild on resize */
       window.addEventListener("load", fill);
       window.addEventListener("resize", fill);
 
-      /* hover pause ------------------------------------------------------- */
-      track.addEventListener("mouseenter", () => (target = 0));
-      track.addEventListener("mouseleave", () => (target = BASE));
+        /* hover pause – desktop only ------------------------------------ */
+        const isTouchDevice = matchMedia("(hover: none) and (pointer: coarse)").matches;
+        //   ↳ modern, reliable test for phones & tablets
 
-      /* drag -------------------------------------------------------------- */
+        if (!isTouchDevice){                 // skip on mobile
+          track.addEventListener("mouseenter", () => (target = 0));
+          track.addEventListener("mouseleave", () => (target = BASE));
+}
+
+      /* drag (touch / mouse) ------------------------------------- */
       const move = dx =>
-        tiles.forEach(t => {
+        tiles.forEach(t=>{
           let x = +t.dataset.x + dx,
-            w = +t.dataset.w;
-          x =
-            dx < 0
-              ? x + w <= 0
-                ? x + stripW
-                : x
-              : x >= bandW
-              ? x - stripW
-              : x;
-          setPos(t, x);
+              w = +t.dataset.w;
+          x = dx<0
+              ? (x + w <= 0 ? x + stripW : x)
+              : (x >= bandW ? x - stripW : x);
+          setPos(t,x);
         });
 
-      const up = () => {
-        if (moved) cancelClk = true;
+      const endDrag = () => {
         down = moved = false;
+        paused = false;                     // resume auto-scroll
         track.classList.remove("dragging");
-        ["pointermove", "pointerup", "pointercancel"].forEach(e =>
-          window.removeEventListener(e, up)
-        );
+        ["pointermove","pointerup","pointercancel"]
+          .forEach(e=>window.removeEventListener(e,endDrag));
       };
 
-      track.addEventListener("pointerdown", e => {
+      track.addEventListener("pointerdown", e=>{
         if (e.button) return;
-        down = true;
+        down = true;  moved = false;  paused = false;
         sx = lx = e.clientX;
 
-        const onMove = e => {
+        const onMove = e=>{
           if (!down) return;
           const dxT = e.clientX - sx;
-          if (!moved && Math.abs(dxT) >= DRAG) {
+          if (!moved && Math.abs(dxT) >= DRAG){
             moved = true;
+            paused = true;                  // pause only while dragging
             track.classList.add("dragging");
           }
-          if (moved) {
+          if (moved){
             move(e.clientX - lx);
             lx = e.clientX;
             e.preventDefault();
@@ -174,39 +178,41 @@
         };
 
         window.addEventListener("pointermove", onMove);
-        window.addEventListener("pointerup", up, { once: true });
-        window.addEventListener("pointercancel", up, { once: true });
+        window.addEventListener("pointerup",   endDrag, {once:true});
+        window.addEventListener("pointercancel", endDrag, {once:true});
       });
 
-      track.addEventListener(
-        "click",
-        e => {
-          if (cancelClk) {
-            e.preventDefault();
-            e.stopImmediatePropagation();
-            cancelClk = false;
+      /* suppress bogus clicks that started as drags */
+      track.addEventListener("click", e=>{
+        if (cancelClk){ e.preventDefault(); e.stopImmediatePropagation(); }
+        cancelClk = false;
+      }, true);
+
+      /* auto-scroll ---------------------------------------------- */
+        let last = performance.now();
+
+        /* NEW ▸ if the tab was hidden, restart the timer */
+        const resetClock = () => { last = performance.now(); };
+        document.addEventListener("visibilitychange", resetClock);
+        window.addEventListener("focus", resetClock);        // Safari/iOS fallback
+
+        (function loop(now){
+          /* NEW ▸ clamp dt so one frame can’t jump the strip off-screen */
+          const dt = Math.min( (now - last) / 1000, 0.25 );  // max 0.25 s
+          last = now;
+
+          v += (target - v) * Math.min(1, dt * 4);
+
+          if (!paused){
+            tiles.forEach(t=>{
+              let x = +t.dataset.x - v*dt,
+                  w = +t.dataset.w;
+              if (x < -w)     x += stripW;   // single modulo is fine now
+              setPos(t, x);
+            });
           }
-        },
-        true
-      );
-
-      /* auto-scroll ------------------------------------------------------- */
-      let last = performance.now();
-      (function loop(now) {
-        const dt = (now - last) / 1000;
-        last = now;
-        v += (target - v) * Math.min(1, dt * 4); // ease toward target
-
-        if (!down && !moved) {
-          tiles.forEach(t => {
-            let x = +t.dataset.x - v * dt,
-              w = +t.dataset.w;
-            if (x < -w) x += stripW;
-            setPos(t, x);
-          });
-        }
-        requestAnimationFrame(loop);
-      })(last);
+          requestAnimationFrame(loop);
+        })(last);
     }
 
   /* ╭──────────────────────── NAV & FOOTER ─────────────────────╮ */
