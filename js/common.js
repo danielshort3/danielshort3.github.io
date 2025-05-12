@@ -228,8 +228,15 @@
         <div class="wrapper">
           <a href="index.html" class="brand">
             <img src="images/logo.png" alt="DS logo" class="brand-logo">
-            <span class="brand-name">Daniel Short │ Data & Insights</span>
+
+            <!-- split the title into three spans we can style independently -->
+            <span class="brand-name">
+              <span class="brand-line name">Daniel Short</span>
+              <span class="brand-line divider">│</span>
+              <span class="brand-line tagline">Data & Insights</span>
+            </span>
           </a>
+
           <!-- new ↓ button lives beside the logo -->
           <button id="nav-toggle"
                   class="burger"

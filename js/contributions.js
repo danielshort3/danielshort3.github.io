@@ -5,7 +5,7 @@
 window.contributions = [
   {
     heading: 'Council Briefings',
-    desc   : 'Monthly briefing for Grand Junction City Council. I led data analysis while copy is edited by the director.',
+    desc   : 'Briefings for Grand Junction City Council. I contributed actionable data insights and visualizations used by decision makers.',
     items  : [
       { title:'April 18, 2025 Council Briefing',
         role :'Contributions: Visit Grand Junction section',
@@ -112,7 +112,7 @@ window.contributions = [
 
   {
     heading:'Various Public Contributions',
-    desc   :'Publications I contributed to.',
+    desc   :'Reports and public documents where I led or contributed to data modeling and analysis that informed city planning and marketing.',
     items  : [
       { title:'Grand Junction City Budget · 2025',
         role :'Contributions: Pages 199:214 - Data aggregation and analysis',
@@ -134,7 +134,7 @@ window.contributions = [
 
   {
     heading:'Visit Grand Junction eNewsletters',
-    desc   :'Stakeholder emails featuring tourism data analysis.',
+    desc   :'Tourism industry eNewsletters featuring my analytics, pacing reports, and lodging performance insights sent to stakeholders.',
     items  : [
       { title:'Stakeholder eNewsletter · April 2025',
         role :'Contributions: Industry Data Report, Elizabeth\'s GJ Communiqué, Lodging Cannibalization Part 2',
