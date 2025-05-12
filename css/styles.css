@@ -895,3 +895,34 @@ body::before{
   transition:opacity .45s ease;  /* smooth fade, same timing curve   */
 }
 body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
+
+/* ─── Brand title layout ───────────────────────────── */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;                       /* logo ↔ text */
+}
+
+.brand-name {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 600;
+  font-size: 1.1rem;
+  line-height: 1.1;
+}
+
+.brand-line.divider {               /* the “│” glyph */
+  padding: 0 .4rem;
+  opacity: .6;
+}
+
+/* ─── MOBILE: stack the two phrases, hide the bar ─── */
+@media (max-width: 640px) {
+  .brand-name {                     /* turn the trio vertical */
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .brand-line.divider {             /* ditch the bar */
+    display: none;
+  }
+}

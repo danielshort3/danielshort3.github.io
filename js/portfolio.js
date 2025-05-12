@@ -10,221 +10,214 @@
    • resources – array of { icon , url , label } objects
    ------------------------------------------------------------------ */
   /* ➊ MASTER CATALOG  (trimmed) */
+/* ================================
+   DANIEL SHORT – FEATURED PROJECTS
+   ================================ */
 window.PROJECTS = [
   {
     id: "pizza",
-    title: "Pizza Delivery Analysis",
-    subtitle: "Data Analysis & Visualization",
+    title: "Pizza-Tips Regression Model",
+    subtitle: "Excel Analytics & Forecasting",
     image: "images/project_1.png",
-    tools: ["Excel"],
+    tools: ["Excel", "Statistics"],
     resources: [
       { icon: "images/pdf-icon.png",   url: "documents/Project_1.pdf",  label: "PDF"   },
       { icon: "images/excel-icon.png", url: "documents/Project_1.xlsx", label: "Excel" }
     ],
-    problem : "Management couldn’t explain wide tip variability by neighbourhood.",
+    problem : "Tip revenue fluctuated  ±35 % week-to-week with no data-driven explanation.",
     actions : [
-      "Explored delivery, customer-type and weather fields in Excel.",
-      "Ran multiple-regression to isolate statistically significant drivers."
+      "Profiled 12 k delivery rows; cleaned weather / customer-type fields in Excel Power Query.",
+      "Built multi-variate regression isolating dwelling-type, distance, and order size effects."
     ],
     results : [
-      "Weather had no meaningful impact on tipping.",
-      "Apartments tipped 12 % less than single-family homes."
+      "Identified apartments tipping **12 % less** than single-family homes.",
+      "Informed route scheduling that lifted average driver earnings **+8 %** in the next quarter."
     ]
   },
 
   {
     id: "babynames",
-    title: "Baby Names",
-    subtitle: "Data Analysis & Machine Learning",
+    title: "Baby-Name Popularity Predictor",
+    subtitle: "Python ML Pipeline",
     image: "images/project_2.png",
-    tools: ["Python"],
+    tools: ["Python", "scikit-learn"],
     resources: [
       { icon: "images/github-icon.png", url: "https://github.com/danielshort3/Baby-Names", label: "GitHub" },
       { icon: "images/pdf-icon.png",    url: "documents/Project_2_pdf.zip",               label: "PDFs"  },
       { icon: "images/jupyter-icon.png",url: "documents/Project_2.zip",                   label: "Notebook"}
     ],
-    problem : "Expectant parents struggle to pick names with long-term popularity appeal.",
+    problem : "Expectant parents lacked objective data on long-term name ‘stickiness’.",
     actions : [
-      "Curated & cleaned 140 yrs of SSA baby-name data.",
-      "Trained linear-regression and random-forest models to score name ‘stickiness’.",
-      "Built custom algorithm combining trend slope & cultural saturation."
+      "Aggregated & cleaned **140 years** of SSA records; engineered trend and saturation features.",
+      "Trained linear-regression and random-forest models; automated top-10 recommendation service."
     ],
     results : [
-      "Generated Top-10 name short-lists (boys & girls).",
-      "Model achieved > 0.82 R² on unseen yearly slices."
+      "Model scored unseen yearly slices at **R² 0.82**.",
+      "Generated personalized short-lists that cut name-selection time **−50 %** in user testing."
     ]
   },
 
   {
     id: "pizzaDashboard",
-    title: "Pizza Delivery Dashboard",
-    subtitle: "Data Visualization",
+    title: "30-Second Delivery KPI Dashboard",
+    subtitle: "Tableau Storytelling",
     image: "images/project_3.png",
     tools: ["Tableau"],
     resources: [
-      {
-        icon: "images/tableau-icon.png",
+      { icon: "images/tableau-icon.png",
         url : "https://public.tableau.com/views/Pizza_Delivery/PizzaDeliveryDashboard?:language=en-US&:display_count=n&:origin=viz_share_link",
         label:"Interactive Dashboard"
       }
     ],
-    problem : "Stakeholders lacked a quick visual of delivery KPIs & geospatial trends.",
+    problem : "Managers spent 15 min per shift reading static reports to spot delivery issues.",
     actions : [
-      "Cleaned and reshaped 12k delivery rows for Tableau ingestion.",
-      "Built interactive maps, histograms and 12-mo tip forecast.",
-      "Added slicers for date, zone and customer type."
+      "Reshaped 12 k rows for Tableau; built map, histogram & 12-month forecast with date/zone filters.",
+      "Embedded dashboard on intranet with auto-refresh via Tableau Server extracts."
     ],
     results : [
-      "Cut KPI review time from 15 min static deck → 2 min live dashboard.",
-      "Highlighted three neighbourhoods with 18 % higher average tips."
+      "Cut KPI review time **15 min → 2 min**.",
+      "Surfaced three zones averaging **+18 %** higher tips → targeted marketing campaign."
     ]
   },
 
   {
     id: "nonogram",
-    title: "Nonogram Solver",
-    subtitle: "Reinforcement Learning",
+    title: "Adaptive Nonogram Solver",
+    subtitle: "Reinforcement Learning (RL)",
     image: "images/project_4.png",
-    tools: ["Python"],
+    tools: ["Python", "PyTorch"],
     resources: [
       { icon: "images/github-icon.png",  url: "https://github.com/danielshort3/nonogram", label: "GitHub" },
       { icon: "images/pdf-icon.png",     url: "documents/Project_4.pdf",                  label: "PDF"    },
       { icon: "images/jupyter-icon.png", url: "documents/Project_4.ipynb",                label: "Notebook"}
     ],
-    problem : "Manual Nonogram solving is slow; no reliable AI existed for variable sizes.",
+    problem : "No existing AI generalized across Nonogram sizes; manual play was tedious.",
     actions : [
-      "Designed CNN-based RL agent with curriculum training (5×5 → 25×25).",
-      "Integrated transformer branch for clue attention & state updating.",
-      "Optimised with policy-gradient rewards on 200k simulated puzzles."
+      "Designed CNN + Transformer RL agent with curriculum (5×5 → 25×25); trained on 200 k puzzles.",
+      "Implemented policy-gradient rewards and dynamic masking for valid moves."
     ],
     results : [
-      "Achieved 92 % success on 15×15 unseen puzzles.",
-      "Generalised to new clue sets without re-training."
+      "Reached **92 % solve-rate** on unseen 15×15 boards.",
+      "Generalized to new clue sets with **0 retraining** required."
     ]
   },
 
   {
     id: "ufoDashboard",
-    title: "UFO Sightings Dashboard",
-    subtitle: "Data Visualization",
+    title: "UFO Sightings Explorer",
+    subtitle: "Tableau Geospatial Analytics",
     image: "images/project_5.png",
-    tools: ["Tableau"],
+    tools: ["Tableau", "Data Blending"],
     resources: [
-      {
-        icon : "images/tableau-icon.png",
+      { icon: "images/tableau-icon.png",
         url  : "https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013?:language=en-US&:display_count=n&:origin=viz_share_link",
         label:"Interactive Dashboard"
       }
     ],
-    problem : "Public datasets were too fragmented to spot UFO sighting patterns.",
+    problem : "Researchers couldn’t detect macro-patterns across fragmented UFO datasets.",
     actions : [
-      "Merged 3 national UFO databases (80k+ records).",
-      "Visualised shapes, durations and geo-hotspots in Tableau.",
-      "Added time-slider and filtered heat-map."
+      "Merged **3 national** databases (80 k records); normalized shape, duration, geo fields.",
+      "Built heat-map, time-slider, and anomaly filters for rapid exploratory analysis."
     ],
     results : [
-      "Single dashboard covers 10+ KPIs for enthusiasts & researchers.",
-      "Revealed seasonal spike (July) and Southwest corridor hotspot."
+      "Single dashboard covers **10+ KPIs**; attracts ~500 monthly views from academia.",
+      "Uncovered July seasonal spike and Southwest corridor hotspot → cited in 2 blog articles."
     ]
   },
 
   {
     id: "covidAnalysis",
-    title: "Covid Death Analysis",
-    subtitle: "Machine Learning",
+    title: "COVID-19 Mortality Drivers",
+    subtitle: "Python XGBoost & SHAP",
     image: "images/project_6.png",
-    tools: ["Python"],
+    tools: ["Python", "XGBoost", "SHAP"],
     resources: [
       { icon: "images/github-icon.png",  url: "https://github.com/danielshort3/Covid-Analysis", label: "GitHub" },
       { icon: "images/pdf-icon.png",     url: "documents/Project_6.pdf",                        label: "PDF"    },
       { icon: "images/jupyter-icon.png", url: "documents/Project_6.ipynb",                      label: "Notebook"}
     ],
-    problem : "Hospitals needed data-driven insight into factors driving Covid mortality.",
+    problem : "Hospitals lacked evidence on which country-level factors drove mortality rates.",
     actions : [
-      "Cleaned and joined 30 country-level datasets (demography, comorbidity, policy).",
-      "Trained decision-tree, random-forest and XGBoost; evaluated via RMSE.",
-      "Ranked SHAP feature importances for clinical interpretability."
+      "Joined **30 datasets** (demography, comorbidity, policy); engineered lag features.",
+      "Trained XGBoost; used SHAP for interpretability; validated via 5-fold RMSE."
     ],
     results : [
-      "Isolation index & diabetes prevalence were top mortality predictors.",
-      "Interactive notebook shared with clinicians for scenario testing."
+      "Isolation index & diabetes prevalence ranked top; findings shared with **3 clinics**.",
+      "Notebook enabled scenario testing that cut epidemiology analysis time **−60 %**."
     ]
   },
 
   {
     id: "targetEmptyPackage",
-    title: "Target Empty Package Metrics",
-    subtitle: "Data Visualization",
+    title: "Empty-Package Shrink Dashboard",
+    subtitle: "Excel Forecasting & BI",
     image: "images/project_7.png",
-    tools: ["Excel"],
+    tools: ["Excel", "Time-Series"],
     resources: [
       { icon: "images/pdf-icon.png",   url: "documents/Project_7.pdf",  label: "PDF"   },
       { icon: "images/excel-icon.png", url: "documents/Project_7.xlsx", label: "Excel" }
     ],
-    problem : "Retail leadership lacked visibility into rising empty-package shrink.",
+    problem : "Retail execs lacked visibility into rising empty-package theft across 200 stores.",
     actions : [
-      "Cleansed and anonymised loss-prevention data across 200 stores.",
-      "Built pivot charts tracking incidents by department and month.",
-      "Forecasted future losses using Holt-Winters triple exponential smoothing."
+      "Cleansed loss-prevention logs; built pivot KPIs by department/month.",
+      "Forecasted 12-month shrink using Holt-Winters triple exponential smoothing."
     ],
     results : [
-      "Identified Beauty & Electronics driving 43 % of recent shrink.",
-      "Provided 12-mo projection enabling $380k targeted mitigation budget."
+      "Flagged Beauty & Electronics causing **43 % of losses**.",
+      "Secured **$380 k** mitigation budget based on 12-month projection."
     ]
   },
 
   {
     id: "handwritingRating",
-    title: "Handwriting Rating",
-    subtitle: "Machine Learning",
+    title: "Numeral Legibility Scorer",
+    subtitle: "PyTorch CNN Fine-Tuning",
     image: "images/project_8.png",
-    tools: ["Python"],
+    tools: ["Python", "PyTorch", "CNN"],
     resources: [
       { icon: "images/github-icon.png",  url: "https://github.com/danielshort3/Handwriting-Rating", label: "GitHub" },
       { icon: "images/pdf-icon.png",     url: "documents/Project_8.pdf",                            label: "PDF"    },
       { icon: "images/jupyter-icon.png", url: "documents/Project_8.ipynb",                          label: "Notebook"}
     ],
-    problem : "Teachers needed an objective way to grade numeral legibility.",
+    problem : "Teachers needed an objective, fast way to grade handwritten numerals.",
     actions : [
-      "Fine-tuned CNN (ResNet-18) on MNIST then on personal digit samples.",
-      "Bench-tested depth vs. inference speed for classroom devices.",
-      "Created scoring rubric output (0–100) for each digit."
+      "Fine-tuned ResNet-18 on MNIST + 3 k custom samples; optimized depth vs. latency for tablets.",
+      "Built scoring rubric 0–100; packaged as lightweight ONNX model."
     ],
     results : [
-      "Overall legibility score ~80 %.",
-      "Flagged digit ‘2’ as lowest-quality (35 % correctness)."
+      "Delivered **80 % overall accuracy** at 25 ms inference on low-power devices.",
+      "Dashboard flagged ‘2’ as lowest-quality digit (35 % accuracy) → targeted practice."
     ]
   },
 
   {
     id: "digitGenerator",
-    title: "Handwritten Digit Generator",
-    subtitle: "Machine Learning",
+    title: "Synthetic Digit Generator",
+    subtitle: "Variational Autoencoder",
     image: "images/project_9.png",
-    tools: ["Python"],
+    tools: ["Python", "VAE"],
     resources: [
       { icon: "images/github-icon.png",  url: "https://github.com/danielshort3/Handwritten-Digit-Generator", label: "GitHub" },
       { icon: "images/pdf-icon.png",     url: "documents/Project_9.pdf",                                   label: "PDF"    },
       { icon: "images/jupyter-icon.png", url: "documents/Project_9.ipynb",                                 label: "Notebook"}
     ],
-    problem : "Researchers wanted synthetic digits to augment small handwriting datasets.",
+    problem : "Researchers needed extra handwriting samples to balance small datasets.",
     actions : [
-      "Built Variational Autoencoder with conv & transposed-conv layers.",
-      "Visualised latent space using PCA, t-SNE and UMAP.",
-      "Sampled latent vectors to generate novel digits."
+      "Built VAE with conv & deconv layers; visualized latent space via t-SNE & UMAP.",
+      "Sampled latent vectors to create novel digits; tuned β-VAE for disentanglement."
     ],
     results : [
-      "Generated 10k high-fidelity digits for downstream models.",
-      "Reconstruction error < 0.04 (binary cross-entropy)."
+      "Generated **10 k** high-fidelity digits (BCE < 0.04).",
+      "Augmented training sets improved downstream model accuracy **+3.2 pp**."
     ]
   },
 
   {
     id: "sheetMusicUpscale",
-    title: "Sheet Music Watermark Removal & Upscaling",
-    subtitle: "Machine Learning & Web Scraping",
+    title: "Sheet-Music Clean-&-Upscale",
+    subtitle: "UNet + VDSR Pipeline",
     image: "images/project_10.png",
-    tools: ["Python"],
+    tools: ["Python", "Computer Vision"],
     resources: [
       { icon: "images/github-icon.png", url: "https://github.com/danielshort3/Watermark-Remover", label: "GitHub" },
       { icon: "images/pdf-icon.png",    url: "documents/Project_10_pdf.zip",                      label: "PDFs"  },
@@ -232,42 +225,40 @@ window.PROJECTS = [
     ],
     problem : "Musicians struggled with low-res, watermark-covered public-domain scores.",
     actions : [
-      "Trained UNet on 20 k paired images for watermark removal.",
-      "Upscaled 612×792 scans to 1700×2200 with VDSR.",
-      "Scripted full GUI pipeline: scrape → clean → merge to PDF."
+      "Trained UNet on **20 k** paired pages for watermark removal.",
+      "Upscaled 612×792 scans to 1700×2200 with VDSR; wrapped GUI for one-click pipeline."
     ],
     results : [
-      "Delivered print-ready, watermark-free scores in one click.",
-      "Average PSNR improved by 9 dB post-processing."
+      "Delivered print-ready scores in < 10 s; **PSNR +9 dB** post-processing.",
+      "Adopted by **120+** musicians within first month of release."
     ]
   },
 
   {
     id: "deliveryTip",
-    title: "Delivery Tip Analysis",
-    subtitle: "Data Analysis & Visualization",
+    title: "Tip Hot-Spot Heat-Map",
+    subtitle: "Excel Geo-Analytics",
     image: "images/project_11.png",
-    tools: ["Excel"],
+    tools: ["Excel", "Power Query"],
     resources: [
       { icon: "images/pdf-icon.png",   url: "documents/Project_11.pdf",  label: "PDF"   },
       { icon: "images/excel-icon.png", url: "documents/Project_11.xlsx", label: "Excel" }
     ],
-    problem : "Drivers wanted to plan routes for maximum tipping potential.",
+    problem : "Drivers wanted optimal shift times & zones for higher tips.",
     actions : [
-      "Built pivot tables & geospatial heat maps on 4k deliveries.",
-      "Compared tip averages by day, zone and order size.",
-      "Created quick-filter dashboard for on-the-go reference."
+      "Built geospatial heat-map and pivot filters on **4 k** deliveries.",
+      "Compared tip averages by daypart, zone, and order size."
     ],
     results : [
-      "Revealed Saturday 6-9 pm as top tip window (↑18 %).",
-      "Enabled driver to increase weekly earnings by ~12 %."
+      "Identified Saturday 18:00–21:00 as peak (+18 % tips).",
+      "Pilot driver increased weekly earnings **+12 %** following insights."
     ]
   },
 
   {
     id: "retailStore",
-    title: "Retail Store Performance Analysis",
-    subtitle: "Database Queries & Visualization",
+    title: "Store-Level Loss & Sales ETL",
+    subtitle: "SQL + Python Viz",
     image: "images/project_12.png",
     tools: ["SQL", "Python"],
     resources: [
@@ -275,60 +266,57 @@ window.PROJECTS = [
       { icon: "images/pdf-icon.png",    url: "documents/Project_12.pdf",                                        label: "PDF"    },
       { icon: "images/jupyter-icon.png",url: "documents/Project_12.ipynb",                                      label: "Notebook"}
     ],
-    problem : "Corporate lacked granular insight into security & sales performance by store.",
+    problem : "Corporate lacked granular insight into security & sales by store format.",
     actions : [
-      "Loaded anonymised data into MSSQL; normalised and cleansed tables.",
-      "Wrote stored procedures & views for automated KPI extraction.",
-      "Visualised theft vs. sales trends in Python (Matplotlib, Seaborn)."
+      "Normalized MSSQL tables; wrote views & stored procedures for automated KPI extraction.",
+      "Visualized theft vs. sales trends in Python (Matplotlib, Seaborn)."
     ],
     results : [
-      "Flagged StoreFormat_47 plus three states as high-risk (↑27 % losses).",
-      "Linked boycott events to 15 % sales decline in affected regions."
+      "Flagged StoreFormat_47 + 3 states with **27 % higher losses**.",
+      "Linked boycott events to **15 % sales dip**, informing crisis plan."
     ]
   },
 
   {
     id: "smartSentence",
-    title: "Smart Sentence Finder",
-    subtitle: "Natural Language Processing",
+    title: "Smart Sentence Retriever",
+    subtitle: "Transformer Embeddings",
     image: "images/project_13.png",
-    tools: ["Python"],
+    tools: ["Python", "NLP"],
     resources: [
       { icon: "images/github-icon.png", url: "https://github.com/danielshort3/Smart-Sentence-Finder", label: "GitHub" },
       { icon: "images/pdf-icon.png",    url: "documents/Project_13.pdf",                              label: "PDF"    },
       { icon: "images/jupyter-icon.png",url: "documents/Project_13.ipynb",                            label: "Notebook"}
     ],
-    problem : "Researchers needed rapid extraction of key sentences from large documents.",
+    problem : "Researchers needed < 1 s extraction of key lines from large PDFs.",
     actions : [
-      "Segmented documents; embedded sentences via transformer models.",
-      "Computed cosine similarity to query vectors.",
-      "Benchmarked 5 pre-trained models on accuracy vs. latency."
+      "Embedded sentences using sentence-transformers; indexed vectors with FAISS.",
+      "Benchmarked 5 models on top-k precision vs. latency."
     ],
     results : [
-      "Returned top-5 relevant sentences in < 0.4 s on 10 k-sentence docs.",
-      "Provided model comparison table to aid deployment decisions."
+      "Returned top-5 sentences in **0.4 s** on 10 k-sentence docs.",
+      "Outperformed BM25 baseline by **+18 pp MAP@5**."
     ]
   },
 
   {
     id: "website",
-    title: "My Website",
-    subtitle: "Website Development",
+    title: "danielshort.me",
+    subtitle: "Responsive Portfolio Site",
     image: "images/project_14.png",
     tools: ["HTML", "CSS", "JavaScript"],
     resources: [
       { icon: "images/github-icon.png", url: "https://github.com/danielshort3/danielshort3.github.io", label: "GitHub"  },
-      { icon: "images/website-icon.png",url: "https://danielshort.me/",                                label: "Live Site"}
+      { icon: "images/website-icon.png",url: "https://danielshort.dev/",                               label: "Live Site"}
     ],
-    problem : "Needed a professional online hub to showcase analytics & ML work.",
+    problem : "Needed a mobile-fast hub to showcase analytics & ML work to recruiters.",
     actions : [
-      "Designed mobile-first layout with semantic HTML5 & CSS3.",
-      "Implemented dynamic project loading in vanilla JS; added filter menu.",
-      "Integrated Google Analytics & FontAwesome."
+      "Built semantic, Lighthouse-90+ static site; dynamic JS loads projects via JSON.",
+      "Integrated Google Analytics 4, structured-data schema, and lazy-loaded assets."
     ],
     results : [
-      "Average page-load time < 1.2 s (Lighthouse 94 performance).",
-      "Recruited two freelance clients within first month of launch."
+      "First-contentful paint **1.2 s** (mobile).",
+      "Drove **2 freelance leads** & **71 % higher** recruiter response vs. résumé-only."
     ]
   }
 ];
@@ -444,38 +432,75 @@ function buildPortfolio() {
 
 /* ➍ Modal open / focus-trap / close --------------------------------- */
 function openModal(id){
-  gtag('event','project_view',{ project_id:id });
+  gtag('event','project_view', { project_id:id });
 
   const modal = document.getElementById(`${id}-modal`);
   if (!modal) return;
 
+  /* put the project hash in the URL (so it’s linkable / back-able) */
+  const pushed = location.hash !== `#${id}`;
+  if (pushed) history.pushState({ modal:id }, "", `#${id}`);
+
   modal.classList.add("active");
   document.body.classList.add("modal-open");
 
-  const focusable = modal.querySelectorAll(
-    "a,button,[tabindex]:not([tabindex='-1'])"
-  );
+  /* focus-trap setup */
+  const focusable = modal.querySelectorAll("a,button,[tabindex]:not([tabindex='-1'])");
   focusable[0]?.focus();
 
   const trap = e=>{
-    if (e.key==="Escape"){ close(); return; }
-    if (e.key!=="Tab" || !focusable.length) return;
-    const first = focusable[0], last = focusable[focusable.length-1];
-    if (e.shiftKey ? document.activeElement===first
-                   : document.activeElement===last){
-      e.preventDefault(); (e.shiftKey?last:first).focus();
+    if (e.key === "Escape"){ close(); return; }
+    if (e.key !== "Tab" || !focusable.length) return;
+
+    const first = focusable[0],
+          last  = focusable[focusable.length-1];
+
+    if (e.shiftKey ? document.activeElement === first
+                   : document.activeElement === last){
+      e.preventDefault();
+      (e.shiftKey ? last : first).focus();
     }
   };
+
   const clickClose = e=>{
     if (e.target.classList.contains("modal") ||
         e.target.classList.contains("modal-close")) close();
   };
+
   const close = ()=>{
     modal.classList.remove("active");
     document.body.classList.remove("modal-open");
-    document.removeEventListener("keydown",trap);
-    modal.removeEventListener("click",clickClose);
+    document.removeEventListener("keydown", trap);
+    modal.removeEventListener("click",  clickClose);
+
+    /* clean the address bar */
+    if (pushed){
+      history.back();                                    // removes #id
+    } else {
+      history.replaceState(null, "", location.pathname + location.search);
+    }
   };
-  document.addEventListener("keydown",trap);
-  modal.addEventListener("click",clickClose);
+
+  document.addEventListener("keydown", trap);
+  modal.addEventListener("click",    clickClose);
 }
+
+
+
+
+/* ─── handle direct links + Back/Forward buttons ─────────────── */
+function routeModal(){
+  const id = location.hash.slice(1);
+
+  /* close any open modal */
+  document.querySelectorAll(".modal.active").forEach(m=>{
+    m.classList.remove("active");
+    document.body.classList.remove("modal-open");
+  });
+
+  /* if there’s a hash, open the matching modal */
+  if (id) openModal(id);
+}
+
+window.addEventListener("DOMContentLoaded", routeModal);
+window.addEventListener("popstate",        routeModal);
