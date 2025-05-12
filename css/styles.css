@@ -907,7 +907,6 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
   display: inline-flex;
   align-items: center;
   font-weight: 600;
-  font-size: 1.1rem;
   line-height: 1.1;
 }
 
