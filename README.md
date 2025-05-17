@@ -71,7 +71,7 @@ Welcome to the GitHub repository for my personal portfolio website. This site sh
 ├── js
 │   └── common.js            # JavaScript code for interactive features
 ├── index.html               # Main homepage
-├── projects.html            # Projects page
+├── portfolio.html           # Projects page
 ├── contact.html             # Contact page
 ├── documents                # Folder for downloadable project files
 │   ├── Resume.pdf
