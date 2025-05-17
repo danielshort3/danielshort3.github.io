@@ -1,5 +1,4 @@
-﻿/* ────────────────────────────────────────────────────────────
-   Public-facing docs organised by category
+/* Public-facing docs organised by category
    Update/extend this array – only the data lives here!
    ─────────────────────────────────────────────────────────── */
 window.contributions = [

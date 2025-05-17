@@ -1,7 +1,6 @@
-﻿/* contributions-carousel.js
- * Wrap each .docs-grid in a horizontal scroll-snap carousel.
- * Mobile (≤768 px) keeps the stacked grid – we only apply the
- * carousel class at wider viewports or on resize.              */
+/* Wrap each .docs-grid in a horizontal scroll-snap carousel.
+   Mobile (≤768 px) keeps the stacked grid – we only apply the
+   carousel class at wider viewports or on resize.              */
 
 (() => {
   "use strict";
