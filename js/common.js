@@ -340,4 +340,4 @@
       if (window.buildPortfolio) run(initSkillPopups);
     });
 
-})();   /* end common.js IIFE */
+})();
