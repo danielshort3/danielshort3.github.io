@@ -1,8 +1,6 @@
-﻿/* ────────────────────────────────────────────────────────────
- portfolio.js  •  Projects / Portfolio page only
- Update or extend the PROJECTS array – no other edits needed!
-──────────────────────────────────────────────────────────── */
-
+/* portfolio.js  •  Projects / Portfolio page only
+   Update or extend the PROJECTS array – no other edits needed!
+   ──────────────────────────────────────────────────────────── */
 /* ❶ MASTER CATALOG
    ------------------------------------------------------------------
    • id        – any unique string (used for modal id & deeplinks)

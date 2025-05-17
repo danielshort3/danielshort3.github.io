@@ -1,7 +1,6 @@
-﻿/* ───────────────────────────────────────────────────────────
- common.js • site-wide UX helpers          (v2 • lean core)
- ▸ Everything portfolio-specific now lives in portfolio.js
-─────────────────────────────────────────────────────────── */
+/* common.js • site-wide UX helpers (v2 • lean core)
+   ▸ Everything portfolio-specific now lives in portfolio.js
+   ─────────────────────────────────────────────────────────── */
 (() => {
   "use strict";
 
