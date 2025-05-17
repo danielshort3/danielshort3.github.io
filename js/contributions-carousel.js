@@ -7,11 +7,10 @@
   "use strict";
 
   const MQ = window.matchMedia("(min-width:769px)");
-  const grids = [...document.querySelectorAll(".docs-grid")];
 
   /* helper toggles the carousel class */
   function applyCarousel(enable){
-    grids.forEach(g => {
+    document.querySelectorAll(".docs-grid").forEach(g => {
       g.classList.toggle("docs-carousel", enable);
     });
   }
