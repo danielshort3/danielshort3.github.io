@@ -362,6 +362,7 @@ window.generateProjectModal = function(p){
    • Populates #filter-menu counts & click-to-filter behaviour
    ------------------------------------------------------------------ */
 function buildPortfolio() {
+  console.log("[DEBUG] buildPortfolio start");
   const grid   = document.getElementById("projects");
   const modals = document.getElementById("modals");
   const menu   = document.getElementById("filter-menu");
@@ -402,17 +403,24 @@ function buildPortfolio() {
   });
 
   /* ── auto-scroll to first card once it fades in (mobile only) ── */
-  if (window.matchMedia("(max-width: 768px)").matches) {
+  const isMobileInitial = window.matchMedia("(max-width: 768px)").matches;
+  console.log("[DEBUG] initial auto-scroll, isMobile:", isMobileInitial);
+  if (isMobileInitial) {
     const first = grid.firstElementChild;
     if (first) {
-      const offset = parseFloat(
-        getComputedStyle(document.documentElement)
-          .getPropertyValue("--nav-height")
-      ) || 0;
-      const y = first.getBoundingClientRect().top + window.scrollY - offset;
+      const offset =
+        parseFloat(
+          getComputedStyle(document.documentElement).getPropertyValue(
+            "--nav-height"
+          )
+        ) || 0;
+      const y = first.offsetTop - offset;
+      console.log("[DEBUG] first card offset", { offset, y });
       setTimeout(() => {
         window.scrollTo({ top: y, behavior: "smooth" });
       }, 600); // ripple-in animation ≈550ms
+    } else {
+      console.log("[DEBUG] first card not found");
     }
   }
 
@@ -462,15 +470,22 @@ function buildPortfolio() {
         grid.style.height = "";
 
         /* ─── ensure first visible card is flush on mobile ─── */
-        if (window.matchMedia("(max-width: 768px)").matches) {
+        const isMobileFilter = window.matchMedia("(max-width: 768px)").matches;
+        console.log("[DEBUG] filter scroll isMobile:", isMobileFilter);
+        if (isMobileFilter) {
           const first = visible[0];
           if (first) {
-            const offset = parseFloat(
-              getComputedStyle(document.documentElement)
-                .getPropertyValue("--nav-height")
-            ) || 0;
-            const y = first.getBoundingClientRect().top + window.scrollY - offset;
+            const offset =
+              parseFloat(
+                getComputedStyle(document.documentElement).getPropertyValue(
+                  "--nav-height"
+                )
+              ) || 0;
+            const y = first.offsetTop - offset;
+            console.log("[DEBUG] filter first card offset", { offset, y });
             window.scrollTo({ top: y, behavior: "smooth" });
+          } else {
+            console.log("[DEBUG] filter first card not found");
           }
         }
       }, 450); // height transition duration
