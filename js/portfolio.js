@@ -414,7 +414,7 @@ function buildPortfolio() {
             "--nav-height"
           )
         ) || 0;
-      const y = first.offsetTop - offset;
+      const y = first.getBoundingClientRect().top + window.scrollY - offset;
       console.log("[DEBUG] first card offset", { offset, y });
       setTimeout(() => {
         window.scrollTo({ top: y, behavior: "smooth" });
@@ -481,7 +481,7 @@ function buildPortfolio() {
                   "--nav-height"
                 )
               ) || 0;
-            const y = first.offsetTop - offset;
+            const y = first.getBoundingClientRect().top + window.scrollY - offset;
             console.log("[DEBUG] filter first card offset", { offset, y });
             window.scrollTo({ top: y, behavior: "smooth" });
           } else {
