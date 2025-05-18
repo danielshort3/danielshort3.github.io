@@ -421,23 +421,45 @@ function buildPortfolio() {
     e.target.classList.replace("btn-secondary", "btn-primary");
     e.target.setAttribute("aria-selected", "true");
 
-    const tag = e.target.dataset.filter;
-    [...grid.children].forEach(card => {
-      card.classList.toggle("hide", tag !== "all" && !card.dataset.tags.includes(tag));
-    });
+    const tag   = e.target.dataset.filter;
+    const start = grid.offsetHeight;
+    grid.style.height = `${start}px`;
+    grid.classList.add("grid-fade");
 
-    /* ─── ensure first visible card is flush on mobile ─── */
-    if (window.matchMedia("(max-width: 768px)").matches) {
-      const first = [...grid.children].find(c => !c.classList.contains("hide"));
-      if (first) {
-        const offset = parseFloat(
-          getComputedStyle(document.documentElement)
-            .getPropertyValue("--nav-height")
-        ) || 0;
-        const y = first.getBoundingClientRect().top + window.scrollY - offset;
-        window.scrollTo({ top: y, behavior: "smooth" });
-      }
-    }
+    setTimeout(() => {
+      [...grid.children].forEach(card => {
+        card.classList.toggle("hide", tag !== "all" && !card.dataset.tags.includes(tag));
+      });
+
+      const visible = [...grid.children].filter(c => !c.classList.contains("hide"));
+      grid.style.height = `${grid.scrollHeight}px`;
+
+      visible.forEach((card, i) => {
+        card.classList.remove("ripple-in");
+        void card.offsetWidth;           // restart animation
+        card.style.animationDelay = `${i * 80}ms`;
+        card.classList.add("ripple-in");
+      });
+
+      grid.classList.remove("grid-fade");
+
+      setTimeout(() => {
+        grid.style.height = "";
+
+        /* ─── ensure first visible card is flush on mobile ─── */
+        if (window.matchMedia("(max-width: 768px)").matches) {
+          const first = visible[0];
+          if (first) {
+            const offset = parseFloat(
+              getComputedStyle(document.documentElement)
+                .getPropertyValue("--nav-height")
+            ) || 0;
+            const y = first.getBoundingClientRect().top + window.scrollY - offset;
+            window.scrollTo({ top: y, behavior: "smooth" });
+          }
+        }
+      }, 450); // height transition duration
+    }, 350);   // grid fade duration
   });
 }
 
