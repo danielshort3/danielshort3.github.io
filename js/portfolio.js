@@ -426,11 +426,17 @@ function buildPortfolio() {
       card.classList.toggle("hide", tag !== "all" && !card.dataset.tags.includes(tag));
     });
 
-    /* ─── ensure project grid is visible on mobile ─── */
+    /* ─── ensure first visible card is flush on mobile ─── */
     if (window.matchMedia("(max-width: 768px)").matches) {
-      const offset = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--nav-height")) || 0;
-      const y = grid.getBoundingClientRect().top + window.scrollY - offset;
-      window.scrollTo({ top: y, behavior: "smooth" });
+      const first = [...grid.children].find(c => !c.classList.contains("hide"));
+      if (first) {
+        const offset = parseFloat(
+          getComputedStyle(document.documentElement)
+            .getPropertyValue("--nav-height")
+        ) || 0;
+        const y = first.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({ top: y, behavior: "smooth" });
+      }
     }
   });
 }
