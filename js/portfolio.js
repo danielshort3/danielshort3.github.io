@@ -425,6 +425,13 @@ function buildPortfolio() {
     [...grid.children].forEach(card => {
       card.classList.toggle("hide", tag !== "all" && !card.dataset.tags.includes(tag));
     });
+
+    /* ─── ensure project grid is visible on mobile ─── */
+    if (window.matchMedia("(max-width: 768px)").matches) {
+      const offset = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--nav-height")) || 0;
+      const y = grid.getBoundingClientRect().top + window.scrollY - offset;
+      window.scrollTo({ top: y, behavior: "smooth" });
+    }
   });
 }
 
