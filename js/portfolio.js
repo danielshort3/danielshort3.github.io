@@ -401,6 +401,21 @@ function buildPortfolio() {
     c.classList.add("ripple-in");
   });
 
+  /* ── auto-scroll to first card once it fades in (mobile only) ── */
+  if (window.matchMedia("(max-width: 768px)").matches) {
+    const first = grid.firstElementChild;
+    if (first) {
+      const offset = parseFloat(
+        getComputedStyle(document.documentElement)
+          .getPropertyValue("--nav-height")
+      ) || 0;
+      const y = first.getBoundingClientRect().top + window.scrollY - offset;
+      setTimeout(() => {
+        window.scrollTo({ top: y, behavior: "smooth" });
+      }, 600); // ripple-in animation ≈550ms
+    }
+  }
+
   /* ➌ Build filter-button counts ----------------------------------- */
   const counts = { all: window.PROJECTS.length };
   window.PROJECTS.forEach(p => p.tools.forEach(t => counts[t] = (counts[t] || 0) + 1));
