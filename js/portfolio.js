@@ -430,7 +430,7 @@ function buildPortfolio() {
 
 /* ➍ Modal open / focus-trap / close --------------------------------- */
 function openModal(id){
-  gtag('event','project_view', { project_id:id });
+  if (window.trackProjectView) trackProjectView(id);
 
   const modal = document.getElementById(`${id}-modal`);
   if (!modal) return;
