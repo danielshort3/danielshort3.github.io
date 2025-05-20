@@ -454,45 +454,33 @@ function initSeeMore(){
     btn.textContent = expanded ? "See More" : "See Less";
 
     if (expanded) {
-      // collapse grid and filters smoothly
-      const gridStart    = grid.offsetHeight;
-      const filtersStart = filters.offsetHeight;
-      grid.style.height    = `${gridStart}px`;
-      filters.style.height = `${filtersStart}px`;
+      // collapse grid smoothly
+      const start = grid.offsetHeight;
+      grid.style.height = `${start}px`;
       grid.classList.add("grid-fade");
-      filters.classList.add("filters-fade");
       requestAnimationFrame(() => {
         grid.style.height = "0px";
-        filters.style.height = "0px";
       });
       setTimeout(() => {
         grid.classList.add("hide");
-        filters.classList.add("hide");
         grid.classList.remove("grid-fade");
-        filters.classList.remove("filters-fade");
         grid.style.height = "";
-        filters.style.height = "";
+        filters.classList.add("hide");
         carousel?.scrollIntoView({ behavior: "smooth" });
       }, 450); // height transition duration
     } else {
-      // expand grid and filters smoothly
+      // expand grid smoothly
       filters.classList.remove("hide");
       grid.classList.remove("hide");
-      const gridTarget    = grid.scrollHeight;
-      const filtersTarget = filters.scrollHeight;
-      grid.style.height    = "0px";
-      filters.style.height = "0px";
+      const target = grid.scrollHeight;
+      grid.style.height = "0px";
       grid.classList.add("grid-fade");
-      filters.classList.add("filters-fade");
       requestAnimationFrame(() => {
-        grid.style.height    = `${gridTarget}px`;
-        filters.style.height = `${filtersTarget}px`;
+        grid.style.height = `${target}px`;
         grid.classList.remove("grid-fade");
-        filters.classList.remove("filters-fade");
       });
       setTimeout(() => {
         grid.style.height = "";
-        filters.style.height = "";
       }, 450);
     }
   });
