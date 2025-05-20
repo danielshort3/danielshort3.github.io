@@ -333,7 +333,7 @@ window.generateProjectModal = function(p){
           </div>
         </div>
         <div class="modal-half">
-          <p class="header-label">Downloads</p>
+          <p class="header-label">Downloads / Links</p>
           <div class="icon-row">
             ${p.resources.map(r => `
               <a href="${r.url}" target="_blank" title="${r.label}">
@@ -352,6 +352,69 @@ window.generateProjectModal = function(p){
         </div>
         <div class="modal-image"><img src="${p.image}" alt="${p.title}"></div>
       </div>`;
+};
+
+/* ────────────────────────────────
+   Featured Carousel (top of page)
+   ─────────────────────────────── */
+window.buildPortfolioCarousel = function(){
+  const wrap  = document.getElementById("portfolio-carousel");
+  if (!wrap || !window.PROJECTS) return;
+
+  const track = wrap.querySelector(".carousel-track");
+  const dots  = wrap.querySelector(".carousel-dots");
+  const featured = window.PROJECTS.slice(0,5);
+  const slides = [];
+
+  let idx = 0, timer;
+
+  const update = () => {
+    slides.forEach((s,i)=>{
+      s.classList.toggle("active", i===idx);
+      s.classList.toggle("prev",   i===(idx-1+slides.length)%slides.length);
+      s.classList.toggle("next",   i===(idx+1)%slides.length);
+    });
+    [...dots.children].forEach((d,i)=>{
+      d.classList.toggle("active", i===idx);
+    });
+  };
+
+  const next = () => { idx=(idx+1)%slides.length; update(); };
+  const reset = () => { clearInterval(timer); timer=setInterval(next,5000); };
+
+  featured.forEach((p,i)=>{
+    const slide = document.createElement("div");
+    slide.className = "carousel-slide";
+    slide.innerHTML = `<img src="${p.image}" alt="${p.title}"><div class="slide-title">${p.title}</div>`;
+    slide.addEventListener("click",()=>openModal(p.id));
+    track.appendChild(slide);
+    slides.push(slide);
+
+    const dot = document.createElement("button");
+    dot.className = "dot";
+    dot.setAttribute("aria-label", p.title);
+    dot.addEventListener("click",()=>{ idx=i; update(); reset(); });
+    dots.appendChild(dot);
+  });
+
+  wrap.addEventListener("mouseenter", ()=>clearInterval(timer));
+  wrap.addEventListener("mouseleave", reset);
+
+  reset();
+  update();
+};
+
+/* ────────────── See More button ───────────── */
+window.initSeeMore = function(){
+  const btn      = document.getElementById("see-more");
+  const full     = document.getElementById("full-list");
+  const carousel = document.getElementById("portfolio-carousel");
+  if (!btn || !full) return;
+  btn.addEventListener("click", ()=>{
+    full.classList.remove("hide");
+    if (carousel) carousel.classList.add("hide");
+    btn.remove();
+  });
 };
 
 /* ────────────────────────────────────────────────────────────
