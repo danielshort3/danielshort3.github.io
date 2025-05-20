@@ -333,7 +333,7 @@ window.generateProjectModal = function(p){
           </div>
         </div>
         <div class="modal-half">
-          <p class="header-label">Downloads</p>
+          <p class="header-label">Downloads / Links</p>
           <div class="icon-row">
             ${p.resources.map(r => `
               <a href="${r.url}" target="_blank" title="${r.label}">
@@ -547,6 +547,67 @@ function openModal(id){
   document.addEventListener("keydown", trap);
   modal.addEventListener("click",    clickClose);
 }
+
+/* ────────────────────────────────
+   Featured projects carousel
+   ──────────────────────────────── */
+window.buildPortfolioCarousel = function(){
+  const container = document.getElementById("portfolio-carousel");
+  const dotsWrap  = document.getElementById("carousel-dots");
+  const seeMore   = document.getElementById("see-more");
+  const filters   = document.getElementById("filters");
+  const grid      = document.getElementById("projects");
+  if (!container || !dotsWrap) return;
+
+  const featured = window.PROJECTS.slice(0,5);
+  const cards = featured.map(p=>{
+    const c = document.createElement("div");
+    c.className = "carousel-card";
+    c.innerHTML = `<div class="project-card"><div class="overlay"></div><div class="project-title">${p.title}</div><div class="project-subtitle">${p.subtitle}</div><img src="${p.image}" alt="${p.title}"></div>`;
+    c.addEventListener("click",()=>openModal(p.id));
+    container.appendChild(c);
+    return c;
+  });
+  const dots = featured.map((p,i)=>{
+    const d = document.createElement("button");
+    d.className="carousel-dot";
+    d.setAttribute("aria-label", p.title);
+    d.addEventListener("click",()=>goto(i));
+    dotsWrap.appendChild(d);
+    return d;
+  });
+
+  let index=0, timer;
+  const update=()=>{
+    cards.forEach((c,i)=>{
+      const off=i-index;
+      c.classList.remove("prev","next","active");
+      if(off===0) c.classList.add("active");
+      else if(off===-1) c.classList.add("prev");
+      else if(off===1) c.classList.add("next");
+      c.style.transform=`translateX(${off*280}px) scale(${off===0?1:0.85})`;
+      c.style.opacity=Math.abs(off)<=1? (off===0?1:0.7):0;
+      c.style.pointerEvents=Math.abs(off)<=1?"auto":"none";
+    });
+    dots.forEach((d,i)=>d.classList.toggle("active",i===index));
+  };
+  const goto=i=>{ index=(i+cards.length)%cards.length; update(); };
+  const next=()=>goto(index+1);
+  const start=()=>{ timer=setInterval(next,5000); };
+  const stop=()=>clearInterval(timer);
+  container.addEventListener("mouseenter",stop);
+  container.addEventListener("mouseleave",start);
+  start();
+  update();
+
+  if(filters) filters.classList.add("hide");
+  if(grid)    grid.classList.add("hide");
+  seeMore&&seeMore.addEventListener("click",()=>{
+    document.getElementById("carousel-section")?.classList.add("hide");
+    filters?.classList.remove("hide");
+    grid?.classList.remove("hide");
+  });
+};
 
 
 
