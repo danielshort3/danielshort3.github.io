@@ -603,6 +603,7 @@ window.buildPortfolioCarousel = function(){
   if(filters) filters.classList.add("hide");
   if(grid)    grid.classList.add("hide");
   seeMore&&seeMore.addEventListener("click",()=>{
+    document.getElementById("carousel-section")?.classList.add("hide");
     filters?.classList.remove("hide");
     grid?.classList.remove("hide");
   });
