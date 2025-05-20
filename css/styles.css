@@ -285,6 +285,7 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
 .interest-pad{
     padding:48px 0;
 }
+#filters{ margin-top:32px; }
 .contact-big{
   display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
   gap:28px;padding:32px
@@ -331,12 +332,28 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
 /* ───────────────────────────────────────────────────────────
    14b. PORTFOLIO PAGE CAROUSEL
    ─────────────────────────────────────────────────────────── */
-#portfolio-carousel{position:relative;overflow:hidden}
+#portfolio-carousel{
+  position:relative;
+  overflow:hidden;
+  max-width:1068px;       /* show at most 3 cards */
+  margin-inline:auto;
+}
 #portfolio-carousel .carousel-track{display:flex;gap:24px;transition:transform .6s cubic-bezier(.22,.61,.36,1)}
 .carousel-card{flex:0 0 70%;max-width:340px;opacity:.7;transform:scale(.9);transition:transform .5s,opacity .5s}
 .carousel-card.active{opacity:1;transform:scale(1)}
 .carousel-dots{text-align:center;margin-top:16px}
-.carousel-dot{width:10px;height:10px;margin:0 4px;border-radius:50%;border:1px solid var(--primary);background:transparent;cursor:pointer}
+.carousel-dot{
+  display:inline-block;
+  width:12px;
+  height:12px;
+  padding:0;
+  line-height:0;
+  border-radius:50%;
+  border:1px solid var(--primary);
+  background:transparent;
+  cursor:pointer;
+  aspect-ratio:1;
+}
 .carousel-dot.active{background:var(--primary)}
 @media (max-width:768px){
   .carousel-card{flex:0 0 80%}
