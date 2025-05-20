@@ -289,7 +289,12 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
 .interest-pad{
     padding:48px 0;
 }
-#filters{ margin-top:32px; }
+#filters{
+  margin-top:32px;
+  overflow:hidden;
+  transition:height .45s cubic-bezier(.22,.61,.36,1),opacity .35s ease;
+}
+#filters.grid-fade{opacity:0}
 .contact-big{
   display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
   gap:28px;padding:32px
