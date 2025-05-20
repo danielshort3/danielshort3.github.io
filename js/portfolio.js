@@ -409,6 +409,31 @@ function buildPortfolioCarousel(){
   container.addEventListener("mouseenter",()=> pause = true);
   container.addEventListener("mouseleave",()=> pause = false);
 
+  /* ── click & drag to switch slides ───────────────────────────── */
+  let dragStart = 0;
+  let dragging  = false;
+
+  const getX = e => e.touches ? e.touches[0].clientX : e.clientX;
+
+  const onDown = e => { dragging = true; dragStart = getX(e); };
+  const onMove = e => {
+    if (!dragging) return;
+    const diff = getX(e) - dragStart;
+    if (Math.abs(diff) > 40) {
+      dragging = false;
+      diff < 0 ? next() : goTo(current - 1);
+    }
+  };
+  const onUp = () => { dragging = false; };
+
+  container.addEventListener("mousedown", onDown);
+  container.addEventListener("touchstart", onDown, { passive: true });
+  container.addEventListener("mousemove", onMove);
+  container.addEventListener("touchmove", onMove, { passive: true });
+  container.addEventListener("mouseup", onUp);
+  container.addEventListener("mouseleave", onUp);
+  container.addEventListener("touchend", onUp);
+
   setInterval(()=>{ if(!pause) next(); }, 5000);
   window.addEventListener("resize", update);
 
@@ -423,9 +448,9 @@ function initSeeMore(){
   if(!btn || !filters || !grid) return;
   btn.addEventListener("click", ()=>{
     btn.classList.add("hide");
-    carousel?.classList.add("hide");
     filters.classList.remove("hide");
     grid.classList.remove("hide");
+    carousel?.scrollIntoView({ behavior:"smooth" });
   });
 }
 
