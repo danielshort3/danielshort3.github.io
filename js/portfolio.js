@@ -1,5 +1,6 @@
 /* portfolio.js  •  Projects / Portfolio page only
-   Update or extend the PROJECTS array – no other edits needed!
+   Update or extend the PROJECTS array. Optionally set FEATURED_IDS below to
+   control which projects appear in the top carousel.
    ──────────────────────────────────────────────────────────── */
 /* ❶ MASTER CATALOG
    ------------------------------------------------------------------
@@ -319,6 +320,15 @@ window.PROJECTS = [
   }
 ];
 
+// IDs (in order) of projects shown in the top carousel
+window.FEATURED_IDS = [
+  "pizza",
+  "babynames",
+  "pizzaDashboard",
+  "nonogram",
+  "ufoDashboard"
+];
+
 window.generateProjectModal = function(p){
   return `
     <div class="modal-content" tabindex="0">
@@ -364,7 +374,15 @@ function buildPortfolioCarousel(){
   const track = container.querySelector(".carousel-track");
   const dots  = container.querySelector(".carousel-dots");
 
-  const projects = window.PROJECTS.slice(0,5);
+  let projects = [];
+  if (Array.isArray(window.FEATURED_IDS) && window.FEATURED_IDS.length) {
+    window.FEATURED_IDS.forEach(id => {
+      const p = window.PROJECTS.find(pr => pr.id === id);
+      if (p) projects.push(p);
+    });
+  } else {
+    projects = window.PROJECTS.slice(0,5);
+  }
   track.innerHTML = "";
   dots.innerHTML  = "";
 
