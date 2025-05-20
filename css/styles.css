@@ -104,19 +104,6 @@ p {margin-bottom:1em;font-size:19px}
   flex-direction:column;        /* new */
   align-items:center;           /* new → centres child blocks */
 }
-
-.chevron-hint{
-  position:absolute;
-  bottom:16px;
-  left:50%;
-  transform:translateX(-50%);
-  font-size:32px;
-  color:var(--primary);
-  opacity:.85;
-  pointer-events:none;
-  transition:opacity .4s;
-}
-.chevron-hint.hide{opacity:0;}
 /* ───────────────────────────────────────────────────────────
    5.  BUTTONS
    ─────────────────────────────────────────────────────────── */
@@ -220,30 +207,6 @@ p {margin-bottom:1em;font-size:19px}
   background:color-mix(in srgb,var(--primary) 15%,transparent);color:var(--primary);
   font-size:.75rem;font-weight:600;padding:4px 10px;border-radius:6px;max-width:75%;pointer-events:none
 }
-
-/* ───────────────────────────────────────────────────────────
-   PORTFOLIO CAROUSEL
-   ─────────────────────────────────────────────────────────── */
-.portfolio-carousel{
-  position:relative;
-  height:260px;
-  margin-top:40px;
-}
-.portfolio-carousel .carousel-card{
-  position:absolute;
-  top:0;
-  left:50%;
-  width:260px;
-  transform:translateX(-50%);
-  transition:transform .5s, opacity .5s;
-  opacity:0;
-}
-.portfolio-carousel .carousel-card.active{opacity:1;z-index:3}
-.portfolio-carousel .carousel-card.prev,
-.portfolio-carousel .carousel-card.next{opacity:.7;z-index:2}
-.carousel-dots{display:flex;justify-content:center;gap:8px;margin-top:16px}
-.carousel-dot{width:12px;height:12px;border-radius:50%;background:var(--surface-accent);border:none}
-.carousel-dot.active{background:var(--primary)}
 
 /* ───────────────────────────────────────────────────────────
    9.  MODALS
