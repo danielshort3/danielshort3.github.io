@@ -342,7 +342,11 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
   max-width:1068px;       /* show at most 3 cards */
   margin-inline:auto;
 }
-#portfolio-carousel-section{margin-top:80px;}
+#portfolio-carousel-section{
+  margin-top:80px;
+  margin-bottom:48px; /* extra space below the See More button */
+}
+#portfolio-carousel-section .section-title{ text-align:center; }
 #portfolio-carousel .carousel-track{display:flex;gap:24px;transition:transform .6s cubic-bezier(.22,.61,.36,1)}
 .carousel-card{flex:0 0 70%;max-width:340px;opacity:.7;transform:scale(.9);transition:transform .5s,opacity .5s}
 .carousel-card.active{opacity:1;transform:scale(1)}

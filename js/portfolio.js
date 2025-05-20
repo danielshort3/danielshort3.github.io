@@ -448,13 +448,41 @@ function initSeeMore(){
   const grid     = document.getElementById("projects");
   const carousel = document.getElementById("portfolio-carousel-section");
   if(!btn || !filters || !grid) return;
-  btn.addEventListener("click", ()=>{
+  btn.addEventListener("click", () => {
     const expanded = btn.dataset.expanded === "true";
     btn.dataset.expanded = expanded ? "false" : "true";
     btn.textContent = expanded ? "See More" : "See Less";
-    filters.classList.toggle("hide", expanded);
-    grid.classList.toggle("hide", expanded);
-    carousel?.scrollIntoView({ behavior:"smooth" });
+
+    if (expanded) {
+      // collapse grid smoothly
+      const start = grid.offsetHeight;
+      grid.style.height = `${start}px`;
+      grid.classList.add("grid-fade");
+      requestAnimationFrame(() => {
+        grid.style.height = "0px";
+      });
+      setTimeout(() => {
+        grid.classList.add("hide");
+        grid.classList.remove("grid-fade");
+        grid.style.height = "";
+        filters.classList.add("hide");
+        carousel?.scrollIntoView({ behavior: "smooth" });
+      }, 450); // height transition duration
+    } else {
+      // expand grid smoothly
+      filters.classList.remove("hide");
+      grid.classList.remove("hide");
+      const target = grid.scrollHeight;
+      grid.style.height = "0px";
+      grid.classList.add("grid-fade");
+      requestAnimationFrame(() => {
+        grid.style.height = `${target}px`;
+        grid.classList.remove("grid-fade");
+      });
+      setTimeout(() => {
+        grid.style.height = "";
+      }, 450);
+    }
   });
 }
 
