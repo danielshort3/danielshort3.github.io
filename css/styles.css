@@ -109,7 +109,11 @@ p {margin-bottom:1em;font-size:19px}
   font-size:32px;color:var(--primary);pointer-events:none;
   opacity:1;transition:opacity .3s ease;
 }
+.chevron-hint i{
+  animation:bounce 1.5s infinite;
+}
 .chevron-hint.hide{opacity:0}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
 /* ───────────────────────────────────────────────────────────
    5.  BUTTONS
    ─────────────────────────────────────────────────────────── */
@@ -338,6 +342,7 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
   max-width:1068px;       /* show at most 3 cards */
   margin-inline:auto;
 }
+#portfolio-carousel-section{margin-top:80px;}
 #portfolio-carousel .carousel-track{display:flex;gap:24px;transition:transform .6s cubic-bezier(.22,.61,.36,1)}
 .carousel-card{flex:0 0 70%;max-width:340px;opacity:.7;transform:scale(.9);transition:transform .5s,opacity .5s}
 .carousel-card.active{opacity:1;transform:scale(1)}
@@ -353,8 +358,10 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
   background:transparent;
   cursor:pointer;
   aspect-ratio:1;
+  margin:0 4px;
 }
 .carousel-dot.active{background:var(--primary)}
+#portfolio-carousel.dragging{cursor:grabbing;user-select:none}
 @media (max-width:768px){
   .carousel-card{flex:0 0 80%}
 }

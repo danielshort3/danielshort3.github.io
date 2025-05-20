@@ -56,11 +56,8 @@
     if (!chevrons.length) return;
 
     const toggle = () => {
-      chevrons.forEach(chev => {
-        const hero = chev.closest(".hero");
-        const bottom = hero?.getBoundingClientRect().bottom || 0;
-        chev.classList.toggle("hide", bottom <= 0);
-      });
+      const hide = window.scrollY > 0;
+      chevrons.forEach(chev => chev.classList.toggle("hide", hide));
     };
     on(window,"scroll", toggle, { passive:true });
     toggle();                               // initial state

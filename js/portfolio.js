@@ -377,7 +377,7 @@ function buildPortfolioCarousel(){
       <div class="project-subtitle">${p.subtitle}</div>
       <img src="${p.image}" alt="${p.title}">
     `;
-    card.addEventListener("click", ()=> openModal(p.id));
+    card.addEventListener("click", ()=>{ if(!moved) openModal(p.id); });
     track.appendChild(card);
 
     const dot = document.createElement("button");
@@ -412,19 +412,21 @@ function buildPortfolioCarousel(){
   /* ── click & drag to switch slides ───────────────────────────── */
   let dragStart = 0;
   let dragging  = false;
+  let moved     = false;
 
   const getX = e => e.touches ? e.touches[0].clientX : e.clientX;
 
-  const onDown = e => { dragging = true; dragStart = getX(e); };
+  const onDown = e => { dragging = true; moved = false; dragStart = getX(e); container.classList.add("dragging"); };
   const onMove = e => {
     if (!dragging) return;
     const diff = getX(e) - dragStart;
     if (Math.abs(diff) > 40) {
       dragging = false;
+      moved = true;
       diff < 0 ? next() : goTo(current - 1);
     }
   };
-  const onUp = () => { dragging = false; };
+  const onUp = () => { dragging = false; container.classList.remove("dragging"); };
 
   container.addEventListener("mousedown", onDown);
   container.addEventListener("touchstart", onDown, { passive: true });
@@ -447,9 +449,11 @@ function initSeeMore(){
   const carousel = document.getElementById("portfolio-carousel-section");
   if(!btn || !filters || !grid) return;
   btn.addEventListener("click", ()=>{
-    btn.classList.add("hide");
-    filters.classList.remove("hide");
-    grid.classList.remove("hide");
+    const expanded = btn.dataset.expanded === "true";
+    btn.dataset.expanded = expanded ? "false" : "true";
+    btn.textContent = expanded ? "See More" : "See Less";
+    filters.classList.toggle("hide", expanded);
+    grid.classList.toggle("hide", expanded);
     carousel?.scrollIntoView({ behavior:"smooth" });
   });
 }
