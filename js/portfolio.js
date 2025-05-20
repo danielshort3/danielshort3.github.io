@@ -454,33 +454,45 @@ function initSeeMore(){
     btn.textContent = expanded ? "See More" : "See Less";
 
     if (expanded) {
-      // collapse grid smoothly
-      const start = grid.offsetHeight;
-      grid.style.height = `${start}px`;
+      // collapse grid and filters smoothly
+      const gridStart    = grid.offsetHeight;
+      const filtersStart = filters.offsetHeight;
+      grid.style.height    = `${gridStart}px`;
+      filters.style.height = `${filtersStart}px`;
       grid.classList.add("grid-fade");
+      filters.classList.add("filters-fade");
       requestAnimationFrame(() => {
         grid.style.height = "0px";
+        filters.style.height = "0px";
       });
       setTimeout(() => {
         grid.classList.add("hide");
-        grid.classList.remove("grid-fade");
-        grid.style.height = "";
         filters.classList.add("hide");
+        grid.classList.remove("grid-fade");
+        filters.classList.remove("filters-fade");
+        grid.style.height = "";
+        filters.style.height = "";
         carousel?.scrollIntoView({ behavior: "smooth" });
       }, 450); // height transition duration
     } else {
-      // expand grid smoothly
+      // expand grid and filters smoothly
       filters.classList.remove("hide");
       grid.classList.remove("hide");
-      const target = grid.scrollHeight;
-      grid.style.height = "0px";
+      const gridTarget    = grid.scrollHeight;
+      const filtersTarget = filters.scrollHeight;
+      grid.style.height    = "0px";
+      filters.style.height = "0px";
       grid.classList.add("grid-fade");
+      filters.classList.add("filters-fade");
       requestAnimationFrame(() => {
-        grid.style.height = `${target}px`;
+        grid.style.height    = `${gridTarget}px`;
+        filters.style.height = `${filtersTarget}px`;
         grid.classList.remove("grid-fade");
+        filters.classList.remove("filters-fade");
       });
       setTimeout(() => {
         grid.style.height = "";
+        filters.style.height = "";
       }, 450);
     }
   });
