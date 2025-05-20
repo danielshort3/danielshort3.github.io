@@ -104,6 +104,12 @@ p {margin-bottom:1em;font-size:19px}
   flex-direction:column;        /* new */
   align-items:center;           /* new → centres child blocks */
 }
+.chevron-hint{
+  position:absolute;bottom:16px;left:50%;transform:translateX(-50%);
+  font-size:32px;color:var(--primary);pointer-events:none;
+  opacity:1;transition:opacity .3s ease;
+}
+.chevron-hint.hide{opacity:0}
 /* ───────────────────────────────────────────────────────────
    5.  BUTTONS
    ─────────────────────────────────────────────────────────── */
@@ -321,6 +327,20 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
 .featured-card .card-body{padding:20px}
 .featured-card h3{margin:0 0 4px}.featured-card p{margin:0;color:var(--text-muted)}
 .featured-card:hover{transform:translateY(-8px)scale(1.04);box-shadow:0 14px 34px rgba(44,169,188,.32),0 6px 20px rgba(0,0,0,.55)}
+
+/* ───────────────────────────────────────────────────────────
+   14b. PORTFOLIO PAGE CAROUSEL
+   ─────────────────────────────────────────────────────────── */
+#portfolio-carousel{position:relative;overflow:hidden}
+#portfolio-carousel .carousel-track{display:flex;gap:24px;transition:transform .6s cubic-bezier(.22,.61,.36,1)}
+.carousel-card{flex:0 0 70%;max-width:340px;opacity:.7;transform:scale(.9);transition:transform .5s,opacity .5s}
+.carousel-card.active{opacity:1;transform:scale(1)}
+.carousel-dots{text-align:center;margin-top:16px}
+.carousel-dot{width:10px;height:10px;margin:0 4px;border-radius:50%;border:1px solid var(--primary);background:transparent;cursor:pointer}
+.carousel-dot.active{background:var(--primary)}
+@media (max-width:768px){
+  .carousel-card{flex:0 0 80%}
+}
 
 /* ───────────────────────────────────────────────────────────
    15.  CONTRIBUTIONS – DOC CARDS & CAROUSEL

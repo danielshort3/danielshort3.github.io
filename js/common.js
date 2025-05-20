@@ -24,7 +24,11 @@
     initChevronHint();
     initCertTicker();
 
-    if (isPage("portfolio"))     run(window.buildPortfolio);       // called once
+    if (isPage("portfolio")) {
+      run(window.buildPortfolioCarousel);
+      run(window.buildPortfolio);
+      run(initSeeMore);
+    }
     if (isPage("home"))      run(initSkillPopups);      // ← new line
 
   });
@@ -48,10 +52,16 @@
 
   /* ╭──────────────────── SCROLL HINT CHEVRON ──────────────────╮ */
   function initChevronHint(){
-    const chev = $(".chevron-hint");
-    if (!chev) return;
+    const chevrons = $$(".chevron-hint");
+    if (!chevrons.length) return;
 
-    const toggle = () => chev.classList.toggle("hide", window.scrollY > 40);
+    const toggle = () => {
+      chevrons.forEach(chev => {
+        const hero = chev.closest(".hero");
+        const bottom = hero?.getBoundingClientRect().bottom || 0;
+        chev.classList.toggle("hide", bottom <= 0);
+      });
+    };
     on(window,"scroll", toggle, { passive:true });
     toggle();                               // initial state
 
