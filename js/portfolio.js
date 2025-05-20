@@ -333,7 +333,7 @@ window.generateProjectModal = function(p){
           </div>
         </div>
         <div class="modal-half">
-          <p class="header-label">Downloads</p>
+          <p class="header-label">Downloads / Links</p>
           <div class="icon-row">
             ${p.resources.map(r => `
               <a href="${r.url}" target="_blank" title="${r.label}">
@@ -353,6 +353,81 @@ window.generateProjectModal = function(p){
         <div class="modal-image"><img src="${p.image}" alt="${p.title}"></div>
       </div>`;
 };
+
+/* ────────────────────────────────────────────────────────────
+   Portfolio Carousel (top of page)
+   ------------------------------------------------------------------ */
+function buildPortfolioCarousel(){
+  const container = document.getElementById("portfolio-carousel");
+  if (!container || !window.PROJECTS) return;
+
+  const track = container.querySelector(".carousel-track");
+  const dots  = container.querySelector(".carousel-dots");
+
+  const projects = window.PROJECTS.slice(0,5);
+  track.innerHTML = "";
+  dots.innerHTML  = "";
+
+  projects.forEach((p,i)=>{
+    const card = document.createElement("div");
+    card.className = "project-card carousel-card";
+    card.innerHTML = `
+      <div class="overlay"></div>
+      <div class="project-title">${p.title}</div>
+      <div class="project-subtitle">${p.subtitle}</div>
+      <img src="${p.image}" alt="${p.title}">
+    `;
+    card.addEventListener("click", ()=> openModal(p.id));
+    track.appendChild(card);
+
+    const dot = document.createElement("button");
+    dot.className = "carousel-dot";
+    dot.type = "button";
+    dot.setAttribute("aria-label", `Show ${p.title}`);
+    dot.addEventListener("click", ()=>{ goTo(i); pause=true; });
+    dots.appendChild(dot);
+  });
+
+  let current = 0;
+  let pause = false;
+
+  const update = () => {
+    const cardW = track.children[0].offsetWidth + 24; // gap
+    const offset = (container.offsetWidth - cardW)/2;
+    track.style.transform = `translateX(${-current*cardW + offset}px)`;
+    [...track.children].forEach((c,i)=>c.classList.toggle("active", i===current));
+    [...dots.children].forEach((d,i)=>d.classList.toggle("active", i===current));
+  };
+
+  const goTo = i => {
+    const n = projects.length;
+    current = (i + n) % n;
+    update();
+  };
+  const next = () => goTo(current + 1);
+
+  container.addEventListener("mouseenter",()=> pause = true);
+  container.addEventListener("mouseleave",()=> pause = false);
+
+  setInterval(()=>{ if(!pause) next(); }, 5000);
+  window.addEventListener("resize", update);
+
+  update();
+}
+
+function initSeeMore(){
+  const btn = document.getElementById("see-more");
+  const filters  = document.getElementById("filters");
+  const grid     = document.getElementById("projects");
+  const carousel = document.getElementById("portfolio-carousel-section");
+  if(!btn || !filters || !grid) return;
+  btn.addEventListener("click", ()=>{
+    btn.classList.add("hide");
+    carousel?.classList.add("hide");
+    filters.classList.remove("hide");
+    grid.classList.remove("hide");
+  });
+}
 
 /* ────────────────────────────────────────────────────────────
    DOM-builder  (loads all projects immediately)
