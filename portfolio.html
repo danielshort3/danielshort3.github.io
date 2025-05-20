@@ -36,8 +36,19 @@
     <div class="wrapper">
       <h1>Project Portfolio</h1>
       <p>Each project highlights a real-world challenge, the data-driven approach I used, and measurable outcomes.</p>
+      <div class="chevron-hint" aria-hidden="true"><i class="fas fa-chevron-down"></i></div>
     </div>
   </section>
+
+  <section id="portfolio-carousel" class="portfolio-carousel reveal" aria-label="Project browser">
+    <div class="carousel-track"></div>
+    <div class="carousel-dots" role="tablist" aria-label="Project navigation"></div>
+  </section>
+  <div class="wrapper" style="text-align:center">
+    <button id="see-more" class="btn-secondary">See More</button>
+  </div>
+
+  <div id="full-list" class="hide">
 
   <!-- filter buttons -->
   <section class="reveal interest-pad" id="filters">
@@ -55,6 +66,7 @@
   <!-- dynamic grid + modals -->
   <section id="projects" class="grid reveal"></section>
   <div id="modals"></div>
+  </div>
 
   <!-- footer is injected by common.js -->
   <footer></footer>

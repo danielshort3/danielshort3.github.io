@@ -24,7 +24,11 @@
     initChevronHint();
     initCertTicker();
 
-    if (isPage("portfolio"))     run(window.buildPortfolio);       // called once
+    if (isPage("portfolio")) {
+      run(window.buildPortfolioCarousel);
+      run(window.buildPortfolio);
+      run(window.initSeeMore);
+    }
     if (isPage("home"))      run(initSkillPopups);      // ← new line
 
   });
@@ -48,22 +52,13 @@
 
   /* ╭──────────────────── SCROLL HINT CHEVRON ──────────────────╮ */
   function initChevronHint(){
-    const chev = $(".chevron-hint");
-    if (!chev) return;
+    const chev = $(".chevron-hint"), hero = $(".hero");
+    if (!chev || !hero) return;
 
-    const toggle = () => chev.classList.toggle("hide", window.scrollY > 40);
-    on(window,"scroll", toggle, { passive:true });
-    toggle();                               // initial state
-
-    /* click ► scroll to next section */
-    $$(".scroll-indicator").forEach(ind=>{
-      on(ind,"click",()=>{
-        const next = ind.closest(".hero")?.nextElementSibling;
-        (next || window).scrollBy({ top: next ? 0 : window.innerHeight*0.8,
-                                    behavior:"smooth" });
-        ind.classList.add("hidden");
-      });
+    const io = new IntersectionObserver(ents => {
+      chev.classList.toggle("hide", !ents[0].isIntersecting);
     });
+    io.observe(hero);
   }
 
   /* ╭──────────────────── CERTIFICATION TICKER ─────────────────╮ */
