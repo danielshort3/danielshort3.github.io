@@ -24,10 +24,7 @@
     initChevronHint();
     initCertTicker();
 
-    if (isPage("portfolio")) {
-      run(window.buildPortfolioCarousel);
-      run(window.buildPortfolio);
-    }
+    if (isPage("portfolio"))     run(window.buildPortfolio);       // called once
     if (isPage("home"))      run(initSkillPopups);      // ← new line
 
   });
@@ -54,12 +51,19 @@
     const chev = $(".chevron-hint");
     if (!chev) return;
 
-    const hero = chev.closest(".hero");
-    const shouldHide = () => hero && hero.getBoundingClientRect().bottom <= 0;
-    const toggle = () => chev.classList.toggle("hide", shouldHide());
+    const toggle = () => chev.classList.toggle("hide", window.scrollY > 40);
     on(window,"scroll", toggle, { passive:true });
-    on(window,"resize", toggle);
     toggle();                               // initial state
+
+    /* click ► scroll to next section */
+    $$(".scroll-indicator").forEach(ind=>{
+      on(ind,"click",()=>{
+        const next = ind.closest(".hero")?.nextElementSibling;
+        (next || window).scrollBy({ top: next ? 0 : window.innerHeight*0.8,
+                                    behavior:"smooth" });
+        ind.classList.add("hidden");
+      });
+    });
   }
 
   /* ╭──────────────────── CERTIFICATION TICKER ─────────────────╮ */
