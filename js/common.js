@@ -56,11 +56,14 @@
     if (!chevrons.length) return;
 
     const hideAll = () => chevrons.forEach(c => c.classList.add("fade"));
+    const scrolled = () => window.scrollY ||
+                        document.documentElement.scrollTop ||
+                        document.body.scrollTop;
 
-    if (window.scrollY > 0){ hideAll(); return; }
+    if (scrolled() > 0){ hideAll(); return; }
 
     const onScroll = () => {
-      if (window.scrollY > 0){
+      if (scrolled() > 0){
         hideAll();
         window.removeEventListener("scroll", onScroll);
       }
