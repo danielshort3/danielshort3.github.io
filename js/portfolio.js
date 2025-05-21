@@ -472,33 +472,63 @@ function initSeeMore(){
     btn.textContent = expanded ? "See More" : "See Less";
 
     if (expanded) {
-      // collapse grid smoothly
-      const start = grid.offsetHeight;
-      grid.style.height = `${start}px`;
+      // collapse grid and filters smoothly
+      const gStart = grid.offsetHeight;
+      const fStart = filters.offsetHeight;
+
+      grid.style.height = `${gStart}px`;
+      filters.style.height = `${fStart}px`;
+      filters.classList.add("grid-fade");
       grid.classList.add("grid-fade");
+
       requestAnimationFrame(() => {
         grid.style.height = "0px";
+        filters.style.height = "0px";
+        filters.style.paddingTop = "0px";
+        filters.style.paddingBottom = "0px";
+        filters.style.marginTop = "0px";
       });
+
       setTimeout(() => {
         grid.classList.add("hide");
-        grid.classList.remove("grid-fade");
-        grid.style.height = "";
         filters.classList.add("hide");
+        grid.classList.remove("grid-fade");
+        filters.classList.remove("grid-fade");
+        grid.style.height = "";
+        filters.style.height = "";
+        filters.style.paddingTop = "";
+        filters.style.paddingBottom = "";
+        filters.style.marginTop = "";
         carousel?.scrollIntoView({ behavior: "smooth" });
       }, 450); // height transition duration
     } else {
-      // expand grid smoothly
+      // expand grid and filters smoothly
       filters.classList.remove("hide");
       grid.classList.remove("hide");
-      const target = grid.scrollHeight;
+      const gTarget = grid.scrollHeight;
+      const fTarget = filters.scrollHeight;
+
       grid.style.height = "0px";
+      filters.style.height = "0px";
+      filters.style.paddingTop = "0px";
+      filters.style.paddingBottom = "0px";
+      filters.style.marginTop = "0px";
+      filters.classList.add("grid-fade");
       grid.classList.add("grid-fade");
+
       requestAnimationFrame(() => {
-        grid.style.height = `${target}px`;
+        grid.style.height = `${gTarget}px`;
+        filters.style.height = `${fTarget}px`;
+        filters.style.paddingTop = "";
+        filters.style.paddingBottom = "";
+        filters.style.marginTop = "";
         grid.classList.remove("grid-fade");
+        filters.classList.remove("grid-fade");
       });
+
       setTimeout(() => {
         grid.style.height = "";
+        filters.style.height = "";
       }, 450);
     }
   });
