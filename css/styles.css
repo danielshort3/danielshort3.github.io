@@ -294,14 +294,23 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
     padding:48px 0;
 }
 #filters{
-  margin-top:32px;
+  margin-top:0;
   transition:height .45s cubic-bezier(.22,.61,.36,1),
              padding .45s cubic-bezier(.22,.61,.36,1),
-             margin-top .45s cubic-bezier(.22,.61,.36,1),
              opacity .35s ease;
-  will-change:height,padding,margin-top,opacity
+  will-change:height,padding,opacity
 }
 #filters.grid-fade{opacity:0}
+
+/* gap between carousel and filters */
+#carousel-gap{
+  height:64px;
+  background:var(--surface);
+  transition:height .45s cubic-bezier(.22,.61,.36,1),
+             opacity .35s ease;
+  will-change:height,opacity
+}
+#carousel-gap.grid-fade{opacity:0}
 .contact-big{
   display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
   gap:28px;padding:32px
