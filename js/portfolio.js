@@ -465,9 +465,10 @@ function initSeeMore(){
   const filters  = document.getElementById("filters");
   const grid     = document.getElementById("projects");
   const gap      = document.getElementById("carousel-gap");
+  const gapPad   = gap ? parseFloat(getComputedStyle(gap).paddingTop) || 32 : 0;
   if (gap) {
     const color = getComputedStyle(gap).backgroundColor;
-    console.log("[DEBUG] carousel gap found", { gap, color });
+    console.log("[DEBUG] carousel gap found", { gap, color, gapPad });
   } else {
     console.log("[DEBUG] carousel gap element not found");
   }
@@ -482,11 +483,13 @@ function initSeeMore(){
       // collapse grid, filters, and gap smoothly
       const gStart   = grid.offsetHeight;
       const fStart   = filters.offsetHeight;
-      const gapStart = gap ? gap.offsetHeight : 0;
 
       grid.style.height = `${gStart}px`;
       filters.style.height = `${fStart}px`;
-      if (gap) gap.style.height = `${gapStart}px`;
+      if (gap) {
+        gap.style.paddingTop = `${gapPad}px`;
+        gap.style.paddingBottom = `${gapPad}px`;
+      }
       filters.classList.add("grid-fade");
       grid.classList.add("grid-fade");
       if (gap) gap.classList.add("grid-fade");
@@ -494,7 +497,10 @@ function initSeeMore(){
       requestAnimationFrame(() => {
         grid.style.height = "0px";
         filters.style.height = "0px";
-        if (gap) gap.style.height = "0px";
+        if (gap) {
+          gap.style.paddingTop = "0px";
+          gap.style.paddingBottom = "0px";
+        }
         grid.style.paddingTop = "0px";
         grid.style.paddingBottom = "0px";
         filters.style.paddingTop = "0px";
@@ -510,7 +516,10 @@ function initSeeMore(){
         if (gap) gap.classList.remove("grid-fade");
         grid.style.height = "";
         filters.style.height = "";
-        if (gap) gap.style.height = "";
+        if (gap) {
+          gap.style.paddingTop = "";
+          gap.style.paddingBottom = "";
+        }
         grid.style.paddingTop = "";
         grid.style.paddingBottom = "";
         filters.style.paddingTop = "";
@@ -528,11 +537,14 @@ function initSeeMore(){
       if (gap) gap.classList.add("active");
       const gTarget = grid.scrollHeight;
       const fTarget = filters.scrollHeight;
-      const gapTarget = gap ? gap.scrollHeight : 0;
+      const gapTarget = gap ? gapPad : 0;
 
       grid.style.height = "0px";
       filters.style.height = "0px";
-      if (gap) gap.style.height = "0px";
+      if (gap) {
+        gap.style.paddingTop = "0px";
+        gap.style.paddingBottom = "0px";
+      }
       grid.style.paddingTop = "0px";
       grid.style.paddingBottom = "0px";
       filters.style.paddingTop = "0px";
@@ -544,7 +556,10 @@ function initSeeMore(){
       requestAnimationFrame(() => {
         grid.style.height = `${gTarget}px`;
         filters.style.height = `${fTarget}px`;
-        if (gap) gap.style.height = `${gapTarget}px`;
+        if (gap) {
+          gap.style.paddingTop = `${gapPad}px`;
+          gap.style.paddingBottom = `${gapPad}px`;
+        }
         grid.style.paddingTop = "";
         grid.style.paddingBottom = "";
         filters.style.paddingTop = "";
@@ -557,7 +572,10 @@ function initSeeMore(){
       setTimeout(() => {
         grid.style.height = "";
         filters.style.height = "";
-        if (gap) gap.style.height = "";
+        if (gap) {
+          gap.style.paddingTop = `${gapPad}px`;
+          gap.style.paddingBottom = `${gapPad}px`;
+        }
 
         // ensure the newly revealed filters are visible on mobile
         const nav = parseFloat(
