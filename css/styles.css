@@ -209,7 +209,11 @@ p {margin-bottom:1em;font-size:19px}
 .project-card:hover::before{border-color:var(--primary)}
 #projects.grid{
   display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
-  gap:28px;padding:24px;transition:height .45s cubic-bezier(.22,.61,.36,1),opacity .35s ease;will-change:height,opacity
+  gap:28px;padding:24px;
+  transition:height .45s cubic-bezier(.22,.61,.36,1),
+             padding .45s cubic-bezier(.22,.61,.36,1),
+             opacity .35s ease;
+  will-change:height,padding,opacity
 }
 #projects.grid-fade{opacity:0}
 .project-metric{

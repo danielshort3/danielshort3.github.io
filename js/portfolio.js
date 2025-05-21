@@ -484,6 +484,8 @@ function initSeeMore(){
       requestAnimationFrame(() => {
         grid.style.height = "0px";
         filters.style.height = "0px";
+        grid.style.paddingTop = "0px";
+        grid.style.paddingBottom = "0px";
         filters.style.paddingTop = "0px";
         filters.style.paddingBottom = "0px";
         filters.style.marginTop = "0px";
@@ -496,6 +498,8 @@ function initSeeMore(){
         filters.classList.remove("grid-fade");
         grid.style.height = "";
         filters.style.height = "";
+        grid.style.paddingTop = "";
+        grid.style.paddingBottom = "";
         filters.style.paddingTop = "";
         filters.style.paddingBottom = "";
         filters.style.marginTop = "";
@@ -510,6 +514,8 @@ function initSeeMore(){
 
       grid.style.height = "0px";
       filters.style.height = "0px";
+      grid.style.paddingTop = "0px";
+      grid.style.paddingBottom = "0px";
       filters.style.paddingTop = "0px";
       filters.style.paddingBottom = "0px";
       filters.style.marginTop = "0px";
@@ -519,6 +525,8 @@ function initSeeMore(){
       requestAnimationFrame(() => {
         grid.style.height = `${gTarget}px`;
         filters.style.height = `${fTarget}px`;
+        grid.style.paddingTop = "";
+        grid.style.paddingBottom = "";
         filters.style.paddingTop = "";
         filters.style.paddingBottom = "";
         filters.style.marginTop = "";
