@@ -305,7 +305,7 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
 /* gap between carousel and filters */
 #carousel-gap{
   padding:32px 0; /* 64px total spacing */
-  background:var(--surface-accent);
+  background:var(--surface);
   transition:padding .45s cubic-bezier(.22,.61,.36,1),
              opacity .35s ease;
   will-change:padding,opacity
