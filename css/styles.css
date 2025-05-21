@@ -299,7 +299,6 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
              padding .45s cubic-bezier(.22,.61,.36,1),
              margin-top .45s cubic-bezier(.22,.61,.36,1),
              opacity .35s ease;
-  overflow:hidden;
   will-change:height,padding,margin-top,opacity
 }
 #filters.grid-fade{opacity:0}
@@ -356,8 +355,8 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
   margin-inline:auto;
 }
 #portfolio-carousel-section{
-  margin-top:80px;
-  margin-bottom:48px; /* extra space below the See More button */
+  margin-top:24px;
+  margin-bottom:24px; /* extra space below the See More button */
 }
 #portfolio-carousel-section .section-title{ text-align:center; }
 #portfolio-carousel .carousel-track{display:flex;gap:24px;transition:transform .6s cubic-bezier(.22,.61,.36,1)}
