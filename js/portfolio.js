@@ -509,6 +509,9 @@ function initSeeMore(){
       // expand grid and filters smoothly
       filters.classList.remove("hide");
       grid.classList.remove("hide");
+      // ensure reveal animations don't keep them hidden
+      filters.classList.add("active");
+      grid.classList.add("active");
       const gTarget = grid.scrollHeight;
       const fTarget = filters.scrollHeight;
 
