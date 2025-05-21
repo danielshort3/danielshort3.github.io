@@ -305,7 +305,7 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
 /* gap between carousel and filters */
 #carousel-gap{
   height:64px;
-  background:var(--surface);
+  background:var(--surface-accent);
   transition:height .45s cubic-bezier(.22,.61,.36,1),
              opacity .35s ease;
   will-change:height,opacity

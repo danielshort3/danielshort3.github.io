@@ -465,6 +465,12 @@ function initSeeMore(){
   const filters  = document.getElementById("filters");
   const grid     = document.getElementById("projects");
   const gap      = document.getElementById("carousel-gap");
+  if (gap) {
+    const color = getComputedStyle(gap).backgroundColor;
+    console.log("[DEBUG] carousel gap found", { gap, color });
+  } else {
+    console.log("[DEBUG] carousel gap element not found");
+  }
   const carousel = document.getElementById("portfolio-carousel-section");
   if(!btn || !filters || !grid) return;
   btn.addEventListener("click", () => {
