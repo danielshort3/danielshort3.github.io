@@ -55,12 +55,17 @@
     const chevrons = $$(".chevron-hint");
     if (!chevrons.length) return;
 
-    const toggle = () => {
-      const hide = window.scrollY > 0;
-      chevrons.forEach(chev => chev.classList.toggle("hide", hide));
+    const hideAll = () => chevrons.forEach(c => c.classList.add("fade"));
+
+    if (window.scrollY > 0){ hideAll(); return; }
+
+    const onScroll = () => {
+      if (window.scrollY > 0){
+        hideAll();
+        window.removeEventListener("scroll", onScroll);
+      }
     };
-    on(window,"scroll", toggle, { passive:true });
-    toggle();                               // initial state
+    on(window, "scroll", onScroll, { passive:true });
 
     /* click ► scroll to next section */
     $$(".scroll-indicator").forEach(ind=>{
