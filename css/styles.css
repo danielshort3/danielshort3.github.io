@@ -304,11 +304,11 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
 
 /* gap between carousel and filters */
 #carousel-gap{
-  height:64px;
+  padding:32px 0; /* 64px total spacing */
   background:var(--surface-accent);
-  transition:height .45s cubic-bezier(.22,.61,.36,1),
+  transition:padding .45s cubic-bezier(.22,.61,.36,1),
              opacity .35s ease;
-  will-change:height,opacity
+  will-change:padding,opacity
 }
 #carousel-gap.grid-fade{opacity:0}
 .contact-big{
