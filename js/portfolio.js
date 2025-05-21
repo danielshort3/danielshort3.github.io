@@ -540,6 +540,16 @@ function initSeeMore(){
       setTimeout(() => {
         grid.style.height = "";
         filters.style.height = "";
+
+        // ensure the newly revealed filters are visible on mobile
+        const nav = parseFloat(
+          getComputedStyle(document.documentElement).getPropertyValue(
+            "--nav-height"
+          )
+        ) || 0;
+        const y =
+          filters.getBoundingClientRect().top + window.scrollY - nav;
+        window.scrollTo({ top: y, behavior: "smooth" });
       }, 450);
     }
   });
