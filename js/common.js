@@ -55,20 +55,32 @@
     const chevrons = $$(".chevron-hint");
     if (!chevrons.length) return;
 
-    const hideAll = () => chevrons.forEach(c => c.classList.add("fade"));
-    const scrolled = () => window.scrollY ||
-                        document.documentElement.scrollTop ||
-                        document.body.scrollTop;
+    const hideAll = () => {
+      chevrons.forEach(c => c.classList.add("fade"));
+      console.log("[Chevron] hidden");
+    };
+    const getScroll = () => Math.max(
+      window.pageYOffset,
+      document.documentElement.scrollTop,
+      document.body.scrollTop
+    );
 
-    if (scrolled() > 0){ hideAll(); return; }
+    if (getScroll() > 0){
+      hideAll();
+      return;
+    }
 
     const onScroll = () => {
-      if (scrolled() > 0){
+      const y = getScroll();
+      console.log("[Chevron] scroll=", y);
+      if (y > 0){
         hideAll();
         window.removeEventListener("scroll", onScroll);
+        window.removeEventListener("wheel", onScroll);
       }
     };
     on(window, "scroll", onScroll, { passive:true });
+    on(window, "wheel", onScroll,  { passive:true });
 
     /* click ► scroll to next section */
     $$(".scroll-indicator").forEach(ind=>{
