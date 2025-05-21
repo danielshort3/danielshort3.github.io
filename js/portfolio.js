@@ -559,8 +559,8 @@ function initSeeMore(){
             "--nav-height"
           )
         ) || 0;
-        const y =
-          filters.getBoundingClientRect().top + window.scrollY - nav;
+        const target = gap || filters;
+        const y = target.getBoundingClientRect().top + window.scrollY - nav;
         window.scrollTo({ top: y, behavior: "smooth" });
       }, 450);
     }
