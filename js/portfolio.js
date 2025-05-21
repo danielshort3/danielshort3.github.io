@@ -464,6 +464,7 @@ function initSeeMore(){
   const btn = document.getElementById("see-more");
   const filters  = document.getElementById("filters");
   const grid     = document.getElementById("projects");
+  const gap      = document.getElementById("carousel-gap");
   const carousel = document.getElementById("portfolio-carousel-section");
   if(!btn || !filters || !grid) return;
   btn.addEventListener("click", () => {
@@ -472,74 +473,85 @@ function initSeeMore(){
     btn.textContent = expanded ? "See More" : "See Less";
 
     if (expanded) {
-      // collapse grid and filters smoothly
-      const gStart = grid.offsetHeight;
-      const fStart = filters.offsetHeight;
+      // collapse grid, filters, and gap smoothly
+      const gStart   = grid.offsetHeight;
+      const fStart   = filters.offsetHeight;
+      const gapStart = gap ? gap.offsetHeight : 0;
 
       grid.style.height = `${gStart}px`;
       filters.style.height = `${fStart}px`;
+      if (gap) gap.style.height = `${gapStart}px`;
       filters.classList.add("grid-fade");
       grid.classList.add("grid-fade");
+      if (gap) gap.classList.add("grid-fade");
 
       requestAnimationFrame(() => {
         grid.style.height = "0px";
         filters.style.height = "0px";
+        if (gap) gap.style.height = "0px";
         grid.style.paddingTop = "0px";
         grid.style.paddingBottom = "0px";
         filters.style.paddingTop = "0px";
         filters.style.paddingBottom = "0px";
-        filters.style.marginTop = "0px";
       });
 
       setTimeout(() => {
         grid.classList.add("hide");
         filters.classList.add("hide");
+        if (gap) gap.classList.add("hide");
         grid.classList.remove("grid-fade");
         filters.classList.remove("grid-fade");
+        if (gap) gap.classList.remove("grid-fade");
         grid.style.height = "";
         filters.style.height = "";
+        if (gap) gap.style.height = "";
         grid.style.paddingTop = "";
         grid.style.paddingBottom = "";
         filters.style.paddingTop = "";
         filters.style.paddingBottom = "";
-        filters.style.marginTop = "";
         carousel?.scrollIntoView({ behavior: "smooth" });
       }, 450); // height transition duration
     } else {
-      // expand grid and filters smoothly
+      // expand grid, filters, and gap smoothly
       filters.classList.remove("hide");
       grid.classList.remove("hide");
+      if (gap) gap.classList.remove("hide");
       // ensure reveal animations don't keep them hidden
       filters.classList.add("active");
       grid.classList.add("active");
+      if (gap) gap.classList.add("active");
       const gTarget = grid.scrollHeight;
       const fTarget = filters.scrollHeight;
+      const gapTarget = gap ? gap.scrollHeight : 0;
 
       grid.style.height = "0px";
       filters.style.height = "0px";
+      if (gap) gap.style.height = "0px";
       grid.style.paddingTop = "0px";
       grid.style.paddingBottom = "0px";
       filters.style.paddingTop = "0px";
       filters.style.paddingBottom = "0px";
-      filters.style.marginTop = "0px";
       filters.classList.add("grid-fade");
       grid.classList.add("grid-fade");
+      if (gap) gap.classList.add("grid-fade");
 
       requestAnimationFrame(() => {
         grid.style.height = `${gTarget}px`;
         filters.style.height = `${fTarget}px`;
+        if (gap) gap.style.height = `${gapTarget}px`;
         grid.style.paddingTop = "";
         grid.style.paddingBottom = "";
         filters.style.paddingTop = "";
         filters.style.paddingBottom = "";
-        filters.style.marginTop = "";
         grid.classList.remove("grid-fade");
         filters.classList.remove("grid-fade");
+        if (gap) gap.classList.remove("grid-fade");
       });
 
       setTimeout(() => {
         grid.style.height = "";
         filters.style.height = "";
+        if (gap) gap.style.height = "";
 
         // ensure the newly revealed filters are visible on mobile
         const nav = parseFloat(
