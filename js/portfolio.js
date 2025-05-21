@@ -564,6 +564,14 @@ function initSeeMore(){
         grid.style.paddingBottom = "";
         filters.style.paddingTop = "";
         filters.style.paddingBottom = "";
+        // cascade project cards as they reappear
+        [...grid.children].forEach((card, i) => {
+          if (card.classList.contains("hide")) return;
+          card.classList.remove("ripple-in");
+          void card.offsetWidth;
+          card.style.animationDelay = `${i * 80}ms`;
+          card.classList.add("ripple-in");
+        });
         grid.classList.remove("grid-fade");
         filters.classList.remove("grid-fade");
         if (gap) gap.classList.remove("grid-fade");
