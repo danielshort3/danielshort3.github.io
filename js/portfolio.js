@@ -465,6 +465,7 @@ function initSeeMore(){
   const filters  = document.getElementById("filters");
   const grid     = document.getElementById("projects");
   const gap      = document.getElementById("carousel-gap");
+  const mobile   = window.matchMedia("(max-width: 768px)");
   const gapPad   = gap ? parseFloat(getComputedStyle(gap).paddingTop) || 32 : 0;
   if (gap) {
     const color = getComputedStyle(gap).backgroundColor;
@@ -478,6 +479,13 @@ function initSeeMore(){
     const expanded = btn.dataset.expanded === "true";
     btn.dataset.expanded = expanded ? "false" : "true";
     btn.textContent = expanded ? "See More" : "See Less";
+
+    if (mobile.matches) {
+      filters.classList.toggle("hide", expanded);
+      grid.classList.toggle("hide", expanded);
+      if (gap) gap.classList.toggle("hide", expanded);
+      return;
+    }
 
     if (expanded) {
       // collapse grid, filters, and gap smoothly
