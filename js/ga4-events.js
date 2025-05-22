@@ -50,6 +50,24 @@
       });
     }
 
+    const seeMore = document.getElementById('see-more');
+    if (seeMore) {
+      seeMore.addEventListener('click', () => {
+        const expanded = seeMore.dataset.expanded === 'true';
+        send('see_more_toggle', { expanded: !expanded });
+      });
+    }
+
+    if (document.body.dataset.page === 'contact') {
+      send('contact_page_view');
+      document.querySelectorAll('.contact-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const label = card.querySelector('span')?.textContent.trim() || card.href;
+          send('contact_card_click', { card_label: label });
+        });
+      });
+    }
+
     setTimeout(() => send('engaged_time', { seconds: 60 }), 60000);
 
     let sent50 = false;
