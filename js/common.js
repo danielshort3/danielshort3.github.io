@@ -21,7 +21,7 @@
 
     initReveal();
     setScrollbarVar();
-    initChevronHint();
+    // initChevronHint removed to prevent odd scroll behavior on mobile
     initCertTicker();
 
     if (isPage("portfolio")) {
