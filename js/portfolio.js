@@ -365,15 +365,16 @@ window.generateProjectModal = function(p){
 };
 
 /* ────────────────────────────────────────────────────────────
-   Portfolio Carousel (top of page)
+   Portfolio Carousel (top of page) – no wrap-around version
    ------------------------------------------------------------------ */
-function buildPortfolioCarousel(){
+function buildPortfolioCarousel() {
   const container = document.getElementById("portfolio-carousel");
   if (!container || !window.PROJECTS) return;
 
   const track = container.querySelector(".carousel-track");
   const dots  = container.querySelector(".carousel-dots");
 
+  // 1‒5 featured projects -------------------------------------------------
   let projects = [];
   if (Array.isArray(window.FEATURED_IDS) && window.FEATURED_IDS.length) {
     window.FEATURED_IDS.forEach(id => {
@@ -381,12 +382,14 @@ function buildPortfolioCarousel(){
       if (p) projects.push(p);
     });
   } else {
-    projects = window.PROJECTS.slice(0,5);
+    projects = window.PROJECTS.slice(0, 5);
   }
+
   track.innerHTML = "";
   dots.innerHTML  = "";
 
-  projects.forEach((p,i)=>{
+  projects.forEach((p, i) => {
+    /* slide */
     const card = document.createElement("div");
     card.className = "project-card carousel-card";
     card.innerHTML = `
@@ -395,70 +398,84 @@ function buildPortfolioCarousel(){
       <div class="project-subtitle">${p.subtitle}</div>
       <img src="${p.image}" alt="${p.title}">
     `;
-    card.addEventListener("click", ()=>{ if(!moved) openModal(p.id); });
+    card.addEventListener("click", () => { if (!moved) openModal(p.id); });
     track.appendChild(card);
 
+    /* nav dot */
     const dot = document.createElement("button");
     dot.className = "carousel-dot";
-    dot.type = "button";
+    dot.type  = "button";
     dot.setAttribute("aria-label", `Show ${p.title}`);
-    dot.addEventListener("click", ()=>{ goTo(i); pause=true; });
+    dot.addEventListener("click", () => { goTo(i); pause = true; });
     dots.appendChild(dot);
   });
 
+  // -----------------------------------------------------------------------
   let current = 0;
-  let pause = false;
+  let pause   = false;
 
   const update = () => {
-    const cardW = track.children[0].offsetWidth + 24; // gap
-    const offset = (container.offsetWidth - cardW)/2;
-    track.style.transform = `translateX(${-current*cardW + offset}px)`;
-    [...track.children].forEach((c,i)=>c.classList.toggle("active", i===current));
-    [...dots.children].forEach((d,i)=>d.classList.toggle("active", i===current));
+    const cardW  = track.children[0].offsetWidth + 24;            // 24 = gap
+    const offset = (container.offsetWidth - cardW) / 2;
+    track.style.transform = `translateX(${ -current * cardW + offset }px)`;
+
+    [...track.children].forEach((c, i) => c.classList.toggle("active", i === current));
+    [...dots.children].forEach((d, i) => d.classList.toggle("active", i === current));
   };
 
+  /* ---- navigation helpers (NO WRAP) ----------------------------------- */
   const goTo = i => {
-    const n = projects.length;
-    current = (i + n) % n;
+    if (i < 0 || i >= projects.length) return; // ignore out-of-range requests
+    current = i;
     update();
   };
-  const next = () => goTo(current + 1);
 
-  container.addEventListener("mouseenter",()=> pause = true);
-  container.addEventListener("mouseleave",()=> pause = false);
+  const next     = () => goTo(current + 1);        // stops at last slide
+  const previous = () => goTo(current - 1);        // stops at first slide
 
-  /* ── click & drag to switch slides ───────────────────────────── */
-  let dragStart = 0;
-  let dragging  = false;
-  let moved     = false;
+  // -----------------------------------------------------------------------
+  container.addEventListener("mouseenter",  () => pause = true);
+  container.addEventListener("mouseleave",  () => pause = false);
 
-  const getX = e => e.touches ? e.touches[0].clientX : e.clientX;
+  /* drag / swipe --------------------------------------------------------- */
+  let dragStart = 0, dragging = false, moved = false;
+  const getX = e => (e.touches ? e.touches[0].clientX : e.clientX);
 
-  const onDown = e => { dragging = true; moved = false; dragStart = getX(e); container.classList.add("dragging"); };
+  const onDown = e => {
+    dragging = true;
+    moved    = false;
+    dragStart = getX(e);
+    container.classList.add("dragging");
+  };
+
   const onMove = e => {
     if (!dragging) return;
     const diff = getX(e) - dragStart;
     if (Math.abs(diff) > 40) {
       dragging = false;
-      moved = true;
-      diff < 0 ? next() : goTo(current - 1);
+      moved    = true;
+      if (diff < 0) next(); else previous();
     }
   };
+
   const onUp = () => { dragging = false; container.classList.remove("dragging"); };
 
-  container.addEventListener("mousedown", onDown);
+  container.addEventListener("mousedown",  onDown);
   container.addEventListener("touchstart", onDown, { passive: true });
-  container.addEventListener("mousemove", onMove);
-  container.addEventListener("touchmove", onMove, { passive: true });
-  container.addEventListener("mouseup", onUp);
+  container.addEventListener("mousemove",  onMove);
+  container.addEventListener("touchmove",  onMove, { passive: true });
+  container.addEventListener("mouseup",    onUp);
   container.addEventListener("mouseleave", onUp);
-  container.addEventListener("touchend", onUp);
+  container.addEventListener("touchend",   onUp);
 
-  setInterval(()=>{ if(!pause) next(); }, 5000);
+  /* autoplay ------------------------------------------------------------- */
+  setInterval(() => { if (!pause) next(); }, 5000);
+
   window.addEventListener("resize", update);
 
-  update();
+  update(); // initial positioning
 }
+
 
 function initSeeMore(){
   const btn = document.getElementById("see-more");
