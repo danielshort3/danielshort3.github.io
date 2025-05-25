@@ -3,32 +3,36 @@
   "WorkspaceRootPath": "C:\\Users\\Daniel\\Documents\\Website\\danielshort3.github.io\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Daniel\\Documents\\Website\\danielshort3.github.io\\css\\styles.css||{3B902123-F8A7-4915-9F01-361F908088D0}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:css\\styles.css||{3B902123-F8A7-4915-9F01-361F908088D0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Daniel\\Documents\\Website\\danielshort3.github.io\\portfolio.html||{3B902123-F8A7-4915-9F01-361F908088D0}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:portfolio.html||{3B902123-F8A7-4915-9F01-361F908088D0}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Daniel\\Documents\\Website\\danielshort3.github.io\\js\\portfolio.js||{3B902123-F8A7-4915-9F01-361F908088D0}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:js\\portfolio.js||{3B902123-F8A7-4915-9F01-361F908088D0}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Daniel\\Documents\\Website\\danielshort3.github.io\\contributions.html||{3B902123-F8A7-4915-9F01-361F908088D0}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:contributions.html||{3B902123-F8A7-4915-9F01-361F908088D0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Daniel\\Documents\\Website\\danielshort3.github.io\\js\\common.js||{3B902123-F8A7-4915-9F01-361F908088D0}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:js\\common.js||{3B902123-F8A7-4915-9F01-361F908088D0}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Daniel\\Documents\\Website\\danielshort3.github.io\\js\\contributions-carousel.js||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:js\\contributions-carousel.js||{3B902123-F8A7-4915-9F01-361F908088D0}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Daniel\\Documents\\Website\\danielshort3.github.io\\js\\contributions.js||{3B902123-F8A7-4915-9F01-361F908088D0}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:js\\contributions.js||{3B902123-F8A7-4915-9F01-361F908088D0}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Daniel\\Documents\\Website\\danielshort3.github.io\\js\\contributions-carousel.js||{3B902123-F8A7-4915-9F01-361F908088D0}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:js\\contributions-carousel.js||{3B902123-F8A7-4915-9F01-361F908088D0}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Daniel\\Documents\\Website\\danielshort3.github.io\\portfolio.html||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:portfolio.html||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Daniel\\Documents\\Website\\danielshort3.github.io\\css\\styles.css||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:css\\styles.css||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Daniel\\Documents\\Website\\danielshort3.github.io\\contributions.html||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:contributions.html||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Daniel\\Documents\\Website\\danielshort3.github.io\\js\\ga4-events.js||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:js\\ga4-events.js||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Daniel\\Documents\\Website\\danielshort3.github.io\\js\\common.js||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:js\\common.js||{3B902123-F8A7-4915-9F01-361F908088D0}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\Daniel\\Documents\\Website\\danielshort3.github.io\\contact.html||{3B902123-F8A7-4915-9F01-361F908088D0}",
@@ -42,37 +46,50 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 4,
               "Title": "styles.css",
               "DocumentMoniker": "C:\\Users\\Daniel\\Documents\\Website\\danielshort3.github.io\\css\\styles.css",
               "RelativeDocumentMoniker": "css\\styles.css",
               "ToolTip": "C:\\Users\\Daniel\\Documents\\Website\\danielshort3.github.io\\css\\styles.css",
               "RelativeToolTip": "css\\styles.css",
-              "ViewState": "AgIAAEIBAAAAAAAAAAAiwEkBAAAyAAAAAAAAAA==",
+              "ViewState": "AgIAADwAAAAAAAAAAAAAAFEAAAArAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
               "WhenOpened": "2025-05-12T02:04:32.782Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 6,
+              "Title": "ga4-events.js",
+              "DocumentMoniker": "C:\\Users\\Daniel\\Documents\\Website\\danielshort3.github.io\\js\\ga4-events.js",
+              "RelativeDocumentMoniker": "js\\ga4-events.js",
+              "ToolTip": "C:\\Users\\Daniel\\Documents\\Website\\danielshort3.github.io\\js\\ga4-events.js",
+              "RelativeToolTip": "js\\ga4-events.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-05-24T20:29:13.329Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
               "Title": "portfolio.js",
               "DocumentMoniker": "C:\\Users\\Daniel\\Documents\\Website\\danielshort3.github.io\\js\\portfolio.js",
               "RelativeDocumentMoniker": "js\\portfolio.js",
               "ToolTip": "C:\\Users\\Daniel\\Documents\\Website\\danielshort3.github.io\\js\\portfolio.js",
               "RelativeToolTip": "js\\portfolio.js",
-              "ViewState": "AgIAAOYBAAAAAAAAAAAiwPgBAAAcAAAAAAAAAA==",
+              "ViewState": "AgIAABADAAAAAAAAAADwvzIDAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
               "WhenOpened": "2025-05-12T02:04:31.367Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 2,
               "Title": "contributions.js",
               "DocumentMoniker": "C:\\Users\\Daniel\\Documents\\Website\\danielshort3.github.io\\js\\contributions.js",
               "RelativeDocumentMoniker": "js\\contributions.js",
@@ -80,23 +97,25 @@
               "RelativeToolTip": "js\\contributions.js",
               "ViewState": "AgIAAE4AAAAAAAAAAAAAAI4AAAAjAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2025-05-12T02:04:30.963Z"
+              "WhenOpened": "2025-05-12T02:04:30.963Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 1,
               "Title": "contributions-carousel.js",
               "DocumentMoniker": "C:\\Users\\Daniel\\Documents\\Website\\danielshort3.github.io\\js\\contributions-carousel.js",
               "RelativeDocumentMoniker": "js\\contributions-carousel.js",
               "ToolTip": "C:\\Users\\Daniel\\Documents\\Website\\danielshort3.github.io\\js\\contributions-carousel.js",
               "RelativeToolTip": "js\\contributions-carousel.js",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAhAAAAAAAAAA==",
+              "ViewState": "AgIAAA8AAAAAAAAAAADwv0YAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2025-05-12T02:04:30.585Z"
+              "WhenOpened": "2025-05-12T02:04:30.585Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 7,
               "Title": "common.js",
               "DocumentMoniker": "C:\\Users\\Daniel\\Documents\\Website\\danielshort3.github.io\\js\\common.js",
               "RelativeDocumentMoniker": "js\\common.js",
@@ -108,7 +127,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 8,
               "Title": "contact.html",
               "DocumentMoniker": "C:\\Users\\Daniel\\Documents\\Website\\danielshort3.github.io\\contact.html",
               "RelativeDocumentMoniker": "contact.html",
@@ -120,7 +139,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 5,
               "Title": "contributions.html",
               "DocumentMoniker": "C:\\Users\\Daniel\\Documents\\Website\\danielshort3.github.io\\contributions.html",
               "RelativeDocumentMoniker": "contributions.html",
@@ -133,7 +152,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 3,
               "Title": "portfolio.html",
               "DocumentMoniker": "C:\\Users\\Daniel\\Documents\\Website\\danielshort3.github.io\\portfolio.html",
               "RelativeDocumentMoniker": "portfolio.html",

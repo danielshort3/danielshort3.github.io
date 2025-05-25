@@ -83,7 +83,7 @@ window.PROJECTS = [
     id: "nonogram",
     title: "Adaptive Nonogram Solver",
     subtitle: "Reinforcement Learning (RL)",
-    image: "images/project_4.png",
+    image: "images/project_4.gif",
     tools: ["Python", "PyTorch"],
     resources: [
       { icon: "images/github-icon.png",  url: "https://github.com/danielshort3/nonogram", label: "GitHub" },
