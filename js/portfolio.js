@@ -68,14 +68,13 @@ window.PROJECTS = [
         label:"Interactive Dashboard"
       }
     ],
-    problem : "Managers spent 15 min per shift reading static reports to spot delivery issues.",
+    problem : "As a delivery driver, I wanted to optimize my deliveries for the maximum tip revenue.",
     actions : [
-      "Reshaped 12 k rows for Tableau; built map, histogram & 12-month forecast with date/zone filters.",
-      "Embedded dashboard on intranet with auto-refresh via Tableau Server extracts."
+      "Reshaped 12,000 rows for Tableau, built map, histogram & 12-month forecast with date/zone filters.",
     ],
     results : [
-      "Cut KPI review time **15 min → 2 min**.",
-      "Surfaced three zones averaging **+18 %** higher tips → targeted marketing campaign."
+      "Able to review potential deliveries and choose which to take.",
+      "Improved tip revenue per delivery by more than 10%."
     ]
   },
 
@@ -86,18 +85,17 @@ window.PROJECTS = [
     image: "images/project_4.gif",
     tools: ["Python", "PyTorch"],
     resources: [
-      { icon: "images/github-icon.png",  url: "https://github.com/danielshort3/nonogram", label: "GitHub" },
+      { icon: "images/github-icon.png",  url: "https://github.com/danielshort3/Nonogram-Solver", label: "GitHub" },
       { icon: "images/pdf-icon.png",     url: "documents/Project_4.pdf",                  label: "PDF"    },
       { icon: "images/jupyter-icon.png", url: "documents/Project_4.ipynb",                label: "Notebook"}
     ],
-    problem : "No existing AI generalized across Nonogram sizes; manual play was tedious.",
+    problem : "I wanted to create a machine learning model to automatically solve Nonogram puzzles for me.",
     actions : [
-      "Designed CNN + Transformer RL agent with curriculum (5×5 → 25×25); trained on 200 k puzzles.",
-      "Implemented policy-gradient rewards and dynamic masking for valid moves."
+      "Built a hybrid CNN + Transformer policy network and trained it on more than 25 million 5×5 puzzles (52,000 episodes × 512-board batches).",
+      "Shaped the reward signal around unique guesses, row/column completions, and full-board solves to speed up exploration."
     ],
     results : [
-      "Reached **92 % solve-rate** on unseen 15×15 boards.",
-      "Generalized to new clue sets with **0 retraining** required."
+      "Reached 94% accuracy on unseen 5×5 boards.",
     ]
   },
 
@@ -106,21 +104,25 @@ window.PROJECTS = [
     title: "UFO Sightings Explorer",
     subtitle: "Tableau Geospatial Analytics",
     image: "images/project_5.png",
-    tools: ["Tableau", "Data Blending"],
+    tools: ["Tableau"],
     resources: [
       { icon: "images/tableau-icon.png",
         url  : "https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013?:language=en-US&:display_count=n&:origin=viz_share_link",
         label:"Interactive Dashboard"
       }
     ],
-    problem : "Researchers couldn’t detect macro-patterns across fragmented UFO datasets.",
+    embed : {
+      type : "tableau",
+      base : "https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013"
+    },
+    problem : "I was curious what trends could be found in UFO sightings across the United States.",
     actions : [
-      "Merged **3 national** databases (80 k records); normalized shape, duration, geo fields.",
-      "Built heat-map, time-slider, and anomaly filters for rapid exploratory analysis."
+      "Cleaned and standardized hundreds of UFO sightings.",
+      "Built heat-map, bar charts, and line charts for rapid exploratory analysis."
     ],
     results : [
-      "Single dashboard covers **10+ KPIs**; attracts ~500 monthly views from academia.",
-      "Uncovered July seasonal spike and Southwest corridor hotspot → cited in 2 blog articles."
+      "Determined that most UFO sightings tend to occur just after sunset (earlier in the winter months and later in the summer months).",
+      "Found that California is the most common state for UFO sightings, with less in the central U.S."
     ]
   },
 
@@ -129,20 +131,21 @@ window.PROJECTS = [
     title: "COVID-19 Mortality Drivers",
     subtitle: "Python XGBoost & SHAP",
     image: "images/project_6.png",
-    tools: ["Python", "XGBoost", "SHAP"],
+    tools: ["Python"],
     resources: [
       { icon: "images/github-icon.png",  url: "https://github.com/danielshort3/Covid-Analysis", label: "GitHub" },
       { icon: "images/pdf-icon.png",     url: "documents/Project_6.pdf",                        label: "PDF"    },
       { icon: "images/jupyter-icon.png", url: "documents/Project_6.ipynb",                      label: "Notebook"}
     ],
-    problem : "Hospitals lacked evidence on which country-level factors drove mortality rates.",
+    problem : "I used covid historical data to predict future outbreaks.",
     actions : [
-      "Joined **30 datasets** (demography, comorbidity, policy); engineered lag features.",
-      "Trained XGBoost; used SHAP for interpretability; validated via 5-fold RMSE."
+      "Cleaned & enriched more than 50k records from the HHS hospital-capacity time-series; added rolling means, trends, and 1/3/7/14-day lag features.",
+      "Built an XGBoost classifier with class-imbalance weighting and a strict time-based train/test split.",
     ],
     results : [
-      "Isolation index & diabetes prevalence ranked top; findings shared with **3 clinics**.",
-      "Notebook enabled scenario testing that cut epidemiology analysis time **−60 %**."
+      "Used SHAP to surface the 7 most influential drivers and embedded the interactive plot in the report.",
+      "The most significant driver of COVID outbreaks was the percentage of ICU beds with COVID.",
+      "Utah was likely the next location of COVID outbreak at 6.1%."
     ]
   },
 
@@ -329,7 +332,41 @@ window.FEATURED_IDS = [
   "ufoDashboard"
 ];
 
-window.generateProjectModal = function(p){
+window.generateProjectModal = function (p) {
+  const isTableau = p.embed?.type === "tableau";
+
+  /* helper – which Tableau layout should load right now? */
+  const tableauDevice = () =>
+    window.matchMedia("(max-width:768px)").matches ? "phone" : "desktop";
+
+  /* build the right-hand visual (image or Tableau iframe) */
+  const visual = (() => {
+    if (!isTableau) {
+      return `
+        <div class="modal-image">
+          <img src="${p.image}" alt="${p.title}">
+        </div>`;
+    }
+
+    /* use the clean, param-free URL you stored as p.embed.base */
+    const base = p.embed.base || p.embed.url;   // fall back if needed
+    const src  = `${base}?${[
+      ":embed=y",
+      ":showVizHome=no",
+      `:device=${tableauDevice()}`
+    ].join("&")}`;
+
+    return `
+      <div class="modal-embed tableau-fit">
+        <iframe
+          src="${src}"
+          loading="lazy"
+          allowfullscreen
+          data-base="${base}"></iframe>
+      </div>`;
+  })();
+
+  /* full modal template ------------------------------------------------ */
   return `
     <div class="modal-content" tabindex="0">
       <button class="modal-close" aria-label="Close dialog">&times;</button>
@@ -353,15 +390,17 @@ window.generateProjectModal = function(p){
         </div>
       </div>
 
-      <div class="modal-body">
+      <div class="modal-body ${isTableau ? "stacked" : ""}">
         <div class="modal-text">
           <p class="modal-subtitle">${p.subtitle}</p>
           <h4>Problem</h4><p>${p.problem}</p>
-          <h4>Action</h4><ul>${p.actions.map(a=>`<li>${a}</li>`).join("")}</ul>
-          <h4>Result</h4><ul>${p.results.map(r=>`<li>${r}</li>`).join("")}</ul>
+          <h4>Action</h4><ul>${p.actions.map(a => `<li>${a}</li>`).join("")}</ul>
+          <h4>Result</h4><ul>${p.results.map(r => `<li>${r}</li>`).join("")}</ul>
         </div>
-        <div class="modal-image"><img src="${p.image}" alt="${p.title}"></div>
-      </div>`;
+
+        ${visual}
+      </div>
+    </div>`;
 };
 
 /* ────────────────────────────────────────────────────────────
@@ -645,6 +684,23 @@ function buildPortfolio() {
     if (html) n.innerHTML = html;
     return n;
   };
+
+(() => {
+  const mq = window.matchMedia("(max-width:768px)");
+  const updateIframes = () => {
+    document.querySelectorAll(".modal-embed iframe[data-base]")
+      .forEach(f => {
+        const base = f.dataset.base;
+        f.src = `${base}?${[
+          ":embed=y",
+          ":showVizHome=no",
+          `:device=${mq.matches ? "phone" : "desktop"}`
+        ].join("&")}`;
+      });
+  };
+  mq.addEventListener("change", updateIframes);
+})();
+
 
   /* ➊ Build cards & modals ----------------------------------------- */
   window.PROJECTS.forEach((p, i) => {
