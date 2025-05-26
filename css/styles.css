@@ -233,7 +233,7 @@ p {margin-bottom:1em;font-size:19px}
 .modal.active{opacity:1;pointer-events:auto}
 body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
 .modal-content{
-  position:relative;max-width:780px;max-height:82vh;margin:5% 24px;overflow:auto;
+  position:relative;max-height:82vh;margin:5% 48px;overflow:auto;
   background:var(--surface-light);border-radius:14px;
   box-shadow:0 10px 28px color-mix(in srgb,var(--bg) 60%,transparent),0 0 0 1px color-mix(in srgb,var(--primary) 15%,transparent);
   color:var(--text-light);transform:translateY(-24px) scale(.96);opacity:0;

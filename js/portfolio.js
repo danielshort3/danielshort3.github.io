@@ -180,7 +180,7 @@ window.PROJECTS = [
     id: "handwritingRating",
     title: "Handwriting Legibility Scoring",
     subtitle: "PyTorch CNN Fine-Tuning",
-    image: "images/project_8.png",
+    image: "images/project_8.gif",
     tools: ["Python", "PyTorch", "CNN"],
     resources: [
       { icon: "images/github-icon.png",  url: "https://github.com/danielshort3/Handwriting-Rating", label: "GitHub" },
@@ -244,7 +244,7 @@ window.PROJECTS = [
 
   {
     id: "deliveryTip",
-    title: "Tip Hot-Spot Heat-Map (not done)",
+    title: "Delivery Tip ",
     subtitle: "Excel Geo-Analytics",
     image: "images/project_11.png",
     tools: ["Excel", "Power Query"],
