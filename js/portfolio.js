@@ -23,14 +23,15 @@ window.PROJECTS = [
       { icon: "images/pdf-icon.png",   url: "documents/Project_1.pdf",  label: "PDF"   },
       { icon: "images/excel-icon.png", url: "documents/Project_1.xlsx", label: "Excel" }
     ],
-    problem : "Tip revenue fluctuated  ±35 % week-to-week with no data-driven explanation.",
+    problem : "Tip income swung wildly across neighbourhoods and housing types, but drivers had no data-backed story to explain the variation.",
     actions : [
-      "Profiled 12 k delivery rows; cleaned weather / customer-type fields in Excel Power Query.",
-      "Built multi-variate regression isolating dwelling-type, distance, and order size effects."
+      "Merged 1,251 delivery tickets with NOAA weather, then cleaned the data in Power Query.",
+      "Ran a multiple-regression in Excel: Tip = f(cost, delivery-time, rain, max/min temp)."
     ],
     results : [
-      "Identified apartments tipping **12 % less** than single-family homes.",
-      "Informed route scheduling that lifted average driver earnings **+8 %** in the next quarter."
+      "Order cost explains about 38% of tip variance; every extra $10 on the bill lifts the tip by about $1.10.",
+      "Apartment customers tip 28% less than house residents (p < 0.001).",
+      "Weather and delivery time showed no significant effect on tip size."
     ]
   },
 
@@ -45,14 +46,15 @@ window.PROJECTS = [
       { icon: "images/pdf-icon.png",    url: "documents/Project_2_pdf.zip",               label: "PDFs"  },
       { icon: "images/jupyter-icon.png",url: "documents/Project_2.zip",                   label: "Notebook"}
     ],
-    problem : "Expectant parents lacked objective data on long-term name ‘stickiness’.",
+    problem : "My wife wanted me to come up with new baby names to suggest to her. I wanted to use data-backed insights to solve this problem.",
     actions : [
-      "Aggregated & cleaned **140 years** of SSA records; engineered trend and saturation features.",
-      "Trained linear-regression and random-forest models; automated top-10 recommendation service."
+      "Aggregated & cleaned over 140 years of SSA records, engineering trend and saturation features.",
+      "Created a script to suggest names so I could quiz my wife.",
+      "Engineered multiple models then averaged results to provide recommendations."
     ],
     results : [
-      "Model scored unseen yearly slices at **R² 0.82**.",
-      "Generated personalized short-lists that cut name-selection time **−50 %** in user testing."
+      "Generated personalized top-50 names for boys and girls for my wife.",
+      "Successfully named my child with recommendations."
     ]
   },
 
@@ -68,7 +70,11 @@ window.PROJECTS = [
         label:"Interactive Dashboard"
       }
     ],
-    problem : "As a delivery driver, I wanted to optimize my deliveries for the maximum tip revenue.",
+    embed : {
+      type : "tableau",
+      base : "https://public.tableau.com/views/Pizza_Delivery/PizzaDeliveryDashboard"
+    },
+    problem : "As a delivery driver, I wanted to visualize my performance and where I was the most successful.",
     actions : [
       "Reshaped 12,000 rows for Tableau, built map, histogram & 12-month forecast with date/zone filters.",
     ],
