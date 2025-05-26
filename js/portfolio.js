@@ -15,7 +15,7 @@
 window.PROJECTS = [
   {
     id: "pizza",
-    title: "Pizza-Tips Regression Model",
+    title: "Pizza Tips Regression Analysis",
     subtitle: "Excel Analytics & Forecasting",
     image: "images/project_1.png",
     tools: ["Excel", "Statistics"],
@@ -37,7 +37,7 @@ window.PROJECTS = [
 
   {
     id: "babynames",
-    title: "Baby-Name Popularity Predictor",
+    title: "Baby Name Predictor",
     subtitle: "Python ML Pipeline",
     image: "images/project_2.png",
     tools: ["Python", "scikit-learn"],
@@ -60,8 +60,8 @@ window.PROJECTS = [
 
   {
     id: "pizzaDashboard",
-    title: "30-Second Delivery KPI Dashboard",
-    subtitle: "Tableau Storytelling",
+    title: "Pizza Delivery Dashboard",
+    subtitle: "Tableau Delivery Storytelling",
     image: "images/project_3.png",
     tools: ["Tableau"],
     resources: [
@@ -86,7 +86,7 @@ window.PROJECTS = [
 
   {
     id: "nonogram",
-    title: "Adaptive Nonogram Solver",
+    title: "Nonogram Solver",
     subtitle: "Reinforcement Learning (RL)",
     image: "images/project_4.gif",
     tools: ["Python", "PyTorch"],
@@ -107,7 +107,7 @@ window.PROJECTS = [
 
   {
     id: "ufoDashboard",
-    title: "UFO Sightings Explorer",
+    title: "UFO Sightings Dashboard",
     subtitle: "Tableau Geospatial Analytics",
     image: "images/project_5.png",
     tools: ["Tableau"],
@@ -134,7 +134,7 @@ window.PROJECTS = [
 
   {
     id: "covidAnalysis",
-    title: "COVID-19 Mortality Drivers",
+    title: "COVID-19 Outbreak Drivers",
     subtitle: "Python XGBoost & SHAP",
     image: "images/project_6.png",
     tools: ["Python"],
@@ -157,7 +157,7 @@ window.PROJECTS = [
 
   {
     id: "targetEmptyPackage",
-    title: "Empty-Package Shrink Dashboard",
+    title: "Empty-Package Shrink Dashboard (not done)",
     subtitle: "Excel Forecasting & BI",
     image: "images/project_7.png",
     tools: ["Excel", "Time-Series"],
@@ -178,7 +178,7 @@ window.PROJECTS = [
 
   {
     id: "handwritingRating",
-    title: "Numeral Legibility Scorer",
+    title: "Handwriting Legibility Scoring",
     subtitle: "PyTorch CNN Fine-Tuning",
     image: "images/project_8.png",
     tools: ["Python", "PyTorch", "CNN"],
@@ -187,14 +187,15 @@ window.PROJECTS = [
       { icon: "images/pdf-icon.png",     url: "documents/Project_8.pdf",                            label: "PDF"    },
       { icon: "images/jupyter-icon.png", url: "documents/Project_8.ipynb",                          label: "Notebook"}
     ],
-    problem : "Teachers needed an objective, fast way to grade handwritten numerals.",
+    problem : "My wife would say my handwriting is illegible. I wanted objective thoughts about this.",
     actions : [
-      "Fine-tuned ResNet-18 on MNIST + 3 k custom samples; optimized depth vs. latency for tablets.",
-      "Built scoring rubric 0–100; packaged as lightweight ONNX model."
+      "Created three models of varying complexity to learn to read handwritten digits.",
+      "Trained models on 60,000 handwritten digits."
     ],
     results : [
-      "Delivered **80 % overall accuracy** at 25 ms inference on low-power devices.",
-      "Dashboard flagged ‘2’ as lowest-quality digit (35 % accuracy) → targeted practice."
+      "Model 3 (the most complex) was the most accurate, with 99.1% accuracy.",
+      "My handwriting was determined to be 72.5% legible, with 0, 3, 5, and 8 the most illegible.",
+      "My wife was correct in her assessment of my poor handwriting."
     ]
   },
 
@@ -202,49 +203,48 @@ window.PROJECTS = [
     id: "digitGenerator",
     title: "Synthetic Digit Generator",
     subtitle: "Variational Autoencoder",
-    image: "images/project_9.png",
+    image: "images/project_9.gif",
     tools: ["Python", "VAE"],
     resources: [
       { icon: "images/github-icon.png",  url: "https://github.com/danielshort3/Handwritten-Digit-Generator", label: "GitHub" },
       { icon: "images/pdf-icon.png",     url: "documents/Project_9.pdf",                                   label: "PDF"    },
       { icon: "images/jupyter-icon.png", url: "documents/Project_9.ipynb",                                 label: "Notebook"}
     ],
-    problem : "Researchers needed extra handwriting samples to balance small datasets.",
+    problem : "I wanted to learn how to generate completely new handwritten digits based on a sample.",
     actions : [
-      "Built VAE with conv & deconv layers; visualized latent space via t-SNE & UMAP.",
-      "Sampled latent vectors to create novel digits; tuned β-VAE for disentanglement."
+      "Built Variational Autoencoder trained on 60,000 handwritten digits."
     ],
     results : [
-      "Generated **10 k** high-fidelity digits (BCE < 0.04).",
-      "Augmented training sets improved downstream model accuracy **+3.2 pp**."
+      "Successfully visualized latent digits through the trained model.",
+      "I have the ability to generate unique handwritten digits when needed."
     ]
   },
 
   {
     id: "sheetMusicUpscale",
-    title: "Sheet-Music Clean-&-Upscale",
-    subtitle: "UNet + VDSR Pipeline",
-    image: "images/project_10.png",
+    title: "Sheet Music Watermark Removal & Upscale",
+    subtitle: "UNet & VDSR Pipeline",
+    image: "images/project_10.gif",
     tools: ["Python", "Computer Vision"],
     resources: [
       { icon: "images/github-icon.png", url: "https://github.com/danielshort3/Watermark-Remover", label: "GitHub" },
       { icon: "images/pdf-icon.png",    url: "documents/Project_10_pdf.zip",                      label: "PDFs"  },
       { icon: "images/jupyter-icon.png",url: "documents/Project_10.zip",                          label: "Notebook"}
     ],
-    problem : "Musicians struggled with low-res, watermark-covered public-domain scores.",
+    problem : "I wanted the ability to participate in playing music as my church but did not have any sheet music.",
     actions : [
-      "Trained UNet on **20 k** paired pages for watermark removal.",
-      "Upscaled 612×792 scans to 1700×2200 with VDSR; wrapped GUI for one-click pipeline."
+      "Trained a UNet model on more 20,000 paired pages for watermark removal.",
+      "Upscaled 612×792 scans to 1700×2200 with Very Deep Super-Resolution (VDSR).", 
+      "Wrapped functionality in a GUI for a simple pipeline."
     ],
     results : [
-      "Delivered print-ready scores in < 10 s; **PSNR +9 dB** post-processing.",
-      "Adopted by **120+** musicians within first month of release."
+      "Delivers cleaned and legible scores in <10 seconds.",
     ]
   },
 
   {
     id: "deliveryTip",
-    title: "Tip Hot-Spot Heat-Map",
+    title: "Tip Hot-Spot Heat-Map (not done)",
     subtitle: "Excel Geo-Analytics",
     image: "images/project_11.png",
     tools: ["Excel", "Power Query"],
@@ -265,7 +265,7 @@ window.PROJECTS = [
 
   {
     id: "retailStore",
-    title: "Store-Level Loss & Sales ETL",
+    title: "Store-Level Loss & Sales ETL (not done)",
     subtitle: "SQL + Python Viz",
     image: "images/project_12.png",
     tools: ["SQL", "Python"],
@@ -287,7 +287,7 @@ window.PROJECTS = [
 
   {
     id: "smartSentence",
-    title: "Smart Sentence Retriever",
+    title: "Smart Sentence Retriever (not done)",
     subtitle: "Transformer Embeddings",
     image: "images/project_13.png",
     tools: ["Python", "NLP"],
@@ -309,7 +309,7 @@ window.PROJECTS = [
 
   {
     id: "website",
-    title: "danielshort.me",
+    title: "danielshort.me (not done)",
     subtitle: "Responsive Portfolio Site",
     image: "images/project_14.png",
     tools: ["HTML", "CSS", "JavaScript"],
