@@ -178,7 +178,7 @@ window.PROJECTS = [
 
   {
     id: "handwritingRating",
-    title: "Handwriting Legibility Scoring",
+    title: "Handwriting Legibility Scoring (replace updated visual)",
     subtitle: "PyTorch CNN Fine-Tuning",
     image: "images/project_8.gif",
     tools: ["Python", "PyTorch", "CNN"],
@@ -244,7 +244,7 @@ window.PROJECTS = [
 
   {
     id: "deliveryTip",
-    title: "Delivery Tip ",
+    title: "Delivery Tip... not done",
     subtitle: "Excel Geo-Analytics",
     image: "images/project_11.png",
     tools: ["Excel", "Power Query"],
@@ -287,8 +287,8 @@ window.PROJECTS = [
 
   {
     id: "smartSentence",
-    title: "Smart Sentence Retriever (not done)",
-    subtitle: "Transformer Embeddings",
+    title: "Smart Sentence Retriever (modify visual to be more pictoral)",
+    subtitle: "Embeddings Cosine Comparison",
     image: "images/project_13.png",
     tools: ["Python", "NLP"],
     resources: [
@@ -296,7 +296,7 @@ window.PROJECTS = [
       { icon: "images/pdf-icon.png",    url: "documents/Project_13.pdf",                              label: "PDF"    },
       { icon: "images/jupyter-icon.png",url: "documents/Project_13.ipynb",                            label: "Notebook"}
     ],
-    problem : "Researchers needed < 1 s extraction of key lines from large PDFs.",
+    problem : "I wanted to have a quick way of finding relevant information from documents based on semantics, not exact wording.",
     actions : [
       "Embedded sentences using sentence-transformers; indexed vectors with FAISS.",
       "Benchmarked 5 models on top-k precision vs. latency."
@@ -331,11 +331,11 @@ window.PROJECTS = [
 
 // IDs (in order) of projects shown in the top carousel
 window.FEATURED_IDS = [
-  "pizza",
-  "babynames",
-  "pizzaDashboard",
+  "sheetMusicUpscale",  
   "nonogram",
-  "ufoDashboard"
+  "babynames",
+  "handwritingRating",
+  "digitGenerator"
 ];
 
 window.generateProjectModal = function (p) {
