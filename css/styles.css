@@ -1022,3 +1022,31 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
     gap: 12px;                     /* one or two icons side-by-side */
   }
 }
+
+/* only kicks in when the modal-body has .stacked */
+.modal-body.stacked  { flex-direction: column; }
+
+.modal-embed iframe  {
+  width: 100%;
+  height: 70vh;      /* plenty of space for the dashboard */
+  border: none;
+  display: block;
+  margin-top: 1rem;
+}
+
+.modal-embed {
+  overflow-x: auto;
+  width: 100%;
+}
+
+/* Inner div applies scaling to fixed-size Tableau dashboard */
+.tableau-scale-inner {
+  transform-origin: top left;
+}
+
+/* Optional: for consistency if needed elsewhere */
+.modal-embed iframe {
+  border: none;
+  display: block;
+  margin-top: 1rem;
+}
