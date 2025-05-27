@@ -77,6 +77,7 @@ window.PROJECTS = [
     problem : "As a delivery driver, I wanted to visualize my performance and where I was the most successful.",
     actions : [
       "Reshaped 12,000 rows for Tableau, built map, histogram & 12-month forecast with date/zone filters.",
+      "Enabled live updates on current performance and anticipate future performance."
     ],
     results : [
       "Able to review potential deliveries and choose which to take.",
@@ -157,7 +158,7 @@ window.PROJECTS = [
 
   {
     id: "targetEmptyPackage",
-    title: "Empty-Package Shrink Dashboard (not done)",
+    title: "Empty-Package Shrink Dashboard)",
     subtitle: "Excel Forecasting & BI",
     image: "images/project_7.png",
     tools: ["Excel", "Time-Series"],
@@ -165,14 +166,18 @@ window.PROJECTS = [
       { icon: "images/pdf-icon.png",   url: "documents/Project_7.pdf",  label: "PDF"   },
       { icon: "images/excel-icon.png", url: "documents/Project_7.xlsx", label: "Excel" }
     ],
-    problem : "Retail execs lacked visibility into rising empty-package theft across 200 stores.",
+    problem : "Empty-package theft had ballooned—recovered retail value jumped 5× from Q1 2021 to Q2 2023—yet leaders had no single view to see which employees, locations, or departments were driving the losses.",
     actions : [
-      "Cleansed loss-prevention logs; built pivot KPIs by department/month.",
-      "Forecasted 12-month shrink using Holt-Winters triple exponential smoothing."
+      "Consolidated 5,900+ loss-prevention records (2021-2023).",
+      "Cleaned employee IDs, DPCI codes, dates, and dollar values.",
+      "Built an interactive Excel sheet with drill-downs by employee, department, and recovery location.",
+      "Compiled results in a report for management."
     ],
     results : [
-      "Flagged Beauty & Electronics causing **43 % of losses**.",
-      "Secured **$380 k** mitigation budget based on 12-month projection."
+      "Revealed Locations 02 & 03 as hot-spots.",
+      "Location 03’s shrink doubled in <12 months, with Location 02 doubling in a single quarter.",
+      "Flagged Departments 52, 80, 87 (especially Dept 52, up 4x in two quarters).",
+      "Identified just three associates (IDs 002, 015, 045) who together accounted for ~47% of recovered value."
     ]
   },
 
@@ -194,7 +199,7 @@ window.PROJECTS = [
     ],
     results : [
       "Model 3 (the most complex) was the most accurate, with 99.1% accuracy.",
-      "My handwriting was determined to be 72.5% legible, with 0, 3, 5, and 8 the most illegible.",
+      "My handwriting was determined to be 72.5% legible, with digits 0, 3, 5, and 8 the most illegible.",
       "My wife was correct in her assessment of my poor handwriting."
     ]
   },
@@ -238,13 +243,13 @@ window.PROJECTS = [
       "Wrapped functionality in a GUI for a simple pipeline."
     ],
     results : [
-      "Delivers cleaned and legible scores in <10 seconds.",
+      "Delivers cleaned and legible sheet music in <10 seconds.",
     ]
   },
 
   {
     id: "deliveryTip",
-    title: "Delivery Tip... not done",
+    title: "Delivery Tip",
     subtitle: "Excel Geo-Analytics",
     image: "images/project_11.png",
     tools: ["Excel", "Power Query"],
@@ -254,19 +259,20 @@ window.PROJECTS = [
     ],
     problem : "Drivers wanted optimal shift times & zones for higher tips.",
     actions : [
-      "Built geospatial heat-map and pivot filters on **4 k** deliveries.",
+      "Built geospatial heat-map and pivot filters on over 2,000 deliveries.",
       "Compared tip averages by daypart, zone, and order size."
     ],
     results : [
-      "Identified Saturday 18:00–21:00 as peak (+18 % tips).",
-      "Pilot driver increased weekly earnings **+12 %** following insights."
+      "Identified Wednesday as the day tips average the highest dollar amount ($8.07/delivery).",
+      "However, Friday is the best day in terms of tips/hour ($10.34/hour).",
+      "Increased weekly earnings +12% following insights."
     ]
   },
 
   {
     id: "retailStore",
-    title: "Store-Level Loss & Sales ETL (not done)",
-    subtitle: "SQL + Python Viz",
+    title: "Store Level Loss & Sales ETL",
+    subtitle: "MSSQL + Python Viz",
     image: "images/project_12.png",
     tools: ["SQL", "Python"],
     resources: [
@@ -274,20 +280,23 @@ window.PROJECTS = [
       { icon: "images/pdf-icon.png",    url: "documents/Project_12.pdf",                                        label: "PDF"    },
       { icon: "images/jupyter-icon.png",url: "documents/Project_12.ipynb",                                      label: "Notebook"}
     ],
-    problem : "Corporate lacked granular insight into security & sales by store format.",
+    problem : "Our store lacked visibility into security incidents, theft hot-spots, and boycott-driven sales swings.",
     actions : [
-      "Normalized MSSQL tables; wrote views & stored procedures for automated KPI extraction.",
-      "Visualized theft vs. sales trends in Python (Matplotlib, Seaborn)."
+      "Merged incident, sales & HR tables in MSSQL; automated KPIs via views and stored procedures.",
+      "Built Python dashboards mapping theft vs. sales, tagged by format, state and boycott timeline.",
+      "Applied anomaly detection to spotlight outlier stores and employees."
     ],
     results : [
-      "Flagged StoreFormat_47 + 3 states with **27 % higher losses**.",
-      "Linked boycott events to **15 % sales dip**, informing crisis plan."
+      "Identified StoreFormat 47 averaging 14 incidents/store (~4-5× higher than peers).",
+      "Flagged State 38 ($991/store/day) plus States 03 & 20 as top theft hot-spots.",
+      "Quantified boycott hit: –28.7% (May ’23), –11.6% (Jun ’23), –60.2% (Jul ’23) YoY sales.",
+      "Surfaced Employees 231, 098, 196 as suspicious for most empty-package reports (e.g., ID 098: $249/item on just 2 items)."
     ]
   },
 
   {
     id: "smartSentence",
-    title: "Smart Sentence Retriever (modify visual to be more pictoral)",
+    title: "Smart Sentence Retriever",
     subtitle: "Embeddings Cosine Comparison",
     image: "images/project_13.png",
     tools: ["Python", "NLP"],
@@ -298,33 +307,34 @@ window.PROJECTS = [
     ],
     problem : "I wanted to have a quick way of finding relevant information from documents based on semantics, not exact wording.",
     actions : [
-      "Embedded sentences using sentence-transformers; indexed vectors with FAISS.",
-      "Benchmarked 5 models on top-k precision vs. latency."
+      "Extracted popular texts into sentences from popular open-source texts such as Alice in Wonderland.",
+      "Embedded sentences using 8 embedding models and chose one as the most efficient.",
+      "Created a pipeline to automate the process of finding similar context in text."
     ],
     results : [
-      "Returned top-5 sentences in **0.4 s** on 10 k-sentence docs.",
-      "Outperformed BM25 baseline by **+18 pp MAP@5**."
+      "Identified the top sentences similar to the phrase \"She wonders about things\"",
+      "Found that model `paraphrase-multilingual-MiniLM-L12-v2` performed the best in my testing."
     ]
   },
 
   {
     id: "website",
-    title: "danielshort.me (not done)",
+    title: "danielshort.me",
     subtitle: "Responsive Portfolio Site",
     image: "images/project_14.png",
     tools: ["HTML", "CSS", "JavaScript"],
     resources: [
       { icon: "images/github-icon.png", url: "https://github.com/danielshort3/danielshort3.github.io", label: "GitHub"  },
-      { icon: "images/website-icon.png",url: "https://danielshort.dev/",                               label: "Live Site"}
+      { icon: "images/website-icon.png",url: "https://danielshort.me/",                                label: "Live Site"}
     ],
-    problem : "Needed a mobile-fast hub to showcase analytics & ML work to recruiters.",
+    problem : "Needed a fast, mobile-friendly hub to showcase analytics and ML projects.",
     actions : [
-      "Built semantic, Lighthouse-90+ static site; dynamic JS loads projects via JSON.",
-      "Integrated Google Analytics 4, structured-data schema, and lazy-loaded assets."
+      "Built a semantic static site with dynamic project loading via JSON.",
+      "Integrated Google Analytics 4, structured data, and lazy-loaded assets."
     ],
     results : [
-      "First-contentful paint **1.2 s** (mobile).",
-      "Drove **2 freelance leads** & **71 % higher** recruiter response vs. résumé-only."
+      "First-contentful paint 1.2s (mobile).",
+      "Website and content confirmed selection for my current employment."
     ]
   }
 ];
@@ -475,8 +485,8 @@ function buildPortfolioCarousel() {
     update();
   };
 
-  const next     = () => goTo(current + 1);        // stops at last slide
-  const previous = () => goTo(current - 1);        // stops at first slide
+  const next     = () => goTo((current + 1) % projects.length);
+  const previous = () => goTo((current - 1 + projects.length) % projects.length);
 
   // -----------------------------------------------------------------------
   container.addEventListener("mouseenter",  () => pause = true);
