@@ -879,6 +879,8 @@ function openModal(id){
     document.removeEventListener("keydown", trap);
     modal.removeEventListener("click",  clickClose);
 
+    if (window.trackModalClose) trackModalClose(id);
+
     /* clean the address bar */
     if (pushed){
       history.back();                                    // removes #id
