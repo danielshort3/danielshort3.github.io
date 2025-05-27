@@ -6,6 +6,11 @@ window.contributions = [
     heading:'Various Public Contributions',
     desc   :'Reports and public documents where I led or contributed to data modeling and analysis that informed city planning and marketing.',
     items  : [
+      { title:'Colorado Business Economic Outlook · 2025',
+        role :'Contributions: Pages 122:129 - Data aggregation and analysis',
+        link :'https://www.colorado.edu/business/brd/colorado-business-economic-outlook-forum',
+        pdf  :'documents/Leeds_2025_Colorado_Business_Economic_Outlook.pdf' 
+      },
       { title:'Grand Junction City Budget · 2025',
         role :'Contributions: Pages 199:214 - Data aggregation and analysis',
         link :'https://www.gjcity.org/DocumentCenter/View/14655',
@@ -15,11 +20,6 @@ window.contributions = [
         role :'Contributions: Data aggregation and analysis',
         link :'https://visitgj.com/4hcADGt',
         pdf  :'documents/VGJ_2024_Accomplishments.pdf' 
-      },
-      { title:'Colorado Business Economic Outlook · 2025',
-        role :'Contributions: Pages 122:129 - Data aggregation and analysis',
-        link :'https://www.colorado.edu/business/brd/colorado-business-economic-outlook-forum',
-        pdf  :'documents/Leeds_2025_Colorado_Business_Economic_Outlook.pdf' 
       }
     ]
   },
