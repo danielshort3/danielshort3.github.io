@@ -514,7 +514,7 @@ function buildPortfolioCarousel() {
   container.addEventListener("touchend",   onUp);
 
   /* autoplay ------------------------------------------------------------- */
-  setInterval(() => { if (!pause) next(); }, 5000);
+  setInterval(() => { if (!pause) next(); }, 3000);
 
   window.addEventListener("resize", update);
 
