@@ -6,6 +6,9 @@
     }
   };
 
+  // expose send so other scripts can trigger custom events
+  window.gaEvent = send;
+
   let projectViews = 0;
   window.trackProjectView = id => {
     projectViews++;
@@ -13,6 +16,11 @@
     if (projectViews === 3) {
       send('multi_project_view', { view_count: 3 });
     }
+  };
+
+  // track when a modal is closed
+  window.trackModalClose = id => {
+    send('modal_close', { project_id: id });
   };
 
   document.addEventListener('DOMContentLoaded', () => {
