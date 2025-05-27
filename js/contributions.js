@@ -28,6 +28,10 @@ window.contributions = [
     heading: 'Council Briefings',
     desc   : 'Briefings for Grand Junction City Council. I contributed actionable data insights and visualizations used by decision makers.',
     items  : [
+      { title:'May 9, 2025 Council Briefing',
+        role :'Contributions: Visit Grand Junction section',
+        link :'https://ccbrief.my.canva.site/city-council-briefing-may-9-2025' 
+      },
       { title:'April 18, 2025 Council Briefing',
         role :'Contributions: Visit Grand Junction section',
         link :'https://ccbrief.my.canva.site/city-council-briefing-april-18-2025' 
