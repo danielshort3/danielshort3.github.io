@@ -16,7 +16,7 @@
    ─────────────────────────────────────────────────────────── */
 html,body{
   height:100%;margin:0;padding:0;
-  overflow-y:auto;scrollbar-width:none;
+  scrollbar-width:none;
   font-family:'Inter',sans-serif;
   background:var(--bg);color:var(--text-light);
   line-height:1.6;-webkit-font-smoothing:antialiased;
@@ -233,7 +233,7 @@ p {margin-bottom:1em;font-size:19px}
 .modal.active{opacity:1;pointer-events:auto}
 body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
 .modal-content{
-  position:relative;max-height:82vh;margin:5% 48px;overflow:auto;
+  position:relative;max-height:82vh;margin:5% 12px;overflow:auto;
   background:var(--surface-light);border-radius:14px;
   box-shadow:0 10px 28px color-mix(in srgb,var(--bg) 60%,transparent),0 0 0 1px color-mix(in srgb,var(--primary) 15%,transparent);
   color:var(--text-light);transform:translateY(-24px) scale(.96);opacity:0;
@@ -371,6 +371,10 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
 #portfolio-carousel .carousel-track{display:flex;gap:24px;transition:transform .6s cubic-bezier(.22,.61,.36,1)}
 .carousel-card{flex:0 0 70%;max-width:340px;opacity:.7;transform:scale(.9);transition:transform .5s,opacity .5s}
 .carousel-card.active{opacity:1;transform:scale(1)}
+#portfolio-carousel .carousel-card:not(.active):hover {
+  transform: scale(0.9);      /* keep default scale */
+  box-shadow: none;           /* remove hover shadow */
+}
 .carousel-dots{text-align:center;margin-top:16px}
 .carousel-dot{
   display:inline-block;
@@ -547,7 +551,7 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
 .modal-subtitle {
   color: var(--text-muted);
   margin-bottom: 24px;
-  font-size: 1.1rem;
+  font-size: 1.3rem;
 }
 
 .modal-title-strip {
@@ -984,7 +988,7 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
 }
 
 /* ─── MOBILE: stack the two phrases, hide the bar ─── */
-@media (max-width: 768) {
+@media (max-width: 768px) {
   .brand-name {                     /* turn the trio vertical */
     flex-direction: column;
     align-items: flex-start;

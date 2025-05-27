@@ -251,4 +251,61 @@ function buildContributions(){
   });
 }
 
-document.addEventListener('DOMContentLoaded', buildContributions);
+/* Collapse contributions on mobile with See More/See Less toggle.
+   Desktop always shows all items and never displays the button.    */
+function initContribSeeMore(){
+  const mq = window.matchMedia('(max-width: 768px)');
+
+  const apply = enable => {
+    document.querySelectorAll('.contrib-section').forEach(section => {
+      const grid  = section.querySelector('.docs-grid');
+      if(!grid) return;
+      const cards = [...grid.children];
+      if(cards.length <= 1) return;
+
+      // find existing button/wrapper if present
+      let btn = section.querySelector('.see-more-btn');
+      let wrap = section.querySelector('.see-more-wrap');
+
+      if(enable){
+        if(!btn){
+          wrap = document.createElement('div');
+          wrap.className = 'see-more-wrap';
+          wrap.style.textAlign = 'center';
+          wrap.style.marginTop = '12px';
+          btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'btn-primary see-more-btn';
+          btn.textContent = 'See More';
+          btn.dataset.expanded = 'false';
+          wrap.appendChild(btn);
+          section.querySelector('.wrapper').appendChild(wrap);
+
+          btn.addEventListener('click', () => {
+            const expanded = btn.dataset.expanded === 'true';
+            btn.dataset.expanded = expanded ? 'false' : 'true';
+            const isExpanded = btn.dataset.expanded === 'true';
+            btn.textContent = isExpanded ? 'See Less' : 'See More';
+            cards.slice(1).forEach(c => c.classList.toggle('hide', !isExpanded));
+          });
+        }
+        const isExpanded = btn.dataset.expanded === 'true';
+        cards.slice(1).forEach(c => c.classList.toggle('hide', !isExpanded));
+      } else {
+        // remove button and show all cards
+        if(wrap) wrap.remove();
+        cards.slice(1).forEach(c => c.classList.remove('hide'));
+      }
+    });
+  };
+
+  apply(mq.matches);
+  mq.addEventListener('change', e => apply(e.matches));
+}
+
+function initContributions(){
+  buildContributions();
+  initContribSeeMore();
+}
+
+document.addEventListener('DOMContentLoaded', initContributions);
