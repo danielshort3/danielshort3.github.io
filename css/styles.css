@@ -942,7 +942,7 @@ body.menu-open::before{
     font-size:clamp(16px,5vw,20px);             /* responsive text */
   }
 
-    .wrapper{margin-inline:2%}
+    .wrapper{margin-inline:5%}
 }
 
 /* put this right after the :root block or in your global-layout section */
