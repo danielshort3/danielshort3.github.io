@@ -628,14 +628,18 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
 }
 
 /* Divider between Tools and Downloads */
-.modal-half:not(:last-child)::after {
-  content: '';
+.modal-header-details {
+  position: relative;
+}
+
+.modal-divider {
   position: absolute;
-  top: 0;
-  right: 0;
+  left: 50%;
+  top: 20%;
   width: 1px;
-  height: 100%;
+  height: 60%;
   background: color-mix(in srgb, var(--text-light) 12%, transparent);
+  transform: translateX(-50%);
 }
 
 /* =========================================================
@@ -643,6 +647,14 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
    (extends the header visually)
 ========================================================= */
 @media (max-width:768px){
+  .modal-divider {
+    width: 80%;
+    height: 1px;
+    top: 50%;
+    left: 10%;
+    transform: translateY(-50%);
+  }
+
 
   /* ---------- burger ---------- */
   .burger{
