@@ -395,6 +395,7 @@ window.generateProjectModal = function (p) {
             ${p.tools.map(t => `<span class="badge">${t}</span>`).join("")}
           </div>
         </div>
+        <div class="modal-divider" aria-hidden="true"></div>
         <div class="modal-half">
           <p class="header-label">Downloads / Links</p>
           <div class="icon-row">
