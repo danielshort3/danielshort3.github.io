@@ -1,0 +1,11 @@
+# Ignore Visual Studio workspace files
+.vs/
+*.vsidx
+
+# Ignore editor directories and OS files
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Node dependencies (none currently, but useful for future)
+node_modules/
