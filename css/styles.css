@@ -1005,7 +1005,7 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
   /* reserve space so text above never overlaps the footer */
   .doc-card{
     position: relative;            /* already true, but explicit */
-    padding-bottom: 72px;          /* ≈ footer height + spacing */
+    padding-bottom: 96px;          /* ≈ footer height + spacing */
   }
 
   /* pin the footer strip to the bottom */

@@ -3,6 +3,28 @@
    ─────────────────────────────────────────────────────────── */
 window.contributions = [
   {
+    heading:'Various Public Contributions',
+    desc   :'Reports and public documents where I led or contributed to data modeling and analysis that informed city planning and marketing.',
+    items  : [
+      { title:'Grand Junction City Budget · 2025',
+        role :'Contributions: Pages 199:214 - Data aggregation and analysis',
+        link :'https://www.gjcity.org/DocumentCenter/View/14655',
+        pdf  :'documents/GJ_2025_Budget.pdf' 
+      },
+      { title:'Visit Grand Junction Annual Accomplishments · 2024',
+        role :'Contributions: Data aggregation and analysis',
+        link :'https://visitgj.com/4hcADGt',
+        pdf  :'documents/VGJ_2024_Accomplishments.pdf' 
+      },
+      { title:'Colorado Business Economic Outlook · 2025',
+        role :'Contributions: Pages 122:129 - Data aggregation and analysis',
+        link :'https://www.colorado.edu/business/brd/colorado-business-economic-outlook-forum',
+        pdf  :'documents/Leeds_2025_Colorado_Business_Economic_Outlook.pdf' 
+      }
+    ]
+  },
+
+  {
     heading: 'Council Briefings',
     desc   : 'Briefings for Grand Junction City Council. I contributed actionable data insights and visualizations used by decision makers.',
     items  : [
@@ -105,28 +127,6 @@ window.contributions = [
       { title:'March 8, 2024 Council Briefing',
         role :'Contributions: Visit Grand Junction section',
         link :'https://new.express.adobe.com/webpage/gvosfJu0N5ywV' 
-      }
-    ]
-  },
-
-  {
-    heading:'Various Public Contributions',
-    desc   :'Reports and public documents where I led or contributed to data modeling and analysis that informed city planning and marketing.',
-    items  : [
-      { title:'Grand Junction City Budget · 2025',
-        role :'Contributions: Pages 199:214 - Data aggregation and analysis',
-        link :'https://www.gjcity.org/DocumentCenter/View/14655',
-        pdf  :'documents/GJ_2025_Budget.pdf' 
-      },
-      { title:'Visit Grand Junction Annual Accomplishments · 2024',
-        role :'Contributions: Data aggregation and analysis',
-        link :'https://visitgj.com/4hcADGt',
-        pdf  :'documents/VGJ_2024_Accomplishments.pdf' 
-      },
-      { title:'Colorado Business Economic Outlook · 2025',
-        role :'Contributions: Pages 122:129 - Data aggregation and analysis',
-        link :'https://www.colorado.edu/business/brd/colorado-business-economic-outlook-forum',
-        pdf  :'documents/Leeds_2025_Colorado_Business_Economic_Outlook.pdf' 
       }
     ]
   },
