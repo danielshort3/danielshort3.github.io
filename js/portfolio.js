@@ -183,7 +183,7 @@ window.PROJECTS = [
 
   {
     id: "handwritingRating",
-    title: "Handwriting Legibility Scoring (replace updated visual)",
+    title: "Handwriting Legibility Scoring",
     subtitle: "PyTorch CNN Fine-Tuning",
     image: "images/project_8.gif",
     tools: ["Python", "PyTorch", "CNN"],
