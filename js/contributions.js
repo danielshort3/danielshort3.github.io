@@ -206,6 +206,7 @@ function buildContributions(){
     // --- section shell -------------------------------------------------
     const section = document.createElement('section');
     section.className = 'surface-band reveal contrib-section';
+    section.dataset.heading = sec.heading;
 
     const wrap   = document.createElement('div');
     wrap.className = 'wrapper';
@@ -291,6 +292,12 @@ function initContribSeeMore(){
             const isExpanded = btn.dataset.expanded === 'true';
             btn.textContent = isExpanded ? 'See Less' : 'See More';
             cards.slice(1).forEach(c => c.classList.toggle('hide', !isExpanded));
+            if (window.gaEvent) {
+              window.gaEvent('contrib_see_more_toggle', {
+                expanded: isExpanded,
+                section: section.dataset.heading || ''
+              });
+            }
           });
         }
         const isExpanded = btn.dataset.expanded === 'true';
