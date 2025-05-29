@@ -40,26 +40,26 @@ window.generateProjectModal = function (p) {
       <button class="modal-close" aria-label="Close dialog">&times;</button>
       <div class="modal-title-strip"><h3 class="modal-title">${p.title}</h3></div>
 
-      <div class="modal-header-details">
-        <div class="modal-half">
-          <p class="header-label">Tools</p>
-          <div class="tool-badges">
-            ${p.tools.map(t => `<span class="badge">${t}</span>`).join("")}
-          </div>
-        </div>
-        <div class="modal-divider" aria-hidden="true"></div>
-        <div class="modal-half">
-          <p class="header-label">Downloads / Links</p>
-          <div class="icon-row">
-            ${p.resources.map(r => `
-              <a href="${r.url}" target="_blank" title="${r.label}">
-                <img src="${r.icon}" alt="${r.label}" class="icon">
-              </a>`).join("")}
-          </div>
-        </div>
-      </div>
-
       <div class="modal-body ${isTableau ? "stacked" : ""}">
+        <div class="modal-header-details">
+          <div class="modal-half">
+            <p class="header-label">Tools</p>
+            <div class="tool-badges">
+              ${p.tools.map(t => `<span class="badge">${t}</span>`).join("")}
+            </div>
+          </div>
+          <div class="modal-divider" aria-hidden="true"></div>
+          <div class="modal-half">
+            <p class="header-label">Downloads / Links</p>
+            <div class="icon-row">
+              ${p.resources.map(r => `
+                <a href="${r.url}" target="_blank" title="${r.label}">
+                  <img src="${r.icon}" alt="${r.label}" class="icon">
+                </a>`).join("")}
+            </div>
+          </div>
+        </div>
+
         <div class="modal-text">
           <p class="modal-subtitle">${p.subtitle}</p>
           <h4>Problem</h4><p>${p.problem}</p>
