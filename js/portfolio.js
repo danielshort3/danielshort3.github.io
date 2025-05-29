@@ -462,13 +462,15 @@ function buildPortfolioCarousel() {
     dot.className = "carousel-dot";
     dot.type  = "button";
     dot.setAttribute("aria-label", `Show ${p.title}`);
-    dot.addEventListener("click", () => { goTo(i); pause = true; });
+    dot.addEventListener("click", () => { goTo(i); });
     dots.appendChild(dot);
   });
 
   // -----------------------------------------------------------------------
-  let current = 0;
-  let pause   = false;
+  let current    = 0;
+  let pause      = false;
+  const AUTO_MS  = 3000;
+  let autoTimer  = null;
 
   const update = () => {
     const cardW  = track.children[0].offsetWidth + 24;            // 24 = gap
@@ -480,14 +482,23 @@ function buildPortfolioCarousel() {
   };
 
   /* ---- navigation helpers (NO WRAP) ----------------------------------- */
-  const goTo = i => {
+  const restartAuto = () => {
+    clearTimeout(autoTimer);
+    autoTimer = setTimeout(() => {
+      if (!pause) next(true);
+      restartAuto();
+    }, AUTO_MS);
+  };
+
+  const goTo = (i, auto = false) => {
     if (i < 0 || i >= projects.length) return; // ignore out-of-range requests
     current = i;
     update();
+    if (!auto) restartAuto();
   };
 
-  const next     = () => goTo((current + 1) % projects.length);
-  const previous = () => goTo((current - 1 + projects.length) % projects.length);
+  const next     = (auto = false) => goTo((current + 1) % projects.length, auto);
+  const previous = (auto = false) => goTo((current - 1 + projects.length) % projects.length, auto);
 
   // -----------------------------------------------------------------------
   container.addEventListener("mouseenter",  () => pause = true);
@@ -525,7 +536,7 @@ function buildPortfolioCarousel() {
   container.addEventListener("touchend",   onUp);
 
   /* autoplay ------------------------------------------------------------- */
-  setInterval(() => { if (!pause) next(); }, 3000);
+  restartAuto();
 
   window.addEventListener("resize", update);
 
