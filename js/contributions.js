@@ -263,7 +263,10 @@ function initContribSeeMore(){
 
   const teardown = btn => {
     const wrap = btn.parentElement;
-    if (btn._observer) { btn._observer.disconnect(); btn._observer = null; }
+    if (btn._observer)    { btn._observer.disconnect();    btn._observer = null; }
+    if (btn._nextObs)     { btn._nextObs.disconnect();     btn._nextObs = null; }
+    btn._sectionVisible = true;
+    btn._nextVisible    = false;
     if (wrap) wrap.classList.remove('sticky', 'fade-out');
   };
 
@@ -276,12 +279,32 @@ function initContribSeeMore(){
 
     wrap.classList.add('sticky');
 
+    const updateFade = () => {
+      const hide = !btn._sectionVisible || btn._nextVisible;
+      wrap.classList.toggle('fade-out', hide);
+    };
+
     if (!btn._observer) {
+      btn._sectionVisible = true;
       const io = new IntersectionObserver(entries => {
-        wrap.classList.toggle('fade-out', !entries[0].isIntersecting);
+        btn._sectionVisible = entries[0].isIntersecting;
+        updateFade();
       });
       io.observe(section);
       btn._observer = io;
+    }
+
+    if (!btn._nextObs) {
+      const nextWrap = section.nextElementSibling?.querySelector('.see-more-wrap');
+      if (nextWrap) {
+        btn._nextVisible = false;
+        const io2 = new IntersectionObserver(entries => {
+          btn._nextVisible = entries[0].isIntersecting;
+          updateFade();
+        });
+        io2.observe(nextWrap);
+        btn._nextObs = io2;
+      }
     }
   };
 
