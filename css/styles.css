@@ -9,6 +9,8 @@
   --secondary:#D4A047;
   --text-light:#F1F4F8;
   --text-muted:#BFC8D3;   /* WCAG-passing grey */
+  /* dynamic viewport height used for mobile hero sections */
+  --vh:100vh;
 }
 
 /* ───────────────────────────────────────────────────────────
@@ -74,7 +76,8 @@ p {margin-bottom:1em;font-size:19px}
    4.  HERO
    ─────────────────────────────────────────────────────────── */
 .hero{
-  min-height:calc(100vh - var(--nav-height,72px));
+  /* fallback using viewport units with dynamic variable for mobile */
+  min-height:calc(var(--vh,100vh) - var(--nav-height,72px));
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;text-align:center;
   background:#11202B;position:relative;overflow:hidden;isolation:isolate;
@@ -829,6 +832,24 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
     font-size: 1.1rem;
   }
 
+  /* scale hero text and buttons to fit smaller screens */
+  .hero h1 {
+    font-size: clamp(28px, 8vw, 32px);
+    line-height: 1.2;
+  }
+  .hero p {
+    font-size: clamp(16px, 4.5vw, 18px);
+  }
+  .hero-status {
+    font-size: 0.75rem;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    padding: 14px 28px;
+    font-size: 1rem;
+  }
+
 }
 
 /* === MODAL SCROLLBAR STYLING – MATCHES CONTRIBUTIONS CAROUSEL === */
@@ -966,6 +987,14 @@ body.menu-open::before{
 
 /* put this right after the :root block or in your global-layout section */
 :root{ --nav-height:72px; }      /* if you don’t already have it */
+
+/* reduce header height in mobile landscape orientation */
+@media (max-width:768px) and (orientation:landscape){
+  :root{ --nav-height:48px; }
+  .brand-logo{ height:40px; }
+  .brand-name{ font-size:clamp(14px,4vw,18px); }
+  .nav .wrapper{ padding-block:12px; gap:clamp(8px,2vw,20px); }
+}
 
 body{
   /* keeps every page below the sticky/fixed header */

@@ -21,6 +21,7 @@
 
     initReveal();
     setScrollbarVar();
+    setViewportVar();
     // initChevronHint removed to prevent odd scroll behavior on mobile
     initCertTicker();
 
@@ -49,6 +50,13 @@
     const sb = window.innerWidth - document.documentElement.clientWidth;
     document.documentElement.style.setProperty("--scrollbar", `${sb}px`);
   };
+
+  /* ╭────────── expose dynamic viewport height for mobile ─────╮ */
+  const setViewportVar = () => {
+    document.documentElement.style.setProperty("--vh", `${window.innerHeight}px`);
+  };
+  window.addEventListener("resize", setViewportVar);
+  window.addEventListener("orientationchange", setViewportVar);
 
   /* ╭──────────────────── SCROLL HINT CHEVRON ──────────────────╮ */
   function initChevronHint(){
