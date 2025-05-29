@@ -628,9 +628,8 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
   display: flex;
   flex-wrap: wrap;
   justify-content: space-around;
-  gap: 24px;
+  gap: 12px;
   padding: 22px 0; /* remove horizontal padding */
-  margin: 0 -32px;  /* negative margin cancels out modal-content padding */
   background: var(--surface-accent);
   border-top: 1px solid color-mix(in srgb, var(--text-light) 12%, transparent);
   border-bottom: 1px solid color-mix(in srgb, var(--text-light) 12%, transparent);
