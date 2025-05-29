@@ -69,8 +69,12 @@ Welcome to the GitHub repository for my personal portfolio website. This site sh
 │   ├── project_2.png
 │   ├── ...
 ├── js
-│   └── common.js            # JavaScript code for interactive features
-├── index.html               # Main homepage
+│   ├── common.js                 # Site-wide utilities
+│   ├── projects-data.js          # Portfolio project definitions
+│   ├── portfolio.js              # Portfolio UI logic
+│   ├── contributions.js          # Build contributions list
+│   ├── contributions-carousel.js # Carousel helper
+│   └── ga4-events.js             # Google Analytics events
 ├── portfolio.html           # Projects page
 ├── contact.html             # Contact page
 ├── documents                # Folder for downloadable project files
