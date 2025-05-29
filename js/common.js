@@ -64,20 +64,23 @@
     const hero     = document.querySelector(".hero");
     if (!chevrons.length || !hero) return;
 
+    const MIN_RATIO = 0.9;  // fraction of hero visible before fading
     const update = visible => {
       chevrons.forEach(c => c.classList.toggle("fade", !visible));
       console.log("[Chevron] visible:", visible);
     };
 
-    /* observer shows chevron only when hero is fully within view */
+    /* observer shows chevron when hero is mostly within view */
     const observer = new IntersectionObserver(entries => {
-      update(entries[0].intersectionRatio >= 1);
-    }, { threshold: 1 });
+      update(entries[0].intersectionRatio >= MIN_RATIO);
+    }, { threshold: MIN_RATIO });
     observer.observe(hero);
 
     /* initial state */
-    update(hero.getBoundingClientRect().top >= 0 &&
-           hero.getBoundingClientRect().bottom <= window.innerHeight);
+    const rect   = hero.getBoundingClientRect();
+    const ratio  = (Math.min(rect.bottom, window.innerHeight) -
+                   Math.max(rect.top, 0)) / rect.height;
+    update(ratio >= MIN_RATIO);
 
     /* click ► scroll to next section */
     $$(".scroll-indicator").forEach(ind=>{
