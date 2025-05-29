@@ -241,33 +241,13 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
   transition:transform .45s cubic-bezier(.22,.61,.36,1),opacity .45s cubic-bezier(.22,.61,.36,1)
 }
 .modal.active .modal-content{transform:none;opacity:1}
-.modal-content::before{
-  content:"";
-  position:sticky;
-  top:0;
-  display:block;
-  height:4px;
-  border-radius:14px 14px 0 0;
-  background:var(--primary);
-  z-index:5
-}
+.modal-content::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;border-radius:14px 14px 0 0;background:var(--primary)}
 .modal-close{
-  position:sticky;
-  top:14px;
-  right:18px;
-  background:none;border:none;cursor:pointer;
-  font-size:30px;line-height:1;color:var(--text-muted);transition:color .25s;
-  z-index:6
+  position:absolute;top:14px;right:18px;background:none;border:none;cursor:pointer;
+  font-size:30px;line-height:1;color:var(--text-muted);transition:color .25s
 }
 .modal-close:hover{color:var(--primary);text-shadow:0 0 4px color-mix(in srgb,var(--primary) 40%,transparent)}
-.modal-title-strip{
-  text-align:center;
-  padding:32px 28px 24px;
-  position:sticky;
-  top:4px;
-  background:var(--surface-light);
-  z-index:5
-}
+.modal-title-strip{text-align:center;padding:32px 28px 24px}
 .modal-title{margin:0;font-family:'Poppins';font-weight:600;font-size:1.9rem;letter-spacing:.3px}
 .modal-header-details{
   display:flex;flex-wrap:wrap;padding:22px 40px;background:var(--surface-accent);
@@ -581,10 +561,6 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
   text-align: center;
   padding: 32px 28px 24px;
   border-bottom: 1px solid color-mix(in srgb, var(--text-light) 10%, transparent);
-  position: sticky;
-  top: 4px;
-  background: var(--surface-light);
-  z-index: 5;
 }
 
 .modal-body {
