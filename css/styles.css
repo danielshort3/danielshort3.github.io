@@ -74,7 +74,8 @@ p {margin-bottom:1em;font-size:19px}
    4.  HERO
    ─────────────────────────────────────────────────────────── */
 .hero{
-  min-height:80vh;display:flex;flex-direction:column;
+  min-height:calc(100vh - var(--nav-height,72px));
+  display:flex;flex-direction:column;
   align-items:center;justify-content:center;text-align:center;
   background:#11202B;position:relative;overflow:hidden;isolation:isolate;
 }
@@ -937,11 +938,11 @@ body.menu-open::before{
   pointer-events:none;         /* clicks still reach the drawer */
 }
 
-/* == HERO no longer hides under the fixed header ========= */
+/* == HERO occupies the visible viewport =================== */
 .hero{
-    padding-top:var(--nav-height,72px);
-    padding-bottom:72px;
-}       /* pushes content down */
+    padding-top:0;
+    padding-bottom:0;
+}
 
 
 /* == DISABLE scroll-reveal animation on mobile ============ */
