@@ -61,34 +61,23 @@
   /* ╭──────────────────── SCROLL HINT CHEVRON ──────────────────╮ */
   function initChevronHint(){
     const chevrons = $$(".chevron-hint");
-    if (!chevrons.length) return;
+    const hero     = document.querySelector(".hero");
+    if (!chevrons.length || !hero) return;
 
-    const hideAll = () => {
-      chevrons.forEach(c => c.classList.add("fade"));
-      console.log("[Chevron] hidden");
+    const update = visible => {
+      chevrons.forEach(c => c.classList.toggle("fade", !visible));
+      console.log("[Chevron] visible:", visible);
     };
-    const getScroll = () => Math.max(
-      window.pageYOffset,
-      document.documentElement.scrollTop,
-      document.body.scrollTop
-    );
 
-    if (getScroll() > 0){
-      hideAll();
-      return;
-    }
+    /* observer shows chevron only when hero is fully within view */
+    const observer = new IntersectionObserver(entries => {
+      update(entries[0].intersectionRatio >= 1);
+    }, { threshold: 1 });
+    observer.observe(hero);
 
-    const onScroll = () => {
-      const y = getScroll();
-      console.log("[Chevron] scroll=", y);
-      if (y > 0){
-        hideAll();
-        window.removeEventListener("scroll", onScroll);
-        window.removeEventListener("wheel", onScroll);
-      }
-    };
-    on(window, "scroll", onScroll, { passive:true });
-    on(window, "wheel", onScroll,  { passive:true });
+    /* initial state */
+    update(hero.getBoundingClientRect().top >= 0 &&
+           hero.getBoundingClientRect().bottom <= window.innerHeight);
 
     /* click ► scroll to next section */
     $$(".scroll-indicator").forEach(ind=>{
