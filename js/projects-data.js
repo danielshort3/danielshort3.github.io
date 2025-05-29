@@ -158,7 +158,7 @@ window.PROJECTS = [
 
   {
     id: "targetEmptyPackage",
-    title: "Empty-Package Shrink Dashboard)",
+    title: "Empty-Package Shrink Dashboard",
     subtitle: "Excel Forecasting & BI",
     image: "images/project_7.png",
     tools: ["Excel", "Time-Series"],
