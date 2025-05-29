@@ -1078,3 +1078,27 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
   display: none;
   z-index: 1000;
 }
+
+/*
+  When the viewport is 768px or less, stack the Tools section above
+  the Downloads/Links section in project modals. The divider becomes
+  a horizontal rule between them and participates in normal flow so it
+  no longer overlaps the content.
+*/
+@media (max-width: 768px) {
+  .modal-header-details {
+    flex-direction: column;
+    align-items: center;
+  }
+  .modal-half {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+  .modal-divider {
+    position: static;
+    width: 80%;
+    height: 1px;
+    margin: 12px 0;
+    transform: none;
+  }
+}
