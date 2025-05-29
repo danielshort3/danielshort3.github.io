@@ -261,46 +261,27 @@ function buildContributions(){
 function initContribSeeMore(){
   const mq = window.matchMedia('(max-width: 768px)');
 
-  const throttle = (fn, wait = 200) => {
-    let last = 0;
-    return () => {
-      const now = Date.now();
-      if (now - last > wait) { last = now; fn(); }
-    };
-  };
-
   const teardown = btn => {
+    const wrap = btn.parentElement;
     if (btn._observer) { btn._observer.disconnect(); btn._observer = null; }
-    if (btn._scroll) { window.removeEventListener('scroll', btn._scroll); btn._scroll = null; }
-    if (btn._float)  { btn._float.remove(); btn._float = null; }
+    if (wrap) wrap.classList.remove('sticky', 'fade-out');
   };
 
   const setup = btn => {
     const section = btn.closest('.contrib-section');
     const grid = section && section.querySelector('.docs-grid');
-    if (!section || !grid) return;
+    const wrap = btn.parentElement;
+    if (!section || !grid || !wrap) return;
     if (grid.scrollHeight <= window.innerHeight || btn.dataset.expanded !== 'true') { teardown(btn); return; }
-    if (!btn._float) {
-      const fl = btn.cloneNode(true);
-      fl.classList.add('see-less-float');
-      fl.addEventListener('click', () => btn.click());
-      document.body.appendChild(fl);
-      btn._float = fl;
-      if ('IntersectionObserver' in window) {
-        const io = new IntersectionObserver(entries => {
-          fl.style.display = entries[0].isIntersecting ? 'none' : 'block';
-        });
-        io.observe(btn);
-        btn._observer = io;
-      } else {
-        const onScroll = throttle(() => {
-          const r = btn.getBoundingClientRect();
-          const vis = r.top >= 0 && r.bottom <= window.innerHeight;
-          fl.style.display = vis ? 'none' : 'block';
-        });
-        window.addEventListener('scroll', onScroll);
-        btn._scroll = onScroll;
-      }
+
+    wrap.classList.add('sticky');
+
+    if (!btn._observer) {
+      const io = new IntersectionObserver(entries => {
+        wrap.classList.toggle('fade-out', !entries[0].isIntersecting);
+      });
+      io.observe(section);
+      btn._observer = io;
     }
   };
 
