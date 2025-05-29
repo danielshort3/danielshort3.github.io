@@ -1080,6 +1080,21 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
   z-index: 1000;
 }
 
+/* Sticky See Less replacement */
+.see-more-wrap.sticky {
+  position: sticky;
+  bottom: 1rem;
+  width: 100%;
+  text-align: center;
+  z-index: 1000;
+  transition: opacity 0.3s ease;
+}
+
+.see-more-wrap.sticky.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
 /*
   When the viewport is 768px or less, stack the Tools section above
   the Downloads/Links section in project modals. The divider becomes
