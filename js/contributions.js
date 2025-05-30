@@ -265,8 +265,10 @@ function initContribSeeMore(){
     const wrap = btn.parentElement;
     if (btn._observer)    { btn._observer.disconnect();    btn._observer = null; }
     if (btn._nextObs)     { btn._nextObs.disconnect();     btn._nextObs = null; }
+    if (btn._scrollFn)    { document.removeEventListener('scroll', btn._scrollFn); btn._scrollFn = null; }
     btn._sectionVisible = true;
     btn._nextVisible    = false;
+    btn._overlapTop     = false;
     if (wrap) wrap.classList.remove('sticky', 'fade-out');
   };
 
@@ -280,7 +282,7 @@ function initContribSeeMore(){
     wrap.classList.add('sticky');
 
     const updateFade = () => {
-      const hide = !btn._sectionVisible || btn._nextVisible;
+      const hide = !btn._sectionVisible || btn._nextVisible || btn._overlapTop;
       wrap.classList.toggle('fade-out', hide);
     };
 
@@ -304,6 +306,23 @@ function initContribSeeMore(){
         });
         io2.observe(nextWrap);
         btn._nextObs = io2;
+      }
+    }
+
+    if (!btn._scrollFn) {
+      const firstCard = grid.firstElementChild;
+      if (firstCard) {
+        btn._overlapTop = false;
+        const checkOverlap = () => {
+          const cardRect = firstCard.getBoundingClientRect();
+          const wrapRect = wrap.getBoundingClientRect();
+          const mid = cardRect.top + cardRect.height / 2;
+          btn._overlapTop = mid >= wrapRect.top && mid <= wrapRect.bottom;
+          updateFade();
+        };
+        document.addEventListener('scroll', checkOverlap, { passive: true });
+        btn._scrollFn = checkOverlap;
+        checkOverlap();
       }
     }
   };
