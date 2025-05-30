@@ -269,6 +269,8 @@ function initContribSeeMore(){
     btn._sectionVisible = true;
     btn._nextVisible    = false;
     btn._topOverlap     = false;
+    btn._lockHide       = false;
+    btn._lastY          = 0;
     if (wrap) wrap.classList.remove('sticky', 'fade-out');
   };
 
@@ -282,6 +284,10 @@ function initContribSeeMore(){
     wrap.classList.add('sticky');
 
     const updateFade = () => {
+      const y = window.scrollY;
+      const goingDown = y > (btn._lastY || 0);
+      btn._lastY = y;
+
       if (btn._firstCard) {
         const cRect = btn._firstCard.getBoundingClientRect();
         const bRect = wrap.getBoundingClientRect();
@@ -290,7 +296,14 @@ function initContribSeeMore(){
         btn._topOverlap = false;
       }
 
-      const hide = !btn._sectionVisible || btn._nextVisible || btn._topOverlap;
+      if (!goingDown && btn._topOverlap) {
+        btn._lockHide = true;
+      } else if (goingDown) {
+        const gRect = grid.getBoundingClientRect();
+        if (gRect.bottom <= window.innerHeight + 50) btn._lockHide = false;
+      }
+
+      const hide = btn._lockHide || !btn._sectionVisible || btn._nextVisible || btn._topOverlap;
       wrap.classList.toggle('fade-out', hide);
     };
 
@@ -319,6 +332,8 @@ function initContribSeeMore(){
 
     if (!btn._onScroll) {
       btn._firstCard = grid.firstElementChild;
+      btn._lastY = window.scrollY;
+      btn._lockHide = false;
       btn._onScroll = () => updateFade();
       window.addEventListener('scroll', btn._onScroll, { passive: true });
       updateFade();
