@@ -284,10 +284,11 @@ function initContribSeeMore(){
     wrap.classList.add('sticky');
 
     const updateFade = () => {
-      const y = window.scrollY;
+      const y         = window.scrollY;
       const goingDown = y > (btn._lastY || 0);
-      btn._lastY = y;
+      btn._lastY      = y;
 
+      // 1) Is the first card overlapping the floating-button wrapper?
       if (btn._firstCard) {
         const cRect = btn._firstCard.getBoundingClientRect();
         const bRect = wrap.getBoundingClientRect();
@@ -296,14 +297,34 @@ function initContribSeeMore(){
         btn._topOverlap = false;
       }
 
+      /* ── fade-out trigger: scrolling UP into overlap ─────────── */
       if (!goingDown && btn._topOverlap) {
-        btn._lockHide = true;
-      } else if (goingDown) {
+        btn._lockHide = true;          // stay hidden until we cross back down
+      }
+
+      /* ── fade-in trigger: scrolling DOWN past the same line ──── */
+      if (
+        goingDown &&
+        btn._lockHide &&
+        !btn._topOverlap &&                               // no longer overlapping
+        btn._firstCard.getBoundingClientRect().bottom     // card bottom is now
+          <= wrap.getBoundingClientRect().top             // above wrapper top
+      ){
+        btn._lockHide = false;       // release the lock → fade back in
+      }
+
+      /* Also clear lock near grid bottom (unchanged) */
+      if (goingDown) {
         const gRect = grid.getBoundingClientRect();
         if (gRect.bottom <= window.innerHeight + 50) btn._lockHide = false;
       }
 
-      const hide = btn._lockHide || !btn._sectionVisible || btn._nextVisible || btn._topOverlap;
+      const hide =
+        btn._lockHide ||
+        !btn._sectionVisible ||
+        btn._nextVisible ||
+        btn._topOverlap;
+
       wrap.classList.toggle('fade-out', hide);
     };
 
