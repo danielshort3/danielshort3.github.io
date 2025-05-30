@@ -282,13 +282,15 @@ function initContribSeeMore(){
     wrap.classList.add('sticky');
 
     const updateFade = () => {
-      let hide = !btn._sectionVisible || btn._nextVisible || btn._topOverlap;
-      if (!hide && btn._firstCard) {
+      if (btn._firstCard) {
         const cRect = btn._firstCard.getBoundingClientRect();
         const bRect = wrap.getBoundingClientRect();
-        hide = cRect.bottom > bRect.top && cRect.top < bRect.bottom;
-        btn._topOverlap = hide;
+        btn._topOverlap = cRect.bottom > bRect.top && cRect.top < bRect.bottom;
+      } else {
+        btn._topOverlap = false;
       }
+
+      const hide = !btn._sectionVisible || btn._nextVisible || btn._topOverlap;
       wrap.classList.toggle('fade-out', hide);
     };
 
