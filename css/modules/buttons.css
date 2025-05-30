@@ -1,0 +1,22 @@
+/* ───────────────────────────────────────────────────────────
+   5.  BUTTONS
+   ─────────────────────────────────────────────────────────── */
+.btn-primary,.btn-secondary,.btn-icon{
+  display:inline-flex;align-items:center;justify-content:center;
+  font-family:'Poppins';font-weight:500;border-radius:8px;
+  cursor:pointer;transition:transform .25s,box-shadow .25s
+}
+.btn-primary{
+  padding:18px 34px;background:var(--primary);color:var(--bg);
+  box-shadow:0 6px 18px rgba(44,169,188,.25)
+}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(44,169,188,.35)}
+.btn-secondary{
+  padding:18px 34px;border:2px solid var(--primary);background:transparent;color:var(--primary)
+}
+.btn-secondary:hover{background:var(--primary);color:var(--bg);transform:translateY(-3px)}
+.btn-icon{width:46px;height:46px;border:2px solid var(--primary)}
+.btn-icon i{font-size:22px;color:var(--primary)}
+.btn-icon:hover{background:var(--primary);transform:translateY(-3px);box-shadow:0 8px 18px rgba(0,0,0,.25)}
+.btn-icon:hover i{color:var(--bg)}
+

@@ -1,0 +1,15 @@
+/* 1.  DESIGN TOKENS ─────────────────────────────────────────────────────────── */
+:root{
+  /* palette */
+  --bg:#0D1117;
+  --surface:#161B22;
+  --surface-light:color-mix(in srgb,var(--surface) 85%,#fff 15%);
+  --surface-accent:color-mix(in srgb,var(--surface) 92%,#fff 8%);
+  --primary:#2CA9BC;
+  --secondary:#D4A047;
+  --text-light:#F1F4F8;
+  --text-muted:#BFC8D3;   /* WCAG-passing grey */
+  /* dynamic viewport height used for mobile hero sections */
+  --vh:100vh;
+}
+
