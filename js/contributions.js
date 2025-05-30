@@ -265,8 +265,10 @@ function initContribSeeMore(){
     const wrap = btn.parentElement;
     if (btn._observer)    { btn._observer.disconnect();    btn._observer = null; }
     if (btn._nextObs)     { btn._nextObs.disconnect();     btn._nextObs = null; }
+    if (btn._onScroll)    { window.removeEventListener('scroll', btn._onScroll); btn._onScroll = null; }
     btn._sectionVisible = true;
     btn._nextVisible    = false;
+    btn._topOverlap     = false;
     if (wrap) wrap.classList.remove('sticky', 'fade-out');
   };
 
@@ -280,7 +282,13 @@ function initContribSeeMore(){
     wrap.classList.add('sticky');
 
     const updateFade = () => {
-      const hide = !btn._sectionVisible || btn._nextVisible;
+      let hide = !btn._sectionVisible || btn._nextVisible || btn._topOverlap;
+      if (!hide && btn._firstCard) {
+        const cRect = btn._firstCard.getBoundingClientRect();
+        const bRect = wrap.getBoundingClientRect();
+        hide = cRect.bottom > bRect.top && cRect.top < bRect.bottom;
+        btn._topOverlap = hide;
+      }
       wrap.classList.toggle('fade-out', hide);
     };
 
@@ -305,6 +313,16 @@ function initContribSeeMore(){
         io2.observe(nextWrap);
         btn._nextObs = io2;
       }
+    }
+
+    if (!btn._onScroll) {
+      btn._firstCard = grid.firstElementChild;
+      btn._onScroll = () => updateFade();
+      window.addEventListener('scroll', btn._onScroll, { passive: true });
+      updateFade();
+    } else {
+      btn._firstCard = grid.firstElementChild;
+      updateFade();
     }
   };
 
