@@ -1084,7 +1084,14 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
 }
 
 /* only kicks in when the modal-body has .stacked */
-.modal-body.stacked  { flex-direction: column; }
+.modal-body.stacked  {
+  flex-direction: column;
+}
+
+/* ensure Tableau embeds always appear after the text */
+.modal-body.stacked .modal-embed {
+  order: 99;
+}
 
 .modal-embed iframe  {
   width: 100%;
