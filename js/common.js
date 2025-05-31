@@ -116,7 +116,7 @@
 
       const setPos = (el,x) => {
         el.dataset.x = x;
-        el.style.setProperty('--x', `${x}px`);
+        el.style.transform = `translateX(${x}px)`;
       };
 
     /* ----- lay out + clone --------------------------------------------- */
