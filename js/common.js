@@ -322,13 +322,14 @@
     const f=$("footer");
     if(!f) return;
     f.classList.add("footer");
+    const year = new Date().getFullYear();
     f.innerHTML=`
       <div class="social">
         <a class="btn-icon" href="mailto:danielshort3@gmail.com" aria-label="Email"><i class="fas fa-envelope"></i></a>
         <a class="btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
         <a class="btn-icon" href="https://github.com/danielshort3" target="_blank" aria-label="GitHub"><i class="fab fa-github"></i></a>
       </div>
-      <p>© 2025 Daniel Short. All rights reserved.</p>`;
+      <p>© ${year} Daniel Short. All rights reserved.</p>`;
   }
 
 
