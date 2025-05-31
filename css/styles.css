@@ -152,7 +152,16 @@ p {margin-bottom:1em;font-size:19px}
 .cert{
   position:absolute;top:25%;display:inline-flex;align-items:center;gap:10px;
   font-family:'Poppins';font-weight:500;font-size:16px;color:var(--text-light);
-  white-space:nowrap;will-change:transform
+  white-space:nowrap;will-change:transform;
+  cursor:pointer;
+  transition:transform .25s,color .25s;
+  --x:0;
+  transform:translateX(var(--x));
+}
+.cert:hover,
+.cert:focus-visible{
+  transform:translateX(var(--x)) translateY(-4px) scale(1.05);
+  color:var(--primary);
 }
 @keyframes fadeCert{from{opacity:0}to{opacity:1}}
 .cert.reenter{animation:fadeCert .4s ease}.cert img{height:24px}
@@ -895,6 +904,7 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
   position:relative;
   transition:transform .25s, box-shadow .25s;
   border:2px solid transparent;
+  cursor:pointer;
 }
 .skill-link:hover,
 .skill-link:focus-visible{
@@ -913,6 +923,7 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
 .skill-link{
   border:2px solid var(--primary);
   transition:transform .25s, box-shadow .25s;
+  cursor:pointer;
 }
 .skill-link:hover,
 .skill-link:focus-visible{
