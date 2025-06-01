@@ -49,6 +49,12 @@
       });
     });
 
+    document.querySelectorAll('.nav-link:not([target="_blank"])').forEach(link => {
+      link.addEventListener('click', () => {
+        send('nav_link_click', { link_url: link.getAttribute('href') });
+      });
+    });
+
     const filterMenu = document.getElementById('filter-menu');
     if (filterMenu) {
       filterMenu.addEventListener('click', e => {
