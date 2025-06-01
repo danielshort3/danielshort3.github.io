@@ -328,6 +328,10 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
   display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
   gap:28px;padding:32px
 }
+
+@media (max-width:768px){
+  .contact-big{padding:0}
+}
 .contact-big .contact-card{padding:32px}
 .contact-card i{font-size:38px}
 
@@ -354,9 +358,9 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
    ─────────────────────────────────────────────────────────── */
 #contact-modal iframe {
   width: 100%;
-  height: 1600px; /* enough height so the Google Form doesn't scroll */
   border: none;
   display: block;
+  height: 100%;
 }
 /* match the width of project modals */
 #contact-modal .modal-content {
