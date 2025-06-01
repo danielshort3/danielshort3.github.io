@@ -11,11 +11,23 @@
     if (!content || !body || !iframe || !header) return;
 
     const bodyStyles = getComputedStyle(body);
-    const padding = parseFloat(bodyStyles.paddingTop) + parseFloat(bodyStyles.paddingBottom);
-    const chrome  = header.getBoundingClientRect().height + padding;
+    const padding =
+      parseFloat(bodyStyles.paddingTop) + parseFloat(bodyStyles.paddingBottom);
+    const chrome = header.getBoundingClientRect().height + padding;
 
     const max = window.innerHeight * 0.82;
-    iframe.style.height = `${Math.max(0, max - chrome)}px`;
+
+    let iframeHeight = 0;
+    try {
+      const doc = iframe.contentDocument || iframe.contentWindow.document;
+      iframeHeight = doc.documentElement.scrollHeight;
+    } catch (err) {
+      iframeHeight = 0;
+    }
+
+    if (!iframeHeight) iframeHeight = max - chrome;
+    iframe.style.height = `${Math.min(iframeHeight, max - chrome)}px`;
+
     if (content) content.style.maxHeight = `${max}px`;
   }
   function openContactModal() {
