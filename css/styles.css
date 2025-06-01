@@ -354,7 +354,7 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
    ─────────────────────────────────────────────────────────── */
 #contact-modal iframe {
   width: 100%;
-  min-height: 900px;
+  height: 1600px; /* enough height so the Google Form doesn't scroll */
   border: none;
   display: block;
 }
