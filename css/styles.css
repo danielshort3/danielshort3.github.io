@@ -363,10 +363,16 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
   display: block;
   height: 100%;
 }
-/* match the width of project modals */
+
+/* keep modal within the viewport on all screens */
 #contact-modal .modal-content {
-  width: 90vw;
-  max-width: 760px;
+  width: min(760px, calc(100vw - 24px));
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#contact-modal .modal-body {
+  overflow-x: hidden;
 }
 
 /* ───────────────────────────────────────────────────────────
