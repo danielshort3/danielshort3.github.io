@@ -330,7 +330,8 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
 }
 
 @media (max-width:768px){
-  .contact-big{padding:0}
+  /* keep cards full-width with breathing room on mobile */
+  .contact-big{padding:28px 0 32px}
 }
 .contact-big .contact-card{padding:32px}
 .contact-card i{font-size:38px}
@@ -1207,4 +1208,7 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
   .modal-body {
     padding: 4px !important;
   }
+
+  /* prevent two-column layout for contribution cards */
+  .docs-grid { grid-template-columns: 1fr; }
 }
