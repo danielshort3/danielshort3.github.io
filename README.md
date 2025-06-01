@@ -53,33 +53,43 @@ Welcome to the GitHub repository for my personal portfolio website. This site sh
 
 - **Modifying the Website**:
     - **HTML**: Update content in the `.html` files as needed.
-    - **CSS**: Modify styles in `css/styles.css` to change the appearance.
-    - **JavaScript**: Update functionality in `js/common.js`.
+    - **CSS**: Modify styles in the `css` modules to change the appearance.
+    - **JavaScript**: Update functionality in the feature modules under `js`.
 
 ## File Structure
 
 ```plaintext
 .
 ├── css
-│   └── styles.css           # CSS styles for the website
-├── images                   # Folder for all images used in the website
-│   ├── logo.png
-│   ├── head.jpg
-│   ├── project_1.png
-│   ├── project_2.png
-│   ├── ...
+│   ├── styles.css                    # Aggregates modular CSS
+│   ├── variables.css                 # Design tokens
+│   ├── base/                         # Base styles
+│   │   └── base.css
+│   ├── layout/                       # Layout rules
+│   │   └── layout.css
+│   ├── components/                   # UI components
+│   │   ├── components1.css
+│   │   └── components2.css
+│   └── utilities/                    # Helper classes
+│       └── utilities.css
 ├── js
-│   ├── common.js                 # Site-wide utilities
-│   ├── projects-data.js          # Portfolio project definitions
-│   ├── portfolio.js              # Portfolio UI logic
-│   ├── contributions.js          # Build contributions list
-│   ├── contributions-carousel.js # Carousel helper
-│   └── ga4-events.js             # Google Analytics events
-├── portfolio.html           # Projects page
-├── contact.html             # Contact page
-├── documents                # Folder for downloadable project files
+│   ├── analytics/                    # GA4 events
+│   │   └── ga4-events.js
+│   ├── utils/                        # Shared helpers
+│   │   └── common.js
+│   ├── portfolio/                    # Portfolio feature
+│   │   ├── projects-data.js
+│   │   └── portfolio.js
+│   ├── contributions/                # Contributions feature
+│   │   ├── contributions.js
+│   │   └── contributions-carousel.js
+│   └── forms/                        # Forms and modals
+│       └── contact.js
+├── portfolio.html                # Projects page
+├── contact.html                  # Contact page
+├── documents                     # Downloadable files
 │   ├── Resume.pdf
 │   ├── Project_1.xlsx
 │   ├── ...
-└── README.md                # This readme file
+└── README.md                     # This readme file
 ```
