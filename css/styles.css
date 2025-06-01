@@ -358,6 +358,11 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
   border: none;
   display: block;
 }
+/* match the width of project modals */
+#contact-modal .modal-content {
+  width: 90vw;
+  max-width: 760px;
+}
 
 /* ───────────────────────────────────────────────────────────
    14.  FEATURED PROJECTS CAROUSEL
