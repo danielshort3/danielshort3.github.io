@@ -350,6 +350,19 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
 .surface-band.reveal.active .contact-card{animation:focusIn .6s forwards}
 
 /* ───────────────────────────────────────────────────────────
+   12b. CONTACT PAGE – FORM EMBED
+   ─────────────────────────────────────────────────────────── */
+.contact-form-wrapper {
+  padding: 32px;
+}
+.contact-form-wrapper iframe {
+  width: 100%;
+  min-height: 900px;
+  border: none;
+  display: block;
+}
+
+/* ───────────────────────────────────────────────────────────
    14.  FEATURED PROJECTS CAROUSEL
    ─────────────────────────────────────────────────────────── */
 .featured-track{
