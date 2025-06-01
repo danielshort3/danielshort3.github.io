@@ -1201,3 +1201,10 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
     transform: none;
   }
 }
+
+@media (max-width: 768px) {
+  /* tighter modal padding on small screens */
+  .modal-body {
+    padding: 4px !important;
+  }
+}
