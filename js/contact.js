@@ -35,6 +35,7 @@
     if (!modal) return;
     setContactModalHeight();
     modal.classList.add('active');
+    if (window.gaEvent) window.gaEvent('contact_form_open');
     document.body.classList.add('modal-open');
     const focusable = modal.querySelectorAll('a,button,[tabindex]:not([tabindex="-1"])');
     focusable[0]?.focus();
@@ -73,6 +74,22 @@
     if (btn) btn.addEventListener('click', openContactModal);
     window.addEventListener('resize', setContactModalHeight);
     setContactModalHeight();
+    initFormSubmitTracking();
+  }
+
+  function initFormSubmitTracking() {
+    const iframe = document.querySelector('#contact-modal iframe');
+    if (!iframe) return;
+    iframe.addEventListener('load', () => {
+      try {
+        const href = iframe.contentWindow.location.href;
+        if (href.includes('formResponse')) {
+          if (window.gaEvent) window.gaEvent('contact_form_submit');
+        }
+      } catch (err) {
+        // ignore cross-origin access errors
+      }
+    });
   }
 
   document.addEventListener('DOMContentLoaded', initContactModal);
