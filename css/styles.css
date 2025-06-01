@@ -350,13 +350,9 @@ body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
 .surface-band.reveal.active .contact-card{animation:focusIn .6s forwards}
 
 /* ───────────────────────────────────────────────────────────
-   12b. CONTACT PAGE – FORM EMBED
+   12b. CONTACT PAGE – FORM MODAL
    ─────────────────────────────────────────────────────────── */
-.contact-form-wrapper {
-  padding: 32px;
-  margin-inline: clamp(16px, 5vw, 48px);
-}
-.contact-form-wrapper iframe {
+#contact-modal iframe {
   width: 100%;
   min-height: 900px;
   border: none;
