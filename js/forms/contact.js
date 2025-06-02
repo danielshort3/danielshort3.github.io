@@ -1,6 +1,12 @@
-(() => {
+
+/* ===================================================================
+   File: contact.js
+   Purpose: Handles the contact form modal and tracking
+   =================================================================== */
+( () => {
   'use strict';
 
+  // Adjust iframe height so the form fits nicely in the modal
   function setContactModalHeight() {
     const modal = document.getElementById('contact-modal');
     if (!modal) return;
@@ -30,6 +36,7 @@
 
     if (content) content.style.maxHeight = `${max}px`;
   }
+  // Display the modal and wire up focus trapping
   function openContactModal() {
     const modal = document.getElementById('contact-modal');
     if (!modal) return;
@@ -68,6 +75,7 @@
     modal.addEventListener('click', clickClose);
   }
 
+  // Attach handlers once the contact page is ready
   function initContactModal() {
     if (document.body.dataset.page !== 'contact') return;
     const btn = document.getElementById('contact-form-toggle');
@@ -77,6 +85,7 @@
     initFormSubmitTracking();
   }
 
+  // Track successful form submissions inside the iframe
   function initFormSubmitTracking() {
     const iframe = document.querySelector('#contact-modal iframe');
     if (!iframe) return;
@@ -92,5 +101,6 @@
     });
   }
 
+  // Initialise when the DOM is ready
   document.addEventListener('DOMContentLoaded', initContactModal);
 })();
