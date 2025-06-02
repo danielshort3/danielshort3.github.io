@@ -1,8 +1,921 @@
-/* ===================================================================
-   File: utilities.css
-   Purpose: Import modular utility styles
-=================================================================== */
-@import url("_helpers.css");
-@import url("_layout.css");
-@import url("_typography.css");
-@import url("_colors.css");
+/* Utility helpers and page-specific tweaks */
+/* ───────────────────────────────────────────────────────────
+   11.  REVEAL + EXTRAS
+   ─────────────────────────────────────────────────────────── */
+.reveal{opacity:0;transform:translateY(50px);transition:opacity .7s cubic-bezier(.2,.7,.3,1),transform .7s cubic-bezier(.2,.7,.3,1)}
+.reveal.active{opacity:1;transform:none}
+.interest-pad{
+    padding:48px 0;
+}
+#filters{
+  margin-top:0;
+  transition:height .45s cubic-bezier(.22,.61,.36,1),
+             padding .45s cubic-bezier(.22,.61,.36,1),
+             opacity .35s ease;
+  will-change:height,padding,opacity
+}
+#filters.grid-fade{opacity:0}
+
+/* gap between carousel and filters */
+#carousel-gap{
+  padding:32px 0; /* 64px total spacing */
+  background:var(--surface);
+  transition:padding .45s cubic-bezier(.22,.61,.36,1),
+             opacity .35s ease;
+  will-change:padding,opacity
+}
+#carousel-gap.grid-fade{opacity:0}
+.contact-big{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:28px;padding:32px
+}
+
+@media (max-width:768px){
+  /* keep cards full-width with breathing room on mobile */
+  .contact-big{padding:28px 0 32px}
+}
+.contact-big .contact-card{padding:32px}
+.contact-card i{font-size:38px}
+
+/* ───────────────────────────────────────────────────────────
+   12.  CONTACT PAGE – ACTION CARDS
+   ─────────────────────────────────────────────────────────── */
+.contact-card{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+  padding:48px 32px;text-align:center;background:var(--surface);border:2px solid var(--primary);
+  border-radius:14px;color:var(--primary);font-family:'Poppins';font-weight:600;
+  transition:transform .25s,background .25s,color .25s,box-shadow .25s
+}
+.contact-card i{font-size:40px;color:inherit;transition:inherit}
+.contact-card small{font-family:'Inter';color:var(--text-muted);transition:inherit}
+.contact-card:hover{
+  background:var(--primary);color:var(--bg);transform:translateY(-3px);
+  box-shadow:0 10px 24px rgba(44,169,188,.35)
+}
+.contact-card:hover i,.contact-card:hover small{color:var(--bg)}
+.surface-band.reveal.active .contact-card{animation:focusIn .6s forwards}
+
+/* ───────────────────────────────────────────────────────────
+   12b. CONTACT PAGE – FORM MODAL
+   ─────────────────────────────────────────────────────────── */
+#contact-modal iframe {
+  width: 100%;
+  border: none;
+  display: block;
+  height: 100%;
+}
+
+/* keep modal within the viewport on all screens */
+#contact-modal .modal-content {
+  width: min(760px, calc(100vw - 24px));
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#contact-modal .modal-body {
+  overflow-x: hidden;
+}
+
+/* ───────────────────────────────────────────────────────────
+   14.  FEATURED PROJECTS CAROUSEL
+   ─────────────────────────────────────────────────────────── */
+.featured-track{
+  display:flex;gap:24px;overflow-x:auto;scroll-behavior: smooth; 
+  margin-inline:-16px;padding:8px 16px;
+}
+.featured-track::-webkit-scrollbar{display:none}
+.featured-card{
+  flex:0 0 80%;max-width:320px;scroll-snap-align:center;
+  border-radius:14px;overflow:hidden;cursor:pointer;background:var(--surface);
+  transition:transform .35s,box-shadow .35s
+}
+.featured-card img{width:100%;height:200px;object-fit:cover;display:block}
+.featured-card .card-body{padding:20px}
+.featured-card h3{margin:0 0 4px}.featured-card p{margin:0;color:var(--text-muted)}
+.featured-card:hover{transform:translateY(-8px)scale(1.04);box-shadow:0 14px 34px rgba(44,169,188,.32),0 6px 20px rgba(0,0,0,.55)}
+
+/* ───────────────────────────────────────────────────────────
+   14b. PORTFOLIO PAGE CAROUSEL
+   ─────────────────────────────────────────────────────────── */
+#portfolio-carousel{
+  position:relative;
+  overflow:hidden;
+  max-width:1068px;       /* show at most 3 cards */
+  margin-inline:auto;
+}
+#portfolio-carousel-section{
+  margin-top:24px;
+  margin-bottom:24px; /* extra space below the See More button */
+}
+#portfolio-carousel-section .section-title{ text-align:center; }
+#portfolio-carousel .carousel-track{display:flex;gap:24px;transition:transform .6s cubic-bezier(.22,.61,.36,1)}
+.carousel-card{flex:0 0 70%;max-width:340px;opacity:.7;transform:scale(.9);transition:transform .5s,opacity .5s}
+.carousel-card.active{opacity:1;transform:scale(1)}
+#portfolio-carousel .carousel-card:not(.active):hover {
+  transform: scale(0.9);      /* keep default scale */
+  box-shadow: none;           /* remove hover shadow */
+}
+.carousel-dots{text-align:center;margin-top:16px}
+.carousel-dot{
+  display:inline-block;
+  width:12px;
+  height:12px;
+  padding:0;
+  line-height:0;
+  border-radius:50%;
+  border:1px solid var(--primary);
+  background:transparent;
+  cursor:pointer;
+  aspect-ratio:1;
+  margin:0 4px;
+}
+.carousel-dot.active{background:var(--primary)}
+#portfolio-carousel.dragging{cursor:grabbing;user-select:none}
+@media (max-width:768px){
+  .carousel-card{flex:0 0 80%}
+}
+
+/* ───────────────────────────────────────────────────────────
+   15.  CONTRIBUTIONS – DOC CARDS & CAROUSEL
+   ─────────────────────────────────────────────────────────── */
+/* ── Contributions row-separator ─────────────────────── */
+.contrib-gap{
+  height:64px;               /* same 64 px you used as margin-top */
+  background:var(--surface); /* ← exact colour of .doc-card       */
+}
+
+.docs-grid{
+	display:grid;
+	grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+	gap:28px;
+	padding:24px 0;
+	row-gap:8px;              /* slim space between stacked rows   */
+}
+.doc-card{
+  position:relative;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:18px;
+  padding:26px 24px;
+  background:var(--surface);
+  border:2px solid var(--primary);
+  border-radius:14px;
+  transition:transform .25s,box-shadow .25s,background .25s
+}
+.doc-card:hover{background:var(--primary);transform:translateY(-6px);box-shadow:0 12px 28px rgba(44,169,188,.35)}
+.doc-card:hover .doc-role,.doc-card:hover h3{color:var(--bg)}
+.doc-body h3{margin:0 0 6px;font-family:'Poppins';font-size:1.05rem;font-weight:600}
+.doc-role{margin:0;font-size:.85rem;color:var(--text-muted)}
+.doc-links{display:flex;gap:14px;margin-left:14px;}
+.doc-link{
+  display:flex;align-items:center;justify-content:center;width:42px;height:42px;
+  font-size:1.6rem;color:inherit;border:2px solid currentColor;border-radius:10px;transition:background .25s
+}
+.doc-card:hover .doc-link{background:rgba(0,0,0,.15)}
+
+.docs-carousel{display:flex;gap:28px;overflow-x:auto;scroll-snap-type:smooth;margin-inline:-24px;padding:8px 24px}
+.docs-carousel>.doc-card{flex:0 0 260px;scroll-snap-align:center}
+
+/* Equal-width nav buttons on contributions page (already set in .nav-link) */
+.contrib-section{
+	margin-top:32px;
+	margin-bottom:32px;
+}
+
+/* === THEMED SCROLLBARS FOR .contributions-page =========================== */
+.contributions-page .docs-carousel{
+  /* Firefox */
+  scrollbar-color: var(--primary) var(--bg);
+}
+
+/* WebKit (Chrome, Edge, Safari) */
+.contributions-page::-webkit-scrollbar{
+  width:10px;               /* vertical */
+  background:var(--surface);
+}
+.contributions-page::-webkit-scrollbar-thumb{
+  background:var(--primary);
+  border-radius:6px;
+}
+
+.contributions-page .docs-carousel::-webkit-scrollbar{
+  height:8px;               /* horizontal */
+  background:var(--surface);
+}
+.contributions-page .docs-carousel::-webkit-scrollbar-thumb{
+  background:var(--primary);
+  border-radius:4px;
+}
+.contributions-page .docs-carousel::-webkit-scrollbar-thumb:hover,
+.contributions-page::-webkit-scrollbar-thumb:hover{
+  /* subtle darken on hover for accessibility */
+  background:color-mix(in srgb,var(--primary) 75%, #000 25%);
+}
+
+/* === THEMED SCROLLBAR FOR .contact-page ================================ */
+.contact-page {
+  /* Firefox */
+  scrollbar-color: var(--primary) var(--surface);
+}
+
+/* WebKit (Chrome, Edge, Safari) */
+.contact-page::-webkit-scrollbar {
+  width: 10px;
+  background: var(--surface);
+}
+
+.contact-page::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 6px;
+}
+
+.contact-page::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--primary) 75%, #000 25%);
+}
+
+/* === Center the entire CTA block ========================================= */
+#cta{
+  background:var(--surface);
+  padding: 40px;
+}
+
+#cta .wrapper{
+  text-align:center;          /* centers the heading & paragraph text        */
+}
+
+#cta #cta-link{               /* anchor that wraps all CTA content            */
+  display:inline-flex;        /* shrink-wraps to its content width            */
+  flex-direction:column;      /* stack heading, paragraph, button vertically  */
+  align-items:center;         /* horizontally center every child (incl. btn)  */
+}
+
+.burger{
+  display:none;        /* 🔒 invisible + non-interactive everywhere … */
+}
+
+.doc-card {
+  display: flex;               /* Switch from flex to block layout */
+}
+
+.doc-layout {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.doc-title {
+  font-family: 'Poppins';
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-light);
+  margin-top: 0;
+}
+
+.doc-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: auto;
+}
+
+.doc-footer .doc-role {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.doc-footer .doc-links {
+  display: flex;
+  gap: 12px;
+}
+
+.modal-content {
+  background: var(--surface); /* darker for contrast */
+  color: var(--text-light);
+  padding: 24px 32px;
+  font-size: 1rem;
+  line-height: 1.7;
+  border-radius: 16px;
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.6),
+    0 0 0 1px color-mix(in srgb, var(--primary) 20%, transparent);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+.modal-title {
+  color: var(--primary);
+  font-size: 1.9rem;
+  margin-bottom: 8px;
+}
+
+.modal-subtitle {
+  color: var(--text-muted);
+  margin-bottom: 24px;
+  font-size: 1.3rem;
+}
+
+.modal-title-strip {
+  text-align: center;
+  padding: 32px 28px 24px;
+  border-bottom: 1px solid color-mix(in srgb, var(--text-light) 10%, transparent);
+}
+
+.modal-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  padding: 0 32px 32px;
+  overflow-y: auto;
+}
+
+.modal-text {
+  flex: 1 1 340px;
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--text-light);
+}
+
+.modal-text h4 {
+  color: var(--primary);
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+  font-size: 1.2rem;
+}
+
+.modal-text ul {
+  padding-left: 20px;
+}
+
+.modal-image {
+  flex: 1 1 280px;
+  align-self: flex-start;
+}
+
+.modal-image img {
+  max-width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+}
+
+.modal.active .modal-content {
+  transform: none;
+  opacity: 1;
+}
+
+.modal-content :focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.modal-header-details {
+  flex: 0 0 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  gap: 12px;
+  padding: 22px 0; /* remove horizontal padding */
+  background: var(--surface-accent);
+  border-top: 1px solid color-mix(in srgb, var(--text-light) 12%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--text-light) 12%, transparent);
+}
+
+.modal-half {
+  flex: 1 1 260px;
+  text-align: center;
+  position: relative;
+  padding: 12px 0;
+}
+
+/* Divider between Tools and Downloads */
+.modal-header-details {
+  position: relative;
+}
+
+.modal-divider {
+  position: absolute;
+  left: 50%;
+  top: 20%;
+  width: 1px;
+  height: 60%;
+  background: color-mix(in srgb, var(--text-light) 12%, transparent);
+  transform: translateX(-50%);
+}
+
+/* =========================================================
+   SLIM GLASSY DRAWER  —  ≤ 768 px
+   (extends the header visually)
+========================================================= */
+@media (max-width:768px){
+  .modal-divider {
+    width: 80%;
+    height: 1px;
+    top: 50%;
+    left: 10%;
+    transform: translateY(-50%);
+  }
+
+
+  /* ---------- burger ---------- */
+  .burger{
+    display:block;               /* hidden on desktop */
+    margin-left:auto;
+    padding:8px;
+    background:none;border:none;cursor:pointer;
+    z-index:1001;                /* above the drawer */
+  }
+  .burger .bar{
+    display:block;width:22px;height:3px;margin:4px 0;
+    background:var(--text-light);
+    transition:transform .3s,opacity .3s;
+  }
+  .burger[aria-expanded="true"] .bar:nth-child(1){
+    transform:translateY(7px) rotate(45deg);
+  }
+  .burger[aria-expanded="true"] .bar:nth-child(2){opacity:0;}
+  .burger[aria-expanded="true"] .bar:nth-child(3){
+    transform:translateY(-7px) rotate(-45deg);
+  }
+
+    /* ---------- drawer ---------- */
+    .nav-row{
+      align-items:center;
+      gap:10px;
+      position:fixed;
+      top:var(--nav-height, 72px);   /* JS can still overwrite this */
+      left:0; right:0;
+      width:100%;
+      padding-bottom: 10px;
+      border-bottom-left-radius: 10px;
+      border-bottom-right-radius: 10px;
+      overflow: hidden; /* ensures no scrollbars leak past radius */
+
+
+
+      /* everything you already had … */
+      max-height:calc(100vh - env(safe-area-inset-top));
+      overflow-y:auto;
+      display:flex;flex-direction:column;
+      background:rgba(13 17 23 / 0.72);
+      backdrop-filter:blur(14px);
+      box-shadow:0 4px 14px rgba(0,0,0,.25);
+      z-index:1000;
+
+      /* >>> NEW “reveal from under header” code <<< */
+      -webkit-clip-path: inset(0 0 100% 0);   /* start fully clipped */
+              clip-path: inset(0 0 100% 0);
+      transition:
+          -webkit-clip-path .35s ease-out,
+                  clip-path .35s ease-out;
+      pointer-events:none;                     /* ignore clicks while hidden */
+    }
+
+    /* drawer visible */
+    .nav-row.open{
+      -webkit-clip-path: inset(0 0 0 0);       /* slide-down reveal */
+              clip-path: inset(0 0 0 0);
+      pointer-events:auto;
+    }
+
+  /* ---------- links ---------- */
+  .nav-row .nav-link{
+    flex:none;
+    padding:14px 32px;
+    white-space:nowrap;
+    text-align:left;
+    border-bottom:1px solid
+      color-mix(in srgb,var(--primary) 25%,transparent);
+  }
+  .nav-row .nav-link:last-child{border-bottom:0;}
+
+  #filter-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0 auto;
+    max-width: 90%;
+  }
+
+  #filter-menu button {
+    width: 100%;
+    font-size: 1.1rem;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .nav-row .nav-link {
+    display: block;
+    width: 90%;
+    padding: 16px;
+    font-size: 1.1rem;
+    text-align: center;
+    border: none;
+    border-radius: 8px;
+    margin: 6px 0;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  .nav-row .nav-link.btn-primary {
+    background: var(--primary);
+    color: var(--bg);
+  }
+
+  .nav-row .nav-link.btn-secondary {
+    border: 2px solid var(--primary);
+    background: transparent;
+    color: var(--primary);
+  }
+
+  .nav-row .nav-link.btn-secondary:hover {
+    background: var(--primary);
+    color: var(--bg);
+  }
+
+  .grid-container {
+    grid-template-columns: 1fr;
+    margin-inline: 12px;
+  }
+
+  .nav {
+    background: var(--surface);
+    backdrop-filter: none;
+  }
+
+  .nav-row {
+    background: var(--surface);
+    backdrop-filter: none ;
+  }
+
+  .nav .wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: nowrap;        /* 🔒 prevents wrapping */
+    padding: 18px 24px;
+  }
+
+  .brand {
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .brand-name {
+    white-space: normal;         /* ✅ allow wrapping */
+    word-break: break-word;      /* ✅ wraps at appropriate points */
+    text-align: left;            /* optional: aligns better with logo */
+  }
+
+  .burger {
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+  .cta-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    width: 90%;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .cta-group .hero-cta {
+    width: 90%;
+    text-align: center;
+    align-items:center;
+    padding: 16px;
+    font-size: 1.1rem;
+  }
+
+  /* scale hero text and buttons to fit smaller screens */
+  .hero h1 {
+    font-size: clamp(28px, 8vw, 32px);
+    line-height: 1.2;
+  }
+  .hero p {
+    font-size: clamp(16px, 4.5vw, 18px);
+  }
+  .hero-status {
+    font-size: 0.75rem;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    padding: 14px 28px;
+    font-size: 1rem;
+  }
+
+}
+
+/* === MODAL SCROLLBAR STYLING – MATCHES CONTRIBUTIONS CAROUSEL === */
+
+/* Firefox */
+.modal-content {
+  scrollbar-color: var(--primary) var(--surface);
+}
+
+/* WebKit (Chrome, Edge, Safari) */
+.modal-content::-webkit-scrollbar {
+  width: 10px;
+  background: var(--surface);
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 6px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--primary) 75%, #000 25%);
+}
+
+.docs-carousel.dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+/* Skill-link buttons --------------------------------------------------*/
+.skill-link{
+  position:relative;
+  transition:transform .25s, box-shadow .25s;
+  border:2px solid transparent;
+}
+.skill-link:hover,
+.skill-link:focus-visible{
+  transform:translateY(-4px) scale(1.03);
+  box-shadow:0 8px 22px rgba(44,169,188,.35);
+  border-color:var(--primary);
+}
+.skill-link small{
+  display:block;
+  margin-top:6px;
+  color:var(--text-muted);
+}
+.skill-link:hover small{ color:var(--text-light); }
+
+/* ── Skill tiles behave like buttons ───────────────────────────── */
+.skill-link{
+  border:2px solid var(--primary);
+  transition:transform .25s, box-shadow .25s;
+}
+.skill-link:hover,
+.skill-link:focus-visible{
+  transform:translateY(-4px) scale(1.03);
+  box-shadow:0 10px 26px rgba(44,169,188,.35);
+  cursor:pointer;
+}
+
+/* ── DOWNLOAD ICON CARDS : HIGH-CONTRAST & ON-BRAND ──────────────── */
+.icon-row a{
+  /* layout */
+  display:inline-flex;align-items:center;justify-content:center;
+  width:36px;height:36px;
+  border-radius:12px;                 /* same pill radius used on buttons */
+  padding:6px;
+
+  /* backdrop: subtle warm-grey card so *all* icon colours pop */
+  background:radial-gradient(circle at 30% 30%,
+              #ffffff 0%, #f2f4f6 65%, #e8ebed 100%);
+  border:1px solid rgba(0,0,0,.06);
+  box-shadow:
+      0 2px 6px rgba(0,0,0,.25),      /* lift */
+      inset 0 1px 2px rgba(255,255,255,.6); /* faint inner highlight */
+
+  /* interaction */
+  transition:transform .25s, box-shadow .25s;
+  cursor:pointer;
+}
+.icon-row a:hover{
+  transform:translateY(-4px) scale(1.05);
+  box-shadow:
+      0 6px 16px rgba(0,0,0,.30),
+      inset 0 1px 2px rgba(255,255,255,.65);
+}
+
+/* fine-tune icon sizing so GitHub & PDF logos stay crisp */
+.icon-row img.icon{
+  width:30px;height:30px;
+}
+
+/* ───── NAV ─────────────────────────────────────────────── */
+.nav{
+  position:fixed;inset:0 auto auto 0;          /* stay at very top */
+  width:100%;z-index:1001;                      /* above dim-layer */
+  background:var(--surface);                    /* ☑ solid colour */
+  /* ✂ remove the old rgba() bg + backdrop-filter lines */
+}
+
+/* == GLOBAL DIM-LAYER when mobile drawer is open ========= */
+body.menu-open::before{
+  content:"";
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.65);
+  z-index:1000;                /* just under the header & drawer */
+  pointer-events:none;         /* clicks still reach the drawer */
+}
+
+/* == HERO occupies the visible viewport =================== */
+.hero{
+    padding-top:0;
+    padding-bottom:0;
+}
+
+
+/* == DISABLE scroll-reveal animation on mobile ============ */
+@media(max-width:768px){
+  .reveal{opacity:1 !important;transform:none !important;}
+}
+
+/* == MOBILE header breathing room & font-scaling ========= */
+@media(max-width:768px){
+  .nav .wrapper{
+    padding-inline:clamp(12px,4vw,24px);        /* shrink side gaps */
+    gap:clamp(12px,3vw,28px);
+  }
+  .brand-logo{height:48px;}
+  .brand-name{
+    font-size:clamp(16px,5vw,20px);             /* responsive text */
+  }
+
+    .wrapper{margin-inline:5%}
+}
+
+/* put this right after the :root block or in your global-layout section */
+:root{ --nav-height:72px; }      /* if you don’t already have it */
+
+/* reduce header height in mobile landscape orientation */
+@media (max-width:768px) and (orientation:landscape){
+  :root{ --nav-height:48px; }
+  .brand-logo{ height:40px; }
+  .brand-name{ font-size:clamp(14px,4vw,18px); }
+  .nav .wrapper{ padding-block:12px; gap:clamp(8px,2vw,20px); }
+}
+
+body{
+  /* keeps every page below the sticky/fixed header */
+  padding-top:var(--nav-height,72px);
+}
+
+/* ─── GLOBAL FADE + BLUR LAYER (matches modal) ───────────── */
+body::before{
+  content:"";                    /* always present, but invisible…   */
+  position:fixed;inset:0;
+  background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:blur(4px);     /* identical to modal backdrop      */
+  opacity:0;pointer-events:none; z-index:1000;
+  transition:opacity .45s ease;  /* smooth fade, same timing curve   */
+}
+body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
+
+/* ─── Brand title layout ───────────────────────────── */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;                       /* logo ↔ text */
+}
+
+.brand-name {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.brand-line.divider {               /* the “│” glyph */
+  padding: 0 .4rem;
+  opacity: .6;
+}
+
+/* ─── MOBILE: stack the two phrases, hide the bar ─── */
+@media (max-width: 768px) {
+  .brand-name {                     /* turn the trio vertical */
+    flex-direction: column;
+    align-items: flex-start;
+    row-gap: 4px;
+  }
+  .brand-line.divider {             /* ditch the bar */
+    display: none;
+  }
+}
+
+
+/* 📱  MOBILE ≤ 768 px  – align role + icons on one bottom row */
+@media (max-width: 768px) {
+
+  /* reserve space so text above never overlaps the footer */
+  .doc-card{
+    position: relative;            /* already true, but explicit */
+    padding-bottom: 96px;          /* ≈ footer height + spacing */
+  }
+
+  /* pin the footer strip to the bottom */
+  .doc-footer{
+    position: absolute;
+    left: 24px;
+    right: 24px;
+    bottom: 24px;                  /* same inset you use elsewhere */
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;         /* keeps role text baseline-aligned */
+  }
+
+  /* icons now live in normal flow inside the footer */
+  .doc-links{
+    position: static;              /* overrides earlier absolute */
+    display: flex;
+    gap: 12px;                     /* one or two icons side-by-side */
+  }
+}
+
+/* ensure Tableau embeds always appear after the text */
+.modal-body.stacked .modal-embed {
+  order: 99;
+}
+
+.modal-embed iframe  {
+  width: 100%;
+  height: 70vh;      /* plenty of space for the dashboard */
+  border: none;
+  display: block;
+  margin-top: 1rem;
+}
+
+.modal-embed {
+  overflow-x: auto;
+  width: 100%;
+}
+
+/* Inner div applies scaling to fixed-size Tableau dashboard */
+.tableau-scale-inner {
+  transform-origin: top left;
+}
+
+/* Optional: for consistency if needed elsewhere */
+.modal-embed iframe {
+  border: none;
+  display: block;
+  margin-top: 1rem;
+}
+
+.see-less-float {
+  position: fixed;
+  left: 50%;
+  bottom: 1rem;
+  transform: translateX(-50%);
+  display: none;
+  z-index: 1000;
+}
+
+/* Sticky See Less replacement */
+.see-more-wrap.sticky {
+  position: sticky;
+  bottom: 1rem;
+  width: 100%;
+  text-align: center;
+  z-index: 1000;
+  transition: opacity 0.3s ease;
+}
+
+.see-more-wrap.sticky.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/*
+  When the viewport is 768px or less, stack the Tools section above
+  the Downloads/Links section in project modals. The divider becomes
+  a horizontal rule between them and participates in normal flow so it
+  no longer overlaps the content.
+*/
+@media (max-width: 768px) {
+  .modal-header-details {
+    flex-direction: column;
+    align-items: center;
+  }
+  .modal-half {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+  .modal-divider {
+    position: static;
+    width: 80%;
+    height: 1px;
+    margin: 12px 0;
+    transform: none;
+  }
+}
+
+@media (max-width: 768px) {
+  /* tighter modal padding on small screens */
+  .modal-body {
+    padding: 4px !important;
+  }
+
+  /* prevent two-column layout for contribution cards */
+  .docs-grid { grid-template-columns: 1fr; }
+}

@@ -62,7 +62,7 @@ Welcome to the GitHub repository for my personal portfolio website. This site sh
 .
 ├── css
 │   └── styles.css           # CSS styles for the website
-├── img                   # Folder for all images used in the website
+├── images                   # Folder for all images used in the website
 │   ├── logo.png
 │   ├── head.jpg
 │   ├── project_1.png
