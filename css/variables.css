@@ -10,8 +10,6 @@
   --secondary:#D4A047;
   --text-light:#F1F4F8;
   --text-muted:#BFC8D3;   /* WCAG-passing grey */
-  /* sticky header height */
-  --nav-height:72px;
   /* dynamic viewport height used for mobile hero sections */
   --vh:100vh;
 }
