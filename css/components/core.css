@@ -8,10 +8,6 @@
   gap:28px;
   margin:28px;
 }
-
-@media(max-width:768px){
-  .grid-container{grid-template-columns:1fr;margin-inline:12px}
-}
 .icon-info{
   background:var(--surface);border:1px solid #21262D;border-radius:14px;
   padding:32px;text-align:center;color:var(--text-light);
@@ -30,9 +26,3 @@
 #about-me.reveal.active .icon-info:nth-child(5){animation-delay:.4s}
 #about-me.reveal.active .icon-info:nth-child(6){animation-delay:.5s}
 #about-me .section-title{text-align:center}
-
-/* Skill link cards act like buttons */
-.skill-link{position:relative;border:2px solid var(--primary);transition:transform .25s,box-shadow .25s}
-.skill-link:hover,.skill-link:focus-visible{transform:translateY(-4px) scale(1.03);box-shadow:0 10px 26px rgba(44,169,188,.35);cursor:pointer}
-.skill-link small{display:block;margin-top:6px;color:var(--text-muted)}
-.skill-link:hover small{color:var(--text-light)}
