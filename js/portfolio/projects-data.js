@@ -17,11 +17,11 @@ window.PROJECTS = [
     id: "pizza",
     title: "Pizza Tips Regression Analysis",
     subtitle: "Excel Analytics & Forecasting",
-    image: "img/projects/project_1.png",
+    image: "images/project_1.png",
     tools: ["Excel", "Statistics"],
     resources: [
-      { icon: "img/icons/pdf-icon.png",   url: "documents/Project_1.pdf",  label: "PDF"   },
-      { icon: "img/icons/excel-icon.png", url: "documents/Project_1.xlsx", label: "Excel" }
+      { icon: "images/pdf-icon.png",   url: "documents/Project_1.pdf",  label: "PDF"   },
+      { icon: "images/excel-icon.png", url: "documents/Project_1.xlsx", label: "Excel" }
     ],
     problem : "Tip income swung wildly across neighbourhoods and housing types, but drivers had no data-backed story to explain the variation.",
     actions : [
@@ -39,12 +39,12 @@ window.PROJECTS = [
     id: "babynames",
     title: "Baby Name Predictor",
     subtitle: "Python ML Pipeline",
-    image: "img/projects/project_2.png",
+    image: "images/project_2.png",
     tools: ["Python", "scikit-learn"],
     resources: [
-      { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Baby-Names", label: "GitHub" },
-      { icon: "img/icons/pdf-icon.png",    url: "documents/Project_2_pdf.zip",               label: "PDFs"  },
-      { icon: "img/icons/jupyter-icon.png",url: "documents/Project_2.zip",                   label: "Notebook"}
+      { icon: "images/github-icon.png", url: "https://github.com/danielshort3/Baby-Names", label: "GitHub" },
+      { icon: "images/pdf-icon.png",    url: "documents/Project_2_pdf.zip",               label: "PDFs"  },
+      { icon: "images/jupyter-icon.png",url: "documents/Project_2.zip",                   label: "Notebook"}
     ],
     problem : "My wife wanted me to come up with new baby names to suggest to her. I wanted to use data-backed insights to solve this problem.",
     actions : [
@@ -62,10 +62,10 @@ window.PROJECTS = [
     id: "pizzaDashboard",
     title: "Pizza Delivery Dashboard",
     subtitle: "Tableau Delivery Storytelling",
-    image: "img/projects/project_3.png",
+    image: "images/project_3.png",
     tools: ["Tableau"],
     resources: [
-      { icon: "img/icons/tableau-icon.png",
+      { icon: "images/tableau-icon.png",
         url : "https://public.tableau.com/views/Pizza_Delivery/PizzaDeliveryDashboard?:language=en-US&:display_count=n&:origin=viz_share_link",
         label:"Interactive Dashboard"
       }
@@ -89,12 +89,12 @@ window.PROJECTS = [
     id: "nonogram",
     title: "Nonogram Solver",
     subtitle: "Reinforcement Learning (RL)",
-    image: "img/projects/project_4.gif",
+    image: "images/project_4.gif",
     tools: ["Python", "PyTorch"],
     resources: [
-      { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Nonogram-Solver", label: "GitHub" },
-      { icon: "img/icons/pdf-icon.png",     url: "documents/Project_4.pdf",                  label: "PDF"    },
-      { icon: "img/icons/jupyter-icon.png", url: "documents/Project_4.ipynb",                label: "Notebook"}
+      { icon: "images/github-icon.png",  url: "https://github.com/danielshort3/Nonogram-Solver", label: "GitHub" },
+      { icon: "images/pdf-icon.png",     url: "documents/Project_4.pdf",                  label: "PDF"    },
+      { icon: "images/jupyter-icon.png", url: "documents/Project_4.ipynb",                label: "Notebook"}
     ],
     problem : "I wanted to create a machine learning model to automatically solve Nonogram puzzles for me.",
     actions : [
@@ -110,10 +110,10 @@ window.PROJECTS = [
     id: "ufoDashboard",
     title: "UFO Sightings Dashboard",
     subtitle: "Tableau Geospatial Analytics",
-    image: "img/projects/project_5.png",
+    image: "images/project_5.png",
     tools: ["Tableau"],
     resources: [
-      { icon: "img/icons/tableau-icon.png",
+      { icon: "images/tableau-icon.png",
         url  : "https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013?:language=en-US&:display_count=n&:origin=viz_share_link",
         label:"Interactive Dashboard"
       }
@@ -137,12 +137,12 @@ window.PROJECTS = [
     id: "covidAnalysis",
     title: "COVID-19 Outbreak Drivers",
     subtitle: "Python XGBoost & SHAP",
-    image: "img/projects/project_6.png",
+    image: "images/project_6.png",
     tools: ["Python"],
     resources: [
-      { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Covid-Analysis", label: "GitHub" },
-      { icon: "img/icons/pdf-icon.png",     url: "documents/Project_6.pdf",                        label: "PDF"    },
-      { icon: "img/icons/jupyter-icon.png", url: "documents/Project_6.ipynb",                      label: "Notebook"}
+      { icon: "images/github-icon.png",  url: "https://github.com/danielshort3/Covid-Analysis", label: "GitHub" },
+      { icon: "images/pdf-icon.png",     url: "documents/Project_6.pdf",                        label: "PDF"    },
+      { icon: "images/jupyter-icon.png", url: "documents/Project_6.ipynb",                      label: "Notebook"}
     ],
     problem : "I used covid historical data to predict future outbreaks.",
     actions : [
@@ -160,11 +160,11 @@ window.PROJECTS = [
     id: "targetEmptyPackage",
     title: "Empty-Package Shrink Dashboard",
     subtitle: "Excel Forecasting & BI",
-    image: "img/projects/project_7.png",
+    image: "images/project_7.png",
     tools: ["Excel", "Time-Series"],
     resources: [
-      { icon: "img/icons/pdf-icon.png",   url: "documents/Project_7.pdf",  label: "PDF"   },
-      { icon: "img/icons/excel-icon.png", url: "documents/Project_7.xlsx", label: "Excel" }
+      { icon: "images/pdf-icon.png",   url: "documents/Project_7.pdf",  label: "PDF"   },
+      { icon: "images/excel-icon.png", url: "documents/Project_7.xlsx", label: "Excel" }
     ],
     problem : "Empty-package theft had ballooned—recovered retail value jumped 5× from Q1 2021 to Q2 2023—yet leaders had no single view to see which employees, locations, or departments were driving the losses.",
     actions : [
@@ -185,12 +185,12 @@ window.PROJECTS = [
     id: "handwritingRating",
     title: "Handwriting Legibility Scoring",
     subtitle: "PyTorch CNN Fine-Tuning",
-    image: "img/projects/project_8.gif",
+    image: "images/project_8.gif",
     tools: ["Python", "PyTorch", "CNN"],
     resources: [
-      { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Handwriting-Rating", label: "GitHub" },
-      { icon: "img/icons/pdf-icon.png",     url: "documents/Project_8.pdf",                            label: "PDF"    },
-      { icon: "img/icons/jupyter-icon.png", url: "documents/Project_8.ipynb",                          label: "Notebook"}
+      { icon: "images/github-icon.png",  url: "https://github.com/danielshort3/Handwriting-Rating", label: "GitHub" },
+      { icon: "images/pdf-icon.png",     url: "documents/Project_8.pdf",                            label: "PDF"    },
+      { icon: "images/jupyter-icon.png", url: "documents/Project_8.ipynb",                          label: "Notebook"}
     ],
     problem : "My wife would say my handwriting is illegible. I wanted objective thoughts about this.",
     actions : [
@@ -208,12 +208,12 @@ window.PROJECTS = [
     id: "digitGenerator",
     title: "Synthetic Digit Generator",
     subtitle: "Variational Autoencoder",
-    image: "img/projects/project_9.gif",
+    image: "images/project_9.gif",
     tools: ["Python", "VAE"],
     resources: [
-      { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Handwritten-Digit-Generator", label: "GitHub" },
-      { icon: "img/icons/pdf-icon.png",     url: "documents/Project_9.pdf",                                   label: "PDF"    },
-      { icon: "img/icons/jupyter-icon.png", url: "documents/Project_9.ipynb",                                 label: "Notebook"}
+      { icon: "images/github-icon.png",  url: "https://github.com/danielshort3/Handwritten-Digit-Generator", label: "GitHub" },
+      { icon: "images/pdf-icon.png",     url: "documents/Project_9.pdf",                                   label: "PDF"    },
+      { icon: "images/jupyter-icon.png", url: "documents/Project_9.ipynb",                                 label: "Notebook"}
     ],
     problem : "I wanted to learn how to generate completely new handwritten digits based on a sample.",
     actions : [
@@ -229,12 +229,12 @@ window.PROJECTS = [
     id: "sheetMusicUpscale",
     title: "Sheet Music Watermark Removal & Upscale",
     subtitle: "UNet & VDSR Pipeline",
-    image: "img/projects/project_10.gif",
+    image: "images/project_10.gif",
     tools: ["Python", "Computer Vision"],
     resources: [
-      { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Watermark-Remover", label: "GitHub" },
-      { icon: "img/icons/pdf-icon.png",    url: "documents/Project_10_pdf.zip",                      label: "PDFs"  },
-      { icon: "img/icons/jupyter-icon.png",url: "documents/Project_10.zip",                          label: "Notebook"}
+      { icon: "images/github-icon.png", url: "https://github.com/danielshort3/Watermark-Remover", label: "GitHub" },
+      { icon: "images/pdf-icon.png",    url: "documents/Project_10_pdf.zip",                      label: "PDFs"  },
+      { icon: "images/jupyter-icon.png",url: "documents/Project_10.zip",                          label: "Notebook"}
     ],
     problem : "I wanted the ability to participate in playing music as my church but did not have any sheet music.",
     actions : [
@@ -251,11 +251,11 @@ window.PROJECTS = [
     id: "deliveryTip",
     title: "Delivery Tip",
     subtitle: "Excel Geo-Analytics",
-    image: "img/projects/project_11.png",
+    image: "images/project_11.png",
     tools: ["Excel", "Power Query"],
     resources: [
-      { icon: "img/icons/pdf-icon.png",   url: "documents/Project_11.pdf",  label: "PDF"   },
-      { icon: "img/icons/excel-icon.png", url: "documents/Project_11.xlsx", label: "Excel" }
+      { icon: "images/pdf-icon.png",   url: "documents/Project_11.pdf",  label: "PDF"   },
+      { icon: "images/excel-icon.png", url: "documents/Project_11.xlsx", label: "Excel" }
     ],
     problem : "Drivers wanted optimal shift times & zones for higher tips.",
     actions : [
@@ -273,12 +273,12 @@ window.PROJECTS = [
     id: "retailStore",
     title: "Store Level Loss & Sales ETL",
     subtitle: "MSSQL + Python Viz",
-    image: "img/projects/project_12.png",
+    image: "images/project_12.png",
     tools: ["SQL", "Python"],
     resources: [
-      { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/target-packaging-analysis-mssql", label: "GitHub" },
-      { icon: "img/icons/pdf-icon.png",    url: "documents/Project_12.pdf",                                        label: "PDF"    },
-      { icon: "img/icons/jupyter-icon.png",url: "documents/Project_12.ipynb",                                      label: "Notebook"}
+      { icon: "images/github-icon.png", url: "https://github.com/danielshort3/target-packaging-analysis-mssql", label: "GitHub" },
+      { icon: "images/pdf-icon.png",    url: "documents/Project_12.pdf",                                        label: "PDF"    },
+      { icon: "images/jupyter-icon.png",url: "documents/Project_12.ipynb",                                      label: "Notebook"}
     ],
     problem : "Our store lacked visibility into security incidents, theft hot-spots, and boycott-driven sales swings.",
     actions : [
@@ -298,12 +298,12 @@ window.PROJECTS = [
     id: "smartSentence",
     title: "Smart Sentence Retriever",
     subtitle: "Embeddings Cosine Comparison",
-    image: "img/projects/project_13.png",
+    image: "images/project_13.png",
     tools: ["Python", "NLP"],
     resources: [
-      { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Smart-Sentence-Finder", label: "GitHub" },
-      { icon: "img/icons/pdf-icon.png",    url: "documents/Project_13.pdf",                              label: "PDF"    },
-      { icon: "img/icons/jupyter-icon.png",url: "documents/Project_13.ipynb",                            label: "Notebook"}
+      { icon: "images/github-icon.png", url: "https://github.com/danielshort3/Smart-Sentence-Finder", label: "GitHub" },
+      { icon: "images/pdf-icon.png",    url: "documents/Project_13.pdf",                              label: "PDF"    },
+      { icon: "images/jupyter-icon.png",url: "documents/Project_13.ipynb",                            label: "Notebook"}
     ],
     problem : "I wanted to have a quick way of finding relevant information from documents based on semantics, not exact wording.",
     actions : [
@@ -321,11 +321,11 @@ window.PROJECTS = [
     id: "website",
     title: "danielshort.me",
     subtitle: "Responsive Portfolio Site",
-    image: "img/projects/project_14.png",
+    image: "images/project_14.png",
     tools: ["HTML", "CSS", "JavaScript"],
     resources: [
-      { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/danielshort3.github.io", label: "GitHub"  },
-      { icon: "img/icons/website-icon.png",url: "https://danielshort.me/",                                label: "Live Site"}
+      { icon: "images/github-icon.png", url: "https://github.com/danielshort3/danielshort3.github.io", label: "GitHub"  },
+      { icon: "images/website-icon.png",url: "https://danielshort.me/",                                label: "Live Site"}
     ],
     problem : "Needed a fast, mobile-friendly hub to showcase analytics and ML projects.",
     actions : [
