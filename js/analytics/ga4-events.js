@@ -1,9 +1,14 @@
-(() => {
+/* ===================================================================
+   File: ga4-events.js
+   Purpose: Utility helpers to send Google Analytics 4 events
+   =================================================================== */
+( () => {
   'use strict';
   window.dataLayer = window.dataLayer || [];
   function gtag(){ dataLayer.push(arguments); }
   gtag('js', new Date());
   gtag('config','G-0VL37MQ62P');
+  // Helper to dispatch GA events
   const send = (name, params={}) => {
     if (typeof gtag === 'function') {
       gtag('event', name, params);
@@ -13,6 +18,7 @@
   // expose send so other scripts can trigger custom events
   window.gaEvent = send;
 
+  // Count views to fire a special event after three different projects
   let projectViews = 0;
   window.trackProjectView = id => {
     projectViews++;
@@ -22,11 +28,12 @@
     }
   };
 
-  // track when a modal is closed
+  // Track when a modal dialog is dismissed
   window.trackModalClose = id => {
     send('modal_close', { project_id: id });
   };
 
+  // Wire up click tracking once the DOM is ready
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.hero-cta').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -86,9 +93,11 @@
       });
     }
 
+    // Fire an event when users stay on the page for 60 seconds
     setTimeout(() => send('engaged_time', { seconds: 60 }), 60000);
 
     let sent50 = false;
+    // Record when the user scrolls halfway down the page
     window.addEventListener('scroll', () => {
       if (sent50) return;
       const scrollable = document.documentElement.scrollHeight - window.innerHeight;
