@@ -1,0 +1,4 @@
+/* Call-to-action section */
+#cta{background:var(--surface);padding:40px}
+#cta .wrapper{text-align:center}
+#cta #cta-link{display:inline-flex;flex-direction:column;align-items:center}
