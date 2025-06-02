@@ -1,0 +1,8 @@
+/* Scroll reveal utility */
+.reveal{opacity:0;transform:translateY(50px);transition:opacity .7s cubic-bezier(.2,.7,.3,1),transform .7s cubic-bezier(.2,.7,.3,1)}
+.reveal.active{opacity:1;transform:none}
+
+/* disable reveal on mobile */
+@media(max-width:768px){
+  .reveal{opacity:1 !important;transform:none !important}
+}

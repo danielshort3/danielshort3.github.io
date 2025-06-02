@@ -1,0 +1,20 @@
+/* Contact page cards and modal */
+.contact-big{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:28px;padding:32px}
+@media (max-width:768px){.contact-big{padding:28px 0 32px}}
+.contact-big .contact-card{padding:32px}
+
+.contact-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:48px 32px;text-align:center;background:var(--surface);border:2px solid var(--primary);border-radius:14px;color:var(--primary);font-family:'Poppins';font-weight:600;transition:transform .25s,background .25s,color .25s,box-shadow .25s}
+.contact-card i{font-size:40px;color:inherit;transition:inherit}
+.contact-card small{font-family:'Inter';color:var(--text-muted);transition:inherit}
+.contact-card:hover{background:var(--primary);color:var(--bg);transform:translateY(-3px);box-shadow:0 10px 24px rgba(44,169,188,.35)}
+.contact-card:hover i,.contact-card:hover small{color:var(--bg)}
+
+#contact-modal iframe{width:100%;border:none;display:block;height:100%}
+#contact-modal .modal-content{width:min(760px,calc(100vw - 24px));margin-inline:auto}
+#contact-modal .modal-body{overflow-x:hidden}
+
+/* themed scrollbar */
+.contact-page{scrollbar-color:var(--primary) var(--surface)}
+.contact-page::-webkit-scrollbar{width:10px;background:var(--surface)}
+.contact-page::-webkit-scrollbar-thumb{background:var(--primary);border-radius:6px}
+.contact-page::-webkit-scrollbar-thumb:hover{background:color-mix(in srgb,var(--primary) 75%,#000 25%)}
