@@ -1,0 +1,234 @@
+/* ===================================================================
+   File: _colors.css
+   Purpose: Color and theme utilities
+=================================================================== */
+  cursor:pointer;
+}
+.icon-row a:hover{
+  transform:translateY(-4px) scale(1.05);
+  box-shadow:
+      0 6px 16px rgba(0,0,0,.30),
+      inset 0 1px 2px rgba(255,255,255,.65);
+}
+
+/* fine-tune icon sizing so GitHub & PDF logos stay crisp */
+.icon-row img.icon{
+  width:30px;height:30px;
+}
+
+/* ───── NAV ─────────────────────────────────────────────── */
+.nav{
+  position:fixed;inset:0 auto auto 0;          /* stay at very top */
+  width:100%;z-index:1001;                      /* above dim-layer */
+  background:var(--surface);                    /* ☑ solid colour */
+  /* ✂ remove the old rgba() bg + backdrop-filter lines */
+}
+
+/* == GLOBAL DIM-LAYER when mobile drawer is open ========= */
+body.menu-open::before{
+  content:"";
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.65);
+  z-index:1000;                /* just under the header & drawer */
+  pointer-events:none;         /* clicks still reach the drawer */
+}
+
+/* == HERO occupies the visible viewport =================== */
+.hero{
+    padding-top:0;
+    padding-bottom:0;
+}
+
+
+/* == DISABLE scroll-reveal animation on mobile ============ */
+@media(max-width:768px){
+  .reveal{opacity:1 !important;transform:none !important;}
+}
+
+/* == MOBILE header breathing room & font-scaling ========= */
+@media(max-width:768px){
+  .nav .wrapper{
+    padding-inline:clamp(12px,4vw,24px);        /* shrink side gaps */
+    gap:clamp(12px,3vw,28px);
+  }
+  .brand-logo{height:48px;}
+  .brand-name{
+    font-size:clamp(16px,5vw,20px);             /* responsive text */
+  }
+
+    .wrapper{margin-inline:5%}
+}
+
+/* put this right after the :root block or in your global-layout section */
+:root{ --nav-height:72px; }      /* if you don’t already have it */
+
+/* reduce header height in mobile landscape orientation */
+@media (max-width:768px) and (orientation:landscape){
+  :root{ --nav-height:48px; }
+  .brand-logo{ height:40px; }
+  .brand-name{ font-size:clamp(14px,4vw,18px); }
+  .nav .wrapper{ padding-block:12px; gap:clamp(8px,2vw,20px); }
+}
+
+body{
+  /* keeps every page below the sticky/fixed header */
+  padding-top:var(--nav-height,72px);
+}
+
+/* ─── GLOBAL FADE + BLUR LAYER (matches modal) ───────────── */
+body::before{
+  content:"";                    /* always present, but invisible…   */
+  position:fixed;inset:0;
+  background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:blur(4px);     /* identical to modal backdrop      */
+  opacity:0;pointer-events:none; z-index:1000;
+  transition:opacity .45s ease;  /* smooth fade, same timing curve   */
+}
+body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
+
+/* ─── Brand title layout ───────────────────────────── */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;                       /* logo ↔ text */
+}
+
+.brand-name {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.brand-line.divider {               /* the “│” glyph */
+  padding: 0 .4rem;
+  opacity: .6;
+}
+
+/* ─── MOBILE: stack the two phrases, hide the bar ─── */
+@media (max-width: 768px) {
+  .brand-name {                     /* turn the trio vertical */
+    flex-direction: column;
+    align-items: flex-start;
+    row-gap: 4px;
+  }
+  .brand-line.divider {             /* ditch the bar */
+    display: none;
+  }
+}
+
+
+/* 📱  MOBILE ≤ 768 px  – align role + icons on one bottom row */
+@media (max-width: 768px) {
+
+  /* reserve space so text above never overlaps the footer */
+  .doc-card{
+    position: relative;            /* already true, but explicit */
+    padding-bottom: 96px;          /* ≈ footer height + spacing */
+  }
+
+  /* pin the footer strip to the bottom */
+  .doc-footer{
+    position: absolute;
+    left: 24px;
+    right: 24px;
+    bottom: 24px;                  /* same inset you use elsewhere */
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;         /* keeps role text baseline-aligned */
+  }
+
+  /* icons now live in normal flow inside the footer */
+  .doc-links{
+    position: static;              /* overrides earlier absolute */
+    display: flex;
+    gap: 12px;                     /* one or two icons side-by-side */
+  }
+}
+
+/* ensure Tableau embeds always appear after the text */
+.modal-body.stacked .modal-embed {
+  order: 99;
+}
+
+.modal-embed iframe  {
+  width: 100%;
+  height: 70vh;      /* plenty of space for the dashboard */
+  border: none;
+  display: block;
+  margin-top: 1rem;
+}
+
+.modal-embed {
+  overflow-x: auto;
+  width: 100%;
+}
+
+/* Inner div applies scaling to fixed-size Tableau dashboard */
+.tableau-scale-inner {
+  transform-origin: top left;
+}
+
+/* Optional: for consistency if needed elsewhere */
+.modal-embed iframe {
+  border: none;
+  display: block;
+  margin-top: 1rem;
+}
+
+.see-less-float {
+  position: fixed;
+  left: 50%;
+  bottom: 1rem;
+  transform: translateX(-50%);
+  display: none;
+  z-index: 1000;
+}
+
+/* Sticky See Less replacement */
+.see-more-wrap.sticky {
+  position: sticky;
+  bottom: 1rem;
+  width: 100%;
+  text-align: center;
+  z-index: 1000;
+  transition: opacity 0.3s ease;
+}
+
+.see-more-wrap.sticky.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/*
+  When the viewport is 768px or less, stack the Tools section above
+  the Downloads/Links section in project modals. The divider becomes
+  a horizontal rule between them and participates in normal flow so it
+  no longer overlaps the content.
+*/
+@media (max-width: 768px) {
+  .modal-header-details {
+    flex-direction: column;
+    align-items: center;
+  }
+  .modal-half {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+  .modal-divider {
+    position: static;
+    width: 80%;
+    height: 1px;
+    margin: 12px 0;
+    transform: none;
+  }
+}
+
+@media (max-width: 768px) {
+  /* tighter modal padding on small screens */
+  .modal-body {
+    padding: 4px !important;
+  }
+
+  /* prevent two-column layout for contribution cards */
+  .docs-grid { grid-template-columns: 1fr; }
