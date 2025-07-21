@@ -51,10 +51,17 @@ function evalScript(file) {
 try {
   // HTML checks across pages
   checkFileContains('index.html', 'Turning data into actionable insights');
-  checkFileContains('contact.html', '<title>Contact │ Daniel Short');
-  ['index.html','contact.html','portfolio.html','contributions.html'].forEach(f => {
-    checkFileContains(f, 'js/common/common.js');
-  });
+checkFileContains('contact.html', '<title>Contact │ Daniel Short');
+['index.html','contact.html','portfolio.html','contributions.html'].forEach(f => {
+  checkFileContains(f, 'js/common/common.js');
+  checkFileContains(f, 'class="skip-link"');
+  checkFileContains(f, '<main id="main">');
+});
+['index.html','contact.html','portfolio.html','contributions.html','404.html'].forEach(f => {
+  checkFileContains(f, 'og:image');
+});
+assert(fs.existsSync('robots.txt'), 'robots.txt missing');
+assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
 
   // Data files expose arrays
   let env = evalScript('js/portfolio/projects-data.js');
@@ -70,6 +77,7 @@ try {
   assert(typeof env.window.gaEvent === 'function', 'ga4-events.js missing gaEvent');
   assert(typeof env.window.trackProjectView === 'function', 'ga4-events.js missing trackProjectView');
   assert(typeof env.window.trackModalClose === 'function', 'ga4-events.js missing trackModalClose');
+  checkFileContains('js/navigation/navigation.js', 'div class="nav-row"');
 
   // Core scripts should load without throwing
   [
