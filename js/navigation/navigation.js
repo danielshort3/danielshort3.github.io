@@ -29,13 +29,13 @@
           <button id="nav-toggle" class="burger" aria-label="Toggle navigation" aria-expanded="false">
             <span class="bar"></span><span class="bar"></span><span class="bar"></span>
           </button>
-          <nav class="nav-row" data-collapsible>
+          <div class="nav-row" data-collapsible role="navigation">
             <a href="index.html" class="btn-secondary nav-link">Home</a>
             <a href="portfolio.html" class="btn-secondary nav-link">Portfolio</a>
             <a href="contributions.html" class="btn-secondary nav-link">Contributions</a>
             <a href="contact.html" class="btn-secondary nav-link">Contact</a>
             <a href="documents/Resume.pdf" class="btn-secondary nav-link" target="_blank" rel="noopener" download>Resume</a>
-          </nav>
+          </div>
         </div>
       </nav>`;
     const cur = location.pathname.split('/').pop() || 'index.html';
