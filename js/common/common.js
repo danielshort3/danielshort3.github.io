@@ -32,7 +32,14 @@
       modalsRoot.appendChild(m);
     });
     $$('.skill-link').forEach(btn=>{
+      btn.setAttribute('tabindex','0');
       on(btn,'click',e=>{e.preventDefault();openModal(btn.dataset.project);});
+      on(btn,'keydown',e=>{
+        if(e.key==='Enter'||e.key===' '){
+          e.preventDefault();
+          openModal(btn.dataset.project);
+        }
+      });
     });
     if(location.hash) openModal(location.hash.slice(1));
   }
