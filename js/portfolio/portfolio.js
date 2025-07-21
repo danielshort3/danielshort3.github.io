@@ -36,7 +36,7 @@ window.generateProjectModal = function (p) {
 
   /* full modal template ------------------------------------------------ */
   return `
-    <div class="modal-content" tabindex="0">
+    <div class="modal-content" role="dialog" aria-modal="true" tabindex="0">
       <button class="modal-close" aria-label="Close dialog">&times;</button>
       <div class="modal-title-strip"><h3 class="modal-title">${p.title}</h3></div>
 
