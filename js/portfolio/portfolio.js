@@ -12,7 +12,7 @@ window.generateProjectModal = function (p) {
     if (!isTableau) {
       return `
         <div class="modal-image">
-          <img src="${p.image}" alt="${p.title}" width="800" height="450">
+          <img src="${p.image}" alt="${p.title}">
         </div>`;
     }
 
@@ -104,7 +104,7 @@ function buildPortfolioCarousel() {
       <div class="overlay"></div>
       <div class="project-title">${p.title}</div>
       <div class="project-subtitle">${p.subtitle}</div>
-      <img src="${p.image}" alt="${p.title}" width="400" height="220">
+      <img src="${p.image}" alt="${p.title}">
     `;
     card.addEventListener("click", () => { if (!moved) openModal(p.id); });
     track.appendChild(card);
@@ -385,7 +385,7 @@ function buildPortfolio() {
       <div class="overlay"></div>
       <div class="project-title">${p.title}</div>
       <div class="project-subtitle">${p.subtitle}</div>
-      <img src="${p.image}" alt="${p.title}" loading="lazy" width="400" height="220">`);
+      <img src="${p.image}" alt="${p.title}" loading="lazy">`);
     card.dataset.index = i;
     card.dataset.tags  = p.tools.join(",");
     card.addEventListener("click", () => openModal(p.id));
