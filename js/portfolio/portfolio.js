@@ -53,7 +53,7 @@ window.generateProjectModal = function (p) {
             <p class="header-label">Downloads / Links</p>
             <div class="icon-row">
               ${p.resources.map(r => `
-                <a href="${r.url}" target="_blank" title="${r.label}">
+                <a href="${r.url}" target="_blank" rel="noopener" title="${r.label}">
                   <img src="${r.icon}" alt="${r.label}" class="icon">
                 </a>`).join("")}
             </div>
@@ -205,9 +205,6 @@ function initSeeMore(){
   const gapPad   = gap ? parseFloat(getComputedStyle(gap).paddingTop) || 32 : 0;
   if (gap) {
     const color = getComputedStyle(gap).backgroundColor;
-    console.log("[DEBUG] carousel gap found", { gap, color, gapPad });
-  } else {
-    console.log("[DEBUG] carousel gap element not found");
   }
   const carousel = document.getElementById("portfolio-carousel-section");
   if(!btn || !filters || !grid) return;
@@ -351,7 +348,6 @@ function initSeeMore(){
    • Populates #filter-menu counts & click-to-filter behaviour
    ------------------------------------------------------------------ */
 function buildPortfolio() {
-  console.log("[DEBUG] buildPortfolio start");
   const grid   = document.getElementById("projects");
   const modals = document.getElementById("modals");
   const menu   = document.getElementById("filter-menu");
@@ -389,7 +385,7 @@ function buildPortfolio() {
       <div class="overlay"></div>
       <div class="project-title">${p.title}</div>
       <div class="project-subtitle">${p.subtitle}</div>
-      <img src="${p.image}" alt="${p.title}" loading="eager">`);
+      <img src="${p.image}" alt="${p.title}" loading="lazy">`);
     card.dataset.index = i;
     card.dataset.tags  = p.tools.join(",");
     card.addEventListener("click", () => openModal(p.id));
@@ -410,7 +406,6 @@ function buildPortfolio() {
 
   /* ── auto-scroll to first card once it fades in (mobile only) ── */
   const isMobileInitial = window.matchMedia("(max-width: 768px)").matches;
-  console.log("[DEBUG] initial auto-scroll, isMobile:", isMobileInitial);
   if (isMobileInitial) {
     const first = grid.firstElementChild;
     if (first) {
@@ -421,12 +416,9 @@ function buildPortfolio() {
           )
         ) || 0;
       const y = first.getBoundingClientRect().top + window.scrollY - offset;
-      console.log("[DEBUG] first card offset", { offset, y });
       setTimeout(() => {
         window.scrollTo({ top: y, behavior: "smooth" });
       }, 600); // ripple-in animation ≈550ms
-    } else {
-      console.log("[DEBUG] first card not found");
     }
   }
 
@@ -477,7 +469,6 @@ function buildPortfolio() {
 
         /* ─── ensure first visible card is flush on mobile ─── */
         const isMobileFilter = window.matchMedia("(max-width: 768px)").matches;
-        console.log("[DEBUG] filter scroll isMobile:", isMobileFilter);
         if (isMobileFilter) {
           const first = visible[0];
           if (first) {
@@ -488,10 +479,7 @@ function buildPortfolio() {
                 )
               ) || 0;
             const y = first.getBoundingClientRect().top + window.scrollY - offset;
-            console.log("[DEBUG] filter first card offset", { offset, y });
             window.scrollTo({ top: y, behavior: "smooth" });
-          } else {
-            console.log("[DEBUG] filter first card not found");
           }
         }
       }, 450); // height transition duration
