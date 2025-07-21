@@ -34,7 +34,7 @@
             <a href="portfolio.html" class="btn-secondary nav-link">Portfolio</a>
             <a href="contributions.html" class="btn-secondary nav-link">Contributions</a>
             <a href="contact.html" class="btn-secondary nav-link">Contact</a>
-            <a href="documents/Resume.pdf" class="btn-secondary nav-link" target="_blank" download>Resume</a>
+            <a href="documents/Resume.pdf" class="btn-secondary nav-link" target="_blank" rel="noopener" download>Resume</a>
           </nav>
         </div>
       </nav>`;
@@ -65,9 +65,9 @@
     const year = new Date().getFullYear();
     f.innerHTML=`
       <div class="social">
-        <a class="btn-icon" href="mailto:danielshort3@gmail.com" aria-label="Email"><i class="fas fa-envelope"></i></a>
-        <a class="btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-        <a class="btn-icon" href="https://github.com/danielshort3" target="_blank" aria-label="GitHub"><i class="fab fa-github"></i></a>
+        <a class="btn-icon" href="mailto:danielshort3@gmail.com" aria-label="Email"><i class="fas fa-envelope" aria-hidden="true"></i></a>
+        <a class="btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin-in" aria-hidden="true"></i></a>
+        <a class="btn-icon" href="https://github.com/danielshort3" target="_blank" rel="noopener" aria-label="GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
       </div>
       <p>© ${year} Daniel Short. All rights reserved.</p>`;
   }
