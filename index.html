@@ -4,16 +4,34 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Daniel Short │ Data & Insights</title>
+  <link rel="canonical" href="https://danielshort.me/">
+  <meta property="og:title" content="Daniel Short │ Data &amp; Insights">
+  <meta property="og:description" content="Daniel Short — data analyst transforming raw numbers into actionable insights.">
+  <meta property="og:url" content="https://danielshort.me/">
 
   <!-- GA4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-0VL37MQ62P"></script>
 
   <link rel="stylesheet" href="css/styles.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"></noscript>
   <link rel="icon" href="img/ui/logo.png" type="image/png">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap" rel="stylesheet"></noscript>
   <meta name="description" content="Daniel Short — data analyst transforming raw numbers into actionable insights.">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Daniel Short",
+      "url": "https://danielshort.me/",
+      "sameAs": [
+        "https://www.linkedin.com/in/danielshort3/",
+        "https://github.com/danielshort3"
+      ]
+    }
+  </script>
 </head>
 <body data-page="home">
   <header id="combined-header-nav"></header>
@@ -39,7 +57,7 @@
         <!-- primary + secondary CTAs -->
         <div class="cta-group">
           <a href="portfolio.html"                        class="btn-secondary hero-cta">Portfolio</a>
-          <a href="documents/Resume.pdf" target="_blank"  class="btn-secondary hero-cta" download>Resume</a>
+          <a href="documents/Resume.pdf" target="_blank" rel="noopener"  class="btn-secondary hero-cta" download>Resume</a>
         </div>
       </div>
       <div class="chevron-hint" aria-hidden="true"><i class="fas fa-chevron-down"></i></div>
@@ -48,17 +66,17 @@
     <!-- Certifications marquee -->
     <section class="cert-band surface-band no-reveal">
       <div class="cert-track">
-        <a class="cert" href="https://www.credential.net/0f4df6f1-112e-4e4e-8cb1-b97e7ecd3a3b" target="_blank">
+        <a class="cert" href="https://www.credential.net/0f4df6f1-112e-4e4e-8cb1-b97e7ecd3a3b" target="_blank" rel="noopener">
           <img src="img/cert_logos/purdue_global.png" alt="Purdue"><span>Bachelor's of Science – Data Analytics</span></a>
-        <a class="cert" href="" target="_blank">
-          <img src="img/cert_logos/eastern.png" alt="Eastern"><span>Master's of Science – Data Science (May 2025)</span></a>
-        <a class="cert" href="https://www.coursera.org/account/accomplishments/specialization/certificate/CYUMPN7ZQRDA" target="_blank">
+        <span class="cert">
+          <img src="img/cert_logos/eastern.png" alt="Eastern"><span>Master's of Science – Data Science (May 2025)</span></span>
+        <a class="cert" href="https://www.coursera.org/account/accomplishments/specialization/certificate/CYUMPN7ZQRDA" target="_blank" rel="noopener">
           <img src="img/cert_logos/ibm.png" alt="IBM"><span>IBM Data Analyst Certification</span></a>
-        <a class="cert" href="https://www.coursera.org/account/accomplishments/specialization/certificate/7262X6HH5NF2" target="_blank">
+        <a class="cert" href="https://www.coursera.org/account/accomplishments/specialization/certificate/7262X6HH5NF2" target="_blank" rel="noopener">
           <img src="img/cert_logos/ibm.png" alt="IBM"><span>IBM Machine Learning Certification</span></a>
-        <a class="cert" href="https://www.coursera.org/account/accomplishments/specialization/certificate/N6MNKYE4MKEP" target="_blank">
+        <a class="cert" href="https://www.coursera.org/account/accomplishments/specialization/certificate/N6MNKYE4MKEP" target="_blank" rel="noopener">
           <img src="img/cert_logos/google.png" alt="Google"><span>Google Data Analytics Certification</span></a>
-        <a class="cert" href="https://www.coursera.org/account/accomplishments/specialization/certificate/K47AGB33F8VS" target="_blank">
+        <a class="cert" href="https://www.coursera.org/account/accomplishments/specialization/certificate/K47AGB33F8VS" target="_blank" rel="noopener">
           <img src="img/cert_logos/google.png" alt="Google"><span>Google Advanced Data Analytics Certification</span></a>
       </div>
     </section>
@@ -72,42 +90,42 @@
 
           <!-- Python Programming ▸ Nonogram Solver -->
           <div class="icon-info grid-item skill-link" role="button" data-project="nonogram">
-            <i class="fas fa-code"></i>
+            <i class="fas fa-code" aria-hidden="true"></i>
             <p>Programming<small>(Python)</small></p>
             <small>Reinforcement Learning agent solved 94% of 5×5 puzzles.</small>
           </div>
 
           <!-- Tableau Data-Viz ▸ Pizza Delivery Dashboard -->
           <div class="icon-info grid-item skill-link" role="button" data-project="pizzaDashboard">
-            <i class="fas fa-chart-line"></i>
+            <i class="fas fa-chart-line" aria-hidden="true"></i>
             <p>Data Visualization<small>(Tableau)</small></p>
             <small>Cut delivery decision time 5 min to 1 min with a live KPI dashboard.</small>
           </div>
 
           <!-- SQL / ETL ▸ Retail Store Analysis -->
           <div class="icon-info grid-item skill-link" role="button" data-project="retailStore">
-            <i class="fas fa-database"></i>
+            <i class="fas fa-database" aria-hidden="true"></i>
             <p>SQL &amp; ETL<small>(MSSQL, Python)</small></p>
             <small>Uncovered 4-5x higher product loss in outlier stores.</small>
           </div>
 
           <!-- Data Wrangling ▸ COVID Analysis -->
           <div class="icon-info grid-item skill-link" role="button" data-project="covidAnalysis">
-            <i class="fas fa-file-csv"></i>
+            <i class="fas fa-file-csv" aria-hidden="true"></i>
             <p>Data Wrangling<small>(Pandas)</small></p>
             <small>Identified top drivers of COVID-19 outbreaks and most likely next outbreak location (Utah @ 6.1%).</small>
           </div>
 
           <!-- Machine Learning ▸ Handwriting Rating -->
           <div class="icon-info grid-item skill-link" role="button" data-project="handwritingRating">
-            <i class="fas fa-cogs"></i>
+            <i class="fas fa-cogs" aria-hidden="true"></i>
             <p>Machine Learning<small>(PyTorch)</small></p>
             <small>Deployed CNN reading digits with 99.1% accuracy; determined my handwriting was 72.5% legible.</small>
           </div>
 
           <!-- Excel Automation ▸ Pizza Tip Analysis -->
           <div class="icon-info grid-item skill-link" role="button" data-project="pizza">
-            <i class="fas fa-file-excel"></i>
+            <i class="fas fa-file-excel" aria-hidden="true"></i>
             <p>Regression Analysis<small>(Excel)</small></p>
             <small>Flagged 28% lower tips from apartments, and identified drivers of high tips.</small>
           </div>
