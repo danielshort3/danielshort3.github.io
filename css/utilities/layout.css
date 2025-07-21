@@ -234,12 +234,6 @@
   background: color-mix(in srgb, var(--primary) 75%, #000 25%);
 }
 
-/* === 404 PAGE STYLING =============================================== */
-.not-found-page {
-  text-align: center;
-  padding: 4rem 1rem;
-}
-
 /* === Center the entire CTA block ========================================= */
 #cta{
   background:var(--surface);
