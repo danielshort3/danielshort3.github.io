@@ -1,0 +1,8 @@
+@supports not (color: color-mix(in srgb, black, white)) {
+  .project-metric { background: rgba(44, 169, 188, 0.15); }
+  .hero { background: rgba(22, 27, 34, 0.5); }
+  .modal { background: rgba(13, 17, 23, 0.88); }
+  .modal-content {
+    box-shadow: 0 10px 28px rgba(13,17,23,0.6), 0 0 0 1px rgba(44,169,188,0.15);
+  }
+}
