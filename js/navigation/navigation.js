@@ -9,7 +9,17 @@
   document.addEventListener('DOMContentLoaded', () => {
     injectNav();
     injectFooter();
+    setNavHeight();
+    window.addEventListener('load', setNavHeight);
+    window.addEventListener('resize', setNavHeight);
+    window.addEventListener('orientationchange', setNavHeight);
   });
+  function setNavHeight(){
+    const nav = document.querySelector('.nav');
+    if(!nav) return;
+    const h = nav.getBoundingClientRect().height;
+    document.documentElement.style.setProperty('--nav-height', `${h}px`);
+  }
   function injectNav(){
     const host = $('#combined-header-nav');
     if(!host) return;
