@@ -747,6 +747,7 @@ body.menu-open::before{
 
 /* put this right after the :root block or in your global-layout section */
 :root{ --nav-height:72px; }      /* if you don’t already have it */
+html{ scroll-padding-top:var(--nav-height,72px); }
 
 /* reduce header height in mobile landscape orientation */
 @media (max-width:768px) and (orientation:landscape){
