@@ -39,7 +39,7 @@
     const rect = hero.getBoundingClientRect();
     const ratio = (Math.min(rect.bottom,window.innerHeight)-Math.max(rect.top,0))/rect.height;
     update(ratio>=MIN_RATIO);
-    $$('.scroll-indicator').forEach(ind=>{
+    $$('.chevron-hint,.scroll-indicator').forEach(ind=>{
       on(ind,'click',()=>{
         const next = ind.closest('.hero')?.nextElementSibling;
         (next||window).scrollBy({top:next?0:window.innerHeight*0.8,behavior:'smooth'});

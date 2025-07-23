@@ -37,10 +37,15 @@
 }
 .chevron-hint{
   position:absolute;bottom:16px;left:50%;transform:translateX(-50%);
-  font-size:32px;color:var(--primary);pointer-events:none;
+  font-size:32px;color:var(--primary);pointer-events:auto;cursor:pointer;
   opacity:1;transition:opacity .3s ease;
 }
 .chevron-hint i{
-  animation:bounce 1.5s infinite;
+  animation:chevronBounce 1.5s infinite;
 }
 .chevron-hint.fade{opacity:0}
+
+@keyframes chevronBounce{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(6px)}
+}
