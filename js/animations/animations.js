@@ -39,12 +39,20 @@
     const rect = hero.getBoundingClientRect();
     const ratio = (Math.min(rect.bottom,window.innerHeight)-Math.max(rect.top,0))/rect.height;
     update(ratio>=MIN_RATIO);
-    $$('.scroll-indicator').forEach(ind=>{
-      on(ind,'click',()=>{
-        const next = ind.closest('.hero')?.nextElementSibling;
-        (next||window).scrollBy({top:next?0:window.innerHeight*0.8,behavior:'smooth'});
-        ind.classList.add('hidden');
-      });
+    const scrollToNext = ind => {
+      let next = ind.closest('section')?.nextElementSibling;
+      while(next && next.tagName !== 'SECTION') next = next.nextElementSibling;
+      if(next){
+        const offset = parseFloat(getComputedStyle(document.documentElement)
+                        .getPropertyValue('--nav-height')) || 0;
+        const top = next.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({top, behavior:'smooth'});
+      }else{
+        window.scrollBy({top:window.innerHeight*0.8,behavior:'smooth'});
+      }
+    };
+    $$('.chevron-hint,.scroll-indicator').forEach(ind=>{
+      on(ind,'click',()=>scrollToNext(ind));
     });
   }
   function initCertTicker(){
