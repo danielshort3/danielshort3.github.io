@@ -342,7 +342,7 @@ window.PROJECTS = [
     title: "Chatbot-LoRa-RAG",
     subtitle: "Lite RAG + LoRA Chatbot",
     image: "img/projects/project_15.png",
-    tools: ["Python", "LoRA"],
+    tools: ["Python", "LoRA", "Docker"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Chatbot-LoRa-RAG", label: "GitHub" }
     ],
