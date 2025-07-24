@@ -335,8 +335,27 @@ window.PROJECTS = [
     results : [
       "First-contentful paint 1.2s (mobile).",
       "Website and content confirmed selection for my current employment."
+    ],
+  },
+    {
+    id: "chatbotLora",
+    title: "Chatbot-LoRa-RAG",
+    subtitle: "Lite RAG + LoRA Chatbot",
+    image: "img/projects/project_15.png",
+    tools: ["Python", "LoRA"],
+    resources: [
+      { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Chatbot-LoRa-RAG", label: "GitHub" }
+    ],
+    problem : "Generic chatbots lacked Visit Grand Junction's tone and rarely suggested our content.",
+    actions : [
+      "Scraped Visit Grand Junction pages to capture the brand voice.",
+      "Built a FAISS index and used LoRA to fine-tune an open-source LLM in Docker."
+    ],
+    results : [
+      "Responsive chatbot stays current with our content and engages potential guests."
     ]
-  }
+  },
+
 ];
 
 // IDs (in order) of projects shown in the top carousel
