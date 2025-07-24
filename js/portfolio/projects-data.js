@@ -344,7 +344,7 @@ window.PROJECTS = [
     image: "img/projects/project_15.png",
     tools: ["Python", "LoRA", "Docker"],
     resources: [
-      { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Chatbot-LoRa-RAG", label: "GitHub" }
+      { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Chatbot-LoRA-RAG", label: "GitHub" }
     ],
     problem : "Generic chatbots lacked Visit Grand Junction's tone and rarely suggested our content.",
     actions : [
