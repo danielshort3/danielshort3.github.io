@@ -80,10 +80,6 @@
   12c. SHAPE CLASSIFIER MODAL
   Use a full-height iframe for the demo
   ─────────────────────────────────────────────────────────── */
-#shapeClassifier-modal iframe {
-  height: 100vh;
-}
-
 #shapeClassifier-modal .modal-embed {
   flex: 0 0 auto;
   align-self: flex-start;
