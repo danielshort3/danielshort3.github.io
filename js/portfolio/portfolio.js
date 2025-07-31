@@ -509,8 +509,6 @@ function openModal(id){
   modal.classList.add("active");
   document.body.classList.add("modal-open");
 
-
-
   /* focus-trap setup */
   const focusable = modal.querySelectorAll("a,button,[tabindex]:not([tabindex='-1'])");
   focusable[0]?.focus();
