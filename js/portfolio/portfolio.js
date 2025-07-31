@@ -513,7 +513,7 @@ function openModal(id){
         const doc  = iframe.contentDocument || iframe.contentWindow.document;
         const box  = doc.getElementById('demo-box') || doc.documentElement;
         iframe.style.height = box.scrollHeight + 'px';
-        iframe.style.width  = box.scrollWidth  + 'px';
+        iframe.style.width  = '100%';
       } catch (err) {}
     };
     const run = () => {
