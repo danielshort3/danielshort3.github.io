@@ -512,8 +512,22 @@ function openModal(id){
       try {
         const doc  = iframe.contentDocument || iframe.contentWindow.document;
         const box  = doc.getElementById('demo-box') || doc.documentElement;
-        iframe.style.height = box.scrollHeight + 'px';
+
+        const header = modal.querySelector('.modal-title-strip');
+        const body   = modal.querySelector('.modal-body');
+        const content= modal.querySelector('.modal-content');
+        const pad    = body ?
+          parseFloat(getComputedStyle(body).paddingTop) +
+          parseFloat(getComputedStyle(body).paddingBottom) : 0;
+        const chrome = (header?.getBoundingClientRect().height || 0) + pad;
+
+        const maxModal = window.innerHeight * 0.82;
+        const avail    = maxModal - chrome;
+        const needed   = box.scrollHeight;
+
+        iframe.style.height = Math.min(needed, avail) + 'px';
         iframe.style.width  = '100%';
+        if (content) content.style.maxHeight = maxModal + 'px';
       } catch (err) {}
     };
     const run = () => {
