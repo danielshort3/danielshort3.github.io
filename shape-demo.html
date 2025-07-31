@@ -124,9 +124,11 @@ canvas.addEventListener("pointermove", e => { if (draw) { e.preventDefault(); ct
 classifyBtn.onclick = async () => {
   if (!hasDrawn) {
     resultEl.textContent = "Please draw a shape first.";
+    notifyResize();
     return;
   }
   resultEl.textContent = firstRun ? "Warming up. May take up to 10 seconds." : "Predicting...";
+  notifyResize();
   resultEl.classList.add("loading");
   clearBtn.disabled = true;
   classifyBtn.disabled = true;
