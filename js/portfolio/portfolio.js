@@ -509,25 +509,6 @@ function openModal(id){
   modal.classList.add("active");
   document.body.classList.add("modal-open");
 
-  /* ensure the Shape Classifier iframe fits without its own scrollbar */
-  let resizeShape = null;
-  if (id === "shapeClassifier") {
-    const iframe = modal.querySelector("iframe");
-    if (iframe) {
-      resizeShape = () => {
-        try {
-          const doc  = iframe.contentDocument || iframe.contentWindow.document;
-          iframe.style.height = doc.documentElement.scrollHeight + "px";
-        } catch (err) {
-          /* ignore cross-origin errors */
-        }
-      };
-      resizeShape();
-      iframe.addEventListener("load", resizeShape);
-      window.addEventListener("resize", resizeShape);
-    }
-  }
-
   /* focus-trap setup */
   const focusable = modal.querySelectorAll("a,button,[tabindex]:not([tabindex='-1'])");
   focusable[0]?.focus();
@@ -556,11 +537,6 @@ function openModal(id){
     document.body.classList.remove("modal-open");
     document.removeEventListener("keydown", trap);
     modal.removeEventListener("click",  clickClose);
-    if (resizeShape) {
-      window.removeEventListener("resize", resizeShape);
-      const iframe = modal.querySelector("iframe");
-      iframe?.removeEventListener("load", resizeShape);
-    }
 
     if (window.trackModalClose) trackModalClose(id);
 

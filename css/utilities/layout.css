@@ -77,21 +77,6 @@
 }
 
 /* ───────────────────────────────────────────────────────────
-   12c. SHAPE CLASSIFIER MODAL
-   Ensure demo iframe fits contents so the modal body handles scrolling
-   ─────────────────────────────────────────────────────────── */
-#shapeClassifier-modal iframe {
-  height: auto;
-}
-
-/* align the demo iframe like a right-hand image */
-#shapeClassifier-modal .modal-embed {
-  flex: 1 1 280px;
-  align-self: flex-start;
-  width: auto;
-}
-
-/* ───────────────────────────────────────────────────────────
    14.  FEATURED PROJECTS CAROUSEL
    ─────────────────────────────────────────────────────────── */
 .featured-track{
