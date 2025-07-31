@@ -78,12 +78,26 @@
 
 /* ───────────────────────────────────────────────────────────
   12c. SHAPE CLASSIFIER MODAL
-  Use a full-height iframe for the demo
+  Size the iframe to its content
   ─────────────────────────────────────────────────────────── */
+#shapeClassifier-modal iframe {
+  height: auto;
+  margin-top: 0;
+  width: 100%;
+}
+
 #shapeClassifier-modal .modal-embed {
-  flex: 0 0 auto;
+  flex: 0 0 50%;
+  max-width: 50%;
   align-self: flex-start;
-  width: auto;
+  overflow: visible;
+}
+
+@media (max-width: 768px) {
+  #shapeClassifier-modal .modal-embed {
+    flex-basis: 100%;
+    max-width: 100%;
+  }
 }
 
 /* ───────────────────────────────────────────────────────────
