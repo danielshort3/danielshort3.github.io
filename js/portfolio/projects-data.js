@@ -359,23 +359,25 @@ window.PROJECTS = [
   {
     id: "shapeClassifier",
     title: "Shape Classifier Demo",
-    subtitle: "AWS Lambda Inference",
+    subtitle: "Handwritten Shape Recognition",
     image: "img/projects/project_16.png",
-    tools: ["JavaScript", "AWS"],
+    tools: ["Python", "PyTorch", "AWS", "Docker"],
     resources: [
-      { icon: "img/icons/website-icon.png", url: "shape-demo.html", label: "Demo" }
+      { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Shape-Analyzer", label: "GitHub" }
     ],
     embed : {
       type : "iframe",
       url  : "shape-demo.html"
     },
-    problem : "Needed a quick way to showcase serverless ML predictions from the browser.",
+    problem : "I wanted to create a model that recognizes handwritten shapes.",
     actions : [
-      "Built a drawing canvas that posts the image to a Lambda endpoint.",
-      "Displayed the prediction result right in the modal."
+      "Downloaded images from Google's QuickDraw dataset to build training and validation splits.",
+      "Trained a compact ResNet18 using PyTorch Lightning and exported a \"model.pt\".",
+      "Deployed a minimal AWS Lambda handler for inference from the browser."
     ],
     results : [
-      "Demo illustrates Lambda's speed with responses in about a second."
+      "Predicts circle, triangle, square, hexagon or octagon from a single drawing with about 90% accuracy.",
+      "Demo shows calls return in under a second after a 10‑second warmup."
     ]
   },
 
@@ -383,9 +385,9 @@ window.PROJECTS = [
 
 // IDs (in order) of projects shown in the top carousel
 window.FEATURED_IDS = [
-  "sheetMusicUpscale",  
+  "sheetMusicUpscale",
   "nonogram",
-  "babynames",
+  "shapeClassifier",
   "handwritingRating",
   "digitGenerator"
 ];
