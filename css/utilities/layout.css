@@ -91,6 +91,39 @@
   align-self: flex-start;
   width: auto;
 }
+=======
+.surface-band.reveal.active .contact-card{animation:focusIn .6s forwards}
+
+/* ───────────────────────────────────────────────────────────
+   12b. CONTACT PAGE – FORM MODAL
+   ─────────────────────────────────────────────────────────── */
+#contact-modal iframe {
+  width: 100%;
+  border: none;
+  display: block;
+  height: 100%;
+}
+
+/* keep modal within the viewport on all screens */
+#contact-modal .modal-content {
+  width: min(760px, calc(100vw - 24px));
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#contact-modal .modal-body {
+  overflow-x: hidden;
+}
+
+/* ───────────────────────────────────────────────────────────
+  12c. SHAPE CLASSIFIER MODAL
+  Use a full-height iframe for the demo
+  ─────────────────────────────────────────────────────────── */
+#shapeClassifier-modal .modal-embed {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  width: auto;
+}
 
 /* ───────────────────────────────────────────────────────────
    14.  FEATURED PROJECTS CAROUSEL
