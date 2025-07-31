@@ -84,7 +84,6 @@
   height: auto;
   margin-top: 0;
   width: 100%;
-  border: 1px solid var(--surface-accent);
 }
 
 #shapeClassifier-modal .modal-embed {
