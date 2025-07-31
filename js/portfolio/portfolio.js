@@ -502,6 +502,23 @@ function openModal(id){
   const modal = document.getElementById(`${id}-modal`);
   if (!modal) return;
 
+  /* adjust the Shape Classifier iframe to fit its contents */
+  let resizeShapeDemo = null;
+  if (id === 'shapeClassifier') {
+    const iframe = modal.querySelector('iframe');
+    resizeShapeDemo = () => {
+      if (!iframe) return;
+      try {
+        const doc = iframe.contentDocument || iframe.contentWindow.document;
+        iframe.style.height = doc.documentElement.scrollHeight + 'px';
+        iframe.style.width  = doc.documentElement.scrollWidth  + 'px';
+      } catch (err) {}
+    };
+    iframe?.addEventListener('load', resizeShapeDemo, { once: true });
+    window.addEventListener('resize', resizeShapeDemo);
+    resizeShapeDemo();
+  }
+
   /* put the project hash in the URL (so it’s linkable / back-able) */
   const pushed = location.hash !== `#${id}`;
   if (pushed) history.pushState({ modal:id }, "", `#${id}`);
@@ -539,6 +556,8 @@ function openModal(id){
     document.body.classList.remove("modal-open");
     document.removeEventListener("keydown", trap);
     modal.removeEventListener("click",  clickClose);
+
+    if (resizeShapeDemo) window.removeEventListener('resize', resizeShapeDemo);
 
     if (window.trackModalClose) trackModalClose(id);
 
