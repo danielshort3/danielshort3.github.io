@@ -82,9 +82,8 @@
   ─────────────────────────────────────────────────────────── */
 #shapeClassifier-modal iframe {
   height: auto;
-  margin: 0;
+  margin-top: 0;
   width: 100%;
-  display: block;
 }
 
 #shapeClassifier-modal .modal-embed {
