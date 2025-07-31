@@ -84,3 +84,7 @@ Welcome to the GitHub repository for my personal portfolio website. This site sh
 │   ├── ...
 └── README.md                # This readme file
 ```
+
+## Shape Classifier Demo
+
+The interactive demo calls an AWS Lambda function for real-time predictions. Ensure your Lambda code includes CORS headers so the browser can access it. See [documents/lambda-cors.md](documents/lambda-cors.md) for a minimal example.
