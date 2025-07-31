@@ -544,7 +544,9 @@ function openModal(id){
       if (e.source === iframe.contentWindow && e.data?.type === 'shape-demo-resize') measure();
     };
     window.addEventListener('message', resizeMsg);
-    if (iframe?.complete) run();
+    if (iframe?.contentDocument?.readyState === 'complete') {
+      setTimeout(run);
+    }
   }
 
   /* put the project hash in the URL (so it’s linkable / back-able) */
