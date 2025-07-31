@@ -22,29 +22,22 @@
     background: transparent;
     color: var(--text-light);
     text-align: center;
-    font-size: 0.9rem;
     min-height: 0;
   }
   #demo-box {
     border: 1px solid var(--surface-accent);
-    padding: 0.75rem;
+    padding: 1rem;
     margin: 0;
   }
-  #demo-box h2 {
-    margin: 0 0 .5rem;
-    font-size: 1.5rem;
-  }
-  #demo-box p {
-    margin: 0 0 .75rem;
-    font-size: 1rem;
-  }
+  #demo-box h2 { margin: 0 0 .5rem; }
+  #demo-box p { margin: 0 0 1rem; }
   canvas {
     border: 2px solid #444;
     touch-action: none;
     background: #000;
     color: #fff;
-    width: min(50vmin, 220px);
-    height: min(50vmin, 220px);
+    width: min(60vmin, 256px);
+    height: min(60vmin, 256px);
   }
   #buttons {
     margin-top: 1rem;
@@ -52,8 +45,8 @@
     gap: .5rem;
     justify-content: center;
   }
-  button { margin: 0; font-size: 0.9rem; }
-  #result { margin-top: 0.75rem; font-size: 1rem; min-height: 1.4em; white-space: pre-line; }
+  button { margin: 0; font-size: 1rem; }
+  #result { margin-top: 1rem; font-size: 1.2rem; min-height: 1.4em; white-space: pre-line; }
   #result.loading { animation: pulse 1s infinite; opacity: 0.6; }
   @keyframes pulse { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
 
