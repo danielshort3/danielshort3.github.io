@@ -77,20 +77,6 @@
 }
 
 /* ───────────────────────────────────────────────────────────
-   12c. SHAPE CLASSIFIER MODAL
-   Let the demo iframe size itself naturally within the modal
-   ─────────────────────────────────────────────────────────── */
-#shapeClassifier-modal iframe {
-  height: auto;
-}
-
-#shapeClassifier-modal .modal-embed {
-  flex: 0 0 auto;
-  align-self: flex-start;
-  width: auto;
-}
-
-/* ───────────────────────────────────────────────────────────
    14.  FEATURED PROJECTS CAROUSEL
    ─────────────────────────────────────────────────────────── */
 .featured-track{
