@@ -506,6 +506,34 @@ function openModal(id){
   const pushed = location.hash !== `#${id}`;
   if (pushed) history.pushState({ modal:id }, "", `#${id}`);
 
+  /* adjust iframe height so embedded demos fully show */
+  const iframe  = modal.querySelector('.modal-embed iframe');
+  const content = modal.querySelector('.modal-content');
+  const body    = modal.querySelector('.modal-body');
+  const header  = modal.querySelector('.modal-title-strip');
+  const setHeight = () => {
+    if (!iframe || !content || !body || !header) return;
+    const styles = getComputedStyle(body);
+    const padding = parseFloat(styles.paddingTop) + parseFloat(styles.paddingBottom);
+    const chrome  = header.getBoundingClientRect().height + padding;
+    const max     = window.innerHeight * 0.82;
+    let inner     = 0;
+    try {
+      const doc = iframe.contentDocument || iframe.contentWindow.document;
+      inner = doc.documentElement.scrollHeight;
+    } catch(err) {
+      inner = 0;
+    }
+    if (!inner) inner = max - chrome;
+    iframe.style.height = `${Math.min(inner, max - chrome)}px`;
+    content.style.maxHeight = `${max}px`;
+  };
+  if (iframe) {
+    iframe.addEventListener('load', setHeight, { once:true });
+    window.addEventListener('resize', setHeight);
+    setHeight();
+  }
+
   modal.classList.add("active");
   document.body.classList.add("modal-open");
 
@@ -537,6 +565,7 @@ function openModal(id){
     document.body.classList.remove("modal-open");
     document.removeEventListener("keydown", trap);
     modal.removeEventListener("click",  clickClose);
+    if (iframe) window.removeEventListener('resize', setHeight);
 
     if (window.trackModalClose) trackModalClose(id);
 
