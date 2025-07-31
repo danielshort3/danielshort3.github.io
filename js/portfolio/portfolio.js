@@ -502,29 +502,6 @@ function openModal(id){
   const modal = document.getElementById(`${id}-modal`);
   if (!modal) return;
 
-  /* adjust the Shape Classifier iframe to fit its contents */
-  let resizeShapeDemo = null;
-  if (id === 'shapeClassifier') {
-    const iframe = modal.querySelector('iframe');
-    const measure = () => {
-      if (!iframe) return;
-      try {
-        const doc  = iframe.contentDocument || iframe.contentWindow.document;
-        const box  = doc.getElementById('demo-box') || doc.documentElement;
-        iframe.style.height = box.scrollHeight + 'px';
-        iframe.style.width  = box.scrollWidth  + 'px';
-      } catch (err) {}
-    };
-    const run = () => {
-      measure();
-      try { iframe.contentWindow.document.fonts.ready.then(measure); } catch(e) {}
-    };
-    resizeShapeDemo = measure;
-    iframe?.addEventListener('load', run, { once: true });
-    window.addEventListener('resize', measure);
-    if (iframe?.complete) run();
-  }
-
   /* put the project hash in the URL (so it’s linkable / back-able) */
   const pushed = location.hash !== `#${id}`;
   if (pushed) history.pushState({ modal:id }, "", `#${id}`);
@@ -562,8 +539,6 @@ function openModal(id){
     document.body.classList.remove("modal-open");
     document.removeEventListener("keydown", trap);
     modal.removeEventListener("click",  clickClose);
-
-    if (resizeShapeDemo) window.removeEventListener('resize', resizeShapeDemo);
 
     if (window.trackModalClose) trackModalClose(id);
 
