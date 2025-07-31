@@ -208,6 +208,7 @@ function initSeeMore(){
   const btn = document.getElementById("see-more");
   const filters  = document.getElementById("filters");
   const grid     = document.getElementById("projects");
+  const menu     = document.getElementById("filter-menu");
   const gap      = document.getElementById("carousel-gap");
   const mobile   = window.matchMedia("(max-width: 768px)");
   const gapPad   = gap ? parseFloat(getComputedStyle(gap).paddingTop) || 32 : 0;
@@ -216,6 +217,20 @@ function initSeeMore(){
   }
   const carousel = document.getElementById("portfolio-carousel-section");
   if(!btn || !filters || !grid) return;
+
+  const showAll = () => {
+    if (!menu) return;
+    [...menu.children].forEach(b => {
+      b.classList.replace("btn-primary", "btn-secondary");
+      b.setAttribute("aria-selected", "false");
+    });
+    const all = menu.querySelector('[data-filter="all"]');
+    if (all) {
+      all.classList.replace("btn-secondary", "btn-primary");
+      all.setAttribute("aria-selected", "true");
+    }
+    [...grid.children].forEach(c => c.classList.remove("hide"));
+  };
   btn.addEventListener("click", () => {
     const expanded = btn.dataset.expanded === "true";
     btn.dataset.expanded = expanded ? "false" : "true";
@@ -225,6 +240,7 @@ function initSeeMore(){
       filters.classList.toggle("hide", expanded);
       grid.classList.toggle("hide", expanded);
       if (gap) gap.classList.toggle("hide", expanded);
+      if (!expanded) showAll();
       return;
     }
 
@@ -284,6 +300,7 @@ function initSeeMore(){
       filters.classList.add("active");
       grid.classList.add("active");
       if (gap) gap.classList.add("active");
+      showAll();
       const gTarget = grid.scrollHeight;
       const fTarget = filters.scrollHeight;
       const gapTarget = gap ? gapPad : 0;
