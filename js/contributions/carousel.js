@@ -59,12 +59,12 @@ document.addEventListener('DOMContentLoaded', () => {
     carousel.addEventListener('touchstart', e => {
       startX = e.touches[0].pageX;
       scrollLeft = carousel.scrollLeft;
-    });
+    }, { passive: true });
 
     carousel.addEventListener('touchmove', e => {
       const x = e.touches[0].pageX;
       const walk = (x - startX) * 1.5;
       carousel.scrollLeft = scrollLeft - walk;
-    });
+    }, { passive: true });
   });
 });
