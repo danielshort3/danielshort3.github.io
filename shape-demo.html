@@ -9,23 +9,23 @@
 <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap" rel="stylesheet"></noscript>
 <style>
   html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
+    height: auto;
     overflow: hidden;
   }
   body {
+    margin: 0;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
+    padding: 1rem;
     background: transparent;
     color: var(--text-light);
     text-align: center;
   }
   #demo-box {
-    border: 1px solid var(--surface-accent);
+    border: 4px solid var(--surface-accent);
     padding: 1rem;
-    margin: 0;
+    margin: 1rem;
   }
   #demo-box h2 { margin: 0 0 .5rem; }
   #demo-box p { margin: 0 0 1rem; }
@@ -34,8 +34,8 @@
     touch-action: none;
     background: #000;
     color: #fff;
-    width: min(60vmin, 256px);
-    height: min(60vmin, 256px);
+    width: 256px;
+    height: 256px;
   }
   #buttons {
     margin-top: 1rem;
