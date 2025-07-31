@@ -2,24 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Shape Classifier Demo</title>
-<link rel="stylesheet" href="css/styles.css">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap" rel="stylesheet"></noscript>
 <style>
-  html, body { height:100%; margin:0; overflow:hidden; }
-  body   { font-family:'Inter',sans-serif; text-align:center; background:var(--bg); color:var(--text-light); display:flex; flex-direction:column; align-items:center; justify-content:center; }
-  canvas { border:2px solid #444; touch-action:none; background:black; }
-  #buttons { margin-top:1rem; }
-  button { margin:0 .3rem; padding:.4rem 1rem; font-size:1rem; }
-  #result { margin-top:1rem; font-size:1.05rem; }
-  .spinner {
-    display:inline-block; width:1.2em; height:1.2em; border:2px solid var(--text-muted);
-    border-top-color:var(--primary); border-radius:50%; animation:spin 1s linear infinite;
-  }
-  @keyframes spin { to { transform:rotate(360deg); } }
+  body   { font-family: sans-serif; text-align: center; margin: 2rem; }
+  canvas { border: 2px solid #444; touch-action: none; }
+  #buttons { margin-top: 1rem; }
+  button { margin: 0 .3rem; padding: .4rem 1rem; font-size: 1rem; }
+  #result { margin-top: 1rem; font-size: 1.2rem; }
 </style>
 </head>
 <body>
@@ -41,14 +30,14 @@ const FN_URL = "https://zcosyfxhs3sntpwzo3qayki2he0kdxkw.lambda-url.us-east-2.on
 const canvas = document.getElementById("pad");
 const ctx     = canvas.getContext("2d", { willReadFrequently: true });
 
-ctx.lineWidth = 4;
+ctx.lineWidth = 18;
 ctx.lineCap   = "round";
 resetCanvas();
 
 function resetCanvas() {
-  ctx.fillStyle = "black";
+  ctx.fillStyle = "white";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.strokeStyle = "white";
+  ctx.strokeStyle = "black";
 }
 document.getElementById("clear").onclick = () => { resetCanvas(); draw = false; };
 
@@ -59,19 +48,13 @@ const pos = e => {
            (e.touches ? e.touches[0].clientY : e.clientY) - r.top ];
 };
 
-canvas.addEventListener("pointerdown", e => { e.preventDefault(); draw = true; ctx.beginPath(); ctx.moveTo(...pos(e)); });
-canvas.addEventListener("pointermove", e => { e.preventDefault(); if (draw) { ctx.lineTo(...pos(e)); ctx.stroke(); }});
+canvas.addEventListener("pointerdown", e => { draw = true; ctx.beginPath(); ctx.moveTo(...pos(e)); });
+canvas.addEventListener("pointermove", e => { if (draw) { ctx.lineTo(...pos(e)); ctx.stroke(); }});
 ["pointerup","pointerleave","pointercancel"].forEach(evt => canvas.addEventListener(evt, () => draw = false));
 
 // ---------- classify button ----------
-const clearBtn    = document.getElementById("clear");
-const classifyBtn = document.getElementById("classify");
-const resultEl    = document.getElementById("result");
-
-classifyBtn.onclick = async () => {
-  resultEl.innerHTML = '<span class="spinner" aria-label="Loading"></span>';
-  clearBtn.disabled = true;
-  classifyBtn.disabled = true;
+document.getElementById("classify").onclick = async () => {
+  document.getElementById("result").textContent = "…predicting";
   const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
   const b64  = await blob.arrayBuffer().then(buf => btoa(String.fromCharCode(...new Uint8Array(buf))));
 
@@ -83,13 +66,11 @@ classifyBtn.onclick = async () => {
     });
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
     const {class: cls, confidence} = await res.json();
-    resultEl.textContent =
+    document.getElementById("result").textContent =
         `Prediction: ${cls} (${(confidence*100).toFixed(1)} %)`;
   } catch (err) {
-    resultEl.textContent = "Error: " + err;
+    document.getElementById("result").textContent = "Error: " + err;
   }
-  clearBtn.disabled = false;
-  classifyBtn.disabled = false;
 };
 </script>
 </body>
