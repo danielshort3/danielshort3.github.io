@@ -337,7 +337,7 @@ window.PROJECTS = [
       "Website and content confirmed selection for my current employment."
     ],
   },
-    {
+  {
     id: "chatbotLora",
     title: "Chatbot (LoRA + RAG)",
     subtitle: "Lite RAG + LoRA Chatbot",
@@ -353,6 +353,29 @@ window.PROJECTS = [
     ],
     results : [
       "Responsive chatbot stays current with our content and engages potential guests."
+    ]
+  },
+
+  {
+    id: "shapeClassifier",
+    title: "Shape Classifier Demo",
+    subtitle: "AWS Lambda Inference",
+    image: "img/projects/project_16.png",
+    tools: ["JavaScript", "AWS"],
+    resources: [
+      { icon: "img/icons/website-icon.png", url: "shape-demo.html", label: "Demo" }
+    ],
+    embed : {
+      type : "iframe",
+      url  : "shape-demo.html"
+    },
+    problem : "Needed a quick way to showcase serverless ML predictions from the browser.",
+    actions : [
+      "Built a drawing canvas that posts the image to a Lambda endpoint.",
+      "Displayed the prediction result right in the modal."
+    ],
+    results : [
+      "Demo illustrates Lambda's speed with responses in about a second."
     ]
   },
 
