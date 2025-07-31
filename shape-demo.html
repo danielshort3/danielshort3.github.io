@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <title>Shape Classifier Demo</title>
 <link rel="stylesheet" href="css/styles.css">
+<link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap" rel="stylesheet"></noscript>
@@ -25,12 +27,15 @@
     min-height: 0;
   }
   #demo-box {
-    border: 1px solid var(--surface-accent);
     padding: 1rem;
     margin: 0;
   }
   #demo-box h2 { margin: 0 0 .5rem; }
   #demo-box p { margin: 0 0 1rem; }
+  #pad-wrapper {
+    position: relative;
+    display: inline-block;
+  }
   canvas {
     border: 2px solid #444;
     touch-action: none;
@@ -39,6 +44,25 @@
     width: min(60vmin, 256px);
     height: min(60vmin, 256px);
   }
+  #clear {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: rgba(0,0,0,0.5);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #clear i { color: var(--text-light); }
+  #clear:hover {
+    background: var(--primary);
+  }
+  #clear:hover i { color: var(--bg); }
   #buttons {
     margin-top: 1rem;
     display: flex;
@@ -46,7 +70,19 @@
     justify-content: center;
   }
   button { margin: 0; font-size: 1rem; }
-  #result { margin-top: 1rem; font-size: 1.2rem; min-height: 1.4em; white-space: pre-line; }
+  #result {
+    margin: 1rem auto 0;
+    font-size: 1rem;
+    height: 3.6em;
+    width: min(60vmin, 256px);
+    white-space: pre-line;
+    border: 1px solid var(--surface-accent);
+    padding: 0.25rem;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
   #result.loading { animation: pulse 1s infinite; opacity: 0.6; }
   @keyframes pulse { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
 
@@ -70,10 +106,12 @@
 <div id="demo-box">
   <h2>Draw a Shape!</h2>
   <p class="modal-subtitle">(Circle, Triangle, Square, Hexagon, Octagon)</p>
-  <canvas id="pad" width="256" height="256"></canvas>
+  <div id="pad-wrapper">
+    <canvas id="pad" width="256" height="256"></canvas>
+    <button id="clear" aria-label="Clear"><i class="fas fa-trash"></i></button>
+  </div>
 
   <div id="buttons">
-    <button id="clear" class="btn-secondary">Clear</button>
     <button id="classify" class="btn-primary">Classify</button>
   </div>
 
