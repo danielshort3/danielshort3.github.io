@@ -533,10 +533,11 @@ function openModal(id){
         iframe.style.width  = '100%';
       } catch (err) {}
     };
-    const run = () => {
-      measure();
-      try { iframe.contentWindow.document.fonts.ready.then(measure); } catch(e) {}
-    };
+      const run = () => {
+        measure();
+        try { iframe.contentWindow.document.fonts.ready.then(measure); } catch(e) {}
+        setTimeout(measure, 100);
+      };
     resizeShapeDemo = measure;
     iframe?.addEventListener('load', run, { once: true });
     window.addEventListener('resize', measure);
