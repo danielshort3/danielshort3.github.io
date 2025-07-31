@@ -23,11 +23,10 @@
     color: var(--text-light);
     text-align: center;
     min-height: 0;
-    border: 1px solid var(--surface-accent);
-    padding: 1rem;
-    margin: 0;
   }
   #demo-box {
+    border: 1px solid var(--surface-accent);
+    padding: 1rem;
     margin: 0;
   }
   #demo-box h2 { margin: 0 0 .5rem; }
@@ -47,7 +46,7 @@
     justify-content: center;
   }
   button { margin: 0; font-size: 1rem; }
-  #result { margin-top: 1rem; font-size: 1.2rem; min-height: 3em; white-space: pre-line; }
+  #result { margin-top: 1rem; font-size: 1.2rem; min-height: 1.4em; white-space: pre-line; }
   #result.loading { animation: pulse 1s infinite; opacity: 0.6; }
   @keyframes pulse { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
 
@@ -64,10 +63,7 @@
   function notifyResize() {
     try { parent.postMessage({ type: 'shape-demo-resize' }, '*'); } catch(e) {}
   }
-  window.addEventListener('load', () => {
-    notifyResize();
-    setTimeout(notifyResize, 100);
-  });
+  window.addEventListener('load', notifyResize);
   try { document.fonts.ready.then(notifyResize); } catch(e) {}
 </script>
 
