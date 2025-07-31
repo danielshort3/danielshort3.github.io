@@ -209,6 +209,7 @@ function initSeeMore(){
   const filters  = document.getElementById("filters");
   const grid     = document.getElementById("projects");
   const gap      = document.getElementById("carousel-gap");
+  const menu     = document.getElementById("filter-menu");
   const mobile   = window.matchMedia("(max-width: 768px)");
   const gapPad   = gap ? parseFloat(getComputedStyle(gap).paddingTop) || 32 : 0;
   if (gap) {
@@ -273,10 +274,22 @@ function initSeeMore(){
         grid.style.paddingBottom = "";
         filters.style.paddingTop = "";
         filters.style.paddingBottom = "";
-        carousel?.scrollIntoView({ behavior: "smooth" });
+      carousel?.scrollIntoView({ behavior: "smooth" });
       }, 450); // height transition duration
     } else {
       // expand grid, filters, and gap smoothly
+      if (menu) {
+        const allBtn = menu.querySelector('[data-filter="all"]');
+        if (allBtn) {
+          [...menu.children].forEach(b => {
+            b.classList.replace("btn-primary", "btn-secondary");
+            b.setAttribute("aria-selected", "false");
+          });
+          allBtn.classList.replace("btn-secondary", "btn-primary");
+          allBtn.setAttribute("aria-selected", "true");
+        }
+        [...grid.children].forEach(c => c.classList.remove("hide"));
+      }
       filters.classList.remove("hide");
       grid.classList.remove("hide");
       if (gap) gap.classList.remove("hide");
