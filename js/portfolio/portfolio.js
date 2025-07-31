@@ -2,13 +2,21 @@
 
 window.generateProjectModal = function (p) {
   const isTableau = p.embed?.type === "tableau";
+  const isIframe  = p.embed?.type === "iframe";
 
   /* helper – which Tableau layout should load right now? */
   const tableauDevice = () =>
     window.matchMedia("(max-width:768px)").matches ? "phone" : "desktop";
 
-  /* build the right-hand visual (image or Tableau iframe) */
+  /* build the right-hand visual (image, iframe, or Tableau) */
   const visual = (() => {
+    if (isIframe) {
+      return `
+        <div class="modal-embed">
+          <iframe src="${p.embed.url}" loading="lazy"></iframe>
+        </div>`;
+    }
+
     if (!isTableau) {
       return `
         <div class="modal-image">
