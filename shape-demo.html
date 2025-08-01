@@ -51,16 +51,16 @@
     width: 32px;
     height: 32px;
     border: none;
-    background: rgba(0,0,0,0.5);
+    background: var(--primary);
     border-radius: 4px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
   }
-  #clear i { color: var(--text-light); }
+  #clear i { color: var(--bg); }
   #clear:hover {
-    background: var(--primary);
+    filter: brightness(1.1);
   }
   #clear:hover i { color: var(--bg); }
   #buttons {
