@@ -70,9 +70,6 @@
     justify-content: center;
   }
   button { margin: 0; font-size: 1rem; }
-  #classify {
-    width: min(60vmin, 256px);
-  }
   #result {
     margin: 1rem auto 0;
     font-size: 1rem;
@@ -91,7 +88,7 @@
 
   @media (max-width: 600px) {
     #buttons { flex-direction: column; }
-    #buttons button { width: min(60vmin, 256px); }
+    #buttons button { width: 100%; }
     #buttons button + button { margin-top: .5rem; }
   }
 </style>
