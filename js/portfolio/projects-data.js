@@ -360,7 +360,7 @@ window.PROJECTS = [
     id: "shapeClassifier",
     title: "Shape Classifier Demo",
     subtitle: "Handwritten Shape Recognition",
-    image: "img/projects/project_16.png",
+    image: "img/projects/project_16.gif",
     tools: ["Python", "PyTorch", "AWS", "Docker"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Shape-Analyzer", label: "GitHub" }
