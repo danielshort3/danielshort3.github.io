@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Chatbot Demo</title>
+<link rel="stylesheet" href="css/styles.css">
+<link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap" rel="stylesheet"></noscript>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: auto;
+    overflow: hidden;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    color: var(--text-light);
+    text-align: center;
+    min-height: 0;
+  }
+  #demo-box {
+    padding: 1rem;
+    margin: 0;
+  }
+  #demo-box h2 { margin: 0 0 .5rem; }
+  #prompt {
+    width: min(80vw, 400px);
+    height: 6rem;
+    padding: .5rem;
+    border: 1px solid var(--surface-accent);
+    background: var(--bg);
+    color: var(--text-light);
+    resize: vertical;
+  }
+  #buttons {
+    margin-top: 1rem;
+    display: flex;
+    gap: .5rem;
+    justify-content: center;
+  }
+  #result {
+    line-height: 1.2;
+    margin: 1rem auto 0;
+    font-size: 1rem;
+    min-height: 3.6em;
+    width: min(80vw, 400px);
+    white-space: pre-line;
+    border: 1px solid var(--surface-accent);
+    padding: 0.25rem;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #result.loading { animation: pulse 1s infinite; opacity: 0.6; }
+  @keyframes pulse { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
+
+  @media (max-width: 600px) {
+    #buttons { flex-direction: column; }
+    #buttons button { width: min(80vw, 400px); margin: 0 auto; }
+    #buttons button + button { margin-top: .5rem; }
+  }
+</style>
+</head>
+<body>
+
+<script>
+  function notifyResize() {
+    try { parent.postMessage({ type: 'shape-demo-resize' }, '*'); } catch(e) {}
+  }
+  window.addEventListener('load', notifyResize);
+  try { document.fonts.ready.then(notifyResize); } catch(e) {}
+</script>
+
+<div id="demo-box">
+  <h2>Ask the Chatbot</h2>
+  <textarea id="prompt" placeholder="Enter your question here"></textarea>
+  <div id="buttons">
+    <button id="ask" class="btn-primary">Ask</button>
+  </div>
+  <div id="result" class="modal-text"></div>
+</div>
+
+<script type="module">
+const API_URL = 'https://ovodkr9oad.execute-api.us-east-2.amazonaws.com/prod';
+
+async function ask(prompt) {
+  const submit = await fetch(`${API_URL}/submit`, {
+    method: 'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({prompt})
+  }).then(r=>r.json());
+
+  const outputUri = submit.outputUri;
+  async function poll() {
+    const url = `${API_URL}/result?outputUri=${encodeURIComponent(outputUri)}`;
+    const res = await fetch(url).then(r=>r.json());
+    if (res.status === 'READY') return res.data;
+    if (res.status === 'FAILED') throw new Error(res.error || 'failed');
+    await new Promise(r=>setTimeout(r, 2000));
+    return poll();
+  }
+  return await poll();
+}
+
+const promptEl = document.getElementById('prompt');
+const askBtn = document.getElementById('ask');
+const resultEl = document.getElementById('result');
+
+function fitResultText() {
+  resultEl.style.fontSize = '';
+  const maxH = resultEl.clientHeight;
+  let size = parseFloat(getComputedStyle(resultEl).fontSize);
+  while (resultEl.scrollHeight > maxH && size > 8) {
+    size -= 1;
+    resultEl.style.fontSize = size + 'px';
+  }
+}
+
+let firstRun = true;
+askBtn.onclick = async () => {
+  const prompt = promptEl.value.trim();
+  if (!prompt) {
+    resultEl.textContent = 'Please enter a prompt.';
+    fitResultText();
+    notifyResize();
+    return;
+  }
+  resultEl.textContent = firstRun ? 'Warming up. May take up to 10 seconds.' : 'Thinking...';
+  fitResultText();
+  notifyResize();
+  resultEl.classList.add('loading');
+  askBtn.disabled = true;
+  promptEl.disabled = true;
+  firstRun = false;
+  try {
+    const data = await ask(prompt);
+    resultEl.textContent = data.generated_text || JSON.stringify(data);
+    fitResultText();
+  } catch (err) {
+    resultEl.textContent = 'Error: ' + err.message;
+    fitResultText();
+  } finally {
+    resultEl.classList.remove('loading');
+    askBtn.disabled = false;
+    promptEl.disabled = false;
+    notifyResize();
+  }
+};
+</script>
+</body>
+</html>
