@@ -52,8 +52,10 @@
   }
   #buttons {
     margin-top: 1rem;
-    display: flex;
-    justify-content: flex-end;
+    width: 100%;
+  }
+  #ask {
+    width: 100%;
   }
   #status {
     margin-top: 1rem;
@@ -83,11 +85,22 @@
   #status li.done {
     color: var(--primary);
   }
+  #status li.flashing {
+    animation: pulse 1s infinite;
+  }
+  #demo-box h2 {
+    text-align: center;
+  }
   #answer {
     line-height: 1.4;
     margin: 1rem 0 0;
     font-size: 0.9rem;
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .exchange {
     border: 1px solid var(--surface-accent);
     padding: 0.5rem;
     box-sizing: border-box;
@@ -102,7 +115,6 @@
     background: var(--surface);
     border-radius: 8px;
   }
-  #answer.loading { animation: pulse 1s infinite; opacity: 0.6; }
   .message {
     padding: 0.5rem;
     border: 1px solid var(--surface-accent);
@@ -146,7 +158,8 @@
   try { document.fonts.ready.then(notifyResize); } catch(e) {}
 </script>
 <div id="demo-box">
-  <h2>Ask the Chatbot</h2>
+  <h2>Ask the Demo Chatbot</h2>
+  <p class="modal-subtitle">Input and output data is saved on AWS servers.</p>
   <form id="chat-form">
     <label for="prompt" class="modal-subtitle">Your message</label>
     <textarea id="prompt" placeholder="Type your message..."></textarea>
@@ -188,7 +201,15 @@ const tasks = [
   { id: 'complete', label: 'Complete' }
 ];
 
-function appendMessage(role, text) {
+function createExchange() {
+  const ex = document.createElement('div');
+  ex.className = 'exchange';
+  answerEl.appendChild(ex);
+  answerEl.scrollTop = answerEl.scrollHeight;
+  return ex;
+}
+
+function appendMessage(container, role, text) {
   const msg = document.createElement('div');
   msg.className = `message ${role}`;
   const label = document.createElement('div');
@@ -198,8 +219,8 @@ function appendMessage(role, text) {
   content.className = 'content';
   content.textContent = text;
   msg.append(label, content);
-  answerEl.appendChild(msg);
-  answerEl.scrollTop = answerEl.scrollHeight;
+  container.appendChild(msg);
+  container.scrollTop = container.scrollHeight;
   notifyResize();
 }
 
@@ -225,6 +246,7 @@ function setTaskState(id, state) {
   if (!li) return;
   const icon = li.querySelector('i');
   li.className = state;
+  li.classList.toggle('flashing', id === 'process' && state === 'in-progress');
   if (state === 'in-progress') {
     icon.className = 'fa-solid fa-spinner fa-spin';
   } else if (state === 'done') {
@@ -239,8 +261,9 @@ async function handleSubmit(e) {
   if (e) e.preventDefault();
   const prompt = promptEl.value.trim();
   if (!prompt) return;
-  appendMessage('user', prompt);
-  answerEl.classList.add('loading');
+  const exchange = createExchange();
+  appendMessage(exchange, 'user', prompt);
+  promptEl.value = '';
   renderTaskList();
   setTaskState('submit', 'in-progress');
   askBtn.disabled = true;
@@ -254,8 +277,7 @@ async function handleSubmit(e) {
         setTaskState('complete', 'done');
       }
     });
-    answerEl.classList.remove('loading');
-    appendMessage('bot', data.generated_text || JSON.stringify(data));
+    appendMessage(exchange, 'bot', data.generated_text || JSON.stringify(data));
     const urls = data.source_urls || data.sources || data.urls;
     if (Array.isArray(urls) && urls.length) {
       const srcDiv = document.createElement('div');
@@ -274,13 +296,13 @@ async function handleSubmit(e) {
         list.appendChild(li);
       });
       srcDiv.append(srcLabel, list);
-      answerEl.lastElementChild.appendChild(srcDiv);
+      exchange.lastElementChild.appendChild(srcDiv);
+      exchange.scrollTop = exchange.scrollHeight;
     }
   } catch(err) {
-    answerEl.classList.remove('loading');
     setTaskState('process', 'not-started');
     setTaskState('complete', 'not-started');
-    appendMessage('bot', err.message);
+    appendMessage(exchange, 'bot', err.message);
   } finally {
     askBtn.disabled = false;
     notifyResize();
