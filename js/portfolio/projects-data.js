@@ -351,10 +351,12 @@ window.PROJECTS = [
       url  : "chatbot-demo.html"
     },
     problem : "Generic chatbots lacked Visit Grand Junction's tone and rarely suggested our content.",
-    actions : [
-      "Scraped Visit Grand Junction pages to capture the brand voice and built a retrieval index.",
-      "Linked two AWS Lambda functions that queue prompts and fetch SageMaker-generated replies with source links."
-    ],
+      actions : [
+        "Scraped Visit Grand Junction pages and created a FAISS retrieval index.",
+        "Automated a fine-tuning dataset with GPT-OSS 20B via Ollama.",
+        "Fine-tuned Mistral 7B on the generated QA set and deployed it to AWS SageMaker.",
+        "Created Lambda endpoints so the website can interact with the model."
+      ],
     results : [
       "Serverless RAG chatbot scales on demand and returns grounded answers with references."
     ]
