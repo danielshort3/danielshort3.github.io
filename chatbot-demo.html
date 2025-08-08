@@ -14,7 +14,9 @@
     margin: 0;
     padding: 0;
     height: auto;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
   }
   body {
     display: flex;
@@ -36,11 +38,27 @@
     width: 100%;
     height: 6em;
     font-size: 0.9rem;
+    background: var(--surface-light);
+    color: var(--text-light);
+    border: 1px solid var(--surface-accent);
+    border-radius: 8px;
+    padding: 0.5rem;
+    box-sizing: border-box;
+    resize: vertical;
+  }
+  #prompt::placeholder {
+    color: var(--text-muted);
+  }
+  #prompt:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
   }
   #buttons {
     margin-top: 1rem;
-    display: flex;
-    justify-content: flex-start;
+    width: 100%;
+  }
+  #ask {
+    width: 100%;
   }
   #status {
     margin-top: 1rem;
@@ -48,24 +66,90 @@
     font-size: 0.9rem;
     text-align: left;
   }
+  #status ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+  }
+  #status li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.25rem;
+  }
+  #status li i {
+    margin-right: 0.5rem;
+  }
+  #status li.not-started {
+    color: var(--text-muted);
+  }
+  #status li.in-progress {
+    color: var(--secondary);
+  }
+  #status li.done {
+    color: var(--primary);
+  }
+  #status li.flashing {
+    animation: pulse 1s infinite;
+  }
+  #demo-box h2 {
+    text-align: center;
+  }
   #answer {
     line-height: 1.4;
     margin: 1rem 0 0;
     font-size: 0.9rem;
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .exchange {
     border: 1px solid var(--surface-accent);
     padding: 0.5rem;
     box-sizing: border-box;
     min-height: 6em;
+    max-height: 40vh;
     text-align: left;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
     overflow-wrap: anywhere;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    background: var(--surface);
+    border-radius: 8px;
   }
-  #answer.loading { animation: pulse 1s infinite; opacity: 0.6; }
-  #answer .user { font-weight: 500; }
-  #answer .bot { margin-top: 0.5rem; }
-  #answer .sources { margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-muted); }
-  #answer .sources ul { padding-left: 1.2rem; margin: 0; }
-  #answer .sources a { color: var(--primary); word-break: break-all; }
+  .message {
+    padding: 0.5rem;
+    border: 1px solid var(--surface-accent);
+    border-radius: 8px;
+    background: var(--surface-light);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .message .label {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+  .message.user .label {
+    color: var(--primary);
+  }
+  .message.bot .label {
+    color: var(--secondary);
+  }
+  #answer .sources {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+  #answer .sources ul {
+    padding-left: 1.2rem;
+    margin: 0;
+  }
+  #answer .sources a {
+    color: var(--primary);
+    word-break: break-all;
+  }
   @keyframes pulse { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
 </style>
 </head>
@@ -78,11 +162,15 @@
   try { document.fonts.ready.then(notifyResize); } catch(e) {}
 </script>
 <div id="demo-box">
-  <h2>Ask the Chatbot</h2>
-  <textarea id="prompt" placeholder="Enter your question..."></textarea>
-  <div id="buttons">
-    <button id="ask" class="btn-primary">Ask</button>
-  </div>
+  <h2>Ask the Demo Chatbot</h2>
+  <p class="modal-subtitle">Input and output data is saved on AWS servers.</p>
+  <form id="chat-form">
+    <label for="prompt" class="modal-subtitle">Your message</label>
+    <textarea id="prompt" placeholder="Type your message..."></textarea>
+      <div id="buttons">
+        <button id="ask" type="submit" class="btn-primary">Submit</button>
+      </div>
+  </form>
   <div id="status" class="modal-subtitle"></div>
   <div id="answer" class="modal-text"></div>
 </div>
@@ -110,27 +198,90 @@ const promptEl = document.getElementById('prompt');
 const statusEl = document.getElementById('status');
 const answerEl = document.getElementById('answer');
 const askBtn = document.getElementById('ask');
-askBtn.onclick = async () => {
+const form = document.getElementById('chat-form');
+const tasks = [
+  { id: 'submit', label: 'Submit prompt' },
+  { id: 'process', label: 'Processing with SageMaker' },
+  { id: 'complete', label: 'Complete' }
+];
+
+function createExchange() {
+  const ex = document.createElement('div');
+  ex.className = 'exchange';
+  answerEl.appendChild(ex);
+  answerEl.scrollTop = answerEl.scrollHeight;
+  return ex;
+}
+
+function appendMessage(container, role, text) {
+  const msg = document.createElement('div');
+  msg.className = `message ${role}`;
+  const label = document.createElement('div');
+  label.className = 'label';
+  label.textContent = role === 'user' ? 'You' : 'Assistant';
+  const content = document.createElement('div');
+  content.className = 'content';
+  content.textContent = text;
+  msg.append(label, content);
+  container.appendChild(msg);
+  container.scrollTop = container.scrollHeight;
+  notifyResize();
+}
+
+function renderTaskList() {
+  statusEl.innerHTML = '';
+  const ul = document.createElement('ul');
+  tasks.forEach(t => {
+    const li = document.createElement('li');
+    li.id = `task-${t.id}`;
+    li.className = 'not-started';
+    const icon = document.createElement('i');
+    icon.className = 'fa-solid fa-xmark';
+    li.appendChild(icon);
+    li.append(` ${t.label}`);
+    ul.appendChild(li);
+  });
+  statusEl.appendChild(ul);
+  notifyResize();
+}
+
+function setTaskState(id, state) {
+  const li = document.getElementById(`task-${id}`);
+  if (!li) return;
+  const icon = li.querySelector('i');
+  li.className = state;
+  li.classList.toggle('flashing', id === 'process' && state === 'in-progress');
+  if (state === 'in-progress') {
+    icon.className = 'fa-solid fa-spinner fa-spin';
+  } else if (state === 'done') {
+    icon.className = 'fa-solid fa-check';
+  } else {
+    icon.className = 'fa-solid fa-xmark';
+  }
+  notifyResize();
+}
+
+async function handleSubmit(e) {
+  if (e) e.preventDefault();
   const prompt = promptEl.value.trim();
   if (!prompt) return;
-  answerEl.innerHTML = '';
-  answerEl.classList.add('loading');
-  const updateStatus = txt => { statusEl.textContent = txt; notifyResize(); };
-  updateStatus('Submitting...');
+  const exchange = createExchange();
+  appendMessage(exchange, 'user', prompt);
+  promptEl.value = '';
+  renderTaskList();
+  setTaskState('submit', 'in-progress');
   askBtn.disabled = true;
   try {
     const data = await ask(prompt, status => {
-      if (status === 'PENDING') updateStatus('Processing with SageMaker...');
+      if (status === 'PENDING') {
+        setTaskState('submit', 'done');
+        setTaskState('process', 'in-progress');
+      } else if (status === 'READY') {
+        setTaskState('process', 'done');
+        setTaskState('complete', 'done');
+      }
     });
-    updateStatus('Complete');
-    answerEl.classList.remove('loading');
-    const userDiv = document.createElement('div');
-    userDiv.className = 'user';
-    userDiv.textContent = `You: ${prompt}`;
-    const botDiv = document.createElement('div');
-    botDiv.className = 'bot';
-    botDiv.textContent = `Bot: ${data.generated_text || JSON.stringify(data)}`;
-    answerEl.append(userDiv, botDiv);
+    appendMessage(exchange, 'bot', data.generated_text || JSON.stringify(data));
     const urls = data.source_urls || data.sources || data.urls;
     if (Array.isArray(urls) && urls.length) {
       const srcDiv = document.createElement('div');
@@ -149,17 +300,21 @@ askBtn.onclick = async () => {
         list.appendChild(li);
       });
       srcDiv.append(srcLabel, list);
-      answerEl.appendChild(srcDiv);
+      exchange.lastElementChild.appendChild(srcDiv);
+      exchange.scrollTop = exchange.scrollHeight;
     }
   } catch(err) {
-    answerEl.classList.remove('loading');
-    updateStatus('Error');
-    answerEl.textContent = err.message;
+    setTaskState('process', 'not-started');
+    setTaskState('complete', 'not-started');
+    appendMessage(exchange, 'bot', err.message);
   } finally {
     askBtn.disabled = false;
     notifyResize();
   }
-};
+}
+
+askBtn.onclick = handleSubmit;
+form.addEventListener('submit', handleSubmit);
 </script>
 </body>
 </html>
