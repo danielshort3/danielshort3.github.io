@@ -391,9 +391,9 @@ window.PROJECTS = [
 
 // IDs (in order) of projects shown in the top carousel
 window.FEATURED_IDS = [
-  "sheetMusicUpscale",
-  "nonogram",
   "shapeClassifier",
-  "handwritingRating",
-  "digitGenerator"
+  "chatbotLora",
+  "sheetMusicUpscale",
+  "digitGenerator",
+  "nonogram"
 ];
