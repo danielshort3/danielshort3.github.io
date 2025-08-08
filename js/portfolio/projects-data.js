@@ -376,8 +376,8 @@ window.PROJECTS = [
     problem : "I wanted to create a model that recognizes handwritten shapes.",
     actions : [
       "Downloaded images from Google's QuickDraw dataset to build training and validation splits.",
-      "Trained a compact ResNet18 using PyTorch Lightning and exported a \"model.pt\".",
-      "Deployed a minimal AWS Lambda handler for inference from the browser."
+      "Trained a compact ResNet18 using PyTorch Lightning.",
+      "Deployed a minimal AWS Lambda handler for serverless CPU inference from the browser."
     ],
     results : [
       "Predicts circle, triangle, square, hexagon or octagon from a single drawing with about 90% accuracy.",
