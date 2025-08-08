@@ -70,11 +70,18 @@
     list-style: none;
     padding-left: 0;
     margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
   }
   #status li {
     display: flex;
     align-items: center;
-    margin-bottom: 0.25rem;
+    gap: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--surface-accent);
+    border-radius: 4px;
+    background: var(--surface-light);
   }
   #status li i {
     margin-right: 0.5rem;
@@ -108,17 +115,17 @@
     width:100%; text-align:left; background:var(--surface); color:var(--text-light);
     border:1px solid var(--surface-accent); border-radius:8px; padding:0.5rem; cursor:pointer;
   }
-  .exchange-wrapper.collapsed .exchange { display:none; }
   .exchange-toggle::before { content:'\25BE '; }
   .exchange-wrapper.collapsed .exchange-toggle::before { content:'\25B8 '; }
   .exchange {
     border: 1px solid var(--surface-accent);
-    padding: 0.5rem;
+    border-width: 0;
     box-sizing: border-box;
-    min-height: 6em;
-    max-height: 40vh;
     text-align: left;
     overflow-y: auto;
+    overflow: hidden;
+    max-height: 0;
+    padding: 0 0.5rem;
     scrollbar-gutter: stable;
     overflow-wrap: anywhere;
     display: flex;
@@ -126,6 +133,13 @@
     gap: 0.5rem;
     background: var(--surface);
     border-radius: 8px;
+    transition: max-height 0.3s ease, padding 0.3s ease, border-width 0.3s ease;
+  }
+  .exchange-wrapper:not(.collapsed) .exchange {
+    border-width: 1px;
+    padding: 0.5rem;
+    max-height: 40vh;
+    min-height: 6em;
   }
   .message {
     padding: 0.5rem;
@@ -216,7 +230,11 @@ const tasks = [
 let exchangeCount = 0;
 
 function createExchange(prompt) {
-  document.querySelectorAll('.exchange-wrapper').forEach(w => w.classList.add('collapsed'));
+  document.querySelectorAll('.exchange-wrapper').forEach(w => {
+    w.classList.add('collapsed');
+    const exw = w.querySelector('.exchange');
+    if (exw) exw.style.maxHeight = '0';
+  });
   exchangeCount++;
   const wrapper = document.createElement('div');
   wrapper.className = 'exchange-wrapper';
@@ -228,12 +246,13 @@ function createExchange(prompt) {
   const ex = document.createElement('div');
   ex.className = 'exchange';
   btn.onclick = () => {
-    wrapper.classList.toggle('collapsed');
+    const isCollapsed = wrapper.classList.toggle('collapsed');
+    ex.style.maxHeight = isCollapsed ? '0' : ex.scrollHeight + 'px';
     notifyResize();
   };
   wrapper.append(btn, ex);
-  answerEl.prepend(wrapper);
-  answerEl.scrollTop = 0;
+  answerEl.appendChild(wrapper);
+  answerEl.scrollTop = answerEl.scrollHeight;
   notifyResize();
   return ex;
 }
@@ -259,6 +278,9 @@ function appendMessage(container, role, text, opts={}) {
   msg.append(label, content);
   container.appendChild(msg);
   container.scrollTop = container.scrollHeight;
+  if (container.classList.contains('exchange')) {
+    container.style.maxHeight = container.scrollHeight + 'px';
+  }
   notifyResize();
   return content;
 }
