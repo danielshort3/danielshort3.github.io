@@ -340,7 +340,7 @@ window.PROJECTS = [
   {
     id: "chatbotLora",
     title: "Chatbot (LoRA + RAG)",
-    subtitle: "Lite RAG + LoRA Chatbot",
+    subtitle: "RAG Chatbot Fine-Tuned with LoRA",
     image: "img/projects/project_15.png",
     tools: ["Python", "LoRA", "Docker"],
     resources: [
