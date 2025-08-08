@@ -346,13 +346,17 @@ window.PROJECTS = [
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Chatbot-LoRA-RAG", label: "GitHub" }
     ],
+    embed : {
+      type : "iframe",
+      url  : "chatbot-demo.html"
+    },
     problem : "Generic chatbots lacked Visit Grand Junction's tone and rarely suggested our content.",
     actions : [
-      "Scraped Visit Grand Junction pages to capture the brand voice.",
-      "Built a FAISS index and used LoRA to fine-tune an open-source LLM in Docker."
+      "Scraped Visit Grand Junction pages to capture the brand voice and built a retrieval index.",
+      "Linked two AWS Lambda functions that queue prompts and fetch SageMaker-generated replies with source links."
     ],
     results : [
-      "Responsive chatbot stays current with our content and engages potential guests."
+      "Serverless RAG chatbot scales on demand and returns grounded answers with references."
     ]
   },
 
