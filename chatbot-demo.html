@@ -70,21 +70,14 @@
     list-style: none;
     padding-left: 0;
     margin: 0;
-    display: flex;
-    gap: 0.5rem;
   }
   #status li {
-    flex: 1;
     display: flex;
     align-items: center;
-    justify-content: center;
-    border: 1px solid var(--surface-accent);
-    border-radius: 8px;
-    padding: 0.25rem;
-    gap: 0.25rem;
+    margin-bottom: 0.25rem;
   }
   #status li i {
-    margin: 0;
+    margin-right: 0.5rem;
   }
   #status li.not-started {
     color: var(--text-muted);
@@ -115,21 +108,15 @@
     width:100%; text-align:left; background:var(--surface); color:var(--text-light);
     border:1px solid var(--surface-accent); border-radius:8px; padding:0.5rem; cursor:pointer;
   }
-  .exchange-toggle::before {
-    content:'\25B8';
-    display:inline-block;
-    margin-right:0.25rem;
-    transition: transform 0.3s ease;
-  }
-  .exchange-wrapper.expanded .exchange-toggle::before {
-    transform: rotate(90deg);
-  }
+  .exchange-wrapper.collapsed .exchange { display:none; }
+  .exchange-toggle::before { content:'\25BE '; }
+  .exchange-wrapper.collapsed .exchange-toggle::before { content:'\25B8 '; }
   .exchange {
     border: 1px solid var(--surface-accent);
     padding: 0.5rem;
     box-sizing: border-box;
     min-height: 6em;
-    max-height: 0;
+    max-height: 40vh;
     text-align: left;
     overflow-y: auto;
     scrollbar-gutter: stable;
@@ -139,11 +126,6 @@
     gap: 0.5rem;
     background: var(--surface);
     border-radius: 8px;
-    overflow: hidden;
-    transition: max-height 0.3s ease;
-  }
-  .exchange-wrapper.expanded .exchange {
-    max-height: 40vh;
   }
   .message {
     padding: 0.5rem;
@@ -234,14 +216,10 @@ const tasks = [
 let exchangeCount = 0;
 
 function createExchange(prompt) {
-  document.querySelectorAll('.exchange-wrapper').forEach(w => {
-    w.classList.remove('expanded');
-    const ex = w.querySelector('.exchange');
-    if (ex) ex.style.maxHeight = 0;
-  });
+  document.querySelectorAll('.exchange-wrapper').forEach(w => w.classList.add('collapsed'));
   exchangeCount++;
   const wrapper = document.createElement('div');
-  wrapper.className = 'exchange-wrapper expanded';
+  wrapper.className = 'exchange-wrapper';
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'exchange-toggle';
@@ -250,13 +228,12 @@ function createExchange(prompt) {
   const ex = document.createElement('div');
   ex.className = 'exchange';
   btn.onclick = () => {
-    const isExpanded = wrapper.classList.toggle('expanded');
-    ex.style.maxHeight = isExpanded ? ex.scrollHeight + 'px' : 0;
+    wrapper.classList.toggle('collapsed');
     notifyResize();
   };
   wrapper.append(btn, ex);
-  answerEl.appendChild(wrapper);
-  answerEl.scrollTop = answerEl.scrollHeight;
+  answerEl.prepend(wrapper);
+  answerEl.scrollTop = 0;
   notifyResize();
   return ex;
 }
