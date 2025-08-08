@@ -94,38 +94,48 @@
   #demo-box h2 {
     text-align: center;
   }
+  #history {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.5rem;
+    scrollbar-gutter: stable;
+    cursor: grab;
+  }
+  #history button {
+    flex: 0 0 auto;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--surface-accent);
+    border-radius: 4px;
+    background: var(--surface);
+    color: var(--text-light);
+    cursor: pointer;
+  }
+  #history button.active {
+    background: var(--primary);
+    color: var(--bg);
+  }
+  #history.dragging {
+    cursor: grabbing;
+  }
   #answer {
     line-height: 1.4;
-    margin: 1rem 0 0;
+    margin: 1rem 0;
     font-size: 0.9rem;
     width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  .exchange-wrapper { display:flex; flex-direction:column; gap:0.5rem; }
-  .exchange-toggle {
-    width:100%; text-align:left; background:var(--surface); color:var(--text-light);
-    border:1px solid var(--surface-accent); border-radius:8px; padding:0.5rem; cursor:pointer;
-  }
-  .exchange-wrapper.collapsed .exchange { display:none; }
-  .exchange-toggle::before { content:'\25BE '; }
-  .exchange-wrapper.collapsed .exchange-toggle::before { content:'\25B8 '; }
-  .exchange {
-    border: 1px solid var(--surface-accent);
-    padding: 0.5rem;
-    box-sizing: border-box;
-    min-height: 6em;
-    max-height: 40vh;
-    text-align: left;
+    height: 30vh;
     overflow-y: auto;
-    scrollbar-gutter: stable;
-    overflow-wrap: anywhere;
+    box-sizing: border-box;
+    border: 1px solid var(--surface-accent);
+    border-radius: 8px;
+    padding: 0.5rem;
+    background: var(--surface);
+  }
+  .exchange {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    background: var(--surface);
-    border-radius: 8px;
   }
   .message {
     padding: 0.5rem;
@@ -171,16 +181,16 @@
 </script>
 <div id="demo-box">
   <h2>Ask the Demo Chatbot</h2>
-  <p class="modal-subtitle">Input and output data is saved on AWS servers.</p>
+  <div class="modal-subtitle">History</div>
+  <div id="history"></div>
+  <div id="answer" class="modal-text"></div>
   <form id="chat-form">
-    <label for="prompt" class="modal-subtitle">Your message</label>
     <textarea id="prompt" placeholder="Type your message..."></textarea>
       <div id="buttons">
         <button id="ask" type="submit" class="btn-primary">Submit</button>
       </div>
   </form>
   <div id="status" class="modal-subtitle"></div>
-  <div id="answer" class="modal-text"></div>
 </div>
 <script>
 const API_URL = 'https://ovodkr9oad.execute-api.us-east-2.amazonaws.com/prod';
@@ -207,34 +217,67 @@ const statusEl = document.getElementById('status');
 const answerEl = document.getElementById('answer');
 const askBtn = document.getElementById('ask');
 const form = document.getElementById('chat-form');
+const historyEl = document.getElementById('history');
+let isDragging = false;
+let startX;
+let scrollLeft;
+let hasMoved = false;
+historyEl.addEventListener('mousedown', e => {
+  isDragging = true;
+  hasMoved = false;
+  historyEl.classList.add('dragging');
+  startX = e.pageX - historyEl.offsetLeft;
+  scrollLeft = historyEl.scrollLeft;
+});
+historyEl.addEventListener('mouseleave', () => {
+  isDragging = false;
+  historyEl.classList.remove('dragging');
+});
+historyEl.addEventListener('mouseup', () => {
+  isDragging = false;
+  historyEl.classList.remove('dragging');
+});
+historyEl.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  hasMoved = true;
+  e.preventDefault();
+  const x = e.pageX - historyEl.offsetLeft;
+  historyEl.scrollLeft = scrollLeft - (x - startX);
+});
+historyEl.addEventListener('click', e => {
+  if (hasMoved) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+  }
+});
+const exchanges = [];
 const tasks = [
   { id: 'submit', label: 'Submit prompt' },
   { id: 'process', label: 'Processing with AWS SageMaker' },
   { id: 'complete', label: 'Complete' }
 ];
 
-let exchangeCount = 0;
+function showExchange(index) {
+  answerEl.innerHTML = '';
+  answerEl.appendChild(exchanges[index].element);
+  [...historyEl.children].forEach((btn, i) => {
+    btn.classList.toggle('active', i === index);
+  });
+  notifyResize();
+}
 
 function createExchange(prompt) {
-  document.querySelectorAll('.exchange-wrapper').forEach(w => w.classList.add('collapsed'));
-  exchangeCount++;
-  const wrapper = document.createElement('div');
-  wrapper.className = 'exchange-wrapper';
-  const btn = document.createElement('button');
-  btn.type = 'button';
-  btn.className = 'exchange-toggle';
-  const summary = prompt.length > 40 ? prompt.slice(0,37) + '...' : prompt;
-  btn.textContent = `${exchangeCount}. ${summary}`;
   const ex = document.createElement('div');
   ex.className = 'exchange';
-  btn.onclick = () => {
-    wrapper.classList.toggle('collapsed');
-    notifyResize();
-  };
-  wrapper.append(btn, ex);
-  answerEl.prepend(wrapper);
-  answerEl.scrollTop = 0;
-  notifyResize();
+  const index = exchanges.length;
+  exchanges.push({ prompt, element: ex });
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.textContent = index + 1;
+  btn.onclick = () => showExchange(index);
+  historyEl.appendChild(btn);
+  historyEl.scrollLeft = historyEl.scrollWidth;
+  showExchange(index);
   return ex;
 }
 
