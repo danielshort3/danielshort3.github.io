@@ -14,7 +14,9 @@
     margin: 0;
     padding: 0;
     height: auto;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
   }
   body {
     display: flex;
@@ -41,6 +43,7 @@
     border: 1px solid var(--surface-accent);
     border-radius: 8px;
     padding: 0.5rem;
+    box-sizing: border-box;
     resize: vertical;
   }
   #prompt::placeholder {
@@ -108,6 +111,7 @@
     max-height: 40vh;
     text-align: left;
     overflow-y: auto;
+    scrollbar-gutter: stable;
     overflow-wrap: anywhere;
     display: flex;
     flex-direction: column;
@@ -163,9 +167,9 @@
   <form id="chat-form">
     <label for="prompt" class="modal-subtitle">Your message</label>
     <textarea id="prompt" placeholder="Type your message..."></textarea>
-    <div id="buttons">
-      <button id="ask" type="submit" class="btn-primary">Ask</button>
-    </div>
+      <div id="buttons">
+        <button id="ask" type="submit" class="btn-primary">Submit</button>
+      </div>
   </form>
   <div id="status" class="modal-subtitle"></div>
   <div id="answer" class="modal-text"></div>
@@ -196,7 +200,7 @@ const answerEl = document.getElementById('answer');
 const askBtn = document.getElementById('ask');
 const form = document.getElementById('chat-form');
 const tasks = [
-  { id: 'submit', label: 'Submit question' },
+  { id: 'submit', label: 'Submit prompt' },
   { id: 'process', label: 'Processing with SageMaker' },
   { id: 'complete', label: 'Complete' }
 ];
