@@ -48,28 +48,6 @@
     font-size: 0.9rem;
     text-align: left;
   }
-  #status ul {
-    list-style: none;
-    padding-left: 0;
-    margin: 0;
-  }
-  #status li {
-    display: flex;
-    align-items: center;
-    margin-bottom: 0.25rem;
-  }
-  #status li i {
-    margin-right: 0.5rem;
-  }
-  #status li.not-started {
-    color: red;
-  }
-  #status li.in-progress {
-    color: #daa520;
-  }
-  #status li.done {
-    color: green;
-  }
   #answer {
     line-height: 1.4;
     margin: 1rem 0 0;
@@ -132,61 +110,19 @@ const promptEl = document.getElementById('prompt');
 const statusEl = document.getElementById('status');
 const answerEl = document.getElementById('answer');
 const askBtn = document.getElementById('ask');
-const tasks = [
-  { id: 'submit', label: 'Submit question' },
-  { id: 'process', label: 'Processing with SageMaker' },
-  { id: 'complete', label: 'Complete' }
-];
-
-function renderTaskList() {
-  statusEl.innerHTML = '';
-  const ul = document.createElement('ul');
-  tasks.forEach(t => {
-    const li = document.createElement('li');
-    li.id = `task-${t.id}`;
-    li.className = 'not-started';
-    const icon = document.createElement('i');
-    icon.className = 'fa-solid fa-xmark';
-    li.appendChild(icon);
-    li.append(` ${t.label}`);
-    ul.appendChild(li);
-  });
-  statusEl.appendChild(ul);
-  notifyResize();
-}
-
-function setTaskState(id, state) {
-  const li = document.getElementById(`task-${id}`);
-  if (!li) return;
-  const icon = li.querySelector('i');
-  li.className = state;
-  if (state === 'in-progress') {
-    icon.className = 'fa-solid fa-spinner fa-spin';
-  } else if (state === 'done') {
-    icon.className = 'fa-solid fa-check';
-  } else {
-    icon.className = 'fa-solid fa-xmark';
-  }
-  notifyResize();
-}
 askBtn.onclick = async () => {
   const prompt = promptEl.value.trim();
   if (!prompt) return;
   answerEl.innerHTML = '';
   answerEl.classList.add('loading');
-  renderTaskList();
-  setTaskState('submit', 'in-progress');
+  const updateStatus = txt => { statusEl.textContent = txt; notifyResize(); };
+  updateStatus('Submitting...');
   askBtn.disabled = true;
   try {
     const data = await ask(prompt, status => {
-      if (status === 'PENDING') {
-        setTaskState('submit', 'done');
-        setTaskState('process', 'in-progress');
-      } else if (status === 'READY') {
-        setTaskState('process', 'done');
-        setTaskState('complete', 'done');
-      }
+      if (status === 'PENDING') updateStatus('Processing with SageMaker...');
     });
+    updateStatus('Complete');
     answerEl.classList.remove('loading');
     const userDiv = document.createElement('div');
     userDiv.className = 'user';
@@ -217,8 +153,7 @@ askBtn.onclick = async () => {
     }
   } catch(err) {
     answerEl.classList.remove('loading');
-    setTaskState('process', 'not-started');
-    setTaskState('complete', 'not-started');
+    updateStatus('Error');
     answerEl.textContent = err.message;
   } finally {
     askBtn.disabled = false;
