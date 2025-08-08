@@ -346,6 +346,10 @@ window.PROJECTS = [
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Chatbot-LoRA-RAG", label: "GitHub" }
     ],
+    embed : {
+      type : "iframe",
+      url  : "chatbot-demo.html"
+    },
     problem : "Generic chatbots lacked Visit Grand Junction's tone and rarely suggested our content.",
     actions : [
       "Scraped Visit Grand Junction pages to capture the brand voice.",
