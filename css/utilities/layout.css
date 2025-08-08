@@ -80,16 +80,14 @@
   12c. SHAPE CLASSIFIER MODAL
   Size the iframe to its content
   ─────────────────────────────────────────────────────────── */
-#shapeClassifier-modal iframe,
-#chatbotLora-modal iframe {
+#shapeClassifier-modal iframe {
   height: auto;
   margin-top: 0;
   width: 100%;
   border: 1px solid var(--surface-accent);
 }
 
-#shapeClassifier-modal .modal-embed,
-#chatbotLora-modal .modal-embed {
+#shapeClassifier-modal .modal-embed {
   flex: 0 0 50%;
   max-width: 50%;
   align-self: flex-start;
@@ -97,8 +95,7 @@
 }
 
 @media (max-width: 768px) {
-  #shapeClassifier-modal .modal-embed,
-  #chatbotLora-modal .modal-embed {
+  #shapeClassifier-modal .modal-embed {
     flex-basis: 100%;
     max-width: 100%;
   }

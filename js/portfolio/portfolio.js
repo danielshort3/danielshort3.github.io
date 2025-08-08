@@ -519,10 +519,10 @@ function openModal(id){
   const modal = document.getElementById(`${id}-modal`);
   if (!modal) return;
 
-  /* adjust embedded demo if needed to fit its contents */
+  /* adjust the Shape Classifier iframe to fit its contents */
   let resizeShapeDemo = null;
   let resizeMsg = null;
-  if (id === 'shapeClassifier' || id === 'chatbotLora') {
+  if (id === 'shapeClassifier') {
     const iframe = modal.querySelector('iframe');
     const measure = () => {
       if (!iframe) return;
@@ -540,9 +540,8 @@ function openModal(id){
     resizeShapeDemo = measure;
     iframe?.addEventListener('load', run, { once: true });
     window.addEventListener('resize', measure);
-    const resizeType = id === 'shapeClassifier' ? 'shape-demo-resize' : 'chatbot-demo-resize';
     resizeMsg = e => {
-      if (e.source === iframe.contentWindow && e.data?.type === resizeType) measure();
+      if (e.source === iframe.contentWindow && e.data?.type === 'shape-demo-resize') measure();
     };
     window.addEventListener('message', resizeMsg);
     if (iframe?.contentDocument?.readyState === 'complete') {
