@@ -103,6 +103,14 @@
     flex-direction: column;
     gap: 0.5rem;
   }
+  .exchange-wrapper { display:flex; flex-direction:column; gap:0.5rem; }
+  .exchange-toggle {
+    width:100%; text-align:left; background:var(--surface); color:var(--text-light);
+    border:1px solid var(--surface-accent); border-radius:8px; padding:0.5rem; cursor:pointer;
+  }
+  .exchange-wrapper.collapsed .exchange { display:none; }
+  .exchange-toggle::before { content:'\25BE '; }
+  .exchange-wrapper.collapsed .exchange-toggle::before { content:'\25B8 '; }
   .exchange {
     border: 1px solid var(--surface-accent);
     padding: 0.5rem;
@@ -201,19 +209,41 @@ const askBtn = document.getElementById('ask');
 const form = document.getElementById('chat-form');
 const tasks = [
   { id: 'submit', label: 'Submit prompt' },
-  { id: 'process', label: 'Processing with SageMaker' },
+  { id: 'process', label: 'Processing with AWS SageMaker' },
   { id: 'complete', label: 'Complete' }
 ];
 
-function createExchange() {
+let exchangeCount = 0;
+
+function createExchange(prompt) {
+  document.querySelectorAll('.exchange-wrapper').forEach(w => w.classList.add('collapsed'));
+  exchangeCount++;
+  const wrapper = document.createElement('div');
+  wrapper.className = 'exchange-wrapper';
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'exchange-toggle';
+  const summary = prompt.length > 40 ? prompt.slice(0,37) + '...' : prompt;
+  btn.textContent = `${exchangeCount}. ${summary}`;
   const ex = document.createElement('div');
   ex.className = 'exchange';
-  answerEl.appendChild(ex);
-  answerEl.scrollTop = answerEl.scrollHeight;
+  btn.onclick = () => {
+    wrapper.classList.toggle('collapsed');
+    notifyResize();
+  };
+  wrapper.append(btn, ex);
+  answerEl.prepend(wrapper);
+  answerEl.scrollTop = 0;
+  notifyResize();
   return ex;
 }
 
-function appendMessage(container, role, text) {
+function formatMarkdown(text) {
+  const escaped = text.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  return escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+}
+
+function appendMessage(container, role, text, opts={}) {
   const msg = document.createElement('div');
   msg.className = `message ${role}`;
   const label = document.createElement('div');
@@ -221,11 +251,16 @@ function appendMessage(container, role, text) {
   label.textContent = role === 'user' ? 'You' : 'Assistant';
   const content = document.createElement('div');
   content.className = 'content';
-  content.textContent = text;
+  if (opts.loading) {
+    content.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+  } else {
+    content.innerHTML = formatMarkdown(text);
+  }
   msg.append(label, content);
   container.appendChild(msg);
   container.scrollTop = container.scrollHeight;
   notifyResize();
+  return content;
 }
 
 function renderTaskList() {
@@ -265,8 +300,9 @@ async function handleSubmit(e) {
   if (e) e.preventDefault();
   const prompt = promptEl.value.trim();
   if (!prompt) return;
-  const exchange = createExchange();
+  const exchange = createExchange(prompt);
   appendMessage(exchange, 'user', prompt);
+  const placeholder = appendMessage(exchange, 'bot', '', {loading:true});
   promptEl.value = '';
   renderTaskList();
   setTaskState('submit', 'in-progress');
@@ -281,7 +317,7 @@ async function handleSubmit(e) {
         setTaskState('complete', 'done');
       }
     });
-    appendMessage(exchange, 'bot', data.generated_text || JSON.stringify(data));
+    placeholder.innerHTML = formatMarkdown(data.generated_text || JSON.stringify(data));
     const urls = data.source_urls || data.sources || data.urls;
     if (Array.isArray(urls) && urls.length) {
       const srcDiv = document.createElement('div');
@@ -300,13 +336,13 @@ async function handleSubmit(e) {
         list.appendChild(li);
       });
       srcDiv.append(srcLabel, list);
-      exchange.lastElementChild.appendChild(srcDiv);
+      placeholder.parentElement.appendChild(srcDiv);
       exchange.scrollTop = exchange.scrollHeight;
     }
   } catch(err) {
     setTaskState('process', 'not-started');
     setTaskState('complete', 'not-started');
-    appendMessage(exchange, 'bot', err.message);
+    placeholder.innerHTML = formatMarkdown(err.message);
   } finally {
     askBtn.disabled = false;
     notifyResize();
