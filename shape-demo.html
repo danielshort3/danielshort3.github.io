@@ -44,17 +44,18 @@
             background: radial-gradient(1200px 500px at 50% -10%, color-mix(in srgb, var(--primary) 15%, transparent), transparent 60%) var(--bg);
             display: grid;
             place-items: start center;
-            padding: 24px;
+            padding: clamp(12px, 3vw, 24px); /* shrink padding on small screens */
+            overflow-x: hidden; /* guardrail against horizontal overflow */
         }
 
         /* ---------- Card ---------- */
         #demo-box {
-            width: clamp(320px, 90vw, 820px);
+            width: min(100%, 820px); /* no rigid min that can overflow small viewports */
             background: var(--surface);
             border: 1px solid var(--surface-accent);
             border-radius: var(--radius);
             box-shadow: var(--shadow-2);
-            overflow: clip;
+            overflow: hidden;
         }
 
         header.card-header {
@@ -78,6 +79,7 @@
             margin: 0;
             color: var(--text-muted);
             font-size: .85rem;
+            overflow-wrap: anywhere; /* wrap long lists on narrow screens */
         }
 
         .icon-btn {
@@ -99,6 +101,7 @@
             padding: 10px 16px 0;
             min-height: 34px;
         }
+        /* reserves space so height doesn't change */
 
         .stepper {
             display: grid;
@@ -114,13 +117,16 @@
 
         .step {
             display: grid;
-            grid-template-columns: 28px 1fr;
+            grid-template-columns: 28px minmax(0,1fr); /* match chatbot: label shrinks safely */
             gap: 8px;
             align-items: center;
             background: var(--surface-2);
             border: 1px solid var(--surface-accent);
             padding: 6px 10px;
             border-radius: 10px;
+            min-width: 0; /* allow steps to shrink */
+            word-break: break-word; /* wrap labels if needed */
+            position: relative; /* for tooltip on compact */
         }
 
             .step .dot {
@@ -132,7 +138,7 @@
                 background: var(--surface);
                 border: 1px solid var(--surface-accent);
                 font-size: .75rem;
-                position: relative; /* needed for spinner */
+                position: relative; /* for spinner */
             }
 
             .step.in-progress {
@@ -172,6 +178,37 @@
             }
         }
 
+        /* --- Compact numeric steps on small screens --- */
+        @media (max-width: 520px) {
+            .step {
+                grid-template-columns: 1fr;
+                justify-items: center;
+                padding: 8px;
+                cursor: pointer;
+            }
+
+                .step .label {
+                    display: none;
+                }
+
+                .step.show-tip::after {
+                    content: attr(data-label);
+                    position: absolute;
+                    bottom: calc(100% + 6px);
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: var(--surface);
+                    border: 1px solid var(--surface-accent);
+                    color: var(--text);
+                    padding: 4px 8px;
+                    border-radius: 8px;
+                    white-space: nowrap;
+                    font-size: .75rem;
+                    box-shadow: var(--shadow-1);
+                    z-index: 5;
+                }
+        }
+
         /* ---------- Content layout ---------- */
         .content {
             display: grid;
@@ -179,6 +216,11 @@
             gap: 16px;
             padding: 12px 16px 0;
         }
+
+            .content > * {
+                min-width: 0;
+            }
+        /* allow both columns to shrink */
 
         @media (max-width: 780px) {
             .content {
@@ -201,14 +243,17 @@
             background: var(--surface-2);
             padding: 10px;
             box-shadow: var(--shadow-1);
+            width: 100%;
         }
 
         canvas {
             display: block;
             touch-action: none;
             background: var(--canvas-dark); /* actual pixel fill handled in script */
-            width: min(70vmin, 320px);
-            height: min(70vmin, 320px);
+            width: min(82vw, 320px); /* shrink further on narrow screens */
+            max-width: 100%;
+            height: auto;
+            aspect-ratio: 1 / 1; /* keep square without overflow */
             border-radius: 8px;
         }
 
@@ -268,6 +313,7 @@
             background: var(--surface-2);
             box-shadow: var(--shadow-1);
             align-content: start;
+            min-width: 0; /* allow panel to shrink */
         }
 
         .result-badge {
@@ -280,6 +326,9 @@
             padding: .4rem .7rem;
             font-weight: 600;
             font-family: Poppins, Inter, system-ui, sans-serif;
+            max-width: 100%;
+            flex-wrap: wrap; /* wrap on narrow screens */
+            overflow-wrap: anywhere;
         }
         /* inline shape icon */
         .shape-icon {
@@ -287,6 +336,7 @@
             height: 22px;
             display: inline-block;
             vertical-align: middle;
+            flex: none;
         }
 
         .confidence {
@@ -338,7 +388,7 @@
 </head>
 <body>
     <script>
-        /* notify parent for iframed embeds */
+        /* notify parent for iframed embeds — only once to keep height static */
         function notifyResize() { try { parent.postMessage({ type: 'shape-demo-resize' }, '*'); } catch (e) { } }
         window.addEventListener('load', notifyResize);
         try { document.fonts?.ready?.then(notifyResize); } catch (e) { }
@@ -378,18 +428,16 @@
                 <div>
                     <div class="result-badge" id="result-badge" aria-label="Prediction">
                         <i class="fa-solid fa-magnifying-glass-chart"></i>
-                        <!-- shape icon shown here -->
-                        <span id="result-icon" aria-hidden="true"></span>
+                        <!-- text first, then icon (so it shows after the word) -->
                         <span id="result-shape">Draw a shape to begin</span>
+                        <span id="result-icon" aria-hidden="true"></span>
                     </div>
                 </div>
                 <div class="confidence-track" aria-label="Confidence">
                     <div id="confidence-bar" class="confidence" style="width:0%"></div>
                 </div>
                 <div id="confidence-text" class="hint">Confidence: —</div>
-                <div class="hint">
-                    Shortcuts: <strong>C</strong> clear.
-                </div>
+                <div class="hint">Shortcuts: <strong>C</strong> clear.</div>
             </section>
         </div>
     </div>
@@ -397,7 +445,7 @@
     <script type="module">
         const FN_URL = "https://zcosyfxhs3sntpwzo3qayki2he0kdxkw.lambda-url.us-east-2.on.aws/"; // Lambda endpoint with CORS
 
-        /* ---------- Stepper ---------- */
+        /* ---------- Stepper (same structure/behavior as chatbot) ---------- */
         const statusEl = document.getElementById('status');
         const steps = [
             { id: 'submit', label: 'Submit drawing' },
@@ -407,9 +455,18 @@
         function renderStepper() {
             const ul = document.createElement('ul'); ul.className = 'stepper';
             steps.forEach((s, i) => {
-                const li = document.createElement('li'); li.className = 'step not-started'; li.id = `step-${s.id}`;
+                const li = document.createElement('li');
+                li.className = 'step not-started';
+                li.id = `step-${s.id}`;
+                li.dataset.label = s.label;      // tooltip for compact mode
+                li.setAttribute('role', 'button');
+                li.setAttribute('tabindex', '0');
+                li.setAttribute('aria-label', s.label);
+
                 const dot = document.createElement('div'); dot.className = 'dot'; dot.textContent = i + 1;
-                li.append(dot, document.createTextNode(s.label));
+                const label = document.createElement('span'); label.className = 'label'; label.textContent = s.label;
+
+                li.append(dot, label);
                 ul.appendChild(li);
             });
             statusEl.innerHTML = ''; statusEl.appendChild(ul);
@@ -419,8 +476,34 @@
             if (!el) return;
             el.classList.remove('not-started', 'in-progress', 'done');
             el.classList.add(state);
-            notifyResize();
+            /* no notifyResize() here to keep iframe static */
         }
+        // Render once on load so the stepper space is reserved and height stays stable
+        renderStepper();
+
+        // Compact tooltip interaction for small screens (tap number to reveal label briefly)
+        const mqCompact = window.matchMedia('(max-width: 520px)');
+        statusEl.addEventListener('click', (e) => {
+            const step = e.target.closest('.step');
+            if (!step || !mqCompact.matches) return;
+            step.classList.add('show-tip');
+            clearTimeout(step._tipTimer);
+            step._tipTimer = setTimeout(() => step.classList.remove('show-tip'), 1500);
+        });
+        statusEl.addEventListener('keydown', (e) => {
+            if (!mqCompact.matches) return;
+            const step = e.target.closest('.step');
+            if (!step) return;
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                step.click();
+            }
+        });
+        window.addEventListener('resize', () => {
+            if (!mqCompact.matches) {
+                document.querySelectorAll('.step.show-tip').forEach(s => s.classList.remove('show-tip'));
+            }
+        });
 
         /* ---------- Canvas setup (pen always active, 6px) ---------- */
         const canvas = document.getElementById('pad');
@@ -495,6 +578,12 @@
 
         /* ---------- Shape icon rendering ---------- */
         const NS = 'http://www.w3.org/2000/svg';
+        function commonAttrs(el) {
+            el.setAttribute('fill', 'none');
+            el.setAttribute('stroke', 'currentColor');
+            el.setAttribute('stroke-width', '3');
+            return el;
+        }
         function makeShapeIcon(name) {
             const shape = (name || '').toLowerCase();
             const svg = document.createElementNS(NS, 'svg');
@@ -502,33 +591,34 @@
             svg.setAttribute('class', 'shape-icon');
             svg.setAttribute('aria-hidden', 'true');
 
-            const common = (el) => {
-                el.setAttribute('fill', 'none');
-                el.setAttribute('stroke', 'currentColor');
-                el.setAttribute('stroke-width', '3');
-                return el;
-            };
-
             if (shape === 'circle') {
-                svg.appendChild(common(Object.assign(document.createElementNS(NS, 'circle'), { cx: 20, cy: 20, r: 12 })));
+                const c = document.createElementNS(NS, 'circle');
+                c.setAttribute('cx', '20');
+                c.setAttribute('cy', '20');
+                c.setAttribute('r', '12');
+                svg.appendChild(commonAttrs(c));
             } else if (shape === 'triangle') {
                 const p = document.createElementNS(NS, 'polygon');
-                p.setAttribute('points', '20,6 34,34 6,34'); svg.appendChild(common(p));
+                p.setAttribute('points', '20,6 34,34 6,34');
+                svg.appendChild(commonAttrs(p));
             } else if (shape === 'square') {
                 const r = document.createElementNS(NS, 'rect');
-                r.setAttribute('x', '8'); r.setAttribute('y', '8'); r.setAttribute('width', '24'); r.setAttribute('height', '24'); svg.appendChild(common(r));
+                r.setAttribute('x', '8'); r.setAttribute('y', '8');
+                r.setAttribute('width', '24'); r.setAttribute('height', '24');
+                svg.appendChild(commonAttrs(r));
             } else if (shape === 'hexagon') {
                 const p = document.createElementNS(NS, 'polygon');
-                p.setAttribute('points', '20,6 32,13 32,27 20,34 8,27 8,13'); svg.appendChild(common(p));
+                p.setAttribute('points', '20,6 32,13 32,27 20,34 8,27 8,13');
+                svg.appendChild(commonAttrs(p));
             } else if (shape === 'octagon') {
                 const p = document.createElementNS(NS, 'polygon');
-                p.setAttribute('points', '14,6 26,6 34,14 34,26 26,34 14,34 6,26 6,14'); svg.appendChild(common(p));
+                p.setAttribute('points', '14,6 26,6 34,14 34,26 26,34 14,34 6,26 6,14');
+                svg.appendChild(commonAttrs(p));
             } else {
                 return null; // unknown shape → no icon
             }
             return svg;
         }
-
         function setIcon(name) {
             resultIcon.innerHTML = '';
             const icon = makeShapeIcon(name);
@@ -551,17 +641,13 @@
         }
 
         /* ---------- Classification flow ---------- */
-        function renderStepperIfNeeded() {
-            if (!statusEl.querySelector('.stepper')) renderStepper();
-        }
-
         async function classify() {
             if (!hasDrawn) {
                 setPredictionUI('Please draw a shape first', null, null);
                 return;
             }
 
-            renderStepperIfNeeded();
+            // Stepper (static area already rendered)
             setStep('submit', 'in-progress');
 
             // CLEAR previous classification & confidence immediately
@@ -607,6 +693,7 @@
 
                 setStep('process', 'done');
                 setStep('complete', 'done');
+                // Text first, icon after the word:
                 setPredictionUI(`Prediction: ${pretty}`, conf, canonical !== 'unknown' ? canonical : null);
             } catch (err) {
                 setStep('process', 'not-started');
@@ -615,7 +702,7 @@
             } finally {
                 classifyBtn.disabled = false;
                 resultBadge.classList.remove('pulse');
-                notifyResize();
+                /* no notifyResize() to keep iframe static */
             }
         }
 
@@ -635,8 +722,7 @@
         }
         refreshBG();
 
-        // Resize observer (if container changes)
-        new ResizeObserver(() => notifyResize()).observe(document.getElementById('demo-box'));
+        // (No ResizeObserver-driven notifyResize() to prevent iframe jitter)
     </script>
 </body>
 </html>
