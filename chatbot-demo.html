@@ -281,7 +281,7 @@
             border-radius: 12px;
             padding: 10px 12px;
             line-height: 1.45;
-            font-size: .95rem;
+            font-size: clamp(.8rem, 2vw, .95rem);
             overflow-wrap: anywhere;
             position: relative;
             box-shadow: var(--shadow-1);
@@ -401,10 +401,10 @@
             color: var(--link);
             text-decoration: none;
             max-width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
             cursor: pointer;
+            flex-wrap: wrap;
+            white-space: normal;
+            overflow-wrap: anywhere;
         }
 
         button.chip {
@@ -459,7 +459,7 @@
             color: var(--text);
             border-radius: 10px;
             padding: 10px 12px;
-            font-size: .95rem;
+            font-size: clamp(.8rem, 2vw, .95rem);
             line-height: 1.35;
         }
 
@@ -516,6 +516,7 @@
 
             .bar-actions {
                 justify-content: center; /* centered on mobile */
+                width: 100%;
             }
         }
 
