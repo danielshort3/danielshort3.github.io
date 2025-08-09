@@ -462,6 +462,18 @@
     <script>
         /* notify parent for iframed embeds — only once to keep height static */
         function notifyResize() { try { parent.postMessage({ type: 'shape-demo-resize' }, '*'); } catch (e) { } }
+
+        /* When embedded in a modal iframe, let the card expand naturally */
+        const isFramed = window.self !== window.top;
+        if (isFramed) {
+            document.addEventListener('DOMContentLoaded', () => {
+                document.documentElement.style.height = 'auto';
+                document.body.style.height = 'auto';
+                const box = document.getElementById('demo-box');
+                if (box) box.style.height = 'auto';
+            });
+        }
+
         window.addEventListener('load', notifyResize);
         try { document.fonts?.ready?.then(notifyResize); } catch (e) { }
     </script>
