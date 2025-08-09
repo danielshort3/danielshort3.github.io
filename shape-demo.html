@@ -327,13 +327,23 @@
             font-weight: 600;
             font-family: Poppins, Inter, system-ui, sans-serif;
             max-width: 100%;
-            flex-wrap: wrap; /* wrap on narrow screens */
-            overflow-wrap: anywhere;
+            flex-wrap: nowrap; /* keep items on one line */
+            white-space: nowrap;
+            font-size: clamp(.5rem, 3vw, 1rem); /* shrink text on small screens */
+        }
+        /* allow text to shrink but keep icons visible */
+        #result-shape {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        .result-badge i {
+            flex: none;
+            font-size: 1.2em;
         }
         /* inline shape icon */
         .shape-icon {
-            width: 22px;
-            height: 22px;
+            width: 1.2em;
+            height: 1.2em;
             display: inline-block;
             vertical-align: middle;
             flex: none;
