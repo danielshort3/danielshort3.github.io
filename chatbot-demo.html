@@ -298,15 +298,11 @@
             border-radius: 12px;
             padding: 10px 12px;
             line-height: 1.45;
-            font-size: .9rem;
+            font-size: clamp(.8rem, 2vw, .95rem);
             overflow-wrap: anywhere;
             position: relative;
             box-shadow: var(--shadow-1);
             min-width: 0;
-        }
-
-        @media (max-width: 600px) {
-            .bubble { font-size: .8rem; }
         }
 
             .bubble pre, .bubble code, .bubble table {
@@ -481,7 +477,7 @@
             color: var(--text);
             border-radius: 10px;
             padding: 10px 12px;
-            font-size: 1rem;
+            font-size: clamp(.8rem, 2vw, .95rem);
             line-height: 1.35;
         }
 
@@ -794,7 +790,7 @@
         clearBtn.addEventListener('click', () => {
             answerEl.innerHTML = '';
             localStorage.removeItem('chatbot-demo-history');
-            notifyResize();
+            /* no notifyResize() to avoid iframe jitter */
         });
 
         /* Copy button (event delegation) */
@@ -825,7 +821,7 @@
             const { contentEl, bubble } = appendMessage(wrap, 'bot', '', { loading: true });
             answerEl.appendChild(wrap);
             answerEl.scrollTop = answerEl.scrollHeight;
-            notifyResize();
+            /* no notifyResize() here */
 
             return { contentEl, bubble };
         }
@@ -948,7 +944,7 @@
                 askBtn.disabled = false; stopBtn.hidden = true;
                 form.setAttribute('aria-busy', 'false');
                 saveHistory();
-                notifyResize();
+                /* no notifyResize() to keep iframe static */
             }
         }
 
