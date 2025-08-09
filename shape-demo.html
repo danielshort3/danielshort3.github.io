@@ -22,48 +22,9 @@
             --radius: 12px;
             --shadow-1: 0 2px 10px rgba(0,0,0,.06), 0 1px 4px rgba(0,0,0,.06);
             --shadow-2: 0 8px 30px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.08);
-        }
-        /* Light */
-        :root, [data-theme="light"] {
-            --bg: #f7fafb;
-            --surface: #ffffff;
-            --surface-2: #f1f5f9;
-            --surface-accent: #e2e8f0;
-            --text: #0f172a;
-            --text-muted: #64748b;
-            --primary: #19526b; /* ← brand primary */
-            --secondary: #cc9e5a; /* ← brand secondary */
-            --link: #0ea5e9;
-            --canvas-dark: #000000;
-            --canvas-light: #ffffff;
-        }
-        /* Dark (auto, via media query) */
-        @media (prefers-color-scheme: dark) {
-            :root[data-theme="auto"] {
-                --bg: #0b1113;
-                --surface: #121a1c;
-                --surface-2: #0f1618;
-                --surface-accent: #223238;
-                --text: #e5e7eb;
-                --text-muted: #9ca3af;
-                --primary: #d6ae6e;
-                --secondary: #99a98c;
-                --link: #38bdf8;
-                --canvas-dark: #000000;
-                --canvas-light: #ffffff;
-            }
-        }
-
-        [data-theme="dark"] {
-            --bg: #0b1113;
-            --surface: #121a1c;
-            --surface-2: #0f1618;
-            --surface-accent: #223238;
-            --text: #e5e7eb;
-            --text-muted: #9ca3af;
-            --primary: #d6ae6e;
-            --secondary: #99a98c;
-            --link: #38bdf8;
+            --surface-2: var(--surface-light);
+            --text: var(--text-light);
+            --link: var(--primary);
             --canvas-dark: #000000;
             --canvas-light: #ffffff;
         }
@@ -80,7 +41,7 @@
             margin: 0;
             font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
             color: var(--text);
-            background: radial-gradient(1200px 500px at 50% -10%, rgba(25,82,107,.1), transparent 60%) var(--bg);
+            background: radial-gradient(1200px 500px at 50% -10%, color-mix(in srgb, var(--primary) 15%, transparent), transparent 60%) var(--bg);
             display: grid;
             place-items: start center;
             padding: 24px;
@@ -189,7 +150,7 @@
 
                 .step.done .dot {
                     background: var(--primary);
-                    color: #000;
+                    color: var(--bg);
                     border-color: var(--primary);
                 }
 
@@ -245,7 +206,7 @@
         canvas {
             display: block;
             touch-action: none;
-            background: #000; /* actual pixel fill handled in script */
+            background: var(--canvas-dark); /* actual pixel fill handled in script */
             width: min(70vmin, 320px);
             height: min(70vmin, 320px);
             border-radius: 8px;
@@ -283,7 +244,7 @@
         .btn-primary {
             border-color: var(--primary);
             background: var(--primary);
-            color: #0a0a0a;
+            color: var(--bg);
             font-weight: 600;
         }
         /* Slightly wider Classify button */
