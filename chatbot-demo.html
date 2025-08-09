@@ -559,7 +559,7 @@
                 min-width: 44px;
             }
 
-            /* Quick prompts: auto-scrolling marquee on phones */
+            /* Quick prompts: JS-driven marquee on phones (no CSS animation) */
             .qp-viewport {
                 overflow: hidden;
                 position: relative;
@@ -568,24 +568,17 @@
             #quick-prompts {
                 flex-wrap: nowrap;
                 white-space: nowrap;
-                will-change: transform;
-                animation: qp-scroll var(--qp-speed) linear infinite;
-                /* remove scroll snapping from earlier mobile style */
+                will-change: transform; /* JS sets transform */
+                /* no CSS animation here to avoid jerk */
                 scroll-snap-type: none;
             }
-                /* Pause animation when user interacts */
-                #quick-prompts:hover,
-                #quick-prompts:focus-within,
-                #quick-prompts[data-paused="1"] {
-                    animation-play-state: paused;
-                }
 
             .chip {
                 white-space: nowrap;
             }
         }
 
-        /* Seamless loop: move exactly one "set" width (we duplicate the chips in JS) */
+        /* (Keyframes kept for reference; not used after JS change) */
         @keyframes qp-scroll {
             from {
                 transform: translateX(0);
@@ -596,7 +589,7 @@
             }
         }
 
-        /* Respect reduced motion: disable marquee, allow manual swipe if desired */
+        /* Respect reduced motion elsewhere */
         @media (max-width: 520px) and (prefers-reduced-motion: reduce) {
             .qp-viewport {
                 overflow-x: auto;
@@ -604,7 +597,7 @@
             }
 
             #quick-prompts {
-                animation: none;
+                /* JS disables itself under reduced motion; no transform applied */
             }
         }
 
@@ -786,13 +779,16 @@
             }
         });
 
-        /* Quick prompt click to fill */
+        /* Quick prompt click to fill (NO trailing space) */
         quickPrompts.addEventListener('click', (e) => {
             const btn = e.target.closest('[data-text]');
             if (!btn) return;
-            promptEl.value = (btn.getAttribute('data-text') || '').trim() + ' ';
+            const text = (btn.getAttribute('data-text') || '').replace(/\s+/g, ' ').trim();
+            promptEl.value = text; // no trailing space
             autoResize();
             promptEl.focus();
+            // Optionally place caret at end
+            try { promptEl.setSelectionRange(text.length, text.length); } catch { }
         });
 
         clearBtn.addEventListener('click', () => {
@@ -959,54 +955,104 @@
         askBtn.addEventListener('click', handleSubmit);
         form.addEventListener('submit', handleSubmit);
 
-        /* Stop button cancels polling (best-effort) */
-        stopBtn.addEventListener('click', () => {
-            cancelled = true;
-            try { abort?.abort(); } catch { }
-            stopBtn.hidden = true;
-            setStep('process', 'not-started');
-            setStep('complete', 'not-started');
-        });
-
-        /* ---------- Quick Prompts: seamless auto-scroll setup ---------- */
+        /* ---------- Quick Prompts: seamless auto-scroll setup (no-jerk) ---------- */
         (function () {
-            const track = quickPrompts;
+            const track = quickPrompts; // #quick-prompts (already defined above)
             if (!track) return;
 
             const mqPhone = window.matchMedia('(max-width: 520px)');
             const mqReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-            function enableMarquee() {
-                if (track.dataset.marqueeReady === '1') return;
+            let enabled = false;
+            let rafId = null;
+            let offsetPx = 0;      // how far we've scrolled (px) into one loop
+            let baseWidth = 0;     // width of ONE full set of chips (px)
+            let pxPerSec = 0;      // speed derived from --qp-speed (px/sec)
+            let paused = false;
+            let lastTs = 0;
 
-                // Duplicate each chip once to create a 200% width track.
-                const chips = Array.from(track.querySelectorAll('.chip:not([aria-hidden="true"])'));
-                chips.forEach(chip => {
+            function ensureClones() {
+                // Duplicate each visible chip exactly once to create a 200% width track.
+                if (track.querySelector('.chip[aria-hidden="true"]')) return;
+                const originals = Array.from(track.querySelectorAll('.chip:not([aria-hidden="true"])'));
+                originals.forEach(chip => {
                     const clone = chip.cloneNode(true);
-                    clone.setAttribute('aria-hidden', 'true');
+                    clone.setAttribute('aria-hidden', 'true'); // ignore for SR/AT
                     track.appendChild(clone);
                 });
+            }
 
-                // Pause while user is pressing (helps tap targets on moving items)
-                const pause = () => track.setAttribute('data-paused', '1');
-                const resume = () => track.removeAttribute('data-paused');
-                track.addEventListener('pointerdown', pause);
-                window.addEventListener('pointerup', resume);
-                window.addEventListener('pointercancel', resume);
-                // Keyboard focus pause is handled in CSS via :focus-within
+            function removeClones() {
+                track.querySelectorAll('.chip[aria-hidden="true"]').forEach(n => n.remove());
+            }
 
-                track.dataset.marqueeReady = '1';
+            function readSpeed() {
+                // Use CSS variable: --qp-speed: "Xs" = seconds per full set
+                const s = getComputedStyle(document.documentElement).getPropertyValue('--qp-speed').trim();
+                const secondsPerLoop = parseFloat(s) || 5; // default 5s if unset
+                pxPerSec = baseWidth > 0 ? (baseWidth / secondsPerLoop) : 0;
+            }
+
+            function measure() {
+                // After clones exist, the track is exactly 2x the one-set width.
+                baseWidth = track.scrollWidth / 2;
+                readSpeed();
+                // keep offset continuous if sizes changed
+                if (baseWidth > 0) {
+                    offsetPx = offsetPx % baseWidth;
+                    if (offsetPx < 0) offsetPx += baseWidth;
+                }
+            }
+
+            function start() {
+                if (rafId != null) return;
+                lastTs = 0;
+                rafId = requestAnimationFrame(tick);
+            }
+
+            function stop() {
+                if (rafId != null) cancelAnimationFrame(rafId);
+                rafId = null;
+            }
+
+            function tick(ts) {
+                if (!enabled) return;
+                if (!lastTs) lastTs = ts;
+                const dt = ts - lastTs; // ms
+                lastTs = ts;
+
+                if (!paused && baseWidth > 0 && pxPerSec > 0) {
+                    offsetPx += (pxPerSec * dt / 1000); // advance
+                    if (offsetPx >= baseWidth) {
+                        // recycle offset to avoid any visual snap
+                        offsetPx -= baseWidth;
+                    }
+                    track.style.transform = `translateX(${-offsetPx}px)`;
+                }
+                rafId = requestAnimationFrame(tick);
+            }
+
+            function enableMarquee() {
+                if (enabled) return;
+                ensureClones();
+                // kill the old CSS animation if present
+                track.style.animation = 'none';
+                track.style.willChange = 'transform';
+                measure();
+                enabled = true;
+                start();
             }
 
             function disableMarquee() {
-                if (track.dataset.marqueeReady !== '1') return;
-                // Remove clones
-                track.querySelectorAll('.chip[aria-hidden="true"]').forEach(n => n.remove());
-                track.removeAttribute('data-paused');
-                track.dataset.marqueeReady = '0';
+                if (!enabled) return;
+                enabled = false;
+                stop();
+                track.style.transform = '';
+                track.style.willChange = '';
+                removeClones();
             }
 
-            function applyMarquee() {
+            function apply() {
                 if (mqPhone.matches && !mqReduce.matches) {
                     enableMarquee();
                 } else {
@@ -1014,10 +1060,32 @@
                 }
             }
 
-            mqPhone.addEventListener('change', applyMarquee);
-            mqReduce.addEventListener('change', applyMarquee);
-            window.addEventListener('load', applyMarquee);
-            applyMarquee();
+            // Pause controls (touch, hover, focus)
+            const pause = () => { paused = true; track.setAttribute('data-paused', '1'); };
+            const resume = () => { paused = false; track.removeAttribute('data-paused'); };
+
+            track.addEventListener('pointerdown', pause);
+            window.addEventListener('pointerup', resume);
+            window.addEventListener('pointercancel', resume);
+            track.addEventListener('mouseenter', pause);
+            track.addEventListener('mouseleave', resume);
+            track.addEventListener('focusin', pause);
+            track.addEventListener('focusout', resume);
+            document.addEventListener('visibilitychange', () => document.hidden ? pause() : resume());
+
+            // React to changes
+            mqPhone.addEventListener('change', apply);
+            mqReduce.addEventListener('change', apply);
+            window.addEventListener('resize', () => {
+                if (!enabled) return;
+                const prevBase = baseWidth;
+                measure();
+                // keep offset aligned after resize
+                if (baseWidth && prevBase) offsetPx = offsetPx % baseWidth;
+            });
+
+            window.addEventListener('load', apply);
+            apply();
         })();
     </script>
 
