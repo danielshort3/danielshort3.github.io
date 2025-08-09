@@ -2,7 +2,8 @@
 <html lang="en" data-theme="auto">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <!-- Updated viewport for safe areas / notches -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Shape Classifier Demo</title>
 
     <!-- Optional: your external stylesheet -->
@@ -27,6 +28,8 @@
             --link: var(--primary);
             --canvas-dark: #000000;
             --canvas-light: #ffffff;
+            /* NEW: mobile-friendly outer padding */
+            --page-pad: clamp(12px, 3vw, 24px);
         }
 
         * {
@@ -44,18 +47,28 @@
             background: radial-gradient(1200px 500px at 50% -10%, color-mix(in srgb, var(--primary) 15%, transparent), transparent 60%) var(--bg);
             display: grid;
             place-items: start center;
-            padding: clamp(12px, 3vw, 24px); /* shrink padding on small screens */
+            padding: var(--page-pad);
             overflow-x: hidden; /* guardrail against horizontal overflow */
         }
 
         /* ---------- Card ---------- */
         #demo-box {
-            width: min(100%, 820px); /* no rigid min that can overflow small viewports */
+            width: min(100%, 820px);
             background: var(--surface);
             border: 1px solid var(--surface-accent);
             border-radius: var(--radius);
             box-shadow: var(--shadow-2);
             overflow: hidden;
+            /* NEW: let the inner content be the only scroller */
+            display: grid;
+            grid-template-rows: auto auto 1fr; /* header, status, content */
+            height: calc(100vh - var(--page-pad) * 2);
+        }
+
+        @supports (height: 100dvh) {
+            #demo-box {
+                height: calc( 100dvh - var(--page-pad)*2 - env(safe-area-inset-top) - env(safe-area-inset-bottom) );
+            }
         }
 
         header.card-header {
@@ -89,6 +102,7 @@
             padding: 8px 10px;
             cursor: pointer;
             color: var(--text);
+            touch-action: manipulation; /* faster taps */
         }
 
             .icon-btn:focus-visible {
@@ -99,9 +113,8 @@
         /* ---------- Status (stepper) ---------- */
         #status {
             padding: 10px 16px 0;
-            min-height: 34px;
+            min-height: 34px; /* reserves space so height doesn't change */
         }
-        /* reserves space so height doesn't change */
 
         .stepper {
             display: grid;
@@ -117,7 +130,7 @@
 
         .step {
             display: grid;
-            grid-template-columns: 28px minmax(0,1fr); /* match chatbot: label shrinks safely */
+            grid-template-columns: 28px minmax(0,1fr); /* label shrinks safely */
             gap: 8px;
             align-items: center;
             background: var(--surface-2);
@@ -209,12 +222,18 @@
                 }
         }
 
-        /* ---------- Content layout ---------- */
+        /* ---------- Content layout (the only scroller) ---------- */
         .content {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 16px;
-            padding: 12px 16px 0;
+            padding: 12px 16px 16px;
+            /* NEW: scrolling container */
+            max-height: none;
+            min-height: 0;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
         }
 
             .content > * {
@@ -234,6 +253,9 @@
             display: grid;
             gap: 8px;
             justify-items: center;
+            /* NEW: faster long-page rendering when off-screen */
+            content-visibility: auto;
+            contain-intrinsic-size: 0 420px;
         }
 
         .canvas-frame {
@@ -248,9 +270,11 @@
 
         canvas {
             display: block;
+            user-select: none;
             touch-action: none;
             background: var(--canvas-dark); /* actual pixel fill handled in script */
-            width: min(82vw, 320px); /* shrink further on narrow screens */
+            /* Responsive CSS size; backing resolution is DPR-scaled in JS */
+            width: min(88vw, 360px);
             max-width: 100%;
             height: auto;
             aspect-ratio: 1 / 1; /* keep square without overflow */
@@ -265,6 +289,8 @@
             z-index: 2;
             padding: 6px 8px;
             opacity: .95;
+            min-height: 44px; /* larger tap target */
+            min-width: 44px;
         }
 
         .toolbar {
@@ -279,11 +305,14 @@
             background: var(--surface);
             color: var(--text);
             border-radius: 10px;
-            padding: 8px 10px;
+            padding: 10px 12px;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             gap: 6px;
+            min-height: 44px; /* comfortable tap size */
+            min-width: 44px;
+            touch-action: manipulation;
         }
 
         .btn-primary {
@@ -314,6 +343,9 @@
             box-shadow: var(--shadow-1);
             align-content: start;
             min-width: 0; /* allow panel to shrink */
+            /* NEW: progressive rendering */
+            content-visibility: auto;
+            contain-intrinsic-size: 0 240px;
         }
 
         .result-badge {
@@ -331,16 +363,17 @@
             white-space: nowrap;
             font-size: clamp(.5rem, 3vw, 1rem); /* shrink text on small screens */
         }
-        /* allow text to shrink but keep icons visible */
+
         #result-shape {
             flex: 1 1 auto;
             min-width: 0;
         }
+
         .result-badge i {
             flex: none;
             font-size: 1.2em;
         }
-        /* inline shape icon */
+
         .shape-icon {
             width: 1.2em;
             height: 1.2em;
@@ -394,6 +427,35 @@
         .pulse {
             animation: shimmer 1.2s ease-in-out infinite;
         }
+
+        /* Respect prefers-reduced-motion */
+        @media (prefers-reduced-motion: reduce) {
+            .pulse {
+                animation: none;
+            }
+
+            #step-process.in-progress .dot::after {
+                animation: none;
+            }
+        }
+
+        /* Tiny screens: hide status if space is cramped */
+        @media (max-width: 360px) {
+            #status {
+                display: none;
+            }
+        }
+
+        /* Mobile typography tweaks */
+        @media (max-width: 520px) {
+            .title {
+                font-size: 1rem;
+            }
+
+            .subtitle {
+                font-size: .8rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -418,6 +480,7 @@
             <!-- Left: canvas & tools -->
             <section>
                 <div id="pad-wrapper" class="canvas-frame">
+                    <!-- Note: width/height attributes are resized for DPR in JS -->
                     <canvas id="pad" width="256" height="256" aria-label="Drawing canvas"></canvas>
 
                     <!-- Floating eraser button (top-right of the canvas frame) -->
@@ -515,7 +578,7 @@
             }
         });
 
-        /* ---------- Canvas setup (pen always active, 6px) ---------- */
+        /* ---------- Canvas setup with DPR scaling (crisper lines on phones) ---------- */
         const canvas = document.getElementById('pad');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         const eraseBtn = document.getElementById('erase');
@@ -529,8 +592,24 @@
 
         let bg = getComputedStyle(document.documentElement).getPropertyValue('--canvas-dark').trim() || '#000';
         const fg = '#fff';
+        const STROKE_CSS_PX = 6; /* desired line width in CSS px */
+        let currentDPR = 1;
         let hasDrawn = false;
         let drawing = false;
+
+        function fitCanvasToDisplaySize() {
+            const r = canvas.getBoundingClientRect();
+            // Cap DPR to avoid huge buffers on extreme devices
+            const dpr = Math.min(window.devicePixelRatio || 1, 3);
+            currentDPR = dpr;
+            const w = Math.max(1, Math.round(r.width * dpr));
+            const h = Math.max(1, Math.round(r.height * dpr));
+            if (canvas.width !== w || canvas.height !== h) {
+                canvas.width = w;
+                canvas.height = h;
+                resetCanvas(); // clears & fills bg
+            }
+        }
 
         function resetCanvas() {
             ctx.save();
@@ -541,7 +620,7 @@
             hasDrawn = false;
         }
 
-        // Pointer coordinate to canvas space
+        // Pointer coordinate to canvas space (accounts for DPR)
         function pos(e) {
             const r = canvas.getBoundingClientRect();
             const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
@@ -551,27 +630,51 @@
             return [x * scaleX, y * scaleY];
         }
 
-        // Init (fixed 6 px)
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.lineWidth = 6;
-        ctx.strokeStyle = fg;
-        resetCanvas();
+        function setStroke() {
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.strokeStyle = fg;
+            ctx.lineWidth = STROKE_CSS_PX * currentDPR;
+        }
+
+        // Init
+        fitCanvasToDisplaySize();
+        setStroke();
+
+        // Redraw bg color if theme variables change (bitmap stays dark by design)
+        function refreshBG() {
+            const was = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            bg = getComputedStyle(document.documentElement).getPropertyValue('--canvas-dark').trim() || '#000';
+            ctx.putImageData(was, 0, 0);
+        }
+        refreshBG();
+
+        // Resize canvas when layout/orientation changes
+        let resizeTimer = null;
+        function onResize() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                fitCanvasToDisplaySize();
+                setStroke();
+            }, 50);
+        }
+        window.addEventListener('resize', onResize);
+        window.visualViewport?.addEventListener('resize', onResize);
 
         // Drawing interactions (pen always on)
         canvas.addEventListener('pointerdown', e => {
             e.preventDefault();
             drawing = true;
             canvas.setPointerCapture?.(e.pointerId);
+            setStroke();
             ctx.beginPath();
             ctx.moveTo(...pos(e));
         });
         canvas.addEventListener('pointermove', e => {
             if (!drawing) return;
             e.preventDefault();
+            setStroke();
             const [x, y] = pos(e);
-            ctx.strokeStyle = fg;
-            ctx.lineWidth = 6; // fixed width
             ctx.lineTo(x, y);
             ctx.stroke();
             hasDrawn = true;
@@ -580,7 +683,7 @@
             canvas.addEventListener(evt, () => { drawing = false; })
         );
 
-        // Keyboard shortcut: only 'C' to clear (others removed)
+        // Keyboard shortcut: only 'C' to clear
         document.addEventListener('keydown', e => {
             if (e.target && /input|textarea|select/i.test(e.target.tagName)) return;
             if (e.key === 'c' || e.key === 'C') eraseBtn.click();
@@ -603,9 +706,7 @@
 
             if (shape === 'circle') {
                 const c = document.createElementNS(NS, 'circle');
-                c.setAttribute('cx', '20');
-                c.setAttribute('cy', '20');
-                c.setAttribute('r', '12');
+                c.setAttribute('cx', '20'); c.setAttribute('cy', '20'); c.setAttribute('r', '12');
                 svg.appendChild(commonAttrs(c));
             } else if (shape === 'triangle') {
                 const p = document.createElementNS(NS, 'polygon');
@@ -657,7 +758,6 @@
                 return;
             }
 
-            // Stepper (static area already rendered)
             setStep('submit', 'in-progress');
 
             // CLEAR previous classification & confidence immediately
@@ -703,7 +803,7 @@
 
                 setStep('process', 'done');
                 setStep('complete', 'done');
-                // Text first, icon after the word:
+
                 setPredictionUI(`Prediction: ${pretty}`, conf, canonical !== 'unknown' ? canonical : null);
             } catch (err) {
                 setStep('process', 'not-started');
@@ -724,13 +824,8 @@
             setPredictionUI('Draw a shape to begin', null, null);
         });
 
-        // Make the canvas background match theme on load (bitmap stays dark)
-        function refreshBG() {
-            const was = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            bg = getComputedStyle(document.documentElement).getPropertyValue('--canvas-dark').trim() || '#000';
-            ctx.putImageData(was, 0, 0);
-        }
-        refreshBG();
+        // Make sure canvas stays crisp when fonts/layout settle
+        window.addEventListener('load', () => { fitCanvasToDisplaySize(); setStroke(); });
 
         // (No ResizeObserver-driven notifyResize() to prevent iframe jitter)
     </script>
