@@ -527,13 +527,18 @@ function openModal(id){
     const measure = () => {
       if (!iframe) return;
       try {
-        const doc   = iframe.contentDocument || iframe.contentWindow.document;
-        const box   = doc.getElementById('demo-box');
-        if (box) box.style.height = 'auto';
-        const height = Math.max(
-          doc.body?.scrollHeight || 0,
-          doc.documentElement?.scrollHeight || 0
-        );
+        const doc  = iframe.contentDocument || iframe.contentWindow.document;
+        const box  = doc.getElementById('demo-box');
+        let height = 0;
+        if (box) {
+          box.style.height = 'auto';
+          height = box.getBoundingClientRect().height;
+        } else {
+          height = Math.max(
+            doc.body?.scrollHeight || 0,
+            doc.documentElement?.scrollHeight || 0
+          );
+        }
         iframe.style.height = Math.ceil(height) + 10 + 'px';
         iframe.style.width  = '100%';
       } catch (err) {}
