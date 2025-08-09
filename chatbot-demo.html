@@ -48,17 +48,18 @@
             background: radial-gradient(1200px 500px at 50% -10%, color-mix(in srgb, var(--primary) 15%, transparent), transparent 60%) var(--bg);
             display: grid;
             place-items: start center;
-            padding: 24px;
+            padding: clamp(12px, 3vw, 24px); /* shrink padding on small screens */
+            overflow-x: hidden; /* prevent horizontal overflow */
         }
 
         /* ---------- Card ---------- */
         #demo-box {
-            width: clamp(320px, 90vw, 820px);
+            width: min(100%, 820px);
             background: var(--surface);
             border: 1px solid var(--surface-accent);
             border-radius: var(--radius);
             box-shadow: var(--shadow-2);
-            overflow: clip;
+            overflow: hidden; /* avoid clip issues on some mobile browsers */
         }
 
         header.card-header {
@@ -70,6 +71,11 @@
             border-bottom: 1px solid var(--surface-accent);
             align-items: center;
         }
+
+        .card-header > div:first-child {
+            min-width: 0;
+        }
+        /* allow title/subtitle to shrink */
 
         .title {
             font-family: Poppins, Inter, system-ui, sans-serif;
@@ -85,6 +91,7 @@
             display: flex;
             align-items: center;
             gap: .5rem;
+            overflow-wrap: anywhere;
         }
 
         .badge {
@@ -118,11 +125,12 @@
                 outline-offset: 2px;
             }
 
-        /* ---------- Status (stepper) ---------- */
+        /* ---------- Status (stepper) | MATCHES shape-demo ---------- */
         #status {
             padding: 10px 16px 0;
-            min-height: 32px;
+            min-height: 34px;
         }
+        /* reserve space to avoid layout shift */
 
         .stepper {
             display: grid;
@@ -138,13 +146,16 @@
 
         .step {
             display: grid;
-            grid-template-columns: 28px 1fr;
+            grid-template-columns: 28px minmax(0,1fr); /* label shrinks safely */
             gap: 8px;
             align-items: center;
             background: var(--surface-2);
             border: 1px solid var(--surface-accent);
             padding: 6px 10px;
             border-radius: 10px;
+            min-width: 0;
+            word-break: break-word;
+            position: relative; /* for tooltip */
         }
 
             .step .dot {
@@ -156,7 +167,7 @@
                 background: var(--surface);
                 border: 1px solid var(--surface-accent);
                 font-size: .75rem;
-                position: relative;
+                position: relative; /* spinner anchor */
             }
 
             .step.in-progress {
@@ -196,6 +207,37 @@
             }
         }
 
+        /* --- Compact numeric steps on small screens (same behavior as shape-demo) --- */
+        @media (max-width: 520px) {
+            .step {
+                grid-template-columns: 1fr;
+                justify-items: center;
+                padding: 8px;
+                cursor: pointer;
+            }
+
+                .step .label {
+                    display: none;
+                }
+
+                .step.show-tip::after {
+                    content: attr(data-label);
+                    position: absolute;
+                    bottom: calc(100% + 6px);
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: var(--surface);
+                    border: 1px solid var(--surface-accent);
+                    color: var(--text);
+                    padding: 4px 8px;
+                    border-radius: 8px;
+                    white-space: nowrap;
+                    font-size: .75rem;
+                    box-shadow: var(--shadow-1);
+                    z-index: 5;
+                }
+        }
+
         /* ---------- Chat area ---------- */
         #answer {
             display: flex;
@@ -205,6 +247,7 @@
             max-height: min(66vh, 720px);
             overflow: auto;
             scroll-behavior: smooth;
+            min-width: 0; /* allow inner content to shrink */
         }
 
         .exchange-wrapper {
@@ -214,9 +257,10 @@
 
         .message {
             display: grid;
-            grid-template-columns: 36px 1fr;
+            grid-template-columns: 36px minmax(0,1fr); /* prevent overflow in content column */
             gap: 10px;
             align-items: start;
+            min-width: 0;
         }
 
         .avatar {
@@ -241,7 +285,20 @@
             overflow-wrap: anywhere;
             position: relative;
             box-shadow: var(--shadow-1);
+            min-width: 0; /* important for grid overflow prevention */
         }
+
+            /* Ensure long/preformatted content doesn't overflow on mobile */
+            .bubble pre, .bubble code, .bubble table {
+                max-width: 100%;
+                overflow: auto;
+            }
+
+            .bubble img, .bubble video {
+                max-width: 100%;
+                height: auto;
+                display: block;
+            }
 
             .bubble .tools {
                 display: flex;
@@ -302,7 +359,24 @@
             }
         }
 
-        /* ---------- Input & Sources footer ---------- */
+        /* ---------- Sources per message ---------- */
+        .sources {
+            display: grid;
+            gap: 6px;
+            margin-top: 8px;
+            font-size: .85rem;
+            border-top: 1px dashed var(--surface-accent);
+            padding-top: 6px;
+        }
+
+            .sources a {
+                color: var(--link);
+                text-decoration: none;
+                word-break: break-all; /* show full URL */
+                overflow-wrap: anywhere; /* wrap in all browsers */
+            }
+
+        /* ---------- Input ---------- */
         .input-wrap {
             position: sticky;
             bottom: 0;
@@ -314,7 +388,7 @@
             gap: 10px;
         }
 
-        /* Chip style (restored) for quick prompts */
+        /* Chip style for quick prompts */
         .chip {
             display: inline-flex;
             align-items: center;
@@ -359,8 +433,20 @@
         form#chat-form {
             display: grid;
             grid-template-columns: 1fr auto;
+            grid-template-areas: "input buttons";
             gap: 8px;
             align-items: end;
+        }
+
+        #prompt {
+            grid-area: input;
+        }
+
+        .bar-actions {
+            grid-area: buttons;
+            display: flex;
+            gap: 8px;
+            align-items: center;
         }
 
         #prompt {
@@ -394,6 +480,9 @@
             border-radius: 10px;
             font-weight: 600;
             cursor: pointer;
+            display: inline-flex; /* for icon alignment */
+            align-items: center;
+            gap: 6px;
         }
 
             .btn-primary[disabled] {
@@ -410,27 +499,25 @@
             cursor: pointer;
         }
 
-        .bar-actions {
-            display: flex;
-            gap: 8px;
+        /* Match shape-demo button look/feel */
+        #ask {
+            min-width: 180px; /* same visual weight as Classify */
+            justify-content: center; /* center icon + text */
         }
 
-        /* Full URL sources footer (bottom of the screen) */
-        .sources-footer {
-            display: grid;
-            gap: 6px;
-            padding-top: 8px;
-            border-top: 1px dashed var(--surface-accent);
-            max-height: 96px;
-            overflow: auto;
-            font-size: .85rem;
-        }
-
-            .sources-footer a {
-                color: var(--link);
-                text-decoration: none;
-                word-break: break-all; /* show full URL */
+        /* Mobile: place buttons below the textarea and center them (like shape-demo) */
+        @media (max-width: 520px) {
+            form#chat-form {
+                grid-template-columns: 1fr;
+                grid-template-areas:
+                    "input"
+                    "buttons";
             }
+
+            .bar-actions {
+                justify-content: center; /* centered on mobile */
+            }
+        }
 
         a {
             color: var(--link);
@@ -439,7 +526,7 @@
 </head>
 <body>
     <script>
-        /* notify parent for iframed embeds */
+        /* notify parent for iframed embeds — only once to keep height static */
         function notifyResize() { try { parent.postMessage({ type: 'chatbot-demo-resize' }, '*'); } catch (e) { } }
         window.addEventListener('load', notifyResize);
         try { document.fonts?.ready?.then(notifyResize); } catch (e) { }
@@ -456,7 +543,6 @@
                 </p>
             </div>
             <div class="header-actions">
-                <!-- Theme toggle removed as part of simplification -->
                 <button id="clear-all" class="icon-btn" type="button" aria-label="Clear conversation">
                     <i class="fa-solid fa-broom"></i>
                 </button>
@@ -485,9 +571,6 @@
                     </button>
                 </div>
             </form>
-
-            <!-- Full URL sources footer (sticky at bottom via .input-wrap) -->
-            <div id="sources-footer" class="sources-footer" aria-live="polite" aria-label="Sources"></div>
         </div>
     </div>
 
@@ -503,32 +586,75 @@
         const form = document.getElementById('chat-form');
         const clearBtn = document.getElementById('clear-all');
         const quickPrompts = document.getElementById('quick-prompts');
-        const sourcesFooter = document.getElementById('sources-footer');
 
-        /* ---------- Stepper ---------- */
+        /* ---------- Stepper (identical structure/behavior to shape-demo) ---------- */
         const steps = [
             { id: 'submit', label: 'Submit prompt' },
             { id: 'process', label: 'Processing on server' },
             { id: 'complete', label: 'Complete' }
         ];
+
         function renderStepper() {
             const ul = document.createElement('ul');
             ul.className = 'stepper';
             steps.forEach((s, i) => {
-                const li = document.createElement('li'); li.className = 'step not-started'; li.id = `step-${s.id}`;
-                const dot = document.createElement('div'); dot.className = 'dot'; dot.textContent = i + 1;
-                li.append(dot, document.createTextNode(s.label));
+                const li = document.createElement('li');
+                li.className = 'step not-started';
+                li.id = `step-${s.id}`;
+                li.dataset.label = s.label;               // used for tooltip in compact mode
+                li.setAttribute('role', 'button');        // accessible click target
+                li.setAttribute('tabindex', '0');
+                li.setAttribute('aria-label', s.label);
+
+                const dot = document.createElement('div');
+                dot.className = 'dot';
+                dot.textContent = i + 1;
+
+                const label = document.createElement('span');
+                label.className = 'label';
+                label.textContent = s.label;
+
+                li.append(dot, label);
                 ul.appendChild(li);
             });
-            statusEl.innerHTML = ''; statusEl.appendChild(ul);
+            statusEl.innerHTML = '';
+            statusEl.appendChild(ul);
         }
+
         function setStep(id, state) {
             const el = document.getElementById(`step-${id}`);
             if (!el) return;
             el.classList.remove('not-started', 'in-progress', 'done');
             el.classList.add(state);
-            notifyResize();
+            /* intentionally no notifyResize() to keep iframe static */
         }
+
+        // Render once on load so the stepper space is reserved and height stays stable
+        renderStepper();
+
+        // Compact tooltip interaction for small screens (tap number to reveal label briefly)
+        const mqCompact = window.matchMedia('(max-width: 520px)');
+        statusEl.addEventListener('click', (e) => {
+            const step = e.target.closest('.step');
+            if (!step || !mqCompact.matches) return;
+            step.classList.add('show-tip');
+            clearTimeout(step._tipTimer);
+            step._tipTimer = setTimeout(() => step.classList.remove('show-tip'), 1500);
+        });
+        statusEl.addEventListener('keydown', (e) => {
+            if (!mqCompact.matches) return;
+            const step = e.target.closest('.step');
+            if (!step) return;
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                step.click();
+            }
+        });
+        window.addEventListener('resize', () => {
+            if (!mqCompact.matches) {
+                document.querySelectorAll('.step.show-tip').forEach(s => s.classList.remove('show-tip'));
+            }
+        });
 
         /* ---------- Utilities ---------- */
         function autoResize() {
@@ -556,15 +682,13 @@
         clearBtn.addEventListener('click', () => {
             answerEl.innerHTML = '';
             localStorage.removeItem('chatbot-demo-history');
-            // Also clear sources footer for a clean slate
-            sourcesFooter.innerHTML = '';
-            notifyResize();
+            /* no notifyResize() to avoid iframe jitter */
         });
 
         /* Copy button (event delegation) */
         answerEl.addEventListener('click', async (e) => {
             const btn = e.target.closest('[data-copy]');
-            if (!btn) return;
+                if (!btn) return;
             const bubble = btn.closest('.bubble');
             const html = bubble.querySelector('.content')?.innerHTML || '';
             const text = (new DOMParser()).parseFromString(html, 'text/html').documentElement.textContent || '';
@@ -589,7 +713,7 @@
             const { contentEl, bubble } = appendMessage(wrap, 'bot', '', { loading: true });
             answerEl.appendChild(wrap);
             answerEl.scrollTop = answerEl.scrollHeight;
-            notifyResize();
+            /* no notifyResize() here */
 
             return { contentEl, bubble };
         }
@@ -625,20 +749,22 @@
             return { contentEl: content, bubble };
         }
 
-        /* Show full URLs at the bottom (footer) */
-        function showSources(urls) {
-            sourcesFooter.innerHTML = '';
+        /* Show full URLs under the bot response bubble */
+        function renderSources(parentBubble, urls) {
             if (!Array.isArray(urls) || !urls.length) return;
+            const div = document.createElement('div');
+            div.className = 'sources';
             urls.forEach(u => {
                 try {
                     const a = document.createElement('a');
                     a.href = u; a.target = '_blank'; a.rel = 'noopener';
                     a.textContent = u;  // full URL text
-                    const wrap = document.createElement('div');
-                    wrap.appendChild(a);
-                    sourcesFooter.appendChild(wrap);
+                    const line = document.createElement('div');
+                    line.appendChild(a);
+                    div.appendChild(line);
                 } catch { }
             });
+            parentBubble.appendChild(div);
         }
 
         /* ---------- Networking ---------- */
@@ -673,10 +799,7 @@
         }
 
         /* ---------- Submit flow ---------- */
-        function saveHistory() {
-            const html = answerEl.innerHTML;
-            localStorage.setItem('chatbot-demo-history', html);
-        }
+        function saveHistory() { localStorage.setItem('chatbot-demo-history', answerEl.innerHTML); }
         function restoreHistory() {
             const html = localStorage.getItem('chatbot-demo-history');
             if (html) { answerEl.innerHTML = html; }
@@ -688,7 +811,6 @@
             const prompt = promptEl.value.trim();
             if (!prompt) return;
 
-            renderStepper();
             setStep('submit', 'in-progress');
             askBtn.disabled = true; stopBtn.hidden = false;
             form.setAttribute('aria-busy', 'true');
@@ -703,7 +825,7 @@
                 });
                 contentEl.innerHTML = renderMarkdown(data.generated_text || JSON.stringify(data));
                 const urls = data.source_urls || data.sources || data.urls;
-                showSources(urls);  // full URLs at bottom
+                renderSources(bubble, urls);  // full URLs under this response
             } catch (err) {
                 setStep('process', 'not-started');
                 setStep('complete', 'not-started');
@@ -712,7 +834,7 @@
                 askBtn.disabled = false; stopBtn.hidden = true;
                 form.setAttribute('aria-busy', 'false');
                 saveHistory();
-                notifyResize();
+                /* no notifyResize() to keep iframe static */
             }
         }
 
