@@ -60,9 +60,6 @@
             border-radius: var(--radius);
             box-shadow: var(--shadow-2);
             overflow: hidden; /* avoid clip issues on some mobile browsers */
-            display: flex;
-            flex-direction: column;
-            max-height: 100%;
         }
 
         header.card-header {
@@ -132,7 +129,6 @@
         #status {
             padding: 10px 16px 0;
             min-height: 34px;
-            flex-shrink: 0;
         }
         /* reserve space to avoid layout shift */
 
@@ -248,11 +244,10 @@
             flex-direction: column;
             gap: 12px;
             padding: 12px 16px 0;
+            max-height: min(66vh, 720px);
             overflow: auto;
             scroll-behavior: smooth;
             min-width: 0; /* allow inner content to shrink */
-            flex: 1 1 auto;
-            min-height: 0;
         }
 
         .exchange-wrapper {
@@ -391,7 +386,6 @@
             border-top: 1px solid var(--surface-accent);
             display: grid;
             gap: 10px;
-            flex-shrink: 0;
         }
 
         /* Chip style for quick prompts */
