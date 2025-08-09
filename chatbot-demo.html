@@ -36,8 +36,8 @@
             --surface-accent: #e2e8f0;
             --text: #0f172a;
             --text-muted: #64748b;
-            --primary: #19526b; /* tweak to your brand */
-            --secondary: #cc9e5a; /* tweak to your brand */
+            --primary: #19526b; /* brand */
+            --secondary: #cc9e5a; /* brand */
             --ring: #94a3b8;
             --link: #0ea5e9;
         }
@@ -193,6 +193,7 @@
                 background: var(--surface);
                 border: 1px solid var(--surface-accent);
                 font-size: .75rem;
+                position: relative;
             }
 
             .step.in-progress {
@@ -213,6 +214,24 @@
                     color: #000;
                     border-color: var(--primary);
                 }
+
+        /* Processing step spinner (2nd step) */
+        #step-process.in-progress .dot::after {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            border-top-color: transparent;
+            animation: spin .8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
 
         /* ---------- Chat area ---------- */
         #answer {
@@ -275,27 +294,14 @@
                 opacity: 1;
             }
 
-        .tool-btn {
-            border: 1px solid var(--surface-accent);
-            background: var(--surface);
-            border-radius: 8px;
-            padding: 4px 6px;
-            cursor: pointer;
-            font-size: .8rem;
-            color: var(--text-muted);
-        }
-
-            .tool-btn:focus-visible {
-                outline: var(--focus);
-            }
-
+        /* Less-bright user bubble (distinct but subtle) */
         .message.user .bubble {
-            background: linear-gradient(0deg, var(--surface-2), #eef8ff);
-            border-color: #cfe9ff;
+            background: linear-gradient(0deg, var(--surface-2), rgba(25,82,107,.08));
+            border-color: #c9d8df;
         }
 
         .message.user .avatar {
-            background: #eaf5ff;
+            background: #e7f0f6;
             color: #0b6fbf;
         }
 
@@ -333,40 +339,48 @@
             }
         }
 
-        .sources {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-top: 8px;
+        /* ---------- Input & Sources footer ---------- */
+        .input-wrap {
+            position: sticky;
+            bottom: 0;
+            z-index: 2;
+            background: linear-gradient(180deg, transparent, var(--surface) 24%);
+            padding: 10px 16px 16px;
+            border-top: 1px solid var(--surface-accent);
+            display: grid;
+            gap: 10px;
         }
 
+        /* Chip style (restored) for quick prompts */
         .chip {
             display: inline-flex;
             align-items: center;
             gap: .4rem;
-            padding: .25rem .5rem;
+            padding: .35rem .65rem;
             border-radius: 999px;
             background: var(--surface);
             border: 1px solid var(--surface-accent);
-            font-size: .8rem;
+            font-size: .85rem;
             color: var(--link);
             text-decoration: none;
             max-width: 100%;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            cursor: pointer;
         }
 
-        /* ---------- Input bar ---------- */
-        .input-wrap {
-            position: sticky;
-            bottom: 0;
-            z-index: 1;
-            background: linear-gradient(180deg, transparent, var(--surface) 24%);
-            padding: 10px 16px 16px;
-            border-top: 1px solid var(--surface-accent);
-            display: grid;
-            gap: 10px;
+        button.chip {
+            -webkit-appearance: none;
+            appearance: none;
+            background: var(--surface);
+            border: 1px solid var(--surface-accent);
+            color: var(--link);
+        }
+
+        .chip:focus-visible {
+            outline: var(--focus);
+            outline-offset: 2px;
         }
 
         #quick-prompts {
@@ -376,7 +390,6 @@
         }
 
             #quick-prompts .chip {
-                cursor: pointer;
                 user-select: none;
             }
 
@@ -393,7 +406,7 @@
             max-height: 200px;
             resize: none; /* we auto-resize */
             border: 1px solid var(--surface-accent);
-            background: var(--surface-2);
+            background: var(--surface-2); /* not stark white */
             color: var(--text);
             border-radius: 10px;
             padding: 10px 12px;
@@ -439,6 +452,23 @@
             gap: 8px;
         }
 
+        /* Full URL sources footer (bottom of the screen) */
+        .sources-footer {
+            display: grid;
+            gap: 6px;
+            padding-top: 8px;
+            border-top: 1px dashed var(--surface-accent);
+            max-height: 96px;
+            overflow: auto;
+            font-size: .85rem;
+        }
+
+            .sources-footer a {
+                color: var(--link);
+                text-decoration: none;
+                word-break: break-all; /* show full URL */
+            }
+
         a {
             color: var(--link);
         }
@@ -463,9 +493,7 @@
                 </p>
             </div>
             <div class="header-actions">
-                <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle theme">
-                    <i class="fa-solid fa-circle-half-stroke"></i>
-                </button>
+                <!-- Theme toggle removed as part of simplification -->
                 <button id="clear-all" class="icon-btn" type="button" aria-label="Clear conversation">
                     <i class="fa-solid fa-broom"></i>
                 </button>
@@ -478,10 +506,9 @@
 
         <div class="input-wrap">
             <div id="quick-prompts" aria-label="Quick prompts" role="list">
-                <button class="chip" type="button" data-text="Summarize this text:">Summarize text</button>
-                <button class="chip" type="button" data-text="Give me 3 ideas for ...">Brainstorm ideas</button>
-                <button class="chip" type="button" data-text="Explain like I'm five:">ELI5</button>
-                <button class="chip" type="button" data-text="Turn this into bullet points:">Bullet points</button>
+                <button class="chip" type="button" data-text="Where can I eat for dinner in Grand Junction?">Where can I eat for dinner in Grand Junction?</button>
+                <button class="chip" type="button" data-text="What kid-friendly activities are there in Grand Junction?">What kid-friendly activities are there in Grand Junction?</button>
+                <button class="chip" type="button" data-text="Where should I go on vacation?">Where should I go on vacation?</button>
             </div>
 
             <form id="chat-form" novalidate>
@@ -495,23 +522,14 @@
                     </button>
                 </div>
             </form>
+
+            <!-- Full URL sources footer (sticky at bottom via .input-wrap) -->
+            <div id="sources-footer" class="sources-footer" aria-live="polite" aria-label="Sources"></div>
         </div>
     </div>
 
     <script>
         const API_URL = 'https://ovodkr9oad.execute-api.us-east-2.amazonaws.com/prod';
-
-        /* ---------- Theme ---------- */
-        const root = document.documentElement;
-        const themeBtn = document.getElementById('theme-toggle');
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme) root.setAttribute('data-theme', savedTheme);
-        themeBtn.addEventListener('click', () => {
-            const cur = root.getAttribute('data-theme') || 'auto';
-            const next = cur === 'dark' ? 'light' : (cur === 'light' ? 'auto' : 'dark');
-            root.setAttribute('data-theme', next);
-            localStorage.setItem('theme', next);
-        });
 
         /* ---------- DOM refs ---------- */
         const promptEl = document.getElementById('prompt');
@@ -522,6 +540,7 @@
         const form = document.getElementById('chat-form');
         const clearBtn = document.getElementById('clear-all');
         const quickPrompts = document.getElementById('quick-prompts');
+        const sourcesFooter = document.getElementById('sources-footer');
 
         /* ---------- Stepper ---------- */
         const steps = [
@@ -574,6 +593,8 @@
         clearBtn.addEventListener('click', () => {
             answerEl.innerHTML = '';
             localStorage.removeItem('chatbot-demo-history');
+            // Also clear sources footer for a clean slate
+            sourcesFooter.innerHTML = '';
             notifyResize();
         });
 
@@ -641,18 +662,20 @@
             return { contentEl: content, bubble };
         }
 
-        function renderSources(parentBubble, urls) {
+        /* Show full URLs at the bottom (footer) */
+        function showSources(urls) {
+            sourcesFooter.innerHTML = '';
             if (!Array.isArray(urls) || !urls.length) return;
-            const div = document.createElement('div'); div.className = 'sources';
             urls.forEach(u => {
                 try {
-                    const { hostname } = new URL(u);
-                    const a = document.createElement('a'); a.href = u; a.target = '_blank'; a.rel = 'noopener';
-                    a.className = 'chip'; a.textContent = hostname.replace(/^www\./, '');
-                    div.appendChild(a);
+                    const a = document.createElement('a');
+                    a.href = u; a.target = '_blank'; a.rel = 'noopener';
+                    a.textContent = u;  // full URL text
+                    const wrap = document.createElement('div');
+                    wrap.appendChild(a);
+                    sourcesFooter.appendChild(wrap);
                 } catch { }
             });
-            parentBubble.appendChild(div);
         }
 
         /* ---------- Networking ---------- */
@@ -717,7 +740,7 @@
                 });
                 contentEl.innerHTML = renderMarkdown(data.generated_text || JSON.stringify(data));
                 const urls = data.source_urls || data.sources || data.urls;
-                renderSources(bubble, urls);
+                showSources(urls);  // full URLs at bottom
             } catch (err) {
                 setStep('process', 'not-started');
                 setStep('complete', 'not-started');

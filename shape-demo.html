@@ -36,10 +36,8 @@
             --link: #0ea5e9;
             --canvas-dark: #000000;
             --canvas-light: #ffffff;
-            --grid-dark: rgba(255,255,255,.08);
-            --grid-light: rgba(0,0,0,.08);
         }
-        /* Dark */
+        /* Dark (auto, via media query) */
         @media (prefers-color-scheme: dark) {
             :root[data-theme="auto"] {
                 --bg: #0b1113;
@@ -53,8 +51,6 @@
                 --link: #38bdf8;
                 --canvas-dark: #000000;
                 --canvas-light: #ffffff;
-                --grid-dark: rgba(255,255,255,.08);
-                --grid-light: rgba(0,0,0,.08);
             }
         }
 
@@ -70,8 +66,6 @@
             --link: #38bdf8;
             --canvas-dark: #000000;
             --canvas-light: #ffffff;
-            --grid-dark: rgba(255,255,255,.08);
-            --grid-light: rgba(0,0,0,.08);
         }
 
         * {
@@ -104,7 +98,7 @@
 
         header.card-header {
             display: grid;
-            grid-template-columns: 1fr auto;
+            grid-template-columns: 1fr; /* single column (actions removed) */
             gap: 12px;
             padding: 16px 18px;
             background: linear-gradient(0deg, var(--surface), var(--surface-2));
@@ -123,12 +117,6 @@
             margin: 0;
             color: var(--text-muted);
             font-size: .85rem;
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
 
         .icon-btn {
@@ -183,6 +171,7 @@
                 background: var(--surface);
                 border: 1px solid var(--surface-accent);
                 font-size: .75rem;
+                position: relative; /* needed for spinner */
             }
 
             .step.in-progress {
@@ -204,6 +193,24 @@
                     border-color: var(--primary);
                 }
 
+        /* Processing step spinner (2nd step) */
+        #step-process.in-progress .dot::after {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            border-top-color: transparent;
+            animation: spin .8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
         /* ---------- Content layout ---------- */
         .content {
             display: grid;
@@ -220,7 +227,7 @@
 
         /* ---------- Pad & toolbar ---------- */
         #pad-wrapper {
-            position: relative;
+            position: relative; /* for absolute erase button */
             display: grid;
             gap: 8px;
             justify-items: center;
@@ -244,15 +251,15 @@
             border-radius: 8px;
         }
 
-            canvas.grid-dark {
-                background-image: linear-gradient(var(--grid-dark) 1px, transparent 1px), linear-gradient(90deg, var(--grid-dark) 1px, transparent 1px);
-                background-size: 16px 16px, 16px 16px;
-            }
-
-            canvas.grid-light {
-                background-image: linear-gradient(var(--grid-light) 1px, transparent 1px), linear-gradient(90deg, var(--grid-light) 1px, transparent 1px);
-                background-size: 16px 16px, 16px 16px;
-            }
+        /* Floating erase button inside canvas frame */
+        #erase {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            z-index: 2;
+            padding: 6px 8px;
+            opacity: .95;
+        }
 
         .toolbar {
             display: flex;
@@ -279,11 +286,16 @@
             color: #0a0a0a;
             font-weight: 600;
         }
+        /* Slightly wider Classify button */
+        #classify {
+            min-width: 180px;
+            justify-content: center;
+        }
 
-            .btn-primary[disabled] {
-                opacity: .7;
-                cursor: not-allowed;
-            }
+        .btn-primary[disabled] {
+            opacity: .7;
+            cursor: not-allowed;
+        }
 
         /* ---------- Result panel ---------- */
         .panel {
@@ -307,6 +319,13 @@
             padding: .4rem .7rem;
             font-weight: 600;
             font-family: Poppins, Inter, system-ui, sans-serif;
+        }
+        /* inline shape icon */
+        .shape-icon {
+            width: 22px;
+            height: 22px;
+            display: inline-block;
+            vertical-align: middle;
         }
 
         .confidence {
@@ -368,15 +387,7 @@
         <header class="card-header">
             <div>
                 <h1 class="title">Draw a Shape</h1>
-                <p class="subtitle">(Circle · Triangle · Square · Hexagon · Octagon)</p>
-            </div>
-            <div class="header-actions">
-                <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle theme">
-                    <i class="fa-solid fa-circle-half-stroke"></i>
-                </button>
-                <button id="erase" class="icon-btn" type="button" aria-label="Erase (clear canvas)">
-                    <i class="fa-solid fa-eraser"></i>
-                </button>
+                <p class="subtitle">This demo identifies only these shapes: <strong>Circle</strong>, <strong>Triangle</strong>, <strong>Square</strong>, <strong>Hexagon</strong>, <strong>Octagon</strong>.</p>
             </div>
         </header>
 
@@ -387,20 +398,10 @@
             <section>
                 <div id="pad-wrapper" class="canvas-frame">
                     <canvas id="pad" width="256" height="256" aria-label="Drawing canvas"></canvas>
-                </div>
 
-                <div class="toolbar" aria-label="Tools">
-                    <button id="undo" class="tool-btn" type="button" title="Undo (U)">
-                        <i class="fa-solid fa-rotate-left"></i> Undo
-                    </button>
-                    <button id="redo" class="tool-btn" type="button" title="Redo (R)">
-                        <i class="fa-solid fa-rotate-right"></i> Redo
-                    </button>
-                    <button id="grid" class="tool-btn" type="button" aria-pressed="false" title="Toggle grid (G)">
-                        <i class="fa-solid fa-border-all"></i> Grid
-                    </button>
-                    <button id="save" class="tool-btn" type="button" title="Save PNG (S)">
-                        <i class="fa-regular fa-floppy-disk"></i> Save
+                    <!-- Floating eraser button (top-right of the canvas frame) -->
+                    <button id="erase" class="icon-btn" type="button" aria-label="Erase (clear canvas)">
+                        <i class="fa-solid fa-eraser"></i>
                     </button>
                 </div>
 
@@ -416,6 +417,8 @@
                 <div>
                     <div class="result-badge" id="result-badge" aria-label="Prediction">
                         <i class="fa-solid fa-magnifying-glass-chart"></i>
+                        <!-- shape icon shown here -->
+                        <span id="result-icon" aria-hidden="true"></span>
                         <span id="result-shape">Draw a shape to begin</span>
                     </div>
                 </div>
@@ -424,8 +427,7 @@
                 </div>
                 <div id="confidence-text" class="hint">Confidence: —</div>
                 <div class="hint">
-                    Shortcuts: <strong>U</strong> undo, <strong>R</strong> redo,
-                    <strong>G</strong> grid, <strong>C</strong> erase, <strong>S</strong> save.
+                    Shortcuts: <strong>C</strong> clear.
                 </div>
             </section>
         </div>
@@ -433,18 +435,6 @@
 
     <script type="module">
         const FN_URL = "https://zcosyfxhs3sntpwzo3qayki2he0kdxkw.lambda-url.us-east-2.on.aws/"; // Lambda endpoint with CORS
-
-        /* ---------- Theme toggle ---------- */
-        const root = document.documentElement;
-        const themeBtn = document.getElementById('theme-toggle');
-        const savedTheme = localStorage.getItem('shape-theme');
-        if (savedTheme) root.setAttribute('data-theme', savedTheme);
-        themeBtn.addEventListener('click', () => {
-            const cur = root.getAttribute('data-theme') || 'auto';
-            const next = cur === 'dark' ? 'light' : (cur === 'light' ? 'auto' : 'dark');
-            root.setAttribute('data-theme', next);
-            localStorage.setItem('shape-theme', next);
-        });
 
         /* ---------- Stepper ---------- */
         const statusEl = document.getElementById('status');
@@ -474,15 +464,12 @@
         /* ---------- Canvas setup (pen always active, 6px) ---------- */
         const canvas = document.getElementById('pad');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        const undoBtn = document.getElementById('undo');
-        const redoBtn = document.getElementById('redo');
-        const gridBtn = document.getElementById('grid');
-        const saveBtn = document.getElementById('save');
         const eraseBtn = document.getElementById('erase');
         const classifyBtn = document.getElementById('classify');
 
         const resultBadge = document.getElementById('result-badge');
         const resultShape = document.getElementById('result-shape');
+        const resultIcon = document.getElementById('result-icon');
         const confBar = document.getElementById('confidence-bar');
         const confText = document.getElementById('confidence-text');
 
@@ -491,25 +478,6 @@
         let hasDrawn = false;
         let drawing = false;
 
-        // Undo/Redo stacks (store ImageData)
-        const undoStack = [];
-        const redoStack = [];
-        const MAX_HISTORY = 20;
-
-        function pushHistory() {
-            try {
-                const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                undoStack.push(data);
-                if (undoStack.length > MAX_HISTORY) undoStack.shift();
-                redoStack.length = 0;
-                updateUndoRedoUI();
-            } catch { }
-        }
-        function updateUndoRedoUI() {
-            undoBtn.disabled = undoStack.length === 0;
-            redoBtn.disabled = redoStack.length === 0;
-        }
-
         function resetCanvas() {
             ctx.save();
             ctx.globalCompositeOperation = 'source-over';
@@ -517,8 +485,6 @@
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.restore();
             hasDrawn = false;
-            // record the cleared state as the current state
-            pushHistory();
         }
 
         // Pointer coordinate to canvas space
@@ -537,63 +503,12 @@
         ctx.lineWidth = 6;
         ctx.strokeStyle = fg;
         resetCanvas();
-        updateUndoRedoUI();
-
-        // Grid toggle (CSS-only so it doesn't affect the bitmap)
-        let gridOn = false;
-        function applyGrid() {
-            canvas.classList.remove('grid-dark', 'grid-light');
-            if (!gridOn) return;
-            const darkUI = (root.getAttribute('data-theme') === 'dark') ||
-                (root.getAttribute('data-theme') === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-            canvas.classList.add(darkUI ? 'grid-dark' : 'grid-light');
-        }
-        applyGrid();
-        const themeObserver = new MutationObserver(applyGrid);
-        themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-
-        // Tools
-        undoBtn.addEventListener('click', () => {
-            if (undoStack.length <= 1) return;
-            const cur = undoStack.pop(); // current
-            redoStack.push(cur);
-            const prev = undoStack[undoStack.length - 1];
-            ctx.putImageData(prev, 0, 0);
-            updateUndoRedoUI();
-        });
-        redoBtn.addEventListener('click', () => {
-            if (!redoStack.length) return;
-            const img = redoStack.pop();
-            undoStack.push(img);
-            ctx.putImageData(img, 0, 0);
-            updateUndoRedoUI();
-        });
-        gridBtn.addEventListener('click', () => {
-            gridOn = !gridOn;
-            gridBtn.setAttribute('aria-pressed', String(gridOn));
-            applyGrid();
-        });
-        saveBtn.addEventListener('click', () => {
-            canvas.toBlob(blob => {
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = 'shape.png';
-                a.click();
-                setTimeout(() => URL.revokeObjectURL(a.href), 1500);
-            }, 'image/png');
-        });
-        eraseBtn.addEventListener('click', () => {
-            resetCanvas();
-            setPredictionUI('Draw a shape to begin', null);
-        });
 
         // Drawing interactions (pen always on)
         canvas.addEventListener('pointerdown', e => {
             e.preventDefault();
             drawing = true;
             canvas.setPointerCapture?.(e.pointerId);
-            // snapshot before stroke
-            pushHistory();
             ctx.beginPath();
             ctx.moveTo(...pos(e));
         });
@@ -611,23 +526,59 @@
             canvas.addEventListener(evt, () => { drawing = false; })
         );
 
-        // Keyboard shortcuts
+        // Keyboard shortcut: only 'C' to clear (others removed)
         document.addEventListener('keydown', e => {
             if (e.target && /input|textarea|select/i.test(e.target.tagName)) return;
-            if (e.key === 'u' || e.key === 'U') undoBtn.click();
-            if (e.key === 'r' || e.key === 'R') redoBtn.click();
-            if (e.key === 'g' || e.key === 'G') gridBtn.click();
             if (e.key === 'c' || e.key === 'C') eraseBtn.click();
-            if (e.key === 's' || e.key === 'S') { e.preventDefault(); saveBtn.click(); }
         });
 
-        /* ---------- Classification flow ---------- */
-        function renderStepperIfNeeded() {
-            if (!statusEl.querySelector('.stepper')) renderStepper();
+        /* ---------- Shape icon rendering ---------- */
+        const NS = 'http://www.w3.org/2000/svg';
+        function makeShapeIcon(name) {
+            const shape = (name || '').toLowerCase();
+            const svg = document.createElementNS(NS, 'svg');
+            svg.setAttribute('viewBox', '0 0 40 40');
+            svg.setAttribute('class', 'shape-icon');
+            svg.setAttribute('aria-hidden', 'true');
+
+            const common = (el) => {
+                el.setAttribute('fill', 'none');
+                el.setAttribute('stroke', 'currentColor');
+                el.setAttribute('stroke-width', '3');
+                return el;
+            };
+
+            if (shape === 'circle') {
+                svg.appendChild(common(Object.assign(document.createElementNS(NS, 'circle'), { cx: 20, cy: 20, r: 12 })));
+            } else if (shape === 'triangle') {
+                const p = document.createElementNS(NS, 'polygon');
+                p.setAttribute('points', '20,6 34,34 6,34'); svg.appendChild(common(p));
+            } else if (shape === 'square') {
+                const r = document.createElementNS(NS, 'rect');
+                r.setAttribute('x', '8'); r.setAttribute('y', '8'); r.setAttribute('width', '24'); r.setAttribute('height', '24'); svg.appendChild(common(r));
+            } else if (shape === 'hexagon') {
+                const p = document.createElementNS(NS, 'polygon');
+                p.setAttribute('points', '20,6 32,13 32,27 20,34 8,27 8,13'); svg.appendChild(common(p));
+            } else if (shape === 'octagon') {
+                const p = document.createElementNS(NS, 'polygon');
+                p.setAttribute('points', '14,6 26,6 34,14 34,26 26,34 14,34 6,26 6,14'); svg.appendChild(common(p));
+            } else {
+                return null; // unknown shape → no icon
+            }
+            return svg;
         }
 
-        function setPredictionUI(shapeText, confidence) {
-            resultShape.textContent = shapeText;
+        function setIcon(name) {
+            resultIcon.innerHTML = '';
+            const icon = makeShapeIcon(name);
+            if (icon) resultIcon.appendChild(icon);
+        }
+
+        /* ---------- Prediction UI ---------- */
+        function setPredictionUI(text, confidence, iconName = null) {
+            resultShape.textContent = text;
+            setIcon(iconName);
+
             if (typeof confidence === 'number' && !Number.isNaN(confidence)) {
                 const pct = Math.max(0, Math.min(100, Math.round(confidence * 100)));
                 confBar.style.width = pct + '%';
@@ -638,13 +589,23 @@
             }
         }
 
+        /* ---------- Classification flow ---------- */
+        function renderStepperIfNeeded() {
+            if (!statusEl.querySelector('.stepper')) renderStepper();
+        }
+
         async function classify() {
             if (!hasDrawn) {
-                setPredictionUI('Please draw a shape first', null);
+                setPredictionUI('Please draw a shape first', null, null);
                 return;
             }
+
             renderStepperIfNeeded();
             setStep('submit', 'in-progress');
+
+            // CLEAR previous classification & confidence immediately
+            setPredictionUI('Processing…', null, null);
+
             classifyBtn.disabled = true;
             resultBadge.classList.add('pulse');
 
@@ -661,7 +622,7 @@
 
             try {
                 setStep('submit', 'done');
-                setStep('process', 'in-progress');
+                setStep('process', 'in-progress'); // spinner appears on this step
 
                 const res = await fetch(FN_URL, {
                     method: 'POST',
@@ -674,15 +635,22 @@
                 const cls = json.class || json.cls || json.label || 'unknown';
                 const conf = (typeof json.confidence === 'number') ? json.confidence
                     : (typeof json.conf === 'number') ? json.conf : null;
-                const shape = cls ? (String(cls).charAt(0).toUpperCase() + String(cls).slice(1)) : 'Unknown';
+
+                // Canonicalize and capitalize
+                const raw = String(cls || '').toLowerCase();
+                const allowed = ['circle', 'triangle', 'square', 'hexagon', 'octagon'];
+                const canonical = allowed.includes(raw) ? raw : 'unknown';
+                const pretty = canonical !== 'unknown'
+                    ? canonical.charAt(0).toUpperCase() + canonical.slice(1)
+                    : 'Unknown';
 
                 setStep('process', 'done');
                 setStep('complete', 'done');
-                setPredictionUI(`Prediction: ${shape}`, conf);
+                setPredictionUI(`Prediction: ${pretty}`, conf, canonical !== 'unknown' ? canonical : null);
             } catch (err) {
                 setStep('process', 'not-started');
                 setStep('complete', 'not-started');
-                setPredictionUI('Error: ' + (err?.message || String(err)), null);
+                setPredictionUI('Error: ' + (err?.message || String(err)), null, null);
             } finally {
                 classifyBtn.disabled = false;
                 resultBadge.classList.remove('pulse');
@@ -692,6 +660,12 @@
 
         classifyBtn.addEventListener('click', classify);
 
+        // Erase behavior
+        eraseBtn.addEventListener('click', () => {
+            resetCanvas();
+            setPredictionUI('Draw a shape to begin', null, null);
+        });
+
         // Make the canvas background match theme on load (bitmap stays dark)
         function refreshBG() {
             const was = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -699,9 +673,6 @@
             ctx.putImageData(was, 0, 0);
         }
         refreshBG();
-
-        // Ensure we have an initial history state
-        if (!undoStack.length) pushHistory();
 
         // Resize observer (if container changes)
         new ResizeObserver(() => notifyResize()).observe(document.getElementById('demo-box'));
