@@ -527,9 +527,14 @@ function openModal(id){
     const measure = () => {
       if (!iframe) return;
       try {
-        const doc  = iframe.contentDocument || iframe.contentWindow.document;
-        const box  = doc.getElementById('demo-box') || doc.documentElement;
-        iframe.style.height = box.scrollHeight + 'px';
+        const doc   = iframe.contentDocument || iframe.contentWindow.document;
+        const box   = doc.getElementById('demo-box');
+        if (box) box.style.height = 'auto';
+        const height = Math.max(
+          doc.body?.scrollHeight || 0,
+          doc.documentElement?.scrollHeight || 0
+        );
+        iframe.style.height = height + 'px';
         iframe.style.width  = '100%';
       } catch (err) {}
     };
