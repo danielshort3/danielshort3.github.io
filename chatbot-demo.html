@@ -1,746 +1,356 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="auto">
+<html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Chatbot Demo</title>
-
-    <!-- Optional external stylesheet (your existing file) -->
-    <link rel="stylesheet" href="css/styles.css">
-
-    <!-- Icons & Fonts (async, non-blocking) -->
-    <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@600&display=swap" rel="stylesheet"></noscript>
-
-    <!-- Safe Markdown (defer so it doesn't block rendering) -->
-    <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
-
-    <style>
-        /* ---------- Theme & base ---------- */
-        :root {
-            --radius: 12px;
-            --shadow-1: 0 2px 10px rgba(0,0,0,.06), 0 1px 4px rgba(0,0,0,.06);
-            --shadow-2: 0 8px 30px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.08);
-            --focus: 2px solid var(--primary);
-        }
-        /* Light */
-        :root, [data-theme="light"] {
-            --bg: #f7fafb;
-            --surface: #ffffff;
-            --surface-2: #f1f5f9;
-            --surface-accent: #e2e8f0;
-            --text: #0f172a;
-            --text-muted: #64748b;
-            --primary: #19526b; /* tweak to your brand */
-            --secondary: #cc9e5a; /* tweak to your brand */
-            --ring: #94a3b8;
-            --link: #0ea5e9;
-        }
-        /* Dark */
-        @media (prefers-color-scheme: dark) {
-            :root[data-theme="auto"] {
-                --bg: #0b1113;
-                --surface: #121a1c;
-                --surface-2: #0f1618;
-                --surface-accent: #223238;
-                --text: #e5e7eb;
-                --text-muted: #9ca3af;
-                --primary: #d6ae6e;
-                --secondary: #99a98c;
-                --ring: #334155;
-                --link: #38bdf8;
-            }
-        }
-
-        [data-theme="dark"] {
-            --bg: #0b1113;
-            --surface: #121a1c;
-            --surface-2: #0f1618;
-            --surface-accent: #223238;
-            --text: #e5e7eb;
-            --text-muted: #9ca3af;
-            --primary: #d6ae6e;
-            --secondary: #99a98c;
-            --ring: #334155;
-            --link: #38bdf8;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        html, body {
-            height: 100%;
-        }
-
-        body {
-            margin: 0;
-            font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
-            color: var(--text);
-            background: radial-gradient(1200px 500px at 50% -10%, rgba(25,82,107,.1), transparent 60%) var(--bg);
-            display: grid;
-            place-items: start center;
-            padding: 24px;
-        }
-
-        /* ---------- Card ---------- */
-        #demo-box {
-            width: clamp(320px, 90vw, 820px);
-            background: var(--surface);
-            border: 1px solid var(--surface-accent);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow-2);
-            overflow: clip;
-        }
-
-        header.card-header {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 12px;
-            padding: 16px 18px;
-            background: linear-gradient(0deg, var(--surface), var(--surface-2));
-            border-bottom: 1px solid var(--surface-accent);
-            align-items: center;
-        }
-
-        .title {
-            font-family: Poppins, Inter, system-ui, sans-serif;
-            font-weight: 600;
-            margin: 0 0 4px 0;
-            font-size: 1.1rem;
-        }
-
-        .subtitle {
-            margin: 0;
-            color: var(--text-muted);
-            font-size: .85rem;
-            display: flex;
-            align-items: center;
-            gap: .5rem;
-        }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: .4rem;
-            padding: .25rem .5rem;
-            border-radius: 999px;
-            font-size: .75rem;
-            background: var(--surface-2);
-            border: 1px solid var(--surface-accent);
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .icon-btn {
-            border: 1px solid var(--surface-accent);
-            background: var(--surface);
-            border-radius: 8px;
-            padding: 8px 10px;
-            cursor: pointer;
-            color: var(--text);
-        }
-
-            .icon-btn:focus-visible {
-                outline: var(--focus);
-                outline-offset: 2px;
-            }
-
-        /* ---------- Status (stepper) ---------- */
-        #status {
-            padding: 10px 16px 0;
-            min-height: 32px;
-        }
-
-        .stepper {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            align-items: center;
-            font-size: .85rem;
-            color: var(--text-muted);
-            margin: 0 0 8px 0;
-            list-style: none;
-            padding: 0;
-        }
-
-        .step {
-            display: grid;
-            grid-template-columns: 28px 1fr;
-            gap: 8px;
-            align-items: center;
-            background: var(--surface-2);
-            border: 1px solid var(--surface-accent);
-            padding: 6px 10px;
-            border-radius: 10px;
-        }
-
-            .step .dot {
-                width: 22px;
-                height: 22px;
-                border-radius: 999px;
-                display: grid;
-                place-items: center;
-                background: var(--surface);
-                border: 1px solid var(--surface-accent);
-                font-size: .75rem;
-            }
-
-            .step.in-progress {
-                color: var(--text);
-                border-color: var(--primary);
-            }
-
-                .step.in-progress .dot {
-                    border-color: var(--primary);
-                }
-
-            .step.done {
-                color: var(--text);
-            }
-
-                .step.done .dot {
-                    background: var(--primary);
-                    color: #000;
-                    border-color: var(--primary);
-                }
-
-        /* ---------- Chat area ---------- */
-        #answer {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            padding: 12px 16px 0;
-            max-height: min(66vh, 720px);
-            overflow: auto;
-            scroll-behavior: smooth;
-        }
-
-        .exchange-wrapper {
-            display: grid;
-            gap: 8px;
-        }
-
-        .message {
-            display: grid;
-            grid-template-columns: 36px 1fr;
-            gap: 10px;
-            align-items: start;
-        }
-
-        .avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: grid;
-            place-items: center;
-            border: 1px solid var(--surface-accent);
-            background: var(--surface-2);
-            color: var(--text-muted);
-            flex: none;
-        }
-
-        .bubble {
-            background: var(--surface-2);
-            border: 1px solid var(--surface-accent);
-            border-radius: 12px;
-            padding: 10px 12px;
-            line-height: 1.45;
-            font-size: .95rem;
-            overflow-wrap: anywhere;
-            position: relative;
-            box-shadow: var(--shadow-1);
-        }
-
-            .bubble .tools {
-                display: flex;
-                gap: 6px;
-                position: absolute;
-                top: 6px;
-                right: 6px;
-                opacity: .0;
-                transition: opacity .15s ease;
-            }
-
-            .bubble:hover .tools {
-                opacity: 1;
-            }
-
-        .tool-btn {
-            border: 1px solid var(--surface-accent);
-            background: var(--surface);
-            border-radius: 8px;
-            padding: 4px 6px;
-            cursor: pointer;
-            font-size: .8rem;
-            color: var(--text-muted);
-        }
-
-            .tool-btn:focus-visible {
-                outline: var(--focus);
-            }
-
-        .message.user .bubble {
-            background: linear-gradient(0deg, var(--surface-2), #eef8ff);
-            border-color: #cfe9ff;
-        }
-
-        .message.user .avatar {
-            background: #eaf5ff;
-            color: #0b6fbf;
-        }
-
-        .message.bot .avatar {
-            background: #181f1f;
-            color: #9dd4c8;
-        }
-
-        .skeleton {
-            background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface) 37%, var(--surface-2) 63%);
-            background-size: 400% 100%;
-            animation: shimmer 1.2s ease-in-out infinite;
-            height: 1em;
-            width: 60%;
-            border-radius: 6px;
-        }
-
-        @keyframes shimmer {
-            0% {
-                background-position: 100% 0
-            }
-
-            100% {
-                background-position: 0 0
-            }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .bubble:hover .tools {
-                opacity: 1
-            }
-
-            .skeleton {
-                animation: none
-            }
-        }
-
-        .sources {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-top: 8px;
-        }
-
-        .chip {
-            display: inline-flex;
-            align-items: center;
-            gap: .4rem;
-            padding: .25rem .5rem;
-            border-radius: 999px;
-            background: var(--surface);
-            border: 1px solid var(--surface-accent);
-            font-size: .8rem;
-            color: var(--link);
-            text-decoration: none;
-            max-width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        /* ---------- Input bar ---------- */
-        .input-wrap {
-            position: sticky;
-            bottom: 0;
-            z-index: 1;
-            background: linear-gradient(180deg, transparent, var(--surface) 24%);
-            padding: 10px 16px 16px;
-            border-top: 1px solid var(--surface-accent);
-            display: grid;
-            gap: 10px;
-        }
-
-        #quick-prompts {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-            #quick-prompts .chip {
-                cursor: pointer;
-                user-select: none;
-            }
-
-        form#chat-form {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 8px;
-            align-items: end;
-        }
-
-        #prompt {
-            width: 100%;
-            min-height: 52px;
-            max-height: 200px;
-            resize: none; /* we auto-resize */
-            border: 1px solid var(--surface-accent);
-            background: var(--surface-2);
-            color: var(--text);
-            border-radius: 10px;
-            padding: 10px 12px;
-            font-size: .95rem;
-            line-height: 1.35;
-        }
-
-            #prompt::placeholder {
-                color: var(--text-muted);
-            }
-
-            #prompt:focus-visible {
-                outline: var(--focus);
-                outline-offset: 2px;
-            }
-
-        .btn-primary {
-            border: 1px solid var(--primary);
-            background: var(--primary);
-            color: #0a0a0a;
-            padding: 10px 14px;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-            .btn-primary[disabled] {
-                opacity: .7;
-                cursor: not-allowed;
-            }
-
-        .btn-ghost {
-            border: 1px solid var(--surface-accent);
-            background: var(--surface);
-            color: var(--text);
-            padding: 10px 12px;
-            border-radius: 10px;
-            cursor: pointer;
-        }
-
-        .bar-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        a {
-            color: var(--link);
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Chatbot Demo</title>
+<link rel="stylesheet" href="css/styles.css">
+<link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap" rel="stylesheet"></noscript>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+  }
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    color: var(--text-light);
+    text-align: center;
+    min-height: 0;
+  }
+  #demo-box {
+    padding: 1rem;
+    margin: 0;
+    text-align: left;
+    width: min(80vmin, 400px);
+  }
+  #prompt {
+    width: 100%;
+    height: 6em;
+    font-size: 0.9rem;
+    background: var(--surface-light);
+    color: var(--text-light);
+    border: 1px solid var(--surface-accent);
+    border-radius: 8px;
+    padding: 0.5rem;
+    box-sizing: border-box;
+    resize: vertical;
+  }
+  #prompt::placeholder {
+    color: var(--text-muted);
+  }
+  #prompt:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+  #buttons {
+    margin-top: 1rem;
+    width: 100%;
+  }
+  #ask {
+    width: 100%;
+  }
+  #status {
+    margin-top: 1rem;
+    min-height: 1.2em;
+    font-size: 0.9rem;
+    text-align: left;
+  }
+  #status ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+  }
+  #status li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.25rem;
+  }
+  #status li i {
+    margin-right: 0.5rem;
+  }
+  #status li.not-started {
+    color: var(--text-muted);
+  }
+  #status li.in-progress {
+    color: var(--secondary);
+  }
+  #status li.done {
+    color: var(--primary);
+  }
+  #status li.flashing {
+    animation: pulse 1s infinite;
+  }
+  #demo-box h2 {
+    text-align: center;
+  }
+  #answer {
+    line-height: 1.4;
+    margin: 1rem 0 0;
+    font-size: 0.9rem;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .exchange-wrapper { display:flex; flex-direction:column; gap:0.5rem; }
+  .exchange-toggle {
+    width:100%; text-align:left; background:var(--surface); color:var(--text-light);
+    border:1px solid var(--surface-accent); border-radius:8px; padding:0.5rem; cursor:pointer;
+  }
+  .exchange-wrapper.collapsed .exchange { display:none; }
+  .exchange-toggle::before { content:'\25BE '; }
+  .exchange-wrapper.collapsed .exchange-toggle::before { content:'\25B8 '; }
+  .exchange {
+    border: 1px solid var(--surface-accent);
+    padding: 0.5rem;
+    box-sizing: border-box;
+    min-height: 6em;
+    max-height: 40vh;
+    text-align: left;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+    overflow-wrap: anywhere;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    background: var(--surface);
+    border-radius: 8px;
+  }
+  .message {
+    padding: 0.5rem;
+    border: 1px solid var(--surface-accent);
+    border-radius: 8px;
+    background: var(--surface-light);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .message .label {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+  .message.user .label {
+    color: var(--primary);
+  }
+  .message.bot .label {
+    color: var(--secondary);
+  }
+  #answer .sources {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+  #answer .sources ul {
+    padding-left: 1.2rem;
+    margin: 0;
+  }
+  #answer .sources a {
+    color: var(--primary);
+    word-break: break-all;
+  }
+  @keyframes pulse { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
+</style>
 </head>
 <body>
-    <script>
-        /* notify parent for iframed embeds */
-        function notifyResize() { try { parent.postMessage({ type: 'chatbot-demo-resize' }, '*'); } catch (e) { } }
-        window.addEventListener('load', notifyResize);
-        try { document.fonts?.ready?.then(notifyResize); } catch (e) { }
-    </script>
+<script>
+  function notifyResize() {
+    try { parent.postMessage({ type: 'chatbot-demo-resize' }, '*'); } catch(e) {}
+  }
+  window.addEventListener('load', notifyResize);
+  try { document.fonts.ready.then(notifyResize); } catch(e) {}
+</script>
+<div id="demo-box">
+  <h2>Ask the Demo Chatbot</h2>
+  <p class="modal-subtitle">Input and output data is saved on AWS servers.</p>
+  <form id="chat-form">
+    <label for="prompt" class="modal-subtitle">Your message</label>
+    <textarea id="prompt" placeholder="Type your message..."></textarea>
+      <div id="buttons">
+        <button id="ask" type="submit" class="btn-primary">Submit</button>
+      </div>
+  </form>
+  <div id="status" class="modal-subtitle"></div>
+  <div id="answer" class="modal-text"></div>
+</div>
+<script>
+const API_URL = 'https://ovodkr9oad.execute-api.us-east-2.amazonaws.com/prod';
+async function ask(prompt, onStatus = () => {}) {
+  onStatus('SUBMITTING');
+  const submit = await fetch(`${API_URL}/submit`, {
+    method: 'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({prompt})
+  }).then(r=>r.json());
+  const outputUri = submit.outputUri;
+  async function poll() {
+    const url = `${API_URL}/result?outputUri=${encodeURIComponent(outputUri)}`;
+    const res = await fetch(url).then(r=>r.json());
+    onStatus(res.status);
+    if (res.status === 'READY') return res.data;
+    if (res.status === 'FAILED') throw new Error(res.error || 'failed');
+    await new Promise(r=>setTimeout(r, 2000));
+    return poll();
+  }
+  return poll();
+}
+const promptEl = document.getElementById('prompt');
+const statusEl = document.getElementById('status');
+const answerEl = document.getElementById('answer');
+const askBtn = document.getElementById('ask');
+const form = document.getElementById('chat-form');
+const tasks = [
+  { id: 'submit', label: 'Submit prompt' },
+  { id: 'process', label: 'Processing with AWS SageMaker' },
+  { id: 'complete', label: 'Complete' }
+];
 
-    <div id="demo-box" role="application" aria-label="Chatbot demo">
-        <header class="card-header">
-            <div>
-                <h1 class="title">Ask the Demo Chatbot</h1>
-                <p class="subtitle">
-                    <span class="badge" title="Data handling notice">
-                        <i class="fa-solid fa-shield-check"></i> Input & output saved on AWS
-                    </span>
-                </p>
-            </div>
-            <div class="header-actions">
-                <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle theme">
-                    <i class="fa-solid fa-circle-half-stroke"></i>
-                </button>
-                <button id="clear-all" class="icon-btn" type="button" aria-label="Clear conversation">
-                    <i class="fa-solid fa-broom"></i>
-                </button>
-            </div>
-        </header>
+let exchangeCount = 0;
 
-        <div id="status" role="status" aria-live="polite"></div>
+function createExchange(prompt) {
+  document.querySelectorAll('.exchange-wrapper').forEach(w => w.classList.add('collapsed'));
+  exchangeCount++;
+  const wrapper = document.createElement('div');
+  wrapper.className = 'exchange-wrapper';
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'exchange-toggle';
+  const summary = prompt.length > 40 ? prompt.slice(0,37) + '...' : prompt;
+  btn.textContent = `${exchangeCount}. ${summary}`;
+  const ex = document.createElement('div');
+  ex.className = 'exchange';
+  btn.onclick = () => {
+    wrapper.classList.toggle('collapsed');
+    notifyResize();
+  };
+  wrapper.append(btn, ex);
+  answerEl.prepend(wrapper);
+  answerEl.scrollTop = 0;
+  notifyResize();
+  return ex;
+}
 
-        <div id="answer" aria-live="polite" aria-busy="false"></div>
+function formatMarkdown(text) {
+  const escaped = text.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  return escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+}
 
-        <div class="input-wrap">
-            <div id="quick-prompts" aria-label="Quick prompts" role="list">
-                <button class="chip" type="button" data-text="Summarize this text:">Summarize text</button>
-                <button class="chip" type="button" data-text="Give me 3 ideas for ...">Brainstorm ideas</button>
-                <button class="chip" type="button" data-text="Explain like I'm five:">ELI5</button>
-                <button class="chip" type="button" data-text="Turn this into bullet points:">Bullet points</button>
-            </div>
+function appendMessage(container, role, text, opts={}) {
+  const msg = document.createElement('div');
+  msg.className = `message ${role}`;
+  const label = document.createElement('div');
+  label.className = 'label';
+  label.textContent = role === 'user' ? 'You' : 'Assistant';
+  const content = document.createElement('div');
+  content.className = 'content';
+  if (opts.loading) {
+    content.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+  } else {
+    content.innerHTML = formatMarkdown(text);
+  }
+  msg.append(label, content);
+  container.appendChild(msg);
+  container.scrollTop = container.scrollHeight;
+  notifyResize();
+  return content;
+}
 
-            <form id="chat-form" novalidate>
-                <textarea id="prompt" placeholder="Type your message. Enter to send, Shift+Enter for a new line." aria-label="Your message"></textarea>
-                <div class="bar-actions">
-                    <button id="ask" type="submit" class="btn-primary">
-                        <i class="fa-solid fa-paper-plane"></i> Send
-                    </button>
-                    <button id="stop" type="button" class="btn-ghost" hidden>
-                        <i class="fa-solid fa-stop"></i> Stop
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
+function renderTaskList() {
+  statusEl.innerHTML = '';
+  const ul = document.createElement('ul');
+  tasks.forEach(t => {
+    const li = document.createElement('li');
+    li.id = `task-${t.id}`;
+    li.className = 'not-started';
+    const icon = document.createElement('i');
+    icon.className = 'fa-solid fa-xmark';
+    li.appendChild(icon);
+    li.append(` ${t.label}`);
+    ul.appendChild(li);
+  });
+  statusEl.appendChild(ul);
+  notifyResize();
+}
 
-    <script>
-        const API_URL = 'https://ovodkr9oad.execute-api.us-east-2.amazonaws.com/prod';
+function setTaskState(id, state) {
+  const li = document.getElementById(`task-${id}`);
+  if (!li) return;
+  const icon = li.querySelector('i');
+  li.className = state;
+  li.classList.toggle('flashing', id === 'process' && state === 'in-progress');
+  if (state === 'in-progress') {
+    icon.className = 'fa-solid fa-spinner fa-spin';
+  } else if (state === 'done') {
+    icon.className = 'fa-solid fa-check';
+  } else {
+    icon.className = 'fa-solid fa-xmark';
+  }
+  notifyResize();
+}
 
-        /* ---------- Theme ---------- */
-        const root = document.documentElement;
-        const themeBtn = document.getElementById('theme-toggle');
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme) root.setAttribute('data-theme', savedTheme);
-        themeBtn.addEventListener('click', () => {
-            const cur = root.getAttribute('data-theme') || 'auto';
-            const next = cur === 'dark' ? 'light' : (cur === 'light' ? 'auto' : 'dark');
-            root.setAttribute('data-theme', next);
-            localStorage.setItem('theme', next);
-        });
+async function handleSubmit(e) {
+  if (e) e.preventDefault();
+  const prompt = promptEl.value.trim();
+  if (!prompt) return;
+  const exchange = createExchange(prompt);
+  appendMessage(exchange, 'user', prompt);
+  const placeholder = appendMessage(exchange, 'bot', '', {loading:true});
+  promptEl.value = '';
+  renderTaskList();
+  setTaskState('submit', 'in-progress');
+  askBtn.disabled = true;
+  try {
+    const data = await ask(prompt, status => {
+      if (status === 'PENDING') {
+        setTaskState('submit', 'done');
+        setTaskState('process', 'in-progress');
+      } else if (status === 'READY') {
+        setTaskState('process', 'done');
+        setTaskState('complete', 'done');
+      }
+    });
+    placeholder.innerHTML = formatMarkdown(data.generated_text || JSON.stringify(data));
+    const urls = data.source_urls || data.sources || data.urls;
+    if (Array.isArray(urls) && urls.length) {
+      const srcDiv = document.createElement('div');
+      srcDiv.className = 'sources';
+      const srcLabel = document.createElement('div');
+      srcLabel.textContent = 'Sources:';
+      const list = document.createElement('ul');
+      urls.forEach(u => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = u;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.textContent = u;
+        li.appendChild(a);
+        list.appendChild(li);
+      });
+      srcDiv.append(srcLabel, list);
+      placeholder.parentElement.appendChild(srcDiv);
+      exchange.scrollTop = exchange.scrollHeight;
+    }
+  } catch(err) {
+    setTaskState('process', 'not-started');
+    setTaskState('complete', 'not-started');
+    placeholder.innerHTML = formatMarkdown(err.message);
+  } finally {
+    askBtn.disabled = false;
+    notifyResize();
+  }
+}
 
-        /* ---------- DOM refs ---------- */
-        const promptEl = document.getElementById('prompt');
-        const statusEl = document.getElementById('status');
-        const answerEl = document.getElementById('answer');
-        const askBtn = document.getElementById('ask');
-        const stopBtn = document.getElementById('stop');
-        const form = document.getElementById('chat-form');
-        const clearBtn = document.getElementById('clear-all');
-        const quickPrompts = document.getElementById('quick-prompts');
-
-        /* ---------- Stepper ---------- */
-        const steps = [
-            { id: 'submit', label: 'Submit prompt' },
-            { id: 'process', label: 'Processing on server' },
-            { id: 'complete', label: 'Complete' }
-        ];
-        function renderStepper() {
-            const ul = document.createElement('ul');
-            ul.className = 'stepper';
-            steps.forEach((s, i) => {
-                const li = document.createElement('li'); li.className = 'step not-started'; li.id = `step-${s.id}`;
-                const dot = document.createElement('div'); dot.className = 'dot'; dot.textContent = i + 1;
-                li.append(dot, document.createTextNode(s.label));
-                ul.appendChild(li);
-            });
-            statusEl.innerHTML = ''; statusEl.appendChild(ul);
-        }
-        function setStep(id, state) {
-            const el = document.getElementById(`step-${id}`);
-            if (!el) return;
-            el.classList.remove('not-started', 'in-progress', 'done');
-            el.classList.add(state);
-            notifyResize();
-        }
-
-        /* ---------- Utilities ---------- */
-        function autoResize() {
-            promptEl.style.height = 'auto';
-            promptEl.style.height = Math.min(200, promptEl.scrollHeight) + 'px';
-        }
-        promptEl.addEventListener('input', autoResize);
-        window.addEventListener('load', autoResize);
-
-        promptEl.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSubmit();
-            }
-        });
-
-        quickPrompts.addEventListener('click', (e) => {
-            const btn = e.target.closest('[data-text]');
-            if (!btn) return;
-            promptEl.value = (btn.getAttribute('data-text') || '').trim() + ' ';
-            autoResize();
-            promptEl.focus();
-        });
-
-        clearBtn.addEventListener('click', () => {
-            answerEl.innerHTML = '';
-            localStorage.removeItem('chatbot-demo-history');
-            notifyResize();
-        });
-
-        /* Copy button (event delegation) */
-        answerEl.addEventListener('click', async (e) => {
-            const btn = e.target.closest('[data-copy]');
-            if (!btn) return;
-            const bubble = btn.closest('.bubble');
-            const html = bubble.querySelector('.content')?.innerHTML || '';
-            const text = (new DOMParser()).parseFromString(html, 'text/html').documentElement.textContent || '';
-            try {
-                await navigator.clipboard.writeText(text.trim());
-                btn.innerHTML = '<i class="fa-solid fa-check"></i>';
-                setTimeout(() => btn.innerHTML = '<i class="fa-regular fa-copy"></i>', 1200);
-            } catch { }
-        });
-
-        /* ---------- Rendering ---------- */
-        let exchangeCount = 0;
-        function createExchange(prompt) {
-            exchangeCount++;
-            const wrap = document.createElement('div');
-            wrap.className = 'exchange-wrapper';
-
-            // User message
-            appendMessage(wrap, 'user', prompt);
-
-            // Assistant placeholder
-            const { contentEl, bubble } = appendMessage(wrap, 'bot', '', { loading: true });
-            answerEl.appendChild(wrap);
-            answerEl.scrollTop = answerEl.scrollHeight;
-            notifyResize();
-
-            return { contentEl, bubble };
-        }
-
-        function renderMarkdown(text) {
-            if (window.marked && window.DOMPurify) {
-                marked.setOptions({ breaks: true });
-                const dirty = marked.parse(text || '');
-                return DOMPurify.sanitize(dirty, { USE_PROFILES: { html: true } });
-            }
-            // Fallback: minimal bold + escape
-            const esc = (s) => s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
-            return esc(text || '').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        }
-
-        function appendMessage(container, role, text, opts = {}) {
-            const msg = document.createElement('div'); msg.className = `message ${role}`;
-            const avatar = document.createElement('div'); avatar.className = 'avatar';
-            avatar.innerHTML = role === 'user' ? '<i class="fa-solid fa-user"></i>' : '<i class="fa-solid fa-robot"></i>';
-
-            const bubble = document.createElement('div'); bubble.className = 'bubble';
-            const tools = document.createElement('div'); tools.className = 'tools';
-            const copyBtn = document.createElement('button'); copyBtn.className = 'tool-btn'; copyBtn.type = 'button'; copyBtn.setAttribute('data-copy', '1'); copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i>';
-            tools.appendChild(copyBtn);
-
-            const content = document.createElement('div'); content.className = 'content';
-            if (opts.loading) { content.innerHTML = '<div class="skeleton" style="width:72%"></div><div class="skeleton" style="width:46%;margin-top:6px;"></div>'; }
-            else { content.innerHTML = renderMarkdown(text); }
-
-            bubble.append(tools, content);
-            msg.append(avatar, bubble);
-            container.appendChild(msg);
-            return { contentEl: content, bubble };
-        }
-
-        function renderSources(parentBubble, urls) {
-            if (!Array.isArray(urls) || !urls.length) return;
-            const div = document.createElement('div'); div.className = 'sources';
-            urls.forEach(u => {
-                try {
-                    const { hostname } = new URL(u);
-                    const a = document.createElement('a'); a.href = u; a.target = '_blank'; a.rel = 'noopener';
-                    a.className = 'chip'; a.textContent = hostname.replace(/^www\./, '');
-                    div.appendChild(a);
-                } catch { }
-            });
-            parentBubble.appendChild(div);
-        }
-
-        /* ---------- Networking ---------- */
-        let abort = null;
-        let cancelled = false;
-
-        async function ask(prompt, onStatus = () => { }) {
-            cancelled = false;
-            abort = new AbortController();
-            onStatus('SUBMITTING');
-
-            const submit = await fetch(`${API_URL}/submit`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt }),
-                signal: abort.signal
-            }).then(r => r.json());
-
-            const outputUri = submit.outputUri;
-
-            async function poll() {
-                if (cancelled) throw new Error('stopped');
-                const url = `${API_URL}/result?outputUri=${encodeURIComponent(outputUri)}`;
-                const res = await fetch(url, { signal: abort.signal }).then(r => r.json());
-                onStatus(res.status);
-                if (res.status === 'READY') return res.data;
-                if (res.status === 'FAILED') throw new Error(res.error || 'Request failed');
-                await new Promise(r => setTimeout(r, 1500));
-                return poll();
-            }
-            return poll();
-        }
-
-        /* ---------- Submit flow ---------- */
-        function saveHistory() {
-            const html = answerEl.innerHTML;
-            localStorage.setItem('chatbot-demo-history', html);
-        }
-        function restoreHistory() {
-            const html = localStorage.getItem('chatbot-demo-history');
-            if (html) { answerEl.innerHTML = html; }
-        }
-        restoreHistory();
-
-        async function handleSubmit(e) {
-            if (e) e.preventDefault();
-            const prompt = promptEl.value.trim();
-            if (!prompt) return;
-
-            renderStepper();
-            setStep('submit', 'in-progress');
-            askBtn.disabled = true; stopBtn.hidden = false;
-            form.setAttribute('aria-busy', 'true');
-            promptEl.value = ''; autoResize();
-
-            const { contentEl, bubble } = createExchange(prompt);
-
-            try {
-                const data = await ask(prompt, status => {
-                    if (status === 'PENDING') { setStep('submit', 'done'); setStep('process', 'in-progress'); }
-                    else if (status === 'READY') { setStep('process', 'done'); setStep('complete', 'done'); }
-                });
-                contentEl.innerHTML = renderMarkdown(data.generated_text || JSON.stringify(data));
-                const urls = data.source_urls || data.sources || data.urls;
-                renderSources(bubble, urls);
-            } catch (err) {
-                setStep('process', 'not-started');
-                setStep('complete', 'not-started');
-                contentEl.innerHTML = `<div><strong>Error:</strong> ${String(err.message || err)}</div>`;
-            } finally {
-                askBtn.disabled = false; stopBtn.hidden = true;
-                form.setAttribute('aria-busy', 'false');
-                saveHistory();
-                notifyResize();
-            }
-        }
-
-        askBtn.addEventListener('click', handleSubmit);
-        form.addEventListener('submit', handleSubmit);
-
-        /* Stop button cancels polling (best-effort) */
-        stopBtn.addEventListener('click', () => {
-            cancelled = true;
-            try { abort?.abort(); } catch { }
-            stopBtn.hidden = true;
-            setStep('process', 'not-started');
-            setStep('complete', 'not-started');
-        });
-    </script>
+askBtn.onclick = handleSubmit;
+form.addEventListener('submit', handleSubmit);
+</script>
 </body>
 </html>
