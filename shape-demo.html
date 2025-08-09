@@ -1,294 +1,710 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="auto">
 <head>
-<meta charset="UTF-8">
-<title>Shape Classifier Demo</title>
-<link rel="stylesheet" href="css/styles.css">
-<link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap" rel="stylesheet"></noscript>
-  <style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: auto;
-    overflow: hidden;
-  }
-  body {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    color: var(--text-light);
-    text-align: center;
-    min-height: 0;
-  }
-  #demo-box {
-    padding: 1rem;
-    margin: 0;
-  }
-  #demo-box h2 { margin: 0 0 .5rem; }
-  #demo-box p { margin: 0 0 1rem; }
-  #pad-wrapper {
-    position: relative;
-    display: inline-block;
-  }
-  canvas {
-    border: 2px solid #444;
-    touch-action: none;
-    background: #000;
-    color: #fff;
-    width: min(60vmin, 256px);
-    height: min(60vmin, 256px);
-  }
-  #clear {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 32px;
-    height: 32px;
-    border: none;
-    background: var(--primary);
-    border-radius: 4px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  #clear i { color: var(--bg); }
-  #clear:hover {
-    filter: brightness(1.1);
-  }
-  #clear:hover i { color: var(--bg); }
-  #buttons {
-    margin-top: 1rem;
-    display: flex;
-    gap: .5rem;
-    justify-content: center;
-  }
-  button { margin: 0; font-size: 1rem; }
-  #classify {
-    width: min(60vmin, 256px);
-    margin: 0 auto;
-  }
-  #result {
-    line-height: 1.2;
-    margin: 1rem auto 0;
-    font-size: 1rem;
-    height: 3.6em;
-    width: min(60vmin, 256px);
-    white-space: pre-line;
-    border: 1px solid var(--surface-accent);
-    padding: 0.25rem;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  #status {
-    margin-top: 1rem;
-    min-height: 1.2em;
-    font-size: 1rem;
-    text-align: left;
-    width: min(60vmin, 256px);
-    margin-left: auto;
-    margin-right: auto;
-  }
-  #status ul {
-    list-style: none;
-    padding-left: 0;
-    margin: 0;
-  }
-  #status li {
-    display: flex;
-    align-items: center;
-    margin-bottom: 0.25rem;
-  }
-  #status li i {
-    margin-right: 0.5rem;
-  }
-  #status li.not-started {
-    color: var(--text-muted);
-  }
-  #status li.in-progress {
-    color: var(--secondary);
-  }
-  #status li.done {
-    color: var(--primary);
-  }
-  #status li.flashing {
-    animation: pulse 1s infinite;
-  }
-  @keyframes pulse { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Shape Classifier Demo</title>
 
-  @media (max-width: 600px) {
-    #buttons { flex-direction: column; }
-    #buttons button { width: min(60vmin, 256px); margin: 0 auto; }
-    #buttons button + button { margin-top: .5rem; }
-  }
-</style>
+    <!-- Optional: your external stylesheet -->
+    <link rel="stylesheet" href="css/styles.css">
+
+    <!-- Icons & Fonts (async, non-blocking) -->
+    <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@600&display=swap" rel="stylesheet"></noscript>
+
+    <style>
+        /* ---------- Theme & base ---------- */
+        :root {
+            --radius: 12px;
+            --shadow-1: 0 2px 10px rgba(0,0,0,.06), 0 1px 4px rgba(0,0,0,.06);
+            --shadow-2: 0 8px 30px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.08);
+        }
+        /* Light */
+        :root, [data-theme="light"] {
+            --bg: #f7fafb;
+            --surface: #ffffff;
+            --surface-2: #f1f5f9;
+            --surface-accent: #e2e8f0;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --primary: #19526b; /* ← brand primary */
+            --secondary: #cc9e5a; /* ← brand secondary */
+            --link: #0ea5e9;
+            --canvas-dark: #000000;
+            --canvas-light: #ffffff;
+            --grid-dark: rgba(255,255,255,.08);
+            --grid-light: rgba(0,0,0,.08);
+        }
+        /* Dark */
+        @media (prefers-color-scheme: dark) {
+            :root[data-theme="auto"] {
+                --bg: #0b1113;
+                --surface: #121a1c;
+                --surface-2: #0f1618;
+                --surface-accent: #223238;
+                --text: #e5e7eb;
+                --text-muted: #9ca3af;
+                --primary: #d6ae6e;
+                --secondary: #99a98c;
+                --link: #38bdf8;
+                --canvas-dark: #000000;
+                --canvas-light: #ffffff;
+                --grid-dark: rgba(255,255,255,.08);
+                --grid-light: rgba(0,0,0,.08);
+            }
+        }
+
+        [data-theme="dark"] {
+            --bg: #0b1113;
+            --surface: #121a1c;
+            --surface-2: #0f1618;
+            --surface-accent: #223238;
+            --text: #e5e7eb;
+            --text-muted: #9ca3af;
+            --primary: #d6ae6e;
+            --secondary: #99a98c;
+            --link: #38bdf8;
+            --canvas-dark: #000000;
+            --canvas-light: #ffffff;
+            --grid-dark: rgba(255,255,255,.08);
+            --grid-light: rgba(0,0,0,.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+            color: var(--text);
+            background: radial-gradient(1200px 500px at 50% -10%, rgba(25,82,107,.1), transparent 60%) var(--bg);
+            display: grid;
+            place-items: start center;
+            padding: 24px;
+        }
+
+        /* ---------- Card ---------- */
+        #demo-box {
+            width: clamp(320px, 90vw, 820px);
+            background: var(--surface);
+            border: 1px solid var(--surface-accent);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-2);
+            overflow: clip;
+        }
+
+        header.card-header {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            padding: 16px 18px;
+            background: linear-gradient(0deg, var(--surface), var(--surface-2));
+            border-bottom: 1px solid var(--surface-accent);
+            align-items: center;
+        }
+
+        .title {
+            font-family: Poppins, Inter, system-ui, sans-serif;
+            font-weight: 600;
+            margin: 0 0 4px 0;
+            font-size: 1.1rem;
+        }
+
+        .subtitle {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: .85rem;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            border: 1px solid var(--surface-accent);
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 8px 10px;
+            cursor: pointer;
+            color: var(--text);
+        }
+
+            .icon-btn:focus-visible {
+                outline: 2px solid var(--primary);
+                outline-offset: 2px;
+            }
+
+        /* ---------- Status (stepper) ---------- */
+        #status {
+            padding: 10px 16px 0;
+            min-height: 34px;
+        }
+
+        .stepper {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            align-items: center;
+            font-size: .85rem;
+            color: var(--text-muted);
+            margin: 0 0 8px 0;
+            list-style: none;
+            padding: 0;
+        }
+
+        .step {
+            display: grid;
+            grid-template-columns: 28px 1fr;
+            gap: 8px;
+            align-items: center;
+            background: var(--surface-2);
+            border: 1px solid var(--surface-accent);
+            padding: 6px 10px;
+            border-radius: 10px;
+        }
+
+            .step .dot {
+                width: 22px;
+                height: 22px;
+                border-radius: 999px;
+                display: grid;
+                place-items: center;
+                background: var(--surface);
+                border: 1px solid var(--surface-accent);
+                font-size: .75rem;
+            }
+
+            .step.in-progress {
+                color: var(--text);
+                border-color: var(--primary);
+            }
+
+                .step.in-progress .dot {
+                    border-color: var(--primary);
+                }
+
+            .step.done {
+                color: var(--text);
+            }
+
+                .step.done .dot {
+                    background: var(--primary);
+                    color: #000;
+                    border-color: var(--primary);
+                }
+
+        /* ---------- Content layout ---------- */
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            padding: 12px 16px 0;
+        }
+
+        @media (max-width: 780px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ---------- Pad & toolbar ---------- */
+        #pad-wrapper {
+            position: relative;
+            display: grid;
+            gap: 8px;
+            justify-items: center;
+        }
+
+        .canvas-frame {
+            position: relative;
+            border: 1px solid var(--surface-accent);
+            border-radius: 12px;
+            background: var(--surface-2);
+            padding: 10px;
+            box-shadow: var(--shadow-1);
+        }
+
+        canvas {
+            display: block;
+            touch-action: none;
+            background: #000; /* actual pixel fill handled in script */
+            width: min(70vmin, 320px);
+            height: min(70vmin, 320px);
+            border-radius: 8px;
+        }
+
+            canvas.grid-dark {
+                background-image: linear-gradient(var(--grid-dark) 1px, transparent 1px), linear-gradient(90deg, var(--grid-dark) 1px, transparent 1px);
+                background-size: 16px 16px, 16px 16px;
+            }
+
+            canvas.grid-light {
+                background-image: linear-gradient(var(--grid-light) 1px, transparent 1px), linear-gradient(90deg, var(--grid-light) 1px, transparent 1px);
+                background-size: 16px 16px, 16px 16px;
+            }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .tool-btn, .btn-primary {
+            border: 1px solid var(--surface-accent);
+            background: var(--surface);
+            color: var(--text);
+            border-radius: 10px;
+            padding: 8px 10px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: #0a0a0a;
+            font-weight: 600;
+        }
+
+            .btn-primary[disabled] {
+                opacity: .7;
+                cursor: not-allowed;
+            }
+
+        /* ---------- Result panel ---------- */
+        .panel {
+            display: grid;
+            gap: 10px;
+            border: 1px solid var(--surface-accent);
+            border-radius: 12px;
+            padding: 12px;
+            background: var(--surface-2);
+            box-shadow: var(--shadow-1);
+            align-content: start;
+        }
+
+        .result-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            background: var(--surface);
+            border: 1px solid var(--surface-accent);
+            border-radius: 999px;
+            padding: .4rem .7rem;
+            font-weight: 600;
+            font-family: Poppins, Inter, system-ui, sans-serif;
+        }
+
+        .confidence {
+            height: 10px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width .25s ease;
+        }
+
+        .confidence-track {
+            width: 100%;
+            height: 10px;
+            background: var(--surface);
+            border: 1px solid var(--surface-accent);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .hint {
+            color: var(--text-muted);
+            font-size: .9rem;
+            line-height: 1.35;
+        }
+
+        a {
+            color: var(--link);
+        }
+
+        /* Subtle animations */
+        @keyframes shimmer {
+            0% {
+                opacity: .6
+            }
+
+            50% {
+                opacity: 1
+            }
+
+            100% {
+                opacity: .6
+            }
+        }
+
+        .pulse {
+            animation: shimmer 1.2s ease-in-out infinite;
+        }
+    </style>
 </head>
 <body>
+    <script>
+        /* notify parent for iframed embeds */
+        function notifyResize() { try { parent.postMessage({ type: 'shape-demo-resize' }, '*'); } catch (e) { } }
+        window.addEventListener('load', notifyResize);
+        try { document.fonts?.ready?.then(notifyResize); } catch (e) { }
+    </script>
 
-<script>
-  function notifyResize() {
-    try { parent.postMessage({ type: 'shape-demo-resize' }, '*'); } catch(e) {}
-  }
-  window.addEventListener('load', notifyResize);
-  try { document.fonts.ready.then(notifyResize); } catch(e) {}
-</script>
+    <div id="demo-box" role="application" aria-label="Shape classifier demo">
+        <header class="card-header">
+            <div>
+                <h1 class="title">Draw a Shape</h1>
+                <p class="subtitle">(Circle · Triangle · Square · Hexagon · Octagon)</p>
+            </div>
+            <div class="header-actions">
+                <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle theme">
+                    <i class="fa-solid fa-circle-half-stroke"></i>
+                </button>
+                <button id="erase" class="icon-btn" type="button" aria-label="Erase (clear canvas)">
+                    <i class="fa-solid fa-eraser"></i>
+                </button>
+            </div>
+        </header>
 
-<div id="demo-box">
-  <h2>Draw a Shape!</h2>
-  <p class="modal-subtitle">(Circle, Triangle, Square, Hexagon, Octagon)</p>
-  <div id="pad-wrapper">
-    <canvas id="pad" width="256" height="256"></canvas>
-    <button id="clear" aria-label="Clear"><i class="fas fa-trash"></i></button>
-  </div>
+        <div id="status" role="status" aria-live="polite"></div>
 
-  <div id="buttons">
-    <button id="classify" class="btn-primary">Classify</button>
-  </div>
+        <div class="content">
+            <!-- Left: canvas & tools -->
+            <section>
+                <div id="pad-wrapper" class="canvas-frame">
+                    <canvas id="pad" width="256" height="256" aria-label="Drawing canvas"></canvas>
+                </div>
 
-  <div id="status" class="modal-subtitle"></div>
-  <div id="result" class="modal-text"></div>
-</div>
+                <div class="toolbar" aria-label="Tools">
+                    <button id="undo" class="tool-btn" type="button" title="Undo (U)">
+                        <i class="fa-solid fa-rotate-left"></i> Undo
+                    </button>
+                    <button id="redo" class="tool-btn" type="button" title="Redo (R)">
+                        <i class="fa-solid fa-rotate-right"></i> Redo
+                    </button>
+                    <button id="grid" class="tool-btn" type="button" aria-pressed="false" title="Toggle grid (G)">
+                        <i class="fa-solid fa-border-all"></i> Grid
+                    </button>
+                    <button id="save" class="tool-btn" type="button" title="Save PNG (S)">
+                        <i class="fa-regular fa-floppy-disk"></i> Save
+                    </button>
+                </div>
 
-<script type="module">
-const FN_URL = "https://zcosyfxhs3sntpwzo3qayki2he0kdxkw.lambda-url.us-east-2.on.aws/";   // Lambda endpoint with CORS
+                <div class="toolbar" style="margin-top:8px;">
+                    <button id="classify" class="btn-primary" type="button">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Classify
+                    </button>
+                </div>
+            </section>
 
-// ---------- simple drawing pad ----------
-const canvas      = document.getElementById("pad");
-const ctx         = canvas.getContext("2d", { willReadFrequently: true });
-const clearBtn    = document.getElementById("clear");
-const classifyBtn = document.getElementById("classify");
-const resultEl    = document.getElementById("result");
-const statusEl    = document.getElementById("status");
+            <!-- Right: result & help -->
+            <section class="panel" aria-live="polite">
+                <div>
+                    <div class="result-badge" id="result-badge" aria-label="Prediction">
+                        <i class="fa-solid fa-magnifying-glass-chart"></i>
+                        <span id="result-shape">Draw a shape to begin</span>
+                    </div>
+                </div>
+                <div class="confidence-track" aria-label="Confidence">
+                    <div id="confidence-bar" class="confidence" style="width:0%"></div>
+                </div>
+                <div id="confidence-text" class="hint">Confidence: —</div>
+                <div class="hint">
+                    Shortcuts: <strong>U</strong> undo, <strong>R</strong> redo,
+                    <strong>G</strong> grid, <strong>C</strong> erase, <strong>S</strong> save.
+                </div>
+            </section>
+        </div>
+    </div>
 
-const tasks = [
-  { id: 'submit', label: 'Submit drawing' },
-  { id: 'process', label: 'Processing with AWS Lambda' },
-  { id: 'complete', label: 'Complete' }
-];
+    <script type="module">
+        const FN_URL = "https://zcosyfxhs3sntpwzo3qayki2he0kdxkw.lambda-url.us-east-2.on.aws/"; // Lambda endpoint with CORS
 
-function renderTaskList() {
-  statusEl.innerHTML = '';
-  const ul = document.createElement('ul');
-  tasks.forEach(t => {
-    const li = document.createElement('li');
-    li.id = `task-${t.id}`;
-    li.className = 'not-started';
-    const icon = document.createElement('i');
-    icon.className = 'fa-solid fa-xmark';
-    li.appendChild(icon);
-    li.append(` ${t.label}`);
-    ul.appendChild(li);
-  });
-  statusEl.appendChild(ul);
-  notifyResize();
-}
+        /* ---------- Theme toggle ---------- */
+        const root = document.documentElement;
+        const themeBtn = document.getElementById('theme-toggle');
+        const savedTheme = localStorage.getItem('shape-theme');
+        if (savedTheme) root.setAttribute('data-theme', savedTheme);
+        themeBtn.addEventListener('click', () => {
+            const cur = root.getAttribute('data-theme') || 'auto';
+            const next = cur === 'dark' ? 'light' : (cur === 'light' ? 'auto' : 'dark');
+            root.setAttribute('data-theme', next);
+            localStorage.setItem('shape-theme', next);
+        });
 
-function setTaskState(id, state) {
-  const li = document.getElementById(`task-${id}`);
-  if (!li) return;
-  const icon = li.querySelector('i');
-  li.className = state;
-  li.classList.toggle('flashing', id === 'process' && state === 'in-progress');
-  if (state === 'in-progress') {
-    icon.className = 'fa-solid fa-spinner fa-spin';
-  } else if (state === 'done') {
-    icon.className = 'fa-solid fa-check';
-  } else {
-    icon.className = 'fa-solid fa-xmark';
-  }
-  notifyResize();
-}
+        /* ---------- Stepper ---------- */
+        const statusEl = document.getElementById('status');
+        const steps = [
+            { id: 'submit', label: 'Submit drawing' },
+            { id: 'process', label: 'Processing on server' },
+            { id: 'complete', label: 'Complete' }
+        ];
+        function renderStepper() {
+            const ul = document.createElement('ul'); ul.className = 'stepper';
+            steps.forEach((s, i) => {
+                const li = document.createElement('li'); li.className = 'step not-started'; li.id = `step-${s.id}`;
+                const dot = document.createElement('div'); dot.className = 'dot'; dot.textContent = i + 1;
+                li.append(dot, document.createTextNode(s.label));
+                ul.appendChild(li);
+            });
+            statusEl.innerHTML = ''; statusEl.appendChild(ul);
+        }
+        function setStep(id, state) {
+            const el = document.getElementById(`step-${id}`);
+            if (!el) return;
+            el.classList.remove('not-started', 'in-progress', 'done');
+            el.classList.add(state);
+            notifyResize();
+        }
 
-function fitResultText() {
-  resultEl.style.fontSize = "";
-  const maxH = resultEl.clientHeight;
-  let size = parseFloat(getComputedStyle(resultEl).fontSize);
-  while (resultEl.scrollHeight > maxH && size > 8) {
-    size -= 1;
-    resultEl.style.fontSize = size + "px";
-  }
-}
+        /* ---------- Canvas setup (pen always active, 6px) ---------- */
+        const canvas = document.getElementById('pad');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const undoBtn = document.getElementById('undo');
+        const redoBtn = document.getElementById('redo');
+        const gridBtn = document.getElementById('grid');
+        const saveBtn = document.getElementById('save');
+        const eraseBtn = document.getElementById('erase');
+        const classifyBtn = document.getElementById('classify');
 
-const CANVAS_BG = "#000";
-let   hasDrawn   = false;
+        const resultBadge = document.getElementById('result-badge');
+        const resultShape = document.getElementById('result-shape');
+        const confBar = document.getElementById('confidence-bar');
+        const confText = document.getElementById('confidence-text');
 
-ctx.lineWidth = 6;
-ctx.lineCap   = "round";
-resetCanvas();
+        let bg = getComputedStyle(document.documentElement).getPropertyValue('--canvas-dark').trim() || '#000';
+        const fg = '#fff';
+        let hasDrawn = false;
+        let drawing = false;
 
-function resetCanvas() {
-  ctx.fillStyle = CANVAS_BG.trim();
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.strokeStyle = "white";
-  hasDrawn = false;
-}
-clearBtn.onclick = () => { resetCanvas(); draw = false; };
+        // Undo/Redo stacks (store ImageData)
+        const undoStack = [];
+        const redoStack = [];
+        const MAX_HISTORY = 20;
 
-let draw = false;
-const pos = e => {
-  const r = canvas.getBoundingClientRect();
-  const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
-  const y = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
-  const scaleX = canvas.width  / r.width;
-  const scaleY = canvas.height / r.height;
-  return [ x * scaleX, y * scaleY ];
-};
+        function pushHistory() {
+            try {
+                const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                undoStack.push(data);
+                if (undoStack.length > MAX_HISTORY) undoStack.shift();
+                redoStack.length = 0;
+                updateUndoRedoUI();
+            } catch { }
+        }
+        function updateUndoRedoUI() {
+            undoBtn.disabled = undoStack.length === 0;
+            redoBtn.disabled = redoStack.length === 0;
+        }
 
-canvas.addEventListener("pointerdown", e => { e.preventDefault(); draw = true; ctx.beginPath(); ctx.moveTo(...pos(e)); });
-canvas.addEventListener("pointermove", e => { if (draw) { e.preventDefault(); ctx.lineTo(...pos(e)); ctx.stroke(); hasDrawn = true; }});
-["pointerup","pointerleave","pointercancel"].forEach(evt => canvas.addEventListener(evt, () => draw = false));
+        function resetCanvas() {
+            ctx.save();
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.fillStyle = bg;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.restore();
+            hasDrawn = false;
+            // record the cleared state as the current state
+            pushHistory();
+        }
 
-// ---------- classify button ----------
-classifyBtn.onclick = async () => {
-  if (!hasDrawn) {
-    resultEl.textContent = "Please draw a shape first.";
-    fitResultText();
-    notifyResize();
-    return;
-  }
-  resultEl.textContent = '';
-  renderTaskList();
-  setTaskState('submit', 'in-progress');
-  clearBtn.disabled = true;
-  classifyBtn.disabled = true;
-  const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
-  const b64  = await blob.arrayBuffer().then(buf => btoa(String.fromCharCode(...new Uint8Array(buf))));
+        // Pointer coordinate to canvas space
+        function pos(e) {
+            const r = canvas.getBoundingClientRect();
+            const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+            const y = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
+            const scaleX = canvas.width / r.width;
+            const scaleY = canvas.height / r.height;
+            return [x * scaleX, y * scaleY];
+        }
 
-  try {
-    setTaskState('submit', 'done');
-    setTaskState('process', 'in-progress');
-    const res   = await fetch(FN_URL, {
-      method : "POST",
-      headers: { "Content-Type": "application/json" },
-      body   : JSON.stringify({ b64 })
-    });
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-    const {class: cls, confidence} = await res.json();
-    const shape = cls.charAt(0).toUpperCase() + cls.slice(1);
-    setTaskState('process', 'done');
-    setTaskState('complete', 'done');
-    resultEl.textContent =
-        `Prediction: ${shape}\nConfidence: ${(confidence*100).toFixed(1)}%`;
-    fitResultText();
-  } catch (err) {
-    setTaskState('process', 'not-started');
-    setTaskState('complete', 'not-started');
-    resultEl.textContent = "Error: " + err;
-    fitResultText();
-  } finally {
-    clearBtn.disabled = false;
-    classifyBtn.disabled = false;
-    notifyResize();
-  }
-};
-</script>
+        // Init (fixed 6 px)
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.lineWidth = 6;
+        ctx.strokeStyle = fg;
+        resetCanvas();
+        updateUndoRedoUI();
+
+        // Grid toggle (CSS-only so it doesn't affect the bitmap)
+        let gridOn = false;
+        function applyGrid() {
+            canvas.classList.remove('grid-dark', 'grid-light');
+            if (!gridOn) return;
+            const darkUI = (root.getAttribute('data-theme') === 'dark') ||
+                (root.getAttribute('data-theme') === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            canvas.classList.add(darkUI ? 'grid-dark' : 'grid-light');
+        }
+        applyGrid();
+        const themeObserver = new MutationObserver(applyGrid);
+        themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+        // Tools
+        undoBtn.addEventListener('click', () => {
+            if (undoStack.length <= 1) return;
+            const cur = undoStack.pop(); // current
+            redoStack.push(cur);
+            const prev = undoStack[undoStack.length - 1];
+            ctx.putImageData(prev, 0, 0);
+            updateUndoRedoUI();
+        });
+        redoBtn.addEventListener('click', () => {
+            if (!redoStack.length) return;
+            const img = redoStack.pop();
+            undoStack.push(img);
+            ctx.putImageData(img, 0, 0);
+            updateUndoRedoUI();
+        });
+        gridBtn.addEventListener('click', () => {
+            gridOn = !gridOn;
+            gridBtn.setAttribute('aria-pressed', String(gridOn));
+            applyGrid();
+        });
+        saveBtn.addEventListener('click', () => {
+            canvas.toBlob(blob => {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'shape.png';
+                a.click();
+                setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+            }, 'image/png');
+        });
+        eraseBtn.addEventListener('click', () => {
+            resetCanvas();
+            setPredictionUI('Draw a shape to begin', null);
+        });
+
+        // Drawing interactions (pen always on)
+        canvas.addEventListener('pointerdown', e => {
+            e.preventDefault();
+            drawing = true;
+            canvas.setPointerCapture?.(e.pointerId);
+            // snapshot before stroke
+            pushHistory();
+            ctx.beginPath();
+            ctx.moveTo(...pos(e));
+        });
+        canvas.addEventListener('pointermove', e => {
+            if (!drawing) return;
+            e.preventDefault();
+            const [x, y] = pos(e);
+            ctx.strokeStyle = fg;
+            ctx.lineWidth = 6; // fixed width
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            hasDrawn = true;
+        });
+        ['pointerup', 'pointerleave', 'pointercancel'].forEach(evt =>
+            canvas.addEventListener(evt, () => { drawing = false; })
+        );
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', e => {
+            if (e.target && /input|textarea|select/i.test(e.target.tagName)) return;
+            if (e.key === 'u' || e.key === 'U') undoBtn.click();
+            if (e.key === 'r' || e.key === 'R') redoBtn.click();
+            if (e.key === 'g' || e.key === 'G') gridBtn.click();
+            if (e.key === 'c' || e.key === 'C') eraseBtn.click();
+            if (e.key === 's' || e.key === 'S') { e.preventDefault(); saveBtn.click(); }
+        });
+
+        /* ---------- Classification flow ---------- */
+        function renderStepperIfNeeded() {
+            if (!statusEl.querySelector('.stepper')) renderStepper();
+        }
+
+        function setPredictionUI(shapeText, confidence) {
+            resultShape.textContent = shapeText;
+            if (typeof confidence === 'number' && !Number.isNaN(confidence)) {
+                const pct = Math.max(0, Math.min(100, Math.round(confidence * 100)));
+                confBar.style.width = pct + '%';
+                confText.textContent = `Confidence: ${pct}%`;
+            } else {
+                confBar.style.width = '0%';
+                confText.textContent = 'Confidence: —';
+            }
+        }
+
+        async function classify() {
+            if (!hasDrawn) {
+                setPredictionUI('Please draw a shape first', null);
+                return;
+            }
+            renderStepperIfNeeded();
+            setStep('submit', 'in-progress');
+            classifyBtn.disabled = true;
+            resultBadge.classList.add('pulse');
+
+            // Build base64 PNG
+            const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+            const abuf = await blob.arrayBuffer();
+            let b64 = '';
+            const bytes = new Uint8Array(abuf);
+            const chunkSize = 0x8000;
+            for (let i = 0; i < bytes.length; i += chunkSize) {
+                b64 += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+            }
+            b64 = btoa(b64);
+
+            try {
+                setStep('submit', 'done');
+                setStep('process', 'in-progress');
+
+                const res = await fetch(FN_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ b64 })
+                });
+
+                if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+                const json = await res.json();
+                const cls = json.class || json.cls || json.label || 'unknown';
+                const conf = (typeof json.confidence === 'number') ? json.confidence
+                    : (typeof json.conf === 'number') ? json.conf : null;
+                const shape = cls ? (String(cls).charAt(0).toUpperCase() + String(cls).slice(1)) : 'Unknown';
+
+                setStep('process', 'done');
+                setStep('complete', 'done');
+                setPredictionUI(`Prediction: ${shape}`, conf);
+            } catch (err) {
+                setStep('process', 'not-started');
+                setStep('complete', 'not-started');
+                setPredictionUI('Error: ' + (err?.message || String(err)), null);
+            } finally {
+                classifyBtn.disabled = false;
+                resultBadge.classList.remove('pulse');
+                notifyResize();
+            }
+        }
+
+        classifyBtn.addEventListener('click', classify);
+
+        // Make the canvas background match theme on load (bitmap stays dark)
+        function refreshBG() {
+            const was = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            bg = getComputedStyle(document.documentElement).getPropertyValue('--canvas-dark').trim() || '#000';
+            ctx.putImageData(was, 0, 0);
+        }
+        refreshBG();
+
+        // Ensure we have an initial history state
+        if (!undoStack.length) pushHistory();
+
+        // Resize observer (if container changes)
+        new ResizeObserver(() => notifyResize()).observe(document.getElementById('demo-box'));
+    </script>
 </body>
 </html>
