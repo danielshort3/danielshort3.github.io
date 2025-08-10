@@ -344,7 +344,8 @@ window.PROJECTS = [
     image: "img/projects/project_15.png",
     tools: ["Python", "Ollama", "AWS", "Docker"],
     resources: [
-      { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Chatbot-LoRA-RAG", label: "GitHub" }
+      { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Chatbot-LoRA-RAG", label: "GitHub" },
+      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/chatbot-demo.html", label: "Live Demo" }
     ],
     embed : {
       type : "iframe",
@@ -369,7 +370,8 @@ window.PROJECTS = [
     image: "img/projects/project_16.gif",
     tools: ["Python", "PyTorch", "AWS", "Docker"],
     resources: [
-      { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Shape-Analyzer", label: "GitHub" }
+      { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Shape-Analyzer", label: "GitHub" },
+        { icon: "img/icons/website-icon.png", url: "https://danielshort.me/shape-demo.html", label: "Live Demo" }
     ],
     embed : {
       type : "iframe",
