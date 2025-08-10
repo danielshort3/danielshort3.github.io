@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Chatbot Demo</title>
 
+    <!-- Optional external stylesheet -->
     <link rel="stylesheet" href="css/styles.css">
 
+    <!-- Icons & Fonts -->
     <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"></noscript>
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
@@ -14,6 +16,7 @@
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@600&display=swap" rel="stylesheet"></noscript>
 
+    <!-- Markdown libs -->
     <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 
@@ -132,7 +135,7 @@
                 outline-offset: 2px;
             }
 
-        /* ---------- NEW: Service status bar (does NOT warm the model) ---------- */
+        /* ---------- Service status bar ---------- */
         #service-status {
             display: flex;
             align-items: center;
@@ -140,7 +143,7 @@
             padding: 10px 16px 4px;
             background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--primary) 4%, transparent));
             border-bottom: 1px solid var(--surface-accent);
-            min-height: 38px; /* reserve space to avoid shift */
+            min-height: 38px;
         }
 
         .svc-label {
@@ -192,7 +195,6 @@
             display: none;
         }
 
-        /* Tiny progress under the line when starting */
         .svc-progress {
             position: relative;
             flex: 1 1 auto;
@@ -211,7 +213,7 @@
                 transition: width .4s ease;
             }
 
-        /* ---------- Stepper (request lifecycle) ---------- */
+        /* ---------- Stepper ---------- */
         #status {
             padding: 10px 16px 0;
             min-height: 34px;
@@ -678,6 +680,7 @@
 </head>
 <body>
     <script>
+        /* Notify parent for iframed embeds — only once to keep height static */
         function notifyResize() { try { parent.postMessage({ type: 'chatbot-demo-resize' }, '*'); } catch (e) { } }
         window.addEventListener('load', notifyResize);
         try { document.fonts?.ready?.then(notifyResize); } catch (e) { }
@@ -700,7 +703,7 @@
             </div>
         </header>
 
-        <!-- NEW: Server status (does not invoke the model) -->
+        <!-- Service status (does not invoke the model) -->
         <div id="service-status" role="status" aria-live="polite">
             <span class="svc-dot gray" id="svc-dot" aria-hidden="true"></span>
             <span class="svc-label">Server</span>
@@ -863,12 +866,197 @@
             parentBubble.appendChild(div);
         }
 
+        /* ---------- Service status (smooth, per-second, no warm-ups) ---------- */
+        const WARMUP_TARGET_SEC = 120;       // keep in sync with Lambda env
+        const SCALEIN_COOLDOWN_SEC = 60;     // keep in sync with Lambda env
+
+        const FAST_MS = 2000;   // network poll while Starting
+        const NORMAL_MS = 12000;  // network poll while Off
+        const SLOW_MS = 30000;  // network poll while On
+        const TIMEOUT_MS = 4000;
+
+        const state = {
+            serverStatus: 'Off',
+            queue: 0,
+            warm: { active: false, startedAt: 0, total: WARMUP_TARGET_SEC },
+            cool: { active: false, startedAt: 0, total: SCALEIN_COOLDOWN_SEC }
+        };
+
+        function setDot(status) {
+            svcDot.className = 'svc-dot ' + (status === 'On' ? 'green' : status === 'Starting' ? 'amber' : 'gray');
+        }
+        function fmtSecs(s) {
+            if (s == null) return '…';
+            s = Math.max(0, Math.round(s));
+            if (s < 60) return `${s}s`;
+            const m = Math.floor(s / 60), sec = s % 60;
+            return `${m}m ${sec}s`;
+        }
+        function nextDelay(status) {
+            return status === 'Starting' ? FAST_MS : status === 'On' ? SLOW_MS : NORMAL_MS;
+        }
+        async function fetchWithTimeout(url, ms) {
+            const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), ms);
+            try {
+                const r = await fetch(url, { cache: 'no-store', signal: ctl.signal });
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return await r.json();
+            } finally { clearTimeout(t); }
+        }
+
+        // Warm countdown
+        function startWarmClient(initialSec = WARMUP_TARGET_SEC) {
+            state.warm.active = true;
+            state.warm.startedAt = Date.now();
+            state.warm.total = Math.max(30, initialSec);
+        }
+        function stopWarmClient() { state.warm.active = false; }
+        function currentWarmRemaining() {
+            if (!state.warm.active) return null;
+            const elapsed = (Date.now() - state.warm.startedAt) / 1000;
+            return Math.max(0, Math.round(state.warm.total - elapsed));
+        }
+        function reconcileWarmFromServer(serverEta) {
+            if (serverEta == null) return;
+            if (!state.warm.active) { startWarmClient(serverEta); return; }
+            const elapsed = (Date.now() - state.warm.startedAt) / 1000;
+            const remaining = Math.max(0, state.warm.total - elapsed);
+            if (Math.abs(remaining - serverEta) > 5) {
+                state.warm.total = serverEta + elapsed;
+            }
+        }
+
+        // Cool-down countdown
+        function startCoolClient(initialSec = SCALEIN_COOLDOWN_SEC) {
+            state.cool.active = true;
+            state.cool.startedAt = Date.now();
+            state.cool.total = Math.max(0, initialSec);
+        }
+        function stopCoolClient() { state.cool.active = false; }
+        function currentCoolRemaining() {
+            if (!state.cool.active) return null;
+            const elapsed = (Date.now() - state.cool.startedAt) / 1000;
+            return Math.max(0, Math.round(state.cool.total - elapsed));
+        }
+        function reconcileCoolFromServer(serverEta) {
+            if (serverEta == null) { stopCoolClient(); return; }
+            if (!state.cool.active) { startCoolClient(serverEta); return; }
+            const elapsed = (Date.now() - state.cool.startedAt) / 1000;
+            const remaining = Math.max(0, state.cool.total - elapsed);
+            if (Math.abs(remaining - serverEta) > 5) {
+                state.cool.total = serverEta + elapsed;
+            }
+        }
+
+        // Button copy tweaks
+        const defaultAskHTML = askBtn.innerHTML;
+        function updateAskButton(effectiveStatus) {
+            if (effectiveStatus === 'Off') {
+                askBtn.innerHTML = '<i class="fa-solid fa-bolt"></i> Send &amp; Wake';
+                askBtn.title = 'Wakes the server (~2 min for first reply)';
+            } else if (effectiveStatus === 'Starting') {
+                askBtn.innerHTML = '<i class="fa-solid fa-hourglass-half"></i> Join Queue';
+                askBtn.title = 'Your message will queue while the server warms';
+            } else {
+                askBtn.innerHTML = defaultAskHTML;
+                askBtn.title = '';
+            }
+        }
+
+        // Render bar every second
+        function renderStatusBar() {
+            const effectiveStatus = state.warm.active ? 'Starting' : state.serverStatus;
+            setDot(effectiveStatus);
+            updateAskButton(effectiveStatus);
+
+            let line = effectiveStatus;
+
+            // Warm progress
+            if (effectiveStatus === 'Starting') {
+                const rem = currentWarmRemaining();
+                if (rem != null) {
+                    line += ` (~${fmtSecs(rem)})`;
+                    const elapsed = (Date.now() - state.warm.startedAt) / 1000;
+                    const pct = Math.max(0, Math.min(100, (elapsed / Math.max(1, state.warm.total)) * 100));
+                    svcProg.hidden = false; svcFill.style.width = `${pct}%`;
+                } else {
+                    svcProg.hidden = true; svcFill.style.width = '0%';
+                }
+            } else {
+                svcProg.hidden = true; svcFill.style.width = '0%';
+            }
+
+            // Cool-down ETA while On
+            if (effectiveStatus === 'On') {
+                const cool = currentCoolRemaining();
+                if (cool != null) line += ` (idle→off ~${fmtSecs(cool)})`;
+            }
+
+            svcText.textContent = line;
+
+            // Queue
+            if (Number(state.queue) > 0) { svcQueueWrap.hidden = false; svcQ.textContent = String(state.queue); }
+            else { svcQueueWrap.hidden = true; }
+
+            // Safety: stop forcing if stuck too long
+            if (state.warm.active) {
+                const secs = (Date.now() - state.warm.startedAt) / 1000;
+                if (secs > 5 * 60 && state.serverStatus !== 'Starting') stopWarmClient();
+            }
+        }
+        setInterval(renderStatusBar, 1000);
+
+        // Network poll (lightweight; UI is driven by the 1s ticker)
+        let pollTimer = null, backoff = 0;
+        function schedule(ms) { if (pollTimer) clearTimeout(pollTimer); pollTimer = setTimeout(pollStatus, ms); }
+        async function pollStatus() {
+            if (document.hidden) { schedule(SLOW_MS); return; }
+            try {
+                const data = await fetchWithTimeout(STATUS_URL, TIMEOUT_MS);
+                state.serverStatus = data.status || 'Off';
+                state.queue = Number(data.queue_estimate || 0);
+
+                const warmEta = data?.eta?.to_warm_seconds;
+                if (state.serverStatus === 'Starting') {
+                    reconcileWarmFromServer(Number.isFinite(warmEta) ? warmEta : null);
+                } else {
+                    if (state.warm.active && currentWarmRemaining() === 0) stopWarmClient();
+                }
+
+                const coolEta = data?.eta?.to_scale_to_zero_seconds;
+                if (state.serverStatus === 'On') reconcileCoolFromServer(Number.isFinite(coolEta) ? coolEta : null);
+                else stopCoolClient();
+
+                renderStatusBar();
+                backoff = 0;
+                schedule(nextDelay(state.serverStatus));
+            } catch (e) {
+                renderStatusBar();
+                backoff = Math.min(4, backoff + 1);
+                schedule(NORMAL_MS * backoff);
+            }
+        }
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) pollStatus(); });
+        pollStatus();
+
         /* ---------- Networking ---------- */
         let abort = null; let cancelled = false;
         async function ask(prompt, onStatus = () => { }) {
             cancelled = false; abort = new AbortController(); onStatus('SUBMITTING');
-            const submit = await fetch(`${API_URL}/submit`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }), signal: abort.signal }).then(r => r.json());
+
+            const submit = await fetch(`${API_URL}/submit`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt }),
+                signal: abort.signal
+            }).then(r => r.json());
+
             const outputUri = submit.outputUri;
+
+            // NEW: show "Processing" now + start warm countdown instantly
+            onStatus('PENDING');
+            startWarmClient(WARMUP_TARGET_SEC);
+
             async function poll() {
                 if (cancelled) throw new Error('stopped');
                 const url = `${API_URL}/result?outputUri=${encodeURIComponent(outputUri)}`;
@@ -912,85 +1100,7 @@
         askBtn.addEventListener('click', handleSubmit);
         form.addEventListener('submit', handleSubmit);
 
-        /* ---------- NEW: Service status polling (no warm-ups) ---------- */
-        const FAST_MS = 5000, NORMAL_MS = 15000, SLOW_MS = 30000, TIMEOUT_MS = 4000;
-        const defaultAskHTML = askBtn.innerHTML;
-
-        function setDot(status) {
-            svcDot.className = 'svc-dot ' + (status === 'On' ? 'green' : status === 'Starting' ? 'amber' : 'gray');
-        }
-        function fmtSecs(s) {
-            if (s == null) return '…';
-            s = Math.max(0, Math.round(s));
-            if (s < 60) return `${s}s`;
-            const m = Math.floor(s / 60), sec = s % 60;
-            return `${m}m ${sec}s`;
-        }
-        function nextDelay(status) { return status === 'Starting' ? FAST_MS : status === 'On' ? SLOW_MS : NORMAL_MS; }
-
-        async function fetchWithTimeout(url, ms) {
-            const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), ms);
-            try { const res = await fetch(url, { cache: 'no-store', signal: ctl.signal }); if (!res.ok) throw new Error(`HTTP ${res.status}`); return await res.json(); }
-            finally { clearTimeout(t); }
-        }
-
-        function updateAskButton(status) {
-            if (status === 'Off') {
-                askBtn.innerHTML = '<i class="fa-solid fa-bolt"></i> Send &amp; Wake';
-                askBtn.title = 'Wakes the server (~2 min first reply)';
-            } else if (status === 'Starting') {
-                askBtn.innerHTML = '<i class="fa-solid fa-hourglass-half"></i> Join Queue';
-                askBtn.title = 'Your message will queue while the server warms';
-            } else {
-                askBtn.innerHTML = defaultAskHTML;
-                askBtn.title = '';
-            }
-        }
-
-        let pollTimer = null, backoff = 0;
-        function schedule(ms) { if (pollTimer) clearTimeout(pollTimer); pollTimer = setTimeout(pollStatus, ms); }
-
-        async function pollStatus() {
-            if (document.hidden) { schedule(SLOW_MS); return; }
-            try {
-                const data = await fetchWithTimeout(STATUS_URL, TIMEOUT_MS);
-                const status = data.status || 'Off';
-                setDot(status);
-                updateAskButton(status);
-
-                // Text & ETA
-                let line = status;
-                if (status === 'Starting' && data.eta && data.eta.to_warm_seconds != null) {
-                    const eta = data.eta.to_warm_seconds;
-                    line += ` (~${fmtSecs(eta)})`;
-                    // progress bar (best-effort against WARMUP_TARGET_SEC)
-                    const target = Number((data.eta && data.eta.to_warm_seconds != null) ? (data.eta.to_warm_seconds + 0) : 0);
-                    const envTarget = 120; // keep in sync with Lambda env if you change it
-                    const pct = Math.max(0, Math.min(100, 100 - (eta / envTarget * 100)));
-                    svcProg.hidden = false; svcFill.style.width = `${pct}%`;
-                } else {
-                    svcProg.hidden = true; svcFill.style.width = '0%';
-                }
-                if (status === 'On' && data.eta && data.eta.to_scale_to_zero_seconds != null) {
-                    line += ` (idle→off ~${fmtSecs(data.eta.to_scale_to_zero_seconds)})`;
-                }
-                svcText.textContent = line;
-
-                // Queue estimate
-                const q = Number(data.queue_estimate || 0);
-                if (q > 0) { svcQueueWrap.hidden = false; svcQ.textContent = String(q); } else { svcQueueWrap.hidden = true; }
-
-                backoff = 0; schedule(nextDelay(status));
-            } catch (e) {
-                setDot('Off'); svcText.textContent = 'Status unavailable — retrying…';
-                svcProg.hidden = true; svcQueueWrap.hidden = true;
-                backoff = Math.min(4, backoff + 1); schedule(NORMAL_MS * backoff);
-            }
-        }
-        document.addEventListener('visibilitychange', () => { if (!document.hidden) pollStatus(); });
-        pollStatus();
-
-        /* ---------- Quick Prompts marquee (unchanged, JS-driven) ---------- */
+        /* ---------- Quick Prompts marquee (JS-driven) ---------- */
         (function () {
             const track = quickPrompts; if (!track) return;
             const mqPhone = window.matchMedia('(max-width: 520px)');
