@@ -210,7 +210,7 @@
                 height: 100%;
                 width: 0%;
                 background: linear-gradient(90deg, var(--primary), color-mix(in srgb, var(--primary) 60%, #fff));
-                transition: width .4s ease;
+                transition: width .35s ease;
             }
 
         /* ---------- Stepper ---------- */
@@ -826,7 +826,7 @@
             try { await navigator.clipboard.writeText(text.trim()); btn.innerHTML = '<i class="fa-solid fa-check"></i>'; setTimeout(() => btn.innerHTML = '<i class="fa-regular fa-copy"></i>', 1200); } catch { }
         });
 
-        /* ---------- Rendering ---------- */
+        /* ---------- Rendering helpers ---------- */
 
         // Normalize backend status variations to UI states
         function normalizeStatus(s) {
@@ -836,6 +836,285 @@
             if (t === 'off' || t === 'stopped' || t === 'idle') return 'Off';
             return 'Unknown';
         }
+
+        function setDot(status) {
+            const color = status === 'On' ? 'green' : status === 'Starting' ? 'amber' : 'gray';
+            svcDot.className = 'svc-dot ' + color;
+        }
+        function fmtSecs(s) {
+            if (!Number.isFinite(s)) return '…';
+            s = Math.max(0, Math.round(s));
+            if (s < 60) return `${s}s`;
+            const m = Math.floor(s / 60), sec = s % 60;
+            return `${m}m ${sec}s`;
+        }
+
+        /* ---------- Client state ---------- */
+        const INTENT_TIMEOUT_SEC = 15 * 60; // 15m guard; typical end-to-end ~10m per your note
+
+        const state = {
+            serverStatus: 'Unknown',
+            hasPolled: false,
+            queue: 0,
+            // warm countdown driven ONLY by server ETA
+            warm: { active: false, startedAt: 0, targetAt: 0 },
+            // cool countdown synced to server ETA
+            cool: { active: false, startedAt: 0, targetAt: 0 },
+            // user just submitted something; mask Off->Starting flicker until scale-out begins
+            intent: { warming: false, startedAt: 0 }
+        };
+
+        function startWarmFromServer(etaSec) {
+            const now = Date.now();
+            state.warm.active = true;
+            state.warm.startedAt = now;
+            state.warm.targetAt = now + Math.max(0, (etaSec || 0)) * 1000;
+        }
+        function reconcileWarmFromServer(etaSec) {
+            if (!Number.isFinite(etaSec)) return; // no ETA yet; keep current
+            if (!state.warm.active) { startWarmFromServer(etaSec); return; }
+            // Smooth resync: shift target time to match server ETA (avoid jumpy countdown)
+            const now = Date.now();
+            const desiredTarget = now + Math.max(0, etaSec) * 1000;
+            const driftMs = Math.abs(desiredTarget - state.warm.targetAt);
+            if (driftMs > 900) { // >0.9s drift -> adjust
+                const elapsed = now - state.warm.startedAt;
+                state.warm.startedAt = now - Math.min(elapsed, desiredTarget - now); // keep shape if possible
+                state.warm.targetAt = desiredTarget;
+            }
+        }
+        function stopWarm() { state.warm.active = false; }
+
+        function warmRemaining() {
+            if (!state.warm.active) return null;
+            return Math.max(0, Math.ceil((state.warm.targetAt - Date.now()) / 1000));
+        }
+        function warmPct() {
+            if (!state.warm.active) return 0;
+            const total = Math.max(1, state.warm.targetAt - state.warm.startedAt);
+            const done = Math.min(total, Math.max(0, Date.now() - state.warm.startedAt));
+            return Math.max(0, Math.min(100, (done / total) * 100));
+        }
+
+        function startCoolFromServer(etaSec) {
+            const now = Date.now();
+            state.cool.active = true;
+            state.cool.startedAt = now;
+            state.cool.targetAt = now + Math.max(0, (etaSec || 0)) * 1000;
+        }
+        function reconcileCoolFromServer(etaSec) {
+            if (!Number.isFinite(etaSec) || etaSec <= 0) { return; }
+            if (!state.cool.active) { startCoolFromServer(etaSec); return; }
+            const now = Date.now();
+            const desiredTarget = now + Math.max(0, etaSec) * 1000;
+            const driftMs = Math.abs(desiredTarget - state.cool.targetAt);
+            if (driftMs > 900) {
+                const elapsed = now - state.cool.startedAt;
+                state.cool.startedAt = now - Math.min(elapsed, desiredTarget - now);
+                state.cool.targetAt = desiredTarget;
+            }
+        }
+        function stopCool() { state.cool.active = false; }
+        function coolRemaining() {
+            if (!state.cool.active) return null;
+            return Math.max(0, Math.ceil((state.cool.targetAt - Date.now()) / 1000));
+        }
+        function coolPct() {
+            if (!state.cool.active) return 0;
+            const total = Math.max(1, state.cool.targetAt - state.cool.startedAt);
+            const done = Math.min(total, Math.max(0, Date.now() - state.cool.startedAt));
+            return Math.max(0, Math.min(100, (done / total) * 100));
+        }
+
+        // Ask button label/state
+        const defaultAskHTML = askBtn.innerHTML;
+        function updateAskButton(effectiveStatus) {
+            if (effectiveStatus === 'Off') {
+                askBtn.innerHTML = '<i class="fa-solid fa-bolt"></i> Send &amp; Wake';
+                askBtn.title = 'Wakes the server (cold start)';
+            } else if (effectiveStatus === 'Starting') {
+                askBtn.innerHTML = '<i class="fa-solid fa-hourglass-half"></i> Join Queue';
+                askBtn.title = 'Your message will queue while the server warms';
+            } else {
+                askBtn.innerHTML = defaultAskHTML;
+                askBtn.title = '';
+            }
+        }
+
+        // Render bar every second
+        function renderStatusBar() {
+            if (!state.hasPolled) {
+                svcText.textContent = 'Checking…';
+                setDot('Unknown');
+                return;
+            }
+
+            // Effective status with “intent” masking to avoid Off/Starting flicker
+            let effectiveStatus = state.serverStatus;
+            const intentAge = (Date.now() - state.intent.startedAt) / 1000;
+            const intentActive = state.intent.warming && intentAge < INTENT_TIMEOUT_SEC;
+
+            if (intentActive && (state.serverStatus === 'Off' || state.serverStatus === 'Unknown')) {
+                effectiveStatus = 'Starting'; // we asked, AWS is waking — avoid showing "Off"
+            } else if (state.warm.active) {
+                effectiveStatus = 'Starting';
+            }
+
+            setDot(effectiveStatus);
+            updateAskButton(effectiveStatus);
+
+            let line = effectiveStatus;
+
+            // Warm progress (only when we actually have a server-driven countdown)
+            if (effectiveStatus === 'Starting') {
+                const rem = warmRemaining();
+
+                if (state.serverStatus === 'Starting' && rem != null) {
+                    // True ETA from Lambda
+                    const pct = warmPct();
+                    svcProg.hidden = false; svcFill.style.width = `${pct}%`;
+
+                    // When ETA is exactly 0 but still starting, clarify finalization
+                    if (rem === 0) {
+                        line += ` (~0s, finalizing…)`;
+                    } else {
+                        line += ` (~${fmtSecs(rem)})`;
+                    }
+                } else if (state.serverStatus === 'Starting' && rem == null) {
+                    // Starting but Lambda hasn't exposed ETA yet
+                    svcProg.hidden = true; svcFill.style.width = '0%';
+                    line += ` (estimating…)`;
+                } else if (intentActive && (state.serverStatus === 'Off' || state.serverStatus === 'Unknown')) {
+                    // We know we just triggered a wake, but backend still shows Off
+                    svcProg.hidden = true; svcFill.style.width = '0%';
+                    line += ` (queueing warm-up…)`;
+                } else {
+                    svcProg.hidden = true; svcFill.style.width = '0%';
+                }
+            } else {
+                svcProg.hidden = false;
+                const coolRem = coolRemaining();
+                if (effectiveStatus === 'On' && coolRem != null && coolRem > 0) {
+                    const pct = coolPct();
+                    line += ` (idle→off ~${fmtSecs(coolRem)})`;
+                    svcFill.style.width = `${100 - pct}%`; // show “time until off” draining
+                } else {
+                    svcProg.hidden = true; svcFill.style.width = '0%';
+                }
+            }
+
+            svcText.textContent = line;
+
+            // Queue display
+            if (Number(state.queue) > 0) { svcQueueWrap.hidden = false; svcQ.textContent = String(state.queue); }
+            else { svcQueueWrap.hidden = true; }
+        }
+        setInterval(renderStatusBar, 1000);
+
+        /* ---------- Status polling ---------- */
+        const FAST_MS = 2000, NORMAL_MS = 12000, SLOW_MS = 30000, TIMEOUT_MS = 4000;
+        function nextDelay(status) { return status === 'Starting' ? FAST_MS : status === 'On' ? SLOW_MS : NORMAL_MS; }
+
+        async function fetchWithTimeout(url, ms) {
+            const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), ms);
+            try {
+                const r = await fetch(url, { cache: 'no-store', signal: ctl.signal });
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return await r.json();
+            } finally { clearTimeout(t); }
+        }
+
+        let pollTimer = null, backoff = 0, pollGen = 0;
+        function schedule(ms) { if (pollTimer) clearTimeout(pollTimer); pollTimer = setTimeout(pollStatus, ms); }
+
+        async function pollStatus() {
+            const myGen = ++pollGen;
+            if (document.hidden) { schedule(SLOW_MS); return; }
+            try {
+                const data = await fetchWithTimeout(STATUS_URL, TIMEOUT_MS);
+                if (myGen !== pollGen) return; // drop stale responses
+
+                state.hasPolled = true;
+                state.serverStatus = normalizeStatus(data.status);
+                state.queue = Number(data.queue_estimate || 0);
+
+                // Warm ETA strictly from Lambda
+                const warmEta = data?.eta?.to_warm_seconds;
+                if (state.serverStatus === 'Starting') {
+                    if (Number.isFinite(warmEta)) {
+                        if (!state.warm.active) startWarmFromServer(warmEta);
+                        else reconcileWarmFromServer(warmEta);
+                    }
+                }
+
+                // When Lambda says On, conclude warm phase & clear "intent"
+                if (state.serverStatus === 'On') {
+                    stopWarm();
+                    state.intent.warming = false;
+                }
+
+                // Cool ETA synced to Lambda while On
+                const coolEta = data?.eta?.to_scale_to_zero_seconds;
+                if (state.serverStatus === 'On' && Number.isFinite(coolEta)) {
+                    if (!state.cool.active) startCoolFromServer(coolEta);
+                    else reconcileCoolFromServer(coolEta);
+                } else if (state.serverStatus !== 'On') {
+                    stopCool();
+                }
+
+                renderStatusBar();
+                backoff = 0;
+                schedule(nextDelay(state.serverStatus));
+            } catch (e) {
+                renderStatusBar();
+                backoff = Math.min(4, backoff + 1);
+                schedule(NORMAL_MS * backoff);
+            }
+        }
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) pollStatus(); });
+        pollStatus();
+
+        /* ---------- Networking (submit & result) ---------- */
+        let abort = null; let cancelled = false;
+
+        async function ask(prompt, onStatus = () => { }) {
+            cancelled = false; abort = new AbortController(); onStatus('SUBMITTING');
+
+            const submit = await fetch(`${API_URL}/submit`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt }),
+                signal: abort.signal
+            }).then(r => r.json());
+
+            const outputUri = submit.outputUri;
+
+            // Tell the UI we expect a wake/queue; do NOT start a fake 120s timer.
+            onStatus('PENDING');
+            state.intent.warming = true;
+            state.intent.startedAt = Date.now();
+            renderStatusBar();
+
+            // Quick sync to status so we pick up a real ETA ASAP
+            try { pollStatus(); } catch { }
+
+            async function poll() {
+                if (cancelled) throw new Error('stopped');
+                const url = `${API_URL}/result?outputUri=${encodeURIComponent(outputUri)}`;
+                const res = await fetch(url, { signal: abort.signal }).then(r => r.json());
+                onStatus(res.status);
+                if (res.status === 'READY') return res.data;
+                if (res.status === 'FAILED') throw new Error(res.error || 'Request failed');
+                await new Promise(r => setTimeout(r, 1500));
+                return poll();
+            }
+            return poll();
+        }
+
+        /* ---------- Submit flow ---------- */
+        function saveHistory() { localStorage.setItem('chatbot-demo-history', answerEl.innerHTML); }
+        function restoreHistory() { const html = localStorage.getItem('chatbot-demo-history'); if (html) { answerEl.innerHTML = html; } }
+        restoreHistory();
 
         let exchangeCount = 0;
         function createExchange(prompt) {
@@ -876,239 +1155,6 @@
             parentBubble.appendChild(div);
         }
 
-        /* ---------- Service status (smooth, per-second, robust) ---------- */
-        const WARMUP_TARGET_SEC = 120;       // keep in sync with Lambda env
-        const SCALEIN_COOLDOWN_SEC = 60;     // idle -> off window
-        const FAST_MS = 2000;                // poll while Starting
-        const NORMAL_MS = 12000;             // poll while Off
-        const SLOW_MS = 30000;               // poll while On
-        const TIMEOUT_MS = 4000;
-
-        const state = {
-            serverStatus: 'Unknown',        // start unknown (don’t default to Off)
-            hasPolled: false,               // first successful poll flips this
-            queue: 0,
-            warm: { active: false, startedAt: 0, total: WARMUP_TARGET_SEC },
-            cool: { active: false, startedAt: 0, total: SCALEIN_COOLDOWN_SEC }
-        };
-
-        function setDot(status) {
-            const color = status === 'On' ? 'green' : status === 'Starting' ? 'amber' : 'gray';
-            svcDot.className = 'svc-dot ' + color;
-        }
-        function fmtSecs(s) {
-            if (s == null) return '…';
-            s = Math.max(0, Math.round(s));
-            if (s < 60) return `${s}s`;
-            const m = Math.floor(s / 60), sec = s % 60;
-            return `${m}m ${sec}s`;
-        }
-        function nextDelay(status) {
-            return status === 'Starting' ? FAST_MS : status === 'On' ? SLOW_MS : NORMAL_MS;
-        }
-        async function fetchWithTimeout(url, ms) {
-            const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), ms);
-            try {
-                const r = await fetch(url, { cache: 'no-store', signal: ctl.signal });
-                if (!r.ok) throw new Error(`HTTP ${r.status}`);
-                return await r.json();
-            } finally { clearTimeout(t); }
-        }
-
-        // Warm countdown
-        function startWarmClient(initialSec = WARMUP_TARGET_SEC) {
-            state.warm.active = true;
-            state.warm.startedAt = Date.now();
-            state.warm.total = Math.max(30, Number(initialSec) || WARMUP_TARGET_SEC);
-        }
-        function stopWarmClient() { state.warm.active = false; }
-        function currentWarmRemaining() {
-            if (!state.warm.active) return null;
-            const elapsed = (Date.now() - state.warm.startedAt) / 1000;
-            return Math.max(0, Math.round(state.warm.total - elapsed));
-        }
-        function reconcileWarmFromServer(serverEta) {
-            if (serverEta == null || !Number.isFinite(serverEta)) return;
-            if (!state.warm.active) { startWarmClient(serverEta); return; }
-            const elapsed = (Date.now() - state.warm.startedAt) / 1000;
-            const remaining = Math.max(0, state.warm.total - elapsed);
-            // smoother: resync if >1s difference (was 5s)
-            if (Math.abs(remaining - serverEta) > 1) {
-                state.warm.total = serverEta + elapsed;
-            }
-        }
-
-        // Cool-down countdown
-        function startCoolClient(initialSec = SCALEIN_COOLDOWN_SEC) {
-            state.cool.active = true;
-            state.cool.startedAt = Date.now();
-            state.cool.total = Math.max(0, Number(initialSec) || SCALEIN_COOLDOWN_SEC);
-        }
-        function stopCoolClient() { state.cool.active = false; }
-        function currentCoolRemaining() {
-            if (!state.cool.active) return null;
-            const elapsed = (Date.now() - state.cool.startedAt) / 1000;
-            return Math.max(0, Math.round(state.cool.total - elapsed));
-        }
-        function reconcileCoolFromServer(serverEta) {
-            if (!Number.isFinite(serverEta) || serverEta <= 0) {
-                if (state.serverStatus === 'On') {
-                    if (!state.cool.active || state.cool.total <= 0) startCoolClient(SCALEIN_COOLDOWN_SEC);
-                } else {
-                    stopCoolClient();
-                }
-                return;
-            }
-            if (!state.cool.active) { startCoolClient(serverEta); return; }
-            const elapsed = (Date.now() - state.cool.startedAt) / 1000;
-            const remaining = Math.max(0, state.cool.total - elapsed);
-            if (Math.abs(remaining - serverEta) > 1) {
-                state.cool.total = serverEta + elapsed;
-            }
-        }
-
-        // Button copy tweaks
-        const defaultAskHTML = askBtn.innerHTML;
-        function updateAskButton(effectiveStatus) {
-            if (effectiveStatus === 'Off') {
-                askBtn.innerHTML = '<i class="fa-solid fa-bolt"></i> Send &amp; Wake';
-                askBtn.title = 'Wakes the server (~2 min for first reply)';
-            } else if (effectiveStatus === 'Starting') {
-                askBtn.innerHTML = '<i class="fa-solid fa-hourglass-half"></i> Join Queue';
-                askBtn.title = 'Your message will queue while the server warms';
-            } else {
-                askBtn.innerHTML = defaultAskHTML;
-                askBtn.title = '';
-            }
-        }
-
-        // Render bar every second
-        function renderStatusBar() {
-            if (!state.hasPolled) {
-                svcText.textContent = 'Checking…';
-                setDot('Unknown');
-                return;
-            }
-
-            const effectiveStatus = state.warm.active ? 'Starting' : state.serverStatus;
-            setDot(effectiveStatus);
-            updateAskButton(effectiveStatus);
-
-            let line = effectiveStatus;
-
-            // Warm progress
-            if (effectiveStatus === 'Starting') {
-                const rem = currentWarmRemaining();
-                if (rem != null) {
-                    line += ` (~${fmtSecs(rem)})`;
-                    const elapsed = (Date.now() - state.warm.startedAt) / 1000;
-                    const pct = Math.max(0, Math.min(100, (elapsed / Math.max(1, state.warm.total)) * 100));
-                    svcProg.hidden = false; svcFill.style.width = `${pct}%`;
-                } else {
-                    svcProg.hidden = true; svcFill.style.width = '0%';
-                }
-            } else {
-                svcProg.hidden = true; svcFill.style.width = '0%';
-            }
-
-            // Cool-down ETA while On
-            if (effectiveStatus === 'On') {
-                const cool = currentCoolRemaining();
-                if (cool != null && cool > 0) line += ` (idle→off ~${fmtSecs(cool)})`;
-            }
-
-            svcText.textContent = line;
-
-            // Queue
-            if (Number(state.queue) > 0) { svcQueueWrap.hidden = false; svcQ.textContent = String(state.queue); }
-            else { svcQueueWrap.hidden = true; }
-
-            // Safety: stop forcing warm if stuck too long
-            if (state.warm.active) {
-                const elapsed = (Date.now() - state.warm.startedAt) / 1000;
-                const guard = Math.max(state.warm.total, WARMUP_TARGET_SEC) + 10;
-                if (state.serverStatus !== 'Starting' && elapsed > guard) stopWarmClient();
-            }
-        }
-        setInterval(renderStatusBar, 1000);
-
-        // Network poll — race-proof with generation token
-        let pollTimer = null, backoff = 0, pollGen = 0;
-        function schedule(ms) { if (pollTimer) clearTimeout(pollTimer); pollTimer = setTimeout(pollStatus, ms); }
-
-        async function pollStatus() {
-            const myGen = ++pollGen;
-            if (document.hidden) { schedule(SLOW_MS); return; }
-            try {
-                const data = await fetchWithTimeout(STATUS_URL, TIMEOUT_MS);
-
-                // Drop stale responses (avoid late overwrites)
-                if (myGen !== pollGen) return;
-
-                state.serverStatus = normalizeStatus(data.status);
-                state.queue = Number(data.queue_estimate || 0);
-                state.hasPolled = true;
-
-                const warmEta = data?.eta?.to_warm_seconds;
-                if (state.serverStatus === 'Starting') {
-                    reconcileWarmFromServer(Number.isFinite(warmEta) ? warmEta : null);
-                } else {
-                    stopWarmClient();
-                }
-
-                const coolEta = data?.eta?.to_scale_to_zero_seconds;
-                if (state.serverStatus === 'On') reconcileCoolFromServer(Number.isFinite(coolEta) ? coolEta : null);
-                else stopCoolClient();
-
-                renderStatusBar();
-                backoff = 0;
-                schedule(nextDelay(state.serverStatus));
-            } catch (e) {
-                // Keep last-known status; retry with backoff
-                renderStatusBar();
-                backoff = Math.min(4, backoff + 1);
-                schedule(NORMAL_MS * backoff);
-            }
-        }
-        document.addEventListener('visibilitychange', () => { if (!document.hidden) pollStatus(); });
-        pollStatus();
-
-        /* ---------- Networking ---------- */
-        let abort = null; let cancelled = false;
-        async function ask(prompt, onStatus = () => { }) {
-            cancelled = false; abort = new AbortController(); onStatus('SUBMITTING');
-
-            const submit = await fetch(`${API_URL}/submit`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt }),
-                signal: abort.signal
-            }).then(r => r.json());
-
-            const outputUri = submit.outputUri;
-
-            // Show "Processing" now; only force warm countdown if we think it's not already On
-            onStatus('PENDING');
-            if (state.serverStatus !== 'On') startWarmClient(WARMUP_TARGET_SEC);
-
-            async function poll() {
-                if (cancelled) throw new Error('stopped');
-                const url = `${API_URL}/result?outputUri=${encodeURIComponent(outputUri)}`;
-                const res = await fetch(url, { signal: abort.signal }).then(r => r.json());
-                onStatus(res.status);
-                if (res.status === 'READY') return res.data;
-                if (res.status === 'FAILED') throw new Error(res.error || 'Request failed');
-                await new Promise(r => setTimeout(r, 1500));
-                return poll();
-            }
-            return poll();
-        }
-
-        /* ---------- Submit flow ---------- */
-        function saveHistory() { localStorage.setItem('chatbot-demo-history', answerEl.innerHTML); }
-        function restoreHistory() { const html = localStorage.getItem('chatbot-demo-history'); if (html) { answerEl.innerHTML = html; } }
-        restoreHistory();
-
         async function handleSubmit(e) {
             if (e) e.preventDefault();
             const prompt = promptEl.value.trim(); if (!prompt) return;
@@ -1122,16 +1168,11 @@
                         setStep('submit', 'done'); setStep('process', 'in-progress');
                     } else if (status === 'READY') {
                         setStep('process', 'done'); setStep('complete', 'done');
-
-                        // Reply is ready: clear warm banner and kick off local cool-down immediately.
-                        stopWarmClient();
-                        startCoolClient(SCALEIN_COOLDOWN_SEC);
-
-                        // Sync quickly with server ETA if available.
+                        // Clear warm & intent; cool countdown will be driven by Lambda while On
+                        stopWarm(); state.intent.warming = false;
                         try { pollStatus(); } catch { }
                     } else if (status === 'FAILED') {
-                        // Ensure warm banner clears on failure too
-                        stopWarmClient();
+                        stopWarm(); state.intent.warming = false;
                     }
                 });
                 contentEl.innerHTML = renderMarkdown(data.generated_text || JSON.stringify(data));
