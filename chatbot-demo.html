@@ -867,12 +867,11 @@
         }
 
         /* ---------- Service status (smooth, per-second, no warm-ups) ---------- */
-        const WARMUP_TARGET_SEC = 300;       // keep in sync with Lambda env
-        const SCALEIN_COOLDOWN_SEC = 60;     // keep in sync with Lambda env
-
-        const FAST_MS = 2000;   // network poll while Starting
-        const NORMAL_MS = 12000;  // network poll while Off
-        const SLOW_MS = 30000;  // network poll while On
+        const WARMUP_TARGET_SEC = 600;       // 10 minutes (keep in sync with Lambda env)
+        const SCALEIN_COOLDOWN_SEC = 60;     // idle->off window (change to 600 if you want 10 min)
+        const FAST_MS = 2000;                // network poll while Starting
+        const NORMAL_MS = 12000;             // network poll while Off
+        const SLOW_MS = 30000;               // network poll while On
         const TIMEOUT_MS = 4000;
 
         const state = {
@@ -938,8 +937,17 @@
             const elapsed = (Date.now() - state.cool.startedAt) / 1000;
             return Math.max(0, Math.round(state.cool.total - elapsed));
         }
+        // UPDATED: robust handling of 0/undefined ETAs
         function reconcileCoolFromServer(serverEta) {
-            if (serverEta == null) { stopCoolClient(); return; }
+            if (!Number.isFinite(serverEta) || serverEta <= 0) {
+                if (state.serverStatus === 'On') {
+                    // Fall back to local countdown if server doesn't provide a positive ETA
+                    if (!state.cool.active || state.cool.total <= 0) startCoolClient(SCALEIN_COOLDOWN_SEC);
+                } else {
+                    stopCoolClient();
+                }
+                return;
+            }
             if (!state.cool.active) { startCoolClient(serverEta); return; }
             const elapsed = (Date.now() - state.cool.startedAt) / 1000;
             const remaining = Math.max(0, state.cool.total - elapsed);
@@ -989,7 +997,7 @@
             // Cool-down ETA while On
             if (effectiveStatus === 'On') {
                 const cool = currentCoolRemaining();
-                if (cool != null) line += ` (idle→off ~${fmtSecs(cool)})`;
+                if (cool != null && cool > 0) line += ` (idle→off ~${fmtSecs(cool)})`;
             }
 
             svcText.textContent = line;
@@ -998,10 +1006,11 @@
             if (Number(state.queue) > 0) { svcQueueWrap.hidden = false; svcQ.textContent = String(state.queue); }
             else { svcQueueWrap.hidden = true; }
 
-            // Safety: stop forcing if stuck too long
+            // Safety: stop forcing warm if stuck too long (relative guard)
             if (state.warm.active) {
-                const secs = (Date.now() - state.warm.startedAt) / 1000;
-                if (secs > 5 * 60 && state.serverStatus !== 'Starting') stopWarmClient();
+                const elapsed = (Date.now() - state.warm.startedAt) / 1000;
+                const guard = Math.max(state.warm.total, WARMUP_TARGET_SEC) + 10; // cushion
+                if (state.serverStatus !== 'Starting' && elapsed > guard) stopWarmClient();
             }
         }
         setInterval(renderStatusBar, 1000);
@@ -1053,7 +1062,7 @@
 
             const outputUri = submit.outputUri;
 
-            // NEW: show "Processing" now + start warm countdown instantly
+            // Show "Processing" now + start warm countdown instantly
             onStatus('PENDING');
             startWarmClient(WARMUP_TARGET_SEC);
 
@@ -1084,8 +1093,21 @@
 
             try {
                 const data = await ask(prompt, status => {
-                    if (status === 'PENDING') { setStep('submit', 'done'); setStep('process', 'in-progress'); }
-                    else if (status === 'READY') { setStep('process', 'done'); setStep('complete', 'done'); }
+                    if (status === 'PENDING') {
+                        setStep('submit', 'done'); setStep('process', 'in-progress');
+                    } else if (status === 'READY') {
+                        setStep('process', 'done'); setStep('complete', 'done');
+
+                        // Reply is ready: clear warm banner and kick off local cool-down immediately.
+                        stopWarmClient();
+                        startCoolClient(SCALEIN_COOLDOWN_SEC);
+
+                        // Sync quickly with server ETA if available.
+                        try { pollStatus(); } catch { }
+                    } else if (status === 'FAILED') {
+                        // Ensure warm banner clears on failure too
+                        stopWarmClient();
+                    }
                 });
                 contentEl.innerHTML = renderMarkdown(data.generated_text || JSON.stringify(data));
                 const urls = data.source_urls || data.sources || data.urls; renderSources(bubble, urls);
