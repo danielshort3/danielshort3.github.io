@@ -961,3 +961,13 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
   padding:4rem 1rem;
   min-height:calc(100vh - var(--nav-height,0px) - 64px);
 }
+
+/* Increase height for embedded demos so the full content fits in the modal */
+#shapeClassifier-modal iframe,
+#chatbotLora-modal iframe {
+    /* Stretch iframe to fill more of the viewport */
+    height: 80vh;
+    margin-top: 0;
+    width: 100%;
+    border: 1px solid var(--surface-accent);
+}
