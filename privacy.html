@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Privacy & Analytics │ Daniel Short</title>
+    <title>Privacy &amp; Analytics │ Daniel Short</title>
     <link rel="canonical" href="https://danielshort.me/privacy.html" />
-    <meta name="description" content="What this site tracks (and what it doesn’t). Plain-English privacy & analytics details." />
+    <meta name="description" content="What this site tracks (and what it doesn’t). Plain-English privacy &amp; analytics details." />
 
     <!-- Open Graph / Twitter (match site conventions used on other pages) -->
-    <meta property="og:title" content="Privacy & Analytics │ Daniel Short" />
+    <meta property="og:title" content="Privacy &amp; Analytics │ Daniel Short" />
     <meta property="og:description" content="Plain-English summary of analytics on this site." />
     <meta property="og:url" content="https://danielshort.me/privacy.html" />
     <meta property="og:image" content="img/hero/head.jpg" />
@@ -24,8 +24,8 @@
 
     <!-- Fonts (same pattern as other pages) -->
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap" rel="stylesheet"></noscript>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&amp;family=Poppins:wght@500;600&amp;display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&amp;family=Poppins:wght@500;600&amp;display=swap" rel="stylesheet"></noscript>
 
     <!-- Page-scoped styles to center and tastefully frame the content (no hero, no hidden content) -->
     <style>
@@ -46,12 +46,14 @@
             border-radius: 14px;
             box-shadow: 0 10px 24px rgba(44,169,188,.18);
             padding: clamp(18px, 4vw, 32px);
+            /* Center cards horizontally and add vertical spacing */
+            margin: 0 auto 1.5rem;
         }
 
-            .policy-card h1 {
-                margin-top: 0;
-                text-align: center;
-            }
+        .policy-card h1 {
+            margin-top: 0;
+            text-align: center;
+        }
 
         .policy-lead {
             text-align: center;
@@ -64,9 +66,9 @@
             margin-top: 20px;
         }
 
-            .policy-section h2 {
-                margin-top: 0.2em;
-            }
+        .policy-section h2 {
+            margin-top: 0.2em;
+        }
 
         .policy-list {
             padding-left: 20px;
@@ -75,6 +77,35 @@
         .policy-meta {
             margin-top: 16px;
             font-size: .95rem;
+            color: var(--text-muted);
+        }
+        /* Simple styling for the preferences form on this page */
+        #privacy-preferences-form div {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        #privacy-preferences-form label {
+            margin-left: 0.5rem;
+        }
+        #save-privacy-preferences {
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            background-color: var(--primary);
+            color: var(--on-primary);
+            cursor: pointer;
+        }
+        #save-privacy-preferences:hover {
+            background-color: var(--primary-dark, #2ca9bc);
+        }
+
+        /* Additional styling for cookie descriptions */
+        .cookie-description {
+            display: block;
+            font-size: 0.85rem;
+            margin-left: 1.5rem;
             color: var(--text-muted);
         }
     </style>
@@ -88,13 +119,12 @@
         <section class="policy-card" aria-labelledby="policy-title">
             <h1 id="policy-title">Privacy &amp; Analytics</h1>
             <p class="policy-lead">
-                This site uses a consent‑based analytics approach. Analytics scripts only load if you allow them, and
-                any events collected are aggregated to improve content. No personal identifiers are stored or shared.
+                This site uses lightweight Google Analytics 4 events to understand aggregate usage and improve content.
+                No custom personal identifiers are sent from this site’s scripts.
             </p>
 
             <div class="policy-section">
                 <h2>What’s Tracked</h2>
-                <p>If you opt in to analytics, we measure anonymous usage events such as:</p>
                 <ul class="policy-list">
                     <li>Clicks on key calls-to-action (e.g., hero buttons).</li>
                     <li>Resume downloads and outbound link clicks.</li>
@@ -109,21 +139,47 @@
                 <ul class="policy-list">
                     <li>No custom PII (e.g., name, email) is collected by site scripts.</li>
                     <li>No keystrokes or form contents are captured.</li>
-                    <li>No advertising identifiers or cross-site tracking.</li>
                 </ul>
             </div>
 
             <div class="policy-section">
                 <h2>Your Choices</h2>
                 <ul class="policy-list">
-                    <li>Use the “Privacy settings” button below to review or change consent at any time.</li>
-                    <li>Enabling “Do Not Track” or using content blockers will prevent analytics from loading.</li>
+                    <li>You can adjust your cookie preferences on this page using the “Manage Your Privacy Settings” form below to opt out of optional cookies.</li>
+                    <li>You can still opt out by enabling “Do Not Track” in your browser.</li>
+                    <li>Blocking third‑party analytics or using content blockers will prevent GA from loading.</li>
                 </ul>
             </div>
 
             <p class="policy-meta">
-                Last updated: April 2024
+                Last updated: August 2025
             </p>
+        </section>
+
+        <!-- New section for managing privacy settings directly on this page -->
+        <section class="policy-card" aria-labelledby="prefs-title">
+            <h1 id="prefs-title">Manage Your Privacy Settings</h1>
+            <p class="policy-lead">Adjust your preferences below and click “Save preferences” to apply the changes. These settings control optional cookies such as analytics, functional and advertising cookies. Necessary cookies are always enabled.</p>
+            <form id="privacy-preferences-form">
+                <div>
+                    <input type="checkbox" id="pref-necessary" name="necessary" checked disabled>
+                    <label for="pref-necessary">Necessary (always enabled)</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="pref-analytics" name="analytics">
+                    <label for="pref-analytics">Analytics</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="pref-functional" name="functional">
+                    <label for="pref-functional">Functional</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="pref-advertising" name="advertising">
+                    <label for="pref-advertising">Advertising</label>
+                </div>
+                <button type="button" id="save-privacy-preferences">Save preferences</button>
+            </form>
+            <p id="privacy-preferences-status" class="policy-lead" role="alert"></p>
         </section>
     </main>
 
@@ -139,15 +195,46 @@
     <!-- Site scripts -->
     <script defer src="js/common/common.js"></script>
     <script defer src="js/navigation/navigation.js"></script>
-      <script defer src="js/analytics/ga4-events.js"></script>
-      <script src="js/privacy/config.js"></script>
-      <script defer src="js/privacy/consent_manager.js"></script>
-      <script>
-        document.getElementById('privacy-settings-link').addEventListener('click', function () {
-          if (window.consentAPI && typeof window.consentAPI.open === 'function') {
-            window.consentAPI.open();
-          }
+    <script defer src="js/analytics/ga4-events.js"></script>
+    <script src="js/privacy/config.js"></script>
+    <script defer src="js/privacy/consent_manager.js"></script>
+    <!-- Script to synchronise and save user preferences -->
+    <script>
+    // Synchronise the form with the current consent state and save changes using consentAPI
+    (function() {
+        function syncForm() {
+            // Try to get current consent; if consentAPI isn't ready yet, retry shortly
+            if (!window.consentAPI || typeof window.consentAPI.get !== 'function') {
+                setTimeout(syncForm, 100);
+                return;
+            }
+            var prefs = window.consentAPI.get() || { analytics: false, functional: false, advertising: false };
+            document.getElementById('pref-analytics').checked = !!prefs.analytics;
+            document.getElementById('pref-functional').checked = !!prefs.functional;
+            document.getElementById('pref-advertising').checked = !!prefs.advertising;
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            syncForm();
+            var saveBtn = document.getElementById('save-privacy-preferences');
+            if (saveBtn) {
+                saveBtn.addEventListener('click', function() {
+                    if (!window.consentAPI || typeof window.consentAPI.set !== 'function') {
+                        return;
+                    }
+                        var newPrefs = {
+                            analytics: document.getElementById('pref-analytics').checked,
+                            functional: document.getElementById('pref-functional').checked,
+                            advertising: document.getElementById('pref-advertising').checked
+                        };
+                        window.consentAPI.set(newPrefs);
+                        var statusEl = document.getElementById('privacy-preferences-status');
+                        if (statusEl) {
+                            statusEl.textContent = 'Your preferences have been saved.';
+                        }
+                });
+            }
         });
-      </script>
-  </body>
-  </html>
+    })();
+    </script>
+</body>
+</html>
