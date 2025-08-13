@@ -911,6 +911,7 @@
                     : NORMAL_MS;
         }
 
+        // Warm countdown
         // ---- Warm countdown helpers (with smoothing) ----
         function startWarmClient(initialSec = WARMUP_TARGET_SEC) {
             if (state.warm.active) return;
@@ -944,6 +945,7 @@
             if (targetRemaining <= 5 && !state.finishingSince) state.finishingSince = now;
         }
 
+        // Cool-down countdown
         // ---- Cool-down helpers (with server or local fallback) ----
         function startCoolClient(initialSec = SCALEIN_COOLDOWN_SEC) {
             state.cool.active = true;
