@@ -31,8 +31,21 @@
       m.innerHTML=window.generateProjectModal(p);
       modalsRoot.appendChild(m);
     });
-    $$('.skill-link').forEach(btn=>{
-      on(btn,'click',e=>{e.preventDefault();openModal(btn.dataset.project);});
+    $$('.skill-link').forEach(btn => {
+      // Make focusable
+      btn.setAttribute('tabindex','0');
+      // Activate on Enter/Space
+      btn.addEventListener('keydown', ev => {
+        if (ev.key === 'Enter' || ev.key === ' ') {
+          ev.preventDefault();
+          openModal(btn.dataset.project);
+        }
+      });
+      // Click still works
+      on(btn,'click', e => {
+        e.preventDefault();
+        openModal(btn.dataset.project);
+      });
     });
     if(location.hash) openModal(location.hash.slice(1));
   }
