@@ -17,6 +17,17 @@
 (function () {
   'use strict';
 
+  const STYLE_ID = 'pcz-consent-styles';
+
+  function loadStyles() {
+    if (document.getElementById(STYLE_ID)) return;
+    const link = document.createElement('link');
+    link.id = STYLE_ID;
+    link.rel = 'stylesheet';
+    link.href = 'css/privacy/consent.css';
+    document.head.appendChild(link);
+  }
+
   /**
    * Configuration for the CMP. You can extend this object with
    * additional languages or categories as needed. Titles and
@@ -236,30 +247,14 @@
    */
   function createBanner(localeStrings) {
     const banner = document.createElement('div');
-    banner.id = 'privacy-banner';
-    banner.setAttribute('role', 'dialog');
-    banner.setAttribute('aria-label', localeStrings.bannerTitle);
-    Object.assign(banner.style, {
-      position: 'fixed',
-      bottom: '0',
-      left: '0',
-      right: '0',
-      backgroundColor: '#f7f7f7',
-      borderTop: '1px solid #ccc',
-      padding: '1rem',
-      zIndex: 1000,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '0.5rem',
-      boxShadow: '0 -2px 5px rgba(0,0,0,0.1)'
-    });
-    banner.innerHTML = '' +
-      '<strong style="font-size:1rem;">' + localeStrings.bannerTitle + '</strong>' +
-      '<p style="margin:0;font-size:0.875rem;line-height:1.4;">' + localeStrings.bannerDesc + '</p>' +
-      '<div style="margin-top:0.5rem;display:flex;gap:0.5rem;flex-wrap:wrap;">' +
-        '<button id="privacy-accept" style="padding:0.5rem 1rem;border:none;border-radius:4px;background:#0a84ff;color:white;cursor:pointer;">' + localeStrings.acceptAll + '</button>' +
-        '<button id="privacy-reject" style="padding:0.5rem 1rem;border:none;border-radius:4px;background:#ccc;color:#333;cursor:pointer;">' + localeStrings.rejectAll + '</button>' +
-        '<button id="privacy-manage" style="padding:0.5rem 1rem;border:none;border-radius:4px;background:transparent;color:#0a84ff;text-decoration:underline;cursor:pointer;">' + localeStrings.managePrefs + '</button>' +
+    banner.id = 'pcz-banner';
+    banner.setAttribute('role', 'region');
+    banner.innerHTML =
+      '<div class="pcz-row">' +
+        '<p><strong>' + localeStrings.bannerTitle + '</strong> ' + localeStrings.bannerDesc + '</p>' +
+        '<button id="pcz-accept" class="pcz-btn pcz-primary">' + localeStrings.acceptAll + '</button>' +
+        '<button id="pcz-reject" class="pcz-btn pcz-secondary">' + localeStrings.rejectAll + '</button>' +
+        '<button id="pcz-manage" class="pcz-btn pcz-link">' + localeStrings.managePrefs + '</button>' +
       '</div>';
     return banner;
   }
@@ -269,58 +264,37 @@
    */
   function createModal(localeStrings, initialState) {
     const overlay = document.createElement('div');
-    overlay.id = 'privacy-overlay';
+    overlay.id = 'pcz-modal';
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
     overlay.setAttribute('aria-label', localeStrings.modalTitle);
-    Object.assign(overlay.style, {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      zIndex: 1001,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    });
-    const modal = document.createElement('div');
-    Object.assign(modal.style, {
-      backgroundColor: 'white',
-      borderRadius: '6px',
-      maxWidth: '480px',
-      width: '90%',
-      padding: '1rem',
-      maxHeight: '90%',
-      overflowY: 'auto'
-    });
+    const panel = document.createElement('div');
+    panel.className = 'pcz-panel';
+    panel.setAttribute('tabindex', '-1');
     let categoriesHTML = '';
     ['necessary','analytics','functional','advertising'].forEach(function (key) {
       const cat = localeStrings.categories[key];
       const isDisabled = key === 'necessary';
       const checked = initialState[key] || isDisabled;
-      categoriesHTML += '' +
-        '<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:0.75rem;">' +
-          '<div style="max-width:80%;">' +
-            '<strong style="font-size:0.9rem;">' + cat.label + '</strong>' +
-            '<p style="margin:0;font-size:0.8rem;line-height:1.4;color:#555;">' + cat.description + '</p>' +
-          '</div>' +
-          '<div>' +
+      categoriesHTML +=
+        '<fieldset>' +
+          '<legend>' + cat.label + '</legend>' +
+          '<label>' +
             '<input type="checkbox" id="toggle-' + key + '" name="' + key + '" ' + (checked ? 'checked' : '') + ' ' + (isDisabled ? 'disabled aria-disabled="true"' : '') + '/>' +
-          '</div>' +
-        '</div>';
+            '<span class="pcz-helper">' + cat.description + '</span>' +
+          '</label>' +
+        '</fieldset>';
     });
-    const gpcNotice = hasGPC() ? '<p style="background:#ffeebe;padding:0.5rem;border-radius:4px;font-size:0.75rem;margin-bottom:0.75rem;">' + localeStrings.gpcHonoured + '</p>' : '';
-    modal.innerHTML = '' +
-      '<h2 style="margin-top:0;">' + localeStrings.modalTitle + '</h2>' +
+    const gpcNotice = hasGPC() ? '<p class="pcz-helper">' + localeStrings.gpcHonoured + '</p>' : '';
+    panel.innerHTML =
+      '<h2>' + localeStrings.modalTitle + '</h2>' +
       gpcNotice +
-      '<form id="privacy-form">' + categoriesHTML + '</form>' +
-      '<div style="display:flex;justify-content:flex-end;gap:0.5rem;margin-top:1rem;">' +
-        '<button type="button" id="privacy-cancel" style="padding:0.5rem 1rem;border:none;border-radius:4px;background:#ccc;color:#333;cursor:pointer;">' + localeStrings.cancel + '</button>' +
-        '<button type="button" id="privacy-save" style="padding:0.5rem 1rem;border:none;border-radius:4px;background:#0a84ff;color:white;cursor:pointer;">' + localeStrings.savePrefs + '</button>' +
+      '<form id="pcz-form">' + categoriesHTML + '</form>' +
+      '<div class="pcz-actions">' +
+        '<button type="button" id="pcz-cancel" class="pcz-btn pcz-secondary">' + localeStrings.cancel + '</button>' +
+        '<button type="button" id="pcz-save" class="pcz-btn pcz-primary">' + localeStrings.savePrefs + '</button>' +
       '</div>';
-    overlay.appendChild(modal);
+    overlay.appendChild(panel);
     return overlay;
   }
 
@@ -328,14 +302,14 @@
    * Show the consent banner.
    */
   function showBanner(localeStrings) {
-    if (document.getElementById('privacy-banner')) return;
+    if (document.getElementById('pcz-banner')) return;
     const saved = loadConsent();
     const initialState = saved ? saved.categories : { necessary: true, analytics: false, functional: false, advertising: false };
     const banner = createBanner(localeStrings);
     document.body.appendChild(banner);
-    const acceptBtn = banner.querySelector('#privacy-accept');
-    const rejectBtn = banner.querySelector('#privacy-reject');
-    const manageBtn = banner.querySelector('#privacy-manage');
+    const acceptBtn = banner.querySelector('#pcz-accept');
+    const rejectBtn = banner.querySelector('#pcz-reject');
+    const manageBtn = banner.querySelector('#pcz-manage');
     acceptBtn.addEventListener('click', function () {
       const newState = { necessary: true, analytics: true, functional: true, advertising: true };
       saveConsent(newState);
@@ -382,11 +356,11 @@
         closePreferences(modal);
       }
     });
-    modal.querySelector('#privacy-cancel').addEventListener('click', function () {
+    modal.querySelector('#pcz-cancel').addEventListener('click', function () {
       closePreferences(modal);
     });
-    modal.querySelector('#privacy-save').addEventListener('click', function () {
-      const form = modal.querySelector('#privacy-form');
+    modal.querySelector('#pcz-save').addEventListener('click', function () {
+      const form = modal.querySelector('#pcz-form');
       const formData = new FormData(form);
       const newState = {
         necessary: true,
@@ -413,6 +387,7 @@
    * Initialize the CMP. Apply saved consent or show banner.
    */
   function init() {
+    loadStyles();
     const locale = getLocale();
     const localeStrings = CONFIG.languages[locale];
     const saved = loadConsent();
@@ -433,6 +408,7 @@
   // Expose a simple public API
   window.consentAPI = {
     open: function () {
+      loadStyles();
       const locale = getLocale();
       const localeStrings = CONFIG.languages[locale];
       const saved = loadConsent() || { categories: { necessary: true, analytics: false, functional: false, advertising: false } };
