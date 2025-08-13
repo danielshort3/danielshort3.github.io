@@ -90,11 +90,11 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
     'js/contributions/carousel.js'
   ].forEach(evalScript);
 
-  // Chatbot demo should tolerate backend startup delays up to five minutes
+  // Chatbot demo should tolerate backend startup delays up to ten minutes
   const chatbotHtml = fs.readFileSync('chatbot-demo.html', 'utf8');
   const warmConst = chatbotHtml.match(/const WARMUP_TARGET_SEC = (\d+);/);
   const warmSec = warmConst ? parseInt(warmConst[1], 10) : 0;
-  assert(warmSec >= 300, 'chatbot-demo warmup target < 5 minutes');
+  assert(warmSec >= 600, 'chatbot-demo warmup target < 10 minutes');
 
   // Extract and execute the warm countdown helpers to simulate long startups
   const warmSection = chatbotHtml.match(/\/\/ Warm countdown[\s\S]*?\/\/ Cool-down countdown/);
@@ -107,10 +107,10 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
   };
   vm.runInNewContext(warmSection[0], warmEnv);
   warmEnv.startWarmClient();
-  warmEnv.Date.now = () => 299 * 1000; // 4m59s later
+  warmEnv.Date.now = () => 599 * 1000; // 9m59s later
   assert(warmEnv.currentWarmRemaining() > 0, 'warm countdown ended too early');
-  warmEnv.Date.now = () => 301 * 1000; // just past 5m
-  assert(warmEnv.currentWarmRemaining() === 0, 'warm countdown did not finish after five minutes');
+  warmEnv.Date.now = () => 601 * 1000; // just past 10m
+  assert(warmEnv.currentWarmRemaining() === 0, 'warm countdown did not finish after ten minutes');
 
   console.log('All tests passed.');
 } catch (err) {
