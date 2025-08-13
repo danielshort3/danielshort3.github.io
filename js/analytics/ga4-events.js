@@ -2,12 +2,41 @@
    File: ga4-events.js
    Purpose: Utility helpers to send Google Analytics 4 events
    =================================================================== */
-( () => {
+(() => {
   'use strict';
+
+  // Always prepare a dataLayer; do NOT load GA until analytics consent granted
   window.dataLayer = window.dataLayer || [];
   function gtag(){ dataLayer.push(arguments); }
-  gtag('js', new Date());
-  gtag('config','G-0VL37MQ62P');
+
+  // Load GA library only when allowed
+  function loadGA4(id) {
+    if (document.getElementById('ga4-loader')) return;
+    const s = document.createElement('script');
+    s.id = 'ga4-loader';
+    s.async = true;
+    s.src = `https://www.googletagmanager.com/gtag/js?id=${id}`;
+    document.head.appendChild(s);
+
+    // Queue config; gtag.js will pick it up once loaded
+    gtag('js', new Date());
+    gtag('config', id);
+  }
+
+  // Init when analytics consent is granted (now or later)
+  function tryInitFromConsent(detail) {
+    const ok = !!(detail && detail.categories && detail.categories.analytics);
+    if (ok) loadGA4('G-0VL37MQ62P');
+  }
+
+  // If consent manager already ran:
+  if (window.Privacy && window.Privacy.getConsent) {
+    tryInitFromConsent({ categories: window.Privacy.getConsent() });
+  }
+  // Listen for changes
+  window.addEventListener('consent:changed', (e) => tryInitFromConsent(e.detail));
+
+  // --- below here: keep your existing helpers unchanged ---
   // Helper to dispatch GA events
   const send = (name, params={}) => {
     if (typeof gtag === 'function') {
