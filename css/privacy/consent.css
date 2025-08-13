@@ -1,0 +1,130 @@
+:root {
+  --pcz-bg: #1f2f2e;
+  --pcz-fg: #ffffff;
+  --pcz-accent: #cc9e5a;
+  --pcz-link: #b6c3bb;
+  --pcz-focus: #19526b;
+}
+
+.pcz-hidden {
+  display: none !important;
+}
+
+#pcz-banner,
+#pcz-modal {
+  font: 16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: var(--pcz-fg);
+}
+
+#pcz-banner {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 99999;
+  background: var(--pcz-bg);
+  padding: 16px;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+}
+
+#pcz-banner .pcz-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+#pcz-banner p {
+  margin: 0;
+  flex: 1 1 320px;
+}
+
+#pcz-banner .pcz-btn {
+  border: 0;
+  padding: 10px 14px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.pcz-primary {
+  background: var(--pcz-accent);
+  color: #111;
+}
+
+.pcz-secondary {
+  background: #33454a;
+  color: #fff;
+}
+
+.pcz-link {
+  background: transparent;
+  color: var(--pcz-link);
+  text-decoration: underline;
+}
+
+#pcz-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: grid;
+  place-items: center;
+  z-index: 100000;
+}
+
+#pcz-modal .pcz-panel {
+  background: #233;
+  color: #fff;
+  width: min(680px, 92vw);
+  max-height: 88vh;
+  overflow: auto;
+  border-radius: 10px;
+  padding: 18px;
+  outline: none;
+}
+
+#pcz-modal h2 {
+  margin: 0 0 8px;
+  font-size: 1.25rem;
+}
+
+#pcz-modal fieldset {
+  border: 1px solid #3a4a50;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 12px 0;
+}
+
+#pcz-modal legend {
+  padding: 0 8px;
+}
+
+#pcz-modal label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+}
+
+#pcz-modal .pcz-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+#pcz-modal .pcz-helper {
+  font-size: 0.9rem;
+  color: #cfd8dc;
+}
+
+:focus-visible {
+  outline: 3px solid var(--pcz-focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
