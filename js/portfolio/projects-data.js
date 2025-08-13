@@ -341,7 +341,7 @@ window.PROJECTS = [
     id: "chatbotLora",
     title: "Chatbot (LoRA + RAG)",
     subtitle: "RAG Chatbot Fine-Tuned with LoRA",
-    image: "img/projects/project_15.png",
+    image: "img/projects/project_15.gif",
     tools: ["Python", "Ollama", "AWS", "Docker"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Chatbot-LoRA-RAG", label: "GitHub" },
@@ -359,7 +359,7 @@ window.PROJECTS = [
         "Created Lambda endpoints so the website can interact with the model."
       ],
     results : [
-      "Serverless RAG chatbot scales on demand and returns grounded answers with references."
+      "Serverless RAG chatbot scales on demand and returns grounded answers with references after a 10-minute server warmup."
     ]
   },
 
