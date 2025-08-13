@@ -77,7 +77,7 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
   assert(typeof env.window.gaEvent === 'function', 'ga4-events.js missing gaEvent');
   assert(typeof env.window.trackProjectView === 'function', 'ga4-events.js missing trackProjectView');
   assert(typeof env.window.trackModalClose === 'function', 'ga4-events.js missing trackModalClose');
-  checkFileContains('js/navigation/navigation.js', 'div class="nav-row"');
+  checkFileContains('js/navigation/navigation.js', 'div id="primary-menu" class="nav-row"');
 
   // Core scripts should load without throwing
   [
@@ -97,7 +97,7 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
   assert(warmSec >= 600, 'chatbot-demo warmup target < 10 minutes');
 
   // Extract and execute the warm countdown helpers to simulate long startups
-  const warmSection = chatbotHtml.match(/\/\/ Warm countdown[\s\S]*?\/\/ Cool-down countdown/);
+  const warmSection = chatbotHtml.match(/\/\/.*Warm countdown[\s\S]*?\/\/.*Cool-down helpers/);
   assert(warmSection, 'chatbot-demo warm countdown section missing');
   const warmEnv = {
     state: { warm: { active: false, startedAt: 0, total: warmSec } },
