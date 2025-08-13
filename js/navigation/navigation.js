@@ -79,6 +79,6 @@
         <a class="btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin-in" aria-hidden="true"></i></a>
         <a class="btn-icon" href="https://github.com/danielshort3" target="_blank" rel="noopener" aria-label="GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
       </div>
-      <p>© ${year} Daniel Short. All rights reserved.</p>`;
+      <p>© ${year} Daniel Short. All rights reserved. <a href="privacy.html">Privacy&nbsp;Policy</a></p>`;
   }
 })();
