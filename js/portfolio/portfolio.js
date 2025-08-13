@@ -153,6 +153,26 @@ function buildPortfolioCarousel() {
     projects = window.PROJECTS.slice(0, 5);
   }
 
+  const ld = {
+    "@context":"https://schema.org",
+    "@type":"ItemList",
+    "itemListElement": projects.map((p, i) => ({
+      "@type":"ListItem",
+      "position": i+1,
+      "item": {
+        "@type":"CreativeWork",
+        "name": p.title,
+        "description": p.subtitle,
+        "url": `https://danielshort.me/portfolio.html#${p.id}`,
+        "image": `https://danielshort.me/${p.image}`
+      }
+    }))
+  };
+  const s = document.createElement("script");
+  s.type = "application/ld+json";
+  s.textContent = JSON.stringify(ld);
+  document.head.appendChild(s);
+
   track.innerHTML = "";
   dots.innerHTML  = "";
 

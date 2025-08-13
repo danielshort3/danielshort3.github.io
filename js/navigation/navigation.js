@@ -36,15 +36,15 @@
               <span class="brand-line tagline">Data & Insights</span>
             </span>
           </a>
-          <button id="nav-toggle" class="burger" aria-label="Toggle navigation" aria-expanded="false">
+          <button id="nav-toggle" class="burger" aria-label="Toggle navigation" aria-expanded="false" aria-controls="primary-menu">
             <span class="bar"></span><span class="bar"></span><span class="bar"></span>
           </button>
-          <div class="nav-row" data-collapsible role="navigation">
+          <div id="primary-menu" class="nav-row" data-collapsible role="navigation">
             <a href="index.html" class="btn-secondary nav-link">Home</a>
             <a href="portfolio.html" class="btn-secondary nav-link">Portfolio</a>
             <a href="contributions.html" class="btn-secondary nav-link">Contributions</a>
             <a href="contact.html" class="btn-secondary nav-link">Contact</a>
-            <a href="documents/Resume.pdf" class="btn-secondary nav-link" target="_blank" rel="noopener" download>Resume</a>
+            <a href="documents/Resume.pdf" class="btn-secondary nav-link" target="_blank" rel="noopener noreferrer" download>Resume</a>
           </div>
         </div>
       </nav>`;
@@ -56,7 +56,7 @@
       }
     });
     const burger = host.querySelector('#nav-toggle');
-    const menu   = host.querySelector('.nav-row');
+    const menu   = host.querySelector('#primary-menu');
     if(burger && menu){
       burger.addEventListener('click', () => {
         const headerBar = burger.closest('.nav') || host;
@@ -76,8 +76,8 @@
     f.innerHTML=`
       <div class="social">
         <a class="btn-icon" href="mailto:danielshort3@gmail.com" aria-label="Email"><i class="fas fa-envelope" aria-hidden="true"></i></a>
-        <a class="btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fab fa-linkedin-in" aria-hidden="true"></i></a>
-        <a class="btn-icon" href="https://github.com/danielshort3" target="_blank" rel="noopener" aria-label="GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+        <a class="btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="fab fa-linkedin-in" aria-hidden="true"></i></a>
+        <a class="btn-icon" href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer" aria-label="GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
       </div>
       <p>© ${year} Daniel Short. All rights reserved. <a href="privacy.html">Privacy&nbsp;Policy</a></p>`;
   }
