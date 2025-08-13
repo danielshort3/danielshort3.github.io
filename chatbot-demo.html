@@ -14,6 +14,10 @@
           integrity="sha384-yLkiH0IMDs4yTwz/Q7a+Zb6GQTfQ73KhUKXBwIbYe3vu04ujO/Y2ar7Osldd+Gtj"
           crossorigin="anonymous"
           onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+          integrity="sha384-yLkiH0IMDs4yTwz/Q7a+Zb6GQTfQ73KhUKXBwIbYe3vu04ujO/Y2ar7Osldd+Gtj"
+          crossorigin="anonymous">
     <noscript>
       <link rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
@@ -953,7 +957,7 @@
             if (targetRemaining <= 5 && !state.finishingSince) state.finishingSince = now;
         }
 
-        // Cool-down countdown helpers (with server or local fallback)
+        // Cool-down helpers (with server or local fallback)
         function startCoolClient(initialSec = SCALEIN_COOLDOWN_SEC) {
             state.cool.active = true;
             state.cool.startedAt = Date.now();
