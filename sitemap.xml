@@ -1,21 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://www.danielshort.me/index.html</loc>
-  </url>
-  <url>
-    <loc>https://www.danielshort.me/portfolio.html</loc>
-  </url>
-  <url>
-    <loc>https://www.danielshort.me/contributions.html</loc>
-  </url>
-  <url>
-    <loc>https://www.danielshort.me/contact.html</loc>
-  </url>
-  <url>
-    <loc>https://www.danielshort.me/chatbot-demo.html</loc>
-  </url>
-  <url>
-    <loc>https://www.danielshort.me/shape-demo.html</loc>
-  </url>
+  <url><loc>https://danielshort.me/</loc></url>
+  <url><loc>https://danielshort.me/portfolio.html</loc></url>
+  <url><loc>https://danielshort.me/contributions.html</loc></url>
+  <url><loc>https://danielshort.me/contact.html</loc></url>
 </urlset>
