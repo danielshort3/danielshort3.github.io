@@ -24,6 +24,7 @@ function evalScript(file) {
       removeEventListener: () => {},
       querySelector: () => null,
       querySelectorAll: () => [],
+      getElementById: () => null,
       createElement: () => ({ style: {}, classList: { add() {}, remove() {}, toggle() {} } }),
       body: {},
       documentElement: { style: { setProperty() {} } },
