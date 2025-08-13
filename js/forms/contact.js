@@ -18,13 +18,15 @@
 
   function open(){ if(!modal) return;
     prevFocus = document.activeElement;
-    modal.classList.add('open');
+    modal.classList.add('active');
+    document.body.classList.add('modal-open');
     content.setAttribute('tabindex','0');
     content.focus({preventScroll:true});
     content.addEventListener('keydown', trap);
   }
   function close(){ if(!modal) return;
-    modal.classList.remove('open');
+    modal.classList.remove('active');
+    document.body.classList.remove('modal-open');
     content.removeEventListener('keydown', trap);
     if (prevFocus) prevFocus.focus();
   }
@@ -32,5 +34,5 @@
   openBtn && openBtn.addEventListener('click', open);
   closeBtn && closeBtn.addEventListener('click', close);
   modal && modal.addEventListener('click', (e)=>{ if(e.target === modal) close(); });
-  document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && modal.classList.contains('open')) close(); });
+  document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && modal.classList.contains('active')) close(); });
 })();
