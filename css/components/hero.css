@@ -4,9 +4,9 @@
    ─────────────────────────────────────────────────────────── */
 .hero{
   /* fallback using viewport units with dynamic variable for mobile */
-  min-height:var(--vh,100vh);
-  margin-top:calc(var(--nav-height,72px)*-1);
+  min-height:calc(var(--vh, 100vh) - var(--nav-height, 72px));
   padding-top:var(--nav-height,72px);
+  margin-top:0;
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;text-align:center;
   background:#11202B;position:relative;overflow:hidden;isolation:isolate;
