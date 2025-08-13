@@ -88,12 +88,13 @@
         <section class="policy-card" aria-labelledby="policy-title">
             <h1 id="policy-title">Privacy &amp; Analytics</h1>
             <p class="policy-lead">
-                This site uses lightweight Google Analytics 4 events to understand aggregate usage and improve content.
-                No custom personal identifiers are sent from this site’s scripts.
+                This site uses a consent‑based analytics approach. Analytics scripts only load if you allow them, and
+                any events collected are aggregated to improve content. No personal identifiers are stored or shared.
             </p>
 
             <div class="policy-section">
                 <h2>What’s Tracked</h2>
+                <p>If you opt in to analytics, we measure anonymous usage events such as:</p>
                 <ul class="policy-list">
                     <li>Clicks on key calls-to-action (e.g., hero buttons).</li>
                     <li>Resume downloads and outbound link clicks.</li>
@@ -108,19 +109,20 @@
                 <ul class="policy-list">
                     <li>No custom PII (e.g., name, email) is collected by site scripts.</li>
                     <li>No keystrokes or form contents are captured.</li>
+                    <li>No advertising identifiers or cross-site tracking.</li>
                 </ul>
             </div>
 
             <div class="policy-section">
                 <h2>Your Choices</h2>
                 <ul class="policy-list">
-                    <li>You can opt out by enabling “Do Not Track” in your browser.</li>
-                    <li>Blocking third-party analytics or using content blockers will prevent GA from loading.</li>
+                    <li>Use the “Privacy settings” button below to review or change consent at any time.</li>
+                    <li>Enabling “Do Not Track” or using content blockers will prevent analytics from loading.</li>
                 </ul>
             </div>
 
             <p class="policy-meta">
-                Last updated: August 2025
+                Last updated: April 2024
             </p>
         </section>
     </main>
@@ -137,8 +139,15 @@
     <!-- Site scripts -->
     <script defer src="js/common/common.js"></script>
     <script defer src="js/navigation/navigation.js"></script>
-    <script defer src="js/analytics/ga4-events.js"></script>
-    <script src="js/privacy/config.js"></script>
-    <script defer src="js/privacy/consent_manager.js"></script>
-</body>
-</html>
+      <script defer src="js/analytics/ga4-events.js"></script>
+      <script src="js/privacy/config.js"></script>
+      <script defer src="js/privacy/consent_manager.js"></script>
+      <script>
+        document.getElementById('privacy-settings-link').addEventListener('click', function () {
+          if (window.consentAPI && typeof window.consentAPI.open === 'function') {
+            window.consentAPI.open();
+          }
+        });
+      </script>
+  </body>
+  </html>
