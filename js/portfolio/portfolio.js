@@ -106,15 +106,23 @@ function buildPortfolioCarousel() {
 
   projects.forEach((p, i) => {
     /* slide */
-    const card = document.createElement("div");
+    const card = document.createElement("button");
+    card.type = "button";
     card.className = "project-card carousel-card";
+    card.setAttribute("aria-label", `View details of ${p.title}`);
     card.innerHTML = `
       <div class="overlay"></div>
       <div class="project-title">${p.title}</div>
       <div class="project-subtitle">${p.subtitle}</div>
-      <img src="${p.image}" alt="${p.title}">
+      <img src="${p.image}" alt="${p.title}" loading="lazy">
     `;
     card.addEventListener("click", () => { if (!moved) openModal(p.id); });
+    card.addEventListener("keydown", ev => {
+      if (ev.key === 'Enter' || ev.key === ' ') {
+        ev.preventDefault();
+        if (!moved) openModal(p.id);
+      }
+    });
     track.appendChild(card);
 
     /* nav dot */
