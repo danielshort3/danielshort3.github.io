@@ -1,26 +1,137 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Privacy Policy │ Daniel Short</title>
-  <link rel="canonical" href="https://danielshort.me/privacy.html">
-  <meta name="description" content="Learn how analytics are used on this site.">
-  <link rel="stylesheet" href="css/styles.css">
-  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css">
-  <link rel="icon" href="img/ui/logo.png" type="image/png">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Privacy & Analytics │ Daniel Short</title>
+    <link rel="canonical" href="https://danielshort.me/privacy.html" />
+    <meta name="description" content="What this site tracks (and what it doesn’t). Plain-English privacy & analytics details." />
+
+    <!-- Open Graph / Twitter (match site conventions used on other pages) -->
+    <meta property="og:title" content="Privacy & Analytics │ Daniel Short" />
+    <meta property="og:description" content="Plain-English summary of analytics on this site." />
+    <meta property="og:url" content="https://danielshort.me/privacy.html" />
+    <meta property="og:image" content="img/hero/head.jpg" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@danielshort3" />
+
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" />
+    <link rel="icon" href="img/ui/logo.png" type="image/png" />
+
+    <!-- Fonts (same pattern as other pages) -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap" rel="stylesheet"></noscript>
+
+    <!-- Page-scoped styles to center and tastefully frame the content (no hero, no hidden content) -->
+    <style>
+        /* Center the content similar to the 404 page, but keep everything visible */
+        .policy-page main {
+            min-height: calc(var(--vh, 100vh) - var(--nav-height, 72px));
+            padding-top: var(--nav-height, 72px);
+            display: grid;
+            align-content: center; /* vertical centering */
+            justify-items: center; /* horizontal centering for the block */
+            margin: 0 24px;
+        }
+
+        .policy-card {
+            width: min(840px, 100%);
+            background: var(--surface);
+            border: 2px solid var(--primary);
+            border-radius: 14px;
+            box-shadow: 0 10px 24px rgba(44,169,188,.18);
+            padding: clamp(18px, 4vw, 32px);
+        }
+
+            .policy-card h1 {
+                margin-top: 0;
+                text-align: center;
+            }
+
+        .policy-lead {
+            text-align: center;
+            color: var(--text-muted);
+            max-width: 60ch;
+            margin: 8px auto 16px;
+        }
+
+        .policy-section {
+            margin-top: 20px;
+        }
+
+            .policy-section h2 {
+                margin-top: 0.2em;
+            }
+
+        .policy-list {
+            padding-left: 20px;
+        }
+
+        .policy-meta {
+            margin-top: 16px;
+            font-size: .95rem;
+            color: var(--text-muted);
+        }
+    </style>
 </head>
-<body class="surface-band">
-  <header id="combined-header-nav"></header>
-  <main id="main">
-    <h1>Privacy & Analytics</h1>
-    <p>This website uses Google Analytics 4 to measure aggregate usage. No personal identifiers are stored. Outbound link clicks and resume downloads are tracked to improve content.</p>
-    <p>You can opt out via your browser’s “Do Not Track”.</p>
-  </main>
-  <footer></footer>
-  <script defer src="js/common/common.js"></script>
-  <script defer src="js/navigation/navigation.js"></script>
+
+<body class="surface-band policy-page">
+    <header id="combined-header-nav"></header>
+    <a href="#main" class="skip-link">Skip to main content</a>
+
+    <main id="main" role="main">
+        <section class="policy-card" aria-labelledby="policy-title">
+            <h1 id="policy-title">Privacy &amp; Analytics</h1>
+            <p class="policy-lead">
+                This site uses lightweight Google Analytics 4 events to understand aggregate usage and improve content.
+                No custom personal identifiers are sent from this site’s scripts.
+            </p>
+
+            <div class="policy-section">
+                <h2>What’s Tracked</h2>
+                <ul class="policy-list">
+                    <li>Clicks on key calls-to-action (e.g., hero buttons).</li>
+                    <li>Resume downloads and outbound link clicks.</li>
+                    <li>Navigation link clicks.</li>
+                    <li>Optional UI interactions on portfolio/contributions pages (filters, “see more”, project views, modal closes).</li>
+                    <li>Basic engagement signals (time on page, 50% scroll depth).</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2>What’s Not Tracked</h2>
+                <ul class="policy-list">
+                    <li>No custom PII (e.g., name, email) is collected by site scripts.</li>
+                    <li>No keystrokes or form contents are captured.</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h2>Your Choices</h2>
+                <ul class="policy-list">
+                    <li>You can opt out by enabling “Do Not Track” in your browser.</li>
+                    <li>Blocking third-party analytics or using content blockers will prevent GA from loading.</li>
+                </ul>
+            </div>
+
+            <p class="policy-meta">
+                Last updated: August 2025
+            </p>
+        </section>
+    </main>
+
+    <footer></footer>
+
+    <!-- (Optional) GA loader, consistent with other pages that use analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-0VL37MQ62P"></script>
+
+    <!-- Site scripts -->
+    <script defer src="js/common/common.js"></script>
+    <script defer src="js/navigation/navigation.js"></script>
+    <script defer src="js/analytics/ga4-events.js"></script>
 </body>
 </html>
-
