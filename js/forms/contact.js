@@ -1,12 +1,8 @@
 (() => {
   'use strict';
-  const modal = typeof document !== 'undefined' && document.getElementById
-    ? document.getElementById('contact-modal')
-    : null;
+  const modal = document.getElementById('contact-modal');
   const content = modal?.querySelector('.modal-content');
-  const openBtn = typeof document !== 'undefined' && document.getElementById
-    ? document.getElementById('contact-form-toggle')
-    : null;
+  const openBtn = document.getElementById('contact-form-toggle');
   const closeBtn = modal?.querySelector('.modal-close');
   let prevFocus = null;
 

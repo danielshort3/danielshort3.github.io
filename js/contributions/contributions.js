@@ -39,8 +39,8 @@ function buildContributions(){
           <div class="doc-footer">
             ${item.role ? `<p class="doc-role">${item.role}</p>` : ''}
             <div class="doc-links">
-              ${item.pdf ? `<a href="${item.pdf}" target="_blank" rel="noopener noreferrer" class="doc-link" aria-label="Open PDF" download><i class="fa-solid fa-file-pdf" aria-hidden="true"></i></a>` : ''}
-              ${item.link ? `<a href="${item.link}" target="_blank" rel="noopener noreferrer" class="doc-link" aria-label="Open external link"><i class="fa-solid fa-external-link-alt" aria-hidden="true"></i></a>` : ''}
+              ${item.pdf ? `<a href="${item.pdf}" target="_blank" rel="noopener noreferrer" class="doc-link" aria-label="Open PDF" download><i class="fas fa-file-pdf" aria-hidden="true"></i></a>` : ''}
+              ${item.link ? `<a href="${item.link}" target="_blank" rel="noopener noreferrer" class="doc-link" aria-label="Open external link"><i class="fas fa-external-link-alt" aria-hidden="true"></i></a>` : ''}
             </div>
           </div>
         </div>
