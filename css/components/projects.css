@@ -40,3 +40,10 @@
   font-size:.75rem;font-weight:600;padding:4px 10px;border-radius:6px;max-width:75%;pointer-events:none
 }
 
+/* Prevent layout shift in project cards */
+.project-card img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  display: block;
+}
