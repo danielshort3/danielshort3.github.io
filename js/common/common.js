@@ -53,4 +53,26 @@
   document.addEventListener('DOMContentLoaded', ()=>{
     if (window.buildPortfolio) run(initSkillPopups);
   });
+
+  // ---- Global modal close handlers (X button and backdrop) ----
+  document.addEventListener('click', (e) => {
+    // 1) Close when X is clicked
+    const closeBtn = e.target.closest('.modal-close');
+    if (closeBtn) {
+      e.preventDefault();
+      const modal = closeBtn.closest('.modal');
+      if (modal) {
+        const id = modal.id?.replace(/-modal$/, '') || modal.id || 'modal';
+        window.closeModal && window.closeModal(id);
+      }
+      return;
+    }
+    // 2) Close when clicking the backdrop (outside modal-content)
+    const backdrop = e.target.closest('.modal');
+    const insideContent = e.target.closest('.modal-content');
+    if (backdrop && !insideContent) {
+      const id = backdrop.id?.replace(/-modal$/, '') || backdrop.id || 'modal';
+      window.closeModal && window.closeModal(id);
+    }
+  });
 })();
