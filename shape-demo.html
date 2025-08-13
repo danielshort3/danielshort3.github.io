@@ -830,6 +830,14 @@
 
         // (No ResizeObserver-driven notifyResize() to prevent iframe jitter)
     </script>
+    <footer>
+      <nav class="privacy-links" aria-label="Privacy shortcuts">
+        <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
+        <a href="#" class="pcz-link" onclick="window.Privacy && window.Privacy.open('doNotSell'); return false;">
+          Do Not Sell/Share My Personal Information
+        </a>
+      </nav>
+    </footer>
     <script src="js/privacy/config.js"></script>
     <script defer src="js/privacy/consent_manager.js"></script>
 </body>

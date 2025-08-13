@@ -72,7 +72,14 @@
     </section>
 
   </main>
-  <footer></footer>
+  <footer>
+    <nav class="privacy-links" aria-label="Privacy shortcuts">
+      <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
+      <a href="#" class="pcz-link" onclick="window.Privacy && window.Privacy.open('doNotSell'); return false;">
+        Do Not Sell/Share My Personal Information
+      </a>
+    </nav>
+  </footer>
 
     <script defer src="js/common/common.js"></script>
     <script defer src="js/navigation/navigation.js"></script>
