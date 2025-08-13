@@ -21,7 +21,8 @@ if (typeof window.closeModal !== 'function') {
   window.closeModal = function(id){
     const modal = document.getElementById(`${id}-modal`) || document.getElementById(id);
     if (!modal) return;
-    modal.classList.remove('open');
+    modal.classList.remove('active');
+    document.body.classList.remove('modal-open');
     untrapFocus(modal);
     if (__modalPrevFocus) { __modalPrevFocus.focus(); __modalPrevFocus = null; }
     window.trackModalClose && window.trackModalClose(id);
@@ -34,7 +35,8 @@ if (typeof window.openModal !== 'function') {
     const modal = document.getElementById(`${id}-modal`) || document.getElementById(id);
     if (!modal) return;
     __modalPrevFocus = document.activeElement;
-    modal.classList.add('open');
+    modal.classList.add('active');
+    document.body.classList.add('modal-open');
     const content = modal.querySelector('.modal-content') || modal;
     content.focus({preventScroll:true});
     trapFocus(content);
@@ -44,7 +46,7 @@ if (typeof window.openModal !== 'function') {
 // Close on ESC for any open modal
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
-    const open = document.querySelector('.modal.open');
+    const open = document.querySelector('.modal.active');
     if (open) {
       const id = open.id?.replace('-modal','') || 'modal';
       window.closeModal(id);
