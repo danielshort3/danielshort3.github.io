@@ -20,11 +20,11 @@
   const STYLE_ID = 'pcz-consent-styles';
 
   function loadStyles() {
-    if (document.getElementById(STYLE_ID)) return;
+    if (document.getElementById(STYLE_ID) || document.querySelector('link[href$="privacy.css"]')) return;
     const link = document.createElement('link');
     link.id = STYLE_ID;
     link.rel = 'stylesheet';
-    link.href = 'css/privacy/consent.css';
+    link.href = 'css/privacy.css';
     document.head.appendChild(link);
   }
 
@@ -105,6 +105,14 @@
     }
   };
 
+  const GLOBAL_CONF = window.PrivacyConfig || {};
+  if (GLOBAL_CONF.vendors) {
+    Object.keys(GLOBAL_CONF.vendors).forEach(function (v) {
+      CONFIG.vendors[v] = Object.assign(CONFIG.vendors[v] || {}, GLOBAL_CONF.vendors[v]);
+    });
+  }
+  const STORAGE_KEY = GLOBAL_CONF.storageKey || 'consent';
+
   /**
    * Retrieve the user’s locale. We fall back to English if no
    * supported language is detected.
@@ -152,11 +160,11 @@
     if (record.region === 'EU' && window.__iabtcf) {
       getTcString(state).then(tc => {
         record.tcString = tc;
-        localStorage.setItem('consent', JSON.stringify(record));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(record));
       });
       return;
     }
-    localStorage.setItem('consent', JSON.stringify(record));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(record));
   }
 
   /**
@@ -164,7 +172,7 @@
    */
   function loadConsent() {
     try {
-      const raw = localStorage.getItem('consent');
+      const raw = localStorage.getItem(STORAGE_KEY);
       return raw ? JSON.parse(raw) : null;
     } catch (err) {
       return null;
@@ -424,7 +432,7 @@
       applyConsent(state);
     },
     reset: function () {
-      localStorage.removeItem('consent');
+      localStorage.removeItem(STORAGE_KEY);
       init();
     }
   };
