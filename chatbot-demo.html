@@ -953,7 +953,7 @@
             if (targetRemaining <= 5 && !state.finishingSince) state.finishingSince = now;
         }
 
-        // Cool-down countdown helpers (with server or local fallback)
+        // Cool-down helpers (with server or local fallback)
         function startCoolClient(initialSec = SCALEIN_COOLDOWN_SEC) {
             state.cool.active = true;
             state.cool.startedAt = Date.now();
