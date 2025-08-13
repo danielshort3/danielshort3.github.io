@@ -1,5 +1,57 @@
 /* portfolio.js - Build portfolio UI components. Project data now lives in projects-data.js */
 
+// ---- Modal focus management (shared) ---------------------------------
+let __modalPrevFocus = null;
+function trapFocus(modalEl){
+  const focusables = modalEl.querySelectorAll('a,button,input,textarea,select,[tabindex]:not([tabindex="-1"])');
+  if (!focusables.length) return;
+  const first = focusables[0], last = focusables[focusables.length - 1];
+  modalEl.addEventListener('keydown', modalEl._trap = (e) => {
+    if (e.key !== 'Tab') return;
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
+}
+function untrapFocus(modalEl){
+  if (modalEl._trap) modalEl.removeEventListener('keydown', modalEl._trap);
+}
+
+// Ensure a global close helper exists
+if (typeof window.closeModal !== 'function') {
+  window.closeModal = function(id){
+    const modal = document.getElementById(`${id}-modal`) || document.getElementById(id);
+    if (!modal) return;
+    modal.classList.remove('open');
+    untrapFocus(modal);
+    if (__modalPrevFocus) { __modalPrevFocus.focus(); __modalPrevFocus = null; }
+    window.trackModalClose && window.trackModalClose(id);
+  };
+}
+
+// Ensure a global open helper exists
+if (typeof window.openModal !== 'function') {
+  window.openModal = function(id){
+    const modal = document.getElementById(`${id}-modal`) || document.getElementById(id);
+    if (!modal) return;
+    __modalPrevFocus = document.activeElement;
+    modal.classList.add('open');
+    const content = modal.querySelector('.modal-content') || modal;
+    content.focus({preventScroll:true});
+    trapFocus(content);
+  };
+}
+
+// Close on ESC for any open modal
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const open = document.querySelector('.modal.open');
+    if (open) {
+      const id = open.id?.replace('-modal','') || 'modal';
+      window.closeModal(id);
+    }
+  }
+});
+
 window.generateProjectModal = function (p) {
   const isTableau = p.embed?.type === "tableau";
   const isIframe  = p.embed?.type === "iframe";
@@ -519,126 +571,3 @@ function buildPortfolio() {
     }, 350);   // grid fade duration
   });
 }
-
-/* ➍ Modal open / focus-trap / close --------------------------------- */
-function openModal(id){
-  if (window.trackProjectView) trackProjectView(id);
-
-  const modal = document.getElementById(`${id}-modal`);
-  if (!modal) return;
-
-  /* adjust embedded demo if needed to fit its contents */
-  let resizeShapeDemo = null;
-  let resizeMsg = null;
-  if (id === 'shapeClassifier' || id === 'chatbotLora') {
-    const iframe = modal.querySelector('iframe');
-    const measure = () => {
-      if (!iframe) return;
-      try {
-        const doc  = iframe.contentDocument || iframe.contentWindow.document;
-        const box  = doc.getElementById('demo-box');
-        let height = 0;
-        if (box) {
-          box.style.height = 'auto';
-          height = box.getBoundingClientRect().height;
-        } else {
-          height = Math.max(
-            doc.body?.scrollHeight || 0,
-            doc.documentElement?.scrollHeight || 0
-          );
-        }
-        iframe.style.height = Math.ceil(height) + 10 + 'px';
-        iframe.style.width  = '100%';
-      } catch (err) {}
-    };
-    const run = () => {
-      measure();
-      try { iframe.contentWindow.document.fonts.ready.then(measure); } catch(e) {}
-    };
-    resizeShapeDemo = measure;
-    iframe?.addEventListener('load', run, { once: true });
-    window.addEventListener('resize', measure);
-    const resizeType = id === 'shapeClassifier' ? 'shape-demo-resize' : 'chatbot-demo-resize';
-    resizeMsg = e => {
-      if (e.source === iframe.contentWindow && e.data?.type === resizeType) measure();
-    };
-    window.addEventListener('message', resizeMsg);
-    if (iframe?.contentDocument?.readyState === 'complete') {
-      setTimeout(run);
-    }
-  }
-
-  /* put the project hash in the URL (so it’s linkable / back-able) */
-  const pushed = location.hash !== `#${id}`;
-  if (pushed) history.pushState({ modal:id }, "", `#${id}`);
-
-  modal.classList.add("active");
-  document.body.classList.add("modal-open");
-
-
-
-  /* focus-trap setup */
-  const focusable = modal.querySelectorAll("a,button,[tabindex]:not([tabindex='-1'])");
-  focusable[0]?.focus();
-
-  const trap = e=>{
-    if (e.key === "Escape"){ close(); return; }
-    if (e.key !== "Tab" || !focusable.length) return;
-
-    const first = focusable[0],
-          last  = focusable[focusable.length-1];
-
-    if (e.shiftKey ? document.activeElement === first
-                   : document.activeElement === last){
-      e.preventDefault();
-      (e.shiftKey ? last : first).focus();
-    }
-  };
-
-  const clickClose = e=>{
-    if (e.target.classList.contains("modal") ||
-        e.target.classList.contains("modal-close")) close();
-  };
-
-  const close = ()=>{
-    modal.classList.remove("active");
-    document.body.classList.remove("modal-open");
-    document.removeEventListener("keydown", trap);
-    modal.removeEventListener("click",  clickClose);
-
-    if (resizeShapeDemo) window.removeEventListener('resize', resizeShapeDemo);
-    if (resizeMsg)      window.removeEventListener('message', resizeMsg);
-
-    if (window.trackModalClose) trackModalClose(id);
-
-    /* clean the address bar */
-    if (pushed){
-      history.back();                                    // removes #id
-    } else {
-      history.replaceState(null, "", location.pathname + location.search);
-    }
-  };
-
-  document.addEventListener("keydown", trap);
-  modal.addEventListener("click",    clickClose);
-}
-
-
-
-
-/* ─── handle direct links + Back/Forward buttons ─────────────── */
-function routeModal(){
-  const id = location.hash.slice(1);
-
-  /* close any open modal */
-  document.querySelectorAll(".modal.active").forEach(m=>{
-    m.classList.remove("active");
-    document.body.classList.remove("modal-open");
-  });
-
-  /* if there’s a hash, open the matching modal */
-  if (id) openModal(id);
-}
-
-window.addEventListener("DOMContentLoaded", routeModal);
-window.addEventListener("popstate",        routeModal);
