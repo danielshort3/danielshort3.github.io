@@ -44,7 +44,7 @@
             <a href="portfolio.html" class="btn-secondary nav-link">Portfolio</a>
             <a href="contributions.html" class="btn-secondary nav-link">Contributions</a>
             <a href="contact.html" class="btn-secondary nav-link">Contact</a>
-            <a href="documents/Resume.pdf" class="btn-secondary nav-link" target="_blank" rel="noopener noreferrer" download>Resume</a>
+            <a href="resume.html" class="btn-secondary nav-link">Resume</a>
           </div>
         </div>
       </nav>`;
