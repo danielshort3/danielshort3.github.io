@@ -592,4 +592,16 @@ function buildPortfolio() {
       }, 450); // height transition duration
     }, 350);   // grid fade duration
   });
+
+  /* ➎ Open modal if a hash is present or changes ------------------- */
+  const openFromHash = () => {
+    const id = location.hash.slice(1);
+    if (!id) return;
+    const modal = document.getElementById(`${id}-modal`);
+    if (modal) openModal(id);
+  };
+
+  // Try to open on initial load and whenever the hash changes
+  openFromHash();
+  window.addEventListener("hashchange", openFromHash);
 }
