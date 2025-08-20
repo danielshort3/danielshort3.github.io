@@ -93,25 +93,40 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
 
   // Chatbot demo should tolerate backend startup delays up to ten minutes
   const chatbotHtml = fs.readFileSync('chatbot-demo.html', 'utf8');
-  const warmConst = chatbotHtml.match(/const WARMUP_TARGET_SEC = (\d+);/);
-  const warmSec = warmConst ? parseInt(warmConst[1], 10) : 0;
-  assert(warmSec >= 600, 'chatbot-demo warmup target < 10 minutes');
+  const startConst = chatbotHtml.match(/const START_TIMEOUT_SEC = (\d+);/);
+  const warmSec = startConst ? parseInt(startConst[1], 10) : 0;
+  assert(warmSec >= 600, 'chatbot-demo start timeout < 10 minutes');
 
-  // Extract and execute the warm countdown helpers to simulate long startups
-  const warmSection = chatbotHtml.match(/\/\/.*Warm countdown[\s\S]*?\/\/.*Cool-down helpers/);
-  assert(warmSection, 'chatbot-demo warm countdown section missing');
+  // Extract and execute the starting timer helpers to simulate long startups
+  const startSection = chatbotHtml.match(/\/\/ Starting timer helpers[\s\S]*?\/\/ End starting timer helpers/);
+  assert(startSection, 'chatbot-demo starting timer section missing');
   const warmEnv = {
-    state: { warm: { active: false, startedAt: 0, total: warmSec } },
-    WARMUP_TARGET_SEC: warmSec,
+    startingTimer: null,
+    startingDeadline: 0,
+    START_TIMEOUT_SEC: warmSec,
+    STATE: {
+      OFFLINE_DETECTED: 'OFFLINE_DETECTED',
+      STARTING: 'STARTING',
+      ONLINE: 'ONLINE',
+      ONLINE_GRACE: 'ONLINE_GRACE',
+      SHUTDOWN: 'SHUTDOWN'
+    },
     Date: { now: () => 0 },
     Math,
+    svcText: { textContent: '' },
+    svcETA: { textContent: '' },
+    setDot: () => {},
+    startGraceCycle: () => {},
+    fmtClock: () => '',
+    setInterval: () => 1,
+    clearInterval: () => {}
   };
-  vm.runInNewContext(warmSection[0], warmEnv);
-  warmEnv.startWarmClient();
+  vm.runInNewContext(startSection[0], warmEnv);
+  warmEnv.startStartingTimer();
   warmEnv.Date.now = () => 599 * 1000; // 9m59s later
-  assert(warmEnv.currentWarmRemaining() > 0, 'warm countdown ended too early');
+  assert(warmEnv.currentStartingRemaining() > 0, 'starting countdown ended too early');
   warmEnv.Date.now = () => 601 * 1000; // just past 10m
-  assert(warmEnv.currentWarmRemaining() === 0, 'warm countdown did not finish after ten minutes');
+  assert(warmEnv.currentStartingRemaining() === 0, 'starting countdown did not finish after ten minutes');
 
   console.log('All tests passed.');
 } catch (err) {
