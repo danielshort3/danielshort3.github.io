@@ -2,32 +2,34 @@
 /* ───────────────────────────────────────────────────────────
    3.  NAVIGATION
    ─────────────────────────────────────────────────────────── */
-.nav{
-  position:fixed;inset:0 0 auto 0;width:100%;z-index:1000;
-  background:rgba(13,17,23,.72);backdrop-filter:blur(8px);
-}
-.nav .wrapper{
-  display: flex;
-  flex-wrap: wrap;                 /* allows wrapping */
-  justify-content: center;        /* center all items horizontally */
-  align-items: center;
-  gap: 18px 48px;                  /* row-gap column-gap */
-  padding: 18px 24px;
-  text-align: center;             /* optional: improves alignment on wrap */
-}
-.nav-row{display:flex;gap:20px;flex-wrap:nowrap;justify-content:center}
-.nav-link{
-  flex: none;
-  width: 60px; /* or any fixed width you prefer */
-  text-align: center;
-  white-space: nowrap;
-}
+@layer layout {
+  .nav{
+    position:fixed;inset:0 0 auto 0;width:100%;z-index:1000;
+    background:rgba(13,17,23,.72);backdrop-filter:blur(8px);
+  }
+  .nav .wrapper{
+    display: flex;
+    flex-wrap: wrap;                 /* allows wrapping */
+    justify-content: center;        /* center all items horizontally */
+    align-items: center;
+    gap: 18px 48px;                  /* row-gap column-gap */
+    padding: 18px 24px;
+    text-align: center;             /* optional: improves alignment on wrap */
+  }
+  .nav-row{display:flex;gap:20px;flex-wrap:nowrap;justify-content:center}
+  .nav-link{
+    flex: none;
+    width: 60px; /* or any fixed width you prefer */
+    text-align: center;
+    white-space: nowrap;
+  }
 
-.brand{display:flex;align-items:center;gap:8px}
-.brand-logo{height:64px;width:auto}
-.brand-name{
-  font-family:'Poppins';font-size:22px;font-weight:600;
-  color:var(--primary);letter-spacing:.3px;line-height:1
+  .brand{display:flex;align-items:center;gap:8px}
+  .brand-logo{height:64px;width:auto}
+  .brand-name{
+    font-family:'Poppins';font-size:22px;font-weight:600;
+    color:var(--primary);letter-spacing:.3px;line-height:1
+  }
+  .brand .divider{color:var(--primary)}
 }
-.brand .divider{color:var(--primary)}
 

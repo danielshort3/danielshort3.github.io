@@ -2,3 +2,6 @@
    File: typography.css
    Purpose: Text utility helpers
 =================================================================== */
+@layer utilities {
+  /* reserved for future text helpers */
+}
