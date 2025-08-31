@@ -1,7 +1,7 @@
 :root {
   --pcz-bg: var(--surface);
   --pcz-fg: var(--text-light);
-  --pcz-accent: var(--secondary);
+  --pcz-accent: var(--primary); /* keep actions teal */
   --pcz-link: var(--link);
   --pcz-focus: var(--focus);
 }
