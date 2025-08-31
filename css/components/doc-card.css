@@ -20,7 +20,7 @@
   .doc-role{margin:0;font-size:.85rem;color:var(--text-muted)}
   .doc-links{display:flex;gap:14px;margin-left:14px;}
   .doc-link{ display:flex;align-items:center;justify-content:center;width:42px;height:42px; font-size:1.6rem;color:inherit;border:2px solid currentColor;border-radius:10px;transition:background .25s }
-  .doc-card:hover .doc-link{background:rgba(0,0,0,.15)}
+  .doc-card:hover .doc-link{background:rgba(0,0,0,.15); color: var(--bg); border-color: var(--bg);}
   .doc-link svg{ width:22px; height:22px; color: currentColor; }
 
   .docs-carousel{display:flex;gap:28px;overflow-x:auto;scroll-snap-type:smooth;margin-inline:-24px;padding:8px 24px}
