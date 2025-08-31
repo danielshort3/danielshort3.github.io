@@ -37,11 +37,12 @@
     version: 1,
     languages: {
       en: {
-        bannerTitle: 'We value your privacy',
-        bannerDesc: 'We use cookies and similar technologies to enhance your browsing experience, analyse site traffic and measure campaign performance. You can accept all, reject all, or customise your preferences.',
-        acceptAll: 'Accept all',
-        rejectAll: 'Reject all',
-        managePrefs: 'Manage preferences',
+        bannerTitle: 'I value your privacy',
+        bannerDesc: "I use cookies and similar technologies to improve your experience, understand site traffic, and measure performance. You can allow all cookies, allow essential cookies only, or manage your settings.",
+        acceptAll: 'Allow all cookies',
+        rejectAll: 'Allow essential only',
+        managePrefs: 'Manage settings',
+        privacyPolicy: 'Privacy Policy',
         modalTitle: 'Privacy preferences',
         savePrefs: 'Save preferences',
         cancel: 'Cancel',
@@ -67,11 +68,12 @@
         gpcHonoured: 'Your browser sent a Global Privacy Control signal so we\'ve applied your opt‑out. You can adjust other preferences below.'
       },
       es: {
-        bannerTitle: 'Valoramos su privacidad',
-        bannerDesc: 'Usamos cookies y tecnologías similares para mejorar su experiencia de navegación, analizar el tráfico del sitio y medir el rendimiento de campañas. Puede aceptar todo, rechazar todo o personalizar sus preferencias.',
-        acceptAll: 'Aceptar todo',
-        rejectAll: 'Rechazar todo',
-        managePrefs: 'Administrar preferencias',
+        bannerTitle: 'Valoro tu privacidad',
+        bannerDesc: 'Utilizo cookies y tecnologías similares para mejorar tu experiencia, entender el tráfico del sitio y medir el rendimiento. Puedes permitir todas las cookies, permitir solo las esenciales o administrar tus ajustes.',
+        acceptAll: 'Permitir todas las cookies',
+        rejectAll: 'Permitir solo las esenciales',
+        managePrefs: 'Administrar ajustes',
+        privacyPolicy: 'Política de privacidad',
         modalTitle: 'Preferencias de privacidad',
         savePrefs: 'Guardar preferencias',
         cancel: 'Cancelar',
@@ -256,10 +258,12 @@
   function createBanner(localeStrings) {
     const banner = document.createElement('div');
     banner.id = 'pcz-banner';
-    banner.setAttribute('role', 'region');
+    banner.setAttribute('role', 'dialog');
+    banner.setAttribute('aria-modal', 'true');
+    banner.setAttribute('aria-label', localeStrings.bannerTitle);
     banner.innerHTML =
       '<div class="pcz-row">' +
-        '<p><strong>' + localeStrings.bannerTitle + '</strong> ' + localeStrings.bannerDesc + '</p>' +
+        '<p><strong>' + localeStrings.bannerTitle + '</strong> ' + localeStrings.bannerDesc + ' <a class="pcz-link" href="privacy.html">' + localeStrings.privacyPolicy + '</a></p>' +
         '<button id="pcz-accept" class="pcz-btn pcz-primary">' + localeStrings.acceptAll + '</button>' +
         '<button id="pcz-reject" class="pcz-btn pcz-secondary">' + localeStrings.rejectAll + '</button>' +
         '<button id="pcz-manage" class="pcz-btn pcz-link">' + localeStrings.managePrefs + '</button>' +
@@ -315,14 +319,28 @@
     const initialState = saved ? saved.categories : { necessary: true, analytics: false, functional: false, advertising: false };
     const banner = createBanner(localeStrings);
     document.body.appendChild(banner);
+    // Block page interaction until a choice is made
+    document.body.classList.add('consent-blocked');
     const acceptBtn = banner.querySelector('#pcz-accept');
     const rejectBtn = banner.querySelector('#pcz-reject');
     const manageBtn = banner.querySelector('#pcz-manage');
+    // Focus trap within the banner while blocking is active
+    const focusables = banner.querySelectorAll('a,button,[tabindex]:not([tabindex="-1"])');
+    const first = focusables[0];
+    const last  = focusables[focusables.length - 1];
+    banner.addEventListener('keydown', function(e){
+      if (e.key !== 'Tab') return;
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    });
+    // Set initial focus to the privacy‑preserving choice
+    (rejectBtn || acceptBtn || manageBtn).focus();
     acceptBtn.addEventListener('click', function () {
       const newState = { necessary: true, analytics: true, functional: true, advertising: true };
       saveConsent(newState);
       applyConsent(newState);
       banner.remove();
+      document.body.classList.remove('consent-blocked');
     });
     rejectBtn.addEventListener('click', function () {
       const newState = { necessary: true, analytics: false, functional: false, advertising: false };
@@ -331,9 +349,10 @@
       saveConsent(newState);
       applyConsent(newState);
       banner.remove();
+      document.body.classList.remove('consent-blocked');
     });
     manageBtn.addEventListener('click', function () {
-      openPreferences(localeStrings, initialState);
+      openPreferences(localeStrings, initialState, true);
       banner.remove();
     });
   }
@@ -341,7 +360,7 @@
   /**
    * Show the preferences modal and handle focus and save logic.
    */
-  function openPreferences(localeStrings, currentState) {
+  function openPreferences(localeStrings, currentState, blocking) {
     const modal = createModal(localeStrings, currentState);
     document.body.appendChild(modal);
     const focusable = modal.querySelectorAll('input, button');
@@ -362,10 +381,16 @@
         }
       } else if (e.key === 'Escape') {
         closePreferences(modal);
+        if (blocking) {
+          showBanner(localeStrings);
+        }
       }
     });
     modal.querySelector('#pcz-cancel').addEventListener('click', function () {
       closePreferences(modal);
+      if (blocking) {
+        showBanner(localeStrings);
+      }
     });
     modal.querySelector('#pcz-save').addEventListener('click', function () {
       const form = modal.querySelector('#pcz-form');
@@ -380,6 +405,7 @@
       saveConsent(newState);
       applyConsent(newState);
       closePreferences(modal);
+      document.body.classList.remove('consent-blocked');
     });
     firstFocusable.focus();
   }

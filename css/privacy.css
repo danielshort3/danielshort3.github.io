@@ -6,6 +6,18 @@
   --pcz-focus: var(--focus);
 }
 
+/* Gray-out overlay and input blocking while consent is undecided */
+body.consent-blocked {
+  overflow: hidden;
+}
+body.consent-blocked::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 99998; /* below banner (99999) */
+}
+
 .pcz-hidden {
   display: none !important;
 }
