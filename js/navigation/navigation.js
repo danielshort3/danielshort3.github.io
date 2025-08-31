@@ -104,9 +104,26 @@
     const year = new Date().getFullYear();
     f.innerHTML=`
       <div class="social">
-        <a class="btn-icon" href="mailto:danielshort3@gmail.com" aria-label="Email"><i class="fas fa-envelope" aria-hidden="true"></i></a>
-        <a class="btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="fab fa-linkedin-in" aria-hidden="true"></i></a>
-        <a class="btn-icon" href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer" aria-label="GitHub"><i class="fab fa-github" aria-hidden="true"></i></a>
+        <a class="btn-icon" href="mailto:danielshort3@gmail.com" aria-label="Email">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="5" width="18" height="14" rx="2"/>
+            <path d="M3 7l9 6 9-6"/>
+          </svg>
+        </a>
+        <a class="btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 4h4v4H4z"/>
+            <path d="M4 10h4v10H4z"/>
+            <path d="M10 10h4v2a3 3 0 016 0v8h-4v-7a1 1 0 10-2 0v7h-4z"/>
+          </svg>
+        </a>
+        <a class="btn-icon" href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M8 17l-5-5 5-5"/>
+            <path d="M16 7l5 5-5 5"/>
+            <path d="M13 5l-2 14"/>
+          </svg>
+        </a>
       </div>
       <p>© ${year} Daniel Short. All rights reserved. <a href="privacy.html">Privacy&nbsp;Policy</a></p>`;
   }
