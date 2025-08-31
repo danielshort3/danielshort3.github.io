@@ -2,3 +2,6 @@
    File: colors.css
    Purpose: Color utility classes
 =================================================================== */
+@layer utilities {
+  /* reserved for color utility classes */
+}
