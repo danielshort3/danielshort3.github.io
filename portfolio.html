@@ -6,6 +6,7 @@
   <title>Portfolio │ Daniel Short</title>
   <link rel="canonical" href="https://danielshort.me/portfolio.html">
   <meta property="og:title" content="Portfolio │ Daniel Short">
+  <meta property="og:site_name" content="Daniel Short — Data Science &amp; Analytics">
   <meta property="og:description" content="Curated portfolio of data science, analytics, ML, and visualization projects by Daniel Short.">
   <meta property="og:url" content="https://danielshort.me/portfolio.html">
   <meta property="og:image" content="img/hero/head.jpg">
@@ -21,6 +22,7 @@
   <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"></noscript>
   <link rel="icon" href="img/ui/logo.png" type="image/png">
+  <link rel="preload" as="image" href="img/ui/logo.png" fetchpriority="high">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap" rel="stylesheet"></noscript>
@@ -50,9 +52,9 @@
   </section>
 
   <!-- portfolio carousel -->
-  <section id="portfolio-carousel-section" class="surface-band reveal">
+  <section id="portfolio-carousel-section" class="surface-band reveal" role="region" aria-labelledby="top-projects-title">
     <div class="wrapper">
-      <h2 class="section-title">Top 5 Projects</h2>
+      <h2 class="section-title" id="top-projects-title">Top 5 Projects</h2>
       <div id="portfolio-carousel" aria-label="Project Browser">
         <div class="carousel-track"></div>
         <div class="carousel-dots" role="tablist"></div>
@@ -67,9 +69,9 @@
   <section id="carousel-gap" class="reveal hide"></section>
 
   <!-- filter buttons -->
-  <section class="reveal interest-pad hide" id="filters">
+  <section class="reveal interest-pad hide" id="filters" role="region" aria-labelledby="all-projects-title">
     <div class="wrapper" style="text-align:center">
-      <h2 class="section-title">All Projects</h2>
+      <h2 class="section-title" id="all-projects-title">All Projects</h2>
       <nav id="filter-menu" role="tablist">
         <button data-filter="all"     class="btn-secondary" role="tab" aria-selected="true">All</button>
         <button data-filter="Python"  class="btn-secondary" role="tab">Python</button>
@@ -81,7 +83,7 @@
   </section>
 
   <!-- dynamic grid + modals -->
-  <section id="projects" class="grid reveal hide"></section>
+  <section id="projects" class="grid reveal hide" role="region" aria-labelledby="all-projects-title"></section>
   <div id="modals"></div>
 
   <!-- footer is injected by common.js -->
