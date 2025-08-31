@@ -30,6 +30,5 @@
     font-family:'Poppins';font-size:22px;font-weight:600;
     color:var(--primary);letter-spacing:.3px;line-height:1
   }
-  .brand .divider{color:var(--primary)}
+  .brand .divider{color:var(--secondary)}
 }
-
