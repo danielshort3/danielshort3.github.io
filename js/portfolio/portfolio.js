@@ -57,12 +57,28 @@ if (typeof window.openModal !== 'function') {
 
 // Close on ESC for any open modal
 document.addEventListener('keydown', (e) => {
+  const open = document.querySelector('.modal.active');
   if (e.key === 'Escape') {
-    const open = document.querySelector('.modal.active');
     if (open) {
       const id = open.id?.replace('-modal','') || 'modal';
       window.closeModal(id);
     }
+    return;
+  }
+
+  // Arrow-key navigation between project modals (desktop-friendly)
+  if (!open) return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+    const id = open.id?.replace(/-modal$/, '');
+    if (!id || !Array.isArray(window.PROJECTS)) return;
+    const idx = window.PROJECTS.findIndex(p => p.id === id);
+    if (idx < 0) return; // not a project modal (e.g., contact modal)
+    const nextIdx = e.key === 'ArrowRight'
+      ? (idx + 1) % window.PROJECTS.length
+      : (idx - 1 + window.PROJECTS.length) % window.PROJECTS.length;
+    window.closeModal(id);
+    window.openModal(window.PROJECTS[nextIdx].id);
+    e.preventDefault();
   }
 });
 
@@ -123,7 +139,7 @@ window.generateProjectModal = function (p) {
 
   /* full modal template ------------------------------------------------ */
   return `
-    <div class="modal-content" role="dialog" aria-modal="true" tabindex="0" aria-labelledby="${p.id}-title">
+    <div class="modal-content ${ (isTableau || isIframe) ? 'modal-wide' : '' }" role="dialog" aria-modal="true" tabindex="0" aria-labelledby="${p.id}-title">
       <button class="modal-close" aria-label="Close dialog">&times;</button>
       <div class="modal-title-strip"><h3 class="modal-title" id="${p.id}-title">${p.title}</h3></div>
 
@@ -169,6 +185,11 @@ function buildPortfolioCarousel() {
   const track = container.querySelector(".carousel-track");
   const dots  = container.querySelector(".carousel-dots");
   const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Make carousel focusable and describe semantics for AT users
+  container.setAttribute('tabindex', '0');
+  container.setAttribute('role', 'region');
+  container.setAttribute('aria-roledescription', 'carousel');
 
   // 1‒5 featured projects -------------------------------------------------
   let projects = [];
@@ -257,7 +278,12 @@ function buildPortfolioCarousel() {
     track.style.transform = `translateX(${ -current * cardW + offset }px)`;
 
     [...track.children].forEach((c, i) => c.classList.toggle("active", i === current));
-    [...dots.children].forEach((d, i) => d.classList.toggle("active", i === current));
+    [...dots.children].forEach((d, i) => {
+      d.classList.toggle("active", i === current);
+      d.setAttribute('role', 'tab');
+      d.setAttribute('aria-selected', String(i === current));
+      d.tabIndex = i === current ? 0 : -1;
+    });
   };
 
   /* ---- navigation helpers (NO WRAP) ----------------------------------- */
@@ -283,6 +309,16 @@ function buildPortfolioCarousel() {
   // -----------------------------------------------------------------------
   container.addEventListener("mouseenter",  () => pause = true);
   container.addEventListener("mouseleave",  () => pause = false);
+
+  // Keyboard navigation for desktop users
+  container.addEventListener('keydown', (e) => {
+    switch (e.key) {
+      case 'ArrowRight': next(); e.preventDefault(); break;
+      case 'ArrowLeft':  previous(); e.preventDefault(); break;
+      case 'Home':       goTo(0); e.preventDefault(); break;
+      case 'End':        goTo(projects.length - 1); e.preventDefault(); break;
+    }
+  });
 
   /* drag / swipe --------------------------------------------------------- */
   let dragStart = 0, dragging = false, moved = false;
