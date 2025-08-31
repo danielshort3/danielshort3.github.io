@@ -243,8 +243,10 @@ function buildPortfolioCarousel() {
     })();
     card.innerHTML = `
       <div class="overlay"></div>
-      <div class="project-title">${p.title}</div>
-      <div class="project-subtitle">${p.subtitle}</div>
+      <div class="project-text">
+        <div class="project-title">${p.title}</div>
+        <div class="project-subtitle">${p.subtitle}</div>
+      </div>
       ${media}
     `;
     card.addEventListener("click", () => { if (!moved) openModal(p.id); });
@@ -574,8 +576,10 @@ function buildPortfolio() {
     })();
     const card = el("button", "project-card", `
       <div class="overlay"></div>
-      <div class="project-title">${p.title}</div>
-      <div class="project-subtitle">${p.subtitle}</div>
+      <div class="project-text">
+        <div class="project-title">${p.title}</div>
+        <div class="project-subtitle">${p.subtitle}</div>
+      </div>
       ${media2}`);
     card.type = "button";
     card.setAttribute("aria-label", `View details of ${p.title}`);
