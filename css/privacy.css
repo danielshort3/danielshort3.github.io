@@ -16,6 +16,8 @@ body.consent-blocked::before {
   inset: 0;
   background: rgba(0,0,0,0.45);
   z-index: 99998; /* below banner (99999) */
+  opacity: 1 !important;           /* override base body::before opacity */
+  pointer-events: auto !important;  /* intercept clicks while blocked */
 }
 
 .pcz-hidden {

@@ -126,5 +126,7 @@
         </a>
       </div>
       <p>© ${year} Daniel Short. All rights reserved. <a href="privacy.html">Privacy&nbsp;Policy</a></p>`;
+
+    // dev-only reset button removed per request
   }
 })();

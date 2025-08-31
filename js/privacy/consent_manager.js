@@ -424,6 +424,17 @@
     loadStyles();
     const locale = getLocale();
     const localeStrings = CONFIG.languages[locale];
+    // Dev/testing aids via URL parameters
+    try {
+      const q = new URLSearchParams(location.search);
+      if (q.get('reset_consent') === '1') {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+      if (q.get('show_consent') === '1') {
+        showBanner(localeStrings);
+        return;
+      }
+    } catch (e) {}
     const saved = loadConsent();
     if (hasGPC()) {
       if (saved && saved.categories && saved.categories.advertising) {
