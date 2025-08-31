@@ -209,6 +209,7 @@ function initContribSeeMore(){
           btn.className = 'btn-primary see-more-btn';
           btn.textContent = 'See More';
           btn.dataset.expanded = 'false';
+          btn.setAttribute('aria-expanded', 'false');
           wrap.appendChild(btn);
           section.querySelector('.wrapper').appendChild(wrap);
 
@@ -217,6 +218,7 @@ function initContribSeeMore(){
             btn.dataset.expanded = expanded ? 'false' : 'true';
             const isExpanded = btn.dataset.expanded === 'true';
             btn.textContent = isExpanded ? 'See Less' : 'See More';
+            btn.setAttribute('aria-expanded', String(isExpanded));
             cards.slice(1).forEach(c => c.classList.toggle('hide', !isExpanded));
             if (window.gaEvent) {
               window.gaEvent('contrib_see_more_toggle', {
@@ -229,6 +231,7 @@ function initContribSeeMore(){
         }
         const isExpanded = btn.dataset.expanded === 'true';
         cards.slice(1).forEach(c => c.classList.toggle('hide', !isExpanded));
+        btn.setAttribute('aria-expanded', String(isExpanded));
         updateFloat(btn);
       } else {
         // remove button and show all cards
