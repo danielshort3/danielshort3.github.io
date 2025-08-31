@@ -39,8 +39,21 @@ function buildContributions(){
           <div class="doc-footer">
             ${item.role ? `<p class="doc-role">${item.role}</p>` : ''}
             <div class="doc-links">
-              ${item.pdf ? `<a href="${item.pdf}" target="_blank" rel="noopener noreferrer" class="doc-link" aria-label="Open PDF" download><i class="fas fa-file-pdf" aria-hidden="true"></i></a>` : ''}
-              ${item.link ? `<a href="${item.link}" target="_blank" rel="noopener noreferrer" class="doc-link" aria-label="Open external link"><i class="fas fa-external-link-alt" aria-hidden="true"></i></a>` : ''}
+              ${item.pdf ? `<a href="${item.pdf}" target="_blank" rel="noopener noreferrer" class="doc-link" aria-label="Open PDF" download>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <path d="M14 2v6h6"/>
+                  <path d="M8 15h8"/>
+                </svg>
+              </a>` : ''}
+              ${item.link ? `<a href="${item.link}" target="_blank" rel="noopener noreferrer" class="doc-link" aria-label="Open external link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M14 3h7v7"/>
+                  <path d="M10 14L21 3"/>
+                  <path d="M21 14v7h-7"/>
+                  <path d="M3 10v11h11"/>
+                </svg>
+              </a>` : ''}
             </div>
           </div>
         </div>

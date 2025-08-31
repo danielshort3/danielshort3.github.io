@@ -16,6 +16,18 @@ function untrapFocus(modalEl){
   if (modalEl._trap) modalEl.removeEventListener('keydown', modalEl._trap);
 }
 
+// Show <video> and hide GIF fallback once video can play
+function activateGifVideo(container){
+  const vid = container && container.querySelector && container.querySelector('video.gif-video');
+  if (!vid) return;
+  const hideFallback = () => {
+    vid.style.display = 'block';
+    const img = vid.nextElementSibling;
+    if (img && img.tagName === 'IMG') img.style.display = 'none';
+  };
+  vid.addEventListener('loadeddata', hideFallback, { once: true });
+}
+
 // Ensure a global close helper exists
 if (typeof window.closeModal !== 'function') {
   window.closeModal = function(id){
@@ -54,6 +66,19 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+const projectMedia = (p) => {
+  const isGif = typeof p.image === 'string' && p.image.toLowerCase().endsWith('.gif');
+  if (!isGif) {
+    return `<img src="${p.image}" alt="${p.title}">`;
+  }
+  const webm = p.image.replace(/\.gif$/i, '.webm');
+  return `
+    <video class="gif-video" muted playsinline loop preload="metadata" aria-label="${p.title}">
+      <source src="${webm}" type="video/webm">
+    </video>
+    <img src="${p.image}" alt="${p.title}">`;
+};
+
 window.generateProjectModal = function (p) {
   const isTableau = p.embed?.type === "tableau";
   const isIframe  = p.embed?.type === "iframe";
@@ -74,7 +99,7 @@ window.generateProjectModal = function (p) {
     if (!isTableau) {
       return `
         <div class="modal-image">
-          <img src="${p.image}" alt="${p.title}">
+          ${projectMedia(p)}
         </div>`;
     }
 
@@ -184,11 +209,21 @@ function buildPortfolioCarousel() {
     card.type = "button";
     card.className = "project-card carousel-card";
     card.setAttribute("aria-label", `View details of ${p.title}`);
+    const media = (() => {
+      const isGif = typeof p.image === 'string' && p.image.toLowerCase().endsWith('.gif');
+      if (!isGif) return `<img src="${p.image}" alt="${p.title}" loading="lazy">`;
+      const webm = p.image.replace(/\.gif$/i, '.webm');
+      return `
+        <video class="gif-video" muted playsinline loop preload="metadata">
+          <source src="${webm}" type="video/webm">
+        </video>
+        <img src="${p.image}" alt="${p.title}" loading="lazy">`;
+    })();
     card.innerHTML = `
       <div class="overlay"></div>
       <div class="project-title">${p.title}</div>
       <div class="project-subtitle">${p.subtitle}</div>
-      <img src="${p.image}" alt="${p.title}" loading="lazy">
+      ${media}
     `;
     card.addEventListener("click", () => { if (!moved) openModal(p.id); });
     card.addEventListener("keydown", ev => {
@@ -197,6 +232,7 @@ function buildPortfolioCarousel() {
         if (!moved) openModal(p.id);
       }
     });
+    activateGifVideo(card);
     track.appendChild(card);
 
     /* nav dot */
@@ -488,14 +524,25 @@ function buildPortfolio() {
   /* ➊ Build cards & modals ----------------------------------------- */
   window.PROJECTS.forEach((p, i) => {
     /* card */
+    const media2 = (() => {
+      const isGif = typeof p.image === 'string' && p.image.toLowerCase().endsWith('.gif');
+      if (!isGif) return `<img src="${p.image}" alt="${p.title}" loading="lazy">`;
+      const webm = p.image.replace(/\.gif$/i, '.webm');
+      return `
+        <video class="gif-video" muted playsinline loop preload="metadata">
+          <source src="${webm}" type="video/webm">
+        </video>
+        <img src="${p.image}" alt="${p.title}" loading="lazy">`;
+    })();
     const card = el("div", "project-card", `
       <div class="overlay"></div>
       <div class="project-title">${p.title}</div>
       <div class="project-subtitle">${p.subtitle}</div>
-      <img src="${p.image}" alt="${p.title}" loading="lazy">`);
+      ${media2}`);
     card.dataset.index = i;
     card.dataset.tags  = p.tools.join(",");
     card.addEventListener("click", () => openModal(p.id));
+    activateGifVideo(card);
     grid.appendChild(card);
 
     /* modal */
@@ -503,6 +550,7 @@ function buildPortfolio() {
     modal.id = `${p.id}-modal`;
     modal.innerHTML = window.generateProjectModal(p);
     modals.appendChild(modal);
+    activateGifVideo(modal);
   });
 
   /* ➋ Animate cards right away (no IntersectionObserver) ----------- */

@@ -6,6 +6,7 @@
     border-radius:14px;color:var(--primary);font-family:'Poppins';font-weight:600;
     transition:transform .25s,background .25s,color .25s,box-shadow .25s
   }
+  .contact-card svg{ width:40px; height:40px; color:inherit; }
   .contact-card small{font-family:'Inter';color:var(--text-muted);transition:inherit}
   .contact-card:hover{
     background:var(--primary);color:var(--bg);transform:translateY(-3px);
@@ -14,4 +15,3 @@
   .contact-card:hover i,.contact-card:hover small{color:var(--bg)}
   .surface-band.reveal.active .contact-card{animation:focusIn .6s forwards}
 }
-

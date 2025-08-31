@@ -64,7 +64,7 @@
 
   body{display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden}
   main{flex:1 0 auto}
-  .wrapper{margin-inline:24px}
+  .wrapper{max-width:var(--container-max);margin-inline:auto;padding-inline:24px}
   a{color:inherit;text-decoration:none}
   .hide{display:none !important}
 
@@ -233,6 +233,7 @@
   .btn-secondary:hover{background:var(--primary);color:var(--bg);transform:translateY(-3px)}
   .btn-icon{width:46px;height:46px;border:2px solid var(--primary)}
   .btn-icon i{font-size:22px;color:var(--primary)}
+  .btn-icon svg{width:22px;height:22px;color:var(--primary)}
   .btn-icon:hover{background:var(--primary);transform:translateY(-3px);box-shadow:0 8px 18px rgba(0,0,0,.25)}
   .btn-icon:hover i{color:var(--bg)}
 }
@@ -286,6 +287,7 @@
     transition:opacity .6s cubic-bezier(.2,.7,.3,1),transform .6s cubic-bezier(.2,.7,.3,1)
   }
   .icon-info i{font-size:38px;margin-bottom:14px;color:var(--primary)}
+  .icon-info svg{width:38px;height:38px;margin-bottom:14px;color:var(--primary);fill:currentColor}
   .icon-info p{font-family:'Poppins';font-weight:600;margin-bottom:4px}
   .icon-info small{color:var(--text-muted)}
   @keyframes focusIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
@@ -314,6 +316,8 @@
   }
   .project-card.ripple-in{animation:rippleFade .55s cubic-bezier(.2,.7,.3,1) forwards;transform:none}
   .project-card img{width:100%;height:220px;object-fit:cover;display:block}
+  .project-card video{width:100%;height:220px;display:block;object-fit:cover}
+  .gif-video{display:none}
   .project-card .overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.35)0%,rgba(0,0,0,.95)100%)}
   .project-card .project-title{
     position:absolute;left:18px;bottom:44px;font-family:'Poppins';font-weight:600;font-size:20px
@@ -396,6 +400,7 @@
     border-radius:14px;color:var(--primary);font-family:'Poppins';font-weight:600;
     transition:transform .25s,background .25s,color .25s,box-shadow .25s
   }
+  .contact-card svg{ width:40px; height:40px; color:inherit; }
   .contact-card small{font-family:'Inter';color:var(--text-muted);transition:inherit}
   .contact-card:hover{
     background:var(--primary);color:var(--bg);transform:translateY(-3px);
@@ -404,7 +409,6 @@
   .contact-card:hover i,.contact-card:hover small{color:var(--bg)}
   .surface-band.reveal.active .contact-card{animation:focusIn .6s forwards}
 }
-
 
 
 /* === End import: css/components/contact-card.css === */
@@ -433,6 +437,7 @@
   .doc-links{display:flex;gap:14px;margin-left:14px;}
   .doc-link{ display:flex;align-items:center;justify-content:center;width:42px;height:42px; font-size:1.6rem;color:inherit;border:2px solid currentColor;border-radius:10px;transition:background .25s }
   .doc-card:hover .doc-link{background:rgba(0,0,0,.15)}
+  .doc-link svg{ width:22px; height:22px; color: currentColor; }
 
   .docs-carousel{display:flex;gap:28px;overflow-x:auto;scroll-snap-type:smooth;margin-inline:-24px;padding:8px 24px}
   .docs-carousel>.doc-card{flex:0 0 260px;scroll-snap-align:center}
@@ -464,7 +469,6 @@
     .docs-grid{ grid-template-columns:1fr; }
   }
 }
-
 
 
 /* === End import: css/components/doc-card.css === */
