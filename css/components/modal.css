@@ -13,8 +13,8 @@
   body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
   .modal-content{
     position:relative;max-height:82vh;margin:5% 12px;
-    width: min(var(--container-max), calc(100vw - 24px));
-    max-width: var(--container-max);
+    width: min(var(--modal-max), calc(100vw - 24px));
+    max-width: var(--modal-max);
     display:flex;flex-direction:column;overflow:hidden;
     background:var(--surface); /* unified darker surface */
     color:var(--text-light);
@@ -26,6 +26,11 @@
       0 0 0 1px color-mix(in srgb, var(--primary) 20%, transparent);
     transform:translateY(-24px) scale(.96);opacity:0;
     transition:transform .45s cubic-bezier(.22,.61,.36,1),opacity .45s cubic-bezier(.22,.61,.36,1)
+  }
+  /* wider layout for embedded content */
+  .modal-content.modal-wide{
+    width: min(var(--modal-max-wide, var(--container-max)), calc(100vw - 24px));
+    max-width: var(--modal-max-wide, var(--container-max));
   }
   .modal.active .modal-content{transform:none;opacity:1}
   .modal-content::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;border-radius:16px 16px 0 0;background:var(--secondary)}

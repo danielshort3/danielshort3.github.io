@@ -28,6 +28,8 @@
     /* sizing */
     --nav-height:72px;      /* default, JS may overwrite */
     --container-max:1068px;
+    --modal-max:920px;                 /* typical dialog width on desktop */
+    --modal-max-wide:var(--container-max); /* wider for embeds (Tableau/iframes) */
 
     /* spacing scale */
     --space-2:2px;   --space-4:4px;   --space-6:6px;
