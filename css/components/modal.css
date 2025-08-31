@@ -67,7 +67,7 @@
   .modal-subtitle{margin-top:0;color:var(--text-muted)}
   .modal-image{flex:1 1 300px;align-self:flex-start}
   .modal-image img{max-width:100%;border-radius:12px;display:block;box-shadow:0 6px 24px rgba(0,0,0,.4)}
-  .modal-content :focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .modal-content :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 
   /* Divider between Tools and Downloads */
   .modal-divider {

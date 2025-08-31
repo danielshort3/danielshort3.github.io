@@ -18,4 +18,10 @@
     color: #000;
     z-index: 1000;
   }
+
+  /* Global, consistent focus outline */
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
 }

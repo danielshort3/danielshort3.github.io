@@ -10,9 +10,9 @@
   }
   .btn-primary{
     padding:18px 34px;background:var(--primary);color:var(--bg);
-    box-shadow:0 6px 18px rgba(44,169,188,.25)
+    box-shadow:0 6px 18px color-mix(in srgb, var(--primary) 25%, transparent)
   }
-  .btn-primary:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(44,169,188,.35)}
+  .btn-primary:hover{transform:translateY(-3px);box-shadow:0 10px 24px color-mix(in srgb, var(--primary) 35%, transparent)}
   .btn-secondary{
     padding:18px 34px;border:2px solid var(--primary);background:transparent;color:var(--primary)
   }

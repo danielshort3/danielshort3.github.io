@@ -4,4 +4,19 @@
 =================================================================== */
 @layer utilities {
   /* reserved for future text helpers */
+
+  /* Inline link styling in text contexts */
+  p a:not(.btn-primary):not(.btn-secondary):not(.doc-link):not(.pcz-link),
+  li a:not(.btn-primary):not(.btn-secondary):not(.doc-link):not(.pcz-link),
+  .modal-text a:not(.btn-primary):not(.btn-secondary):not(.doc-link):not(.pcz-link) {
+    color: var(--link);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  p a:hover:not(.btn-primary):not(.btn-secondary):not(.doc-link):not(.pcz-link),
+  li a:hover:not(.btn-primary):not(.btn-secondary):not(.doc-link):not(.pcz-link),
+  .modal-text a:hover:not(.btn-primary):not(.btn-secondary):not(.doc-link):not(.pcz-link) {
+    color: var(--link-hover);
+  }
 }

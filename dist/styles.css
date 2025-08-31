@@ -12,10 +12,23 @@
     --surface:#161B22;
     --surface-light:color-mix(in srgb,var(--surface) 85%,#fff 15%);
     --surface-accent:color-mix(in srgb,var(--surface) 92%,#fff 8%);
-    --primary:#2CA9BC;
-    --secondary:#D4A047;
+    --primary:#2396AD;
+    --secondary:#C3993E;
     --text-light:#F1F4F8;
     --text-muted:#BFC8D3;   /* WCAG-passing grey */
+
+    /* links & focus */
+    --link: color-mix(in srgb, var(--primary) 85%, #fff 15%);
+    --link-hover: color-mix(in srgb, var(--primary) 65%, #fff 35%);
+    --focus: color-mix(in srgb, var(--primary) 70%, #fff 30%);
+
+    /* borders */
+    --border-subtle:#21262D;
+
+    /* semantic states (optional) */
+    --success:#38B37E;  /* approvals, good states */
+    --warning:#E0A328;  /* caution, non-blocking */
+    --danger:#E05757;   /* errors, destructive */
 
     /* sizing */
     --nav-height:72px;      /* default, JS may overwrite */
@@ -42,6 +55,11 @@
 
     /* dynamic viewport height used for mobile hero sections */
     --vh:100vh;
+
+    /* component-specific */
+    /* Controls the visual height of project card media (img/gif/video). */
+    /* Use a wider ratio but tall enough to avoid crowding. */
+    --project-card-aspect: 1 / 1; /* square project cards */
   }
 }
 
@@ -141,7 +159,7 @@
     margin-top:0;
     display:flex;flex-direction:column;
     align-items:center;justify-content:center;text-align:center;
-    background:#11202B;position:relative;overflow:hidden;isolation:isolate;
+    background:var(--surface);position:relative;overflow:hidden;isolation:isolate;
   }
   @keyframes fadeUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:none}}
   @keyframes gradShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
@@ -150,8 +168,8 @@
   .hero p {animation:fadeUp 1s .8s forwards;font-size:20px;color:var(--text-muted);max-width:40rem}
   .hero .btn-primary{animation:fadeUp 1s 1.1s forwards}
   .hero::before{
-    content:"";position:absolute;inset:0;z-index:-1;opacity:.18;
-    background:linear-gradient(120deg,var(--primary)0%,var(--secondary)35%,var(--surface)70%,var(--bg)100%);
+    content:"";position:absolute;inset:0;z-index:-1;opacity:.14;
+    background:linear-gradient(120deg,var(--primary)0%,var(--secondary)20%,var(--surface)72%,var(--bg)100%);
     background-size:400% 400%;animation:gradShift 18s ease-in-out infinite
   }
   @keyframes rippleFade{0%{opacity:0;transform:scale(.92)}100%{opacity:1;transform:none}}
@@ -224,9 +242,9 @@
   }
   .btn-primary{
     padding:18px 34px;background:var(--primary);color:var(--bg);
-    box-shadow:0 6px 18px rgba(44,169,188,.25)
+    box-shadow:0 6px 18px color-mix(in srgb, var(--primary) 25%, transparent)
   }
-  .btn-primary:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(44,169,188,.35)}
+  .btn-primary:hover{transform:translateY(-3px);box-shadow:0 10px 24px color-mix(in srgb, var(--primary) 35%, transparent)}
   .btn-secondary{
     padding:18px 34px;border:2px solid var(--primary);background:transparent;color:var(--primary)
   }
@@ -315,9 +333,12 @@
     transform .35s cubic-bezier(.22,.61,.36,1),box-shadow .35s cubic-bezier(.22,.61,.36,1)
   }
   .project-card.ripple-in{animation:rippleFade .55s cubic-bezier(.2,.7,.3,1) forwards;transform:none}
-  .project-card img{width:100%;height:220px;object-fit:cover;display:block}
-  .project-card video{width:100%;height:220px;display:block;object-fit:cover}
+  /* base media sizing (cover the frame, preserve aspect; align to top) */
+  .project-card img{width:100%;display:block;object-fit:cover;object-position:top;background:transparent}
+  .project-card video{width:100%;object-fit:cover;object-position:top;background:transparent}
+  /* keep GIF replacement <video> hidden until JS confirms it can play */
   .gif-video{display:none}
+  .project-card .gif-video{display:none}
   .project-card .overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.35)0%,rgba(0,0,0,.95)100%)}
   .project-card .project-title{
     position:absolute;left:18px;bottom:44px;font-family:'Poppins';font-weight:600;font-size:20px
@@ -331,11 +352,11 @@
   }
   .project-card:hover{
     transform:translateY(-8px) scale(1.04);
-    box-shadow:0 14px 34px rgba(44,169,188,.32),0 6px 20px rgba(0,0,0,.55)
+    box-shadow:0 14px 34px color-mix(in srgb, var(--primary) 32%, transparent),0 6px 20px rgba(0,0,0,.55)
   }
   .project-card:hover::before{border-color:var(--primary)}
   #projects.grid{
-    display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
     gap:28px;padding:24px;
     transition:height .45s cubic-bezier(.22,.61,.36,1),
                padding .45s cubic-bezier(.22,.61,.36,1),
@@ -349,12 +370,16 @@
     font-size:.75rem;font-weight:600;padding:4px 10px;border-radius:6px;max-width:75%;pointer-events:none
   }
 
-  /* Prevent layout shift in project cards */
-  .project-card img {
+  /* Square frame, cover fill, top-aligned; no empty space, no distortion */
+  .project-card img,
+  .project-card video {
     width: 100%;
     height: auto;
-    aspect-ratio: 16 / 9;
+    aspect-ratio: var(--project-card-aspect, 1 / 1);
     display: block;
+    object-fit: cover;     /* fill without black bars, preserve aspect */
+    object-position: top;  /* align with top of card frame */
+    background: transparent;
   }
   /* --- Button-card reset to match previous DIV cards --- */
   button.project-card {
@@ -396,15 +421,16 @@
 @layer components {
   .contact-card{
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
-    padding:48px 32px;text-align:center;background:var(--surface);border:2px solid var(--primary);
+    padding:48px 32px;text-align:center;background:var(--surface);border:1px solid var(--border-subtle);
     border-radius:14px;color:var(--primary);font-family:'Poppins';font-weight:600;
-    transition:transform .25s,background .25s,color .25s,box-shadow .25s
+    transition:transform .25s,background .25s,color .25s,box-shadow .25s,border-color .25s
   }
   .contact-card svg{ width:40px; height:40px; color:inherit; }
   .contact-card small{font-family:'Inter';color:var(--text-muted);transition:inherit}
   .contact-card:hover{
     background:var(--primary);color:var(--bg);transform:translateY(-3px);
-    box-shadow:0 10px 24px rgba(44,169,188,.35)
+    border-color:var(--primary);
+    box-shadow:0 10px 24px color-mix(in srgb, var(--primary) 35%, transparent)
   }
   .contact-card:hover i,.contact-card:hover small{color:var(--bg)}
   .surface-band.reveal.active .contact-card{animation:focusIn .6s forwards}
@@ -427,10 +453,10 @@
   .doc-card{
     position:relative; display:flex; justify-content:space-between; align-items:center;
     gap:18px; padding:26px 24px; background:var(--surface);
-    border:2px solid var(--primary); border-radius:14px;
-    transition:transform .25s,box-shadow .25s,background .25s
+    border:1px solid var(--border-subtle); border-radius:14px;
+    transition:transform .25s,box-shadow .25s,background .25s,border-color .25s
   }
-  .doc-card:hover{background:var(--primary);transform:translateY(-6px);box-shadow:0 12px 28px rgba(44,169,188,.35)}
+  .doc-card:hover{background:var(--primary);transform:translateY(-6px);box-shadow:0 12px 28px color-mix(in srgb, var(--primary) 35%, transparent);border-color:var(--primary)}
   .doc-card:hover .doc-role,.doc-card:hover h3{color:var(--bg)}
   .doc-body h3{margin:0 0 6px;font-family:'Poppins';font-size:1.05rem;font-weight:600}
   .doc-role{margin:0;font-size:.85rem;color:var(--text-muted)}
@@ -543,7 +569,7 @@
   .modal-subtitle{margin-top:0;color:var(--text-muted)}
   .modal-image{flex:1 1 300px;align-self:flex-start}
   .modal-image img{max-width:100%;border-radius:12px;display:block;box-shadow:0 6px 24px rgba(0,0,0,.4)}
-  .modal-content :focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .modal-content :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 
   /* Divider between Tools and Downloads */
   .modal-divider {
@@ -675,7 +701,7 @@
 .featured-card img{width:100%;height:200px;object-fit:cover;display:block}
 .featured-card .card-body{padding:20px}
 .featured-card h3{margin:0 0 4px}.featured-card p{margin:0;color:var(--text-muted)}
-.featured-card:hover{transform:translateY(-8px)scale(1.04);box-shadow:0 14px 34px rgba(44,169,188,.32),0 6px 20px rgba(0,0,0,.55)}
+.featured-card:hover{transform:translateY(-8px)scale(1.04);box-shadow:0 14px 34px color-mix(in srgb, var(--primary) 32%, transparent),0 6px 20px rgba(0,0,0,.55)}
 
 /* ───────────────────────────────────────────────────────────
    14b. PORTFOLIO PAGE CAROUSEL
@@ -1000,7 +1026,7 @@
 .skill-link:hover,
 .skill-link:focus-visible{
   transform:translateY(-4px) scale(1.03);
-  box-shadow:0 8px 22px rgba(44,169,188,.35);
+  box-shadow:0 8px 22px color-mix(in srgb, var(--primary) 35%, transparent);
   border-color:var(--primary);
 }
 .skill-link small{
@@ -1018,7 +1044,7 @@
 .skill-link:hover,
 .skill-link:focus-visible{
   transform:translateY(-4px) scale(1.03);
-  box-shadow:0 10px 26px rgba(44,169,188,.35);
+  box-shadow:0 10px 26px color-mix(in srgb, var(--primary) 35%, transparent);
   cursor:pointer;
 }
 
@@ -1292,6 +1318,21 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
 =================================================================== */
 @layer utilities {
   /* reserved for future text helpers */
+
+  /* Inline link styling in text contexts */
+  p a:not(.btn-primary):not(.btn-secondary):not(.doc-link):not(.pcz-link),
+  li a:not(.btn-primary):not(.btn-secondary):not(.doc-link):not(.pcz-link),
+  .modal-text a:not(.btn-primary):not(.btn-secondary):not(.doc-link):not(.pcz-link) {
+    color: var(--link);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  p a:hover:not(.btn-primary):not(.btn-secondary):not(.doc-link):not(.pcz-link),
+  li a:hover:not(.btn-primary):not(.btn-secondary):not(.doc-link):not(.pcz-link),
+  .modal-text a:hover:not(.btn-primary):not(.btn-secondary):not(.doc-link):not(.pcz-link) {
+    color: var(--link-hover);
+  }
 }
 
 
@@ -1330,6 +1371,12 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
     color: #000;
     z-index: 1000;
   }
+
+  /* Global, consistent focus outline */
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
 }
 
 
@@ -1338,11 +1385,22 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
 /* === Begin import: css/utilities/color-fallback.css === */
 @layer utilities {
   @supports not (color: color-mix(in srgb, black, white)) {
-    .project-metric { background: rgba(44, 169, 188, 0.15); }
+    .project-metric { background: rgba(35, 150, 173, 0.15); }
     .hero { background: rgba(22, 27, 34, 0.5); }
     .modal { background: rgba(13, 17, 23, 0.88); }
     .modal-content {
-      box-shadow: 0 10px 28px rgba(13,17,23,0.6), 0 0 0 1px rgba(44,169,188,0.15);
+      box-shadow: 0 10px 28px rgba(13,17,23,0.6), 0 0 0 1px rgba(35,150,173,0.15);
+    }
+
+    /* Fallbacks for new tokens using color-mix */
+    p a:not(.btn-primary):not(.btn-secondary):not(.doc-link):not(.pcz-link),
+    li a:not(.btn-primary):not(.btn-secondary):not(.doc-link):not(.pcz-link),
+    .modal-text a:not(.btn-primary):not(.btn-secondary):not(.doc-link):not(.pcz-link) {
+      color: #44A6B9;
+    }
+    :focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
     }
   }
 }
