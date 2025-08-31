@@ -2,6 +2,23 @@
 
 // ---- Modal focus management (shared) ---------------------------------
 let __modalPrevFocus = null;
+let __srStatus = null;
+function srStatus(){
+  if (__srStatus) return __srStatus;
+  const el = document.createElement('div');
+  el.id = 'sr-status';
+  el.setAttribute('role','status');
+  el.setAttribute('aria-live','polite');
+  el.setAttribute('aria-atomic','true');
+  el.style.position = 'absolute';
+  el.style.left = '-9999px';
+  el.style.width = '1px';
+  el.style.height = '1px';
+  el.style.overflow = 'hidden';
+  document.body.appendChild(el);
+  __srStatus = el;
+  return __srStatus;
+}
 function trapFocus(modalEl){
   const focusables = modalEl.querySelectorAll('a,button,input,textarea,select,[tabindex]:not([tabindex="-1"])');
   if (!focusables.length) return;
@@ -52,6 +69,22 @@ if (typeof window.openModal !== 'function') {
     const content = modal.querySelector('.modal-content') || modal;
     content.focus({preventScroll:true});
     trapFocus(content);
+
+    // Lazy-assign iframe src for heavy embeds
+    const ifr = modal.querySelector('.modal-embed iframe');
+    if (ifr) {
+      // 1) Simple iframe with data-src
+      if (ifr.dataset.src && !ifr.src) {
+        ifr.src = ifr.dataset.src;
+      }
+      // 2) Tableau iframe with data-base → compute device-specific URL
+      if (ifr.dataset.base && !ifr.src) {
+        const isPhone = window.matchMedia && window.matchMedia('(max-width:768px)').matches;
+        const base = ifr.dataset.base;
+        const src  = `${base}?${[":embed=y",":showVizHome=no",`:device=${isPhone ? 'phone' : 'desktop'}`].join('&')}`;
+        ifr.src = src;
+      }
+    }
   };
 }
 
@@ -108,7 +141,7 @@ window.generateProjectModal = function (p) {
     if (isIframe) {
       return `
         <div class="modal-embed">
-          <iframe src="${p.embed.url}" loading="lazy"></iframe>
+          <iframe data-src="${p.embed.url}" loading="lazy"></iframe>
         </div>`;
     }
 
@@ -130,7 +163,6 @@ window.generateProjectModal = function (p) {
     return `
       <div class="modal-embed tableau-fit">
         <iframe
-          src="${src}"
           loading="lazy"
           allowfullscreen
           data-base="${base}"></iframe>
@@ -190,6 +222,7 @@ function buildPortfolioCarousel() {
   container.setAttribute('tabindex', '0');
   container.setAttribute('role', 'region');
   container.setAttribute('aria-roledescription', 'carousel');
+  container.setAttribute('aria-label', 'Featured projects');
 
   // 1‒5 featured projects -------------------------------------------------
   let projects = [];
@@ -221,6 +254,21 @@ function buildPortfolioCarousel() {
   s.type = "application/ld+json";
   s.textContent = JSON.stringify(ld);
   document.head.appendChild(s);
+
+  // Per-project structured data for better discoverability
+  try {
+    const graph = window.PROJECTS.map(p => ({
+      "@type": "CreativeWork",
+      "name": p.title,
+      "description": p.subtitle,
+      "url": `https://danielshort.me/portfolio.html#${p.id}`,
+      "image": `https://danielshort.me/${p.image}`
+    }));
+    const s2 = document.createElement('script');
+    s2.type = 'application/ld+json';
+    s2.textContent = JSON.stringify({ "@context": "https://schema.org", "@graph": graph });
+    document.head.appendChild(s2);
+  } catch {}
 
   track.innerHTML = "";
   dots.innerHTML  = "";
@@ -286,6 +334,10 @@ function buildPortfolioCarousel() {
       d.setAttribute('aria-selected', String(i === current));
       d.tabIndex = i === current ? 0 : -1;
     });
+    try {
+      const title = projects[current]?.title || '';
+      srStatus().textContent = `Slide ${current+1} of ${projects.length}: ${title}`;
+    } catch {}
   };
 
   /* ---- navigation helpers (NO WRAP) ----------------------------------- */
@@ -683,6 +735,12 @@ function buildPortfolio() {
         }
       }, 450); // height transition duration
     }, 350);   // grid fade duration
+    // Announce filter result count for screen readers
+    try {
+      const visibleCount = [...grid.children].filter(c => !c.classList.contains('hide')).length;
+      const filt = e.target.dataset.filter;
+      srStatus().textContent = `Showing ${visibleCount} projects. Filter: ${filt}`;
+    } catch {}
   });
 
   /* ➎ Open modal if a hash is present or changes ------------------- */
