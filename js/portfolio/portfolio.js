@@ -123,9 +123,9 @@ window.generateProjectModal = function (p) {
 
   /* full modal template ------------------------------------------------ */
   return `
-    <div class="modal-content" role="dialog" aria-modal="true" tabindex="0">
+    <div class="modal-content" role="dialog" aria-modal="true" tabindex="0" aria-labelledby="${p.id}-title">
       <button class="modal-close" aria-label="Close dialog">&times;</button>
-      <div class="modal-title-strip"><h3 class="modal-title">${p.title}</h3></div>
+      <div class="modal-title-strip"><h3 class="modal-title" id="${p.id}-title">${p.title}</h3></div>
 
       <div class="modal-body ${isTableau ? "stacked" : ""}">
         <div class="modal-header-details">
@@ -168,6 +168,7 @@ function buildPortfolioCarousel() {
 
   const track = container.querySelector(".carousel-track");
   const dots  = container.querySelector(".carousel-dots");
+  const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // 1‒5 featured projects -------------------------------------------------
   let projects = [];
@@ -261,6 +262,7 @@ function buildPortfolioCarousel() {
 
   /* ---- navigation helpers (NO WRAP) ----------------------------------- */
   const restartAuto = () => {
+    if (prefersReduced) return; // respect reduced motion on mobile
     clearTimeout(autoTimer);
     autoTimer = setTimeout(() => {
       if (!pause) next(true);
@@ -534,11 +536,13 @@ function buildPortfolio() {
         </video>
         <img src="${p.image}" alt="${p.title}" loading="lazy">`;
     })();
-    const card = el("div", "project-card", `
+    const card = el("button", "project-card", `
       <div class="overlay"></div>
       <div class="project-title">${p.title}</div>
       <div class="project-subtitle">${p.subtitle}</div>
       ${media2}`);
+    card.type = "button";
+    card.setAttribute("aria-label", `View details of ${p.title}`);
     card.dataset.index = i;
     card.dataset.tags  = p.tools.join(",");
     card.addEventListener("click", () => openModal(p.id));

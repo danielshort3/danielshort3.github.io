@@ -78,6 +78,7 @@
     font-family:'Inter',sans-serif;
     background:var(--bg);color:var(--text-light);
     line-height:1.6;-webkit-font-smoothing:antialiased;
+    color-scheme: dark light; /* better native form controls on mobile */
   }
 
   body{display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden}
@@ -730,16 +731,16 @@
 .carousel-dots{text-align:center;margin-top:16px}
 .carousel-dot{
   display:inline-block;
-  width:12px;
-  height:12px;
+  width:24px;   /* larger tap target */
+  height:24px;  /* larger tap target */
   padding:0;
   line-height:0;
   border-radius:50%;
-  border:1px solid var(--primary);
+  border:2px solid var(--primary);
   background:transparent;
   cursor:pointer;
   aspect-ratio:1;
-  margin:0 4px;
+  margin:0 6px;
 }
 .carousel-dot.active{background:var(--primary)}
 #portfolio-carousel.dragging{cursor:grabbing;user-select:none}
