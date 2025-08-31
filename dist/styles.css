@@ -342,12 +342,10 @@
   .gif-video{display:none}
   .project-card .gif-video{display:none}
   .project-card .overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.35)0%,rgba(0,0,0,.95)100%)}
-  .project-card .project-title{
-    position:absolute;left:18px;bottom:44px;font-family:'Poppins';font-weight:600;font-size:20px
-  }
-  .project-card .project-subtitle{
-    position:absolute;left:18px;bottom:18px;font-size:14px;color:var(--text-muted)
-  }
+  /* Stack title and subtitle in a single block to avoid overlap on wrap */
+  .project-card .project-text{position:absolute;left:18px;right:18px;bottom:18px;display:flex;flex-direction:column;gap:4px}
+  .project-card .project-title{position:static;font-family:'Poppins';font-weight:600;font-size:20px;margin:0}
+  .project-card .project-subtitle{position:static;font-size:14px;color:var(--text-muted);margin:0}
   .project-card::before{
     content:"";position:absolute;inset:0;border:2px solid transparent;border-radius:14px;
     pointer-events:none;transition:border-color .35s cubic-bezier(.22,.61,.36,1)
