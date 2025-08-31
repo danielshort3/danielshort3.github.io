@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Simple tests for Daniel Short's website",
   "scripts": {
-    "test": "node test.js"
+    "test": "node test.js",
+    "build:css": "node build/build-css.js"
   }
 }

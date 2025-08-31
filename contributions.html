@@ -12,10 +12,12 @@
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@danielshort3">
-  <link rel="stylesheet" href="css/styles.css">
+  <meta name="theme-color" content="#0D1117">
+  <link rel="stylesheet" href="dist/styles.css">
   <link rel="stylesheet" href="css/privacy.css">
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css">
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"></noscript>
   <link rel="icon" href="img/ui/logo.png" type="image/png">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
@@ -35,7 +37,9 @@
       <h1>Key Contributions &amp; Reports</h1>
       <p>These public-facing documents feature contributions in data analysis, forecasting, and decision support for the City of Grand Junction.</p>
     </div>
-      <div class="chevron-hint scroll-indicator" aria-hidden="true"><i class="fa-solid fa-chevron-down"></i></div>
+      <div class="chevron-hint scroll-indicator" aria-hidden="true">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 16.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 14.08l5.3-5.29a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29z"/></svg>
+      </div>
   </section>
 
   <!-- Dynamic sections build themselves here -->
