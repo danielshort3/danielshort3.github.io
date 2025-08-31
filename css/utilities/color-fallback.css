@@ -1,10 +1,21 @@
 @layer utilities {
   @supports not (color: color-mix(in srgb, black, white)) {
-    .project-metric { background: rgba(44, 169, 188, 0.15); }
+    .project-metric { background: rgba(35, 150, 173, 0.15); }
     .hero { background: rgba(22, 27, 34, 0.5); }
     .modal { background: rgba(13, 17, 23, 0.88); }
     .modal-content {
-      box-shadow: 0 10px 28px rgba(13,17,23,0.6), 0 0 0 1px rgba(44,169,188,0.15);
+      box-shadow: 0 10px 28px rgba(13,17,23,0.6), 0 0 0 1px rgba(35,150,173,0.15);
+    }
+
+    /* Fallbacks for new tokens using color-mix */
+    p a:not(.btn-primary):not(.btn-secondary):not(.doc-link):not(.pcz-link),
+    li a:not(.btn-primary):not(.btn-secondary):not(.doc-link):not(.pcz-link),
+    .modal-text a:not(.btn-primary):not(.btn-secondary):not(.doc-link):not(.pcz-link) {
+      color: #44A6B9;
+    }
+    :focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
     }
   }
 }

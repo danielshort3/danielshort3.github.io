@@ -7,10 +7,23 @@
     --surface:#161B22;
     --surface-light:color-mix(in srgb,var(--surface) 85%,#fff 15%);
     --surface-accent:color-mix(in srgb,var(--surface) 92%,#fff 8%);
-    --primary:#2CA9BC;
-    --secondary:#D4A047;
+    --primary:#2396AD;
+    --secondary:#C3993E;
     --text-light:#F1F4F8;
     --text-muted:#BFC8D3;   /* WCAG-passing grey */
+
+    /* links & focus */
+    --link: color-mix(in srgb, var(--primary) 85%, #fff 15%);
+    --link-hover: color-mix(in srgb, var(--primary) 65%, #fff 35%);
+    --focus: color-mix(in srgb, var(--primary) 70%, #fff 30%);
+
+    /* borders */
+    --border-subtle:#21262D;
+
+    /* semantic states (optional) */
+    --success:#38B37E;  /* approvals, good states */
+    --warning:#E0A328;  /* caution, non-blocking */
+    --danger:#E05757;   /* errors, destructive */
 
     /* sizing */
     --nav-height:72px;      /* default, JS may overwrite */
@@ -37,6 +50,11 @@
 
     /* dynamic viewport height used for mobile hero sections */
     --vh:100vh;
+
+    /* component-specific */
+    /* Controls the visual height of project card media (img/gif/video). */
+    /* Use a wider ratio but tall enough to avoid crowding. */
+    --project-card-aspect: 1 / 1; /* square project cards */
   }
 }
 

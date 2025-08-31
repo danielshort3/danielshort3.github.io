@@ -1,9 +1,9 @@
 :root {
-  --pcz-bg: #1f2f2e;
-  --pcz-fg: #ffffff;
-  --pcz-accent: #cc9e5a;
-  --pcz-link: #b6c3bb;
-  --pcz-focus: #19526b;
+  --pcz-bg: var(--surface);
+  --pcz-fg: var(--text-light);
+  --pcz-accent: var(--secondary);
+  --pcz-link: var(--link);
+  --pcz-focus: var(--focus);
 }
 
 .pcz-hidden {
@@ -51,8 +51,8 @@
 }
 
 .pcz-secondary {
-  background: #33454a;
-  color: #fff;
+  background: var(--surface-accent);
+  color: var(--pcz-fg);
 }
 
 .pcz-link {
@@ -71,8 +71,8 @@
 }
 
 #pcz-modal .pcz-panel {
-  background: #233;
-  color: #fff;
+  background: var(--pcz-bg);
+  color: var(--pcz-fg);
   width: min(680px, 92vw);
   max-height: 88vh;
   overflow: auto;
@@ -87,7 +87,7 @@
 }
 
 #pcz-modal fieldset {
-  border: 1px solid #3a4a50;
+  border: 1px solid var(--border-subtle);
   border-radius: 8px;
   padding: 12px;
   margin: 12px 0;
@@ -113,10 +113,11 @@
 
 #pcz-modal .pcz-helper {
   font-size: 0.9rem;
-  color: #cfd8dc;
+  color: var(--text-muted);
 }
 
-:focus-visible {
+#pcz-banner :focus-visible,
+#pcz-modal :focus-visible {
   outline: 3px solid var(--pcz-focus);
   outline-offset: 2px;
 }

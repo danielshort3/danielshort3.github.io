@@ -2,15 +2,16 @@
 @layer components {
   .contact-card{
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
-    padding:48px 32px;text-align:center;background:var(--surface);border:2px solid var(--primary);
+    padding:48px 32px;text-align:center;background:var(--surface);border:1px solid var(--border-subtle);
     border-radius:14px;color:var(--primary);font-family:'Poppins';font-weight:600;
-    transition:transform .25s,background .25s,color .25s,box-shadow .25s
+    transition:transform .25s,background .25s,color .25s,box-shadow .25s,border-color .25s
   }
   .contact-card svg{ width:40px; height:40px; color:inherit; }
   .contact-card small{font-family:'Inter';color:var(--text-muted);transition:inherit}
   .contact-card:hover{
     background:var(--primary);color:var(--bg);transform:translateY(-3px);
-    box-shadow:0 10px 24px rgba(44,169,188,.35)
+    border-color:var(--primary);
+    box-shadow:0 10px 24px color-mix(in srgb, var(--primary) 35%, transparent)
   }
   .contact-card:hover i,.contact-card:hover small{color:var(--bg)}
   .surface-band.reveal.active .contact-card{animation:focusIn .6s forwards}

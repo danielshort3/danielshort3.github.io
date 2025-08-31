@@ -11,10 +11,10 @@
   .doc-card{
     position:relative; display:flex; justify-content:space-between; align-items:center;
     gap:18px; padding:26px 24px; background:var(--surface);
-    border:2px solid var(--primary); border-radius:14px;
-    transition:transform .25s,box-shadow .25s,background .25s
+    border:1px solid var(--border-subtle); border-radius:14px;
+    transition:transform .25s,box-shadow .25s,background .25s,border-color .25s
   }
-  .doc-card:hover{background:var(--primary);transform:translateY(-6px);box-shadow:0 12px 28px rgba(44,169,188,.35)}
+  .doc-card:hover{background:var(--primary);transform:translateY(-6px);box-shadow:0 12px 28px color-mix(in srgb, var(--primary) 35%, transparent);border-color:var(--primary)}
   .doc-card:hover .doc-role,.doc-card:hover h3{color:var(--bg)}
   .doc-body h3{margin:0 0 6px;font-family:'Poppins';font-size:1.05rem;font-weight:600}
   .doc-role{margin:0;font-size:.85rem;color:var(--text-muted)}
