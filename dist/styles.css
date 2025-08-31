@@ -358,6 +358,8 @@
   #projects.grid{
     display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
     gap:28px;padding:24px;
+    max-width: var(--container-max);
+    margin-inline: auto;
     transition:height .45s cubic-bezier(.22,.61,.36,1),
                padding .45s cubic-bezier(.22,.61,.36,1),
                opacity .35s ease;
@@ -709,7 +711,7 @@
 #portfolio-carousel{
   position:relative;
   overflow:hidden;
-  max-width:1068px;       /* show at most 3 cards */
+  max-width:var(--container-max);       /* show at most 3 cards */
   margin-inline:auto;
 }
 #portfolio-carousel-section{
