@@ -76,7 +76,7 @@
 #portfolio-carousel{
   position:relative;
   overflow:hidden;
-  max-width:1068px;       /* show at most 3 cards */
+  max-width:var(--container-max);       /* show at most 3 cards */
   margin-inline:auto;
 }
 #portfolio-carousel-section{
