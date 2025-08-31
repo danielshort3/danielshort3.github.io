@@ -33,7 +33,7 @@
             <span class="brand-name">
               <span class="brand-line name">Daniel Short</span>
               <span class="brand-line divider">│</span>
-              <span class="brand-line tagline">Data & Insights</span>
+              <span class="brand-line tagline">Data Science & Analytics</span>
             </span>
           </a>
           <button id="nav-toggle" class="burger" aria-label="Toggle navigation" aria-expanded="false" aria-controls="primary-menu">
