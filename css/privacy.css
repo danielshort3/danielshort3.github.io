@@ -74,6 +74,8 @@
   background: var(--pcz-bg);
   color: var(--pcz-fg);
   width: min(680px, 92vw);
+  max-width: var(--container-max);
+  margin-inline: auto;
   max-height: 88vh;
   overflow: auto;
   border-radius: 10px;

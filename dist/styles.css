@@ -516,6 +516,8 @@
   body.modal-open{overflow:hidden;padding-right:var(--scrollbar,0px)}
   .modal-content{
     position:relative;max-height:82vh;margin:5% 12px;
+    width: min(var(--container-max), calc(100vw - 24px));
+    max-width: var(--container-max);
     display:flex;flex-direction:column;overflow:hidden;
     background:var(--surface); /* unified darker surface */
     color:var(--text-light);
