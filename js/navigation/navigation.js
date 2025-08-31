@@ -26,10 +26,10 @@
     const animate = !sessionStorage.getItem('navEntryPlayed');
     sessionStorage.setItem('navEntryPlayed','yes');
     host.innerHTML=`
-      <nav class="nav ${animate?'animate-entry':''}">
+      <nav class="nav ${animate?'animate-entry':''}" aria-label="Primary">
         <div class="wrapper">
-          <a href="index.html" class="brand">
-            <img src="img/ui/logo.png" alt="DS logo" class="brand-logo">
+          <a href="index.html" class="brand" aria-label="Home">
+            <img src="img/ui/logo.png" alt="DS logo" class="brand-logo" decoding="async">
             <span class="brand-name">
               <span class="brand-line name">Daniel Short</span>
               <span class="brand-line divider">│</span>
@@ -57,6 +57,24 @@
     });
     const burger = host.querySelector('#nav-toggle');
     const menu   = host.querySelector('#primary-menu');
+
+    // Simple focus trap within the mobile drawer
+    let prevFocus = null;
+    const trapKeydown = (e) => {
+      if (e.key === 'Escape') {
+        // close drawer
+        burger.click();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const focusables = menu.querySelectorAll('a,button,[tabindex]:not([tabindex="-1"])');
+      if (!focusables.length) return;
+      const first = focusables[0];
+      const last  = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+
     if(burger && menu){
       burger.addEventListener('click', () => {
         const headerBar = burger.closest('.nav') || host;
@@ -65,6 +83,17 @@
         const open = menu.classList.toggle('open');
         burger.setAttribute('aria-expanded', open);
         document.body.classList.toggle('menu-open', open);
+
+        if (open) {
+          prevFocus = document.activeElement;
+          document.addEventListener('keydown', trapKeydown);
+          // Focus first nav link for keyboard users
+          const firstLink = menu.querySelector('.nav-link');
+          firstLink && firstLink.focus();
+        } else {
+          document.removeEventListener('keydown', trapKeydown);
+          if (prevFocus) { prevFocus.focus(); prevFocus = null; }
+        }
       });
     }
   }
