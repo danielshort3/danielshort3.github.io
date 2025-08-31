@@ -323,9 +323,14 @@ function buildPortfolioCarousel() {
   let autoTimer  = null;
 
   const update = () => {
-    const cardW  = track.children[0].offsetWidth + 24;            // 24 = gap
-    const offset = (container.offsetWidth - cardW) / 2;
-    track.style.transform = `translateX(${ -current * cardW + offset }px)`;
+    const firstCard = track.children[0];
+    if (!firstCard) return;
+    const cs = getComputedStyle(track);
+    const gap = parseFloat(cs.columnGap || cs.gap || '0') || 0;   // actual flex gap
+    const cardWidth = firstCard.offsetWidth;                      // layout width of a card
+    const step = cardWidth + gap;                                 // distance between card left-edges
+    const offset = (container.offsetWidth - cardWidth) / 2;       // center a single card (no gap)
+    track.style.transform = `translateX(${ -current * step + offset }px)`;
 
     [...track.children].forEach((c, i) => c.classList.toggle("active", i === current));
     [...dots.children].forEach((d, i) => {

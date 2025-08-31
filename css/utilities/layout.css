@@ -452,6 +452,7 @@
   position:fixed;inset:0 auto auto 0;          /* stay at very top */
   width:100%;z-index:1001;                      /* above dim-layer */
   background:var(--surface);                    /* ☑ solid colour */
+  border-bottom:1px solid var(--border-subtle); /* subtle divider */
   /* ✂ remove the old rgba() bg + backdrop-filter lines */
 }
 
