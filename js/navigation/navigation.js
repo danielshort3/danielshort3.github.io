@@ -125,8 +125,8 @@
           </svg>
         </a>
       </div>
-      <p>© ${year} Daniel Short. All rights reserved. <a href="privacy.html">Privacy&nbsp;Policy</a></p>`;
-
+      <p>© ${year} Daniel Short. All rights reserved. <a href="privacy.html">Privacy Policy</a></p>`;
+  
     // dev-only reset button removed per request
   }
 })();
