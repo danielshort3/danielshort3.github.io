@@ -1,5 +1,5 @@
 window.PrivacyConfig = {
-  appName: "Daniel Short — Data & Insights",
+  appName: "Daniel Short — Data Science & Analytics",
   languages: ["en", "es"],
   regions: { eea: true, uk: true, usStatesWithCCPA: ["CA"] },
   vendors: {

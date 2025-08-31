@@ -4,7 +4,7 @@
 window.contributions = [
   {
     heading:'Various Public Contributions',
-    desc   :'Reports and public documents where I led or contributed to data modeling and analysis that informed city planning and marketing.',
+    desc   :'Reports and public documents where I led or contributed to data science, modeling, and analysis that informed city planning and marketing.',
     items  : [
       { title:'Colorado Business Economic Outlook · 2025',
         role :'Contributions: Pages 122:129 - Data aggregation and analysis',

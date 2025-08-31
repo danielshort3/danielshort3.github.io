@@ -15,8 +15,8 @@
 window.PROJECTS = [
   {
     id: "pizza",
-    title: "Pizza Tips Regression Analysis",
-    subtitle: "Excel Analytics & Forecasting",
+    title: "Pizza Tips Regression Modeling",
+    subtitle: "Excel Analytics & Regression Modeling",
     image: "img/projects/project_1.png",
     tools: ["Excel", "Statistics"],
     resources: [
@@ -61,7 +61,7 @@ window.PROJECTS = [
   {
     id: "pizzaDashboard",
     title: "Pizza Delivery Dashboard",
-    subtitle: "Tableau Delivery Storytelling",
+    subtitle: "Tableau Analytics & Forecasting",
     image: "img/projects/project_3.png",
     tools: ["Tableau"],
     resources: [
@@ -250,7 +250,7 @@ window.PROJECTS = [
   {
     id: "deliveryTip",
     title: "Delivery Tip",
-    subtitle: "Excel Geo-Analytics",
+    subtitle: "Excel Geo-Analytics & Optimization",
     image: "img/projects/project_11.png",
     tools: ["Excel", "Power Query"],
     resources: [
@@ -272,7 +272,7 @@ window.PROJECTS = [
   {
     id: "retailStore",
     title: "Store Level Loss & Sales ETL",
-    subtitle: "MSSQL + Python Viz",
+    subtitle: "MSSQL ETL + Anomaly Detection",
     image: "img/projects/project_12.png",
     tools: ["SQL", "Python"],
     resources: [
@@ -297,7 +297,7 @@ window.PROJECTS = [
   {
     id: "smartSentence",
     title: "Smart Sentence Retriever",
-    subtitle: "Embeddings Cosine Comparison",
+    subtitle: "NLP Embeddings & Semantic Retrieval",
     image: "img/projects/project_13.png",
     tools: ["Python", "NLP"],
     resources: [
