@@ -118,14 +118,14 @@ document.addEventListener('keydown', (e) => {
 const projectMedia = (p) => {
   const isGif = typeof p.image === 'string' && p.image.toLowerCase().endsWith('.gif');
   if (!isGif) {
-    return `<img src="${p.image}" alt="${p.title}">`;
+    return `<img src="${p.image}" alt="${p.title}" draggable="false">`;
   }
   const webm = p.image.replace(/\.gif$/i, '.webm');
   return `
-    <video class="gif-video" muted playsinline loop preload="metadata" aria-label="${p.title}">
+    <video class="gif-video" muted playsinline loop preload="metadata" aria-label="${p.title}" draggable="false">
       <source src="${webm}" type="video/webm">
     </video>
-    <img src="${p.image}" alt="${p.title}">`;
+    <img src="${p.image}" alt="${p.title}" draggable="false">`;
 };
 
 window.generateProjectModal = function (p) {
@@ -281,13 +281,13 @@ function buildPortfolioCarousel() {
     card.setAttribute("aria-label", `View details of ${p.title}`);
     const media = (() => {
       const isGif = typeof p.image === 'string' && p.image.toLowerCase().endsWith('.gif');
-      if (!isGif) return `<img src="${p.image}" alt="${p.title}" loading="lazy">`;
+      if (!isGif) return `<img src="${p.image}" alt="${p.title}" loading="lazy" draggable="false">`;
       const webm = p.image.replace(/\.gif$/i, '.webm');
       return `
-        <video class="gif-video" muted playsinline loop preload="metadata">
+        <video class="gif-video" muted playsinline loop preload="metadata" draggable="false">
           <source src="${webm}" type="video/webm">
         </video>
-        <img src="${p.image}" alt="${p.title}" loading="lazy">`;
+        <img src="${p.image}" alt="${p.title}" loading="lazy" draggable="false">`;
     })();
     card.innerHTML = `
       <div class="overlay"></div>
@@ -388,6 +388,9 @@ function buildPortfolioCarousel() {
     moved    = false;
     dragStart = getX(e);
     container.classList.add("dragging");
+    if (e.type === 'mousedown') {
+      e.preventDefault(); // prevent native image dragging/select
+    }
   };
 
   const onMove = e => {
@@ -409,6 +412,8 @@ function buildPortfolioCarousel() {
   container.addEventListener("mouseup",    onUp);
   container.addEventListener("mouseleave", onUp);
   container.addEventListener("touchend",   onUp);
+  // Prevent native drag on images/videos inside carousel
+  container.addEventListener('dragstart', (ev) => ev.preventDefault());
 
   /* autoplay ------------------------------------------------------------- */
   restartAuto();
