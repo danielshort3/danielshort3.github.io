@@ -55,6 +55,10 @@ if (typeof window.closeModal !== 'function') {
     untrapFocus(modal);
     if (__modalPrevFocus) { __modalPrevFocus.focus(); __modalPrevFocus = null; }
     window.trackModalClose && window.trackModalClose(id);
+    try {
+      const p = (window.PROJECTS || []).find(x => x.id === id);
+      if (p) srStatus().textContent = `Closed: ${p.title}`;
+    } catch {}
   };
 }
 
@@ -85,6 +89,11 @@ if (typeof window.openModal !== 'function') {
         ifr.src = src;
       }
     }
+
+    try {
+      const p = (window.PROJECTS || []).find(x => x.id === id);
+      if (p) srStatus().textContent = `Opened: ${p.title}`;
+    } catch {}
   };
 }
 
@@ -172,6 +181,7 @@ window.generateProjectModal = function (p) {
   /* full modal template ------------------------------------------------ */
   return `
     <div class="modal-content ${ (isTableau || isIframe) ? 'modal-wide' : '' }" role="dialog" aria-modal="true" tabindex="0" aria-labelledby="${p.id}-title">
+      <button class="modal-copy" type="button" aria-label="Copy link to this project">Copy link</button>
       <button class="modal-close" aria-label="Close dialog">&times;</button>
       <div class="modal-title-strip"><h3 class="modal-title" id="${p.id}-title">${p.title}</h3></div>
 
@@ -281,13 +291,13 @@ function buildPortfolioCarousel() {
     card.setAttribute("aria-label", `View details of ${p.title}`);
     const media = (() => {
       const isGif = typeof p.image === 'string' && p.image.toLowerCase().endsWith('.gif');
-      if (!isGif) return `<img src="${p.image}" alt="${p.title}" loading="lazy" draggable="false">`;
+      if (!isGif) return `<img src="${p.image}" alt="${p.title}" loading="lazy" decoding="async" draggable="false">`;
       const webm = p.image.replace(/\.gif$/i, '.webm');
       return `
         <video class="gif-video" muted playsinline loop preload="metadata" draggable="false">
           <source src="${webm}" type="video/webm">
         </video>
-        <img src="${p.image}" alt="${p.title}" loading="lazy" draggable="false">`;
+        <img src="${p.image}" alt="${p.title}" loading="lazy" decoding="async" draggable="false">`;
     })();
     card.innerHTML = `
       <div class="overlay"></div>
