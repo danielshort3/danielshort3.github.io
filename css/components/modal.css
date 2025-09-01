@@ -69,12 +69,26 @@
     overflow-y:auto;
   }
   .modal-text{flex:1 1 340px;font-size:1rem;line-height:1.75;color:var(--text-light)}
+  .modal-text p{margin:0 0 .85em}
+  .modal-text ul{margin:.5em 0 1em}
   .modal-text h4{color:var(--primary);margin-top:1em;margin-bottom:.5em;font-size:1.2rem}
   .modal-text ul{padding-left:20px}
   .modal-subtitle{margin-top:0;color:var(--text-muted)}
   .modal-image{flex:1 1 300px;align-self:flex-start}
   .modal-image img{max-width:100%;border-radius:12px;display:block;box-shadow:0 6px 24px rgba(0,0,0,.4)}
   .modal-content :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+
+  /* Copy link button near the close button */
+  .modal-copy{
+    position:absolute;top:16px;right:56px;
+    background:transparent;color:var(--text-muted);
+    border:1px solid var(--surface-accent);border-radius:8px;
+    padding:6px 10px;cursor:pointer;font-size:.85rem;
+    transition:color .2s,border-color .2s,transform .2s;
+  }
+  .modal-copy:hover,.modal-copy:focus-visible{
+    color:var(--primary);border-color:var(--primary);transform:translateY(-1px)
+  }
 
   /* Divider between Tools and Downloads */
   .modal-divider {
