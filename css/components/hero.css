@@ -21,7 +21,19 @@
   .hero::before{
     content:"";position:absolute;inset:0;z-index:-1;opacity:.10;
     background:linear-gradient(120deg,var(--primary)0%,var(--secondary)15%,var(--surface)75%,var(--bg)100%);
-    background-size:400% 400%;animation:gradShift 18s ease-in-out infinite
+    background-size:400% 400%;animation:gradShift 18s ease-in-out infinite;
+    transform: translateY(var(--hero-parallax, 0px));
+    will-change: transform;
+  }
+  /* Ambient light following the pointer (desktop only) */
+  .hero::after{
+    content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+    opacity:0;transition:opacity .3s ease;
+    background: radial-gradient(180px 140px at var(--mx,50%) var(--my,35%),
+      color-mix(in srgb, var(--primary) 18%, transparent), transparent 70%);
+  }
+  @media (hover:hover) and (pointer:fine){
+    .hero:hover::after{ opacity:.12; }
   }
   @keyframes rippleFade{0%{opacity:0;transform:scale(.92)}100%{opacity:1;transform:none}}
   .hero-cta{opacity:0;animation:fadeUp 1s 1.15s forwards}

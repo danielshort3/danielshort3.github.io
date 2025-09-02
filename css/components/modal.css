@@ -90,6 +90,21 @@
     color:var(--primary);border-color:var(--primary);transform:translateY(-1px)
   }
 
+  /* Non-intrusive toast for copy feedback */
+  .modal-toast{
+    position:absolute;left:50%;bottom:12px;transform:translateX(-50%);
+    background: color-mix(in srgb, var(--surface) 85%, #000 15%);
+    color: var(--text-light);
+    border: 1px solid var(--surface-accent);
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: .85rem;
+    box-shadow: var(--shadow-sm);
+    opacity: 0; pointer-events: none;
+    transition: opacity .25s ease;
+  }
+  .modal-toast.show{ opacity: 0.92; }
+
   /* Divider between Tools and Downloads */
   .modal-divider {
     position: absolute; left: 50%; top: 20%; width: 1px; height: 60%;
