@@ -119,6 +119,12 @@
     position:fixed;inset:0 0 auto 0;width:100%;z-index:1000;
     background:rgba(13,17,23,.72);backdrop-filter:blur(8px);
   }
+  /* Scroll progress bar integrated at the bottom of the nav */
+  .nav::after{
+    content:"";position:absolute;left:0;right:auto;bottom:0;height:2px;
+    width: calc(var(--scroll-progress, 0) * 1%);
+    background: var(--primary);
+  }
   .nav .wrapper{
     display: flex;
     flex-wrap: wrap;                 /* allows wrapping */
@@ -172,7 +178,19 @@
   .hero::before{
     content:"";position:absolute;inset:0;z-index:-1;opacity:.10;
     background:linear-gradient(120deg,var(--primary)0%,var(--secondary)15%,var(--surface)75%,var(--bg)100%);
-    background-size:400% 400%;animation:gradShift 18s ease-in-out infinite
+    background-size:400% 400%;animation:gradShift 18s ease-in-out infinite;
+    transform: translateY(var(--hero-parallax, 0px));
+    will-change: transform;
+  }
+  /* Ambient light following the pointer (desktop only) */
+  .hero::after{
+    content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+    opacity:0;transition:opacity .3s ease;
+    background: radial-gradient(180px 140px at var(--mx,50%) var(--my,35%),
+      color-mix(in srgb, var(--primary) 18%, transparent), transparent 70%);
+  }
+  @media (hover:hover) and (pointer:fine){
+    .hero:hover::after{ opacity:.12; }
   }
   @keyframes rippleFade{0%{opacity:0;transform:scale(.92)}100%{opacity:1;transform:none}}
   .hero-cta{opacity:0;animation:fadeUp 1s 1.15s forwards}
@@ -595,6 +613,21 @@
   .modal-copy:hover,.modal-copy:focus-visible{
     color:var(--primary);border-color:var(--primary);transform:translateY(-1px)
   }
+
+  /* Non-intrusive toast for copy feedback */
+  .modal-toast{
+    position:absolute;left:50%;bottom:12px;transform:translateX(-50%);
+    background: color-mix(in srgb, var(--surface) 85%, #000 15%);
+    color: var(--text-light);
+    border: 1px solid var(--surface-accent);
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: .85rem;
+    box-shadow: var(--shadow-sm);
+    opacity: 0; pointer-events: none;
+    transition: opacity .25s ease;
+  }
+  .modal-toast.show{ opacity: 0.92; }
 
   /* Divider between Tools and Downloads */
   .modal-divider {
@@ -1344,6 +1377,20 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
   #projects.grid { content-visibility: auto; contain-intrinsic-size: 800px; }
   .docs-grid     { content-visibility: auto; contain-intrinsic-size: 600px; }
   .featured-track, .cert-track { content-visibility: auto; contain-intrinsic-size: 220px; }
+
+  /* Back to top button */
+  .back-to-top{
+    position:fixed;right:18px;bottom:18px;z-index:1100;
+    width:44px;height:44px;border-radius:10px;
+    background:var(--surface);color:var(--primary);
+    border:2px solid var(--primary);
+    display:inline-flex;align-items:center;justify-content:center;
+    box-shadow: var(--shadow-sm);
+    opacity:0;transform:translateY(8px);pointer-events:none;
+    transition:opacity .25s, transform .25s;
+  }
+  .back-to-top svg{width:22px;height:22px;color:currentColor}
+  .back-to-top.show{opacity:1;transform:none;pointer-events:auto}
 }
 
 

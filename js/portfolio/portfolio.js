@@ -94,6 +94,44 @@ if (typeof window.openModal !== 'function') {
       const p = (window.PROJECTS || []).find(x => x.id === id);
       if (p) srStatus().textContent = `Opened: ${p.title}`;
     } catch {}
+
+    // Wire up copy-link button with clipboard + toast
+    const copyBtn = modal.querySelector('.modal-copy');
+    if (copyBtn && !copyBtn._bound) {
+      copyBtn._bound = true;
+      copyBtn.addEventListener('click', async () => {
+        const url = new URL(location.href);
+        url.hash = id;
+        let ok = false;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          try { await navigator.clipboard.writeText(url.toString()); ok = true; } catch {}
+        }
+        if (!ok) {
+          // Fallback
+          const ta = document.createElement('textarea');
+          ta.value = url.toString();
+          ta.style.position = 'fixed';
+          ta.style.left = '-9999px';
+          document.body.appendChild(ta);
+          ta.focus(); ta.select();
+          try { document.execCommand('copy'); ok = true; } catch {}
+          document.body.removeChild(ta);
+        }
+        // Toast feedback + SR status
+        const toast = modal.querySelector('.modal-toast') || (() => {
+          const t = document.createElement('div');
+          t.className = 'modal-toast';
+          t.setAttribute('role','status');
+          t.setAttribute('aria-live','polite');
+          modal.querySelector('.modal-content').appendChild(t);
+          return t;
+        })();
+        toast.textContent = ok ? 'Link copied' : 'Copy failed';
+        toast.classList.add('show');
+        srStatus().textContent = ok ? 'Link copied to clipboard' : 'Copy to clipboard failed';
+        setTimeout(() => toast.classList.remove('show'), 1400);
+      });
+    }
   };
 }
 

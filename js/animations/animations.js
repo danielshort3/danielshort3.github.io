@@ -12,6 +12,10 @@
     setViewportVar();
     initChevronHint();
     initCertTicker();
+    initScrollProgress();
+    initHeroParallax();
+    initBackToTop();
+    initHeroAmbient();
   });
   function initReveal(){
     const io = new IntersectionObserver((ents,o)=>{
@@ -28,6 +32,79 @@
   };
   window.addEventListener('resize', setViewportVar);
   window.addEventListener('orientationchange', setViewportVar);
+
+  function initScrollProgress(){
+    const update = () => {
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const max = (document.documentElement.scrollHeight - window.innerHeight) || 1;
+      const pct = Math.min(100, Math.max(0, (scrollTop / max) * 100));
+      document.documentElement.style.setProperty('--scroll-progress', pct.toFixed(2));
+    };
+    update();
+    window.addEventListener('scroll', update, { passive:true });
+    window.addEventListener('resize', update);
+  }
+
+  function initHeroParallax(){
+    const hero = document.querySelector('.hero');
+    if (!hero) return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) return;
+    const onScroll = () => {
+      const rect = hero.getBoundingClientRect();
+      // Only when hero is in view
+      if (rect.bottom <= 0 || rect.top >= window.innerHeight) return;
+      const progress = 1 - Math.min(1, Math.max(0, rect.top / window.innerHeight));
+      const offset = Math.round(progress * -18); // subtle parallax (~18px)
+      document.documentElement.style.setProperty('--hero-parallax', offset + 'px');
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive:true });
+    window.addEventListener('resize', onScroll);
+  }
+
+  function initBackToTop(){
+    const btn = document.createElement('button');
+    btn.className = 'back-to-top';
+    btn.type = 'button';
+    btn.setAttribute('aria-label', 'Back to top');
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l-7 7m7-7l7 7"/></svg>';
+    document.body.appendChild(btn);
+    const update = () => {
+      const half = window.innerHeight * 0.5;
+      btn.classList.toggle('show', window.scrollY > half);
+    };
+    const scrollToTop = () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+    btn.addEventListener('click', scrollToTop);
+    update();
+    window.addEventListener('scroll', update, { passive:true });
+    window.addEventListener('resize', update);
+  }
+
+  // Subtle ambient light following the mouse inside the hero
+  function initHeroAmbient(){
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const fine = window.matchMedia('(pointer: fine)').matches;
+    if (reduce || !fine) return;
+    const hero = document.querySelector('.hero');
+    if (!hero) return;
+    let raf = null, px = 50, py = 35;
+    const update = () => {
+      hero.style.setProperty('--mx', px.toFixed(1) + '%');
+      hero.style.setProperty('--my', py.toFixed(1) + '%');
+      raf = null;
+    };
+    hero.addEventListener('mousemove', (e) => {
+      const rect = hero.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      px = Math.min(100, Math.max(0, x));
+      py = Math.min(100, Math.max(0, y));
+      if (!raf) raf = requestAnimationFrame(update);
+    });
+  }
   function initChevronHint(){
     const chevrons = $$('.chevron-hint');
     const hero = document.querySelector('.hero');
