@@ -6,7 +6,7 @@
   "scripts": {
     "test": "node test.js",
     "build:css": "node build/build-css.js",
-    "build": "npm run build:css"
+    "build": "npm run build:css && node build/copy-to-public.js"
   },
   "engines": {
     "node": ">=18"

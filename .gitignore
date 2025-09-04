@@ -15,3 +15,4 @@ node_modules/
 
 # Build output (Vercel will run the build)
 dist/
+public/
