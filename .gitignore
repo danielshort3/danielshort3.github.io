@@ -9,3 +9,9 @@ Thumbs.db
 
 # Node dependencies (none currently, but useful for future)
 node_modules/
+
+# Local Vercel CLI state
+.vercel/
+
+# Build output (Vercel will run the build)
+dist/
