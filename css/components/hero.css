@@ -4,9 +4,9 @@
    ─────────────────────────────────────────────────────────── */
 @layer components {
   .hero{
-    /* fallback using viewport units with dynamic variable for mobile */
-    min-height:calc(var(--vh, 100vh) - var(--nav-height, 72px));
-    padding-top:var(--nav-height,72px);
+    /* occupy visible viewport below the fixed header */
+    height:calc(100dvh - var(--nav-height, 72px));
+    padding-top:0;
     margin-top:0;
     display:flex;flex-direction:column;
     align-items:center;justify-content:center;text-align:center;
@@ -52,7 +52,7 @@
   }
   .chevron-hint{
     position:absolute;bottom:16px;left:50%;transform:translateX(-50%);
-    font-size:32px;color:var(--primary);pointer-events:auto;cursor:pointer;
+    color:var(--primary);pointer-events:auto;cursor:pointer;
     opacity:1;transition:opacity .3s ease;
   }
   .chevron-hint i{
@@ -67,6 +67,9 @@
   /* Ensure hero can position the chevron */
   .hero { position: relative; }
 
+  /* Ensure no gap between hero and the next section */
+  .hero + section { margin-top: 0 !important; }
+
   /* Scroll indicator chevron at bottom of hero */
   .chevron-hint,
   .scroll-indicator {
@@ -78,8 +81,16 @@
     font-size: 28px;
     line-height: 1;
     opacity: 0.95;
-    pointer-events: none; /* clicks pass through */
+    pointer-events: auto; /* allow clicks */
     animation: chevron-bob 1.8s infinite ease-in-out;
+  }
+
+  /* Increase clickable chevron size */
+  .chevron-hint svg,
+  .scroll-indicator svg {
+    width: 36px;
+    height: 36px;
+    display: block;
   }
 
   /* Simple bobbing animation */

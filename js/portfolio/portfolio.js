@@ -37,12 +37,14 @@ function untrapFocus(modalEl){
 function activateGifVideo(container){
   const vid = container && container.querySelector && container.querySelector('video.gif-video');
   if (!vid) return;
-  const hideFallback = () => {
+  const showVideo = () => {
     vid.style.display = 'block';
     const img = vid.nextElementSibling;
     if (img && img.tagName === 'IMG') img.style.display = 'none';
+    // Nudge playback in case the browser didn't auto-start
+    try { vid.play && vid.play().catch(() => {}); } catch {}
   };
-  vid.addEventListener('loadeddata', hideFallback, { once: true });
+  vid.addEventListener('loadeddata', showVideo, { once: true });
 }
 
 // Ensure a global close helper exists
@@ -334,9 +336,11 @@ function buildPortfolioCarousel() {
       const isGif = typeof p.image === 'string' && p.image.toLowerCase().endsWith('.gif');
       if (!isGif) return `<img src="${p.image}" alt="${p.title}" loading="lazy" decoding="async" draggable="false">`;
       const webm = p.image.replace(/\.gif$/i, '.webm');
+      const mp4  = p.image.replace(/\.gif$/i, '.mp4');
       return `
-        <video class="gif-video" muted playsinline loop preload="metadata" draggable="false">
+        <video class="gif-video" muted playsinline loop autoplay preload="metadata" draggable="false">
           <source src="${webm}" type="video/webm">
+          <source src="${mp4}" type="video/mp4">
         </video>
         <img src="${p.image}" alt="${p.title}" loading="lazy" decoding="async" draggable="false">`;
     })();
