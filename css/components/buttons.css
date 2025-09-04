@@ -19,7 +19,11 @@
   .btn-secondary:hover{background:var(--primary);color:var(--bg);transform:translateY(-3px)}
   .btn-icon{width:46px;height:46px;border:2px solid var(--primary);color:var(--primary)}
   .btn-icon i{font-size:22px;color:currentColor}
-  .btn-icon svg{width:22px;height:22px;color:currentColor}
+  .btn-icon svg{
+    width:22px;height:22px;color:currentColor;
+    /* stroke-based icons look sharper */
+    fill:none; stroke:currentColor; shape-rendering:geometricPrecision;
+  }
   .btn-icon:hover{background:var(--primary);color:var(--bg);transform:translateY(-3px);box-shadow:0 8px 18px rgba(0,0,0,.25)}
   .btn-icon:hover i{color:var(--bg)}
   .btn-icon:hover svg{color:var(--bg)}
