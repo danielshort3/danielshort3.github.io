@@ -1,9 +1,14 @@
 {
   "name": "danielshort-website",
   "version": "1.0.0",
+  "private": true,
   "description": "Simple tests for Daniel Short's website",
   "scripts": {
     "test": "node test.js",
-    "build:css": "node build/build-css.js"
+    "build:css": "node build/build-css.js",
+    "build": "npm run build:css"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
