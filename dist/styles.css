@@ -2,7 +2,7 @@
 @layer tokens, base, layout, components, utilities, overrides;
 
 
-/* === Begin import: css/variables.css === */
+/* === Begin import: css\variables.css === */
 /* CSS variables */
 /* 1.  DESIGN TOKENS ─────────────────────────────────────────────────────────── */
 @layer tokens {
@@ -67,9 +67,9 @@
 
 
 
-/* === End import: css/variables.css === */
+/* === End import: css\variables.css === */
 
-/* === Begin import: css/base/base.css === */
+/* === Begin import: css\base\base.css === */
 /* Base layout and typography */
 /* ───────────────────────────────────────────────────────────
    2.  GLOBAL LAYOUT & TYPOGRAPHY  (base = PC ≥1025px)
@@ -107,9 +107,9 @@
 
 
 
-/* === End import: css/base/base.css === */
+/* === End import: css\base\base.css === */
 
-/* === Begin import: css/layout/nav.css === */
+/* === Begin import: css\layout\nav.css === */
 /* Navigation styles */
 /* ───────────────────────────────────────────────────────────
    3.  NAVIGATION
@@ -152,9 +152,9 @@
 }
 
 
-/* === End import: css/layout/nav.css === */
+/* === End import: css\layout\nav.css === */
 
-/* === Begin import: css/components/hero.css === */
+/* === Begin import: css\components\hero.css === */
 /* Hero section */
 /* ───────────────────────────────────────────────────────────
    4.  HERO
@@ -247,9 +247,9 @@
 }
 
 
-/* === End import: css/components/hero.css === */
+/* === End import: css\components\hero.css === */
 
-/* === Begin import: css/components/buttons.css === */
+/* === Begin import: css\components\buttons.css === */
 /* Button components */
 /* ───────────────────────────────────────────────────────────
    5.  BUTTONS
@@ -278,9 +278,9 @@
 }
 
 
-/* === End import: css/components/buttons.css === */
+/* === End import: css\components\buttons.css === */
 
-/* === Begin import: css/components/certification.css === */
+/* === Begin import: css\components\certification.css === */
 /* Certification ticker */
 /* ───────────────────────────────────────────────────────────
    6.  CERTIFICATION MARQUEE
@@ -304,9 +304,9 @@
 
 
 
-/* === End import: css/components/certification.css === */
+/* === End import: css\components\certification.css === */
 
-/* === Begin import: css/components/core.css === */
+/* === Begin import: css\components\core.css === */
 /* Skills grid */
 /* ───────────────────────────────────────────────────────────
    7.  CORE COMPETENCIES
@@ -340,9 +340,9 @@
 }
 
 
-/* === End import: css/components/core.css === */
+/* === End import: css\components\core.css === */
 
-/* === Begin import: css/components/projects.css === */
+/* === Begin import: css\components\projects.css === */
 /* Project card components */
 /* ───────────────────────────────────────────────────────────
    8.  PROJECT CARDS
@@ -436,9 +436,9 @@
 }
 
 
-/* === End import: css/components/projects.css === */
+/* === End import: css\components\projects.css === */
 
-/* === Begin import: css/components/contact-card.css === */
+/* === Begin import: css\components\contact-card.css === */
 /* Contact action cards */
 @layer components {
   .contact-card{
@@ -459,9 +459,9 @@
 }
 
 
-/* === End import: css/components/contact-card.css === */
+/* === End import: css\components\contact-card.css === */
 
-/* === Begin import: css/components/doc-card.css === */
+/* === Begin import: css\components\doc-card.css === */
 /* Contributions doc cards and carousel */
 @layer components {
   /* row separator */
@@ -519,9 +519,9 @@
 }
 
 
-/* === End import: css/components/doc-card.css === */
+/* === End import: css\components\doc-card.css === */
 
-/* === Begin import: css/components/modal.css === */
+/* === Begin import: css\components\modal.css === */
 /* Modal windows */
 
 /* ───────────────────────────────────────────────────────────
@@ -600,6 +600,7 @@
   .modal-subtitle{margin-top:0;color:var(--text-muted)}
   .modal-image{flex:1 1 300px;align-self:flex-start}
   .modal-image img{max-width:100%;border-radius:12px;display:block;box-shadow:0 6px 24px rgba(0,0,0,.4)}
+  .modal-image video{max-width:100%;border-radius:12px;display:block;box-shadow:0 6px 24px rgba(0,0,0,.4)}
   .modal-content :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 
   /* Copy link button near the close button */
@@ -670,9 +671,9 @@
 }
 
 
-/* === End import: css/components/modal.css === */
+/* === End import: css\components\modal.css === */
 
-/* === Begin import: css/layout/footer.css === */
+/* === Begin import: css\layout\footer.css === */
 /* Footer styles */
 /* ───────────────────────────────────────────────────────────
    10.  FOOTER
@@ -686,9 +687,9 @@
 }
 
 
-/* === End import: css/layout/footer.css === */
+/* === End import: css\layout\footer.css === */
 
-/* === Begin import: css/utilities/layout.css === */
+/* === Begin import: css\utilities\layout.css === */
 @layer utilities {
 /* Utility helpers and page-specific tweaks */
 /* ───────────────────────────────────────────────────────────
@@ -1325,9 +1326,9 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
 }
 
 
-/* === End import: css/utilities/layout.css === */
+/* === End import: css\utilities\layout.css === */
 
-/* === Begin import: css/utilities/helpers.css === */
+/* === Begin import: css\utilities\helpers.css === */
 /* ===================================================================
    File: helpers.css
    Purpose: Reveal animations and misc helpers
@@ -1394,9 +1395,9 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
 }
 
 
-/* === End import: css/utilities/helpers.css === */
+/* === End import: css\utilities\helpers.css === */
 
-/* === Begin import: css/utilities/typography.css === */
+/* === Begin import: css\utilities\typography.css === */
 /* ===================================================================
    File: typography.css
    Purpose: Text utility helpers
@@ -1421,9 +1422,9 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
 }
 
 
-/* === End import: css/utilities/typography.css === */
+/* === End import: css\utilities\typography.css === */
 
-/* === Begin import: css/utilities/colors.css === */
+/* === Begin import: css\utilities\colors.css === */
 /* ===================================================================
    File: colors.css
    Purpose: Color utility classes
@@ -1433,9 +1434,9 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
 }
 
 
-/* === End import: css/utilities/colors.css === */
+/* === End import: css\utilities\colors.css === */
 
-/* === Begin import: css/utilities/accessibility.css === */
+/* === Begin import: css\utilities\accessibility.css === */
 @layer utilities {
   .skip-link {
     position: absolute;
@@ -1465,9 +1466,9 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
 }
 
 
-/* === End import: css/utilities/accessibility.css === */
+/* === End import: css\utilities\accessibility.css === */
 
-/* === Begin import: css/utilities/color-fallback.css === */
+/* === Begin import: css\utilities\color-fallback.css === */
 @layer utilities {
   @supports not (color: color-mix(in srgb, black, white)) {
     .project-metric { background: rgba(35, 150, 173, 0.15); }
@@ -1491,5 +1492,5 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
 }
 
 
-/* === End import: css/utilities/color-fallback.css === */
+/* === End import: css\utilities\color-fallback.css === */
 

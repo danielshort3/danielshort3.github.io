@@ -167,10 +167,13 @@ const projectMedia = (p) => {
   if (!isGif) {
     return `<img src="${p.image}" alt="${p.title}" draggable="false">`;
   }
-  const webm = p.image.replace(/\.gif$/i, '.webm');
+  const base = p.image.replace(/\.gif$/i, '');
+  const webm = base + '.webm';
+  const mp4  = base + '.mp4';
   return `
-    <video class="gif-video" muted playsinline loop preload="metadata" aria-label="${p.title}" draggable="false">
+    <video class="gif-video" muted playsinline loop autoplay preload="metadata" aria-label="${p.title}" draggable="false">
       <source src="${webm}" type="video/webm">
+      <source src="${mp4}" type="video/mp4">
     </video>
     <img src="${p.image}" alt="${p.title}" draggable="false">`;
 };
@@ -677,10 +680,13 @@ function buildPortfolio() {
     const media2 = (() => {
       const isGif = typeof p.image === 'string' && p.image.toLowerCase().endsWith('.gif');
       if (!isGif) return `<img src="${p.image}" alt="${p.title}" loading="lazy">`;
-      const webm = p.image.replace(/\.gif$/i, '.webm');
+      const base = p.image.replace(/\.gif$/i, '');
+      const webm = base + '.webm';
+      const mp4  = base + '.mp4';
       return `
-        <video class="gif-video" muted playsinline loop preload="metadata">
+        <video class="gif-video" muted playsinline loop autoplay preload="metadata">
           <source src="${webm}" type="video/webm">
+          <source src="${mp4}" type="video/mp4">
         </video>
         <img src="${p.image}" alt="${p.title}" loading="lazy">`;
     })();
