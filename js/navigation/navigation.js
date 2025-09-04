@@ -29,7 +29,7 @@
       <nav class="nav ${animate?'animate-entry':''}" aria-label="Primary">
         <div class="wrapper">
           <a href="index.html" class="brand" aria-label="Home">
-            <img src="img/ui/logo.png" alt="DS logo" class="brand-logo" decoding="async">
+            <img src="img/ui/logo.png" alt="DS logo" class="brand-logo" decoding="async" loading="eager">
             <span class="brand-name">
               <span class="brand-line name">Daniel Short</span>
               <span class="brand-line divider">│</span>
