@@ -48,7 +48,7 @@ function copyStatic(){
   });
 
   // Copy selected root-level static files if present
-  const rootFiles = ['robots.txt', 'sitemap.xml'];
+  const rootFiles = ['robots.txt', 'sitemap.xml', 'favicon.ico'];
   rootFiles.forEach(name => {
     const src = path.join(root, name);
     if (fs.existsSync(src)) copyFile(src, path.join(outDir, name));
@@ -61,4 +61,3 @@ function copyStatic(){
 
 copyStatic();
 log('Prepared public/ output for Vercel');
-
