@@ -280,12 +280,19 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
   assert(pEnv.window.__portfolio_getIdFromURL() === 'shapeClassifier', 'portfolio #hash parsing failed');
 
   // 3) modal template generation (image-only project)
-  const modalHtml = pEnv.window.generateProjectModal({ id:'t1', title:'T', image:'img/x.png', tools:[], resources:[] });
+  const modalHtml = pEnv.window.generateProjectModal({
+    id:'t1', title:'T', subtitle:'S', problem:'P',
+    image:'img/x.png', tools:[], resources:[], actions:[], results:[]
+  });
   assert(/modal-image/.test(modalHtml), 'modal image block missing');
   assert(/<picture>/.test(modalHtml), 'PNG should render with <picture> WebP fallback');
 
   // 4) modal template generation (tableau embed uses data-base and wide layout)
-  const tabHtml = pEnv.window.generateProjectModal({ id:'t2', title:'Tab', tools:[], resources:[], embed:{ type:'tableau', base:'https://public.tableau.com/views/Example/Sheet' } });
+  const tabHtml = pEnv.window.generateProjectModal({
+    id:'t2', title:'Tab', subtitle:'Sub', problem:'Prob',
+    tools:[], resources:[], actions:[], results:[],
+    embed:{ type:'tableau', base:'https://public.tableau.com/views/Example/Sheet' }
+  });
   assert(/class=\"modal-embed tableau-fit\"/.test(tabHtml), 'tableau modal should use wide layout');
   assert(/<iframe[\s\S]*data-base=/.test(tabHtml), 'tableau iframe should use data-base attribute');
 
