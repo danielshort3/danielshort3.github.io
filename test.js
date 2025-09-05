@@ -259,6 +259,10 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
   // Contact modal and resume embed present
   checkFileContains('contact.html', 'id="contact-modal"');
   checkFileContains('resume.html', 'documents/Resume.pdf');
+  // Contact: embed is a Google Form and fallback helper exists
+  checkFileContains('contact.html', 'docs.google.com/forms');
+  const contactJs = fs.readFileSync('js/forms/contact.js','utf8');
+  assert(contactJs.includes('form-fallback'), 'contact.js missing form fallback note');
 
   // Privacy page includes CMP scripts and GA4 vendor id exists
   checkFileContains('privacy.html', 'js/privacy/config.js');

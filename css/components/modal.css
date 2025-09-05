@@ -137,6 +137,9 @@
   .modal-embed iframe { width:100%; height:70vh; border:none; display:block; margin-top:1rem; }
   .tableau-scale-inner { transform-origin: top left; }
 
+  /* Contact form fallback note */
+  #contact-modal .form-fallback { margin: 6px 0 10px; text-align:center; }
+
   /* Responsive adjustments */
   @media (max-width: 768px) {
     .modal-header-details { flex-direction:column; align-items:center; }
