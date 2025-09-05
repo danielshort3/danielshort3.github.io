@@ -17,7 +17,7 @@ window.PROJECTS = [
     id: "pizza",
     title: "Pizza Tips Regression Modeling",
     subtitle: "Excel Analytics & Regression Modeling",
-    image: "img/projects/project_1.png",
+    image: "img/projects/pizza.png",
     tools: ["Excel", "Statistics"],
     resources: [
       { icon: "img/icons/pdf-icon.png",   url: "documents/Project_1.pdf",  label: "PDF"   },
@@ -39,7 +39,7 @@ window.PROJECTS = [
     id: "babynames",
     title: "Baby Name Predictor",
     subtitle: "Python ML Pipeline",
-    image: "img/projects/project_2.png",
+    image: "img/projects/babynames.png",
     tools: ["Python", "scikit-learn"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Baby-Names", label: "GitHub" },
@@ -62,7 +62,7 @@ window.PROJECTS = [
     id: "pizzaDashboard",
     title: "Pizza Delivery Dashboard",
     subtitle: "Tableau Analytics & Forecasting",
-    image: "img/projects/project_3.png",
+    image: "img/projects/pizzaDashboard.png",
     tools: ["Tableau"],
     resources: [
       { icon: "img/icons/tableau-icon.png",
@@ -89,7 +89,9 @@ window.PROJECTS = [
     id: "nonogram",
     title: "Nonogram Solver",
     subtitle: "Reinforcement Learning (RL)",
-    image: "img/projects/project_4.gif",
+    image: "img/projects/nonogram.png",
+    videoWebm: "img/projects/nonogram.webm",
+    videoMp4:  "img/projects/nonogram.mp4",
     tools: ["Python", "PyTorch"],
     resources: [
       { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Nonogram-Solver", label: "GitHub" },
@@ -110,7 +112,7 @@ window.PROJECTS = [
     id: "ufoDashboard",
     title: "UFO Sightings Dashboard",
     subtitle: "Tableau Geospatial Analytics",
-    image: "img/projects/project_5.png",
+    image: "img/projects/ufoDashboard.png",
     tools: ["Tableau"],
     resources: [
       { icon: "img/icons/tableau-icon.png",
@@ -137,7 +139,7 @@ window.PROJECTS = [
     id: "covidAnalysis",
     title: "COVID-19 Outbreak Drivers",
     subtitle: "Python XGBoost & SHAP",
-    image: "img/projects/project_6.png",
+    image: "img/projects/covidAnalysis.png",
     tools: ["Python"],
     resources: [
       { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Covid-Analysis", label: "GitHub" },
@@ -160,7 +162,7 @@ window.PROJECTS = [
     id: "targetEmptyPackage",
     title: "Empty-Package Shrink Dashboard",
     subtitle: "Excel Forecasting & BI",
-    image: "img/projects/project_7.png",
+    image: "img/projects/targetEmptyPackage.png",
     tools: ["Excel", "Time-Series"],
     resources: [
       { icon: "img/icons/pdf-icon.png",   url: "documents/Project_7.pdf",  label: "PDF"   },
@@ -185,7 +187,9 @@ window.PROJECTS = [
     id: "handwritingRating",
     title: "Handwriting Legibility Scoring",
     subtitle: "PyTorch CNN Fine-Tuning",
-    image: "img/projects/project_8.gif",
+    image: "img/projects/handwritingRating.png",
+    videoWebm: "img/projects/handwritingRating.webm",
+    videoMp4:  "img/projects/handwritingRating.mp4",
     tools: ["Python", "PyTorch", "CNN"],
     resources: [
       { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Handwriting-Rating", label: "GitHub" },
@@ -208,7 +212,9 @@ window.PROJECTS = [
     id: "digitGenerator",
     title: "Synthetic Digit Generator",
     subtitle: "Variational Autoencoder",
-    image: "img/projects/project_9.gif",
+    image: "img/projects/digitGenerator.png",
+    videoWebm: "img/projects/digitGenerator.webm",
+    videoMp4:  "img/projects/digitGenerator.mp4",
     tools: ["Python", "VAE"],
     resources: [
       { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Handwritten-Digit-Generator", label: "GitHub" },
@@ -229,7 +235,9 @@ window.PROJECTS = [
     id: "sheetMusicUpscale",
     title: "Sheet Music Watermark Removal & Upscale",
     subtitle: "UNet & VDSR Pipeline",
-    image: "img/projects/project_10.gif",
+    image: "img/projects/sheetMusicUpscale.png",
+    videoWebm: "img/projects/sheetMusicUpscale.webm",
+    videoMp4:  "img/projects/sheetMusicUpscale.mp4",
     tools: ["Python", "Computer Vision"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Watermark-Remover", label: "GitHub" },
@@ -251,7 +259,7 @@ window.PROJECTS = [
     id: "deliveryTip",
     title: "Delivery Tip",
     subtitle: "Excel Geo-Analytics & Optimization",
-    image: "img/projects/project_11.png",
+    image: "img/projects/deliveryTip.png",
     tools: ["Excel", "Power Query"],
     resources: [
       { icon: "img/icons/pdf-icon.png",   url: "documents/Project_11.pdf",  label: "PDF"   },
@@ -273,7 +281,7 @@ window.PROJECTS = [
     id: "retailStore",
     title: "Store Level Loss & Sales ETL",
     subtitle: "MSSQL ETL + Anomaly Detection",
-    image: "img/projects/project_12.png",
+    image: "img/projects/retailStore.png",
     tools: ["SQL", "Python"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/target-packaging-analysis-mssql", label: "GitHub" },
@@ -298,7 +306,7 @@ window.PROJECTS = [
     id: "smartSentence",
     title: "Smart Sentence Retriever",
     subtitle: "NLP Embeddings & Semantic Retrieval",
-    image: "img/projects/project_13.png",
+    image: "img/projects/smartSentence.png",
     tools: ["Python", "NLP"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Smart-Sentence-Finder", label: "GitHub" },
@@ -321,7 +329,7 @@ window.PROJECTS = [
     id: "website",
     title: "danielshort.me",
     subtitle: "Responsive Portfolio Site",
-    image: "img/projects/project_14.png",
+    image: "img/projects/website.png",
     tools: ["HTML", "CSS", "JavaScript"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/danielshort3.github.io", label: "GitHub"  },
@@ -341,7 +349,9 @@ window.PROJECTS = [
     id: "chatbotLora",
     title: "Chatbot (LoRA + RAG)",
     subtitle: "RAG Chatbot Fine-Tuned with LoRA",
-    image: "img/projects/project_15.gif",
+    image: "img/projects/chatbotLora.png",
+    videoWebm: "img/projects/chatbotLora.webm",
+    videoMp4:  "img/projects/chatbotLora.mp4",
     tools: ["Python", "Ollama", "AWS", "Docker"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Chatbot-LoRA-RAG", label: "GitHub" },
@@ -367,7 +377,9 @@ window.PROJECTS = [
     id: "shapeClassifier",
     title: "Shape Classifier Demo",
     subtitle: "Handwritten Shape Recognition",
-    image: "img/projects/project_16.gif",
+    image: "img/projects/shapeClassifier.png",
+    videoWebm: "img/projects/shapeClassifier.webm",
+    videoMp4:  "img/projects/shapeClassifier.mp4",
     tools: ["Python", "PyTorch", "AWS", "Docker"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Shape-Analyzer", label: "GitHub" },

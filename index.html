@@ -17,11 +17,8 @@
   <meta name="theme-color" content="#0D1117">
   <link rel="stylesheet" href="dist/styles.css">
   <link rel="stylesheet" href="css/privacy.css">
-  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"></noscript>
   <link rel="icon" href="img/ui/logo.png" type="image/png">
-  <link rel="preload" as="image" href="img/ui/logo.png" fetchpriority="high">
+  <link rel="preload" as="image" href="img/ui/logo.svg" fetchpriority="high">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap" rel="stylesheet"></noscript>
@@ -185,14 +182,14 @@
     <!-- Call‑to‑Action -->
     <section id="cta" class="surface-band reveal">
       <div class="wrapper">
-        <a href="contact.html" id="cta-link">
+        <div id="cta-link" role="group" aria-label="Contact call to action">
           <h2 class="section-title">Let’s Collaborate on Data-Driven Solutions</h2>
           <p>
             I’m open to freelance or full-time roles where data makes a difference. Reach out to start a conversation.          </p>
           <div>
             <a href="contact.html" class="btn-primary">Start the Conversation</a>
           </div>
-        </a>
+        </div>
       </div>
     </section>
 

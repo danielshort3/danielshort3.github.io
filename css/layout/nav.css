@@ -25,7 +25,6 @@
   .nav-row{display:flex;gap:20px;flex-wrap:nowrap;justify-content:center}
   .nav-link{
     flex: none;
-    width: 60px; /* or any fixed width you prefer */
     text-align: center;
     white-space: nowrap;
   }

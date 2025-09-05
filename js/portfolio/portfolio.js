@@ -39,9 +39,8 @@ function activateGifVideo(container){
   if (!vid) return;
   const showVideo = () => {
     vid.style.display = 'block';
-    const img = vid.nextElementSibling;
-    if (img && img.tagName === 'IMG') img.style.display = 'none';
-    // Nudge playback in case the browser didn't auto-start
+    const next = vid.nextElementSibling;
+    if (next && (next.tagName === 'IMG' || next.tagName === 'PICTURE')) next.style.display = 'none';
     try { vid.play && vid.play().catch(() => {}); } catch {}
   };
   vid.addEventListener('loadeddata', showVideo, { once: true });
@@ -165,19 +164,34 @@ document.addEventListener('keydown', (e) => {
 });
 
 const projectMedia = (p) => {
-  const isGif = typeof p.image === 'string' && p.image.toLowerCase().endsWith('.gif');
-  if (!isGif) {
-    return `<img src="${p.image}" alt="${p.title}" draggable="false">`;
-  }
-  const base = p.image.replace(/\.gif$/i, '');
-  const webm = base + '.webm';
-  const mp4  = base + '.mp4';
+  const hasVideo = !!(p.videoWebm || p.videoMp4);
+
+  const img = (() => {
+    const src = p.image || '';
+    const lower = src.toLowerCase();
+    const webp = lower.endsWith('.png') ? src.replace(/\.png$/i, '.webp')
+               : lower.endsWith('.jpg') ? src.replace(/\.jpg$/i, '.webp')
+               : lower.endsWith('.jpeg') ? src.replace(/\.jpeg$/i, '.webp')
+               : null;
+    if (webp) {
+      return `<picture>
+        <source srcset="${webp}" type="image/webp">
+        <img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false">
+      </picture>`;
+    }
+    return `<img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false">`;
+  })();
+
+  if (!hasVideo) return img;
+
+  const webm = p.videoWebm ? `<source src="${p.videoWebm}" type="video/webm">` : '';
+  const mp4  = p.videoMp4  ? `<source src="${p.videoMp4}" type="video/mp4">`   : '';
   return `
     <video class="gif-video" muted playsinline loop autoplay preload="metadata" aria-label="${p.title}" draggable="false">
-      <source src="${webm}" type="video/webm">
-      <source src="${mp4}" type="video/mp4">
+      ${webm}
+      ${mp4}
     </video>
-    <img src="${p.image}" alt="${p.title}" draggable="false">`;
+    ${img}`;
 };
 
 window.generateProjectModal = function (p) {
@@ -333,16 +347,31 @@ function buildPortfolioCarousel() {
     card.className = "project-card carousel-card";
     card.setAttribute("aria-label", `View details of ${p.title}`);
     const media = (() => {
-      const isGif = typeof p.image === 'string' && p.image.toLowerCase().endsWith('.gif');
-      if (!isGif) return `<img src="${p.image}" alt="${p.title}" loading="lazy" decoding="async" draggable="false">`;
-      const webm = p.image.replace(/\.gif$/i, '.webm');
-      const mp4  = p.image.replace(/\.gif$/i, '.mp4');
+      const hasVideo = !!(p.videoWebm || p.videoMp4);
+      const img = (() => {
+        const src = p.image || '';
+        const lower = src.toLowerCase();
+        const webp = lower.endsWith('.png') ? src.replace(/\.png$/i, '.webp')
+                   : lower.endsWith('.jpg') ? src.replace(/\.jpg$/i, '.webp')
+                   : lower.endsWith('.jpeg') ? src.replace(/\.jpeg$/i, '.webp')
+                   : null;
+        if (webp) {
+          return `<picture>
+            <source srcset="${webp}" type="image/webp">
+            <img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false">
+          </picture>`;
+        }
+        return `<img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false">`;
+      })();
+      if (!hasVideo) return img;
+      const webm = p.videoWebm ? `<source src="${p.videoWebm}" type="video/webm">` : '';
+      const mp4  = p.videoMp4  ? `<source src="${p.videoMp4}" type="video/mp4">`   : '';
       return `
         <video class="gif-video" muted playsinline loop autoplay preload="metadata" draggable="false">
-          <source src="${webm}" type="video/webm">
-          <source src="${mp4}" type="video/mp4">
+          ${webm}
+          ${mp4}
         </video>
-        <img src="${p.image}" alt="${p.title}" loading="lazy" decoding="async" draggable="false">`;
+        ${img}`;
     })();
     card.innerHTML = `
       <div class="overlay"></div>
@@ -682,17 +711,31 @@ function buildPortfolio() {
   window.PROJECTS.forEach((p, i) => {
     /* card */
     const media2 = (() => {
-      const isGif = typeof p.image === 'string' && p.image.toLowerCase().endsWith('.gif');
-      if (!isGif) return `<img src="${p.image}" alt="${p.title}" loading="lazy">`;
-      const base = p.image.replace(/\.gif$/i, '');
-      const webm = base + '.webm';
-      const mp4  = base + '.mp4';
+      const hasVideo = !!(p.videoWebm || p.videoMp4);
+      const img = (() => {
+        const src = p.image || '';
+        const lower = src.toLowerCase();
+        const webp = lower.endsWith('.png') ? src.replace(/\.png$/i, '.webp')
+                   : lower.endsWith('.jpg') ? src.replace(/\.jpg$/i, '.webp')
+                   : lower.endsWith('.jpeg') ? src.replace(/\.jpeg$/i, '.webp')
+                   : null;
+        if (webp) {
+          return `<picture>
+            <source srcset="${webp}" type="image/webp">
+            <img src="${src}" alt="${p.title}" loading="lazy" decoding="async">
+          </picture>`;
+        }
+        return `<img src="${src}" alt="${p.title}" loading="lazy" decoding="async">`;
+      })();
+      if (!hasVideo) return img;
+      const webm = p.videoWebm ? `<source src="${p.videoWebm}" type="video/webm">` : '';
+      const mp4  = p.videoMp4  ? `<source src="${p.videoMp4}" type="video/mp4">`   : '';
       return `
         <video class="gif-video" muted playsinline loop autoplay preload="metadata">
-          <source src="${webm}" type="video/webm">
-          <source src="${mp4}" type="video/mp4">
+          ${webm}
+          ${mp4}
         </video>
-        <img src="${p.image}" alt="${p.title}" loading="lazy">`;
+        ${img}`;
     })();
     const card = el("button", "project-card", `
       <div class="overlay"></div>
