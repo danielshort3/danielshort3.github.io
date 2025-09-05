@@ -544,16 +544,46 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
   opacity: .6;
 }
 
+/* Tweak tagline style for better hierarchy */
+.brand-line.tagline{
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
 /* ─── MOBILE: stack the two phrases, hide the bar ─── */
 @media (max-width: 768px) {
   .brand-name {                     /* turn the trio vertical */
     flex-direction: column;
     align-items: flex-start;
     row-gap: 4px;
+    text-wrap: balance;             /* friendlier wrapping on small screens */
   }
   .brand-line.divider {             /* ditch the bar */
     display: none;
   }
+  .brand-line.tagline{              /* soften + slightly smaller */
+    font-size: clamp(13px, 3.6vw, 15px);
+  }
+  .brand{ gap: 6px; }
+}
+
+/* Small phones: tighter brand + horizontal gold rule */
+@media (max-width: 420px){
+  .brand-logo{ height:40px; }
+  .brand-name{ font-size: clamp(13px, 3.4vw, 16px); }
+  .brand-line.name{
+    position: relative;
+  }
+  .brand-line.name::after{
+    content:"";
+    display:block;
+    height:2px;
+    width:100%;
+    background: var(--secondary);
+    border-radius:2px;
+    margin: 3px 0 2px 0;  /* gap between name and rule */
+  }
+  .brand-line.tagline{ font-size: clamp(12px, 3.2vw, 14px); }
 }
 
 
