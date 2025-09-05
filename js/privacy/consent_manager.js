@@ -218,6 +218,15 @@
           s.id = scriptId;
           s.async = true;
           s.src = 'https://www.googletagmanager.com/gtag/js?id=' + vendor.id;
+          s.onload = function(){
+            // Ensure global gtag shim exists, then configure the property
+            window.dataLayer = window.dataLayer || [];
+            window.gtag = window.gtag || function(){ (window.dataLayer = window.dataLayer || []).push(arguments); };
+            try {
+              window.gtag('js', new Date());
+              window.gtag('config', vendor.id);
+            } catch {}
+          };
           document.head.appendChild(s);
         }
       }

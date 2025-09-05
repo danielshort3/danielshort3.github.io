@@ -256,7 +256,7 @@ window.generateProjectModal = function (p) {
             <div class="icon-row">
               ${p.resources.map(r => `
                 <a href="${r.url}" target="_blank" rel="noopener" title="${r.label}">
-                  <img src="${r.icon}" alt="${r.label}" class="icon">
+                  <img src="${r.icon}" alt="${r.label}" class="icon" width="30" height="30">
                 </a>`).join("")}
             </div>
           </div>
@@ -358,10 +358,10 @@ function buildPortfolioCarousel() {
         if (webp) {
           return `<picture>
             <source srcset="${webp}" type="image/webp">
-            <img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false">
+            <img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false" fetchpriority="${i===0 ? 'high' : 'auto'}">
           </picture>`;
         }
-        return `<img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false">`;
+        return `<img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false" fetchpriority="${i===0 ? 'high' : 'auto'}">`;
       })();
       if (!hasVideo) return img;
       const webm = p.videoWebm ? `<source src="${p.videoWebm}" type="video/webm">` : '';

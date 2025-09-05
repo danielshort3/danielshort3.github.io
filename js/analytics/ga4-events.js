@@ -5,42 +5,61 @@
 (() => {
   'use strict';
 
-  // Always prepare a dataLayer; do NOT load GA until analytics consent granted
+  // Always prepare a dataLayer and a global gtag shim; load GA only on consent
   window.dataLayer = window.dataLayer || [];
-  function gtag(){ dataLayer.push(arguments); }
+  window.gtag = window.gtag || function(){ (window.dataLayer = window.dataLayer || []).push(arguments); };
 
   // Load GA library only when allowed
   function loadGA4(id) {
-    if (document.getElementById('ga4-loader')) return;
+    // If GA already present, just ensure config is set
+    if (typeof window.gtag === 'function' && document.getElementById('ga4-src')) {
+      window.gtag('config', id);
+      return;
+    }
+    if (document.getElementById('ga4-src')) {
+      // Script tag exists but gtag may not be ready yet; schedule a config
+      const onReady = () => {
+        try {
+          window.gtag('js', new Date());
+          window.gtag('config', id);
+        } catch {}
+      };
+      window.addEventListener('load', onReady, { once: true });
+      setTimeout(onReady, 0);
+      return;
+    }
     const s = document.createElement('script');
-    s.id = 'ga4-loader';
+    s.id = 'ga4-src';
     s.async = true;
     s.src = `https://www.googletagmanager.com/gtag/js?id=${id}`;
+    s.onload = () => {
+      try {
+        window.gtag('js', new Date());
+        window.gtag('config', id);
+      } catch {}
+    };
     document.head.appendChild(s);
-
-    // Queue config; gtag.js will pick it up once loaded
-    gtag('js', new Date());
-    gtag('config', id);
   }
 
   // Init when analytics consent is granted (now or later)
   function tryInitFromConsent(detail) {
-    const ok = !!(detail && detail.categories && detail.categories.analytics);
+    const state = detail && detail.categories ? detail.categories : detail;
+    const ok = !!(state && state.analytics);
     if (ok) loadGA4('G-0VL37MQ62P');
   }
 
   // If consent manager already ran:
-  if (window.Privacy && window.Privacy.getConsent) {
-    tryInitFromConsent({ categories: window.Privacy.getConsent() });
+  if (window.consentAPI && typeof window.consentAPI.get === 'function') {
+    tryInitFromConsent(window.consentAPI.get());
   }
-  // Listen for changes
-  window.addEventListener('consent:changed', (e) => tryInitFromConsent(e.detail));
+  // Listen for changes from our CMP
+  window.addEventListener('consent-changed', (e) => tryInitFromConsent(e.detail));
 
   // --- below here: keep your existing helpers unchanged ---
   // Helper to dispatch GA events
   const send = (name, params={}) => {
-    if (typeof gtag === 'function') {
-      gtag('event', name, params);
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', name, params);
     }
   };
 
