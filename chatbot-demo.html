@@ -683,7 +683,8 @@
         .notice-modal { background: var(--surface); color: var(--text); border: 1px solid var(--surface-accent); border-radius: 12px; box-shadow: var(--shadow-2); width: min(92vw, 640px); max-width: 640px; padding: 16px; }
         .notice-modal h2 { margin: 0 0 8px; font-family: Poppins, Inter, system-ui, sans-serif; font-weight: 600; font-size: 1.05rem; }
         .notice-modal p { margin: 0; color: var(--text-muted); line-height: 1.5; }
-        .notice-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+        .notice-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; align-items: center; }
+        .notice-actions .opt { margin-right: auto; display: inline-flex; align-items: center; gap: 8px; font-size: .9rem; color: var(--text-muted); }
         .btn-ghost { border: 1px solid var(--surface-accent); background: var(--surface); color: var(--text); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
     </style>
 </head>
@@ -701,6 +702,7 @@
             <h2 id="notice-title">Heads up about server startup</h2>
             <p id="notice-body">Loading…</p>
             <div class="notice-actions">
+                <label class="opt"><input type="checkbox" id="notice-never"> Don't show again</label>
                 <button id="notice-ok" type="button" class="btn-primary">OK</button>
             </div>
         </div>
@@ -942,7 +944,11 @@
             const backdrop = document.getElementById('start-notice');
             const ok = document.getElementById('notice-ok');
             const body = document.getElementById('notice-body');
+            const never = document.getElementById('notice-never');
             if (!backdrop || !ok || !body) return;
+
+            const LS_KEY = 'chatbot-start-notice:hide';
+            try { if (localStorage.getItem(LS_KEY) === '1') return; } catch {}
 
             function minutesRound(sec){ return Math.max(1, Math.round(sec/60)); }
             // Compose message from constants so it stays accurate with future tweaks
@@ -950,7 +956,11 @@
             const shutSec = GRACE_SEC;
             body.textContent = `To control hosting costs, the demo server starts from off on your first message (cold start, up to about ${warmMin} minutes), and automatically shuts down after ${shutSec} seconds of inactivity. Your very first response may take longer than usual.`;
 
-            function close(){ backdrop.style.display = 'none'; try { document.getElementById('prompt')?.focus(); } catch {} }
+            function close(){
+                try { if (never && never.checked) localStorage.setItem(LS_KEY, '1'); } catch {}
+                backdrop.style.display = 'none';
+                try { document.getElementById('prompt')?.focus(); } catch {}
+            }
             ok.addEventListener('click', close);
             backdrop.addEventListener('click', (e)=>{ if (e.target === backdrop) close(); });
             window.addEventListener('keydown', (e)=>{ if (e.key === 'Escape' && backdrop.style.display !== 'none') close(); });
