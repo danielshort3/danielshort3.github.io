@@ -121,10 +121,8 @@ if (typeof window.openModal !== 'function') {
     try {
       const base = portfolioBasePath();
       if (base && history && history.replaceState) {
-        const isHtml = /\.html$/.test(base);
-        const pretty = isHtml ? `${base}?project=${encodeURIComponent(id)}`
-                              : `${base.replace(/\/$/, '')}/${encodeURIComponent(id)}`;
-        history.replaceState(null, '', pretty);
+        const url = `${base}?project=${encodeURIComponent(id)}`;
+        history.replaceState(null, '', url);
       }
     } catch {}
 
@@ -137,20 +135,13 @@ if (typeof window.openModal !== 'function') {
         let url;
         try {
           const origin = location.origin || '';
-          const base = portfolioBasePath();
-          if (origin && base) {
-            const isHtml = /\.html$/.test(base);
-            const href = isHtml ? `${origin}${base}?project=${encodeURIComponent(id)}`
-                                : `${origin}${base.replace(/\/$/, '')}/${encodeURIComponent(id)}`;
-            url = new URL(href);
-          } else {
-            // file:// or unknown; fall back to hash on current URL
-            const h = (location.href || '').split('#')[0] + `#${id}`;
-            url = new URL(h, origin || undefined);
-          }
+          const base = portfolioBasePath() || '/portfolio.html';
+          const href = `${origin}${base}?project=${encodeURIComponent(id)}`;
+          url = new URL(href);
         } catch {
-          // Extremely old browsers or environments; safest is hash
-          url = new URL((location.href || '').split('#')[0] + `#${id}`);
+          // Robust hash fallback if URL constructor/origin is unavailable
+          const href = (location.href || '').split('#')[0] + `?project=${encodeURIComponent(id)}`;
+          try { url = new URL(href); } catch { url = { toString: () => href }; }
         }
         let ok = false;
         if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -361,7 +352,7 @@ function buildPortfolioCarousel() {
         "@type":"CreativeWork",
         "name": p.title,
         "description": p.subtitle,
-        "url": `https://danielshort.me/portfolio.html#${p.id}`,
+        "url": `https://danielshort.me/portfolio.html?project=${p.id}`,
         "image": `https://danielshort.me/${p.image}`
       }
     }))
@@ -377,7 +368,7 @@ function buildPortfolioCarousel() {
       "@type": "CreativeWork",
       "name": p.title,
       "description": p.subtitle,
-      "url": `https://danielshort.me/portfolio.html#${p.id}`,
+      "url": `https://danielshort.me/portfolio.html?project=${p.id}`,
       "image": `https://danielshort.me/${p.image}`
     }));
     const s2 = document.createElement('script');
@@ -905,27 +896,42 @@ function buildPortfolio() {
 
   /* ➎ Open modal based on URL (hash, clean path, or query) --------- */
   const getProjectIdFromURL = () => {
-    // 1) hash fragment: #id
+    // 1) query param: ?project=id (preferred)
+    try {
+      const qs = (location.search || '').replace(/^\?/, '');
+      if (qs) {
+        const pairs = qs.split('&');
+        for (const kv of pairs) {
+          const [k, v] = kv.split('=');
+          if (decodeURIComponent(k) === 'project' && v) return decodeURIComponent(v);
+        }
+      }
+    } catch {}
+    // 2) hash fragment: #id (legacy)
     if (location.hash && location.hash.length > 1) return decodeURIComponent(location.hash.slice(1));
-    // 2) clean path: /portfolio/<id>
+    // 3) clean path: /portfolio/<id> (back-compat: normalize to ?project=)
     try {
       const m = location.pathname.match(/\/portfolio\/(?:index\.html\/)?([A-Za-z0-9_-]+)\/?$/);
       if (m && m[1]) return decodeURIComponent(m[1]);
-    } catch {}
-    // 3) query param: ?project=id (fallback)
-    try {
-      const qp = new URLSearchParams(location.search).get('project');
-      if (qp) return decodeURIComponent(qp);
     } catch {}
     return null;
   };
 
   const openFromURL = () => {
-    const id = getProjectIdFromURL();
+    let id = getProjectIdFromURL();
+    // If path was a clean slug, normalize URL to ?project=
+    try {
+      const pathSlug = location.pathname.match(/\/portfolio\/(?:index\.html\/)?([A-Za-z0-9_-]+)\/?$/);
+      const base = portfolioBasePath();
+      if (!id && pathSlug && pathSlug[1] && base && history && history.replaceState) {
+        id = decodeURIComponent(pathSlug[1]);
+        history.replaceState(null, '', `${base}?project=${encodeURIComponent(id)}`);
+      }
+    } catch {}
     const modal = id && document.getElementById(`${id}-modal`);
     if (modal) openModal(id);
     else if (!id) {
-      // If URL has neither hash nor slug and a modal is open, close it
+      // If URL lacks a project and a modal is open, close it
       const open = document.querySelector('.modal.active');
       if (open) closeModal(open.id.replace(/-modal$/, ''));
     }
@@ -935,4 +941,26 @@ function buildPortfolio() {
   openFromURL();
   window.addEventListener('hashchange', openFromURL);
   window.addEventListener('popstate', openFromURL);
+}
+
+// Test/helper: expose URL parsing so tests can verify hash support
+if (typeof window.__portfolio_getIdFromURL !== 'function') {
+  window.__portfolio_getIdFromURL = function(){
+    try {
+      const qs = (location.search || '').replace(/^\?/, '');
+      if (qs) {
+        const pairs = qs.split('&');
+        for (const kv of pairs) {
+          const [k, v] = kv.split('=');
+          if (decodeURIComponent(k) === 'project' && v) return decodeURIComponent(v);
+        }
+      }
+    } catch {}
+    if (location.hash && location.hash.length > 1) return decodeURIComponent(location.hash.slice(1));
+    try {
+      const m = location.pathname.match(/\/portfolio\/(?:index\.html\/)?([A-Za-z0-9_-]+)\/?$/);
+      if (m && m[1]) return decodeURIComponent(m[1]);
+    } catch {}
+    return null;
+  };
 }

@@ -47,7 +47,19 @@
         openModal(btn.dataset.project);
       });
     });
-    if(location.hash) openModal(location.hash.slice(1));
+    try {
+      const qs = (location.search || '').replace(/^\?/, '');
+      const pairs = qs ? qs.split('&') : [];
+      let id = null;
+      for (const kv of pairs) {
+        const [k,v] = kv.split('=');
+        if (decodeURIComponent(k) === 'project' && v) { id = decodeURIComponent(v); break; }
+      }
+      if (!id && location.hash && location.hash.length > 1) id = decodeURIComponent(location.hash.slice(1));
+      if (id) openModal(id);
+    } catch {
+      if (location.hash && location.hash.length > 1) openModal(location.hash.slice(1));
+    }
   }
 
   document.addEventListener('DOMContentLoaded', ()=>{
