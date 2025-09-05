@@ -128,6 +128,18 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
   warmEnv.Date.now = () => 601 * 1000; // just past 10m
   assert(warmEnv.currentStartingRemaining() === 0, 'starting countdown did not finish after ten minutes');
 
+  // Portfolio URL parsing should support both ?project= and #hash formats
+  let pEnv = evalScript('js/portfolio/portfolio.js');
+  // 1) query param format
+  pEnv.location.search = '?project=chatbotLora';
+  pEnv.location.hash = '';
+  assert(typeof pEnv.window.__portfolio_getIdFromURL === 'function', 'portfolio test hook missing');
+  assert(pEnv.window.__portfolio_getIdFromURL() === 'chatbotLora', 'portfolio ?project parsing failed');
+  // 2) legacy hash format
+  pEnv.location.search = '';
+  pEnv.location.hash = '#shapeClassifier';
+  assert(pEnv.window.__portfolio_getIdFromURL() === 'shapeClassifier', 'portfolio #hash parsing failed');
+
   console.log('All tests passed.');
 } catch (err) {
   console.error(err.message);
