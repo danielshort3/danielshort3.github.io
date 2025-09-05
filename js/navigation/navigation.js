@@ -111,14 +111,14 @@
           </svg>
         </a>
         <a class="btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
+          <svg class="brand-fill" viewBox="0 0 24 24" aria-hidden="true">
             <circle cx="4" cy="4" r="2"></circle>
             <rect x="2" y="9" width="4" height="12" rx="1"></rect>
             <path d="M10 9h3.8v2.1h.1C14.8 9.7 16.1 9 17.9 9c3 0 5.1 1.9 5.1 5.9V21h-4v-5.9c0-1.7-.7-2.9-2.6-2.9s-2.7 1.4-2.7 3V21H10z"></path>
           </svg>
         </a>
         <a class="btn-icon" href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
-          <img src="img/icons/github-icon.png" alt="GitHub" width="22" height="22">
+          <span class="icon icon-github" aria-hidden="true"></span>
         </a>
       </div>
       <p>© ${year} Daniel Short. All rights reserved. <a href="privacy.html">Privacy Policy</a></p>`;
