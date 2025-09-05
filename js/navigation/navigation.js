@@ -29,7 +29,7 @@
       <nav class="nav ${animate?'animate-entry':''}" aria-label="Primary">
         <div class="wrapper">
           <a href="index.html" class="brand" aria-label="Home">
-            <img src="img/ui/logo.svg" alt="DS logo" class="brand-logo" decoding="async" loading="eager" width="64" height="64" onerror="this.onerror=null;this.src='img/ui/logo-64.png'">
+            <img src="img/ui/logo-64.png" srcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" sizes="64px" alt="DS logo" class="brand-logo" decoding="async" loading="eager" width="64" height="64">
             <span class="brand-name">
               <span class="brand-line name">Daniel Short</span>
               <span class="brand-line divider">│</span>
@@ -105,24 +105,20 @@
     f.innerHTML=`
       <div class="social">
         <a class="btn-icon" href="mailto:danielshort3@gmail.com" aria-label="Email">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <rect x="3" y="5" width="18" height="14" rx="2"/>
-            <path d="M3 7l9 6 9-6"/>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+            <path d="M3 7l9 6 9-6"></path>
           </svg>
         </a>
         <a class="btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M4 4h4v4H4z"/>
-            <path d="M4 10h4v10H4z"/>
-            <path d="M10 10h4v2a3 3 0 016 0v8h-4v-7a1 1 0 10-2 0v7h-4z"/>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="4" cy="4" r="2"></circle>
+            <rect x="2" y="9" width="4" height="12" rx="1"></rect>
+            <path d="M10 9h3.8v2.1h.1C14.8 9.7 16.1 9 17.9 9c3 0 5.1 1.9 5.1 5.9V21h-4v-5.9c0-1.7-.7-2.9-2.6-2.9s-2.7 1.4-2.7 3V21H10z"></path>
           </svg>
         </a>
         <a class="btn-icon" href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M8 17l-5-5 5-5"/>
-            <path d="M16 7l5 5-5 5"/>
-            <path d="M13 5l-2 14"/>
-          </svg>
+          <img src="img/icons/github-icon.png" alt="GitHub" width="22" height="22">
         </a>
       </div>
       <p>© ${year} Daniel Short. All rights reserved. <a href="privacy.html">Privacy Policy</a></p>`;
