@@ -33,7 +33,7 @@
     max-width: var(--modal-max-wide, var(--container-max));
   }
   .modal.active .modal-content{transform:none;opacity:1}
-  .modal-content::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;border-radius:16px 16px 0 0;background:var(--secondary)}
+  .modal-content::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;border-radius:16px 16px 0 0;background:var(--primary)}
   .modal-close{
     position:absolute;top:14px;right:18px;background:none;border:none;cursor:pointer;
     font-size:30px;line-height:1;color:var(--text-muted);transition:color .25s
