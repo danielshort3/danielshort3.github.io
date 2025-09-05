@@ -1,6 +1,11 @@
 {
   "cleanUrls": true,
   "trailingSlash": false,
+  "rewrites": [
+    { "source": "/portfolio", "destination": "/portfolio.html" },
+    { "source": "/portfolio/", "destination": "/portfolio.html" },
+    { "source": "/portfolio/:slug", "destination": "/portfolio.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",

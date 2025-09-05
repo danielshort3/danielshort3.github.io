@@ -47,6 +47,17 @@ function activateGifVideo(container){
 }
 
 // Ensure a global close helper exists
+// Helper: compute the canonical portfolio base path on this host
+function portfolioBasePath() {
+  try {
+    const path = location.pathname || '';
+    // Capture optional repo prefix + '/portfolio' or '/portfolio.html', stripping any trailing '/:id'
+    const m = path.match(/^(.*?)(\/portfolio(?:\.html)?)(?:\/[A-Za-z0-9_-]+)?\/?$/);
+    if (m) return (m[1] || '') + (m[2] || '');
+  } catch {}
+  return null;
+}
+
 if (typeof window.closeModal !== 'function') {
   window.closeModal = function(id){
     const modal = document.getElementById(`${id}-modal`) || document.getElementById(id);
@@ -59,6 +70,16 @@ if (typeof window.closeModal !== 'function') {
     try {
       const p = (window.PROJECTS || []).find(x => x.id === id);
       if (p) srStatus().textContent = `Closed: ${p.title}`;
+    } catch {}
+
+    // If we are on the portfolio page and using clean URLs, restore base path
+    try {
+      const base = portfolioBasePath();
+      if (base && history && history.replaceState) {
+        history.replaceState(null, '', base);
+      } else if (location.hash) {
+        location.hash = '';
+      }
     } catch {}
   };
 }
@@ -96,13 +117,41 @@ if (typeof window.openModal !== 'function') {
       if (p) srStatus().textContent = `Opened: ${p.title}`;
     } catch {}
 
+    // Prefer clean URL: /portfolio/<id> when on the portfolio page
+    try {
+      const base = portfolioBasePath();
+      if (base && history && history.replaceState) {
+        const isHtml = /\.html$/.test(base);
+        const pretty = isHtml ? `${base}?project=${encodeURIComponent(id)}`
+                              : `${base.replace(/\/$/, '')}/${encodeURIComponent(id)}`;
+        history.replaceState(null, '', pretty);
+      }
+    } catch {}
+
     // Wire up copy-link button with clipboard + toast
     const copyBtn = modal.querySelector('.modal-copy');
     if (copyBtn && !copyBtn._bound) {
       copyBtn._bound = true;
       copyBtn.addEventListener('click', async () => {
-        const url = new URL(location.href);
-        url.hash = id;
+        // Share the pretty URL when possible
+        let url;
+        try {
+          const origin = location.origin || '';
+          const base = portfolioBasePath();
+          if (origin && base) {
+            const isHtml = /\.html$/.test(base);
+            const href = isHtml ? `${origin}${base}?project=${encodeURIComponent(id)}`
+                                : `${origin}${base.replace(/\/$/, '')}/${encodeURIComponent(id)}`;
+            url = new URL(href);
+          } else {
+            // file:// or unknown; fall back to hash on current URL
+            const h = (location.href || '').split('#')[0] + `#${id}`;
+            url = new URL(h, origin || undefined);
+          }
+        } catch {
+          // Extremely old browsers or environments; safest is hash
+          url = new URL((location.href || '').split('#')[0] + `#${id}`);
+        }
         let ok = false;
         if (navigator.clipboard && navigator.clipboard.writeText) {
           try { await navigator.clipboard.writeText(url.toString()); ok = true; } catch {}
@@ -854,15 +903,36 @@ function buildPortfolio() {
     } catch {}
   });
 
-  /* ➎ Open modal if a hash is present or changes ------------------- */
-  const openFromHash = () => {
-    const id = location.hash.slice(1);
-    if (!id) return;
-    const modal = document.getElementById(`${id}-modal`);
-    if (modal) openModal(id);
+  /* ➎ Open modal based on URL (hash, clean path, or query) --------- */
+  const getProjectIdFromURL = () => {
+    // 1) hash fragment: #id
+    if (location.hash && location.hash.length > 1) return decodeURIComponent(location.hash.slice(1));
+    // 2) clean path: /portfolio/<id>
+    try {
+      const m = location.pathname.match(/\/portfolio\/(?:index\.html\/)?([A-Za-z0-9_-]+)\/?$/);
+      if (m && m[1]) return decodeURIComponent(m[1]);
+    } catch {}
+    // 3) query param: ?project=id (fallback)
+    try {
+      const qp = new URLSearchParams(location.search).get('project');
+      if (qp) return decodeURIComponent(qp);
+    } catch {}
+    return null;
   };
 
-  // Try to open on initial load and whenever the hash changes
-  openFromHash();
-  window.addEventListener("hashchange", openFromHash);
+  const openFromURL = () => {
+    const id = getProjectIdFromURL();
+    const modal = id && document.getElementById(`${id}-modal`);
+    if (modal) openModal(id);
+    else if (!id) {
+      // If URL has neither hash nor slug and a modal is open, close it
+      const open = document.querySelector('.modal.active');
+      if (open) closeModal(open.id.replace(/-modal$/, ''));
+    }
+  };
+
+  // Initial open + respond to both hash and history navigation
+  openFromURL();
+  window.addEventListener('hashchange', openFromURL);
+  window.addEventListener('popstate', openFromURL);
 }
