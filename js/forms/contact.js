@@ -35,4 +35,22 @@
   closeBtn && closeBtn.addEventListener('click', close);
   modal && modal.addEventListener('click', (e)=>{ if(e.target === modal) close(); });
   document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && modal.classList.contains('active')) close(); });
+
+  // Graceful fallback if the Google Form fails to style/load
+  const iframe = modal?.querySelector('iframe');
+  if (iframe) {
+    let loaded = false;
+    iframe.addEventListener('load', () => { loaded = true; }, { once: true });
+    // After a short delay, if we still didn't get a load event, offer a direct link
+    setTimeout(() => {
+      if (!loaded && iframe && iframe.src) {
+        const note = document.createElement('div');
+        note.className = 'form-fallback';
+        note.innerHTML =
+          '<p style="margin:0 0 10px;color:var(--text-muted);">If the embedded form looks unstyled or fails to load, open it directly:</p>'+
+          `<p style="margin:0"><a class="btn-secondary" href="${iframe.src}" target="_blank" rel="noopener">Open the Google Form</a></p>`;
+        iframe.parentElement?.insertBefore(note, iframe);
+      }
+    }, 4000);
+  }
 })();
