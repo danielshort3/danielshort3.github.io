@@ -677,6 +677,14 @@
         a {
             color: var(--link);
         }
+
+        /* ---------- Startup notice (modal) ---------- */
+        .notice-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; place-items: center; z-index: 9999; }
+        .notice-modal { background: var(--surface); color: var(--text); border: 1px solid var(--surface-accent); border-radius: 12px; box-shadow: var(--shadow-2); width: min(92vw, 640px); max-width: 640px; padding: 16px; }
+        .notice-modal h2 { margin: 0 0 8px; font-family: Poppins, Inter, system-ui, sans-serif; font-weight: 600; font-size: 1.05rem; }
+        .notice-modal p { margin: 0; color: var(--text-muted); line-height: 1.5; }
+        .notice-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+        .btn-ghost { border: 1px solid var(--surface-accent); background: var(--surface); color: var(--text); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -686,6 +694,17 @@
         window.addEventListener('load', notifyResize);
         try { document.fonts?.ready?.then(notifyResize); } catch (e) { }
     </script>
+
+    <!-- Startup cost/latency notice -->
+    <div id="start-notice" class="notice-backdrop" role="dialog" aria-modal="true" aria-labelledby="notice-title">
+        <div class="notice-modal" role="document">
+            <h2 id="notice-title">Heads up about server startup</h2>
+            <p id="notice-body">Loading…</p>
+            <div class="notice-actions">
+                <button id="notice-ok" type="button" class="btn-primary">OK</button>
+            </div>
+        </div>
+    </div>
 
     <div id="demo-box" role="application" aria-label="Chatbot demo">
         <header class="card-header">
@@ -917,6 +936,30 @@
             }
         }
         initStatus();
+
+        /* ---------- Startup notice logic ---------- */
+        (function initNotice(){
+            const backdrop = document.getElementById('start-notice');
+            const ok = document.getElementById('notice-ok');
+            const body = document.getElementById('notice-body');
+            if (!backdrop || !ok || !body) return;
+
+            function minutesRound(sec){ return Math.max(1, Math.round(sec/60)); }
+            // Compose message from constants so it stays accurate with future tweaks
+            const warmMin = minutesRound(START_TIMEOUT_SEC);
+            const shutSec = GRACE_SEC;
+            body.textContent = `To control hosting costs, the demo server starts from off on your first message (cold start, up to about ${warmMin} minutes), and automatically shuts down after ${shutSec} seconds of inactivity. Your very first response may take longer than usual.`;
+
+            function close(){ backdrop.style.display = 'none'; try { document.getElementById('prompt')?.focus(); } catch {} }
+            ok.addEventListener('click', close);
+            backdrop.addEventListener('click', (e)=>{ if (e.target === backdrop) close(); });
+            window.addEventListener('keydown', (e)=>{ if (e.key === 'Escape' && backdrop.style.display !== 'none') close(); });
+
+            // Show immediately on load
+            backdrop.style.display = 'grid';
+            // Focus the OK button for accessibility
+            try { ok.focus(); } catch {}
+        })();
 
         // Starting timer helpers
         function startStartingTimer() {
