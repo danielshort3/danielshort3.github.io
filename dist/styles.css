@@ -83,7 +83,11 @@
     color-scheme: dark light; /* better native form controls on mobile */
   }
 
-  body{display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden}
+  body{
+    display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden;
+    /* Keep all content below the fixed header */
+    padding-top: var(--nav-height, 72px);
+  }
   main{flex:1 0 auto}
   .wrapper{max-width:var(--container-max);margin-inline:auto;padding-inline:24px}
   a{color:inherit;text-decoration:none}
@@ -160,10 +164,10 @@
    ─────────────────────────────────────────────────────────── */
 @layer components {
   .hero{
-    /* occupy visible viewport below the fixed header */
-    height:calc(100dvh - var(--nav-height, 72px));
-    padding-top:0;
-    margin-top:0;
+    /* exactly fill the viewport below the fixed header */
+    height: calc(var(--vh, 100svh) - var(--nav-height, 72px));
+    margin-top: 0;
+    padding-top: 0;
     display:flex;flex-direction:column;
     align-items:center;justify-content:center;text-align:center;
     background:var(--surface);position:relative;overflow:hidden;isolation:isolate;
@@ -178,8 +182,9 @@
     content:"";position:absolute;inset:0;z-index:-1;opacity:.10;
     background:linear-gradient(120deg,var(--primary)0%,var(--secondary)15%,var(--surface)75%,var(--bg)100%);
     background-size:400% 400%;animation:gradShift 18s ease-in-out infinite;
-    transform: translateY(var(--hero-parallax, 0px));
-    will-change: transform;
+    /* Parallax via background-position to avoid geometric shift */
+    background-position: 50% calc(var(--hero-parallax, 0px));
+    will-change: background-position;
   }
   /* Ambient light following the pointer (desktop only) */
   .hero::after{
@@ -290,7 +295,14 @@
   .btn-icon svg.brand-fill{fill:currentColor;stroke:none}
   .btn-icon img{width:22px;height:22px;object-fit:contain;display:block}
   .btn-icon .icon{display:block;width:22px;height:22px}
-  .btn-icon .icon-github{background-color:currentColor;-webkit-mask-image:url('../img/icons/github-icon.png');mask-image:url('../img/icons/github-icon.png');-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain}
+  .btn-icon .icon-github{
+    background-color: currentColor;
+    -webkit-mask-image: url('../img/icons/github-icon.png');
+            mask-image: url('../img/icons/github-icon.png');
+    -webkit-mask-repeat: no-repeat;     mask-repeat: no-repeat;
+    -webkit-mask-position: center;      mask-position: center;
+    -webkit-mask-size: contain;         mask-size: contain;
+  }
   .btn-icon:hover{background:var(--primary);color:var(--bg);transform:translateY(-3px);box-shadow:0 8px 18px rgba(0,0,0,.25)}
   .btn-icon:hover i{color:var(--bg)}
   .btn-icon:hover svg{color:var(--bg)}
@@ -1523,3 +1535,4 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
 
 
 /* === End import: css\utilities\color-fallback.css === */
+
