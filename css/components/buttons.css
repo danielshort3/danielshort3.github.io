@@ -25,7 +25,17 @@
     fill:none; stroke:currentColor; shape-rendering:geometricPrecision;
     stroke-width:2; stroke-linecap:round; stroke-linejoin:round;
   }
+  .btn-icon svg.brand-fill{fill:currentColor;stroke:none}
   .btn-icon img{width:22px;height:22px;object-fit:contain;display:block}
+  .btn-icon .icon{display:block;width:22px;height:22px}
+  .btn-icon .icon-github{
+    background-color: currentColor;
+    -webkit-mask-image: url('../img/icons/github-icon.png');
+            mask-image: url('../img/icons/github-icon.png');
+    -webkit-mask-repeat: no-repeat;     mask-repeat: no-repeat;
+    -webkit-mask-position: center;      mask-position: center;
+    -webkit-mask-size: contain;         mask-size: contain;
+  }
   .btn-icon:hover{background:var(--primary);color:var(--bg);transform:translateY(-3px);box-shadow:0 8px 18px rgba(0,0,0,.25)}
   .btn-icon:hover i{color:var(--bg)}
   .btn-icon:hover svg{color:var(--bg)}
