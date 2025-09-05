@@ -2,7 +2,7 @@
 @layer tokens, base, layout, components, utilities, overrides;
 
 
-/* === Begin import: css\variables.css === */
+/* === Begin import: css/variables.css === */
 /* CSS variables */
 /* 1.  DESIGN TOKENS ─────────────────────────────────────────────────────────── */
 @layer tokens {
@@ -67,9 +67,9 @@
 
 
 
-/* === End import: css\variables.css === */
+/* === End import: css/variables.css === */
 
-/* === Begin import: css\base\base.css === */
+/* === Begin import: css/base/base.css === */
 /* Base layout and typography */
 /* ───────────────────────────────────────────────────────────
    2.  GLOBAL LAYOUT & TYPOGRAPHY  (base = PC ≥1025px)
@@ -107,9 +107,9 @@
 
 
 
-/* === End import: css\base\base.css === */
+/* === End import: css/base/base.css === */
 
-/* === Begin import: css\layout\nav.css === */
+/* === Begin import: css/layout/nav.css === */
 /* Navigation styles */
 /* ───────────────────────────────────────────────────────────
    3.  NAVIGATION
@@ -137,7 +137,6 @@
   .nav-row{display:flex;gap:20px;flex-wrap:nowrap;justify-content:center}
   .nav-link{
     flex: none;
-    width: 60px; /* or any fixed width you prefer */
     text-align: center;
     white-space: nowrap;
   }
@@ -152,18 +151,18 @@
 }
 
 
-/* === End import: css\layout\nav.css === */
+/* === End import: css/layout/nav.css === */
 
-/* === Begin import: css\components\hero.css === */
+/* === Begin import: css/components/hero.css === */
 /* Hero section */
 /* ───────────────────────────────────────────────────────────
    4.  HERO
    ─────────────────────────────────────────────────────────── */
 @layer components {
   .hero{
-    /* fallback using viewport units with dynamic variable for mobile */
-    min-height:calc(var(--vh, 100vh) - var(--nav-height, 72px));
-    padding-top:var(--nav-height,72px);
+    /* occupy visible viewport below the fixed header */
+    height:calc(100dvh - var(--nav-height, 72px));
+    padding-top:0;
     margin-top:0;
     display:flex;flex-direction:column;
     align-items:center;justify-content:center;text-align:center;
@@ -209,7 +208,7 @@
   }
   .chevron-hint{
     position:absolute;bottom:16px;left:50%;transform:translateX(-50%);
-    font-size:32px;color:var(--primary);pointer-events:auto;cursor:pointer;
+    color:var(--primary);pointer-events:auto;cursor:pointer;
     opacity:1;transition:opacity .3s ease;
   }
   .chevron-hint i{
@@ -224,6 +223,9 @@
   /* Ensure hero can position the chevron */
   .hero { position: relative; }
 
+  /* Ensure no gap between hero and the next section */
+  .hero + section { margin-top: 0 !important; }
+
   /* Scroll indicator chevron at bottom of hero */
   .chevron-hint,
   .scroll-indicator {
@@ -235,8 +237,16 @@
     font-size: 28px;
     line-height: 1;
     opacity: 0.95;
-    pointer-events: none; /* clicks pass through */
+    pointer-events: auto; /* allow clicks */
     animation: chevron-bob 1.8s infinite ease-in-out;
+  }
+
+  /* Increase clickable chevron size */
+  .chevron-hint svg,
+  .scroll-indicator svg {
+    width: 36px;
+    height: 36px;
+    display: block;
   }
 
   /* Simple bobbing animation */
@@ -247,9 +257,9 @@
 }
 
 
-/* === End import: css\components\hero.css === */
+/* === End import: css/components/hero.css === */
 
-/* === Begin import: css\components\buttons.css === */
+/* === Begin import: css/components/buttons.css === */
 /* Button components */
 /* ───────────────────────────────────────────────────────────
    5.  BUTTONS
@@ -271,16 +281,20 @@
   .btn-secondary:hover{background:var(--primary);color:var(--bg);transform:translateY(-3px)}
   .btn-icon{width:46px;height:46px;border:2px solid var(--primary);color:var(--primary)}
   .btn-icon i{font-size:22px;color:currentColor}
-  .btn-icon svg{width:22px;height:22px;color:currentColor}
+  .btn-icon svg{
+    width:22px;height:22px;color:currentColor;
+    /* stroke-based icons look sharper */
+    fill:none; stroke:currentColor; shape-rendering:geometricPrecision;
+  }
   .btn-icon:hover{background:var(--primary);color:var(--bg);transform:translateY(-3px);box-shadow:0 8px 18px rgba(0,0,0,.25)}
   .btn-icon:hover i{color:var(--bg)}
   .btn-icon:hover svg{color:var(--bg)}
 }
 
 
-/* === End import: css\components\buttons.css === */
+/* === End import: css/components/buttons.css === */
 
-/* === Begin import: css\components\certification.css === */
+/* === Begin import: css/components/certification.css === */
 /* Certification ticker */
 /* ───────────────────────────────────────────────────────────
    6.  CERTIFICATION MARQUEE
@@ -304,9 +318,9 @@
 
 
 
-/* === End import: css\components\certification.css === */
+/* === End import: css/components/certification.css === */
 
-/* === Begin import: css\components\core.css === */
+/* === Begin import: css/components/core.css === */
 /* Skills grid */
 /* ───────────────────────────────────────────────────────────
    7.  CORE COMPETENCIES
@@ -326,7 +340,18 @@
     transition:opacity .6s cubic-bezier(.2,.7,.3,1),transform .6s cubic-bezier(.2,.7,.3,1)
   }
   .icon-info i{font-size:38px;margin-bottom:14px;color:var(--primary)}
-  .icon-info svg{width:38px;height:38px;margin-bottom:14px;color:var(--primary);fill:currentColor}
+  .icon-info svg{
+    width:38px;height:38px;margin-bottom:14px;
+    color:var(--primary);
+    /* Keep vectors sharp and avoid unwanted fills */
+    shape-rendering:geometricPrecision;
+    display:block;
+  }
+  .icon-info svg *{
+    fill:none;                  /* respect stroke-only icons */
+    stroke:currentColor;        /* match the theme color */
+    vector-effect:non-scaling-stroke; /* keep stroke width crisp when scaled */
+  }
   .icon-info p{font-family:'Poppins';font-weight:600;margin-bottom:4px}
   .icon-info small{color:var(--text-muted)}
   @keyframes focusIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
@@ -340,9 +365,9 @@
 }
 
 
-/* === End import: css\components\core.css === */
+/* === End import: css/components/core.css === */
 
-/* === Begin import: css\components\projects.css === */
+/* === Begin import: css/components/projects.css === */
 /* Project card components */
 /* ───────────────────────────────────────────────────────────
    8.  PROJECT CARDS
@@ -436,9 +461,9 @@
 }
 
 
-/* === End import: css\components\projects.css === */
+/* === End import: css/components/projects.css === */
 
-/* === Begin import: css\components\contact-card.css === */
+/* === Begin import: css/components/contact-card.css === */
 /* Contact action cards */
 @layer components {
   .contact-card{
@@ -459,9 +484,9 @@
 }
 
 
-/* === End import: css\components\contact-card.css === */
+/* === End import: css/components/contact-card.css === */
 
-/* === Begin import: css\components\doc-card.css === */
+/* === Begin import: css/components/doc-card.css === */
 /* Contributions doc cards and carousel */
 @layer components {
   /* row separator */
@@ -519,9 +544,9 @@
 }
 
 
-/* === End import: css\components\doc-card.css === */
+/* === End import: css/components/doc-card.css === */
 
-/* === Begin import: css\components\modal.css === */
+/* === Begin import: css/components/modal.css === */
 /* Modal windows */
 
 /* ───────────────────────────────────────────────────────────
@@ -671,9 +696,9 @@
 }
 
 
-/* === End import: css\components\modal.css === */
+/* === End import: css/components/modal.css === */
 
-/* === Begin import: css\layout\footer.css === */
+/* === Begin import: css/layout/footer.css === */
 /* Footer styles */
 /* ───────────────────────────────────────────────────────────
    10.  FOOTER
@@ -687,9 +712,9 @@
 }
 
 
-/* === End import: css\layout\footer.css === */
+/* === End import: css/layout/footer.css === */
 
-/* === Begin import: css\utilities\layout.css === */
+/* === Begin import: css/utilities/layout.css === */
 @layer utilities {
 /* Utility helpers and page-specific tweaks */
 /* ───────────────────────────────────────────────────────────
@@ -1326,9 +1351,9 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
 }
 
 
-/* === End import: css\utilities\layout.css === */
+/* === End import: css/utilities/layout.css === */
 
-/* === Begin import: css\utilities\helpers.css === */
+/* === Begin import: css/utilities/helpers.css === */
 /* ===================================================================
    File: helpers.css
    Purpose: Reveal animations and misc helpers
@@ -1395,9 +1420,9 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
 }
 
 
-/* === End import: css\utilities\helpers.css === */
+/* === End import: css/utilities/helpers.css === */
 
-/* === Begin import: css\utilities\typography.css === */
+/* === Begin import: css/utilities/typography.css === */
 /* ===================================================================
    File: typography.css
    Purpose: Text utility helpers
@@ -1422,9 +1447,9 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
 }
 
 
-/* === End import: css\utilities\typography.css === */
+/* === End import: css/utilities/typography.css === */
 
-/* === Begin import: css\utilities\colors.css === */
+/* === Begin import: css/utilities/colors.css === */
 /* ===================================================================
    File: colors.css
    Purpose: Color utility classes
@@ -1434,9 +1459,9 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
 }
 
 
-/* === End import: css\utilities\colors.css === */
+/* === End import: css/utilities/colors.css === */
 
-/* === Begin import: css\utilities\accessibility.css === */
+/* === Begin import: css/utilities/accessibility.css === */
 @layer utilities {
   .skip-link {
     position: absolute;
@@ -1466,9 +1491,9 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
 }
 
 
-/* === End import: css\utilities\accessibility.css === */
+/* === End import: css/utilities/accessibility.css === */
 
-/* === Begin import: css\utilities\color-fallback.css === */
+/* === Begin import: css/utilities/color-fallback.css === */
 @layer utilities {
   @supports not (color: color-mix(in srgb, black, white)) {
     .project-metric { background: rgba(35, 150, 173, 0.15); }
@@ -1492,5 +1517,5 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
 }
 
 
-/* === End import: css\utilities\color-fallback.css === */
+/* === End import: css/utilities/color-fallback.css === */
 
