@@ -6,7 +6,23 @@
     border-radius:14px;color:var(--primary);font-family:'Poppins';font-weight:600;
     transition:transform .25s,background .25s,color .25s,box-shadow .25s,border-color .25s
   }
-  .contact-card svg{ width:40px; height:40px; color:inherit; }
+  .contact-card svg{
+    width:40px; height:40px; color:inherit;
+    /* match footer stroke-based icon styling */
+    fill:none; stroke:currentColor; shape-rendering:geometricPrecision;
+    stroke-width:2; stroke-linecap:round; stroke-linejoin:round;
+  }
+  .contact-card svg.brand-fill{ fill: currentColor; stroke: none; }
+  .contact-card .icon{ display:block; width:40px; height:40px; }
+  /* reuse the same GitHub mask style used in .btn-icon */
+  .contact-card .icon-github{
+    background-color: currentColor;
+    -webkit-mask-image: url('../img/icons/github-icon.png');
+            mask-image: url('../img/icons/github-icon.png');
+    -webkit-mask-repeat: no-repeat;     mask-repeat: no-repeat;
+    -webkit-mask-position: center;      mask-position: center;
+    -webkit-mask-size: contain;         mask-size: contain;
+  }
   .contact-card small{font-family:'Inter';color:var(--text-muted);transition:inherit}
   .contact-card:hover{
     background:var(--primary);color:var(--bg);transform:translateY(-3px);

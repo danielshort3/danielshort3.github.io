@@ -116,7 +116,7 @@
   /* keep modal within the viewport on all screens */
   #contact-modal .modal-content { width: min(760px, calc(100vw - 24px)); margin-inline:auto; }
   #contact-modal .modal-body { overflow-x:hidden; }
-  #contact-modal iframe { width:100%; border:none; display:block; height:100%; }
+  #contact-modal iframe { width:100%; border:none; display:block; height:100vh; }
 
   /* embedded demo modals */
   #shapeClassifier-modal iframe,
@@ -137,8 +137,7 @@
   .modal-embed iframe { width:100%; height:70vh; border:none; display:block; margin-top:1rem; }
   .tableau-scale-inner { transform-origin: top left; }
 
-  /* Contact form fallback note */
-  #contact-modal .form-fallback { margin: 6px 0 10px; text-align:center; }
+  /* (fallback note removed per request) */
 
   /* Responsive adjustments */
   @media (max-width: 768px) {
