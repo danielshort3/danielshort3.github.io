@@ -13,7 +13,8 @@
     --surface-light:color-mix(in srgb,var(--surface) 85%,#fff 15%);
     --surface-accent:color-mix(in srgb,var(--surface) 92%,#fff 8%);
     --primary:#2396AD;
-    --secondary:#C3993E;
+    /* unify accents: use teal for secondary too */
+    --secondary: var(--primary);
     --text-light:#F1F4F8;
     --text-muted:#BFC8D3;   /* WCAG-passing grey */
 
@@ -149,9 +150,9 @@
   .brand-logo{height:64px;width:auto}
   .brand-name{
     font-family:'Poppins';font-size:22px;font-weight:600;
-    color:var(--primary);letter-spacing:.3px;line-height:1
+    color:var(--text-light);letter-spacing:.3px;line-height:1
   }
-  .brand .divider{color:var(--secondary)}
+  .brand .divider{color:var(--primary)}
 }
 
 
@@ -180,7 +181,7 @@
   .hero .btn-primary{animation:fadeUp 1s 1.1s forwards}
   .hero::before{
     content:"";position:absolute;inset:0;z-index:-1;opacity:.10;
-    background:linear-gradient(120deg,var(--primary)0%,var(--secondary)15%,var(--surface)75%,var(--bg)100%);
+    background:linear-gradient(120deg,var(--primary)0%,var(--primary)15%,var(--surface)75%,var(--bg)100%);
     background-size:400% 400%;animation:gradShift 18s ease-in-out infinite;
     /* Parallax via background-position to avoid geometric shift */
     background-position: 50% calc(var(--hero-parallax, 0px));
@@ -599,7 +600,7 @@
     max-width: var(--modal-max-wide, var(--container-max));
   }
   .modal.active .modal-content{transform:none;opacity:1}
-  .modal-content::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;border-radius:16px 16px 0 0;background:var(--secondary)}
+  .modal-content::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;border-radius:16px 16px 0 0;background:var(--primary)}
   .modal-close{
     position:absolute;top:14px;right:18px;background:none;border:none;cursor:pointer;
     font-size:30px;line-height:1;color:var(--text-muted);transition:color .25s
@@ -1225,12 +1226,12 @@ body.menu-open::before{
     padding-inline:clamp(12px,4vw,24px);        /* shrink side gaps */
     gap:clamp(12px,3vw,28px);
   }
-  .brand-logo{height:48px;}
+  .brand-logo{ height:56px; }                   /* slightly bigger logo */
   .brand-name{
-    font-size:clamp(16px,5vw,20px);             /* responsive text */
+    font-size:clamp(18px,5.5vw,22px);           /* slightly bigger title */
   }
 
-    .wrapper{margin-inline:5%}
+  .wrapper{margin-inline:5%}
 }
 
 /* nav-height token now lives in variables.css */
@@ -1278,17 +1279,40 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
   opacity: .6;
 }
 
+/* Tweak tagline style for better hierarchy */
+.brand-line.tagline{
+  color: var(--text-light);
+  font-weight: 500;
+}
+
 /* ─── MOBILE: stack the two phrases, hide the bar ─── */
 @media (max-width: 768px) {
   .brand-name {                     /* turn the trio vertical */
     flex-direction: column;
     align-items: flex-start;
     row-gap: 4px;
+    text-wrap: balance;             /* friendlier wrapping on small screens */
   }
   .brand-line.divider {             /* ditch the bar */
     display: none;
   }
+  .brand-line.name{                 /* make name a block so rule spans */
+    display:block;
+    position:relative;
+  }
+  .brand-line.name::after{          /* horizontal teal rule */
+    content:"";
+    display:block;height:2px;width:100%;
+    background:var(--primary);
+    border-radius:2px;
+    margin: 4px 0 2px 0;
+  }
+  .brand-line.tagline{              /* soften + slightly bigger */
+    font-size: clamp(14px, 4.2vw, 17px);
+  }
+  .brand{ gap: 8px; }
 }
+
 
 
 /* 📱  MOBILE ≤ 768 px  – align role + icons on one bottom row */
