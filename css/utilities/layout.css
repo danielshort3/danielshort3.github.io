@@ -546,7 +546,7 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
 
 /* Tweak tagline style for better hierarchy */
 .brand-line.tagline{
-  color: var(--text-muted);
+  color: var(--text-light);
   font-weight: 500;
 }
 
@@ -565,10 +565,10 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
     display:block;
     position:relative;
   }
-  .brand-line.name::after{          /* horizontal gold rule */
+  .brand-line.name::after{          /* horizontal teal rule */
     content:"";
     display:block;height:2px;width:100%;
-    background:var(--secondary);
+    background:var(--primary);
     border-radius:2px;
     margin: 4px 0 2px 0;
   }

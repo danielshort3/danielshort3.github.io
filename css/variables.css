@@ -8,7 +8,8 @@
     --surface-light:color-mix(in srgb,var(--surface) 85%,#fff 15%);
     --surface-accent:color-mix(in srgb,var(--surface) 92%,#fff 8%);
     --primary:#2396AD;
-    --secondary:#C3993E;
+    /* unify accents: use teal for secondary too */
+    --secondary: var(--primary);
     --text-light:#F1F4F8;
     --text-muted:#BFC8D3;   /* WCAG-passing grey */
 
