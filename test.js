@@ -51,7 +51,7 @@ function evalScript(file) {
 
 try {
   // HTML checks across pages
-  checkFileContains('index.html', 'Turning data into actionable insights');
+  checkFileContains('index.html', 'made actionable');
 checkFileContains('contact.html', '<title>Contact │ Daniel Short');
 ['index.html','contact.html','portfolio.html','contributions.html'].forEach(f => {
   checkFileContains(f, 'js/common/common.js');
@@ -78,7 +78,48 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
   assert(typeof env.window.gaEvent === 'function', 'ga4-events.js missing gaEvent');
   assert(typeof env.window.trackProjectView === 'function', 'ga4-events.js missing trackProjectView');
   assert(typeof env.window.trackModalClose === 'function', 'ga4-events.js missing trackModalClose');
+  // multi-project view event after three views
+  {
+    const startLen = (env.dataLayer || []).length;
+    env.window.trackProjectView('alpha');
+    env.window.trackProjectView('beta');
+    env.window.trackProjectView('gamma');
+    const evts = (env.dataLayer || []).slice(startLen).filter(x => x && x[0] === 'event');
+    const hasMulti = evts.some(x => x[1] === 'multi_project_view');
+    assert(hasMulti, 'multi_project_view event not emitted on third view');
+  }
   checkFileContains('js/navigation/navigation.js', 'div id="primary-menu" class="nav-row"');
+
+  // Header/brand structure and styling (ensure we don't regress)
+  const navJs = fs.readFileSync('js/navigation/navigation.js', 'utf8');
+  assert(navJs.includes('class="brand-logo"'), 'nav markup missing brand-logo');
+  assert(navJs.includes('class="brand-name"'), 'nav markup missing brand-name');
+  assert(navJs.includes('class="brand-line name"'), 'nav markup missing brand-line name');
+  assert(navJs.includes('class="brand-line divider"'), 'nav markup missing vertical divider');
+  assert(navJs.includes('class="brand-line tagline"'), 'nav markup missing tagline');
+
+  // CSS: brand colors and stacked divider line
+  const navCss = fs.readFileSync('css/layout/nav.css', 'utf8');
+  assert(navCss.includes('.brand .divider{color:var(--primary)}'), 'nav.css divider not teal');
+  assert(navCss.includes(".brand-name{\n    font-family:'Poppins'"), 'nav.css brand-name block missing');
+  assert(navCss.includes('color:var(--text-light)'), 'nav.css brand-name not white');
+
+  const utilCss = fs.readFileSync('css/utilities/layout.css', 'utf8');
+  assert(utilCss.includes('.brand-line.tagline'), 'utilities/layout.css missing tagline selector');
+  assert(utilCss.includes('color: var(--text-light);'), 'tagline not set to white');
+  assert(utilCss.includes('.brand-line.name::after'), 'stacked horizontal rule missing');
+  assert(utilCss.includes('background:var(--primary);'), 'stacked horizontal rule not teal');
+  assert(/\.brand-logo\s*\{[^}]*height:56px;/.test(utilCss), 'mobile logo size not increased to 56px');
+
+  // CSS variables: secondary should resolve to primary (teal)
+  const varsCss = fs.readFileSync('css/variables.css', 'utf8');
+  assert(/--secondary\s*:\s*var\(--primary\)\s*;/.test(varsCss), 'variables.css --secondary not mapped to --primary');
+
+  // Components should not rely on var(--secondary) anymore
+  const heroCss = fs.readFileSync('css/components/hero.css', 'utf8');
+  assert(!heroCss.includes('var(--secondary)'), 'hero.css still references --secondary');
+  const modalCss = fs.readFileSync('css/components/modal.css', 'utf8');
+  assert(!modalCss.includes('var(--secondary)'), 'modal.css still references --secondary');
 
   // Core scripts should load without throwing
   [
@@ -90,6 +131,84 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
     'js/contributions/contributions.js',
     'js/contributions/carousel.js'
   ].forEach(evalScript);
+
+  // Basic structure across key pages
+  ['index.html','portfolio.html','contributions.html','contact.html','resume.html','404.html','privacy.html'].forEach(f => {
+    checkFileContains(f, '<header id="combined-header-nav">');
+    checkFileContains(f, '<main id="main"');
+    checkFileContains(f, 'class="skip-link"');
+    checkFileContains(f, 'name="viewport"');
+    checkFileContains(f, 'name="theme-color"');
+    checkFileContains(f, 'dist/styles.css');
+  });
+
+  // Fonts are preloaded on index
+  checkFileContains('index.html', 'fonts.googleapis.com');
+  checkFileContains('index.html', 'family=Poppins');
+
+  // Navigation behavior: toggle body .menu-open and aria-controls
+  const navCode = fs.readFileSync('js/navigation/navigation.js', 'utf8');
+  assert(navCode.includes("classList.toggle('menu-open'"), 'burger toggle missing body.menu-open');
+  assert(navCode.includes('aria-controls="primary-menu"'), 'burger missing aria-controls');
+  assert(navCode.includes('aria-expanded'), 'burger missing aria-expanded');
+  assert(navCode.includes('aria-current'), 'active nav link missing aria-current');
+  assert(navCode.includes('getBoundingClientRect'), 'setNavHeight missing measurement');
+
+  // CSS layer order present in styles.css
+  const stylesCss = fs.readFileSync('css/styles.css', 'utf8');
+  assert(stylesCss.includes('@layer tokens, base, layout, components, utilities, overrides;'), 'styles.css layer order missing');
+
+  // Utilities contain mobile stacking rules and scroll offset
+  assert(utilCss.includes('flex-direction: column;'), 'brand mobile stack rule missing');
+  assert(utilCss.includes('display:none;') && utilCss.includes('.brand-line.divider'), 'mobile divider hide missing');
+  assert(utilCss.includes('padding-top:var(--nav-height'), 'page offset for fixed header missing');
+  assert(utilCss.includes('clip-path') && utilCss.includes('.nav-row.open'), 'mobile drawer clip-path reveal missing');
+
+  // GA helpers: gtag shim and event helpers
+  const ga = evalScript('js/analytics/ga4-events.js');
+  assert(typeof ga.window.gtag === 'function', 'gtag shim not defined');
+  assert(typeof ga.window.gaEvent === 'function', 'gaEvent not exposed');
+
+  // Portfolio helpers surface functions without DOM
+  const portfolioEnv = evalScript('js/portfolio/portfolio.js');
+  assert(typeof portfolioEnv.window.openModal === 'function', 'openModal not defined');
+  assert(typeof portfolioEnv.window.closeModal === 'function', 'closeModal not defined');
+
+  // Data contracts: PROJECTS and contributions have unique IDs/titles
+  const pdata = evalScript('js/portfolio/projects-data.js');
+  const ids = new Set();
+  pdata.window.PROJECTS.forEach(p => {
+    assert(p.id && typeof p.id === 'string', 'project missing id');
+    assert(!ids.has(p.id), 'duplicate project id: ' + p.id);
+    ids.add(p.id);
+    assert(p.title && p.title.length > 0, 'project missing title: ' + p.id);
+  });
+
+  const cdata = evalScript('js/contributions/contributions-data.js');
+  assert(Array.isArray(cdata.window.contributions), 'contributions not an array');
+  cdata.window.contributions.forEach(section => {
+    assert(section.heading && section.items && Array.isArray(section.items), 'bad contributions section');
+    section.items.forEach(it => assert(it.title && it.link, 'bad contribution item'));
+  });
+
+  // Robots and sitemap basic validation
+  const robots = fs.readFileSync('robots.txt','utf8');
+  assert(/User-agent:\s*\*/.test(robots), 'robots.txt missing user-agent');
+  assert(/Sitemap:\s*https?:\/\//.test(robots), 'robots.txt missing sitemap URL');
+  const sitemap = fs.readFileSync('sitemap.xml','utf8');
+  assert(/<urlset/.test(sitemap) && /<loc>https:\/\/.+<\/loc>/.test(sitemap), 'sitemap.xml structure invalid');
+
+  // Build scripts exist and include expected directories
+  assert(fs.existsSync('build/build-css.js'), 'build-css.js missing');
+  const copyJs = fs.readFileSync('build/copy-to-public.js','utf8');
+  assert(copyJs.includes("const dirs = ['img', 'js', 'css', 'documents', 'dist']"), 'copy-to-public.js not copying all asset dirs');
+
+  // Deployment config includes CSP and security headers
+  const vercel = fs.readFileSync('vercel.json','utf8');
+  assert(vercel.includes('Content-Security-Policy'), 'vercel.json missing CSP');
+  assert(vercel.includes('Strict-Transport-Security'), 'vercel.json missing HSTS');
+  // Also ensure /img cache header is present
+  assert(vercel.includes('"source": "/img/(.*)"') || vercel.includes('"source": "/img/(.*)"'.replace(/\//g,'/')), 'vercel.json missing /img cache rule');
 
   // Chatbot demo should tolerate backend startup delays up to ten minutes
   const chatbotHtml = fs.readFileSync('chatbot-demo.html', 'utf8');
@@ -128,6 +247,26 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
   warmEnv.Date.now = () => 601 * 1000; // just past 10m
   assert(warmEnv.currentStartingRemaining() === 0, 'starting countdown did not finish after ten minutes');
 
+  // 404 rewrite should redirect clean portfolio slugs
+  checkFileContains('404.html', 'portfolio.html?project=');
+
+  // Portfolio page core regions present
+  checkFileContains('portfolio.html', 'id="portfolio-carousel"');
+  checkFileContains('portfolio.html', 'id="filter-menu"');
+  checkFileContains('portfolio.html', 'id="projects"');
+  checkFileContains('portfolio.html', 'id="modals"');
+
+  // Contact modal and resume embed present
+  checkFileContains('contact.html', 'id="contact-modal"');
+  checkFileContains('resume.html', 'documents/Resume.pdf');
+
+  // Privacy page includes CMP scripts and GA4 vendor id exists
+  checkFileContains('privacy.html', 'js/privacy/config.js');
+  checkFileContains('privacy.html', 'js/privacy/consent_manager.js');
+  const pcfg = evalScript('js/privacy/config.js');
+  assert(pcfg.window.PrivacyConfig && pcfg.window.PrivacyConfig.vendors && pcfg.window.PrivacyConfig.vendors.ga4 && pcfg.window.PrivacyConfig.vendors.ga4.id,
+         'PrivacyConfig missing GA4 vendor id');
+
   // Portfolio URL parsing should support both ?project= and #hash formats
   let pEnv = evalScript('js/portfolio/portfolio.js');
   // 1) query param format
@@ -139,6 +278,16 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
   pEnv.location.search = '';
   pEnv.location.hash = '#shapeClassifier';
   assert(pEnv.window.__portfolio_getIdFromURL() === 'shapeClassifier', 'portfolio #hash parsing failed');
+
+  // 3) modal template generation (image-only project)
+  const modalHtml = pEnv.window.generateProjectModal({ id:'t1', title:'T', image:'img/x.png', tools:[], resources:[] });
+  assert(/modal-image/.test(modalHtml), 'modal image block missing');
+  assert(/<picture>/.test(modalHtml), 'PNG should render with <picture> WebP fallback');
+
+  // 4) modal template generation (tableau embed uses data-base and wide layout)
+  const tabHtml = pEnv.window.generateProjectModal({ id:'t2', title:'Tab', tools:[], resources:[], embed:{ type:'tableau', base:'https://public.tableau.com/views/Example/Sheet' } });
+  assert(/class=\"modal-embed tableau-fit\"/.test(tabHtml), 'tableau modal should use wide layout');
+  assert(/<iframe[\s\S]*data-base=/.test(tabHtml), 'tableau iframe should use data-base attribute');
 
   console.log('All tests passed.');
 } catch (err) {
