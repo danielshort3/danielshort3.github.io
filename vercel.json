@@ -1,6 +1,25 @@
 {
   "cleanUrls": true,
   "trailingSlash": false,
+  "rewrites": [
+    { "source": "/portfolio",         "destination": "/pages/portfolio.html" },
+    { "source": "/portfolio.html",    "destination": "/pages/portfolio.html" },
+    { "source": "/contact",           "destination": "/pages/contact.html" },
+    { "source": "/contact.html",      "destination": "/pages/contact.html" },
+    { "source": "/contributions",     "destination": "/pages/contributions.html" },
+    { "source": "/contributions.html","destination": "/pages/contributions.html" },
+    { "source": "/privacy",           "destination": "/pages/privacy.html" },
+    { "source": "/privacy.html",      "destination": "/pages/privacy.html" },
+    { "source": "/resume",            "destination": "/pages/resume.html" },
+    { "source": "/resume.html",       "destination": "/pages/resume.html" },
+
+    { "source": "/chatbot-demo",      "destination": "/demos/chatbot-demo.html" },
+    { "source": "/chatbot-demo.html", "destination": "/demos/chatbot-demo.html" },
+    { "source": "/shape-demo",        "destination": "/demos/shape-demo.html" },
+    { "source": "/shape-demo.html",   "destination": "/demos/shape-demo.html" },
+    { "source": "/sentence-demo",     "destination": "/demos/sentence-demo.html" },
+    { "source": "/sentence-demo.html","destination": "/demos/sentence-demo.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
