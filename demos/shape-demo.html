@@ -462,7 +462,7 @@
 </head>
 <body>
     <script>
-        /* notify parent for iframed embeds — only once to keep height static */
+        /* notify parent for iframed embeds – only once to keep height static */
         function notifyResize() { try { parent.postMessage({ type: 'shape-demo-resize' }, '*'); } catch (e) { } }
         window.addEventListener('load', notifyResize);
         try { document.fonts?.ready?.then(notifyResize); } catch (e) { }
@@ -511,8 +511,8 @@
                 <div class="confidence-track" aria-label="Confidence">
                     <div id="confidence-bar" class="confidence" style="width:0%"></div>
                 </div>
-                <div id="confidence-text" class="hint">Confidence: —</div>
-                <div class="hint">Shortcuts: <strong>C</strong> clear.</div>
+                <div id="confidence-text" class="hint">Confidence: –</div>
+                <div class="hint">Shortcut: press <strong>C</strong> to clear.</div>
             </section>
         </div>
     </div>
@@ -786,7 +786,7 @@
                 confText.textContent = `Confidence: ${pct}%`;
             } else {
                 confBar.style.width = '0%';
-                confText.textContent = 'Confidence: —';
+                confText.textContent = 'Confidence: –';
             }
         }
 
