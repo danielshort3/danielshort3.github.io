@@ -8,7 +8,7 @@
    • tools     – used for filter buttons (one or more per project)
    • resources – array of { icon , url , label } objects
    ------------------------------------------------------------------ */
-  /* ➊ MASTER CATALOG  (trimmed) */
+  /* ➊ MASTER CATALOG */
 /* ================================
    DANIEL SHORT – FEATURED PROJECTS
    ================================ */
@@ -19,32 +19,86 @@ window.PROJECTS = [
     subtitle: "NLP Embeddings & Serverless Retrieval",
     image: "img/projects/smartSentence.png",
     videoWebm: "img/projects/smartSentence.webm",
-    videoMp4:  "img/projects/smartSentence.mp4",
+    videoMp4: "img/projects/smartSentence.mp4",
     tools: ["Python", "AWS", "Docker", "NLP"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Smart-Sentence-Finder", label: "GitHub" },
-      { icon: "img/icons/pdf-icon.png",    url: "documents/Project_13.pdf",                              label: "PDF"    },
-      { icon: "img/icons/jupyter-icon.png",url: "documents/Project_13.ipynb",                            label: "Notebook"},
-      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/sentence-demo.html",            label: "Live Demo" }
+      { icon: "img/icons/pdf-icon.png", url: "documents/Project_13.pdf", label: "PDF" },
+      { icon: "img/icons/jupyter-icon.png", url: "documents/Project_13.ipynb", label: "Notebook" },
+      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/sentence-demo.html", label: "Live Demo" }
     ],
-    embed : {
-      type : "iframe",
-      url  : "sentence-demo.html"
+    embed: {
+      type: "iframe",
+      url: "sentence-demo.html"
     },
-    problem : "I wanted a quick way to retrieve relevant sentences by meaning, not exact wording.",
-    actions : [
+    problem: "I wanted a quick way to retrieve relevant sentences by meaning, not exact wording.",
+    actions: [
       "Prepared the corpus (Alice in Wonderland), split into sentences, and precomputed embeddings.",
       "Benchmarked 6+ embedding models on 800 sentences (k=2–6), tracking both silhouette and efficiency (silhouette per M params).",
       "Chose the top silhouette model for quality and deployed it as a stateless AWS Lambda endpoint (serverless) with CORS for top‑k ranking."
     ],
-    results : [
+    results: [
       "Best absolute silhouette: 0.313 — Snowflake/snowflake‑arctic‑embed‑l‑v2.0 (k=2, 1024‑d, ~568M params).",
       "Best efficiency: 0.0116 per M params — jinaai/jina‑embeddings‑v3 (~12.9M params, k=6, 1024‑d).",
       "Deployed AWS model: Snowflake/snowflake‑arctic‑embed‑l‑v2.0 (prioritizing quality); live demo runs on a lightweight, scalable Lambda API."
     ]
   },
 
-  /* middle continues here (starts with ufoDashboard)... */
+  {
+    id: "chatbotLora",
+    title: "Chatbot (LoRA + RAG)",
+    subtitle: "RAG Chatbot Fine-Tuned with LoRA",
+    image: "img/projects/chatbotLora.png",
+    videoWebm: "img/projects/chatbotLora.webm",
+    videoMp4: "img/projects/chatbotLora.mp4",
+    tools: ["Python", "Ollama", "AWS", "Docker"],
+    resources: [
+      { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Chatbot-LoRA-RAG", label: "GitHub" },
+      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/chatbot-demo.html", label: "Live Demo" }
+    ],
+    embed: {
+      type: "iframe",
+      url: "chatbot-demo.html"
+    },
+    problem: "Generic chatbots lacked Visit Grand Junction's tone and rarely suggested our content.",
+    actions: [
+      "Scraped Visit Grand Junction pages and created a FAISS retrieval index.",
+      "Automated a fine-tuning dataset with GPT-OSS 20B via Ollama.",
+      "Fine-tuned Mistral 7B on the generated QA set and deployed it to AWS SageMaker.",
+      "Created Lambda endpoints so the website can interact with the model."
+    ],
+    results: [
+      "Serverless RAG chatbot scales on demand and returns grounded answers with references after a 10-minute server warmup."
+    ]
+  },
+
+  {
+    id: "shapeClassifier",
+    title: "Shape Classifier Demo",
+    subtitle: "Handwritten Shape Recognition",
+    image: "img/projects/shapeClassifier.png",
+    videoWebm: "img/projects/shapeClassifier.webm",
+    videoMp4: "img/projects/shapeClassifier.mp4",
+    tools: ["Python", "PyTorch", "AWS", "Docker"],
+    resources: [
+      { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Shape-Analyzer", label: "GitHub" },
+      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/shape-demo.html", label: "Live Demo" }
+    ],
+    embed: {
+      type: "iframe",
+      url: "shape-demo.html"
+    },
+    problem: "I wanted to create a model that recognizes handwritten shapes.",
+    actions: [
+      "Downloaded images from Google's QuickDraw dataset to build training and validation splits.",
+      "Trained a compact ResNet18 using PyTorch Lightning.",
+      "Deployed a minimal AWS Lambda handler for serverless CPU inference from the browser."
+    ],
+    results: [
+      "Predicts circle, triangle, square, hexagon or octagon from a single drawing with about 90% accuracy.",
+      "Demo shows calls return in under a second after a 10‑second warmup."
+    ]
+  },
 
   {
     id: "ufoDashboard",
@@ -241,114 +295,6 @@ window.PROJECTS = [
   },
 
   {
-    id: "smartSentence",
-    title: "Smart Sentence Retriever",
-    subtitle: "NLP Embeddings & Serverless Retrieval",
-    image: "img/projects/smartSentence.png",
-    videoWebm: "img/projects/smartSentence.webm",
-    videoMp4:  "img/projects/smartSentence.mp4",
-    tools: ["Python", "AWS", "Docker", "NLP"],
-    resources: [
-      { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Smart-Sentence-Finder", label: "GitHub" },
-      { icon: "img/icons/pdf-icon.png",    url: "documents/Project_13.pdf",                              label: "PDF"    },
-      { icon: "img/icons/jupyter-icon.png",url: "documents/Project_13.ipynb",                            label: "Notebook"},
-      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/sentence-demo.html",            label: "Live Demo" }
-    ],
-    embed : {
-      type : "iframe",
-      url  : "sentence-demo.html"
-    },
-    problem : "I wanted a quick way to retrieve relevant sentences by meaning, not exact wording.",
-    actions : [
-      "Prepared the corpus (Alice in Wonderland), split into sentences, and precomputed embeddings.",
-      "Benchmarked 6+ embedding models on 800 sentences (k=2–6), tracking both silhouette and efficiency (silhouette per M params).",
-      "Chose the top silhouette model for quality and deployed it as a stateless AWS Lambda endpoint (serverless) with CORS for top‑k ranking."
-    ],
-    results : [
-      "Best absolute silhouette: 0.313 — Snowflake/snowflake‑arctic‑embed‑l‑v2.0 (k=2, 1024‑d, ~568M params).",
-      "Best efficiency: 0.0116 per M params — jinaai/jina‑embeddings‑v3 (~12.9M params, k=6, 1024‑d).",
-      "Deployed AWS model: Snowflake/snowflake‑arctic‑embed‑l‑v2.0 (prioritizing quality); live demo runs on a lightweight, scalable Lambda API."
-    ]
-  },
-
-  {
-    id: "website",
-    title: "danielshort.me",
-    subtitle: "Responsive Portfolio Site",
-    image: "img/projects/website.png",
-    tools: ["HTML", "CSS", "JavaScript"],
-    resources: [
-      { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/danielshort3.github.io", label: "GitHub"  },
-      { icon: "img/icons/website-icon.png",url: "https://danielshort.me/",                                label: "Live Site"}
-    ],
-    problem : "Needed a fast, mobile-friendly hub to showcase analytics and ML projects.",
-    actions : [
-      "Built a semantic static site with dynamic project loading via JSON.",
-      "Integrated Google Analytics 4, structured data, and lazy-loaded assets."
-    ],
-    results : [
-      "First-contentful paint 1.2s (mobile).",
-      "Website and content confirmed selection for my current employment."
-    ],
-  },
-  {
-    id: "chatbotLora",
-    title: "Chatbot (LoRA + RAG)",
-    subtitle: "RAG Chatbot Fine-Tuned with LoRA",
-    image: "img/projects/chatbotLora.png",
-    videoWebm: "img/projects/chatbotLora.webm",
-    videoMp4:  "img/projects/chatbotLora.mp4",
-    tools: ["Python", "Ollama", "AWS", "Docker"],
-    resources: [
-      { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Chatbot-LoRA-RAG", label: "GitHub" },
-      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/chatbot-demo.html", label: "Live Demo" }
-    ],
-    embed : {
-      type : "iframe",
-      url  : "chatbot-demo.html"
-    },
-    problem : "Generic chatbots lacked Visit Grand Junction's tone and rarely suggested our content.",
-      actions : [
-        "Scraped Visit Grand Junction pages and created a FAISS retrieval index.",
-        "Automated a fine-tuning dataset with GPT-OSS 20B via Ollama.",
-        "Fine-tuned Mistral 7B on the generated QA set and deployed it to AWS SageMaker.",
-        "Created Lambda endpoints so the website can interact with the model."
-      ],
-    results : [
-      "Serverless RAG chatbot scales on demand and returns grounded answers with references after a 10-minute server warmup."
-    ]
-  },
-
-  {
-    id: "shapeClassifier",
-    title: "Shape Classifier Demo",
-    subtitle: "Handwritten Shape Recognition",
-    image: "img/projects/shapeClassifier.png",
-    videoWebm: "img/projects/shapeClassifier.webm",
-    videoMp4:  "img/projects/shapeClassifier.mp4",
-    tools: ["Python", "PyTorch", "AWS", "Docker"],
-    resources: [
-      { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Shape-Analyzer", label: "GitHub" },
-        { icon: "img/icons/website-icon.png", url: "https://danielshort.me/shape-demo.html", label: "Live Demo" }
-    ],
-    embed : {
-      type : "iframe",
-      url  : "shape-demo.html"
-    },
-    problem : "I wanted to create a model that recognizes handwritten shapes.",
-    actions : [
-      "Downloaded images from Google's QuickDraw dataset to build training and validation splits.",
-      "Trained a compact ResNet18 using PyTorch Lightning.",
-      "Deployed a minimal AWS Lambda handler for serverless CPU inference from the browser."
-    ],
-    results : [
-      "Predicts circle, triangle, square, hexagon or octagon from a single drawing with about 90% accuracy.",
-      "Demo shows calls return in under a second after a 10‑second warmup."
-    ]
-  },
-
-  /* moved former first four to the end */
-  {
     id: "pizza",
     title: "Pizza Tips Regression Modeling",
     subtitle: "Excel Analytics & Regression Modeling",
@@ -443,6 +389,26 @@ window.PROJECTS = [
     ]
   },
 
+  {
+    id: "website",
+    title: "danielshort.me",
+    subtitle: "Responsive Portfolio Site",
+    image: "img/projects/website.png",
+    tools: ["HTML", "CSS", "JavaScript"],
+    resources: [
+      { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/danielshort3.github.io", label: "GitHub" },
+      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/", label: "Live Site" }
+    ],
+    problem: "Needed a fast, mobile-friendly hub to showcase analytics and ML projects.",
+    actions: [
+      "Built a semantic static site with dynamic project loading via JSON.",
+      "Integrated Google Analytics 4, structured data, and lazy-loaded assets."
+    ],
+    results: [
+      "First-contentful paint 1.2s (mobile).",
+      "Website and content confirmed selection for my current employment."
+    ],
+  }
 ];
 
 // IDs (in order) of projects shown in the top carousel
