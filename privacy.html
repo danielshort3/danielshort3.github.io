@@ -39,9 +39,9 @@
 
     <!-- Page-scoped styles copied from pages/privacy.html (kept in sync) -->
     <style>
-        /* Prevent horizontal scroll on small screens */
-        html, body { max-width: 100%; overflow-x: hidden; }
-        .policy-page main { min-height: calc(var(--vh, 100vh) - var(--nav-height, 72px)); padding-top: var(--nav-height, 72px); display: grid; align-content: center; justify-items: center; margin: 0 24px; width: 100%; overflow-x: hidden; }
+        /* Content should wrap and fit the viewport without horizontal scroll */
+        .policy-card, .policy-card * { overflow-wrap: anywhere; word-break: break-word; }
+        .policy-page main { min-height: calc(var(--vh, 100vh) - var(--nav-height, 72px)); padding-top: var(--nav-height, 72px); display: grid; align-content: center; justify-items: center; margin: 0 24px; }
         .policy-card { width: min(840px, 100%); background: var(--surface); border: 2px solid var(--primary); border-radius: 14px; box-shadow: 0 10px 24px rgba(44,169,188,.18); padding: clamp(18px, 4vw, 32px); margin: 0 auto 1.5rem; }
         .policy-card h1 { margin-top: 0; text-align: center; }
         .policy-lead { text-align: center; color: var(--text-muted); max-width: 60ch; margin: 8px auto 16px; }
