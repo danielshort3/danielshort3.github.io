@@ -47,11 +47,13 @@
             display: grid;
             align-content: center; /* vertical centering */
             justify-items: center; /* horizontal centering for the block */
-            margin: 0 24px;
+            margin: 0;
+            padding-inline: 24px;  /* symmetric side spacing on small screens */
         }
 
         .policy-card {
             width: min(840px, 100%);
+            box-sizing: border-box; /* include border + padding in width to avoid overflow */
             background: var(--surface);
             border: 2px solid var(--primary);
             border-radius: 14px;
@@ -202,6 +204,11 @@
             </a>
         </nav>
     </footer>
+    <style>
+      /* Ensure footer links wrap and don’t cause horizontal overflow */
+      .privacy-links { display: grid; gap: 8px; justify-content: center; margin: 16px auto; padding-inline: 16px; }
+      .privacy-links .pcz-link { overflow-wrap: anywhere; }
+    </style>
 
     <!-- Site scripts -->
     <script defer src="js/common/common.js"></script>
