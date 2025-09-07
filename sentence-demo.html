@@ -65,7 +65,8 @@
     code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: .85rem; }
   </style>
   <script>
-    const DEFAULT_URL = "https://7aa3jt3tzkinheprc5ds52bihq0itutx.lambda-url.us-east-2.on.aws/"; // update if you rotate URL
+    // Function URL for the sentence finder Lambda
+    const DEFAULT_URL = "https://7aa3jt3tzkinheprc5ds52bihq0itutx.lambda-url.us-east-2.on.aws/"; // smart-sentence-finder
 
     function lsGet(k, d="") { try { return localStorage.getItem(k) || d; } catch { return d; } }
     function lsSet(k, v) { try { localStorage.setItem(k, v); } catch {} }
@@ -247,4 +248,3 @@
   </div>
 </body>
 </html>
-
