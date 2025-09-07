@@ -285,6 +285,10 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
       if (/location\.replace\(/.test(html)) throw new Error(f+': should not call location.replace');
     });
 
+  // Modal CSS: sentence demo should not allow horizontal scroll
+  const distCss = fs.readFileSync('dist/styles.css','utf8');
+  assert(distCss.includes('#smartSentence-modal .modal-body { overflow-x: hidden; }'), 'sentence modal missing overflow-x hidden');
+
   // Contact modal and resume embed present
   checkFileContains('pages/contact.html', 'id="contact-modal"');
   checkFileContains('resume.html', 'documents/Resume.pdf');
