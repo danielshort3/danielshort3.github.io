@@ -14,99 +14,37 @@
    ================================ */
 window.PROJECTS = [
   {
-    id: "pizza",
-    title: "Pizza Tips Regression Modeling",
-    subtitle: "Excel Analytics & Regression Modeling",
-    image: "img/projects/pizza.png",
-    tools: ["Excel", "Statistics"],
+    id: "smartSentence",
+    title: "Smart Sentence Retriever",
+    subtitle: "NLP Embeddings & Serverless Retrieval",
+    image: "img/projects/smartSentence.png",
+    videoWebm: "img/projects/smartSentence.webm",
+    videoMp4:  "img/projects/smartSentence.mp4",
+    tools: ["Python", "AWS", "Docker", "NLP"],
     resources: [
-      { icon: "img/icons/pdf-icon.png",   url: "documents/Project_1.pdf",  label: "PDF"   },
-      { icon: "img/icons/excel-icon.png", url: "documents/Project_1.xlsx", label: "Excel" }
-    ],
-    problem : "Tip income swung wildly across neighbourhoods and housing types, but drivers had no data-backed story to explain the variation.",
-    actions : [
-      "Merged 1,251 delivery tickets with NOAA weather, then cleaned the data in Power Query.",
-      "Ran a multiple-regression in Excel: Tip = f(cost, delivery-time, rain, max/min temp)."
-    ],
-    results : [
-      "Order cost explains about 38% of tip variance; every extra $10 on the bill lifts the tip by about $1.10.",
-      "Apartment customers tip 28% less than house residents (p < 0.001).",
-      "Weather and delivery time showed no significant effect on tip size."
-    ]
-  },
-
-  {
-    id: "babynames",
-    title: "Baby Name Predictor",
-    subtitle: "Python ML Pipeline",
-    image: "img/projects/babynames.png",
-    tools: ["Python", "scikit-learn"],
-    resources: [
-      { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Baby-Names", label: "GitHub" },
-      { icon: "img/icons/pdf-icon.png",    url: "documents/Project_2_pdf.zip",               label: "PDFs"  },
-      { icon: "img/icons/jupyter-icon.png",url: "documents/Project_2.zip",                   label: "Notebook"}
-    ],
-    problem : "My wife wanted me to come up with new baby names to suggest to her. I wanted to use data-backed insights to solve this problem.",
-    actions : [
-      "Aggregated & cleaned over 140 years of SSA records, engineering trend and saturation features.",
-      "Created a script to suggest names so I could quiz my wife.",
-      "Engineered multiple models then averaged results to provide recommendations."
-    ],
-    results : [
-      "Generated personalized top-50 names for boys and girls for my wife.",
-      "Successfully named my child with recommendations."
-    ]
-  },
-
-  {
-    id: "pizzaDashboard",
-    title: "Pizza Delivery Dashboard",
-    subtitle: "Tableau Analytics & Forecasting",
-    image: "img/projects/pizzaDashboard.png",
-    tools: ["Tableau"],
-    resources: [
-      { icon: "img/icons/tableau-icon.png",
-        url : "https://public.tableau.com/views/Pizza_Delivery/PizzaDeliveryDashboard?:language=en-US&:display_count=n&:origin=viz_share_link",
-        label:"Interactive Dashboard"
-      }
+      { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Smart-Sentence-Finder", label: "GitHub" },
+      { icon: "img/icons/pdf-icon.png",    url: "documents/Project_13.pdf",                              label: "PDF"    },
+      { icon: "img/icons/jupyter-icon.png",url: "documents/Project_13.ipynb",                            label: "Notebook"},
+      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/sentence-demo.html",            label: "Live Demo" }
     ],
     embed : {
-      type : "tableau",
-      base : "https://public.tableau.com/views/Pizza_Delivery/PizzaDeliveryDashboard"
+      type : "iframe",
+      url  : "sentence-demo.html"
     },
-    problem : "As a delivery driver, I wanted to visualize my performance and where I was the most successful.",
+    problem : "I wanted a quick way to retrieve relevant sentences by meaning, not exact wording.",
     actions : [
-      "Reshaped 12,000 rows for Tableau, built map, histogram & 12-month forecast with date/zone filters.",
-      "Enabled live updates on current performance and anticipate future performance."
+      "Prepared the corpus (Alice in Wonderland), split into sentences, and precomputed embeddings.",
+      "Benchmarked 6+ embedding models on 800 sentences (k=2–6), tracking both silhouette and efficiency (silhouette per M params).",
+      "Chose the top silhouette model for quality and deployed it as a stateless AWS Lambda endpoint (serverless) with CORS for top‑k ranking."
     ],
     results : [
-      "Able to review potential deliveries and choose which to take.",
-      "Improved tip revenue per delivery by more than 10%."
+      "Best absolute silhouette: 0.313 — Snowflake/snowflake‑arctic‑embed‑l‑v2.0 (k=2, 1024‑d, ~568M params).",
+      "Best efficiency: 0.0116 per M params — jinaai/jina‑embeddings‑v3 (~12.9M params, k=6, 1024‑d).",
+      "Deployed AWS model: Snowflake/snowflake‑arctic‑embed‑l‑v2.0 (prioritizing quality); live demo runs on a lightweight, scalable Lambda API."
     ]
   },
 
-  {
-    id: "nonogram",
-    title: "Nonogram Solver",
-    subtitle: "Reinforcement Learning (RL)",
-    image: "img/projects/nonogram.png",
-    videoWebm: "img/projects/nonogram.webm",
-    videoMp4:  "img/projects/nonogram.mp4",
-    tools: ["Python", "PyTorch"],
-    resources: [
-      { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Nonogram-Solver", label: "GitHub" },
-      { icon: "img/icons/pdf-icon.png",     url: "documents/Project_4.pdf",                  label: "PDF"    },
-      { icon: "img/icons/jupyter-icon.png", url: "documents/Project_4.ipynb",                label: "Notebook"}
-    ],
-    problem : "I wanted to create a machine learning model to automatically solve Nonogram puzzles for me.",
-    actions : [
-      "Built a hybrid CNN + Transformer policy network and trained it on more than 25 million 5×5 puzzles (52,000 episodes × 512-board batches).",
-      "Shaped the reward signal around unique guesses, row/column completions, and full-board solves to speed up exploration."
-    ],
-    results : [
-      "Reached 94% accuracy on unseen 5×5 boards.",
-    ]
-  },
+  /* middle continues here (starts with ufoDashboard)... */
 
   {
     id: "ufoDashboard",
@@ -309,11 +247,12 @@ window.PROJECTS = [
     image: "img/projects/smartSentence.png",
     videoWebm: "img/projects/smartSentence.webm",
     videoMp4:  "img/projects/smartSentence.mp4",
-    tools: ["Python", "NLP"],
+    tools: ["Python", "AWS", "Docker", "NLP"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Smart-Sentence-Finder", label: "GitHub" },
       { icon: "img/icons/pdf-icon.png",    url: "documents/Project_13.pdf",                              label: "PDF"    },
-      { icon: "img/icons/jupyter-icon.png",url: "documents/Project_13.ipynb",                            label: "Notebook"}
+      { icon: "img/icons/jupyter-icon.png",url: "documents/Project_13.ipynb",                            label: "Notebook"},
+      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/sentence-demo.html",            label: "Live Demo" }
     ],
     embed : {
       type : "iframe",
@@ -405,6 +344,102 @@ window.PROJECTS = [
     results : [
       "Predicts circle, triangle, square, hexagon or octagon from a single drawing with about 90% accuracy.",
       "Demo shows calls return in under a second after a 10‑second warmup."
+    ]
+  },
+
+  /* moved former first four to the end */
+  {
+    id: "pizza",
+    title: "Pizza Tips Regression Modeling",
+    subtitle: "Excel Analytics & Regression Modeling",
+    image: "img/projects/pizza.png",
+    tools: ["Excel", "Statistics"],
+    resources: [
+      { icon: "img/icons/pdf-icon.png",   url: "documents/Project_1.pdf",  label: "PDF"   },
+      { icon: "img/icons/excel-icon.png", url: "documents/Project_1.xlsx", label: "Excel" }
+    ],
+    problem : "Tip income swung wildly across neighbourhoods and housing types, but drivers had no data-backed story to explain the variation.",
+    actions : [
+      "Merged 1,251 delivery tickets with NOAA weather, then cleaned the data in Power Query.",
+      "Ran a multiple-regression in Excel: Tip = f(cost, delivery-time, rain, max/min temp)."
+    ],
+    results : [
+      "Order cost explains about 38% of tip variance; every extra $10 on the bill lifts the tip by about $1.10.",
+      "Apartment customers tip 28% less than house residents (p < 0.001).",
+      "Weather and delivery time showed no significant effect on tip size."
+    ]
+  },
+
+  {
+    id: "babynames",
+    title: "Baby Name Predictor",
+    subtitle: "Python ML Pipeline",
+    image: "img/projects/babynames.png",
+    tools: ["Python", "scikit-learn"],
+    resources: [
+      { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Baby-Names", label: "GitHub" },
+      { icon: "img/icons/pdf-icon.png",    url: "documents/Project_2_pdf.zip",               label: "PDFs"  },
+      { icon: "img/icons/jupyter-icon.png",url: "documents/Project_2.zip",                   label: "Notebook"}
+    ],
+    problem : "My wife wanted me to come up with new baby names to suggest to her. I wanted to use data-backed insights to solve this problem.",
+    actions : [
+      "Aggregated & cleaned over 140 years of SSA records, engineering trend and saturation features.",
+      "Created a script to suggest names so I could quiz my wife.",
+      "Engineered multiple models then averaged results to provide recommendations."
+    ],
+    results : [
+      "Generated personalized top-50 names for boys and girls for my wife.",
+      "Successfully named my child with recommendations."
+    ]
+  },
+
+  {
+    id: "pizzaDashboard",
+    title: "Pizza Delivery Dashboard",
+    subtitle: "Tableau Analytics & Forecasting",
+    image: "img/projects/pizzaDashboard.png",
+    tools: ["Tableau"],
+    resources: [
+      { icon: "img/icons/tableau-icon.png",
+        url : "https://public.tableau.com/views/Pizza_Delivery/PizzaDeliveryDashboard?:language=en-US&:display_count=n&:origin=viz_share_link",
+        label:"Interactive Dashboard"
+      }
+    ],
+    embed : {
+      type : "tableau",
+      base : "https://public.tableau.com/views/Pizza_Delivery/PizzaDeliveryDashboard"
+    },
+    problem : "As a delivery driver, I wanted to visualize my performance and where I was the most successful.",
+    actions : [
+      "Reshaped 12,000 rows for Tableau, built map, histogram & 12-month forecast with date/zone filters.",
+      "Enabled live updates on current performance and anticipate future performance."
+    ],
+    results : [
+      "Able to review potential deliveries and choose which to take.",
+      "Improved tip revenue per delivery by more than 10%."
+    ]
+  },
+
+  {
+    id: "nonogram",
+    title: "Nonogram Solver",
+    subtitle: "Reinforcement Learning (RL)",
+    image: "img/projects/nonogram.png",
+    videoWebm: "img/projects/nonogram.webm",
+    videoMp4:  "img/projects/nonogram.mp4",
+    tools: ["Python", "PyTorch"],
+    resources: [
+      { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Nonogram-Solver", label: "GitHub" },
+      { icon: "img/icons/pdf-icon.png",     url: "documents/Project_4.pdf",                  label: "PDF"    },
+      { icon: "img/icons/jupyter-icon.png", url: "documents/Project_4.ipynb",                label: "Notebook"}
+    ],
+    problem : "I wanted to create a machine learning model to automatically solve Nonogram puzzles for me.",
+    actions : [
+      "Built a hybrid CNN + Transformer policy network and trained it on more than 25 million 5×5 puzzles (52,000 episodes × 512-board batches).",
+      "Shaped the reward signal around unique guesses, row/column completions, and full-board solves to speed up exploration."
+    ],
+    results : [
+      "Reached 94% accuracy on unseen 5×5 boards.",
     ]
   },
 
