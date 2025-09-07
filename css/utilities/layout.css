@@ -49,8 +49,8 @@
   margin-bottom:24px; /* extra space below the See More button */
 }
 #portfolio-carousel-section .section-title{ text-align:center; }
-#portfolio-carousel .carousel-track{display:flex;gap:24px;transition:transform .6s cubic-bezier(.22,.61,.36,1)}
-.carousel-card{flex:0 0 70%;max-width:340px;opacity:.7;transform:scale(.9);transition:transform .5s,opacity .5s}
+#portfolio-carousel .carousel-track{display:flex;gap:24px;transition:transform .6s cubic-bezier(.22,.61,.36,1);will-change:transform}
+.carousel-card{flex:0 0 70%;max-width:340px;opacity:.7;transform:scale(.9);transition:transform .5s,opacity .5s;will-change:transform;backface-visibility:hidden;-webkit-transform:translateZ(0);transform:translateZ(0)}
 .carousel-card.active{opacity:1;transform:scale(1)}
 /* Prevent native drag/select on images/videos inside carousel cards */
 .carousel-card{ user-select: none; }
@@ -132,7 +132,7 @@
 /* modal styles consolidated into components/modal.css */
 
 /* =========================================================
-   SLIM GLASSY DRAWER  —  ≤ 768 px
+   SLIM GLASSY DRAWER  –  ≤ 768 px
    (extends the header visually)
 ========================================================= */
 @media (max-width:768px){

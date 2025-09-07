@@ -1,4 +1,4 @@
-/* Public-facing docs organised by category
+/* Public-facing docs organized by category
    Update/extend this array – only the data lives here!
    ─────────────────────────────────────────────────────────── */
 window.contributions = [
@@ -7,12 +7,12 @@ window.contributions = [
     desc   :'Reports and public documents where I led or contributed to data science, modeling, and analysis that informed city planning and marketing.',
     items  : [
       { title:'Colorado Business Economic Outlook · 2025',
-        role :'Contributions: Pages 122:129 - Data aggregation and analysis',
+        role :'Contributions: Pages 122–129 - Data aggregation and analysis',
         link :'https://www.colorado.edu/business/brd/colorado-business-economic-outlook-forum',
         pdf  :'documents/Leeds_2025_Colorado_Business_Economic_Outlook.pdf' 
       },
       { title:'Grand Junction City Budget · 2025',
-        role :'Contributions: Pages 199:214 - Data aggregation and analysis',
+        role :'Contributions: Pages 199–214 - Data aggregation and analysis',
         link :'https://www.gjcity.org/DocumentCenter/View/14655',
         pdf  :'documents/GJ_2025_Budget.pdf' 
       },
@@ -136,8 +136,8 @@ window.contributions = [
   },
 
   {
-    heading:'Visit Grand Junction eNewsletters',
-    desc   :'Tourism industry eNewsletters featuring my analytics, pacing reports, and lodging performance insights sent to stakeholders.',
+    heading:'Visit Grand Junction e-newsletters',
+    desc   :'Tourism industry e-newsletters featuring my analytics, pacing reports, and lodging performance insights sent to stakeholders.',
     items  : [
       { title:'Stakeholder eNewsletter · April 2025',
         role :'Contributions: Industry Data Report, Elizabeth\'s GJ Communiqué, Lodging Cannibalization Part 2',

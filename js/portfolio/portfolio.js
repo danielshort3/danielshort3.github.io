@@ -33,17 +33,37 @@ function untrapFocus(modalEl){
   if (modalEl._trap) modalEl.removeEventListener('keydown', modalEl._trap);
 }
 
-// Show <video> and hide GIF fallback once video can play
+// Show <video> and hide GIF fallback once video can play (more robust on iOS)
 function activateGifVideo(container){
   const vid = container && container.querySelector && container.querySelector('video.gif-video');
   if (!vid) return;
+
+  // Ensure autoplay requirements on iOS and promote stable playback
+  try {
+    vid.muted = true;
+    vid.autoplay = true;
+    vid.playsInline = true;
+    vid.setAttribute('muted', '');
+    vid.setAttribute('autoplay', '');
+    vid.setAttribute('playsinline', '');
+  } catch {}
+
   const showVideo = () => {
     vid.style.display = 'block';
     const next = vid.nextElementSibling;
     if (next && (next.tagName === 'IMG' || next.tagName === 'PICTURE')) next.style.display = 'none';
     try { vid.play && vid.play().catch(() => {}); } catch {}
   };
-  vid.addEventListener('loadeddata', showVideo, { once: true });
+
+  // If the first frame is already available, reveal immediately
+  if (vid.readyState >= 2) {
+    showVideo();
+  } else {
+    // Bind multiple events to cover Safari’s variability
+    ['loadeddata','canplay','canplaythrough','playing'].forEach(evt => {
+      vid.addEventListener(evt, showVideo, { once: true });
+    });
+  }
 }
 
 // Ensure a global close helper exists
@@ -275,12 +295,13 @@ const projectMedia = (p) => {
 
   if (!hasVideo) return img;
 
-  const webm = p.videoWebm ? `<source src="${p.videoWebm}" type="video/webm">` : '';
+  // Prefer MP4 first for iOS Safari reliability; keep WebM as secondary
   const mp4  = p.videoMp4  ? `<source src="${p.videoMp4}" type="video/mp4">`   : '';
+  const webm = p.videoWebm ? `<source src="${p.videoWebm}" type="video/webm">` : '';
   return `
     <video class="gif-video" muted playsinline loop autoplay preload="metadata" aria-label="${p.title}" draggable="false">
-      ${webm}
       ${mp4}
+      ${webm}
     </video>
     ${img}`;
 };
@@ -455,12 +476,12 @@ function buildPortfolioCarousel() {
         return `<img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false" fetchpriority="${i===0 ? 'high' : 'auto'}">`;
       })();
       if (!hasVideo) return img;
-      const webm = p.videoWebm ? `<source src="${p.videoWebm}" type="video/webm">` : '';
       const mp4  = p.videoMp4  ? `<source src="${p.videoMp4}" type="video/mp4">`   : '';
+      const webm = p.videoWebm ? `<source src="${p.videoWebm}" type="video/webm">` : '';
       return `
         <video class="gif-video" muted playsinline loop autoplay preload="metadata" draggable="false">
-          ${webm}
           ${mp4}
+          ${webm}
         </video>
         ${img}`;
     })();
@@ -514,6 +535,23 @@ function buildPortfolioCarousel() {
       d.setAttribute('aria-selected', String(i === current));
       d.tabIndex = i === current ? 0 : -1;
     });
+    // Keep the active slide's video playing; pause others (stabilizes iOS autoplay)
+    try {
+      [...track.children].forEach((card, i) => {
+        const v = card.querySelector('video.gif-video');
+        if (!v) return;
+        if (i === current) {
+          v.muted = true; v.playsInline = true;
+          v.setAttribute('muted',''); v.setAttribute('playsinline','');
+          v.style.display = 'block';
+          const next = v.nextElementSibling;
+          if (next && (next.tagName === 'IMG' || next.tagName === 'PICTURE')) next.style.display = 'none';
+          try { v.play && v.play().catch(() => {}); } catch {}
+        } else {
+          try { v.pause && v.pause(); } catch {}
+        }
+      });
+    } catch {}
     try {
       const title = projects[current]?.title || '';
       srStatus().textContent = `Slide ${current+1} of ${projects.length}: ${title}`;
@@ -821,12 +859,12 @@ function buildPortfolio() {
         return `<img src="${src}" alt="${p.title}" loading="lazy" decoding="async">`;
       })();
       if (!hasVideo) return img;
-      const webm = p.videoWebm ? `<source src="${p.videoWebm}" type="video/webm">` : '';
       const mp4  = p.videoMp4  ? `<source src="${p.videoMp4}" type="video/mp4">`   : '';
+      const webm = p.videoWebm ? `<source src="${p.videoWebm}" type="video/webm">` : '';
       return `
         <video class="gif-video" muted playsinline loop autoplay preload="metadata">
-          ${webm}
           ${mp4}
+          ${webm}
         </video>
         ${img}`;
     })();

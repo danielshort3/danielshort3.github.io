@@ -691,7 +691,7 @@
 </head>
 <body>
     <script>
-        /* Notify parent for iframed embeds — only once to keep height static */
+        /* Notify parent for iframed embeds – only once to keep height static */
         function notifyResize() { try { parent.postMessage({ type: 'chatbot-demo-resize' }, '*'); } catch (e) { } }
         window.addEventListener('load', notifyResize);
         try { document.fonts?.ready?.then(notifyResize); } catch (e) { }
@@ -715,7 +715,7 @@
                 <h1 class="title">Ask the Demo Chatbot</h1>
                 <p class="subtitle">
                     <span class="badge" title="Data handling notice">
-                        <i class="fa-solid fa-shield-halved"></i> Input & output saved on AWS
+                        <i class="fa-solid fa-shield-halved"></i> Input and output are saved on AWS
                     </span>
                 </p>
             </div>
@@ -747,7 +747,7 @@
         <div class="input-wrap">
             <div class="qp-viewport" aria-label="Quick prompts">
                 <div id="quick-prompts" role="list">
-                    <button class="chip" type="button" data-text="Where can I eat for dinner?">Where can I eat for dinner?</button>
+                    <button class="chip" type="button" data-text="Where can I eat dinner?">Where can I eat dinner?</button>
                     <button class="chip" type="button" data-text="What kid-friendly activities are there?">What kid-friendly activities are there?</button>
                     <button class="chip" type="button" data-text="Where should I go on vacation?">Where should I go on vacation?</button>
                 </div>
