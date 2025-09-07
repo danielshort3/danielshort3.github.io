@@ -117,6 +117,9 @@
   #contact-modal .modal-content { width: min(760px, calc(100vw - 24px)); margin-inline:auto; }
   #contact-modal .modal-body { overflow-x:hidden; }
   #contact-modal iframe { width:100%; border:none; display:block; height:100vh; }
+  /* prevent horizontal scroll for sentence demo modal on mobile */
+  #smartSentence-modal .modal-body { overflow-x: hidden; }
+  #smartSentence-modal .modal-embed { overflow-x: hidden; }
 
   /* embedded demo modals */
   #shapeClassifier-modal iframe,
