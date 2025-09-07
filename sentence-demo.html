@@ -57,9 +57,21 @@
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     @media (max-width: 720px) { .grid-2 { grid-template-columns: 1fr; } }
     .results { display: grid; gap: 8px; }
-    .item { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+    .item { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: grid; gap: 8px; }
     .small { font-size: .85rem; color: var(--muted); }
     .score { font-weight: 600; color: var(--accent-2); }
+    .meta { display:flex; align-items:center; justify-content: space-between; gap: 10px; }
+    .rank { font-weight:600; color: var(--muted); }
+    .percent { font-weight:700; color: var(--accent-2); }
+    .meter { position: relative; height: 10px; border-radius: 999px; overflow: hidden; background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.08)); border: 1px solid var(--border); }
+    .meter .fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); }
+    .sentence { line-height: 1.6; }
+    .range-row { display:grid; gap:8px; }
+    .range-head { display:flex; align-items:center; justify-content: space-between; }
+    .range-value { font-variant-numeric: tabular-nums; color: var(--muted); }
+    input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 10px; border-radius: 999px; background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.08)); border: 1px solid var(--border); }
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(180deg, var(--accent), var(--accent-2)); border: 1px solid rgba(255,255,255,.25); box-shadow: var(--shadow); cursor: pointer; }
+    input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(180deg, var(--accent), var(--accent-2)); border: 1px solid rgba(255,255,255,.25); box-shadow: var(--shadow); cursor: pointer; }
     .footer { padding: 12px 18px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
     code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: .85rem; }
   </style>
@@ -120,16 +132,36 @@
       out.innerHTML = '';
       const list = document.createElement('div');
       list.className = 'results';
-      (data.top || []).forEach(item => {
+      (data.top || []).forEach((item, idx) => {
         const div = document.createElement('div');
         div.className = 'item';
-        const score = document.createElement('div');
-        score.className = 'small';
-        score.innerHTML = `Score <span class="score">${(item.score ?? 0).toFixed(4)}</span>`;
+
+        const raw = (typeof item.score === 'number' ? item.score : 0);
+        const val = Math.max(0, Math.min(1, raw));
+        const percent = (val * 100);
+
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        const rank = document.createElement('div'); rank.className = 'rank'; rank.textContent = `#${idx+1}`;
+        const perc = document.createElement('div'); perc.className = 'percent'; perc.textContent = `${percent.toFixed(1)}%`;
+        meta.append(rank, perc);
+
+        const bar = document.createElement('div');
+        bar.className = 'meter';
+        bar.setAttribute('role', 'progressbar');
+        bar.setAttribute('aria-valuemin', '0');
+        bar.setAttribute('aria-valuemax', '100');
+        bar.setAttribute('aria-valuenow', percent.toFixed(1));
+        const fill = document.createElement('div');
+        fill.className = 'fill';
+        fill.style.width = `${percent.toFixed(1)}%`;
+        bar.appendChild(fill);
+
         const sent = document.createElement('div');
+        sent.className = 'sentence';
         sent.textContent = item.sentence || '';
-        div.appendChild(score);
-        div.appendChild(sent);
+
+        div.append(meta, bar, sent);
         list.appendChild(div);
       });
       if (!list.children.length) {
@@ -159,7 +191,16 @@
     }
 
     function onLoad() {
-      document.getElementById('form').addEventListener('submit', onSubmit);
+      const form = document.getElementById('form');
+      form.addEventListener('submit', onSubmit);
+      // Slider value label sync
+      const topRange = document.getElementById('top');
+      const topValue = document.getElementById('top-value');
+      if (topRange && topValue) {
+        const sync = () => { topValue.textContent = topRange.value; };
+        topRange.addEventListener('input', sync);
+        sync();
+      }
       health();
     }
     window.addEventListener('DOMContentLoaded', onLoad);
@@ -186,14 +227,17 @@
           <label for="query">Your query</label>
           <input id="query" name="query" type="text" placeholder="e.g., She wonders about things." required />
           <div class="grid-2">
-            <div>
-              <label for="top">Top results (1–20)</label>
-              <input id="top" name="top" type="number" min="1" max="20" value="5" />
+            <div class="range-row">
+              <div class="range-head">
+                <label for="top">Top results</label>
+                <span class="range-value"><span id="top-value">5</span> of 20</span>
+              </div>
+              <input id="top" name="top" type="range" min="1" max="20" step="1" value="5" aria-label="Top results" />
             </div>
           </div>
           <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
             <button type="submit" name="submitBtn" class="btn">Find Sentences</button>
-            <button type="button" class="btn btn-secondary" onclick="document.getElementById('query').value='She wonders about things.'">Use Example</button>
+            <button type="button" class="btn btn-secondary" onclick="(function(){ const q=document.getElementById('query'); const r=document.getElementById('top'); const v=document.getElementById('top-value'); if(q) q.value='She wonders about things.'; if(r){ r.value=5; r.dispatchEvent(new Event('input')); } if(v) v.textContent=r.value; })()">Use Example</button>
           </div>
         </form>
       </div>
