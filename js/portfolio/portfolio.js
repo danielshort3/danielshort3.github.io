@@ -773,6 +773,8 @@ function buildPortfolio() {
   const menu   = document.getElementById("filter-menu");
   if (!grid || !modals || !menu || !window.PROJECTS) return;
 
+  // Data order now reflects desired grid order (no runtime reordering)
+
   /* helper – create & return element */
   const el = (tag, cls = "", html = "") => {
     const n = document.createElement(tag);
