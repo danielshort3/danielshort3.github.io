@@ -22,8 +22,7 @@
     <meta name="theme-color" content="#0D1117">
     <link rel="stylesheet" href="dist/styles.css" />
     <link rel="stylesheet" href="css/privacy.css" />
-    <!-- Removed unused Font Awesome to reduce page weight -->
-    
+
     <link rel="icon" href="favicon.ico" sizes="any">
     <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png" />
@@ -38,113 +37,38 @@
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&amp;family=Poppins:wght@500;600&amp;display=swap" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&amp;family=Poppins:wght@500;600&amp;display=swap" rel="stylesheet"></noscript>
 
-    <!-- Page-scoped styles to center and tastefully frame the content (no hero, no hidden content) -->
+    <!-- Page-scoped styles copied from pages/privacy.html (kept in sync) -->
     <style>
-        /* Center the content similar to the 404 page, but keep everything visible */
-        .policy-page main {
-            min-height: calc(var(--vh, 100vh) - var(--nav-height, 72px));
-            padding-top: var(--nav-height, 72px);
-            display: grid;
-            align-content: center; /* vertical centering */
-            justify-items: center; /* horizontal centering for the block */
-            margin: 0 24px;
-        }
-
-        .policy-card {
-            width: min(840px, 100%);
-            background: var(--surface);
-            border: 2px solid var(--primary);
-            border-radius: 14px;
-            box-shadow: 0 10px 24px rgba(44,169,188,.18);
-            padding: clamp(18px, 4vw, 32px);
-            /* Center cards horizontally and add vertical spacing */
-            margin: 0 auto 1.5rem;
-        }
-
-        .policy-card h1 {
-            margin-top: 0;
-            text-align: center;
-        }
-
-        .policy-lead {
-            text-align: center;
-            color: var(--text-muted);
-            max-width: 60ch;
-            margin: 8px auto 16px;
-        }
-
-        .policy-section {
-            margin-top: 20px;
-        }
-
-        .policy-section h2 {
-            margin-top: 0.2em;
-        }
-
-        .policy-list {
-            padding-left: 20px;
-        }
-
-        .policy-meta {
-            margin-top: 16px;
-            font-size: .95rem;
-            color: var(--text-muted);
-        }
-        /* Simple styling for the preferences form on this page */
-        #privacy-preferences-form div {
-            display: flex;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-        #privacy-preferences-form label {
-            margin-left: 0.5rem;
-        }
-        #save-privacy-preferences {
-            margin-top: 1rem;
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 4px;
-            background-color: var(--primary);
-            color: var(--on-primary);
-            cursor: pointer;
-        }
-        #save-privacy-preferences:hover {
-            background-color: var(--primary-dark, #2ca9bc);
-        }
-
-        /* Additional styling for cookie descriptions */
-        .cookie-description {
-            display: block;
-            font-size: 0.85rem;
-            margin-left: 1.5rem;
-            color: var(--text-muted);
-        }
+        .policy-page main { min-height: calc(var(--vh, 100vh) - var(--nav-height, 72px)); padding-top: var(--nav-height, 72px); display: grid; align-content: center; justify-items: center; margin: 0 24px; }
+        .policy-card { width: min(840px, 100%); background: var(--surface); border: 2px solid var(--primary); border-radius: 14px; box-shadow: 0 10px 24px rgba(44,169,188,.18); padding: clamp(18px, 4vw, 32px); margin: 0 auto 1.5rem; }
+        .policy-card h1 { margin-top: 0; text-align: center; }
+        .policy-lead { text-align: center; color: var(--text-muted); max-width: 60ch; margin: 8px auto 16px; }
+        .policy-section { margin-top: 20px; }
+        .policy-section h2 { margin-top: 0.2em; }
+        .policy-list { padding-left: 20px; }
+        .policy-meta { margin-top: 16px; font-size: .95rem; color: var(--text-muted); }
+        #privacy-preferences-form div { display: flex; align-items: center; margin-bottom: 0.5rem; }
+        #privacy-preferences-form label { margin-left: 0.5rem; }
+        #save-privacy-preferences { margin-top: 1rem; padding: 0.5rem 1rem; border: none; border-radius: 4px; background-color: var(--primary); color: var(--on-primary); cursor: pointer; }
+        #save-privacy-preferences:hover { background-color: var(--primary-dark, #2ca9bc); }
+        .cookie-description { display: block; font-size: 0.85rem; margin-left: 1.5rem; }
     </style>
 </head>
-
-<body class="surface-band policy-page">
-    <header id="combined-header-nav"></header>
+<body class="policy-page">
     <a href="#main" class="skip-link">Skip to main content</a>
-
-    <main id="main" role="main">
-        <section class="policy-card" aria-labelledby="policy-title">
-            <h1 id="policy-title">Privacy &amp; Analytics</h1>
-            <p class="policy-lead">
-                This site uses lightweight Google Analytics 4 events to understand aggregate usage and improve content.
-                No custom personal identifiers are sent from this site’s scripts.
-            </p>
-
+    <header id="combined-header-nav"></header>
+    <main id="main">
+        <section class="policy-card">
+            <h1>Privacy & Analytics</h1>
+            <p class="policy-lead">This page explains, in plain English, how analytics are used on this site and how you can control your preferences.</p>
             <div class="policy-section">
                 <h2>What’s Tracked</h2>
                 <ul class="policy-list">
-                    <li>Clicks on key calls-to-action (e.g., hero buttons).</li>
-                    <li>Resume downloads and outbound link clicks.</li>
-                    <li>Navigation link clicks.</li>
-                    <li>Optional UI interactions on portfolio/contributions pages (filters, “see more”, project views, modal closes).</li>
+                    <li>Aggregate site usage metrics (page views, navigation clicks).</li>
+                    <li>Interactions on portfolio and contributions pages (filters, “see more”, project views, modal closes).</li>
                     <li>Basic engagement signals (time on page, 50% scroll depth).</li>
                 </ul>
             </div>
-
             <div class="policy-section">
                 <h2>What’s Not Tracked</h2>
                 <ul class="policy-list">
@@ -152,25 +76,18 @@
                     <li>No keystrokes or form contents are captured.</li>
                 </ul>
             </div>
-
             <div class="policy-section">
                 <h2>Your Choices</h2>
                 <ul class="policy-list">
-                    <li>You can adjust your cookie preferences on this page using the “Manage Your Privacy Settings” form below to opt out of optional cookies.</li>
-                    <li>You can still opt out by enabling “Do Not Track” in your browser.</li>
-                    <li>Blocking third‑party analytics or using content blockers will prevent GA from loading.</li>
+                    <li>Use the form below to opt in/out of optional cookies.</li>
+                    <li>Respect for “Do Not Track” and Global Privacy Control (where applicable).</li>
                 </ul>
             </div>
-
-            <p class="policy-meta">
-                Last updated: August 2025
-            </p>
+            <p class="policy-meta">Last updated: August 2025</p>
         </section>
-
-        <!-- New section for managing privacy settings directly on this page -->
         <section class="policy-card" aria-labelledby="prefs-title">
             <h1 id="prefs-title">Manage Your Privacy Settings</h1>
-            <p class="policy-lead">Adjust your preferences below and click “Save preferences” to apply the changes. These settings control optional cookies such as analytics, functional and advertising cookies. Necessary cookies are always enabled.</p>
+            <p class="policy-lead">Adjust your preferences below and click “Save preferences”. Necessary cookies are always enabled.</p>
             <form id="privacy-preferences-form">
                 <div>
                     <input type="checkbox" id="pref-necessary" name="necessary" checked disabled>
@@ -193,32 +110,21 @@
             <p id="privacy-preferences-status" class="policy-lead" role="alert"></p>
         </section>
     </main>
-
     <footer>
         <nav class="privacy-links" aria-label="Privacy shortcuts">
             <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
-            <a href="#" class="pcz-link" onclick="window.Privacy && window.Privacy.open('doNotSell'); return false;">
-                Do Not Sell/Share My Personal Information
-            </a>
+            <a href="#" class="pcz-link" onclick="window.Privacy && window.Privacy.open('doNotSell'); return false;">Do Not Sell/Share My Personal Information</a>
         </nav>
     </footer>
-
-    <!-- Site scripts -->
     <script defer src="js/common/common.js"></script>
     <script defer src="js/navigation/navigation.js"></script>
     <script defer src="js/analytics/ga4-events.js"></script>
     <script src="js/privacy/config.js"></script>
     <script defer src="js/privacy/consent_manager.js"></script>
-    <!-- Script to synchronise and save user preferences -->
     <script>
-    // Synchronise the form with the current consent state and save changes using consentAPI
     (function() {
         function syncForm() {
-            // Try to get current consent; if consentAPI isn't ready yet, retry shortly
-            if (!window.consentAPI || typeof window.consentAPI.get !== 'function') {
-                setTimeout(syncForm, 100);
-                return;
-            }
+            if (!window.consentAPI || typeof window.consentAPI.get !== 'function') { setTimeout(syncForm, 100); return; }
             var prefs = window.consentAPI.get() || { analytics: false, functional: false, advertising: false };
             document.getElementById('pref-analytics').checked = !!prefs.analytics;
             document.getElementById('pref-functional').checked = !!prefs.functional;
@@ -229,19 +135,15 @@
             var saveBtn = document.getElementById('save-privacy-preferences');
             if (saveBtn) {
                 saveBtn.addEventListener('click', function() {
-                    if (!window.consentAPI || typeof window.consentAPI.set !== 'function') {
-                        return;
-                    }
-                        var newPrefs = {
-                            analytics: document.getElementById('pref-analytics').checked,
-                            functional: document.getElementById('pref-functional').checked,
-                            advertising: document.getElementById('pref-advertising').checked
-                        };
-                        window.consentAPI.set(newPrefs);
-                        var statusEl = document.getElementById('privacy-preferences-status');
-                        if (statusEl) {
-                            statusEl.textContent = 'Your preferences have been saved.';
-                        }
+                    if (!window.consentAPI || typeof window.consentAPI.set !== 'function') return;
+                    var newPrefs = {
+                        analytics: document.getElementById('pref-analytics').checked,
+                        functional: document.getElementById('pref-functional').checked,
+                        advertising: document.getElementById('pref-advertising').checked
+                    };
+                    window.consentAPI.set(newPrefs);
+                    var statusEl = document.getElementById('privacy-preferences-status');
+                    if (statusEl) statusEl.textContent = 'Your preferences have been saved.';
                 });
             }
         });
@@ -249,3 +151,4 @@
     </script>
 </body>
 </html>
+
