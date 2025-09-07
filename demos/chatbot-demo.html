@@ -65,7 +65,8 @@
             box-shadow: var(--shadow-2);
             overflow: hidden;
             display: grid;
-            grid-template-rows: auto auto 1fr auto; /* header, service status, chat, input */
+            /* header, service status, stepper, chat, input */
+            grid-template-rows: auto auto auto 1fr auto;
             height: calc(100vh - var(--page-pad) * 2);
         }
 
