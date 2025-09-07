@@ -518,7 +518,44 @@
     </div>
 
     <script type="module">
-        const FN_URL = "https://zcosyfxhs3sntpwzo3qayki2he0kdxkw.lambda-url.us-east-2.on.aws/"; // Lambda endpoint with CORS
+        // Shape-classifier endpoint handling with graceful fallbacks
+        const DEFAULT_FN_URL = "https://zcosyfxhs3sntpwzo3qayki2he0kdxkw.lambda-url.us-east-2.on.aws/"; // Lambda Function URL
+        function normalizeBase(u) { try { return u.endsWith('/') ? u : (u + '/'); } catch { return DEFAULT_FN_URL; } }
+        function candidates() {
+          const out = [];
+          try {
+            const qs = new URLSearchParams(location.search);
+            const fromQs = qs.get('fn') || qs.get('endpoint');
+            const fromStore = localStorage.getItem('shape_fn_url');
+            if (fromQs) out.push(normalizeBase(fromQs));
+            if (fromStore && fromStore !== fromQs) out.push(normalizeBase(fromStore));
+          } catch {}
+          out.push(normalizeBase(DEFAULT_FN_URL));
+          // Fallback paths commonly used by backends
+          return Array.from(new Set(out));
+        }
+        async function postToEndpoint(urlBase, payload) {
+          // Try base, then common subpaths if base 404s
+          const attempts = [ '', 'predict', 'classify' ];
+          let lastErr = null;
+          for (const path of attempts) {
+            const url = urlBase + path;
+            try {
+              const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+              });
+              if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+              return await res.json();
+            } catch (e) {
+              lastErr = e;
+              // If not a simple Not Found, don't keep probing subpaths
+              if (!(String(e.message || '').startsWith('404'))) break;
+            }
+          }
+          throw lastErr || new Error('Request failed');
+        }
 
         /* ---------- Stepper (same structure/behavior as chatbot) ---------- */
         const statusEl = document.getElementById('status');
@@ -782,15 +819,21 @@
             try {
                 setStep('submit', 'done');
                 setStep('process', 'in-progress'); // spinner appears on this step
-
-                const res = await fetch(FN_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ b64 })
-                });
-
-                if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-                const json = await res.json();
+                const json = await (async () => {
+                  const payload = { b64 };
+                  let lastErr = null;
+                  for (const base of candidates()) {
+                    try {
+                      const j = await postToEndpoint(base, payload);
+                      // cache the successful base for next time
+                      try { localStorage.setItem('shape_fn_url', base); } catch {}
+                      return j;
+                    } catch (e) {
+                      lastErr = e;
+                    }
+                  }
+                  throw lastErr || new Error('All endpoints failed');
+                })();
                 const cls = json.class || json.cls || json.label || 'unknown';
                 const conf = (typeof json.confidence === 'number') ? json.confidence
                     : (typeof json.conf === 'number') ? json.conf : null;
