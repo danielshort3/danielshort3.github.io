@@ -1,40 +1,5 @@
 @layer utilities {
-/* Utility helpers and page-specific tweaks */
-/* ───────────────────────────────────────────────────────────
-   11.  REVEAL + EXTRAS
-   ─────────────────────────────────────────────────────────── */
-/* moved to utilities/helpers.css */
-.interest-pad{
-    padding:48px 0;
-}
-#filters{
-  margin-top:0;
-  transition:height .45s cubic-bezier(.22,.61,.36,1),
-             padding .45s cubic-bezier(.22,.61,.36,1),
-             opacity .35s ease;
-  will-change:height,padding,opacity
-}
-#filters.grid-fade{opacity:0}
-
-/* gap between carousel and filters */
-#carousel-gap{
-  padding:32px 0; /* 64px total spacing */
-  background:var(--surface);
-  transition:padding .45s cubic-bezier(.22,.61,.36,1),
-             opacity .35s ease;
-  will-change:padding,opacity
-}
-#carousel-gap.grid-fade{opacity:0}
-.contact-big{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-  gap:28px;padding:32px
-}
-
-@media (max-width:768px){
-  /* keep cards full-width with breathing room on mobile */
-  .contact-big{padding:28px 0 32px}
-}
-/* kept in utilities/helpers.css */
+/* Utility helpers consolidated into utilities/helpers.css */
 
 /* ───────────────────────────────────────────────────────────
    12.  CONTACT PAGE – ACTION CARDS

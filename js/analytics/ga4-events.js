@@ -9,6 +9,18 @@
   window.dataLayer = window.dataLayer || [];
   window.gtag = window.gtag || function(){ (window.dataLayer = window.dataLayer || []).push(arguments); };
 
+  // Set conservative Consent Mode defaults as early as possible
+  try {
+    window.gtag('consent', 'default', {
+      'ad_storage': 'denied',
+      'analytics_storage': 'denied',
+      'ad_user_data': 'denied',
+      'ad_personalization': 'denied',
+      // Short wait window so GA respects updates promptly
+      'wait_for_update': 500
+    });
+  } catch {}
+
   // Load GA library only when allowed
   function loadGA4(id) {
     // If GA already present, just ensure config is set

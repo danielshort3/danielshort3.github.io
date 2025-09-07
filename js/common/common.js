@@ -11,7 +11,6 @@
   const isPage = (...names)=>names.includes(document.body.dataset.page);
 
   document.addEventListener('DOMContentLoaded', () => {
-    if (isPage('home')) run(window.buildFeaturedCarousel);
     if (isPage('portfolio')) {
       run(window.buildPortfolioCarousel);
       run(window.buildPortfolio);
