@@ -307,6 +307,8 @@ window.PROJECTS = [
     title: "Smart Sentence Retriever",
     subtitle: "NLP Embeddings & Serverless Retrieval",
     image: "img/projects/smartSentence.png",
+    videoWebm: "img/projects/smartSentence.webm",
+    videoMp4:  "img/projects/smartSentence.mp4",
     tools: ["Python", "NLP"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Smart-Sentence-Finder", label: "GitHub" },
@@ -320,13 +322,13 @@ window.PROJECTS = [
     problem : "I wanted a quick way to retrieve relevant sentences by meaning, not exact wording.",
     actions : [
       "Prepared the corpus (Alice in Wonderland), split into sentences, and precomputed embeddings.",
-      "Benchmarked 6+ embedding models on 800 sentences (k=2–6), using silhouette score and efficiency (silhouette per M params).",
-      "Selected the best performer for this corpus and deployed a stateless AWS Lambda endpoint (serverless) with CORS that ranks top‑k sentences for a query."
+      "Benchmarked 6+ embedding models on 800 sentences (k=2–6), tracking both silhouette and efficiency (silhouette per M params).",
+      "Chose the top silhouette model for quality and deployed it as a stateless AWS Lambda endpoint (serverless) with CORS for top‑k ranking."
     ],
     results : [
       "Best absolute silhouette: 0.313 — Snowflake/snowflake‑arctic‑embed‑l‑v2.0 (k=2, 1024‑d, ~568M params).",
       "Best efficiency: 0.0116 per M params — jinaai/jina‑embeddings‑v3 (~12.9M params, k=6, 1024‑d).",
-      "Live demo powered by a lightweight, scalable AWS Lambda API."
+      "Deployed AWS model: Snowflake/snowflake‑arctic‑embed‑l‑v2.0 (prioritizing quality); live demo runs on a lightweight, scalable Lambda API."
     ]
   },
 
