@@ -40,8 +40,8 @@
 
     <!-- Page-scoped styles to center and tastefully frame the content (no hero, no hidden content) -->
     <style>
-        /* Content should wrap and fit the viewport without horizontal scroll */
-        .policy-card, .policy-card * { overflow-wrap: anywhere; word-break: break-word; }
+        /* Prevent horizontal scroll on small screens */
+        html, body { max-width: 100%; overflow-x: hidden; }
         /* Center the content similar to the 404 page, but keep everything visible */
         .policy-page main {
             min-height: calc(var(--vh, 100vh) - var(--nav-height, 72px));
@@ -50,6 +50,8 @@
             align-content: center; /* vertical centering */
             justify-items: center; /* horizontal centering for the block */
             margin: 0 24px;
+            width: 100%;
+            overflow-x: hidden;
         }
 
         .policy-card {
