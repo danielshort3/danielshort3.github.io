@@ -50,15 +50,15 @@ function evalScript(file) {
 }
 
 try {
-  // HTML checks across pages
+  // HTML checks across pages (moved files live under pages/)
   checkFileContains('index.html', 'made actionable');
-checkFileContains('contact.html', '<title>Contact │ Daniel Short');
-['index.html','contact.html','portfolio.html','contributions.html'].forEach(f => {
+checkFileContains('pages/contact.html', '<title>Contact │ Daniel Short');
+['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html'].forEach(f => {
   checkFileContains(f, 'js/common/common.js');
   checkFileContains(f, 'class="skip-link"');
   checkFileContains(f, '<main id="main">');
 });
-['index.html','contact.html','portfolio.html','contributions.html','404.html'].forEach(f => {
+['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','404.html'].forEach(f => {
   checkFileContains(f, 'og:image');
 });
 assert(fs.existsSync('robots.txt'), 'robots.txt missing');
@@ -201,7 +201,11 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
   // Build scripts exist and include expected directories
   assert(fs.existsSync('build/build-css.js'), 'build-css.js missing');
   const copyJs = fs.readFileSync('build/copy-to-public.js','utf8');
-  assert(copyJs.includes("const dirs = ['img', 'js', 'css', 'documents', 'dist']"), 'copy-to-public.js not copying all asset dirs');
+  assert(copyJs.includes('const dirs') &&
+         copyJs.includes("'img'") && copyJs.includes("'js'") && copyJs.includes("'css'") &&
+         copyJs.includes("'documents'") && copyJs.includes("'dist'") &&
+         copyJs.includes("'pages'") && copyJs.includes("'demos'"),
+         'copy-to-public.js not copying all asset dirs');
 
   // Deployment config includes CSP and security headers
   const vercel = fs.readFileSync('vercel.json','utf8');
@@ -211,7 +215,7 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
   assert(vercel.includes('"source": "/img/(.*)"') || vercel.includes('"source": "/img/(.*)"'.replace(/\//g,'/')), 'vercel.json missing /img cache rule');
 
   // Chatbot demo should tolerate backend startup delays up to ten minutes
-  const chatbotHtml = fs.readFileSync('chatbot-demo.html', 'utf8');
+  const chatbotHtml = fs.readFileSync('demos/chatbot-demo.html', 'utf8');
   const startConst = chatbotHtml.match(/const START_TIMEOUT_SEC = (\d+);/);
   const warmSec = startConst ? parseInt(startConst[1], 10) : 0;
   assert(warmSec >= 600, 'chatbot-demo start timeout < 10 minutes');
@@ -251,13 +255,13 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
   checkFileContains('404.html', 'portfolio.html?project=');
 
   // Portfolio page core regions present
-  checkFileContains('portfolio.html', 'id="portfolio-carousel"');
-  checkFileContains('portfolio.html', 'id="filter-menu"');
-  checkFileContains('portfolio.html', 'id="projects"');
-  checkFileContains('portfolio.html', 'id="modals"');
+  checkFileContains('pages/portfolio.html', 'id="portfolio-carousel"');
+  checkFileContains('pages/portfolio.html', 'id="filter-menu"');
+  checkFileContains('pages/portfolio.html', 'id="projects"');
+  checkFileContains('pages/portfolio.html', 'id="modals"');
 
   // Contact modal and resume embed present
-  checkFileContains('contact.html', 'id="contact-modal"');
+  checkFileContains('pages/contact.html', 'id="contact-modal"');
   checkFileContains('resume.html', 'documents/Resume.pdf');
   // Contact: embed is a Google Form
   checkFileContains('contact.html', 'docs.google.com/forms');

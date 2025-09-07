@@ -54,8 +54,8 @@ function copyStatic(){
     if (fs.existsSync(src)) copyFile(src, path.join(outDir, name));
   });
 
-  // Copy asset directories commonly used by the site
-  const dirs = ['img', 'js', 'css', 'documents', 'dist'];
+  // Copy asset and content directories used by the site
+  const dirs = ['img', 'js', 'css', 'documents', 'dist', 'pages', 'demos'];
   dirs.forEach(d => copyDir(path.join(root, d), path.join(outDir, d)));
 }
 
