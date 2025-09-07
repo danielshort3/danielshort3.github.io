@@ -703,11 +703,12 @@
 
   /* embedded demo modals */
   #shapeClassifier-modal iframe,
-  #chatbotLora-modal iframe,
-  #smartSentence-modal iframe {
+  #chatbotLora-modal iframe {
     height: 80vh; /* final effective height */
     margin-top: 0; width: 100%; border: 1px solid var(--surface-accent);
   }
+  /* sentence demo uses content-driven height via JS */
+  #smartSentence-modal .modal-embed iframe { height: auto; margin-top: 0; width: 100%; border: 1px solid var(--surface-accent); }
   #shapeClassifier-modal .modal-embed,
   #chatbotLora-modal .modal-embed,
   #smartSentence-modal .modal-embed { flex:0 0 50%; max-width:50%; align-self:flex-start; overflow:visible; }

@@ -305,7 +305,7 @@ window.PROJECTS = [
   {
     id: "smartSentence",
     title: "Smart Sentence Retriever",
-    subtitle: "NLP Embeddings & Semantic Retrieval",
+    subtitle: "NLP Embeddings & Serverless Retrieval",
     image: "img/projects/smartSentence.png",
     tools: ["Python", "NLP"],
     resources: [
@@ -317,15 +317,16 @@ window.PROJECTS = [
       type : "iframe",
       url  : "sentence-demo.html"
     },
-    problem : "I wanted to have a quick way of finding relevant information from documents based on semantics, not exact wording.",
+    problem : "I wanted a quick way to retrieve relevant sentences by meaning, not exact wording.",
     actions : [
-      "Extracted popular texts into sentences from popular open-source texts such as Alice in Wonderland.",
-      "Embedded sentences using 8 embedding models and chose one as the most efficient.",
-      "Created a pipeline to automate the process of finding similar context in text."
+      "Prepared the corpus (Alice in Wonderland), split into sentences, and precomputed embeddings.",
+      "Benchmarked 6+ embedding models on 800 sentences (k=2–6), using silhouette score and efficiency (silhouette per M params).",
+      "Selected the best performer for this corpus and deployed a stateless AWS Lambda endpoint (serverless) with CORS that ranks top‑k sentences for a query."
     ],
     results : [
-      "Identified the top sentences similar to the phrase \"She wonders about things\"",
-      "Found that model `paraphrase-multilingual-MiniLM-L12-v2` performed the best in my testing."
+      "Best absolute silhouette: 0.313 — Snowflake/snowflake‑arctic‑embed‑l‑v2.0 (k=2, 1024‑d, ~568M params).",
+      "Best efficiency: 0.0116 per M params — jinaai/jina‑embeddings‑v3 (~12.9M params, k=6, 1024‑d).",
+      "Live demo powered by a lightweight, scalable AWS Lambda API."
     ]
   },
 

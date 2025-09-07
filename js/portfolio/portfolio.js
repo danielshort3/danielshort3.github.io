@@ -110,6 +110,18 @@ if (typeof window.openModal !== 'function') {
         const src  = `${base}?${[":embed=y",":showVizHome=no",`:device=${isPhone ? 'phone' : 'desktop'}`].join('&')}`;
         ifr.src = src;
       }
+
+      // Resize iframe to its content when it finishes loading
+      if (!ifr._resizeBound) {
+        ifr._resizeBound = true;
+        ifr.addEventListener('load', () => {
+          try { resizeIframeToContent(ifr); } catch {}
+          // fonts/layout can shift height; remeasure shortly after
+          setTimeout(() => { try { resizeIframeToContent(ifr); } catch {} }, 50);
+          setTimeout(() => { try { resizeIframeToContent(ifr); } catch {} }, 350);
+          try { ifr.contentWindow?.document?.fonts?.ready?.then(() => resizeIframeToContent(ifr)); } catch {}
+        }, { once: false });
+      }
     }
 
     try {
@@ -175,6 +187,45 @@ if (typeof window.openModal !== 'function') {
     }
   };
 }
+
+// Helper: set an iframe's height to match its document height (same-origin only)
+function resizeIframeToContent(ifr){
+  if (!ifr) return;
+  const doc = ifr.contentDocument || ifr.contentWindow?.document;
+  if (!doc) return;
+  const b  = doc.body;
+  const de = doc.documentElement;
+  const h = Math.max(
+    b ? b.scrollHeight : 0,
+    b ? b.offsetHeight : 0,
+    de ? de.clientHeight : 0,
+    de ? de.scrollHeight : 0,
+    de ? de.offsetHeight : 0
+  );
+  if (h > 0) {
+    ifr.style.height = `${h}px`;
+  }
+}
+
+// Listen for resize notifications from embedded demos and adjust their iframe
+window.addEventListener('message', (e) => {
+  const data = e && e.data || {};
+  const t = typeof data?.type === 'string' ? data.type : '';
+  if (!t) return;
+  // Supported: chatbot-demo-resize, shape-demo-resize, sentence-demo-resize
+  if (!/(chatbot|shape|sentence)-demo-resize/.test(t)) return;
+  try {
+    const ifrs = document.querySelectorAll('.modal-embed iframe');
+    for (const f of ifrs) {
+      if (f.contentWindow === e.source) {
+        const h = typeof data.height === 'number' && isFinite(data.height) ? Math.max(0, Math.floor(data.height)) : null;
+        if (h) f.style.height = `${h}px`;
+        else resizeIframeToContent(f);
+        break;
+      }
+    }
+  } catch {}
+});
 
 // Close on ESC for any open modal
 document.addEventListener('keydown', (e) => {

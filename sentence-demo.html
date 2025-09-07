@@ -79,7 +79,13 @@
     // Function URL for the sentence finder Lambda
     const DEFAULT_URL = "https://7aa3jt3tzkinheprc5ds52bihq0itutx.lambda-url.us-east-2.on.aws/"; // smart-sentence-finder
 
-    
+    // Notify parent (if iframed) to resize height to fit content
+    function notifyResize() {
+      try {
+        const h = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+        parent.postMessage({ type: 'sentence-demo-resize', height: h }, '*');
+      } catch (e) { /* not embedded */ }
+    }
 
     async function health() {
       const url = getEndpoint();
@@ -90,10 +96,12 @@
         const j = await r.json();
         $status.className = 'pill ok';
         $status.textContent = `OK • ${j.model} • sentences: ${j.sentences}`;
+        notifyResize();
       } catch (e) {
         $status.className = 'pill err';
         $status.textContent = 'Health check failed';
         console.error(e);
+        notifyResize();
       }
     }
 
@@ -172,6 +180,7 @@
       } else {
         out.appendChild(list);
       }
+      notifyResize();
     }
 
     function renderError(err) {
@@ -188,6 +197,7 @@
       pre.textContent = String(err);
       box.appendChild(h); box.appendChild(pre);
       out.appendChild(box);
+      notifyResize();
     }
 
     function onLoad() {
@@ -201,6 +211,11 @@
         topRange.addEventListener('input', sync);
         sync();
       }
+      // Initial and responsive resize notifications for iframed embeds
+      notifyResize();
+      try { document.fonts?.ready?.then(notifyResize); } catch (e) {}
+      window.addEventListener('load', notifyResize);
+      window.addEventListener('resize', () => setTimeout(notifyResize, 50));
       health();
     }
     window.addEventListener('DOMContentLoaded', onLoad);
