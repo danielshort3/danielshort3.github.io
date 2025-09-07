@@ -51,8 +51,8 @@ function activateGifVideo(container){
 function portfolioBasePath() {
   try {
     const path = location.pathname || '';
-    // Capture optional repo prefix + '/portfolio' or '/portfolio.html', stripping any trailing '/:id'
-    const m = path.match(/^(.*?)(\/portfolio(?:\.html)?)(?:\/[A-Za-z0-9_-]+)?\/?$/);
+    // Capture optional repo prefix + '/portfolio' (with optional 'pages/' and '.html'), strip trailing '/:id'
+    const m = path.match(/^(.*?)(\/(?:pages\/)?portfolio(?:\.html)?)(?:\/[A-Za-z0-9_-]+)?\/?$/);
     if (m) return (m[1] || '') + (m[2] || '');
   } catch {}
   return null;
