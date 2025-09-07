@@ -37,8 +37,7 @@
     }
     h1 { margin: 0; font-size: 1.1rem; letter-spacing: .3px; }
     .muted { color: var(--muted); font-size: .9rem; }
-    .row { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; }
-    @media (max-width: 720px) { .row { grid-template-columns: 1fr; } }
+    .row { display: grid; gap: 12px; grid-template-columns: 1fr; }
     .section { padding: 16px 18px; }
     label { display: block; font-size: .9rem; color: var(--muted); margin: 8px 0 6px; }
     input[type="text"], input[type="number"], input[type="url"] {
@@ -68,8 +67,7 @@
     // Function URL for the sentence finder Lambda
     const DEFAULT_URL = "https://7aa3jt3tzkinheprc5ds52bihq0itutx.lambda-url.us-east-2.on.aws/"; // smart-sentence-finder
 
-    function lsGet(k, d="") { try { return localStorage.getItem(k) || d; } catch { return d; } }
-    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch {} }
+    
 
     async function health() {
       const url = getEndpoint();
@@ -88,34 +86,27 @@
     }
 
     function getEndpoint() {
-      return (document.getElementById('endpoint').value || DEFAULT_URL).trim();
+      return DEFAULT_URL;
     }
 
-    function buildCurl(query, top, dbg) {
-      const url = getEndpoint() + 'rank';
-      const hdr = dbg ? ` -H "x-debug-token: ${dbg}"` : '';
-      return `curl -sS -X POST \"${url}\" -H 'content-type: application/json'${hdr} -d '{"query":"${query.replace(/"/g, "\\\"")}","top":${top}}'`;
-    }
+    
 
     async function onSubmit(ev) {
       ev.preventDefault();
       const form = ev.currentTarget;
       const q = form.query.value.trim();
       const top = Math.max(1, Math.min(20, parseInt(form.top.value || '5', 10)));
-      const dbg = form.debug.value.trim();
       if (!q) return;
       form.submitBtn.disabled = true;
       form.submitBtn.textContent = 'Searching…';
       const url = getEndpoint() + 'rank';
       const headers = { 'content-type': 'application/json' };
-      if (dbg) headers['x-debug-token'] = dbg; // only for testing from non-allowed origins
       try {
         const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify({ query: q, top }) });
         const text = await res.text();
         if (!res.ok) throw new Error(text);
         const data = JSON.parse(text);
         renderResults(data);
-        document.getElementById('curl').textContent = buildCurl(q, top, dbg);
       } catch (e) {
         renderError(e);
       } finally {
@@ -167,19 +158,7 @@
       out.appendChild(box);
     }
 
-    function onSaveSettings() {
-      const ep = document.getElementById('endpoint').value.trim();
-      const dbg = document.getElementById('debug').value.trim();
-      if (ep) lsSet('ssf.endpoint', ep);
-      if (dbg) lsSet('ssf.debug', dbg);
-      health();
-    }
-
     function onLoad() {
-      const ep = lsGet('ssf.endpoint', DEFAULT_URL);
-      const dbg = lsGet('ssf.debug', '');
-      document.getElementById('endpoint').value = ep;
-      document.getElementById('debug').value = dbg;
       document.getElementById('form').addEventListener('submit', onSubmit);
       health();
     }
@@ -203,37 +182,20 @@
     </header>
     <div class="section">
       <div class="row">
-        <div>
-          <form id="form">
-            <label for="query">Your query</label>
-            <input id="query" name="query" type="text" placeholder="e.g., She wonders about things." required />
-            <div class="grid-2">
-              <div>
-                <label for="top">Top results (1–20)</label>
-                <input id="top" name="top" type="number" min="1" max="20" value="5" />
-              </div>
-              <div>
-                <label for="debug">Debug token (optional)</label>
-                <input id="debug" name="debug" type="text" placeholder="Only needed when testing off-domain" />
-              </div>
+        <form id="form">
+          <label for="query">Your query</label>
+          <input id="query" name="query" type="text" placeholder="e.g., She wonders about things." required />
+          <div class="grid-2">
+            <div>
+              <label for="top">Top results (1–20)</label>
+              <input id="top" name="top" type="number" min="1" max="20" value="5" />
             </div>
-            <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
-              <button type="submit" name="submitBtn" class="btn">Find Sentences</button>
-              <button type="button" class="btn btn-secondary" onclick="document.getElementById('query').value='She wonders about things.'">Use Example</button>
-            </div>
-          </form>
-        </div>
-        <div>
-          <label for="endpoint">Endpoint</label>
-          <input id="endpoint" type="url" placeholder="https://<your-lambda-url>/" />
-          <div style="margin-top:8px; display:flex; gap:10px;">
-            <button class="btn btn-secondary" onclick="onSaveSettings()">Save Settings</button>
-            <button class="btn btn-secondary" onclick="health()">Recheck Health</button>
           </div>
-          <div style="margin-top:16px;">
-            <div class="small">Use this page from danielshort.me to pass origin checks. For off-domain testing, set a debug token and send it as x-debug-token.</div>
+          <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+            <button type="submit" name="submitBtn" class="btn">Find Sentences</button>
+            <button type="button" class="btn btn-secondary" onclick="document.getElementById('query').value='She wonders about things.'">Use Example</button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
     <div class="section">
@@ -241,10 +203,7 @@
         <div class="small">Results will appear here.</div>
       </div>
     </div>
-    <div class="footer">
-      <div class="small">cURL (for debugging)</div>
-      <code id="curl">curl …</code>
-    </div>
+    
   </div>
 </body>
 </html>
