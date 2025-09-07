@@ -133,7 +133,7 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
   ].forEach(evalScript);
 
   // Basic structure across key pages
-  ['index.html','portfolio.html','contributions.html','contact.html','resume.html','404.html','privacy.html'].forEach(f => {
+  ['index.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','404.html','pages/privacy.html'].forEach(f => {
     checkFileContains(f, '<header id="combined-header-nav">');
     checkFileContains(f, '<main id="main"');
     checkFileContains(f, 'class="skip-link"');
@@ -213,6 +213,17 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
   assert(vercel.includes('Strict-Transport-Security'), 'vercel.json missing HSTS');
   // Also ensure /img cache header is present
   assert(vercel.includes('"source": "/img/(.*)"') || vercel.includes('"source": "/img/(.*)"'.replace(/\//g,'/')), 'vercel.json missing /img cache rule');
+  // Rewrites must be extensionless destinations (avoid cleanUrls redirect loops)
+  let vercelObj;
+  try { vercelObj = JSON.parse(vercel); } catch {}
+  const rewrites = (vercelObj && vercelObj.rewrites) || [];
+  assert(rewrites.length > 0, 'vercel.json missing rewrites');
+  const badDest = rewrites.filter(r => /\.html$/.test((r.destination||'')));
+  assert(badDest.length === 0, 'rewrite destinations must be extensionless to avoid loops');
+  // Ensure key rewrites exist
+  const hasPortfolio = rewrites.some(r => r.source === '/portfolio' && r.destination === '/pages/portfolio');
+  const hasPortfolioHtml = rewrites.some(r => r.source === '/portfolio.html' && r.destination === '/pages/portfolio');
+  assert(hasPortfolio && hasPortfolioHtml, 'portfolio rewrites missing');
 
   // Chatbot demo should tolerate backend startup delays up to ten minutes
   const chatbotHtml = fs.readFileSync('demos/chatbot-demo.html', 'utf8');
@@ -259,6 +270,20 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
   checkFileContains('pages/portfolio.html', 'id="filter-menu"');
   checkFileContains('pages/portfolio.html', 'id="projects"');
   checkFileContains('pages/portfolio.html', 'id="modals"');
+  checkFileContains('pages/portfolio.html', 'id="see-more"');
+
+  // Moved pages/demos should include a base href for asset resolution
+  ['pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html','pages/resume.html',
+   'demos/chatbot-demo.html','demos/shape-demo.html','demos/sentence-demo.html']
+    .forEach(f => checkFileContains(f, '<base href="/">'));
+
+  // Sanity: Avoid accidental client-side redirect loops on pages (exclude 404)
+  ;['pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html','pages/resume.html']
+    .forEach(f => {
+      const html = fs.readFileSync(f,'utf8');
+      if (/http-equiv\s*=\s*"refresh"/i.test(html)) throw new Error(f+': should not use meta refresh');
+      if (/location\.replace\(/.test(html)) throw new Error(f+': should not call location.replace');
+    });
 
   // Contact modal and resume embed present
   checkFileContains('pages/contact.html', 'id="contact-modal"');
