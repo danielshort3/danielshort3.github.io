@@ -313,6 +313,10 @@ window.PROJECTS = [
       { icon: "img/icons/pdf-icon.png",    url: "documents/Project_13.pdf",                              label: "PDF"    },
       { icon: "img/icons/jupyter-icon.png",url: "documents/Project_13.ipynb",                            label: "Notebook"}
     ],
+    embed : {
+      type : "iframe",
+      url  : "sentence-demo.html"
+    },
     problem : "I wanted to have a quick way of finding relevant information from documents based on semantics, not exact wording.",
     actions : [
       "Extracted popular texts into sentences from popular open-source texts such as Alice in Wonderland.",
