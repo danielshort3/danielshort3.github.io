@@ -14,9 +14,7 @@ function checkFileContains(file, text) {
   assert(content.includes(text), `${file} missing expected text: ${text}`);
 }
 
-// Evaluate a script in a minimal browser-like context
-function evalScript(file) {
-  const code = fs.readFileSync(file, 'utf8');
+function createEnv() {
   const env = {
     window: {},
     document: {
@@ -45,8 +43,15 @@ function evalScript(file) {
   env.window.requestAnimationFrame = env.requestAnimationFrame;
   env.window.performance = env.performance;
   env.window.document = env.document;
-  vm.runInNewContext(code, env, { filename: file });
   return env;
+}
+
+// Evaluate a script in a minimal browser-like context
+function evalScript(file, env) {
+  const code = fs.readFileSync(file, 'utf8');
+  const context = env || createEnv();
+  vm.runInNewContext(code, context, { filename: file });
+  return context;
 }
 
 try {
@@ -63,6 +68,12 @@ checkFileContains('pages/contact.html', '<title>Contact │ Daniel Short');
 });
 assert(fs.existsSync('robots.txt'), 'robots.txt missing');
 assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
+
+  // Ensure modal helper is loaded where needed and heavy portfolio bundle stays off the home page
+  checkFileContains('index.html', 'js/portfolio/modal-helpers.js');
+  checkFileContains('pages/portfolio.html', 'js/portfolio/modal-helpers.js');
+  const homeHtml = fs.readFileSync('index.html', 'utf8');
+  assert(!homeHtml.includes('js/portfolio/portfolio.js'), 'index.html should not load portfolio.js');
 
   // Data files expose arrays
   let env = evalScript('js/portfolio/projects-data.js');
@@ -127,10 +138,10 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
     'js/navigation/navigation.js',
     'js/animations/animations.js',
     'js/forms/contact.js',
-    'js/portfolio/portfolio.js',
+    'js/portfolio/modal-helpers.js',
     'js/contributions/contributions.js',
     'js/contributions/carousel.js'
-  ].forEach(evalScript);
+  ].forEach(file => evalScript(file));
 
   // Basic structure across key pages
   ['index.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','404.html','pages/privacy.html'].forEach(f => {
@@ -170,9 +181,11 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
   assert(typeof ga.window.gaEvent === 'function', 'gaEvent not exposed');
 
   // Portfolio helpers surface functions without DOM
-  const portfolioEnv = evalScript('js/portfolio/portfolio.js');
+  let portfolioEnv = evalScript('js/portfolio/modal-helpers.js');
+  portfolioEnv = evalScript('js/portfolio/portfolio.js', portfolioEnv);
   assert(typeof portfolioEnv.window.openModal === 'function', 'openModal not defined');
   assert(typeof portfolioEnv.window.closeModal === 'function', 'closeModal not defined');
+  assert(typeof portfolioEnv.window.generateProjectModal === 'function', 'generateProjectModal not defined');
 
   // Data contracts: PROJECTS and contributions have unique IDs/titles
   const pdata = evalScript('js/portfolio/projects-data.js');
@@ -305,7 +318,8 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
          'PrivacyConfig missing GA4 vendor id');
 
   // Portfolio URL parsing should support both ?project= and #hash formats
-  let pEnv = evalScript('js/portfolio/portfolio.js');
+  let pEnv = evalScript('js/portfolio/modal-helpers.js');
+  pEnv = evalScript('js/portfolio/portfolio.js', pEnv);
   // 1) query param format
   pEnv.location.search = '?project=chatbotLora';
   pEnv.location.hash = '';
