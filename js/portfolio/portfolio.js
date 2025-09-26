@@ -1,390 +1,38 @@
 /* portfolio.js - Build portfolio UI components. Project data now lives in projects-data.js */
 
-// ---- Modal focus management (shared) ---------------------------------
-let __modalPrevFocus = null;
-let __srStatus = null;
-function srStatus(){
-  if (__srStatus) return __srStatus;
-  const el = document.createElement('div');
-  el.id = 'sr-status';
-  el.setAttribute('role','status');
-  el.setAttribute('aria-live','polite');
-  el.setAttribute('aria-atomic','true');
-  el.style.position = 'absolute';
-  el.style.left = '-9999px';
-  el.style.width = '1px';
-  el.style.height = '1px';
-  el.style.overflow = 'hidden';
-  document.body.appendChild(el);
-  __srStatus = el;
-  return __srStatus;
-}
-function trapFocus(modalEl){
-  const focusables = modalEl.querySelectorAll('a,button,input,textarea,select,[tabindex]:not([tabindex="-1"])');
-  if (!focusables.length) return;
-  const first = focusables[0], last = focusables[focusables.length - 1];
-  modalEl.addEventListener('keydown', modalEl._trap = (e) => {
-    if (e.key !== 'Tab') return;
-    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-  });
-}
-function untrapFocus(modalEl){
-  if (modalEl._trap) modalEl.removeEventListener('keydown', modalEl._trap);
-}
+const getSrStatus = typeof window.getSrStatusNode === 'function'
+  ? window.getSrStatusNode
+  : (function () {
+      let el = null;
+      return function () {
+        if (el) return el;
+        el = document.createElement('div');
+        el.id = 'sr-status';
+        el.setAttribute('role', 'status');
+        el.setAttribute('aria-live', 'polite');
+        el.setAttribute('aria-atomic', 'true');
+        el.style.position = 'absolute';
+        el.style.left = '-9999px';
+        el.style.width = '1px';
+        el.style.height = '1px';
+        el.style.overflow = 'hidden';
+        document.body.appendChild(el);
+        return el;
+      };
+    })();
 
-// Show <video> and hide GIF fallback once video can play (more robust on iOS)
-function activateGifVideo(container){
-  const vid = container && container.querySelector && container.querySelector('video.gif-video');
-  if (!vid) return;
-
-  // Ensure autoplay requirements on iOS and promote stable playback
-  try {
-    vid.muted = true;
-    vid.autoplay = true;
-    vid.playsInline = true;
-    vid.setAttribute('muted', '');
-    vid.setAttribute('autoplay', '');
-    vid.setAttribute('playsinline', '');
-  } catch {}
-
-  const showVideo = () => {
-    vid.style.display = 'block';
-    const next = vid.nextElementSibling;
-    if (next && (next.tagName === 'IMG' || next.tagName === 'PICTURE')) next.style.display = 'none';
-    try { vid.play && vid.play().catch(() => {}); } catch {}
-  };
-
-  // If the first frame is already available, reveal immediately
-  if (vid.readyState >= 2) {
-    showVideo();
-  } else {
-    // Bind multiple events to cover Safari’s variability
-    ['loadeddata','canplay','canplaythrough','playing'].forEach(evt => {
-      vid.addEventListener(evt, showVideo, { once: true });
-    });
-  }
-}
-
-// Ensure a global close helper exists
-// Helper: compute the canonical portfolio base path on this host
-function portfolioBasePath() {
-  try {
-    const path = location.pathname || '';
-    // Capture optional repo prefix + '/portfolio' (with optional 'pages/' and '.html'), strip trailing '/:id'
-    const m = path.match(/^(.*?)(\/(?:pages\/)?portfolio(?:\.html)?)(?:\/[A-Za-z0-9_-]+)?\/?$/);
-    if (m) return (m[1] || '') + (m[2] || '');
-  } catch {}
-  return null;
-}
-
-if (typeof window.closeModal !== 'function') {
-  window.closeModal = function(id){
-    const modal = document.getElementById(`${id}-modal`) || document.getElementById(id);
-    if (!modal) return;
-    modal.classList.remove('active');
-    document.body.classList.remove('modal-open');
-    untrapFocus(modal);
-    if (__modalPrevFocus) { __modalPrevFocus.focus(); __modalPrevFocus = null; }
-    window.trackModalClose && window.trackModalClose(id);
-    try {
-      const p = (window.PROJECTS || []).find(x => x.id === id);
-      if (p) srStatus().textContent = `Closed: ${p.title}`;
-    } catch {}
-
-    // If we are on the portfolio page and using clean URLs, restore base path
-    try {
-      const base = portfolioBasePath();
-      if (base && history && history.replaceState) {
-        history.replaceState(null, '', base);
-      } else if (location.hash) {
-        location.hash = '';
-      }
-    } catch {}
-  };
-}
-
-// Ensure a global open helper exists
-if (typeof window.openModal !== 'function') {
-  window.openModal = function(id){
-    const modal = document.getElementById(`${id}-modal`) || document.getElementById(id);
-    if (!modal) return;
-    __modalPrevFocus = document.activeElement;
-    modal.classList.add('active');
-    document.body.classList.add('modal-open');
-    const content = modal.querySelector('.modal-content') || modal;
-    content.focus({preventScroll:true});
-    trapFocus(content);
-
-    // Lazy-assign iframe src for heavy embeds
-    const ifr = modal.querySelector('.modal-embed iframe');
-    if (ifr) {
-      // 1) Simple iframe with data-src
-      if (ifr.dataset.src && !ifr.src) {
-        ifr.src = ifr.dataset.src;
-      }
-      // 2) Tableau iframe with data-base → compute device-specific URL
-      if (ifr.dataset.base && !ifr.src) {
-        const isPhone = window.matchMedia && window.matchMedia('(max-width:768px)').matches;
-        const base = ifr.dataset.base;
-        const src  = `${base}?${[":embed=y",":showVizHome=no",`:device=${isPhone ? 'phone' : 'desktop'}`].join('&')}`;
-        ifr.src = src;
-      }
-
-      // Resize iframe to its content when it finishes loading
-      if (!ifr._resizeBound) {
-        ifr._resizeBound = true;
-        ifr.addEventListener('load', () => {
-          try { resizeIframeToContent(ifr); } catch {}
-          // fonts/layout can shift height; remeasure shortly after
-          setTimeout(() => { try { resizeIframeToContent(ifr); } catch {} }, 50);
-          setTimeout(() => { try { resizeIframeToContent(ifr); } catch {} }, 350);
-          try { ifr.contentWindow?.document?.fonts?.ready?.then(() => resizeIframeToContent(ifr)); } catch {}
-        }, { once: false });
-      }
-    }
-
-    try {
-      const p = (window.PROJECTS || []).find(x => x.id === id);
-      if (p) srStatus().textContent = `Opened: ${p.title}`;
-    } catch {}
-
-    // Prefer clean URL: /portfolio/<id> when on the portfolio page
-    try {
-      const base = portfolioBasePath();
-      if (base && history && history.replaceState) {
-        const url = `${base}?project=${encodeURIComponent(id)}`;
-        history.replaceState(null, '', url);
-      }
-    } catch {}
-
-    // Wire up copy-link button with clipboard + toast
-    const copyBtn = modal.querySelector('.modal-copy');
-    if (copyBtn && !copyBtn._bound) {
-      copyBtn._bound = true;
-      copyBtn.addEventListener('click', async () => {
-        // Share the pretty URL when possible
-        let url;
-        try {
-          const origin = location.origin || '';
-          const base = portfolioBasePath() || '/portfolio.html';
-          const href = `${origin}${base}?project=${encodeURIComponent(id)}`;
-          url = new URL(href);
-        } catch {
-          // Robust hash fallback if URL constructor/origin is unavailable
-          const href = (location.href || '').split('#')[0] + `?project=${encodeURIComponent(id)}`;
-          try { url = new URL(href); } catch { url = { toString: () => href }; }
-        }
-        let ok = false;
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          try { await navigator.clipboard.writeText(url.toString()); ok = true; } catch {}
-        }
-        if (!ok) {
-          // Fallback
-          const ta = document.createElement('textarea');
-          ta.value = url.toString();
-          ta.style.position = 'fixed';
-          ta.style.left = '-9999px';
-          document.body.appendChild(ta);
-          ta.focus(); ta.select();
-          try { document.execCommand('copy'); ok = true; } catch {}
-          document.body.removeChild(ta);
-        }
-        // Toast feedback + SR status
-        const toast = modal.querySelector('.modal-toast') || (() => {
-          const t = document.createElement('div');
-          t.className = 'modal-toast';
-          t.setAttribute('role','status');
-          t.setAttribute('aria-live','polite');
-          modal.querySelector('.modal-content').appendChild(t);
-          return t;
-        })();
-        toast.textContent = ok ? 'Link copied' : 'Copy failed';
-        toast.classList.add('show');
-        srStatus().textContent = ok ? 'Link copied to clipboard' : 'Copy to clipboard failed';
-        setTimeout(() => toast.classList.remove('show'), 1400);
-      });
-    }
-  };
-}
-
-// Helper: set an iframe's height to match its document height (same-origin only)
-function resizeIframeToContent(ifr){
-  if (!ifr) return;
-  const doc = ifr.contentDocument || ifr.contentWindow?.document;
-  if (!doc) return;
-  const b  = doc.body;
-  const de = doc.documentElement;
-  const h = Math.max(
-    b ? b.scrollHeight : 0,
-    b ? b.offsetHeight : 0,
-    de ? de.clientHeight : 0,
-    de ? de.scrollHeight : 0,
-    de ? de.offsetHeight : 0
-  );
-  if (h > 0) {
-    ifr.style.height = `${h}px`;
-  }
-}
-
-// Listen for resize notifications from embedded demos and adjust their iframe
-window.addEventListener('message', (e) => {
-  const data = e && e.data || {};
-  const t = typeof data?.type === 'string' ? data.type : '';
-  if (!t) return;
-  // Supported: chatbot-demo-resize, shape-demo-resize, sentence-demo-resize
-  if (!/(chatbot|shape|sentence)-demo-resize/.test(t)) return;
-  try {
-    const ifrs = document.querySelectorAll('.modal-embed iframe');
-    for (const f of ifrs) {
-      if (f.contentWindow === e.source) {
-        const h = typeof data.height === 'number' && isFinite(data.height) ? Math.max(0, Math.floor(data.height)) : null;
-        if (h) f.style.height = `${h}px`;
-        else resizeIframeToContent(f);
-        break;
-      }
-    }
-  } catch {}
+const srStatus = () => getSrStatus();
+const activateGifVideo = window.activateGifVideo || (() => {});
+const projectMedia = window.projectMedia || ((p = {}) => {
+  if (!p.image) return '';
+  return `<img src="${p.image}" alt="${p.title || ''}" loading="lazy" decoding="async" draggable="false">`;
 });
 
-// Close on ESC for any open modal
-document.addEventListener('keydown', (e) => {
-  const open = document.querySelector('.modal.active');
-  if (e.key === 'Escape') {
-    if (open) {
-      const id = open.id?.replace('-modal','') || 'modal';
-      window.closeModal(id);
-    }
-    return;
-  }
-
-  // Arrow-key navigation between project modals (desktop-friendly)
-  if (!open) return;
-  if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-    const id = open.id?.replace(/-modal$/, '');
-    if (!id || !Array.isArray(window.PROJECTS)) return;
-    const idx = window.PROJECTS.findIndex(p => p.id === id);
-    if (idx < 0) return; // not a project modal (e.g., contact modal)
-    const nextIdx = e.key === 'ArrowRight'
-      ? (idx + 1) % window.PROJECTS.length
-      : (idx - 1 + window.PROJECTS.length) % window.PROJECTS.length;
-    window.closeModal(id);
-    window.openModal(window.PROJECTS[nextIdx].id);
-    e.preventDefault();
-  }
-});
-
-const projectMedia = (p) => {
-  const hasVideo = !!(p.videoWebm || p.videoMp4);
-
-  const img = (() => {
-    const src = p.image || '';
-    const lower = src.toLowerCase();
-    const webp = lower.endsWith('.png') ? src.replace(/\.png$/i, '.webp')
-               : lower.endsWith('.jpg') ? src.replace(/\.jpg$/i, '.webp')
-               : lower.endsWith('.jpeg') ? src.replace(/\.jpeg$/i, '.webp')
-               : null;
-    if (webp) {
-      return `<picture>
-        <source srcset="${webp}" type="image/webp">
-        <img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false">
-      </picture>`;
-    }
-    return `<img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false">`;
-  })();
-
-  if (!hasVideo) return img;
-
-  // Prefer MP4 first for iOS Safari reliability; keep WebM as secondary
-  const mp4  = p.videoMp4  ? `<source src="${p.videoMp4}" type="video/mp4">`   : '';
-  const webm = p.videoWebm ? `<source src="${p.videoWebm}" type="video/webm">` : '';
-  return `
-    <video class="gif-video" muted playsinline loop autoplay preload="metadata" aria-label="${p.title}" draggable="false">
-      ${mp4}
-      ${webm}
-    </video>
-    ${img}`;
-};
-
-window.generateProjectModal = function (p) {
-  const isTableau = p.embed?.type === "tableau";
-  const isIframe  = p.embed?.type === "iframe";
-
-  /* helper – which Tableau layout should load right now? */
-  const tableauDevice = () =>
-    window.matchMedia("(max-width:768px)").matches ? "phone" : "desktop";
-
-  /* build the right-hand visual (image, iframe, or Tableau) */
-  const visual = (() => {
-    if (isIframe) {
-      return `
-        <div class="modal-embed">
-          <iframe data-src="${p.embed.url}" loading="lazy"></iframe>
-        </div>`;
-    }
-
-    if (!isTableau) {
-      return `
-        <div class="modal-image">
-          ${projectMedia(p)}
-        </div>`;
-    }
-
-    /* use the clean, param-free URL you stored as p.embed.base */
-    const base = p.embed.base || p.embed.url;   // fall back if needed
-    const src  = `${base}?${[
-      ":embed=y",
-      ":showVizHome=no",
-      `:device=${tableauDevice()}`
-    ].join("&")}`;
-
-    return `
-      <div class="modal-embed tableau-fit">
-        <iframe
-          loading="lazy"
-          allowfullscreen
-          data-base="${base}"></iframe>
-      </div>`;
-  })();
-
-  /* full modal template ------------------------------------------------ */
-  return `
-    <div class="modal-content ${ (isTableau || isIframe) ? 'modal-wide' : '' }" role="dialog" aria-modal="true" tabindex="0" aria-labelledby="${p.id}-title">
-      <button class="modal-copy" type="button" aria-label="Copy link to this project">Copy link</button>
-      <button class="modal-close" aria-label="Close dialog">&times;</button>
-      <div class="modal-title-strip"><h3 class="modal-title" id="${p.id}-title">${p.title}</h3></div>
-
-      <div class="modal-body ${isTableau ? "stacked" : ""}">
-        <div class="modal-header-details">
-          <div class="modal-half">
-            <p class="header-label">Tools</p>
-            <div class="tool-badges">
-              ${p.tools.map(t => `<span class="badge">${t}</span>`).join("")}
-            </div>
-          </div>
-          <div class="modal-divider" aria-hidden="true"></div>
-          <div class="modal-half">
-            <p class="header-label">Downloads / Links</p>
-            <div class="icon-row">
-              ${p.resources.map(r => `
-                <a href="${r.url}" target="_blank" rel="noopener" title="${r.label}">
-                  <img src="${r.icon}" alt="${r.label}" class="icon" width="30" height="30">
-                </a>`).join("")}
-            </div>
-          </div>
-        </div>
-
-        <div class="modal-text">
-          <p class="modal-subtitle">${p.subtitle}</p>
-          <h4>Problem</h4><p>${p.problem}</p>
-          <h4>Action</h4><ul>${p.actions.map(a => `<li>${a}</li>`).join("")}</ul>
-          <h4>Result</h4><ul>${p.results.map(r => `<li>${r}</li>`).join("")}</ul>
-        </div>
-
-        ${visual}
-      </div>
-    </div>`;
-};
+const hasModalHelpers = typeof window.openModal === 'function' && typeof window.generateProjectModal === 'function';
+if (!hasModalHelpers) {
+  console.warn('modal-helpers.js was not loaded before portfolio.js; modal interactions will be limited.');
+}
+const openModal = hasModalHelpers ? window.openModal.bind(window) : () => {};
 
 /* ────────────────────────────────────────────────────────────
    Portfolio Carousel (top of page) – no wrap-around version
@@ -654,10 +302,10 @@ function initSeeMore(){
     if (!allBtn) return;
     [...menu.children].forEach(b => {
       b.classList.replace("btn-primary", "btn-secondary");
-      b.setAttribute("aria-selected", "false");
+      b.setAttribute("aria-pressed", "false");
     });
     allBtn.classList.replace("btn-secondary", "btn-primary");
-    allBtn.setAttribute("aria-selected", "true");
+    allBtn.setAttribute("aria-pressed", "true");
     [...grid.children].forEach(c => c.classList.remove("hide"));
   };
   btn.addEventListener("click", () => {
@@ -821,6 +469,7 @@ function buildPortfolio() {
     return n;
   };
 
+const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 (() => {
   const mq = window.matchMedia("(max-width:768px)");
   const updateIframes = () => {
@@ -841,40 +490,14 @@ function buildPortfolio() {
   /* ➊ Build cards & modals ----------------------------------------- */
   window.PROJECTS.forEach((p, i) => {
     /* card */
-    const media2 = (() => {
-      const hasVideo = !!(p.videoWebm || p.videoMp4);
-      const img = (() => {
-        const src = p.image || '';
-        const lower = src.toLowerCase();
-        const webp = lower.endsWith('.png') ? src.replace(/\.png$/i, '.webp')
-                   : lower.endsWith('.jpg') ? src.replace(/\.jpg$/i, '.webp')
-                   : lower.endsWith('.jpeg') ? src.replace(/\.jpeg$/i, '.webp')
-                   : null;
-        if (webp) {
-          return `<picture>
-            <source srcset="${webp}" type="image/webp">
-            <img src="${src}" alt="${p.title}" loading="lazy" decoding="async">
-          </picture>`;
-        }
-        return `<img src="${src}" alt="${p.title}" loading="lazy" decoding="async">`;
-      })();
-      if (!hasVideo) return img;
-      const mp4  = p.videoMp4  ? `<source src="${p.videoMp4}" type="video/mp4">`   : '';
-      const webm = p.videoWebm ? `<source src="${p.videoWebm}" type="video/webm">` : '';
-      return `
-        <video class="gif-video" muted playsinline loop autoplay preload="metadata">
-          ${mp4}
-          ${webm}
-        </video>
-        ${img}`;
-    })();
+    const mediaMarkup = projectMedia(p);
     const card = el("button", "project-card", `
       <div class="overlay"></div>
       <div class="project-text">
         <div class="project-title">${p.title}</div>
         <div class="project-subtitle">${p.subtitle}</div>
       </div>
-      ${media2}`);
+      ${mediaMarkup}`);
     card.type = "button";
     card.setAttribute("aria-label", `View details of ${p.title}`);
     card.dataset.index = i;
@@ -899,7 +522,7 @@ function buildPortfolio() {
 
   /* ── auto-scroll to first card once it fades in (mobile only) ── */
   const isMobileInitial = window.matchMedia("(max-width: 768px)").matches;
-  if (isMobileInitial) {
+  if (isMobileInitial && !reduceMotion) {
     const first = grid.firstElementChild;
     if (first) {
       const offset =
@@ -921,6 +544,7 @@ function buildPortfolio() {
   [...menu.children].forEach(btn => {
     const tag = btn.dataset.filter;
     btn.innerHTML = `${btn.textContent.trim()} ${(counts[tag] || 0)}/${counts.all}`;
+    btn.setAttribute('aria-pressed', btn.dataset.filter === 'all' ? 'true' : 'false');
   });
 
   /* ➍ Filter behaviour (fade-out → update → fade-in) --------------- */
@@ -930,10 +554,10 @@ function buildPortfolio() {
     /* button UI */
     [...menu.children].forEach(b => {
       b.classList.replace("btn-primary", "btn-secondary");
-      b.setAttribute("aria-selected", "false");
+      b.setAttribute("aria-pressed", "false");
     });
     e.target.classList.replace("btn-secondary", "btn-primary");
-    e.target.setAttribute("aria-selected", "true");
+    e.target.setAttribute("aria-pressed", "true");
 
     const tag   = e.target.dataset.filter;
     const start = grid.offsetHeight;
@@ -962,7 +586,7 @@ function buildPortfolio() {
 
         /* ─── ensure first visible card is flush on mobile ─── */
         const isMobileFilter = window.matchMedia("(max-width: 768px)").matches;
-        if (isMobileFilter) {
+        if (isMobileFilter && !reduceMotion) {
           const first = visible[0];
           if (first) {
             const offset =

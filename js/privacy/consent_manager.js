@@ -142,6 +142,17 @@
    * This stub always returns 'US'.
    */
   function getRegion() {
+    if (GLOBAL_CONF.region) return GLOBAL_CONF.region;
+    if (typeof window !== 'undefined' && window.PrivacyRegion) return window.PrivacyRegion;
+    try {
+      const nav = navigator || {};
+      const lang = (nav.languages && nav.languages[0]) || nav.language || '';
+      const lower = String(lang).toLowerCase();
+      if (!lower) return 'US';
+      if (lower.startsWith('en-gb')) return 'UK';
+      const euPrefixes = ['de', 'fr', 'es', 'it', 'pt', 'pl', 'cs', 'da', 'nl', 'sv', 'fi', 'no', 'sk', 'sl', 'ro', 'hu', 'bg', 'hr', 'lt', 'lv', 'et', 'el', 'ga', 'mt'];
+      if (euPrefixes.some(code => lower.startsWith(code))) return 'EU';
+    } catch {}
     return 'US';
   }
 
@@ -333,6 +344,18 @@
     const acceptBtn = banner.querySelector('#pcz-accept');
     const rejectBtn = banner.querySelector('#pcz-reject');
     const manageBtn = banner.querySelector('#pcz-manage');
+    const dismissBanner = () => {
+      if (!banner || banner.dataset.state === 'closing') return;
+      banner.dataset.state = 'closing';
+      banner.classList.add('pcz-exit');
+      const cleanup = () => {
+        banner.remove();
+      };
+      banner.addEventListener('transitionend', cleanup, { once: true });
+      banner.addEventListener('animationend', cleanup, { once: true });
+      setTimeout(cleanup, 450);
+      document.body.classList.remove('consent-blocked');
+    };
     // Focus trap within the banner while blocking is active
     const focusables = banner.querySelectorAll('a,button,[tabindex]:not([tabindex="-1"])');
     const first = focusables[0];
@@ -348,8 +371,7 @@
       const newState = { necessary: true, analytics: true, functional: true, advertising: true };
       saveConsent(newState);
       applyConsent(newState);
-      banner.remove();
-      document.body.classList.remove('consent-blocked');
+      dismissBanner();
     });
     rejectBtn.addEventListener('click', function () {
       const newState = { necessary: true, analytics: false, functional: false, advertising: false };
@@ -357,12 +379,11 @@
       if (hasGPC()) newState.advertising = false;
       saveConsent(newState);
       applyConsent(newState);
-      banner.remove();
-      document.body.classList.remove('consent-blocked');
+      dismissBanner();
     });
     manageBtn.addEventListener('click', function () {
       openPreferences(localeStrings, initialState, true);
-      banner.remove();
+      dismissBanner();
     });
   }
 

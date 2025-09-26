@@ -21,6 +21,7 @@
 
   function initSkillPopups(){
     if (!document.body.dataset.page?.includes('home')) return;
+    if (typeof window.generateProjectModal !== 'function' || typeof window.openModal !== 'function') return;
     const modalsRoot = $('#modals') || (()=>{ const d=document.createElement('div'); d.id='modals'; document.body.appendChild(d); return d;})();
     window.PROJECTS.forEach(p=>{
       if ($('#'+p.id+'-modal')) return;
@@ -31,19 +32,10 @@
       modalsRoot.appendChild(m);
     });
     $$('.skill-link').forEach(btn => {
-      // Make focusable
-      btn.setAttribute('tabindex','0');
-      // Activate on Enter/Space
-      btn.addEventListener('keydown', ev => {
-        if (ev.key === 'Enter' || ev.key === ' ') {
-          ev.preventDefault();
-          openModal(btn.dataset.project);
-        }
-      });
-      // Click still works
-      on(btn,'click', e => {
-        e.preventDefault();
-        openModal(btn.dataset.project);
+      if (btn.dataset.modalBound === 'yes') return;
+      btn.dataset.modalBound = 'yes';
+      on(btn,'click', () => {
+        if (btn.dataset.project) openModal(btn.dataset.project);
       });
     });
     try {
@@ -60,10 +52,6 @@
       if (location.hash && location.hash.length > 1) openModal(location.hash.slice(1));
     }
   }
-
-  document.addEventListener('DOMContentLoaded', ()=>{
-    if (window.buildPortfolio) run(initSkillPopups);
-  });
 
   // ---- Global modal close handlers (X button and backdrop) ----
   document.addEventListener('click', (e) => {

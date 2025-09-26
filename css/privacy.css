@@ -38,6 +38,9 @@ body.consent-blocked::before {
   background: var(--pcz-bg);
   padding: 16px;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+  transform: translateY(0);
+  opacity: 1;
+  transition: transform 0.35s ease, opacity 0.35s ease;
 }
 
 #pcz-banner .pcz-row {
@@ -130,6 +133,11 @@ body.consent-blocked::before {
 #pcz-modal .pcz-helper {
   font-size: 0.9rem;
   color: var(--text-muted);
+}
+
+#pcz-banner.pcz-exit {
+  opacity: 0;
+  transform: translateY(100%);
 }
 
 #pcz-banner :focus-visible,
