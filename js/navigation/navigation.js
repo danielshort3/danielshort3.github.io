@@ -8,138 +8,8 @@
   const $$ = (s, c=document) => [...c.querySelectorAll(s)];
   const PAGE_TRANSITION_DURATION = 240;
   const PAGE_TRANSITION_WAIT = PAGE_TRANSITION_DURATION + 40;
-  const HEAD_SYNC_SELECTORS = [
-    'meta[name="description"]',
-    'link[rel="canonical"]',
-    'meta[property^="og:"]',
-    'meta[name^="twitter:"]',
-    'script[type="application/ld+json"]'
-  ];
   let burgerButton = null;
   let navMenu = null;
-  let releaseMenuTrap = null;
-  const loadedScripts = new Set();
-
-  const resolveURL = (raw) => {
-    if (!raw) return '';
-    try { return new URL(raw, `${location.origin}/`).href; }
-    catch { return raw; }
-  };
-
-  const navKeyFromHref = (raw) => {
-    if (!raw) return 'index.html';
-    try {
-      const url = new URL(raw, `${location.origin}/`);
-      const path = url.pathname.replace(/^\/+/, '');
-      return path || 'index.html';
-    } catch {
-      const cleaned = String(raw).replace(/^\/+/, '');
-      return cleaned || 'index.html';
-    }
-  };
-
-  let currentViewKey = navKeyFromHref(location.pathname);
-
-  const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-  const markLoadedScripts = () => {
-    document.querySelectorAll('script[src]').forEach(script => {
-      const src = script.getAttribute('src');
-      if (!src) return;
-      loadedScripts.add(resolveURL(src));
-    });
-  };
-
-  const markSyncableHeadElements = () => {
-    HEAD_SYNC_SELECTORS.forEach(selector => {
-      document.head.querySelectorAll(selector).forEach(node => {
-        node.dataset.softSync = 'true';
-      });
-    });
-  };
-
-  const syncHeadElements = (doc) => {
-    if (!doc || !doc.head) return;
-    HEAD_SYNC_SELECTORS.forEach(selector => {
-      document.head
-        .querySelectorAll(`${selector}[data-soft-sync]`)
-        .forEach(node => node.remove());
-      doc.head.querySelectorAll(selector).forEach(node => {
-        const clone = node.cloneNode(true);
-        clone.dataset.softSync = 'true';
-        document.head.appendChild(clone);
-      });
-    });
-  };
-
-  const extractScriptDescriptors = (doc) => {
-    if (!doc) return [];
-    return [...doc.querySelectorAll('script[src]')].map(script => ({
-      src: script.getAttribute('src'),
-      attrs: [...script.attributes].map(attr => ({ name: attr.name, value: attr.value }))
-    }));
-  };
-
-  const loadScriptsSequential = async (scriptDescriptors) => {
-    for (const descriptor of scriptDescriptors) {
-      if (!descriptor.src) continue;
-      const resolved = resolveURL(descriptor.src);
-      if (loadedScripts.has(resolved)) continue;
-      await new Promise((resolve, reject) => {
-        const el = document.createElement('script');
-        descriptor.attrs.forEach(attr => el.setAttribute(attr.name, attr.value));
-        el.addEventListener('load', () => { loadedScripts.add(resolved); resolve(); });
-        el.addEventListener('error', reject);
-        document.head.appendChild(el);
-      });
-    }
-  };
-
-  const setActiveNavLink = (key) => {
-    $$('.nav-link').forEach(link => {
-      const match = navKeyFromHref(link.getAttribute('href'));
-      const active = match === key;
-      link.classList.toggle('btn-primary', active);
-      link.classList.toggle('btn-secondary', !active);
-      if (active) link.setAttribute('aria-current', 'page');
-      else link.removeAttribute('aria-current');
-    });
-    currentViewKey = key;
-  };
-
-  const closeMenu = () => {
-    if (typeof releaseMenuTrap === 'function') {
-      releaseMenuTrap();
-      return;
-    }
-    if (navMenu) navMenu.classList.remove('open');
-    if (burgerButton) burgerButton.setAttribute('aria-expanded', 'false');
-    document.body.classList.remove('menu-open');
-  };
-
-  const syncBodyState = (sourceBody) => {
-    if (!sourceBody) return;
-    const hadTransition = document.body.classList.contains('page-transition-enabled');
-    document.body.className = sourceBody.className || '';
-    if (hadTransition) document.body.classList.add('page-transition-enabled');
-    if (sourceBody.dataset && sourceBody.dataset.page) {
-      document.body.dataset.page = sourceBody.dataset.page;
-    } else {
-      delete document.body.dataset.page;
-    }
-  };
-
-  const focusMain = (mainEl) => {
-    if (!mainEl) return;
-    const previous = mainEl.getAttribute('tabindex');
-    mainEl.setAttribute('tabindex', '-1');
-    try {
-      mainEl.focus({ preventScroll: true });
-    } catch {}
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-    if (previous !== null) mainEl.setAttribute('tabindex', previous);
-    else mainEl.removeAttribute('tabindex');
-  };
   document.addEventListener('DOMContentLoaded', () => {
     injectNav();
     initPageTransitions();
@@ -183,7 +53,13 @@
           </div>
         </div>
       </nav>`;
-    setActiveNavLink(navKeyFromHref(location.pathname));
+    const cur = location.pathname.split('/').pop() || 'index.html';
+    $$('.nav-link').forEach(l=>{
+      if(l.getAttribute('href')===cur){
+        l.classList.replace('btn-secondary','btn-primary');
+        l.setAttribute('aria-current','page');
+      }
+    });
     burgerButton = host.querySelector('#nav-toggle');
     navMenu = host.querySelector('#primary-menu');
     const burger = burgerButton;
@@ -226,14 +102,6 @@
           if (prevFocus) { prevFocus.focus(); prevFocus = null; }
         }
       });
-      releaseMenuTrap = () => {
-        menu.classList.remove('open');
-        burger.setAttribute('aria-expanded', 'false');
-        document.body.classList.remove('menu-open');
-        document.removeEventListener('keydown', trapKeydown);
-        if (prevFocus) { prevFocus.focus(); prevFocus = null; }
-        releaseMenuTrap = null;
-      };
     }
   }
   function initPageTransitions(){
@@ -243,11 +111,6 @@
     body.classList.add('page-transition-enabled');
 
     const prefersReduced = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const supportsSoft = 'fetch' in window && typeof DOMParser !== 'undefined' && window.history && typeof window.history.pushState === 'function';
-
-    markSyncableHeadElements();
-    markLoadedScripts();
-
     const playEntry = () => {
       if (prefersReduced) return;
       body.classList.add('page-transition-enter');
@@ -269,109 +132,35 @@
       if (!prefersReduced && event.persisted) playEntry();
     });
 
-    const navigate = async (href, { replace = false } = {}) => {
-      if (isNavigating) return;
-      const url = new URL(href, location.href);
-      const targetKey = navKeyFromHref(url.pathname);
-      if (currentViewKey === targetKey && url.hash === location.hash && url.search === location.search) {
-        setActiveNavLink(targetKey);
-        return;
-      }
-      isNavigating = true;
-      closeMenu();
+    if (!links.length || prefersReduced) return;
 
-      if (!prefersReduced) body.classList.add('page-transition-exit');
-      body.setAttribute('aria-busy', 'true');
+    links.forEach(link => {
+      if (link.dataset.transitionBound === 'yes') return;
+      link.dataset.transitionBound = 'yes';
+      link.addEventListener('click', (event) => {
+        if (isNavigating || event.defaultPrevented) return;
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+        if (link.target && link.target !== '_self') return;
+        const href = link.getAttribute('href');
+        if (!href || href.startsWith('#')) return;
+        const current = location.pathname.split('/').pop() || 'index.html';
+        if (href === current) return;
 
-      if (!supportsSoft) {
-        window.setTimeout(() => { window.location.href = url.href; }, prefersReduced ? 0 : PAGE_TRANSITION_WAIT);
-        return;
-      }
+        event.preventDefault();
+        isNavigating = true;
 
-      const success = await performSoftNavigation(url, { replace });
-      if (!success) {
-        window.location.href = url.href;
-      }
-    };
+        if (navMenu) navMenu.classList.remove('open');
+        if (burgerButton) burgerButton.setAttribute('aria-expanded', 'false');
+        document.body.classList.remove('menu-open');
 
-    const performSoftNavigation = async (url, { replace = false } = {}) => {
-      try {
-        const response = await fetch(url.href, {
-          credentials: 'same-origin',
-          headers: { 'X-Requested-With': 'fetch' }
-        });
-        if (!response.ok) return false;
-        const html = await response.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const nextMain = doc.querySelector('#main');
-        const currentMain = $('#main');
-        if (!nextMain || !currentMain) return false;
+        body.classList.add('page-transition-exit');
+        body.setAttribute('aria-busy', 'true');
 
-        const scriptsToLoad = extractScriptDescriptors(doc);
-
-        if (!prefersReduced) await wait(PAGE_TRANSITION_WAIT);
-
-        const importedMain = document.importNode(nextMain, true);
-        currentMain.replaceWith(importedMain);
-
-        const nextFooter = doc.querySelector('footer');
-        const currentFooter = document.querySelector('footer');
-        if (nextFooter && currentFooter) {
-          currentFooter.replaceWith(document.importNode(nextFooter, true));
-          injectFooter();
-        }
-
-        syncBodyState(doc.body);
-        syncHeadElements(doc);
-        document.title = doc.title || document.title;
-
-        await loadScriptsSequential(scriptsToLoad);
-
-        const newUrl = url.pathname + url.search + url.hash;
-        if (replace && history.replaceState) history.replaceState({}, doc.title, newUrl);
-        else if (!replace && history.pushState) history.pushState({}, doc.title, newUrl);
-
-        setActiveNavLink(navKeyFromHref(url.pathname));
-        focusMain(importedMain);
-        if (typeof window.runPageEntrypoints === 'function') window.runPageEntrypoints();
-
-        body.classList.remove('page-transition-exit');
-        if (!prefersReduced) playEntry();
-        body.removeAttribute('aria-busy');
-        isNavigating = false;
-        setTimeout(() => { setNavHeight(); }, 0);
-        return true;
-      } catch (error) {
-        console.error('Soft navigation failed', error);
-        body.classList.remove('page-transition-exit');
-        body.removeAttribute('aria-busy');
-        isNavigating = false;
-        return false;
-      }
-    };
-
-    if (links.length) {
-      links.forEach(link => {
-        if (link.dataset.transitionBound === 'yes') return;
-        link.dataset.transitionBound = 'yes';
-        link.addEventListener('click', (event) => {
-          if (isNavigating || event.defaultPrevented) return;
-          if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
-          if (link.target && link.target !== '_self') return;
-          const href = link.getAttribute('href');
-          if (!href || href.startsWith('#')) return;
-          event.preventDefault();
-          navigate(link.href);
-        });
+        window.setTimeout(() => {
+          window.location.href = href;
+        }, PAGE_TRANSITION_WAIT);
       });
-    }
-
-    if (supportsSoft) {
-      window.addEventListener('popstate', () => {
-        navigate(location.href, { replace: true });
-      });
-    }
+    });
   }
   function injectFooter(){
     const f = $('footer');
