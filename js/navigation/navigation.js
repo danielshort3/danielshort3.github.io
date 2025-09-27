@@ -6,8 +6,13 @@
   'use strict';
   const $  = (s, c=document) => c.querySelector(s);
   const $$ = (s, c=document) => [...c.querySelectorAll(s)];
+  const PAGE_TRANSITION_DURATION = 240;
+  const PAGE_TRANSITION_WAIT = PAGE_TRANSITION_DURATION + 40;
+  let burgerButton = null;
+  let navMenu = null;
   document.addEventListener('DOMContentLoaded', () => {
     injectNav();
+    initPageTransitions();
     injectFooter();
     setNavHeight();
     window.addEventListener('load', setNavHeight);
@@ -55,8 +60,10 @@
         l.setAttribute('aria-current','page');
       }
     });
-    const burger = host.querySelector('#nav-toggle');
-    const menu   = host.querySelector('#primary-menu');
+    burgerButton = host.querySelector('#nav-toggle');
+    navMenu = host.querySelector('#primary-menu');
+    const burger = burgerButton;
+    const menu   = navMenu;
 
     // Simple focus trap within the mobile drawer
     let prevFocus = null;
@@ -96,6 +103,64 @@
         }
       });
     }
+  }
+  function initPageTransitions(){
+    const body = document.body;
+    if (!body) return;
+
+    body.classList.add('page-transition-enabled');
+
+    const prefersReduced = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const playEntry = () => {
+      if (prefersReduced) return;
+      body.classList.add('page-transition-enter');
+      requestAnimationFrame(() => {
+        body.classList.remove('page-transition-enter');
+      });
+    };
+
+    playEntry();
+
+    const navHost = $('#combined-header-nav');
+    const links = navHost ? navHost.querySelectorAll('a.nav-link, a.brand') : [];
+    let isNavigating = false;
+
+    window.addEventListener('pageshow', (event) => {
+      isNavigating = false;
+      body.classList.remove('page-transition-exit');
+      body.removeAttribute('aria-busy');
+      if (!prefersReduced && event.persisted) playEntry();
+    });
+
+    if (!links.length || prefersReduced) return;
+
+    links.forEach(link => {
+      if (link.dataset.transitionBound === 'yes') return;
+      link.dataset.transitionBound = 'yes';
+      link.addEventListener('click', (event) => {
+        if (isNavigating || event.defaultPrevented) return;
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+        if (link.target && link.target !== '_self') return;
+        const href = link.getAttribute('href');
+        if (!href || href.startsWith('#')) return;
+        const current = location.pathname.split('/').pop() || 'index.html';
+        if (href === current) return;
+
+        event.preventDefault();
+        isNavigating = true;
+
+        if (navMenu) navMenu.classList.remove('open');
+        if (burgerButton) burgerButton.setAttribute('aria-expanded', 'false');
+        document.body.classList.remove('menu-open');
+
+        body.classList.add('page-transition-exit');
+        body.setAttribute('aria-busy', 'true');
+
+        window.setTimeout(() => {
+          window.location.href = href;
+        }, PAGE_TRANSITION_WAIT);
+      });
+    });
   }
   function injectFooter(){
     const f = $('footer');
