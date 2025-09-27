@@ -10,14 +10,17 @@
   const run = fn=>typeof fn==='function'&&fn();
   const isPage = (...names)=>names.includes(document.body.dataset.page);
 
-  document.addEventListener('DOMContentLoaded', () => {
+  const runPageEntrypoints = () => {
     if (isPage('portfolio')) {
       run(window.buildPortfolioCarousel);
       run(window.buildPortfolio);
       run(initSeeMore);
     }
     if (isPage('home')) run(initSkillPopups);
-  });
+  };
+
+  document.addEventListener('DOMContentLoaded', runPageEntrypoints);
+  if (!window.runPageEntrypoints) window.runPageEntrypoints = runPageEntrypoints;
 
   function initSkillPopups(){
     if (!document.body.dataset.page?.includes('home')) return;
