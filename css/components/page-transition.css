@@ -1,0 +1,29 @@
+@layer components {
+  :root {
+    --page-transition-duration: 240ms;
+  }
+
+  body.page-transition-enabled {
+    transition: opacity var(--page-transition-duration) ease-in-out,
+                filter var(--page-transition-duration) ease-in-out;
+  }
+
+  body.page-transition-enabled.page-transition-enter,
+  body.page-transition-enabled.page-transition-exit {
+    opacity: 0;
+    filter: blur(6px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    body.page-transition-enabled {
+      transition: none;
+      filter: none;
+    }
+
+    body.page-transition-enabled.page-transition-enter,
+    body.page-transition-enabled.page-transition-exit {
+      opacity: 1;
+      filter: none;
+    }
+  }
+}
