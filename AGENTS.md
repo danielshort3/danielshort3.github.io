@@ -3,13 +3,13 @@
 ## Project Structure & Module Organization
 - Root HTML: `index.html`, `portfolio.html`, `contact.html`, etc.
 - Assets: `css/` (modular layers and components), `js/` (by area: `common/`, `navigation/`, `portfolio/`, etc.), `img/`, `documents/`.
-- Build output: `dist/styles.css` (bundled from `css/styles.css`), and deployable site in `public/` (generated).
+- Build output: `dist/styles.[hash].css` (bundled from `css/styles.css`), and deployable site in `public/` (generated).
 - Build scripts: `build/build-css.js`, `build/copy-to-public.js`, `build/resize_logo.py`.
 - Adding new asset folders? Update `build/copy-to-public.js` so they are copied to `public/`.
 
 ## Build, Test, and Development Commands
 - Node ≥ 18 required. Python 3 + Pillow for icon tasks.
-- `npm run build:css`: Bundle CSS imports into `dist/styles.css`.
+- `npm run build:css`: Bundle CSS imports into `dist/styles.[hash].css`.
 - `npm run build:icons`: Generate favicon/UI icons from `img/ui/logo.png`.
 - `npm run build`: Build CSS and copy site + assets into `public/`.
 - `npm test`: Run lightweight assertions in `test.js` (HTML snippets, script sanity, data arrays, chatbot demo timer).
@@ -33,4 +33,3 @@
 ## Security & Configuration Tips
 - Do not embed secrets or API keys in client code. Analytics helpers live under `js/analytics/`.
 - Deployments read from `public/` (see `vercel.json`). Ensure `robots.txt` and `sitemap.xml` remain accurate.
-

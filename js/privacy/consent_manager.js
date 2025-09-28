@@ -17,6 +17,18 @@
 (function () {
   'use strict';
 
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = window.gtag || function(){ (window.dataLayer = window.dataLayer || []).push(arguments); };
+  try {
+    window.gtag('consent', 'default', {
+      ad_storage: 'denied',
+      analytics_storage: 'denied',
+      ad_user_data: 'denied',
+      ad_personalization: 'denied',
+      wait_for_update: 500
+    });
+  } catch (err) {}
+
   const STYLE_ID = 'pcz-consent-styles';
 
   function loadStyles() {
@@ -114,6 +126,30 @@
     });
   }
   const STORAGE_KEY = GLOBAL_CONF.storageKey || 'consent';
+
+  const loadAnalyticsHelpers = (() => {
+    let promise = null;
+    return function loadHelpers(){
+      if (promise) return promise;
+      promise = new Promise((resolve, reject) => {
+        if (document.getElementById('ga4-helper')) {
+          resolve();
+          return;
+        }
+        const tag = document.createElement('script');
+        tag.id = 'ga4-helper';
+        tag.src = 'js/analytics/ga4-events.js';
+        tag.async = false;
+        tag.onload = () => resolve();
+        tag.onerror = () => {
+          promise = null;
+          reject(new Error('Failed to load ga4-events.js'));
+        };
+        document.head.appendChild(tag);
+      });
+      return promise;
+    };
+  })();
 
   /**
    * Retrieve the user’s locale. We fall back to English if no
@@ -221,6 +257,18 @@
   function enableVendor(vendorKey, enabled) {
     const vendor = CONFIG.vendors[vendorKey];
     if (!vendor) return;
+    if (enabled) {
+      loadAnalyticsHelpers()
+        .then(() => {
+          if (window.consentAPI && typeof window.consentAPI.get === 'function') {
+            const current = window.consentAPI.get();
+            if (current) {
+              window.dispatchEvent(new CustomEvent('consent-changed', { detail: current }));
+            }
+          }
+        })
+        .catch(err => console.warn(err));
+    }
     if (enabled && !vendor.enabled) {
       if (vendorKey === 'ga4') {
         const scriptId = 'ga4-src';

@@ -93,8 +93,11 @@
     send('modal_close', { project_id: id });
   };
 
-  // Wire up click tracking once the DOM is ready
-  document.addEventListener('DOMContentLoaded', () => {
+  let domListenersBound = false;
+  function bindDomListeners(){
+    if (domListenersBound) return;
+    domListenersBound = true;
+
     document.querySelectorAll('.hero-cta').forEach(btn => {
       btn.addEventListener('click', () => {
         send('hero_cta_click', { cta_label: btn.textContent.trim() });
@@ -153,11 +156,9 @@
       });
     }
 
-    // Fire an event when users stay on the page for 60 seconds
     setTimeout(() => send('engaged_time', { seconds: 60 }), 60000);
 
     let sent50 = false;
-    // Record when the user scrolls halfway down the page
     window.addEventListener('scroll', () => {
       if (sent50) return;
       const scrollable = document.documentElement.scrollHeight - window.innerHeight;
@@ -167,5 +168,15 @@
         send('scroll_depth', { percent: 50 });
       }
     }, { passive: true });
-  });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindDomListeners, { once: true });
+  } else {
+    bindDomListeners();
+  }
+
+  setTimeout(() => {
+    tryInitFromConsent(window.consentAPI && typeof window.consentAPI.get === 'function' ? window.consentAPI.get() : null);
+  }, 0);
 })();

@@ -24,8 +24,10 @@ function createEnv() {
       querySelectorAll: () => [],
       getElementById: () => null,
       createElement: () => ({ style: {}, classList: { add() {}, remove() {}, toggle() {} } }),
-      body: {},
+      body: { dataset: {}, appendChild() {} },
       documentElement: { style: { setProperty() {} } },
+      head: { appendChild() {} },
+      readyState: 'complete'
     },
     history: { pushState() {}, replaceState() {}, back() {} },
     location: { pathname: '', search: '', hash: '' },
@@ -69,11 +71,22 @@ checkFileContains('pages/contact.html', '<title>Contact │ Daniel Short');
 assert(fs.existsSync('robots.txt'), 'robots.txt missing');
 assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
 
-  // Ensure modal helper is loaded where needed and heavy portfolio bundle stays off the home page
-  checkFileContains('index.html', 'js/portfolio/modal-helpers.js');
-  checkFileContains('pages/portfolio.html', 'js/portfolio/modal-helpers.js');
   const homeHtml = fs.readFileSync('index.html', 'utf8');
-  assert(!homeHtml.includes('js/portfolio/portfolio.js'), 'index.html should not load portfolio.js');
+  assert(!homeHtml.includes('js/portfolio/modal-helpers.js'), 'index.html should lazy load portfolio modal helpers');
+  assert(!homeHtml.includes('js/portfolio/projects-data.js'), 'index.html should lazy load portfolio data');
+  const portfolioHtml = fs.readFileSync('pages/portfolio.html', 'utf8');
+  assert(!portfolioHtml.includes('js/portfolio/modal-helpers.js'), 'pages/portfolio.html should defer portfolio modal helpers');
+  assert(!portfolioHtml.includes('js/portfolio/portfolio.js'), 'pages/portfolio.html should rely on lazy loader');
+  const commonCode = fs.readFileSync('js/common/common.js', 'utf8');
+  assert(commonCode.includes('js/portfolio/projects-data.js'), 'common.js missing portfolio lazy loader');
+
+  const htmlFiles = ['index.html','contact.html','resume.html','privacy.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','pages/privacy.html'];
+  htmlFiles.forEach(file => {
+    const content = fs.readFileSync(file, 'utf8');
+    assert(!content.includes('js/analytics/ga4-events.js'), `${file} should load analytics helpers on demand`);
+  });
+  const consentCode = fs.readFileSync('js/privacy/consent_manager.js', 'utf8');
+  assert(consentCode.includes('ga4-helper'), 'consent manager should inject analytics helper script');
 
   // Data files expose arrays
   let env = evalScript('js/portfolio/projects-data.js');
@@ -144,13 +157,21 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
   ].forEach(file => evalScript(file));
 
   // Basic structure across key pages
+  const cssManifestPath = 'dist/styles-manifest.json';
+  assert(fs.existsSync(cssManifestPath), 'dist/styles-manifest.json missing');
+  const cssManifest = JSON.parse(fs.readFileSync(cssManifestPath, 'utf8'));
+  assert(cssManifest.file && /^styles\.[0-9a-f]{8}\.css$/.test(cssManifest.file), 'CSS manifest entry invalid');
+  const hashedCss = cssManifest.file;
+  assert(fs.existsSync(`dist/${hashedCss}`), `dist/${hashedCss} missing`);
+  assert(fs.existsSync('dist/styles.css'), 'dist/styles.css missing');
+
   ['index.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','404.html','pages/privacy.html'].forEach(f => {
     checkFileContains(f, '<header id="combined-header-nav">');
     checkFileContains(f, '<main id="main"');
     checkFileContains(f, 'class="skip-link"');
     checkFileContains(f, 'name="viewport"');
     checkFileContains(f, 'name="theme-color"');
-    checkFileContains(f, 'dist/styles.css');
+    checkFileContains(f, `dist/${hashedCss}`);
   });
 
   // Fonts are preloaded on index
@@ -300,7 +321,7 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
 
   // Modal CSS: sentence demo should not allow horizontal scroll
   const distCss = fs.readFileSync('dist/styles.css','utf8');
-  assert(distCss.includes('#smartSentence-modal .modal-body { overflow-x: hidden; }'), 'sentence modal missing overflow-x hidden');
+  assert(distCss.includes('#smartSentence-modal .modal-body{overflow-x:hidden}'), 'sentence modal missing overflow-x hidden');
 
   // Contact modal and resume embed present
   checkFileContains('pages/contact.html', 'id="contact-modal"');
