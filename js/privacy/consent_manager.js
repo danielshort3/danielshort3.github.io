@@ -49,7 +49,7 @@
     version: 1,
     languages: {
       en: {
-        bannerTitle: 'I value your privacy',
+        bannerTitle: 'I value your privacy.',
         bannerDesc: "I use cookies and similar technologies to improve your experience, understand site traffic, and measure performance. You can allow all cookies, allow essential cookies only, or manage your settings.",
         acceptAll: 'Allow all cookies',
         rejectAll: 'Allow essential only',

@@ -146,10 +146,28 @@ body.consent-blocked::before {
   outline-offset: 2px;
 }
 
+@media (max-width: 768px) {
+  #pcz-banner .pcz-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #pcz-banner p {
+    flex: 1 1 auto;
+  }
+
+  #pcz-banner .pcz-btn {
+    width: 100%;
+  }
+
+  #pcz-banner .pcz-btn.pcz-link {
+    text-align: center;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;
     animation: none !important;
   }
 }
-
