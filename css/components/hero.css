@@ -4,17 +4,10 @@
    ─────────────────────────────────────────────────────────── */
 @layer components {
   .hero{
-    /* Fill the viewport below the fixed header, but allow content to grow */
-    --hero-space-top: clamp(2.5rem, 8vh, 5rem);
-    --hero-space-bottom: clamp(3rem, 12vh, 6rem);
-    --hero-chevron-gap: clamp(28px, 5vh, 56px);
-    --hero-pad-bottom: calc(var(--hero-space-bottom) + var(--hero-chevron-gap));
-    min-height: calc(var(--vh, 100svh) - var(--nav-height, 72px));
+    /* exactly fill the viewport below the fixed header */
+    height: calc(var(--vh, 100svh) - var(--nav-height, 72px));
     margin-top: 0;
-    padding-block-start: var(--hero-space-top) !important;
-    padding-block-end: var(--hero-pad-bottom) !important;
-    padding-top: var(--hero-space-top) !important;
-    padding-bottom: var(--hero-pad-bottom) !important;
+    padding-top: 0;
     display:flex;flex-direction:column;
     align-items:center;justify-content:center;text-align:center;
     background:var(--surface);position:relative;overflow:hidden;isolation:isolate;
@@ -57,7 +50,6 @@
     display:flex;                 /* new */
     flex-direction:column;        /* new */
     align-items:center;           /* new → centres child blocks */
-    gap: clamp(1rem, 2.8vh, 2rem);
   }
   .chevron-hint{
     position:absolute;bottom:16px;left:50%;transform:translateX(-50%);
