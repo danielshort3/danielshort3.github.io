@@ -8,29 +8,15 @@
     height: calc(var(--vh, 100svh) - var(--nav-height, 72px));
     margin-top: 0;
     padding-top: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    background: var(--surface);
-    position: relative;
-    overflow: hidden;
-    isolation: isolate;
-    --hero-scale: 1;
-    --hero-heading-size: clamp(32px, 4vw + 24px, 60px);
-    --hero-copy-size: clamp(18px, 2vw + 14px, 22px);
-    --hero-status-size: clamp(0.78rem, 0.72rem + 0.45vw, 0.92rem);
-    --hero-gap: clamp(20px, 7vw, 30px);
-    --hero-cta-font-size: clamp(1.05rem, 0.95rem + 0.4vw, 1.25rem);
-    --hero-cta-pad-block: clamp(14px, 4vw, 18px);
-    --hero-cta-pad-inline: clamp(28px, 7vw, 36px);
+    display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;
+    background:var(--surface);position:relative;overflow:hidden;isolation:isolate;
   }
   @keyframes fadeUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:none}}
   @keyframes gradShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
   .hero h1,.hero p,.hero .btn-primary{opacity:0}
   .hero h1{animation:fadeUp 1s .5s forwards}
-  .hero p {animation:fadeUp 1s .8s forwards;color:var(--text-muted);max-width:40rem}
+  .hero p {animation:fadeUp 1s .8s forwards;font-size:20px;color:var(--text-muted);max-width:40rem}
   .hero .btn-primary{animation:fadeUp 1s 1.1s forwards}
   .hero::before{
     content:"";position:absolute;inset:0;z-index:-1;opacity:.10;
@@ -60,17 +46,10 @@
     padding:4px 12px;border-radius:6px
   }
   .hero .wrapper{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: calc(var(--hero-gap) * var(--hero-scale));
-    text-align: center;
-    padding-inline: clamp(16px, 8vw, 32px);
-    width: min(680px, 100%);
-  }
-  .hero .wrapper > * {
-    margin: 0;
+    text-align:center;            /* already inherited */
+    display:flex;                 /* new */
+    flex-direction:column;        /* new */
+    align-items:center;           /* new → centres child blocks */
   }
   .chevron-hint{
     position:absolute;bottom:16px;left:50%;transform:translateX(-50%);
@@ -97,7 +76,7 @@
   .scroll-indicator {
     position: absolute;
     left: 50%;
-    bottom: clamp(12px, 4vh, 24px);
+    bottom: 16px;
     transform: translateX(-50%);
     color: var(--primary);
     font-size: 28px;
@@ -135,17 +114,6 @@
       animation: none !important;
       transition: none !important;
       opacity: 0 !important;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .hero{
-      --hero-heading-size: clamp(28px, 8vw + 6px, 48px);
-      --hero-copy-size: clamp(16px, 5.2vw, 19px);
-      --hero-gap: clamp(16px, 6vw, 24px);
-      --hero-cta-font-size: clamp(1rem, 0.95rem + 0.3vw, 1.15rem);
-      --hero-cta-pad-block: clamp(12px, 5vw, 16px);
-      --hero-cta-pad-inline: clamp(24px, 10vw, 32px);
     }
   }
 }

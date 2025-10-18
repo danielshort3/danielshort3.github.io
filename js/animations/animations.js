@@ -6,57 +6,10 @@
   'use strict';
   const $$ = (s, c=document) => [...c.querySelectorAll(s)];
   const on = (n,e,f,o) => n && n.addEventListener(e,f,o);
-  const hero = document.querySelector('.hero');
-  const heroInner = hero ? hero.querySelector('.wrapper') : null;
-  const heroIndicator = hero ? hero.querySelector('.scroll-indicator, .chevron-hint') : null;
-  let heroFitFrame = null;
-
-  function fitHeroContent() {
-    if (!hero || !heroInner) return;
-    const prevInline = hero.style.getPropertyValue('--hero-scale');
-    hero.style.setProperty('--hero-scale', '1');
-    hero.classList.remove('hero--scaled');
-    const available = hero.clientHeight;
-    const contentHeight = heroInner.offsetHeight;
-    const indicatorHeight = heroIndicator ? heroIndicator.getBoundingClientRect().height : 0;
-    const extraGap = heroIndicator ? 32 : 24;
-    const required = contentHeight + indicatorHeight + extraGap;
-    if (required <= 0 || available <= 0) {
-      if (prevInline) hero.style.setProperty('--hero-scale', prevInline);
-      else hero.style.removeProperty('--hero-scale');
-      return;
-    }
-    let scale = Math.min(1, available / required);
-    if (!Number.isFinite(scale) || scale <= 0) scale = 1;
-    hero.style.setProperty('--hero-scale', scale.toFixed(3));
-    hero.classList.toggle('hero--scaled', scale < 0.999);
-    requestAnimationFrame(() => {
-      if (!hero || !heroInner) return;
-      const indicatorAgain = heroIndicator ? heroIndicator.getBoundingClientRect().height : 0;
-      const total = heroInner.offsetHeight + indicatorAgain + extraGap;
-      const avail = hero.clientHeight;
-      if (total > avail && avail > 0) {
-        const adjusted = Math.min(1, avail / total);
-        hero.style.setProperty('--hero-scale', adjusted.toFixed(3));
-        hero.classList.toggle('hero--scaled', adjusted < 0.999);
-      }
-    });
-  }
-
-  const queueHeroFit = () => {
-    if (!hero || !heroInner) return;
-    if (heroFitFrame) cancelAnimationFrame(heroFitFrame);
-    heroFitFrame = requestAnimationFrame(() => {
-      heroFitFrame = null;
-      fitHeroContent();
-    });
-  };
-
   document.addEventListener('DOMContentLoaded', () => {
     initReveal();
     setScrollbarVar();
     setViewportVar();
-    queueHeroFit();
     initChevronHint();
     initCertTicker();
     initScrollProgress();
@@ -76,14 +29,9 @@
   };
   const setViewportVar = () => {
     document.documentElement.style.setProperty('--vh', `${window.innerHeight}px`);
-    queueHeroFit();
   };
   window.addEventListener('resize', setViewportVar);
   window.addEventListener('orientationchange', setViewportVar);
-  window.addEventListener('load', queueHeroFit);
-  if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(queueHeroFit).catch(() => {});
-  }
 
   function initScrollProgress(){
     const update = () => {
