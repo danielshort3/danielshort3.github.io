@@ -36,20 +36,17 @@ body.consent-blocked::before {
   bottom: 0;
   z-index: 99999;
   background: var(--pcz-bg);
-  padding: 24px clamp(20px, 5vw, 32px) 20px clamp(20px, 5vw, 32px);
+  padding: clamp(28px, 6vw, 40px) clamp(20px, 5vw, 32px) 24px;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
   transform: translateY(0);
   opacity: 1;
   transition: transform 0.35s ease, opacity 0.35s ease;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: flex-start;
-  gap: 12px clamp(8px, 3vw, 20px);
 }
 
 #pcz-banner .pcz-close {
-  grid-column: 2;
-  grid-row: 1;
+  position: absolute;
+  top: clamp(8px, 3vw, 16px);
+  right: clamp(12px, 5vw, 24px);
   background: none;
   border: none;
   cursor: pointer;
@@ -58,7 +55,6 @@ body.consent-blocked::before {
   line-height: 1;
   font-size: 1.75rem;
   transition: color 0.25s ease, text-shadow 0.25s ease;
-  justify-self: end;
 }
 
 #pcz-banner .pcz-close:hover,
@@ -68,15 +64,13 @@ body.consent-blocked::before {
 }
 
 #pcz-banner .pcz-row {
-  grid-column: 1;
-  grid-row: 1;
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
   align-items: center;
   padding-top: 12px;
-  width: 100%;
-  justify-content: center;
+  max-width: 980px;
+  margin: 0 auto;
 }
 
 #pcz-banner p {
@@ -179,6 +173,7 @@ body.consent-blocked::before {
   #pcz-banner .pcz-row {
     flex-direction: column;
     align-items: center;
+    text-align: center;
   }
 
   #pcz-banner p {
@@ -199,14 +194,11 @@ body.consent-blocked::before {
 
 @media (max-width: 480px) {
   #pcz-banner {
-    grid-template-columns: minmax(0, 1fr) auto;
-    padding: 20px clamp(16px, 5vw, 24px) 18px clamp(16px, 5vw, 24px);
-    gap: 8px 12px;
+    padding: 32px clamp(16px, 6vw, 24px) 22px;
   }
 
   #pcz-banner .pcz-row {
-    padding-top: 20px;
-    gap: 12px;
+    gap: 14px;
   }
 
   #pcz-banner .pcz-btn {
