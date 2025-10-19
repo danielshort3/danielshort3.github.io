@@ -61,7 +61,7 @@ try {
   checkFileContains('index.html', 'made actionable');
 checkFileContains('pages/contact.html', '<title>Contact │ Daniel Short');
 ['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html'].forEach(f => {
-  checkFileContains(f, 'js/common/common.js');
+  checkFileContains(f, 'dist/js/common/common.js');
   checkFileContains(f, 'class="skip-link"');
   checkFileContains(f, '<main id="main">');
 });
@@ -127,23 +127,22 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
   assert(navCss.includes('.brand .divider{color:var(--primary)}'), 'nav.css divider not teal');
   assert(navCss.includes(".brand-name{\n    font-family:'Poppins'"), 'nav.css brand-name block missing');
   assert(navCss.includes('color:var(--text-light)'), 'nav.css brand-name not white');
+  assert(navCss.includes('.theme-toggle'), 'nav.css missing theme toggle styles');
 
-  const utilCss = fs.readFileSync('css/utilities/layout.css', 'utf8');
-  assert(utilCss.includes('.brand-line.tagline'), 'utilities/layout.css missing tagline selector');
-  assert(utilCss.includes('color: var(--text-light);'), 'tagline not set to white');
-  assert(utilCss.includes('.brand-line.name::after'), 'stacked horizontal rule missing');
-  assert(utilCss.includes('background:var(--primary);'), 'stacked horizontal rule not teal');
-  assert(/\.brand-logo\s*\{[^}]*height:56px;/.test(utilCss), 'mobile logo size not increased to 56px');
-
-  // CSS variables: secondary should resolve to primary (teal)
   const varsCss = fs.readFileSync('css/variables.css', 'utf8');
-  assert(/--secondary\s*:\s*var\(--primary\)\s*;/.test(varsCss), 'variables.css --secondary not mapped to --primary');
+  assert(/--primary:\s*#19526B/i.test(varsCss), 'variables.css missing updated primary color');
+  assert(/--secondary:\s*#AA5541/i.test(varsCss), 'variables.css missing updated secondary color');
+  assert(varsCss.includes(':root[data-theme="light"]'), 'variables.css missing light theme overrides');
 
-  // Components should not rely on var(--secondary) anymore
   const heroCss = fs.readFileSync('css/components/hero.css', 'utf8');
-  assert(!heroCss.includes('var(--secondary)'), 'hero.css still references --secondary');
+  assert(heroCss.includes('.hero-subtitle'), 'hero.css missing hero-subtitle styles');
+  assert(heroCss.includes('.hero-cta-group'), 'hero.css missing CTA group layout');
+
   const modalCss = fs.readFileSync('css/components/modal.css', 'utf8');
-  assert(!modalCss.includes('var(--secondary)'), 'modal.css still references --secondary');
+  assert(modalCss.includes('.summary-block'), 'modal.css missing summary-block styling');
+
+  const contactCss = fs.readFileSync('css/components/contact-card.css', 'utf8');
+  assert(contactCss.includes('.contact-form'), 'contact form styles missing');
 
   // Core scripts should load without throwing
   [
@@ -190,11 +189,10 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
   const stylesCss = fs.readFileSync('css/styles.css', 'utf8');
   assert(stylesCss.includes('@layer tokens, base, layout, components, utilities, overrides;'), 'styles.css layer order missing');
 
-  // Utilities contain mobile stacking rules and scroll offset
-  assert(utilCss.includes('flex-direction: column;'), 'brand mobile stack rule missing');
-  assert(utilCss.includes('display:none;') && utilCss.includes('.brand-line.divider'), 'mobile divider hide missing');
-  assert(utilCss.includes('padding-top:var(--nav-height'), 'page offset for fixed header missing');
-  assert(utilCss.includes('clip-path') && utilCss.includes('.nav-row.open'), 'mobile drawer clip-path reveal missing');
+  const baseCss = fs.readFileSync('css/base/base.css', 'utf8');
+  assert(baseCss.includes('padding-top: var(--nav-height'), 'base.css missing body offset for fixed header');
+  assert(navCss.includes('flex-direction:column;'), 'nav.css missing mobile stack rule');
+  assert(navCss.includes('#primary-menu.open'), 'nav.css missing mobile drawer state');
 
   // GA helpers: gtag shim and event helpers
   const ga = evalScript('js/analytics/ga4-events.js');
@@ -323,13 +321,10 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
   const distCss = fs.readFileSync('dist/styles.css','utf8');
   assert(distCss.includes('#smartSentence-modal .modal-body{overflow-x:hidden}'), 'sentence modal missing overflow-x hidden');
 
-  // Contact modal and resume embed present
-  checkFileContains('pages/contact.html', 'id="contact-modal"');
+  // Contact form and resume embed present
+  checkFileContains('pages/contact.html', 'id="contact-form"');
+  checkFileContains('contact.html', 'data-endpoint="https://formsubmit.co/ajax/danielshort3@gmail.com"');
   checkFileContains('resume.html', 'documents/Resume.pdf');
-  // Contact: embed is a Google Form
-  checkFileContains('contact.html', 'docs.google.com/forms');
-  const contactCss = fs.readFileSync('css/components/modal.css','utf8');
-  assert(/#contact-modal\s+iframe[\s\S]*height:100vh;/.test(contactCss), 'contact modal iframe not set to 100vh');
 
   // Privacy page includes CMP scripts and GA4 vendor id exists
   checkFileContains('privacy.html', 'js/privacy/config.js');
@@ -353,11 +348,30 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
 
   // 3) modal template generation (image-only project)
   const modalHtml = pEnv.window.generateProjectModal({
-    id:'t1', title:'T', subtitle:'S', problem:'P',
-    image:'img/x.png', tools:[], resources:[], actions:[], results:[]
+    id:'t1',
+    title:'T',
+    subtitle:'S',
+    image:'img/x.png',
+    imageWebp:'img/x.webp',
+    imageWidth:400,
+    imageHeight:320,
+    tools:['Python'],
+    resources:[],
+    summary:{
+      overview:'Overview text',
+      goal:'Goal text',
+      data:'Data text',
+      methods:['Method one'],
+      results:['Result one'],
+      impact:'Impact text'
+    },
+    keyResults:['Result metric'],
+    related:[{ id:'example', label:'Example' }]
   });
   assert(/modal-image/.test(modalHtml), 'modal image block missing');
   assert(/<picture>/.test(modalHtml), 'PNG should render with <picture> WebP fallback');
+  assert(/summary-block/.test(modalHtml), 'modal summary blocks missing');
+  assert(/Key Results/.test(modalHtml), 'modal key results missing');
 
   // 4) modal template generation (tableau embed uses data-base and wide layout)
   const tabHtml = pEnv.window.generateProjectModal({

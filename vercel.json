@@ -41,6 +41,24 @@
       ]
     },
     {
+      "source": "/js/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=604800, immutable" }
+      ]
+    },
+    {
+      "source": "/dist/js/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/documents/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=86400" }
+      ]
+    },
+    {
       "source": "/dist/styles\\.[0-9a-f]{8}\\.css",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }

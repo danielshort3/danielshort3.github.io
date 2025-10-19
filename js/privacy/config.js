@@ -3,7 +3,8 @@ window.PrivacyConfig = {
   languages: ["en", "es"],
   regions: { eea: true, uk: true, usStatesWithCCPA: ["CA"] },
   vendors: {
-    ga4: { id: "G-0VL37MQ62P", enabled: false }
+    ga4: { id: "G-0VL37MQ62P", enabled: false },
+    hotjar: { id: 0, enabled: false }
   },
   categories: {
     necessary: { required: true },

@@ -24,8 +24,19 @@ const getSrStatus = typeof window.getSrStatusNode === 'function'
 const srStatus = () => getSrStatus();
 const activateGifVideo = window.activateGifVideo || (() => {});
 const projectMedia = window.projectMedia || ((p = {}) => {
-  if (!p.image) return '';
-  return `<img src="${p.image}" alt="${p.title || ''}" loading="lazy" decoding="async" draggable="false">`;
+  const src = p.image || '';
+  if (!src) return '';
+  const webp = p.imageWebp || (src ? src.replace(/\.(png|jpe?g)$/i, '.webp') : null);
+  const alt = p.imageAlt || p.title || '';
+  const widthAttr = p.imageWidth ? ` width="${p.imageWidth}"` : '';
+  const heightAttr = p.imageHeight ? ` height="${p.imageHeight}"` : '';
+  if (webp && webp !== src) {
+    return `<picture>
+      <source srcset="${webp}" type="image/webp">
+      <img src="${src}" alt="${alt}" loading="lazy" decoding="async"${widthAttr}${heightAttr} draggable="false">
+    </picture>`;
+  }
+  return `<img src="${src}" alt="${alt}" loading="lazy" decoding="async"${widthAttr}${heightAttr} draggable="false">`;
 });
 
 const hasModalHelpers = typeof window.openModal === 'function' && typeof window.generateProjectModal === 'function';
@@ -69,11 +80,16 @@ function buildPortfolioCarousel() {
       "@type":"ListItem",
       "position": i+1,
       "item": {
-        "@type":"CreativeWork",
+        "@type":"Project",
         "name": p.title,
         "description": p.subtitle,
         "url": `https://danielshort.me/portfolio.html?project=${p.id}`,
-        "image": `https://danielshort.me/${p.image}`
+        "image": {
+          "@type": "ImageObject",
+          "url": `https://danielshort.me/${p.imageWebp || p.image}`,
+          "width": p.imageWidth || undefined,
+          "height": p.imageHeight || undefined
+        }
       }
     }))
   };
@@ -85,11 +101,24 @@ function buildPortfolioCarousel() {
   // Per-project structured data for better discoverability
   try {
     const graph = window.PROJECTS.map(p => ({
-      "@type": "CreativeWork",
+      "@type": "Project",
       "name": p.title,
-      "description": p.subtitle,
+      "description": p.summary?.overview || p.subtitle,
       "url": `https://danielshort.me/portfolio.html?project=${p.id}`,
-      "image": `https://danielshort.me/${p.image}`
+      "image": {
+        "@type": "ImageObject",
+        "url": `https://danielshort.me/${p.imageWebp || p.image}`,
+        "width": p.imageWidth || undefined,
+        "height": p.imageHeight || undefined
+      },
+      "creator": {
+        "@type": "Person",
+        "name": "Daniel Short",
+        "url": "https://danielshort.me/"
+      },
+      "keywords": Array.isArray(p.tools) ? p.tools.join(', ') : undefined,
+      "inLanguage": "en",
+      "documentation": Array.isArray(p.resources) ? p.resources.map(r => r.url) : undefined
     }));
     const s2 = document.createElement('script');
     s2.type = 'application/ld+json';
@@ -108,30 +137,30 @@ function buildPortfolioCarousel() {
     card.setAttribute("aria-label", `View details of ${p.title}`);
     const media = (() => {
       const hasVideo = !!(p.videoWebm || p.videoMp4);
-      const img = (() => {
-        const src = p.image || '';
-        const lower = src.toLowerCase();
-        const webp = lower.endsWith('.png') ? src.replace(/\.png$/i, '.webp')
-                   : lower.endsWith('.jpg') ? src.replace(/\.jpg$/i, '.webp')
-                   : lower.endsWith('.jpeg') ? src.replace(/\.jpeg$/i, '.webp')
-                   : null;
-        if (webp) {
+      const src = p.image || '';
+      const webp = p.imageWebp || (src ? src.replace(/\.(png|jpe?g)$/i, '.webp') : null);
+      const alt = p.imageAlt || p.title || '';
+      const widthAttr = p.imageWidth ? ` width="${p.imageWidth}"` : '';
+      const heightAttr = p.imageHeight ? ` height="${p.imageHeight}"` : '';
+      const fetchAttr = ` fetchpriority="${i === 0 ? 'high' : 'auto'}"`;
+      const picture = (() => {
+        if (webp && webp !== src) {
           return `<picture>
             <source srcset="${webp}" type="image/webp">
-            <img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false" fetchpriority="${i===0 ? 'high' : 'auto'}">
+            <img src="${src}" alt="${alt}" loading="lazy" decoding="async"${widthAttr}${heightAttr}${fetchAttr} draggable="false">
           </picture>`;
         }
-        return `<img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false" fetchpriority="${i===0 ? 'high' : 'auto'}">`;
+        return `<img src="${src}" alt="${alt}" loading="lazy" decoding="async"${widthAttr}${heightAttr}${fetchAttr} draggable="false">`;
       })();
-      if (!hasVideo) return img;
+      if (!hasVideo) return picture;
       const mp4  = p.videoMp4  ? `<source src="${p.videoMp4}" type="video/mp4">`   : '';
-      const webm = p.videoWebm ? `<source src="${p.videoWebm}" type="video/webm">` : '';
+      const webmVideo = p.videoWebm ? `<source src="${p.videoWebm}" type="video/webm">` : '';
       return `
         <video class="gif-video" muted playsinline loop autoplay preload="metadata" draggable="false">
           ${mp4}
-          ${webm}
+          ${webmVideo}
         </video>
-        ${img}`;
+        ${picture}`;
     })();
     card.innerHTML = `
       <div class="overlay"></div>

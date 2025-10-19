@@ -31,6 +31,15 @@
 
   const STYLE_ID = 'pcz-consent-styles';
   const PREFERENCES_URL = 'privacy.html#prefs-title';
+  const currentScript = document.currentScript || document.querySelector('script[src*="consent_manager"]');
+  const scriptSrc = currentScript ? currentScript.getAttribute('src') || '' : '';
+  const assetVariant = /\/dist\/js\//.test(scriptSrc) ? 'dist/js/' : 'js/';
+  const resolveAsset = (src) => {
+    if (!src) return src;
+    if (/^(?:https?:)?\/\//.test(src)) return src;
+    if (src.startsWith('/')) return src;
+    return assetVariant === 'dist/js/' ? src.replace(/^js\//, 'dist/js/') : src;
+  };
 
   function loadStyles() {
     if (document.getElementById(STYLE_ID) || document.querySelector('link[href$="privacy.css"]')) return;
@@ -152,7 +161,7 @@
         }
         const tag = document.createElement('script');
         tag.id = 'ga4-helper';
-        tag.src = 'js/analytics/ga4-events.js';
+        tag.src = resolveAsset('js/analytics/ga4-events.js');
         tag.async = false;
         tag.onload = () => resolve();
         tag.onerror = () => {
@@ -306,6 +315,7 @@
       });
     }
     enableVendor('ga4', state.analytics);
+    enableVendor('hotjar', state.analytics);
     window.dispatchEvent(new CustomEvent('consent-changed', { detail: state }));
   }
 
@@ -344,6 +354,17 @@
               window.gtag('config', vendor.id);
             } catch {}
           };
+          document.head.appendChild(s);
+        }
+      } else if (vendorKey === 'hotjar') {
+        if (!vendor.id) return;
+        document.body.dataset.hotjarSite = vendor.id;
+        const tagId = 'hotjar-loader';
+        if (!document.getElementById(tagId)) {
+          const s = document.createElement('script');
+          s.id = tagId;
+          s.defer = true;
+          s.src = resolveAsset('js/analytics/hotjar.js');
           document.head.appendChild(s);
         }
       }

@@ -7,12 +7,18 @@
 function buildContributions(){
   const root = document.getElementById('contrib-root');
   if(!root || !window.contributions) return;
+  const articles = [];
 
-  window.contributions.forEach(sec=>{
+  window.contributions.forEach((sec, index)=>{
     // --- section shell -------------------------------------------------
     const section = document.createElement('section');
     section.className = 'surface-band reveal contrib-section';
     section.dataset.heading = sec.heading;
+    const slug = (sec.heading || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    section.id = slug || `contrib-${index+1}`;
 
     const wrap   = document.createElement('div');
     wrap.className = 'wrapper';
@@ -32,6 +38,22 @@ function buildContributions(){
     sec.items.forEach(item => {
       const card = document.createElement('article');
       card.className = 'doc-card';
+      if (item.link) {
+        articles.push({
+          "@type": "Article",
+          "headline": item.title,
+          "url": item.link,
+          "author": {
+            "@type": "Person",
+            "name": "Daniel Short"
+          },
+          "publisher": {
+            "@type": "Organization",
+            "name": "Visit Grand Junction"
+          },
+          "about": sec.heading
+        });
+      }
 
       card.innerHTML = `
         <div class="doc-layout">
@@ -73,6 +95,18 @@ function buildContributions(){
     }
 
   });
+
+  if (articles.length) {
+    try {
+      const node = document.createElement('script');
+      node.type = 'application/ld+json';
+      node.textContent = JSON.stringify({
+        "@context": "https://schema.org",
+        "@graph": articles
+      });
+      document.head.appendChild(node);
+    } catch {}
+  }
 }
 
 /* Collapse contributions on mobile with See More/See Less toggle.
