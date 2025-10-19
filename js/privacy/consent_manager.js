@@ -50,11 +50,12 @@
     languages: {
       en: {
         bannerTitle: 'I value your privacy.',
-        bannerDesc: "I use cookies and similar technologies to improve your experience, understand site traffic, and measure performance. You can allow all cookies, allow essential cookies only, or manage your settings.",
+        bannerDesc: "I use cookies and similar technologies to improve your experience, understand site traffic, and measure performance. By closing this banner or selecting Allow all cookies you consent; you can opt out any time via Manage settings.",
         acceptAll: 'Allow all cookies',
         rejectAll: 'Allow essential only',
         managePrefs: 'Manage settings',
         privacyPolicy: 'Privacy Policy',
+        close: 'Close banner and accept all cookies',
         modalTitle: 'Privacy preferences',
         savePrefs: 'Save preferences',
         cancel: 'Cancel',
@@ -81,11 +82,12 @@
       },
       es: {
         bannerTitle: 'Valoro tu privacidad',
-        bannerDesc: 'Utilizo cookies y tecnologías similares para mejorar tu experiencia, entender el tráfico del sitio y medir el rendimiento. Puedes permitir todas las cookies, permitir solo las esenciales o administrar tus ajustes.',
+        bannerDesc: 'Utilizo cookies y tecnologías similares para mejorar tu experiencia, entender el tráfico del sitio y medir el rendimiento. Al cerrar este aviso o elegir Permitir todas aceptas las cookies; puedes cambiar tu decisión en Administrar ajustes.',
         acceptAll: 'Permitir todas las cookies',
         rejectAll: 'Permitir solo las esenciales',
         managePrefs: 'Administrar ajustes',
         privacyPolicy: 'Política de privacidad',
+        close: 'Cerrar y aceptar todas las cookies',
         modalTitle: 'Preferencias de privacidad',
         savePrefs: 'Guardar preferencias',
         cancel: 'Cancelar',
@@ -177,9 +179,14 @@
    * a server‑side IP geolocation service that returns the visitor’s region.
    * This stub always returns 'US'.
    */
+  function normalizeRegion(value) {
+    if (!value) return '';
+    return String(value).trim().toUpperCase();
+  }
+
   function getRegion() {
-    if (GLOBAL_CONF.region) return GLOBAL_CONF.region;
-    if (typeof window !== 'undefined' && window.PrivacyRegion) return window.PrivacyRegion;
+    const configured = normalizeRegion(GLOBAL_CONF.region || (typeof window !== 'undefined' ? window.PrivacyRegion : ''));
+    if (configured) return configured;
     try {
       const nav = navigator || {};
       const lang = (nav.languages && nav.languages[0]) || nav.language || '';
@@ -190,6 +197,45 @@
       if (euPrefixes.some(code => lower.startsWith(code))) return 'EU';
     } catch {}
     return 'US';
+  }
+
+  function getUSState() {
+    const configured = normalizeRegion(GLOBAL_CONF.usState || (typeof window !== 'undefined' ? window.PrivacyUSState : ''));
+    if (configured.startsWith('US-')) return configured.replace('US-', '');
+    if (configured.length === 2) return configured;
+    return '';
+  }
+
+  function regionRequiresOptIn(region, stateCode) {
+    const regionsCfg = GLOBAL_CONF.regions || {};
+    const ccpaStates = new Set((regionsCfg.usStatesWithCCPA || []).map(function (code) {
+      return String(code || '').trim().toUpperCase();
+    }));
+    const upperRegion = normalizeRegion(region);
+    if (upperRegion === 'EU' || upperRegion === 'EEA') return regionsCfg.eea !== false;
+    if (upperRegion === 'UK' || upperRegion === 'UNITED KINGDOM') return regionsCfg.uk !== false;
+    if (upperRegion.startsWith('US-')) {
+      const state = upperRegion.slice(3);
+      if (ccpaStates.has(state)) return true;
+      return false;
+    }
+    if (upperRegion === 'US') {
+      return !!(stateCode && ccpaStates.has(stateCode));
+    }
+    return false;
+  }
+
+  function getDefaultState() {
+    const strictState = { necessary: true, analytics: false, functional: false, advertising: false };
+    const permissiveState = { necessary: true, analytics: true, functional: true, advertising: true };
+    const region = getRegion();
+    const stateCode = getUSState();
+    const base = regionRequiresOptIn(region, stateCode) ? strictState : permissiveState;
+    const result = Object.assign({}, base);
+    if (hasGPC()) {
+      result.advertising = false;
+    }
+    return result;
   }
 
   /**
@@ -330,6 +376,7 @@
     banner.setAttribute('aria-modal', 'true');
     banner.setAttribute('aria-label', localeStrings.bannerTitle);
     banner.innerHTML =
+      '<button id="pcz-close" type="button" class="pcz-btn pcz-close" aria-label="' + localeStrings.close + '"><span aria-hidden="true">&times;</span></button>' +
       '<div class="pcz-row">' +
         '<p><strong>' + localeStrings.bannerTitle + '</strong> ' + localeStrings.bannerDesc + ' <a class="pcz-link" href="privacy.html">' + localeStrings.privacyPolicy + '</a></p>' +
         '<button id="pcz-accept" class="pcz-btn pcz-primary">' + localeStrings.acceptAll + '</button>' +
@@ -384,11 +431,12 @@
   function showBanner(localeStrings) {
     if (document.getElementById('pcz-banner')) return;
     const saved = loadConsent();
-    const initialState = saved ? saved.categories : { necessary: true, analytics: false, functional: false, advertising: false };
+    const initialState = saved ? saved.categories : getDefaultState();
     const banner = createBanner(localeStrings);
     document.body.appendChild(banner);
     // Block page interaction until a choice is made
     document.body.classList.add('consent-blocked');
+    const closeBtn = banner.querySelector('#pcz-close');
     const acceptBtn = banner.querySelector('#pcz-accept');
     const rejectBtn = banner.querySelector('#pcz-reject');
     const manageBtn = banner.querySelector('#pcz-manage');
@@ -415,12 +463,21 @@
     });
     // Set initial focus to the privacy‑preserving choice
     (rejectBtn || acceptBtn || manageBtn).focus();
-    acceptBtn.addEventListener('click', function () {
-      const newState = { necessary: true, analytics: true, functional: true, advertising: true };
+    function acceptAll() {
+      const newState = {
+        necessary: true,
+        analytics: true,
+        functional: true,
+        advertising: hasGPC() ? false : true
+      };
       saveConsent(newState);
       applyConsent(newState);
       dismissBanner();
-    });
+    }
+    acceptBtn.addEventListener('click', acceptAll);
+    if (closeBtn) {
+      closeBtn.addEventListener('click', acceptAll);
+    }
     rejectBtn.addEventListener('click', function () {
       const newState = { necessary: true, analytics: false, functional: false, advertising: false };
       // If GPC is enabled, advertising must remain false
@@ -514,16 +571,15 @@
       }
     } catch (e) {}
     const saved = loadConsent();
-    if (hasGPC()) {
-      if (saved && saved.categories && saved.categories.advertising) {
+    if (saved) {
+      if (hasGPC() && saved.categories && saved.categories.advertising) {
         saved.categories.advertising = false;
         saveConsent(saved.categories);
-        applyConsent(saved.categories);
       }
-    }
-    if (saved) {
       applyConsent(saved.categories);
     } else {
+      const defaultState = getDefaultState();
+      applyConsent(defaultState);
       showBanner(localeStrings);
     }
   }
@@ -534,8 +590,9 @@
       loadStyles();
       const locale = getLocale();
       const localeStrings = CONFIG.languages[locale];
-      const saved = loadConsent() || { categories: { necessary: true, analytics: false, functional: false, advertising: false } };
-      openPreferences(localeStrings, saved.categories);
+      const saved = loadConsent();
+      const state = saved ? saved.categories : getDefaultState();
+      openPreferences(localeStrings, state);
     },
     get: function () {
       const saved = loadConsent();
