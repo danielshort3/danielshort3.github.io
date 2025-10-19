@@ -36,7 +36,7 @@ body.consent-blocked::before {
   bottom: 0;
   z-index: 99999;
   background: var(--pcz-bg);
-  padding: 24px 24px 20px 20px;
+  padding: 24px clamp(20px, 6vw, 32px) 20px clamp(20px, 6vw, 32px);
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
   transform: translateY(0);
   opacity: 1;
@@ -68,7 +68,8 @@ body.consent-blocked::before {
   flex-wrap: wrap;
   gap: 12px;
   align-items: center;
-  padding-right: 40px;
+  padding-right: clamp(56px, 14vw, 128px);
+  padding-top: 12px;
 }
 
 #pcz-banner p {
@@ -171,7 +172,7 @@ body.consent-blocked::before {
   #pcz-banner .pcz-row {
     flex-direction: column;
     align-items: stretch;
-    padding-right: 0;
+    padding-right: clamp(56px, 18vw, 140px);
   }
 
   #pcz-banner p {
@@ -184,6 +185,18 @@ body.consent-blocked::before {
 
   #pcz-banner .pcz-btn.pcz-link {
     text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  #pcz-banner .pcz-row {
+    padding-top: 32px;
+    padding-right: clamp(64px, 22vw, 148px);
+  }
+
+  #pcz-banner .pcz-close {
+    top: 8px;
+    right: clamp(12px, 6vw, 20px);
   }
 }
 
