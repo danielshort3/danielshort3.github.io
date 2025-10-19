@@ -5,7 +5,7 @@
 @layer components {
   .btn-primary,.btn-secondary,.btn-icon{
     display:inline-flex;align-items:center;justify-content:center;
-    font-family:'Poppins';font-weight:500;border-radius:8px;
+    font-family:var(--font-heading);font-weight:500;border-radius:8px;
     cursor:pointer;transition:transform .25s,box-shadow .25s
   }
   .btn-primary{

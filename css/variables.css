@@ -18,6 +18,10 @@
     --link-hover: color-mix(in srgb, var(--primary) 65%, #fff 35%);
     --focus: color-mix(in srgb, var(--primary) 70%, #fff 30%);
 
+    /* typography stacks */
+    --font-body: 'Inter', 'Inter Fallback', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-heading: 'Poppins', 'Poppins Fallback', 'Inter', 'Inter Fallback', sans-serif;
+
     /* borders */
     --border-subtle:#21262D;
 
