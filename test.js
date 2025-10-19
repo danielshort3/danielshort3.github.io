@@ -125,7 +125,7 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
   // CSS: brand colors and stacked divider line
   const navCss = fs.readFileSync('css/layout/nav.css', 'utf8');
   assert(navCss.includes('.brand .divider{color:var(--primary)}'), 'nav.css divider not teal');
-  assert(navCss.includes('font-family:var(--font-heading)'), 'nav.css brand-name block missing');
+  assert(navCss.includes(".brand-name{\n    font-family:'Poppins'"), 'nav.css brand-name block missing');
   assert(navCss.includes('color:var(--text-light)'), 'nav.css brand-name not white');
 
   const utilCss = fs.readFileSync('css/utilities/layout.css', 'utf8');
