@@ -45,19 +45,22 @@ body.consent-blocked::before {
 
 #pcz-banner .pcz-close {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  border: 0;
-  background: transparent;
-  color: var(--pcz-fg);
-  padding: 6px;
+  top: 12px;
+  right: 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px;
   line-height: 1;
-  font-size: 1.25rem;
+  font-size: 1.75rem;
+  transition: color 0.25s ease, text-shadow 0.25s ease;
 }
 
 #pcz-banner .pcz-close:hover,
 #pcz-banner .pcz-close:focus-visible {
-  color: var(--pcz-link);
+  color: var(--primary);
+  text-shadow: 0 0 4px color-mix(in srgb, var(--primary) 40%, transparent);
 }
 
 #pcz-banner .pcz-row {
