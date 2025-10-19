@@ -143,23 +143,27 @@
 
   const loadAnalyticsHelpers = (() => {
     let promise = null;
+    const ensureScript = (id, src) => new Promise((resolve, reject) => {
+      if (document.getElementById(id)) {
+        resolve();
+        return;
+      }
+      const tag = document.createElement('script');
+      tag.id = id;
+      tag.src = src;
+      tag.async = false;
+      tag.onload = () => resolve();
+      tag.onerror = () => reject(new Error('Failed to load ' + src));
+      document.head.appendChild(tag);
+    });
     return function loadHelpers(){
       if (promise) return promise;
-      promise = new Promise((resolve, reject) => {
-        if (document.getElementById('ga4-helper')) {
-          resolve();
-          return;
-        }
-        const tag = document.createElement('script');
-        tag.id = 'ga4-helper';
-        tag.src = 'js/analytics/ga4-events.js';
-        tag.async = false;
-        tag.onload = () => resolve();
-        tag.onerror = () => {
-          promise = null;
-          reject(new Error('Failed to load ga4-events.js'));
-        };
-        document.head.appendChild(tag);
+      promise = Promise.all([
+        ensureScript('ga4-helper', 'js/analytics/ga4-events.js'),
+        ensureScript('hotjar-helper', 'js/analytics/hotjar.js')
+      ]).catch(err => {
+        promise = null;
+        throw err;
       });
       return promise;
     };
@@ -306,6 +310,7 @@
       });
     }
     enableVendor('ga4', state.analytics);
+    enableVendor('hotjar', state.analytics);
     window.dispatchEvent(new CustomEvent('consent-changed', { detail: state }));
   }
 

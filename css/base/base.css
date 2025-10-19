@@ -3,32 +3,48 @@
    2.  GLOBAL LAYOUT & TYPOGRAPHY  (base = PC ≥1025px)
    ─────────────────────────────────────────────────────────── */
 @layer base {
-  html,body{
+  html{
     height:100%;margin:0;padding:0;
     font-family:'Inter',sans-serif;
     background:var(--bg);color:var(--text-light);
-    line-height:1.6;-webkit-font-smoothing:antialiased;
-    color-scheme: dark light; /* better native form controls on mobile */
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    scroll-behavior:smooth;
+    color-scheme:dark;
   }
 
   body{
+    height:100%;margin:0;padding:0;
     display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden;
-    /* Keep all content below the fixed header */
-    padding-top: var(--nav-height, 72px);
+    padding-top:var(--nav-height,72px);
+    background:var(--bg);color:var(--text-light);
+    font-size:1rem;
   }
+
+  html[data-theme="light"]{color-scheme:light;}
   main{flex:1 0 auto}
   .wrapper{max-width:var(--container-max);margin-inline:auto;padding-inline:24px}
-  a{color:inherit;text-decoration:none}
+  a{color:var(--link);text-decoration:none}
+  a:hover{color:var(--link-hover)}
+  a:focus-visible,button:focus-visible{
+    outline:3px solid var(--focus);
+    outline-offset:3px;
+  }
   .hide{display:none !important}
 
   /* Headings & copy (desktop defaults) */
-  h1,h2,h3{
-    font-family:'Poppins',sans-serif;font-weight:500;letter-spacing:.4px
+  h1,h2,h3,h4{
+    font-family:'Poppins',sans-serif;font-weight:600;letter-spacing:.02em;
+    color:var(--text-light);
   }
-  h1{font-size:48px;line-height:56px;margin:.4em 0}
-  h2{font-size:32px;line-height:40px;margin:.6em 0 .4em}
-  h3{font-size:24px;line-height:32px;margin:.8em 0 .4em}
-  p {margin-bottom:1em;font-size:19px}
+  h1{font-size:2.2rem;line-height:1.25;margin:.75em 0 .35em}
+  h2{font-size:1.6rem;line-height:1.3;margin:.9em 0 .45em}
+  h3{font-size:1.25rem;line-height:1.4;margin:1.2em 0 .5em}
+  h4{font-size:1.1rem;line-height:1.45;margin:1.1em 0 .4em;color:var(--accent-sand)}
+  p {margin-bottom:1em;font-size:1rem;color:var(--text-muted)}
+
+  strong{color:var(--text-light)}
+  small{font-size:.875rem;color:var(--text-muted)}
 
   /* Respect users who prefer reduced motion */
   @media (prefers-reduced-motion: reduce){

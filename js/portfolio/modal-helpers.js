@@ -114,7 +114,8 @@
   }
 
   function projectMedia(p) {
-    const hasVideo = !!(p.videoWebm || p.videoMp4);
+  const hasVideo = !!(p.videoWebm || p.videoMp4);
+    const size = PROJECT_IMAGE_SIZES[p.id] || { width: 1280, height: 720 };
     const img = (() => {
       const src = p.image || '';
       const lower = src.toLowerCase();
@@ -125,10 +126,10 @@
       if (webp) {
         return `<picture>
         <source srcset="${webp}" type="image/webp">
-        <img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false">
+        <img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false" width="${size.width}" height="${size.height}">
       </picture>`;
       }
-      return `<img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false">`;
+      return `<img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false" width="${size.width}" height="${size.height}">`;
     })();
 
     if (!hasVideo) return img;
@@ -142,8 +143,96 @@
     ${img}`;
   }
 
+  const PROJECT_IMAGE_SIZES = {
+    smartSentence: { width: 1280, height: 720 },
+    chatbotLora: { width: 1280, height: 720 },
+    shapeClassifier: { width: 1280, height: 720 },
+    ufoDashboard: { width: 2008, height: 1116 },
+    covidAnalysis: { width: 792, height: 524 },
+    targetEmptyPackage: { width: 896, height: 480 },
+    handwritingRating: { width: 600, height: 960 },
+    digitGenerator: { width: 400, height: 400 },
+    sheetMusicUpscale: { width: 1604, height: 1230 },
+    deliveryTip: { width: 960, height: 794 },
+    retailStore: { width: 1490, height: 690 },
+    pizza: { width: 1726, height: 1054 },
+    babynames: { width: 1200, height: 800 },
+    pizzaDashboard: { width: 1250, height: 1092 },
+    nonogram: { width: 1080, height: 1080 },
+    website: { width: 1240, height: 1456 }
+  };
+
   window.activateGifVideo = activateGifVideo;
   window.projectMedia = projectMedia;
+
+  const normalizeList = (value) => {
+    if (!value) return [];
+    if (Array.isArray(value)) return value.filter(Boolean);
+    return [value];
+  };
+
+  const getProjectDetails = (project) => {
+    const all = window.PROJECT_DETAILS || {};
+    const detail = all[project.id] || {};
+    const data = normalizeList(detail.data);
+    const methods = normalizeList(detail.methods || project.actions);
+    const results = normalizeList(detail.results || project.results);
+    const impact = normalizeList(detail.impact);
+    const keyResults = normalizeList(detail.keyResults || detail.results || project.results);
+    const related = Array.isArray(detail.related) ? detail.related.filter(Boolean) : [];
+    return {
+      overview: detail.overview || project.problem || '',
+      goal: detail.goal || detail.objective || '',
+      data,
+      methods,
+      results,
+      impact,
+      keyResults,
+      related
+    };
+  };
+
+  const renderList = (items, className = '') => {
+    if (!items.length) return '';
+    const cls = className ? ` class="${className}"` : '';
+    return `<ul${cls}>${items.map(item => `<li>${item}</li>`).join('')}</ul>`;
+  };
+
+  const svgIcon = {
+    github: "<svg viewBox='0 0 24 24' aria-hidden='true'><path fill='currentColor' d='M12 .5C5.4.5 0 6 0 12.7c0 5.4 3.4 10 8.2 11.6.6.1.8-.3.8-.6v-2.4c-3.3.8-4-1.6-4-1.6-.5-1.4-1.3-1.8-1.3-1.8-1.1-.8.1-.7.1-.7 1.2.1 1.8 1.3 1.8 1.3 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.4-1.4-5.4-6.1 0-1.3.5-2.4 1.2-3.3-.1-.3-.5-1.6.1-3.3 0 0 1-.3 3.3 1.2a11.8 11.8 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.7.2 3 .1 3.3.8.9 1.2 2 1.2 3.3 0 4.8-2.8 5.8-5.5 6.1.4.3.8 1 .8 2.1v3.1c0 .3.2.7.8.6C20.6 22.7 24 18.1 24 12.7 24 6 18.6.5 12 .5Z'/></svg>",
+    website: "<svg viewBox='0 0 24 24' aria-hidden='true'><path fill='none' stroke='currentColor' stroke-width='1.6' d='M12 21c4.97 0 9-4.03 9-9s-4.03-9-9-9-9 4.03-9 9 4.03 9 9 9Zm0-18c2.5 2.26 4 5.32 4 9s-1.5 6.74-4 9c-2.5-2.26-4-5.32-4-9s1.5-6.74 4-9Zm-9 9h18M3.6 8h16.8M3.6 16h16.8'/></svg>"
+  };
+
+  const renderResourceIcon = (resource) => {
+    const typeHint = (resource.type || resource.label || '').toLowerCase();
+    if (typeHint.includes('github')) {
+      return `<span class="resource-icon" aria-hidden="true">${svgIcon.github}</span>`;
+    }
+    if (typeHint.includes('site') || typeHint.includes('demo') || typeHint.includes('dashboard')) {
+      return `<span class="resource-icon" aria-hidden="true">${svgIcon.website}</span>`;
+    }
+    if (resource.icon) {
+      const base = resource.icon.replace(/\.png$/i, '');
+      const webp = `${base}.webp`;
+      const png = resource.icon;
+      return `<picture>
+        <source srcset="${webp}" type="image/webp">
+        <img src="${png}" alt="" width="30" height="30" loading="lazy" decoding="async">
+      </picture>`;
+    }
+    return '';
+  };
+
+  const renderResources = (resources = []) => {
+    if (!Array.isArray(resources) || !resources.length) return '';
+    return resources.map(r => {
+      const iconHtml = renderResourceIcon(r);
+      const label = r.label || r.url;
+      const rel = /^https?:/i.test(r.url || '') ? ' rel="noopener noreferrer"' : '';
+      const target = /^https?:/i.test(r.url || '') ? ' target="_blank"' : '';
+      return `<a href="${r.url}"${target}${rel} aria-label="${label}" class="resource-link">${iconHtml}<span class="sr-only">${label}</span></a>`;
+    }).join('');
+  };
 
   window.closeModal = function(id) {
     const modal = document.getElementById(`${id}-modal`) || document.getElementById(id);
@@ -218,6 +307,22 @@
       }
     } catch {}
 
+    modal.querySelectorAll('[data-related-id]').forEach(btn => {
+      if (btn.dataset.relatedBound === 'yes') return;
+      btn.dataset.relatedBound = 'yes';
+      btn.addEventListener('click', () => {
+        const next = btn.getAttribute('data-related-id');
+        window.closeModal(id);
+        if (next) window.openModal(next);
+      });
+    });
+
+    try {
+      if (typeof window.trackProjectView === 'function') {
+        window.trackProjectView(id);
+      }
+    } catch {}
+
     const copyBtn = modal.querySelector('.modal-copy');
     if (copyBtn && !copyBtn._bound) {
       copyBtn._bound = true;
@@ -266,8 +371,7 @@
   window.generateProjectModal = function(p) {
     const isTableau = p.embed?.type === 'tableau';
     const isIframe = p.embed?.type === 'iframe';
-
-    const tableauDevice = () => window.matchMedia('(max-width:768px)').matches ? 'phone' : 'desktop';
+    const details = getProjectDetails(p);
 
     const visual = (() => {
       if (isIframe) {
@@ -292,37 +396,50 @@
       </div>`;
     })();
 
+    const overviewBlock = details.overview ? `<div class="modal-section"><h4>Overview</h4><p>${details.overview}</p></div>` : '';
+    const goalBlock = details.goal ? `<div class="modal-section"><h4>Goal</h4><p>${details.goal}</p></div>` : '';
+    const dataBlock = details.data.length ? `<div class="modal-section"><h4>Data</h4>${renderList(details.data)}</div>` : '';
+    const methodsBlock = details.methods.length ? `<div class="modal-section"><h4>Methods</h4>${renderList(details.methods)}</div>` : '';
+    const resultsBlock = details.results.length ? `<div class="modal-section"><h4>Results</h4>${renderList(details.results)}</div>` : '';
+    const impactBlock = details.impact.length ? `<div class="modal-section"><h4>Impact</h4>${renderList(details.impact)}</div>` : '';
+    const keyResultsBlock = details.keyResults.length ? `<div class="modal-section"><h4>Key Results</h4>${renderList(details.keyResults, 'key-results-list')}</div>` : '';
+    const relatedBlock = details.related.length ? `<div class="modal-section related-projects"><h4>Related Work</h4><div class="related-links">${details.related.map(rel => `<button type="button" class="related-link" data-related-id="${rel.id}">${rel.label}</button>`).join('')}</div></div>` : '';
+
+    const resourcesMarkup = renderResources(Array.isArray(p.resources) ? p.resources : []);
+
     return `
     <div class="modal-content ${(isTableau || isIframe) ? 'modal-wide' : ''}" role="dialog" aria-modal="true" tabindex="0" aria-labelledby="${p.id}-title">
       <button class="modal-copy" type="button" aria-label="Copy link to this project">Copy link</button>
       <button class="modal-close" aria-label="Close dialog">&times;</button>
       <div class="modal-title-strip"><h3 class="modal-title" id="${p.id}-title">${p.title}</h3></div>
 
-      <div class="modal-body ${isTableau ? 'stacked' : ''}">
-        <div class="modal-header-details">
-          <div class="modal-half">
-            <p class="header-label">Tools</p>
-            <div class="tool-badges">
-              ${p.tools.map(t => `<span class="badge">${t}</span>`).join('')}
-            </div>
-          </div>
-          <div class="modal-divider" aria-hidden="true"></div>
-          <div class="modal-half">
-            <p class="header-label">Downloads / Links</p>
-            <div class="icon-row">
-              ${p.resources.map(r => `
-                <a href="${r.url}" target="_blank" rel="noopener" title="${r.label}">
-                  <img src="${r.icon}" alt="${r.label}" class="icon" width="30" height="30">
-                </a>`).join('')}
-            </div>
+      <div class="modal-header-details">
+        <div class="modal-half">
+          <p class="header-label">Tools</p>
+          <div class="tool-badges">
+            ${p.tools.map(t => `<span class="badge">${t}</span>`).join('')}
           </div>
         </div>
+        <div class="modal-divider" aria-hidden="true"></div>
+        <div class="modal-half">
+          <p class="header-label">Downloads / Links</p>
+          <div class="icon-row">
+            ${resourcesMarkup || '<span class="resource-empty">Assets available on request</span>'}
+          </div>
+        </div>
+      </div>
 
+      <div class="modal-body ${isTableau ? 'stacked' : ''}">
         <div class="modal-text">
-          <p class="modal-subtitle">${p.subtitle}</p>
-          <h4>Problem</h4><p>${p.problem}</p>
-          <h4>Action</h4><ul>${p.actions.map(a => `<li>${a}</li>`).join('')}</ul>
-          <h4>Result</h4><ul>${p.results.map(r => `<li>${r}</li>`).join('')}</ul>
+          <p class="modal-subtitle">${p.subtitle || ''}</p>
+          ${overviewBlock}
+          ${goalBlock}
+          ${dataBlock}
+          ${methodsBlock}
+          ${resultsBlock}
+          ${impactBlock}
+          ${keyResultsBlock}
+          ${relatedBlock}
         </div>
 
         ${visual}

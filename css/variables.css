@@ -2,62 +2,74 @@
 /* 1.  DESIGN TOKENS ─────────────────────────────────────────────────────────── */
 @layer tokens {
   :root{
-    /* palette */
-    --bg:#0D1117;
-    --surface:#161B22;
-    --surface-light:color-mix(in srgb,var(--surface) 85%,#fff 15%);
-    --surface-accent:color-mix(in srgb,var(--surface) 92%,#fff 8%);
-    --primary:#2396AD;
-    /* unify accents: use teal for secondary too */
-    --secondary: var(--primary);
-    --text-light:#F1F4F8;
-    --text-muted:#BFC8D3;   /* WCAG-passing grey */
+    /* brand palette */
+    --brand-navy:#19526B;
+    --brand-clay:#AA5541;
+    --brand-sage:#99A98C;
+    --brand-sand:#D6AE6E;
+    --brand-light:#FFFFFF;
+    --brand-ink:#0A1820;
 
-    /* links & focus */
-    --link: color-mix(in srgb, var(--primary) 85%, #fff 15%);
-    --link-hover: color-mix(in srgb, var(--primary) 65%, #fff 35%);
-    --focus: color-mix(in srgb, var(--primary) 70%, #fff 30%);
+    /* dark theme (default) */
+    --bg:var(--brand-ink);
+    --surface:#11212C;
+    --surface-light:color-mix(in srgb,var(--surface) 78%,#1f3541 22%);
+    --surface-accent:color-mix(in srgb,var(--surface) 70%,var(--brand-sage) 30%);
+    --primary:var(--brand-navy);
+    --secondary:var(--primary);
+    --accent-sage:var(--brand-sage);
+    --accent-sand:var(--brand-sand);
 
-    /* borders */
-    --border-subtle:#21262D;
+    --text-light:#F5FAFF;
+    --text-muted:color-mix(in srgb,var(--text-light) 62%,#94A6B3 38%);
+    --text-inverse:#10242C;
 
-    /* semantic states (optional) */
-    --success:#38B37E;  /* approvals, good states */
-    --warning:#E0A328;  /* caution, non-blocking */
-    --danger:#E05757;   /* errors, destructive */
+    --link:color-mix(in srgb,var(--primary) 88%,var(--brand-light) 12%);
+    --link-hover:color-mix(in srgb,var(--primary) 60%,var(--brand-sand) 40%);
+    --focus:color-mix(in srgb,var(--brand-clay) 60%,var(--brand-light) 40%);
 
-    /* sizing */
-    --nav-height:72px;      /* default, JS may overwrite */
+    --border-subtle:color-mix(in srgb,var(--surface) 80%,var(--brand-sage) 20%);
+
+    --success:#3FC58B;
+    --warning:#F2B653;
+    --danger:#E05757;
+
+    --nav-height:72px;
     --container-max:1068px;
-    --modal-max:920px;                 /* typical dialog width on desktop */
-    --modal-max-wide:var(--container-max); /* wider for embeds (Tableau/iframes) */
+    --modal-max:920px;
+    --modal-max-wide:var(--container-max);
 
-    /* spacing scale */
     --space-2:2px;   --space-4:4px;   --space-6:6px;
     --space-8:8px;   --space-10:10px; --space-12:12px;
     --space-14:14px; --space-16:16px; --space-20:20px;
     --space-24:24px; --space-28:28px; --space-32:32px;
     --space-40:40px; --space-48:48px; --space-64:64px;
 
-    /* radii */
     --radius-6:6px; --radius-8:8px; --radius-10:10px;
     --radius-12:12px; --radius-14:14px; --radius-16:16px;
 
-    /* shadows */
-    --shadow-sm:0 2px 6px rgba(0,0,0,.25);
-    --shadow-md:0 6px 18px rgba(0,0,0,.35);
-    --shadow-lg:0 12px 32px rgba(0,0,0,.6);
+    --shadow-sm:0 2px 6px rgba(8,16,21,.28);
+    --shadow-md:0 6px 20px rgba(8,16,21,.35);
+    --shadow-lg:0 16px 40px rgba(8,16,21,.48);
 
-    /* breakpoints (for documentation) */
     --bp-sm:480px; --bp-md:768px; --bp-lg:1024px; --bp-xl:1280px;
 
-    /* dynamic viewport height used for mobile hero sections */
     --vh:100vh;
+    --project-card-aspect: 1 / 1;
+  }
 
-    /* component-specific */
-    /* Controls the visual height of project card media (img/gif/video). */
-    /* Use a wider ratio but tall enough to avoid crowding. */
-    --project-card-aspect: 1 / 1; /* square project cards */
+  html[data-theme="light"]{
+    --bg:#F5FAFF;
+    --surface:color-mix(in srgb,var(--brand-light) 92%,var(--brand-sage) 8%);
+    --surface-light:color-mix(in srgb,var(--brand-light) 96%,var(--brand-sand) 4%);
+    --surface-accent:color-mix(in srgb,var(--brand-light) 88%,var(--brand-clay) 12%);
+    --text-light:#14242E;
+    --text-muted:color-mix(in srgb,var(--text-light) 68%,#6A7C87 32%);
+    --text-inverse:#F2FAFE;
+    --link:color-mix(in srgb,var(--primary) 80%,var(--brand-clay) 20%);
+    --link-hover:color-mix(in srgb,var(--primary) 60%,var(--brand-sand) 40%);
+    --border-subtle:color-mix(in srgb,var(--brand-sage) 55%,var(--brand-light) 45%);
+    color-scheme: light dark;
   }
 }
 
