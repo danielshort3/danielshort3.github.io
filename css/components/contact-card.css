@@ -3,7 +3,7 @@
   .contact-card{
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
     padding:48px 32px;text-align:center;background:var(--surface);border:1px solid var(--border-subtle);
-    border-radius:14px;color:var(--primary);font-family:'Poppins','Poppins Fallback','Inter','Inter Fallback',system-ui,sans-serif;font-weight:600;
+    border-radius:14px;color:var(--primary);font-family:'Poppins';font-weight:600;
     transition:transform .25s,background .25s,color .25s,box-shadow .25s,border-color .25s
   }
   .contact-card svg{
@@ -23,7 +23,7 @@
     -webkit-mask-position: center;      mask-position: center;
     -webkit-mask-size: contain;         mask-size: contain;
   }
-  .contact-card small{font-family:'Inter','Inter Fallback',system-ui,sans-serif;color:var(--text-muted);transition:inherit}
+  .contact-card small{font-family:'Inter';color:var(--text-muted);transition:inherit}
   .contact-card:hover{
     background:var(--primary);color:var(--bg);transform:translateY(-3px);
     border-color:var(--primary);

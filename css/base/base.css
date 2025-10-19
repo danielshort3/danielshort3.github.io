@@ -5,7 +5,7 @@
 @layer base {
   html,body{
     height:100%;margin:0;padding:0;
-    font-family:'Inter','Inter Fallback',system-ui,sans-serif;
+    font-family:'Inter',sans-serif;
     background:var(--bg);color:var(--text-light);
     line-height:1.6;-webkit-font-smoothing:antialiased;
     color-scheme: dark light; /* better native form controls on mobile */
@@ -23,8 +23,7 @@
 
   /* Headings & copy (desktop defaults) */
   h1,h2,h3{
-    font-family:'Poppins','Poppins Fallback','Inter','Inter Fallback',system-ui,sans-serif;
-    font-weight:500;letter-spacing:.4px
+    font-family:'Poppins',sans-serif;font-weight:500;letter-spacing:.4px
   }
   h1{font-size:48px;line-height:56px;margin:.4em 0}
   h2{font-size:32px;line-height:40px;margin:.6em 0 .4em}
