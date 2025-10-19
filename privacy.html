@@ -44,11 +44,22 @@
         .policy-section h2 { margin-top: 0.2em; }
         .policy-list { padding-left: 20px; }
         .policy-meta { margin-top: 16px; font-size: .95rem; color: var(--text-muted); }
-        #privacy-preferences-form div { display: flex; align-items: center; margin-bottom: 0.5rem; }
-        #privacy-preferences-form label { margin-left: 0.5rem; }
-        #save-privacy-preferences { margin-top: 1rem; padding: 0.5rem 1rem; border: none; border-radius: 4px; background-color: var(--primary); color: var(--on-primary); cursor: pointer; }
+        .prefs-grid { display: grid; gap: 14px; margin-top: 18px; }
+        .pref-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--border-subtle); border-radius: 10px; background: var(--surface-accent); }
+        .pref-toggle { flex: 1; display: flex; justify-content: space-between; align-items: center; border: none; background: transparent; color: inherit; font: inherit; padding: 10px 12px; border-radius: 8px; cursor: pointer; transition: background-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease; }
+        .pref-toggle.is-on { background: color-mix(in srgb, var(--primary) 22%, transparent); box-shadow: inset 0 0 0 1px var(--primary); color: var(--on-primary, #0D1117); }
+        .pref-toggle.is-off { box-shadow: inset 0 0 0 1px var(--border-subtle); }
+        .pref-toggle[disabled] { cursor: not-allowed; opacity: 0.75; box-shadow: inset 0 0 0 1px var(--border-subtle); }
+        .pref-name { font-weight: 600; letter-spacing: 0.2px; }
+        .pref-state { font-size: 0.9rem; color: var(--text-muted); }
+        .pref-toggle.is-on .pref-state { color: inherit; font-weight: 600; }
+        .pref-help { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--border-subtle); background: transparent; color: var(--text-muted); cursor: pointer; font-weight: 600; transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease; }
+        .pref-help:hover,
+        .pref-help:focus-visible,
+        .pref-help[aria-expanded="true"] { color: var(--primary); border-color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, transparent); }
+        .pref-description { margin: -8px 0 12px; font-size: 0.9rem; color: var(--text-muted); padding-left: 4px; }
+        #save-privacy-preferences { margin-top: 1rem; padding: 0.65rem 1.25rem; border: none; border-radius: 6px; background-color: var(--primary); color: var(--on-primary, #0D1117); cursor: pointer; font-weight: 600; }
         #save-privacy-preferences:hover { background-color: var(--primary-dark, #2ca9bc); }
-        .cookie-description { display: block; font-size: 0.85rem; margin-left: 1.5rem; }
         /* Ensure footer links wrap and don’t cause horizontal overflow */
         .privacy-links { display: grid; gap: 8px; justify-content: center; margin: 16px auto; padding-inline: 16px; }
         .privacy-links .pcz-link { overflow-wrap: anywhere; }
@@ -87,24 +98,44 @@
         </section>
         <section class="policy-card" aria-labelledby="prefs-title">
             <h1 id="prefs-title">Manage Your Privacy Settings</h1>
-            <p class="policy-lead">Adjust your preferences below and click “Save preferences”. Necessary cookies are always enabled.</p>
-            <form id="privacy-preferences-form">
-                <div>
-                    <input type="checkbox" id="pref-necessary" name="necessary" checked disabled>
-                    <label for="pref-necessary">Necessary (always enabled)</label>
+            <p class="policy-lead">Use the buttons below to enable or disable each category, then click “Save preferences”. Strictly necessary cookies stay on to keep the site working.</p>
+            <form id="privacy-preferences-form" class="prefs-grid">
+                <div class="pref-row">
+                    <button type="button" class="pref-toggle is-on" data-category="necessary" aria-pressed="true" disabled>
+                        <span class="pref-name">Strictly necessary</span>
+                        <span class="pref-state" data-state-label>Enabled (required)</span>
+                    </button>
+                    <button type="button" class="pref-help" aria-expanded="false" aria-controls="pref-desc-necessary" aria-label="What are strictly necessary cookies?">?</button>
                 </div>
-                <div>
-                    <input type="checkbox" id="pref-analytics" name="analytics">
-                    <label for="pref-analytics">Analytics</label>
+                <p id="pref-desc-necessary" class="pref-description" hidden>Strictly necessary cookies are required for basic site features such as navigation and access to secure areas. You can’t turn them off.</p>
+
+                <div class="pref-row">
+                    <button type="button" class="pref-toggle is-off" data-category="analytics" aria-pressed="false">
+                        <span class="pref-name">Analytics</span>
+                        <span class="pref-state" data-state-label>Disabled</span>
+                    </button>
+                    <button type="button" class="pref-help" aria-expanded="false" aria-controls="pref-desc-analytics" aria-label="What are analytics cookies?">?</button>
                 </div>
-                <div>
-                    <input type="checkbox" id="pref-functional" name="functional">
-                    <label for="pref-functional">Functional</label>
+                <p id="pref-desc-analytics" class="pref-description" hidden>Analytics cookies help measure site traffic, navigation patterns, and performance so I can improve the experience.</p>
+
+                <div class="pref-row">
+                    <button type="button" class="pref-toggle is-off" data-category="functional" aria-pressed="false">
+                        <span class="pref-name">Functional</span>
+                        <span class="pref-state" data-state-label>Disabled</span>
+                    </button>
+                    <button type="button" class="pref-help" aria-expanded="false" aria-controls="pref-desc-functional" aria-label="What are functional cookies?">?</button>
                 </div>
-                <div>
-                    <input type="checkbox" id="pref-advertising" name="advertising">
-                    <label for="pref-advertising">Advertising</label>
+                <p id="pref-desc-functional" class="pref-description" hidden>Functional cookies remember your preferences and provide enhanced features such as saved filters or language choices.</p>
+
+                <div class="pref-row">
+                    <button type="button" class="pref-toggle is-off" data-category="advertising" aria-pressed="false">
+                        <span class="pref-name">Advertising</span>
+                        <span class="pref-state" data-state-label>Disabled</span>
+                    </button>
+                    <button type="button" class="pref-help" aria-expanded="false" aria-controls="pref-desc-advertising" aria-label="What are advertising cookies?">?</button>
                 </div>
+                <p id="pref-desc-advertising" class="pref-description" hidden>Advertising cookies are used to deliver relevant ads and to measure the effectiveness of marketing campaigns.</p>
+
                 <button type="button" id="save-privacy-preferences">Save preferences</button>
             </form>
             <p id="privacy-preferences-status" class="policy-lead" role="alert"></p>
@@ -122,32 +153,83 @@
     <script defer src="js/privacy/consent_manager.js"></script>
     <script>
     (function() {
-        function syncForm() {
-            if (!window.consentAPI || typeof window.consentAPI.get !== 'function') { setTimeout(syncForm, 100); return; }
-            var prefs = window.consentAPI.get() || { analytics: false, functional: false, advertising: false };
-            document.getElementById('pref-analytics').checked = !!prefs.analytics;
-            document.getElementById('pref-functional').checked = !!prefs.functional;
-            document.getElementById('pref-advertising').checked = !!prefs.advertising;
+        function setToggleState(btn, state) {
+            var on = !!state;
+            btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+            btn.classList.toggle('is-on', on);
+            btn.classList.toggle('is-off', !on);
+            var label = btn.querySelector('[data-state-label]');
+            if (label) {
+                if (btn.dataset.category === 'necessary') {
+                    label.textContent = 'Enabled (required)';
+                } else {
+                    label.textContent = on ? 'Enabled' : 'Disabled';
+                }
+            }
         }
-        document.addEventListener('DOMContentLoaded', function() {
-            syncForm();
+
+        function getToggleState(btn) {
+            return btn.getAttribute('aria-pressed') === 'true';
+        }
+
+        function syncForm() {
+            if (!window.consentAPI || typeof window.consentAPI.get !== 'function') {
+                setTimeout(syncForm, 100);
+                return;
+            }
+            var prefs = window.consentAPI.get() || { analytics: false, functional: false, advertising: false };
+            document.querySelectorAll('.pref-toggle').forEach(function(btn) {
+                var category = btn.dataset.category;
+                if (!category) return;
+                if (category === 'necessary') {
+                    setToggleState(btn, true);
+                    return;
+                }
+                setToggleState(btn, !!prefs[category]);
+            });
+        }
+
+        function init() {
+            document.querySelectorAll('.pref-toggle').forEach(function(btn) {
+                if (btn.disabled) return;
+                btn.addEventListener('click', function() {
+                    var next = btn.getAttribute('aria-pressed') !== 'true';
+                    setToggleState(btn, next);
+                });
+            });
+
+            document.querySelectorAll('.pref-help').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var expanded = btn.getAttribute('aria-expanded') === 'true';
+                    var targetId = btn.getAttribute('aria-controls');
+                    var target = targetId ? document.getElementById(targetId) : null;
+                    btn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+                    if (target) target.hidden = expanded;
+                });
+            });
+
             var saveBtn = document.getElementById('save-privacy-preferences');
             if (saveBtn) {
                 saveBtn.addEventListener('click', function() {
                     if (!window.consentAPI || typeof window.consentAPI.set !== 'function') return;
-                    var newPrefs = {
-                        analytics: document.getElementById('pref-analytics').checked,
-                        functional: document.getElementById('pref-functional').checked,
-                        advertising: document.getElementById('pref-advertising').checked
-                    };
+                    var newPrefs = {};
+                    document.querySelectorAll('.pref-toggle').forEach(function(btn) {
+                        var category = btn.dataset.category;
+                        if (!category || category === 'necessary') return;
+                        newPrefs[category] = getToggleState(btn);
+                    });
                     window.consentAPI.set(newPrefs);
+                    syncForm();
                     var statusEl = document.getElementById('privacy-preferences-status');
                     if (statusEl) statusEl.textContent = 'Your preferences have been saved.';
                 });
             }
-        });
+
+            syncForm();
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
     })();
     </script>
 </body>
 </html>
-
