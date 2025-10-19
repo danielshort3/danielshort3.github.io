@@ -1,6 +1,23 @@
 /* CSS variables */
 /* 1.  DESIGN TOKENS ─────────────────────────────────────────────────────────── */
 @layer tokens {
+  /* Font fallback metrics to reduce swap-induced layout shift */
+  @font-face {
+    font-family: 'Inter Fallback';
+    src: local('Arial');
+    ascent-override: 92%;
+    descent-override: 24%;
+    line-gap-override: 0%;
+    size-adjust: 104%;
+  }
+  @font-face {
+    font-family: 'Poppins Fallback';
+    src: local('Trebuchet MS');
+    ascent-override: 90%;
+    descent-override: 22%;
+    line-gap-override: 0%;
+    size-adjust: 98%;
+  }
   :root{
     /* palette */
     --bg:#0D1117;

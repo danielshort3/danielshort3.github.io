@@ -239,7 +239,7 @@
 
   function getDefaultState() {
     const strictState = { necessary: true, analytics: false, functional: false, advertising: false };
-    const permissiveState = { necessary: true, analytics: true, functional: true, advertising: true };
+    const permissiveState = { necessary: true, analytics: false, functional: true, advertising: false };
     const region = getRegion();
     const stateCode = getUSState();
     const base = regionRequiresOptIn(region, stateCode) ? strictState : permissiveState;
