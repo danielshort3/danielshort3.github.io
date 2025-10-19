@@ -1,0 +1,22 @@
+/* Font metric overrides for faster, steadier text rendering */
+@font-face {
+  font-family: 'Inter Fallback';
+  src: local('Segoe UI'), local('Roboto'), local('Helvetica Neue'), local('Arial');
+  font-style: normal;
+  font-weight: 100 900;
+  ascent-override: 90%;
+  descent-override: 22%;
+  line-gap-override: 0%;
+  size-adjust: 107%;
+}
+
+@font-face {
+  font-family: 'Poppins Fallback';
+  src: local('Trebuchet MS'), local('Segoe UI'), local('Helvetica Neue'), local('Arial');
+  font-style: normal;
+  font-weight: 100 900;
+  ascent-override: 92%;
+  descent-override: 26%;
+  line-gap-override: 0%;
+  size-adjust: 102%;
+}

@@ -11,7 +11,7 @@
   .cert-track a,.cert-track img{-webkit-user-drag:none;user-select:none}
   .cert{
     position:absolute;top:25%;display:inline-flex;align-items:center;gap:10px;
-    font-family:'Poppins';font-weight:500;font-size:16px;color:var(--text-light);
+    font-family:var(--font-heading);font-weight:500;font-size:16px;color:var(--text-light);
     white-space:nowrap;will-change:transform
   }
   .cert:hover span{color:var(--primary)}

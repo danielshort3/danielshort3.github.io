@@ -32,7 +32,7 @@
   .brand{display:flex;align-items:center;gap:8px}
   .brand-logo{height:64px;width:auto}
   .brand-name{
-    font-family:'Poppins';font-size:22px;font-weight:600;
+    font-family:var(--font-heading);font-size:22px;font-weight:600;
     color:var(--text-light);letter-spacing:.3px;line-height:1
   }
   .brand .divider{color:var(--primary)}

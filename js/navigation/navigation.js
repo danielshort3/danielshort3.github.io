@@ -28,7 +28,7 @@
     host.innerHTML=`
       <nav class="nav ${animate?'animate-entry':''}" aria-label="Primary">
         <div class="wrapper">
-          <a href="index.html" class="brand" aria-label="Home">
+          <a href="index.html" class="brand" aria-label="Daniel Short — Data Science & Analytics (Home)">
             <img src="img/ui/logo-64.png" srcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" sizes="64px" alt="DS logo" class="brand-logo" decoding="async" loading="eager" width="64" height="64">
             <span class="brand-name">
               <span class="brand-line name">Daniel Short</span>

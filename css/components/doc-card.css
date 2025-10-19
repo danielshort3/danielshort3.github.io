@@ -16,7 +16,7 @@
   }
   .doc-card:hover{background:var(--primary);transform:translateY(-6px);box-shadow:0 12px 28px color-mix(in srgb, var(--primary) 35%, transparent);border-color:var(--primary)}
   .doc-card:hover .doc-role,.doc-card:hover h3{color:var(--bg)}
-  .doc-body h3{margin:0 0 6px;font-family:'Poppins';font-size:1.05rem;font-weight:600}
+  .doc-body h3{margin:0 0 6px;font-family:var(--font-heading);font-size:1.05rem;font-weight:600}
   .doc-role{margin:0;font-size:.85rem;color:var(--text-muted)}
   .doc-links{display:flex;gap:14px;margin-left:14px;}
   .doc-link{ display:flex;align-items:center;justify-content:center;width:42px;height:42px; font-size:1.6rem;color:inherit;border:2px solid currentColor;border-radius:10px;transition:background .25s }
@@ -40,7 +40,7 @@
 
   /* additional layout helpers used by doc cards */
   .doc-layout{ display:flex; flex-direction:column; justify-content:space-between; height:100%; }
-  .doc-title{ font-family:'Poppins'; font-size:1.1rem; font-weight:600; color:var(--text-light); margin-top:0; }
+  .doc-title{ font-family:var(--font-heading); font-size:1.1rem; font-weight:600; color:var(--text-light); margin-top:0; }
   .doc-footer{ display:flex; justify-content:space-between; align-items:flex-end; margin-top:auto; }
   .doc-footer .doc-role{ font-size:.85rem; color:var(--text-muted); margin:0; }
   .doc-footer .doc-links{ display:flex; gap:12px; }
