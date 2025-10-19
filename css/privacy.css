@@ -75,6 +75,8 @@ body.consent-blocked::before {
   gap: 12px;
   align-items: center;
   padding-top: 12px;
+  width: 100%;
+  justify-content: center;
 }
 
 #pcz-banner p {
@@ -176,15 +178,18 @@ body.consent-blocked::before {
 @media (max-width: 768px) {
   #pcz-banner .pcz-row {
     flex-direction: column;
-    align-items: stretch;
+    align-items: center;
   }
 
   #pcz-banner p {
     flex: 1 1 auto;
+    width: 100%;
+    text-align: center;
   }
 
   #pcz-banner .pcz-btn {
-    width: 100%;
+    width: min(320px, 100%);
+    margin-inline: auto;
   }
 
   #pcz-banner .pcz-btn.pcz-link {
@@ -201,6 +206,11 @@ body.consent-blocked::before {
 
   #pcz-banner .pcz-row {
     padding-top: 20px;
+    gap: 12px;
+  }
+
+  #pcz-banner .pcz-btn {
+    width: min(280px, 100%);
   }
 }
 
