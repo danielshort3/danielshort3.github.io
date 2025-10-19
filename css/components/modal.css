@@ -39,7 +39,15 @@
     font-size:30px;line-height:1;color:var(--text-muted);transition:color .25s
   }
   .modal-close:hover{color:var(--primary);text-shadow:0 0 4px color-mix(in srgb,var(--primary) 40%,transparent)}
-  .modal-title-strip{ text-align:center; padding:32px 28px 24px; border-bottom: 1px solid color-mix(in srgb, var(--text-light) 10%, transparent); }
+  .modal-title-strip{
+    text-align:center;
+    padding:32px 28px 24px;
+    border-bottom: 1px solid color-mix(in srgb, var(--text-light) 10%, transparent);
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    align-items:center;
+  }
   .modal-title{margin:0;font-family:'Poppins';font-weight:600;font-size:1.9rem;letter-spacing:.3px;color:var(--primary)}
 
   .modal-header-details{
@@ -61,7 +69,21 @@
     background:color-mix(in srgb,var(--primary) 15%,transparent);color:var(--primary);
     padding:4px 10px;border-radius:6px;font-size:.85rem;font-weight:500
   }
-  .icon-row .icon{width:38px;height:38px}
+  .icon-row .resource-link{
+    display:flex;align-items:center;justify-content:center;
+    width:46px;height:46px;
+    border-radius:10px;
+    background:color-mix(in srgb,var(--surface) 85%, var(--primary) 15%);
+    border:1px solid color-mix(in srgb,var(--primary) 25%, transparent);
+    transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+  }
+  .icon-row .resource-link:hover,
+  .icon-row .resource-link:focus-visible{
+    transform:translateY(-2px);
+    border-color:var(--primary);
+    box-shadow:0 8px 18px rgba(0,0,0,.26);
+  }
+  .icon-row .resource-link img{width:32px;height:32px}
 
   .modal-body{
     flex:1 1 auto;
@@ -80,13 +102,72 @@
   }
   .modal-text p{margin:0 0 .85em}
   .modal-text ul{margin:.5em 0 1em}
-  .modal-text h4{color:var(--primary);margin-top:1em;margin-bottom:.5em;font-size:1.2rem}
+  .modal-text h4{color:var(--primary);margin-top:0;margin-bottom:.6em;font-size:1.1rem;letter-spacing:.2px;text-transform:uppercase}
   .modal-text ul{padding-left:20px}
   .modal-subtitle{margin-top:0;color:var(--text-muted)}
   .modal-image{flex:1 1 300px;align-self:flex-start}
   .modal-image img{max-width:100%;border-radius:12px;display:block;box-shadow:0 6px 24px rgba(0,0,0,.4)}
   .modal-image video{max-width:100%;border-radius:12px;display:block;box-shadow:0 6px 24px rgba(0,0,0,.4)}
   .modal-content :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+  .project-breadcrumb{
+    font-size:.9rem;
+    color:var(--text-muted);
+  }
+  .project-breadcrumb ol{
+    list-style:none;
+    display:flex;
+    gap:.45rem;
+    margin:0;
+    padding:0;
+    flex-wrap:wrap;
+  }
+  .project-breadcrumb li{display:flex;align-items:center;gap:.45rem}
+  .project-breadcrumb li::after{
+    content:\"/\";color:color-mix(in srgb,var(--text-muted) 70%,transparent);
+    font-weight:400;
+  }
+  .project-breadcrumb li:last-child::after{content:\"\"}
+  .project-breadcrumb a{
+    color:var(--text-muted);
+    text-decoration:none;
+  }
+  .project-breadcrumb a:hover,
+  .project-breadcrumb a:focus-visible{color:var(--primary);text-decoration:underline}
+
+  .summary-block{
+    background:color-mix(in srgb,var(--surface) 85%, var(--primary) 5%);
+    border:1px solid color-mix(in srgb,var(--primary) 15%, transparent);
+    border-radius:14px;
+    padding:16px 18px;
+    margin-bottom:18px;
+    box-shadow:0 8px 22px rgba(0,0,0,.25);
+  }
+  .summary-block p:last-child{margin-bottom:0}
+  .project-key-results,
+  .project-related{
+    margin-top:24px;
+    padding:18px 20px;
+    border-radius:14px;
+    background:color-mix(in srgb,var(--surface) 88%, var(--primary) 8%);
+    border:1px solid color-mix(in srgb,var(--primary) 20%, transparent);
+    box-shadow:0 10px 28px rgba(0,0,0,.22);
+  }
+  .project-key-results ul,
+  .project-related ul{
+    margin:10px 0 0;
+    padding-left:22px;
+  }
+  .project-related a{
+    color:var(--text-light);
+    text-decoration:underline;
+    text-decoration-color:color-mix(in srgb,var(--primary) 60%, transparent);
+    text-underline-offset:4px;
+  }
+  .project-related a:hover,
+  .project-related a:focus-visible{
+    color:var(--primary);
+  }
+  .empty-state{color:var(--text-muted);font-size:.9rem;margin:0}
 
   /* Copy link button near the close button */
   .modal-copy{
