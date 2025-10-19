@@ -30,6 +30,7 @@
   } catch (err) {}
 
   const STYLE_ID = 'pcz-consent-styles';
+  const PREFERENCES_URL = 'privacy.html#prefs-title';
 
   function loadStyles() {
     if (document.getElementById(STYLE_ID) || document.querySelector('link[href$="privacy.css"]')) return;
@@ -38,6 +39,17 @@
     link.rel = 'stylesheet';
     link.href = 'css/privacy.css';
     document.head.appendChild(link);
+  }
+
+  function goToPreferencePage() {
+    try {
+      document.body.classList.remove('consent-blocked');
+    } catch (err) {}
+    try {
+      window.location.assign(PREFERENCES_URL);
+    } catch (err) {
+      window.location.href = PREFERENCES_URL;
+    }
   }
 
   /**
@@ -486,9 +498,10 @@
       applyConsent(newState);
       dismissBanner();
     });
-    manageBtn.addEventListener('click', function () {
-      openPreferences(localeStrings, initialState, true);
+    manageBtn.addEventListener('click', function (event) {
+      event.preventDefault();
       dismissBanner();
+      goToPreferencePage();
     });
   }
 
@@ -559,6 +572,17 @@
     loadStyles();
     const locale = getLocale();
     const localeStrings = CONFIG.languages[locale];
+    if (GLOBAL_CONF.ui && GLOBAL_CONF.ui.persistLinkSelector) {
+      const persistLinks = document.querySelectorAll(GLOBAL_CONF.ui.persistLinkSelector);
+      persistLinks.forEach(function (link) {
+        if (!link || link.dataset.prefNavBound === 'true') return;
+        link.dataset.prefNavBound = 'true';
+        link.addEventListener('click', function (event) {
+          event.preventDefault();
+          goToPreferencePage();
+        });
+      });
+    }
     // Dev/testing aids via URL parameters
     try {
       const q = new URLSearchParams(location.search);
@@ -587,12 +611,7 @@
   // Expose a simple public API
   window.consentAPI = {
     open: function () {
-      loadStyles();
-      const locale = getLocale();
-      const localeStrings = CONFIG.languages[locale];
-      const saved = loadConsent();
-      const state = saved ? saved.categories : getDefaultState();
-      openPreferences(localeStrings, state);
+      goToPreferencePage();
     },
     get: function () {
       const saved = loadConsent();
