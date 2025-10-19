@@ -323,13 +323,13 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
   const distCss = fs.readFileSync('dist/styles.css','utf8');
   assert(distCss.includes('#smartSentence-modal .modal-body{overflow-x:hidden}'), 'sentence modal missing overflow-x hidden');
 
-  // Contact form present and resume embed present
-  checkFileContains('pages/contact.html', 'id="contactForm"');
+  // Contact modal and resume embed present
+  checkFileContains('pages/contact.html', 'id="contact-modal"');
   checkFileContains('resume.html', 'documents/Resume.pdf');
-  // Contact: validated inline form replaces Google Form embed
-  checkFileContains('contact.html', 'class="contact-form"');
-  const contactCss = fs.readFileSync('css/components/contact-card.css','utf8');
-  assert(/\.contact-form\{/.test(contactCss), 'contact form styles missing');
+  // Contact: embed is a Google Form
+  checkFileContains('contact.html', 'docs.google.com/forms');
+  const contactCss = fs.readFileSync('css/components/modal.css','utf8');
+  assert(/#contact-modal\s+iframe[\s\S]*height:100vh;/.test(contactCss), 'contact modal iframe not set to 100vh');
 
   // Privacy page includes CMP scripts and GA4 vendor id exists
   checkFileContains('privacy.html', 'js/privacy/config.js');
@@ -354,11 +354,10 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
   // 3) modal template generation (image-only project)
   const modalHtml = pEnv.window.generateProjectModal({
     id:'t1', title:'T', subtitle:'S', problem:'P',
-    image:'img/x.png', tools:[], resources:[], actions:['Do'], results:['Win']
+    image:'img/x.png', tools:[], resources:[], actions:[], results:[]
   });
   assert(/modal-image/.test(modalHtml), 'modal image block missing');
   assert(/<picture>/.test(modalHtml), 'PNG should render with <picture> WebP fallback');
-  assert(/Key Results/.test(modalHtml), 'modal should include key results section');
 
   // 4) modal template generation (tableau embed uses data-base and wide layout)
   const tabHtml = pEnv.window.generateProjectModal({

@@ -42,12 +42,7 @@
 
   function ensurePortfolioScripts(){
     if (portfolioBundle) return portfolioBundle;
-    const chain = [
-      'js/portfolio/projects-data.js',
-      'js/portfolio/project-details.js',
-      'js/portfolio/modal-helpers.js',
-      'js/portfolio/portfolio.js'
-    ]
+    const chain = ['js/portfolio/projects-data.js','js/portfolio/modal-helpers.js','js/portfolio/portfolio.js']
       .reduce((p, src) => p.then(() => loadScriptOnce(src)), Promise.resolve());
     portfolioBundle = chain.catch(err => {
       portfolioBundle = null;
