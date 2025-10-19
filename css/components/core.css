@@ -29,7 +29,7 @@
     stroke:currentColor;        /* match the theme color */
     vector-effect:non-scaling-stroke; /* keep stroke width crisp when scaled */
   }
-  .icon-info p{font-family:var(--font-heading);font-weight:600;margin-bottom:4px}
+  .icon-info p{font-family:'Poppins';font-weight:600;margin-bottom:4px}
   .icon-info small{color:var(--text-muted)}
   @keyframes focusIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
   #about-me.reveal.active .icon-info{animation:focusIn .6s forwards}

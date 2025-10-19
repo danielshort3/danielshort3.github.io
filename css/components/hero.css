@@ -13,23 +13,18 @@
     background:var(--surface);position:relative;overflow:hidden;isolation:isolate;
   }
   @keyframes fadeUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:none}}
-  @keyframes gradShift{
-    0%,
-    100% { transform: translate3d(-25%, var(--hero-parallax, 0px), 0); }
-    50%   { transform: translate3d(25%,  var(--hero-parallax, 0px), 0); }
-  }
+  @keyframes gradShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
   .hero h1,.hero p,.hero .btn-primary{opacity:0}
   .hero h1{animation:fadeUp 1s .5s forwards}
   .hero p {animation:fadeUp 1s .8s forwards;font-size:20px;color:var(--text-muted);max-width:40rem}
   .hero .btn-primary{animation:fadeUp 1s 1.1s forwards}
   .hero::before{
-    content:"";position:absolute;inset:-12%;z-index:-1;opacity:.10;
+    content:"";position:absolute;inset:0;z-index:-1;opacity:.10;
     background:linear-gradient(120deg,var(--primary)0%,var(--primary)15%,var(--surface)75%,var(--bg)100%);
-    background-size:200% 200%;
+    background-size:400% 400%;animation:gradShift 18s ease-in-out infinite;
+    /* Parallax via background-position to avoid geometric shift */
     background-position: 50% calc(var(--hero-parallax, 0px));
-    transform: translate3d(-25%, var(--hero-parallax, 0px), 0);
-    animation:gradShift 18s ease-in-out infinite;
-    will-change: transform;
+    will-change: background-position;
   }
   /* Ambient light following the pointer (desktop only) */
   .hero::after{
@@ -118,7 +113,6 @@
     .hero::after {
       animation: none !important;
       transition: none !important;
-      transform: none !important;
       opacity: 0 !important;
     }
   }

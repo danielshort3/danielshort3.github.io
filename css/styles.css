@@ -2,7 +2,6 @@
 @layer tokens, base, layout, components, utilities, overrides;
 
 @import url("variables.css");
-@import url("font-fallbacks.css");
 @import url("base/base.css");
 @import url("layout/nav.css");
 @import url("components/hero.css");
