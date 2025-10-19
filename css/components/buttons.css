@@ -14,9 +14,9 @@
   }
   .btn-primary:hover{transform:translateY(-3px);box-shadow:0 10px 24px color-mix(in srgb, var(--primary) 35%, transparent)}
   .btn-secondary{
-    padding:18px 34px;border:2px solid var(--secondary);background:transparent;color:var(--secondary)
+    padding:18px 34px;border:2px solid var(--primary);background:transparent;color:var(--primary)
   }
-  .btn-secondary:hover{background:var(--secondary);color:var(--bg);transform:translateY(-3px)}
+  .btn-secondary:hover{background:var(--primary);color:var(--bg);transform:translateY(-3px)}
   .btn-icon{width:46px;height:46px;border:2px solid var(--primary);color:var(--primary)}
   .btn-icon i{font-size:22px;color:currentColor}
   .btn-icon svg{
@@ -30,8 +30,8 @@
   .btn-icon .icon{display:block;width:22px;height:22px}
   .btn-icon .icon-github{
     background-color: currentColor;
-    -webkit-mask-image: url('../img/icons/github-icon.webp');
-            mask-image: url('../img/icons/github-icon.webp');
+    -webkit-mask-image: url('../img/icons/github-icon.png');
+            mask-image: url('../img/icons/github-icon.png');
     -webkit-mask-repeat: no-repeat;     mask-repeat: no-repeat;
     -webkit-mask-position: center;      mask-position: center;
     -webkit-mask-size: contain;         mask-size: contain;

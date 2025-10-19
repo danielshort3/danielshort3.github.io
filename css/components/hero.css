@@ -14,15 +14,10 @@
   }
   @keyframes fadeUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:none}}
   @keyframes gradShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
-  .hero h1,
-  .hero p,
-  .hero .btn-primary,
-  .hero .btn-secondary{opacity:0}
+  .hero h1,.hero p,.hero .btn-primary{opacity:0}
   .hero h1{animation:fadeUp 1s .5s forwards}
-  .hero p {animation:fadeUp 1s .8s forwards;font-size:1.05rem;color:var(--text-muted);max-width:42rem}
-  .hero-subtitle{color:var(--text-light);font-size:1.15rem;margin-bottom:.75rem}
-  .hero-tagline{margin-bottom:1.2rem}
-  .hero .btn-primary,.hero .btn-secondary{animation:fadeUp 1s 1.1s forwards}
+  .hero p {animation:fadeUp 1s .8s forwards;font-size:20px;color:var(--text-muted);max-width:40rem}
+  .hero .btn-primary{animation:fadeUp 1s 1.1s forwards}
   .hero::before{
     content:"";position:absolute;inset:0;z-index:-1;opacity:.10;
     background:linear-gradient(120deg,var(--primary)0%,var(--primary)15%,var(--surface)75%,var(--bg)100%);
@@ -42,9 +37,8 @@
     .hero:hover::after{ opacity:.12; }
   }
   @keyframes rippleFade{0%{opacity:0;transform:scale(.92)}100%{opacity:1;transform:none}}
-  .hero-cta{animation-delay:1.2s}
-  .hero-cta:nth-of-type(2){animation-delay:1.32s}
-  .hero-cta:nth-of-type(3){animation-delay:1.44s}
+  .hero-cta{opacity:0;animation:fadeUp 1s 1.15s forwards}
+  .hero-cta:nth-of-type(2){animation-delay:1.3s}
   .hero-status{
     display:inline-block;margin:.5rem 0 1.2rem;
     background:color-mix(in srgb,var(--surface) 50%,transparent);
@@ -56,17 +50,6 @@
     display:flex;                 /* new */
     flex-direction:column;        /* new */
     align-items:center;           /* new → centres child blocks */
-  }
-  .hero-cta-group{
-    display:flex;
-    flex-wrap:wrap;
-    justify-content:center;
-    gap:12px;
-    margin-top:12px;
-  }
-  .hero-cta-group .btn-primary,
-  .hero-cta-group .btn-secondary{
-    min-width:224px;
   }
   .chevron-hint{
     position:absolute;bottom:16px;left:50%;transform:translateX(-50%);

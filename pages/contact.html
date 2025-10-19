@@ -16,8 +16,7 @@
   <meta name="twitter:site" content="@danielshort3">
 
   <meta name="theme-color" content="#0D1117">
-  <script src="dist/js/common/theme-init.js"></script>
-  <link rel="stylesheet" href="dist/styles.c29427e3.css">
+  <link rel="stylesheet" href="dist/styles.b93cc402.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
@@ -50,35 +49,20 @@
       </div>
   </section>
 
-  <section class="surface-band reveal contact-form-section">
-    <div class="wrapper">
-      <h2 class="section-title">Start a Conversation</h2>
-      <form id="contact-form" class="contact-form" novalidate data-endpoint="https://formsubmit.co/ajax/danielshort3@gmail.com" data-mailto="danielshort3@gmail.com" data-subject="Portfolio inquiry from danielshort.me">
-        <div class="form-grid">
-          <div class="form-field">
-            <label for="contact-name">Name</label>
-            <input id="contact-name" name="name" type="text" autocomplete="name" required aria-describedby="contact-name-helper">
-            <p class="input-helper" id="contact-name-helper" aria-live="polite"></p>
-          </div>
-          <div class="form-field">
-            <label for="contact-email">Email</label>
-            <input id="contact-email" name="email" type="email" autocomplete="email" required aria-describedby="contact-email-helper">
-            <p class="input-helper" id="contact-email-helper" aria-live="polite"></p>
-          </div>
-          <div class="form-field full-width">
-            <label for="contact-message">Message</label>
-            <textarea id="contact-message" name="message" rows="6" required aria-describedby="contact-message-helper"></textarea>
-            <p class="input-helper" id="contact-message-helper" aria-live="polite">Share context, goals, and timeline so I can prepare useful next steps.</p>
-          </div>
-        </div>
-        <div class="form-actions">
-          <button type="submit" class="btn-primary" data-analytics="submit-contact">Send Message</button>
-          <p class="form-privacy">I reply within two business days. Your details are used only to respond to this inquiry.</p>
-        </div>
-      </form>
-      <p id="contact-status" class="form-status" role="status" aria-live="polite"></p>
+  <!-- contact form modal -->
+  <div id="contact-modal" class="modal">
+    <div class="modal-content" role="dialog" aria-modal="true" tabindex="0" aria-labelledby="contact-modal-title">
+      <button class="modal-close" aria-label="Close dialog">&times;</button>
+      <div class="modal-title-strip"><h3 class="modal-title" id="contact-modal-title">Send a Message</h3></div>
+      <div class="modal-body">
+        <iframe
+          src="https://docs.google.com/forms/d/e/1FAIpQLSfvqG5MVYozqze9tIoDwCZh3i28B-yHXGrzoqUuth3wk3kRhA/viewform?embedded=true"
+          loading="lazy"
+          title="Contact Form"></iframe>
+      </div>
     </div>
-  </section>
+  </div>
+
 
   <section class="surface-band reveal">
     <div class="wrapper contact-grid contact-big">
@@ -114,11 +98,11 @@
     </nav>
   </footer>
 
-    <script defer src="dist/js/common/common.js"></script>
-    <script defer src="dist/js/navigation/navigation.js"></script>
-    <script defer src="dist/js/animations/animations.js"></script>
-  <script defer src="dist/js/forms/contact.js"></script>
-  <script src="dist/js/privacy/config.js"></script>
-  <script defer src="dist/js/privacy/consent_manager.js"></script>
+    <script defer src="js/common/common.js"></script>
+    <script defer src="js/navigation/navigation.js"></script>
+    <script defer src="js/animations/animations.js"></script>
+  <script defer src="js/forms/contact.js"></script>
+  <script src="js/privacy/config.js"></script>
+  <script defer src="js/privacy/consent_manager.js"></script>
 </body>
 </html>

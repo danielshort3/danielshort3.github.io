@@ -82,7 +82,7 @@
   let projectViews = 0;
   window.trackProjectView = id => {
     projectViews++;
-    send('view_project', { project_id: id });
+    send('project_view', { project_id: id });
     if (projectViews === 3) {
       send('multi_project_view', { view_count: 3 });
     }
@@ -104,6 +104,12 @@
       });
     });
 
+    document.querySelectorAll('a[href*="Resume.pdf"]').forEach(link => {
+      link.addEventListener('click', () => {
+        send('resume_download', { file_name: 'Resume.pdf' });
+      });
+    });
+
     document.querySelectorAll('a[href^="mailto:"]').forEach(link => {
       link.addEventListener('click', () => send('email_cta_click'));
     });
@@ -116,13 +122,6 @@
         });
       });
     });
-
-    const trackGithub = link => {
-      send('click_github_link', {
-        link_url: link.href,
-        link_text: link.dataset.resourceLabel || link.textContent.trim() || 'GitHub'
-      });
-    };
 
     document.querySelectorAll('.nav-link:not([target="_blank"])').forEach(link => {
       link.addEventListener('click', () => {
@@ -159,38 +158,16 @@
 
     setTimeout(() => send('engaged_time', { seconds: 60 }), 60000);
 
-    const depthMarks = [25, 50, 75, 100];
-    const firedDepth = new Set();
-    const fireDepth = () => {
-      const scrollable = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-      const pct = ((window.scrollY || window.pageYOffset) / scrollable) * 100;
-      depthMarks.forEach(mark => {
-        if (!firedDepth.has(mark) && pct >= mark) {
-          firedDepth.add(mark);
-          send('scroll_depth', { percent: mark });
-        }
-      });
-      if (firedDepth.size === depthMarks.length) {
-        window.removeEventListener('scroll', fireDepth);
+    let sent50 = false;
+    window.addEventListener('scroll', () => {
+      if (sent50) return;
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      const pct = (window.scrollY || window.pageYOffset) / scrollable;
+      if (pct >= 0.5) {
+        sent50 = true;
+        send('scroll_depth', { percent: 50 });
       }
-    };
-    window.addEventListener('scroll', fireDepth, { passive: true });
-
-    if (document.body && typeof document.body.addEventListener === 'function') {
-      document.body.addEventListener('click', (evt) => {
-        const anchor = evt.target.closest('a');
-        if (!anchor) return;
-        if (anchor.dataset.analytics === 'download-resume' || (anchor.href && /Resume\\.pdf/i.test(anchor.href))) {
-          send('download_resume', {
-            file_name: anchor.getAttribute('data-download-name') || 'Resume.pdf',
-            link_url: anchor.href
-          });
-        }
-        if (anchor.href && /github\\.com/i.test(anchor.href)) {
-          trackGithub(anchor);
-        }
-      });
-    }
+    }, { passive: true });
   }
 
   if (document.readyState === 'loading') {

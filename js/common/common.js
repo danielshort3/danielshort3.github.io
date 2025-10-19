@@ -9,16 +9,6 @@
   const on = (n,e,f,o)=>n&&n.addEventListener(e,f,o);
   const run = fn=>typeof fn==='function'&&fn();
   const isPage = (...names)=>names.includes(document.body.dataset.page);
-  const currentScript = document.currentScript || document.querySelector('script[src*="common"]');
-  const scriptSrc = currentScript ? currentScript.getAttribute('src') || '' : '';
-  const assetVariant = /\/dist\/js\//.test(scriptSrc) ? 'dist/js/' : 'js/';
-  const resolveAsset = (src) => {
-    if (!src) return src;
-    if (/^(?:https?:)?\/\//.test(src)) return src;
-    if (src.startsWith('/')) return src;
-    if (assetVariant === 'dist/js/') return src.replace(/^js\//, 'dist/js/');
-    return src;
-  };
 
   const loadedScripts = new Map();
   let portfolioBundle = null;
@@ -37,11 +27,10 @@
   });
 
   function loadScriptOnce(src){
-    const finalSrc = resolveAsset(src);
     if (loadedScripts.has(src)) return loadedScripts.get(src);
     const promise = new Promise((resolve, reject) => {
       const tag = document.createElement('script');
-      tag.src = finalSrc;
+      tag.src = src;
       tag.async = false;
       tag.onload = () => resolve();
       tag.onerror = () => reject(new Error(`Failed to load script: ${src}`));
@@ -53,8 +42,7 @@
 
   function ensurePortfolioScripts(){
     if (portfolioBundle) return portfolioBundle;
-    const sources = ['js/portfolio/projects-data.js','js/portfolio/modal-helpers.js','js/portfolio/portfolio.js'];
-    const chain = sources
+    const chain = ['js/portfolio/projects-data.js','js/portfolio/modal-helpers.js','js/portfolio/portfolio.js']
       .reduce((p, src) => p.then(() => loadScriptOnce(src)), Promise.resolve());
     portfolioBundle = chain.catch(err => {
       portfolioBundle = null;
