@@ -36,11 +36,28 @@ body.consent-blocked::before {
   bottom: 0;
   z-index: 99999;
   background: var(--pcz-bg);
-  padding: 16px;
+  padding: 16px 20px 16px 16px;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
   transform: translateY(0);
   opacity: 1;
   transition: transform 0.35s ease, opacity 0.35s ease;
+}
+
+#pcz-banner .pcz-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--pcz-fg);
+  padding: 6px;
+  line-height: 1;
+  font-size: 1.25rem;
+}
+
+#pcz-banner .pcz-close:hover,
+#pcz-banner .pcz-close:focus-visible {
+  color: var(--pcz-link);
 }
 
 #pcz-banner .pcz-row {
