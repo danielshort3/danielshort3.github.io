@@ -50,7 +50,7 @@
     languages: {
       en: {
         bannerTitle: 'I value your privacy.',
-        bannerDesc: "I use cookies and similar technologies to improve your experience, understand site traffic, and measure performance. By closing this banner or selecting Allow all cookies you consent; you can opt out any time via Manage settings.",
+        bannerDesc: "I use cookies and similar technologies to improve your experience, understand site traffic, and measure performance.",
         acceptAll: 'Allow all cookies',
         rejectAll: 'Allow essential only',
         managePrefs: 'Manage settings',
