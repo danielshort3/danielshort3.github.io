@@ -68,7 +68,7 @@
     btn.className = 'back-to-top';
     btn.type = 'button';
     btn.setAttribute('aria-label', 'Back to top');
-    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l-7 7m7-7l7 7"/></svg>';
+    btn.innerHTML = '<span class="back-to-top__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5" stroke-width="1.4" stroke-opacity=".35"/><path d="M12 16.5V8.25" stroke-width="2.6" stroke-linecap="round"/><path d="M8.5 11.75 12 8.25l3.5 3.5" stroke-width="2.6"/></svg></span>';
     document.body.appendChild(btn);
     const update = () => {
       const half = window.innerHeight * 0.5;
