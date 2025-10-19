@@ -16,6 +16,6 @@
   }
   .cert:hover span{color:var(--primary)}
   @keyframes fadeCert{from{opacity:0}to{opacity:1}}
-  .cert.reenter{animation:fadeCert .4s ease}.cert img{width:24px;height:24px}
+  .cert.reenter{animation:fadeCert .4s ease}.cert img{height:24px}
 }
 
