@@ -115,31 +115,31 @@
 
   function projectMedia(p) {
     const hasVideo = !!(p.videoWebm || p.videoMp4);
-    const src = p.image || '';
-    const webp = p.imageWebp || (src ? src.replace(/\.(png|jpe?g)$/i, '.webp') : null);
-    const alt = p.imageAlt || p.title || '';
-    const widthAttr = p.imageWidth ? ` width="${p.imageWidth}"` : '';
-    const heightAttr = p.imageHeight ? ` height="${p.imageHeight}"` : '';
-    const dimensionAttr = `${widthAttr}${heightAttr}`;
-    const picture = (() => {
-      if (webp && webp !== src) {
+    const img = (() => {
+      const src = p.image || '';
+      const lower = src.toLowerCase();
+      const webp = lower.endsWith('.png') ? src.replace(/\.png$/i, '.webp')
+                 : lower.endsWith('.jpg') ? src.replace(/\.jpg$/i, '.webp')
+                 : lower.endsWith('.jpeg') ? src.replace(/\.jpeg$/i, '.webp')
+                 : null;
+      if (webp) {
         return `<picture>
-          <source srcset="${webp}" type="image/webp">
-          <img src="${src}" alt="${alt}" loading="lazy" decoding="async"${dimensionAttr} draggable="false">
-        </picture>`;
+        <source srcset="${webp}" type="image/webp">
+        <img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false">
+      </picture>`;
       }
-      return `<img src="${src}" alt="${alt}" loading="lazy" decoding="async"${dimensionAttr} draggable="false">`;
+      return `<img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false">`;
     })();
 
-    if (!hasVideo) return picture;
+    if (!hasVideo) return img;
     const mp4 = p.videoMp4 ? `<source src="${p.videoMp4}" type="video/mp4">` : '';
-    const webmVideo = p.videoWebm ? `<source src="${p.videoWebm}" type="video/webm">` : '';
+    const webm = p.videoWebm ? `<source src="${p.videoWebm}" type="video/webm">` : '';
     return `
-    <video class="gif-video" muted playsinline loop autoplay preload="metadata" aria-label="${alt || p.title}" draggable="false">
+    <video class="gif-video" muted playsinline loop autoplay preload="metadata" aria-label="${p.title}" draggable="false">
       ${mp4}
-      ${webmVideo}
+      ${webm}
     </video>
-    ${picture}`;
+    ${img}`;
   }
 
   window.activateGifVideo = activateGifVideo;
@@ -182,9 +182,6 @@
     const content = modal.querySelector('.modal-content') || modal;
     content.focus({ preventScroll: true });
     trapFocus(content);
-    if (typeof window.trackProjectView === 'function') {
-      window.trackProjectView(id);
-    }
 
     const ifr = modal.querySelector('.modal-embed iframe');
     if (ifr) {
@@ -295,89 +292,37 @@
       </div>`;
     })();
 
-    const summary = p.summary || {};
-    const section = (label, content) => content
-      ? `<section class="summary-block"><h4>${label}</h4>${content}</section>`
-      : '';
-
-    const overviewHtml = summary.overview ? `<p>${summary.overview}</p>` : '';
-    const goalHtml = summary.goal ? `<p>${summary.goal}</p>` : '';
-    const dataHtml = summary.data ? `<p>${summary.data}</p>` : '';
-    const methodsHtml = Array.isArray(summary.methods) && summary.methods.length
-      ? `<ul>${summary.methods.map(item => `<li>${item}</li>`).join('')}</ul>`
-      : '';
-    const resultsHtml = Array.isArray(summary.results) && summary.results.length
-      ? `<ul>${summary.results.map(item => `<li>${item}</li>`).join('')}</ul>`
-      : '';
-    const impactHtml = summary.impact ? `<p>${summary.impact}</p>` : '';
-
-    const keyResultsHtml = Array.isArray(p.keyResults) && p.keyResults.length
-      ? `<section class="project-key-results">
-          <h4>Key Results</h4>
-          <ul>${p.keyResults.map(item => `<li>${item}</li>`).join('')}</ul>
-        </section>`
-      : '';
-
-    const relatedHtml = Array.isArray(p.related) && p.related.length
-      ? `<section class="project-related">
-          <h4>Related Work</h4>
-          <ul>${p.related.map(rel => `<li><a href="portfolio.html?project=${encodeURIComponent(rel.id)}" data-related="${p.id}">${rel.label}</a></li>`).join('')}</ul>
-        </section>`
-      : '';
-
-    const resourcesHtml = Array.isArray(p.resources) && p.resources.length
-      ? `<div class="icon-row">
-          ${p.resources.map(r => `
-            <a href="${r.url}" target="_blank" rel="noopener noreferrer" class="doc-link resource-link" data-resource-label="${r.label}" data-resource-url="${r.url}">
-              <img src="${r.icon}" alt="${r.label}" class="icon" width="32" height="32" loading="lazy" decoding="async">
-              <span class="sr-only">${r.label}</span>
-            </a>`).join('')}
-        </div>`
-      : '<p class="empty-state">Resources coming soon.</p>';
-
-    const breadcrumb = `
-      <nav class="project-breadcrumb" aria-label="Breadcrumb">
-        <ol>
-          <li><a href="index.html">Home</a></li>
-          <li><a href="portfolio.html">Portfolio</a></li>
-          <li aria-current="page">${p.title}</li>
-        </ol>
-      </nav>`;
-
     return `
     <div class="modal-content ${(isTableau || isIframe) ? 'modal-wide' : ''}" role="dialog" aria-modal="true" tabindex="0" aria-labelledby="${p.id}-title">
       <button class="modal-copy" type="button" aria-label="Copy link to this project">Copy link</button>
       <button class="modal-close" aria-label="Close dialog">&times;</button>
-      <div class="modal-title-strip">
-        <h3 class="modal-title" id="${p.id}-title">${p.title}</h3>
-        ${p.subtitle ? `<p class="modal-subtitle">${p.subtitle}</p>` : ''}
-        ${breadcrumb}
-      </div>
+      <div class="modal-title-strip"><h3 class="modal-title" id="${p.id}-title">${p.title}</h3></div>
 
       <div class="modal-body ${isTableau ? 'stacked' : ''}">
         <div class="modal-header-details">
           <div class="modal-half">
             <p class="header-label">Tools</p>
             <div class="tool-badges">
-              ${Array.isArray(p.tools) ? p.tools.map(t => `<span class="badge">${t}</span>`).join('') : ''}
+              ${p.tools.map(t => `<span class="badge">${t}</span>`).join('')}
             </div>
           </div>
           <div class="modal-divider" aria-hidden="true"></div>
           <div class="modal-half">
-            <p class="header-label">Resources</p>
-            ${resourcesHtml}
+            <p class="header-label">Downloads / Links</p>
+            <div class="icon-row">
+              ${p.resources.map(r => `
+                <a href="${r.url}" target="_blank" rel="noopener" title="${r.label}">
+                  <img src="${r.icon}" alt="${r.label}" class="icon" width="30" height="30">
+                </a>`).join('')}
+            </div>
           </div>
         </div>
 
         <div class="modal-text">
-          ${section('Overview', overviewHtml)}
-          ${section('Goal', goalHtml)}
-          ${section('Data', dataHtml)}
-          ${section('Methods', methodsHtml)}
-          ${section('Results', resultsHtml)}
-          ${section('Impact', impactHtml)}
-          ${keyResultsHtml}
-          ${relatedHtml}
+          <p class="modal-subtitle">${p.subtitle}</p>
+          <h4>Problem</h4><p>${p.problem}</p>
+          <h4>Action</h4><ul>${p.actions.map(a => `<li>${a}</li>`).join('')}</ul>
+          <h4>Result</h4><ul>${p.results.map(r => `<li>${r}</li>`).join('')}</ul>
         </div>
 
         ${visual}

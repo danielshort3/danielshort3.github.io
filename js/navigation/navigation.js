@@ -29,10 +29,7 @@
       <nav class="nav ${animate?'animate-entry':''}" aria-label="Primary">
         <div class="wrapper">
           <a href="index.html" class="brand" aria-label="Home">
-            <picture class="brand-logo">
-              <source srcset="img/ui/logo-64.webp 1x, img/ui/logo-192.webp 3x" type="image/webp">
-              <img src="img/ui/logo-64.png" srcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" sizes="64px" alt="DS monogram logo" decoding="async" loading="eager" width="64" height="64">
-            </picture>
+            <img src="img/ui/logo-64.png" srcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" sizes="64px" alt="DS logo" class="brand-logo" decoding="async" loading="eager" width="64" height="64">
             <span class="brand-name">
               <span class="brand-line name">Daniel Short</span>
               <span class="brand-line divider">│</span>
@@ -48,10 +45,6 @@
             <a href="contributions.html" class="btn-secondary nav-link">Contributions</a>
             <a href="contact.html" class="btn-secondary nav-link">Contact</a>
             <a href="resume.html" class="btn-secondary nav-link">Resume</a>
-            <button id="theme-toggle" class="btn-secondary theme-toggle" type="button" aria-pressed="false">
-              <span class="theme-toggle-icon" aria-hidden="true"></span>
-              <span class="sr-only">Toggle color theme</span>
-            </button>
           </div>
         </div>
       </nav>`;
@@ -81,36 +74,6 @@
       if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
       else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     };
-
-    const themeToggle = host.querySelector('#theme-toggle');
-    const THEME_KEY = 'site-theme';
-    const root = document.documentElement;
-    const setTheme = theme => {
-      const next = theme === 'light' ? 'light' : 'dark';
-      root.dataset.theme = next;
-      root.style.setProperty('color-scheme', next === 'light' ? 'light dark' : 'dark light');
-      themeToggle?.setAttribute('aria-pressed', String(next === 'light'));
-      if (themeToggle) {
-        themeToggle.dataset.theme = next;
-        const icon = themeToggle.querySelector('.theme-toggle-icon');
-        if (icon) {
-          icon.textContent = next === 'light' ? '☀︎' : '☾';
-        }
-        themeToggle.setAttribute('title', next === 'light' ? 'Switch to dark mode' : 'Switch to light mode');
-      }
-    };
-    const storedTheme = (() => {
-      try { return localStorage.getItem(THEME_KEY); } catch (_) { return null; }
-    })();
-    const preferredTheme = storedTheme || (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
-    setTheme(preferredTheme);
-    themeToggle && themeToggle.addEventListener('click', () => {
-      const current = root.dataset.theme === 'light' ? 'light' : 'dark';
-      const next = current === 'light' ? 'dark' : 'light';
-      setTheme(next);
-      try { localStorage.setItem(THEME_KEY, next); } catch (_err) {}
-      window.gaEvent && window.gaEvent('theme_toggle', { theme: next });
-    });
 
     if(burger && menu){
       burger.addEventListener('click', () => {

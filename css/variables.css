@@ -3,29 +3,28 @@
 @layer tokens {
   :root{
     /* palette */
-    --bg:#0f1c24;
-    --surface:#132a36;
-    --surface-light:color-mix(in srgb,var(--surface) 78%,#ffffff 22%);
-    --surface-accent:color-mix(in srgb,var(--surface) 70%, #19526B 30%);
-    --primary:#19526B;
-    --secondary:#AA5541;
-    --accent-sage:#99A98C;
-    --accent-gold:#D6AE6E;
-    --text-light:#F6FAFC;
-    --text-muted:#C6D4D9;
+    --bg:#0D1117;
+    --surface:#161B22;
+    --surface-light:color-mix(in srgb,var(--surface) 85%,#fff 15%);
+    --surface-accent:color-mix(in srgb,var(--surface) 92%,#fff 8%);
+    --primary:#2396AD;
+    /* unify accents: use teal for secondary too */
+    --secondary: var(--primary);
+    --text-light:#F1F4F8;
+    --text-muted:#BFC8D3;   /* WCAG-passing grey */
 
     /* links & focus */
-    --link: color-mix(in srgb, var(--accent-gold) 70%, #ffffff 30%);
-    --link-hover: color-mix(in srgb, var(--accent-gold) 50%, #ffffff 50%);
-    --focus: color-mix(in srgb, var(--primary) 55%, var(--accent-gold) 45%);
+    --link: color-mix(in srgb, var(--primary) 85%, #fff 15%);
+    --link-hover: color-mix(in srgb, var(--primary) 65%, #fff 35%);
+    --focus: color-mix(in srgb, var(--primary) 70%, #fff 30%);
 
     /* borders */
-    --border-subtle:color-mix(in srgb,var(--surface) 65%, #ffffff 35%);
+    --border-subtle:#21262D;
 
-    /* semantic states */
-    --success:#3CA77F;
-    --warning:#D6AE6E;
-    --danger:#E26D5A;
+    /* semantic states (optional) */
+    --success:#38B37E;  /* approvals, good states */
+    --warning:#E0A328;  /* caution, non-blocking */
+    --danger:#E05757;   /* errors, destructive */
 
     /* sizing */
     --nav-height:72px;      /* default, JS may overwrite */
@@ -45,9 +44,9 @@
     --radius-12:12px; --radius-14:14px; --radius-16:16px;
 
     /* shadows */
-    --shadow-sm:0 2px 6px rgba(15,28,36,.35);
-    --shadow-md:0 8px 24px rgba(15,28,36,.42);
-    --shadow-lg:0 16px 44px rgba(15,28,36,.56);
+    --shadow-sm:0 2px 6px rgba(0,0,0,.25);
+    --shadow-md:0 6px 18px rgba(0,0,0,.35);
+    --shadow-lg:0 12px 32px rgba(0,0,0,.6);
 
     /* breakpoints (for documentation) */
     --bp-sm:480px; --bp-md:768px; --bp-lg:1024px; --bp-xl:1280px;
@@ -59,20 +58,6 @@
     /* Controls the visual height of project card media (img/gif/video). */
     /* Use a wider ratio but tall enough to avoid crowding. */
     --project-card-aspect: 1 / 1; /* square project cards */
-  }
-  :root[data-theme="light"]{
-    --bg:#ffffff;
-    --surface:#f6f9fa;
-    --surface-light:#ffffff;
-    --surface-accent:color-mix(in srgb,#ffffff 80%, var(--accent-sage) 20%);
-    --text-light:#1a2e35;
-    --text-muted:#4e5f66;
-    --border-subtle:#d7e1e4;
-    --shadow-sm:0 2px 6px rgba(18,42,54,.12);
-    --shadow-md:0 10px 26px rgba(18,42,54,.16);
-    --shadow-lg:0 18px 48px rgba(18,42,54,.18);
-    --link: color-mix(in srgb, var(--primary) 70%, #1a2e35 30%);
-    --link-hover: color-mix(in srgb, var(--primary) 50%, #1a2e35 50%);
   }
 }
 
