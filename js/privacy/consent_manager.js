@@ -376,7 +376,7 @@
     banner.setAttribute('aria-modal', 'true');
     banner.setAttribute('aria-label', localeStrings.bannerTitle);
     banner.innerHTML =
-      '<button id="pcz-close" type="button" class="pcz-btn pcz-close" aria-label="' + localeStrings.close + '"><span aria-hidden="true">&times;</span></button>' +
+      '<button id="pcz-close" type="button" class="pcz-close" aria-label="' + localeStrings.close + '"><span aria-hidden="true">&times;</span></button>' +
       '<div class="pcz-row">' +
         '<p><strong>' + localeStrings.bannerTitle + '</strong> ' + localeStrings.bannerDesc + ' <a class="pcz-link" href="privacy.html">' + localeStrings.privacyPolicy + '</a></p>' +
         '<button id="pcz-accept" class="pcz-btn pcz-primary">' + localeStrings.acceptAll + '</button>' +
