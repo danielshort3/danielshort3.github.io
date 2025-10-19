@@ -37,35 +37,6 @@ function listRootHtmlFiles(base){
     .map(f => path.join(base, f));
 }
 
-function minifyJs(code){
-  return code
-    .replace(/\/\*[\s\S]*?\*\//g, '')
-    .replace(/(^|\n)\s*\/\/(?!\s*#).*$/gm, '$1')
-    .replace(/\r?\n{2,}/g, '\n')
-    .trim();
-}
-
-function copyJsDir(src, dest){
-  if (!fs.existsSync(src)) return;
-  fs.mkdirSync(dest, { recursive: true });
-  const entries = fs.readdirSync(src, { withFileTypes: true });
-  entries.forEach(entry => {
-    const from = path.join(src, entry.name);
-    const to = path.join(dest, entry.name);
-    if (entry.isDirectory()) {
-      copyJsDir(from, to);
-    } else if (entry.isFile()) {
-      if (entry.name.endsWith('.js')) {
-        const raw = fs.readFileSync(from, 'utf8');
-        const minified = minifyJs(raw);
-        fs.writeFileSync(to, minified, 'utf8');
-      } else {
-        fs.copyFileSync(from, to);
-      }
-    }
-  });
-}
-
 function copyStatic(){
   ensureCleanDir(outDir);
 
@@ -84,9 +55,8 @@ function copyStatic(){
   });
 
   // Copy asset and content directories used by the site
-  const dirs = ['img', 'css', 'documents', 'dist', 'pages', 'demos'];
+  const dirs = ['img', 'js', 'css', 'documents', 'dist', 'pages', 'demos'];
   dirs.forEach(d => copyDir(path.join(root, d), path.join(outDir, d)));
-  copyJsDir(path.join(root, 'js'), path.join(outDir, 'js'));
 }
 
 copyStatic();

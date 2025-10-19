@@ -16,7 +16,7 @@
   <meta name="twitter:site" content="@danielshort3">
 
   <meta name="theme-color" content="#0D1117">
-  <link rel="stylesheet" href="dist/styles.b36cf502.css">
+  <link rel="stylesheet" href="dist/styles.b93cc402.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
@@ -39,9 +39,9 @@
   <section class="hero alt-band">
     <div class="wrapper">
       <h1>Let's Connect</h1>
-      <p>Interested in using data science and analytics to solve business problems?<br>Let’s start the conversation.</p>
+      <p>Interested in using data science and analytics to solve business problems?<br>We can discuss how we might collaborate.</p>
         <div class="cta-group">
-          <a href="#contact-form" class="btn-primary hero-cta">Jump to Contact Form</a>
+          <button id="contact-form-toggle" class="btn-secondary hero-cta">Send a Message</button>
         </div>
     </div>
       <div class="chevron-hint scroll-indicator" aria-hidden="true">
@@ -49,33 +49,19 @@
       </div>
   </section>
 
-  <section class="surface-band reveal contact-form-section" id="contact-form">
-    <div class="wrapper">
-      <h2 class="section-title">Send a Message</h2>
-      <form id="contactForm" class="contact-form" novalidate>
-        <div class="field-group">
-          <label for="contact-name">Name</label>
-          <input id="contact-name" name="name" type="text" autocomplete="name" required maxlength="120" placeholder="Jane Smith">
-          <p class="input-error" id="contact-name-error" aria-live="polite"></p>
-        </div>
-        <div class="field-group">
-          <label for="contact-email">Email</label>
-          <input id="contact-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com">
-          <p class="input-error" id="contact-email-error" aria-live="polite"></p>
-        </div>
-        <div class="field-group">
-          <label for="contact-message">Message</label>
-          <textarea id="contact-message" name="message" rows="6" required placeholder="Share what you are working on and how I can help."></textarea>
-          <p class="input-error" id="contact-message-error" aria-live="polite"></p>
-        </div>
-        <div class="form-actions">
-          <button type="submit" class="btn-primary">Send Message</button>
-          <p class="form-footnote">I typically reply within one business day.</p>
-        </div>
-        <p class="form-feedback" role="status" aria-live="polite"></p>
-      </form>
+  <!-- contact form modal -->
+  <div id="contact-modal" class="modal">
+    <div class="modal-content" role="dialog" aria-modal="true" tabindex="0" aria-labelledby="contact-modal-title">
+      <button class="modal-close" aria-label="Close dialog">&times;</button>
+      <div class="modal-title-strip"><h3 class="modal-title" id="contact-modal-title">Send a Message</h3></div>
+      <div class="modal-body">
+        <iframe
+          src="https://docs.google.com/forms/d/e/1FAIpQLSfvqG5MVYozqze9tIoDwCZh3i28B-yHXGrzoqUuth3wk3kRhA/viewform?embedded=true"
+          loading="lazy"
+          title="Contact Form"></iframe>
+      </div>
     </div>
-  </section>
+  </div>
 
 
   <section class="surface-band reveal">

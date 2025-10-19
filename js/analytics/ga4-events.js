@@ -82,7 +82,7 @@
   let projectViews = 0;
   window.trackProjectView = id => {
     projectViews++;
-    send('view_project', { project_id: id, view_index: projectViews });
+    send('project_view', { project_id: id });
     if (projectViews === 3) {
       send('multi_project_view', { view_count: 3 });
     }
@@ -106,21 +106,12 @@
 
     document.querySelectorAll('a[href*="Resume.pdf"]').forEach(link => {
       link.addEventListener('click', () => {
-        send('download_resume', { file_name: 'Resume.pdf' });
+        send('resume_download', { file_name: 'Resume.pdf' });
       });
     });
 
     document.querySelectorAll('a[href^="mailto:"]').forEach(link => {
       link.addEventListener('click', () => send('email_cta_click'));
-    });
-
-    document.querySelectorAll('a[href*="github.com"]').forEach(link => {
-      link.addEventListener('click', () => {
-        send('click_github_link', {
-          link_url: link.href,
-          link_text: link.textContent.trim() || link.getAttribute('aria-label') || 'GitHub'
-        });
-      });
     });
 
     document.querySelectorAll('a[target="_blank"]').forEach(link => {
@@ -167,17 +158,15 @@
 
     setTimeout(() => send('engaged_time', { seconds: 60 }), 60000);
 
-    const scrollBreakpoints = [25, 50, 75, 100];
-    const sentDepth = new Set();
+    let sent50 = false;
     window.addEventListener('scroll', () => {
-      const scrollable = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-      const pct = ((window.scrollY || window.pageYOffset) / scrollable) * 100;
-      scrollBreakpoints.forEach(depth => {
-        if (!sentDepth.has(depth) && pct >= depth) {
-          sentDepth.add(depth);
-          send('scroll_depth', { percent: depth });
-        }
-      });
+      if (sent50) return;
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      const pct = (window.scrollY || window.pageYOffset) / scrollable;
+      if (pct >= 0.5) {
+        sent50 = true;
+        send('scroll_depth', { percent: 50 });
+      }
     }, { passive: true });
   }
 

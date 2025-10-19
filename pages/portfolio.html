@@ -17,7 +17,7 @@
 
   <!-- styles -->
   <meta name="theme-color" content="#0D1117">
-  <link rel="stylesheet" href="dist/styles.b36cf502.css">
+  <link rel="stylesheet" href="dist/styles.b93cc402.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
@@ -31,7 +31,7 @@
   <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap" rel="stylesheet"></noscript>
 
   <meta name="description"
-        content="Destination marketing analytics, predictive models, and data storytelling projects led by Daniel Short.">
+        content="Curated portfolio of data science, analytics, ML, and visualization projects by Daniel Short.">
   <meta property="og:image:alt" content="Portrait photo of Daniel Short">
   <link rel="preconnect" href="https://public.tableau.com" crossorigin>
 
@@ -48,42 +48,11 @@
   <section class="hero">
     <div class="wrapper">
       <h1>Project Portfolio</h1>
-      <p>Explore destination marketing automation, predictive models, and analytics experiments that delivered measurable outcomes.</p>
+      <p>Each project highlights a real-world challenge, the methods I used, and measurable outcomes.</p>
     </div>
       <div class="chevron-hint scroll-indicator" aria-hidden="true">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 16.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 14.08l5.3-5.29a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29z"/></svg>
       </div>
-  </section>
-
-  <nav aria-label="Breadcrumb" class="breadcrumb">
-    <div class="wrapper">
-      <ol>
-        <li><a href="index.html">Home</a></li>
-        <li aria-current="page">Portfolio</li>
-      </ol>
-    </div>
-  </nav>
-
-  <section id="visit-grand-junction" class="surface-band reveal">
-    <div class="wrapper">
-      <h2 class="section-title">Visit Grand Junction Highlights</h2>
-      <p>Tourism work spans personalized chatbots, semantic search, and reporting for the City of Grand Junction. These links jump directly into the live project walk-throughs.</p>
-      <div class="highlight-grid">
-        <button type="button" class="highlight-card" data-project-link="chatbotLora">
-          <h3>Chatbot (LoRA + RAG)</h3>
-          <p>Brand-tuned assistant that grounds answers in VisitGJ content and scales on SageMaker.</p>
-          <span class="highlight-cta">View project</span>
-        </button>
-        <button type="button" class="highlight-card" data-project-link="smartSentence">
-          <h3>Smart Sentence Retriever</h3>
-          <p>Semantic search API that surfaces the right tourism quotes and copy assets in seconds.</p>
-          <span class="highlight-cta">View project</span>
-        </button>
-      </div>
-      <p class="highlight-links">
-        <a href="contributions.html">See Visit Grand Junction reports &rarr;</a>
-      </p>
-    </div>
   </section>
 
   <!-- portfolio carousel -->
@@ -132,25 +101,6 @@
     </nav>
   </footer>
 
-  <script>
-    document.addEventListener('click', function (event) {
-      const trigger = event.target.closest('[data-project-link]');
-      if (!trigger) return;
-      event.preventDefault();
-      const projectId = trigger.getAttribute('data-project-link');
-      let attempts = 0;
-      const tryOpen = () => {
-        attempts += 1;
-        if (typeof window.openModal === 'function') {
-          window.openModal(projectId);
-        } else if (attempts < 5) {
-          setTimeout(tryOpen, 200);
-        }
-      };
-      tryOpen();
-    });
-  </script>
-
   <!-- scripts -->
   <script defer src="js/common/common.js"></script>
   <script defer src="js/navigation/navigation.js"></script>
@@ -159,3 +109,4 @@
   <script defer src="js/privacy/consent_manager.js"></script>
 </body>
 </html>
+
