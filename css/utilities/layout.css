@@ -435,7 +435,14 @@ body.menu-open::before{
   position:fixed;inset:0;
   background:rgba(0,0,0,.65);
   z-index:1000;                /* just under the header & drawer */
-  pointer-events:none;         /* clicks still reach the drawer */
+  pointer-events:auto;         /* block interaction with page content */
+  touch-action:none;           /* prevent swipe scrolling on overlay */
+}
+
+html.menu-open,
+body.menu-open{
+  overflow:hidden;             /* lock page scroll while the drawer is open */
+  overscroll-behavior:contain; /* prevent rubber-band on mobile devices */
 }
 
 /* == HERO occupies the visible viewport =================== */
