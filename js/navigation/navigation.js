@@ -83,6 +83,7 @@
         const open = menu.classList.toggle('open');
         burger.setAttribute('aria-expanded', open);
         document.body.classList.toggle('menu-open', open);
+        document.documentElement.classList.toggle('menu-open', open);
 
         if (open) {
           prevFocus = document.activeElement;
