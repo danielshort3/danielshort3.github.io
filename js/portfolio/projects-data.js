@@ -272,7 +272,7 @@ window.PROJECTS = [
   {
     id: "retailStore",
     title: "Store-Level Loss & Sales ETL",
-    subtitle: "MSSQL ETL + Anomaly Detection",
+    subtitle: "SQL ETL + Anomaly Detection",
     image: "img/projects/retailStore.png",
     tools: ["SQL", "Python"],
     resources: [
@@ -282,7 +282,7 @@ window.PROJECTS = [
     ],
     problem : "Our store lacked visibility into security incidents, theft hot-spots, and boycott-driven sales swings.",
     actions : [
-      "Merged incident, sales & HR tables in MSSQL; automated KPIs via views and stored procedures.",
+      "Merged incident, sales & HR tables in SQL; automated KPIs via views and stored procedures.",
       "Built Python dashboards mapping theft vs. sales, tagged by format, state and boycott timeline.",
       "Applied anomaly detection to spotlight outlier stores and employees."
     ],
