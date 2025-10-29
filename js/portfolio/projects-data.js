@@ -324,8 +324,8 @@ window.PROJECTS = [
     tools: ["Python", "scikit-learn"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Baby-Names", label: "GitHub" },
-      { icon: "img/icons/pdf-icon.png",    url: "documents/Project_2_pdf.zip",               label: "PDFs"  },
-      { icon: "img/icons/jupyter-icon.png",url: "documents/Project_2.zip",                   label: "Notebook"}
+      { icon: "img/icons/pdf-icon.png",    url: "documents/Project_2.pdf",                    label: "PDFs"  },
+      { icon: "img/icons/jupyter-icon.png",url: "documents/Project_2.ipynb",                  label: "Notebook"}
     ],
     problem : "My wife wanted me to come up with new baby names to suggest to her. I wanted to use data-backed insights to solve this problem.",
     actions : [
