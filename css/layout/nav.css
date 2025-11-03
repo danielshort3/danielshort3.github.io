@@ -31,13 +31,14 @@
     gap:12px;
     justify-content:center;
     align-items:center;
+    width:100%;
   }
   .nav-link{
     display:inline-flex;
     align-items:center;
     justify-content:center;
-    flex:1 1 clamp(118px,18vw,152px);
-    max-width:clamp(140px,22vw,172px);
+    flex:1 1 clamp(118px,16vw,172px);
+    max-width:220px;
     text-align:center;
     white-space:nowrap;
   }
