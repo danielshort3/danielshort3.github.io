@@ -4,7 +4,7 @@
   .hero{
     min-height:calc(var(--vh,100svh) - var(--nav-height,72px));
     margin:0;
-    padding:clamp(3.5rem,8vh,5.5rem) 0 clamp(4rem,9vh,6.5rem);
+    padding:clamp(4rem,8vh,6rem) 0 clamp(4.5rem,9vh,6.5rem);
     display:flex;
     flex-direction:column;
     align-items:center;
@@ -13,37 +13,22 @@
     position:relative;
     overflow:hidden;
     isolation:isolate;
-    background:radial-gradient(120% 120% at 12% 18%, color-mix(in srgb,var(--primary) 22%, transparent) 0%, transparent 55%) var(--surface);
+    background:linear-gradient(145deg,
+      color-mix(in srgb,var(--primary) 18%, transparent) 0%,
+      color-mix(in srgb,var(--surface) 96%, #000 4%) 38%,
+      var(--surface) 100%);
   }
 
-  @keyframes heroFade{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:none}}
-  @keyframes heroGradient{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+  @keyframes heroFade{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:none}}
 
   .hero::before{
     content:"";
     position:absolute;
     inset:0;
     z-index:-1;
-    opacity:.16;
-    background:linear-gradient(135deg, color-mix(in srgb,var(--primary) 24%, transparent) 0%, transparent 55%);
-    background-size:400% 400%;
-    animation:heroGradient 22s ease-in-out infinite;
-    background-position:50% calc(var(--hero-parallax,0px));
-  }
-
-  .hero::after{
-    content:"";
-    position:absolute;
-    inset:0;
-    z-index:-1;
-    pointer-events:none;
-    opacity:0;
-    transition:opacity .3s ease;
-    background:radial-gradient(220px 180px at var(--mx,50%) var(--my,35%), color-mix(in srgb,var(--primary) 22%, transparent), transparent 70%);
-  }
-
-  @media (hover:hover) and (pointer:fine){
-    .hero:hover::after{opacity:.14;}
+    background:radial-gradient(140% 120% at 14% 20%,
+      color-mix(in srgb,var(--primary) 16%, transparent) 0%,
+      transparent 55%);
   }
 
   .hero .wrapper{
@@ -64,8 +49,8 @@
   .hero-tagline{
     margin:0 auto clamp(1.5rem,2.8vh,2rem);
     max-width:46ch;
-    font-size:1.15rem;
-    line-height:1.8;
+    font-size:1.1rem;
+    line-height:1.7;
     color:var(--text-muted);
     opacity:0;
     animation:heroFade 1s .6s forwards;
@@ -77,13 +62,14 @@
     gap:8px;
     padding:6px 16px;
     border-radius:999px;
-    font-size:.9rem;
+    font-size:.85rem;
     font-weight:600;
-    letter-spacing:.05em;
-    background:color-mix(in srgb,var(--surface) 70%, transparent);
-    color:var(--primary);
-    box-shadow:0 10px 24px rgba(0,0,0,.25);
-    margin-bottom:2rem;
+    letter-spacing:.08em;
+    background:color-mix(in srgb,var(--surface) 82%, #000 18%);
+    color:color-mix(in srgb,var(--primary) 82%, #fff 18%);
+    box-shadow:none;
+    border:1px solid color-mix(in srgb,var(--primary) 30%, transparent);
+    margin-bottom:clamp(1.8rem,3vh,2.4rem);
     opacity:0;
     animation:heroFade 1s .75s forwards;
   }
@@ -132,8 +118,7 @@
       opacity:1 !important;
       transform:none !important;
     }
-    .hero::before,
-    .hero::after{
+    .hero::before{
       animation:none !important;
       transition:none !important;
       opacity:0 !important;
