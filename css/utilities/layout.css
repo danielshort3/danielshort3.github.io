@@ -199,7 +199,8 @@
     top:calc(var(--nav-height,72px) - 1px);
     left:50%;
     right:auto;
-    width:min(420px, calc(100vw - clamp(40px, 14vw, 88px)));
+    width:min(420px, calc(100vw - 32px));
+    box-sizing:border-box;
     display:flex;
     flex-direction:column;
     align-items:stretch;
@@ -215,6 +216,7 @@
     box-shadow:0 32px 60px rgba(0,0,0,.45);
     max-height:calc(100vh - var(--nav-height,72px) - clamp(32px,12vh,96px));
     overflow-y:auto;
+    overflow-x:hidden;
     transform:translate(-50%, -18px);
     opacity:0;
     pointer-events:none;
@@ -239,6 +241,7 @@
     justify-content:flex-start;
     gap:10px;
     padding:14px 18px;
+    box-sizing:border-box;
     border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
     border-radius:14px;
     font-size:1.02rem;
