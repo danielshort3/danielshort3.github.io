@@ -4,6 +4,9 @@
    ─────────────────────────────────────────────────────────── */
 @layer layout {
   .nav{
+    --brand-logo-size: clamp(48px, 4.6vw, 68px);
+    --brand-title-size: clamp(18px, 2vw, 24px);
+    --brand-tagline-size: clamp(13px, 1.6vw, 16px);
     position:fixed;
     inset:0;
     width:100%;
@@ -103,21 +106,49 @@
   .brand{
     display:flex;
     align-items:center;
-    gap:12px;
+    gap:clamp(12px,2vw,18px);
+    text-decoration:none;
+    color:inherit;
   }
   .brand-logo{
-    height:54px;
-    width:auto;
+    width:var(--brand-logo-size);
+    height:var(--brand-logo-size);
     transition:transform .3s ease;
   }
+  .brand:hover .brand-logo{transform:scale(1.03);}
+
   .brand-name{
-    font-family:'Poppins';
-    font-size:20px;
-    font-weight:600;
+    display:flex;
+    align-items:center;
+    gap:clamp(10px,1.6vw,16px);
+    font-family:'Poppins',sans-serif;
     color:var(--text-light);
+  }
+  .brand-title{
+    font-size:var(--brand-title-size);
+    font-weight:600;
     letter-spacing:.3px;
+    line-height:1.05;
+    white-space:nowrap;
+  }
+  .brand-divider{
+    width:2px;
+    min-height:1.8em;
+    background:color-mix(in srgb,var(--primary) 86%, transparent);
+    border-radius:999px;
+    align-self:stretch;
+  }
+  .brand-tagline{
+    display:inline-flex;
+    flex-wrap:wrap;
+    column-gap:.35rem;
+    row-gap:0;
+    font-size:var(--brand-tagline-size);
+    font-weight:500;
+    color:color-mix(in srgb,var(--text-light) 92%, #ffffff 8%);
     line-height:1.1;
   }
-  .brand .divider{color:var(--primary)}
-  .brand:hover .brand-logo{transform:scale(1.03);}
+  .brand-tagline-chunk{
+    white-space:nowrap;
+  }
 }

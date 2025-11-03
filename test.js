@@ -118,22 +118,22 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
   const navJs = fs.readFileSync('js/navigation/navigation.js', 'utf8');
   assert(navJs.includes('class="brand-logo"'), 'nav markup missing brand-logo');
   assert(navJs.includes('class="brand-name"'), 'nav markup missing brand-name');
-  assert(navJs.includes('class="brand-line name"'), 'nav markup missing brand-line name');
-  assert(navJs.includes('class="brand-line divider"'), 'nav markup missing vertical divider');
-  assert(navJs.includes('class="brand-line tagline"'), 'nav markup missing tagline');
+  assert(navJs.includes('class="brand-title"'), 'nav markup missing brand-title');
+  assert(navJs.includes('class="brand-divider"'), 'nav markup missing brand-divider');
+  assert(navJs.includes('class="brand-tagline"'), 'nav markup missing brand-tagline');
+  assert(navJs.includes('class="brand-tagline-chunk">Data Science'), 'nav markup missing tagline chunk for Data Science');
 
   // CSS: brand colors and stacked divider line
   const navCss = fs.readFileSync('css/layout/nav.css', 'utf8');
-  assert(navCss.includes('.brand .divider{color:var(--primary)}'), 'nav.css divider not teal');
-  assert(navCss.includes(".brand-name{\n    font-family:'Poppins'"), 'nav.css brand-name block missing');
-  assert(navCss.includes('color:var(--text-light)'), 'nav.css brand-name not white');
+  assert(navCss.includes('--brand-logo-size'), 'nav.css missing brand logo scale variable');
+  assert(navCss.includes('.brand-divider'), 'nav.css missing brand-divider rules');
+  assert(navCss.includes('.brand-tagline'), 'nav.css missing brand-tagline rules');
+  assert(navCss.includes('flex-wrap:wrap;'), 'nav.css tagline should wrap whole chunks');
 
   const utilCss = fs.readFileSync('css/utilities/layout.css', 'utf8');
-  assert(utilCss.includes('.brand-line.tagline'), 'utilities/layout.css missing tagline selector');
-  assert(utilCss.includes('color: var(--text-light);'), 'tagline not set to white');
-  assert(utilCss.includes('.brand-line.name::after'), 'stacked horizontal rule missing');
-  assert(utilCss.includes('background:var(--primary);'), 'stacked horizontal rule not teal');
-  assert(/\.brand-logo\s*\{[^}]*height:56px;/.test(utilCss), 'mobile logo size not increased to 56px');
+  assert(utilCss.includes('--brand-title-size'), 'utilities/layout.css missing mobile brand sizing overrides');
+  assert(utilCss.includes('.brand-divider'), 'utilities/layout.css missing mobile divider override');
+  assert(/flex-direction\s*:\s*column;/.test(utilCss), 'brand mobile stack rule missing');
 
   // CSS variables: secondary should resolve to primary (teal)
   const varsCss = fs.readFileSync('css/variables.css', 'utf8');
@@ -195,8 +195,8 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
   assert(stylesCss.includes('@layer tokens, base, layout, components, utilities, overrides;'), 'styles.css layer order missing');
 
   // Utilities contain mobile stacking rules and scroll offset
-  assert(utilCss.includes('flex-direction: column;'), 'brand mobile stack rule missing');
-  assert(utilCss.includes('display:none;') && utilCss.includes('.brand-line.divider'), 'mobile divider hide missing');
+  assert(/flex-direction\s*:\s*column;/.test(utilCss), 'brand mobile stack rule missing');
+  assert(utilCss.includes('background:linear-gradient(90deg'), 'mobile divider gradient missing');
   assert(utilCss.includes('padding-top:var(--nav-height'), 'page offset for fixed header missing');
   assert(utilCss.includes('clip-path') && utilCss.includes('.nav-row.open'), 'mobile drawer clip-path reveal missing');
 
