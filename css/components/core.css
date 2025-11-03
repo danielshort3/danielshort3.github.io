@@ -7,7 +7,10 @@
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
     gap:clamp(20px,3vw,28px);
+    width:100%;
+    max-width:min(var(--container-max), 960px);
     margin:clamp(24px,4vw,36px) auto;
+    justify-content:center;
   }
   .icon-info{
     background:color-mix(in srgb,var(--surface) 90%, #000 10%);
@@ -56,7 +59,15 @@
   #about-me.reveal.active .icon-info:nth-child(6){animation-delay:.40s}
   #about-me .section-title{text-align:center}
 
-  .icon-info .skill-link-btn{
+  .skill-note{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:0.9rem;
+    padding:6px 14px;
+    border-radius:999px;
+    background:color-mix(in srgb,var(--surface) 85%, #000 15%);
+    border:1px solid color-mix(in srgb,var(--primary) 24%, transparent);
     margin-top:8px;
   }
 }
