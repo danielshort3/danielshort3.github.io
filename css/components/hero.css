@@ -46,28 +46,13 @@
 
   .hero .wrapper{
     width:100%;
-    max-width:calc(var(--container-max) + 140px);
+    max-width:min(760px, var(--container-max));
     margin-inline:auto;
     padding-inline:clamp(20px,5vw,48px);
-  }
-
-  .hero-grid{
     display:flex;
     flex-direction:column;
-    gap:clamp(32px,5vw,56px);
-    align-items:stretch;
-    max-width:var(--container-max);
-    margin-inline:auto;
-    width:100%;
-  }
-
-  .hero-content{
-    display:flex;
-    flex-direction:column;
-    gap:clamp(1rem,2.2vh,1.6rem);
-    width:100%;
-    max-width:min(760px, 100%);
-    margin-inline:auto;
+    align-items:flex-start;
+    gap:clamp(1.2rem,3vh,2rem);
   }
 
   .hero-eyebrow{
@@ -132,11 +117,11 @@
     display:grid;
     grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
     gap:clamp(12px,2.2vw,18px);
-    margin:clamp(1.8rem,4vh,2.6rem) auto 0;
+    margin:clamp(1.8rem,4vh,2.6rem) 0 0;
     padding:0;
     list-style:none;
     width:100%;
-    max-width:var(--container-max);
+    align-self:stretch;
   }
 
   .hero-meta li{
@@ -191,10 +176,11 @@
     .hero{
       padding-inline:18px;
     }
-    .hero-content{
+    .hero .wrapper{
+      align-items:center;
       text-align:center;
     }
-    .hero-content :is(.hero-eyebrow,.hero-tagline,.hero-status){
+    .hero .wrapper :is(.hero-eyebrow,.hero-tagline,.hero-status){
       text-align:center;
     }
     .cta-group{
@@ -204,9 +190,6 @@
     }
     .hero-cta{
       width:100%;
-      justify-content:center;
-    }
-    .hero-meta{
       justify-content:center;
     }
   }
