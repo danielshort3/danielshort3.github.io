@@ -87,4 +87,21 @@
     border:1px solid color-mix(in srgb,var(--primary) 24%, transparent);
     margin-top:8px;
   }
+
+  @media (max-width:768px){
+    .icon-info{
+      align-items:center;
+      text-align:center;
+      padding:24px 22px 22px;
+    }
+    .icon-info::before{
+      inset:16px 28px auto 28px;
+    }
+    .icon-info p{
+      font-size:1.02rem;
+    }
+    .icon-info small{
+      line-height:1.5;
+    }
+  }
 }
