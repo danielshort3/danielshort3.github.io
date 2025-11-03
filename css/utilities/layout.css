@@ -109,18 +109,42 @@
 
 /* === Center the entire CTA block ========================================= */
 #cta{
-  background:var(--surface);
-  padding: 40px;
+  background:linear-gradient(150deg,
+    color-mix(in srgb,var(--surface) 92%, #000 8%) 0%,
+    color-mix(in srgb,var(--surface) 84%, #000 16%) 100%);
+  padding:clamp(3.2rem,6vw,4.6rem) 0;
 }
 
 #cta .wrapper{
-  text-align:center;          /* centers the heading & paragraph text        */
+  display:flex;
+  justify-content:center;
 }
 
-#cta #cta-link{               /* anchor that wraps all CTA content            */
-  display:inline-flex;        /* shrink-wraps to its content width            */
-  flex-direction:column;      /* stack heading, paragraph, button vertically  */
-  align-items:center;         /* horizontally center every child (incl. btn)  */
+#cta #cta-link{
+  display:flex;
+  flex-direction:column;
+  gap:clamp(1.1rem,2vw,1.6rem);
+  align-items:flex-start;
+  max-width:640px;
+  border-radius:24px;
+  padding:clamp(2.2rem,4vw,2.8rem) clamp(2.2rem,4vw,3.2rem);
+  background:color-mix(in srgb,var(--surface) 88%, #000 12%);
+  border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+  box-shadow:0 22px 48px rgba(0,0,0,.32);
+}
+
+#cta #cta-link h2{
+  margin:0;
+}
+
+#cta #cta-link p{
+  margin:0;
+  color:color-mix(in srgb,var(--text-muted) 92%, #ffffff 8%);
+}
+
+#cta #cta-link > div{
+  display:flex;
+  gap:16px;
 }
 
 .burger{
@@ -140,14 +164,19 @@
 
   /* ---------- burger ---------- */
   .burger{
-    display:block;               /* hidden on desktop */
+    display:block;
     margin-left:auto;
     padding:8px;
-    background:none;border:none;cursor:pointer;
-    z-index:1001;                /* above the drawer */
+    background:none;
+    border:none;
+    cursor:pointer;
+    z-index:1001;
   }
   .burger .bar{
-    display:block;width:22px;height:3px;margin:4px 0;
+    display:block;
+    width:22px;
+    height:3px;
+    margin:4px 0;
     background:var(--text-light);
     transition:transform .3s,opacity .3s;
   }
@@ -159,175 +188,156 @@
     transform:translateY(-7px) rotate(-45deg);
   }
 
-    /* ---------- drawer ---------- */
-    .nav-row{
-      align-items:center;
-      gap:10px;
-      position:fixed;
-      top:var(--nav-height, 72px);   /* JS can still overwrite this */
-      left:0; right:0;
-      width:100%;
-      padding-bottom: 10px;
-      border-bottom-left-radius: 10px;
-      border-bottom-right-radius: 10px;
-      overflow: hidden; /* ensures no scrollbars leak past radius */
+  .nav .wrapper{
+    padding:clamp(12px,3vw,18px) clamp(20px,6vw,28px);
+    gap:16px;
+  }
 
-
-
-      /* everything you already had … */
-      max-height:calc(100vh - env(safe-area-inset-top));
-      overflow-y:auto;
-      display:flex;flex-direction:column;
-      background:rgba(13 17 23 / 0.72);
-      backdrop-filter:blur(14px);
-      box-shadow:0 4px 14px rgba(0,0,0,.25);
-      z-index:1000;
-
-      /* >>> NEW “reveal from under header” code <<< */
-      -webkit-clip-path: inset(0 0 100% 0);   /* start fully clipped */
-              clip-path: inset(0 0 100% 0);
-      transition:
-          -webkit-clip-path .35s ease-out,
-                  clip-path .35s ease-out;
-      pointer-events:none;                     /* ignore clicks while hidden */
-    }
-
-    /* drawer visible */
-    .nav-row.open{
-      -webkit-clip-path: inset(0 0 0 0);       /* slide-down reveal */
-              clip-path: inset(0 0 0 0);
-      pointer-events:auto;
-    }
+  /* ---------- drawer ---------- */
+  .nav-row{
+    position:fixed;
+    top:calc(var(--nav-height,72px) - 1px);
+    left:clamp(16px,6vw,24px);
+    right:clamp(16px,6vw,24px);
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    gap:6px;
+    padding:clamp(14px,4vw,20px);
+    border-radius:18px;
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    background:rgba(13,17,23,.94);
+    backdrop-filter:blur(18px);
+    box-shadow:0 22px 48px rgba(0,0,0,.35);
+    max-height:calc(100vh - var(--nav-height,72px) - clamp(32px,12vh,96px));
+    overflow-y:auto;
+    transform:translateY(-14px);
+    opacity:0;
+    pointer-events:none;
+    -webkit-clip-path:inset(0 0 100% 0);
+            clip-path:inset(0 0 100% 0);
+    transition:opacity .35s ease,
+               transform .35s ease,
+               -webkit-clip-path .35s ease,
+               clip-path .35s ease;
+  }
+  .nav-row.open{
+    opacity:1;
+    transform:translateY(0);
+    pointer-events:auto;
+    -webkit-clip-path:inset(0 0 0 0);
+            clip-path:inset(0 0 0 0);
+  }
 
   /* ---------- links ---------- */
   .nav-row .nav-link{
-    flex:none;
-    padding:14px 32px;
-    white-space:nowrap;
-    text-align:left;
-    border-bottom:1px solid
-      color-mix(in srgb,var(--primary) 25%,transparent);
+    width:100%;
+    justify-content:space-between;
+    padding:12px 6px;
+    border-bottom:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    border-radius:10px;
+    font-size:1.05rem;
+    letter-spacing:.01em;
   }
+  .nav-row .nav-link::after{display:none;}
   .nav-row .nav-link:last-child{border-bottom:0;}
+  .nav-row .nav-link.is-current{
+    color:color-mix(in srgb,var(--text-light) 92%, #ffffff 8%);
+  }
+  .nav-row .nav-link.nav-link-cta{
+    margin-top:6px;
+    justify-content:center;
+    padding:14px;
+    border-bottom:none;
+  }
 
   #filter-menu {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin: 0 auto;
-    max-width: 90%;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    margin:0 auto;
+    max-width:90%;
   }
 
   #filter-menu button {
-    width: 100%;
-    font-size: 1.1rem;
-    padding: 16px;
-    text-align: center;
-  }
-
-  .nav-row .nav-link {
-    display: block;
-    width: 90%;
-    padding: 16px;
-    font-size: 1.1rem;
-    text-align: center;
-    border: none;
-    border-radius: 8px;
-    margin: 6px 0;
-    transition: background 0.3s, color 0.3s;
-  }
-
-  .nav-row .nav-link.btn-primary {
-    background: var(--primary);
-    color: var(--bg);
-  }
-
-  .nav-row .nav-link.btn-secondary {
-    border: 2px solid var(--primary);
-    background: transparent;
-    color: var(--primary);
-  }
-
-  .nav-row .nav-link.btn-secondary:hover {
-    background: var(--primary);
-    color: var(--bg);
+    width:100%;
+    font-size:1.1rem;
+    padding:16px;
+    text-align:center;
   }
 
   .grid-container {
-    grid-template-columns: 1fr;
-    margin-inline: 12px;
-  }
-
-  .nav {
-    background: var(--surface);
-    backdrop-filter: none;
-  }
-
-  .nav-row {
-    background: var(--surface);
-    backdrop-filter: none ;
-  }
-
-  .nav .wrapper {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: nowrap;        /* 🔒 prevents wrapping */
-    padding: 18px 24px;
+    grid-template-columns:1fr;
+    margin-inline:12px;
   }
 
   .brand {
-    flex-shrink: 1;
-    min-width: 0;
-    overflow: hidden;
+    flex-shrink:1;
+    min-width:0;
+    overflow:hidden;
   }
 
   .brand-name {
-    white-space: normal;         /* ✅ allow wrapping */
-    word-break: break-word;      /* ✅ wraps at appropriate points */
-    text-align: left;            /* optional: aligns better with logo */
+    white-space:normal;
+    word-break:break-word;
+    text-align:left;
   }
 
-  .burger {
-    flex-shrink: 0;
-    margin-left: auto;
-  }
   .cta-group {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    align-items: center;
-    width: 90%;
-    max-width: 100%;
-    margin: 0 auto;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    align-items:center;
+    width:90%;
+    max-width:100%;
+    margin:0 auto;
   }
 
   .cta-group .hero-cta {
-    width: 90%;
-    text-align: center;
+    width:90%;
+    text-align:center;
     align-items:center;
-    padding: 16px;
-    font-size: 1.1rem;
+    padding:16px;
+    font-size:1.05rem;
   }
 
   /* scale hero text and buttons to fit smaller screens */
   .hero h1 {
-    font-size: clamp(28px, 8vw, 32px);
-    line-height: 1.2;
+    font-size:clamp(28px,8vw,34px);
+    line-height:1.2;
+    text-align:center;
   }
   .hero p {
-    font-size: clamp(16px, 4.5vw, 18px);
+    font-size:clamp(16px,4.5vw,18px);
+    text-align:center;
   }
   .hero-status {
-    font-size: 0.75rem;
+    font-size:0.78rem;
+    margin-inline:auto;
+  }
+  .hero-meta{
+    justify-content:center;
+  }
+  .hero-meta li{
+    flex:1 1 220px;
+  }
+
+  #cta .wrapper{
+    padding-inline:clamp(18px,6vw,28px);
+  }
+  #cta #cta-link{
+    align-items:center;
+    text-align:center;
+  }
+  #cta #cta-link p{
+    text-align:center;
   }
 
   .btn-primary,
   .btn-secondary {
-    padding: 14px 28px;
-    font-size: 1rem;
+    padding:14px 28px;
+    font-size:1rem;
   }
-
 }
 
 /* === MODAL SCROLLBAR STYLING – MATCHES CONTRIBUTIONS CAROUSEL === */
