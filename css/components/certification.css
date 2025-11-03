@@ -3,7 +3,14 @@
    6.  CERTIFICATION MARQUEE
    ─────────────────────────────────────────────────────────── */
 @layer components {
-  .cert-band{background:var(--surface);overflow:hidden;position:relative}
+  .cert-band{
+    background:color-mix(in srgb,var(--surface) 90%, #fff 10%);
+    overflow:hidden;
+    position:relative;
+    border-top:1px solid color-mix(in srgb,var(--primary) 12%, var(--border-subtle) 88%);
+    border-bottom:1px solid color-mix(in srgb,var(--primary) 10%, var(--border-subtle) 90%);
+    padding-block:12px;
+  }
   .cert-track{
     position:relative;height:48px;cursor:grab;user-select:none;touch-action:pan-y
   }
@@ -11,7 +18,7 @@
   .cert-track a,.cert-track img{-webkit-user-drag:none;user-select:none}
   .cert{
     position:absolute;top:25%;display:inline-flex;align-items:center;gap:10px;
-    font-family:'Poppins';font-weight:500;font-size:16px;color:var(--text-light);
+    font-family:'Poppins';font-weight:500;font-size:16px;color:var(--text-muted);
     white-space:nowrap;will-change:transform
   }
   .cert:hover span{color:var(--primary)}

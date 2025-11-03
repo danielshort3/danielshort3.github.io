@@ -9,14 +9,21 @@
     cursor:pointer;transition:transform .25s,box-shadow .25s
   }
   .btn-primary{
-    padding:18px 34px;background:var(--primary);color:var(--bg);
-    box-shadow:0 6px 18px color-mix(in srgb, var(--primary) 25%, transparent)
+    padding:14px 28px;background:var(--primary);color:color-mix(in srgb,#ffffff 92%, var(--bg) 8%);
+    box-shadow:0 10px 26px color-mix(in srgb, var(--primary) 28%, transparent)
   }
-  .btn-primary:hover{transform:translateY(-3px);box-shadow:0 10px 24px color-mix(in srgb, var(--primary) 35%, transparent)}
+  .btn-primary:hover{transform:translateY(-3px);box-shadow:0 16px 32px color-mix(in srgb, var(--primary) 35%, transparent)}
   .btn-secondary{
-    padding:18px 34px;border:2px solid var(--primary);background:transparent;color:var(--primary)
+    padding:14px 28px;border:1px solid color-mix(in srgb,var(--primary) 55%, transparent);background:transparent;
+    color:var(--text-light);
+    box-shadow:0 0 0 rgba(0,0,0,0);
   }
-  .btn-secondary:hover{background:var(--primary);color:var(--bg);transform:translateY(-3px)}
+  .btn-secondary:hover{
+    background:color-mix(in srgb,var(--primary) 18%, transparent);
+    color:var(--text-light);
+    transform:translateY(-3px);
+    box-shadow:0 12px 26px rgba(0,0,0,.2);
+  }
   .btn-icon{width:46px;height:46px;border:2px solid var(--primary);color:var(--primary)}
   .btn-icon i{font-size:22px;color:currentColor}
   .btn-icon svg{

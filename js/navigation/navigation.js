@@ -40,18 +40,18 @@
             <span class="bar"></span><span class="bar"></span><span class="bar"></span>
           </button>
           <div id="primary-menu" class="nav-row" data-collapsible role="navigation">
-            <a href="index.html" class="btn-secondary nav-link">Home</a>
-            <a href="portfolio.html" class="btn-secondary nav-link">Portfolio</a>
-            <a href="contributions.html" class="btn-secondary nav-link">Contributions</a>
-            <a href="contact.html" class="btn-secondary nav-link">Contact</a>
-            <a href="resume.html" class="btn-secondary nav-link">Resume</a>
+            <a href="index.html" class="nav-link">Home</a>
+            <a href="portfolio.html" class="nav-link">Portfolio</a>
+            <a href="contributions.html" class="nav-link">Contributions</a>
+            <a href="contact.html" class="nav-link">Contact</a>
+            <a href="resume.html" class="nav-link">Resume</a>
           </div>
         </div>
       </nav>`;
     const cur = location.pathname.split('/').pop() || 'index.html';
     $$('.nav-link').forEach(l=>{
       if(l.getAttribute('href')===cur){
-        l.classList.replace('btn-secondary','btn-primary');
+        l.classList.add('is-active');
         l.setAttribute('aria-current','page');
       }
     });
