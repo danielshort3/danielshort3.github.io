@@ -58,7 +58,7 @@ function evalScript(file, env) {
 
 try {
   // HTML checks across pages (moved files live under pages/)
-  checkFileContains('index.html', 'Analytics with published, measurable outcomes');
+  checkFileContains('index.html', 'Transforming complex data into confident decisions');
 checkFileContains('pages/contact.html', '<title>Contact │ Daniel Short');
 ['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html'].forEach(f => {
   checkFileContains(f, 'js/common/common.js');

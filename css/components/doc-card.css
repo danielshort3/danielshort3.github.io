@@ -9,15 +9,9 @@
     gap:28px; padding:24px 0; row-gap:8px;
   }
   .doc-card{
-    position:relative;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:18px;
-    padding:26px 24px;
-    background:var(--surface);
-    border:1px solid var(--border-subtle);
-    border-radius:14px;
+    position:relative; display:flex; justify-content:space-between; align-items:center;
+    gap:18px; padding:26px 24px; background:var(--surface);
+    border:1px solid var(--border-subtle); border-radius:14px;
     transition:transform .25s,box-shadow .25s,background .25s,border-color .25s
   }
   .doc-card:hover{background:var(--primary);transform:translateY(-6px);box-shadow:0 12px 28px color-mix(in srgb, var(--primary) 35%, transparent);border-color:var(--primary)}
@@ -45,7 +39,7 @@
   .contributions-page::-webkit-scrollbar-thumb:hover{ background:color-mix(in srgb,var(--primary) 75%, #000 25%); }
 
   /* additional layout helpers used by doc cards */
-  .doc-layout{ display:flex; flex-direction:column; justify-content:space-between; height:100%; gap:12px; }
+  .doc-layout{ display:flex; flex-direction:column; justify-content:space-between; height:100%; }
   .doc-title{ font-family:'Poppins'; font-size:1.1rem; font-weight:600; color:var(--text-light); margin-top:0; }
   .doc-footer{ display:flex; justify-content:space-between; align-items:flex-end; margin-top:auto; }
   .doc-footer .doc-role{ font-size:.85rem; color:var(--text-muted); margin:0; }
@@ -53,35 +47,9 @@
 
   /* mobile alignment for footer/content */
   @media (max-width:768px){
-    .doc-card{
-      flex-direction:column;
-      align-items:flex-start;
-      gap:18px;
-      padding:24px;
-    }
-    .doc-layout{
-      gap:18px;
-    }
-    .doc-footer{
-      position:static;
-      width:100%;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-      flex-wrap:wrap;
-      margin-top:8px;
-    }
-    .doc-links{
-      position:static;
-      display:flex;
-      gap:12px;
-      margin-left:0;
-    }
-    .doc-links .doc-link{ flex:0 0 auto; }
-    .doc-role{
-      flex:1 1 auto;
-    }
+    .doc-card{ position:relative; padding-bottom:96px; }
+    .doc-footer{ position:absolute; left:24px; right:24px; bottom:24px; display:flex; justify-content:space-between; align-items:flex-end; }
+    .doc-links{ position:static; display:flex; gap:12px; }
     .docs-grid{ grid-template-columns:1fr; }
   }
 }
