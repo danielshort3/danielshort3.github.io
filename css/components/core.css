@@ -5,38 +5,58 @@
 @layer components {
   .grid-container{
     display:grid;
-    grid-template-columns:repeat(2,1fr);
-    gap:28px;
-    margin:28px;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:clamp(20px,3vw,28px);
+    margin:clamp(24px,4vw,36px) auto;
   }
   .icon-info{
-    background:var(--surface);border:1px solid #21262D;border-radius:14px;
-    padding:32px;text-align:center;color:var(--text-light);
-    display:flex;flex-direction:column;align-items:center;
-    opacity:0;transform:scale(.92);
-    transition:opacity .6s cubic-bezier(.2,.7,.3,1),transform .6s cubic-bezier(.2,.7,.3,1)
+    background:color-mix(in srgb,var(--surface) 90%, #000 10%);
+    border:1px solid color-mix(in srgb,var(--primary) 20%, transparent);
+    border-radius:18px;
+    padding:28px 26px;
+    text-align:left;
+    color:var(--text-light);
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    align-items:flex-start;
+    opacity:0;
+    transform:translateY(16px);
+    transition:opacity .45s cubic-bezier(.22,.61,.36,1),
+               transform .45s cubic-bezier(.22,.61,.36,1),
+               box-shadow .3s ease,
+               border-color .3s ease,
+               background .3s ease;
+    box-shadow:0 14px 30px rgba(0,0,0,.22);
   }
-  .icon-info i{font-size:38px;margin-bottom:14px;color:var(--primary)}
   .icon-info svg{
-    width:38px;height:38px;margin-bottom:14px;
-    color:var(--primary);
-    /* Keep vectors sharp and avoid unwanted fills */
+    width:32px;height:32px;
+    color:color-mix(in srgb,var(--primary) 82%, #ffffff 18%);
     shape-rendering:geometricPrecision;
-    display:block;
   }
-  .icon-info svg *{
-    fill:none;                  /* respect stroke-only icons */
-    stroke:currentColor;        /* match the theme color */
-    vector-effect:non-scaling-stroke; /* keep stroke width crisp when scaled */
+  .icon-info p{
+    margin:0;
+    font-family:'Poppins';
+    font-weight:600;
+    font-size:1.05rem;
   }
-  .icon-info p{font-family:'Poppins';font-weight:600;margin-bottom:4px}
-  .icon-info small{color:var(--text-muted)}
-  @keyframes focusIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
-  #about-me.reveal.active .icon-info{animation:focusIn .6s forwards}
-  #about-me.reveal.active .icon-info:nth-child(2){animation-delay:.1s}
-  #about-me.reveal.active .icon-info:nth-child(3){animation-delay:.2s}
-  #about-me.reveal.active .icon-info:nth-child(4){animation-delay:.3s}
-  #about-me.reveal.active .icon-info:nth-child(5){animation-delay:.4s}
-  #about-me.reveal.active .icon-info:nth-child(6){animation-delay:.5s}
+  .icon-info small{color:color-mix(in srgb,var(--text-muted) 85%, #ffffff 15%);line-height:1.6;}
+  .icon-info:hover{
+    transform:translateY(-4px);
+    box-shadow:0 18px 32px rgba(0,0,0,.26);
+    border-color:color-mix(in srgb,var(--primary) 32%, transparent);
+    background:color-mix(in srgb,var(--surface) 82%, #000 18%);
+  }
+  @keyframes focusIn{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:none;}}
+  #about-me.reveal.active .icon-info{animation:focusIn .45s forwards}
+  #about-me.reveal.active .icon-info:nth-child(2){animation-delay:.08s}
+  #about-me.reveal.active .icon-info:nth-child(3){animation-delay:.16s}
+  #about-me.reveal.active .icon-info:nth-child(4){animation-delay:.24s}
+  #about-me.reveal.active .icon-info:nth-child(5){animation-delay:.32s}
+  #about-me.reveal.active .icon-info:nth-child(6){animation-delay:.40s}
   #about-me .section-title{text-align:center}
+
+  .icon-info .skill-link-btn{
+    margin-top:8px;
+  }
 }
