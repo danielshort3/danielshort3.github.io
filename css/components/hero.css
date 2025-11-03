@@ -177,6 +177,7 @@
       align-items:center;
       text-align:center;
       padding-bottom:clamp(1.6rem,5vh,2.8rem);
+      padding-top:clamp(1rem,3vh,1.8rem);
     }
     .hero .wrapper :is(.hero-eyebrow,.hero-tagline,.hero-status){
       text-align:center;
