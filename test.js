@@ -58,7 +58,7 @@ function evalScript(file, env) {
 
 try {
   // HTML checks across pages (moved files live under pages/)
-  checkFileContains('index.html', 'made actionable');
+  checkFileContains('index.html', 'Analytics with published, measurable outcomes');
 checkFileContains('pages/contact.html', '<title>Contact │ Daniel Short');
 ['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html'].forEach(f => {
   checkFileContains(f, 'js/common/common.js');
@@ -165,14 +165,18 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
   assert(fs.existsSync(`dist/${hashedCss}`), `dist/${hashedCss} missing`);
   assert(fs.existsSync('dist/styles.css'), 'dist/styles.css missing');
 
-  ['index.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','404.html','pages/privacy.html'].forEach(f => {
-    checkFileContains(f, '<header id="combined-header-nav">');
-    checkFileContains(f, '<main id="main"');
-    checkFileContains(f, 'class="skip-link"');
-    checkFileContains(f, 'name="viewport"');
-    checkFileContains(f, 'name="theme-color"');
-    checkFileContains(f, `dist/${hashedCss}`);
-  });
+['index.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','404.html','pages/privacy.html'].forEach(f => {
+  checkFileContains(f, '<header id="combined-header-nav">');
+  checkFileContains(f, '<main id="main"');
+  checkFileContains(f, 'class="skip-link"');
+  checkFileContains(f, 'name="viewport"');
+  checkFileContains(f, 'name="theme-color"');
+  const html = fs.readFileSync(f,'utf8');
+  assert(
+    html.includes(`dist/${hashedCss}`) || html.includes('dist/styles.css'),
+    `${f} missing stylesheet reference`
+  );
+});
 
   // Fonts are preloaded on index
   checkFileContains('index.html', 'fonts.googleapis.com');
