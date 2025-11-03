@@ -22,11 +22,10 @@
     padding: 18px 24px;
     text-align: center;             /* optional: improves alignment on wrap */
   }
-  .nav-row{display:flex;gap:20px;flex-wrap:nowrap;justify-content:center}
   .nav-link{
-    flex: none;
-    text-align: center;
-    white-space: nowrap;
+    min-width:132px;
+    text-align:center;
+    white-space:nowrap;
   }
 
   .brand{display:flex;align-items:center;gap:8px}
