@@ -14,63 +14,21 @@
     background: var(--primary);
   }
   .nav .wrapper{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:32px;
-    padding:18px 24px;
+    display: flex;
+    flex-wrap: wrap;                 /* allows wrapping */
+    justify-content: center;        /* center all items horizontally */
+    align-items: center;
+    gap: 18px 48px;                  /* row-gap column-gap */
+    padding: 18px 24px;
+    text-align: center;             /* optional: improves alignment on wrap */
   }
-  .nav-row{
-    display:flex;
-    align-items:center;
-    gap:14px;
-    margin-left:auto;
-    flex-wrap:nowrap;
-    justify-content:flex-end;
-  }
+  .nav-row{display:flex;gap:20px;flex-wrap:nowrap;justify-content:center}
   .nav-link{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    padding:10px 18px;
-    border-radius:999px;
-    font-family:'Inter',sans-serif;
-    font-weight:500;
-    font-size:.95rem;
-    color:var(--text-muted);
-    transition:color .25s ease,background .25s ease,box-shadow .25s ease;
-    position:relative;
-    white-space:nowrap;
+    flex: none;
+    text-align: center;
+    white-space: nowrap;
   }
-  .nav-link::after{
-    content:"";
-    position:absolute;
-    inset:auto 16px -10px 16px;
-    height:2px;
-    background:transparent;
-    border-radius:1px;
-    transition:background .25s ease, transform .25s ease;
-    transform:scaleX(.4);
-    transform-origin:center;
-  }
-  .nav-link:hover{
-    color:var(--text-light);
-    background:color-mix(in srgb, var(--surface) 85%, var(--primary) 15%);
-    box-shadow:0 6px 16px rgba(0,0,0,.25);
-  }
-  .nav-link:hover::after{
-    background:color-mix(in srgb, var(--primary) 80%, transparent);
-    transform:scaleX(1);
-  }
-  .nav-link.is-active{
-    color:var(--text-light);
-    background:color-mix(in srgb, var(--primary) 18%, transparent);
-    box-shadow:0 8px 20px color-mix(in srgb, var(--primary) 30%, transparent);
-  }
-  .nav-link.is-active::after{
-    background:var(--primary);
-    transform:scaleX(1);
-  }
+
   .brand{display:flex;align-items:center;gap:8px}
   .brand-logo{height:64px;width:auto}
   .brand-name{

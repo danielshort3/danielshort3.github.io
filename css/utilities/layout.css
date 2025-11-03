@@ -109,37 +109,18 @@
 
 /* === Center the entire CTA block ========================================= */
 #cta{
-  background:transparent;
-  padding-block:clamp(3.5rem,6vw,5.5rem);
+  background:var(--surface);
+  padding: 40px;
 }
 
 #cta .wrapper{
-  display:flex;
-  justify-content:center;
-  text-align:left;
+  text-align:center;          /* centers the heading & paragraph text        */
 }
 
-#cta #cta-link{
-  display:flex;
-  flex-direction:column;
-  gap:clamp(1rem,2vw,1.6rem);
-  align-items:flex-start;
-  padding:clamp(2rem,4vw,2.5rem);
-  border-radius:24px;
-  background:linear-gradient(160deg,color-mix(in srgb,var(--primary) 22%, transparent) 0%, color-mix(in srgb,var(--surface) 90%, #fff 10%) 55%);
-  border:1px solid color-mix(in srgb,var(--primary) 18%, var(--border-subtle) 82%);
-  box-shadow:0 24px 60px rgba(0,0,0,.28);
-  max-width:640px;
-}
-
-#cta h2{
-  margin:0;
-}
-
-#cta p{
-  margin:0;
-  color:color-mix(in srgb,var(--text-muted) 90%, #fff 10%);
-  line-height:1.7;
+#cta #cta-link{               /* anchor that wraps all CTA content            */
+  display:inline-flex;        /* shrink-wraps to its content width            */
+  flex-direction:column;      /* stack heading, paragraph, button vertically  */
+  align-items:center;         /* horizontally center every child (incl. btn)  */
 }
 
 .burger{
@@ -220,17 +201,14 @@
 
   /* ---------- links ---------- */
   .nav-row .nav-link{
-    width:calc(100% - 32px);
-    justify-content:flex-start;
-    padding:14px 20px;
-    border-radius:14px;
+    flex:none;
+    padding:14px 32px;
+    white-space:nowrap;
     text-align:left;
-    border:0;
-    box-shadow:none;
+    border-bottom:1px solid
+      color-mix(in srgb,var(--primary) 25%,transparent);
   }
-  .nav-row .nav-link::after{
-    inset:auto 20px -6px 20px;
-  }
+  .nav-row .nav-link:last-child{border-bottom:0;}
 
   #filter-menu {
     display: flex;
@@ -239,19 +217,40 @@
     margin: 0 auto;
     max-width: 90%;
   }
-  #cta #cta-link{
-    width:calc(100% - 32px);
-  }
-  #cta .btn-primary{
-    width:100%;
-    justify-content:center;
-  }
 
   #filter-menu button {
     width: 100%;
     font-size: 1.1rem;
     padding: 16px;
     text-align: center;
+  }
+
+  .nav-row .nav-link {
+    display: block;
+    width: 90%;
+    padding: 16px;
+    font-size: 1.1rem;
+    text-align: center;
+    border: none;
+    border-radius: 8px;
+    margin: 6px 0;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  .nav-row .nav-link.btn-primary {
+    background: var(--primary);
+    color: var(--bg);
+  }
+
+  .nav-row .nav-link.btn-secondary {
+    border: 2px solid var(--primary);
+    background: transparent;
+    color: var(--primary);
+  }
+
+  .nav-row .nav-link.btn-secondary:hover {
+    background: var(--primary);
+    color: var(--bg);
   }
 
   .grid-container {
