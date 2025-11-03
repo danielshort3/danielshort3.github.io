@@ -3,32 +3,101 @@
    5.  BUTTONS
    ─────────────────────────────────────────────────────────── */
 @layer components {
-  .btn-primary,.btn-secondary,.btn-icon{
-    display:inline-flex;align-items:center;justify-content:center;
-    font-family:'Poppins';font-weight:500;border-radius:8px;
-    cursor:pointer;transition:transform .25s,box-shadow .25s
+  .btn-primary,
+  .btn-secondary,
+  .btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Poppins';
+    font-weight: 500;
+    border-radius: 999px;
+    cursor: pointer;
+    transition:
+      transform .2s ease,
+      box-shadow .2s ease,
+      background .2s ease,
+      color .2s ease,
+      border-color .2s ease;
+    position: relative;
+    overflow: hidden;
   }
-  .btn-primary{
-    padding:18px 34px;background:var(--primary);color:var(--bg);
-    box-shadow:0 6px 18px color-mix(in srgb, var(--primary) 25%, transparent)
+
+  .btn-primary {
+    padding: 14px 30px;
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--primary) 92%, #ffffff 8%) 0%,
+      color-mix(in srgb, var(--primary) 68%, #0A1A1F 32%) 100%
+    );
+    color: color-mix(in srgb, #ffffff 94%, var(--bg) 6%);
+    border: 1px solid color-mix(in srgb, var(--primary) 65%, transparent);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, .28);
   }
-  .btn-primary:hover{transform:translateY(-3px);box-shadow:0 10px 24px color-mix(in srgb, var(--primary) 35%, transparent)}
-  .btn-secondary{
-    padding:18px 34px;border:2px solid var(--primary);background:transparent;color:var(--primary)
+
+  .btn-primary::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(140deg, rgba(255,255,255,.25), rgba(255,255,255,0));
+    opacity: 0;
+    transition: opacity .2s ease;
   }
-  .btn-secondary:hover{background:var(--primary);color:var(--bg);transform:translateY(-3px)}
-  .btn-icon{width:46px;height:46px;border:2px solid var(--primary);color:var(--primary)}
-  .btn-icon i{font-size:22px;color:currentColor}
-  .btn-icon svg{
-    width:22px;height:22px;color:currentColor;
-    /* stroke-based icons look sharper */
-    fill:none; stroke:currentColor; shape-rendering:geometricPrecision;
-    stroke-width:2; stroke-linecap:round; stroke-linejoin:round;
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, .32);
   }
-  .btn-icon svg.brand-fill{fill:currentColor;stroke:none}
-  .btn-icon img{width:22px;height:22px;object-fit:contain;display:block}
-  .btn-icon .icon{display:block;width:22px;height:22px}
-  .btn-icon .icon-github{
+
+  .btn-primary:hover::after { opacity: 1; }
+
+  .btn-secondary {
+    padding: 14px 30px;
+    border: 1px solid color-mix(in srgb, var(--primary) 38%, transparent);
+    color: color-mix(in srgb, var(--text-light) 90%, #ffffff 10%);
+    background: color-mix(in srgb, var(--surface) 88%, #000000 12%);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .22);
+  }
+
+  .btn-secondary:hover {
+    transform: translateY(-2px);
+    background: color-mix(in srgb, var(--primary) 22%, transparent);
+    border-color: color-mix(in srgb, var(--primary) 55%, transparent);
+    color: color-mix(in srgb, #ffffff 92%, var(--bg) 8%);
+  }
+
+  .btn-icon {
+    width: 44px;
+    height: 44px;
+    border: 1px solid color-mix(in srgb, var(--primary) 45%, transparent);
+    color: color-mix(in srgb, var(--primary) 80%, #ffffff 20%);
+    background: color-mix(in srgb, var(--surface) 85%, #000000 15%);
+    transition:
+      transform .2s ease,
+      box-shadow .2s ease,
+      background .2s ease,
+      color .2s ease,
+      border-color .2s ease;
+  }
+
+  .btn-icon i { font-size: 22px; color: currentColor; }
+
+  .btn-icon svg {
+    width: 22px;
+    height: 22px;
+    color: currentColor;
+    fill: none;
+    stroke: currentColor;
+    shape-rendering: geometricPrecision;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .btn-icon svg.brand-fill { fill: currentColor; stroke: none; }
+  .btn-icon img { width: 22px; height: 22px; object-fit: contain; display: block; }
+  .btn-icon .icon { display: block; width: 22px; height: 22px; }
+  .btn-icon .icon-github {
     background-color: currentColor;
     -webkit-mask-image: url('../img/icons/github-icon.png');
             mask-image: url('../img/icons/github-icon.png');
@@ -36,7 +105,22 @@
     -webkit-mask-position: center;      mask-position: center;
     -webkit-mask-size: contain;         mask-size: contain;
   }
-  .btn-icon:hover{background:var(--primary);color:var(--bg);transform:translateY(-3px);box-shadow:0 8px 18px rgba(0,0,0,.25)}
-  .btn-icon:hover i{color:var(--bg)}
-  .btn-icon:hover svg{color:var(--bg)}
+
+  .btn-icon:hover {
+    background: color-mix(in srgb, var(--primary) 22%, transparent);
+    color: color-mix(in srgb, #ffffff 90%, var(--bg) 10%);
+    border-color: color-mix(in srgb, var(--primary) 55%, transparent);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 26px rgba(0, 0, 0, .25);
+  }
+
+  .btn-icon:hover i,
+  .btn-icon:hover svg { color: inherit; }
+
+  .btn-primary:focus-visible,
+  .btn-secondary:focus-visible,
+  .btn-icon:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--primary) 60%, #ffffff 40%);
+    outline-offset: 3px;
+  }
 }
