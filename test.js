@@ -165,18 +165,14 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
   assert(fs.existsSync(`dist/${hashedCss}`), `dist/${hashedCss} missing`);
   assert(fs.existsSync('dist/styles.css'), 'dist/styles.css missing');
 
-['index.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','404.html','pages/privacy.html'].forEach(f => {
-  checkFileContains(f, '<header id="combined-header-nav">');
-  checkFileContains(f, '<main id="main"');
-  checkFileContains(f, 'class="skip-link"');
-  checkFileContains(f, 'name="viewport"');
-  checkFileContains(f, 'name="theme-color"');
-  const html = fs.readFileSync(f,'utf8');
-  assert(
-    html.includes(`dist/${hashedCss}`) || html.includes('dist/styles.css'),
-    `${f} missing stylesheet reference`
-  );
-});
+  ['index.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','404.html','pages/privacy.html'].forEach(f => {
+    checkFileContains(f, '<header id="combined-header-nav">');
+    checkFileContains(f, '<main id="main"');
+    checkFileContains(f, 'class="skip-link"');
+    checkFileContains(f, 'name="viewport"');
+    checkFileContains(f, 'name="theme-color"');
+    checkFileContains(f, `dist/${hashedCss}`);
+  });
 
   // Fonts are preloaded on index
   checkFileContains('index.html', 'fonts.googleapis.com');
