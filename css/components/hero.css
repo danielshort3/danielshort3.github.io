@@ -52,18 +52,22 @@
   }
 
   .hero-grid{
-    display:grid;
+    display:flex;
+    flex-direction:column;
     gap:clamp(32px,5vw,56px);
-    align-items:center;
+    align-items:stretch;
     max-width:var(--container-max);
     margin-inline:auto;
+    width:100%;
   }
 
   .hero-content{
     display:flex;
     flex-direction:column;
     gap:clamp(1rem,2.2vh,1.6rem);
-    max-width:min(640px, 100%);
+    width:100%;
+    max-width:min(760px, 100%);
+    margin-inline:auto;
   }
 
   .hero-eyebrow{
@@ -125,16 +129,18 @@
   .hero-cta{min-width:0;}
 
   .hero-meta{
-    display:flex;
-    flex-wrap:wrap;
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
     gap:clamp(12px,2.2vw,18px);
-    margin:clamp(1.8rem,4vh,2.6rem) 0 0;
+    margin:clamp(1.8rem,4vh,2.6rem) auto 0;
     padding:0;
     list-style:none;
+    width:100%;
+    max-width:var(--container-max);
   }
 
   .hero-meta li{
-    flex:1 1 clamp(160px, 30vw, 220px);
+    min-width:0;
     padding:18px 20px;
     border-radius:18px;
     background:color-mix(in srgb,var(--surface) 86%, #000 14%);
