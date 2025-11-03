@@ -123,13 +123,16 @@
     gap:clamp(10px,1.6vw,16px);
     font-family:'Poppins',sans-serif;
     color:var(--text-light);
+    min-width:0;
   }
   .brand-title{
     font-size:var(--brand-title-size);
     font-weight:600;
     letter-spacing:.3px;
-    line-height:1.05;
-    white-space:nowrap;
+    line-height:1.1;
+    text-wrap:balance;
+    display:inline-block;
+    min-width:0;
   }
   .brand-divider{
     width:2px;
@@ -150,5 +153,10 @@
   }
   .brand-tagline-chunk{
     white-space:nowrap;
+  }
+  @media (min-width:769px){
+    .brand-title{
+      max-width:clamp(120px, 18vw, 200px);
+    }
   }
 }
