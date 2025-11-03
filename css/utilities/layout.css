@@ -195,8 +195,8 @@
 
   /* ---------- drawer ---------- */
   .nav-row{
-    position:fixed;
-    top:calc(var(--nav-height,72px) - 1px);
+    position:absolute;
+    top:100%;
     left:50%;
     right:auto;
     width:min(420px, calc(100vw - 32px));
@@ -474,7 +474,7 @@
 /* == GLOBAL DIM-LAYER when mobile drawer is open ========= */
 body.menu-open::before{
   content:"";
-  position:fixed;inset:0;
+    position:fixed;inset:0;
   background:rgba(0,0,0,.65);
   z-index:1000;                /* just under the header & drawer */
   pointer-events:none;         /* clicks still reach the drawer */
