@@ -119,7 +119,8 @@
 
   .brand-name{
     display:flex;
-    align-items:flex-start;
+    align-items:center;
+    gap:clamp(10px,1.6vw,16px);
     font-family:'Poppins',sans-serif;
     color:var(--text-light);
     min-width:0;
@@ -129,9 +130,7 @@
     font-weight:600;
     letter-spacing:.3px;
     line-height:1.1;
-    text-wrap:balance;
-    display:inline-block;
-    min-width:0;
+    white-space:nowrap;
   }
   .brand-divider{
     width:2px;
@@ -139,8 +138,6 @@
     background:color-mix(in srgb,var(--primary) 86%, transparent);
     border-radius:999px;
     align-self:stretch;
-    margin-inline:clamp(8px,1vw,12px);
-    flex-shrink:0;
   }
   .brand-tagline{
     display:inline-flex;
@@ -154,10 +151,5 @@
   }
   .brand-tagline-chunk{
     white-space:nowrap;
-  }
-  @media (min-width:769px){
-    .brand-title{
-      max-width:clamp(120px, 18vw, 200px);
-    }
   }
 }

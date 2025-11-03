@@ -172,6 +172,26 @@
     0%,100%{transform:translate(-50%,0);}50%{transform:translate(-50%,6px);}
   }
 
+  @media (max-width:768px){
+    .hero .wrapper{
+      align-items:center;
+      text-align:center;
+    }
+    .hero .wrapper :is(.hero-eyebrow,.hero-tagline,.hero-status){
+      text-align:center;
+    }
+    .cta-group{
+      justify-content:center;
+    }
+    .hero-meta{
+      justify-items:center;
+      text-align:center;
+    }
+    .hero-meta li{
+      text-align:center;
+    }
+  }
+
   @media (max-width:640px){
     .hero{
       padding-inline:18px;
