@@ -4,8 +4,9 @@
    ─────────────────────────────────────────────────────────── */
 @layer layout {
   .nav{
-    position:fixed;inset:0 0 auto 0;width:100%;z-index:1000;
-    background:rgba(13,17,23,.72);backdrop-filter:blur(8px);
+    position:fixed;inset:0;width:100%;z-index:1000;
+    background:rgba(13,17,23,.72);backdrop-filter:blur(12px);
+    border-bottom:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
   }
   /* Scroll progress bar integrated at the bottom of the nav */
   .nav::after{
@@ -18,9 +19,11 @@
     flex-wrap:wrap;
     justify-content:center;
     align-items:center;
-    gap:18px 48px;
-    padding:18px 24px;
+    gap:12px 28px;
+    padding:12px clamp(16px,4vw,28px);
     text-align:center;
+    max-width:calc(var(--container-max) + 48px);
+    margin-inline:auto;
   }
   .nav-row{
     display:flex;
