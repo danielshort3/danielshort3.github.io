@@ -527,6 +527,7 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
       color-mix(in srgb,var(--primary) 30%, transparent) 100%);
     border-radius:2px;
     margin:2px 0;
+    margin-inline:0;
   }
   .brand-tagline{
     row-gap:4px;
