@@ -27,7 +27,7 @@
     sessionStorage.setItem('navEntryPlayed','yes');
     host.innerHTML=`
       <nav class="nav ${animate?'animate-entry':''}" aria-label="Primary">
-        <div class="wrapper">
+        <div class="wrapper nav-wrapper">
           <a href="index.html" class="brand" aria-label="Home">
             <img src="img/ui/logo-64.png" srcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" sizes="64px" alt="DS logo" class="brand-logo" decoding="async" loading="eager" width="64" height="64">
             <span class="brand-name">
@@ -40,18 +40,18 @@
             <span class="bar"></span><span class="bar"></span><span class="bar"></span>
           </button>
           <div id="primary-menu" class="nav-row" data-collapsible role="navigation">
-            <a href="index.html" class="btn-secondary nav-link">Home</a>
-            <a href="portfolio.html" class="btn-secondary nav-link">Portfolio</a>
-            <a href="contributions.html" class="btn-secondary nav-link">Contributions</a>
-            <a href="contact.html" class="btn-secondary nav-link">Contact</a>
-            <a href="resume.html" class="btn-secondary nav-link">Resume</a>
+            <a href="index.html" class="nav-link">Home</a>
+            <a href="portfolio.html" class="nav-link">Portfolio</a>
+            <a href="contributions.html" class="nav-link">Contributions</a>
+            <a href="resume.html" class="nav-link">Resume</a>
+            <a href="contact.html" class="nav-link nav-link-cta">Contact</a>
           </div>
         </div>
       </nav>`;
     const cur = location.pathname.split('/').pop() || 'index.html';
     $$('.nav-link').forEach(l=>{
       if(l.getAttribute('href')===cur){
-        l.classList.replace('btn-secondary','btn-primary');
+        l.classList.add('is-current');
         l.setAttribute('aria-current','page');
       }
     });

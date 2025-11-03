@@ -6,17 +6,18 @@
   .grid-container{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:clamp(20px,3vw,28px);
+    gap:clamp(24px,3vw,32px);
     width:100%;
     max-width:min(var(--container-max), 960px);
     margin:clamp(24px,4vw,36px) auto;
     justify-content:center;
   }
   .icon-info{
-    background:color-mix(in srgb,var(--surface) 90%, #000 10%);
-    border:1px solid color-mix(in srgb,var(--primary) 20%, transparent);
-    border-radius:18px;
-    padding:28px 26px;
+    position:relative;
+    background:color-mix(in srgb,var(--surface) 88%, #000 12%);
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    border-radius:20px;
+    padding:28px 28px 26px;
     text-align:left;
     color:var(--text-light);
     display:flex;
@@ -24,13 +25,25 @@
     gap:12px;
     align-items:flex-start;
     opacity:0;
-    transform:translateY(16px);
+    transform:translateY(18px);
     transition:opacity .45s cubic-bezier(.22,.61,.36,1),
                transform .45s cubic-bezier(.22,.61,.36,1),
-               box-shadow .3s ease,
+               box-shadow .35s ease,
                border-color .3s ease,
                background .3s ease;
-    box-shadow:0 14px 30px rgba(0,0,0,.22);
+    box-shadow:0 18px 38px rgba(0,0,0,.28);
+  }
+  .icon-info::before{
+    content:"";
+    position:absolute;
+    inset:18px 18px auto 18px;
+    height:3px;
+    border-radius:999px;
+    background:linear-gradient(90deg,
+      color-mix(in srgb,var(--primary) 78%, #ffffff 22%) 0%,
+      color-mix(in srgb,var(--primary) 58%, #0A1A1F 42%) 100%);
+    opacity:.75;
+    pointer-events:none;
   }
   .icon-info svg{
     width:32px;height:32px;
@@ -41,13 +54,17 @@
     margin:0;
     font-family:'Poppins';
     font-weight:600;
-    font-size:1.05rem;
+    font-size:1.06rem;
+    letter-spacing:.02em;
   }
-  .icon-info small{color:color-mix(in srgb,var(--text-muted) 85%, #ffffff 15%);line-height:1.6;}
+  .icon-info small{
+    color:color-mix(in srgb,var(--text-muted) 90%, #ffffff 10%);
+    line-height:1.6;
+  }
   .icon-info:hover{
-    transform:translateY(-4px);
-    box-shadow:0 18px 32px rgba(0,0,0,.26);
-    border-color:color-mix(in srgb,var(--primary) 32%, transparent);
+    transform:translateY(-6px);
+    box-shadow:0 22px 48px rgba(0,0,0,.3);
+    border-color:color-mix(in srgb,var(--primary) 30%, transparent);
     background:color-mix(in srgb,var(--surface) 82%, #000 18%);
   }
   @keyframes focusIn{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:none;}}

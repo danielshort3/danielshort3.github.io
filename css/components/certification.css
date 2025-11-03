@@ -4,27 +4,28 @@
    ─────────────────────────────────────────────────────────── */
 @layer components {
   .cert-band{
-    background:color-mix(in srgb,var(--surface) 90%, #000 10%);
-    border-block:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    background:linear-gradient(120deg,
+      color-mix(in srgb,var(--surface) 92%, #000 8%) 0%,
+      color-mix(in srgb,var(--surface) 86%, #000 14%) 100%);
+    border-block:1px solid color-mix(in srgb,var(--primary) 14%, transparent);
     overflow:hidden;
     position:relative;
   }
   .cert-band::before{
     content:"";
     position:absolute;
-    inset-block:0;
-    inset-inline:0;
+    inset:0;
     background:linear-gradient(90deg,
       rgba(13,17,23,.92) 0%,
-      rgba(13,17,23,0) 12%,
-      rgba(13,17,23,0) 88%,
-      rgba(13,17,23,.92) 100%);
+      rgba(13,17,23,0) 14%,
+      rgba(13,17,23,0) 86%,
+      rgba(13,17,23,.9) 100%);
     pointer-events:none;
     z-index:2;
   }
   .cert-track{
     position:relative;
-    height:58px;
+    height:60px;
     cursor:grab;
     user-select:none;
     touch-action:pan-y;
@@ -42,18 +43,19 @@
     display:inline-flex;
     align-items:center;
     gap:14px;
-    padding:10px 20px;
-    border-radius:18px;
-    background:color-mix(in srgb,var(--surface) 88%, #000 12%);
+    padding:11px 22px;
+    border-radius:999px;
+    background:color-mix(in srgb,var(--surface) 82%, #000 18%);
     font-family:'Poppins';
     font-weight:500;
     font-size:.95rem;
     color:color-mix(in srgb,var(--text-light) 92%, #ffffff 8%);
     white-space:nowrap;
-    box-shadow:0 10px 24px rgba(0,0,0,.22);
+    box-shadow:0 10px 24px rgba(0,0,0,.2);
+    border:1px solid color-mix(in srgb,var(--primary) 20%, transparent);
   }
   .cert img{
-    height:26px;
+    height:24px;
     width:auto;
     filter:grayscale(.1);
     opacity:.9;
