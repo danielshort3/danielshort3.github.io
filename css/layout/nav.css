@@ -24,6 +24,7 @@
     text-align:center;
     max-width:calc(var(--container-max) + 48px);
     margin-inline:auto;
+    padding-inline:clamp(16px, 5vw, 28px);
   }
   .nav-row{
     display:flex;
@@ -49,3 +50,6 @@
   }
   .brand .divider{color:var(--primary)}
 }
+  @media (max-width:1024px){
+    .nav .wrapper{max-width:100%;}
+  }
