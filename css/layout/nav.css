@@ -119,8 +119,7 @@
 
   .brand-name{
     display:flex;
-    align-items:center;
-    gap:clamp(10px,1.6vw,16px);
+    align-items:flex-start;
     font-family:'Poppins',sans-serif;
     color:var(--text-light);
     min-width:0;
@@ -140,6 +139,8 @@
     background:color-mix(in srgb,var(--primary) 86%, transparent);
     border-radius:999px;
     align-self:stretch;
+    margin-inline:clamp(8px,1vw,12px);
+    flex-shrink:0;
   }
   .brand-tagline{
     display:inline-flex;
