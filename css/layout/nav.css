@@ -15,19 +15,24 @@
   }
   .nav .wrapper{
     display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
     align-items:center;
-    justify-content:space-between;
-    gap:32px;
+    gap:18px 48px;
     padding:18px 24px;
+    text-align:center;
   }
   .nav-row{
     display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:18px;
+    gap:20px;
     flex-wrap:nowrap;
+    justify-content:center;
+    align-items:center;
   }
   .nav-link{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
     min-width:132px;
     text-align:center;
     white-space:nowrap;
