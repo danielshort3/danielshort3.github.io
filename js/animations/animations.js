@@ -140,7 +140,7 @@
     let down=false,moved=false; let sx=0,lx=0; let paused=false; let cancelClk=false;
     const originals=[...track.children];
     const tiles=[...originals];
-    const setPos=(el,x)=>{el.dataset.x=x;el.style.transform=`translateX(${x}px)`;};
+    const setPos=(el,x)=>{el.dataset.x=x;el.style.setProperty("--ticker-x", `${x}px`);};
     const fill=()=>{
       tiles.slice(originals.length).forEach(el=>el.remove());
       tiles.length=originals.length; stripW=0;
