@@ -462,15 +462,15 @@ body.menu-open::before{
 
 /* == MOBILE header breathing room & font-scaling ========= */
 @media(max-width:768px){
+  .nav{
+    --brand-logo-size: clamp(44px, 10vw, 56px);
+    --brand-title-size: clamp(18px, 5vw, 22px);
+    --brand-tagline-size: clamp(14px, 4.4vw, 18px);
+  }
   .nav .wrapper{
-    padding-inline:clamp(12px,4vw,24px);        /* shrink side gaps */
+    padding-inline:clamp(12px,4vw,24px);
     gap:clamp(12px,3vw,28px);
   }
-  .brand-logo{ height:56px; }                   /* slightly bigger logo */
-  .brand-name{
-    font-size:clamp(18px,5.5vw,22px);           /* slightly bigger title */
-  }
-
   .wrapper{margin-inline:5%}
 }
 
@@ -479,8 +479,11 @@ body.menu-open::before{
 /* reduce header height in mobile landscape orientation */
 @media (max-width:768px) and (orientation:landscape){
   :root{ --nav-height:48px; }
-  .brand-logo{ height:40px; }
-  .brand-name{ font-size:clamp(14px,4vw,18px); }
+  .nav{
+    --brand-logo-size:clamp(36px, 7vw, 44px);
+    --brand-title-size:clamp(16px,4vw,19px);
+    --brand-tagline-size:clamp(13px,3.4vw,16px);
+  }
   .nav .wrapper{ padding-block:12px; gap:clamp(8px,2vw,20px); }
 }
 
@@ -500,57 +503,34 @@ body::before{
 }
 body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
 
-/* ─── Brand title layout ───────────────────────────── */
-.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: .5rem;                       /* logo ↔ text */
-}
+/* ─── Brand title layout (global helpers) ──────────── */
+.brand{ gap:clamp(10px, 2vw, 16px); }
+.brand-name{ position:relative; }
 
-.brand-name {
-  display: inline-flex;
-  align-items: center;
-  font-weight: 600;
-  line-height: 1.1;
-}
-
-.brand-line.divider {               /* the “│” glyph */
-  padding: 0 .4rem;
-  opacity: .6;
-}
-
-/* Tweak tagline style for better hierarchy */
-.brand-line.tagline{
-  color: var(--text-light);
-  font-weight: 500;
-}
-
-/* ─── MOBILE: stack the two phrases, hide the bar ─── */
 @media (max-width: 768px) {
-  .brand-name {                     /* turn the trio vertical */
-    flex-direction: column;
-    align-items: flex-start;
-    row-gap: 4px;
-    text-wrap: balance;             /* friendlier wrapping on small screens */
+  .brand{
+    align-items:flex-start;
+    gap:clamp(8px,3vw,12px);
   }
-  .brand-line.divider {             /* ditch the bar */
-    display: none;
+  .brand-name{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:6px;
   }
-  .brand-line.name{                 /* make name a block so rule spans */
-    display:block;
-    position:relative;
-  }
-  .brand-line.name::after{          /* horizontal teal rule */
-    content:"";
-    display:block;height:2px;width:100%;
-    background:var(--primary);
+  .brand-divider{
+    width:100%;
+    height:2px;
+    min-height:0;
+    background:linear-gradient(90deg,
+      color-mix(in srgb,var(--primary) 18%, transparent) 0%,
+      color-mix(in srgb,var(--primary) 72%, transparent) 52%,
+      color-mix(in srgb,var(--primary) 30%, transparent) 100%);
     border-radius:2px;
-    margin: 4px 0 2px 0;
+    margin:2px 0;
   }
-  .brand-line.tagline{              /* soften + slightly bigger */
-    font-size: clamp(14px, 4.2vw, 17px);
+  .brand-tagline{
+    row-gap:4px;
   }
-  .brand{ gap: 8px; }
 }
 
 

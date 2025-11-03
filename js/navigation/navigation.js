@@ -31,9 +31,12 @@
           <a href="index.html" class="brand" aria-label="Home">
             <img src="img/ui/logo-64.png" srcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" sizes="64px" alt="DS logo" class="brand-logo" decoding="async" loading="eager" width="64" height="64">
             <span class="brand-name">
-              <span class="brand-line name">Daniel Short</span>
-              <span class="brand-line divider">│</span>
-              <span class="brand-line tagline">Data Science & Analytics</span>
+              <span class="brand-title">Daniel Short</span>
+              <span class="brand-divider" aria-hidden="true"></span>
+              <span class="brand-tagline">
+                <span class="brand-tagline-chunk">Data Science</span>
+                <span class="brand-tagline-chunk">&amp; Analytics</span>
+              </span>
             </span>
           </a>
           <button id="nav-toggle" class="burger" aria-label="Toggle navigation" aria-expanded="false" aria-controls="primary-menu">
