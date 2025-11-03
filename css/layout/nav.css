@@ -14,13 +14,18 @@
     background: var(--primary);
   }
   .nav .wrapper{
-    display: flex;
-    flex-wrap: wrap;                 /* allows wrapping */
-    justify-content: center;        /* center all items horizontally */
-    align-items: center;
-    gap: 18px 48px;                  /* row-gap column-gap */
-    padding: 18px 24px;
-    text-align: center;             /* optional: improves alignment on wrap */
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:32px;
+    padding:18px 24px;
+  }
+  .nav-row{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:18px;
+    flex-wrap:nowrap;
   }
   .nav-link{
     min-width:132px;
