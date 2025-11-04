@@ -193,8 +193,11 @@
     .hero-meta li{
       text-align:center;
     }
-    .chevron-hint{
+    body[data-page="home"] .chevron-hint{
       display:none;
+    }
+    body:not([data-page="home"]) .chevron-hint{
+      display:block;
     }
   }
 
