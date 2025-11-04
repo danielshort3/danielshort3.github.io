@@ -70,6 +70,14 @@
             }
         }
 
+        html[data-embedded="true"] body{
+            min-height:0;
+        }
+        html[data-embedded="true"] #demo-box{
+            height:auto !important;
+            min-height:0;
+        }
+
         header.card-header {
             display: grid;
             grid-template-columns: 1fr; /* single column (actions removed) */
@@ -455,7 +463,12 @@
                 font-size: .8rem;
             }
         }
-    </style>
+  </style>
+  <script>
+    if (window.self !== window.top) {
+      document.documentElement.setAttribute('data-embedded', 'true');
+    }
+  </script>
 </head>
 <body>
     <script>
