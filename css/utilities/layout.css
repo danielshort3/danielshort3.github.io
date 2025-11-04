@@ -278,6 +278,19 @@
       color-mix(in srgb,var(--primary) 70%, #071219 30%) 100%);
     box-shadow:0 22px 42px rgba(0,0,0,.36);
   }
+  .nav-item{
+    width:100%;
+    display:block;
+  }
+  .nav-item-portfolio .nav-link-has-menu{
+    gap:0;
+  }
+  .nav-item-portfolio .nav-link-caret{
+    display:none;
+  }
+  .nav-item-portfolio .nav-dropdown{
+    display:none !important;
+  }
 
   #filter-menu {
     display:flex;
