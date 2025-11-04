@@ -33,9 +33,10 @@
       { id: 'nonogram',         title: 'Nonogram Solver',            subtitle: '94% accuracy reinforcement learning' }
     ];
     const portfolioMenu = `
-      <div class="nav-dropdown-list">
+      <div class="nav-dropdown-header" aria-hidden="true">Top 5 Projects</div>
+      <div class="nav-dropdown-list" role="list">
         ${portfolioHighlights.map(
-          p => `<a href="portfolio.html?project=${p.id}" class="nav-dropdown-link">
+          p => `<a href="portfolio.html?project=${p.id}" class="nav-dropdown-link" role="listitem">
                   <span class="nav-dropdown-title">${p.title}</span>
                   <span class="nav-dropdown-subtitle">${p.subtitle}</span>
                 </a>`
