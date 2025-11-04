@@ -25,6 +25,18 @@
     if(!host) return;
     const animate = !sessionStorage.getItem('navEntryPlayed');
     sessionStorage.setItem('navEntryPlayed','yes');
+    const portfolioHighlights = [
+      { id: 'smartSentence', title: 'Smart Sentence Retriever', subtitle: 'NLP embeddings + Lambda API' },
+      { id: 'chatbotLora',   title: 'Chatbot (LoRA + RAG)',     subtitle: 'Fine-tuned assistant with RAG' },
+      { id: 'shapeClassifier', title: 'Shape Classifier Demo',  subtitle: 'PyTorch handwriting inference' },
+      { id: 'nonogram',      title: 'Nonogram RL Solver',       subtitle: 'Reinforcement learning search' }
+    ];
+    const portfolioMenu = portfolioHighlights.map(
+      p => `<a href="portfolio.html?project=${p.id}" class="nav-dropdown-link">
+              <span class="nav-dropdown-title">${p.title}</span>
+              <span class="nav-dropdown-subtitle">${p.subtitle}</span>
+            </a>`
+    ).join('');
     host.innerHTML=`
       <nav class="nav ${animate?'animate-entry':''}" aria-label="Primary">
         <div class="wrapper nav-wrapper">
@@ -44,7 +56,19 @@
           </button>
           <div id="primary-menu" class="nav-row" data-collapsible role="navigation">
             <a href="index.html" class="nav-link">Home</a>
-            <a href="portfolio.html" class="nav-link">Portfolio</a>
+            <div class="nav-item nav-item-portfolio">
+              <a href="portfolio.html" class="nav-link nav-link-has-menu" aria-haspopup="true">
+                Portfolio
+                <span class="nav-link-caret" aria-hidden="true"></span>
+              </a>
+              <div class="nav-dropdown" aria-label="Highlighted projects">
+                ${portfolioMenu}
+                <a href="portfolio.html" class="nav-dropdown-link nav-dropdown-all">
+                  <span class="nav-dropdown-title">View all projects</span>
+                  <span class="nav-dropdown-subtitle">Browse the complete portfolio</span>
+                </a>
+              </div>
+            </div>
             <a href="contributions.html" class="nav-link">Contributions</a>
             <a href="resume.html" class="nav-link">Resume</a>
             <a href="contact.html" class="nav-link nav-link-cta">Contact</a>
