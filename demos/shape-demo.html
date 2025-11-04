@@ -459,10 +459,38 @@
 </head>
 <body>
     <script>
-        /* notify parent for iframed embeds – only once to keep height static */
-        function notifyResize() { try { parent.postMessage({ type: 'shape-demo-resize' }, '*'); } catch (e) { } }
-        window.addEventListener('load', notifyResize);
-        try { document.fonts?.ready?.then(notifyResize); } catch (e) { }
+        (function () {
+            var CHANNEL = 'shape-demo-resize';
+            function calcHeight() {
+                var doc = document.documentElement;
+                var body = document.body || doc;
+                return Math.ceil(Math.max(
+                    body.scrollHeight,
+                    body.offsetHeight,
+                    doc.clientHeight,
+                    doc.scrollHeight,
+                    doc.offsetHeight
+                ));
+            }
+            function postHeight() {
+                try { parent.postMessage({ type: CHANNEL, height: calcHeight() }, '*'); } catch (e) { }
+            }
+            window.addEventListener('load', postHeight);
+            try { document.fonts?.ready?.then(postHeight); } catch (e) { }
+            if ('ResizeObserver' in window) {
+                var ro = new ResizeObserver(function () { postHeight(); });
+                ro.observe(document.documentElement);
+            } else {
+                var prev = 0;
+                setInterval(function () {
+                    var h = calcHeight();
+                    if (Math.abs(h - prev) > 4) {
+                        prev = h;
+                        postHeight();
+                    }
+                }, 750);
+            }
+        })();
     </script>
 
     <div id="demo-box" role="application" aria-label="Shape classifier demo">

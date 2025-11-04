@@ -131,29 +131,30 @@
   #smartSentence-modal .modal-embed { overflow-x: hidden; }
 
   /* embedded demo modals */
-  #shapeClassifier-modal iframe,
-  #chatbotLora-modal iframe {
-    height: 80vh; /* final effective height */
-    margin-top: 0; width: 100%; border: 1px solid var(--surface-accent);
-  }
-  /* sentence demo uses content-driven height via JS */
-  #smartSentence-modal .modal-embed iframe { height: auto; margin-top: 0; width: 100%; border: 1px solid var(--surface-accent); }
-  #shapeClassifier-modal .modal-embed,
-  #chatbotLora-modal .modal-embed,
-  #smartSentence-modal .modal-embed { flex:0 0 50%; max-width:50%; align-self:flex-start; overflow:visible; }
-  @media (max-width: 768px) {
-    #shapeClassifier-modal .modal-embed,
-    #chatbotLora-modal .modal-embed,
-    #smartSentence-modal .modal-embed { flex-basis:100%; max-width:100%; }
-  }
-
   /* ensure Tableau embeds always appear after the text */
   .modal-body.stacked .modal-embed { order: 99; }
-  .modal-embed { overflow-x:auto; width:100%; min-width: 0; }
+  .modal-embed {
+    width:100%;
+    min-width:0;
+    flex:1 1 420px;
+    align-self:flex-start;
+    margin:clamp(1rem,2vh,1.6rem) auto;
+    padding:clamp(12px,3vw,18px);
+    border-radius:22px;
+    border:1px solid color-mix(in srgb,var(--primary) 24%, transparent);
+    background:color-mix(in srgb,var(--surface) 92%, #03060a 8%);
+    box-shadow:0 28px 48px rgba(0,0,0,.35);
+    overflow:hidden;
+  }
   .modal-embed iframe {
-    width:100%; height:70vh; border:none; display:block; margin-top:1rem;
-    /* include borders in width to avoid subtle 1-2px overflow */
-    box-sizing: border-box;
+    width:100%;
+    border:none;
+    display:block;
+    border-radius:16px;
+    background:var(--surface);
+    min-height:320px;
+    box-shadow:0 18px 36px rgba(0,0,0,.32);
+    box-sizing:border-box;
   }
   .tableau-scale-inner { transform-origin: top left; }
 
