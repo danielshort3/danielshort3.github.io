@@ -146,7 +146,7 @@
       clearTimeout(closeTimer);
       closeTimer = setTimeout(() => {
         item.classList.remove('dropdown-open');
-      }, 160);
+      }, 320);
     };
     item.addEventListener('focusin', open);
     item.addEventListener('focusout', (event) => {
