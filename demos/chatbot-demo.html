@@ -41,6 +41,11 @@
         html, body {
             height: 100%;
         }
+        html[data-embedded="true"],
+        html[data-embedded="true"] body{
+            height:auto !important;
+            min-height:0 !important;
+        }
 
         body {
             margin: 0;
@@ -73,9 +78,6 @@
             }
         }
 
-        html[data-embedded="true"] body{
-            min-height:0;
-        }
         html[data-embedded="true"] #demo-box{
             height:auto !important;
             min-height:0;
