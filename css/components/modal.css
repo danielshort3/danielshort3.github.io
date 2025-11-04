@@ -165,11 +165,20 @@
     .modal-header-details { flex-direction:column; align-items:center; }
     .modal-half { flex:1 1 auto; width:100%; }
     .modal-divider { position: static; width: 80%; height: 1px; margin: 12px 0; transform: none; }
-    .modal-body { padding:8px !important; }
+    .modal-body {
+      padding:8px !important;
+      flex-direction:column;
+      align-items:stretch;
+    }
+    .modal-text,
     .modal-embed{
-      padding:12px;
+      flex:0 0 auto;
+      width:100%;
+    }
+    .modal-embed{
+      padding:10px;
       border-radius:16px;
-      margin:0.6rem auto;
+      margin:0.5rem auto;
     }
     .modal-embed iframe{
       border-radius:12px;
