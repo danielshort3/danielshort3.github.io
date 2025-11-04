@@ -123,6 +123,13 @@
   .nav-dropdown{
     display:none;
   }
+  .nav-dropdown-header{
+    font-size:.75rem;
+    text-transform:uppercase;
+    letter-spacing:.12em;
+    color:color-mix(in srgb,var(--text-light) 68%, #ffffff 32%);
+    margin-bottom:12px;
+  }
   .nav-dropdown-list{
     display:flex;
     flex-direction:column;
