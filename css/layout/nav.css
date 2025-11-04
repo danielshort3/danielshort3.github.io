@@ -123,6 +123,18 @@
   .nav-dropdown{
     display:none;
   }
+  .nav-dropdown-list{
+    display:flex;
+    flex-direction:column;
+  }
+  .nav-dropdown-footer{
+    margin-top:16px;
+    padding-top:12px;
+    border-top:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+  }
+  .nav-dropdown-footer .nav-dropdown-link{
+    margin-top:0;
+  }
   .nav-dropdown-link{
     display:flex;
     flex-direction:column;
@@ -135,7 +147,7 @@
     background:transparent;
     transition:border-color .2s ease, background .2s ease, color .2s ease;
   }
-  .nav-dropdown-link + .nav-dropdown-link{margin-top:6px;}
+  .nav-dropdown-list .nav-dropdown-link + .nav-dropdown-link{margin-top:6px;}
   .nav-dropdown-title{
     font-weight:600;
     letter-spacing:.01em;
@@ -146,7 +158,12 @@
   }
   .nav-dropdown-link.nav-dropdown-all{
     font-weight:600;
-    border-color:color-mix(in srgb,var(--primary) 20%, transparent);
+    border-color:color-mix(in srgb,var(--primary) 28%, transparent);
+    background:linear-gradient(135deg,
+      color-mix(in srgb,var(--primary) 16%, rgba(6,12,20,.6) 84%) 0%,
+      color-mix(in srgb,var(--primary) 32%, rgba(8,14,24,.8) 68%) 100%);
+    color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
+    text-align:center;
   }
   .nav-dropdown-link:hover,
   .nav-dropdown-link:focus-visible{
@@ -156,7 +173,8 @@
     outline:none;
   }
   .nav-item-portfolio:hover .nav-link-caret,
-  .nav-item-portfolio:focus-within .nav-link-caret{
+  .nav-item-portfolio:focus-within .nav-link-caret,
+  .nav-item-portfolio.dropdown-open .nav-link-caret{
     transform:translateY(2px);
     border-top-color:color-mix(in srgb,var(--primary) 80%, #ffffff 20%);
   }
@@ -164,7 +182,7 @@
     .nav-dropdown{
       display:block;
       position:absolute;
-      top:calc(100% + 14px);
+      top:calc(100% + 10px);
       left:50%;
       width:max(280px, 22vw);
       max-width:360px;
@@ -186,7 +204,8 @@
         transform .25s ease;
     }
     .nav-item-portfolio:hover .nav-dropdown,
-    .nav-item-portfolio:focus-within .nav-dropdown{
+    .nav-item-portfolio:focus-within .nav-dropdown,
+    .nav-item-portfolio.dropdown-open .nav-dropdown{
       opacity:1;
       transform:translate3d(-50%, 0, 0) scale(1);
       pointer-events:auto;

@@ -26,17 +26,28 @@
     const animate = !sessionStorage.getItem('navEntryPlayed');
     sessionStorage.setItem('navEntryPlayed','yes');
     const portfolioHighlights = [
-      { id: 'smartSentence', title: 'Smart Sentence Retriever', subtitle: 'NLP embeddings + Lambda API' },
-      { id: 'chatbotLora',   title: 'Chatbot (LoRA + RAG)',     subtitle: 'Fine-tuned assistant with RAG' },
-      { id: 'shapeClassifier', title: 'Shape Classifier Demo',  subtitle: 'PyTorch handwriting inference' },
-      { id: 'nonogram',      title: 'Nonogram RL Solver',       subtitle: 'Reinforcement learning search' }
+      { id: 'shapeClassifier',  title: 'Shape Classifier Demo',      subtitle: 'Handwritten shape recognition' },
+      { id: 'chatbotLora',      title: 'Chatbot (LoRA + RAG)',       subtitle: 'Fine-tuned assistant with RAG' },
+      { id: 'sheetMusicUpscale',title: 'Sheet Music Restoration',    subtitle: 'UNet watermark removal + VDSR' },
+      { id: 'digitGenerator',   title: 'Synthetic Digit Generator',  subtitle: 'Variational autoencoder (VAE)' },
+      { id: 'nonogram',         title: 'Nonogram Solver',            subtitle: '94% accuracy reinforcement learning' }
     ];
-    const portfolioMenu = portfolioHighlights.map(
-      p => `<a href="portfolio.html?project=${p.id}" class="nav-dropdown-link">
-              <span class="nav-dropdown-title">${p.title}</span>
-              <span class="nav-dropdown-subtitle">${p.subtitle}</span>
-            </a>`
-    ).join('');
+    const portfolioMenu = `
+      <div class="nav-dropdown-list">
+        ${portfolioHighlights.map(
+          p => `<a href="portfolio.html?project=${p.id}" class="nav-dropdown-link">
+                  <span class="nav-dropdown-title">${p.title}</span>
+                  <span class="nav-dropdown-subtitle">${p.subtitle}</span>
+                </a>`
+        ).join('')}
+      </div>
+      <div class="nav-dropdown-footer">
+        <a href="portfolio.html" class="nav-dropdown-link nav-dropdown-all" role="button">
+          <span class="nav-dropdown-title">View all projects</span>
+          <span class="nav-dropdown-subtitle">Browse the complete portfolio</span>
+        </a>
+      </div>
+    `;
     host.innerHTML=`
       <nav class="nav ${animate?'animate-entry':''}" aria-label="Primary">
         <div class="wrapper nav-wrapper">
@@ -63,10 +74,6 @@
               </a>
               <div class="nav-dropdown" aria-label="Highlighted projects">
                 ${portfolioMenu}
-                <a href="portfolio.html" class="nav-dropdown-link nav-dropdown-all">
-                  <span class="nav-dropdown-title">View all projects</span>
-                  <span class="nav-dropdown-subtitle">Browse the complete portfolio</span>
-                </a>
               </div>
             </div>
             <a href="contributions.html" class="nav-link">Contributions</a>
@@ -84,6 +91,7 @@
     });
     const burger = host.querySelector('#nav-toggle');
     const menu   = host.querySelector('#primary-menu');
+    setupPortfolioDropdown(host.querySelector('.nav-item-portfolio'));
 
     // Simple focus trap within the mobile drawer
     let prevFocus = null;
@@ -122,6 +130,46 @@
           if (prevFocus) { prevFocus.focus(); prevFocus = null; }
         }
       });
+    }
+  }
+  function setupPortfolioDropdown(item){
+    if(!item) return;
+    const dropdown = item.querySelector('.nav-dropdown');
+    if(!dropdown) return;
+    let closeTimer = null;
+    const open = () => {
+      clearTimeout(closeTimer);
+      item.classList.add('dropdown-open');
+    };
+    const scheduleClose = () => {
+      clearTimeout(closeTimer);
+      closeTimer = setTimeout(() => {
+        item.classList.remove('dropdown-open');
+      }, 160);
+    };
+    item.addEventListener('focusin', open);
+    item.addEventListener('focusout', (event) => {
+      const next = event.relatedTarget;
+      if(!next || !item.contains(next)){
+        scheduleClose();
+      }
+    });
+    const prefersHover = window.matchMedia('(hover: hover) and (pointer: fine)');
+    if(prefersHover.matches){
+      item.addEventListener('mouseenter', open);
+      item.addEventListener('mouseleave', scheduleClose);
+      dropdown.addEventListener('mouseenter', open);
+      dropdown.addEventListener('mouseleave', scheduleClose);
+    }
+    const onMediaChange = (event) => {
+      if(!event.matches){
+        item.classList.remove('dropdown-open');
+      }
+    };
+    if(typeof prefersHover.addEventListener === 'function'){
+      prefersHover.addEventListener('change', onMediaChange);
+    } else if(typeof prefersHover.addListener === 'function'){
+      prefersHover.addListener(onMediaChange);
     }
   }
   function injectFooter(){
