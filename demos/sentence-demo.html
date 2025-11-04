@@ -81,12 +81,39 @@
     const DEFAULT_URL = "https://7aa3jt3tzkinheprc5ds52bihq0itutx.lambda-url.us-east-2.on.aws/"; // smart-sentence-finder
 
     // Notify parent (if iframed) to resize height to fit content
-    function notifyResize() {
-      try {
-        const h = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
-        parent.postMessage({ type: 'sentence-demo-resize', height: h }, '*');
-      } catch (e) { /* not embedded */ }
-    }
+    const notifyResize = (() => {
+      const CHANNEL = 'sentence-demo-resize';
+      const calcHeight = () => {
+        const doc = document.documentElement;
+        const body = document.body || doc;
+        return Math.ceil(Math.max(
+          body.scrollHeight,
+          body.offsetHeight,
+          doc.clientHeight,
+          doc.scrollHeight,
+          doc.offsetHeight
+        ));
+      };
+      const postHeight = () => {
+        try { parent.postMessage({ type: CHANNEL, height: calcHeight() }, '*'); } catch (e) { /* not embedded */ }
+      };
+      window.addEventListener('load', postHeight);
+      try { document.fonts?.ready?.then(postHeight); } catch (e) {}
+      if ('ResizeObserver' in window) {
+        const ro = new ResizeObserver(() => postHeight());
+        ro.observe(document.documentElement);
+      } else {
+        let prev = 0;
+        setInterval(() => {
+          const h = calcHeight();
+          if (Math.abs(h - prev) > 4) {
+            prev = h;
+            postHeight();
+          }
+        }, 750);
+      }
+      return postHeight;
+    })();
 
     async function health() {
       const url = getEndpoint();
