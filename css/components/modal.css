@@ -168,6 +168,8 @@
     .modal-body {
       padding:8px !important;
       flex-direction:column;
+      flex-wrap:nowrap;
+      gap:16px;
       align-items:stretch;
     }
     .modal-text,
@@ -179,6 +181,7 @@
       padding:10px;
       border-radius:16px;
       margin:0.5rem auto;
+      flex:0 0 auto;
     }
     .modal-embed iframe{
       border-radius:12px;
