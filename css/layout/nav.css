@@ -189,30 +189,44 @@
     .nav-dropdown{
       display:block;
       position:absolute;
-      top:calc(100% - 2px);
+      top:calc(100% + 2px);
       left:50%;
       width:min(340px, calc(100vw - 48px));
-      padding:20px;
-      border-radius:24px;
-      background:linear-gradient(145deg,
+      padding:18px;
+      border-radius:22px;
+      background:linear-gradient(160deg,
         color-mix(in srgb,var(--surface) 98%, rgba(6,10,18,.92) 2%) 0%,
-        color-mix(in srgb,var(--surface) 86%, rgba(4,7,15,.94) 14%) 55%,
-        color-mix(in srgb,var(--surface) 76%, rgba(0,0,0,.86) 24%) 100%);
-      border:1px solid color-mix(in srgb,var(--primary) 26%, rgba(255,255,255,.03));
+        color-mix(in srgb,var(--surface) 86%, rgba(2,4,8,.94) 14%) 62%,
+        color-mix(in srgb,var(--surface) 78%, rgba(0,0,0,.88) 22%) 100%);
+      border:1px solid color-mix(in srgb,var(--primary) 24%, rgba(255,255,255,.04));
       box-shadow:
-        0 10px 18px rgba(4,7,14,.28),
-        0 28px 60px rgba(2,4,8,.55);
-      transform:translate3d(-50%, -8px, 0) scale(.98);
+        0 12px 30px rgba(5,9,16,.35),
+        0 24px 60px rgba(2,4,8,.55);
+      transform:translate3d(-50%, -12px, 0) scale(.96);
       transform-origin:top center;
       opacity:0;
       pointer-events:none;
-      backdrop-filter:blur(24px);
+      backdrop-filter:blur(22px);
       z-index:1100;
-      clip-path:inset(0 0 20% 0 round 24px);
       transition:
         opacity .28s ease,
-        transform .28s ease,
-        clip-path .32s ease-out;
+        transform .28s ease;
+    }
+    .nav-dropdown::before{
+      content:"";
+      position:absolute;
+      top:-12px;
+      left:calc(50% - 12px);
+      width:24px;
+      height:24px;
+      background:inherit;
+      border-left:1px solid color-mix(in srgb,var(--primary) 24%, rgba(255,255,255,.04));
+      border-top:1px solid color-mix(in srgb,var(--primary) 24%, rgba(255,255,255,.04));
+      transform:rotate(45deg);
+      border-radius:6px 0 0 0;
+      z-index:-1;
+      box-shadow:-6px -6px 12px rgba(0,0,0,.12);
+      pointer-events:none;
     }
     .nav-item-portfolio:hover .nav-dropdown,
     .nav-item-portfolio:focus-within .nav-dropdown,
@@ -220,7 +234,6 @@
       opacity:1;
       transform:translate3d(-50%, 0, 0) scale(1);
       pointer-events:auto;
-      clip-path:inset(0 0 0 0 round 24px);
     }
   }
   .brand{
