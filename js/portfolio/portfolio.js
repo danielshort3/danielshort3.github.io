@@ -294,6 +294,7 @@ function initSeeMore(){
   const mobile   = window.matchMedia("(max-width: 768px)");
   const gapPad   = gap ? parseFloat(getComputedStyle(gap).paddingTop) || 32 : 0;
   const carousel = document.getElementById("portfolio-carousel-section");
+  const params   = new URLSearchParams(window.location.search);
   if(!btn || !filters || !grid) return;
 
   const selectAll = () => {
@@ -444,6 +445,17 @@ function initSeeMore(){
       }, 450);
     }
   });
+
+  const desiredView = params.get("view");
+  if (desiredView === "all" && btn.dataset.expanded !== "true") {
+    btn.click();
+    params.delete("view");
+    const nextSearch = params.toString();
+    const newUrl = `${location.pathname}${nextSearch ? `?${nextSearch}` : ""}${location.hash}`;
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState(null, "", newUrl);
+    }
+  }
 }
 
 /* ────────────────────────────────────────────────────────────

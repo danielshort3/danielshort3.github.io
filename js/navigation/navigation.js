@@ -42,7 +42,7 @@
         ).join('')}
       </div>
       <div class="nav-dropdown-footer">
-        <a href="portfolio.html" class="nav-dropdown-link nav-dropdown-all" role="button">
+        <a href="portfolio.html?view=all#filters" class="nav-dropdown-link nav-dropdown-all" role="button">
           <span class="nav-dropdown-title">View all projects</span>
           <span class="nav-dropdown-subtitle">Browse the complete portfolio</span>
         </a>
