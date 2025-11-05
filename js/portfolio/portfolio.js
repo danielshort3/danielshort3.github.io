@@ -560,8 +560,16 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
   });
 
   /* ➍ Filter behaviour (fade-out → update → fade-in) --------------- */
+  const GRID_FADE_MS   = reduceMotion ? 0 : 350; // match #projects opacity transition
+  const GRID_RESIZE_MS = reduceMotion ? 0 : 450; // match #projects height transition
+  let fadeTimer;
+  let revealTimer;
+
   menu.addEventListener("click", e => {
     if (!e.target.dataset.filter) return;
+
+    clearTimeout(fadeTimer);
+    clearTimeout(revealTimer);
 
     /* button UI */
     [...menu.children].forEach(b => {
@@ -571,29 +579,30 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
     e.target.classList.replace("btn-secondary", "btn-primary");
     e.target.setAttribute("aria-pressed", "true");
 
-    const tag   = e.target.dataset.filter;
-    const start = grid.offsetHeight;
-    grid.style.height = `${start}px`;
-    grid.classList.add("grid-fade");
+    const tag = e.target.dataset.filter;
+    const startHeight = grid.offsetHeight;
+    grid.style.height = `${startHeight}px`;
+    if (!reduceMotion) grid.classList.add("grid-fade");
 
-    setTimeout(() => {
-      [...grid.children].forEach(card => {
-        card.classList.toggle("hide", tag !== "all" && !card.dataset.tags.includes(tag));
+    const applyFilter = () => {
+      const cards = [...grid.children];
+      cards.forEach(card => {
+        const shouldShow = tag === "all" || card.dataset.tags.includes(tag);
+        card.classList.toggle("hide", !shouldShow);
       });
 
-      const visible = [...grid.children].filter(c => !c.classList.contains("hide"));
+      const visible = cards.filter(c => !c.classList.contains("hide"));
       grid.style.height = `${grid.scrollHeight}px`;
 
-      visible.forEach((card, i) => {
-        card.classList.remove("ripple-in");
-        void card.offsetWidth;           // restart animation
-        card.style.animationDelay = `${i * 80}ms`;
-        card.classList.add("ripple-in");
-      });
+      const reveal = () => {
+        visible.forEach((card, i) => {
+          card.classList.remove("ripple-in");
+          void card.offsetWidth; // restart animation
+          card.style.animationDelay = `${i * 80}ms`;
+          card.classList.add("ripple-in");
+        });
 
-      grid.classList.remove("grid-fade");
-
-      setTimeout(() => {
+        grid.classList.remove("grid-fade");
         grid.style.height = "";
 
         /* ─── ensure first visible card is flush on mobile ─── */
@@ -611,14 +620,26 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
             window.scrollTo({ top: y, behavior: "smooth" });
           }
         }
-      }, 450); // height transition duration
-    }, 350);   // grid fade duration
-    // Announce filter result count for screen readers
-    try {
-      const visibleCount = [...grid.children].filter(c => !c.classList.contains('hide')).length;
-      const filt = e.target.dataset.filter;
-      srStatus().textContent = `Showing ${visibleCount} projects. Filter: ${filt}`;
-    } catch {}
+      };
+
+      if (GRID_RESIZE_MS) {
+        revealTimer = setTimeout(reveal, GRID_RESIZE_MS);
+      } else {
+        reveal();
+      }
+
+      // Announce filter result count for screen readers
+      try {
+        const visibleCount = visible.length;
+        srStatus().textContent = `Showing ${visibleCount} projects. Filter: ${tag}`;
+      } catch {}
+    };
+
+    if (GRID_FADE_MS) {
+      fadeTimer = setTimeout(applyFilter, GRID_FADE_MS);
+    } else {
+      applyFilter();
+    }
   });
 
   /* ➎ Open modal based on URL (hash, clean path, or query) --------- */
