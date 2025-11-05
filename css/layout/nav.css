@@ -7,7 +7,6 @@
     --brand-logo-size: clamp(48px, 4.6vw, 68px);
     --brand-title-size: clamp(18px, 2vw, 24px);
     --brand-tagline-size: clamp(13px, 1.6vw, 16px);
-    --nav-link-width: clamp(110px, 8vw, 150px);
     position:fixed;
     inset:0;
     width:100%;
@@ -52,12 +51,7 @@
     display:inline-flex;
     align-items:center;
     justify-content:center;
-    width:var(--nav-link-width);
-    min-width:var(--nav-link-width);
-    flex:0 0 var(--nav-link-width);
-    text-align:center;
     padding:10px 0;
-    box-sizing:border-box;
     font-weight:500;
     letter-spacing:.02em;
     color:color-mix(in srgb,var(--text-light) 78%, #ffffff 22%);
@@ -113,10 +107,6 @@
     position:relative;
     display:inline-flex;
     align-items:center;
-    width:var(--nav-link-width);
-    min-width:var(--nav-link-width);
-    flex:0 0 var(--nav-link-width);
-    justify-content:center;
   }
   .nav-link-has-menu{
     gap:6px;

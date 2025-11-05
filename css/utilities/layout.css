@@ -238,8 +238,6 @@
   /* ---------- links ---------- */
   .nav-row .nav-link{
     width:100%;
-    min-width:0;
-    flex:0 0 auto;
     justify-content:flex-start;
     gap:10px;
     padding:14px 18px;
@@ -282,8 +280,6 @@
   }
   .nav-item{
     width:100%;
-    min-width:0;
-    flex:0 0 auto;
     display:block;
   }
   .nav-item-portfolio .nav-link-has-menu{
