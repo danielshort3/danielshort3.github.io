@@ -3,7 +3,7 @@
 @layer components {
   .hero{
     min-height:calc(var(--vh,100svh) - var(--nav-height,72px));
-    margin:0;
+    margin:0 0 clamp(1.5rem,4vh,3rem);
     padding:clamp(4.2rem,8vh,6.4rem) 0 clamp(4rem,8vh,5.4rem);
     display:flex;
     align-items:center;
@@ -133,22 +133,27 @@
     box-shadow:0 14px 32px rgba(0,0,0,.26);
     opacity:0;
     animation:heroFade .9s forwards;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
   }
   .hero-meta li:nth-child(1){animation-delay:.95s;}
   .hero-meta li:nth-child(2){animation-delay:1.05s;}
   .hero-meta li:nth-child(3){animation-delay:1.15s;}
 
   .hero-meta-value{
-    display:block;
+    display:flex;
+    align-items:flex-end;
     font-family:'Poppins',sans-serif;
     font-size:clamp(1.35rem,2.6vw,1.6rem);
     font-weight:600;
     color:color-mix(in srgb,var(--text-light) 95%, #fff 5%);
+    min-height:3rem;
   }
 
   .hero-meta-label{
     display:block;
-    margin-top:6px;
+    margin-top:0;
     font-size:.86rem;
     color:color-mix(in srgb,var(--text-muted) 92%, #fff 8%);
     line-height:1.5;
