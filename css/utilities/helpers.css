@@ -19,7 +19,7 @@
              opacity .35s ease;
   will-change:height,padding,opacity
 }
-#filters.grid-fade{opacity:0}
+#filters.grid-fade{opacity:0 !important}
 
 /* gap between carousel and filters */
 #carousel-gap{
@@ -29,7 +29,7 @@
              opacity .35s ease;
   will-change:padding,opacity
 }
-#carousel-gap.grid-fade{opacity:0}
+#carousel-gap.grid-fade{opacity:0 !important}
 .contact-big{
   display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
   gap:28px;padding:32px
