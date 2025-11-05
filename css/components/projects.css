@@ -47,6 +47,7 @@
     will-change:height,padding,opacity
   }
   #projects.grid-fade{opacity:0 !important}
+  #projects.grid-hidden{visibility:hidden}
   .project-metric{
     position:absolute;top:18px;left:18px;
     background:color-mix(in srgb,var(--primary) 15%,transparent);color:var(--primary);

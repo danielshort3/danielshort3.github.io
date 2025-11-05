@@ -562,6 +562,7 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
   /* ➍ Filter behaviour (fade-out → update → fade-in) --------------- */
   const GRID_FADE_MS   = reduceMotion ? 0 : 350; // match #projects opacity transition
   const GRID_RESIZE_MS = reduceMotion ? 0 : 450; // match #projects height transition
+  const GRID_HIDDEN_CLASS = "grid-hidden";
   let fadeTimer;
   let revealTimer;
 
@@ -582,9 +583,11 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
     const tag = e.target.dataset.filter;
     const startHeight = grid.offsetHeight;
     grid.style.height = `${startHeight}px`;
+    grid.classList.remove(GRID_HIDDEN_CLASS);
     if (!reduceMotion) grid.classList.add("grid-fade");
 
     const applyFilter = () => {
+      if (!reduceMotion) grid.classList.add(GRID_HIDDEN_CLASS);
       const cards = [...grid.children];
       cards.forEach(card => {
         const shouldShow = tag === "all" || card.dataset.tags.includes(tag);
@@ -602,6 +605,7 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
           card.classList.add("ripple-in");
         });
 
+        grid.classList.remove(GRID_HIDDEN_CLASS);
         grid.classList.remove("grid-fade");
         grid.style.height = "";
 
