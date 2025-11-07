@@ -55,7 +55,7 @@ function copyStatic(){
   });
 
   // Copy asset and content directories used by the site
-  const dirs = ['img', 'js', 'css', 'documents', 'dist', 'pages', 'demos', 'projects'];
+  const dirs = ['img', 'js', 'css', 'documents', 'dist', 'pages', 'demos'];
   dirs.forEach(d => copyDir(path.join(root, d), path.join(outDir, d)));
 }
 

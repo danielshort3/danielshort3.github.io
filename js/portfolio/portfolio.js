@@ -34,25 +34,6 @@ if (!hasModalHelpers) {
 }
 const openModal = hasModalHelpers ? window.openModal.bind(window) : () => {};
 
-function getProjectMetric(project) {
-  if (!project) return '';
-  if (project.metric || project.metricHeadline) {
-    return (project.metricHeadline || project.metric || '').trim();
-  }
-  const pool = Array.isArray(project.results) ? project.results.filter(Boolean) : [];
-  const raw = pool[0] || '';
-  if (!raw) return '';
-  const cleaned = raw.replace(/^[-•\s]+/, '').trim();
-  if (!cleaned) return '';
-  const parts = cleaned.split(/\s[–—-]\s/);
-  let metric = parts[0]?.trim() || cleaned;
-  if (!metric && parts.length > 1) metric = parts[1].trim();
-  if (metric.length > 84) {
-    metric = `${metric.slice(0, 81)}…`;
-  }
-  return metric;
-}
-
 /* ────────────────────────────────────────────────────────────
    Portfolio Carousel (top of page) – no wrap-around version
    ------------------------------------------------------------------ */
@@ -121,7 +102,6 @@ function buildPortfolioCarousel() {
 
   projects.forEach((p, i) => {
     /* slide */
-    const metric = getProjectMetric(p);
     const card = document.createElement("button");
     card.type = "button";
     card.className = "project-card carousel-card";
@@ -154,7 +134,6 @@ function buildPortfolioCarousel() {
         ${img}`;
     })();
     card.innerHTML = `
-      ${metric ? `<div class="project-metric">${metric}</div>` : ''}
       <div class="overlay"></div>
       <div class="project-text">
         <div class="project-title">${p.title}</div>
@@ -524,9 +503,7 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
   window.PROJECTS.forEach((p, i) => {
     /* card */
     const mediaMarkup = projectMedia(p);
-    const metric = getProjectMetric(p);
     const card = el("button", "project-card", `
-      ${metric ? `<div class="project-metric">${metric}</div>` : ''}
       <div class="overlay"></div>
       <div class="project-text">
         <div class="project-title">${p.title}</div>
@@ -548,8 +525,6 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
     modals.appendChild(modal);
     activateGifVideo(modal);
   });
-
-  buildEvidenceLocker();
 
   /* ➋ Animate cards right away (no IntersectionObserver) ----------- */
   [...grid.children].forEach((c, i) => {
@@ -718,91 +693,6 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
   openFromURL();
   window.addEventListener('hashchange', openFromURL);
   window.addEventListener('popstate', openFromURL);
-}
-
-function buildEvidenceLocker(){
-  const host = document.getElementById('evidence-groups');
-  if (!host || !Array.isArray(window.PROJECTS)) return;
-
-  const groups = [
-    {
-      key: 'live',
-      tag: 'Live',
-      title: 'Live demos & apps',
-      description: 'Serverless prototypes, UI demos, and interactive sandboxes.',
-      match: ctx => /demo|app|lambda|sentence|chatbot|shape/.test(ctx.label) || /demo|lambda-url/.test(ctx.url)
-    },
-    {
-      key: 'code',
-      tag: 'Code',
-      title: 'Code & automation',
-      description: 'GitHub repos and infrastructure ready for reuse.',
-      match: ctx => ctx.url.includes('github.com')
-    },
-    {
-      key: 'reports',
-      tag: 'Reports',
-      title: 'Reports & decks',
-      description: 'Executive-ready PDFs and supporting documentation.',
-      match: ctx => ctx.url.endsWith('.pdf') || /report|deck|slides/.test(ctx.label)
-    },
-    {
-      key: 'notebooks',
-      tag: 'Notebooks',
-      title: 'Notebooks & experiments',
-      description: 'Jupyter notebooks and data explorations.',
-      match: ctx => ctx.url.endsWith('.ipynb') || /notebook|dataset/.test(ctx.label)
-    }
-  ];
-
-  const collections = groups.map(def => ({ ...def, items: [] }));
-
-  window.PROJECTS.forEach(project => {
-    (project.resources || []).forEach(resource => {
-      const ctx = {
-        label: (resource.label || '').toLowerCase(),
-        url: (resource.url || '').toLowerCase(),
-        project
-      };
-      const group = collections.find(def => def.match(ctx));
-      if (!group) return;
-      group.items.push({
-        label: resource.label || 'View resource',
-        url: resource.url,
-        projectId: project.id,
-        projectTitle: project.title
-      });
-    });
-  });
-
-  host.innerHTML = '';
-  host.setAttribute('role', 'list');
-
-  collections.forEach(group => {
-    if (!group.items.length) return;
-    const list = group.items.slice(0, 4).map(item => {
-      return `
-        <li>
-          <a href="${item.url}" target="_blank" rel="noopener">${item.label}</a>
-          <small><a class="project-chip" href="projects/${item.projectId}.html">${item.projectTitle}</a></small>
-        </li>`;
-    }).join('');
-    const card = document.createElement('article');
-    card.className = 'evidence-card';
-    card.setAttribute('role', 'listitem');
-    card.innerHTML = `
-      <div>
-        <span class="evidence-tag">${group.tag}</span>
-        <h3>${group.title}</h3>
-        <p>${group.description}</p>
-      </div>
-      <ul>${list}</ul>
-      <div class="evidence-footer">
-        <span>${group.items.length} linked artifact${group.items.length === 1 ? '' : 's'}</span>
-        <a href="portfolio.html#projects" class="pcz-link">View all</a>
-      </div>`;
-    host.appendChild(card);
-  });
 }
 
 // Test/helper: expose URL parsing so tests can verify hash support
