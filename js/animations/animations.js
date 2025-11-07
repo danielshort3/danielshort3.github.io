@@ -116,20 +116,35 @@
     const rect = hero.getBoundingClientRect();
     const ratio = (Math.min(rect.bottom,window.innerHeight)-Math.max(rect.top,0))/rect.height;
     update(ratio>=MIN_RATIO);
+    const scrollToTarget = target => {
+      if(!target) return false;
+      const offset = parseFloat(getComputedStyle(document.documentElement)
+                      .getPropertyValue('--nav-height')) || 0;
+      const top = target.getBoundingClientRect().top + window.scrollY - offset;
+      window.scrollTo({top, behavior:'smooth'});
+      return true;
+    };
     const scrollToNext = ind => {
       let next = ind.closest('section')?.nextElementSibling;
       while(next && next.tagName !== 'SECTION') next = next.nextElementSibling;
       if(next){
-        const offset = parseFloat(getComputedStyle(document.documentElement)
-                        .getPropertyValue('--nav-height')) || 0;
-        const top = next.getBoundingClientRect().top + window.scrollY - offset;
-        window.scrollTo({top, behavior:'smooth'});
+        scrollToTarget(next);
       }else{
         window.scrollBy({top:window.innerHeight*0.8,behavior:'smooth'});
       }
     };
     $$('.chevron-hint,.scroll-indicator').forEach(ind=>{
-      on(ind,'click',()=>scrollToNext(ind));
+      on(ind,'click',e=>{
+        const href = typeof ind.getAttribute === 'function' ? ind.getAttribute('href') : null;
+        if(href && href.startsWith('#') && href.length > 1){
+          e.preventDefault();
+          const target = document.querySelector(href);
+          if(scrollToTarget(target)) return;
+        }else if(ind.tagName === 'A'){
+          e.preventDefault();
+        }
+        scrollToNext(ind);
+      });
     });
   }
   function initCertTicker(){
