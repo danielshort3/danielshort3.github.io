@@ -13,41 +13,20 @@ function buildContributions(){
     const section = document.createElement('section');
     section.className = 'surface-band reveal contrib-section';
     section.dataset.heading = sec.heading;
-    if (sec.id) section.id = sec.id;
 
-    const wrap = document.createElement('div');
+    const wrap   = document.createElement('div');
     wrap.className = 'wrapper';
     section.appendChild(wrap);
 
-    const accordion = document.createElement('details');
-    accordion.className = 'contrib-accordion';
-    if (!sec.collapsed) accordion.open = true;
-
-    const summary = document.createElement('summary');
-    summary.className = 'contrib-summary';
-    const entryCount = `${sec.items?.length || 0} ${sec.items?.length === 1 ? 'entry' : 'entries'}`;
-    summary.innerHTML = `
-      <div class="summary-text">
-        <h2 class="section-title">${sec.heading}</h2>
-        ${sec.desc ? `<p class="section-desc">${sec.desc}</p>` : ''}
-      </div>
-      <div class="summary-meta">
-        <span>${entryCount}</span>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
-    `;
-    accordion.appendChild(summary);
-
-    const body = document.createElement('div');
-    body.className = 'contrib-body';
-    accordion.appendChild(body);
+    // Heading + blurb
+    wrap.insertAdjacentHTML('beforeend',
+      `<h2 class="section-title">${sec.heading}</h2>
+       <p class="section-desc">${sec.desc}</p>`);
 
     // Grid
     const grid = document.createElement('div');
     grid.className = 'grid docs-grid docs-carousel';
-    body.appendChild(grid);
+    wrap.appendChild(grid);
 
     // --- cards ---------------------------------------------------------
     sec.items.forEach(item => {
@@ -84,7 +63,6 @@ function buildContributions(){
     });
 
 
-    wrap.appendChild(accordion);
     root.appendChild(section);
 
     /* ── NEW: 64 px surface-coloured band between sections ── */
@@ -233,8 +211,7 @@ function initContribSeeMore(){
           btn.dataset.expanded = 'false';
           btn.setAttribute('aria-expanded', 'false');
           wrap.appendChild(btn);
-          const bodyTarget = section.querySelector('.contrib-body') || section.querySelector('.wrapper');
-          bodyTarget.appendChild(wrap);
+          section.querySelector('.wrapper').appendChild(wrap);
 
           btn.addEventListener('click', () => {
             const expanded = btn.dataset.expanded === 'true';
