@@ -24,18 +24,12 @@ function buildContributions(){
        <p class="section-desc">${sec.desc}</p>`);
 
     // Grid
-    const allItems = Array.isArray(sec.items) ? sec.items : [];
-    const limit = Number.isFinite(sec.featuredLimit) ? sec.featuredLimit : allItems.length;
-    const safeLimit = limit > 0 ? limit : allItems.length;
-    const featuredItems = allItems.slice(0, safeLimit);
-    const archiveItems  = allItems.slice(featuredItems.length);
-
     const grid = document.createElement('div');
     grid.className = 'grid docs-grid docs-carousel';
     wrap.appendChild(grid);
 
     // --- cards ---------------------------------------------------------
-    featuredItems.forEach(item => {
+    sec.items.forEach(item => {
       const card = document.createElement('article');
       card.className = 'doc-card';
 
@@ -67,46 +61,6 @@ function buildContributions(){
 
       grid.appendChild(card);
     });
-
-
-    if (archiveItems.length){
-      const archive = document.createElement('details');
-      archive.className = 'doc-archive';
-
-      const summary = document.createElement('summary');
-      const archiveHeading = sec.archiveTitle || 'Full archive';
-      const archiveLabel   = sec.archiveLabel || 'items';
-      summary.innerHTML = `
-        <span class="archive-heading">${archiveHeading}</span>
-        <span class="archive-count">${archiveItems.length} more ${archiveLabel}</span>
-      `;
-      archive.appendChild(summary);
-
-      const list = document.createElement('ul');
-      list.className = 'doc-archive-list';
-
-      archiveItems.forEach(item => {
-        const li = document.createElement('li');
-        const linkMarkup = [];
-        if (item.pdf){
-          linkMarkup.push(`<a href="${item.pdf}" target="_blank" rel="noopener noreferrer" class="archive-link" download>PDF</a>`);
-        }
-        if (item.link){
-          linkMarkup.push(`<a href="${item.link}" target="_blank" rel="noopener noreferrer" class="archive-link">Open</a>`);
-        }
-        li.innerHTML = `
-          <div class="archive-text">
-            <span class="archive-title">${item.title}</span>
-            ${item.role ? `<span class="archive-role">${item.role}</span>` : ''}
-          </div>
-          ${linkMarkup.length ? `<div class="archive-links">${linkMarkup.join('')}</div>` : ''}
-        `;
-        list.appendChild(li);
-      });
-
-      archive.appendChild(list);
-      wrap.appendChild(archive);
-    }
 
 
     root.appendChild(section);

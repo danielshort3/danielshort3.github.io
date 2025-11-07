@@ -27,9 +27,6 @@ window.contributions = [
   {
     heading: 'Council Briefings',
     desc   : 'Briefings for Grand Junction City Council. I contributed actionable data insights and visualizations used by decision makers.',
-    featuredLimit:4,
-    archiveLabel :'briefings',
-    archiveTitle :'Full briefing log',
     items  : [
       { title:'October 20, 2025 Council Briefing',
         role :'Contributions: Visit Grand Junction section',
@@ -161,9 +158,6 @@ window.contributions = [
   {
     heading:'Visit Grand Junction eNewsletters',
     desc   :'Tourism industry e-newsletters featuring my analytics, pacing reports, and lodging performance insights sent to stakeholders.',
-    featuredLimit:4,
-    archiveLabel :'newsletters',
-    archiveTitle :'Newsletter archive',
     items  : [
       { title:'Stakeholder eNewsletter · October 2025',
         role :'Contributions: Industry Data Report',
