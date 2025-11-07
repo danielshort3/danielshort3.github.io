@@ -6,18 +6,9 @@
    ─────────────────────────────────────────────────────────── */
 function buildContributions(){
   const root = document.getElementById('contrib-root');
-  const data = Array.isArray(window.contributions) ? window.contributions : null;
-  if(!root || !data) return;
+  if(!root || !window.contributions) return;
 
-  const totalCount = data.reduce((sum, sec) => {
-    return sum + (Array.isArray(sec.items) ? sec.items.length : 0);
-  }, 0);
-  const counter = document.getElementById('contrib-count');
-  if(counter){
-    counter.textContent = totalCount.toString();
-  }
-
-  data.forEach(sec=>{
+  window.contributions.forEach(sec=>{
     // --- section shell -------------------------------------------------
     const section = document.createElement('section');
     section.className = 'surface-band reveal contrib-section';
