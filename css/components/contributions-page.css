@@ -1,0 +1,294 @@
+@layer components {
+  .contributions-hero .wrapper{
+    max-width:min(1120px, var(--container-max));
+  }
+
+  .contributions-hero__grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
+    gap:clamp(24px, 3vw, 42px);
+  }
+
+  .contributions-hero__intro{
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+  }
+
+  .hero-proof-points{
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    color:color-mix(in srgb, var(--text-light) 92%, #fff 8%);
+    font-size:1rem;
+  }
+
+  .hero-proof-points li{
+    display:flex;
+    gap:12px;
+    line-height:1.6;
+  }
+
+  .hero-proof-points li::before{
+    content:"•";
+    color:var(--primary);
+    font-weight:600;
+  }
+
+  .impact-panel{
+    padding:28px;
+    border-radius:24px;
+    background:color-mix(in srgb, var(--surface) 88%, #05070c 12%);
+    border:1px solid color-mix(in srgb, var(--primary) 22%, transparent);
+    box-shadow:0 18px 42px rgba(0, 0, 0, .35);
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+  }
+
+  .impact-panel__label{
+    margin:0;
+    font-size:.85rem;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:color-mix(in srgb, var(--primary) 78%, #fff 22%);
+  }
+
+  .impact-panel__grid{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+
+  .impact-card{
+    padding:18px;
+    border-radius:18px;
+    background:color-mix(in srgb, var(--surface) 92%, #04070c 8%);
+    border:1px solid color-mix(in srgb, var(--border-subtle) 80%, transparent);
+  }
+
+  .impact-card h3{
+    margin:0 0 6px;
+    font-size:1.15rem;
+  }
+
+  .impact-card p{
+    margin:0;
+    font-size:.95rem;
+    color:var(--text-muted);
+  }
+
+  .eyebrow-label{
+    margin:0;
+    font-size:.82rem;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:color-mix(in srgb, var(--primary) 74%, #ffffff 26%);
+  }
+
+  .hiring-snapshot,
+  .featured-work,
+  .contrib-archive{
+    padding-block:clamp(2.6rem, 6vh, 4.4rem);
+  }
+
+  .hiring-snapshot__grid{
+    display:grid;
+    grid-template-columns:minmax(260px, 340px) 1fr;
+    gap:clamp(18px, 3vw, 42px);
+    align-items:flex-start;
+  }
+
+  .snapshot-list{
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+    gap:18px;
+  }
+
+  .snapshot-card{
+    padding:20px;
+    border-radius:18px;
+    background:color-mix(in srgb, var(--surface) 90%, #010203 10%);
+    border:1px solid color-mix(in srgb, var(--border-subtle) 80%, transparent);
+    box-shadow:0 12px 32px rgba(0, 0, 0, .25);
+  }
+
+  .snapshot-card h3{
+    margin-top:0;
+    margin-bottom:8px;
+    font-size:1.15rem;
+  }
+
+  .snapshot-card p{
+    margin:0;
+    color:var(--text-muted);
+    font-size:.98rem;
+    line-height:1.6;
+  }
+
+  .section-header{
+    max-width:780px;
+    margin-bottom:28px;
+  }
+
+  .section-header h2{
+    margin:10px 0 8px;
+  }
+
+  .section-header p{
+    margin:0;
+    color:var(--text-muted);
+  }
+
+  .featured-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
+    gap:clamp(18px, 3vw, 28px);
+  }
+
+  .featured-card{
+    padding:26px;
+    border-radius:22px;
+    background:color-mix(in srgb, var(--surface) 92%, #020305 8%);
+    border:1px solid color-mix(in srgb, var(--primary) 18%, transparent);
+    box-shadow:0 16px 38px rgba(0, 0, 0, .3);
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+
+  .featured-card__badge{
+    display:inline-flex;
+    align-self:flex-start;
+    padding:6px 14px;
+    border-radius:999px;
+    font-size:.78rem;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    background:color-mix(in srgb, var(--primary) 12%, transparent);
+    color:color-mix(in srgb, var(--primary) 80%, #ffffff 20%);
+    border:1px solid color-mix(in srgb, var(--primary) 35%, transparent);
+  }
+
+  .featured-card h3{
+    margin:0;
+    font-size:1.3rem;
+  }
+
+  .featured-card__summary{
+    margin:0;
+    color:var(--text-muted);
+    font-size:.98rem;
+    line-height:1.6;
+  }
+
+  .featured-card__list{
+    margin:0;
+    padding-left:18px;
+    color:var(--text-muted);
+    font-size:.96rem;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+
+  .featured-card__links{
+    margin-top:auto;
+  }
+
+  .featured-link{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-weight:600;
+    color:var(--link);
+    text-decoration:none;
+    border-bottom:1px solid transparent;
+  }
+
+  .featured-link::after{
+    content:"↗";
+    font-size:1rem;
+  }
+
+  .featured-link:hover{
+    border-color:currentColor;
+  }
+
+  .contrib-archive .archive-desc{
+    margin:0;
+  }
+
+  .archive-count{
+    font-weight:600;
+    color:var(--primary);
+  }
+
+  .archive-toggle{
+    margin-top:26px;
+    border:1px solid color-mix(in srgb, var(--primary) 24%, transparent);
+    border-radius:20px;
+    background:color-mix(in srgb, var(--surface) 94%, #030508 6%);
+    box-shadow:0 18px 36px rgba(0, 0, 0, .32);
+  }
+
+  .archive-toggle summary{
+    list-style:none;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:18px;
+    padding:22px 26px;
+    font-weight:600;
+  }
+
+  .archive-toggle summary::-webkit-details-marker,
+  .archive-toggle summary::marker{
+    display:none;
+  }
+
+  .summary-title{
+    display:block;
+    font-size:1.05rem;
+    margin-bottom:4px;
+  }
+
+  .summary-subtitle{
+    display:block;
+    font-size:.9rem;
+    color:var(--text-muted);
+    font-weight:400;
+  }
+
+  .archive-toggle summary svg{
+    width:26px;
+    height:26px;
+    color:var(--primary);
+    transition:transform .25s ease;
+  }
+
+  .archive-toggle[open] summary svg{
+    transform:rotate(180deg);
+  }
+
+  .archive-body{
+    padding:0 26px 26px;
+  }
+
+  @media (max-width:768px){
+    .hiring-snapshot__grid{
+      grid-template-columns:1fr;
+    }
+
+    .snapshot-list{
+      grid-template-columns:1fr;
+    }
+  }
+}
