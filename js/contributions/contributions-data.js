@@ -1,6 +1,39 @@
 /* Public-facing docs organized by category
    Update/extend this array – only the data lives here!
    ─────────────────────────────────────────────────────────── */
+window.contributionSpotlight = [
+  {
+    title: 'Colorado Business Economic Outlook · 2025',
+    focus: 'Statewide tourism & economic outlook',
+    context: 'Commissioned by the Leeds School of Business',
+    contribution: 'Consolidated Visit Grand Junction, STR, AirDNA, and local tax series into ready-to-publish tables plus commentary (pages 122–129).',
+    impact: 'Equipped statewide economic leaders with a clear view of Western Slope travel demand ahead of FY25 planning.',
+    skills: ['Forecasting', 'Scenario modeling', 'Stakeholder reporting'],
+    link: 'https://www.colorado.edu/business/brd/colorado-business-economic-outlook-forum',
+    pdf: 'documents/Leeds_2025_Colorado_Business_Economic_Outlook.pdf'
+  },
+  {
+    title: 'Grand Junction City Budget · 2025',
+    focus: 'Budget modeling & resource planning',
+    context: 'City of Grand Junction annual budget (pages 199–214)',
+    contribution: 'Built a multi-year dataset for lodging tax, pacing, ROI, and project KPIs that underpins the Visit Grand Junction section.',
+    impact: 'Enabled City leadership to tie tourism funding requests to quantified outcomes and confident projections.',
+    skills: ['Financial modeling', 'SQL automation', 'Data storytelling'],
+    link: 'https://www.gjcity.org/DocumentCenter/View/14655',
+    pdf: 'documents/GJ_2025_Budget.pdf'
+  },
+  {
+    title: 'Visit Grand Junction Annual Accomplishments · 2024',
+    focus: 'Performance storytelling & accountability',
+    context: 'Visit Grand Junction stakeholder report',
+    contribution: 'Produced the analytics, pacing commentary, and visualization briefs that summarize FY24 marketing impact.',
+    impact: 'Gave tourism partners a transparent readout on revenue, demand generation, and community outcomes.',
+    skills: ['Attribution analysis', 'Dashboarding', 'Executive communication'],
+    link: 'https://visitgj.com/4hcADGt',
+    pdf: 'documents/VGJ_2024_Accomplishments.pdf'
+  }
+];
+
 window.contributions = [
   {
     heading:'Various Public Contributions',
