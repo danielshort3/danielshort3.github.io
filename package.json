@@ -7,8 +7,7 @@
     "test": "node test.js",
     "build:icons": "python3 build/resize_logo.py",
     "build:css": "node build/build-css.js",
-    "build:projects": "node build/generate-project-pages.js",
-    "build": "npm run build:css && npm run build:projects && node build/copy-to-public.js"
+    "build": "npm run build:css && node build/copy-to-public.js"
   },
   "engines": {
     "node": ">=18"
