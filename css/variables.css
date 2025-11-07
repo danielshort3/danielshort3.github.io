@@ -4,10 +4,11 @@
   :root{
     /* palette */
     --bg:#0D1117;
-    --surface:#161B22;
-    --surface-light:color-mix(in srgb,var(--surface) 85%,#fff 15%);
-    --surface-accent:color-mix(in srgb,var(--surface) 92%,#fff 8%);
+    --surface:#111622;
+    --surface-light:color-mix(in srgb,var(--surface) 82%,#fff 18%);
+    --surface-accent:color-mix(in srgb,var(--surface) 90%,#fff 10%);
     --primary:#2396AD;
+    --accent:#F6A54A;
     /* unify accents: use teal for secondary too */
     --secondary: var(--primary);
     --text-light:#F1F4F8;
@@ -44,9 +45,9 @@
     --radius-12:12px; --radius-14:14px; --radius-16:16px;
 
     /* shadows */
-    --shadow-sm:0 2px 6px rgba(0,0,0,.25);
-    --shadow-md:0 6px 18px rgba(0,0,0,.35);
-    --shadow-lg:0 12px 32px rgba(0,0,0,.6);
+    --shadow-sm:0 2px 5px rgba(0,0,0,.18);
+    --shadow-md:0 6px 16px rgba(0,0,0,.28);
+    --shadow-lg:0 12px 26px rgba(0,0,0,.42);
 
     /* breakpoints (for documentation) */
     --bp-sm:480px; --bp-md:768px; --bp-lg:1024px; --bp-xl:1280px;
