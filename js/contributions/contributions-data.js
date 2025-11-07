@@ -3,8 +3,8 @@
    ─────────────────────────────────────────────────────────── */
 window.contributions = [
   {
-    heading:'Various Public Contributions',
-    desc   :'Reports and public documents where I led or contributed to data science, modeling, and analysis that informed city planning and marketing.',
+    heading:'Flagship Publications & Reports',
+    desc   :'State-level and citywide publications where my forecasting, modeling, and analysis are published for policy, budget, and marketing decisions.',
     items  : [
       { title:'Colorado Business Economic Outlook · 2025',
         role :'Contributions: Pages 122–129 - Data aggregation and analysis',
@@ -25,8 +25,8 @@ window.contributions = [
   },
 
   {
-    heading: 'Council Briefings',
-    desc   : 'Briefings for Grand Junction City Council. I contributed actionable data insights and visualizations used by decision makers.',
+    heading: 'City Council Briefings',
+    desc   : 'Bi-weekly briefings for Grand Junction City Council where I own the Visit Grand Junction analytics, trends, and recommendations shared with elected officials.',
     items  : [
       { title:'October 20, 2025 Council Briefing',
         role :'Contributions: Visit Grand Junction section',
@@ -156,8 +156,8 @@ window.contributions = [
   },
 
   {
-    heading:'Visit Grand Junction eNewsletters',
-    desc   :'Tourism industry e-newsletters featuring my analytics, pacing reports, and lodging performance insights sent to stakeholders.',
+    heading:'Stakeholder eNewsletters',
+    desc   :'Visit Grand Junction’s stakeholder distribution list where I provide pacing, lodging performance, and marketing analytics for industry partners.',
     items  : [
       { title:'Stakeholder eNewsletter · October 2025',
         role :'Contributions: Industry Data Report',
