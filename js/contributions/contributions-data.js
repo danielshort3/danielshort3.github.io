@@ -1,104 +1,10 @@
 /* Public-facing docs organized by category
    Update/extend this array – only the data lives here!
    ─────────────────────────────────────────────────────────── */
-
-const MONTH_LOOKUP = {
-  january: { quarter: 'Q1' },
-  february: { quarter: 'Q1' },
-  march: { quarter: 'Q1' },
-  april: { quarter: 'Q2' },
-  may: { quarter: 'Q2' },
-  june: { quarter: 'Q2' },
-  july: { quarter: 'Q3' },
-  august: { quarter: 'Q3' },
-  september: { quarter: 'Q3' },
-  october: { quarter: 'Q4' },
-  november: { quarter: 'Q4' },
-  december: { quarter: 'Q4' }
-};
-
-function inferYear(text = ''){
-  const match = text.match(/(20\d{2})/);
-  return match ? match[1] : 'Earlier';
-}
-
-function inferQuarter(text = ''){
-  const lower = text.toLowerCase();
-  for (const [name, meta] of Object.entries(MONTH_LOOKUP)){
-    if (lower.includes(name)) return meta.quarter;
-  }
-  return null;
-}
-
-function annotateItems(items = [], defaults = {}){
-  return items.map(item => {
-    const entry = { ...defaults, ...item };
-    const combined = `${entry.title ?? ''} ${entry.role ?? ''}`;
-    entry.year = entry.year ?? inferYear(combined);
-    entry.quarter = entry.quarter ?? inferQuarter(entry.title ?? '');
-    if (!entry.focus && defaults.focus) entry.focus = defaults.focus;
-    return entry;
-  });
-}
-
-function yearRange(items){
-  const numericYears = items
-    .map(item => parseInt(item.year, 10))
-    .filter(Number.isFinite)
-    .sort((a, b) => a - b);
-  if (!numericYears.length) return '';
-  const first = numericYears[0];
-  const last = numericYears[numericYears.length - 1];
-  return first === last ? `${first}` : `${first}–${last}`;
-}
-
-function formatNavSummary(items, noun = 'contribution'){
-  const count = items.length;
-  const label = `${noun}${count === 1 ? '' : 's'}`;
-  const range = yearRange(items);
-  return range ? `${count} ${label} · ${range}` : `${count} ${label}`;
-}
-
-function annotateSection(section){
-  const { metaDefaults = {}, navNoun = 'contribution', ...rest } = section;
-  const items = annotateItems(rest.items, metaDefaults);
-  return {
-    ...rest,
-    navSummary: rest.navSummary || formatNavSummary(items, navNoun),
-    items
-  };
-}
-
-const RAW_CONTRIBUTIONS = [
+window.contributions = [
   {
-    id: 'flagship-reports',
-    type: 'reports',
-    shortTitle: 'Reports',
-    heroSummary: 'Budget, economic outlook, and accomplishment docs for leadership.',
-    heading:'Flagship Reports & Economic Outlook',
-    desc   :'Flagship reports where I lead modeling, revenue tracking, and narrative data summaries that inform Visit Grand Junction, city finance, and statewide partners.',
-    impact : {
-      title  : 'Budget & statewide planning insights',
-      summary: 'Synthesized lodging tax, economic outlook, and visitation trends to guide capital planning and Visit Grand Junction strategy.',
-      metrics: [
-        { label:'Pages contributed', value:'30+' },
-        { label:'Data sources', value:'STR, VisaVue, city finance' },
-        { label:'Span', value:'2024–2025' }
-      ]
-    },
-    download: {
-      label: 'Download report index (ZIP)',
-      description: 'Link index + key talking points',
-      file: 'documents/contributions/downloads/flagship-reports-pack.zip',
-      includeLinkIndex: true,
-      summaryNotes: [
-        'Colorado Business Economic Outlook · revenue + visitation modeling',
-        'City budget pages · tourism KPIs and scenario planning',
-        'Annual accomplishment report · analytics narrative'
-      ]
-    },
-    navNoun: 'report',
-    metaDefaults: { focus: 'Budget & economic planning' },
+    heading:'Various Public Contributions',
+    desc   :'Reports and public documents where I led or contributed to data science, modeling, and analysis that informed city planning and marketing.',
     items  : [
       { title:'Colorado Business Economic Outlook · 2025',
         role :'Contributions: Pages 122–129 - Data aggregation and analysis',
@@ -119,33 +25,8 @@ const RAW_CONTRIBUTIONS = [
   },
 
   {
-    id: 'council-briefings',
-    type: 'council',
-    shortTitle: 'Council Briefings',
-    heroSummary: 'Standing analyst briefings covering pacing, lodging tax, and campaign results.',
-    heading: 'City Council Briefings',
-    desc   : 'Visit Grand Junction sections delivered to City Council with lodging tax pacing, forecast signals, and marketing performance insights.',
-    impact : {
-      title  : 'Standing City Council analyst',
-      summary: 'Briefed council leadership on pacing, campaign impact, and strategic risks across tourism and economic development.',
-      metrics: [
-        { label:'Briefings delivered', value:'30+' },
-        { label:'Cadence', value:'Bi-weekly & ad-hoc' },
-        { label:'Focus', value:'Lodging tax · campaign ROI' }
-      ]
-    },
-    download: {
-      label: 'Download briefing index (ZIP)',
-      description: 'Link index + recap notes',
-      file: 'documents/contributions/downloads/council-briefings-pack.zip',
-      includeLinkIndex: true,
-      summaryNotes: [
-        'Includes Visit Grand Junction talking points used in council meetings',
-        'Each entry references tax, pacing, or campaign analytics delivered live'
-      ]
-    },
-    navNoun: 'briefing',
-    metaDefaults: { focus: 'Tourism pacing & tax revenue' },
+    heading: 'Council Briefings',
+    desc   : 'Briefings for Grand Junction City Council. I contributed actionable data insights and visualizations used by decision makers.',
     items  : [
       { title:'October 20, 2025 Council Briefing',
         role :'Contributions: Visit Grand Junction section',
@@ -275,33 +156,8 @@ const RAW_CONTRIBUTIONS = [
   },
 
   {
-    id: 'stakeholder-enews',
-    type: 'newsletter',
-    shortTitle: 'Stakeholder eNews',
-    heroSummary: 'Industry newsletters with pacing dashboards, lodging tax, and automation work.',
-    heading:'Visit Grand Junction Stakeholder eNewsletters',
-    desc   :'Industry newsletters where I publish analytics dashboards, automation-driven pacing, and tourism insights for partners.',
-    impact : {
-      title  : 'Stakeholder analytics publisher',
-      summary: 'Delivered recurring Industry Data Reports, pacing dashboards, and lodging insights that inform hotels and attractions.',
-      metrics: [
-        { label:'Stakeholder reach', value:'Hospitality & civic partners' },
-        { label:'Newsletter cadence', value:'Monthly/quarterly' },
-        { label:'Focus', value:'Automation · pacing · conversions' }
-      ]
-    },
-    download: {
-      label: 'Download newsletter index (ZIP)',
-      description: 'Link index + highlight reel',
-      file: 'documents/contributions/downloads/stakeholder-enews-pack.zip',
-      includeLinkIndex: true,
-      summaryNotes: [
-        'Industry Data Report automation and pacing dashboards',
-        'Revenue, lodging, and website performance features'
-      ]
-    },
-    navNoun: 'newsletter',
-    metaDefaults: { focus: 'Stakeholder analytics' },
+    heading:'Visit Grand Junction eNewsletters',
+    desc   :'Tourism industry e-newsletters featuring my analytics, pacing reports, and lodging performance insights sent to stakeholders.',
     items  : [
       { title:'Stakeholder eNewsletter · October 2025',
         role :'Contributions: Industry Data Report',
@@ -366,13 +222,3 @@ const RAW_CONTRIBUTIONS = [
     ]
   }
 ];
-
-const contributions = RAW_CONTRIBUTIONS.map(annotateSection);
-
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = contributions;
-}
-
-if (typeof window !== 'undefined') {
-  window.contributions = contributions;
-}

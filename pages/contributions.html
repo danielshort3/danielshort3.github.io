@@ -38,16 +38,10 @@
   <header id="combined-header-nav"></header>
 
   <!-- Hero -->
-  <section class="hero contributions-hero">
-    <div class="wrapper hero-columns">
-      <div class="hero-primary">
-        <h1>My Visit Grand Junction Contributions: Reports, Briefings &amp; eNews</h1>
-        <p class="hero-tagline">Visit Grand Junction’s data scientist turning tourism, economic, and marketing data into decision-ready insights. Each category highlights the latest public deliverable with a concise timeline for prior work.</p>
-      </div>
-      <div class="hero-secondary" aria-labelledby="contrib-hero-eyebrow">
-        <p class="hero-eyebrow" id="contrib-hero-eyebrow">What to expect</p>
-        <ul id="contrib-hero-list" class="hero-mini-list" role="list"></ul>
-      </div>
+  <section class="hero">
+    <div class="wrapper">
+      <h1>My Visit Grand Junction Contributions: Reports, Briefings &amp; eNews</h1>
+      <p class="hero-tagline">Visit Grand Junction’s data scientist turning tourism, economic, and marketing data into decision-ready insights. Each category highlights the latest public deliverable with a concise timeline for prior work.</p>
     </div>
       <a class="chevron-hint scroll-indicator" href="#contrib-root">
         <span class="chevron-label">Scroll for highlighted reports</span>
@@ -57,15 +51,7 @@
 
   <!-- Dynamic sections build themselves here -->
   <main id="main">
-    <div class="contrib-layout">
-      <aside class="contrib-nav" aria-label="Navigate contributions">
-        <div class="contrib-nav-card">
-          <p class="contrib-nav-label">Jump to a category</p>
-          <ul id="contrib-nav-list" role="list"></ul>
-        </div>
-      </aside>
-      <div id="contrib-root"></div>
-    </div>
+    <div id="contrib-root"></div>
   </main>
 
   <footer>
@@ -78,6 +64,7 @@
   </footer>
   <script defer src="js/contributions/contributions-data.js"></script>
   <script defer src="js/contributions/contributions.js"></script>
+  <script defer src="js/contributions/carousel.js"></script>
   <script defer src="js/common/common.js"></script>
   <script defer src="js/navigation/navigation.js"></script>
   <script defer src="js/animations/animations.js"></script>
