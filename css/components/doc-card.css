@@ -146,6 +146,7 @@
     border-top:1px solid color-mix(in srgb,var(--border-subtle) 70%, transparent);
   }
   .timeline-item:first-child{border-top:1px solid color-mix(in srgb,var(--border-subtle) 60%, transparent);}
+  .timeline-item-card{ width:100%; }
   .timeline-item-text{flex:1;min-width:0;}
   .timeline-item-title{display:block;font-weight:600;color:var(--text-light);font-family:'Poppins';}
   .timeline-item-role{display:block;font-size:.84rem;color:var(--text-muted);margin-top:4px;}
@@ -184,7 +185,8 @@
       gap:12px;
       margin-top:18px;
     }
-    .doc-card .doc-links{
+    .doc-card .doc-links,
+    .timeline-item-card .doc-links{
       position:static;
       justify-content:flex-start;
       flex-wrap:wrap;
@@ -210,13 +212,14 @@
       margin-top:8px;
     }
     .timeline-item{
-      flex-direction:column;
-      padding:18px;
+      padding-left:0;
       border-top:none;
+    }
+    .timeline-item-card{
+      padding:18px;
       border:1px solid color-mix(in srgb,var(--border-subtle) 80%, transparent);
       border-radius:14px;
       background:color-mix(in srgb,var(--surface) 92%, var(--bg));
     }
-    .timeline-item .doc-links{justify-content:flex-start; margin-top:10px;}
   }
 }

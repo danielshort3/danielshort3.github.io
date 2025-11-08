@@ -206,13 +206,22 @@ function buildYearTimeline(previousItems){
     group.entries.forEach(item => {
       const li = document.createElement('li');
       li.className = 'timeline-item';
+
+      const links = buildDocLinks(item, { compact: true }) || '';
       li.innerHTML = `
-        <div class="timeline-item-text">
-          <span class="timeline-item-title">${item.title}</span>
-          ${item.role ? `<span class="timeline-item-role">${item.role}</span>` : ''}
-        </div>
-        ${buildDocLinks(item, { compact: true }) || ''}
+        <article class="timeline-item-card">
+          <div class="doc-layout">
+            <div class="timeline-item-text">
+              <span class="timeline-item-title">${item.title}</span>
+            </div>
+            <div class="doc-footer">
+              ${item.role ? `<p class="doc-role timeline-item-role">${item.role}</p>` : ''}
+              ${links}
+            </div>
+          </div>
+        </article>
       `;
+
       list.appendChild(li);
     });
 
