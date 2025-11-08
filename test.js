@@ -152,8 +152,7 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
     'js/animations/animations.js',
     'js/forms/contact.js',
     'js/portfolio/modal-helpers.js',
-    'js/contributions/contributions.js',
-    'js/contributions/carousel.js'
+    'js/contributions/contributions.js'
   ].forEach(file => evalScript(file));
 
   // Basic structure across key pages

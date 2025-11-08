@@ -45,7 +45,6 @@
 /* ─────────────────────────────────────────────────────────── */
   /* Performance: avoid work for offscreen sections */
   #projects.grid { content-visibility: auto; contain-intrinsic-size: 800px; }
-  .docs-grid     { content-visibility: auto; contain-intrinsic-size: 600px; }
   .featured-track, .cert-track { content-visibility: auto; contain-intrinsic-size: 220px; }
 
   /* Back to top button */
