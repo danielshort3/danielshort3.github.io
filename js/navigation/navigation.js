@@ -49,6 +49,22 @@
         </a>
       </div>
     `;
+    const contributionSections = [
+      { id: 'public-contributions', title: 'Public Reports', subtitle: 'Economic outlooks & city budgets' },
+      { id: 'council-briefings',   title: 'Council Briefings', subtitle: 'Bi-weekly council intelligence' },
+      { id: 'enewsletters',        title: 'Stakeholder eNews', subtitle: 'Industry pacing & KPI updates' }
+    ];
+    const contributionsMenu = `
+      <div class="nav-dropdown-header" aria-hidden="true">Browse categories</div>
+      <div class="nav-dropdown-list" role="list">
+        ${contributionSections.map(
+          c => `<a href="contributions.html#${c.id}" class="nav-dropdown-link" role="listitem">
+                  <span class="nav-dropdown-title">${c.title}</span>
+                  <span class="nav-dropdown-subtitle">${c.subtitle}</span>
+                </a>`
+        ).join('')}
+      </div>
+    `;
     host.innerHTML=`
       <nav class="nav ${animate?'animate-entry':''}" aria-label="Primary">
         <div class="wrapper nav-wrapper">
@@ -77,7 +93,15 @@
                 ${portfolioMenu}
               </div>
             </div>
-            <a href="contributions.html" class="nav-link">Contributions</a>
+            <div class="nav-item nav-item-contributions">
+              <a href="contributions.html" class="nav-link nav-link-has-menu" aria-haspopup="true">
+                Contributions
+                <span class="nav-link-caret" aria-hidden="true"></span>
+              </a>
+              <div class="nav-dropdown" aria-label="Contributions categories">
+                ${contributionsMenu}
+              </div>
+            </div>
             <a href="resume.html" class="nav-link">Resume</a>
             <a href="contact.html" class="nav-link nav-link-cta">Contact</a>
           </div>
@@ -92,7 +116,8 @@
     });
     const burger = host.querySelector('#nav-toggle');
     const menu   = host.querySelector('#primary-menu');
-    setupPortfolioDropdown(host.querySelector('.nav-item-portfolio'));
+    setupDropdown(host.querySelector('.nav-item-portfolio'));
+    setupDropdown(host.querySelector('.nav-item-contributions'));
 
     // Simple focus trap within the mobile drawer
     let prevFocus = null;
@@ -133,7 +158,7 @@
       });
     }
   }
-  function setupPortfolioDropdown(item){
+  function setupDropdown(item){
     if(!item) return;
     const dropdown = item.querySelector('.nav-dropdown');
     if(!dropdown) return;
