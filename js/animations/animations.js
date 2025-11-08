@@ -6,27 +6,6 @@
   'use strict';
   const $$ = (s, c=document) => [...c.querySelectorAll(s)];
   const on = (n,e,f,o) => n && n.addEventListener(e,f,o);
-  const getNavOffset = () => {
-    if (typeof window.getNavOffset === 'function') {
-      const val = Number(window.getNavOffset());
-      if (Number.isFinite(val) && val > 0) return val;
-    }
-    const root = document.documentElement;
-    if (root) {
-      try {
-        const cssOffset = parseFloat(getComputedStyle(root).getPropertyValue('--nav-height')) || 0;
-        if (cssOffset > 0) return cssOffset;
-      } catch {
-        // ignore
-      }
-    }
-    const nav = document.querySelector('.nav');
-    if (nav) {
-      const measured = nav.getBoundingClientRect().height;
-      if (Number.isFinite(measured) && measured > 0) return measured;
-    }
-    return 72;
-  };
   document.addEventListener('DOMContentLoaded', () => {
     initReveal();
     setScrollbarVar();
@@ -139,9 +118,12 @@
     update(ratio>=MIN_RATIO);
     const scrollToTarget = target => {
       if(!target) return false;
-      const offset = getNavOffset();
-      const top = target.getBoundingClientRect().top + window.scrollY - offset;
-      window.scrollTo({top, behavior:'smooth'});
+      if (typeof target.scrollIntoView === 'function'){
+        target.scrollIntoView({ behavior:'smooth', block:'start' });
+      } else {
+        const top = target.getBoundingClientRect().top + window.scrollY;
+        window.scrollTo({top, behavior:'smooth'});
+      }
       return true;
     };
     const scrollToNext = ind => {
