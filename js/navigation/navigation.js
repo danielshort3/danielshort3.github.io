@@ -6,6 +6,42 @@
   'use strict';
   const $  = (s, c=document) => c.querySelector(s);
   const $$ = (s, c=document) => [...c.querySelectorAll(s)];
+  const NAV_HEIGHT_FALLBACK = 72;
+  let cachedNavHeight = null;
+
+  const measureNavHeight = () => {
+    const nav = document.querySelector('.nav');
+    if (!nav) return NAV_HEIGHT_FALLBACK;
+    const rect = nav.getBoundingClientRect();
+    const height = rect.height || nav.offsetHeight || NAV_HEIGHT_FALLBACK;
+    return Math.max(height, NAV_HEIGHT_FALLBACK);
+  };
+
+  const setCssNavHeight = (value) => {
+    document.documentElement.style.setProperty('--nav-height', `${value}px`);
+    window.__navHeight = value;
+  };
+
+  const emitNavHeightChange = (value) => {
+    try {
+      document.dispatchEvent(new CustomEvent('navheightchange', { detail: value }));
+    } catch {
+      const evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('navheightchange', false, false, value);
+      document.dispatchEvent(evt);
+    }
+  };
+
+  window.getNavOffset = () => {
+    if (typeof window.__navHeight === 'number' && window.__navHeight > 0) {
+      return window.__navHeight;
+    }
+    const measured = measureNavHeight();
+    setCssNavHeight(measured);
+    cachedNavHeight = measured;
+    return measured;
+  };
+
   document.addEventListener('DOMContentLoaded', () => {
     injectNav();
     injectFooter();
@@ -15,10 +51,12 @@
     window.addEventListener('orientationchange', setNavHeight);
   });
   function setNavHeight(){
-    const nav = document.querySelector('.nav');
-    if(!nav) return;
-    const h = nav.getBoundingClientRect().height;
-    document.documentElement.style.setProperty('--nav-height', `${h}px`);
+    const next = measureNavHeight();
+    if (!Number.isFinite(next) || next <= 0) return;
+    if (cachedNavHeight !== null && Math.abs(next - cachedNavHeight) < 0.5) return;
+    cachedNavHeight = next;
+    setCssNavHeight(next);
+    emitNavHeightChange(next);
   }
   function injectNav(){
     const host = $('#combined-header-nav');
