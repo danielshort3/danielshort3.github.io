@@ -267,34 +267,15 @@ function buildContributions(){
   });
 }
 
-function resolveNavOffset(){
-  if (typeof window.getNavOffset === 'function') {
-    const globalOffset = Number(window.getNavOffset());
-    if (Number.isFinite(globalOffset) && globalOffset > 0) return globalOffset;
-  }
-  const root = document.documentElement;
-  if (root) {
-    try {
-      const cssOffset = parseFloat(getComputedStyle(root).getPropertyValue('--nav-height')) || 0;
-      if (cssOffset > 0) return cssOffset;
-    } catch {
-      // ignore
-    }
-  }
-  const nav = document.querySelector('.nav');
-  if (nav) {
-    const measured = nav.getBoundingClientRect().height;
-    if (Number.isFinite(measured) && measured > 0) return measured;
-  }
-  return 72;
-}
-
-function scrollElementIntoView(target, behavior = 'auto'){
+function scrollIntoViewWithPadding(target, behavior = 'auto'){
   if (!target) return false;
-  const offset = resolveNavOffset();
-  const scrollTop = window.scrollY || window.pageYOffset || 0;
-  const top = target.getBoundingClientRect().top + scrollTop - offset;
-  window.scrollTo({ top, behavior });
+  if (typeof target.scrollIntoView === 'function'){
+    target.scrollIntoView({ behavior, block: 'start' });
+  } else {
+    const scrollTop = window.scrollY || window.pageYOffset || 0;
+    const top = target.getBoundingClientRect().top + scrollTop;
+    window.scrollTo({ top, behavior });
+  }
   return true;
 }
 
@@ -307,24 +288,20 @@ function getHashId(){
   }
 }
 
-function scrollHashTarget(behavior = 'auto'){
-  const id = getHashId();
+function scrollHashTarget(behavior = 'auto', explicitId){
+  const id = explicitId || getHashId();
   if (!id) return false;
   const target = document.getElementById(id) || (id === 'contrib-root' ? document.querySelector('.contrib-section') : null);
   if (!target) return false;
-  return scrollElementIntoView(target, behavior);
+  return scrollIntoViewWithPadding(target, behavior);
 }
 
 function initContributionHashOffsets(){
-  const apply = (behavior = 'auto') => {
-    scrollHashTarget(behavior);
-  };
+  const apply = () => scrollHashTarget('auto');
   if (location.hash && location.hash.length > 1) {
-    requestAnimationFrame(() => apply('auto'));
+    requestAnimationFrame(apply);
   }
-  window.addEventListener('hashchange', () => apply('smooth'));
-  window.addEventListener('load', () => apply('auto'));
-  document.addEventListener('navheightchange', () => apply('auto'));
+  window.addEventListener('load', apply);
 }
 
 function initContributions(){
