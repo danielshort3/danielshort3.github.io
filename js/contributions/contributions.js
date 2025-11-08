@@ -277,6 +277,11 @@ window.addEventListener('hashchange', () => handleHashChangeScroll('smooth'));
 window.addEventListener('load', () => handleHashChangeScroll('auto'));
 
 function getNavOffset(){
+  const nav = document.querySelector('.nav');
+  if (nav) {
+    const rect = nav.getBoundingClientRect();
+    if (rect.height) return rect.height;
+  }
   const value = getComputedStyle(document.documentElement).getPropertyValue('--nav-height');
   const parsed = parseFloat(value);
   return Number.isFinite(parsed) ? parsed : 72;
