@@ -222,17 +222,6 @@
     }
   }
 
-  function getNavHeight(){
-    const nav = document.querySelector('.nav');
-    if (nav) {
-      const rect = nav.getBoundingClientRect();
-      if (rect.height) return rect.height;
-    }
-    const cssValue = getComputedStyle(document.documentElement).getPropertyValue('--nav-height');
-    const parsed = parseFloat(cssValue);
-    return Number.isFinite(parsed) ? parsed : 72;
-  }
-
   function setupAnchorScroll(host){
     if(!host) return;
     const links = host.querySelectorAll('[data-scroll-target]');
@@ -247,7 +236,7 @@
         if (!target) return;
         event.preventDefault();
         closeDropdown(activeDropdown);
-        const navHeight = getNavHeight();
+        const navHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-height')) || 0;
         const offset = target.getBoundingClientRect().top + window.scrollY - navHeight;
         window.scrollTo({ top: offset, behavior: 'smooth' });
         history.replaceState(null, '', `#${targetId}`);
