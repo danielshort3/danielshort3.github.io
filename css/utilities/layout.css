@@ -601,34 +601,6 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
 
 
 
-/* 📱  MOBILE ≤ 768 px  – align role + icons on one bottom row */
-@media (max-width: 768px) {
-
-  /* reserve space so text above never overlaps the footer */
-  .doc-card{
-    position: relative;            /* already true, but explicit */
-    padding-bottom: 96px;          /* ≈ footer height + spacing */
-  }
-
-  /* pin the footer strip to the bottom */
-  .doc-footer{
-    position: absolute;
-    left: 24px;
-    right: 24px;
-    bottom: 24px;                  /* same inset you use elsewhere */
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;         /* keeps role text baseline-aligned */
-  }
-
-  /* icons now live in normal flow inside the footer */
-  .doc-links{
-    position: static;              /* overrides earlier absolute */
-    display: flex;
-    gap: 12px;                     /* one or two icons side-by-side */
-  }
-}
-
 /* modal embed helpers consolidated into components/modal.css */
 
 .see-less-float {

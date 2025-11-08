@@ -212,7 +212,7 @@ function buildYearTimeline(previousItems){
         <article class="timeline-item-card">
           <div class="doc-layout">
             <div class="timeline-item-text">
-              <span class="timeline-item-title">${item.title}</span>
+              <span class="doc-title timeline-item-title">${item.title}</span>
             </div>
             <div class="doc-footer">
               ${item.role ? `<p class="doc-role timeline-item-role">${item.role}</p>` : ''}
