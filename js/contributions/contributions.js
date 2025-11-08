@@ -267,30 +267,31 @@ function buildContributions(){
   });
 }
 
-function getNavOffset(){
+function resolveNavOffset(){
+  if (typeof window.getNavOffset === 'function') {
+    const globalOffset = Number(window.getNavOffset());
+    if (Number.isFinite(globalOffset) && globalOffset > 0) return globalOffset;
+  }
   const root = document.documentElement;
-  let offset = 0;
   if (root) {
     try {
-      offset = parseFloat(getComputedStyle(root).getPropertyValue('--nav-height')) || 0;
+      const cssOffset = parseFloat(getComputedStyle(root).getPropertyValue('--nav-height')) || 0;
+      if (cssOffset > 0) return cssOffset;
     } catch {
-      offset = 0;
+      // ignore
     }
   }
-  if (offset <= 0) {
-    const nav = document.querySelector('.nav');
-    if (nav) {
-      const measured = nav.getBoundingClientRect().height;
-      if (Number.isFinite(measured) && measured > 0) offset = measured;
-    }
+  const nav = document.querySelector('.nav');
+  if (nav) {
+    const measured = nav.getBoundingClientRect().height;
+    if (Number.isFinite(measured) && measured > 0) return measured;
   }
-  if (offset <= 0) offset = 72;
-  return offset;
+  return 72;
 }
 
 function scrollElementIntoView(target, behavior = 'auto'){
   if (!target) return false;
-  const offset = getNavOffset();
+  const offset = resolveNavOffset();
   const scrollTop = window.scrollY || window.pageYOffset || 0;
   const top = target.getBoundingClientRect().top + scrollTop - offset;
   window.scrollTo({ top, behavior });
@@ -323,6 +324,7 @@ function initContributionHashOffsets(){
   }
   window.addEventListener('hashchange', () => apply('smooth'));
   window.addEventListener('load', () => apply('auto'));
+  document.addEventListener('navheightchange', () => apply('auto'));
 }
 
 function initContributions(){
