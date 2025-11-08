@@ -6,12 +6,6 @@ window.contributions = [
     slug  :'public-contributions',
     heading:'Various Public Contributions',
     desc   :'Reports and public documents where I led or contributed to data science, modeling, and analysis that informed city planning and marketing.',
-    meta   :{
-      audience  :'Colorado economic councils, City of Grand Junction leadership',
-      cadence   :'Annual planning cycles & milestone releases',
-      focus     :'Economic forecasts, tourism ROI modeling, lodging performance trends',
-      deliverable:'Executive-ready PDF reports and briefing decks'
-    },
     items  : [
       { title:'Colorado Business Economic Outlook · 2025',
         role :'Contributions: Pages 122–129 - Data aggregation and analysis',
@@ -35,14 +29,6 @@ window.contributions = [
     slug  :'council-briefings',
     heading: 'Council Briefings',
     desc   : 'Briefings for Grand Junction City Council. I contributed actionable data insights and visualizations used by decision makers.',
-    meta   :{
-      audience  :'Grand Junction City Council & City Manager’s Office',
-      cadence   :'Bi-weekly governance briefings',
-      focus     :'Lodging tax, visitor demand outlook, marketing performance',
-      deliverable:'Narrated Canva decks with embedded dashboards'
-    },
-    groupBy:'quarter',
-    timelineLabel:'briefing',
     items  : [
       { title:'October 20, 2025 Council Briefing',
         role :'Contributions: Visit Grand Junction section',
@@ -175,13 +161,6 @@ window.contributions = [
     slug  :'enewsletters',
     heading:'Visit Grand Junction eNewsletters',
     desc   :'Tourism industry e-newsletters featuring my analytics, pacing reports, and lodging performance insights sent to stakeholders.',
-    meta   :{
-      audience  :'Tourism & hospitality stakeholders',
-      cadence   :'Monthly',
-      focus     :'Industry data reports, lodging tax pacing, marketing KPIs',
-      deliverable:'Mailchimp newsletters pointing to dashboards & calls to action'
-    },
-    timelineLabel:'newsletter',
     items  : [
       { title:'Stakeholder eNewsletter · October 2025',
         role :'Contributions: Industry Data Report',

@@ -5,23 +5,12 @@ const MONTH_PATTERN = '(January|February|March|April|May|June|July|August|Septem
 const MONTH_DAY_YEAR_RE = new RegExp(`${MONTH_PATTERN}\\s+\\d{1,2},\\s+\\d{4}`);
 const MONTH_YEAR_RE = new RegExp(`${MONTH_PATTERN}\\s+\\d{4}`);
 const YEAR_RE = /(20\d{2})/;
-const META_LABELS = {
-  audience   : 'Audience',
-  cadence    : 'Cadence',
-  focus      : 'Focus',
-  deliverable: 'Signature deliverable'
-};
 
 function slugify(text){
   return (text || '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '') || 'section';
-}
-
-function pluralize(count, singular){
-  const base = singular || 'item';
-  return count === 1 ? base : `${base}s`;
 }
 
 function formatMonthYear(date){
@@ -110,14 +99,11 @@ function buildDocLinks(item, opts = {}){
   if (item.pdf) {
     links.push(`
       <a href="${item.pdf}" target="_blank" rel="noopener noreferrer" class="doc-link" aria-label="Open PDF" download>
-        <span class="doc-link-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <path d="M14 2v6h6"/>
-            <path d="M8 15h8"/>
-          </svg>
-        </span>
-        <span class="doc-link-label">PDF</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <path d="M14 2v6h6"/>
+          <path d="M8 15h8"/>
+        </svg>
       </a>
     `);
   }
@@ -125,15 +111,12 @@ function buildDocLinks(item, opts = {}){
   if (item.link) {
     links.push(`
       <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="doc-link" aria-label="Open external link">
-        <span class="doc-link-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 3h7v7"/>
-            <path d="M10 14L21 3"/>
-            <path d="M21 14v7h-7"/>
-            <path d="M3 10v11h11"/>
-          </svg>
-        </span>
-        <span class="doc-link-label">Live</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M14 3h7v7"/>
+          <path d="M10 14L21 3"/>
+          <path d="M21 14v7h-7"/>
+          <path d="M3 10v11h11"/>
+        </svg>
       </a>
     `);
   }
@@ -164,89 +147,37 @@ function buildFeaturedCard(item){
   return card;
 }
 
-function buildAtGlanceCard(section){
-  if (!section.meta) return null;
-  const entries = Object.keys(META_LABELS)
-    .map(key => {
-      if (!section.meta[key]) return '';
-      return `
-        <div class="doc-meta-item">
-          <p class="doc-meta-label">${META_LABELS[key]}</p>
-          <p class="doc-meta-value">${section.meta[key]}</p>
-        </div>`;
-    })
-    .filter(Boolean)
-    .join('');
-  if (!entries) return null;
-
-  const card = document.createElement('article');
-  card.className = 'doc-card doc-card-meta';
-  card.innerHTML = `
-    <div class="doc-layout">
-      <p class="doc-label">At a glance</p>
-      <div class="doc-meta-grid">
-        ${entries}
-      </div>
-    </div>`;
-  return card;
-}
-
 function groupByYear(items){
-  const buckets = [];
   const map = new Map();
 
   items.forEach(entry => {
     const year = extractYear(entry);
     if (!map.has(year)) {
-      const bucket = { year, label: year, entries: [] };
-      map.set(year, bucket);
-      buckets.push(bucket);
+      map.set(year, []);
     }
-    map.get(year).entries.push(entry);
+    map.get(year).push(entry);
   });
 
-  return buckets;
-}
+  const numeric = [];
+  const other = [];
 
-function groupByQuarter(items){
-  const buckets = [];
-  const map = new Map();
-
-  items.forEach(entry => {
-    const date = getItemDate(entry);
-    if (!date) {
-      const fallbackKey = 'earlier';
-      if (!map.has(fallbackKey)) {
-        const bucket = { label: 'Earlier', key: fallbackKey, entries: [] };
-        map.set(fallbackKey, bucket);
-        buckets.push(bucket);
-      }
-      map.get(fallbackKey).entries.push(entry);
-      return;
+  map.forEach((entries, year) => {
+    const bucket = { year, entries };
+    if (/^\d{4}$/.test(year)) {
+      numeric.push(bucket);
+    } else {
+      other.push(bucket);
     }
-
-    const quarter = Math.floor(date.getUTCMonth() / 3) + 1;
-    const year = date.getUTCFullYear();
-    const key = `${year}-Q${quarter}`;
-
-    if (!map.has(key)) {
-      const bucket = { label: `Q${quarter} ${year}`, key, entries: [] };
-      map.set(key, bucket);
-      buckets.push(bucket);
-    }
-    map.get(key).entries.push(entry);
   });
 
-  return buckets;
+  numeric.sort((a, b) => Number(b.year) - Number(a.year));
+  return numeric.concat(other);
 }
 
-function buildTimeline(previousItems, options = {}){
+function buildYearTimeline(previousItems){
   if (!previousItems.length) return null;
 
-  const groups = options.groupBy === 'quarter'
-    ? groupByQuarter(previousItems)
-    : groupByYear(previousItems);
-
+  const groups = groupByYear(previousItems);
   if (!groups.length) return null;
 
   const timeline = document.createElement('div');
@@ -255,16 +186,17 @@ function buildTimeline(previousItems, options = {}){
   groups.forEach((group, index) => {
     const details = document.createElement('details');
     details.className = 'timeline-year';
-    details.dataset.group = group.label;
-    if (group.year) details.dataset.year = group.year;
-    if (!index) details.open = true;
-    if (!index) details.dataset.containsLatest = 'true';
+    details.dataset.year = group.year;
+    if (!index) {
+      details.open = true;
+      details.dataset.containsLatest = 'true';
+    }
 
     const summary = document.createElement('summary');
-    const noun = options.timelineLabel || 'report';
+    const label = group.entries.length === 1 ? 'report' : 'reports';
     summary.innerHTML = `
-      <span class="timeline-year-pill">${group.label}</span>
-      <span class="timeline-year-meta">${group.entries.length} ${pluralize(group.entries.length, noun)}</span>
+      <span class="timeline-year-pill">${group.year}</span>
+      <span class="timeline-year-meta">${group.entries.length} ${label}</span>
     `;
     details.appendChild(summary);
 
@@ -289,71 +221,6 @@ function buildTimeline(previousItems, options = {}){
   });
 
   return timeline;
-}
-
-function computeOverviewStats(){
-  const stats = {
-    categories: 0,
-    artifacts : 0,
-    latestDate: null
-  };
-
-  if (!Array.isArray(window.contributions)) return stats;
-
-  stats.categories = window.contributions.length;
-  window.contributions.forEach(section => {
-    const items = Array.isArray(section.items) ? section.items : [];
-    stats.artifacts += items.length;
-    items.forEach(item => {
-      const date = getItemDate(item);
-      if (date && (!stats.latestDate || date.getTime() > stats.latestDate.getTime())) {
-        stats.latestDate = date;
-      }
-    });
-  });
-
-  return stats;
-}
-
-function buildOverview(){
-  const mount = document.getElementById('contrib-meta');
-  if (!mount) return;
-
-  const stats = computeOverviewStats();
-  const artifactLabel = `public ${pluralize(stats.artifacts, 'artifact')}`;
-  const updatedLabel = stats.latestDate ? formatMonthYear(stats.latestDate) : 'Current';
-
-  const navLinks = Array.isArray(window.contributions)
-    ? window.contributions
-        .map(section => {
-          const slug = section.slug || slugify(section.heading);
-          return `<a href="#${slug}">${section.heading}</a>`;
-        })
-        .join('')
-    : '';
-
-  mount.innerHTML = `
-    <div class="overview-stat-grid">
-      <div class="overview-stat">
-        <p class="overview-stat-value">${stats.categories}</p>
-        <p class="overview-stat-label">publication categories</p>
-      </div>
-      <div class="overview-stat">
-        <p class="overview-stat-value">${stats.artifacts}</p>
-        <p class="overview-stat-label">${artifactLabel}</p>
-      </div>
-      <div class="overview-stat">
-        <p class="overview-stat-value">${updatedLabel}</p>
-        <p class="overview-stat-label">latest update</p>
-      </div>
-    </div>
-    <div class="overview-anchor-row">
-      <span class="overview-anchor-label">Jump to</span>
-      <div class="overview-anchor-links">
-        ${navLinks}
-      </div>
-    </div>
-  `;
 }
 
 function buildContributions(){
@@ -386,13 +253,7 @@ function buildContributions(){
     const featured = buildFeaturedCard(latest);
     if (featured) stack.appendChild(featured);
 
-    const glance = buildAtGlanceCard(sec);
-    if (glance) stack.appendChild(glance);
-
-    const timeline = buildTimeline(previous, {
-      groupBy: sec.groupBy,
-      timelineLabel: sec.timelineLabel
-    });
+    const timeline = buildYearTimeline(previous);
     if (timeline) stack.appendChild(timeline);
 
     wrap.appendChild(stack);
@@ -407,7 +268,6 @@ function buildContributions(){
 }
 
 function initContributions(){
-  buildOverview();
   buildContributions();
 }
 
