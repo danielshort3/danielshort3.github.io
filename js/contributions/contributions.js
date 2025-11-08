@@ -1,7 +1,7 @@
 /* contributions.js - Build contributions UI components.
    Contribution data now lives in contributions-data.js */
 
-function buildDocLinks(item, opts = {}){
+function buildDocLinks(item, opts = {}) {
   const links = [];
 
   if (item.pdf) {
@@ -36,65 +36,131 @@ function buildDocLinks(item, opts = {}){
   return `<div class="${classes.join(' ')}">${links.join('')}</div>`;
 }
 
-function extractYear(item){
-  if (item.year) return String(item.year);
-  const haystack = `${item.title ?? ''} ${item.role ?? ''}`;
-  const match = haystack.match(/(20\d{2})/);
-  return match ? match[1] : 'Earlier';
+function buildMetaLine(item) {
+  const parts = [];
+  if (item.year && item.year !== 'Earlier') parts.push(item.year);
+  if (item.quarter) parts.push(item.quarter);
+  if (item.focus) parts.push(item.focus);
+  return parts.length ? `<p class="doc-meta">${parts.join(' · ')}</p>` : '';
 }
 
-function buildFeaturedCard(item){
+function buildFeaturedCard(item) {
   const card = document.createElement('article');
   card.className = 'doc-card featured-doc';
   card.innerHTML = `
     <div class="doc-layout">
       <p class="doc-label">Latest contribution</p>
       <h3 class="doc-title">${item.title}</h3>
+      ${buildMetaLine(item)}
       <div class="doc-footer">
         ${item.role ? `<p class="doc-role">${item.role}</p>` : ''}
-        ${buildDocLinks(item)}
+        ${buildDocLinks(item) || ''}
       </div>
     </div>`;
   return card;
 }
 
-function groupByYear(items){
-  const buckets = [];
-  const map = new Map();
+function buildImpactCard(section, includeDownloadFallback) {
+  if (!section.impact) return null;
+  const card = document.createElement('article');
+  card.className = 'impact-card';
+  const metrics = Array.isArray(section.impact.metrics)
+    ? section.impact.metrics.map(metric => `
+        <div>
+          <p class="impact-metric-value">${metric.value}</p>
+          <p class="impact-metric-label">${metric.label}</p>
+        </div>
+      `).join('')
+    : '';
 
-  items.forEach(entry => {
-    const year = extractYear(entry);
-    if (!map.has(year)) {
-      const bucket = { year, entries: [] };
-      map.set(year, bucket);
-      buckets.push(bucket);
-    }
-    map.get(year).entries.push(entry);
-  });
+  card.innerHTML = `
+    <p class="impact-label">Key impact</p>
+    <h3>${section.impact.title}</h3>
+    <p class="impact-summary">${section.impact.summary}</p>
+    ${metrics ? `<div class="impact-metrics">${metrics}</div>` : ''}
+  `;
 
-  return buckets;
+  if (includeDownloadFallback && section.download) {
+    card.appendChild(buildDownloadButton(section.download));
+  }
+
+  return card;
 }
 
-function buildYearTimeline(previousItems, latestYear){
+function buildDownloadButton(download) {
+  if (!download || !download.file) return null;
+  const wrapper = document.createElement('div');
+  wrapper.className = 'download-block';
+  const size = download.size ? `<span class="download-size">${download.size}</span>` : '';
+  wrapper.innerHTML = `
+    <a href="${download.file}" class="download-pill" download>
+      <span class="download-label">${download.label}</span>
+      ${size}
+    </a>
+    ${download.description ? `<p class="download-description">${download.description}</p>` : ''}
+  `;
+  return wrapper;
+}
+
+function groupByYear(items = []) {
+  const groups = new Map();
+  items.forEach(item => {
+    const year = item.year || 'Earlier';
+    if (!groups.has(year)) groups.set(year, []);
+    groups.get(year).push(item);
+  });
+  return Array.from(groups.entries())
+    .sort((a, b) => {
+      const aYear = parseInt(a[0], 10);
+      const bYear = parseInt(b[0], 10);
+      if (Number.isFinite(aYear) && Number.isFinite(bYear)) return bYear - aYear;
+      if (Number.isFinite(aYear)) return 1;
+      if (Number.isFinite(bYear)) return -1;
+      return 0;
+    })
+    .map(([year, entries]) => ({ year, entries }));
+}
+
+function buildTimelineMeta(item) {
+  const parts = [];
+  if (item.year && item.year !== 'Earlier') parts.push(item.year);
+  if (item.quarter) parts.push(item.quarter);
+  if (item.focus) parts.push(item.focus);
+  return parts.length ? `<span class="timeline-item-meta">${parts.join(' · ')}</span>` : '';
+}
+
+function buildTimeline(section, previousItems) {
   if (!previousItems.length) return null;
 
-  const groups = groupByYear(previousItems);
-  if (!groups.length) return null;
+  const shell = document.createElement('section');
+  shell.className = 'timeline-shell';
+
+  const header = document.createElement('div');
+  header.className = 'timeline-header';
+  header.innerHTML = `
+    <div>
+      <p class="timeline-label">Historical contributions</p>
+      <p class="timeline-subtext">Expand a year to scan supporting work.</p>
+    </div>
+  `;
+
+  const downloadButton = buildDownloadButton(section.download);
+  if (downloadButton) header.appendChild(downloadButton);
+
+  shell.appendChild(header);
 
   const timeline = document.createElement('div');
   timeline.className = 'contrib-timeline';
 
-  groups.forEach(group => {
+  groupByYear(previousItems).forEach(group => {
     const details = document.createElement('details');
     details.className = 'timeline-year';
     details.dataset.year = group.year;
-    if (group.year === latestYear) details.dataset.containsLatest = 'true';
 
     const summary = document.createElement('summary');
-    const label = group.entries.length === 1 ? 'report' : 'reports';
     summary.innerHTML = `
       <span class="timeline-year-pill">${group.year}</span>
-      <span class="timeline-year-meta">${group.entries.length} ${label}</span>
+      <span class="timeline-year-meta">${group.entries.length} ${group.entries.length === 1 ? 'entry' : 'entries'}</span>
     `;
     details.appendChild(summary);
 
@@ -107,6 +173,7 @@ function buildYearTimeline(previousItems, latestYear){
       li.innerHTML = `
         <div class="timeline-item-text">
           <span class="timeline-item-title">${item.title}</span>
+          ${buildTimelineMeta(item)}
           ${item.role ? `<span class="timeline-item-role">${item.role}</span>` : ''}
         </div>
         ${buildDocLinks(item, { compact: true }) || ''}
@@ -118,42 +185,113 @@ function buildYearTimeline(previousItems, latestYear){
     timeline.appendChild(details);
   });
 
-  return timeline;
+  shell.appendChild(timeline);
+  return shell;
 }
 
-function buildContributions(){
+function buildHeroOverview(sections) {
+  const list = document.getElementById('contrib-hero-list');
+  if (!list) return;
+  list.innerHTML = '';
+
+  sections.forEach(section => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <a href="#${section.id}" data-target="${section.id}">
+        <span class="hero-mini-label">${section.shortTitle || section.heading}</span>
+        <span class="hero-mini-desc">${section.heroSummary || section.desc || ''}</span>
+      </a>
+    `;
+    list.appendChild(li);
+  });
+}
+
+function buildNav(sections) {
+  const list = document.getElementById('contrib-nav-list');
+  if (!list) return;
+  list.innerHTML = '';
+
+  sections.forEach(section => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <a href="#${section.id}" data-target="${section.id}">
+        <span class="nav-label">${section.shortTitle || section.heading}</span>
+        <span class="nav-meta">${section.navSummary || ''}</span>
+      </a>
+    `;
+    list.appendChild(li);
+  });
+}
+
+function initScrollSpy(sections) {
+  const navLinks = Array.from(document.querySelectorAll('.contrib-nav a[data-target]'));
+  if (!navLinks.length || typeof IntersectionObserver === 'undefined') return;
+
+  const linkMap = new Map();
+  navLinks.forEach(link => linkMap.set(link.dataset.target, link));
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      const link = linkMap.get(entry.target.id);
+      if (!link) return;
+      if (entry.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('is-active'));
+        link.classList.add('is-active');
+      }
+    });
+  }, { threshold: 0.4 });
+
+  sections.forEach(section => {
+    const el = document.getElementById(section.id);
+    if (el) observer.observe(el);
+  });
+}
+
+function buildSections(sections) {
   const root = document.getElementById('contrib-root');
-  if(!root || !Array.isArray(window.contributions)) return;
+  if (!root) return;
+  root.innerHTML = '';
 
-  window.contributions.forEach((sec, index) => {
-    if (!sec.items || !sec.items.length) return;
+  sections.forEach((section, index) => {
+    if (!Array.isArray(section.items) || !section.items.length) return;
+    const [latest, ...previousItems] = section.items;
 
-    const [latest, ...previous] = sec.items;
-    const latestYear = extractYear(latest);
+    const container = document.createElement('section');
+    container.className = 'surface-band reveal contrib-section';
+    container.id = section.id;
+    container.dataset.heading = section.heading;
 
-    const section = document.createElement('section');
-    section.className = 'surface-band reveal contrib-section';
-    section.dataset.heading = sec.heading;
-
-    const wrap   = document.createElement('div');
+    const wrap = document.createElement('div');
     wrap.className = 'wrapper';
-    section.appendChild(wrap);
+    container.appendChild(wrap);
 
-    wrap.insertAdjacentHTML('beforeend',
-      `<h2 class="section-title">${sec.heading}</h2>
-       <p class="section-desc">${sec.desc}</p>`);
+    wrap.insertAdjacentHTML('beforeend', `
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">${section.heading}</h2>
+          <p class="section-desc">${section.desc || ''}</p>
+        </div>
+      </div>
+    `);
 
     const stack = document.createElement('div');
     stack.className = 'contrib-stack';
-    stack.appendChild(buildFeaturedCard(latest));
 
-    const timeline = buildYearTimeline(previous, latestYear);
+    const featureRow = document.createElement('div');
+    featureRow.className = 'contrib-feature-row';
+    featureRow.appendChild(buildFeaturedCard(latest));
+
+    const timeline = buildTimeline(section, previousItems);
+    const impactCard = buildImpactCard(section, !timeline);
+    if (impactCard) featureRow.appendChild(impactCard);
+
+    stack.appendChild(featureRow);
     if (timeline) stack.appendChild(timeline);
 
     wrap.appendChild(stack);
-    root.appendChild(section);
+    root.appendChild(container);
 
-    if (index !== window.contributions.length - 1){
+    if (index !== sections.length - 1) {
       const gap = document.createElement('section');
       gap.className = 'contrib-gap';
       root.appendChild(gap);
@@ -161,8 +299,13 @@ function buildContributions(){
   });
 }
 
-function initContributions(){
-  buildContributions();
+function initContributions() {
+  const sections = window.contributions;
+  if (!Array.isArray(sections)) return;
+  buildHeroOverview(sections);
+  buildNav(sections);
+  buildSections(sections);
+  initScrollSpy(sections);
 }
 
 document.addEventListener('DOMContentLoaded', initContributions);
