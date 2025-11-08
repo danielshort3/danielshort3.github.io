@@ -168,17 +168,55 @@
   .doc-footer .doc-links{ display:flex; gap:12px; }
   /* mobile alignment for footer/content */
   @media (max-width:768px){
-    .doc-card{ position:relative; padding-bottom:96px; }
-    .featured-doc{ padding-bottom:96px; }
-    .doc-footer{ position:absolute; left:24px; right:24px; bottom:24px; display:flex; justify-content:space-between; align-items:flex-end; }
-    .doc-links{ position:static; display:flex; gap:12px; }
+    /* stack cards so labels/roles never clash with the footer */
+    .doc-card,
+    .doc-card.featured-doc{
+      position:static;
+      padding:26px 22px 32px;
+    }
+    .doc-footer{
+      position:static;
+      left:auto;
+      right:auto;
+      bottom:auto;
+      flex-direction:column;
+      align-items:flex-start;
+      gap:12px;
+      margin-top:18px;
+    }
+    .doc-card .doc-links{
+      position:static;
+      justify-content:flex-start;
+      flex-wrap:wrap;
+      gap:12px;
+      margin-left:0;
+    }
     .docs-grid{ grid-template-columns:1fr; }
-    .timeline-year{padding:0 20px 12px;}
-    .timeline-year::before{left:16px;}
-    .timeline-year::after{left:21px;}
-    .timeline-year summary{flex-direction:column;align-items:flex-start;padding-left:28px;}
+
+    /* turn the previous reports timeline into distinct cards for readability */
+    .timeline-year{padding:16px 20px 18px;}
+    .timeline-year::before,
+    .timeline-year::after{display:none;}
+    .timeline-year summary{
+      flex-direction:column;
+      align-items:flex-start;
+      padding:0;
+    }
     .timeline-year summary::after{margin-left:0;margin-top:8px;}
-    .timeline-item{flex-direction:column;padding-left:28px;}
-    .timeline-item .doc-links{justify-content:flex-start;}
+    .timeline-list{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      margin-top:8px;
+    }
+    .timeline-item{
+      flex-direction:column;
+      padding:18px;
+      border-top:none;
+      border:1px solid color-mix(in srgb,var(--border-subtle) 80%, transparent);
+      border-radius:14px;
+      background:color-mix(in srgb,var(--surface) 92%, var(--bg));
+    }
+    .timeline-item .doc-links{justify-content:flex-start; margin-top:10px;}
   }
 }
