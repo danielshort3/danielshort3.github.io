@@ -269,6 +269,32 @@ function buildContributions(){
 
 function initContributions(){
   buildContributions();
+  handleInitialHashScroll();
 }
 
 document.addEventListener('DOMContentLoaded', initContributions);
+window.addEventListener('hashchange', () => handleHashChangeScroll('smooth'));
+window.addEventListener('load', () => handleHashChangeScroll('auto'));
+
+function getNavOffset(){
+  const value = getComputedStyle(document.documentElement).getPropertyValue('--nav-height');
+  const parsed = parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : 72;
+}
+
+function scrollSectionIntoView(id, behavior = 'smooth'){
+  const target = document.getElementById(id);
+  if (!target) return;
+  const offset = target.getBoundingClientRect().top + window.scrollY - getNavOffset();
+  window.scrollTo({ top: Math.max(offset, 0), behavior });
+}
+
+function handleHashChangeScroll(behavior){
+  const hash = window.location.hash?.replace('#','').trim();
+  if (!hash) return;
+  requestAnimationFrame(() => scrollSectionIntoView(hash, behavior));
+}
+
+function handleInitialHashScroll(){
+  handleHashChangeScroll('auto');
+}
