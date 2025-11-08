@@ -282,13 +282,16 @@
     width:100%;
     display:block;
   }
-  .nav-item-portfolio .nav-link-has-menu{
+  .nav-item-portfolio .nav-link-has-menu,
+  .nav-item-contributions .nav-link-has-menu{
     gap:0;
   }
-  .nav-item-portfolio .nav-link-caret{
+  .nav-item-portfolio .nav-link-caret,
+  .nav-item-contributions .nav-link-caret{
     display:none;
   }
-  .nav-item-portfolio .nav-dropdown{
+  .nav-item-portfolio .nav-dropdown,
+  .nav-item-contributions .nav-dropdown{
     display:none !important;
   }
 
