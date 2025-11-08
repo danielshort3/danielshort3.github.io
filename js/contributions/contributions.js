@@ -36,6 +36,13 @@ function buildDocLinks(item, opts = {}){
   return `<div class="${classes.join(' ')}">${links.join('')}</div>`;
 }
 
+function extractYear(item){
+  if (item.year) return String(item.year);
+  const haystack = `${item.title ?? ''} ${item.role ?? ''}`;
+  const match = haystack.match(/(20\d{2})/);
+  return match ? match[1] : 'Earlier';
+}
+
 function buildFeaturedCard(item){
   const card = document.createElement('article');
   card.className = 'doc-card featured-doc';
@@ -51,35 +58,67 @@ function buildFeaturedCard(item){
   return card;
 }
 
-function buildPreviousDropdown(previousItems, heading){
-  if (!previousItems.length) return null;
+function groupByYear(items){
+  const buckets = [];
+  const map = new Map();
 
-  const details = document.createElement('details');
-  details.className = 'contrib-dropdown';
-  details.setAttribute('aria-label', `Previous contributions for ${heading}`);
-
-  const summary = document.createElement('summary');
-  summary.innerHTML = `Previous contributions <span>(${previousItems.length})</span>`;
-  details.appendChild(summary);
-
-  const list = document.createElement('ul');
-  list.className = 'doc-list';
-
-  previousItems.forEach(item => {
-    const li = document.createElement('li');
-    li.className = 'doc-row';
-    li.innerHTML = `
-      <div class="doc-row-text">
-        <span class="doc-row-title">${item.title}</span>
-        ${item.role ? `<span class="doc-row-role">${item.role}</span>` : ''}
-      </div>
-      ${buildDocLinks(item, { compact: true }) || ''}
-    `;
-    list.appendChild(li);
+  items.forEach(entry => {
+    const year = extractYear(entry);
+    if (!map.has(year)) {
+      const bucket = { year, entries: [] };
+      map.set(year, bucket);
+      buckets.push(bucket);
+    }
+    map.get(year).entries.push(entry);
   });
 
-  details.appendChild(list);
-  return details;
+  return buckets;
+}
+
+function buildYearTimeline(previousItems, latestYear){
+  if (!previousItems.length) return null;
+
+  const groups = groupByYear(previousItems);
+  if (!groups.length) return null;
+
+  const timeline = document.createElement('div');
+  timeline.className = 'contrib-timeline';
+
+  groups.forEach(group => {
+    const details = document.createElement('details');
+    details.className = 'timeline-year';
+    details.dataset.year = group.year;
+    if (group.year === latestYear) details.dataset.containsLatest = 'true';
+
+    const summary = document.createElement('summary');
+    const label = group.entries.length === 1 ? 'report' : 'reports';
+    summary.innerHTML = `
+      <span class="timeline-year-pill">${group.year}</span>
+      <span class="timeline-year-meta">${group.entries.length} ${label}</span>
+    `;
+    details.appendChild(summary);
+
+    const list = document.createElement('ul');
+    list.className = 'timeline-list';
+
+    group.entries.forEach(item => {
+      const li = document.createElement('li');
+      li.className = 'timeline-item';
+      li.innerHTML = `
+        <div class="timeline-item-text">
+          <span class="timeline-item-title">${item.title}</span>
+          ${item.role ? `<span class="timeline-item-role">${item.role}</span>` : ''}
+        </div>
+        ${buildDocLinks(item, { compact: true }) || ''}
+      `;
+      list.appendChild(li);
+    });
+
+    details.appendChild(list);
+    timeline.appendChild(details);
+  });
+
+  return timeline;
 }
 
 function buildContributions(){
@@ -90,6 +129,7 @@ function buildContributions(){
     if (!sec.items || !sec.items.length) return;
 
     const [latest, ...previous] = sec.items;
+    const latestYear = extractYear(latest);
 
     const section = document.createElement('section');
     section.className = 'surface-band reveal contrib-section';
@@ -107,8 +147,8 @@ function buildContributions(){
     stack.className = 'contrib-stack';
     stack.appendChild(buildFeaturedCard(latest));
 
-    const dropdown = buildPreviousDropdown(previous, sec.heading);
-    if (dropdown) stack.appendChild(dropdown);
+    const timeline = buildYearTimeline(previous, latestYear);
+    if (timeline) stack.appendChild(timeline);
 
     wrap.appendChild(stack);
     root.appendChild(section);
