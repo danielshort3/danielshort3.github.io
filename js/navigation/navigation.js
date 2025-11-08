@@ -8,8 +8,6 @@
   const $$ = (s, c=document) => [...c.querySelectorAll(s)];
   const NAV_HEIGHT_FALLBACK = 72;
   let cachedNavHeight = null;
-  let navResizeObserver = null;
-  let fontsWatched = false;
 
   const measureNavHeight = () => {
     const nav = document.querySelector('.nav');
@@ -42,33 +40,6 @@
     setCssNavHeight(measured);
     cachedNavHeight = measured;
     return measured;
-  };
-  const watchFonts = () => {
-    if (fontsWatched) return;
-    const fonts = document.fonts;
-    if (!fonts) return;
-    const refresh = () => setNavHeight();
-    let attached = false;
-    if (typeof fonts.addEventListener === 'function') {
-      fonts.addEventListener('loadingdone', refresh);
-      attached = true;
-    } else if (typeof fonts.addListener === 'function') {
-      fonts.addListener(refresh);
-      attached = true;
-    }
-    if (fonts.ready && typeof fonts.ready.then === 'function') {
-      fonts.ready.then(refresh).catch(() => {});
-      attached = true;
-    }
-    if (attached) fontsWatched = true;
-  };
-  const observeNavSize = (nav) => {
-    if (!nav || typeof ResizeObserver !== 'function') return;
-    if (navResizeObserver) navResizeObserver.disconnect();
-    navResizeObserver = new ResizeObserver(() => {
-      setNavHeight();
-    });
-    navResizeObserver.observe(nav);
   };
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -224,9 +195,6 @@
         }
       });
     }
-    const navEl = host.querySelector('.nav');
-    observeNavSize(navEl);
-    watchFonts();
   }
   function setupDropdown(item){
     if(!item) return;
