@@ -6,8 +6,6 @@
   'use strict';
   const $  = (s, c=document) => c.querySelector(s);
   const $$ = (s, c=document) => [...c.querySelectorAll(s)];
-  let activeDropdown = null;
-
   document.addEventListener('DOMContentLoaded', () => {
     injectNav();
     injectFooter();
@@ -60,7 +58,7 @@
       <div class="nav-dropdown-header" aria-hidden="true">Browse categories</div>
       <div class="nav-dropdown-list" role="list">
         ${contributionSections.map(
-          c => `<a href="contributions.html#${c.id}" class="nav-dropdown-link" role="listitem" data-scroll-target="${c.id}">
+          c => `<a href="contributions.html#${c.id}" class="nav-dropdown-link" role="listitem">
                   <span class="nav-dropdown-title">${c.title}</span>
                   <span class="nav-dropdown-subtitle">${c.subtitle}</span>
                 </a>`
@@ -120,7 +118,6 @@
     const menu   = host.querySelector('#primary-menu');
     setupDropdown(host.querySelector('.nav-item-portfolio'));
     setupDropdown(host.querySelector('.nav-item-contributions'));
-    setupAnchorScroll(host);
 
     // Simple focus trap within the mobile drawer
     let prevFocus = null;
@@ -147,9 +144,6 @@
         const open = menu.classList.toggle('open');
         burger.setAttribute('aria-expanded', open);
         document.body.classList.toggle('menu-open', open);
-        if (!open) {
-          closeDropdown(activeDropdown);
-        }
 
         if (open) {
           prevFocus = document.activeElement;
@@ -164,23 +158,6 @@
       });
     }
   }
-  function closeDropdown(item){
-    if (!item) return;
-    item.classList.remove('dropdown-open');
-    if (activeDropdown === item) {
-      activeDropdown = null;
-    }
-  }
-
-  function openDropdown(item){
-    if (!item) return;
-    if (activeDropdown && activeDropdown !== item){
-      closeDropdown(activeDropdown);
-    }
-    activeDropdown = item;
-    item.classList.add('dropdown-open');
-  }
-
   function setupDropdown(item){
     if(!item) return;
     const dropdown = item.querySelector('.nav-dropdown');
@@ -188,12 +165,12 @@
     let closeTimer = null;
     const open = () => {
       clearTimeout(closeTimer);
-      openDropdown(item);
+      item.classList.add('dropdown-open');
     };
     const scheduleClose = () => {
       clearTimeout(closeTimer);
       closeTimer = setTimeout(() => {
-        closeDropdown(item);
+        item.classList.remove('dropdown-open');
       }, 320);
     };
     item.addEventListener('focusin', open);
@@ -220,28 +197,6 @@
     } else if(typeof prefersHover.addListener === 'function'){
       prefersHover.addListener(onMediaChange);
     }
-  }
-
-  function setupAnchorScroll(host){
-    if(!host) return;
-    const links = host.querySelectorAll('[data-scroll-target]');
-    if(!links.length) return;
-    const currentPage = () => location.pathname.split('/').pop() || 'index.html';
-    links.forEach(link => {
-      link.addEventListener('click', (event) => {
-        const targetId = link.getAttribute('data-scroll-target');
-        if (!targetId) return;
-        if (currentPage() !== 'contributions.html') return;
-        const target = document.getElementById(targetId);
-        if (!target) return;
-        event.preventDefault();
-        closeDropdown(activeDropdown);
-        const navHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-height')) || 0;
-        const offset = target.getBoundingClientRect().top + window.scrollY - navHeight;
-        window.scrollTo({ top: offset, behavior: 'smooth' });
-        history.replaceState(null, '', `#${targetId}`);
-      });
-    });
   }
   function injectFooter(){
     const f = $('footer');
