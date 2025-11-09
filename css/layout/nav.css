@@ -235,7 +235,7 @@
     .nav-dropdown{
       display:block;
       position:absolute;
-      top:calc(100% + var(--nav-block-padding) + var(--nav-border-width));
+      top:calc(100% + var(--nav-bottom-gap, var(--nav-block-padding)));
       left:50%;
       margin-top:0;
       width:max(280px, 22vw);
