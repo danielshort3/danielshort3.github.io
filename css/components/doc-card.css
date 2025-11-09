@@ -181,6 +181,15 @@
     margin-left:auto;
     align-items:center;
   }
+  @media (min-width: 769px){
+    .doc-card.featured-doc .doc-footer{
+      flex-wrap:nowrap;
+    }
+    .doc-card.featured-doc .doc-role{
+      flex:1 1 auto;
+      min-width:0;
+    }
+  }
   /* mobile alignment for footer/content */
   @media (max-width:768px){
     /* stack cards so labels/roles never clash with the footer */
