@@ -231,19 +231,21 @@
     .nav-dropdown{
       display:block;
       position:absolute;
-      top:calc(100% + 10px);
+      top:100%;
       left:50%;
+      margin-top:-1px;
       width:max(280px, 22vw);
       max-width:360px;
       padding:16px;
-      border-radius:20px;
-      background:radial-gradient(140% 140% at 0% 0%,
-        color-mix(in srgb,var(--surface) 96%, #03070f 4%) 0%,
-        color-mix(in srgb,var(--surface) 84%, #020409 16%) 65%,
-        color-mix(in srgb,var(--surface) 76%, #000000 24%) 100%);
-      border:1px solid color-mix(in srgb,var(--primary) 26%, transparent);
-      box-shadow:0 28px 60px rgba(0,0,0,.45);
-      transform:translate3d(-50%, -8px, 0) scale(.98);
+      border-radius:0 0 20px 20px;
+      background:linear-gradient(180deg,
+        color-mix(in srgb, rgba(13,17,23,.96) 75%, rgba(15,21,30,.88) 25%) 0%,
+        color-mix(in srgb, rgba(14,20,30,.94) 70%, rgba(18,25,36,.85) 30%) 55%,
+        color-mix(in srgb, rgba(12,18,28,.92) 60%, rgba(6,10,18,.85) 40%) 100%);
+      border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
+      border-top:none;
+      box-shadow:0 24px 48px rgba(0,0,0,.45);
+      transform:translate3d(-50%, -2px, 0) scale(.98);
       opacity:0;
       pointer-events:none;
       backdrop-filter:blur(18px);
