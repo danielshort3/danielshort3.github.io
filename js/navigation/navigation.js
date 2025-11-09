@@ -22,6 +22,18 @@
     window.__navHeight = value;
   };
 
+  const updateNavDropdownOffset = () => {
+    const nav = document.querySelector('.nav');
+    if (!nav) return;
+    const row = nav.querySelector('.nav-row');
+    if (!row) return;
+    const navRect = nav.getBoundingClientRect();
+    const rowRect = row.getBoundingClientRect();
+    if (!navRect?.bottom || !rowRect?.bottom) return;
+    const gap = Math.max(0, navRect.bottom - rowRect.bottom);
+    nav.style.setProperty('--nav-bottom-gap', `${gap}px`);
+  };
+
   const emitNavHeightChange = (value) => {
     try {
       document.dispatchEvent(new CustomEvent('navheightchange', { detail: value }));
@@ -57,6 +69,7 @@
     cachedNavHeight = next;
     setCssNavHeight(next);
     emitNavHeightChange(next);
+    updateNavDropdownOffset();
   }
   function injectNav(){
     const host = $('#combined-header-nav');
@@ -308,6 +321,7 @@
     } else if(typeof prefersHover.addListener === 'function'){
       prefersHover.addListener(onMediaChange);
     }
+    updateNavDropdownOffset();
   }
   function injectFooter(){
     const f = $('footer');
