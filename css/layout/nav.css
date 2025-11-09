@@ -233,19 +233,20 @@
       position:absolute;
       top:100%;
       left:50%;
-      margin-top:-1px;
+      margin-top:0;
       width:max(280px, 22vw);
       max-width:360px;
       padding:16px;
       border-radius:0 0 20px 20px;
       background:linear-gradient(180deg,
-        #0d1117 0%,
-        #101722 50%,
-        #090f18 100%);
+        rgba(13,17,23,.98) 0%,
+        rgba(15,21,30,.96) 55%,
+        rgba(18,25,36,.94) 100%);
       border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
       border-top:none;
       box-shadow:0 24px 48px rgba(0,0,0,.45);
-      transform:translate3d(-50%, -2px, 0) scale(.98);
+      transform:translate3d(-50%, 0, 0) scaleY(.85);
+      transform-origin:top center;
       opacity:0;
       pointer-events:none;
       backdrop-filter:blur(18px);
@@ -267,7 +268,7 @@
     .nav-item-contact:focus-within .nav-dropdown,
     .nav-item-contact.dropdown-open .nav-dropdown{
       opacity:1;
-      transform:translate3d(-50%, 0, 0) scale(1);
+      transform:translate3d(-50%, 0, 0) scaleY(1);
       pointer-events:auto;
     }
   }
