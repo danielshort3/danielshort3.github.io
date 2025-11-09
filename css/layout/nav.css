@@ -10,6 +10,9 @@
     --nav-accent-gradient:linear-gradient(135deg,
       color-mix(in srgb,var(--primary) 92%, #ffffff 8%) 0%,
       color-mix(in srgb,var(--primary) 68%, #0A1A1F 32%) 100%);
+    --nav-block-padding: clamp(12px, 1.8vw, 20px);
+    --nav-inline-padding: clamp(20px, 5vw, 48px);
+    --nav-border-width:1px;
     position:fixed;
     inset:0;
     width:100%;
@@ -18,7 +21,7 @@
       rgba(13,17,23,.92) 0%,
       rgba(15,21,30,.86) 60%,
       rgba(18,25,36,.82) 100%);
-    border-bottom:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    border-bottom:var(--nav-border-width) solid color-mix(in srgb,var(--primary) 18%, transparent);
     backdrop-filter:blur(18px);
   }
   /* Scroll progress bar integrated at the bottom of the nav */
@@ -37,7 +40,7 @@
     align-items:center;
     justify-content:space-between;
     gap:clamp(16px,4vw,48px);
-    padding:clamp(12px,1.8vw,20px) clamp(20px,5vw,48px);
+    padding:var(--nav-block-padding) var(--nav-inline-padding);
     max-width:calc(var(--container-max) + 96px);
     margin-inline:auto;
   }
@@ -232,9 +235,9 @@
     .nav-dropdown{
       display:block;
       position:absolute;
-      top:100%;
+      top:calc(100% + var(--nav-block-padding) + var(--nav-border-width));
       left:50%;
-      margin-top:-1px;
+      margin-top:0;
       width:max(280px, 22vw);
       max-width:360px;
       padding:16px;

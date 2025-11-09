@@ -188,8 +188,12 @@
     transform:translateY(-7px) rotate(-45deg);
   }
 
+  .nav{
+    --nav-block-padding: clamp(12px,3vw,18px);
+    --nav-inline-padding: clamp(20px,6vw,28px);
+  }
   .nav .wrapper{
-    padding:clamp(12px,3vw,18px) clamp(20px,6vw,28px);
+    padding:var(--nav-block-padding) var(--nav-inline-padding);
     gap:16px;
   }
 
