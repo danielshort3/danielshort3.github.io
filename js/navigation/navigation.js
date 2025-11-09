@@ -117,7 +117,7 @@
       </div>
     `;
     const contactOptions = [
-      { title: 'Message through website', subtitle: 'Send a secure form (recommended)', href: 'contact.html#contact-options', recommended: true },
+      { title: 'Message through website', subtitle: 'Send a message via website', href: 'contact.html#contact-modal', recommended: true, modalLink: true },
       { title: 'Email', subtitle: 'danielshort3@gmail.com', href: 'mailto:danielshort3@gmail.com' },
       { title: 'LinkedIn', subtitle: 'linkedin.com/in/danielshort3', href: 'https://www.linkedin.com/in/danielshort3/', external: true },
       { title: 'GitHub', subtitle: 'github.com/danielshort3', href: 'https://github.com/danielshort3', external: true }
@@ -126,7 +126,14 @@
       <div class="nav-dropdown-header" aria-hidden="true">Get in touch</div>
       <div class="nav-dropdown-list" role="list">
         ${contactOptions.map((option) => {
-          const attrs = option.external ? ' target="_blank" rel="noopener noreferrer"' : '';
+          const attrParts = [];
+          if(option.external){
+            attrParts.push('target="_blank"', 'rel="noopener noreferrer"');
+          }
+          if(option.modalLink){
+            attrParts.push('data-contact-modal-link="true"');
+          }
+          const attrs = attrParts.length ? ` ${attrParts.join(' ')}` : '';
           const badge = option.recommended ? '<span class="nav-dropdown-badge" aria-hidden="true">Recommended</span>' : '';
           return `<a href="${option.href}" class="nav-dropdown-link${option.recommended ? ' nav-dropdown-link-recommended' : ''}" role="listitem"${attrs}>
                     <span class="nav-dropdown-title">${option.title}${badge}</span>

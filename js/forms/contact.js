@@ -30,9 +30,26 @@
     content.removeEventListener('keydown', trap);
     if (prevFocus) prevFocus.focus();
   }
+  const openIfHashMatches = () => {
+    if (!modal) return;
+    if (location.hash === '#contact-modal') {
+      // Slight delay so layout settles before opening
+      setTimeout(() => {
+        if (!modal.classList.contains('active')) open();
+      }, 120);
+    }
+  };
 
   openBtn && openBtn.addEventListener('click', open);
   closeBtn && closeBtn.addEventListener('click', close);
   modal && modal.addEventListener('click', (e)=>{ if(e.target === modal) close(); });
   document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && modal.classList.contains('active')) close(); });
+  document.addEventListener('click', (event) => {
+    const trigger = event.target.closest('[data-contact-modal-link]');
+    if (!trigger) return;
+    event.preventDefault();
+    open();
+  });
+  window.addEventListener('hashchange', openIfHashMatches);
+  openIfHashMatches();
 })();
