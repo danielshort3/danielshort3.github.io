@@ -117,6 +117,7 @@
       </div>
     `;
     const contactOptions = [
+      { title: 'Message through website', subtitle: 'Send a secure form (recommended)', href: 'contact.html#contact-options', recommended: true },
       { title: 'Email', subtitle: 'danielshort3@gmail.com', href: 'mailto:danielshort3@gmail.com' },
       { title: 'LinkedIn', subtitle: 'linkedin.com/in/danielshort3', href: 'https://www.linkedin.com/in/danielshort3/', external: true },
       { title: 'GitHub', subtitle: 'github.com/danielshort3', href: 'https://github.com/danielshort3', external: true }
@@ -126,8 +127,9 @@
       <div class="nav-dropdown-list" role="list">
         ${contactOptions.map((option) => {
           const attrs = option.external ? ' target="_blank" rel="noopener noreferrer"' : '';
-          return `<a href="${option.href}" class="nav-dropdown-link" role="listitem"${attrs}>
-                    <span class="nav-dropdown-title">${option.title}</span>
+          const badge = option.recommended ? '<span class="nav-dropdown-badge" aria-hidden="true">Recommended</span>' : '';
+          return `<a href="${option.href}" class="nav-dropdown-link${option.recommended ? ' nav-dropdown-link-recommended' : ''}" role="listitem"${attrs}>
+                    <span class="nav-dropdown-title">${option.title}${badge}</span>
                     <span class="nav-dropdown-subtitle">${option.subtitle}</span>
                   </a>`;
         }).join('')}
