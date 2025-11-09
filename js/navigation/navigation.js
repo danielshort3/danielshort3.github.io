@@ -196,19 +196,35 @@
       });
     }
   }
+  const closeActiveDropdowns = (excludeItem) => {
+    document.querySelectorAll('.nav-item.dropdown-open').forEach((openItem) => {
+      if (openItem === excludeItem) return;
+      if (typeof openItem.__closeDropdown === 'function') {
+        openItem.__closeDropdown();
+      } else {
+        openItem.classList.remove('dropdown-open');
+      }
+    });
+  };
   function setupDropdown(item){
     if(!item) return;
     const dropdown = item.querySelector('.nav-dropdown');
     if(!dropdown) return;
     let closeTimer = null;
+    const close = () => {
+      clearTimeout(closeTimer);
+      item.classList.remove('dropdown-open');
+    };
+    item.__closeDropdown = close;
     const open = () => {
       clearTimeout(closeTimer);
+      closeActiveDropdowns(item);
       item.classList.add('dropdown-open');
     };
     const scheduleClose = () => {
       clearTimeout(closeTimer);
       closeTimer = setTimeout(() => {
-        item.classList.remove('dropdown-open');
+        close();
       }, 320);
     };
     item.addEventListener('focusin', open);
