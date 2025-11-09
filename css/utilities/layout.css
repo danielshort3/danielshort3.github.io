@@ -191,6 +191,7 @@
   .nav{
     --nav-block-padding: clamp(12px,3vw,18px);
     --nav-inline-padding: clamp(20px,6vw,28px);
+    --nav-mobile-dropdown-max: calc(100vh - var(--nav-height,72px) - clamp(32px,12vh,96px));
   }
   .nav .wrapper{
     padding:var(--nav-block-padding) var(--nav-inline-padding);
@@ -200,7 +201,7 @@
   /* ---------- drawer ---------- */
   .nav-row{
     position:absolute;
-    top:100%;
+    top:calc(100% + var(--nav-bottom-gap, var(--nav-block-padding)) - var(--nav-border-width));
     left:50%;
     right:auto;
     width:min(420px, calc(100vw - 32px));
@@ -209,34 +210,34 @@
     flex-direction:column;
     align-items:stretch;
     gap:12px;
-    padding:clamp(18px,5vw,24px);
-    border-radius:22px;
-    border:1px solid color-mix(in srgb,var(--primary) 24%, transparent);
-    background:radial-gradient(140% 120% at 0% 0%,
-      color-mix(in srgb,var(--surface) 94%, #020509 6%) 0%,
-      color-mix(in srgb,var(--surface) 78%, #020509 22%) 45%,
-      color-mix(in srgb,var(--surface) 68%, #000 32%) 100%);
-    backdrop-filter:blur(22px);
-    box-shadow:0 32px 60px rgba(0,0,0,.45);
-    max-height:calc(100vh - var(--nav-height,72px) - clamp(32px,12vh,96px));
-    overflow-y:auto;
-    overflow-x:hidden;
-    transform:translate(-50%, -18px);
+    padding:16px;
+    border-radius:0 0 20px 20px;
+    border:1px solid color-mix(in srgb,var(--primary) 22%, var(--surface) 78%);
+    border-top:none;
+    background:var(--surface);
+    box-shadow:0 24px 48px rgba(0,0,0,.45);
+    transform:translateX(-50%);
     opacity:0;
     pointer-events:none;
+    max-height:0;
+    overflow:hidden;
     -webkit-clip-path:inset(0 0 100% 0);
             clip-path:inset(0 0 100% 0);
-    transition:opacity .35s ease,
-               transform .35s ease,
-               -webkit-clip-path .35s ease,
-               clip-path .35s ease;
+    transition:
+      max-height .28s ease,
+      -webkit-clip-path .28s ease,
+      clip-path .28s ease,
+      opacity .2s ease;
   }
   .nav-row.open{
     opacity:1;
-    transform:translate(-50%, 0);
+    max-height:var(--nav-mobile-dropdown-max, calc(100vh - var(--nav-height,72px) - 48px));
     pointer-events:auto;
     -webkit-clip-path:inset(0 0 0 0);
             clip-path:inset(0 0 0 0);
+    overflow-y:auto;
+    overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;
   }
 
   /* ---------- links ---------- */
