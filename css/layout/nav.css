@@ -148,7 +148,7 @@
   .nav-dropdown-footer{
     margin-top:16px;
     padding-top:12px;
-    border-top:1px solid color-mix(in srgb,var(--primary) 18%, #03121c 82%);
+    border-top:1px solid color-mix(in srgb,var(--primary) 18%, var(--surface) 82%);
   }
   .nav-dropdown-footer .nav-dropdown-link{
     margin-top:0;
@@ -184,28 +184,28 @@
     letter-spacing:.08em;
     padding:2px 6px;
     border-radius:999px;
-    background:color-mix(in srgb,var(--primary) 40%, #060c14 60%);
+    background:color-mix(in srgb,var(--primary) 40%, var(--surface) 60%);
     color:color-mix(in srgb,#ffffff 92%, var(--bg) 8%);
   }
   .nav-dropdown-link.nav-dropdown-link-recommended{
-    border-color:color-mix(in srgb,var(--primary) 32%, #03121c 68%);
+    border-color:color-mix(in srgb,var(--primary) 32%, var(--surface) 68%);
     background:linear-gradient(135deg,
-      color-mix(in srgb,var(--primary) 18%, #060c14 82%) 0%,
-      color-mix(in srgb,var(--primary) 22%, #0a101a 78%) 100%);
+      color-mix(in srgb,var(--primary) 18%, var(--surface) 82%) 0%,
+      color-mix(in srgb,var(--primary) 22%, var(--surface) 78%) 100%);
   }
   .nav-dropdown-link.nav-dropdown-all{
     font-weight:600;
-    border-color:color-mix(in srgb,var(--primary) 28%, #03121c 72%);
+    border-color:color-mix(in srgb,var(--primary) 28%, var(--surface) 72%);
     background:linear-gradient(135deg,
-      color-mix(in srgb,var(--primary) 16%, #060c14 84%) 0%,
-      color-mix(in srgb,var(--primary) 32%, #080e18 68%) 100%);
+      color-mix(in srgb,var(--primary) 16%, var(--surface) 84%) 0%,
+      color-mix(in srgb,var(--primary) 32%, var(--surface) 68%) 100%);
     color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
     text-align:center;
   }
   .nav-dropdown-link:hover,
   .nav-dropdown-link:focus-visible{
-    border-color:color-mix(in srgb,var(--primary) 38%, #03121c 62%);
-    background:color-mix(in srgb,var(--surface) 90%, #0a101a 10%);
+    border-color:color-mix(in srgb,var(--primary) 38%, var(--surface) 62%);
+    background:color-mix(in srgb,var(--surface) 94%, #000 6%);
     color:color-mix(in srgb,var(--text-light) 98%, #ffffff 2%);
     outline:none;
   }
@@ -239,8 +239,8 @@
       max-width:360px;
       padding:16px;
       border-radius:0 0 20px 20px;
-      background:var(--nav-accent-gradient);
-      border:1px solid color-mix(in srgb,var(--primary) 22%, #03121c 78%);
+      background:var(--surface);
+      border:1px solid color-mix(in srgb,var(--primary) 22%, var(--surface) 78%);
       border-top:none;
       box-shadow:0 24px 48px rgba(0,0,0,.45);
       transform:translate3d(-50%, -2px, 0) scale(.98);
