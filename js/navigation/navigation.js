@@ -103,6 +103,32 @@
         ).join('')}
       </div>
     `;
+    const resumeMenu = `
+      <div class="nav-dropdown-header" aria-hidden="true">Download</div>
+      <div class="nav-dropdown-list" role="list">
+        <a href="documents/Resume.pdf" class="nav-dropdown-link" role="listitem" download>
+          <span class="nav-dropdown-title">Resume (PDF)</span>
+          <span class="nav-dropdown-subtitle">Latest copy, ready to share</span>
+        </a>
+      </div>
+    `;
+    const contactOptions = [
+      { title: 'Email', subtitle: 'danielshort3@gmail.com', href: 'mailto:danielshort3@gmail.com' },
+      { title: 'LinkedIn', subtitle: 'linkedin.com/in/danielshort3', href: 'https://www.linkedin.com/in/danielshort3/', external: true },
+      { title: 'GitHub', subtitle: 'github.com/danielshort3', href: 'https://github.com/danielshort3', external: true }
+    ];
+    const contactMenu = `
+      <div class="nav-dropdown-header" aria-hidden="true">Get in touch</div>
+      <div class="nav-dropdown-list" role="list">
+        ${contactOptions.map((option) => {
+          const attrs = option.external ? ' target="_blank" rel="noopener noreferrer"' : '';
+          return `<a href="${option.href}" class="nav-dropdown-link" role="listitem"${attrs}>
+                    <span class="nav-dropdown-title">${option.title}</span>
+                    <span class="nav-dropdown-subtitle">${option.subtitle}</span>
+                  </a>`;
+        }).join('')}
+      </div>
+    `;
     host.innerHTML=`
       <nav class="nav ${animate?'animate-entry':''}" aria-label="Primary">
         <div class="wrapper nav-wrapper">
@@ -140,8 +166,24 @@
                 ${contributionsMenu}
               </div>
             </div>
-            <a href="resume.html" class="nav-link">Resume</a>
-            <a href="contact.html" class="nav-link nav-link-cta">Contact</a>
+            <div class="nav-item nav-item-resume">
+              <a href="resume.html" class="nav-link nav-link-has-menu" aria-haspopup="true">
+                Resume
+                <span class="nav-link-caret" aria-hidden="true"></span>
+              </a>
+              <div class="nav-dropdown" aria-label="Resume download">
+                ${resumeMenu}
+              </div>
+            </div>
+            <div class="nav-item nav-item-contact">
+              <a href="contact.html" class="nav-link nav-link-cta nav-link-has-menu" aria-haspopup="true">
+                Contact
+                <span class="nav-link-caret" aria-hidden="true"></span>
+              </a>
+              <div class="nav-dropdown nav-dropdown-contact" aria-label="Contact options">
+                ${contactMenu}
+              </div>
+            </div>
           </div>
         </div>
       </nav>`;
@@ -156,6 +198,8 @@
     const menu   = host.querySelector('#primary-menu');
     setupDropdown(host.querySelector('.nav-item-portfolio'));
     setupDropdown(host.querySelector('.nav-item-contributions'));
+    setupDropdown(host.querySelector('.nav-item-resume'));
+    setupDropdown(host.querySelector('.nav-item-contact'));
 
     // Simple focus trap within the mobile drawer
     let prevFocus = null;
