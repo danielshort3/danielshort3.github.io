@@ -15,9 +15,12 @@
   }
   .contrib-stack{display:flex;flex-direction:column;gap:20px;margin-top:18px;}
   .doc-card{
-    position:relative; display:flex; justify-content:space-between; align-items:center;
-    gap:18px; padding:26px 24px; background:var(--surface);
-    border:1px solid var(--border-subtle); border-radius:14px;
+    position:relative;
+    display:block;
+    padding:26px 24px;
+    background:var(--surface);
+    border:1px solid var(--border-subtle);
+    border-radius:14px;
     transition:transform .25s,box-shadow .25s,background .25s,border-color .25s
   }
   .doc-card.featured-doc{
