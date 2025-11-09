@@ -188,7 +188,6 @@ function buildYearTimeline(previousItems){
     details.className = 'timeline-year';
     details.dataset.year = group.year;
     if (!index) {
-      details.open = true;
       details.dataset.containsLatest = 'true';
     }
 
