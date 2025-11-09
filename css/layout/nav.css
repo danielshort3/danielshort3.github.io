@@ -45,7 +45,7 @@
     gap:clamp(8px, 1.4vw, 18px);
     margin-left:auto;
     flex:1 1 480px;
-    max-width:min(640px, 60vw);
+    max-width:min(640px, 80vw);
   }
   .nav-link{
     position:relative;
@@ -279,5 +279,15 @@
   }
   .brand-tagline-chunk{
     white-space:nowrap;
+  }
+
+  @media (max-width: 1100px) and (min-width: 769px){
+    .nav .brand-name{
+      gap:8px;
+    }
+    .nav .brand-divider,
+    .nav .brand-tagline{
+      display:none;
+    }
   }
 }
