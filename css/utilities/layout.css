@@ -201,7 +201,7 @@
   /* ---------- drawer ---------- */
   .nav-row{
     position:absolute;
-    top:calc(100% + var(--nav-bottom-gap, var(--nav-block-padding)) - var(--nav-border-width));
+    top:calc(100% - var(--nav-border-width));
     left:50%;
     right:auto;
     width:min(420px, calc(100vw - 32px));
@@ -505,6 +505,11 @@ body.menu-open::before{
   background:rgba(0,0,0,.65);
   z-index:1000;                /* just under the header & drawer */
   pointer-events:none;         /* clicks still reach the drawer */
+}
+body.menu-open{
+  overflow:hidden;
+  overscroll-behavior:none;
+  touch-action:none;
 }
 
 /* == HERO occupies the visible viewport =================== */
