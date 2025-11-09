@@ -132,18 +132,17 @@ function buildFeaturedCard(item){
   if (!item) return null;
   const date = getItemDate(item);
   const dateLabel = date ? ` · ${formatMonthYear(date)}` : '';
-  const links = buildDocLinks(item);
 
   const card = document.createElement('article');
   card.className = 'doc-card featured-doc';
   card.innerHTML = `
-    <div class="doc-layout featured-doc-layout">
-      <div class="featured-doc-copy">
-        <p class="doc-label">Latest contribution${dateLabel}</p>
-        <h3 class="doc-title">${item.title}</h3>
+    <div class="doc-layout">
+      <p class="doc-label">Latest contribution${dateLabel}</p>
+      <h3 class="doc-title">${item.title}</h3>
+      <div class="doc-footer">
         ${item.role ? `<p class="doc-role">${item.role}</p>` : ''}
+        ${buildDocLinks(item)}
       </div>
-      ${links ? `<div class="featured-doc-actions">${links}</div>` : ''}
     </div>`;
   return card;
 }
