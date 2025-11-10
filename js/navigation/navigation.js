@@ -227,41 +227,67 @@
     setupDropdown(host.querySelector('.nav-item-resume'));
     setupDropdown(host.querySelector('.nav-item-contact'));
 
-    // Simple focus trap within the mobile drawer
-    let prevFocus = null;
-    const trapKeydown = (e) => {
-      if (e.key === 'Escape') {
-        // close drawer
-        burger.click();
-        return;
-      }
-      if (e.key !== 'Tab') return;
-      const focusables = menu.querySelectorAll('a,button,[tabindex]:not([tabindex="-1"])');
-      if (!focusables.length) return;
-      const first = focusables[0];
-      const last  = focusables[focusables.length - 1];
-      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-    };
-
     if(burger && menu){
-      burger.addEventListener('click', () => {
+      let prevFocus = null;
+      let outsideCloseAttached = false;
+      const trapKeydown = (e) => {
+        if (e.key === 'Escape') {
+          closeMenu();
+          return;
+        }
+        if (e.key !== 'Tab') return;
+        const focusables = menu.querySelectorAll('a,button,[tabindex]:not([tabindex="-1"])');
+        if (!focusables.length) return;
+        const first = focusables[0];
+        const last  = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      };
+
+      const closeMenu = () => {
+        if (!menu.classList.contains('open')) return;
+        menu.classList.remove('open');
+        burger.setAttribute('aria-expanded', 'false');
+        document.body.classList.remove('menu-open');
+        document.removeEventListener('keydown', trapKeydown);
+        if (outsideCloseAttached){
+          document.removeEventListener('pointerdown', handleOutsidePointer, true);
+          outsideCloseAttached = false;
+        }
+        if (prevFocus) { prevFocus.focus(); prevFocus = null; }
+      };
+
+      const handleOutsidePointer = (event) => {
+        if (!menu.classList.contains('open')) return;
+        const target = event.target;
+        if (menu.contains(target) || burger.contains(target)) return;
+        closeMenu();
+      };
+
+      const openMenu = () => {
+        if (menu.classList.contains('open')) return;
         const headerBar = burger.closest('.nav') || host;
         const headerBottom = headerBar.getBoundingClientRect().bottom;
         menu.style.top = `${headerBottom}px`;
-        const open = menu.classList.toggle('open');
-        burger.setAttribute('aria-expanded', open);
-        document.body.classList.toggle('menu-open', open);
+        menu.classList.add('open');
+        burger.setAttribute('aria-expanded', 'true');
+        document.body.classList.add('menu-open');
+        prevFocus = document.activeElement;
+        document.addEventListener('keydown', trapKeydown);
+        if (!outsideCloseAttached){
+          document.addEventListener('pointerdown', handleOutsidePointer, true);
+          outsideCloseAttached = true;
+        }
+        // Focus first nav link for keyboard users
+        const firstLink = menu.querySelector('.nav-link');
+        firstLink && firstLink.focus();
+      };
 
-        if (open) {
-          prevFocus = document.activeElement;
-          document.addEventListener('keydown', trapKeydown);
-          // Focus first nav link for keyboard users
-          const firstLink = menu.querySelector('.nav-link');
-          firstLink && firstLink.focus();
+      burger.addEventListener('click', () => {
+        if (menu.classList.contains('open')) {
+          closeMenu();
         } else {
-          document.removeEventListener('keydown', trapKeydown);
-          if (prevFocus) { prevFocus.focus(); prevFocus = null; }
+          openMenu();
         }
       });
     }
