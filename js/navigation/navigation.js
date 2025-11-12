@@ -87,7 +87,7 @@
       <div class="nav-dropdown-header" aria-hidden="true">Top 5 Projects</div>
       <div class="nav-dropdown-list" role="list">
         ${portfolioHighlights.map(
-          p => `<a href="portfolio.html?project=${p.id}" class="nav-dropdown-link" role="listitem">
+          p => `<a href="portfolio.html?project=${p.id}" class="nav-dropdown-link nav-dropdown-featured" role="listitem">
                   <span class="nav-dropdown-title">${p.title}</span>
                   <span class="nav-dropdown-subtitle">${p.subtitle}</span>
                 </a>`

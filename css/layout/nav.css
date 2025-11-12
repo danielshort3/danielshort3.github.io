@@ -197,14 +197,20 @@
       color-mix(in srgb,var(--primary) 18%, var(--surface) 82%) 0%,
       color-mix(in srgb,var(--primary) 22%, var(--surface) 78%) 100%);
   }
-  .nav-dropdown-link.nav-dropdown-all{
+  .nav-dropdown-link.nav-dropdown-featured{
     font-weight:600;
     border-color:color-mix(in srgb,var(--primary) 28%, var(--surface) 72%);
     background:linear-gradient(135deg,
       color-mix(in srgb,var(--primary) 16%, var(--surface) 84%) 0%,
       color-mix(in srgb,var(--primary) 32%, var(--surface) 68%) 100%);
     color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
+  }
+  .nav-dropdown-link.nav-dropdown-all{
+    font-weight:600;
     text-align:center;
+    border-color:color-mix(in srgb,var(--text-light) 16%, var(--surface) 84%);
+    background:color-mix(in srgb,var(--surface) 96%, #000 4%);
+    color:color-mix(in srgb,var(--text-light) 92%, #ffffff 8%);
   }
   .nav-dropdown-link:hover,
   .nav-dropdown-link:focus-visible{
