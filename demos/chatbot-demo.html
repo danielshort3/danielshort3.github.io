@@ -933,6 +933,42 @@
             return `req-${Date.now()}-${Math.random().toString(16).slice(2)}`;
         }
 
+        /* ---------- Deadline persistence ---------- */
+        const STORAGE_KEYS = Object.freeze({
+            startDeadline: 'chatbot-start-deadline',
+            graceDeadline: 'chatbot-grace-deadline'
+        });
+        function readDeadline(key) {
+            try {
+                const raw = localStorage.getItem(key);
+                if (!raw) return null;
+                const ts = parseInt(raw, 10);
+                return Number.isFinite(ts) ? ts : null;
+            } catch {
+                return null;
+            }
+        }
+        function writeDeadline(key, value) {
+            try {
+                if (typeof value === 'number' && Number.isFinite(value)) {
+                    localStorage.setItem(key, String(value));
+                } else {
+                    localStorage.removeItem(key);
+                }
+            } catch {
+                /* storage may be unavailable */
+            }
+        }
+        function restoreDeadline(key) {
+            const ts = readDeadline(key);
+            if (!ts) return null;
+            if (ts <= Date.now()) {
+                writeDeadline(key, null);
+                return null;
+            }
+            return ts;
+        }
+
         // Service status elements
         const svcDot = document.getElementById('svc-dot');
         const svcText = document.getElementById('svc-text');
@@ -1132,6 +1168,9 @@
         let startingTimer = null, startingDeadline = 0;
         let graceTimer = null, graceDeadline = 0;
 
+        const getStoredStartDeadline = () => restoreDeadline(STORAGE_KEYS.startDeadline);
+        const getStoredGraceDeadline = () => restoreDeadline(STORAGE_KEYS.graceDeadline);
+
         function isOnlinePayload(payload) {
             if (!payload) return false;
             if (typeof payload.online === 'boolean') return payload.online;
@@ -1151,17 +1190,23 @@
                 svcQ.textContent = q.toFixed(1);
             }
         }
-        async function checkStatus() {
+        function secondsFromEta(value) {
+            if (typeof value !== 'number' || !Number.isFinite(value)) return null;
+            return Math.max(0, Math.round(value));
+        }
+        async function fetchStatusInfo() {
             try {
                 const r = await fetch(STATUS_URL, { cache: 'no-store' });
-                const d = await r.json();
-                updateQueueIndicators(d);
-                const online = isOnlinePayload(d);
-                recordLog('status:payload', { online, raw: d });
-                return online;
+                const payload = await r.json();
+                updateQueueIndicators(payload);
+                const online = isOnlinePayload(payload);
+                const warmSeconds = secondsFromEta(payload?.eta?.to_warm_seconds);
+                const shutdownSeconds = secondsFromEta(payload?.eta?.to_scale_to_zero_seconds);
+                recordLog('status:payload', { online, warmSeconds, shutdownSeconds });
+                return { online, warmSeconds, shutdownSeconds, payload };
             } catch (err) {
                 recordLog('status:error', { error: describeError(err) }, 'error');
-                return false;
+                return { online: false, warmSeconds: null, shutdownSeconds: null, payload: null };
             }
         }
         function setDot(status) {
@@ -1174,34 +1219,70 @@
             const sec = s % 60;
             return `${m}:${String(sec).padStart(2, '0')}`;
         }
-        function stopStartingTimer() {
+        function stopStartingTimer(opts = { clearStorage: true }) {
             if (startingTimer) {
                 clearInterval(startingTimer);
                 startingTimer = null;
             }
-            startingDeadline = 0;
+            if (opts?.clearStorage) {
+                startingDeadline = 0;
+                if (typeof STORAGE_KEYS !== 'undefined' && typeof writeDeadline === 'function') {
+                    writeDeadline(STORAGE_KEYS.startDeadline, null);
+                }
+            }
         }
-        function stopGraceCycle() {
+        function stopGraceCycle(opts = { clearStorage: true }) {
             if (graceTimer) {
                 clearInterval(graceTimer);
                 graceTimer = null;
             }
+            if (opts?.clearStorage) {
+                graceDeadline = 0;
+                if (typeof STORAGE_KEYS !== 'undefined' && typeof writeDeadline === 'function') {
+                    writeDeadline(STORAGE_KEYS.graceDeadline, null);
+                }
+            }
         }
-        function markServerOnline(source = 'status') {
+        function markServerOnline(source = 'status', options = {}) {
             if (DEMO_DISABLED) return;
-            recordLog('status:online', { source });
+            const { remainingSec = null, useStoredDeadline = false } = options;
+            recordLog('status:online', { source, remainingSec });
             stopStartingTimer();
-            startGraceCycle({ resetDeadline: true });
+            let deadlineMs = null;
+            if (typeof remainingSec === 'number' && remainingSec > 0) {
+                deadlineMs = Date.now() + remainingSec * 1000;
+            } else if (useStoredDeadline) {
+                deadlineMs = getStoredGraceDeadline();
+            }
+            if (!deadlineMs) {
+                deadlineMs = Date.now() + GRACE_SEC * 1000;
+            }
+            startGraceCycle({ deadlineMs, source });
         }
         async function initStatus() {
-            const online = await checkStatus();
-            if (online) {
-                markServerOnline('status-check');
+            const status = await fetchStatusInfo();
+            if (status.online) {
+                if (status.shutdownSeconds && status.shutdownSeconds > 0) {
+                    markServerOnline('status-check', { remainingSec: status.shutdownSeconds });
+                } else {
+                    markServerOnline('status-check', { useStoredDeadline: true });
+                }
             } else {
-                currentState = STATE.OFFLINE_DETECTED;
-                setDot(currentState);
-                svcText.textContent = 'Server is offline.';
-                svcETA.textContent = '';
+                stopGraceCycle();
+                const storedRemaining = (() => {
+                    const ts = getStoredStartDeadline();
+                    return ts ? Math.max(0, Math.round((ts - Date.now()) / 1000)) : null;
+                })();
+                if (status.warmSeconds && status.warmSeconds > 0) {
+                    startStartingTimer({ durationSec: status.warmSeconds, force: true, reason: 'status-eta' });
+                } else if (storedRemaining && storedRemaining > 0) {
+                    startStartingTimer({ durationSec: storedRemaining, force: true, reason: 'storage-resume' });
+                } else {
+                    currentState = STATE.OFFLINE_DETECTED;
+                    setDot(currentState);
+                    svcText.textContent = 'Server is offline.';
+                    svcETA.textContent = '';
+                }
             }
         }
         if (!DEMO_DISABLED) {
@@ -1244,12 +1325,24 @@
         })();
 
         // Starting timer helpers
-        function startStartingTimer() {
-            if (startingTimer) return;
+        function startStartingTimer(opts = {}) {
+            const { durationSec = START_TIMEOUT_SEC, force = false, reason = 'manual' } = opts;
+            if (startingTimer && !force) return;
+            if (startingTimer) {
+                clearInterval(startingTimer);
+                startingTimer = null;
+            }
+            const minutes = Math.max(1, Math.round(durationSec / 60));
             currentState = STATE.STARTING;
             setDot(currentState);
-            svcText.textContent = 'Server is starting (up to ~10 minutes).';
-            startingDeadline = Date.now() + START_TIMEOUT_SEC * 1000;
+            svcText.textContent = `Server is starting (up to ~${minutes} minutes).`;
+            startingDeadline = Date.now() + Math.max(1, Math.round(durationSec)) * 1000;
+            if (typeof STORAGE_KEYS !== 'undefined' && typeof writeDeadline === 'function') {
+                writeDeadline(STORAGE_KEYS.startDeadline, startingDeadline);
+            }
+            if (typeof recordLog === 'function') {
+                recordLog('status:starting-timer', { reason, durationSec });
+            }
             updateStarting();
             startingTimer = setInterval(updateStarting, 1000);
         }
@@ -1257,10 +1350,9 @@
             const remaining = Math.max(0, Math.round((startingDeadline - Date.now()) / 1000));
             svcETA.textContent = fmtClock(remaining);
             if (remaining <= 0) {
-                clearInterval(startingTimer);
-                startingTimer = null;
+                stopStartingTimer();
                 svcText.textContent = 'Server start is taking longer than expected.';
-                startGraceCycle();
+                svcETA.textContent = '';
             }
         }
         function currentStartingRemaining() {
@@ -1270,13 +1362,26 @@
         // End starting timer helpers
 
         // Grace period helpers
-        function startGraceCycle(opts = { resetDeadline: true }) {
-            stopGraceCycle();
+        function startGraceCycle(opts = {}) {
+            const { deadlineMs = null, durationSec = null, source = 'default' } = opts;
+            stopGraceCycle({ clearStorage: false });
             currentState = STATE.ONLINE_GRACE;
             setDot(currentState);
-            svcText.textContent = `Server is online. Auto-shutdown in ~${Math.round(GRACE_SEC / 60)} minutes.`;
-            if (!graceDeadline || opts.resetDeadline) {
-                graceDeadline = Date.now() + GRACE_SEC * 1000;
+            const now = Date.now();
+            if (typeof deadlineMs === 'number' && deadlineMs > now) {
+                graceDeadline = deadlineMs;
+            } else if (typeof durationSec === 'number' && durationSec > 0) {
+                graceDeadline = now + Math.round(durationSec) * 1000;
+            } else if (!graceDeadline || graceDeadline <= now) {
+                graceDeadline = now + GRACE_SEC * 1000;
+            }
+            if (typeof STORAGE_KEYS !== 'undefined' && typeof writeDeadline === 'function') {
+                writeDeadline(STORAGE_KEYS.graceDeadline, graceDeadline);
+            }
+            const minutesLeft = Math.max(1, Math.ceil((graceDeadline - now) / 60000));
+            svcText.textContent = `Server is online. Auto-shutdown in ~${minutesLeft} minutes.`;
+            if (typeof recordLog === 'function') {
+                recordLog('status:grace-cycle', { source, deadline: graceDeadline });
             }
             updateGrace();
             graceTimer = setInterval(updateGrace, 1000);
@@ -1285,23 +1390,22 @@
             const remaining = Math.max(0, Math.round((graceDeadline - Date.now()) / 1000));
             svcETA.textContent = fmtClock(remaining);
             if (remaining <= 0) {
-                clearInterval(graceTimer);
-                graceTimer = null;
-                checkStatus().then(online => {
-                    if (!online) {
+                stopGraceCycle();
+                fetchStatusInfo().then(status => {
+                    if (!status.online) {
                         currentState = STATE.SHUTDOWN;
                         setDot(currentState);
                         svcText.textContent = 'Server has shut down. Send a message to start it again.';
                         svcETA.textContent = '';
                     } else {
-                        currentState = STATE.ONLINE;
-                        setDot(currentState);
-                        svcText.textContent = 'Server is online.';
-                        svcETA.textContent = '';
-                        setTimeout(startGraceCycle, 0);
+                        const hasShutdownEta = !!(status.shutdownSeconds && status.shutdownSeconds > 0);
+                        markServerOnline('grace-refresh', {
+                            remainingSec: hasShutdownEta ? status.shutdownSeconds : null,
+                            useStoredDeadline: !hasShutdownEta
+                        });
                     }
                 }).catch(() => {
-                    setTimeout(startGraceCycle, 0);
+                    setTimeout(() => startGraceCycle({ source: 'retry' }), 0);
                 });
             }
         }
