@@ -230,6 +230,9 @@
     if(burger && menu){
       let prevFocus = null;
       let outsideCloseAttached = false;
+      const syncBodyMenuState = (isOpen) => {
+        document.body.classList.toggle('menu-open', Boolean(isOpen));
+      };
       const trapKeydown = (e) => {
         if (e.key === 'Escape') {
           closeMenu();
@@ -248,7 +251,7 @@
         if (!menu.classList.contains('open')) return;
         menu.classList.remove('open');
         burger.setAttribute('aria-expanded', 'false');
-        document.body.classList.remove('menu-open');
+        syncBodyMenuState(false);
         document.removeEventListener('keydown', trapKeydown);
         if (outsideCloseAttached){
           document.removeEventListener('pointerdown', handleOutsidePointer, true);
@@ -271,7 +274,7 @@
         menu.style.top = `${headerBottom}px`;
         menu.classList.add('open');
         burger.setAttribute('aria-expanded', 'true');
-        document.body.classList.add('menu-open');
+        syncBodyMenuState(true);
         prevFocus = document.activeElement;
         document.addEventListener('keydown', trapKeydown);
         if (!outsideCloseAttached){

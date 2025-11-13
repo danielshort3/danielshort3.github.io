@@ -68,7 +68,7 @@
             overflow: hidden;
             display: grid;
             /* header, service status, stepper, chat, input */
-            grid-template-rows: auto auto auto 1fr auto;
+            grid-template-rows: auto auto auto auto 1fr auto;
             height: calc(100vh - var(--page-pad) * 2);
         }
 
@@ -95,6 +95,46 @@
 
         .card-header > div:first-child {
             min-width: 0;
+        }
+
+        #demo-box[data-disabled="true"] {
+            position: relative;
+        }
+
+        #demo-box[data-disabled="true"] #service-status,
+        #demo-box[data-disabled="true"] #status,
+        #demo-box[data-disabled="true"] #answer,
+        #demo-box[data-disabled="true"] .input-wrap {
+            opacity: .55;
+        }
+
+        #demo-box[data-disabled="true"] .input-wrap {
+            pointer-events: none;
+        }
+
+        .demo-disabled-banner {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            margin: 0 16px 12px;
+            padding: 12px 16px;
+            border-radius: 14px;
+            border: 1px solid color-mix(in srgb, #f6c026 45%, var(--surface-accent) 55%);
+            background: color-mix(in srgb, #f6c026 18%, var(--surface) 82%);
+            color: color-mix(in srgb, var(--text) 88%, #000 12%);
+            box-shadow: var(--shadow-1);
+        }
+
+        .demo-disabled-banner strong {
+            display: block;
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .demo-disabled-banner .banner-icon {
+            font-size: 1.25rem;
+            color: #a35b00;
+            line-height: 1;
         }
 
         .title {
@@ -766,6 +806,15 @@
                 </button>
             </div>
         </header>
+        <div id="demo-disabled-banner" class="demo-disabled-banner" role="alert" hidden>
+            <div class="banner-icon" aria-hidden="true">
+                <i class="fa-solid fa-circle-exclamation"></i>
+            </div>
+            <div class="banner-text">
+                <strong>Chatbot demo unavailable</strong>
+                <span id="demo-disabled-copy">This experience is temporarily disabled due to technical issues with AWS.</span>
+            </div>
+        </div>
 
         <!-- Service status (does not invoke the model) -->
         <div id="service-status" role="status" aria-live="polite">
@@ -811,8 +860,14 @@
     <script>
         const API_URL = 'https://ovodkr9oad.execute-api.us-east-2.amazonaws.com/prod';
         const STATUS_URL = `${API_URL}/status`;
+        const DEMO_DISABLED = true; // Toggle to false to re-enable the AWS-backed demo
+        const DEMO_DISABLED_REASON = 'This demo is temporarily disabled due to technical issues with AWS.';
 
         /* ---------- DOM refs ---------- */
+        const demoBox = document.getElementById('demo-box');
+        const disabledBanner = document.getElementById('demo-disabled-banner');
+        const disabledCopy = document.getElementById('demo-disabled-copy');
+        const startNotice = document.getElementById('start-notice');
         const promptEl = document.getElementById('prompt');
         const statusEl = document.getElementById('status');
         const answerEl = document.getElementById('answer');
@@ -830,6 +885,45 @@
         const svcQ = document.getElementById('svc-q');
         const svcProg = document.getElementById('svc-progress');
         const svcFill = document.getElementById('svc-fill');
+
+        function applyDemoDisabledState() {
+            document.body.setAttribute('data-demo-disabled', 'true');
+            demoBox?.setAttribute('data-disabled', 'true');
+            if (disabledBanner) {
+                disabledBanner.hidden = false;
+                if (disabledCopy) disabledCopy.textContent = DEMO_DISABLED_REASON;
+            }
+            startNotice?.setAttribute('hidden', 'true');
+            svcDot?.classList.remove('green', 'amber');
+            svcDot?.classList.add('gray');
+            svcText.textContent = 'Demo unavailable';
+            svcETA.textContent = 'AWS maintenance';
+            svcQueueWrap?.setAttribute('hidden', 'true');
+            svcProg?.setAttribute('hidden', 'true');
+            promptEl.value = '';
+            promptEl.placeholder = 'Demo unavailable while AWS issues are resolved.';
+            promptEl.setAttribute('disabled', 'true');
+            form?.setAttribute('aria-disabled', 'true');
+            askBtn.disabled = true;
+            askBtn.setAttribute('aria-disabled', 'true');
+            askBtn.title = DEMO_DISABLED_REASON;
+            promptEl.setAttribute('aria-disabled', 'true');
+            promptEl.title = DEMO_DISABLED_REASON;
+            if (stopBtn) {
+                stopBtn.hidden = true;
+                stopBtn.disabled = true;
+                stopBtn.setAttribute('aria-disabled', 'true');
+            }
+            quickPrompts?.setAttribute('aria-disabled', 'true');
+            quickPrompts?.querySelectorAll('button').forEach(btn => {
+                btn.disabled = true;
+                btn.setAttribute('aria-disabled', 'true');
+            });
+        }
+
+        if (DEMO_DISABLED) {
+            applyDemoDisabledState();
+        }
 
         /* ---------- Stepper ---------- */
         const steps = [
@@ -870,9 +964,13 @@
         /* ---------- Utilities ---------- */
         function autoResize() { promptEl.style.height = 'auto'; promptEl.style.height = Math.min(200, promptEl.scrollHeight) + 'px'; }
         promptEl.addEventListener('input', autoResize); window.addEventListener('load', autoResize);
-        promptEl.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); } });
+        promptEl.addEventListener('keydown', (e) => {
+            if (DEMO_DISABLED) return;
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); }
+        });
 
         quickPrompts.addEventListener('click', (e) => {
+            if (DEMO_DISABLED) return;
             const btn = e.target.closest('[data-text]'); if (!btn) return;
             const text = (btn.getAttribute('data-text') || '').replace(/\s+/g, ' ').trim();
             promptEl.value = text; autoResize(); promptEl.focus();
@@ -979,10 +1077,15 @@
                 svcETA.textContent = '';
             }
         }
-        initStatus();
+        if (!DEMO_DISABLED) {
+            initStatus();
+        }
 
         /* ---------- Startup notice logic ---------- */
         (function initNotice(){
+            if (DEMO_DISABLED) {
+                return;
+            }
             const backdrop = document.getElementById('start-notice');
             const ok = document.getElementById('notice-ok');
             const body = document.getElementById('notice-body');
@@ -1075,11 +1178,15 @@
         // End grace period helpers
 
         function onFirstUserRequest() {
+            if (DEMO_DISABLED) return;
             if (currentState === STATE.OFFLINE_DETECTED) startStartingTimer();
         }
         /* ---------- Networking ---------- */
         let abort = null; let cancelled = false;
         async function ask(prompt, onStatus = () => { }) {
+            if (DEMO_DISABLED) {
+                throw new Error(DEMO_DISABLED_REASON);
+            }
             cancelled = false; abort = new AbortController(); onStatus('SUBMITTING');
 
             const submit = await fetch(`${API_URL}/submit`, {
@@ -1113,6 +1220,7 @@
 
         async function handleSubmit(e) {
             if (e) e.preventDefault();
+            if (DEMO_DISABLED) return;
             const prompt = promptEl.value.trim(); if (!prompt) return;
             onFirstUserRequest();
             setStep('submit', 'in-progress'); askBtn.disabled = true; stopBtn.hidden = false; form.setAttribute('aria-busy', 'true');
@@ -1142,6 +1250,7 @@
 
         /* ---------- Quick Prompts marquee (JS-driven) ---------- */
         (function () {
+            if (DEMO_DISABLED) return;
             const track = quickPrompts; if (!track) return;
             const mqPhone = window.matchMedia('(max-width: 520px)');
             const mqReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
