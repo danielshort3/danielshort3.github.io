@@ -877,6 +877,60 @@
         const clearBtn = document.getElementById('clear-all');
         const quickPrompts = document.getElementById('quick-prompts');
 
+        /* ---------- Debug logging helpers ---------- */
+        const rootScope = typeof window !== 'undefined' ? window : globalThis;
+        const CHATBOT_LOG_LIMIT = 500;
+        const sessionId = (() => {
+            try {
+                if (rootScope.crypto?.randomUUID) return rootScope.crypto.randomUUID();
+            } catch { }
+            return `session-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        })();
+        const debugLogStore = rootScope.__chatbotDebugLogs = rootScope.__chatbotDebugLogs || [];
+        function describeError(err) {
+            if (!err) return 'Unknown error';
+            if (typeof err === 'string') return err;
+            if (err && typeof err.message === 'string') return err.message;
+            try {
+                return JSON.stringify(err);
+            } catch {
+                return String(err);
+            }
+        }
+        function withRequestId(err, requestId) {
+            if (err && typeof err === 'object') {
+                err.requestId = requestId;
+                return err;
+            }
+            const wrapped = new Error(describeError(err));
+            wrapped.requestId = requestId;
+            return wrapped;
+        }
+        function recordLog(event, details = {}, level = 'log') {
+            const entry = {
+                timestamp: new Date().toISOString(),
+                sessionId,
+                event,
+                ...details
+            };
+            debugLogStore.push(entry);
+            if (debugLogStore.length > CHATBOT_LOG_LIMIT) debugLogStore.shift();
+            const logger = level === 'error' ? console?.error : console?.log;
+            try {
+                logger?.call(console, `[chatbot-demo] ${event}`, entry);
+            } catch { /* noop in non-browser environments */ }
+            try {
+                rootScope.dispatchEvent?.(new CustomEvent('chatbot-demo-log', { detail: entry }));
+            } catch { /* CustomEvent may be unavailable in some environments */ }
+            return entry;
+        }
+        function createRequestId() {
+            try {
+                if (rootScope.crypto?.randomUUID) return rootScope.crypto.randomUUID();
+            } catch { }
+            return `req-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        }
+
         // Service status elements
         const svcDot = document.getElementById('svc-dot');
         const svcText = document.getElementById('svc-text');
@@ -1179,6 +1233,7 @@
 
         function onFirstUserRequest() {
             if (DEMO_DISABLED) return;
+            recordLog('ui:first-request');
             if (currentState === STATE.OFFLINE_DETECTED) startStartingTimer();
         }
         /* ---------- Networking ---------- */
@@ -1187,30 +1242,83 @@
             if (DEMO_DISABLED) {
                 throw new Error(DEMO_DISABLED_REASON);
             }
-            cancelled = false; abort = new AbortController(); onStatus('SUBMITTING');
+            const requestId = createRequestId();
+            recordLog('submit:init', { requestId, prompt });
+            cancelled = false; abort = new AbortController(); onStatus('SUBMITTING', requestId);
 
-            const submit = await fetch(`${API_URL}/submit`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt }),
-                signal: abort.signal
-            }).then(r => r.json());
+            let submitResponse;
+            try {
+                submitResponse = await fetch(`${API_URL}/submit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt }),
+                    signal: abort.signal
+                });
+                recordLog('submit:http', { requestId, status: submitResponse.status, ok: submitResponse.ok });
+            } catch (err) {
+                recordLog('submit:network-error', { requestId, error: describeError(err) }, 'error');
+                throw withRequestId(err, requestId);
+            }
+
+            let submit;
+            try {
+                submit = await submitResponse.json();
+            } catch (err) {
+                recordLog('submit:parse-error', { requestId, error: describeError(err) }, 'error');
+                throw withRequestId(err, requestId);
+            }
 
             const outputUri = submit.outputUri;
+            recordLog('submit:accepted', { requestId, jobId: submit.jobId, outputUri });
 
-            onStatus('PENDING');
+            onStatus('PENDING', requestId);
 
+            let pollAttempt = 0;
             async function poll() {
-                if (cancelled) throw new Error('stopped');
+                pollAttempt += 1;
+                if (cancelled) {
+                    recordLog('poll:cancelled', { requestId, pollAttempt });
+                    throw withRequestId(new Error('stopped'), requestId);
+                }
                 const url = `${API_URL}/result?outputUri=${encodeURIComponent(outputUri)}`;
-                const res = await fetch(url, { signal: abort.signal }).then(r => r.json());
-                onStatus(res.status);
-                if (res.status === 'READY') return res.data;
-                if (res.status === 'FAILED') throw new Error(res.error || 'Request failed');
+                let pollResponse;
+                try {
+                    pollResponse = await fetch(url, { signal: abort.signal });
+                    recordLog('poll:http', { requestId, pollAttempt, status: pollResponse.status, ok: pollResponse.ok });
+                } catch (err) {
+                    recordLog('poll:network-error', { requestId, pollAttempt, error: describeError(err) }, 'error');
+                    throw withRequestId(err, requestId);
+                }
+
+                let res;
+                try {
+                    res = await pollResponse.json();
+                } catch (err) {
+                    recordLog('poll:parse-error', { requestId, pollAttempt, error: describeError(err) }, 'error');
+                    throw withRequestId(err, requestId);
+                }
+                onStatus(res.status, requestId);
+                recordLog('poll:status', { requestId, pollAttempt, status: res.status });
+                if (res.status === 'READY') {
+                    recordLog('result:ready', {
+                        requestId,
+                        pollAttempt,
+                        outputUri,
+                        tokens: res.data?.token_usage,
+                        sourceCount: Array.isArray(res.data?.sources || res.data?.source_urls) ? (res.data.sources || res.data.source_urls).length : 0
+                    });
+                    return res.data;
+                }
+                if (res.status === 'FAILED') {
+                    recordLog('result:failed', { requestId, pollAttempt, outputUri, error: res.error }, 'error');
+                    throw withRequestId(new Error(res.error || 'Request failed'), requestId);
+                }
+                recordLog('poll:waiting', { requestId, pollAttempt, delayMs: 1500 });
                 await new Promise(r => setTimeout(r, 1500));
                 return poll();
             }
-            return poll();
+            const data = await poll();
+            return { data, requestId };
         }
 
         /* ---------- Submit flow ---------- */
@@ -1222,24 +1330,28 @@
             if (e) e.preventDefault();
             if (DEMO_DISABLED) return;
             const prompt = promptEl.value.trim(); if (!prompt) return;
+            recordLog('ui:submit', { promptLength: prompt.length });
             onFirstUserRequest();
             setStep('submit', 'in-progress'); askBtn.disabled = true; stopBtn.hidden = false; form.setAttribute('aria-busy', 'true');
             const { contentEl, bubble } = createExchange(prompt);
             promptEl.value = ''; autoResize();
 
             try {
-                const data = await ask(prompt, status => {
+                const result = await ask(prompt, status => {
                     if (status === 'PENDING') {
                         setStep('submit', 'done'); setStep('process', 'in-progress');
                     } else if (status === 'READY') {
                         setStep('process', 'done'); setStep('complete', 'done');
                     }
                 });
+                const { data, requestId } = result;
                 contentEl.innerHTML = renderMarkdown(data.generated_text || JSON.stringify(data));
                 const urls = data.source_urls || data.sources || data.urls; renderSources(bubble, urls);
+                recordLog('ui:rendered', { requestId, sourceCount: Array.isArray(urls) ? urls.length : 0 });
             } catch (err) {
                 setStep('process', 'not-started'); setStep('complete', 'not-started');
                 contentEl.innerHTML = `<div><strong>Error:</strong> ${String(err.message || err)}</div>`;
+                recordLog('ui:error', { requestId: err?.requestId, error: describeError(err) }, 'error');
             } finally {
                 askBtn.disabled = false; stopBtn.hidden = true; form.setAttribute('aria-busy', 'false');
                 saveHistory(); notifyResize();
