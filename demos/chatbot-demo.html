@@ -1054,6 +1054,11 @@
             applyDemoDisabledState();
         } else {
             applyDemoEnabledState();
+            if (disabledBanner) {
+                disabledBanner.hidden = true;
+                disabledBanner.setAttribute('aria-hidden', 'true');
+                disabledBanner.style.display = 'none';
+            }
         }
 
         /* ---------- Stepper ---------- */
@@ -1184,7 +1189,6 @@
             const status = String(payload.status || payload.state || '').toLowerCase();
             if (status === 'on' || status === 'online' || status === 'inservice' || status === 'ready') return true;
             if (typeof payload.current === 'number' && payload.current > 0) return true;
-            if (typeof payload.desired === 'number' && payload.desired > 0) return true;
             return false;
         }
         function updateQueueIndicators(payload) {
@@ -1284,6 +1288,8 @@
                     startStartingTimer({ durationSec: status.warmSeconds, force: true, reason: 'status-eta' });
                 } else if (storedRemaining && storedRemaining > 0) {
                     startStartingTimer({ durationSec: storedRemaining, force: true, reason: 'storage-resume' });
+                } else if (typeof status.payload?.desired === 'number' && status.payload.desired > 0) {
+                    startStartingTimer({ durationSec: START_TIMEOUT_SEC, force: true, reason: 'pending-scale' });
                 } else {
                     currentState = STATE.OFFLINE_DETECTED;
                     setDot(currentState);
