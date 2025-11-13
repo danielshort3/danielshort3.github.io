@@ -934,10 +934,17 @@
         }
 
         /* ---------- Deadline persistence ---------- */
+        const STORAGE_VERSION = 'v2';
         const STORAGE_KEYS = Object.freeze({
-            startDeadline: 'chatbot-start-deadline',
-            graceDeadline: 'chatbot-grace-deadline'
+            startDeadline: `chatbot-start-deadline-${STORAGE_VERSION}`,
+            graceDeadline: `chatbot-grace-deadline-${STORAGE_VERSION}`
         });
+        (function purgeLegacyDeadlineKeys() {
+            const legacyKeys = ['chatbot-start-deadline', 'chatbot-grace-deadline'];
+            legacyKeys.forEach((key) => {
+                try { localStorage.removeItem(key); } catch { /* ignore */ }
+            });
+        })();
         function readDeadline(key) {
             try {
                 const raw = localStorage.getItem(key);
