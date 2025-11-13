@@ -239,6 +239,15 @@
     overflow-x:hidden;
     -webkit-overflow-scrolling:touch;
   }
+  /* Hide scrollbars while keeping touch scrolling available */
+  .nav-row,
+  .nav-row.open{
+    scrollbar-width:none;
+  }
+  .nav-row::-webkit-scrollbar{
+    width:0;
+    height:0;
+  }
 
   /* ---------- links ---------- */
   .nav-row .nav-link{
