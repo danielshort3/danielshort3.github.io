@@ -877,6 +877,7 @@
         const form = document.getElementById('chat-form');
         const clearBtn = document.getElementById('clear-all');
         const quickPrompts = document.getElementById('quick-prompts');
+        const DEFAULT_PROMPT_PLACEHOLDER = promptEl?.getAttribute('placeholder') || 'Type your message. Enter to send, Shift+Enter for a new line.';
 
         /* ---------- Debug logging helpers ---------- */
         const rootScope = typeof window !== 'undefined' ? window : globalThis;
@@ -976,8 +977,40 @@
             });
         }
 
+        function applyDemoEnabledState() {
+            document.body.removeAttribute('data-demo-disabled');
+            demoBox?.removeAttribute('data-disabled');
+            if (disabledBanner) disabledBanner.hidden = true;
+            if (disabledCopy) disabledCopy.textContent = '';
+            svcDot?.classList.remove('gray');
+            svcText.textContent = 'Checking…';
+            svcETA.textContent = '';
+            svcQueueWrap?.setAttribute('hidden', 'true');
+            svcProg?.setAttribute('hidden', 'true');
+            promptEl.removeAttribute('disabled');
+            promptEl.removeAttribute('aria-disabled');
+            promptEl.placeholder = DEFAULT_PROMPT_PLACEHOLDER;
+            promptEl.title = '';
+            form?.removeAttribute('aria-disabled');
+            askBtn.disabled = false;
+            askBtn.removeAttribute('aria-disabled');
+            askBtn.removeAttribute('title');
+            if (stopBtn) {
+                stopBtn.hidden = true;
+                stopBtn.disabled = true;
+                stopBtn.removeAttribute('aria-disabled');
+            }
+            quickPrompts?.removeAttribute('aria-disabled');
+            quickPrompts?.querySelectorAll('button').forEach(btn => {
+                btn.disabled = false;
+                btn.removeAttribute('aria-disabled');
+            });
+        }
+
         if (DEMO_DISABLED) {
             applyDemoDisabledState();
+        } else {
+            applyDemoEnabledState();
         }
 
         /* ---------- Stepper ---------- */
@@ -1085,7 +1118,7 @@
 
         /* ---------- Server status (client-side timers only) ---------- */
         const START_TIMEOUT_SEC = 600; // 10 minutes fixed
-        const GRACE_SEC = 60;          // 60 second online grace
+        const GRACE_SEC = 600;          // 10 minute active window
 
         const STATE = {
             OFFLINE_DETECTED: 'OFFLINE_DETECTED',
@@ -1099,12 +1132,35 @@
         let startingTimer = null, startingDeadline = 0;
         let graceTimer = null, graceDeadline = 0;
 
+        function isOnlinePayload(payload) {
+            if (!payload) return false;
+            if (typeof payload.online === 'boolean') return payload.online;
+            const status = String(payload.status || payload.state || '').toLowerCase();
+            if (status === 'on' || status === 'online' || status === 'inservice' || status === 'ready') return true;
+            if (typeof payload.current === 'number' && payload.current > 0) return true;
+            if (typeof payload.desired === 'number' && payload.desired > 0) return true;
+            return false;
+        }
+        function updateQueueIndicators(payload) {
+            if (!svcQueueWrap) return;
+            const q = typeof payload?.queue_estimate === 'number' ? payload.queue_estimate : null;
+            if (q == null) {
+                svcQueueWrap.setAttribute('hidden', 'true');
+            } else {
+                svcQueueWrap.removeAttribute('hidden');
+                svcQ.textContent = q.toFixed(1);
+            }
+        }
         async function checkStatus() {
             try {
                 const r = await fetch(STATUS_URL, { cache: 'no-store' });
                 const d = await r.json();
-                return !!d.online;
-            } catch {
+                updateQueueIndicators(d);
+                const online = isOnlinePayload(d);
+                recordLog('status:payload', { online, raw: d });
+                return online;
+            } catch (err) {
+                recordLog('status:error', { error: describeError(err) }, 'error');
                 return false;
             }
         }
@@ -1118,13 +1174,29 @@
             const sec = s % 60;
             return `${m}:${String(sec).padStart(2, '0')}`;
         }
+        function stopStartingTimer() {
+            if (startingTimer) {
+                clearInterval(startingTimer);
+                startingTimer = null;
+            }
+            startingDeadline = 0;
+        }
+        function stopGraceCycle() {
+            if (graceTimer) {
+                clearInterval(graceTimer);
+                graceTimer = null;
+            }
+        }
+        function markServerOnline(source = 'status') {
+            if (DEMO_DISABLED) return;
+            recordLog('status:online', { source });
+            stopStartingTimer();
+            startGraceCycle({ resetDeadline: true });
+        }
         async function initStatus() {
             const online = await checkStatus();
             if (online) {
-                currentState = STATE.ONLINE;
-                setDot(currentState);
-                svcText.textContent = 'Server is online.';
-                svcETA.textContent = '';
+                markServerOnline('status-check');
             } else {
                 currentState = STATE.OFFLINE_DETECTED;
                 setDot(currentState);
@@ -1153,8 +1225,8 @@
             function minutesRound(sec){ return Math.max(1, Math.round(sec/60)); }
             // Compose message from constants so it stays accurate with future tweaks
             const warmMin = minutesRound(START_TIMEOUT_SEC);
-            const shutSec = GRACE_SEC;
-            body.textContent = `To control hosting costs, the demo server starts from off on your first message (cold start, up to about ${warmMin} minutes), and automatically shuts down after ${shutSec} seconds of inactivity. Your very first response may take longer than usual.`;
+            const shutMin = minutesRound(GRACE_SEC);
+            body.textContent = `To control hosting costs, the demo server starts from off on your first message (cold start, up to about ${warmMin} minutes), and automatically shuts down after about ${shutMin} minutes of inactivity. Your very first response may take longer than usual.`;
 
             function close(){
                 try { if (never && never.checked) localStorage.setItem(LS_KEY, '1'); } catch {}
@@ -1198,11 +1270,14 @@
         // End starting timer helpers
 
         // Grace period helpers
-        function startGraceCycle() {
+        function startGraceCycle(opts = { resetDeadline: true }) {
+            stopGraceCycle();
             currentState = STATE.ONLINE_GRACE;
             setDot(currentState);
-            svcText.textContent = 'Server is online. A 60-second timeout is active.';
-            graceDeadline = Date.now() + GRACE_SEC * 1000;
+            svcText.textContent = `Server is online. Auto-shutdown in ~${Math.round(GRACE_SEC / 60)} minutes.`;
+            if (!graceDeadline || opts.resetDeadline) {
+                graceDeadline = Date.now() + GRACE_SEC * 1000;
+            }
             updateGrace();
             graceTimer = setInterval(updateGrace, 1000);
         }
@@ -1319,6 +1394,7 @@
                 return poll();
             }
             const data = await poll();
+            markServerOnline('request-complete');
             return { data, requestId };
         }
 
