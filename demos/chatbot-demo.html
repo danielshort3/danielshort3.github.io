@@ -744,11 +744,11 @@
 </head>
 <body>
     <script>
-        (function () {
-            var CHANNEL = 'chatbot-demo-resize';
+        const notifyResize = (() => {
+            const CHANNEL = 'chatbot-demo-resize';
             function calcHeight() {
-                var doc = document.documentElement;
-                var body = document.body || doc;
+                const doc = document.documentElement;
+                const body = document.body || doc;
                 return Math.ceil(Math.max(
                     body.scrollHeight,
                     body.offsetHeight,
@@ -758,23 +758,24 @@
                 ));
             }
             function postHeight() {
-                try { parent.postMessage({ type: CHANNEL, height: calcHeight() }, '*'); } catch (e) { }
+                try { parent.postMessage({ type: CHANNEL, height: calcHeight() }, '*'); } catch (e) { /* not embedded */ }
             }
             window.addEventListener('load', postHeight);
-            try { document.fonts?.ready?.then(postHeight); } catch (e) { }
+            try { document.fonts?.ready?.then(postHeight); } catch (e) { /* optional */ }
             if ('ResizeObserver' in window) {
-                var ro = new ResizeObserver(function () { postHeight(); });
+                const ro = new ResizeObserver(() => postHeight());
                 ro.observe(document.documentElement);
             } else {
-                var prev = 0;
-                setInterval(function () {
-                    var h = calcHeight();
+                let prev = 0;
+                setInterval(() => {
+                    const h = calcHeight();
                     if (Math.abs(h - prev) > 4) {
                         prev = h;
                         postHeight();
                     }
                 }, 750);
             }
+            return postHeight;
         })();
     </script>
 
