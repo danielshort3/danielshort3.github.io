@@ -1154,7 +1154,7 @@
 
         /* ---------- Server status (client-side timers only) ---------- */
         const START_TIMEOUT_SEC = 600; // 10 minutes fixed
-        const GRACE_SEC = 600;          // 10 minute active window
+        const GRACE_SEC = 60;          // 1 minute active window (debug)
 
         const STATE = {
             OFFLINE_DETECTED: 'OFFLINE_DETECTED',
@@ -1245,16 +1245,16 @@
         }
         function markServerOnline(source = 'status', options = {}) {
             if (DEMO_DISABLED) return;
-            const { remainingSec = null, useStoredDeadline = false } = options;
-            recordLog('status:online', { source, remainingSec });
+            const { remainingSec = null, useStoredDeadline = false, forceReset = false } = options;
+            recordLog('status:online', { source, remainingSec, forceReset });
             stopStartingTimer();
             let deadlineMs = null;
             if (typeof remainingSec === 'number' && remainingSec > 0) {
                 deadlineMs = Date.now() + remainingSec * 1000;
-            } else if (useStoredDeadline) {
+            } else if (!forceReset && useStoredDeadline) {
                 deadlineMs = getStoredGraceDeadline();
             }
-            if (!deadlineMs) {
+            if (!deadlineMs || forceReset) {
                 deadlineMs = Date.now() + GRACE_SEC * 1000;
             }
             startGraceCycle({ deadlineMs, source });
@@ -1498,7 +1498,7 @@
                 return poll();
             }
             const data = await poll();
-            markServerOnline('request-complete');
+            markServerOnline('request-complete', { forceReset: true });
             return { data, requestId };
         }
 
