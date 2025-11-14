@@ -1098,6 +1098,21 @@
         window.addEventListener('resize', () => { if (!mqCompact.matches) { document.querySelectorAll('.step.show-tip').forEach(s => s.classList.remove('show-tip')); } });
 
         /* ---------- Utilities ---------- */
+        function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+        async function waitForServerOnline(maxWaitMs = START_TIMEOUT_SEC * 1000) {
+            const start = Date.now();
+            const pollDelay = 5000;
+            while (Date.now() - start < maxWaitMs) {
+                const status = await fetchStatusInfo();
+                if (status.online) {
+                    recordLog('status:online-detected', { source: 'wait-helper' });
+                    return true;
+                }
+                recordLog('status:waiting-online', { elapsedMs: Date.now() - start });
+                await delay(pollDelay);
+            }
+            throw new Error('Server is still starting. Please try again soon.');
+        }
         function autoResize() { promptEl.style.height = 'auto'; promptEl.style.height = Math.min(200, promptEl.scrollHeight) + 'px'; }
         promptEl.addEventListener('input', autoResize); window.addEventListener('load', autoResize);
         promptEl.addEventListener('keydown', (e) => {
@@ -1431,7 +1446,7 @@
         }
         /* ---------- Networking ---------- */
         let abort = null; let cancelled = false;
-        async function ask(prompt, onStatus = () => { }) {
+        async function ask(prompt, onStatus = () => { }, retryCount = 0) {
             if (DEMO_DISABLED) {
                 throw new Error(DEMO_DISABLED_REASON);
             }
@@ -1459,6 +1474,15 @@
             } catch (err) {
                 recordLog('submit:parse-error', { requestId, error: describeError(err) }, 'error');
                 throw withRequestId(err, requestId);
+            }
+
+            if (submitResponse.status === 202 || submit?.starting) {
+                if (retryCount > 2) {
+                    throw withRequestId(new Error('Server is still starting. Please try again shortly.'), requestId);
+                }
+                recordLog('submit:starting', { requestId, retryCount });
+                await waitForServerOnline();
+                return ask(prompt, onStatus, retryCount + 1);
             }
 
             if (!submitResponse.ok) {
