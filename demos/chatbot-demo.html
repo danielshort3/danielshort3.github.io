@@ -1461,7 +1461,17 @@
                 throw withRequestId(err, requestId);
             }
 
+            if (!submitResponse.ok) {
+                const errorMessage = submit?.error || submitResponse.statusText || 'Submit request failed';
+                recordLog('submit:http-error', { requestId, status: submitResponse.status, error: errorMessage }, 'error');
+                throw withRequestId(new Error(errorMessage), requestId);
+            }
+
             const outputUri = submit.outputUri;
+            if (!outputUri || !outputUri.startsWith('s3://')) {
+                recordLog('submit:invalid-output', { requestId, jobId: submit.jobId, outputUri }, 'error');
+                throw withRequestId(new Error('Server returned an invalid response'), requestId);
+            }
             recordLog('submit:accepted', { requestId, jobId: submit.jobId, outputUri });
 
             onStatus('PENDING', requestId);
@@ -1483,6 +1493,21 @@
                     throw withRequestId(err, requestId);
                 }
 
+                if (!pollResponse.ok) {
+                    let errMsg = '';
+                    let parsed = null;
+                    let errMsg = '';
+                    try {
+                        const bodyText = await pollResponse.text();
+                        errMsg = bodyText;
+                        parsed = bodyText ? JSON.parse(bodyText) : null;
+                    } catch {
+                        errMsg = '';
+                    }
+                    const message = parsed?.error || errMsg || pollResponse.statusText || 'Result request failed';
+                    recordLog('poll:http-error', { requestId, pollAttempt, status: pollResponse.status, error: message }, 'error');
+                    throw withRequestId(new Error(message), requestId);
+                }
                 let res;
                 try {
                     res = await pollResponse.json();
