@@ -1496,7 +1496,6 @@
                 if (!pollResponse.ok) {
                     let errMsg = '';
                     let parsed = null;
-                    let errMsg = '';
                     try {
                         const bodyText = await pollResponse.text();
                         errMsg = bodyText;
