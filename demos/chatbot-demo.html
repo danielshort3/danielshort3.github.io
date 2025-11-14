@@ -1481,12 +1481,18 @@
                         setDot(currentState);
                         svcText.textContent = 'Server has shut down. Send a message to start it again.';
                         svcETA.textContent = '';
-                    } else {
-                        const hasShutdownEta = !!(status.shutdownSeconds && status.shutdownSeconds > 0);
+                    } else if (typeof status.payload?.shutdownSeconds === 'number' && status.payload.shutdownSeconds > 0) {
                         markServerOnline('grace-refresh', {
-                            remainingSec: hasShutdownEta ? status.shutdownSeconds : null,
-                            useStoredDeadline: !hasShutdownEta
+                            remainingSec: status.payload.shutdownSeconds,
+                            forceReset: false
                         });
+                    } else if (typeof status.payload?.current === 'number' && status.payload.current <= 0) {
+                        currentState = STATE.SHUTDOWN;
+                        setDot(currentState);
+                        svcText.textContent = 'Server has shut down. Send a message to start it again.';
+                        svcETA.textContent = '';
+                    } else {
+                        markServerOnline('grace-refresh', { useStoredDeadline: true });
                     }
                 }).catch(() => {
                     setTimeout(() => startGraceCycle({ source: 'retry' }), 0);
