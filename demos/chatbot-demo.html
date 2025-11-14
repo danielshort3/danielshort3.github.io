@@ -1181,7 +1181,7 @@
 
         /* ---------- Server status (client-side timers only) ---------- */
         const START_TIMEOUT_SEC = 600; // 10 minutes fixed
-        const GRACE_SEC = 300;         // 5 minute active window
+        const GRACE_SEC = 60;         // 1 minute active window
 
         const STATE = {
             OFFLINE_DETECTED: 'OFFLINE_DETECTED',
@@ -1244,6 +1244,10 @@
             const m = Math.floor(s / 60);
             const sec = s % 60;
             return `${m}:${String(sec).padStart(2, '0')}`;
+        }
+        function describeMinutesLabel(value) {
+            const minutes = Math.max(1, Math.round(Number(value) || 0));
+            return `${minutes} minute${minutes === 1 ? '' : 's'}`;
         }
         function stopStartingTimer(opts = { clearStorage: true }) {
             if (startingTimer) {
@@ -1335,7 +1339,9 @@
             // Compose message from constants so it stays accurate with future tweaks
             const warmMin = minutesRound(START_TIMEOUT_SEC);
             const shutMin = minutesRound(GRACE_SEC);
-            body.textContent = `To control hosting costs, the demo server starts from off on your first message (cold start, up to about ${warmMin} minutes), and automatically shuts down after about ${shutMin} minutes of inactivity. Your very first response may take longer than usual.`;
+            const warmLabel = describeMinutesLabel(warmMin);
+            const shutLabel = describeMinutesLabel(shutMin);
+            body.textContent = `To control hosting costs, the demo server starts from off on your first message (cold start, up to about ${warmLabel}), and automatically shuts down after about ${shutLabel} of inactivity. Your very first response may take longer than usual.`;
 
             function close(){
                 try { if (never && never.checked) localStorage.setItem(LS_KEY, '1'); } catch {}
@@ -1363,7 +1369,8 @@
             const minutes = Math.max(1, Math.round(durationSec / 60));
             currentState = STATE.STARTING;
             setDot(currentState);
-            svcText.textContent = `Server is starting (up to ~${minutes} minutes).`;
+            const label = describeMinutesLabel(minutes);
+            svcText.textContent = `Server is starting (up to ~${label}).`;
             startingDeadline = Date.now() + Math.max(1, Math.round(durationSec)) * 1000;
             if (typeof STORAGE_KEYS !== 'undefined' && typeof writeDeadline === 'function') {
                 writeDeadline(STORAGE_KEYS.startDeadline, startingDeadline);
@@ -1407,7 +1414,8 @@
                 writeDeadline(STORAGE_KEYS.graceDeadline, graceDeadline);
             }
             const minutesLeft = Math.max(1, Math.ceil((graceDeadline - now) / 60000));
-            svcText.textContent = `Server is online. Auto-shutdown in ~${minutesLeft} minutes.`;
+            const label = describeMinutesLabel(minutesLeft);
+            svcText.textContent = `Server is online. Auto-shutdown in ~${label}.`;
             if (typeof recordLog === 'function') {
                 recordLog('status:grace-cycle', { source, deadline: graceDeadline });
             }
