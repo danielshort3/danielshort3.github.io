@@ -5,6 +5,7 @@
 @layer components {
   .btn-primary,
   .btn-secondary,
+  .btn-ghost,
   .btn-icon {
     display: inline-flex;
     align-items: center;
@@ -74,6 +75,21 @@
     background: color-mix(in srgb, var(--primary) 22%, transparent);
     border-color: color-mix(in srgb, var(--primary) 55%, transparent);
     color: color-mix(in srgb, #ffffff 92%, var(--bg) 8%);
+  }
+
+  .btn-ghost {
+    padding: 12px 22px;
+    border: 1px dashed color-mix(in srgb, var(--text-light) 40%, transparent);
+    color: color-mix(in srgb, var(--text-light) 80%, #ffffff 20%);
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .btn-ghost:hover {
+    border-style: solid;
+    border-color: color-mix(in srgb, var(--primary) 45%, transparent);
+    color: color-mix(in srgb, #ffffff 92%, var(--bg) 8%);
+    background: color-mix(in srgb, var(--primary) 18%, transparent);
   }
 
   .btn-icon {
@@ -156,6 +172,7 @@
 
   .btn-primary:focus-visible,
   .btn-secondary:focus-visible,
+  .btn-ghost:focus-visible,
   .btn-icon:focus-visible {
     outline: 3px solid color-mix(in srgb, var(--primary) 60%, #ffffff 40%);
     outline-offset: 3px;
