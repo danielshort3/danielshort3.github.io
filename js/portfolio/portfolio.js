@@ -226,6 +226,11 @@ function buildPortfolioCarousel() {
   const next     = (auto = false) => goTo((current + 1) % projects.length, auto);
   const previous = (auto = false) => goTo((current - 1 + projects.length) % projects.length, auto);
 
+  const prevBtn = container.querySelector('[data-carousel-nav="prev"]');
+  const nextBtn = container.querySelector('[data-carousel-nav="next"]');
+  prevBtn && prevBtn.addEventListener('click', () => previous());
+  nextBtn && nextBtn.addEventListener('click', () => next());
+
   // -----------------------------------------------------------------------
   container.addEventListener("mouseenter",  () => pause = true);
   container.addEventListener("mouseleave",  () => pause = false);
