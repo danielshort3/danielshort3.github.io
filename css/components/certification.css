@@ -76,32 +76,78 @@
   .cert:hover span{color:color-mix(in srgb,var(--primary) 82%, #ffffff 18%);opacity:1;}
   @keyframes fadeCert{from{opacity:0;transform:translate3d(var(--ticker-x), -50%, 0) scale(.96);}to{opacity:1;transform:translate3d(var(--ticker-x), -50%, 0) scale(1);}}
   .cert.reenter{animation:fadeCert .35s ease;}
-  .cert-modal-list{
-    list-style:none;
-    padding:0;
-    margin:0 0 24px;
+  .cert-modal-body{
+    padding:24px clamp(16px,5vw,32px) 32px;
+  }
+  .cert-modal-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:clamp(18px,3vw,28px);
+    width:100%;
+  }
+  .cert-card{
+    background:color-mix(in srgb,var(--surface) 94%, #010306 6%);
+    border:1px solid color-mix(in srgb,var(--primary) 20%, transparent);
+    border-radius:18px;
+    padding:22px;
     display:flex;
     flex-direction:column;
     gap:14px;
+    box-shadow:0 20px 38px rgba(0,0,0,.28);
   }
-  .cert-modal-list li{
-    padding:12px 0;
-    border-bottom:1px solid color-mix(in srgb,var(--text-light) 12%, transparent);
+  .cert-card-header{
     display:flex;
-    flex-direction:column;
-    gap:6px;
+    gap:16px;
+    align-items:flex-start;
   }
-  .cert-modal-list strong{
+  .cert-card-logo{
+    width:52px;
+    height:52px;
+    border-radius:14px;
+    background:color-mix(in srgb,var(--surface) 85%, #0d1622 15%);
+    padding:10px;
+    object-fit:contain;
+    box-shadow:0 8px 20px rgba(0,0,0,.3);
+  }
+  .cert-card-label{
+    margin:0;
+    font-size:.78rem;
+    text-transform:uppercase;
+    letter-spacing:.18em;
+    color:var(--primary);
+  }
+  .cert-card h4{
+    margin:4px 0;
     font-size:1.05rem;
+    font-family:'Poppins';
     color:var(--text-light);
   }
-  .cert-modal-list span{
-    font-size:.95rem;
+  .cert-card-meta{
+    margin:0;
+    font-size:.92rem;
     color:var(--text-muted);
   }
-  .cert-modal-list a{
+  .cert-card-note{
+    margin:0;
     font-size:.95rem;
-    align-self:flex-start;
+    color:color-mix(in srgb,var(--text-muted) 92%, #ffffff 8%);
+    line-height:1.5;
+  }
+  .cert-card-note.subtle{
+    font-size:.9rem;
+    opacity:.8;
+  }
+  .cert-card-actions{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .cert-card-actions .btn-secondary{
+    flex:1 1 auto;
+    justify-content:center;
+  }
+  .cert-card-actions .cert-card-note{
+    flex:1 1 auto;
   }
   @media (max-width: 900px) {
     .cert-band-inner{
@@ -111,6 +157,15 @@
     .cert-modal-trigger{
       width:100%;
       min-width:0;
+    }
+    .cert-modal-grid{
+      grid-template-columns:1fr;
+    }
+    .cert-card-actions{
+      flex-direction:column;
+    }
+    .cert-card-actions .btn-secondary{
+      width:100%;
     }
   }
 }
