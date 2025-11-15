@@ -232,6 +232,8 @@
       justify-items:stretch;
       text-align:center;
       margin-bottom:clamp(1.4rem,4vh,2.4rem);
+      margin-inline:auto;
+      width:100%;
     }
     .hero-meta li{
       text-align:center;
@@ -264,6 +266,15 @@
     .hero-cta{
       width:100%;
       justify-content:center;
+    }
+    .hero-meta{
+      grid-template-columns:1fr;
+      width:100%;
+      margin-inline:0;
+      padding:0;
+    }
+    .hero-meta li{
+      width:100%;
     }
   }
 
