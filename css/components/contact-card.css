@@ -53,6 +53,9 @@
     color:color-mix(in srgb,#ffffff 92%, var(--bg) 8%);
     box-shadow:0 24px 48px rgba(0,0,0,.35);
   }
+  .surface-band.reveal.active .contact-card.contact-card-recommended{
+    animation:contactCardSpotlight 2.8s cubic-bezier(.25,.8,.3,1) .25s both;
+  }
   .contact-card.contact-card-recommended small{
     color:color-mix(in srgb,#ffffff 88%, var(--bg) 12%);
   }
@@ -71,5 +74,25 @@
     margin:0;
     color:var(--text-muted);
     font-size:1rem;
+  }
+  @keyframes contactCardSpotlight{
+    0%{
+      transform:translateY(0) scale(1);
+      box-shadow:0 24px 48px rgba(0,0,0,.35);
+    }
+    40%{
+      transform:translateY(-6px) scale(1.02);
+      box-shadow:
+        0 30px 56px rgba(0,0,0,.38),
+        0 0 28px color-mix(in srgb,var(--primary) 45%, transparent);
+    }
+    70%{
+      transform:translateY(-3px) scale(1.015);
+      box-shadow:0 26px 52px rgba(0,0,0,.37);
+    }
+    100%{
+      transform:translateY(0) scale(1);
+      box-shadow:0 24px 48px rgba(0,0,0,.35);
+    }
   }
 }
