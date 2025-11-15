@@ -214,7 +214,7 @@
       if (!window.fetch || sending || !endpoint) return;
       const firstInvalid = validateForm();
       if (firstInvalid) {
-        setStatus('Please fix the highlighted fields before sending.', 'error');
+        setStatus('', 'info');
         firstInvalid.focus({ preventScroll: true });
         return;
       }
