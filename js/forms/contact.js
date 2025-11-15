@@ -10,6 +10,10 @@
   const endpoint = form?.dataset.endpoint || form?.getAttribute('action') || '';
   let prevFocus = null;
   let sending = false;
+  const noteEl = form?.querySelector('.contact-form-note');
+  const nameInput = form?.querySelector('#contact-name');
+  const emailInput = form?.querySelector('#contact-email');
+  const messageInput = form?.querySelector('#contact-message');
 
   const focusables = () => content.querySelectorAll('a,button,input,textarea,select,[tabindex]:not([tabindex="-1"])');
   const trap = (e) => {
@@ -28,11 +32,29 @@
     else delete statusEl.dataset.tone;
   };
 
+  const getTrimmedValue = (input) => (input?.value || '').trim();
+  const hasValue = (input) => getTrimmedValue(input).length > 0;
+  const emailIsValid = () => {
+    if (!emailInput) return false;
+    const value = getTrimmedValue(emailInput);
+    if (!value) return false;
+    if ('validity' in emailInput) return emailInput.validity.valid;
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  };
+  const isFormReady = () => hasValue(nameInput) && hasValue(messageInput) && emailIsValid();
+  const hideNote = () => { if (noteEl) noteEl.hidden = true; };
+  const showNote = () => { if (noteEl) noteEl.hidden = false; };
+  const updateSubmitState = () => {
+    if (!submitBtn) return;
+    submitBtn.disabled = sending || !isFormReady();
+  };
+
   const resetForm = () => {
     if (form) form.reset();
     sending = false;
-    if (submitBtn) submitBtn.disabled = false;
     setStatus('');
+    hideNote();
+    updateSubmitState();
   };
 
   function open(){ if(!modal) return;
@@ -72,13 +94,20 @@
     open();
   });
   if (form) {
+    hideNote();
+    updateSubmitState();
+    const handleInput = () => {
+      hideNote();
+      updateSubmitState();
+    };
+    form.addEventListener('input', handleInput);
     form.addEventListener('submit', async (event) => {
       if (!window.fetch || sending) return;
       if (!endpoint) return;
       event.preventDefault();
       sending = true;
       setStatus('Sending message…', 'info');
-      submitBtn && (submitBtn.disabled = true);
+      updateSubmitState();
       try {
         const formData = new FormData(form);
         const payload = {
@@ -98,12 +127,14 @@
         }
         setStatus('Thanks! I received your message and will reply soon.', 'success');
         form.reset();
+        updateSubmitState();
+        showNote();
       } catch (err) {
         console.error('Contact form submit failed', err);
         setStatus(err?.message || 'Something went wrong. Please email me directly.', 'error');
       } finally {
         sending = false;
-        submitBtn && (submitBtn.disabled = false);
+        updateSubmitState();
       }
     });
   }
