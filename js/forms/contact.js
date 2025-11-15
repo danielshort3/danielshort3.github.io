@@ -10,7 +10,6 @@
   const endpoint = form?.dataset.endpoint || form?.getAttribute('action') || '';
   let prevFocus = null;
   let sending = false;
-  const noteEl = form?.querySelector('.contact-form-note');
   const nameInput = form?.querySelector('#contact-name');
   const emailInput = form?.querySelector('#contact-email');
   const messageInput = form?.querySelector('#contact-message');
@@ -42,8 +41,6 @@
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
   };
   const isFormReady = () => hasValue(nameInput) && hasValue(messageInput) && emailIsValid();
-  const hideNote = () => { if (noteEl) noteEl.hidden = true; };
-  const showNote = () => { if (noteEl) noteEl.hidden = false; };
   const updateSubmitState = () => {
     if (!submitBtn) return;
     submitBtn.disabled = sending || !isFormReady();
@@ -53,7 +50,6 @@
     if (form) form.reset();
     sending = false;
     setStatus('');
-    hideNote();
     updateSubmitState();
   };
 
@@ -94,10 +90,8 @@
     open();
   });
   if (form) {
-    hideNote();
     updateSubmitState();
     const handleInput = () => {
-      hideNote();
       updateSubmitState();
     };
     form.addEventListener('input', handleInput);
@@ -128,7 +122,6 @@
         setStatus('Thanks! I received your message and will reply soon.', 'success');
         form.reset();
         updateSubmitState();
-        showNote();
       } catch (err) {
         console.error('Contact form submit failed', err);
         setStatus(err?.message || 'Something went wrong. Please email me directly.', 'error');
