@@ -50,6 +50,16 @@
   }
 
   .btn-primary:hover::after { opacity: 1; }
+  .btn-primary:disabled{
+    background:color-mix(in srgb,var(--surface) 82%, #0f141d 18%);
+    color:color-mix(in srgb,var(--text-light) 58%, #ffffff 42%);
+    border-color:color-mix(in srgb,var(--text-light) 22%, transparent);
+    box-shadow:none;
+    transform:none;
+    cursor:not-allowed;
+    opacity:.8;
+  }
+  .btn-primary:disabled::after{ opacity:0; }
 
   .btn-secondary {
     padding: 14px 30px;
