@@ -6,15 +6,37 @@
   const closeBtn = modal?.querySelector('.modal-close');
   const form = document.getElementById('contact-form');
   const statusEl = document.getElementById('contact-status');
+  const altContact = document.getElementById('contact-alt');
+  const resetBtn = form?.querySelector('[data-contact-reset]');
   const submitBtn = form?.querySelector('[type="submit"]');
+  const successPanel = document.getElementById('contact-success');
+  const newMessageBtn = successPanel?.querySelector('[data-contact-new]');
   const endpoint = form?.dataset.endpoint || form?.getAttribute('action') || '';
   let prevFocus = null;
   let sending = false;
   const nameInput = form?.querySelector('#contact-name');
   const emailInput = form?.querySelector('#contact-email');
   const messageInput = form?.querySelector('#contact-message');
+  const fieldConfigs = [
+    {
+      input: nameInput,
+      errorEl: document.getElementById('contact-name-error'),
+      emptyMessage: 'Please share your name so I know who to reply to.'
+    },
+    {
+      input: emailInput,
+      errorEl: document.getElementById('contact-email-error'),
+      emptyMessage: 'Add the email where I should send a reply.',
+      invalidMessage: 'That email address doesn’t look right.'
+    },
+    {
+      input: messageInput,
+      errorEl: document.getElementById('contact-message-error'),
+      emptyMessage: 'Let me know a bit about your project or opportunity.'
+    }
+  ];
 
-  const focusables = () => content.querySelectorAll('a,button,input,textarea,select,[tabindex]:not([tabindex="-1"])');
+  const focusables = () => content ? content.querySelectorAll('a,button,input,textarea,select,[tabindex]:not([tabindex="-1"])') : [];
   const trap = (e) => {
     if (e.key !== 'Tab') return;
     const f = focusables();
@@ -24,37 +46,108 @@
     else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
   };
 
-  const setStatus = (message = '', tone = 'info') => {
+  const setStatus = (message = '', tone = 'info', { focus = false } = {}) => {
     if (!statusEl) return;
     statusEl.textContent = message;
-    if (message) statusEl.dataset.tone = tone;
-    else delete statusEl.dataset.tone;
+    if (message) {
+      statusEl.dataset.tone = tone;
+      statusEl.setAttribute('aria-live', tone === 'error' ? 'assertive' : 'polite');
+    } else {
+      delete statusEl.dataset.tone;
+      statusEl.setAttribute('aria-live', 'polite');
+    }
+    if (altContact) {
+      altContact.hidden = !(tone === 'error' && Boolean(message));
+    }
+    if (message && focus) {
+      statusEl.focus({ preventScroll: true });
+    }
   };
 
   const getTrimmedValue = (input) => (input?.value || '').trim();
   const hasValue = (input) => getTrimmedValue(input).length > 0;
-  const emailIsValid = () => {
-    if (!emailInput) return false;
-    const value = getTrimmedValue(emailInput);
+  const emailIsValid = (input = emailInput) => {
+    if (!input) return false;
+    const value = getTrimmedValue(input);
     if (!value) return false;
-    if ('validity' in emailInput) return emailInput.validity.valid;
+    if ('validity' in input) return input.validity.valid;
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
   };
-  const isFormReady = () => hasValue(nameInput) && hasValue(messageInput) && emailIsValid();
   const updateSubmitState = () => {
     if (!submitBtn) return;
-    submitBtn.disabled = sending || !isFormReady();
+    submitBtn.disabled = sending || !endpoint;
+    submitBtn.classList.toggle('is-busy', sending);
   };
 
-  const resetForm = () => {
-    if (form) form.reset();
+  const showFieldError = (config, message) => {
+    if (!config?.input) return;
+    const field = config.input.closest('.form-field');
+    config.input.setAttribute('aria-invalid', 'true');
+    field && field.classList.add('has-error');
+    if (config.errorEl) {
+      config.errorEl.textContent = message;
+      config.errorEl.hidden = false;
+    }
+  };
+  const clearFieldError = (config) => {
+    if (!config?.input) return;
+    const field = config.input.closest('.form-field');
+    config.input.removeAttribute('aria-invalid');
+    field && field.classList.remove('has-error');
+    if (config.errorEl) {
+      config.errorEl.textContent = '';
+      config.errorEl.hidden = true;
+    }
+  };
+  const validateField = (config) => {
+    if (!config?.input) return true;
+    const value = getTrimmedValue(config.input);
+    if (!value) {
+      showFieldError(config, config.emptyMessage);
+      return false;
+    }
+    if (config.input.type === 'email' && !emailIsValid(config.input)) {
+      showFieldError(config, config.invalidMessage || 'Enter a valid email address.');
+      return false;
+    }
+    clearFieldError(config);
+    return true;
+  };
+  const validateForm = () => {
+    let firstInvalid = null;
+    fieldConfigs.forEach((config) => {
+      const valid = validateField(config);
+      if (!valid && !firstInvalid) {
+        firstInvalid = config.input;
+      }
+    });
+    return firstInvalid;
+  };
+
+  const toggleSuccess = (show = false) => {
+    if (!form || !successPanel) return;
+    form.hidden = show;
+    successPanel.hidden = !show;
+    if (show) {
+      successPanel.focus({ preventScroll: true });
+    }
+  };
+  const prepareForm = () => {
     sending = false;
+    form?.setAttribute('aria-busy', 'false');
+    toggleSuccess(false);
     setStatus('');
+    fieldConfigs.forEach(clearFieldError);
     updateSubmitState();
   };
+  const clearInputs = () => {
+    if (!form) return;
+    form.reset();
+    fieldConfigs.forEach(clearFieldError);
+  };
 
-  function open(){ if(!modal) return;
-    resetForm();
+  function open(){ if(!modal || !content) return;
+    prepareForm();
     prevFocus = document.activeElement;
     modal.classList.add('active');
     document.body.classList.add('modal-open');
@@ -62,11 +155,15 @@
     content.focus({preventScroll:true});
     content.addEventListener('keydown', trap);
   }
-  function close(){ if(!modal) return;
+  function close(){ if(!modal || !content) return;
     modal.classList.remove('active');
     document.body.classList.remove('modal-open');
     content.removeEventListener('keydown', trap);
-    if (prevFocus) prevFocus.focus();
+    if (prevFocus && document.contains(prevFocus)) {
+      prevFocus.focus();
+    } else if (openBtn) {
+      openBtn.focus();
+    }
   }
   const openIfHashMatches = () => {
     if (!modal) return;
@@ -90,17 +187,37 @@
     open();
   });
   if (form) {
+    form.setAttribute('aria-busy', 'false');
     updateSubmitState();
     const handleInput = () => {
       updateSubmitState();
     };
     form.addEventListener('input', handleInput);
+    fieldConfigs.forEach((config) => {
+      config.input?.addEventListener('input', () => {
+        if (config.input?.getAttribute('aria-invalid') === 'true') {
+          validateField(config);
+        }
+      });
+      config.input?.addEventListener('blur', () => validateField(config));
+    });
+    resetBtn?.addEventListener('click', () => {
+      clearInputs();
+      setStatus('');
+      nameInput?.focus();
+    });
     form.addEventListener('submit', async (event) => {
-      if (!window.fetch || sending) return;
-      if (!endpoint) return;
       event.preventDefault();
+      if (!window.fetch || sending || !endpoint) return;
+      const firstInvalid = validateForm();
+      if (firstInvalid) {
+        setStatus('Please fix the highlighted fields before sending.', 'error');
+        firstInvalid.focus({ preventScroll: true });
+        return;
+      }
       sending = true;
-      setStatus('Sending message…', 'info');
+      form.setAttribute('aria-busy', 'true');
+      setStatus('Sending message…', 'info', { focus: true });
       updateSubmitState();
       try {
         const formData = new FormData(form);
@@ -119,18 +236,25 @@
         if (!res.ok || data.error) {
           throw new Error(data.error || 'Unable to send message.');
         }
-        setStatus('Thanks! I received your message and will reply soon.', 'success');
-        form.reset();
-        updateSubmitState();
+        clearInputs();
+        setStatus('');
+        toggleSuccess(true);
       } catch (err) {
         console.error('Contact form submit failed', err);
-        setStatus(err?.message || 'Something went wrong. Please email me directly.', 'error');
+        setStatus(err?.message || 'Something went wrong. Please email me directly.', 'error', { focus: true });
       } finally {
         sending = false;
+        form.setAttribute('aria-busy', 'false');
         updateSubmitState();
       }
     });
   }
+  newMessageBtn?.addEventListener('click', () => {
+    toggleSuccess(false);
+    clearInputs();
+    setStatus('');
+    nameInput?.focus();
+  });
   window.addEventListener('hashchange', openIfHashMatches);
   openIfHashMatches();
 })();
