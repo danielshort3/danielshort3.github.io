@@ -1,0 +1,9 @@
+{
+  "AllowOrigins": [
+    "https://danielshort.me",
+    "http://localhost:4173"
+  ],
+  "AllowMethods": ["POST", "OPTIONS"],
+  "AllowHeaders": ["content-type"],
+  "MaxAge": 86400
+}

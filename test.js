@@ -330,10 +330,10 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
   // Contact modal and resume embed present
   checkFileContains('pages/contact.html', 'id="contact-modal"');
   checkFileContains('resume.html', 'documents/Resume.pdf');
-  // Contact: embed is a Google Form
-  checkFileContains('contact.html', 'docs.google.com/forms');
+  // Contact form lives inside the modal
+  checkFileContains('contact.html', 'id="contact-form"');
   const contactCss = fs.readFileSync('css/components/modal.css','utf8');
-  assert(/#contact-modal\s+iframe[\s\S]*height:100vh;/.test(contactCss), 'contact modal iframe not set to 100vh');
+  assert(contactCss.includes('.contact-form input') && contactCss.includes('.contact-form-status'), 'contact modal form styles missing');
 
   // Privacy page includes CMP scripts and GA4 vendor id exists
   checkFileContains('privacy.html', 'js/privacy/config.js');
