@@ -86,7 +86,7 @@
   .modal-text ul{margin:.5em 0 1em}
   .modal-text h4{color:var(--primary);margin-top:1em;margin-bottom:.5em;font-size:1.2rem}
   .modal-text ul{padding-left:20px}
-  .modal-subtitle{margin-top:0;color:var(--text-muted)}
+  .modal-subtitle{margin-top:8px;color:var(--text-muted)}
   .modal-image{flex:1 1 300px;align-self:flex-start}
   .modal-image img{max-width:100%;border-radius:12px;display:block;box-shadow:0 6px 24px rgba(0,0,0,.4)}
   .modal-image video{max-width:100%;border-radius:12px;display:block;box-shadow:0 6px 24px rgba(0,0,0,.4)}
@@ -210,16 +210,19 @@
   }
   .contact-form .btn-primary{
     gap:10px;
+    justify-content:center;
   }
   .contact-form .btn-primary .btn-spinner{
+    display:none;
     width:16px;height:16px;
     border-radius:50%;
     border:2px solid color-mix(in srgb,#fff 85%, var(--primary) 15%);
     border-right-color:transparent;
     animation:modal-spin 1s linear infinite;
-    opacity:0;
   }
-  .contact-form .btn-primary.is-busy .btn-spinner{ opacity:1; }
+  .contact-form .btn-primary.is-busy .btn-spinner{
+    display:inline-block;
+  }
   .contact-form .btn-primary.is-busy .btn-label{ opacity:.7; }
   @keyframes modal-spin { to { transform:rotate(360deg); } }
   .contact-form-note{
