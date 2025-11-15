@@ -587,8 +587,15 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
 
 @media (max-width: 768px) {
   .brand{
-    align-items:flex-start;
+    align-items:center;
     gap:clamp(8px,3vw,12px);
+  }
+  .brand-logo{
+    --mobile-logo-target:calc(var(--nav-height, 96px) * 0.5);
+    width:max(48px, var(--mobile-logo-target));
+    height:max(48px, var(--mobile-logo-target));
+    min-width:max(48px, var(--mobile-logo-target));
+    display:block;
   }
   .brand-name{
     flex-direction:column;
