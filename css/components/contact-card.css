@@ -1,6 +1,7 @@
 /* Contact action cards */
 @layer components {
   .contact-card{
+    position:relative;
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
     padding:48px 32px;text-align:center;background:var(--surface);border:1px solid var(--border-subtle);
     border-radius:14px;color:var(--primary);font-family:'Poppins';font-weight:600;
@@ -31,4 +32,57 @@
   }
   .contact-card:hover i,.contact-card:hover small{color:var(--bg)}
   .surface-band.reveal.active .contact-card{animation:focusIn .6s forwards}
+  .contact-card-badge{
+    position:absolute;
+    top:16px;
+    right:16px;
+    padding:4px 10px;
+    border-radius:999px;
+    font-size:.72rem;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    font-weight:600;
+    background:color-mix(in srgb,var(--primary) 20%, #ffffff 80%);
+    color:color-mix(in srgb,var(--primary) 80%, #031016 20%);
+  }
+  .contact-card.contact-card-recommended{
+    background:linear-gradient(135deg,
+      color-mix(in srgb,var(--primary) 22%, var(--surface) 78%) 0%,
+      color-mix(in srgb,var(--primary) 38%, var(--surface) 62%) 100%);
+    border-color:color-mix(in srgb,var(--primary) 48%, transparent);
+    color:color-mix(in srgb,#ffffff 92%, var(--bg) 8%);
+    box-shadow:0 24px 48px rgba(0,0,0,.35);
+  }
+  .contact-card.contact-card-recommended small{
+    color:color-mix(in srgb,#ffffff 88%, var(--bg) 12%);
+  }
+  .contact-card.contact-card-recommended:hover{
+    transform:translateY(-4px) scale(1.01);
+  }
+  .contact-options-heading{
+    text-align:center;
+    margin:0 auto 32px;
+    max-width:min(640px, 90vw);
+  }
+  .contact-options-heading .section-eyebrow{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    font-size:.82rem;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    padding:6px 16px;
+    border-radius:999px;
+    background:color-mix(in srgb,var(--primary) 16%, transparent);
+    color:color-mix(in srgb,var(--primary) 82%, #ffffff 18%);
+    margin-bottom:12px;
+  }
+  .contact-options-heading .section-title{
+    margin:0 0 8px;
+  }
+  .contact-options-heading .section-subtitle{
+    margin:0;
+    color:var(--text-muted);
+    font-size:1rem;
+  }
 }
