@@ -1265,10 +1265,6 @@
             const sec = s % 60;
             return `${m}:${String(sec).padStart(2, '0')}`;
         }
-        function describeMinutesLabel(value) {
-            const minutes = Math.max(1, Math.round(Number(value) || 0));
-            return `${minutes} minute${minutes === 1 ? '' : 's'}`;
-        }
         function stopStartingTimer(opts = { clearStorage: true }) {
             if (startingTimer) {
                 clearInterval(startingTimer);
@@ -1407,6 +1403,10 @@
         })();
 
         // Starting timer helpers
+        function describeMinutesLabel(value) {
+            const minutes = Math.max(1, Math.round(Number(value) || 0));
+            return `${minutes} minute${minutes === 1 ? '' : 's'}`;
+        }
         function startStartingTimer(opts = {}) {
             const { durationSec = START_TIMEOUT_SEC, force = false, reason = 'manual' } = opts;
             if (startingTimer && !force) return;
