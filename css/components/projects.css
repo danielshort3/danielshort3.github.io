@@ -95,4 +95,34 @@
     outline: 2px solid var(--primary);
     outline-offset: 2px;
   }
+
+  /* ── No-JS fallbacks ───────────────────────────────────────────── */
+  html.no-js #projects.hide {
+    display: grid !important;
+    opacity: 1;
+    visibility: visible;
+  }
+  html.no-js #filters.hide,
+  html.no-js #carousel-gap.hide {
+    display: block !important;
+    opacity: 1;
+    visibility: visible;
+  }
+  html.no-js #see-more {
+    display: none;
+  }
+  html.no-js #portfolio-carousel .carousel-track {
+    flex-direction: column;
+    gap: 18px;
+    transform: none !important;
+  }
+  html.no-js #portfolio-carousel .carousel-card {
+    max-width: 100%;
+    flex: 1 1 auto;
+    opacity: 1;
+    transform: none;
+  }
+  html.no-js #portfolio-carousel .carousel-dots {
+    display: none;
+  }
 }

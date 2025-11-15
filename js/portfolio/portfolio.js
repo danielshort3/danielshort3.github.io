@@ -471,6 +471,9 @@ function buildPortfolio() {
   const menu   = document.getElementById("filter-menu");
   if (!grid || !modals || !menu || !window.PROJECTS) return;
 
+  grid.innerHTML = "";
+  modals.innerHTML = "";
+
   // Data order now reflects desired grid order (no runtime reordering)
 
   /* helper – create & return element */

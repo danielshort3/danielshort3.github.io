@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="no-js">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <base href="/">
-  <title>Portfolio │ Daniel Short</title>
+  <title>Portfolio - Daniel Short</title>
   <link rel="canonical" href="https://danielshort.me/portfolio.html">
-  <meta property="og:title" content="Portfolio │ Daniel Short">
+  <meta property="og:title" content="Portfolio - Daniel Short">
   <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
   <meta property="og:description" content="Curated portfolio of data science, analytics, ML, and visualization projects by Daniel Short.">
   <meta property="og:url" content="https://danielshort.me/portfolio.html">
@@ -34,6 +34,15 @@
         content="Curated portfolio of data science, analytics, ML, and visualization projects by Daniel Short.">
   <meta property="og:image:alt" content="Portrait photo of Daniel Short">
   <link rel="preconnect" href="https://public.tableau.com" crossorigin>
+  <script>
+    try {
+      if (document.documentElement.classList) {
+        document.documentElement.classList.remove('no-js');
+      } else {
+        document.documentElement.className = (document.documentElement.className || '').replace(/\bno-js\b/, '').trim();
+      }
+    } catch (_) {}
+  </script>
 
 </head>
 
@@ -61,7 +70,73 @@
     <div class="wrapper">
       <h2 class="section-title" id="top-projects-title">Top 5 Projects</h2>
       <div id="portfolio-carousel" aria-label="Project Browser">
-        <div class="carousel-track"></div>
+        <div class="carousel-track">
+          <!-- Static slides for crawlers / no-JS -->
+          <a
+            class="project-card carousel-card ripple-in"
+            href="https://danielshort.me/shape-demo.html"
+            target="_blank"
+            rel="noopener noreferrer">
+            <div class="overlay"></div>
+            <div class="project-text">
+              <div class="project-title">Shape Classifier Demo</div>
+              <div class="project-subtitle">Handwritten Shape Recognition</div>
+            </div>
+            <img src="img/projects/shapeClassifier.png" alt="Preview of the Shape Classifier demo interface" loading="lazy" decoding="async">
+          </a>
+
+          <a
+            class="project-card carousel-card ripple-in"
+            href="https://danielshort.me/chatbot-demo.html"
+            target="_blank"
+            rel="noopener noreferrer">
+            <div class="overlay"></div>
+            <div class="project-text">
+              <div class="project-title">Chatbot (LoRA + RAG)</div>
+              <div class="project-subtitle">RAG Chatbot Fine-Tuned with LoRA</div>
+            </div>
+            <img src="img/projects/chatbotLora.png" alt="Screenshot of the Visit Grand Junction chatbot interface" loading="lazy" decoding="async">
+          </a>
+
+          <a
+            class="project-card carousel-card ripple-in"
+            href="https://github.com/danielshort3/Watermark-Remover"
+            target="_blank"
+            rel="noopener noreferrer">
+            <div class="overlay"></div>
+            <div class="project-text">
+              <div class="project-title">Sheet Music Watermark Removal &amp; Upscale</div>
+              <div class="project-subtitle">UNet &amp; VDSR Pipeline</div>
+            </div>
+            <img src="img/projects/sheetMusicUpscale.png" alt="Example of cleaned sheet music after processing" loading="lazy" decoding="async">
+          </a>
+
+          <a
+            class="project-card carousel-card ripple-in"
+            href="https://github.com/danielshort3/Handwritten-Digit-Generator"
+            target="_blank"
+            rel="noopener noreferrer">
+            <div class="overlay"></div>
+            <div class="project-text">
+              <div class="project-title">Synthetic Digit Generator</div>
+              <div class="project-subtitle">Variational Autoencoder</div>
+            </div>
+            <img src="img/projects/digitGenerator.png" alt="Grid of handwritten digits produced by the VAE model" loading="lazy" decoding="async">
+          </a>
+
+          <a
+            class="project-card carousel-card ripple-in"
+            href="https://github.com/danielshort3/Nonogram-Solver"
+            target="_blank"
+            rel="noopener noreferrer">
+            <div class="overlay"></div>
+            <div class="project-text">
+              <div class="project-title">Nonogram Solver</div>
+              <div class="project-subtitle">Reinforcement Learning (RL)</div>
+            </div>
+            <img src="img/projects/nonogram.png" alt="Visualization of the reinforcement learning Nonogram solver" loading="lazy" decoding="async">
+          </a>
+        </div>
         <div class="carousel-dots" role="tablist"></div>
       </div>
       <div style="text-align:center;margin-top:20px;">
@@ -88,7 +163,78 @@
   </section>
 
   <!-- dynamic grid + modals -->
-  <section id="projects" class="grid reveal hide" role="region" aria-labelledby="all-projects-title"></section>
+  <section id="projects" class="grid reveal hide" role="region" aria-labelledby="all-projects-title">
+    <!-- Pre-rendered feature cards for no-JS & bots. Keep in sync with FEATURED_IDS. -->
+    <a
+      class="project-card ripple-in"
+      href="https://danielshort.me/shape-demo.html"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Shape Classifier Demo – Handwritten shape recognition model. Opens interactive demo in a new tab.">
+      <div class="overlay"></div>
+      <div class="project-text">
+        <div class="project-title">Shape Classifier Demo</div>
+        <div class="project-subtitle">Handwritten Shape Recognition</div>
+      </div>
+      <img src="img/projects/shapeClassifier.png" alt="Preview of the Shape Classifier demo interface" loading="lazy" decoding="async">
+    </a>
+
+    <a
+      class="project-card ripple-in"
+      href="https://danielshort.me/chatbot-demo.html"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Chatbot (LoRA + RAG) – Custom tourism assistant trained with LoRA and AWS hosting. Opens chatbot demo in a new tab.">
+      <div class="overlay"></div>
+      <div class="project-text">
+        <div class="project-title">Chatbot (LoRA + RAG)</div>
+        <div class="project-subtitle">RAG Chatbot Fine-Tuned with LoRA</div>
+      </div>
+      <img src="img/projects/chatbotLora.png" alt="Screenshot of the Visit Grand Junction chatbot interface" loading="lazy" decoding="async">
+    </a>
+
+    <a
+      class="project-card ripple-in"
+      href="https://github.com/danielshort3/Watermark-Remover"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Sheet Music Watermark Removal &amp; Upscale – UNet + VDSR pipeline. Opens GitHub repository in a new tab.">
+      <div class="overlay"></div>
+      <div class="project-text">
+        <div class="project-title">Sheet Music Watermark Removal &amp; Upscale</div>
+        <div class="project-subtitle">UNet &amp; VDSR Pipeline</div>
+      </div>
+      <img src="img/projects/sheetMusicUpscale.png" alt="Example of cleaned sheet music after processing" loading="lazy" decoding="async">
+    </a>
+
+    <a
+      class="project-card ripple-in"
+      href="https://github.com/danielshort3/Handwritten-Digit-Generator"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Synthetic Digit Generator – Variational autoencoder for handwritten digits. Opens GitHub repository in a new tab.">
+      <div class="overlay"></div>
+      <div class="project-text">
+        <div class="project-title">Synthetic Digit Generator</div>
+        <div class="project-subtitle">Variational Autoencoder</div>
+      </div>
+      <img src="img/projects/digitGenerator.png" alt="Grid of handwritten digits produced by the VAE model" loading="lazy" decoding="async">
+    </a>
+
+    <a
+      class="project-card ripple-in"
+      href="https://github.com/danielshort3/Nonogram-Solver"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Nonogram Solver – Reinforcement learning agent that solves 5×5 puzzles with 94% accuracy. Opens GitHub repository in a new tab.">
+      <div class="overlay"></div>
+      <div class="project-text">
+        <div class="project-title">Nonogram Solver</div>
+        <div class="project-subtitle">Reinforcement Learning (RL)</div>
+      </div>
+      <img src="img/projects/nonogram.png" alt="Visualization of the reinforcement learning Nonogram solver" loading="lazy" decoding="async">
+    </a>
+  </section>
   <div id="modals"></div>
 
   <!-- footer is injected by common.js -->
