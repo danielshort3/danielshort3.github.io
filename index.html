@@ -103,7 +103,8 @@
 
     <!-- Certifications marquee -->
     <section id="certifications" class="cert-band surface-band no-reveal">
-      <div class="cert-track">
+      <div class="cert-band-inner">
+        <div class="cert-track">
         <a class="cert" href="https://www.credential.net/0f4df6f1-112e-4e4e-8cb1-b97e7ecd3a3b" target="_blank" rel="noopener noreferrer">
           <img src="img/cert_logos/purdue_global-24.png" srcset="img/cert_logos/purdue_global-48.png 2x" alt="Purdue University logo" loading="lazy" height="24"><span>Bachelor of Science – Data Analytics</span></a>
         <span class="cert">
@@ -116,8 +117,50 @@
           <img src="img/cert_logos/google-24.png" srcset="img/cert_logos/google-48.png 2x" alt="Google logo" loading="lazy" height="24"><span>Google Data Analytics Certification</span></a>
         <a class="cert" href="https://www.coursera.org/account/accomplishments/specialization/certificate/K47AGB33F8VS" target="_blank" rel="noopener noreferrer">
           <img src="img/cert_logos/google-24.png" srcset="img/cert_logos/google-48.png 2x" alt="Google logo" loading="lazy" height="24"><span>Google Advanced Data Analytics Certification</span></a>
+        </div>
+        <button class="btn-secondary cert-modal-trigger" type="button" data-cert-modal-open>View all certifications</button>
       </div>
     </section>
+    <div id="certifications-modal" class="modal">
+      <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="cert-modal-title" tabindex="0">
+        <button class="modal-close" aria-label="Close dialog">&times;</button>
+        <div class="modal-title-strip">
+          <h3 class="modal-title" id="cert-modal-title">Certifications &amp; Degrees</h3>
+          <p class="modal-subtitle">A single view of formal education and industry credentials.</p>
+        </div>
+        <div class="modal-body modal-text">
+          <ul class="cert-modal-list">
+            <li>
+              <strong>Bachelor of Science – Data Analytics</strong>
+              <span>Purdue Global University</span>
+            </li>
+            <li>
+              <strong>Master of Science – Data Science</strong>
+              <span>Eastern University</span>
+            </li>
+            <li>
+              <strong>IBM Data Analyst Professional Certificate</strong>
+              <a href="https://www.coursera.org/account/accomplishments/specialization/certificate/CYUMPN7ZQRDA" target="_blank" rel="noopener noreferrer">Verify credential</a>
+            </li>
+            <li>
+              <strong>IBM Machine Learning Professional Certificate</strong>
+              <a href="https://www.coursera.org/account/accomplishments/specialization/certificate/7262X6HH5NF2" target="_blank" rel="noopener noreferrer">Verify credential</a>
+            </li>
+            <li>
+              <strong>Google Data Analytics Professional Certificate</strong>
+              <a href="https://www.coursera.org/account/accomplishments/specialization/certificate/N6MNKYE4MKEP" target="_blank" rel="noopener noreferrer">Verify credential</a>
+            </li>
+            <li>
+              <strong>Google Advanced Data Analytics Professional Certificate</strong>
+              <a href="https://www.coursera.org/account/accomplishments/specialization/certificate/K47AGB33F8VS" target="_blank" rel="noopener noreferrer">Verify credential</a>
+            </li>
+          </ul>
+          <div class="form-actions">
+            <button type="button" class="btn-primary" data-cert-modal-close>Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Skills with Proven Projects -->
     <section id="about-me" class="surface-band reveal interest-pad">
@@ -223,6 +266,7 @@
       </a>
     </nav>
   </footer>
+  <script defer src="js/common/certifications-modal.js"></script>
   <script defer src="js/common/common.js"></script>
   <script defer src="js/navigation/navigation.js"></script>
   <script defer src="js/animations/animations.js"></script>
