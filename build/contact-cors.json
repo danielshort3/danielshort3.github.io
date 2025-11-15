@@ -1,6 +1,7 @@
 {
   "AllowOrigins": [
     "https://danielshort.me",
+    "https://www.danielshort.me",
     "http://localhost:4173"
   ],
   "AllowMethods": ["POST", "OPTIONS"],
