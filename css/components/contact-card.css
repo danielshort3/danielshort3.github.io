@@ -53,19 +53,17 @@
     color:color-mix(in srgb,#ffffff 92%, var(--bg) 8%);
     box-shadow:0 24px 48px rgba(0,0,0,.35);
   }
-  .surface-band.reveal.active .contact-card.contact-card-recommended{
-    animation:contactCardSpotlight 2.8s cubic-bezier(.25,.8,.3,1) .25s both;
-  }
   .contact-card.contact-card-recommended small{
     color:color-mix(in srgb,#ffffff 88%, var(--bg) 12%);
   }
   .contact-card.contact-card-recommended:hover{
     background:linear-gradient(135deg,
-      color-mix(in srgb,var(--primary) 26%, var(--surface) 74%) 0%,
-      color-mix(in srgb,var(--primary) 42%, var(--surface) 58%) 100%);
-    border-color:color-mix(in srgb,var(--primary) 55%, transparent);
-    color:color-mix(in srgb,#ffffff 94%, var(--bg) 6%);
-    animation:contactCardHoverPulse .9s cubic-bezier(.4,.12,.15,.98) forwards;
+      color-mix(in srgb,var(--primary) 28%, var(--surface) 72%) 0%,
+      color-mix(in srgb,var(--primary) 44%, var(--surface) 56%) 100%);
+    border-color:color-mix(in srgb,var(--primary) 58%, transparent);
+    color:color-mix(in srgb,#ffffff 95%, var(--bg) 5%);
+    transform:translateY(-4px) scale(1.01);
+    box-shadow:0 28px 54px rgba(0,0,0,.38);
   }
   .contact-options-heading{
     text-align:center;
@@ -79,41 +77,5 @@
     margin:0;
     color:var(--text-muted);
     font-size:1rem;
-  }
-  @keyframes contactCardSpotlight{
-    0%{
-      transform:translateY(0) scale(1);
-      box-shadow:0 24px 48px rgba(0,0,0,.35);
-    }
-    40%{
-      transform:translateY(-6px) scale(1.02);
-      box-shadow:
-        0 30px 56px rgba(0,0,0,.38),
-        0 0 28px color-mix(in srgb,var(--primary) 45%, transparent);
-    }
-    70%{
-      transform:translateY(-3px) scale(1.015);
-      box-shadow:0 26px 52px rgba(0,0,0,.37);
-    }
-    100%{
-      transform:translateY(0) scale(1);
-      box-shadow:0 24px 48px rgba(0,0,0,.35);
-    }
-  }
-  @keyframes contactCardHoverPulse{
-    0%{
-      transform:translateY(-3px) scale(1.005);
-      box-shadow:0 26px 50px rgba(0,0,0,.36);
-    }
-    45%{
-      transform:translateY(-8px) scale(1.03);
-      box-shadow:
-        0 32px 58px rgba(0,0,0,.4),
-        0 0 32px color-mix(in srgb,var(--primary) 40%, transparent);
-    }
-    100%{
-      transform:translateY(-4px) scale(1.01);
-      box-shadow:0 28px 54px rgba(0,0,0,.38);
-    }
   }
 }
