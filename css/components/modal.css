@@ -185,12 +185,13 @@
     font-size:.85rem;
     color:var(--text-muted);
   }
-  .contact-form .input-error{
-    font-size:.88rem;
-    color:var(--danger);
-    margin:2px 0 0;
+  .contact-form .field-required{
+    font-size:.85rem;
+    color:color-mix(in srgb,var(--text-light) 70%, var(--danger) 30%);
+    font-weight:500;
+    margin-left:6px;
   }
-  .contact-form .input-error[hidden]{ display:none; }
+  .contact-form .field-required[hidden]{ display:none; }
   .contact-form-status{
     min-height:1.5rem;
     font-size:.95rem;

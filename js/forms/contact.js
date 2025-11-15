@@ -20,21 +20,23 @@
   const fieldConfigs = [
     {
       input: nameInput,
-      errorEl: document.getElementById('contact-name-error'),
-      emptyMessage: 'Please share your name so I know who to reply to.'
+      indicator: document.getElementById('contact-name-required')
     },
     {
       input: emailInput,
-      errorEl: document.getElementById('contact-email-error'),
-      emptyMessage: 'Add the email where I should send a reply.',
-      invalidMessage: 'That email address doesn’t look right.'
+      indicator: document.getElementById('contact-email-required'),
+      invalidIndicator: '- Check email'
     },
     {
       input: messageInput,
-      errorEl: document.getElementById('contact-message-error'),
-      emptyMessage: 'Let me know a bit about your project or opportunity.'
+      indicator: document.getElementById('contact-message-required')
     }
   ];
+  fieldConfigs.forEach((config) => {
+    if (config.indicator) {
+      config.defaultIndicator = config.indicator.textContent.trim() || '- Required';
+    }
+  });
 
   const focusables = () => content ? content.querySelectorAll('a,button,input,textarea,select,[tabindex]:not([tabindex="-1"])') : [];
   const trap = (e) => {
@@ -79,14 +81,15 @@
     submitBtn.classList.toggle('is-busy', sending);
   };
 
-  const showFieldError = (config, message) => {
+  const showFieldError = (config, { invalid = false } = {}) => {
     if (!config?.input) return;
     const field = config.input.closest('.form-field');
     config.input.setAttribute('aria-invalid', 'true');
     field && field.classList.add('has-error');
-    if (config.errorEl) {
-      config.errorEl.textContent = message;
-      config.errorEl.hidden = false;
+    if (config.indicator) {
+      const labelText = invalid && config.invalidIndicator ? config.invalidIndicator : config.defaultIndicator || '- Required';
+      config.indicator.textContent = labelText;
+      config.indicator.hidden = false;
     }
   };
   const clearFieldError = (config) => {
@@ -94,20 +97,20 @@
     const field = config.input.closest('.form-field');
     config.input.removeAttribute('aria-invalid');
     field && field.classList.remove('has-error');
-    if (config.errorEl) {
-      config.errorEl.textContent = '';
-      config.errorEl.hidden = true;
+    if (config.indicator) {
+      config.indicator.textContent = config.defaultIndicator || '- Required';
+      config.indicator.hidden = true;
     }
   };
   const validateField = (config) => {
     if (!config?.input) return true;
     const value = getTrimmedValue(config.input);
     if (!value) {
-      showFieldError(config, config.emptyMessage);
+      showFieldError(config);
       return false;
     }
     if (config.input.type === 'email' && !emailIsValid(config.input)) {
-      showFieldError(config, config.invalidMessage || 'Enter a valid email address.');
+      showFieldError(config, { invalid: true });
       return false;
     }
     clearFieldError(config);
