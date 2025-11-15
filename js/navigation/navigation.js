@@ -359,7 +359,7 @@
     const year = new Date().getFullYear();
     f.innerHTML=`
       <div class="social">
-        <a class="btn-icon btn-icon-featured" href="#contact-modal" data-contact-modal-link="true" aria-label="Send a message">
+        <a class="btn-icon btn-icon-featured" href="contact.html#contact-modal" data-contact-modal-link="true" aria-label="Send a message">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
             <path d="M7 9h10"></path>
