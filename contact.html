@@ -61,22 +61,19 @@
       <div class="modal-body">
         <form id="contact-form" class="contact-form" method="post" action="https://muee4eg6ze.execute-api.us-east-2.amazonaws.com/prod/contact" data-endpoint="https://muee4eg6ze.execute-api.us-east-2.amazonaws.com/prod/contact" novalidate>
           <div class="form-field">
-            <label for="contact-name">Name</label>
-            <input id="contact-name" name="name" type="text" autocomplete="name" required maxlength="200" placeholder="Jane Doe" aria-describedby="contact-name-help contact-name-error">
+            <label for="contact-name">Name <span class="field-required" id="contact-name-required" hidden>- Required</span></label>
+            <input id="contact-name" name="name" type="text" autocomplete="name" required maxlength="200" placeholder="Jane Doe" aria-describedby="contact-name-help contact-name-required">
             <small class="input-hint" id="contact-name-help">Let me know who I’m chatting with.</small>
-            <p class="input-error" id="contact-name-error" hidden></p>
           </div>
           <div class="form-field">
-            <label for="contact-email">Email</label>
-            <input id="contact-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com" aria-describedby="contact-email-help contact-email-error">
+            <label for="contact-email">Email <span class="field-required" id="contact-email-required" hidden>- Required</span></label>
+            <input id="contact-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com" aria-describedby="contact-email-help contact-email-required">
             <small class="input-hint" id="contact-email-help">Use the address where you prefer to receive replies.</small>
-            <p class="input-error" id="contact-email-error" hidden></p>
           </div>
           <div class="form-field">
-            <label for="contact-message">How can I help?</label>
-            <textarea id="contact-message" name="message" rows="5" maxlength="4000" required placeholder="Share a few details about your project, role, or opportunity." aria-describedby="contact-message-help contact-message-error"></textarea>
+            <label for="contact-message">How can I help? <span class="field-required" id="contact-message-required" hidden>- Required</span></label>
+            <textarea id="contact-message" name="message" rows="5" maxlength="4000" required placeholder="Share a few details about your project, role, or opportunity." aria-describedby="contact-message-help contact-message-required"></textarea>
             <small class="input-hint" id="contact-message-help">Context helps me respond with next steps right away.</small>
-            <p class="input-error" id="contact-message-error" hidden></p>
           </div>
           <div class="form-field honeypot" aria-hidden="true">
             <label for="contact-company">Company</label>
