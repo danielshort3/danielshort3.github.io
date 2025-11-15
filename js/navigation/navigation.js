@@ -361,9 +361,9 @@
       <div class="social">
         <a class="btn-icon btn-icon-featured" href="#contact-modal" data-contact-modal-link="true" aria-label="Send a message">
           <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M4 5h16a2 2 0 0 1 2 2v10.5a1.5 1.5 0 0 1-2.28 1.29L13 15.5l-6.72 3.29A1.5 1.5 0 0 1 4 17.5V7a2 2 0 0 1 2-2z"></path>
-            <path d="M12 11l10-6"></path>
-            <path d="M2 5l10 6"></path>
+            <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
+            <path d="M7 9h10"></path>
+            <path d="M7 13h6"></path>
           </svg>
         </a>
         <a class="btn-icon" href="mailto:daniel@danielshort.me" aria-label="Email">
