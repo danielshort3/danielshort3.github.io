@@ -44,6 +44,12 @@ function buildPortfolioCarousel() {
   const track = container.querySelector(".carousel-track");
   const dots  = container.querySelector(".carousel-dots");
   const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isTypingTarget = (node) => {
+    if (!node) return false;
+    if (node.isContentEditable) return true;
+    const tag = (node.tagName || '').toLowerCase();
+    return tag === 'input' || tag === 'textarea' || tag === 'select';
+  };
 
   // Make carousel focusable and describe semantics for AT users
   container.setAttribute('tabindex', '0');
@@ -239,6 +245,20 @@ function buildPortfolioCarousel() {
       case 'End':        goTo(projects.length - 1); e.preventDefault(); break;
     }
   });
+  if (!container.dataset.globalKeysBound) {
+    container.dataset.globalKeysBound = 'yes';
+    document.addEventListener('keydown', (e) => {
+      if (e.defaultPrevented) return;
+      if (isTypingTarget(document.activeElement)) return;
+      if (e.key === 'ArrowRight') {
+        next();
+        e.preventDefault();
+      } else if (e.key === 'ArrowLeft') {
+        previous();
+        e.preventDefault();
+      }
+    });
+  }
 
   /* drag / swipe --------------------------------------------------------- */
   let dragStart = 0, dragging = false, moved = false;
