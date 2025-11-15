@@ -229,12 +229,13 @@
       justify-content:center;
     }
     .hero-meta{
-      justify-items:center;
+      justify-items:stretch;
       text-align:center;
       margin-bottom:clamp(1.4rem,4vh,2.4rem);
     }
     .hero-meta li{
       text-align:center;
+      width:100%;
     }
     body[data-page="home"] .chevron-hint{
       display:none;
