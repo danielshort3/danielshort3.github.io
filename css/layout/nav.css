@@ -287,6 +287,32 @@
         -webkit-clip-path:inset(0 0 0 0);
                 clip-path:inset(0 0 0 0);
       }
+    .nav-item-portfolio::after,
+    .nav-item-contributions::after,
+    .nav-item-resume::after,
+    .nav-item-contact::after{
+      content:"";
+      position:absolute;
+      left:-12px;
+      right:-12px;
+      top:100%;
+      height:calc(var(--nav-bottom-gap, var(--nav-block-padding)) + 12px);
+      pointer-events:none;
+    }
+    .nav-item-portfolio:hover::after,
+    .nav-item-portfolio:focus-within::after,
+    .nav-item-portfolio.dropdown-open::after,
+    .nav-item-contributions:hover::after,
+    .nav-item-contributions:focus-within::after,
+    .nav-item-contributions.dropdown-open::after,
+    .nav-item-resume:hover::after,
+    .nav-item-resume:focus-within::after,
+    .nav-item-resume.dropdown-open::after,
+    .nav-item-contact:hover::after,
+    .nav-item-contact:focus-within::after,
+    .nav-item-contact.dropdown-open::after{
+      pointer-events:auto;
+    }
   }
   .brand{
     display:flex;
