@@ -124,8 +124,63 @@
 
   /* keep modal within the viewport on all screens */
   #contact-modal .modal-content { width: min(760px, calc(100vw - 24px)); margin-inline:auto; }
-  #contact-modal .modal-body { overflow-x:hidden; }
-  #contact-modal iframe { width:100%; border:none; display:block; height:100vh; }
+  #contact-modal .modal-body { overflow-x:hidden; flex-direction:column; padding:24px 8px 28px; }
+  .contact-form{
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+    width:100%;
+  }
+  .contact-form .form-field{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .contact-form label{
+    font-weight:600;
+    font-size:.95rem;
+    color:var(--text-light);
+  }
+  .contact-form input,
+  .contact-form textarea{
+    width:100%;
+    border-radius:10px;
+    border:1px solid color-mix(in srgb,var(--text-light) 18%, transparent);
+    background:color-mix(in srgb,var(--surface) 90%, #0a0f18 10%);
+    color:var(--text-light);
+    padding:12px 14px;
+    font:inherit;
+    transition:border-color .2s ease, box-shadow .2s ease;
+  }
+  .contact-form input:focus,
+  .contact-form textarea:focus{
+    border-color:var(--primary);
+    box-shadow:0 0 0 2px color-mix(in srgb,var(--primary) 30%, transparent);
+    outline:none;
+  }
+  .contact-form textarea{ min-height:160px; resize:vertical; }
+  .contact-form .honeypot{
+    position:absolute;
+    left:-9999px;
+    opacity:0;
+    pointer-events:none;
+  }
+  .contact-form-status{
+    min-height:1.5rem;
+    font-size:.95rem;
+    color:var(--text-muted);
+  }
+  .contact-form-status[data-tone='success']{ color:var(--success); }
+  .contact-form-status[data-tone='error']{ color:var(--danger); }
+  .contact-form .form-actions{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .contact-form-note{
+    color:var(--text-muted);
+    font-size:.85rem;
+  }
   /* prevent horizontal scroll for sentence demo modal on mobile */
   #smartSentence-modal .modal-body { overflow-x: hidden; }
   #smartSentence-modal .modal-embed { overflow-x: hidden; }
