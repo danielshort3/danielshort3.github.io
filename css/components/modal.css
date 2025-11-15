@@ -144,6 +144,7 @@
   .contact-form input,
   .contact-form textarea{
     width:100%;
+    box-sizing:border-box;
     border-radius:10px;
     border:1px solid color-mix(in srgb,var(--text-light) 18%, transparent);
     background:color-mix(in srgb,var(--surface) 90%, #0a0f18 10%);
