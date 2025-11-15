@@ -60,7 +60,12 @@
     color:color-mix(in srgb,#ffffff 88%, var(--bg) 12%);
   }
   .contact-card.contact-card-recommended:hover{
-    transform:translateY(-4px) scale(1.01);
+    background:linear-gradient(135deg,
+      color-mix(in srgb,var(--primary) 26%, var(--surface) 74%) 0%,
+      color-mix(in srgb,var(--primary) 42%, var(--surface) 58%) 100%);
+    border-color:color-mix(in srgb,var(--primary) 55%, transparent);
+    color:color-mix(in srgb,#ffffff 94%, var(--bg) 6%);
+    animation:contactCardHoverPulse .9s cubic-bezier(.4,.12,.15,.98) forwards;
   }
   .contact-options-heading{
     text-align:center;
@@ -93,6 +98,22 @@
     100%{
       transform:translateY(0) scale(1);
       box-shadow:0 24px 48px rgba(0,0,0,.35);
+    }
+  }
+  @keyframes contactCardHoverPulse{
+    0%{
+      transform:translateY(-3px) scale(1.005);
+      box-shadow:0 26px 50px rgba(0,0,0,.36);
+    }
+    45%{
+      transform:translateY(-8px) scale(1.03);
+      box-shadow:
+        0 32px 58px rgba(0,0,0,.4),
+        0 0 32px color-mix(in srgb,var(--primary) 40%, transparent);
+    }
+    100%{
+      transform:translateY(-4px) scale(1.01);
+      box-shadow:0 28px 54px rgba(0,0,0,.38);
     }
   }
 }
