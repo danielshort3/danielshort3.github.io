@@ -117,11 +117,11 @@
     display:grid;
     grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
     gap:clamp(12px,2.2vw,18px);
-    margin:clamp(1.8rem,4vh,2.6rem) 0 0;
+    margin:clamp(1.8rem,4vh,2.6rem) auto 0;
     padding:0;
     list-style:none;
     width:100%;
-    align-self:stretch;
+    max-width:860px;
   }
 
   .hero-meta li{
@@ -234,6 +234,7 @@
       margin-bottom:clamp(1.4rem,4vh,2.4rem);
       margin-inline:auto;
       width:100%;
+      max-width:520px;
     }
     .hero-meta li{
       text-align:center;
@@ -270,8 +271,9 @@
     .hero-meta{
       grid-template-columns:1fr;
       width:100%;
-      margin-inline:0;
+      margin-inline:auto;
       padding:0;
+      max-width:480px;
     }
     .hero-meta li{
       width:100%;
