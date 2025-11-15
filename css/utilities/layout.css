@@ -64,6 +64,42 @@
   transform: scale(0.9);      /* keep default scale */
   box-shadow: none;           /* remove hover shadow */
 }
+.carousel-nav{
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+  width:46px;
+  height:46px;
+  border-radius:50%;
+  border:1px solid color-mix(in srgb,var(--primary) 35%,transparent);
+  background:color-mix(in srgb,var(--surface) 88%,#0b131f 12%);
+  color:var(--text-light);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  box-shadow:0 14px 34px rgba(0,0,0,.35);
+  transition:background .2s ease,border-color .2s ease,transform .2s ease,opacity .2s ease;
+  z-index:5;
+}
+.carousel-nav svg{pointer-events:none}
+.carousel-nav.prev{left:8px}
+.carousel-nav.next{right:8px}
+.carousel-nav:hover,
+.carousel-nav:focus-visible{
+  background:color-mix(in srgb,var(--surface) 82%,#0b131f 18%);
+  border-color:color-mix(in srgb,var(--primary) 55%,transparent);
+}
+.carousel-nav:focus-visible{
+  outline:2px solid color-mix(in srgb,var(--primary) 80%,#fff 20%);
+  outline-offset:2px;
+}
+.carousel-nav:active{transform:translateY(-50%) scale(.95)}
+.carousel-nav:disabled{
+  opacity:.4;
+  cursor:default;
+  pointer-events:none;
+}
 .carousel-dots{text-align:center;margin-top:16px}
 .carousel-dot{
   display:inline-block;
@@ -80,6 +116,7 @@
 }
 .carousel-dot.active{background:var(--primary)}
 #portfolio-carousel.dragging{cursor:grabbing;user-select:none}
+html.no-js #portfolio-carousel .carousel-nav{display:none}
 @media (max-width:768px){
   .carousel-card{flex:0 0 80%}
 }
