@@ -52,28 +52,24 @@
 
   <!-- contact form modal -->
   <div id="contact-modal" class="modal">
-    <div class="modal-content" role="dialog" aria-modal="true" tabindex="0" aria-labelledby="contact-modal-title" aria-describedby="contact-modal-desc">
+    <div class="modal-content" role="dialog" aria-modal="true" tabindex="0" aria-labelledby="contact-modal-title">
       <button class="modal-close" aria-label="Close dialog">&times;</button>
       <div class="modal-title-strip">
         <h3 class="modal-title" id="contact-modal-title">Send a Message</h3>
-        <p class="modal-subtitle" id="contact-modal-desc">I usually reply within one business day. Your details stay private and aren’t shared.</p>
       </div>
       <div class="modal-body">
         <form id="contact-form" class="contact-form" method="post" action="https://muee4eg6ze.execute-api.us-east-2.amazonaws.com/prod/contact" data-endpoint="https://muee4eg6ze.execute-api.us-east-2.amazonaws.com/prod/contact" novalidate>
           <div class="form-field">
             <label for="contact-name">Name <span class="field-required" id="contact-name-required" hidden>- Required</span></label>
-            <input id="contact-name" name="name" type="text" autocomplete="name" required maxlength="200" placeholder="Jane Doe" aria-describedby="contact-name-help contact-name-required">
-            <small class="input-hint" id="contact-name-help">Let me know who I’m chatting with.</small>
+            <input id="contact-name" name="name" type="text" autocomplete="name" required maxlength="200" placeholder="Jane Doe" aria-describedby="contact-name-required">
           </div>
           <div class="form-field">
             <label for="contact-email">Email <span class="field-required" id="contact-email-required" hidden>- Required</span></label>
-            <input id="contact-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com" aria-describedby="contact-email-help contact-email-required">
-            <small class="input-hint" id="contact-email-help">Use the address where you prefer to receive replies.</small>
+            <input id="contact-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com" aria-describedby="contact-email-required">
           </div>
           <div class="form-field">
             <label for="contact-message">How can I help? <span class="field-required" id="contact-message-required" hidden>- Required</span></label>
-            <textarea id="contact-message" name="message" rows="5" maxlength="4000" required placeholder="Share a few details about your project, role, or opportunity." aria-describedby="contact-message-help contact-message-required"></textarea>
-            <small class="input-hint" id="contact-message-help">Context helps me respond with next steps right away.</small>
+            <textarea id="contact-message" name="message" rows="5" maxlength="4000" required placeholder="Share a few details about your project, role, or opportunity." aria-describedby="contact-message-required"></textarea>
           </div>
           <div class="form-field honeypot" aria-hidden="true">
             <label for="contact-company">Company</label>

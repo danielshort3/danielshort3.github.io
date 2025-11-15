@@ -181,10 +181,6 @@
     border-color:var(--danger);
     box-shadow:0 0 0 1px color-mix(in srgb,var(--danger) 40%, transparent);
   }
-  .contact-form .input-hint{
-    font-size:.85rem;
-    color:var(--text-muted);
-  }
   .contact-form .field-required{
     font-size:.85rem;
     color:color-mix(in srgb,var(--text-light) 70%, var(--danger) 30%);
@@ -207,6 +203,10 @@
     gap:12px;
     flex-wrap:wrap;
     align-items:center;
+    width:100%;
+  }
+  .contact-form .form-actions > *{
+    flex:1 1 200px;
   }
   .contact-form .btn-primary{
     gap:10px;
@@ -264,6 +264,7 @@
   }
   .contact-form-success .form-actions{
     justify-content:center;
+    gap:12px;
   }
   .contact-form-success .form-actions .btn-secondary{
     min-width:200px;
@@ -309,5 +310,21 @@
     .modal-divider { position: static; width: 80%; height: 1px; margin: 12px 0; transform: none; }
     .modal-body { padding:16px; }
     #contact-modal .modal-body { padding:20px 16px 24px; }
+    .contact-form .form-actions{
+      flex-direction:column;
+      align-items:stretch;
+    }
+    .contact-form .form-actions > *{
+      width:100%;
+      flex:0 0 auto;
+    }
+    .contact-form-success .form-actions{
+      flex-direction:column;
+      align-items:stretch;
+    }
+    .contact-form-success .form-actions .btn-secondary{
+      min-width:0;
+      width:100%;
+    }
   }
 }
