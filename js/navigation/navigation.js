@@ -131,7 +131,7 @@
     `;
     const contactOptions = [
       { title: 'Message through website', subtitle: 'Send a message via website', href: 'contact.html#contact-modal', recommended: true, modalLink: true },
-      { title: 'Email', subtitle: 'danielshort3@gmail.com', href: 'mailto:danielshort3@gmail.com' },
+      { title: 'Email', subtitle: 'daniel@danielshort.me', href: 'mailto:daniel@danielshort.me' },
       { title: 'LinkedIn', subtitle: 'linkedin.com/in/danielshort3', href: 'https://www.linkedin.com/in/danielshort3/', external: true },
       { title: 'GitHub', subtitle: 'github.com/danielshort3', href: 'https://github.com/danielshort3', external: true }
     ];
@@ -359,7 +359,7 @@
     const year = new Date().getFullYear();
     f.innerHTML=`
       <div class="social">
-        <a class="btn-icon" href="mailto:danielshort3@gmail.com" aria-label="Email">
+        <a class="btn-icon" href="mailto:daniel@danielshort.me" aria-label="Email">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <rect x="3" y="5" width="18" height="14" rx="2"></rect>
             <path d="M3 7l9 6 9-6"></path>
