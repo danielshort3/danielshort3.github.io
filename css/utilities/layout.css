@@ -383,13 +383,6 @@
     font-size:0.78rem;
     margin-inline:auto;
   }
-  .hero-meta{
-    justify-content:center;
-  }
-  .hero-meta li{
-    flex:1 1 220px;
-  }
-
   #cta .wrapper{
     padding-inline:clamp(18px,6vw,28px);
   }
