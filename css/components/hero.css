@@ -84,6 +84,13 @@
     opacity:0;
     animation:heroFade 1s .55s forwards;
   }
+  .hero-noscript-hint{
+    margin:0;
+    font-size:.95rem;
+    line-height:1.5;
+    color:color-mix(in srgb,var(--text-muted) 90%, #fff 10%);
+    max-width:48ch;
+  }
 
   .hero-status{
     display:inline-flex;

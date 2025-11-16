@@ -155,6 +155,12 @@
         }).join('')}
       </div>
     `;
+    const dropdownIds = {
+      portfolio: 'nav-dropdown-portfolio',
+      contributions: 'nav-dropdown-contributions',
+      resume: 'nav-dropdown-resume',
+      contact: 'nav-dropdown-contact'
+    };
     host.innerHTML=`
       <nav class="nav ${animate?'animate-entry':''}" aria-label="Primary">
         <div class="wrapper nav-wrapper">
@@ -175,49 +181,74 @@
           <div id="primary-menu" class="nav-row" data-collapsible role="navigation">
             <a href="index.html" class="nav-link">Home</a>
             <div class="nav-item nav-item-portfolio">
-              <a href="portfolio.html" class="nav-link nav-link-has-menu" aria-haspopup="true">
+              <a href="portfolio.html" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="${dropdownIds.portfolio}">
                 Portfolio
                 <span class="nav-link-caret" aria-hidden="true"></span>
               </a>
-              <div class="nav-dropdown" aria-label="Highlighted projects">
+              <div class="nav-dropdown" id="${dropdownIds.portfolio}" aria-label="Highlighted projects">
                 ${portfolioMenu}
               </div>
             </div>
             <div class="nav-item nav-item-contributions">
-              <a href="contributions.html" class="nav-link nav-link-has-menu" aria-haspopup="true">
+              <a href="contributions.html" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="${dropdownIds.contributions}">
                 Contributions
                 <span class="nav-link-caret" aria-hidden="true"></span>
               </a>
-              <div class="nav-dropdown" aria-label="Contributions categories">
+              <div class="nav-dropdown" id="${dropdownIds.contributions}" aria-label="Contributions categories">
                 ${contributionsMenu}
               </div>
             </div>
             <div class="nav-item nav-item-resume">
-              <a href="resume.html" class="nav-link nav-link-has-menu" aria-haspopup="true">
+              <a href="resume.html" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="${dropdownIds.resume}">
                 Resume
                 <span class="nav-link-caret" aria-hidden="true"></span>
               </a>
-              <div class="nav-dropdown" aria-label="Resume download">
+              <div class="nav-dropdown" id="${dropdownIds.resume}" aria-label="Resume download">
                 ${resumeMenu}
               </div>
             </div>
             <div class="nav-item nav-item-contact">
-              <a href="contact.html" class="nav-link nav-link-cta nav-link-has-menu" aria-haspopup="true">
+              <a href="contact.html" class="nav-link nav-link-cta nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="${dropdownIds.contact}">
                 Contact
                 <span class="nav-link-caret" aria-hidden="true"></span>
               </a>
-              <div class="nav-dropdown nav-dropdown-contact" aria-label="Contact options">
+              <div class="nav-dropdown nav-dropdown-contact" id="${dropdownIds.contact}" aria-label="Contact options">
                 ${contactMenu}
               </div>
             </div>
           </div>
         </div>
       </nav>`;
-    const cur = location.pathname.split('/').pop() || 'index.html';
-    $$('.nav-link').forEach(l=>{
-      if(l.getAttribute('href')===cur){
-        l.classList.add('is-current');
-        l.setAttribute('aria-current','page');
+    const normalizePath = (path) => {
+      if (!path) return '/';
+      try {
+        path = new URL(path, location.href).pathname;
+      } catch {
+        if (!path.startsWith('/')) path = `/${path}`;
+      }
+      path = path.replace(/\/index\.html$/i, '/');
+      path = path.replace(/\/+$/, '');
+      if (!path) path = '/';
+      return path;
+    };
+    const currentPath = normalizePath(location.pathname);
+    const altCurrentPath = currentPath.startsWith('/pages/')
+      ? normalizePath(currentPath.replace(/^\/pages/, '') || '/')
+      : currentPath;
+    $$('.nav-link').forEach((link) => {
+      const href = link.getAttribute('href');
+      if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
+      let targetPath = normalizePath(href);
+      const targetNoHtml = targetPath.endsWith('.html')
+        ? normalizePath(targetPath.replace(/\.html$/i, '') || '/')
+        : targetPath;
+      const matches = [currentPath, altCurrentPath].some(p => p === targetPath || p === targetNoHtml);
+      if (matches) {
+        link.classList.add('is-current');
+        link.setAttribute('aria-current','page');
+      } else {
+        link.classList.remove('is-current');
+        link.removeAttribute('aria-current');
       }
     });
     const burger = host.querySelector('#nav-toggle');
@@ -308,17 +339,21 @@
   function setupDropdown(item){
     if(!item) return;
     const dropdown = item.querySelector('.nav-dropdown');
-    if(!dropdown) return;
+    const trigger = item.querySelector('.nav-link-has-menu');
+    if(!dropdown || !trigger) return;
+    trigger.setAttribute('aria-expanded', 'false');
     let closeTimer = null;
     const close = () => {
       clearTimeout(closeTimer);
       item.classList.remove('dropdown-open');
+      trigger.setAttribute('aria-expanded', 'false');
     };
     item.__closeDropdown = close;
     const open = () => {
       clearTimeout(closeTimer);
       closeActiveDropdowns(item);
       item.classList.add('dropdown-open');
+      trigger.setAttribute('aria-expanded', 'true');
     };
     const scheduleClose = () => {
       clearTimeout(closeTimer);

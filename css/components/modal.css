@@ -269,6 +269,34 @@
   .contact-form-success .form-actions .btn-secondary{
     min-width:200px;
   }
+
+  /* --- Progressive enhancement: keep contact form usable without JS --- */
+  html.no-js #contact-modal{
+    position:static;
+    inset:auto;
+    display:block;
+    opacity:1;
+    pointer-events:auto;
+    background:transparent;
+    backdrop-filter:none;
+    margin-top:24px;
+  }
+  html.no-js #contact-modal .modal-content{
+    max-height:none;
+    margin:0 auto;
+    transform:none;
+    opacity:1;
+    box-shadow:0 6px 24px rgba(0,0,0,.35);
+  }
+  html.no-js #contact-modal .modal-body{
+    overflow:visible;
+  }
+  html.no-js #contact-modal .modal-close{
+    display:none;
+  }
+  html.no-js #contact-form-toggle{
+    display:none;
+  }
   /* prevent horizontal scroll for sentence demo modal on mobile */
   #smartSentence-modal .modal-body { overflow-x: hidden; }
   #smartSentence-modal .modal-embed { overflow-x: hidden; }
