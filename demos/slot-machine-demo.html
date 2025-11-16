@@ -315,7 +315,7 @@
         const entry = document.createElement('div');
         entry.className = 'log-entry';
         const time = new Date().toLocaleTimeString();
-        entry.innerHTML = \`<strong>\${time}</strong> — \${message}\${data ? \`<br><span>\${data}</span>\` : ''}\`;
+        entry.innerHTML = `<strong>${time}</strong> — ${message}${data ? `<br><span>${data}</span>` : ''}`;
         els.log.prepend(entry);
         const entries = els.log.querySelectorAll('.log-entry');
         if (entries.length > 40) {
@@ -372,7 +372,7 @@
         }
         els.lastOutcome.textContent = lastSpin.outcome;
         els.lastWin.textContent = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(lastSpin.winAmount);
-        els.lastMult.textContent = lastSpin.multiplier ? \`\${lastSpin.multiplier}×\` : '—';
+        els.lastMult.textContent = lastSpin.multiplier ? `${lastSpin.multiplier}×` : '—';
         els.lastTime.textContent = new Date(lastSpin.timestamp).toLocaleString();
       };
 
@@ -387,7 +387,7 @@
       };
 
       const request = async (path, payload = {}) => {
-        const res = await fetch(\`\${API_BASE}\${path}\`, {
+        const res = await fetch(`${API_BASE}${path}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -416,7 +416,7 @@
           updateStats(session);
           updateLastSpin(session.lastSpin);
           animateReels(session.lastSpin?.reels);
-          log('Session synced', \`Balance: $\${session.balance}\`);
+          log('Session synced', `Balance: $${session.balance}`);
         } catch (error) {
           console.error(error);
           setStatus('Offline — check CloudWatch logs', 'error');
@@ -439,7 +439,7 @@
           animateReels(result.reels);
           updateStats(result);
           updateLastSpin(result.lastSpin);
-          log('Spin processed by Lambda', \`\${result.outcome} (balance $\${result.balance})\`);
+          log('Spin processed by Lambda', `${result.outcome} (balance $${result.balance})`);
         } catch (error) {
           const payload = error.payload || {};
           const msg = payload.message || error.message;
