@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <base href="/">
+  <title>Server-Backed Slot Machine Demo</title>
+  <meta name="theme-color" content="#0d1117" />
+  <link rel="stylesheet" href="dist/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500&display=swap" />
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #020617;
+      --panel: color-mix(in srgb, var(--surface, #0f172a) 90%, black 10%);
+      --panel-border: color-mix(in srgb, var(--surface-accent, #1e293b) 70%, transparent);
+      --text: var(--text-light, #e2e8f0);
+      --muted: color-mix(in srgb, var(--text) 65%, transparent);
+      --accent: #facc15;
+      --accent-2: #6366f1;
+      --danger: #f87171;
+      --radius: 16px;
+    }
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(900px 600px at 50% -10%, rgba(99, 102, 241, .25), transparent 70%) var(--bg);
+      color: var(--text);
+      padding: clamp(16px, 3vw, 32px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    html[data-embedded="true"] body {
+      display: block;
+    }
+    main {
+      width: min(960px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius);
+      box-shadow: 0 20px 80px rgba(2, 6, 23, .6);
+      padding: clamp(20px, 3vw, 32px);
+      display: grid;
+      gap: 24px;
+    }
+    header h1 {
+      font-family: "Space Grotesk", Inter, sans-serif;
+      font-size: clamp(1.75rem, 3vw, 2.5rem);
+      margin: 0 0 8px;
+    }
+    header p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: .9rem;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid color-mix(in srgb, var(--panel-border) 60%, transparent);
+      background: rgba(99, 102, 241, .12);
+    }
+    .status-pill[data-state="error"] {
+      color: var(--danger);
+      background: rgba(244, 114, 182, .1);
+    }
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+    .grid-two {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+    .panel {
+      border-radius: 14px;
+      border: 1px solid color-mix(in srgb, var(--panel-border) 40%, transparent);
+      padding: 16px;
+      background: rgba(15, 23, 42, .6);
+    }
+    .panel h2 {
+      margin: 0 0 12px;
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
+    dl {
+      margin: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 6px 16px;
+      font-size: .95rem;
+    }
+    dt {
+      color: var(--muted);
+      font-weight: 500;
+    }
+    dd {
+      margin: 0;
+      font-weight: 600;
+    }
+    .reels {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(80px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .slot-cell {
+      aspect-ratio: 1 / 1;
+      border-radius: 14px;
+      border: 1px solid color-mix(in srgb, white 12%, transparent);
+      display: grid;
+      place-items: center;
+      font-size: 2.75rem;
+      background: rgba(15, 23, 42, .8);
+      box-shadow: inset 0 0 30px rgba(0,0,0,.3);
+      transition: transform .45s cubic-bezier(.34, 1.56, .64, 1);
+    }
+    .slot-cell.spin {
+      transform: scale(1.08) rotateX(360deg);
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+    .controls label {
+      font-size: .9rem;
+      color: var(--muted);
+    }
+    .controls input[type="number"] {
+      width: 120px;
+      padding: 9px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.2);
+      background: rgba(15, 23, 42, .8);
+      color: inherit;
+      font-size: 1rem;
+    }
+    .controls button {
+      border: none;
+      border-radius: 999px;
+      padding: 12px 28px;
+      font-size: .95rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: #020617;
+      background: linear-gradient(120deg, var(--accent), #fde047);
+      box-shadow: 0 10px 30px rgba(250, 204, 21, .35);
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .controls button[disabled] {
+      opacity: .5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .controls button:not([disabled]):active {
+      transform: translateY(1px);
+    }
+    .alert {
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: .95rem;
+      background: rgba(248, 113, 113, .1);
+      border: 1px solid rgba(248, 113, 113, .4);
+      color: var(--danger);
+    }
+    .log {
+      font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: .85rem;
+      color: var(--muted);
+      max-height: 160px;
+      overflow-y: auto;
+    }
+    .log-entry + .log-entry {
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid rgba(255,255,255,.08);
+    }
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .ghost-btn {
+      border: 1px solid rgba(255,255,255,.25);
+      color: var(--muted);
+      background: transparent;
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-size: .85rem;
+      cursor: pointer;
+    }
+    .ghost-btn:disabled {
+      opacity: .5;
+      cursor: default;
+    }
+    @media (max-width: 640px) {
+      .reels {
+        grid-template-columns: repeat(3, minmax(64px, 1fr));
+      }
+      .slot-cell {
+        font-size: 2.1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <main id="main" data-api-base="https://4kvebym8b3.execute-api.us-east-2.amazonaws.com/prod">
+    <header class="grid">
+      <div>
+        <p class="status-pill" id="connection-pill" data-state="loading">
+          <span aria-hidden="true">🛰️</span>
+          <span id="connection-text">Connecting to AWS…</span>
+        </p>
+        <h1>Server-Backed Slot Machine</h1>
+        <p>This demo uses an AWS Lambda function, API Gateway, and DynamoDB table so every spin is validated on the server. The browser can render the reels, but it cannot change your credit balance or payout.</p>
+      </div>
+    </header>
+
+    <section class="panel">
+      <h2>Slot Console</h2>
+      <div class="reels" id="reels">
+        <div class="slot-cell" aria-live="polite">💤</div>
+        <div class="slot-cell" aria-live="polite">💤</div>
+        <div class="slot-cell" aria-live="polite">💤</div>
+      </div>
+      <div class="controls">
+        <label>
+          Bet
+          <input type="number" id="bet-input" min="1" step="1" value="25" inputmode="numeric" />
+        </label>
+        <button type="button" id="spin-btn" disabled>Spin with AWS</button>
+        <div id="error" role="status" aria-live="polite"></div>
+      </div>
+      <div class="actions">
+        <button class="ghost-btn" type="button" id="reset-btn">Reset session</button>
+        <button class="ghost-btn" type="button" id="sync-btn">Sync balance</button>
+      </div>
+      <div class="alert" id="alert" hidden></div>
+    </section>
+
+    <section class="grid grid-two">
+      <div class="panel">
+        <h2>Session</h2>
+        <dl id="session-stats">
+          <dt>Player ID</dt><dd id="player-id">—</dd>
+          <dt>Balance</dt><dd id="balance">—</dd>
+          <dt>Max Bet</dt><dd id="max-bet">—</dd>
+          <dt>Total Spins</dt><dd id="spin-count">—</dd>
+        </dl>
+      </div>
+      <div class="panel">
+        <h2>Last Result</h2>
+        <dl>
+          <dt>Outcome</dt><dd id="last-outcome">—</dd>
+          <dt>Winnings</dt><dd id="last-win">—</dd>
+          <dt>Multiplier</dt><dd id="last-multiplier">—</dd>
+          <dt>Timestamp</dt><dd id="last-time">—</dd>
+        </dl>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Server Event Log</h2>
+      <div class="log" id="log" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const root = document.getElementById('main');
+      if (!root) return;
+      const API_BASE = root.dataset.apiBase;
+      const state = {
+        playerId: null,
+        balance: 0,
+        maxBet: 100,
+        bet: 25,
+        busy: false
+      };
+
+      const els = {
+        connectionPill: document.getElementById('connection-pill'),
+        connectionText: document.getElementById('connection-text'),
+        reels: Array.from(document.querySelectorAll('.slot-cell')),
+        betInput: document.getElementById('bet-input'),
+        spinBtn: document.getElementById('spin-btn'),
+        resetBtn: document.getElementById('reset-btn'),
+        syncBtn: document.getElementById('sync-btn'),
+        alert: document.getElementById('alert'),
+        error: document.getElementById('error'),
+        balance: document.getElementById('balance'),
+        playerId: document.getElementById('player-id'),
+        maxBet: document.getElementById('max-bet'),
+        spinCount: document.getElementById('spin-count'),
+        lastOutcome: document.getElementById('last-outcome'),
+        lastWin: document.getElementById('last-win'),
+        lastMult: document.getElementById('last-multiplier'),
+        lastTime: document.getElementById('last-time'),
+        log: document.getElementById('log')
+      };
+
+      const log = (message, data) => {
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        const time = new Date().toLocaleTimeString();
+        entry.innerHTML = \`<strong>\${time}</strong> — \${message}\${data ? \`<br><span>\${data}</span>\` : ''}\`;
+        els.log.prepend(entry);
+        const entries = els.log.querySelectorAll('.log-entry');
+        if (entries.length > 40) {
+          entries[entries.length - 1].remove();
+        }
+      };
+
+      const setStatus = (text, stateAttr = 'ok') => {
+        els.connectionText.textContent = text;
+        els.connectionPill.dataset.state = stateAttr;
+        els.connectionPill.dataset.state === 'ok'
+          ? els.connectionPill.setAttribute('data-state', 'ok')
+          : els.connectionPill.setAttribute('data-state', stateAttr);
+      };
+
+      const showAlert = (text = '') => {
+        els.alert.hidden = !text;
+        els.alert.textContent = text;
+      };
+
+      const setBusy = (flag) => {
+        state.busy = flag;
+        els.spinBtn.disabled = flag || !state.playerId;
+        els.syncBtn.disabled = flag;
+        els.betInput.disabled = flag;
+      };
+
+      const storageKey = 'slotMachineDemoPlayerId';
+      const getStoredPlayer = () => localStorage.getItem(storageKey);
+      const storePlayer = (value) => localStorage.setItem(storageKey, value);
+      const resetStoredPlayer = () => localStorage.removeItem(storageKey);
+
+      const updateStats = (session) => {
+        els.playerId.textContent = session.playerId;
+        els.balance.textContent = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(session.balance);
+        els.maxBet.textContent = session.maxBet;
+        els.spinCount.textContent = session.spins;
+        state.balance = session.balance;
+        state.maxBet = session.maxBet;
+        els.betInput.max = session.maxBet;
+        if (!state.bet || state.bet > session.maxBet) {
+          state.bet = Math.min(session.maxBet, 25);
+          els.betInput.value = state.bet;
+        }
+      };
+
+      const updateLastSpin = (lastSpin) => {
+        if (!lastSpin) {
+          els.lastOutcome.textContent = '—';
+          els.lastWin.textContent = '—';
+          els.lastMult.textContent = '—';
+          els.lastTime.textContent = '—';
+          return;
+        }
+        els.lastOutcome.textContent = lastSpin.outcome;
+        els.lastWin.textContent = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(lastSpin.winAmount);
+        els.lastMult.textContent = lastSpin.multiplier ? \`\${lastSpin.multiplier}×\` : '—';
+        els.lastTime.textContent = new Date(lastSpin.timestamp).toLocaleString();
+      };
+
+      const animateReels = (reels) => {
+        els.reels.forEach((cell, idx) => {
+          cell.classList.remove('spin');
+          void cell.offsetWidth;
+          cell.textContent = reels?.[idx]?.icon || '💤';
+          setTimeout(() => cell.classList.add('spin'), idx * 80);
+          setTimeout(() => cell.classList.remove('spin'), 600);
+        });
+      };
+
+      const request = async (path, payload = {}) => {
+        const res = await fetch(\`\${API_BASE}\${path}\`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          const err = new Error(data.message || 'Request failed');
+          err.payload = data;
+          throw err;
+        }
+        return data;
+      };
+
+      const bootstrap = async () => {
+        setBusy(true);
+        showAlert('');
+        try {
+          const payload = {};
+          const storedId = getStoredPlayer();
+          if (storedId) payload.playerId = storedId;
+          const session = await request('/session', payload);
+          state.playerId = session.playerId;
+          storePlayer(session.playerId);
+          setStatus('Connected to AWS Lambda', 'ok');
+          els.spinBtn.disabled = false;
+          updateStats(session);
+          updateLastSpin(session.lastSpin);
+          animateReels(session.lastSpin?.reels);
+          log('Session synced', \`Balance: $\${session.balance}\`);
+        } catch (error) {
+          console.error(error);
+          setStatus('Offline — check CloudWatch logs', 'error');
+          showAlert(error.message || 'Unable to reach AWS.');
+          log('Connection failed', error.message);
+        } finally {
+          setBusy(false);
+        }
+      };
+
+      const spin = async () => {
+        const bet = Math.max(1, Math.min(state.maxBet, parseInt(els.betInput.value, 10) || 1));
+        els.betInput.value = bet;
+        state.bet = bet;
+        setBusy(true);
+        showAlert('');
+        els.error.textContent = '';
+        try {
+          const result = await request('/spin', { playerId: state.playerId, bet });
+          animateReels(result.reels);
+          updateStats(result);
+          updateLastSpin(result.lastSpin);
+          log('Spin processed by Lambda', \`\${result.outcome} (balance $\${result.balance})\`);
+        } catch (error) {
+          const payload = error.payload || {};
+          const msg = payload.message || error.message;
+          els.error.textContent = msg;
+          if (payload.errorCode === 'INSUFFICIENT_CREDITS') {
+            log('Spin blocked', 'Insufficient credits');
+          } else {
+            log('Spin failed', msg);
+          }
+        } finally {
+          setBusy(false);
+        }
+      };
+
+      els.betInput.addEventListener('change', () => {
+        let value = parseInt(els.betInput.value, 10);
+        if (!Number.isFinite(value) || value < 1) value = 1;
+        if (value > state.maxBet) value = state.maxBet;
+        state.bet = value;
+        els.betInput.value = value;
+      });
+      els.spinBtn.addEventListener('click', () => {
+        if (!state.playerId || state.busy) return;
+        spin();
+      });
+      els.resetBtn.addEventListener('click', () => {
+        resetStoredPlayer();
+        window.location.reload();
+      });
+      els.syncBtn.addEventListener('click', () => {
+        if (!state.playerId || state.busy) return;
+        bootstrap();
+      });
+
+      bootstrap();
+    })();
+  </script>
+</body>
+</html>
