@@ -27,10 +27,12 @@
   background:transparent;
   transition:padding .45s cubic-bezier(.22,.61,.36,1),
              opacity .35s ease;
-  will-change:padding,opacity
+  will-change:padding,opacity;
+  overflow:hidden;
 }
 #carousel-gap .wrapper{
   width:100%;
+  overflow:hidden;
 }
 #carousel-gap .contrib-divider{
   padding:40px 0;
