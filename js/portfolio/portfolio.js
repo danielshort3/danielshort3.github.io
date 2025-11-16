@@ -517,34 +517,38 @@ function buildPortfolio() {
   });
   filterGroups.forEach((buttons, group) => {
     const defaultBtn = buttons.find(btn => (btn.dataset.filter || '').toLowerCase() === 'all') || buttons[0];
-    const selectedValue = defaultBtn?.dataset.filter || 'all';
-    groupState[group] = selectedValue;
-    buttons.forEach((btn) => {
-      const isActive = btn === defaultBtn;
-      btn.classList.toggle('btn-primary', isActive);
-      btn.classList.toggle('btn-secondary', !isActive);
-      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-    });
+    groupState[group] = defaultBtn?.dataset.filter || 'all';
   });
   const valueAccessors = {
     concept: (project) => Array.isArray(project.concepts) ? project.concepts : [],
     tools: (project) => Array.isArray(project.tools) ? project.tools : []
   };
-  const groupCounts = {};
-  filterGroups.forEach((_, group) => {
-    groupCounts[group] = { all: TOTAL_PROJECTS };
-  });
-  window.PROJECTS.forEach((project) => {
-    filterGroups.forEach((_, group) => {
-      const accessor = valueAccessors[group];
-      if (!accessor) return;
-      accessor(project).forEach((value) => {
-        if (!value) return;
-        groupCounts[group][value] = (groupCounts[group][value] || 0) + 1;
+  const filterGroupKeys = [...filterGroups.keys()];
+  const getProjectValues = (project, group) => {
+    const accessor = valueAccessors[group];
+    if (!accessor) return [];
+    const values = accessor(project);
+    return Array.isArray(values) ? values.filter(Boolean) : [];
+  };
+  const matchesState = (project, overrides = {}) => {
+    const state = { ...groupState, ...overrides };
+    return filterGroupKeys.every((group) => {
+      const selected = state[group] || 'all';
+      if (selected === 'all') return true;
+      return getProjectValues(project, group).includes(selected);
+    });
+  };
+  const computeGroupCounts = (group) => {
+    const counts = { all: 0 };
+    window.PROJECTS.forEach((project) => {
+      if (!matchesState(project, { [group]: 'all' })) return;
+      counts.all++;
+      getProjectValues(project, group).forEach((value) => {
+        counts[value] = (counts[value] || 0) + 1;
       });
     });
-  });
-  const filterGroupKeys = [...filterGroups.keys()];
+    return counts;
+  };
 
   // Data order now reflects desired grid order (no runtime reordering)
 
@@ -629,16 +633,26 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
   /* ➌ Build filter-button counts ----------------------------------- */
   const refreshFilterLabels = () => {
     filterGroups.forEach((buttons, group) => {
-      const total = groupCounts[group]?.all || TOTAL_PROJECTS;
+      const counts = computeGroupCounts(group);
+      const total = counts.all || TOTAL_PROJECTS;
+      let current = groupState[group] || 'all';
+      if (current !== 'all' && !counts[current]) {
+        current = 'all';
+        groupState[group] = current;
+      }
       buttons.forEach(btn => {
-        const value = btn.dataset.filter;
+        const value = btn.dataset.filter || 'all';
         const baseLabel = btn.dataset.baseLabel || btn.textContent.trim();
-        const count = value === 'all'
-          ? total
-          : (groupCounts[group]?.[value] || 0);
+        const count = value === 'all' ? total : (counts[value] || 0);
+        const isActive = value === current;
         btn.innerHTML = `${baseLabel} ${count}/${total}`;
-        const isActive = btn.classList.contains('btn-primary');
+        btn.classList.toggle('btn-primary', isActive);
+        btn.classList.toggle('btn-secondary', !isActive);
         btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        const disable = value !== 'all' && count === 0;
+        btn.disabled = disable;
+        btn.setAttribute('aria-disabled', disable ? 'true' : 'false');
+        btn.classList.toggle('filter-chip-disabled', disable);
       });
     });
   };
@@ -655,19 +669,11 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
     concept: 'Focus',
     tools: 'Tools'
   };
-  const getDatasetValues = (card, key) => {
-    return (card.dataset[key] || '')
-      .split('|')
-      .map(v => v.trim())
-      .filter(Boolean);
-  };
   const matchesSelections = (card) => {
-    return filterGroupKeys.every(group => {
-      const selected = groupState[group] || 'all';
-      if (selected === 'all') return true;
-      const datasetKey = group === 'tools' ? 'tools' : 'concepts';
-      return getDatasetValues(card, datasetKey).includes(selected);
-    });
+    const index = Number(card.dataset.index);
+    const project = window.PROJECTS[index];
+    if (!project) return true;
+    return matchesState(project);
   };
   const runFilter = () => {
     clearTimeout(fadeTimer);
@@ -740,17 +746,22 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
   };
 
   menu.addEventListener("click", e => {
+    const resetTarget = e.target.closest('button[data-filter-reset]');
+    if (resetTarget) {
+      const group = resetTarget.dataset.filterReset || 'tools';
+      if (filterGroups.has(group)) {
+        groupState[group] = 'all';
+        refreshFilterLabels();
+        runFilter();
+      }
+      e.preventDefault();
+      return;
+    }
     const targetBtn = e.target.closest('button[data-filter-group]');
     if (!targetBtn) return;
     e.preventDefault();
     const group = targetBtn.dataset.filterGroup || 'tools';
     if (!filterGroups.has(group)) return;
-    filterGroups.get(group).forEach(btn => {
-      const isActive = btn === targetBtn;
-      btn.classList.toggle('btn-primary', isActive);
-      btn.classList.toggle('btn-secondary', !isActive);
-      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-    });
     groupState[group] = targetBtn.dataset.filter || 'all';
     refreshFilterLabels();
     runFilter();
