@@ -156,12 +156,28 @@
   <section class="reveal interest-pad hide" id="filters" role="region" aria-labelledby="all-projects-title">
     <div class="wrapper" style="text-align:center">
       <h2 class="section-title" id="all-projects-title">All Projects</h2>
-      <nav id="filter-menu" aria-label="Project filters">
-        <button data-filter="all"     class="btn-secondary" aria-pressed="true">All</button>
-        <button data-filter="Python"  class="btn-secondary" aria-pressed="false">Python</button>
-        <button data-filter="SQL"     class="btn-secondary" aria-pressed="false">SQL</button>
-        <button data-filter="Excel"   class="btn-secondary" aria-pressed="false">Excel</button>
-        <button data-filter="Tableau" class="btn-secondary" aria-pressed="false">Tableau</button>
+      <nav id="filter-menu" class="filter-menu" aria-label="Project filters">
+        <div class="filter-group" data-filter-group="concept">
+          <p class="filter-group-label">Project focus</p>
+          <div class="filter-buttons">
+            <button data-filter-group="concept" data-filter="all" class="btn-secondary" aria-pressed="true">All focuses</button>
+            <button data-filter-group="concept" data-filter="Machine Learning" class="btn-secondary" aria-pressed="false">Machine Learning</button>
+            <button data-filter-group="concept" data-filter="Analytics" class="btn-secondary" aria-pressed="false">Analytics</button>
+            <button data-filter-group="concept" data-filter="Automation" class="btn-secondary" aria-pressed="false">Automation</button>
+            <button data-filter-group="concept" data-filter="Visualization" class="btn-secondary" aria-pressed="false">Visualization</button>
+            <button data-filter-group="concept" data-filter="Product" class="btn-secondary" aria-pressed="false">Product</button>
+          </div>
+        </div>
+        <div class="filter-group" data-filter-group="tools">
+          <p class="filter-group-label">Tools</p>
+          <div class="filter-buttons">
+            <button data-filter-group="tools" data-filter="all" class="btn-secondary" aria-pressed="true">All tools</button>
+            <button data-filter-group="tools" data-filter="Python" class="btn-secondary" aria-pressed="false">Python</button>
+            <button data-filter-group="tools" data-filter="SQL" class="btn-secondary" aria-pressed="false">SQL</button>
+            <button data-filter-group="tools" data-filter="Excel" class="btn-secondary" aria-pressed="false">Excel</button>
+            <button data-filter-group="tools" data-filter="Tableau" class="btn-secondary" aria-pressed="false">Tableau</button>
+          </div>
+        </div>
       </nav>
     </div>
   </section>

@@ -504,156 +504,47 @@ function buildPortfolio() {
 
   grid.innerHTML = "";
   modals.innerHTML = "";
-  const filterButtons = [];
-  const registerButton = (btn) => {
-    if (!btn) return;
-    if (!btn.dataset.baseLabel) {
-      btn.dataset.baseLabel = btn.textContent.trim();
-    }
-    filterButtons.push(btn);
-  };
-  const menuButtons = [...menu.querySelectorAll('button[data-filter]')];
-  if (!menuButtons.length) return;
-  menuButtons.forEach(registerButton);
-  const defaultButton = menuButtons.find(btn => (btn.dataset.filter || '').toLowerCase() === 'all');
-  if (defaultButton) {
-    defaultButton.classList.add('btn-primary');
-    defaultButton.classList.remove('btn-secondary');
-    defaultButton.setAttribute('aria-pressed', 'true');
-  }
-  const primaryFilters = new Set(menuButtons.map(btn => (btn.dataset.filter || '').trim()));
-  const counts = { all: window.PROJECTS.length };
-  window.PROJECTS.forEach((project) => {
-    if (!Array.isArray(project.tools)) return;
-    project.tools.forEach((tool) => {
-      if (!tool) return;
-      counts[tool] = (counts[tool] || 0) + 1;
+  const TOTAL_PROJECTS = window.PROJECTS.length;
+  const filterGroups = new Map();
+  const groupState = {};
+  const groupButtons = [...menu.querySelectorAll('button[data-filter-group]')];
+  if (!groupButtons.length) return;
+  groupButtons.forEach((btn) => {
+    const group = btn.dataset.filterGroup || 'tools';
+    if (!filterGroups.has(group)) filterGroups.set(group, []);
+    filterGroups.get(group).push(btn);
+    btn.dataset.baseLabel = btn.textContent.trim();
+  });
+  filterGroups.forEach((buttons, group) => {
+    const defaultBtn = buttons.find(btn => (btn.dataset.filter || '').toLowerCase() === 'all') || buttons[0];
+    const selectedValue = defaultBtn?.dataset.filter || 'all';
+    groupState[group] = selectedValue;
+    buttons.forEach((btn) => {
+      const isActive = btn === defaultBtn;
+      btn.classList.toggle('btn-primary', isActive);
+      btn.classList.toggle('btn-secondary', !isActive);
+      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
     });
   });
-  const extraTags = Object.keys(counts)
-    .filter(tag => tag !== 'all' && !primaryFilters.has(tag))
-    .sort((a, b) => {
-      const diff = (counts[b] || 0) - (counts[a] || 0);
-      if (diff !== 0) return diff;
-      return a.localeCompare(b, undefined, { sensitivity: 'base' });
-    });
-  let drawer = null;
-  let drawerOverlay = null;
-  let drawerGrid = null;
-  let drawerCloseBtn = null;
-  let drawerToggle = null;
-  let drawerPrevFocus = null;
-  const trapDrawerFocus = (event) => {
-    if (!drawer || drawer.hidden || event.key !== 'Tab') return;
-    const focusables = [...drawer.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')];
-    if (!focusables.length) return;
-    const first = focusables[0];
-    const last = focusables[focusables.length - 1];
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
+  const valueAccessors = {
+    concept: (project) => Array.isArray(project.concepts) ? project.concepts : [],
+    tools: (project) => Array.isArray(project.tools) ? project.tools : []
   };
-  const closeDrawer = () => {
-    if (!drawer || drawer.hidden) return;
-    drawer.hidden = true;
-    drawerOverlay.hidden = true;
-    drawer.classList.remove('is-visible');
-    drawerOverlay.classList.remove('is-visible');
-    document.body.classList.remove('filter-drawer-open');
-    drawerToggle?.setAttribute('aria-expanded', 'false');
-    if (drawerPrevFocus && document.contains(drawerPrevFocus)) {
-      drawerPrevFocus.focus();
-    }
-    drawerPrevFocus = null;
-  };
-  const openDrawer = () => {
-    if (!drawer || !drawerOverlay) return;
-    drawerPrevFocus = document.activeElement;
-    drawer.hidden = false;
-    drawerOverlay.hidden = false;
-    drawer.classList.add('is-visible');
-    drawerOverlay.classList.add('is-visible');
-    document.body.classList.add('filter-drawer-open');
-    drawerToggle?.setAttribute('aria-expanded', 'true');
-    const focusTarget = drawer.querySelector('button[data-filter]') || drawerCloseBtn;
-    focusTarget?.focus({ preventScroll: true });
-  };
-  const ensureDrawer = () => {
-    if (drawer || !extraTags.length) return;
-    drawerOverlay = document.createElement('div');
-    drawerOverlay.id = 'filter-drawer-overlay';
-    drawerOverlay.className = 'filter-drawer-overlay';
-    drawerOverlay.hidden = true;
-    document.body.appendChild(drawerOverlay);
-
-    drawer = document.createElement('div');
-    drawer.id = 'filter-drawer';
-    drawer.className = 'filter-drawer';
-    drawer.hidden = true;
-    drawer.setAttribute('role', 'dialog');
-    drawer.setAttribute('aria-modal', 'true');
-    drawer.setAttribute('aria-labelledby', 'filter-drawer-title');
-    drawer.innerHTML = `
-      <div class="filter-drawer-content">
-        <div class="filter-drawer-header">
-          <h3 class="filter-drawer-title" id="filter-drawer-title">More filters</h3>
-          <button type="button" class="filter-drawer-close" aria-label="Close filter menu">&times;</button>
-        </div>
-        <p class="filter-drawer-subtitle">Explore every tool used across these projects.</p>
-        <div class="filter-drawer-grid"></div>
-      </div>
-    `;
-    document.body.appendChild(drawer);
-    drawerGrid = drawer.querySelector('.filter-drawer-grid');
-    drawerCloseBtn = drawer.querySelector('.filter-drawer-close');
-    drawerOverlay.addEventListener('click', () => closeDrawer());
-    drawerCloseBtn.addEventListener('click', () => closeDrawer());
-    drawer.addEventListener('keydown', trapDrawerFocus);
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && drawer && !drawer.hidden) {
-        event.preventDefault();
-        closeDrawer();
-      }
+  const groupCounts = {};
+  filterGroups.forEach((_, group) => {
+    groupCounts[group] = { all: TOTAL_PROJECTS };
+  });
+  window.PROJECTS.forEach((project) => {
+    filterGroups.forEach((_, group) => {
+      const accessor = valueAccessors[group];
+      if (!accessor) return;
+      accessor(project).forEach((value) => {
+        if (!value) return;
+        groupCounts[group][value] = (groupCounts[group][value] || 0) + 1;
+      });
     });
-    drawerGrid.addEventListener('click', (event) => {
-      const btn = event.target.closest('button[data-filter]');
-      if (!btn) return;
-      handleFilterSelection(btn);
-      closeDrawer();
-    });
-  };
-  if (extraTags.length) {
-    ensureDrawer();
-    drawerToggle = document.createElement('button');
-    drawerToggle.type = 'button';
-    drawerToggle.className = 'filter-more-btn';
-    drawerToggle.innerHTML = `<span>More filters</span><span class="filter-more-count">${extraTags.length}</span>`;
-    drawerToggle.setAttribute('aria-haspopup', 'dialog');
-    drawerToggle.setAttribute('aria-expanded', 'false');
-    drawerToggle.setAttribute('aria-controls', 'filter-drawer');
-    menu.appendChild(drawerToggle);
-    drawerToggle.addEventListener('click', (event) => {
-      event.preventDefault();
-      ensureDrawer();
-      if (!drawer || drawer.hidden) openDrawer();
-      else closeDrawer();
-    });
-    extraTags.forEach(tag => {
-      if (!drawerGrid) return;
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'btn-secondary';
-      btn.dataset.filter = tag;
-      btn.dataset.baseLabel = tag;
-      btn.textContent = tag;
-      registerButton(btn);
-      drawerGrid.appendChild(btn);
-    });
-  }
+  });
+  const filterGroupKeys = [...filterGroups.keys()];
 
   // Data order now reflects desired grid order (no runtime reordering)
 
@@ -697,7 +588,8 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
     card.type = "button";
     card.setAttribute("aria-label", `View details of ${p.title}`);
     card.dataset.index = i;
-    card.dataset.tags  = p.tools.join(",");
+    card.dataset.tools = (Array.isArray(p.tools) ? p.tools : []).join('|');
+    card.dataset.concepts = (Array.isArray(p.concepts) ? p.concepts : []).join('|');
     card.addEventListener("click", () => openModal(p.id));
     activateGifVideo(card);
     grid.appendChild(card);
@@ -736,13 +628,18 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
 
   /* ➌ Build filter-button counts ----------------------------------- */
   const refreshFilterLabels = () => {
-    filterButtons.forEach(btn => {
-      const tag = btn.dataset.filter;
-      const baseLabel = btn.dataset.baseLabel || btn.textContent.trim();
-      btn.dataset.baseLabel = baseLabel;
-      btn.innerHTML = `${baseLabel} ${(counts[tag] || 0)}/${counts.all}`;
-      const isActive = btn.classList.contains('btn-primary');
-      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    filterGroups.forEach((buttons, group) => {
+      const total = groupCounts[group]?.all || TOTAL_PROJECTS;
+      buttons.forEach(btn => {
+        const value = btn.dataset.filter;
+        const baseLabel = btn.dataset.baseLabel || btn.textContent.trim();
+        const count = value === 'all'
+          ? total
+          : (groupCounts[group]?.[value] || 0);
+        btn.innerHTML = `${baseLabel} ${count}/${total}`;
+        const isActive = btn.classList.contains('btn-primary');
+        btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
     });
   };
   refreshFilterLabels();
@@ -754,20 +651,28 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
   let fadeTimer;
   let revealTimer;
 
-  const handleFilterSelection = (targetBtn) => {
-    if (!targetBtn || !targetBtn.dataset.filter) return;
-    closeDrawer();
+  const FILTER_GROUP_LABELS = {
+    concept: 'Focus',
+    tools: 'Tools'
+  };
+  const getDatasetValues = (card, key) => {
+    return (card.dataset[key] || '')
+      .split('|')
+      .map(v => v.trim())
+      .filter(Boolean);
+  };
+  const matchesSelections = (card) => {
+    return filterGroupKeys.every(group => {
+      const selected = groupState[group] || 'all';
+      if (selected === 'all') return true;
+      const datasetKey = group === 'tools' ? 'tools' : 'concepts';
+      return getDatasetValues(card, datasetKey).includes(selected);
+    });
+  };
+  const runFilter = () => {
     clearTimeout(fadeTimer);
     clearTimeout(revealTimer);
 
-    filterButtons.forEach(b => {
-      b.classList.replace("btn-primary", "btn-secondary");
-      b.setAttribute("aria-pressed", "false");
-    });
-    targetBtn.classList.replace("btn-secondary", "btn-primary");
-    targetBtn.setAttribute("aria-pressed", "true");
-
-    const tag = targetBtn.dataset.filter;
     const startHeight = grid.offsetHeight;
     grid.style.height = `${startHeight}px`;
     grid.classList.remove(GRID_HIDDEN_CLASS);
@@ -777,7 +682,7 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
       if (!reduceMotion) grid.classList.add(GRID_HIDDEN_CLASS);
       const cards = [...grid.children];
       cards.forEach(card => {
-        const shouldShow = tag === "all" || card.dataset.tags.includes(tag);
+        const shouldShow = matchesSelections(card);
         card.classList.toggle("hide", !shouldShow);
       });
 
@@ -810,6 +715,14 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
             window.scrollTo({ top: y, behavior: "smooth" });
           }
         }
+
+        try {
+          const visibleCount = visible.length;
+          const summary = filterGroupKeys
+            .map(group => `${FILTER_GROUP_LABELS[group] || group}: ${groupState[group] || 'all'}`)
+            .join('; ');
+          srStatus().textContent = `Showing ${visibleCount} projects. ${summary}`;
+        } catch {}
       };
 
       if (GRID_RESIZE_MS) {
@@ -817,11 +730,6 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
       } else {
         reveal();
       }
-
-      try {
-        const visibleCount = visible.length;
-        srStatus().textContent = `Showing ${visibleCount} projects. Filter: ${tag}`;
-      } catch {}
     };
 
     if (GRID_FADE_MS) {
@@ -832,9 +740,20 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
   };
 
   menu.addEventListener("click", e => {
-    const targetBtn = e.target.closest('button[data-filter]');
+    const targetBtn = e.target.closest('button[data-filter-group]');
     if (!targetBtn) return;
-    handleFilterSelection(targetBtn);
+    e.preventDefault();
+    const group = targetBtn.dataset.filterGroup || 'tools';
+    if (!filterGroups.has(group)) return;
+    filterGroups.get(group).forEach(btn => {
+      const isActive = btn === targetBtn;
+      btn.classList.toggle('btn-primary', isActive);
+      btn.classList.toggle('btn-secondary', !isActive);
+      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+    groupState[group] = targetBtn.dataset.filter || 'all';
+    refreshFilterLabels();
+    runFilter();
   });
 
   /* ➎ Open modal based on URL (hash, clean path, or query) --------- */
