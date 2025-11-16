@@ -204,6 +204,65 @@
       opacity: .5;
       cursor: default;
     }
+    .ghost-btn.primary {
+      color: #0f172a;
+      background: linear-gradient(120deg, var(--accent), #fde047);
+      border-color: transparent;
+      font-weight: 600;
+    }
+    .ghost-btn.secondary {
+      color: var(--text);
+      border-color: rgba(255,255,255,.4);
+    }
+    .auth-panel {
+      display: grid;
+      gap: 12px;
+    }
+    .auth-forms {
+      display: grid;
+      gap: 12px;
+    }
+    .auth-forms label {
+      display: grid;
+      gap: 6px;
+      font-size: .9rem;
+      color: var(--muted);
+    }
+    .auth-forms input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.2);
+      background: rgba(15, 23, 42, .8);
+      color: inherit;
+      font-size: 1rem;
+    }
+    .auth-buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .auth-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid color-mix(in srgb, var(--panel-border) 50%, transparent);
+      border-radius: 12px;
+      padding: 12px 16px;
+      background: rgba(15, 23, 42, .45);
+      font-size: .95rem;
+    }
+    .muted-text {
+      color: var(--muted);
+      margin: 0;
+      font-size: .9rem;
+    }
+    .muted-text.small {
+      font-size: .8rem;
+    }
+    .auth-panel .alert {
+      margin-top: 4px;
+    }
     @media (max-width: 640px) {
       .reels {
         grid-template-columns: repeat(3, minmax(64px, 1fr));
@@ -227,6 +286,36 @@
         <p>This demo uses an AWS Lambda function, API Gateway, and DynamoDB table so every spin is validated on the server. The browser can render the reels, but it cannot change your credit balance or payout.</p>
       </div>
     </header>
+
+    <section class="panel auth-panel" id="auth-panel">
+      <div>
+        <h2>Account</h2>
+        <p class="muted-text">Sign in to keep your credits, spin history, and preferences synced in DynamoDB.</p>
+      </div>
+      <div class="auth-forms" id="auth-forms">
+        <label>
+          Email
+          <input type="email" id="auth-email" autocomplete="email" placeholder="you@example.com" required />
+        </label>
+        <label>
+          Password
+          <input type="password" id="auth-password" autocomplete="current-password" placeholder="Min 8 characters" required />
+        </label>
+        <div class="auth-buttons">
+          <button type="button" class="ghost-btn primary" id="login-btn">Sign In</button>
+          <button type="button" class="ghost-btn secondary" id="register-btn">Create Account</button>
+        </div>
+        <p class="muted-text small" id="auth-note">Passwords are hashed with bcrypt and only session tokens are stored in the browser.</p>
+      </div>
+      <div class="auth-status" id="auth-status" hidden>
+        <div>
+          <p class="muted-text">Signed in as</p>
+          <strong id="auth-user"></strong>
+        </div>
+        <button type="button" class="ghost-btn secondary" id="logout-btn">Sign out</button>
+      </div>
+      <div class="alert" id="auth-alert" hidden></div>
+    </section>
 
     <section class="panel">
       <h2>Slot Console</h2>
@@ -283,12 +372,25 @@
       if (!root) return;
       const API_BASE = root.dataset.apiBase;
       const DEFAULT_MAX_BET = Number(root.dataset.maxBet) || 100;
+      const storageKeys = {
+        player: 'slotMachineDemoPlayerId',
+        token: 'slotMachineAuthToken',
+        user: 'slotMachineAuthUser'
+      };
+      const getStored = (key) => {
+        const value = localStorage.getItem(key);
+        return value && value !== 'null' ? value : null;
+      };
       const state = {
-        playerId: null,
+        playerId: getStored(storageKeys.player),
         balance: 0,
         maxBet: DEFAULT_MAX_BET,
         bet: 25,
-        busy: false
+        busy: false,
+        auth: {
+          token: getStored(storageKeys.token),
+          username: getStored(storageKeys.user)
+        }
       };
 
       const els = {
@@ -309,7 +411,16 @@
         lastWin: document.getElementById('last-win'),
         lastMult: document.getElementById('last-multiplier'),
         lastTime: document.getElementById('last-time'),
-        log: document.getElementById('log')
+        log: document.getElementById('log'),
+        authForms: document.getElementById('auth-forms'),
+        authStatus: document.getElementById('auth-status'),
+        authAlert: document.getElementById('auth-alert'),
+        authUser: document.getElementById('auth-user'),
+        authEmail: document.getElementById('auth-email'),
+        authPassword: document.getElementById('auth-password'),
+        loginBtn: document.getElementById('login-btn'),
+        registerBtn: document.getElementById('register-btn'),
+        logoutBtn: document.getElementById('logout-btn')
       };
 
       const log = (message, data) => {
@@ -337,6 +448,12 @@
         els.alert.textContent = text;
       };
 
+      const showAuthAlert = (text = '') => {
+        if (!els.authAlert) return;
+        els.authAlert.hidden = !text;
+        els.authAlert.textContent = text;
+      };
+
       const setBusy = (flag) => {
         state.busy = flag;
         els.spinBtn.disabled = flag || !state.playerId;
@@ -344,10 +461,60 @@
         els.betInput.disabled = flag;
       };
 
-      const storageKey = 'slotMachineDemoPlayerId';
-      const getStoredPlayer = () => localStorage.getItem(storageKey);
-      const storePlayer = (value) => localStorage.setItem(storageKey, value);
-      const resetStoredPlayer = () => localStorage.removeItem(storageKey);
+      const toggleAuthInputs = (disabled) => {
+        [els.authEmail, els.authPassword, els.loginBtn, els.registerBtn].forEach(node => {
+          if (node) node.disabled = disabled;
+        });
+      };
+
+      const storeGuestPlayer = (value) => {
+        if (value) {
+          localStorage.setItem(storageKeys.player, value);
+        }
+      };
+      const resetStoredPlayer = () => localStorage.removeItem(storageKeys.player);
+
+      const updateAuthUI = () => {
+        const loggedIn = Boolean(state.auth.token);
+        if (els.authForms) els.authForms.hidden = loggedIn;
+        if (els.authStatus) els.authStatus.hidden = !loggedIn;
+        if (loggedIn && els.authUser) {
+          els.authUser.textContent = state.auth.username || 'Account';
+        }
+        if (!loggedIn && els.authPassword) {
+          els.authPassword.value = '';
+        }
+      };
+
+      const setAuthState = ({ token, username } = {}) => {
+        state.auth.token = token || null;
+        state.auth.username = token ? (username || state.auth.username || null) : null;
+        if (state.auth.token) {
+          localStorage.setItem(storageKeys.token, state.auth.token);
+          localStorage.setItem(storageKeys.user, state.auth.username || '');
+          resetStoredPlayer();
+        } else {
+          localStorage.removeItem(storageKeys.token);
+          localStorage.removeItem(storageKeys.user);
+        }
+        updateAuthUI();
+      };
+
+      const clearAuth = (message) => {
+        if (!state.auth.token) return;
+        setAuthState({});
+        if (message) {
+          showAuthAlert(message);
+          log('Auth', message);
+        }
+      };
+
+      const syncAuthFromPayload = (payload = {}) => {
+        if (payload.token && payload.username) {
+          setAuthState({ token: payload.token, username: payload.username });
+          showAuthAlert('');
+        }
+      };
 
       const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
       const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
@@ -358,10 +525,47 @@
         return DEFAULT_MAX_BET;
       };
 
+      const withAuth = (payload = {}) => {
+        if (state.auth.token) {
+          return { ...payload, token: state.auth.token };
+        }
+        return payload;
+      };
+
+      const request = async (path, payload = {}, options = {}) => {
+        const finalPayload = options.skipAuth ? payload : withAuth(payload);
+        const res = await fetch(`${API_BASE}${path}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(finalPayload)
+        });
+        let data = {};
+        try {
+          data = await res.json();
+        } catch {
+          data = {};
+        }
+        if (!res.ok) {
+          if (res.status === 401 && !options.skipAuth) {
+            clearAuth('Session expired. Please sign in again.');
+          }
+          const err = new Error(data.error || data.message || 'Request failed');
+          err.payload = data;
+          err.status = res.status;
+          throw err;
+        }
+        return data;
+      };
+
       const updateStats = (payload = {}) => {
         if (payload.playerId) {
           state.playerId = payload.playerId;
           els.playerId.textContent = payload.playerId;
+          if (state.auth.token) {
+            resetStoredPlayer();
+          } else {
+            storeGuestPlayer(payload.playerId);
+          }
         }
         if (typeof payload.balance === 'number') {
           state.balance = payload.balance;
@@ -412,37 +616,22 @@
         });
       };
 
-      const request = async (path, payload = {}) => {
-        const res = await fetch(`${API_BASE}${path}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          const err = new Error(data.message || 'Request failed');
-          err.payload = data;
-          throw err;
-        }
-        return data;
-      };
-
       const bootstrap = async () => {
         setBusy(true);
         showAlert('');
         try {
           const payload = {};
-          const storedId = getStoredPlayer();
-          if (storedId) payload.playerId = storedId;
+          if (!state.auth.token && state.playerId) {
+            payload.playerId = state.playerId;
+          }
           const session = await request('/session', payload);
-          state.playerId = session.playerId;
-          storePlayer(session.playerId);
+          syncAuthFromPayload(session);
           setStatus('Connected to AWS Lambda', 'ok');
           els.spinBtn.disabled = false;
           updateStats(session);
           updateLastSpin(session.lastSpin);
           animateReels(session.lastSpin?.reels);
-          log('Session synced', `Balance: $${session.balance}`);
+          log('Session synced', `${session.username ? `User ${session.username}` : 'Guest'} • balance ${currency.format(session.balance)}`);
         } catch (error) {
           console.error(error);
           setStatus('Offline — check CloudWatch logs', 'error');
@@ -454,6 +643,7 @@
       };
 
       const spin = async () => {
+        if (state.busy) return;
         const maxBet = resolveMaxBet();
         const rawInput = Number(els.betInput.value);
         const normalizedInput = Number.isFinite(rawInput)
@@ -466,11 +656,12 @@
         showAlert('');
         els.error.textContent = '';
         try {
-          const result = await request('/spin', { playerId: state.playerId, bet });
+          const payload = state.auth.token ? { bet } : { bet, playerId: state.playerId };
+          const result = await request('/spin', payload);
           animateReels(result.reels);
           updateStats(result);
           updateLastSpin(result.lastSpin);
-          log('Spin processed by Lambda', `${result.outcome} (balance $${result.balance})`);
+          log('Spin processed by Lambda', `${result.outcome} (balance ${currency.format(result.balance)})`);
         } catch (error) {
           const payload = error.payload || {};
           const msg = payload.message || error.message;
@@ -488,6 +679,50 @@
         }
       };
 
+      const loginOrRegister = async (mode = 'login') => {
+        const email = (els.authEmail?.value || '').trim().toLowerCase();
+        const password = els.authPassword?.value || '';
+        if (!email || !password) {
+          showAuthAlert('Enter your email and password.');
+          return;
+        }
+        showAuthAlert('');
+        toggleAuthInputs(true);
+        try {
+          const endpoint = mode === 'register' ? '/auth/register' : '/auth/login';
+          const result = await request(endpoint, { username: email, password }, { skipAuth: true });
+          syncAuthFromPayload(result);
+          updateStats(result);
+          updateLastSpin(result.lastSpin);
+          log(mode === 'register' ? 'Account created' : 'Signed in', email);
+          showAuthAlert(mode === 'register' ? 'Account created! Credits synced.' : 'Signed in successfully.');
+        } catch (error) {
+          showAuthAlert(error.message || 'Unable to process request.');
+          log('Auth failed', error.message);
+        } finally {
+          toggleAuthInputs(false);
+        }
+      };
+
+      const logout = async () => {
+        if (!state.auth.token) return;
+        showAuthAlert('');
+        if (els.logoutBtn) els.logoutBtn.disabled = true;
+        try {
+          await request('/auth/logout', {});
+        } catch (error) {
+          console.error(error);
+        } finally {
+          if (els.logoutBtn) els.logoutBtn.disabled = false;
+          setAuthState({});
+          log('Signed out', '');
+          showAuthAlert('Signed out.');
+          bootstrap();
+        }
+      };
+
+      updateAuthUI();
+
       els.betInput.addEventListener('change', () => {
         const maxBet = resolveMaxBet();
         let value = Number(els.betInput.value);
@@ -496,18 +731,26 @@
         state.bet = value;
         els.betInput.value = value.toString();
       });
-      els.spinBtn.addEventListener('click', () => {
-        if (!state.playerId || state.busy) return;
-        spin();
-      });
+
+      els.spinBtn.addEventListener('click', spin);
+
       els.resetBtn.addEventListener('click', () => {
+        if (state.auth.token) {
+          bootstrap();
+          return;
+        }
         resetStoredPlayer();
         window.location.reload();
       });
+
       els.syncBtn.addEventListener('click', () => {
-        if (!state.playerId || state.busy) return;
+        if (state.busy) return;
         bootstrap();
       });
+
+      els.loginBtn.addEventListener('click', () => loginOrRegister('login'));
+      els.registerBtn.addEventListener('click', () => loginOrRegister('register'));
+      els.logoutBtn.addEventListener('click', logout);
 
       bootstrap();
     })();
