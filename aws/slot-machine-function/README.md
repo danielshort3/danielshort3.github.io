@@ -1,10 +1,11 @@
 ## Slot Machine Lambda
 
-Server-side logic for the slot machine demo. The function keeps authoritative player balances in DynamoDB and is deployed behind an API Gateway HTTP API.
+Server-side logic for the slot machine demo. The function keeps authoritative player balances in DynamoDB, stores hashed user credentials/sessions, and is deployed behind an API Gateway HTTP API.
 
 ### AWS resources
 
 - **DynamoDB**: `slot-machine-demo-players` (partition key `playerId`)
+- **DynamoDB**: `slot-machine-users` (partition key `username`, GSI `sessionToken-index`)
 - **Lambda**: `slot-machine-demo` (runtime `nodejs18.x`)
 - **IAM role**: `slotMachineDemoLambdaRole`
 - **API Gateway**: HTTP API `slot-machine-demo-api` (`4kvebym8b3`, stage `prod`)
@@ -14,10 +15,23 @@ Server-side logic for the slot machine demo. The function keeps authoritative pl
 
 ```
 TABLE_NAME=slot-machine-demo-players
+USERS_TABLE=slot-machine-users
 STARTING_CREDITS=1000
 MAX_BET=100
-ALLOWED_ORIGINS=https://danielshort.dev,https://www.danielshort.dev,https://danielshort3.github.io,https://danielshort3-github-io.vercel.app
+ALLOWED_ORIGINS=https://danielshort.dev,https://www.danielshort.dev,https://danielshort3.github.io,https://danielshort3-github-io.vercel.app,https://danielshort.me,https://www.danielshort.me
+SESSION_TTL_MINUTES=4320
+PASSWORD_SALT_ROUNDS=12
 ```
+
+### HTTP routes
+
+All routes accept/return JSON:
+
+- `POST /auth/register` → `{ username, password }` ⇒ `{ token, username, playerId, balance, spins, ... }`
+- `POST /auth/login` → `{ username, password }`
+- `POST /auth/logout` → `{ token }`
+- `POST /session` → `{ token?, playerId? }`
+- `POST /spin` → `{ token?, playerId, bet }`
 
 ### Deploy flow
 
