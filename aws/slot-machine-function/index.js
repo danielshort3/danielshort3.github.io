@@ -203,13 +203,13 @@ async function handleSpin(payload = {}) {
   const bet = Math.trunc(Number(payload.bet));
 
   if (!playerId) {
-    return { errorCode: 'BAD_REQUEST', message: 'Missing playerId.' };
+    return { errorCode: 'BAD_REQUEST', message: 'Missing playerId.', maxBet: BET_LIMIT };
   }
   if (!Number.isFinite(bet) || bet <= 0) {
-    return { errorCode: 'BAD_REQUEST', message: 'Bet must be a positive integer.' };
+    return { errorCode: 'BAD_REQUEST', message: 'Bet must be a positive integer.', maxBet: BET_LIMIT };
   }
   if (bet > BET_LIMIT) {
-    return { errorCode: 'LIMIT_EXCEEDED', message: `Bet cannot exceed ${BET_LIMIT}.` };
+    return { errorCode: 'LIMIT_EXCEEDED', message: `Bet cannot exceed ${BET_LIMIT}.`, maxBet: BET_LIMIT };
   }
 
   const player = await getOrCreatePlayer(playerId);
@@ -217,7 +217,8 @@ async function handleSpin(payload = {}) {
     return {
       errorCode: 'INSUFFICIENT_CREDITS',
       message: 'You do not have enough credits.',
-      balance: player.credits
+      balance: player.credits,
+      maxBet: BET_LIMIT
     };
   }
 
@@ -234,7 +235,8 @@ async function handleSpin(payload = {}) {
     outcome: spinResult.outcome,
     balance: updatedPlayer.credits,
     spins: updatedPlayer.spins,
-    lastSpin: updatedPlayer.lastSpin
+    lastSpin: updatedPlayer.lastSpin,
+    maxBet: BET_LIMIT
   };
 }
 

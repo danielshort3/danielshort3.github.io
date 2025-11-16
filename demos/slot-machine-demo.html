@@ -216,7 +216,7 @@
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
-  <main id="main" data-api-base="https://4kvebym8b3.execute-api.us-east-2.amazonaws.com/prod">
+  <main id="main" data-api-base="https://4kvebym8b3.execute-api.us-east-2.amazonaws.com/prod" data-max-bet="100">
     <header class="grid">
       <div>
         <p class="status-pill" id="connection-pill" data-state="loading">
@@ -282,10 +282,11 @@
       const root = document.getElementById('main');
       if (!root) return;
       const API_BASE = root.dataset.apiBase;
+      const DEFAULT_MAX_BET = Number(root.dataset.maxBet) || 100;
       const state = {
         playerId: null,
         balance: 0,
-        maxBet: 100,
+        maxBet: DEFAULT_MAX_BET,
         bet: 25,
         busy: false
       };
@@ -349,6 +350,13 @@
       const resetStoredPlayer = () => localStorage.removeItem(storageKey);
 
       const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+      const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+      const resolveMaxBet = (incoming) => {
+        const numeric = Number(incoming);
+        if (Number.isFinite(numeric) && numeric > 0) return numeric;
+        if (Number.isFinite(state.maxBet) && state.maxBet > 0) return state.maxBet;
+        return DEFAULT_MAX_BET;
+      };
 
       const updateStats = (payload = {}) => {
         if (payload.playerId) {
@@ -363,17 +371,21 @@
           els.spinCount.textContent = payload.spins;
         }
 
-        const nextMax = Number(payload.maxBet);
-        if (Number.isFinite(nextMax) && nextMax > 0) {
-          state.maxBet = nextMax;
-        }
+        state.maxBet = resolveMaxBet(payload.maxBet);
         els.maxBet.textContent = state.maxBet;
         els.betInput.max = state.maxBet;
 
-        const desiredBet = Number.isFinite(state.bet) ? state.bet : Number(els.betInput.value) || 1;
-        const safeBet = Math.max(1, Math.min(state.maxBet, desiredBet));
+        const incomingBet = Number(payload.bet);
+        const fallbackBet = Number.isFinite(state.bet)
+          ? state.bet
+          : Number(els.betInput.value);
+        const desiredBet = Number.isFinite(incomingBet)
+          ? incomingBet
+          : (Number.isFinite(fallbackBet) ? fallbackBet : 1);
+
+        const safeBet = clamp(desiredBet || 1, 1, state.maxBet);
         state.bet = safeBet;
-        els.betInput.value = safeBet;
+        els.betInput.value = safeBet.toString();
       };
 
       const updateLastSpin = (lastSpin) => {
@@ -442,8 +454,13 @@
       };
 
       const spin = async () => {
-        const bet = Math.max(1, Math.min(state.maxBet, parseInt(els.betInput.value, 10) || 1));
-        els.betInput.value = bet;
+        const maxBet = resolveMaxBet();
+        const rawInput = Number(els.betInput.value);
+        const normalizedInput = Number.isFinite(rawInput)
+          ? rawInput
+          : (Number.isFinite(state.bet) ? state.bet : 1);
+        const bet = clamp(normalizedInput || 1, 1, maxBet);
+        els.betInput.value = bet.toString();
         state.bet = bet;
         setBusy(true);
         showAlert('');
@@ -458,6 +475,9 @@
           const payload = error.payload || {};
           const msg = payload.message || error.message;
           els.error.textContent = msg;
+          if (payload.balance !== undefined || payload.maxBet !== undefined) {
+            updateStats({ balance: payload.balance, maxBet: payload.maxBet });
+          }
           if (payload.errorCode === 'INSUFFICIENT_CREDITS') {
             log('Spin blocked', 'Insufficient credits');
           } else {
@@ -469,11 +489,12 @@
       };
 
       els.betInput.addEventListener('change', () => {
-        let value = parseInt(els.betInput.value, 10);
-        if (!Number.isFinite(value) || value < 1) value = 1;
-        if (value > state.maxBet) value = state.maxBet;
+        const maxBet = resolveMaxBet();
+        let value = Number(els.betInput.value);
+        if (!Number.isFinite(value)) value = Number(state.bet) || 1;
+        value = clamp(value || 1, 1, maxBet);
         state.bet = value;
-        els.betInput.value = value;
+        els.betInput.value = value.toString();
       });
       els.spinBtn.addEventListener('click', () => {
         if (!state.playerId || state.busy) return;
