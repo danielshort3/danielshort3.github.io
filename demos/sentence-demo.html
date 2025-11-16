@@ -48,9 +48,9 @@
     }
     .card-header {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
       padding: 18px;
       background: linear-gradient(0deg, var(--surface, #161b22), var(--surface-2));
       border-bottom: 1px solid var(--border);
@@ -75,12 +75,26 @@
       font-size: .9rem;
       margin: 4px 0 0;
     }
+    .title-stack {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .title-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
     .status {
       display: flex;
       align-items: center;
       gap: 10px;
       flex-wrap: wrap;
       justify-content: flex-end;
+      flex-shrink: 0;
     }
     .pill {
       display: inline-flex;
@@ -248,16 +262,19 @@
       color: var(--muted);
     }
     @media (max-width: 640px) {
-      .card-header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
       .actions {
         width: 100%;
       }
       .btn {
         width: 100%;
         min-width: 0;
+      }
+      .title-stack {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .status {
+        justify-content: flex-start;
       }
     }
   </style>
@@ -448,12 +465,16 @@
   <div class="card" id="demo-card">
     <header class="card-header">
       <div class="headline">
-        <p class="eyebrow">Embeddings demo</p>
-        <h1>Smart Sentence Finder</h1>
+        <div class="title-stack">
+          <div class="title-copy">
+            <p class="eyebrow">Embeddings demo</p>
+            <h1>Smart Sentence Finder</h1>
+          </div>
+          <div class="status">
+            <span id="health" class="pill">Checking…</span>
+          </div>
+        </div>
         <p class="muted">Search all of Alice in Wonderland and pull back the most similar sentences.</p>
-      </div>
-      <div class="status">
-        <span id="health" class="pill">Checking…</span>
       </div>
     </header>
     <div class="section">
