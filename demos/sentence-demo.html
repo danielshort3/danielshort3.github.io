@@ -327,13 +327,13 @@
       try {
         const r = await fetch(url + 'health');
         if (!r.ok) throw new Error(await r.text());
-        const j = await r.json();
+        await r.json();
         $status.className = 'pill ok';
-        $status.textContent = `OK • ${j.model} • sentences: ${j.sentences}`;
+        $status.textContent = 'Server Ready';
         notifyResize();
       } catch (e) {
         $status.className = 'pill err';
-        $status.textContent = 'Health check failed';
+        $status.textContent = 'Server Not Ready';
         console.error(e);
         notifyResize();
       }
