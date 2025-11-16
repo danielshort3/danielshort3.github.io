@@ -114,23 +114,24 @@
 
   .hero-cta{min-width:0;}
 
-  .hero-meta{
-    --hero-kpi-title-height:clamp(48px,5vw,64px);
-    display:grid;
-    grid-template-columns:repeat(3,minmax(0,1fr));
-    grid-auto-rows:auto;
-    gap:clamp(1.1rem,2.5vw,1.8rem);
-    margin:clamp(2rem,4.5vh,3rem) auto 0;
-    padding:0 clamp(12px,2vw,18px);
+  .hero-kpis{
+    --kpi-gap:clamp(1.1rem,2.6vw,1.8rem);
+    --kpi-inline-pad:clamp(1.45rem,2.3vw,2rem);
+    --kpi-block-pad:clamp(1.35rem,2vw,1.85rem);
+    --kpi-value-height:clamp(48px,5vw,64px);
     list-style:none;
-    width:100%;
-    max-width:1080px;
+    margin-top:clamp(2.1rem,4.5vh,3.4rem);
+    margin-bottom:0;
+    padding:0;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:var(--kpi-gap);
     align-items:stretch;
   }
 
-  .hero-meta li{
+  .hero-kpi{
     min-width:0;
-    padding:clamp(1.45rem,2vw,1.9rem) clamp(1.45rem,2.3vw,2.1rem) clamp(.75rem,1vw,.95rem);
+    padding:var(--kpi-block-pad) var(--kpi-inline-pad) clamp(.75rem,1vw,.95rem);
     border-radius:22px;
     background:linear-gradient(155deg,
       color-mix(in srgb,var(--surface) 92%, #02070f 8%) 0%,
@@ -147,7 +148,7 @@
     overflow:hidden;
     isolation:isolate;
   }
-  .hero-meta li::before{
+  .hero-kpi::before{
     content:"";
     position:absolute;
     inset:1px;
@@ -159,15 +160,15 @@
     pointer-events:none;
     z-index:0;
   }
-  .hero-meta li > *{
+  .hero-kpi > *{
     position:relative;
     z-index:1;
   }
-  .hero-meta li:nth-child(1){animation-delay:.95s;}
-  .hero-meta li:nth-child(2){animation-delay:1.05s;}
-  .hero-meta li:nth-child(3){animation-delay:1.15s;}
+  .hero-kpi:nth-child(1){animation-delay:.95s;}
+  .hero-kpi:nth-child(2){animation-delay:1.05s;}
+  .hero-kpi:nth-child(3){animation-delay:1.15s;}
 
-  .hero-meta-value{
+  .hero-kpi-value{
     display:flex;
     align-items:flex-end;
     justify-content:center;
@@ -175,10 +176,10 @@
     column-gap:8px;
     row-gap:4px;
     font-family:'Poppins',sans-serif;
-    font-size:clamp(1.5rem,3vw,2.1rem);
+    font-size:clamp(1.6rem,3.2vw,2.2rem);
     font-weight:600;
     color:color-mix(in srgb,var(--text-light) 95%, #fff 5%);
-    min-height:var(--hero-kpi-title-height);
+    min-height:var(--kpi-value-height);
     text-align:center;
     white-space:normal;
     word-break:break-word;
@@ -186,10 +187,10 @@
     letter-spacing:.02em;
   }
 
-  .hero-meta-label{
+  .hero-kpi-label{
     display:block;
     margin-top:6px;
-    font-size:.9rem;
+    font-size:.92rem;
     color:color-mix(in srgb,var(--text-muted) 86%, #fff 14%);
     line-height:1.65;
     letter-spacing:.025em;
@@ -255,8 +256,8 @@
   }
 
   @media (max-width:1100px){
-    .hero-meta{
-      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    .hero-kpis{
+      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
     }
   }
 
@@ -273,30 +274,24 @@
     .cta-group{
       justify-content:center;
     }
-    .hero-meta{
+    .hero-kpis{
       grid-template-columns:minmax(0,1fr);
-      grid-auto-rows:auto;
-      width:100%;
-      max-width:480px;
-      margin-inline:auto;
-      padding-inline:clamp(10px,6vw,18px);
-      gap:clamp(1.1rem,4.5vw,1.5rem);
+      gap:clamp(1.1rem,4.5vw,1.6rem);
     }
-    .hero-meta li{
-      width:100%;
-      max-width:420px;
-      margin-inline:auto;
-      padding:clamp(1rem,4vw,1.25rem) clamp(1.1rem,5vw,1.4rem) clamp(.6rem,3vw,.9rem);
+    .hero-kpi{
+      padding:clamp(1.1rem,4.5vw,1.5rem) clamp(1.2rem,5.4vw,1.6rem) clamp(.7rem,3vw,1rem);
       text-align:center;
       align-items:center;
     }
-    .hero-meta-value{
+    .hero-kpi-value{
       justify-content:center;
       text-align:center;
+      font-size:clamp(1.32rem,5vw,1.95rem);
     }
-    .hero-meta-label{
+    .hero-kpi-label{
       text-align:center;
       margin-inline:auto;
+      font-size:clamp(.88rem,3.8vw,1rem);
     }
     body[data-page="home"] .chevron-hint{
       display:none;
@@ -326,10 +321,8 @@
       width:100%;
       justify-content:center;
     }
-    .hero-meta{
-      width:100%;
-      max-width:420px;
-      padding-inline:clamp(4px,7vw,16px);
+    .hero-kpis{
+      grid-template-columns:minmax(0,1fr);
     }
   }
 
@@ -339,8 +332,8 @@
     .hero-tagline,
     .hero-status,
     .cta-group,
-    .hero-meta,
-    .hero-meta li{
+    .hero-kpis,
+    .hero-kpi{
       animation:none !important;
       opacity:1 !important;
       transform:none !important;
