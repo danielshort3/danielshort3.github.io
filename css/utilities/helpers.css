@@ -29,18 +29,6 @@
              opacity .35s ease;
   will-change:padding,opacity
 }
-#carousel-gap .wrapper{
-  width:100%;
-}
-#carousel-gap .contrib-divider{
-  padding:40px 0;
-  max-width:min(520px, calc(100% - 32px));
-  margin-inline:auto;
-}
-#carousel-gap .contrib-divider::before{
-  width:100%;
-  max-width:100%;
-}
 #carousel-gap.grid-fade{opacity:0 !important}
 .contact-big{
   display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
