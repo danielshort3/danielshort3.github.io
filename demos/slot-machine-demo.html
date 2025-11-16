@@ -317,7 +317,7 @@
       <div class="alert" id="auth-alert" hidden></div>
     </section>
 
-    <section class="panel">
+    <section class="panel" data-requires-auth hidden>
       <h2>Slot Console</h2>
       <div class="reels" id="reels">
         <div class="slot-cell" aria-live="polite">💤</div>
@@ -339,7 +339,7 @@
       <div class="alert" id="alert" hidden></div>
     </section>
 
-    <section class="grid grid-two">
+    <section class="grid grid-two" data-requires-auth hidden>
       <div class="panel">
         <h2>Session</h2>
         <dl id="session-stats">
@@ -360,7 +360,7 @@
       </div>
     </section>
 
-    <section class="panel">
+    <section class="panel" data-requires-auth hidden>
       <h2>Server Event Log</h2>
       <div class="log" id="log" aria-live="polite"></div>
     </section>
@@ -382,11 +382,12 @@
         return value && value !== 'null' ? value : null;
       };
       const state = {
-        playerId: getStored(storageKeys.player),
+        playerId: null,
         balance: 0,
         maxBet: DEFAULT_MAX_BET,
         bet: 25,
         busy: false,
+        gameReady: false,
         auth: {
           token: getStored(storageKeys.token),
           username: getStored(storageKeys.user)
@@ -422,6 +423,7 @@
         registerBtn: document.getElementById('register-btn'),
         logoutBtn: document.getElementById('logout-btn')
       };
+      state.playerId = state.auth.token ? null : getStored(storageKeys.player);
 
       const log = (message, data) => {
         const entry = document.createElement('div');
@@ -454,11 +456,26 @@
         els.authAlert.textContent = text;
       };
 
+      const gamePanels = Array.from(document.querySelectorAll('[data-requires-auth]'));
+
+      const setGameVisibility = (visible) => {
+        state.gameReady = visible;
+        gamePanels.forEach(panel => {
+          panel.hidden = !visible;
+        });
+        const disableInputs = !visible || state.busy;
+        els.spinBtn.disabled = disableInputs;
+        els.betInput.disabled = disableInputs;
+        els.syncBtn.disabled = disableInputs;
+        els.resetBtn.disabled = !visible;
+      };
+
       const setBusy = (flag) => {
         state.busy = flag;
-        els.spinBtn.disabled = flag || !state.playerId;
-        els.syncBtn.disabled = flag;
-        els.betInput.disabled = flag;
+        const disableInputs = flag || !state.gameReady;
+        els.spinBtn.disabled = disableInputs;
+        els.syncBtn.disabled = disableInputs;
+        els.betInput.disabled = disableInputs;
       };
 
       const toggleAuthInputs = (disabled) => {
@@ -466,6 +483,8 @@
           if (node) node.disabled = disabled;
         });
       };
+
+      setGameVisibility(false);
 
       const storeGuestPlayer = (value) => {
         if (value) {
@@ -489,6 +508,9 @@
       const setAuthState = ({ token, username } = {}) => {
         state.auth.token = token || null;
         state.auth.username = token ? (username || state.auth.username || null) : null;
+        if (!state.auth.token) {
+          state.playerId = null;
+        }
         if (state.auth.token) {
           localStorage.setItem(storageKeys.token, state.auth.token);
           localStorage.setItem(storageKeys.user, state.auth.username || '');
@@ -503,6 +525,8 @@
       const clearAuth = (message) => {
         if (!state.auth.token) return;
         setAuthState({});
+        setGameVisibility(false);
+        setStatus('Sign in to start', 'error');
         if (message) {
           showAuthAlert(message);
           log('Auth', message);
@@ -616,24 +640,32 @@
         });
       };
 
+      const hydrateSession = (session, logMessage) => {
+        syncAuthFromPayload(session);
+        updateStats(session);
+        updateLastSpin(session.lastSpin);
+        animateReels(session.lastSpin?.reels);
+        setGameVisibility(true);
+        setStatus('Connected to AWS Lambda', 'ok');
+        if (logMessage) {
+          log(logMessage, `${session.username || 'User'} • balance ${currency.format(session.balance)}`);
+        }
+      };
+
       const bootstrap = async () => {
+        if (!state.auth.token) {
+          setGameVisibility(false);
+          setStatus('Sign in to start', 'error');
+          return;
+        }
         setBusy(true);
         showAlert('');
         try {
-          const payload = {};
-          if (!state.auth.token && state.playerId) {
-            payload.playerId = state.playerId;
-          }
-          const session = await request('/session', payload);
-          syncAuthFromPayload(session);
-          setStatus('Connected to AWS Lambda', 'ok');
-          els.spinBtn.disabled = false;
-          updateStats(session);
-          updateLastSpin(session.lastSpin);
-          animateReels(session.lastSpin?.reels);
-          log('Session synced', `${session.username ? `User ${session.username}` : 'Guest'} • balance ${currency.format(session.balance)}`);
+          const session = await request('/session');
+          hydrateSession(session, 'Session synced');
         } catch (error) {
           console.error(error);
+          setGameVisibility(false);
           setStatus('Offline — check CloudWatch logs', 'error');
           showAlert(error.message || 'Unable to reach AWS.');
           log('Connection failed', error.message);
@@ -644,6 +676,10 @@
 
       const spin = async () => {
         if (state.busy) return;
+        if (!state.auth.token) {
+          showAuthAlert('Sign in to spin the slot machine.');
+          return;
+        }
         const maxBet = resolveMaxBet();
         const rawInput = Number(els.betInput.value);
         const normalizedInput = Number.isFinite(rawInput)
@@ -656,8 +692,7 @@
         showAlert('');
         els.error.textContent = '';
         try {
-          const payload = state.auth.token ? { bet } : { bet, playerId: state.playerId };
-          const result = await request('/spin', payload);
+          const result = await request('/spin', { bet });
           animateReels(result.reels);
           updateStats(result);
           updateLastSpin(result.lastSpin);
@@ -691,10 +726,7 @@
         try {
           const endpoint = mode === 'register' ? '/auth/register' : '/auth/login';
           const result = await request(endpoint, { username: email, password }, { skipAuth: true });
-          syncAuthFromPayload(result);
-          updateStats(result);
-          updateLastSpin(result.lastSpin);
-          log(mode === 'register' ? 'Account created' : 'Signed in', email);
+          hydrateSession(result, mode === 'register' ? 'Account created' : 'Signed in');
           showAuthAlert(mode === 'register' ? 'Account created! Credits synced.' : 'Signed in successfully.');
         } catch (error) {
           showAuthAlert(error.message || 'Unable to process request.');
@@ -715,9 +747,10 @@
         } finally {
           if (els.logoutBtn) els.logoutBtn.disabled = false;
           setAuthState({});
+          setGameVisibility(false);
+          setStatus('Sign in to start', 'error');
           log('Signed out', '');
           showAuthAlert('Signed out.');
-          bootstrap();
         }
       };
 
@@ -735,16 +768,15 @@
       els.spinBtn.addEventListener('click', spin);
 
       els.resetBtn.addEventListener('click', () => {
-        if (state.auth.token) {
-          bootstrap();
+        if (state.busy || !state.auth.token) {
+          showAuthAlert('Sign in to use the slot machine.');
           return;
         }
-        resetStoredPlayer();
-        window.location.reload();
+        bootstrap();
       });
 
       els.syncBtn.addEventListener('click', () => {
-        if (state.busy) return;
+        if (state.busy || !state.auth.token) return;
         bootstrap();
       });
 
@@ -752,7 +784,11 @@
       els.registerBtn.addEventListener('click', () => loginOrRegister('register'));
       els.logoutBtn.addEventListener('click', logout);
 
-      bootstrap();
+      if (state.auth.token) {
+        bootstrap();
+      } else {
+        setStatus('Sign in to start', 'error');
+      }
     })();
   </script>
 </body>
