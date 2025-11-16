@@ -157,9 +157,13 @@
     <div class="wrapper" style="text-align:center">
       <h2 class="section-title" id="all-projects-title">All Projects</h2>
       <nav id="filter-menu" class="filter-menu" aria-label="Project filters">
-        <div class="filter-group" data-filter-group="concept">
-          <p class="filter-group-label">Project focus</p>
-          <div class="filter-buttons">
+        <section class="filter-panel" role="group" aria-labelledby="filter-focus-title">
+          <header class="filter-panel-head">
+            <p class="filter-panel-eyebrow">Filter by focus</p>
+            <h3 id="filter-focus-title">What type of work?</h3>
+            <p class="filter-panel-copy">Select the kind of problem or outcome the project delivers.</p>
+          </header>
+          <div class="filter-chip-row">
             <button data-filter-group="concept" data-filter="all" class="btn-secondary" aria-pressed="true">All focuses</button>
             <button data-filter-group="concept" data-filter="Machine Learning" class="btn-secondary" aria-pressed="false">Machine Learning</button>
             <button data-filter-group="concept" data-filter="Analytics" class="btn-secondary" aria-pressed="false">Analytics</button>
@@ -167,17 +171,23 @@
             <button data-filter-group="concept" data-filter="Visualization" class="btn-secondary" aria-pressed="false">Visualization</button>
             <button data-filter-group="concept" data-filter="Product" class="btn-secondary" aria-pressed="false">Product</button>
           </div>
-        </div>
-        <div class="filter-group" data-filter-group="tools">
-          <p class="filter-group-label">Tools</p>
-          <div class="filter-buttons">
+        </section>
+        <section class="filter-panel" role="group" aria-labelledby="filter-tools-title">
+          <header class="filter-panel-head">
+            <p class="filter-panel-eyebrow">Filter by tools</p>
+            <h3 id="filter-tools-title">What stack should show?</h3>
+            <p class="filter-panel-copy">Mix and match the technologies you want to review.</p>
+          </header>
+          <div class="filter-chip-row">
             <button data-filter-group="tools" data-filter="all" class="btn-secondary" aria-pressed="true">All tools</button>
             <button data-filter-group="tools" data-filter="Python" class="btn-secondary" aria-pressed="false">Python</button>
             <button data-filter-group="tools" data-filter="SQL" class="btn-secondary" aria-pressed="false">SQL</button>
             <button data-filter-group="tools" data-filter="Excel" class="btn-secondary" aria-pressed="false">Excel</button>
             <button data-filter-group="tools" data-filter="Tableau" class="btn-secondary" aria-pressed="false">Tableau</button>
+            <button data-filter-group="tools" data-filter="AWS" class="btn-secondary" aria-pressed="false">AWS</button>
+            <button data-filter-group="tools" data-filter="Docker" class="btn-secondary" aria-pressed="false">Docker</button>
           </div>
-        </div>
+        </section>
       </nav>
     </div>
   </section>
