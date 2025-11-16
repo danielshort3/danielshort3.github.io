@@ -23,6 +23,7 @@ window.PROJECTS = [
     videoWebm: "img/projects/smartSentence.webm",
     videoMp4: "img/projects/smartSentence.mp4",
     tools: ["Python", "AWS", "Docker", "NLP"],
+    concepts: ["Machine Learning", "Automation"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Smart-Sentence-Finder", label: "GitHub" },
       { icon: "img/icons/pdf-icon.png", url: "documents/Project_13.pdf", label: "PDF" },
@@ -56,6 +57,7 @@ window.PROJECTS = [
     videoWebm: "img/projects/chatbotLora.webm",
     videoMp4: "img/projects/chatbotLora.mp4",
     tools: ["Python", "Ollama", "AWS", "Docker"],
+    concepts: ["Machine Learning", "Automation"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Chatbot-LoRA-RAG", label: "GitHub" },
       { icon: "img/icons/website-icon.png", url: "https://danielshort.me/chatbot-demo.html", label: "Live Demo" }
@@ -86,6 +88,7 @@ window.PROJECTS = [
     videoWebm: "img/projects/shapeClassifier.webm",
     videoMp4: "img/projects/shapeClassifier.mp4",
     tools: ["Python", "PyTorch", "AWS", "Docker"],
+    concepts: ["Machine Learning"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Shape-Analyzer", label: "GitHub" },
       { icon: "img/icons/website-icon.png", url: "https://danielshort.me/shape-demo.html", label: "Live Demo" }
@@ -114,6 +117,7 @@ window.PROJECTS = [
     imageWidth: 2008,
     imageHeight: 1116,
     tools: ["Tableau"],
+    concepts: ["Visualization", "Analytics"],
     resources: [
       { icon: "img/icons/tableau-icon.png",
         url  : "https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013?:language=en-US&:display_count=n&:origin=viz_share_link",
@@ -143,6 +147,7 @@ window.PROJECTS = [
     imageWidth: 792,
     imageHeight: 524,
     tools: ["Python"],
+    concepts: ["Analytics"],
     resources: [
       { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Covid-Analysis", label: "GitHub" },
       { icon: "img/icons/pdf-icon.png",     url: "documents/Project_6.pdf",                        label: "PDF"    },
@@ -168,6 +173,7 @@ window.PROJECTS = [
     imageWidth: 896,
     imageHeight: 480,
     tools: ["Excel", "Time-Series"],
+    concepts: ["Automation", "Analytics"],
     resources: [
       { icon: "img/icons/pdf-icon.png",   url: "documents/Project_7.pdf",  label: "PDF"   },
       { icon: "img/icons/excel-icon.png", url: "documents/Project_7.xlsx", label: "Excel" }
@@ -197,6 +203,7 @@ window.PROJECTS = [
     videoWebm: "img/projects/handwritingRating.webm",
     videoMp4:  "img/projects/handwritingRating.mp4",
     tools: ["Python", "PyTorch", "CNN"],
+    concepts: ["Machine Learning"],
     resources: [
       { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Handwriting-Rating", label: "GitHub" },
       { icon: "img/icons/pdf-icon.png",     url: "documents/Project_8.pdf",                            label: "PDF"    },
@@ -224,6 +231,7 @@ window.PROJECTS = [
     videoWebm: "img/projects/digitGenerator.webm",
     videoMp4:  "img/projects/digitGenerator.mp4",
     tools: ["Python", "VAE"],
+    concepts: ["Machine Learning"],
     resources: [
       { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Handwritten-Digit-Generator", label: "GitHub" },
       { icon: "img/icons/pdf-icon.png",     url: "documents/Project_9.pdf",                                   label: "PDF"    },
@@ -249,6 +257,7 @@ window.PROJECTS = [
     videoWebm: "img/projects/sheetMusicUpscale.webm",
     videoMp4:  "img/projects/sheetMusicUpscale.mp4",
     tools: ["Python", "Computer Vision"],
+    concepts: ["Machine Learning"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Watermark-Remover", label: "GitHub" },
       { icon: "img/icons/pdf-icon.png",    url: "documents/Project_10_pdf.zip",                      label: "PDFs"  },
@@ -273,6 +282,7 @@ window.PROJECTS = [
     imageWidth: 960,
     imageHeight: 794,
     tools: ["Excel", "Power Query"],
+    concepts: ["Analytics"],
     resources: [
       { icon: "img/icons/pdf-icon.png",   url: "documents/Project_11.pdf",  label: "PDF"   },
       { icon: "img/icons/excel-icon.png", url: "documents/Project_11.xlsx", label: "Excel" }
@@ -297,6 +307,7 @@ window.PROJECTS = [
     imageWidth: 1423,
     imageHeight: 947,
     tools: ["SQL", "Python"],
+    concepts: ["Automation", "Analytics"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/target-packaging-analysis-mssql", label: "GitHub" },
       { icon: "img/icons/pdf-icon.png",    url: "documents/Project_12.pdf",                                        label: "PDF"    },
@@ -324,6 +335,7 @@ window.PROJECTS = [
     imageWidth: 1726,
     imageHeight: 1054,
     tools: ["Excel", "Statistics"],
+    concepts: ["Analytics"],
     resources: [
       { icon: "img/icons/pdf-icon.png",   url: "documents/Project_1.pdf",  label: "PDF"   },
       { icon: "img/icons/excel-icon.png", url: "documents/Project_1.xlsx", label: "Excel" }
@@ -348,6 +360,7 @@ window.PROJECTS = [
     imageWidth: 1420,
     imageHeight: 940,
     tools: ["Python", "scikit-learn"],
+    concepts: ["Machine Learning"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Baby-Names", label: "GitHub" },
       { icon: "img/icons/pdf-icon.png",    url: "documents/Project_2.pdf",                    label: "PDFs"  },
@@ -373,6 +386,7 @@ window.PROJECTS = [
     imageWidth: 1250,
     imageHeight: 1092,
     tools: ["Tableau"],
+    concepts: ["Visualization", "Analytics"],
     resources: [
       { icon: "img/icons/tableau-icon.png",
         url : "https://public.tableau.com/views/Pizza_Delivery/PizzaDeliveryDashboard?:language=en-US&:display_count=n&:origin=viz_share_link",
@@ -404,6 +418,7 @@ window.PROJECTS = [
     videoWebm: "img/projects/nonogram.webm",
     videoMp4:  "img/projects/nonogram.mp4",
     tools: ["Python", "PyTorch"],
+    concepts: ["Machine Learning"],
     resources: [
       { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Nonogram-Solver", label: "GitHub" },
       { icon: "img/icons/pdf-icon.png",     url: "documents/Project_4.pdf",                  label: "PDF"    },
@@ -427,6 +442,7 @@ window.PROJECTS = [
     imageWidth: 1240,
     imageHeight: 1456,
     tools: ["HTML", "CSS", "JavaScript"],
+    concepts: ["Product", "Visualization"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/danielshort3.github.io", label: "GitHub" },
       { icon: "img/icons/website-icon.png", url: "https://danielshort.me/", label: "Live Site" }

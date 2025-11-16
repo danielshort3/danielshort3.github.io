@@ -97,148 +97,44 @@
   }
 
   /* Filter controls */
-  #filter-menu{
+  .filter-menu{
     display:flex;
-    justify-content:center;
-    flex-wrap:wrap;
-    gap:12px;
+    flex-direction:column;
+    gap:20px;
     max-width:var(--container-max);
     margin-inline:auto;
     margin-top:16px;
   }
-  #filter-menu button{
-    flex:0 0 auto;
-    min-width:150px;
+  .filter-group{
+    padding:18px clamp(16px, 4vw, 28px);
+    border-radius:20px;
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    background:color-mix(in srgb,var(--surface) 92%, #03060d 8%);
+    box-shadow:0 18px 36px rgba(0,0,0,.28);
   }
-  .filter-more-btn{
-    display:inline-flex;
-    align-items:center;
-    gap:10px;
-    border-radius:999px;
-    border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
-    padding:10px 18px;
-    background:color-mix(in srgb,var(--surface) 92%, #03060b 8%);
-    box-shadow:0 12px 26px rgba(0,0,0,.22);
-    color:var(--text-light);
-    font-weight:600;
-    transition:transform .2s ease, border-color .2s ease, color .2s ease;
+  .filter-group-label{
+    margin:0 0 12px;
+    font-size:.9rem;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:color-mix(in srgb,var(--text-muted) 85%, #fff 15%);
   }
-  .filter-more-btn:hover,
-  .filter-more-btn:focus-visible{
-    border-color:color-mix(in srgb,var(--primary) 40%, transparent);
-    transform:translateY(-1px);
-    color:color-mix(in srgb,var(--text-light) 95%, #fff 5%);
-  }
-  .filter-more-count{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    min-width:28px;
-    height:28px;
-    border-radius:999px;
-    font-size:.85rem;
-    font-weight:600;
-    background:color-mix(in srgb,var(--primary) 20%, transparent);
-    color:var(--primary);
-    padding:0 10px;
-  }
-  .filter-drawer-overlay{
-    position:fixed;
-    inset:0;
-    background:color-mix(in srgb,var(--surface) 80%, transparent);
-    backdrop-filter:blur(4px);
-    opacity:0;
-    pointer-events:none;
-    transition:opacity .3s ease;
-    z-index:1900;
-  }
-  .filter-drawer-overlay.is-visible{
-    opacity:1;
-    pointer-events:auto;
-  }
-  .filter-drawer{
-    position:fixed;
-    inset:0;
+  .filter-buttons{
     display:flex;
-    align-items:center;
-    justify-content:center;
-    opacity:0;
-    pointer-events:none;
-    transition:opacity .3s ease;
-    z-index:1950;
-  }
-  .filter-drawer.is-visible{
-    opacity:1;
-    pointer-events:auto;
-  }
-  .filter-drawer-content{
-    width:min(640px, calc(100vw - 48px));
-    max-height:82vh;
-    overflow:auto;
-    border-radius:24px;
-    background:var(--surface);
-    border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
-    box-shadow:0 32px 64px rgba(0,0,0,.45);
-    padding:28px clamp(20px,4vw,32px) 32px;
-  }
-  .filter-drawer-header{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:16px;
-    margin-bottom:8px;
-  }
-  .filter-drawer-title{
-    margin:0;
-    font-size:1.4rem;
-    font-family:'Poppins',sans-serif;
-    letter-spacing:.02em;
-  }
-  .filter-drawer-close{
-    border:none;
-    background:transparent;
-    color:var(--text-muted);
-    font-size:1.8rem;
-    line-height:1;
-    width:44px;
-    height:44px;
-    border-radius:50%;
-    cursor:pointer;
-    transition:color .2s ease, transform .2s ease;
-  }
-  .filter-drawer-close:hover,
-  .filter-drawer-close:focus-visible{
-    color:var(--primary);
-    transform:translateY(-1px);
-  }
-  .filter-drawer-subtitle{
-    margin:0 0 18px;
-    color:var(--text-muted);
-    font-size:.95rem;
-  }
-  .filter-drawer-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));
+    flex-wrap:wrap;
     gap:12px;
+    justify-content:center;
   }
-  body.filter-drawer-open{
-    overflow:hidden;
+  .filter-buttons button{
+    min-width:160px;
   }
-  @media (max-width:768px){
-    #filter-menu{
+  @media (max-width:640px){
+    .filter-buttons{
       flex-direction:column;
       align-items:stretch;
-      max-width:90%;
     }
-    #filter-menu button{
+    .filter-buttons button{
       width:100%;
-    }
-    .filter-drawer-content{
-      width:min(560px, calc(100vw - 24px));
-      border-radius:20px;
-    }
-    .filter-drawer-grid{
-      grid-template-columns:repeat(auto-fill, minmax(130px, 1fr));
     }
   }
 
