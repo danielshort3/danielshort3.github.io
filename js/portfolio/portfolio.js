@@ -506,8 +506,35 @@ function buildPortfolio() {
   modals.innerHTML = "";
   const buildFilterButtons = () => {
     menu.innerHTML = '';
-    const frag = document.createDocumentFragment();
-    const makeButton = (value, label, isActive = false) => {
+    menu.dataset.enhanced = 'true';
+    const buttons = [];
+    const register = (btn) => {
+      buttons.push(btn);
+      return btn;
+    };
+    const counts = { all: window.PROJECTS.length };
+    window.PROJECTS.forEach((project) => {
+      if (!Array.isArray(project.tools)) return;
+      project.tools.forEach((tool) => {
+        if (!tool) return;
+        counts[tool] = (counts[tool] || 0) + 1;
+      });
+    });
+    const PRIMARY_TAG_LIMIT = 4;
+    const sortedTags = Object.entries(counts)
+      .filter(([tag]) => tag !== 'all')
+      .map(([tag, count]) => ({ tag, count }))
+      .sort((a, b) => {
+        if (b.count !== a.count) return b.count - a.count;
+        return a.tag.localeCompare(b.tag, undefined, { sensitivity: 'base' });
+      });
+    const primaryTags = sortedTags.slice(0, PRIMARY_TAG_LIMIT).map(entry => entry.tag);
+    const extraTags = sortedTags.slice(PRIMARY_TAG_LIMIT).map(entry => entry.tag);
+    const primaryWrap = document.createElement('div');
+    primaryWrap.className = 'filter-primary';
+    menu.appendChild(primaryWrap);
+
+    const createButton = (parent, value, label, isActive = false) => {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.dataset.filter = value;
@@ -515,24 +542,71 @@ function buildPortfolio() {
       btn.className = isActive ? 'btn-primary' : 'btn-secondary';
       btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
       btn.textContent = label;
-      frag.appendChild(btn);
-      return btn;
+      parent.appendChild(btn);
+      return register(btn);
     };
-    makeButton('all', 'All', true);
-    const tagSet = new Set();
-    window.PROJECTS.forEach(p => {
-      if (!Array.isArray(p.tools)) return;
-      p.tools.forEach(tool => {
-        if (tool) tagSet.add(tool);
+
+    createButton(primaryWrap, 'all', 'All', true);
+    primaryTags.forEach(tag => createButton(primaryWrap, tag, tag));
+
+    let closeDropdown = () => {};
+    if (extraTags.length) {
+      const dropdown = document.createElement('div');
+      dropdown.className = 'filter-dropdown';
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'btn-secondary filter-dropdown-toggle';
+      toggle.innerHTML = `More filters <span class="filter-dropdown-count">(+${extraTags.length})</span>`;
+      toggle.setAttribute('aria-haspopup', 'true');
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.setAttribute('aria-controls', 'filter-dropdown-panel');
+      toggle.setAttribute('aria-label', `Show ${extraTags.length} additional filters`);
+      const panel = document.createElement('div');
+      panel.className = 'filter-dropdown-panel';
+      panel.id = 'filter-dropdown-panel';
+      extraTags.forEach(tag => createButton(panel, tag, tag));
+      dropdown.appendChild(toggle);
+      dropdown.appendChild(panel);
+      menu.appendChild(dropdown);
+
+      let isOpen = false;
+      const handleDocumentClick = (event) => {
+        if (!dropdown.contains(event.target)) {
+          closeDropdown();
+        }
+      };
+      const handleDocumentKey = (event) => {
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          closeDropdown(true);
+        }
+      };
+      const openDropdown = () => {
+        if (isOpen) return;
+        isOpen = true;
+        dropdown.classList.add('is-open');
+        toggle.setAttribute('aria-expanded', 'true');
+        document.addEventListener('click', handleDocumentClick);
+        document.addEventListener('keydown', handleDocumentKey);
+      };
+      closeDropdown = (focusToggle = false) => {
+        if (!isOpen) return;
+        isOpen = false;
+        dropdown.classList.remove('is-open');
+        toggle.setAttribute('aria-expanded', 'false');
+        document.removeEventListener('click', handleDocumentClick);
+        document.removeEventListener('keydown', handleDocumentKey);
+        if (focusToggle) toggle.focus();
+      };
+      toggle.addEventListener('click', (event) => {
+        event.stopPropagation();
+        if (isOpen) closeDropdown();
+        else openDropdown();
       });
-    });
-    const tags = Array.from(tagSet)
-      .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
-    tags.forEach(tag => makeButton(tag, tag, false));
-    menu.appendChild(frag);
-    return [...menu.querySelectorAll('button[data-filter]')];
+    }
+    return { buttons, closeDropdown, counts };
   };
-  const filterButtons = buildFilterButtons();
+  const { buttons: filterButtons, closeDropdown: closeExtraDropdown, counts } = buildFilterButtons();
 
   // Data order now reflects desired grid order (no runtime reordering)
 
@@ -614,8 +688,6 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
   }
 
   /* ➌ Build filter-button counts ----------------------------------- */
-  const counts = { all: window.PROJECTS.length };
-  window.PROJECTS.forEach(p => p.tools.forEach(t => counts[t] = (counts[t] || 0) + 1));
   filterButtons.forEach(btn => {
     const tag = btn.dataset.filter;
     const baseLabel = btn.dataset.baseLabel || btn.textContent.trim();
@@ -635,6 +707,7 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
   menu.addEventListener("click", e => {
     const targetBtn = e.target.closest('button[data-filter]');
     if (!targetBtn) return;
+    closeExtraDropdown();
 
     clearTimeout(fadeTimer);
     clearTimeout(revealTimer);

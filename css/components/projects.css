@@ -96,6 +96,76 @@
     outline-offset: 2px;
   }
 
+  /* Filter controls */
+  #filter-menu[data-enhanced="true"]{
+    width:100%;
+    max-width:var(--container-max);
+    margin-inline:auto;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    align-items:center;
+  }
+  #filter-menu[data-enhanced="true"] .filter-primary{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:12px;
+  }
+  #filter-menu[data-enhanced="true"] .filter-primary button{
+    min-width:150px;
+  }
+  #filter-menu[data-enhanced="true"] .filter-dropdown{
+    position:relative;
+  }
+  #filter-menu[data-enhanced="true"] .filter-dropdown[hidden]{display:none;}
+  #filter-menu[data-enhanced="true"] .filter-dropdown-toggle{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    min-width:180px;
+  }
+  #filter-menu[data-enhanced="true"] .filter-dropdown-count{
+    font-size:.9rem;
+    color:var(--text-muted);
+  }
+  #filter-menu[data-enhanced="true"] .filter-dropdown-panel{
+    position:absolute;
+    top:calc(100% + 10px);
+    left:50%;
+    width:min(520px, calc(100vw - 48px));
+    transform:translate(-50%, -10px);
+    padding:18px;
+    border-radius:18px;
+    background:color-mix(in srgb,var(--surface) 95%, #05070c 5%);
+    border:1px solid color-mix(in srgb,var(--primary) 25%, transparent);
+    box-shadow:0 24px 60px rgba(0,0,0,.4);
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:12px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .2s ease, transform .2s ease;
+    z-index:5;
+    max-height:60vh;
+    overflow:auto;
+  }
+  #filter-menu[data-enhanced="true"] .filter-dropdown.is-open .filter-dropdown-panel{
+    opacity:1;
+    pointer-events:auto;
+    transform:translate(-50%, 0);
+  }
+  #filter-menu[data-enhanced="true"] .filter-dropdown-panel button{
+    width:100%;
+  }
+  @media (max-width:640px){
+    #filter-menu[data-enhanced="true"] .filter-dropdown-panel{
+      width:min(420px, calc(100vw - 32px));
+      padding:16px;
+      grid-template-columns:1fr;
+    }
+  }
+
   /* ── No-JS fallbacks ───────────────────────────────────────────── */
   html.no-js #projects.hide {
     display: grid !important;
