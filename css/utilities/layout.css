@@ -256,8 +256,9 @@
   /* ---------- links ---------- */
   .nav-row .nav-link{
     width:100%;
-    justify-content:flex-start;
-    gap:10px;
+    justify-content:center;
+    text-align:center;
+    gap:8px;
     padding:14px 18px;
     box-sizing:border-box;
     border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
