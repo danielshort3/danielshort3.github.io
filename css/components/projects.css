@@ -135,31 +135,18 @@
     display:grid;
     grid-template-columns:repeat(2,minmax(0,1fr));
     gap:12px;
-    justify-items:center;
   }
   .filter-chip-row button{
     width:100%;
-    max-width:220px;
+  }
+  .filter-chip-row .filter-chip-all{
+    grid-column:1 / -1;
   }
   .filter-chip-row button.filter-chip-disabled{
     opacity:.45;
   }
   .filter-chip-row button:disabled{
     cursor:not-allowed;
-  }
-  .filter-panel-actions{
-    display:flex;
-    justify-content:flex-end;
-    margin-top:6px;
-  }
-  .filter-panel-actions .filter-reset{
-    min-width:auto;
-    padding-inline:0;
-    color:var(--text-muted);
-  }
-  .filter-panel-actions .filter-reset:hover,
-  .filter-panel-actions .filter-reset:focus-visible{
-    color:var(--primary);
   }
   @media (max-width:640px){
     .filter-chip-row{
