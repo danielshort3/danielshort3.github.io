@@ -61,12 +61,12 @@
       flex-direction: column;
       gap: 4px;
     }
-    .title-row {
+    .eyebrow-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
-      flex-wrap: nowrap;
+      gap: 12px;
+      flex-wrap: wrap;
     }
     h1 {
       margin: 0;
@@ -88,7 +88,7 @@
     .title-copy {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 4px;
       min-width: 0;
       flex: 1;
     }
@@ -453,14 +453,14 @@
   <div class="card" id="demo-card">
     <header class="card-header">
       <div class="headline">
-        <div class="title-row">
-          <div class="title-copy">
+        <div class="title-copy">
+          <div class="eyebrow-row">
             <p class="eyebrow">Embeddings demo</p>
-            <h1>Smart Sentence Finder</h1>
+            <div class="status">
+              <span id="health" class="pill">Checking…</span>
+            </div>
           </div>
-          <div class="status">
-            <span id="health" class="pill">Checking…</span>
-          </div>
+          <h1>Smart Sentence Finder</h1>
         </div>
         <p class="muted">Search all of Alice in Wonderland and pull back the most similar sentences.</p>
       </div>
