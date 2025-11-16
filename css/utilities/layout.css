@@ -318,22 +318,6 @@
   .nav-item-contact .nav-dropdown{
     display:none !important;
   }
-
-  #filter-menu {
-    display:flex;
-    flex-direction:column;
-    gap:12px;
-    margin:0 auto;
-    max-width:90%;
-  }
-
-  #filter-menu button {
-    width:100%;
-    font-size:1.1rem;
-    padding:16px;
-    text-align:center;
-  }
-
   .grid-container {
     grid-template-columns:1fr;
     margin-inline:auto;
