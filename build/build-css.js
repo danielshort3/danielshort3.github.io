@@ -51,6 +51,12 @@ function writeManifest(manifestPath, fileName){
 }
 
 fs.mkdirSync(outDir, { recursive: true });
+const hashedCssPattern = /^styles\.[0-9a-f]{8}\.css$/i;
+fs.readdirSync(outDir).forEach(file => {
+  if (hashedCssPattern.test(file)) {
+    fs.rmSync(path.join(outDir, file), { force: true });
+  }
+});
 const bundled = inline(entry);
 const minified = minify(bundled);
 const hash = crypto.createHash('sha256').update(minified).digest('hex').slice(0, 8);

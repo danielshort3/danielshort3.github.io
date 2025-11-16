@@ -23,9 +23,19 @@ const getSrStatus = typeof window.getSrStatusNode === 'function'
 
 const srStatus = () => getSrStatus();
 const activateGifVideo = window.activateGifVideo || (() => {});
+const getImageSizeAttr = (p = {}) => {
+  const width = Number(p.imageWidth);
+  const height = Number(p.imageHeight);
+  if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
+    return ` width="${width}" height="${height}"`;
+  }
+  return '';
+};
+
 const projectMedia = window.projectMedia || ((p = {}) => {
   if (!p.image) return '';
-  return `<img src="${p.image}" alt="${p.title || ''}" loading="lazy" decoding="async" draggable="false">`;
+  const sizeAttr = getImageSizeAttr(p);
+  return `<img src="${p.image}" alt="${p.title || ''}" loading="lazy" decoding="async" draggable="false"${sizeAttr}>`;
 });
 
 const hasModalHelpers = typeof window.openModal === 'function' && typeof window.generateProjectModal === 'function';
@@ -108,6 +118,7 @@ function buildPortfolioCarousel() {
 
   projects.forEach((p, i) => {
     /* slide */
+    const sizeAttr = getImageSizeAttr(p);
     const card = document.createElement("button");
     card.type = "button";
     card.className = "project-card carousel-card";
@@ -124,10 +135,10 @@ function buildPortfolioCarousel() {
         if (webp) {
           return `<picture>
             <source srcset="${webp}" type="image/webp">
-            <img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false" fetchpriority="${i===0 ? 'high' : 'auto'}">
+            <img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false"${sizeAttr} fetchpriority="${i===0 ? 'high' : 'auto'}">
           </picture>`;
         }
-        return `<img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false" fetchpriority="${i===0 ? 'high' : 'auto'}">`;
+        return `<img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false"${sizeAttr} fetchpriority="${i===0 ? 'high' : 'auto'}">`;
       })();
       if (!hasVideo) return img;
       const mp4  = p.videoMp4  ? `<source src="${p.videoMp4}" type="video/mp4">`   : '';
@@ -493,6 +504,35 @@ function buildPortfolio() {
 
   grid.innerHTML = "";
   modals.innerHTML = "";
+  const buildFilterButtons = () => {
+    menu.innerHTML = '';
+    const frag = document.createDocumentFragment();
+    const makeButton = (value, label, isActive = false) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.dataset.filter = value;
+      btn.dataset.baseLabel = label;
+      btn.className = isActive ? 'btn-primary' : 'btn-secondary';
+      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      btn.textContent = label;
+      frag.appendChild(btn);
+      return btn;
+    };
+    makeButton('all', 'All', true);
+    const tagSet = new Set();
+    window.PROJECTS.forEach(p => {
+      if (!Array.isArray(p.tools)) return;
+      p.tools.forEach(tool => {
+        if (tool) tagSet.add(tool);
+      });
+    });
+    const tags = Array.from(tagSet)
+      .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+    tags.forEach(tag => makeButton(tag, tag, false));
+    menu.appendChild(frag);
+    return [...menu.querySelectorAll('button[data-filter]')];
+  };
+  const filterButtons = buildFilterButtons();
 
   // Data order now reflects desired grid order (no runtime reordering)
 
@@ -576,10 +616,13 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
   /* ➌ Build filter-button counts ----------------------------------- */
   const counts = { all: window.PROJECTS.length };
   window.PROJECTS.forEach(p => p.tools.forEach(t => counts[t] = (counts[t] || 0) + 1));
-  [...menu.children].forEach(btn => {
+  filterButtons.forEach(btn => {
     const tag = btn.dataset.filter;
-    btn.innerHTML = `${btn.textContent.trim()} ${(counts[tag] || 0)}/${counts.all}`;
-    btn.setAttribute('aria-pressed', btn.dataset.filter === 'all' ? 'true' : 'false');
+    const baseLabel = btn.dataset.baseLabel || btn.textContent.trim();
+    btn.dataset.baseLabel = baseLabel;
+    btn.innerHTML = `${baseLabel} ${(counts[tag] || 0)}/${counts.all}`;
+    const isActive = btn.classList.contains('btn-primary');
+    btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
   });
 
   /* ➍ Filter behaviour (fade-out → update → fade-in) --------------- */
@@ -590,20 +633,21 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
   let revealTimer;
 
   menu.addEventListener("click", e => {
-    if (!e.target.dataset.filter) return;
+    const targetBtn = e.target.closest('button[data-filter]');
+    if (!targetBtn) return;
 
     clearTimeout(fadeTimer);
     clearTimeout(revealTimer);
 
     /* button UI */
-    [...menu.children].forEach(b => {
+    filterButtons.forEach(b => {
       b.classList.replace("btn-primary", "btn-secondary");
       b.setAttribute("aria-pressed", "false");
     });
-    e.target.classList.replace("btn-secondary", "btn-primary");
-    e.target.setAttribute("aria-pressed", "true");
+    targetBtn.classList.replace("btn-secondary", "btn-primary");
+    targetBtn.setAttribute("aria-pressed", "true");
 
-    const tag = e.target.dataset.filter;
+    const tag = targetBtn.dataset.filter;
     const startHeight = grid.offsetHeight;
     grid.style.height = `${startHeight}px`;
     grid.classList.remove(GRID_HIDDEN_CLASS);

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="no-js">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -30,6 +30,15 @@
   <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap" rel="stylesheet"></noscript>
   <meta name="description" content="Get in touch with Daniel Short – data scientist.">
   <meta property="og:image:alt" content="Portrait photo of Daniel Short">
+  <script>
+    try {
+      if (document.documentElement.classList) {
+        document.documentElement.classList.remove('no-js');
+      } else {
+        document.documentElement.className = (document.documentElement.className || '').replace(/\bno-js\b/, '').trim();
+      }
+    } catch {}
+  </script>
 </head>
 <body data-page="contact" class="contact-page">
   <a href="#main" class="skip-link">Skip to main content</a>
@@ -43,6 +52,9 @@
         <div class="cta-group">
           <button id="contact-form-toggle" class="btn-primary hero-cta">Send a Message</button>
         </div>
+        <noscript>
+          <p class="hero-noscript-hint">The full contact form is shown below since JavaScript is disabled.</p>
+        </noscript>
     </div>
       <a class="chevron-hint scroll-indicator" href="#contact-options">
         <span class="chevron-label">Scroll for ways to connect</span>
