@@ -331,8 +331,15 @@
       const form = ev.currentTarget;
       const queryInput = form.query;
       const rawQuery = (queryInput?.value || '').trim();
-      const placeholder = (queryInput?.getAttribute('placeholder') || '').trim();
-      const query = rawQuery || placeholder || DEFAULT_QUERY;
+      const fallback = (() => {
+        if (!queryInput) return DEFAULT_QUERY;
+        if (queryInput.dataset.exampleQuery) {
+          return queryInput.dataset.exampleQuery.trim();
+        }
+        const placeholder = (queryInput.getAttribute('placeholder') || '').replace(/^Example:\s*/i, '');
+        return placeholder.trim() || DEFAULT_QUERY;
+      })();
+      const query = rawQuery || fallback;
       const top = Math.max(1, Math.min(20, parseInt(form.top.value || '5', 10)));
       form.submitBtn.disabled = true;
       form.submitBtn.textContent = 'Searching…';
@@ -453,7 +460,7 @@
       <form id="form">
         <div>
           <label for="query">Your query</label>
-          <input id="query" name="query" type="text" placeholder="She wonders about things." />
+          <input id="query" name="query" type="text" placeholder="Example: She wonders about things." data-example-query="She wonders about things." />
         </div>
         <div class="range-row">
           <div class="range-head">
