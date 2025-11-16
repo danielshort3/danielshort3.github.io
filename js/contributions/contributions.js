@@ -268,9 +268,10 @@ function buildContributions(){
     root.appendChild(section);
 
     if (index !== window.contributions.length - 1){
-      const gap = document.createElement('section');
-      gap.className = 'contrib-gap';
-      root.appendChild(gap);
+      const divider = document.createElement('div');
+      divider.className = 'contrib-divider';
+      divider.setAttribute('aria-hidden', 'true');
+      root.appendChild(divider);
     }
   });
 }
