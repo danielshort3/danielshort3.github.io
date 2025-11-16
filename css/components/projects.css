@@ -98,42 +98,54 @@
 
   /* Filter controls */
   .filter-menu{
-    display:flex;
-    flex-direction:column;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
     gap:20px;
     max-width:var(--container-max);
     margin-inline:auto;
     margin-top:16px;
   }
-  .filter-group{
-    padding:18px clamp(16px, 4vw, 28px);
-    border-radius:20px;
-    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
-    background:color-mix(in srgb,var(--surface) 92%, #03060d 8%);
-    box-shadow:0 18px 36px rgba(0,0,0,.28);
+  .filter-panel{
+    border-radius:24px;
+    border:1px solid color-mix(in srgb,var(--primary) 20%, transparent);
+    background:color-mix(in srgb,var(--surface) 94%, #03060d 6%);
+    box-shadow:0 18px 36px rgba(0,0,0,.25);
+    padding:clamp(20px, 3vw, 30px);
+    display:flex;
+    flex-direction:column;
+    gap:14px;
   }
-  .filter-group-label{
-    margin:0 0 12px;
-    font-size:.9rem;
-    letter-spacing:.2em;
+  .filter-panel-head h3{
+    margin:.2rem 0;
+    font-size:1.3rem;
+  }
+  .filter-panel-eyebrow{
+    margin:0;
     text-transform:uppercase;
-    color:color-mix(in srgb,var(--text-muted) 85%, #fff 15%);
+    letter-spacing:.2em;
+    font-size:.72rem;
+    color:color-mix(in srgb,var(--text-muted) 88%, #fff 12%);
   }
-  .filter-buttons{
+  .filter-panel-copy{
+    margin:0;
+    color:var(--text-muted);
+    font-size:.95rem;
+  }
+  .filter-chip-row{
     display:flex;
     flex-wrap:wrap;
     gap:12px;
-    justify-content:center;
+    justify-content:flex-start;
   }
-  .filter-buttons button{
-    min-width:160px;
+  .filter-chip-row button{
+    min-width:150px;
   }
   @media (max-width:640px){
-    .filter-buttons{
+    .filter-chip-row{
       flex-direction:column;
       align-items:stretch;
     }
-    .filter-buttons button{
+    .filter-chip-row button{
       width:100%;
     }
   }
