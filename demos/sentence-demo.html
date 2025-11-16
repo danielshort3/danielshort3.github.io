@@ -331,10 +331,8 @@
       const form = ev.currentTarget;
       const queryInput = form.query;
       const rawQuery = (queryInput?.value || '').trim();
-      const query = rawQuery || DEFAULT_QUERY;
-      if (!rawQuery && queryInput) {
-        queryInput.value = DEFAULT_QUERY;
-      }
+      const placeholder = (queryInput?.getAttribute('placeholder') || '').trim();
+      const query = rawQuery || placeholder || DEFAULT_QUERY;
       const top = Math.max(1, Math.min(20, parseInt(form.top.value || '5', 10)));
       form.submitBtn.disabled = true;
       form.submitBtn.textContent = 'Searching…';
@@ -427,10 +425,6 @@
         topRange.addEventListener('input', sync);
         sync();
       }
-      const queryInput = document.getElementById('query');
-      if (queryInput && !queryInput.value) {
-        queryInput.value = DEFAULT_QUERY;
-      }
       notifyResize();
       try { document.fonts?.ready?.then(notifyResize); } catch (e) {}
       window.addEventListener('load', notifyResize);
@@ -459,7 +453,7 @@
       <form id="form">
         <div>
           <label for="query">Your query</label>
-          <input id="query" name="query" type="text" placeholder="Try an Alice in Wonderland thought" value="She wonders about things." />
+          <input id="query" name="query" type="text" placeholder="She wonders about things." />
         </div>
         <div class="range-row">
           <div class="range-head">
