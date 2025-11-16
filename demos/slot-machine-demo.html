@@ -348,18 +348,32 @@
       const storePlayer = (value) => localStorage.setItem(storageKey, value);
       const resetStoredPlayer = () => localStorage.removeItem(storageKey);
 
-      const updateStats = (session) => {
-        els.playerId.textContent = session.playerId;
-        els.balance.textContent = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(session.balance);
-        els.maxBet.textContent = session.maxBet;
-        els.spinCount.textContent = session.spins;
-        state.balance = session.balance;
-        state.maxBet = session.maxBet;
-        els.betInput.max = session.maxBet;
-        if (!state.bet || state.bet > session.maxBet) {
-          state.bet = Math.min(session.maxBet, 25);
-          els.betInput.value = state.bet;
+      const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+
+      const updateStats = (payload = {}) => {
+        if (payload.playerId) {
+          state.playerId = payload.playerId;
+          els.playerId.textContent = payload.playerId;
         }
+        if (typeof payload.balance === 'number') {
+          state.balance = payload.balance;
+          els.balance.textContent = currency.format(payload.balance);
+        }
+        if (typeof payload.spins === 'number') {
+          els.spinCount.textContent = payload.spins;
+        }
+
+        const nextMax = Number(payload.maxBet);
+        if (Number.isFinite(nextMax) && nextMax > 0) {
+          state.maxBet = nextMax;
+        }
+        els.maxBet.textContent = state.maxBet;
+        els.betInput.max = state.maxBet;
+
+        const desiredBet = Number.isFinite(state.bet) ? state.bet : Number(els.betInput.value) || 1;
+        const safeBet = Math.max(1, Math.min(state.maxBet, desiredBet));
+        state.bet = safeBet;
+        els.betInput.value = safeBet;
       };
 
       const updateLastSpin = (lastSpin) => {
@@ -371,7 +385,7 @@
           return;
         }
         els.lastOutcome.textContent = lastSpin.outcome;
-        els.lastWin.textContent = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(lastSpin.winAmount);
+        els.lastWin.textContent = currency.format(lastSpin.winAmount);
         els.lastMult.textContent = lastSpin.multiplier ? `${lastSpin.multiplier}×` : '—';
         els.lastTime.textContent = new Date(lastSpin.timestamp).toLocaleString();
       };
