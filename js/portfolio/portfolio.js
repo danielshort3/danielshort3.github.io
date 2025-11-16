@@ -504,109 +504,156 @@ function buildPortfolio() {
 
   grid.innerHTML = "";
   modals.innerHTML = "";
-  const buildFilterButtons = () => {
-    menu.innerHTML = '';
-    menu.dataset.enhanced = 'true';
-    const buttons = [];
-    const register = (btn) => {
-      buttons.push(btn);
-      return btn;
-    };
-    const counts = { all: window.PROJECTS.length };
-    window.PROJECTS.forEach((project) => {
-      if (!Array.isArray(project.tools)) return;
-      project.tools.forEach((tool) => {
-        if (!tool) return;
-        counts[tool] = (counts[tool] || 0) + 1;
-      });
+  const filterButtons = [];
+  const registerButton = (btn) => {
+    if (!btn) return;
+    if (!btn.dataset.baseLabel) {
+      btn.dataset.baseLabel = btn.textContent.trim();
+    }
+    filterButtons.push(btn);
+  };
+  const menuButtons = [...menu.querySelectorAll('button[data-filter]')];
+  if (!menuButtons.length) return;
+  menuButtons.forEach(registerButton);
+  const defaultButton = menuButtons.find(btn => (btn.dataset.filter || '').toLowerCase() === 'all');
+  if (defaultButton) {
+    defaultButton.classList.add('btn-primary');
+    defaultButton.classList.remove('btn-secondary');
+    defaultButton.setAttribute('aria-pressed', 'true');
+  }
+  const primaryFilters = new Set(menuButtons.map(btn => (btn.dataset.filter || '').trim()));
+  const counts = { all: window.PROJECTS.length };
+  window.PROJECTS.forEach((project) => {
+    if (!Array.isArray(project.tools)) return;
+    project.tools.forEach((tool) => {
+      if (!tool) return;
+      counts[tool] = (counts[tool] || 0) + 1;
     });
-    const PRIMARY_TAG_LIMIT = 4;
-    const sortedTags = Object.entries(counts)
-      .filter(([tag]) => tag !== 'all')
-      .map(([tag, count]) => ({ tag, count }))
-      .sort((a, b) => {
-        if (b.count !== a.count) return b.count - a.count;
-        return a.tag.localeCompare(b.tag, undefined, { sensitivity: 'base' });
-      });
-    const primaryTags = sortedTags.slice(0, PRIMARY_TAG_LIMIT).map(entry => entry.tag);
-    const extraTags = sortedTags.slice(PRIMARY_TAG_LIMIT).map(entry => entry.tag);
-    const primaryWrap = document.createElement('div');
-    primaryWrap.className = 'filter-primary';
-    menu.appendChild(primaryWrap);
+  });
+  const extraTags = Object.keys(counts)
+    .filter(tag => tag !== 'all' && !primaryFilters.has(tag))
+    .sort((a, b) => {
+      const diff = (counts[b] || 0) - (counts[a] || 0);
+      if (diff !== 0) return diff;
+      return a.localeCompare(b, undefined, { sensitivity: 'base' });
+    });
+  let drawer = null;
+  let drawerOverlay = null;
+  let drawerGrid = null;
+  let drawerCloseBtn = null;
+  let drawerToggle = null;
+  let drawerPrevFocus = null;
+  const trapDrawerFocus = (event) => {
+    if (!drawer || drawer.hidden || event.key !== 'Tab') return;
+    const focusables = [...drawer.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')];
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+  const closeDrawer = () => {
+    if (!drawer || drawer.hidden) return;
+    drawer.hidden = true;
+    drawerOverlay.hidden = true;
+    drawer.classList.remove('is-visible');
+    drawerOverlay.classList.remove('is-visible');
+    document.body.classList.remove('filter-drawer-open');
+    drawerToggle?.setAttribute('aria-expanded', 'false');
+    if (drawerPrevFocus && document.contains(drawerPrevFocus)) {
+      drawerPrevFocus.focus();
+    }
+    drawerPrevFocus = null;
+  };
+  const openDrawer = () => {
+    if (!drawer || !drawerOverlay) return;
+    drawerPrevFocus = document.activeElement;
+    drawer.hidden = false;
+    drawerOverlay.hidden = false;
+    drawer.classList.add('is-visible');
+    drawerOverlay.classList.add('is-visible');
+    document.body.classList.add('filter-drawer-open');
+    drawerToggle?.setAttribute('aria-expanded', 'true');
+    const focusTarget = drawer.querySelector('button[data-filter]') || drawerCloseBtn;
+    focusTarget?.focus({ preventScroll: true });
+  };
+  const ensureDrawer = () => {
+    if (drawer || !extraTags.length) return;
+    drawerOverlay = document.createElement('div');
+    drawerOverlay.id = 'filter-drawer-overlay';
+    drawerOverlay.className = 'filter-drawer-overlay';
+    drawerOverlay.hidden = true;
+    document.body.appendChild(drawerOverlay);
 
-    const createButton = (parent, value, label, isActive = false) => {
+    drawer = document.createElement('div');
+    drawer.id = 'filter-drawer';
+    drawer.className = 'filter-drawer';
+    drawer.hidden = true;
+    drawer.setAttribute('role', 'dialog');
+    drawer.setAttribute('aria-modal', 'true');
+    drawer.setAttribute('aria-labelledby', 'filter-drawer-title');
+    drawer.innerHTML = `
+      <div class="filter-drawer-content">
+        <div class="filter-drawer-header">
+          <h3 class="filter-drawer-title" id="filter-drawer-title">More filters</h3>
+          <button type="button" class="filter-drawer-close" aria-label="Close filter menu">&times;</button>
+        </div>
+        <p class="filter-drawer-subtitle">Explore every tool used across these projects.</p>
+        <div class="filter-drawer-grid"></div>
+      </div>
+    `;
+    document.body.appendChild(drawer);
+    drawerGrid = drawer.querySelector('.filter-drawer-grid');
+    drawerCloseBtn = drawer.querySelector('.filter-drawer-close');
+    drawerOverlay.addEventListener('click', () => closeDrawer());
+    drawerCloseBtn.addEventListener('click', () => closeDrawer());
+    drawer.addEventListener('keydown', trapDrawerFocus);
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && drawer && !drawer.hidden) {
+        event.preventDefault();
+        closeDrawer();
+      }
+    });
+    drawerGrid.addEventListener('click', (event) => {
+      const btn = event.target.closest('button[data-filter]');
+      if (!btn) return;
+      handleFilterSelection(btn);
+      closeDrawer();
+    });
+  };
+  if (extraTags.length) {
+    ensureDrawer();
+    drawerToggle = document.createElement('button');
+    drawerToggle.type = 'button';
+    drawerToggle.className = 'filter-more-btn';
+    drawerToggle.innerHTML = `<span>More filters</span><span class="filter-more-count">${extraTags.length}</span>`;
+    drawerToggle.setAttribute('aria-haspopup', 'dialog');
+    drawerToggle.setAttribute('aria-expanded', 'false');
+    drawerToggle.setAttribute('aria-controls', 'filter-drawer');
+    menu.appendChild(drawerToggle);
+    drawerToggle.addEventListener('click', (event) => {
+      event.preventDefault();
+      ensureDrawer();
+      if (!drawer || drawer.hidden) openDrawer();
+      else closeDrawer();
+    });
+    extraTags.forEach(tag => {
+      if (!drawerGrid) return;
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.dataset.filter = value;
-      btn.dataset.baseLabel = label;
-      btn.className = isActive ? 'btn-primary' : 'btn-secondary';
-      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-      btn.textContent = label;
-      parent.appendChild(btn);
-      return register(btn);
-    };
-
-    createButton(primaryWrap, 'all', 'All', true);
-    primaryTags.forEach(tag => createButton(primaryWrap, tag, tag));
-
-    let closeDropdown = () => {};
-    if (extraTags.length) {
-      const dropdown = document.createElement('div');
-      dropdown.className = 'filter-dropdown';
-      const toggle = document.createElement('button');
-      toggle.type = 'button';
-      toggle.className = 'btn-secondary filter-dropdown-toggle';
-      toggle.innerHTML = `More filters <span class="filter-dropdown-count">(+${extraTags.length})</span>`;
-      toggle.setAttribute('aria-haspopup', 'true');
-      toggle.setAttribute('aria-expanded', 'false');
-      toggle.setAttribute('aria-controls', 'filter-dropdown-panel');
-      toggle.setAttribute('aria-label', `Show ${extraTags.length} additional filters`);
-      const panel = document.createElement('div');
-      panel.className = 'filter-dropdown-panel';
-      panel.id = 'filter-dropdown-panel';
-      extraTags.forEach(tag => createButton(panel, tag, tag));
-      dropdown.appendChild(toggle);
-      dropdown.appendChild(panel);
-      menu.appendChild(dropdown);
-
-      let isOpen = false;
-      const handleDocumentClick = (event) => {
-        if (!dropdown.contains(event.target)) {
-          closeDropdown();
-        }
-      };
-      const handleDocumentKey = (event) => {
-        if (event.key === 'Escape') {
-          event.preventDefault();
-          closeDropdown(true);
-        }
-      };
-      const openDropdown = () => {
-        if (isOpen) return;
-        isOpen = true;
-        dropdown.classList.add('is-open');
-        toggle.setAttribute('aria-expanded', 'true');
-        document.addEventListener('click', handleDocumentClick);
-        document.addEventListener('keydown', handleDocumentKey);
-      };
-      closeDropdown = (focusToggle = false) => {
-        if (!isOpen) return;
-        isOpen = false;
-        dropdown.classList.remove('is-open');
-        toggle.setAttribute('aria-expanded', 'false');
-        document.removeEventListener('click', handleDocumentClick);
-        document.removeEventListener('keydown', handleDocumentKey);
-        if (focusToggle) toggle.focus();
-      };
-      toggle.addEventListener('click', (event) => {
-        event.stopPropagation();
-        if (isOpen) closeDropdown();
-        else openDropdown();
-      });
-    }
-    return { buttons, closeDropdown, counts };
-  };
-  const { buttons: filterButtons, closeDropdown: closeExtraDropdown, counts } = buildFilterButtons();
+      btn.className = 'btn-secondary';
+      btn.dataset.filter = tag;
+      btn.dataset.baseLabel = tag;
+      btn.textContent = tag;
+      registerButton(btn);
+      drawerGrid.appendChild(btn);
+    });
+  }
 
   // Data order now reflects desired grid order (no runtime reordering)
 
@@ -688,14 +735,17 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
   }
 
   /* ➌ Build filter-button counts ----------------------------------- */
-  filterButtons.forEach(btn => {
-    const tag = btn.dataset.filter;
-    const baseLabel = btn.dataset.baseLabel || btn.textContent.trim();
-    btn.dataset.baseLabel = baseLabel;
-    btn.innerHTML = `${baseLabel} ${(counts[tag] || 0)}/${counts.all}`;
-    const isActive = btn.classList.contains('btn-primary');
-    btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-  });
+  const refreshFilterLabels = () => {
+    filterButtons.forEach(btn => {
+      const tag = btn.dataset.filter;
+      const baseLabel = btn.dataset.baseLabel || btn.textContent.trim();
+      btn.dataset.baseLabel = baseLabel;
+      btn.innerHTML = `${baseLabel} ${(counts[tag] || 0)}/${counts.all}`;
+      const isActive = btn.classList.contains('btn-primary');
+      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+  };
+  refreshFilterLabels();
 
   /* ➍ Filter behaviour (fade-out → update → fade-in) --------------- */
   const GRID_FADE_MS   = reduceMotion ? 0 : 350; // match #projects opacity transition
@@ -704,15 +754,12 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
   let fadeTimer;
   let revealTimer;
 
-  menu.addEventListener("click", e => {
-    const targetBtn = e.target.closest('button[data-filter]');
-    if (!targetBtn) return;
-    closeExtraDropdown();
-
+  const handleFilterSelection = (targetBtn) => {
+    if (!targetBtn || !targetBtn.dataset.filter) return;
+    closeDrawer();
     clearTimeout(fadeTimer);
     clearTimeout(revealTimer);
 
-    /* button UI */
     filterButtons.forEach(b => {
       b.classList.replace("btn-primary", "btn-secondary");
       b.setAttribute("aria-pressed", "false");
@@ -740,7 +787,7 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
       const reveal = () => {
         visible.forEach((card, i) => {
           card.classList.remove("ripple-in");
-          void card.offsetWidth; // restart animation
+          void card.offsetWidth;
           card.style.animationDelay = `${i * 80}ms`;
           card.classList.add("ripple-in");
         });
@@ -749,7 +796,6 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
         grid.classList.remove("grid-fade");
         grid.style.height = "";
 
-        /* ─── ensure first visible card is flush on mobile ─── */
         const isMobileFilter = window.matchMedia("(max-width: 768px)").matches;
         if (isMobileFilter && !reduceMotion) {
           const first = visible[0];
@@ -772,7 +818,6 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
         reveal();
       }
 
-      // Announce filter result count for screen readers
       try {
         const visibleCount = visible.length;
         srStatus().textContent = `Showing ${visibleCount} projects. Filter: ${tag}`;
@@ -784,6 +829,12 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
     } else {
       applyFilter();
     }
+  };
+
+  menu.addEventListener("click", e => {
+    const targetBtn = e.target.closest('button[data-filter]');
+    if (!targetBtn) return;
+    handleFilterSelection(targetBtn);
   });
 
   /* ➎ Open modal based on URL (hash, clean path, or query) --------- */
