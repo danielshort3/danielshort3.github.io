@@ -8,6 +8,7 @@ const {
 } = require('@aws-sdk/lib-dynamodb');
 const { randomUUID, randomBytes } = require('crypto');
 const bcrypt = require('bcryptjs');
+const { spin: runSlotSpin, machineMetadata } = require('./slot-engine');
 
 const dynamo = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
   marshallOptions: { removeUndefinedValues: true }
@@ -16,6 +17,7 @@ const dynamo = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
 const {
   TABLE_NAME,
   USERS_TABLE,
+  HISTORY_TABLE,
   STARTING_CREDITS = '1000',
   MAX_BET = '100',
   ALLOWED_ORIGINS = '',
@@ -29,16 +31,10 @@ const SESSION_TTL_MIN = Math.max(parseInt(SESSION_TTL_MINUTES, 10) || 4320, 5);
 const PASSWORD_COST = Math.max(parseInt(PASSWORD_SALT_ROUNDS, 10) || 12, 4);
 const allowedOrigins = ALLOWED_ORIGINS.split(',').map(origin => origin.trim()).filter(Boolean);
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-const SYMBOLS = [
-  { key: 'cherry', icon: '🍒', label: 'Cherry', weight: 35, pairMultiplier: 2, tripleMultiplier: 8 },
-  { key: 'lemon', icon: '🍋', label: 'Lemon', weight: 27, pairMultiplier: 3, tripleMultiplier: 12 },
-  { key: 'grape', icon: '🍇', label: 'Grapes', weight: 20, pairMultiplier: 5, tripleMultiplier: 18 },
-  { key: 'star', icon: '⭐', label: 'Star', weight: 12, pairMultiplier: 8, tripleMultiplier: 28 },
-  { key: 'diamond', icon: '💎', label: 'Diamond', weight: 6, pairMultiplier: 15, tripleMultiplier: 50 }
-];
-
-const totalWeight = SYMBOLS.reduce((sum, symbol) => sum + symbol.weight, 0);
+const MACHINE_META = machineMetadata();
+const SYMBOL_LABELS = Object.fromEntries(
+  (MACHINE_META.symbols || []).map(symbol => [symbol.key, symbol.label || symbol.key])
+);
 
 const nowIso = () => new Date().toISOString();
 
@@ -95,40 +91,33 @@ function validatePassword(password = '') {
   return typeof password === 'string' && password.length >= 8;
 }
 
-function drawSymbol() {
-  const target = Math.random() * totalWeight;
-  let running = 0;
-  for (const symbol of SYMBOLS) {
-    running += symbol.weight;
-    if (target <= running) return symbol;
+function summarizeGroups(groups = []) {
+  if (!groups.length) return 'No match';
+  const sorted = [...groups].sort((a, b) => (b.payout || 0) - (a.payout || 0));
+  const best = sorted[0];
+  if (!best) return 'No match';
+  if (best.symbol === 'bonus') {
+    return `Bonus ${best.count}×`;
   }
-  return SYMBOLS[SYMBOLS.length - 1];
+  const label = SYMBOL_LABELS[best.symbol] || best.symbol;
+  return `${label} ${best.count}×`;
 }
 
-function spinReels() {
-  return Array.from({ length: 3 }, () => drawSymbol());
-}
-
-function evaluateSpin(picks = [], bet = 1) {
-  const [first, second, third] = picks;
-  const names = picks.map(pick => pick.key);
-  const reels = picks.map(pick => ({ key: pick.key, icon: pick.icon, label: pick.label }));
-  let multiplier = 0;
-  let outcome = 'No match';
-
-  if (names[0] === names[1] && names[1] === names[2]) {
-    multiplier = first.tripleMultiplier;
-    outcome = `Triple ${first.label}!`;
-  } else if (names[0] === names[1] || names[0] === names[2]) {
-    multiplier = first.pairMultiplier;
-    outcome = `Pair of ${first.label}`;
-  } else if (names[1] === names[2]) {
-    multiplier = second.pairMultiplier;
-    outcome = `Pair of ${second.label}`;
-  }
-
-  const winAmount = multiplier > 0 ? bet * multiplier : 0;
-  return { reels, multiplier, winAmount, outcome };
+function buildSpinPayload(engineResult, bet, timestamp) {
+  const { outcome, payout, groups, metadata } = engineResult;
+  return {
+    grid: outcome,
+    rows: metadata.rows,
+    reels: metadata.reels,
+    lineTier: metadata.lineTier,
+    lines: metadata.lines,
+    winGroups: groups,
+    bet,
+    winAmount: payout,
+    multiplier: null,
+    outcome: summarizeGroups(groups),
+    timestamp
+  };
 }
 
 async function fetchPlayer(playerId) {
@@ -168,18 +157,11 @@ async function getOrCreatePlayer(playerId) {
   }
 }
 
-async function applySpin(player, bet, spinResult) {
-  const now = nowIso();
-  const winnings = spinResult.winAmount;
+async function applySpin(player, bet, spinPayload) {
+  const now = spinPayload?.timestamp || nowIso();
+  const lastSpin = { ...spinPayload, timestamp: now };
+  const winnings = Number(lastSpin.winAmount) || 0;
   const nextCredits = player.credits - bet + winnings;
-  const lastSpin = {
-    reels: spinResult.reels,
-    bet,
-    winAmount: winnings,
-    multiplier: spinResult.multiplier,
-    outcome: spinResult.outcome,
-    timestamp: now
-  };
 
   let current = player;
   for (let attempt = 0; attempt < 3; attempt += 1) {
@@ -220,6 +202,7 @@ function formatPlayerPayload(player, extra = {}) {
     lastSpin: player.lastSpin || null,
     startingBalance: STARTING_BALANCE,
     maxBet: BET_LIMIT,
+    machine: MACHINE_META,
     ...extra
   };
 }
@@ -303,6 +286,33 @@ async function resolveAuth(token, { required = false } = {}) {
   return { username: user.username, token, player };
 }
 
+async function logSpinHistory(entry = {}) {
+  if (!HISTORY_TABLE || !entry.playerId) return;
+  const item = {
+    playerId: entry.playerId,
+    spinTime: entry.spinTime || nowIso(),
+    username: entry.username || null,
+    bet: entry.bet ?? null,
+    reels: entry.reels || [],
+    rows: entry.rows ?? null,
+    outcome: entry.outcome || null,
+    multiplier: entry.multiplier ?? null,
+    winAmount: entry.winAmount ?? 0,
+    balanceBefore: entry.balanceBefore ?? null,
+    balanceAfter: entry.balanceAfter ?? null,
+    winGroups: entry.winGroups || null,
+    errorCode: entry.errorCode || null
+  };
+  try {
+    await dynamo.send(new PutCommand({
+      TableName: HISTORY_TABLE,
+      Item: item
+    }));
+  } catch (error) {
+    console.error('History log error', error);
+  }
+}
+
 async function handleSession(payload = {}) {
   if (payload.token) {
     const auth = await resolveAuth(payload.token, { required: true });
@@ -329,14 +339,28 @@ async function handleSpin(payload = {}) {
     return { errorCode: 'BAD_REQUEST', message: 'Missing playerId.', maxBet: BET_LIMIT };
   }
   if (!Number.isFinite(bet) || bet <= 0) {
+    if (playerId) {
+      await logSpinHistory({ playerId, username: auth?.username || null, bet, errorCode: 'BAD_REQUEST' });
+    }
     return { errorCode: 'BAD_REQUEST', message: 'Bet must be a positive integer.', maxBet: BET_LIMIT };
   }
   if (bet > BET_LIMIT) {
+    if (playerId) {
+      await logSpinHistory({ playerId, username: auth?.username || null, bet, errorCode: 'LIMIT_EXCEEDED' });
+    }
     return { errorCode: 'LIMIT_EXCEEDED', message: `Bet cannot exceed ${BET_LIMIT}.`, maxBet: BET_LIMIT };
   }
 
   const player = auth?.player || await getOrCreatePlayer(playerId);
   if (player.credits < bet) {
+    await logSpinHistory({
+      playerId,
+      username: auth?.username || null,
+      bet,
+      balanceBefore: player.credits,
+      balanceAfter: player.credits,
+      errorCode: 'INSUFFICIENT_CREDITS'
+    });
     return {
       errorCode: 'INSUFFICIENT_CREDITS',
       message: 'You do not have enough credits.',
@@ -345,23 +369,27 @@ async function handleSpin(payload = {}) {
     };
   }
 
-  const picks = spinReels();
-  const spinResult = evaluateSpin(picks, bet);
-  const updatedPlayer = await applySpin(player, bet, spinResult);
-
-  return {
-    playerId: updatedPlayer.playerId,
+  const engineResult = runSlotSpin(bet);
+  const timestamp = nowIso();
+  const spinPayload = buildSpinPayload(engineResult, bet, timestamp);
+  const updatedPlayer = await applySpin(player, bet, spinPayload);
+  await logSpinHistory({
+    playerId,
     username: auth?.username || null,
-    reels: spinResult.reels,
     bet,
-    winAmount: spinResult.winAmount,
-    multiplier: spinResult.multiplier,
-    outcome: spinResult.outcome,
-    balance: updatedPlayer.credits,
-    spins: updatedPlayer.spins,
-    lastSpin: updatedPlayer.lastSpin,
-    maxBet: BET_LIMIT
-  };
+    reels: spinPayload.grid,
+    rows: spinPayload.rows,
+    outcome: spinPayload.outcome,
+    winGroups: spinPayload.winGroups,
+    winAmount: spinPayload.winAmount,
+    balanceBefore: player.credits,
+    balanceAfter: updatedPlayer.credits
+  });
+
+  return formatPlayerPayload(
+    updatedPlayer,
+    auth ? { username: auth.username, token: auth.token } : {}
+  );
 }
 
 async function handleRegister(payload = {}) {

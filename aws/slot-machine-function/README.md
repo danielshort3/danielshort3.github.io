@@ -6,6 +6,7 @@ Server-side logic for the slot machine demo. The function keeps authoritative pl
 
 - **DynamoDB**: `slot-machine-demo-players` (partition key `playerId`)
 - **DynamoDB**: `slot-machine-users` (partition key `username`, GSI `sessionToken-index`)
+- **DynamoDB**: `slot-machine-spin-history` (partition key `playerId`, sort key `spinTime`)
 - **Lambda**: `slot-machine-demo` (runtime `nodejs18.x`)
 - **IAM role**: `slotMachineDemoLambdaRole`
 - **API Gateway**: HTTP API `slot-machine-demo-api` (`4kvebym8b3`, stage `prod`)
@@ -16,6 +17,7 @@ Server-side logic for the slot machine demo. The function keeps authoritative pl
 ```
 TABLE_NAME=slot-machine-demo-players
 USERS_TABLE=slot-machine-users
+HISTORY_TABLE=slot-machine-spin-history
 STARTING_CREDITS=1000
 MAX_BET=100
 ALLOWED_ORIGINS=https://danielshort.dev,https://www.danielshort.dev,https://danielshort3.github.io,https://danielshort3-github-io.vercel.app,https://danielshort.me,https://www.danielshort.me
@@ -33,6 +35,14 @@ All routes accept/return JSON:
 - `POST /session` → `{ token?, playerId? }`
 - `POST /spin` → `{ token?, playerId, bet }`
 
+Every successful spin (and rejected bet attempts when we know the player) is recorded into `slot-machine-spin-history`, so you can audit player activity or build dashboards from that table without touching the live balance records.
+
+### Slot engine + assets
+
+- `slot-engine.js` shares the same JSON definition as the browser client. During packaging it attempts to load `slot-config/classic.json`; if that file is missing (e.g., in the Lambda bundle) it falls back to `classic-config.js`, which mirrors the same symbol/payout data.
+- If you tweak the slot JSON under `/slot-config`, re-run the deploy zip step below so Lambda gets the updated fallback copy.
+- The client now depends on `machine` metadata returned by `/session` and `/spin`, so make sure the Lambda package and the front-end are deployed together.
+
 ### Deploy flow
 
 ```
@@ -40,8 +50,8 @@ cd aws/slot-machine-function
 npm install                   # only needed after dependency changes
 python3 - <<'PY'
 import zipfile, pathlib
-root = pathlib.Path('aws/slot-machine-function')
-zip_path = pathlib.Path('aws/slot-machine-function.zip')
+root = pathlib.Path('.')
+zip_path = pathlib.Path('..') / 'slot-machine-function.zip'
 with zipfile.ZipFile(zip_path, 'w', compression=zipfile.ZIP_DEFLATED) as zf:
     for path in root.rglob('*'):
         if path.is_file():

@@ -14,7 +14,8 @@
       "Resource": [
         "arn:aws:dynamodb:us-east-2:886623862678:table/slot-machine-demo-players",
         "arn:aws:dynamodb:us-east-2:886623862678:table/slot-machine-users",
-        "arn:aws:dynamodb:us-east-2:886623862678:table/slot-machine-users/index/sessionToken-index"
+        "arn:aws:dynamodb:us-east-2:886623862678:table/slot-machine-users/index/sessionToken-index",
+        "arn:aws:dynamodb:us-east-2:886623862678:table/slot-machine-spin-history"
       ]
     }
   ]
