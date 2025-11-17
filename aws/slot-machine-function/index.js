@@ -4,7 +4,9 @@ const {
   GetCommand,
   PutCommand,
   UpdateCommand,
-  QueryCommand
+  QueryCommand,
+  DeleteCommand,
+  BatchWriteCommand
 } = require('@aws-sdk/lib-dynamodb');
 const { randomUUID, randomBytes } = require('crypto');
 const bcrypt = require('bcryptjs');
@@ -209,6 +211,32 @@ function formatPlayerPayload(player, extra = {}) {
 
 function createPlayerId(prefix = 'slot') {
   return `${prefix}_${(randomUUID && randomUUID()) || randomBytes(8).toString('hex')}`;
+}
+
+async function deleteHistoryEntries(playerId) {
+  if (!HISTORY_TABLE || !playerId) return;
+  let lastKey;
+  do {
+    const res = await dynamo.send(new QueryCommand({
+      TableName: HISTORY_TABLE,
+      KeyConditionExpression: 'playerId = :pid',
+      ExpressionAttributeValues: { ':pid': playerId },
+      ProjectionExpression: 'playerId, spinTime',
+      ExclusiveStartKey: lastKey
+    }));
+    lastKey = res.LastEvaluatedKey;
+    const items = res.Items || [];
+    if (!items.length) continue;
+    for (let i = 0; i < items.length; i += 25) {
+      const chunk = items.slice(i, i + 25);
+      const requestItems = chunk.map(item => ({
+        DeleteRequest: { Key: { playerId: item.playerId, spinTime: item.spinTime } }
+      }));
+      await dynamo.send(new BatchWriteCommand({
+        RequestItems: { [HISTORY_TABLE]: requestItems }
+      }));
+    }
+  } while (lastKey);
 }
 
 async function getUser(username) {
@@ -466,6 +494,28 @@ async function handleLogout(payload = {}) {
   return { ok: true };
 }
 
+async function handleDeleteAccount(payload = {}) {
+  if (!USERS_TABLE) {
+    throw httpError(500, 'Account deletion unavailable.');
+  }
+  const auth = await resolveAuth(payload.token, { required: true });
+  const username = auth.username;
+  const playerId = auth.player?.playerId;
+  await deleteHistoryEntries(playerId);
+  if (playerId) {
+    await dynamo.send(new DeleteCommand({
+      TableName: TABLE_NAME,
+      Key: { playerId }
+    })).catch(() => {});
+  }
+  await dynamo.send(new DeleteCommand({
+    TableName: USERS_TABLE,
+    Key: { username }
+  })).catch(() => {});
+  await revokeSession(username);
+  return { ok: true };
+}
+
 exports.handler = async (event = {}) => {
   if (!TABLE_NAME) {
     throw new Error('TABLE_NAME environment variable is required.');
@@ -493,6 +543,10 @@ exports.handler = async (event = {}) => {
     if (routeKey.endsWith('/auth/logout')) {
       const logout = await handleLogout(payload);
       return respond(200, logout, corsOrigin);
+    }
+    if (routeKey.endsWith('/auth/delete')) {
+      const deleted = await handleDeleteAccount(payload);
+      return respond(200, deleted, corsOrigin);
     }
     if (routeKey.endsWith('/session')) {
       const session = await handleSession(payload);
