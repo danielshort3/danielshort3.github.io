@@ -367,12 +367,266 @@
       background: rgba(15,23,42,.75);
       border: 1px solid rgba(255,255,255,.06);
     }
+    .slot-machine {
+      background: linear-gradient(160deg, rgba(15,23,42,.92), rgba(30,41,59,.9));
+      border: 1px solid rgba(148,163,184,.2);
+      border-radius: 24px;
+      box-shadow: 0 25px 100px rgba(2,6,23,.6);
+    }
+    .slot-machine__header {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(148,163,184,.2);
+    }
+    .slot-machine__header h2 {
+      margin: 4px 0;
+      font-size: clamp(1.4rem, 3vw, 2rem);
+    }
+    .jackpot {
+      border-radius: 18px;
+      padding: 14px 20px;
+      background: linear-gradient(120deg, #e11d48, #f97316);
+      color: #fff;
+      text-align: center;
+      min-width: 160px;
+      box-shadow: 0 18px 45px rgba(241,135,0,.4);
+    }
+    .jackpot span {
+      font-size: .8rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      opacity: .8;
+    }
+    .jackpot strong {
+      display: block;
+      font-size: 1.5rem;
+      letter-spacing: .06em;
+    }
+    .slot-machine__body {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: clamp(16px, 4vw, 32px);
+      padding-top: 20px;
+    }
+    .machine-frame {
+      position: relative;
+      border-radius: 26px;
+      border: 1px solid rgba(148,163,184,.15);
+      padding: clamp(16px, 3vw, 28px);
+      background: radial-gradient(circle at top, rgba(14,165,233,.15), rgba(15,23,42,.95));
+      overflow: hidden;
+    }
+    .machine-frame__glow {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: radial-gradient(circle at 50% 20%, rgba(59,130,246,.4), transparent 45%);
+      opacity: .8;
+      pointer-events: none;
+    }
+    .machine-frame__reels {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(90px, 1fr));
+      gap: clamp(12px, 2vw, 20px);
+      background: rgba(2,6,23,.6);
+      padding: clamp(18px, 3vw, 28px);
+      border-radius: 20px;
+      box-shadow: inset 0 0 20px rgba(0,0,0,.45);
+    }
+    .reel {
+      height: clamp(150px, 24vw, 220px);
+      border-radius: 16px;
+      border: 1px solid rgba(148,163,184,.2);
+      background: linear-gradient(180deg, rgba(15,23,42,.9), rgba(30,41,59,.95));
+      display: grid;
+      place-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .reel::before,
+    .reel::after {
+      content: "";
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      height: 18px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent);
+      pointer-events: none;
+    }
+    .reel::before {
+      top: 10px;
+    }
+    .reel::after {
+      bottom: 10px;
+    }
+    .reel .symbol {
+      font-size: clamp(2.8rem, 6vw, 3.6rem);
+      transition: transform .45s cubic-bezier(.34, 1.56, .64, 1), filter .3s ease;
+    }
+    .reel[data-spinning="true"] .symbol {
+      animation: reelBlur .35s linear infinite;
+      filter: blur(1px);
+    }
+    @keyframes reelBlur {
+      0% { transform: translateY(-6px); }
+      50% { transform: translateY(6px); }
+      100% { transform: translateY(-6px); }
+    }
+    .machine-display {
+      margin-top: 18px;
+      border-radius: 16px;
+      background: rgba(15,23,42,.8);
+      border: 1px solid rgba(148,163,184,.2);
+      padding: 14px 18px;
+    }
+    .machine-display__label {
+      margin: 0;
+      text-transform: uppercase;
+      font-size: .8rem;
+      letter-spacing: .08em;
+      color: rgba(148,163,184,.8);
+    }
+    .machine-display__value {
+      margin: 4px 0 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    .control-deck {
+      display: grid;
+      gap: 18px;
+      background: rgba(2,6,23,.65);
+      border-radius: 24px;
+      border: 1px solid rgba(148,163,184,.18);
+      padding: clamp(18px, 4vw, 28px);
+    }
+    .hud {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+    }
+    .hud-card {
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: rgba(15,23,42,.9);
+      border: 1px solid rgba(148,163,184,.2);
+    }
+    .hud-label {
+      margin: 0;
+      font-size: .8rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: rgba(148,163,184,.8);
+    }
+    .hud-value {
+      font-size: 1.3rem;
+      margin-top: 6px;
+      display: block;
+    }
+    .bet-controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .bet-controls input[type="range"] {
+      flex: 1;
+      accent-color: var(--accent, #facc15);
+      height: 4px;
+    }
+    .chip {
+      border: 1px solid rgba(148,163,184,.45);
+      background: rgba(15,23,42,.9);
+      color: #facc15;
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-size: .95rem;
+      cursor: pointer;
+    }
+    .chip:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+    .machine-messages {
+      min-height: 32px;
+    }
+    .machine-error {
+      margin: 0;
+      color: #f97316;
+      font-size: .9rem;
+    }
+    .action-buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      align-items: center;
+    }
+    .spin-btn {
+      border: none;
+      border-radius: 99px;
+      padding: 16px 24px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #020617;
+      background: radial-gradient(circle at top, #bef264, #facc15);
+      box-shadow: 0 18px 35px rgba(250,204,21,.45);
+      cursor: pointer;
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .spin-btn:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .spin-btn:not(:disabled):active {
+      transform: translateY(1px);
+      box-shadow: 0 10px 25px rgba(250,204,21,.35);
+    }
+    .paytable-panel {
+      border-radius: 24px;
+      border: 1px solid rgba(148,163,184,.18);
+      background: rgba(2,6,23,.7);
+    }
+    .paytable {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 12px;
+    }
+    .paytable li {
+      display: flex;
+      justify-content: space-between;
+      background: rgba(15,23,42,.85);
+      border: 1px solid rgba(148,163,184,.15);
+      border-radius: 14px;
+      padding: 12px 16px;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .paytable-symbol {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+    }
+    .paytable-symbol span {
+      font-size: 1.8rem;
+    }
+    .paytable-meta {
+      font-size: .9rem;
+      color: rgba(148,163,184,.85);
+    }
     @media (max-width: 640px) {
-      .reels {
-        grid-template-columns: repeat(3, minmax(64px, 1fr));
+      .slot-machine__body {
+        grid-template-columns: 1fr;
       }
-      .slot-cell {
-        font-size: 2.1rem;
+      .machine-frame__reels {
+        grid-template-columns: repeat(3, 1fr);
       }
     }
   </style>
@@ -437,26 +691,63 @@
       </div>
     </section>
 
-    <section class="panel" data-requires-auth hidden>
-      <h2>Slot Console</h2>
-      <div class="reels" id="reels">
-        <div class="slot-cell" aria-live="polite">💤</div>
-        <div class="slot-cell" aria-live="polite">💤</div>
-        <div class="slot-cell" aria-live="polite">💤</div>
+    <section class="panel slot-machine" data-requires-auth hidden>
+      <div class="slot-machine__header">
+        <div>
+          <p class="muted-text small">Lucky Lambda Slots</p>
+          <h2>Server-validated spins with cinematic reels.</h2>
+          <p class="muted-text">Every result routes through AWS Lambda + DynamoDB, so payouts are locked before they reach your browser.</p>
+        </div>
+        <div class="jackpot">
+          <span>Progressive Demo</span>
+          <strong>$1,000,000</strong>
+        </div>
       </div>
-      <div class="controls">
-        <label>
-          Bet
-          <input type="number" id="bet-input" min="1" step="1" value="25" inputmode="numeric" />
-        </label>
-        <button type="button" id="spin-btn" disabled>Spin with AWS</button>
-        <div id="error" role="status" aria-live="polite"></div>
+      <div class="slot-machine__body">
+        <div class="machine-frame">
+          <div class="machine-frame__glow"></div>
+          <div class="machine-frame__reels" id="reel-stage">
+            <div class="reel" data-reel="0"><span class="symbol">🍒</span></div>
+            <div class="reel" data-reel="1"><span class="symbol">🍋</span></div>
+            <div class="reel" data-reel="2"><span class="symbol">🍇</span></div>
+          </div>
+          <div class="machine-display">
+            <p class="machine-display__label">Last outcome</p>
+            <p class="machine-display__value" id="machine-outcome">Sign in to start spinning.</p>
+          </div>
+        </div>
+        <div class="control-deck">
+          <div class="hud">
+            <div class="hud-card">
+              <p class="hud-label">Credits</p>
+              <strong class="hud-value" id="hud-balance">$0</strong>
+            </div>
+            <div class="hud-card">
+              <p class="hud-label">Bet</p>
+              <strong class="hud-value" id="hud-bet">$0</strong>
+            </div>
+            <div class="hud-card">
+              <p class="hud-label">Last win</p>
+              <strong class="hud-value" id="hud-win">$0</strong>
+            </div>
+          </div>
+          <div class="bet-controls">
+            <button type="button" class="chip" data-chip="decrease" aria-label="Decrease bet">-</button>
+            <input type="range" id="bet-range" min="1" max="100" value="25" aria-label="Bet amount" />
+            <button type="button" class="chip" data-chip="increase" aria-label="Increase bet">+</button>
+            <button type="button" class="chip" data-chip="max" aria-label="Max bet">Max</button>
+          </div>
+          <div class="machine-messages">
+            <p class="machine-error" id="error" role="status" aria-live="polite"></p>
+            <div class="alert" id="alert" hidden></div>
+          </div>
+          <div class="action-buttons">
+            <button type="button" class="ghost-btn secondary" id="sync-btn">Sync balance</button>
+            <button type="button" class="ghost-btn tertiary" id="reset-btn">Reset session</button>
+            <button type="button" class="spin-btn" id="spin-btn" disabled>Spin</button>
+          </div>
+        </div>
       </div>
-      <div class="actions">
-        <button class="ghost-btn" type="button" id="reset-btn">Reset session</button>
-        <button class="ghost-btn" type="button" id="sync-btn">Sync balance</button>
-      </div>
-      <div class="alert" id="alert" hidden></div>
     </section>
 
     <section class="grid grid-two" data-requires-auth hidden>
@@ -478,6 +769,12 @@
           <dt>Timestamp</dt><dd id="last-time">—</dd>
         </dl>
       </div>
+    </section>
+
+    <section class="panel paytable-panel" data-requires-auth hidden>
+      <h2>Paytable</h2>
+      <ul class="paytable" id="paytable"></ul>
+      <p class="muted-text small">Multipliers apply to your active bet. Triple matches and pairs are calculated server-side.</p>
     </section>
 
     <section class="panel" data-requires-auth hidden>
@@ -516,16 +813,31 @@
         authMode: localStorage.getItem(AUTH_MODE_KEY) || 'login'
       };
 
+      const CLIENT_SYMBOLS = [
+        { key: 'cherry', icon: '🍒', label: 'Cherry', pairMultiplier: 2, tripleMultiplier: 8 },
+        { key: 'lemon', icon: '🍋', label: 'Lemon', pairMultiplier: 3, tripleMultiplier: 12 },
+        { key: 'grape', icon: '🍇', label: 'Grapes', pairMultiplier: 5, tripleMultiplier: 18 },
+        { key: 'star', icon: '⭐', label: 'Star', pairMultiplier: 8, tripleMultiplier: 28 },
+        { key: 'diamond', icon: '💎', label: 'Diamond', pairMultiplier: 15, tripleMultiplier: 50 }
+      ];
+      const reelTimers = new Map();
+
       const els = {
         connectionPill: document.getElementById('connection-pill'),
         connectionText: document.getElementById('connection-text'),
-        reels: Array.from(document.querySelectorAll('.slot-cell')),
-        betInput: document.getElementById('bet-input'),
+        reels: Array.from(document.querySelectorAll('.reel')),
         spinBtn: document.getElementById('spin-btn'),
         resetBtn: document.getElementById('reset-btn'),
         syncBtn: document.getElementById('sync-btn'),
         alert: document.getElementById('alert'),
         error: document.getElementById('error'),
+        machineOutcome: document.getElementById('machine-outcome'),
+        reelStage: document.getElementById('reel-stage'),
+        betSlider: document.getElementById('bet-range'),
+        chipButtons: Array.from(document.querySelectorAll('[data-chip]')),
+        hudBalance: document.getElementById('hud-balance'),
+        hudBet: document.getElementById('hud-bet'),
+        hudWin: document.getElementById('hud-win'),
         balance: document.getElementById('balance'),
         playerId: document.getElementById('player-id'),
         maxBet: document.getElementById('max-bet'),
@@ -535,6 +847,7 @@
         lastMult: document.getElementById('last-multiplier'),
         lastTime: document.getElementById('last-time'),
         log: document.getElementById('log'),
+        paytable: document.getElementById('paytable'),
         authOverlay: document.getElementById('auth-overlay'),
         authBody: document.getElementById('auth-body'),
         authAlert: document.getElementById('auth-alert'),
@@ -592,17 +905,19 @@
         });
         const disableInputs = !visible || state.busy;
         els.spinBtn.disabled = disableInputs;
-        els.betInput.disabled = disableInputs;
-        els.syncBtn.disabled = disableInputs;
-        els.resetBtn.disabled = !visible;
+        if (els.betSlider) els.betSlider.disabled = disableInputs;
+        els.chipButtons.forEach(btn => { btn.disabled = disableInputs; });
+        if (els.syncBtn) els.syncBtn.disabled = disableInputs;
+        if (els.resetBtn) els.resetBtn.disabled = disableInputs;
       };
 
       const setBusy = (flag) => {
         state.busy = flag;
         const disableInputs = flag || !state.gameReady;
         els.spinBtn.disabled = disableInputs;
-        els.syncBtn.disabled = disableInputs;
-        els.betInput.disabled = disableInputs;
+        if (els.syncBtn) els.syncBtn.disabled = disableInputs;
+        if (els.betSlider) els.betSlider.disabled = disableInputs;
+        els.chipButtons.forEach(btn => { btn.disabled = disableInputs; });
       };
 
       const toggleAuthInputs = (disabled) => {
@@ -638,6 +953,70 @@
 
       setGameVisibility(false);
       setAuthMode(state.authMode);
+      const renderPaytable = () => {
+        if (!els.paytable) return;
+        els.paytable.innerHTML = CLIENT_SYMBOLS.map(symbol => `
+          <li>
+            <div class="paytable-symbol"><span>${symbol.icon}</span>${symbol.label}</div>
+            <div class="paytable-meta">Triple: ${symbol.tripleMultiplier}× • Pair: ${symbol.pairMultiplier}×</div>
+          </li>
+        `).join('');
+      };
+      renderPaytable();
+
+      const randomSymbol = () => CLIENT_SYMBOLS[Math.floor(Math.random() * CLIENT_SYMBOLS.length)];
+
+      const setReelsToSymbols = (symbols = []) => {
+        els.reels.forEach((reel, index) => {
+          const symbol = symbols[index] || randomSymbol();
+          const target = reel.querySelector('.symbol');
+          if (target) target.textContent = symbol.icon || symbol;
+        });
+      };
+
+      const startReelSpinAnimation = () => {
+        els.reels.forEach((reel, index) => {
+          reel.dataset.spinning = 'true';
+          const timer = setInterval(() => {
+            const sym = randomSymbol();
+            const target = reel.querySelector('.symbol');
+            if (target) target.textContent = sym.icon;
+          }, 80 + index * 25);
+          reelTimers.set(reel, timer);
+        });
+      };
+
+      const stopReelSpinAnimation = (symbols = []) => {
+        els.reels.forEach((reel, index) => {
+          const timer = reelTimers.get(reel);
+          if (timer) {
+            clearInterval(timer);
+            reelTimers.delete(reel);
+          }
+          const targetSymbol = symbols[index] || randomSymbol();
+          setTimeout(() => {
+            reel.dataset.spinning = 'false';
+            const target = reel.querySelector('.symbol');
+            if (target) target.textContent = targetSymbol.icon || targetSymbol;
+          }, 200 * index);
+        });
+      };
+
+      const updateHud = () => {
+        if (els.hudBalance) els.hudBalance.textContent = currency.format(state.balance || 0);
+        if (els.hudBet) els.hudBet.textContent = currency.format(state.bet || 0);
+      };
+
+      const setBetValue = (value) => {
+        const safe = clamp(value || 1, 1, state.maxBet || DEFAULT_MAX_BET);
+        state.bet = safe;
+        if (els.betSlider) {
+          els.betSlider.max = state.maxBet || DEFAULT_MAX_BET;
+          els.betSlider.value = safe;
+        }
+        updateHud();
+      };
+      setBetValue(state.bet);
 
       const storeGuestPlayer = (value) => {
         if (value) {
@@ -661,6 +1040,11 @@
         if (!loggedIn && els.authPassword) {
           els.authPassword.value = '';
           if (els.authConfirm) els.authConfirm.value = '';
+        }
+        if (!loggedIn) {
+          if (els.machineOutcome) els.machineOutcome.textContent = 'Sign in to start spinning.';
+          if (els.hudWin) els.hudWin.textContent = currency.format(0);
+          updateHud();
         }
       };
 
@@ -760,19 +1144,15 @@
 
         state.maxBet = resolveMaxBet(payload.maxBet);
         els.maxBet.textContent = state.maxBet;
-        els.betInput.max = state.maxBet;
-
         const incomingBet = Number(payload.bet);
         const fallbackBet = Number.isFinite(state.bet)
           ? state.bet
-          : Number(els.betInput.value);
+          : Number(els.betSlider?.value);
         const desiredBet = Number.isFinite(incomingBet)
           ? incomingBet
           : (Number.isFinite(fallbackBet) ? fallbackBet : 1);
-
-        const safeBet = clamp(desiredBet || 1, 1, state.maxBet);
-        state.bet = safeBet;
-        els.betInput.value = safeBet.toString();
+        setBetValue(desiredBet || 1);
+        updateHud();
       };
 
       const updateLastSpin = (lastSpin) => {
@@ -781,12 +1161,16 @@
           els.lastWin.textContent = '—';
           els.lastMult.textContent = '—';
           els.lastTime.textContent = '—';
+          if (els.machineOutcome) els.machineOutcome.textContent = 'Awaiting spin…';
+          if (els.hudWin) els.hudWin.textContent = currency.format(0);
           return;
         }
         els.lastOutcome.textContent = lastSpin.outcome;
         els.lastWin.textContent = currency.format(lastSpin.winAmount);
         els.lastMult.textContent = lastSpin.multiplier ? `${lastSpin.multiplier}×` : '—';
         els.lastTime.textContent = new Date(lastSpin.timestamp).toLocaleString();
+        if (els.machineOutcome) els.machineOutcome.textContent = lastSpin.outcome;
+        if (els.hudWin) els.hudWin.textContent = currency.format(lastSpin.winAmount || 0);
       };
 
       const animateReels = (reels) => {
@@ -803,7 +1187,7 @@
         syncAuthFromPayload(session);
         updateStats(session);
         updateLastSpin(session.lastSpin);
-        animateReels(session.lastSpin?.reels);
+        setReelsToSymbols(session.lastSpin?.reels);
         setGameVisibility(true);
         setStatus('Connected to AWS Lambda', 'ok');
         if (logMessage) {
@@ -839,27 +1223,23 @@
           showAuthAlert('Sign in to spin the slot machine.');
           return;
         }
-        const maxBet = resolveMaxBet();
-        const rawInput = Number(els.betInput.value);
-        const normalizedInput = Number.isFinite(rawInput)
-          ? rawInput
-          : (Number.isFinite(state.bet) ? state.bet : 1);
-        const bet = clamp(normalizedInput || 1, 1, maxBet);
-        els.betInput.value = bet.toString();
-        state.bet = bet;
+        const bet = clamp(state.bet || 1, 1, state.maxBet || DEFAULT_MAX_BET);
+        setBetValue(bet);
         setBusy(true);
         showAlert('');
-        els.error.textContent = '';
+        if (els.error) els.error.textContent = '';
+        startReelSpinAnimation();
+        let resultSymbols = null;
         try {
           const result = await request('/spin', { bet });
-          animateReels(result.reels);
+          resultSymbols = result.reels;
           updateStats(result);
           updateLastSpin(result.lastSpin);
           log('Spin processed by Lambda', `${result.outcome} (balance ${currency.format(result.balance)})`);
         } catch (error) {
           const payload = error.payload || {};
           const msg = payload.message || error.message;
-          els.error.textContent = msg;
+          if (els.error) els.error.textContent = msg;
           if (payload.balance !== undefined || payload.maxBet !== undefined) {
             updateStats({ balance: payload.balance, maxBet: payload.maxBet });
           }
@@ -869,6 +1249,7 @@
             log('Spin failed', msg);
           }
         } finally {
+          stopReelSpinAnimation(resultSymbols);
           setBusy(false);
         }
       };
@@ -926,13 +1307,29 @@
 
       updateAuthUI();
 
-      els.betInput.addEventListener('change', () => {
-        const maxBet = resolveMaxBet();
-        let value = Number(els.betInput.value);
-        if (!Number.isFinite(value)) value = Number(state.bet) || 1;
-        value = clamp(value || 1, 1, maxBet);
-        state.bet = value;
-        els.betInput.value = value.toString();
+      if (els.betSlider) {
+        els.betSlider.addEventListener('input', (event) => {
+          setBetValue(Number(event.target.value));
+        });
+      }
+
+      const handleChipAction = (action) => {
+        if (state.busy || !state.gameReady) return;
+        if (action === 'increase') {
+          setBetValue(state.bet + 5);
+          return;
+        }
+        if (action === 'decrease') {
+          setBetValue(state.bet - 5);
+          return;
+        }
+        if (action === 'max') {
+          setBetValue(state.maxBet || DEFAULT_MAX_BET);
+        }
+      };
+
+      els.chipButtons.forEach(btn => {
+        btn.addEventListener('click', () => handleChipAction(btn.dataset.chip));
       });
 
       els.spinBtn.addEventListener('click', spin);
