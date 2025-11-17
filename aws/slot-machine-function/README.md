@@ -32,6 +32,7 @@ All routes accept/return JSON:
 - `POST /auth/register` → `{ username, password }` ⇒ `{ token, username, playerId, balance, spins, ... }`
 - `POST /auth/login` → `{ username, password }`
 - `POST /auth/logout` → `{ token }`
+- `POST /auth/delete` → `{ token }` — removes the user, player record, and spin history entries
 - `POST /session` → `{ token?, playerId? }`
 - `POST /spin` → `{ token?, playerId, bet }`
 
