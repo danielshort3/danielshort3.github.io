@@ -635,10 +635,10 @@
   <div class="auth-overlay" id="auth-overlay" aria-hidden="false" data-hidden="false">
     <div class="auth-card">
       <div class="auth-copy">
-        <p class="status-pill ghost">🎰 Secure Wallet</p>
-        <h2>Log in to keep spinning with a protected balance.</h2>
-        <p>Your winnings live in DynamoDB and are only updated by AWS Lambda. Sign in to resume a previous session or create an account to start banking credits across devices.</p>
-        <p class="muted-text small">256-bit TLS + hashed passwords (bcrypt) + session tokens scoped to this demo.</p>
+        <p class="status-pill ghost">🎰 Demo Slot Machine</p>
+        <h2>Log in to save your credits and keep the reels rolling.</h2>
+        <p>This is a fun, server-backed slot machine demo—no real money is involved. Every spin is validated in AWS so balances carry across devices.</p>
+        <p class="muted-text small">Passwords are hashed before storing and sessions auto-expire. Have fun exploring the animations and payouts.</p>
       </div>
       <div class="auth-body" id="auth-body" data-mode="login">
         <div class="auth-tabs" role="tablist">
@@ -962,6 +962,19 @@
 
       setGameVisibility(false);
       setAuthMode(state.authMode);
+      const handleAuthEnter = (event) => {
+        if (event.key === 'Enter' && !state.busy) {
+          event.preventDefault();
+          if (document.activeElement === els.authEmail || document.activeElement === els.authPassword || document.activeElement === els.authConfirm) {
+            loginOrRegister();
+          }
+        }
+      };
+
+      [els.authEmail, els.authPassword, els.authConfirm].forEach(input => {
+        if (input) input.addEventListener('keydown', handleAuthEnter);
+      });
+
       const renderPaytable = () => {
         if (!els.paytable) return;
         els.paytable.innerHTML = CLIENT_SYMBOLS.map(symbol => `
