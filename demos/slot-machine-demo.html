@@ -813,6 +813,15 @@
         authMode: localStorage.getItem(AUTH_MODE_KEY) || 'login'
       };
 
+      const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+      const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+      const resolveMaxBet = (incoming) => {
+        const numeric = Number(incoming);
+        if (Number.isFinite(numeric) && numeric > 0) return numeric;
+        if (Number.isFinite(state.maxBet) && state.maxBet > 0) return state.maxBet;
+        return DEFAULT_MAX_BET;
+      };
+
       const CLIENT_SYMBOLS = [
         { key: 'cherry', icon: '🍒', label: 'Cherry', pairMultiplier: 2, tripleMultiplier: 8 },
         { key: 'lemon', icon: '🍋', label: 'Lemon', pairMultiplier: 3, tripleMultiplier: 12 },
@@ -1081,15 +1090,6 @@
           setAuthState({ token: payload.token, username: payload.username });
           showAuthAlert('');
         }
-      };
-
-      const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
-      const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
-      const resolveMaxBet = (incoming) => {
-        const numeric = Number(incoming);
-        if (Number.isFinite(numeric) && numeric > 0) return numeric;
-        if (Number.isFinite(state.maxBet) && state.maxBet > 0) return state.maxBet;
-        return DEFAULT_MAX_BET;
       };
 
       const withAuth = (payload = {}) => {
