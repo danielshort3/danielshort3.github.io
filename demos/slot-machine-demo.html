@@ -429,53 +429,59 @@
     }
     .machine-frame__reels {
       position: relative;
-      display: grid;
-      grid-template-columns: repeat(3, minmax(90px, 1fr));
-      gap: clamp(12px, 2vw, 20px);
-      background: rgba(2,6,23,.6);
+      display: block;
+      background: rgba(2,6,23,.75);
       padding: clamp(18px, 3vw, 28px);
       border-radius: 20px;
       box-shadow: inset 0 0 20px rgba(0,0,0,.45);
     }
-    .reel {
-      height: clamp(150px, 24vw, 220px);
+    .slot-grid {
+      --reel-count: 3;
+      --row-count: 3;
+      display: grid;
+      grid-template-columns: repeat(var(--reel-count), minmax(0, 1fr));
+      gap: clamp(8px, 2vw, 18px);
+    }
+    .slot-cell {
+      position: relative;
       border-radius: 16px;
-      border: 1px solid rgba(148,163,184,.2);
-      background: linear-gradient(180deg, rgba(15,23,42,.9), rgba(30,41,59,.95));
+      border: 1px solid rgba(148,163,184,.25);
+      background: linear-gradient(180deg, rgba(15,23,42,.95), rgba(15,23,42,.6));
+      aspect-ratio: 1 / 1.1;
       display: grid;
       place-items: center;
-      position: relative;
       overflow: hidden;
+      transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease;
     }
-    .reel::before,
-    .reel::after {
-      content: "";
+    .slot-cell[data-state="spinning"] {
+      animation: slotPulse .6s ease-in-out infinite alternate;
+      opacity: .9;
+    }
+    .slot-cell[data-state="win"] {
+      box-shadow: 0 0 0 2px rgba(250,204,21,.45), 0 20px 45px rgba(250,204,21,.3);
+      border-color: rgba(250,204,21,.6);
+      transform: scale(1.03);
+    }
+    .slot-cell__symbol {
+      width: 80%;
+      max-width: 120px;
+      display: grid;
+      place-items: center;
+    }
+    .slot-cell__symbol img {
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 10px 20px rgba(0,0,0,.45));
+    }
+    .line-overlay {
       position: absolute;
-      left: 8px;
-      right: 8px;
-      height: 18px;
-      border-radius: 999px;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent);
+      inset: clamp(12px, 2vw, 26px);
       pointer-events: none;
     }
-    .reel::before {
-      top: 10px;
-    }
-    .reel::after {
-      bottom: 10px;
-    }
-    .reel .symbol {
-      font-size: clamp(2.8rem, 6vw, 3.6rem);
-      transition: transform .45s cubic-bezier(.34, 1.56, .64, 1), filter .3s ease;
-    }
-    .reel[data-spinning="true"] .symbol {
-      animation: reelBlur .35s linear infinite;
-      filter: blur(1px);
-    }
-    @keyframes reelBlur {
-      0% { transform: translateY(-6px); }
-      50% { transform: translateY(6px); }
-      100% { transform: translateY(-6px); }
+    @keyframes slotPulse {
+      0% { transform: translateY(-4px) scale(.98); opacity: .8; }
+      100% { transform: translateY(4px) scale(1.02); opacity: 1; }
     }
     .machine-display {
       margin-top: 18px;
@@ -495,6 +501,11 @@
       margin: 4px 0 0;
       font-size: 1.1rem;
       font-weight: 600;
+    }
+    .machine-display__meta {
+      margin: 6px 0 0;
+      font-size: .9rem;
+      color: var(--muted);
     }
     .control-deck {
       display: grid;
@@ -614,8 +625,11 @@
       gap: 10px;
       font-weight: 600;
     }
-    .paytable-symbol span {
-      font-size: 1.8rem;
+    .paytable-symbol img {
+      width: 36px;
+      height: 36px;
+      object-fit: contain;
+      filter: drop-shadow(0 6px 12px rgba(0,0,0,.35));
     }
     .paytable-meta {
       font-size: .9rem;
@@ -625,8 +639,8 @@
       .slot-machine__body {
         grid-template-columns: 1fr;
       }
-      .machine-frame__reels {
-        grid-template-columns: repeat(3, 1fr);
+      .slot-grid {
+        gap: 8px;
       }
     }
   </style>
@@ -669,7 +683,7 @@
     </div>
   </div>
   <a class="skip-link" href="#main">Skip to content</a>
-  <main id="main" data-api-base="https://4kvebym8b3.execute-api.us-east-2.amazonaws.com/prod" data-max-bet="100">
+  <main id="main" data-api-base="https://4kvebym8b3.execute-api.us-east-2.amazonaws.com/prod" data-max-bet="100" data-machine-config="slot-config/classic.json">
     <header class="grid">
       <div>
         <p class="status-pill" id="connection-pill" data-state="loading">
@@ -707,13 +721,13 @@
         <div class="machine-frame">
           <div class="machine-frame__glow"></div>
           <div class="machine-frame__reels" id="reel-stage">
-            <div class="reel" data-reel="0"><span class="symbol">🍒</span></div>
-            <div class="reel" data-reel="1"><span class="symbol">🍋</span></div>
-            <div class="reel" data-reel="2"><span class="symbol">🍇</span></div>
+            <div class="slot-grid" id="slot-grid" aria-live="polite"></div>
+            <div class="line-overlay" id="line-overlay" aria-hidden="true"></div>
           </div>
           <div class="machine-display">
             <p class="machine-display__label">Last outcome</p>
             <p class="machine-display__value" id="machine-outcome">Sign in to start spinning.</p>
+            <p class="machine-display__meta" id="machine-lines"></p>
           </div>
         </div>
         <div class="control-deck">
@@ -789,6 +803,7 @@
       if (!root) return;
       const API_BASE = root.dataset.apiBase;
       const DEFAULT_MAX_BET = Number(root.dataset.maxBet) || 100;
+      const MACHINE_CONFIG_URL = root.dataset.machineConfig || '';
       const storageKeys = {
         player: 'slotMachineDemoPlayerId',
         token: 'slotMachineAuthToken',
@@ -810,7 +825,20 @@
           token: getStored(storageKeys.token),
           username: getStored(storageKeys.user)
         },
-        authMode: localStorage.getItem(AUTH_MODE_KEY) || 'login'
+        authMode: localStorage.getItem(AUTH_MODE_KEY) || 'login',
+        machine: {
+          id: 'classic',
+          name: 'Lucky Lambda Classic',
+          rows: 3,
+          reels: 5,
+          lineTier: 0,
+          lines: [],
+          payouts: {},
+          assets: {},
+          placeholder: 'img/slot/placeholder.png'
+        },
+        symbolMap: new Map(),
+        gridCells: new Map()
       };
 
       const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
@@ -822,25 +850,18 @@
         return DEFAULT_MAX_BET;
       };
 
-      const CLIENT_SYMBOLS = [
-        { key: 'cherry', icon: '🍒', label: 'Cherry', pairMultiplier: 2, tripleMultiplier: 8 },
-        { key: 'lemon', icon: '🍋', label: 'Lemon', pairMultiplier: 3, tripleMultiplier: 12 },
-        { key: 'grape', icon: '🍇', label: 'Grapes', pairMultiplier: 5, tripleMultiplier: 18 },
-        { key: 'star', icon: '⭐', label: 'Star', pairMultiplier: 8, tripleMultiplier: 28 },
-        { key: 'diamond', icon: '💎', label: 'Diamond', pairMultiplier: 15, tripleMultiplier: 50 }
-      ];
-      const reelTimers = new Map();
-
       const els = {
         connectionPill: document.getElementById('connection-pill'),
         connectionText: document.getElementById('connection-text'),
-        reels: Array.from(document.querySelectorAll('.reel')),
+        slotGrid: document.getElementById('slot-grid'),
+        lineOverlay: document.getElementById('line-overlay'),
         spinBtn: document.getElementById('spin-btn'),
         resetBtn: document.getElementById('reset-btn'),
         syncBtn: document.getElementById('sync-btn'),
         alert: document.getElementById('alert'),
         error: document.getElementById('error'),
         machineOutcome: document.getElementById('machine-outcome'),
+        machineLines: document.getElementById('machine-lines'),
         reelStage: document.getElementById('reel-stage'),
         betSlider: document.getElementById('bet-range'),
         chipButtons: Array.from(document.querySelectorAll('[data-chip]')),
@@ -938,6 +959,199 @@
         });
       };
 
+      const getSymbolInfo = (key) => state.symbolMap.get(key) || { key, label: key, asset: state.machine.placeholder };
+
+      const ensureGrid = (rows, reels) => {
+        if (!els.slotGrid) return;
+        const currentRows = Number(els.slotGrid.dataset.rows) || 0;
+        const currentReels = Number(els.slotGrid.dataset.reels) || 0;
+        if (currentRows === rows && currentReels === reels && state.gridCells.size === rows * reels) {
+          return;
+        }
+        state.gridCells.clear();
+        els.slotGrid.dataset.rows = rows;
+        els.slotGrid.dataset.reels = reels;
+        els.slotGrid.style.setProperty('--row-count', rows);
+        els.slotGrid.style.setProperty('--reel-count', reels);
+        els.slotGrid.innerHTML = '';
+        for (let row = 0; row < rows; row += 1) {
+          for (let col = 0; col < reels; col += 1) {
+            const cell = document.createElement('div');
+            cell.className = 'slot-cell';
+            cell.dataset.row = row.toString();
+            cell.dataset.col = col.toString();
+            const wrapper = document.createElement('div');
+            wrapper.className = 'slot-cell__symbol';
+            const img = document.createElement('img');
+            img.alt = 'Awaiting spin';
+            img.src = state.machine.assets.placeholder || state.machine.placeholder;
+            wrapper.appendChild(img);
+            cell.appendChild(wrapper);
+            els.slotGrid.appendChild(cell);
+            state.gridCells.set(`${row}:${col}`, cell);
+          }
+        }
+      };
+
+      const updateMachineMeta = () => {
+        if (!els.machineLines) return;
+        const lineCount = state.machine.lines.length || 0;
+        const rows = state.machine.rows;
+        const reels = state.machine.reels;
+        const parts = [`${rows} rows`, `${reels} reels`];
+        if (lineCount) parts.push(`${lineCount} lines`);
+        els.machineLines.textContent = parts.join(' • ');
+      };
+
+      const applyMachineTheme = () => {
+        if (!els.reelStage) return;
+        const assets = state.machine.assets || {};
+        const bg = assets.background || {};
+        const portrait = typeof bg === 'string' ? bg : bg.portrait;
+        const landscape = typeof bg === 'string' ? bg : bg.landscape;
+        const useLandscape = window.innerWidth > window.innerHeight;
+        const chosen = useLandscape ? (landscape || portrait) : (portrait || landscape);
+        if (chosen) {
+          els.reelStage.style.backgroundImage = `url('${chosen}')`;
+          els.reelStage.style.backgroundSize = 'cover';
+          els.reelStage.style.backgroundPosition = 'center';
+        }
+      };
+
+      const updateGridSymbols = (grid = []) => {
+        const rows = state.machine.rows;
+        const reels = state.machine.reels;
+        ensureGrid(rows, reels);
+        for (let row = 0; row < rows; row += 1) {
+          const rowSymbols = grid[row] || [];
+          for (let col = 0; col < reels; col += 1) {
+            const symbolKey = rowSymbols[col];
+            const cell = state.gridCells.get(`${row}:${col}`);
+            if (!cell) continue;
+            const img = cell.querySelector('img');
+            const info = symbolKey ? getSymbolInfo(symbolKey) : null;
+            if (img && info) {
+              img.src = info.asset || info.icon || state.machine.assets.placeholder || state.machine.placeholder;
+              img.alt = info.label || info.key;
+            }
+            cell.dataset.symbol = symbolKey || '';
+            if (cell.dataset.state !== 'win') {
+              cell.dataset.state = 'settled';
+            }
+          }
+        }
+      };
+
+      const setGridState = (mode) => {
+        state.gridCells.forEach(cell => {
+          cell.dataset.state = mode;
+        });
+      };
+
+      const startGridSpin = () => {
+        if (!state.gridCells.size) ensureGrid(state.machine.rows, state.machine.reels);
+        setGridState('spinning');
+      };
+
+      const stopGridSpin = (grid) => {
+        if (Array.isArray(grid)) {
+          updateGridSymbols(grid);
+        } else {
+          state.gridCells.forEach(cell => {
+            if (cell.dataset.state === 'spinning') cell.dataset.state = 'settled';
+          });
+        }
+      };
+
+      const highlightWins = (groups = []) => {
+        state.gridCells.forEach(cell => {
+          if (cell.dataset.state === 'spinning') return;
+          cell.dataset.state = 'settled';
+        });
+        if (!groups.length) return;
+        groups.forEach(group => {
+          if (group.symbol === 'bonus') {
+            state.gridCells.forEach(cell => {
+              if (cell.dataset.symbol === 'bonus') cell.dataset.state = 'win';
+            });
+            return;
+          }
+          if (!Array.isArray(group.pattern) || !Array.isArray(group.indexes)) return;
+          group.indexes.forEach(index => {
+            const row = Math.max(0, Math.min(group.pattern[index] ?? 0, state.machine.rows - 1));
+            const cell = state.gridCells.get(`${row}:${index}`);
+            if (cell) cell.dataset.state = 'win';
+          });
+        });
+      };
+
+      const renderPaytable = () => {
+        if (!els.paytable) return;
+        if (!state.symbolMap.size) {
+          els.paytable.innerHTML = '<li class="muted-text">Loading symbol data…</li>';
+          return;
+        }
+        const entries = Array.from(state.symbolMap.values());
+        els.paytable.innerHTML = entries.map(entry => {
+          const payout = state.machine.payouts[entry.key] || 0;
+          const tiers = [1, 2, 3].map(mult => `${mult + 2}× ${payout ? payout * mult : 0}× bet`).join(' • ');
+          return `
+            <li>
+              <div class="paytable-symbol">
+                <img src="${entry.asset || state.machine.assets.placeholder || state.machine.placeholder}" alt="${entry.label}">
+                ${entry.label}
+              </div>
+              <div class="paytable-meta">${tiers}</div>
+            </li>
+          `;
+        }).join('');
+      };
+
+      const syncMachineDefinition = (machine = {}) => {
+        if (!machine || typeof machine !== 'object') return;
+        const prevRows = state.machine.rows;
+        const prevReels = state.machine.reels;
+        state.machine.id = machine.id || state.machine.id;
+        state.machine.name = machine.name || state.machine.name;
+        state.machine.lineTier = Number(machine.lineTier) || state.machine.lineTier;
+        state.machine.rows = Number(machine.rows) || state.machine.rows;
+        state.machine.reels = Number(machine.reels) || state.machine.reels;
+        if (Array.isArray(machine.lines)) state.machine.lines = machine.lines;
+        if (machine.payouts) state.machine.payouts = machine.payouts;
+        if (machine.assets) state.machine.assets = { ...state.machine.assets, ...machine.assets };
+        const changed = prevRows !== state.machine.rows || prevReels !== state.machine.reels;
+        if (changed) ensureGrid(state.machine.rows, state.machine.reels);
+        updateMachineMeta();
+        renderPaytable();
+      };
+
+      const loadMachineConfig = async () => {
+        if (!MACHINE_CONFIG_URL) {
+          ensureGrid(state.machine.rows, state.machine.reels);
+          return;
+        }
+        try {
+          const res = await fetch(MACHINE_CONFIG_URL, { cache: 'no-cache' });
+          if (!res.ok) throw new Error(`Config ${res.status}`);
+          const data = await res.json();
+          state.machine.assets = data.assets || state.machine.assets;
+          state.machine.placeholder = data.assets?.placeholder || state.machine.placeholder;
+          if (Array.isArray(data.symbols)) {
+            state.symbolMap = new Map(data.symbols.map(entry => [entry.key, entry]));
+          }
+          if (data.payouts) state.machine.payouts = data.payouts;
+          if (Number(data.rows)) state.machine.rows = Number(data.rows);
+          if (Number(data.reels)) state.machine.reels = Number(data.reels);
+          ensureGrid(state.machine.rows, state.machine.reels);
+          renderPaytable();
+          applyMachineTheme();
+        } catch (error) {
+          console.error('Machine config failed', error);
+          log('Assets', 'Unable to load slot assets.');
+          ensureGrid(state.machine.rows, state.machine.reels);
+        }
+      };
+
       const setAuthMode = (mode = 'login') => {
         const nextMode = mode === 'register' ? 'register' : 'login';
         state.authMode = nextMode;
@@ -975,54 +1189,6 @@
         if (input) input.addEventListener('keydown', handleAuthEnter);
       });
 
-      const renderPaytable = () => {
-        if (!els.paytable) return;
-        els.paytable.innerHTML = CLIENT_SYMBOLS.map(symbol => `
-          <li>
-            <div class="paytable-symbol"><span>${symbol.icon}</span>${symbol.label}</div>
-            <div class="paytable-meta">Triple: ${symbol.tripleMultiplier}× • Pair: ${symbol.pairMultiplier}×</div>
-          </li>
-        `).join('');
-      };
-      renderPaytable();
-
-      const randomSymbol = () => CLIENT_SYMBOLS[Math.floor(Math.random() * CLIENT_SYMBOLS.length)];
-
-      const setReelsToSymbols = (symbols = []) => {
-        els.reels.forEach((reel, index) => {
-          const symbol = symbols[index] || randomSymbol();
-          const target = reel.querySelector('.symbol');
-          if (target) target.textContent = symbol.icon || symbol;
-        });
-      };
-
-      const startReelSpinAnimation = () => {
-        els.reels.forEach((reel, index) => {
-          reel.dataset.spinning = 'true';
-          const timer = setInterval(() => {
-            const sym = randomSymbol();
-            const target = reel.querySelector('.symbol');
-            if (target) target.textContent = sym.icon;
-          }, 80 + index * 25);
-          reelTimers.set(reel, timer);
-        });
-      };
-
-      const stopReelSpinAnimation = (symbols = []) => {
-        els.reels.forEach((reel, index) => {
-          const timer = reelTimers.get(reel);
-          if (timer) {
-            clearInterval(timer);
-            reelTimers.delete(reel);
-          }
-          const targetSymbol = symbols[index] || randomSymbol();
-          setTimeout(() => {
-            reel.dataset.spinning = 'false';
-            const target = reel.querySelector('.symbol');
-            if (target) target.textContent = targetSymbol.icon || targetSymbol;
-          }, 200 * index);
-        });
-      };
 
       const updateHud = () => {
         if (els.hudBalance) els.hudBalance.textContent = currency.format(state.balance || 0);
@@ -1154,6 +1320,9 @@
         if (typeof payload.spins === 'number') {
           els.spinCount.textContent = payload.spins;
         }
+        if (payload.machine) {
+          syncMachineDefinition(payload.machine);
+        }
 
         state.maxBet = resolveMaxBet(payload.maxBet);
         els.maxBet.textContent = state.maxBet;
@@ -1168,39 +1337,52 @@
         updateHud();
       };
 
-      const updateLastSpin = (lastSpin) => {
-        if (!lastSpin) {
-          els.lastOutcome.textContent = '—';
-          els.lastWin.textContent = '—';
-          els.lastMult.textContent = '—';
-          els.lastTime.textContent = '—';
-          if (els.machineOutcome) els.machineOutcome.textContent = 'Awaiting spin…';
-          if (els.hudWin) els.hudWin.textContent = currency.format(0);
-          return;
-        }
-        els.lastOutcome.textContent = lastSpin.outcome;
-        els.lastWin.textContent = currency.format(lastSpin.winAmount);
-        els.lastMult.textContent = lastSpin.multiplier ? `${lastSpin.multiplier}×` : '—';
-        els.lastTime.textContent = new Date(lastSpin.timestamp).toLocaleString();
-        if (els.machineOutcome) els.machineOutcome.textContent = lastSpin.outcome;
-        if (els.hudWin) els.hudWin.textContent = currency.format(lastSpin.winAmount || 0);
+      const formatWinSummary = (groups = []) => {
+        if (!groups?.length) return '';
+        return groups
+          .slice()
+          .sort((a, b) => (b.payout || 0) - (a.payout || 0))
+          .map(group => {
+            const info = getSymbolInfo(group.symbol);
+            return `${info.label || info.key} ×${group.count}`;
+          })
+          .join(', ');
       };
 
-      const animateReels = (reels) => {
-        els.reels.forEach((cell, idx) => {
-          cell.classList.remove('spin');
-          void cell.offsetWidth;
-          cell.textContent = reels?.[idx]?.icon || '💤';
-          setTimeout(() => cell.classList.add('spin'), idx * 80);
-          setTimeout(() => cell.classList.remove('spin'), 600);
-        });
+      const updateLastSpin = (lastSpin) => {
+        if (!lastSpin) {
+          if (els.lastOutcome) els.lastOutcome.textContent = '—';
+          if (els.lastWin) els.lastWin.textContent = '—';
+          if (els.lastMult) els.lastMult.textContent = '—';
+          if (els.lastTime) els.lastTime.textContent = '—';
+          if (els.machineOutcome) els.machineOutcome.textContent = 'Awaiting spin…';
+          if (els.hudWin) els.hudWin.textContent = currency.format(0);
+          highlightWins([]);
+          return;
+        }
+        const summary = formatWinSummary(lastSpin.winGroups) || lastSpin.outcome || '—';
+        if (els.lastOutcome) els.lastOutcome.textContent = summary;
+        if (els.lastWin) els.lastWin.textContent = currency.format(lastSpin.winAmount || 0);
+        if (els.lastMult) {
+          const lines = Array.isArray(lastSpin.winGroups) ? lastSpin.winGroups.length : 0;
+          els.lastMult.textContent = lines ? `${lines} line${lines === 1 ? '' : 's'}` : '—';
+        }
+        if (els.lastTime) els.lastTime.textContent = new Date(lastSpin.timestamp).toLocaleString();
+        if (els.machineOutcome) els.machineOutcome.textContent = lastSpin.outcome || summary;
+        if (els.hudWin) els.hudWin.textContent = currency.format(lastSpin.winAmount || 0);
+        if (Array.isArray(lastSpin.grid)) {
+          updateGridSymbols(lastSpin.grid);
+        }
+        highlightWins(lastSpin.winGroups || []);
       };
 
       const hydrateSession = (session, logMessage) => {
         syncAuthFromPayload(session);
+        if (session.machine) {
+          syncMachineDefinition(session.machine);
+        }
         updateStats(session);
         updateLastSpin(session.lastSpin);
-        setReelsToSymbols(session.lastSpin?.reels);
         setGameVisibility(true);
         setStatus('Connected to AWS Lambda', 'ok');
         if (logMessage) {
@@ -1241,14 +1423,15 @@
         setBusy(true);
         showAlert('');
         if (els.error) els.error.textContent = '';
-        startReelSpinAnimation();
-        let resultSymbols = null;
+        startGridSpin();
+        let spinData = null;
         try {
           const result = await request('/spin', { bet });
-          resultSymbols = result.reels;
+          spinData = result.lastSpin || null;
           updateStats(result);
-          updateLastSpin(result.lastSpin);
-          log('Spin processed by Lambda', `${result.outcome} (balance ${currency.format(result.balance)})`);
+          updateLastSpin(spinData);
+          const outcomeText = spinData?.outcome || result.outcome || 'Result processed';
+          log('Spin processed by Lambda', `${outcomeText} (balance ${currency.format(result.balance)})`);
         } catch (error) {
           const payload = error.payload || {};
           const msg = payload.message || error.message;
@@ -1262,7 +1445,7 @@
             log('Spin failed', msg);
           }
         } finally {
-          stopReelSpinAnimation(resultSymbols);
+          stopGridSpin(spinData?.grid);
           setBusy(false);
         }
       };
@@ -1319,6 +1502,11 @@
       };
 
       updateAuthUI();
+      ensureGrid(state.machine.rows, state.machine.reels);
+      updateMachineMeta();
+      renderPaytable();
+      loadMachineConfig();
+      window.addEventListener('resize', applyMachineTheme);
 
       if (els.betSlider) {
         els.betSlider.addEventListener('input', (event) => {
