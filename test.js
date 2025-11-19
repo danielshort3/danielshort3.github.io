@@ -1,6 +1,7 @@
 // Lightweight test runner used by `npm test`
 const fs = require('fs');
 const vm = require('vm');
+const runSlotDemoTests = require('./tests/slot-machine-demo.test.js');
 
 // Assert helper
 function assert(cond, msg) {
@@ -371,6 +372,8 @@ assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
   });
   assert(/class=\"modal-embed tableau-fit\"/.test(tabHtml), 'tableau modal should use wide layout');
   assert(/<iframe[\s\S]*data-base=/.test(tabHtml), 'tableau iframe should use data-base attribute');
+
+  runSlotDemoTests({ assert, checkFileContains });
 
   console.log('All tests passed.');
 } catch (err) {
