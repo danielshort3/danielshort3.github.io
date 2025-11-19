@@ -1407,7 +1407,7 @@
       setSymbolMap(DEFAULT_SYMBOLS, 'init');
       applyUpgradeState(state.upgrades);
 
-      const applyUpgradeState = (incoming = state.upgrades) => {
+      function applyUpgradeState(incoming = state.upgrades) {
         const base = state.upgrades || { rows: 0, reels: 0, lines: 0 };
         const normalized = {
           rows: Math.max(0, incoming?.rows ?? base.rows ?? 0),
@@ -1435,7 +1435,7 @@
         ensureGrid(rows, reels);
         renderUpgrades();
         updateMachineMeta();
-      };
+      }
 
       const syncMachineDefinition = (machine = {}) => {
         if (!machine || typeof machine !== 'object') return;
