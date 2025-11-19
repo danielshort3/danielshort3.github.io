@@ -44,11 +44,14 @@ const UPGRADE_LIMITS = MACHINE_META.upgrades || {
 };
 const MAX_LINE_TIER = MACHINE_META.lineTier || 3;
 const BASE_SYMBOL_COUNT = MACHINE_META.baseSymbolCount || 5;
-const UPGRADE_INDEX = new Map(UPGRADE_DEFINITIONS.map(def => [def.key, def]));
-const DEFAULT_UPGRADES = UPGRADE_DEFINITIONS.reduce((acc, def) => {
-  acc[def.key] = 0;
-  return acc;
-}, {});
+const UPGRADE_INDEX = new Map();
+const DEFAULT_UPGRADES = {};
+UPGRADE_DEFINITIONS.forEach(def => {
+  if (!def?.key) return;
+  DEFAULT_UPGRADES[def.key] = 0;
+  UPGRADE_INDEX.set(def.key, def);
+  UPGRADE_INDEX.set(def.key.toLowerCase(), def);
+});
 
 const SYMBOL_LABELS = Object.fromEntries(
   (MACHINE_META.symbols || []).map(symbol => [symbol.key, symbol.label || symbol.key])
@@ -663,8 +666,8 @@ async function handleLogout(payload = {}) {
 }
 
 async function handleUpgrade(payload = {}) {
-  const type = (payload.type || '').toLowerCase();
-  const def = UPGRADE_INDEX.get(type);
+  const rawType = (payload.type || '').toString().trim();
+  const def = UPGRADE_INDEX.get(rawType) || UPGRADE_INDEX.get(rawType.toLowerCase());
   if (!def) {
     throw httpError(400, 'Unknown upgrade type.');
   }
