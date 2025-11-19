@@ -14,6 +14,7 @@ const MAX_ROWS = slotConfig.maxRows || slotConfig.rows || BASE_ROWS;
 const MAX_REELS = slotConfig.maxReels || slotConfig.reels || BASE_REELS;
 const ROWS = MAX_ROWS;
 const REELS = MAX_REELS;
+const BASE_SYMBOL_COUNT = slotConfig.baseSymbolCount || 5;
 const UPGRADE_COSTS = slotConfig.upgradeCosts || { rows: [500, 1500], reels: [750, 2000], lines: [300, 900, 1800] };
 const SYMBOLS = Array.isArray(slotConfig.symbols)
   ? slotConfig.symbols.map(entry => (typeof entry === 'string' ? { key: entry, label: entry } : entry))
@@ -25,6 +26,7 @@ const MAX_PAYOUT = Math.max(
     .filter(([key]) => key !== 'bonus' && key !== 'wild')
     .map(([, value]) => value)
 );
+const BASE_SYMBOL_LIST = SYMBOLS.filter(entry => entry.key !== 'wild');
 
 function randomFloat() {
   const buf = crypto.randomBytes(4);
@@ -32,15 +34,31 @@ function randomFloat() {
   return value / 0xffffffff;
 }
 
-function activeSymbolKeys() {
-  return SYMBOLS.map(s => s.key);
+function buildSymbolPool(upgrades = {}) {
+  const disable = Math.max(0, Math.floor(upgrades.disable || 0));
+  const premium = Math.max(0, Math.floor(upgrades.premium || 0));
+  const start = Math.min(disable, BASE_SYMBOL_LIST.length - 1);
+  const count = Math.min(
+    BASE_SYMBOL_LIST.length - start,
+    BASE_SYMBOL_COUNT + premium
+  );
+  const slice = BASE_SYMBOL_LIST.slice(start, start + count);
+  const keys = slice.map(entry => entry.key);
+  if (upgrades.wildUnlock) {
+    keys.push('wild');
+  }
+  return keys;
 }
 
-function pickSymbol() {
-  const keys = activeSymbolKeys();
+function pickSymbol(symbolPool, upgrades = {}) {
+  const keys = symbolPool.length ? symbolPool : buildSymbolPool(upgrades);
   const weights = keys.map(key => {
     const payout = PAYOUTS[key] || 1;
-    return payout > 0 ? 1 / payout : 1;
+    let weight = payout > 0 ? 1 / payout : 1;
+    if (key === 'wild' && upgrades.wildFrequency) {
+      weight *= 1 + 0.2 * Math.max(0, upgrades.wildFrequency || 0);
+    }
+    return weight;
   });
   const total = weights.reduce((sum, weight) => sum + weight, 0);
   let target = randomFloat() * total;
@@ -61,11 +79,12 @@ function clampReels(value) {
   return Math.max(BASE_REELS, Math.min(target, MAX_REELS));
 }
 
-function buildOutcome(rows = ROWS, reels = REELS) {
+function buildOutcome(rows = ROWS, reels = REELS, upgrades = {}, pool = null) {
+  const symbolPool = pool && pool.length ? pool : buildSymbolPool(upgrades);
   const outcome = Array.from({ length: rows }, () => Array(reels).fill(''));
   for (let row = 0; row < rows; row += 1) {
     for (let col = 0; col < reels; col += 1) {
-      outcome[row][col] = pickSymbol();
+      outcome[row][col] = pickSymbol(symbolPool, upgrades);
     }
   }
   return outcome;
@@ -200,13 +219,16 @@ function spin(bet, opts = {}) {
   const rows = clampRows(opts.rows);
   const reels = clampReels(opts.reels);
   const lineTier = Number.isFinite(opts.lineTier) ? Math.max(0, Math.min(opts.lineTier, MAX_PATTERN_TIER)) : MAX_PATTERN_TIER;
-  const outcome = buildOutcome(rows, reels);
+  const upgrades = opts.upgrades || {};
+  const symbolPool = buildSymbolPool(upgrades);
+  const outcome = buildOutcome(rows, reels, upgrades, symbolPool);
   const { payout, groups } = evaluateOutcome(outcome, bet, rows, reels, lineTier);
   const metadata = {
     rows,
     reels,
     lineTier,
     lines: linePatternDefs(rows, reels).filter(def => def.tier <= lineTier),
+    activeSymbols: symbolPool,
     upgrades: {
       baseRows: BASE_ROWS,
       baseReels: BASE_REELS,
@@ -230,6 +252,7 @@ function machineMetadata() {
     tier: slotConfig.tier,
     rows: ROWS,
     reels: REELS,
+    baseSymbolCount: BASE_SYMBOL_COUNT,
     lineTier: MAX_PATTERN_TIER,
     lines: linePatternDefs(ROWS, REELS).filter(def => def.tier <= MAX_PATTERN_TIER),
     payouts: PAYOUTS,
