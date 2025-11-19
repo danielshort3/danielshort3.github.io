@@ -34,11 +34,52 @@ const PASSWORD_COST = Math.max(parseInt(PASSWORD_SALT_ROUNDS, 10) || 12, 4);
 const allowedOrigins = ALLOWED_ORIGINS.split(',').map(origin => origin.trim()).filter(Boolean);
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MACHINE_META = machineMetadata();
+const UPGRADE_LIMITS = MACHINE_META.upgrades || {
+  baseRows: MACHINE_META.rows || 3,
+  maxRows: MACHINE_META.rows || 3,
+  baseReels: MACHINE_META.reels || 3,
+  maxReels: MACHINE_META.reels || 3,
+  costs: { rows: [], reels: [], lines: [] }
+};
+const UPGRADE_COSTS = UPGRADE_LIMITS.costs || { rows: [], reels: [], lines: [] };
+const MAX_LINE_TIER = MACHINE_META.lineTier || 3;
+
+const DEFAULT_UPGRADES = { rows: 0, reels: 0, lines: 0 };
+
+const ROW_LEVELS = Math.max(0, (UPGRADE_LIMITS.maxRows || UPGRADE_LIMITS.baseRows) - (UPGRADE_LIMITS.baseRows || 0));
+const REEL_LEVELS = Math.max(0, (UPGRADE_LIMITS.maxReels || UPGRADE_LIMITS.baseReels) - (UPGRADE_LIMITS.baseReels || 0));
+const LINE_LEVELS = (UPGRADE_COSTS.lines || []).length;
 const SYMBOL_LABELS = Object.fromEntries(
   (MACHINE_META.symbols || []).map(symbol => [symbol.key, symbol.label || symbol.key])
 );
 
 const nowIso = () => new Date().toISOString();
+
+const clampLevel = (value, max) => {
+  const num = Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
+  return Math.min(num, max);
+};
+
+function normalizeUpgrades(source = {}) {
+  return {
+    rows: clampLevel(source.rows, ROW_LEVELS),
+    reels: clampLevel(source.reels, REEL_LEVELS),
+    lines: clampLevel(source.lines, LINE_LEVELS)
+  };
+}
+
+function computeDimensions(upgrades = DEFAULT_UPGRADES) {
+  const rows = Math.min(
+    UPGRADE_LIMITS.maxRows || UPGRADE_LIMITS.baseRows || MACHINE_META.rows || 3,
+    (UPGRADE_LIMITS.baseRows || MACHINE_META.rows || 3) + (upgrades.rows || 0)
+  );
+  const reels = Math.min(
+    UPGRADE_LIMITS.maxReels || UPGRADE_LIMITS.baseReels || MACHINE_META.reels || 3,
+    (UPGRADE_LIMITS.baseReels || MACHINE_META.reels || 3) + (upgrades.reels || 0)
+  );
+  const lineTier = Math.min(MAX_LINE_TIER, (upgrades.lines || 0));
+  return { rows, reels, lineTier };
+}
 
 function httpError(statusCode, message) {
   const error = new Error(message);
@@ -132,13 +173,19 @@ async function fetchPlayer(playerId) {
 
 async function getOrCreatePlayer(playerId) {
   let player = await fetchPlayer(playerId);
-  if (player) return player;
+  if (player) {
+    if (!player.upgrades) {
+      player.upgrades = { ...DEFAULT_UPGRADES };
+    }
+    return player;
+  }
 
   const now = nowIso();
   const newPlayer = {
     playerId,
     credits: STARTING_BALANCE,
     spins: 0,
+    upgrades: { ...DEFAULT_UPGRADES },
     createdAt: now,
     updatedAt: now
   };
@@ -197,6 +244,8 @@ async function applySpin(player, bet, spinPayload) {
 }
 
 function formatPlayerPayload(player, extra = {}) {
+  const upgrades = normalizeUpgrades(player?.upgrades || DEFAULT_UPGRADES);
+  const dims = computeDimensions(upgrades);
   return {
     playerId: player.playerId,
     balance: player.credits,
@@ -204,7 +253,16 @@ function formatPlayerPayload(player, extra = {}) {
     lastSpin: player.lastSpin || null,
     startingBalance: STARTING_BALANCE,
     maxBet: BET_LIMIT,
-    machine: MACHINE_META,
+    upgrades,
+    currentRows: dims.rows,
+    currentReels: dims.reels,
+    currentLineTier: dims.lineTier,
+    machine: {
+      ...MACHINE_META,
+      currentRows: dims.rows,
+      currentReels: dims.reels,
+      currentLineTier: dims.lineTier
+    },
     ...extra
   };
 }
@@ -379,7 +437,7 @@ async function handleSpin(payload = {}) {
     return { errorCode: 'LIMIT_EXCEEDED', message: `Bet cannot exceed ${BET_LIMIT}.`, maxBet: BET_LIMIT };
   }
 
-  const player = auth?.player || await getOrCreatePlayer(playerId);
+  const player = await getOrCreatePlayer(playerId);
   if (player.credits < bet) {
     await logSpinHistory({
       playerId,
@@ -397,9 +455,18 @@ async function handleSpin(payload = {}) {
     };
   }
 
-  const engineResult = runSlotSpin(bet);
+  const upgrades = normalizeUpgrades((auth?.player || player).upgrades || DEFAULT_UPGRADES);
+  const dimensions = computeDimensions(upgrades);
+  const engineResult = runSlotSpin(bet, {
+    rows: dimensions.rows,
+    reels: dimensions.reels,
+    lineTier: dimensions.lineTier
+  });
   const timestamp = nowIso();
   const spinPayload = buildSpinPayload(engineResult, bet, timestamp);
+  spinPayload.rows = dimensions.rows;
+  spinPayload.reels = dimensions.reels;
+  spinPayload.lineTier = dimensions.lineTier;
   const updatedPlayer = await applySpin(player, bet, spinPayload);
   await logSpinHistory({
     playerId,
@@ -494,6 +561,64 @@ async function handleLogout(payload = {}) {
   return { ok: true };
 }
 
+function getUpgradeMeta(type) {
+  if (type === 'rows') {
+    return { maxLevels: ROW_LEVELS, costs: UPGRADE_COSTS.rows || [] };
+  }
+  if (type === 'reels') {
+    return { maxLevels: REEL_LEVELS, costs: UPGRADE_COSTS.reels || [] };
+  }
+  if (type === 'lines') {
+    return { maxLevels: LINE_LEVELS, costs: UPGRADE_COSTS.lines || [] };
+  }
+  return null;
+}
+
+async function handleUpgrade(payload = {}) {
+  const type = (payload.type || '').toLowerCase();
+  const meta = getUpgradeMeta(type);
+  if (!meta) {
+    throw httpError(400, 'Unknown upgrade type.');
+  }
+  const auth = await resolveAuth(payload.token, { required: true });
+  const player = auth.player;
+  const upgrades = normalizeUpgrades(player.upgrades || DEFAULT_UPGRADES);
+  const currentLevel = upgrades[type] || 0;
+  if (currentLevel >= meta.maxLevels) {
+    return { errorCode: 'UPGRADE_MAX', message: 'Upgrade maxed out.', upgrades };
+  }
+  const cost = meta.costs?.[currentLevel];
+  if (!Number.isFinite(cost)) {
+    throw httpError(400, 'Upgrade unavailable.');
+  }
+  if (player.credits < cost) {
+    return {
+      errorCode: 'INSUFFICIENT_CREDITS',
+      message: 'Not enough credits to purchase upgrade.',
+      balance: player.credits
+    };
+  }
+  const nextLevel = currentLevel + 1;
+  const nextCredits = player.credits - cost;
+  const now = nowIso();
+  const updatedUpgrades = { ...upgrades, [type]: nextLevel };
+  const updated = await dynamo.send(new UpdateCommand({
+    TableName: TABLE_NAME,
+    Key: { playerId: player.playerId },
+    UpdateExpression: 'SET credits = :credits, upgrades = :upgrades, updatedAt = :now',
+    ExpressionAttributeValues: {
+      ':credits': nextCredits,
+      ':upgrades': updatedUpgrades,
+      ':now': now
+    },
+    ReturnValues: 'ALL_NEW'
+  }));
+  return formatPlayerPayload(
+    updated.Attributes,
+    { username: auth.username, token: auth.token }
+  );
+}
+
 async function handleDeleteAccount(payload = {}) {
   if (!USERS_TABLE) {
     throw httpError(500, 'Account deletion unavailable.');
@@ -547,6 +672,14 @@ exports.handler = async (event = {}) => {
     if (routeKey.endsWith('/auth/delete')) {
       const deleted = await handleDeleteAccount(payload);
       return respond(200, deleted, corsOrigin);
+    }
+    if (routeKey.endsWith('/upgrade')) {
+      const upgraded = await handleUpgrade(payload);
+      if (upgraded.errorCode) {
+        const status = upgraded.errorCode === 'INSUFFICIENT_CREDITS' ? 400 : 422;
+        return respond(status, upgraded, corsOrigin);
+      }
+      return respond(200, upgraded, corsOrigin);
     }
     if (routeKey.endsWith('/session')) {
       const session = await handleSession(payload);

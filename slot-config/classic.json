@@ -2,8 +2,12 @@
   "id": "classic",
   "name": "Lucky Lambda Classic",
   "tier": "Demo Suite",
-  "rows": 3,
+  "rows": 5,
   "reels": 5,
+  "baseRows": 3,
+  "baseReels": 3,
+  "maxRows": 5,
+  "maxReels": 5,
   "symbols": [
     { "key": "cherry", "label": "Cherry", "asset": "img/slot/classic/symbols/cherry.png" },
     { "key": "lemon", "label": "Lemon", "asset": "img/slot/classic/symbols/lemon.png" },
@@ -48,5 +52,10 @@
   "spinTiming": {
     "overspin": [10, 12, 15],
     "brake": 180
+  },
+  "upgradeCosts": {
+    "rows": [500, 1500],
+    "reels": [750, 2000],
+    "lines": [300, 900, 1800]
   }
 }
