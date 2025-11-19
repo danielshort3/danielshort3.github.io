@@ -365,23 +365,25 @@
       display: none;
     }
     .status-row {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
+      display: flex;
       align-items: center;
+      justify-content: space-between;
       width: 100%;
       margin-bottom: 8px;
       gap: 12px;
+      flex-wrap: wrap;
     }
     .status-row .status-pill {
       margin: 0;
+      flex: 1 1 auto;
       min-width: 0;
     }
     .status-actions {
-      display: inline-flex;
+      display: flex;
       gap: 8px;
       align-items: center;
       justify-content: flex-end;
-      flex-wrap: nowrap;
+      flex: 0 0 auto;
     }
     .status-icon {
       width: 38px;
@@ -811,7 +813,7 @@
         margin-inline: 16px;
       }
       .status-row {
-        grid-template-columns: minmax(0, 1fr) auto;
+        justify-content: space-between;
       }
       .slot-grid {
         gap: 8px;
@@ -1019,7 +1021,7 @@
         <span>Upg</span>
       </button>
     </nav>
-    <section class="panel account-sheet" id="account-panel" role="dialog" aria-modal="true" aria-hidden="true" hidden tabindex="-1" inert>
+    <section class="panel account-sheet" id="account-panel" role="dialog" aria-modal="true" aria-hidden="true" hidden tabindex="-1">
       <div class="account-sheet__header">
         <div>
           <p class="muted-text">Signed in as</p>
@@ -1071,6 +1073,8 @@
             <div class="alert" id="alert" hidden></div>
           </div>
           <div class="action-buttons">
+            <button type="button" class="ghost-btn secondary" id="sync-btn">Sync balance</button>
+            <button type="button" class="ghost-btn tertiary" id="reset-btn">Reset session</button>
             <button type="button" class="spin-btn" id="spin-btn" disabled>Spin</button>
           </div>
         </div>
@@ -1229,9 +1233,6 @@
         upgrades: { ...state.upgrades }
       }));
 
-      const AUTO_SYNC_INTERVAL_MS = 45 * 1000;
-      let autoSyncTimer = null;
-
       const currency = new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD',
@@ -1252,6 +1253,8 @@
         slotGrid: document.getElementById('slot-grid'),
         lineOverlay: document.getElementById('line-overlay'),
         spinBtn: document.getElementById('spin-btn'),
+        resetBtn: document.getElementById('reset-btn'),
+        syncBtn: document.getElementById('sync-btn'),
         alert: document.getElementById('alert'),
         error: document.getElementById('error'),
         machineOutcome: document.getElementById('machine-outcome'),
@@ -1483,6 +1486,8 @@
         els.spinBtn.disabled = disableInputs;
         if (els.betSlider) els.betSlider.disabled = disableInputs;
         els.chipButtons.forEach(btn => { btn.disabled = disableInputs; });
+        if (els.syncBtn) els.syncBtn.disabled = disableInputs;
+        if (els.resetBtn) els.resetBtn.disabled = disableInputs;
         renderUpgrades();
         applyMobileMode();
       };
@@ -1492,6 +1497,7 @@
         state.busy = flag;
         const disableInputs = flag || !state.gameReady;
         els.spinBtn.disabled = disableInputs;
+        if (els.syncBtn) els.syncBtn.disabled = disableInputs;
         if (els.betSlider) els.betSlider.disabled = disableInputs;
         els.chipButtons.forEach(btn => { btn.disabled = disableInputs; });
         renderUpgrades();
@@ -1509,26 +1515,11 @@
       const toggleAccountSheet = (force) => {
         if (!els.accountPanel) return;
         const shouldShow = typeof force === 'boolean' ? force : els.accountPanel.hidden;
+        els.accountPanel.hidden = !shouldShow;
+        els.accountPanel.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
         if (shouldShow) {
-          els.accountPanel.hidden = false;
-          els.accountPanel.removeAttribute('inert');
-          els.accountPanel.setAttribute('aria-hidden', 'false');
-          requestAnimationFrame(() => {
-            els.accountPanel?.focus({ preventScroll: false });
-          });
-          return;
+          els.accountPanel.focus({ preventScroll: false });
         }
-        const activeEl = document.activeElement;
-        if (activeEl && els.accountPanel.contains(activeEl)) {
-          if (els.accountToggle && !els.accountToggle.disabled) {
-            els.accountToggle.focus();
-          } else if (typeof activeEl.blur === 'function') {
-            activeEl.blur();
-          }
-        }
-        els.accountPanel.setAttribute('aria-hidden', 'true');
-        els.accountPanel.setAttribute('inert', '');
-        els.accountPanel.hidden = true;
       };
 
       const randomSymbolInfo = () => {
@@ -2018,7 +2009,6 @@
         } else {
           localStorage.removeItem(storageKeys.token);
           localStorage.removeItem(storageKeys.user);
-          stopAutoSync();
         }
         updateAuthUI();
       };
@@ -2172,7 +2162,6 @@
         updateLastSpin(session.lastSpin);
         setGameVisibility(true);
         setStatus('Connected to AWS Lambda', 'ok');
-        startAutoSync();
         if (logMessage) {
           log(logMessage, `${session.username || 'User'} • balance ${currency.format(session.balance)}`);
         }
@@ -2203,27 +2192,6 @@
           setBusy(false);
         }
       };
-
-      function shouldAutoSync() {
-        return Boolean(state.auth.token) && !state.busy;
-      }
-
-      function stopAutoSync() {
-        if (autoSyncTimer === null) return;
-        window.clearInterval(autoSyncTimer);
-        autoSyncTimer = null;
-      }
-
-      function startAutoSync() {
-        stopAutoSync();
-        if (!state.auth.token) return;
-        autoSyncTimer = window.setInterval(requestAutoSync, AUTO_SYNC_INTERVAL_MS);
-      }
-
-      function requestAutoSync() {
-        if (!shouldAutoSync() || document.hidden) return;
-        bootstrap();
-      }
 
       const spin = async () => {
         debug('spin:click', { busy: state.busy, authed: !!state.auth.token });
@@ -2387,11 +2355,17 @@
 
       els.spinBtn.addEventListener('click', spin);
 
-      window.addEventListener('focus', requestAutoSync);
-      document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) {
-          requestAutoSync();
+      els.resetBtn.addEventListener('click', () => {
+        if (state.busy || !state.auth.token) {
+          showAuthAlert('Sign in to use the slot machine.');
+          return;
         }
+        bootstrap();
+      });
+
+      els.syncBtn.addEventListener('click', () => {
+        if (state.busy || !state.auth.token) return;
+        bootstrap();
       });
 
       const purchaseUpgrade = async (type) => {
