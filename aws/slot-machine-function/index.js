@@ -400,6 +400,12 @@ async function logSpinHistory(entry = {}) {
 }
 
 async function handleSession(payload = {}) {
+  if ((payload.action === 'upgrade' || payload.upgradeType || payload.type) && payload.token) {
+    return handleUpgrade({
+      token: payload.token,
+      type: payload.type || payload.upgradeType || payload.actionType
+    });
+  }
   if (payload.token) {
     const auth = await resolveAuth(payload.token, { required: true });
     return formatPlayerPayload(auth.player, {
