@@ -446,6 +446,8 @@
       display: grid;
       grid-template-columns: repeat(var(--reel-count), minmax(0, 1fr));
       gap: clamp(8px, 2vw, 18px);
+      perspective: 1200px;
+      position: relative;
     }
     .slot-cell {
       position: relative;
@@ -479,10 +481,31 @@
       object-fit: contain;
       filter: drop-shadow(0 10px 20px rgba(0,0,0,.45));
     }
-    @keyframes reelSpin {
-      0% { transform: translateY(-8%) rotateX(0deg); }
-      50% { transform: translateY(8%) rotateX(10deg); }
-      100% { transform: translateY(-8%) rotateX(0deg); }
+    .slot-cell[data-state="spinning"] .slot-cell__symbol {
+      animation: slotReelSpin .42s cubic-bezier(.42,.01,.58,1) infinite;
+      opacity: .9;
+    }
+    .slot-cell[data-state="spinning"] .slot-cell__symbol img {
+      filter: blur(1.6px) brightness(1.1);
+    }
+    .slot-cell.slot-lock .slot-cell__symbol {
+      animation: none;
+      transform: translateZ(0) rotateX(0deg) scale(1.05);
+      transition: transform .5s cubic-bezier(.19,1,.22,1);
+    }
+    .slot-cell.slot-lock .slot-cell__symbol img {
+      filter: drop-shadow(0 15px 25px rgba(0,0,0,.35));
+    }
+    @keyframes slotReelSpin {
+      0% {
+        transform: translateZ(30px) translateY(-18%) rotateX(0deg);
+      }
+      50% {
+        transform: translateZ(30px) translateY(18%) rotateX(180deg);
+      }
+      100% {
+        transform: translateZ(30px) translateY(-18%) rotateX(360deg);
+      }
     }
     .slot-cell[data-state="spinning"] .slot-cell__symbol {
       animation: reelSpin .5s linear infinite;
@@ -1355,6 +1378,10 @@
         clearReelIntervals();
         activeReelLocks = 0;
         pendingWinGroups = [];
+        state.gridCells.forEach(cell => {
+          cell.classList.remove('slot-lock');
+          cell.dataset.state = 'spinning';
+        });
         setGridState('spinning');
         for (let col = 0; col < reels; col += 1) {
           const interval = setInterval(() => {
@@ -1385,7 +1412,8 @@
             const symbolKey = symbols[row] || randomSymbolInfo().key;
             applySymbolToImage(img, symbolKey);
             cell.dataset.symbol = symbolKey;
-            cell.dataset.state = 'settled';
+            cell.dataset.state = 'locked';
+            cell.classList.add('slot-lock');
           }
         };
 
@@ -1393,6 +1421,7 @@
           if (activeReelLocks === 0 && pendingWinGroups) {
             highlightWins(pendingWinGroups);
             pendingWinGroups = [];
+            state.gridCells.forEach(cell => cell.classList.remove('slot-lock'));
           }
         };
 
