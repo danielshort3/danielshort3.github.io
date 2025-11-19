@@ -850,6 +850,27 @@
         { key: 'wild', label: 'Wild', asset: 'img/slot/classic/symbols/wild.png' },
         { key: 'bonus', label: 'Bonus Sigil', asset: 'img/slot/classic/symbols/bonus.png' }
       ];
+      const PLACEHOLDER_ASSET = 'img/slot/placeholder.png';
+      const buildSymbolMap = (symbols = [], baseMap = null, placeholderAsset = PLACEHOLDER_ASSET) => {
+        const seedEntries = baseMap
+          ? Array.from(baseMap.entries())
+          : DEFAULT_SYMBOLS.map(entry => [entry.key, { ...entry }]);
+        const map = new Map(seedEntries.map(([key, val]) => [key, { ...val, asset: val.asset || placeholderAsset }]));
+        if (!Array.isArray(symbols) || !symbols.length) return map;
+        symbols.forEach(entry => {
+          if (!entry || !entry.key) return;
+          const prev = map.get(entry.key) || { key: entry.key, label: entry.label || entry.key, asset: placeholderAsset };
+          map.set(entry.key, {
+            ...prev,
+            ...entry,
+            asset: entry.asset || prev.asset || placeholderAsset
+          });
+        });
+        return map;
+      };
+      const cloneSymbolMap = (map) => new Map(Array.from(map.entries()).map(([key, val]) => [key, { ...val }]));
+      const DEFAULT_SYMBOL_MAP = buildSymbolMap(DEFAULT_SYMBOLS, null, PLACEHOLDER_ASSET);
+
       const state = {
         playerId: null,
         balance: 0,
@@ -871,9 +892,9 @@
           lines: [],
           payouts: {},
           assets: {},
-          placeholder: 'img/slot/placeholder.png'
+          placeholder: PLACEHOLDER_ASSET
         },
-        symbolMap: new Map(DEFAULT_SYMBOLS.map(entry => [entry.key, entry])),
+        symbolMap: cloneSymbolMap(DEFAULT_SYMBOL_MAP),
         gridCells: new Map()
       };
       window.slotDemoDebug = window.slotDemoDebug || {};
@@ -936,6 +957,56 @@
         accountUser: document.getElementById('account-user'),
         logoutBtn: document.getElementById('logout-btn'),
         deleteBtn: document.getElementById('delete-account-btn')
+      };
+      const probedSymbols = new Set();
+      const getPlaceholderAsset = () => state?.machine?.assets?.placeholder || state?.machine?.placeholder || PLACEHOLDER_ASSET;
+      const auditSymbolAssets = () => {
+        state.symbolMap.forEach(entry => {
+          if (!entry || !entry.key || !entry.asset || probedSymbols.has(entry.key)) return;
+          probedSymbols.add(entry.key);
+          const img = new Image();
+          img.addEventListener('load', () => {
+            debug('asset:load-ok', { symbol: entry.key, src: entry.asset });
+          }, { once: true });
+          img.addEventListener('error', () => {
+            debugError('asset:load-failed', new Error('Failed to load symbol asset'), { symbol: entry.key, src: entry.asset });
+          }, { once: true });
+          img.src = entry.asset;
+        });
+      };
+      const attachImageDebugging = (img, symbolKey) => {
+        if (!img || img.dataset.debugAttached) return;
+        img.dataset.debugAttached = 'true';
+        img.addEventListener('error', () => {
+          debugError('image', new Error('Image failed to load'), { symbol: symbolKey || img.dataset.symbolKey || img.alt, src: img.currentSrc || img.src });
+          img.src = getPlaceholderAsset();
+        });
+      };
+      const getSymbolEntry = (symbolKey) => {
+        if (!symbolKey) {
+          return { key: 'placeholder', label: 'Symbol', asset: getPlaceholderAsset() };
+        }
+        const entry = state.symbolMap.get(symbolKey) || DEFAULT_SYMBOL_MAP.get(symbolKey);
+        if (entry) {
+          return { ...entry, asset: entry.asset || getPlaceholderAsset() };
+        }
+        return { key: symbolKey, label: symbolKey, asset: getPlaceholderAsset() };
+      };
+      const applySymbolToImage = (img, symbolKey) => {
+        const info = getSymbolEntry(symbolKey);
+        if (!img) return info;
+        const needsUpdate = img.dataset.symbolKey !== info.key || img.dataset.symbolAsset !== info.asset;
+        if (needsUpdate) {
+          img.dataset.symbolKey = info.key;
+          img.dataset.symbolAsset = info.asset;
+          img.alt = info.label || info.key;
+          img.src = info.asset || getPlaceholderAsset();
+          if (!info.asset || info.asset === getPlaceholderAsset()) {
+            debug('symbol:placeholder-used', { symbol: info.key, reason: 'missing asset' });
+          }
+        }
+        attachImageDebugging(img, info.key);
+        return info;
       };
       state.playerId = state.auth.token ? null : getStored(storageKeys.player);
 
@@ -1009,11 +1080,10 @@
         });
       };
 
-      const getSymbolInfo = (key) => state.symbolMap.get(key) || { key, label: key, asset: state.machine.placeholder };
       const randomSymbolInfo = () => {
         const entries = Array.from(state.symbolMap.values());
         if (!entries.length) {
-          return { key: 'placeholder', label: 'Symbol', asset: state.machine.assets.placeholder || state.machine.placeholder };
+          return getSymbolEntry('placeholder');
         }
         return entries[Math.floor(Math.random() * entries.length)];
       };
@@ -1042,8 +1112,7 @@
             wrapper.className = 'slot-cell__symbol';
             const img = document.createElement('img');
             const seedSymbol = randomSymbolInfo();
-            img.alt = seedSymbol.label || seedSymbol.key;
-            img.src = seedSymbol.asset || seedSymbol.icon || state.machine.assets.placeholder || state.machine.placeholder;
+            applySymbolToImage(img, seedSymbol.key);
             wrapper.appendChild(img);
             cell.appendChild(wrapper);
             els.slotGrid.appendChild(cell);
@@ -1085,19 +1154,16 @@
         for (let row = 0; row < rows; row += 1) {
           const rowSymbols = grid[row] || [];
           for (let col = 0; col < reels; col += 1) {
-            const symbolKey = rowSymbols[col];
+            const symbolKey = rowSymbols[col] || randomSymbolInfo().key;
             const cell = state.gridCells.get(`${row}:${col}`);
             if (!cell) continue;
             const img = cell.querySelector('img');
-            const info = symbolKey ? getSymbolInfo(symbolKey) : randomSymbolInfo();
-            if (img && info) {
-              img.src = info.asset || info.icon || state.machine.assets.placeholder || state.machine.placeholder;
-              img.alt = info.label || info.key;
-            }
-            cell.dataset.symbol = symbolKey || '';
+            const info = applySymbolToImage(img, symbolKey);
+            cell.dataset.symbol = info.key;
             if (cell.dataset.state !== 'win') {
               cell.dataset.state = 'settled';
             }
+            debug('grid:update-cell', { row, col, symbol: info.key });
           }
         }
       };
@@ -1145,27 +1211,42 @@
         });
       };
 
-      const renderPaytable = () => {
+      function renderPaytable() {
         if (!els.paytable) return;
         if (!state.symbolMap.size) {
-          els.paytable.innerHTML = '<li class="muted-text">Loading symbol data…</li>';
-          return;
+          state.symbolMap = cloneSymbolMap(DEFAULT_SYMBOL_MAP);
         }
         const entries = Array.from(state.symbolMap.values());
         els.paytable.innerHTML = entries.map(entry => {
           const payout = state.machine.payouts[entry.key] || 0;
           const tiers = [1, 2, 3].map(mult => `${mult + 2}× ${payout ? payout * mult : 0}× bet`).join(' • ');
+          const asset = entry.asset || getPlaceholderAsset();
+          if (!entry.asset || asset === getPlaceholderAsset()) {
+            debug('paytable:placeholder', { symbol: entry.key });
+          }
           return `
             <li>
               <div class="paytable-symbol">
-                <img src="${entry.asset || state.machine.assets.placeholder || state.machine.placeholder}" alt="${entry.label}">
+                <img src="${asset}" alt="${entry.label}" data-symbol="${entry.key}" loading="lazy">
                 ${entry.label}
               </div>
               <div class="paytable-meta">${tiers}</div>
             </li>
           `;
         }).join('');
+        els.paytable.querySelectorAll('.paytable-symbol img').forEach(img => {
+          attachImageDebugging(img, img.dataset.symbol);
+        });
+        debug('paytable:render', { symbols: entries.length });
+      }
+
+      const setSymbolMap = (symbols = [], reason = 'update') => {
+        state.symbolMap = buildSymbolMap(symbols, state.symbolMap || DEFAULT_SYMBOL_MAP, getPlaceholderAsset());
+        debug('symbols:set', { reason, count: state.symbolMap.size });
+        auditSymbolAssets();
+        renderPaytable();
       };
+      setSymbolMap(DEFAULT_SYMBOLS, 'init');
 
       const syncMachineDefinition = (machine = {}) => {
         if (!machine || typeof machine !== 'object') return;
@@ -1179,9 +1260,7 @@
         if (Array.isArray(machine.lines)) state.machine.lines = machine.lines;
         if (machine.payouts) state.machine.payouts = machine.payouts;
         if (machine.assets) state.machine.assets = { ...state.machine.assets, ...machine.assets };
-        if (Array.isArray(machine.symbols) && machine.symbols.length) {
-          state.symbolMap = new Map(machine.symbols.map(entry => [entry.key, entry]));
-        }
+        setSymbolMap(Array.isArray(machine.symbols) ? machine.symbols : [], 'syncMachineDefinition');
         const changed = prevRows !== state.machine.rows || prevReels !== state.machine.reels;
         if (changed) ensureGrid(state.machine.rows, state.machine.reels);
         updateMachineMeta();
@@ -1201,17 +1280,11 @@
           const data = await res.json();
           state.machine.assets = data.assets || state.machine.assets;
           state.machine.placeholder = data.assets?.placeholder || state.machine.placeholder;
-          if (Array.isArray(data.symbols)) {
-            state.symbolMap = new Map(data.symbols.map(entry => [entry.key, entry]));
-          }
           if (data.payouts) state.machine.payouts = data.payouts;
           if (Number(data.rows)) state.machine.rows = Number(data.rows);
           if (Number(data.reels)) state.machine.reels = Number(data.reels);
-          if (Array.isArray(data.symbols) && data.symbols.length) {
-            state.symbolMap = new Map(data.symbols.map(entry => [entry.key, entry]));
-          }
+          setSymbolMap(Array.isArray(data.symbols) ? data.symbols : [], 'machineConfig');
           ensureGrid(state.machine.rows, state.machine.reels);
-          renderPaytable();
           applyMachineTheme();
           debug('machine-config:loaded', { rows: state.machine.rows, reels: state.machine.reels, symbols: state.symbolMap.size });
         } catch (error) {
