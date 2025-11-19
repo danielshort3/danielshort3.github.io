@@ -805,8 +805,24 @@
 
   <script>
     (() => {
+      const DEBUG = true;
+      const debug = (...args) => DEBUG && console.debug('[slot-demo]', ...args);
+      const debugError = (scope, error, extra = {}) => {
+        if (!DEBUG) return;
+        console.error(`[slot-demo][${scope}]`, error, extra);
+      };
+      window.addEventListener('error', (event) => {
+        debugError('window-error', event.error || event.message, { event });
+      });
+      window.addEventListener('unhandledrejection', (event) => {
+        debugError('unhandled-rejection', event.reason, {});
+      });
+
       const root = document.getElementById('main');
-      if (!root) return;
+      if (!root) {
+        debugError('init', 'Missing #main element');
+        return;
+      }
       const API_BASE = root.dataset.apiBase;
       const DEFAULT_MAX_BET = Number(root.dataset.maxBet) || 100;
       const MACHINE_CONFIG_URL = root.dataset.machineConfig || '';
@@ -860,6 +876,13 @@
         symbolMap: new Map(DEFAULT_SYMBOLS.map(entry => [entry.key, entry])),
         gridCells: new Map()
       };
+      window.slotDemoDebug = window.slotDemoDebug || {};
+      window.slotDemoDebug.state = state;
+      window.slotDemoDebug.log = debug;
+      window.slotDemoDebug.dumpState = () => JSON.parse(JSON.stringify({
+        ...state,
+        symbolMap: Array.from(state.symbolMap.keys())
+      }));
 
       const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
       const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
@@ -917,6 +940,7 @@
       state.playerId = state.auth.token ? null : getStored(storageKeys.player);
 
       const log = (message, data) => {
+        debug('ui-log', { message, data, stateSnapshot: { busy: state.busy, auth: !!state.auth.token } });
         const entry = document.createElement('div');
         entry.className = 'log-entry';
         const time = new Date().toLocaleTimeString();
@@ -929,6 +953,7 @@
       };
 
       const setStatus = (text, stateAttr = 'ok') => {
+        debug('ui:setStatus', { text, stateAttr });
         els.connectionText.textContent = text;
         els.connectionPill.dataset.state = stateAttr;
         els.connectionPill.dataset.state === 'ok'
@@ -939,9 +964,11 @@
       const showAlert = (text = '') => {
         els.alert.hidden = !text;
         els.alert.textContent = text;
+        if (text) debug('ui:alert', text);
       };
 
       const showAuthAlert = (text = '') => {
+        if (text) debug('auth:alert', text);
         if (!els.authAlert) return;
         els.authAlert.hidden = !text;
         els.authAlert.textContent = text;
@@ -950,6 +977,7 @@
       const gamePanels = Array.from(document.querySelectorAll('[data-requires-auth]'));
 
       const setGameVisibility = (visible) => {
+        debug('ui:setGameVisibility', { visible });
         state.gameReady = visible;
         gamePanels.forEach(panel => {
           panel.hidden = !visible;
@@ -963,6 +991,7 @@
       };
 
       const setBusy = (flag) => {
+        debug('ui:setBusy', { flag, prev: state.busy });
         state.busy = flag;
         const disableInputs = flag || !state.gameReady;
         els.spinBtn.disabled = disableInputs;
@@ -1003,6 +1032,7 @@
         if (currentRows === rows && currentReels === reels && state.gridCells.size === rows * reels) {
           return;
         }
+        debug('grid:rebuild', { rows, reels });
         state.gridCells.clear();
         els.slotGrid.dataset.rows = rows;
         els.slotGrid.dataset.reels = reels;
@@ -1166,8 +1196,10 @@
       };
 
       const loadMachineConfig = async () => {
+        debug('machine-config:load', { url: MACHINE_CONFIG_URL });
         if (!MACHINE_CONFIG_URL) {
           ensureGrid(state.machine.rows, state.machine.reels);
+          debug('machine-config:skipped', 'no URL provided');
           return;
         }
         try {
@@ -1188,14 +1220,17 @@
           ensureGrid(state.machine.rows, state.machine.reels);
           renderPaytable();
           applyMachineTheme();
+          debug('machine-config:loaded', { rows: state.machine.rows, reels: state.machine.reels, symbols: state.symbolMap.size });
         } catch (error) {
           console.error('Machine config failed', error);
           log('Assets', 'Unable to load slot assets.');
+          debugError('machine-config', error);
           ensureGrid(state.machine.rows, state.machine.reels);
         }
       };
 
       const setAuthMode = (mode = 'login') => {
+        debug('auth:setMode', mode);
         const nextMode = mode === 'register' ? 'register' : 'login';
         state.authMode = nextMode;
         localStorage.setItem(AUTH_MODE_KEY, nextMode);
@@ -1240,6 +1275,7 @@
 
       const setBetValue = (value) => {
         const safe = clamp(value || 1, 1, state.maxBet || DEFAULT_MAX_BET);
+        debug('bet:update', { requested: value, applied: safe, max: state.maxBet });
         state.bet = safe;
         if (els.betSlider) {
           els.betSlider.max = state.maxBet || DEFAULT_MAX_BET;
@@ -1257,6 +1293,7 @@
       const resetStoredPlayer = () => localStorage.removeItem(storageKeys.player);
 
       const updateAuthUI = () => {
+        debug('auth:updateUI', { loggedIn: Boolean(state.auth.token) });
         const loggedIn = Boolean(state.auth.token);
         if (els.authOverlay) {
           els.authOverlay.dataset.hidden = loggedIn ? 'true' : 'false';
@@ -1283,6 +1320,7 @@
       };
 
       const setAuthState = ({ token, username } = {}) => {
+        debug('auth:setState', { tokenPresent: Boolean(token), username });
         state.auth.token = token || null;
         state.auth.username = token ? (username || state.auth.username || null) : null;
         if (!state.auth.token) {
@@ -1300,6 +1338,7 @@
       };
 
       const clearAuth = (message) => {
+        debug('auth:clear', { message });
         if (!state.auth.token) return;
         setAuthState({});
         setGameVisibility(false);
@@ -1311,6 +1350,7 @@
       };
 
       const syncAuthFromPayload = (payload = {}) => {
+        debug('auth:syncFromPayload', payload);
         if (payload.token && payload.username) {
           setAuthState({ token: payload.token, username: payload.username });
           showAuthAlert('');
@@ -1326,6 +1366,7 @@
 
       const request = async (path, payload = {}, options = {}) => {
         const finalPayload = options.skipAuth ? payload : withAuth(payload);
+        debug('request:start', { path, payload: finalPayload, options });
         const res = await fetch(`${API_BASE}${path}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1337,6 +1378,7 @@
         } catch {
           data = {};
         }
+        debug('request:response', { path, status: res.status, ok: res.ok, body: data });
         if (!res.ok) {
           if (res.status === 401 && !options.skipAuth) {
             clearAuth('Session expired. Please sign in again.');
@@ -1344,12 +1386,14 @@
           const err = new Error(data.error || data.message || 'Request failed');
           err.payload = data;
           err.status = res.status;
+           debugError('request:error', err, { path, payload: finalPayload });
           throw err;
         }
         return data;
       };
 
       const updateStats = (payload = {}) => {
+        debug('updateStats', payload);
         if (payload.playerId) {
           state.playerId = payload.playerId;
           els.playerId.textContent = payload.playerId;
@@ -1396,6 +1440,7 @@
       };
 
       const updateLastSpin = (lastSpin) => {
+        debug('updateLastSpin', lastSpin);
         if (!lastSpin) {
           if (els.lastOutcome) els.lastOutcome.textContent = '—';
           if (els.lastWin) els.lastWin.textContent = '—';
@@ -1423,6 +1468,7 @@
       };
 
       const hydrateSession = (session, logMessage) => {
+        debug('hydrateSession', session);
         syncAuthFromPayload(session);
         if (session.machine) {
           syncMachineDefinition(session.machine);
@@ -1437,9 +1483,11 @@
       };
 
       const bootstrap = async () => {
+        debug('bootstrap:start');
         if (!state.auth.token) {
           setGameVisibility(false);
           setStatus('Sign in to start', 'error');
+          debug('bootstrap:skipped', 'missing auth token');
           return;
         }
         setBusy(true);
@@ -1453,12 +1501,15 @@
           setStatus('Offline — check CloudWatch logs', 'error');
           showAlert(error.message || 'Unable to reach AWS.');
           log('Connection failed', error.message);
+          debugError('bootstrap', error);
         } finally {
+          debug('bootstrap:end');
           setBusy(false);
         }
       };
 
       const spin = async () => {
+        debug('spin:click', { busy: state.busy, authed: !!state.auth.token });
         if (state.busy) return;
         if (!state.auth.token) {
           showAuthAlert('Sign in to spin the slot machine.');
@@ -1478,6 +1529,7 @@
           updateLastSpin(spinData);
           const outcomeText = spinData?.outcome || result.outcome || 'Result processed';
           log('Spin processed by Lambda', `${outcomeText} (balance ${currency.format(result.balance)})`);
+          debug('spin:success', { bet, outcome: outcomeText, balance: result.balance });
         } catch (error) {
           const payload = error.payload || {};
           const msg = payload.message || error.message;
@@ -1490,6 +1542,7 @@
           } else {
             log('Spin failed', msg);
           }
+          debugError('spin', error, { payload });
         } finally {
           stopGridSpin(spinData?.grid);
           setBusy(false);
@@ -1499,6 +1552,7 @@
       const loginOrRegister = async () => {
         const email = (els.authEmail?.value || '').trim().toLowerCase();
         const password = els.authPassword?.value || '';
+        debug('auth:submit', { mode: state.authMode, email, hasPassword: Boolean(password) });
         if (!email || !password) {
           showAuthAlert('Enter your email and password.');
           return;
@@ -1521,15 +1575,18 @@
           const result = await request(endpoint, { username: email, password }, { skipAuth: true });
           hydrateSession(result, state.authMode === 'register' ? 'Account created' : 'Signed in');
           showAuthAlert(state.authMode === 'register' ? 'Account created! Credits synced.' : 'Signed in successfully.');
+          debug('auth:success', { endpoint });
         } catch (error) {
           showAuthAlert(error.message || 'Unable to process request.');
           log('Auth failed', error.message);
+          debugError('auth', error);
         } finally {
           toggleAuthInputs(false);
         }
       };
 
       const logout = async () => {
+        debug('auth:logout-click', { authed: !!state.auth.token });
         if (!state.auth.token) return;
         showAuthAlert('');
         if (els.logoutBtn) els.logoutBtn.disabled = true;
@@ -1537,6 +1594,7 @@
           await request('/auth/logout', {});
         } catch (error) {
           console.error(error);
+          debugError('logout', error);
         } finally {
           if (els.logoutBtn) els.logoutBtn.disabled = false;
           setAuthState({});
@@ -1550,6 +1608,7 @@
       const deleteAccount = async () => {
         if (!state.auth.token) return;
         const confirmed = window.confirm('Delete your account and all slot progress? This cannot be undone.');
+        debug('account:delete-click', { confirmed });
         if (!confirmed) return;
         showAuthAlert('');
         if (els.deleteBtn) els.deleteBtn.disabled = true;
@@ -1563,6 +1622,7 @@
         } catch (error) {
           showAuthAlert(error.message || 'Unable to delete account right now.');
           log('Delete failed', error.message);
+          debugError('delete-account', error);
         } finally {
           if (els.deleteBtn) els.deleteBtn.disabled = false;
         }
@@ -1582,6 +1642,7 @@
       }
 
       const handleChipAction = (action) => {
+        debug('chip:action', { action, busy: state.busy, ready: state.gameReady });
         if (state.busy || !state.gameReady) return;
         if (action === 'increase') {
           setBetValue(state.bet + 5);
