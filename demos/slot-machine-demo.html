@@ -1702,7 +1702,7 @@
           .slice()
           .sort((a, b) => (b.payout || 0) - (a.payout || 0))
           .map(group => {
-            const info = getSymbolInfo(group.symbol);
+            const info = getSymbolEntry(group.symbol);
             return `${info.label || info.key} ×${group.count}`;
           })
           .join(', ');
