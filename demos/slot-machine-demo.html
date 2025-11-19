@@ -479,6 +479,14 @@
       object-fit: contain;
       filter: drop-shadow(0 10px 20px rgba(0,0,0,.45));
     }
+    @keyframes reelSpin {
+      0% { transform: translateY(-8%) rotateX(0deg); }
+      50% { transform: translateY(8%) rotateX(10deg); }
+      100% { transform: translateY(-8%) rotateX(0deg); }
+    }
+    .slot-cell[data-state="spinning"] .slot-cell__symbol {
+      animation: reelSpin .5s linear infinite;
+    }
     .line-overlay {
       position: absolute;
       inset: clamp(12px, 2vw, 26px);
@@ -1029,6 +1037,9 @@
         upgradePanel: document.getElementById('upgrade-panel')
       };
       const probedSymbols = new Set();
+      const reelIntervals = new Map();
+      let pendingWinGroups = [];
+      let activeReelLocks = 0;
       const getPlaceholderAsset = () => state?.machine?.assets?.placeholder || state?.machine?.placeholder || PLACEHOLDER_ASSET;
       const auditSymbolAssets = () => {
         state.symbolMap.forEach(entry => {
@@ -1240,6 +1251,11 @@
         els.upgradeGrid.innerHTML = cards;
       };
 
+      const clearReelIntervals = () => {
+        reelIntervals.forEach(timer => clearInterval(timer));
+        reelIntervals.clear();
+      };
+
       const ensureGrid = (rows, reels) => {
         if (!els.slotGrid) return;
         const currentRows = Number(els.slotGrid.dataset.rows) || 0;
@@ -1333,17 +1349,76 @@
       };
 
       const startGridSpin = () => {
-        if (!state.gridCells.size) ensureGrid(state.machine.rows, state.machine.reels);
+        const rows = state.currentRows || state.machine.rows;
+        const reels = state.currentReels || state.machine.reels;
+        ensureGrid(rows, reels);
+        clearReelIntervals();
+        activeReelLocks = 0;
+        pendingWinGroups = [];
         setGridState('spinning');
+        for (let col = 0; col < reels; col += 1) {
+          const interval = setInterval(() => {
+            for (let row = 0; row < rows; row += 1) {
+              const cell = state.gridCells.get(`${row}:${col}`);
+              if (!cell) continue;
+              const img = cell.querySelector('img');
+              const randomSymbol = randomSymbolInfo();
+              applySymbolToImage(img, randomSymbol.key);
+            }
+          }, 70 + col * 15);
+          reelIntervals.set(col, interval);
+        }
       };
 
       const stopGridSpin = (grid) => {
-        if (Array.isArray(grid)) {
-          updateGridSymbols(grid);
-        } else {
+        const finalizeColumn = (col, symbols = []) => {
+          const timer = reelIntervals.get(col);
+          if (timer) {
+            clearInterval(timer);
+            reelIntervals.delete(col);
+          }
+          const rowCount = Math.max(symbols.length, state.currentRows || state.machine.rows || 3);
+          for (let row = 0; row < rowCount; row += 1) {
+            const cell = state.gridCells.get(`${row}:${col}`);
+            if (!cell) continue;
+            const img = cell.querySelector('img');
+            const symbolKey = symbols[row] || randomSymbolInfo().key;
+            applySymbolToImage(img, symbolKey);
+            cell.dataset.symbol = symbolKey;
+            cell.dataset.state = 'settled';
+          }
+        };
+
+        const finishHighlight = () => {
+          if (activeReelLocks === 0 && pendingWinGroups) {
+            highlightWins(pendingWinGroups);
+            pendingWinGroups = [];
+          }
+        };
+
+        if (!Array.isArray(grid)) {
+          clearReelIntervals();
           state.gridCells.forEach(cell => {
             if (cell.dataset.state === 'spinning') cell.dataset.state = 'settled';
           });
+          activeReelLocks = 0;
+          finishHighlight();
+          return;
+        }
+        const rows = state.currentRows || grid.length || state.machine.rows;
+        const reels = grid[0] ? grid[0].length : state.currentReels || state.machine.reels;
+        activeReelLocks = reels;
+        for (let col = 0; col < reels; col += 1) {
+          const columnSymbols = [];
+          for (let row = 0; row < rows; row += 1) {
+            columnSymbols[row] = grid[row]?.[col];
+          }
+          const delay = 150 + col * 220 + Math.random() * 140;
+          setTimeout(() => {
+            finalizeColumn(col, columnSymbols);
+            activeReelLocks -= 1;
+            finishHighlight();
+          }, delay);
         }
       };
 
@@ -1730,10 +1805,11 @@
         if (els.lastTime) els.lastTime.textContent = new Date(lastSpin.timestamp).toLocaleString();
         if (els.machineOutcome) els.machineOutcome.textContent = lastSpin.outcome || summary;
         if (els.hudWin) els.hudWin.textContent = currency.format(lastSpin.winAmount || 0);
-        if (Array.isArray(lastSpin.grid)) {
-          updateGridSymbols(lastSpin.grid);
+        pendingWinGroups = lastSpin.winGroups || [];
+        if (activeReelLocks === 0 && reelIntervals.size === 0) {
+          highlightWins(pendingWinGroups);
+          pendingWinGroups = [];
         }
-        highlightWins(lastSpin.winGroups || []);
       };
 
       const hydrateSession = (session, logMessage) => {
