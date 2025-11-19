@@ -1170,12 +1170,27 @@
       const storageKeys = {
         player: 'slotMachineDemoPlayerId',
         token: 'slotMachineAuthToken',
-        user: 'slotMachineAuthUser'
+        user: 'slotMachineAuthUser',
+        localUpgrades: 'slotMachineDemoLocalUpgrades',
+        localLedger: 'slotMachineDemoLocalLedger'
       };
       const AUTH_MODE_KEY = 'slotMachineAuthMode';
       const getStored = (key) => {
         const value = localStorage.getItem(key);
         return value && value !== 'null' ? value : null;
+      };
+      const loadLocalUpgrades = () => {
+        try {
+          const raw = localStorage.getItem(storageKeys.localUpgrades);
+          return raw ? JSON.parse(raw) : {};
+        } catch {
+          return {};
+        }
+      };
+      const loadLocalLedger = () => {
+        const raw = localStorage.getItem(storageKeys.localLedger);
+        const value = Number(raw);
+        return Number.isFinite(value) && value > 0 ? value : 0;
       };
       const DEFAULT_SYMBOLS = [
         { key: 'cherry', label: 'Cherry', asset: 'img/slot/classic/symbols/cherry.png' },
@@ -1246,6 +1261,9 @@
         },
         symbolMap: cloneSymbolMap(DEFAULT_SYMBOL_MAP),
         gridCells: new Map(),
+        remoteUpgrades: {},
+        localUpgrades: loadLocalUpgrades(),
+        localLedger: loadLocalLedger(),
         upgrades: {},
         upgradeCatalog: [],
         currentRows: 3,
@@ -1270,7 +1288,7 @@
             const defs = await res.json();
             if (Array.isArray(defs)) {
               state.upgradeCatalog = defs;
-              applyUpgradeState(state.upgrades);
+              applyUpgradeState(state.remoteUpgrades);
               renderUpgrades();
               return defs;
             }
@@ -1496,6 +1514,7 @@
           format: (current, max) => `${current}/${max} tiers`
         }
       };
+      const SERVER_UPGRADES = new Set(['rows', 'reels', 'lines']);
       const getUpgradeSettings = () => {
         const defaults = {
           baseRows: 3,
@@ -1721,6 +1740,15 @@
           `);
         });
         els.upgradeGrid.innerHTML = sections.join('') || '<p class="muted-text">No upgrades available.</p>';
+      };
+
+      const saveLocalUpgrades = () => {
+        try {
+          localStorage.setItem(storageKeys.localUpgrades, JSON.stringify(state.localUpgrades || {}));
+        } catch {}
+        try {
+          localStorage.setItem(storageKeys.localLedger, String(state.localLedger || 0));
+        } catch {}
       };
 
       const clearReelIntervals = () => {
@@ -2259,8 +2287,9 @@
           }
         }
         if (typeof payload.balance === 'number') {
-          state.balance = payload.balance;
-          els.balance.textContent = currency.format(payload.balance);
+          const adjusted = Math.max(0, payload.balance - (state.localLedger || 0));
+          state.balance = adjusted;
+          els.balance.textContent = currency.format(adjusted);
         }
         if (Number(payload.idleGained) > 0) {
           log('Idle payout collected', `+${currency.format(payload.idleGained)} credits while away.`);
@@ -2275,10 +2304,9 @@
         state.maxBet = resolveMaxBet(payload.maxBet);
         els.maxBet.textContent = state.maxBet;
         if (payload.upgrades) {
-          applyUpgradeState(payload.upgrades);
-        } else {
-          applyUpgradeState(state.upgrades);
+          state.remoteUpgrades = { ...payload.upgrades };
         }
+        applyUpgradeState(state.remoteUpgrades);
         const incomingBet = Number(payload.bet);
         const fallbackBet = Number.isFinite(state.bet)
           ? state.bet
@@ -2348,7 +2376,7 @@
         setGameVisibility(true);
         setStatus('Connected to AWS Lambda', 'ok');
         if (logMessage) {
-          log(logMessage, `${session.username || 'User'} • balance ${currency.format(session.balance)}`);
+          log(logMessage, `${session.username || 'User'} • balance ${currency.format(state.balance || session.balance)}`);
         }
       };
 
@@ -2398,7 +2426,7 @@
           updateStats(result);
           updateLastSpin(spinData);
           const outcomeText = spinData?.outcome || result.outcome || 'Result processed';
-          log('Spin processed by Lambda', `${outcomeText} (balance ${currency.format(result.balance)})`);
+          log('Spin processed by Lambda', `${outcomeText} (balance ${currency.format(state.balance || result.balance)})`);
           debug('spin:success', { bet, outcome: outcomeText, balance: result.balance });
         } catch (error) {
           const payload = error.payload || {};
@@ -2553,9 +2581,47 @@
         bootstrap();
       });
 
+      const handleLocalUpgrade = (def) => {
+        if (!def) {
+          showAlert('Upgrade unavailable.');
+          return;
+        }
+        const key = def.key;
+        const currentRemote = Number(state.remoteUpgrades?.[key]) || 0;
+        const currentLocal = Number(state.localUpgrades?.[key]) || 0;
+        const current = Math.max(currentRemote, currentLocal);
+        const max = getUpgradeMaxLevel(key);
+        if (current >= max) {
+          showAlert('Upgrade already maxed.');
+          return;
+        }
+        const cost = Math.round((def.cost || 0) * (current + 1));
+        if ((state.balance || 0) < cost) {
+          showAlert('Not enough credits for that upgrade.');
+          return;
+        }
+        state.balance -= cost;
+        state.localLedger = (state.localLedger || 0) + cost;
+        state.localUpgrades[key] = current + 1;
+        saveLocalUpgrades();
+        applyUpgradeState();
+        renderUpgrades();
+        updateHud();
+        log('Upgrade purchased', `Unlocked ${def.label}.`);
+      };
+
       const purchaseUpgrade = async (type) => {
         if (!state.auth.token) {
           showAuthAlert('Sign in to upgrade your machine.');
+          return;
+        }
+        const def = getUpgradeDef(type);
+        if (!def) {
+          showAlert('Upgrade unavailable.');
+          return;
+        }
+        if (!SERVER_UPGRADES.has(type)) {
+          handleLocalUpgrade(def);
           return;
         }
         debug('upgrade:request', { type });
@@ -2564,7 +2630,6 @@
         try {
           const result = await request('/session', { action: 'upgrade', type });
           updateStats(result);
-          const def = getUpgradeDef(type);
           log('Upgrade purchased', `Unlocked ${def?.label || type}.`);
         } catch (error) {
           const msg = error.payload?.message || error.message || 'Upgrade failed.';
