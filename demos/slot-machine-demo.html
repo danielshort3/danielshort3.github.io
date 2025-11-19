@@ -723,12 +723,58 @@
       font-size: .9rem;
       color: rgba(148,163,184,.85);
     }
-    @media (max-width: 640px) {
+    .mobile-nav {
+      display: none;
+      gap: 8px;
+      border-radius: 16px;
+      border: 1px solid rgba(148,163,184,.2);
+      background: rgba(15,23,42,.85);
+      padding: 10px;
+    }
+    .mobile-nav button {
+      flex: 1;
+      border: none;
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: rgba(99,102,241,.15);
+      color: var(--text);
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .mobile-nav button.active {
+      background: linear-gradient(120deg, var(--accent), #fde047);
+      color: #020617;
+      box-shadow: 0 6px 18px rgba(250,204,21,.3);
+    }
+    @media (max-width: 768px) {
+      body {
+        padding: 0;
+        min-height: 100vh;
+      }
+      main {
+        border-radius: 0;
+        min-height: 100vh;
+        padding: 16px;
+        gap: 16px;
+      }
       .slot-machine__body {
         grid-template-columns: 1fr;
       }
       .slot-grid {
         gap: 8px;
+      }
+      .mobile-nav {
+        display: flex;
+      }
+      body[data-mobile="true"] [data-mobile-pane] {
+        display: none;
+      }
+      body[data-mobile="true"] [data-mobile-pane][data-mobile-active="true"] {
+        display: block;
+      }
+      body[data-mobile="true"] section.panel {
+        max-height: calc(100vh - 240px);
+        overflow: auto;
       }
     }
   </style>
@@ -782,6 +828,12 @@
         <p>This demo uses an AWS Lambda function, API Gateway, and DynamoDB table so every spin is validated on the server. The browser can render the reels, but it cannot change your credit balance or payout.</p>
       </div>
     </header>
+    <nav class="mobile-nav" id="mobile-nav" aria-label="Game sections">
+      <button type="button" data-mobile-target="play" class="active">Play</button>
+      <button type="button" data-mobile-target="stats">Stats</button>
+      <button type="button" data-mobile-target="paytable">Paytable</button>
+      <button type="button" data-mobile-target="log">Log</button>
+    </nav>
 
     <section class="panel account-panel" id="account-panel" data-requires-auth hidden>
       <div>
@@ -794,7 +846,7 @@
       </div>
     </section>
 
-    <section class="panel slot-machine" data-requires-auth hidden>
+    <section class="panel slot-machine" data-requires-auth hidden data-mobile-pane="play" data-mobile-active="true">
       <div class="slot-machine__header">
         <div>
           <p class="muted-text small">Lucky Lambda Slots</p>
@@ -857,7 +909,7 @@
       </div>
     </section>
 
-    <section class="grid grid-two" data-requires-auth hidden>
+    <section class="grid grid-two" data-requires-auth hidden data-mobile-pane="stats">
       <div class="panel">
         <h2>Session</h2>
         <dl id="session-stats">
@@ -878,13 +930,13 @@
       </div>
     </section>
 
-    <section class="panel paytable-panel" data-requires-auth hidden>
+    <section class="panel paytable-panel" data-requires-auth hidden data-mobile-pane="paytable">
       <h2>Paytable</h2>
       <ul class="paytable" id="paytable"></ul>
       <p class="muted-text small">Multipliers apply to your active bet. Triple matches and pairs are calculated server-side.</p>
     </section>
 
-    <section class="panel" data-requires-auth hidden>
+    <section class="panel" data-requires-auth hidden data-mobile-pane="log">
       <h2>Server Event Log</h2>
       <div class="log" id="log" aria-live="polite"></div>
     </section>
@@ -1057,8 +1109,47 @@
         logoutBtn: document.getElementById('logout-btn'),
         deleteBtn: document.getElementById('delete-account-btn'),
         upgradeGrid: document.getElementById('upgrade-grid'),
-        upgradePanel: document.getElementById('upgrade-panel')
+        upgradePanel: document.getElementById('upgrade-panel'),
+        mobileNav: document.getElementById('mobile-nav')
       };
+      const mobileState = {
+        mq: window.matchMedia('(max-width: 768px)'),
+        enabled: false,
+        active: 'play'
+      };
+      const mobileButtons = Array.from(els.mobileNav?.querySelectorAll('[data-mobile-target]') || []);
+      const mobilePanes = Array.from(document.querySelectorAll('[data-mobile-pane]'));
+      const applyMobileMode = () => {
+        const shouldEnable = mobileState.mq.matches;
+        mobileState.enabled = shouldEnable;
+        document.body.dataset.mobile = shouldEnable ? 'true' : 'false';
+        mobileButtons.forEach(btn => {
+          const target = btn.dataset.mobileTarget;
+          btn.classList.toggle('active', target === mobileState.active);
+        });
+        mobilePanes.forEach(pane => {
+          const paneId = pane.dataset.mobilePane || 'play';
+          const active = !shouldEnable || paneId === mobileState.active;
+          pane.dataset.mobileActive = active ? 'true' : 'false';
+        });
+      };
+      const setMobileActive = (target) => {
+        if (target) {
+          mobileState.active = target;
+        }
+        applyMobileMode();
+      };
+      mobileButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          setMobileActive(btn.dataset.mobileTarget);
+        });
+      });
+      if (mobileState.mq.addEventListener) {
+        mobileState.mq.addEventListener('change', applyMobileMode);
+      } else if (mobileState.mq.addListener) {
+        mobileState.mq.addListener(applyMobileMode);
+      }
+      applyMobileMode();
       const probedSymbols = new Set();
       const reelIntervals = new Map();
       let pendingWinGroups = [];
@@ -1198,6 +1289,7 @@
         if (els.syncBtn) els.syncBtn.disabled = disableInputs;
         if (els.resetBtn) els.resetBtn.disabled = disableInputs;
         renderUpgrades();
+        applyMobileMode();
       };
 
       const setBusy = (flag) => {
