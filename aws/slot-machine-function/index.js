@@ -608,6 +608,13 @@ async function handleUpgrade(payload = {}) {
   const nextCredits = player.credits - cost;
   const now = nowIso();
   const updatedUpgrades = { ...upgrades, [type]: nextLevel };
+  console.log('upgrade:start', {
+    type,
+    currentLevel,
+    nextLevel,
+    cost,
+    credits: player.credits
+  });
   const updated = await dynamo.send(new UpdateCommand({
     TableName: TABLE_NAME,
     Key: { playerId: player.playerId },
@@ -619,6 +626,11 @@ async function handleUpgrade(payload = {}) {
     },
     ReturnValues: 'ALL_NEW'
   }));
+  console.log('upgrade:complete', {
+    type,
+    credits: updated.Attributes?.credits,
+    upgrades: updated.Attributes?.upgrades
+  });
   return formatPlayerPayload(
     updated.Attributes,
     { username: auth.username, token: auth.token }
