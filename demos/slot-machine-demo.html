@@ -729,7 +729,7 @@
       border-radius: 16px;
       border: 1px solid rgba(148,163,184,.2);
       background: rgba(15,23,42,.85);
-      padding: 8px;
+      padding: 10px;
     }
     .mobile-nav button {
       flex: 1;
@@ -750,12 +750,12 @@
       body {
         padding: 0;
         min-height: 100vh;
-        overflow: hidden;
       }
       main {
         border-radius: 0;
-        padding: 12px;
-        gap: 12px;
+        min-height: 100vh;
+        padding: 16px;
+        gap: 16px;
       }
       .slot-machine__body {
         grid-template-columns: 1fr;
@@ -765,21 +765,6 @@
       }
       .mobile-nav {
         display: flex;
-        position: sticky;
-        bottom: 8px;
-        z-index: 50;
-      }
-      body[data-mobile="true"] main {
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-        overflow: hidden;
-      }
-      body[data-mobile="true"] header.grid p:last-child {
-        display: none;
-      }
-      body[data-mobile="true"] header.grid {
-        margin-bottom: 8px;
       }
       body[data-mobile="true"] [data-mobile-pane] {
         display: none;
@@ -787,30 +772,8 @@
       body[data-mobile="true"] [data-mobile-pane][data-mobile-active="true"] {
         display: block;
       }
-      body[data-mobile="true"] .panel.slot-machine[data-mobile-active="true"] {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-      }
-      body[data-mobile="true"] .slot-machine__body {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-      }
-      body[data-mobile="true"] .machine-frame {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-      }
-      body[data-mobile="true"] .machine-frame__reels {
-        flex: 1;
-      }
-      body[data-mobile="true"] .control-deck {
-        margin-top: auto;
-      }
-      body[data-mobile="true"] section.panel:not([data-mobile-pane="play"])[data-mobile-active="true"] {
-        height: calc(100vh - 200px);
+      body[data-mobile="true"] section.panel {
+        max-height: calc(100vh - 240px);
         overflow: auto;
       }
     }
@@ -872,7 +835,7 @@
       <button type="button" data-mobile-target="log">Log</button>
     </nav>
 
-    <section class="panel account-panel" id="account-panel" data-requires-auth hidden data-mobile-pane="stats">
+    <section class="panel account-panel" id="account-panel" data-requires-auth hidden>
       <div>
         <p class="muted-text">Signed in as</p>
         <strong id="account-user"></strong>
@@ -1159,14 +1122,7 @@
       const applyMobileMode = () => {
         const shouldEnable = mobileState.mq.matches;
         mobileState.enabled = shouldEnable;
-        if (shouldEnable) {
-          document.body.dataset.mobile = 'true';
-        } else {
-          delete document.body.dataset.mobile;
-        }
-        if (els.mobileNav) {
-          els.mobileNav.hidden = !shouldEnable;
-        }
+        document.body.dataset.mobile = shouldEnable ? 'true' : 'false';
         mobileButtons.forEach(btn => {
           const target = btn.dataset.mobileTarget;
           btn.classList.toggle('active', target === mobileState.active);
@@ -1185,7 +1141,6 @@
       };
       mobileButtons.forEach(btn => {
         btn.addEventListener('click', () => {
-          if (!mobileState.enabled) return;
           setMobileActive(btn.dataset.mobileTarget);
         });
       });
