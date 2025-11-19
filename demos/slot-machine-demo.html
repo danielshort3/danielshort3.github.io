@@ -367,23 +367,44 @@
     .status-row {
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: space-between;
       width: 100%;
       margin-bottom: 8px;
+      gap: 12px;
+      flex-wrap: wrap;
     }
     .status-row .status-pill {
       margin: 0;
+      flex: 1 1 auto;
+      min-width: 0;
     }
-    .account-actions {
+    .status-actions {
       display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
+      gap: 8px;
       align-items: center;
       justify-content: flex-end;
+      flex: 0 0 auto;
     }
-    .account-actions .ghost-btn {
-      flex: 1 1 140px;
-      min-width: 140px;
+    .status-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,.3);
+      background: rgba(15,23,42,.7);
+      display: grid;
+      place-items: center;
+      color: var(--text);
+      cursor: pointer;
+      padding: 0;
+    }
+    .status-icon:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+    .status-icon svg {
+      width: 22px;
+      height: 22px;
+      display: block;
     }
     .account-sheet {
       position: fixed;
@@ -537,11 +558,13 @@
       margin: 4px 0 0;
       font-size: 1.1rem;
       font-weight: 600;
+      word-break: break-word;
     }
     .machine-display__meta {
       margin: 6px 0 0;
       font-size: .9rem;
       color: var(--muted);
+      word-break: break-word;
     }
     .control-deck {
       display: grid;
@@ -626,6 +649,7 @@
       font-size: 1.3rem;
       margin-top: 6px;
       display: block;
+      word-break: break-word;
     }
     .bet-controls {
       display: flex;
@@ -731,6 +755,7 @@
       border: 1px solid rgba(148,163,184,.2);
       background: rgba(15,23,42,.85);
       padding: 10px;
+      flex-wrap: wrap;
     }
     .mobile-nav button {
       flex: 1;
@@ -741,6 +766,7 @@
       color: var(--text);
       font-weight: 600;
       cursor: pointer;
+      min-width: 90px;
     }
     .mobile-nav button.active {
       background: linear-gradient(120deg, var(--accent), #fde047);
@@ -748,31 +774,34 @@
       box-shadow: 0 6px 18px rgba(250,204,21,.3);
     }
     @media (max-width: 768px) {
+      html, body {
+        height: 100%;
+      }
       body {
         padding: env(safe-area-inset-top, 8px) 0 env(safe-area-inset-bottom, 16px);
         min-height: 100vh;
         background: #020617;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
       }
       main {
         border-radius: 0;
-        min-height: 100vh;
+        min-height: 0;
         padding: 0;
-        gap: 12px;
+        gap: 10px;
         box-shadow: none;
         border: none;
         display: flex;
         flex-direction: column;
         width: 100%;
+        overflow: hidden;
       }
       main > * {
         margin-inline: 16px;
       }
       .status-row {
-        justify-content: flex-start;
-      }
-      .account-actions {
-        margin: 0 16px;
-        justify-content: center;
+        justify-content: space-between;
       }
       .slot-grid {
         gap: 8px;
@@ -789,81 +818,105 @@
         padding: 8px;
       }
       .mobile-nav button {
-        font-size: .9rem;
+        font-size: .85rem;
       }
-      body[data-mobile="true"] [data-mobile-pane] {
+      main[data-tabs="true"] {
+        gap: 8px;
+      }
+      main[data-tabs="true"] [data-mobile-pane] {
         display: none;
         margin-inline: 16px;
       }
-      body[data-mobile="true"] [data-mobile-pane][data-mobile-active="true"] {
+      main[data-tabs="true"] [data-mobile-pane][data-mobile-active="true"] {
         display: block;
+        max-height: calc(100vh - 210px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
       }
-      body[data-mobile="true"] section.panel {
+      main[data-tabs="true"] [data-mobile-pane][data-mobile-active="true"].slot-machine {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        max-height: none;
+        flex: 1;
+      }
+      main[data-tabs="true"] section.panel {
         max-height: none;
         overflow: visible;
       }
-      body[data-mobile="true"] .slot-machine {
-        flex: 1 1 auto;
+      .slot-machine {
+        flex: 1;
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        gap: 12px;
         padding: 16px;
-        border-radius: 28px;
+        border-radius: 20px;
         box-shadow: 0 25px 60px rgba(2,6,23,.65);
-        min-height: calc(100vh - 200px);
+        min-height: 0;
       }
-      body[data-mobile="true"] .slot-machine__body {
-        flex: 1 1 auto;
+      .slot-machine__body {
+        flex: 1;
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        gap: 12px;
         padding-top: 0;
+        overflow: hidden;
       }
-      body[data-mobile="true"] .machine-frame {
+      .machine-frame {
         flex: 1 1 auto;
         display: flex;
         flex-direction: column;
         justify-content: center;
+        min-height: 0;
       }
-      body[data-mobile="true"] .machine-frame__reels {
-        flex: 1 1 auto;
-        min-height: clamp(260px, 45vh, 360px);
+      .machine-frame__reels {
+        flex: 1;
+        min-height: 0;
         display: flex;
         align-items: center;
+        justify-content: center;
       }
-      body[data-mobile="true"] .machine-display {
-        margin-top: 12px;
+      .machine-display {
+        margin-top: 8px;
+        padding: 12px;
       }
-      body[data-mobile="true"] .control-deck {
+      .control-deck {
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        gap: 12px;
+        padding: 14px;
       }
-      body[data-mobile="true"] .hud {
+      .hud {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 8px;
+        gap: 6px;
       }
-      body[data-mobile="true"] .bet-controls {
+      .hud-card {
+        padding: 10px 12px;
+      }
+      .hud-value {
+        font-size: 1rem;
+      }
+      .bet-controls {
         grid-template-columns: repeat(4, minmax(0, 1fr));
         display: grid;
-        gap: 8px;
+        gap: 6px;
       }
-      body[data-mobile="true"] .bet-controls input[type="range"] {
+      .bet-controls input[type="range"] {
         grid-column: span 4;
       }
-      body[data-mobile="true"] .machine-messages {
-        min-height: 48px;
+      .machine-messages {
+        min-height: 42px;
       }
-      body[data-mobile="true"] .action-buttons {
+      .action-buttons {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
+        gap: 8px;
       }
-      body[data-mobile="true"] .action-buttons .spin-btn {
+      .action-buttons .spin-btn {
         grid-column: span 2;
       }
-      body[data-mobile="true"] .account-sheet {
+      .account-sheet {
         width: calc(100% - 32px);
         bottom: env(safe-area-inset-bottom, 16px);
       }
@@ -914,6 +967,19 @@
         <span aria-hidden="true">🛰️</span>
         <span id="connection-text">Connecting to AWS…</span>
       </p>
+      <div class="status-actions" data-requires-auth hidden>
+        <button type="button" class="status-icon" id="account-toggle" aria-label="Account details">
+          <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+            <path d="M12 13.5c3.05 0 5.5-2.45 5.5-5.5S15.05 2.5 12 2.5 6.5 4.95 6.5 8s2.45 5.5 5.5 5.5zm0 2c-4.05 0-7.5 2.45-7.5 5.5 0 .28.22.5.5.5h14c.28 0 .5-.22.5-.5 0-3.05-3.45-5.5-7.5-5.5z" fill="currentColor"/>
+          </svg>
+        </button>
+        <button type="button" class="status-icon" id="logout-btn" aria-label="Log out">
+          <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+            <path d="M14 3a1 1 0 00-1 1v4h2V5h4v14h-4v-3h-2v4a1 1 0 001 1h6a1 1 0 001-1V4a1 1 0 00-1-1h-6z" fill="currentColor"/>
+            <path d="M15 11H7V9l-5 3 5 3v-2h8v-2z" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
     </div>
     <nav class="mobile-nav" id="mobile-nav" aria-label="Game sections">
       <button type="button" data-mobile-target="play" class="active">Play</button>
@@ -922,11 +988,7 @@
       <button type="button" data-mobile-target="log">Log</button>
       <button type="button" data-mobile-target="upgrades">Upgrades</button>
     </nav>
-    <div class="account-actions" data-requires-auth hidden>
-      <button type="button" class="ghost-btn primary" id="account-toggle">Account</button>
-      <button type="button" class="ghost-btn secondary" id="logout-btn">Logout</button>
-    </div>
-    <section class="panel account-sheet" id="account-panel" role="dialog" aria-modal="true" hidden tabindex="-1">
+    <section class="panel account-sheet" id="account-panel" role="dialog" aria-modal="true" aria-hidden="true" hidden tabindex="-1">
       <div class="account-sheet__header">
         <div>
           <p class="muted-text">Signed in as</p>
@@ -1208,6 +1270,10 @@
         const shouldEnable = mobileState.mq.matches;
         mobileState.enabled = shouldEnable;
         document.body.dataset.mobile = shouldEnable ? 'true' : 'false';
+        if (root) {
+          root.dataset.tabs = shouldEnable ? 'true' : 'false';
+          root.dataset.activePane = mobileState.active;
+        }
         mobileButtons.forEach(btn => {
           const target = btn.dataset.mobileTarget;
           btn.classList.toggle('active', target === mobileState.active);
@@ -1221,6 +1287,9 @@
       const setMobileActive = (target) => {
         if (target) {
           mobileState.active = target;
+        }
+        if (root) {
+          root.dataset.activePane = mobileState.active;
         }
         applyMobileMode();
       };
@@ -1410,6 +1479,7 @@
         if (!els.accountPanel) return;
         const shouldShow = typeof force === 'boolean' ? force : els.accountPanel.hidden;
         els.accountPanel.hidden = !shouldShow;
+        els.accountPanel.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
         if (shouldShow) {
           els.accountPanel.focus({ preventScroll: false });
         }
@@ -1864,6 +1934,12 @@
         }
         if (loggedIn && els.accountUser) {
           els.accountUser.textContent = state.auth.username || 'Account';
+        }
+        if (els.accountToggle) {
+          els.accountToggle.disabled = !loggedIn;
+        }
+        if (els.logoutBtn) {
+          els.logoutBtn.disabled = !loggedIn;
         }
         if (!loggedIn) {
           toggleAccountSheet(false);
