@@ -1017,13 +1017,6 @@
         }
         return entries[Math.floor(Math.random() * entries.length)];
       };
-      const randomSymbolInfo = () => {
-        const entries = Array.from(state.symbolMap.values());
-        if (!entries.length) {
-          return { key: 'placeholder', label: 'Symbol', asset: state.machine.assets.placeholder || state.machine.placeholder };
-        }
-        return entries[Math.floor(Math.random() * entries.length)];
-      };
 
       const ensureGrid = (rows, reels) => {
         if (!els.slotGrid) return;
