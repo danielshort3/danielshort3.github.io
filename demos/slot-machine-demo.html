@@ -1964,7 +1964,7 @@
         setBusy(true);
         showAlert('');
         try {
-          const result = await request('/upgrade', { type });
+          const result = await request('/session', { action: 'upgrade', type });
           updateStats(result);
           log('Upgrade purchased', `Unlocked ${type}.`);
         } catch (error) {
