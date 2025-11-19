@@ -6,6 +6,9 @@ module.exports = function runSlotMachineDemoTests({ assert, checkFileContains })
   assert(fs.existsSync(configPath), 'slot-config/classic.json missing');
   const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
   assert(Array.isArray(config.symbols) && config.symbols.length >= 10, 'slot config should list at least 10 symbols');
+  assert(Number.isFinite(config.baseRows) && Number.isFinite(config.maxRows), 'slot config missing base/max rows');
+  assert(Number.isFinite(config.baseReels) && Number.isFinite(config.maxReels), 'slot config missing base/max reels');
+  assert(config.upgradeCosts && Array.isArray(config.upgradeCosts.rows), 'slot config missing upgradeCosts.rows');
 
   const missingAssets = [];
   (config.symbols || []).forEach(symbol => {
@@ -22,6 +25,7 @@ module.exports = function runSlotMachineDemoTests({ assert, checkFileContains })
 
   checkFileContains('demos/slot-machine-demo.html', 'data-machine-config="slot-config/classic.json"');
   checkFileContains('demos/slot-machine-demo.html', 'id="slot-grid"');
+  checkFileContains('demos/slot-machine-demo.html', 'id="upgrade-grid"');
 
   const demoHtml = fs.readFileSync('demos/slot-machine-demo.html', 'utf8');
   assert(/slotDemoDebug/.test(demoHtml), 'slot demo debug hook missing');

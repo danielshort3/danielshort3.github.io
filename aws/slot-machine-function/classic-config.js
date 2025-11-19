@@ -2,8 +2,12 @@ module.exports = {
   id: 'classic',
   name: 'Lucky Lambda Classic',
   tier: 'Demo Suite',
-  rows: 3,
+  rows: 5,
   reels: 5,
+  baseRows: 3,
+  baseReels: 3,
+  maxRows: 5,
+  maxReels: 5,
   symbols: [
     { key: 'cherry', label: 'Cherry' },
     { key: 'lemon', label: 'Lemon' },
@@ -31,5 +35,10 @@ module.exports = {
     crown: 30,
     wild: 50,
     bonus: 70
+  },
+  upgradeCosts: {
+    rows: [500, 1500],
+    reels: [750, 2000],
+    lines: [300, 900, 1800]
   }
 };

@@ -33,6 +33,7 @@ All routes accept/return JSON:
 - `POST /auth/login` → `{ username, password }`
 - `POST /auth/logout` → `{ token }`
 - `POST /auth/delete` → `{ token }` — removes the user, player record, and spin history entries
+- `POST /upgrade` → `{ token, type }` (`type` ∈ `rows`,`reels`,`lines`) upgrades the machine if the player has enough credits
 - `POST /session` → `{ token?, playerId? }`
 - `POST /spin` → `{ token?, playerId, bet }`
 

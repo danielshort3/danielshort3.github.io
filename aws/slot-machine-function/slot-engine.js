@@ -8,8 +8,13 @@ try {
   slotConfig = require('./classic-config');
 }
 
-const ROWS = slotConfig.rows || 3;
-const REELS = slotConfig.reels || 3;
+const BASE_ROWS = slotConfig.baseRows || slotConfig.rows || 3;
+const BASE_REELS = slotConfig.baseReels || slotConfig.reels || 3;
+const MAX_ROWS = slotConfig.maxRows || slotConfig.rows || BASE_ROWS;
+const MAX_REELS = slotConfig.maxReels || slotConfig.reels || BASE_REELS;
+const ROWS = MAX_ROWS;
+const REELS = MAX_REELS;
+const UPGRADE_COSTS = slotConfig.upgradeCosts || { rows: [500, 1500], reels: [750, 2000], lines: [300, 900, 1800] };
 const SYMBOLS = Array.isArray(slotConfig.symbols)
   ? slotConfig.symbols.map(entry => (typeof entry === 'string' ? { key: entry, label: entry } : entry))
   : Object.keys(slotConfig.payouts).map(key => ({ key, label: key }));
@@ -44,6 +49,16 @@ function pickSymbol() {
     target -= weights[i];
   }
   return keys[keys.length - 1];
+}
+
+function clampRows(value) {
+  const target = Number.isFinite(value) ? value : BASE_ROWS;
+  return Math.max(BASE_ROWS, Math.min(target, MAX_ROWS));
+}
+
+function clampReels(value) {
+  const target = Number.isFinite(value) ? value : BASE_REELS;
+  return Math.max(BASE_REELS, Math.min(target, MAX_REELS));
 }
 
 function buildOutcome(rows = ROWS, reels = REELS) {
@@ -182,16 +197,23 @@ function evaluateOutcome(outcome, bet, rows = ROWS, reels = REELS, tier = MAX_PA
 }
 
 function spin(bet, opts = {}) {
-  const rows = opts.rows || ROWS;
-  const reels = opts.reels || REELS;
-  const lineTier = Number.isFinite(opts.lineTier) ? opts.lineTier : MAX_PATTERN_TIER;
+  const rows = clampRows(opts.rows);
+  const reels = clampReels(opts.reels);
+  const lineTier = Number.isFinite(opts.lineTier) ? Math.max(0, Math.min(opts.lineTier, MAX_PATTERN_TIER)) : MAX_PATTERN_TIER;
   const outcome = buildOutcome(rows, reels);
   const { payout, groups } = evaluateOutcome(outcome, bet, rows, reels, lineTier);
   const metadata = {
     rows,
     reels,
     lineTier,
-    lines: linePatternDefs(rows, reels).filter(def => def.tier <= lineTier)
+    lines: linePatternDefs(rows, reels).filter(def => def.tier <= lineTier),
+    upgrades: {
+      baseRows: BASE_ROWS,
+      baseReels: BASE_REELS,
+      maxRows: MAX_ROWS,
+      maxReels: MAX_REELS,
+      costs: UPGRADE_COSTS
+    }
   };
   return {
     outcome,
@@ -211,7 +233,14 @@ function machineMetadata() {
     lineTier: MAX_PATTERN_TIER,
     lines: linePatternDefs(ROWS, REELS).filter(def => def.tier <= MAX_PATTERN_TIER),
     payouts: PAYOUTS,
-    symbols: SYMBOLS.map(entry => ({ key: entry.key, label: entry.label }))
+    symbols: SYMBOLS.map(entry => ({ key: entry.key, label: entry.label })),
+    upgrades: {
+      baseRows: BASE_ROWS,
+      maxRows: MAX_ROWS,
+      baseReels: BASE_REELS,
+      maxReels: MAX_REELS,
+      costs: UPGRADE_COSTS
+    }
   };
 }
 

@@ -520,6 +520,58 @@
       border: 1px solid rgba(148,163,184,.18);
       padding: clamp(18px, 4vw, 28px);
     }
+    .upgrade-panel {
+      border-radius: 18px;
+      border: 1px solid rgba(148,163,184,.2);
+      background: rgba(15,23,42,.8);
+      padding: 18px;
+      display: grid;
+      gap: 12px;
+    }
+    .upgrade-panel h3 {
+      margin: 0;
+      font-size: 1.05rem;
+    }
+    .upgrade-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+    .upgrade-card {
+      border-radius: 14px;
+      border: 1px solid rgba(148,163,184,.2);
+      padding: 12px;
+      background: rgba(2,6,23,.7);
+      display: grid;
+      gap: 6px;
+    }
+    .upgrade-card h4 {
+      margin: 0;
+      font-size: 1rem;
+    }
+    .upgrade-card p {
+      margin: 0;
+      font-size: .85rem;
+      color: var(--muted);
+      min-height: 32px;
+    }
+    .upgrade-card strong {
+      font-size: .95rem;
+    }
+    .upgrade-card button {
+      border: 1px solid rgba(255,255,255,.3);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: .85rem;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+    }
+    .upgrade-card button[data-disabled="true"],
+    .upgrade-card button:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
     .hud {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -766,6 +818,10 @@
             <button type="button" class="ghost-btn tertiary" id="reset-btn">Reset session</button>
             <button type="button" class="spin-btn" id="spin-btn" disabled>Spin</button>
           </div>
+          <div class="upgrade-panel" id="upgrade-panel" data-requires-auth hidden>
+            <h3>Machine Upgrades</h3>
+            <div class="upgrade-grid" id="upgrade-grid"></div>
+          </div>
         </div>
       </div>
     </section>
@@ -892,17 +948,29 @@
           lines: [],
           payouts: {},
           assets: {},
-          placeholder: PLACEHOLDER_ASSET
+          placeholder: PLACEHOLDER_ASSET,
+          upgradeSettings: {
+            baseRows: 3,
+            maxRows: 5,
+            baseReels: 3,
+            maxReels: 5,
+            costs: { rows: [], reels: [], lines: [] }
+          }
         },
         symbolMap: cloneSymbolMap(DEFAULT_SYMBOL_MAP),
-        gridCells: new Map()
+        gridCells: new Map(),
+        upgrades: { rows: 0, reels: 0, lines: 0 },
+        currentRows: 3,
+        currentReels: 5,
+        currentLineTier: 0
       };
       window.slotDemoDebug = window.slotDemoDebug || {};
       window.slotDemoDebug.state = state;
       window.slotDemoDebug.log = debug;
       window.slotDemoDebug.dumpState = () => JSON.parse(JSON.stringify({
         ...state,
-        symbolMap: Array.from(state.symbolMap.keys())
+        symbolMap: Array.from(state.symbolMap.keys()),
+        upgrades: { ...state.upgrades }
       }));
 
       const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
@@ -956,7 +1024,9 @@
         accountPanel: document.getElementById('account-panel'),
         accountUser: document.getElementById('account-user'),
         logoutBtn: document.getElementById('logout-btn'),
-        deleteBtn: document.getElementById('delete-account-btn')
+        deleteBtn: document.getElementById('delete-account-btn'),
+        upgradeGrid: document.getElementById('upgrade-grid'),
+        upgradePanel: document.getElementById('upgrade-panel')
       };
       const probedSymbols = new Set();
       const getPlaceholderAsset = () => state?.machine?.assets?.placeholder || state?.machine?.placeholder || PLACEHOLDER_ASSET;
@@ -1007,6 +1077,40 @@
         }
         attachImageDebugging(img, info.key);
         return info;
+      };
+      const upgradeDefinitions = {
+        rows: {
+          label: 'Extra Rows',
+          description: 'Adds another horizontal row so more lines can form.',
+          format: (current, max) => `${current}/${max} rows`
+        },
+        reels: {
+          label: 'Extra Reels',
+          description: 'Extends the machine vertically for longer combos.',
+          format: (current, max) => `${current}/${max} reels`
+        },
+        lines: {
+          label: 'Line Patterns',
+          description: 'Unlocks diagonal and zig-zag paylines.',
+          format: (current, max) => `${current}/${max} tiers`
+        }
+      };
+      const getUpgradeSettings = () => {
+        const defaults = {
+          baseRows: 3,
+          maxRows: 5,
+          baseReels: 3,
+          maxReels: 5,
+          costs: { rows: [], reels: [], lines: [] }
+        };
+        const settings = state.machine.upgradeSettings || state.machine.upgrades || {};
+        return {
+          baseRows: settings.baseRows ?? defaults.baseRows,
+          maxRows: settings.maxRows ?? defaults.maxRows,
+          baseReels: settings.baseReels ?? defaults.baseReels,
+          maxReels: settings.maxReels ?? defaults.maxReels,
+          costs: settings.costs || defaults.costs
+        };
       };
       state.playerId = state.auth.token ? null : getStored(storageKeys.player);
 
@@ -1059,6 +1163,7 @@
         els.chipButtons.forEach(btn => { btn.disabled = disableInputs; });
         if (els.syncBtn) els.syncBtn.disabled = disableInputs;
         if (els.resetBtn) els.resetBtn.disabled = disableInputs;
+        renderUpgrades();
       };
 
       const setBusy = (flag) => {
@@ -1069,6 +1174,7 @@
         if (els.syncBtn) els.syncBtn.disabled = disableInputs;
         if (els.betSlider) els.betSlider.disabled = disableInputs;
         els.chipButtons.forEach(btn => { btn.disabled = disableInputs; });
+        renderUpgrades();
       };
 
       const toggleAuthInputs = (disabled) => {
@@ -1086,6 +1192,52 @@
           return getSymbolEntry('placeholder');
         }
         return entries[Math.floor(Math.random() * entries.length)];
+      };
+
+      const renderUpgrades = () => {
+        if (!els.upgradeGrid) return;
+        const settings = getUpgradeSettings();
+        const costs = settings.costs || {};
+        const loggedIn = Boolean(state.auth.token);
+        if (els.upgradePanel) {
+          els.upgradePanel.hidden = !state.gameReady || !loggedIn;
+        }
+        const cards = ['rows', 'reels', 'lines'].map(key => {
+          const def = upgradeDefinitions[key];
+          const level = state.upgrades?.[key] || 0;
+          const costList = costs[key] || [];
+          const maxLevel = costList.length;
+          let currentValue = '';
+          let maxValue = '';
+          if (key === 'rows') {
+            currentValue = state.currentRows || settings.baseRows;
+            maxValue = settings.maxRows;
+          } else if (key === 'reels') {
+            currentValue = state.currentReels || settings.baseReels;
+            maxValue = settings.maxReels;
+          } else {
+            currentValue = Math.min(level, maxLevel);
+            maxValue = maxLevel;
+          }
+          const cost = costList[level];
+          const atMax = level >= maxLevel || !Number.isFinite(cost);
+          const valueText = def?.format
+            ? def.format(currentValue, maxValue)
+            : `${currentValue}/${maxValue}`;
+          const disabledAttr = (!loggedIn || state.busy) ? 'data-disabled="true" disabled' : '';
+          const button = atMax
+            ? `<button type="button" data-disabled="true" disabled>Maxed</button>`
+            : `<button type="button" data-upgrade="${key}" ${disabledAttr}>Unlock (${cost} credits)</button>`;
+          return `
+            <div class="upgrade-card">
+              <h4>${def?.label || key}</h4>
+              <p>${def?.description || ''}</p>
+              <strong>${valueText}</strong>
+              ${button}
+            </div>
+          `;
+        }).join('');
+        els.upgradeGrid.innerHTML = cards;
       };
 
       const ensureGrid = (rows, reels) => {
@@ -1124,10 +1276,16 @@
 
       const updateMachineMeta = () => {
         if (!els.machineLines) return;
-        const lineCount = state.machine.lines.length || 0;
-        const rows = state.machine.rows;
-        const reels = state.machine.reels;
-        const parts = [`${rows} rows`, `${reels} reels`];
+        const settings = getUpgradeSettings();
+        const lineTier = state.currentLineTier ?? 0;
+        const patterns = Array.isArray(state.machine.lines) ? state.machine.lines : [];
+        const lineCount = patterns.filter(def => def.tier <= lineTier).length || patterns.length || 0;
+        const rows = state.currentRows || settings.baseRows;
+        const reels = state.currentReels || settings.baseReels;
+        const parts = [
+          `${rows}/${settings.maxRows} rows`,
+          `${reels}/${settings.maxReels} reels`
+        ];
         if (lineCount) parts.push(`${lineCount} lines`);
         els.machineLines.textContent = parts.join(' • ');
       };
@@ -1247,11 +1405,40 @@
         renderPaytable();
       };
       setSymbolMap(DEFAULT_SYMBOLS, 'init');
+      applyUpgradeState(state.upgrades);
+
+      const applyUpgradeState = (incoming = state.upgrades) => {
+        const base = state.upgrades || { rows: 0, reels: 0, lines: 0 };
+        const normalized = {
+          rows: Math.max(0, incoming?.rows ?? base.rows ?? 0),
+          reels: Math.max(0, incoming?.reels ?? base.reels ?? 0),
+          lines: Math.max(0, incoming?.lines ?? base.lines ?? 0)
+        };
+        const settings = getUpgradeSettings();
+        const maxLineLevel = (settings.costs?.lines || []).length;
+        if (maxLineLevel >= 0) {
+          normalized.lines = Math.min(normalized.lines, maxLineLevel);
+        }
+        state.upgrades = normalized;
+        const maxLineTier = state.machine.lineTier || (state.machine.lines?.[state.machine.lines.length - 1]?.tier ?? 3);
+        const rows = Math.min(settings.maxRows, (settings.baseRows || 3) + normalized.rows);
+        const reels = Math.min(settings.maxReels, (settings.baseReels || 3) + normalized.reels);
+        const lineTier = Math.min(maxLineTier, normalized.lines);
+        state.currentRows = rows;
+        state.currentReels = reels;
+        state.currentLineTier = lineTier;
+        state.machine.rows = rows;
+        state.machine.reels = reels;
+        state.machine.currentRows = rows;
+        state.machine.currentReels = reels;
+        state.machine.currentLineTier = lineTier;
+        ensureGrid(rows, reels);
+        renderUpgrades();
+        updateMachineMeta();
+      };
 
       const syncMachineDefinition = (machine = {}) => {
         if (!machine || typeof machine !== 'object') return;
-        const prevRows = state.machine.rows;
-        const prevReels = state.machine.reels;
         state.machine.id = machine.id || state.machine.id;
         state.machine.name = machine.name || state.machine.name;
         state.machine.lineTier = Number(machine.lineTier) || state.machine.lineTier;
@@ -1260,11 +1447,15 @@
         if (Array.isArray(machine.lines)) state.machine.lines = machine.lines;
         if (machine.payouts) state.machine.payouts = machine.payouts;
         if (machine.assets) state.machine.assets = { ...state.machine.assets, ...machine.assets };
+        state.machine.upgradeSettings = {
+          baseRows: machine.upgrades?.baseRows ?? state.machine.upgradeSettings?.baseRows ?? state.machine.rows,
+          maxRows: machine.upgrades?.maxRows ?? state.machine.upgradeSettings?.maxRows ?? state.machine.rows,
+          baseReels: machine.upgrades?.baseReels ?? state.machine.upgradeSettings?.baseReels ?? state.machine.reels,
+          maxReels: machine.upgrades?.maxReels ?? state.machine.upgradeSettings?.maxReels ?? state.machine.reels,
+          costs: machine.upgrades?.costs || state.machine.upgradeSettings?.costs || {}
+        };
         setSymbolMap(Array.isArray(machine.symbols) ? machine.symbols : [], 'syncMachineDefinition');
-        const changed = prevRows !== state.machine.rows || prevReels !== state.machine.reels;
-        if (changed) ensureGrid(state.machine.rows, state.machine.reels);
-        updateMachineMeta();
-        renderPaytable();
+        applyUpgradeState(state.upgrades);
       };
 
       const loadMachineConfig = async () => {
@@ -1283,8 +1474,15 @@
           if (data.payouts) state.machine.payouts = data.payouts;
           if (Number(data.rows)) state.machine.rows = Number(data.rows);
           if (Number(data.reels)) state.machine.reels = Number(data.reels);
+          state.machine.upgradeSettings = {
+            baseRows: data.baseRows ?? state.machine.upgradeSettings?.baseRows ?? state.machine.rows,
+            maxRows: data.maxRows ?? state.machine.upgradeSettings?.maxRows ?? state.machine.rows,
+            baseReels: data.baseReels ?? state.machine.upgradeSettings?.baseReels ?? state.machine.reels,
+            maxReels: data.maxReels ?? state.machine.upgradeSettings?.maxReels ?? state.machine.reels,
+            costs: data.upgradeCosts || state.machine.upgradeSettings?.costs || {}
+          };
           setSymbolMap(Array.isArray(data.symbols) ? data.symbols : [], 'machineConfig');
-          ensureGrid(state.machine.rows, state.machine.reels);
+          applyUpgradeState(state.upgrades);
           applyMachineTheme();
           debug('machine-config:loaded', { rows: state.machine.rows, reels: state.machine.reels, symbols: state.symbolMap.size });
         } catch (error) {
@@ -1482,6 +1680,11 @@
 
         state.maxBet = resolveMaxBet(payload.maxBet);
         els.maxBet.textContent = state.maxBet;
+        if (payload.upgrades) {
+          applyUpgradeState(payload.upgrades);
+        } else {
+          applyUpgradeState(state.upgrades);
+        }
         const incomingBet = Number(payload.bet);
         const fallbackBet = Number.isFinite(state.bet)
           ? state.bet
@@ -1538,6 +1741,9 @@
         syncAuthFromPayload(session);
         if (session.machine) {
           syncMachineDefinition(session.machine);
+        }
+        if (session.upgrades) {
+          applyUpgradeState(session.upgrades);
         }
         updateStats(session);
         updateLastSpin(session.lastSpin);
@@ -1727,6 +1933,13 @@
         btn.addEventListener('click', () => handleChipAction(btn.dataset.chip));
       });
 
+      els.upgradeGrid?.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-upgrade]');
+        if (!button || button.dataset.disabled === 'true') return;
+        if (state.busy) return;
+        purchaseUpgrade(button.dataset.upgrade);
+      });
+
       els.spinBtn.addEventListener('click', spin);
 
       els.resetBtn.addEventListener('click', () => {
@@ -1741,6 +1954,27 @@
         if (state.busy || !state.auth.token) return;
         bootstrap();
       });
+
+      const purchaseUpgrade = async (type) => {
+        if (!state.auth.token) {
+          showAuthAlert('Sign in to upgrade your machine.');
+          return;
+        }
+        debug('upgrade:request', { type });
+        setBusy(true);
+        showAlert('');
+        try {
+          const result = await request('/upgrade', { type });
+          updateStats(result);
+          log('Upgrade purchased', `Unlocked ${type}.`);
+        } catch (error) {
+          const msg = error.payload?.message || error.message || 'Upgrade failed.';
+          showAlert(msg);
+          debugError('upgrade', error);
+        } finally {
+          setBusy(false);
+        }
+      };
 
       if (els.authSubmit) {
         els.authSubmit.addEventListener('click', loginOrRegister);
