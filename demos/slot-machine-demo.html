@@ -364,51 +364,51 @@
     .auth-body[data-mode="register"] #auth-info {
       display: none;
     }
-    .account-panel {
+    .status-row {
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: center;
+      width: 100%;
+      margin-bottom: 8px;
+    }
+    .status-row .status-pill {
+      margin: 0;
+    }
+    .account-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .account-actions .ghost-btn {
+      flex: 1 1 140px;
+      min-width: 140px;
+    }
+    .account-sheet {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(420px, calc(100% - 32px));
+      z-index: 30;
+      box-shadow: 0 20px 80px rgba(2,6,23,.7);
+      backdrop-filter: blur(6px);
+    }
+    .account-sheet[hidden] {
+      display: none;
+    }
+    .account-sheet__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       gap: 16px;
-      background: rgba(15,23,42,.75);
-      border: 1px solid rgba(255,255,255,.06);
     }
     .slot-machine {
       background: linear-gradient(160deg, rgba(15,23,42,.92), rgba(30,41,59,.9));
       border: 1px solid rgba(148,163,184,.2);
       border-radius: 24px;
       box-shadow: 0 25px 100px rgba(2,6,23,.6);
-    }
-    .slot-machine__header {
-      display: flex;
-      justify-content: space-between;
-      gap: 24px;
-      align-items: center;
-      padding-bottom: 12px;
-      border-bottom: 1px solid rgba(148,163,184,.2);
-    }
-    .slot-machine__header h2 {
-      margin: 4px 0;
-      font-size: clamp(1.4rem, 3vw, 2rem);
-    }
-    .jackpot {
-      border-radius: 18px;
-      padding: 14px 20px;
-      background: linear-gradient(120deg, #e11d48, #f97316);
-      color: #fff;
-      text-align: center;
-      min-width: 160px;
-      box-shadow: 0 18px 45px rgba(241,135,0,.4);
-    }
-    .jackpot span {
-      font-size: .8rem;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      opacity: .8;
-    }
-    .jackpot strong {
-      display: block;
-      font-size: 1.5rem;
-      letter-spacing: .06em;
     }
     .slot-machine__body {
       display: grid;
@@ -559,6 +559,7 @@
       display: grid;
       gap: 12px;
     }
+    .upgrade-panel h2,
     .upgrade-panel h3 {
       margin: 0;
       font-size: 1.05rem;
@@ -748,33 +749,123 @@
     }
     @media (max-width: 768px) {
       body {
-        padding: 0;
+        padding: env(safe-area-inset-top, 8px) 0 env(safe-area-inset-bottom, 16px);
         min-height: 100vh;
+        background: #020617;
       }
       main {
         border-radius: 0;
         min-height: 100vh;
-        padding: 16px;
-        gap: 16px;
+        padding: 0;
+        gap: 12px;
+        box-shadow: none;
+        border: none;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
       }
-      .slot-machine__body {
-        grid-template-columns: 1fr;
+      main > * {
+        margin-inline: 16px;
+      }
+      .status-row {
+        justify-content: flex-start;
+      }
+      .account-actions {
+        margin: 0 16px;
+        justify-content: center;
       }
       .slot-grid {
         gap: 8px;
       }
       .mobile-nav {
         display: flex;
+        position: sticky;
+        top: env(safe-area-inset-top, 8px);
+        z-index: 5;
+        background: rgba(2,6,23,.95);
+        border-radius: 18px;
+        border: 1px solid rgba(148,163,184,.25);
+        box-shadow: 0 15px 40px rgba(2,6,23,.5);
+        padding: 8px;
+      }
+      .mobile-nav button {
+        font-size: .9rem;
       }
       body[data-mobile="true"] [data-mobile-pane] {
         display: none;
+        margin-inline: 16px;
       }
       body[data-mobile="true"] [data-mobile-pane][data-mobile-active="true"] {
         display: block;
       }
       body[data-mobile="true"] section.panel {
-        max-height: calc(100vh - 240px);
-        overflow: auto;
+        max-height: none;
+        overflow: visible;
+      }
+      body[data-mobile="true"] .slot-machine {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding: 16px;
+        border-radius: 28px;
+        box-shadow: 0 25px 60px rgba(2,6,23,.65);
+        min-height: calc(100vh - 200px);
+      }
+      body[data-mobile="true"] .slot-machine__body {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding-top: 0;
+      }
+      body[data-mobile="true"] .machine-frame {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      body[data-mobile="true"] .machine-frame__reels {
+        flex: 1 1 auto;
+        min-height: clamp(260px, 45vh, 360px);
+        display: flex;
+        align-items: center;
+      }
+      body[data-mobile="true"] .machine-display {
+        margin-top: 12px;
+      }
+      body[data-mobile="true"] .control-deck {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      body[data-mobile="true"] .hud {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+      body[data-mobile="true"] .bet-controls {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        display: grid;
+        gap: 8px;
+      }
+      body[data-mobile="true"] .bet-controls input[type="range"] {
+        grid-column: span 4;
+      }
+      body[data-mobile="true"] .machine-messages {
+        min-height: 48px;
+      }
+      body[data-mobile="true"] .action-buttons {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+      body[data-mobile="true"] .action-buttons .spin-btn {
+        grid-column: span 2;
+      }
+      body[data-mobile="true"] .account-sheet {
+        width: calc(100% - 32px);
+        bottom: env(safe-area-inset-bottom, 16px);
       }
     }
   </style>
@@ -818,57 +909,43 @@
   </div>
   <a class="skip-link" href="#main">Skip to content</a>
   <main id="main" data-api-base="https://4kvebym8b3.execute-api.us-east-2.amazonaws.com/prod" data-max-bet="100" data-machine-config="slot-config/classic.json">
-    <header class="grid">
-      <div>
-        <p class="status-pill" id="connection-pill" data-state="loading">
-          <span aria-hidden="true">🛰️</span>
-          <span id="connection-text">Connecting to AWS…</span>
-        </p>
-        <h1>Server-Backed Slot Machine</h1>
-        <p>This demo uses an AWS Lambda function, API Gateway, and DynamoDB table so every spin is validated on the server. The browser can render the reels, but it cannot change your credit balance or payout.</p>
-      </div>
-    </header>
+    <div class="status-row">
+      <p class="status-pill" id="connection-pill" data-state="loading">
+        <span aria-hidden="true">🛰️</span>
+        <span id="connection-text">Connecting to AWS…</span>
+      </p>
+    </div>
     <nav class="mobile-nav" id="mobile-nav" aria-label="Game sections">
       <button type="button" data-mobile-target="play" class="active">Play</button>
       <button type="button" data-mobile-target="stats">Stats</button>
       <button type="button" data-mobile-target="paytable">Paytable</button>
       <button type="button" data-mobile-target="log">Log</button>
+      <button type="button" data-mobile-target="upgrades">Upgrades</button>
     </nav>
-
-    <section class="panel account-panel" id="account-panel" data-requires-auth hidden>
-      <div>
-        <p class="muted-text">Signed in as</p>
-        <strong id="account-user"></strong>
+    <div class="account-actions" data-requires-auth hidden>
+      <button type="button" class="ghost-btn primary" id="account-toggle">Account</button>
+      <button type="button" class="ghost-btn secondary" id="logout-btn">Logout</button>
+    </div>
+    <section class="panel account-sheet" id="account-panel" role="dialog" aria-modal="true" hidden tabindex="-1">
+      <div class="account-sheet__header">
+        <div>
+          <p class="muted-text">Signed in as</p>
+          <strong id="account-user"></strong>
+        </div>
+        <button type="button" class="ghost-btn tertiary" id="account-close" aria-label="Close account details">Close</button>
       </div>
       <div class="actions">
         <button type="button" class="ghost-btn danger" id="delete-account-btn">Delete account</button>
-        <button type="button" class="ghost-btn secondary" id="logout-btn">Sign out</button>
       </div>
     </section>
 
     <section class="panel slot-machine" data-requires-auth hidden data-mobile-pane="play" data-mobile-active="true">
-      <div class="slot-machine__header">
-        <div>
-          <p class="muted-text small">Lucky Lambda Slots</p>
-          <h2>Server-validated spins with cinematic reels.</h2>
-          <p class="muted-text">Every result routes through AWS Lambda + DynamoDB, so payouts are locked before they reach your browser.</p>
-        </div>
-        <div class="jackpot">
-          <span>Progressive Demo</span>
-          <strong>$1,000,000</strong>
-        </div>
-      </div>
       <div class="slot-machine__body">
         <div class="machine-frame">
           <div class="machine-frame__glow"></div>
           <div class="machine-frame__reels" id="reel-stage">
             <div class="slot-grid" id="slot-grid" aria-live="polite"></div>
             <div class="line-overlay" id="line-overlay" aria-hidden="true"></div>
-          </div>
-          <div class="machine-display">
-            <p class="machine-display__label">Last outcome</p>
-            <p class="machine-display__value" id="machine-outcome">Sign in to start spinning.</p>
-            <p class="machine-display__meta" id="machine-lines"></p>
           </div>
         </div>
         <div class="control-deck">
@@ -886,6 +963,11 @@
               <strong class="hud-value" id="hud-win">$0</strong>
             </div>
           </div>
+          <div class="machine-display">
+            <p class="machine-display__label">Last outcome</p>
+            <p class="machine-display__value" id="machine-outcome">Sign in to start spinning.</p>
+            <p class="machine-display__meta" id="machine-lines"></p>
+          </div>
           <div class="bet-controls">
             <button type="button" class="chip" data-chip="decrease" aria-label="Decrease bet">-</button>
             <input type="range" id="bet-range" min="1" max="100" value="25" aria-label="Bet amount" />
@@ -900,10 +982,6 @@
             <button type="button" class="ghost-btn secondary" id="sync-btn">Sync balance</button>
             <button type="button" class="ghost-btn tertiary" id="reset-btn">Reset session</button>
             <button type="button" class="spin-btn" id="spin-btn" disabled>Spin</button>
-          </div>
-          <div class="upgrade-panel" id="upgrade-panel" data-requires-auth hidden>
-            <h3>Machine Upgrades</h3>
-            <div class="upgrade-grid" id="upgrade-grid"></div>
           </div>
         </div>
       </div>
@@ -939,6 +1017,11 @@
     <section class="panel" data-requires-auth hidden data-mobile-pane="log">
       <h2>Server Event Log</h2>
       <div class="log" id="log" aria-live="polite"></div>
+    </section>
+
+    <section class="panel upgrade-panel" id="upgrade-panel" data-requires-auth hidden data-mobile-pane="upgrades">
+      <h2>Machine Upgrades</h2>
+      <div class="upgrade-grid" id="upgrade-grid"></div>
     </section>
   </main>
 
@@ -1105,6 +1188,8 @@
         authTabs: Array.from(document.querySelectorAll('.auth-tab')),
         authOverlayNote: document.getElementById('auth-note'),
         accountPanel: document.getElementById('account-panel'),
+        accountToggle: document.getElementById('account-toggle'),
+        accountClose: document.getElementById('account-close'),
         accountUser: document.getElementById('account-user'),
         logoutBtn: document.getElementById('logout-btn'),
         deleteBtn: document.getElementById('delete-account-btn'),
@@ -1150,6 +1235,13 @@
         mobileState.mq.addListener(applyMobileMode);
       }
       applyMobileMode();
+      els.accountToggle?.addEventListener('click', () => toggleAccountSheet(true));
+      els.accountClose?.addEventListener('click', () => toggleAccountSheet(false));
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !els.accountPanel?.hidden) {
+          toggleAccountSheet(false);
+        }
+      });
       const probedSymbols = new Set();
       const reelIntervals = new Map();
       let pendingWinGroups = [];
@@ -1254,11 +1346,10 @@
 
       const setStatus = (text, stateAttr = 'ok') => {
         debug('ui:setStatus', { text, stateAttr });
+        if (!els.connectionPill || !els.connectionText) return;
         els.connectionText.textContent = text;
         els.connectionPill.dataset.state = stateAttr;
-        els.connectionPill.dataset.state === 'ok'
-          ? els.connectionPill.setAttribute('data-state', 'ok')
-          : els.connectionPill.setAttribute('data-state', stateAttr);
+        els.connectionPill.setAttribute('data-state', stateAttr === 'ok' ? 'ok' : stateAttr);
       };
 
       const showAlert = (text = '') => {
@@ -1282,6 +1373,9 @@
         gamePanels.forEach(panel => {
           panel.hidden = !visible;
         });
+        if (!visible) {
+          toggleAccountSheet(false);
+        }
         const disableInputs = !visible || state.busy;
         els.spinBtn.disabled = disableInputs;
         if (els.betSlider) els.betSlider.disabled = disableInputs;
@@ -1310,6 +1404,15 @@
         (els.authTabs || []).forEach(btn => {
           btn.disabled = disabled;
         });
+      };
+
+      const toggleAccountSheet = (force) => {
+        if (!els.accountPanel) return;
+        const shouldShow = typeof force === 'boolean' ? force : els.accountPanel.hidden;
+        els.accountPanel.hidden = !shouldShow;
+        if (shouldShow) {
+          els.accountPanel.focus({ preventScroll: false });
+        }
       };
 
       const randomSymbolInfo = () => {
@@ -1759,11 +1862,11 @@
           els.authOverlay.dataset.hidden = loggedIn ? 'true' : 'false';
           els.authOverlay.setAttribute('aria-hidden', loggedIn ? 'true' : 'false');
         }
-        if (els.accountPanel) {
-          els.accountPanel.hidden = !loggedIn;
-        }
         if (loggedIn && els.accountUser) {
           els.accountUser.textContent = state.auth.username || 'Account';
+        }
+        if (!loggedIn) {
+          toggleAccountSheet(false);
         }
         if (els.deleteBtn) {
           els.deleteBtn.disabled = !loggedIn;
