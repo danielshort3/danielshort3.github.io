@@ -48,7 +48,8 @@ const UPGRADE_INDEX = new Map();
 const DEFAULT_UPGRADES = {};
 UPGRADE_DEFINITIONS.forEach(def => {
   if (!def?.key) return;
-  DEFAULT_UPGRADES[def.key] = 0;
+  const defaultLevel = Number.isFinite(def.defaultLevel) ? def.defaultLevel : 0;
+  DEFAULT_UPGRADES[def.key] = defaultLevel;
   UPGRADE_INDEX.set(def.key, def);
   UPGRADE_INDEX.set(def.key.toLowerCase(), def);
 });
@@ -74,7 +75,8 @@ function resolveUpgradeMax(def) {
 function normalizeUpgrades(source = {}) {
   const normalized = {};
   UPGRADE_DEFINITIONS.forEach(def => {
-    const raw = Number.isFinite(source?.[def.key]) ? source[def.key] : 0;
+    const hasValue = source && Number.isFinite(source[def.key]);
+    const raw = hasValue ? source[def.key] : (DEFAULT_UPGRADES[def.key] ?? 0);
     const safe = Math.max(0, Math.floor(raw));
     const max = resolveUpgradeMax(def);
     normalized[def.key] = Math.min(safe, max);
