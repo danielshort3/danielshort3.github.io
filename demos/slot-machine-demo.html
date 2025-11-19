@@ -561,6 +561,16 @@
       margin: 0;
       font-size: 1.05rem;
     }
+    .upgrade-category + .upgrade-category {
+      margin-top: 28px;
+    }
+    .upgrade-category h3 {
+      margin: 0 0 8px;
+      font-size: .95rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: rgba(226,232,240,.75);
+    }
     .upgrade-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -573,6 +583,18 @@
       background: rgba(2,6,23,.7);
       display: grid;
       gap: 6px;
+    }
+    .upgrade-card__meta {
+      font-size: .82rem;
+      color: rgba(148,163,184,.85);
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .upgrade-card__note {
+      font-size: .78rem;
+      color: rgba(248,250,252,.7);
     }
     .upgrade-card h4 {
       margin: 0;
@@ -729,6 +751,9 @@
       align-items: center;
       gap: 12px;
       flex-wrap: wrap;
+    }
+    .paytable li[data-active="false"] {
+      opacity: .45;
     }
     .paytable-symbol {
       display: flex;
@@ -1215,11 +1240,14 @@
             baseReels: 3,
             maxReels: 5,
             costs: { rows: [], reels: [], lines: [] }
-          }
+          },
+          baseSymbolCount: 5,
+          activeSymbols: []
         },
         symbolMap: cloneSymbolMap(DEFAULT_SYMBOL_MAP),
         gridCells: new Map(),
-        upgrades: { rows: 0, reels: 0, lines: 0 },
+        upgrades: {},
+        upgradeCatalog: [],
         currentRows: 3,
         currentReels: 5,
         currentLineTier: 0
@@ -1232,6 +1260,55 @@
         symbolMap: Array.from(state.symbolMap.keys()),
         upgrades: { ...state.upgrades }
       }));
+
+      const upgradeCatalogUrl = 'slot-config/upgrade-definitions.json';
+      const loadUpgradeCatalog = async () => {
+        if (state.upgradeCatalog.length) return state.upgradeCatalog;
+        try {
+          const res = await fetch(upgradeCatalogUrl, { cache: 'no-cache' });
+          if (res.ok) {
+            const defs = await res.json();
+            if (Array.isArray(defs)) {
+              state.upgradeCatalog = defs;
+              applyUpgradeState(state.upgrades);
+              renderUpgrades();
+              return defs;
+            }
+          }
+        } catch (error) {
+          console.error('upgrade catalog load failed', error);
+        }
+        return state.upgradeCatalog;
+      };
+
+      const getUpgradeDef = (key) => state.upgradeCatalog.find(def => def.key === key);
+
+      const getUpgradeMaxLevel = (key) => {
+        const def = getUpgradeDef(key);
+        if (!def) return 0;
+        if (def.dynamicMax === 'premiumSymbols') {
+          const base = state.machine.baseSymbolCount || 5;
+          const available = (state.machine.symbols || []).filter(entry => entry.key !== 'wild').length;
+          return Math.max(0, available - base);
+        }
+        if (def.dynamicMax === 'cullSymbols') {
+          const base = state.machine.baseSymbolCount || 5;
+          return Math.max(0, base - 1);
+        }
+        return Number.isFinite(def.max) ? def.max : 0;
+      };
+
+      const computeActiveSymbols = (upgrades = state.upgrades) => {
+        const list = (state.machine.symbols || []).filter(entry => entry.key !== 'wild');
+        const disable = Math.max(0, Math.floor(upgrades.disable || 0));
+        const premium = Math.max(0, Math.floor(upgrades.premium || 0));
+        const baseCount = state.machine.baseSymbolCount || 5;
+        const start = Math.min(disable, list.length - 1);
+        const count = Math.min(list.length - start, baseCount + premium);
+        const pool = list.slice(start, start + count).map(entry => entry.key);
+        if (upgrades.wildUnlock) pool.push('wild');
+        return pool;
+      };
 
       const currency = new Intl.NumberFormat('en-US', {
         style: 'currency',
@@ -1341,6 +1418,7 @@
         mobileState.mq.addListener(applyMobileMode);
       }
       applyMobileMode();
+      loadUpgradeCatalog();
       els.accountToggle?.addEventListener('click', () => toggleAccountSheet(true));
       els.accountClose?.addEventListener('click', () => toggleAccountSheet(false));
       document.addEventListener('keydown', (event) => {
@@ -1523,57 +1601,126 @@
       };
 
       const randomSymbolInfo = () => {
-        const entries = Array.from(state.symbolMap.values());
-        if (!entries.length) {
+        let pool = [];
+        if (Array.isArray(state.machine.activeSymbols) && state.machine.activeSymbols.length) {
+          pool = state.machine.activeSymbols.map(key => getSymbolEntry(key)).filter(Boolean);
+        }
+        if (!pool.length) {
+          pool = Array.from(state.symbolMap.values());
+        }
+        if (!pool.length) {
           return getSymbolEntry('placeholder');
         }
-        return entries[Math.floor(Math.random() * entries.length)];
+        return pool[Math.floor(Math.random() * pool.length)];
+      };
+
+      const describeUpgradeExtra = (key) => {
+        const settings = getUpgradeSettings();
+        switch (key) {
+          case 'rows':
+            return `${state.currentRows || settings.baseRows}/${settings.maxRows} rows`;
+          case 'reels':
+            return `${state.currentReels || settings.baseReels}/${settings.maxReels} reels`;
+          case 'lines': {
+            const tier = state.currentLineTier ?? 0;
+            return `Tier ${tier}`;
+          }
+          case 'idle':
+            return `Idle +${state.upgrades.idle || 0}/sec`;
+          case 'speed':
+            return `${(state.upgrades.speed || 0) * 10}% faster`;
+          case 'retrigger':
+            return `${(state.upgrades.retrigger || 0) * 5}% chance`;
+          case 'dropBoost':
+            return `${(state.upgrades.dropBoost || 0) * 5}% drops`;
+          case 'premium': {
+            const active = state.machine.activeSymbols?.length || 0;
+            return `${active} symbols active`;
+          }
+          case 'betMultiplier':
+            return `Max bet ${currency.format(state.maxBet || DEFAULT_MAX_BET)}`;
+          default:
+            return '';
+        }
+      };
+
+      const buildUpgradeCard = (def) => {
+        const loggedIn = Boolean(state.auth.token);
+        const level = Math.max(0, state.upgrades?.[def.key] || 0);
+        const maxLevel = Math.max(0, getUpgradeMaxLevel(def.key));
+        const reqs = def.requires ? (Array.isArray(def.requires) ? def.requires : [def.requires]) : [];
+        const requirementsMet = reqs.every(req => (state.upgrades?.[req] || 0) > 0);
+        const locked = reqs.length > 0 && !requirementsMet;
+        const currentLabel = level > 0
+          ? (def.levels?.[level - 1] || `Level ${level}`)
+          : 'Not unlocked';
+        const nextLabel = level >= maxLevel
+          ? 'Maxed'
+          : (def.levels?.[level] || `Level ${level + 1}`);
+        const cost = level >= maxLevel ? null : Math.round((def.cost || 0) * (level + 1));
+        const buttonDisabled = !loggedIn || state.busy || locked || level >= maxLevel || !Number.isFinite(cost);
+        const buttonText = locked
+          ? 'Locked'
+          : level >= maxLevel
+            ? 'Maxed'
+            : `Unlock (${currency.format(cost)})`;
+        const requirementNote = locked
+          ? `Requires ${reqs.map(req => getUpgradeDef(req)?.label || req).join(', ')}`
+          : '';
+        const extra = describeUpgradeExtra(def.key);
+        return `
+          <div class="upgrade-card" data-upgrade-key="${def.key}">
+            <h4>${def.label}</h4>
+            <p>${def.description}</p>
+            <div class="upgrade-card__meta">
+              <span>Level ${Math.min(level, maxLevel)}/${maxLevel}</span>
+              ${extra ? `<span>${extra}</span>` : ''}
+            </div>
+            <div class="upgrade-card__note">Current: ${currentLabel}</div>
+            <div class="upgrade-card__note">Next: ${nextLabel}</div>
+            <button type="button" data-upgrade="${def.key}" ${buttonDisabled ? 'data-disabled="true" disabled' : ''}>${buttonText}</button>
+            ${requirementNote ? `<div class="upgrade-card__note">${requirementNote}</div>` : ''}
+          </div>
+        `;
       };
 
       const renderUpgrades = () => {
         if (!els.upgradeGrid) return;
-        const settings = getUpgradeSettings();
-        const costs = settings.costs || {};
         const loggedIn = Boolean(state.auth.token);
         if (els.upgradePanel) {
           els.upgradePanel.hidden = !state.gameReady || !loggedIn;
         }
-        const cards = ['rows', 'reels', 'lines'].map(key => {
-          const def = upgradeDefinitions[key];
-          const level = state.upgrades?.[key] || 0;
-          const costList = costs[key] || [];
-          const maxLevel = costList.length;
-          let currentValue = '';
-          let maxValue = '';
-          if (key === 'rows') {
-            currentValue = state.currentRows || settings.baseRows;
-            maxValue = settings.maxRows;
-          } else if (key === 'reels') {
-            currentValue = state.currentReels || settings.baseReels;
-            maxValue = settings.maxReels;
-          } else {
-            currentValue = Math.min(level, maxLevel);
-            maxValue = maxLevel;
-          }
-          const cost = costList[level];
-          const atMax = level >= maxLevel || !Number.isFinite(cost);
-          const valueText = def?.format
-            ? def.format(currentValue, maxValue)
-            : `${currentValue}/${maxValue}`;
-          const disabledAttr = (!loggedIn || state.busy) ? 'data-disabled="true" disabled' : '';
-          const button = atMax
-            ? `<button type="button" data-disabled="true" disabled>Maxed</button>`
-            : `<button type="button" data-upgrade="${key}" ${disabledAttr}>Unlock (${cost} credits)</button>`;
-          return `
-            <div class="upgrade-card">
-              <h4>${def?.label || key}</h4>
-              <p>${def?.description || ''}</p>
-              <strong>${valueText}</strong>
-              ${button}
+        if (!loggedIn) {
+          els.upgradeGrid.innerHTML = '<p class="muted-text">Sign in to manage upgrades.</p>';
+          return;
+        }
+        if (!state.upgradeCatalog.length) {
+          els.upgradeGrid.innerHTML = '<p class="muted-text">Loading upgrades…</p>';
+          return;
+        }
+        const grouped = state.upgradeCatalog.reduce((acc, def) => {
+          if (!acc[def.category]) acc[def.category] = [];
+          acc[def.category].push(def);
+          return acc;
+        }, {});
+        const categoryOrder = ['Economy', 'Spin', 'Layout', 'Symbols', 'Drops', 'Skills'];
+        const seen = new Set();
+        const sections = [];
+        [...categoryOrder, ...Object.keys(grouped)].forEach(category => {
+          if (!category || seen.has(category)) return;
+          seen.add(category);
+          const defs = grouped[category];
+          if (!defs || !defs.length) return;
+          sections.push(`
+            <div class="upgrade-category" data-category="${category}">
+              <h3>${category}</h3>
+              <div class="upgrade-grid">
+                ${defs.map(buildUpgradeCard).join('')}
+              </div>
             </div>
-          `;
-        }).join('');
-        els.upgradeGrid.innerHTML = cards;
+          `);
+        });
+        els.upgradeGrid.innerHTML = sections.join('') || '<p class="muted-text">No upgrades available.</p>';
       };
 
       const clearReelIntervals = () => {
@@ -1628,6 +1775,9 @@
           `${reels}/${settings.maxReels} reels`
         ];
         if (lineCount) parts.push(`${lineCount} lines`);
+        if (Array.isArray(state.machine.activeSymbols) && state.machine.activeSymbols.length) {
+          parts.push(`${state.machine.activeSymbols.length} symbols`);
+        }
         els.machineLines.textContent = parts.join(' • ');
       };
 
@@ -1673,6 +1823,21 @@
         });
       };
 
+      const getSpinIntervalDelay = (col) => {
+        const base = 70 + col * 15;
+        const speedLevel = Math.max(0, state.upgrades.speed || 0);
+        const factor = Math.max(0.35, 1 - 0.1 * speedLevel);
+        return Math.max(20, base * factor);
+      };
+
+      const getReelStopDelay = (col) => {
+        const base = 150 + col * 220;
+        const speedLevel = Math.max(0, state.upgrades.speed || 0);
+        const autoLevel = Math.max(0, state.upgrades.autoSpeed || 0);
+        const factor = Math.max(0.35, 1 - 0.08 * (speedLevel + autoLevel));
+        return Math.max(80, base * factor);
+      };
+
       const startGridSpin = () => {
         const rows = state.currentRows || state.machine.rows;
         const reels = state.currentReels || state.machine.reels;
@@ -1694,7 +1859,7 @@
               const randomSymbol = randomSymbolInfo();
               applySymbolToImage(img, randomSymbol.key);
             }
-          }, 70 + col * 15);
+          }, getSpinIntervalDelay(col));
           reelIntervals.set(col, interval);
         }
       };
@@ -1744,7 +1909,7 @@
           for (let row = 0; row < rows; row += 1) {
             columnSymbols[row] = grid[row]?.[col];
           }
-          const delay = 150 + col * 220 + Math.random() * 140;
+          const delay = getReelStopDelay(col) + Math.random() * 120;
           setTimeout(() => {
             finalizeColumn(col, columnSymbols);
             activeReelLocks -= 1;
@@ -1781,6 +1946,7 @@
           state.symbolMap = cloneSymbolMap(DEFAULT_SYMBOL_MAP);
         }
         const entries = Array.from(state.symbolMap.values());
+        const activeSet = new Set(state.machine.activeSymbols || []);
         els.paytable.innerHTML = entries.map(entry => {
           const payout = state.machine.payouts[entry.key] || 0;
           const tiers = [1, 2, 3].map(mult => `${mult + 2}× ${payout ? payout * mult : 0}× bet`).join(' • ');
@@ -1788,8 +1954,9 @@
           if (!entry.asset || asset === getPlaceholderAsset()) {
             debug('paytable:placeholder', { symbol: entry.key });
           }
+          const isActive = activeSet.size === 0 || activeSet.has(entry.key);
           return `
-            <li>
+            <li data-active="${isActive ? 'true' : 'false'}">
               <div class="paytable-symbol">
                 <img src="${asset}" alt="${entry.label}" data-symbol="${entry.key}" loading="lazy">
                 ${entry.label}
@@ -1814,22 +1981,30 @@
       applyUpgradeState(state.upgrades);
 
       function applyUpgradeState(incoming = state.upgrades) {
-        const base = state.upgrades || { rows: 0, reels: 0, lines: 0 };
-        const normalized = {
-          rows: Math.max(0, incoming?.rows ?? base.rows ?? 0),
-          reels: Math.max(0, incoming?.reels ?? base.reels ?? 0),
-          lines: Math.max(0, incoming?.lines ?? base.lines ?? 0)
-        };
-        const settings = getUpgradeSettings();
-        const maxLineLevel = (settings.costs?.lines || []).length;
-        if (maxLineLevel >= 0) {
-          normalized.lines = Math.min(normalized.lines, maxLineLevel);
+        let normalized = {};
+        if (state.upgradeCatalog.length) {
+          state.upgradeCatalog.forEach(def => {
+            const next = Number.isFinite(incoming?.[def.key])
+              ? incoming[def.key]
+              : Number(state.upgrades?.[def.key]) || 0;
+            const max = getUpgradeMaxLevel(def.key);
+            normalized[def.key] = Math.min(Math.max(0, Math.floor(next)), max);
+          });
+        } else {
+          normalized = { ...state.upgrades, ...incoming };
         }
-        state.upgrades = normalized;
+        const settings = getUpgradeSettings();
+        const rows = Math.min(
+          settings.maxRows,
+          (settings.baseRows || 3) + (normalized.rows || 0)
+        );
+        const reels = Math.min(
+          settings.maxReels,
+          (settings.baseReels || 3) + (normalized.reels || 0)
+        );
         const maxLineTier = state.machine.lineTier || (state.machine.lines?.[state.machine.lines.length - 1]?.tier ?? 3);
-        const rows = Math.min(settings.maxRows, (settings.baseRows || 3) + normalized.rows);
-        const reels = Math.min(settings.maxReels, (settings.baseReels || 3) + normalized.reels);
-        const lineTier = Math.min(maxLineTier, normalized.lines);
+        const lineTier = Math.min(maxLineTier, normalized.lines || 0);
+        state.upgrades = normalized;
         state.currentRows = rows;
         state.currentReels = reels;
         state.currentLineTier = lineTier;
@@ -1838,6 +2013,7 @@
         state.machine.currentRows = rows;
         state.machine.currentReels = reels;
         state.machine.currentLineTier = lineTier;
+        state.machine.activeSymbols = computeActiveSymbols(normalized);
         ensureGrid(rows, reels);
         renderUpgrades();
         updateMachineMeta();
@@ -1850,9 +2026,11 @@
         state.machine.lineTier = Number(machine.lineTier) || state.machine.lineTier;
         state.machine.rows = Number(machine.rows) || state.machine.rows;
         state.machine.reels = Number(machine.reels) || state.machine.reels;
+        state.machine.baseSymbolCount = Number(machine.baseSymbolCount) || state.machine.baseSymbolCount;
         if (Array.isArray(machine.lines)) state.machine.lines = machine.lines;
         if (machine.payouts) state.machine.payouts = machine.payouts;
         if (machine.assets) state.machine.assets = { ...state.machine.assets, ...machine.assets };
+        if (Array.isArray(machine.activeSymbols)) state.machine.activeSymbols = machine.activeSymbols.slice();
         state.machine.upgradeSettings = {
           baseRows: machine.upgrades?.baseRows ?? state.machine.upgradeSettings?.baseRows ?? state.machine.rows,
           maxRows: machine.upgrades?.maxRows ?? state.machine.upgradeSettings?.maxRows ?? state.machine.rows,
@@ -1880,6 +2058,7 @@
           if (data.payouts) state.machine.payouts = data.payouts;
           if (Number(data.rows)) state.machine.rows = Number(data.rows);
           if (Number(data.reels)) state.machine.reels = Number(data.reels);
+          if (Number(data.baseSymbolCount)) state.machine.baseSymbolCount = Number(data.baseSymbolCount);
           state.machine.upgradeSettings = {
             baseRows: data.baseRows ?? state.machine.upgradeSettings?.baseRows ?? state.machine.rows,
             maxRows: data.maxRows ?? state.machine.upgradeSettings?.maxRows ?? state.machine.rows,
@@ -2083,6 +2262,9 @@
           state.balance = payload.balance;
           els.balance.textContent = currency.format(payload.balance);
         }
+        if (Number(payload.idleGained) > 0) {
+          log('Idle payout collected', `+${currency.format(payload.idleGained)} credits while away.`);
+        }
         if (typeof payload.spins === 'number') {
           els.spinCount.textContent = payload.spins;
         }
@@ -2140,7 +2322,10 @@
           els.lastMult.textContent = lines ? `${lines} line${lines === 1 ? '' : 's'}` : '—';
         }
         if (els.lastTime) els.lastTime.textContent = new Date(lastSpin.timestamp).toLocaleString();
-        if (els.machineOutcome) els.machineOutcome.textContent = lastSpin.outcome || summary;
+        if (els.machineOutcome) {
+          const note = lastSpin.retriggered ? ' (Retriggered)' : '';
+          els.machineOutcome.textContent = `${lastSpin.outcome || summary}${note}`;
+        }
         if (els.hudWin) els.hudWin.textContent = currency.format(lastSpin.winAmount || 0);
         pendingWinGroups = lastSpin.winGroups || [];
         if (activeReelLocks === 0 && reelIntervals.size === 0) {
@@ -2379,7 +2564,8 @@
         try {
           const result = await request('/session', { action: 'upgrade', type });
           updateStats(result);
-          log('Upgrade purchased', `Unlocked ${type}.`);
+          const def = getUpgradeDef(type);
+          log('Upgrade purchased', `Unlocked ${def?.label || type}.`);
         } catch (error) {
           const msg = error.payload?.message || error.message || 'Upgrade failed.';
           showAlert(msg);

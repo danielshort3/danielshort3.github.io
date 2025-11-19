@@ -8,6 +8,7 @@
   "baseReels": 3,
   "maxRows": 5,
   "maxReels": 5,
+  "baseSymbolCount": 5,
   "symbols": [
     { "key": "cherry", "label": "Cherry", "asset": "img/slot/classic/symbols/cherry.png" },
     { "key": "lemon", "label": "Lemon", "asset": "img/slot/classic/symbols/lemon.png" },
