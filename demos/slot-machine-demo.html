@@ -1336,6 +1336,7 @@
           <div class="drop-actions">
             <button type="button" class="ghost-btn secondary" id="drop-rates-btn">Drop rates</button>
             <button type="button" class="ghost-btn tertiary" id="drop-skill-btn">Drop boost</button>
+            <button type="button" class="ghost-btn tertiary" id="drop-close-btn">Close</button>
           </div>
         </div>
         <div class="drop-log" id="drop-log" aria-live="polite"></div>
@@ -1613,6 +1614,7 @@
         dropPanel: document.getElementById('drop-panel'),
         dropRatesBtn: document.getElementById('drop-rates-btn'),
         dropSkillBtn: document.getElementById('drop-skill-btn'),
+        dropCloseBtn: document.getElementById('drop-close-btn'),
         inventoryGrid: document.getElementById('inventory-grid'),
         authOverlay: document.getElementById('auth-overlay'),
         authBody: document.getElementById('auth-body'),
@@ -1883,7 +1885,7 @@
         if (Array.isArray(state.machine.activeSymbols) && state.machine.activeSymbols.length) {
           pool = state.machine.activeSymbols.map(key => getSymbolEntry(key)).filter(Boolean);
         }
-        if (!pool.length) {
+        if (!pool.length || pool.length < 3) {
           pool = Array.from(state.symbolMap.values());
         }
         if (!pool.length) {
@@ -2243,6 +2245,9 @@
         const willShow = typeof force === 'boolean' ? force : els.dropPanel.hidden;
         if (willShow) renderDropPanel();
         els.dropPanel.hidden = !willShow;
+        if (!willShow) {
+          els.dropRatesBtn?.focus?.();
+        }
       };
 
       const renderSkillButton = () => {
@@ -3274,6 +3279,14 @@
         activateDropSkill();
       });
 
+      els.dropCloseBtn?.addEventListener('click', () => toggleDropPanel(false));
+      els.dropPanel?.addEventListener('click', (event) => {
+        const target = event.target;
+        if (target === els.dropPanel) {
+          toggleDropPanel(false);
+        }
+      });
+
       els.upgradeGrid?.addEventListener('click', (event) => {
         const button = event.target.closest('[data-upgrade]');
         if (!button || button.dataset.disabled === 'true') return;
@@ -3307,8 +3320,7 @@
           return;
         }
         const serverLevel = state.serverUpgrades?.[type] || 0;
-        const pendingLevel = state.pendingUpgrades?.[type] || 0;
-        const currentLevel = serverLevel + pendingLevel;
+        const currentLevel = serverLevel;
         const maxLevel = getUpgradeMaxLevel(type);
         if (currentLevel >= maxLevel) {
           showAlert('Upgrade already maxed.');
@@ -3326,21 +3338,29 @@
             return;
           }
         }
-        const cost = def.cost * (currentLevel + 1);
-        const totalCoins = (state.balance || 0) + (state.pendingIdleCoins || 0);
-        if (totalCoins < cost) {
-          showAlert('Not enough credits to purchase this upgrade.');
-          return;
+        setBusy(true);
+        showAlert('');
+        try {
+          const result = await request('/upgrade', { type });
+          state.pendingUpgrades = {};
+          state.serverUpgrades = result.upgrades || state.serverUpgrades;
+          updateStats(result);
+          log('Upgrade applied', def.label || type);
+        } catch (error) {
+          const payload = error.payload || {};
+          if (payload.errorCode === 'INSUFFICIENT_CREDITS') {
+            showAlert('Not enough credits to purchase this upgrade.');
+          } else if (payload.error) {
+            showAlert(payload.error);
+          } else {
+            showAlert(error.message || 'Upgrade failed.');
+          }
+          debugError('upgrade', error, { payload });
+        } finally {
+          setBusy(false);
+          renderUpgrades();
+          renderSkillButton();
         }
-        const useIdle = Math.min(state.pendingIdleCoins || 0, cost);
-        state.pendingIdleCoins = Math.max(0, (state.pendingIdleCoins || 0) - useIdle);
-        const remaining = cost - useIdle;
-        state.balance = Math.max(0, (state.balance || 0) - remaining);
-        state.pendingUpgrades[type] = (state.pendingUpgrades[type] || 0) + 1;
-        log('Upgrade queued', `Pending ${def.label || type}. Will sync on next spin.`);
-        applyUpgradeState(state.serverUpgrades);
-        updateHud();
-        renderUpgrades();
       };
 
       if (els.authSubmit) {
