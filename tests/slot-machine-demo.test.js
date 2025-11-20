@@ -47,4 +47,10 @@ module.exports = function runSlotMachineDemoTests({ assert, checkFileContains })
     assert(Number.isFinite(def.cost), `upgrade "${def.key}" missing numeric cost`);
     assert(typeof def.category === 'string' && def.category.length > 0, `upgrade "${def.key}" missing category`);
   });
+
+  const lambda = require('../aws/slot-machine-function/index.js');
+  assert(lambda && typeof lambda._getUpgradeDefinition === 'function', 'lambda upgrade helper missing');
+  upgradeDefs.forEach(def => {
+    assert(lambda._getUpgradeDefinition(def.key), `lambda missing handler for upgrade "${def.key}"`);
+  });
 };
