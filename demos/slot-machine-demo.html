@@ -1297,6 +1297,8 @@
         },
         symbolMap: cloneSymbolMap(DEFAULT_SYMBOL_MAP),
         gridCells: new Map(),
+        serverUpgrades: {},
+        pendingUpgrades: {},
         upgrades: {},
         upgradeCatalog: [],
         lastWin: 0,
@@ -2050,18 +2052,19 @@
       setSymbolMap(DEFAULT_SYMBOLS, 'init');
       applyUpgradeState(state.upgrades);
 
-      function applyUpgradeState(incoming = state.upgrades) {
+      function applyUpgradeState(incoming = state.serverUpgrades) {
+        state.serverUpgrades = { ...incoming };
         let normalized = {};
         if (state.upgradeCatalog.length) {
           state.upgradeCatalog.forEach(def => {
             const next = Number.isFinite(incoming?.[def.key])
               ? incoming[def.key]
-              : Number(state.upgrades?.[def.key]) || 0;
+              : Number(state.serverUpgrades?.[def.key]) || 0;
             const max = getUpgradeMaxLevel(def.key);
             normalized[def.key] = Math.min(Math.max(0, Math.floor(next)), max);
           });
         } else {
-          normalized = { ...state.upgrades, ...incoming };
+          normalized = { ...state.serverUpgrades, ...incoming };
         }
         const settings = getUpgradeSettings();
         const rows = Math.min(
@@ -2074,7 +2077,13 @@
         );
         const maxLineTier = state.machine.lineTier || (state.machine.lines?.[state.machine.lines.length - 1]?.tier ?? 3);
         const lineTier = Math.min(maxLineTier, normalized.lines || 0);
-        state.upgrades = normalized;
+        const effective = { ...normalized };
+        Object.entries(state.pendingUpgrades || {}).forEach(([key, val]) => {
+          const appended = (effective[key] || 0) + val;
+          const max = getUpgradeMaxLevel(key);
+          effective[key] = Math.min(max, appended);
+        });
+        state.upgrades = effective;
         state.currentRows = rows;
         state.currentReels = reels;
         state.currentLineTier = lineTier;
@@ -2194,6 +2203,24 @@
         if (els.hudBet) els.hudBet.textContent = formatCompactMoney(state.bet || 0);
         if (els.hudWin) els.hudWin.textContent = formatCompactMoney(state.lastWin || 0);
       };
+      function clearSyncedPending(snapshot = {}) {
+        let changed = false;
+        Object.entries(snapshot || {}).forEach(([key, value]) => {
+          if (!value) return;
+          const current = state.pendingUpgrades?.[key] || 0;
+          const remaining = current - value;
+          if (remaining > 0) {
+            state.pendingUpgrades[key] = remaining;
+          } else {
+            delete state.pendingUpgrades[key];
+          }
+          changed = true;
+        });
+        if (changed) {
+          applyUpgradeState(state.serverUpgrades);
+          renderUpgrades();
+        }
+      }
 
       function stopIdleTicker() {
         if (state.idleTicker) {
@@ -2272,6 +2299,7 @@
         else {
           stopIdleTicker();
           state.pendingIdleCoins = 0;
+          state.pendingUpgrades = {};
           updateHud();
         }
         if (els.debugCoinBtn) {
@@ -2397,9 +2425,9 @@
         state.maxBet = resolveMaxBet(payload.maxBet);
         els.maxBet.textContent = state.maxBet;
         if (payload.upgrades) {
-          state.upgrades = { ...payload.upgrades };
+          state.serverUpgrades = { ...payload.upgrades };
         }
-        applyUpgradeState(state.upgrades);
+        applyUpgradeState(state.serverUpgrades);
         const incomingBet = Number(payload.bet);
         const fallbackBet = Number.isFinite(state.bet)
           ? state.bet
@@ -2517,10 +2545,12 @@
         if (els.error) els.error.textContent = '';
         startGridSpin();
         let spinData = null;
+        const clientIdleCoins = Math.floor(Math.max(0, state.pendingIdleCoins || 0));
+        const pendingSnapshot = { ...state.pendingUpgrades };
         try {
-          const clientIdleCoins = Math.floor(Math.max(0, state.pendingIdleCoins || 0));
-          const result = await request('/spin', { bet, clientIdleCoins });
+          const result = await request('/spin', { bet, clientIdleCoins, pendingUpgrades: pendingSnapshot });
           spinData = result.lastSpin || null;
+          clearSyncedPending(pendingSnapshot);
           updateStats(result);
           updateLastSpin(spinData);
           const outcomeText = spinData?.outcome || result.outcome || 'Result processed';
@@ -2709,20 +2739,41 @@
           showAlert('Upgrade unavailable.');
           return;
         }
-        debug('upgrade:request', { type });
-        setBusy(true);
-        showAlert('');
-        try {
-          const result = await request('/session', { action: 'upgrade', type });
-          updateStats(result);
-          log('Upgrade purchased', `Unlocked ${def?.label || type}.`);
-        } catch (error) {
-          const msg = error.payload?.message || error.message || 'Upgrade failed.';
-          showAlert(msg);
-          debugError('upgrade', error);
-        } finally {
-          setBusy(false);
+        const serverLevel = state.serverUpgrades?.[type] || 0;
+        const pendingLevel = state.pendingUpgrades?.[type] || 0;
+        const currentLevel = serverLevel + pendingLevel;
+        const maxLevel = getUpgradeMaxLevel(type);
+        if (currentLevel >= maxLevel) {
+          showAlert('Upgrade already maxed.');
+          return;
         }
+        if (def.requires) {
+          const requirements = Array.isArray(def.requires) ? def.requires : [def.requires];
+          const met = requirements.every(req => {
+            const base = state.serverUpgrades?.[req] || 0;
+            const pendingReq = state.pendingUpgrades?.[req] || 0;
+            return base + pendingReq > 0;
+          });
+          if (!met) {
+            showAlert('Unlock the prerequisite upgrade first.');
+            return;
+          }
+        }
+        const cost = def.cost * (currentLevel + 1);
+        const totalCoins = (state.balance || 0) + (state.pendingIdleCoins || 0);
+        if (totalCoins < cost) {
+          showAlert('Not enough credits to purchase this upgrade.');
+          return;
+        }
+        const useIdle = Math.min(state.pendingIdleCoins || 0, cost);
+        state.pendingIdleCoins = Math.max(0, (state.pendingIdleCoins || 0) - useIdle);
+        const remaining = cost - useIdle;
+        state.balance = Math.max(0, (state.balance || 0) - remaining);
+        state.pendingUpgrades[type] = (state.pendingUpgrades[type] || 0) + 1;
+        log('Upgrade queued', `Pending ${def.label || type}. Will sync on next spin.`);
+        applyUpgradeState(state.serverUpgrades);
+        updateHud();
+        renderUpgrades();
       };
 
       if (els.authSubmit) {

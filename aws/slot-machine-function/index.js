@@ -555,6 +555,9 @@ async function handleSpin(payload = {}) {
     : null;
   const idleResult = await settleIdleIncome(player, { maxCoins: claimedCoins });
   player = idleResult.player;
+  if (payload.pendingUpgrades) {
+    player = await applyPendingUpgrades(player, payload.pendingUpgrades);
+  }
   const upgrades = normalizeUpgrades((auth?.player || player).upgrades || DEFAULT_UPGRADES);
   const maxBet = computeMaxBet(upgrades);
   if (bet > maxBet) {
@@ -763,6 +766,50 @@ async function handleUpgrade(payload = {}) {
     updated.Attributes,
     { username: auth.username, token: auth.token }
   );
+}
+
+async function applyPendingUpgrades(player, pending = {}) {
+  const entries = Object.entries(pending || {}).filter(([, val]) => Number.isFinite(val) && val > 0);
+  if (!entries.length) return player;
+  const upgrades = normalizeUpgrades(player.upgrades || DEFAULT_UPGRADES);
+  let credits = player.credits || 0;
+  for (const [key, count] of entries) {
+    const def = getUpgradeDefinition(key);
+    if (!def) continue;
+    for (let i = 0; i < count; i += 1) {
+      const maxLevels = resolveUpgradeMax(def);
+      const currentLevel = upgrades[key] || 0;
+      if (currentLevel >= maxLevels) {
+        throw httpError(400, `Upgrade ${key} exceeds maximum level.`);
+      }
+      if (def.requires) {
+        const reqs = Array.isArray(def.requires) ? def.requires : [def.requires];
+        const unlocked = reqs.every(req => (upgrades[req] || 0) > 0);
+        if (!unlocked) {
+          throw httpError(400, `Prerequisite missing for upgrade ${key}.`);
+        }
+      }
+      const cost = def.cost * (currentLevel + 1);
+      if (credits < cost) {
+        throw httpError(400, 'Not enough credits to sync upgrades.');
+      }
+      credits -= cost;
+      upgrades[key] = currentLevel + 1;
+    }
+  }
+  const now = nowIso();
+  const updated = await dynamo.send(new UpdateCommand({
+    TableName: TABLE_NAME,
+    Key: { playerId: player.playerId },
+    UpdateExpression: 'SET credits = :credits, upgrades = :upgrades, updatedAt = :now',
+    ExpressionAttributeValues: {
+      ':credits': credits,
+      ':upgrades': upgrades,
+      ':now': now
+    },
+    ReturnValues: 'ALL_NEW'
+  }));
+  return updated.Attributes || player;
 }
 
 async function handleDebugCoins(payload = {}) {
