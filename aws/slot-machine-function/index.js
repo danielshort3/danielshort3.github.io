@@ -11,7 +11,16 @@ const {
 const { randomUUID, randomBytes } = require('crypto');
 const bcrypt = require('bcryptjs');
 const { spin: runSlotSpin, machineMetadata } = require('./slot-engine');
-const UPGRADE_DEFINITIONS = require('../../slot-config/upgrade-definitions.json');
+let UPGRADE_DEFINITIONS;
+try {
+  UPGRADE_DEFINITIONS = require('../../slot-config/upgrade-definitions.json');
+} catch (error) {
+  if (error.code === 'MODULE_NOT_FOUND') {
+    UPGRADE_DEFINITIONS = require('./upgrade-definitions.js');
+  } else {
+    throw error;
+  }
+}
 
 const dynamo = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
   marshallOptions: { removeUndefinedValues: true }
@@ -44,6 +53,8 @@ const UPGRADE_LIMITS = MACHINE_META.upgrades || {
 };
 const MAX_LINE_TIER = MACHINE_META.lineTier || 3;
 const BASE_SYMBOL_COUNT = MACHINE_META.baseSymbolCount || 5;
+const DEBUG_EMAIL = 'danielshort3@gmail.com';
+const DEBUG_COIN_AMOUNT = 100000;
 const UPGRADE_INDEX = new Map();
 const DEFAULT_UPGRADES = {};
 UPGRADE_DEFINITIONS.forEach(def => {
@@ -484,6 +495,9 @@ async function logSpinHistory(entry = {}) {
 }
 
 async function handleSession(payload = {}) {
+  if ((payload.action === 'debugCoins') && payload.token) {
+    return handleDebugCoins(payload);
+  }
   if ((payload.action === 'upgrade' || payload.upgradeType || payload.type) && payload.token) {
     return handleUpgrade({
       token: payload.token,
@@ -679,6 +693,7 @@ async function handleUpgrade(payload = {}) {
   if (!def) {
     throw httpError(400, 'Unknown upgrade type.');
   }
+  const type = def.key;
   const auth = await resolveAuth(payload.token, { required: true });
   const player = auth.player;
   const upgrades = normalizeUpgrades(player.upgrades || DEFAULT_UPGRADES);
@@ -728,6 +743,38 @@ async function handleUpgrade(payload = {}) {
     type,
     credits: updated.Attributes?.credits,
     upgrades: updated.Attributes?.upgrades
+  });
+  return formatPlayerPayload(
+    updated.Attributes,
+    { username: auth.username, token: auth.token }
+  );
+}
+
+async function handleDebugCoins(payload = {}) {
+  const auth = await resolveAuth(payload.token, { required: true });
+  const email = (auth.username || '').toLowerCase();
+  if (email !== DEBUG_EMAIL) {
+    throw httpError(403, 'Not authorized.');
+  }
+  const bonus = DEBUG_COIN_AMOUNT;
+  const player = auth.player;
+  const nextCredits = (player.credits || 0) + bonus;
+  const now = nowIso();
+  const updated = await dynamo.send(new UpdateCommand({
+    TableName: TABLE_NAME,
+    Key: { playerId: player.playerId },
+    UpdateExpression: 'SET credits = :credits, updatedAt = :now',
+    ExpressionAttributeValues: {
+      ':credits': nextCredits,
+      ':now': now
+    },
+    ReturnValues: 'ALL_NEW'
+  }));
+  console.log('debug:coins', {
+    username: auth.username,
+    playerId: player.playerId,
+    amount: bonus,
+    credits: updated.Attributes?.credits
   });
   return formatPlayerPayload(
     updated.Attributes,
