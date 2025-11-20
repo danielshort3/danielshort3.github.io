@@ -1,0 +1,30 @@
+{
+  "tierWeights": {
+    "common": 0.8,
+    "rare": 0.15,
+    "epic": 0.05
+  },
+  "tables": {
+    "classic": {
+      "common": [
+        { "type": "goldChip", "chance": 0.02, "icon": "img/slot/items/gold_chip.png", "amount": 1, "name": "Golden Chip" },
+        { "type": "scratchCard", "chance": 0.015, "icon": "img/slot/items/scratch_card.png", "amount": 1, "name": "Scratch Card" },
+        { "type": "circuit", "chance": 0.01, "icon": "img/slot/items/circuit.png", "amount": 1, "name": "Circuit" }
+      ],
+      "rare": [
+        { "type": "inventorySlotCoupon", "chance": 0.0025, "icon": "img/slot/items/inventory_slot_coupon.png", "amount": 1, "name": "Inventory Slot Coupon" },
+        { "type": "gearSlotCoupon", "chance": 0.0025, "icon": "img/slot/items/gear_slot_coupon.png", "amount": 1, "name": "Gear Slot Coupon" },
+        { "type": "storageSlotCoupon", "chance": 0.0025, "icon": "img/slot/items/storage_slot_coupon.png", "amount": 1, "name": "Storage Slot Coupon" },
+        { "type": "deckSlotCoupon", "chance": 0.0025, "icon": "img/slot/items/deck_slot_coupon.png", "amount": 1, "name": "Deck Slot Coupon" },
+        { "type": "cardSlotCoupon", "chance": 0.0025, "icon": "img/slot/items/card_slot_coupon.png", "amount": 1, "name": "Card Slot Coupon" },
+        { "type": "vipMarks", "chance": 0.005, "icon": "img/slot/items/vip_mark.png", "amount": 1, "name": "VIP Mark" },
+        { "type": "spinBooster", "chance": 0.001, "icon": "img/slot/items/spinBoosterT1.png", "amount": 1, "name": "Spin Booster T1", "tier": 1 },
+        { "type": "reelMod", "chance": 0.005, "icon": "img/slot/items/reel_mod_t1.png", "amount": 1, "name": "Reel Mod T1", "tier": 1 },
+        { "type": "card", "chance": 0.0035, "icon": "img/slot/items/card.png", "amount": 1, "name": "Basic Card", "tier": "Basic", "rarity": "Basic" }
+      ],
+      "epic": [
+        { "type": "gear", "chance": 0.04, "icon": "img/slot/items/gear.png", "amount": 1, "name": "Basic Gear", "rarity": "Basic" }
+      ]
+    }
+  }
+}

@@ -551,6 +551,139 @@
       border: 1px solid rgba(148,163,184,.18);
       padding: clamp(18px, 4vw, 28px);
     }
+    .drop-stack {
+      border-radius: 16px;
+      border: 1px solid rgba(148,163,184,.22);
+      background: rgba(255,255,255,.04);
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+      position: relative;
+    }
+    .drop-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .drop-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .inventory-grid {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .inventory-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(148,163,184,.25);
+      font-size: .9rem;
+      color: var(--text);
+    }
+    .inventory-chip img {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+      display: block;
+    }
+    .drop-log {
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,.2);
+      background: rgba(2,6,23,.6);
+      padding: 10px;
+      max-height: 140px;
+      overflow-y: auto;
+      font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: .85rem;
+      color: var(--muted);
+    }
+    .drop-entry {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      line-height: 1.3;
+    }
+    .drop-entry + .drop-entry {
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid rgba(255,255,255,.06);
+    }
+    .drop-icon {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+      border-radius: 6px;
+      background: rgba(255,255,255,.05);
+      padding: 3px;
+      display: block;
+    }
+    .drop-amount {
+      font-weight: 600;
+      color: var(--text);
+    }
+    .drop-panel {
+      position: absolute;
+      right: 0;
+      top: 100%;
+      margin-top: 10px;
+      width: min(420px, 100%);
+      border-radius: 14px;
+      border: 1px solid rgba(148,163,184,.25);
+      background: rgba(4,6,20,.92);
+      box-shadow: 0 20px 50px rgba(2,6,23,.65);
+      padding: 12px 14px;
+      z-index: 8;
+    }
+    .drop-panel[hidden] {
+      display: none;
+    }
+    .drop-panel h4 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+    }
+    .drop-panel ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 8px;
+    }
+    .drop-panel li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,.2);
+      padding: 8px 10px;
+      background: rgba(255,255,255,.03);
+    }
+    .rate-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .drop-tier-label {
+      margin: 6px 0 4px;
+      font-size: .8rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--muted);
+    }
+    .drop-mult {
+      margin: 4px 0;
+      font-size: .85rem;
+      color: var(--muted);
+    }
     .upgrade-panel {
       border-radius: 18px;
       border: 1px solid rgba(148,163,184,.2);
@@ -948,6 +1081,17 @@
         padding: 14px;
         flex: 0 0 auto;
       }
+      .drop-log {
+        max-height: 120px;
+      }
+      .drop-panel {
+        position: fixed;
+        left: 16px;
+        right: 16px;
+        bottom: clamp(96px, 22vh, 260px);
+        top: auto;
+        width: auto;
+      }
       .slot-grid {
         gap: 6px;
       }
@@ -1139,6 +1283,20 @@
             <p class="machine-error" id="error" role="status" aria-live="polite"></p>
             <div class="alert" id="alert" hidden></div>
           </div>
+          <div class="drop-stack">
+            <div class="drop-header">
+              <div>
+                <p class="hud-label">Items</p>
+                <div class="inventory-grid" id="inventory-grid"></div>
+              </div>
+              <div class="drop-actions">
+                <button type="button" class="ghost-btn secondary" id="drop-rates-btn">Drop rates</button>
+                <button type="button" class="ghost-btn tertiary" id="drop-skill-btn">Drop boost</button>
+              </div>
+            </div>
+            <div class="drop-log" id="drop-log" aria-live="polite"></div>
+            <div class="drop-panel" id="drop-panel" hidden aria-live="polite"></div>
+          </div>
           <div class="action-buttons">
             <button type="button" class="spin-btn" id="spin-btn" disabled>Spin</button>
           </div>
@@ -1295,6 +1453,24 @@
           baseSymbolCount: 5,
           activeSymbols: []
         },
+        drop: {
+          tableKey: 'classic',
+          table: { common: [], rare: [], epic: [] },
+          tierWeights: { common: 0.8, rare: 0.15, epic: 0.05 },
+          constants: { betScale: 0.1, win: 2, lose: 1, boostScale: 0.05 },
+          inventory: {},
+          lastDrops: [],
+          history: [],
+          lastTimestamp: 0
+        },
+        skills: {
+          dropRate: {
+            active: false,
+            expiresAt: 0,
+            cooldownUntil: 0,
+            spec: { durationMs: 60000, cooldownMs: 120000, multiplier: 1.05 }
+          }
+        },
         symbolMap: cloneSymbolMap(DEFAULT_SYMBOL_MAP),
         gridCells: new Map(),
         serverUpgrades: {},
@@ -1316,7 +1492,8 @@
       window.slotDemoDebug.dumpState = () => JSON.parse(JSON.stringify({
         ...state,
         symbolMap: Array.from(state.symbolMap.keys()),
-        upgrades: { ...state.upgrades }
+        upgrades: { ...state.upgrades },
+        dropInventory: { ...state.drop.inventory }
       }));
 
       const upgradeCatalogUrl = 'slot-config/upgrade-definitions.json';
@@ -1420,6 +1597,11 @@
         lastTime: document.getElementById('last-time'),
         log: document.getElementById('log'),
         paytable: document.getElementById('paytable'),
+        dropLog: document.getElementById('drop-log'),
+        dropPanel: document.getElementById('drop-panel'),
+        dropRatesBtn: document.getElementById('drop-rates-btn'),
+        dropSkillBtn: document.getElementById('drop-skill-btn'),
+        inventoryGrid: document.getElementById('inventory-grid'),
         authOverlay: document.getElementById('auth-overlay'),
         authBody: document.getElementById('auth-body'),
         authAlert: document.getElementById('auth-alert'),
@@ -1491,8 +1673,13 @@
       els.accountToggle?.addEventListener('click', () => toggleAccountSheet(true));
       els.accountClose?.addEventListener('click', () => toggleAccountSheet(false));
       document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && !els.accountPanel?.hidden) {
-          toggleAccountSheet(false);
+        if (event.key === 'Escape') {
+          if (!els.accountPanel?.hidden) {
+            toggleAccountSheet(false);
+          }
+          if (!els.dropPanel?.hidden) {
+            toggleDropPanel(false);
+          }
         }
       });
       const probedSymbols = new Set();
@@ -1628,6 +1815,7 @@
         });
         if (!visible) {
           toggleAccountSheet(false);
+          toggleDropPanel(false);
         }
         const disableInputs = !visible || state.busy;
         els.spinBtn.disabled = disableInputs;
@@ -1635,10 +1823,14 @@
         els.chipButtons.forEach(btn => { btn.disabled = disableInputs; });
         if (els.syncBtn) els.syncBtn.disabled = disableInputs;
         if (els.resetBtn) els.resetBtn.disabled = disableInputs;
+        if (els.dropRatesBtn) els.dropRatesBtn.disabled = disableInputs;
         renderUpgrades();
+        renderSkillButton();
         applyMobileMode();
         if (visible) startIdleTicker();
         else stopIdleTicker();
+        if (visible) startSkillTicker();
+        else stopSkillTicker();
       };
 
       const setBusy = (flag) => {
@@ -1649,7 +1841,10 @@
         if (els.syncBtn) els.syncBtn.disabled = disableInputs;
         if (els.betSlider) els.betSlider.disabled = disableInputs;
         els.chipButtons.forEach(btn => { btn.disabled = disableInputs; });
+        if (els.dropRatesBtn) els.dropRatesBtn.disabled = disableInputs;
+        if (disableInputs) toggleDropPanel(false);
         renderUpgrades();
+        renderSkillButton();
       };
 
       const toggleAuthInputs = (disabled) => {
@@ -1793,6 +1988,330 @@
         });
         els.upgradeGrid.innerHTML = sections.join('') || '<p class="muted-text">No upgrades available.</p>';
       };
+
+      const DROP_ITEM_NAMES = {
+        goldChip: 'Golden Chip',
+        scratchCard: 'Scratch Card',
+        circuit: 'Circuit',
+        inventorySlotCoupon: 'Inventory Slot Coupon',
+        gearSlotCoupon: 'Gear Slot Coupon',
+        storageSlotCoupon: 'Storage Slot Coupon',
+        deckSlotCoupon: 'Deck Slot Coupon',
+        cardSlotCoupon: 'Card Slot Coupon',
+        vipMarks: 'VIP Mark',
+        reelMod: 'Reel Mod',
+        spinBooster: 'Spin Booster',
+        card: 'Card',
+        gear: 'Gear'
+      };
+      const DROP_ITEM_ICONS = {
+        goldChip: 'img/slot/items/gold_chip.png',
+        scratchCard: 'img/slot/items/scratch_card.png',
+        circuit: 'img/slot/items/circuit.png',
+        inventorySlotCoupon: 'img/slot/items/inventory_slot_coupon.png',
+        gearSlotCoupon: 'img/slot/items/gear_slot_coupon.png',
+        storageSlotCoupon: 'img/slot/items/storage_slot_coupon.png',
+        deckSlotCoupon: 'img/slot/items/deck_slot_coupon.png',
+        cardSlotCoupon: 'img/slot/items/card_slot_coupon.png',
+        vipMarks: 'img/slot/items/vip_mark.png',
+        reelMod: 'img/slot/items/reel_mod_t1.png',
+        spinBooster: 'img/slot/items/spinBoosterT1.png',
+        card: 'img/slot/items/card.png',
+        gear: 'img/slot/items/gear.png'
+      };
+      const DROP_TIER_ORDER = ['common', 'rare', 'epic'];
+      const MAX_DROP_HISTORY = 25;
+      const dropPercent = (value = 0) => `${(Math.min(1, Math.max(0, value)) * 100).toFixed(2)}%`;
+
+      const normalizeDrop = (entry = {}) => {
+        const type = entry.type || 'item';
+        const name = entry.name || DROP_ITEM_NAMES[type] || type;
+        const icon = entry.icon || DROP_ITEM_ICONS[type] || getPlaceholderAsset();
+        const amount = Number.isFinite(entry.amount) ? entry.amount : 1;
+        return {
+          type,
+          amount,
+          name,
+          icon,
+          rarity: entry.rarity,
+          tier: entry.tier
+        };
+      };
+
+      const inventoryMeta = (key = '') => {
+        const [type, variant] = key.split(':');
+        switch (type) {
+          case 'gear':
+            return { name: `${variant || 'Basic'} Gear`, icon: DROP_ITEM_ICONS.gear };
+          case 'card':
+            return { name: `${variant || 'Card'} Card`, icon: DROP_ITEM_ICONS.card };
+          case 'reelMod':
+            return { name: `Reel Mod ${variant ? `T${variant}` : ''}`.trim(), icon: DROP_ITEM_ICONS.reelMod };
+          case 'spinBooster':
+            return { name: `Spin Booster ${variant ? `T${variant}` : ''}`.trim(), icon: DROP_ITEM_ICONS.spinBooster };
+          default:
+            return { name: DROP_ITEM_NAMES[type] || type || 'Item', icon: DROP_ITEM_ICONS[type] || getPlaceholderAsset() };
+        }
+      };
+
+      const applyDropState = (dropState = {}) => {
+        if (!dropState || typeof dropState !== 'object') return;
+        if (dropState.tableKey) state.drop.tableKey = dropState.tableKey;
+        if (dropState.table) state.drop.table = dropState.table;
+        if (dropState.tierWeights) {
+          state.drop.tierWeights = { ...state.drop.tierWeights, ...dropState.tierWeights };
+        }
+        if (dropState.constants) {
+          const c = dropState.constants;
+          state.drop.constants = {
+            ...state.drop.constants,
+            betScale: Number(c.BET_DROP_SCALE ?? c.betScale ?? state.drop.constants.betScale),
+            win: Number(c.WIN_DROP_MULT ?? c.win ?? state.drop.constants.win),
+            lose: Number(c.LOSE_DROP_MULT ?? c.lose ?? state.drop.constants.lose),
+            boostScale: Number(c.DROP_BOOST_SCALE ?? c.boostScale ?? state.drop.constants.boostScale)
+          };
+        }
+        if (dropState.inventory) {
+          state.drop.inventory = { ...dropState.inventory };
+        }
+        if (Array.isArray(dropState.lastDrops) && dropState.lastDrops.length && !state.drop.history.length) {
+          recordDrops(dropState.lastDrops, Date.now());
+        } else {
+          renderDropLog();
+        }
+        updateSkillSpec();
+        renderSkillButton();
+        renderInventory();
+      };
+
+      const recordDrops = (drops = [], timestamp = Date.now()) => {
+        if (!Array.isArray(drops) || !drops.length) return;
+        const ts = Number.isFinite(timestamp) ? timestamp : Date.now();
+        if (ts <= (state.drop.lastTimestamp || 0)) {
+          state.drop.lastDrops = drops.map(normalizeDrop);
+          return;
+        }
+        const normalized = drops.map(normalizeDrop);
+        state.drop.lastDrops = normalized;
+        state.drop.lastTimestamp = ts;
+        state.drop.history.unshift({ timestamp: ts, drops: normalized });
+        if (state.drop.history.length > MAX_DROP_HISTORY) {
+          state.drop.history.length = MAX_DROP_HISTORY;
+        }
+        renderDropLog();
+      };
+
+      const renderInventory = () => {
+        if (!els.inventoryGrid) return;
+        const entries = Object.entries(state.drop.inventory || {}).filter(([, count]) => Number(count) > 0);
+        if (!entries.length) {
+          els.inventoryGrid.innerHTML = '<span class="muted-text">No drops yet.</span>';
+          return;
+        }
+        entries.sort((a, b) => b[1] - a[1]);
+        const chips = entries.slice(0, 6).map(([key, count]) => {
+          const meta = inventoryMeta(key);
+          return `
+            <span class="inventory-chip" data-key="${key}">
+              <img src="${meta.icon}" alt="${meta.name}">
+              <span>${meta.name}</span>
+              <strong class="drop-amount">×${count}</strong>
+            </span>
+          `;
+        });
+        els.inventoryGrid.innerHTML = chips.join('');
+      };
+
+      const renderDropLog = () => {
+        if (!els.dropLog) return;
+        const history = state.drop.history || [];
+        if (!history.length) {
+          els.dropLog.textContent = 'Spin to collect items.';
+          return;
+        }
+        const rows = history.slice(0, 8).map(entry => {
+          const time = new Date(entry.timestamp).toLocaleTimeString();
+          const parts = entry.drops.map(drop => {
+            const info = normalizeDrop(drop);
+            return `<span class="rate-item"><img class="drop-icon" src="${info.icon}" alt="${info.name}">${info.name} ×${info.amount}</span>`;
+          }).join(', ');
+          return `<div class="drop-entry"><strong>${time}</strong><span aria-hidden="true">—</span><span>${parts}</span></div>`;
+        });
+        els.dropLog.innerHTML = rows.join('');
+      };
+
+      const getDropTable = () => state.drop.table || { common: [], rare: [], epic: [] };
+      const getTierWeights = () => state.drop.tierWeights || { common: 0.8, rare: 0.15, epic: 0.05 };
+
+      const isDropSkillActive = () => {
+        const skill = state.skills.dropRate;
+        if (!skill) return false;
+        const now = Date.now();
+        if (skill.active && skill.expiresAt && now >= skill.expiresAt) {
+          skill.active = false;
+        }
+        if (!skill.active && skill.expiresAt && now >= skill.expiresAt) {
+          skill.expiresAt = 0;
+        }
+        if (skill.cooldownUntil && now >= skill.cooldownUntil) {
+          skill.cooldownUntil = 0;
+        }
+        return skill.active;
+      };
+
+      const getDropMultiplier = (win = false) => {
+        const constants = state.drop.constants || {};
+        const betScale = Number(constants.betScale) || 0.1;
+        const boostScale = Number(constants.boostScale) || 0.05;
+        const winMult = Number(constants.win) || 2;
+        const loseMult = Number(constants.lose) || 1;
+        const dropBoost = Math.max(0, state.upgrades.dropBoost || 0);
+        const base = 1 + boostScale * dropBoost;
+        const bet = Math.max(0, state.bet || 1);
+        const betMult = 1 + betScale * Math.log(1 + bet);
+        const skillMult = isDropSkillActive() ? (state.skills.dropRate?.spec?.multiplier || 1) : 1;
+        const outcome = win ? winMult : loseMult;
+        return {
+          total: base * betMult * skillMult * outcome,
+          components: { base, bet: betMult, skill: skillMult, outcome }
+        };
+      };
+
+      const computeDropRates = (mult = 1) => {
+        const table = getDropTable();
+        const tiers = DROP_TIER_ORDER.filter(tier => Array.isArray(table[tier]) && table[tier].length);
+        const weights = tiers.map(tier => getTierWeights()[tier] || 0);
+        const totalWeight = weights.reduce((sum, weight) => sum + weight, 0) || 1;
+        const rates = [];
+        tiers.forEach((tier, idx) => {
+          const tierProb = (weights[idx] || 0) / totalWeight;
+          (table[tier] || []).forEach(entry => {
+            const baseChance = Math.max(0, Number(entry.chance) || 0);
+            const chance = Math.min(1, baseChance * mult) * tierProb;
+            const drop = normalizeDrop(entry);
+            rates.push({ ...drop, chance, tier });
+          });
+        });
+        return rates.sort((a, b) => b.chance - a.chance);
+      };
+
+      const renderDropPanel = () => {
+        if (!els.dropPanel) return;
+        const lossMult = getDropMultiplier(false);
+        const winMult = getDropMultiplier(true);
+        const rates = computeDropRates(winMult.total);
+        if (!rates.length) {
+          els.dropPanel.innerHTML = '<p class="muted-text">Drop table not loaded yet.</p>';
+          return;
+        }
+        const groups = DROP_TIER_ORDER.map(tier => ({
+          tier,
+          list: rates.filter(rate => rate.tier === tier)
+        })).filter(group => group.list.length);
+        const listHtml = groups.map(group => `
+          <p class="drop-tier-label">${group.tier}</p>
+          <ul>
+            ${group.list.map(rate => `
+              <li>
+                <span class="rate-item"><img class="drop-icon" src="${rate.icon}" alt="${rate.name}">${rate.name}</span>
+                <span class="drop-amount">${dropPercent(rate.chance)}</span>
+              </li>
+            `).join('')}
+          </ul>
+        `).join('');
+        els.dropPanel.innerHTML = `
+          <h4>Drop rates</h4>
+          <p class="drop-mult">Win: ${winMult.total.toFixed(2)}× • Loss: ${lossMult.total.toFixed(2)}×</p>
+          ${listHtml || '<p class="muted-text">No drops configured.</p>'}
+        `;
+      };
+
+      const toggleDropPanel = (force) => {
+        if (!els.dropPanel) return;
+        const willShow = typeof force === 'boolean' ? force : els.dropPanel.hidden;
+        if (willShow) renderDropPanel();
+        els.dropPanel.hidden = !willShow;
+      };
+
+      const renderSkillButton = () => {
+        if (!els.dropSkillBtn) return;
+        const unlocked = (state.upgrades.dropBoostUnlock || 0) > 0;
+        const skill = state.skills.dropRate;
+        els.dropSkillBtn.hidden = !unlocked;
+        if (!unlocked) return;
+        const now = Date.now();
+        const busy = state.busy || !state.gameReady;
+        let label = 'Drop boost';
+        if (skill.active && skill.expiresAt > now) {
+          label = `Drop boost active (${formatTime(skill.expiresAt - now)})`;
+          els.dropSkillBtn.dataset.state = 'active';
+          els.dropSkillBtn.disabled = busy;
+        } else if (skill.cooldownUntil && skill.cooldownUntil > now) {
+          label = `Cooldown ${formatTime(skill.cooldownUntil - now)}`;
+          els.dropSkillBtn.dataset.state = 'cooldown';
+          els.dropSkillBtn.disabled = true;
+        } else {
+          els.dropSkillBtn.dataset.state = 'ready';
+          els.dropSkillBtn.disabled = busy;
+          const boost = Math.round(((state.skills.dropRate?.spec?.multiplier || 1) - 1) * 100);
+          if (boost > 0) label = `Drop boost +${boost}%`;
+        }
+        els.dropSkillBtn.textContent = label;
+      };
+
+      const updateSkillSpec = () => {
+        const effect = Math.max(0, state.upgrades.dropRateEffect || 0);
+        const duration = Math.max(0, state.upgrades.dropRateDuration || 0);
+        const baseBoost = state.drop.constants?.boostScale || 0.05;
+        const durationMs = 60000 * (1 + duration);
+        const cooldownMs = durationMs * 2;
+        const multiplier = 1 + baseBoost * (1 + effect);
+        state.skills.dropRate.spec = { durationMs, cooldownMs, multiplier };
+        renderSkillButton();
+      };
+
+      const tickSkills = () => {
+        isDropSkillActive();
+        renderSkillButton();
+      };
+
+      let skillTimer = null;
+      const startSkillTicker = () => {
+        if (skillTimer) return;
+        skillTimer = setInterval(tickSkills, 500);
+      };
+      const stopSkillTicker = () => {
+        if (skillTimer) {
+          clearInterval(skillTimer);
+          skillTimer = null;
+        }
+      };
+
+      const activateDropSkill = () => {
+        if (!state.gameReady || state.busy) return;
+        const unlocked = (state.upgrades.dropBoostUnlock || 0) > 0;
+        if (!unlocked) {
+          showAlert('Unlock the drop boost skill first.');
+          return;
+        }
+        const skill = state.skills.dropRate;
+        const now = Date.now();
+        if (!skill || (skill.cooldownUntil && skill.cooldownUntil > now) || skill.active) {
+          return;
+        }
+        skill.active = true;
+        skill.expiresAt = now + (skill.spec?.durationMs || 60000);
+        skill.cooldownUntil = skill.expiresAt + (skill.spec?.cooldownMs || 120000);
+        log('Drop boost activated', `Running for ${formatTime(skill.expiresAt - now)}.`);
+        renderSkillButton();
+        if (!els.dropPanel?.hidden) {
+          renderDropPanel();
+        }
+      };
+
+      const dropSkillPayload = () => ({
+        dropRate: isDropSkillActive()
+      });
 
 
       const clearReelIntervals = () => {
@@ -2096,6 +2615,8 @@
         ensureGrid(rows, reels);
         renderUpgrades();
         updateMachineMeta();
+        updateSkillSpec();
+        renderSkillButton();
         startIdleTicker();
       }
 
@@ -2263,6 +2784,10 @@
           els.betSlider.value = safe;
         }
         updateHud();
+        if (els.dropPanel && !els.dropPanel.hidden) {
+          renderDropPanel();
+        }
+        renderSkillButton();
       };
       setBetValue(state.bet);
 
@@ -2326,6 +2851,13 @@
           state.playerId = null;
           state.pendingIdleCoins = 0;
           stopIdleTicker();
+          state.drop.inventory = {};
+          state.drop.history = [];
+          state.drop.lastDrops = [];
+          state.drop.lastTimestamp = 0;
+          renderDropLog();
+          renderInventory();
+          toggleDropPanel(false);
           updateHud();
         }
         if (state.auth.token) {
@@ -2421,6 +2953,11 @@
         if (payload.machine) {
           syncMachineDefinition(payload.machine);
         }
+        if (payload.dropState) {
+          applyDropState(payload.dropState);
+        } else if (payload.inventory) {
+          applyDropState({ inventory: payload.inventory });
+        }
 
         state.maxBet = resolveMaxBet(payload.maxBet);
         els.maxBet.textContent = state.maxBet;
@@ -2480,6 +3017,10 @@
           els.machineOutcome.textContent = `${lastSpin.outcome || summary}${note}`;
         }
         if (els.hudWin) els.hudWin.textContent = formatCompactMoney(winAmount);
+        if (Array.isArray(lastSpin.drops) && lastSpin.drops.length) {
+          recordDrops(lastSpin.drops, Date.parse(lastSpin.timestamp) || Date.now());
+          renderInventory();
+        }
         pendingWinGroups = lastSpin.winGroups || [];
         if (activeReelLocks === 0 && reelIntervals.size === 0) {
           highlightWins(pendingWinGroups);
@@ -2548,7 +3089,12 @@
         const clientIdleCoins = Math.floor(Math.max(0, state.pendingIdleCoins || 0));
         const pendingSnapshot = { ...state.pendingUpgrades };
         try {
-          const result = await request('/spin', { bet, clientIdleCoins, pendingUpgrades: pendingSnapshot });
+          const result = await request('/spin', {
+            bet,
+            clientIdleCoins,
+            pendingUpgrades: pendingSnapshot,
+            activeSkills: dropSkillPayload()
+          });
           spinData = result.lastSpin || null;
           clearSyncedPending(pendingSnapshot);
           updateStats(result);
@@ -2705,6 +3251,15 @@
 
       els.chipButtons.forEach(btn => {
         btn.addEventListener('click', () => handleChipAction(btn.dataset.chip));
+      });
+
+      els.dropRatesBtn?.addEventListener('click', () => {
+        if (state.busy || !state.gameReady) return;
+        toggleDropPanel();
+      });
+
+      els.dropSkillBtn?.addEventListener('click', () => {
+        activateDropSkill();
       });
 
       els.upgradeGrid?.addEventListener('click', (event) => {

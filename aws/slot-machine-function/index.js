@@ -11,6 +11,13 @@ const {
 const { randomUUID, randomBytes } = require('crypto');
 const bcrypt = require('bcryptjs');
 const { spin: runSlotSpin, machineMetadata } = require('./slot-engine');
+const {
+  rollDrops,
+  applyDrops,
+  getDropTable,
+  getTierWeights,
+  constants: DROP_CONSTANTS
+} = require('./drop-engine');
 let UPGRADE_DEFINITIONS;
 try {
   UPGRADE_DEFINITIONS = require('../../slot-config/upgrade-definitions.json');
@@ -169,6 +176,8 @@ async function settleIdleIncome(player, { maxCoins = null } = {}) {
   const attrs = updated.Attributes || player;
   attrs.idleCheckpoint = checkpointStamp;
   attrs.idleGained = grantable;
+  if (!attrs.inventory) attrs.inventory = player.inventory || {};
+  if (!attrs.lastDrops) attrs.lastDrops = player.lastDrops || [];
   return { player: attrs, gained: grantable };
 }
 
@@ -282,6 +291,12 @@ async function getOrCreatePlayer(playerId) {
     if (!player.upgrades) {
       player.upgrades = { ...DEFAULT_UPGRADES };
     }
+    if (!player.inventory) {
+      player.inventory = {};
+    }
+    if (!player.lastDrops) {
+      player.lastDrops = [];
+    }
     return player;
   }
 
@@ -291,6 +306,8 @@ async function getOrCreatePlayer(playerId) {
     credits: STARTING_BALANCE,
     spins: 0,
     upgrades: { ...DEFAULT_UPGRADES },
+    inventory: {},
+    lastDrops: [],
     createdAt: now,
     updatedAt: now
   };
@@ -311,7 +328,7 @@ async function getOrCreatePlayer(playerId) {
   }
 }
 
-async function applySpin(player, bet, spinPayload) {
+async function applySpin(player, bet, spinPayload, extra = {}) {
   const now = spinPayload?.timestamp || nowIso();
   const lastSpin = { ...spinPayload, timestamp: now };
   const winnings = Number(lastSpin.winAmount) || 0;
@@ -320,19 +337,38 @@ async function applySpin(player, bet, spinPayload) {
   let current = player;
   for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
+      const setParts = [
+        'credits = :credits',
+        'spins = if_not_exists(spins, :zero) + :one',
+        'lastSpin = :spin',
+        'updatedAt = :now'
+      ];
+      const values = {
+        ':credits': nextCredits,
+        ':expected': current.credits,
+        ':spin': lastSpin,
+        ':one': 1,
+        ':zero': 0,
+        ':now': now
+      };
+      if (extra.inventory !== undefined) {
+        setParts.push('inventory = :inventory');
+        values[':inventory'] = extra.inventory;
+      }
+      if (extra.lastDrops !== undefined) {
+        setParts.push('lastDrops = :lastDrops');
+        values[':lastDrops'] = extra.lastDrops;
+      }
+      if (extra.skillState !== undefined) {
+        setParts.push('skillState = :skillState');
+        values[':skillState'] = extra.skillState;
+      }
       const updated = await dynamo.send(new UpdateCommand({
         TableName: TABLE_NAME,
         Key: { playerId: current.playerId },
-        UpdateExpression: 'SET credits = :credits, spins = if_not_exists(spins, :zero) + :one, lastSpin = :spin, updatedAt = :now',
+        UpdateExpression: `SET ${setParts.join(', ')}`,
         ConditionExpression: 'credits = :expected',
-        ExpressionAttributeValues: {
-          ':credits': nextCredits,
-          ':expected': current.credits,
-          ':spin': lastSpin,
-          ':one': 1,
-          ':zero': 0,
-          ':now': now
-        },
+        ExpressionAttributeValues: values,
         ReturnValues: 'ALL_NEW'
       }));
       return updated.Attributes;
@@ -369,6 +405,14 @@ function formatPlayerPayload(player, extra = {}) {
       currentReels: dims.reels,
       currentLineTier: dims.lineTier,
       activeSymbols
+    },
+    dropState: {
+      inventory: player.inventory || {},
+      lastDrops: player.lastDrops || [],
+      tableKey: MACHINE_META.id,
+      table: getDropTable(MACHINE_META.id),
+      tierWeights: getTierWeights(),
+      constants: DROP_CONSTANTS
     },
     ...extra
   };
@@ -555,10 +599,16 @@ async function handleSpin(payload = {}) {
     : null;
   const idleResult = await settleIdleIncome(player, { maxCoins: claimedCoins });
   player = idleResult.player;
+  if (!player.inventory) {
+    player.inventory = {};
+  }
+  if (!player.lastDrops) {
+    player.lastDrops = [];
+  }
   if (payload.pendingUpgrades) {
     player = await applyPendingUpgrades(player, payload.pendingUpgrades);
   }
-  const upgrades = normalizeUpgrades((auth?.player || player).upgrades || DEFAULT_UPGRADES);
+  const upgrades = normalizeUpgrades(player.upgrades || auth?.player?.upgrades || DEFAULT_UPGRADES);
   const maxBet = computeMaxBet(upgrades);
   if (bet > maxBet) {
     if (playerId) {
@@ -612,7 +662,21 @@ async function handleSpin(payload = {}) {
   spinPayload.reels = dimensions.reels;
   spinPayload.lineTier = dimensions.lineTier;
   spinPayload.retriggered = retriggered;
-  const updatedPlayer = await applySpin(player, bet, spinPayload);
+  const skillActive = Boolean(payload.activeSkills?.dropRate);
+  const dropResult = rollDrops({
+    bet,
+    payout: finalResult.payout,
+    upgrades,
+    skillActive,
+    tableKey: MACHINE_META.id
+  });
+  const inventory = applyDrops(player.inventory, dropResult.drops);
+  spinPayload.drops = dropResult.drops;
+  spinPayload.dropMultiplier = dropResult.multiplier;
+  const updatedPlayer = await applySpin(player, bet, spinPayload, {
+    inventory,
+    lastDrops: dropResult.drops
+  });
   await logSpinHistory({
     playerId,
     username: auth?.username || null,
@@ -622,6 +686,7 @@ async function handleSpin(payload = {}) {
     outcome: spinPayload.outcome,
     winGroups: spinPayload.winGroups,
     winAmount: spinPayload.winAmount,
+    drops: dropResult.drops?.length || 0,
     balanceBefore: player.credits,
     balanceAfter: updatedPlayer.credits
   });
