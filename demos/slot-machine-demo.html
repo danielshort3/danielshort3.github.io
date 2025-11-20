@@ -643,10 +643,13 @@
       color: rgba(148,163,184,.8);
     }
     .hud-value {
-      font-size: 1.3rem;
+      font-size: 1.2rem;
       margin-top: 6px;
       display: block;
-      word-break: break-word;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-variant-numeric: tabular-nums;
     }
     .bet-controls {
       display: grid;
@@ -958,6 +961,10 @@
       }
       .hud-value {
         font-size: 1rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-variant-numeric: tabular-nums;
       }
       .machine-messages {
         min-height: 42px;
@@ -1280,6 +1287,7 @@
         gridCells: new Map(),
         upgrades: {},
         upgradeCatalog: [],
+        lastWin: 0,
         currentRows: 3,
         currentReels: 5,
         currentLineTier: 0
@@ -1348,6 +1356,16 @@
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
       });
+      const compactCurrency = new Intl.NumberFormat('en-US', {
+        notation: 'compact',
+        compactDisplay: 'short',
+        maximumFractionDigits: 1,
+        minimumFractionDigits: 0
+      });
+      const formatCompactMoney = (value = 0) => {
+        const safe = Number.isFinite(value) ? value : 0;
+        return `$${compactCurrency.format(safe)}`;
+      };
       const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
       const resolveMaxBet = (incoming) => {
         const numeric = Number(incoming);
@@ -2151,8 +2169,9 @@
 
 
       const updateHud = () => {
-        if (els.hudBalance) els.hudBalance.textContent = currency.format(state.balance || 0);
-        if (els.hudBet) els.hudBet.textContent = currency.format(state.bet || 0);
+        if (els.hudBalance) els.hudBalance.textContent = formatCompactMoney(state.balance || 0);
+        if (els.hudBet) els.hudBet.textContent = formatCompactMoney(state.bet || 0);
+        if (els.hudWin) els.hudWin.textContent = formatCompactMoney(state.lastWin || 0);
       };
 
       const setBetValue = (value) => {
@@ -2202,7 +2221,7 @@
         }
         if (!loggedIn) {
           if (els.machineOutcome) els.machineOutcome.textContent = 'Sign in to start spinning.';
-          if (els.hudWin) els.hudWin.textContent = currency.format(0);
+          if (els.hudWin) els.hudWin.textContent = formatCompactMoney(0);
           updateHud();
         }
       };
@@ -2337,6 +2356,7 @@
       const updateLastSpin = (lastSpin) => {
         debug('updateLastSpin', lastSpin);
         if (!lastSpin) {
+          state.lastWin = 0;
           if (els.lastOutcome) els.lastOutcome.textContent = '—';
           if (els.lastWin) els.lastWin.textContent = '—';
           if (els.lastMult) els.lastMult.textContent = '—';
@@ -2344,11 +2364,14 @@
           if (els.machineOutcome) els.machineOutcome.textContent = 'Awaiting spin…';
           if (els.hudWin) els.hudWin.textContent = currency.format(0);
           highlightWins([]);
+          updateHud();
           return;
         }
         const summary = formatWinSummary(lastSpin.winGroups) || lastSpin.outcome || '—';
         if (els.lastOutcome) els.lastOutcome.textContent = summary;
-        if (els.lastWin) els.lastWin.textContent = currency.format(lastSpin.winAmount || 0);
+        const winAmount = lastSpin.winAmount || 0;
+        state.lastWin = winAmount;
+        if (els.lastWin) els.lastWin.textContent = currency.format(winAmount);
         if (els.lastMult) {
           const lines = Array.isArray(lastSpin.winGroups) ? lastSpin.winGroups.length : 0;
           els.lastMult.textContent = lines ? `${lines} line${lines === 1 ? '' : 's'}` : '—';
@@ -2358,7 +2381,7 @@
           const note = lastSpin.retriggered ? ' (Retriggered)' : '';
           els.machineOutcome.textContent = `${lastSpin.outcome || summary}${note}`;
         }
-        if (els.hudWin) els.hudWin.textContent = currency.format(lastSpin.winAmount || 0);
+        if (els.hudWin) els.hudWin.textContent = formatCompactMoney(winAmount);
         pendingWinGroups = lastSpin.winGroups || [];
         if (activeReelLocks === 0 && reelIntervals.size === 0) {
           highlightWins(pendingWinGroups);
