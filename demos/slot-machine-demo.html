@@ -13,6 +13,8 @@
   <style>
     :root {
       --app-vh: 1vh;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
       color-scheme: light dark;
       --bg: #020617;
       --panel: color-mix(in srgb, var(--surface, #0f172a) 90%, black 10%);
@@ -711,6 +713,10 @@
       grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 12px;
       align-items: center;
+      justify-items: center;
+    }
+    .action-buttons .spin-btn {
+      width: 100%;
     }
     .spin-btn {
       border: none;
@@ -819,8 +825,8 @@
         height: 100%;
       }
       body {
-        padding: env(safe-area-inset-top, 8px) 0 env(safe-area-inset-bottom, 16px);
-        min-height: calc(var(--app-vh, 1vh) * 100);
+        padding: var(--safe-top, 8px) 0 var(--safe-bottom, 16px);
+        min-height: calc((var(--app-vh, 1vh) * 100) - var(--safe-top, 0px));
         background: #020617;
         display: flex;
         flex-direction: column;
@@ -829,7 +835,7 @@
       }
       main {
         border-radius: 0;
-        min-height: calc(var(--app-vh, 1vh) * 100);
+        min-height: calc((var(--app-vh, 1vh) * 100) - var(--safe-top, 0px));
         padding: 0;
         gap: 10px;
         box-shadow: none;
@@ -922,17 +928,18 @@
         flex: 1;
         min-height: 0;
         display: flex;
-        align-items: stretch;
+        align-items: center;
         justify-content: center;
         padding: 6px;
       }
       .machine-frame__reels .slot-grid {
-        height: 100%;
-        align-content: stretch;
+        align-content: center;
+        justify-content: center;
+        justify-items: center;
+        height: auto;
       }
       .machine-frame__reels .slot-cell {
-        height: 100%;
-        aspect-ratio: auto;
+        height: auto;
       }
       .control-deck {
         display: flex;
@@ -949,7 +956,7 @@
         padding: 4px;
       }
       .slot-grid .slot-cell__symbol {
-        max-width: 72px;
+        max-width: 68px;
       }
       .hud {
         display: grid;
@@ -973,6 +980,7 @@
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
         gap: 8px;
+        justify-items: center;
       }
       .account-sheet {
         width: calc(100% - 32px);
@@ -1086,6 +1094,8 @@
         <button type="button" class="ghost-btn tertiary" id="account-close" aria-label="Close account details">Close</button>
       </div>
       <div class="actions">
+        <button type="button" class="ghost-btn secondary" id="sync-btn">Sync balance</button>
+        <button type="button" class="ghost-btn tertiary" id="reset-btn">Reset session</button>
         <button type="button" class="ghost-btn danger" id="delete-account-btn">Delete account</button>
       </div>
     </section>
@@ -1129,8 +1139,6 @@
             <div class="alert" id="alert" hidden></div>
           </div>
           <div class="action-buttons">
-            <button type="button" class="ghost-btn secondary" id="sync-btn">Sync balance</button>
-            <button type="button" class="ghost-btn tertiary" id="reset-btn">Reset session</button>
             <button type="button" class="spin-btn" id="spin-btn" disabled>Spin</button>
           </div>
         </div>
