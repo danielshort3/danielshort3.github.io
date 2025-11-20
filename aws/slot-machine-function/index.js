@@ -60,6 +60,13 @@ const SYMBOL_LABELS = Object.fromEntries(
 
 const nowIso = () => new Date().toISOString();
 
+function getUpgradeDefinition(type = '') {
+  if (typeof type !== 'string') return null;
+  const key = type.trim();
+  if (!key) return null;
+  return UPGRADE_INDEX.get(key) || UPGRADE_INDEX.get(key.toLowerCase()) || null;
+}
+
 function resolveUpgradeMax(def) {
   if (!def) return 0;
   if (def.dynamicMax === 'premiumSymbols') {
@@ -668,8 +675,7 @@ async function handleLogout(payload = {}) {
 }
 
 async function handleUpgrade(payload = {}) {
-  const rawType = (payload.type || '').toString().trim();
-  const def = UPGRADE_INDEX.get(rawType) || UPGRADE_INDEX.get(rawType.toLowerCase());
+  const def = getUpgradeDefinition(payload.type || '');
   if (!def) {
     throw httpError(400, 'Unknown upgrade type.');
   }
@@ -813,3 +819,5 @@ exports.handler = async (event = {}) => {
     return respond(500, { error: 'Server error' }, corsOrigin);
   }
 };
+
+exports._getUpgradeDefinition = getUpgradeDefinition;
