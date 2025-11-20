@@ -28,6 +28,7 @@ module.exports = function runSlotMachineDemoTests({ assert, checkFileContains })
   checkFileContains('demos/slot-machine-demo.html', 'id="slot-grid"');
   checkFileContains('demos/slot-machine-demo.html', 'id="upgrade-grid"');
   checkFileContains('demos/slot-machine-demo.html', 'slot-config/upgrade-definitions.json');
+  checkFileContains('demos/slot-machine-demo.html', 'id="debug-add-coins"');
 
   const demoHtml = fs.readFileSync('demos/slot-machine-demo.html', 'utf8');
   assert(/slotDemoDebug/.test(demoHtml), 'slot demo debug hook missing');

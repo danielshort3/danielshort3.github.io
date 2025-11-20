@@ -1096,6 +1096,7 @@
       <div class="actions">
         <button type="button" class="ghost-btn secondary" id="sync-btn">Sync balance</button>
         <button type="button" class="ghost-btn tertiary" id="reset-btn">Reset session</button>
+        <button type="button" class="ghost-btn primary" id="debug-add-coins" hidden>+100k credits</button>
         <button type="button" class="ghost-btn danger" id="delete-account-btn">Delete account</button>
       </div>
     </section>
@@ -1219,6 +1220,7 @@
         token: 'slotMachineAuthToken',
         user: 'slotMachineAuthUser'
       };
+      const DEBUG_EMAIL = 'danielshort3@gmail.com';
       const AUTH_MODE_KEY = 'slotMachineAuthMode';
       const getStored = (key) => {
         const value = localStorage.getItem(key);
@@ -1427,6 +1429,7 @@
         accountUser: document.getElementById('account-user'),
         logoutBtn: document.getElementById('logout-btn'),
         deleteBtn: document.getElementById('delete-account-btn'),
+        debugCoinBtn: document.getElementById('debug-add-coins'),
         upgradeGrid: document.getElementById('upgrade-grid'),
         upgradePanel: document.getElementById('upgrade-panel'),
         mobileNav: document.getElementById('mobile-nav')
@@ -2223,6 +2226,11 @@
         if (els.deleteBtn) {
           els.deleteBtn.disabled = !loggedIn;
         }
+        if (els.debugCoinBtn) {
+          const matchesDebug = loggedIn && (state.auth.username || '').toLowerCase() === DEBUG_EMAIL;
+          els.debugCoinBtn.hidden = !matchesDebug;
+          els.debugCoinBtn.disabled = !matchesDebug;
+        }
         if (!loggedIn && els.authPassword) {
           els.authPassword.value = '';
           if (els.authConfirm) els.authConfirm.value = '';
@@ -2552,12 +2560,32 @@
           setGameVisibility(false);
           setStatus('Account deleted', 'error');
           showAuthAlert('Account deleted. You can register again anytime.');
+          toggleAccountSheet(false);
         } catch (error) {
           showAuthAlert(error.message || 'Unable to delete account right now.');
           log('Delete failed', error.message);
           debugError('delete-account', error);
         } finally {
           if (els.deleteBtn) els.deleteBtn.disabled = false;
+        }
+      };
+
+      const grantDebugCoins = async () => {
+        if (!state.auth.token) return;
+        const email = (state.auth.username || '').toLowerCase();
+        if (email !== DEBUG_EMAIL) return;
+        debug('debug:grantCoins', email);
+        setBusy(true);
+        showAlert('');
+        try {
+          const result = await request('/session', { token: state.auth.token, action: 'debugCoins' });
+          updateStats(result);
+          log('Debug', '+100k credits granted.');
+        } catch (error) {
+          showAlert(error.message || 'Unable to grant coins.');
+          debugError('debug-coins', error);
+        } finally {
+          setBusy(false);
         }
       };
 
@@ -2655,6 +2683,7 @@
         });
       }
       els.logoutBtn.addEventListener('click', logout);
+      els.debugCoinBtn?.addEventListener('click', grantDebugCoins);
       els.deleteBtn?.addEventListener('click', deleteAccount);
 
       if (state.auth.token) {
