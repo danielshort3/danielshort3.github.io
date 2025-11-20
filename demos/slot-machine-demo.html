@@ -1221,6 +1221,8 @@
         user: 'slotMachineAuthUser'
       };
       const DEBUG_EMAIL = 'danielshort3@gmail.com';
+      const requestFrame = window.requestAnimationFrame?.bind(window) || (cb => setTimeout(() => cb(performance.now()), 1000 / 60));
+      const cancelFrame = window.cancelAnimationFrame?.bind(window) || clearTimeout;
       const AUTH_MODE_KEY = 'slotMachineAuthMode';
       const getStored = (key) => {
         const value = localStorage.getItem(key);
@@ -1298,6 +1300,10 @@
         upgrades: {},
         upgradeCatalog: [],
         lastWin: 0,
+        pendingIdleCoins: 0,
+        idleTicker: null,
+        idleTickerActive: false,
+        lastIdleTick: 0,
         currentRows: 3,
         currentReels: 5,
         currentLineTier: 0
@@ -1629,6 +1635,8 @@
         if (els.resetBtn) els.resetBtn.disabled = disableInputs;
         renderUpgrades();
         applyMobileMode();
+        if (visible) startIdleTicker();
+        else stopIdleTicker();
       };
 
       const setBusy = (flag) => {
@@ -2079,6 +2087,7 @@
         ensureGrid(rows, reels);
         renderUpgrades();
         updateMachineMeta();
+        startIdleTicker();
       }
 
       const syncMachineDefinition = (machine = {}) => {
@@ -2180,9 +2189,42 @@
 
 
       const updateHud = () => {
-        if (els.hudBalance) els.hudBalance.textContent = formatCompactMoney(state.balance || 0);
+        const totalBalance = (state.balance || 0) + (state.pendingIdleCoins || 0);
+        if (els.hudBalance) els.hudBalance.textContent = formatCompactMoney(totalBalance);
         if (els.hudBet) els.hudBet.textContent = formatCompactMoney(state.bet || 0);
         if (els.hudWin) els.hudWin.textContent = formatCompactMoney(state.lastWin || 0);
+      };
+
+      const stopIdleTicker = () => {
+        if (state.idleTicker) {
+          cancelFrame(state.idleTicker);
+          state.idleTicker = null;
+        }
+        state.idleTickerActive = false;
+        state.lastIdleTick = 0;
+      };
+
+      const idleStep = (timestamp) => {
+        if (!state.idleTickerActive) return;
+        if (!state.lastIdleTick) state.lastIdleTick = timestamp;
+        const rate = Math.max(0, state.upgrades.idle || 0);
+        const delta = timestamp - state.lastIdleTick;
+        if (rate > 0 && delta >= 1000) {
+          const seconds = Math.floor(delta / 1000);
+          state.pendingIdleCoins += rate * seconds;
+          state.lastIdleTick += seconds * 1000;
+          updateHud();
+        }
+        state.idleTicker = requestFrame(idleStep);
+      };
+
+      const startIdleTicker = () => {
+        stopIdleTicker();
+        if (!state.gameReady || !state.auth.token) return;
+        if ((state.upgrades.idle || 0) <= 0) return;
+        state.idleTickerActive = true;
+        state.lastIdleTick = 0;
+        state.idleTicker = requestFrame(idleStep);
       };
 
       const setBetValue = (value) => {
@@ -2226,6 +2268,12 @@
         if (els.deleteBtn) {
           els.deleteBtn.disabled = !loggedIn;
         }
+        if (loggedIn) startIdleTicker();
+        else {
+          stopIdleTicker();
+          state.pendingIdleCoins = 0;
+          updateHud();
+        }
         if (els.debugCoinBtn) {
           const matchesDebug = loggedIn && (state.auth.username || '').toLowerCase() === DEBUG_EMAIL;
           els.debugCoinBtn.hidden = !matchesDebug;
@@ -2248,6 +2296,9 @@
         state.auth.username = token ? (username || state.auth.username || null) : null;
         if (!state.auth.token) {
           state.playerId = null;
+          state.pendingIdleCoins = 0;
+          stopIdleTicker();
+          updateHud();
         }
         if (state.auth.token) {
           localStorage.setItem(storageKeys.token, state.auth.token);
@@ -2332,6 +2383,9 @@
         }
         if (Number(payload.idleGained) > 0) {
           log('Idle payout collected', `+${currency.format(payload.idleGained)} credits while away.`);
+          state.pendingIdleCoins = Math.max(0, (state.pendingIdleCoins || 0) - payload.idleGained);
+          state.lastIdleTick = 0;
+          startIdleTicker();
         }
         if (typeof payload.spins === 'number') {
           els.spinCount.textContent = payload.spins;
@@ -2464,7 +2518,8 @@
         startGridSpin();
         let spinData = null;
         try {
-          const result = await request('/spin', { bet });
+          const clientIdleCoins = Math.floor(Math.max(0, state.pendingIdleCoins || 0));
+          const result = await request('/spin', { bet, clientIdleCoins });
           spinData = result.lastSpin || null;
           updateStats(result);
           updateLastSpin(spinData);

@@ -118,46 +118,58 @@ function computeMaxBet(upgrades = {}) {
   return BET_LIMIT * Math.max(1, 10 ** level);
 }
 
-async function settleIdleIncome(player) {
+async function settleIdleIncome(player, { maxCoins = null } = {}) {
   if (!player || !player.playerId) return { player, gained: 0 };
   const upgrades = normalizeUpgrades(player.upgrades || DEFAULT_UPGRADES);
   const idleLevel = upgrades.idle || 0;
   const nowMs = Date.now();
-  const checkpointMs = player.idleCheckpoint
-    ? Date.parse(player.idleCheckpoint)
-    : Date.parse(player.updatedAt || player.createdAt || nowIso());
-  const stamp = new Date(nowMs).toISOString();
+  const fallbackStamp = player.idleCheckpoint || player.updatedAt || player.createdAt || nowIso();
+  let checkpointMs = Date.parse(fallbackStamp);
+  if (!Number.isFinite(checkpointMs)) checkpointMs = nowMs;
+  const stampNow = new Date(nowMs).toISOString();
   if (!idleLevel) {
     if (!player.idleCheckpoint) {
       await dynamo.send(new UpdateCommand({
         TableName: TABLE_NAME,
         Key: { playerId: player.playerId },
         UpdateExpression: 'SET idleCheckpoint = :checkpoint',
-        ExpressionAttributeValues: { ':checkpoint': stamp }
+        ExpressionAttributeValues: { ':checkpoint': stampNow }
       })).catch(() => {});
-      player.idleCheckpoint = stamp;
+      player.idleCheckpoint = stampNow;
     }
     return { player, gained: 0 };
   }
-  const elapsed = Math.max(0, Math.floor((nowMs - checkpointMs) / 1000));
-  if (elapsed <= 0) {
+  const elapsedSeconds = Math.max(0, Math.floor((nowMs - checkpointMs) / 1000));
+  if (elapsedSeconds <= 0) {
     return { player, gained: 0 };
   }
-  const gained = idleLevel * elapsed;
+  const availableCoins = idleLevel * elapsedSeconds;
+  let grantable = availableCoins;
+  if (Number.isFinite(maxCoins)) {
+    const allowed = idleLevel * Math.floor(Math.max(0, Math.floor(maxCoins)) / idleLevel);
+    grantable = Math.min(grantable, allowed);
+  }
+  if (!grantable) {
+    return { player, gained: 0 };
+  }
+  const secondsConsumed = Math.max(1, Math.floor(grantable / idleLevel));
+  const remainderSeconds = Math.max(0, elapsedSeconds - secondsConsumed);
+  const checkpointStamp = new Date(nowMs - remainderSeconds * 1000).toISOString();
   const updated = await dynamo.send(new UpdateCommand({
     TableName: TABLE_NAME,
     Key: { playerId: player.playerId },
-    UpdateExpression: 'SET credits = if_not_exists(credits, :zero) + :gained, idleCheckpoint = :checkpoint',
+    UpdateExpression: 'SET credits = :credits, idleCheckpoint = :checkpoint, updatedAt = :now',
     ExpressionAttributeValues: {
-      ':gained': gained,
-      ':checkpoint': stamp,
-      ':zero': player.credits || 0
+      ':credits': (player.credits || 0) + grantable,
+      ':checkpoint': checkpointStamp,
+      ':now': stampNow
     },
     ReturnValues: 'ALL_NEW'
   }));
   const attrs = updated.Attributes || player;
-  attrs.idleGained = gained;
-  return { player: attrs, gained };
+  attrs.idleCheckpoint = checkpointStamp;
+  attrs.idleGained = grantable;
+  return { player: attrs, gained: grantable };
 }
 
 function computeDimensions(upgrades = DEFAULT_UPGRADES) {
@@ -538,7 +550,10 @@ async function handleSpin(payload = {}) {
     return { errorCode: 'BAD_REQUEST', message: 'Bet must be a positive integer.', maxBet: BET_LIMIT };
   }
   let player = await getOrCreatePlayer(playerId);
-  const idleResult = await settleIdleIncome(player);
+  const claimedCoins = Number.isFinite(Number(payload.clientIdleCoins))
+    ? Math.max(0, Math.floor(Number(payload.clientIdleCoins)))
+    : null;
+  const idleResult = await settleIdleIncome(player, { maxCoins: claimedCoins });
   player = idleResult.player;
   const upgrades = normalizeUpgrades((auth?.player || player).upgrades || DEFAULT_UPGRADES);
   const maxBet = computeMaxBet(upgrades);
