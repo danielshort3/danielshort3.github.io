@@ -2195,16 +2195,16 @@
         if (els.hudWin) els.hudWin.textContent = formatCompactMoney(state.lastWin || 0);
       };
 
-      const stopIdleTicker = () => {
+      function stopIdleTicker() {
         if (state.idleTicker) {
           cancelFrame(state.idleTicker);
           state.idleTicker = null;
         }
         state.idleTickerActive = false;
         state.lastIdleTick = 0;
-      };
+      }
 
-      const idleStep = (timestamp) => {
+      function idleStep(timestamp) {
         if (!state.idleTickerActive) return;
         if (!state.lastIdleTick) state.lastIdleTick = timestamp;
         const rate = Math.max(0, state.upgrades.idle || 0);
@@ -2216,16 +2216,16 @@
           updateHud();
         }
         state.idleTicker = requestFrame(idleStep);
-      };
+      }
 
-      const startIdleTicker = () => {
+      function startIdleTicker() {
         stopIdleTicker();
         if (!state.gameReady || !state.auth.token) return;
         if ((state.upgrades.idle || 0) <= 0) return;
         state.idleTickerActive = true;
         state.lastIdleTick = 0;
         state.idleTicker = requestFrame(idleStep);
-      };
+      }
 
       const setBetValue = (value) => {
         const safe = clamp(value || 1, 1, state.maxBet || DEFAULT_MAX_BET);
