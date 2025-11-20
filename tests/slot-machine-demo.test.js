@@ -41,4 +41,10 @@ module.exports = function runSlotMachineDemoTests({ assert, checkFileContains })
   ['idle', 'retrigger', 'rows', 'betMultiplier'].forEach(key => {
     assert(upgradeDefs.some(def => def.key === key), `upgrade catalog missing "${key}"`);
   });
+  const idleDef = upgradeDefs.find(def => def.key === 'idle') || {};
+  assert(idleDef.defaultLevel === 1, 'idle upgrade should start at level 1 for all accounts');
+  upgradeDefs.forEach(def => {
+    assert(Number.isFinite(def.cost), `upgrade "${def.key}" missing numeric cost`);
+    assert(typeof def.category === 'string' && def.category.length > 0, `upgrade "${def.key}" missing category`);
+  });
 };

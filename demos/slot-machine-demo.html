@@ -1170,27 +1170,12 @@
       const storageKeys = {
         player: 'slotMachineDemoPlayerId',
         token: 'slotMachineAuthToken',
-        user: 'slotMachineAuthUser',
-        localUpgrades: 'slotMachineDemoLocalUpgrades',
-        localLedger: 'slotMachineDemoLocalLedger'
+        user: 'slotMachineAuthUser'
       };
       const AUTH_MODE_KEY = 'slotMachineAuthMode';
       const getStored = (key) => {
         const value = localStorage.getItem(key);
         return value && value !== 'null' ? value : null;
-      };
-      const loadLocalUpgrades = () => {
-        try {
-          const raw = localStorage.getItem(storageKeys.localUpgrades);
-          return raw ? JSON.parse(raw) : {};
-        } catch {
-          return {};
-        }
-      };
-      const loadLocalLedger = () => {
-        const raw = localStorage.getItem(storageKeys.localLedger);
-        const value = Number(raw);
-        return Number.isFinite(value) && value > 0 ? value : 0;
       };
       const DEFAULT_SYMBOLS = [
         { key: 'cherry', label: 'Cherry', asset: 'img/slot/classic/symbols/cherry.png' },
@@ -1261,9 +1246,6 @@
         },
         symbolMap: cloneSymbolMap(DEFAULT_SYMBOL_MAP),
         gridCells: new Map(),
-        remoteUpgrades: {},
-        localUpgrades: loadLocalUpgrades(),
-        localLedger: loadLocalLedger(),
         upgrades: {},
         upgradeCatalog: [],
         currentRows: 3,
@@ -1288,7 +1270,7 @@
             const defs = await res.json();
             if (Array.isArray(defs)) {
               state.upgradeCatalog = defs;
-              applyUpgradeState(state.remoteUpgrades);
+              applyUpgradeState(state.upgrades);
               renderUpgrades();
               return defs;
             }
@@ -1514,7 +1496,6 @@
           format: (current, max) => `${current}/${max} tiers`
         }
       };
-      const SERVER_UPGRADES = new Set(['rows', 'reels', 'lines']);
       const getUpgradeSettings = () => {
         const defaults = {
           baseRows: 3,
@@ -1742,14 +1723,6 @@
         els.upgradeGrid.innerHTML = sections.join('') || '<p class="muted-text">No upgrades available.</p>';
       };
 
-      const saveLocalUpgrades = () => {
-        try {
-          localStorage.setItem(storageKeys.localUpgrades, JSON.stringify(state.localUpgrades || {}));
-        } catch {}
-        try {
-          localStorage.setItem(storageKeys.localLedger, String(state.localLedger || 0));
-        } catch {}
-      };
 
       const clearReelIntervals = () => {
         reelIntervals.forEach(timer => clearInterval(timer));
@@ -2287,9 +2260,8 @@
           }
         }
         if (typeof payload.balance === 'number') {
-          const adjusted = Math.max(0, payload.balance - (state.localLedger || 0));
-          state.balance = adjusted;
-          els.balance.textContent = currency.format(adjusted);
+          state.balance = payload.balance;
+          els.balance.textContent = currency.format(payload.balance);
         }
         if (Number(payload.idleGained) > 0) {
           log('Idle payout collected', `+${currency.format(payload.idleGained)} credits while away.`);
@@ -2304,9 +2276,9 @@
         state.maxBet = resolveMaxBet(payload.maxBet);
         els.maxBet.textContent = state.maxBet;
         if (payload.upgrades) {
-          state.remoteUpgrades = { ...payload.upgrades };
+          state.upgrades = { ...payload.upgrades };
         }
-        applyUpgradeState(state.remoteUpgrades);
+        applyUpgradeState(state.upgrades);
         const incomingBet = Number(payload.bet);
         const fallbackBet = Number.isFinite(state.bet)
           ? state.bet
@@ -2581,35 +2553,6 @@
         bootstrap();
       });
 
-      const handleLocalUpgrade = (def) => {
-        if (!def) {
-          showAlert('Upgrade unavailable.');
-          return;
-        }
-        const key = def.key;
-        const currentRemote = Number(state.remoteUpgrades?.[key]) || 0;
-        const currentLocal = Number(state.localUpgrades?.[key]) || 0;
-        const current = Math.max(currentRemote, currentLocal);
-        const max = getUpgradeMaxLevel(key);
-        if (current >= max) {
-          showAlert('Upgrade already maxed.');
-          return;
-        }
-        const cost = Math.round((def.cost || 0) * (current + 1));
-        if ((state.balance || 0) < cost) {
-          showAlert('Not enough credits for that upgrade.');
-          return;
-        }
-        state.balance -= cost;
-        state.localLedger = (state.localLedger || 0) + cost;
-        state.localUpgrades[key] = current + 1;
-        saveLocalUpgrades();
-        applyUpgradeState();
-        renderUpgrades();
-        updateHud();
-        log('Upgrade purchased', `Unlocked ${def.label}.`);
-      };
-
       const purchaseUpgrade = async (type) => {
         if (!state.auth.token) {
           showAuthAlert('Sign in to upgrade your machine.');
@@ -2618,10 +2561,6 @@
         const def = getUpgradeDef(type);
         if (!def) {
           showAlert('Upgrade unavailable.');
-          return;
-        }
-        if (!SERVER_UPGRADES.has(type)) {
-          handleLocalUpgrade(def);
           return;
         }
         debug('upgrade:request', { type });
