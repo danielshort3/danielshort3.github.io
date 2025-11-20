@@ -903,7 +903,7 @@
         flex: 1;
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 10px;
         padding-top: 0;
         overflow: hidden;
       }
@@ -912,29 +912,37 @@
         display: flex;
         flex-direction: column;
         justify-content: center;
-        min-height: 0;
-        padding: 10px;
+        min-height: calc(var(--app-vh, 1vh) * 0.55);
+        padding: 8px;
       }
       .machine-frame__reels {
         flex: 1;
         min-height: 0;
         display: flex;
-        align-items: center;
+        align-items: stretch;
         justify-content: center;
-        padding: 8px;
+        padding: 6px;
+      }
+      .machine-frame__reels .slot-grid {
+        height: 100%;
+        align-content: stretch;
+      }
+      .machine-frame__reels .slot-cell {
+        height: 100%;
+        aspect-ratio: auto;
       }
       .control-deck {
         display: flex;
         flex-direction: column;
         gap: 12px;
         padding: 14px;
+        flex: 0 0 auto;
       }
       .slot-grid {
         gap: 6px;
       }
       .slot-grid .slot-cell {
         border-width: 1px;
-        aspect-ratio: 1 / 1.1;
         padding: 4px;
       }
       .slot-grid .slot-cell__symbol {
@@ -956,11 +964,8 @@
       }
       .action-buttons {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
         gap: 8px;
-      }
-      .action-buttons .spin-btn {
-        grid-column: span 2;
       }
       .account-sheet {
         width: calc(100% - 32px);
