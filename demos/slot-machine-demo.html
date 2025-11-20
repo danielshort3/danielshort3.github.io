@@ -2432,18 +2432,14 @@
       };
 
       const getSpinIntervalDelay = (col) => {
-        const reelCount = state.currentReels || state.machine.reels || 3;
-        const reelScale = Math.max(0.4, 3 / Math.max(1, reelCount)); // keep total spin time similar across reel counts
-        const base = (70 + col * 15) * reelScale;
+        const base = 70 + col * 15;
         const speedLevel = Math.max(0, state.upgrades.speed || 0);
         const factor = Math.max(0.35, 1 - 0.1 * speedLevel);
         return Math.max(20, base * factor);
       };
 
       const getReelStopDelay = (col) => {
-        const reelCount = state.currentReels || state.machine.reels || 3;
-        const reelScale = Math.max(0.4, 3 / Math.max(1, reelCount));
-        const base = (150 + col * 220) * reelScale;
+        const base = 150 + col * 220;
         const speedLevel = Math.max(0, state.upgrades.speed || 0);
         const autoLevel = Math.max(0, state.upgrades.autoSpeed || 0);
         const factor = Math.max(0.35, 1 - 0.08 * (speedLevel + autoLevel));
