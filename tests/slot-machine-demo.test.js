@@ -42,6 +42,10 @@ module.exports = function runSlotMachineDemoTests({ assert, checkFileContains })
   ['idle', 'retrigger', 'rows', 'betMultiplier'].forEach(key => {
     assert(upgradeDefs.some(def => def.key === key), `upgrade catalog missing "${key}"`);
   });
+  ['payoutBoostUnlock', 'payoutBoostEffect', 'payoutBoostDuration', 'wildBoostUnlock', 'wildBoostEffect', 'wildBoostDuration']
+    .forEach(key => {
+      assert(!upgradeDefs.some(def => def.key === key), `upgrade catalog should not expose "${key}"`);
+    });
   const idleDef = upgradeDefs.find(def => def.key === 'idle') || {};
   assert(idleDef.defaultLevel === 1, 'idle upgrade should start at level 1 for all accounts');
   upgradeDefs.forEach(def => {
@@ -54,4 +58,25 @@ module.exports = function runSlotMachineDemoTests({ assert, checkFileContains })
   upgradeDefs.forEach(def => {
     assert(lambda._getUpgradeDefinition(def.key), `lambda missing handler for upgrade "${def.key}"`);
   });
+
+  assert(typeof lambda._evaluateSkills === 'function', 'lambda skill evaluator missing');
+  const nowMs = 1_000_000;
+  const activation = lambda._evaluateSkills({
+    payload: { activeSkills: { dropRate: true } },
+    upgrades: { dropBoostUnlock: 1, dropRateEffect: 2, dropRateDuration: 1 },
+    skillState: {},
+    nowMs
+  });
+  assert(activation.dropRateActive, 'drop skill should activate when unlocked');
+  assert(activation.skillState.dropRate.activeUntil > nowMs, 'drop skill should set activeUntil');
+  assert(activation.skillState.dropRate.cooldownUntil > activation.skillState.dropRate.activeUntil, 'drop skill cooldown should follow active window');
+  const cooldown = lambda._evaluateSkills({
+    payload: { activeSkills: { dropRate: true } },
+    upgrades: { dropBoostUnlock: 1, dropRateEffect: 2, dropRateDuration: 1 },
+    skillState: activation.skillState,
+    nowMs: activation.skillState.dropRate.activeUntil + 1
+  });
+  assert(!cooldown.dropRateActive, 'drop skill should expire after active window');
+  assert(cooldown.skillState.dropRate.cooldownUntil > cooldown.skillState.dropRate.activeUntil, 'cooldown should remain set after expiry');
+
 };

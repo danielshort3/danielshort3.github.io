@@ -3381,7 +3381,16 @@
         setBusy(true);
         showAlert('');
         try {
-          const result = await request('/upgrade', { type });
+          let result;
+          try {
+            result = await request('/upgrade', { type });
+          } catch (primaryError) {
+            if (primaryError?.status === 404 || primaryError?.statusCode === 404) {
+              result = await request('/session', { type });
+            } else {
+              throw primaryError;
+            }
+          }
           state.pendingUpgrades = {};
           state.serverUpgrades = result.upgrades || state.serverUpgrades;
           updateStats(result);

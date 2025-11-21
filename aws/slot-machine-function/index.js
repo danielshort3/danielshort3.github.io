@@ -125,6 +125,58 @@ function computeMaxBet(upgrades = {}) {
   return BET_LIMIT * Math.max(1, 10 ** level);
 }
 
+function dropSkillSpec(upgrades = {}) {
+  const duration = Math.max(0, Math.floor(upgrades.dropRateDuration || 0));
+  const durationMs = 60000 * (1 + duration);
+  return {
+    durationMs,
+    cooldownMs: durationMs * 2,
+    multiplier: 1 + DROP_CONSTANTS.DROP_BOOST_SCALE * (1 + Math.max(0, upgrades.dropRateEffect || 0))
+  };
+}
+
+function normalizeSkillState(skillState = {}, nowMs = Date.now()) {
+  const next = {
+    dropRate: {
+      activeUntil: 0,
+      cooldownUntil: 0
+    }
+  };
+  if (skillState.dropRate) {
+    const active = Number(skillState.dropRate.activeUntil) || 0;
+    const cooldown = Number(skillState.dropRate.cooldownUntil) || 0;
+    next.dropRate.activeUntil = active > nowMs ? active : 0;
+    next.dropRate.cooldownUntil = cooldown > nowMs ? cooldown : 0;
+  }
+  return next;
+}
+
+function evaluateSkills({ payload = {}, upgrades = {}, skillState = {}, nowMs = Date.now() }) {
+  const normalized = normalizeSkillState(skillState, nowMs);
+  const next = { ...normalized };
+  const dropSpec = dropSkillSpec(upgrades);
+  let dropRateActive = next.dropRate.activeUntil > nowMs;
+
+  if (next.dropRate.cooldownUntil && next.dropRate.cooldownUntil <= nowMs) {
+    next.dropRate.cooldownUntil = 0;
+  }
+  const canActivate = payload?.activeSkills?.dropRate && (upgrades.dropBoostUnlock || 0) > 0;
+  const cooldownActive = next.dropRate.cooldownUntil && next.dropRate.cooldownUntil > nowMs;
+  if (canActivate && !dropRateActive && !cooldownActive) {
+    next.dropRate.activeUntil = nowMs + dropSpec.durationMs;
+    next.dropRate.cooldownUntil = next.dropRate.activeUntil + dropSpec.cooldownMs;
+    dropRateActive = true;
+  }
+  if (next.dropRate.activeUntil <= nowMs) {
+    dropRateActive = false;
+  }
+
+  return {
+    skillState: next,
+    dropRateActive
+  };
+}
+
 async function settleIdleIncome(player, { maxCoins = null } = {}) {
   if (!player || !player.playerId) return { player, gained: 0 };
   const upgrades = normalizeUpgrades(player.upgrades || DEFAULT_UPGRADES);
@@ -388,6 +440,7 @@ function formatPlayerPayload(player, extra = {}) {
   const upgrades = normalizeUpgrades(player?.upgrades || DEFAULT_UPGRADES);
   const dims = computeDimensions(upgrades);
   const activeSymbols = computeActiveSymbols(upgrades);
+  const skillState = normalizeSkillState(player?.skillState || {}, Date.now());
   return {
     playerId: player.playerId,
     balance: player.credits,
@@ -414,6 +467,7 @@ function formatPlayerPayload(player, extra = {}) {
       tierWeights: getTierWeights(),
       constants: DROP_CONSTANTS
     },
+    skillState,
     ...extra
   };
 }
@@ -656,18 +710,24 @@ async function handleSpin(payload = {}) {
       });
     }
   }
-  const timestamp = nowIso();
+  const nowMs = Date.now();
+  const timestamp = new Date(nowMs).toISOString();
   const spinPayload = buildSpinPayload(finalResult, bet, timestamp);
   spinPayload.rows = dimensions.rows;
   spinPayload.reels = dimensions.reels;
   spinPayload.lineTier = dimensions.lineTier;
   spinPayload.retriggered = retriggered;
-  const skillActive = Boolean(payload.activeSkills?.dropRate);
+  const skillEval = evaluateSkills({
+    payload,
+    upgrades,
+    skillState: player.skillState,
+    nowMs
+  });
   const dropResult = rollDrops({
     bet,
     payout: finalResult.payout,
     upgrades,
-    skillActive,
+    skillActive: skillEval.dropRateActive,
     tableKey: MACHINE_META.id
   });
   const inventory = applyDrops(player.inventory, dropResult.drops);
@@ -675,7 +735,8 @@ async function handleSpin(payload = {}) {
   spinPayload.dropMultiplier = dropResult.multiplier;
   const updatedPlayer = await applySpin(player, bet, spinPayload, {
     inventory,
-    lastDrops: dropResult.drops
+    lastDrops: dropResult.drops,
+    skillState: skillEval.skillState
   });
   await logSpinHistory({
     playerId,
@@ -995,3 +1056,4 @@ exports.handler = async (event = {}) => {
 };
 
 exports._getUpgradeDefinition = getUpgradeDefinition;
+exports._evaluateSkills = evaluateSkills;
