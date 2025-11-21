@@ -485,8 +485,7 @@
       transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease;
     }
     .slot-cell[data-state="spinning"] {
-      animation: slotPulse .6s ease-in-out infinite alternate;
-      opacity: .9;
+      opacity: .95;
     }
     .slot-cell[data-state="win"] {
       box-shadow: 0 0 0 2px rgba(250,204,21,.45), 0 20px 45px rgba(250,204,21,.3);
@@ -506,8 +505,8 @@
       filter: drop-shadow(0 10px 20px rgba(0,0,0,.45));
     }
     .slot-cell[data-state="spinning"] .slot-cell__symbol {
-      animation: slotReelSpin .42s cubic-bezier(.42,.01,.58,1) infinite;
-      opacity: .9;
+      animation: slotReelSpin .36s linear infinite;
+      opacity: .95;
     }
     .slot-cell[data-state="spinning"] .slot-cell__symbol img {
       filter: blur(1.6px) brightness(1.1);
@@ -521,18 +520,9 @@
       filter: drop-shadow(0 15px 25px rgba(0,0,0,.35));
     }
     @keyframes slotReelSpin {
-      0% {
-        transform: translateZ(30px) translateY(-18%) rotateX(0deg);
-      }
-      50% {
-        transform: translateZ(30px) translateY(18%) rotateX(180deg);
-      }
-      100% {
-        transform: translateZ(30px) translateY(-18%) rotateX(360deg);
-      }
-    }
-    .slot-cell[data-state="spinning"] .slot-cell__symbol {
-      animation: reelSpin .5s linear infinite;
+      0% { transform: rotateY(0deg) scale(1.05); }
+      50% { transform: rotateY(180deg) scale(1.05); }
+      100% { transform: rotateY(360deg) scale(1.05); }
     }
     .line-overlay {
       position: absolute;
@@ -774,13 +764,13 @@
     }
     .hud-label {
       margin: 0;
-      font-size: .8rem;
+      font-size: .75rem;
       text-transform: uppercase;
       letter-spacing: .06em;
       color: rgba(148,163,184,.8);
     }
     .hud-value {
-      font-size: 1.2rem;
+      font-size: clamp(1rem, 2.2vw, 1.15rem);
       margin-top: 6px;
       display: block;
       white-space: nowrap;
@@ -1113,7 +1103,7 @@
         padding: 10px 12px;
       }
       .hud-value {
-        font-size: 1rem;
+        font-size: .95rem;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -2392,15 +2382,15 @@
       const applyMachineTheme = () => {
         if (!els.reelStage) return;
         const assets = state.machine.assets || {};
-        const bg = assets.background || {};
-        const portrait = typeof bg === 'string' ? bg : bg.portrait;
-        const landscape = typeof bg === 'string' ? bg : bg.landscape;
-        const useLandscape = window.innerWidth > window.innerHeight;
-        const chosen = useLandscape ? (landscape || portrait) : (portrait || landscape);
-        if (chosen) {
-          els.reelStage.style.backgroundImage = `url('${chosen}')`;
-          els.reelStage.style.backgroundSize = 'cover';
+        const frame = assets.frame || null;
+        els.reelStage.style.backgroundColor = 'rgba(2,6,23,.75)';
+        if (frame) {
+          els.reelStage.style.backgroundImage = `url('${frame}')`;
+          els.reelStage.style.backgroundSize = 'contain';
+          els.reelStage.style.backgroundRepeat = 'no-repeat';
           els.reelStage.style.backgroundPosition = 'center';
+        } else {
+          els.reelStage.style.backgroundImage = '';
         }
       };
 
