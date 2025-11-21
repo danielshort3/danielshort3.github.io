@@ -598,6 +598,72 @@
       object-fit: contain;
       display: block;
     }
+    .daily-reward {
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,.22);
+      background: rgba(255,255,255,.03);
+      padding: 10px 12px;
+      display: grid;
+      gap: 8px;
+    }
+    .daily-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .daily-items {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .daily-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 10px;
+      background: rgba(99,102,241,.12);
+      border: 1px solid rgba(99,102,241,.3);
+      font-weight: 600;
+      color: var(--text);
+    }
+    .daily-item img {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+    }
+    .bonus-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 10px;
+    }
+    .bonus-item {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,.22);
+      background: rgba(255,255,255,.03);
+      padding: 10px 12px;
+    }
+    .bonus-label {
+      margin: 0;
+      font-weight: 600;
+    }
+    .bonus-note {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+    .bonus-value {
+      font-weight: 700;
+      white-space: nowrap;
+    }
     .drop-log {
       border-radius: 12px;
       border: 1px solid rgba(148,163,184,.2);
@@ -1278,6 +1344,10 @@
               <p class="hud-label">Last win</p>
               <strong class="hud-value" id="hud-win">$0</strong>
             </div>
+            <div class="hud-card">
+              <p class="hud-label">VIP Marks</p>
+              <strong class="hud-value" id="hud-vip">0</strong>
+            </div>
           </div>
           <div class="bet-controls">
             <button type="button" class="chip" data-chip="decrease" aria-label="Decrease bet">-</button>
@@ -1318,6 +1388,30 @@
           <dt>Multiplier</dt><dd id="last-multiplier">—</dd>
           <dt>Timestamp</dt><dd id="last-time">—</dd>
         </dl>
+      </div>
+      <div class="panel" id="daily-panel">
+        <div class="status-row">
+          <h2>Daily Rewards</h2>
+          <span class="status-pill" id="daily-status">Syncing…</span>
+        </div>
+        <p class="muted-text" id="daily-streak">Day 1 of 7</p>
+        <div class="daily-reward" id="daily-reward">
+          <div class="daily-row">
+            <span class="hud-label">Today&apos;s reward</span>
+            <strong class="hud-value" id="daily-reward-main">$0</strong>
+          </div>
+          <div class="daily-items" id="daily-items"></div>
+        </div>
+        <div class="actions">
+          <button type="button" class="ghost-btn primary" id="daily-claim-btn">Claim</button>
+        </div>
+        <p class="muted-text small" id="daily-next-reset">Resets daily</p>
+      </div>
+      <div class="panel" id="bonus-panel">
+        <h2>Equipment Bonuses</h2>
+        <ul class="bonus-list" id="bonus-list">
+          <li class="bonus-item"><span class="bonus-label">Calculating bonuses…</span></li>
+        </ul>
       </div>
     </section>
 
@@ -1434,6 +1528,7 @@
       };
       const cloneSymbolMap = (map) => new Map(Array.from(map.entries()).map(([key, val]) => [key, { ...val }]));
       const DEFAULT_SYMBOL_MAP = buildSymbolMap(DEFAULT_SYMBOLS, null, PLACEHOLDER_ASSET);
+      const DAILY_LENGTH = 7;
 
       const state = {
         playerId: null,
@@ -1468,20 +1563,28 @@
           activeSymbols: []
         },
         drop: {
-          tableKey: 'classic',
-          table: { common: [], rare: [], epic: [] },
-          tierWeights: { common: 0.8, rare: 0.15, epic: 0.05 },
-          constants: { betScale: 0.1, win: 2, lose: 1, boostScale: 0.05 },
-          inventory: {},
-          lastDrops: [],
-          history: [],
-          lastTimestamp: 0
-        },
-        skills: {
-          dropRate: {
-            active: false,
-            expiresAt: 0,
-            cooldownUntil: 0,
+        tableKey: 'classic',
+        table: { common: [], rare: [], epic: [] },
+        tierWeights: { common: 0.8, rare: 0.15, epic: 0.05 },
+        constants: { betScale: 0.1, win: 2, lose: 1, boostScale: 0.05 },
+        inventory: {},
+        lastDrops: [],
+        history: [],
+        lastTimestamp: 0
+      },
+      daily: {
+        streak: 1,
+        claimedToday: false,
+        ready: false,
+        lastClaimMs: 0,
+        nextResetAt: 0,
+        todayReward: null
+      },
+      skills: {
+        dropRate: {
+          active: false,
+          expiresAt: 0,
+          cooldownUntil: 0,
             spec: { durationMs: 60000, cooldownMs: 120000, multiplier: 1.05 }
           }
         },
@@ -1507,7 +1610,8 @@
         ...state,
         symbolMap: Array.from(state.symbolMap.keys()),
         upgrades: { ...state.upgrades },
-        dropInventory: { ...state.drop.inventory }
+        dropInventory: { ...state.drop.inventory },
+        daily: { ...state.daily }
       }));
 
       const upgradeCatalogUrl = 'slot-config/upgrade-definitions.json';
@@ -1575,6 +1679,13 @@
         const safe = Number.isFinite(value) ? value : 0;
         return `$${compactCurrency.format(safe)}`;
       };
+      const compactNumber = new Intl.NumberFormat('en-US', {
+        notation: 'compact',
+        compactDisplay: 'short',
+        maximumFractionDigits: 1,
+        minimumFractionDigits: 0
+      });
+      const formatCompactNumber = (value = 0) => compactNumber.format(Math.max(0, Number.isFinite(value) ? value : 0));
       const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
       const resolveMaxBet = (incoming) => {
         const numeric = Number(incoming);
@@ -1601,6 +1712,7 @@
         hudBalance: document.getElementById('hud-balance'),
         hudBet: document.getElementById('hud-bet'),
         hudWin: document.getElementById('hud-win'),
+        hudVip: document.getElementById('hud-vip'),
         balance: document.getElementById('balance'),
         playerId: document.getElementById('player-id'),
         maxBet: document.getElementById('max-bet'),
@@ -1617,6 +1729,13 @@
         dropSkillBtn: document.getElementById('drop-skill-btn'),
         dropCloseBtn: document.getElementById('drop-close-btn'),
         inventoryGrid: document.getElementById('inventory-grid'),
+        dailyStatus: document.getElementById('daily-status'),
+        dailyRewardMain: document.getElementById('daily-reward-main'),
+        dailyItems: document.getElementById('daily-items'),
+        dailyClaimBtn: document.getElementById('daily-claim-btn'),
+        dailyNextReset: document.getElementById('daily-next-reset'),
+        dailyStreak: document.getElementById('daily-streak'),
+        bonusList: document.getElementById('bonus-list'),
         authOverlay: document.getElementById('auth-overlay'),
         authBody: document.getElementById('auth-body'),
         authAlert: document.getElementById('auth-alert'),
@@ -1847,6 +1966,8 @@
         if (els.dropRatesBtn) els.dropRatesBtn.disabled = disableInputs;
         renderUpgrades();
         renderSkillButton();
+        renderDaily();
+        renderBonusSummary();
         applyMobileMode();
         if (visible) startIdleTicker();
         else stopIdleTicker();
@@ -1866,6 +1987,8 @@
         if (disableInputs) toggleDropPanel(false);
         renderUpgrades();
         renderSkillButton();
+        renderDaily();
+        renderBonusSummary();
       };
 
       const toggleAuthInputs = (disabled) => {
@@ -2103,6 +2226,8 @@
         updateSkillSpec();
         renderSkillButton();
         renderInventory();
+        updateHud();
+        renderBonusSummary();
       };
 
       const recordDrops = (drops = [], timestamp = Date.now()) => {
@@ -2297,6 +2422,7 @@
       const tickSkills = () => {
         isDropSkillActive();
         renderSkillButton();
+        renderBonusSummary();
       };
 
       let skillTimer = null;
@@ -2310,6 +2436,115 @@
           skillTimer = null;
         }
       };
+
+      function applyDailyState(dailyPayload = {}, rewardOverride = null) {
+        const current = state.daily || {};
+        const reward = rewardOverride || dailyPayload.todayReward || current.todayReward || null;
+        const normalizedReward = reward
+          ? { ...reward, drops: Array.isArray(reward.drops) ? reward.drops.map(normalizeDrop) : [] }
+          : null;
+        const ready = dailyPayload.ready !== undefined
+          ? Boolean(dailyPayload.ready)
+          : (!dailyPayload.claimedToday && (current.ready ?? true));
+        state.daily = {
+          streak: Number.isFinite(dailyPayload.streak) ? dailyPayload.streak : (current.streak || 1),
+          claimedToday: Boolean(dailyPayload.claimedToday ?? current.claimedToday),
+          ready,
+          lastClaimMs: Number.isFinite(dailyPayload.lastClaimMs) ? Number(dailyPayload.lastClaimMs) : (current.lastClaimMs || 0),
+          nextResetAt: Number.isFinite(dailyPayload.nextResetAt) ? Number(dailyPayload.nextResetAt) : (current.nextResetAt || 0),
+          todayReward: normalizedReward
+        };
+        renderDaily();
+      }
+
+      function renderDaily() {
+        if (!els.dailyStatus) return;
+        const daily = state.daily || {};
+        const reward = daily.todayReward;
+        const ready = !daily.claimedToday && (daily.ready !== false);
+        els.dailyStatus.textContent = ready ? 'Ready to claim' : 'Claimed';
+        els.dailyStatus.dataset.state = ready ? 'ok' : 'muted';
+        if (els.dailyStreak) {
+          const day = Math.max(1, Math.floor(daily.streak || 1));
+          els.dailyStreak.textContent = `Day ${day} of ${DAILY_LENGTH}`;
+        }
+        if (els.dailyRewardMain) {
+          const parts = [];
+          if (reward?.vipMarks) parts.push(`${reward.vipMarks} VIP`);
+          if (reward?.credits) parts.push(currency.format(reward.credits));
+          els.dailyRewardMain.textContent = parts.join(' • ') || 'Come back daily for prizes.';
+        }
+        if (els.dailyItems) {
+          const drops = reward?.drops || [];
+          if (!drops.length) {
+            els.dailyItems.innerHTML = '<span class="muted-text">VIP marks and credits await.</span>';
+          } else {
+            els.dailyItems.innerHTML = drops.map(drop => {
+              const info = normalizeDrop(drop);
+              return `<span class="daily-item"><img src="${info.icon}" alt="${info.name}">${info.name} ×${info.amount}</span>`;
+            }).join('');
+          }
+        }
+        if (els.dailyNextReset) {
+          const nextReset = daily.nextResetAt ? new Date(daily.nextResetAt).toLocaleTimeString() : 'midnight';
+          els.dailyNextReset.textContent = `Resets at ${nextReset}`;
+        }
+        if (els.dailyClaimBtn) {
+          const disabled = !ready || state.busy || !state.gameReady || !state.auth.token;
+          els.dailyClaimBtn.disabled = disabled;
+        }
+      }
+
+      function renderBonusSummary() {
+        if (!els.bonusList) return;
+        const entries = [];
+        const winMult = getDropMultiplier(true);
+        const lossMult = getDropMultiplier(false);
+        entries.push({
+          label: 'Drop boost',
+          value: `${winMult.total.toFixed(2)}× / ${lossMult.total.toFixed(2)}×`,
+          note: 'Win / loss multiplier (bet, skill, upgrade)'
+        });
+        const idle = Math.max(0, state.upgrades.idle || 0);
+        entries.push({
+          label: 'Idle income',
+          value: idle ? `+${idle}/s` : 'Locked',
+          note: idle ? 'Earned passively while away' : 'Upgrade Idle Coins to start earning'
+        });
+        const maxBetMult = (state.maxBet || DEFAULT_MAX_BET) / DEFAULT_MAX_BET;
+        entries.push({
+          label: 'Max bet',
+          value: `${maxBetMult.toFixed(1)}×`,
+          note: `Cap ${currency.format(state.maxBet || DEFAULT_MAX_BET)}`
+        });
+        const rows = state.currentRows || state.machine?.rows || 3;
+        const reels = state.currentReels || state.machine?.reels || 3;
+        entries.push({
+          label: 'Layout',
+          value: `${rows} rows · ${reels} reels`,
+          note: `Line tier ${state.currentLineTier ?? 0}`
+        });
+        const skill = state.skills.dropRate?.spec;
+        const unlocked = (state.upgrades.dropBoostUnlock || 0) > 0;
+        if (unlocked || skill) {
+          const durationMin = skill ? Math.max(1, Math.round((skill.durationMs || 0) / 60000)) : 1;
+          entries.push({
+            label: 'Drop skill',
+            value: isDropSkillActive() ? 'Boost active' : 'Ready',
+            note: `${(skill?.multiplier || 1).toFixed(2)}× for ${durationMin}m`
+          });
+        }
+        const html = entries.map(entry => `
+          <li class="bonus-item">
+            <div>
+              <p class="bonus-label">${entry.label}</p>
+              ${entry.note ? `<p class="bonus-note">${entry.note}</p>` : ''}
+            </div>
+            <strong class="bonus-value">${entry.value}</strong>
+          </li>
+        `).join('');
+        els.bonusList.innerHTML = html || '<li class="bonus-item"><span class="bonus-label">No bonuses yet.</span></li>';
+      }
 
       const activateDropSkill = () => {
         if (!state.gameReady || state.busy) return;
@@ -2680,6 +2915,7 @@
         updateMachineMeta();
         updateSkillSpec();
         renderSkillButton();
+        renderBonusSummary();
         startIdleTicker();
       }
 
@@ -2786,6 +3022,10 @@
         if (els.hudBalance) els.hudBalance.textContent = formatCompactMoney(totalBalance);
         if (els.hudBet) els.hudBet.textContent = formatCompactMoney(state.bet || 0);
         if (els.hudWin) els.hudWin.textContent = formatCompactMoney(state.lastWin || 0);
+        if (els.hudVip) {
+          const vipMarks = Number(state.drop?.inventory?.vipMarks || 0);
+          els.hudVip.textContent = `${formatCompactNumber(vipMarks)} VIP`;
+        }
       };
       function clearSyncedPending(snapshot = {}) {
         let changed = false;
@@ -2851,6 +3091,7 @@
           renderDropPanel();
         }
         renderSkillButton();
+        renderBonusSummary();
       };
       setBetValue(state.bet);
 
@@ -2918,8 +3159,18 @@
           state.drop.history = [];
           state.drop.lastDrops = [];
           state.drop.lastTimestamp = 0;
+          state.daily = {
+            streak: 1,
+            claimedToday: false,
+            ready: false,
+            lastClaimMs: 0,
+            nextResetAt: 0,
+            todayReward: null
+          };
           renderDropLog();
           renderInventory();
+          renderDaily();
+          renderBonusSummary();
           toggleDropPanel(false);
           updateHud();
         }
@@ -3029,6 +3280,11 @@
         } else if (payload.inventory) {
           applyDropState({ inventory: payload.inventory });
         }
+        if (payload.daily) {
+          applyDailyState(payload.daily, payload.reward);
+        } else if (payload.reward && state.daily) {
+          applyDailyState(state.daily, payload.reward);
+        }
 
         state.maxBet = resolveMaxBet(payload.maxBet);
         els.maxBet.textContent = state.maxBet;
@@ -3045,6 +3301,7 @@
           : (Number.isFinite(fallbackBet) ? fallbackBet : 1);
         setBetValue(desiredBet || 1);
         updateHud();
+        renderBonusSummary();
       };
 
       const formatWinSummary = (groups = []) => {
@@ -3192,6 +3449,50 @@
         }
       };
 
+      const claimDaily = async () => {
+        debug('daily:claim', { busy: state.busy, ready: state.daily?.ready });
+        if (!state.auth.token) {
+          showAuthAlert('Sign in to claim daily rewards.');
+          return;
+        }
+        if (state.daily?.claimedToday) {
+          showAlert('Already claimed today.');
+          return;
+        }
+        setBusy(true);
+        showAlert('');
+        try {
+          const result = await request('/daily', { action: 'claim' });
+          updateStats(result);
+          if (result.reward) {
+            const drops = Array.isArray(result.reward.drops) ? result.reward.drops : [];
+            if (drops.length) {
+              recordDrops(drops, Date.now());
+              renderInventory();
+            }
+            const parts = [];
+            if (result.reward.vipMarks) parts.push(`+${result.reward.vipMarks} VIP marks`);
+            if (result.reward.credits) parts.push(`+${currency.format(result.reward.credits)} credits`);
+            drops.filter(drop => drop.type !== 'vipMarks').forEach(drop => {
+              const info = normalizeDrop(drop);
+              parts.push(`${info.name} ×${drop.amount || 1}`);
+            });
+            log('Daily reward claimed', parts.join(' • '));
+          }
+        } catch (error) {
+          const payload = error.payload || {};
+          if (payload.daily) {
+            applyDailyState(payload.daily, payload.reward);
+          }
+          showAlert(error.message || 'Unable to claim daily reward.');
+          debugError('daily:claim', error, { payload });
+        } finally {
+          setBusy(false);
+          renderDaily();
+          renderBonusSummary();
+        }
+      };
+
       const loginOrRegister = async () => {
         const email = (els.authEmail?.value || '').trim().toLowerCase();
         const password = els.authPassword?.value || '';
@@ -3301,6 +3602,9 @@
       updateMachineMeta();
       renderPaytable();
       loadMachineConfig();
+      renderDaily();
+      renderBonusSummary();
+      updateHud();
       window.addEventListener('resize', applyMachineTheme);
 
       if (els.betSlider) {
@@ -3344,6 +3648,10 @@
         if (target === els.dropPanel) {
           toggleDropPanel(false);
         }
+      });
+      els.dailyClaimBtn?.addEventListener('click', () => {
+        if (state.busy) return;
+        claimDaily();
       });
 
       els.upgradeGrid?.addEventListener('click', (event) => {
@@ -3399,14 +3707,26 @@
         }
         setBusy(true);
         showAlert('');
-        try {
-          const result = await request('/upgrade', { type });
+        const applyUpgradeResult = (result) => {
           state.pendingUpgrades = {};
           state.serverUpgrades = result.upgrades || state.serverUpgrades;
           updateStats(result);
           log('Upgrade applied', def.label || type);
+        };
+        try {
+          const result = await request('/session', { type });
+          applyUpgradeResult(result);
         } catch (error) {
           const payload = error.payload || {};
+          if (error.status === 404) {
+            try {
+              const result = await request('/upgrade', { type });
+              applyUpgradeResult(result);
+              return;
+            } catch (fallbackError) {
+              debugError('upgrade-fallback', fallbackError);
+            }
+          }
           if (!error.status && error.cause) {
             showAlert('Upgrade service unreachable. Please try again.');
           } else if (error.status === 404) {
