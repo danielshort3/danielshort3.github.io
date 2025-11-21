@@ -39,6 +39,24 @@ All routes accept/return JSON:
 
 Every successful spin (and rejected bet attempts when we know the player) is recorded into `slot-machine-spin-history`, so you can audit player activity or build dashboards from that table without touching the live balance records.
 
+### API Gateway routing check
+
+If upgrades start 404ing or missing CORS headers, the HTTP API may have lost the `/upgrade` route. Reattach it to the existing Lambda integration (currently `oxwy3f3`) and AutoDeploy on the `prod` stage will publish it immediately:
+
+```
+INTEGRATION_ID=$(aws apigatewayv2 get-integrations --api-id 4kvebym8b3 --query 'Items[0].IntegrationId' --output text)
+aws apigatewayv2 create-route \
+  --api-id 4kvebym8b3 \
+  --route-key "POST /upgrade" \
+  --target "integrations/${INTEGRATION_ID}"
+```
+
+Sanity check CORS with the live domain:
+
+```
+curl -i -X POST -H 'Origin: https://www.danielshort.me' -d '{}' https://4kvebym8b3.execute-api.us-east-2.amazonaws.com/prod/upgrade
+```
+
 ### Slot engine + assets
 
 - `slot-engine.js` shares the same JSON definition as the browser client. During packaging it attempts to load `slot-config/classic.json`; if that file is missing (e.g., in the Lambda bundle) it falls back to `classic-config.js`, which mirrors the same symbol/payout data.
