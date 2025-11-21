@@ -60,6 +60,11 @@ const UPGRADE_LIMITS = MACHINE_META.upgrades || {
 };
 const MAX_LINE_TIER = MACHINE_META.lineTier || 3;
 const BASE_SYMBOL_COUNT = MACHINE_META.baseSymbolCount || 5;
+const DAY_MS = 24 * 60 * 60 * 1000;
+const DAILY_CALENDAR_LENGTH = 7;
+const DAILY_VIP_BASE = 35;
+const DAILY_VIP_STEP = 22;
+const DAILY_CREDIT_BASE = 250;
 const DEBUG_EMAIL = 'danielshort3@gmail.com';
 const DEBUG_COIN_AMOUNT = 100000;
 const UPGRADE_INDEX = new Map();
@@ -175,6 +180,119 @@ function evaluateSkills({ payload = {}, upgrades = {}, skillState = {}, nowMs = 
     skillState: next,
     dropRateActive
   };
+}
+
+const startOfDayMs = (ms = Date.now()) => {
+  const date = new Date(ms);
+  date.setUTCHours(0, 0, 0, 0);
+  return date.getTime();
+};
+
+function normalizeDaily(daily = {}, nowMs = Date.now()) {
+  const today = startOfDayMs(nowMs);
+  const rawStreak = Number.isFinite(daily.streak) ? daily.streak : 1;
+  const streak = Math.max(1, Math.min(DAILY_CALENDAR_LENGTH, Math.floor(rawStreak)));
+  const last = Number.isFinite(daily.lastClaimMs) ? daily.lastClaimMs : 0;
+  const lastClaimMs = last ? startOfDayMs(last) : 0;
+  const claimedToday = lastClaimMs === today && !!daily.claimedToday;
+  return { streak, lastClaimMs, claimedToday };
+}
+
+function advanceDaily(daily = {}, nowMs = Date.now()) {
+  const today = startOfDayMs(nowMs);
+  const normalized = normalizeDaily(daily, nowMs);
+  let { streak } = normalized;
+  let { claimedToday } = normalized;
+  let lastClaimMs = normalized.lastClaimMs;
+  let changed = false;
+
+  if (!lastClaimMs) {
+    streak = 1;
+    claimedToday = false;
+    changed = true;
+  } else if (lastClaimMs > today) {
+    lastClaimMs = today;
+    claimedToday = false;
+    changed = true;
+  } else if (today > lastClaimMs) {
+    const diff = Math.max(1, Math.round((today - lastClaimMs) / DAY_MS));
+    streak = diff === 1 ? Math.min(DAILY_CALENDAR_LENGTH, streak + 1) : 1;
+    claimedToday = false;
+    changed = true;
+  }
+
+  return {
+    streak,
+    lastClaimMs,
+    claimedToday,
+    changed,
+    nextResetAt: today + DAY_MS
+  };
+}
+
+function dailyRewardFor(streak = 1) {
+  const dayIndex = Math.max(
+    0,
+    Math.min(DAILY_CALENDAR_LENGTH - 1, (Math.floor(streak) - 1) % DAILY_CALENDAR_LENGTH)
+  );
+  const vipMarks = DAILY_VIP_BASE + DAILY_VIP_STEP * dayIndex;
+  const credits = DAILY_CREDIT_BASE + (dayIndex * 50);
+  const drops = [
+    { type: 'vipMarks', amount: vipMarks, name: 'VIP Mark' }
+  ];
+  if (dayIndex === DAILY_CALENDAR_LENGTH - 1) {
+    drops.push({ type: 'reelMod', tier: 2, amount: 1, name: 'Tier 2 Reel Mod' });
+  } else if (dayIndex === 2 || dayIndex === 4) {
+    drops.push({ type: 'spinBooster', tier: 1, amount: 1, name: 'Spin Booster' });
+  }
+  return {
+    day: dayIndex + 1,
+    vipMarks,
+    credits,
+    drops
+  };
+}
+
+function formatDailyPayload(daily = {}, nowMs = Date.now()) {
+  const state = advanceDaily(daily, nowMs);
+  return {
+    streak: state.streak,
+    claimedToday: state.claimedToday,
+    ready: !state.claimedToday,
+    lastClaimMs: state.lastClaimMs || null,
+    nextResetAt: state.nextResetAt,
+    todayReward: dailyRewardFor(state.streak)
+  };
+}
+
+async function syncDailyState(player, nowMs = Date.now()) {
+  const state = advanceDaily(player.daily || {}, nowMs);
+  const daily = {
+    streak: state.streak,
+    lastClaimMs: state.lastClaimMs,
+    claimedToday: state.claimedToday
+  };
+  const needsPersist = !player.daily
+    || player.daily.streak !== daily.streak
+    || player.daily.lastClaimMs !== daily.lastClaimMs
+    || player.daily.claimedToday !== daily.claimedToday;
+
+  player.daily = daily;
+  if (!needsPersist) return player;
+
+  const updated = await dynamo.send(new UpdateCommand({
+    TableName: TABLE_NAME,
+    Key: { playerId: player.playerId },
+    UpdateExpression: 'SET daily = :daily, updatedAt = :now',
+    ExpressionAttributeValues: {
+      ':daily': daily,
+      ':now': nowIso()
+    },
+    ReturnValues: 'ALL_NEW'
+  }));
+  const attrs = updated.Attributes || player;
+  attrs.daily = daily;
+  return attrs;
 }
 
 async function settleIdleIncome(player, { maxCoins = null } = {}) {
@@ -349,6 +467,9 @@ async function getOrCreatePlayer(playerId) {
     if (!player.lastDrops) {
       player.lastDrops = [];
     }
+    if (!player.daily) {
+      player.daily = { streak: 1, lastClaimMs: 0, claimedToday: false };
+    }
     return player;
   }
 
@@ -360,6 +481,7 @@ async function getOrCreatePlayer(playerId) {
     upgrades: { ...DEFAULT_UPGRADES },
     inventory: {},
     lastDrops: [],
+    daily: { streak: 1, lastClaimMs: 0, claimedToday: false },
     createdAt: now,
     updatedAt: now
   };
@@ -437,10 +559,12 @@ async function applySpin(player, bet, spinPayload, extra = {}) {
 }
 
 function formatPlayerPayload(player, extra = {}) {
+  const nowMs = Date.now();
   const upgrades = normalizeUpgrades(player?.upgrades || DEFAULT_UPGRADES);
   const dims = computeDimensions(upgrades);
   const activeSymbols = computeActiveSymbols(upgrades);
-  const skillState = normalizeSkillState(player?.skillState || {}, Date.now());
+  const skillState = normalizeSkillState(player?.skillState || {}, nowMs);
+  const daily = formatDailyPayload(player?.daily || {}, nowMs);
   return {
     playerId: player.playerId,
     balance: player.credits,
@@ -467,6 +591,7 @@ function formatPlayerPayload(player, extra = {}) {
       tierWeights: getTierWeights(),
       constants: DROP_CONSTANTS
     },
+    daily,
     skillState,
     ...extra
   };
@@ -617,7 +742,8 @@ async function handleSession(payload = {}) {
   if (payload.token) {
     const auth = await resolveAuth(payload.token, { required: true });
     const idleResult = await settleIdleIncome(auth.player);
-    return formatPlayerPayload(idleResult.player, {
+    const playerWithDaily = await syncDailyState(idleResult.player);
+    return formatPlayerPayload(playerWithDaily, {
       username: auth.username,
       token: auth.token,
       idleGained: idleResult.gained || 0
@@ -630,7 +756,51 @@ async function handleSession(payload = {}) {
   }
   const player = await getOrCreatePlayer(playerId);
   const idleResult = await settleIdleIncome(player);
-  return formatPlayerPayload(idleResult.player, { idleGained: idleResult.gained || 0 });
+  const playerWithDaily = await syncDailyState(idleResult.player);
+  return formatPlayerPayload(playerWithDaily, { idleGained: idleResult.gained || 0 });
+}
+
+async function handleDaily(payload = {}) {
+  const auth = await resolveAuth(payload.token, { required: true });
+  let player = await syncDailyState(auth.player);
+  const daily = player.daily || { streak: 1, lastClaimMs: 0, claimedToday: false };
+  if (payload.action === 'claim' || payload.claim === true) {
+    if (daily.claimedToday) {
+      return {
+        errorCode: 'DAILY_CLAIMED',
+        message: 'Daily reward already claimed.',
+        daily: formatDailyPayload(daily)
+      };
+    }
+    const reward = dailyRewardFor(daily.streak);
+    const inventory = applyDrops(player.inventory || {}, reward.drops || []);
+    const dailyRecord = {
+      streak: daily.streak,
+      lastClaimMs: Date.now(),
+      claimedToday: true
+    };
+    const updated = await dynamo.send(new UpdateCommand({
+      TableName: TABLE_NAME,
+      Key: { playerId: player.playerId },
+      UpdateExpression: 'SET credits = :credits, inventory = :inventory, daily = :daily, lastDrops = :drops, updatedAt = :now',
+      ExpressionAttributeValues: {
+        ':credits': (player.credits || 0) + (reward.credits || 0),
+        ':inventory': inventory,
+        ':daily': dailyRecord,
+        ':drops': reward.drops || [],
+        ':now': nowIso()
+      },
+      ReturnValues: 'ALL_NEW'
+    }));
+    const attrs = updated.Attributes || player;
+    attrs.daily = dailyRecord;
+    attrs.lastDrops = reward.drops || [];
+    return formatPlayerPayload(
+      attrs,
+      { username: auth.username, token: auth.token, reward }
+    );
+  }
+  return formatPlayerPayload(player, { username: auth.username, token: auth.token });
 }
 
 async function handleSpin(payload = {}) {
@@ -652,7 +822,7 @@ async function handleSpin(payload = {}) {
     ? Math.max(0, Math.floor(Number(payload.clientIdleCoins)))
     : null;
   const idleResult = await settleIdleIncome(player, { maxCoins: claimedCoins });
-  player = idleResult.player;
+  player = await syncDailyState(idleResult.player);
   if (!player.inventory) {
     player.inventory = {};
   }
@@ -791,7 +961,8 @@ async function handleRegister(payload = {}) {
     ConditionExpression: 'attribute_not_exists(username)'
   }));
 
-  const player = await getOrCreatePlayer(playerId);
+  let player = await getOrCreatePlayer(playerId);
+  player = await syncDailyState(player);
   const session = await issueSession(username);
   return formatPlayerPayload(player, {
     username,
@@ -818,7 +989,8 @@ async function handleLogin(payload = {}) {
   }
 
   const playerId = await ensureUserPlayer({ ...user, username });
-  const player = await getOrCreatePlayer(playerId);
+  let player = await getOrCreatePlayer(playerId);
+  player = await syncDailyState(player);
   const session = await issueSession(username);
   return formatPlayerPayload(player, {
     username,
@@ -839,7 +1011,7 @@ async function handleUpgrade(payload = {}) {
   }
   const type = def.key;
   const auth = await resolveAuth(payload.token, { required: true });
-  const player = auth.player;
+  let player = await syncDailyState(auth.player);
   const upgrades = normalizeUpgrades(player.upgrades || DEFAULT_UPGRADES);
   const currentLevel = upgrades[type] || 0;
   if (def.requires) {
@@ -1036,6 +1208,13 @@ exports.handler = async (event = {}) => {
       const session = await handleSession(payload);
       return respond(200, session, corsOrigin);
     }
+    if (routeKey.endsWith('/daily')) {
+      const daily = await handleDaily(payload);
+      if (daily.errorCode) {
+        return respond(400, daily, corsOrigin);
+      }
+      return respond(200, daily, corsOrigin);
+    }
     if (routeKey.endsWith('/spin')) {
       const spin = await handleSpin(payload);
       if (spin.errorCode) {
@@ -1057,3 +1236,6 @@ exports.handler = async (event = {}) => {
 
 exports._getUpgradeDefinition = getUpgradeDefinition;
 exports._evaluateSkills = evaluateSkills;
+exports._dailyRewardFor = dailyRewardFor;
+exports._formatDailyPayload = formatDailyPayload;
+exports._advanceDaily = advanceDaily;

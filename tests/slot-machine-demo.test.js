@@ -29,6 +29,9 @@ module.exports = function runSlotMachineDemoTests({ assert, checkFileContains })
   checkFileContains('demos/slot-machine-demo.html', 'id="upgrade-grid"');
   checkFileContains('demos/slot-machine-demo.html', 'slot-config/upgrade-definitions.json');
   checkFileContains('demos/slot-machine-demo.html', 'id="debug-add-coins"');
+  checkFileContains('demos/slot-machine-demo.html', 'id="daily-claim-btn"');
+  checkFileContains('demos/slot-machine-demo.html', 'id="bonus-list"');
+  checkFileContains('demos/slot-machine-demo.html', 'id="hud-vip"');
 
   const demoHtml = fs.readFileSync('demos/slot-machine-demo.html', 'utf8');
   assert(/slotDemoDebug/.test(demoHtml), 'slot demo debug hook missing');
@@ -58,6 +61,25 @@ module.exports = function runSlotMachineDemoTests({ assert, checkFileContains })
   upgradeDefs.forEach(def => {
     assert(lambda._getUpgradeDefinition(def.key), `lambda missing handler for upgrade "${def.key}"`);
   });
+  assert(typeof lambda._advanceDaily === 'function', 'daily advance helper missing');
+  assert(typeof lambda._dailyRewardFor === 'function', 'daily reward helper missing');
+  assert(typeof lambda._formatDailyPayload === 'function', 'daily payload formatter missing');
+  const dayMs = 24 * 60 * 60 * 1000;
+  const baseMs = Date.UTC(2024, 0, 10);
+  const advanced = lambda._advanceDaily({ streak: 2, lastClaimMs: baseMs - dayMs, claimedToday: true }, baseMs + (2 * 60 * 60 * 1000));
+  assert(advanced.streak === 3, 'daily streak should advance by one day continously');
+  assert(advanced.claimedToday === false, 'daily claim flag should reset on new day');
+  const reset = lambda._advanceDaily({ streak: 5, lastClaimMs: baseMs - (3 * dayMs), claimedToday: true }, baseMs);
+  assert(reset.streak === 1, 'daily streak should reset after gaps');
+  const dayOneReward = lambda._dailyRewardFor(1);
+  assert(dayOneReward.vipMarks === 35, 'day 1 daily reward should start at 35 VIP marks');
+  const dayThreeReward = lambda._dailyRewardFor(3);
+  assert(dayThreeReward.vipMarks === 35 + (22 * 2), 'daily reward should step by 22 VIP marks per day');
+  const daySevenReward = lambda._dailyRewardFor(7);
+  assert(daySevenReward.drops.some(drop => drop.type === 'reelMod'), 'day 7 reward should include a mod drop');
+  const dailyPayload = lambda._formatDailyPayload({ streak: 4, lastClaimMs: baseMs, claimedToday: false }, baseMs);
+  assert(dailyPayload.todayReward && dailyPayload.todayReward.vipMarks, 'daily payload missing todayReward.vipMarks');
+  assert(dailyPayload.ready === true, 'daily payload ready flag should be true when unclaimed');
 
   assert(typeof lambda._evaluateSkills === 'function', 'lambda skill evaluator missing');
   const nowMs = 1_000_000;
