@@ -1686,6 +1686,12 @@
         minimumFractionDigits: 0
       });
       const formatCompactNumber = (value = 0) => compactNumber.format(Math.max(0, Number.isFinite(value) ? value : 0));
+      const formatTime = (ms = 0) => {
+        const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+        const m = Math.floor(totalSeconds / 60);
+        const s = totalSeconds % 60;
+        return `${m}:${s.toString().padStart(2, '0')}`;
+      };
       const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
       const resolveMaxBet = (incoming) => {
         const numeric = Number(incoming);
@@ -3108,6 +3114,9 @@
         if (els.authOverlay) {
           els.authOverlay.dataset.hidden = loggedIn ? 'true' : 'false';
           els.authOverlay.setAttribute('aria-hidden', loggedIn ? 'true' : 'false');
+          if (loggedIn && els.authOverlay.contains(document.activeElement)) {
+            document.activeElement.blur?.();
+          }
         }
         if (loggedIn && els.accountUser) {
           els.accountUser.textContent = state.auth.username || 'Account';
