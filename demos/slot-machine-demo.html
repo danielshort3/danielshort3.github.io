@@ -1168,7 +1168,7 @@
             <button type="button" class="ghost-btn tertiary" id="auth-info">Need access? Register in seconds.</button>
           </div>
           <p class="muted-text small" id="auth-note">Passwords never leave AWS without hashing. Sessions expire automatically to keep balances safe.</p>
-          <div class="alert" id="auth-alert" hidden></div>
+          <div class="alert" id="auth-alert" hidden role="status" aria-live="polite" tabindex="-1"></div>
         </div>
       </div>
     </div>
@@ -1818,6 +1818,12 @@
         if (!els.authAlert) return;
         els.authAlert.hidden = !text;
         els.authAlert.textContent = text;
+        if (text) {
+          requestFrame(() => {
+            els.authAlert?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+            els.authAlert?.focus?.({ preventScroll: false });
+          });
+        }
       };
 
       const gamePanels = Array.from(document.querySelectorAll('[data-requires-auth]'));
@@ -2958,11 +2964,19 @@
       const request = async (path, payload = {}, options = {}) => {
         const finalPayload = options.skipAuth ? payload : withAuth(payload);
         debug('request:start', { path, payload: finalPayload, options });
-        const res = await fetch(`${API_BASE}${path}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(finalPayload)
-        });
+        let res;
+        try {
+          res = await fetch(`${API_BASE}${path}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(finalPayload)
+          });
+        } catch (networkError) {
+          const err = new Error('Network request failed.');
+          err.cause = networkError;
+          debugError('request:network', networkError, { path, payload: finalPayload });
+          throw err;
+        }
         let data = {};
         try {
           data = await res.json();
@@ -2977,7 +2991,7 @@
           const err = new Error(data.error || data.message || 'Request failed');
           err.payload = data;
           err.status = res.status;
-           debugError('request:error', err, { path, payload: finalPayload });
+          debugError('request:error', err, { path, payload: finalPayload });
           throw err;
         }
         return data;
@@ -3206,7 +3220,12 @@
           showAuthAlert(state.authMode === 'register' ? 'Account created! Credits synced.' : 'Signed in successfully.');
           debug('auth:success', { endpoint });
         } catch (error) {
-          showAuthAlert(error.message || 'Unable to process request.');
+          if (error && error.status === 409 && state.authMode === 'register') {
+            setAuthMode('login');
+            showAuthAlert('Account already exists. Sign in instead.');
+          } else {
+            showAuthAlert(error.message || 'Unable to process request.');
+          }
           log('Auth failed', error.message);
           debugError('auth', error);
         } finally {
@@ -3381,23 +3400,18 @@
         setBusy(true);
         showAlert('');
         try {
-          let result;
-          try {
-            result = await request('/upgrade', { type });
-          } catch (primaryError) {
-            if (primaryError?.status === 404 || primaryError?.statusCode === 404) {
-              result = await request('/session', { type });
-            } else {
-              throw primaryError;
-            }
-          }
+          const result = await request('/upgrade', { type });
           state.pendingUpgrades = {};
           state.serverUpgrades = result.upgrades || state.serverUpgrades;
           updateStats(result);
           log('Upgrade applied', def.label || type);
         } catch (error) {
           const payload = error.payload || {};
-          if (payload.errorCode === 'INSUFFICIENT_CREDITS') {
+          if (!error.status && error.cause) {
+            showAlert('Upgrade service unreachable. Please try again.');
+          } else if (error.status === 404) {
+            showAlert('Upgrade service unavailable. Please refresh and try again.');
+          } else if (payload.errorCode === 'INSUFFICIENT_CREDITS') {
             showAlert('Not enough credits to purchase this upgrade.');
           } else if (payload.error) {
             showAlert(payload.error);

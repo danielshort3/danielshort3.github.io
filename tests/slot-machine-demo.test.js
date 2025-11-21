@@ -79,4 +79,7 @@ module.exports = function runSlotMachineDemoTests({ assert, checkFileContains })
   assert(!cooldown.dropRateActive, 'drop skill should expire after active window');
   assert(cooldown.skillState.dropRate.cooldownUntil > cooldown.skillState.dropRate.activeUntil, 'cooldown should remain set after expiry');
 
+  const demoHtmlUpgrade = fs.readFileSync('demos/slot-machine-demo.html', 'utf8');
+  assert(demoHtmlUpgrade.includes('Account already exists. Sign in instead.'), 'register conflict hint missing');
+  assert(demoHtmlUpgrade.includes("request('/session', { type }"), 'upgrade flow should use /session endpoint');
 };
