@@ -2429,17 +2429,17 @@
         if (!info) return;
         const cellHeight = getCellHeight();
         info.offset = 0;
-        info.speed = 12 + col * 1.8;
+        info.speed = 9 + col * 1.4;
         info.spinning = true;
         const step = () => {
           if (!info.spinning) return;
           info.offset += info.speed;
           if (info.offset >= cellHeight) {
             info.offset -= cellHeight;
-            const first = info.reel.firstElementChild;
-            if (first) info.reel.appendChild(first);
+            const last = info.reel.lastElementChild;
+            if (last) info.reel.prepend(last);
           }
-          info.reel.style.transform = `translateY(-${info.offset}px)`;
+          info.reel.style.transform = `translateY(${info.offset}px)`;
           info.raf = requestFrame(step);
         };
         info.raf = requestFrame(step);
