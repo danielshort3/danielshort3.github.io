@@ -1468,7 +1468,7 @@
           </div>
           <div class="bet-controls">
             <button type="button" class="chip" data-chip="decrease" aria-label="Decrease bet">-</button>
-            <input type="range" id="bet-range" min="1" max="100" value="25" aria-label="Bet amount" />
+            <input type="range" id="bet-range" min="0" max="10" value="0" aria-label="Bet amount" />
             <button type="button" class="chip" data-chip="increase" aria-label="Increase bet">+</button>
             <button type="button" class="chip" data-chip="max" aria-label="Max bet">Max</button>
           </div>
@@ -1663,7 +1663,7 @@
           id: 'classic',
           name: 'Lucky Lambda Classic',
           rows: 3,
-          reels: 5,
+          reels: 3,
           lineTier: 0,
           lines: [],
           payouts: {},
@@ -1717,7 +1717,7 @@
         idleTickerActive: false,
         lastIdleTick: 0,
         currentRows: 3,
-        currentReels: 5,
+        currentReels: 3,
         currentLineTier: 0
       };
       window.slotDemoDebug = window.slotDemoDebug || {};
@@ -1813,8 +1813,55 @@
       const resolveMaxBet = (incoming) => {
         const numeric = Number(incoming);
         if (Number.isFinite(numeric) && numeric > 0) return numeric;
-        if (Number.isFinite(state.maxBet) && state.maxBet > 0) return state.maxBet;
+        if (typeof state !== 'undefined' && Number.isFinite(state.maxBet) && state.maxBet > 0) return state.maxBet;
         return DEFAULT_MAX_BET;
+      };
+      const UPGRADE_COST_GROWTH = 1.85;
+      const computeUpgradeCost = (def, level = 0) => {
+        if (!def) return 0;
+        const base = def.cost || 0;
+        const growth = Number.isFinite(def.costGrowth) ? def.costGrowth : UPGRADE_COST_GROWTH;
+        const step = Math.max(0, Math.floor(level));
+        return Math.round(base * Math.pow(Math.max(1, growth), step));
+      };
+      const buildBetSteps = (maxBet = DEFAULT_MAX_BET) => {
+        const max = Math.max(1, Math.round(Number(maxBet) || DEFAULT_MAX_BET));
+        const stepCount = Math.max(8, Math.min(18, Math.ceil(Math.log10(max) * 4)));
+        const ratio = Math.pow(max, 1 / Math.max(1, stepCount - 1));
+        const steps = new Set([1, max]);
+        for (let i = 1; i < stepCount - 1; i += 1) {
+          const value = Math.max(1, Math.round(Math.pow(ratio, i)));
+          steps.add(value);
+        }
+        return Array.from(steps).sort((a, b) => a - b);
+      };
+      let betSteps = buildBetSteps(DEFAULT_MAX_BET);
+      const getNearestBetIndex = (value) => {
+        const steps = betSteps.length ? betSteps : buildBetSteps(state.maxBet || DEFAULT_MAX_BET);
+        let bestIndex = 0;
+        let bestDelta = Infinity;
+        steps.forEach((step, idx) => {
+          const delta = Math.abs(step - value);
+          if (delta < bestDelta) {
+            bestDelta = delta;
+            bestIndex = idx;
+          }
+        });
+        return bestIndex;
+      };
+      const betFromIndex = (index) => {
+        const steps = betSteps.length ? betSteps : buildBetSteps(state.maxBet || DEFAULT_MAX_BET);
+        const clamped = clamp(Math.round(index), 0, Math.max(0, steps.length - 1));
+        return steps[clamped] || 1;
+      };
+      const syncBetSteps = () => {
+        betSteps = buildBetSteps(state.maxBet || DEFAULT_MAX_BET);
+        if (els.betSlider) {
+          els.betSlider.min = 0;
+          els.betSlider.max = Math.max(0, betSteps.length - 1);
+          els.betSlider.step = 1;
+          els.betSlider.value = getNearestBetIndex(state.bet);
+        }
       };
 
       const els = {
@@ -2196,7 +2243,7 @@
         const nextLabel = level >= maxLevel
           ? 'Maxed'
           : (def.levels?.[level] || `Level ${level + 1}`);
-        const cost = level >= maxLevel ? null : Math.round((def.cost || 0) * (level + 1));
+        const cost = level >= maxLevel ? null : computeUpgradeCost(def, level);
         const buttonDisabled = !loggedIn || state.busy || locked || level >= maxLevel || !Number.isFinite(cost);
         const buttonText = locked
           ? 'Locked'
@@ -2766,7 +2813,7 @@
         }
         info.offset = 0;
         info.reel.style.transform = 'translateY(0px)';
-        const rows = state.machine.rows;
+        const rows = state.currentRows || state.machine.rows;
         const buffer = 2;
         const symbols = Array.isArray(finalSymbols) && finalSymbols.length
           ? finalSymbols
@@ -2850,8 +2897,8 @@
       };
 
       const updateGridSymbols = (grid = []) => {
-        const rows = state.machine.rows;
-        const reels = state.machine.reels;
+        const rows = state.currentRows || state.machine.rows;
+        const reels = state.currentReels || state.machine.reels;
         ensureGrid(rows, reels);
         for (let row = 0; row < rows; row += 1) {
           const rowSymbols = grid[row] || [];
@@ -2950,8 +2997,9 @@
             return;
           }
           if (!Array.isArray(group.pattern) || !Array.isArray(group.indexes)) return;
+          const rows = state.currentRows || state.machine.rows;
           group.indexes.forEach(index => {
-            const row = Math.max(0, Math.min(group.pattern[index] ?? 0, state.machine.rows - 1));
+            const row = Math.max(0, Math.min(group.pattern[index] ?? 0, rows - 1));
             const cell = state.gridCells.get(`${row}:${index}`);
             if (cell) cell.dataset.state = 'win';
           });
@@ -2990,7 +3038,17 @@
       }
 
       const setSymbolMap = (symbols = [], reason = 'update') => {
-        state.symbolMap = buildSymbolMap(symbols, state.symbolMap || DEFAULT_SYMBOL_MAP, getPlaceholderAsset());
+        const list = Array.isArray(symbols) ? symbols : [];
+        state.symbolMap = buildSymbolMap(list, state.symbolMap || DEFAULT_SYMBOL_MAP, getPlaceholderAsset());
+        if (list.length) {
+          state.machine.symbols = list.map(entry => ({ ...entry }));
+        } else if (!state.machine.symbols || !state.machine.symbols.length) {
+          state.machine.symbols = Array.from(state.symbolMap.values()).map(entry => ({
+            key: entry.key,
+            label: entry.label,
+            asset: entry.asset
+          }));
+        }
         debug('symbols:set', { reason, count: state.symbolMap.size });
         auditSymbolAssets();
         renderPaytable();
@@ -3060,13 +3118,29 @@
         if (machine.payouts) state.machine.payouts = machine.payouts;
         if (machine.assets) state.machine.assets = { ...state.machine.assets, ...machine.assets };
         if (Array.isArray(machine.activeSymbols)) state.machine.activeSymbols = machine.activeSymbols.slice();
+        if (Array.isArray(machine.symbols)) {
+          state.machine.symbols = machine.symbols.map(entry => ({ ...entry }));
+        }
+        const baseRows = Number(machine.baseRows ?? machine.upgrades?.baseRows ?? state.machine.upgradeSettings?.baseRows ?? state.machine.rows);
+        const maxRows = Number(machine.maxRows ?? machine.upgrades?.maxRows ?? state.machine.upgradeSettings?.maxRows ?? state.machine.rows);
+        const baseReels = Number(machine.baseReels ?? machine.upgrades?.baseReels ?? state.machine.upgradeSettings?.baseReels ?? state.machine.reels);
+        const maxReels = Number(machine.maxReels ?? machine.upgrades?.maxReels ?? state.machine.upgradeSettings?.maxReels ?? state.machine.reels);
+        const upgradeCosts = machine.upgrades?.costs
+          || machine.upgradeSettings?.costs
+          || machine.upgradeCosts
+          || state.machine.upgradeSettings?.costs
+          || {};
         state.machine.upgradeSettings = {
-          baseRows: machine.upgrades?.baseRows ?? state.machine.upgradeSettings?.baseRows ?? state.machine.rows,
-          maxRows: machine.upgrades?.maxRows ?? state.machine.upgradeSettings?.maxRows ?? state.machine.rows,
-          baseReels: machine.upgrades?.baseReels ?? state.machine.upgradeSettings?.baseReels ?? state.machine.reels,
-          maxReels: machine.upgrades?.maxReels ?? state.machine.upgradeSettings?.maxReels ?? state.machine.reels,
-          costs: machine.upgrades?.costs || state.machine.upgradeSettings?.costs || {}
+          baseRows,
+          maxRows,
+          baseReels,
+          maxReels,
+          costs: upgradeCosts
         };
+        state.machine.rows = baseRows;
+        state.machine.reels = baseReels;
+        state.currentRows = baseRows;
+        state.currentReels = baseReels;
         setSymbolMap(Array.isArray(machine.symbols) ? machine.symbols : [], 'syncMachineDefinition');
         applyUpgradeState(state.upgrades);
       };
@@ -3208,12 +3282,17 @@
       }
 
       const setBetValue = (value) => {
-        const safe = clamp(value || 1, 1, state.maxBet || DEFAULT_MAX_BET);
-        debug('bet:update', { requested: value, applied: safe, max: state.maxBet });
+        syncBetSteps();
+        const capped = Math.min(value || 1, state.maxBet || DEFAULT_MAX_BET);
+        const idx = getNearestBetIndex(capped);
+        const safe = betFromIndex(idx);
+        debug('bet:update', { requested: value, applied: safe, max: state.maxBet, idx });
         state.bet = safe;
         if (els.betSlider) {
-          els.betSlider.max = state.maxBet || DEFAULT_MAX_BET;
-          els.betSlider.value = safe;
+          els.betSlider.max = Math.max(0, betSteps.length - 1);
+          els.betSlider.value = idx;
+          els.betSlider.setAttribute('aria-valuenow', safe.toString());
+          els.betSlider.setAttribute('aria-valuemax', (state.maxBet || DEFAULT_MAX_BET).toString());
         }
         updateHud();
         if (els.dropPanel && !els.dropPanel.hidden) {
@@ -3741,19 +3820,22 @@
 
       if (els.betSlider) {
         els.betSlider.addEventListener('input', (event) => {
-          setBetValue(Number(event.target.value));
+          const idx = Number(event.target.value) || 0;
+          const next = betFromIndex(idx);
+          setBetValue(next);
         });
       }
 
       const handleChipAction = (action) => {
         debug('chip:action', { action, busy: state.busy, ready: state.gameReady });
         if (state.busy || !state.gameReady) return;
+        const currentIndex = getNearestBetIndex(state.bet);
         if (action === 'increase') {
-          setBetValue(state.bet + 5);
+          setBetValue(betFromIndex(currentIndex + 1));
           return;
         }
         if (action === 'decrease') {
-          setBetValue(state.bet - 5);
+          setBetValue(betFromIndex(currentIndex - 1));
           return;
         }
         if (action === 'max') {
