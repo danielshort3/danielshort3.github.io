@@ -1765,6 +1765,7 @@
         idleTicker: null,
         idleTickerActive: false,
         lastIdleTick: 0,
+        spinCount: 0,
         currentRows: 3,
         currentReels: 3,
         currentLineTier: 0
@@ -1859,6 +1860,14 @@
         return `${m}:${s.toString().padStart(2, '0')}`;
       };
       const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+      const randomGaussian = (mean = 0.5, std = 0.15) => {
+        let u = 0; let v = 0;
+        while (u === 0) u = Math.random();
+        while (v === 0) v = Math.random();
+        const norm = Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+        const value = mean + std * norm;
+        return Math.min(1, Math.max(0, value));
+      };
       const resolveMaxBet = (incoming) => {
         const numeric = Number(incoming);
         if (Number.isFinite(numeric) && numeric > 0) return numeric;
@@ -1936,6 +1945,20 @@
         }
       };
       const localUpgrades = loadLocalUpgrades();
+
+      const buildLinePatterns = (rows, reels) => {
+        const patterns = [];
+        for (let r = 0; r < rows; r += 1) {
+          patterns.push({ pattern: Array(reels).fill(r), tier: 0 });
+        }
+        if (rows >= 2) {
+          const down = Array.from({ length: reels }, (_, i) => Math.min(rows - 1, i));
+          const up = Array.from({ length: reels }, (_, i) => Math.max(0, rows - 1 - i));
+          patterns.push({ pattern: down, tier: 1 });
+          patterns.push({ pattern: up, tier: 1 });
+        }
+        return patterns;
+      };
 
       const els = {
         connectionPill: document.getElementById('connection-pill'),
@@ -3099,6 +3122,62 @@
         });
       };
 
+      const evaluateClientOutcome = (grid = [], bet = 1) => {
+        const rows = grid.length;
+        const reels = grid[0]?.length || 0;
+        const patterns = (state.machine.lines || []).filter(def => (def.tier ?? 0) <= (state.currentLineTier ?? 0));
+        const groups = [];
+        let payout = 0;
+        patterns.forEach(def => {
+          const pattern = def.pattern || [];
+          let base = null;
+          const indexes = [];
+          for (let col = 0; col < Math.min(pattern.length, reels); col += 1) {
+            const row = Math.max(0, Math.min(rows - 1, pattern[col]));
+            const symbol = grid[row]?.[col];
+            if (col === 0) {
+              base = symbol === 'wild' ? null : symbol;
+              indexes.push(col);
+              continue;
+            }
+            if (symbol === base || symbol === 'wild' || base === null) {
+              if (base === null && symbol !== 'wild') base = symbol;
+              indexes.push(col);
+            } else {
+              break;
+            }
+          }
+          const count = indexes.length;
+          const key = base || 'wild';
+          if (count >= 3) {
+            const pay = (state.machine.payouts?.[key] || 1) * Math.max(1, count - 2) * bet;
+            payout += pay;
+            groups.push({ symbol: key, count, indexes, pattern, payout: pay });
+          }
+        });
+        return { payout, groups };
+      };
+
+      const runClientSpin = (bet) => {
+        const rows = state.currentRows || state.machine.rows;
+        const reels = state.currentReels || state.machine.reels;
+        ensureGrid(rows, reels);
+        const grid = Array.from({ length: rows }, () => Array(reels).fill(''));
+        for (let row = 0; row < rows; row += 1) {
+          for (let col = 0; col < reels; col += 1) {
+            grid[row][col] = randomSymbolInfo().key;
+          }
+        }
+        const { payout, groups } = evaluateClientOutcome(grid, bet);
+        return {
+          grid,
+          winAmount: payout,
+          winGroups: groups,
+          outcome: payout > 0 ? 'Win' : 'No win',
+          timestamp: new Date().toISOString()
+        };
+      };
+
       function renderPaytable() {
         if (!els.paytable) return;
         if (!state.symbolMap.size) {
@@ -3176,6 +3255,7 @@
         );
         const maxLineTier = state.machine.lineTier || (state.machine.lines?.[state.machine.lines.length - 1]?.tier ?? 3);
         const lineTier = Math.min(maxLineTier, normalized.lines || 0);
+        state.machine.lines = buildLinePatterns(rows, reels);
         const effective = { ...normalized };
         Object.entries(state.pendingUpgrades || {}).forEach(([key, val]) => {
           const appended = (effective[key] || 0) + val;
@@ -3811,55 +3891,39 @@
       const spin = async (auto = false) => {
         debug('spin:click', { busy: state.busy, authed: !!state.auth.token });
         if (state.busy) return;
-        if (!state.auth.token) {
-          showAuthAlert('Sign in to spin the slot machine.');
-          return;
-        }
         if (!auto) {
           state.autoSpin.active = false;
           state.autoSpin.remaining = 0;
           renderAutoSpinButton();
         }
         const bet = clamp(state.bet || 1, 1, state.maxBet || DEFAULT_MAX_BET);
+        if (state.balance < bet) {
+          showAlert('Not enough credits to spin.');
+          return;
+        }
         setBetValue(bet);
         setBusy(true);
         showAlert('');
         if (els.error) els.error.textContent = '';
         startGridSpin();
         let spinData = null;
-        const clientIdleCoins = Math.floor(Math.max(0, state.pendingIdleCoins || 0));
-        const pendingSnapshot = { ...state.pendingUpgrades };
         try {
-          const result = await request('/spin', {
-            bet,
-            clientIdleCoins,
-            pendingUpgrades: pendingSnapshot,
-            activeSkills: dropSkillPayload()
-          });
-          spinData = result.lastSpin || null;
-          clearSyncedPending(pendingSnapshot);
-          updateStats(result);
+          spinData = runClientSpin(bet);
+          state.balance = Math.max(0, (state.balance || 0) - bet + (spinData.winAmount || 0));
+          state.lastWin = spinData.winAmount || 0;
+          state.spinCount = (state.spinCount || 0) + 1;
+          if (els.balance) els.balance.textContent = currency.format(state.balance);
+          if (els.spinCount) els.spinCount.textContent = state.spinCount;
           updateLastSpin(spinData);
-          const outcomeText = spinData?.outcome || result.outcome || 'Result processed';
-          log('Spin processed by Lambda', `${outcomeText} (balance ${currency.format(state.balance || result.balance)})`);
-          debug('spin:success', { bet, outcome: outcomeText, balance: result.balance });
+          updateHud();
+          renderBonusSummary();
+          log('Spin processed locally', `${spinData.outcome} (balance ${currency.format(state.balance)})`);
         } catch (error) {
-          const payload = error.payload || {};
-          const msg = payload.message || error.message;
-          if (els.error) els.error.textContent = msg;
-          if (payload.balance !== undefined || payload.maxBet !== undefined) {
-            updateStats({ balance: payload.balance, maxBet: payload.maxBet });
-          }
-          if (payload.errorCode === 'INSUFFICIENT_CREDITS') {
-            log('Spin blocked', 'Insufficient credits');
-            state.autoSpin.active = false;
-            state.autoSpin.remaining = 0;
-          } else {
-            log('Spin failed', msg);
-            state.autoSpin.active = false;
-            state.autoSpin.remaining = 0;
-          }
-          debugError('spin', error, { payload });
+          const msg = error?.message || 'Spin failed.';
+          showAlert(msg);
+          debugError('spin', error || new Error(msg));
+          state.autoSpin.active = false;
+          state.autoSpin.remaining = 0;
         } finally {
           stopGridSpin(spinData?.grid);
           setBusy(false);
