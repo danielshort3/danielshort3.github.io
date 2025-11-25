@@ -1758,6 +1758,7 @@
         upgrades: {},
         upgradeCatalog: [],
         lineFlashTimer: null,
+        symbolWeights: { entries: [], total: 0 },
         autoSpin: { active: false, remaining: 0 },
         lastWin: 0,
         pendingIdleCoins: 0,
@@ -2264,16 +2265,15 @@
       };
 
       const randomSymbolInfo = () => {
-        let pool = [];
-        if (Array.isArray(state.machine.activeSymbols) && state.machine.activeSymbols.length) {
-          pool = state.machine.activeSymbols.map(key => getSymbolEntry(key)).filter(Boolean);
+        const weights = state.symbolWeights?.entries || [];
+        const total = state.symbolWeights?.total || 0;
+        if (total > 0 && weights.length) {
+          const target = Math.floor(Math.random() * total);
+          const hit = weights.find(entry => entry.total > target);
+          if (hit) return getSymbolEntry(hit.key);
         }
-        if (!pool.length || pool.length < 3) {
-          pool = Array.from(state.symbolMap.values());
-        }
-        if (!pool.length) {
-          return getSymbolEntry('placeholder');
-        }
+        const pool = Array.from(state.symbolMap.values());
+        if (!pool.length) return getSymbolEntry('placeholder');
         return pool[Math.floor(Math.random() * pool.length)];
       };
 
@@ -2931,7 +2931,7 @@
         if (!info) return;
         const cellHeight = getCellHeight();
         info.offset = 0;
-        info.speed = 9 + col * 1.4;
+        info.speed = 9 + col;
         info.spinning = true;
         const step = () => {
           if (!info.spinning) return;
@@ -3011,16 +3011,16 @@
       const getSpinIntervalDelay = (col) => {
         const base = 70 + col * 15;
         const speedLevel = Math.max(0, state.upgrades.speed || 0);
-        const factor = Math.max(0.35, 1 - 0.1 * speedLevel);
-        return Math.max(20, base * factor);
+        const factor = Math.max(35, 100 - 10 * speedLevel);
+        return Math.max(20, Math.trunc((base * factor) / 100));
       };
 
       const getReelStopDelay = (col) => {
         const base = 120 + col * 110;
         const speedLevel = Math.max(0, state.upgrades.speed || 0);
         const autoLevel = Math.max(0, state.upgrades.autoSpeed || 0);
-        const factor = Math.max(0.55, 1 - 0.08 * (speedLevel + autoLevel));
-        return Math.max(70, base * factor);
+        const factor = Math.max(55, 100 - 8 * (speedLevel + autoLevel));
+        return Math.max(70, Math.trunc((base * factor) / 100));
       };
 
       const startGridSpin = () => {
@@ -3144,6 +3144,7 @@
         }
         debug('symbols:set', { reason, count: state.symbolMap.size });
         auditSymbolAssets();
+        rebuildSymbolWeights();
         renderPaytable();
       };
       setSymbolMap(DEFAULT_SYMBOLS, 'init');
@@ -3191,6 +3192,7 @@
         state.machine.currentReels = reels;
         state.machine.currentLineTier = lineTier;
         state.machine.activeSymbols = computeActiveSymbols(normalized);
+        rebuildSymbolWeights();
         ensureGrid(rows, reels);
         renderUpgrades();
         updateMachineMeta();
@@ -3316,15 +3318,21 @@
       });
 
 
+      let hudScheduled = false;
       const updateHud = () => {
-        const totalBalance = (state.balance || 0) + (state.pendingIdleCoins || 0);
-        if (els.hudBalance) els.hudBalance.textContent = formatCompactMoney(totalBalance);
-        if (els.hudBet) els.hudBet.textContent = formatCompactMoney(state.bet || 0);
-        if (els.hudWin) els.hudWin.textContent = formatCompactMoney(state.lastWin || 0);
-        if (els.hudVip) {
-          const vipMarks = Number(state.drop?.inventory?.vipMarks || 0);
-          els.hudVip.textContent = `${formatCompactNumber(vipMarks)} VIP`;
-        }
+        if (hudScheduled) return;
+        hudScheduled = true;
+        requestFrame(() => {
+          hudScheduled = false;
+          const totalBalance = (state.balance || 0) + (state.pendingIdleCoins || 0);
+          if (els.hudBalance) els.hudBalance.textContent = formatCompactMoney(totalBalance);
+          if (els.hudBet) els.hudBet.textContent = formatCompactMoney(state.bet || 0);
+          if (els.hudWin) els.hudWin.textContent = formatCompactMoney(state.lastWin || 0);
+          if (els.hudVip) {
+            const vipMarks = Number(state.drop?.inventory?.vipMarks || 0);
+            els.hudVip.textContent = `${formatCompactNumber(vipMarks)} VIP`;
+          }
+        });
       };
       const clearLineFlash = (reenable = false) => {
         if (state.lineFlashTimer) {
@@ -4209,3 +4217,18 @@
   </script>
 </body>
 </html>
+      const rebuildSymbolWeights = () => {
+        const pool = Array.isArray(state.machine.activeSymbols) && state.machine.activeSymbols.length
+          ? state.machine.activeSymbols
+          : Array.from(state.symbolMap.keys());
+        const entries = [];
+        let total = 0;
+        pool.forEach(key => {
+          const payout = state.machine.payouts?.[key] || 1;
+          const weight = Math.max(1, Math.trunc(1000 / Math.max(1, payout)));
+          total += weight;
+          entries.push({ key, weight, total });
+        });
+        state.symbolWeights = { entries, total };
+        debug('symbols:weights', { count: entries.length, total });
+      };
