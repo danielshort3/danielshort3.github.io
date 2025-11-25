@@ -478,12 +478,13 @@
     .slot-grid {
       --reel-count: 3;
       --row-count: 3;
+      --cell-size: clamp(52px, 9vw, 96px);
       display: grid;
-      grid-template-columns: repeat(var(--reel-count), minmax(72px, 1fr));
-      gap: clamp(10px, 2vw, 18px);
+      grid-template-columns: repeat(var(--reel-count), minmax(var(--cell-size), 1fr));
+      gap: clamp(8px, 1.5vw, 14px);
       perspective: 1200px;
       position: relative;
-      padding: clamp(6px, 1.2vw, 12px);
+      padding: clamp(6px, 1vw, 12px);
       border-radius: 18px;
       border: 1px solid rgba(255,255,255,.04);
       background: radial-gradient(circle at 50% 20%, rgba(255,255,255,.04), transparent 62%);
@@ -524,7 +525,7 @@
     }
     .slot-cell__symbol {
       width: 80%;
-      max-width: 110px;
+      max-width: calc(var(--cell-size) * 0.9);
       display: grid;
       place-items: center;
     }
@@ -2779,6 +2780,15 @@
         els.bonusList.innerHTML = html || '<li class="bonus-item"><span class="bonus-label">No bonuses yet.</span></li>';
       }
 
+      const renderAutoSpinButton = () => {
+        if (!els.autoSpinBtn) return;
+        const unlocked = isAutoSpinUnlocked();
+        const count = getAutoSpinCount();
+        els.autoSpinBtn.textContent = unlocked ? `Auto (${count})` : 'Auto';
+        els.autoSpinBtn.disabled = !state.gameReady || state.busy || !unlocked;
+        els.autoSpinBtn.setAttribute('aria-pressed', state.autoSpin.active ? 'true' : 'false');
+      };
+
       const activateDropSkill = () => {
         if (!state.gameReady || state.busy) return;
         const unlocked = (state.upgrades.dropBoostUnlock || 0) > 0;
@@ -3306,14 +3316,6 @@
           els.lineFlashBtn.disabled = false;
           els.lineFlashBtn.removeAttribute('aria-busy');
         }
-      };
-      const renderAutoSpinButton = () => {
-        if (!els.autoSpinBtn) return;
-        const unlocked = isAutoSpinUnlocked();
-        const count = getAutoSpinCount();
-        els.autoSpinBtn.textContent = unlocked ? `Auto (${count})` : 'Auto';
-        els.autoSpinBtn.disabled = !state.gameReady || state.busy || !unlocked;
-        els.autoSpinBtn.setAttribute('aria-pressed', state.autoSpin.active ? 'true' : 'false');
       };
       const renderLineOverlay = (patterns = []) => {
         if (!els.lineOverlay || !els.slotGrid) return;
