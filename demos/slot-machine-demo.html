@@ -2814,12 +2814,11 @@
         info.offset = 0;
         info.reel.style.transform = 'translateY(0px)';
         const rows = state.currentRows || state.machine.rows;
-        const buffer = 2;
         const symbols = Array.isArray(finalSymbols) && finalSymbols.length
           ? finalSymbols
           : Array.from({ length: rows }, () => randomSymbolInfo().key);
         info.reel.innerHTML = '';
-        for (let row = 0; row < rows + buffer; row += 1) {
+        for (let row = 0; row < rows; row += 1) {
           const cell = document.createElement('div');
           cell.className = 'slot-cell';
           cell.dataset.row = row.toString();
@@ -2827,17 +2826,14 @@
           const wrapper = document.createElement('div');
           wrapper.className = 'slot-cell__symbol';
           const img = document.createElement('img');
-          const key = row < buffer ? randomSymbolInfo().key : symbols[row - buffer] || randomSymbolInfo().key;
+          const key = symbols[row] || randomSymbolInfo().key;
           applySymbolToImage(img, key);
           wrapper.appendChild(img);
           cell.appendChild(wrapper);
           info.reel.appendChild(cell);
           cell.dataset.symbol = key;
           cell.dataset.state = 'settled';
-          const logicalRow = row - buffer;
-          if (logicalRow >= 0 && logicalRow < rows) {
-            state.gridCells.set(`${logicalRow}:${col}`, cell);
-          }
+          state.gridCells.set(`${row}:${col}`, cell);
         }
       };
 
