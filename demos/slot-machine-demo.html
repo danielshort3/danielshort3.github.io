@@ -1916,6 +1916,25 @@
         const level = Math.max(0, state.upgrades.autoSpinCount || 0);
         return 5 + level * 5;
       };
+      const LOCAL_UPGRADES_KEY = 'slotDemoLocalUpgrades';
+      const CLIENT_ONLY_UPGRADES = new Set(['autoSpinUnlock', 'autoSpinCount']);
+      const loadLocalUpgrades = () => {
+        try {
+          const raw = localStorage.getItem(LOCAL_UPGRADES_KEY);
+          const parsed = raw ? JSON.parse(raw) : {};
+          return parsed && typeof parsed === 'object' ? parsed : {};
+        } catch {
+          return {};
+        }
+      };
+      const saveLocalUpgrades = (data) => {
+        try {
+          localStorage.setItem(LOCAL_UPGRADES_KEY, JSON.stringify(data));
+        } catch {
+          // ignore
+        }
+      };
+      const localUpgrades = loadLocalUpgrades();
 
       const els = {
         connectionPill: document.getElementById('connection-pill'),
@@ -2302,12 +2321,15 @@
           ? 'Maxed'
           : (def.levels?.[level] || `Level ${level + 1}`);
         const cost = level >= maxLevel ? null : computeUpgradeCost(def, level);
-        const buttonDisabled = !loggedIn || state.busy || locked || level >= maxLevel || !Number.isFinite(cost);
+        const clientOnly = Boolean(def.clientOnly);
+        const buttonDisabled = (!loggedIn && !clientOnly) || state.busy || locked || level >= maxLevel || (!Number.isFinite(cost) && !clientOnly);
         const buttonText = locked
           ? 'Locked'
           : level >= maxLevel
             ? 'Maxed'
-            : `Unlock (${currency.format(cost)})`;
+            : clientOnly
+              ? 'Unlock (local)'
+              : `Unlock (${currency.format(cost)})`;
         const requirementNote = locked
           ? `Requires ${reqs.map(req => getUpgradeDef(req)?.label || req).join(', ')}`
           : '';
@@ -3136,7 +3158,8 @@
               ? incoming[def.key]
               : Number(state.serverUpgrades?.[def.key]) || 0;
             const max = getUpgradeMaxLevel(def.key);
-            normalized[def.key] = Math.min(Math.max(0, Math.floor(next)), max);
+            const clientBoost = CLIENT_ONLY_UPGRADES.has(def.key) ? Math.max(0, Math.floor(localUpgrades[def.key] || 0)) : 0;
+            normalized[def.key] = Math.min(Math.max(0, Math.floor(next + clientBoost)), max);
           });
         } else {
           normalized = { ...state.serverUpgrades, ...incoming };
@@ -4077,13 +4100,14 @@
       });
 
       const purchaseUpgrade = async (type) => {
-        if (!state.auth.token) {
-          showAuthAlert('Sign in to upgrade your machine.');
-          return;
-        }
         const def = getUpgradeDef(type);
         if (!def) {
           showAlert('Upgrade unavailable.');
+          return;
+        }
+        const clientOnly = Boolean(def.clientOnly);
+        if (!clientOnly && !state.auth.token) {
+          showAuthAlert('Sign in to upgrade your machine.');
           return;
         }
         const serverLevel = state.serverUpgrades?.[type] || 0;
@@ -4104,6 +4128,20 @@
             showAlert('Unlock the prerequisite upgrade first.');
             return;
           }
+        }
+        if (clientOnly) {
+          const localLevel = Math.max(0, Number(localUpgrades[type] || 0));
+          if (localLevel >= maxLevel) {
+            showAlert('Upgrade already maxed.');
+            return;
+          }
+          localUpgrades[type] = localLevel + 1;
+          saveLocalUpgrades(localUpgrades);
+          applyUpgradeState({ ...state.serverUpgrades });
+          renderUpgrades();
+          renderAutoSpinButton();
+          showAlert('Auto spin updated locally for this browser.');
+          return;
         }
         setBusy(true);
         showAlert('');

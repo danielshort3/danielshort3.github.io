@@ -93,6 +93,7 @@ function getUpgradeDefinition(type = '') {
 
 function resolveUpgradeMax(def) {
   if (!def) return 0;
+  if (def.clientOnly) return Number.isFinite(def.max) ? def.max : 0;
   if (def.dynamicMax === 'premiumSymbols') {
     const symbolCount = (MACHINE_META.symbols || []).filter(entry => entry.key !== 'wild').length;
     return Math.max(0, symbolCount - BASE_SYMBOL_COUNT);
@@ -106,6 +107,7 @@ function resolveUpgradeMax(def) {
 function normalizeUpgrades(source = {}) {
   const normalized = {};
   UPGRADE_DEFINITIONS.forEach(def => {
+    if (def.clientOnly) return;
     const hasValue = source && Number.isFinite(source[def.key]);
     const raw = hasValue ? source[def.key] : (DEFAULT_UPGRADES[def.key] ?? 0);
     const safe = Math.max(0, Math.floor(raw));
@@ -1017,6 +1019,9 @@ async function handleUpgrade(payload = {}) {
   const def = getUpgradeDefinition(payload.type || '');
   if (!def) {
     throw httpError(400, 'Unknown upgrade type.');
+  }
+  if (def.clientOnly) {
+    return { errorCode: 'CLIENT_ONLY', message: 'Upgrade is client-managed.', upgrades: normalizeUpgrades() };
   }
   const type = def.key;
   const auth = await resolveAuth(payload.token, { required: true });

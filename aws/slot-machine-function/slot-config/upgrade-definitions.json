@@ -84,6 +84,27 @@
     "levels": ["10% faster", "20%", "30%", "40%", "50%"]
   },
   {
+    "key": "autoSpinUnlock",
+    "label": "Auto Spin",
+    "description": "Unlock auto spin mode (client-managed).",
+    "category": "Spin",
+    "cost": 0,
+    "max": 1,
+    "clientOnly": true,
+    "levels": ["Unlock auto spin"]
+  },
+  {
+    "key": "autoSpinCount",
+    "label": "Auto Spin Queue",
+    "description": "Increase consecutive auto spins (client-managed).",
+    "category": "Spin",
+    "cost": 0,
+    "max": 5,
+    "clientOnly": true,
+    "requires": "autoSpinUnlock",
+    "levels": ["+5 spins", "+10", "+15", "+20", "+25"]
+  },
+  {
     "key": "retriggerQuality",
     "label": "Retrigger Quality",
     "description": "Increase retrigger chance by 5% per level.",
