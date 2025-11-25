@@ -2095,6 +2095,17 @@
       let pendingWinGroups = [];
       let pendingSpinResult = null;
       let activeReelLocks = 0;
+      const settleWaiters = [];
+      const notifyReelsSettled = () => {
+        if (activeReelLocks === 0 && !anyReelSpinning()) {
+          const waiters = settleWaiters.splice(0, settleWaiters.length);
+          waiters.forEach(fn => fn());
+        }
+      };
+      const waitForReelsToSettle = () => new Promise(resolve => {
+        settleWaiters.push(resolve);
+        notifyReelsSettled();
+      });
       const getPlaceholderAsset = () => state?.machine?.assets?.placeholder || state?.machine?.placeholder || PLACEHOLDER_ASSET;
       const auditSymbolAssets = () => {
         state.symbolMap.forEach(entry => {
@@ -3082,6 +3093,7 @@
           });
           activeReelLocks = 0;
           flushPendingSpinResult();
+          notifyReelsSettled();
           return;
         }
         activeReelLocks = reels;
@@ -3095,6 +3107,7 @@
             stopReelSpin(col, columnSymbols);
             activeReelLocks = Math.max(0, activeReelLocks - 1);
             flushPendingSpinResult();
+            notifyReelsSettled();
           }, delay);
         }
       };
@@ -3926,11 +3939,12 @@
           state.autoSpin.remaining = 0;
         } finally {
           stopGridSpin(spinData?.grid);
+          await waitForReelsToSettle();
           setBusy(false);
           if (state.autoSpin.active && state.autoSpin.remaining > 0) {
             state.autoSpin.remaining -= 1;
             renderAutoSpinButton();
-            setTimeout(() => spin(true), 200);
+            setTimeout(() => spin(true), 120);
           } else {
             state.autoSpin.active = false;
             state.autoSpin.remaining = 0;
