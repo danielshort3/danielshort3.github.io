@@ -46,7 +46,7 @@
       display: block;
     }
     main {
-      width: min(1180px, 100%);
+      width: min(1100px, 100%);
       background: color-mix(in srgb, var(--panel) 90%, #0b1224 10%);
       border: 1px solid color-mix(in srgb, var(--panel-border) 70%, transparent);
       border-radius: 22px;
@@ -473,13 +473,13 @@
       padding: clamp(16px, 3vw, 22px);
       border-radius: 22px;
       box-shadow: inset 0 0 32px rgba(0,0,0,.45), 0 12px 30px rgba(0,0,0,.4);
-      overflow-x: auto;
+      overflow: hidden;
     }
     .slot-grid {
       --reel-count: 3;
       --row-count: 3;
       display: grid;
-      grid-template-columns: repeat(var(--reel-count), minmax(96px, 1fr));
+      grid-template-columns: repeat(var(--reel-count), minmax(72px, 1fr));
       gap: clamp(10px, 2vw, 18px);
       perspective: 1200px;
       position: relative;
@@ -487,7 +487,7 @@
       border-radius: 18px;
       border: 1px solid rgba(255,255,255,.04);
       background: radial-gradient(circle at 50% 20%, rgba(255,255,255,.04), transparent 62%);
-      width: max-content;
+      width: 100%;
       min-width: 100%;
     }
     .slot-reel {
@@ -512,6 +512,7 @@
       border: 1px solid rgba(255,255,255,.08);
       box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 18px 35px rgba(0,0,0,.35);
       transition: transform .28s ease, box-shadow .28s ease, border-color .2s ease;
+      pointer-events: none;
     }
     .slot-cell[data-state="spinning"] {
       opacity: .95;
@@ -523,7 +524,7 @@
     }
     .slot-cell__symbol {
       width: 80%;
-      max-width: 128px;
+      max-width: 110px;
       display: grid;
       place-items: center;
     }
@@ -560,10 +561,10 @@
     }
     @media (min-width: 1080px) {
       .machine-frame {
-        min-height: 520px;
+        min-height: 380px;
       }
       .machine-frame__reels {
-        min-height: 420px;
+        min-height: 300px;
         align-items: center;
         justify-content: center;
       }
@@ -839,7 +840,7 @@
       background: rgba(15,23,42,.8);
       padding: 18px;
       display: grid;
-      gap: 12px;
+      gap: 16px;
     }
     .upgrade-panel h2,
     .upgrade-panel h3 {
@@ -858,16 +859,20 @@
     }
     .upgrade-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      align-items: stretch;
     }
     .upgrade-card {
       border-radius: 14px;
-      border: 1px solid rgba(148,163,184,.2);
-      padding: 12px;
-      background: rgba(2,6,23,.7);
-      display: grid;
-      gap: 6px;
+      border: 1px solid rgba(148,163,184,.25);
+      padding: 14px;
+      background: linear-gradient(180deg, rgba(14,20,35,.9), rgba(6,10,22,.94));
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 210px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
     }
     .upgrade-card__meta {
       font-size: .82rem;
@@ -880,6 +885,7 @@
     .upgrade-card__note {
       font-size: .78rem;
       color: rgba(248,250,252,.7);
+      margin: 0;
     }
     .upgrade-card h4 {
       margin: 0;
@@ -890,18 +896,21 @@
       font-size: .85rem;
       color: var(--muted);
       min-height: 32px;
+      flex: 1;
     }
     .upgrade-card strong {
       font-size: .95rem;
     }
     .upgrade-card button {
-      border: 1px solid rgba(255,255,255,.3);
-      border-radius: 999px;
-      padding: 8px 12px;
-      font-size: .85rem;
-      background: transparent;
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: .9rem;
+      background: rgba(99,102,241,.12);
       color: var(--text);
       cursor: pointer;
+      width: 100%;
+      margin-top: auto;
     }
     .upgrade-card button[data-disabled="true"],
     .upgrade-card button:disabled {
@@ -1274,12 +1283,14 @@
         align-items: center;
         justify-content: center;
         padding: 6px;
+        overflow: hidden;
       }
       .machine-frame__reels .slot-grid {
         align-content: center;
         justify-content: center;
         justify-items: center;
         height: auto;
+        min-width: 100%;
       }
       .machine-frame__reels .slot-cell {
         height: auto;
@@ -1514,6 +1525,7 @@
           </div>
           <div class="action-buttons">
             <button type="button" class="ghost-btn secondary line-btn" id="line-flash-btn">Show lines</button>
+            <button type="button" class="ghost-btn secondary line-btn" id="auto-spin-btn">Auto</button>
             <button type="button" class="spin-btn" id="spin-btn" disabled>Spin</button>
           </div>
         </div>
@@ -1745,6 +1757,7 @@
         upgrades: {},
         upgradeCatalog: [],
         lineFlashTimer: null,
+        autoSpin: { active: false, remaining: 0 },
         lastWin: 0,
         pendingIdleCoins: 0,
         idleTicker: null,
@@ -1897,6 +1910,11 @@
           els.betSlider.value = getNearestBetIndex(state.bet);
         }
       };
+      const isAutoSpinUnlocked = () => (state.upgrades.autoSpinUnlock || 0) > 0;
+      const getAutoSpinCount = () => {
+        const level = Math.max(0, state.upgrades.autoSpinCount || 0);
+        return 5 + level * 5;
+      };
 
       const els = {
         connectionPill: document.getElementById('connection-pill'),
@@ -1905,6 +1923,7 @@
         lineOverlay: document.getElementById('line-overlay'),
         lineFlashBtn: document.getElementById('line-flash-btn'),
         spinBtn: document.getElementById('spin-btn'),
+        autoSpinBtn: document.getElementById('auto-spin-btn'),
         resetBtn: document.getElementById('reset-btn'),
         syncBtn: document.getElementById('sync-btn'),
         alert: document.getElementById('alert'),
@@ -2180,6 +2199,7 @@
         renderSkillButton();
         renderDaily();
         renderBonusSummary();
+        renderAutoSpinButton();
         applyPaneMode();
         if (visible) startIdleTicker();
         else stopIdleTicker();
@@ -2201,6 +2221,7 @@
         renderSkillButton();
         renderDaily();
         renderBonusSummary();
+        renderAutoSpinButton();
       };
 
       const toggleAuthInputs = (disabled) => {
@@ -2963,11 +2984,11 @@
       };
 
       const getReelStopDelay = (col) => {
-        const base = 150 + col * 220;
+        const base = 120 + col * 110;
         const speedLevel = Math.max(0, state.upgrades.speed || 0);
         const autoLevel = Math.max(0, state.upgrades.autoSpeed || 0);
-        const factor = Math.max(0.35, 1 - 0.08 * (speedLevel + autoLevel));
-        return Math.max(80, base * factor);
+        const factor = Math.max(0.55, 1 - 0.08 * (speedLevel + autoLevel));
+        return Math.max(70, base * factor);
       };
 
       const startGridSpin = () => {
@@ -3143,6 +3164,7 @@
         updateSkillSpec();
         renderSkillButton();
         renderBonusSummary();
+        renderAutoSpinButton();
         startIdleTicker();
       }
 
@@ -3245,6 +3267,7 @@
       };
 
       setGameVisibility(false);
+      renderAutoSpinButton();
       setAuthMode(state.authMode);
       const handleAuthEnter = (event) => {
         if (event.key === 'Enter' && !state.busy) {
@@ -3284,13 +3307,19 @@
           els.lineFlashBtn.removeAttribute('aria-busy');
         }
       };
+      const renderAutoSpinButton = () => {
+        if (!els.autoSpinBtn) return;
+        const unlocked = isAutoSpinUnlocked();
+        const count = getAutoSpinCount();
+        els.autoSpinBtn.textContent = unlocked ? `Auto (${count})` : 'Auto';
+        els.autoSpinBtn.disabled = !state.gameReady || state.busy || !unlocked;
+        els.autoSpinBtn.setAttribute('aria-pressed', state.autoSpin.active ? 'true' : 'false');
+      };
       const renderLineOverlay = (patterns = []) => {
         if (!els.lineOverlay || !els.slotGrid) return;
         const overlayRect = els.lineOverlay.getBoundingClientRect();
-        const width = Math.max(1, overlayRect.width, els.slotGrid.scrollWidth || 0);
-        const height = Math.max(1, overlayRect.height, els.slotGrid.scrollHeight || 0);
-        els.lineOverlay.style.width = `${width}px`;
-        els.lineOverlay.style.height = `${height}px`;
+        const width = Math.max(1, overlayRect.width || els.slotGrid.offsetWidth || 1);
+        const height = Math.max(1, overlayRect.height || els.slotGrid.offsetHeight || 1);
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
         svg.setAttribute('width', width);
@@ -3633,6 +3662,7 @@
         setBetValue(desiredBet || 1);
         updateHud();
         renderBonusSummary();
+        renderAutoSpinButton();
       };
 
       const formatWinSummary = (groups = []) => {
@@ -3737,12 +3767,25 @@
         }
       };
 
-      const spin = async () => {
+      const startAutoSpin = () => {
+        if (!isAutoSpinUnlocked() || state.busy || !state.gameReady) return;
+        state.autoSpin.active = true;
+        state.autoSpin.remaining = getAutoSpinCount();
+        renderAutoSpinButton();
+        spin(true);
+      };
+
+      const spin = async (auto = false) => {
         debug('spin:click', { busy: state.busy, authed: !!state.auth.token });
         if (state.busy) return;
         if (!state.auth.token) {
           showAuthAlert('Sign in to spin the slot machine.');
           return;
+        }
+        if (!auto) {
+          state.autoSpin.active = false;
+          state.autoSpin.remaining = 0;
+          renderAutoSpinButton();
         }
         const bet = clamp(state.bet || 1, 1, state.maxBet || DEFAULT_MAX_BET);
         setBetValue(bet);
@@ -3776,13 +3819,26 @@
           }
           if (payload.errorCode === 'INSUFFICIENT_CREDITS') {
             log('Spin blocked', 'Insufficient credits');
+            state.autoSpin.active = false;
+            state.autoSpin.remaining = 0;
           } else {
             log('Spin failed', msg);
+            state.autoSpin.active = false;
+            state.autoSpin.remaining = 0;
           }
           debugError('spin', error, { payload });
         } finally {
           stopGridSpin(spinData?.grid);
           setBusy(false);
+          if (state.autoSpin.active && state.autoSpin.remaining > 0) {
+            state.autoSpin.remaining -= 1;
+            renderAutoSpinButton();
+            setTimeout(() => spin(true), 200);
+          } else {
+            state.autoSpin.active = false;
+            state.autoSpin.remaining = 0;
+            renderAutoSpinButton();
+          }
         }
       };
 
@@ -4003,6 +4059,7 @@
 
       els.spinBtn.addEventListener('click', spin);
       els.lineFlashBtn?.addEventListener('click', flashActiveLines);
+      els.autoSpinBtn?.addEventListener('click', startAutoSpin);
 
       els.resetBtn.addEventListener('click', () => {
         if (state.busy || !state.auth.token) {
