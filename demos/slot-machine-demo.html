@@ -583,6 +583,10 @@
       inset: clamp(12px, 2vw, 26px);
       pointer-events: none;
     }
+    .slot-cell.line-flash {
+      box-shadow: 0 0 0 2px rgba(99,102,241,.75), 0 0 32px rgba(99,102,241,.4);
+      transform: translateY(-2px);
+    }
     @keyframes slotPulse {
       0% { transform: translateY(-4px) scale(.98); opacity: .8; }
       100% { transform: translateY(4px) scale(1.02); opacity: 1; }
@@ -1481,6 +1485,7 @@
             <div class="alert" id="alert" hidden></div>
           </div>
           <div class="action-buttons">
+            <button type="button" class="ghost-btn secondary" id="line-flash-btn">Show lines</button>
             <button type="button" class="spin-btn" id="spin-btn" disabled>Spin</button>
           </div>
         </div>
@@ -1711,6 +1716,7 @@
         pendingUpgrades: {},
         upgrades: {},
         upgradeCatalog: [],
+        lineFlashTimer: null,
         lastWin: 0,
         pendingIdleCoins: 0,
         idleTicker: null,
@@ -1869,6 +1875,7 @@
         connectionText: document.getElementById('connection-text'),
         slotGrid: document.getElementById('slot-grid'),
         lineOverlay: document.getElementById('line-overlay'),
+        lineFlashBtn: document.getElementById('line-flash-btn'),
         spinBtn: document.getElementById('spin-btn'),
         resetBtn: document.getElementById('reset-btn'),
         syncBtn: document.getElementById('sync-btn'),
@@ -3226,6 +3233,41 @@
           els.hudVip.textContent = `${formatCompactNumber(vipMarks)} VIP`;
         }
       };
+      const clearLineFlash = () => {
+        if (state.lineFlashTimer) {
+          clearTimeout(state.lineFlashTimer);
+          state.lineFlashTimer = null;
+        }
+        state.gridCells.forEach(cell => cell.classList.remove('line-flash'));
+      };
+      const flashActiveLines = () => {
+        if (!state.gameReady) return;
+        clearLineFlash();
+        const patterns = (state.machine.lines || []).filter(def => (def.tier ?? 0) <= (state.currentLineTier ?? 0));
+        if (!patterns.length) {
+          showAlert('No active lines yet. Unlock multi-line upgrades to see more patterns.');
+          return;
+        }
+        const rows = state.currentRows || state.machine.rows;
+        let index = 0;
+        const flashOnce = () => {
+          state.gridCells.forEach(cell => cell.classList.remove('line-flash'));
+          const pattern = patterns[index];
+          if (pattern && Array.isArray(pattern.pattern)) {
+            pattern.pattern.forEach((row, col) => {
+              const r = Math.max(0, Math.min(rows - 1, row));
+              const cell = state.gridCells.get(`${r}:${col}`);
+              if (cell) cell.classList.add('line-flash');
+            });
+          }
+          index = (index + 1) % patterns.length;
+          state.lineFlashTimer = setTimeout(flashOnce, 650);
+        };
+        flashOnce();
+        state.lineFlashTimer = setTimeout(() => {
+          clearLineFlash();
+        }, Math.min(4000, 650 * patterns.length + 400));
+      };
       function clearSyncedPending(snapshot = {}) {
         let changed = false;
         Object.entries(snapshot || {}).forEach(([key, value]) => {
@@ -3479,6 +3521,8 @@
         if (typeof payload.spins === 'number') {
           els.spinCount.textContent = payload.spins;
         }
+        if (payload.currentRows) state.currentRows = payload.currentRows;
+        if (payload.currentReels) state.currentReels = payload.currentReels;
         if (payload.machine) {
           syncMachineDefinition(payload.machine);
         }
@@ -3872,6 +3916,7 @@
       });
 
       els.spinBtn.addEventListener('click', spin);
+      els.lineFlashBtn?.addEventListener('click', flashActiveLines);
 
       els.resetBtn.addEventListener('click', () => {
         if (state.busy || !state.auth.token) {
