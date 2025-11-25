@@ -440,9 +440,9 @@
       padding: clamp(18px, 2.4vw, 26px);
     }
     .slot-machine__body {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: clamp(20px, 3vw, 30px);
+      display: flex;
+      flex-direction: column;
+      gap: clamp(16px, 2.4vw, 24px);
       padding-top: 10px;
       align-items: stretch;
     }
@@ -473,12 +473,13 @@
       padding: clamp(16px, 3vw, 22px);
       border-radius: 22px;
       box-shadow: inset 0 0 32px rgba(0,0,0,.45), 0 12px 30px rgba(0,0,0,.4);
+      overflow-x: auto;
     }
     .slot-grid {
       --reel-count: 3;
       --row-count: 3;
       display: grid;
-      grid-template-columns: repeat(var(--reel-count), minmax(0, 1fr));
+      grid-template-columns: repeat(var(--reel-count), minmax(96px, 1fr));
       gap: clamp(10px, 2vw, 18px);
       perspective: 1200px;
       position: relative;
@@ -486,6 +487,8 @@
       border-radius: 18px;
       border: 1px solid rgba(255,255,255,.04);
       background: radial-gradient(circle at 50% 20%, rgba(255,255,255,.04), transparent 62%);
+      width: max-content;
+      min-width: 100%;
     }
     .slot-reel {
       position: relative;
@@ -556,18 +559,16 @@
       }
     }
     @media (min-width: 1080px) {
-      .slot-machine__body {
-        grid-template-columns: 1.35fr 1fr;
-        gap: 28px;
-      }
       .machine-frame {
         min-height: 520px;
       }
       .machine-frame__reels {
         min-height: 420px;
+        align-items: center;
+        justify-content: center;
       }
       .control-deck {
-        grid-template-rows: auto auto 1fr auto;
+        grid-template-rows: auto auto auto auto;
       }
       .hud {
         grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -582,6 +583,27 @@
       position: absolute;
       inset: clamp(12px, 2vw, 26px);
       pointer-events: none;
+    }
+    .line-overlay svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+    .line-path {
+      fill: none;
+      stroke: hsl(var(--line-hue, 220), 90%, 65%);
+      stroke-width: 3.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.92;
+      stroke-dasharray: 12 10;
+      animation: drawLine .9s ease forwards;
+    }
+    @keyframes drawLine {
+      from { stroke-dashoffset: 40; opacity: 0; }
+      to { stroke-dashoffset: 0; opacity: 0.95; }
     }
     .slot-cell.line-flash {
       box-shadow: 0 0 0 2px rgba(99,102,241,.75), 0 0 32px rgba(99,102,241,.4);
@@ -979,6 +1001,12 @@
       gap: 10px;
       align-items: stretch;
       justify-items: stretch;
+    }
+    .action-buttons .line-btn {
+      padding: 9px 12px;
+      font-size: .85rem;
+      border-radius: 12px;
+      min-width: 0;
     }
     .action-buttons .spin-btn {
       width: 100%;
@@ -1485,7 +1513,7 @@
             <div class="alert" id="alert" hidden></div>
           </div>
           <div class="action-buttons">
-            <button type="button" class="ghost-btn secondary" id="line-flash-btn">Show lines</button>
+            <button type="button" class="ghost-btn secondary line-btn" id="line-flash-btn">Show lines</button>
             <button type="button" class="spin-btn" id="spin-btn" disabled>Spin</button>
           </div>
         </div>
@@ -2002,6 +2030,7 @@
       const probedSymbols = new Set();
       const reelState = new Map();
       let pendingWinGroups = [];
+      let pendingSpinResult = null;
       let activeReelLocks = 0;
       const getPlaceholderAsset = () => state?.machine?.assets?.placeholder || state?.machine?.placeholder || PLACEHOLDER_ASSET;
       const auditSymbolAssets = () => {
@@ -2946,7 +2975,9 @@
         const reels = state.currentReels || state.machine.reels;
         ensureGrid(rows, reels);
         activeReelLocks = reels;
+        pendingSpinResult = null;
         pendingWinGroups = [];
+        clearLineFlash(true);
         state.gridCells.forEach(cell => {
           cell.classList.remove('slot-lock');
           cell.dataset.state = 'spinning';
@@ -2957,6 +2988,14 @@
         }
       };
 
+      function flushPendingSpinResult() {
+        if (pendingSpinResult && activeReelLocks === 0 && !anyReelSpinning()) {
+          const data = pendingSpinResult;
+          pendingSpinResult = null;
+          updateLastSpin(data);
+        }
+      }
+
       const stopGridSpin = (grid) => {
         const rows = state.currentRows || state.machine.rows;
         const reels = state.currentReels || state.machine.reels;
@@ -2966,6 +3005,7 @@
             if (cell.dataset.state === 'spinning') cell.dataset.state = 'settled';
           });
           activeReelLocks = 0;
+          flushPendingSpinResult();
           return;
         }
         activeReelLocks = reels;
@@ -2978,10 +3018,7 @@
           setTimeout(() => {
             stopReelSpin(col, columnSymbols);
             activeReelLocks = Math.max(0, activeReelLocks - 1);
-            if (activeReelLocks === 0 && pendingWinGroups.length) {
-              highlightWins(pendingWinGroups);
-              pendingWinGroups = [];
-            }
+            flushPendingSpinResult();
           }, delay);
         }
       };
@@ -3233,12 +3270,56 @@
           els.hudVip.textContent = `${formatCompactNumber(vipMarks)} VIP`;
         }
       };
-      const clearLineFlash = () => {
+      const clearLineFlash = (reenable = false) => {
         if (state.lineFlashTimer) {
           clearTimeout(state.lineFlashTimer);
           state.lineFlashTimer = null;
         }
         state.gridCells.forEach(cell => cell.classList.remove('line-flash'));
+        if (els.lineOverlay) {
+          els.lineOverlay.innerHTML = '';
+        }
+        if (reenable && els.lineFlashBtn) {
+          els.lineFlashBtn.disabled = false;
+          els.lineFlashBtn.removeAttribute('aria-busy');
+        }
+      };
+      const renderLineOverlay = (patterns = []) => {
+        if (!els.lineOverlay || !els.slotGrid) return;
+        const overlayRect = els.lineOverlay.getBoundingClientRect();
+        const width = Math.max(1, overlayRect.width, els.slotGrid.scrollWidth || 0);
+        const height = Math.max(1, overlayRect.height, els.slotGrid.scrollHeight || 0);
+        els.lineOverlay.style.width = `${width}px`;
+        els.lineOverlay.style.height = `${height}px`;
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        svg.setAttribute('width', width);
+        svg.setAttribute('height', height);
+        const rows = state.currentRows || state.machine.rows;
+        patterns.forEach((pattern, idx) => {
+          const points = [];
+          (pattern.pattern || []).forEach((row, col) => {
+            const r = Math.max(0, Math.min(rows - 1, row));
+            const cell = state.gridCells.get(`${r}:${col}`);
+            if (!cell) return;
+            const rect = cell.getBoundingClientRect();
+            const cx = (rect.left + rect.right) / 2 - overlayRect.left;
+            const cy = (rect.top + rect.bottom) / 2 - overlayRect.top;
+            points.push(`${cx},${cy}`);
+          });
+          if (points.length >= 2) {
+            const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+            poly.setAttribute('points', points.join(' '));
+            poly.classList.add('line-path');
+            poly.style.setProperty('--line-hue', `${(idx * 53) % 360}`);
+            poly.style.animationDelay = `${idx * 0.08}s`;
+            svg.appendChild(poly);
+          }
+        });
+        els.lineOverlay.innerHTML = '';
+        if (svg.childElementCount) {
+          els.lineOverlay.appendChild(svg);
+        }
       };
       const flashActiveLines = () => {
         if (!state.gameReady) return;
@@ -3248,25 +3329,24 @@
           showAlert('No active lines yet. Unlock multi-line upgrades to see more patterns.');
           return;
         }
+        if (els.lineFlashBtn) {
+          els.lineFlashBtn.disabled = true;
+          els.lineFlashBtn.setAttribute('aria-busy', 'true');
+        }
         const rows = state.currentRows || state.machine.rows;
-        let index = 0;
-        const flashOnce = () => {
-          state.gridCells.forEach(cell => cell.classList.remove('line-flash'));
-          const pattern = patterns[index];
-          if (pattern && Array.isArray(pattern.pattern)) {
-            pattern.pattern.forEach((row, col) => {
-              const r = Math.max(0, Math.min(rows - 1, row));
-              const cell = state.gridCells.get(`${r}:${col}`);
-              if (cell) cell.classList.add('line-flash');
-            });
-          }
-          index = (index + 1) % patterns.length;
-          state.lineFlashTimer = setTimeout(flashOnce, 650);
-        };
-        flashOnce();
+        state.gridCells.forEach(cell => cell.classList.remove('line-flash'));
+        patterns.forEach(pattern => {
+          (pattern.pattern || []).forEach((row, col) => {
+            const r = Math.max(0, Math.min(rows - 1, row));
+            const cell = state.gridCells.get(`${r}:${col}`);
+            if (cell) cell.classList.add('line-flash');
+          });
+        });
+        renderLineOverlay(patterns);
+        const duration = Math.min(3500, 800 + patterns.length * 140);
         state.lineFlashTimer = setTimeout(() => {
-          clearLineFlash();
-        }, Math.min(4000, 650 * patterns.length + 400));
+          clearLineFlash(true);
+        }, duration);
       };
       function clearSyncedPending(snapshot = {}) {
         let changed = false;
@@ -3581,6 +3661,11 @@
           updateHud();
           return;
         }
+        if (activeReelLocks > 0 || anyReelSpinning()) {
+          pendingSpinResult = lastSpin;
+          pendingWinGroups = lastSpin.winGroups || [];
+          return;
+        }
         const summary = formatWinSummary(lastSpin.winGroups) || lastSpin.outcome || '—';
         if (els.lastOutcome) els.lastOutcome.textContent = summary;
         const winAmount = lastSpin.winAmount || 0;
@@ -3605,6 +3690,7 @@
           highlightWins(pendingWinGroups);
           pendingWinGroups = [];
         }
+        pendingSpinResult = null;
       };
 
       const hydrateSession = (session, logMessage) => {
