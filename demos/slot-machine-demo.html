@@ -4207,17 +4207,13 @@
       els.logoutBtn.addEventListener('click', logout);
       els.debugCoinBtn?.addEventListener('click', grantDebugCoins);
       els.deleteBtn?.addEventListener('click', deleteAccount);
-
       if (state.auth.token) {
         bootstrap();
       } else {
         setStatus('Sign in to start', 'error');
       }
-    })();
-  </script>
-</body>
-</html>
-      const rebuildSymbolWeights = () => {
+
+      function rebuildSymbolWeights() {
         const pool = Array.isArray(state.machine.activeSymbols) && state.machine.activeSymbols.length
           ? state.machine.activeSymbols
           : Array.from(state.symbolMap.keys());
@@ -4231,4 +4227,4 @@
         });
         state.symbolWeights = { entries, total };
         debug('symbols:weights', { count: entries.length, total });
-      };
+      }
