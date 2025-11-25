@@ -188,6 +188,47 @@ function matchFromLeft(outcome, pattern) {
   return { symbol: base, count: indexes.length, indexes };
 }
 
+function buildCellSet(group) {
+  if (!group || !group.pattern || !Array.isArray(group.indexes)) return new Set();
+  return new Set(group.indexes.map(col => `${group.pattern[col]}:${col}`));
+}
+
+function isSuperset(candidate, target) {
+  if (!candidate || !target) return false;
+  for (const cell of target) {
+    if (!candidate.has(cell)) return false;
+  }
+  return true;
+}
+
+function pickLongestGroups(groups = []) {
+  const sorted = [...groups].sort((a, b) => {
+    if (b.count !== a.count) return b.count - a.count;
+    const payoutA = PAYOUTS[a.symbol] || 0;
+    const payoutB = PAYOUTS[b.symbol] || 0;
+    return payoutB - payoutA;
+  });
+  const kept = [];
+  sorted.forEach(group => {
+    if (group.symbol === 'bonus') {
+      if (!kept.some(entry => entry.symbol === 'bonus')) {
+        kept.push(group);
+      }
+      return;
+    }
+    const cellSet = buildCellSet(group);
+    if (!cellSet.size) return;
+    const covered = kept.some(entry => {
+      if (entry.symbol !== group.symbol) return false;
+      return isSuperset(entry._cellSet, cellSet);
+    });
+    if (!covered) {
+      kept.push({ ...group, _cellSet: cellSet });
+    }
+  });
+  return kept.map(({ _cellSet, ...group }) => group);
+}
+
 function evaluateOutcome(outcome, bet, rows = ROWS, reels = REELS, tier = MAX_PATTERN_TIER) {
   const patterns = unlockedPatterns(rows, reels, tier);
   const groups = [];
@@ -204,15 +245,16 @@ function evaluateOutcome(outcome, bet, rows = ROWS, reels = REELS, tier = MAX_PA
   if (bonusCount >= 3) {
     groups.push({ pattern: null, indexes: [], symbol: 'bonus', count: bonusCount });
   }
+  const longestGroups = pickLongestGroups(groups);
   let payout = 0;
-  groups.forEach(group => {
+  longestGroups.forEach(group => {
     let base = PAYOUTS[group.symbol] || 0;
     if (group.symbol === 'wild') base = MAX_PAYOUT * 2;
     const amount = bet * base * Math.max(1, group.count - 2);
     group.payout = amount;
     payout += amount;
   });
-  return { payout, groups };
+  return { payout, groups: longestGroups };
 }
 
 function spin(bet, opts = {}) {
