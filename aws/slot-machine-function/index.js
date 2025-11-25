@@ -69,6 +69,7 @@ const DEBUG_EMAIL = 'danielshort3@gmail.com';
 const DEBUG_COIN_AMOUNT = 100000;
 const UPGRADE_INDEX = new Map();
 const DEFAULT_UPGRADES = {};
+const UPGRADE_COST_GROWTH = 1.85;
 UPGRADE_DEFINITIONS.forEach(def => {
   if (!def?.key) return;
   const defaultLevel = Number.isFinite(def.defaultLevel) ? def.defaultLevel : 0;
@@ -112,6 +113,14 @@ function normalizeUpgrades(source = {}) {
     normalized[def.key] = Math.min(safe, max);
   });
   return normalized;
+}
+
+function computeUpgradeCost(def, level = 0) {
+  if (!def) return 0;
+  const base = def.cost || 0;
+  const growth = Number.isFinite(def.costGrowth) ? def.costGrowth : UPGRADE_COST_GROWTH;
+  const step = Math.max(0, Math.floor(level));
+  return Math.round(base * Math.pow(Math.max(1, growth), step));
 }
 
 function computeActiveSymbols(upgrades = {}) {
@@ -1025,7 +1034,7 @@ async function handleUpgrade(payload = {}) {
   if (currentLevel >= maxLevels) {
     return { errorCode: 'UPGRADE_MAX', message: 'Upgrade maxed out.', upgrades };
   }
-  const cost = Math.round((def.cost || 0) * (currentLevel + 1));
+  const cost = computeUpgradeCost(def, currentLevel);
   if (player.credits < cost) {
     return {
       errorCode: 'INSUFFICIENT_CREDITS',
@@ -1087,7 +1096,7 @@ async function applyPendingUpgrades(player, pending = {}) {
           throw httpError(400, `Prerequisite missing for upgrade ${key}.`);
         }
       }
-      const cost = def.cost * (currentLevel + 1);
+      const cost = computeUpgradeCost(def, currentLevel);
       if (credits < cost) {
         throw httpError(400, 'Not enough credits to sync upgrades.');
       }
