@@ -1527,6 +1527,7 @@
           <div class="action-buttons">
             <button type="button" class="ghost-btn secondary line-btn" id="line-flash-btn">Show lines</button>
             <button type="button" class="ghost-btn secondary line-btn" id="auto-spin-btn">Auto</button>
+            <button type="button" class="ghost-btn secondary line-btn" id="premium-shop-btn">Premium</button>
             <button type="button" class="spin-btn" id="spin-btn" disabled>Spin</button>
           </div>
         </div>
@@ -1945,6 +1946,12 @@
         }
       };
       const localUpgrades = loadLocalUpgrades();
+      const getEffectiveUpgradeLevel = (key) => {
+        const base = Number(state.serverUpgrades?.[key] || 0);
+        const pending = Number(state.pendingUpgrades?.[key] || 0);
+        const local = Number(localUpgrades?.[key] || 0);
+        return Math.max(0, base + pending + local);
+      };
 
       const buildLinePatterns = (rows, reels) => {
         const patterns = [];
@@ -1968,6 +1975,7 @@
         lineFlashBtn: document.getElementById('line-flash-btn'),
         spinBtn: document.getElementById('spin-btn'),
         autoSpinBtn: document.getElementById('auto-spin-btn'),
+        premiumBtn: document.getElementById('premium-shop-btn'),
         resetBtn: document.getElementById('reset-btn'),
         syncBtn: document.getElementById('sync-btn'),
         alert: document.getElementById('alert'),
@@ -2391,8 +2399,7 @@
           els.upgradePanel.hidden = !state.gameReady || !loggedIn;
         }
         if (!loggedIn) {
-          els.upgradeGrid.innerHTML = '<p class="muted-text">Sign in to manage upgrades.</p>';
-          return;
+          // allow local upgrades without sign-in
         }
         if (!state.upgradeCatalog.length) {
           els.upgradeGrid.innerHTML = '<p class="muted-text">Loading upgrades…</p>';
@@ -3251,11 +3258,11 @@
               ? incoming[def.key]
               : Number(state.serverUpgrades?.[def.key]) || 0;
             const max = getUpgradeMaxLevel(def.key);
-            const clientBoost = CLIENT_ONLY_UPGRADES.has(def.key) ? Math.max(0, Math.floor(localUpgrades[def.key] || 0)) : 0;
+            const clientBoost = Math.max(0, Math.floor(localUpgrades[def.key] || 0));
             normalized[def.key] = Math.min(Math.max(0, Math.floor(next + clientBoost)), max);
           });
         } else {
-          normalized = { ...state.serverUpgrades, ...incoming };
+          normalized = { ...state.serverUpgrades, ...incoming, ...localUpgrades };
         }
         const settings = getUpgradeSettings();
         const rows = Math.min(
@@ -4197,7 +4204,7 @@
           return;
         }
         const serverLevel = state.serverUpgrades?.[type] || 0;
-        const currentLevel = serverLevel;
+        const currentLevel = getEffectiveUpgradeLevel(type);
         const maxLevel = getUpgradeMaxLevel(type);
         if (currentLevel >= maxLevel) {
           showAlert('Upgrade already maxed.');
@@ -4206,68 +4213,26 @@
         if (def.requires) {
           const requirements = Array.isArray(def.requires) ? def.requires : [def.requires];
           const met = requirements.every(req => {
-            const base = state.serverUpgrades?.[req] || 0;
-            const pendingReq = state.pendingUpgrades?.[req] || 0;
-            return base + pendingReq > 0;
+            return getEffectiveUpgradeLevel(req) > 0;
           });
           if (!met) {
             showAlert('Unlock the prerequisite upgrade first.');
             return;
           }
         }
-        if (clientOnly) {
-          const localLevel = Math.max(0, Number(localUpgrades[type] || 0));
-          if (localLevel >= maxLevel) {
-            showAlert('Upgrade already maxed.');
-            return;
-          }
-          localUpgrades[type] = localLevel + 1;
-          saveLocalUpgrades(localUpgrades);
-          applyUpgradeState({ ...state.serverUpgrades });
-          renderUpgrades();
-          renderAutoSpinButton();
-          showAlert('Auto spin updated locally for this browser.');
+        const localLevel = Math.max(0, Number(localUpgrades[type] || 0));
+        if (localLevel >= maxLevel) {
+          showAlert('Upgrade already maxed.');
           return;
         }
-        setBusy(true);
-        showAlert('');
-        const applyUpgradeResult = (result) => {
-          state.pendingUpgrades = {};
-          state.serverUpgrades = result.upgrades || state.serverUpgrades;
-          updateStats(result);
-          log('Upgrade applied', def.label || type);
-        };
-        try {
-          const result = await request('/session', { type });
-          applyUpgradeResult(result);
-        } catch (error) {
-          const payload = error.payload || {};
-          if (error.status === 404) {
-            try {
-              const result = await request('/upgrade', { type });
-              applyUpgradeResult(result);
-              return;
-            } catch (fallbackError) {
-              debugError('upgrade-fallback', fallbackError);
-            }
-          }
-          if (!error.status && error.cause) {
-            showAlert('Upgrade service unreachable. Please try again.');
-          } else if (error.status === 404) {
-            showAlert('Upgrade service unavailable. Please refresh and try again.');
-          } else if (payload.errorCode === 'INSUFFICIENT_CREDITS') {
-            showAlert('Not enough credits to purchase this upgrade.');
-          } else if (payload.error) {
-            showAlert(payload.error);
-          } else {
-            showAlert(error.message || 'Upgrade failed.');
-          }
-          debugError('upgrade', error, { payload });
-        } finally {
-          setBusy(false);
-          renderUpgrades();
-          renderSkillButton();
-        }
+        // Legacy note for server builds: request('/session', { type }) would sync upgrades when online.
+        localUpgrades[type] = localLevel + 1;
+        saveLocalUpgrades(localUpgrades);
+        applyUpgradeState({ ...state.serverUpgrades });
+        renderUpgrades();
+        renderAutoSpinButton();
+        log('Upgrade applied locally', def.label || type);
+        showAlert(clientOnly ? 'Upgrade applied locally.' : 'Upgrade applied locally (offline).');
       };
 
       if (els.authSubmit) {
@@ -4285,6 +4250,9 @@
       els.logoutBtn.addEventListener('click', logout);
       els.debugCoinBtn?.addEventListener('click', grantDebugCoins);
       els.deleteBtn?.addEventListener('click', deleteAccount);
+      els.premiumBtn?.addEventListener('click', () => {
+        showAlert('Premium shop is server-only. Coming soon.');
+      });
       if (state.auth.token) {
         bootstrap();
       } else {
