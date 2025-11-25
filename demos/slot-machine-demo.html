@@ -1049,6 +1049,40 @@
       font-size: .9rem;
       color: rgba(148,163,184,.85);
     }
+    .desktop-nav {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 8px;
+      border-radius: 18px;
+      border: 1px solid rgba(148,163,184,.25);
+      background: linear-gradient(145deg, rgba(10,16,30,.92), rgba(8,13,24,.94));
+      padding: 10px;
+      box-shadow: 0 14px 40px rgba(2,6,23,.45);
+    }
+    .desktop-nav button {
+      border: 1px solid rgba(148,163,184,.25);
+      background: rgba(255,255,255,.03);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-weight: 700;
+      letter-spacing: .01em;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: border .16s ease, background .16s ease, transform .16s ease, box-shadow .16s ease;
+    }
+    .desktop-nav button.active {
+      background: linear-gradient(120deg, #22d3ee, #facc15);
+      color: #041226;
+      border-color: transparent;
+      box-shadow: 0 12px 28px rgba(34,211,238,.35);
+      transform: translateY(-1px);
+    }
+    .desktop-nav button:not(.active):hover {
+      border-color: rgba(148,163,184,.55);
+      transform: translateY(-1px);
+    }
     .mobile-nav {
       display: none;
       gap: 6px;
@@ -1087,6 +1121,12 @@
       background: linear-gradient(120deg, var(--accent), #fde047);
       color: #020617;
       box-shadow: 0 6px 18px rgba(250,204,21,.3);
+    }
+    main[data-pane-mode="tabbed"] [data-mobile-pane] {
+      display: none;
+    }
+    main[data-pane-mode="tabbed"] [data-mobile-pane][data-mobile-active="true"] {
+      display: block;
     }
     @media (max-width: 768px) {
       html, body {
@@ -1138,6 +1178,9 @@
       }
       .mobile-nav button {
         font-size: .85rem;
+      }
+      .desktop-nav {
+        display: none;
       }
       main[data-tabs="true"] {
         gap: 8px;
@@ -1326,6 +1369,14 @@
         </button>
       </div>
     </div>
+    <nav class="desktop-nav" id="desktop-nav" aria-label="Game sections" data-requires-auth hidden>
+      <button type="button" data-pane-target="play" class="active">Play</button>
+      <button type="button" data-pane-target="stats">Stats</button>
+      <button type="button" data-pane-target="paytable">Paytable</button>
+      <button type="button" data-pane-target="items">Items</button>
+      <button type="button" data-pane-target="log">Log</button>
+      <button type="button" data-pane-target="upgrades">Upgrades</button>
+    </nav>
     <nav class="mobile-nav" id="mobile-nav" aria-label="Game sections" data-requires-auth hidden>
       <button type="button" data-mobile-target="play" class="active" aria-label="Play">
         <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
@@ -1830,51 +1881,57 @@
         upgradePanel: document.getElementById('upgrade-panel'),
         mobileNav: document.getElementById('mobile-nav')
       };
-      const mobileState = {
+      const paneState = {
         mq: window.matchMedia('(max-width: 768px)'),
-        enabled: false,
         active: 'play'
       };
       const mobileButtons = Array.from(els.mobileNav?.querySelectorAll('[data-mobile-target]') || []);
+      const desktopButtons = Array.from(document.querySelectorAll('[data-pane-target]'));
       const mobilePanes = Array.from(document.querySelectorAll('[data-mobile-pane]'));
-      const applyMobileMode = () => {
-        const shouldEnable = mobileState.mq.matches;
-        mobileState.enabled = shouldEnable;
-        document.body.dataset.mobile = shouldEnable ? 'true' : 'false';
+      const applyPaneMode = () => {
+        const isMobile = paneState.mq.matches;
+        document.body.dataset.mobile = isMobile ? 'true' : 'false';
         if (root) {
-          root.dataset.tabs = shouldEnable ? 'true' : 'false';
-          root.dataset.activePane = mobileState.active;
+          root.dataset.tabs = 'true';
+          root.dataset.paneMode = 'tabbed';
+          root.dataset.activePane = paneState.active;
         }
-        mobileButtons.forEach(btn => {
-          const target = btn.dataset.mobileTarget;
-          btn.classList.toggle('active', target === mobileState.active);
+        const allButtons = [...mobileButtons, ...desktopButtons];
+        allButtons.forEach(btn => {
+          const target = btn.dataset.mobileTarget || btn.dataset.paneTarget;
+          btn.classList.toggle('active', target === paneState.active);
         });
         mobilePanes.forEach(pane => {
           const paneId = pane.dataset.mobilePane || 'play';
-          const active = !shouldEnable || paneId === mobileState.active;
+          const active = paneId === paneState.active;
           pane.dataset.mobileActive = active ? 'true' : 'false';
         });
       };
-      const setMobileActive = (target) => {
+      const setPaneActive = (target) => {
         if (target) {
-          mobileState.active = target;
+          paneState.active = target;
         }
         if (root) {
-          root.dataset.activePane = mobileState.active;
+          root.dataset.activePane = paneState.active;
         }
-        applyMobileMode();
+        applyPaneMode();
       };
       mobileButtons.forEach(btn => {
         btn.addEventListener('click', () => {
-          setMobileActive(btn.dataset.mobileTarget);
+          setPaneActive(btn.dataset.mobileTarget);
         });
       });
-      if (mobileState.mq.addEventListener) {
-        mobileState.mq.addEventListener('change', applyMobileMode);
-      } else if (mobileState.mq.addListener) {
-        mobileState.mq.addListener(applyMobileMode);
+      desktopButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          setPaneActive(btn.dataset.paneTarget);
+        });
+      });
+      if (paneState.mq.addEventListener) {
+        paneState.mq.addEventListener('change', applyPaneMode);
+      } else if (paneState.mq.addListener) {
+        paneState.mq.addListener(applyPaneMode);
       }
-      applyMobileMode();
+      applyPaneMode();
       loadUpgradeCatalog();
       els.accountToggle?.addEventListener('click', () => toggleAccountSheet(true));
       els.accountClose?.addEventListener('click', () => toggleAccountSheet(false));
@@ -2040,7 +2097,7 @@
         renderSkillButton();
         renderDaily();
         renderBonusSummary();
-        applyMobileMode();
+        applyPaneMode();
         if (visible) startIdleTicker();
         else stopIdleTicker();
         if (visible) startSkillTicker();
