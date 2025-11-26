@@ -2173,6 +2173,17 @@
         }
       };
       const localUpgrades = loadLocalUpgrades();
+      const clearLocalUpgradeState = () => {
+        Object.keys(localUpgrades || {}).forEach(key => { delete localUpgrades[key]; });
+        try {
+          localStorage.removeItem(LOCAL_UPGRADES_KEY);
+        } catch {
+          // ignore
+        }
+      };
+      const resetAutoState = () => {
+        state.autoSpin = { active: false, remaining: 0 };
+      };
       const getEffectiveUpgradeLevel = (key) => {
         const base = Number(state.serverUpgrades?.[key] || 0);
         const pending = Number(state.pendingUpgrades?.[key] || 0);
@@ -3070,19 +3081,27 @@
         slots: 3
       });
       const resetLocalProgress = () => {
-        Object.keys(localUpgrades).forEach(key => { delete localUpgrades[key]; });
-        saveLocalUpgrades(localUpgrades);
+        clearLocalUpgradeState();
         state.pendingUpgrades = {};
         state.serverUpgrades = {};
         state.upgrades = {};
+        state.pendingIdleCoins = 0;
+        resetAutoState();
+        state.drop.inventory = {};
+        state.drop.history = [];
+        state.drop.lastDrops = [];
+        state.drop.lastTimestamp = 0;
         state.equipment = defaultEquipmentState();
         state.cards = defaultCardState();
         saveLocalEquipment();
         saveLocalCards();
+        renderDropLog();
+        renderInventory();
         renderGear();
         renderCards();
         renderBonusSummary();
         applyUpgradeState({});
+        setBetValue(1);
       };
 
       const hydrateLocalCollections = () => {
@@ -4515,6 +4534,7 @@
         state.auth.token = token || null;
         state.auth.username = token ? (username || state.auth.username || null) : null;
         if (!state.auth.token) {
+          resetLocalProgress();
           state.playerId = null;
           state.pendingIdleCoins = 0;
           stopIdleTicker();
@@ -4536,8 +4556,11 @@
           renderBonusSummary();
           toggleDropPanel(false);
           updateHud();
+          applyUpgradeState({});
         }
         if (state.auth.token) {
+          clearLocalUpgradeState();
+          resetAutoState();
           localStorage.setItem(storageKeys.token, state.auth.token);
           localStorage.setItem(storageKeys.user, state.auth.username || '');
           resetStoredPlayer();
@@ -4951,6 +4974,9 @@
         try {
           await request('/auth/delete', {});
           log('Account deleted', '');
+          resetLocalProgress();
+          clearLocalUpgradeState();
+          resetAutoState();
           setAuthState({});
           setGameVisibility(false);
           setStatus('Account deleted', 'error');
