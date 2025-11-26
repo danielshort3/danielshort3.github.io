@@ -3968,18 +3968,31 @@
         const rows = state.currentRows || state.machine.rows;
         const reels = state.currentReels || state.machine.reels;
         ensureGrid(rows, reels);
-        const grid = Array.from({ length: rows }, () => Array(reels).fill(''));
-        for (let row = 0; row < rows; row += 1) {
-          for (let col = 0; col < reels; col += 1) {
-            grid[row][col] = randomSymbolInfo().key;
+        const spinOnce = () => {
+          const grid = Array.from({ length: rows }, () => Array(reels).fill(''));
+          for (let row = 0; row < rows; row += 1) {
+            for (let col = 0; col < reels; col += 1) {
+              grid[row][col] = randomSymbolInfo().key;
+            }
           }
+          const { payout, groups } = evaluateClientOutcome(grid, bet);
+          return { grid, payout, groups };
+        };
+        let result = spinOnce();
+        let retriggered = false;
+        const base = 0.05 * Math.max(0, state.upgrades.retrigger || 0);
+        const bonus = 0.05 * Math.max(0, state.upgrades.retriggerQuality || 0);
+        const retriggerChance = Math.min(0.95, base + bonus);
+        if (result.payout <= 0 && retriggerChance > 0 && Math.random() < retriggerChance) {
+          retriggered = true;
+          result = spinOnce();
         }
-        const { payout, groups } = evaluateClientOutcome(grid, bet);
         return {
-          grid,
-          winAmount: payout,
-          winGroups: groups,
-          outcome: payout > 0 ? 'Win' : 'No win',
+          grid: result.grid,
+          winAmount: result.payout,
+          winGroups: result.groups,
+          retriggered,
+          outcome: result.payout > 0 ? 'Win' : 'No win',
           timestamp: new Date().toISOString()
         };
       };
@@ -4828,6 +4841,9 @@
           state.balance = Math.max(0, (state.balance || 0) - bet + (spinData.winAmount || 0));
           state.lastWin = spinData.winAmount || 0;
           state.spinCount = (state.spinCount || 0) + 1;
+          if (spinData.retriggered) {
+            log('Retriggered spin', 'Free retry activated');
+          }
           const dropResult = rollDropsForSpin(bet, spinData.winAmount || 0);
           if (dropResult.drops?.length) {
             applyDropsToInventory(dropResult.drops, Date.now());
