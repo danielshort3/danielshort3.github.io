@@ -446,6 +446,71 @@
       padding-top: 10px;
       align-items: stretch;
     }
+    .machine-switcher {
+      border: 1px solid rgba(148,163,184,.24);
+      border-radius: 18px;
+      background: linear-gradient(150deg, rgba(12,18,36,.9), rgba(4,7,18,.9));
+      padding: 12px 14px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+      display: grid;
+      gap: 10px;
+    }
+    .machine-switcher__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .machine-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+    }
+    .machine-card {
+      border: 1px solid rgba(148,163,184,.25);
+      border-radius: 14px;
+      padding: 10px;
+      background: rgba(255,255,255,.03);
+      display: grid;
+      gap: 6px;
+      cursor: pointer;
+      text-align: left;
+      transition: border .18s ease, transform .18s ease, box-shadow .18s ease;
+      min-height: 86px;
+    }
+    .machine-card:hover {
+      border-color: rgba(99,102,241,.5);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(15,23,42,.4);
+    }
+    .machine-card[data-active="true"] {
+      border-color: rgba(34,211,238,.65);
+      box-shadow: 0 16px 32px rgba(34,211,238,.25);
+      background: linear-gradient(120deg, rgba(34,211,238,.1), rgba(250,204,21,.08));
+    }
+    .machine-card__name {
+      margin: 0;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .machine-card__meta {
+      margin: 0;
+      color: var(--muted);
+      font-size: .85rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .machine-card__icon {
+      width: 36px;
+      height: 36px;
+      object-fit: contain;
+      border-radius: 10px;
+      background: rgba(255,255,255,.04);
+      padding: 6px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+    }
     .machine-frame {
       position: relative;
       border-radius: 26px;
@@ -817,6 +882,103 @@
       border: 1px solid rgba(148,163,184,.2);
       padding: 8px 10px;
       background: rgba(255,255,255,.03);
+    }
+    .gear-card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .gear-panel,
+    .card-panel {
+      border-radius: 16px;
+      border: 1px solid rgba(148,163,184,.25);
+      background: linear-gradient(180deg, rgba(12,18,36,.9), rgba(6,10,22,.92));
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    .panel-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .gear-slots,
+    .card-slots {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+    }
+    .gear-slot,
+    .card-slot {
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,.25);
+      padding: 10px;
+      background: rgba(255,255,255,.03);
+      display: grid;
+      gap: 6px;
+      min-height: 90px;
+    }
+    .gear-slot.locked,
+    .card-slot.locked {
+      opacity: .55;
+    }
+    .gear-slot__meta,
+    .card-slot__meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .gear-slot__name,
+    .card-slot__name {
+      margin: 0;
+      font-weight: 700;
+    }
+    .gear-slot__bonus,
+    .card-slot__effect {
+      margin: 0;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+    .gear-inventory,
+    .card-collection {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+    }
+    .gear-item,
+    .card-item {
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,.22);
+      background: rgba(255,255,255,.02);
+      padding: 10px;
+      display: grid;
+      gap: 6px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    .rarity-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: .8rem;
+      border: 1px solid rgba(255,255,255,.2);
+      background: rgba(255,255,255,.05);
+    }
+    .card-item img,
+    .card-slot img {
+      width: 44px;
+      height: 44px;
+      object-fit: contain;
+      border-radius: 10px;
+      background: rgba(255,255,255,.05);
+      padding: 6px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
     }
     .rate-item {
       display: flex;
@@ -1484,6 +1646,16 @@
 
     <section class="panel slot-machine" data-requires-auth hidden data-mobile-pane="play" data-mobile-active="true">
       <div class="slot-machine__body">
+        <div class="machine-switcher">
+          <div class="machine-switcher__header">
+            <div>
+              <p class="hud-label">Machines</p>
+              <strong class="hud-value" id="machine-name">Lucky Lambda Classic</strong>
+            </div>
+            <span class="status-pill ghost" id="machine-tier">Demo Suite</span>
+          </div>
+          <div class="machine-list" id="machine-list" role="list"></div>
+        </div>
         <div class="machine-frame">
           <div class="machine-frame__glow"></div>
           <div class="machine-frame__reels" id="reel-stage">
@@ -1601,6 +1773,30 @@
         <div class="drop-log" id="drop-log" aria-live="polite"></div>
         <div class="drop-panel" id="drop-panel" hidden aria-live="polite"></div>
       </div>
+      <div class="gear-card-grid">
+        <div class="gear-panel" id="gear-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="hud-label">Equipment</p>
+              <strong class="hud-value" id="gear-summary">0/3 equipped</strong>
+            </div>
+            <span class="status-pill ghost" id="gear-cap">3 slots</span>
+          </div>
+          <div class="gear-slots" id="gear-slots"></div>
+          <div class="gear-inventory" id="gear-inventory"></div>
+        </div>
+        <div class="card-panel" id="card-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="hud-label">VIP Cards</p>
+              <strong class="hud-value" id="card-summary">Deck 0/3</strong>
+            </div>
+            <span class="status-pill ghost" id="card-cap">3 slots</span>
+          </div>
+          <div class="card-slots" id="card-slots"></div>
+          <div class="card-collection" id="card-collection"></div>
+        </div>
+      </div>
     </section>
 
     <section class="panel" data-requires-auth hidden data-mobile-pane="log">
@@ -1621,6 +1817,14 @@
       const debugError = (scope, error, extra = {}) => {
         if (!DEBUG) return;
         console.error(`[slot-demo][${scope}]`, error, extra);
+      };
+      const collectPendingIdle = () => {
+        if (!state.pendingIdleCoins) return;
+        const delta = Math.max(0, state.pendingIdleCoins);
+        state.balance += delta;
+        state.pendingIdleCoins = 0;
+        if (els.balance) els.balance.textContent = currency.format(state.balance);
+        updateHud();
       };
       window.addEventListener('error', (event) => {
         debugError('window-error', event.error || event.message, { event });
@@ -1645,6 +1849,14 @@
       const API_BASE = root.dataset.apiBase;
       const DEFAULT_MAX_BET = Number(root.dataset.maxBet) || 100;
       const MACHINE_CONFIG_URL = root.dataset.machineConfig || '';
+      const MACHINE_LIST_URL = 'slot-config/machines/index.json';
+      const MACHINE_CONFIG_DIR = 'slot-config/machines';
+      const DROP_TABLE_URL = 'slot-config/drop-tables.json';
+      const GEAR_DEFS_URL = 'slot-config/gear-definitions.json';
+      const CARD_DEFS_URL = 'slot-config/card-definitions.json';
+      const LOCAL_MACHINE_KEY = 'slotMachineActiveMachine';
+      const LOCAL_EQUIPMENT_KEY = 'slotMachineEquipment';
+      const LOCAL_CARD_KEY = 'slotMachineCards';
       const storageKeys = {
         player: 'slotMachineDemoPlayerId',
         token: 'slotMachineAuthToken',
@@ -1727,30 +1939,40 @@
           activeSymbols: []
         },
         drop: {
-        tableKey: 'classic',
-        table: { common: [], rare: [], epic: [] },
-        tierWeights: { common: 0.8, rare: 0.15, epic: 0.05 },
-        constants: { betScale: 0.1, win: 2, lose: 1, boostScale: 0.05 },
-        inventory: {},
-        lastDrops: [],
-        history: [],
-        lastTimestamp: 0
-      },
-      daily: {
-        streak: 1,
-        claimedToday: false,
-        ready: false,
-        lastClaimMs: 0,
-        nextResetAt: 0,
-        todayReward: null
-      },
-      skills: {
-        dropRate: {
-          active: false,
-          expiresAt: 0,
-          cooldownUntil: 0,
+          tableKey: 'classic',
+          table: { common: [], rare: [], epic: [] },
+          tierWeights: { common: 0.8, rare: 0.15, epic: 0.05 },
+          constants: { betScale: 0.1, win: 2, lose: 1, boostScale: 0.05 },
+          inventory: {},
+          lastDrops: [],
+          history: [],
+          lastTimestamp: 0
+        },
+        daily: {
+          streak: 1,
+          claimedToday: false,
+          ready: false,
+          lastClaimMs: 0,
+          nextResetAt: 0,
+          todayReward: null
+        },
+        skills: {
+          dropRate: {
+            active: false,
+            expiresAt: 0,
+            cooldownUntil: 0,
             spec: { durationMs: 60000, cooldownMs: 120000, multiplier: 1.05 }
           }
+        },
+        equipment: {
+          slots: { Head: null, Outfit: null, Accessory: null, Pet: null, Trinket: null },
+          inventory: [],
+          slotCap: 3
+        },
+        cards: {
+          deck: [],
+          collection: [],
+          slots: 3
         },
         symbolMap: cloneSymbolMap(DEFAULT_SYMBOL_MAP),
         gridCells: new Map(),
@@ -1781,6 +2003,11 @@
         dropInventory: { ...state.drop.inventory },
         daily: { ...state.daily }
       }));
+      const machineCache = new Map();
+      let machineList = [];
+      let dropTableCache = null;
+      let gearDefinitions = null;
+      let cardDefinitions = null;
 
       const upgradeCatalogUrl = 'slot-config/upgrade-definitions.json';
       const loadUpgradeCatalog = async () => {
@@ -2005,6 +2232,9 @@
         dropSkillBtn: document.getElementById('drop-skill-btn'),
         dropCloseBtn: document.getElementById('drop-close-btn'),
         inventoryGrid: document.getElementById('inventory-grid'),
+        machineList: document.getElementById('machine-list'),
+        machineName: document.getElementById('machine-name'),
+        machineTier: document.getElementById('machine-tier'),
         dailyStatus: document.getElementById('daily-status'),
         dailyRewardMain: document.getElementById('daily-reward-main'),
         dailyItems: document.getElementById('daily-items'),
@@ -2012,6 +2242,16 @@
         dailyNextReset: document.getElementById('daily-next-reset'),
         dailyStreak: document.getElementById('daily-streak'),
         bonusList: document.getElementById('bonus-list'),
+        gearSlots: document.getElementById('gear-slots'),
+        gearInventory: document.getElementById('gear-inventory'),
+        gearSummary: document.getElementById('gear-summary'),
+        gearCap: document.getElementById('gear-cap'),
+        gearPanel: document.getElementById('gear-panel'),
+        cardSlots: document.getElementById('card-slots'),
+        cardCollection: document.getElementById('card-collection'),
+        cardSummary: document.getElementById('card-summary'),
+        cardCap: document.getElementById('card-cap'),
+        cardPanel: document.getElementById('card-panel'),
         authOverlay: document.getElementById('auth-overlay'),
         authBody: document.getElementById('auth-body'),
         authAlert: document.getElementById('auth-alert'),
@@ -2479,6 +2719,19 @@
         };
       };
 
+      const dropKey = (drop = {}) => {
+        if (drop.type === 'gear') {
+          return `gear:${drop.rarity || drop.tier || 'Basic'}`;
+        }
+        if (drop.type === 'card') {
+          return `card:${drop.tier || drop.rarity || 'Basic'}`;
+        }
+        if (drop.type === 'reelMod' || drop.type === 'spinBooster') {
+          return `${drop.type}:${drop.tier || 1}`;
+        }
+        return drop.type || 'item';
+      };
+
       const inventoryMeta = (key = '') => {
         const [type, variant] = key.split(':');
         switch (type) {
@@ -2523,6 +2776,8 @@
         updateSkillSpec();
         renderSkillButton();
         renderInventory();
+        renderGear();
+        renderCards();
         updateHud();
         renderBonusSummary();
       };
@@ -2542,6 +2797,38 @@
           state.drop.history.length = MAX_DROP_HISTORY;
         }
         renderDropLog();
+      };
+
+      const applyDropsToInventory = (drops = [], timestamp = Date.now()) => {
+        if (!Array.isArray(drops) || !drops.length) return;
+        drops.forEach(drop => {
+          const key = dropKey(drop);
+          const amount = Number.isFinite(drop.amount) ? drop.amount : 1;
+          state.drop.inventory[key] = (state.drop.inventory[key] || 0) + amount;
+          if (drop.type === 'vipMarks') {
+            state.drop.inventory.vipMarks = state.drop.inventory[key];
+          }
+          if (drop.type === 'gear') {
+            for (let i = 0; i < amount; i += 1) addGear(generateGear(drop.rarity || drop.tier));
+          }
+          if (drop.type === 'card') {
+            for (let i = 0; i < amount; i += 1) addCard(generateCard(drop.rarity || drop.tier));
+          }
+          if (drop.type === 'gearSlotCoupon') {
+            state.equipment.slotCap = Math.min(gearSlotsList().length, (state.equipment.slotCap || 0) + amount);
+          }
+          if (drop.type === 'deckSlotCoupon' || drop.type === 'cardSlotCoupon') {
+            state.cards.slots = Math.min(5, (state.cards.slots || 0) + amount);
+          }
+        });
+        recordDrops(drops, timestamp);
+        renderInventory();
+        renderGear();
+        renderCards();
+        renderBonusSummary();
+        updateHud();
+        saveLocalEquipment();
+        saveLocalCards();
       };
 
       const renderInventory = () => {
@@ -2602,7 +2889,7 @@
         return skill.active;
       };
 
-      const getDropMultiplier = (win = false) => {
+      const computeDropMultiplier = ({ bet = 1, payout = 0 } = {}) => {
         const constants = state.drop.constants || {};
         const betScale = Number(constants.betScale) || 0.1;
         const boostScale = Number(constants.boostScale) || 0.05;
@@ -2610,15 +2897,22 @@
         const loseMult = Number(constants.lose) || 1;
         const dropBoost = Math.max(0, state.upgrades.dropBoost || 0);
         const base = 1 + boostScale * dropBoost;
-        const bet = Math.max(0, state.bet || 1);
-        const betMult = 1 + betScale * Math.log(1 + bet);
+        const safeBet = Math.max(0, bet);
+        const betMult = 1 + betScale * Math.log(1 + safeBet);
         const skillMult = isDropSkillActive() ? (state.skills.dropRate?.spec?.multiplier || 1) : 1;
-        const outcome = win ? winMult : loseMult;
+        const outcome = payout > 0 ? winMult : loseMult;
+        const equip = computeEquipmentStats();
+        const equipMult = 1 + Math.max(0, equip.dropPct || 0) / 100;
         return {
-          total: base * betMult * skillMult * outcome,
-          components: { base, bet: betMult, skill: skillMult, outcome }
+          total: base * betMult * skillMult * outcome * equipMult,
+          components: { base, bet: betMult, skill: skillMult, outcome, equip: equipMult }
         };
       };
+
+      const getDropMultiplier = (win = false) => computeDropMultiplier({
+        bet: state.bet || 1,
+        payout: win ? 1 : 0
+      });
 
       const computeDropRates = (mult = 1) => {
         const table = getDropTable();
@@ -2636,6 +2930,27 @@
           });
         });
         return rates.sort((a, b) => b.chance - a.chance);
+      };
+
+      const rollDropsForSpin = (bet = 1, payout = 0) => {
+        const table = getDropTable();
+        const tiers = DROP_TIER_ORDER.filter(tier => Array.isArray(table[tier]) && table[tier].length);
+        if (!tiers.length) return { drops: [], multiplier: computeDropMultiplier({ bet, payout }) };
+        const weights = tiers.map(tier => getTierWeights()[tier] || 0);
+        const totalWeight = weights.reduce((sum, weight) => sum + weight, 0) || 1;
+        const mult = computeDropMultiplier({ bet, payout });
+        const drops = [];
+        tiers.forEach((tier, idx) => {
+          const tierProb = (weights[idx] || 0) / totalWeight;
+          (table[tier] || []).forEach(entry => {
+            const baseChance = Math.max(0, Number(entry.chance) || 0);
+            const chance = Math.min(1, baseChance * mult.total) * tierProb;
+            if (chance > 0 && Math.random() < chance) {
+              drops.push(normalizeDrop(entry));
+            }
+          });
+        });
+        return { drops, multiplier: mult };
       };
 
       const renderDropPanel = () => {
@@ -2667,6 +2982,434 @@
           <p class="drop-mult">Win: ${winMult.total.toFixed(2)}× • Loss: ${lossMult.total.toFixed(2)}×</p>
           ${listHtml || '<p class="muted-text">No drops configured.</p>'}
         `;
+      };
+
+      const randomChoice = (arr = []) => {
+        if (!Array.isArray(arr) || !arr.length) return null;
+        return arr[Math.floor(Math.random() * arr.length)];
+      };
+      const rollRange = (value) => {
+        if (Array.isArray(value) && value.length >= 2) {
+          const [min, max] = value;
+          const span = Math.max(0, (max ?? min) - (min ?? 0));
+          return Math.round((min ?? 0) + Math.random() * span);
+        }
+        return Number.isFinite(value) ? value : 0;
+      };
+
+      const loadGearDefinitions = async () => {
+        if (gearDefinitions) return gearDefinitions;
+        try {
+          const res = await fetch(GEAR_DEFS_URL, { cache: 'no-cache' });
+          if (res.ok) {
+            gearDefinitions = await res.json();
+          }
+        } catch (error) {
+          debugError('gear-defs', error);
+        }
+        if (!gearDefinitions) {
+          gearDefinitions = { slots: ['Head', 'Outfit', 'Accessory', 'Pet', 'Trinket'], rarities: [], names: {}, bonuses: {} };
+        }
+        return gearDefinitions;
+      };
+
+      const loadCardDefinitions = async () => {
+        if (cardDefinitions) return cardDefinitions;
+        try {
+          const res = await fetch(CARD_DEFS_URL, { cache: 'no-cache' });
+          if (res.ok) {
+            cardDefinitions = await res.json();
+          }
+        } catch (error) {
+          debugError('card-defs', error);
+        }
+        if (!cardDefinitions) {
+          cardDefinitions = { definitions: [], effects: {} };
+        }
+        return cardDefinitions;
+      };
+
+      const loadLocalEquipment = () => {
+        try {
+          const raw = localStorage.getItem(LOCAL_EQUIPMENT_KEY);
+          return raw ? JSON.parse(raw) : null;
+        } catch {
+          return null;
+        }
+      };
+      const saveLocalEquipment = () => {
+        try {
+          localStorage.setItem(LOCAL_EQUIPMENT_KEY, JSON.stringify(state.equipment));
+        } catch {
+          // ignore
+        }
+      };
+      const defaultEquipmentState = () => ({
+        slots: { Head: null, Outfit: null, Accessory: null, Pet: null, Trinket: null },
+        inventory: [],
+        slotCap: 3
+      });
+      const loadLocalCards = () => {
+        try {
+          const raw = localStorage.getItem(LOCAL_CARD_KEY);
+          return raw ? JSON.parse(raw) : null;
+        } catch {
+          return null;
+        }
+      };
+      const saveLocalCards = () => {
+        try {
+          localStorage.setItem(LOCAL_CARD_KEY, JSON.stringify(state.cards));
+        } catch {
+          // ignore
+        }
+      };
+      const defaultCardState = () => ({
+        deck: [],
+        collection: [],
+        slots: 3
+      });
+      const resetLocalProgress = () => {
+        Object.keys(localUpgrades).forEach(key => { delete localUpgrades[key]; });
+        saveLocalUpgrades(localUpgrades);
+        state.pendingUpgrades = {};
+        state.serverUpgrades = {};
+        state.upgrades = {};
+        state.equipment = defaultEquipmentState();
+        state.cards = defaultCardState();
+        saveLocalEquipment();
+        saveLocalCards();
+        renderGear();
+        renderCards();
+        renderBonusSummary();
+        applyUpgradeState({});
+      };
+
+      const hydrateLocalCollections = () => {
+        const savedGear = loadLocalEquipment();
+        if (savedGear) {
+          state.equipment = {
+            ...state.equipment,
+            ...savedGear,
+            slots: { ...state.equipment.slots, ...(savedGear.slots || {}) }
+          };
+        }
+        const savedCards = loadLocalCards();
+        if (savedCards) {
+          state.cards = {
+            ...state.cards,
+            ...savedCards,
+            deck: Array.isArray(savedCards.deck) ? savedCards.deck : [],
+            collection: Array.isArray(savedCards.collection) ? savedCards.collection : []
+          };
+        }
+      };
+
+      const gearSlotsList = () => Object.keys(state.equipment.slots || { Head: null, Outfit: null, Accessory: null, Pet: null, Trinket: null });
+      const unlockedGearSlots = () => Math.min(state.equipment.slotCap || gearSlotsList().length, gearSlotsList().length);
+      const gearIconFor = (rarity = 'basic', slot = 'accessory') => `img/slot/gear/${rarity.toLowerCase()}/gear_${rarity.toLowerCase()}_${slot.toLowerCase()}.png`;
+
+      const generateGear = (rarityHint = null) => {
+        const defs = gearDefinitions || {};
+        const rarities = defs.rarities || [];
+        const rarity = rarityHint
+          || (rarities.length
+            ? (() => {
+              const total = rarities.reduce((sum, r) => sum + (r.dropChance || 0), 0) || 1;
+              let roll = Math.random() * total;
+              for (const r of rarities) {
+                roll -= r.dropChance || 0;
+                if (roll <= 0) return r.name;
+              }
+              return rarities[0].name;
+            })()
+            : 'Basic');
+        const slot = randomChoice(defs.slots || gearSlotsList()) || 'Accessory';
+        const bonusPool = defs.bonuses?.[rarity]?.bonuses || [];
+        const bonus = randomChoice(bonusPool) || { desc: '+0% drops', dropPct: [1, 2] };
+        const effects = {
+          coinFlat: rollRange(bonus.coinFlat),
+          coinPct: rollRange(bonus.coinPct),
+          dropPct: rollRange(bonus.dropPct),
+          idlePct: rollRange(bonus.idlePct),
+          gearDropPct: rollRange(bonus.gearDropPct) || 0,
+          tierChance: bonus.tierChance || null,
+          unique: bonus.unique || null
+        };
+        const desc = (bonus.desc || '').replace('{coinFlat}', effects.coinFlat || 0).replace('{coinPct}', effects.coinPct || 0).replace('{dropPct}', effects.dropPct || 0).replace('{idlePct}', effects.idlePct || 0).replace('{gearDropPct}', effects.gearDropPct || 0);
+        const name = defs.names?.[rarity]?.[slot]?.name || `${rarity} ${slot}`;
+        return {
+          id: `gear-${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
+          rarity,
+          slot,
+          name,
+          level: 1,
+          desc,
+          effects,
+          icon: gearIconFor(rarity, slot)
+        };
+      };
+
+      const addGear = (gear) => {
+        if (!gear) return;
+        if (!Array.isArray(state.equipment.inventory)) state.equipment.inventory = [];
+        state.equipment.inventory.push(gear);
+        saveLocalEquipment();
+      };
+
+      const equipGear = (gearId, targetSlot = null) => {
+        const gear = (state.equipment.inventory || []).find(item => item.id === gearId);
+        if (!gear) return;
+        const slot = targetSlot || gear.slot || gearSlotsList()[0];
+        const slotIndex = gearSlotsList().indexOf(slot);
+        if (slotIndex >= unlockedGearSlots()) {
+          showAlert('Unlock more equipment slots first.');
+          return;
+        }
+        state.equipment.slots[slot] = gear;
+        state.equipment.inventory = state.equipment.inventory.filter(item => item.id !== gearId);
+        saveLocalEquipment();
+        renderGear();
+        renderBonusSummary();
+      };
+
+      const unequipGear = (slot) => {
+        const current = state.equipment.slots?.[slot];
+        if (!current) return;
+        state.equipment.slots[slot] = null;
+        state.equipment.inventory.push(current);
+        saveLocalEquipment();
+        renderGear();
+        renderBonusSummary();
+      };
+
+      const upgradeGear = (gearId) => {
+        const vip = Number(state.drop.inventory?.vipMarks || 0);
+        const allGear = [...(state.equipment.inventory || []), ...Object.values(state.equipment.slots || {})].filter(Boolean);
+        const gear = allGear.find(item => item.id === gearId);
+        if (!gear) return;
+        const cost = Math.max(1, gear.level || 1);
+        if (vip < cost) {
+          showAlert('Not enough VIP marks to upgrade gear.');
+          return;
+        }
+        state.drop.inventory.vipMarks = vip - cost;
+        gear.level = (gear.level || 1) + 1;
+        saveLocalEquipment();
+        renderGear();
+        renderInventory();
+        renderBonusSummary();
+        updateHud();
+      };
+
+      const generateCard = (tierHint = null) => {
+        const defs = cardDefinitions?.definitions || [];
+        const filtered = defs.filter(c => !tierHint || c.tier === tierHint);
+        const pick = randomChoice(filtered.length ? filtered : defs) || { name: 'Wildcard', tier: tierHint || 'Basic', icon: DROP_ITEM_ICONS.card, desc: 'Generic card from offline pool.' };
+        const level = 1;
+        const effectText = (cardDefinitions?.effects?.[pick.name] || [])[level - 1] || '';
+        return {
+          id: `card-${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
+          name: pick.name,
+          tier: pick.tier || 'Basic',
+          icon: pick.icon || DROP_ITEM_ICONS.card,
+          desc: pick.desc || '',
+          level,
+          effect: effectText
+        };
+      };
+
+      const addCard = (card) => {
+        if (!card) return;
+        if (!Array.isArray(state.cards.collection)) state.cards.collection = [];
+        state.cards.collection.push(card);
+        saveLocalCards();
+      };
+
+      const equipCard = (cardId, slotIndex = 0) => {
+        const card = (state.cards.collection || []).find(c => c.id === cardId);
+        if (!card) return;
+        const maxSlots = Math.max(1, state.cards.slots || 1);
+        if (slotIndex >= maxSlots) {
+          showAlert('Unlock more card slots first.');
+          return;
+        }
+        state.cards.deck = state.cards.deck || [];
+        state.cards.deck[slotIndex] = cardId;
+        saveLocalCards();
+        renderCards();
+        renderBonusSummary();
+      };
+
+      const unequipCard = (slotIndex = 0) => {
+        if (!Array.isArray(state.cards.deck)) return;
+        state.cards.deck[slotIndex] = null;
+        saveLocalCards();
+        renderCards();
+        renderBonusSummary();
+      };
+
+      const upgradeCard = (cardId) => {
+        const vip = Number(state.drop.inventory?.vipMarks || 0);
+        const card = (state.cards.collection || []).find(c => c.id === cardId);
+        if (!card) return;
+        const cost = Math.max(1, card.level || 1);
+        if (vip < cost) {
+          showAlert('Not enough VIP marks to upgrade this card.');
+          return;
+        }
+        state.drop.inventory.vipMarks = vip - cost;
+        card.level = (card.level || 1) + 1;
+        const effectList = cardDefinitions?.effects?.[card.name] || [];
+        card.effect = effectList[card.level - 1] || card.effect;
+        saveLocalCards();
+        renderCards();
+        renderInventory();
+        renderBonusSummary();
+        updateHud();
+      };
+
+      const parseEffectText = (text = '') => {
+        const stats = {};
+        const pctMatch = text.match(/([+\\-]?\\d+(?:\\.\\d+)?)%/);
+        const pct = pctMatch ? parseFloat(pctMatch[1]) : 0;
+        if (/coin/i.test(text)) stats.coinPct = pct;
+        if (/drop/i.test(text)) stats.dropPct = pct;
+        if (/idle|delay/i.test(text)) stats.idlePct = pct;
+        if (/speed|faster|spin/i.test(text)) stats.speedPct = pct;
+        return stats;
+      };
+
+      const computeEquipmentStats = () => {
+        const totals = { coinPct: 0, dropPct: 0, idlePct: 0 };
+        Object.values(state.equipment.slots || {}).forEach(item => {
+          if (!item) return;
+          const level = Math.max(1, item.level || 1);
+          const fx = item.effects || {};
+          if (fx.coinPct) totals.coinPct += fx.coinPct * level;
+          if (fx.dropPct) totals.dropPct += fx.dropPct * level;
+          if (fx.idlePct) totals.idlePct += fx.idlePct * level;
+        });
+        if (Array.isArray(state.cards.deck)) {
+          state.cards.deck.forEach(id => {
+            const card = (state.cards.collection || []).find(c => c.id === id);
+            if (!card) return;
+            const stats = parseEffectText(card.effect || '');
+            if (stats.coinPct) totals.coinPct += stats.coinPct;
+            if (stats.dropPct) totals.dropPct += stats.dropPct;
+            if (stats.idlePct) totals.idlePct += stats.idlePct;
+          });
+        }
+        return totals;
+      };
+
+      const renderGear = () => {
+        if (!els.gearSlots || !els.gearInventory) return;
+        if (!state.equipment) return;
+        const slots = gearSlotsList();
+        const unlocked = unlockedGearSlots();
+        const slotHtml = slots.map((slot, idx) => {
+          const item = state.equipment.slots?.[slot];
+          const locked = idx >= unlocked;
+          const bonus = item ? `<p class=\"gear-slot__bonus\">${item.desc || ''}</p>` : '<p class=\"gear-slot__bonus\">Choose an item below to equip.</p>';
+          const actions = locked
+            ? '<span class=\"muted-text\">Locked slot</span>'
+            : item
+              ? `<div class=\"actions\"><button type=\"button\" class=\"ghost-btn secondary\" data-unequip-slot=\"${slot}\">Unequip</button><button type=\"button\" class=\"ghost-btn tertiary\" data-upgrade-gear=\"${item.id}\">Upgrade (VIP)</button></div>`
+              : '<span class=\"muted-text\">Empty</span>';
+          return `
+            <div class="gear-slot ${locked ? 'locked' : ''}" data-slot="${slot}">
+              <div class="gear-slot__meta">
+                <strong class="gear-slot__name">${slot}</strong>
+                ${item ? `<span class="rarity-tag">${item.rarity} • Lv ${item.level || 1}</span>` : ''}
+              </div>
+              ${bonus}
+              ${actions}
+            </div>
+          `;
+        }).join('');
+        els.gearSlots.innerHTML = slotHtml;
+        const equippedIds = new Set(Object.values(state.equipment.slots || {}).filter(Boolean).map(item => item.id));
+        const inventory = (state.equipment.inventory || []).filter(item => item && !equippedIds.has(item.id));
+        if (!inventory.length) {
+          els.gearInventory.innerHTML = '<p class="muted-text">No spare gear. Spin to find equipment drops.</p>';
+        } else {
+          els.gearInventory.innerHTML = inventory.map(item => `
+            <div class="gear-item" data-gear-id="${item.id}">
+              <div class="gear-slot__meta">
+                <span class="rarity-tag">${item.rarity}</span>
+                <span class="hud-label">Lv ${item.level || 1}</span>
+              </div>
+              <p class="gear-slot__name">${item.name}</p>
+              <p class="gear-slot__bonus">${item.desc || ''}</p>
+              <div class="actions">
+                <button type="button" class="ghost-btn secondary" data-equip-id="${item.id}">Equip</button>
+                <button type="button" class="ghost-btn tertiary" data-upgrade-gear="${item.id}">Upgrade (VIP)</button>
+              </div>
+            </div>
+          `).join('');
+        }
+        if (els.gearSummary) {
+          const equipped = Object.values(state.equipment.slots || {}).filter(Boolean).length;
+          els.gearSummary.textContent = `${equipped}/${unlocked} equipped`;
+        }
+        if (els.gearCap) {
+          els.gearCap.textContent = `${unlocked} slots`;
+        }
+      };
+
+      const renderCards = () => {
+        if (!els.cardSlots || !els.cardCollection) return;
+        const maxSlots = Math.max(1, state.cards.slots || 1);
+        const deck = Array.isArray(state.cards.deck) ? state.cards.deck : [];
+        const cards = Array.isArray(state.cards.collection) ? state.cards.collection : [];
+        const slotHtml = Array.from({ length: maxSlots }).map((_, idx) => {
+          const cardId = deck[idx];
+          const card = cards.find(c => c && c.id === cardId);
+          const body = card
+            ? `<p class="gear-slot__name">${card.name}</p><p class="card-slot__effect">${card.effect || card.desc || ''}</p><div class="actions"><button type="button" class="ghost-btn secondary" data-unequip-card="${idx}">Remove</button><button type="button" class="ghost-btn tertiary" data-upgrade-card="${card.id}">Upgrade (VIP)</button></div>`
+            : '<p class="gear-slot__bonus">Choose a card from your collection.</p>';
+          return `
+            <div class="card-slot" data-card-slot="${idx}">
+              <div class="card-slot__meta">
+                <strong class="card-slot__name">Slot ${idx + 1}</strong>
+                ${card ? `<span class="rarity-tag">${card.tier} • Lv ${card.level || 1}</span>` : ''}
+              </div>
+              ${body}
+            </div>
+          `;
+        }).join('');
+        const lockedSlots = Array.from({ length: Math.max(0, 5 - maxSlots) }).map((_, idx) => `<div class="card-slot locked"><p class="muted-text">Locked slot ${maxSlots + idx + 1}</p></div>`).join('');
+        els.cardSlots.innerHTML = slotHtml + lockedSlots;
+        if (!cards.length) {
+          els.cardCollection.innerHTML = '<p class="muted-text">No cards yet. Spin to collect VIP cards.</p>';
+        } else {
+          const equippedSet = new Set(deck.filter(Boolean));
+          els.cardCollection.innerHTML = cards.map(card => `
+            <div class="card-item" data-card-id="${card.id}">
+              <div class="card-slot__meta">
+                <span class="rarity-tag">${card.tier}</span>
+                <span class="hud-label">Lv ${card.level || 1}</span>
+              </div>
+              <div class="card-slot__meta">
+                <img src="${card.icon || DROP_ITEM_ICONS.card}" alt="${card.name}">
+                <p class="gear-slot__name">${card.name}</p>
+              </div>
+              <p class="card-slot__effect">${card.effect || card.desc || ''}</p>
+              <div class="actions">
+                <button type="button" class="ghost-btn secondary" data-equip-card="${card.id}" ${equippedSet.has(card.id) ? 'disabled' : ''}>Add to deck</button>
+                <button type="button" class="ghost-btn tertiary" data-upgrade-card="${card.id}">Upgrade (VIP)</button>
+              </div>
+            </div>
+          `).join('');
+        }
+        if (els.cardSummary) {
+          const active = deck.filter(Boolean).length;
+          els.cardSummary.textContent = `Deck ${active}/${maxSlots}`;
+        }
+        if (els.cardCap) {
+          els.cardCap.textContent = `${maxSlots} slots`;
+        }
       };
 
       const toggleDropPanel = (force) => {
@@ -2802,6 +3545,28 @@
           value: `${winMult.total.toFixed(2)}× / ${lossMult.total.toFixed(2)}×`,
           note: 'Win / loss multiplier (bet, skill, upgrade)'
         });
+        const equipStats = computeEquipmentStats();
+        if (equipStats.coinPct) {
+          entries.push({
+            label: 'Coin bonus',
+            value: `+${equipStats.coinPct.toFixed(1)}%`,
+            note: 'From equipped gear and cards'
+          });
+        }
+        if (equipStats.dropPct) {
+          entries.push({
+            label: 'Drop bonus',
+            value: `+${equipStats.dropPct.toFixed(1)}%`,
+            note: 'Gear/card bonuses applied to drop rates'
+          });
+        }
+        if (equipStats.idlePct) {
+          entries.push({
+            label: 'Idle speed',
+            value: `+${equipStats.idlePct.toFixed(1)}%`,
+            note: 'Passive earnings tick faster'
+          });
+        }
         const idle = Math.max(0, state.upgrades.idle || 0);
         entries.push({
           label: 'Idle income',
@@ -3175,7 +3940,9 @@
             groups.push({ symbol: key, count, indexes, pattern, payout: pay });
           }
         });
-        return { payout, groups };
+        const equip = computeEquipmentStats();
+        const coinMult = 1 + Math.max(0, equip.coinPct || 0) / 100;
+        return { payout: payout * coinMult, groups, coinMult };
       };
 
       const runClientSpin = (bet) => {
@@ -3342,40 +4109,141 @@
         applyUpgradeState(state.upgrades);
       };
 
-      const loadMachineConfig = async () => {
-        debug('machine-config:load', { url: MACHINE_CONFIG_URL });
-        if (!MACHINE_CONFIG_URL) {
+      const machineConfigUrl = (machineId) => `${MACHINE_CONFIG_DIR}/${machineId}.json`;
+
+      const fetchMachineConfig = async (machineId, allowFallback = false) => {
+        if (!machineId) return null;
+        if (machineCache.has(machineId)) return machineCache.get(machineId);
+        const url = machineConfigUrl(machineId);
+        try {
+          const res = await fetch(url, { cache: 'no-cache' });
+          if (res.ok) {
+            const data = await res.json();
+            machineCache.set(machineId, data);
+            return data;
+          }
+        } catch (error) {
+          debugError('machine-config', error, { machineId, url });
+        }
+        if (allowFallback && MACHINE_CONFIG_URL) {
+          try {
+            const res = await fetch(MACHINE_CONFIG_URL, { cache: 'no-cache' });
+            if (res.ok) {
+              const data = await res.json();
+              machineCache.set(machineId, data);
+              return data;
+            }
+          } catch (error) {
+            debugError('machine-config:fallback', error, { machineId });
+          }
+        }
+        return null;
+      };
+
+      const ensureDropTables = async () => {
+        if (dropTableCache) return dropTableCache;
+        try {
+          const res = await fetch(DROP_TABLE_URL, { cache: 'no-cache' });
+          if (res.ok) {
+            dropTableCache = await res.json();
+          }
+        } catch (error) {
+          debugError('drop-tables', error);
+        }
+        if (!dropTableCache) {
+          dropTableCache = { tierWeights: state.drop.tierWeights, tables: { classic: state.drop.table } };
+        }
+        return dropTableCache;
+      };
+
+      const syncDropTableForMachine = async (machineId = 'classic') => {
+        const tables = await ensureDropTables();
+        const table = tables?.tables?.[machineId] || tables?.tables?.classic || { common: [], rare: [], epic: [] };
+        state.drop.tableKey = machineId || 'classic';
+        state.drop.table = table;
+        if (tables?.tierWeights) {
+          state.drop.tierWeights = { ...state.drop.tierWeights, ...tables.tierWeights };
+        }
+      };
+
+      const renderMachineList = async () => {
+        if (!els.machineList) return;
+        const cards = await Promise.all((machineList || []).map(async id => {
+          const cfg = await fetchMachineConfig(id).catch(() => null);
+          return {
+            id,
+            name: cfg?.name || id,
+            tier: cfg?.tier || 'Demo',
+            icon: cfg?.assets?.icon || null
+          };
+        }));
+        els.machineList.innerHTML = cards.map(card => `
+          <button type="button" class="machine-card" data-machine-id="${card.id}" data-active="${card.id === state.machine.id ? 'true' : 'false'}" role="listitem">
+            <div class="machine-card__meta">
+              ${card.icon ? `<img src="${card.icon}" alt="${card.name}" class="machine-card__icon" loading="lazy">` : ''}
+              <span class="rarity-tag">${card.tier}</span>
+            </div>
+            <p class="machine-card__name">${card.name}</p>
+            <p class="machine-card__meta">${card.id}</p>
+          </button>
+        `).join('');
+      };
+
+      const setActiveMachine = async (machineId, options = {}) => {
+        const targetId = machineId || state.machine.id || 'classic';
+        const cfg = await fetchMachineConfig(targetId, true);
+        if (!cfg) {
+          debugError('machine:set', new Error('Missing machine config'), { targetId });
           ensureGrid(state.machine.rows, state.machine.reels);
-          debug('machine-config:skipped', 'no URL provided');
           return;
         }
+        state.machine.id = cfg.id || targetId;
+        machineCache.set(state.machine.id, cfg);
+        syncMachineDefinition(cfg);
+        state.machine.activeSymbols = computeActiveSymbols(state.upgrades);
+        ensureGrid(state.currentRows || state.machine.rows, state.currentReels || state.machine.reels);
+        applyMachineTheme();
+        renderPaytable();
+        rebuildSymbolWeights();
+        updateMachineMeta();
+        renderBonusSummary();
+        await syncDropTableForMachine(state.machine.id);
+        renderDropPanel();
+        renderMachineList();
+        if (els.machineName) els.machineName.textContent = state.machine.name || state.machine.id;
+        if (els.machineTier) els.machineTier.textContent = cfg.tier || 'Demo';
         try {
-          const res = await fetch(MACHINE_CONFIG_URL, { cache: 'no-cache' });
-          if (!res.ok) throw new Error(`Config ${res.status}`);
-          const data = await res.json();
-          state.machine.assets = data.assets || state.machine.assets;
-          state.machine.placeholder = data.assets?.placeholder || state.machine.placeholder;
-          if (data.payouts) state.machine.payouts = data.payouts;
-          if (Number(data.rows)) state.machine.rows = Number(data.rows);
-          if (Number(data.reels)) state.machine.reels = Number(data.reels);
-          if (Number(data.baseSymbolCount)) state.machine.baseSymbolCount = Number(data.baseSymbolCount);
-          state.machine.upgradeSettings = {
-            baseRows: data.baseRows ?? state.machine.upgradeSettings?.baseRows ?? state.machine.rows,
-            maxRows: data.maxRows ?? state.machine.upgradeSettings?.maxRows ?? state.machine.rows,
-            baseReels: data.baseReels ?? state.machine.upgradeSettings?.baseReels ?? state.machine.reels,
-            maxReels: data.maxReels ?? state.machine.upgradeSettings?.maxReels ?? state.machine.reels,
-            costs: data.upgradeCosts || state.machine.upgradeSettings?.costs || {}
-          };
-          setSymbolMap(Array.isArray(data.symbols) ? data.symbols : [], 'machineConfig');
-          applyUpgradeState(state.upgrades);
-          applyMachineTheme();
-          debug('machine-config:loaded', { rows: state.machine.rows, reels: state.machine.reels, symbols: state.symbolMap.size });
-        } catch (error) {
-          console.error('Machine config failed', error);
-          log('Assets', 'Unable to load slot assets.');
-          debugError('machine-config', error);
-          ensureGrid(state.machine.rows, state.machine.reels);
+          localStorage.setItem(LOCAL_MACHINE_KEY, state.machine.id);
+        } catch {
+          // ignore
         }
+        if (!options.silent) {
+          log('Machine ready', `${state.machine.name || state.machine.id} loaded`);
+        }
+      };
+
+      const loadMachineList = async () => {
+        try {
+          const res = await fetch(MACHINE_LIST_URL, { cache: 'no-cache' });
+          if (res.ok) {
+            const ids = await res.json();
+            if (Array.isArray(ids)) {
+              machineList = ids;
+              await renderMachineList();
+            }
+          }
+        } catch (error) {
+          debugError('machine-list', error);
+        }
+        const preferred = localStorage.getItem(LOCAL_MACHINE_KEY);
+        const target = (machineList || []).includes(preferred)
+          ? preferred
+          : (machineList?.[0] || state.machine.id || 'classic');
+        await setActiveMachine(target, { silent: true });
+      };
+
+      const loadMachineConfig = async () => {
+        await loadMachineList();
       };
 
       const setAuthMode = (mode = 'login') => {
@@ -3541,12 +4409,16 @@
       function idleStep(timestamp) {
         if (!state.idleTickerActive) return;
         if (!state.lastIdleTick) state.lastIdleTick = timestamp;
-        const rate = Math.max(0, state.upgrades.idle || 0);
+        const equip = computeEquipmentStats();
+        const rate = Math.max(0, state.upgrades.idle || 0) * (1 + Math.max(0, equip.idlePct || 0) / 100);
         const delta = timestamp - state.lastIdleTick;
         if (rate > 0 && delta >= 1000) {
           const seconds = Math.floor(delta / 1000);
-          state.pendingIdleCoins += rate * seconds;
+          const gained = rate * seconds;
+          state.balance += gained;
+          state.pendingIdleCoins = 0;
           state.lastIdleTick += seconds * 1000;
+          if (els.balance) els.balance.textContent = currency.format(state.balance);
           updateHud();
         }
         state.idleTicker = requestFrame(idleStep);
@@ -3916,6 +4788,7 @@
           state.autoSpin.remaining = 0;
           renderAutoSpinButton();
         }
+        collectPendingIdle();
         const bet = clamp(state.bet || 1, 1, state.maxBet || DEFAULT_MAX_BET);
         if (state.balance < bet) {
           showAlert('Not enough credits to spin.');
@@ -3932,6 +4805,10 @@
           state.balance = Math.max(0, (state.balance || 0) - bet + (spinData.winAmount || 0));
           state.lastWin = spinData.winAmount || 0;
           state.spinCount = (state.spinCount || 0) + 1;
+          const dropResult = rollDropsForSpin(bet, spinData.winAmount || 0);
+          if (dropResult.drops?.length) {
+            applyDropsToInventory(dropResult.drops, Date.now());
+          }
           if (els.balance) els.balance.textContent = currency.format(state.balance);
           if (els.spinCount) els.spinCount.textContent = state.spinCount;
           updateLastSpin(spinData);
@@ -3978,8 +4855,7 @@
           if (result.reward) {
             const drops = Array.isArray(result.reward.drops) ? result.reward.drops : [];
             if (drops.length) {
-              recordDrops(drops, Date.now());
-              renderInventory();
+              applyDropsToInventory(drops, Date.now());
             }
             const parts = [];
             if (result.reward.vipMarks) parts.push(`+${result.reward.vipMarks} VIP marks`);
@@ -4108,6 +4984,15 @@
         }
       };
 
+      hydrateLocalCollections();
+      loadGearDefinitions().then(() => {
+        renderGear();
+        renderBonusSummary();
+      });
+      loadCardDefinitions().then(() => {
+        renderCards();
+        renderBonusSummary();
+      });
       updateAuthUI();
       ensureGrid(state.machine.rows, state.machine.reels);
       updateMachineMeta();
@@ -4163,9 +5048,43 @@
           toggleDropPanel(false);
         }
       });
+      els.machineList?.addEventListener('click', (event) => {
+        const card = event.target.closest('[data-machine-id]');
+        if (!card || state.busy) return;
+        const id = card.dataset.machineId;
+        if (id) setActiveMachine(id);
+      });
       els.dailyClaimBtn?.addEventListener('click', () => {
         if (state.busy) return;
         claimDaily();
+      });
+
+      els.gearPanel?.addEventListener('click', (event) => {
+        const equipBtn = event.target.closest('[data-equip-id]');
+        const unequipBtn = event.target.closest('[data-unequip-slot]');
+        const upgradeBtn = event.target.closest('[data-upgrade-gear]');
+        if (equipBtn) {
+          equipGear(equipBtn.dataset.equipId);
+        } else if (unequipBtn) {
+          unequipGear(unequipBtn.dataset.unequipSlot);
+        } else if (upgradeBtn) {
+          upgradeGear(upgradeBtn.dataset.upgradeGear);
+        }
+      });
+
+      els.cardPanel?.addEventListener('click', (event) => {
+        const equipBtn = event.target.closest('[data-equip-card]');
+        const unequipBtn = event.target.closest('[data-unequip-card]');
+        const upgradeBtn = event.target.closest('[data-upgrade-card]');
+        if (equipBtn) {
+          const deck = Array.isArray(state.cards.deck) ? state.cards.deck : [];
+          const slotIndex = deck.findIndex(id => !id);
+          equipCard(equipBtn.dataset.equipCard, slotIndex >= 0 ? slotIndex : 0);
+        } else if (unequipBtn) {
+          unequipCard(Number(unequipBtn.dataset.unequipCard) || 0);
+        } else if (upgradeBtn) {
+          upgradeCard(upgradeBtn.dataset.upgradeCard);
+        }
       });
 
       els.upgradeGrid?.addEventListener('click', (event) => {
@@ -4184,6 +5103,7 @@
           showAuthAlert('Sign in to use the slot machine.');
           return;
         }
+        resetLocalProgress();
         bootstrap();
       });
 

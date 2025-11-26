@@ -1,0 +1,124 @@
+{
+  "id": "classic",
+  "name": "Classic Slot",
+  "tier": "Basic",
+  "rows": 5,
+  "reels": 5,
+  "baseRows": 3,
+  "baseReels": 3,
+  "maxRows": 5,
+  "maxReels": 5,
+  "baseSymbolCount": 5,
+  "symbols": [
+    {
+      "key": "cherry",
+      "label": "Cherry",
+      "asset": "img/slot/classic/symbols/cherry.png"
+    },
+    {
+      "key": "lemon",
+      "label": "Lemon",
+      "asset": "img/slot/classic/symbols/lemon.png"
+    },
+    {
+      "key": "orange",
+      "label": "Orange",
+      "asset": "img/slot/classic/symbols/orange.png"
+    },
+    {
+      "key": "plum",
+      "label": "Plum",
+      "asset": "img/slot/classic/symbols/plum.png"
+    },
+    {
+      "key": "watermelon",
+      "label": "Watermelon",
+      "asset": "img/slot/classic/symbols/watermelon.png"
+    },
+    {
+      "key": "horseshoe",
+      "label": "Horseshoe",
+      "asset": "img/slot/classic/symbols/horseshoe.png"
+    },
+    {
+      "key": "bell",
+      "label": "Bell",
+      "asset": "img/slot/classic/symbols/bell.png"
+    },
+    {
+      "key": "diamond",
+      "label": "Diamond",
+      "asset": "img/slot/classic/symbols/diamond.png"
+    },
+    {
+      "key": "seven",
+      "label": "Seven",
+      "asset": "img/slot/classic/symbols/seven.png"
+    },
+    {
+      "key": "crown",
+      "label": "Crown",
+      "asset": "img/slot/classic/symbols/crown.png"
+    },
+    {
+      "key": "wild",
+      "label": "Wild",
+      "asset": "img/slot/classic/symbols/wild.png"
+    },
+    {
+      "key": "bonus",
+      "label": "Bonus",
+      "asset": "img/slot/classic/symbols/bonus.png"
+    }
+  ],
+  "payouts": {
+    "cherry": 5,
+    "lemon": 6,
+    "orange": 7,
+    "plum": 8,
+    "watermelon": 10,
+    "horseshoe": 12,
+    "bell": 16,
+    "diamond": 20,
+    "seven": 25,
+    "crown": 30,
+    "wild": 50,
+    "bonus": 70
+  },
+  "assets": {
+    "icon": "img/slot/classic/icon.png",
+    "frame": "img/slot/classic/frame.png",
+    "background": {
+      "portrait": "img/slot/classic/background_vertical.png",
+      "landscape": "img/slot/classic/background_horizontal.png"
+    },
+    "spinButton": "img/slot/classic/spin-button.png",
+    "chip": "img/slot/classic/circle.png",
+    "bet": "img/slot/classic/square.png",
+    "info": "img/slot/classic/rectangle.png",
+    "placeholder": "img/slot/placeholder.png"
+  },
+  "spinTiming": {
+    "overspin": [
+      10,
+      12,
+      15
+    ],
+    "brake": 180
+  },
+  "upgradeCosts": {
+    "rows": [
+      600,
+      1450
+    ],
+    "reels": [
+      700,
+      1800
+    ],
+    "lines": [
+      450,
+      1100,
+      2750
+    ]
+  }
+}

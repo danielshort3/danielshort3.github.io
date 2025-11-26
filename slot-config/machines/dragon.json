@@ -1,0 +1,112 @@
+{
+  "id": "dragon",
+  "name": "Dragon's Den",
+  "tier": "Mythic",
+  "rows": 5,
+  "reels": 5,
+  "baseRows": 3,
+  "baseReels": 3,
+  "maxRows": 5,
+  "maxReels": 5,
+  "baseSymbolCount": 5,
+  "symbols": [
+    {
+      "key": "shield",
+      "label": "Shield",
+      "asset": "img/slot/dragon/symbols/shield.png"
+    },
+    {
+      "key": "crystal",
+      "label": "Crystal",
+      "asset": "img/slot/dragon/symbols/crystal.png"
+    },
+    {
+      "key": "rune",
+      "label": "Rune",
+      "asset": "img/slot/dragon/symbols/rune.png"
+    },
+    {
+      "key": "torch",
+      "label": "Torch",
+      "asset": "img/slot/dragon/symbols/torch.png"
+    },
+    {
+      "key": "dragon_egg",
+      "label": "Dragon Egg",
+      "asset": "img/slot/dragon/symbols/dragon_egg.png"
+    },
+    {
+      "key": "flaming_sword",
+      "label": "Flaming Sword",
+      "asset": "img/slot/dragon/symbols/flaming_sword.png"
+    },
+    {
+      "key": "dragon_eye",
+      "label": "Dragon Eye",
+      "asset": "img/slot/dragon/symbols/dragon_eye.png"
+    },
+    {
+      "key": "fire_seven",
+      "label": "Fire Seven",
+      "asset": "img/slot/dragon/symbols/fire_seven.png"
+    },
+    {
+      "key": "wild",
+      "label": "Wild",
+      "asset": "img/slot/dragon/symbols/wild.png"
+    },
+    {
+      "key": "bonus",
+      "label": "Bonus",
+      "asset": "img/slot/dragon/symbols/bonus.png"
+    }
+  ],
+  "payouts": {
+    "shield": 11,
+    "crystal": 12,
+    "rune": 14,
+    "torch": 16,
+    "dragon_egg": 22,
+    "flaming_sword": 30,
+    "dragon_eye": 40,
+    "fire_seven": 50,
+    "wild": 50,
+    "bonus": 150
+  },
+  "assets": {
+    "icon": "img/slot/dragon/icon.png",
+    "frame": "img/slot/classic/frame.png",
+    "background": {
+      "portrait": "img/slot/dragon/background_vertical.png",
+      "landscape": "img/slot/dragon/background_horizontal.png"
+    },
+    "spinButton": "img/slot/classic/spin-button.png",
+    "chip": "img/slot/classic/circle.png",
+    "bet": "img/slot/classic/square.png",
+    "info": "img/slot/classic/rectangle.png",
+    "placeholder": "img/slot/placeholder.png"
+  },
+  "spinTiming": {
+    "overspin": [
+      10,
+      12,
+      15
+    ],
+    "brake": 180
+  },
+  "upgradeCosts": {
+    "rows": [
+      600,
+      1450
+    ],
+    "reels": [
+      700,
+      1800
+    ],
+    "lines": [
+      450,
+      1100,
+      2750
+    ]
+  }
+}

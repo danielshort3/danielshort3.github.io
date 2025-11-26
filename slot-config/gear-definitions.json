@@ -1,0 +1,482 @@
+{
+  "slots": [
+    "Head",
+    "Outfit",
+    "Accessory",
+    "Pet",
+    "Trinket"
+  ],
+  "rarities": [
+    {
+      "name": "Basic",
+      "color": "#ccc",
+      "dropChance": 0.04,
+      "value": 100
+    },
+    {
+      "name": "Fine",
+      "color": "#5ebd3e",
+      "dropChance": 0.03,
+      "value": 1000
+    },
+    {
+      "name": "Rare",
+      "color": "#2d8fff",
+      "dropChance": 0.02,
+      "value": 10000
+    },
+    {
+      "name": "Epic",
+      "color": "#a559ff",
+      "dropChance": 0.01,
+      "value": 100000
+    },
+    {
+      "name": "Elite",
+      "color": "#ff8c00",
+      "dropChance": 0.005,
+      "value": 250000
+    },
+    {
+      "name": "Mythic",
+      "color": "#ff3333",
+      "dropChance": 0.001,
+      "value": 500000
+    },
+    {
+      "name": "Divine",
+      "color": "#fff4b3",
+      "dropChance": 0.0005,
+      "value": 1000000
+    }
+  ],
+  "names": {
+    "Basic": {
+      "Head": {
+        "id": "worn_visor",
+        "name": "Worn Visor"
+      },
+      "Outfit": {
+        "id": "scuffed_jacket",
+        "name": "Scuffed Jacket"
+      },
+      "Accessory": {
+        "id": "faded_wristband",
+        "name": "Faded Wristband"
+      },
+      "Pet": {
+        "id": "lucky_pigeon",
+        "name": "Lucky Pigeon"
+      },
+      "Trinket": {
+        "id": "bent_token",
+        "name": "Bent Token"
+      }
+    },
+    "Fine": {
+      "Head": {
+        "id": "dealers_visor",
+        "name": "Dealer's Visor"
+      },
+      "Outfit": {
+        "id": "gamblers_suit",
+        "name": "Gambler's Suit"
+      },
+      "Accessory": {
+        "id": "lucky_locket",
+        "name": "Lucky Locket"
+      },
+      "Pet": {
+        "id": "lucky_hound",
+        "name": "Lucky Hound"
+      },
+      "Trinket": {
+        "id": "lucky_coin",
+        "name": "Lucky Coin"
+      }
+    },
+    "Rare": {
+      "Head": {
+        "id": "high_roller_hat",
+        "name": "High Roller Hat"
+      },
+      "Outfit": {
+        "id": "pit_boss_vest",
+        "name": "Pit Boss Vest"
+      },
+      "Accessory": {
+        "id": "golden_chain",
+        "name": "Golden Chain"
+      },
+      "Pet": {
+        "id": "prize_sprite",
+        "name": "Prize Sprite"
+      },
+      "Trinket": {
+        "id": "enchanted_dice",
+        "name": "Enchanted Dice"
+      }
+    },
+    "Epic": {
+      "Head": {
+        "id": "casino_crown",
+        "name": "Casino Crown"
+      },
+      "Outfit": {
+        "id": "high_stakes_suit",
+        "name": "High Stakes Suit"
+      },
+      "Accessory": {
+        "id": "magicians_ring",
+        "name": "Magician's Ring"
+      },
+      "Pet": {
+        "id": "watchful_wolf",
+        "name": "Watchful Wolf"
+      },
+      "Trinket": {
+        "id": "ancient_chip",
+        "name": "Ancient Chip"
+      }
+    },
+    "Elite": {
+      "Head": {
+        "id": "jackpot_hood",
+        "name": "Jackpot Hood"
+      },
+      "Outfit": {
+        "id": "winners_attire",
+        "name": "Winner's Attire"
+      },
+      "Accessory": {
+        "id": "royal_amulet",
+        "name": "Royal Amulet"
+      },
+      "Pet": {
+        "id": "lucky_phoenix",
+        "name": "Lucky Phoenix"
+      },
+      "Trinket": {
+        "id": "high_roller_orb",
+        "name": "High Roller Orb"
+      }
+    },
+    "Mythic": {
+      "Head": {
+        "id": "legendary_dealer_hat",
+        "name": "Legendary Dealer Hat"
+      },
+      "Outfit": {
+        "id": "infinite_vestments",
+        "name": "Infinite Vestments"
+      },
+      "Accessory": {
+        "id": "fortune_necklace",
+        "name": "Fortune Necklace"
+      },
+      "Pet": {
+        "id": "lucky_dragon",
+        "name": "Lucky Dragon"
+      },
+      "Trinket": {
+        "id": "runic_chip",
+        "name": "Runic Chip"
+      }
+    },
+    "Divine": {
+      "Head": {
+        "id": "celestial_dealer_halo",
+        "name": "Celestial Dealer Halo"
+      },
+      "Outfit": {
+        "id": "eternal_gambit_robe",
+        "name": "Eternal Gambit Robe"
+      },
+      "Accessory": {
+        "id": "miracle_bracelet",
+        "name": "Miracle Bracelet"
+      },
+      "Pet": {
+        "id": "guardian_seraph",
+        "name": "Guardian Seraph"
+      },
+      "Trinket": {
+        "id": "sacred_jackpot_chip",
+        "name": "Sacred Jackpot Chip"
+      }
+    }
+  },
+  "bonuses": {
+    "Basic": {
+      "chance": 0.8,
+      "bonuses": [
+        {
+          "desc": "+{coinFlat} coins on wins",
+          "coinFlat": [
+            3,
+            5
+          ]
+        },
+        {
+          "desc": "+{coinFlat} coins on slot wins",
+          "coinFlat": [
+            2,
+            4
+          ],
+          "game": "slot"
+        },
+        {
+          "desc": "+{gearDropPct}% gear drop chance",
+          "gearDropPct": [
+            0.5,
+            1
+          ]
+        },
+        {
+          "desc": "+0.5% Basic gear drop chance",
+          "tierChance": {
+            "Basic": 0.005
+          }
+        }
+      ]
+    },
+    "Fine": {
+      "chance": 0.6,
+      "bonuses": [
+        {
+          "desc": "+{coinFlat} coins on wins",
+          "coinFlat": [
+            8,
+            12
+          ]
+        },
+        {
+          "desc": "+{coinPct}% slot payouts",
+          "coinPct": [
+            1,
+            2
+          ],
+          "game": "slot"
+        },
+        {
+          "desc": "-{idlePct}% idle delay",
+          "idlePct": [
+            3,
+            5
+          ]
+        },
+        {
+          "desc": "+{gearDropPct}% gear drop chance",
+          "gearDropPct": [
+            1,
+            2
+          ]
+        },
+        {
+          "desc": "+1% Fine gear drop chance",
+          "tierChance": {
+            "Fine": 0.01
+          }
+        }
+      ]
+    },
+    "Rare": {
+      "chance": 0.5,
+      "bonuses": [
+        {
+          "desc": "+{coinFlat} coins on wins",
+          "coinFlat": [
+            18,
+            22
+          ]
+        },
+        {
+          "desc": "+{coinPct}% coin payouts",
+          "coinPct": [
+            2,
+            3
+          ]
+        },
+        {
+          "desc": "+{coinPct}% slot payouts",
+          "coinPct": [
+            3,
+            4
+          ],
+          "game": "slot"
+        },
+        {
+          "desc": "+{dropPct}% drop rate",
+          "dropPct": [
+            0.5,
+            1
+          ]
+        },
+        {
+          "desc": "-{idlePct}% idle delay on slots",
+          "idlePct": [
+            8,
+            12
+          ],
+          "game": "slot"
+        },
+        {
+          "desc": "+{gearDropPct}% gear drop chance",
+          "gearDropPct": [
+            1,
+            2
+          ]
+        },
+        {
+          "desc": "+1% Rare gear drop chance",
+          "tierChance": {
+            "Rare": 0.01
+          }
+        }
+      ]
+    },
+    "Epic": {
+      "chance": 0.4,
+      "bonuses": [
+        {
+          "desc": "+{coinFlat} coins on wins",
+          "coinFlat": [
+            35,
+            45
+          ]
+        },
+        {
+          "desc": "+{coinPct}% coin payouts",
+          "coinPct": [
+            4,
+            6
+          ]
+        },
+        {
+          "desc": "+{dropPct}% drop rate",
+          "dropPct": [
+            1,
+            2
+          ]
+        },
+        {
+          "desc": "-{idlePct}% idle delay",
+          "idlePct": [
+            8,
+            12
+          ]
+        },
+        {
+          "desc": "+{gearDropPct}% gear drop chance",
+          "gearDropPct": [
+            1.5,
+            2.5
+          ]
+        },
+        {
+          "desc": "+1.5% Epic gear drop chance",
+          "tierChance": {
+            "Epic": 0.015
+          }
+        }
+      ]
+    },
+    "Elite": {
+      "chance": 0.3,
+      "bonuses": [
+        {
+          "desc": "+{coinFlat} coins on wins",
+          "coinFlat": [
+            55,
+            65
+          ]
+        },
+        {
+          "desc": "+{coinPct}% coin payouts",
+          "coinPct": [
+            8,
+            12
+          ]
+        },
+        {
+          "desc": "+{dropPct}% drop rate",
+          "dropPct": [
+            1.5,
+            2.5
+          ]
+        },
+        {
+          "desc": "+{coinPct}% slot payouts",
+          "coinPct": [
+            12,
+            18
+          ],
+          "game": "slot"
+        },
+        {
+          "desc": "-{idlePct}% idle delay",
+          "idlePct": [
+            12,
+            18
+          ]
+        },
+        {
+          "desc": "+{gearDropPct}% gear drop chance",
+          "gearDropPct": [
+            2,
+            3
+          ]
+        },
+        {
+          "desc": "+2% Elite gear drop chance",
+          "tierChance": {
+            "Elite": 0.02
+          }
+        }
+      ]
+    },
+    "Mythic": {
+      "chance": 0.2,
+      "bonuses": [
+        {
+          "desc": "+{coinPct}% coin payouts",
+          "coinPct": [
+            18,
+            22
+          ]
+        },
+        {
+          "desc": "+{dropPct}% drop rate",
+          "dropPct": [
+            4,
+            5
+          ]
+        },
+        {
+          "desc": "-{idlePct}% idle delay",
+          "idlePct": [
+            18,
+            22
+          ]
+        },
+        {
+          "desc": "Adds an extra reel to slots",
+          "unique": "extraReel"
+        },
+        {
+          "desc": "+{gearDropPct}% gear drop chance",
+          "gearDropPct": [
+            3,
+            4
+          ]
+        },
+        {
+          "desc": "+3% Mythic gear drop chance",
+          "tierChance": {
+            "Mythic": 0.03
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "id": "pirate",
+  "name": "Pirate's Booty",
+  "tier": "Mythic",
+  "rows": 5,
+  "reels": 5,
+  "baseRows": 3,
+  "baseReels": 3,
+  "maxRows": 5,
+  "maxReels": 5,
+  "baseSymbolCount": 5,
+  "symbols": [
+    {
+      "key": "anchor",
+      "label": "Anchor",
+      "asset": "img/slot/pirate/symbols/anchor.png"
+    },
+    {
+      "key": "cannonball",
+      "label": "Cannonball",
+      "asset": "img/slot/pirate/symbols/cannonball.png"
+    },
+    {
+      "key": "treasure_map",
+      "label": "Treasure Map",
+      "asset": "img/slot/pirate/symbols/treasure_map.png"
+    },
+    {
+      "key": "parrot_feather",
+      "label": "Parrot Feather",
+      "asset": "img/slot/pirate/symbols/parrot_feather.png"
+    },
+    {
+      "key": "skull",
+      "label": "Skull",
+      "asset": "img/slot/pirate/symbols/skull.png"
+    },
+    {
+      "key": "pirate_hat",
+      "label": "Pirate Hat",
+      "asset": "img/slot/pirate/symbols/pirate_hat.png"
+    },
+    {
+      "key": "compass",
+      "label": "Compass",
+      "asset": "img/slot/pirate/symbols/compass.png"
+    },
+    {
+      "key": "treasure_chest",
+      "label": "Treasure Chest",
+      "asset": "img/slot/pirate/symbols/treasure_chest.png"
+    },
+    {
+      "key": "wild",
+      "label": "Wild",
+      "asset": "img/slot/pirate/symbols/wild.png"
+    },
+    {
+      "key": "bonus",
+      "label": "Bonus",
+      "asset": "img/slot/pirate/symbols/bonus.png"
+    }
+  ],
+  "payouts": {
+    "anchor": 10,
+    "cannonball": 11,
+    "treasure_map": 12,
+    "parrot_feather": 14,
+    "skull": 20,
+    "pirate_hat": 26,
+    "compass": 32,
+    "treasure_chest": 42,
+    "wild": 50,
+    "bonus": 125
+  },
+  "assets": {
+    "icon": "img/slot/pirate/icon.png",
+    "frame": "img/slot/classic/frame.png",
+    "background": {
+      "portrait": "img/slot/pirate/background_vertical.png",
+      "landscape": "img/slot/pirate/background_horizontal.png"
+    },
+    "spinButton": "img/slot/classic/spin-button.png",
+    "chip": "img/slot/classic/circle.png",
+    "bet": "img/slot/classic/square.png",
+    "info": "img/slot/classic/rectangle.png",
+    "placeholder": "img/slot/placeholder.png"
+  },
+  "spinTiming": {
+    "overspin": [
+      10,
+      12,
+      15
+    ],
+    "brake": 180
+  },
+  "upgradeCosts": {
+    "rows": [
+      600,
+      1450
+    ],
+    "reels": [
+      700,
+      1800
+    ],
+    "lines": [
+      450,
+      1100,
+      2750
+    ]
+  }
+}

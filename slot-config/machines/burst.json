@@ -1,0 +1,112 @@
+{
+  "id": "burst",
+  "name": "Burst Booster",
+  "tier": "Fine",
+  "rows": 5,
+  "reels": 5,
+  "baseRows": 3,
+  "baseReels": 3,
+  "maxRows": 5,
+  "maxReels": 5,
+  "baseSymbolCount": 5,
+  "symbols": [
+    {
+      "key": "fuse",
+      "label": "Fuse",
+      "asset": "img/slot/burst/symbols/fuse.png"
+    },
+    {
+      "key": "emblem",
+      "label": "Emblem",
+      "asset": "img/slot/burst/symbols/emblem.png"
+    },
+    {
+      "key": "star",
+      "label": "Star",
+      "asset": "img/slot/burst/symbols/star.png"
+    },
+    {
+      "key": "firework",
+      "label": "Firework",
+      "asset": "img/slot/burst/symbols/firework.png"
+    },
+    {
+      "key": "medal",
+      "label": "Medal",
+      "asset": "img/slot/burst/symbols/medal.png"
+    },
+    {
+      "key": "orb",
+      "label": "Orb",
+      "asset": "img/slot/burst/symbols/orb.png"
+    },
+    {
+      "key": "wheel",
+      "label": "Wheel",
+      "asset": "img/slot/burst/symbols/wheel.png"
+    },
+    {
+      "key": "seven",
+      "label": "Seven",
+      "asset": "img/slot/burst/symbols/seven.png"
+    },
+    {
+      "key": "wild",
+      "label": "Wild",
+      "asset": "img/slot/burst/symbols/wild.png"
+    },
+    {
+      "key": "bonus",
+      "label": "Bonus",
+      "asset": "img/slot/burst/symbols/bonus.png"
+    }
+  ],
+  "payouts": {
+    "fuse": 6,
+    "emblem": 7,
+    "star": 8,
+    "firework": 9,
+    "medal": 12,
+    "orb": 16,
+    "wheel": 22,
+    "seven": 30,
+    "wild": 50,
+    "bonus": 80
+  },
+  "assets": {
+    "icon": "img/slot/burst/icon.png",
+    "frame": "img/slot/burst/frame.png",
+    "background": {
+      "portrait": "img/slot/burst/background_vertical.png",
+      "landscape": "img/slot/burst/background_horizontal.png"
+    },
+    "spinButton": "img/slot/classic/spin-button.png",
+    "chip": "img/slot/classic/circle.png",
+    "bet": "img/slot/classic/square.png",
+    "info": "img/slot/classic/rectangle.png",
+    "placeholder": "img/slot/placeholder.png"
+  },
+  "spinTiming": {
+    "overspin": [
+      10,
+      12,
+      15
+    ],
+    "brake": 180
+  },
+  "upgradeCosts": {
+    "rows": [
+      600,
+      1450
+    ],
+    "reels": [
+      700,
+      1800
+    ],
+    "lines": [
+      450,
+      1100,
+      2750
+    ]
+  }
+}
