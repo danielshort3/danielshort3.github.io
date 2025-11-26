@@ -1,0 +1,118 @@
+{
+  "id": "cyber",
+  "name": "Cyber Spin",
+  "tier": "Elite",
+  "rows": 5,
+  "reels": 5,
+  "baseRows": 3,
+  "baseReels": 3,
+  "maxRows": 5,
+  "maxReels": 5,
+  "baseSymbolCount": 5,
+  "symbols": [
+    {
+      "key": "circuit",
+      "label": "Circuit",
+      "asset": "img/slot/cyber/symbols/circuit.png"
+    },
+    {
+      "key": "heart",
+      "label": "Heart",
+      "asset": "img/slot/cyber/symbols/heart.png"
+    },
+    {
+      "key": "pixel_byte",
+      "label": "Pixel Byte",
+      "asset": "img/slot/cyber/symbols/pixel_byte.png"
+    },
+    {
+      "key": "laser_pointer",
+      "label": "Laser Pointer",
+      "asset": "img/slot/cyber/symbols/laser_pointer.png"
+    },
+    {
+      "key": "neon_diamond",
+      "label": "Neon Diamond",
+      "asset": "img/slot/cyber/symbols/neon_diamond.png"
+    },
+    {
+      "key": "spade",
+      "label": "Spade",
+      "asset": "img/slot/cyber/symbols/spade.png"
+    },
+    {
+      "key": "pixel_seven",
+      "label": "Pixel Seven",
+      "asset": "img/slot/cyber/symbols/pixel_seven.png"
+    },
+    {
+      "key": "laser_star",
+      "label": "Laser Star",
+      "asset": "img/slot/cyber/symbols/laser_star.png"
+    },
+    {
+      "key": "cyber_crown",
+      "label": "Cyber Crown",
+      "asset": "img/slot/cyber/symbols/cyber_crown.png"
+    },
+    {
+      "key": "wild",
+      "label": "Wild",
+      "asset": "img/slot/cyber/symbols/wild.png"
+    },
+    {
+      "key": "bonus",
+      "label": "Bonus",
+      "asset": "img/slot/cyber/symbols/bonus.png"
+    }
+  ],
+  "payouts": {
+    "circuit": 9,
+    "heart": 10,
+    "pixel_byte": 11,
+    "laser_pointer": 13,
+    "neon_diamond": 18,
+    "spade": 24,
+    "pixel_seven": 30,
+    "laser_star": 35,
+    "cyber_crown": 45,
+    "wild": 50,
+    "bonus": 110
+  },
+  "assets": {
+    "icon": "img/slot/cyber/icon.png",
+    "frame": "img/slot/classic/frame.png",
+    "background": {
+      "portrait": "img/slot/cyber/background_vertical.png",
+      "landscape": "img/slot/cyber/background_horizontal.png"
+    },
+    "spinButton": "img/slot/classic/spin-button.png",
+    "chip": "img/slot/classic/circle.png",
+    "bet": "img/slot/classic/square.png",
+    "info": "img/slot/classic/rectangle.png",
+    "placeholder": "img/slot/placeholder.png"
+  },
+  "spinTiming": {
+    "overspin": [
+      10,
+      12,
+      15
+    ],
+    "brake": 180
+  },
+  "upgradeCosts": {
+    "rows": [
+      600,
+      1450
+    ],
+    "reels": [
+      700,
+      1800
+    ],
+    "lines": [
+      450,
+      1100,
+      2750
+    ]
+  }
+}

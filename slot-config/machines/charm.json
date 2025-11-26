@@ -1,0 +1,118 @@
+{
+  "id": "charm",
+  "name": "Lucky Charm",
+  "tier": "Rare",
+  "rows": 5,
+  "reels": 5,
+  "baseRows": 3,
+  "baseReels": 3,
+  "maxRows": 5,
+  "maxReels": 5,
+  "baseSymbolCount": 5,
+  "symbols": [
+    {
+      "key": "clover",
+      "label": "Clover",
+      "asset": "img/slot/charm/symbols/clover.png"
+    },
+    {
+      "key": "horseshoe",
+      "label": "Horseshoe",
+      "asset": "img/slot/charm/symbols/horseshoe.png"
+    },
+    {
+      "key": "wishbone",
+      "label": "Wishbone",
+      "asset": "img/slot/charm/symbols/wishbone.png"
+    },
+    {
+      "key": "ladybug",
+      "label": "Ladybug",
+      "asset": "img/slot/charm/symbols/ladybug.png"
+    },
+    {
+      "key": "rabbit_foot",
+      "label": "Rabbit Foot",
+      "asset": "img/slot/charm/symbols/rabbit_foot.png"
+    },
+    {
+      "key": "rainbow",
+      "label": "Rainbow",
+      "asset": "img/slot/charm/symbols/rainbow.png"
+    },
+    {
+      "key": "lucky_hat",
+      "label": "Lucky Hat",
+      "asset": "img/slot/charm/symbols/lucky_hat.png"
+    },
+    {
+      "key": "shamrock",
+      "label": "Shamrock",
+      "asset": "img/slot/charm/symbols/shamrock.png"
+    },
+    {
+      "key": "pot_of_gold",
+      "label": "Pot Of Gold",
+      "asset": "img/slot/charm/symbols/pot_of_gold.png"
+    },
+    {
+      "key": "wild",
+      "label": "Wild",
+      "asset": "img/slot/charm/symbols/wild.png"
+    },
+    {
+      "key": "bonus",
+      "label": "Bonus",
+      "asset": "img/slot/charm/symbols/bonus.png"
+    }
+  ],
+  "payouts": {
+    "clover": 7,
+    "horseshoe": 8,
+    "wishbone": 9,
+    "ladybug": 10,
+    "rabbit_foot": 12,
+    "rainbow": 18,
+    "lucky_hat": 24,
+    "shamrock": 28,
+    "pot_of_gold": 35,
+    "wild": 50,
+    "bonus": 90
+  },
+  "assets": {
+    "icon": "img/slot/charm/icon.png",
+    "frame": "img/slot/charm/frame.png",
+    "background": {
+      "portrait": "img/slot/charm/background_vertical.png",
+      "landscape": "img/slot/charm/background_horizontal.png"
+    },
+    "spinButton": "img/slot/classic/spin-button.png",
+    "chip": "img/slot/classic/circle.png",
+    "bet": "img/slot/classic/square.png",
+    "info": "img/slot/classic/rectangle.png",
+    "placeholder": "img/slot/placeholder.png"
+  },
+  "spinTiming": {
+    "overspin": [
+      10,
+      12,
+      15
+    ],
+    "brake": 180
+  },
+  "upgradeCosts": {
+    "rows": [
+      600,
+      1450
+    ],
+    "reels": [
+      700,
+      1800
+    ],
+    "lines": [
+      450,
+      1100,
+      2750
+    ]
+  }
+}

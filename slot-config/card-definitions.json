@@ -1,0 +1,517 @@
+{
+  "definitions": [
+    {
+      "name": "Lucky Penny",
+      "tier": "Rare",
+      "icon": "assets/vip_cards/basic/vip_lucky_penny.png",
+      "desc": "A small copper coin said to bring fortune. It slightly boosts coin gains while equipped.",
+      "synergy": {
+        "key": "slotBonus",
+        "with": "Coin Saver"
+      }
+    },
+    {
+      "name": "Quick Spin",
+      "tier": "Fine",
+      "icon": "assets/vip_cards/basic/vip_quick_draw.png",
+      "desc": "Sharpen your reflexes to keep the action moving. Shortens idle delay between auto spins."
+    },
+    {
+      "name": "Coin Saver",
+      "tier": "Basic",
+      "icon": "assets/vip_cards/basic/vip_coin_saver.png",
+      "desc": "Stretch every coin a little further. Shop prices are reduced when this card is active.",
+      "synergy": {
+        "key": "slotBonus",
+        "with": "Lucky Penny"
+      }
+    },
+    {
+      "name": "Rest Stop",
+      "tier": "Basic",
+      "icon": "assets/vip_cards/basic/vip_rest_stop.png",
+      "desc": "Take a breather between games. Energy recovers more quickly over time."
+    },
+    {
+      "name": "Reel Shark",
+      "tier": "Basic",
+      "icon": "assets/vip_cards/basic/vip_shuffle_assist.png",
+      "desc": "Slick card handling speeds up shuffles. VIP card shuffles complete sooner."
+    },
+    {
+      "name": "Chipper",
+      "tier": "Fine",
+      "icon": "assets/vip_cards/fine/vip_chipper.png",
+      "desc": "Refined technique keeps the reels spinning. Increases coin winnings from slots.",
+      "synergy": {
+        "key": "slotBonus",
+        "with": "Drop Magnet"
+      }
+    },
+    {
+      "name": "Drop Magnet",
+      "tier": "Fine",
+      "icon": "assets/vip_cards/fine/vip_drop_magnet.png",
+      "desc": "Loot seems to find its way to you. Improves drop rates across all games.",
+      "synergy": {
+        "key": "slotBonus",
+        "with": "Chipper"
+      }
+    },
+    {
+      "name": "Skillful Spinner",
+      "tier": "Fine",
+      "icon": "assets/vip_cards/fine/vip_skillful_spinner.png",
+      "desc": "Spin with flair for a chance at extra turns. Occasionally grants a bonus spin."
+    },
+    {
+      "name": "Calculated Spin",
+      "tier": "Fine",
+      "icon": "assets/vip_cards/fine/vip_calculated_risk.png",
+      "desc": "Your bets pay off more often. Has a chance to double your winnings."
+    },
+    {
+      "name": "Backroom Tips",
+      "tier": "Rare",
+      "icon": "assets/vip_cards/fine/vip_backroom_tips.png",
+      "desc": "Insider secrets accelerate your progress. Experience gain is increased."
+    },
+    {
+      "name": "Double Spinner",
+      "tier": "Rare",
+      "icon": "assets/vip_cards/rare/vip_double_downer.png",
+      "desc": "Spin two sets of reels at once for extra thrills. Double-spin payouts are increased.",
+      "synergy": {
+        "key": "slotBonus",
+        "with": "Lucky Charm"
+      }
+    },
+    {
+      "name": "Lucky Charm",
+      "tier": "Rare",
+      "icon": "assets/vip_cards/rare/vip_lucky_charm.png",
+      "desc": "A classic token of good fortune. Provides a modest bonus to coin earnings.",
+      "synergy": {
+        "key": "slotBonus",
+        "with": "Double Spinner"
+      }
+    },
+    {
+      "name": "Jackpot Tease",
+      "tier": "Basic",
+      "icon": "assets/vip_cards/rare/vip_jackpot_tease.png",
+      "desc": "Jackpots feel just within reach. Slightly increases near-jackpot outcomes."
+    },
+    {
+      "name": "Strong Spin",
+      "tier": "Rare",
+      "icon": "assets/vip_cards/rare/vip_strong_hand.png",
+      "desc": "Your fusions rarely falter. Raises the success rate when fusing cards together."
+    },
+    {
+      "name": "Reel Greaser",
+      "tier": "Basic",
+      "icon": "assets/vip_cards/rare/vip_wheel_greaser.png",
+      "desc": "Smooth mechanics keep the reels whirling. Reel animations play a bit faster."
+    },
+    {
+      "name": "Synergy Catalyst",
+      "tier": "Epic",
+      "icon": "assets/vip_cards/epic/vip_synergy_catalyst.png",
+      "desc": "Helps every combo work in harmony. Boosts bonuses from active synergies.",
+      "synergy": {
+        "key": "slotBonus",
+        "with": "Grand Prize Hunter"
+      }
+    },
+    {
+      "name": "Grand Prize Hunter",
+      "tier": "Epic",
+      "icon": "assets/vip_cards/epic/vip_grand_prize_hunter.png",
+      "desc": "Always on the lookout for the biggest win. Slightly improves jackpot chances.",
+      "synergy": {
+        "key": "slotBonus",
+        "with": "Synergy Catalyst"
+      }
+    },
+    {
+      "name": "Vip Whisperer",
+      "tier": "Epic",
+      "icon": "assets/vip_cards/epic/vip_vip_whisperer.png",
+      "desc": "Your VIP cards respond to your touch. They gain extra experience from play."
+    },
+    {
+      "name": "Stacked Reels",
+      "tier": "Epic",
+      "icon": "assets/vip_cards/epic/vip_stacked_deck.png",
+      "desc": "Luck stacks in your favor. Grants a chance for additional card drops."
+    },
+    {
+      "name": "Precision Spin",
+      "tier": "Epic",
+      "icon": "assets/vip_cards/epic/vip_precision_roll.png",
+      "desc": "Pinpoint timing aligns the symbols you need. Slightly boosts reel accuracy."
+    },
+    {
+      "name": "Chain Reaction",
+      "tier": "Elite",
+      "icon": "assets/vip_cards/elite/vip_chain_reaction.png",
+      "desc": "Winning streaks build unstoppable momentum. Provides a bonus for consecutive wins.",
+      "synergy": {
+        "key": "slotBonus",
+        "with": "Perfect Spin"
+      }
+    },
+    {
+      "name": "Perfect Spin",
+      "tier": "Elite",
+      "icon": "assets/vip_cards/elite/vip_perfect_draw.png",
+      "desc": "Hit the reels with flawless form. Raises the odds of high-value slot combos.",
+      "synergy": {
+        "key": "slotBonus",
+        "with": "Chain Reaction"
+      }
+    },
+    {
+      "name": "Burst Booster",
+      "tier": "Elite",
+      "icon": "assets/vip_cards/elite/vip_burst_booster.png",
+      "desc": "Keep the excitement going a little longer. Extends the duration of bursts."
+    },
+    {
+      "name": "Pure Luck",
+      "tier": "Elite",
+      "icon": "assets/vip_cards/elite/vip_pure_luck.png",
+      "desc": "Fortune flows through everything you do. Raises all random chances slightly."
+    },
+    {
+      "name": "House Edge Breaker",
+      "tier": "Elite",
+      "icon": "assets/vip_cards/elite/vip_house_edge_breaker.png",
+      "desc": "Tilt the odds back in your favor. Reduces the house edge across games."
+    },
+    {
+      "name": "Master Spinner",
+      "tier": "Mythic",
+      "icon": "assets/vip_cards/mythic/vip_master_gambler.png",
+      "desc": "Hard-won experience amplifies every effect. Boosts the power of all other cards.",
+      "synergy": {
+        "key": "slotBonus",
+        "with": "Fortune's Favor"
+      }
+    },
+    {
+      "name": "Fortune's Favor",
+      "tier": "Mythic",
+      "icon": "assets/vip_cards/mythic/vip_fortunes_favor.png",
+      "desc": "Misfortune has trouble sticking to you. Occasionally negates a losing result.",
+      "synergy": {
+        "key": "slotBonus",
+        "with": "Master Spinner"
+      }
+    },
+    {
+      "name": "Infinite Jackpot",
+      "tier": "Mythic",
+      "icon": "assets/vip_cards/mythic/vip_infinite_jackpot.png",
+      "desc": "Dream of an endless payout. Grants a tiny chance for a never-ending jackpot."
+    },
+    {
+      "name": "Time Dilation",
+      "tier": "Mythic",
+      "icon": "assets/vip_cards/mythic/vip_time_dilation.png",
+      "desc": "Bend the ticking clock to your advantage. Cooldowns expire faster."
+    },
+    {
+      "name": "Ultimate Synergy",
+      "tier": "Mythic",
+      "icon": "assets/vip_cards/mythic/vip_ultimate_synergy.png",
+      "desc": "Every system works in perfect concert. Greatly increases overall synergy power."
+    },
+    {
+      "name": "Eternal Fortune",
+      "tier": "Divine",
+      "icon": "assets/vip_cards/divine/vip_eternal_fortune.png",
+      "desc": "Unending luck flows through you. Greatly increases all winnings.",
+      "synergy": {
+        "key": "slotBonus",
+        "with": "Champion's Aura"
+      }
+    },
+    {
+      "name": "Champion's Aura",
+      "tier": "Divine",
+      "icon": "assets/vip_cards/divine/vip_champions_aura.png",
+      "desc": "Radiate a victorious presence. Raises effectiveness of all cards.",
+      "synergy": {
+        "key": "slotBonus",
+        "with": "Eternal Fortune"
+      }
+    },
+    {
+      "name": "Heavenly Boon",
+      "tier": "Divine",
+      "icon": "assets/vip_cards/divine/vip_heavenly_boon.png",
+      "desc": "Blessings descend from above. Periodically grants free VIP marks."
+    },
+    {
+      "name": "Providence's Hand",
+      "tier": "Divine",
+      "icon": "assets/vip_cards/divine/vip_providences_hand.png",
+      "desc": "Fate guides your every move. Dramatically increases rare drop chances."
+    },
+    {
+      "name": "Celestial Pact",
+      "tier": "Divine",
+      "icon": "assets/vip_cards/divine/vip_celestial_pact.png",
+      "desc": "Swear allegiance to fortune itself. Each spin has a slim chance for an incredible jackpot."
+    }
+  ],
+  "effects": {
+    "Lucky Penny": [
+      "+10% coin gain",
+      "+20% coin gain",
+      "+30% coin gain",
+      "+40% coin gain",
+      "+50% coin gain"
+    ],
+    "Quick Spin": [
+      "Idle delay reduced by 5%",
+      "Idle delay reduced by 10%",
+      "Idle delay reduced by 15%",
+      "Idle delay reduced by 20%",
+      "Idle delay reduced by 25%"
+    ],
+    "Coin Saver": [
+      "Shop prices reduced by 2%",
+      "Shop prices reduced by 4%",
+      "Shop prices reduced by 6%",
+      "Shop prices reduced by 8%",
+      "Shop prices reduced by 10%"
+    ],
+    "Rest Stop": [
+      "Energy recovers 5% faster",
+      "Energy recovers 10% faster",
+      "Energy recovers 15% faster",
+      "Energy recovers 20% faster",
+      "Energy recovers 25% faster"
+    ],
+    "Reel Shark": [
+      "Card shuffles 5% quicker",
+      "Card shuffles 10% quicker",
+      "Card shuffles 15% quicker",
+      "Card shuffles 20% quicker",
+      "Card shuffles 25% quicker"
+    ],
+    "Chipper": [
+      "+5% coin gain from slots",
+      "+10% coin gain from slots",
+      "+15% coin gain from slots",
+      "+20% coin gain from slots",
+      "+25% coin gain from slots"
+    ],
+    "Drop Magnet": [
+      "+5% drop rate",
+      "+10% drop rate",
+      "+15% drop rate",
+      "+20% drop rate",
+      "+25% drop rate"
+    ],
+    "Skillful Spinner": [
+      "+1% chance for bonus spin",
+      "+2% chance for bonus spin",
+      "+3% chance for bonus spin",
+      "+4% chance for bonus spin",
+      "+5% chance for bonus spin"
+    ],
+    "Calculated Spin": [
+      "+2% chance to double winnings",
+      "+4% chance to double winnings",
+      "+6% chance to double winnings",
+      "+8% chance to double winnings",
+      "+10% chance to double winnings"
+    ],
+    "Backroom Tips": [
+      "+10% XP gain",
+      "+20% XP gain",
+      "+30% XP gain",
+      "+40% XP gain",
+      "+50% XP gain"
+    ],
+    "Double Spinner": [
+      "+5% chance to double payout",
+      "+10% chance to double payout",
+      "+15% chance to double payout",
+      "+20% chance to double payout",
+      "+25% chance to double payout"
+    ],
+    "Lucky Charm": [
+      "+5% coin gain",
+      "+10% coin gain",
+      "+15% coin gain",
+      "+20% coin gain",
+      "+25% coin gain"
+    ],
+    "Jackpot Tease": [
+      "+2% near-jackpot chance",
+      "+4% near-jackpot chance",
+      "+6% near-jackpot chance",
+      "+8% near-jackpot chance",
+      "+10% near-jackpot chance"
+    ],
+    "Strong Spin": [
+      "+5% fusion success rate",
+      "+10% fusion success rate",
+      "+15% fusion success rate",
+      "+20% fusion success rate",
+      "+25% fusion success rate"
+    ],
+    "Reel Greaser": [
+      "Reels spin 5% faster",
+      "Reels spin 10% faster",
+      "Reels spin 15% faster",
+      "Reels spin 20% faster",
+      "Reels spin 25% faster"
+    ],
+    "Synergy Catalyst": [
+      "+5% synergy bonus",
+      "+10% synergy bonus",
+      "+15% synergy bonus",
+      "+20% synergy bonus",
+      "+25% synergy bonus"
+    ],
+    "Grand Prize Hunter": [
+      "+1% jackpot chance",
+      "+2% jackpot chance",
+      "+3% jackpot chance",
+      "+4% jackpot chance",
+      "+5% jackpot chance"
+    ],
+    "Vip Whisperer": [
+      "VIP cards gain 10% more XP",
+      "VIP cards gain 20% more XP",
+      "VIP cards gain 30% more XP",
+      "VIP cards gain 40% more XP",
+      "VIP cards gain 50% more XP"
+    ],
+    "Stacked Reels": [
+      "+2% chance for extra card drop",
+      "+4% chance for extra card drop",
+      "+6% chance for extra card drop",
+      "+8% chance for extra card drop",
+      "+10% chance for extra card drop"
+    ],
+    "Precision Spin": [
+      "+5% symbol alignment chance",
+      "+10% symbol alignment chance",
+      "+15% symbol alignment chance",
+      "+20% symbol alignment chance",
+      "+25% symbol alignment chance"
+    ],
+    "Chain Reaction": [
+      "+3% bonus per consecutive win",
+      "+6% bonus per consecutive win",
+      "+9% bonus per consecutive win",
+      "+12% bonus per consecutive win",
+      "+15% bonus per consecutive win"
+    ],
+    "Perfect Spin": [
+      "+5% high-value combo chance",
+      "+10% high-value combo chance",
+      "+15% high-value combo chance",
+      "+20% high-value combo chance",
+      "+25% high-value combo chance"
+    ],
+    "Burst Booster": [
+      "+1s burst duration",
+      "+2s burst duration",
+      "+3s burst duration",
+      "+4s burst duration",
+      "+5s burst duration"
+    ],
+    "Pure Luck": [
+      "+1% to all random chances",
+      "+2% to all random chances",
+      "+3% to all random chances",
+      "+4% to all random chances",
+      "+5% to all random chances"
+    ],
+    "House Edge Breaker": [
+      "Reduce house edge by 1%",
+      "Reduce house edge by 2%",
+      "Reduce house edge by 3%",
+      "Reduce house edge by 4%",
+      "Reduce house edge by 5%"
+    ],
+    "Master Spinner": [
+      "All card effects +2%",
+      "All card effects +4%",
+      "All card effects +6%",
+      "All card effects +8%",
+      "All card effects +10%"
+    ],
+    "Fortune's Favor": [
+      "2% chance to negate losses",
+      "4% chance to negate losses",
+      "6% chance to negate losses",
+      "8% chance to negate losses",
+      "10% chance to negate losses"
+    ],
+    "Infinite Jackpot": [
+      "0.05% chance for endless jackpot",
+      "0.10% chance for endless jackpot",
+      "0.15% chance for endless jackpot",
+      "0.20% chance for endless jackpot",
+      "0.25% chance for endless jackpot"
+    ],
+    "Time Dilation": [
+      "Cooldowns expire 5% faster",
+      "Cooldowns expire 10% faster",
+      "Cooldowns expire 15% faster",
+      "Cooldowns expire 20% faster",
+      "Cooldowns expire 25% faster"
+    ],
+    "Ultimate Synergy": [
+      "+10% synergy power",
+      "+20% synergy power",
+      "+30% synergy power",
+      "+40% synergy power",
+      "+50% synergy power"
+    ],
+    "Eternal Fortune": [
+      "+20% all winnings",
+      "+40% all winnings",
+      "+60% all winnings",
+      "+80% all winnings",
+      "+100% all winnings"
+    ],
+    "Champion's Aura": [
+      "All card effects +5%",
+      "All card effects +10%",
+      "All card effects +15%",
+      "All card effects +20%",
+      "All card effects +25%"
+    ],
+    "Heavenly Boon": [
+      "1 VIP mark every 30m",
+      "1 VIP mark every 24m",
+      "1 VIP mark every 18m",
+      "1 VIP mark every 12m",
+      "1 VIP mark every 6m"
+    ],
+    "Providence's Hand": [
+      "+5% rare drop chance",
+      "+10% rare drop chance",
+      "+15% rare drop chance",
+      "+20% rare drop chance",
+      "+25% rare drop chance"
+    ],
+    "Celestial Pact": [
+      "0.1% chance for divine jackpot",
+      "0.2% chance for divine jackpot",
+      "0.3% chance for divine jackpot",
+      "0.4% chance for divine jackpot",
+      "0.5% chance for divine jackpot"
+    ]
+  }
+}

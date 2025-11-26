@@ -27,6 +27,9 @@ module.exports = function runSlotMachineDemoTests({ assert, checkFileContains })
   checkFileContains('demos/slot-machine-demo.html', 'data-machine-config="slot-config/classic.json"');
   checkFileContains('demos/slot-machine-demo.html', 'id="slot-grid"');
   checkFileContains('demos/slot-machine-demo.html', 'id="upgrade-grid"');
+  checkFileContains('demos/slot-machine-demo.html', 'id="machine-list"');
+  checkFileContains('demos/slot-machine-demo.html', 'id="gear-slots"');
+  checkFileContains('demos/slot-machine-demo.html', 'id="card-slots"');
   checkFileContains('demos/slot-machine-demo.html', 'slot-config/upgrade-definitions.json');
   checkFileContains('demos/slot-machine-demo.html', 'id="debug-add-coins"');
   checkFileContains('demos/slot-machine-demo.html', 'id="daily-claim-btn"');
@@ -55,6 +58,41 @@ module.exports = function runSlotMachineDemoTests({ assert, checkFileContains })
     assert(Number.isFinite(def.cost), `upgrade "${def.key}" missing numeric cost`);
     assert(typeof def.category === 'string' && def.category.length > 0, `upgrade "${def.key}" missing category`);
   });
+
+  const machineIndexPath = path.join('slot-config', 'machines', 'index.json');
+  assert(fs.existsSync(machineIndexPath), 'slot-config/machines/index.json missing');
+  const machineIds = JSON.parse(fs.readFileSync(machineIndexPath, 'utf8'));
+  ['classic','burst','charm','goldrush','cyber','pirate','dragon','cosmic'].forEach(id => {
+    assert(machineIds.includes(id), `machine index missing ${id}`);
+    const cfgPath = path.join('slot-config', 'machines', `${id}.json`);
+    assert(fs.existsSync(cfgPath), `machine config missing for ${id}`);
+    const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
+    assert(Array.isArray(cfg.symbols) && cfg.symbols.length >= 9, `${id} should include symbol definitions`);
+    const iconPath = cfg.assets && cfg.assets.icon;
+    assert(iconPath && fs.existsSync(iconPath), `${id} icon missing at ${iconPath}`);
+    const symAsset = cfg.symbols[0] && cfg.symbols[0].asset;
+    assert(symAsset && fs.existsSync(symAsset), `${id} first symbol asset missing`);
+  });
+
+  const dropTables = JSON.parse(fs.readFileSync(path.join('slot-config', 'drop-tables.json'), 'utf8'));
+  const tableKeys = Object.keys(dropTables.tables || {});
+  machineIds.forEach(id => {
+    assert(tableKeys.includes(id), `drop table missing machine key ${id}`);
+  });
+
+  const gearDefsPath = path.join('slot-config', 'gear-definitions.json');
+  assert(fs.existsSync(gearDefsPath), 'gear definitions missing');
+  const gearDefs = JSON.parse(fs.readFileSync(gearDefsPath, 'utf8'));
+  assert(Array.isArray(gearDefs.rarities) && gearDefs.rarities.length >= 3, 'gear definitions missing rarities');
+  assert(gearDefs.bonuses && gearDefs.bonuses.Basic, 'gear bonuses missing Basic tier');
+  assert(fs.existsSync('img/slot/gear/basic/gear_basic_accessory.png'), 'basic gear icon missing');
+
+  const cardDefsPath = path.join('slot-config', 'card-definitions.json');
+  assert(fs.existsSync(cardDefsPath), 'card definitions missing');
+  const cardDefs = JSON.parse(fs.readFileSync(cardDefsPath, 'utf8'));
+  assert(Array.isArray(cardDefs.definitions) && cardDefs.definitions.length > 10, 'card definitions too small');
+  assert(cardDefs.effects && cardDefs.effects['Lucky Penny'], 'card effects missing Lucky Penny');
+  assert(fs.existsSync('img/slot/cards/basic/vip_lucky_penny.png'), 'card icon missing');
 
   const lambda = require('../aws/slot-machine-function/index.js');
   assert(lambda && typeof lambda._getUpgradeDefinition === 'function', 'lambda upgrade helper missing');

@@ -1,0 +1,112 @@
+{
+  "id": "cosmic",
+  "name": "Cosmic Chaos",
+  "tier": "Divine",
+  "rows": 5,
+  "reels": 5,
+  "baseRows": 3,
+  "baseReels": 3,
+  "maxRows": 5,
+  "maxReels": 5,
+  "baseSymbolCount": 5,
+  "symbols": [
+    {
+      "key": "meteor",
+      "label": "Meteor",
+      "asset": "img/slot/cosmic/symbols/meteor.png"
+    },
+    {
+      "key": "rocket",
+      "label": "Rocket",
+      "asset": "img/slot/cosmic/symbols/rocket.png"
+    },
+    {
+      "key": "satellite",
+      "label": "Satellite",
+      "asset": "img/slot/cosmic/symbols/satellite.png"
+    },
+    {
+      "key": "asteroid",
+      "label": "Asteroid",
+      "asset": "img/slot/cosmic/symbols/asteroid.png"
+    },
+    {
+      "key": "planet",
+      "label": "Planet",
+      "asset": "img/slot/cosmic/symbols/planet.png"
+    },
+    {
+      "key": "galaxy_swirl",
+      "label": "Galaxy Swirl",
+      "asset": "img/slot/cosmic/symbols/galaxy_swirl.png"
+    },
+    {
+      "key": "alien",
+      "label": "Alien",
+      "asset": "img/slot/cosmic/symbols/alien.png"
+    },
+    {
+      "key": "crystal",
+      "label": "Crystal",
+      "asset": "img/slot/cosmic/symbols/crystal.png"
+    },
+    {
+      "key": "wild",
+      "label": "Wild",
+      "asset": "img/slot/cosmic/symbols/wild.png"
+    },
+    {
+      "key": "bonus",
+      "label": "Bonus",
+      "asset": "img/slot/cosmic/symbols/bonus.png"
+    }
+  ],
+  "payouts": {
+    "meteor": 12,
+    "rocket": 13,
+    "satellite": 14,
+    "asteroid": 16,
+    "planet": 24,
+    "galaxy_swirl": 32,
+    "alien": 42,
+    "crystal": 55,
+    "wild": 50,
+    "bonus": 170
+  },
+  "assets": {
+    "icon": "img/slot/cosmic/icon.png",
+    "frame": "img/slot/cosmic/frame.png",
+    "background": {
+      "portrait": "img/slot/cosmic/background_vertical.png",
+      "landscape": "img/slot/cosmic/background_horizontal.png"
+    },
+    "spinButton": "img/slot/classic/spin-button.png",
+    "chip": "img/slot/classic/circle.png",
+    "bet": "img/slot/classic/square.png",
+    "info": "img/slot/classic/rectangle.png",
+    "placeholder": "img/slot/placeholder.png"
+  },
+  "spinTiming": {
+    "overspin": [
+      10,
+      12,
+      15
+    ],
+    "brake": 180
+  },
+  "upgradeCosts": {
+    "rows": [
+      600,
+      1450
+    ],
+    "reels": [
+      700,
+      1800
+    ],
+    "lines": [
+      450,
+      1100,
+      2750
+    ]
+  }
+}
