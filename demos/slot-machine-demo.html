@@ -1210,11 +1210,14 @@
     .action-buttons .spin-btn {
       width: 100%;
     }
+    .action-select {
+      display: none;
+    }
     .spin-btn {
       border: none;
       border-radius: 16px;
-      padding: 16px 22px;
-      font-size: 1.05rem;
+      padding: 14px 18px;
+      font-size: 1rem;
       font-weight: 700;
       letter-spacing: .01em;
       color: #041226;
@@ -1471,7 +1474,7 @@
         display: flex;
         flex-direction: column;
         justify-content: center;
-        min-height: calc(var(--app-vh, 1vh) * 0.62);
+        min-height: calc(var(--app-vh, 1vh) * 0.68);
         padding: 6px;
       }
       .machine-frame__reels {
@@ -1482,6 +1485,7 @@
         justify-content: center;
         padding: 4px 6px;
         overflow: hidden;
+        max-height: calc(var(--app-vh, 1vh) * 0.7);
       }
       .machine-frame__reels .slot-grid {
         align-content: center;
@@ -1514,7 +1518,7 @@
       }
       .slot-grid {
         gap: 8px;
-        --cell-size: clamp(98px, 28vw, 160px);
+        --cell-size: clamp(110px, 32vw, 180px);
       }
       .slot-grid .slot-cell {
         border-width: 1px;
@@ -1525,9 +1529,10 @@
       }
       .hud {
         display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 6px;
-    }
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+        order: 3;
+      }
     .hud-card {
       padding: 6px 8px;
       min-height: 54px;
@@ -1543,15 +1548,27 @@
         min-height: 42px;
       }
       .action-buttons {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px;
-        justify-items: stretch;
+        display: flex;
+        align-items: center;
+        gap: 6px;
       }
       .action-buttons .spin-btn {
-        grid-column: 1 / -1;
-        min-height: 54px;
-        font-size: 1rem;
+        flex: 1;
+        min-height: 52px;
+        font-size: .98rem;
+      }
+      .line-btn {
+        display: none;
+      }
+      .action-select {
+        display: block;
+        width: 44px;
+        padding: 8px 6px;
+        border-radius: 12px;
+        border: 1px solid rgba(148,163,184,.35);
+        background: rgba(8,12,24,.9);
+        color: var(--text);
+        font-size: .85rem;
       }
       .account-sheet {
         width: calc(100% - 32px);
@@ -1806,6 +1823,14 @@
             <button type="button" class="ghost-btn secondary line-btn" id="premium-shop-btn">Premium</button>
             <button type="button" class="ghost-btn secondary line-btn" id="payout-skill-btn">Payout+</button>
             <button type="button" class="ghost-btn secondary line-btn" id="worker-btn">Worker</button>
+            <select id="action-select" class="action-select" aria-label="Quick actions">
+              <option value="">Actions</option>
+              <option value="auto">Auto</option>
+              <option value="payout">Payout+</option>
+              <option value="lines">Show lines</option>
+              <option value="premium">Premium</option>
+              <option value="worker">Worker</option>
+            </select>
             <button type="button" class="spin-btn" id="spin-btn" disabled>Spin</button>
           </div>
         </div>
@@ -2529,6 +2554,7 @@
         machinePickerIcon: document.getElementById('machine-picker-icon'),
         machinePickerLabel: document.getElementById('machine-picker-label'),
         machineSelect: document.getElementById('machine-select'),
+        actionSelect: document.getElementById('action-select'),
         machineName: document.getElementById('machine-name'),
         machineTier: document.getElementById('machine-tier'),
         dailyStatus: document.getElementById('daily-status'),
@@ -5916,6 +5942,30 @@
       els.machinePicker?.addEventListener('click', () => {
         els.machineSelect?.focus();
         els.machineSelect?.click();
+      });
+      els.actionSelect?.addEventListener('change', (event) => {
+        const val = event.target.value;
+        event.target.value = '';
+        if (state.busy) return;
+        switch (val) {
+          case 'auto':
+            els.autoSpinBtn?.click();
+            break;
+          case 'payout':
+            els.payoutSkillBtn?.click();
+            break;
+          case 'lines':
+            els.lineFlashBtn?.click();
+            break;
+          case 'premium':
+            els.premiumBtn?.click();
+            break;
+          case 'worker':
+            els.workerBtn?.click();
+            break;
+          default:
+            break;
+        }
       });
       els.dailyClaimBtn?.addEventListener('click', () => {
         if (state.busy) return;
