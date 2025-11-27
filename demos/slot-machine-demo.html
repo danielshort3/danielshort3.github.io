@@ -1109,13 +1109,13 @@
     }
     .hud {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 8px;
       align-items: stretch;
     }
     .hud-card {
       border-radius: 12px;
-      padding: 10px 12px;
+      padding: 8px 10px;
       background: linear-gradient(180deg, rgba(17,24,39,.94), rgba(11,16,30,.92));
       border: 1px solid rgba(148,163,184,.26);
       box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
@@ -1138,8 +1138,8 @@
     }
     .bet-controls {
       display: grid;
-      grid-template-columns: 44px 1fr 44px auto;
-      gap: 10px;
+      grid-template-columns: 40px 1fr 40px auto;
+      gap: 8px;
       align-items: center;
     }
     .bet-controls input[type="range"] {
@@ -1157,8 +1157,8 @@
       background: linear-gradient(180deg, rgba(15,23,42,.95), rgba(9,14,26,.95));
       color: #e2e8f0;
       border-radius: 12px;
-      padding: 9px 12px;
-      font-size: .92rem;
+      padding: 8px 10px;
+      font-size: .88rem;
       font-weight: 600;
       cursor: pointer;
       box-shadow: 0 8px 18px rgba(0,0,0,.25);
@@ -1168,7 +1168,7 @@
       cursor: not-allowed;
     }
     .machine-messages {
-      min-height: 40px;
+      min-height: 32px;
       display: grid;
       gap: 6px;
     }
@@ -1452,8 +1452,8 @@
         display: flex;
         flex-direction: column;
         gap: 10px;
-        padding: 12px 14px;
-        border-radius: 20px;
+        padding: 10px 12px;
+        border-radius: 18px;
         box-shadow: 0 25px 60px rgba(2,6,23,.65);
         min-height: 0;
         margin-bottom: 86px;
@@ -1471,8 +1471,8 @@
         display: flex;
         flex-direction: column;
         justify-content: center;
-        min-height: calc(var(--app-vh, 1vh) * 0.55);
-        padding: 8px;
+        min-height: calc(var(--app-vh, 1vh) * 0.62);
+        padding: 6px;
       }
       .machine-frame__reels {
         flex: 1;
@@ -1496,8 +1496,8 @@
       .control-deck {
         display: flex;
         flex-direction: column;
-        gap: 12px;
-        padding: 14px;
+        gap: 10px;
+        padding: 10px 12px;
         flex: 0 0 auto;
         background: linear-gradient(165deg, rgba(15,23,42,.9), rgba(8,12,24,.94));
       }
@@ -1513,8 +1513,8 @@
         width: auto;
       }
       .slot-grid {
-        gap: 10px;
-        --cell-size: clamp(90px, 26vw, 140px);
+        gap: 8px;
+        --cell-size: clamp(98px, 28vw, 160px);
       }
       .slot-grid .slot-cell {
         border-width: 1px;
@@ -1529,11 +1529,11 @@
       gap: 6px;
     }
     .hud-card {
-      padding: 8px 10px;
-      min-height: 62px;
+      padding: 6px 8px;
+      min-height: 54px;
     }
     .hud-value {
-      font-size: .9rem;
+      font-size: .85rem;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -1545,13 +1545,13 @@
       .action-buttons {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
+        gap: 8px;
         justify-items: stretch;
       }
       .action-buttons .spin-btn {
         grid-column: 1 / -1;
-        min-height: 58px;
-        font-size: 1.05rem;
+        min-height: 54px;
+        font-size: 1rem;
       }
       .account-sheet {
         width: calc(100% - 32px);
