@@ -2288,7 +2288,11 @@
           // ignore
         }
       };
-      const localUpgrades = loadLocalUpgrades();
+      const localUpgrades = loadLocalUpgrades(); // shape: { [machineId]: { upgradeKey: level } }
+      const localUpgradeBucket = (machineId = state.machine.id) => {
+        if (!localUpgrades[machineId]) localUpgrades[machineId] = {};
+        return localUpgrades[machineId];
+      };
       const clearLocalUpgradeState = () => {
         Object.keys(localUpgrades || {}).forEach(key => { delete localUpgrades[key]; });
         try {
@@ -2301,9 +2305,10 @@
         state.autoSpin = { active: false, remaining: 0 };
       };
       const getEffectiveUpgradeLevel = (key) => {
-        const base = Number(state.serverUpgrades?.[key] || 0);
+        const currentLocal = localUpgradeBucket();
+        const base = Number(getMachineUpgrades(state.machine.id)?.[key] || state.serverUpgrades?.[key] || 0);
         const pending = Number(state.pendingUpgrades?.[key] || 0);
-        const local = Number(localUpgrades?.[key] || 0);
+        const local = Number(currentLocal?.[key] || 0);
         return Math.max(0, base + pending + local);
       };
 
@@ -2311,9 +2316,14 @@
       const machineScale = (id = state.machine.id) => Math.pow(1000, machineIndex(id));
       const ensureMachineProgress = (id = state.machine.id) => {
         if (!state.machines[id]) {
-          state.machines[id] = { xp: 0, lvl: 0, unlocked: machineIndex(id) === 0 };
+          state.machines[id] = { xp: 0, lvl: 0, unlocked: machineIndex(id) === 0, upgrades: {} };
         }
         return state.machines[id];
+      };
+      const getMachineUpgrades = (id = state.machine.id) => {
+        const prog = ensureMachineProgress(id);
+        prog.upgrades = prog.upgrades || {};
+        return prog.upgrades;
       };
       const addMachineXp = (id, xp) => {
         const prog = ensureMachineProgress(id);
@@ -2752,7 +2762,7 @@
         const weights = state.symbolWeights?.entries || [];
         const total = state.symbolWeights?.total || 0;
         if (total > 0 && weights.length) {
-          const target = Math.floor(mulberry32(state.spinSeed || 1)() * total);
+          const target = Math.floor(Math.random() * total);
           const hit = weights.find(entry => entry.total > target);
           if (hit) return getSymbolEntry(hit.key);
         }
@@ -3358,6 +3368,9 @@
         if (typeof snapshot.spinCount === 'number' && els.spinCount) els.spinCount.textContent = snapshot.spinCount;
         if (snapshot.daily) applyDailyState(snapshot.daily, snapshot.reward);
         if (snapshot.drop) applyDropState(snapshot.drop);
+        if (snapshot.machines) {
+          state.machines = { ...state.machines, ...snapshot.machines };
+        }
         if (snapshot.equipment) {
           state.equipment = snapshot.equipment;
           saveLocalEquipment();
@@ -3373,12 +3386,10 @@
           saveLocalUpgrades(localUpgrades);
         }
         if (snapshot.upgrades) {
-          state.serverUpgrades = { ...snapshot.upgrades };
-          applyUpgradeState(state.serverUpgrades);
+          ensureMachineProgress(state.machine.id).upgrades = { ...snapshot.upgrades };
         }
         if (snapshot.machine?.upgrades) {
-          state.upgrades = { ...snapshot.machine.upgrades };
-          applyUpgradeState(state.upgrades);
+          ensureMachineProgress(snapshot.machine.id || state.machine.id).upgrades = { ...snapshot.machine.upgrades };
         }
         if (snapshot.machine?.id) {
           await setActiveMachine(snapshot.machine.id, { silent: true });
@@ -3402,6 +3413,7 @@
           state.pendingIdleCoins = snapshot.idle.pending || 0;
           state.lastIdleTick = snapshot.idle.lastTick || 0;
         }
+        applyUpgradeState(getMachineUpgrades(state.machine.id));
         renderBonusSummary();
         updateHud();
         if (source === 'sync') {
@@ -4554,22 +4566,24 @@
         renderPaytable();
       };
       setSymbolMap(DEFAULT_SYMBOLS, 'init');
-      applyUpgradeState(state.upgrades);
+      applyUpgradeState(getMachineUpgrades(state.machine.id));
 
-      function applyUpgradeState(incoming = state.serverUpgrades) {
-        state.serverUpgrades = { ...incoming };
+      function applyUpgradeState(incoming = getMachineUpgrades(state.machine.id)) {
+        const currentLocal = localUpgradeBucket();
+        const baseUpgrades = getMachineUpgrades(state.machine.id);
+        const source = incoming || baseUpgrades;
         let normalized = {};
         if (state.upgradeCatalog.length) {
           state.upgradeCatalog.forEach(def => {
-            const next = Number.isFinite(incoming?.[def.key])
-              ? incoming[def.key]
-              : Number(state.serverUpgrades?.[def.key]) || 0;
+            const next = Number.isFinite(source?.[def.key])
+              ? source[def.key]
+              : Number(baseUpgrades?.[def.key]) || 0;
             const max = getUpgradeMaxLevel(def.key);
-            const clientBoost = Math.max(0, Math.floor(localUpgrades[def.key] || 0));
+            const clientBoost = Math.max(0, Math.floor(currentLocal[def.key] || 0));
             normalized[def.key] = Math.min(Math.max(0, Math.floor(next + clientBoost)), max);
           });
         } else {
-          normalized = { ...state.serverUpgrades, ...incoming, ...localUpgrades };
+          normalized = { ...baseUpgrades, ...source, ...currentLocal };
         }
         const settings = getUpgradeSettings();
         const rows = Math.min(
@@ -4590,6 +4604,7 @@
           effective[key] = Math.min(max, appended);
         });
         state.upgrades = effective;
+        ensureMachineProgress(state.machine.id).upgrades = { ...normalized };
         state.currentRows = rows;
         state.currentReels = reels;
         state.currentLineTier = lineTier;
@@ -4752,6 +4767,7 @@
         state.machine.id = cfg.id || targetId;
         machineCache.set(state.machine.id, cfg);
         syncMachineDefinition(cfg);
+        setSymbolMap(cfg.symbols || DEFAULT_SYMBOLS, 'machine-switch');
         state.machine.activeSymbols = computeActiveSymbols(state.upgrades);
         ensureGrid(state.currentRows || state.machine.rows, state.currentReels || state.machine.reels);
         applyMachineTheme();
@@ -4759,6 +4775,7 @@
         rebuildSymbolWeights();
         updateMachineMeta();
         renderBonusSummary();
+        applyUpgradeState(getMachineUpgrades(state.machine.id));
         await syncDropTableForMachine(state.machine.id);
         renderDropPanel();
         renderMachineList();
@@ -5259,14 +5276,10 @@
           applyDailyState(state.daily, payload.reward);
         }
 
-        state.maxBet = resolveMaxBet(payload.maxBet);
-        const betMult = Math.max(0, state.upgrades.betMultiplier || 0);
-        state.maxBet = resolveMaxBet(payload.maxBet) * Math.max(1, 10 ** betMult);
-        els.maxBet.textContent = state.maxBet;
         if (payload.upgrades) {
-          state.serverUpgrades = { ...payload.upgrades };
+          ensureMachineProgress(state.machine.id).upgrades = { ...payload.upgrades };
         }
-        applyUpgradeState(state.serverUpgrades);
+        applyUpgradeState(getMachineUpgrades(state.machine.id));
         const incomingBet = Number(payload.bet);
         const fallbackBet = Number.isFinite(state.bet)
           ? state.bet
@@ -5787,7 +5800,8 @@
           showAuthAlert('Sign in to upgrade your machine.');
           return;
         }
-        const serverLevel = state.serverUpgrades?.[type] || 0;
+        const bucket = getMachineUpgrades(state.machine.id);
+        const serverLevel = bucket?.[type] || 0;
         const currentLevel = getEffectiveUpgradeLevel(type);
         const maxLevel = getUpgradeMaxLevel(type);
         if (currentLevel >= maxLevel) {
@@ -5804,17 +5818,27 @@
             return;
           }
         }
-        const localLevel = Math.max(0, Number(localUpgrades[type] || 0));
+        const localBucket = localUpgradeBucket();
+        const localLevel = Math.max(0, Number(localBucket[type] || 0));
         if (localLevel >= maxLevel) {
           showAlert('Upgrade already maxed.');
           return;
         }
+        const cost = computeUpgradeCost(def, currentLevel);
+        if ((state.balance || 0) < cost) {
+          showAlert(`Need ${currency.format(cost)} to upgrade.`);
+          return;
+        }
         // Legacy note for server builds: request('/session', { type }) would sync upgrades when online.
-        localUpgrades[type] = localLevel + 1;
+        state.balance = Math.max(0, (state.balance || 0) - cost);
+        if (els.balance) els.balance.textContent = currency.format(state.balance);
+        localBucket[type] = localLevel + 1;
         saveLocalUpgrades(localUpgrades);
-        applyUpgradeState({ ...state.serverUpgrades });
+        ensureMachineProgress(state.machine.id).upgrades = { ...bucket, [type]: serverLevel };
+        applyUpgradeState(bucket);
         renderUpgrades();
         renderAutoSpinButton();
+        updateHud();
         markDirty('upgrade');
         log('Upgrade applied locally', def.label || type);
         showAlert(clientOnly ? 'Upgrade applied locally.' : 'Upgrade applied locally (offline).');
