@@ -1642,6 +1642,12 @@
         <button type="button" class="ghost-btn primary" id="debug-add-coins" hidden>+100k credits</button>
         <button type="button" class="ghost-btn danger" id="delete-account-btn">Delete account</button>
       </div>
+      <div class="actions">
+        <button type="button" class="ghost-btn secondary" id="export-state-btn">Export key</button>
+        <input type="text" id="import-state-input" placeholder="Paste key to import" aria-label="Import key" />
+        <button type="button" class="ghost-btn tertiary" id="import-state-btn">Import key</button>
+      </div>
+      <p class="muted-text small" id="transfer-status"></p>
     </section>
 
     <section class="panel slot-machine" data-requires-auth hidden data-mobile-pane="play" data-mobile-active="true">
@@ -1681,6 +1687,14 @@
               <p class="hud-label">VIP Marks</p>
               <strong class="hud-value" id="hud-vip">0</strong>
             </div>
+            <div class="hud-card">
+              <p class="hud-label">Energy</p>
+              <strong class="hud-value" id="hud-energy">0/0</strong>
+            </div>
+            <div class="hud-card">
+              <p class="hud-label">Machine Lv</p>
+              <strong class="hud-value" id="hud-level">0</strong>
+            </div>
           </div>
           <div class="bet-controls">
             <button type="button" class="chip" data-chip="decrease" aria-label="Decrease bet">-</button>
@@ -1700,6 +1714,8 @@
             <button type="button" class="ghost-btn secondary line-btn" id="line-flash-btn">Show lines</button>
             <button type="button" class="ghost-btn secondary line-btn" id="auto-spin-btn">Auto</button>
             <button type="button" class="ghost-btn secondary line-btn" id="premium-shop-btn">Premium</button>
+            <button type="button" class="ghost-btn secondary line-btn" id="payout-skill-btn">Payout+</button>
+            <button type="button" class="ghost-btn secondary line-btn" id="worker-btn">Worker</button>
             <button type="button" class="spin-btn" id="spin-btn" disabled>Spin</button>
           </div>
         </div>
@@ -1857,6 +1873,9 @@
       const LOCAL_MACHINE_KEY = 'slotMachineActiveMachine';
       const LOCAL_EQUIPMENT_KEY = 'slotMachineEquipment';
       const LOCAL_CARD_KEY = 'slotMachineCards';
+      const SESSION_SYNC_MS = 60000;
+      let sessionSyncTimer = null;
+      let sessionSyncInFlight = false;
       const storageKeys = {
         player: 'slotMachineDemoPlayerId',
         token: 'slotMachineAuthToken',
@@ -1991,7 +2010,42 @@
         spinCount: 0,
         currentRows: 3,
         currentReels: 3,
-        currentLineTier: 0
+        currentLineTier: 0,
+        spinSeed: Date.now() % 2147483647,
+        sync: {
+          rev: 0,
+          dirty: false,
+          inFlight: false,
+          lastPush: 0,
+          debounceTimer: null,
+          queue: []
+        },
+        energy: {
+          current: 20,
+          max: 20,
+          rechargePerSec: 0.5,
+          lastUpdate: Date.now()
+        },
+        machines: {},
+        worker: {
+          active: false,
+          timer: null,
+          intervalMs: 1800
+        },
+        skills: {
+          payout: { activeUntil: 0, cooldownUntil: 0, durationMs: 15000, cooldownMs: 30000, multiplier: 1.25 },
+          dropRate: {
+            active: false,
+            expiresAt: 0,
+            cooldownUntil: 0,
+            spec: { durationMs: 60000, cooldownMs: 120000, multiplier: 1.05 }
+          }
+        },
+        jackpots: {
+          chance: 0.01,
+          multiplier: 10,
+          hotStreak: { wins: 0, bonusPct: 0.1 }
+        }
       };
       window.slotDemoDebug = window.slotDemoDebug || {};
       window.slotDemoDebug.state = state;
@@ -2008,6 +2062,9 @@
       let dropTableCache = null;
       let gearDefinitions = null;
       let cardDefinitions = null;
+      const SYNC_ENDPOINT = '/sync';
+      const SYNC_DEBOUNCE_MS = 5000;
+      const EXPORT_VERSION = 1;
 
       const upgradeCatalogUrl = 'slot-config/upgrade-definitions.json';
       const loadUpgradeCatalog = async () => {
@@ -2087,6 +2144,55 @@
         const s = totalSeconds % 60;
         return `${m}:${s.toString().padStart(2, '0')}`;
       };
+      const textEncoder = new TextEncoder();
+      const textDecoder = new TextDecoder();
+      const base64UrlEncode = (bytes) => {
+        const bin = Array.from(bytes || []).map(b => String.fromCharCode(b)).join('');
+        return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+      };
+      const base64UrlDecode = (str = '') => {
+        const padded = str.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(str.length / 4) * 4, '=');
+        const bin = atob(padded);
+        const out = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i += 1) out[i] = bin.charCodeAt(i);
+        return out;
+      };
+      const deriveKey = async (token = '', salt = new Uint8Array(0), usage = 'encrypt', context = API_BASE || '') => {
+        const seed = textEncoder.encode(context ? `${token}::${context}` : token);
+        const data = new Uint8Array(seed.length + salt.length);
+        data.set(seed, 0);
+        data.set(salt, seed.length);
+        const hash = await crypto.subtle.digest('SHA-256', data);
+        if (usage === 'hmac') {
+          return crypto.subtle.importKey('raw', hash, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']);
+        }
+        return crypto.subtle.importKey('raw', hash, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+      };
+      const encryptBlob = async (token, payload) => {
+        const salt = crypto.getRandomValues(new Uint8Array(16));
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        const key = await deriveKey(token, salt, 'encrypt');
+        const cipher = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, payload);
+        return { salt, iv, cipher: new Uint8Array(cipher) };
+      };
+      const decryptBlob = async (token, blob) => {
+        const key = await deriveKey(token, blob.salt, 'encrypt');
+        const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: blob.iv }, key, blob.cipher);
+        return new Uint8Array(plain);
+      };
+      const hmacSign = async (token, payload, context = '') => {
+        const salt = crypto.getRandomValues(new Uint8Array(8));
+        const key = await deriveKey(token, salt, 'hmac', context);
+        const sig = await crypto.subtle.sign('HMAC', key, payload);
+        return { salt, sig: new Uint8Array(sig) };
+      };
+      const safeJsonParse = (raw, fallback = null) => {
+        try {
+          return JSON.parse(raw);
+        } catch {
+          return fallback;
+        }
+      };
       const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
       const randomGaussian = (mean = 0.5, std = 0.15) => {
         let u = 0; let v = 0;
@@ -2096,12 +2202,22 @@
         const value = mean + std * norm;
         return Math.min(1, Math.max(0, value));
       };
+      const mulberry32 = (seed) => {
+        let t = seed >>> 0;
+        return () => {
+          t += 0x6D2B79F5;
+          let r = Math.imul(t ^ (t >>> 15), 1 | t);
+          r ^= r + Math.imul(r ^ (r >>> 7), 61 | r);
+          return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+        };
+      };
       const resolveMaxBet = (incoming) => {
         const numeric = Number(incoming);
         if (Number.isFinite(numeric) && numeric > 0) return numeric;
         if (typeof state !== 'undefined' && Number.isFinite(state.maxBet) && state.maxBet > 0) return state.maxBet;
         return DEFAULT_MAX_BET;
       };
+      const xpNeeded = (lvl = 0) => Math.max(50, Math.round(80 * Math.pow(lvl + 1, 2)));
       const UPGRADE_COST_GROWTH = 1.85;
       const computeUpgradeCost = (def, level = 0) => {
         if (!def) return 0;
@@ -2191,16 +2307,77 @@
         return Math.max(0, base + pending + local);
       };
 
+      const machineIndex = (id = state.machine.id) => Math.max(0, (machineList || []).indexOf(id));
+      const machineScale = (id = state.machine.id) => Math.pow(1000, machineIndex(id));
+      const ensureMachineProgress = (id = state.machine.id) => {
+        if (!state.machines[id]) {
+          state.machines[id] = { xp: 0, lvl: 0, unlocked: machineIndex(id) === 0 };
+        }
+        return state.machines[id];
+      };
+      const addMachineXp = (id, xp) => {
+        const prog = ensureMachineProgress(id);
+        prog.xp = Math.max(0, (prog.xp || 0) + xp);
+        let leveled = false;
+        while (prog.xp >= xpNeeded(prog.lvl)) {
+          prog.xp -= xpNeeded(prog.lvl);
+          prog.lvl += 1;
+          leveled = true;
+        }
+        // unlock next machine when leveling
+        if (leveled) {
+          const idx = machineIndex(id);
+          const nextId = machineList?.[idx + 1];
+          if (nextId) {
+            ensureMachineProgress(nextId).unlocked = true;
+          }
+        }
+        return leveled;
+      };
+
       const buildLinePatterns = (rows, reels) => {
         const patterns = [];
+        // Tier 0: straight lines
         for (let r = 0; r < rows; r += 1) {
           patterns.push({ pattern: Array(reels).fill(r), tier: 0 });
         }
         if (rows >= 2) {
+          // Tier 1: simple diagonals
           const down = Array.from({ length: reels }, (_, i) => Math.min(rows - 1, i));
           const up = Array.from({ length: reels }, (_, i) => Math.max(0, rows - 1 - i));
           patterns.push({ pattern: down, tier: 1 });
           patterns.push({ pattern: up, tier: 1 });
+          // Tier 2: zigzag bounce
+          const zig = [];
+          const zag = [];
+          let r1 = 0; let d1 = 1;
+          let r2 = rows - 1; let d2 = -1;
+          for (let i = 0; i < reels; i += 1) {
+            zig.push(r1);
+            zag.push(r2);
+            r1 += d1;
+            r2 += d2;
+            if (r1 === rows - 1 || r1 === 0) d1 *= -1;
+            if (r2 === rows - 1 || r2 === 0) d2 *= -1;
+          }
+          patterns.push({ pattern: zig, tier: 2 });
+          patterns.push({ pattern: zag, tier: 2 });
+        }
+        // Tier 3: all-touching paths (-1/0/+1 steps)
+        if (rows > 0 && reels > 0) {
+          const path = Array(reels).fill(0);
+          const enumerate = (col, row) => {
+            path[col] = row;
+            if (col === reels - 1) {
+              patterns.push({ pattern: [...path], tier: 3 });
+              return;
+            }
+            for (const delta of [-1, 0, 1]) {
+              const nr = row + delta;
+              if (nr >= 0 && nr < rows) enumerate(col + 1, nr);
+            }
+          };
+          for (let r = 0; r < rows; r += 1) enumerate(0, r);
         }
         return patterns;
       };
@@ -2227,6 +2404,8 @@
         hudBet: document.getElementById('hud-bet'),
         hudWin: document.getElementById('hud-win'),
         hudVip: document.getElementById('hud-vip'),
+        hudEnergy: document.getElementById('hud-energy'),
+        hudLevel: document.getElementById('hud-level'),
         balance: document.getElementById('balance'),
         playerId: document.getElementById('player-id'),
         maxBet: document.getElementById('max-bet'),
@@ -2283,7 +2462,13 @@
         debugCoinBtn: document.getElementById('debug-add-coins'),
         upgradeGrid: document.getElementById('upgrade-grid'),
         upgradePanel: document.getElementById('upgrade-panel'),
-        mobileNav: document.getElementById('mobile-nav')
+        mobileNav: document.getElementById('mobile-nav'),
+        exportStateBtn: document.getElementById('export-state-btn'),
+        importStateBtn: document.getElementById('import-state-btn'),
+        importStateInput: document.getElementById('import-state-input'),
+        transferStatus: document.getElementById('transfer-status'),
+        payoutSkillBtn: document.getElementById('payout-skill-btn'),
+        workerBtn: document.getElementById('worker-btn')
       };
       const paneState = {
         mq: window.matchMedia('(max-width: 768px)'),
@@ -2511,9 +2696,11 @@
         if (els.dropRatesBtn) els.dropRatesBtn.disabled = disableInputs;
         renderUpgrades();
         renderSkillButton();
+        renderPayoutSkill();
         renderDaily();
         renderBonusSummary();
         renderAutoSpinButton();
+        renderWorkerButton();
         applyPaneMode();
         if (visible) startIdleTicker();
         else stopIdleTicker();
@@ -2530,12 +2717,16 @@
         if (els.betSlider) els.betSlider.disabled = disableInputs;
         els.chipButtons.forEach(btn => { btn.disabled = disableInputs; });
         if (els.dropRatesBtn) els.dropRatesBtn.disabled = disableInputs;
+        if (els.payoutSkillBtn) els.payoutSkillBtn.disabled = disableInputs;
+        if (els.workerBtn) els.workerBtn.disabled = disableInputs;
         if (disableInputs) toggleDropPanel(false);
         renderUpgrades();
         renderSkillButton();
+        renderPayoutSkill();
         renderDaily();
         renderBonusSummary();
         renderAutoSpinButton();
+        renderWorkerButton();
       };
 
       const toggleAuthInputs = (disabled) => {
@@ -2561,7 +2752,7 @@
         const weights = state.symbolWeights?.entries || [];
         const total = state.symbolWeights?.total || 0;
         if (total > 0 && weights.length) {
-          const target = Math.floor(Math.random() * total);
+          const target = Math.floor(mulberry32(state.spinSeed || 1)() * total);
           const hit = weights.find(entry => entry.total > target);
           if (hit) return getSymbolEntry(hit.key);
         }
@@ -2840,6 +3031,7 @@
         updateHud();
         saveLocalEquipment();
         saveLocalCards();
+        markDirty('drop');
       };
 
       const renderInventory = () => {
@@ -3104,6 +3296,252 @@
         setBetValue(1);
       };
 
+      const markDirty = (reason = 'change') => {
+        state.sync.dirty = true;
+        state.sync.queue.push({ reason, at: Date.now() });
+        scheduleSync();
+      };
+
+      const buildSnapshot = () => ({
+        v: 1,
+        rev: state.sync.rev || 0,
+        updatedAt: Date.now(),
+        playerId: state.playerId,
+        balance: state.balance,
+        bet: state.bet,
+        maxBet: state.maxBet,
+        spinCount: state.spinCount,
+        lastWin: state.lastWin,
+        spinSeed: state.spinSeed,
+        energy: state.energy,
+        machines: state.machines,
+        worker: { active: state.worker.active, intervalMs: state.worker.intervalMs },
+        skills: { payout: state.skills.payout, dropRate: state.skills.dropRate },
+        machine: {
+          id: state.machine.id,
+          rows: state.currentRows || state.machine.rows,
+          reels: state.currentReels || state.machine.reels,
+          lineTier: state.currentLineTier || 0,
+          upgrades: { ...state.upgrades }
+        },
+        drop: {
+          inventory: state.drop.inventory || {},
+          history: state.drop.history || [],
+          lastDrops: state.drop.lastDrops || [],
+          lastTimestamp: state.drop.lastTimestamp || 0
+        },
+        equipment: state.equipment,
+        cards: state.cards,
+        daily: state.daily,
+        idle: {
+          pending: state.pendingIdleCoins || 0,
+          lastTick: state.lastIdleTick || 0
+        },
+        upgrades: state.serverUpgrades,
+        clientUpgrades: { ...localUpgrades },
+        symbolMap: Array.from(state.symbolMap.entries() || [])
+      });
+
+      const applySnapshot = async (snapshot = {}, source = 'sync') => {
+        if (!snapshot || typeof snapshot !== 'object') return;
+        if (typeof snapshot.rev === 'number') state.sync.rev = Math.max(state.sync.rev || 0, snapshot.rev);
+        if (typeof snapshot.balance === 'number') {
+          state.balance = snapshot.balance;
+          if (els.balance) els.balance.textContent = currency.format(state.balance);
+        }
+        if (Number.isFinite(snapshot.bet)) setBetValue(snapshot.bet);
+        if (snapshot.maxBet) {
+          state.maxBet = resolveMaxBet(snapshot.maxBet);
+          els.maxBet.textContent = state.maxBet;
+          syncBetSteps();
+        }
+        if (typeof snapshot.spinCount === 'number' && els.spinCount) els.spinCount.textContent = snapshot.spinCount;
+        if (snapshot.daily) applyDailyState(snapshot.daily, snapshot.reward);
+        if (snapshot.drop) applyDropState(snapshot.drop);
+        if (snapshot.equipment) {
+          state.equipment = snapshot.equipment;
+          saveLocalEquipment();
+          renderGear();
+        }
+        if (snapshot.cards) {
+          state.cards = snapshot.cards;
+          saveLocalCards();
+          renderCards();
+        }
+        if (snapshot.clientUpgrades) {
+          Object.assign(localUpgrades, snapshot.clientUpgrades);
+          saveLocalUpgrades(localUpgrades);
+        }
+        if (snapshot.upgrades) {
+          state.serverUpgrades = { ...snapshot.upgrades };
+          applyUpgradeState(state.serverUpgrades);
+        }
+        if (snapshot.machine?.upgrades) {
+          state.upgrades = { ...snapshot.machine.upgrades };
+          applyUpgradeState(state.upgrades);
+        }
+        if (snapshot.machine?.id) {
+          await setActiveMachine(snapshot.machine.id, { silent: true });
+        }
+        if (snapshot.machine?.rows) state.currentRows = snapshot.machine.rows;
+        if (snapshot.machine?.reels) state.currentReels = snapshot.machine.reels;
+        if (snapshot.machine?.lineTier !== undefined) state.currentLineTier = snapshot.machine.lineTier;
+        if (Array.isArray(snapshot.symbolMap)) {
+          state.symbolMap = new Map(snapshot.symbolMap);
+          auditSymbolAssets();
+          renderPaytable();
+        }
+        if (Number.isFinite(snapshot.spinSeed)) {
+          state.spinSeed = snapshot.spinSeed >>> 0;
+        }
+        if (snapshot.energy) state.energy = { ...state.energy, ...snapshot.energy };
+        if (snapshot.machines) state.machines = { ...state.machines, ...snapshot.machines };
+        if (snapshot.worker) state.worker = { ...state.worker, ...snapshot.worker };
+        if (snapshot.skills?.payout) state.skills.payout = { ...state.skills.payout, ...snapshot.skills.payout };
+        if (snapshot.idle) {
+          state.pendingIdleCoins = snapshot.idle.pending || 0;
+          state.lastIdleTick = snapshot.idle.lastTick || 0;
+        }
+        renderBonusSummary();
+        updateHud();
+        if (source === 'sync') {
+          state.sync.dirty = false;
+          state.sync.queue = [];
+        }
+      };
+
+      const stopSessionSync = () => {
+        if (sessionSyncTimer) {
+          clearInterval(sessionSyncTimer);
+          sessionSyncTimer = null;
+        }
+        if (state.sync.debounceTimer) {
+          clearTimeout(state.sync.debounceTimer);
+          state.sync.debounceTimer = null;
+        }
+        state.sync.inFlight = false;
+      };
+
+      const syncSnapshot = async (force = false) => {
+        if (!state.auth.token) return;
+        if (!force && !state.sync.dirty) return;
+        if (state.sync.inFlight) return;
+        state.sync.inFlight = true;
+        const snapshot = buildSnapshot();
+        const payloadBytes = textEncoder.encode(JSON.stringify(snapshot));
+        let signature = null;
+        try {
+          const sig = await hmacSign(state.auth.token, payloadBytes, 'sync');
+          signature = { salt: base64UrlEncode(sig.salt), value: base64UrlEncode(sig.sig) };
+        } catch (error) {
+          debugError('sync:hmac', error);
+        }
+        try {
+          const res = await request(SYNC_ENDPOINT, { snapshot, signature });
+          if (res?.snapshot) {
+            await applySnapshot(res.snapshot, 'sync');
+          } else if (typeof res?.rev === 'number') {
+            state.sync.rev = Math.max(state.sync.rev || 0, res.rev);
+            state.sync.dirty = false;
+            state.sync.queue = [];
+          }
+          state.sync.lastPush = Date.now();
+        } catch (error) {
+          log('Sync failed', error.message || 'Sync error');
+          debugError('sync', error);
+        } finally {
+          state.sync.inFlight = false;
+        }
+      };
+
+      const scheduleSync = () => {
+        if (state.sync.debounceTimer) {
+          clearTimeout(state.sync.debounceTimer);
+        }
+        state.sync.debounceTimer = setTimeout(() => {
+          syncSnapshot(false);
+        }, SYNC_DEBOUNCE_MS);
+      };
+
+      const startSessionSync = () => {
+        stopSessionSync();
+        if (!state.auth.token) return;
+        sessionSyncTimer = setInterval(() => {
+          syncSnapshot(true);
+        }, SESSION_SYNC_MS);
+      };
+
+      const exportStateKey = async () => {
+        if (!state.auth.token) {
+          showAuthAlert('Sign in to export your state.');
+          return;
+        }
+        if (state.busy) return;
+        const snapshot = buildSnapshot();
+        const payload = textEncoder.encode(JSON.stringify(snapshot));
+        try {
+          const blob = await encryptBlob(state.auth.token, payload);
+          const bundle = {
+            v: EXPORT_VERSION,
+            s: base64UrlEncode(blob.salt),
+            i: base64UrlEncode(blob.iv),
+            c: base64UrlEncode(blob.cipher)
+          };
+          const encoded = base64UrlEncode(textEncoder.encode(JSON.stringify(bundle)));
+          if (els.importStateInput) els.importStateInput.value = encoded;
+          if (els.transferStatus) {
+            els.transferStatus.textContent = 'Exported encrypted key.';
+          }
+          try {
+            await navigator.clipboard?.writeText?.(encoded);
+          } catch {
+            // clipboard may be unavailable; ignore
+          }
+          log('State exported', `rev ${state.sync.rev || 0}`);
+        } catch (error) {
+          if (els.transferStatus) {
+            els.transferStatus.textContent = 'Export failed.';
+          }
+          debugError('export', error);
+        }
+      };
+
+      const importStateKey = async () => {
+        if (!state.auth.token) {
+          showAuthAlert('Sign in to import a state key.');
+          return;
+        }
+        const raw = (els.importStateInput?.value || '').trim();
+        if (!raw) {
+          if (els.transferStatus) els.transferStatus.textContent = 'Paste a key to import.';
+          return;
+        }
+        try {
+          const decoded = base64UrlDecode(raw);
+          const parsed = safeJsonParse(textDecoder.decode(decoded));
+          if (!parsed || parsed.v !== EXPORT_VERSION) throw new Error('Invalid key format.');
+          const blob = {
+            salt: base64UrlDecode(parsed.s || ''),
+            iv: base64UrlDecode(parsed.i || ''),
+            cipher: base64UrlDecode(parsed.c || '')
+          };
+          const plain = await decryptBlob(state.auth.token, blob);
+          const snapshot = safeJsonParse(textDecoder.decode(plain));
+          if (!snapshot) throw new Error('Invalid snapshot.');
+          await applySnapshot(snapshot, 'import');
+          markDirty('import');
+          if (els.transferStatus) {
+            els.transferStatus.textContent = 'Import applied. Syncing…';
+          }
+          syncSnapshot(true);
+        } catch (error) {
+          if (els.transferStatus) {
+            els.transferStatus.textContent = error.message || 'Import failed.';
+          }
+          debugError('import', error);
+        }
+      };
+
       const hydrateLocalCollections = () => {
         const savedGear = loadLocalEquipment();
         if (savedGear) {
@@ -3190,6 +3628,7 @@
         saveLocalEquipment();
         renderGear();
         renderBonusSummary();
+        markDirty('gear-equip');
       };
 
       const unequipGear = (slot) => {
@@ -3200,6 +3639,7 @@
         saveLocalEquipment();
         renderGear();
         renderBonusSummary();
+        markDirty('gear-unequip');
       };
 
       const upgradeGear = (gearId) => {
@@ -3219,6 +3659,7 @@
         renderInventory();
         renderBonusSummary();
         updateHud();
+        markDirty('gear-upgrade');
       };
 
       const generateCard = (tierHint = null) => {
@@ -3258,6 +3699,7 @@
         saveLocalCards();
         renderCards();
         renderBonusSummary();
+        markDirty('card-equip');
       };
 
       const unequipCard = (slotIndex = 0) => {
@@ -3266,6 +3708,7 @@
         saveLocalCards();
         renderCards();
         renderBonusSummary();
+        markDirty('card-unequip');
       };
 
       const upgradeCard = (cardId) => {
@@ -3286,6 +3729,7 @@
         renderInventory();
         renderBonusSummary();
         updateHud();
+        markDirty('card-upgrade');
       };
 
       const parseEffectText = (text = '') => {
@@ -3478,6 +3922,29 @@
         renderSkillButton();
       };
 
+      const renderPayoutSkill = () => {
+        if (!els.payoutSkillBtn) return;
+        const now = Date.now();
+        const skill = state.skills.payout;
+        const active = skill.activeUntil > now;
+        const cooling = skill.cooldownUntil > now;
+        const busy = state.busy || !state.gameReady;
+        let label = 'Payout +';
+        if (active) {
+          label = `Payout ${Math.round((skill.multiplier - 1) * 100)}% (${formatTime(skill.activeUntil - now)})`;
+          els.payoutSkillBtn.dataset.state = 'active';
+          els.payoutSkillBtn.disabled = busy;
+        } else if (cooling) {
+          label = `Cooldown ${formatTime(skill.cooldownUntil - now)}`;
+          els.payoutSkillBtn.dataset.state = 'cooldown';
+          els.payoutSkillBtn.disabled = true;
+        } else {
+          els.payoutSkillBtn.dataset.state = 'ready';
+          els.payoutSkillBtn.disabled = busy;
+        }
+        els.payoutSkillBtn.textContent = label;
+      };
+
       const tickSkills = () => {
         isDropSkillActive();
         renderSkillButton();
@@ -3636,6 +4103,32 @@
         els.autoSpinBtn.setAttribute('aria-pressed', state.autoSpin.active ? 'true' : 'false');
       };
 
+      const renderWorkerButton = () => {
+        if (!els.workerBtn) return;
+        els.workerBtn.textContent = state.worker.active ? 'Worker On' : 'Worker Off';
+        els.workerBtn.setAttribute('aria-pressed', state.worker.active ? 'true' : 'false');
+        els.workerBtn.disabled = state.busy || !state.gameReady;
+      };
+
+      const toggleWorker = () => {
+        state.worker.active = !state.worker.active;
+        if (state.worker.timer) {
+          clearTimeout(state.worker.timer);
+          state.worker.timer = null;
+        }
+        if (state.worker.active) {
+          const tick = () => {
+            if (!state.worker.active) return;
+            if (!state.busy) {
+              spin(true);
+            }
+            state.worker.timer = setTimeout(tick, state.worker.intervalMs);
+          };
+          state.worker.timer = setTimeout(tick, state.worker.intervalMs);
+        }
+        renderWorkerButton();
+      };
+
       const activateDropSkill = () => {
         if (!state.gameReady || state.busy) return;
         const unlocked = (state.upgrades.dropBoostUnlock || 0) > 0;
@@ -3656,6 +4149,18 @@
         if (!els.dropPanel?.hidden) {
           renderDropPanel();
         }
+      };
+
+      const activatePayoutSkill = () => {
+        if (!state.gameReady || state.busy) return;
+        const skill = state.skills.payout;
+        const now = Date.now();
+        if (!skill) return;
+        if (skill.cooldownUntil > now || skill.activeUntil > now) return;
+        skill.activeUntil = now + (skill.durationMs || 15000);
+        skill.cooldownUntil = skill.activeUntil + (skill.cooldownMs || 30000);
+        renderPayoutSkill();
+        log('Payout boost activated', `${Math.round((skill.multiplier - 1) * 100)}% for ${formatTime(skill.activeUntil - now)}.`);
       };
 
       const dropSkillPayload = () => ({
@@ -3968,11 +4473,13 @@
         const rows = state.currentRows || state.machine.rows;
         const reels = state.currentReels || state.machine.reels;
         ensureGrid(rows, reels);
+        const rng = mulberry32(state.spinSeed >>> 0 || 1);
         const spinOnce = () => {
           const grid = Array.from({ length: rows }, () => Array(reels).fill(''));
           for (let row = 0; row < rows; row += 1) {
             for (let col = 0; col < reels; col += 1) {
-              grid[row][col] = randomSymbolInfo().key;
+              const symbol = randomSymbolInfo();
+              grid[row][col] = symbol.key;
             }
           }
           const { payout, groups } = evaluateClientOutcome(grid, bet);
@@ -3983,10 +4490,11 @@
         const base = 0.05 * Math.max(0, state.upgrades.retrigger || 0);
         const bonus = 0.05 * Math.max(0, state.upgrades.retriggerQuality || 0);
         const retriggerChance = Math.min(0.95, base + bonus);
-        if (result.payout <= 0 && retriggerChance > 0 && Math.random() < retriggerChance) {
+        if (result.payout <= 0 && retriggerChance > 0 && rng() < retriggerChance) {
           retriggered = true;
           result = spinOnce();
         }
+        state.spinSeed = (state.spinSeed + 1) >>> 0;
         return {
           grid: result.grid,
           winAmount: result.payout,
@@ -4091,6 +4599,11 @@
         state.machine.currentReels = reels;
         state.machine.currentLineTier = lineTier;
         state.machine.activeSymbols = computeActiveSymbols(normalized);
+        const betMult = Math.max(0, normalized.betMultiplier || 0);
+        const baseMax = resolveMaxBet(root?.dataset?.maxBet || DEFAULT_MAX_BET);
+        state.maxBet = resolveMaxBet(baseMax) * Math.max(1, 10 ** betMult);
+        els.maxBet.textContent = state.maxBet;
+        syncBetSteps();
         rebuildSymbolWeights();
         ensureGrid(rows, reels);
         renderUpgrades();
@@ -4202,15 +4715,17 @@
         if (!els.machineList) return;
         const cards = await Promise.all((machineList || []).map(async id => {
           const cfg = await fetchMachineConfig(id).catch(() => null);
+          const prog = ensureMachineProgress(id);
           return {
             id,
             name: cfg?.name || id,
             tier: cfg?.tier || 'Demo',
-            icon: cfg?.assets?.icon || null
+            icon: cfg?.assets?.icon || null,
+            unlocked: prog.unlocked
           };
         }));
         els.machineList.innerHTML = cards.map(card => `
-          <button type="button" class="machine-card" data-machine-id="${card.id}" data-active="${card.id === state.machine.id ? 'true' : 'false'}" role="listitem">
+          <button type="button" class="machine-card" data-machine-id="${card.id}" data-active="${card.id === state.machine.id ? 'true' : 'false'}" data-locked="${card.unlocked ? 'false' : 'true'}" role="listitem" ${card.unlocked ? '' : 'disabled'}>
             <div class="machine-card__meta">
               ${card.icon ? `<img src="${card.icon}" alt="${card.name}" class="machine-card__icon" loading="lazy">` : ''}
               <span class="rarity-tag">${card.tier}</span>
@@ -4223,6 +4738,11 @@
 
       const setActiveMachine = async (machineId, options = {}) => {
         const targetId = machineId || state.machine.id || 'classic';
+        const prog = ensureMachineProgress(targetId);
+        if (!prog.unlocked) {
+          showAlert('Machine locked. Level up current machine to unlock.');
+          return;
+        }
         const cfg = await fetchMachineConfig(targetId, true);
         if (!cfg) {
           debugError('machine:set', new Error('Missing machine config'), { targetId });
@@ -4244,6 +4764,10 @@
         renderMachineList();
         if (els.machineName) els.machineName.textContent = state.machine.name || state.machine.id;
         if (els.machineTier) els.machineTier.textContent = cfg.tier || 'Demo';
+        const scale = machineScale(state.machine.id);
+        state.maxBet = resolveMaxBet(root?.dataset?.maxBet || DEFAULT_MAX_BET) * scale;
+        syncBetSteps();
+        setBetValue(state.bet);
         try {
           localStorage.setItem(LOCAL_MACHINE_KEY, state.machine.id);
         } catch {
@@ -4251,6 +4775,7 @@
         }
         if (!options.silent) {
           log('Machine ready', `${state.machine.name || state.machine.id} loaded`);
+          markDirty('machine-switch');
         }
       };
 
@@ -4331,6 +4856,15 @@
           if (els.hudVip) {
             const vipMarks = Number(state.drop?.inventory?.vipMarks || 0);
             els.hudVip.textContent = `${formatCompactNumber(vipMarks)} VIP`;
+          }
+          if (els.hudEnergy) {
+            const current = Math.floor(state.energy.current || 0);
+            const max = Math.floor(state.energy.max || 0);
+            els.hudEnergy.textContent = `${current}/${max}`;
+          }
+          if (els.hudLevel) {
+            const prog = ensureMachineProgress(state.machine.id);
+            els.hudLevel.textContent = `Lv ${prog.lvl || 0}`;
           }
         });
       };
@@ -4441,6 +4975,23 @@
       function idleStep(timestamp) {
         if (!state.idleTickerActive) return;
         if (!state.lastIdleTick) state.lastIdleTick = timestamp;
+        // Energy regen
+        const energyDelta = (timestamp - state.energy.lastUpdate) / 1000;
+        if (energyDelta > 0) {
+          const gain = energyDelta * (state.energy.rechargePerSec || 0);
+          const next = Math.min(state.energy.max, state.energy.current + gain);
+          if (next !== state.energy.current) {
+            state.energy.current = next;
+            state.energy.lastUpdate = timestamp;
+            updateHud();
+          }
+        }
+        // Payout skill expiration
+        const payout = state.skills.payout;
+        if (payout && payout.activeUntil && payout.activeUntil <= timestamp) {
+          payout.activeUntil = 0;
+          renderPayoutSkill();
+        }
         const equip = computeEquipmentStats();
         const rate = Math.max(0, state.upgrades.idle || 0) * (1 + Math.max(0, equip.idlePct || 0) / 100);
         const delta = timestamp - state.lastIdleTick;
@@ -4471,12 +5022,16 @@
         const idx = getNearestBetIndex(capped);
         const safe = betFromIndex(idx);
         debug('bet:update', { requested: value, applied: safe, max: state.maxBet, idx });
+        const prev = state.bet;
         state.bet = safe;
         if (els.betSlider) {
           els.betSlider.max = Math.max(0, betSteps.length - 1);
           els.betSlider.value = idx;
           els.betSlider.setAttribute('aria-valuenow', safe.toString());
           els.betSlider.setAttribute('aria-valuemax', (state.maxBet || DEFAULT_MAX_BET).toString());
+        }
+        if (prev !== safe) {
+          markDirty('bet');
         }
         updateHud();
         if (els.dropPanel && !els.dropPanel.hidden) {
@@ -4548,9 +5103,16 @@
         state.auth.username = token ? (username || state.auth.username || null) : null;
         if (!state.auth.token) {
           resetLocalProgress();
+          state.sync = { rev: 0, dirty: false, inFlight: false, lastPush: 0, debounceTimer: null, queue: [] };
           state.playerId = null;
           state.pendingIdleCoins = 0;
           stopIdleTicker();
+          stopSessionSync();
+          state.worker.active = false;
+          if (state.worker.timer) {
+            clearTimeout(state.worker.timer);
+            state.worker.timer = null;
+          }
           state.drop.inventory = {};
           state.drop.history = [];
           state.drop.lastDrops = [];
@@ -4574,6 +5136,9 @@
         if (state.auth.token) {
           clearLocalUpgradeState();
           resetAutoState();
+          state.sync.rev = 0;
+          state.sync.dirty = false;
+          state.sync.queue = [];
           localStorage.setItem(storageKeys.token, state.auth.token);
           localStorage.setItem(storageKeys.user, state.auth.username || '');
           resetStoredPlayer();
@@ -4582,6 +5147,7 @@
           localStorage.removeItem(storageKeys.user);
         }
         updateAuthUI();
+        if (state.auth.token) startSessionSync();
       };
 
       const clearAuth = (message) => {
@@ -4649,6 +5215,11 @@
 
       const updateStats = (payload = {}) => {
         debug('updateStats', payload);
+        if (typeof payload.rev === 'number') {
+          state.sync.rev = Math.max(state.sync.rev || 0, payload.rev);
+          state.sync.dirty = false;
+          state.sync.queue = [];
+        }
         if (payload.playerId) {
           state.playerId = payload.playerId;
           els.playerId.textContent = payload.playerId;
@@ -4669,6 +5240,7 @@
           startIdleTicker();
         }
         if (typeof payload.spins === 'number') {
+          state.spinCount = payload.spins;
           els.spinCount.textContent = payload.spins;
         }
         if (payload.currentRows) state.currentRows = payload.currentRows;
@@ -4688,6 +5260,8 @@
         }
 
         state.maxBet = resolveMaxBet(payload.maxBet);
+        const betMult = Math.max(0, state.upgrades.betMultiplier || 0);
+        state.maxBet = resolveMaxBet(payload.maxBet) * Math.max(1, 10 ** betMult);
         els.maxBet.textContent = state.maxBet;
         if (payload.upgrades) {
           state.serverUpgrades = { ...payload.upgrades };
@@ -4764,9 +5338,12 @@
         pendingSpinResult = null;
       };
 
-      const hydrateSession = (session, logMessage) => {
+      const hydrateSession = async (session, logMessage) => {
         debug('hydrateSession', session);
         syncAuthFromPayload(session);
+        if (session.snapshot) {
+          await applySnapshot(session.snapshot, 'sync');
+        }
         if (session.machine) {
           syncMachineDefinition(session.machine);
         }
@@ -4780,6 +5357,7 @@
         if (logMessage) {
           log(logMessage, `${session.username || 'User'} • balance ${currency.format(state.balance || session.balance)}`);
         }
+        if (state.auth.token) startSessionSync();
       };
 
       const bootstrap = async () => {
@@ -4794,7 +5372,8 @@
         showAlert('');
         try {
           const session = await request('/session');
-          hydrateSession(session, 'Session synced');
+          await hydrateSession(session, 'Session synced');
+          startSessionSync();
         } catch (error) {
           console.error(error);
           setGameVisibility(false);
@@ -4826,10 +5405,16 @@
         }
         collectPendingIdle();
         const bet = clamp(state.bet || 1, 1, state.maxBet || DEFAULT_MAX_BET);
+        if ((state.energy.current || 0) < 1) {
+          showAlert('Out of energy.');
+          return;
+        }
         if (state.balance < bet) {
           showAlert('Not enough credits to spin.');
           return;
         }
+        state.energy.current = Math.max(0, (state.energy.current || 0) - 1);
+        state.energy.lastUpdate = performance.now();
         setBetValue(bet);
         setBusy(true);
         showAlert('');
@@ -4844,16 +5429,45 @@
           if (spinData.retriggered) {
             log('Retriggered spin', 'Free retry activated');
           }
-          const dropResult = rollDropsForSpin(bet, spinData.winAmount || 0);
+          // Apply skill and jackpot modifiers
+          let finalWin = spinData.winAmount || 0;
+          const nowMs = Date.now();
+          const payoutSkill = state.skills.payout;
+          const payoutActive = payoutSkill.activeUntil && payoutSkill.activeUntil > nowMs;
+          if (payoutActive) {
+            finalWin = Math.round(finalWin * (payoutSkill.multiplier || 1));
+          }
+          if (Math.random() < (state.jackpots.chance || 0.01)) {
+            finalWin = Math.round(finalWin * (state.jackpots.multiplier || 10));
+            log('Jackpot!', `×${state.jackpots.multiplier || 10} payout`);
+          }
+          if (finalWin > 0) {
+            state.jackpots.hotStreak.wins += 1;
+            if (state.jackpots.hotStreak.wins >= 3) {
+              finalWin = Math.round(finalWin * (1 + state.jackpots.hotStreak.bonusPct));
+            }
+          } else {
+            state.jackpots.hotStreak.wins = 0;
+          }
+          spinData.winAmount = finalWin;
+
+          const dropResult = rollDropsForSpin(bet, finalWin || 0);
           if (dropResult.drops?.length) {
             applyDropsToInventory(dropResult.drops, Date.now());
           }
+          const xpGain = Math.max(1, Math.round(bet / 10));
+          const leveled = addMachineXp(state.machine.id, xpGain);
           if (els.balance) els.balance.textContent = currency.format(state.balance);
           if (els.spinCount) els.spinCount.textContent = state.spinCount;
           updateLastSpin(spinData);
           updateHud();
           renderBonusSummary();
+          if (leveled) {
+            log('Level up', `${state.machine.name || state.machine.id} Lv ${ensureMachineProgress(state.machine.id).lvl}`);
+            renderMachineList();
+          }
           log('Spin processed locally', `${spinData.outcome} (balance ${currency.format(state.balance)})`);
+          markDirty('spin');
         } catch (error) {
           const msg = error?.message || 'Spin failed.';
           showAlert(msg);
@@ -4904,6 +5518,7 @@
               parts.push(`${info.name} ×${drop.amount || 1}`);
             });
             log('Daily reward claimed', parts.join(' • '));
+            markDirty('daily-claim');
           }
         } catch (error) {
           const payload = error.payload || {};
@@ -4943,7 +5558,7 @@
         try {
           const endpoint = state.authMode === 'register' ? '/auth/register' : '/auth/login';
           const result = await request(endpoint, { username: email, password }, { skipAuth: true });
-          hydrateSession(result, state.authMode === 'register' ? 'Account created' : 'Signed in');
+          await hydrateSession(result, state.authMode === 'register' ? 'Account created' : 'Signed in');
           showAuthAlert(state.authMode === 'register' ? 'Account created! Credits synced.' : 'Signed in successfully.');
           debug('auth:success', { endpoint });
         } catch (error) {
@@ -5042,6 +5657,8 @@
       loadMachineConfig();
       renderDaily();
       renderBonusSummary();
+      renderPayoutSkill();
+      renderWorkerButton();
       updateHud();
       window.addEventListener('resize', applyMachineTheme);
 
@@ -5082,6 +5699,8 @@
       els.dropSkillBtn?.addEventListener('click', () => {
         activateDropSkill();
       });
+      els.payoutSkillBtn?.addEventListener('click', activatePayoutSkill);
+      els.workerBtn?.addEventListener('click', toggleWorker);
 
       els.dropCloseBtn?.addEventListener('click', () => toggleDropPanel(false));
       els.dropPanel?.addEventListener('click', (event) => {
@@ -5151,8 +5770,11 @@
 
       els.syncBtn.addEventListener('click', () => {
         if (state.busy || !state.auth.token) return;
-        bootstrap();
+        syncSnapshot(true);
       });
+
+      els.exportStateBtn?.addEventListener('click', exportStateKey);
+      els.importStateBtn?.addEventListener('click', importStateKey);
 
       const purchaseUpgrade = async (type) => {
         const def = getUpgradeDef(type);
@@ -5193,6 +5815,7 @@
         applyUpgradeState({ ...state.serverUpgrades });
         renderUpgrades();
         renderAutoSpinButton();
+        markDirty('upgrade');
         log('Upgrade applied locally', def.label || type);
         showAlert(clientOnly ? 'Upgrade applied locally.' : 'Upgrade applied locally (offline).');
       };
