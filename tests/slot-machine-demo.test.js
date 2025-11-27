@@ -32,6 +32,8 @@ module.exports = function runSlotMachineDemoTests({ assert, checkFileContains })
   checkFileContains('demos/slot-machine-demo.html', 'id="card-slots"');
   checkFileContains('demos/slot-machine-demo.html', 'slot-config/upgrade-definitions.json');
   checkFileContains('demos/slot-machine-demo.html', 'id="debug-add-coins"');
+  checkFileContains('demos/slot-machine-demo.html', 'id="export-state-btn"');
+  checkFileContains('demos/slot-machine-demo.html', 'id="import-state-btn"');
   checkFileContains('demos/slot-machine-demo.html', 'id="daily-claim-btn"');
   checkFileContains('demos/slot-machine-demo.html', 'id="bonus-list"');
   checkFileContains('demos/slot-machine-demo.html', 'id="hud-vip"');
@@ -120,6 +122,7 @@ module.exports = function runSlotMachineDemoTests({ assert, checkFileContains })
   assert(dailyPayload.ready === true, 'daily payload ready flag should be true when unclaimed');
 
   assert(typeof lambda._evaluateSkills === 'function', 'lambda skill evaluator missing');
+  assert(typeof lambda._handleSync === 'function', 'lambda sync handler missing');
   const nowMs = 1_000_000;
   const activation = lambda._evaluateSkills({
     payload: { activeSkills: { dropRate: true } },

@@ -8,7 +8,7 @@ const {
   DeleteCommand,
   BatchWriteCommand
 } = require('@aws-sdk/lib-dynamodb');
-const { randomUUID, randomBytes } = require('crypto');
+const { randomUUID, randomBytes, createHmac, timingSafeEqual, createHash } = require('crypto');
 const bcrypt = require('bcryptjs');
 const { spin: runSlotSpin, machineMetadata } = require('./slot-engine');
 const {
@@ -382,6 +382,29 @@ function httpError(statusCode, message) {
   return error;
 }
 
+function base64UrlDecode(input = '') {
+  const normalized = input.replace(/-/g, '+').replace(/_/g, '/');
+  return Buffer.from(normalized, 'base64');
+}
+
+function deriveSyncHmacKey(token = '', salt = Buffer.alloc(0)) {
+  return createHash('sha256').update(Buffer.concat([Buffer.from(token), salt])).digest();
+}
+
+function verifySyncSignature(token, snapshot, signature = {}) {
+  if (!signature || !signature.salt || !signature.value) {
+    throw httpError(401, 'Missing sync signature.');
+  }
+  const salt = base64UrlDecode(signature.salt);
+  const provided = base64UrlDecode(signature.value);
+  const data = Buffer.from(JSON.stringify(snapshot || {}));
+  const key = deriveSyncHmacKey(token, salt);
+  const hmac = createHmac('sha256', key).update(data).digest();
+  if (hmac.length !== provided.length || !timingSafeEqual(hmac, provided)) {
+    throw httpError(401, 'Invalid sync signature.');
+  }
+}
+
 function resolveCorsOrigin(requestOrigin = '') {
   if (allowedOrigins.length === 0 || allowedOrigins.includes('*')) {
     return requestOrigin || '*';
@@ -493,6 +516,8 @@ async function getOrCreatePlayer(playerId) {
     inventory: {},
     lastDrops: [],
     daily: { streak: 1, lastClaimMs: 0, claimedToday: false },
+    snapshotRev: 0,
+    snapshotData: null,
     createdAt: now,
     updatedAt: now
   };
@@ -576,6 +601,17 @@ function formatPlayerPayload(player, extra = {}) {
   const activeSymbols = computeActiveSymbols(upgrades);
   const skillState = normalizeSkillState(player?.skillState || {}, nowMs);
   const daily = formatDailyPayload(player?.daily || {}, nowMs);
+  let snapshot = null;
+  if (player?.snapshotData) {
+    try {
+      snapshot = JSON.parse(player.snapshotData);
+      if (typeof player.snapshotRev === 'number') {
+        snapshot.rev = player.snapshotRev;
+      }
+    } catch {
+      snapshot = null;
+    }
+  }
   return {
     playerId: player.playerId,
     balance: player.credits,
@@ -604,6 +640,7 @@ function formatPlayerPayload(player, extra = {}) {
     },
     daily,
     skillState,
+    snapshot,
     ...extra
   };
 }
@@ -812,6 +849,43 @@ async function handleDaily(payload = {}) {
     );
   }
   return formatPlayerPayload(player, { username: auth.username, token: auth.token });
+}
+
+async function handleSync(payload = {}) {
+  const auth = await resolveAuth(payload.token, { required: true });
+  const player = auth.player;
+  const currentRev = Number.isFinite(player.snapshotRev) ? player.snapshotRev : 0;
+  let storedSnapshot = null;
+  if (player.snapshotData) {
+    try {
+      storedSnapshot = JSON.parse(player.snapshotData);
+      if (typeof storedSnapshot.rev !== 'number') storedSnapshot.rev = currentRev;
+    } catch {
+      storedSnapshot = null;
+    }
+  }
+  const incoming = payload.snapshot;
+  if (!incoming || typeof incoming !== 'object') {
+    return { rev: currentRev, snapshot: storedSnapshot };
+  }
+  verifySyncSignature(auth.token, incoming, payload.signature);
+  const incomingRev = Number.isFinite(incoming.rev) ? incoming.rev : 0;
+  if (incomingRev < currentRev && storedSnapshot) {
+    return { rev: currentRev, snapshot: storedSnapshot, conflict: true };
+  }
+  const nextRev = Math.max(currentRev, incomingRev) + 1;
+  const toStore = { ...incoming, rev: nextRev };
+  await dynamo.send(new UpdateCommand({
+    TableName: TABLE_NAME,
+    Key: { playerId: player.playerId },
+    UpdateExpression: 'SET snapshotRev = :rev, snapshotData = :data, updatedAt = :now',
+    ExpressionAttributeValues: {
+      ':rev': nextRev,
+      ':data': JSON.stringify(toStore),
+      ':now': nowIso()
+    }
+  }));
+  return { rev: nextRev, snapshot: toStore };
 }
 
 async function handleSpin(payload = {}) {
@@ -1229,6 +1303,10 @@ exports.handler = async (event = {}) => {
       }
       return respond(200, daily, corsOrigin);
     }
+    if (routeKey.endsWith('/sync')) {
+      const sync = await handleSync(payload);
+      return respond(200, sync, corsOrigin);
+    }
     if (routeKey.endsWith('/spin')) {
       const spin = await handleSpin(payload);
       if (spin.errorCode) {
@@ -1253,3 +1331,4 @@ exports._evaluateSkills = evaluateSkills;
 exports._dailyRewardFor = dailyRewardFor;
 exports._formatDailyPayload = formatDailyPayload;
 exports._advanceDaily = advanceDaily;
+exports._handleSync = handleSync;
