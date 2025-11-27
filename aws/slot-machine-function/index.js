@@ -193,6 +193,27 @@ function evaluateSkills({ payload = {}, upgrades = {}, skillState = {}, nowMs = 
   };
 }
 
+function mergeSnapshotFields(player = {}, snapshot = {}) {
+  const next = { ...(player || {}) };
+  if (Number.isFinite(snapshot.balance)) next.credits = Math.max(0, snapshot.balance);
+  if (Number.isFinite(snapshot.bet)) next.lastBet = snapshot.bet;
+  if (Number.isFinite(snapshot.spinCount)) next.spins = snapshot.spinCount;
+  if (snapshot.machine?.upgrades) next.upgrades = snapshot.machine.upgrades;
+  else if (snapshot.upgrades) next.upgrades = snapshot.upgrades;
+  if (snapshot.machine?.activeSymbols) next.activeSymbols = snapshot.machine.activeSymbols;
+  if (snapshot.machines) next.machines = snapshot.machines;
+  if (snapshot.drop?.inventory) next.inventory = snapshot.drop.inventory;
+  if (snapshot.drop?.lastDrops) next.lastDrops = snapshot.drop.lastDrops;
+  if (snapshot.daily) next.daily = snapshot.daily;
+  if (snapshot.energy) next.energy = snapshot.energy;
+  if (snapshot.worker) next.worker = snapshot.worker;
+  if (snapshot.skills) next.skillState = snapshot.skills;
+  if (snapshot.cards) next.cards = snapshot.cards;
+  if (snapshot.equipment) next.equipment = snapshot.equipment;
+  if (snapshot.lastSpin) next.lastSpin = snapshot.lastSpin;
+  return next;
+}
+
 const startOfDayMs = (ms = Date.now()) => {
   const date = new Date(ms);
   date.setUTCHours(0, 0, 0, 0);
@@ -601,6 +622,7 @@ function formatPlayerPayload(player, extra = {}) {
   const activeSymbols = computeActiveSymbols(upgrades);
   const skillState = normalizeSkillState(player?.skillState || {}, nowMs);
   const daily = formatDailyPayload(player?.daily || {}, nowMs);
+  const energy = player?.energy || { current: 20, max: 20, rechargePerSec: 0.5, lastUpdate: Date.now() };
   let snapshot = null;
   if (player?.snapshotData) {
     try {
@@ -630,6 +652,11 @@ function formatPlayerPayload(player, extra = {}) {
       currentLineTier: dims.lineTier,
       activeSymbols
     },
+    machines: player?.machines || {},
+    cards: player?.cards || {},
+    equipment: player?.equipment || {},
+    worker: player?.worker || {},
+    energy,
     dropState: {
       inventory: player.inventory || {},
       lastDrops: player.lastDrops || [],
@@ -875,15 +902,71 @@ async function handleSync(payload = {}) {
   }
   const nextRev = Math.max(currentRev, incomingRev) + 1;
   const toStore = { ...incoming, rev: nextRev };
+  const merged = mergeSnapshotFields(player, incoming);
+  const now = nowIso();
+  const setParts = ['snapshotRev = :rev', 'snapshotData = :data', 'updatedAt = :now'];
+  const values = {
+    ':rev': nextRev,
+    ':data': JSON.stringify(toStore),
+    ':now': now
+  };
+  if (Number.isFinite(merged.credits)) {
+    setParts.push('credits = :credits');
+    values[':credits'] = merged.credits;
+  }
+  if (merged.upgrades) {
+    setParts.push('upgrades = :upgrades');
+    values[':upgrades'] = merged.upgrades;
+  }
+  if (merged.inventory) {
+    setParts.push('inventory = :inventory');
+    values[':inventory'] = merged.inventory;
+  }
+  if (merged.lastDrops) {
+    setParts.push('lastDrops = :lastDrops');
+    values[':lastDrops'] = merged.lastDrops;
+  }
+  if (merged.daily) {
+    setParts.push('daily = :daily');
+    values[':daily'] = merged.daily;
+  }
+  if (merged.machines) {
+    setParts.push('machines = :machines');
+    values[':machines'] = merged.machines;
+  }
+  if (merged.energy) {
+    setParts.push('energy = :energy');
+    values[':energy'] = merged.energy;
+  }
+  if (merged.skillState) {
+    setParts.push('skillState = :skillState');
+    values[':skillState'] = merged.skillState;
+  }
+  if (merged.cards) {
+    setParts.push('cards = :cards');
+    values[':cards'] = merged.cards;
+  }
+  if (merged.equipment) {
+    setParts.push('equipment = :equipment');
+    values[':equipment'] = merged.equipment;
+  }
+  if (merged.worker) {
+    setParts.push('worker = :worker');
+    values[':worker'] = merged.worker;
+  }
+  if (Number.isFinite(merged.spins)) {
+    setParts.push('spins = :spins');
+    values[':spins'] = merged.spins;
+  }
+  if (Number.isFinite(merged.lastBet)) {
+    setParts.push('lastBet = :lastBet');
+    values[':lastBet'] = merged.lastBet;
+  }
   await dynamo.send(new UpdateCommand({
     TableName: TABLE_NAME,
     Key: { playerId: player.playerId },
-    UpdateExpression: 'SET snapshotRev = :rev, snapshotData = :data, updatedAt = :now',
-    ExpressionAttributeValues: {
-      ':rev': nextRev,
-      ':data': JSON.stringify(toStore),
-      ':now': nowIso()
-    }
+    UpdateExpression: `SET ${setParts.join(', ')}`,
+    ExpressionAttributeValues: values
   }));
   return { rev: nextRev, snapshot: toStore };
 }

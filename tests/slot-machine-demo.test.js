@@ -42,6 +42,12 @@ module.exports = function runSlotMachineDemoTests({ assert, checkFileContains })
   assert(/slotDemoDebug/.test(demoHtml), 'slot demo debug hook missing');
   assert(demoHtml.includes('PLACEHOLDER_ASSET'), 'slot demo missing placeholder asset constant');
   assert(fs.existsSync('img/slot/placeholder.png'), 'slot placeholder asset missing');
+  assert(!/spinSeed/.test(demoHtml), 'deterministic spin seed should be removed');
+  assert(!/mulberry32/.test(demoHtml), 'mulberry32 RNG should not be present');
+  assert(/spinTiming/.test(demoHtml), 'spin timing config should drive reel timing');
+  assert(/consumeSpinModifiers/.test(demoHtml), 'reelMod/spinBooster consumer missing');
+  assert(/export key signature invalid/i.test(demoHtml), 'export/import signature validation missing');
+  assert(/hmacVerify/.test(demoHtml), 'export/import should verify bundle signatures');
 
   const upgradesPath = path.join('slot-config', 'upgrade-definitions.json');
   assert(fs.existsSync(upgradesPath), 'upgrade definitions missing');
@@ -101,6 +107,10 @@ module.exports = function runSlotMachineDemoTests({ assert, checkFileContains })
   upgradeDefs.forEach(def => {
     assert(lambda._getUpgradeDefinition(def.key), `lambda missing handler for upgrade "${def.key}"`);
   });
+  const lambdaCode = fs.readFileSync(path.join('aws', 'slot-machine-function', 'index.js'), 'utf8');
+  assert(/handleSync[\s\S]*credits =/.test(lambdaCode), 'handleSync should persist credits from snapshots');
+  assert(/handleSync[\s\S]*upgrades =/.test(lambdaCode), 'handleSync should persist upgrades from snapshots');
+  assert(/handleSync[\s\S]*inventory =/.test(lambdaCode), 'handleSync should persist inventory from snapshots');
   assert(typeof lambda._advanceDaily === 'function', 'daily advance helper missing');
   assert(typeof lambda._dailyRewardFor === 'function', 'daily reward helper missing');
   assert(typeof lambda._formatDailyPayload === 'function', 'daily payload formatter missing');
