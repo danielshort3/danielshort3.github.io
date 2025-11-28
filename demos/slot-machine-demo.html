@@ -3,7 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <base href="/">
+  <script>
+    (() => {
+      const base = document.createElement('base');
+      const baseHref = window.location.protocol === 'file:'
+        ? new URL('../', window.location.href).href
+        : '/';
+      base.setAttribute('href', baseHref);
+      document.head.appendChild(base);
+    })();
+  </script>
   <title>Server-Backed Slot Machine Demo</title>
   <meta name="theme-color" content="#0d1117" />
   <link rel="stylesheet" href="dist/styles.css" />
@@ -41,6 +50,7 @@
       padding: clamp(20px, 3vw, 36px);
       display: block;
       overflow-y: auto;
+      overflow-x: hidden;
     }
     html[data-embedded="true"] body {
       display: block;
@@ -85,6 +95,17 @@
       color: var(--danger);
       background: rgba(244, 114, 182, .1);
     }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
     .grid {
       display: grid;
       gap: 16px;
@@ -103,6 +124,14 @@
       margin: 0 0 12px;
       font-size: 1.1rem;
       font-weight: 600;
+    }
+    .log-panel {
+      display: flex;
+      flex-direction: column;
+      min-height: calc(100vh - 160px);
+    }
+    .log-panel .log {
+      flex: 1 1 auto;
     }
     dl {
       margin: 0;
@@ -190,8 +219,9 @@
       font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
       font-size: .85rem;
       color: var(--muted);
-      max-height: 160px;
       overflow-y: auto;
+      height: 100%;
+      min-height: 240px;
     }
     .log-entry + .log-entry {
       margin-top: 6px;
@@ -433,63 +463,407 @@
       gap: 16px;
     }
     .slot-machine {
-      background: linear-gradient(150deg, rgba(9,14,28,.94), rgba(5,10,22,.94));
+      position: relative;
+      background:
+        radial-gradient(160% 120% at 50% 0%, rgba(34,211,238,.08), transparent 50%),
+        linear-gradient(145deg, rgba(8,13,25,.96), rgba(2,6,18,.97));
       border: 1px solid rgba(148,163,184,.28);
       border-radius: 24px;
-      box-shadow: 0 30px 90px rgba(2,6,23,.7);
-      padding: clamp(18px, 2.4vw, 26px);
+      box-shadow: 0 36px 110px rgba(2,6,23,.75);
+      padding: clamp(12px, 2vw, 18px);
+      overflow: hidden;
+    }
+    .flyover {
+      position: absolute;
+      display: grid;
+      gap: 6px;
+      pointer-events: none;
+      z-index: 5;
+    }
+    .flyover--top {
+      top: 10px;
+      right: 10px;
+      justify-items: end;
+    }
+    .flyover--level {
+      top: 4px;
+      left: 12px;
+      right: 12px;
+      justify-items: center;
+    }
+    .flyover--xp {
+      top: 86px;
+      left: 12px;
+      justify-items: start;
+    }
+    .flyover--loot {
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      justify-items: center;
+      align-content: end;
+    }
+    .flyover-item {
+      background: rgba(12, 18, 32, .9);
+      border: 1px solid rgba(148,163,184,.35);
+      border-radius: 12px;
+      padding: 8px 10px;
+      color: #facc15;
+      font-weight: 800;
+      box-shadow: 0 10px 30px rgba(0,0,0,.45);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      animation: flyout 1.5s ease forwards;
+    }
+    .flyover-item.win {
+      color: #22d3ee;
+      border-color: rgba(34,211,238,.5);
+    }
+    .flyover-item.drop {
+      color: #a5b4fc;
+      border-color: rgba(165,180,252,.5);
+    }
+    .flyover-item.level {
+      color: #34d399;
+      border-color: rgba(52,211,153,.5);
+    }
+    .flyover-item.xp {
+      color: #fbbf24;
+      border-color: rgba(251,191,36,.5);
+    }
+    .flyover-item img {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+      border-radius: 8px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.1);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+    }
+    @keyframes flyout {
+      0% { opacity: 0; transform: translateY(-6px) scale(.98); }
+      10% { opacity: 1; transform: translateY(0) scale(1); }
+      80% { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(-8px) scale(.98); }
+    }
+    .slot-machine::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 60% 10%, rgba(250,204,21,.06), transparent 45%);
+      opacity: .8;
+      pointer-events: none;
     }
     .slot-machine__body {
-      display: flex;
-      flex-direction: column;
-      gap: clamp(16px, 2.4vw, 24px);
-      padding-top: 10px;
-      align-items: stretch;
+      position: relative;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: clamp(12px, 2vw, 18px);
+      min-height: calc(100svh - var(--safe-top) - var(--safe-bottom) - 24px);
+      isolation: isolate;
+      z-index: 1;
+      min-width: 0;
     }
-    .machine-switcher {
-      border: 1px solid rgba(148,163,184,.24);
+    .slot-header {
+      display: grid;
+      gap: 12px;
+      align-items: start;
+    }
+    .slot-topbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .topbar-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+    .top-actions {
+      display: inline-flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex: 0 0 auto;
+      margin-left: auto;
+    }
+    .status-icon--logout {
+      background: linear-gradient(135deg, #f87171, #fb923c);
+      border-color: rgba(251,146,60,.6);
+      box-shadow: 0 14px 36px rgba(251,146,60,.35);
+      color: #0b1222;
+    }
+    .currency-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: nowrap;
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .currency-row--top {
+      width: 100%;
+      justify-content: space-between;
+    }
+    .currency-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 6px;
+      border-radius: 14px;
+      border: 1px solid rgba(148,163,184,.22);
+      background: rgba(255,255,255,.04);
+      font-weight: 700;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+      min-width: 60px;
+      justify-content: flex-start;
+    }
+    .skill-strip {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+      margin: 8px 0;
+      grid-auto-rows: 68px;
+    }
+    .skill-pill {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,.3);
+      padding: 10px 6px;
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      font-weight: 700;
+      cursor: pointer;
+      min-height: 0;
+      width: 100%;
+      height: 100%;
+      aspect-ratio: 1;
+      text-align: center;
+      flex-direction: column;
+      font-size: .9rem;
+    }
+    .skill-pill[data-state="locked"] {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+    .skill-pill[data-state="active"] {
+      border-color: rgba(52,211,153,.6);
+      background: rgba(52,211,153,.12);
+      color: #34d399;
+    }
+    .skill-pill[data-state="cooldown"] {
+      border-color: rgba(248,180,0,.6);
+      background: rgba(248,180,0,.12);
+      color: #fbbf24;
+    }
+    .skill-icon {
+      font-size: 1.2rem;
+      line-height: 1;
+    }
+    .skill-timer {
+      position: absolute;
+      bottom: 6px;
+      left: 0;
+      right: 0;
+      font-size: .78rem;
+      color: rgba(255,255,255,.8);
+      line-height: 1;
+    }
+    .currency-chip strong {
+      font-size: .9rem;
+      white-space: nowrap;
+      min-width: 40px;
+      text-align: right;
+    }
+    .machine-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: flex-start;
+    }
+    .machine-level {
+      display: grid;
+      gap: 2px;
+      min-width: 52px;
+      align-items: center;
+    }
+    .machine-level .hud-value {
+      font-size: 1rem;
+    }
+    .machine-perks {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .perks-btn {
+      border: 1px solid rgba(148,163,184,.35);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      font-weight: 800;
+      line-height: 1;
+      padding: 0;
+    }
+    .perks-btn:focus-visible {
+      outline: 2px solid rgba(250,204,21,.7);
+      outline-offset: 2px;
+    }
+    .perks-popover {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      width: min(360px, 80vw);
+      background: rgba(6,10,22,.95);
+      border: 1px solid rgba(148,163,184,.35);
+      border-radius: 12px;
+      box-shadow: 0 18px 40px rgba(0,0,0,.55);
+      padding: 10px 12px;
+      display: none;
+      z-index: 25;
+    }
+    .perks-popover[data-visible="true"] {
+      display: grid;
+      gap: 6px;
+    }
+    .perks-popover h4 {
+      margin: 0;
+      font-size: .95rem;
+    }
+    .perks-popover p {
+      margin: 0;
+      font-size: .9rem;
+      color: var(--muted);
+    }
+    .perks-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 8px;
+    }
+    .perk-row {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 10px;
+      align-items: start;
+    }
+    .perk-check {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 1px solid rgba(148,163,184,.5);
+      display: inline-grid;
+      place-items: center;
+      font-size: .85rem;
+      color: #0b1222;
+      background: rgba(255,255,255,.04);
+    }
+    .perk-check[data-active="true"] {
+      background: linear-gradient(135deg, #22d3ee, #facc15);
+      border-color: transparent;
+      color: #0b1222;
+      box-shadow: 0 6px 14px rgba(34,211,238,.35);
+    }
+    .perk-text {
+      color: var(--text);
+      font-size: .9rem;
+    }
+    .machine-flyout {
+      position: relative;
+      pointer-events: auto;
+      z-index: 10;
+    }
+    .machine-flyout__toggle {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      border: 1px solid rgba(148,163,184,.45);
+      background: linear-gradient(150deg, #22d3ee, #facc15);
+      box-shadow: 0 12px 28px rgba(34,211,238,.28);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      padding: 0;
+      transition: transform .16s ease, box-shadow .16s ease, border .16s ease;
+      color: #041226;
+      font-weight: 800;
+      font-size: .9rem;
+    }
+    .machine-flyout__toggle:focus-visible {
+      outline: 2px solid rgba(255,255,255,.85);
+      outline-offset: 2px;
+    }
+    .machine-flyout__toggle:hover {
+      box-shadow: 0 14px 32px rgba(34,211,238,.32);
+      transform: translateY(-1px);
+    }
+    .machine-flyout__panel {
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      left: auto;
+      width: min(360px, calc(100vw - 24px));
       border-radius: 18px;
-      background: linear-gradient(150deg, rgba(12,18,36,.9), rgba(4,7,18,.9));
-      padding: 12px 14px;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+      border: 1px solid rgba(148,163,184,.3);
+      background: linear-gradient(180deg, rgba(8,12,24,.96), rgba(2,5,16,.96));
+      box-shadow: 0 20px 60px rgba(0,0,0,.45);
+      padding: 12px;
       display: grid;
       gap: 10px;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateY(-6px);
+      transition: opacity .16s ease, visibility .16s ease, transform .16s ease;
+      max-height: min(70vh, 620px);
+      overflow: auto;
+      z-index: 20;
     }
-    .machine-switcher__header {
+    .machine-flyout[data-open="true"] .machine-flyout__panel {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+    .machine-flyout__head {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      gap: 10px;
       flex-wrap: wrap;
     }
     .machine-list {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      grid-template-columns: 1fr;
       gap: 10px;
-    }
-    .machine-picker {
-      display: none;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 10px;
-      border-radius: 12px;
-      border: 1px solid rgba(148,163,184,.35);
-      background: rgba(255,255,255,.04);
-      color: var(--text);
-      cursor: pointer;
-      font-weight: 600;
-      min-width: 0;
-    }
-    .machine-picker img {
-      width: 28px;
-      height: 28px;
-      border-radius: 8px;
-      object-fit: contain;
-      background: rgba(255,255,255,.06);
-      padding: 4px;
+      max-height: 360px;
+      overflow-y: auto;
+      padding-right: 4px;
     }
     #machine-select {
-      display: none;
+      display: block;
+      width: 100%;
+      grid-column: 1 / -1;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,.3);
+      background: rgba(8,12,24,.9);
+      color: var(--text);
+      font-weight: 600;
     }
     .machine-card {
       border: 1px solid rgba(148,163,184,.25);
@@ -501,7 +875,14 @@
       cursor: pointer;
       text-align: left;
       transition: border .18s ease, transform .18s ease, box-shadow .18s ease;
-      min-height: 86px;
+      min-height: 92px;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+    }
+    .machine-card[disabled] {
+      opacity: .55;
+      cursor: not-allowed;
+      filter: grayscale(0.4);
     }
     .machine-card:hover {
       border-color: rgba(99,102,241,.5);
@@ -535,16 +916,104 @@
       padding: 6px;
       box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
     }
+    .machine-card__cost {
+      margin: 0;
+      font-weight: 700;
+      color: var(--text);
+      text-align: right;
+    }
+    .machine-card[data-locked="true"]::after {
+      content: "Locked";
+      position: absolute;
+      inset: 8px;
+      border-radius: 10px;
+      background: rgba(0,0,0,.6);
+      color: rgba(255,255,255,.9);
+      font-weight: 700;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      border: 1px dashed rgba(255,255,255,.25);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .hud--ribbon {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      background: linear-gradient(180deg, rgba(15,23,42,.92), rgba(9,13,26,.92));
+      border: 1px solid rgba(148,163,184,.2);
+      border-radius: 16px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+      padding: 10px 12px;
+    }
+    .machine-stage {
+      position: relative;
+      display: grid;
+      grid-template-rows: 1fr;
+      gap: 10px;
+      border-radius: 22px;
+      padding: clamp(6px, 1.4vw, 12px);
+      background:
+        radial-gradient(120% 120% at 18% 8%, rgba(99,102,241,.1), transparent 45%),
+        radial-gradient(120% 100% at 80% 0%, rgba(14,165,233,.08), transparent 45%),
+        linear-gradient(180deg, rgba(10,16,30,.94), rgba(4,7,16,.96));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 24px 70px rgba(0,0,0,.45);
+      overflow: visible;
+      min-height: 0;
+      min-width: 0;
+    }
     .machine-frame {
       position: relative;
-      border-radius: 26px;
+      border-radius: 22px;
       border: 1px solid rgba(99,102,241,.28);
-      padding: clamp(16px, 3vw, 24px);
+      padding: clamp(8px, 1.6vw, 14px);
       background:
         radial-gradient(circle at 22% 0%, rgba(59,130,246,.16), transparent 42%),
         linear-gradient(180deg, rgba(12,18,36,.94), rgba(6,11,22,.98));
       overflow: hidden;
       box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 18px 50px rgba(2,6,23,.7);
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-start;
+      min-height: 0;
+      align-self: start;
+      flex: 1 1 auto;
+      min-width: 0;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .machine-xp {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      align-items: center;
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(148,163,184,.3);
+      background: rgba(2,6,23,.65);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+      min-width: 0;
+    }
+    .xp-track {
+      position: relative;
+      width: 100%;
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      overflow: hidden;
+      border: 1px solid rgba(148,163,184,.25);
+    }
+    .xp-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 0%;
+      border-radius: inherit;
+      background: linear-gradient(120deg, #22d3ee, #facc15);
+      box-shadow: 0 6px 16px rgba(34,211,238,.25);
     }
     .machine-frame__glow {
       position: absolute;
@@ -557,28 +1026,50 @@
     .machine-frame__reels {
       position: relative;
       display: grid;
-      place-items: center;
-      background: linear-gradient(180deg, rgba(8,13,26,.86), rgba(4,7,16,.94));
-      padding: clamp(16px, 3vw, 22px);
-      border-radius: 22px;
+      align-items: start;
+      justify-items: center;
+      background: linear-gradient(180deg, rgba(8,13,26,.9), rgba(4,7,16,.95));
+      padding: clamp(8px, 1.5vw, 14px);
+      border-radius: 20px;
       box-shadow: inset 0 0 32px rgba(0,0,0,.45), 0 12px 30px rgba(0,0,0,.4);
       overflow: hidden;
+      width: 100%;
+      min-height: 0;
+      height: auto;
+      min-width: 0;
     }
     .slot-grid {
       --reel-count: 3;
       --row-count: 3;
-      --cell-size: clamp(52px, 9vw, 96px);
+      --cell-size: clamp(72px, 12vw, 128px);
       display: grid;
-      grid-template-columns: repeat(var(--reel-count), minmax(var(--cell-size), 1fr));
-      gap: clamp(8px, 1.5vw, 14px);
+      grid-template-columns: repeat(var(--reel-count), minmax(0, 1fr));
+      gap: clamp(10px, 1.8vw, 16px);
       perspective: 1200px;
       position: relative;
-      padding: clamp(6px, 1vw, 12px);
+      padding: clamp(8px, 1.4vw, 12px);
       border-radius: 18px;
-      border: 1px solid rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.06);
       background: radial-gradient(circle at 50% 20%, rgba(255,255,255,.04), transparent 62%);
       width: 100%;
       min-width: 100%;
+      min-height: 0;
+      align-content: start;
+      align-items: start;
+      justify-content: center;
+      justify-items: center;
+    }
+    .slot-grid:empty::before {
+      content: "Reels warming up";
+      color: var(--muted);
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px dashed rgba(148,163,184,.3);
+      background: rgba(2,6,23,.6);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
     }
     .slot-reel {
       position: relative;
@@ -654,15 +1145,12 @@
     }
     @media (min-width: 1080px) {
       .machine-frame {
-        min-height: 380px;
+        min-height: 420px;
       }
       .machine-frame__reels {
-        min-height: 300px;
+        min-height: 360px;
         align-items: center;
         justify-content: center;
-      }
-      .control-deck {
-        grid-template-rows: auto auto auto auto;
       }
       .hud {
         grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -709,23 +1197,121 @@
     }
     .control-deck {
       display: grid;
-      gap: 14px;
-      background: linear-gradient(165deg, rgba(15,23,42,.84), rgba(12,16,32,.9));
-      border-radius: 22px;
-      border: 1px solid rgba(148,163,184,.24);
-      padding: clamp(16px, 3vw, 20px);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 10px 30px rgba(0,0,0,.35);
+      gap: 12px;
       align-content: start;
+      background: none;
+      border: none;
+      padding: 0;
+      box-shadow: none;
     }
-    .control-deck .hud,
-    .control-deck .bet-controls,
-    .control-deck .machine-messages,
-    .control-deck .action-buttons {
-      background: rgba(255,255,255,.02);
-      border: 1px solid rgba(148,163,184,.18);
-      border-radius: 14px;
+    .control-deck--ground {
+      display: grid;
+      gap: 10px;
+    }
+    .bet-bar {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
       padding: 12px 14px;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+      border-radius: 16px;
+      border: 1px solid rgba(148,163,184,.2);
+      background: linear-gradient(180deg, rgba(11,16,28,.9), rgba(6,9,20,.92));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 10px 28px rgba(0,0,0,.3);
+      min-width: 0;
+    }
+    .bet-info {
+      display: none;
+    }
+    .bet-info--muted {
+      display: none;
+    }
+    .action-rail {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: stretch;
+      padding: 10px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(148,163,184,.24);
+      background: linear-gradient(180deg, rgba(10,16,30,.9), rgba(4,8,18,.94));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 12px 30px rgba(0,0,0,.32);
+    }
+    .action-rail--inline {
+      padding: 8px 10px;
+    }
+    .action-rail--spin {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .layout-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+      gap: 8px;
+      align-items: stretch;
+    }
+    .layout-chip {
+      border: 1px solid rgba(148,163,184,.22);
+      background: rgba(255,255,255,.04);
+      border-radius: 12px;
+      padding: 10px;
+      display: grid;
+      gap: 4px;
+      text-align: center;
+      color: inherit;
+      cursor: default;
+    }
+    .layout-chip strong {
+      font-size: 1rem;
+    }
+    .layout-chip.is-action {
+      cursor: pointer;
+      border-color: rgba(148,163,184,.35);
+      transition: transform .16s ease, box-shadow .16s ease, border .16s ease;
+    }
+    .layout-chip.is-action:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(0,0,0,.25);
+    }
+    .layout-chip.is-action:focus-visible {
+      outline: 2px solid rgba(250,204,21,.6);
+      outline-offset: 2px;
+    }
+    .action-icons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
+      gap: 8px;
+      align-items: stretch;
+    }
+    .icon-btn {
+      border: 1px solid rgba(148,163,184,.3);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 10px 8px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 56px;
+      cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+      transition: transform .18s ease, border .18s ease, box-shadow .18s ease;
+      text-align: center;
+      position: relative;
+    }
+    .icon-btn::before {
+      content: attr(data-icon);
+      font-size: 1.05rem;
+      display: inline-block;
+    }
+    .icon-btn:hover {
+      border-color: rgba(34,211,238,.8);
+      box-shadow: 0 10px 24px rgba(34,211,238,.18);
+      transform: translateY(-1px);
     }
     .drop-stack {
       border-radius: 18px;
@@ -1029,7 +1615,8 @@
       border: 1px solid rgba(148,163,184,.2);
       background: rgba(15,23,42,.8);
       padding: 18px;
-      display: grid;
+      display: flex;
+      flex-direction: column;
       gap: 16px;
     }
     .upgrade-panel h2,
@@ -1047,21 +1634,26 @@
       letter-spacing: .08em;
       color: rgba(226,232,240,.75);
     }
-    .upgrade-grid {
+    #upgrade-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .upgrade-card-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 14px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
       align-items: stretch;
     }
     .upgrade-card {
       border-radius: 14px;
       border: 1px solid rgba(148,163,184,.25);
-      padding: 14px;
+      padding: 12px;
       background: linear-gradient(180deg, rgba(14,20,35,.9), rgba(6,10,22,.94));
       display: flex;
       flex-direction: column;
       gap: 8px;
-      min-height: 210px;
+      min-height: 150px;
       box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
     }
     .upgrade-card__meta {
@@ -1080,13 +1672,6 @@
     .upgrade-card h4 {
       margin: 0;
       font-size: 1rem;
-    }
-    .upgrade-card p {
-      margin: 0;
-      font-size: .85rem;
-      color: var(--muted);
-      min-height: 32px;
-      flex: 1;
     }
     .upgrade-card strong {
       font-size: .95rem;
@@ -1137,21 +1722,28 @@
       font-variant-numeric: tabular-nums;
     }
     .bet-controls {
-      display: grid;
-      grid-template-columns: 40px 1fr 40px auto;
-      gap: 8px;
+      display: flex;
       align-items: center;
+      gap: 8px;
+      flex: 1 1 auto;
+      min-width: 0;
+      flex-wrap: nowrap;
     }
     .bet-controls input[type="range"] {
-      grid-column: 2;
-      width: 100%;
+      flex: 1 1 auto;
+      min-width: 0;
       accent-color: var(--accent, #facc15);
       height: 6px;
       border-radius: 999px;
     }
-    .bet-controls button:nth-of-type(1) { grid-column: 1; }
-    .bet-controls button:nth-of-type(2) { grid-column: 3; }
-    .bet-controls button:nth-of-type(3) { grid-column: 4; }
+    .bet-controls button {
+      flex: 0 0 42px;
+      padding: 8px 6px;
+      font-size: .9rem;
+    }
+    .bet-controls button[data-chip="max"] {
+      flex-basis: 62px;
+    }
     .chip {
       border: 1px solid rgba(148,163,184,.45);
       background: linear-gradient(180deg, rgba(15,23,42,.95), rgba(9,14,26,.95));
@@ -1171,6 +1763,17 @@
       min-height: 32px;
       display: grid;
       gap: 6px;
+    }
+    .machine-messages--stage {
+      display: none;
+      background: rgba(2,6,23,.65);
+      border: 1px solid rgba(148,163,184,.25);
+      border-radius: 16px;
+      padding: 10px 12px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+    }
+    .machine-messages--stage .machine-outcome {
+      font-size: 1.05rem;
     }
     .machine-outcome-group {
       display: flex;
@@ -1215,16 +1818,37 @@
     }
     .spin-btn {
       border: none;
-      border-radius: 16px;
-      padding: 14px 18px;
-      font-size: 1rem;
-      font-weight: 700;
-      letter-spacing: .01em;
+      border-radius: 18px;
+      padding: 16px 22px;
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: .02em;
       color: #041226;
-      background: linear-gradient(120deg, #22d3ee, #facc15);
-      box-shadow: 0 18px 36px rgba(34,211,238,.32);
+      background: linear-gradient(135deg, #22d3ee, #facc15);
+      box-shadow: 0 22px 44px rgba(34,211,238,.36);
       cursor: pointer;
       transition: transform .18s ease, box-shadow .18s ease;
+      min-width: 100%;
+      min-height: 64px;
+    }
+    .action-rail--spin .spin-btn {
+      min-width: 0;
+      flex: 1 1 50%;
+    }
+    .action-rail--spin #spin-btn {
+      flex: 3 1 0;
+    }
+    .action-rail--spin #auto-spin-btn {
+      flex: 1 1 0;
+      max-width: 120px;
+      text-align: center;
+    }
+    .spin-btn--secondary {
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      border: 1px solid rgba(148,163,184,.3);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+      min-width: auto;
     }
     .spin-btn:disabled {
       opacity: .5;
@@ -1367,26 +1991,28 @@
         height: 100%;
       }
       body {
-        padding: calc(env(safe-area-inset-top, 0px) + 6px) 0 calc(env(safe-area-inset-bottom, 0px) + 96px);
-        min-height: calc((var(--app-vh, 1vh) * 100) - var(--safe-top, 0px));
+        padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px) 0;
+        min-height: 100svh;
         background: #020617;
         display: flex;
         flex-direction: column;
-        overflow-x: hidden;
-        overflow-y: auto;
+        overflow: hidden;
       }
       main {
         border-radius: 0;
-        min-height: calc((var(--app-vh, 1vh) * 100) - var(--safe-top, 0px));
+        min-height: 0;
+        min-height: calc(100svh - var(--safe-top, 0px) - var(--safe-bottom, 0px));
+        height: 100%;
         padding: 0;
-        gap: 10px;
+        gap: 8px;
         box-shadow: none;
         border: none;
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        grid-template-columns: 100%;
         flex: 1;
         width: 100%;
-        overflow: visible;
+        overflow: hidden;
       }
       main > * {
         margin-inline: 14px;
@@ -1396,17 +2022,24 @@
       }
       .status-row {
         justify-content: space-between;
+        align-items: center;
+        padding: 10px 12px;
+        margin: 0;
+        grid-row: 1;
+        flex-shrink: 0;
       }
-      .slot-grid {
-        gap: 8px;
+      .desktop-nav {
+        display: none;
       }
       .mobile-nav {
         display: flex;
-        position: fixed;
-        bottom: env(safe-area-inset-bottom, 10px);
-        left: 12px;
-        right: 12px;
-        z-index: 15;
+        grid-row: 3;
+        position: sticky;
+        bottom: env(safe-area-inset-bottom, 0px);
+        left: 0;
+        right: 0;
+        margin: 0 12px 0;
+        z-index: 10;
         background: rgba(2,6,23,.95);
         border-radius: 18px;
         border: 1px solid rgba(148,163,184,.25);
@@ -1417,34 +2050,28 @@
       }
       .mobile-nav button {
         font-size: .85rem;
-        min-height: 56px;
+        min-height: 64px;
         flex: 1;
-      }
-      .desktop-nav {
-        display: none;
       }
       main[data-tabs="true"] {
         gap: 8px;
-        flex: 1;
+        grid-template-rows: auto 1fr auto;
       }
       main[data-tabs="true"] [data-mobile-pane] {
         display: none;
         margin-inline: 16px;
         min-height: 0;
+        grid-row: 2;
       }
       main[data-tabs="true"] [data-mobile-pane][data-mobile-active="true"] {
-        display: block;
-        max-height: none;
-        min-height: 0;
-        flex: 1;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-      }
-      main[data-tabs="true"] [data-mobile-pane][data-mobile-active="true"].slot-machine {
         display: flex;
         flex-direction: column;
+        min-height: 0;
+        max-height: 100%;
+        overflow: auto;
+      }
+      main[data-tabs="true"] [data-mobile-pane][data-mobile-active="true"].slot-machine {
         overflow: hidden;
-        flex: 1;
       }
       main[data-tabs="true"] section.panel {
         max-height: none;
@@ -1452,60 +2079,92 @@
       }
       .slot-machine {
         flex: 1;
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
         gap: 10px;
-        padding: 10px 12px;
-        border-radius: 18px;
-        box-shadow: 0 25px 60px rgba(2,6,23,.65);
+        padding: 8px 10px;
+        border-radius: 0;
+        box-shadow: none;
         min-height: 0;
-        margin-bottom: 86px;
+        margin-bottom: 0;
+        height: 100%;
       }
       .slot-machine__body {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
         gap: 10px;
         padding-top: 0;
-        overflow: hidden;
+        align-items: stretch;
+        min-height: 0;
+        height: 100%;
+        min-width: 0;
+      }
+      .slot-header {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      .machine-stage {
+        padding: 8px;
+        grid-template-rows: 1fr;
       }
       .machine-frame {
         flex: 1 1 auto;
         display: flex;
         flex-direction: column;
-        justify-content: center;
-        min-height: calc(var(--app-vh, 1vh) * 0.68);
-        padding: 6px;
+        justify-content: flex-start;
+        padding: 8px;
+        min-height: 0;
       }
       .machine-frame__reels {
-        flex: 1;
-        min-height: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 4px 6px;
+        padding: 6px 8px;
         overflow: hidden;
-        max-height: calc(var(--app-vh, 1vh) * 0.7);
-      }
-      .machine-frame__reels .slot-grid {
-        align-content: center;
-        justify-content: center;
-        justify-items: center;
+        min-height: 0;
         height: auto;
-        min-width: 100%;
+        min-width: 0;
       }
-      .machine-frame__reels .slot-cell {
-        height: auto;
+      .slot-grid {
+        gap: 6px;
+        --cell-size: clamp(64px, 24vw, 120px);
+        min-height: 0;
+        grid-template-columns: repeat(var(--reel-count), minmax(0, 1fr));
+        align-content: start;
+        align-items: start;
+        padding: 8px;
+      }
+      .slot-grid .slot-cell {
+        border-width: 1px;
+        padding: 4px;
+      }
+      .slot-grid .slot-cell__symbol {
+        max-width: 76px;
       }
       .control-deck {
+        grid-row: 3;
+        gap: 10px;
+        padding: 0;
+      }
+      .bet-bar {
         display: flex;
         flex-direction: column;
-        gap: 10px;
-        padding: 10px 12px;
-        flex: 0 0 auto;
-        background: linear-gradient(165deg, rgba(15,23,42,.9), rgba(8,12,24,.94));
+        gap: 8px;
+        flex-wrap: nowrap;
       }
-    .drop-log {
+      .bet-controls {
+        flex-wrap: nowrap;
+      }
+      .action-rail {
+        position: sticky;
+        bottom: calc(var(--safe-bottom) + 6px);
+        align-items: stretch;
+      }
+      .action-icons {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+      }
+      .spin-btn {
+        width: 100%;
+        min-width: 0;
+      }
+      .drop-log {
         max-height: 140px;
       }
       .drop-panel {
@@ -1516,80 +2175,54 @@
         top: auto;
         width: auto;
       }
-      .slot-grid {
-        gap: 8px;
-        --cell-size: clamp(110px, 32vw, 180px);
-      }
-      .slot-grid .slot-cell {
-        border-width: 1px;
-        padding: 4px;
-      }
-      .slot-grid .slot-cell__symbol {
-        max-width: 68px;
-      }
       .hud {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 6px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
         order: 3;
       }
-    .hud-card {
-      padding: 6px 8px;
-      min-height: 54px;
-    }
-    .hud-value {
-      font-size: .85rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      font-variant-numeric: tabular-nums;
-    }
+      .hud-card {
+        padding: 6px 8px;
+        min-height: 54px;
+      }
+      .hud-value {
+        font-size: .85rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-variant-numeric: tabular-nums;
+      }
+      .slot-topbar {
+        gap: 6px;
+      }
+      .top-actions {
+        justify-content: flex-end;
+      }
+      .currency-row {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      }
+      .machine-chip {
+        justify-content: flex-end;
+      }
       .machine-messages {
         min-height: 42px;
       }
-      .action-buttons {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-      .action-buttons .spin-btn {
-        flex: 1;
-        min-height: 52px;
-        font-size: .98rem;
-      }
-      .line-btn {
-        display: none;
-      }
       .action-select {
         display: block;
-        width: 44px;
-        padding: 8px 6px;
+        width: 100%;
+        padding: 10px 8px;
         border-radius: 12px;
         border: 1px solid rgba(148,163,184,.35);
         background: rgba(8,12,24,.9);
         color: var(--text);
-        font-size: .85rem;
+        font-size: .9rem;
       }
       .account-sheet {
         width: calc(100% - 32px);
         bottom: env(safe-area-inset-bottom, 16px);
       }
-      .machine-list {
-        grid-auto-flow: column;
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        overflow-x: auto;
-        padding-bottom: 6px;
-        gap: 8px;
-        scroll-snap-type: x proximity;
-        overscroll-behavior-inline: contain;
-        display: none;
-      }
       .machine-card {
         min-width: 150px;
         scroll-snap-align: start;
-      }
-      .machine-picker {
-        display: inline-flex;
       }
       #machine-select {
         display: block;
@@ -1601,15 +2234,6 @@
         background: rgba(8,12,24,.9);
         color: var(--text);
         font-weight: 600;
-      }
-      .bet-controls {
-        grid-template-columns: 52px 1fr 52px;
-        grid-template-rows: auto auto;
-        grid-auto-flow: row;
-        gap: 8px;
-      }
-      .bet-controls input[type="range"] {
-        grid-column: 1 / -1;
       }
       .chip {
         min-height: 46px;
@@ -1656,25 +2280,6 @@
   </div>
   <a class="skip-link" href="#main">Skip to content</a>
   <main id="main" data-api-base="https://4kvebym8b3.execute-api.us-east-2.amazonaws.com/prod" data-max-bet="100" data-machine-config="slot-config/classic.json">
-    <div class="status-row">
-      <p class="status-pill" id="connection-pill" data-state="loading">
-        <span aria-hidden="true">🛰️</span>
-        <span id="connection-text">Connecting to AWS…</span>
-      </p>
-      <div class="status-actions" data-requires-auth hidden>
-        <button type="button" class="status-icon" id="account-toggle" aria-label="Account details">
-          <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
-            <path d="M12 13.5c3.05 0 5.5-2.45 5.5-5.5S15.05 2.5 12 2.5 6.5 4.95 6.5 8s2.45 5.5 5.5 5.5zm0 2c-4.05 0-7.5 2.45-7.5 5.5 0 .28.22.5.5.5h14c.28 0 .5-.22.5-.5 0-3.05-3.45-5.5-7.5-5.5z" fill="currentColor"/>
-          </svg>
-        </button>
-        <button type="button" class="status-icon" id="logout-btn" aria-label="Log out">
-          <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
-            <path d="M14 3a1 1 0 00-1 1v4h2V5h4v14h-4v-3h-2v4a1 1 0 001 1h6a1 1 0 001-1V4a1 1 0 00-1-1h-6z" fill="currentColor"/>
-            <path d="M15 11H7V9l-5 3 5 3v-2h8v-2z" fill="currentColor"/>
-          </svg>
-        </button>
-      </div>
-    </div>
     <nav class="desktop-nav" id="desktop-nav" aria-label="Game sections" data-requires-auth hidden>
       <button type="button" data-pane-target="play" class="active">Play</button>
       <button type="button" data-pane-target="stats">Stats</button>
@@ -1752,86 +2357,104 @@
 
     <section class="panel slot-machine" data-requires-auth hidden data-mobile-pane="play" data-mobile-active="true">
       <div class="slot-machine__body">
-        <div class="machine-switcher">
-          <div class="machine-switcher__header">
-            <div>
-              <p class="hud-label">Machines</p>
-              <strong class="hud-value" id="machine-name">Lucky Lambda Classic</strong>
+        <div class="slot-header">
+          <div class="slot-topbar" data-requires-auth>
+            <div class="topbar-row">
+              <div class="currency-row currency-row--top">
+                <div class="currency-chip" aria-label="Credits">
+                  <span aria-hidden="true">💰</span>
+                  <strong id="hud-balance">$0</strong>
+                </div>
+                <div class="currency-chip" aria-label="VIP Marks">
+                  <span aria-hidden="true">💎</span>
+                  <strong id="hud-vip">0</strong>
+                </div>
+                <div class="top-actions">
+                  <button type="button" class="status-icon" id="premium-shop-btn" aria-label="Premium shop">
+                    <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+                      <path d="M5 7h14l-1 12H6L5 7zm3-4h8l1 3H7l1-3z" fill="currentColor"/>
+                      <circle cx="9" cy="19.5" r="1" fill="currentColor"/>
+                      <circle cx="15" cy="19.5" r="1" fill="currentColor"/>
+                    </svg>
+                  </button>
+                  <button type="button" class="status-icon" id="account-toggle" aria-label="Account details">
+                    <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+                      <path d="M12 13.5c3.05 0 5.5-2.45 5.5-5.5S15.05 2.5 12 2.5 6.5 4.95 6.5 8s2.45 5.5 5.5 5.5zm0 2c-4.05 0-7.5 2.45-7.5 5.5 0 .28.22.5.5.5h14c.28 0 .5-.22.5-.5 0-3.05-3.45-5.5-7.5-5.5z" fill="currentColor"/>
+                    </svg>
+                  </button>
+                  <button type="button" class="status-icon status-icon--logout" id="logout-btn" aria-label="Log out">
+                    <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+                      <path d="M14 3a1 1 0 00-1 1v4h2V5h4v14h-4v-3h-2v4a1 1 0 001 1h6a1 1 0 001-1V4a1 1 0 00-1-1h-6z" fill="currentColor"/>
+                      <path d="M15 11H7V9l-5 3 5 3v-2h8v-2z" fill="currentColor"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
             </div>
-            <span class="status-pill ghost" id="machine-tier">Demo Suite</span>
-            <button type="button" class="machine-picker" id="machine-picker" aria-label="Change machine">
-              <img id="machine-picker-icon" alt="" aria-hidden="true">
-              <span id="machine-picker-label">Switch</span>
-              <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false"><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </button>
-            <label class="sr-only" for="machine-select">Select machine</label>
-            <select id="machine-select" aria-label="Select machine"></select>
-          </div>
-          <div class="machine-list" id="machine-list" role="list"></div>
-        </div>
-        <div class="machine-frame">
-          <div class="machine-frame__glow"></div>
-          <div class="machine-frame__reels" id="reel-stage">
-            <div class="slot-grid" id="slot-grid" aria-live="polite"></div>
-            <div class="line-overlay" id="line-overlay" aria-hidden="true"></div>
           </div>
         </div>
-        <div class="control-deck">
-          <div class="hud">
-            <div class="hud-card">
-              <p class="hud-label">Credits</p>
-              <strong class="hud-value" id="hud-balance">$0</strong>
+        <div class="machine-stage">
+          <div class="machine-frame">
+            <div class="machine-frame__glow"></div>
+            <div class="flyover flyover--level" id="flyover-level" aria-live="polite"></div>
+            <div class="flyover flyover--xp" id="flyover-xp" aria-live="polite"></div>
+            <div class="flyover flyover--loot" id="flyover-loot" aria-live="polite"></div>
+            <div class="flyover flyover--top" id="flyover-top" aria-live="polite"></div>
+            <div class="machine-xp">
+              <div class="machine-flyout" id="machine-flyout" data-open="false">
+                <button type="button" class="machine-flyout__toggle" id="machine-picker" aria-label="Change machine" aria-haspopup="true" aria-expanded="false">
+                  <span id="machine-picker-label" class="sr-only">Switch</span>
+                  <strong id="machine-picker-level" aria-hidden="true">Lv 0</strong>
+                </button>
+                <div class="machine-flyout__panel">
+                  <div class="machine-flyout__head">
+                    <p class="hud-label">Select machine</p>
+                    <span class="status-pill ghost">Unlock & switch</span>
+                  </div>
+                  <div class="machine-list" id="machine-list" role="list"></div>
+                  <label class="sr-only" for="machine-select">Select machine</label>
+                  <select id="machine-select" aria-label="Select machine"></select>
+                </div>
+              </div>
+              <div class="xp-track" aria-label="Machine XP progress">
+                <div class="xp-fill" id="machine-xp-fill"></div>
+              </div>
+              <div class="machine-level machine-perks">
+                <button type="button" class="perks-btn" id="perks-btn" aria-label="View level perks">?</button>
+                <div class="perks-popover" id="perks-popover" role="status" aria-live="polite"></div>
+              </div>
             </div>
-            <div class="hud-card">
+            <div class="machine-frame__reels" id="reel-stage">
+              <div class="slot-grid" id="slot-grid" aria-live="polite"></div>
+              <div class="line-overlay" id="line-overlay" aria-hidden="true"></div>
+            </div>
+          </div>
+            <div class="machine-messages machine-messages--stage">
+              <div class="machine-outcome-group">
+                <p class="machine-outcome" id="machine-outcome">Sign in to start spinning.</p>
+                <p class="machine-lines" id="machine-lines"></p>
+              </div>
+              <p class="machine-error" id="error" role="status" aria-live="polite"></p>
+              <div class="alert" id="alert" hidden></div>
+            </div>
+        </div>
+        <div class="control-deck control-deck--ground">
+          <div class="skill-strip" id="skill-strip" aria-label="Skills"></div>
+          <div class="bet-bar">
+            <div class="bet-controls">
+              <button type="button" class="chip" data-chip="decrease" aria-label="Decrease bet">-</button>
+              <input type="range" id="bet-range" min="0" max="10" value="0" aria-label="Bet amount" />
+              <button type="button" class="chip" data-chip="increase" aria-label="Increase bet">+</button>
+              <button type="button" class="chip" data-chip="max" aria-label="Max bet">Max</button>
+            </div>
+            <div class="bet-info">
               <p class="hud-label">Bet</p>
               <strong class="hud-value" id="hud-bet">$0</strong>
             </div>
-            <div class="hud-card">
-              <p class="hud-label">Last win</p>
-              <strong class="hud-value" id="hud-win">$0</strong>
-            </div>
-            <div class="hud-card">
-              <p class="hud-label">VIP Marks</p>
-              <strong class="hud-value" id="hud-vip">0</strong>
-            </div>
-            <div class="hud-card">
-              <p class="hud-label">Energy</p>
-              <strong class="hud-value" id="hud-energy">0/0</strong>
-            </div>
-            <div class="hud-card">
-              <p class="hud-label">Machine Lv</p>
-              <strong class="hud-value" id="hud-level">0</strong>
-            </div>
           </div>
-          <div class="bet-controls">
-            <button type="button" class="chip" data-chip="decrease" aria-label="Decrease bet">-</button>
-            <input type="range" id="bet-range" min="0" max="10" value="0" aria-label="Bet amount" />
-            <button type="button" class="chip" data-chip="increase" aria-label="Increase bet">+</button>
-            <button type="button" class="chip" data-chip="max" aria-label="Max bet">Max</button>
-          </div>
-          <div class="machine-messages">
-            <div class="machine-outcome-group">
-              <p class="machine-outcome" id="machine-outcome">Sign in to start spinning.</p>
-              <p class="machine-lines" id="machine-lines"></p>
-            </div>
-            <p class="machine-error" id="error" role="status" aria-live="polite"></p>
-            <div class="alert" id="alert" hidden></div>
-          </div>
-          <div class="action-buttons">
-            <button type="button" class="ghost-btn secondary line-btn" id="line-flash-btn">Show lines</button>
-            <button type="button" class="ghost-btn secondary line-btn" id="auto-spin-btn">Auto</button>
-            <button type="button" class="ghost-btn secondary line-btn" id="premium-shop-btn">Premium</button>
-            <button type="button" class="ghost-btn secondary line-btn" id="payout-skill-btn">Payout+</button>
-            <button type="button" class="ghost-btn secondary line-btn" id="worker-btn">Worker</button>
-            <select id="action-select" class="action-select" aria-label="Quick actions">
-              <option value="">Actions</option>
-              <option value="auto">Auto</option>
-              <option value="payout">Payout+</option>
-              <option value="lines">Show lines</option>
-              <option value="premium">Premium</option>
-              <option value="worker">Worker</option>
-            </select>
+          <div class="action-rail action-rail--spin">
             <button type="button" class="spin-btn" id="spin-btn" disabled>Spin</button>
+            <button type="button" class="spin-btn spin-btn--secondary" id="auto-spin-btn" aria-pressed="false">Auto</button>
           </div>
         </div>
       </div>
@@ -1930,10 +2553,10 @@
       </div>
     </section>
 
-    <section class="panel" data-requires-auth hidden data-mobile-pane="log">
-      <h2>Server Event Log</h2>
-      <div class="log" id="log" aria-live="polite"></div>
-    </section>
+        <section class="panel log-panel" data-requires-auth hidden data-mobile-pane="log">
+          <h2>Server Event Log</h2>
+          <div class="log" id="log" aria-live="polite"></div>
+        </section>
 
     <section class="panel upgrade-panel" id="upgrade-panel" data-requires-auth hidden data-mobile-pane="upgrades">
       <h2>Machine Upgrades</h2>
@@ -1944,18 +2567,36 @@
   <script>
     (() => {
       const DEBUG = true;
-      const debug = (...args) => DEBUG && console.debug('[slot-demo]', ...args);
+      const debug = (...args) => {
+        if (!DEBUG) return;
+        console.debug('[slot-demo]', ...args);
+      };
       const debugError = (scope, error, extra = {}) => {
         if (!DEBUG) return;
         console.error(`[slot-demo][${scope}]`, error, extra);
+      };
+      const logLocal = (scope, payload) => {
+        if (!DEBUG) return;
+        console.debug(`[slot-demo][local][${scope}]`, payload);
+      };
+      const logAction = (scope, payload) => {
+        if (!DEBUG) return;
+        console.info(`[slot-demo][action][${scope}]`, payload);
+      };
+      const debugInfo = (scope, data) => {
+        if (!DEBUG) return;
+        console.info(`[slot-demo][${scope}]`, data);
       };
       const collectPendingIdle = () => {
         if (!state.pendingIdleCoins) return;
         const delta = Math.max(0, state.pendingIdleCoins);
         state.balance += delta;
         state.pendingIdleCoins = 0;
-        if (els.balance) els.balance.textContent = currency.format(state.balance);
+        if (els.balance) els.balance.textContent = formatMoney(state.balance, { compact: false });
         updateHud();
+        if (els.spinBtn) {
+          els.spinBtn.textContent = `Spin: ${formatMoney(state.bet || 0)}`;
+        }
       };
       window.addEventListener('error', (event) => {
         debugError('window-error', event.error || event.message, { event });
@@ -1988,6 +2629,7 @@
       const LOCAL_MACHINE_KEY = 'slotMachineActiveMachine';
       const LOCAL_EQUIPMENT_KEY = 'slotMachineEquipment';
       const LOCAL_CARD_KEY = 'slotMachineCards';
+      const LOCAL_UPGRADES_KEY = 'slotDemoLocalUpgrades';
       const SESSION_SYNC_MS = 60000;
       let sessionSyncTimer = null;
       let sessionSyncInFlight = false;
@@ -2000,10 +2642,38 @@
       const requestFrame = window.requestAnimationFrame?.bind(window) || (cb => setTimeout(() => cb(performance.now()), 1000 / 60));
       const cancelFrame = window.cancelAnimationFrame?.bind(window) || clearTimeout;
       const AUTH_MODE_KEY = 'slotMachineAuthMode';
+      const urlParams = new URLSearchParams(window.location.search);
+      const offlineParam = urlParams.get('offline');
+      const offlineForced = offlineParam === '1' || offlineParam === 'true';
+      const offlineDisabled = offlineParam === '0' || offlineParam === 'false';
+      const OFFLINE_USER = 'Offline Demo';
+      const OFFLINE_SNAPSHOT_KEY = 'slotMachineOfflineSnapshot';
+      const OFFLINE_START_BALANCE = 50000;
+      const isLocalhost = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+      const offlineDefault = (window.location.protocol === 'file:' || isLocalhost);
+      const offlineMode = offlineForced || (offlineDefault && !offlineDisabled) || (!offlineDisabled && !getStored(storageKeys.token));
+      const reelState = new Map();
       const getStored = (key) => {
         const value = localStorage.getItem(key);
         return value && value !== 'null' ? value : null;
       };
+      const clearDebugLocalState = () => {
+        const keys = [
+          LOCAL_MACHINE_KEY,
+          LOCAL_EQUIPMENT_KEY,
+          LOCAL_CARD_KEY,
+          LOCAL_UPGRADES_KEY,
+          storageKeys.player,
+          storageKeys.token,
+          storageKeys.user,
+          OFFLINE_SNAPSHOT_KEY
+        ];
+        keys.forEach(key => {
+          try { localStorage.removeItem(key); } catch { /* ignore */ }
+        });
+        logLocal('reset', 'Cleared local state for debug');
+      };
+      clearDebugLocalState();
       const DEFAULT_SYMBOLS = [
         { key: 'cherry', label: 'Cherry', asset: 'img/slot/classic/symbols/cherry.png' },
         { key: 'lemon', label: 'Lemon', asset: 'img/slot/classic/symbols/lemon.png' },
@@ -2039,8 +2709,132 @@
       const cloneSymbolMap = (map) => new Map(Array.from(map.entries()).map(([key, val]) => [key, { ...val }]));
       const DEFAULT_SYMBOL_MAP = buildSymbolMap(DEFAULT_SYMBOLS, null, PLACEHOLDER_ASSET);
       const DAILY_LENGTH = 7;
+      const OFFLINE_DATA = {
+        machineList: ['classic'],
+        machines: {
+          classic: {
+            id: 'classic',
+            name: 'Lucky Lambda Classic',
+            tier: 'Offline Demo',
+            rows: 5,
+            reels: 5,
+            baseRows: 3,
+            baseReels: 3,
+            maxRows: 5,
+            maxReels: 5,
+            baseSymbolCount: 5,
+            symbols: DEFAULT_SYMBOLS,
+            payouts: {
+              cherry: 5,
+              lemon: 6,
+              orange: 7,
+              plum: 8,
+              watermelon: 10,
+              horseshoe: 12,
+              bell: 16,
+              diamond: 20,
+              seven: 25,
+              crown: 30,
+              wild: 50,
+              bonus: 70
+            },
+            assets: {
+              icon: 'img/slot/classic/icon.png',
+              frame: 'img/slot/classic/frame.png',
+              background: {
+                portrait: 'img/slot/classic/background_vertical.png',
+                landscape: 'img/slot/classic/background_horizontal.png'
+              },
+              spinButton: 'img/slot/classic/spin-button.png',
+              chip: 'img/slot/classic/circle.png',
+              bet: 'img/slot/classic/square.png',
+              info: 'img/slot/classic/rectangle.png',
+              placeholder: PLACEHOLDER_ASSET
+            },
+            spinTiming: {
+              overspin: [10, 12, 15],
+              brake: 180
+            },
+            upgradeCosts: {
+              rows: [600, 1450],
+              reels: [700, 1800],
+              lines: [450, 1100, 2750]
+            }
+          }
+        },
+        dropTables: {
+          tierWeights: { common: 0.8, rare: 0.15, epic: 0.05 },
+          tables: {
+            classic: {
+              common: [
+                { type: 'goldChip', name: 'Golden Chip', icon: 'img/slot/items/gold_chip.png', amount: 50, chance: 0.6 },
+                { type: 'spinBooster', tier: 1, icon: 'img/slot/items/spinBoosterT1.png', amount: 1, chance: 0.15 }
+              ],
+              rare: [
+                { type: 'gear', rarity: 'Rare', icon: 'img/slot/items/gear.png', amount: 1, chance: 0.25 },
+                { type: 'card', tier: 'Rare', icon: 'img/slot/items/card.png', amount: 1, chance: 0.2 },
+                { type: 'vipMarks', icon: 'img/slot/items/vip_mark.png', amount: 3, chance: 0.15 }
+              ],
+              epic: [
+                { type: 'gear', rarity: 'Epic', icon: 'img/slot/items/gear.png', amount: 1, chance: 0.2 },
+                { type: 'card', tier: 'Epic', icon: 'img/slot/items/card.png', amount: 1, chance: 0.2 },
+                { type: 'spinBooster', tier: 2, icon: 'img/slot/items/spinBoosterT1.png', amount: 1, chance: 0.15 }
+              ]
+            }
+          }
+        },
+        upgradeDefs: [
+          { "key": "idle", "label": "Idle Coins", "description": "Gain +1 coin per second per level.", "category": "Economy", "cost": 120, "max": 5, "levels": ["+1/sec", "+2/sec", "+3/sec", "+4/sec", "+5/sec"], "defaultLevel": 1 },
+          { "key": "retrigger", "label": "Retrigger", "description": "5% chance per level to replay a losing spin for free.", "category": "Spin", "cost": 220, "max": 5, "levels": ["5% chance", "10%", "15%", "20%", "25%"] },
+          { "key": "speed", "label": "Faster Spins", "description": "Reduce spin duration by 10% per level.", "category": "Spin", "cost": 150, "max": 5, "levels": ["10% faster", "20%", "30%", "40%", "50%"] },
+          { "key": "rows", "label": "Extra Rows", "description": "Add additional rows of symbols.", "category": "Layout", "cost": 600, "max": 2, "levels": ["Unlock second row", "Unlock third row"] },
+          { "key": "lines", "label": "Multi-lines", "description": "Unlock diagonals, zigzags, then all-touching paylines.", "category": "Layout", "cost": 450, "max": 3, "levels": ["Unlock diagonals", "Unlock zigzags", "Unlock all-touching"] },
+          { "key": "reels", "label": "Extra Reels", "description": "Increase reels for longer combos.", "category": "Layout", "cost": 700, "max": 2, "levels": ["Unlock 4th reel", "Unlock 5th reel"] },
+          { "key": "premium", "label": "Premium Symbols", "description": "Add higher value symbols to the reels.", "category": "Symbols", "cost": 800, "max": 0, "dynamicMax": "premiumSymbols", "levels": [] },
+          { "key": "disable", "label": "Cull Symbols", "description": "Remove low value symbols from the reels.", "category": "Symbols", "cost": 500, "max": 0, "dynamicMax": "cullSymbols", "levels": [] },
+          { "key": "autoSpeed", "label": "Auto Speed", "description": "Reduce idle/autoplay delay by 10% per level.", "category": "Spin", "cost": 140, "max": 5, "levels": ["10% faster", "20%", "30%", "40%", "50%"] },
+          { "key": "autoSpinUnlock", "label": "Auto Spin", "description": "Unlock auto spin mode.", "category": "Skills", "cost": 0, "max": 1, "clientOnly": true, "levels": ["Unlock auto spin"] },
+          { "key": "autoSpinCount", "label": "Auto Spin Queue", "description": "Increase consecutive auto spins.", "category": "Auto Spin", "cost": 0, "max": 5, "clientOnly": true, "requires": "autoSpinUnlock", "levels": ["+5 spins", "+10", "+15", "+20", "+25"] },
+          { "key": "retriggerQuality", "label": "Retrigger Quality", "description": "Increase retrigger chance by 5% per level.", "category": "Spin", "cost": 250, "max": 5, "levels": ["5% bonus", "10%", "15%", "20%", "25%"] },
+          { "key": "dropBoost", "label": "Drop Boost", "description": "Increase drop rates slightly per level.", "category": "Drops", "cost": 160, "max": 5, "levels": ["+5% drops", "+10%", "+15%", "+20%", "+25%"] },
+          { "key": "dropBoostUnlock", "label": "Drop Boost Skill", "description": "Unlock the drop-rate skill button.", "category": "Skills", "cost": 350, "max": 1, "levels": ["Unlock skill"] },
+          { "key": "wildUnlock", "label": "Add Wilds", "description": "Unlock wild symbols on the reels.", "category": "Symbols", "cost": 1400, "max": 1, "levels": ["Unlock wilds"] },
+          { "key": "wildFrequency", "label": "Wild Frequency", "description": "Increase wild appearance rate.", "category": "Symbols", "cost": 280, "max": 5, "levels": ["+20% wilds", "+40%", "+60%", "+80%", "+100%"] },
+          { "key": "dropRateEffect", "label": "Drop Skill Power", "description": "Increase drop skill effect by 10% per level.", "category": "Drops", "cost": 200, "max": 10, "requires": "dropBoostUnlock", "levels": ["+10%", "+20%", "+30%", "+40%", "+50%", "+60%", "+70%", "+80%", "+90%", "+100%"] },
+          { "key": "dropRateDuration", "label": "Drop Skill Duration", "description": "Increase drop skill duration by 1 minute per level.", "category": "Drops", "cost": 180, "max": 10, "requires": "dropBoostUnlock", "levels": ["1 min", "2 min", "3 min", "4 min", "5 min", "6 min", "7 min", "8 min", "9 min", "10 min"] },
+          { "key": "betMultiplier", "label": "Bet Multiplier", "description": "Increase wager cap ×10 per level.", "category": "Economy", "cost": 2500, "max": 5, "levels": ["×10", "×100", "×1,000", "×10,000", "×100,000"] }
+        ],
+        gearDefs: {
+          slots: ['Head', 'Outfit', 'Accessory', 'Pet', 'Trinket'],
+          rarities: [
+            { name: 'Common', dropChance: 0.6 },
+            { name: 'Rare', dropChance: 0.3 },
+            { name: 'Epic', dropChance: 0.1 }
+          ],
+          names: {
+            Common: { Head: { name: 'Common Headgear' }, Outfit: { name: 'Common Outfit' }, Accessory: { name: 'Common Charm' }, Pet: { name: 'Common Pet' }, Trinket: { name: 'Common Trinket' } },
+            Rare: { Head: { name: 'Rare Headgear' }, Outfit: { name: 'Rare Outfit' }, Accessory: { name: 'Rare Charm' }, Pet: { name: 'Rare Pet' }, Trinket: { name: 'Rare Trinket' } },
+            Epic: { Head: { name: 'Epic Headgear' }, Outfit: { name: 'Epic Outfit' }, Accessory: { name: 'Epic Charm' }, Pet: { name: 'Epic Pet' }, Trinket: { name: 'Epic Trinket' } }
+          },
+          bonuses: {
+            Common: { bonuses: [{ desc: '+{coinPct}% coins', coinPct: [2, 4] }, { desc: '+{dropPct}% drops', dropPct: [2, 4] }] },
+            Rare: { bonuses: [{ desc: '+{coinPct}% coins', coinPct: [5, 8] }, { desc: '+{dropPct}% drops', dropPct: [5, 8] }] },
+            Epic: { bonuses: [{ desc: '+{coinPct}% coins', coinPct: [10, 14] }, { desc: '+{dropPct}% drops', dropPct: [10, 14] }] }
+          }
+        },
+        cardDefs: {
+          definitions: [
+            { name: 'Lucky Penny', tier: 'Rare', icon: 'img/slot/items/card.png', desc: 'Offline demo card that boosts coin gains.' },
+            { name: 'Fortune Token', tier: 'Epic', icon: 'img/slot/items/card.png', desc: 'Offline demo card that boosts drop rates.' }
+          ],
+          effects: {
+            'Lucky Penny': ['+5% coins', '+8% coins', '+10% coins'],
+            'Fortune Token': ['+5% drops', '+8% drops', '+12% drops']
+          }
+        }
+      };
 
-      const state = {
+  const state = {
         playerId: null,
         balance: 0,
         maxBet: DEFAULT_MAX_BET,
@@ -2048,10 +2842,11 @@
         busy: false,
         gameReady: false,
         auth: {
-          token: getStored(storageKeys.token),
-          username: getStored(storageKeys.user)
+          token: offlineMode ? null : getStored(storageKeys.token),
+          username: offlineMode ? OFFLINE_USER : getStored(storageKeys.user)
         },
         authMode: localStorage.getItem(AUTH_MODE_KEY) || 'login',
+        offlineMode,
         machine: {
           id: 'classic',
           name: 'Lucky Lambda Classic',
@@ -2118,6 +2913,7 @@
         lineFlashTimer: null,
         symbolWeights: { entries: [], total: 0 },
         autoSpin: { active: false, remaining: 0 },
+        pendingFreeSpins: 0,
         lastWin: 0,
         pendingIdleCoins: 0,
         idleTicker: null,
@@ -2134,12 +2930,6 @@
           lastPush: 0,
           debounceTimer: null,
           queue: []
-        },
-        energy: {
-          current: 20,
-          max: 20,
-          rechargePerSec: 0.5,
-          lastUpdate: Date.now()
         },
         machines: {},
         worker: {
@@ -2182,15 +2972,25 @@
       const EXPORT_VERSION = 1;
 
       const upgradeCatalogUrl = 'slot-config/upgrade-definitions.json';
+      const tagClientOnly = (defs = []) => defs.map(def => ({ ...def, clientOnly: true }));
       const loadUpgradeCatalog = async () => {
-        if (state.upgradeCatalog.length) return state.upgradeCatalog;
+        if (state.upgradeCatalog.length) {
+          state.upgradeCatalog = tagClientOnly(state.upgradeCatalog);
+          return state.upgradeCatalog;
+        }
+        if (state.offlineMode) {
+          state.upgradeCatalog = tagClientOnly(OFFLINE_DATA.upgradeDefs || []);
+          applyUpgradeState();
+          renderUpgrades();
+          return state.upgradeCatalog;
+        }
         try {
           const res = await fetch(upgradeCatalogUrl, { cache: 'no-cache' });
           if (res.ok) {
-            const defs = await res.json();
+            const defs = tagClientOnly(await res.json());
             if (Array.isArray(defs)) {
               state.upgradeCatalog = defs;
-              applyUpgradeState(state.upgrades);
+              applyUpgradeState();
               renderUpgrades();
               return defs;
             }
@@ -2202,6 +3002,34 @@
       };
 
       const getUpgradeDef = (key) => state.upgradeCatalog.find(def => def.key === key);
+      const getLevelPerkEffects = (lvl = Math.max(0, Math.floor(state.machines?.[state.machine.id]?.lvl || 0))) => {
+        const biasPct = Math.min(60, lvl * 2);
+        const biasMult = 1 + biasPct / 100;
+        const stack = (threshold, step = 5, pctPerStack = 0) => {
+          if (lvl < threshold) return 0;
+          return ((Math.floor((lvl - threshold) / step) + 1) * pctPerStack) / 100;
+        };
+        const wildBonus = stack(5, 5, 2);
+        const dropBonus = stack(10, 5, 3);
+        const payoutBonusPct = lvl < 15 ? 0 : 10 + Math.max(0, Math.floor((lvl - 15) / 5)) * 5;
+        const speedBonus = stack(20, 5, 5);
+        const capBoost = lvl < 25 ? 0 : Math.floor((lvl - 25) / 5) + 1;
+        const jackpotBonus = stack(30, 5, 2);
+        return {
+          biasPct,
+          biasMult,
+          wildWeightMult: 1 + wildBonus,
+          dropMult: 1 + dropBonus,
+          payoutSkillMult: 1 + payoutBonusPct / 100,
+          speedMult: 1 + speedBonus,
+          capBoost,
+          jackpotMult: 1 + jackpotBonus
+        };
+      };
+      const LEVEL_CAP_BOOST_TARGETS = new Set(['idle', 'speed', 'dropBoost', 'retrigger', 'autoSpeed', 'betMultiplier']);
+      const getLevelCapBoost = () => {
+        return getLevelPerkEffects().capBoost || 0;
+      };
 
       const getUpgradeMaxLevel = (key) => {
         const def = getUpgradeDef(key);
@@ -2215,7 +3043,11 @@
           const base = state.machine.baseSymbolCount || 5;
           return Math.max(0, base - 1);
         }
-        return Number.isFinite(def.max) ? def.max : 0;
+        let max = Number.isFinite(def.max) ? def.max : 0;
+        if (LEVEL_CAP_BOOST_TARGETS.has(key)) {
+          max += getLevelCapBoost();
+        }
+        return Math.max(0, max);
       };
 
       const computeActiveSymbols = (upgrades = state.upgrades) => {
@@ -2236,23 +3068,41 @@
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
       });
-      const compactCurrency = new Intl.NumberFormat('en-US', {
-        notation: 'compact',
-        compactDisplay: 'short',
-        maximumFractionDigits: 1,
-        minimumFractionDigits: 0
-      });
-      const formatCompactMoney = (value = 0) => {
-        const safe = Number.isFinite(value) ? value : 0;
-        return `$${compactCurrency.format(safe)}`;
+      const NUMBER_ABBREVIATIONS = [
+        { value: 1e33, suffix: 'Dc' },
+        { value: 1e30, suffix: 'No' },
+        { value: 1e27, suffix: 'Oc' },
+        { value: 1e24, suffix: 'Sp' },
+        { value: 1e21, suffix: 'Sx' },
+        { value: 1e18, suffix: 'Qi' },
+        { value: 1e15, suffix: 'Qa' },
+        { value: 1e12, suffix: 'T' },
+        { value: 1e9, suffix: 'B' },
+        { value: 1e6, suffix: 'M' },
+        { value: 1e3, suffix: 'K' }
+      ];
+      const abbreviateNumber = (value = 0, { decimals = 1, prefix = '' } = {}) => {
+        const num = Number(value);
+        if (!Number.isFinite(num)) return `${prefix}0`;
+        const abs = Math.abs(num);
+        const entry = NUMBER_ABBREVIATIONS.find(item => abs >= item.value);
+        if (!entry) {
+          return `${prefix}${num.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+        }
+        const scaled = num / entry.value;
+        const places = scaled >= 100 ? 0 : scaled >= 10 ? 1 : decimals;
+        const rounded = scaled.toFixed(places).replace(/\.0+$/, '');
+        return `${prefix}${rounded}${entry.suffix}`;
       };
-      const compactNumber = new Intl.NumberFormat('en-US', {
-        notation: 'compact',
-        compactDisplay: 'short',
-        maximumFractionDigits: 1,
-        minimumFractionDigits: 0
-      });
-      const formatCompactNumber = (value = 0) => compactNumber.format(Math.max(0, Number.isFinite(value) ? value : 0));
+      const formatMoney = (value = 0, { compact = true } = {}) => {
+        const num = Number(value);
+        if (!Number.isFinite(num)) return '$0';
+        const abs = Math.abs(num);
+        if (!compact && abs < 1e6) return currency.format(num);
+        return abbreviateNumber(num, { prefix: '$' });
+      };
+      const formatCompactMoney = (value = 0) => abbreviateNumber(value, { prefix: '$', decimals: 1 });
+      const formatCompactNumber = (value = 0) => abbreviateNumber(Math.max(0, Number.isFinite(value) ? value : 0), { decimals: 1 });
       const formatTime = (ms = 0) => {
         const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
         const m = Math.floor(totalSeconds / 60);
@@ -2336,7 +3186,7 @@
         return DEFAULT_MAX_BET;
       };
       const xpNeeded = (lvl = 0) => Math.max(50, Math.round(80 * Math.pow(lvl + 1, 2)));
-      const UPGRADE_COST_GROWTH = 1.85;
+      const UPGRADE_COST_GROWTH = 2.05;
       const computeUpgradeCost = (def, level = 0) => {
         if (!def) return 0;
         const base = def.cost || 0;
@@ -2388,7 +3238,6 @@
         const level = Math.max(0, state.upgrades.autoSpinCount || 0);
         return 5 + level * 5;
       };
-      const LOCAL_UPGRADES_KEY = 'slotDemoLocalUpgrades';
       const CLIENT_ONLY_UPGRADES = new Set(['autoSpinUnlock', 'autoSpinCount']);
       const loadLocalUpgrades = () => {
         try {
@@ -2531,7 +3380,6 @@
         hudBet: document.getElementById('hud-bet'),
         hudWin: document.getElementById('hud-win'),
         hudVip: document.getElementById('hud-vip'),
-        hudEnergy: document.getElementById('hud-energy'),
         hudLevel: document.getElementById('hud-level'),
         balance: document.getElementById('balance'),
         playerId: document.getElementById('player-id'),
@@ -2549,14 +3397,25 @@
         dropSkillBtn: document.getElementById('drop-skill-btn'),
         dropCloseBtn: document.getElementById('drop-close-btn'),
         inventoryGrid: document.getElementById('inventory-grid'),
+        machineFlyout: document.getElementById('machine-flyout'),
         machineList: document.getElementById('machine-list'),
         machinePicker: document.getElementById('machine-picker'),
-        machinePickerIcon: document.getElementById('machine-picker-icon'),
         machinePickerLabel: document.getElementById('machine-picker-label'),
+        machinePickerLevel: document.getElementById('machine-picker-level'),
         machineSelect: document.getElementById('machine-select'),
-        actionSelect: document.getElementById('action-select'),
         machineName: document.getElementById('machine-name'),
         machineTier: document.getElementById('machine-tier'),
+        machineXpFill: document.getElementById('machine-xp-fill'),
+        hudRows: document.getElementById('hud-rows'),
+        hudReels: document.getElementById('hud-reels'),
+        hudLines: document.getElementById('hud-lines'),
+        flyover: null,
+        flyoverLevel: document.getElementById('flyover-level'),
+        flyoverXp: document.getElementById('flyover-xp'),
+        flyoverLoot: document.getElementById('flyover-loot'),
+        flyoverTop: document.getElementById('flyover-top'),
+        perksBtn: document.getElementById('perks-btn'),
+        perksPopover: document.getElementById('perks-popover'),
         dailyStatus: document.getElementById('daily-status'),
         dailyRewardMain: document.getElementById('daily-reward-main'),
         dailyItems: document.getElementById('daily-items'),
@@ -2600,7 +3459,20 @@
         importStateInput: document.getElementById('import-state-input'),
         transferStatus: document.getElementById('transfer-status'),
         payoutSkillBtn: document.getElementById('payout-skill-btn'),
-        workerBtn: document.getElementById('worker-btn')
+        workerBtn: document.getElementById('worker-btn'),
+        skillStrip: document.getElementById('skill-strip')
+      };
+      const setMachineFlyout = (open = false) => {
+        if (!els.machineFlyout) return;
+        els.machineFlyout.dataset.open = open ? 'true' : 'false';
+        if (els.machinePicker) {
+          els.machinePicker.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+      };
+      const toggleMachineFlyout = () => {
+        if (!els.machineFlyout) return;
+        const next = els.machineFlyout.dataset.open !== 'true';
+        setMachineFlyout(next);
       };
       const paneState = {
         mq: window.matchMedia('(max-width: 768px)'),
@@ -2653,7 +3525,6 @@
         paneState.mq.addListener(applyPaneMode);
       }
       applyPaneMode();
-      loadUpgradeCatalog();
       els.accountToggle?.addEventListener('click', () => toggleAccountSheet(true));
       els.accountClose?.addEventListener('click', () => toggleAccountSheet(false));
       document.addEventListener('keydown', (event) => {
@@ -2667,7 +3538,6 @@
         }
       });
       const probedSymbols = new Set();
-      const reelState = new Map();
       let pendingWinGroups = [];
       let pendingSpinResult = null;
       let activeReelLocks = 0;
@@ -2705,7 +3575,7 @@
           img.src = getPlaceholderAsset();
         });
       };
-      const getSymbolEntry = (symbolKey) => {
+      function getSymbolEntry(symbolKey) {
         if (!symbolKey) {
           return { key: 'placeholder', label: 'Symbol', asset: getPlaceholderAsset() };
         }
@@ -2714,7 +3584,7 @@
           return { ...entry, asset: entry.asset || getPlaceholderAsset() };
         }
         return { key: symbolKey, label: symbolKey, asset: getPlaceholderAsset() };
-      };
+      }
       const applySymbolToImage = (img, symbolKey) => {
         const info = getSymbolEntry(symbolKey);
         if (!img) return info;
@@ -2748,7 +3618,7 @@
           format: (current, max) => `${current}/${max} tiers`
         }
       };
-      const getUpgradeSettings = () => {
+      function getUpgradeSettings() {
         const defaults = {
           baseRows: 3,
           maxRows: 5,
@@ -2764,11 +3634,11 @@
           maxReels: settings.maxReels ?? defaults.maxReels,
           costs: settings.costs || defaults.costs
         };
-      };
+      }
       state.playerId = state.auth.token ? null : getStored(storageKeys.player);
 
       const log = (message, data) => {
-        debug('ui-log', { message, data, stateSnapshot: { busy: state.busy, auth: !!state.auth.token } });
+        debug('ui-log', { message, data, stateSnapshot: { busy: state.busy, auth: !!state.auth.token, balance: state.balance, bet: state.bet } });
         const entry = document.createElement('div');
         entry.className = 'log-entry';
         const time = new Date().toLocaleTimeString();
@@ -2782,16 +3652,27 @@
 
       const setStatus = (text, stateAttr = 'ok') => {
         debug('ui:setStatus', { text, stateAttr });
-        if (!els.connectionPill || !els.connectionText) return;
-        els.connectionText.textContent = text;
-        els.connectionPill.dataset.state = stateAttr;
-        els.connectionPill.setAttribute('data-state', stateAttr === 'ok' ? 'ok' : stateAttr);
+        log('Status', text);
+        if (els.connectionPill && els.connectionText) {
+          els.connectionText.textContent = text;
+          els.connectionPill.dataset.state = stateAttr;
+          els.connectionPill.setAttribute('data-state', stateAttr === 'ok' ? 'ok' : stateAttr);
+        }
       };
 
       const showAlert = (text = '') => {
         els.alert.hidden = !text;
         els.alert.textContent = text;
         if (text) debug('ui:alert', text);
+      };
+
+      const showPopup = (text = '') => {
+        if (!text) return;
+        try {
+          window.alert(text);
+        } catch {
+          // ignore
+        }
       };
 
       const showAuthAlert = (text = '') => {
@@ -2819,7 +3700,7 @@
           toggleAccountSheet(false);
           toggleDropPanel(false);
         }
-        const disableInputs = !visible || state.busy;
+        const disableInputs = !visible || state.busy || state.autoSpin?.active;
         els.spinBtn.disabled = disableInputs;
         if (els.betSlider) els.betSlider.disabled = disableInputs;
         els.chipButtons.forEach(btn => { btn.disabled = disableInputs; });
@@ -2843,7 +3724,7 @@
       const setBusy = (flag) => {
         debug('ui:setBusy', { flag, prev: state.busy });
         state.busy = flag;
-        const disableInputs = flag || !state.gameReady;
+        const disableInputs = flag || !state.gameReady || state.autoSpin?.active;
         els.spinBtn.disabled = disableInputs;
         if (els.syncBtn) els.syncBtn.disabled = disableInputs;
         if (els.betSlider) els.betSlider.disabled = disableInputs;
@@ -2859,6 +3740,12 @@
         renderBonusSummary();
         renderAutoSpinButton();
         renderWorkerButton();
+      };
+
+      const refreshControls = () => {
+        setGameVisibility(state.gameReady);
+        renderAutoSpinButton();
+        renderSkillStrip();
       };
 
       const toggleAuthInputs = (disabled) => {
@@ -2880,7 +3767,7 @@
         }
       };
 
-      const randomSymbolInfo = () => {
+      function randomSymbolInfo() {
         const weights = state.symbolWeights?.entries || [];
         const total = state.symbolWeights?.total || 0;
         if (total > 0 && weights.length) {
@@ -2891,7 +3778,7 @@
         const pool = Array.from(state.symbolMap.values());
         if (!pool.length) return getSymbolEntry('placeholder');
         return pool[Math.floor(Math.random() * pool.length)];
-      };
+      }
 
       const describeUpgradeExtra = (key) => {
         const settings = getUpgradeSettings();
@@ -2917,14 +3804,39 @@
             return `${active} symbols active`;
           }
           case 'betMultiplier':
-            return `Max bet ${currency.format(state.maxBet || DEFAULT_MAX_BET)}`;
+            return `Max bet ${formatMoney(state.maxBet || DEFAULT_MAX_BET)}`;
           default:
             return '';
         }
       };
 
+      const buildLevelPerks = (lvl = 0) => {
+        const perks = [];
+        const tierCount = (threshold, step = 5) => (lvl >= threshold ? (Math.floor((lvl - threshold) / step) + 1) : 0);
+        const addPerk = (req, label, active) => {
+          perks.push({ req, label: `Lv ${req}+ — ${label}`, active });
+        };
+        const bias = Math.round(Math.min(60, lvl * 2));
+        addPerk(1, `+${bias}% higher-tier symbol bias (scales every level)`, lvl >= 1);
+        const wildStacks = tierCount(5);
+        addPerk(5, `Wild frequency bonus +${wildStacks * 2}% (grows every 5 levels)`, wildStacks > 0);
+        const dropStacks = tierCount(10);
+        addPerk(10, `Drop rate bonus +${dropStacks * 3}% (grows every 5 levels)`, dropStacks > 0);
+        const payoutStacks = tierCount(15);
+        const payoutBonus = payoutStacks > 0 ? 10 + (payoutStacks - 1) * 5 : 0;
+        addPerk(15, payoutBonus > 0 ? `Payout skill boost +${payoutBonus}%` : 'Payout skill boost begins at Lv 15', payoutBonus > 0);
+        const speedStacks = tierCount(20);
+        addPerk(20, `Auto/idle speed bonus +${speedStacks * 5}%`, speedStacks > 0);
+        const capBoost = Math.max(0, tierCount(25));
+        addPerk(25, capBoost > 0 ? `Upgrade caps +${capBoost} for economy perks (Idle, Drop Boost, Speed, Bet Multiplier)` : 'Upgrade cap raises begin at Lv 25', capBoost > 0);
+        const jackpotStacks = tierCount(30);
+        addPerk(30, `Jackpot payout bonus +${jackpotStacks * 2}%`, jackpotStacks > 0);
+        const nextUnlock = Math.max(5, (Math.floor(lvl / 5) + 1) * 5);
+        const future = `Next perk upgrade at Lv ${nextUnlock}`;
+        return { perks, future };
+      };
+
       const buildUpgradeCard = (def) => {
-        const loggedIn = Boolean(state.auth.token);
         const level = Math.max(0, state.upgrades?.[def.key] || 0);
         const maxLevel = Math.max(0, getUpgradeMaxLevel(def.key));
         const reqs = def.requires ? (Array.isArray(def.requires) ? def.requires : [def.requires]) : [];
@@ -2932,31 +3844,25 @@
         const locked = reqs.length > 0 && !requirementsMet;
         const currentLabel = level > 0
           ? (def.levels?.[level - 1] || `Level ${level}`)
-          : 'Not unlocked';
+          : 'None';
         const nextLabel = level >= maxLevel
           ? 'Maxed'
           : (def.levels?.[level] || `Level ${level + 1}`);
         const cost = level >= maxLevel ? null : computeUpgradeCost(def, level);
-        const clientOnly = Boolean(def.clientOnly);
-        const buttonDisabled = (!loggedIn && !clientOnly) || state.busy || locked || level >= maxLevel || (!Number.isFinite(cost) && !clientOnly);
+        const buttonDisabled = state.busy || locked || level >= maxLevel || !Number.isFinite(cost);
         const buttonText = locked
           ? 'Locked'
           : level >= maxLevel
             ? 'Maxed'
-            : clientOnly
-              ? 'Unlock (local)'
-              : `Unlock (${currency.format(cost)})`;
+            : `Buy ${formatMoney(cost || 0)}`;
         const requirementNote = locked
           ? `Requires ${reqs.map(req => getUpgradeDef(req)?.label || req).join(', ')}`
           : '';
-        const extra = describeUpgradeExtra(def.key);
         return `
           <div class="upgrade-card" data-upgrade-key="${def.key}">
             <h4>${def.label}</h4>
-            <p>${def.description}</p>
             <div class="upgrade-card__meta">
               <span>Level ${Math.min(level, maxLevel)}/${maxLevel}</span>
-              ${extra ? `<span>${extra}</span>` : ''}
             </div>
             <div class="upgrade-card__note">Current: ${currentLabel}</div>
             <div class="upgrade-card__note">Next: ${nextLabel}</div>
@@ -2968,12 +3874,8 @@
 
       const renderUpgrades = () => {
         if (!els.upgradeGrid) return;
-        const loggedIn = Boolean(state.auth.token);
         if (els.upgradePanel) {
-          els.upgradePanel.hidden = !state.gameReady || !loggedIn;
-        }
-        if (!loggedIn) {
-          // allow local upgrades without sign-in
+          els.upgradePanel.hidden = !state.gameReady;
         }
         if (!state.upgradeCatalog.length) {
           els.upgradeGrid.innerHTML = '<p class="muted-text">Loading upgrades…</p>';
@@ -2984,7 +3886,7 @@
           acc[def.category].push(def);
           return acc;
         }, {});
-        const categoryOrder = ['Economy', 'Spin', 'Layout', 'Symbols', 'Drops', 'Skills'];
+        const categoryOrder = ['Economy', 'Spin', 'Layout', 'Symbols', 'Drops', 'Skills', 'Auto Spin'];
         const seen = new Set();
         const sections = [];
         [...categoryOrder, ...Object.keys(grouped)].forEach(category => {
@@ -2992,16 +3894,23 @@
           seen.add(category);
           const defs = grouped[category];
           if (!defs || !defs.length) return;
+          const visibleDefs = defs.filter(def => {
+            if (!def.requires) return true;
+            const reqs = Array.isArray(def.requires) ? def.requires : [def.requires];
+            return reqs.every(req => (state.upgrades?.[req] || 0) > 0);
+          });
+          if (!visibleDefs.length) return;
           sections.push(`
             <div class="upgrade-category" data-category="${category}">
               <h3>${category}</h3>
-              <div class="upgrade-grid">
-                ${defs.map(buildUpgradeCard).join('')}
+              <div class="upgrade-card-grid" role="group" aria-label="${category} upgrades">
+                ${visibleDefs.map(buildUpgradeCard).join('')}
               </div>
             </div>
           `);
         });
         els.upgradeGrid.innerHTML = sections.join('') || '<p class="muted-text">No upgrades available.</p>';
+        renderSkillStrip();
       };
 
       const DROP_ITEM_NAMES = {
@@ -3131,6 +4040,56 @@
           state.drop.history.length = MAX_DROP_HISTORY;
         }
         renderDropLog();
+      };
+
+      const pushFlyoverItem = (container, node, duration = 1500) => {
+        if (!container || !node) return;
+        container.appendChild(node);
+        while (container.childElementCount > 4) {
+          container.firstElementChild?.remove();
+        }
+        setTimeout(() => node.remove(), duration);
+      };
+
+      const showWinFlyover = (amount = 0) => {
+        if (!Number.isFinite(amount) || amount <= 0) return;
+        const item = document.createElement('div');
+        item.className = 'flyover-item win';
+        item.textContent = `+${formatMoney(amount)}`;
+        pushFlyoverItem(els.flyoverLoot || els.flyoverTop, item, 1600);
+      };
+
+      const showDropFlyover = (drops = []) => {
+        if (!Array.isArray(drops) || !drops.length) return;
+        drops.slice(0, 3).forEach(drop => {
+          const info = normalizeDrop(drop);
+          const item = document.createElement('div');
+          item.className = 'flyover-item drop';
+          const img = document.createElement('img');
+          img.src = info.icon;
+          img.alt = info.name;
+          const text = document.createElement('span');
+          text.textContent = `${info.name} ×${info.amount || 1}`;
+          item.appendChild(img);
+          item.appendChild(text);
+          pushFlyoverItem(els.flyoverLoot || els.flyoverTop, item, 1800);
+        });
+      };
+
+      const showLevelFlyover = (level = 0) => {
+        if (!Number.isFinite(level)) return;
+        const item = document.createElement('div');
+        item.className = 'flyover-item level';
+        item.textContent = `Level ${level} reached`;
+        pushFlyoverItem(els.flyoverLevel || els.flyoverTop, item, 1700);
+      };
+
+      const showXpFlyover = (xp = 0) => {
+        if (!Number.isFinite(xp) || xp <= 0) return;
+        const item = document.createElement('div');
+        item.className = 'flyover-item xp';
+        item.textContent = `+${formatCompactNumber(xp)} XP`;
+        pushFlyoverItem(els.flyoverXp || els.flyoverTop, item, 1400);
       };
 
       const applyDropsToInventory = (drops = [], timestamp = Date.now()) => {
@@ -3266,9 +4225,11 @@
         const outcome = payout > 0 ? winMult : loseMult;
         const equip = computeEquipmentStats();
         const equipMult = 1 + Math.max(0, equip.dropPct || 0) / 100;
+        const perks = getLevelPerkEffects();
+        const levelMult = perks.dropMult || 1;
         return {
-          total: base * betMult * skillMult * outcome * equipMult,
-          components: { base, bet: betMult, skill: skillMult, outcome, equip: equipMult }
+          total: base * betMult * skillMult * outcome * equipMult * levelMult,
+          components: { base, bet: betMult, skill: skillMult, outcome, equip: equipMult, level: levelMult }
         };
       };
 
@@ -3362,6 +4323,10 @@
 
       const loadGearDefinitions = async () => {
         if (gearDefinitions) return gearDefinitions;
+        if (state.offlineMode) {
+          gearDefinitions = OFFLINE_DATA.gearDefs;
+          return gearDefinitions;
+        }
         try {
           const res = await fetch(GEAR_DEFS_URL, { cache: 'no-cache' });
           if (res.ok) {
@@ -3378,6 +4343,10 @@
 
       const loadCardDefinitions = async () => {
         if (cardDefinitions) return cardDefinitions;
+        if (state.offlineMode) {
+          cardDefinitions = OFFLINE_DATA.cardDefs;
+          return cardDefinitions;
+        }
         try {
           const res = await fetch(CARD_DEFS_URL, { cache: 'no-cache' });
           if (res.ok) {
@@ -3472,7 +4441,6 @@
         maxBet: state.maxBet,
         spinCount: state.spinCount,
         lastWin: state.lastWin,
-        energy: state.energy,
         machines: state.machines,
         worker: { active: state.worker.active, intervalMs: state.worker.intervalMs },
         skills: { payout: state.skills.payout, dropRate: state.skills.dropRate },
@@ -3481,7 +4449,7 @@
           rows: state.currentRows || state.machine.rows,
           reels: state.currentReels || state.machine.reels,
           lineTier: state.currentLineTier || 0,
-          upgrades: { ...state.upgrades },
+          upgrades: { ...getMachineUpgrades(state.machine.id) },
           spinTiming: state.machine.spinTiming
         },
         drop: {
@@ -3498,7 +4466,9 @@
           lastTick: state.lastIdleTick || 0
         },
         upgrades: state.serverUpgrades,
-        clientUpgrades: { ...localUpgrades },
+        clientUpgrades: Object.fromEntries(
+          Object.entries(localUpgrades || {}).map(([machineId, bucket]) => [machineId, { ...bucket }])
+        ),
         symbolMap: Array.from(state.symbolMap.entries() || [])
       });
 
@@ -3507,12 +4477,12 @@
         if (typeof snapshot.rev === 'number') state.sync.rev = Math.max(state.sync.rev || 0, snapshot.rev);
         if (typeof snapshot.balance === 'number') {
           state.balance = snapshot.balance;
-          if (els.balance) els.balance.textContent = currency.format(state.balance);
+          if (els.balance) els.balance.textContent = formatMoney(state.balance, { compact: false });
         }
         if (Number.isFinite(snapshot.bet)) setBetValue(snapshot.bet);
         if (snapshot.maxBet) {
           state.maxBet = resolveMaxBet(snapshot.maxBet);
-          els.maxBet.textContent = state.maxBet;
+          els.maxBet.textContent = formatMoney(state.maxBet);
           syncBetSteps();
         }
         if (typeof snapshot.spinCount === 'number' && els.spinCount) els.spinCount.textContent = snapshot.spinCount;
@@ -3553,7 +4523,6 @@
           auditSymbolAssets();
           renderPaytable();
         }
-        if (snapshot.energy) state.energy = { ...state.energy, ...snapshot.energy };
         if (snapshot.worker) state.worker = { ...state.worker, ...snapshot.worker };
         if (snapshot.skills?.payout) state.skills.payout = { ...state.skills.payout, ...snapshot.skills.payout };
         if (snapshot.idle) {
@@ -3566,6 +4535,24 @@
         if (source === 'sync') {
           state.sync.dirty = false;
           state.sync.queue = [];
+        }
+      };
+
+      const loadOfflineSnapshot = () => {
+        try {
+          const raw = localStorage.getItem(OFFLINE_SNAPSHOT_KEY);
+          return raw ? JSON.parse(raw) : null;
+        } catch (error) {
+          debugError('offline:load', error);
+          return null;
+        }
+      };
+
+      const saveOfflineSnapshot = (snapshot) => {
+        try {
+          localStorage.setItem(OFFLINE_SNAPSHOT_KEY, JSON.stringify(snapshot));
+        } catch (error) {
+          debugError('offline:save', error);
         }
       };
 
@@ -3582,6 +4569,18 @@
       };
 
       const syncSnapshot = async (force = false) => {
+        if (state.offlineMode) {
+          if (!force && !state.sync.dirty) return;
+          if (state.sync.inFlight) return;
+          state.sync.inFlight = true;
+          const snapshot = buildSnapshot();
+          saveOfflineSnapshot(snapshot);
+          state.sync.lastPush = Date.now();
+          state.sync.dirty = false;
+          state.sync.queue = [];
+          state.sync.inFlight = false;
+          return;
+        }
         if (!state.auth.token) return;
         if (!force && !state.sync.dirty) return;
         if (state.sync.inFlight) return;
@@ -3624,13 +4623,17 @@
 
       const startSessionSync = () => {
         stopSessionSync();
-        if (!state.auth.token) return;
+        if (state.offlineMode || !state.auth.token) return;
         sessionSyncTimer = setInterval(() => {
           syncSnapshot(true);
         }, SESSION_SYNC_MS);
       };
 
       const exportStateKey = async () => {
+        if (state.offlineMode) {
+          showAuthAlert('Export unavailable in offline demo mode.');
+          return;
+        }
         if (!state.auth.token) {
           showAuthAlert('Sign in to export your state.');
           return;
@@ -3669,6 +4672,10 @@
       };
 
       const importStateKey = async () => {
+        if (state.offlineMode) {
+          showAuthAlert('Import unavailable in offline demo mode.');
+          return;
+        }
         if (!state.auth.token) {
           showAuthAlert('Sign in to import a state key.');
           return;
@@ -4059,7 +5066,7 @@
         if (!els.dropSkillBtn) return;
         const unlocked = (state.upgrades.dropBoostUnlock || 0) > 0;
         const skill = state.skills.dropRate;
-        els.dropSkillBtn.hidden = !unlocked;
+        els.dropSkillBtn.hidden = true;
         if (!unlocked) return;
         const now = Date.now();
         const busy = state.busy || !state.gameReady;
@@ -4079,6 +5086,52 @@
           if (boost > 0) label = `Drop boost +${boost}%`;
         }
         els.dropSkillBtn.textContent = label;
+      };
+
+      const SKILL_SLOTS = [
+        { key: 'drop', icon: '💧', requires: 'dropBoostUnlock', action: () => activateDropSkill() },
+        { key: 'wild', icon: '🃏', requires: 'wildUnlock', action: () => showAlert('Wild skill coming soon.') },
+        { key: 'payout', icon: '⚡', requires: null, action: () => activatePayoutSkill() },
+        { key: 'auto', icon: '🔁', requires: 'autoSpinUnlock', action: () => startAutoSpin() },
+        { key: 'mystery', icon: '❔', requires: null, action: () => showAlert('Skill locked.') }
+      ];
+      const renderSkillStrip = () => {
+        if (!els.skillStrip) return;
+        const slots = SKILL_SLOTS.map(slot => {
+          const unlocked = slot.requires ? (getEffectiveUpgradeLevel(slot.requires) > 0) : true;
+          let stateAttr = unlocked ? 'ready' : 'locked';
+          if (slot.key === 'drop' && unlocked) {
+            const now = Date.now();
+            const skill = state.skills.dropRate;
+            if (skill.active && skill.expiresAt > now) stateAttr = 'active';
+            else if (skill.cooldownUntil && skill.cooldownUntil > now) stateAttr = 'cooldown';
+          }
+          let timerText = '';
+          const now = Date.now();
+          if (slot.key === 'drop' && unlocked) {
+            const skill = state.skills.dropRate;
+            if (skill.active && skill.expiresAt > now) timerText = formatTime(skill.expiresAt - now);
+            else if (skill.cooldownUntil && skill.cooldownUntil > now) timerText = `CD ${formatTime(skill.cooldownUntil - now)}`;
+          }
+          if (slot.key === 'payout' && unlocked) {
+            const skill = state.skills.payout;
+            if (skill.activeUntil > now) timerText = formatTime(skill.activeUntil - now);
+            else if (skill.cooldownUntil > now) timerText = `CD ${formatTime(skill.cooldownUntil - now)}`;
+          }
+          if (slot.key === 'auto' && state.autoSpin.active) {
+            timerText = `${state.autoSpin.remaining || 0} spins`;
+            stateAttr = 'active';
+          }
+          const disabled = state.busy || (state.autoSpin?.active && slot.key !== 'auto');
+          const icon = unlocked ? slot.icon : '🔒';
+          return `
+            <button type="button" class="skill-pill" data-skill="${slot.key}" data-state="${stateAttr}" ${(!unlocked || disabled) ? 'disabled' : ''}>
+              <span class="skill-icon" aria-hidden="true">${icon}</span>
+              ${timerText ? `<span class="skill-timer">${timerText}</span>` : ''}
+            </button>
+          `;
+        }).join('');
+        els.skillStrip.innerHTML = slots;
       };
 
       const updateSkillSpec = () => {
@@ -4118,6 +5171,7 @@
       const tickSkills = () => {
         isDropSkillActive();
         renderSkillButton();
+        renderSkillStrip();
         renderBonusSummary();
       };
 
@@ -4167,7 +5221,7 @@
         if (els.dailyRewardMain) {
           const parts = [];
           if (reward?.vipMarks) parts.push(`${reward.vipMarks} VIP`);
-          if (reward?.credits) parts.push(currency.format(reward.credits));
+          if (reward?.credits) parts.push(formatMoney(reward.credits));
           els.dailyRewardMain.textContent = parts.join(' • ') || 'Come back daily for prizes.';
         }
         if (els.dailyItems) {
@@ -4186,7 +5240,7 @@
           els.dailyNextReset.textContent = `Resets at ${nextReset}`;
         }
         if (els.dailyClaimBtn) {
-          const disabled = !ready || state.busy || !state.gameReady || !state.auth.token;
+          const disabled = !ready || state.busy || !state.gameReady || (!state.auth.token && !state.offlineMode);
           els.dailyClaimBtn.disabled = disabled;
         }
       }
@@ -4199,7 +5253,7 @@
         entries.push({
           label: 'Drop boost',
           value: `${winMult.total.toFixed(2)}× / ${lossMult.total.toFixed(2)}×`,
-          note: 'Win / loss multiplier (bet, skill, upgrade)'
+          note: 'Win / loss multiplier (bet, skill, upgrade, level)'
         });
         const equipStats = computeEquipmentStats();
         if (equipStats.coinPct) {
@@ -4233,7 +5287,7 @@
         entries.push({
           label: 'Max bet',
           value: `${maxBetMult.toFixed(1)}×`,
-          note: `Cap ${currency.format(state.maxBet || DEFAULT_MAX_BET)}`
+          note: `Cap ${formatMoney(state.maxBet || DEFAULT_MAX_BET)}`
         });
         const rows = state.currentRows || state.machine?.rows || 3;
         const reels = state.currentReels || state.machine?.reels || 3;
@@ -4267,11 +5321,21 @@
       const renderAutoSpinButton = () => {
         if (!els.autoSpinBtn) return;
         const unlocked = isAutoSpinUnlocked();
-        const count = getAutoSpinCount();
-        els.autoSpinBtn.textContent = unlocked ? `Auto (${count})` : 'Auto';
-        els.autoSpinBtn.disabled = !state.gameReady || state.busy || !unlocked;
-        els.autoSpinBtn.setAttribute('aria-pressed', state.autoSpin.active ? 'true' : 'false');
+        const on = state.autoSpin.active;
+        els.autoSpinBtn.textContent = 'Auto';
+        els.autoSpinBtn.disabled = !state.gameReady || (!unlocked && !on);
+        els.autoSpinBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
       };
+
+      els.skillStrip?.addEventListener('click', (event) => {
+        const btn = event.target.closest('[data-skill]');
+        if (!btn) return;
+        const skillKey = btn.dataset.skill;
+        const def = SKILL_SLOTS.find(entry => entry.key === skillKey);
+        if (!def || btn.disabled) return;
+        def.action?.();
+        renderSkillStrip();
+      });
 
       const renderWorkerButton = () => {
         if (!els.workerBtn) return;
@@ -4292,9 +5356,11 @@
             if (!state.busy) {
               spin(true);
             }
-            state.worker.timer = setTimeout(tick, state.worker.intervalMs);
+            const interval = Math.max(500, Math.round(state.worker.intervalMs / (getLevelPerkEffects().speedMult || 1)));
+            state.worker.timer = setTimeout(tick, interval);
           };
-          state.worker.timer = setTimeout(tick, state.worker.intervalMs);
+          const interval = Math.max(500, Math.round(state.worker.intervalMs / (getLevelPerkEffects().speedMult || 1)));
+          state.worker.timer = setTimeout(tick, interval);
         }
         renderWorkerButton();
       };
@@ -4336,9 +5402,15 @@
       const dropSkillPayload = () => ({
         dropRate: isDropSkillActive()
       });
+      els.perksBtn?.addEventListener('click', () => {
+        if (!els.perksPopover) return;
+        const visible = els.perksPopover.dataset.visible === 'true';
+        els.perksPopover.dataset.visible = visible ? 'false' : 'true';
+        if (!visible) renderPerkPopover();
+      });
 
 
-      const ensureGrid = (rows, reels) => {
+      function ensureGrid(rows, reels) {
         if (!els.slotGrid) return;
         const currentRows = Number(els.slotGrid.dataset.rows) || 0;
         const currentReels = Number(els.slotGrid.dataset.reels) || 0;
@@ -4464,6 +5536,9 @@
           parts.push(`${state.machine.activeSymbols.length} symbols`);
         }
         els.machineLines.textContent = parts.join(' • ');
+        if (els.hudRows) els.hudRows.textContent = `${rows}`;
+        if (els.hudReels) els.hudReels.textContent = `${reels}`;
+        if (els.hudLines) els.hudLines.textContent = `${lineCount}`;
       };
 
       const applyMachineTheme = () => {
@@ -4511,21 +5586,21 @@
       const getSpinIntervalDelay = (col) => {
         const timing = state.machine.spinTiming || {};
         const overspin = Array.isArray(timing.overspin) ? timing.overspin : [];
-        const step = overspin.length ? overspin[col % overspin.length] : 12;
-        const base = (step || 12) * 6;
+        const step = overspin.length ? overspin[col % overspin.length] : 18;
+        const base = (step || 18) * 12;
         const speedLevel = Math.max(0, state.upgrades.speed || 0);
-        const factor = Math.max(35, 100 - 10 * speedLevel);
-        return Math.max(20, Math.trunc((base * factor) / 100));
+        const factor = Math.max(60, 115 - 12 * speedLevel);
+        return Math.max(35, Math.trunc((base * factor) / 100));
       };
 
       const getReelStopDelay = (col) => {
         const timing = state.machine.spinTiming || {};
-        const brake = Number.isFinite(timing.brake) ? timing.brake : 180;
-        const base = brake + col * Math.max(60, Math.trunc(brake * 0.6));
+        const brake = Number.isFinite(timing.brake) ? timing.brake : 260;
+        const base = brake + col * Math.max(90, Math.trunc(brake * 0.8));
         const speedLevel = Math.max(0, state.upgrades.speed || 0);
         const autoLevel = Math.max(0, state.upgrades.autoSpeed || 0);
-        const factor = Math.max(55, 100 - 8 * (speedLevel + autoLevel));
-        return Math.max(70, Math.trunc((base * factor) / 100));
+        const factor = Math.max(70, 115 - 10 * (speedLevel + autoLevel));
+        return Math.max(100, Math.trunc((base * factor) / 100));
       };
 
       const startGridSpin = () => {
@@ -4709,7 +5784,7 @@
         debug('paytable:render', { symbols: entries.length });
       }
 
-      const setSymbolMap = (symbols = [], reason = 'update') => {
+      function setSymbolMap(symbols = [], reason = 'update') {
         const list = Array.isArray(symbols) ? symbols : [];
         state.symbolMap = buildSymbolMap(list, state.symbolMap || DEFAULT_SYMBOL_MAP, getPlaceholderAsset());
         if (list.length) {
@@ -4725,47 +5800,48 @@
         auditSymbolAssets();
         rebuildSymbolWeights();
         renderPaytable();
-      };
-      setSymbolMap(DEFAULT_SYMBOLS, 'init');
-      applyUpgradeState(getMachineUpgrades(state.machine.id));
-
+      }
       function applyUpgradeState(incoming = getMachineUpgrades(state.machine.id)) {
         const currentLocal = localUpgradeBucket();
         const baseUpgrades = getMachineUpgrades(state.machine.id);
         const source = incoming || baseUpgrades;
-        let normalized = {};
+        const normalizedBase = {};
         if (state.upgradeCatalog.length) {
           state.upgradeCatalog.forEach(def => {
             const next = Number.isFinite(source?.[def.key])
               ? source[def.key]
               : Number(baseUpgrades?.[def.key]) || 0;
             const max = getUpgradeMaxLevel(def.key);
-            const clientBoost = Math.max(0, Math.floor(currentLocal[def.key] || 0));
-            normalized[def.key] = Math.min(Math.max(0, Math.floor(next + clientBoost)), max);
+            normalizedBase[def.key] = Math.min(Math.max(0, Math.floor(next)), max);
           });
         } else {
-          normalized = { ...baseUpgrades, ...source, ...currentLocal };
+          Object.assign(normalizedBase, baseUpgrades, source);
         }
-        const settings = getUpgradeSettings();
-        const rows = Math.min(
-          settings.maxRows,
-          (settings.baseRows || 3) + (normalized.rows || 0)
-        );
-        const reels = Math.min(
-          settings.maxReels,
-          (settings.baseReels || 3) + (normalized.reels || 0)
-        );
-        const maxLineTier = state.machine.lineTier || (state.machine.lines?.[state.machine.lines.length - 1]?.tier ?? 3);
-        const lineTier = Math.min(maxLineTier, normalized.lines || 0);
-        state.machine.lines = buildLinePatterns(rows, reels);
-        const effective = { ...normalized };
+        const effective = { ...normalizedBase };
+        Object.entries(currentLocal || {}).forEach(([key, val]) => {
+          const max = getUpgradeMaxLevel(key);
+          const appended = (effective[key] || 0) + Math.max(0, Math.floor(val));
+          effective[key] = Math.min(max, appended);
+        });
         Object.entries(state.pendingUpgrades || {}).forEach(([key, val]) => {
           const appended = (effective[key] || 0) + val;
           const max = getUpgradeMaxLevel(key);
           effective[key] = Math.min(max, appended);
         });
         state.upgrades = effective;
-        ensureMachineProgress(state.machine.id).upgrades = { ...normalized };
+        ensureMachineProgress(state.machine.id).upgrades = { ...normalizedBase };
+        const settings = getUpgradeSettings();
+        const rows = Math.min(
+          settings.maxRows,
+          (settings.baseRows || 3) + (effective.rows || 0)
+        );
+        const reels = Math.min(
+          settings.maxReels,
+          (settings.baseReels || 3) + (effective.reels || 0)
+        );
+        const maxLineTier = state.machine.lineTier || (state.machine.lines?.[state.machine.lines.length - 1]?.tier ?? 3);
+        const lineTier = Math.min(maxLineTier, effective.lines || 0);
+        state.machine.lines = buildLinePatterns(rows, reels);
         state.currentRows = rows;
         state.currentReels = reels;
         state.currentLineTier = lineTier;
@@ -4774,11 +5850,11 @@
         state.machine.currentRows = rows;
         state.machine.currentReels = reels;
         state.machine.currentLineTier = lineTier;
-        state.machine.activeSymbols = computeActiveSymbols(normalized);
-        const betMult = Math.max(0, normalized.betMultiplier || 0);
+        state.machine.activeSymbols = computeActiveSymbols(effective);
+        const betMult = Math.max(0, effective.betMultiplier || 0);
         const baseMax = resolveMaxBet(root?.dataset?.maxBet || DEFAULT_MAX_BET);
         state.maxBet = resolveMaxBet(baseMax) * Math.max(1, 10 ** betMult);
-        els.maxBet.textContent = state.maxBet;
+        els.maxBet.textContent = formatMoney(state.maxBet);
         syncBetSteps();
         rebuildSymbolWeights();
         ensureGrid(rows, reels);
@@ -4786,9 +5862,11 @@
         updateMachineMeta();
         updateSkillSpec();
         renderSkillButton();
+        renderSkillStrip();
         renderBonusSummary();
         renderAutoSpinButton();
         startIdleTicker();
+        logAction('upgrade:state', { rows, reels, lineTier, betMult, maxBet: state.maxBet, upgrades: { ...state.upgrades } });
       }
 
       const syncMachineDefinition = (machine = {}) => {
@@ -4830,7 +5908,7 @@
         state.currentRows = baseRows;
         state.currentReels = baseReels;
         setSymbolMap(Array.isArray(machine.symbols) ? machine.symbols : [], 'syncMachineDefinition');
-        applyUpgradeState(state.upgrades);
+        applyUpgradeState();
       };
 
       const machineConfigUrl = (machineId) => `${MACHINE_CONFIG_DIR}/${machineId}.json`;
@@ -4838,6 +5916,11 @@
       const fetchMachineConfig = async (machineId, allowFallback = false) => {
         if (!machineId) return null;
         if (machineCache.has(machineId)) return machineCache.get(machineId);
+        if (state.offlineMode && OFFLINE_DATA.machines[machineId]) {
+          const data = OFFLINE_DATA.machines[machineId];
+          machineCache.set(machineId, data);
+          return data;
+        }
         const url = machineConfigUrl(machineId);
         try {
           const res = await fetch(url, { cache: 'no-cache' });
@@ -4864,8 +5947,20 @@
         return null;
       };
 
+      const getMachineCost = (id, index) => {
+        const cfg = machineCache.get(id);
+        if (cfg?.unlockCost) return cfg.unlockCost;
+        if (Number.isFinite(cfg?.cost)) return cfg.cost;
+        if (index <= 0) return 0;
+        return 25000 * index;
+      };
+
       const ensureDropTables = async () => {
         if (dropTableCache) return dropTableCache;
+        if (state.offlineMode) {
+          dropTableCache = OFFLINE_DATA.dropTables || { tierWeights: state.drop.tierWeights, tables: { classic: state.drop.table } };
+          return dropTableCache;
+        }
         try {
           const res = await fetch(DROP_TABLE_URL, { cache: 'no-cache' });
           if (res.ok) {
@@ -4884,33 +5979,38 @@
         const tables = await ensureDropTables();
         const table = tables?.tables?.[machineId] || tables?.tables?.classic || { common: [], rare: [], epic: [] };
         state.drop.tableKey = machineId || 'classic';
-        state.drop.table = table;
-        if (tables?.tierWeights) {
-          state.drop.tierWeights = { ...state.drop.tierWeights, ...tables.tierWeights };
-        }
-      };
+          state.drop.table = table;
+          if (tables?.tierWeights) {
+            state.drop.tierWeights = { ...state.drop.tierWeights, ...tables.tierWeights };
+          }
+          logLocal('drop-table', { machineId, table: Object.keys(table || {}) });
+        };
 
       const renderMachineList = async () => {
         if (!els.machineList) return;
         const cards = await Promise.all((machineList || []).map(async id => {
           const cfg = await fetchMachineConfig(id).catch(() => null);
           const prog = ensureMachineProgress(id);
+          const idx = machineIndex(id);
+          logLocal('machine-progress', { id, prog });
           return {
             id,
             name: cfg?.name || id,
             tier: cfg?.tier || 'Demo',
             icon: cfg?.assets?.icon || null,
-            unlocked: prog.unlocked
+            unlocked: prog.unlocked,
+            cost: getMachineCost(id, idx)
           };
         }));
+        logLocal('machines', cards);
         els.machineList.innerHTML = cards.map(card => `
           <button type="button" class="machine-card" data-machine-id="${card.id}" data-active="${card.id === state.machine.id ? 'true' : 'false'}" data-locked="${card.unlocked ? 'false' : 'true'}" role="listitem" ${card.unlocked ? '' : 'disabled'}>
-            <div class="machine-card__meta">
-              ${card.icon ? `<img src="${card.icon}" alt="${card.name}" class="machine-card__icon" loading="lazy">` : ''}
-              <span class="rarity-tag">${card.tier}</span>
+            ${card.icon ? `<img src="${card.icon}" alt="${card.name}" class="machine-card__icon" loading="lazy">` : '<span class="machine-card__icon" aria-hidden="true">🎰</span>'}
+            <div>
+              <p class="machine-card__name">${card.name}</p>
+              <p class="machine-card__meta">${card.tier}</p>
             </div>
-            <p class="machine-card__name">${card.name}</p>
-            <p class="machine-card__meta">${card.id}</p>
+            <p class="machine-card__cost">${card.unlocked ? 'Unlocked' : `Cost: ${formatMoney(card.cost || 0)}`}</p>
           </button>
         `).join('');
         if (els.machineSelect) {
@@ -4921,6 +6021,7 @@
 
       const setActiveMachine = async (machineId, options = {}) => {
         const targetId = machineId || state.machine.id || 'classic';
+        logAction('machine:switch', { targetId, options });
         const prog = ensureMachineProgress(targetId);
         if (!prog.unlocked) {
           showAlert('Machine locked. Level up current machine to unlock.');
@@ -4966,6 +6067,16 @@
       };
 
       const loadMachineList = async () => {
+        if (state.offlineMode) {
+          machineList = OFFLINE_DATA.machineList || ['classic'];
+          await renderMachineList();
+          const preferred = localStorage.getItem(LOCAL_MACHINE_KEY);
+          const target = (machineList || []).includes(preferred)
+            ? preferred
+            : (machineList?.[0] || state.machine.id || 'classic');
+          await setActiveMachine(target, { silent: true });
+          return;
+        }
         try {
           const res = await fetch(MACHINE_LIST_URL, { cache: 'no-cache' });
           if (res.ok) {
@@ -4993,14 +6104,15 @@
 
       const updateMachinePicker = (card = null) => {
         if (!els.machinePicker) return;
-        const icon = card?.icon || state.machine.assets?.icon || PLACEHOLDER_ASSET;
-        if (els.machinePickerIcon) {
-          els.machinePickerIcon.src = icon;
-          els.machinePickerIcon.alt = card?.name || state.machine.name || 'Machine';
-        }
+        const label = card?.name || state.machine.name || 'Machine';
         if (els.machinePickerLabel) {
-          els.machinePickerLabel.textContent = card?.name || state.machine.name || 'Machine';
+          els.machinePickerLabel.textContent = label;
         }
+        if (els.machinePickerLevel) {
+          const prog = ensureMachineProgress(state.machine.id);
+          els.machinePickerLevel.textContent = `Lv ${prog.lvl || 0}`;
+        }
+        els.machinePicker.setAttribute('aria-label', `Change machine: ${label}`);
       };
 
       const setAuthMode = (mode = 'login') => {
@@ -5029,6 +6141,7 @@
       setGameVisibility(false);
       renderAutoSpinButton();
       setAuthMode(state.authMode);
+      setMachineFlyout(false);
       const handleAuthEnter = (event) => {
         if (event.key === 'Enter' && !state.busy) {
           event.preventDefault();
@@ -5042,6 +6155,30 @@
         if (input) input.addEventListener('keydown', handleAuthEnter);
       });
 
+      const updateXpBar = () => {
+        const prog = ensureMachineProgress(state.machine.id);
+        const needed = xpNeeded(prog.lvl || 0);
+        const pct = needed > 0 ? clamp((prog.xp || 0) / needed, 0, 1) : 0;
+        if (els.machineXpFill) {
+          els.machineXpFill.style.width = `${Math.round(pct * 100)}%`;
+        }
+      };
+      const renderPerkPopover = () => {
+        if (!els.perksPopover) return;
+        const prog = ensureMachineProgress(state.machine.id);
+        const { perks, future } = buildLevelPerks(prog.lvl || 0);
+        const perkList = perks.map(perk => `
+          <li class="perk-row">
+            <span class="perk-check" data-active="${perk.active ? 'true' : 'false'}">${perk.active ? '&#10003;' : ''}</span>
+            <span class="perk-text">${perk.label}</span>
+          </li>
+        `).join('');
+        els.perksPopover.innerHTML = `
+          <h4>Level perks (Lv ${prog.lvl || 0})</h4>
+          <ul class="perks-list">${perkList}</ul>
+          <p class="muted-text small">${future}</p>
+        `;
+      };
 
       let hudScheduled = false;
       const updateHud = () => {
@@ -5057,15 +6194,12 @@
             const vipMarks = Number(state.drop?.inventory?.vipMarks || 0);
             els.hudVip.textContent = `${formatCompactNumber(vipMarks)} VIP`;
           }
-          if (els.hudEnergy) {
-            const current = Math.floor(state.energy.current || 0);
-            const max = Math.floor(state.energy.max || 0);
-            els.hudEnergy.textContent = `${current}/${max}`;
-          }
           if (els.hudLevel) {
             const prog = ensureMachineProgress(state.machine.id);
-            els.hudLevel.textContent = `Lv ${prog.lvl || 0}`;
+            els.hudLevel.textContent = `${prog.lvl || 0}`;
           }
+          updateXpBar();
+          renderPerkPopover();
         });
       };
       const clearLineFlash = (reenable = false) => {
@@ -5175,17 +6309,6 @@
       function idleStep(timestamp) {
         if (!state.idleTickerActive) return;
         if (!state.lastIdleTick) state.lastIdleTick = timestamp;
-        // Energy regen
-        const energyDelta = (timestamp - state.energy.lastUpdate) / 1000;
-        if (energyDelta > 0) {
-          const gain = energyDelta * (state.energy.rechargePerSec || 0);
-          const next = Math.min(state.energy.max, state.energy.current + gain);
-          if (next !== state.energy.current) {
-            state.energy.current = next;
-            state.energy.lastUpdate = timestamp;
-            updateHud();
-          }
-        }
         // Payout skill expiration
         const payout = state.skills.payout;
         if (payout && payout.activeUntil && payout.activeUntil <= timestamp) {
@@ -5193,7 +6316,8 @@
           renderPayoutSkill();
         }
         const equip = computeEquipmentStats();
-        const rate = Math.max(0, state.upgrades.idle || 0) * (1 + Math.max(0, equip.idlePct || 0) / 100);
+        const speedMult = getLevelPerkEffects().speedMult || 1;
+        const rate = Math.max(0, state.upgrades.idle || 0) * (1 + Math.max(0, equip.idlePct || 0) / 100) * speedMult;
         const delta = timestamp - state.lastIdleTick;
         if (rate > 0 && delta >= 1000) {
           const seconds = Math.floor(delta / 1000);
@@ -5201,7 +6325,7 @@
           state.balance += gained;
           state.pendingIdleCoins = 0;
           state.lastIdleTick += seconds * 1000;
-          if (els.balance) els.balance.textContent = currency.format(state.balance);
+          if (els.balance) els.balance.textContent = formatMoney(state.balance, { compact: false });
           updateHud();
         }
         state.idleTicker = requestFrame(idleStep);
@@ -5209,7 +6333,7 @@
 
       function startIdleTicker() {
         stopIdleTicker();
-        if (!state.gameReady || !state.auth.token) return;
+        if (!state.gameReady || (!state.auth.token && !state.offlineMode)) return;
         if ((state.upgrades.idle || 0) <= 0) return;
         state.idleTickerActive = true;
         state.lastIdleTick = 0;
@@ -5233,6 +6357,9 @@
         if (prev !== safe) {
           markDirty('bet');
         }
+        if (els.spinBtn) {
+          els.spinBtn.textContent = `Spin: ${formatMoney(state.bet || 0)}`;
+        }
         updateHud();
         if (els.dropPanel && !els.dropPanel.hidden) {
           renderDropPanel();
@@ -5248,31 +6375,42 @@
         }
       };
       const resetStoredPlayer = () => localStorage.removeItem(storageKeys.player);
+      const ensureOfflinePlayerId = () => {
+        const existing = getStored(storageKeys.player);
+        if (existing) return existing;
+        const generated = `offline-${Math.random().toString(36).slice(2, 8)}`;
+        storeGuestPlayer(generated);
+        return generated;
+      };
 
       const updateAuthUI = () => {
-        debug('auth:updateUI', { loggedIn: Boolean(state.auth.token) });
-        const loggedIn = Boolean(state.auth.token);
-        if (els.authOverlay) {
-          els.authOverlay.dataset.hidden = loggedIn ? 'true' : 'false';
-          els.authOverlay.setAttribute('aria-hidden', loggedIn ? 'true' : 'false');
-          if (loggedIn && els.authOverlay.contains(document.activeElement)) {
-            document.activeElement.blur?.();
-          }
+        const loggedIn = Boolean(state.auth.token) || state.offlineMode;
+        const hasServerSession = Boolean(state.auth.token);
+        debug('auth:updateUI', { loggedIn, offline: state.offlineMode });
+      if (els.authOverlay) {
+        const forceHidden = offlineMode;
+        const hidden = forceHidden || loggedIn;
+        els.authOverlay.dataset.hidden = hidden ? 'true' : 'false';
+        els.authOverlay.setAttribute('aria-hidden', hidden ? 'true' : 'false');
+        if (hidden && els.authOverlay.contains(document.activeElement)) {
+          document.activeElement.blur?.();
         }
+      }
         if (loggedIn && els.accountUser) {
-          els.accountUser.textContent = state.auth.username || 'Account';
+          const label = state.offlineMode ? OFFLINE_USER : (state.auth.username || 'Account');
+          els.accountUser.textContent = label;
         }
         if (els.accountToggle) {
           els.accountToggle.disabled = !loggedIn;
         }
         if (els.logoutBtn) {
-          els.logoutBtn.disabled = !loggedIn;
+          els.logoutBtn.disabled = !hasServerSession;
         }
         if (!loggedIn) {
           toggleAccountSheet(false);
         }
         if (els.deleteBtn) {
-          els.deleteBtn.disabled = !loggedIn;
+          els.deleteBtn.disabled = !hasServerSession;
         }
         if (loggedIn) startIdleTicker();
         else {
@@ -5282,7 +6420,7 @@
           updateHud();
         }
         if (els.debugCoinBtn) {
-          const matchesDebug = loggedIn && (state.auth.username || '').toLowerCase() === DEBUG_EMAIL;
+          const matchesDebug = hasServerSession && (state.auth.username || '').toLowerCase() === DEBUG_EMAIL;
           els.debugCoinBtn.hidden = !matchesDebug;
           els.debugCoinBtn.disabled = !matchesDebug;
         }
@@ -5294,6 +6432,8 @@
           if (els.machineOutcome) els.machineOutcome.textContent = 'Sign in to start spinning.';
           if (els.hudWin) els.hudWin.textContent = formatCompactMoney(0);
           updateHud();
+        } else if (state.offlineMode && els.machineOutcome) {
+          els.machineOutcome.textContent = 'Offline demo ready. Spins stay local.';
         }
       };
 
@@ -5317,22 +6457,23 @@
           state.drop.history = [];
           state.drop.lastDrops = [];
           state.drop.lastTimestamp = 0;
-          state.daily = {
-            streak: 1,
-            claimedToday: false,
-            ready: false,
-            lastClaimMs: 0,
-            nextResetAt: 0,
-            todayReward: null
-          };
-          renderDropLog();
-          renderInventory();
-          renderDaily();
-          renderBonusSummary();
-          toggleDropPanel(false);
-          updateHud();
-          applyUpgradeState({});
-        }
+        state.daily = {
+          streak: 1,
+          claimedToday: false,
+          ready: false,
+          lastClaimMs: 0,
+          nextResetAt: 0,
+          todayReward: null
+        };
+        renderDropLog();
+        renderInventory();
+        renderDaily();
+        renderBonusSummary();
+        toggleDropPanel(false);
+        updateHud();
+        applyUpgradeState({});
+        logLocal('session', 'Local session cleared');
+      }
         if (state.auth.token) {
           clearLocalUpgradeState();
           resetAutoState();
@@ -5347,7 +6488,7 @@
           localStorage.removeItem(storageKeys.user);
         }
         updateAuthUI();
-        if (state.auth.token) startSessionSync();
+        if (state.auth.token && !state.offlineMode) startSessionSync();
       };
 
       const clearAuth = (message) => {
@@ -5378,6 +6519,11 @@
       };
 
       const request = async (path, payload = {}, options = {}) => {
+        if (state.offlineMode) {
+          const err = new Error('Offline demo mode — network requests skipped.');
+          err.status = 503;
+          throw err;
+        }
         const finalPayload = options.skipAuth ? payload : withAuth(payload);
         debug('request:start', { path, payload: finalPayload, options });
         let res;
@@ -5431,10 +6577,10 @@
         }
         if (typeof payload.balance === 'number') {
           state.balance = payload.balance;
-          els.balance.textContent = currency.format(payload.balance);
+          els.balance.textContent = formatMoney(payload.balance, { compact: false });
         }
         if (Number(payload.idleGained) > 0) {
-          log('Idle payout collected', `+${currency.format(payload.idleGained)} credits while away.`);
+          log('Idle payout collected', `+${formatMoney(payload.idleGained)} credits while away.`);
           state.pendingIdleCoins = Math.max(0, (state.pendingIdleCoins || 0) - payload.idleGained);
           state.lastIdleTick = 0;
           startIdleTicker();
@@ -5445,7 +6591,6 @@
         }
         if (payload.currentRows) state.currentRows = payload.currentRows;
         if (payload.currentReels) state.currentReels = payload.currentReels;
-        if (payload.energy) state.energy = { ...state.energy, ...payload.energy };
         if (payload.worker) state.worker = { ...state.worker, ...payload.worker };
         if (payload.machines) state.machines = { ...state.machines, ...payload.machines };
         if (payload.machine) {
@@ -5500,7 +6645,7 @@
           if (els.lastMult) els.lastMult.textContent = '—';
           if (els.lastTime) els.lastTime.textContent = '—';
           if (els.machineOutcome) els.machineOutcome.textContent = 'Awaiting spin…';
-          if (els.hudWin) els.hudWin.textContent = currency.format(0);
+          if (els.hudWin) els.hudWin.textContent = formatMoney(0);
           highlightWins([]);
           updateHud();
           return;
@@ -5514,10 +6659,13 @@
         if (els.lastOutcome) els.lastOutcome.textContent = summary;
         const winAmount = lastSpin.winAmount || 0;
         state.lastWin = winAmount;
-        if (els.lastWin) els.lastWin.textContent = currency.format(winAmount);
+        if (els.lastWin) els.lastWin.textContent = formatMoney(winAmount);
         if (els.lastMult) {
           const lines = Array.isArray(lastSpin.winGroups) ? lastSpin.winGroups.length : 0;
           els.lastMult.textContent = lines ? `${lines} line${lines === 1 ? '' : 's'}` : '—';
+        }
+        if (winAmount > 0) {
+          showWinFlyover(winAmount);
         }
         if (els.lastTime) els.lastTime.textContent = new Date(lastSpin.timestamp).toLocaleString();
         if (els.machineOutcome) {
@@ -5527,6 +6675,7 @@
         if (els.hudWin) els.hudWin.textContent = formatCompactMoney(winAmount);
         if (Array.isArray(lastSpin.drops) && lastSpin.drops.length) {
           recordDrops(lastSpin.drops, Date.parse(lastSpin.timestamp) || Date.now());
+          showDropFlyover(lastSpin.drops);
           renderInventory();
         }
         pendingWinGroups = lastSpin.winGroups || [];
@@ -5554,13 +6703,70 @@
         setGameVisibility(true);
         setStatus('Connected to AWS Lambda', 'ok');
         if (logMessage) {
-          log(logMessage, `${session.username || 'User'} • balance ${currency.format(state.balance || session.balance)}`);
+          log(logMessage, `${session.username || 'User'} • balance ${formatMoney(state.balance || session.balance)}`);
         }
         if (state.auth.token) startSessionSync();
       };
 
+      const startOfflineDemo = async () => {
+        debug('offline:start');
+        state.offlineMode = true;
+        state.auth.token = null;
+        state.auth.username = OFFLINE_USER;
+        const saved = loadOfflineSnapshot();
+        logLocal('offline:start', { saved: !!saved });
+        const fallbackDrop = {
+          inventory: state.drop.inventory || {},
+          history: state.drop.history || [],
+          lastDrops: state.drop.lastDrops || [],
+          lastTimestamp: state.drop.lastTimestamp || 0
+        };
+        const snapshot = saved || {
+          rev: state.sync.rev || 0,
+          balance: Math.max(state.balance || 0, OFFLINE_START_BALANCE),
+          bet: Math.min(state.bet || 25, state.maxBet || DEFAULT_MAX_BET),
+          maxBet: state.maxBet || DEFAULT_MAX_BET,
+          spinCount: state.spinCount || 0,
+          playerId: ensureOfflinePlayerId(),
+          machine: {
+            id: state.machine.id,
+            rows: state.currentRows || state.machine.rows,
+            reels: state.currentReels || state.machine.reels,
+            lineTier: state.currentLineTier || state.machine.lineTier || 0,
+            upgrades: { ...getMachineUpgrades(state.machine.id) },
+            spinTiming: state.machine.spinTiming
+          },
+          drop: fallbackDrop,
+          equipment: state.equipment,
+          cards: state.cards,
+          daily: { ...state.daily },
+          worker: { ...state.worker },
+          skills: { ...state.skills },
+          machines: { ...state.machines },
+          upgrades: { ...state.serverUpgrades },
+          clientUpgrades: { ...localUpgrades },
+          symbolMap: Array.from(state.symbolMap.entries() || []),
+          idle: { pending: 0, lastTick: 0 }
+        };
+        state.sync.rev = snapshot.rev || 0;
+        await applySnapshot(snapshot, 'offline');
+        updateStats(snapshot);
+        setGameVisibility(true);
+        setStatus('Offline demo mode — no login needed', 'ok');
+        updateAuthUI();
+        log('Offline demo', saved ? 'Local snapshot loaded.' : 'Local session created.');
+        logLocal('balance', { balance: state.balance, bet: state.bet, maxBet: state.maxBet });
+        state.sync.dirty = true;
+        syncSnapshot(true);
+      };
+
       const bootstrap = async () => {
         debug('bootstrap:start');
+        if (state.offlineMode) {
+          debug('bootstrap:skipped', 'offline mode');
+          setStatus('Offline demo mode — no login needed', 'ok');
+          return;
+        }
         if (!state.auth.token) {
           setGameVisibility(false);
           setStatus('Sign in to start', 'error');
@@ -5587,10 +6793,17 @@
       };
 
       const startAutoSpin = () => {
-        if (!isAutoSpinUnlocked() || state.busy || !state.gameReady) return;
+        if (!isAutoSpinUnlocked()) return;
+        if (state.autoSpin.active) {
+          state.autoSpin.active = false;
+          state.autoSpin.remaining = 0;
+          refreshControls();
+          return;
+        }
+        if (state.busy || !state.gameReady) return;
         state.autoSpin.active = true;
         state.autoSpin.remaining = getAutoSpinCount();
-        renderAutoSpinButton();
+        refreshControls();
         spin(true);
       };
 
@@ -5614,16 +6827,12 @@
           settings.maxReels || baseReels
         );
         const bet = clamp(state.bet || 1, 1, state.maxBet || DEFAULT_MAX_BET);
-        if ((state.energy.current || 0) < 1) {
-          showAlert('Out of energy.');
+        const freeSpin = (state.pendingFreeSpins || 0) > 0;
+        if (!freeSpin && state.balance < bet) {
+          showPopup('Not enough credits to spin.');
           return;
         }
-        if (state.balance < bet) {
-          showAlert('Not enough credits to spin.');
-          return;
-        }
-        state.energy.current = Math.max(0, (state.energy.current || 0) - 1);
-        state.energy.lastUpdate = performance.now();
+        logAction('spin:start', { bet, balance: state.balance, rows: effectiveRows, reels: effectiveReels });
         setBetValue(bet);
         setBusy(true);
         showAlert('');
@@ -5637,26 +6846,36 @@
         let spinData = null;
         try {
           spinData = runClientSpin(bet, { rows: effectiveRows, reels: effectiveReels });
-          state.balance = Math.max(0, (state.balance || 0) - bet + (spinData.winAmount || 0));
+          const spend = freeSpin ? 0 : bet;
+          if (freeSpin && state.pendingFreeSpins > 0) {
+            state.pendingFreeSpins = Math.max(0, state.pendingFreeSpins - 1);
+          }
+          state.balance = Math.max(0, (state.balance || 0) - spend + (spinData.winAmount || 0));
           state.lastWin = spinData.winAmount || 0;
           state.spinCount = (state.spinCount || 0) + 1;
           if (spinData.retriggered) {
             log('Retriggered spin', 'Free retry activated');
           }
           // Apply skill and jackpot modifiers
+          const perkEffects = getLevelPerkEffects();
           let finalWin = spinData.winAmount || 0;
           const nowMs = Date.now();
           const payoutSkill = state.skills.payout;
           const payoutActive = payoutSkill.activeUntil && payoutSkill.activeUntil > nowMs;
           if (payoutActive) {
-            finalWin = Math.round(finalWin * (payoutSkill.multiplier || 1));
+            const perkMult = perkEffects.payoutSkillMult || 1;
+            finalWin = Math.round(finalWin * (payoutSkill.multiplier || 1) * perkMult);
           }
           if ((modifiers.payoutMult || 1) > 1) {
             finalWin = Math.round(finalWin * modifiers.payoutMult);
           }
+          const jackpotMult = (state.jackpots.multiplier || 10) * (perkEffects.jackpotMult || 1);
           if (Math.random() < (state.jackpots.chance || 0.01)) {
-            finalWin = Math.round(finalWin * (state.jackpots.multiplier || 10));
-            log('Jackpot!', `×${state.jackpots.multiplier || 10} payout`);
+            finalWin = Math.round(finalWin * jackpotMult);
+            log('Jackpot!', `×${jackpotMult.toFixed(2)} payout`);
+          }
+          if (spinData.retriggered) {
+            state.pendingFreeSpins = (state.pendingFreeSpins || 0) + 1;
           }
           if (finalWin > 0) {
             state.jackpots.hotStreak.wins += 1;
@@ -5671,19 +6890,25 @@
           const dropResult = rollDropsForSpin(bet, finalWin || 0);
           if (dropResult.drops?.length) {
             applyDropsToInventory(dropResult.drops, Date.now());
+            showDropFlyover(dropResult.drops);
           }
           const xpGain = Math.max(1, Math.round(bet / 10));
           const leveled = addMachineXp(state.machine.id, xpGain);
-          if (els.balance) els.balance.textContent = currency.format(state.balance);
+          const prog = ensureMachineProgress(state.machine.id);
+          if (els.balance) els.balance.textContent = formatMoney(state.balance, { compact: false });
           if (els.spinCount) els.spinCount.textContent = state.spinCount;
           updateLastSpin(spinData);
+          showXpFlyover(xpGain);
           updateHud();
           renderBonusSummary();
           if (leveled) {
-            log('Level up', `${state.machine.name || state.machine.id} Lv ${ensureMachineProgress(state.machine.id).lvl}`);
+            log('Level up', `${state.machine.name || state.machine.id} Lv ${prog.lvl}`);
+            showLevelFlyover(prog.lvl);
             renderMachineList();
+            updateMachinePicker({ id: state.machine.id, name: state.machine.name });
           }
-          log('Spin processed locally', `${spinData.outcome} (balance ${currency.format(state.balance)})`);
+          log('Spin processed locally', `${spinData.outcome} (balance ${formatMoney(state.balance)})`);
+          logAction('spin:end', { outcome: spinData.outcome, win: spinData.winAmount, balance: state.balance, xpGain });
           markDirty('spin');
         } catch (error) {
           const msg = error?.message || 'Spin failed.';
@@ -5698,20 +6923,29 @@
           state.currentReels = baseReels;
           state.machine.lines = prevLines;
           setBusy(false);
-          if (state.autoSpin.active && state.autoSpin.remaining > 0) {
+          const shouldAuto = state.autoSpin.active && state.autoSpin.remaining > 0;
+          if (shouldAuto) {
             state.autoSpin.remaining -= 1;
             renderAutoSpinButton();
-            setTimeout(() => spin(true), 120);
+            const delay = Math.max(60, Math.round(120 / (getLevelPerkEffects().speedMult || 1)));
+            setTimeout(() => spin(true), delay);
+          } else if ((state.pendingFreeSpins || 0) > 0) {
+            renderAutoSpinButton();
+            setTimeout(() => spin(true), 100);
           } else {
             state.autoSpin.active = false;
             state.autoSpin.remaining = 0;
-            renderAutoSpinButton();
+            refreshControls();
           }
         }
       };
 
       const claimDaily = async () => {
         debug('daily:claim', { busy: state.busy, ready: state.daily?.ready });
+        if (state.offlineMode) {
+          showAlert('Daily rewards are unavailable in offline mode.');
+          return;
+        }
         if (!state.auth.token) {
           showAuthAlert('Sign in to claim daily rewards.');
           return;
@@ -5732,7 +6966,7 @@
             }
             const parts = [];
             if (result.reward.vipMarks) parts.push(`+${result.reward.vipMarks} VIP marks`);
-            if (result.reward.credits) parts.push(`+${currency.format(result.reward.credits)} credits`);
+            if (result.reward.credits) parts.push(`+${formatMoney(result.reward.credits)} credits`);
             drops.filter(drop => drop.type !== 'vipMarks').forEach(drop => {
               const info = normalizeDrop(drop);
               parts.push(`${info.name} ×${drop.amount || 1}`);
@@ -5755,6 +6989,13 @@
       };
 
       const loginOrRegister = async () => {
+        if (state.offlineMode) {
+          showAuthAlert('Offline demo mode active — no login required.');
+          setGameVisibility(true);
+          setStatus('Offline demo mode — no login needed', 'ok');
+          updateAuthUI();
+          return;
+        }
         const email = (els.authEmail?.value || '').trim().toLowerCase();
         const password = els.authPassword?.value || '';
         debug('auth:submit', { mode: state.authMode, email, hasPassword: Boolean(password) });
@@ -5874,18 +7115,21 @@
       ensureGrid(state.machine.rows, state.machine.reels);
       updateMachineMeta();
       renderPaytable();
-      loadMachineConfig();
-      renderDaily();
-      renderBonusSummary();
-      renderPayoutSkill();
-      renderWorkerButton();
-      updateHud();
+      loadMachineConfig().finally(() => {
+        renderDaily();
+        renderBonusSummary();
+        renderPayoutSkill();
+        renderWorkerButton();
+        updateHud();
+        startOfflineDemo();
+      });
       window.addEventListener('resize', applyMachineTheme);
 
       if (els.betSlider) {
         els.betSlider.addEventListener('input', (event) => {
           const idx = Number(event.target.value) || 0;
           const next = betFromIndex(idx);
+          logAction('bet:slider', { idx, bet: next });
           setBetValue(next);
         });
       }
@@ -5896,14 +7140,17 @@
         const currentIndex = getNearestBetIndex(state.bet);
         if (action === 'increase') {
           setBetValue(betFromIndex(currentIndex + 1));
+          logAction('bet:chip', { action, bet: state.bet });
           return;
         }
         if (action === 'decrease') {
           setBetValue(betFromIndex(currentIndex - 1));
+          logAction('bet:chip', { action, bet: state.bet });
           return;
         }
-        if (action === 'max') {
+       if (action === 'max') {
           setBetValue(state.maxBet || DEFAULT_MAX_BET);
+          logAction('bet:chip', { action, bet: state.bet });
         }
       };
 
@@ -5933,38 +7180,32 @@
         const card = event.target.closest('[data-machine-id]');
         if (!card || state.busy) return;
         const id = card.dataset.machineId;
-        if (id) setActiveMachine(id);
+        if (!id) return;
+        if (card.dataset.locked === 'true') {
+          showPopup('Machine locked. Unlock previous machines first.');
+          return;
+        }
+        setActiveMachine(id);
+        setMachineFlyout(false);
       });
       els.machineSelect?.addEventListener('change', (event) => {
         const id = event.target.value;
-        if (id && !state.busy) setActiveMachine(id);
+        if (id && !state.busy) {
+          setActiveMachine(id);
+          setMachineFlyout(false);
+        }
       });
       els.machinePicker?.addEventListener('click', () => {
-        els.machineSelect?.focus();
-        els.machineSelect?.click();
+        toggleMachineFlyout();
       });
-      els.actionSelect?.addEventListener('change', (event) => {
-        const val = event.target.value;
-        event.target.value = '';
-        if (state.busy) return;
-        switch (val) {
-          case 'auto':
-            els.autoSpinBtn?.click();
-            break;
-          case 'payout':
-            els.payoutSkillBtn?.click();
-            break;
-          case 'lines':
-            els.lineFlashBtn?.click();
-            break;
-          case 'premium':
-            els.premiumBtn?.click();
-            break;
-          case 'worker':
-            els.workerBtn?.click();
-            break;
-          default:
-            break;
+      document.addEventListener('click', (event) => {
+        if (!els.machineFlyout) return;
+        if (els.machineFlyout.contains(event.target)) return;
+        setMachineFlyout(false);
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          setMachineFlyout(false);
         }
       });
       els.dailyClaimBtn?.addEventListener('click', () => {
@@ -6012,16 +7253,24 @@
       els.autoSpinBtn?.addEventListener('click', startAutoSpin);
 
       els.resetBtn.addEventListener('click', () => {
-        if (state.busy || !state.auth.token) {
+        if (state.busy) {
+          return;
+        }
+        if (!state.auth.token && !state.offlineMode) {
           showAuthAlert('Sign in to use the slot machine.');
           return;
         }
         resetLocalProgress();
-        bootstrap();
+        if (state.offlineMode) {
+          startOfflineDemo();
+        } else {
+          bootstrap();
+        }
       });
 
       els.syncBtn.addEventListener('click', () => {
-        if (state.busy || !state.auth.token) return;
+        if (state.busy) return;
+        if (!state.auth.token && !state.offlineMode) return;
         syncSnapshot(true);
       });
 
@@ -6031,20 +7280,19 @@
       const purchaseUpgrade = async (type) => {
         const def = getUpgradeDef(type);
         if (!def) {
-          showAlert('Upgrade unavailable.');
+          showPopup('Upgrade unavailable.');
+          debugError('upgrade:missing-def', new Error('Missing upgrade def'), { type });
           return;
         }
-        const clientOnly = Boolean(def.clientOnly);
-        if (!clientOnly && !state.auth.token) {
-          showAuthAlert('Sign in to upgrade your machine.');
-          return;
-        }
+        const clientOnly = true;
         const bucket = getMachineUpgrades(state.machine.id);
         const serverLevel = bucket?.[type] || 0;
         const currentLevel = getEffectiveUpgradeLevel(type);
         const maxLevel = getUpgradeMaxLevel(type);
+        logAction('upgrade:attempt', { type, currentLevel, maxLevel, balance: state.balance, cost: computeUpgradeCost(def, currentLevel) });
         if (currentLevel >= maxLevel) {
-          showAlert('Upgrade already maxed.');
+          showPopup('Upgrade already maxed.');
+          debug('upgrade:maxed', { type, currentLevel, maxLevel, bucket, serverLevel });
           return;
         }
         if (def.requires) {
@@ -6053,33 +7301,35 @@
             return getEffectiveUpgradeLevel(req) > 0;
           });
           if (!met) {
-            showAlert('Unlock the prerequisite upgrade first.');
+            showPopup('Unlock the prerequisite upgrade first.');
+            debug('upgrade:prereq', { type, requirements, current: state.upgrades });
             return;
           }
         }
         const localBucket = localUpgradeBucket();
         const localLevel = Math.max(0, Number(localBucket[type] || 0));
-        if (localLevel >= maxLevel) {
-          showAlert('Upgrade already maxed.');
-          return;
-        }
+        // prioritize local level for client-only; allow spending if effective < max
         const cost = computeUpgradeCost(def, currentLevel);
         if ((state.balance || 0) < cost) {
-          showAlert(`Need ${currency.format(cost)} to upgrade.`);
+          showPopup(`Need ${formatMoney(cost)} to upgrade.`);
+          debug('upgrade:insufficient', { type, cost, balance: state.balance });
           return;
         }
         // Legacy note for server builds: request('/session', { type }) would sync upgrades when online.
         state.balance = Math.max(0, (state.balance || 0) - cost);
-        if (els.balance) els.balance.textContent = currency.format(state.balance);
+        if (els.balance) els.balance.textContent = formatMoney(state.balance, { compact: false });
         localBucket[type] = localLevel + 1;
         saveLocalUpgrades(localUpgrades);
         ensureMachineProgress(state.machine.id).upgrades = { ...bucket, [type]: serverLevel };
-        applyUpgradeState(bucket);
+        applyUpgradeState();
         renderUpgrades();
         renderAutoSpinButton();
         updateHud();
         markDirty('upgrade');
         log('Upgrade applied locally', def.label || type);
+        const finalLevel = getEffectiveUpgradeLevel(type);
+        debug('upgrade:applied', { type, level: finalLevel, bucket: localBucket, serverLevel });
+        logAction('upgrade:applied', { type, level: finalLevel, balance: state.balance });
         showAlert(clientOnly ? 'Upgrade applied locally.' : 'Upgrade applied locally (offline).');
       };
 
@@ -6101,11 +7351,12 @@
       els.premiumBtn?.addEventListener('click', () => {
         showAlert('Premium shop is server-only. Coming soon.');
       });
-      if (state.auth.token) {
-        bootstrap();
-      } else {
-        setStatus('Sign in to start', 'error');
-      }
+
+      // Load upgrades after all helpers are defined to avoid init-order errors
+      loadUpgradeCatalog().then(() => {
+        setSymbolMap(DEFAULT_SYMBOLS, 'init');
+        rebuildSymbolWeights();
+      });
 
       function rebuildSymbolWeights() {
         const pool = Array.isArray(state.machine.activeSymbols) && state.machine.activeSymbols.length
@@ -6113,14 +7364,22 @@
           : Array.from(state.symbolMap.keys());
         const entries = [];
         let total = 0;
+        const lvl = ensureMachineProgress(state.machine.id).lvl || 0;
+        const perks = getLevelPerkEffects(lvl);
         pool.forEach(key => {
           const payout = state.machine.payouts?.[key] || 1;
-          const weight = Math.max(1, Math.trunc(1000 / Math.max(1, payout)));
+          const base = Math.max(1, payout);
+          const biasFactor = perks.biasMult || 1;
+          const wildFactor = key === 'wild' ? (perks.wildWeightMult || 1) : 1;
+          const weight = Math.max(
+            1,
+            Math.trunc(((1000 / base) + (Math.sqrt(base) * biasFactor)) * wildFactor)
+          );
           total += weight;
           entries.push({ key, weight, total });
         });
         state.symbolWeights = { entries, total };
-        debug('symbols:weights', { count: entries.length, total });
+        debug('symbols:weights', { count: entries.length, total, lvl, bias: perks.biasMult, wild: perks.wildWeightMult });
       }
 
       rebuildSymbolWeights();
@@ -6128,3 +7387,13 @@
   </script>
 </body>
 </html>
+      if (offlineMode) {
+        state.auth.token = null;
+        state.auth.username = OFFLINE_USER;
+        state.offlineMode = true;
+        const overlay = document.getElementById('auth-overlay');
+        if (overlay) {
+          overlay.dataset.hidden = 'true';
+          overlay.setAttribute('aria-hidden', 'true');
+        }
+      }

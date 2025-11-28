@@ -205,7 +205,6 @@ function mergeSnapshotFields(player = {}, snapshot = {}) {
   if (snapshot.drop?.inventory) next.inventory = snapshot.drop.inventory;
   if (snapshot.drop?.lastDrops) next.lastDrops = snapshot.drop.lastDrops;
   if (snapshot.daily) next.daily = snapshot.daily;
-  if (snapshot.energy) next.energy = snapshot.energy;
   if (snapshot.worker) next.worker = snapshot.worker;
   if (snapshot.skills) next.skillState = snapshot.skills;
   if (snapshot.cards) next.cards = snapshot.cards;
@@ -622,7 +621,6 @@ function formatPlayerPayload(player, extra = {}) {
   const activeSymbols = computeActiveSymbols(upgrades);
   const skillState = normalizeSkillState(player?.skillState || {}, nowMs);
   const daily = formatDailyPayload(player?.daily || {}, nowMs);
-  const energy = player?.energy || { current: 20, max: 20, rechargePerSec: 0.5, lastUpdate: Date.now() };
   let snapshot = null;
   if (player?.snapshotData) {
     try {
@@ -656,7 +654,6 @@ function formatPlayerPayload(player, extra = {}) {
     cards: player?.cards || {},
     equipment: player?.equipment || {},
     worker: player?.worker || {},
-    energy,
     dropState: {
       inventory: player.inventory || {},
       lastDrops: player.lastDrops || [],
@@ -933,10 +930,6 @@ async function handleSync(payload = {}) {
   if (merged.machines) {
     setParts.push('machines = :machines');
     values[':machines'] = merged.machines;
-  }
-  if (merged.energy) {
-    setParts.push('energy = :energy');
-    values[':energy'] = merged.energy;
   }
   if (merged.skillState) {
     setParts.push('skillState = :skillState');
