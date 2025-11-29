@@ -14,7 +14,7 @@ body.consent-blocked::before {
   content: "";
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.45);
+  background: rgba(0,0,0,0.35);
   z-index: 99998; /* below banner (99999) */
   opacity: 1 !important;           /* override base body::before opacity */
   pointer-events: auto !important;  /* intercept clicks while blocked */
@@ -32,70 +32,117 @@ body.consent-blocked::before {
 
 #pcz-banner {
   position: fixed;
-  inset-inline: 0;
-  bottom: 0;
+  inset-inline: auto;
+  left: clamp(12px, 4vw, 32px);
+  right: clamp(12px, 4vw, 32px);
+  bottom: clamp(12px, 3vw, 24px);
   z-index: 99999;
-  background: var(--pcz-bg);
-  padding: clamp(28px, 6vw, 40px) clamp(20px, 5vw, 32px) 24px;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
   transform: translateY(0);
   opacity: 1;
   transition: transform 0.35s ease, opacity 0.35s ease;
 }
 
+#pcz-banner .pcz-card {
+  position: relative;
+  background: var(--pcz-bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.22);
+  padding: clamp(18px, 3vw, 24px);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: clamp(14px, 3vw, 20px);
+  align-items: center;
+  max-width: min(760px, 100vw);
+}
+
 #pcz-banner .pcz-close {
   position: absolute;
-  top: clamp(8px, 3vw, 16px);
-  right: clamp(12px, 5vw, 24px);
-  background: none;
-  border: none;
+  top: 10px;
+  right: 12px;
+  background: rgba(0,0,0,0.05);
+  border: 1px solid transparent;
   cursor: pointer;
   color: var(--text-muted);
   padding: 4px;
   line-height: 1;
-  font-size: 1.75rem;
-  transition: color 0.25s ease, text-shadow 0.25s ease;
+  font-size: 1.1rem;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  transition: color 0.25s ease, text-shadow 0.25s ease, background 0.25s ease;
 }
 
 #pcz-banner .pcz-close:hover,
 #pcz-banner .pcz-close:focus-visible {
   color: var(--primary);
+  background: rgba(0,0,0,0.08);
   text-shadow: 0 0 4px color-mix(in srgb, var(--primary) 40%, transparent);
 }
 
-#pcz-banner .pcz-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-  padding-top: 12px;
-  max-width: 980px;
-  margin: 0 auto;
+#pcz-banner .pcz-copy {
+  display: grid;
+  gap: 6px;
 }
 
-#pcz-banner p {
+#pcz-banner .pcz-kicker {
   margin: 0;
-  flex: 1 1 320px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+#pcz-banner .pcz-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--pcz-fg);
+}
+
+#pcz-banner .pcz-body {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+#pcz-banner .pcz-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 #pcz-banner .pcz-btn {
-  border: 0;
+  border: 1px solid transparent;
   padding: 10px 14px;
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: 8px;
+  font-weight: 600;
 }
 
 .pcz-primary {
   background: var(--pcz-accent);
-  color: #111;
+  color: #0c1b1b;
 }
 
 .pcz-secondary {
-  background: var(--surface-accent);
+  background: transparent;
   color: var(--pcz-fg);
+  border-color: var(--border-subtle);
 }
 
 .pcz-link {
+  background: transparent;
+  color: var(--pcz-link);
+  text-decoration: underline;
+}
+
+.pcz-ghost {
   background: transparent;
   color: var(--pcz-link);
   text-decoration: underline;
@@ -170,37 +217,21 @@ body.consent-blocked::before {
 }
 
 @media (max-width: 768px) {
-  #pcz-banner .pcz-row {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
+  #pcz-banner .pcz-card {
+    grid-template-columns: 1fr;
   }
 
-  #pcz-banner p {
-    flex: 1 1 auto;
-    width: 100%;
-    text-align: center;
+  #pcz-banner .pcz-actions {
+    justify-content: stretch;
   }
 
   #pcz-banner .pcz-btn {
-    width: min(320px, 100%);
-    margin-inline: auto;
-  }
-
-  #pcz-banner .pcz-btn.pcz-link {
+    flex: 1 1 48%;
     text-align: center;
   }
 }
 
 @media (max-width: 480px) {
-  #pcz-banner {
-    padding: 32px clamp(16px, 6vw, 24px) 22px;
-  }
-
-  #pcz-banner .pcz-row {
-    gap: 14px;
-  }
-
   #pcz-banner .pcz-btn {
     width: min(280px, 100%);
   }
