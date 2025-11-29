@@ -50,6 +50,7 @@ body.consent-blocked::before {
 
 #pcz-banner .pcz-card {
   position: relative;
+  box-sizing: border-box;
   background: var(--pcz-bg);
   border: 1px solid var(--border-subtle);
   border-radius: 12px;
