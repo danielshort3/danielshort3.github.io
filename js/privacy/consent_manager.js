@@ -452,7 +452,12 @@
     const initialState = saved ? saved.categories : getDefaultState();
     const banner = createBanner(localeStrings);
     document.body.appendChild(banner);
-    requestAnimationFrame(() => banner.classList.add('pcz-visible'));
+    try {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    } catch (err) {
+      try { window.scrollTo(0, 0); } catch (e) {}
+    }
+    setTimeout(() => banner.classList.add('pcz-visible'), 16);
     // Block page interaction until a choice is made
     document.body.classList.add('consent-blocked');
     const closeBtn = banner.querySelector('#pcz-close');
@@ -462,6 +467,7 @@
     const dismissBanner = () => {
       if (!banner || banner.dataset.state === 'closing') return;
       banner.dataset.state = 'closing';
+      banner.classList.remove('pcz-visible');
       banner.classList.add('pcz-exit');
       const cleanup = () => {
         banner.remove();
