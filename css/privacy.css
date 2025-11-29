@@ -40,13 +40,14 @@ body.consent-blocked::before {
   background: transparent;
   padding: 0;
   box-shadow: none;
-  transform: translateY(120%);
-  opacity: 1;
+  transform: translateY(160%);
+  opacity: 0;
   transition: transform 0.45s ease, opacity 0.45s ease;
 }
 
 #pcz-banner.pcz-visible {
   transform: translateY(0);
+  opacity: 1;
 }
 
 #pcz-banner .pcz-card {
@@ -211,7 +212,7 @@ body.consent-blocked::before {
 
 #pcz-banner.pcz-exit {
   opacity: 0;
-  transform: translateY(120%);
+  transform: translateY(160%);
 }
 
 #pcz-banner :focus-visible,
