@@ -452,6 +452,7 @@
     const initialState = saved ? saved.categories : getDefaultState();
     const banner = createBanner(localeStrings);
     document.body.appendChild(banner);
+    requestAnimationFrame(() => banner.classList.add('pcz-visible'));
     // Block page interaction until a choice is made
     document.body.classList.add('consent-blocked');
     const closeBtn = banner.querySelector('#pcz-close');
