@@ -3,16 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <script>
-    (() => {
-      const base = document.createElement('base');
-      const baseHref = window.location.protocol === 'file:'
-        ? new URL('../', window.location.href).href
-        : '/';
-      base.setAttribute('href', baseHref);
-      document.head.appendChild(base);
-    })();
-  </script>
+  <base href="../" />
   <title>Server-Backed Slot Machine Demo</title>
   <meta name="theme-color" content="#0d1117" />
   <link rel="stylesheet" href="dist/styles.css" />
@@ -34,6 +25,11 @@
       --accent-2: #6366f1;
       --danger: #f87171;
       --radius: 16px;
+    }
+    @media (min-width: 769px) {
+      .machine-frame__reels {
+        padding-right: calc(clamp(64px, 16vw, 82px) + clamp(10px, 2vw, 16px));
+      }
     }
     *, *::before, *::after {
       box-sizing: border-box;
@@ -422,17 +418,17 @@
       justify-content: flex-end;
       flex: 0 0 auto;
     }
-    .status-icon {
-      width: 38px;
-      height: 38px;
-      border-radius: 12px;
-      border: 1px solid rgba(148,163,184,.3);
-      background: rgba(15,23,42,.7);
-      display: grid;
-      place-items: center;
-      color: var(--text);
-      cursor: pointer;
-      padding: 0;
+.status-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  border: 1px solid rgba(148,163,184,.28);
+  background: rgba(15,23,42,.78);
+  display: grid;
+  place-items: center;
+  color: var(--text);
+  cursor: pointer;
+  padding: 0;
     }
     .status-icon:disabled {
       opacity: .4;
@@ -445,11 +441,13 @@
     }
     .account-sheet {
       position: fixed;
-      bottom: 24px;
+      top: 50%;
       left: 50%;
-      transform: translateX(-50%);
-      width: min(420px, calc(100% - 32px));
-      z-index: 30;
+      transform: translate(-50%, -50%);
+      width: min(560px, calc(100% - 32px));
+      max-height: min(640px, calc(100% - 40px));
+      overflow: auto;
+      z-index: 40;
       box-shadow: 0 20px 80px rgba(2,6,23,.7);
       backdrop-filter: blur(6px);
     }
@@ -461,6 +459,32 @@
       align-items: center;
       justify-content: space-between;
       gap: 16px;
+    }
+    .account-grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      align-items: start;
+    }
+    .account-log {
+      border: 1px solid rgba(148,163,184,.2);
+      border-radius: 12px;
+      padding: 10px;
+      background: rgba(255,255,255,.03);
+      max-height: 220px;
+      overflow: auto;
+      display: grid;
+      gap: 8px;
+      font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: .85rem;
+    }
+    .account-log__item {
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      padding-bottom: 6px;
+    }
+    .account-log__item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
     }
     .slot-machine {
       position: relative;
@@ -555,79 +579,94 @@
       opacity: .8;
       pointer-events: none;
     }
+.slot-topbar {
+  position: sticky;
+  top: calc(var(--safe-top) + 10px);
+  z-index: 24;
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(148,163,184,.24);
+  background: linear-gradient(180deg, rgba(12,18,36,.96), rgba(6,10,22,.96));
+  box-shadow: 0 12px 36px rgba(0,0,0,.32);
+  backdrop-filter: blur(6px);
+  margin-bottom: 4px;
+}
+.topbar-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
     .slot-machine__body {
       position: relative;
       display: grid;
-      grid-template-rows: auto 1fr auto;
+      grid-template-rows: 1fr auto;
       gap: clamp(12px, 2vw, 18px);
       min-height: calc(100svh - var(--safe-top) - var(--safe-bottom) - 24px);
       isolation: isolate;
       z-index: 1;
       min-width: 0;
     }
-    .slot-header {
-      display: grid;
-      gap: 12px;
-      align-items: start;
-    }
-    .slot-topbar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .topbar-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      width: 100%;
-      flex-wrap: wrap;
-      justify-content: space-between;
-    }
-    .top-actions {
-      display: inline-flex;
-      justify-content: flex-end;
-      gap: 10px;
-      flex: 0 0 auto;
-      margin-left: auto;
-    }
+.top-actions {
+  display: inline-flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex: 0 0 auto;
+  margin-left: auto;
+}
     .status-icon--logout {
       background: linear-gradient(135deg, #f87171, #fb923c);
       border-color: rgba(251,146,60,.6);
       box-shadow: 0 14px 36px rgba(251,146,60,.35);
       color: #0b1222;
     }
-    .currency-row {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: nowrap;
-      flex: 1 1 auto;
-      min-width: 0;
-    }
+.currency-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  flex: 1 1 auto;
+  min-width: 0;
+}
     .currency-row--top {
       width: 100%;
       justify-content: space-between;
     }
-    .currency-chip {
-      display: inline-flex;
-      align-items: center;
+    .game-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: linear-gradient(180deg, rgba(12,18,36,.96), rgba(6,10,22,.98));
+      border-radius: 18px;
+      border: 1px solid rgba(148,163,184,.25);
+      padding: 10px 12px;
+      display: grid;
       gap: 8px;
-      padding: 5px 6px;
-      border-radius: 14px;
-      border: 1px solid rgba(148,163,184,.22);
-      background: rgba(255,255,255,.04);
-      font-weight: 700;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
-      min-width: 60px;
-      justify-content: flex-start;
+      margin-bottom: 12px;
+      box-shadow: 0 16px 40px rgba(0,0,0,.35);
     }
+.currency-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: 12px;
+  border: 1px solid rgba(148,163,184,.2);
+  background: rgba(255,255,255,.04);
+  font-weight: 700;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+  min-width: 60px;
+  justify-content: flex-start;
+  cursor: pointer;
+}
     .skill-strip {
       display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(56px, 1fr));
       gap: 8px;
       margin: 8px 0;
-      grid-auto-rows: 68px;
+      grid-auto-rows: 56px;
     }
     .skill-pill {
       position: relative;
@@ -648,11 +687,11 @@
       aspect-ratio: 1;
       text-align: center;
       flex-direction: column;
-      font-size: .9rem;
+      font-size: .82rem;
     }
     .skill-pill[data-state="locked"] {
-      opacity: .55;
-      cursor: not-allowed;
+      opacity: .65;
+      cursor: pointer;
     }
     .skill-pill[data-state="active"] {
       border-color: rgba(52,211,153,.6);
@@ -665,7 +704,7 @@
       color: #fbbf24;
     }
     .skill-icon {
-      font-size: 1.2rem;
+      font-size: 1.02rem;
       line-height: 1;
     }
     .skill-timer {
@@ -673,7 +712,7 @@
       bottom: 6px;
       left: 0;
       right: 0;
-      font-size: .78rem;
+      font-size: .72rem;
       color: rgba(255,255,255,.8);
       line-height: 1;
     }
@@ -723,9 +762,9 @@
       outline-offset: 2px;
     }
     .perks-popover {
-      position: absolute;
-      top: calc(100% + 8px);
-      right: 0;
+      position: fixed;
+      top: clamp(80px, 12vh, 140px);
+      right: clamp(10px, 4vw, 32px);
       width: min(360px, 80vw);
       background: rgba(6,10,22,.95);
       border: 1px solid rgba(148,163,184,.35);
@@ -735,9 +774,49 @@
       display: none;
       z-index: 25;
     }
+    .perks-popover__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .perks-close {
+      border: 1px solid rgba(148,163,184,.35);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
     .perks-popover[data-visible="true"] {
       display: grid;
       gap: 6px;
+    }
+    .perks-tabs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+      background: rgba(255,255,255,.04);
+      border-radius: 10px;
+      padding: 4px;
+    }
+    .perks-tab {
+      border: none;
+      background: transparent;
+      color: var(--text);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: .01em;
+    }
+    .perks-tab.active {
+      background: rgba(255,255,255,.12);
+      color: #fff;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.12);
     }
     .perks-popover h4 {
       margin: 0;
@@ -747,6 +826,13 @@
       margin: 0;
       font-size: .9rem;
       color: var(--muted);
+    }
+    .perks-panel {
+      display: none;
+      gap: 6px;
+    }
+    .perks-panel[data-active="true"] {
+      display: grid;
     }
     .perks-list {
       list-style: none;
@@ -782,8 +868,26 @@
       color: var(--text);
       font-size: .9rem;
     }
+    .perks-drop-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 6px;
+    }
+    .perk-drop-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      border: 1px solid rgba(148,163,184,.25);
+      border-radius: 10px;
+      padding: 6px 8px;
+      background: rgba(255,255,255,.03);
+      font-size: .9rem;
+    }
     .machine-flyout {
-      position: relative;
+      position: static;
       pointer-events: auto;
       z-index: 10;
     }
@@ -812,11 +916,11 @@
       transform: translateY(-1px);
     }
     .machine-flyout__panel {
-      position: absolute;
-      top: calc(100% + 10px);
-      right: 0;
-      left: auto;
-      width: min(360px, calc(100vw - 24px));
+      position: fixed;
+      top: var(--machine-flyout-top, 120px);
+      right: auto;
+      left: 50%;
+      width: min(480px, calc(100vw - 32px));
       border-radius: 18px;
       border: 1px solid rgba(148,163,184,.3);
       background: linear-gradient(180deg, rgba(8,12,24,.96), rgba(2,5,16,.96));
@@ -827,17 +931,17 @@
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
-      transform: translateY(-6px);
+      transform: translate(-50%, -6px);
       transition: opacity .16s ease, visibility .16s ease, transform .16s ease;
       max-height: min(70vh, 620px);
       overflow: auto;
-      z-index: 20;
+      z-index: 1200;
     }
     .machine-flyout[data-open="true"] .machine-flyout__panel {
       opacity: 1;
       visibility: visible;
       pointer-events: auto;
-      transform: translateY(0);
+      transform: translate(-50%, 0);
     }
     .machine-flyout__head {
       display: flex;
@@ -854,21 +958,11 @@
       overflow-y: auto;
       padding-right: 4px;
     }
-    #machine-select {
-      display: block;
-      width: 100%;
-      grid-column: 1 / -1;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(148,163,184,.3);
-      background: rgba(8,12,24,.9);
-      color: var(--text);
-      font-weight: 600;
-    }
     .machine-card {
+      position: relative;
       border: 1px solid rgba(148,163,184,.25);
       border-radius: 14px;
-      padding: 10px;
+      padding: 10px 12px;
       background: rgba(255,255,255,.03);
       display: grid;
       gap: 6px;
@@ -921,9 +1015,40 @@
       font-weight: 700;
       color: var(--text);
       text-align: right;
+      display: grid;
+      gap: 4px;
+      justify-items: end;
+    }
+    .machine-card__status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 10px;
+      border: 1px solid rgba(148,163,184,.35);
+      font-size: .78rem;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: rgba(226,232,240,.9);
+      background: rgba(255,255,255,.04);
+    }
+    .machine-card__status[data-state="active"] {
+      border-color: rgba(34,211,238,.6);
+      color: #34d399;
+      background: rgba(34,211,238,.12);
+    }
+    .machine-card__status[data-state="price"] {
+      border-color: rgba(250,204,21,.5);
+      color: #facc15;
+      background: rgba(250,204,21,.08);
+    }
+    .machine-card__status[data-state="level"] {
+      border-color: rgba(248,113,113,.45);
+      color: #fca5a5;
+      background: rgba(248,113,113,.08);
     }
     .machine-card[data-locked="true"]::after {
-      content: "Locked";
+      content: attr(data-locked-label);
       position: absolute;
       inset: 8px;
       border-radius: 10px;
@@ -984,8 +1109,9 @@
       gap: 10px;
     }
     .machine-xp {
+      position: relative;
       display: grid;
-      grid-template-columns: auto 1fr auto;
+      grid-template-columns: auto 1fr auto auto;
       gap: 10px;
       align-items: center;
       width: 100%;
@@ -1023,6 +1149,29 @@
       opacity: .9;
       pointer-events: none;
     }
+    .skill-strip--overlay {
+      position: absolute;
+      top: clamp(18px, 10vh, 42px);
+      right: clamp(6px, 2vw, 14px);
+      width: clamp(72px, 16vw, 96px);
+      grid-template-columns: 1fr;
+      grid-auto-rows: 60px;
+      gap: 8px;
+      padding: 8px 6px;
+      border-radius: 14px;
+      border: 1px solid rgba(148,163,184,.28);
+      background: linear-gradient(180deg, rgba(12,18,32,.85), rgba(4,8,18,.9));
+      box-shadow: 0 14px 30px rgba(0,0,0,.38);
+      z-index: 6;
+    }
+    .skill-strip--overlay .skill-pill {
+      padding: 8px 6px;
+      gap: 2px;
+      font-size: .8rem;
+    }
+    .skill-strip--overlay .skill-icon {
+      font-size: .95rem;
+    }
     .machine-frame__reels {
       position: relative;
       display: grid;
@@ -1030,6 +1179,7 @@
       justify-items: center;
       background: linear-gradient(180deg, rgba(8,13,26,.9), rgba(4,7,16,.95));
       padding: clamp(8px, 1.5vw, 14px);
+      padding-right: calc(clamp(8px, 1.5vw, 14px) + clamp(72px, 16vw, 96px));
       border-radius: 20px;
       box-shadow: inset 0 0 32px rgba(0,0,0,.45), 0 12px 30px rgba(0,0,0,.4);
       overflow: hidden;
@@ -1220,11 +1370,28 @@
       box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 10px 28px rgba(0,0,0,.3);
       min-width: 0;
     }
-    .bet-info {
-      display: none;
+    .bet-presets {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      align-items: stretch;
     }
-    .bet-info--muted {
-      display: none;
+    .bet-info {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 8px;
+      align-items: stretch;
+    }
+    .info-pill {
+      border: 1px solid rgba(148,163,184,.25);
+      background: rgba(255,255,255,.04);
+      border-radius: 12px;
+      padding: 8px 10px;
+      display: grid;
+      gap: 2px;
+    }
+    .info-pill .hud-value {
+      margin: 0;
     }
     .action-rail {
       display: flex;
@@ -1317,9 +1484,9 @@
       border-radius: 18px;
       border: 1px solid rgba(148,163,184,.22);
       background: linear-gradient(180deg, rgba(15,23,42,.8), rgba(4,6,20,.92));
-      padding: 14px;
+      padding: 12px;
       display: grid;
-      gap: 12px;
+      gap: 10px;
       position: relative;
       box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
     }
@@ -1338,7 +1505,7 @@
     .inventory-grid {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       flex-wrap: wrap;
     }
     .inventory-chip {
@@ -1479,6 +1646,39 @@
       margin: 0 0 8px;
       font-size: 1rem;
     }
+    .drop-panel__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 0 0 8px;
+      flex-wrap: wrap;
+    }
+    .drop-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(2,6,23,.65);
+      backdrop-filter: blur(6px);
+      display: grid;
+      place-items: center;
+      padding: clamp(8px, 4vw, 20px);
+      z-index: 1400;
+    }
+    .drop-overlay[hidden] {
+      display: none;
+    }
+    .drop-panel--overlay {
+      position: relative;
+      top: auto;
+      right: auto;
+      left: auto;
+      margin: 0;
+      width: min(520px, 100%);
+      max-height: min(80vh, 680px);
+      overflow: auto;
+      box-shadow: 0 20px 70px rgba(2,6,23,.6);
+      border-radius: 18px;
+    }
     .drop-panel ul {
       list-style: none;
       margin: 0;
@@ -1498,9 +1698,9 @@
     }
     .gear-card-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 12px;
-      margin-top: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 10px;
+      margin-top: 0;
     }
     .gear-panel,
     .card-panel {
@@ -1610,14 +1810,98 @@
       font-size: .85rem;
       color: var(--muted);
     }
+    .items-panel {
+      display: grid;
+      gap: 12px;
+      padding: 12px;
+      background: linear-gradient(180deg, rgba(14,20,35,.9), rgba(6,10,22,.95));
+    }
+    .items-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      .items-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .premium-panel {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: rgba(0,0,0,.6);
+      backdrop-filter: blur(6px);
+      z-index: 2000;
+    }
+    .premium-panel[hidden] {
+      display: none;
+    }
+    .premium-card {
+      width: min(560px, 96vw);
+      max-height: 90vh;
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(12,18,36,.95), rgba(4,8,18,.96));
+      border: 1px solid rgba(148,163,184,.3);
+      border-radius: 16px;
+      box-shadow: 0 24px 80px rgba(0,0,0,.55);
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+    .premium-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .premium-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .premium-item {
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,.25);
+      padding: 10px;
+      background: rgba(255,255,255,.03);
+      display: grid;
+      gap: 6px;
+    }
+    .premium-item h4 {
+      margin: 0;
+      font-size: 1rem;
+    }
+    .premium-meta {
+      font-size: .85rem;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .premium-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .premium-actions button {
+      flex: 1 1 auto;
+    }
     .upgrade-panel {
       border-radius: 18px;
       border: 1px solid rgba(148,163,184,.2);
       background: rgba(15,23,42,.8);
-      padding: 18px;
+      padding: 12px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 12px;
+      max-width: 1100px;
+      margin: 0 auto;
     }
     .upgrade-panel h2,
     .upgrade-panel h3 {
@@ -1625,11 +1909,11 @@
       font-size: 1.05rem;
     }
     .upgrade-category + .upgrade-category {
-      margin-top: 28px;
+      margin-top: 16px;
     }
     .upgrade-category h3 {
-      margin: 0 0 8px;
-      font-size: .95rem;
+      margin: 0 0 6px;
+      font-size: .9rem;
       text-transform: uppercase;
       letter-spacing: .08em;
       color: rgba(226,232,240,.75);
@@ -1637,24 +1921,28 @@
     #upgrade-grid {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 12px;
     }
     .upgrade-card-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
+      gap: 10px;
       align-items: stretch;
     }
     .upgrade-card {
       border-radius: 14px;
       border: 1px solid rgba(148,163,184,.25);
-      padding: 12px;
+      padding: 10px;
       background: linear-gradient(180deg, rgba(14,20,35,.9), rgba(6,10,22,.94));
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      min-height: 150px;
+      gap: 6px;
+      min-height: 120px;
       box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    .upgrade-card[data-highlight="true"] {
+      outline: 2px solid var(--accent);
+      box-shadow: 0 0 0 3px rgba(250,204,21,.35), inset 0 1px 0 rgba(255,255,255,.08);
     }
     .upgrade-card__meta {
       font-size: .82rem;
@@ -1668,6 +1956,21 @@
       font-size: .78rem;
       color: rgba(248,250,252,.7);
       margin: 0;
+    }
+    .upgrade-card__tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .upgrade-tag {
+      font-size: .72rem;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,.3);
+      color: rgba(226,232,240,.9);
+      background: rgba(255,255,255,.05);
+      letter-spacing: .03em;
+      text-transform: uppercase;
     }
     .upgrade-card h4 {
       margin: 0;
@@ -1721,28 +2024,10 @@
       text-overflow: ellipsis;
       font-variant-numeric: tabular-nums;
     }
-    .bet-controls {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex: 1 1 auto;
-      min-width: 0;
-      flex-wrap: nowrap;
-    }
-    .bet-controls input[type="range"] {
-      flex: 1 1 auto;
-      min-width: 0;
-      accent-color: var(--accent, #facc15);
-      height: 6px;
-      border-radius: 999px;
-    }
-    .bet-controls button {
-      flex: 0 0 42px;
-      padding: 8px 6px;
-      font-size: .9rem;
-    }
-    .bet-controls button[data-chip="max"] {
-      flex-basis: 62px;
+    .bet-presets .chip {
+      width: 100%;
+      justify-content: center;
+      text-align: center;
     }
     .chip {
       border: 1px solid rgba(148,163,184,.45);
@@ -1831,17 +2116,13 @@
       min-width: 100%;
       min-height: 64px;
     }
-    .action-rail--spin .spin-btn {
-      min-width: 0;
-      flex: 1 1 50%;
-    }
-    .action-rail--spin #spin-btn {
-      flex: 3 1 0;
-    }
     .action-rail--spin #auto-spin-btn {
       flex: 1 1 0;
       max-width: 120px;
       text-align: center;
+    }
+    .action-rail--spin #spin-btn {
+      flex: 3 1 0;
     }
     .spin-btn--secondary {
       background: rgba(255,255,255,.06);
@@ -1890,6 +2171,7 @@
     }
     .paytable li[data-active="false"] {
       opacity: .45;
+      border-style: dashed;
     }
     .paytable-symbol {
       display: flex;
@@ -1907,29 +2189,46 @@
       font-size: .9rem;
       color: rgba(148,163,184,.85);
     }
-    .desktop-nav {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 8px;
-      border-radius: 18px;
-      border: 1px solid rgba(148,163,184,.25);
-      background: linear-gradient(145deg, rgba(10,16,30,.92), rgba(8,13,24,.94));
-      padding: 10px;
-      box-shadow: 0 14px 40px rgba(2,6,23,.45);
-    }
-    .desktop-nav button {
-      border: 1px solid rgba(148,163,184,.25);
-      background: rgba(255,255,255,.03);
-      color: var(--text);
+    .paytable-status {
+      font-size: .8rem;
+      padding: 4px 8px;
       border-radius: 12px;
-      padding: 10px 12px;
-      font-weight: 700;
-      letter-spacing: .01em;
-      cursor: pointer;
-      display: grid;
-      place-items: center;
-      transition: border .16s ease, background .16s ease, transform .16s ease, box-shadow .16s ease;
+      border: 1px solid rgba(148,163,184,.35);
+      background: rgba(255,255,255,.04);
+      color: rgba(226,232,240,.85);
+      text-transform: uppercase;
+      letter-spacing: .04em;
     }
+    .paytable li[data-active="false"] .paytable-status {
+      border-color: rgba(248,113,113,.45);
+      color: #fca5a5;
+    }
+.desktop-nav {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  border-radius: 16px;
+  border: 1px solid rgba(148,163,184,.22);
+  background: linear-gradient(145deg, rgba(10,16,30,.92), rgba(8,13,24,.94));
+  padding: 8px;
+  box-shadow: 0 12px 32px rgba(2,6,23,.42);
+}
+.desktop-nav button {
+  flex: 1 1 0;
+  min-width: 0;
+  border: 1px solid rgba(148,163,184,.22);
+  background: rgba(255,255,255,.03);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 8px 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+  font-size: .95rem;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: border .16s ease, background .16s ease, transform .16s ease, box-shadow .16s ease;
+}
     .desktop-nav button.active {
       background: linear-gradient(120deg, #22d3ee, #facc15);
       color: #041226;
@@ -1941,24 +2240,27 @@
       border-color: rgba(148,163,184,.55);
       transform: translateY(-1px);
     }
-    .mobile-nav {
-      display: none;
-      gap: 6px;
-      border-radius: 16px;
-      border: 1px solid rgba(148,163,184,.2);
-      background: rgba(15,23,42,.85);
-      padding: 8px;
-    }
-    .mobile-nav button {
-      flex: 1;
-      border: none;
-      border-radius: 14px;
-      padding: 8px;
-      background: rgba(99,102,241,.12);
-      color: var(--text);
-      font-weight: 600;
-      cursor: pointer;
-      min-width: 0;
+.mobile-nav {
+  display: none;
+  gap: 4px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+  border: 1px solid rgba(148,163,184,.16);
+  background: rgba(15,23,42,.82);
+  padding: 4px;
+}
+.mobile-nav button {
+  flex: 1;
+  border: none;
+  border-radius: 12px;
+  padding: 5px;
+  background: rgba(99,102,241,.12);
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+  min-width: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -1966,11 +2268,11 @@
       font-size: .72rem;
       line-height: 1.1;
     }
-    .mobile-nav button svg {
-      width: 20px;
-      height: 20px;
-      display: block;
-    }
+.mobile-nav button svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
     .mobile-nav button span {
       font-size: .72rem;
       letter-spacing: .04em;
@@ -2033,25 +2335,20 @@
       }
       .mobile-nav {
         display: flex;
-        grid-row: 3;
-        position: sticky;
-        bottom: env(safe-area-inset-bottom, 0px);
-        left: 0;
-        right: 0;
-        margin: 0 12px 0;
-        z-index: 10;
-        background: rgba(2,6,23,.95);
-        border-radius: 18px;
-        border: 1px solid rgba(148,163,184,.25);
-        box-shadow: 0 15px 40px rgba(2,6,23,.6);
-        padding: 8px;
         flex-wrap: nowrap;
-        justify-content: space-between;
+        gap: 4px;
+        overflow-x: auto;
+        position: static;
+        margin: 0;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        padding: 0;
       }
       .mobile-nav button {
         font-size: .85rem;
-        min-height: 64px;
-        flex: 1;
+        min-height: 48px;
+        width: 100%;
       }
       main[data-tabs="true"] {
         gap: 8px;
@@ -2091,17 +2388,13 @@
       }
       .slot-machine__body {
         display: grid;
-        grid-template-rows: auto 1fr auto;
+        grid-template-rows: 1fr auto;
         gap: 10px;
         padding-top: 0;
         align-items: stretch;
         min-height: 0;
         height: 100%;
         min-width: 0;
-      }
-      .slot-header {
-        grid-template-columns: 1fr;
-        gap: 10px;
       }
       .machine-stage {
         padding: 8px;
@@ -2139,9 +2432,26 @@
         max-width: 76px;
       }
       .control-deck {
-        grid-row: 3;
         gap: 10px;
         padding: 0;
+      }
+      .machine-frame__reels {
+        padding-right: clamp(8px, 2vw, 14px);
+      }
+      .skill-strip--overlay {
+        position: static;
+        width: 100%;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        grid-auto-rows: 52px;
+        padding: 0;
+        border: none;
+        box-shadow: none;
+        margin: 6px 0 0;
+        background: transparent;
+      }
+      .skill-strip--overlay .skill-pill {
+        font-size: .82rem;
+        border-radius: 10px;
       }
       .bet-bar {
         display: flex;
@@ -2149,8 +2459,8 @@
         gap: 8px;
         flex-wrap: nowrap;
       }
-      .bet-controls {
-        flex-wrap: nowrap;
+      .bet-info {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
       .action-rail {
         position: sticky;
@@ -2175,6 +2485,21 @@
         top: auto;
         width: auto;
       }
+      .drop-overlay {
+        align-items: flex-end;
+        padding: 0 0 clamp(12px, 3vh, 18px) 0;
+      }
+      .drop-panel--overlay {
+        position: relative;
+        left: auto;
+        right: auto;
+        bottom: auto;
+        top: auto;
+        width: calc(100% - 12px);
+        max-height: 72vh;
+        border-radius: 18px 18px 0 0;
+        margin: 0 auto;
+      }
       .hud {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px;
@@ -2192,13 +2517,19 @@
         font-variant-numeric: tabular-nums;
       }
       .slot-topbar {
-        gap: 6px;
+        gap: 8px;
+        padding: 8px 10px;
+        margin-inline: 10px;
+      }
+      .topbar-row {
+        grid-template-columns: 1fr;
       }
       .top-actions {
         justify-content: flex-end;
       }
       .currency-row {
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        flex-wrap: wrap;
+        gap: 8px;
       }
       .machine-chip {
         justify-content: flex-end;
@@ -2218,22 +2549,15 @@
       }
       .account-sheet {
         width: calc(100% - 32px);
-        bottom: env(safe-area-inset-bottom, 16px);
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        bottom: auto;
+        right: auto;
       }
       .machine-card {
         min-width: 150px;
         scroll-snap-align: start;
-      }
-      #machine-select {
-        display: block;
-        width: 100%;
-        margin-top: 6px;
-        padding: 10px 12px;
-        border-radius: 12px;
-        border: 1px solid rgba(148,163,184,.3);
-        background: rgba(8,12,24,.9);
-        color: var(--text);
-        font-weight: 600;
       }
       .chip {
         min-height: 46px;
@@ -2288,51 +2612,91 @@
       <button type="button" data-pane-target="log">Log</button>
       <button type="button" data-pane-target="upgrades">Upgrades</button>
     </nav>
-    <nav class="mobile-nav" id="mobile-nav" aria-label="Game sections" data-requires-auth hidden>
-      <button type="button" data-mobile-target="play" class="active" aria-label="Play">
-        <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
-          <rect x="3" y="5" width="18" height="14" rx="3" ry="3" fill="none" stroke="currentColor" stroke-width="1.4"></rect>
-          <circle cx="9" cy="12" r="1.6" fill="currentColor"></circle>
-          <circle cx="12" cy="12" r="1.6" fill="currentColor" opacity=".65"></circle>
-          <circle cx="15" cy="12" r="1.6" fill="currentColor" opacity=".4"></circle>
-        </svg>
-        <span>Play</span>
-      </button>
-      <button type="button" data-mobile-target="stats" aria-label="Stats">
-        <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
-          <path d="M5 17v-4m4 4V7m4 10v-7m4 7V9" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.6"></path>
-        </svg>
-        <span>Stats</span>
-      </button>
-      <button type="button" data-mobile-target="paytable" aria-label="Paytable">
-        <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
-          <rect x="5" y="6" width="14" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"></rect>
-          <path d="M8 9h8M8 12h8M8 15h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path>
-        </svg>
-        <span>Pay</span>
-      </button>
-      <button type="button" data-mobile-target="items" aria-label="Items">
-        <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
-          <rect x="5" y="4" width="14" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"></rect>
-          <path d="M9 9h6M9 13h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path>
-        </svg>
-        <span>Items</span>
-      </button>
-      <button type="button" data-mobile-target="log" aria-label="Log">
-        <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
-          <rect x="6" y="5" width="12" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"></rect>
-          <path d="M9 9h6M9 12h6M9 15h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path>
-        </svg>
-        <span>Log</span>
-      </button>
-      <button type="button" data-mobile-target="upgrades" aria-label="Upgrades">
-        <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
-          <path d="M12 5v14m0-14l-3 3m3-3l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
-          <path d="M7 19h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path>
-        </svg>
-        <span>Upg</span>
-      </button>
-    </nav>
+    <div class="slot-topbar" data-requires-auth hidden>
+      <div class="topbar-row">
+        <div class="currency-row currency-row--top">
+          <div class="currency-chip" id="credits-chip" aria-label="Credits">
+            <span aria-hidden="true">💰</span>
+            <strong id="hud-balance">$0</strong>
+          </div>
+          <div class="currency-chip" id="vip-chip" aria-label="VIP Marks">
+            <span aria-hidden="true">💎</span>
+            <strong id="hud-vip">0</strong>
+          </div>
+          <div class="top-actions">
+            <button type="button" class="status-icon" id="premium-shop-btn" aria-label="Premium shop">
+              <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+                <path d="M5 7h14l-1 12H6L5 7zm3-4h8l1 3H7l1-3z" fill="currentColor"/>
+                <circle cx="9" cy="19.5" r="1" fill="currentColor"/>
+                <circle cx="15" cy="19.5" r="1" fill="currentColor"/>
+              </svg>
+            </button>
+            <button type="button" class="status-icon" id="drop-rates-play-btn" aria-label="Drop rates">
+              <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+                <path d="M12 3l7 7-7 7-7-7 7-7z" fill="none" stroke="currentColor" stroke-width="1.6"></path>
+                <path d="M12 6v6l4 4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path>
+              </svg>
+            </button>
+            <button type="button" class="status-icon" id="account-toggle" aria-label="Account details">
+              <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+                <path d="M12 13.5c3.05 0 5.5-2.45 5.5-5.5S15.05 2.5 12 2.5 6.5 4.95 6.5 8s2.45 5.5 5.5 5.5zm0 2c-4.05 0-7.5 2.45-7.5 5.5 0 .28.22.5.5.5h14c.28 0 .5-.22.5-.5 0-3.05-3.45-5.5-7.5-5.5z" fill="currentColor"/>
+              </svg>
+            </button>
+            <button type="button" class="status-icon status-icon--logout" id="logout-btn" aria-label="Log out">
+              <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+                <path d="M14 3a1 1 0 00-1 1v4h2V5h4v14h-4v-3h-2v4a1 1 0 001 1h6a1 1 0 001-1V4a1 1 0 00-1-1h-6z" fill="currentColor"/>
+                <path d="M15 11H7V9l-5 3 5 3v-2h8v-2z" fill="currentColor"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <nav class="mobile-nav" id="mobile-nav" aria-label="Game sections">
+        <button type="button" data-mobile-target="play" class="active" aria-label="Play">
+          <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+            <rect x="3" y="5" width="18" height="14" rx="3" ry="3" fill="none" stroke="currentColor" stroke-width="1.4"></rect>
+            <circle cx="9" cy="12" r="1.6" fill="currentColor"></circle>
+            <circle cx="12" cy="12" r="1.6" fill="currentColor" opacity=".65"></circle>
+            <circle cx="15" cy="12" r="1.6" fill="currentColor" opacity=".4"></circle>
+          </svg>
+          <span>Play</span>
+        </button>
+        <button type="button" data-mobile-target="stats" aria-label="Stats">
+          <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+            <path d="M5 17v-4m4 4V7m4 10v-7m4 7V9" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.6"></path>
+          </svg>
+          <span>Stats</span>
+        </button>
+        <button type="button" data-mobile-target="paytable" aria-label="Paytable">
+          <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+            <rect x="5" y="6" width="14" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"></rect>
+            <path d="M8 9h8M8 12h8M8 15h5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path>
+          </svg>
+          <span>Pay</span>
+        </button>
+        <button type="button" data-mobile-target="items" aria-label="Items">
+          <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+            <rect x="5" y="4" width="14" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"></rect>
+            <path d="M9 9h6M9 13h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path>
+          </svg>
+          <span>Items</span>
+        </button>
+        <button type="button" data-mobile-target="log" aria-label="Log">
+          <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+            <rect x="6" y="5" width="12" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"></rect>
+            <path d="M9 9h6M9 12h6M9 15h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path>
+          </svg>
+          <span>Log</span>
+        </button>
+        <button type="button" data-mobile-target="upgrades" aria-label="Upgrades">
+          <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+            <path d="M12 5v14m0-14l-3 3m3-3l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+            <path d="M7 19h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path>
+          </svg>
+          <span>Upg</span>
+        </button>
+      </nav>
+    </div>
     <section class="panel account-sheet" id="account-panel" role="dialog" aria-modal="true" aria-hidden="true" hidden tabindex="-1">
       <div class="account-sheet__header">
         <div>
@@ -2341,58 +2705,30 @@
         </div>
         <button type="button" class="ghost-btn tertiary" id="account-close" aria-label="Close account details">Close</button>
       </div>
-      <div class="actions">
-        <button type="button" class="ghost-btn secondary" id="sync-btn">Sync balance</button>
-        <button type="button" class="ghost-btn tertiary" id="reset-btn">Reset session</button>
-        <button type="button" class="ghost-btn primary" id="debug-add-coins" hidden>+100k credits</button>
-        <button type="button" class="ghost-btn danger" id="delete-account-btn">Delete account</button>
+      <div class="account-grid">
+        <div class="account-actions">
+          <div class="actions">
+            <button type="button" class="ghost-btn secondary" id="sync-btn">Sync balance</button>
+            <button type="button" class="ghost-btn tertiary" id="reset-btn">Reset session</button>
+            <button type="button" class="ghost-btn primary" id="debug-add-coins" hidden>+100k credits</button>
+            <button type="button" class="ghost-btn danger" id="delete-account-btn">Delete account</button>
+          </div>
+          <div class="actions">
+            <button type="button" class="ghost-btn secondary" id="export-state-btn">Export key</button>
+            <input type="text" id="import-state-input" placeholder="Paste key to import" aria-label="Import key" />
+            <button type="button" class="ghost-btn tertiary" id="import-state-btn">Import key</button>
+          </div>
+          <p class="muted-text small" id="transfer-status"></p>
+        </div>
+        <div>
+          <p class="hud-label">Recent activity</p>
+          <div class="account-log" id="account-log" aria-live="polite"></div>
+        </div>
       </div>
-      <div class="actions">
-        <button type="button" class="ghost-btn secondary" id="export-state-btn">Export key</button>
-        <input type="text" id="import-state-input" placeholder="Paste key to import" aria-label="Import key" />
-        <button type="button" class="ghost-btn tertiary" id="import-state-btn">Import key</button>
-      </div>
-      <p class="muted-text small" id="transfer-status"></p>
     </section>
 
     <section class="panel slot-machine" data-requires-auth hidden data-mobile-pane="play" data-mobile-active="true">
       <div class="slot-machine__body">
-        <div class="slot-header">
-          <div class="slot-topbar" data-requires-auth>
-            <div class="topbar-row">
-              <div class="currency-row currency-row--top">
-                <div class="currency-chip" aria-label="Credits">
-                  <span aria-hidden="true">💰</span>
-                  <strong id="hud-balance">$0</strong>
-                </div>
-                <div class="currency-chip" aria-label="VIP Marks">
-                  <span aria-hidden="true">💎</span>
-                  <strong id="hud-vip">0</strong>
-                </div>
-                <div class="top-actions">
-                  <button type="button" class="status-icon" id="premium-shop-btn" aria-label="Premium shop">
-                    <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
-                      <path d="M5 7h14l-1 12H6L5 7zm3-4h8l1 3H7l1-3z" fill="currentColor"/>
-                      <circle cx="9" cy="19.5" r="1" fill="currentColor"/>
-                      <circle cx="15" cy="19.5" r="1" fill="currentColor"/>
-                    </svg>
-                  </button>
-                  <button type="button" class="status-icon" id="account-toggle" aria-label="Account details">
-                    <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
-                      <path d="M12 13.5c3.05 0 5.5-2.45 5.5-5.5S15.05 2.5 12 2.5 6.5 4.95 6.5 8s2.45 5.5 5.5 5.5zm0 2c-4.05 0-7.5 2.45-7.5 5.5 0 .28.22.5.5.5h14c.28 0 .5-.22.5-.5 0-3.05-3.45-5.5-7.5-5.5z" fill="currentColor"/>
-                    </svg>
-                  </button>
-                  <button type="button" class="status-icon status-icon--logout" id="logout-btn" aria-label="Log out">
-                    <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
-                      <path d="M14 3a1 1 0 00-1 1v4h2V5h4v14h-4v-3h-2v4a1 1 0 001 1h6a1 1 0 001-1V4a1 1 0 00-1-1h-6z" fill="currentColor"/>
-                      <path d="M15 11H7V9l-5 3 5 3v-2h8v-2z" fill="currentColor"/>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
         <div class="machine-stage">
           <div class="machine-frame">
             <div class="machine-frame__glow"></div>
@@ -2401,30 +2737,28 @@
             <div class="flyover flyover--loot" id="flyover-loot" aria-live="polite"></div>
             <div class="flyover flyover--top" id="flyover-top" aria-live="polite"></div>
             <div class="machine-xp">
-              <div class="machine-flyout" id="machine-flyout" data-open="false">
-                <button type="button" class="machine-flyout__toggle" id="machine-picker" aria-label="Change machine" aria-haspopup="true" aria-expanded="false">
-                  <span id="machine-picker-label" class="sr-only">Switch</span>
-                  <strong id="machine-picker-level" aria-hidden="true">Lv 0</strong>
-                </button>
-                <div class="machine-flyout__panel">
-                  <div class="machine-flyout__head">
-                    <p class="hud-label">Select machine</p>
-                    <span class="status-pill ghost">Unlock & switch</span>
-                  </div>
-                  <div class="machine-list" id="machine-list" role="list"></div>
-                  <label class="sr-only" for="machine-select">Select machine</label>
-                  <select id="machine-select" aria-label="Select machine"></select>
+            <div class="machine-flyout" id="machine-flyout" data-open="false">
+              <button type="button" class="machine-flyout__toggle" id="machine-picker" aria-label="Change machine" aria-haspopup="true" aria-expanded="false">
+                <span id="machine-picker-label" class="sr-only">Switch</span>
+                <strong id="machine-picker-level" aria-hidden="true">Lv 0</strong>
+              </button>
+              <div class="machine-flyout__panel">
+                <div class="machine-flyout__head">
+                  <p class="hud-label">Select machine</p>
                 </div>
-              </div>
-              <div class="xp-track" aria-label="Machine XP progress">
-                <div class="xp-fill" id="machine-xp-fill"></div>
-              </div>
-              <div class="machine-level machine-perks">
-                <button type="button" class="perks-btn" id="perks-btn" aria-label="View level perks">?</button>
-                <div class="perks-popover" id="perks-popover" role="status" aria-live="polite"></div>
+                <div class="machine-list" id="machine-list" role="list"></div>
               </div>
             </div>
+            <div class="xp-track" aria-label="Machine XP progress">
+              <div class="xp-fill" id="machine-xp-fill"></div>
+            </div>
+            <div class="machine-level machine-perks">
+              <button type="button" class="perks-btn" id="perks-btn" aria-label="View level perks">?</button>
+              <div class="perks-popover" id="perks-popover" role="status" aria-live="polite"></div>
+            </div>
+          </div>
             <div class="machine-frame__reels" id="reel-stage">
+              <div class="skill-strip skill-strip--overlay" id="skill-strip" aria-label="Skills"></div>
               <div class="slot-grid" id="slot-grid" aria-live="polite"></div>
               <div class="line-overlay" id="line-overlay" aria-hidden="true"></div>
             </div>
@@ -2439,22 +2773,27 @@
             </div>
         </div>
         <div class="control-deck control-deck--ground">
-          <div class="skill-strip" id="skill-strip" aria-label="Skills"></div>
           <div class="bet-bar">
-            <div class="bet-controls">
-              <button type="button" class="chip" data-chip="decrease" aria-label="Decrease bet">-</button>
-              <input type="range" id="bet-range" min="0" max="10" value="0" aria-label="Bet amount" />
-              <button type="button" class="chip" data-chip="increase" aria-label="Increase bet">+</button>
-              <button type="button" class="chip" data-chip="max" aria-label="Max bet">Max</button>
-            </div>
             <div class="bet-info">
-              <p class="hud-label">Bet</p>
-              <strong class="hud-value" id="hud-bet">$0</strong>
+              <div class="info-pill">
+                <p class="hud-label">Bet</p>
+                <strong class="hud-value" id="hud-bet">$0</strong>
+              </div>
+              <div class="info-pill">
+                <p class="hud-label">Last win</p>
+                <strong class="hud-value" id="hud-last-win">$0</strong>
+              </div>
+            </div>
+            <div class="bet-presets" role="group" aria-label="Quick bet percentages">
+              <button type="button" class="chip" data-chip="pct-10" aria-label="Bet ten percent of balance">10%</button>
+              <button type="button" class="chip" data-chip="pct-25" aria-label="Bet twenty five percent of balance">25%</button>
+              <button type="button" class="chip" data-chip="pct-50" aria-label="Bet fifty percent of balance">50%</button>
+              <button type="button" class="chip" data-chip="pct-100" aria-label="Bet all balance">100%</button>
             </div>
           </div>
           <div class="action-rail action-rail--spin">
-            <button type="button" class="spin-btn" id="spin-btn" disabled>Spin</button>
             <button type="button" class="spin-btn spin-btn--secondary" id="auto-spin-btn" aria-pressed="false">Auto</button>
+            <button type="button" class="spin-btn" id="spin-btn" disabled>Spin</button>
           </div>
         </div>
       </div>
@@ -2511,47 +2850,63 @@
       <p class="muted-text small">Multipliers apply to your active bet. Triple matches and pairs are calculated server-side.</p>
     </section>
 
-    <section class="panel" data-requires-auth hidden data-mobile-pane="items">
-      <div class="drop-stack">
-        <div class="drop-header">
-          <div>
-            <p class="hud-label">Inventory</p>
-            <div class="inventory-grid" id="inventory-grid"></div>
-          </div>
-          <div class="drop-actions">
-            <button type="button" class="ghost-btn secondary" id="drop-rates-btn">Drop rates</button>
-            <button type="button" class="ghost-btn tertiary" id="drop-skill-btn">Drop boost</button>
-            <button type="button" class="ghost-btn tertiary" id="drop-close-btn">Close</button>
-          </div>
-        </div>
-        <div class="drop-log" id="drop-log" aria-live="polite"></div>
-        <div class="drop-panel" id="drop-panel" hidden aria-live="polite"></div>
-      </div>
-      <div class="gear-card-grid">
-        <div class="gear-panel" id="gear-panel">
-          <div class="panel-heading">
+    <section class="panel items-panel" data-requires-auth hidden data-mobile-pane="items">
+      <div class="items-grid">
+        <div class="drop-stack">
+          <div class="drop-header">
             <div>
-              <p class="hud-label">Equipment</p>
-              <strong class="hud-value" id="gear-summary">0/3 equipped</strong>
+              <p class="hud-label">Inventory</p>
+              <div class="inventory-grid" id="inventory-grid"></div>
             </div>
-            <span class="status-pill ghost" id="gear-cap">3 slots</span>
+            <div class="drop-actions">
+              <button type="button" class="ghost-btn secondary" id="drop-rates-btn">Drop rates</button>
+              <button type="button" class="ghost-btn tertiary" id="drop-skill-btn">Drop boost</button>
+              <button type="button" class="ghost-btn tertiary" id="drop-close-btn">Close</button>
+            </div>
           </div>
-          <div class="gear-slots" id="gear-slots"></div>
-          <div class="gear-inventory" id="gear-inventory"></div>
+          <div class="drop-log" id="drop-log" aria-live="polite"></div>
+          <div class="drop-panel" id="drop-panel" hidden aria-live="polite" data-panel-type="inventory" data-drop-body tabindex="-1"></div>
         </div>
-        <div class="card-panel" id="card-panel">
-          <div class="panel-heading">
-            <div>
-              <p class="hud-label">VIP Cards</p>
-              <strong class="hud-value" id="card-summary">Deck 0/3</strong>
+        <div class="gear-card-grid">
+          <div class="gear-panel" id="gear-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="hud-label">Equipment</p>
+                <strong class="hud-value" id="gear-summary">0/3 equipped</strong>
+              </div>
+              <span class="status-pill ghost" id="gear-cap">3 slots</span>
             </div>
-            <span class="status-pill ghost" id="card-cap">3 slots</span>
+            <div class="gear-slots" id="gear-slots"></div>
+            <div class="gear-inventory" id="gear-inventory"></div>
           </div>
-          <div class="card-slots" id="card-slots"></div>
-          <div class="card-collection" id="card-collection"></div>
+          <div class="card-panel" id="card-panel">
+            <div class="panel-heading">
+              <div>
+                <p class="hud-label">VIP Cards</p>
+                <strong class="hud-value" id="card-summary">Deck 0/3</strong>
+              </div>
+              <span class="status-pill ghost" id="card-cap">3 slots</span>
+            </div>
+            <div class="card-slots" id="card-slots"></div>
+            <div class="card-collection" id="card-collection"></div>
+          </div>
         </div>
       </div>
     </section>
+    <div class="premium-panel" id="premium-panel" hidden role="dialog" aria-modal="true" aria-label="Premium shop">
+      <div class="premium-card">
+        <div class="premium-header">
+          <div>
+            <p class="hud-label">Premium Shop</p>
+            <strong class="hud-value" id="premium-vip-balance">VIP 0</strong>
+          </div>
+          <div class="actions">
+            <button type="button" class="ghost-btn tertiary" id="premium-close">Close</button>
+          </div>
+        </div>
+        <div class="premium-grid" id="premium-grid"></div>
+      </div>
+    </div>
 
         <section class="panel log-panel" data-requires-auth hidden data-mobile-pane="log">
           <h2>Server Event Log</h2>
@@ -2563,6 +2918,16 @@
       <div class="upgrade-grid" id="upgrade-grid"></div>
     </section>
   </main>
+
+  <div class="drop-overlay" id="drop-overlay" hidden aria-hidden="true">
+    <div class="drop-panel drop-panel--overlay" id="drop-panel-overlay" role="dialog" aria-modal="true" aria-label="Drop rates" data-panel-type="overlay" tabindex="-1">
+      <div class="drop-panel__header">
+        <h4>Drop rates</h4>
+        <button type="button" class="ghost-btn tertiary" id="drop-overlay-close">Close</button>
+      </div>
+      <div data-drop-body id="drop-panel-overlay-body"></div>
+    </div>
+  </div>
 
   <script>
     (() => {
@@ -2590,7 +2955,7 @@
       const collectPendingIdle = () => {
         if (!state.pendingIdleCoins) return;
         const delta = Math.max(0, state.pendingIdleCoins);
-        state.balance += delta;
+        addMachineBalance(delta);
         state.pendingIdleCoins = 0;
         if (els.balance) els.balance.textContent = formatMoney(state.balance, { compact: false });
         updateHud();
@@ -2710,7 +3075,7 @@
       const DEFAULT_SYMBOL_MAP = buildSymbolMap(DEFAULT_SYMBOLS, null, PLACEHOLDER_ASSET);
       const DAILY_LENGTH = 7;
       const OFFLINE_DATA = {
-        machineList: ['classic'],
+        machineList: ['classic', 'burst', 'charm', 'goldrush', 'cyber', 'pirate', 'dragon', 'cosmic'],
         machines: {
           classic: {
             id: 'classic',
@@ -2755,6 +3120,397 @@
               overspin: [10, 12, 15],
               brake: 180
             },
+            upgradeCosts: {
+              rows: [600, 1450],
+              reels: [700, 1800],
+              lines: [450, 1100, 2750]
+            }
+          },
+          burst: {
+            id: 'burst',
+            name: 'Burst Booster',
+            tier: 'Fine',
+            rows: 5,
+            reels: 5,
+            baseRows: 3,
+            baseReels: 3,
+            maxRows: 5,
+            maxReels: 5,
+            baseSymbolCount: 5,
+            symbols: [
+              { key: 'fuse', label: 'Fuse', asset: 'img/slot/burst/symbols/fuse.png' },
+              { key: 'emblem', label: 'Emblem', asset: 'img/slot/burst/symbols/emblem.png' },
+              { key: 'star', label: 'Star', asset: 'img/slot/burst/symbols/star.png' },
+              { key: 'firework', label: 'Firework', asset: 'img/slot/burst/symbols/firework.png' },
+              { key: 'medal', label: 'Medal', asset: 'img/slot/burst/symbols/medal.png' },
+              { key: 'orb', label: 'Orb', asset: 'img/slot/burst/symbols/orb.png' },
+              { key: 'wheel', label: 'Wheel', asset: 'img/slot/burst/symbols/wheel.png' },
+              { key: 'seven', label: 'Seven', asset: 'img/slot/burst/symbols/seven.png' },
+              { key: 'wild', label: 'Wild', asset: 'img/slot/burst/symbols/wild.png' },
+              { key: 'bonus', label: 'Bonus', asset: 'img/slot/burst/symbols/bonus.png' }
+            ],
+            payouts: {
+              fuse: 6,
+              emblem: 7,
+              star: 8,
+              firework: 9,
+              medal: 12,
+              orb: 16,
+              wheel: 22,
+              seven: 30,
+              wild: 50,
+              bonus: 80
+            },
+            assets: {
+              icon: 'img/slot/burst/icon.png',
+              frame: 'img/slot/burst/frame.png',
+              background: {
+                portrait: 'img/slot/burst/background_vertical.png',
+                landscape: 'img/slot/burst/background_horizontal.png'
+              },
+              spinButton: 'img/slot/classic/spin-button.png',
+              chip: 'img/slot/classic/circle.png',
+              bet: 'img/slot/classic/square.png',
+              info: 'img/slot/classic/rectangle.png',
+              placeholder: 'img/slot/placeholder.png'
+            },
+            spinTiming: { overspin: [10, 12, 15], brake: 180 },
+            upgradeCosts: {
+              rows: [600, 1450],
+              reels: [700, 1800],
+              lines: [450, 1100, 2750]
+            }
+          },
+          charm: {
+            id: 'charm',
+            name: 'Lucky Charm',
+            tier: 'Rare',
+            rows: 5,
+            reels: 5,
+            baseRows: 3,
+            baseReels: 3,
+            maxRows: 5,
+            maxReels: 5,
+            baseSymbolCount: 5,
+            symbols: [
+              { key: 'clover', label: 'Clover', asset: 'img/slot/charm/symbols/clover.png' },
+              { key: 'horseshoe', label: 'Horseshoe', asset: 'img/slot/charm/symbols/horseshoe.png' },
+              { key: 'wishbone', label: 'Wishbone', asset: 'img/slot/charm/symbols/wishbone.png' },
+              { key: 'ladybug', label: 'Ladybug', asset: 'img/slot/charm/symbols/ladybug.png' },
+              { key: 'rabbit_foot', label: 'Rabbit Foot', asset: 'img/slot/charm/symbols/rabbit_foot.png' },
+              { key: 'rainbow', label: 'Rainbow', asset: 'img/slot/charm/symbols/rainbow.png' },
+              { key: 'lucky_hat', label: 'Lucky Hat', asset: 'img/slot/charm/symbols/lucky_hat.png' },
+              { key: 'shamrock', label: 'Shamrock', asset: 'img/slot/charm/symbols/shamrock.png' },
+              { key: 'pot_of_gold', label: 'Pot Of Gold', asset: 'img/slot/charm/symbols/pot_of_gold.png' },
+              { key: 'wild', label: 'Wild', asset: 'img/slot/charm/symbols/wild.png' },
+              { key: 'bonus', label: 'Bonus', asset: 'img/slot/charm/symbols/bonus.png' }
+            ],
+            payouts: {
+              clover: 7,
+              horseshoe: 8,
+              wishbone: 9,
+              ladybug: 10,
+              rabbit_foot: 12,
+              rainbow: 18,
+              lucky_hat: 24,
+              shamrock: 28,
+              pot_of_gold: 35,
+              wild: 50,
+              bonus: 90
+            },
+            assets: {
+              icon: 'img/slot/charm/icon.png',
+              frame: 'img/slot/charm/frame.png',
+              background: {
+                portrait: 'img/slot/charm/background_vertical.png',
+                landscape: 'img/slot/charm/background_horizontal.png'
+              },
+              spinButton: 'img/slot/classic/spin-button.png',
+              chip: 'img/slot/classic/circle.png',
+              bet: 'img/slot/classic/square.png',
+              info: 'img/slot/classic/rectangle.png',
+              placeholder: 'img/slot/placeholder.png'
+            },
+            spinTiming: { overspin: [10, 12, 15], brake: 180 },
+            upgradeCosts: {
+              rows: [600, 1450],
+              reels: [700, 1800],
+              lines: [450, 1100, 2750]
+            }
+          },
+          goldrush: {
+            id: 'goldrush',
+            name: 'Gold Rush',
+            tier: 'Epic',
+            rows: 5,
+            reels: 5,
+            baseRows: 3,
+            baseReels: 3,
+            maxRows: 5,
+            maxReels: 5,
+            baseSymbolCount: 5,
+            symbols: [
+              { key: 'pickaxe', label: 'Pickaxe', asset: 'img/slot/goldrush/symbols/pickaxe.png' },
+              { key: 'gold_pan', label: 'Gold Pan', asset: 'img/slot/goldrush/symbols/gold_pan.png' },
+              { key: 'boot_spur', label: 'Boot Spur', asset: 'img/slot/goldrush/symbols/boot_spur.png' },
+              { key: 'dynamite', label: 'Dynamite', asset: 'img/slot/goldrush/symbols/dynamite.png' },
+              { key: 'lantern', label: 'Lantern', asset: 'img/slot/goldrush/symbols/lantern.png' },
+              { key: 'gold_nugget', label: 'Gold Nugget', asset: 'img/slot/goldrush/symbols/gold_nugget.png' },
+              { key: 'gold_minecart', label: 'Gold Minecart', asset: 'img/slot/goldrush/symbols/gold_minecart.png' },
+              { key: 'gold_bars', label: 'Gold Bars', asset: 'img/slot/goldrush/symbols/gold_bars.png' },
+              { key: 'prospector_badge', label: 'Prospector Badge', asset: 'img/slot/goldrush/symbols/prospector_badge.png' },
+              { key: 'wild', label: 'Wild', asset: 'img/slot/goldrush/symbols/wild.png' },
+              { key: 'bonus', label: 'Bonus', asset: 'img/slot/goldrush/symbols/bonus.png' }
+            ],
+            payouts: {
+              pickaxe: 8,
+              gold_pan: 9,
+              boot_spur: 10,
+              dynamite: 12,
+              lantern: 14,
+              gold_nugget: 20,
+              gold_minecart: 26,
+              gold_bars: 32,
+              prospector_badge: 40,
+              wild: 50,
+              bonus: 100
+            },
+            assets: {
+              icon: 'img/slot/goldrush/icon.png',
+              frame: 'img/slot/goldrush/frame.png',
+              background: {
+                portrait: 'img/slot/goldrush/background_vertical.png',
+                landscape: 'img/slot/goldrush/background_horizontal.png'
+              },
+              spinButton: 'img/slot/classic/spin-button.png',
+              chip: 'img/slot/classic/circle.png',
+              bet: 'img/slot/classic/square.png',
+              info: 'img/slot/classic/rectangle.png',
+              placeholder: 'img/slot/placeholder.png'
+            },
+            spinTiming: { overspin: [10, 12, 15], brake: 180 },
+            upgradeCosts: {
+              rows: [600, 1450],
+              reels: [700, 1800],
+              lines: [450, 1100, 2750]
+            }
+          },
+          cyber: {
+            id: 'cyber',
+            name: 'Cyber Spin',
+            tier: 'Elite',
+            rows: 5,
+            reels: 5,
+            baseRows: 3,
+            baseReels: 3,
+            maxRows: 5,
+            maxReels: 5,
+            baseSymbolCount: 5,
+            symbols: [
+              { key: 'circuit', label: 'Circuit', asset: 'img/slot/cyber/symbols/circuit.png' },
+              { key: 'heart', label: 'Heart', asset: 'img/slot/cyber/symbols/heart.png' },
+              { key: 'pixel_byte', label: 'Pixel Byte', asset: 'img/slot/cyber/symbols/pixel_byte.png' },
+              { key: 'laser_pointer', label: 'Laser Pointer', asset: 'img/slot/cyber/symbols/laser_pointer.png' },
+              { key: 'neon_diamond', label: 'Neon Diamond', asset: 'img/slot/cyber/symbols/neon_diamond.png' },
+              { key: 'spade', label: 'Spade', asset: 'img/slot/cyber/symbols/spade.png' },
+              { key: 'pixel_seven', label: 'Pixel Seven', asset: 'img/slot/cyber/symbols/pixel_seven.png' },
+              { key: 'laser_star', label: 'Laser Star', asset: 'img/slot/cyber/symbols/laser_star.png' },
+              { key: 'cyber_crown', label: 'Cyber Crown', asset: 'img/slot/cyber/symbols/cyber_crown.png' },
+              { key: 'wild', label: 'Wild', asset: 'img/slot/cyber/symbols/wild.png' },
+              { key: 'bonus', label: 'Bonus', asset: 'img/slot/cyber/symbols/bonus.png' }
+            ],
+            payouts: {
+              circuit: 9,
+              heart: 10,
+              pixel_byte: 11,
+              laser_pointer: 13,
+              neon_diamond: 18,
+              spade: 24,
+              pixel_seven: 30,
+              laser_star: 35,
+              cyber_crown: 45,
+              wild: 50,
+              bonus: 110
+            },
+            assets: {
+              icon: 'img/slot/cyber/icon.png',
+              frame: 'img/slot/classic/frame.png',
+              background: {
+                portrait: 'img/slot/cyber/background_vertical.png',
+                landscape: 'img/slot/cyber/background_horizontal.png'
+              },
+              spinButton: 'img/slot/classic/spin-button.png',
+              chip: 'img/slot/classic/circle.png',
+              bet: 'img/slot/classic/square.png',
+              info: 'img/slot/classic/rectangle.png',
+              placeholder: 'img/slot/placeholder.png'
+            },
+            spinTiming: { overspin: [10, 12, 15], brake: 180 },
+            upgradeCosts: {
+              rows: [600, 1450],
+              reels: [700, 1800],
+              lines: [450, 1100, 2750]
+            }
+          },
+          pirate: {
+            id: 'pirate',
+            name: "Pirate's Booty",
+            tier: 'Mythic',
+            rows: 5,
+            reels: 5,
+            baseRows: 3,
+            baseReels: 3,
+            maxRows: 5,
+            maxReels: 5,
+            baseSymbolCount: 5,
+            symbols: [
+              { key: 'anchor', label: 'Anchor', asset: 'img/slot/pirate/symbols/anchor.png' },
+              { key: 'cannonball', label: 'Cannonball', asset: 'img/slot/pirate/symbols/cannonball.png' },
+              { key: 'treasure_map', label: 'Treasure Map', asset: 'img/slot/pirate/symbols/treasure_map.png' },
+              { key: 'parrot_feather', label: 'Parrot Feather', asset: 'img/slot/pirate/symbols/parrot_feather.png' },
+              { key: 'skull', label: 'Skull', asset: 'img/slot/pirate/symbols/skull.png' },
+              { key: 'pirate_hat', label: 'Pirate Hat', asset: 'img/slot/pirate/symbols/pirate_hat.png' },
+              { key: 'compass', label: 'Compass', asset: 'img/slot/pirate/symbols/compass.png' },
+              { key: 'treasure_chest', label: 'Treasure Chest', asset: 'img/slot/pirate/symbols/treasure_chest.png' },
+              { key: 'wild', label: 'Wild', asset: 'img/slot/pirate/symbols/wild.png' },
+              { key: 'bonus', label: 'Bonus', asset: 'img/slot/pirate/symbols/bonus.png' }
+            ],
+            payouts: {
+              anchor: 10,
+              cannonball: 11,
+              treasure_map: 12,
+              parrot_feather: 14,
+              skull: 20,
+              pirate_hat: 26,
+              compass: 32,
+              treasure_chest: 42,
+              wild: 50,
+              bonus: 125
+            },
+            assets: {
+              icon: 'img/slot/pirate/icon.png',
+              frame: 'img/slot/classic/frame.png',
+              background: {
+                portrait: 'img/slot/pirate/background_vertical.png',
+                landscape: 'img/slot/pirate/background_horizontal.png'
+              },
+              spinButton: 'img/slot/classic/spin-button.png',
+              chip: 'img/slot/classic/circle.png',
+              bet: 'img/slot/classic/square.png',
+              info: 'img/slot/classic/rectangle.png',
+              placeholder: 'img/slot/placeholder.png'
+            },
+            spinTiming: { overspin: [10, 12, 15], brake: 180 },
+            upgradeCosts: {
+              rows: [600, 1450],
+              reels: [700, 1800],
+              lines: [450, 1100, 2750]
+            }
+          },
+          dragon: {
+            id: 'dragon',
+            name: "Dragon's Den",
+            tier: 'Mythic',
+            rows: 5,
+            reels: 5,
+            baseRows: 3,
+            baseReels: 3,
+            maxRows: 5,
+            maxReels: 5,
+            baseSymbolCount: 5,
+            symbols: [
+              { key: 'shield', label: 'Shield', asset: 'img/slot/dragon/symbols/shield.png' },
+              { key: 'crystal', label: 'Crystal', asset: 'img/slot/dragon/symbols/crystal.png' },
+              { key: 'rune', label: 'Rune', asset: 'img/slot/dragon/symbols/rune.png' },
+              { key: 'torch', label: 'Torch', asset: 'img/slot/dragon/symbols/torch.png' },
+              { key: 'dragon_egg', label: 'Dragon Egg', asset: 'img/slot/dragon/symbols/dragon_egg.png' },
+              { key: 'flaming_sword', label: 'Flaming Sword', asset: 'img/slot/dragon/symbols/flaming_sword.png' },
+              { key: 'dragon_eye', label: 'Dragon Eye', asset: 'img/slot/dragon/symbols/dragon_eye.png' },
+              { key: 'fire_seven', label: 'Fire Seven', asset: 'img/slot/dragon/symbols/fire_seven.png' },
+              { key: 'wild', label: 'Wild', asset: 'img/slot/dragon/symbols/wild.png' },
+              { key: 'bonus', label: 'Bonus', asset: 'img/slot/dragon/symbols/bonus.png' }
+            ],
+            payouts: {
+              shield: 11,
+              crystal: 12,
+              rune: 14,
+              torch: 16,
+              dragon_egg: 22,
+              flaming_sword: 30,
+              dragon_eye: 40,
+              fire_seven: 50,
+              wild: 50,
+              bonus: 150
+            },
+            assets: {
+              icon: 'img/slot/dragon/icon.png',
+              frame: 'img/slot/classic/frame.png',
+              background: {
+                portrait: 'img/slot/dragon/background_vertical.png',
+                landscape: 'img/slot/dragon/background_horizontal.png'
+              },
+              spinButton: 'img/slot/classic/spin-button.png',
+              chip: 'img/slot/classic/circle.png',
+              bet: 'img/slot/classic/square.png',
+              info: 'img/slot/classic/rectangle.png',
+              placeholder: 'img/slot/placeholder.png'
+            },
+            spinTiming: { overspin: [10, 12, 15], brake: 180 },
+            upgradeCosts: {
+              rows: [600, 1450],
+              reels: [700, 1800],
+              lines: [450, 1100, 2750]
+            }
+          },
+          cosmic: {
+            id: 'cosmic',
+            name: 'Cosmic Chaos',
+            tier: 'Divine',
+            rows: 5,
+            reels: 5,
+            baseRows: 3,
+            baseReels: 3,
+            maxRows: 5,
+            maxReels: 5,
+            baseSymbolCount: 5,
+            symbols: [
+              { key: 'meteor', label: 'Meteor', asset: 'img/slot/cosmic/symbols/meteor.png' },
+              { key: 'rocket', label: 'Rocket', asset: 'img/slot/cosmic/symbols/rocket.png' },
+              { key: 'satellite', label: 'Satellite', asset: 'img/slot/cosmic/symbols/satellite.png' },
+              { key: 'asteroid', label: 'Asteroid', asset: 'img/slot/cosmic/symbols/asteroid.png' },
+              { key: 'planet', label: 'Planet', asset: 'img/slot/cosmic/symbols/planet.png' },
+              { key: 'galaxy_swirl', label: 'Galaxy Swirl', asset: 'img/slot/cosmic/symbols/galaxy_swirl.png' },
+              { key: 'alien', label: 'Alien', asset: 'img/slot/cosmic/symbols/alien.png' },
+              { key: 'crystal', label: 'Crystal', asset: 'img/slot/cosmic/symbols/crystal.png' },
+              { key: 'wild', label: 'Wild', asset: 'img/slot/cosmic/symbols/wild.png' },
+              { key: 'bonus', label: 'Bonus', asset: 'img/slot/cosmic/symbols/bonus.png' }
+            ],
+            payouts: {
+              meteor: 12,
+              rocket: 13,
+              satellite: 14,
+              asteroid: 16,
+              planet: 24,
+              galaxy_swirl: 32,
+              alien: 42,
+              crystal: 55,
+              wild: 50,
+              bonus: 170
+            },
+            assets: {
+              icon: 'img/slot/cosmic/icon.png',
+              frame: 'img/slot/cosmic/frame.png',
+              background: {
+                portrait: 'img/slot/cosmic/background_vertical.png',
+                landscape: 'img/slot/cosmic/background_horizontal.png'
+              },
+              spinButton: 'img/slot/classic/spin-button.png',
+              chip: 'img/slot/classic/circle.png',
+              bet: 'img/slot/classic/square.png',
+              info: 'img/slot/classic/rectangle.png',
+              placeholder: 'img/slot/placeholder.png'
+            },
+            spinTiming: { overspin: [10, 12, 15], brake: 180 },
             upgradeCosts: {
               rows: [600, 1450],
               reels: [700, 1800],
@@ -2904,6 +3660,16 @@
           collection: [],
           slots: 3
         },
+        globalPerks: {},
+        premium: {
+          purchases: {},
+          mods: {
+            lockSpinsBonus: 0,
+            surgeMult: 1,
+            bonusTier: 0,
+            payoutMult: 1
+          }
+        },
         symbolMap: cloneSymbolMap(DEFAULT_SYMBOL_MAP),
         gridCells: new Map(),
         serverUpgrades: {},
@@ -3030,6 +3796,28 @@
       const getLevelCapBoost = () => {
         return getLevelPerkEffects().capBoost || 0;
       };
+      const PREMIUM_ITEMS = [
+        { key: 'payoutNova', name: 'Payout Nova', desc: 'Permanent +10% payouts per level.', costVip: 30, max: 3 },
+        { key: 'lockMastery', name: 'Lucky Lock Mastery', desc: '+2 locked spins per level.', costVip: 24, max: 3 },
+        { key: 'surgeCore', name: 'Surge Core', desc: '+20% Jackpot Surge power per level.', costVip: 26, max: 3 },
+        { key: 'bonusCatalyst', name: 'Bonus Catalyst', desc: '+1 Bonus Storm tier per level.', costVip: 20, max: 3 },
+        { key: 'dropAlchemy', name: 'Drop Alchemy', desc: '+10% drop rate multiplier per level.', costVip: 22, max: 3 },
+        { key: 'wildForge', name: 'Wild Forge', desc: '+25% wild weight per level.', costVip: 18, max: 3 },
+        { key: 'hasteCore', name: 'Haste Core', desc: 'Spins resolve 5% faster per level.', costVip: 16, max: 3 },
+        { key: 'betOverclock', name: 'Bet Overclock', desc: '+50% max bet cap per level.', costVip: 28, max: 2 }
+      ];
+
+      const formatUpgradeLevel = (def, level) => {
+        if (!def || level <= 0) return level <= 0 ? 'Base' : `Level ${level}`;
+        const levels = Array.isArray(def.levels) ? def.levels : [];
+        if (levels.length) {
+          const idx = Math.min(level - 1, levels.length - 1);
+          const label = levels[idx];
+          const overflow = level - 1 > idx;
+          return overflow ? `${label} (cap+)` : label;
+        }
+        return `Level ${level}`;
+      };
 
       const getUpgradeMaxLevel = (key) => {
         const def = getUpgradeDef(key);
@@ -3060,6 +3848,88 @@
         const pool = list.slice(start, start + count).map(entry => entry.key);
         if (upgrades.wildUnlock) pool.push('wild');
         return pool;
+      };
+      const machineBalance = (id = state.machine.id) => {
+        const prog = ensureMachineProgress(id);
+        return Number.isFinite(prog.balance) ? prog.balance : 0;
+      };
+      const setMachineBalance = (amount = 0, id = state.machine.id) => {
+        const prog = ensureMachineProgress(id);
+        prog.balance = Math.max(0, Math.trunc(amount));
+        if (id === state.machine.id) {
+          state.balance = prog.balance;
+          if (els.hudBalance) els.hudBalance.textContent = formatCompactMoney(state.balance);
+          if (els.balance) els.balance.textContent = formatMoney(state.balance, { compact: false });
+          if (els.spinBtn) els.spinBtn.textContent = `Spin: ${formatMoney(state.bet || 0)}`;
+        }
+      };
+      const addMachineBalance = (amount = 0, id = state.machine.id) => {
+        if (!Number.isFinite(amount) || amount === 0) return;
+        setMachineBalance(machineBalance(id) + amount, id);
+      };
+      const spendMachineBalance = (amount = 0, id = state.machine.id) => {
+        if (!Number.isFinite(amount) || amount <= 0) return false;
+        const current = machineBalance(id);
+        if (current < amount) return false;
+        setMachineBalance(current - amount, id);
+        return true;
+      };
+      const syncCurrentBalanceToMachine = () => {
+        setMachineBalance(state.balance || 0, state.machine.id);
+      };
+      const loadMachineBalance = (id = state.machine.id) => {
+        const bal = machineBalance(id);
+        state.balance = bal;
+        if (els.hudBalance) els.hudBalance.textContent = formatCompactMoney(bal);
+        if (els.balance) els.balance.textContent = formatMoney(bal, { compact: false });
+        if (els.spinBtn) els.spinBtn.textContent = `Spin: ${formatMoney(state.bet || 0)}`;
+      };
+      const applyPremiumMods = () => {
+        const purchases = state.premium?.purchases || {};
+        const mods = {
+          lockSpinsBonus: 0,
+          surgeMult: 1,
+          bonusTier: 0,
+          payoutMult: 1,
+          dropMult: 1,
+          wildWeight: 1,
+          speedFactor: 1,
+          betCapMult: 1
+        };
+        const lockLvl = purchases.lockMastery || 0;
+        mods.lockSpinsBonus = lockLvl * 2;
+        const surgeLvl = purchases.surgeCore || 0;
+        mods.surgeMult = 1 + surgeLvl * 0.2;
+        const bonusLvl = purchases.bonusCatalyst || 0;
+        mods.bonusTier = bonusLvl;
+        const payoutLvl = purchases.payoutNova || 0;
+        mods.payoutMult = 1 + payoutLvl * 0.1;
+        const dropLvl = purchases.dropAlchemy || 0;
+        mods.dropMult = 1 + dropLvl * 0.1;
+        const wildLvl = purchases.wildForge || 0;
+        mods.wildWeight = 1 + wildLvl * 0.25;
+        const hasteLvl = purchases.hasteCore || 0;
+        mods.speedFactor = Math.max(0.6, 1 - hasteLvl * 0.05);
+        const betLvl = purchases.betOverclock || 0;
+        mods.betCapMult = 1 + betLvl * 0.5;
+        state.premium.mods = mods;
+      };
+      const premiumItemByKey = new Map(PREMIUM_ITEMS.map(item => [item.key, item]));
+      const getVipBalance = () => Math.max(0, Number(state.drop?.inventory?.vipMarks || 0));
+      const spendVip = (amount = 0) => {
+        const inventory = state.drop.inventory || (state.drop.inventory = {});
+        inventory.vipMarks = Math.max(0, getVipBalance() - amount);
+      };
+      const getEffectiveUpgrades = () => {
+        const out = {};
+        if (state.upgradeCatalog?.length) {
+          state.upgradeCatalog.forEach(def => {
+            out[def.key] = getEffectiveUpgradeLevel(def.key);
+          });
+        } else {
+          Object.assign(out, state.upgrades);
+        }
+        return out;
       };
 
       const currency = new Intl.NumberFormat('en-US', {
@@ -3186,6 +4056,7 @@
         return DEFAULT_MAX_BET;
       };
       const xpNeeded = (lvl = 0) => Math.max(50, Math.round(80 * Math.pow(lvl + 1, 2)));
+      const MACHINE_UNLOCK_LEVEL = 50;
       const UPGRADE_COST_GROWTH = 2.05;
       const computeUpgradeCost = (def, level = 0) => {
         if (!def) return 0;
@@ -3280,11 +4151,28 @@
       };
 
       const machineIndex = (id = state.machine.id) => Math.max(0, (machineList || []).indexOf(id));
+      const previousMachineId = (id = state.machine.id) => {
+        const idx = machineIndex(id);
+        return idx > 0 ? machineList?.[idx - 1] : null;
+      };
       const ensureMachineProgress = (id = state.machine.id) => {
         if (!state.machines[id]) {
-          state.machines[id] = { xp: 0, lvl: 0, unlocked: machineIndex(id) === 0, upgrades: {} };
+          const isFirst = machineIndex(id) === 0;
+          const startBalance = (state.offlineMode || window.location.protocol === 'file:') && isFirst ? 50000 : 0;
+          state.machines[id] = { xp: 0, lvl: 0, balance: startBalance, unlocked: isFirst, upgrades: {} };
+        }
+        if (typeof state.machines[id].balance !== 'number') {
+          const isFirst = machineIndex(id) === 0;
+          const startBalance = (state.offlineMode || window.location.protocol === 'file:') && isFirst ? 50000 : 0;
+          state.machines[id].balance = startBalance;
         }
         return state.machines[id];
+      };
+      const meetsMachineLevelRequirement = (id = state.machine.id) => {
+        const prevId = previousMachineId(id);
+        if (!prevId) return true;
+        const prev = ensureMachineProgress(prevId);
+        return (prev.lvl || 0) >= MACHINE_UNLOCK_LEVEL;
       };
       const getMachineUpgrades = (id = state.machine.id) => {
         const prog = ensureMachineProgress(id);
@@ -3299,13 +4187,9 @@
           prog.xp -= xpNeeded(prog.lvl);
           prog.lvl += 1;
           leveled = true;
-        }
-        // unlock next machine when leveling
-        if (leveled) {
-          const idx = machineIndex(id);
-          const nextId = machineList?.[idx + 1];
-          if (nextId) {
-            ensureMachineProgress(nextId).unlocked = true;
+          if ((prog.lvl || 0) >= 100 && !state.globalPerks[id]) {
+            state.globalPerks[id] = true;
+            log('Legacy perk unlocked', `${id} grants +5% payout/+3% drops forever`);
           }
         }
         return leveled;
@@ -3374,11 +4258,12 @@
         machineOutcome: document.getElementById('machine-outcome'),
         machineLines: document.getElementById('machine-lines'),
         reelStage: document.getElementById('reel-stage'),
+        machineStage: document.querySelector('.machine-stage'),
         betSlider: document.getElementById('bet-range'),
         chipButtons: Array.from(document.querySelectorAll('[data-chip]')),
         hudBalance: document.getElementById('hud-balance'),
         hudBet: document.getElementById('hud-bet'),
-        hudWin: document.getElementById('hud-win'),
+        hudWin: document.getElementById('hud-last-win'),
         hudVip: document.getElementById('hud-vip'),
         hudLevel: document.getElementById('hud-level'),
         balance: document.getElementById('balance'),
@@ -3393,7 +4278,11 @@
         paytable: document.getElementById('paytable'),
         dropLog: document.getElementById('drop-log'),
         dropPanel: document.getElementById('drop-panel'),
+        dropPanelOverlay: document.getElementById('drop-panel-overlay'),
+        dropOverlay: document.getElementById('drop-overlay'),
+        dropOverlayClose: document.getElementById('drop-overlay-close'),
         dropRatesBtn: document.getElementById('drop-rates-btn'),
+        dropRatesPlayBtn: document.getElementById('drop-rates-play-btn'),
         dropSkillBtn: document.getElementById('drop-skill-btn'),
         dropCloseBtn: document.getElementById('drop-close-btn'),
         inventoryGrid: document.getElementById('inventory-grid'),
@@ -3402,13 +4291,14 @@
         machinePicker: document.getElementById('machine-picker'),
         machinePickerLabel: document.getElementById('machine-picker-label'),
         machinePickerLevel: document.getElementById('machine-picker-level'),
-        machineSelect: document.getElementById('machine-select'),
         machineName: document.getElementById('machine-name'),
         machineTier: document.getElementById('machine-tier'),
         machineXpFill: document.getElementById('machine-xp-fill'),
         hudRows: document.getElementById('hud-rows'),
         hudReels: document.getElementById('hud-reels'),
         hudLines: document.getElementById('hud-lines'),
+        creditsChip: document.getElementById('credits-chip'),
+        vipChip: document.getElementById('vip-chip'),
         flyover: null,
         flyoverLevel: document.getElementById('flyover-level'),
         flyoverXp: document.getElementById('flyover-xp'),
@@ -3433,6 +4323,11 @@
         cardSummary: document.getElementById('card-summary'),
         cardCap: document.getElementById('card-cap'),
         cardPanel: document.getElementById('card-panel'),
+        accountLog: document.getElementById('account-log'),
+        premiumPanel: document.getElementById('premium-panel'),
+        premiumClose: document.getElementById('premium-close'),
+        premiumGrid: document.getElementById('premium-grid'),
+        premiumVipBalance: document.getElementById('premium-vip-balance'),
         authOverlay: document.getElementById('auth-overlay'),
         authBody: document.getElementById('auth-body'),
         authAlert: document.getElementById('auth-alert'),
@@ -3462,8 +4357,16 @@
         workerBtn: document.getElementById('worker-btn'),
         skillStrip: document.getElementById('skill-strip')
       };
+      const positionMachineFlyout = () => {
+        const panel = els.machineFlyout?.querySelector('.machine-flyout__panel');
+        if (!panel) return;
+        const rect = els.machinePicker?.getBoundingClientRect();
+        const top = Math.max(12, (rect?.bottom || 80) + 10);
+        panel.style.setProperty('--machine-flyout-top', `${top}px`);
+      };
       const setMachineFlyout = (open = false) => {
         if (!els.machineFlyout) return;
+        if (open) positionMachineFlyout();
         els.machineFlyout.dataset.open = open ? 'true' : 'false';
         if (els.machinePicker) {
           els.machinePicker.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -3481,6 +4384,15 @@
       const mobileButtons = Array.from(els.mobileNav?.querySelectorAll('[data-mobile-target]') || []);
       const desktopButtons = Array.from(document.querySelectorAll('[data-pane-target]'));
       const mobilePanes = Array.from(document.querySelectorAll('[data-mobile-pane]'));
+      const setPaneVisibility = () => {
+        const active = paneState.active || 'play';
+        mobilePanes.forEach(pane => {
+          const paneId = pane.dataset.mobilePane || 'play';
+          const isActive = paneId === active;
+          pane.dataset.mobileActive = isActive ? 'true' : 'false';
+          pane.hidden = !isActive;
+        });
+      };
       const applyPaneMode = () => {
         const isMobile = paneState.mq.matches;
         document.body.dataset.mobile = isMobile ? 'true' : 'false';
@@ -3494,13 +4406,12 @@
           const target = btn.dataset.mobileTarget || btn.dataset.paneTarget;
           btn.classList.toggle('active', target === paneState.active);
         });
-        mobilePanes.forEach(pane => {
-          const paneId = pane.dataset.mobilePane || 'play';
-          const active = paneId === paneState.active;
-          pane.dataset.mobileActive = active ? 'true' : 'false';
-        });
+        setPaneVisibility();
       };
       const setPaneActive = (target) => {
+        document.querySelectorAll('[data-upgrade-key][data-highlight]').forEach(card => {
+          card.dataset.highlight = 'false';
+        });
         if (target) {
           paneState.active = target;
         }
@@ -3534,6 +4445,12 @@
           }
           if (!els.dropPanel?.hidden) {
             toggleDropPanel(false);
+          }
+          if (!els.dropOverlay?.hidden) {
+            toggleDropPanel(false, 'overlay');
+          }
+          if (els.perksPopover?.dataset.visible === 'true') {
+            togglePerks(false);
           }
         }
       });
@@ -3626,16 +4543,26 @@
           maxReels: 5,
           costs: { rows: [], reels: [], lines: [] }
         };
-        const settings = state.machine.upgradeSettings || state.machine.upgrades || {};
-        return {
-          baseRows: settings.baseRows ?? defaults.baseRows,
-          maxRows: settings.maxRows ?? defaults.maxRows,
-          baseReels: settings.baseReels ?? defaults.baseReels,
-          maxReels: settings.maxReels ?? defaults.maxReels,
-          costs: settings.costs || defaults.costs
-        };
-      }
-      state.playerId = state.auth.token ? null : getStored(storageKeys.player);
+      const settings = state.machine.upgradeSettings || state.machine.upgrades || {};
+      return {
+        baseRows: settings.baseRows ?? defaults.baseRows,
+        maxRows: settings.maxRows ?? defaults.maxRows,
+        baseReels: settings.baseReels ?? defaults.baseReels,
+        maxReels: settings.maxReels ?? defaults.maxReels,
+        costs: settings.costs || defaults.costs
+      };
+    }
+    state.playerId = state.auth.token ? null : getStored(storageKeys.player);
+
+      const updateAccountLog = () => {
+        if (!els.accountLog || !els.log) return;
+        const entries = Array.from(els.log.querySelectorAll('.log-entry')).slice(0, 6);
+        if (!entries.length) {
+          els.accountLog.innerHTML = '<p class="muted-text small">No recent events yet.</p>';
+          return;
+        }
+        els.accountLog.innerHTML = entries.map(entry => `<div class="account-log__item">${entry.innerHTML}</div>`).join('');
+      };
 
       const log = (message, data) => {
         debug('ui-log', { message, data, stateSnapshot: { busy: state.busy, auth: !!state.auth.token, balance: state.balance, bet: state.bet } });
@@ -3648,6 +4575,7 @@
         if (entries.length > 40) {
           entries[entries.length - 1].remove();
         }
+        updateAccountLog();
       };
 
       const setStatus = (text, stateAttr = 'ok') => {
@@ -3699,6 +4627,7 @@
         if (!visible) {
           toggleAccountSheet(false);
           toggleDropPanel(false);
+          toggleDropPanel(false, 'overlay');
         }
         const disableInputs = !visible || state.busy || state.autoSpin?.active;
         els.spinBtn.disabled = disableInputs;
@@ -3707,6 +4636,7 @@
         if (els.syncBtn) els.syncBtn.disabled = disableInputs;
         if (els.resetBtn) els.resetBtn.disabled = disableInputs;
         if (els.dropRatesBtn) els.dropRatesBtn.disabled = disableInputs;
+        if (els.dropRatesPlayBtn) els.dropRatesPlayBtn.disabled = disableInputs;
         renderUpgrades();
         renderSkillButton();
         renderPayoutSkill();
@@ -3730,9 +4660,13 @@
         if (els.betSlider) els.betSlider.disabled = disableInputs;
         els.chipButtons.forEach(btn => { btn.disabled = disableInputs; });
         if (els.dropRatesBtn) els.dropRatesBtn.disabled = disableInputs;
+        if (els.dropRatesPlayBtn) els.dropRatesPlayBtn.disabled = disableInputs;
         if (els.payoutSkillBtn) els.payoutSkillBtn.disabled = disableInputs;
         if (els.workerBtn) els.workerBtn.disabled = disableInputs;
-        if (disableInputs) toggleDropPanel(false);
+        if (disableInputs) {
+          toggleDropPanel(false);
+          toggleDropPanel(false, 'overlay');
+        }
         renderUpgrades();
         renderSkillButton();
         renderPayoutSkill();
@@ -3764,6 +4698,7 @@
         els.accountPanel.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
         if (shouldShow) {
           els.accountPanel.focus({ preventScroll: false });
+          updateAccountLog();
         }
       };
 
@@ -3842,12 +4777,10 @@
         const reqs = def.requires ? (Array.isArray(def.requires) ? def.requires : [def.requires]) : [];
         const requirementsMet = reqs.every(req => (state.upgrades?.[req] || 0) > 0);
         const locked = reqs.length > 0 && !requirementsMet;
-        const currentLabel = level > 0
-          ? (def.levels?.[level - 1] || `Level ${level}`)
-          : 'None';
+        const currentLabel = level > 0 ? formatUpgradeLevel(def, level) : 'None';
         const nextLabel = level >= maxLevel
           ? 'Maxed'
-          : (def.levels?.[level] || `Level ${level + 1}`);
+          : formatUpgradeLevel(def, level + 1);
         const cost = level >= maxLevel ? null : computeUpgradeCost(def, level);
         const buttonDisabled = state.busy || locked || level >= maxLevel || !Number.isFinite(cost);
         const buttonText = locked
@@ -3858,6 +4791,21 @@
         const requirementNote = locked
           ? `Requires ${reqs.map(req => getUpgradeDef(req)?.label || req).join(', ')}`
           : '';
+        const skillLinkMap = {
+          dropBoostUnlock: 'Drop Boost',
+          dropRateEffect: 'Drop Boost',
+          dropRateDuration: 'Drop Boost',
+          payout: 'Payout Burst',
+          payoutSkill: 'Payout Burst',
+          wildUnlock: 'Wild Boost',
+          wildFrequency: 'Wild Boost',
+          retrigger: 'Retrigger',
+          retriggerQuality: 'Retrigger',
+          luckyLock: 'Lucky Lock',
+          jackpotSurge: 'Jackpot Surge',
+          bonusStorm: 'Bonus Storm'
+        };
+        const skillTags = skillLinkMap[def.key] ? [skillLinkMap[def.key]] : [];
         return `
           <div class="upgrade-card" data-upgrade-key="${def.key}">
             <h4>${def.label}</h4>
@@ -3868,6 +4816,7 @@
             <div class="upgrade-card__note">Next: ${nextLabel}</div>
             <button type="button" data-upgrade="${def.key}" ${buttonDisabled ? 'data-disabled="true" disabled' : ''}>${buttonText}</button>
             ${requirementNote ? `<div class="upgrade-card__note">${requirementNote}</div>` : ''}
+            ${skillTags.length ? `<div class="upgrade-card__tags">${skillTags.map(tag => `<span class="upgrade-tag">${tag}</span>`).join('')}</div>` : ''}
           </div>
         `;
       };
@@ -3911,6 +4860,22 @@
         });
         els.upgradeGrid.innerHTML = sections.join('') || '<p class="muted-text">No upgrades available.</p>';
         renderSkillStrip();
+      };
+
+      const focusUpgrade = (upgradeKey, message = '') => {
+        if (!upgradeKey) return;
+        setPaneActive('upgrades');
+        if (els.upgradePanel) {
+          els.upgradePanel.hidden = false;
+        }
+        requestFrame(() => {
+          const card = document.querySelector(`[data-upgrade-key="${upgradeKey}"]`);
+          if (!card) return;
+          card.dataset.highlight = 'true';
+          card.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+          card.querySelector('button')?.focus?.({ preventScroll: true });
+        });
+        if (message) showAlert(message);
       };
 
       const DROP_ITEM_NAMES = {
@@ -4173,6 +5138,58 @@
         });
         els.inventoryGrid.innerHTML = chips.join('');
       };
+      const renderPremiumShop = () => {
+        if (!els.premiumGrid) return;
+        const purchases = state.premium.purchases || {};
+        const vip = getVipBalance();
+        if (els.premiumVipBalance) els.premiumVipBalance.textContent = `VIP ${vip}`;
+        els.premiumGrid.innerHTML = PREMIUM_ITEMS.map(item => {
+          const level = purchases[item.key] || 0;
+          const maxed = level >= (item.max || 1);
+          const cost = maxed ? null : item.costVip;
+          const disabled = maxed || vip < (cost || 0);
+          return `
+            <div class="premium-item" data-premium-key="${item.key}">
+              <h4>${item.name}</h4>
+              <p class="premium-meta"><span>${item.desc}</span><span>Lv ${Math.min(level, item.max || 1)}/${item.max || 1}</span></p>
+              <div class="premium-actions">
+                <button type="button" class="ghost-btn primary" data-buy-premium="${item.key}" ${disabled ? 'disabled' : ''}>${maxed ? 'Maxed' : `Buy (${item.costVip} VIP)`}</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      };
+      const togglePremiumPanel = (open = false) => {
+        if (!els.premiumPanel) return;
+        els.premiumPanel.hidden = !open;
+        els.premiumPanel.setAttribute('aria-hidden', open ? 'false' : 'true');
+        if (open) {
+          renderPremiumShop();
+          els.premiumPanel.focus?.({ preventScroll: true });
+        }
+      };
+      const purchasePremium = (key) => {
+        const item = premiumItemByKey.get(key);
+        if (!item) return;
+        const purchases = state.premium.purchases || (state.premium.purchases = {});
+        const level = purchases[key] || 0;
+        if (level >= (item.max || 1)) {
+          showAlert('Already maxed.');
+          return;
+        }
+        const vip = getVipBalance();
+        if (vip < item.costVip) {
+          showAlert(`Need ${item.costVip} VIP marks.`);
+          return;
+        }
+        spendVip(item.costVip);
+        purchases[key] = level + 1;
+        applyPremiumMods();
+        renderPremiumShop();
+        renderBonusSummary();
+        updateHud();
+        showAlert(`${item.name} purchased!`);
+      };
 
       const renderDropLog = () => {
         if (!els.dropLog) return;
@@ -4227,9 +5244,11 @@
         const equipMult = 1 + Math.max(0, equip.dropPct || 0) / 100;
         const perks = getLevelPerkEffects();
         const levelMult = perks.dropMult || 1;
+        const premiumMult = state.premium?.mods?.dropMult || 1;
+        const legacyMult = 1 + (Object.keys(state.globalPerks || {}).length * 0.03);
         return {
-          total: base * betMult * skillMult * outcome * equipMult * levelMult,
-          components: { base, bet: betMult, skill: skillMult, outcome, equip: equipMult, level: levelMult }
+          total: base * betMult * skillMult * outcome * equipMult * levelMult * premiumMult * legacyMult,
+          components: { base, bet: betMult, skill: skillMult, outcome, equip: equipMult, level: levelMult, premium: premiumMult, legacy: legacyMult }
         };
       };
 
@@ -4277,13 +5296,16 @@
         return { drops, multiplier: mult };
       };
 
-      const renderDropPanel = () => {
-        if (!els.dropPanel) return;
+      const renderDropPanel = (panel = els.dropPanel) => {
+        if (!panel) return;
+        const target = panel.matches('[data-drop-body]')
+          ? panel
+          : (panel.querySelector('[data-drop-body]') || panel);
         const lossMult = getDropMultiplier(false);
         const winMult = getDropMultiplier(true);
         const rates = computeDropRates(winMult.total);
         if (!rates.length) {
-          els.dropPanel.innerHTML = '<p class="muted-text">Drop table not loaded yet.</p>';
+          target.innerHTML = '<p class="muted-text">Drop table not loaded yet.</p>';
           return;
         }
         const groups = DROP_TIER_ORDER.map(tier => ({
@@ -4301,11 +5323,20 @@
             `).join('')}
           </ul>
         `).join('');
-        els.dropPanel.innerHTML = `
-          <h4>Drop rates</h4>
+        const includeHeading = target === panel;
+        target.innerHTML = `
+          ${includeHeading ? '<h4>Drop rates</h4>' : ''}
           <p class="drop-mult">Win: ${winMult.total.toFixed(2)}× • Loss: ${lossMult.total.toFixed(2)}×</p>
           ${listHtml || '<p class="muted-text">No drops configured.</p>'}
         `;
+      };
+
+      const renderOpenDropPanels = () => {
+        [els.dropPanel, els.dropPanelOverlay].forEach(panel => {
+          if (panel && !panel.hidden) {
+            renderDropPanel(panel);
+          }
+        });
       };
 
       const randomChoice = (arr = []) => {
@@ -5052,13 +6083,23 @@
         }
       };
 
-      const toggleDropPanel = (force) => {
-        if (!els.dropPanel) return;
-        const willShow = typeof force === 'boolean' ? force : els.dropPanel.hidden;
-        if (willShow) renderDropPanel();
-        els.dropPanel.hidden = !willShow;
-        if (!willShow) {
-          els.dropRatesBtn?.focus?.();
+      const toggleDropPanel = (force, mode = 'inventory') => {
+        const panel = mode === 'overlay' ? els.dropPanelOverlay : els.dropPanel;
+        const scrim = mode === 'overlay' ? els.dropOverlay : null;
+        if (!panel) return;
+        const willShow = typeof force === 'boolean' ? force : panel.hidden;
+        if (willShow) renderDropPanel(panel);
+        panel.hidden = !willShow;
+        if (scrim) {
+          scrim.hidden = !willShow;
+          scrim.setAttribute('aria-hidden', willShow ? 'false' : 'true');
+        }
+        if (willShow) {
+          panel.focus?.({ preventScroll: false });
+        } else if (mode === 'overlay') {
+          els.dropRatesPlayBtn?.focus?.();
+        } else {
+          (els.dropRatesBtn || els.dropRatesPlayBtn)?.focus?.();
         }
       };
 
@@ -5090,10 +6131,10 @@
 
       const SKILL_SLOTS = [
         { key: 'drop', icon: '💧', requires: 'dropBoostUnlock', action: () => activateDropSkill() },
-        { key: 'wild', icon: '🃏', requires: 'wildUnlock', action: () => showAlert('Wild skill coming soon.') },
         { key: 'payout', icon: '⚡', requires: null, action: () => activatePayoutSkill() },
-        { key: 'auto', icon: '🔁', requires: 'autoSpinUnlock', action: () => startAutoSpin() },
-        { key: 'mystery', icon: '❔', requires: null, action: () => showAlert('Skill locked.') }
+        { key: 'luckyLock', icon: '🔒', requires: null, action: () => activateLuckyLock() },
+        { key: 'jackpotSurge', icon: '💥', requires: null, action: () => activateJackpotSurge() },
+        { key: 'bonusStorm', icon: '🎁', requires: null, action: () => activateBonusStorm() }
       ];
       const renderSkillStrip = () => {
         if (!els.skillStrip) return;
@@ -5118,14 +6159,24 @@
             if (skill.activeUntil > now) timerText = formatTime(skill.activeUntil - now);
             else if (skill.cooldownUntil > now) timerText = `CD ${formatTime(skill.cooldownUntil - now)}`;
           }
-          if (slot.key === 'auto' && state.autoSpin.active) {
-            timerText = `${state.autoSpin.remaining || 0} spins`;
-            stateAttr = 'active';
+          if (slot.key === 'luckyLock' && unlocked) {
+            const skill = state.skills.luckyLock;
+            if (skill?.cooldownUntil > now) timerText = `CD ${formatTime(skill.cooldownUntil - now)}`;
+            else if (skill?.lockedFor > 0) timerText = `${skill.lockedFor} spins`;
+          }
+          if (slot.key === 'jackpotSurge' && unlocked) {
+            const skill = state.skills.jackpotSurge;
+            if (skill?.activeUntil > now) timerText = formatTime(skill.activeUntil - now);
+            else if (skill?.cooldownUntil > now) timerText = `CD ${formatTime(skill.cooldownUntil - now)}`;
+          }
+          if (slot.key === 'bonusStorm' && unlocked) {
+            const skill = state.skills.bonusStorm;
+            if (skill?.cooldownUntil > now) timerText = `CD ${formatTime(skill.cooldownUntil - now)}`;
           }
           const disabled = state.busy || (state.autoSpin?.active && slot.key !== 'auto');
           const icon = unlocked ? slot.icon : '🔒';
           return `
-            <button type="button" class="skill-pill" data-skill="${slot.key}" data-state="${stateAttr}" ${(!unlocked || disabled) ? 'disabled' : ''}>
+            <button type="button" class="skill-pill" data-skill="${slot.key}" data-state="${stateAttr}" data-requires="${slot.requires || ''}" ${disabled ? 'disabled' : ''}>
               <span class="skill-icon" aria-hidden="true">${icon}</span>
               ${timerText ? `<span class="skill-timer">${timerText}</span>` : ''}
             </button>
@@ -5322,9 +6373,20 @@
         if (!els.autoSpinBtn) return;
         const unlocked = isAutoSpinUnlocked();
         const on = state.autoSpin.active;
-        els.autoSpinBtn.textContent = 'Auto';
-        els.autoSpinBtn.disabled = !state.gameReady || (!unlocked && !on);
+        const capacity = getAutoSpinCount();
+        const remaining = Math.max(0, state.autoSpin.remaining || 0) || capacity;
+        const lockedIcon = '🔒';
+        const label = unlocked || on
+          ? (on ? `Auto (${remaining})` : `Auto ×${capacity}`)
+          : lockedIcon;
+        els.autoSpinBtn.textContent = label;
+        els.autoSpinBtn.dataset.locked = (!unlocked && !on) ? 'true' : 'false';
+        els.autoSpinBtn.disabled = !state.gameReady;
         els.autoSpinBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        const ariaLabel = on
+          ? `Auto spin running, ${remaining} spins remaining`
+          : `Auto spin, queue ${capacity} spins`;
+        els.autoSpinBtn.setAttribute('aria-label', unlocked || on ? ariaLabel : 'Unlock auto spin');
       };
 
       els.skillStrip?.addEventListener('click', (event) => {
@@ -5333,6 +6395,13 @@
         const skillKey = btn.dataset.skill;
         const def = SKILL_SLOTS.find(entry => entry.key === skillKey);
         if (!def || btn.disabled) return;
+        if (btn.dataset.state === 'locked') {
+          const upgradeKey = btn.dataset.requires;
+          if (upgradeKey) {
+            focusUpgrade(upgradeKey, 'Unlock this skill in the Upgrades tab.');
+          }
+          return;
+        }
         def.action?.();
         renderSkillStrip();
       });
@@ -5382,9 +6451,7 @@
         skill.cooldownUntil = skill.expiresAt + (skill.spec?.cooldownMs || 120000);
         log('Drop boost activated', `Running for ${formatTime(skill.expiresAt - now)}.`);
         renderSkillButton();
-        if (!els.dropPanel?.hidden) {
-          renderDropPanel();
-        }
+        renderOpenDropPanels();
       };
 
       const activatePayoutSkill = () => {
@@ -5402,11 +6469,65 @@
       const dropSkillPayload = () => ({
         dropRate: isDropSkillActive()
       });
-      els.perksBtn?.addEventListener('click', () => {
+      const activateLuckyLock = () => {
+        if (!state.gameReady || state.busy) return;
+        const skill = state.skills.luckyLock = state.skills.luckyLock || { lockedFor: 0, cooldownUntil: 0 };
+        const now = Date.now();
+        if (skill.cooldownUntil > now) return;
+        const bonus = Number(state.premium?.mods?.lockSpinsBonus || 0);
+        skill.lockedFor = 5 + bonus;
+        skill.cooldownUntil = now + 90000;
+        log('Lucky Lock primed', 'Next spins can freeze a reel. Click a reel while spinning to lock it.');
+        showAlert('Click a reel during spin to lock it for 5 spins.');
+      };
+      const activateJackpotSurge = () => {
+        if (!state.gameReady || state.busy) return;
+        const skill = state.skills.jackpotSurge = state.skills.jackpotSurge || { activeUntil: 0, cooldownUntil: 0, multiplier: 1.3 };
+        const now = Date.now();
+        if (skill.cooldownUntil > now || skill.activeUntil > now) return;
+        skill.activeUntil = now + 15000;
+        skill.cooldownUntil = skill.activeUntil + 45000;
+        const mult = (skill.multiplier || 1.3) * (state.premium?.mods?.surgeMult || 1);
+        skill.activeMultiplier = mult;
+        log('Jackpot Surge active', `Boosted jackpots for 15s (×${mult.toFixed(2)})`);
+        showAlert('Jackpot Surge active: boosted jackpots for 15s!');
+      };
+      const activateBonusStorm = () => {
+        if (!state.gameReady || state.busy) return;
+        const skill = state.skills.bonusStorm = state.skills.bonusStorm || { cooldownUntil: 0 };
+        const now = Date.now();
+        if (skill.cooldownUntil > now) return;
+        skill.cooldownUntil = now + 60000;
+        const bonusCount = Math.max(0, (state.lastSpin?.winGroups || []).find(group => group.symbol === 'bonus')?.count || 0);
+        const tierBoost = Number(state.premium?.mods?.bonusTier || 0);
+        const effective = bonusCount + tierBoost;
+        let reward = 'Minor bonus';
+        if (effective >= 5) reward = 'Mythic bonus';
+        else if (effective >= 4) reward = 'Epic bonus';
+        else if (effective >= 3) reward = 'Rare bonus';
+        log('Bonus Storm', `Triggered: ${reward} (bonus symbols: ${effective || 0})`);
+        showAlert(`Bonus Storm: ${reward}! Bonus symbols counted: ${effective || 0}`);
+      };
+      const handlePerksClickAway = (event) => {
+        if (!els.perksPopover || els.perksPopover.dataset.visible !== 'true') return;
+        if (els.perksPopover.contains(event.target) || event.target === els.perksBtn) return;
+        togglePerks(false);
+      };
+      const togglePerks = (force) => {
         if (!els.perksPopover) return;
-        const visible = els.perksPopover.dataset.visible === 'true';
-        els.perksPopover.dataset.visible = visible ? 'false' : 'true';
-        if (!visible) renderPerkPopover();
+        const next = typeof force === 'boolean'
+          ? force
+          : els.perksPopover.dataset.visible !== 'true';
+        els.perksPopover.dataset.visible = next ? 'true' : 'false';
+        if (next) {
+          renderPerkPopover();
+          document.addEventListener('click', handlePerksClickAway, { capture: true });
+        } else {
+          document.removeEventListener('click', handlePerksClickAway, { capture: true });
+        }
+      };
+      els.perksBtn?.addEventListener('click', () => {
+        togglePerks();
       });
 
 
@@ -5545,6 +6666,21 @@
         if (!els.reelStage) return;
         const assets = state.machine.assets || {};
         const frame = assets.frame || null;
+        const bg = (() => {
+          const isPortrait = window.matchMedia?.('(orientation: portrait)')?.matches || window.innerHeight > window.innerWidth;
+          return isPortrait
+            ? (assets.background?.portrait || assets.background?.landscape || null)
+            : (assets.background?.landscape || assets.background?.portrait || null);
+        })();
+        if (els.machineStage) {
+          if (bg) {
+            els.machineStage.style.backgroundImage = `url('${bg}')`;
+            els.machineStage.style.backgroundSize = 'cover';
+            els.machineStage.style.backgroundPosition = 'center';
+          } else {
+            els.machineStage.style.backgroundImage = '';
+          }
+        }
         els.reelStage.style.backgroundColor = 'rgba(2,6,23,.75)';
         if (frame) {
           els.reelStage.style.backgroundImage = `url('${frame}')`;
@@ -5582,25 +6718,44 @@
           cell.dataset.state = mode;
         });
       };
+      const refreshIdleGridSymbols = () => {
+        if (!els.slotGrid || state.busy || anyReelSpinning()) return;
+        const rows = state.currentRows || state.machine.rows;
+        const reels = state.currentReels || state.machine.reels;
+        if (!rows || !reels) return;
+        for (let row = 0; row < rows; row += 1) {
+          for (let col = 0; col < reels; col += 1) {
+            const cell = state.gridCells.get(`${row}:${col}`);
+            if (!cell) continue;
+            const img = cell.querySelector('img');
+            const symbol = randomSymbolInfo();
+            applySymbolToImage(img, symbol.key);
+            cell.dataset.symbol = symbol.key;
+            cell.dataset.state = 'settled';
+          }
+        }
+      };
 
       const getSpinIntervalDelay = (col) => {
         const timing = state.machine.spinTiming || {};
         const overspin = Array.isArray(timing.overspin) ? timing.overspin : [];
         const step = overspin.length ? overspin[col % overspin.length] : 18;
-        const base = (step || 18) * 12;
+        const base = (step || 18) * 24;
         const speedLevel = Math.max(0, state.upgrades.speed || 0);
-        const factor = Math.max(60, 115 - 12 * speedLevel);
-        return Math.max(35, Math.trunc((base * factor) / 100));
+        const factor = Math.max(90, 170 - 18 * speedLevel);
+        const premiumFactor = state.premium?.mods?.speedFactor || 1;
+        return Math.max(80, Math.trunc((base * factor * premiumFactor) / 100));
       };
 
       const getReelStopDelay = (col) => {
         const timing = state.machine.spinTiming || {};
         const brake = Number.isFinite(timing.brake) ? timing.brake : 260;
-        const base = brake + col * Math.max(90, Math.trunc(brake * 0.8));
+        const base = Math.trunc(brake * 1.4) + col * Math.max(160, Math.trunc(brake * 1.1));
         const speedLevel = Math.max(0, state.upgrades.speed || 0);
         const autoLevel = Math.max(0, state.upgrades.autoSpeed || 0);
-        const factor = Math.max(70, 115 - 10 * (speedLevel + autoLevel));
-        return Math.max(100, Math.trunc((base * factor) / 100));
+        const factor = Math.max(80, 170 - 15 * (speedLevel + autoLevel));
+        const premiumFactor = state.premium?.mods?.speedFactor || 1;
+        return Math.max(180, Math.trunc((base * factor * premiumFactor) / 100));
       };
 
       const startGridSpin = () => {
@@ -5758,8 +6913,9 @@
         if (!state.symbolMap.size) {
           state.symbolMap = cloneSymbolMap(DEFAULT_SYMBOL_MAP);
         }
+        const activeSymbols = computeActiveSymbols(getEffectiveUpgrades());
+        const activeSet = new Set(activeSymbols || []);
         const entries = Array.from(state.symbolMap.values());
-        const activeSet = new Set(state.machine.activeSymbols || []);
         els.paytable.innerHTML = entries.map(entry => {
           const payout = state.machine.payouts[entry.key] || 0;
           const tiers = [1, 2, 3].map(mult => `${mult + 2}× ${payout ? payout * mult : 0}× bet`).join(' • ');
@@ -5767,7 +6923,7 @@
           if (!entry.asset || asset === getPlaceholderAsset()) {
             debug('paytable:placeholder', { symbol: entry.key });
           }
-          const isActive = activeSet.size === 0 || activeSet.has(entry.key);
+          const isActive = activeSet.has(entry.key);
           return `
             <li data-active="${isActive ? 'true' : 'false'}">
               <div class="paytable-symbol">
@@ -5775,6 +6931,7 @@
                 ${entry.label}
               </div>
               <div class="paytable-meta">${tiers}</div>
+              <span class="paytable-status">${isActive ? 'Active' : 'Inactive'}</span>
             </li>
           `;
         }).join('');
@@ -5853,11 +7010,13 @@
         state.machine.activeSymbols = computeActiveSymbols(effective);
         const betMult = Math.max(0, effective.betMultiplier || 0);
         const baseMax = resolveMaxBet(root?.dataset?.maxBet || DEFAULT_MAX_BET);
-        state.maxBet = resolveMaxBet(baseMax) * Math.max(1, 10 ** betMult);
+        const premiumCap = state.premium?.mods?.betCapMult || 1;
+        state.maxBet = resolveMaxBet(baseMax) * Math.max(1, 10 ** betMult) * premiumCap;
         els.maxBet.textContent = formatMoney(state.maxBet);
         syncBetSteps();
         rebuildSymbolWeights();
         ensureGrid(rows, reels);
+        refreshIdleGridSymbols();
         renderUpgrades();
         updateMachineMeta();
         updateSkillSpec();
@@ -5865,6 +7024,7 @@
         renderSkillStrip();
         renderBonusSummary();
         renderAutoSpinButton();
+        renderPaytable();
         startIdleTicker();
         logAction('upgrade:state', { rows, reels, lineTier, betMult, maxBet: state.maxBet, upgrades: { ...state.upgrades } });
       }
@@ -5916,11 +7076,14 @@
       const fetchMachineConfig = async (machineId, allowFallback = false) => {
         if (!machineId) return null;
         if (machineCache.has(machineId)) return machineCache.get(machineId);
-        if (state.offlineMode && OFFLINE_DATA.machines[machineId]) {
+        const isFile = window.location.protocol === 'file:';
+        const useOffline = state.offlineMode || isFile;
+        if (useOffline && OFFLINE_DATA.machines[machineId]) {
           const data = OFFLINE_DATA.machines[machineId];
           machineCache.set(machineId, data);
           return data;
         }
+        if (useOffline) return null;
         const url = machineConfigUrl(machineId);
         try {
           const res = await fetch(url, { cache: 'no-cache' });
@@ -5931,6 +7094,11 @@
           }
         } catch (error) {
           debugError('machine-config', error, { machineId, url });
+        }
+        if (OFFLINE_DATA.machines[machineId]) {
+          const data = OFFLINE_DATA.machines[machineId];
+          machineCache.set(machineId, data);
+          return data;
         }
         if (allowFallback && MACHINE_CONFIG_URL) {
           try {
@@ -5953,6 +7121,26 @@
         if (Number.isFinite(cfg?.cost)) return cfg.cost;
         if (index <= 0) return 0;
         return 25000 * index;
+      };
+      const unlockMachine = (id) => {
+        const prevId = previousMachineId(id);
+        if (!meetsMachineLevelRequirement(id)) {
+          const prevName = prevId ? (machineCache.get(prevId)?.name || prevId) : 'previous machine';
+          showAlert(`Reach Lv ${MACHINE_UNLOCK_LEVEL} on ${prevName} to unlock this machine.`);
+          return false;
+        }
+        const idx = machineIndex(id);
+        const prog = ensureMachineProgress(id);
+        if (prog.unlocked) return true;
+        const cost = getMachineCost(id, idx);
+        if (!spendMachineBalance(cost)) {
+          showAlert(`Need ${formatMoney(cost)} to unlock this machine.`);
+          return false;
+        }
+        prog.unlocked = true;
+        markDirty('machine-unlock');
+        log('Machine unlocked', `${id} unlocked for ${formatMoney(cost)}`);
+        return true;
       };
 
       const ensureDropTables = async () => {
@@ -5988,10 +7176,14 @@
 
       const renderMachineList = async () => {
         if (!els.machineList) return;
+        const nameCache = new Map();
         const cards = await Promise.all((machineList || []).map(async id => {
           const cfg = await fetchMachineConfig(id).catch(() => null);
+          if (cfg?.name) nameCache.set(id, cfg.name);
           const prog = ensureMachineProgress(id);
           const idx = machineIndex(id);
+          const prevId = previousMachineId(id);
+          const meetsLevel = meetsMachineLevelRequirement(id);
           logLocal('machine-progress', { id, prog });
           return {
             id,
@@ -5999,32 +7191,80 @@
             tier: cfg?.tier || 'Demo',
             icon: cfg?.assets?.icon || null,
             unlocked: prog.unlocked,
-            cost: getMachineCost(id, idx)
+            cost: getMachineCost(id, idx),
+            prevId,
+            meetsLevel
           };
         }));
+        cards.forEach(card => {
+          if (!card.prevId) return;
+          const prevCard = cards.find(c => c.id === card.prevId);
+          if (prevCard?.name) {
+            card.prevName = prevCard.name;
+          } else if (nameCache.has(card.prevId)) {
+            card.prevName = nameCache.get(card.prevId);
+          } else {
+            card.prevName = card.prevId;
+          }
+        });
         logLocal('machines', cards);
         els.machineList.innerHTML = cards.map(card => `
-          <button type="button" class="machine-card" data-machine-id="${card.id}" data-active="${card.id === state.machine.id ? 'true' : 'false'}" data-locked="${card.unlocked ? 'false' : 'true'}" role="listitem" ${card.unlocked ? '' : 'disabled'}>
+          <button
+            type="button"
+            class="machine-card"
+            data-machine-id="${card.id}"
+            data-active="${card.id === state.machine.id ? 'true' : 'false'}"
+            data-locked="${card.unlocked ? 'false' : 'true'}"
+            data-lock-reason="${card.unlocked ? 'none' : (!card.meetsLevel ? 'level' : 'price')}"
+            data-locked-label="${card.unlocked ? '' : (!card.meetsLevel ? `Need Lv ${MACHINE_UNLOCK_LEVEL} on ${card.prevName || 'previous machine'}` : `Unlock for ${formatMoney(card.cost || 0)}`)}"
+            data-prev-name="${card.prevName || ''}"
+            role="listitem"
+            aria-label="${card.name} — ${card.tier} — ${
+              card.id === state.machine.id
+                ? 'Current'
+                : (card.unlocked
+                  ? 'Unlocked'
+                  : (!card.meetsLevel ? `Locked, need level ${MACHINE_UNLOCK_LEVEL}` : `Unlock for ${formatMoney(card.cost || 0)}`))
+            }"
+          >
             ${card.icon ? `<img src="${card.icon}" alt="${card.name}" class="machine-card__icon" loading="lazy">` : '<span class="machine-card__icon" aria-hidden="true">🎰</span>'}
             <div>
               <p class="machine-card__name">${card.name}</p>
               <p class="machine-card__meta">${card.tier}</p>
             </div>
-            <p class="machine-card__cost">${card.unlocked ? 'Unlocked' : `Cost: ${formatMoney(card.cost || 0)}`}</p>
+            <p class="machine-card__cost">${
+              card.unlocked
+                ? 'Unlocked'
+                : (!card.meetsLevel
+                  ? `Needs Lv ${MACHINE_UNLOCK_LEVEL} on ${card.prevName || 'previous machine'}`
+                  : `Unlock for ${formatMoney(card.cost || 0)}`)}
+              <span class="machine-card__status" data-state="${
+                card.id === state.machine.id
+                  ? 'active'
+                  : (card.unlocked
+                    ? 'active'
+                    : (!card.meetsLevel ? 'level' : 'price'))
+              }">${
+                card.id === state.machine.id
+                  ? 'Current'
+                  : (card.unlocked
+                    ? 'Unlocked'
+                    : (!card.meetsLevel ? `Lv ${MACHINE_UNLOCK_LEVEL} needed` : 'Unlockable'))
+              }</span>
+            </p>
           </button>
         `).join('');
-        if (els.machineSelect) {
-          els.machineSelect.innerHTML = cards.map(card => `<option value="${card.id}" ${card.id === state.machine.id ? 'selected' : ''} ${card.unlocked ? '' : 'disabled'}>${card.name}</option>`).join('');
-          updateMachinePicker(cards.find(card => card.id === state.machine.id));
-        }
+        const activeCard = cards.find(card => card.id === state.machine.id);
+        updateMachinePicker(activeCard);
       };
 
       const setActiveMachine = async (machineId, options = {}) => {
+        syncCurrentBalanceToMachine();
         const targetId = machineId || state.machine.id || 'classic';
         logAction('machine:switch', { targetId, options });
         const prog = ensureMachineProgress(targetId);
         if (!prog.unlocked) {
-          showAlert('Machine locked. Level up current machine to unlock.');
+          showAlert('Machine locked. Unlock it first.');
           return;
         }
         const cfg = await fetchMachineConfig(targetId, true);
@@ -6046,13 +7286,14 @@
         renderBonusSummary();
         applyUpgradeState(getMachineUpgrades(state.machine.id));
         await syncDropTableForMachine(state.machine.id);
-        renderDropPanel();
+        renderOpenDropPanels();
         renderMachineList();
         if (els.machineName) els.machineName.textContent = state.machine.name || state.machine.id;
         if (els.machineTier) els.machineTier.textContent = cfg.tier || 'Demo';
         updateMachinePicker({ id: state.machine.id, icon: state.machine.assets?.icon, name: state.machine.name });
         const configuredMax = Number(cfg.maxBet);
         state.maxBet = resolveMaxBet(Number.isFinite(configuredMax) ? configuredMax : (root?.dataset?.maxBet || DEFAULT_MAX_BET));
+        loadMachineBalance(state.machine.id);
         syncBetSteps();
         setBetValue(state.bet);
         try {
@@ -6067,7 +7308,8 @@
       };
 
       const loadMachineList = async () => {
-        if (state.offlineMode) {
+        const isFile = window.location.protocol === 'file:';
+        if (state.offlineMode || isFile) {
           machineList = OFFLINE_DATA.machineList || ['classic'];
           await renderMachineList();
           const preferred = localStorage.getItem(LOCAL_MACHINE_KEY);
@@ -6077,17 +7319,24 @@
           await setActiveMachine(target, { silent: true });
           return;
         }
+        let loaded = false;
         try {
           const res = await fetch(MACHINE_LIST_URL, { cache: 'no-cache' });
           if (res.ok) {
             const ids = await res.json();
-            if (Array.isArray(ids)) {
+            if (Array.isArray(ids) && ids.length) {
               machineList = ids;
+              loaded = true;
               await renderMachineList();
             }
           }
         } catch (error) {
           debugError('machine-list', error);
+        }
+        if (!loaded) {
+          const fallbackList = OFFLINE_DATA.machineList;
+          machineList = Array.isArray(fallbackList) && fallbackList.length ? fallbackList : ['classic'];
+          await renderMachineList();
         }
         const preferred = localStorage.getItem(LOCAL_MACHINE_KEY);
         const target = (machineList || []).includes(preferred)
@@ -6099,7 +7348,7 @@
       const loadMachineConfig = async () => {
         await loadMachineList();
         await syncDropTableForMachine(state.machine.id);
-        renderDropPanel();
+        renderOpenDropPanels();
       };
 
       const updateMachinePicker = (card = null) => {
@@ -6138,6 +7387,7 @@
         showAuthAlert('');
       };
 
+      applyPremiumMods();
       setGameVisibility(false);
       renderAutoSpinButton();
       setAuthMode(state.authMode);
@@ -6173,11 +7423,49 @@
             <span class="perk-text">${perk.label}</span>
           </li>
         `).join('');
+        const lossMult = getDropMultiplier(false);
+        const winMult = getDropMultiplier(true);
+        const dropRates = computeDropRates(winMult.total).slice(0, 8);
+        const dropList = dropRates.map(rate => `
+          <li class="perk-drop-row">
+            <span class="rate-item"><img class="drop-icon" src="${rate.icon}" alt="${rate.name}">${rate.name}</span>
+            <strong class="drop-amount">${dropPercent(rate.chance)}</strong>
+          </li>
+        `).join('');
         els.perksPopover.innerHTML = `
-          <h4>Level perks (Lv ${prog.lvl || 0})</h4>
-          <ul class="perks-list">${perkList}</ul>
-          <p class="muted-text small">${future}</p>
+          <div class="perks-popover__header">
+            <div class="perks-tabs" role="tablist">
+              <button type="button" class="perks-tab active" data-perks-tab="perks" aria-selected="true">Perks</button>
+              <button type="button" class="perks-tab" data-perks-tab="drops" aria-selected="false">Drop rates</button>
+            </div>
+            <button type="button" class="perks-close" id="perks-close" aria-label="Close perks">✕</button>
+          </div>
+          <div class="perks-panel" data-perks-panel="perks" data-active="true">
+            <h4>Level perks (Lv ${prog.lvl || 0})</h4>
+            <ul class="perks-list">${perkList}</ul>
+            <p class="muted-text small">${future}</p>
+          </div>
+          <div class="perks-panel" data-perks-panel="drops">
+            <h4>Drop rates</h4>
+            <p class="drop-mult">Win: ${winMult.total.toFixed(2)}× • Loss: ${lossMult.total.toFixed(2)}×</p>
+            <ul class="perks-drop-list">${dropList || '<li class="muted-text small">Drop table not loaded yet.</li>'}</ul>
+          </div>
         `;
+        const tabButtons = Array.from(els.perksPopover.querySelectorAll('[data-perks-tab]'));
+        const panels = Array.from(els.perksPopover.querySelectorAll('[data-perks-panel]'));
+        const setTab = (target) => {
+          tabButtons.forEach(btn => {
+            const active = btn.dataset.perksTab === target;
+            btn.classList.toggle('active', active);
+            btn.setAttribute('aria-selected', active ? 'true' : 'false');
+          });
+          panels.forEach(panel => {
+            panel.dataset.active = panel.dataset.perksPanel === target ? 'true' : 'false';
+          });
+        };
+        tabButtons.forEach(btn => btn.addEventListener('click', () => setTab(btn.dataset.perksTab)));
+        const closeBtn = els.perksPopover.querySelector('#perks-close');
+        closeBtn?.addEventListener('click', () => togglePerks(false));
       };
 
       let hudScheduled = false;
@@ -6343,8 +7631,8 @@
       const setBetValue = (value) => {
         syncBetSteps();
         const capped = Math.min(value || 1, state.maxBet || DEFAULT_MAX_BET);
-        const idx = getNearestBetIndex(capped);
-        const safe = betFromIndex(idx);
+        const safe = Math.max(1, Math.round(capped));
+        const idx = getNearestBetIndex(safe);
         debug('bet:update', { requested: value, applied: safe, max: state.maxBet, idx });
         const prev = state.bet;
         state.bet = safe;
@@ -6361,9 +7649,7 @@
           els.spinBtn.textContent = `Spin: ${formatMoney(state.bet || 0)}`;
         }
         updateHud();
-        if (els.dropPanel && !els.dropPanel.hidden) {
-          renderDropPanel();
-        }
+        renderOpenDropPanels();
         renderSkillButton();
         renderBonusSummary();
       };
@@ -6576,8 +7862,7 @@
           }
         }
         if (typeof payload.balance === 'number') {
-          state.balance = payload.balance;
-          els.balance.textContent = formatMoney(payload.balance, { compact: false });
+          setMachineBalance(payload.balance, state.machine.id);
         }
         if (Number(payload.idleGained) > 0) {
           log('Idle payout collected', `+${formatMoney(payload.idleGained)} credits while away.`);
@@ -6793,7 +8078,10 @@
       };
 
       const startAutoSpin = () => {
-        if (!isAutoSpinUnlocked()) return;
+        if (!isAutoSpinUnlocked()) {
+          focusUpgrade('autoSpinUnlock', 'Unlock Auto Spin in the Upgrades tab.');
+          return;
+        }
         if (state.autoSpin.active) {
           state.autoSpin.active = false;
           state.autoSpin.remaining = 0;
@@ -6828,11 +8116,11 @@
         );
         const bet = clamp(state.bet || 1, 1, state.maxBet || DEFAULT_MAX_BET);
         const freeSpin = (state.pendingFreeSpins || 0) > 0;
-        if (!freeSpin && state.balance < bet) {
+        if (!freeSpin && machineBalance() < bet) {
           showPopup('Not enough credits to spin.');
           return;
         }
-        logAction('spin:start', { bet, balance: state.balance, rows: effectiveRows, reels: effectiveReels });
+        logAction('spin:start', { bet, balance: machineBalance(), rows: effectiveRows, reels: effectiveReels });
         setBetValue(bet);
         setBusy(true);
         showAlert('');
@@ -6850,7 +8138,10 @@
           if (freeSpin && state.pendingFreeSpins > 0) {
             state.pendingFreeSpins = Math.max(0, state.pendingFreeSpins - 1);
           }
-          state.balance = Math.max(0, (state.balance || 0) - spend + (spinData.winAmount || 0));
+          if (spend > 0 && !spendMachineBalance(spend)) {
+            showPopup('Not enough credits to spin.');
+            return;
+          }
           state.lastWin = spinData.winAmount || 0;
           state.spinCount = (state.spinCount || 0) + 1;
           if (spinData.retriggered) {
@@ -6869,23 +8160,35 @@
           if ((modifiers.payoutMult || 1) > 1) {
             finalWin = Math.round(finalWin * modifiers.payoutMult);
           }
-          const jackpotMult = (state.jackpots.multiplier || 10) * (perkEffects.jackpotMult || 1);
-          if (Math.random() < (state.jackpots.chance || 0.01)) {
+          if ((state.premium?.mods?.payoutMult || 1) > 1) {
+            finalWin = Math.round(finalWin * state.premium.mods.payoutMult);
+          }
+          const legacyCount = Object.keys(state.globalPerks || {}).length;
+          if (legacyCount > 0) {
+            finalWin = Math.round(finalWin * (1 + legacyCount * 0.05));
+          }
+          const surge = state.skills.jackpotSurge || {};
+          const surgeActive = surge.activeUntil && surge.activeUntil > nowMs;
+          const surgeMult = surgeActive ? (surge.activeMultiplier || surge.multiplier || 1.3) : 1;
+          const jackpotMult = (state.jackpots.multiplier || 10) * (perkEffects.jackpotMult || 1) * surgeMult;
+          const jackpotChance = (state.jackpots.chance || 0.01) * (surgeActive ? 2 : 1);
+          if (Math.random() < jackpotChance) {
             finalWin = Math.round(finalWin * jackpotMult);
             log('Jackpot!', `×${jackpotMult.toFixed(2)} payout`);
           }
           if (spinData.retriggered) {
             state.pendingFreeSpins = (state.pendingFreeSpins || 0) + 1;
           }
-          if (finalWin > 0) {
-            state.jackpots.hotStreak.wins += 1;
-            if (state.jackpots.hotStreak.wins >= 3) {
-              finalWin = Math.round(finalWin * (1 + state.jackpots.hotStreak.bonusPct));
-            }
-          } else {
-            state.jackpots.hotStreak.wins = 0;
+        if (finalWin > 0) {
+          state.jackpots.hotStreak.wins += 1;
+          if (state.jackpots.hotStreak.wins >= 3) {
+            finalWin = Math.round(finalWin * (1 + state.jackpots.hotStreak.bonusPct));
           }
-          spinData.winAmount = finalWin;
+          addMachineBalance(finalWin);
+        } else {
+          state.jackpots.hotStreak.wins = 0;
+        }
+        spinData.winAmount = finalWin;
 
           const dropResult = rollDropsForSpin(bet, finalWin || 0);
           if (dropResult.drops?.length) {
@@ -7123,35 +8426,32 @@
         updateHud();
         startOfflineDemo();
       });
-      window.addEventListener('resize', applyMachineTheme);
-
-      if (els.betSlider) {
-        els.betSlider.addEventListener('input', (event) => {
-          const idx = Number(event.target.value) || 0;
-          const next = betFromIndex(idx);
-          logAction('bet:slider', { idx, bet: next });
-          setBetValue(next);
-        });
-      }
+      const handleWindowResize = () => {
+        applyMachineTheme();
+        if (els.machineFlyout?.dataset.open === 'true') positionMachineFlyout();
+      };
+      window.addEventListener('resize', handleWindowResize);
+      window.addEventListener('scroll', () => {
+        if (els.machineFlyout?.dataset.open === 'true') positionMachineFlyout();
+      }, { passive: true });
 
       const handleChipAction = (action) => {
         debug('chip:action', { action, busy: state.busy, ready: state.gameReady });
         if (state.busy || !state.gameReady) return;
-        const currentIndex = getNearestBetIndex(state.bet);
-        if (action === 'increase') {
-          setBetValue(betFromIndex(currentIndex + 1));
-          logAction('bet:chip', { action, bet: state.bet });
-          return;
-        }
-        if (action === 'decrease') {
-          setBetValue(betFromIndex(currentIndex - 1));
-          logAction('bet:chip', { action, bet: state.bet });
-          return;
-        }
-       if (action === 'max') {
-          setBetValue(state.maxBet || DEFAULT_MAX_BET);
-          logAction('bet:chip', { action, bet: state.bet });
-        }
+        const maxCap = state.maxBet || DEFAULT_MAX_BET;
+        const balance = machineBalance();
+        const pctMap = {
+          'pct-10': 0.10,
+          'pct-25': 0.25,
+          'pct-50': 0.50,
+          'pct-100': 1
+        };
+        const pct = pctMap[action];
+        if (!pct) return;
+        const raw = Math.max(1, Math.round(balance * pct));
+        const bet = Math.min(maxCap, raw);
+        setBetValue(bet);
+        logAction('bet:chip', { action, bet });
       };
 
       els.chipButtons.forEach(btn => {
@@ -7162,6 +8462,10 @@
         if (state.busy || !state.gameReady) return;
         toggleDropPanel();
       });
+      els.dropRatesPlayBtn?.addEventListener('click', () => {
+        if (state.busy || !state.gameReady) return;
+        toggleDropPanel(undefined, 'overlay');
+      });
 
       els.dropSkillBtn?.addEventListener('click', () => {
         activateDropSkill();
@@ -7170,10 +8474,16 @@
       els.workerBtn?.addEventListener('click', toggleWorker);
 
       els.dropCloseBtn?.addEventListener('click', () => toggleDropPanel(false));
+      els.dropOverlayClose?.addEventListener('click', () => toggleDropPanel(false, 'overlay'));
       els.dropPanel?.addEventListener('click', (event) => {
         const target = event.target;
         if (target === els.dropPanel) {
           toggleDropPanel(false);
+        }
+      });
+      els.dropOverlay?.addEventListener('click', (event) => {
+        if (event.target === els.dropOverlay) {
+          toggleDropPanel(false, 'overlay');
         }
       });
       els.machineList?.addEventListener('click', (event) => {
@@ -7181,19 +8491,23 @@
         if (!card || state.busy) return;
         const id = card.dataset.machineId;
         if (!id) return;
+        const lockReason = card.dataset.lockReason;
         if (card.dataset.locked === 'true') {
-          showPopup('Machine locked. Unlock previous machines first.');
+          if (lockReason === 'level') {
+            const label = card.dataset.lockedLabel || `Reach Lv ${MACHINE_UNLOCK_LEVEL} on ${card.dataset.prevName || 'previous machine'} to unlock.`;
+            showAlert(label);
+            return;
+          }
+          const unlocked = unlockMachine(id);
+          if (unlocked) {
+            card.dataset.locked = 'false';
+            renderMachineList();
+            showAlert('Machine unlocked. Click again to switch.');
+          }
           return;
         }
         setActiveMachine(id);
         setMachineFlyout(false);
-      });
-      els.machineSelect?.addEventListener('change', (event) => {
-        const id = event.target.value;
-        if (id && !state.busy) {
-          setActiveMachine(id);
-          setMachineFlyout(false);
-        }
       });
       els.machinePicker?.addEventListener('click', () => {
         toggleMachineFlyout();
@@ -7247,10 +8561,25 @@
         if (state.busy) return;
         purchaseUpgrade(button.dataset.upgrade);
       });
+      els.paytable?.addEventListener('click', (event) => {
+        const item = event.target.closest('li[data-active]');
+        if (!item) return;
+        const active = item.dataset.active === 'true';
+        if (active) return;
+        focusUpgrade('premium', 'Buy Premium Symbols to unlock more symbols.');
+      });
 
       els.spinBtn.addEventListener('click', spin);
       els.lineFlashBtn?.addEventListener('click', flashActiveLines);
-      els.autoSpinBtn?.addEventListener('click', startAutoSpin);
+      els.autoSpinBtn?.addEventListener('click', () => {
+        if (els.autoSpinBtn.dataset.locked === 'true' || !isAutoSpinUnlocked()) {
+          focusUpgrade('autoSpinUnlock', 'Unlock Auto Spin in the Upgrades tab.');
+          return;
+        }
+        startAutoSpin();
+      });
+      els.creditsChip?.addEventListener('click', () => setPaneActive('upgrades'));
+      els.vipChip?.addEventListener('click', () => togglePremiumPanel(true));
 
       els.resetBtn.addEventListener('click', () => {
         if (state.busy) {
@@ -7289,7 +8618,7 @@
         const serverLevel = bucket?.[type] || 0;
         const currentLevel = getEffectiveUpgradeLevel(type);
         const maxLevel = getUpgradeMaxLevel(type);
-        logAction('upgrade:attempt', { type, currentLevel, maxLevel, balance: state.balance, cost: computeUpgradeCost(def, currentLevel) });
+        logAction('upgrade:attempt', { type, currentLevel, maxLevel, balance: machineBalance(), cost: computeUpgradeCost(def, currentLevel) });
         if (currentLevel >= maxLevel) {
           showPopup('Upgrade already maxed.');
           debug('upgrade:maxed', { type, currentLevel, maxLevel, bucket, serverLevel });
@@ -7310,14 +8639,12 @@
         const localLevel = Math.max(0, Number(localBucket[type] || 0));
         // prioritize local level for client-only; allow spending if effective < max
         const cost = computeUpgradeCost(def, currentLevel);
-        if ((state.balance || 0) < cost) {
+        if (!spendMachineBalance(cost)) {
           showPopup(`Need ${formatMoney(cost)} to upgrade.`);
-          debug('upgrade:insufficient', { type, cost, balance: state.balance });
+          debug('upgrade:insufficient', { type, cost, balance: machineBalance() });
           return;
         }
         // Legacy note for server builds: request('/session', { type }) would sync upgrades when online.
-        state.balance = Math.max(0, (state.balance || 0) - cost);
-        if (els.balance) els.balance.textContent = formatMoney(state.balance, { compact: false });
         localBucket[type] = localLevel + 1;
         saveLocalUpgrades(localUpgrades);
         ensureMachineProgress(state.machine.id).upgrades = { ...bucket, [type]: serverLevel };
@@ -7348,8 +8675,15 @@
       els.logoutBtn.addEventListener('click', logout);
       els.debugCoinBtn?.addEventListener('click', grantDebugCoins);
       els.deleteBtn?.addEventListener('click', deleteAccount);
-      els.premiumBtn?.addEventListener('click', () => {
-        showAlert('Premium shop is server-only. Coming soon.');
+      els.premiumBtn?.addEventListener('click', () => togglePremiumPanel(true));
+      els.premiumClose?.addEventListener('click', () => togglePremiumPanel(false));
+      els.premiumPanel?.addEventListener('click', (event) => {
+        if (event.target === els.premiumPanel) togglePremiumPanel(false);
+      });
+      els.premiumGrid?.addEventListener('click', (event) => {
+        const btn = event.target.closest('[data-buy-premium]');
+        if (!btn) return;
+        purchasePremium(btn.dataset.buyPremium);
       });
 
       // Load upgrades after all helpers are defined to avoid init-order errors
@@ -7370,7 +8704,9 @@
           const payout = state.machine.payouts?.[key] || 1;
           const base = Math.max(1, payout);
           const biasFactor = perks.biasMult || 1;
-          const wildFactor = key === 'wild' ? (perks.wildWeightMult || 1) : 1;
+          const wildFactor = key === 'wild'
+            ? (perks.wildWeightMult || 1) * (state.premium?.mods?.wildWeight || 1)
+            : 1;
           const weight = Math.max(
             1,
             Math.trunc(((1000 / base) + (Math.sqrt(base) * biasFactor)) * wildFactor)
@@ -7382,18 +8718,12 @@
         debug('symbols:weights', { count: entries.length, total, lvl, bias: perks.biasMult, wild: perks.wildWeightMult });
       }
 
+      const updateMachineCurrencyPill = () => {
+        // removed per-machine currency pill
+      };
+
       rebuildSymbolWeights();
     })();
   </script>
 </body>
 </html>
-      if (offlineMode) {
-        state.auth.token = null;
-        state.auth.username = OFFLINE_USER;
-        state.offlineMode = true;
-        const overlay = document.getElementById('auth-overlay');
-        if (overlay) {
-          overlay.dataset.hidden = 'true';
-          overlay.setAttribute('aria-hidden', 'true');
-        }
-      }
