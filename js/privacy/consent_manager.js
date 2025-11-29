@@ -30,6 +30,7 @@
   } catch (err) {}
 
   const STYLE_ID = 'pcz-consent-styles';
+  const CSS_VERSION = 'v2';
   const PREFERENCES_URL = 'privacy.html#prefs-title';
 
   function loadStyles() {
@@ -37,7 +38,7 @@
     const link = document.createElement('link');
     link.id = STYLE_ID;
     link.rel = 'stylesheet';
-    link.href = 'css/privacy.css';
+    link.href = 'css/privacy.css' + (CSS_VERSION ? ('?v=' + CSS_VERSION) : '');
     document.head.appendChild(link);
   }
 
