@@ -231,6 +231,7 @@
   }
   .contact-form-success{
     width:100%;
+    box-sizing:border-box;
     padding:32px;
     border-radius:16px;
     text-align:center;
