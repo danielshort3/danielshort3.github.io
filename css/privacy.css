@@ -32,10 +32,8 @@ body.consent-blocked::before {
 
 #pcz-banner {
   position: fixed;
-  inset-inline: auto;
-  left: clamp(12px, 4vw, 32px);
-  right: clamp(12px, 4vw, 32px);
-  bottom: clamp(12px, 3vw, 24px);
+  inset-inline: 0;
+  bottom: 0;
   z-index: 99999;
   background: transparent;
   padding: 0;
@@ -61,7 +59,9 @@ body.consent-blocked::before {
   grid-template-columns: 1fr auto;
   gap: clamp(14px, 3vw, 20px);
   align-items: center;
-  max-width: min(760px, 100vw);
+  width: 100%;
+  max-width: none;
+  border-radius: 0;
 }
 
 #pcz-banner .pcz-close {
@@ -243,13 +243,8 @@ body.consent-blocked::before {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  * {
+  *:not(#pcz-banner):not(#pcz-banner *):not(#pcz-modal):not(#pcz-modal *) {
     transition: none !important;
     animation: none !important;
-  }
-  #pcz-banner,
-  #pcz-banner.pcz-visible,
-  #pcz-banner.pcz-exit {
-    transform: none !important;
   }
 }
