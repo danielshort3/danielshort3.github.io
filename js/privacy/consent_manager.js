@@ -389,11 +389,17 @@
     banner.setAttribute('aria-label', localeStrings.bannerTitle);
     banner.innerHTML =
       '<button id="pcz-close" type="button" class="pcz-close" aria-label="' + localeStrings.close + '"><span aria-hidden="true">&times;</span></button>' +
-      '<div class="pcz-row">' +
-        '<p><strong>' + localeStrings.bannerTitle + '</strong> ' + localeStrings.bannerDesc + ' <a class="pcz-link" href="privacy.html">' + localeStrings.privacyPolicy + '</a></p>' +
-        '<button id="pcz-accept" class="pcz-btn pcz-primary">' + localeStrings.acceptAll + '</button>' +
-        '<button id="pcz-reject" class="pcz-btn pcz-secondary">' + localeStrings.rejectAll + '</button>' +
-        '<button id="pcz-manage" class="pcz-btn pcz-link">' + localeStrings.managePrefs + '</button>' +
+      '<div class="pcz-card">' +
+        '<div class="pcz-copy">' +
+          '<p class="pcz-kicker">Privacy</p>' +
+          '<h3 class="pcz-title">' + localeStrings.bannerTitle + '</h3>' +
+          '<p class="pcz-body">' + localeStrings.bannerDesc + ' <a class="pcz-link" href="privacy.html">' + localeStrings.privacyPolicy + '</a></p>' +
+        '</div>' +
+        '<div class="pcz-actions">' +
+          '<button id="pcz-accept" class="pcz-btn pcz-primary">' + localeStrings.acceptAll + '</button>' +
+          '<button id="pcz-reject" class="pcz-btn pcz-secondary">' + localeStrings.rejectAll + '</button>' +
+          '<button id="pcz-manage" class="pcz-btn pcz-ghost">' + localeStrings.managePrefs + '</button>' +
+        '</div>' +
       '</div>';
     return banner;
   }
