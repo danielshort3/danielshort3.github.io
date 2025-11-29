@@ -13,6 +13,20 @@ function slugify(text){
     .replace(/^-+|-+$/g, '') || 'section';
 }
 
+function escapeAttr(value){
+  return String(value == null ? '' : value).replace(/"/g, '&quot;');
+}
+
+function sendContributionEvent(name, params){
+  if (typeof window.gaEvent === 'function') {
+    window.gaEvent(name, params);
+    return;
+  }
+  if (typeof window.gtag === 'function') {
+    window.gtag('event', name, params || {});
+  }
+}
+
 function formatMonthYear(date){
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
   return date.toLocaleString('en-US', { month: 'short', year: 'numeric' });
@@ -95,10 +109,13 @@ function sortItems(items = []){
 
 function buildDocLinks(item, opts = {}){
   const links = [];
+  const section = opts.section || '';
+  const title = item ? item.title : '';
+  const baseAttrs = `data-section="${escapeAttr(section)}" data-title="${escapeAttr(title)}"`;
 
   if (item.pdf) {
     links.push(`
-      <a href="${item.pdf}" target="_blank" rel="noopener noreferrer" class="doc-link" aria-label="Open PDF" download>
+      <a href="${item.pdf}" target="_blank" rel="noopener noreferrer" class="doc-link" aria-label="Open PDF" download ${baseAttrs} data-kind="pdf">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
           <path d="M14 2v6h6"/>
@@ -110,7 +127,7 @@ function buildDocLinks(item, opts = {}){
 
   if (item.link) {
     links.push(`
-      <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="doc-link" aria-label="Open external link">
+      <a href="${item.link}" target="_blank" rel="noopener noreferrer" class="doc-link" aria-label="Open external link" ${baseAttrs} data-kind="link">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M14 3h7v7"/>
           <path d="M10 14L21 3"/>
@@ -128,7 +145,7 @@ function buildDocLinks(item, opts = {}){
   return `<div class="${classes.join(' ')}">${links.join('')}</div>`;
 }
 
-function buildFeaturedCard(item){
+function buildFeaturedCard(item, sectionHeading){
   if (!item) return null;
   const date = getItemDate(item);
   const dateLabel = date ? ` · ${formatMonthYear(date)}` : '';
@@ -141,7 +158,7 @@ function buildFeaturedCard(item){
       <h3 class="doc-title">${item.title}</h3>
       <div class="doc-footer">
         ${item.role ? `<p class="doc-role">${item.role}</p>` : ''}
-        ${buildDocLinks(item)}
+        ${buildDocLinks(item, { section: sectionHeading })}
       </div>
     </div>`;
   return card;
@@ -174,7 +191,7 @@ function groupByYear(items){
   return numeric.concat(other);
 }
 
-function buildYearTimeline(previousItems){
+function buildYearTimeline(previousItems, sectionHeading){
   if (!previousItems.length) return null;
 
   const groups = groupByYear(previousItems);
@@ -206,7 +223,7 @@ function buildYearTimeline(previousItems){
       const li = document.createElement('li');
       li.className = 'timeline-item';
 
-      const links = buildDocLinks(item, { compact: true }) || '';
+      const links = buildDocLinks(item, { compact: true, section: sectionHeading }) || '';
       li.innerHTML = `
         <article class="timeline-item-card">
           <div class="doc-layout">
@@ -231,9 +248,10 @@ function buildYearTimeline(previousItems){
   return timeline;
 }
 
-function buildContributions(){
-  const root = document.getElementById('contrib-root');
+function buildContributions(rootEl){
+  const root = rootEl || document.getElementById('contrib-root');
   if(!root || !Array.isArray(window.contributions)) return;
+  root.innerHTML = '';
 
   window.contributions.forEach((sec, index) => {
     const items = Array.isArray(sec.items) ? sec.items : [];
@@ -246,6 +264,7 @@ function buildContributions(){
     section.className = 'surface-band reveal contrib-section';
     section.dataset.heading = sec.heading;
     section.id = sec.slug || slugify(sec.heading);
+    section.dataset.sectionIndex = String(index);
 
     const wrap   = document.createElement('div');
     wrap.className = 'wrapper';
@@ -258,10 +277,10 @@ function buildContributions(){
     const stack = document.createElement('div');
     stack.className = 'contrib-stack';
 
-    const featured = buildFeaturedCard(latest);
+    const featured = buildFeaturedCard(latest, sec.heading);
     if (featured) stack.appendChild(featured);
 
-    const timeline = buildYearTimeline(previous);
+    const timeline = buildYearTimeline(previous, sec.heading);
     if (timeline) stack.appendChild(timeline);
 
     wrap.appendChild(stack);
@@ -273,6 +292,33 @@ function buildContributions(){
       divider.setAttribute('aria-hidden', 'true');
       root.appendChild(divider);
     }
+  });
+}
+
+function bindContributionEvents(root){
+  if (!root || root._contribEventsBound) return;
+  root._contribEventsBound = true;
+  root.addEventListener('click', (event) => {
+    const link = event.target.closest('.doc-links a');
+    if (!link) return;
+    const section = link.dataset.section || link.closest('.contrib-section')?.dataset.heading || '';
+    const title = link.dataset.title || link.getAttribute('aria-label') || '';
+    const kind = link.dataset.kind || '';
+    sendContributionEvent('contrib_doc_click', {
+      section,
+      title,
+      kind
+    });
+  });
+  root.addEventListener('toggle', (event) => {
+    const details = event.target;
+    if (!details || details.tagName !== 'DETAILS' || !details.classList.contains('timeline-year')) return;
+    const section = details.closest('.contrib-section')?.dataset.heading || '';
+    sendContributionEvent('contrib_timeline_toggle', {
+      section,
+      year: details.dataset.year || '',
+      expanded: !!details.open
+    });
   });
 }
 
@@ -314,7 +360,10 @@ function initContributionHashOffsets(){
 }
 
 function initContributions(){
-  buildContributions();
+  const root = document.getElementById('contrib-root');
+  if (!root) return;
+  buildContributions(root);
+  bindContributionEvents(root);
   initContributionHashOffsets();
 }
 
