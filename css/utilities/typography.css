@@ -19,4 +19,11 @@
   .modal-text a:hover:not(.btn-primary):not(.btn-secondary):not(.doc-link):not(.pcz-link) {
     color: var(--link-hover);
   }
+
+  /* Keep hero KPI cards clean (no text underlines) */
+  .hero-kpis .hero-kpi-link,
+  .hero-kpis .hero-kpi-link:hover,
+  .hero-kpis .hero-kpi-link:visited {
+    text-decoration: none;
+  }
 }
