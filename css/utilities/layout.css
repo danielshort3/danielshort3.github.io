@@ -330,16 +330,18 @@
 
   .hero-kpis.grid-container{
     margin:clamp(1.6rem,4.5vh,2.4rem) auto 0;
-    padding-inline:clamp(.5rem,5vw,1.2rem);
-    width:100%;
-    max-width:min(520px, 100%);
-    justify-items:center;
+    padding-inline:0;
+    width:90%;
+    max-width:480px;
+    box-sizing:border-box;
+    justify-items:stretch;
     gap:clamp(1.1rem,4.5vw,1.6rem);
   }
 
   .hero-kpis .hero-kpi-link{
+    box-sizing:border-box;
     width:100%;
-    max-width:min(480px, 100%);
+    max-width:100%;
     margin-inline:auto;
   }
 
