@@ -328,6 +328,21 @@
     gap:clamp(18px,5vw,26px);
   }
 
+  .hero-kpis.grid-container{
+    margin:clamp(1.6rem,4.5vh,2.4rem) auto 0;
+    padding-inline:clamp(.5rem,5vw,1.2rem);
+    width:100%;
+    max-width:min(520px, 100%);
+    justify-items:center;
+    gap:clamp(1.1rem,4.5vw,1.6rem);
+  }
+
+  .hero-kpis .hero-kpi-link{
+    width:100%;
+    max-width:min(480px, 100%);
+    margin-inline:auto;
+  }
+
   .brand {
     flex-shrink:1;
     min-width:0;
