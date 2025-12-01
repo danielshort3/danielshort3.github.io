@@ -22,6 +22,10 @@
     { "source": "/slot-machine-demo", "destination": "/demos/slot-machine-demo" },
     { "source": "/slot-machine-demo.html", "destination": "/demos/slot-machine-demo" }
   ],
+  "redirects": [
+    { "source": "/projects", "destination": "/portfolio", "permanent": true },
+    { "source": "/projects/(.*)", "destination": "/portfolio", "permanent": true }
+  ],
   "headers": [
     {
       "source": "/(.*)",
