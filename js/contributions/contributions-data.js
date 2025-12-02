@@ -30,6 +30,14 @@ window.contributions = [
     heading: 'Council Briefings',
     desc   : 'Briefings for Grand Junction City Council. I contributed actionable data insights and visualizations used by decision makers.',
     items  : [
+      { title:'November 24, 2025 Council Briefing',
+        role :'Contributions: Visit Grand Junction section',
+        link :'https://ccbrief.my.canva.site/city-council-briefing-nov-24-2025' 
+      },
+      { title:'November 10, 2025 Council Briefing',
+        role :'Contributions: Visit Grand Junction section',
+        link :'https://ccbrief.my.canva.site/copy-of-city-council-briefing-nov-10-2025' 
+      },
       { title:'October 20, 2025 Council Briefing',
         role :'Contributions: Visit Grand Junction section',
         link :'https://ccbrief.my.canva.site/city-council-briefing-oct-20-2025' 
@@ -162,6 +170,10 @@ window.contributions = [
     heading:'Visit Grand Junction eNewsletters',
     desc   :'Tourism industry e-newsletters featuring my analytics, pacing reports, and lodging performance insights sent to stakeholders.',
     items  : [
+      { title:'Stakeholder eNewsletter · November 2025',
+        role :'Contributions: Industry Data Report',
+        link :'https://us4.campaign-archive.com/?e=18b7bff0b8&u=d69163b71ce34ec42d130a6a4&id=1370d609e9' 
+      },
       { title:'Stakeholder eNewsletter · October 2025',
         role :'Contributions: Industry Data Report',
         link :'https://us4.campaign-archive.com/?e=18b7bff0b8&u=d69163b71ce34ec42d130a6a4&id=665ac728f5' 
