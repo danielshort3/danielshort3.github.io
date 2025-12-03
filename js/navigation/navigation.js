@@ -76,6 +76,44 @@
     if(!host) return;
     const animate = !sessionStorage.getItem('navEntryPlayed');
     sessionStorage.setItem('navEntryPlayed','yes');
+    const iconSprite = {
+      grid: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+      spark: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.4 4.2L18 9l-4.1 1.8L12 15l-1.9-4.2L6 9l4.6-1.8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="18.5" cy="15.5" r="1.4" fill="currentColor"/><circle cx="7" cy="17" r="1.2" fill="currentColor"/></svg>',
+      doc: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 3.5h7l4 4v13h-11z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M13.5 3.5v4h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8.5 12.5h7M8.5 16h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+      chat: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18l-3 3V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7 9h10M7 13h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+      link: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 14.5l-2 2a3.5 3.5 0 0 1-5-5l4-4a3.5 3.5 0 0 1 5 0l1 1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M14.5 9.5l1-1a3.5 3.5 0 0 1 5 5l-4 4a3.5 3.5 0 0 1-5 0l-1-1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+      mail: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 7l8 5.2L20.5 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'
+    };
+    const renderActionTile = (action) => {
+      const attrParts = [];
+      if(action.external){
+        attrParts.push('target="_blank"', 'rel="noopener noreferrer"');
+      }
+      if(action.modalLink){
+        attrParts.push('data-contact-modal-link="true"');
+      }
+      if(action.download){
+        attrParts.push('download');
+      }
+      const attrs = attrParts.length ? ` ${attrParts.join(' ')}` : '';
+      const badge = action.badge ? `<span class="nav-dropdown-badge" aria-hidden="true">${action.badge}</span>` : '';
+      const icon = iconSprite[action.icon] || iconSprite.grid;
+      return `<a href="${action.href}" class="nav-dropdown-card" role="listitem"${attrs}>
+                <span class="nav-dropdown-icon" aria-hidden="true">${icon}</span>
+                <span class="nav-dropdown-card-copy">
+                  <span class="nav-dropdown-title">${action.title}${badge}</span>
+                  <span class="nav-dropdown-subtitle">${action.subtitle}</span>
+                </span>
+              </a>`;
+    };
+    const renderActionColumn = (label, actions) => `
+      <div class="nav-dropdown-column nav-dropdown-column-actions">
+        <div class="nav-dropdown-header">${label}</div>
+        <div class="nav-dropdown-actions" role="list">
+          ${actions.map(renderActionTile).join('')}
+        </div>
+      </div>
+    `;
     const portfolioHighlights = [
       { id: 'shapeClassifier',  title: 'Shape Classifier Demo',      subtitle: 'Handwritten shape recognition' },
       { id: 'chatbotLora',      title: 'Chatbot (LoRA + RAG)',       subtitle: 'Fine-tuned assistant with RAG' },
@@ -84,20 +122,22 @@
       { id: 'nonogram',         title: 'Nonogram Solver',            subtitle: '94% accuracy reinforcement learning' }
     ];
     const portfolioMenu = `
-      <div class="nav-dropdown-header" aria-hidden="true">Top 5 Projects</div>
-      <div class="nav-dropdown-list" role="list">
-        ${portfolioHighlights.map(
-          p => `<a href="portfolio.html?project=${p.id}" class="nav-dropdown-link nav-dropdown-featured" role="listitem">
-                  <span class="nav-dropdown-title">${p.title}</span>
-                  <span class="nav-dropdown-subtitle">${p.subtitle}</span>
-                </a>`
-        ).join('')}
-      </div>
-      <div class="nav-dropdown-footer">
-        <a href="portfolio.html?view=all#filters" class="nav-dropdown-link nav-dropdown-all" role="button">
-          <span class="nav-dropdown-title">View all projects</span>
-          <span class="nav-dropdown-subtitle">Browse the complete portfolio</span>
-        </a>
+      <div class="nav-dropdown-inner">
+        <div class="nav-dropdown-column nav-dropdown-column-list">
+          <div class="nav-dropdown-header" aria-hidden="true">Top 5 Projects</div>
+          <div class="nav-dropdown-list" role="list">
+            ${portfolioHighlights.map(
+              p => `<a href="portfolio.html?project=${p.id}" class="nav-dropdown-link nav-dropdown-featured" role="listitem">
+                      <span class="nav-dropdown-title">${p.title}</span>
+                      <span class="nav-dropdown-subtitle">${p.subtitle}</span>
+                    </a>`
+            ).join('')}
+          </div>
+        </div>
+        ${renderActionColumn('Visual shortcuts', [
+          { title:'Browse all projects', subtitle:'See every build with filters', href:'portfolio.html?view=all#filters', icon:'grid' },
+          { title:'Run the chatbot demo', subtitle:'Try the LoRA + RAG assistant live', href:'demos/chatbot-demo.html', icon:'spark' }
+        ])}
       </div>
     `;
     const contributionSections = [
@@ -106,27 +146,43 @@
       { id: 'enewsletters',        title: 'Stakeholder eNews', subtitle: 'Industry pacing & KPI updates' }
     ];
     const contributionsMenu = `
-      <div class="nav-dropdown-header" aria-hidden="true">Browse categories</div>
-      <div class="nav-dropdown-list" role="list">
-        ${contributionSections.map(
-          c => `<a href="contributions.html#${c.id}" class="nav-dropdown-link" role="listitem">
-                  <span class="nav-dropdown-title">${c.title}</span>
-                  <span class="nav-dropdown-subtitle">${c.subtitle}</span>
-                </a>`
-        ).join('')}
+      <div class="nav-dropdown-inner">
+        <div class="nav-dropdown-column nav-dropdown-column-list">
+          <div class="nav-dropdown-header" aria-hidden="true">Browse categories</div>
+          <div class="nav-dropdown-list" role="list">
+            ${contributionSections.map(
+              c => `<a href="contributions.html#${c.id}" class="nav-dropdown-link" role="listitem">
+                    <span class="nav-dropdown-title">${c.title}</span>
+                    <span class="nav-dropdown-subtitle">${c.subtitle}</span>
+                  </a>`
+            ).join('')}
+          </div>
+        </div>
+        ${renderActionColumn('Visual shortcuts', [
+          { title:'Contributions overview', subtitle:'Jump into reports & briefings', href:'contributions.html', icon:'grid' },
+          { title:'Request a briefing', subtitle:'Book a walkthrough or follow-up', href:'contact.html#contact-modal', icon:'chat', modalLink:true }
+        ])}
       </div>
     `;
     const resumeMenu = `
-      <div class="nav-dropdown-header" aria-hidden="true">Resume shortcuts</div>
-      <div class="nav-dropdown-list" role="list">
-        <a href="resume.html" class="nav-dropdown-link" role="listitem">
-          <span class="nav-dropdown-title">View Resume</span>
-          <span class="nav-dropdown-subtitle">Open the full resume page</span>
-        </a>
-        <a href="documents/Resume.pdf" class="nav-dropdown-link" role="listitem" download>
-          <span class="nav-dropdown-title">Download Resume</span>
-          <span class="nav-dropdown-subtitle">Save the latest PDF copy</span>
-        </a>
+      <div class="nav-dropdown-inner">
+        <div class="nav-dropdown-column nav-dropdown-column-list">
+          <div class="nav-dropdown-header" aria-hidden="true">Resume shortcuts</div>
+          <div class="nav-dropdown-list" role="list">
+            <a href="resume.html" class="nav-dropdown-link" role="listitem">
+              <span class="nav-dropdown-title">View Resume</span>
+              <span class="nav-dropdown-subtitle">Open the full resume page</span>
+            </a>
+            <a href="documents/Resume.pdf" class="nav-dropdown-link" role="listitem" download>
+              <span class="nav-dropdown-title">Download Resume</span>
+              <span class="nav-dropdown-subtitle">Save the latest PDF copy</span>
+            </a>
+          </div>
+        </div>
+        ${renderActionColumn('Visual shortcuts', [
+          { title:'LinkedIn profile', subtitle:'See endorsements and background', href:'https://www.linkedin.com/in/danielshort3/', icon:'link', external:true },
+          { title:'Shareable PDF', subtitle:'Download the latest resume instantly', href:'documents/Resume.pdf', icon:'doc', download:true }
+        ])}
       </div>
     `;
     const contactOptions = [
@@ -136,23 +192,31 @@
       { title: 'GitHub', subtitle: 'github.com/danielshort3', href: 'https://github.com/danielshort3', external: true }
     ];
     const contactMenu = `
-      <div class="nav-dropdown-header" aria-hidden="true">Get in touch</div>
-      <div class="nav-dropdown-list" role="list">
-        ${contactOptions.map((option) => {
-          const attrParts = [];
-          if(option.external){
-            attrParts.push('target="_blank"', 'rel="noopener noreferrer"');
-          }
-          if(option.modalLink){
-            attrParts.push('data-contact-modal-link="true"');
-          }
-          const attrs = attrParts.length ? ` ${attrParts.join(' ')}` : '';
-          const badge = option.recommended ? '<span class="nav-dropdown-badge" aria-hidden="true">Recommended</span>' : '';
-          return `<a href="${option.href}" class="nav-dropdown-link${option.recommended ? ' nav-dropdown-link-recommended' : ''}" role="listitem"${attrs}>
-                    <span class="nav-dropdown-title">${option.title}${badge}</span>
-                    <span class="nav-dropdown-subtitle">${option.subtitle}</span>
-                  </a>`;
-        }).join('')}
+      <div class="nav-dropdown-inner">
+        <div class="nav-dropdown-column nav-dropdown-column-list">
+          <div class="nav-dropdown-header" aria-hidden="true">Get in touch</div>
+          <div class="nav-dropdown-list" role="list">
+            ${contactOptions.map((option) => {
+              const attrParts = [];
+              if(option.external){
+                attrParts.push('target="_blank"', 'rel="noopener noreferrer"');
+              }
+              if(option.modalLink){
+                attrParts.push('data-contact-modal-link="true"');
+              }
+              const attrs = attrParts.length ? ` ${attrParts.join(' ')}` : '';
+              const badge = option.recommended ? '<span class="nav-dropdown-badge" aria-hidden="true">Recommended</span>' : '';
+              return `<a href="${option.href}" class="nav-dropdown-link${option.recommended ? ' nav-dropdown-link-recommended' : ''}" role="listitem"${attrs}>
+                        <span class="nav-dropdown-title">${option.title}${badge}</span>
+                        <span class="nav-dropdown-subtitle">${option.subtitle}</span>
+                      </a>`;
+            }).join('')}
+          </div>
+        </div>
+        ${renderActionColumn('Visual shortcuts', [
+          { title:'Start a project', subtitle:'Share what you need and timelines', href:'contact.html#contact-modal', icon:'spark', modalLink:true, badge:'Recommended' },
+          { title:'Email directly', subtitle:'daniel@danielshort.me', href:'mailto:daniel@danielshort.me', icon:'mail' }
+        ])}
       </div>
     `;
     const dropdownIds = {
