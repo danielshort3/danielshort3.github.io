@@ -133,15 +133,17 @@
     margin-top:clamp(2.1rem,4.5vh,3.4rem);
     margin-bottom:0;
     padding:0;
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
     gap:var(--kpi-gap);
     align-items:stretch;
-    justify-items:stretch;
   }
 
   .hero-kpi{
-    min-width:0;
+    min-width:260px;
+    flex:1 1 300px;
+    max-width:360px;
     opacity:0;
     animation:heroFade .9s forwards;
   }
