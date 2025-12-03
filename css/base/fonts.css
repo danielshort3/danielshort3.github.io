@@ -1,0 +1,33 @@
+@layer base {
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: local('Inter'), local('Inter Regular'), url("../css/fonts/Inter-Latin.woff2") format('woff2');
+  }
+
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: local('Inter Medium'), local('Inter'), url("../css/fonts/Inter-Latin.woff2") format('woff2');
+  }
+
+  @font-face {
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: local('Poppins Medium'), local('Poppins'), url("../css/fonts/Poppins-500-Latin.woff2") format('woff2');
+  }
+
+  @font-face {
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: local('Poppins SemiBold'), local('Poppins'), url("../css/fonts/Poppins-600-Latin.woff2") format('woff2');
+  }
+}

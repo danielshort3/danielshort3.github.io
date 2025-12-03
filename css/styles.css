@@ -1,6 +1,7 @@
 /* Declare cascade layer order for predictable overrides */
 @layer tokens, base, layout, components, utilities, overrides;
 
+@import url("base/fonts.css");
 @import url("variables.css");
 @import url("base/base.css");
 @import url("layout/nav.css");
