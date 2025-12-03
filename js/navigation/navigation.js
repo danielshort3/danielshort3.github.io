@@ -76,43 +76,23 @@
     if(!host) return;
     const animate = !sessionStorage.getItem('navEntryPlayed');
     sessionStorage.setItem('navEntryPlayed','yes');
-    const iconSprite = {
-      grid: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
-      spark: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.4 4.2L18 9l-4.1 1.8L12 15l-1.9-4.2L6 9l4.6-1.8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="18.5" cy="15.5" r="1.4" fill="currentColor"/><circle cx="7" cy="17" r="1.2" fill="currentColor"/></svg>',
-      doc: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 3.5h7l4 4v13h-11z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M13.5 3.5v4h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8.5 12.5h7M8.5 16h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
-      chat: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 18l-3 3V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7 9h10M7 13h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
-      link: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 14.5l-2 2a3.5 3.5 0 0 1-5-5l4-4a3.5 3.5 0 0 1 5 0l1 1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M14.5 9.5l1-1a3.5 3.5 0 0 1 5 5l-4 4a3.5 3.5 0 0 1-5 0l-1-1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
-      mail: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 7l8 5.2L20.5 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'
-    };
-    const renderActionTile = (action) => {
-      const attrParts = [];
-      if(action.external){
-        attrParts.push('target="_blank"', 'rel="noopener noreferrer"');
-      }
-      if(action.modalLink){
-        attrParts.push('data-contact-modal-link="true"');
-      }
-      if(action.download){
-        attrParts.push('download');
-      }
-      const attrs = attrParts.length ? ` ${attrParts.join(' ')}` : '';
-      const badge = action.badge ? `<span class="nav-dropdown-badge" aria-hidden="true">${action.badge}</span>` : '';
-      const icon = iconSprite[action.icon] || iconSprite.grid;
-      return `<a href="${action.href}" class="nav-dropdown-card" role="listitem"${attrs}>
-                <span class="nav-dropdown-icon" aria-hidden="true">${icon}</span>
-                <span class="nav-dropdown-card-copy">
-                  <span class="nav-dropdown-title">${action.title}${badge}</span>
-                  <span class="nav-dropdown-subtitle">${action.subtitle}</span>
+    const renderProjectCard = (project) => {
+      const thumb = `img/projects/${project.id}.webp`;
+      return `<a href="portfolio.html?project=${project.id}" class="nav-project-card" role="listitem">
+                <span class="nav-project-thumb" style="background-image:url('${thumb}');"></span>
+                <span class="nav-project-meta">
+                  <span class="nav-project-badge">Top 5</span>
+                  <span class="nav-dropdown-title">${project.title}</span>
+                  <span class="nav-dropdown-subtitle">${project.subtitle}</span>
                 </span>
               </a>`;
     };
-    const renderActionColumn = (label, actions) => `
-      <div class="nav-dropdown-column nav-dropdown-column-actions">
-        <div class="nav-dropdown-header">${label}</div>
-        <div class="nav-dropdown-actions" role="list">
-          ${actions.map(renderActionTile).join('')}
-        </div>
-      </div>
+    const renderHighlightCard = (item) => `
+      <a href="${item.href}" class="nav-highlight-card" role="listitem"${item.external ? ' target="_blank" rel="noopener noreferrer"' : ''}>
+        <span class="nav-highlight-label">${item.label}</span>
+        <span class="nav-dropdown-title">${item.title}</span>
+        <span class="nav-dropdown-subtitle">${item.subtitle}</span>
+      </a>
     `;
     const portfolioHighlights = [
       { id: 'shapeClassifier',  title: 'Shape Classifier Demo',      subtitle: 'Handwritten shape recognition' },
@@ -122,22 +102,15 @@
       { id: 'nonogram',         title: 'Nonogram Solver',            subtitle: '94% accuracy reinforcement learning' }
     ];
     const portfolioMenu = `
-      <div class="nav-dropdown-inner">
-        <div class="nav-dropdown-column nav-dropdown-column-list">
-          <div class="nav-dropdown-header" aria-hidden="true">Top 5 Projects</div>
-          <div class="nav-dropdown-list" role="list">
-            ${portfolioHighlights.map(
-              p => `<a href="portfolio.html?project=${p.id}" class="nav-dropdown-link nav-dropdown-featured" role="listitem">
-                      <span class="nav-dropdown-title">${p.title}</span>
-                      <span class="nav-dropdown-subtitle">${p.subtitle}</span>
-                    </a>`
-            ).join('')}
-          </div>
-        </div>
-        ${renderActionColumn('Visual shortcuts', [
-          { title:'Browse all projects', subtitle:'See every build with filters', href:'portfolio.html?view=all#filters', icon:'grid' },
-          { title:'Run the chatbot demo', subtitle:'Try the LoRA + RAG assistant live', href:'demos/chatbot-demo.html', icon:'spark' }
-        ])}
+      <div class="nav-dropdown-header" aria-hidden="true">Top 5 Projects</div>
+      <div class="nav-project-grid" role="list">
+        ${portfolioHighlights.map(renderProjectCard).join('')}
+      </div>
+      <div class="nav-dropdown-footer nav-dropdown-footer-inline">
+        <a href="portfolio.html?view=all#filters" class="nav-dropdown-link nav-dropdown-all" role="button">
+          <span class="nav-dropdown-title">View all projects</span>
+          <span class="nav-dropdown-subtitle">Browse the complete portfolio</span>
+        </a>
       </div>
     `;
     const contributionSections = [
@@ -145,6 +118,20 @@
       { id: 'council-briefings',   title: 'Council Briefings', subtitle: 'Bi-weekly council intelligence' },
       { id: 'enewsletters',        title: 'Stakeholder eNews', subtitle: 'Industry pacing & KPI updates' }
     ];
+    const latestStakeholder = {
+      label:'Latest Stakeholder',
+      title:'Stakeholder eNewsletter · November 2025',
+      subtitle:'Fresh pacing & KPI insights',
+      href:'https://us4.campaign-archive.com/?e=18b7bff0b8&u=d69163b71ce34ec42d130a6a4&id=1370d609e9',
+      external:true
+    };
+    const latestCouncil = {
+      label:'Latest Council Briefing',
+      title:'Council Briefing · Nov 24, 2025',
+      subtitle:'Newest council intel drop',
+      href:'https://ccbrief.my.canva.site/city-council-briefing-nov-24-2025',
+      external:true
+    };
     const contributionsMenu = `
       <div class="nav-dropdown-inner">
         <div class="nav-dropdown-column nav-dropdown-column-list">
@@ -158,31 +145,26 @@
             ).join('')}
           </div>
         </div>
-        ${renderActionColumn('Visual shortcuts', [
-          { title:'Contributions overview', subtitle:'Jump into reports & briefings', href:'contributions.html', icon:'grid' },
-          { title:'Request a briefing', subtitle:'Book a walkthrough or follow-up', href:'contact.html#contact-modal', icon:'chat', modalLink:true }
-        ])}
+        <div class="nav-dropdown-column nav-dropdown-column-actions nav-dropdown-column-highlights">
+          <div class="nav-dropdown-header">Latest releases</div>
+          <div class="nav-dropdown-actions" role="list">
+            ${renderHighlightCard(latestStakeholder)}
+            ${renderHighlightCard(latestCouncil)}
+          </div>
+        </div>
       </div>
     `;
     const resumeMenu = `
-      <div class="nav-dropdown-inner">
-        <div class="nav-dropdown-column nav-dropdown-column-list">
-          <div class="nav-dropdown-header" aria-hidden="true">Resume shortcuts</div>
-          <div class="nav-dropdown-list" role="list">
-            <a href="resume.html" class="nav-dropdown-link" role="listitem">
-              <span class="nav-dropdown-title">View Resume</span>
-              <span class="nav-dropdown-subtitle">Open the full resume page</span>
-            </a>
-            <a href="documents/Resume.pdf" class="nav-dropdown-link" role="listitem" download>
-              <span class="nav-dropdown-title">Download Resume</span>
-              <span class="nav-dropdown-subtitle">Save the latest PDF copy</span>
-            </a>
-          </div>
-        </div>
-        ${renderActionColumn('Visual shortcuts', [
-          { title:'LinkedIn profile', subtitle:'See endorsements and background', href:'https://www.linkedin.com/in/danielshort3/', icon:'link', external:true },
-          { title:'Shareable PDF', subtitle:'Download the latest resume instantly', href:'documents/Resume.pdf', icon:'doc', download:true }
-        ])}
+      <div class="nav-dropdown-header" aria-hidden="true">Resume shortcuts</div>
+      <div class="nav-dropdown-list" role="list">
+        <a href="resume.html" class="nav-dropdown-link" role="listitem">
+          <span class="nav-dropdown-title">View Resume</span>
+          <span class="nav-dropdown-subtitle">Open the full resume page</span>
+        </a>
+        <a href="documents/Resume.pdf" class="nav-dropdown-link" role="listitem" download>
+          <span class="nav-dropdown-title">Download Resume</span>
+          <span class="nav-dropdown-subtitle">Save the latest PDF copy</span>
+        </a>
       </div>
     `;
     const contactOptions = [
@@ -192,7 +174,7 @@
       { title: 'GitHub', subtitle: 'github.com/danielshort3', href: 'https://github.com/danielshort3', external: true }
     ];
     const contactMenu = `
-      <div class="nav-dropdown-inner">
+      <div class="nav-dropdown-inner nav-dropdown-inner-contact">
         <div class="nav-dropdown-column nav-dropdown-column-list">
           <div class="nav-dropdown-header" aria-hidden="true">Get in touch</div>
           <div class="nav-dropdown-list" role="list">
@@ -213,10 +195,19 @@
             }).join('')}
           </div>
         </div>
-        ${renderActionColumn('Visual shortcuts', [
-          { title:'Start a project', subtitle:'Share what you need and timelines', href:'contact.html#contact-modal', icon:'spark', modalLink:true, badge:'Recommended' },
-          { title:'Email directly', subtitle:'daniel@danielshort.me', href:'mailto:daniel@danielshort.me', icon:'mail' }
-        ])}
+        <div class="nav-dropdown-column nav-dropdown-column-actions nav-dropdown-mini-form-wrap">
+          <div class="nav-dropdown-header">Quick message</div>
+          <form id="nav-contact-mini-form" class="nav-mini-form" novalidate>
+            <label for="nav-mini-name">Name</label>
+            <input id="nav-mini-name" name="name" type="text" autocomplete="name" required placeholder="Jane Doe">
+            <label for="nav-mini-email">Email</label>
+            <input id="nav-mini-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com">
+            <label for="nav-mini-message">How can I help?</label>
+            <textarea id="nav-mini-message" name="message" rows="3" required placeholder="Project, role, or opportunity details"></textarea>
+            <p class="nav-mini-status" id="nav-mini-status" role="status" aria-live="polite" hidden></p>
+            <button type="submit" class="btn-primary nav-mini-submit">Start the conversation</button>
+          </form>
+        </div>
       </div>
     `;
     const dropdownIds = {
@@ -317,6 +308,7 @@
     });
     const burger = host.querySelector('#nav-toggle');
     const menu   = host.querySelector('#primary-menu');
+    setupMiniContactForm();
     setupDropdown(host.querySelector('.nav-item-portfolio'));
     setupDropdown(host.querySelector('.nav-item-contributions'));
     setupDropdown(host.querySelector('.nav-item-resume'));
@@ -450,6 +442,78 @@
       prefersHover.addListener(onMediaChange);
     }
     updateNavDropdownOffset();
+  }
+  function setupMiniContactForm(){
+    const form = document.getElementById('nav-contact-mini-form');
+    if(!form) return;
+    const nameInput = form.querySelector('#nav-mini-name');
+    const emailInput = form.querySelector('#nav-mini-email');
+    const messageInput = form.querySelector('#nav-mini-message');
+    const statusEl = document.getElementById('nav-mini-status');
+    const setStatus = (message = '', tone = 'info') => {
+      if (!statusEl) return;
+      statusEl.textContent = message;
+      if (message) {
+        statusEl.dataset.tone = tone;
+        statusEl.hidden = false;
+      } else {
+        statusEl.hidden = true;
+        delete statusEl.dataset.tone;
+      }
+    };
+    const emailValid = (value = '') => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+    const persistDraft = (payload) => {
+      try {
+        sessionStorage.setItem('navContactPrefill', JSON.stringify(payload));
+      } catch { /* noop */ }
+    };
+    const hydrateContactPage = (payload) => {
+      const contactForm = document.getElementById('contact-form');
+      if (!contactForm || !payload) return false;
+      const nameField = contactForm.querySelector('#contact-name');
+      const emailField = contactForm.querySelector('#contact-email');
+      const messageField = contactForm.querySelector('#contact-message');
+      if (nameField && payload.name) nameField.value = payload.name;
+      if (emailField && payload.email) emailField.value = payload.email;
+      if (messageField && payload.message) messageField.value = payload.message;
+      return true;
+    };
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const payload = {
+        name: (nameInput?.value || '').trim(),
+        email: (emailInput?.value || '').trim(),
+        message: (messageInput?.value || '').trim()
+      };
+      if (!payload.name || !payload.email || !payload.message) {
+        setStatus('Please add your name, email, and a short note.', 'error');
+        return;
+      }
+      if (!emailValid(payload.email)) {
+        setStatus('That email looks off. Try again?', 'error');
+        return;
+      }
+      setStatus('Opening the contact form…', 'info');
+      persistDraft(payload);
+      if (location.pathname.includes('/contact.html')) {
+        const hydrated = hydrateContactPage(payload);
+        if (hydrated) {
+          try { sessionStorage.removeItem('navContactPrefill'); } catch { /* noop */ }
+        }
+        location.hash = '#contact-modal';
+      } else {
+        window.location.href = 'contact.html#contact-modal';
+      }
+    });
+    // Hydrate if we're already on contact.html and a draft exists
+    try {
+      const cached = sessionStorage.getItem('navContactPrefill');
+      if (cached) {
+        const payload = JSON.parse(cached);
+        const hydrated = hydrateContactPage(payload);
+        if (hydrated) sessionStorage.removeItem('navContactPrefill');
+      }
+    } catch { /* ignore */ }
   }
   function injectFooter(){
     const f = $('footer');
