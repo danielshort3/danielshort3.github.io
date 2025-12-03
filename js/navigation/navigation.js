@@ -76,12 +76,12 @@
     if(!host) return;
     const animate = !sessionStorage.getItem('navEntryPlayed');
     sessionStorage.setItem('navEntryPlayed','yes');
-    const renderProjectCard = (project) => {
+    const renderProjectCard = (project, index) => {
       const thumb = `img/projects/${project.id}.webp`;
       return `<a href="portfolio.html?project=${project.id}" class="nav-project-card" role="listitem">
                 <span class="nav-project-thumb" style="background-image:url('${thumb}');"></span>
                 <span class="nav-project-meta">
-                  <span class="nav-project-badge">Top 5</span>
+                  <span class="nav-project-badge">#${index} · Top 5</span>
                   <span class="nav-dropdown-title">${project.title}</span>
                   <span class="nav-dropdown-subtitle">${project.subtitle}</span>
                 </span>
@@ -101,16 +101,37 @@
       { id: 'digitGenerator',   title: 'Synthetic Digit Generator',  subtitle: 'Variational autoencoder (VAE)' },
       { id: 'nonogram',         title: 'Nonogram Solver',            subtitle: '94% accuracy reinforcement learning' }
     ];
+    const prefilterLinks = [
+      { label: 'Machine Learning', subtitle: 'Focus = Machine Learning', href: 'portfolio.html?view=all&filterConcept=Machine%20Learning' },
+      { label: 'Python', subtitle: 'Tools = Python', href: 'portfolio.html?view=all&filterTools=Python' },
+      { label: 'AWS', subtitle: 'Tools = AWS', href: 'portfolio.html?view=all&filterTools=AWS' },
+      { label: 'SQL', subtitle: 'Tools = SQL', href: 'portfolio.html?view=all&filterTools=SQL' }
+    ];
     const portfolioMenu = `
-      <div class="nav-dropdown-header" aria-hidden="true">Top 5 Projects</div>
-      <div class="nav-project-grid" role="list">
-        ${portfolioHighlights.map(renderProjectCard).join('')}
-      </div>
-      <div class="nav-dropdown-footer nav-dropdown-footer-inline">
-        <a href="portfolio.html?view=all#filters" class="nav-dropdown-link nav-dropdown-all" role="button">
-          <span class="nav-dropdown-title">View all projects</span>
-          <span class="nav-dropdown-subtitle">Browse the complete portfolio</span>
-        </a>
+      <div class="nav-dropdown-inner nav-dropdown-inner-portfolio">
+        <div class="nav-dropdown-column nav-dropdown-column-list nav-portfolio-stack">
+          <div class="nav-dropdown-header" aria-hidden="true">Top 5 Projects</div>
+          <div class="nav-project-grid nav-project-stack" role="list">
+            ${portfolioHighlights.map((p, i) => renderProjectCard(p, i + 1)).join('')}
+          </div>
+          <div class="nav-dropdown-footer nav-dropdown-footer-inline">
+            <a href="portfolio.html?view=all#filters" class="nav-dropdown-link nav-dropdown-all" role="button">
+              <span class="nav-dropdown-title">View all projects</span>
+              <span class="nav-dropdown-subtitle">Browse the complete portfolio</span>
+            </a>
+          </div>
+        </div>
+        <div class="nav-dropdown-column nav-dropdown-column-actions nav-dropdown-column-prefilters">
+          <div class="nav-dropdown-header">Jump to filters</div>
+          <div class="nav-prefilter-actions" role="list">
+            ${prefilterLinks.map(link => `
+              <a href="${link.href}" class="nav-prefilter-link" role="listitem">
+                <span class="nav-dropdown-title">${link.label}</span>
+                <span class="nav-dropdown-subtitle">${link.subtitle}</span>
+              </a>
+            `).join('')}
+          </div>
+        </div>
       </div>
     `;
     const contributionSections = [
@@ -313,6 +334,12 @@
     setupDropdown(host.querySelector('.nav-item-contributions'));
     setupDropdown(host.querySelector('.nav-item-resume'));
     setupDropdown(host.querySelector('.nav-item-contact'));
+    const hoverMatcher = window.matchMedia('(hover: hover) and (pointer: fine)');
+    if (hoverMatcher.matches) {
+      host.querySelectorAll('.nav-item').forEach((item) => {
+        item.addEventListener('pointerenter', () => closeActiveDropdowns(item));
+      });
+    }
 
     if(burger && menu){
       let prevFocus = null;
