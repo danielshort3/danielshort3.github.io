@@ -552,6 +552,22 @@ function buildPortfolio() {
 
   // Data order now reflects desired grid order (no runtime reordering)
 
+  // Optional prefilters from query string (e.g., ?filterTools=Python&filterConcept=Machine%20Learning)
+  const params = new URLSearchParams(window.location.search);
+  const applyPrefilter = (paramName, group) => {
+    const value = params.get(paramName);
+    if (!value || !filterGroups.has(group)) return false;
+    const buttons = filterGroups.get(group);
+    const target = buttons.find(
+      (btn) => (btn.dataset.filter || '').toLowerCase() === value.toLowerCase()
+    );
+    if (!target) return false;
+    groupState[group] = target.dataset.filter || 'all';
+    return true;
+  };
+  applyPrefilter('filterTools', 'tools');
+  applyPrefilter('filterConcept', 'concept');
+
   /* helper – create & return element */
   const el = (tag, cls = "", html = "") => {
     const n = document.createElement(tag);
@@ -766,6 +782,9 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
     refreshFilterLabels();
     runFilter();
   });
+
+  // Apply any preselected filters immediately on load
+  runFilter();
 
   /* ➎ Open modal based on URL (hash, clean path, or query) --------- */
   const getProjectIdFromURL = () => {
