@@ -22,6 +22,32 @@
     window.__navHeight = value;
   };
 
+  const clampDropdownToViewport = (dropdown) => {
+    if (!dropdown || typeof dropdown.getBoundingClientRect !== 'function') return;
+    dropdown.style.removeProperty('--dropdown-shift');
+    const rect = dropdown.getBoundingClientRect();
+    const viewportWidth = document.documentElement?.clientWidth || window.innerWidth || 0;
+    if (!viewportWidth || !rect?.width) return;
+    const padding = 12;
+    const overflowLeft = Math.max(0, padding - rect.left);
+    const overflowRight = Math.max(0, rect.right - (viewportWidth - padding));
+    let shift = 0;
+    if (overflowLeft > 0) {
+      shift = overflowLeft;
+    } else if (overflowRight > 0) {
+      shift = -overflowRight;
+    }
+    if (shift !== 0) {
+      dropdown.style.setProperty('--dropdown-shift', `${shift}px`);
+    } else {
+      dropdown.style.removeProperty('--dropdown-shift');
+    }
+  };
+
+  const clampDropdownsToViewport = () => {
+    document.querySelectorAll('.nav-dropdown').forEach(clampDropdownToViewport);
+  };
+
   const updateNavDropdownOffset = () => {
     const nav = document.querySelector('.nav');
     if (!nav) return;
@@ -70,6 +96,7 @@
     setCssNavHeight(next);
     emitNavHeightChange(next);
     updateNavDropdownOffset();
+    clampDropdownsToViewport();
   }
   function injectNav(){
     const host = $('#combined-header-nav');
@@ -337,7 +364,7 @@
     const hoverMatcher = window.matchMedia('(hover: hover) and (pointer: fine)');
     if (hoverMatcher.matches) {
       host.querySelectorAll('.nav-item').forEach((item) => {
-        item.addEventListener('pointerenter', () => closeActiveDropdowns(item));
+        item.addEventListener('pointerenter', () => closeActiveDropdowns(item, { forceBlur: true }));
       });
     }
 
@@ -409,13 +436,18 @@
       });
     }
   }
-  const closeActiveDropdowns = (excludeItem) => {
+  const closeActiveDropdowns = (excludeItem, options = {}) => {
+    const { forceBlur = false } = options;
+    const activeEl = document.activeElement;
     document.querySelectorAll('.nav-item.dropdown-open').forEach((openItem) => {
       if (openItem === excludeItem) return;
       if (typeof openItem.__closeDropdown === 'function') {
         openItem.__closeDropdown();
       } else {
         openItem.classList.remove('dropdown-open');
+      }
+      if (forceBlur && activeEl && openItem.contains(activeEl) && typeof activeEl.blur === 'function') {
+        activeEl.blur();
       }
     });
   };
