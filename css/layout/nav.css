@@ -13,7 +13,7 @@
     --nav-block-padding: clamp(12px, 1.8vw, 20px);
     --nav-inline-padding: clamp(20px, 5vw, 48px);
     --nav-border-width:1px;
-    --nav-dropdown-max:640px;
+    --nav-dropdown-max:720px;
     position:fixed;
     inset:0;
     width:100%;
@@ -138,6 +138,30 @@
   .nav-dropdown{
     display:none;
   }
+  .nav-dropdown-inner{
+    display:grid;
+    grid-template-columns:minmax(0, 1.4fr) minmax(260px, 1fr);
+    gap:clamp(14px, 2vw, 20px);
+    align-items:start;
+  }
+  .nav-dropdown-column{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .nav-dropdown-column-actions{
+    padding:12px;
+    border-radius:16px;
+    background:linear-gradient(145deg,
+      color-mix(in srgb,var(--surface) 92%, #02070d 8%) 0%,
+      color-mix(in srgb,var(--surface) 82%, #02070d 18%) 100%);
+    border:1px solid color-mix(in srgb,var(--primary) 24%, var(--surface) 76%);
+    box-shadow:0 18px 36px rgba(0,0,0,.28);
+  }
+  .nav-dropdown-actions{
+    display:grid;
+    gap:12px;
+  }
   .nav-dropdown-header{
     font-size:.75rem;
     text-transform:uppercase;
@@ -219,6 +243,77 @@
     color:color-mix(in srgb,var(--text-light) 98%, #ffffff 2%);
     outline:none;
   }
+  .nav-dropdown-card{
+    display:grid;
+    grid-template-columns:auto 1fr;
+    align-items:center;
+    gap:12px;
+    padding:12px 14px;
+    border-radius:14px;
+    border:1px solid color-mix(in srgb,var(--primary) 26%, var(--surface) 74%);
+    background:linear-gradient(135deg,
+      color-mix(in srgb,var(--surface) 90%, #000 10%) 0%,
+      color-mix(in srgb,var(--surface) 82%, #000 18%) 100%);
+    color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
+    text-decoration:none;
+    transition:
+      transform .22s ease,
+      border-color .22s ease,
+      background .22s ease,
+      box-shadow .22s ease;
+  }
+  .nav-dropdown-card:hover,
+  .nav-dropdown-card:focus-visible{
+    border-color:color-mix(in srgb,var(--primary) 42%, var(--surface) 58%);
+    background:linear-gradient(135deg,
+      color-mix(in srgb,var(--surface) 90%, #000 10%) 0%,
+      color-mix(in srgb,var(--primary) 16%, var(--surface) 84%) 100%);
+    box-shadow:0 16px 32px rgba(0,0,0,.32);
+    transform:translateY(-2px);
+    outline:none;
+  }
+  .nav-dropdown-card-copy{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .nav-dropdown-card .nav-dropdown-title{
+    color:color-mix(in srgb,var(--text-light) 98%, #ffffff 2%);
+  }
+  .nav-dropdown-card .nav-dropdown-subtitle{
+    color:color-mix(in srgb,var(--text-light) 80%, #ffffff 20%);
+  }
+  .nav-dropdown-icon{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:52px;
+    height:52px;
+    border-radius:14px;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(255,255,255,.4), transparent 60%),
+      linear-gradient(145deg,
+        color-mix(in srgb,var(--primary) 78%, #0b1621 22%) 0%,
+        color-mix(in srgb,var(--primary) 54%, #02070d 46%) 100%);
+    color:color-mix(in srgb,#ffffff 94%, var(--bg) 6%);
+    box-shadow:0 10px 26px rgba(0,0,0,.3);
+  }
+  .nav-dropdown-icon svg{
+    width:28px;
+    height:28px;
+    color:inherit;
+  }
+  .nav-dropdown-card .nav-dropdown-badge{
+    margin-left:6px;
+  }
+  @media (max-width: 1200px){
+    .nav-dropdown-inner{
+      grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
+    }
+    .nav-dropdown-column-actions{
+      padding:10px;
+    }
+  }
   .nav-item-portfolio:hover .nav-link-caret,
   .nav-item-portfolio:focus-within .nav-link-caret,
   .nav-item-portfolio.dropdown-open .nav-link-caret,
@@ -245,9 +340,9 @@
       top:calc(100% + var(--nav-bottom-gap, var(--nav-block-padding)) - var(--nav-border-width));
       left:50%;
       margin-top:0;
-      width:max(280px, 22vw);
-      max-width:360px;
-      padding:16px;
+      width:min(820px, 82vw);
+      max-width:900px;
+      padding:18px;
       border-radius:0 0 20px 20px;
       background:var(--surface);
       border:1px solid color-mix(in srgb,var(--primary) 22%, var(--surface) 78%);
