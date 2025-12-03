@@ -306,6 +306,137 @@
   .nav-dropdown-card .nav-dropdown-badge{
     margin-left:6px;
   }
+  .nav-dropdown-footer-inline{
+    margin-top:14px;
+  }
+  .nav-project-grid{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:12px;
+  }
+  .nav-project-card{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    border-radius:16px;
+    overflow:hidden;
+    border:1px solid color-mix(in srgb,var(--primary) 22%, var(--surface) 78%);
+    background:color-mix(in srgb,var(--surface) 90%, #000 10%);
+    text-decoration:none;
+    color:inherit;
+    transition:transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+  }
+  .nav-project-card:hover,
+  .nav-project-card:focus-visible{
+    transform:translateY(-2px);
+    box-shadow:0 18px 32px rgba(0,0,0,.35);
+    border-color:color-mix(in srgb,var(--primary) 36%, var(--surface) 64%);
+    outline:none;
+  }
+  .nav-project-thumb{
+    display:block;
+    width:100%;
+    aspect-ratio:4/3;
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+    filter:saturate(1.02);
+  }
+  .nav-project-meta{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    padding:0 12px 12px;
+  }
+  .nav-project-badge{
+    align-self:flex-start;
+    padding:4px 8px;
+    font-size:.72rem;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    border-radius:999px;
+    background:color-mix(in srgb,var(--primary) 38%, var(--surface) 62%);
+    color:color-mix(in srgb,#ffffff 94%, var(--bg) 6%);
+  }
+  .nav-dropdown-column-highlights .nav-dropdown-header{
+    margin-bottom:4px;
+  }
+  .nav-highlight-card{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    padding:12px 14px;
+    border-radius:14px;
+    border:1px solid color-mix(in srgb,var(--primary) 24%, var(--surface) 76%);
+    background:linear-gradient(135deg,
+      color-mix(in srgb,var(--surface) 92%, #000 8%) 0%,
+      color-mix(in srgb,var(--surface) 84%, #000 16%) 100%);
+    color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
+    text-decoration:none;
+    transition:
+      transform .2s ease,
+      border-color .2s ease,
+      background .2s ease,
+      box-shadow .2s ease;
+  }
+  .nav-highlight-card:hover,
+  .nav-highlight-card:focus-visible{
+    transform:translateY(-2px);
+    border-color:color-mix(in srgb,var(--primary) 40%, var(--surface) 60%);
+    box-shadow:0 16px 28px rgba(0,0,0,.3);
+    outline:none;
+  }
+  .nav-highlight-label{
+    font-size:.78rem;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:color-mix(in srgb,var(--text-light) 72%, #ffffff 28%);
+  }
+  .nav-dropdown-inner-contact{
+    grid-template-columns:minmax(0, 1fr) minmax(280px, 1.1fr);
+  }
+  .nav-mini-form{
+    display:grid;
+    gap:8px;
+  }
+  .nav-mini-form label{
+    font-size:.85rem;
+    color:color-mix(in srgb,var(--text-light) 82%, #ffffff 18%);
+  }
+  .nav-mini-form input,
+  .nav-mini-form textarea{
+    width:100%;
+    box-sizing:border-box;
+    padding:10px 12px;
+    border-radius:12px;
+    border:1px solid color-mix(in srgb,var(--primary) 22%, var(--surface) 78%);
+    background:color-mix(in srgb,var(--surface) 92%, #000 8%);
+    color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
+    font:inherit;
+    transition:border-color .2s ease, box-shadow .2s ease;
+  }
+  .nav-mini-form input:focus,
+  .nav-mini-form textarea:focus{
+    outline:none;
+    border-color:color-mix(in srgb,var(--primary) 46%, var(--surface) 54%);
+    box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 28%, transparent);
+  }
+  .nav-mini-form textarea{
+    resize:vertical;
+    min-height:96px;
+  }
+  .nav-mini-status{
+    margin:0;
+    font-size:.85rem;
+    color:color-mix(in srgb,var(--text-muted) 92%, #ffffff 8%);
+  }
+  .nav-mini-status[data-tone="error"]{ color:color-mix(in srgb,#ff8787 88%, #410000 12%); }
+  .nav-mini-submit{
+    width:100%;
+    justify-content:center;
+    padding:12px 14px;
+    font-size:1rem;
+  }
   @media (max-width: 1200px){
     .nav-dropdown-inner{
       grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
@@ -313,6 +444,7 @@
     .nav-dropdown-column-actions{
       padding:10px;
     }
+    .nav-project-grid{ grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); }
   }
   .nav-item-portfolio:hover .nav-link-caret,
   .nav-item-portfolio:focus-within .nav-link-caret,
