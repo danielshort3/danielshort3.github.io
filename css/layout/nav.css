@@ -516,7 +516,7 @@
       border:1px solid color-mix(in srgb,var(--primary) 22%, var(--surface) 78%);
       border-top:none;
       box-shadow:0 24px 48px rgba(0,0,0,.45);
-      transform:translate3d(-50%, -2px, 0) scale(.98);
+      transform:translate3d(calc(-50% + var(--dropdown-shift, 0px)), -2px, 0) scale(.98);
       opacity:0;
       pointer-events:none;
       max-height:0;
@@ -547,7 +547,7 @@
       .nav-item-contact:focus-within .nav-dropdown,
       .nav-item-contact.dropdown-open .nav-dropdown{
         opacity:1;
-        transform:translate3d(-50%, 0, 0) scale(1);
+        transform:translate3d(calc(-50% + var(--dropdown-shift, 0px)), 0, 0) scale(1);
         pointer-events:auto;
         max-height:var(--nav-dropdown-max, 480px);
         -webkit-clip-path:inset(0 0 0 0);
