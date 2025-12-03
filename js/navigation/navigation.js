@@ -424,12 +424,23 @@
     const dropdown = item.querySelector('.nav-dropdown');
     const trigger = item.querySelector('.nav-link-has-menu');
     if(!dropdown || !trigger) return;
+    const clampDropdown = () => {
+      dropdown.style.setProperty('--dropdown-shift','0px');
+      const rect = dropdown.getBoundingClientRect();
+      const margin = 16;
+      let shift = 0;
+      if (rect.left < margin) shift += margin - rect.left;
+      const overflowRight = rect.right - (window.innerWidth - margin);
+      if (overflowRight > 0) shift -= overflowRight;
+      dropdown.style.setProperty('--dropdown-shift', `${Math.round(shift)}px`);
+    };
     trigger.setAttribute('aria-expanded', 'false');
     let closeTimer = null;
     const close = () => {
       clearTimeout(closeTimer);
       item.classList.remove('dropdown-open');
       trigger.setAttribute('aria-expanded', 'false');
+      dropdown.style.setProperty('--dropdown-shift','0px');
     };
     item.__closeDropdown = close;
     const open = () => {
@@ -437,6 +448,7 @@
       closeActiveDropdowns(item);
       item.classList.add('dropdown-open');
       trigger.setAttribute('aria-expanded', 'true');
+      requestAnimationFrame(clampDropdown);
     };
     const scheduleClose = () => {
       clearTimeout(closeTimer);
@@ -494,6 +506,18 @@
         sessionStorage.setItem('navContactPrefill', JSON.stringify(payload));
       } catch { /* noop */ }
     };
+    const loadDraft = () => {
+      try {
+        const cached = sessionStorage.getItem('navContactPrefill');
+        if (!cached) return null;
+        const payload = JSON.parse(cached);
+        if (nameInput && payload?.name) nameInput.value = payload.name;
+        if (emailInput && payload?.email) emailInput.value = payload.email;
+        if (messageInput && payload?.message) messageInput.value = payload.message;
+        return payload;
+      } catch { return null; }
+    };
+    loadDraft();
     const hydrateContactPage = (payload) => {
       const contactForm = document.getElementById('contact-form');
       if (!contactForm || !payload) return false;
@@ -531,6 +555,17 @@
       } else {
         window.location.href = 'contact.html#contact-modal';
       }
+    });
+    const draftInputs = [nameInput, emailInput, messageInput].filter(Boolean);
+    draftInputs.forEach((input) => {
+      input.addEventListener('input', () => {
+        const payload = {
+          name: (nameInput?.value || '').trim(),
+          email: (emailInput?.value || '').trim(),
+          message: (messageInput?.value || '').trim()
+        };
+        persistDraft(payload);
+      });
     });
     // Hydrate if we're already on contact.html and a draft exists
     try {
