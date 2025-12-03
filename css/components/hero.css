@@ -122,12 +122,12 @@
   .hero-cta{min-width:0;}
 
   .hero-kpis{
-    --kpi-gap:clamp(1rem,2vw,1.4rem);
-    --kpi-inline-pad:clamp(1.25rem,1.9vw,1.7rem);
-    --kpi-block-pad:clamp(1.15rem,1.8vw,1.55rem);
-    --kpi-value-height:clamp(44px,4.2vw,58px);
+    --kpi-gap:clamp(.9rem,1.8vw,1.3rem);
+    --kpi-inline-pad:clamp(1.1rem,1.7vw,1.55rem);
+    --kpi-block-pad:clamp(1rem,1.6vw,1.4rem);
+    --kpi-value-height:clamp(44px,4vw,56px);
     width:100%;
-    max-width:min(1120px, var(--container-max));
+    max-width:min(1040px, var(--container-max));
     margin-inline:auto;
     list-style:none;
     margin-top:clamp(2.1rem,4.5vh,3.4rem);
@@ -141,9 +141,9 @@
   }
 
   .hero-kpi{
-    min-width:240px;
-    flex:1 1 280px;
-    max-width:320px;
+    min-width:220px;
+    flex:1 1 calc((100% - (2 * var(--kpi-gap))) / 3);
+    max-width:300px;
     opacity:0;
     animation:heroFade .9s forwards;
   }
