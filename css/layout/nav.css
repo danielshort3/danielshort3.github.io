@@ -232,9 +232,10 @@
   .nav-dropdown-link.nav-dropdown-all{
     font-weight:600;
     text-align:center;
-    border-color:color-mix(in srgb,var(--text-light) 16%, var(--surface) 84%);
-    background:color-mix(in srgb,var(--surface) 96%, #000 4%);
-    color:color-mix(in srgb,var(--text-light) 92%, #ffffff 8%);
+    border-color:color-mix(in srgb,var(--primary) 26%, var(--surface) 74%);
+    background:color-mix(in srgb,var(--surface) 92%, #000 8%);
+    color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
+    box-shadow:0 10px 22px rgba(0,0,0,.24);
   }
   .nav-dropdown-link:hover,
   .nav-dropdown-link:focus-visible{
