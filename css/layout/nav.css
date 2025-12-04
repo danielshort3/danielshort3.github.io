@@ -231,8 +231,8 @@
   }
   .nav-dropdown-link.nav-dropdown-all{
     font-weight:600;
-    text-align:center;
-    border:0;
+    text-align:left;
+    border:1px solid transparent;
     background:transparent;
     color:color-mix(in srgb,var(--text-light) 94%, #ffffff 6%);
     box-shadow:none;
@@ -241,6 +241,7 @@
   .nav-dropdown-link.nav-dropdown-all:hover,
   .nav-dropdown-link.nav-dropdown-all:focus-visible{
     background:color-mix(in srgb,var(--surface) 92%, #000 8%);
+    border-color:color-mix(in srgb,var(--primary) 36%, var(--surface) 64%);
     box-shadow:none;
   }
   .nav-dropdown-link:hover,
@@ -331,22 +332,22 @@
   display:grid;
   grid-template-columns:96px 1fr;
   align-items:center;
-    gap:12px;
-    border-radius:14px;
-    border:0;
-    background:transparent;
-    text-decoration:none;
-    color:inherit;
-    padding:10px 4px;
-    transition:transform .18s ease, box-shadow .18s ease, background .18s ease;
-  }
-  .nav-project-card:hover,
-  .nav-project-card:focus-visible{
-    transform:translateY(-1px);
-    box-shadow:none;
-    background:color-mix(in srgb,var(--surface) 94%, #000 6%);
-    outline:none;
-  }
+  gap:12px;
+  border-radius:14px;
+  border:1px solid transparent;
+  background:transparent;
+  text-decoration:none;
+  color:inherit;
+  padding:10px 4px;
+  transition:border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.nav-project-card:hover,
+.nav-project-card:focus-visible{
+  box-shadow:none;
+  background:color-mix(in srgb,var(--surface) 94%, #000 6%);
+  border-color:color-mix(in srgb,var(--primary) 36%, var(--surface) 64%);
+  outline:none;
+}
   .nav-project-thumb{
     display:inline-block;
     width:96px;
