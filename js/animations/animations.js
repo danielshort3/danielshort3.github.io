@@ -13,6 +13,7 @@
     initChevronHint();
     initCertTicker();
     initScrollProgress();
+    initHeroRhythm();
     initHeroParallax();
     initBackToTop();
     initHeroAmbient();
@@ -63,6 +64,35 @@
     window.addEventListener('resize', onScroll);
   }
 
+  function initHeroRhythm(){
+    const hero = document.querySelector('.hero');
+    if (!hero) return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) {
+      document.documentElement.style.setProperty('--hero-wave', '0px');
+      return;
+    }
+    let raf = null;
+    const tick = (now) => {
+      const wave = Math.sin(now / 2800) * 10 + Math.sin(now / 5200) * 6;
+      document.documentElement.style.setProperty('--hero-wave', wave.toFixed(2) + 'px');
+      raf = requestAnimationFrame(tick);
+    };
+    const start = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(tick);
+    };
+    const stop = () => {
+      if (!raf) return;
+      cancelAnimationFrame(raf);
+      raf = null;
+    };
+    start();
+    document.addEventListener('visibilitychange', () => document.hidden ? stop() : start());
+    window.addEventListener('blur', stop);
+    window.addEventListener('focus', start);
+  }
+
   function initBackToTop(){
     const btn = document.createElement('button');
     btn.className = 'back-to-top';
@@ -86,24 +116,46 @@
   // Subtle ambient light following the mouse inside the hero
   function initHeroAmbient(){
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const fine = window.matchMedia('(pointer: fine)').matches;
-    if (reduce || !fine) return;
+    if (reduce) return;
     const hero = document.querySelector('.hero');
     if (!hero) return;
-    let raf = null, px = 50, py = 35;
+    const fine = window.matchMedia('(pointer: fine)').matches;
+    let raf = null, idle = null, px = 50, py = 38;
     const update = () => {
       hero.style.setProperty('--mx', px.toFixed(1) + '%');
       hero.style.setProperty('--my', py.toFixed(1) + '%');
       raf = null;
     };
-    hero.addEventListener('mousemove', (e) => {
-      const rect = hero.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width) * 100;
-      const y = ((e.clientY - rect.top) / rect.height) * 100;
-      px = Math.min(100, Math.max(0, x));
-      py = Math.min(100, Math.max(0, y));
+    const orbit = (now) => {
+      const t = now / 3200;
+      const tx = 50 + Math.sin(t) * 5.5;
+      const ty = 38 + Math.cos(t * 1.12) * 4.5;
+      px += (tx - px) * 0.02;
+      py += (ty - py) * 0.02;
       if (!raf) raf = requestAnimationFrame(update);
-    });
+      idle = requestAnimationFrame(orbit);
+    };
+    idle = requestAnimationFrame(orbit);
+    if (fine) {
+      hero.addEventListener('mousemove', (e) => {
+        const rect = hero.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+        px = Math.min(100, Math.max(0, x));
+        py = Math.min(100, Math.max(0, y));
+        if (!raf) raf = requestAnimationFrame(update);
+      });
+    }
+    const stop = () => {
+      if (idle) cancelAnimationFrame(idle);
+      idle = null;
+    };
+    const start = () => {
+      if (!idle) idle = requestAnimationFrame(orbit);
+    };
+    document.addEventListener('visibilitychange', () => document.hidden ? stop() : start());
+    window.addEventListener('blur', stop);
+    window.addEventListener('focus', start);
   }
   function initChevronHint(){
     const chevrons = $$('.chevron-hint');
