@@ -107,9 +107,9 @@
     const renderProjectCard = (project, index) => {
       const thumb = projectAsset(project.id, 'webp');
       return `<a href="portfolio.html?project=${project.id}" class="nav-project-card" data-project-id="${project.id}" role="listitem">
+                <span class="nav-project-rank">#${index}</span>
                 <span class="nav-project-thumb" style="background-image:url('${thumb}');"></span>
                 <span class="nav-project-meta">
-                  <span class="nav-project-badge">#${index}</span>
                   <span class="nav-dropdown-title">${project.title}</span>
                   <span class="nav-dropdown-subtitle">${project.subtitle}</span>
                 </span>
