@@ -2,6 +2,7 @@
    ─────────────────────────────────────────────────────────── */
 @layer components {
   .hero{
+    --hero-wave:0px;
     min-height:calc(var(--vh,100svh) - var(--nav-height,72px));
     margin:0 0 clamp(1.5rem,4vh,3rem);
     padding:clamp(4.2rem,8vh,6.4rem) 0 clamp(4rem,8vh,5.4rem);
@@ -25,7 +26,6 @@
     position:absolute;
     inset:-18% -28% -32%;
     z-index:-1;
-    background:radial-gradient(120% 90% at 12% calc(18% + var(--hero-parallax,0px)),
       color-mix(in srgb,var(--primary) 22%, transparent) 0%,
       transparent 62%);
     opacity:.85;
@@ -37,7 +37,7 @@
     position:absolute;
     inset:-40%;
     z-index:-2;
-    background:radial-gradient(32% 32% at var(--mx,48%) calc(var(--my,38%) + var(--hero-parallax,0px)),
+    background:radial-gradient(32% 32% at var(--mx,48%) calc(var(--my,38%) + var(--hero-parallax,0px) + var(--hero-wave,0px)),
       color-mix(in srgb,var(--primary) 18%, transparent) 0%,
       transparent 70%);
     opacity:.7;
@@ -407,6 +407,9 @@
     .hero::after{
       transition:none !important;
       opacity:.4 !important;
+    }
+    .hero{
+      --hero-wave:0px;
     }
   }
 }
