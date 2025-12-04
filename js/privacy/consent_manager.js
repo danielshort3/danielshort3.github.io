@@ -240,7 +240,7 @@
 
   function getDefaultState() {
     const strictState = { necessary: true, analytics: false, functional: false, advertising: false };
-    const permissiveState = { necessary: true, analytics: true, functional: true, advertising: true };
+    const permissiveState = { necessary: true, analytics: false, functional: true, advertising: false };
     const region = getRegion();
     const stateCode = getUSState();
     const base = regionRequiresOptIn(region, stateCode) ? strictState : permissiveState;
@@ -250,6 +250,13 @@
     }
     return result;
   }
+
+  const isOnline = () => {
+    try {
+      if (navigator?.onLine === false) return false;
+    } catch (err) {}
+    return true;
+  };
 
   /**
    * Persist the consent record in localStorage. The record includes
@@ -331,7 +338,8 @@
     if (enabled && !vendor.enabled) {
       if (vendorKey === 'ga4') {
         const scriptId = 'ga4-src';
-        if (!document.getElementById(scriptId)) {
+        const loadGa = () => {
+          if (document.getElementById(scriptId)) return;
           const s = document.createElement('script');
           s.id = scriptId;
           s.async = true;
@@ -345,8 +353,23 @@
               window.gtag('config', vendor.id);
             } catch {}
           };
+          s.onerror = function(){
+            vendor.enabled = false;
+          };
           document.head.appendChild(s);
+        };
+        if (!isOnline()) {
+          if (!vendor._pendingOnline) {
+            vendor._pendingOnline = true;
+            window.addEventListener('online', function handleOnline(){
+              vendor._pendingOnline = false;
+              window.removeEventListener('online', handleOnline);
+              enableVendor(vendorKey, true);
+            });
+          }
+          return;
         }
+        loadGa();
       }
       vendor.enabled = true;
     }

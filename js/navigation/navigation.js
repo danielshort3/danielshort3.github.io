@@ -512,12 +512,22 @@
       videoEl.className = 'nav-project-preview-video';
       preview.appendChild(videoEl);
     }
-    const positionPreview = () => {
+    const setAspectRatio = (w, h) => {
+      if (!w || !h) return;
+      preview.style.aspectRatio = `${w}/${h}`;
+    };
+    const positionPreview = (card) => {
       const dropdownRect = dropdown.getBoundingClientRect();
-      const firstCard = cards[0];
-      const cardRect = firstCard?.getBoundingClientRect();
+      const cardRect = card?.getBoundingClientRect() || cards[0]?.getBoundingClientRect();
       const gutter = 16;
-      preview.style.left = `${dropdownRect.right + gutter}px`;
+      const vw = document.documentElement?.clientWidth || window.innerWidth || 0;
+      const previewWidth = preview.offsetWidth || 0;
+      let left = dropdownRect.right + gutter;
+      if (vw) {
+        const maxLeft = Math.max(gutter, vw - previewWidth - gutter);
+        left = Math.min(left, maxLeft);
+      }
+      preview.style.left = `${left}px`;
       if (cardRect) {
         preview.style.top = `${cardRect.top}px`;
       } else {
@@ -534,7 +544,13 @@
       videoEl.dataset.src = src;
       videoEl.src = src;
       videoEl.poster = `/img/projects/${id}.webp`;
+      videoEl.onloadedmetadata = () => setAspectRatio(videoEl.videoWidth, videoEl.videoHeight);
       videoEl.play().catch(() => {/* ignore autoplay blocks */});
+    };
+    const preloadImage = (id) => {
+      const img = new Image();
+      img.onload = () => setAspectRatio(img.naturalWidth, img.naturalHeight);
+      img.src = `/img/projects/${id}.webp`;
     };
     const showPreview = (card) => {
       if(!card) return;
@@ -542,13 +558,20 @@
       if(!id) return;
       preview.style.setProperty('--preview-image', `url('/img/projects/${id}.webp')`);
       setVideoSource(id);
-      positionPreview();
+      preloadImage(id);
+      positionPreview(card);
       preview.classList.add('nav-project-preview-visible');
     };
     cards.forEach((card, index) => {
       const activate = () => showPreview(card);
+      const handleLeave = (event) => {
+        const next = event.relatedTarget;
+        if (next && next.closest && next.closest('.nav-project-card')) return;
+        hide();
+      };
       card.addEventListener('mouseenter', activate);
       card.addEventListener('focus', activate);
+      card.addEventListener('pointerleave', handleLeave);
     });
     const hide = () => {
       preview.classList.remove('nav-project-preview-visible');
@@ -556,6 +579,7 @@
         videoEl.pause();
       }
     };
+    dropdown.addEventListener('pointerleave', hide);
     item.addEventListener('mouseleave', hide);
     item.addEventListener('focusout', (event) => {
       const next = event.relatedTarget;
