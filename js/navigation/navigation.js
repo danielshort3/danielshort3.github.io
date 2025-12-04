@@ -513,10 +513,16 @@
       preview.appendChild(videoEl);
     }
     const positionPreview = () => {
-      const rect = dropdown.getBoundingClientRect();
-      const gutter = 14;
-      preview.style.left = `${rect.right + gutter}px`;
-      preview.style.top = `${rect.top + gutter}px`;
+      const dropdownRect = dropdown.getBoundingClientRect();
+      const firstCard = cards[0];
+      const cardRect = firstCard?.getBoundingClientRect();
+      const gutter = 16;
+      preview.style.left = `${dropdownRect.right + gutter}px`;
+      if (cardRect) {
+        preview.style.top = `${cardRect.top}px`;
+      } else {
+        preview.style.top = `${dropdownRect.top}px`;
+      }
     };
     const setVideoSource = (id) => {
       if(!videoEl) return;
@@ -543,10 +549,12 @@
       const activate = () => showPreview(card);
       card.addEventListener('mouseenter', activate);
       card.addEventListener('focus', activate);
-      if(index === 0) showPreview(card);
     });
     const hide = () => {
       preview.classList.remove('nav-project-preview-visible');
+      if (videoEl) {
+        videoEl.pause();
+      }
     };
     item.addEventListener('mouseleave', hide);
     item.addEventListener('focusout', (event) => {
@@ -554,9 +562,6 @@
       if(!next || !item.contains(next)){
         hide();
       }
-    });
-    dropdown.addEventListener('mouseenter', () => {
-      preview.classList.add('nav-project-preview-visible');
     });
     const originalClose = item.__closeDropdown;
     item.__closeDropdown = () => {
