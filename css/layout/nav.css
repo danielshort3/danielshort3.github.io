@@ -378,6 +378,18 @@
   pointer-events:none;
   z-index:1;
 }
+.nav-project-preview-video{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  opacity:.94;
+  transition:opacity .2s ease;
+}
+.nav-project-preview:not(.nav-project-preview-visible) .nav-project-preview-video{
+  opacity:0;
+}
 .nav-project-preview.nav-project-preview-visible{
   opacity:1;
   transform:translateY(0);

@@ -103,8 +103,9 @@
     if(!host) return;
     const animate = !sessionStorage.getItem('navEntryPlayed');
     sessionStorage.setItem('navEntryPlayed','yes');
+    const projectAsset = (id, ext = 'webp') => `/img/projects/${id}.${ext}`;
     const renderProjectCard = (project, index) => {
-      const thumb = `img/projects/${project.id}.webp`;
+      const thumb = projectAsset(project.id, 'webp');
       return `<a href="portfolio.html?project=${project.id}" class="nav-project-card" data-project-id="${project.id}" role="listitem">
                 <span class="nav-project-thumb" style="background-image:url('${thumb}');"></span>
                 <span class="nav-project-meta">
@@ -493,11 +494,35 @@
     const preview = item.querySelector('.nav-project-preview');
     const cards = item.querySelectorAll('.nav-project-card');
     if(!dropdown || !preview || !cards.length) return;
+    let videoEl = preview.querySelector('video');
+    if(!videoEl){
+      videoEl = document.createElement('video');
+      videoEl.muted = true;
+      videoEl.loop = true;
+      videoEl.playsInline = true;
+      videoEl.autoplay = true;
+      videoEl.setAttribute('aria-hidden','true');
+      videoEl.className = 'nav-project-preview-video';
+      preview.appendChild(videoEl);
+    }
+    const setVideoSource = (id) => {
+      if(!videoEl) return;
+      const src = `/img/projects/${id}.webm`;
+      if(videoEl.dataset.src === src) return;
+      videoEl.pause();
+      videoEl.removeAttribute('src');
+      videoEl.load();
+      videoEl.dataset.src = src;
+      videoEl.src = src;
+      videoEl.poster = `/img/projects/${id}.webp`;
+      videoEl.play().catch(() => {/* ignore autoplay blocks */});
+    };
     const showPreview = (card) => {
       if(!card) return;
       const id = card.getAttribute('data-project-id');
       if(!id) return;
-      preview.style.setProperty('--preview-image', `url('img/projects/${id}.webp')`);
+      preview.style.setProperty('--preview-image', `url('/img/projects/${id}.webp')`);
+      setVideoSource(id);
       preview.classList.add('nav-project-preview-visible');
     };
     cards.forEach((card, index) => {
