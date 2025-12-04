@@ -534,6 +534,7 @@
         preview.style.top = `${dropdownRect.top}px`;
       }
     };
+    let currentPreviewId = null;
     const setVideoSource = (id) => {
       if(!videoEl) return;
       const src = `/img/projects/${id}.webm`;
@@ -555,11 +556,15 @@
     const showPreview = (card) => {
       if(!card) return;
       const id = card.getAttribute('data-project-id');
-      if(!id) return;
+      if(!id || id === currentPreviewId) return;
+      currentPreviewId = id;
       preview.style.setProperty('--preview-image', `url('/img/projects/${id}.webp')`);
       setVideoSource(id);
       preloadImage(id);
       positionPreview(card);
+      preview.classList.remove('nav-project-preview-animating');
+      void preview.offsetWidth; // force reflow to restart animation
+      preview.classList.add('nav-project-preview-animating');
       preview.classList.add('nav-project-preview-visible');
     };
     cards.forEach((card, index) => {
