@@ -108,7 +108,7 @@
       return `<a href="portfolio.html?project=${project.id}" class="nav-project-card" role="listitem">
                 <span class="nav-project-thumb" style="background-image:url('${thumb}');"></span>
                 <span class="nav-project-meta">
-                  <span class="nav-project-badge">#${index} · Top 5</span>
+                  <span class="nav-project-badge">#${index}</span>
                   <span class="nav-dropdown-title">${project.title}</span>
                   <span class="nav-dropdown-subtitle">${project.subtitle}</span>
                 </span>
@@ -128,11 +128,15 @@
       { id: 'digitGenerator',   title: 'Synthetic Digit Generator',  subtitle: 'Variational autoencoder (VAE)' },
       { id: 'nonogram',         title: 'Nonogram Solver',            subtitle: '94% accuracy reinforcement learning' }
     ];
-    const prefilterLinks = [
+    const focusFilters = [
       { label: 'Machine Learning', subtitle: 'Focus = Machine Learning', href: 'portfolio.html?view=all&filterConcept=Machine%20Learning' },
+      { label: 'Automation', subtitle: 'Focus = Automation', href: 'portfolio.html?view=all&filterConcept=Automation' },
+      { label: 'Visualization', subtitle: 'Focus = Visualization', href: 'portfolio.html?view=all&filterConcept=Visualization' }
+    ];
+    const toolFilters = [
       { label: 'Python', subtitle: 'Tools = Python', href: 'portfolio.html?view=all&filterTools=Python' },
-      { label: 'AWS', subtitle: 'Tools = AWS', href: 'portfolio.html?view=all&filterTools=AWS' },
-      { label: 'SQL', subtitle: 'Tools = SQL', href: 'portfolio.html?view=all&filterTools=SQL' }
+      { label: 'SQL', subtitle: 'Tools = SQL', href: 'portfolio.html?view=all&filterTools=SQL' },
+      { label: 'AWS', subtitle: 'Tools = AWS', href: 'portfolio.html?view=all&filterTools=AWS' }
     ];
     const portfolioMenu = `
       <div class="nav-dropdown-inner nav-dropdown-inner-portfolio">
@@ -141,22 +145,37 @@
           <div class="nav-project-grid nav-project-stack" role="list">
             ${portfolioHighlights.map((p, i) => renderProjectCard(p, i + 1)).join('')}
           </div>
-          <div class="nav-dropdown-footer nav-dropdown-footer-inline">
+        </div>
+        <div class="nav-dropdown-column nav-dropdown-column-actions nav-dropdown-column-prefilters">
+          <div class="nav-dropdown-actions" role="list">
             <a href="portfolio.html?view=all#filters" class="nav-dropdown-link nav-dropdown-all" role="button">
               <span class="nav-dropdown-title">View all projects</span>
               <span class="nav-dropdown-subtitle">Browse the complete portfolio</span>
             </a>
           </div>
-        </div>
-        <div class="nav-dropdown-column nav-dropdown-column-actions nav-dropdown-column-prefilters">
-          <div class="nav-dropdown-header">Jump to filters</div>
-          <div class="nav-prefilter-actions" role="list">
-            ${prefilterLinks.map(link => `
-              <a href="${link.href}" class="nav-prefilter-link" role="listitem">
-                <span class="nav-dropdown-title">${link.label}</span>
-                <span class="nav-dropdown-subtitle">${link.subtitle}</span>
-              </a>
-            `).join('')}
+          <div class="nav-prefilter-groups">
+            <div class="nav-prefilter-group">
+              <div class="nav-dropdown-header">Focus presets</div>
+              <div class="nav-prefilter-actions" role="list">
+                ${focusFilters.map(link => `
+                  <a href="${link.href}" class="nav-prefilter-link" role="listitem">
+                    <span class="nav-dropdown-title">${link.label}</span>
+                    <span class="nav-dropdown-subtitle">${link.subtitle}</span>
+                  </a>
+                `).join('')}
+              </div>
+            </div>
+            <div class="nav-prefilter-group">
+              <div class="nav-dropdown-header">Tool filters</div>
+              <div class="nav-prefilter-actions" role="list">
+                ${toolFilters.map(link => `
+                  <a href="${link.href}" class="nav-prefilter-link" role="listitem">
+                    <span class="nav-dropdown-title">${link.label}</span>
+                    <span class="nav-dropdown-subtitle">${link.subtitle}</span>
+                  </a>
+                `).join('')}
+              </div>
+            </div>
           </div>
         </div>
       </div>
