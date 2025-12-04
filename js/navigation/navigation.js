@@ -145,14 +145,14 @@
           <div class="nav-project-grid nav-project-stack" role="list">
             ${portfolioHighlights.map((p, i) => renderProjectCard(p, i + 1)).join('')}
           </div>
-        </div>
-        <div class="nav-dropdown-column nav-dropdown-column-actions nav-dropdown-column-prefilters">
-          <div class="nav-dropdown-actions" role="list">
+          <div class="nav-dropdown-footer nav-dropdown-footer-inline">
             <a href="portfolio.html?view=all#filters" class="nav-dropdown-link nav-dropdown-all" role="button">
               <span class="nav-dropdown-title">View all projects</span>
               <span class="nav-dropdown-subtitle">Browse the complete portfolio</span>
             </a>
           </div>
+        </div>
+        <div class="nav-dropdown-column nav-dropdown-column-actions nav-dropdown-column-prefilters">
           <div class="nav-prefilter-groups">
             <div class="nav-prefilter-group">
               <div class="nav-dropdown-header">Focus presets</div>

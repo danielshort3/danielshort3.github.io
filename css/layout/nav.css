@@ -232,9 +232,12 @@
   .nav-dropdown-link.nav-dropdown-all{
     font-weight:600;
     text-align:center;
-    border-color:color-mix(in srgb,var(--text-light) 16%, var(--surface) 84%);
-    background:color-mix(in srgb,var(--surface) 96%, #000 4%);
-    color:color-mix(in srgb,var(--text-light) 92%, #ffffff 8%);
+    border-color:color-mix(in srgb,var(--primary) 46%, var(--surface) 54%);
+    background:linear-gradient(135deg,
+      color-mix(in srgb,var(--primary) 72%, #08101a 28%) 0%,
+      color-mix(in srgb,var(--primary) 62%, #02070d 38%) 100%);
+    color:color-mix(in srgb,#ffffff 96%, var(--bg) 4%);
+    box-shadow:0 12px 28px rgba(0,0,0,.28);
   }
   .nav-dropdown-link:hover,
   .nav-dropdown-link:focus-visible{
@@ -528,6 +531,7 @@
       max-width:860px;
       padding:18px;
       border-radius:0 0 20px 20px;
+      overflow:hidden;
       background:var(--surface);
       border:1px solid color-mix(in srgb,var(--primary) 22%, var(--surface) 78%);
       border-top:none;
@@ -536,9 +540,8 @@
       opacity:0;
       pointer-events:none;
       max-height:0;
-      overflow:hidden;
-      -webkit-clip-path:inset(0 0 100% 0);
-              clip-path:inset(0 0 100% 0);
+      -webkit-clip-path:inset(0 0 100% 0 round 0 0 20px 20px);
+              clip-path:inset(0 0 100% 0 round 0 0 20px 20px);
       z-index:1100;
       transition:
         max-height .24s ease,
@@ -566,8 +569,8 @@
         transform:translate3d(calc(-50% + var(--dropdown-shift, 0px)), 0, 0) scale(1);
         pointer-events:auto;
         max-height:var(--nav-dropdown-max, 480px);
-        -webkit-clip-path:inset(0 0 0 0);
-                clip-path:inset(0 0 0 0);
+        -webkit-clip-path:inset(0 0 0 0 round 0 0 20px 20px);
+                clip-path:inset(0 0 0 0 round 0 0 20px 20px);
       }
     .nav-item-portfolio::after,
     .nav-item-contributions::after,
