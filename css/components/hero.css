@@ -26,7 +26,6 @@
     position:absolute;
     inset:-18% -28% -32%;
     z-index:-1;
-    background:radial-gradient(120% 90% at 12% calc(18% + var(--hero-parallax,0px) + var(--hero-wave,0px)),
       color-mix(in srgb,var(--primary) 22%, transparent) 0%,
       transparent 62%);
     opacity:.85;
