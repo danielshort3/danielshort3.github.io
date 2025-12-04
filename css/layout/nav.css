@@ -358,8 +358,8 @@
   }
 .nav-project-preview{
   position:fixed;
-  width:clamp(220px, 30vw, 320px);
-  height:clamp(170px, 24vw, 240px);
+  width:clamp(280px, 34vw, 420px);
+  height:clamp(210px, 30vw, 320px);
   border-radius:18px;
   overflow:hidden;
   border:1px solid color-mix(in srgb,var(--primary) 26%, var(--surface) 74%);
@@ -374,7 +374,7 @@
   transform:translateY(8px);
   transition:opacity .25s ease, transform .25s ease, background-image .2s ease;
   pointer-events:none;
-  z-index:1;
+  z-index:1201;
 }
 .nav-project-preview-video{
   position:absolute;
@@ -561,8 +561,8 @@
     top:calc(100% + var(--nav-bottom-gap, var(--nav-block-padding)) - var(--nav-border-width));
     left:50%;
       margin-top:0;
-      width:min(540px, 82vw);
-      max-width:560px;
+      width:min(520px, 78vw);
+      max-width:540px;
       padding:18px;
       border-radius:0 0 20px 20px;
       overflow:hidden;
@@ -585,11 +585,11 @@
         transform .25s ease;
     }
     #nav-dropdown-portfolio{
-      width:min(520px, 80vw);
-      max-width:560px;
+      width:min(460px, 74vw);
+      max-width:500px;
     }
     #nav-dropdown-contributions{ width:min(640px, 78vw); }
-    #nav-dropdown-resume{ width:min(380px, 68vw); }
+    #nav-dropdown-resume{ width:min(340px, 64vw); }
     .nav-item-portfolio:hover .nav-dropdown,
     .nav-item-portfolio:focus-within .nav-dropdown,
     .nav-item-portfolio.dropdown-open .nav-dropdown,
