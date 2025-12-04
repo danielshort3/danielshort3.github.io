@@ -317,6 +317,7 @@
 .nav-dropdown-inner-portfolio{
   grid-template-columns:minmax(0, 1fr) minmax(260px, 0.9fr);
   gap:16px;
+  align-items:stretch;
 }
 .nav-project-card{
   display:grid;
@@ -373,6 +374,21 @@
 .nav-prefilter-actions{
   display:grid;
   gap:10px;
+}
+.nav-prefilter-groups{
+  display:grid;
+  gap:14px;
+  height:100%;
+}
+.nav-prefilter-group{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.nav-dropdown-column,
+.nav-dropdown-column-actions,
+.nav-dropdown-column-prefilters{
+  height:100%;
 }
 .nav-prefilter-link{
   display:flex;
