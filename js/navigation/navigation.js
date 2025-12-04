@@ -105,7 +105,7 @@
     sessionStorage.setItem('navEntryPlayed','yes');
     const renderProjectCard = (project, index) => {
       const thumb = `img/projects/${project.id}.webp`;
-      return `<a href="portfolio.html?project=${project.id}" class="nav-project-card" role="listitem">
+      return `<a href="portfolio.html?project=${project.id}" class="nav-project-card" data-project-id="${project.id}" role="listitem">
                 <span class="nav-project-thumb" style="background-image:url('${thumb}');"></span>
                 <span class="nav-project-meta">
                   <span class="nav-project-badge">#${index}</span>
@@ -128,16 +128,6 @@
       { id: 'digitGenerator',   title: 'Synthetic Digit Generator',  subtitle: 'Variational autoencoder (VAE)' },
       { id: 'nonogram',         title: 'Nonogram Solver',            subtitle: '94% accuracy reinforcement learning' }
     ];
-    const focusFilters = [
-      { label: 'Machine Learning', subtitle: 'Focus = Machine Learning', href: 'portfolio.html?view=all&filterConcept=Machine%20Learning' },
-      { label: 'Automation', subtitle: 'Focus = Automation', href: 'portfolio.html?view=all&filterConcept=Automation' },
-      { label: 'Visualization', subtitle: 'Focus = Visualization', href: 'portfolio.html?view=all&filterConcept=Visualization' }
-    ];
-    const toolFilters = [
-      { label: 'Python', subtitle: 'Tools = Python', href: 'portfolio.html?view=all&filterTools=Python' },
-      { label: 'SQL', subtitle: 'Tools = SQL', href: 'portfolio.html?view=all&filterTools=SQL' },
-      { label: 'AWS', subtitle: 'Tools = AWS', href: 'portfolio.html?view=all&filterTools=AWS' }
-    ];
     const portfolioMenu = `
       <div class="nav-dropdown-inner nav-dropdown-inner-portfolio">
         <div class="nav-dropdown-column nav-dropdown-column-list nav-portfolio-stack">
@@ -152,33 +142,8 @@
             </a>
           </div>
         </div>
-        <div class="nav-dropdown-column nav-dropdown-column-actions nav-dropdown-column-prefilters">
-          <div class="nav-prefilter-groups">
-            <div class="nav-prefilter-group">
-              <div class="nav-dropdown-header">Focus presets</div>
-              <div class="nav-prefilter-actions" role="list">
-                ${focusFilters.map(link => `
-                  <a href="${link.href}" class="nav-prefilter-link" role="listitem">
-                    <span class="nav-dropdown-title">${link.label}</span>
-                    <span class="nav-dropdown-subtitle">${link.subtitle}</span>
-                  </a>
-                `).join('')}
-              </div>
-            </div>
-            <div class="nav-prefilter-group">
-              <div class="nav-dropdown-header">Tool filters</div>
-              <div class="nav-prefilter-actions" role="list">
-                ${toolFilters.map(link => `
-                  <a href="${link.href}" class="nav-prefilter-link" role="listitem">
-                    <span class="nav-dropdown-title">${link.label}</span>
-                    <span class="nav-dropdown-subtitle">${link.subtitle}</span>
-                  </a>
-                `).join('')}
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
+      <div class="nav-project-preview" aria-hidden="true"></div>
     `;
     const contributionSections = [
       { id: 'public-contributions', title: 'Public Reports', subtitle: 'Economic outlooks & city budgets' },
@@ -380,6 +345,7 @@
     setupDropdown(host.querySelector('.nav-item-contributions'));
     setupDropdown(host.querySelector('.nav-item-resume'));
     setupDropdown(host.querySelector('.nav-item-contact'));
+    setupPortfolioPreview(host.querySelector('.nav-item-portfolio'));
     const hoverMatcher = window.matchMedia('(hover: hover) and (pointer: fine)');
     if (hoverMatcher.matches) {
       host.querySelectorAll('.nav-item').forEach((item) => {
@@ -520,6 +486,37 @@
       prefersHover.addListener(onMediaChange);
     }
     updateNavDropdownOffset();
+  }
+  function setupPortfolioPreview(item){
+    if(!item) return;
+    const dropdown = item.querySelector('.nav-dropdown');
+    const preview = item.querySelector('.nav-project-preview');
+    const cards = item.querySelectorAll('.nav-project-card');
+    if(!dropdown || !preview || !cards.length) return;
+    const showPreview = (card) => {
+      if(!card) return;
+      const id = card.getAttribute('data-project-id');
+      if(!id) return;
+      preview.style.setProperty('--preview-image', `url('img/projects/${id}.webp')`);
+      preview.classList.add('nav-project-preview-visible');
+    };
+    cards.forEach((card, index) => {
+      const activate = () => showPreview(card);
+      card.addEventListener('mouseenter', activate);
+      card.addEventListener('focus', activate);
+      if(index === 0) showPreview(card);
+    });
+    const hide = () => preview.classList.remove('nav-project-preview-visible');
+    item.addEventListener('mouseleave', hide);
+    item.addEventListener('focusout', (event) => {
+      const next = event.relatedTarget;
+      if(!next || !item.contains(next)){
+        hide();
+      }
+    });
+    dropdown.addEventListener('mouseenter', () => {
+      preview.classList.add('nav-project-preview-visible');
+    });
   }
   function setupMiniContactForm(){
     const form = document.getElementById('nav-contact-mini-form');
