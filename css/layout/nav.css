@@ -330,7 +330,7 @@
 }
 .nav-project-card{
   display:grid;
-  grid-template-columns:96px 1fr;
+  grid-template-columns:auto 96px 1fr;
   align-items:center;
   gap:12px;
   border-radius:14px;
@@ -364,6 +364,21 @@
     flex-direction:column;
     gap:4px;
   }
+.nav-project-rank{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:36px;
+  height:36px;
+  border-radius:10px;
+  font-weight:700;
+  font-size:1rem;
+  color:color-mix(in srgb,#ffffff 92%, var(--bg) 8%);
+  background:linear-gradient(135deg,
+    color-mix(in srgb,var(--primary) 26%, #0a1622 74%) 0%,
+    color-mix(in srgb,var(--primary) 46%, #0a1622 54%) 100%);
+  box-shadow:0 8px 18px rgba(0,0,0,.24);
+}
 .nav-project-preview{
   position:fixed;
   width:clamp(320px, 38vw, 520px);
