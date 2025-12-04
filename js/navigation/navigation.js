@@ -144,7 +144,6 @@
           </div>
         </div>
       </div>
-      <div class="nav-project-preview" aria-hidden="true"></div>
     `;
     const contributionSections = [
       { id: 'public-contributions', title: 'Public Reports', subtitle: 'Economic outlooks & city budgets' },
@@ -491,9 +490,17 @@
   function setupPortfolioPreview(item){
     if(!item) return;
     const dropdown = item.querySelector('.nav-dropdown');
-    const preview = item.querySelector('.nav-project-preview');
+    let preview = item.querySelector('.nav-project-preview');
     const cards = item.querySelectorAll('.nav-project-card');
-    if(!dropdown || !preview || !cards.length) return;
+    if(!dropdown || !cards.length) return;
+    if(!preview){
+      preview = document.createElement('div');
+      preview.className = 'nav-project-preview';
+      preview.setAttribute('aria-hidden', 'true');
+      item.appendChild(preview);
+    } else {
+      item.appendChild(preview);
+    }
     let videoEl = preview.querySelector('video');
     if(!videoEl){
       videoEl = document.createElement('video');
@@ -505,6 +512,12 @@
       videoEl.className = 'nav-project-preview-video';
       preview.appendChild(videoEl);
     }
+    const positionPreview = () => {
+      const rect = dropdown.getBoundingClientRect();
+      const gutter = 14;
+      preview.style.left = `${rect.right + gutter}px`;
+      preview.style.top = `${rect.top + gutter}px`;
+    };
     const setVideoSource = (id) => {
       if(!videoEl) return;
       const src = `/img/projects/${id}.webm`;
@@ -523,6 +536,7 @@
       if(!id) return;
       preview.style.setProperty('--preview-image', `url('/img/projects/${id}.webp')`);
       setVideoSource(id);
+      positionPreview();
       preview.classList.add('nav-project-preview-visible');
     };
     cards.forEach((card, index) => {
@@ -531,7 +545,9 @@
       card.addEventListener('focus', activate);
       if(index === 0) showPreview(card);
     });
-    const hide = () => preview.classList.remove('nav-project-preview-visible');
+    const hide = () => {
+      preview.classList.remove('nav-project-preview-visible');
+    };
     item.addEventListener('mouseleave', hide);
     item.addEventListener('focusout', (event) => {
       const next = event.relatedTarget;
@@ -542,6 +558,11 @@
     dropdown.addEventListener('mouseenter', () => {
       preview.classList.add('nav-project-preview-visible');
     });
+    const originalClose = item.__closeDropdown;
+    item.__closeDropdown = () => {
+      originalClose && originalClose();
+      hide();
+    };
   }
   function setupMiniContactForm(){
     const form = document.getElementById('nav-contact-mini-form');
