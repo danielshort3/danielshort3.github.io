@@ -125,7 +125,9 @@ function buildPortfolioCarousel() {
     card.setAttribute("aria-label", `View details of ${p.title}`);
     const media = (() => {
       const hasVideo = !!(p.videoWebm || p.videoMp4);
+      const hasImage = !!p.image;
       const img = (() => {
+        if (!hasImage) return '';
         const src = p.image || '';
         const lower = src.toLowerCase();
         const webp = lower.endsWith('.png') ? src.replace(/\.png$/i, '.webp')
@@ -143,11 +145,16 @@ function buildPortfolioCarousel() {
       if (!hasVideo) return img;
       const mp4  = p.videoMp4  ? `<source src="${p.videoMp4}" type="video/mp4">`   : '';
       const webm = p.videoWebm ? `<source src="${p.videoWebm}" type="video/webm">` : '';
-      return `
+      const video = `
         <video class="gif-video" muted playsinline loop autoplay preload="metadata" draggable="false">
           ${mp4}
           ${webm}
-        </video>
+        </video>`;
+      if (p.videoOnly || !hasImage) {
+        return video;
+      }
+      return `
+        ${video}
         ${img}`;
     })();
     card.innerHTML = `
