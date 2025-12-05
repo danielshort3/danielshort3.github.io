@@ -32,6 +32,19 @@
 
   window.getSrStatusNode = srStatus;
 
+  function setMediaExpanded(modal, expanded) {
+    if (!modal) return;
+    const content = modal.querySelector('.modal-content') || modal;
+    const toggle  = modal.querySelector('.media-zoom-toggle');
+    const label   = toggle ? toggle.querySelector('.media-zoom-label') : null;
+    content.classList.toggle('media-expanded', !!expanded);
+    if (toggle) {
+      toggle.setAttribute('aria-pressed', expanded ? 'true' : 'false');
+      toggle.setAttribute('aria-label', expanded ? 'Collapse media' : 'Expand media');
+    }
+    if (label) label.textContent = expanded ? 'Collapse' : 'Expand';
+  }
+
   function trapFocus(modalEl) {
     const focusables = modalEl.querySelectorAll(
       'a,button,input,textarea,select,[tabindex]:not([tabindex="-1"])'
@@ -115,7 +128,9 @@
 
   function projectMedia(p) {
     const hasVideo = !!(p.videoWebm || p.videoMp4);
+    const hasImage = !!p.image;
     const img = (() => {
+      if (!hasImage) return '';
       const src = p.image || '';
       const lower = src.toLowerCase();
       const webp = lower.endsWith('.png') ? src.replace(/\.png$/i, '.webp')
@@ -134,11 +149,16 @@
     if (!hasVideo) return img;
     const mp4 = p.videoMp4 ? `<source src="${p.videoMp4}" type="video/mp4">` : '';
     const webm = p.videoWebm ? `<source src="${p.videoWebm}" type="video/webm">` : '';
-    return `
+    const video = `
     <video class="gif-video" muted playsinline loop autoplay preload="metadata" aria-label="${p.title}" draggable="false">
       ${mp4}
       ${webm}
-    </video>
+    </video>`;
+    if (p.videoOnly || !hasImage) {
+      return video;
+    }
+    return `
+    ${video}
     ${img}`;
   }
 
@@ -150,6 +170,7 @@
     if (!modal) return;
     modal.classList.remove('active');
     document.body.classList.remove('modal-open');
+    setMediaExpanded(modal, false);
     untrapFocus(modal);
     if (__modalPrevFocus) {
       try {
@@ -263,6 +284,16 @@
         setTimeout(() => toast.classList.remove('show'), 1400);
       });
     }
+
+    const mediaToggle = modal.querySelector('.media-zoom-toggle');
+    if (mediaToggle && !mediaToggle._bound) {
+      mediaToggle._bound = true;
+      mediaToggle.addEventListener('click', () => {
+        const content = modal.querySelector('.modal-content') || modal;
+        const nextState = !(content.classList.contains('media-expanded'));
+        setMediaExpanded(modal, nextState);
+      });
+    }
   };
 
   window.generateProjectModal = function(p) {
@@ -280,7 +311,10 @@
       }
       if (!isTableau) {
         return `
-        <div class="modal-image">
+        <div class="modal-image media-zoomable">
+          <button class="media-zoom-toggle" type="button" aria-label="Expand media" aria-pressed="false">
+            <span class="media-zoom-label">Expand</span>
+          </button>
           ${projectMedia(p)}
         </div>`;
       }

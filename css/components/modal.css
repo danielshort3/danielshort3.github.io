@@ -71,9 +71,11 @@
     flex:1 1 auto;
     display:flex;flex-wrap:wrap;gap:32px;padding:0 32px 32px;
     overflow-y:auto;
+    align-items:flex-start;
   }
   .modal-text{
-    flex:1 1 340px;
+    flex:.9 1 320px;
+    max-width:520px;
     /* allow flex child to shrink and wrap properly */
     min-width: 0;
     /* ensure long tokens/URLs don't overflow on small screens */
@@ -87,10 +89,52 @@
   .modal-text h4{color:var(--primary);margin-top:1em;margin-bottom:.5em;font-size:1.2rem}
   .modal-text ul{padding-left:20px}
   .modal-subtitle{margin-top:8px;color:var(--text-muted)}
-  .modal-image{flex:1 1 300px;align-self:flex-start}
+  .modal-image{flex:1.1 1 460px;align-self:flex-start;min-width:320px}
   .modal-image img{max-width:100%;border-radius:12px;display:block;box-shadow:0 6px 24px rgba(0,0,0,.4)}
   .modal-image video{max-width:100%;border-radius:12px;display:block;box-shadow:0 6px 24px rgba(0,0,0,.4)}
   .modal-content :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+  .media-zoomable{position:relative}
+  .media-zoom-toggle{
+    position:absolute;top:12px;right:12px;
+    z-index:2;
+    padding:6px 10px;
+    border-radius:10px;
+    border:1px solid color-mix(in srgb,var(--primary) 30%, transparent);
+    background:color-mix(in srgb,var(--surface) 90%, #02060c 10%);
+    color:var(--text-light);
+    font-size:.85rem;
+    cursor:pointer;
+    box-shadow:0 8px 18px rgba(0,0,0,.26);
+    transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease, color .2s ease;
+  }
+  .media-zoom-toggle:hover,
+  .media-zoom-toggle:focus-visible{
+    transform:translateY(-1px);
+    box-shadow:0 12px 24px rgba(0,0,0,.32);
+    border-color:var(--primary);
+    color:var(--primary);
+  }
+  .modal-content.media-expanded .modal-body{
+    flex-direction:column;
+    align-items:center;
+    gap:28px;
+  }
+  .modal-content.media-expanded .modal-text{
+    width:100%;
+    max-width:880px;
+  }
+  .modal-content.media-expanded .modal-image{
+    width:100%;
+    max-width:var(--modal-max-wide, var(--container-max));
+    min-width:0;
+    flex:0 0 auto;
+  }
+  .modal-content.media-expanded .modal-image img,
+  .modal-content.media-expanded .modal-image video{
+    width:100%;
+    max-height:75vh;
+    object-fit:contain;
+  }
 
   /* Copy link button near the close button */
   .modal-copy{
@@ -303,6 +347,10 @@
   #smartSentence-modal .modal-embed { overflow-x: hidden; }
 
   /* embedded demo modals */
+  .modal-body.stacked {
+    flex-direction: column;
+    align-items: stretch;
+  }
   /* ensure Tableau embeds always appear after the text */
   .modal-body.stacked .modal-embed { order: 99; }
   .modal-embed {

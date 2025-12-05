@@ -202,6 +202,7 @@ window.PROJECTS = [
     imageHeight: 960,
     videoWebm: "img/projects/handwritingRating.webm",
     videoMp4:  "img/projects/handwritingRating.mp4",
+    videoOnly: true,
     tools: ["Python", "PyTorch", "CNN"],
     concepts: ["Machine Learning"],
     resources: [

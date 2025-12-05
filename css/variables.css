@@ -29,8 +29,8 @@
     /* sizing */
     --nav-height:72px;      /* default, JS may overwrite */
     --container-max:1068px;
-    --modal-max:920px;                 /* typical dialog width on desktop */
-    --modal-max-wide:var(--container-max); /* wider for embeds (Tableau/iframes) */
+    --modal-max:1100px;                 /* typical dialog width on desktop */
+    --modal-max-wide:1240px; /* wider for embeds (Tableau/iframes) */
     scroll-padding-top:var(--nav-height,72px);
 
     /* spacing scale */
