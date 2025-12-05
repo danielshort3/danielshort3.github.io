@@ -380,7 +380,13 @@
              data-video-webm="${p.videoWebm || ''}"
              data-title="${p.title || ''}">
           <button class="media-zoom-toggle" type="button" aria-label="Open larger media" aria-pressed="false">
-            <span class="media-zoom-label">Open full view</span>
+            <span class="media-zoom-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                <circle cx="11" cy="11" r="6"></circle>
+                <line x1="15" y1="15" x2="21" y2="21"></line>
+              </svg>
+            </span>
+            <span class="sr-only">Open full view</span>
           </button>
           ${projectMedia(p)}
         </div>`;
