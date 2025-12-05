@@ -83,16 +83,18 @@
     const maxW = Math.min(window.innerWidth - 48, 1200);
     const maxH = Math.min(window.innerHeight - 48, 900);
     const dims = mediaNaturalSize(mediaEl) || getMediaDimensions(sourceEl);
-    let targetW = maxW;
-    let targetH = maxH;
-    if (dims && dims.width && dims.height) {
-      const aspect = dims.width / Math.max(1, dims.height);
-      targetW = Math.min(maxW, dims.width);
-      targetH = targetW / aspect;
-      if (targetH > maxH) {
-        targetH = Math.min(maxH, dims.height);
-        targetW = targetH * aspect;
+    const aspect = (() => {
+      if (dims && dims.width && dims.height) {
+        const a = dims.width / Math.max(1, dims.height);
+        if (Number.isFinite(a) && a > 0) return a;
       }
+      return 16 / 9;
+    })();
+    let targetW = maxW;
+    let targetH = targetW / aspect;
+    if (targetH > maxH) {
+      targetH = maxH;
+      targetW = targetH * aspect;
     }
     frame.style.width = `${Math.round(targetW)}px`;
     frame.style.height = `${Math.round(targetH)}px`;
