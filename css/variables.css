@@ -31,6 +31,8 @@
     --container-max:1068px;
     --modal-max:1100px;                 /* typical dialog width on desktop */
     --modal-max-wide:1240px; /* wider for embeds (Tableau/iframes) */
+    --modal-media-height:clamp(360px, 62vh, 620px);
+    --modal-media-max-width:900px;
     scroll-padding-top:var(--nav-height,72px);
 
     /* spacing scale */
