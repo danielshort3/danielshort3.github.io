@@ -32,17 +32,82 @@
 
   window.getSrStatusNode = srStatus;
 
-  function setMediaExpanded(modal, expanded) {
-    if (!modal) return;
-    const content = modal.querySelector('.modal-content') || modal;
-    const toggle  = modal.querySelector('.media-zoom-toggle');
-    const label   = toggle ? toggle.querySelector('.media-zoom-label') : null;
-    content.classList.toggle('media-expanded', !!expanded);
-    if (toggle) {
-      toggle.setAttribute('aria-pressed', expanded ? 'true' : 'false');
-      toggle.setAttribute('aria-label', expanded ? 'Collapse media' : 'Expand media');
+  let __mediaViewer = null;
+  let __mediaPrevFocus = null;
+
+  function ensureMediaViewer() {
+    if (__mediaViewer) return __mediaViewer;
+    const wrap = document.createElement('div');
+    wrap.className = 'media-viewer';
+    wrap.innerHTML = `
+      <div class="media-viewer-backdrop" aria-hidden="true"></div>
+      <div class="media-viewer-content" role="dialog" aria-modal="true" aria-label="Expanded media">
+        <button class="media-viewer-close" type="button" aria-label="Close expanded media">&times;</button>
+        <div class="media-viewer-frame"></div>
+      </div>
+    `;
+    document.body.appendChild(wrap);
+
+    const closeBtn = wrap.querySelector('.media-viewer-close');
+    closeBtn.addEventListener('click', () => closeMediaViewer());
+    wrap.addEventListener('click', (e) => {
+      if (e.target === wrap || e.target.classList.contains('media-viewer-backdrop')) {
+        closeMediaViewer();
+      }
+    });
+    return (__mediaViewer = wrap);
+  }
+
+  function closeMediaViewer() {
+    if (!__mediaViewer || !__mediaViewer.classList.contains('active')) return false;
+    try {
+      const vid = __mediaViewer.querySelector('video');
+      if (vid) vid.pause();
+    } catch {}
+    const content = __mediaViewer.querySelector('.media-viewer-content');
+    if (content) untrapFocus(content);
+    __mediaViewer.classList.remove('active');
+    document.body.classList.remove('media-viewer-open');
+    if (__mediaPrevFocus) {
+      try { __mediaPrevFocus.focus(); } catch {}
+      __mediaPrevFocus = null;
     }
-    if (label) label.textContent = expanded ? 'Collapse' : 'Expand';
+    return true;
+  }
+
+  function openMediaViewer(sourceEl, title) {
+    if (!sourceEl) return;
+    const viewer = ensureMediaViewer();
+    const frame = viewer.querySelector('.media-viewer-frame');
+    const image = sourceEl.dataset.image || '';
+    const videoMp4 = sourceEl.dataset.videoMp4 || '';
+    const videoWebm = sourceEl.dataset.videoWebm || '';
+    const hasVideo = !!(videoMp4 || videoWebm);
+    const label = title || sourceEl.dataset.title || 'Media preview';
+
+    let html = '';
+    if (hasVideo) {
+      html = `
+        <video class="media-viewer-video" controls autoplay playsinline muted loop aria-label="${label}">
+          ${videoMp4 ? `<source src="${videoMp4}" type="video/mp4">` : ''}
+          ${videoWebm ? `<source src="${videoWebm}" type="video/webm">` : ''}
+          ${image ? `<img src="${image}" alt="${label}">` : ''}
+        </video>`;
+    } else if (image) {
+      html = `<img src="${image}" alt="${label}" loading="lazy">`;
+    } else {
+      return;
+    }
+
+    frame.innerHTML = html;
+    const content = viewer.querySelector('.media-viewer-content');
+    content.setAttribute('aria-label', `Expanded view: ${label}`);
+    trapFocus(content);
+    __mediaPrevFocus = document.activeElement;
+    viewer.classList.add('active');
+    document.body.classList.add('media-viewer-open');
+    const closeBtn = viewer.querySelector('.media-viewer-close');
+    try { closeBtn.focus({ preventScroll: true }); } catch {}
   }
 
   function trapFocus(modalEl) {
@@ -170,7 +235,6 @@
     if (!modal) return;
     modal.classList.remove('active');
     document.body.classList.remove('modal-open');
-    setMediaExpanded(modal, false);
     untrapFocus(modal);
     if (__modalPrevFocus) {
       try {
@@ -289,9 +353,8 @@
     if (mediaToggle && !mediaToggle._bound) {
       mediaToggle._bound = true;
       mediaToggle.addEventListener('click', () => {
-        const content = modal.querySelector('.modal-content') || modal;
-        const nextState = !(content.classList.contains('media-expanded'));
-        setMediaExpanded(modal, nextState);
+        const mediaContainer = mediaToggle.closest('.modal-image');
+        openMediaViewer(mediaContainer);
       });
     }
   };
@@ -311,9 +374,13 @@
       }
       if (!isTableau) {
         return `
-        <div class="modal-image media-zoomable">
-          <button class="media-zoom-toggle" type="button" aria-label="Expand media" aria-pressed="false">
-            <span class="media-zoom-label">Expand</span>
+        <div class="modal-image media-zoomable"
+             data-image="${p.image || ''}"
+             data-video-mp4="${p.videoMp4 || ''}"
+             data-video-webm="${p.videoWebm || ''}"
+             data-title="${p.title || ''}">
+          <button class="media-zoom-toggle" type="button" aria-label="Open larger media" aria-pressed="false">
+            <span class="media-zoom-label">Open full view</span>
           </button>
           ${projectMedia(p)}
         </div>`;
@@ -386,6 +453,10 @@
   document.addEventListener('keydown', (e) => {
     const open = document.querySelector('.modal.active');
     if (e.key === 'Escape') {
+      if (closeMediaViewer()) {
+        e.preventDefault();
+        return;
+      }
       if (open) {
         const id = open.id?.replace('-modal', '') || 'modal';
         window.closeModal(id);
