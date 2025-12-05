@@ -274,14 +274,13 @@
                  : lower.endsWith('.jpg') ? src.replace(/\.jpg$/i, '.webp')
                  : lower.endsWith('.jpeg') ? src.replace(/\.jpeg$/i, '.webp')
                  : null;
-      const imgTag = `<img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false">`;
       if (webp) {
         return `<picture>
         <source srcset="${webp}" type="image/webp">
-        ${imgTag}
+        <img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false">
       </picture>`;
       }
-      return imgTag;
+      return `<img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false">`;
     })();
 
     if (!hasVideo) return img;
