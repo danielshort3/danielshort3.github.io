@@ -58,12 +58,63 @@
     return (__mediaViewer = wrap);
   }
 
+  function datasetNumber(el, key) {
+    if (!el || !el.dataset) return null;
+    const val = parseInt(el.dataset[key] || '', 10);
+    return Number.isFinite(val) && val > 0 ? val : null;
+  }
+
+  function getMediaDimensions(sourceEl) {
+    if (!sourceEl) return null;
+    const w = datasetNumber(sourceEl, 'videoWidth') || datasetNumber(sourceEl, 'imageWidth');
+    const h = datasetNumber(sourceEl, 'videoHeight') || datasetNumber(sourceEl, 'imageHeight');
+    return (w && h) ? { width: w, height: h } : null;
+  }
+
+  function mediaNaturalSize(el) {
+    if (!el) return null;
+    if (el.videoWidth && el.videoHeight) return { width: el.videoWidth, height: el.videoHeight };
+    if (el.naturalWidth && el.naturalHeight) return { width: el.naturalWidth, height: el.naturalHeight };
+    return null;
+  }
+
+  function sizeMediaViewer(viewer, frame, sourceEl, mediaEl) {
+    if (!viewer || !frame) return;
+    const maxW = Math.min(window.innerWidth - 48, 1200);
+    const maxH = Math.min(window.innerHeight - 48, 900);
+    const dims = mediaNaturalSize(mediaEl) || getMediaDimensions(sourceEl);
+    let targetW = maxW;
+    let targetH = maxH;
+    if (dims && dims.width && dims.height) {
+      const aspect = dims.width / Math.max(1, dims.height);
+      targetW = Math.min(maxW, dims.width);
+      targetH = targetW / aspect;
+      if (targetH > maxH) {
+        targetH = Math.min(maxH, dims.height);
+        targetW = targetH * aspect;
+      }
+    }
+    frame.style.width = `${Math.round(targetW)}px`;
+    frame.style.height = `${Math.round(targetH)}px`;
+    frame.style.maxWidth = `${maxW}px`;
+    frame.style.maxHeight = `${maxH}px`;
+    const content = viewer.querySelector('.media-viewer-content');
+    if (content) {
+      content.style.maxWidth = `${maxW}px`;
+      content.style.maxHeight = `${maxH}px`;
+    }
+  }
+
   function closeMediaViewer() {
     if (!__mediaViewer || !__mediaViewer.classList.contains('active')) return false;
     try {
       const vid = __mediaViewer.querySelector('video');
       if (vid) vid.pause();
     } catch {}
+    if (__mediaViewer._resize) {
+      window.removeEventListener('resize', __mediaViewer._resize);
+      __mediaViewer._resize = null;
+    }
     const content = __mediaViewer.querySelector('.media-viewer-content');
     if (content) untrapFocus(content);
     __mediaViewer.classList.remove('active');
@@ -100,6 +151,25 @@
     }
 
     frame.innerHTML = html;
+    const mediaEl = frame.querySelector('img, video');
+    const resizeNow = () => sizeMediaViewer(viewer, frame, sourceEl, mediaEl);
+    resizeNow();
+    if (__mediaViewer._resize) {
+      window.removeEventListener('resize', __mediaViewer._resize);
+    }
+    __mediaViewer._resize = resizeNow;
+    window.addEventListener('resize', resizeNow);
+    if (mediaEl) {
+      const onReady = () => resizeNow();
+      if (mediaEl.tagName === 'VIDEO') {
+        mediaEl.addEventListener('loadedmetadata', onReady, { once: true });
+      } else if (mediaEl.complete) {
+        onReady();
+      } else {
+        mediaEl.addEventListener('load', onReady, { once: true });
+      }
+    }
+
     const content = viewer.querySelector('.media-viewer-content');
     content.setAttribute('aria-label', `Expanded view: ${label}`);
     trapFocus(content);
@@ -376,8 +446,12 @@
         return `
         <div class="modal-image media-zoomable"
              data-image="${p.image || ''}"
+             data-image-width="${p.imageWidth || ''}"
+             data-image-height="${p.imageHeight || ''}"
              data-video-mp4="${p.videoMp4 || ''}"
              data-video-webm="${p.videoWebm || ''}"
+             data-video-width="${p.videoWidth || p.imageWidth || ''}"
+             data-video-height="${p.videoHeight || p.imageHeight || ''}"
              data-title="${p.title || ''}">
           <button class="media-zoom-toggle" type="button" aria-label="Open larger media" aria-pressed="false">
             <span class="media-zoom-icon" aria-hidden="true">
