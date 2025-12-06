@@ -471,11 +471,21 @@
   .modal-body.stacked {
     flex-direction: column;
     align-items: stretch;
+    gap: clamp(18px, 2.5vw, 26px);
   }
   /* ensure Tableau embeds always appear after the text */
   .modal-body.stacked .modal-embed { order: 99; }
+  .modal-body.stacked .modal-text{
+    max-width:none;
+    width:100%;
+    flex:0 0 auto;
+  }
+  .modal-body.stacked .modal-header-details{
+    width:100%;
+  }
   .modal-tableau-layout{
     display:grid;
+    grid-template-columns:1fr;
     grid-template-rows:auto auto;
     gap:clamp(14px, 2vw, 20px);
     width:100%;
@@ -488,6 +498,7 @@
     width:100%;
     max-width:none;
     margin:0;
+    flex:0 0 auto;
   }
   .modal-tableau-layout .modal-embed iframe{
     min-height:clamp(520px, 68vh, 920px);
