@@ -18,9 +18,12 @@
     inset:0;
     width:100%;
     z-index:1000;
-    background:color-mix(in srgb,var(--bg) 94%, #0f141d 6%);
-    border-bottom:var(--nav-border-width) solid color-mix(in srgb,var(--border-subtle) 80%, transparent);
-    backdrop-filter:blur(8px);
+    background:linear-gradient(120deg,
+      rgba(13,17,23,.92) 0%,
+      rgba(15,21,30,.86) 60%,
+      rgba(18,25,36,.82) 100%);
+    border-bottom:var(--nav-border-width) solid color-mix(in srgb,var(--primary) 18%, transparent);
+    backdrop-filter:blur(18px);
   }
   /* Scroll progress bar integrated at the bottom of the nav */
   .nav::after{
