@@ -24,7 +24,6 @@ window.PROJECTS = [
     videoMp4: "img/projects/smartSentence.mp4",
     tools: ["Python", "AWS", "Docker", "NLP"],
     concepts: ["Machine Learning", "Automation"],
-    role: "Solo developer",
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Smart-Sentence-Finder", label: "GitHub" },
       { icon: "img/icons/pdf-icon.png", url: "documents/Project_13.pdf", label: "PDF" },
@@ -35,7 +34,7 @@ window.PROJECTS = [
       type: "iframe",
       url: "sentence-demo.html"
     },
-    problem: "Needed fast semantic retrieval for documents so teams could find meaningfully similar sentences, not just keyword matches.",
+    problem: "I wanted a quick way to retrieve relevant sentences by meaning, not exact wording.",
     actions: [
       "Prepared the corpus (Alice in Wonderland), split into sentences, and precomputed embeddings.",
       "Benchmarked 6+ embedding models on 800 sentences (k=2–6), tracking both silhouette score and efficiency (silhouette per million parameters).",
@@ -45,8 +44,7 @@ window.PROJECTS = [
       "Best absolute silhouette: 0.313 – Snowflake/snowflake‑arctic‑embed‑l‑v2.0 (k=2, 1024‑d, ~568M params).",
       "Best efficiency: 0.0116 per M params – jinaai/jina‑embeddings‑v3 (~12.9M params, k=6, 1024‑d).",
       "Deployed AWS model: Snowflake/snowflake‑arctic‑embed‑l‑v2.0 (prioritizing quality); live demo runs on a lightweight, scalable Lambda API."
-    ],
-    impact: "Semantic sentence search in a serverless Lambda API; 0.313 silhouette on best model."
+    ]
   },
 
   {
@@ -60,7 +58,6 @@ window.PROJECTS = [
     videoMp4: "img/projects/chatbotLora.mp4",
     tools: ["Python", "Ollama", "AWS", "Docker"],
     concepts: ["Machine Learning", "Automation"],
-    role: "Lead ML engineer",
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Chatbot-LoRA-RAG", label: "GitHub" },
       { icon: "img/icons/website-icon.png", url: "https://danielshort.me/chatbot-demo.html", label: "Live Demo" }
@@ -78,8 +75,7 @@ window.PROJECTS = [
     ],
     results: [
       "Serverless RAG chatbot scales on demand and returns grounded answers with references after a 10‑minute server warm‑up."
-    ],
-    impact: "Domain-grounded tourism chatbot deployed on SageMaker with Lambda APIs."
+    ]
   },
 
   {
@@ -93,7 +89,6 @@ window.PROJECTS = [
     videoMp4: "img/projects/shapeClassifier.mp4",
     tools: ["Python", "PyTorch", "AWS", "Docker"],
     concepts: ["Machine Learning"],
-    role: "Solo developer",
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Shape-Analyzer", label: "GitHub" },
       { icon: "img/icons/website-icon.png", url: "https://danielshort.me/shape-demo.html", label: "Live Demo" }
@@ -102,7 +97,7 @@ window.PROJECTS = [
       type: "iframe",
       url: "shape-demo.html"
     },
-    problem: "Built an interactive model to recognize handwritten shapes in-browser for a fast, tangible ML demo.",
+    problem: "I wanted to create a model that recognizes handwritten shapes.",
     actions: [
       "Downloaded images from Google's QuickDraw dataset to build training and validation splits.",
       "Trained a compact ResNet18 using PyTorch Lightning.",
@@ -111,8 +106,7 @@ window.PROJECTS = [
     results: [
       "Predicts circle, triangle, square, hexagon, or octagon from a single drawing with about 90% accuracy.",
       "Demo shows responses return in under a second after a 10‑second warm‑up."
-    ],
-    impact: "90%+ shape classification with sub‑second responses after warm-up."
+    ]
   },
 
   {
@@ -124,8 +118,6 @@ window.PROJECTS = [
     imageHeight: 1116,
     tools: ["Tableau"],
     concepts: ["Visualization", "Analytics"],
-    role: "Solo analyst",
-    role: "Solo analyst",
     resources: [
       { icon: "img/icons/tableau-icon.png",
         url  : "https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013?:language=en-US&:display_count=n&:origin=viz_share_link",
@@ -136,7 +128,7 @@ window.PROJECTS = [
       type : "tableau",
       base : "https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013"
     },
-    problem : "Analyzed national UFO reports to surface time and location patterns in a single view.",
+    problem : "I was curious what trends could be found in UFO sightings across the United States.",
     actions : [
       "Cleaned and standardized hundreds of UFO sightings.",
       "Built heat maps, bar charts, and line charts for rapid exploratory analysis."
@@ -144,8 +136,7 @@ window.PROJECTS = [
     results : [
       "Determined that most UFO sightings tend to occur just after sunset (earlier in the winter months and later in the summer months).",
       "Found that California is the most common state for UFO sightings, with fewer in the central U.S."
-    ],
-    impact: "Single Tableau view highlighting peak sighting times and hotspot states."
+    ]
   },
 
   {
@@ -157,13 +148,12 @@ window.PROJECTS = [
     imageHeight: 524,
     tools: ["Python"],
     concepts: ["Analytics"],
-    role: "Solo data scientist",
     resources: [
       { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Covid-Analysis", label: "GitHub" },
       { icon: "img/icons/pdf-icon.png",     url: "documents/Project_6.pdf",                        label: "PDF"    },
       { icon: "img/icons/jupyter-icon.png", url: "documents/Project_6.ipynb",                      label: "Notebook"}
     ],
-    problem : "Forecasted COVID-19 outbreak risk from HHS hospital-capacity data to flag likely hotspots.",
+    problem : "I used COVID historical data to predict future outbreaks.",
     actions : [
       "Cleaned & enriched more than 50k records from the HHS hospital-capacity time-series; added rolling means, trends, and 1/3/7/14-day lag features.",
       "Built an XGBoost classifier with class-imbalance weighting and a strict time-based train/test split.",
@@ -172,8 +162,7 @@ window.PROJECTS = [
       "Used SHAP to surface the 7 most influential drivers and embedded the interactive plot in the report.",
       "The most significant driver of COVID outbreaks was the percentage of ICU beds with COVID.",
       "Utah was the most likely next location for a COVID outbreak (6.1%)."
-    ],
-    impact: "Explained outbreak drivers with SHAP and quantified Utah’s 6.1% next-outbreak likelihood."
+    ]
   },
 
   {
@@ -185,7 +174,6 @@ window.PROJECTS = [
     imageHeight: 480,
     tools: ["Excel", "Time-Series"],
     concepts: ["Automation", "Analytics"],
-    role: "Solo analyst",
     resources: [
       { icon: "img/icons/pdf-icon.png",   url: "documents/Project_7.pdf",  label: "PDF"   },
       { icon: "img/icons/excel-icon.png", url: "documents/Project_7.xlsx", label: "Excel" }
@@ -202,8 +190,7 @@ window.PROJECTS = [
       "Location 03’s shrink doubled in <12 months, with Location 02 doubling in a single quarter.",
       "Flagged Departments 52, 80, 87 (especially Dept 52, up 4x in two quarters).",
       "Identified just three associates (IDs 002, 015, 045) who together accounted for ~47% of recovered value."
-    ],
-    impact: "Surfaced shrink hot spots and top three associates driving ~47% of recovered value."
+    ]
   },
 
   {
@@ -218,13 +205,12 @@ window.PROJECTS = [
     videoOnly: true,
     tools: ["Python", "PyTorch", "CNN"],
     concepts: ["Machine Learning"],
-    role: "Solo researcher",
     resources: [
       { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Handwriting-Rating", label: "GitHub" },
       { icon: "img/icons/pdf-icon.png",     url: "documents/Project_8.pdf",                            label: "PDF"    },
       { icon: "img/icons/jupyter-icon.png", url: "documents/Project_8.ipynb",                          label: "Notebook"}
     ],
-    problem : "Needed an objective way to score handwriting legibility using a CNN-based rater.",
+    problem : "My wife would say my handwriting is illegible. I wanted an objective assessment.",
     actions : [
       "Created three models of varying complexity to learn to read handwritten digits.",
       "Trained models on 60,000 handwritten digits."
@@ -233,8 +219,7 @@ window.PROJECTS = [
       "Model 3 (the most complex) was the most accurate, with 99.1% accuracy.",
       "My handwriting was determined to be 72.5% legible, with digits 0, 3, 5, and 8 the most illegible.",
       "My wife was correct in her assessment of my poor handwriting."
-    ],
-    impact: "Built a CNN rater with 99.1% accuracy and quantified handwriting legibility at 72.5%."
+    ]
   },
 
   {
@@ -248,21 +233,19 @@ window.PROJECTS = [
     videoMp4:  "img/projects/digitGenerator.mp4",
     tools: ["Python", "VAE"],
     concepts: ["Machine Learning"],
-    role: "Solo researcher",
     resources: [
       { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Handwritten-Digit-Generator", label: "GitHub" },
       { icon: "img/icons/pdf-icon.png",     url: "documents/Project_9.pdf",                                   label: "PDF"    },
       { icon: "img/icons/jupyter-icon.png", url: "documents/Project_9.ipynb",                                 label: "Notebook"}
     ],
-    problem : "Explored generative modeling to synthesize realistic handwritten digits from data.",
+    problem : "I wanted to learn how to generate completely new handwritten digits based on samples.",
     actions : [
       "Built Variational Autoencoder trained on 60,000 handwritten digits."
     ],
     results : [
       "Successfully visualized latent digits through the trained model.",
       "I can generate unique handwritten digits when needed."
-    ],
-    impact: "Demonstrated VAE-based digit generation with clear latent-space visuals."
+    ]
   },
 
   {
@@ -276,13 +259,12 @@ window.PROJECTS = [
     videoMp4:  "img/projects/sheetMusicUpscale.mp4",
     tools: ["Python", "Computer Vision"],
     concepts: ["Machine Learning"],
-    role: "Solo developer",
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Watermark-Remover", label: "GitHub" },
       { icon: "img/icons/pdf-icon.png",    url: "documents/Project_10_pdf.zip",                      label: "PDFs"  },
       { icon: "img/icons/jupyter-icon.png",url: "documents/Project_10.zip",                          label: "Notebook"}
     ],
-    problem : "Needed clean, high-res sheet music from low-quality, watermarked scans for performances.",
+    problem : "I wanted the ability to participate in playing music as my church but did not have any sheet music.",
     actions : [
       "Trained a UNet model on more 20,000 paired pages for watermark removal.",
       "Upscaled 612×792 scans to 1700×2200 with Very Deep Super-Resolution (VDSR).", 
@@ -290,20 +272,18 @@ window.PROJECTS = [
     ],
     results : [
       "Delivers cleaned and legible sheet music in <10 seconds.",
-    ],
-    impact: "Removes watermarks and upscales sheet music in under 10 seconds via UNet + VDSR pipeline."
+    ]
   },
 
   {
     id: "deliveryTip",
-    title: "Delivery Tip Optimization Dashboard",
+    title: "Delivery Tip",
     subtitle: "Excel Geo-Analytics & Optimization",
     image: "img/projects/deliveryTip.png",
     imageWidth: 960,
     imageHeight: 794,
     tools: ["Excel", "Power Query"],
     concepts: ["Analytics"],
-    role: "Solo analyst",
     resources: [
       { icon: "img/icons/pdf-icon.png",   url: "documents/Project_11.pdf",  label: "PDF"   },
       { icon: "img/icons/excel-icon.png", url: "documents/Project_11.xlsx", label: "Excel" }
@@ -317,8 +297,7 @@ window.PROJECTS = [
       "Identified Wednesday as the day tips average the highest dollar amount ($8.07/delivery).",
       "However, Friday is the best day in terms of tips per hour ($10.34/hour).",
       "Increased weekly earnings by 12% following the insights."
-    ],
-    impact: "12% lift in weekly earnings by optimizing shift timing and delivery zones."
+    ]
   },
 
   {
@@ -330,7 +309,6 @@ window.PROJECTS = [
     imageHeight: 947,
     tools: ["SQL", "Python"],
     concepts: ["Automation", "Analytics"],
-    role: "Solo data engineer/analyst",
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/target-packaging-analysis-mssql", label: "GitHub" },
       { icon: "img/icons/pdf-icon.png",    url: "documents/Project_12.pdf",                                        label: "PDF"    },
@@ -347,8 +325,7 @@ window.PROJECTS = [
       "Flagged State 38 ($991/store/day) plus States 03 & 20 as top theft hot spots.",
       "Quantified boycott hit: –28.7% (May ’23), –11.6% (Jun ’23), –60.2% (Jul ’23) YoY sales.",
       "Surfaced Employees 231, 098, 196 as suspicious for most empty-package reports (e.g., ID 098: $249/item on just 2 items)."
-    ],
-    impact: "Exposed store-format and state hot spots plus quantified boycott-driven sales drops."
+    ]
   },
 
   {
@@ -360,7 +337,6 @@ window.PROJECTS = [
     imageHeight: 1054,
     tools: ["Excel", "Statistics"],
     concepts: ["Analytics"],
-    role: "Solo analyst",
     resources: [
       { icon: "img/icons/pdf-icon.png",   url: "documents/Project_1.pdf",  label: "PDF"   },
       { icon: "img/icons/excel-icon.png", url: "documents/Project_1.xlsx", label: "Excel" }
@@ -374,26 +350,24 @@ window.PROJECTS = [
       "Order cost explains about 38% of tip variance; every extra $10 on the bill lifts the tip by about $1.10.",
       "Apartment customers tip 28% less than house residents (p < 0.001).",
       "Weather and delivery time showed no significant effect on tip size."
-    ],
-    impact: "Explained 38% of tip variance; +$1.10 per $10 order and 28% lower tips in apartments."
+    ]
   },
 
   {
     id: "babynames",
-    title: "Baby Name Recommendation Model",
+    title: "Baby Name Predictor",
     subtitle: "Python ML Pipeline",
     image: "img/projects/babynames.png",
     imageWidth: 1420,
     imageHeight: 940,
     tools: ["Python", "scikit-learn"],
     concepts: ["Machine Learning"],
-    role: "Solo developer",
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Baby-Names", label: "GitHub" },
       { icon: "img/icons/pdf-icon.png",    url: "documents/Project_2.pdf",                    label: "PDFs"  },
       { icon: "img/icons/jupyter-icon.png",url: "documents/Project_2.ipynb",                  label: "Notebook"}
     ],
-    problem : "Built a data-driven recommender to suggest distinctive baby names using 140 years of SSA data.",
+    problem : "My wife wanted me to come up with new baby names to suggest to her. I wanted to use data-backed insights to solve this problem.",
     actions : [
       "Aggregated & cleaned over 140 years of SSA records, engineering trend and saturation features.",
       "Created a script to suggest names so I could quiz my wife.",
@@ -402,8 +376,7 @@ window.PROJECTS = [
     results : [
       "Generated personalized top 50 names for boys and girls for my wife.",
       "Successfully named my child with recommendations."
-    ],
-    impact: "Produced personalized name shortlists from 140 years of trends; used to choose a final name."
+    ]
   },
 
   {
@@ -425,7 +398,7 @@ window.PROJECTS = [
       type : "tableau",
       base : "https://public.tableau.com/views/Pizza_Delivery/PizzaDeliveryDashboard"
     },
-    problem : "Needed a self-serve dashboard to track delivery performance, hotspots, and forecasted demand.",
+    problem : "As a delivery driver, I wanted to visualize my performance and where I was the most successful.",
     actions : [
       "Reshaped 12,000 rows for Tableau, built map, histogram & 12-month forecast with date/zone filters.",
       "Enabled live updates on current performance and the ability to anticipate future performance."
@@ -433,8 +406,7 @@ window.PROJECTS = [
     results : [
       "Able to review potential deliveries and choose which to take.",
       "Improved tip revenue per delivery by more than 10%."
-    ],
-    impact: "10%+ tip revenue lift by choosing optimal zones and dayparts from live Tableau views."
+    ]
   },
 
   {
@@ -448,21 +420,19 @@ window.PROJECTS = [
     videoMp4:  "img/projects/nonogram.mp4",
     tools: ["Python", "PyTorch"],
     concepts: ["Machine Learning"],
-    role: "Solo researcher",
     resources: [
       { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Nonogram-Solver", label: "GitHub" },
       { icon: "img/icons/pdf-icon.png",     url: "documents/Project_4.pdf",                  label: "PDF"    },
       { icon: "img/icons/jupyter-icon.png", url: "documents/Project_4.ipynb",                label: "Notebook"}
     ],
-    problem : "Developed a reinforcement learning agent to solve Nonogram logic puzzles efficiently.",
+    problem : "I wanted to create a machine learning model to automatically solve Nonogram puzzles for me.",
     actions : [
       "Built a hybrid CNN + Transformer policy network and trained it on more than 25 million 5×5 puzzles (52,000 episodes × 512-board batches).",
       "Shaped the reward signal around unique guesses, row/column completions, and full-board solves to speed up exploration."
     ],
     results : [
       "Reached 94% accuracy on unseen 5×5 boards.",
-    ],
-    impact: "94% solve rate on unseen 5×5 boards using a hybrid CNN + Transformer policy."
+    ]
   },
 
   {
@@ -474,7 +444,6 @@ window.PROJECTS = [
     imageHeight: 1456,
     tools: ["HTML", "CSS", "JavaScript"],
     concepts: ["Product", "Visualization"],
-    role: "Solo designer/developer",
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/danielshort3.github.io", label: "GitHub" },
       { icon: "img/icons/website-icon.png", url: "https://danielshort.me/", label: "Live Site" }
@@ -488,15 +457,14 @@ window.PROJECTS = [
       "First Contentful Paint: 1.2s (mobile).",
       "This site and its content helped secure my current role."
     ],
-    impact: "Fast personal site (1.2s mobile FCP) that helped land my current role.",
   }
 ];
 
 // IDs (in order) of projects shown in the top carousel
 window.FEATURED_IDS = [
+  "shapeClassifier",
   "chatbotLora",
-  "retailStore",
-  "targetEmptyPackage",
-  "pizzaDashboard",
-  "shapeClassifier"
+  "sheetMusicUpscale",
+  "digitGenerator",
+  "nonogram"
 ];
