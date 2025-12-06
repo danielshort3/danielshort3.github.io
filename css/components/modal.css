@@ -469,9 +469,15 @@
 
   /* embedded demo modals */
   .modal-body.stacked {
+    display: grid;
+    grid-template-columns: 1fr;
     flex-direction: column;
     align-items: stretch;
     gap: clamp(18px, 2.5vw, 26px);
+    overflow-x: hidden;
+  }
+  .modal-body.stacked > *{
+    width:100%;
   }
   /* ensure Tableau embeds always appear after the text */
   .modal-body.stacked .modal-embed { order: 99; }
