@@ -123,11 +123,11 @@
       </a>
     `;
     const portfolioHighlights = [
-      { id: 'shapeClassifier',  title: 'Shape Classifier Demo',      subtitle: 'Handwritten shape recognition' },
-      { id: 'chatbotLora',      title: 'Chatbot (LoRA + RAG)',       subtitle: 'Fine-tuned assistant with RAG' },
-      { id: 'sheetMusicUpscale',title: 'Sheet Music Restoration',    subtitle: 'UNet watermark removal + VDSR' },
-      { id: 'digitGenerator',   title: 'Synthetic Digit Generator',  subtitle: 'Variational autoencoder (VAE)' },
-      { id: 'nonogram',         title: 'Nonogram Solver',            subtitle: '94% accuracy reinforcement learning' }
+      { id: 'chatbotLora',        title: 'Chatbot (LoRA + RAG)',          subtitle: 'Fine-tuned assistant with RAG' },
+      { id: 'retailStore',        title: 'Store-Level Loss & Sales ETL',  subtitle: 'SQL ETL + anomaly detection' },
+      { id: 'targetEmptyPackage', title: 'Empty-Package Shrink Dashboard',subtitle: 'Excel forecasting & BI' },
+      { id: 'pizzaDashboard',     title: 'Pizza Delivery Dashboard',      subtitle: 'Tableau analytics & forecast' },
+      { id: 'shapeClassifier',    title: 'Shape Classifier Demo',         subtitle: 'Handwritten shape recognition' }
     ];
     const portfolioMenu = `
       <div class="nav-dropdown-inner nav-dropdown-inner-portfolio">

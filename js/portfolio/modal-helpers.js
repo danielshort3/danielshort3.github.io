@@ -521,6 +521,12 @@
     const contentBlock = isTableau
       ? `<div class="modal-tableau-layout">${textBlock}${visual}</div>`
       : `${textBlock}${visual}`;
+    const metaBadges = (() => {
+      const badges = [];
+      if (p.role) badges.push(`<span class="badge badge-ghost">Role: ${p.role}</span>`);
+      if (p.impact) badges.push(`<span class="badge badge-impact">Impact: ${p.impact}</span>`);
+      return badges.length ? `<div class="modal-meta">${badges.join('')}</div>` : '';
+    })();
 
     return `
     <div class="modal-content ${(isTableau || isIframe) ? 'modal-wide' : ''}" role="dialog" aria-modal="true" tabindex="0" aria-labelledby="${p.id}-title">
@@ -529,6 +535,7 @@
       <div class="modal-title-strip"><h3 class="modal-title" id="${p.id}-title">${p.title}</h3></div>
 
       <div class="modal-body ${isTableau ? 'stacked' : ''}">
+        ${metaBadges}
         <div class="modal-header-details">
           <div class="modal-half">
             <p class="header-label">Tools</p>
