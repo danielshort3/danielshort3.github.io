@@ -65,6 +65,12 @@
   box-shadow: none;           /* remove hover shadow */
 }
 .carousel-dots{text-align:center;margin-top:16px}
+.carousel-hint{
+  margin:8px 0 0;
+  text-align:center;
+  color:var(--text-muted);
+  font-size:.95rem;
+}
 .carousel-dot{
   display:inline-block;
   width:24px;   /* larger tap target */
@@ -80,6 +86,33 @@
 }
 .carousel-dot.active{background:var(--primary)}
 #portfolio-carousel.dragging{cursor:grabbing;user-select:none}
+.carousel-nav{
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  border:1px solid color-mix(in srgb,var(--primary) 30%, transparent);
+  background:color-mix(in srgb,var(--surface) 82%, #05080c 18%);
+  color:var(--text-light);
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+  box-shadow:0 8px 20px rgba(0,0,0,.35);
+}
+.carousel-nav:hover,
+.carousel-nav:focus-visible{
+  border-color:var(--primary);
+  color:var(--primary);
+}
+.carousel-nav-prev{left:6px;}
+.carousel-nav-next{right:6px;}
+.carousel-nav span{font-size:24px;line-height:1;}
+.carousel-nav:focus-visible{outline:2px solid var(--primary);outline-offset:2px;}
+@media (max-width:640px){
+  .carousel-nav{display:none;}
+}
 @media (max-width:768px){
   .carousel-card{flex:0 0 80%}
 }

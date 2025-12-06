@@ -53,6 +53,8 @@ function buildPortfolioCarousel() {
 
   const track = container.querySelector(".carousel-track");
   const dots  = container.querySelector(".carousel-dots");
+  const prevBtn = container.querySelector(".carousel-nav-prev");
+  const nextBtn = container.querySelector(".carousel-nav-next");
   const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const isTypingTarget = (node) => {
     if (!node) return false;
@@ -187,7 +189,7 @@ function buildPortfolioCarousel() {
   // -----------------------------------------------------------------------
   let current    = 0;
   let pause      = false;
-  const AUTO_MS  = 3000;
+  const AUTO_MS  = 6000;
   let autoTimer  = null;
 
   const update = () => {
@@ -249,6 +251,9 @@ function buildPortfolioCarousel() {
 
   const next     = (auto = false) => goTo((current + 1) % projects.length, auto);
   const previous = (auto = false) => goTo((current - 1 + projects.length) % projects.length, auto);
+
+  if (prevBtn) prevBtn.addEventListener('click', () => { previous(); restartAuto(); });
+  if (nextBtn) nextBtn.addEventListener('click', () => { next(); restartAuto(); });
 
   // -----------------------------------------------------------------------
   container.addEventListener("mouseenter",  () => pause = true);
@@ -334,6 +339,12 @@ function initSeeMore(){
   const carousel = document.getElementById("portfolio-carousel-section");
   const params   = new URLSearchParams(window.location.search);
   if(!btn || !filters || !grid) return;
+  const setSeeMoreLabel = () => {
+    const expandedState = btn.dataset.expanded === "true";
+    btn.textContent = expandedState ? "Hide projects" : "Browse all projects";
+  };
+  btn.dataset.expanded = btn.dataset.expanded === "true" ? "true" : "false";
+  setSeeMoreLabel();
 
   const selectAll = () => {
     if (!menu) return;
@@ -347,10 +358,21 @@ function initSeeMore(){
     allBtn.setAttribute("aria-pressed", "true");
     [...grid.children].forEach(c => c.classList.remove("hide"));
   };
+  if (!mobile.matches) {
+    selectAll();
+    filters.classList.remove("hide");
+    grid.classList.remove("hide");
+    if (gap) gap.classList.remove("hide");
+    filters.classList.add("active");
+    grid.classList.add("active");
+    if (gap) gap.classList.add("active");
+    btn.dataset.expanded = "true";
+    setSeeMoreLabel();
+  }
   btn.addEventListener("click", () => {
     const expanded = btn.dataset.expanded === "true";
     btn.dataset.expanded = expanded ? "false" : "true";
-    btn.textContent = expanded ? "See More" : "See Less";
+    setSeeMoreLabel();
 
     if (mobile.matches) {
       filters.classList.toggle("hide", expanded);
@@ -668,7 +690,7 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
         const baseLabel = btn.dataset.baseLabel || btn.textContent.trim();
         const count = value === 'all' ? total : (counts[value] || 0);
         const isActive = value === current;
-        btn.innerHTML = `${baseLabel} ${count}/${total}`;
+        btn.innerHTML = `${baseLabel} (${count})`;
         btn.classList.toggle('btn-primary', isActive);
         btn.classList.toggle('btn-secondary', !isActive);
         btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
