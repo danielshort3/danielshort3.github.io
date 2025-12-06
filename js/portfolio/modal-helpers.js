@@ -78,6 +78,15 @@
     return null;
   }
 
+  function mediaAspectFromProject(p = {}) {
+    const w = Number(p.videoWidth || p.imageWidth);
+    const h = Number(p.videoHeight || p.imageHeight);
+    if (Number.isFinite(w) && Number.isFinite(h) && w > 0 && h > 0) {
+      return `${w} / ${h}`;
+    }
+    return '';
+  }
+
   function sizeMediaViewer(viewer, frame, sourceEl, mediaEl) {
     if (!viewer || !frame) return;
     const maxW = Math.min(window.innerWidth - 48, 1200);
@@ -434,6 +443,7 @@
   window.generateProjectModal = function(p) {
     const isTableau = p.embed?.type === 'tableau';
     const isIframe = p.embed?.type === 'iframe';
+    const mediaAspect = mediaAspectFromProject(p);
 
     const tableauDevice = () => window.matchMedia('(max-width:768px)').matches ? 'phone' : 'desktop';
 
@@ -445,8 +455,10 @@
         </div>`;
       }
       if (!isTableau) {
+        const aspectStyle = mediaAspect ? ` style="--media-aspect:${mediaAspect};"` : '';
         return `
         <div class="modal-image media-zoomable"
+             ${aspectStyle}
              data-image="${p.image || ''}"
              data-image-width="${p.imageWidth || ''}"
              data-image-height="${p.imageHeight || ''}"
@@ -477,6 +489,18 @@
       </div>`;
     })();
 
+    const textBlock = `
+        <div class="modal-text">
+          <p class="modal-subtitle">${p.subtitle}</p>
+          <h4>Problem</h4><p>${p.problem}</p>
+          <h4>Action</h4><ul>${p.actions.map(a => `<li>${a}</li>`).join('')}</ul>
+          <h4>Result</h4><ul>${p.results.map(r => `<li>${r}</li>`).join('')}</ul>
+        </div>`;
+
+    const contentBlock = isTableau
+      ? `<div class="modal-tableau-layout">${textBlock}${visual}</div>`
+      : `${textBlock}${visual}`;
+
     return `
     <div class="modal-content ${(isTableau || isIframe) ? 'modal-wide' : ''}" role="dialog" aria-modal="true" tabindex="0" aria-labelledby="${p.id}-title">
       <button class="modal-copy" type="button" aria-label="Copy link to this project">Copy link</button>
@@ -503,14 +527,7 @@
           </div>
         </div>
 
-        <div class="modal-text">
-          <p class="modal-subtitle">${p.subtitle}</p>
-          <h4>Problem</h4><p>${p.problem}</p>
-          <h4>Action</h4><ul>${p.actions.map(a => `<li>${a}</li>`).join('')}</ul>
-          <h4>Result</h4><ul>${p.results.map(r => `<li>${r}</li>`).join('')}</ul>
-        </div>
-
-        ${visual}
+        ${contentBlock}
       </div>
     </div>`;
   };
