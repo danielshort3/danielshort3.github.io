@@ -50,25 +50,8 @@
 }
 #portfolio-carousel-section .section-title{ text-align:center; }
 #portfolio-carousel .carousel-track{display:flex;gap:24px;transition:transform .6s cubic-bezier(.22,.61,.36,1);will-change:transform}
-.carousel-card{
-  flex:0 0 70%;
-  max-width:340px;
-  opacity:.82;
-  transform:translateY(8px) scale(.96);
-  transition:transform .45s cubic-bezier(.22,.61,.36,1),
-    opacity .45s cubic-bezier(.22,.61,.36,1),
-    box-shadow .45s cubic-bezier(.22,.61,.36,1);
-  will-change:transform;
-  backface-visibility:hidden;
-  -webkit-transform:translateZ(0);
-  transform:translateZ(0);
-  box-shadow:0 14px 32px rgba(0,0,0,.24);
-}
-.carousel-card.active{
-  opacity:1;
-  transform:translateY(0) scale(1);
-  box-shadow:0 22px 48px rgba(0,0,0,.32);
-}
+.carousel-card{flex:0 0 70%;max-width:340px;opacity:.7;transform:scale(.9);transition:transform .5s,opacity .5s;will-change:transform;backface-visibility:hidden;-webkit-transform:translateZ(0);transform:translateZ(0)}
+.carousel-card.active{opacity:1;transform:scale(1)}
 /* Prevent native drag/select on images/videos inside carousel cards */
 .carousel-card{ user-select: none; }
 .carousel-card img,
@@ -78,8 +61,8 @@
   pointer-events: none;
 }
 #portfolio-carousel .carousel-card:not(.active):hover {
-  transform:translateY(8px) scale(.96);
-  box-shadow:0 14px 32px rgba(0,0,0,.24);
+  transform: scale(0.9);      /* keep default scale */
+  box-shadow: none;           /* remove hover shadow */
 }
 .carousel-dots{text-align:center;margin-top:16px}
 .carousel-dot{
