@@ -87,6 +87,12 @@
     return '';
   }
 
+  function computeTableauSrc(base) {
+    if (!base) return '';
+    const isPhone = window.matchMedia && window.matchMedia('(max-width:768px)').matches;
+    return `${base}?${[':embed=y', ':showVizHome=no', `:device=${isPhone ? 'phone' : 'desktop'}`].join('&')}`;
+  }
+
   function sizeMediaViewer(viewer, frame, sourceEl, mediaEl) {
     if (!viewer || !frame) return;
     const maxW = Math.min(window.innerWidth - 48, 1200);
@@ -146,9 +152,16 @@
     const videoWebm = sourceEl.dataset.videoWebm || '';
     const hasVideo = !!(videoMp4 || videoWebm);
     const label = title || sourceEl.dataset.title || 'Media preview';
+    const embedBase = sourceEl.dataset.embedBase || '';
+    const embedSrc = sourceEl.dataset.embedSrc || '';
+    const hasEmbed = !!(embedBase || embedSrc);
 
     let html = '';
-    if (hasVideo) {
+    if (hasEmbed) {
+      const src = embedSrc || computeTableauSrc(embedBase);
+      if (!src) return;
+      html = `<iframe class="media-viewer-embed" src="${src}" loading="lazy" allowfullscreen aria-label="${label}"></iframe>`;
+    } else if (hasVideo) {
       html = `
         <video class="media-viewer-video" controls autoplay playsinline muted loop aria-label="${label}">
           ${videoMp4 ? `<source src="${videoMp4}" type="video/mp4">` : ''}
@@ -162,7 +175,7 @@
     }
 
     frame.innerHTML = html;
-    const mediaEl = frame.querySelector('img, video');
+    const mediaEl = frame.querySelector('img, video, iframe');
     const resizeNow = () => sizeMediaViewer(viewer, frame, sourceEl, mediaEl);
     resizeNow();
     if (__mediaViewer._resize) {
@@ -357,10 +370,8 @@
         ifr.src = ifr.dataset.src;
       }
       if (ifr.dataset.base && !ifr.src) {
-        const isPhone = window.matchMedia && window.matchMedia('(max-width:768px)').matches;
         const base = ifr.dataset.base;
-        const src = `${base}?${[':embed=y', ':showVizHome=no', `:device=${isPhone ? 'phone' : 'desktop'}`].join('&')}`;
-        ifr.src = src;
+        ifr.src = computeTableauSrc(base);
       }
       if (!ifr._resizeBound) {
         ifr._resizeBound = true;
@@ -434,7 +445,7 @@
     if (mediaToggle && !mediaToggle._bound) {
       mediaToggle._bound = true;
       mediaToggle.addEventListener('click', () => {
-        const mediaContainer = mediaToggle.closest('.modal-image');
+        const mediaContainer = mediaToggle.closest('.modal-image, .modal-embed');
         openMediaViewer(mediaContainer);
       });
     }
@@ -444,8 +455,6 @@
     const isTableau = p.embed?.type === 'tableau';
     const isIframe = p.embed?.type === 'iframe';
     const mediaAspect = mediaAspectFromProject(p);
-
-    const tableauDevice = () => window.matchMedia('(max-width:768px)').matches ? 'phone' : 'desktop';
 
     const visual = (() => {
       if (isIframe) {
@@ -481,7 +490,19 @@
       }
       const base = p.embed.base || p.embed.url;
       return `
-      <div class="modal-embed tableau-fit">
+      <div class="modal-embed tableau-fit"
+           data-embed-base="${base || ''}"
+           data-embed-src=""
+           data-title="${p.title || ''}">
+        <button class="media-zoom-toggle" type="button" aria-label="Open larger media" aria-pressed="false">
+          <span class="media-zoom-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+              <circle cx="11" cy="11" r="6"></circle>
+              <line x1="15" y1="15" x2="21" y2="21"></line>
+            </svg>
+          </span>
+          <span class="sr-only">Open full view</span>
+        </button>
         <iframe
           loading="lazy"
           allowfullscreen
