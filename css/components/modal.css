@@ -93,8 +93,8 @@
     position:relative;
     flex:1 1 520px;
     width: min(var(--modal-media-max-width), 100%);
-    height: var(--modal-media-height);
-    min-height: var(--modal-media-height);
+    max-height: var(--modal-media-height);
+    aspect-ratio: var(--media-aspect, auto);
     align-self:flex-start;
     min-width:320px;
     display:grid;
@@ -103,19 +103,21 @@
     overflow:hidden;
     background:color-mix(in srgb,var(--surface) 92%, #05080c 8%);
     box-shadow:0 6px 24px rgba(0,0,0,.4);
+    height:auto;
   }
   .modal-image picture{
     width:100%;
-    height:100%;
+    height:auto;
     display:grid;
     place-items:center;
   }
   .modal-image img,
   .modal-image video{
-    width:100%;
-    height:100%;
-    max-width:none;
-    max-height:none;
+    width:auto;
+    height:auto;
+    max-width:100%;
+    max-height: var(--modal-media-height);
+    aspect-ratio: var(--media-aspect, auto);
     border-radius:0;
     display:block;
     object-fit:contain;
@@ -228,8 +230,7 @@
     .modal-image{
       min-width:0;
       width:100%;
-      height:clamp(240px, 58vh, 480px);
-      min-height:clamp(240px, 58vh, 480px);
+      max-height:clamp(240px, 62vh, 520px);
     }
     .media-zoom-toggle{
       width:34px;height:34px;top:8px;right:8px;
@@ -473,6 +474,25 @@
   }
   /* ensure Tableau embeds always appear after the text */
   .modal-body.stacked .modal-embed { order: 99; }
+  .modal-tableau-layout{
+    display:grid;
+    grid-template-rows:auto auto;
+    gap:clamp(14px, 2vw, 20px);
+    width:100%;
+  }
+  .modal-tableau-layout .modal-text{
+    max-width:none;
+    width:100%;
+  }
+  .modal-tableau-layout .modal-embed{
+    width:100%;
+    max-width:none;
+    margin:0;
+  }
+  .modal-tableau-layout .modal-embed iframe{
+    min-height:clamp(520px, 68vh, 920px);
+    height:clamp(520px, 70vh, 980px);
+  }
   .modal-embed {
     width:100%;
     min-width:0;
