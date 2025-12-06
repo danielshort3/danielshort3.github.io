@@ -290,4 +290,41 @@
       background:color-mix(in srgb,var(--surface) 92%, var(--bg));
     }
   }
+
+  /* Resume intro + highlights */
+  .resume-intro{
+    margin:0 0 1.2rem;
+    color:color-mix(in srgb,var(--text-muted) 90%, #fff 10%);
+    max-width:720px;
+  }
+  .resume-highlights{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:12px;
+    margin:0 0 1.6rem;
+  }
+  .resume-pill{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    padding:14px 16px;
+    border-radius:var(--card-radius, 14px);
+    background:color-mix(in srgb,var(--surface) 92%, #000 8%);
+    border:1px solid color-mix(in srgb,var(--border-subtle) 72%, transparent);
+    box-shadow:var(--card-shadow-soft);
+  }
+  .resume-pill-label{
+    font-size:.82rem;
+    text-transform:uppercase;
+    letter-spacing:.12em;
+    color:color-mix(in srgb,var(--text-muted) 90%, #fff 10%);
+    margin:0;
+  }
+  .resume-pill-value{
+    font-family:'Poppins',sans-serif;
+    font-weight:600;
+    font-size:1rem;
+    color:var(--text-light);
+    margin:0;
+  }
 }
