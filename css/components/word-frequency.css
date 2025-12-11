@@ -204,13 +204,12 @@
     list-style:none;
     margin:0;
     padding:0;
-    display:grid;
-    gap:12px;
-    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    columns:2;
+    column-gap:clamp(16px,3vw,24px);
   }
-  @media (min-width: 960px){
+  @media (max-width: 768px){
     .wordfreq-results{
-      grid-template-columns:repeat(2,minmax(0,1fr));
+      columns:1;
     }
   }
 
@@ -223,6 +222,8 @@
     border-radius:14px;
     border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
     background:color-mix(in srgb,var(--surface) 96%, #03080f 4%);
+    break-inside:avoid;
+    margin-bottom:12px;
   }
 
   .wordfreq-meta{
