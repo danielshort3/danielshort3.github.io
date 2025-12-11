@@ -119,38 +119,6 @@
     position:absolute;
     pointer-events:none;
   }
-  .bgtool-drop{
-    position:relative;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:12px;
-    padding:20px;
-    border:2px dashed color-mix(in srgb,var(--primary) 26%, transparent);
-    border-radius:14px;
-    background:color-mix(in srgb,var(--surface) 95%, #03080f 5%);
-    cursor:pointer;
-    transition:border-color .2s ease, background .2s ease, transform .2s ease;
-    text-align:center;
-  }
-  .bgtool-drop:hover,
-  .bgtool-drop:focus-visible,
-  .bgtool-drop.bgtool-drop-hover{
-    border-color:color-mix(in srgb,var(--primary) 48%, transparent);
-    background:color-mix(in srgb,var(--surface) 98%, #03080f 2%);
-    transform:translateY(-1px);
-    outline:none;
-  }
-  .bgtool-drop span{
-    display:flex;
-    flex-direction:column;
-    gap:4px;
-    color:var(--text-muted);
-    font-size:.98rem;
-  }
-  .bgtool-drop strong{
-    color:var(--text-light);
-  }
 
   .bgtool-controls{
     display:grid;
@@ -209,20 +177,24 @@
     overflow:hidden;
     box-shadow:0 16px 32px rgba(0,0,0,.28);
     min-height:240px;
-    background:color-mix(in srgb,var(--surface) 94%, #02070d 6%);
+    background:color-mix(in srgb,var(--surface) 90%, #0a101a 10%);
   }
   .bgtool-canvas-shell::before{
     content:"";
     position:absolute;
     inset:0;
     background:
-      linear-gradient(45deg, #1c222c 25%, transparent 25%) 0 0 / 24px 24px,
-      linear-gradient(-45deg, #1c222c 25%, transparent 25%) 0 0 / 24px 24px,
-      linear-gradient(45deg, transparent 75%, #161b23 75%) 0 0 / 24px 24px,
-      linear-gradient(-45deg, transparent 75%, #161b23 75%) 0 0 / 24px 24px;
-    opacity:0.7;
+      linear-gradient(45deg, #2d3644 25%, transparent 25%) 0 0 / 22px 22px,
+      linear-gradient(-45deg, #2d3644 25%, transparent 25%) 0 0 / 22px 22px,
+      linear-gradient(45deg, transparent 75%, #141a24 75%) 0 0 / 22px 22px,
+      linear-gradient(-45deg, transparent 75%, #141a24 75%) 0 0 / 22px 22px;
+    opacity:0.85;
     pointer-events:none;
     z-index:0;
+  }
+  .bgtool-canvas-shell.drag-hover{
+    border-color:color-mix(in srgb,var(--primary) 48%, transparent);
+    box-shadow:0 18px 38px rgba(0,0,0,.35);
   }
   .bgtool-canvas-shell canvas{
     position:relative;
