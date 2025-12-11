@@ -1,40 +1,78 @@
 /* Word frequency tool styles */
 @layer components {
-  .wordfreq-hero{
-    min-height:auto;
-    padding-block:clamp(3rem,7vh,4.6rem);
+  .wordfreq-top-panel{
+    padding:clamp(3.2rem,7vh,4.8rem) 0;
+    background:linear-gradient(150deg,
+      color-mix(in srgb,var(--surface) 92%, #050b12 8%) 0%,
+      color-mix(in srgb,var(--surface) 80%, #050b12 20%) 100%);
+    border-bottom:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    box-shadow:0 22px 48px rgba(0,0,0,.32);
   }
-  .wordfreq-hero .wrapper{
-    max-width:min(900px, var(--container-max));
+  .wordfreq-top-panel .wrapper{
+    max-width:min(1100px, calc(var(--container-max) + 80px));
+    display:grid;
+    gap:clamp(1.4rem,2.6vw,1.9rem);
   }
-  .wordfreq-hero .hero-tagline{
-    max-width:54ch;
+  .wordfreq-top-lead{
+    margin:0;
+    max-width:62ch;
+    color:var(--text-muted);
+    font-size:1.08rem;
+    line-height:1.75;
+  }
+  .wordfreq-steps{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:clamp(12px,2vw,16px);
+  }
+  .wordfreq-step{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    padding:14px 16px;
+    border-radius:14px;
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    background:color-mix(in srgb,var(--surface) 92%, #000 8%);
+    box-shadow:0 12px 28px rgba(0,0,0,.26);
+  }
+  .wordfreq-step-number{
+    width:36px;
+    height:36px;
+    border-radius:12px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    color:color-mix(in srgb,#ffffff 94%, var(--bg) 6%);
+    background:linear-gradient(135deg,
+      color-mix(in srgb,var(--primary) 88%, #ffffff 12%) 0%,
+      color-mix(in srgb,var(--primary) 62%, #071219 38%) 100%);
+    box-shadow:0 10px 22px rgba(0,0,0,.26);
+  }
+  .wordfreq-step h3{
+    margin:0 0 4px;
+    font-size:1.05rem;
+    letter-spacing:.01em;
+  }
+  .wordfreq-step p{
+    margin:0;
+    color:var(--text-muted);
+    font-size:.98rem;
+    line-height:1.6;
   }
 
   .wordfreq-section{
     padding:clamp(2.8rem,6vh,3.8rem) 0;
   }
 
-  .wordfreq-layout{
-    display:grid;
-    grid-template-columns:1fr;
-    gap:clamp(18px,3vw,24px);
-    align-items:start;
-  }
-
-  @media (min-width: 960px){
-    .wordfreq-layout{
-      grid-template-columns:1.05fr .95fr;
-    }
-  }
-
   .wordfreq-card{
+    width:100%;
     background:linear-gradient(150deg,
       color-mix(in srgb,var(--surface) 92%, #050b12 8%) 0%,
       color-mix(in srgb,var(--surface) 84%, #050b12 16%) 100%);
     border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
     border-radius:18px;
-    padding:clamp(1.4rem,2.4vw,1.8rem);
+    padding:clamp(1.4rem,2.4vw,1.9rem);
     box-shadow:0 18px 36px rgba(0,0,0,.32);
   }
 
@@ -63,12 +101,12 @@
 
   .wordfreq-textarea{
     width:100%;
-    min-height:260px;
-    border-radius:14px;
+    min-height:320px;
+    border-radius:16px;
     border:1px solid color-mix(in srgb,var(--primary) 26%, transparent);
     background:color-mix(in srgb,var(--surface) 94%, #02070d 6%);
     color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
-    padding:14px 16px;
+    padding:16px 18px;
     font:inherit;
     resize:vertical;
     box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
@@ -92,7 +130,7 @@
     display:flex;
     flex-direction:column;
     gap:6px;
-    min-width:140px;
+    min-width:160px;
   }
 
   .wordfreq-input-row{
@@ -143,6 +181,11 @@
     display:grid;
     gap:14px;
   }
+  .wordfreq-results-header{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
   .wordfreq-summary{
     margin:0;
     color:var(--text-muted);
@@ -162,27 +205,55 @@
     margin:0;
     padding:0;
     display:grid;
-    gap:10px;
+    gap:12px;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  }
+  @media (min-width: 960px){
+    .wordfreq-results{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+    }
   }
 
   .wordfreq-row{
     display:grid;
-    grid-template-columns:1fr auto;
+    grid-template-columns:1fr;
     align-items:center;
     gap:10px;
-    padding:12px 12px 10px;
-    border-radius:12px;
+    padding:14px 14px 12px;
+    border-radius:14px;
     border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
     background:color-mix(in srgb,var(--surface) 96%, #03080f 4%);
   }
 
   .wordfreq-meta{
-    display:flex;
+    display:grid;
+    grid-template-columns:auto 1fr;
     align-items:center;
-    gap:8px;
+    gap:10px;
     font-family:'Poppins';
     font-weight:600;
     letter-spacing:.01em;
+  }
+  .wordfreq-rank{
+    width:40px;
+    height:40px;
+    border-radius:14px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1rem;
+    font-weight:700;
+    color:color-mix(in srgb,#ffffff 94%, var(--bg) 6%);
+    background:linear-gradient(135deg,
+      color-mix(in srgb,var(--primary) 84%, #ffffff 16%) 0%,
+      color-mix(in srgb,var(--primary) 56%, #071219 44%) 100%);
+    box-shadow:0 12px 22px rgba(0,0,0,.26);
+  }
+  .wordfreq-wordwrap{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    flex-wrap:wrap;
   }
   .wordfreq-word{
     font-size:1.05rem;
@@ -214,24 +285,5 @@
     margin:0;
     color:var(--text-muted);
     font-size:.9rem;
-  }
-
-  .wordfreq-details{
-    margin-top:4px;
-    color:var(--text-muted);
-    font-size:.92rem;
-  }
-
-  .wordfreq-secondary{
-    display:grid;
-    gap:12px;
-  }
-  .wordfreq-secondary ul{
-    margin:0;
-    padding-left:18px;
-    color:var(--text-muted);
-  }
-  .wordfreq-secondary li{
-    margin-bottom:6px;
   }
 }
