@@ -1,0 +1,200 @@
+/* Background remover tool */
+@layer components {
+  .bgtool-hero{
+    padding:clamp(3.2rem,7vh,4.6rem) 0;
+    background:linear-gradient(140deg,
+      color-mix(in srgb,var(--surface) 92%, #040910 8%) 0%,
+      color-mix(in srgb,var(--surface) 80%, #040910 20%) 100%);
+    border-bottom:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    box-shadow:0 22px 48px rgba(0,0,0,.32);
+  }
+  .bgtool-hero .wrapper{
+    max-width:min(1100px, calc(var(--container-max) + 80px));
+    display:grid;
+    gap:clamp(1.2rem,2.4vw,1.8rem);
+  }
+  .bgtool-lead{
+    margin:0;
+    max-width:70ch;
+    color:var(--text-muted);
+    font-size:1.05rem;
+    line-height:1.75;
+  }
+  .bgtool-steps{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:clamp(12px,2vw,16px);
+  }
+  .bgtool-step{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    padding:14px 16px;
+    border-radius:14px;
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    background:color-mix(in srgb,var(--surface) 92%, #000 8%);
+    box-shadow:0 12px 28px rgba(0,0,0,.26);
+  }
+  .bgtool-step-number{
+    width:36px;
+    height:36px;
+    border-radius:12px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    color:color-mix(in srgb,#ffffff 94%, var(--bg) 6%);
+    background:linear-gradient(135deg,
+      color-mix(in srgb,var(--primary) 88%, #ffffff 12%) 0%,
+      color-mix(in srgb,var(--primary) 62%, #071219 38%) 100%);
+    box-shadow:0 10px 22px rgba(0,0,0,.26);
+  }
+  .bgtool-step h3{
+    margin:0 0 4px;
+    font-size:1.05rem;
+    letter-spacing:.01em;
+  }
+  .bgtool-step p{
+    margin:0;
+    color:var(--text-muted);
+    font-size:.98rem;
+    line-height:1.6;
+  }
+
+  .bgtool-section{
+    padding:clamp(2.8rem,6vh,3.8rem) 0;
+  }
+  .bgtool-grid{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:clamp(18px,3vw,24px);
+  }
+  @media (min-width: 960px){
+    .bgtool-grid{
+      grid-template-columns:1fr 1fr;
+      align-items:start;
+    }
+  }
+
+  .bgtool-card{
+    background:linear-gradient(150deg,
+      color-mix(in srgb,var(--surface) 92%, #050b12 8%) 0%,
+      color-mix(in srgb,var(--surface) 84%, #050b12 16%) 100%);
+    border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
+    border-radius:18px;
+    padding:clamp(1.4rem,2.4vw,1.9rem);
+    box-shadow:0 18px 36px rgba(0,0,0,.32);
+    display:grid;
+    gap:14px;
+  }
+
+  .bgtool-card h2{
+    margin:0 0 6px;
+  }
+  .bgtool-subtitle{
+    margin:0 0 10px;
+    color:var(--text-muted);
+    font-size:1rem;
+  }
+
+  .bgtool-form{
+    display:grid;
+    gap:12px;
+  }
+  .bgtool-label{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    font-weight:600;
+    font-family:'Poppins';
+  }
+  .bgtool-file{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .bgtool-controls{
+    display:grid;
+    gap:12px;
+  }
+  .bgtool-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    align-items:center;
+  }
+  .bgtool-range{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    min-width:200px;
+  }
+  .bgtool-chip{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:10px 12px;
+    border-radius:12px;
+    border:1px solid color-mix(in srgb,var(--primary) 24%, transparent);
+    background:color-mix(in srgb,var(--surface) 95%, #03080f 5%);
+    font-size:.95rem;
+  }
+  .bgtool-color{
+    width:48px;
+    height:42px;
+    border-radius:10px;
+    border:1px solid color-mix(in srgb,var(--primary) 24%, transparent);
+    background:color-mix(in srgb,var(--surface) 92%, #03080f 8%);
+    cursor:pointer;
+  }
+  .bgtool-actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .bgtool-note{
+    margin:4px 0 0;
+    color:var(--text-muted);
+    font-size:.95rem;
+  }
+
+  .bgtool-canvas-wrap{
+    display:grid;
+    gap:12px;
+  }
+  .bgtool-canvas-shell{
+    position:relative;
+    border-radius:16px;
+    border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
+    background:color-mix(in srgb,var(--surface) 94%, #02070d 6%);
+    overflow:hidden;
+    box-shadow:0 16px 32px rgba(0,0,0,.28);
+    min-height:240px;
+  }
+  .bgtool-canvas-shell canvas{
+    width:100%;
+    height:auto;
+    display:block;
+  }
+  .bgtool-canvas-shell .bgtool-overlay{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--text-muted);
+    font-size:.98rem;
+    background:repeating-conic-gradient(#1d242d 0% 25%, #171c25 0% 50%) 50% / 16px 16px;
+  }
+  .bgtool-stats{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    color:var(--text-muted);
+    font-size:.95rem;
+  }
+  .bgtool-stats strong{
+    color:var(--text-light);
+  }
+}
