@@ -34,22 +34,41 @@
   <a href="#main" class="skip-link">Skip to main content</a>
   <header id="combined-header-nav"></header>
 
-  <section class="hero wordfreq-hero">
-    <div class="wrapper">
+  <section class="wordfreq-top-panel">
+    <div class="wrapper wordfreq-top-inner">
       <p class="hero-eyebrow">Labs</p>
       <h1>Stopword-Free Word Frequency</h1>
-      <p class="hero-tagline">Paste any long-form text, strip out filler words, and see the most frequent terms calculated entirely in your browser.</p>
-      <div class="cta-group">
-        <a class="btn-primary hero-cta" href="#analyzer">Jump to analyzer</a>
-        <p class="hero-noscript-hint">Runs locally; nothing is uploaded.</p>
+      <p class="wordfreq-top-lead">Paste any long-form text, strip out filler words, and surface the most frequent terms—all calculated locally in your browser.</p>
+      <div class="wordfreq-steps">
+        <div class="wordfreq-step">
+          <span class="wordfreq-step-number">1</span>
+          <div>
+            <h3>Strip stopwords</h3>
+            <p>Removes common filler words (a, the, and, of, etc.) so remaining tokens focus on meaning.</p>
+          </div>
+        </div>
+        <div class="wordfreq-step">
+          <span class="wordfreq-step-number">2</span>
+          <div>
+            <h3>Tokenize locally</h3>
+            <p>Parses alphabetic words only, ignores punctuation/hyphens, and never uploads your text.</p>
+          </div>
+        </div>
+        <div class="wordfreq-step">
+          <span class="wordfreq-step-number">3</span>
+          <div>
+            <h3>Rank top terms</h3>
+            <p>Sorts by frequency (ties alphabetically) and returns up to 200 results with quick percentages.</p>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
   <main id="main">
     <section id="analyzer" class="surface-band wordfreq-section">
-      <div class="wrapper wordfreq-layout">
-        <div class="wordfreq-card">
+      <div class="wrapper">
+        <div class="wordfreq-card wordfreq-input-card">
           <h2>Paste your text</h2>
           <p class="wordfreq-subtitle">Stopwords are removed automatically. Large blocks of text are supported.</p>
           <form id="wordfreq-form" class="wordfreq-form" novalidate>
@@ -71,25 +90,19 @@
             <p class="wordfreq-note">Processing happens locally in your browser—no uploads, no tracking.</p>
           </form>
         </div>
+      </div>
+    </section>
 
+    <section class="surface-band wordfreq-section">
+      <div class="wrapper">
         <div class="wordfreq-card wordfreq-results-card" aria-live="polite">
-          <div>
+          <div class="wordfreq-results-header">
             <h2>Top words</h2>
             <p id="wordfreq-summary" class="wordfreq-summary">Paste text and submit to see the most common words.</p>
           </div>
           <p id="wordfreq-empty" class="wordfreq-empty">Waiting for input.</p>
           <ol id="wordfreq-results" class="wordfreq-results" aria-label="Most frequent words"></ol>
           <p class="wordfreq-footnote">Stopwords are removed using a standard English list; counts are case-insensitive.</p>
-        </div>
-
-        <div class="wordfreq-card wordfreq-secondary">
-          <h2>How the clean-up works</h2>
-          <p class="wordfreq-details">Stopwords include common filler terms (a, the, and, of, etc.) and contractions, so the remaining counts emphasize meaningful words.</p>
-          <ul>
-            <li>Tokenizes alphabetic words and ignores punctuation and hyphens.</li>
-            <li>Counts are sorted by frequency, then alphabetically for ties.</li>
-            <li>Supports up to 200 top results per run.</li>
-          </ul>
         </div>
       </div>
     </section>

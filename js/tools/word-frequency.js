@@ -58,14 +58,17 @@
 
   const renderResults = (entries, maxCount) => {
     resultsList.innerHTML = '';
-    entries.forEach(([word, count]) => {
+    entries.forEach(([word, count], index) => {
       const item = document.createElement('li');
       item.className = 'wordfreq-row';
       const percent = maxCount ? Math.max(8, (count / maxCount) * 100) : 0;
       item.innerHTML = `
         <div class="wordfreq-meta">
-          <span class="wordfreq-word">${word}</span>
-          <span class="wordfreq-count">${formatNumber(count)}×</span>
+          <span class="wordfreq-rank">${index + 1}</span>
+          <div class="wordfreq-wordwrap">
+            <span class="wordfreq-word">${word}</span>
+            <span class="wordfreq-count">${formatNumber(count)}×</span>
+          </div>
         </div>
         <div class="wordfreq-bar" role="presentation" aria-hidden="true">
           <span style="width:${percent.toFixed(1)}%"></span>
