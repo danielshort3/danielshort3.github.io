@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <base href="/">
+  <title>Background Remover | Daniel Short</title>
+  <link rel="canonical" href="https://danielshort.me/tools/background-remover">
+  <meta name="description" content="Remove a solid background color by making it transparent with adjustable tolerance. Runs locally in your browser.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta property="og:title" content="Background Remover | Daniel Short">
+  <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
+  <meta property="og:description" content="Remove a solid background color by making it transparent with adjustable tolerance. Runs locally in your browser.">
+  <meta property="og:url" content="https://danielshort.me/tools/background-remover">
+  <meta property="og:image" content="https://danielshort.me/img/hero/head.jpg">
+  <meta property="og:image:alt" content="Portrait photo of Daniel Short">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@danielshort3">
+  <meta name="theme-color" content="#0D1117">
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
+  <link rel="preload" as="image" href="img/ui/logo-64.png" imagesrcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" imagesizes="64px" fetchpriority="high">
+  <link rel="preload" as="font" href="css/fonts/Inter-Latin.woff2" type="font/woff2" crossorigin>
+  <link rel="preload" as="font" href="css/fonts/Poppins-500-Latin.woff2" type="font/woff2" crossorigin>
+  <link rel="preload" as="font" href="css/fonts/Poppins-600-Latin.woff2" type="font/woff2" crossorigin>
+</head>
+<body data-page="background-remover">
+  <a href="#main" class="skip-link">Skip to main content</a>
+  <header id="combined-header-nav"></header>
+
+  <section class="bgtool-hero">
+    <div class="wrapper">
+      <p class="hero-eyebrow">Labs</p>
+      <h1>Background Remover</h1>
+      <p class="bgtool-lead">Choose an image, pick a background color (or sample from the image), set how strict the match should be, and export a transparent PNG. Everything runs locally.</p>
+      <div class="bgtool-steps">
+        <div class="bgtool-step">
+          <span class="bgtool-step-number">1</span>
+          <div>
+            <h3>Pick a color</h3>
+            <p>Use the color picker or click the preview to sample the exact color to remove.</p>
+          </div>
+        </div>
+        <div class="bgtool-step">
+          <span class="bgtool-step-number">2</span>
+          <div>
+            <h3>Adjust tolerance</h3>
+            <p>Control how strict the match is—higher tolerance removes similar shades.</p>
+          </div>
+        </div>
+        <div class="bgtool-step">
+          <span class="bgtool-step-number">3</span>
+          <div>
+            <h3>Export locally</h3>
+            <p>Preview updates instantly; download the transparent PNG when you’re happy.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main id="main">
+    <section class="surface-band bgtool-section">
+      <div class="wrapper bgtool-grid">
+        <div class="bgtool-card">
+          <h2>Upload &amp; settings</h2>
+          <p class="bgtool-subtitle">Pick a background color to knock out. For best results, start with solid backgrounds.</p>
+          <form id="bgtool-form" class="bgtool-form" novalidate>
+            <div class="bgtool-file">
+              <label class="bgtool-label" for="bgtool-file">Image file (PNG or JPG)</label>
+              <input id="bgtool-file" type="file" accept="image/png, image/jpeg, image/jpg">
+            </div>
+            <div class="bgtool-controls">
+              <div class="bgtool-row">
+                <label class="bgtool-label" for="bgtool-color">Target color</label>
+                <input id="bgtool-color" class="bgtool-color" type="color" value="#ffffff" aria-label="Target color">
+                <span id="bgtool-color-label" class="bgtool-chip">#ffffff</span>
+                <button type="button" id="bgtool-sample" class="btn-secondary">Sample from image</button>
+              </div>
+              <div class="bgtool-range">
+                <label class="bgtool-label" for="bgtool-tolerance">Tolerance</label>
+                <input id="bgtool-tolerance" type="range" min="0" max="150" value="24" step="1">
+                <span class="bgtool-note">Higher values remove similar shades. Current: <strong id="bgtool-tolerance-value">24</strong></span>
+              </div>
+            </div>
+            <div class="bgtool-actions">
+              <button type="submit" class="btn-primary">Apply background removal</button>
+              <button type="button" id="bgtool-reset" class="btn-ghost">Reset</button>
+            </div>
+            <p class="bgtool-note">Processing stays on your device. Large images may take a moment.</p>
+          </form>
+        </div>
+
+        <div class="bgtool-card bgtool-canvas-wrap" aria-live="polite">
+          <div class="bgtool-canvas-shell">
+            <canvas id="bgtool-canvas" aria-label="Background removal preview"></canvas>
+            <div id="bgtool-overlay" class="bgtool-overlay">Upload an image to begin</div>
+          </div>
+          <div class="bgtool-stats">
+            <span id="bgtool-dim">Size: —</span>
+            <span id="bgtool-removed">Removed pixels: —</span>
+          </div>
+          <div class="bgtool-actions">
+            <button type="button" id="bgtool-download" class="btn-secondary" disabled>Download PNG</button>
+            <span id="bgtool-status" class="bgtool-note" aria-live="polite"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <nav class="privacy-links" aria-label="Privacy shortcuts">
+      <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
+      <a href="#" class="pcz-link" onclick="window.Privacy && window.Privacy.open('doNotSell'); return false;">Do Not Sell/Share My Personal Information</a>
+    </nav>
+  </footer>
+
+  <script defer src="js/tools/background-remover.js"></script>
+  <script defer src="js/common/common.js"></script>
+  <script defer src="js/navigation/navigation.js"></script>
+  <script defer src="js/animations/animations.js"></script>
+  <script src="js/privacy/config.js"></script>
+  <script defer src="js/privacy/consent_manager.js"></script>
+</body>
+</html>
