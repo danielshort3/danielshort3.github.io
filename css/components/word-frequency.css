@@ -1,0 +1,237 @@
+/* Word frequency tool styles */
+@layer components {
+  .wordfreq-hero{
+    min-height:auto;
+    padding-block:clamp(3rem,7vh,4.6rem);
+  }
+  .wordfreq-hero .wrapper{
+    max-width:min(900px, var(--container-max));
+  }
+  .wordfreq-hero .hero-tagline{
+    max-width:54ch;
+  }
+
+  .wordfreq-section{
+    padding:clamp(2.8rem,6vh,3.8rem) 0;
+  }
+
+  .wordfreq-layout{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:clamp(18px,3vw,24px);
+    align-items:start;
+  }
+
+  @media (min-width: 960px){
+    .wordfreq-layout{
+      grid-template-columns:1.05fr .95fr;
+    }
+  }
+
+  .wordfreq-card{
+    background:linear-gradient(150deg,
+      color-mix(in srgb,var(--surface) 92%, #050b12 8%) 0%,
+      color-mix(in srgb,var(--surface) 84%, #050b12 16%) 100%);
+    border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
+    border-radius:18px;
+    padding:clamp(1.4rem,2.4vw,1.8rem);
+    box-shadow:0 18px 36px rgba(0,0,0,.32);
+  }
+
+  .wordfreq-card h2{
+    margin:0 0 6px;
+  }
+
+  .wordfreq-subtitle{
+    margin:0 0 16px;
+    color:var(--text-muted);
+    font-size:1rem;
+  }
+
+  .wordfreq-form{
+    display:grid;
+    gap:14px;
+  }
+
+  .wordfreq-label{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-weight:600;
+    font-family:'Poppins';
+  }
+
+  .wordfreq-textarea{
+    width:100%;
+    min-height:260px;
+    border-radius:14px;
+    border:1px solid color-mix(in srgb,var(--primary) 26%, transparent);
+    background:color-mix(in srgb,var(--surface) 94%, #02070d 6%);
+    color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
+    padding:14px 16px;
+    font:inherit;
+    resize:vertical;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+    transition:border-color .2s ease, box-shadow .2s ease, background .2s ease;
+  }
+  .wordfreq-textarea:focus{
+    outline:none;
+    border-color:color-mix(in srgb,var(--primary) 46%, transparent);
+    box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 28%, transparent);
+    background:color-mix(in srgb,var(--surface) 98%, #02070d 2%);
+  }
+
+  .wordfreq-controls{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    align-items:flex-end;
+  }
+
+  .wordfreq-number{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    min-width:140px;
+  }
+
+  .wordfreq-input-row{
+    display:flex;
+    align-items:center;
+    border-radius:12px;
+    border:1px solid color-mix(in srgb,var(--primary) 24%, transparent);
+    background:color-mix(in srgb,var(--surface) 95%, #03080f 5%);
+    overflow:hidden;
+  }
+  .wordfreq-input-row input{
+    flex:1 1 auto;
+    min-width:0;
+    border:none;
+    background:transparent;
+    color:inherit;
+    padding:10px 12px;
+    font:inherit;
+  }
+  .wordfreq-input-row input:focus{
+    outline:none;
+  }
+  .wordfreq-input-addon{
+    padding:0 12px;
+    color:var(--text-muted);
+    font-size:.95rem;
+    border-left:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+  }
+
+  .wordfreq-actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .wordfreq-actions .btn-primary,
+  .wordfreq-actions .btn-secondary,
+  .wordfreq-actions .btn-ghost{
+    min-width:0;
+  }
+
+  .wordfreq-note{
+    margin:4px 0 0;
+    color:var(--text-muted);
+    font-size:.95rem;
+  }
+
+  .wordfreq-results-card{
+    display:grid;
+    gap:14px;
+  }
+  .wordfreq-summary{
+    margin:0;
+    color:var(--text-muted);
+  }
+  .wordfreq-summary strong{
+    color:var(--text-light);
+  }
+
+  .wordfreq-empty{
+    margin:0;
+    color:var(--text-muted);
+    font-size:.98rem;
+  }
+
+  .wordfreq-results{
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:grid;
+    gap:10px;
+  }
+
+  .wordfreq-row{
+    display:grid;
+    grid-template-columns:1fr auto;
+    align-items:center;
+    gap:10px;
+    padding:12px 12px 10px;
+    border-radius:12px;
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    background:color-mix(in srgb,var(--surface) 96%, #03080f 4%);
+  }
+
+  .wordfreq-meta{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-family:'Poppins';
+    font-weight:600;
+    letter-spacing:.01em;
+  }
+  .wordfreq-word{
+    font-size:1.05rem;
+  }
+  .wordfreq-count{
+    color:var(--text-muted);
+    font-size:.95rem;
+  }
+
+  .wordfreq-bar{
+    position:relative;
+    height:8px;
+    border-radius:999px;
+    background:color-mix(in srgb,var(--surface) 88%, #000 12%);
+    overflow:hidden;
+  }
+  .wordfreq-bar span{
+    position:absolute;
+    inset:0;
+    width:var(--fill, 0%);
+    border-radius:inherit;
+    background:linear-gradient(135deg,
+      color-mix(in srgb,var(--primary) 88%, #ffffff 12%) 0%,
+      color-mix(in srgb,var(--primary) 62%, #061019 38%) 100%);
+    box-shadow:0 6px 14px rgba(0,0,0,.28);
+  }
+
+  .wordfreq-footnote{
+    margin:0;
+    color:var(--text-muted);
+    font-size:.9rem;
+  }
+
+  .wordfreq-details{
+    margin-top:4px;
+    color:var(--text-muted);
+    font-size:.92rem;
+  }
+
+  .wordfreq-secondary{
+    display:grid;
+    gap:12px;
+  }
+  .wordfreq-secondary ul{
+    margin:0;
+    padding-left:18px;
+    color:var(--text-muted);
+  }
+  .wordfreq-secondary li{
+    margin-bottom:6px;
+  }
+}
