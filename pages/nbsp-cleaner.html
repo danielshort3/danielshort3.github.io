@@ -74,11 +74,21 @@
           <form id="nbsp-form" class="nbsp-form" novalidate>
             <label class="nbsp-label" for="nbsp-input">Text with potential hard spaces</label>
             <textarea id="nbsp-input" class="nbsp-textarea" name="text" placeholder="Paste AI output or any text that may contain non-breaking spaces..." required></textarea>
+            <div class="nbsp-options">
+              <label class="nbsp-option">
+                <input id="nbsp-fix-hard" type="checkbox" checked>
+                <span>Replace non-breaking and narrow hard spaces with regular spaces.</span>
+              </label>
+              <label class="nbsp-option">
+                <input id="nbsp-strip-nonascii" type="checkbox">
+                <span>Also strip other non-ASCII characters (accents, emoji, or symbols).</span>
+              </label>
+            </div>
             <div class="nbsp-actions">
               <button type="submit" class="btn-primary">Detect &amp; fix</button>
               <button type="button" id="nbsp-clear" class="btn-ghost">Clear</button>
             </div>
-            <p class="nbsp-note">Cleaning happens locally: we only replace hard spaces with regular spaces.</p>
+            <p class="nbsp-note">Cleaning happens locally: we replace hard spaces and, if you choose, strip other non-ASCII characters.</p>
           </form>
         </div>
       </div>
@@ -92,6 +102,10 @@
             <p id="nbsp-summary" class="nbsp-summary">Paste text and run the cleaner to see findings.</p>
           </div>
           <ul id="nbsp-counts" class="nbsp-counts"></ul>
+          <div class="nbsp-preview-wrap">
+            <label class="nbsp-label" for="nbsp-preview">Preview with markers</label>
+            <div id="nbsp-preview" class="nbsp-preview" aria-live="polite" aria-label="Preview of hard spaces and non-ASCII characters"></div>
+          </div>
           <label class="nbsp-label" for="nbsp-output">Cleaned text</label>
           <textarea id="nbsp-output" class="nbsp-textarea" readonly placeholder="Cleaned text will appear here."></textarea>
           <div class="nbsp-actions">
