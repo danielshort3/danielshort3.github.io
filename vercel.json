@@ -12,6 +12,8 @@
     { "source": "/privacy.html",      "destination": "/pages/privacy" },
     { "source": "/resume",            "destination": "/pages/resume" },
     { "source": "/resume.html",       "destination": "/pages/resume" },
+    { "source": "/word-frequency",    "destination": "/pages/word-frequency" },
+    { "source": "/word-frequency.html","destination": "/pages/word-frequency" },
 
     { "source": "/chatbot-demo",      "destination": "/demos/chatbot-demo" },
     { "source": "/chatbot-demo.html", "destination": "/demos/chatbot-demo" },
