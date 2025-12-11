@@ -167,7 +167,9 @@
     position:relative;
     border-radius:16px;
     border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
-    background:color-mix(in srgb,var(--surface) 94%, #02070d 6%);
+    background:
+      repeating-conic-gradient(#1d242d 0% 25%, #171c25 0% 50%) 50% / 16px 16px,
+      color-mix(in srgb,var(--surface) 94%, #02070d 6%);
     overflow:hidden;
     box-shadow:0 16px 32px rgba(0,0,0,.28);
     min-height:240px;
@@ -185,7 +187,9 @@
     justify-content:center;
     color:var(--text-muted);
     font-size:.98rem;
-    background:repeating-conic-gradient(#1d242d 0% 25%, #171c25 0% 50%) 50% / 16px 16px;
+    background:
+      repeating-conic-gradient(#1d242d 0% 25%, #171c25 0% 50%) 50% / 16px 16px,
+      color-mix(in srgb,var(--surface) 94%, #02070d 6%);
   }
   .bgtool-stats{
     display:flex;
