@@ -233,6 +233,29 @@
     fileInput.files = files;
     handleFileChange();
   });
+  overlay?.addEventListener('click', () => fileInput.click());
+  overlay?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      fileInput.click();
+    }
+  });
+  overlay?.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    canvas.parentElement?.classList.add('drag-hover');
+  });
+  overlay?.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    canvas.parentElement?.classList.remove('drag-hover');
+  });
+  overlay?.addEventListener('drop', (e) => {
+    e.preventDefault();
+    canvas.parentElement?.classList.remove('drag-hover');
+    const files = e.dataTransfer?.files;
+    if (!files || !files.length) return;
+    fileInput.files = files;
+    handleFileChange();
+  });
   downloadBtn?.addEventListener('click', download);
   toggleBtn?.addEventListener('click', () => {
     if (!originalImageData) return;
