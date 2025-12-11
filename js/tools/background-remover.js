@@ -99,6 +99,7 @@
       }
     }
     const newData = new ImageData(data, currentImageData.width, currentImageData.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.putImageData(newData, 0, 0);
     removedLabel.textContent = `Removed pixels: ${removed.toLocaleString('en-US')}`;
     status.textContent = `Applied removal with tolerance ${tolerance}.`;
@@ -149,7 +150,7 @@
     }
   };
 
-  const handleSample = (event) => {
+  const handleSample = () => {
     if (!currentImageData) {
       status.textContent = 'Upload an image before sampling a color.';
       return;
@@ -160,7 +161,7 @@
   };
 
   const handleCanvasClick = (event) => {
-    if (!pendingSample || !currentImageData) return;
+    if (!currentImageData) return;
     const rect = canvas.getBoundingClientRect();
     const x = Math.floor((event.clientX - rect.left) * (canvas.width / rect.width));
     const y = Math.floor((event.clientY - rect.top) * (canvas.height / rect.height));
@@ -192,6 +193,13 @@
   sampleBtn?.addEventListener('click', handleSample);
   resetBtn?.addEventListener('click', reset);
   canvas.addEventListener('click', handleCanvasClick);
+  canvas.addEventListener('mouseenter', () => {
+    if (currentImageData) canvas.style.cursor = 'crosshair';
+  });
+  canvas.addEventListener('mouseleave', () => {
+    canvas.style.cursor = 'default';
+    pendingSample = false;
+  });
   downloadBtn?.addEventListener('click', download);
 
   updateToleranceLabel();
