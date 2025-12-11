@@ -13,14 +13,18 @@
   const removedLabel = $('#bgtool-removed');
   const status = $('#bgtool-status');
   const downloadBtn = $('#bgtool-download');
-  const sampleBtn = $('#bgtool-sample');
   const resetBtn = $('#bgtool-reset');
+  const dropBtn = $('#bgtool-drop');
+  const toggleBtn = $('#bgtool-toggle-original');
 
   if (!form || !fileInput || !colorInput || !toleranceInput || !canvas) return;
 
   const ctx = canvas.getContext('2d');
   let imageBitmap = null;
   let currentImageData = null;
+  let originalImageData = null;
+  let processedImageData = null;
+  let showingOriginal = false;
   let pendingSample = false;
 
   const updateToleranceLabel = () => {
@@ -72,17 +76,33 @@
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(bitmap, 0, 0);
     currentImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    originalImageData = currentImageData;
+    processedImageData = null;
+    showingOriginal = false;
     dimLabel.textContent = `Size: ${bitmap.width} × ${bitmap.height}`;
     removedLabel.textContent = 'Removed pixels: 0';
     downloadBtn.disabled = false;
+    toggleBtn && (toggleBtn.disabled = false);
+    hideOverlay();
+  };
+
+  const drawCurrent = () => {
+    if (!originalImageData) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      showOverlay('Upload an image to begin');
+      return;
+    }
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const data = (showingOriginal || !processedImageData) ? originalImageData : processedImageData;
+    ctx.putImageData(data, 0, 0);
     hideOverlay();
   };
 
   const applyRemoval = () => {
-    if (!currentImageData) return;
+    if (!originalImageData) return;
     const tolerance = parseInt(toleranceInput.value, 10) || 0;
     const { r: tr, g: tg, b: tb } = hexToRgb(colorInput.value || '#ffffff');
-    const data = new Uint8ClampedArray(currentImageData.data);
+    const data = new Uint8ClampedArray(originalImageData.data);
     let removed = 0;
     for (let i = 0; i < data.length; i += 4) {
       const r = data[i];
@@ -98,9 +118,9 @@
         removed++;
       }
     }
-    const newData = new ImageData(data, currentImageData.width, currentImageData.height);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.putImageData(newData, 0, 0);
+    processedImageData = new ImageData(data, originalImageData.width, originalImageData.height);
+    showingOriginal = false;
+    drawCurrent();
     removedLabel.textContent = `Removed pixels: ${removed.toLocaleString('en-US')}`;
     status.textContent = `Applied removal with tolerance ${tolerance}.`;
   };
@@ -127,6 +147,10 @@
     removedLabel.textContent = 'Removed pixels: —';
     status.textContent = '';
     downloadBtn.disabled = true;
+    toggleBtn && (toggleBtn.disabled = true);
+    processedImageData = null;
+    originalImageData = null;
+    showingOriginal = false;
   };
 
   const handleFileChange = async () => {
@@ -144,29 +168,20 @@
       imageBitmap = await readFile(file);
       renderImage(imageBitmap);
       status.textContent = 'Image loaded. Adjust color and tolerance, then apply.';
+      applyRemoval();
     } catch (err) {
       status.textContent = 'Unable to read that file. Please try another image.';
       reset();
     }
   };
 
-  const handleSample = () => {
-    if (!currentImageData) {
-      status.textContent = 'Upload an image before sampling a color.';
-      return;
-    }
-    pendingSample = true;
-    status.textContent = 'Click the image to sample a color.';
-    canvas.style.cursor = 'crosshair';
-  };
-
   const handleCanvasClick = (event) => {
-    if (!currentImageData) return;
+    if (!originalImageData) return;
     const rect = canvas.getBoundingClientRect();
     const x = Math.floor((event.clientX - rect.left) * (canvas.width / rect.width));
     const y = Math.floor((event.clientY - rect.top) * (canvas.height / rect.height));
     const idx = (y * canvas.width + x) * 4;
-    const data = currentImageData.data;
+    const data = originalImageData.data;
     const r = data[idx];
     const g = data[idx + 1];
     const b = data[idx + 2];
@@ -175,7 +190,21 @@
     setColorLabel(hex);
     pendingSample = false;
     canvas.style.cursor = 'default';
-    status.textContent = `Sampled ${hex} from the image. Apply to remove.`;
+    status.textContent = `Sampled ${hex} from the image.`;
+    applyRemoval();
+  };
+
+  const triggerFileSelect = () => {
+    fileInput.click();
+  };
+
+  const handleDrop = async (event) => {
+    event.preventDefault();
+    dropBtn?.classList.remove('bgtool-drop-hover');
+    const files = event.dataTransfer?.files;
+    if (!files || !files.length) return;
+    fileInput.files = files;
+    handleFileChange();
   };
 
   form.addEventListener('submit', (event) => {
@@ -190,7 +219,13 @@
   fileInput.addEventListener('change', handleFileChange);
   colorInput.addEventListener('input', () => setColorLabel(colorInput.value));
   toleranceInput.addEventListener('input', updateToleranceLabel);
-  sampleBtn?.addEventListener('click', handleSample);
+  dropBtn?.addEventListener('click', triggerFileSelect);
+  dropBtn?.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropBtn.classList.add('bgtool-drop-hover');
+  });
+  dropBtn?.addEventListener('dragleave', () => dropBtn.classList.remove('bgtool-drop-hover'));
+  dropBtn?.addEventListener('drop', handleDrop);
   resetBtn?.addEventListener('click', reset);
   canvas.addEventListener('click', handleCanvasClick);
   canvas.addEventListener('mouseenter', () => {
@@ -201,6 +236,13 @@
     pendingSample = false;
   });
   downloadBtn?.addEventListener('click', download);
+  toggleBtn?.addEventListener('click', () => {
+    if (!originalImageData) return;
+    showingOriginal = !showingOriginal;
+    drawCurrent();
+    toggleBtn.textContent = showingOriginal ? 'Show transparent preview' : 'Show original';
+    status.textContent = showingOriginal ? 'Viewing original image.' : 'Viewing transparent preview.';
+  });
 
   updateToleranceLabel();
   setColorLabel(colorInput.value);
