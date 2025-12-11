@@ -214,6 +214,9 @@
     font-size:.98rem;
     background:color-mix(in srgb,var(--surface) 70%, transparent);
     z-index:2;
+    cursor:pointer;
+    text-align:center;
+    padding:12px;
   }
   .bgtool-stats{
     display:flex;
