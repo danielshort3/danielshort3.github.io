@@ -13,6 +13,7 @@
 @import url("components/contact-card.css");
 @import url("components/doc-card.css");
 @import url("components/word-frequency.css");
+@import url("components/nbsp-cleaner.css");
 @import url("components/tools.css");
 @import url("components/modal.css");
 @import url("layout/footer.css");

@@ -1,0 +1,178 @@
+/* Non-breaking space cleaner styles */
+@layer components {
+  .nbsp-hero{
+    padding:clamp(3.2rem,7vh,4.6rem) 0;
+    background:linear-gradient(140deg,
+      color-mix(in srgb,var(--surface) 92%, #040910 8%) 0%,
+      color-mix(in srgb,var(--surface) 80%, #040910 20%) 100%);
+    border-bottom:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    box-shadow:0 22px 48px rgba(0,0,0,.32);
+  }
+  .nbsp-hero .wrapper{
+    max-width:min(1100px, calc(var(--container-max) + 80px));
+    display:grid;
+    gap:clamp(1.2rem,2.4vw,1.8rem);
+  }
+  .nbsp-hero h1{
+    margin:0;
+  }
+  .nbsp-lead{
+    margin:0;
+    max-width:68ch;
+    color:var(--text-muted);
+    font-size:1.05rem;
+    line-height:1.75;
+  }
+
+  .nbsp-steps{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:clamp(12px,2vw,16px);
+  }
+  .nbsp-step{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    padding:14px 16px;
+    border-radius:14px;
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    background:color-mix(in srgb,var(--surface) 92%, #000 8%);
+    box-shadow:0 12px 28px rgba(0,0,0,.26);
+  }
+  .nbsp-step-number{
+    width:36px;
+    height:36px;
+    border-radius:12px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    color:color-mix(in srgb,#ffffff 94%, var(--bg) 6%);
+    background:linear-gradient(135deg,
+      color-mix(in srgb,var(--primary) 88%, #ffffff 12%) 0%,
+      color-mix(in srgb,var(--primary) 62%, #071219 38%) 100%);
+    box-shadow:0 10px 22px rgba(0,0,0,.26);
+  }
+  .nbsp-step h3{
+    margin:0 0 4px;
+    font-size:1.05rem;
+    letter-spacing:.01em;
+  }
+  .nbsp-step p{
+    margin:0;
+    color:var(--text-muted);
+    font-size:.98rem;
+    line-height:1.6;
+  }
+
+  .nbsp-section{
+    padding:clamp(2.8rem,6vh,3.8rem) 0;
+  }
+
+  .nbsp-card{
+    background:linear-gradient(150deg,
+      color-mix(in srgb,var(--surface) 92%, #050b12 8%) 0%,
+      color-mix(in srgb,var(--surface) 84%, #050b12 16%) 100%);
+    border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
+    border-radius:18px;
+    padding:clamp(1.4rem,2.4vw,1.9rem);
+    box-shadow:0 18px 36px rgba(0,0,0,.32);
+    display:grid;
+    gap:14px;
+  }
+  .nbsp-card h2{
+    margin:0 0 6px;
+  }
+  .nbsp-subtitle{
+    margin:0 0 12px;
+    color:var(--text-muted);
+    font-size:1rem;
+  }
+
+  .nbsp-form{
+    display:grid;
+    gap:12px;
+  }
+  .nbsp-label{
+    display:flex;
+    gap:6px;
+    align-items:center;
+    font-weight:600;
+    font-family:'Poppins';
+  }
+  .nbsp-textarea{
+    width:100%;
+    min-height:220px;
+    border-radius:16px;
+    border:1px solid color-mix(in srgb,var(--primary) 26%, transparent);
+    background:color-mix(in srgb,var(--surface) 94%, #02070d 6%);
+    color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
+    padding:16px 18px;
+    font:inherit;
+    resize:vertical;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+    transition:border-color .2s ease, box-shadow .2s ease, background .2s ease;
+  }
+  .nbsp-textarea:focus{
+    outline:none;
+    border-color:color-mix(in srgb,var(--primary) 46%, transparent);
+    box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 28%, transparent);
+    background:color-mix(in srgb,var(--surface) 98%, #02070d 2%);
+  }
+
+  .nbsp-actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .nbsp-note{
+    margin:4px 0 0;
+    color:var(--text-muted);
+    font-size:.95rem;
+  }
+
+  .nbsp-results-header{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .nbsp-summary{
+    margin:0;
+    color:var(--text-muted);
+  }
+  .nbsp-summary strong{
+    color:var(--text-light);
+  }
+
+  .nbsp-counts{
+    list-style:none;
+    padding:0;
+    margin:0;
+    display:grid;
+    gap:8px;
+  }
+  .nbsp-counts li{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    padding:10px 12px;
+    border-radius:12px;
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    background:color-mix(in srgb,var(--surface) 96%, #03080f 4%);
+  }
+  .nbsp-counts strong{
+    color:var(--text-light);
+    min-width:56px;
+  }
+  .nbsp-counts small{
+    color:var(--text-muted);
+  }
+
+  .nbsp-status{
+    color:var(--text-muted);
+    font-size:.95rem;
+  }
+  .nbsp-status[data-tone="success"]{color:var(--success);}
+  .nbsp-status[data-tone="error"]{color:var(--danger);}
+}

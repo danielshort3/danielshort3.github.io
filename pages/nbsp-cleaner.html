@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <base href="/">
+  <title>Non-breaking Space Cleaner | Daniel Short</title>
+  <link rel="canonical" href="https://danielshort.me/nbsp-cleaner.html">
+  <meta name="description" content="Detects non-breaking spaces and replaces them with regular spaces—no uploads, all local.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta property="og:title" content="Non-breaking Space Cleaner | Daniel Short">
+  <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
+  <meta property="og:description" content="Detects non-breaking spaces and replaces them with regular spaces—no uploads, all local.">
+  <meta property="og:url" content="https://danielshort.me/nbsp-cleaner.html">
+  <meta property="og:image" content="https://danielshort.me/img/hero/head.jpg">
+  <meta property="og:image:alt" content="Portrait photo of Daniel Short">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@danielshort3">
+  <meta name="theme-color" content="#0D1117">
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
+  <link rel="preload" as="image" href="img/ui/logo-64.png" imagesrcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" imagesizes="64px" fetchpriority="high">
+  <link rel="preload" as="font" href="css/fonts/Inter-Latin.woff2" type="font/woff2" crossorigin>
+  <link rel="preload" as="font" href="css/fonts/Poppins-500-Latin.woff2" type="font/woff2" crossorigin>
+  <link rel="preload" as="font" href="css/fonts/Poppins-600-Latin.woff2" type="font/woff2" crossorigin>
+</head>
+<body data-page="nbsp-cleaner" class="nbsp-cleaner-page">
+  <a href="#main" class="skip-link">Skip to main content</a>
+  <header id="combined-header-nav"></header>
+
+  <section class="nbsp-hero">
+    <div class="wrapper">
+      <p class="hero-eyebrow">Labs</p>
+      <h1>Non-breaking Space Cleaner</h1>
+      <p class="nbsp-lead">Detects hard spaces (non-breaking, narrow no-break, etc.) often left by AI outputs and replaces them with regular spaces after telling you what changed.</p>
+      <div class="nbsp-steps">
+        <div class="nbsp-step">
+          <span class="nbsp-step-number">1</span>
+          <div>
+            <h3>Detect hidden spaces</h3>
+            <p>Finds non-breaking spaces and related hard space characters that sneak into drafts.</p>
+          </div>
+        </div>
+        <div class="nbsp-step">
+          <span class="nbsp-step-number">2</span>
+          <div>
+            <h3>Notify counts</h3>
+            <p>Summarizes every hard space type it found so you know what changed.</p>
+          </div>
+        </div>
+        <div class="nbsp-step">
+          <span class="nbsp-step-number">3</span>
+          <div>
+            <h3>Fix locally</h3>
+            <p>Swaps them with normal spaces, in your browser only—no uploads or tracking.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main id="main">
+    <section class="surface-band nbsp-section">
+      <div class="wrapper">
+        <div class="nbsp-card">
+          <h2>Paste text to clean</h2>
+          <p class="nbsp-subtitle">We’ll show you what we found, then give you the cleaned text.</p>
+          <form id="nbsp-form" class="nbsp-form" novalidate>
+            <label class="nbsp-label" for="nbsp-input">Text with potential hard spaces</label>
+            <textarea id="nbsp-input" class="nbsp-textarea" name="text" placeholder="Paste AI output or any text that may contain non-breaking spaces..." required></textarea>
+            <div class="nbsp-actions">
+              <button type="submit" class="btn-primary">Detect &amp; fix</button>
+              <button type="button" id="nbsp-clear" class="btn-ghost">Clear</button>
+            </div>
+            <p class="nbsp-note">Cleaning happens locally: we only replace hard spaces with regular spaces.</p>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section class="surface-band nbsp-section">
+      <div class="wrapper">
+        <div class="nbsp-card nbsp-results" aria-live="polite">
+          <div class="nbsp-results-header">
+            <h2>Results</h2>
+            <p id="nbsp-summary" class="nbsp-summary">Paste text and run the cleaner to see findings.</p>
+          </div>
+          <ul id="nbsp-counts" class="nbsp-counts"></ul>
+          <label class="nbsp-label" for="nbsp-output">Cleaned text</label>
+          <textarea id="nbsp-output" class="nbsp-textarea" readonly placeholder="Cleaned text will appear here."></textarea>
+          <div class="nbsp-actions">
+            <button type="button" id="nbsp-copy" class="btn-secondary">Copy cleaned text</button>
+            <span id="nbsp-copy-status" class="nbsp-status" aria-live="polite"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <nav class="privacy-links" aria-label="Privacy shortcuts">
+      <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
+      <a href="#" class="pcz-link" onclick="window.Privacy && window.Privacy.open('doNotSell'); return false;">Do Not Sell/Share My Personal Information</a>
+    </nav>
+  </footer>
+
+  <script defer src="js/tools/nbsp-cleaner.js"></script>
+  <script defer src="js/common/common.js"></script>
+  <script defer src="js/navigation/navigation.js"></script>
+  <script defer src="js/animations/animations.js"></script>
+  <script src="js/privacy/config.js"></script>
+  <script defer src="js/privacy/consent_manager.js"></script>
+</body>
+</html>
