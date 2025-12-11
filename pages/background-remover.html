@@ -74,14 +74,20 @@
           <form id="bgtool-form" class="bgtool-form" novalidate>
             <div class="bgtool-file">
               <label class="bgtool-label" for="bgtool-file">Image file (PNG or JPG)</label>
-              <input id="bgtool-file" type="file" accept="image/png, image/jpeg, image/jpg">
+              <input id="bgtool-file" class="bgtool-input" type="file" accept="image/png, image/jpeg, image/jpg">
+              <button type="button" id="bgtool-drop" class="bgtool-drop">
+                <span>
+                  <strong>Click to choose an image</strong>
+                  <small>PNG or JPG · you can also drop a file here</small>
+                </span>
+              </button>
             </div>
             <div class="bgtool-controls">
               <div class="bgtool-row">
                 <label class="bgtool-label" for="bgtool-color">Target color</label>
                 <input id="bgtool-color" class="bgtool-color" type="color" value="#ffffff" aria-label="Target color">
                 <span id="bgtool-color-label" class="bgtool-chip">#ffffff</span>
-                <button type="button" id="bgtool-sample" class="btn-secondary">Sample from image</button>
+                <span class="bgtool-note">Click the image to sample a color.</span>
               </div>
               <div class="bgtool-range">
                 <label class="bgtool-label" for="bgtool-tolerance">Tolerance</label>
@@ -107,6 +113,7 @@
             <span id="bgtool-removed">Removed pixels: —</span>
           </div>
           <div class="bgtool-actions">
+            <button type="button" id="bgtool-toggle-original" class="btn-ghost" disabled>Show original</button>
             <button type="button" id="bgtool-download" class="btn-secondary" disabled>Download PNG</button>
             <span id="bgtool-status" class="bgtool-note" aria-live="polite"></span>
           </div>
