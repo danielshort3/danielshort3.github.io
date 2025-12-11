@@ -14,18 +14,15 @@
   const status = $('#bgtool-status');
   const downloadBtn = $('#bgtool-download');
   const resetBtn = $('#bgtool-reset');
-  const dropBtn = $('#bgtool-drop');
   const toggleBtn = $('#bgtool-toggle-original');
 
   if (!form || !fileInput || !colorInput || !toleranceInput || !canvas) return;
 
   const ctx = canvas.getContext('2d');
   let imageBitmap = null;
-  let currentImageData = null;
   let originalImageData = null;
   let processedImageData = null;
   let showingOriginal = false;
-  let pendingSample = false;
 
   const updateToleranceLabel = () => {
     if (toleranceValue) toleranceValue.textContent = toleranceInput.value;
@@ -75,8 +72,7 @@
     resizeCanvas(bitmap);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(bitmap, 0, 0);
-    currentImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    originalImageData = currentImageData;
+    originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     processedImageData = null;
     showingOriginal = false;
     dimLabel.textContent = `Size: ${bitmap.width} × ${bitmap.height}`;
@@ -139,7 +135,6 @@
     setColorLabel('#ffffff');
     toleranceInput.value = '24';
     updateToleranceLabel();
-    currentImageData = null;
     imageBitmap = null;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     showOverlay('Upload an image to begin');
@@ -167,7 +162,7 @@
       showOverlay('Loading image...');
       imageBitmap = await readFile(file);
       renderImage(imageBitmap);
-      status.textContent = 'Image loaded. Adjust color and tolerance, then apply.';
+      status.textContent = 'Image loaded. Click the image to sample or adjust tolerance.';
       applyRemoval();
     } catch (err) {
       status.textContent = 'Unable to read that file. Please try another image.';
@@ -176,7 +171,11 @@
   };
 
   const handleCanvasClick = (event) => {
-    if (!originalImageData) return;
+    if (!originalImageData) {
+      fileInput.click();
+      status.textContent = 'Choose an image to start.';
+      return;
+    }
     const rect = canvas.getBoundingClientRect();
     const x = Math.floor((event.clientX - rect.left) * (canvas.width / rect.width));
     const y = Math.floor((event.clientY - rect.top) * (canvas.height / rect.height));
@@ -188,28 +187,13 @@
     const hex = rgbToHex(r, g, b);
     colorInput.value = hex;
     setColorLabel(hex);
-    pendingSample = false;
-    canvas.style.cursor = 'default';
     status.textContent = `Sampled ${hex} from the image.`;
     applyRemoval();
   };
 
-  const triggerFileSelect = () => {
-    fileInput.click();
-  };
-
-  const handleDrop = async (event) => {
-    event.preventDefault();
-    dropBtn?.classList.remove('bgtool-drop-hover');
-    const files = event.dataTransfer?.files;
-    if (!files || !files.length) return;
-    fileInput.files = files;
-    handleFileChange();
-  };
-
   form.addEventListener('submit', (event) => {
     event.preventDefault();
-    if (!currentImageData) {
+    if (!originalImageData) {
       status.textContent = 'Upload an image first.';
       return;
     }
@@ -217,23 +201,37 @@
   });
 
   fileInput.addEventListener('change', handleFileChange);
-  colorInput.addEventListener('input', () => setColorLabel(colorInput.value));
-  toleranceInput.addEventListener('input', updateToleranceLabel);
-  dropBtn?.addEventListener('click', triggerFileSelect);
-  dropBtn?.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    dropBtn.classList.add('bgtool-drop-hover');
+  colorInput.addEventListener('input', () => {
+    setColorLabel(colorInput.value);
+    if (originalImageData) applyRemoval();
   });
-  dropBtn?.addEventListener('dragleave', () => dropBtn.classList.remove('bgtool-drop-hover'));
-  dropBtn?.addEventListener('drop', handleDrop);
+  toleranceInput.addEventListener('input', () => {
+    updateToleranceLabel();
+    if (originalImageData) applyRemoval();
+  });
   resetBtn?.addEventListener('click', reset);
   canvas.addEventListener('click', handleCanvasClick);
   canvas.addEventListener('mouseenter', () => {
-    if (currentImageData) canvas.style.cursor = 'crosshair';
+    canvas.style.cursor = 'crosshair';
   });
   canvas.addEventListener('mouseleave', () => {
     canvas.style.cursor = 'default';
-    pendingSample = false;
+  });
+  canvas.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    canvas.parentElement?.classList.add('drag-hover');
+  });
+  canvas.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    canvas.parentElement?.classList.remove('drag-hover');
+  });
+  canvas.addEventListener('drop', (e) => {
+    e.preventDefault();
+    canvas.parentElement?.classList.remove('drag-hover');
+    const files = e.dataTransfer?.files;
+    if (!files || !files.length) return;
+    fileInput.files = files;
+    handleFileChange();
   });
   downloadBtn?.addEventListener('click', download);
   toggleBtn?.addEventListener('click', () => {

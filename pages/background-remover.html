@@ -67,46 +67,14 @@
 
   <main id="main">
     <section class="surface-band bgtool-section">
-      <div class="wrapper bgtool-grid">
-        <div class="bgtool-card">
-          <h2>Upload &amp; settings</h2>
-          <p class="bgtool-subtitle">Pick a background color to knock out. For best results, start with solid backgrounds.</p>
-          <form id="bgtool-form" class="bgtool-form" novalidate>
-            <div class="bgtool-file">
-              <label class="bgtool-label" for="bgtool-file">Image file (PNG or JPG)</label>
-              <input id="bgtool-file" class="bgtool-input" type="file" accept="image/png, image/jpeg, image/jpg">
-              <button type="button" id="bgtool-drop" class="bgtool-drop">
-                <span>
-                  <strong>Click to choose an image</strong>
-                  <small>PNG or JPG · you can also drop a file here</small>
-                </span>
-              </button>
-            </div>
-            <div class="bgtool-controls">
-              <div class="bgtool-row">
-                <label class="bgtool-label" for="bgtool-color">Target color</label>
-                <input id="bgtool-color" class="bgtool-color" type="color" value="#ffffff" aria-label="Target color">
-                <span id="bgtool-color-label" class="bgtool-chip">#ffffff</span>
-                <span class="bgtool-note">Click the image to sample a color.</span>
-              </div>
-              <div class="bgtool-range">
-                <label class="bgtool-label" for="bgtool-tolerance">Tolerance</label>
-                <input id="bgtool-tolerance" type="range" min="0" max="150" value="24" step="1">
-                <span class="bgtool-note">Higher values remove similar shades. Current: <strong id="bgtool-tolerance-value">24</strong></span>
-              </div>
-            </div>
-            <div class="bgtool-actions">
-              <button type="submit" class="btn-primary">Apply background removal</button>
-              <button type="button" id="bgtool-reset" class="btn-ghost">Reset</button>
-            </div>
-            <p class="bgtool-note">Processing stays on your device. Large images may take a moment.</p>
-          </form>
-        </div>
-
+      <div class="wrapper">
         <div class="bgtool-card bgtool-canvas-wrap" aria-live="polite">
+          <form id="bgtool-form" class="bgtool-form" novalidate>
+            <input id="bgtool-file" class="bgtool-input" type="file" accept="image/png, image/jpeg, image/jpg">
+          </form>
           <div class="bgtool-canvas-shell">
             <canvas id="bgtool-canvas" aria-label="Background removal preview"></canvas>
-            <div id="bgtool-overlay" class="bgtool-overlay">Upload an image to begin</div>
+            <div id="bgtool-overlay" class="bgtool-overlay">Click or drop an image (PNG/JPG) to start</div>
           </div>
           <div class="bgtool-stats">
             <span id="bgtool-dim">Size: —</span>
@@ -116,6 +84,24 @@
             <button type="button" id="bgtool-toggle-original" class="btn-ghost" disabled>Show original</button>
             <button type="button" id="bgtool-download" class="btn-secondary" disabled>Download PNG</button>
             <span id="bgtool-status" class="bgtool-note" aria-live="polite"></span>
+          </div>
+
+          <div class="bgtool-controls">
+            <div class="bgtool-row">
+              <label class="bgtool-label" for="bgtool-color">Target color</label>
+              <input id="bgtool-color" class="bgtool-color" type="color" value="#ffffff" aria-label="Target color">
+              <span id="bgtool-color-label" class="bgtool-chip">#ffffff</span>
+              <span class="bgtool-note">Click the image to sample a color.</span>
+            </div>
+            <div class="bgtool-range">
+              <label class="bgtool-label" for="bgtool-tolerance">Tolerance</label>
+              <input id="bgtool-tolerance" type="range" min="0" max="150" value="24" step="1">
+              <span class="bgtool-note">Higher values remove similar shades. Current: <strong id="bgtool-tolerance-value">24</strong></span>
+            </div>
+            <div class="bgtool-actions">
+              <button type="button" id="bgtool-reset" class="btn-ghost">Reset</button>
+            </div>
+            <p class="bgtool-note">Processing stays on your device. Large images may take a moment.</p>
           </div>
         </div>
       </div>
