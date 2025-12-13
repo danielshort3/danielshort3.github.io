@@ -79,29 +79,35 @@
           <div class="bgtool-stats">
             <span id="bgtool-dim">Size: —</span>
             <span id="bgtool-removed">Removed pixels: —</span>
-          </div>
-          <div class="bgtool-actions">
-            <button type="button" id="bgtool-toggle-original" class="btn-ghost" disabled>Show original</button>
-            <button type="button" id="bgtool-download" class="btn-secondary" disabled>Download PNG</button>
             <span id="bgtool-status" class="bgtool-note" aria-live="polite"></span>
           </div>
 
-          <div class="bgtool-controls">
-            <div class="bgtool-row">
-              <label class="bgtool-label" for="bgtool-color">Target color</label>
+          <div class="bgtool-actions-bar">
+            <div class="bgtool-actions-left">
+              <button type="button" id="bgtool-toggle-original" class="btn-icon" aria-label="Toggle original/transparent" disabled>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"></path><circle cx="12" cy="12" r="3.5"></circle></svg>
+              </button>
+              <button type="button" id="bgtool-download" class="btn-icon" aria-label="Download PNG" disabled>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v14m0 0-4-4m4 4 4-4M5 19h14"></path></svg>
+              </button>
+              <button type="button" id="bgtool-reset" class="btn-icon" aria-label="Reset">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 10a7.5 7.5 0 1 1 .86 3.5M4.5 4v6h6"></path></svg>
+              </button>
+            </div>
+            <div class="bgtool-actions-right">
+              <label class="bgtool-label" for="bgtool-color">Target</label>
               <input id="bgtool-color" class="bgtool-color" type="color" value="#ffffff" aria-label="Target color">
               <span id="bgtool-color-label" class="bgtool-chip">#ffffff</span>
-              <span class="bgtool-note">Click the image to sample a color.</span>
             </div>
+          </div>
+
+          <div class="bgtool-controls">
             <div class="bgtool-range">
               <label class="bgtool-label" for="bgtool-tolerance">Tolerance</label>
               <input id="bgtool-tolerance" type="range" min="0" max="150" value="24" step="1">
               <span class="bgtool-note">Higher values remove similar shades. Current: <strong id="bgtool-tolerance-value">24</strong></span>
             </div>
-            <div class="bgtool-actions">
-              <button type="button" id="bgtool-reset" class="btn-ghost">Reset</button>
-            </div>
-            <p class="bgtool-note">Processing stays on your device. Large images may take a moment.</p>
+            <p class="bgtool-note">Click the image to sample a color. Processing stays on your device.</p>
           </div>
         </div>
       </div>
