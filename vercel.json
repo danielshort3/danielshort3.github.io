@@ -20,8 +20,6 @@
     { "source": "/tools/word-frequency.html","destination": "/pages/word-frequency" },
     { "source": "/tools/background-remover","destination": "/pages/background-remover" },
     { "source": "/tools/background-remover.html","destination": "/pages/background-remover" },
-    { "source": "/tools/ocean-wave-simulation","destination": "/pages/ocean-wave-simulation" },
-    { "source": "/tools/ocean-wave-simulation.html","destination": "/pages/ocean-wave-simulation" },
     { "source": "/tools",             "destination": "/pages/tools" },
     { "source": "/tools.html",        "destination": "/pages/tools" },
     { "source": "/nbsp-cleaner",      "destination": "/pages/nbsp-cleaner" },
