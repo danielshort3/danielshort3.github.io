@@ -150,6 +150,20 @@
     align-items:stretch;
   }
 
+  .hero-project-previews{
+    --project-card-aspect:16 / 9;
+    width:100%;
+    max-width:min(1120px, var(--container-max));
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+    gap:clamp(16px, 2.4vw, 24px);
+    align-items:stretch;
+  }
+
+  .hero-project-preview{
+    max-width:100%;
+  }
+
   .hero-kpi{
     min-width:240px;
     flex:1 1 280px;
