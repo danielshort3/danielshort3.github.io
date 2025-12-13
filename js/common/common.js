@@ -102,7 +102,7 @@
 
   function initSkillPopups(){
     if (!isPage('home')) return;
-    const buttons = $$('.skill-link');
+    const buttons = $$('.skill-link, [data-project-modal="true"]');
     if (!buttons.length) return;
 
     const safePreload = () => {
@@ -113,15 +113,22 @@
     buttons.forEach(btn => {
       if (btn.dataset.modalBound === 'yes') return;
       btn.dataset.modalBound = 'yes';
+      btn.setAttribute('aria-haspopup', 'dialog');
       on(btn, 'pointerenter', safePreload, { once: true });
       on(btn, 'focus', safePreload, { once: true });
       on(btn, 'touchstart', safePreload, { once: true, passive: true });
-      on(btn, 'click', () => {
+      on(btn, 'click', (evt) => {
         if (!btn.dataset.project) return;
+        if (evt && (evt.metaKey || evt.ctrlKey || evt.shiftKey || evt.altKey)) return;
+        if (evt && typeof evt.button === 'number' && evt.button !== 0) return;
+        const tag = (btn.tagName || '').toLowerCase();
+        if (tag === 'a') evt.preventDefault();
         const promise = openProjectModal(btn.dataset.project);
         if (promise && typeof promise.catch === 'function') promise.catch(() => {});
       });
       on(btn, 'keydown', (evt) => {
+        const tag = (btn.tagName || '').toLowerCase();
+        if (tag === 'a') return;
         if (evt.key === 'Enter' || evt.key === ' ') {
           evt.preventDefault();
           if (!btn.dataset.project) return;
