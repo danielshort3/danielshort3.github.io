@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <base href="/">
+  <title>Ocean Wave Simulation | Daniel Short</title>
+  <link rel="canonical" href="https://danielshort.me/tools/ocean-wave-simulation">
+  <meta name="description" content="A calming, real-time ocean wave simulation with adjustable wind speed, wave height, and sun lighting—runs locally in your browser.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta property="og:title" content="Ocean Wave Simulation | Daniel Short">
+  <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
+  <meta property="og:description" content="Relaxing animated waves with adjustable wind, wave height, and lighting. Everything runs locally in your browser.">
+  <meta property="og:url" content="https://danielshort.me/tools/ocean-wave-simulation">
+  <meta property="og:image" content="https://danielshort.me/img/hero/head.jpg">
+  <meta property="og:image:alt" content="Portrait photo of Daniel Short">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@danielshort3">
+  <meta name="theme-color" content="#0D1117">
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
+  <link rel="preload" as="image" href="img/ui/logo-64.png" imagesrcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" imagesizes="64px" fetchpriority="high">
+  <link rel="preload" as="font" href="css/fonts/Inter-Latin.woff2" type="font/woff2" crossorigin>
+  <link rel="preload" as="font" href="css/fonts/Poppins-500-Latin.woff2" type="font/woff2" crossorigin>
+  <link rel="preload" as="font" href="css/fonts/Poppins-600-Latin.woff2" type="font/woff2" crossorigin>
+</head>
+<body data-page="ocean-wave-simulation" class="ocean-wave-page">
+  <a href="#main" class="skip-link">Skip to main content</a>
+  <header id="combined-header-nav"></header>
+
+  <section class="ocean-wave-hero">
+    <div class="wrapper">
+      <p class="hero-eyebrow">Labs</p>
+      <h1>Ocean Wave Simulation</h1>
+      <p class="ocean-wave-lead">A calming, real-time ocean surface renderer. Tune wind speed, wave height, and sun lighting—everything runs locally in your browser.</p>
+      <div class="ocean-wave-steps">
+        <div class="ocean-wave-step">
+          <span class="ocean-wave-step-number">1</span>
+          <div>
+            <h3>Set the wind</h3>
+            <p>Wind speed drives the wave field—higher values yield faster, longer swells.</p>
+          </div>
+        </div>
+        <div class="ocean-wave-step">
+          <span class="ocean-wave-step-number">2</span>
+          <div>
+            <h3>Adjust height</h3>
+            <p>Scale wave height to keep things gentle, breezy, or more dramatic.</p>
+          </div>
+        </div>
+        <div class="ocean-wave-step">
+          <span class="ocean-wave-step-number">3</span>
+          <div>
+            <h3>Shape the light</h3>
+            <p>Move the sun higher or lower to change reflections and overall mood.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main id="main">
+    <section class="surface-band ocean-wave-section">
+      <div class="wrapper">
+        <div class="ocean-wave-grid">
+          <div class="ocean-wave-card ocean-wave-stage-card">
+            <div id="ocean-wave-stage" class="ocean-wave-stage">
+              <canvas id="ocean-wave-canvas" role="img" aria-label="Animated ocean wave simulation">Your browser does not support the HTML canvas element.</canvas>
+              <div class="ocean-wave-hud" aria-hidden="false">
+                <button id="ocean-wave-toggle" type="button" class="btn-icon ocean-wave-toggle" aria-pressed="false" aria-label="Pause animation">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M8 6v12M16 6v12"></path>
+                  </svg>
+                </button>
+                <span id="ocean-wave-status" class="ocean-wave-status" aria-live="polite">Loading…</span>
+              </div>
+            </div>
+            <p class="ocean-wave-note">Everything runs locally in your browser. If you have “Reduce motion” enabled, the animation starts paused.</p>
+          </div>
+
+          <div class="ocean-wave-card ocean-wave-controls-card">
+            <h2>Controls</h2>
+            <form id="ocean-wave-controls" class="ocean-wave-controls" novalidate>
+              <div class="ocean-wave-control">
+                <label class="ocean-wave-label" for="ocean-wave-wind">Wind speed <span id="ocean-wave-wind-value" class="ocean-wave-value">—</span></label>
+                <input id="ocean-wave-wind" type="range" min="0" max="20" value="7.5" step="0.1">
+                <p class="ocean-wave-help">Higher wind increases wave speed and swell length.</p>
+              </div>
+
+              <div class="ocean-wave-control">
+                <label class="ocean-wave-label" for="ocean-wave-height">Wave height <span id="ocean-wave-height-value" class="ocean-wave-value">—</span></label>
+                <input id="ocean-wave-height" type="range" min="0" max="2.5" value="1" step="0.05">
+                <p class="ocean-wave-help">Scales the overall amplitude of the wave field.</p>
+              </div>
+
+              <div class="ocean-wave-control">
+                <label class="ocean-wave-label" for="ocean-wave-light">Sun elevation <span id="ocean-wave-light-value" class="ocean-wave-value">—</span></label>
+                <input id="ocean-wave-light" type="range" min="5" max="75" value="38" step="1">
+                <p class="ocean-wave-help">Lower sun adds warmer highlights; higher sun brightens the water evenly.</p>
+              </div>
+
+              <div class="ocean-wave-actions">
+                <button id="ocean-wave-reset" type="button" class="btn-ghost">Reset</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <nav class="privacy-links" aria-label="Privacy shortcuts">
+      <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
+      <a href="#" class="pcz-link" onclick="window.Privacy && window.Privacy.open('doNotSell'); return false;">Do Not Sell/Share My Personal Information</a>
+    </nav>
+  </footer>
+
+  <script defer src="js/tools/ocean-wave-simulation.js"></script>
+  <script defer src="js/common/common.js"></script>
+  <script defer src="js/navigation/navigation.js"></script>
+  <script defer src="js/animations/animations.js"></script>
+  <script src="js/privacy/config.js"></script>
+  <script defer src="js/privacy/consent_manager.js"></script>
+</body>
+</html>
