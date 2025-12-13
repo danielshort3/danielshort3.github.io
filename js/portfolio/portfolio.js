@@ -53,6 +53,9 @@ function buildPortfolioCarousel() {
 
   const track = container.querySelector(".carousel-track");
   const dots  = container.querySelector(".carousel-dots");
+  if (!track || !dots) return;
+  const isPortfolioPage = document.body && document.body.dataset.page === 'portfolio';
+  const usesModals = isPortfolioPage;
   const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const isTypingTarget = (node) => {
     if (!node) return false;
@@ -93,25 +96,31 @@ function buildPortfolioCarousel() {
       }
     }))
   };
-  const s = document.createElement("script");
+  const itemListId = "portfolio-carousel-itemlist";
+  const s = document.getElementById(itemListId) || document.createElement("script");
+  s.id = itemListId;
   s.type = "application/ld+json";
   s.textContent = JSON.stringify(ld);
-  document.head.appendChild(s);
+  if (!s.parentNode) document.head.appendChild(s);
 
   // Per-project structured data for better discoverability
-  try {
-    const graph = window.PROJECTS.map(p => ({
-      "@type": "CreativeWork",
-      "name": p.title,
-      "description": p.subtitle,
-      "url": `https://danielshort.me/portfolio/${p.id}`,
-      "image": `https://danielshort.me/${p.image}`
-    }));
-    const s2 = document.createElement('script');
-    s2.type = 'application/ld+json';
-    s2.textContent = JSON.stringify({ "@context": "https://schema.org", "@graph": graph });
-    document.head.appendChild(s2);
-  } catch {}
+  if (isPortfolioPage) {
+    try {
+      const graph = window.PROJECTS.map(p => ({
+        "@type": "CreativeWork",
+        "name": p.title,
+        "description": p.subtitle,
+        "url": `https://danielshort.me/portfolio/${p.id}`,
+        "image": `https://danielshort.me/${p.image}`
+      }));
+      const graphId = "portfolio-carousel-graph";
+      const s2 = document.getElementById(graphId) || document.createElement('script');
+      s2.id = graphId;
+      s2.type = 'application/ld+json';
+      s2.textContent = JSON.stringify({ "@context": "https://schema.org", "@graph": graph });
+      if (!s2.parentNode) document.head.appendChild(s2);
+    } catch {}
+  }
 
   track.innerHTML = "";
   dots.innerHTML  = "";
@@ -119,10 +128,14 @@ function buildPortfolioCarousel() {
   projects.forEach((p, i) => {
     /* slide */
     const sizeAttr = getImageSizeAttr(p);
-    const card = document.createElement("button");
-    card.type = "button";
+    const card = usesModals ? document.createElement("button") : document.createElement("a");
+    if (usesModals) {
+      card.type = "button";
+    } else {
+      card.href = `portfolio/${p.id}`;
+    }
     card.className = "project-card carousel-card";
-    card.setAttribute("aria-label", `View details of ${p.title}`);
+    card.setAttribute("aria-label", usesModals ? `View details of ${p.title}` : `Read case study: ${p.title}`);
     const media = (() => {
       const hasVideo = !!(p.videoWebm || p.videoMp4);
       const hasImage = !!p.image;
@@ -165,13 +178,19 @@ function buildPortfolioCarousel() {
       </div>
       ${media}
     `;
-    card.addEventListener("click", () => { if (!moved) openModal(p.id); });
-    card.addEventListener("keydown", ev => {
-      if (ev.key === 'Enter' || ev.key === ' ') {
-        ev.preventDefault();
-        if (!moved) openModal(p.id);
-      }
-    });
+    if (usesModals) {
+      card.addEventListener("click", () => { if (!moved) openModal(p.id); });
+      card.addEventListener("keydown", ev => {
+        if (ev.key === 'Enter' || ev.key === ' ') {
+          ev.preventDefault();
+          if (!moved) openModal(p.id);
+        }
+      });
+    } else {
+      card.addEventListener("click", (ev) => {
+        if (moved) ev.preventDefault();
+      });
+    }
     activateGifVideo(card);
     track.appendChild(card);
 
@@ -263,7 +282,7 @@ function buildPortfolioCarousel() {
       case 'End':        goTo(projects.length - 1); e.preventDefault(); break;
     }
   });
-  if (!container.dataset.globalKeysBound) {
+  if (isPortfolioPage && !container.dataset.globalKeysBound) {
     container.dataset.globalKeysBound = 'yes';
     document.addEventListener('keydown', (e) => {
       if (e.defaultPrevented) return;

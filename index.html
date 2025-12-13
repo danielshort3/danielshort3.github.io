@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Daniel Short - Data Science & Analytics</title>
+  <title>Daniel Short - Data Scientist</title>
   <link rel="canonical" href="https://danielshort.me/">
-  <meta property="og:title" content="Daniel Short - Data Science &amp; Analytics">
-  <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
-  <meta property="og:description" content="Daniel Short – data analyst building Python/SQL automation and stakeholder-ready dashboards.">
+  <meta property="og:title" content="Daniel Short - Data Scientist">
+  <meta property="og:site_name" content="Daniel Short – Data Scientist">
+  <meta property="og:description" content="Daniel Short – data scientist working across analytics, automation, and machine learning in Python/SQL.">
   <meta property="og:url" content="https://danielshort.me/">
   <meta property="og:image" content="https://danielshort.me/img/hero/head.jpg">
   <meta property="og:type" content="website">
@@ -37,7 +37,7 @@
     } catch (_) {}
   </script>
   <meta property="og:image:alt" content="Portrait photo of Daniel Short">
-  <meta name="description" content="Daniel Short – data analyst building Python/SQL automation and stakeholder-ready dashboards.">
+  <meta name="description" content="Daniel Short – data scientist working across analytics, automation, and machine learning in Python/SQL.">
   <link rel="prefetch" href="portfolio.html" as="document">
   <script type="application/ld+json">
     {
@@ -74,11 +74,11 @@
     <section class="hero">
       <div class="wrapper">
         <img class="hero-avatar" src="img/hero/head.jpg" alt="Portrait of Daniel Short" width="168" height="168" decoding="async" fetchpriority="high">
-        <p class="hero-eyebrow">Data Analytics</p>
-        <h1>Decision-ready analytics,<br>made actionable</h1>
+        <p class="hero-eyebrow">Data Scientist</p>
+        <h1>Data science + analytics,<br>made actionable</h1>
 
         <p class="hero-tagline">
-          I’m <strong>Daniel Short</strong>, a data analyst building reliable metrics, automation, and dashboards in <strong>Python</strong> and <strong>SQL</strong>—so stakeholders can act with confidence.
+          I’m <strong>Daniel Short</strong>, a data scientist working across analytics, automation, and machine learning—building reliable systems in <strong>Python</strong> and <strong>SQL</strong> so stakeholders can act with confidence.
         </p>
 
         <p class="hero-status">
@@ -111,52 +111,65 @@
           </li>
         </ul>
       </div>
-      <a class="chevron-hint scroll-indicator" href="#featured-case-studies">
-        <span class="chevron-label">Scroll for featured case studies</span>
+      <a class="chevron-hint scroll-indicator" href="#portfolio-carousel-section">
+        <span class="chevron-label">Scroll for top projects</span>
         <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 16.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 14.08l5.3-5.29a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29z"/></svg>
       </a>
     </section>
 
-    <!-- Featured case studies -->
-    <section id="featured-case-studies" class="surface-band reveal featured-case-studies">
+    <!-- Top projects carousel -->
+    <section id="portfolio-carousel-section" class="surface-band reveal" role="region" aria-labelledby="top-projects-title">
       <div class="wrapper">
-        <h2 class="section-title">Featured Case Studies</h2>
-        <p class="section-subtitle">Three end-to-end examples of how I approach analytics, automation, and ML.</p>
+        <h2 class="section-title" id="top-projects-title">Top 5 Projects</h2>
+        <div id="portfolio-carousel" aria-label="Project Browser">
+          <div class="carousel-track">
+            <!-- Static slides for crawlers / no-JS -->
+            <a class="project-card carousel-card ripple-in" href="portfolio/shapeClassifier">
+              <div class="overlay"></div>
+              <div class="project-text">
+                <div class="project-title">Shape Classifier Demo</div>
+                <div class="project-subtitle">Handwritten Shape Recognition</div>
+              </div>
+              <img src="img/projects/shapeClassifier.png" alt="Preview of the Shape Classifier demo interface" width="1280" height="720" loading="lazy" decoding="async">
+            </a>
 
-        <div class="featured-case-studies-grid" role="list">
-          <a class="project-card ripple-in featured-case-study" role="listitem" href="portfolio/chatbotLora" aria-label="Chatbot (LoRA + RAG) case study">
-            <span class="project-metric">AWS · LoRA · RAG</span>
-            <div class="overlay"></div>
-            <div class="project-text">
-              <div class="project-title">Chatbot (LoRA + RAG)</div>
-              <div class="project-subtitle">Fine-tuned tourism assistant deployed on AWS</div>
-            </div>
-            <img src="img/projects/chatbotLora.png" alt="Preview of the Chatbot (LoRA + RAG) interface" width="1280" height="720" loading="lazy" decoding="async">
-          </a>
+            <a class="project-card carousel-card ripple-in" href="portfolio/chatbotLora">
+              <div class="overlay"></div>
+              <div class="project-text">
+                <div class="project-title">Chatbot (LoRA + RAG)</div>
+                <div class="project-subtitle">RAG Chatbot Fine-Tuned with LoRA</div>
+              </div>
+              <img src="img/projects/chatbotLora.png" alt="Screenshot of the Visit Grand Junction chatbot interface" width="1280" height="720" loading="lazy" decoding="async">
+            </a>
 
-          <a class="project-card ripple-in featured-case-study" role="listitem" href="portfolio/retailStore" aria-label="Store-Level Loss and Sales ETL case study">
-            <span class="project-metric">SQL · Python · Anomalies</span>
-            <div class="overlay"></div>
-            <div class="project-text">
-              <div class="project-title">Store-Level Loss &amp; Sales ETL</div>
-              <div class="project-subtitle">ETL pipeline + anomaly detection for loss hot spots</div>
-            </div>
-            <img src="img/projects/retailStore.png" alt="Preview of the Store-Level Loss and Sales ETL analysis" width="1423" height="947" loading="lazy" decoding="async">
-          </a>
+            <a class="project-card carousel-card ripple-in" href="portfolio/sheetMusicUpscale">
+              <div class="overlay"></div>
+              <div class="project-text">
+                <div class="project-title">Sheet Music Watermark Removal &amp; Upscale</div>
+                <div class="project-subtitle">UNet &amp; VDSR Pipeline</div>
+              </div>
+              <img src="img/projects/sheetMusicUpscale.png" alt="Example of cleaned sheet music after processing" width="1604" height="1230" loading="lazy" decoding="async">
+            </a>
 
-          <a class="project-card ripple-in featured-case-study" role="listitem" href="portfolio/pizzaDashboard" aria-label="Pizza Delivery Dashboard case study">
-            <span class="project-metric">Tableau · KPIs</span>
-            <div class="overlay"></div>
-            <div class="project-text">
-              <div class="project-title">Pizza Delivery Dashboard</div>
-              <div class="project-subtitle">KPI dashboard to speed up delivery decisions</div>
-            </div>
-            <img src="img/projects/pizzaDashboard.png" alt="Preview of the Pizza Delivery Dashboard" width="1250" height="1092" loading="lazy" decoding="async">
-          </a>
-        </div>
+            <a class="project-card carousel-card ripple-in" href="portfolio/digitGenerator">
+              <div class="overlay"></div>
+              <div class="project-text">
+                <div class="project-title">Synthetic Digit Generator</div>
+                <div class="project-subtitle">Variational Autoencoder</div>
+              </div>
+              <img src="img/projects/digitGenerator.png" alt="Grid of handwritten digits produced by the VAE model" width="400" height="400" loading="lazy" decoding="async">
+            </a>
 
-        <div class="featured-case-studies-actions">
-          <a href="portfolio.html" class="btn-secondary">View all projects</a>
+            <a class="project-card carousel-card ripple-in" href="portfolio/nonogram">
+              <div class="overlay"></div>
+              <div class="project-text">
+                <div class="project-title">Nonogram Solver</div>
+                <div class="project-subtitle">Reinforcement Learning (RL)</div>
+              </div>
+              <img src="img/projects/nonogram.png" alt="Visualization of the reinforcement learning Nonogram solver" width="1080" height="1080" loading="lazy" decoding="async">
+            </a>
+          </div>
+          <div class="carousel-dots" role="tablist"></div>
         </div>
       </div>
     </section>
@@ -376,9 +389,9 @@
     <section id="cta" class="surface-band reveal">
       <div class="wrapper">
         <div id="cta-link" role="group" aria-label="Contact call to action">
-          <h2 class="section-title">Open to Data Analytics Roles</h2>
+          <h2 class="section-title">Open to Data Scientist Roles</h2>
           <p>
-            I’m open to full-time data analyst roles and selective freelance work. If you’d like to discuss an opportunity, send a quick note.          </p>
+            I’m open to full-time data scientist roles (including analytics-heavy teams) and selective freelance work. If you’d like to discuss an opportunity, send a quick note.          </p>
           <div>
             <a href="#contact-modal" class="btn-primary" data-contact-modal-link="true">Send a Message</a>
           </div>
