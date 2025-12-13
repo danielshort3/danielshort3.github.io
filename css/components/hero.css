@@ -56,6 +56,16 @@
     text-align:center;
   }
 
+  .hero-avatar{
+    width:clamp(92px, 10vw, 148px);
+    height:auto;
+    aspect-ratio:1;
+    border-radius:999px;
+    object-fit:cover;
+    border:2px solid color-mix(in srgb,var(--primary) 22%, transparent);
+    box-shadow:0 20px 46px rgba(0,0,0,.35);
+  }
+
   .hero-eyebrow{
     margin:0;
     font-size:.85rem;

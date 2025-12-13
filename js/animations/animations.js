@@ -15,7 +15,6 @@
     initScrollProgress();
     initHeroParallax();
     initBackToTop();
-    initHeroAmbient();
   });
   function initReveal(){
     const io = new IntersectionObserver((ents,o)=>{
@@ -46,6 +45,7 @@
   }
 
   function initHeroParallax(){
+    if (document.body?.dataset?.page !== 'home') return;
     const hero = document.querySelector('.hero');
     if (!hero) return;
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -85,6 +85,7 @@
 
   // Subtle ambient light following the mouse inside the hero
   function initHeroAmbient(){
+    if (document.body?.dataset?.page !== 'home') return;
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const fine = window.matchMedia('(pointer: fine)').matches;
     if (reduce || !fine) return;

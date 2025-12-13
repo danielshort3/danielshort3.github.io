@@ -89,6 +89,8 @@ function renderProjectPage(project) {
   const actions = Array.isArray(project.actions) ? project.actions : [];
   const results = Array.isArray(project.results) ? project.results : [];
   const resources = Array.isArray(project.resources) ? project.resources : [];
+  const role = project.role;
+  const notes = normalizeWhitespace(project.notes || '');
 
   const tags = [...new Set([...concepts, ...tools])]
     .map((t) => normalizeWhitespace(t))
@@ -125,9 +127,27 @@ function renderProjectPage(project) {
     </section>`
     : '';
 
+  const safeRole = (() => {
+    if (!role) return '';
+    if (Array.isArray(role) && role.length) {
+      return `<section class="project-section">
+      <h2 class="section-title">Role</h2>
+      <ul class="project-list">
+        ${role.map((item) => `<li>${escapeHtml(normalizeWhitespace(item))}</li>`).join('\n        ')}
+      </ul>
+    </section>`;
+    }
+    const text = normalizeWhitespace(role);
+    if (!text) return '';
+    return `<section class="project-section">
+      <h2 class="section-title">Role</h2>
+      <p class="project-lead">${escapeHtml(text)}</p>
+    </section>`;
+  })();
+
   const safeActions = actions.length
     ? `<section class="project-section">
-      <h2 class="section-title">What I Did</h2>
+      <h2 class="section-title">Approach</h2>
       <ul class="project-list">
         ${actions.map((a) => `<li>${escapeHtml(normalizeWhitespace(a))}</li>`).join('\n        ')}
       </ul>
@@ -136,7 +156,7 @@ function renderProjectPage(project) {
 
   const safeResults = results.length
     ? `<section class="project-section">
-      <h2 class="section-title">Results</h2>
+      <h2 class="section-title">Impact</h2>
       <ul class="project-list">
         ${results.map((r) => `<li>${escapeHtml(normalizeWhitespace(r))}</li>`).join('\n        ')}
       </ul>
@@ -146,8 +166,15 @@ function renderProjectPage(project) {
   const safeProblem = normalizeWhitespace(project.problem || '');
   const safeOverview = safeProblem
     ? `<section class="project-section">
-      <h2 class="section-title">Overview</h2>
+      <h2 class="section-title">Context</h2>
       <p class="project-lead">${escapeHtml(safeProblem)}</p>
+    </section>`
+    : '';
+
+  const safeNotes = notes
+    ? `<section class="project-section">
+      <h2 class="section-title">Notes</h2>
+      <p class="project-lead">${escapeHtml(notes)}</p>
     </section>`
     : '';
 
@@ -239,9 +266,11 @@ function renderProjectPage(project) {
       <div class="wrapper">
         ${media}
         ${safeOverview}
+        ${safeRole}
         ${safeActions}
         ${safeResults}
         ${safeResources}
+        ${safeNotes}
       </div>
     </section>
   </main>

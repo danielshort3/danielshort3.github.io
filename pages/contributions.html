@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="no-js">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -26,6 +26,15 @@
   <link rel="preload" as="font" href="css/fonts/Inter-Latin.woff2" type="font/woff2" crossorigin>
   <link rel="preload" as="font" href="css/fonts/Poppins-500-Latin.woff2" type="font/woff2" crossorigin>
   <link rel="preload" as="font" href="css/fonts/Poppins-600-Latin.woff2" type="font/woff2" crossorigin>
+  <script>
+    try {
+      if (document.documentElement.classList) {
+        document.documentElement.classList.remove("no-js");
+      } else {
+        document.documentElement.className = (document.documentElement.className || "").replace(/\bno-js\b/, "").trim();
+      }
+    } catch (_) {}
+  </script>
   <meta name="description"
         content="Public-facing reports and publications featuring Daniel Short’s data science and analytics work for Visit Grand Junction.">
   <meta property="og:image:alt" content="Portrait photo of Daniel Short">
