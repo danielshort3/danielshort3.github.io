@@ -1,0 +1,248 @@
+/* Ocean wave simulation tool */
+@layer components {
+  .ocean-wave-hero{
+    padding:clamp(3.2rem,7vh,4.6rem) 0;
+    background:linear-gradient(140deg,
+      color-mix(in srgb,var(--surface) 90%, #041622 10%) 0%,
+      color-mix(in srgb,var(--surface) 78%, #031018 22%) 100%);
+    border-bottom:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    box-shadow:0 22px 48px rgba(0,0,0,.32);
+  }
+  .ocean-wave-hero .wrapper{
+    max-width:min(1100px, calc(var(--container-max) + 80px));
+    display:grid;
+    gap:clamp(1.2rem,2.4vw,1.8rem);
+  }
+  .ocean-wave-lead{
+    margin:0;
+    max-width:72ch;
+    color:var(--text-muted);
+    font-size:1.05rem;
+    line-height:1.75;
+  }
+
+  .ocean-wave-steps{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:clamp(12px,2vw,16px);
+  }
+  .ocean-wave-step{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    padding:14px 16px;
+    border-radius:14px;
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    background:color-mix(in srgb,var(--surface) 92%, #000 8%);
+    box-shadow:0 12px 28px rgba(0,0,0,.26);
+  }
+  .ocean-wave-step-number{
+    width:36px;
+    height:36px;
+    border-radius:12px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    color:color-mix(in srgb,#ffffff 94%, var(--bg) 6%);
+    background:linear-gradient(135deg,
+      color-mix(in srgb,var(--primary) 88%, #ffffff 12%) 0%,
+      color-mix(in srgb,var(--primary) 62%, #071219 38%) 100%);
+    box-shadow:0 10px 22px rgba(0,0,0,.26);
+    flex-shrink:0;
+  }
+  .ocean-wave-step h3{
+    margin:0 0 4px;
+    font-size:1.05rem;
+    letter-spacing:.01em;
+  }
+  .ocean-wave-step p{
+    margin:0;
+    color:var(--text-muted);
+    font-size:.98rem;
+    line-height:1.6;
+  }
+
+  .ocean-wave-section{
+    padding:clamp(2.8rem,6vh,3.8rem) 0;
+  }
+
+  .ocean-wave-grid{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:clamp(18px,3vw,24px);
+    align-items:start;
+  }
+  @media (min-width: 980px){
+    .ocean-wave-grid{
+      grid-template-columns:minmax(0, 1.35fr) minmax(0, 0.65fr);
+    }
+  }
+
+  .ocean-wave-card{
+    background:linear-gradient(150deg,
+      color-mix(in srgb,var(--surface) 92%, #050b12 8%) 0%,
+      color-mix(in srgb,var(--surface) 84%, #050b12 16%) 100%);
+    border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
+    border-radius:18px;
+    padding:clamp(1.4rem,2.4vw,1.9rem);
+    box-shadow:0 18px 36px rgba(0,0,0,.32);
+    display:grid;
+    gap:14px;
+  }
+  .ocean-wave-card h2{
+    margin:0 0 6px;
+  }
+
+  .ocean-wave-stage{
+    position:relative;
+    border-radius:16px;
+    border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
+    overflow:hidden;
+    box-shadow:0 16px 32px rgba(0,0,0,.28);
+    aspect-ratio:16 / 9;
+    min-height:260px;
+    background:linear-gradient(180deg,
+      color-mix(in srgb,#0b1c2a 88%, var(--bg) 12%) 0%,
+      color-mix(in srgb,#08131d 88%, var(--bg) 12%) 100%);
+  }
+  .ocean-wave-stage::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:
+      radial-gradient(ellipse at 50% 22%, rgba(255,255,255,.06), transparent 52%),
+      linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.25) 100%);
+    pointer-events:none;
+    z-index:1;
+    mix-blend-mode:soft-light;
+  }
+  .ocean-wave-stage canvas{
+    width:100%;
+    height:100%;
+    display:block;
+    position:relative;
+    z-index:0;
+  }
+
+  .ocean-wave-hud{
+    position:absolute;
+    left:14px;
+    bottom:14px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    z-index:2;
+  }
+  .ocean-wave-status{
+    display:inline-flex;
+    align-items:center;
+    padding:10px 12px;
+    border-radius:999px;
+    border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
+    background:color-mix(in srgb,var(--surface) 72%, transparent);
+    backdrop-filter:blur(10px);
+    color:color-mix(in srgb,var(--text-light) 92%, #ffffff 8%);
+    font-family:'Poppins';
+    font-weight:600;
+    letter-spacing:.01em;
+    font-size:.92rem;
+  }
+  .ocean-wave-toggle{
+    width:46px;
+    height:46px;
+    border-radius:999px;
+  }
+  .ocean-wave-note{
+    margin:0;
+    color:var(--text-muted);
+    font-size:.98rem;
+    line-height:1.6;
+  }
+
+  .ocean-wave-controls{
+    display:grid;
+    gap:16px;
+  }
+  .ocean-wave-control{
+    display:grid;
+    gap:8px;
+  }
+  .ocean-wave-label{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:12px;
+    font-family:'Poppins';
+    font-weight:600;
+  }
+  .ocean-wave-value{
+    font-weight:700;
+    color:color-mix(in srgb,var(--text-light) 90%, #ffffff 10%);
+    background:color-mix(in srgb,var(--surface) 88%, #000 12%);
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    border-radius:999px;
+    padding:6px 10px;
+    font-size:.88rem;
+    letter-spacing:.01em;
+    white-space:nowrap;
+  }
+  .ocean-wave-help{
+    margin:0;
+    color:var(--text-muted);
+    font-size:.95rem;
+    line-height:1.5;
+  }
+
+  .ocean-wave-controls input[type="range"]{
+    width:100%;
+    accent-color:var(--primary);
+  }
+  .ocean-wave-controls input[type="range"]::-webkit-slider-runnable-track{
+    height:8px;
+    border-radius:999px;
+    background:linear-gradient(90deg,
+      color-mix(in srgb,var(--primary) 62%, transparent),
+      color-mix(in srgb,var(--primary) 18%, transparent));
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+  }
+  .ocean-wave-controls input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    appearance:none;
+    width:20px;
+    height:20px;
+    border-radius:999px;
+    background:linear-gradient(135deg,
+      color-mix(in srgb,var(--primary) 92%, #ffffff 8%) 0%,
+      color-mix(in srgb,var(--primary) 62%, #071219 38%) 100%);
+    border:2px solid color-mix(in srgb,var(--bg) 55%, transparent);
+    box-shadow:0 10px 22px rgba(0,0,0,.28);
+    margin-top:-7px;
+  }
+  .ocean-wave-controls input[type="range"]::-moz-range-track{
+    height:8px;
+    border-radius:999px;
+    background:linear-gradient(90deg,
+      color-mix(in srgb,var(--primary) 62%, transparent),
+      color-mix(in srgb,var(--primary) 18%, transparent));
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+  }
+  .ocean-wave-controls input[type="range"]::-moz-range-thumb{
+    width:20px;
+    height:20px;
+    border-radius:999px;
+    background:linear-gradient(135deg,
+      color-mix(in srgb,var(--primary) 92%, #ffffff 8%) 0%,
+      color-mix(in srgb,var(--primary) 62%, #071219 38%) 100%);
+    border:2px solid color-mix(in srgb,var(--bg) 55%, transparent);
+    box-shadow:0 10px 22px rgba(0,0,0,.28);
+  }
+
+  .ocean-wave-actions{
+    display:flex;
+    justify-content:flex-start;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:6px;
+  }
+}
