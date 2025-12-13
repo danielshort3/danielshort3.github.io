@@ -32,10 +32,10 @@ All routes accept/return JSON:
 - `POST /auth/register` → `{ username, password }` ⇒ `{ token, username, playerId, balance, spins, ... }`
 - `POST /auth/login` → `{ username, password }`
 - `POST /auth/logout` → `{ token }`
-- `POST /auth/delete` → `{ token }` — removes the user, player record, and spin history entries
+- `POST /auth/delete` → `{ token }` - removes the user, player record, and spin history entries
 - `POST /upgrade` → `{ token, type }` (`type` ∈ `rows`,`reels`,`lines`) upgrades the machine if the player has enough credits
 - `POST /session` → `{ token?, playerId? }`
-- `POST /daily` → `{ token, action?: 'claim' }` — fetch the current daily reward or claim today’s VIP marks/credits + bonus drops
+- `POST /daily` → `{ token, action?: 'claim' }` - fetch the current daily reward or claim today’s VIP marks/credits + bonus drops
 - `POST /spin` → `{ token?, playerId, bet }`
 
 Every successful spin (and rejected bet attempts when we know the player) is recorded into `slot-machine-spin-history`, so you can audit player activity or build dashboards from that table without touching the live balance records.

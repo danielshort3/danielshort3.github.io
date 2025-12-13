@@ -138,8 +138,8 @@
     imageBitmap = null;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     showOverlay('Upload an image to begin');
-    dimLabel.textContent = 'Size: —';
-    removedLabel.textContent = 'Removed pixels: —';
+    dimLabel.textContent = 'Size: N/A';
+    removedLabel.textContent = 'Removed pixels: N/A';
     status.textContent = '';
     downloadBtn.disabled = true;
     toggleBtn && (toggleBtn.disabled = true);

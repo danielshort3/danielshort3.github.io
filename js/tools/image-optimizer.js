@@ -238,7 +238,7 @@
   const updateSummary = () => {
     const totalBytes = state.items.reduce((sum, it) => sum + (it.file?.size || 0), 0);
     if (countEl) countEl.textContent = `${state.items.length} ${state.items.length === 1 ? 'image' : 'images'}`;
-    if (totalEl) totalEl.textContent = `Total: ${state.items.length ? formatBytes(totalBytes) : '—'}`;
+    if (totalEl) totalEl.textContent = `Total: ${state.items.length ? formatBytes(totalBytes) : '0 B'}`;
   };
 
   const decodeBitmap = async (file) => {
@@ -308,7 +308,7 @@
 
       const sub = document.createElement('p');
       sub.className = 'imgopt-file-sub';
-      const dims = it.width && it.height ? `${it.width} × ${it.height}` : '—';
+      const dims = it.width && it.height ? `${it.width} × ${it.height}` : 'N/A';
       const typeLabel = it.file.type ? labelForMime(it.file.type) : 'Image';
       sub.textContent = `${typeLabel} · ${dims} · ${formatBytes(it.file.size)}`;
 
@@ -528,8 +528,8 @@
       h3.textContent = item?.file?.name || 'Image';
       const sub = document.createElement('p');
       sub.className = 'imgopt-group-sub';
-      const dims = item?.width && item?.height ? `${item.width} × ${item.height}` : '—';
-      const origSize = item?.file?.size ? formatBytes(item.file.size) : '—';
+      const dims = item?.width && item?.height ? `${item.width} × ${item.height}` : 'N/A';
+      const origSize = item?.file?.size ? formatBytes(item.file.size) : 'N/A';
       sub.textContent = `Original: ${dims} · ${origSize}`;
       titleWrap.appendChild(h3);
       titleWrap.appendChild(sub);

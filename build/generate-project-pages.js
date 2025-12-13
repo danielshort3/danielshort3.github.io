@@ -36,7 +36,7 @@ function toMetaDescription(project) {
   ]
     .map(normalizeWhitespace)
     .filter(Boolean);
-  const combined = pieces.join(' — ');
+  const combined = pieces.join(': ');
   if (combined.length <= 160) return combined;
   return combined.slice(0, 157).replace(/\s+\S*$/, '') + '…';
 }

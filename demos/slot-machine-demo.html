@@ -2571,7 +2571,7 @@
       <div class="auth-copy">
         <p class="status-pill ghost">🎰 Demo Slot Machine</p>
         <h2>Log in to save your credits and keep the reels rolling.</h2>
-        <p>This is a fun, server-backed slot machine demo—no real money is involved. Every spin is validated in AWS so balances carry across devices.</p>
+        <p>This is a fun, server-backed slot machine demo. No real money is involved. Every spin is validated in AWS so balances carry across devices.</p>
         <p class="muted-text small">Passwords are hashed before storing and sessions auto-expire. Have fun exploring the animations and payouts.</p>
       </div>
       <div class="auth-body" id="auth-body" data-mode="login">
@@ -2803,19 +2803,19 @@
       <div class="panel">
         <h2>Session</h2>
         <dl id="session-stats">
-          <dt>Player ID</dt><dd id="player-id">—</dd>
-          <dt>Balance</dt><dd id="balance">—</dd>
-          <dt>Max Bet</dt><dd id="max-bet">—</dd>
-          <dt>Total Spins</dt><dd id="spin-count">—</dd>
+          <dt>Player ID</dt><dd id="player-id">N/A</dd>
+          <dt>Balance</dt><dd id="balance">N/A</dd>
+          <dt>Max Bet</dt><dd id="max-bet">N/A</dd>
+          <dt>Total Spins</dt><dd id="spin-count">N/A</dd>
         </dl>
       </div>
       <div class="panel">
         <h2>Last Result</h2>
         <dl>
-          <dt>Outcome</dt><dd id="last-outcome">—</dd>
-          <dt>Winnings</dt><dd id="last-win">—</dd>
-          <dt>Multiplier</dt><dd id="last-multiplier">—</dd>
-          <dt>Timestamp</dt><dd id="last-time">—</dd>
+          <dt>Outcome</dt><dd id="last-outcome">N/A</dd>
+          <dt>Winnings</dt><dd id="last-win">N/A</dd>
+          <dt>Multiplier</dt><dd id="last-multiplier">N/A</dd>
+          <dt>Timestamp</dt><dd id="last-time">N/A</dd>
         </dl>
       </div>
       <div class="panel" id="daily-panel">
@@ -4569,7 +4569,7 @@
         const entry = document.createElement('div');
         entry.className = 'log-entry';
         const time = new Date().toLocaleTimeString();
-        entry.innerHTML = `<strong>${time}</strong> — ${message}${data ? `<br><span>${data}</span>` : ''}`;
+        entry.innerHTML = `<strong>${time}</strong> - ${message}${data ? `<br><span>${data}</span>` : ''}`;
         els.log.prepend(entry);
         const entries = els.log.querySelectorAll('.log-entry');
         if (entries.length > 40) {
@@ -4749,7 +4749,7 @@
         const perks = [];
         const tierCount = (threshold, step = 5) => (lvl >= threshold ? (Math.floor((lvl - threshold) / step) + 1) : 0);
         const addPerk = (req, label, active) => {
-          perks.push({ req, label: `Lv ${req}+ — ${label}`, active });
+          perks.push({ req, label: `Lv ${req}+: ${label}`, active });
         };
         const bias = Math.round(Math.min(60, lvl * 2));
         addPerk(1, `+${bias}% higher-tier symbol bias (scales every level)`, lvl >= 1);
@@ -5204,7 +5204,7 @@
             const info = normalizeDrop(drop);
             return `<span class="rate-item"><img class="drop-icon" src="${info.icon}" alt="${info.name}">${info.name} ×${info.amount}</span>`;
           }).join(', ');
-          return `<div class="drop-entry"><strong>${time}</strong><span aria-hidden="true">—</span><span>${parts}</span></div>`;
+          return `<div class="drop-entry"><strong>${time}</strong><span aria-hidden="true"> - </span><span>${parts}</span></div>`;
         });
         els.dropLog.innerHTML = rows.join('');
       };
@@ -7219,7 +7219,7 @@
             data-locked-label="${card.unlocked ? '' : (!card.meetsLevel ? `Need Lv ${MACHINE_UNLOCK_LEVEL} on ${card.prevName || 'previous machine'}` : `Unlock for ${formatMoney(card.cost || 0)}`)}"
             data-prev-name="${card.prevName || ''}"
             role="listitem"
-            aria-label="${card.name} — ${card.tier} — ${
+            aria-label="${card.name}, ${card.tier}, ${
               card.id === state.machine.id
                 ? 'Current'
                 : (card.unlocked
@@ -7806,7 +7806,7 @@
 
       const request = async (path, payload = {}, options = {}) => {
         if (state.offlineMode) {
-          const err = new Error('Offline demo mode — network requests skipped.');
+          const err = new Error('Offline demo mode: network requests skipped.');
           err.status = 503;
           throw err;
         }
@@ -7925,10 +7925,10 @@
         debug('updateLastSpin', lastSpin);
         if (!lastSpin) {
           state.lastWin = 0;
-          if (els.lastOutcome) els.lastOutcome.textContent = '—';
-          if (els.lastWin) els.lastWin.textContent = '—';
-          if (els.lastMult) els.lastMult.textContent = '—';
-          if (els.lastTime) els.lastTime.textContent = '—';
+          if (els.lastOutcome) els.lastOutcome.textContent = 'N/A';
+          if (els.lastWin) els.lastWin.textContent = 'N/A';
+          if (els.lastMult) els.lastMult.textContent = 'N/A';
+          if (els.lastTime) els.lastTime.textContent = 'N/A';
           if (els.machineOutcome) els.machineOutcome.textContent = 'Awaiting spin…';
           if (els.hudWin) els.hudWin.textContent = formatMoney(0);
           highlightWins([]);
@@ -7940,14 +7940,14 @@
           pendingWinGroups = lastSpin.winGroups || [];
           return;
         }
-        const summary = formatWinSummary(lastSpin.winGroups) || lastSpin.outcome || '—';
+        const summary = formatWinSummary(lastSpin.winGroups) || lastSpin.outcome || 'N/A';
         if (els.lastOutcome) els.lastOutcome.textContent = summary;
         const winAmount = lastSpin.winAmount || 0;
         state.lastWin = winAmount;
         if (els.lastWin) els.lastWin.textContent = formatMoney(winAmount);
         if (els.lastMult) {
           const lines = Array.isArray(lastSpin.winGroups) ? lastSpin.winGroups.length : 0;
-          els.lastMult.textContent = lines ? `${lines} line${lines === 1 ? '' : 's'}` : '—';
+          els.lastMult.textContent = lines ? `${lines} line${lines === 1 ? '' : 's'}` : 'N/A';
         }
         if (winAmount > 0) {
           showWinFlyover(winAmount);
@@ -8037,7 +8037,7 @@
         await applySnapshot(snapshot, 'offline');
         updateStats(snapshot);
         setGameVisibility(true);
-        setStatus('Offline demo mode — no login needed', 'ok');
+        setStatus('Offline demo mode. No login needed', 'ok');
         updateAuthUI();
         log('Offline demo', saved ? 'Local snapshot loaded.' : 'Local session created.');
         logLocal('balance', { balance: state.balance, bet: state.bet, maxBet: state.maxBet });
@@ -8049,7 +8049,7 @@
         debug('bootstrap:start');
         if (state.offlineMode) {
           debug('bootstrap:skipped', 'offline mode');
-          setStatus('Offline demo mode — no login needed', 'ok');
+          setStatus('Offline demo mode. No login needed', 'ok');
           return;
         }
         if (!state.auth.token) {
@@ -8067,7 +8067,7 @@
         } catch (error) {
           console.error(error);
           setGameVisibility(false);
-          setStatus('Offline — check CloudWatch logs', 'error');
+          setStatus('Offline. Check CloudWatch logs.', 'error');
           showAlert(error.message || 'Unable to reach AWS.');
           log('Connection failed', error.message);
           debugError('bootstrap', error);
@@ -8293,9 +8293,9 @@
 
       const loginOrRegister = async () => {
         if (state.offlineMode) {
-          showAuthAlert('Offline demo mode active — no login required.');
+          showAuthAlert('Offline demo mode active. No login required.');
           setGameVisibility(true);
-          setStatus('Offline demo mode — no login needed', 'ok');
+          setStatus('Offline demo mode. No login needed', 'ok');
           updateAuthUI();
           return;
         }

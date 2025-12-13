@@ -984,8 +984,8 @@
       const { boxModules } = computeLogoBox(moduleCount, state.logoSizePct, state.logoPaddingPct);
       const cover = (boxModules * boxModules) / (moduleCount * moduleCount);
       const coverPct = Math.round(cover * 100);
-      if (state.ecc !== 'H' && coverPct >= 12) warnings.push(`Logo coverage is ~${coverPct}% — consider ECC H for best reliability.`);
-      if (coverPct >= 18) warnings.push(`Logo coverage is ~${coverPct}% — reduce logo size for safer scanning.`);
+      if (state.ecc !== 'H' && coverPct >= 12) warnings.push(`Logo coverage is ~${coverPct}%. Consider ECC H for best reliability.`);
+      if (coverPct >= 18) warnings.push(`Logo coverage is ~${coverPct}%. Reduce logo size for safer scanning.`);
     }
 
     setWarning(warnings[0] || '');
