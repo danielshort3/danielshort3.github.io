@@ -131,14 +131,6 @@
 
   .hero-cta{min-width:0;}
 
-  .hero-examples-label{
-    margin:0;
-    font-size:.78rem;
-    letter-spacing:.22em;
-    text-transform:uppercase;
-    color:color-mix(in srgb,var(--text-muted) 92%, #fff 8%);
-  }
-
   .hero-kpis{
     --kpi-gap:clamp(1rem,2vw,1.4rem);
     --kpi-inline-pad:clamp(1.25rem,1.9vw,1.7rem);
@@ -157,29 +149,6 @@
     gap:var(--kpi-gap);
     align-items:stretch;
   }
-
-  .hero-project-previews{
-    --project-card-aspect:1 / 1;
-    width:100%;
-    max-width:min(1120px, var(--container-max));
-    display:grid;
-    grid-template-columns:repeat(3, minmax(0, 340px));
-    justify-content:center;
-    gap:24px;
-    align-items:stretch;
-  }
-
-  .hero-project-preview{
-    max-width:100%;
-  }
-  .hero-project-preview .project-metric{
-    z-index:3;
-  }
-  .hero-examples-actions{
-    display:flex;
-    justify-content:center;
-  }
-  .hero-examples-cta{min-width:0;}
 
   .hero-kpi{
     min-width:240px;
@@ -368,21 +337,15 @@
     .cta-group .hero-cta{
       width:100%;
     }
-	    .hero-kpis{
-	      flex-direction:column;
-	      align-items:center;
-	      gap:clamp(1.1rem,4.5vw,1.6rem);
-	    }
-	    .hero-project-previews{
-	      width:var(--hero-action-width);
-	      max-width:100%;
-	      grid-template-columns:minmax(0, 1fr);
-	      gap:18px;
-	    }
-	    .hero-kpi{
-	      width:var(--hero-action-width);
-	      max-width:100%;
-	      flex-basis:auto;
+		    .hero-kpis{
+		      flex-direction:column;
+		      align-items:center;
+		      gap:clamp(1.1rem,4.5vw,1.6rem);
+		    }
+		    .hero-kpi{
+		      width:var(--hero-action-width);
+		      max-width:100%;
+		      flex-basis:auto;
 	      margin-inline:auto;
     }
     .hero-kpi-link{
@@ -429,17 +392,14 @@
       width:100%;
       justify-content:center;
     }
-	    .hero-kpi{
-	      width:100%;
-	      max-width:100%;
-	    }
-	    .hero-project-previews{
-	      width:100%;
-	    }
-	    .hero-kpis{
-	      grid-template-columns:minmax(0,1fr);
-	    }
-	  }
+		    .hero-kpi{
+		      width:100%;
+		      max-width:100%;
+		    }
+		    .hero-kpis{
+		      grid-template-columns:minmax(0,1fr);
+		    }
+		  }
 
   @media (prefers-reduced-motion: reduce){
     .hero-eyebrow,
