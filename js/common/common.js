@@ -25,6 +25,7 @@
     }
     if (isPage('home')) {
       initSkillPopups();
+      initSmoothScrollLinks();
     }
   });
 
@@ -162,6 +163,46 @@
       const promise = openProjectModal(deepLinkId);
       if (promise && typeof promise.catch === 'function') promise.catch(() => {});
     }
+  }
+
+  function initSmoothScrollLinks(){
+    if (!isPage('home')) return;
+    const links = $$('a[data-smooth-scroll="true"]');
+    if (!links.length) return;
+
+    const prefersReducedMotion = () => {
+      try {
+        return Boolean(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+      } catch {
+        return false;
+      }
+    };
+
+    links.forEach((link) => {
+      if (link.dataset.smoothBound === 'yes') return;
+      link.dataset.smoothBound = 'yes';
+      on(link, 'click', (evt) => {
+        if (prefersReducedMotion()) return;
+        if (evt && (evt.metaKey || evt.ctrlKey || evt.shiftKey || evt.altKey)) return;
+        if (evt && typeof evt.button === 'number' && evt.button !== 0) return;
+
+        const href = link.getAttribute('href') || '';
+        if (!href.startsWith('#') || href.length < 2) return;
+        const targetId = decodeURIComponent(href.slice(1));
+        const target = document.getElementById(targetId);
+        if (!target) return;
+
+        evt.preventDefault();
+        try {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } catch {
+          target.scrollIntoView();
+        }
+        try {
+          history.pushState(null, '', href);
+        } catch {}
+      });
+    });
   }
 
   // ---- Global modal close handlers (X button and backdrop) ----
