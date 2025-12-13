@@ -85,7 +85,7 @@
     const filteredWords = filterStopwords(rawWords);
     if (!filteredWords.length) {
       summaryEl.textContent = rawWords.length
-        ? 'All tokens were stopwords—try a different passage.'
+        ? 'All tokens were stopwords. Try a different passage.'
         : 'Paste text and submit to see the most common words.';
       renderEmpty(rawWords.length ? 'No words left after removing stopwords.' : 'Waiting for input.');
       return;
