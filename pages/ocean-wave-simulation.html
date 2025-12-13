@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <base href="/">
+  <title>Ocean Wave Simulation | Daniel Short</title>
+  <link rel="canonical" href="https://danielshort.me/tools/ocean-wave-simulation">
+  <meta name="description" content="A calming, real-time ocean wave simulation rendered in your browser. Adjust wind speed, wave height, and lighting—no uploads, no tracking.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta property="og:title" content="Ocean Wave Simulation | Daniel Short">
+  <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
+  <meta property="og:description" content="A calming, real-time ocean wave simulation with adjustable wind, wave height, and lighting—rendered locally in your browser.">
+  <meta property="og:url" content="https://danielshort.me/tools/ocean-wave-simulation">
+  <meta property="og:image" content="https://danielshort.me/img/hero/head.jpg">
+  <meta property="og:image:alt" content="Portrait photo of Daniel Short">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@danielshort3">
+  <meta name="theme-color" content="#0D1117">
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
+  <link rel="preload" as="image" href="img/ui/logo-64.png" imagesrcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" imagesizes="64px" fetchpriority="high">
+  <link rel="preload" as="font" href="css/fonts/Inter-Latin.woff2" type="font/woff2" crossorigin>
+  <link rel="preload" as="font" href="css/fonts/Poppins-500-Latin.woff2" type="font/woff2" crossorigin>
+  <link rel="preload" as="font" href="css/fonts/Poppins-600-Latin.woff2" type="font/woff2" crossorigin>
+</head>
+<body data-page="ocean-wave-simulation" class="ocean-wave-page">
+  <a href="#main" class="skip-link">Skip to main content</a>
+  <header id="combined-header-nav"></header>
+
+  <section class="ocean-hero">
+    <div class="wrapper">
+      <p class="hero-eyebrow">Labs</p>
+      <h1>Ocean Wave Simulation</h1>
+      <p class="ocean-lead">A calming, real-time ocean rendered with a lightweight GPU shader. Adjust wind speed, wave height, and lighting—everything runs locally in your browser.</p>
+      <div class="ocean-steps" aria-label="How it works">
+        <div class="ocean-step">
+          <span class="ocean-step-number">1</span>
+          <div>
+            <h3>Set the wind</h3>
+            <p>Increase wind speed to build faster surface motion and finer ripples.</p>
+          </div>
+        </div>
+        <div class="ocean-step">
+          <span class="ocean-step-number">2</span>
+          <div>
+            <h3>Raise the swell</h3>
+            <p>Adjust wave height to control the overall ocean energy and contrast.</p>
+          </div>
+        </div>
+        <div class="ocean-step">
+          <span class="ocean-step-number">3</span>
+          <div>
+            <h3>Shape the light</h3>
+            <p>Move the sun to change reflections, specular highlights, and sky tone.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main id="main">
+    <section class="surface-band ocean-section">
+      <div class="wrapper">
+        <div class="ocean-grid">
+          <div class="ocean-card ocean-sim-card">
+            <div class="ocean-canvas-shell">
+              <canvas id="ocean-canvas" aria-label="Ocean wave simulation"></canvas>
+              <div id="ocean-fallback" class="ocean-fallback" role="status" hidden>
+                WebGL is unavailable in this browser, so the simulation can’t run here.
+              </div>
+            </div>
+            <p class="ocean-hint">Tip: drag to look around. The animation pauses automatically when the tab is hidden.</p>
+          </div>
+
+          <aside class="ocean-card ocean-controls-card" aria-label="Ocean simulation controls">
+            <h2>Controls</h2>
+            <div class="ocean-controls" data-ocean-controls>
+              <div class="ocean-range">
+                <label class="ocean-label" for="ocean-wind">
+                  Wind speed
+                  <span id="ocean-wind-value" class="ocean-chip">—</span>
+                </label>
+                <input id="ocean-wind" type="range" min="0" max="18" step="0.1" value="8">
+                <p class="ocean-note">Higher wind increases motion and surface texture.</p>
+              </div>
+
+              <div class="ocean-range">
+                <label class="ocean-label" for="ocean-height">
+                  Wave height
+                  <span id="ocean-height-value" class="ocean-chip">—</span>
+                </label>
+                <input id="ocean-height" type="range" min="0.2" max="3" step="0.1" value="1.2">
+                <p class="ocean-note">Controls the overall swell amplitude.</p>
+              </div>
+
+              <div class="ocean-range">
+                <label class="ocean-label" for="ocean-sun">
+                  Lighting
+                  <span id="ocean-sun-value" class="ocean-chip">—</span>
+                </label>
+                <input id="ocean-sun" type="range" min="6" max="72" step="1" value="22">
+                <p class="ocean-note">Sun elevation changes reflections and sky warmth.</p>
+              </div>
+
+              <div class="ocean-actions">
+                <button id="ocean-toggle" type="button" class="btn-icon" aria-pressed="false" aria-label="Pause animation">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3v14H7zM14 5h3v14h-3z"></path></svg>
+                </button>
+                <button id="ocean-reset" type="button" class="btn-icon" aria-label="Reset view and defaults">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 10a7.5 7.5 0 1 1 .86 3.5M4.5 4v6h6"></path></svg>
+                </button>
+              </div>
+
+              <p class="ocean-footnote">Rendering runs locally on your device. No uploads, no tracking.</p>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <nav class="privacy-links" aria-label="Privacy shortcuts">
+      <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
+      <a href="#" class="pcz-link" onclick="window.Privacy && window.Privacy.open('doNotSell'); return false;">Do Not Sell/Share My Personal Information</a>
+    </nav>
+  </footer>
+
+  <script defer src="js/tools/ocean-wave-simulation.js"></script>
+  <script defer src="js/common/common.js"></script>
+  <script defer src="js/navigation/navigation.js"></script>
+  <script defer src="js/animations/animations.js"></script>
+  <script src="js/privacy/config.js"></script>
+  <script defer src="js/privacy/consent_manager.js"></script>
+</body>
+</html>
