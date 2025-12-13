@@ -88,7 +88,7 @@ function buildPortfolioCarousel() {
         "@type":"CreativeWork",
         "name": p.title,
         "description": p.subtitle,
-        "url": `https://danielshort.me/portfolio.html?project=${p.id}`,
+        "url": `https://danielshort.me/portfolio/${p.id}`,
         "image": `https://danielshort.me/${p.image}`
       }
     }))
@@ -104,7 +104,7 @@ function buildPortfolioCarousel() {
       "@type": "CreativeWork",
       "name": p.title,
       "description": p.subtitle,
-      "url": `https://danielshort.me/portfolio.html?project=${p.id}`,
+      "url": `https://danielshort.me/portfolio/${p.id}`,
       "image": `https://danielshort.me/${p.image}`
     }));
     const s2 = document.createElement('script');

@@ -2,6 +2,8 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
+    { "source": "/portfolio/:project", "destination": "/pages/portfolio/:project" },
+    { "source": "/portfolio/:project.html", "destination": "/pages/portfolio/:project" },
     { "source": "/portfolio",         "destination": "/pages/portfolio" },
     { "source": "/portfolio.html",    "destination": "/pages/portfolio" },
     { "source": "/contact",           "destination": "/pages/contact" },

@@ -404,11 +404,10 @@
         let url;
         try {
           const origin = location.origin || '';
-          const base = portfolioBasePath() || '/portfolio.html';
-          const href = `${origin}${base}?project=${encodeURIComponent(id)}`;
+          const href = `${origin}/portfolio/${encodeURIComponent(id)}`;
           url = new URL(href);
         } catch {
-          const href = (location.href || '').split('#')[0] + `?project=${encodeURIComponent(id)}`;
+          const href = `/portfolio/${encodeURIComponent(id)}`;
           try { url = new URL(href); } catch { url = { toString: () => href }; }
         }
         let ok = false;

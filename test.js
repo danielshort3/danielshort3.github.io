@@ -143,6 +143,26 @@ try {
     });
   });
 
+  section('Project pages and sitemap entries', () => {
+    const pdata = evalScript('js/portfolio/projects-data.js');
+    const ids = pdata.window.PROJECTS.map(p => p.id);
+    assert(ids.length > 0, 'no project ids found');
+
+    const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
+    ids.forEach(id => {
+      const file = `pages/portfolio/${id}.html`;
+      assert(fs.existsSync(file), `${file} missing`);
+      const html = fs.readFileSync(file, 'utf8');
+      checkFileContains(file, '<base href="/">');
+      checkFileContains(file, 'data-page="project"');
+      checkFileContains(file, '<meta property="og:type" content="article">');
+      checkFileContains(file, `href="portfolio.html?project=${encodeURIComponent(id)}`);
+      checkFileContains(file, `<link rel="canonical" href="https://danielshort.me/portfolio/${id}">`);
+      checkFileContains(file, `<meta property="og:url" content="https://danielshort.me/portfolio/${id}">`);
+      assert(sitemap.includes(`https://danielshort.me/portfolio/${id}`), `sitemap.xml missing project url: ${id}`);
+    });
+  });
+
   section('Analytics helpers and events', () => {
     const env = evalScript('js/analytics/ga4-events.js');
     assert(typeof env.window.gaEvent === 'function', 'ga4-events.js missing gaEvent');
@@ -249,7 +269,9 @@ try {
     assert(fs.existsSync(`dist/${hashedCss}`), `dist/${hashedCss} missing`);
     assert(fs.existsSync('dist/styles.css'), 'dist/styles.css missing');
 
-    ['index.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','404.html','pages/privacy.html'].forEach(f => {
+    const projectIds = evalScript('js/portfolio/projects-data.js').window.PROJECTS.map(p => p.id);
+    const projectPages = projectIds.map(id => `pages/portfolio/${id}.html`);
+    ['index.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','404.html','pages/privacy.html', ...projectPages].forEach(f => {
       checkFileContains(f, '<header id="combined-header-nav">');
       checkFileContains(f, '<main id="main"');
       checkFileContains(f, 'class="skip-link"');
@@ -345,12 +367,17 @@ try {
 
   section('Build and deployment configuration', () => {
     assert(fs.existsSync('build/build-css.js'), 'build-css.js missing');
+    assert(fs.existsSync('build/generate-project-pages.js'), 'generate-project-pages.js missing');
     const copyJs = fs.readFileSync('build/copy-to-public.js','utf8');
     assert(copyJs.includes('const dirs') &&
            copyJs.includes("'img'") && copyJs.includes("'js'") && copyJs.includes("'css'") &&
            copyJs.includes("'documents'") && copyJs.includes("'dist'") &&
            copyJs.includes("'pages'") && copyJs.includes("'demos'"),
            'copy-to-public.js not copying all asset dirs');
+
+    const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+    assert(pkg.scripts && pkg.scripts['build:projects'], 'package.json missing build:projects script');
+    assert(pkg.scripts.build && pkg.scripts.build.includes('build:projects'), 'package.json build script should run build:projects');
 
     const vercel = fs.readFileSync('vercel.json','utf8');
     assert(vercel.includes('Content-Security-Policy'), 'vercel.json missing CSP');
@@ -364,7 +391,9 @@ try {
     assert(badDest.length === 0, 'rewrite destinations must be extensionless to avoid loops');
     const hasPortfolio = rewrites.some(r => r.source === '/portfolio' && r.destination === '/pages/portfolio');
     const hasPortfolioHtml = rewrites.some(r => r.source === '/portfolio.html' && r.destination === '/pages/portfolio');
+    const hasProjectRewrite = rewrites.some(r => r.source === '/portfolio/:project' && r.destination === '/pages/portfolio/:project');
     assert(hasPortfolio && hasPortfolioHtml, 'portfolio rewrites missing');
+    assert(hasProjectRewrite, 'project rewrite missing (/portfolio/:project)');
   });
 
   section('Chatbot demo startup timer', () => {
@@ -472,6 +501,10 @@ try {
     });
     assert(/class=\"modal-embed tableau-fit\"/.test(tabHtml), 'tableau modal should use wide layout');
     assert(/<iframe[\s\S]*data-base=/.test(tabHtml), 'tableau iframe should use data-base attribute');
+
+    const modalHelpersCode = fs.readFileSync('js/portfolio/modal-helpers.js', 'utf8');
+    assert(/`\$\{origin\}\/portfolio\/\$\{encodeURIComponent\(id\)\}`/.test(modalHelpersCode),
+      'modal copy-link should prefer /portfolio/<id> canonical URLs');
   });
 
   section('Slot machine demo', () => {
