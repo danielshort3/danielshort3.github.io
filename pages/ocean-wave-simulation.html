@@ -71,7 +71,7 @@
         <div class="ocean-wave-grid">
           <div class="ocean-wave-card ocean-wave-stage-card">
             <div id="ocean-wave-stage" class="ocean-wave-stage">
-              <canvas id="ocean-wave-canvas" role="img" aria-label="Animated ocean wave simulation">Your browser does not support the HTML canvas element.</canvas>
+              <canvas id="ocean-wave-canvas" role="img" aria-label="Interactive ocean wave simulation. Drag to change the viewing angle.">Your browser does not support the HTML canvas element.</canvas>
               <div class="ocean-wave-hud" aria-hidden="false">
                 <button id="ocean-wave-toggle" type="button" class="btn-icon ocean-wave-toggle" aria-pressed="false" aria-label="Pause animation">
                   <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -81,7 +81,7 @@
                 <span id="ocean-wave-status" class="ocean-wave-status" aria-live="polite">Loading…</span>
               </div>
             </div>
-            <p class="ocean-wave-note">Everything runs locally in your browser. If you have “Reduce motion” enabled, the animation starts paused.</p>
+            <p class="ocean-wave-note">Click and drag on the ocean to change the viewing angle. Everything runs locally in your browser. If you have “Reduce motion” enabled, the animation starts paused.</p>
           </div>
 
           <div class="ocean-wave-card ocean-wave-controls-card">
@@ -95,7 +95,7 @@
 
               <div class="ocean-wave-control">
                 <label class="ocean-wave-label" for="ocean-wave-height">Wave height <span id="ocean-wave-height-value" class="ocean-wave-value">—</span></label>
-                <input id="ocean-wave-height" type="range" min="0" max="2.5" value="1" step="0.05">
+                <input id="ocean-wave-height" type="range" min="0" max="5.5" value="1" step="0.05">
                 <p class="ocean-wave-help">Scales the overall amplitude of the wave field.</p>
               </div>
 

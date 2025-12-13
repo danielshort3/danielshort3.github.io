@@ -105,6 +105,12 @@
     background:linear-gradient(180deg,
       color-mix(in srgb,#0b1c2a 88%, var(--bg) 12%) 0%,
       color-mix(in srgb,#08131d 88%, var(--bg) 12%) 100%);
+    cursor:grab;
+    touch-action:none;
+    user-select:none;
+  }
+  .ocean-wave-stage.ocean-wave-dragging{
+    cursor:grabbing;
   }
   .ocean-wave-stage::before{
     content:"";
