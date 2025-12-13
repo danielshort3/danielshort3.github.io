@@ -184,11 +184,11 @@
     position:absolute;
     inset:0;
     background:
-      linear-gradient(45deg, #2d3644 25%, transparent 25%) 0 0 / 22px 22px,
-      linear-gradient(-45deg, #2d3644 25%, transparent 25%) 0 0 / 22px 22px,
-      linear-gradient(45deg, transparent 75%, #141a24 75%) 0 0 / 22px 22px,
-      linear-gradient(-45deg, transparent 75%, #141a24 75%) 0 0 / 22px 22px;
-    opacity:0.85;
+      linear-gradient(0deg, #f3f4f6 50%, #d8dce2 50%),
+      linear-gradient(90deg, #f3f4f6 50%, #d8dce2 50%);
+    background-size: 24px 24px, 24px 24px;
+    background-position: 0 0, 12px 12px;
+    opacity:0.9;
     pointer-events:none;
     z-index:0;
   }
@@ -222,10 +222,44 @@
     display:flex;
     gap:12px;
     flex-wrap:wrap;
+    align-items:center;
     color:var(--text-muted);
     font-size:.95rem;
   }
   .bgtool-stats strong{
     color:var(--text-light);
+  }
+
+  .bgtool-actions-bar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .bgtool-actions-left{
+    display:flex;
+    gap:10px;
+    align-items:center;
+  }
+  .bgtool-actions-right{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    flex-wrap:wrap;
+  }
+  .bgtool-actions-bar .btn-icon{
+    width:46px;
+    height:46px;
+    border-radius:12px;
+  }
+  .bgtool-actions-bar .btn-icon svg{
+    width:24px;
+    height:24px;
+    stroke:currentColor;
+    fill:none;
+    stroke-width:2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
   }
 }
