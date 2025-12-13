@@ -66,6 +66,10 @@ window.PROJECTS = [
       type: "iframe",
       url: "chatbot-demo.html"
     },
+    role: [
+      "Led the end-to-end prototype: data ingestion, retrieval, fine-tuning, deployment, and web integration."
+    ],
+    notes: "Built from public Visit Grand Junction web content; tuned to return grounded answers with references.",
     problem: "Generic chatbots lacked Visit Grand Junction's tone and rarely suggested our content.",
     actions: [
       "Scraped Visit Grand Junction pages and created a FAISS retrieval index.",
@@ -178,18 +182,22 @@ window.PROJECTS = [
       { icon: "img/icons/pdf-icon.png",   url: "documents/Project_7.pdf",  label: "PDF"   },
       { icon: "img/icons/excel-icon.png", url: "documents/Project_7.xlsx", label: "Excel" }
     ],
-    problem : "Empty‑package theft had ballooned: recovered retail value jumped 5× from Q1 2021 to Q2 2023, yet leaders had no single view to see which employees, locations, or departments were driving the losses.",
+    role: [
+      "Built the Excel BI workflow (data cleanup, drill-down views, and reporting)."
+    ],
+    notes: "Employee and location identifiers are anonymized in the write-up.",
+    problem : "Empty‑package theft had ballooned: recovered retail value jumped 5× from Q1 2021 to Q2 2023, and leaders needed a single view to see where losses were concentrated.",
     actions : [
       "Consolidated 5,900+ loss-prevention records (2021-2023).",
-      "Cleaned employee IDs, DPCI codes, dates, and dollar values.",
-      "Built an interactive Excel sheet with drill-downs by employee, department, and recovery location.",
+      "Cleaned and anonymized employee IDs, DPCI codes, dates, and dollar values.",
+      "Built an interactive Excel dashboard with drill-downs by associate, department, and recovery location.",
       "Compiled results in a report for management."
     ],
     results : [
-      "Revealed Locations 02 & 03 as hot spots.",
-      "Location 03’s shrink doubled in <12 months, with Location 02 doubling in a single quarter.",
-      "Flagged Departments 52, 80, 87 (especially Dept 52, up 4x in two quarters).",
-      "Identified just three associates (IDs 002, 015, 045) who together accounted for ~47% of recovered value."
+      "Two recovery locations (anonymized) emerged as the primary hot spots.",
+      "Shrink doubled in under 12 months at one hot spot, with the second doubling in a single quarter.",
+      "Three departments (anonymized) drove most recoveries; the top department jumped ~4× in two quarters.",
+      "Three associates (anonymized) accounted for ~47% of recovered value."
     ]
   },
 
@@ -314,6 +322,10 @@ window.PROJECTS = [
       { icon: "img/icons/pdf-icon.png",    url: "documents/Project_12.pdf",                                        label: "PDF"    },
       { icon: "img/icons/jupyter-icon.png",url: "documents/Project_12.ipynb",                                      label: "Notebook"}
     ],
+    role: [
+      "Owned the analysis end-to-end: SQL data modeling/ETL, anomaly detection, and reporting."
+    ],
+    notes: "Store, state, and employee identifiers are anonymized in the case study.",
     problem : "Our store lacked visibility into security incidents, theft hot-spots, and boycott-driven sales swings.",
     actions : [
       "Merged incident, sales & HR tables in SQL; automated KPIs via views and stored procedures.",
@@ -321,10 +333,10 @@ window.PROJECTS = [
       "Applied anomaly detection to spotlight outlier stores and employees."
     ],
     results : [
-      "Identified StoreFormat 47 averaging 14 incidents/store (~4–5× higher than peers).",
-      "Flagged State 38 ($991/store/day) plus States 03 & 20 as top theft hot spots.",
+      "Identified an outlier store cluster averaging 14 incidents/store (~4–5× higher than peers).",
+      "Flagged multiple regions as top theft hot spots (up to ~$991/store/day).",
       "Quantified boycott hit: –28.7% (May ’23), –11.6% (Jun ’23), –60.2% (Jul ’23) YoY sales.",
-      "Surfaced Employees 231, 098, 196 as suspicious for most empty-package reports (e.g., ID 098: $249/item on just 2 items)."
+      "Surfaced a small set of high-risk associates (anonymized) for empty-package reports; one outlier averaged $249/item on just 2 items."
     ]
   },
 
@@ -398,7 +410,10 @@ window.PROJECTS = [
       type : "tableau",
       base : "https://public.tableau.com/views/Pizza_Delivery/PizzaDeliveryDashboard"
     },
-    problem : "As a delivery driver, I wanted to visualize my performance and where I was the most successful.",
+    role: [
+      "Built the dataset and Tableau dashboard end-to-end (data shaping, KPIs, and forecasting)."
+    ],
+    problem : "I needed a fast way to track earnings drivers, compare delivery zones, and forecast performance.",
     actions : [
       "Reshaped 12,000 rows for Tableau, built map, histogram & 12-month forecast with date/zone filters.",
       "Enabled live updates on current performance and the ability to anticipate future performance."

@@ -512,6 +512,7 @@
     const textBlock = `
         <div class="modal-text">
           <p class="modal-subtitle">${p.subtitle}</p>
+          <p><a href="portfolio/${p.id}">Read the full case study</a></p>
           <h4>Problem</h4><p>${p.problem}</p>
           <h4>Action</h4><ul>${p.actions.map(a => `<li>${a}</li>`).join('')}</ul>
           <h4>Result</h4><ul>${p.results.map(r => `<li>${r}</li>`).join('')}</ul>

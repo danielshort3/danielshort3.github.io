@@ -31,8 +31,8 @@
     pointer-events:none;transition:border-color .35s cubic-bezier(.22,.61,.36,1)
   }
   .project-card:hover{
-    transform:translateY(-8px) scale(1.04);
-    box-shadow:0 14px 34px color-mix(in srgb, var(--primary) 32%, transparent),0 6px 20px rgba(0,0,0,.55)
+    transform:translateY(-4px) scale(1.02);
+    box-shadow:0 12px 28px color-mix(in srgb, var(--primary) 26%, transparent),0 6px 18px rgba(0,0,0,.5)
   }
   .project-card:hover::before{border-color:var(--primary)}
   #projects.grid{
@@ -186,5 +186,19 @@
   }
   html.no-js #portfolio-carousel .carousel-dots {
     display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .project-card{
+      opacity:1 !important;
+      transform:none !important;
+    }
+    .project-card.ripple-in{
+      animation:none !important;
+    }
+    .project-card:hover{
+      transform:none !important;
+      box-shadow:none !important;
+    }
   }
 }

@@ -110,4 +110,16 @@
       width:100%;
     }
   }
+
+  html.no-js .icon-info{
+    opacity:1;
+    transform:none;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .icon-info{
+      opacity:1 !important;
+      transform:none !important;
+    }
+  }
 }
