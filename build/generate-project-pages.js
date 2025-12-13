@@ -96,6 +96,11 @@ function renderProjectPage(project) {
     .map((t) => normalizeWhitespace(t))
     .filter(Boolean);
 
+  const embed = project && typeof project.embed === 'object' ? project.embed : null;
+  const tableauPreconnect = embed && String(embed.type || '').trim() === 'tableau'
+    ? '  <link rel="preconnect" href="https://public.tableau.com" crossorigin>\n'
+    : '';
+
   const projectLd = {
     '@context': 'https://schema.org',
     '@type': 'CreativeWork',
@@ -119,9 +124,13 @@ function renderProjectPage(project) {
         ${resources.map((r) => {
           const href = String(r.url || '').trim();
           const label = normalizeWhitespace(r.label || href);
+          const icon = String(r.icon || '').trim();
           const isExternal = /^https?:\/\//i.test(href);
           const attrs = isExternal ? ' target="_blank" rel="noopener noreferrer"' : '';
-          return `<a class="project-link" role="listitem" href="${escapeHtml(href)}"${attrs}>${escapeHtml(label)}</a>`;
+          const iconMarkup = icon
+            ? `<img class="project-link-icon" src="${escapeHtml(icon)}" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20">`
+            : '';
+          return `<a class="project-link" role="listitem" href="${escapeHtml(href)}"${attrs}>${iconMarkup}<span class="project-link-label">${escapeHtml(label)}</span></a>`;
         }).join('\n        ')}
       </div>
     </section>`
@@ -178,7 +187,7 @@ function renderProjectPage(project) {
     </section>`
     : '';
 
-  const media = (() => {
+  const renderImageMedia = () => {
     const img = String(project.image || '').trim();
     if (!img) return '';
     const webp = preloadWebp;
@@ -195,6 +204,34 @@ function renderProjectPage(project) {
       </picture>`;
     }
     return `<img class="project-media" src="${escapeHtml(img)}" alt="${alt}" loading="lazy" decoding="async"${sizeAttr}>`;
+  };
+
+  const renderEmbeddedMedia = () => {
+    if (!embed) return '';
+    const type = String(embed.type || '').trim();
+    if (type === 'iframe') {
+      const src = String(embed.url || '').trim();
+      if (!src) return '';
+      return `<div class="project-media project-embed project-embed-iframe">
+        <iframe class="project-embed-frame" src="${escapeHtml(src)}" title="${escapeHtml(title)} interactive demo" loading="lazy" allowfullscreen></iframe>
+      </div>`;
+    }
+    if (type === 'tableau') {
+      const base = String(embed.base || '').trim();
+      if (!base) return '';
+      const joiner = base.includes('?') ? '&' : '?';
+      const src = `${base}${joiner}:showVizHome=no&:embed=y`;
+      return `<div class="project-media project-embed project-embed-tableau">
+        <iframe class="project-embed-frame" src="${escapeHtml(src)}" title="${escapeHtml(title)} interactive dashboard" loading="lazy" allowfullscreen></iframe>
+      </div>`;
+    }
+    return '';
+  };
+
+  const media = (() => {
+    const embedded = renderEmbeddedMedia();
+    if (embedded) return embedded;
+    return renderImageMedia();
   })();
 
   return `<!DOCTYPE html>
@@ -229,6 +266,7 @@ function renderProjectPage(project) {
   <link rel="preload" as="font" href="css/fonts/Inter-Latin.woff2" type="font/woff2" crossorigin>
   <link rel="preload" as="font" href="css/fonts/Poppins-500-Latin.woff2" type="font/woff2" crossorigin>
   <link rel="preload" as="font" href="css/fonts/Poppins-600-Latin.woff2" type="font/woff2" crossorigin>
+${tableauPreconnect}
 
   <!-- Local fonts with legacy reference retained for tooling: https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap -->
   <script>
