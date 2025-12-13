@@ -1,0 +1,309 @@
+#!/usr/bin/env node
+/*
+  Generate SEO-friendly, shareable project pages under /portfolio/<id>.
+  - Keeps existing /portfolio.html?project=<id> deep links working.
+  - Outputs static HTML pages in ./pages/portfolio/<id>.html
+  - Updates ./sitemap.xml to include project URLs.
+  No external deps.
+*/
+const fs = require('fs');
+const path = require('path');
+const vm = require('vm');
+
+const root = path.resolve(__dirname, '..');
+const dataFile = path.join(root, 'js', 'portfolio', 'projects-data.js');
+const outDir = path.join(root, 'pages', 'portfolio');
+const sitemapPath = path.join(root, 'sitemap.xml');
+const SITE_ORIGIN = 'https://danielshort.me';
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function normalizeWhitespace(value) {
+  return String(value ?? '').replace(/\s+/g, ' ').trim();
+}
+
+function toMetaDescription(project) {
+  const pieces = [
+    project.subtitle,
+    project.problem
+  ]
+    .map(normalizeWhitespace)
+    .filter(Boolean);
+  const combined = pieces.join(' — ');
+  if (combined.length <= 160) return combined;
+  return combined.slice(0, 157).replace(/\s+\S*$/, '') + '…';
+}
+
+function toAbsoluteUrl(urlOrPath) {
+  const raw = String(urlOrPath ?? '').trim();
+  if (!raw) return '';
+  if (/^https?:\/\//i.test(raw)) return raw;
+  return `${SITE_ORIGIN}/${raw.replace(/^\/+/, '')}`;
+}
+
+function fileExists(relPath) {
+  if (!relPath) return false;
+  return fs.existsSync(path.join(root, relPath));
+}
+
+function inferWebp(project) {
+  const img = String(project.image ?? '');
+  const extWebp = img.replace(/\.(png|jpe?g)$/i, '.webp');
+  if (extWebp !== img && fileExists(extWebp)) return extWebp;
+  const byId = `img/projects/${project.id}.webp`;
+  if (fileExists(byId)) return byId;
+  return '';
+}
+
+function loadProjects() {
+  const code = fs.readFileSync(dataFile, 'utf8');
+  const context = { window: {} };
+  vm.runInNewContext(code, context, { filename: dataFile });
+  const projects = context.window.PROJECTS;
+  if (!Array.isArray(projects) || projects.length === 0) {
+    throw new Error('projects-data.js did not define window.PROJECTS');
+  }
+  return projects;
+}
+
+function renderProjectPage(project) {
+  const id = String(project.id || '').trim();
+  const title = normalizeWhitespace(project.title || id);
+  const subtitle = normalizeWhitespace(project.subtitle || '');
+  const description = toMetaDescription(project);
+  const canonicalPath = `/portfolio/${encodeURIComponent(id)}`;
+  const canonicalUrl = `${SITE_ORIGIN}${canonicalPath}`;
+  const ogImage = toAbsoluteUrl(project.image || 'img/hero/head.jpg');
+  const ogImageAlt = normalizeWhitespace(project.imageAlt || `Preview image for ${title}`);
+  const preloadWebp = inferWebp(project);
+
+  const tools = Array.isArray(project.tools) ? project.tools : [];
+  const concepts = Array.isArray(project.concepts) ? project.concepts : [];
+  const actions = Array.isArray(project.actions) ? project.actions : [];
+  const results = Array.isArray(project.results) ? project.results : [];
+  const resources = Array.isArray(project.resources) ? project.resources : [];
+
+  const tags = [...new Set([...concepts, ...tools])]
+    .map((t) => normalizeWhitespace(t))
+    .filter(Boolean);
+
+  const projectLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CreativeWork',
+    name: title,
+    description,
+    url: canonicalUrl,
+    image: ogImage
+  };
+  const ldJson = JSON.stringify(projectLd).replace(/</g, '\\u003c');
+
+  const safeTagPills = tags.length
+    ? `<div class="project-tags" role="list">
+      ${tags.map((t) => `<span class="project-tag" role="listitem">${escapeHtml(t)}</span>`).join('\n      ')}
+    </div>`
+    : '';
+
+  const safeResources = resources.length
+    ? `<section class="project-section">
+      <h2 class="section-title">Links</h2>
+      <div class="project-links" role="list">
+        ${resources.map((r) => {
+          const href = String(r.url || '').trim();
+          const label = normalizeWhitespace(r.label || href);
+          const isExternal = /^https?:\/\//i.test(href);
+          const attrs = isExternal ? ' target="_blank" rel="noopener noreferrer"' : '';
+          return `<a class="project-link" role="listitem" href="${escapeHtml(href)}"${attrs}>${escapeHtml(label)}</a>`;
+        }).join('\n        ')}
+      </div>
+    </section>`
+    : '';
+
+  const safeActions = actions.length
+    ? `<section class="project-section">
+      <h2 class="section-title">What I Did</h2>
+      <ul class="project-list">
+        ${actions.map((a) => `<li>${escapeHtml(normalizeWhitespace(a))}</li>`).join('\n        ')}
+      </ul>
+    </section>`
+    : '';
+
+  const safeResults = results.length
+    ? `<section class="project-section">
+      <h2 class="section-title">Results</h2>
+      <ul class="project-list">
+        ${results.map((r) => `<li>${escapeHtml(normalizeWhitespace(r))}</li>`).join('\n        ')}
+      </ul>
+    </section>`
+    : '';
+
+  const safeProblem = normalizeWhitespace(project.problem || '');
+  const safeOverview = safeProblem
+    ? `<section class="project-section">
+      <h2 class="section-title">Overview</h2>
+      <p class="project-lead">${escapeHtml(safeProblem)}</p>
+    </section>`
+    : '';
+
+  const media = (() => {
+    const img = String(project.image || '').trim();
+    if (!img) return '';
+    const webp = preloadWebp;
+    const alt = escapeHtml(ogImageAlt);
+    const width = Number(project.imageWidth);
+    const height = Number(project.imageHeight);
+    const sizeAttr = Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0
+      ? ` width="${width}" height="${height}"`
+      : '';
+    if (webp) {
+      return `<picture class="project-media">
+        <source srcset="${escapeHtml(webp)}" type="image/webp">
+        <img src="${escapeHtml(img)}" alt="${alt}" loading="lazy" decoding="async"${sizeAttr}>
+      </picture>`;
+    }
+    return `<img class="project-media" src="${escapeHtml(img)}" alt="${alt}" loading="lazy" decoding="async"${sizeAttr}>`;
+  })();
+
+  return `<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <base href="/">
+  <title>${escapeHtml(title)} | Daniel Short</title>
+  <link rel="canonical" href="${escapeHtml(canonicalUrl)}">
+  <meta name="description" content="${escapeHtml(description)}">
+
+  <meta property="og:title" content="${escapeHtml(title)} | Daniel Short">
+  <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
+  <meta property="og:description" content="${escapeHtml(description)}">
+  <meta property="og:url" content="${escapeHtml(canonicalUrl)}">
+  <meta property="og:image" content="${escapeHtml(ogImage)}">
+  <meta property="og:image:alt" content="${escapeHtml(ogImageAlt)}">
+  <meta property="og:type" content="article">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@danielshort3">
+
+  <meta name="theme-color" content="#0D1117">
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
+  <link rel="preload" as="image" href="img/ui/logo-64.png" imagesrcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" imagesizes="64px" fetchpriority="high">
+  <link rel="preload" as="font" href="css/fonts/Inter-Latin.woff2" type="font/woff2" crossorigin>
+  <link rel="preload" as="font" href="css/fonts/Poppins-500-Latin.woff2" type="font/woff2" crossorigin>
+  <link rel="preload" as="font" href="css/fonts/Poppins-600-Latin.woff2" type="font/woff2" crossorigin>
+
+  <!-- Local fonts with legacy reference retained for tooling: https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap -->
+  <script>
+    try {
+      if (document.documentElement.classList) {
+        document.documentElement.classList.remove('no-js');
+      } else {
+        document.documentElement.className = (document.documentElement.className || '').replace(/\\bno-js\\b/, '').trim();
+      }
+    } catch (_) {}
+  </script>
+  <script type="application/ld+json">
+    ${ldJson}
+  </script>
+</head>
+<body data-page="project" class="project-page">
+  <a href="#main" class="skip-link">Skip to main content</a>
+  <header id="combined-header-nav"></header>
+
+  <main id="main">
+    <section class="project-hero">
+      <div class="wrapper">
+        <p class="hero-eyebrow">Portfolio Project</p>
+        <h1>${escapeHtml(title)}</h1>
+        ${subtitle ? `<p class="project-subtitle">${escapeHtml(subtitle)}</p>` : ''}
+        <div class="cta-group project-cta">
+          <a class="btn-primary hero-cta" href="portfolio.html?project=${escapeHtml(encodeURIComponent(id))}">Open interactive view</a>
+          <a class="btn-secondary hero-cta" href="portfolio.html">View all projects</a>
+        </div>
+        ${safeTagPills}
+      </div>
+    </section>
+
+    <section class="project-body">
+      <div class="wrapper">
+        ${media}
+        ${safeOverview}
+        ${safeActions}
+        ${safeResults}
+        ${safeResources}
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <nav class="privacy-links" aria-label="Privacy shortcuts">
+      <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
+      <a href="#" class="pcz-link" onclick="window.Privacy && window.Privacy.open('doNotSell'); return false;">Do Not Sell/Share My Personal Information</a>
+    </nav>
+  </footer>
+
+  <script defer src="js/common/common.js"></script>
+  <script defer src="js/navigation/navigation.js"></script>
+  <script defer src="js/animations/animations.js"></script>
+  <script src="js/privacy/config.js"></script>
+  <script defer src="js/privacy/consent_manager.js"></script>
+</body>
+</html>
+`;
+}
+
+function writeProjectPages(projects) {
+  fs.mkdirSync(outDir, { recursive: true });
+  projects.forEach((project) => {
+    const id = String(project.id || '').trim();
+    if (!id) throw new Error('Project missing id');
+    const outPath = path.join(outDir, `${id}.html`);
+    fs.writeFileSync(outPath, renderProjectPage(project), 'utf8');
+  });
+}
+
+function writeSitemap(projects) {
+  const baseUrls = [
+    `${SITE_ORIGIN}/`,
+    `${SITE_ORIGIN}/portfolio.html`,
+    `${SITE_ORIGIN}/contributions.html`,
+    `${SITE_ORIGIN}/contact.html`,
+    `${SITE_ORIGIN}/resume.html`,
+    `${SITE_ORIGIN}/privacy.html`
+  ];
+
+  const projectUrls = projects
+    .map((p) => String(p.id || '').trim())
+    .filter(Boolean)
+    .map((id) => `${SITE_ORIGIN}/portfolio/${encodeURIComponent(id)}`);
+
+  const all = [...baseUrls, ...projectUrls];
+  const xml = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ...all.map((loc) => `  <url><loc>${loc}</loc></url>`),
+    '</urlset>',
+    ''
+  ].join('\n');
+  fs.writeFileSync(sitemapPath, xml, 'utf8');
+}
+
+function main() {
+  const projects = loadProjects();
+  writeProjectPages(projects);
+  writeSitemap(projects);
+  process.stdout.write(`Generated ${projects.length} project pages in pages/portfolio/ and updated sitemap.xml\n`);
+}
+
+main();

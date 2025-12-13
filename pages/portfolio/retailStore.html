@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <base href="/">
+  <title>Store-Level Loss &amp; Sales ETL | Daniel Short</title>
+  <link rel="canonical" href="https://danielshort.me/portfolio/retailStore">
+  <meta name="description" content="SQL ETL + Anomaly Detection — Our store lacked visibility into security incidents, theft hot-spots, and boycott-driven sales swings.">
+
+  <meta property="og:title" content="Store-Level Loss &amp; Sales ETL | Daniel Short">
+  <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
+  <meta property="og:description" content="SQL ETL + Anomaly Detection — Our store lacked visibility into security incidents, theft hot-spots, and boycott-driven sales swings.">
+  <meta property="og:url" content="https://danielshort.me/portfolio/retailStore">
+  <meta property="og:image" content="https://danielshort.me/img/projects/retailStore.png">
+  <meta property="og:image:alt" content="Preview image for Store-Level Loss &amp; Sales ETL">
+  <meta property="og:type" content="article">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@danielshort3">
+
+  <meta name="theme-color" content="#0D1117">
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
+  <link rel="preload" as="image" href="img/ui/logo-64.png" imagesrcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" imagesizes="64px" fetchpriority="high">
+  <link rel="preload" as="font" href="css/fonts/Inter-Latin.woff2" type="font/woff2" crossorigin>
+  <link rel="preload" as="font" href="css/fonts/Poppins-500-Latin.woff2" type="font/woff2" crossorigin>
+  <link rel="preload" as="font" href="css/fonts/Poppins-600-Latin.woff2" type="font/woff2" crossorigin>
+
+  <!-- Local fonts with legacy reference retained for tooling: https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap -->
+  <script>
+    try {
+      if (document.documentElement.classList) {
+        document.documentElement.classList.remove('no-js');
+      } else {
+        document.documentElement.className = (document.documentElement.className || '').replace(/\bno-js\b/, '').trim();
+      }
+    } catch (_) {}
+  </script>
+  <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"CreativeWork","name":"Store-Level Loss & Sales ETL","description":"SQL ETL + Anomaly Detection — Our store lacked visibility into security incidents, theft hot-spots, and boycott-driven sales swings.","url":"https://danielshort.me/portfolio/retailStore","image":"https://danielshort.me/img/projects/retailStore.png"}
+  </script>
+</head>
+<body data-page="project" class="project-page">
+  <a href="#main" class="skip-link">Skip to main content</a>
+  <header id="combined-header-nav"></header>
+
+  <main id="main">
+    <section class="project-hero">
+      <div class="wrapper">
+        <p class="hero-eyebrow">Portfolio Project</p>
+        <h1>Store-Level Loss &amp; Sales ETL</h1>
+        <p class="project-subtitle">SQL ETL + Anomaly Detection</p>
+        <div class="cta-group project-cta">
+          <a class="btn-primary hero-cta" href="portfolio.html?project=retailStore">Open interactive view</a>
+          <a class="btn-secondary hero-cta" href="portfolio.html">View all projects</a>
+        </div>
+        <div class="project-tags" role="list">
+      <span class="project-tag" role="listitem">Automation</span>
+      <span class="project-tag" role="listitem">Analytics</span>
+      <span class="project-tag" role="listitem">SQL</span>
+      <span class="project-tag" role="listitem">Python</span>
+    </div>
+      </div>
+    </section>
+
+    <section class="project-body">
+      <div class="wrapper">
+        <picture class="project-media">
+        <source srcset="img/projects/retailStore.webp" type="image/webp">
+        <img src="img/projects/retailStore.png" alt="Preview image for Store-Level Loss &amp; Sales ETL" loading="lazy" decoding="async" width="1423" height="947">
+      </picture>
+        <section class="project-section">
+      <h2 class="section-title">Overview</h2>
+      <p class="project-lead">Our store lacked visibility into security incidents, theft hot-spots, and boycott-driven sales swings.</p>
+    </section>
+        <section class="project-section">
+      <h2 class="section-title">What I Did</h2>
+      <ul class="project-list">
+        <li>Merged incident, sales &amp; HR tables in SQL; automated KPIs via views and stored procedures.</li>
+        <li>Built Python dashboards mapping theft vs. sales, tagged by format, state and boycott timeline.</li>
+        <li>Applied anomaly detection to spotlight outlier stores and employees.</li>
+      </ul>
+    </section>
+        <section class="project-section">
+      <h2 class="section-title">Results</h2>
+      <ul class="project-list">
+        <li>Identified StoreFormat 47 averaging 14 incidents/store (~4–5× higher than peers).</li>
+        <li>Flagged State 38 ($991/store/day) plus States 03 &amp; 20 as top theft hot spots.</li>
+        <li>Quantified boycott hit: –28.7% (May ’23), –11.6% (Jun ’23), –60.2% (Jul ’23) YoY sales.</li>
+        <li>Surfaced Employees 231, 098, 196 as suspicious for most empty-package reports (e.g., ID 098: $249/item on just 2 items).</li>
+      </ul>
+    </section>
+        <section class="project-section">
+      <h2 class="section-title">Links</h2>
+      <div class="project-links" role="list">
+        <a class="project-link" role="listitem" href="https://github.com/danielshort3/target-packaging-analysis-mssql" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a class="project-link" role="listitem" href="documents/Project_12.pdf">PDF</a>
+        <a class="project-link" role="listitem" href="documents/Project_12.ipynb">Notebook</a>
+      </div>
+    </section>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <nav class="privacy-links" aria-label="Privacy shortcuts">
+      <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
+      <a href="#" class="pcz-link" onclick="window.Privacy && window.Privacy.open('doNotSell'); return false;">Do Not Sell/Share My Personal Information</a>
+    </nav>
+  </footer>
+
+  <script defer src="js/common/common.js"></script>
+  <script defer src="js/navigation/navigation.js"></script>
+  <script defer src="js/animations/animations.js"></script>
+  <script src="js/privacy/config.js"></script>
+  <script defer src="js/privacy/consent_manager.js"></script>
+</body>
+</html>

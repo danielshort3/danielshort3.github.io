@@ -329,7 +329,14 @@
       const targetNoHtml = targetPath.endsWith('.html')
         ? normalizePath(targetPath.replace(/\.html$/i, '') || '/')
         : targetPath;
-      const matches = [currentPath, altCurrentPath].some(p => p === targetPath || p === targetNoHtml);
+      const matchesExact = [currentPath, altCurrentPath].some(p => p === targetPath || p === targetNoHtml);
+      const matchesSection = (() => {
+        if (targetNoHtml === '/portfolio') {
+          return [currentPath, altCurrentPath].some(p => p === '/portfolio' || p === '/portfolio.html' || p.startsWith('/portfolio/'));
+        }
+        return false;
+      })();
+      const matches = matchesExact || matchesSection;
       if (matches) {
         link.classList.add('is-current');
         link.setAttribute('aria-current','page');
