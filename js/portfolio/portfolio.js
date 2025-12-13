@@ -505,13 +505,34 @@ function initSeeMore(){
 
   const desiredView = params.get("view");
   if (desiredView === "all" && btn.dataset.expanded !== "true") {
+    const hash = location.hash || '';
     btn.click();
     params.delete("view");
     const nextSearch = params.toString();
-    const newUrl = `${location.pathname}${nextSearch ? `?${nextSearch}` : ""}${location.hash}`;
+    const newUrl = `${location.pathname}${nextSearch ? `?${nextSearch}` : ""}${hash}`;
     if (window.history && window.history.replaceState) {
       window.history.replaceState(null, "", newUrl);
     }
+
+    const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const behavior = prefersReduced ? 'auto' : 'smooth';
+    const scrollToTarget = () => {
+      let targetId = (hash || '').replace(/^#/, '');
+      if (targetId) {
+        try { targetId = decodeURIComponent(targetId); } catch {}
+      }
+      const explicitTarget = targetId ? document.getElementById(targetId) : null;
+      const target = explicitTarget || filters || grid || gap;
+      if (!target) return;
+      const nav = parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue('--nav-height')
+      ) || 0;
+      const y = target.getBoundingClientRect().top + window.scrollY - nav;
+      window.scrollTo({ top: y, behavior });
+    };
+
+    // Align with the show/hide transitions (desktop animates; mobile is immediate)
+    setTimeout(scrollToTarget, mobile.matches ? 80 : 520);
   }
 }
 

@@ -25,7 +25,6 @@
     }
     if (isPage('home')) {
       initSkillPopups();
-      initHomeCarousel();
     }
   });
 
@@ -156,41 +155,6 @@
       const promise = openProjectModal(deepLinkId);
       if (promise && typeof promise.catch === 'function') promise.catch(() => {});
     }
-  }
-
-  function initHomeCarousel(){
-    if (!isPage('home')) return;
-    const container = $('#portfolio-carousel');
-    if (!container) return;
-
-    const build = () => {
-      if (container.dataset.carouselBuilt === 'yes') return;
-      container.dataset.carouselBuilt = 'yes';
-      ensurePortfolioScripts()
-        .then(() => run(window.buildPortfolioCarousel))
-        .catch(err => {
-          console.warn('Failed to initialize home carousel', err);
-          delete container.dataset.carouselBuilt;
-        });
-    };
-
-    if ('IntersectionObserver' in window) {
-      const obs = new IntersectionObserver((entries) => {
-        if (entries.some(entry => entry.isIntersecting)) {
-          obs.disconnect();
-          build();
-        }
-      }, { rootMargin: '200px 0px' });
-      obs.observe(container);
-      return;
-    }
-
-    if ('requestIdleCallback' in window) {
-      window.requestIdleCallback(build, { timeout: 1200 });
-      return;
-    }
-
-    build();
   }
 
   // ---- Global modal close handlers (X button and backdrop) ----
