@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <base href="/">
+  <title>Image Optimizer | Daniel Short</title>
+  <link rel="canonical" href="https://danielshort.me/tools/image-optimizer">
+  <meta name="description" content="Resize, compress, and convert images (PNG, JPEG, WebP, AVIF) locally in your browser—no uploads.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta property="og:title" content="Image Optimizer | Daniel Short">
+  <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
+  <meta property="og:description" content="Resize, compress, and convert images locally in your browser—no uploads, no tracking.">
+  <meta property="og:url" content="https://danielshort.me/tools/image-optimizer">
+  <meta property="og:image" content="https://danielshort.me/img/hero/head.jpg">
+  <meta property="og:image:alt" content="Portrait photo of Daniel Short">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@danielshort3">
+  <meta name="theme-color" content="#0D1117">
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
+  <link rel="preload" as="image" href="img/ui/logo-64.png" imagesrcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" imagesizes="64px" fetchpriority="high">
+  <link rel="preload" as="font" href="css/fonts/Inter-Latin.woff2" type="font/woff2" crossorigin>
+  <link rel="preload" as="font" href="css/fonts/Poppins-500-Latin.woff2" type="font/woff2" crossorigin>
+  <link rel="preload" as="font" href="css/fonts/Poppins-600-Latin.woff2" type="font/woff2" crossorigin>
+</head>
+<body data-page="image-optimizer" class="image-optimizer-page">
+  <a href="#main" class="skip-link">Skip to main content</a>
+  <header id="combined-header-nav"></header>
+
+  <section class="imgopt-hero">
+    <div class="wrapper">
+      <p class="hero-eyebrow">Labs</p>
+      <h1>Image Optimizer</h1>
+      <p class="imgopt-lead">Batch resize, compress, and convert images for the web. Everything runs locally in your browser—no uploads, no tracking.</p>
+      <div class="imgopt-steps">
+        <div class="imgopt-step">
+          <span class="imgopt-step-number">1</span>
+          <div>
+            <h3>Add images</h3>
+            <p>Drop multiple files at once and preview their sizes and dimensions.</p>
+          </div>
+        </div>
+        <div class="imgopt-step">
+          <span class="imgopt-step-number">2</span>
+          <div>
+            <h3>Pick output settings</h3>
+            <p>Choose format (PNG/JPEG/WebP/AVIF), quality, and resizing rules.</p>
+          </div>
+        </div>
+        <div class="imgopt-step">
+          <span class="imgopt-step-number">3</span>
+          <div>
+            <h3>Download in one go</h3>
+            <p>Export optimized images individually or run “Download all”.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main id="main">
+    <section class="surface-band imgopt-section">
+      <div class="wrapper">
+        <div class="imgopt-grid">
+          <div class="imgopt-card imgopt-drop-card" aria-live="polite">
+            <div class="imgopt-head">
+              <h2>Add images</h2>
+              <p class="imgopt-subtitle">Drag &amp; drop or choose files. Large images are supported; processing stays on your device.</p>
+            </div>
+
+            <input id="imgopt-file" class="imgopt-input" type="file" accept="image/*" multiple>
+
+            <div id="imgopt-dropzone" class="imgopt-dropzone" role="button" tabindex="0" aria-label="Click or drop images to add">
+              <div class="imgopt-drop-inner">
+                <span class="imgopt-drop-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" role="presentation">
+                    <path d="M12 3v10m0 0-3.5-3.5M12 13l3.5-3.5"></path>
+                    <path d="M5 16.5a4 4 0 0 1 0-8 5.5 5.5 0 0 1 10.7 1.3A3.5 3.5 0 0 1 18.5 16.5H8"></path>
+                  </svg>
+                </span>
+                <div class="imgopt-drop-copy">
+                  <p class="imgopt-drop-title">Click or drop images</p>
+                  <p class="imgopt-drop-hint">PNG · JPEG · WebP · AVIF (if supported)</p>
+                </div>
+                <button type="button" class="btn-secondary imgopt-pick" data-imgopt-pick>Choose files</button>
+              </div>
+            </div>
+
+            <div class="imgopt-summary">
+              <span id="imgopt-count" class="imgopt-summary-chip">0 images</span>
+              <span id="imgopt-total" class="imgopt-summary-chip">Total: —</span>
+            </div>
+
+            <ul id="imgopt-filelist" class="imgopt-filelist" aria-label="Selected images"></ul>
+          </div>
+
+          <div class="imgopt-card imgopt-controls-card">
+            <h2>Settings</h2>
+            <form id="imgopt-form" class="imgopt-form" novalidate>
+              <div class="imgopt-control">
+                <label class="imgopt-label" for="imgopt-format">Output format</label>
+                <select id="imgopt-format" class="imgopt-select" aria-describedby="imgopt-format-help">
+                  <option value="keep">Keep original (re-encode)</option>
+                  <option value="image/jpeg">JPEG</option>
+                  <option value="image/png">PNG</option>
+                  <option value="image/webp">WebP</option>
+                  <option value="image/avif">AVIF (if supported)</option>
+                </select>
+                <p id="imgopt-format-help" class="imgopt-help">Re-encoding strips metadata (EXIF) and normalizes orientation.</p>
+              </div>
+
+              <div class="imgopt-control" id="imgopt-quality-wrap">
+                <label class="imgopt-label" for="imgopt-quality">Quality <span id="imgopt-quality-value" class="imgopt-value">82</span></label>
+                <input id="imgopt-quality" class="imgopt-range" type="range" min="40" max="100" value="82" step="1">
+                <p class="imgopt-help">Used for JPEG/WebP/AVIF. Higher values preserve detail but increase file size.</p>
+              </div>
+
+              <div class="imgopt-control imgopt-flat-wrap" id="imgopt-flatten-wrap">
+                <label class="imgopt-option imgopt-option-row">
+                  <input id="imgopt-flatten" type="checkbox">
+                  <span>Flatten transparency (for JPEG)</span>
+                </label>
+                <div class="imgopt-row imgopt-row-tight">
+                  <label class="imgopt-label" for="imgopt-flatten-color">Background</label>
+                  <input id="imgopt-flatten-color" class="imgopt-color" type="color" value="#0d1117" aria-label="Flatten background color">
+                  <span id="imgopt-flatten-color-label" class="imgopt-chip">#0d1117</span>
+                </div>
+              </div>
+
+              <fieldset class="imgopt-fieldset">
+                <legend>Resize</legend>
+                <div class="imgopt-row">
+                  <label class="imgopt-label" for="imgopt-resize-mode">Mode</label>
+                  <select id="imgopt-resize-mode" class="imgopt-select">
+                    <option value="none">No resize</option>
+                    <option value="maxWidth">Max width</option>
+                    <option value="maxHeight">Max height</option>
+                    <option value="fit">Fit within box</option>
+                    <option value="exact">Exact size (stretch)</option>
+                    <option value="scale">Scale percent</option>
+                  </select>
+                </div>
+
+                <div class="imgopt-row imgopt-row-split" id="imgopt-dims-wrap">
+                  <div class="imgopt-split">
+                    <label class="imgopt-label" for="imgopt-width">Width</label>
+                    <div class="imgopt-input-row">
+                      <input id="imgopt-width" class="imgopt-text" type="number" inputmode="numeric" min="1" value="1600">
+                      <span class="imgopt-addon">px</span>
+                    </div>
+                  </div>
+                  <div class="imgopt-split">
+                    <label class="imgopt-label" for="imgopt-height">Height</label>
+                    <div class="imgopt-input-row">
+                      <input id="imgopt-height" class="imgopt-text" type="number" inputmode="numeric" min="1" value="900">
+                      <span class="imgopt-addon">px</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="imgopt-row imgopt-row-split" id="imgopt-scale-wrap" hidden>
+                  <div class="imgopt-split">
+                    <label class="imgopt-label" for="imgopt-scale">Scale</label>
+                    <div class="imgopt-input-row">
+                      <input id="imgopt-scale" class="imgopt-text" type="number" inputmode="numeric" min="1" max="500" value="75">
+                      <span class="imgopt-addon">%</span>
+                    </div>
+                  </div>
+                  <div class="imgopt-split"></div>
+                </div>
+
+                <label class="imgopt-option">
+                  <input id="imgopt-keep-aspect" type="checkbox" checked>
+                  <span>Keep aspect ratio</span>
+                </label>
+                <label class="imgopt-option">
+                  <input id="imgopt-no-upscale" type="checkbox" checked>
+                  <span>Prevent upscaling</span>
+                </label>
+
+                <label class="imgopt-option">
+                  <input id="imgopt-responsive" type="checkbox">
+                  <span>Generate responsive widths</span>
+                </label>
+                <div class="imgopt-row" id="imgopt-responsive-wrap" hidden>
+                  <label class="imgopt-label" for="imgopt-responsive-widths">Widths</label>
+                  <input id="imgopt-responsive-widths" class="imgopt-text" type="text" placeholder="480, 768, 1024, 1600" value="640, 960, 1280">
+                </div>
+                <p class="imgopt-help">When enabled, each image exports multiple versions named with a “-640w” suffix.</p>
+              </fieldset>
+
+              <div class="imgopt-control">
+                <label class="imgopt-label" for="imgopt-suffix">Filename suffix</label>
+                <input id="imgopt-suffix" class="imgopt-text" type="text" value="-optimized" maxlength="64">
+                <p class="imgopt-help">Appended before the extension (example: <span class="imgopt-mono">photo-optimized.webp</span>).</p>
+              </div>
+
+              <div class="imgopt-actions">
+                <button type="submit" class="btn-primary" id="imgopt-process">Optimize</button>
+                <button type="button" class="btn-ghost" id="imgopt-clear">Clear</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="imgopt-card imgopt-results-card" aria-live="polite">
+          <div class="imgopt-results-head">
+            <div>
+              <h2>Downloads</h2>
+              <p id="imgopt-status" class="imgopt-status">Add images, choose settings, then click Optimize.</p>
+            </div>
+            <div class="imgopt-results-actions">
+              <button type="button" class="btn-secondary" id="imgopt-download-all" disabled>Download all</button>
+            </div>
+          </div>
+          <div id="imgopt-results" class="imgopt-results"></div>
+          <p class="imgopt-footnote">Note: Some browsers may ask permission to download multiple files at once.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <nav class="privacy-links" aria-label="Privacy shortcuts">
+      <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
+      <a href="#" class="pcz-link" onclick="window.Privacy && window.Privacy.open('doNotSell'); return false;">Do Not Sell/Share My Personal Information</a>
+    </nav>
+  </footer>
+
+  <script defer src="js/tools/image-optimizer.js"></script>
+  <script defer src="js/common/common.js"></script>
+  <script defer src="js/navigation/navigation.js"></script>
+  <script defer src="js/animations/animations.js"></script>
+  <script src="js/privacy/config.js"></script>
+  <script defer src="js/privacy/consent_manager.js"></script>
+</body>
+</html>

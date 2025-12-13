@@ -83,18 +83,20 @@ try {
     checkFileContains('pages/contact.html', '<title>Daniel Short - Contact');
     checkFileContains('pages/tools.html', '<title>Tools | Daniel Short');
     checkFileContains('pages/ocean-wave-simulation.html', '<title>Ocean Wave Simulation | Daniel Short');
+    checkFileContains('pages/qr-code-generator.html', '<title>QR Code Generator | Daniel Short');
+    checkFileContains('pages/image-optimizer.html', '<title>Image Optimizer | Daniel Short');
     ['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html'].forEach(f => {
       checkFileContains(f, 'js/common/common.js');
       checkFileContains(f, 'class="skip-link"');
       checkFileContains(f, '<main id="main">');
     });
-    ['pages/tools.html','pages/word-frequency.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html'].forEach(f => {
+    ['pages/tools.html','pages/word-frequency.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html'].forEach(f => {
       checkFileContains(f, 'js/common/common.js');
       checkFileContains(f, 'class="skip-link"');
       checkFileContains(f, '<main id="main">');
       checkFileContains(f, 'noindex, nofollow');
     });
-    ['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/tools.html','pages/ocean-wave-simulation.html','404.html'].forEach(f => {
+    ['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/tools.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','404.html'].forEach(f => {
       checkFileContains(f, 'og:image');
     });
     assert(fs.existsSync('robots.txt'), 'robots.txt missing');
@@ -279,7 +281,7 @@ try {
 
     const projectIds = evalScript('js/portfolio/projects-data.js').window.PROJECTS.map(p => p.id);
     const projectPages = projectIds.map(id => `pages/portfolio/${id}.html`);
-    const toolPages = ['pages/tools.html','pages/word-frequency.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html'];
+    const toolPages = ['pages/tools.html','pages/word-frequency.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html'];
     ['index.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','pages/privacy.html','404.html', ...toolPages, ...projectPages].forEach(f => {
       checkFileContains(f, '<header id="combined-header-nav">');
       checkFileContains(f, '<main id="main"');
@@ -453,7 +455,7 @@ try {
 
   section('Base hrefs and redirect sanity', () => {
     ['pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html','pages/resume.html',
-     'pages/tools.html','pages/word-frequency.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html',
+     'pages/tools.html','pages/word-frequency.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html',
      'demos/chatbot-demo.html','demos/shape-demo.html','demos/sentence-demo.html']
       .forEach(f => checkFileContains(f, '<base href="/">'));
 
