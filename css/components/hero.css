@@ -17,6 +17,9 @@
       color-mix(in srgb,var(--surface) 86%, #000 14%) 42%,
       #0f141d 100%);
   }
+  body[data-page="home"] .hero{
+    margin-bottom:0;
+  }
 
   @keyframes heroFade{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:none}}
 
