@@ -31,6 +31,7 @@
   <link rel="preload" as="font" href="css/fonts/Poppins-500-Latin.woff2" type="font/woff2" crossorigin>
   <link rel="preload" as="font" href="css/fonts/Poppins-600-Latin.woff2" type="font/woff2" crossorigin>
 
+
   <!-- Local fonts with legacy reference retained for tooling: https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap -->
   <script>
     try {
@@ -72,10 +73,9 @@
 
     <section class="project-body">
       <div class="wrapper">
-        <picture class="project-media">
-        <source srcset="img/projects/smartSentence.webp" type="image/webp">
-        <img src="img/projects/smartSentence.png" alt="Preview image for Smart Sentence Retriever" loading="lazy" decoding="async" width="1280" height="720">
-      </picture>
+        <div class="project-media project-embed project-embed-iframe">
+        <iframe class="project-embed-frame" src="sentence-demo.html" title="Smart Sentence Retriever interactive demo" loading="lazy" allowfullscreen></iframe>
+      </div>
         <section class="project-section">
       <h2 class="section-title">Context</h2>
       <p class="project-lead">I wanted a quick way to retrieve relevant sentences by meaning, not exact wording.</p>
@@ -100,10 +100,10 @@
         <section class="project-section">
       <h2 class="section-title">Links</h2>
       <div class="project-links" role="list">
-        <a class="project-link" role="listitem" href="https://github.com/danielshort3/Smart-Sentence-Finder" target="_blank" rel="noopener noreferrer">GitHub</a>
-        <a class="project-link" role="listitem" href="documents/Project_13.pdf">PDF</a>
-        <a class="project-link" role="listitem" href="documents/Project_13.ipynb">Notebook</a>
-        <a class="project-link" role="listitem" href="https://danielshort.me/sentence-demo.html" target="_blank" rel="noopener noreferrer">Live Demo</a>
+        <a class="project-link" role="listitem" href="https://github.com/danielshort3/Smart-Sentence-Finder" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
+        <a class="project-link" role="listitem" href="documents/Project_13.pdf"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDF</span></a>
+        <a class="project-link" role="listitem" href="documents/Project_13.ipynb"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook</span></a>
+        <a class="project-link" role="listitem" href="https://danielshort.me/sentence-demo.html" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
       </div>
     </section>
         
