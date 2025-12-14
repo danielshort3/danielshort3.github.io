@@ -123,9 +123,9 @@
       </a>
     `;
     const portfolioHighlights = [
-      { id: 'shapeClassifier',  title: 'Shape Classifier Demo',      subtitle: 'Handwritten shape recognition' },
-      { id: 'chatbotLora',      title: 'Chatbot (LoRA + RAG)',       subtitle: 'Fine-tuned assistant with RAG' },
-      { id: 'sheetMusicUpscale',title: 'Sheet Music Restoration',    subtitle: 'UNet watermark removal + VDSR' },
+      { id: 'shapeClassifier',  title: 'Shape Classifier',                    subtitle: 'Handwritten shape recognition' },
+      { id: 'retailStore',      title: 'Store-Level Loss & Sales ETL',         subtitle: 'SQL ETL + anomaly detection' },
+      { id: 'sheetMusicUpscale',title: 'Sheet Music Watermark Removal & Upscale', subtitle: 'UNet watermark removal + VDSR' },
       { id: 'digitGenerator',   title: 'Synthetic Digit Generator',  subtitle: 'Variational autoencoder (VAE)' },
       { id: 'nonogram',         title: 'Nonogram Solver',            subtitle: '94% accuracy reinforcement learning' }
     ];
