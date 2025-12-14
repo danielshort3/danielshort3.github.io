@@ -103,35 +103,35 @@
         </div>
 
         <div class="project-examples-grid" role="list" aria-label="Project Examples">
-          <a
-            class="project-card ripple-in project-examples-card"
-            role="listitem"
-            href="portfolio/shapeClassifier"
-            data-project-modal="true"
-            data-project="shapeClassifier"
-            aria-label="Open Shape Classifier Demo details">
-            <div class="overlay"></div>
-            <div class="project-text">
-              <div class="project-title">Shape Classifier Demo</div>
-              <div class="project-subtitle">Handwritten Shape Recognition</div>
-            </div>
-            <img src="img/projects/shapeClassifier.png" alt="Preview of the Shape Classifier demo interface" width="1280" height="720" loading="lazy" decoding="async">
-          </a>
+	          <a
+	            class="project-card ripple-in project-examples-card"
+	            role="listitem"
+	            href="portfolio/shapeClassifier"
+	            data-project-modal="true"
+	            data-project="shapeClassifier"
+	            aria-label="Open Shape Classifier details">
+	            <div class="overlay"></div>
+	            <div class="project-text">
+	              <div class="project-title">Shape Classifier</div>
+	              <div class="project-subtitle">Handwritten Shape Recognition</div>
+	            </div>
+	            <img src="img/projects/shapeClassifier.png" alt="Preview of the Shape Classifier demo interface" width="1280" height="720" loading="lazy" decoding="async">
+	          </a>
 
-          <a
-            class="project-card ripple-in project-examples-card"
-            role="listitem"
-            href="portfolio/chatbotLora"
-            data-project-modal="true"
-            data-project="chatbotLora"
-            aria-label="Open Chatbot (LoRA + RAG) details">
-            <div class="overlay"></div>
-            <div class="project-text">
-              <div class="project-title">Chatbot (LoRA + RAG)</div>
-              <div class="project-subtitle">RAG Chatbot Fine-Tuned with LoRA</div>
-            </div>
-            <img src="img/projects/chatbotLora.png" alt="Screenshot of the Visit Grand Junction chatbot interface" width="1280" height="720" loading="lazy" decoding="async">
-          </a>
+	          <a
+	            class="project-card ripple-in project-examples-card"
+	            role="listitem"
+	            href="portfolio/retailStore"
+	            data-project-modal="true"
+	            data-project="retailStore"
+	            aria-label="Open Store-Level Loss &amp; Sales ETL details">
+	            <div class="overlay"></div>
+	            <div class="project-text">
+	              <div class="project-title">Store-Level Loss &amp; Sales ETL</div>
+	              <div class="project-subtitle">SQL ETL + Anomaly Detection</div>
+	            </div>
+	            <img src="img/projects/retailStore.png" alt="Preview of store-level loss and sales analysis dashboard" width="1423" height="947" loading="lazy" decoding="async">
+	          </a>
 
           <a
             class="project-card ripple-in project-examples-card"
@@ -174,11 +174,11 @@
         </div>
         <button class="btn-secondary cert-modal-trigger" type="button" data-cert-modal-open>View all certifications</button>
       </div>
-    </section>
-    <div id="certifications-modal" class="modal">
-      <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="cert-modal-title" tabindex="0">
-        <button class="modal-close" aria-label="Close dialog">&times;</button>
-        <div class="modal-title-strip">
+	    </section>
+	    <div id="certifications-modal" class="modal">
+	      <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="cert-modal-title" tabindex="0">
+	        <button class="modal-close" aria-label="Close dialog">&times;</button>
+	        <div class="modal-title-strip">
           <h3 class="modal-title" id="cert-modal-title">Certifications &amp; Degrees</h3>
           <p class="modal-subtitle">A single view of formal education and industry credentials.</p>
         </div>
@@ -283,14 +283,74 @@
               </div>
             </article>
           </div>
-        </div>
-      </div>
-    </div>
+	        </div>
+	      </div>
+	    </div>
 
-    <!-- Skills with Proven Projects -->
-    <section id="about-me" class="surface-band reveal interest-pad">
-      <div class="wrapper">
-        <h2 class="section-title">Skills in Practice</h2>
+	    <!-- Work experience -->
+	    <section id="work-experience" class="surface-band reveal work-band" role="region" aria-labelledby="work-experience-title">
+	      <div class="wrapper">
+	        <div class="work-head">
+	          <h2 id="work-experience-title" class="section-title">Work Experience</h2>
+	          <p class="work-subtitle">Recent roles with measurable impact across tourism, data quality, and retail analytics.</p>
+	        </div>
+
+	        <div class="work-grid" role="list" aria-label="Work experience">
+	          <article class="work-card" role="listitem">
+	            <div class="work-logo-shell">
+	              <img src="img/company_logos/visit-grand-junction.svg" alt="Visit Grand Junction logo" width="56" height="56" loading="lazy" decoding="async">
+	            </div>
+	            <h3 class="work-company">
+	              <a href="https://www.visitgrandjunction.com/" target="_blank" rel="noopener noreferrer">Visit Grand Junction</a>
+	            </h3>
+	            <p class="work-timeframe">February 2024 – Present</p>
+	            <p class="work-role">Business Analyst</p>
+	            <ul class="work-highlights">
+	              <li>Automate weekly reporting in Python, cutting turnaround time by 99%, saving 200+ hours per year.</li>
+	              <li>Deploy an NLP link-repair model that lifted site traffic 750% and engagement 56%.</li>
+	              <li>Drive a 565% jump in page-views and 122% more sessions by embedding ML insights in campaigns.</li>
+	            </ul>
+	          </article>
+
+	          <article class="work-card" role="listitem">
+	            <div class="work-logo-shell">
+	              <img src="img/company_logos/randall-reilly.svg" alt="Randall Reilly logo" width="56" height="56" loading="lazy" decoding="async">
+	            </div>
+	            <h3 class="work-company">
+	              <a href="https://www.randallreilly.com/" target="_blank" rel="noopener noreferrer">Randall Reilly</a>
+	            </h3>
+	            <p class="work-timeframe">November 2023 – January 2024</p>
+	            <p class="work-role">AI Data Quality Analyst</p>
+	            <ul class="work-highlights">
+	              <li>Re-platformed R workflows to a one-click Python app, trimming processing time 95%.</li>
+	              <li>Built decision-tree models that expanded serial-number tracking by 10x+ while flagging anomalies with 98% precision.</li>
+	              <li>Developed an autoencoder model using PyTorch, improving data quality through error detection.</li>
+	            </ul>
+	          </article>
+
+	          <article class="work-card" role="listitem">
+	            <div class="work-logo-shell">
+	              <img src="img/company_logos/target.svg" alt="Target logo" width="56" height="56" loading="lazy" decoding="async">
+	            </div>
+	            <h3 class="work-company">
+	              <a href="https://www.target.com/" target="_blank" rel="noopener noreferrer">Target</a>
+	            </h3>
+	            <p class="work-timeframe">June 2022 – November 2023</p>
+	            <p class="work-role">Asset Protection Data Analyst</p>
+	            <ul class="work-highlights">
+	              <li>Designed enterprise dashboards adopted company-wide, surfacing trends that raised theft reports 57.6%.</li>
+	              <li>Analytics-driven initiatives increased theft prevention by 180% and reduced inventory loss by 24%.</li>
+	              <li>Presented technical information to non-technical audiences, translating analytics into operational action.</li>
+	            </ul>
+	          </article>
+	        </div>
+	      </div>
+	    </section>
+
+	    <!-- Skills with Proven Projects -->
+	    <section id="about-me" class="surface-band reveal interest-pad">
+	      <div class="wrapper">
+	        <h2 class="section-title">Skills in Practice</h2>
 
         <div class="grid-container">
 
