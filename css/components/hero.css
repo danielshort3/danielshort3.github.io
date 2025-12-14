@@ -60,7 +60,7 @@
   }
 
   .hero-avatar{
-    width:clamp(120px, 14vw, 220px);
+    width:clamp(108px, 12vw, 176px);
     height:auto;
     aspect-ratio:1;
     border-radius:999px;
