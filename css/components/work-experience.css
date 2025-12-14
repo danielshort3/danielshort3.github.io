@@ -35,21 +35,25 @@
   }
 
   .work-logo-shell{
-    width:86px;
     height:86px;
+    min-width:86px;
+    padding:0 18px;
     border-radius:18px;
     background:color-mix(in srgb,var(--surface) 85%, #0d1622 15%);
     border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
-    display:flex;
+    display:inline-flex;
     align-items:center;
     justify-content:center;
     box-shadow:0 8px 20px rgba(0,0,0,.3);
     align-self:center;
+    max-width:100%;
   }
 
   .work-logo-shell img{
-    width:56px;
-    height:56px;
+    width:auto;
+    height:auto;
+    max-height:56px;
+    max-width:240px;
     display:block;
   }
 
