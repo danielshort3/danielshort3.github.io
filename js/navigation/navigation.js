@@ -8,6 +8,134 @@
   const $$ = (s, c=document) => [...c.querySelectorAll(s)];
   const NAV_HEIGHT_FALLBACK = 72;
   let cachedNavHeight = null;
+  const MONTH_PATTERN = '(January|February|March|April|May|June|July|August|September|October|November|December)';
+  const MONTH_DAY_YEAR_RE = new RegExp(`${MONTH_PATTERN}\\s+\\d{1,2},\\s+\\d{4}`);
+  const MONTH_YEAR_RE = new RegExp(`${MONTH_PATTERN}\\s+\\d{4}`);
+
+  const parseContributionDate = (item) => {
+    if (!item) return null;
+    if (item.date) {
+      const explicit = new Date(item.date);
+      if (!Number.isNaN(explicit.getTime())) return explicit;
+    }
+
+    const haystack = `${item.title ?? ''} ${item.role ?? ''}`;
+    const match = haystack.match(MONTH_DAY_YEAR_RE);
+    if (match) {
+      const inferred = new Date(`${match[0]} 00:00:00 UTC`);
+      if (!Number.isNaN(inferred.getTime())) return inferred;
+    }
+
+    const monthYear = haystack.match(MONTH_YEAR_RE);
+    if (monthYear) {
+      const [month, year] = monthYear[0].split(/\s+/);
+      const inferred = new Date(`${month} 1, ${year} 00:00:00 UTC`);
+      if (!Number.isNaN(inferred.getTime())) return inferred;
+    }
+
+    return null;
+  };
+
+  const findLatestContribution = (slug) => {
+    const sections = window?.contributions;
+    if (!Array.isArray(sections)) return null;
+    const section = sections.find(s => s?.slug === slug);
+    const items = section?.items;
+    if (!Array.isArray(items) || !items.length) return null;
+
+    return items.reduce((latest, item) => {
+      if (!latest) return item;
+      const latestDate = parseContributionDate(latest);
+      const nextDate = parseContributionDate(item);
+      if (!latestDate && nextDate) return item;
+      if (!latestDate && !nextDate) return latest;
+      if (latestDate && !nextDate) return latest;
+      return nextDate.getTime() > latestDate.getTime() ? item : latest;
+    }, null);
+  };
+
+  const ensureContributionsData = () => {
+    return new Promise((resolve) => {
+      if (Array.isArray(window?.contributions)) {
+        resolve(true);
+        return;
+      }
+
+      const existing = document.querySelector('script[data-contributions-data="true"]');
+      if (existing) {
+        existing.addEventListener('load', () => resolve(true), { once: true });
+        existing.addEventListener('error', () => resolve(false), { once: true });
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = 'js/contributions/contributions-data.js';
+      script.defer = true;
+      script.dataset.contributionsData = 'true';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.head.appendChild(script);
+    });
+  };
+
+  const updateWorkSampleHighlights = (host) => {
+    if (!host) return;
+
+    const updateHighlight = (id, item, fallback) => {
+      const el = host.querySelector(`#${id}`);
+      if (!el) return;
+      const labelEl = el.querySelector('.nav-highlight-label');
+      const titleEl = el.querySelector('.nav-dropdown-title');
+      const subtitleEl = el.querySelector('.nav-dropdown-subtitle');
+
+      const next = item || fallback;
+      if (!next) return;
+
+      if (labelEl) labelEl.textContent = next.label || labelEl.textContent;
+      if (titleEl) titleEl.textContent = next.title || titleEl.textContent;
+      if (subtitleEl) subtitleEl.textContent = next.subtitle || subtitleEl.textContent;
+      if (next.href) el.setAttribute('href', next.href);
+
+      if (next.external) {
+        el.setAttribute('target', '_blank');
+        el.setAttribute('rel', 'noopener noreferrer');
+      } else {
+        el.removeAttribute('target');
+        el.removeAttribute('rel');
+      }
+    };
+
+    const councilItem = findLatestContribution('council-briefings');
+    const stakeholderItem = findLatestContribution('enewsletters');
+
+    updateHighlight(
+      'nav-latest-council',
+      councilItem
+        ? {
+          label: 'Latest Council Briefing',
+          title: councilItem.title,
+          subtitle: councilItem.role || 'Visit Grand Junction section',
+          href: councilItem.link,
+          external: true
+        }
+        : null,
+      null
+    );
+
+    updateHighlight(
+      'nav-latest-stakeholder',
+      stakeholderItem
+        ? {
+          label: 'Latest Stakeholder eNews',
+          title: stakeholderItem.title,
+          subtitle: stakeholderItem.role || 'Industry pacing & KPI updates',
+          href: stakeholderItem.link,
+          external: true
+        }
+        : null,
+      null
+    );
+  };
 
   const measureNavHeight = () => {
     const nav = document.querySelector('.nav');
@@ -116,7 +244,7 @@
               </a>`;
     };
     const renderHighlightCard = (item) => `
-      <a href="${item.href}" class="nav-highlight-card" role="listitem"${item.external ? ' target="_blank" rel="noopener noreferrer"' : ''}>
+      <a href="${item.href}"${item.id ? ` id="${item.id}"` : ''} class="nav-highlight-card" role="listitem"${item.external ? ' target="_blank" rel="noopener noreferrer"' : ''}>
         <span class="nav-highlight-label">${item.label}</span>
         <span class="nav-dropdown-title">${item.title}</span>
         <span class="nav-dropdown-subtitle">${item.subtitle}</span>
@@ -151,13 +279,15 @@
       { id: 'enewsletters',        title: 'Stakeholder eNews', subtitle: 'Industry pacing & KPI updates' }
     ];
     const latestStakeholder = {
-      label:'Latest Stakeholder',
+      id:'nav-latest-stakeholder',
+      label:'Latest Stakeholder eNews',
       title:'Stakeholder eNewsletter · November 2025',
       subtitle:'Fresh pacing & KPI insights',
       href:'https://us4.campaign-archive.com/?e=18b7bff0b8&u=d69163b71ce34ec42d130a6a4&id=1370d609e9',
       external:true
     };
     const latestCouncil = {
+      id:'nav-latest-council',
       label:'Latest Council Briefing',
       title:'Council Briefing · Nov 24, 2025',
       subtitle:'Newest council intel drop',
@@ -278,10 +408,10 @@
             </div>
             <div class="nav-item nav-item-contributions">
               <a href="contributions.html" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="${dropdownIds.contributions}">
-                Contributions
+                Work Samples
                 <span class="nav-link-caret" aria-hidden="true"></span>
               </a>
-              <div class="nav-dropdown" id="${dropdownIds.contributions}" aria-label="Contributions categories">
+              <div class="nav-dropdown" id="${dropdownIds.contributions}" aria-label="Work sample categories">
                 ${contributionsMenu}
               </div>
             </div>
@@ -353,6 +483,7 @@
     setupDropdown(host.querySelector('.nav-item-resume'));
     setupDropdown(host.querySelector('.nav-item-contact'));
     setupPortfolioPreview(host.querySelector('.nav-item-portfolio'));
+    ensureContributionsData().then(() => updateWorkSampleHighlights(host));
     const hoverMatcher = window.matchMedia('(hover: hover) and (pointer: fine)');
     if (hoverMatcher.matches) {
       host.querySelectorAll('.nav-item').forEach((item) => {

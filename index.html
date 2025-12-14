@@ -73,22 +73,44 @@
     <!-- Hero -->
     <section class="hero">
       <div class="wrapper">
-        <img class="hero-avatar" src="img/hero/head.jpg" alt="Portrait of Daniel Short" width="168" height="168" decoding="async" fetchpriority="high">
-        <p class="hero-eyebrow">Data Scientist</p>
-        <h1>Data science and analytics,<br>made actionable</h1>
+        <img class="hero-avatar" src="img/hero/head.jpg" alt="Portrait of Daniel Short" width="200" height="200" decoding="async" fetchpriority="high">
+        <p class="hero-eyebrow">Data Scientist · Machine Learning · Analytics</p>
+        <h1>Data science, machine learning, and analytics,<br>made actionable</h1>
 
         <p class="hero-tagline">
-          I’m <strong>Daniel Short</strong>, a data scientist working across analytics, automation, and machine learning. I build reliable systems in <strong>Python</strong> and <strong>SQL</strong> so stakeholders can act with confidence.
+          I’m <strong>Daniel Short</strong>, a data scientist with <strong>3 years</strong> of experience translating analytics and machine learning into measurable outcomes across tourism, retail, and B2B. I build reliable systems in <strong>Python</strong> and <strong>SQL</strong> so stakeholders can act with confidence.
         </p>
 
         <p class="hero-status">
-          Python · SQL · Tableau · Machine Learning
+          Python · SQL · GenAI (RAG) · Tableau
         </p>
 
         <div class="cta-group">
-          <a href="#project-examples" class="btn-primary hero-cta" data-smooth-scroll="true">See Project Examples</a>
-          <a href="resume.html" class="btn-secondary hero-cta">Resume</a>
+          <a href="documents/Resume.pdf" class="btn-primary hero-cta" download>Download Resume</a>
+          <a href="#project-examples" class="btn-secondary hero-cta" data-smooth-scroll="true">See Project Examples</a>
+          <a href="contributions.html" class="btn-ghost hero-cta">Work Samples</a>
         </div>
+
+        <ul class="hero-kpis" aria-label="Impact highlights">
+          <li class="hero-kpi">
+            <a class="hero-kpi-link" href="resume.html">
+              <span class="hero-kpi-value">200+ hrs/yr</span>
+              <span class="hero-kpi-label">Saved by automating reporting pipelines in Python.</span>
+            </a>
+          </li>
+          <li class="hero-kpi">
+            <a class="hero-kpi-link" href="resume.html">
+              <span class="hero-kpi-value">750% traffic</span>
+              <span class="hero-kpi-label">Lifted site traffic with an NLP link-repair model (+56% engagement).</span>
+            </a>
+          </li>
+          <li class="hero-kpi">
+            <a class="hero-kpi-link" href="resume.html">
+              <span class="hero-kpi-value">565% pageviews</span>
+              <span class="hero-kpi-label">Drove pageviews +565% and sessions +122% by embedding ML insights in campaigns.</span>
+            </a>
+          </li>
+        </ul>
       </div>
       <a class="chevron-hint scroll-indicator" href="#project-examples" data-smooth-scroll="true">
         <span class="chevron-label">Scroll for Project Examples</span>
@@ -121,16 +143,16 @@
           <a
             class="project-card ripple-in project-examples-card"
             role="listitem"
-            href="portfolio/chatbotLora"
+            href="portfolio/retailStore"
             data-project-modal="true"
-            data-project="chatbotLora"
-            aria-label="Open Chatbot (LoRA + RAG) details">
+            data-project="retailStore"
+            aria-label="Open Store-Level Loss and Sales ETL details">
             <div class="overlay"></div>
             <div class="project-text">
-              <div class="project-title">Chatbot (LoRA + RAG)</div>
-              <div class="project-subtitle">RAG Chatbot Fine-Tuned with LoRA</div>
+              <div class="project-title">Store-Level Loss &amp; Sales ETL</div>
+              <div class="project-subtitle">SQL ETL + Anomaly Detection</div>
             </div>
-            <img src="img/projects/chatbotLora.png" alt="Screenshot of the Visit Grand Junction chatbot interface" width="1280" height="720" loading="lazy" decoding="async">
+            <img src="img/projects/retailStore.png" alt="Preview of the Store-Level Loss and Sales ETL dashboard" width="1423" height="947" loading="lazy" decoding="async">
           </a>
 
           <a
@@ -151,6 +173,95 @@
 
         <div class="project-examples-actions">
           <a href="portfolio.html#filters" class="btn-secondary project-examples-cta">View all projects</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="work-samples" class="surface-band reveal" role="region" aria-labelledby="work-samples-title">
+      <div class="wrapper">
+        <div class="project-examples-head">
+          <h2 id="work-samples-title">Work Samples</h2>
+          <p class="section-subtitle">Public-facing reports and briefings (Visit Grand Junction contributions).</p>
+        </div>
+
+        <div class="docs-grid" role="list" aria-label="Work samples">
+          <article class="doc-card featured-doc" role="listitem" id="latest-council-briefing">
+            <div class="doc-layout">
+              <p class="doc-label">Latest council briefing</p>
+              <h3 class="doc-title">Council Briefing</h3>
+              <div class="doc-footer">
+                <p class="doc-role">Visit Grand Junction section</p>
+                <div class="doc-links">
+                  <a href="contributions.html#council-briefings" class="doc-link" aria-label="Open council briefings">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M14 3h7v7"/>
+                      <path d="M10 14L21 3"/>
+                      <path d="M21 14v7h-7"/>
+                      <path d="M3 10v11h11"/>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="doc-card featured-doc" role="listitem">
+            <div class="doc-layout">
+              <p class="doc-label">Public report</p>
+              <h3 class="doc-title">Grand Junction City Budget · 2025</h3>
+              <div class="doc-footer">
+                <p class="doc-role">Pages 199–214 (Visit Grand Junction section)</p>
+                <div class="doc-links">
+                  <a href="documents/GJ_2025_Budget.pdf" target="_blank" rel="noopener noreferrer" class="doc-link" aria-label="Open PDF" download>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <path d="M14 2v6h6"/>
+                      <path d="M8 15h8"/>
+                    </svg>
+                  </a>
+                  <a href="https://www.gjcity.org/DocumentCenter/View/14655" target="_blank" rel="noopener noreferrer" class="doc-link" aria-label="Open external link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M14 3h7v7"/>
+                      <path d="M10 14L21 3"/>
+                      <path d="M21 14v7h-7"/>
+                      <path d="M3 10v11h11"/>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="doc-card featured-doc" role="listitem">
+            <div class="doc-layout">
+              <p class="doc-label">Public report</p>
+              <h3 class="doc-title">Colorado Business Economic Outlook · 2025</h3>
+              <div class="doc-footer">
+                <p class="doc-role">Pages 122–129 (Visit Grand Junction contributions)</p>
+                <div class="doc-links">
+                  <a href="documents/Leeds_2025_Colorado_Business_Economic_Outlook.pdf" target="_blank" rel="noopener noreferrer" class="doc-link" aria-label="Open PDF" download>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <path d="M14 2v6h6"/>
+                      <path d="M8 15h8"/>
+                    </svg>
+                  </a>
+                  <a href="https://www.colorado.edu/business/brd/colorado-business-economic-outlook-forum" target="_blank" rel="noopener noreferrer" class="doc-link" aria-label="Open external link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M14 3h7v7"/>
+                      <path d="M10 14L21 3"/>
+                      <path d="M21 14v7h-7"/>
+                      <path d="M3 10v11h11"/>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div class="project-examples-actions">
+          <a href="contributions.html" class="btn-secondary project-examples-cta">View all work samples</a>
         </div>
       </div>
     </section>
@@ -370,9 +481,9 @@
     <section id="cta" class="surface-band reveal">
       <div class="wrapper">
         <div id="cta-link" role="group" aria-label="Contact call to action">
-          <h2 class="section-title">Open to Data Science related roles</h2>
+          <h2 class="section-title">Open to full-time Data Analyst / Data Scientist / ML Engineer roles</h2>
           <p>
-            I’m open to full-time data science related roles across analytics and machine learning, plus selective freelance work. If you’d like to discuss an opportunity, send a quick note.
+            Open to US-based remote or on-site roles across analytics and machine learning. If you’d like to discuss an opportunity, send a quick note.
           </p>
           <div>
             <a href="#contact-modal" class="btn-primary" data-contact-modal-link="true">Send a Message</a>
@@ -447,6 +558,7 @@
   <script defer src="js/common/common.js"></script>
   <script defer src="js/navigation/navigation.js"></script>
   <script defer src="js/animations/animations.js"></script>
+  <script defer src="js/home/home.js"></script>
   <script defer src="js/forms/contact.js"></script>
   <script src="js/privacy/config.js"></script>
   <script defer src="js/privacy/consent_manager.js"></script>
