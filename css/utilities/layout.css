@@ -109,9 +109,6 @@
 
 /* === Center the entire CTA block ========================================= */
 #cta{
-  background:linear-gradient(150deg,
-    color-mix(in srgb,var(--surface) 92%, #000 8%) 0%,
-    color-mix(in srgb,var(--surface) 84%, #000 16%) 100%);
   padding:clamp(3.2rem,6vw,4.6rem) 0;
 }
 
@@ -663,6 +660,28 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
 /* modal responsive block moved to components/modal.css */
 
 /* prevent two-column layout for contribution cards moved to components/doc-card.css */
+
+/* ───────────────────────────────────────────────────────────
+   16.  HOME PAGE SECTION BANDS
+   Alternating backgrounds after the hero for consistent rhythm
+   ─────────────────────────────────────────────────────────── */
+body[data-page="home"]{
+  --home-band-a: var(--surface);
+  --home-band-b: var(--surface-accent);
+  --home-band-border: 1px solid color-mix(in srgb,var(--primary) 14%, transparent);
+}
+
+body[data-page="home"] main > section:not(.hero){
+  --home-band-base: var(--home-band-a);
+  background:linear-gradient(120deg,
+    color-mix(in srgb,var(--home-band-base) 96%, #000 4%) 0%,
+    color-mix(in srgb,var(--home-band-base) 88%, #000 12%) 100%);
+  border-block:var(--home-band-border);
+}
+
+body[data-page="home"] main > section:not(.hero):nth-of-type(odd){
+  --home-band-base: var(--home-band-b);
+}
 
 /* ───────────────────────────────────────────────────────────
    16.  ERROR PAGE
