@@ -57,25 +57,15 @@
     display:block;
   }
 
+  .work-logo-link:focus-visible{
+    outline:2px solid var(--focus);
+    outline-offset:4px;
+  }
+
   .work-company{
     margin:4px 0 0;
     font-size:1.1rem;
     text-align:center;
-  }
-
-  .work-company a{
-    color:var(--text-light);
-    text-decoration:none;
-  }
-
-  .work-company a:hover{
-    color:color-mix(in srgb,var(--primary) 82%, #ffffff 18%);
-  }
-
-  .work-company a:focus-visible{
-    outline:2px solid var(--focus);
-    outline-offset:4px;
-    border-radius:6px;
   }
 
   .work-timeframe{

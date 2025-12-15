@@ -98,9 +98,10 @@
 
     <section id="project-examples" class="project-examples-band surface-band no-reveal" role="region" aria-labelledby="project-examples-title">
       <div class="wrapper">
-        <div class="project-examples-head">
-          <h2 id="project-examples-title">Project Examples</h2>
-        </div>
+	        <div class="project-examples-head">
+	          <h2 id="project-examples-title">Project Examples</h2>
+	          <p class="project-examples-subtitle">A quick snapshot of end-to-end work across machine learning demos, analytics ETL, and computer vision pipelines.</p>
+	        </div>
 
         <div class="project-examples-grid" role="list" aria-label="Project Examples">
 	          <a
@@ -155,13 +156,18 @@
       </div>
     </section>
 
-    <!-- Certifications marquee -->
-    <section id="certifications" class="cert-band surface-band no-reveal">
-      <div class="cert-band-inner">
-        <div class="cert-track">
-        <a class="cert" href="https://www.credential.net/0f4df6f1-112e-4e4e-8cb1-b97e7ecd3a3b" target="_blank" rel="noopener noreferrer">
-          <img src="img/cert_logos/purdue_global-24.png" srcset="img/cert_logos/purdue_global-48.png 2x" alt="Purdue University logo" loading="lazy" height="24"><span>Bachelor of Science – Data Analytics</span></a>
-        <span class="cert">
+	    <!-- Certifications marquee -->
+	    <section id="certifications" class="cert-band surface-band no-reveal" role="region" aria-labelledby="certifications-title">
+	      <div class="cert-band-inner">
+	        <div class="cert-head">
+	          <h2 id="certifications-title" class="section-title">Certifications &amp; Degrees</h2>
+	          <p class="cert-subtitle">Credentials and formal education supporting analytics and machine learning work.</p>
+	        </div>
+
+	        <div class="cert-track">
+	        <a class="cert" href="https://www.credential.net/0f4df6f1-112e-4e4e-8cb1-b97e7ecd3a3b" target="_blank" rel="noopener noreferrer">
+	          <img src="img/cert_logos/purdue_global-24.png" srcset="img/cert_logos/purdue_global-48.png 2x" alt="Purdue University logo" loading="lazy" height="24"><span>Bachelor of Science – Data Analytics</span></a>
+	        <span class="cert">
           <img src="img/cert_logos/eastern-24.png" srcset="img/cert_logos/eastern-48.png 2x" alt="Eastern University logo" loading="lazy" height="24"><span>Master of Science – Data Science</span></span>
         <a class="cert" href="https://www.coursera.org/account/accomplishments/specialization/certificate/CYUMPN7ZQRDA" target="_blank" rel="noopener noreferrer">
           <img src="img/cert_logos/ibm-24.png" srcset="img/cert_logos/ibm-48.png 2x" alt="IBM logo" loading="lazy" height="24"><span>IBM Data Analyst Certification</span></a>
@@ -169,12 +175,12 @@
           <img src="img/cert_logos/ibm-24.png" srcset="img/cert_logos/ibm-48.png 2x" alt="IBM logo" loading="lazy" height="24"><span>IBM Machine Learning Certification</span></a>
         <a class="cert" href="https://www.coursera.org/account/accomplishments/specialization/certificate/N6MNKYE4MKEP" target="_blank" rel="noopener noreferrer">
           <img src="img/cert_logos/google-24.png" srcset="img/cert_logos/google-48.png 2x" alt="Google logo" loading="lazy" height="24"><span>Google Data Analytics Certification</span></a>
-        <a class="cert" href="https://www.coursera.org/account/accomplishments/specialization/certificate/K47AGB33F8VS" target="_blank" rel="noopener noreferrer">
-          <img src="img/cert_logos/google-24.png" srcset="img/cert_logos/google-48.png 2x" alt="Google logo" loading="lazy" height="24"><span>Google Advanced Data Analytics Certification</span></a>
-        </div>
-        <button class="btn-secondary cert-modal-trigger" type="button" data-cert-modal-open>View all certifications</button>
-      </div>
-	    </section>
+	        <a class="cert" href="https://www.coursera.org/account/accomplishments/specialization/certificate/K47AGB33F8VS" target="_blank" rel="noopener noreferrer">
+	          <img src="img/cert_logos/google-24.png" srcset="img/cert_logos/google-48.png 2x" alt="Google logo" loading="lazy" height="24"><span>Google Advanced Data Analytics Certification</span></a>
+	        </div>
+	        <button class="btn-secondary cert-modal-trigger" type="button" data-cert-modal-open>View all certifications</button>
+	      </div>
+		    </section>
 	    <div id="certifications-modal" class="modal">
 	      <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="cert-modal-title" tabindex="0">
 	        <button class="modal-close" aria-label="Close dialog">&times;</button>
@@ -292,17 +298,15 @@
 	      <div class="wrapper">
 	        <div class="work-head">
 	          <h2 id="work-experience-title" class="section-title">Work Experience</h2>
-	          <p class="work-subtitle">Recent roles with measurable impact across tourism, data quality, and retail analytics.</p>
+	          <p class="work-subtitle">Recent roles with measurable impact across retail analytics, data quality, and destination management.</p>
 	        </div>
 
 	        <div class="work-grid" role="list" aria-label="Work experience">
 	          <article class="work-card" role="listitem">
-	            <div class="work-logo-shell">
-	              <img src="img/company_logos/target.png" alt="Target logo" width="5400" height="5400" loading="lazy" decoding="async">
-	            </div>
-	            <h3 class="work-company">
-	              <a href="https://www.target.com/" target="_blank" rel="noopener noreferrer">Target</a>
-	            </h3>
+	            <a class="work-logo-shell work-logo-link" href="https://www.target.com/" target="_blank" rel="noopener noreferrer" aria-label="Target website">
+	              <img src="img/company_logos/target.png" alt="" width="5400" height="5400" loading="lazy" decoding="async">
+	            </a>
+	            <h3 class="work-company">Target</h3>
 	            <p class="work-timeframe">June 2022 – November 2023</p>
 	            <p class="work-role">Asset Protection Data Analyst</p>
 	            <ul class="work-highlights">
@@ -313,12 +317,10 @@
 	          </article>
 
 	          <article class="work-card" role="listitem">
-	            <div class="work-logo-shell">
-	              <img src="img/company_logos/randall-reilly.png" alt="Randall Reilly logo" width="4701" height="1227" loading="lazy" decoding="async">
-	            </div>
-	            <h3 class="work-company">
-	              <a href="https://www.randallreilly.com/" target="_blank" rel="noopener noreferrer">Randall Reilly</a>
-	            </h3>
+	            <a class="work-logo-shell work-logo-link" href="https://www.randallreilly.com/" target="_blank" rel="noopener noreferrer" aria-label="Randall Reilly website">
+	              <img src="img/company_logos/randall-reilly.png" alt="" width="4701" height="1227" loading="lazy" decoding="async">
+	            </a>
+	            <h3 class="work-company">Randall Reilly</h3>
 	            <p class="work-timeframe">November 2023 – January 2024</p>
 	            <p class="work-role">AI Data Quality Analyst</p>
 	            <ul class="work-highlights">
@@ -329,12 +331,10 @@
 	          </article>
 
 	          <article class="work-card" role="listitem">
-	            <div class="work-logo-shell">
-	              <img src="img/company_logos/visit-grand-junction.png" alt="Visit Grand Junction logo" width="344" height="164" loading="lazy" decoding="async">
-	            </div>
-	            <h3 class="work-company">
-	              <a href="https://www.visitgrandjunction.com/" target="_blank" rel="noopener noreferrer">Visit Grand Junction</a>
-	            </h3>
+	            <a class="work-logo-shell work-logo-link" href="https://www.visitgrandjunction.com/" target="_blank" rel="noopener noreferrer" aria-label="Visit Grand Junction website">
+	              <img src="img/company_logos/visit-grand-junction.png" alt="" width="344" height="164" loading="lazy" decoding="async">
+	            </a>
+	            <h3 class="work-company">Visit Grand Junction</h3>
 	            <p class="work-timeframe">February 2024 – Present</p>
 	            <p class="work-role">Business Analyst</p>
 	            <ul class="work-highlights">
