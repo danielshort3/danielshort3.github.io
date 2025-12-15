@@ -134,6 +134,47 @@
 
   .hero-cta{min-width:0;}
 
+  .hero-jump{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top:-.25rem;
+    opacity:0;
+    animation:heroFade 1s .95s forwards;
+  }
+
+  .hero-jump-label{
+    font-size:.78rem;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:color-mix(in srgb,var(--text-muted) 88%, #fff 12%);
+  }
+
+  .hero-jump-link{
+    padding:8px 14px;
+    border-radius:999px;
+    border:1px solid color-mix(in srgb,var(--primary) 28%, transparent);
+    background:color-mix(in srgb,var(--surface) 84%, #000 16%);
+    color:color-mix(in srgb,var(--text-light) 88%, #fff 12%);
+    font-size:.86rem;
+    line-height:1.1;
+    transition:transform .2s ease, background .2s ease, border-color .2s ease, color .2s ease;
+  }
+
+  .hero-jump-link:hover{
+    transform:translateY(-1px);
+    background:color-mix(in srgb,var(--primary) 18%, transparent);
+    border-color:color-mix(in srgb,var(--primary) 55%, transparent);
+    color:color-mix(in srgb,#ffffff 92%, var(--bg) 8%);
+  }
+
+  .hero-jump-link:focus-visible{
+    outline:3px solid color-mix(in srgb,var(--primary) 60%, #ffffff 40%);
+    outline-offset:3px;
+  }
+
   .hero-kpis{
     --kpi-gap:clamp(1rem,2vw,1.4rem);
     --kpi-inline-pad:clamp(1.25rem,1.9vw,1.7rem);
@@ -395,6 +436,13 @@
       width:100%;
       justify-content:center;
     }
+    .hero-jump{
+      width:100%;
+    }
+    .hero-jump-label{
+      width:100%;
+      margin-bottom:2px;
+    }
 		    .hero-kpi{
 		      width:100%;
 		      max-width:100%;
@@ -410,6 +458,7 @@
     .hero-tagline,
     .hero-status,
     .cta-group,
+    .hero-jump,
     .hero-kpis,
     .hero-kpi{
       animation:none !important;
