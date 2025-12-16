@@ -3,7 +3,6 @@
   body[data-page="home"] .jump-panel{
     --jump-collapsed:56px;
     --jump-expanded:156px;
-    --jump-gap:0px;
 
     position:fixed;
     right:16px;
@@ -27,13 +26,13 @@
     backdrop-filter:blur(10px);
     overflow:hidden;
 
-    transition:width .2s ease, background .2s ease, border-color .2s ease;
+    transition:width .24s cubic-bezier(.2,.9,.2,1), background .2s ease, border-color .2s ease;
+    will-change:width;
   }
 
   body[data-page="home"] .jump-panel:hover,
   body[data-page="home"] .jump-panel:focus-within{
     width:var(--jump-expanded);
-    --jump-gap:6px;
     border-color:color-mix(in srgb,var(--primary) 32%, transparent);
     background:linear-gradient(160deg,
       color-mix(in srgb,var(--surface) 96%, #000 4%) 0%,
@@ -44,8 +43,8 @@
     box-sizing:border-box;
     display:flex;
     align-items:center;
-    justify-content:center;
-    gap:var(--jump-gap);
+    justify-content:flex-start;
+    gap:8px;
     padding:10px 6px;
     min-height:44px;
     border-radius:14px;
@@ -53,11 +52,6 @@
     color:color-mix(in srgb,var(--text-light) 88%, #ffffff 12%);
     text-decoration:none;
     transition:background .2s ease, color .2s ease, transform .2s ease, border-color .2s ease;
-  }
-
-  body[data-page="home"] .jump-panel:hover .jump-panel-link,
-  body[data-page="home"] .jump-panel:focus-within .jump-panel-link{
-    justify-content:flex-end;
   }
 
   body[data-page="home"] .jump-panel-link:hover{
@@ -87,7 +81,7 @@
     overflow:hidden;
     white-space:nowrap;
     transform:translateX(6px);
-    transition:max-width .2s ease, opacity .2s ease, transform .2s ease;
+    transition:max-width .24s cubic-bezier(.2,.9,.2,1), opacity .18s ease, transform .24s cubic-bezier(.2,.9,.2,1);
 
     font-size:.86rem;
     letter-spacing:.01em;
@@ -148,6 +142,7 @@
   }
 
   @media (prefers-reduced-motion: reduce){
+    body[data-page="home"] .jump-panel,
     body[data-page="home"] .jump-panel-link,
     body[data-page="home"] .jump-panel-text{
       transition:none !important;
