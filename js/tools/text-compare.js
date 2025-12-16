@@ -271,11 +271,11 @@
   const escapeHtmlWithBreaks = (text) => escapeHtml(text).replace(/\r\n|\r|\n/g, '<br>');
 
   const getCopyStyle = () => ({
-    insBg: insBgEl?.value || '#C6EFCE',
+    insBg: insBgEl?.value || '#00FF00',
     insColor: insTextEl?.value || '#000000',
-    delBg: delBgEl?.value || '#FFC7CE',
+    delBg: delBgEl?.value || '#FF0000',
     delColor: delTextEl?.value || '#000000',
-    delStrike: delStrikeEl?.value || '#9C0006'
+    delStrike: delStrikeEl?.value || '#000000'
   });
 
   const normalizeHexColor = (value, fallback) => {
@@ -286,11 +286,11 @@
 
   const applyPreviewStyle = () => {
     const style = getCopyStyle();
-    document.body.style.setProperty('--textcompare-ins-bg', normalizeHexColor(style.insBg, '#C6EFCE'));
+    document.body.style.setProperty('--textcompare-ins-bg', normalizeHexColor(style.insBg, '#00FF00'));
     document.body.style.setProperty('--textcompare-ins-text', normalizeHexColor(style.insColor, '#000000'));
-    document.body.style.setProperty('--textcompare-del-bg', normalizeHexColor(style.delBg, '#FFC7CE'));
+    document.body.style.setProperty('--textcompare-del-bg', normalizeHexColor(style.delBg, '#FF0000'));
     document.body.style.setProperty('--textcompare-del-text', normalizeHexColor(style.delColor, '#000000'));
-    document.body.style.setProperty('--textcompare-del-strike', normalizeHexColor(style.delStrike, '#9C0006'));
+    document.body.style.setProperty('--textcompare-del-strike', normalizeHexColor(style.delStrike, '#000000'));
   };
 
   const hexToRgb = (hex) => {
@@ -329,11 +329,11 @@
   };
 
   const buildClipboardFragment = (runs, style) => {
-    const insBg = normalizeHexColor(style.insBg, '#C6EFCE');
+    const insBg = normalizeHexColor(style.insBg, '#00FF00');
     const insColor = normalizeHexColor(style.insColor, '#000000');
-    const delBg = normalizeHexColor(style.delBg, '#FFC7CE');
+    const delBg = normalizeHexColor(style.delBg, '#FF0000');
     const delColor = normalizeHexColor(style.delColor, '#000000');
-    const delStrike = normalizeHexColor(style.delStrike, '#9C0006');
+    const delStrike = normalizeHexColor(style.delStrike, '#000000');
 
     const insStyle = `background:${insBg};background-color:${insBg};color:${insColor};mso-highlight:${insBg};`;
     const delWrapStyle = `background:${delBg};background-color:${delBg};mso-highlight:${delBg};`;
@@ -368,9 +368,9 @@
   };
 
   const buildClipboardRtf = (runs, style) => {
-    const insBg = normalizeHexColor(style.insBg, '#C6EFCE');
+    const insBg = normalizeHexColor(style.insBg, '#00FF00');
     const insColor = normalizeHexColor(style.insColor, '#000000');
-    const delBg = normalizeHexColor(style.delBg, '#FFC7CE');
+    const delBg = normalizeHexColor(style.delBg, '#FF0000');
     const delColor = normalizeHexColor(style.delColor, '#000000');
 
     const insBgRgb = hexToRgb(insBg);
