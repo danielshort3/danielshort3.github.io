@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <base href="/">
+  <title>Text Compare | Daniel Short</title>
+  <link rel="canonical" href="https://danielshort.me/tools/text-compare">
+  <meta name="description" content="Compare two versions of text and see insertions, deletions, and replacements inline. Runs locally in your browser.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta property="og:title" content="Text Compare | Daniel Short">
+  <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
+  <meta property="og:description" content="Paste an original and revised draft to see insertions, deletions, and replacements highlighted inline.">
+  <meta property="og:url" content="https://danielshort.me/tools/text-compare">
+  <meta property="og:image" content="https://danielshort.me/img/hero/head.jpg">
+  <meta property="og:image:alt" content="Portrait photo of Daniel Short">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@danielshort3">
+  <meta name="theme-color" content="#0D1117">
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
+  <link rel="preload" as="image" href="img/ui/logo-64.png" imagesrcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" imagesizes="64px" fetchpriority="high">
+  <link rel="preload" as="font" href="css/fonts/Inter-Latin.woff2" type="font/woff2" crossorigin>
+  <link rel="preload" as="font" href="css/fonts/Poppins-500-Latin.woff2" type="font/woff2" crossorigin>
+  <link rel="preload" as="font" href="css/fonts/Poppins-600-Latin.woff2" type="font/woff2" crossorigin>
+  <script>
+    try {
+      if (document.documentElement.classList) {
+        document.documentElement.classList.remove("no-js");
+      } else {
+        document.documentElement.className = (document.documentElement.className || "").replace(/\bno-js\b/, "").trim();
+      }
+    } catch (_) {}
+  </script>
+</head>
+<body data-page="text-compare" class="text-compare-page">
+  <a href="#main" class="skip-link">Skip to main content</a>
+  <header id="combined-header-nav"></header>
+
+  <section class="textcompare-top-panel">
+    <div class="wrapper textcompare-top-inner">
+      <p class="hero-eyebrow">Labs</p>
+      <h1>Text Compare</h1>
+      <p class="textcompare-top-lead">Paste an original and revised draft to see insertions, deletions, and replacements highlighted inline. Everything runs locally in your browser.</p>
+      <div class="textcompare-legend" aria-label="Change legend">
+        <span class="textcompare-legend-item"><span class="diff-pill diff-pill-ins">Inserted</span></span>
+        <span class="textcompare-legend-item"><span class="diff-pill diff-pill-del">Deleted</span></span>
+        <span class="textcompare-legend-item"><span class="diff-pill diff-pill-rep">Replaced</span></span>
+      </div>
+    </div>
+  </section>
+
+  <main id="main">
+    <section class="surface-band textcompare-section">
+      <div class="wrapper">
+        <div class="textcompare-card textcompare-input-card">
+          <h2>Compare drafts</h2>
+          <p class="textcompare-subtitle">Use plain text (no formatting). Newlines and punctuation are preserved in the output.</p>
+          <form id="textcompare-form" class="textcompare-form" novalidate>
+            <div class="textcompare-grid">
+              <div class="textcompare-field">
+                <label class="textcompare-label" for="textcompare-original">Original</label>
+                <textarea id="textcompare-original" class="textcompare-textarea" name="original" placeholder="Paste the original version here..." spellcheck="false"></textarea>
+              </div>
+              <div class="textcompare-field">
+                <label class="textcompare-label" for="textcompare-revised">Revised</label>
+                <textarea id="textcompare-revised" class="textcompare-textarea" name="revised" placeholder="Paste the revised version here..." spellcheck="false"></textarea>
+              </div>
+            </div>
+            <div class="textcompare-controls">
+              <div class="textcompare-actions">
+                <button type="submit" class="btn-primary">Compare</button>
+                <button type="button" id="textcompare-swap" class="btn-secondary">Swap</button>
+                <button type="button" id="textcompare-clear" class="btn-ghost">Clear</button>
+              </div>
+              <p class="textcompare-note">Processing happens locally in your browser, with no uploads and no tracking.</p>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section class="surface-band textcompare-section">
+      <div class="wrapper">
+        <div class="textcompare-card textcompare-results-card" aria-live="polite">
+          <div class="textcompare-results-header">
+            <h2>Comparison</h2>
+            <p id="textcompare-summary" class="textcompare-summary">Paste text above and click Compare.</p>
+          </div>
+          <div id="textcompare-output" class="textcompare-output" role="region" aria-label="Inline comparison output">
+            <p class="textcompare-empty">Waiting for input.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <nav class="privacy-links" aria-label="Privacy shortcuts">
+      <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
+      <a href="#" class="pcz-link" onclick="window.Privacy && window.Privacy.open('doNotSell'); return false;">Do Not Sell/Share My Personal Information</a>
+    </nav>
+  </footer>
+
+  <script defer src="js/tools/text-compare.js"></script>
+  <script defer src="js/common/common.js"></script>
+  <script defer src="js/navigation/navigation.js"></script>
+  <script defer src="js/animations/animations.js"></script>
+  <script src="js/privacy/config.js"></script>
+  <script defer src="js/privacy/consent_manager.js"></script>
+</body>
+</html>
