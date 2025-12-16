@@ -109,6 +109,7 @@
   }
 
   .textcompare-textarea{
+    box-sizing:border-box;
     width:100%;
     min-height:280px;
     border-radius:16px;
