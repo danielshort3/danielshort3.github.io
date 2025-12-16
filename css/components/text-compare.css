@@ -7,11 +7,11 @@
   }
 
   body[data-page="text-compare"]{
-    --textcompare-ins-bg:#C6EFCE;
+    --textcompare-ins-bg:#00FF00;
     --textcompare-ins-text:#000000;
-    --textcompare-del-bg:#FFC7CE;
+    --textcompare-del-bg:#FF0000;
     --textcompare-del-text:#000000;
-    --textcompare-del-strike:#9C0006;
+    --textcompare-del-strike:#000000;
   }
 
   .textcompare-top-panel{
