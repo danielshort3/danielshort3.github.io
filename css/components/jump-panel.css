@@ -3,7 +3,6 @@
   body[data-page="home"] .jump-panel{
     --jump-collapsed:56px;
     --jump-expanded:156px;
-    --jump-dot-shift:11px;
 
     position:fixed;
     right:16px;
@@ -34,7 +33,6 @@
   body[data-page="home"] .jump-panel:hover,
   body[data-page="home"] .jump-panel:focus-within{
     width:var(--jump-expanded);
-    --jump-dot-shift:0px;
     border-color:color-mix(in srgb,var(--primary) 32%, transparent);
     background:linear-gradient(160deg,
       color-mix(in srgb,var(--surface) 96%, #000 4%) 0%,
@@ -45,15 +43,21 @@
     box-sizing:border-box;
     display:flex;
     align-items:center;
-    justify-content:flex-start;
-    gap:8px;
+    justify-content:center;
+    gap:0;
     padding:10px 6px;
     min-height:44px;
     border-radius:14px;
     border:1px solid transparent;
     color:color-mix(in srgb,var(--text-light) 88%, #ffffff 12%);
     text-decoration:none;
-    transition:background .2s ease, color .2s ease, transform .2s ease, border-color .2s ease;
+    transition:background .2s ease, color .2s ease, transform .2s ease, border-color .2s ease, gap .24s cubic-bezier(.2,.9,.2,1);
+  }
+
+  body[data-page="home"] .jump-panel:hover .jump-panel-link,
+  body[data-page="home"] .jump-panel:focus-within .jump-panel-link{
+    justify-content:flex-start;
+    gap:8px;
   }
 
   body[data-page="home"] .jump-panel-link:hover{
@@ -75,12 +79,11 @@
     background:color-mix(in srgb,var(--primary) 38%, transparent);
     border:2px solid color-mix(in srgb,var(--primary) 62%, transparent);
     flex-shrink:0;
-    transform:translateX(var(--jump-dot-shift));
-    transition:transform .24s cubic-bezier(.2,.9,.2,1);
   }
 
   body[data-page="home"] .jump-panel-text{
     max-width:0;
+    min-width:0;
     opacity:0;
     overflow:hidden;
     white-space:nowrap;
