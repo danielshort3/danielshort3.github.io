@@ -209,6 +209,16 @@
     return prefix + suffix;
   };
 
+  const splitWhitespace = (text) => {
+    const s = String(text || '');
+    if (!s) return { leading: '', core: '', trailing: '' };
+    if (/^\s+$/.test(s)) return { leading: s, core: '', trailing: '' };
+    const leading = (s.match(/^\s+/) || [''])[0];
+    const trailing = (s.match(/\s+$/) || [''])[0];
+    const core = s.slice(leading.length, s.length - trailing.length);
+    return { leading, core, trailing };
+  };
+
   const renderCharDiff = (delCore, insCore, kind) => {
     const edits = myersEdits(Array.from(delCore), Array.from(insCore));
     const segments = mergeEdits(edits);
@@ -221,26 +231,25 @@
   };
 
   const renderReplace = (delText, insText) => {
-    const delTrim = String(delText || '').trim();
-    const insTrim = String(insText || '').trim();
+    const delParts = splitWhitespace(delText);
+    const insParts = splitWhitespace(insText);
+    const leading = insParts.leading;
+    const trailing = insParts.trailing;
+    const delCoreText = delParts.core;
+    const insCoreText = insParts.core;
+    const delTrim = delCoreText.trim();
+    const insTrim = insCoreText.trim();
     const singleToken = delTrim && insTrim && !/\s/.test(delTrim) && !/\s/.test(insTrim);
     const smallEnough = delTrim.length <= 42 && insTrim.length <= 42;
     const similarEnough = sharedEdgeScore(delTrim, insTrim) >= 2;
 
     if (!singleToken || !smallEnough || !similarEnough) {
-      return `<del class="diff-del">${escapeHtml(delText)}</del><ins class="diff-ins">${escapeHtml(insText)}</ins>`;
+      return `${escapeHtml(leading)}<del class="diff-del">${escapeHtml(delCoreText)}</del><ins class="diff-ins">${escapeHtml(insCoreText)}</ins>${escapeHtml(trailing)}`;
     }
 
-    const delLeading = (String(delText || '').match(/^\s+/) || [''])[0];
-    const delTrailing = (String(delText || '').match(/\s+$/) || [''])[0];
-    const insLeading = (String(insText || '').match(/^\s+/) || [''])[0];
-    const insTrailing = (String(insText || '').match(/\s+$/) || [''])[0];
-    const delCore = String(delText || '').slice(delLeading.length, String(delText || '').length - delTrailing.length);
-    const insCore = String(insText || '').slice(insLeading.length, String(insText || '').length - insTrailing.length);
-
-    const delInner = `${escapeHtml(delLeading)}${renderCharDiff(delCore, insCore, 'del')}${escapeHtml(delTrailing)}`;
-    const insInner = `${escapeHtml(insLeading)}${renderCharDiff(delCore, insCore, 'ins')}${escapeHtml(insTrailing)}`;
-    return `<del class="diff-del">${delInner}</del><ins class="diff-ins">${insInner}</ins>`;
+    const delInner = renderCharDiff(delCoreText, insCoreText, 'del');
+    const insInner = renderCharDiff(delCoreText, insCoreText, 'ins');
+    return `${escapeHtml(leading)}<del class="diff-del">${delInner}</del><ins class="diff-ins">${insInner}</ins>${escapeHtml(trailing)}`;
   };
 
   const renderOutput = (runs) => runs.map((run) => {
@@ -327,7 +336,11 @@
       if (run.type === 'replace') {
         const delText = run.delTokens.join('');
         const insText = run.insTokens.join('');
-        return `<span style="${delWrapStyle}"><s style="${delInnerStyle}">${escapeHtmlWithBreaks(delText)}</s></span><span style="${insStyle}">${escapeHtmlWithBreaks(insText)}</span>`;
+        const delParts = splitWhitespace(delText);
+        const insParts = splitWhitespace(insText);
+        const leading = insParts.leading;
+        const trailing = insParts.trailing;
+        return `${escapeHtmlWithBreaks(leading)}<span style="${delWrapStyle}"><s style="${delInnerStyle}">${escapeHtmlWithBreaks(delParts.core)}</s></span><span style="${insStyle}">${escapeHtmlWithBreaks(insParts.core)}</span>${escapeHtmlWithBreaks(trailing)}`;
       }
       return '';
     }).join('');
@@ -376,7 +389,11 @@
       if (run.type === 'replace') {
         const delText = run.delTokens.join('');
         const insText = run.insTokens.join('');
-        return `${deletePrefix}${escapeRtf(delText)}${normalPrefix}${insertPrefix}${escapeRtf(insText)}${normalPrefix}`;
+        const delParts = splitWhitespace(delText);
+        const insParts = splitWhitespace(insText);
+        const leading = insParts.leading;
+        const trailing = insParts.trailing;
+        return `${escapeRtf(leading)}${deletePrefix}${escapeRtf(delParts.core)}${normalPrefix}${insertPrefix}${escapeRtf(insParts.core)}${normalPrefix}${escapeRtf(trailing)}`;
       }
       return '';
     }).join('');
