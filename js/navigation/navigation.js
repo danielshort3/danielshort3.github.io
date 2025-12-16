@@ -242,14 +242,13 @@
         </div>
       </div>
     `;
-    const dropdownIds = {
-      portfolio: 'nav-dropdown-portfolio',
-      contributions: 'nav-dropdown-contributions',
-      resume: 'nav-dropdown-resume',
-      contact: 'nav-dropdown-contact'
-    };
-    host.innerHTML=`
-      <nav class="nav ${animate?'animate-entry':''}" aria-label="Primary">
+	    const dropdownIds = {
+	      portfolio: 'nav-dropdown-portfolio',
+	      resume: 'nav-dropdown-resume',
+	      contact: 'nav-dropdown-contact'
+	    };
+	    host.innerHTML=`
+	      <nav class="nav ${animate?'animate-entry':''}" aria-label="Primary">
         <div class="wrapper nav-wrapper">
           <a href="index.html" class="brand" aria-label="Home">
             <img src="img/ui/logo-64.png" srcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" sizes="64px" alt="DS logo" class="brand-logo" decoding="async" loading="eager" width="64" height="64">
@@ -265,25 +264,22 @@
           <button id="nav-toggle" class="burger" aria-label="Toggle navigation" aria-expanded="false" aria-controls="primary-menu">
             <span class="bar"></span><span class="bar"></span><span class="bar"></span>
           </button>
-          <div id="primary-menu" class="nav-row" data-collapsible role="navigation">
-            <a href="index.html" class="nav-link">Home</a>
-            <div class="nav-item nav-item-portfolio">
-              <a href="portfolio.html" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="${dropdownIds.portfolio}">
-                Portfolio
-                <span class="nav-link-caret" aria-hidden="true"></span>
-              </a>
-              <div class="nav-dropdown" id="${dropdownIds.portfolio}" aria-label="Highlighted projects">
-                ${portfolioMenu}
-              </div>
-            </div>
-            <div class="nav-item nav-item-contributions">
-              <a href="contributions.html" class="nav-link">Contributions</a>
-            </div>
-            <div class="nav-item nav-item-resume">
-              <a href="resume.html" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="${dropdownIds.resume}">
-                Resume
-                <span class="nav-link-caret" aria-hidden="true"></span>
-              </a>
+	          <div id="primary-menu" class="nav-row" data-collapsible role="navigation">
+	            <a href="index.html" class="nav-link">Home</a>
+	            <div class="nav-item nav-item-portfolio">
+	              <a href="portfolio.html" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="${dropdownIds.portfolio}">
+	                Portfolio
+	                <span class="nav-link-caret" aria-hidden="true"></span>
+	              </a>
+	              <div class="nav-dropdown" id="${dropdownIds.portfolio}" aria-label="Highlighted projects">
+	                ${portfolioMenu}
+	              </div>
+	            </div>
+	            <div class="nav-item nav-item-resume">
+	              <a href="resume.html" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="${dropdownIds.resume}">
+	                Resume
+	                <span class="nav-link-caret" aria-hidden="true"></span>
+	              </a>
               <div class="nav-dropdown" id="${dropdownIds.resume}" aria-label="Resume download">
                 ${resumeMenu}
               </div>
