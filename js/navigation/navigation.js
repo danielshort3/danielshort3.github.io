@@ -277,13 +277,7 @@
               </div>
             </div>
             <div class="nav-item nav-item-contributions">
-              <a href="contributions.html" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="${dropdownIds.contributions}">
-                Contributions
-                <span class="nav-link-caret" aria-hidden="true"></span>
-              </a>
-              <div class="nav-dropdown" id="${dropdownIds.contributions}" aria-label="Contributions categories">
-                ${contributionsMenu}
-              </div>
+              <a href="contributions.html" class="nav-link">Contributions</a>
             </div>
             <div class="nav-item nav-item-resume">
               <a href="resume.html" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="${dropdownIds.resume}">
@@ -349,7 +343,6 @@
     const menu   = host.querySelector('#primary-menu');
     setupMiniContactForm();
     setupDropdown(host.querySelector('.nav-item-portfolio'));
-    setupDropdown(host.querySelector('.nav-item-contributions'));
     setupDropdown(host.querySelector('.nav-item-resume'));
     setupDropdown(host.querySelector('.nav-item-contact'));
     setupPortfolioPreview(host.querySelector('.nav-item-portfolio'));
