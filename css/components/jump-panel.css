@@ -3,6 +3,7 @@
   body[data-page="home"] .jump-panel{
     --jump-collapsed:56px;
     --jump-expanded:156px;
+    --jump-dot-shift:11px;
 
     position:fixed;
     right:16px;
@@ -33,6 +34,7 @@
   body[data-page="home"] .jump-panel:hover,
   body[data-page="home"] .jump-panel:focus-within{
     width:var(--jump-expanded);
+    --jump-dot-shift:0px;
     border-color:color-mix(in srgb,var(--primary) 32%, transparent);
     background:linear-gradient(160deg,
       color-mix(in srgb,var(--surface) 96%, #000 4%) 0%,
@@ -73,6 +75,8 @@
     background:color-mix(in srgb,var(--primary) 38%, transparent);
     border:2px solid color-mix(in srgb,var(--primary) 62%, transparent);
     flex-shrink:0;
+    transform:translateX(var(--jump-dot-shift));
+    transition:transform .24s cubic-bezier(.2,.9,.2,1);
   }
 
   body[data-page="home"] .jump-panel-text{
@@ -144,6 +148,7 @@
   @media (prefers-reduced-motion: reduce){
     body[data-page="home"] .jump-panel,
     body[data-page="home"] .jump-panel-link,
+    body[data-page="home"] .jump-panel-dot,
     body[data-page="home"] .jump-panel-text{
       transition:none !important;
       transform:none !important;
