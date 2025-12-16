@@ -269,17 +269,65 @@
     delStrike: delStrikeEl?.value || '#9C0006'
   });
 
+  const normalizeHexColor = (value, fallback) => {
+    const s = String(value || '').trim();
+    if (/^#[0-9a-f]{6}$/i.test(s)) return s.toUpperCase();
+    return fallback;
+  };
+
+  const hexToRgb = (hex) => {
+    const h = String(hex || '').replace('#', '');
+    const r = parseInt(h.slice(0, 2), 16) || 0;
+    const g = parseInt(h.slice(2, 4), 16) || 0;
+    const b = parseInt(h.slice(4, 6), 16) || 0;
+    return { r, g, b };
+  };
+
+  const escapeRtf = (text) => {
+    const s = String(text || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    let out = '';
+    for (let i = 0; i < s.length; i += 1) {
+      const code = s.codePointAt(i);
+      const ch = String.fromCodePoint(code);
+      if (code > 0xFFFF) i += 1;
+      if (ch === '\\') out += '\\\\';
+      else if (ch === '{') out += '\\{';
+      else if (ch === '}') out += '\\}';
+      else if (ch === '\n') out += '\\line\n';
+      else if (code <= 0x7F) out += ch;
+      else if (code <= 0xFFFF) {
+        const signed = code > 0x7FFF ? code - 0x10000 : code;
+        out += `\\u${signed}?`;
+      } else {
+        const cp = code - 0x10000;
+        const hi = 0xD800 + (cp >> 10);
+        const lo = 0xDC00 + (cp & 0x3FF);
+        const hiSigned = hi > 0x7FFF ? hi - 0x10000 : hi;
+        const loSigned = lo > 0x7FFF ? lo - 0x10000 : lo;
+        out += `\\u${hiSigned}?\\u${loSigned}?`;
+      }
+    }
+    return out;
+  };
+
   const buildClipboardFragment = (runs, style) => {
-    const insStyle = `background-color:${style.insBg};color:${style.insColor};`;
-    const delStyle = `background-color:${style.delBg};color:${style.delColor};text-decoration:line-through;text-decoration-color:${style.delStrike};`;
+    const insBg = normalizeHexColor(style.insBg, '#C6EFCE');
+    const insColor = normalizeHexColor(style.insColor, '#000000');
+    const delBg = normalizeHexColor(style.delBg, '#FFC7CE');
+    const delColor = normalizeHexColor(style.delColor, '#000000');
+    const delStrike = normalizeHexColor(style.delStrike, '#9C0006');
+
+    const insStyle = `background:${insBg};background-color:${insBg};color:${insColor};mso-highlight:${insBg};`;
+    const delWrapStyle = `background:${delBg};background-color:${delBg};mso-highlight:${delBg};`;
+    const delInnerStyle = `color:${delColor};text-decoration:line-through;text-decoration-color:${delStrike};mso-text-decoration:line-through;`;
     return runs.map((run) => {
       if (run.type === 'equal') return escapeHtmlWithBreaks(run.tokens.join(''));
       if (run.type === 'insert') return `<span style="${insStyle}">${escapeHtmlWithBreaks(run.tokens.join(''))}</span>`;
-      if (run.type === 'delete') return `<span style="${delStyle}">${escapeHtmlWithBreaks(run.tokens.join(''))}</span>`;
+      if (run.type === 'delete') return `<span style="${delWrapStyle}"><s style="${delInnerStyle}">${escapeHtmlWithBreaks(run.tokens.join(''))}</s></span>`;
       if (run.type === 'replace') {
         const delText = run.delTokens.join('');
         const insText = run.insTokens.join('');
-        return `<span style="${delStyle}">${escapeHtmlWithBreaks(delText)}</span><span style="${insStyle}">${escapeHtmlWithBreaks(insText)}</span>`;
+        return `<span style="${delWrapStyle}"><s style="${delInnerStyle}">${escapeHtmlWithBreaks(delText)}</s></span><span style="${insStyle}">${escapeHtmlWithBreaks(insText)}</span>`;
       }
       return '';
     }).join('');
@@ -294,7 +342,46 @@
       'color:#000',
       'background:#fff'
     ].join(';');
-    return `<!doctype html><html><head><meta charset="utf-8"></head><body><div style="${bodyStyle}">${fragment}</div></body></html>`;
+    return `<!doctype html><html><head><meta charset="utf-8"></head><body><div style="${bodyStyle}"><!--StartFragment-->${fragment}<!--EndFragment--></div></body></html>`;
+  };
+
+  const buildClipboardRtf = (runs, style) => {
+    const insBg = normalizeHexColor(style.insBg, '#C6EFCE');
+    const insColor = normalizeHexColor(style.insColor, '#000000');
+    const delBg = normalizeHexColor(style.delBg, '#FFC7CE');
+    const delColor = normalizeHexColor(style.delColor, '#000000');
+
+    const insBgRgb = hexToRgb(insBg);
+    const insColorRgb = hexToRgb(insColor);
+    const delBgRgb = hexToRgb(delBg);
+    const delColorRgb = hexToRgb(delColor);
+
+    const colors = [
+      { r: 0, g: 0, b: 0 }, // index 1: black (fallback)
+      insBgRgb,            // index 2: inserted highlight
+      insColorRgb,         // index 3: inserted text color
+      delBgRgb,            // index 4: deleted highlight
+      delColorRgb          // index 5: deleted text color
+    ];
+    const colorTable = `{\n\\colortbl ;${colors.map(c => `\\red${c.r}\\green${c.g}\\blue${c.b};`).join('')}\n}\n`;
+
+    const normalPrefix = '\\highlight0\\cf1\\strike0 ';
+    const insertPrefix = '\\highlight2\\cf3\\strike0 ';
+    const deletePrefix = '\\highlight4\\cf5\\strike ';
+
+    const body = runs.map((run) => {
+      if (run.type === 'equal') return escapeRtf(run.tokens.join(''));
+      if (run.type === 'insert') return `${insertPrefix}${escapeRtf(run.tokens.join(''))}${normalPrefix}`;
+      if (run.type === 'delete') return `${deletePrefix}${escapeRtf(run.tokens.join(''))}${normalPrefix}`;
+      if (run.type === 'replace') {
+        const delText = run.delTokens.join('');
+        const insText = run.insTokens.join('');
+        return `${deletePrefix}${escapeRtf(delText)}${normalPrefix}${insertPrefix}${escapeRtf(insText)}${normalPrefix}`;
+      }
+      return '';
+    }).join('');
+
+    return `{\\rtf1\\ansi\\deff0\n{\\fonttbl{\\f0 Calibri;}}\n${colorTable}\\viewkind4\\uc1\\pard\\f0\\fs22 ${normalPrefix}${body}\\par\n}`;
   };
 
   const copyFormatted = async () => {
@@ -306,15 +393,17 @@
     setCopyStatus('Copying…');
     const style = getCopyStyle();
     const html = buildClipboardHtml(lastRuns, style);
+    const rtf = buildClipboardRtf(lastRuns, style);
 
     try {
       if (navigator.clipboard && window.ClipboardItem) {
         const item = new ClipboardItem({
           'text/html': new Blob([html], { type: 'text/html' }),
-          'text/plain': new Blob([lastRevisedText || ''], { type: 'text/plain' })
+          'text/plain': new Blob([lastRevisedText || ''], { type: 'text/plain' }),
+          'text/rtf': new Blob([rtf], { type: 'text/rtf' })
         });
         await navigator.clipboard.write([item]);
-        setCopyStatus('Copied with formatting.', 'success');
+        setCopyStatus('Copied with formatting (Outlook-friendly).', 'success');
         return;
       }
     } catch {
@@ -347,8 +436,21 @@
 
   const runCompare = () => {
     setCopyStatus('');
-    const original = originalEl.value || '';
-    const revised = revisedEl.value || '';
+    const originalInput = originalEl.value || '';
+    const revisedInput = revisedEl.value || '';
+    const originalHasUser = Boolean(originalInput.trim());
+    const revisedHasUser = Boolean(revisedInput.trim());
+    const original = (!originalHasUser && !revisedHasUser) ? (originalEl.placeholder || '') : originalInput;
+    const revised = (!originalHasUser && !revisedHasUser) ? (revisedEl.placeholder || '') : revisedInput;
+
+    if ((!originalHasUser && revisedHasUser) || (originalHasUser && !revisedHasUser)) {
+      summaryEl.textContent = 'Paste both versions to compare.';
+      setEmpty('Paste text in both boxes, then click Compare.');
+      lastRuns = null;
+      lastRevisedText = '';
+      return;
+    }
+
     if (!original.trim() && !revised.trim()) {
       summaryEl.textContent = 'Paste text above and click Compare.';
       setEmpty('Waiting for input.');
