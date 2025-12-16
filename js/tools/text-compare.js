@@ -9,11 +9,20 @@
   const summaryEl = $('#textcompare-summary');
   const clearBtn = $('#textcompare-clear');
   const swapBtn = $('#textcompare-swap');
+  const copyBtn = $('#textcompare-copy');
+  const copyStatus = $('#textcompare-copy-status');
+  const insBgEl = $('#textcompare-ins-bg');
+  const insTextEl = $('#textcompare-ins-text');
+  const delBgEl = $('#textcompare-del-bg');
+  const delTextEl = $('#textcompare-del-text');
+  const delStrikeEl = $('#textcompare-del-strike');
 
   if (!form || !originalEl || !revisedEl || !outputEl || !summaryEl) return;
 
   const MAX_CHARS = 200_000;
   const MAX_TOKENS = 20_000;
+  let lastRuns = null;
+  let lastRevisedText = '';
 
   const escapeHtml = (s) => String(s || '')
     .replace(/&/g, '&amp;')
@@ -22,6 +31,12 @@
     .replace(/"/g, '&quot;');
 
   const countWords = (s) => (String(s || '').match(/\S+/g) || []).length;
+
+  const setCopyStatus = (msg, tone) => {
+    if (!copyStatus) return;
+    copyStatus.textContent = msg;
+    copyStatus.dataset.tone = tone || '';
+  };
 
   const tokenize = (text) => {
     const s = String(text || '');
@@ -244,18 +259,109 @@
     outputEl.innerHTML = `<p class="textcompare-empty">${escapeHtml(msg)}</p>`;
   };
 
+  const escapeHtmlWithBreaks = (text) => escapeHtml(text).replace(/\r\n|\r|\n/g, '<br>');
+
+  const getCopyStyle = () => ({
+    insBg: insBgEl?.value || '#C6EFCE',
+    insColor: insTextEl?.value || '#000000',
+    delBg: delBgEl?.value || '#FFC7CE',
+    delColor: delTextEl?.value || '#000000',
+    delStrike: delStrikeEl?.value || '#9C0006'
+  });
+
+  const buildClipboardFragment = (runs, style) => {
+    const insStyle = `background-color:${style.insBg};color:${style.insColor};`;
+    const delStyle = `background-color:${style.delBg};color:${style.delColor};text-decoration:line-through;text-decoration-color:${style.delStrike};`;
+    return runs.map((run) => {
+      if (run.type === 'equal') return escapeHtmlWithBreaks(run.tokens.join(''));
+      if (run.type === 'insert') return `<span style="${insStyle}">${escapeHtmlWithBreaks(run.tokens.join(''))}</span>`;
+      if (run.type === 'delete') return `<span style="${delStyle}">${escapeHtmlWithBreaks(run.tokens.join(''))}</span>`;
+      if (run.type === 'replace') {
+        const delText = run.delTokens.join('');
+        const insText = run.insTokens.join('');
+        return `<span style="${delStyle}">${escapeHtmlWithBreaks(delText)}</span><span style="${insStyle}">${escapeHtmlWithBreaks(insText)}</span>`;
+      }
+      return '';
+    }).join('');
+  };
+
+  const buildClipboardHtml = (runs, style) => {
+    const fragment = buildClipboardFragment(runs, style);
+    const bodyStyle = [
+      'font-family:Calibri, Arial, sans-serif',
+      'font-size:11pt',
+      'line-height:1.5',
+      'color:#000',
+      'background:#fff'
+    ].join(';');
+    return `<!doctype html><html><head><meta charset="utf-8"></head><body><div style="${bodyStyle}">${fragment}</div></body></html>`;
+  };
+
+  const copyFormatted = async () => {
+    if (!lastRuns || !lastRuns.length) {
+      setCopyStatus('Nothing to copy yet.', 'error');
+      return;
+    }
+
+    setCopyStatus('Copying…');
+    const style = getCopyStyle();
+    const html = buildClipboardHtml(lastRuns, style);
+
+    try {
+      if (navigator.clipboard && window.ClipboardItem) {
+        const item = new ClipboardItem({
+          'text/html': new Blob([html], { type: 'text/html' }),
+          'text/plain': new Blob([lastRevisedText || ''], { type: 'text/plain' })
+        });
+        await navigator.clipboard.write([item]);
+        setCopyStatus('Copied with formatting.', 'success');
+        return;
+      }
+    } catch {
+      // fall through to selection-based copy
+    }
+
+    try {
+      const temp = document.createElement('div');
+      temp.style.position = 'fixed';
+      temp.style.left = '-9999px';
+      temp.style.top = '0';
+      temp.style.whiteSpace = 'normal';
+      temp.innerHTML = buildClipboardFragment(lastRuns, style);
+      document.body.appendChild(temp);
+
+      const selection = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(temp);
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+      const ok = document.execCommand('copy');
+      selection?.removeAllRanges();
+      temp.remove();
+
+      setCopyStatus(ok ? 'Copied with formatting.' : 'Copy failed.', ok ? 'success' : 'error');
+    } catch {
+      setCopyStatus('Copy failed. Try selecting the output and copying manually.', 'error');
+    }
+  };
+
   const runCompare = () => {
+    setCopyStatus('');
     const original = originalEl.value || '';
     const revised = revisedEl.value || '';
     if (!original.trim() && !revised.trim()) {
       summaryEl.textContent = 'Paste text above and click Compare.';
       setEmpty('Waiting for input.');
+      lastRuns = null;
+      lastRevisedText = '';
       return;
     }
 
     if (original.length + revised.length > MAX_CHARS) {
       summaryEl.textContent = 'Text is too large to compare in-browser. Please compare smaller sections.';
       setEmpty('Input too large.');
+      lastRuns = null;
+      lastRevisedText = '';
       return;
     }
 
@@ -268,11 +374,15 @@
       if (aTokens.length + bTokens.length > MAX_TOKENS) {
         summaryEl.textContent = 'Text is too large to compare quickly. Please compare smaller sections.';
         setEmpty('Input too large.');
+        lastRuns = null;
+        lastRevisedText = '';
         return;
       }
 
       const edits = myersEdits(aTokens, bTokens);
       const runs = normalizeRuns(groupRuns(edits));
+      lastRuns = runs;
+      lastRevisedText = revised;
       const html = renderOutput(runs);
       outputEl.innerHTML = html || '<p class="textcompare-empty">No output.</p>';
 
@@ -311,6 +421,9 @@
     revisedEl.value = '';
     summaryEl.textContent = 'Paste text above and click Compare.';
     setEmpty('Waiting for input.');
+    lastRuns = null;
+    lastRevisedText = '';
+    setCopyStatus('');
     originalEl.focus();
   });
 
@@ -320,4 +433,6 @@
     revisedEl.value = a;
     runCompare();
   });
+
+  copyBtn?.addEventListener('click', copyFormatted);
 })();

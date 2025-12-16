@@ -48,11 +48,6 @@
       <p class="hero-eyebrow">Labs</p>
       <h1>Text Compare</h1>
       <p class="textcompare-top-lead">Paste an original and revised draft to see insertions, deletions, and replacements highlighted inline. Everything runs locally in your browser.</p>
-      <div class="textcompare-legend" aria-label="Change legend">
-        <span class="textcompare-legend-item"><span class="diff-pill diff-pill-ins">Inserted</span></span>
-        <span class="textcompare-legend-item"><span class="diff-pill diff-pill-del">Deleted</span></span>
-        <span class="textcompare-legend-item"><span class="diff-pill diff-pill-rep">Replaced</span></span>
-      </div>
     </div>
   </section>
 
@@ -62,6 +57,11 @@
         <div class="textcompare-card textcompare-input-card">
           <h2>Compare drafts</h2>
           <p class="textcompare-subtitle">Use plain text (no formatting). Newlines and punctuation are preserved in the output.</p>
+          <div class="textcompare-legend" aria-label="Change legend">
+            <span class="textcompare-legend-item"><span class="diff-pill diff-pill-ins">Inserted</span></span>
+            <span class="textcompare-legend-item"><span class="diff-pill diff-pill-del">Deleted</span></span>
+            <span class="textcompare-legend-item"><span class="diff-pill diff-pill-rep">Replaced</span></span>
+          </div>
           <form id="textcompare-form" class="textcompare-form" novalidate>
             <div class="textcompare-grid">
               <div class="textcompare-field">
@@ -90,9 +90,41 @@
       <div class="wrapper">
         <div class="textcompare-card textcompare-results-card" aria-live="polite">
           <div class="textcompare-results-header">
-            <h2>Comparison</h2>
-            <p id="textcompare-summary" class="textcompare-summary">Paste text above and click Compare.</p>
+            <div class="textcompare-results-title">
+              <h2>Comparison</h2>
+              <p id="textcompare-summary" class="textcompare-summary">Paste text above and click Compare.</p>
+            </div>
+            <div class="textcompare-results-actions">
+              <button type="button" id="textcompare-copy" class="btn-secondary">Copy formatted</button>
+              <span id="textcompare-copy-status" class="textcompare-copy-status" aria-live="polite"></span>
+            </div>
           </div>
+          <details class="textcompare-format-details">
+            <summary>Copy formatting</summary>
+            <div class="textcompare-format-grid" role="group" aria-label="Copy formatting options">
+              <div class="textcompare-format-field">
+                <label class="textcompare-format-label" for="textcompare-ins-bg">Inserted highlight</label>
+                <input id="textcompare-ins-bg" class="textcompare-color" type="color" value="#C6EFCE">
+              </div>
+              <div class="textcompare-format-field">
+                <label class="textcompare-format-label" for="textcompare-ins-text">Inserted text</label>
+                <input id="textcompare-ins-text" class="textcompare-color" type="color" value="#000000">
+              </div>
+              <div class="textcompare-format-field">
+                <label class="textcompare-format-label" for="textcompare-del-bg">Deleted highlight</label>
+                <input id="textcompare-del-bg" class="textcompare-color" type="color" value="#FFC7CE">
+              </div>
+              <div class="textcompare-format-field">
+                <label class="textcompare-format-label" for="textcompare-del-text">Deleted text</label>
+                <input id="textcompare-del-text" class="textcompare-color" type="color" value="#000000">
+              </div>
+              <div class="textcompare-format-field">
+                <label class="textcompare-format-label" for="textcompare-del-strike">Deleted strike</label>
+                <input id="textcompare-del-strike" class="textcompare-color" type="color" value="#9C0006">
+              </div>
+            </div>
+            <p class="textcompare-format-hint">Tip: paste into Word using “Keep Source Formatting” to preserve highlights and strikethroughs.</p>
+          </details>
           <div id="textcompare-output" class="textcompare-output" role="region" aria-label="Inline comparison output">
             <p class="textcompare-empty">Waiting for input.</p>
           </div>
