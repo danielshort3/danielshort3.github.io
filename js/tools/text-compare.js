@@ -284,6 +284,15 @@
     return fallback;
   };
 
+  const applyPreviewStyle = () => {
+    const style = getCopyStyle();
+    document.body.style.setProperty('--textcompare-ins-bg', normalizeHexColor(style.insBg, '#C6EFCE'));
+    document.body.style.setProperty('--textcompare-ins-text', normalizeHexColor(style.insColor, '#000000'));
+    document.body.style.setProperty('--textcompare-del-bg', normalizeHexColor(style.delBg, '#FFC7CE'));
+    document.body.style.setProperty('--textcompare-del-text', normalizeHexColor(style.delColor, '#000000'));
+    document.body.style.setProperty('--textcompare-del-strike', normalizeHexColor(style.delStrike, '#9C0006'));
+  };
+
   const hexToRgb = (hex) => {
     const h = String(hex || '').replace('#', '');
     const r = parseInt(h.slice(0, 2), 16) || 0;
@@ -529,6 +538,11 @@
       summaryEl.textContent = `Changes: ${parts.join(' · ')}.`;
     });
   };
+
+  [insBgEl, insTextEl, delBgEl, delTextEl, delStrikeEl].forEach((el) => {
+    el?.addEventListener('input', applyPreviewStyle);
+  });
+  applyPreviewStyle();
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
