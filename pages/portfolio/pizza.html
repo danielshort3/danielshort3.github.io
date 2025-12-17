@@ -95,6 +95,40 @@
       </ul>
     </section>
         <section class="project-section">
+      <h2 class="section-title">Data Integration</h2>
+      <p class="project-lead">I merged delivery tickets with local NOAA weather to test common hypotheses about what drives tipping behavior.</p>
+      <ul class="project-list">
+        <li>Combined 1,251 deliveries with daily weather features (rainfall, max/min temperature, wind).</li>
+        <li>Cleaned the dataset in Power Query and created derived fields like tip percentage and delivery time (minutes).</li>
+        <li>Separated housing types (apartment vs. residential) to test neighborhood effects.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">Exploratory Analysis</h2>
+      <ul class="project-list">
+        <li>Found a strong positive correlation (0.6181) between order cost and tip amount.</li>
+        <li>Observed only a mild relationship between rainfall and delivery duration (correlation 0.1410).</li>
+        <li>Identified clear seasonal demand swings (order counts more than doubled in summer/early fall).</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">Regression and Hypothesis Tests</h2>
+      <ul class="project-list">
+        <li>Ran a multiple regression: Tip = f(cost, delivery time, rain, max/min temperature).</li>
+        <li>Result: order cost was the primary driver, explaining ~38% of tip variance (≈ +$1.10 tip per +$10 bill).</li>
+        <li>Validated housing differences with a two-sample t-test: apartment customers tipped ~28% less than house residents (p &lt; 0.001).</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">What I&#39;d Improve</h2>
+      <ul class="project-list">
+        <li>Add distance, time-of-day, and driver controls to reduce omitted-variable bias.</li>
+        <li>Model tip percentage and tip amount separately to avoid conflating larger orders with generosity.</li>
+        <li>Use mixed-effects models to capture repeated customers or neighborhood-level variance.</li>
+      </ul>
+    </section>
+
+        <section class="project-section">
       <h2 class="section-title">Links</h2>
       <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="documents/Project_1.pdf"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDF</span></a>

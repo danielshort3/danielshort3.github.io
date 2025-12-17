@@ -96,6 +96,40 @@
       </ul>
     </section>
         <section class="project-section">
+      <h2 class="section-title">Data and Training</h2>
+      <p class="project-lead">I trained a compact classifier on Google’s QuickDraw sketches to recognize five basic shapes from a single monochrome drawing.</p>
+      <ul class="project-list">
+        <li>Built class-balanced train/validation splits from QuickDraw categories (circle, triangle, square, hexagon, octagon).</li>
+        <li>Used a ResNet18 backbone in PyTorch Lightning to keep training and reproducibility simple.</li>
+        <li>Exported lightweight weights (`model.pt`) so inference doesn’t require Lightning.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">Inference API</h2>
+      <ul class="project-list">
+        <li>Implemented an AWS Lambda handler that accepts a base64-encoded image and returns the predicted class + confidence.</li>
+        <li>Designed the API to be browser-friendly (CORS + small JSON payloads) for a responsive demo experience.</li>
+        <li>Kept inference CPU-friendly so it can run in serverless environments without GPUs.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">Demo UX</h2>
+      <ul class="project-list">
+        <li>Canvas-based drawing UI with a clear action to submit and a confidence bar to interpret predictions.</li>
+        <li>Graceful endpoint fallbacks and clear status messaging during warm-up/cold starts.</li>
+        <li>Tuned the preprocessing so messy real-world strokes still map to the training distribution.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">What I&#39;d Improve</h2>
+      <ul class="project-list">
+        <li>Add calibration (e.g., temperature scaling) so confidence is more trustworthy.</li>
+        <li>Expand to more shapes and train with augmentation to handle stroke width and incomplete outlines.</li>
+        <li>Add a small human-drawn validation set to measure real-world generalization beyond QuickDraw.</li>
+      </ul>
+    </section>
+
+        <section class="project-section">
       <h2 class="section-title">Links</h2>
       <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://github.com/danielshort3/Shape-Analyzer" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>

@@ -102,6 +102,40 @@
       </ul>
     </section>
         <section class="project-section">
+      <h2 class="section-title">System Design</h2>
+      <p class="project-lead">A RAG pipeline tuned for a single domain: crawl → index → generate training data → fine-tune with LoRA → deploy behind an API the website can call.</p>
+      <ul class="project-list">
+        <li>Ingestion: crawl Visit Grand Junction pages and store cleaned text chunks.</li>
+        <li>Retrieval: build a FAISS index so responses can cite relevant source passages.</li>
+        <li>Generation: fine-tune Mistral 7B with LoRA on auto-generated domain Q&amp;A pairs.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">Dataset Generation</h2>
+      <ul class="project-list">
+        <li>Used GPT-OSS 20B via Ollama to generate Q&amp;A pairs from the crawled content, keeping the dataset aligned to the site’s tone and facts.</li>
+        <li>Automated the end-to-end pipeline with scripts (crawl, build index, build dataset, finetune, merge LoRA).</li>
+        <li>Optimized for iteration: run locally or in Docker, then deploy the same artifacts for hosting.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">Serving and Deployment</h2>
+      <ul class="project-list">
+        <li>Merged the LoRA adapter into a 4-bit model and exposed a FastAPI inference endpoint.</li>
+        <li>Deployed the model behind AWS (SageMaker + Lambda endpoints) so the website can query it without shipping model code to the client.</li>
+        <li>Added a status check and warm-up UX in the demo to handle cold starts gracefully.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">What I&#39;d Improve</h2>
+      <ul class="project-list">
+        <li>Add automated RAG evaluation (retrieval hit-rate, groundedness, and citation accuracy).</li>
+        <li>Introduce caching for common questions and streaming tokens for a faster perceived response.</li>
+        <li>Add guardrails for prompt injection and a tighter citation-first response format.</li>
+      </ul>
+    </section>
+
+        <section class="project-section">
       <h2 class="section-title">Links</h2>
       <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://github.com/danielshort3/Chatbot-LoRA-RAG" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>

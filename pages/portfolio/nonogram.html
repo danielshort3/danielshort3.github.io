@@ -93,6 +93,40 @@
       </ul>
     </section>
         <section class="project-section">
+      <h2 class="section-title">Environment Design</h2>
+      <p class="project-lead">I built a reinforcement learning environment for Nonograms, including puzzle generation, clue computation, and reward shaping.</p>
+      <ul class="project-list">
+        <li>Generated large batches of unique 5×5 puzzles and computed row/column clues automatically.</li>
+        <li>Represented state as (board + clue embeddings) so the agent can condition actions on constraints.</li>
+        <li>Designed rewards to encourage progress (row/column completions) and discourage repeated guesses.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">Policy Network</h2>
+      <ul class="project-list">
+        <li>Combined a CNN (board perception) with a Transformer (clue encoding) to capture both spatial and sequential structure.</li>
+        <li>Output an action distribution over grid cells so the agent learns a strategy, not a fixed solver rule set.</li>
+        <li>Kept the architecture small enough to train over millions of puzzles efficiently.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">Training</h2>
+      <ul class="project-list">
+        <li>Trained with policy gradients at scale (25M+ puzzles; large batched episodes) to learn general solving behavior.</li>
+        <li>Used reward shaping around unique guesses, row/column completions, and full-board solves to speed exploration.</li>
+        <li>Tracked learning curves and saved checkpoints to compare policy improvements over time.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">What I&#39;d Improve</h2>
+      <ul class="project-list">
+        <li>Scale beyond 5×5 with curriculum learning (5×5 → 10×10) and stronger value baselines.</li>
+        <li>Add search (e.g., MCTS) on top of the learned policy for harder puzzles.</li>
+        <li>Evaluate on benchmark Nonogram sets to compare against classical solvers.</li>
+      </ul>
+    </section>
+
+        <section class="project-section">
       <h2 class="section-title">Links</h2>
       <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://github.com/danielshort3/Nonogram-Solver" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>

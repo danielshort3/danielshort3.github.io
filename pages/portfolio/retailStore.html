@@ -103,6 +103,40 @@
       </ul>
     </section>
         <section class="project-section">
+      <h2 class="section-title">Data Modeling and ETL</h2>
+      <p class="project-lead">I built a SQL-first analytics layer that consolidates incidents, theft, sales, and HR attributes so leaders can answer &#39;where is risk growing?&#39; with a single source of truth.</p>
+      <ul class="project-list">
+        <li>Joined incident, sales, and employee tables and created reusable views for KPI rollups.</li>
+        <li>Standardized date keys and dimensions (store format, region/state) to support consistent slicing.</li>
+        <li>Kept identifiers anonymized so insights can be shared without exposing sensitive internal data.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">Analysis Workflow</h2>
+      <ul class="project-list">
+        <li>Implemented targeted queries to find high-incident store formats, top-theft states, and high-risk associates.</li>
+        <li>Measured boycott impact with year-over-year comparisons around the boycott timeline.</li>
+        <li>Used Python visualizations to communicate findings clearly (hotspots, trends, and outliers).</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">Anomaly Detection</h2>
+      <ul class="project-list">
+        <li>Flagged outlier stores and associates by comparing against peer baselines rather than raw totals.</li>
+        <li>Highlighted both &#39;high frequency&#39; (incidents/store) and &#39;high severity&#39; (value per item) anomalies.</li>
+        <li>Focused outputs on investigations leaders can act on (where to send resources next).</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">What I&#39;d Improve</h2>
+      <ul class="project-list">
+        <li>Add automated alerting (weekly anomaly reports) and an audit trail for investigations.</li>
+        <li>Normalize by traffic/shipments to separate volume effects from true risk changes.</li>
+        <li>Expand to causal analysis for boycott drivers and mitigation experiments.</li>
+      </ul>
+    </section>
+
+        <section class="project-section">
       <h2 class="section-title">Links</h2>
       <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://github.com/danielshort3/target-packaging-analysis-mssql" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>

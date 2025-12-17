@@ -29,6 +29,53 @@ function normalizeWhitespace(value) {
   return String(value ?? '').replace(/\s+/g, ' ').trim();
 }
 
+function normalizeTextArray(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) {
+    return value.map(normalizeWhitespace).filter(Boolean);
+  }
+  if (typeof value === 'string') {
+    const s = normalizeWhitespace(value);
+    return s ? [s] : [];
+  }
+  return [];
+}
+
+function renderCaseStudySections(sections) {
+  if (!Array.isArray(sections) || sections.length === 0) return '';
+  const blocks = sections
+    .map((sec) => {
+      if (!sec || typeof sec !== 'object') return '';
+      const title = normalizeWhitespace(sec.title);
+      if (!title) return '';
+
+      const lead = normalizeWhitespace(sec.lead || '');
+      const paragraphs = normalizeTextArray(sec.paragraphs);
+      const bullets = normalizeTextArray(sec.bullets);
+
+      const parts = [];
+      if (lead) {
+        parts.push(`<p class="project-lead">${escapeHtml(lead)}</p>`);
+      }
+      paragraphs.forEach((p) => {
+        parts.push(`<p class="project-lead">${escapeHtml(p)}</p>`);
+      });
+      if (bullets.length) {
+        parts.push(`<ul class="project-list">
+        ${bullets.map((b) => `<li>${escapeHtml(b)}</li>`).join('\n        ')}
+      </ul>`);
+      }
+
+      const body = parts.length ? `\n      ${parts.join('\n      ')}\n    ` : '';
+      return `<section class="project-section">
+      <h2 class="section-title">${escapeHtml(title)}</h2>${body}</section>`;
+    })
+    .filter(Boolean)
+    .join('\n');
+
+  return blocks ? `${blocks}\n` : '';
+}
+
 function toMetaDescription(project) {
   const pieces = [
     project.subtitle,
@@ -187,6 +234,8 @@ function renderProjectPage(project) {
     </section>`
     : '';
 
+  const safeCaseStudy = renderCaseStudySections(project.caseStudy);
+
   const renderImageMedia = () => {
     const img = String(project.image || '').trim();
     if (!img) return '';
@@ -307,6 +356,7 @@ ${tableauPreconnect}
         ${safeRole}
         ${safeActions}
         ${safeResults}
+        ${safeCaseStudy}
         ${safeResources}
         ${safeNotes}
       </div>

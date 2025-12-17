@@ -94,6 +94,49 @@
       </ul>
     </section>
         <section class="project-section">
+      <h2 class="section-title">End-to-End Pipeline</h2>
+      <p class="project-lead">This project combines web scraping, image restoration, super-resolution, and PDF compilation into a single workflow so sheet music is playable again.</p>
+      <ul class="project-list">
+        <li>Input: low-resolution, watermarked page images (scanned sheet music).</li>
+        <li>Step 1: watermark removal with a UNet segmentation/restoration model.</li>
+        <li>Step 2: upscaling with VDSR to produce print-friendly pages.</li>
+        <li>Output: cleaned images compiled into a ready-to-use PDF.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">Modeling Choices</h2>
+      <ul class="project-list">
+        <li>UNet works well for structured, local artifacts (watermarks) while preserving staff lines and note heads.</li>
+        <li>VDSR adds detail and readability when starting from low-resolution scans.</li>
+        <li>Packaged model weights as state dicts so the pipeline can run without retraining.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">GUI and Automation</h2>
+      <ul class="project-list">
+        <li>Built a PyQt5 GUI to scrape, process, and compile pages without needing to run notebook cells manually.</li>
+        <li>Used background worker threads to keep the UI responsive while processing batches.</li>
+        <li>Designed the workflow for repeat use (new songs in, clean PDFs out).</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">Performance and Reliability</h2>
+      <ul class="project-list">
+        <li>Optimized for practical speed: the pipeline produces legible output in under 10 seconds for typical use cases.</li>
+        <li>Added sensible defaults and a simple &#39;one path&#39; experience so non-ML users can run it.</li>
+        <li>Kept the pipeline modular so either model can be swapped or improved independently.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">What I&#39;d Improve</h2>
+      <ul class="project-list">
+        <li>Add tiled inference for very large pages and better memory usage.</li>
+        <li>Measure quality with objective metrics (PSNR/SSIM) and small human readability tests.</li>
+        <li>Explore more modern restoration approaches for better note/staff preservation.</li>
+      </ul>
+    </section>
+
+        <section class="project-section">
       <h2 class="section-title">Links</h2>
       <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://github.com/danielshort3/Watermark-Remover" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
