@@ -98,6 +98,40 @@
       </ul>
     </section>
         <section class="project-section">
+      <h2 class="section-title">System Design</h2>
+      <p class="project-lead">This is a retrieval system for a fixed corpus (Alice in Wonderland): precompute sentence embeddings once, then embed each query at runtime and rank by cosine similarity.</p>
+      <ul class="project-list">
+        <li>Offline: chunk raw text, segment into sentences, normalize whitespace, and precompute embeddings.</li>
+        <li>Online: embed the query, score against the cached embedding matrix, and return top-k sentences with similarity scores.</li>
+        <li>Frontend: a lightweight demo that calls `/health` and `/rank` and renders ranked results with confidence meters.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">Model Selection</h2>
+      <ul class="project-list">
+        <li>Benchmarked multiple embedding models and used silhouette score (plus silhouette per million parameters) to balance quality vs. cost.</li>
+        <li>Selected Snowflake Arctic Embed L v2 for highest silhouette score; tracked Jina v3 as the best efficiency baseline.</li>
+        <li>Kept the evaluation reproducible by fixing the corpus, sampling strategy, and k-range for clustering.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">Serverless Deployment</h2>
+      <ul class="project-list">
+        <li>Built an AWS Lambda container image that bundles CPU-only PyTorch, FastAPI + Mangum, the cached embedding model, and precomputed corpus artifacts.</li>
+        <li>Forced the Hugging Face backend (no sentence-transformers) to keep the cold start smaller and avoid multiprocess warnings on Lambda.</li>
+        <li>Exposed a Lambda Function URL with CORS so the website demo can call it directly from the browser.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">What I&#39;d Improve</h2>
+      <ul class="project-list">
+        <li>Add support for user-provided documents (upload + background embedding job) instead of a fixed corpus.</li>
+        <li>Introduce ANN search (HNSW/FAISS) for larger corpora and faster top-k retrieval.</li>
+        <li>Move beyond silhouette score with a small labeled relevance set and offline evaluation metrics (e.g., nDCG@k).</li>
+      </ul>
+    </section>
+
+        <section class="project-section">
       <h2 class="section-title">Links</h2>
       <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://github.com/danielshort3/Smart-Sentence-Finder" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>

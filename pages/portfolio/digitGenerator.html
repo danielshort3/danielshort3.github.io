@@ -93,6 +93,40 @@
       </ul>
     </section>
         <section class="project-section">
+      <h2 class="section-title">Model Architecture (VAE)</h2>
+      <p class="project-lead">I trained a Variational Autoencoder to learn a compact latent representation of handwritten digits and generate new samples by sampling that latent space.</p>
+      <ul class="project-list">
+        <li>Encoder: convolutional stack that maps an image to a latent mean and variance.</li>
+        <li>Reparameterization trick to sample latents during training while keeping gradients stable.</li>
+        <li>Decoder: transposed convolutions that reconstruct images from latent vectors.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">Training and Sampling</h2>
+      <ul class="project-list">
+        <li>Trained on MNIST and monitored the reconstruction vs. KL-divergence tradeoff.</li>
+        <li>Validated by comparing original vs. reconstructed digits and by sampling random latent vectors.</li>
+        <li>Saved the model so generation is a one-command inference step, not a re-train.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">Latent Space Analysis</h2>
+      <ul class="project-list">
+        <li>Used PCA, t-SNE, and UMAP to visualize how digits cluster in latent space.</li>
+        <li>Applied clustering (HDBSCAN/DBSCAN) to study structure and identify outliers.</li>
+        <li>Performed reconstruction-error analysis to see which digits are hardest to model.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">What I&#39;d Improve</h2>
+      <ul class="project-list">
+        <li>Build a conditional VAE so I can generate a specific digit on demand.</li>
+        <li>Improve sample sharpness with stronger decoders, perceptual losses, or diffusion-based refinement.</li>
+        <li>Add quantitative generative metrics (FID-like proxies) to compare models over time.</li>
+      </ul>
+    </section>
+
+        <section class="project-section">
       <h2 class="section-title">Links</h2>
       <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://github.com/danielshort3/Handwritten-Digit-Generator" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>

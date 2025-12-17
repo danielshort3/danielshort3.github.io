@@ -95,6 +95,48 @@
       </ul>
     </section>
         <section class="project-section">
+      <h2 class="section-title">Data and Labeling</h2>
+      <p class="project-lead">I combined Social Security Administration name data (national + Colorado) with my own preference labels to build a personalized recommender.</p>
+      <ul class="project-list">
+        <li>Aggregated 140+ years of SSA records and engineered &#39;recency&#39; and trend features to avoid only recommending historically popular names.</li>
+        <li>Focused on Colorado to keep suggestions relevant to the names my wife actually encounters.</li>
+        <li>Collected preference labels through a simple &#39;quiz&#39; workflow so the model learns her taste over time.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">Feature Engineering</h2>
+      <ul class="project-list">
+        <li>Name morphology: length, vowels/consonants, syllable count, start/end vowel flags, and entropy.</li>
+        <li>Popularity dynamics: total count, most popular year, and recent-count features to capture saturation and momentum.</li>
+        <li>Language-root signal via `langdetect` as a lightweight proxy for name origin.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">Modeling Strategy</h2>
+      <ul class="project-list">
+        <li>Trained multiple models (Random Forest, XGBoost, SVM, KNN, and a deep learning baseline) with randomized hyperparameter search.</li>
+        <li>Optimized for weighted F1 to handle class imbalance in &#39;liked&#39; vs. &#39;not liked&#39; labels.</li>
+        <li>Ensembled predictions across models to reduce single-model brittleness.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">Recommendation Workflow</h2>
+      <ul class="project-list">
+        <li>Generated a ranked Top 50 list for boys and girls and exported results for easy review.</li>
+        <li>Designed the loop so new feedback becomes new training data (continual improvement).</li>
+        <li>Kept the system explainable by surfacing which features correlated with higher predicted preference.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">What I&#39;d Improve</h2>
+      <ul class="project-list">
+        <li>Collect more labels and add calibration so probabilities map to real acceptance rates.</li>
+        <li>Use name embeddings (character-level or phonetic) instead of hand-crafted features alone.</li>
+        <li>Add diversity constraints so recommendations aren’t overly similar to each other.</li>
+      </ul>
+    </section>
+
+        <section class="project-section">
       <h2 class="section-title">Links</h2>
       <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://github.com/danielshort3/Baby-Names" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>

@@ -94,6 +94,56 @@
       </ul>
     </section>
         <section class="project-section">
+      <h2 class="section-title">Problem Framing</h2>
+      <p class="project-lead">I framed this as a short-horizon risk prediction: estimate the probability that a state will breach 90% ICU occupancy within the next 7 days.</p>
+      <ul class="project-list">
+        <li>Target label: max(adult ICU bed utilization) over the next 7 days ≥ 0.90.</li>
+        <li>Constraint: extreme class imbalance (breaches are rare), so metrics must focus on ranking and precision/recall tradeoffs.</li>
+        <li>Goal: provide an interpretable early-warning signal rather than a black-box forecast.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">Data and Feature Engineering</h2>
+      <ul class="project-list">
+        <li>Started from the HHS hospital capacity time series (state × day) and cleaned missingness with forward-filling and column pruning.</li>
+        <li>Created rolling-window features and lag features (1/3/7/14 days) to capture trend and momentum.</li>
+        <li>Built ratio features like ICU beds with COVID (%) and inpatient COVID share to normalize across states.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">Modeling and Evaluation</h2>
+      <ul class="project-list">
+        <li>Trained an XGBoost classifier with a time-based train/test split and class-imbalance handling.</li>
+        <li>Measured ranking quality with AUROC (0.606) and PR-AUC (0.060); at a 0.5 threshold the confusion matrix was [[17601, 276], [728, 31]].</li>
+        <li>Used the model as a risk scorer (probability output) rather than a hard yes/no classifier.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">Explainability (SHAP)</h2>
+      <ul class="project-list">
+        <li>Used SHAP to identify which daily metrics raise or lower the chance of an ICU crisis in the next week.</li>
+        <li>Key takeaway: a high % of ICU beds already filled by COVID patients is the clearest early-warning signal; lower overall utilization reduces risk.</li>
+        <li>Renamed feature labels in the SHAP plot to keep it stakeholder-friendly.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">Operational Output</h2>
+      <ul class="project-list">
+        <li>Exported a per-state, per-day CSV of 7-day breach probabilities for monitoring and reporting.</li>
+        <li>Most likely breach location in the final snapshot: UT on 2023-06-11 with a 7-day breach probability of 6.1%.</li>
+        <li>Designed the workflow to be rerun as new days arrive.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">What I&#39;d Improve</h2>
+      <ul class="project-list">
+        <li>Calibrate probabilities and tune thresholds for a target precision/recall operating point.</li>
+        <li>Add exogenous signals (vaccination, policy, mobility, variant waves) to improve early warning power.</li>
+        <li>Evaluate stability across time (drift) and add monitoring for feature shifts.</li>
+      </ul>
+    </section>
+
+        <section class="project-section">
       <h2 class="section-title">Links</h2>
       <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://github.com/danielshort3/Covid-Analysis" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>

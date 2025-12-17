@@ -96,6 +96,48 @@
       </ul>
     </section>
         <section class="project-section">
+      <h2 class="section-title">Goals</h2>
+      <p class="project-lead">I built this as a fast, mobile-first portfolio that showcases projects clearly and stays easy to maintain as the project list grows.</p>
+      <ul class="project-list">
+        <li>Performance: keep page weight low and avoid blocking resources.</li>
+        <li>Accessibility: semantic landmarks, keyboard-friendly components, and predictable navigation.</li>
+        <li>Maintainability: centralized project data + build scripts to generate deployable pages.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">Architecture</h2>
+      <ul class="project-list">
+        <li>Static HTML pages with a shared JS layer for navigation, lazy-loading, and UI behaviors.</li>
+        <li>Portfolio projects defined in one data file and rendered dynamically (modals + filtering).</li>
+        <li>Progressive enhancement: the portfolio page works without JS via pre-rendered cards.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">SEO and Sharing</h2>
+      <ul class="project-list">
+        <li>Generated `/portfolio/&lt;id&gt;` pages for each project (canonical URLs, Open Graph metadata, JSON-LD).</li>
+        <li>Kept `sitemap.xml` in sync via a build step so projects are discoverable by search engines.</li>
+        <li>Configured Vercel rewrites so clean URLs map to generated pages under `pages/`.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">Build and Deployment</h2>
+      <ul class="project-list">
+        <li>CSS is bundled into a hashed file for caching while still allowing quick invalidation.</li>
+        <li>Build scripts generate project pages and copy deployable artifacts into `public/`.</li>
+        <li>Lightweight tests enforce markup contracts and ensure project pages exist for every project ID.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">What I&#39;d Improve</h2>
+      <ul class="project-list">
+        <li>Add richer case studies (diagrams, metrics, and lessons learned) for the top projects.</li>
+        <li>Reduce third-party dependencies in demos and harden CSP as the site grows.</li>
+        <li>Automate screenshots/preview generation so project cards stay consistent.</li>
+      </ul>
+    </section>
+
+        <section class="project-section">
       <h2 class="section-title">Links</h2>
       <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://github.com/danielshort3/danielshort3.github.io" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>

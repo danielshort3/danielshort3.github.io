@@ -96,6 +96,40 @@
       </ul>
     </section>
         <section class="project-section">
+      <h2 class="section-title">Experiment Setup</h2>
+      <p class="project-lead">I treated MNIST as a controllable baseline and then tested whether the model judged my own handwriting by the same standards.</p>
+      <ul class="project-list">
+        <li>Dataset: MNIST (60,000 train / 10,000 test) for digit recognition.</li>
+        <li>Goal: compare model families and quantify personal legibility with a consistent metric.</li>
+        <li>Output: per-digit accuracy and a confusion matrix to see which digits I write most ambiguously.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">Model Iteration</h2>
+      <ul class="project-list">
+        <li>Model 1: simple linear classifier to establish a quick baseline.</li>
+        <li>Model 2: a small CNN (TinyVGG-style) to capture local stroke structure.</li>
+        <li>Model 3: a deeper CNN (VGG16-style) that achieved the best test performance (99.1% accuracy).</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">Custom Handwriting Evaluation</h2>
+      <ul class="project-list">
+        <li>Built a small custom dataset loader so new images could be preprocessed and scored consistently.</li>
+        <li>Computed overall legibility (72.5%) and identified the hardest digits for me (0, 3, 5, and 8).</li>
+        <li>Used the error breakdown to make the result actionable (which digits to practice).</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">What I&#39;d Improve</h2>
+      <ul class="project-list">
+        <li>Train on EMNIST or other real handwriting datasets to reduce domain shift from MNIST.</li>
+        <li>Add augmentation (stroke thickness, rotation, blur) to better match camera/scanner variation.</li>
+        <li>Calibrate confidence so the model can say &#39;uncertain&#39; instead of forcing a guess.</li>
+      </ul>
+    </section>
+
+        <section class="project-section">
       <h2 class="section-title">Links</h2>
       <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://github.com/danielshort3/Handwriting-Rating" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
