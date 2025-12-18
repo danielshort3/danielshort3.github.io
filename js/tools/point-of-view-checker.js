@@ -11,6 +11,11 @@
   const outputEl = $('#povcheck-output');
   const clearBtn = $('#povcheck-clear');
 
+  const firstColorInput = $('#povcheck-first-color');
+  const secondColorInput = $('#povcheck-second-color');
+  const thirdColorInput = $('#povcheck-third-color');
+  const resetColorsBtn = $('#povcheck-reset-colors');
+
   const firstBadge = $('#povcheck-first-badge');
   const firstCount = $('#povcheck-first-count');
   const firstList = $('#povcheck-first-list');
@@ -26,6 +31,80 @@
   if (!firstBadge || !firstCount || !firstList) return;
   if (!secondBadge || !secondCount || !secondList) return;
   if (!thirdBadge || !thirdCount || !thirdList) return;
+
+  const COLOR_STORAGE_KEY = 'povcheck-highlight-colors';
+
+  const normalizeHexColor = (value, fallback) => {
+    const s = String(value || '').trim();
+    if (/^#[0-9a-f]{6}$/i.test(s)) return s.toUpperCase();
+    return fallback;
+  };
+
+  const getDefaultHighlightColors = () => ({
+    first: normalizeHexColor(firstColorInput?.defaultValue, '#2396AD'),
+    second: normalizeHexColor(secondColorInput?.defaultValue, '#E0A328'),
+    third: normalizeHexColor(thirdColorInput?.defaultValue, '#38B37E'),
+  });
+
+  const getHighlightColors = () => {
+    const defaults = getDefaultHighlightColors();
+    return {
+      first: normalizeHexColor(firstColorInput?.value, defaults.first),
+      second: normalizeHexColor(secondColorInput?.value, defaults.second),
+      third: normalizeHexColor(thirdColorInput?.value, defaults.third),
+    };
+  };
+
+  const saveHighlightColors = (colors) => {
+    try {
+      window.localStorage.setItem(COLOR_STORAGE_KEY, JSON.stringify(colors));
+    } catch (_) {}
+  };
+
+  const clearStoredHighlightColors = () => {
+    try {
+      window.localStorage.removeItem(COLOR_STORAGE_KEY);
+    } catch (_) {}
+  };
+
+  const loadHighlightColors = () => {
+    try {
+      const raw = window.localStorage.getItem(COLOR_STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return null;
+      const defaults = getDefaultHighlightColors();
+      return {
+        first: normalizeHexColor(parsed.first, defaults.first),
+        second: normalizeHexColor(parsed.second, defaults.second),
+        third: normalizeHexColor(parsed.third, defaults.third),
+      };
+    } catch (_) {
+      return null;
+    }
+  };
+
+  const applyHighlightColors = (colors) => {
+    if (!colors) return;
+    if (!document.body || !document.body.style) return;
+    document.body.style.setProperty('--povcheck-first-color', colors.first);
+    document.body.style.setProperty('--povcheck-second-color', colors.second);
+    document.body.style.setProperty('--povcheck-third-color', colors.third);
+  };
+
+  const syncHighlightControls = () => {
+    if (!firstColorInput && !secondColorInput && !thirdColorInput) return;
+    const stored = loadHighlightColors();
+    const colors = stored || getHighlightColors();
+
+    if (stored) {
+      if (firstColorInput) firstColorInput.value = colors.first;
+      if (secondColorInput) secondColorInput.value = colors.second;
+      if (thirdColorInput) thirdColorInput.value = colors.third;
+    }
+
+    applyHighlightColors(colors);
+  };
 
   const normalizeText = (text) => String(text || '')
     .replace(/[\u2018\u2019\u201B\uFF07]/g, "'")
@@ -369,5 +448,25 @@
     textInput.focus();
   });
 
+  const handleHighlightColorInput = () => {
+    const colors = getHighlightColors();
+    applyHighlightColors(colors);
+    saveHighlightColors(colors);
+  };
+
+  [firstColorInput, secondColorInput, thirdColorInput].forEach((el) => {
+    el?.addEventListener('input', handleHighlightColorInput);
+  });
+
+  resetColorsBtn?.addEventListener('click', () => {
+    const defaults = getDefaultHighlightColors();
+    if (firstColorInput) firstColorInput.value = defaults.first;
+    if (secondColorInput) secondColorInput.value = defaults.second;
+    if (thirdColorInput) thirdColorInput.value = defaults.third;
+    applyHighlightColors(defaults);
+    clearStoredHighlightColors();
+  });
+
+  syncHighlightControls();
   resetUI();
 })();

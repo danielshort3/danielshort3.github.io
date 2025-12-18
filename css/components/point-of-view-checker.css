@@ -1,5 +1,10 @@
 /* Point of view checker styles */
 @layer components {
+  .povcheck-page{
+    --povcheck-first-color:var(--primary);
+    --povcheck-second-color:var(--warning);
+    --povcheck-third-color:var(--success);
+  }
   .povcheck-top-panel{
     padding:clamp(3.2rem,7vh,4.8rem) 0;
     background:linear-gradient(150deg,
@@ -287,6 +292,9 @@
     flex-wrap:wrap;
     margin-top:10px;
   }
+  .povcheck-color-details + .povcheck-output-header{
+    margin-top:0;
+  }
   .povcheck-output-header h3{
     margin:0;
     font-size:1.05rem;
@@ -303,6 +311,43 @@
     font-weight:600;
     letter-spacing:.01em;
     font-size:.9rem;
+  }
+
+  .povcheck-color-details{
+    margin:0 0 12px;
+  }
+  .povcheck-color-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+    gap:12px;
+    margin-top:12px;
+  }
+  .povcheck-color-field{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:10px 12px;
+    border-radius:12px;
+    border:1px solid color-mix(in srgb,var(--primary) 16%, transparent);
+    background:color-mix(in srgb,var(--surface) 96%, #02070d 4%);
+  }
+  .povcheck-color-label{
+    color:var(--text-muted);
+    font-size:.95rem;
+  }
+  .povcheck-color{
+    width:44px;
+    height:34px;
+    padding:0;
+    border-radius:10px;
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    background:transparent;
+  }
+  .povcheck-color-actions{
+    margin-top:12px;
+    display:flex;
+    justify-content:flex-end;
   }
 
   .povcheck-output{
@@ -331,18 +376,18 @@
     -webkit-box-decoration-break:clone;
   }
   .povcheck-mark-first{
-    background:color-mix(in srgb,var(--primary) 22%, transparent);
-    border-color:color-mix(in srgb,var(--primary) 46%, transparent);
+    background:color-mix(in srgb,var(--povcheck-first-color) 22%, transparent);
+    border-color:color-mix(in srgb,var(--povcheck-first-color) 46%, transparent);
     color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
   }
   .povcheck-mark-second{
-    background:color-mix(in srgb,var(--warning) 22%, transparent);
-    border-color:color-mix(in srgb,var(--warning) 50%, transparent);
+    background:color-mix(in srgb,var(--povcheck-second-color) 22%, transparent);
+    border-color:color-mix(in srgb,var(--povcheck-second-color) 50%, transparent);
     color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
   }
   .povcheck-mark-third{
-    background:color-mix(in srgb,var(--success) 22%, transparent);
-    border-color:color-mix(in srgb,var(--success) 50%, transparent);
+    background:color-mix(in srgb,var(--povcheck-third-color) 22%, transparent);
+    border-color:color-mix(in srgb,var(--povcheck-third-color) 50%, transparent);
     color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
   }
 
