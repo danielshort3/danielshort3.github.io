@@ -244,6 +244,8 @@
     min-height:0;
     overflow-y:auto;
     overflow-x:hidden;
+    scrollbar-gutter:stable;
+    padding-right:18px;
   }
   .povcheck-token-pill{
     display:flex;
