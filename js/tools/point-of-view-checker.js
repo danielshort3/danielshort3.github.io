@@ -8,6 +8,7 @@
   const includeItToggle = $('#povcheck-include-it');
   const thirdReferencesInput = $('#povcheck-third-references');
   const summaryEl = $('#povcheck-summary');
+  const outputEl = $('#povcheck-output');
   const clearBtn = $('#povcheck-clear');
 
   const firstBadge = $('#povcheck-first-badge');
@@ -21,6 +22,7 @@
   const thirdList = $('#povcheck-third-list');
 
   if (!form || !textInput || !summaryEl) return;
+  if (!outputEl) return;
   if (!firstBadge || !firstCount || !firstList) return;
   if (!secondBadge || !secondCount || !secondList) return;
   if (!thirdBadge || !thirdCount || !thirdList) return;
@@ -28,6 +30,12 @@
   const normalizeText = (text) => String(text || '')
     .replace(/[\u2018\u2019\u201B\uFF07]/g, "'")
     .replace(/\u00A0/g, ' ');
+
+  const escapeHtml = (value) => String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 
   const collapseWhitespace = (value) => String(value || '')
     .trim()
@@ -41,9 +49,8 @@
     return normalized.match(/[a-z]+(?:'[a-z]+)*/g) || [];
   };
 
-  const parseThirdReferences = () => {
-    if (!thirdReferencesInput) return [];
-    const rawLines = (thirdReferencesInput.value || '').split(/\r?\n/);
+  const parseThirdReferencesText = (rawText) => {
+    const rawLines = String(rawText || '').split(/\r?\n/);
     const seen = new Set();
     const phrases = [];
 
@@ -56,6 +63,14 @@
     });
 
     return phrases;
+  };
+
+  const getEffectiveThirdReferences = (textHasUser) => {
+    if (!thirdReferencesInput) return [];
+    const raw = thirdReferencesInput.value || '';
+    if (raw.trim()) return parseThirdReferencesText(raw);
+    if (!textHasUser) return parseThirdReferencesText(thirdReferencesInput.placeholder || '');
+    return [];
   };
 
   const buildThirdReferenceRegex = (phrase) => {
@@ -159,6 +174,69 @@
     return new Set([...THIRD_PERSON_BASE, ...THIRD_PERSON_NEUTRAL]);
   };
 
+  const buildHighlightRanges = ({ displayText, includeNeutral, thirdRefs }) => {
+    const text = String(displayText || '');
+    const lowerText = text.toLowerCase();
+    const thirdSet = buildThirdSet(includeNeutral);
+    const ranges = [];
+
+    thirdRefs.forEach((phrase) => {
+      const rx = buildThirdReferenceRegex(phrase);
+      if (!rx) return;
+      rx.lastIndex = 0;
+      let match;
+      while ((match = rx.exec(lowerText)) !== null) {
+        ranges.push({ start: match.index, end: match.index + match[0].length, pov: 'third' });
+        if (match.index === rx.lastIndex) rx.lastIndex += 1;
+      }
+    });
+
+    const tokenRx = /[a-z]+(?:'[a-z]+)*/g;
+    let tokenMatch;
+    while ((tokenMatch = tokenRx.exec(lowerText)) !== null) {
+      const token = tokenMatch[0];
+      let pov = null;
+      if (FIRST_PERSON.has(token)) pov = 'first';
+      else if (SECOND_PERSON.has(token)) pov = 'second';
+      else if (thirdSet.has(token)) pov = 'third';
+      if (!pov) continue;
+      ranges.push({ start: tokenMatch.index, end: tokenMatch.index + token.length, pov });
+    }
+
+    ranges.sort((a, b) => {
+      if (a.start !== b.start) return a.start - b.start;
+      return (b.end - b.start) - (a.end - a.start);
+    });
+
+    const finalRanges = [];
+    let lastEnd = -1;
+    ranges.forEach((range) => {
+      if (range.start < lastEnd) return;
+      finalRanges.push(range);
+      lastEnd = range.end;
+    });
+
+    return finalRanges;
+  };
+
+  const renderHighlightedOutput = ({ text, includeNeutral, thirdRefs }) => {
+    const displayText = normalizeText(text);
+    if (!displayText.trim()) return '<p class="povcheck-empty">Waiting for input.</p>';
+
+    const ranges = buildHighlightRanges({ displayText, includeNeutral, thirdRefs });
+    if (!ranges.length) return escapeHtml(displayText);
+
+    let html = '';
+    let cursor = 0;
+    ranges.forEach((range) => {
+      html += escapeHtml(displayText.slice(cursor, range.start));
+      html += `<mark class="povcheck-mark povcheck-mark-${range.pov}" data-pov="${range.pov}">${escapeHtml(displayText.slice(range.start, range.end))}</mark>`;
+      cursor = range.end;
+    });
+    html += escapeHtml(displayText.slice(cursor));
+    return html || '<p class="povcheck-empty">No output.</p>';
+  };
+
   let hasRun = false;
 
   const getEffectiveInput = () => {
@@ -219,10 +297,11 @@
       list.innerHTML = '<li class="povcheck-token-empty">Waiting for input.</li>';
     });
     summaryEl.textContent = 'Paste text above and click Check.';
+    outputEl.innerHTML = '<p class="povcheck-empty">Waiting for input.</p>';
   };
 
   const runAnalysis = () => {
-    const { text } = getEffectiveInput();
+    const { text, hasUser } = getEffectiveInput();
     const hasText = Boolean(String(text || '').trim());
     const tokens = extractTokens(text);
     const includeNeutral = includeItToggle ? includeItToggle.checked : true;
@@ -232,7 +311,7 @@
     const second = buildCounts(tokens, SECOND_PERSON);
     const third = buildCounts(tokens, thirdSet);
 
-    const thirdRefs = parseThirdReferences();
+    const thirdRefs = getEffectiveThirdReferences(hasUser);
     if (thirdRefs.length) {
       const refs = countThirdReferences(text, thirdRefs);
       refs.counts.forEach((count, key) => {
@@ -260,6 +339,12 @@
       hasText
     });
 
+    outputEl.innerHTML = renderHighlightedOutput({
+      text,
+      includeNeutral,
+      thirdRefs
+    });
+
     hasRun = true;
   };
 
@@ -269,6 +354,11 @@
   });
 
   includeItToggle?.addEventListener('change', () => {
+    if (!hasRun) return;
+    runAnalysis();
+  });
+
+  thirdReferencesInput?.addEventListener('input', () => {
     if (!hasRun) return;
     runAnalysis();
   });
