@@ -234,16 +234,17 @@
     padding:0;
     margin:0;
     display:flex;
-    flex-wrap:wrap;
     gap:8px;
-    align-items:center;
+    flex-direction:column;
+    align-items:stretch;
   }
   .povcheck-token-pill{
-    display:inline-flex;
-    flex-wrap:wrap;
+    display:flex;
+    width:100%;
     max-width:100%;
-    gap:8px;
-    align-items:center;
+    gap:10px;
+    align-items:flex-start;
+    justify-content:space-between;
     padding:6px 10px;
     border-radius:999px;
     border:1px solid color-mix(in srgb,var(--primary) 14%, transparent);
@@ -253,7 +254,9 @@
     letter-spacing:.01em;
   }
   .povcheck-token{
-    word-break:break-word;
+    flex:1 1 auto;
+    min-width:0;
+    overflow-wrap:anywhere;
   }
   .povcheck-token-count{
     font-weight:700;
