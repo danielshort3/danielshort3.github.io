@@ -20,6 +20,8 @@
     { "source": "/tools/word-frequency.html","destination": "/pages/word-frequency" },
     { "source": "/tools/text-compare","destination": "/pages/text-compare" },
     { "source": "/tools/text-compare.html","destination": "/pages/text-compare" },
+    { "source": "/tools/point-of-view-checker","destination": "/pages/point-of-view-checker" },
+    { "source": "/tools/point-of-view-checker.html","destination": "/pages/point-of-view-checker" },
     { "source": "/tools/background-remover","destination": "/pages/background-remover" },
     { "source": "/tools/background-remover.html","destination": "/pages/background-remover" },
     { "source": "/tools/image-optimizer","destination": "/pages/image-optimizer" },

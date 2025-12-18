@@ -1,0 +1,317 @@
+/* Point of view checker styles */
+@layer components {
+  .povcheck-top-panel{
+    padding:clamp(3.2rem,7vh,4.8rem) 0;
+    background:linear-gradient(150deg,
+      color-mix(in srgb,var(--surface) 92%, #050b12 8%) 0%,
+      color-mix(in srgb,var(--surface) 80%, #050b12 20%) 100%);
+    border-bottom:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    box-shadow:0 22px 48px rgba(0,0,0,.32);
+  }
+  .povcheck-top-panel .wrapper{
+    max-width:min(1100px, calc(var(--container-max) + 80px));
+    display:grid;
+    gap:clamp(1.2rem,2.4vw,1.8rem);
+  }
+  .povcheck-top-lead{
+    margin:0;
+    max-width:68ch;
+    color:var(--text-muted);
+    font-size:1.05rem;
+    line-height:1.75;
+  }
+
+  .povcheck-steps{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:clamp(12px,2vw,16px);
+  }
+  .povcheck-step{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    padding:14px 16px;
+    border-radius:14px;
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    background:color-mix(in srgb,var(--surface) 92%, #000 8%);
+    box-shadow:0 12px 28px rgba(0,0,0,.26);
+  }
+  .povcheck-step-number{
+    width:36px;
+    height:36px;
+    border-radius:12px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    color:color-mix(in srgb,#ffffff 94%, var(--bg) 6%);
+    background:linear-gradient(135deg,
+      color-mix(in srgb,var(--primary) 88%, #ffffff 12%) 0%,
+      color-mix(in srgb,var(--primary) 62%, #071219 38%) 100%);
+    box-shadow:0 10px 22px rgba(0,0,0,.26);
+  }
+  .povcheck-step h3{
+    margin:0 0 4px;
+    font-size:1.05rem;
+    letter-spacing:.01em;
+  }
+  .povcheck-step p{
+    margin:0;
+    color:var(--text-muted);
+    font-size:.98rem;
+    line-height:1.6;
+  }
+
+  .povcheck-section{
+    padding:clamp(2.8rem,6vh,3.8rem) 0;
+  }
+
+  .povcheck-card{
+    background:linear-gradient(150deg,
+      color-mix(in srgb,var(--surface) 92%, #050b12 8%) 0%,
+      color-mix(in srgb,var(--surface) 84%, #050b12 16%) 100%);
+    border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
+    border-radius:18px;
+    padding:clamp(1.4rem,2.4vw,1.9rem);
+    box-shadow:0 18px 36px rgba(0,0,0,.32);
+    display:grid;
+    gap:14px;
+  }
+  .povcheck-card h2{
+    margin:0 0 6px;
+  }
+  .povcheck-subtitle{
+    margin:0 0 12px;
+    color:var(--text-muted);
+    font-size:1rem;
+  }
+
+  .povcheck-form{
+    display:grid;
+    gap:12px;
+  }
+  .povcheck-label{
+    display:flex;
+    gap:6px;
+    align-items:center;
+    font-weight:600;
+    font-family:'Poppins';
+  }
+  .povcheck-textarea{
+    width:100%;
+    min-height:240px;
+    border-radius:16px;
+    border:1px solid color-mix(in srgb,var(--primary) 26%, transparent);
+    background:color-mix(in srgb,var(--surface) 94%, #02070d 6%);
+    color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
+    padding:16px 18px;
+    font:inherit;
+    resize:vertical;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+    transition:border-color .2s ease, box-shadow .2s ease, background .2s ease;
+  }
+  .povcheck-textarea:focus{
+    outline:none;
+    border-color:color-mix(in srgb,var(--primary) 46%, transparent);
+    box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 28%, transparent);
+    background:color-mix(in srgb,var(--surface) 98%, #02070d 2%);
+  }
+
+  .povcheck-controls{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .povcheck-option{
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    font-size:.96rem;
+    color:var(--text-muted);
+  }
+  .povcheck-option input{
+    margin-top:4px;
+  }
+  .povcheck-actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .povcheck-note{
+    margin:4px 0 0;
+    color:var(--text-muted);
+    font-size:.95rem;
+  }
+
+  .povcheck-results-header{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .povcheck-summary{
+    margin:0;
+    color:var(--text-muted);
+    font-size:1rem;
+    line-height:1.65;
+  }
+  .povcheck-summary strong{
+    color:var(--text-light);
+  }
+
+  .povcheck-stats{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:clamp(12px,2vw,16px);
+    margin-top:4px;
+  }
+  .povcheck-stat{
+    display:grid;
+    gap:10px;
+    padding:14px 14px 16px;
+    border-radius:16px;
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    background:color-mix(in srgb,var(--surface) 96%, #03080f 4%);
+    box-shadow:0 12px 26px rgba(0,0,0,.22);
+  }
+  .povcheck-stat-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .povcheck-stat h3{
+    margin:0;
+    font-size:1.05rem;
+    letter-spacing:.01em;
+  }
+  .povcheck-badge{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:6px 10px;
+    border-radius:999px;
+    font-weight:700;
+    font-size:.85rem;
+    letter-spacing:.01em;
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+  }
+  .povcheck-badge-muted{
+    color:var(--text-muted);
+    background:color-mix(in srgb,var(--surface) 92%, #000 8%);
+  }
+  .povcheck-badge-detected{
+    color:color-mix(in srgb,#ffffff 92%, var(--bg) 8%);
+    background:linear-gradient(135deg,
+      color-mix(in srgb,var(--primary) 88%, #ffffff 12%) 0%,
+      color-mix(in srgb,var(--primary) 62%, #071219 38%) 100%);
+    box-shadow:0 10px 22px rgba(0,0,0,.18);
+  }
+  .povcheck-count{
+    margin:0;
+    font-size:2.2rem;
+    font-weight:800;
+    letter-spacing:-.02em;
+    font-family:'Poppins';
+    color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
+    line-height:1.05;
+  }
+
+  .povcheck-token-list{
+    list-style:none;
+    padding:0;
+    margin:0;
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    align-items:center;
+  }
+  .povcheck-token-pill{
+    display:inline-flex;
+    gap:8px;
+    align-items:center;
+    padding:6px 10px;
+    border-radius:999px;
+    border:1px solid color-mix(in srgb,var(--primary) 14%, transparent);
+    background:color-mix(in srgb,var(--surface) 92%, #02070d 8%);
+    font-family:'Poppins';
+    font-weight:600;
+    letter-spacing:.01em;
+  }
+  .povcheck-token-count{
+    font-weight:700;
+    color:var(--text-muted);
+    font-size:.92rem;
+  }
+  .povcheck-token-empty{
+    color:var(--text-muted);
+    font-size:.95rem;
+  }
+
+  .povcheck-details{
+    border-radius:16px;
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    background:color-mix(in srgb,var(--surface) 94%, #03080f 6%);
+    padding:12px 14px;
+    margin:2px 0 0;
+  }
+  .povcheck-details > summary{
+    cursor:pointer;
+    list-style:none;
+    font-family:'Poppins';
+    font-weight:600;
+    letter-spacing:.01em;
+    color:color-mix(in srgb,var(--text-light) 92%, #ffffff 8%);
+  }
+  .povcheck-details > summary::-webkit-details-marker{
+    display:none;
+  }
+  .povcheck-details > summary::before{
+    content:"▸";
+    display:inline-block;
+    width:1em;
+    margin-right:6px;
+    color:color-mix(in srgb,var(--primary) 78%, #ffffff 22%);
+    transition:transform .2s ease;
+  }
+  .povcheck-details[open] > summary::before{
+    transform:rotate(90deg);
+  }
+  .povcheck-pronoun-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+    gap:12px;
+    margin-top:12px;
+  }
+  .povcheck-pronoun-col{
+    border-radius:14px;
+    border:1px solid color-mix(in srgb,var(--primary) 16%, transparent);
+    background:color-mix(in srgb,var(--surface) 96%, #02070d 4%);
+    padding:12px 12px 10px;
+    display:grid;
+    gap:6px;
+  }
+  .povcheck-pronoun-col h3{
+    margin:0;
+    font-size:1rem;
+    letter-spacing:.01em;
+  }
+  .povcheck-pronoun-col p{
+    margin:0;
+    color:var(--text-muted);
+    font-size:.94rem;
+    line-height:1.6;
+  }
+  .povcheck-pronoun-col code{
+    font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size:.92rem;
+    color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
+    word-break:break-word;
+  }
+  .povcheck-pronoun-note{
+    color:var(--text-muted);
+    font-size:.92rem;
+  }
+}

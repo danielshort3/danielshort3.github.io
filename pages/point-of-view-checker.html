@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <base href="/">
+  <title>Point of View Checker | Daniel Short</title>
+  <link rel="canonical" href="https://danielshort.me/tools/point-of-view-checker">
+  <meta name="description" content="Paste text to detect first-person, second-person, and third-person pronouns. Runs locally in your browser.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta property="og:title" content="Point of View Checker | Daniel Short">
+  <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
+  <meta property="og:description" content="Check whether your draft uses first person, second person, or third person by scanning common pronouns and contractions locally.">
+  <meta property="og:url" content="https://danielshort.me/tools/point-of-view-checker">
+  <meta property="og:image" content="https://danielshort.me/img/hero/head.jpg">
+  <meta property="og:image:alt" content="Portrait photo of Daniel Short">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@danielshort3">
+  <meta name="theme-color" content="#0D1117">
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
+  <link rel="preload" as="image" href="img/ui/logo-64.png" imagesrcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" imagesizes="64px" fetchpriority="high">
+  <link rel="preload" as="font" href="css/fonts/Inter-Latin.woff2" type="font/woff2" crossorigin>
+  <link rel="preload" as="font" href="css/fonts/Poppins-500-Latin.woff2" type="font/woff2" crossorigin>
+  <link rel="preload" as="font" href="css/fonts/Poppins-600-Latin.woff2" type="font/woff2" crossorigin>
+  <script>
+    try {
+      if (document.documentElement.classList) {
+        document.documentElement.classList.remove("no-js");
+      } else {
+        document.documentElement.className = (document.documentElement.className || "").replace(/\bno-js\b/, "").trim();
+      }
+    } catch (_) {}
+  </script>
+</head>
+<body data-page="point-of-view-checker" class="povcheck-page">
+  <a href="#main" class="skip-link">Skip to main content</a>
+  <header id="combined-header-nav"></header>
+
+  <section class="povcheck-top-panel">
+    <div class="wrapper povcheck-top-inner">
+      <p class="hero-eyebrow">Labs</p>
+      <h1>Point of View Checker</h1>
+      <p class="povcheck-top-lead">Paste any draft to detect first-person, second-person, and third-person pronouns. Everything runs locally in your browser.</p>
+      <div class="povcheck-steps">
+        <div class="povcheck-step">
+          <span class="povcheck-step-number">1</span>
+          <div>
+            <h3>Paste text</h3>
+            <p>Add a paragraph, email, or article draft to scan.</p>
+          </div>
+        </div>
+        <div class="povcheck-step">
+          <span class="povcheck-step-number">2</span>
+          <div>
+            <h3>Detect pronouns</h3>
+            <p>Counts common pronouns and contractions (I’m, you’re, they’ve, etc.).</p>
+          </div>
+        </div>
+        <div class="povcheck-step">
+          <span class="povcheck-step-number">3</span>
+          <div>
+            <h3>Spot mixed POV</h3>
+            <p>Flags when multiple POVs appear so you can tighten consistency.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main id="main">
+    <section class="surface-band povcheck-section">
+      <div class="wrapper">
+        <div class="povcheck-card povcheck-input-card">
+          <h2>Analyze text</h2>
+          <p class="povcheck-subtitle">Counts common English personal pronouns. Use the toggle to include or ignore neutral third-person.</p>
+          <form id="povcheck-form" class="povcheck-form" novalidate>
+            <label class="povcheck-label" for="povcheck-text">Text to analyze</label>
+            <textarea id="povcheck-text" class="povcheck-textarea" name="text" placeholder="I think you will find the report useful.&#10;&#10;They reviewed the data and said it looks consistent, but I still recommend double-checking." required></textarea>
+            <div class="povcheck-controls">
+              <label class="povcheck-option">
+                <input id="povcheck-include-it" type="checkbox" checked>
+                <span>Include neutral third-person (it/its/itself).</span>
+              </label>
+              <div class="povcheck-actions">
+                <button type="submit" class="btn-primary">Check</button>
+                <button type="button" id="povcheck-clear" class="btn-ghost">Clear</button>
+              </div>
+            </div>
+            <p class="povcheck-note">Processing happens locally in your browser, with no uploads and no tracking.</p>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section class="surface-band povcheck-section">
+      <div class="wrapper">
+        <div class="povcheck-card povcheck-results-card" aria-live="polite">
+          <div class="povcheck-results-header">
+            <h2>Results</h2>
+            <p id="povcheck-summary" class="povcheck-summary">Paste text above and click Check.</p>
+          </div>
+
+          <div class="povcheck-stats" role="list" aria-label="Point of view results">
+            <div class="povcheck-stat" role="listitem" aria-label="First-person pronouns">
+              <div class="povcheck-stat-top">
+                <h3>First person</h3>
+                <span id="povcheck-first-badge" class="povcheck-badge povcheck-badge-muted">Not found</span>
+              </div>
+              <p id="povcheck-first-count" class="povcheck-count">0</p>
+              <ul id="povcheck-first-list" class="povcheck-token-list" aria-label="First-person tokens">
+                <li class="povcheck-token-empty">Waiting for input.</li>
+              </ul>
+            </div>
+
+            <div class="povcheck-stat" role="listitem" aria-label="Second-person pronouns">
+              <div class="povcheck-stat-top">
+                <h3>Second person</h3>
+                <span id="povcheck-second-badge" class="povcheck-badge povcheck-badge-muted">Not found</span>
+              </div>
+              <p id="povcheck-second-count" class="povcheck-count">0</p>
+              <ul id="povcheck-second-list" class="povcheck-token-list" aria-label="Second-person tokens">
+                <li class="povcheck-token-empty">Waiting for input.</li>
+              </ul>
+            </div>
+
+            <div class="povcheck-stat" role="listitem" aria-label="Third-person pronouns">
+              <div class="povcheck-stat-top">
+                <h3>Third person</h3>
+                <span id="povcheck-third-badge" class="povcheck-badge povcheck-badge-muted">Not found</span>
+              </div>
+              <p id="povcheck-third-count" class="povcheck-count">0</p>
+              <ul id="povcheck-third-list" class="povcheck-token-list" aria-label="Third-person tokens">
+                <li class="povcheck-token-empty">Waiting for input.</li>
+              </ul>
+            </div>
+          </div>
+
+          <details class="povcheck-details">
+            <summary>Pronouns counted</summary>
+            <div class="povcheck-pronoun-grid" role="group" aria-label="Pronouns included in the scan">
+              <div class="povcheck-pronoun-col">
+                <h3>First person</h3>
+                <p><code>i, me, my, mine, myself, we, us, our, ours, ourselves, i&#39;m, i&#39;d, i&#39;ll, i&#39;ve, we&#39;re, we&#39;d, we&#39;ll, we&#39;ve</code></p>
+              </div>
+              <div class="povcheck-pronoun-col">
+                <h3>Second person</h3>
+                <p><code>you, your, yours, yourself, yourselves, you&#39;re, you&#39;d, you&#39;ll, you&#39;ve, y&#39;all</code></p>
+              </div>
+              <div class="povcheck-pronoun-col">
+                <h3>Third person</h3>
+                <p><code>he, him, his, himself, he&#39;s, he&#39;d, he&#39;ll, she, her, hers, herself, she&#39;s, she&#39;d, she&#39;ll, they, them, their, theirs, themself, themselves, they&#39;re, they&#39;d, they&#39;ll, they&#39;ve</code></p>
+                <p class="povcheck-pronoun-note">Optionally: <code>it, its, itself, it&#39;s</code></p>
+              </div>
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <nav class="privacy-links" aria-label="Privacy shortcuts">
+      <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
+      <a href="#" class="pcz-link" onclick="window.Privacy && window.Privacy.open('doNotSell'); return false;">Do Not Sell/Share My Personal Information</a>
+    </nav>
+  </footer>
+
+  <script defer src="js/tools/point-of-view-checker.js"></script>
+  <script defer src="js/common/common.js"></script>
+  <script defer src="js/navigation/navigation.js"></script>
+  <script defer src="js/animations/animations.js"></script>
+  <script src="js/privacy/config.js"></script>
+  <script defer src="js/privacy/consent_manager.js"></script>
+</body>
+</html>
