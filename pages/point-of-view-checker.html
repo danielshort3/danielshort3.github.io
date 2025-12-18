@@ -83,6 +83,9 @@
           <form id="povcheck-form" class="povcheck-form" novalidate>
             <label class="povcheck-label" for="povcheck-text">Text to analyze</label>
             <textarea id="povcheck-text" class="povcheck-textarea" name="text" placeholder="I was sure I'd finish my draft today, but I'm revising it now. I've tracked what changed, and I'll share my notes, because we've learned what works for our audience. We're focusing on clarity, and we shared it among ourselves to keep us aligned; we'll adjust if needed, but we know the results are ours to own. It helped me clarify the structure, and the final decision is mine, so I remind myself to stay consistent.&#10;&#10;You said you're ready, and you'll decide what you want next. If you'd like, you've got options: share your outline, keep yours private, or ask yourselves what matters most. Before you publish, remind yourself why you're writing; y'all can compare your versions and see what your readers prefer.&#10;&#10;He told him he'd review the numbers, and he'll update his summary when he's done. She thinks she'll adjust her tone; the style is hers, and she reminds herself to stay consistent.&#10;&#10;They said they're shipping tomorrow, and they've already reminded themselves to proofread. They'd rather wait, but they'll ship anyway. Their editor thanked them for their work, and the final copy is theirs; sometimes they remind themself to cut filler.&#10;&#10;It isn't perfect, but it's readable, and it keeps its promise. If it fails, it corrects itself." required></textarea>
+            <label class="povcheck-label" for="povcheck-third-references">Third-person references (optional)</label>
+            <textarea id="povcheck-third-references" class="povcheck-textarea povcheck-textarea-compact" name="thirdReferences" placeholder="Visit Grand Junction&#10;Acme Corporation&#10;The marketing team"></textarea>
+            <p class="povcheck-help">One phrase per line. Matches include possessives (e.g., "Visit Grand Junction's").</p>
             <div class="povcheck-controls">
               <label class="povcheck-option">
                 <input id="povcheck-include-it" type="checkbox" checked>
@@ -130,7 +133,7 @@
               </ul>
             </div>
 
-            <div class="povcheck-stat" role="listitem" aria-label="Third-person pronouns">
+            <div class="povcheck-stat" role="listitem" aria-label="Third-person references">
               <div class="povcheck-stat-top">
                 <h3>Third person</h3>
                 <span id="povcheck-third-badge" class="povcheck-badge povcheck-badge-muted">Not found</span>
@@ -157,6 +160,7 @@
                 <h3>Third person</h3>
                 <p><code>he, him, his, himself, he&#39;s, he&#39;d, he&#39;ll, she, her, hers, herself, she&#39;s, she&#39;d, she&#39;ll, they, them, their, theirs, themself, themselves, they&#39;re, they&#39;d, they&#39;ll, they&#39;ve</code></p>
                 <p class="povcheck-pronoun-note">Optionally: <code>it, its, itself, it&#39;s</code></p>
+                <p class="povcheck-pronoun-note">Plus any custom third-person references you enter above (including possessive <code>&#39;s</code>).</p>
               </div>
             </div>
           </details>

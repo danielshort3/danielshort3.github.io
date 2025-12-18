@@ -6,6 +6,7 @@
   const form = $('#povcheck-form');
   const textInput = $('#povcheck-text');
   const includeItToggle = $('#povcheck-include-it');
+  const thirdReferencesInput = $('#povcheck-third-references');
   const summaryEl = $('#povcheck-summary');
   const clearBtn = $('#povcheck-clear');
 
@@ -28,9 +29,67 @@
     .replace(/[\u2018\u2019\u201B\uFF07]/g, "'")
     .replace(/\u00A0/g, ' ');
 
+  const collapseWhitespace = (value) => String(value || '')
+    .trim()
+    .replace(/\s+/g, ' ');
+
+  const escapeRegExp = (value) => String(value || '')
+    .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
   const extractTokens = (text) => {
     const normalized = normalizeText(text).toLowerCase();
     return normalized.match(/[a-z]+(?:'[a-z]+)*/g) || [];
+  };
+
+  const parseThirdReferences = () => {
+    if (!thirdReferencesInput) return [];
+    const rawLines = (thirdReferencesInput.value || '').split(/\r?\n/);
+    const seen = new Set();
+    const phrases = [];
+
+    rawLines.forEach((line) => {
+      const normalized = collapseWhitespace(normalizeText(line)).toLowerCase();
+      if (!normalized) return;
+      if (seen.has(normalized)) return;
+      seen.add(normalized);
+      phrases.push(normalized);
+    });
+
+    return phrases;
+  };
+
+  const buildThirdReferenceRegex = (phrase) => {
+    const base = collapseWhitespace(phrase);
+    if (!base) return null;
+
+    const endsWithPossessive = /'s$/.test(base) || /'$/.test(base);
+    const body = base
+      .split(' ')
+      .map(escapeRegExp)
+      .join('\\s+');
+    const possessive = endsWithPossessive ? '' : "(?:'s)?";
+    return new RegExp(`\\b${body}${possessive}\\b`, 'g');
+  };
+
+  const countThirdReferences = (text, phrases) => {
+    const normalizedText = normalizeText(text).toLowerCase();
+    const counts = new Map();
+    let total = 0;
+
+    phrases.forEach((phrase) => {
+      const rx = buildThirdReferenceRegex(phrase);
+      if (!rx) return;
+      rx.lastIndex = 0;
+      let match;
+      while ((match = rx.exec(normalizedText)) !== null) {
+        const token = collapseWhitespace(match[0]);
+        counts.set(token, (counts.get(token) || 0) + 1);
+        total += 1;
+        if (match.index === rx.lastIndex) rx.lastIndex += 1;
+      }
+    });
+
+    return { counts, total };
   };
 
   const sortTokenCounts = (counts) => [...counts.entries()].sort((a, b) => {
@@ -111,16 +170,16 @@
     };
   };
 
-  const renderSummary = ({ firstTotal, secondTotal, thirdTotal, tokenCount }) => {
+  const renderSummary = ({ firstTotal, secondTotal, thirdTotal, hasText }) => {
     const total = firstTotal + secondTotal + thirdTotal;
 
-    if (!tokenCount) {
+    if (!hasText) {
       summaryEl.textContent = 'Paste text above and click Check.';
       return;
     }
 
     if (!total) {
-      summaryEl.textContent = 'No personal pronouns detected in this text.';
+      summaryEl.textContent = 'No pronouns or third-person references detected in this text.';
       return;
     }
 
@@ -137,7 +196,7 @@
     const dominant = sorted[0]?.count ? sorted[0].label : '';
 
     const pieces = [
-      `Total pronouns: <strong>${total.toLocaleString('en-US')}</strong>.`,
+      `Total matches: <strong>${total.toLocaleString('en-US')}</strong>.`,
       `Detected: <strong>${detected.join(', ')}</strong>.`,
       dominant ? `Dominant POV: <strong>${dominant}</strong>.` : ''
     ].filter(Boolean);
@@ -164,6 +223,7 @@
 
   const runAnalysis = () => {
     const { text } = getEffectiveInput();
+    const hasText = Boolean(String(text || '').trim());
     const tokens = extractTokens(text);
     const includeNeutral = includeItToggle ? includeItToggle.checked : true;
     const thirdSet = buildThirdSet(includeNeutral);
@@ -171,6 +231,15 @@
     const first = buildCounts(tokens, FIRST_PERSON);
     const second = buildCounts(tokens, SECOND_PERSON);
     const third = buildCounts(tokens, thirdSet);
+
+    const thirdRefs = parseThirdReferences();
+    if (thirdRefs.length) {
+      const refs = countThirdReferences(text, thirdRefs);
+      refs.counts.forEach((count, key) => {
+        third.counts.set(key, (third.counts.get(key) || 0) + count);
+      });
+      third.total += refs.total;
+    }
 
     firstCount.textContent = first.total.toLocaleString('en-US');
     secondCount.textContent = second.total.toLocaleString('en-US');
@@ -188,7 +257,7 @@
       firstTotal: first.total,
       secondTotal: second.total,
       thirdTotal: third.total,
-      tokenCount: tokens.length
+      hasText
     });
 
     hasRun = true;
