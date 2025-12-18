@@ -100,6 +100,17 @@
     return new Set([...THIRD_PERSON_BASE, ...THIRD_PERSON_NEUTRAL]);
   };
 
+  let hasRun = false;
+
+  const getEffectiveInput = () => {
+    const raw = textInput.value || '';
+    const hasUser = Boolean(raw.trim());
+    return {
+      text: hasUser ? raw : (textInput.placeholder || ''),
+      hasUser
+    };
+  };
+
   const renderSummary = ({ firstTotal, secondTotal, thirdTotal, tokenCount }) => {
     const total = firstTotal + secondTotal + thirdTotal;
 
@@ -138,6 +149,7 @@
   };
 
   const resetUI = () => {
+    hasRun = false;
     [firstCount, secondCount, thirdCount].forEach((el) => { el.textContent = '0'; });
     [firstBadge, secondBadge, thirdBadge].forEach((el) => {
       el.textContent = 'Not found';
@@ -151,7 +163,8 @@
   };
 
   const runAnalysis = () => {
-    const tokens = extractTokens(textInput.value);
+    const { text } = getEffectiveInput();
+    const tokens = extractTokens(text);
     const includeNeutral = includeItToggle ? includeItToggle.checked : true;
     const thirdSet = buildThirdSet(includeNeutral);
 
@@ -177,6 +190,8 @@
       thirdTotal: third.total,
       tokenCount: tokens.length
     });
+
+    hasRun = true;
   };
 
   form.addEventListener('submit', (event) => {
@@ -185,7 +200,7 @@
   });
 
   includeItToggle?.addEventListener('change', () => {
-    if (!extractTokens(textInput.value).length) return;
+    if (!hasRun) return;
     runAnalysis();
   });
 
