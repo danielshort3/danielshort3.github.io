@@ -176,10 +176,13 @@
     grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
     gap:clamp(12px,2vw,16px);
     margin-top:4px;
+    align-items:stretch;
   }
   .povcheck-stat{
-    display:grid;
+    display:flex;
+    flex-direction:column;
     gap:10px;
+    height:clamp(360px, 52vh, 540px);
     padding:14px 14px 16px;
     border-radius:16px;
     border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
@@ -233,10 +236,19 @@
     list-style:none;
     padding:0;
     margin:0;
-    display:flex;
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
     gap:8px;
-    flex-direction:column;
-    align-items:stretch;
+    align-content:start;
+    flex:1 1 auto;
+    min-height:0;
+    overflow:auto;
+    padding-right:4px;
+  }
+  @media (max-width: 768px){
+    .povcheck-token-list{
+      grid-template-columns:1fr;
+    }
   }
   .povcheck-token-pill{
     display:flex;
@@ -265,8 +277,76 @@
     white-space:nowrap;
   }
   .povcheck-token-empty{
+    grid-column:1 / -1;
     color:var(--text-muted);
     font-size:.95rem;
+  }
+
+  .povcheck-output-header{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-top:10px;
+  }
+  .povcheck-output-header h3{
+    margin:0;
+    font-size:1.05rem;
+    letter-spacing:.01em;
+  }
+  .povcheck-legend{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    flex-wrap:wrap;
+  }
+  .povcheck-legend-pill{
+    font-family:'Poppins';
+    font-weight:600;
+    letter-spacing:.01em;
+    font-size:.9rem;
+  }
+
+  .povcheck-output{
+    border-radius:16px;
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    background:color-mix(in srgb,var(--surface) 94%, #02070d 6%);
+    padding:18px 18px;
+    min-height:240px;
+    white-space:pre-wrap;
+    word-break:break-word;
+    line-height:1.75;
+  }
+  .povcheck-empty{
+    margin:0;
+    color:var(--text-muted);
+    font-size:.98rem;
+  }
+
+  .povcheck-mark{
+    display:inline;
+    padding:0 4px;
+    border-radius:6px;
+    border:1px solid transparent;
+    background:transparent;
+    box-decoration-break:clone;
+    -webkit-box-decoration-break:clone;
+  }
+  .povcheck-mark-first{
+    background:color-mix(in srgb,var(--primary) 22%, transparent);
+    border-color:color-mix(in srgb,var(--primary) 46%, transparent);
+    color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
+  }
+  .povcheck-mark-second{
+    background:color-mix(in srgb,var(--warning) 22%, transparent);
+    border-color:color-mix(in srgb,var(--warning) 50%, transparent);
+    color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
+  }
+  .povcheck-mark-third{
+    background:color-mix(in srgb,var(--success) 22%, transparent);
+    border-color:color-mix(in srgb,var(--success) 50%, transparent);
+    color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
   }
 
   .povcheck-details{
