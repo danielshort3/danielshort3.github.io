@@ -180,16 +180,33 @@
     };
 
     const smoothScrollToTarget = (target) => {
-      if (!target || typeof target.scrollIntoView !== 'function') return;
-      let settleTimer = null;
+      if (!target) return;
+      const startTop = window.scrollY || window.pageYOffset || 0;
+      const navOffset = typeof window.getNavOffset === 'function' ? window.getNavOffset() : 0;
+      let marginTop = 0;
+      try {
+        marginTop = parseFloat(window.getComputedStyle(target).scrollMarginTop || '0') || 0;
+      } catch {}
+      const targetTop = target.getBoundingClientRect().top + startTop - navOffset - marginTop;
+      const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+      const clampedTop = Math.min(Math.max(0, targetTop), maxScroll);
+      const distance = clampedTop - startTop;
+      if (Math.abs(distance) < 1) return;
+
+      let rafId = null;
+      let startTime = null;
       let cleaned = false;
-      let hasScrolled = false;
+      const duration = Math.min(1200, Math.max(260, Math.abs(distance) * 0.6));
+      const ease = (t) => (
+        t < 0.5
+          ? 2 * t * t
+          : 1 - Math.pow(-2 * t + 2, 2) / 2
+      );
 
       const cleanup = () => {
         if (cleaned) return;
         cleaned = true;
-        if (settleTimer) clearTimeout(settleTimer);
-        window.removeEventListener('scroll', onScroll);
+        if (rafId) cancelAnimationFrame(rafId);
         window.removeEventListener('wheel', cancel);
         window.removeEventListener('touchstart', cancel);
         window.removeEventListener('keydown', onKeydown);
@@ -197,9 +214,6 @@
 
       const cancel = () => {
         cleanup();
-        try {
-          window.scrollTo({ top: window.scrollY || window.pageYOffset || 0, behavior: 'auto' });
-        } catch {}
       };
 
       const onKeydown = (event) => {
@@ -210,28 +224,23 @@
         }
       };
 
-      const onScroll = () => {
-        hasScrolled = true;
-        if (settleTimer) clearTimeout(settleTimer);
-        settleTimer = setTimeout(cleanup, 140);
+      const step = (now) => {
+        if (cleaned) return;
+        if (startTime === null) startTime = now;
+        const progress = Math.min(1, (now - startTime) / duration);
+        const nextTop = startTop + distance * ease(progress);
+        window.scrollTo(0, nextTop);
+        if (progress < 1) {
+          rafId = requestAnimationFrame(step);
+        } else {
+          cleanup();
+        }
       };
 
-      window.addEventListener('scroll', onScroll, { passive: true });
       window.addEventListener('wheel', cancel, { passive: true });
       window.addEventListener('touchstart', cancel, { passive: true });
       window.addEventListener('keydown', onKeydown);
-
-      try {
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } catch {
-        cleanup();
-        target.scrollIntoView();
-        return;
-      }
-
-      setTimeout(() => {
-        if (!hasScrolled) cleanup();
-      }, 200);
+      rafId = requestAnimationFrame(step);
     };
 
     links.forEach((link) => {
@@ -383,13 +392,11 @@
       const doc = document.documentElement;
       const scrollTop = window.scrollY || window.pageYOffset || 0;
       const atBottom = scrollTop + viewportHeight >= (doc.scrollHeight - 2);
-      if (!nextId && atBottom) {
-        const lastItem = items[items.length - 1];
-        if (lastItem) {
-          const rect = lastItem.target.getBoundingClientRect();
-          const visible = Math.max(0, Math.min(rect.bottom, bottomLimit) - Math.max(rect.top, topLimit));
-          if (visible > 0) nextId = lastItem.id;
-        }
+      const lastItem = items[items.length - 1];
+      if (lastItem && atBottom) {
+        const rect = lastItem.target.getBoundingClientRect();
+        const visible = Math.max(0, Math.min(rect.bottom, bottomLimit) - Math.max(rect.top, topLimit));
+        if (visible > 0) nextId = lastItem.id;
       }
 
       if (nextId === activeId) return;
