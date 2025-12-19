@@ -179,6 +179,61 @@
       }
     };
 
+    const smoothScrollToTarget = (target) => {
+      if (!target || typeof target.scrollIntoView !== 'function') return;
+      let settleTimer = null;
+      let cleaned = false;
+      let hasScrolled = false;
+
+      const cleanup = () => {
+        if (cleaned) return;
+        cleaned = true;
+        if (settleTimer) clearTimeout(settleTimer);
+        window.removeEventListener('scroll', onScroll);
+        window.removeEventListener('wheel', cancel);
+        window.removeEventListener('touchstart', cancel);
+        window.removeEventListener('keydown', onKeydown);
+      };
+
+      const cancel = () => {
+        cleanup();
+        try {
+          window.scrollTo({ top: window.scrollY || window.pageYOffset || 0, behavior: 'auto' });
+        } catch {}
+      };
+
+      const onKeydown = (event) => {
+        const key = event?.key;
+        if (!key) return;
+        if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(key)) {
+          cancel();
+        }
+      };
+
+      const onScroll = () => {
+        hasScrolled = true;
+        if (settleTimer) clearTimeout(settleTimer);
+        settleTimer = setTimeout(cleanup, 140);
+      };
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('wheel', cancel, { passive: true });
+      window.addEventListener('touchstart', cancel, { passive: true });
+      window.addEventListener('keydown', onKeydown);
+
+      try {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch {
+        cleanup();
+        target.scrollIntoView();
+        return;
+      }
+
+      setTimeout(() => {
+        if (!hasScrolled) cleanup();
+      }, 200);
+    };
+
     links.forEach((link) => {
       if (link.dataset.smoothBound === 'yes') return;
       link.dataset.smoothBound = 'yes';
@@ -194,11 +249,7 @@
         if (!target) return;
 
         evt.preventDefault();
-        try {
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } catch {
-          target.scrollIntoView();
-        }
+        smoothScrollToTarget(target);
         try {
           history.pushState(null, '', href);
         } catch {}
