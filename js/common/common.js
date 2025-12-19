@@ -247,24 +247,72 @@
       });
     };
 
+    const blurAfterPointer = (link) => {
+      requestAnimationFrame(() => {
+        if (document.activeElement === link) link.blur();
+      });
+    };
+
+    const bindPointerBlur = (link) => {
+      if (link.dataset.jumpBlur === 'yes') return;
+      link.dataset.jumpBlur = 'yes';
+      if ('PointerEvent' in window) {
+        link.addEventListener('pointerup', (event) => {
+          const type = event?.pointerType;
+          if (type && !['mouse', 'touch', 'pen'].includes(type)) return;
+          blurAfterPointer(link);
+        });
+      } else {
+        link.addEventListener('mouseup', (event) => {
+          if (event && event.button && event.button !== 0) return;
+          blurAfterPointer(link);
+        });
+        link.addEventListener('touchend', () => blurAfterPointer(link), { passive: true });
+      }
+    };
+
+    items.forEach((item) => bindPointerBlur(item.link));
+
     const update = () => {
       ticking = false;
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
       const navOffset = getNavOffset();
-      const topLimit = Math.min(Math.max(0, navOffset), window.innerHeight);
-      const bottomLimit = window.innerHeight;
-      let best = null;
-      let bestVisible = 0;
+      const topLimit = Math.min(Math.max(0, navOffset), viewportHeight);
+      const bottomLimit = viewportHeight;
+      const focusLine = Math.min(bottomLimit - 1, Math.max(0, navOffset + 24));
 
+      let lineMatch = null;
       items.forEach((item) => {
         const rect = item.target.getBoundingClientRect();
-        const visible = Math.max(0, Math.min(rect.bottom, bottomLimit) - Math.max(rect.top, topLimit));
-        if (visible > bestVisible) {
-          bestVisible = visible;
-          best = item;
+        if (rect.top <= focusLine && rect.bottom >= focusLine) {
+          lineMatch = item;
         }
       });
 
-      const nextId = best && bestVisible > 0 ? best.id : null;
+      let nextId = lineMatch ? lineMatch.id : null;
+      const doc = document.documentElement;
+      const scrollTop = window.scrollY || window.pageYOffset || 0;
+      const atBottom = viewportHeight > 0
+        ? scrollTop + viewportHeight >= (doc.scrollHeight - 2)
+        : false;
+
+      if (!nextId && atBottom) {
+        let best = null;
+        let bestVisible = 0;
+        items.forEach((item) => {
+          const rect = item.target.getBoundingClientRect();
+          const visible = Math.max(0, Math.min(rect.bottom, bottomLimit) - Math.max(rect.top, topLimit));
+          if (visible > bestVisible) {
+            bestVisible = visible;
+            best = item;
+          }
+        });
+        const minVisible = (bottomLimit - topLimit) * 0.15;
+        if (best && bestVisible >= minVisible) {
+          nextId = best.id;
+        }
+      }
+
       if (nextId === activeId) return;
       activeId = nextId;
       setActive(nextId);
