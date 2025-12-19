@@ -294,26 +294,24 @@
       const focusSpan = Math.max(0, bottomLimit - topLimit);
 
       let best = null;
-      let bestVisible = 0;
-      let bestRect = null;
+      let bestRatio = 0;
+      let bestDistance = Infinity;
 
       items.forEach((item) => {
         const rect = item.target.getBoundingClientRect();
         const visible = Math.max(0, Math.min(rect.bottom, bottomLimit) - Math.max(rect.top, topLimit));
-        if (visible > bestVisible) {
-          bestVisible = visible;
+        if (visible <= 0) return;
+        const denom = Math.min(rect.height || 0, focusSpan) || 1;
+        const ratio = visible / denom;
+        const distance = Math.abs(rect.top - topLimit);
+        if (ratio > bestRatio || (Math.abs(ratio - bestRatio) < 0.001 && distance < bestDistance)) {
+          bestRatio = ratio;
+          bestDistance = distance;
           best = item;
-          bestRect = rect;
         }
       });
 
-      let nextId = null;
-      if (best && bestRect && bestVisible > 0) {
-        const minVisible = Math.min(focusSpan * 0.18, bestRect.height * 0.35);
-        if (bestVisible >= minVisible) {
-          nextId = best.id;
-        }
-      }
+      let nextId = best ? best.id : null;
 
       const doc = document.documentElement;
       const scrollTop = window.scrollY || window.pageYOffset || 0;
