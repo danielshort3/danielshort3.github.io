@@ -69,4 +69,10 @@ html.no-js .reveal{
   }
   .back-to-top svg{width:22px;height:22px;color:currentColor}
   .back-to-top.show{opacity:1;transform:none;pointer-events:auto}
+
+  @media (hover:none) and (pointer:coarse), (max-width:768px){
+    body[data-page="home"] .back-to-top{
+      bottom:calc(18px + env(safe-area-inset-bottom, 0px) + 104px);
+    }
+  }
 }
