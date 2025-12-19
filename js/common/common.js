@@ -273,43 +273,57 @@
 
     items.forEach((item) => bindPointerBlur(item.link));
 
+    const clearPanelFocus = (event) => {
+      if (event?.pointerType && event.pointerType !== 'mouse') return;
+      const active = document.activeElement;
+      if (active && panel.contains(active)) active.blur();
+    };
+    panel.addEventListener('pointerleave', clearPanelFocus);
+    panel.addEventListener('mouseleave', clearPanelFocus);
+
     const update = () => {
       ticking = false;
       const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+      if (!viewportHeight) {
+        setActive(null);
+        return;
+      }
       const navOffset = getNavOffset();
       const topLimit = Math.min(Math.max(0, navOffset), viewportHeight);
       const bottomLimit = viewportHeight;
-      const focusLine = Math.min(bottomLimit - 1, Math.max(0, navOffset + 24));
+      const focusSpan = Math.max(0, bottomLimit - topLimit);
 
-      let lineMatch = null;
+      let best = null;
+      let bestVisible = 0;
+      let bestRect = null;
+
       items.forEach((item) => {
         const rect = item.target.getBoundingClientRect();
-        if (rect.top <= focusLine && rect.bottom >= focusLine) {
-          lineMatch = item;
+        const visible = Math.max(0, Math.min(rect.bottom, bottomLimit) - Math.max(rect.top, topLimit));
+        if (visible > bestVisible) {
+          bestVisible = visible;
+          best = item;
+          bestRect = rect;
         }
       });
 
-      let nextId = lineMatch ? lineMatch.id : null;
+      let nextId = null;
+      if (best && bestRect && bestVisible > 0) {
+        const minVisible = Math.min(focusSpan * 0.18, bestRect.height * 0.35);
+        if (bestVisible >= minVisible) {
+          nextId = best.id;
+        }
+      }
+
       const doc = document.documentElement;
       const scrollTop = window.scrollY || window.pageYOffset || 0;
-      const atBottom = viewportHeight > 0
-        ? scrollTop + viewportHeight >= (doc.scrollHeight - 2)
-        : false;
-
+      const atBottom = scrollTop + viewportHeight >= (doc.scrollHeight - 2);
       if (!nextId && atBottom) {
-        let best = null;
-        let bestVisible = 0;
-        items.forEach((item) => {
-          const rect = item.target.getBoundingClientRect();
+        const lastItem = items[items.length - 1];
+        if (lastItem) {
+          const rect = lastItem.target.getBoundingClientRect();
           const visible = Math.max(0, Math.min(rect.bottom, bottomLimit) - Math.max(rect.top, topLimit));
-          if (visible > bestVisible) {
-            bestVisible = visible;
-            best = item;
-          }
-        });
-        const minVisible = (bottomLimit - topLimit) * 0.15;
-        if (best && bestVisible >= minVisible) {
-          nextId = best.id;
+          if (visible > 0) nextId = lastItem.id;
         }
       }
 
