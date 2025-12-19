@@ -26,6 +26,7 @@
     if (isPage('home')) {
       initSkillPopups();
       initSmoothScrollLinks();
+      initJumpPanelSpy();
     }
   });
 
@@ -203,6 +204,83 @@
         } catch {}
       });
     });
+  }
+
+  function initJumpPanelSpy(){
+    if (!isPage('home')) return;
+    const panel = document.querySelector('.jump-panel');
+    if (!panel) return;
+    const links = $$('.jump-panel-link', panel);
+    if (!links.length) return;
+    const items = links.map((link) => {
+      const href = link.getAttribute('href') || '';
+      if (!href.startsWith('#') || href.length < 2) return null;
+      let id = href.slice(1);
+      try {
+        id = decodeURIComponent(id);
+      } catch {}
+      const target = document.getElementById(id);
+      if (!target) return null;
+      return { id, link, target };
+    }).filter(Boolean);
+    if (!items.length) return;
+
+    let activeId = null;
+    let ticking = false;
+
+    const getNavOffset = () => {
+      if (typeof window.getNavOffset === 'function') {
+        return window.getNavOffset();
+      }
+      return 72;
+    };
+
+    const setActive = (id) => {
+      items.forEach((item) => {
+        const isActive = item.id === id;
+        item.link.classList.toggle('is-active', isActive);
+        if (isActive) {
+          item.link.setAttribute('aria-current', 'location');
+        } else {
+          item.link.removeAttribute('aria-current');
+        }
+      });
+    };
+
+    const update = () => {
+      ticking = false;
+      const navOffset = getNavOffset();
+      const topLimit = Math.min(Math.max(0, navOffset), window.innerHeight);
+      const bottomLimit = window.innerHeight;
+      let best = null;
+      let bestVisible = 0;
+
+      items.forEach((item) => {
+        const rect = item.target.getBoundingClientRect();
+        const visible = Math.max(0, Math.min(rect.bottom, bottomLimit) - Math.max(rect.top, topLimit));
+        if (visible > bestVisible) {
+          bestVisible = visible;
+          best = item;
+        }
+      });
+
+      const nextId = best && bestVisible > 0 ? best.id : null;
+      if (nextId === activeId) return;
+      activeId = nextId;
+      setActive(nextId);
+    };
+
+    const requestUpdate = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(update);
+    };
+
+    requestUpdate();
+    window.addEventListener('scroll', requestUpdate, { passive: true });
+    window.addEventListener('resize', requestUpdate);
+    window.addEventListener('orientationchange', requestUpdate);
+    document.addEventListener('navheightchange', requestUpdate);
   }
 
   // ---- Global modal close handlers (X button and backdrop) ----
