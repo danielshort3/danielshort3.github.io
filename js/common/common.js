@@ -228,10 +228,6 @@
     let activeId = null;
     let ticking = false;
     let manualOverrideId = null;
-    let clickScrollArmed = false;
-    let clickScrollActive = false;
-    let clickScrollTimer = null;
-    let clickScrollArmTimer = null;
 
     const getNavOffset = () => {
       if (typeof window.getNavOffset === 'function') {
@@ -252,23 +248,6 @@
       });
     };
 
-    const armClickScroll = () => {
-      clickScrollArmed = true;
-      if (clickScrollArmTimer) clearTimeout(clickScrollArmTimer);
-      clickScrollArmTimer = setTimeout(() => {
-        clickScrollArmed = false;
-      }, 400);
-    };
-
-    const markClickScrollActive = () => {
-      clickScrollActive = true;
-      clickScrollArmed = false;
-      if (clickScrollTimer) clearTimeout(clickScrollTimer);
-      clickScrollTimer = setTimeout(() => {
-        clickScrollActive = false;
-      }, 180);
-    };
-
     const setManualActive = (item, event) => {
       if (!item) return;
       if (event && (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)) return;
@@ -276,7 +255,6 @@
       manualOverrideId = item.id;
       activeId = item.id;
       setActive(item.id);
-      armClickScroll();
     };
 
     const blurAfterPointer = (link) => {
@@ -377,14 +355,6 @@
     requestUpdate();
     const handleScroll = () => {
       if (manualOverrideId) {
-        if (clickScrollArmed) {
-          markClickScrollActive();
-          return;
-        }
-        if (clickScrollActive) {
-          markClickScrollActive();
-          return;
-        }
         manualOverrideId = null;
       }
       requestUpdate();
