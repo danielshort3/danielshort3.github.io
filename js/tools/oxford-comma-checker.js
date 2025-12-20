@@ -12,6 +12,9 @@
   const output = $('[data-oxford-output]');
   const clearBtn = $('[data-oxford-clear]');
   const conjInputs = $$('[data-oxford-conjunction]');
+  const presentColorInput = $('[data-oxford-color="present"]');
+  const absentColorInput = $('[data-oxford-color="absent"]');
+  const resetColorsBtn = $('[data-oxford-reset-colors]');
   let hasRun = false;
 
   if (!form || !input || !summary || !counts || !resultsList || !output) return;
@@ -23,6 +26,22 @@
     .replace(/>/g, '&gt;');
   const formatNumber = (value) => value.toLocaleString('en-US');
   const truncate = (value, max = 180) => (value.length <= max ? value : `${value.slice(0, max - 3)}...`);
+
+  const defaultColors = {
+    present: presentColorInput?.value || '',
+    absent: absentColorInput?.value || '',
+  };
+
+  const applyColorVars = () => {
+    if (presentColorInput?.value) {
+      document.body.style.setProperty('--oxford-present-color', presentColorInput.value);
+    }
+    if (absentColorInput?.value) {
+      document.body.style.setProperty('--oxford-absent-color', absentColorInput.value);
+    }
+  };
+
+  applyColorVars();
 
   const getTextForAnalysis = () => {
     const raw = input.value || '';
@@ -214,6 +233,17 @@
 
   conjInputs.forEach((item) => {
     item.addEventListener('change', maybeRerun);
+  });
+  presentColorInput?.addEventListener('input', applyColorVars);
+  absentColorInput?.addEventListener('input', applyColorVars);
+  resetColorsBtn?.addEventListener('click', () => {
+    if (presentColorInput && defaultColors.present) {
+      presentColorInput.value = defaultColors.present;
+    }
+    if (absentColorInput && defaultColors.absent) {
+      absentColorInput.value = defaultColors.absent;
+    }
+    applyColorVars();
   });
   clearBtn?.addEventListener('click', () => {
     input.value = '';
