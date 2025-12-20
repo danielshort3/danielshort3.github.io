@@ -10,6 +10,34 @@
   const run = fn=>typeof fn==='function'&&fn();
   const isPage = (...names)=>names.includes(document.body.dataset.page);
 
+  let jumpPanelScrollToken = 0;
+  let activeJumpPanelScrollToken = 0;
+  let jumpPanelScrollTimer = null;
+  const beginJumpPanelAutoScroll = (timeoutMs) => {
+    jumpPanelScrollToken += 1;
+    const token = jumpPanelScrollToken;
+    activeJumpPanelScrollToken = token;
+    if (jumpPanelScrollTimer) {
+      clearTimeout(jumpPanelScrollTimer);
+      jumpPanelScrollTimer = null;
+    }
+    if (typeof timeoutMs === 'number' && timeoutMs > 0) {
+      jumpPanelScrollTimer = setTimeout(() => {
+        if (activeJumpPanelScrollToken === token) activeJumpPanelScrollToken = 0;
+        jumpPanelScrollTimer = null;
+      }, timeoutMs);
+    }
+    return token;
+  };
+  const endJumpPanelAutoScroll = (token) => {
+    if (activeJumpPanelScrollToken === token) activeJumpPanelScrollToken = 0;
+    if (jumpPanelScrollTimer) {
+      clearTimeout(jumpPanelScrollTimer);
+      jumpPanelScrollTimer = null;
+    }
+  };
+  const isJumpPanelAutoScrolling = () => activeJumpPanelScrollToken !== 0;
+
   const loadedScripts = new Map();
   let portfolioBundle = null;
   let modalsPromise = null;
@@ -200,7 +228,7 @@
       }
     };
 
-    const smoothScrollToTarget = (target) => {
+    const smoothScrollToTarget = (target, options = {}) => {
       if (!target) return;
       const startTop = window.scrollY || window.pageYOffset || 0;
       const navOffset = typeof window.getNavOffset === 'function' ? window.getNavOffset() : 0;
@@ -214,6 +242,7 @@
       const distance = clampedTop - startTop;
       if (Math.abs(distance) < 1) return;
 
+      const jumpPanelToken = options.jumpPanel ? beginJumpPanelAutoScroll() : 0;
       let rafId = null;
       let startTime = null;
       let cleaned = false;
@@ -231,6 +260,7 @@
         window.removeEventListener('wheel', cancel);
         window.removeEventListener('touchstart', cancel);
         window.removeEventListener('keydown', onKeydown);
+        if (jumpPanelToken) endJumpPanelAutoScroll(jumpPanelToken);
       };
 
       const cancel = () => {
@@ -268,7 +298,6 @@
       if (link.dataset.smoothBound === 'yes') return;
       link.dataset.smoothBound = 'yes';
       on(link, 'click', (evt) => {
-        if (prefersReducedMotion()) return;
         if (evt && (evt.metaKey || evt.ctrlKey || evt.shiftKey || evt.altKey)) return;
         if (evt && typeof evt.button === 'number' && evt.button !== 0) return;
 
@@ -277,9 +306,14 @@
         const targetId = decodeURIComponent(href.slice(1));
         const target = document.getElementById(targetId);
         if (!target) return;
+        const isJumpPanelLink = Boolean(link.closest('.jump-panel'));
+        if (prefersReducedMotion()) {
+          if (isJumpPanelLink) beginJumpPanelAutoScroll(400);
+          return;
+        }
 
         evt.preventDefault();
-        smoothScrollToTarget(target);
+        smoothScrollToTarget(target, { jumpPanel: isJumpPanelLink });
         try {
           history.pushState(null, '', href);
         } catch {}
@@ -454,8 +488,11 @@
 
     requestUpdate();
     const handleScroll = () => {
-      clearPanelFocusOnScroll();
-      setPanelCondensed(true);
+      const autoScrolling = isJumpPanelAutoScrolling();
+      if (!autoScrolling) {
+        clearPanelFocusOnScroll();
+        setPanelCondensed(true);
+      }
       if (manualOverrideId) {
         manualOverrideId = null;
       }
