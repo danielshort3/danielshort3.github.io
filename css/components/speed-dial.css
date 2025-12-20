@@ -4,7 +4,7 @@
     position: fixed;
     right: calc(var(--space-20) + env(safe-area-inset-right));
     bottom: calc(var(--space-20) + env(safe-area-inset-bottom));
-    z-index: 1500;
+    z-index: 2600;
     display: inline-flex;
     align-items: center;
     --speed-dial-toggle-size: 56px;
@@ -96,21 +96,21 @@
   .speed-dial__action--direct {
     background: linear-gradient(
       135deg,
-      color-mix(in srgb, #45c3ff 90%, #ffffff 10%) 0%,
-      color-mix(in srgb, #1a8fe6 70%, #06131b 30%) 100%
+      color-mix(in srgb, var(--primary) 88%, #ffffff 12%) 0%,
+      color-mix(in srgb, var(--primary) 65%, #071219 35%) 100%
     );
-    color: #f5fbff;
-    border-color: color-mix(in srgb, #45c3ff 65%, transparent);
+    color: color-mix(in srgb, #ffffff 94%, var(--bg) 6%);
+    border-color: color-mix(in srgb, var(--primary) 55%, transparent);
   }
 
   .speed-dial__action--direct:hover {
     background: linear-gradient(
       135deg,
-      color-mix(in srgb, #5ad0ff 92%, #ffffff 8%) 0%,
-      color-mix(in srgb, #239df0 72%, #06131b 28%) 100%
+      color-mix(in srgb, var(--primary) 94%, #ffffff 6%) 0%,
+      color-mix(in srgb, var(--primary) 72%, #030b12 28%) 100%
     );
-    color: #ffffff;
-    border-color: color-mix(in srgb, #5ad0ff 72%, transparent);
+    color: color-mix(in srgb, #ffffff 96%, var(--bg) 4%);
+    border-color: color-mix(in srgb, var(--primary) 68%, transparent);
   }
 
   .speed-dial__toggle {
