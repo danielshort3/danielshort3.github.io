@@ -644,6 +644,11 @@
         setStatus('That email looks off. Try again?', 'error');
         return;
       }
+      if (typeof window.requestContactModal === 'function') {
+        setStatus('Opening the contact form…', 'info');
+        window.requestContactModal(payload);
+        return;
+      }
       setStatus('Opening the contact form…', 'info');
       persistDraft(payload);
       if (location.pathname.includes('/contact.html')) {

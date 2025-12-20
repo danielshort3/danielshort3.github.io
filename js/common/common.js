@@ -187,20 +187,27 @@
     return promise;
   };
 
-  const handleContactModalRequest = (event) => {
-    const trigger = event.target.closest('[data-contact-modal-link]');
-    if (!trigger) return;
-    const modal = document.getElementById(CONTACT_MODAL_ID);
-    if (modal && window.__contactModalReady) return;
-    event.preventDefault();
+  const applyContactPrefill = (payload) => {
+    if (!payload) return;
+    const nameField = document.getElementById('contact-name');
+    const emailField = document.getElementById('contact-email');
+    const messageField = document.getElementById('contact-message');
+    if (nameField && payload.name) nameField.value = payload.name;
+    if (emailField && payload.email) emailField.value = payload.email;
+    if (messageField && payload.message) messageField.value = payload.message;
+  };
+
+  const requestContactModal = (payload) => {
     storeContactOrigin();
-    const ensured = modal || ensureContactModal();
+    const ensured = document.getElementById(CONTACT_MODAL_ID) || ensureContactModal();
     if (!ensured) return;
     const open = () => {
       if (typeof window.openContactModal === 'function') {
         window.openContactModal();
+        applyContactPrefill(payload);
         return;
       }
+      applyContactPrefill(payload);
       try {
         if (location.hash !== `#${CONTACT_MODAL_ID}`) {
           location.hash = `#${CONTACT_MODAL_ID}`;
@@ -215,7 +222,15 @@
     }
   };
 
-  document.addEventListener('click', handleContactModalRequest);
+  window.requestContactModal = requestContactModal;
+
+  document.addEventListener('click', (event) => {
+    const trigger = event.target.closest('[data-contact-modal-link]');
+    if (!trigger) return;
+    event.preventDefault();
+    event.__contactHandled = true;
+    requestContactModal();
+  });
 
   function ensurePortfolioScripts(){
     if (portfolioBundle) return portfolioBundle;
