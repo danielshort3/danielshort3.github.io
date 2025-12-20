@@ -14,7 +14,6 @@
     initCertTicker();
     initScrollProgress();
     initHeroParallax();
-    initBackToTop();
   });
   function initReveal(){
     const io = new IntersectionObserver((ents,o)=>{
@@ -61,26 +60,6 @@
     onScroll();
     window.addEventListener('scroll', onScroll, { passive:true });
     window.addEventListener('resize', onScroll);
-  }
-
-  function initBackToTop(){
-    const btn = document.createElement('button');
-    btn.className = 'back-to-top';
-    btn.type = 'button';
-    btn.setAttribute('aria-label', 'Back to top');
-    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l-7 7m7-7l7 7"/></svg>';
-    document.body.appendChild(btn);
-    const update = () => {
-      const half = window.innerHeight * 0.5;
-      btn.classList.toggle('show', window.scrollY > half);
-    };
-    const scrollToTop = () => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-    btn.addEventListener('click', scrollToTop);
-    update();
-    window.addEventListener('scroll', update, { passive:true });
-    window.addEventListener('resize', update);
   }
 
   // Subtle ambient light following the mouse inside the hero
