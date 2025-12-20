@@ -9,7 +9,7 @@
     box-shadow:0 22px 48px rgba(0,0,0,.32);
   }
   .bgtool-hero .wrapper{
-    max-width:min(1100px, calc(var(--container-max) + 80px));
+    max-width:var(--container-max);
     display:grid;
     gap:clamp(1.2rem,2.4vw,1.8rem);
   }

@@ -9,7 +9,7 @@
     box-shadow:0 22px 48px rgba(0,0,0,.32);
   }
   .wordfreq-top-panel .wrapper{
-    max-width:min(1100px, calc(var(--container-max) + 80px));
+    max-width:var(--container-max);
     display:grid;
     gap:clamp(1.4rem,2.6vw,1.9rem);
   }
@@ -100,6 +100,7 @@
   }
 
   .wordfreq-textarea{
+    box-sizing:border-box;
     width:100%;
     min-height:320px;
     border-radius:16px;
