@@ -185,6 +185,31 @@
     }
   }
 
+  body[data-page="home"] .jump-panel.is-condensed,
+  body[data-page="home"] .jump-panel.is-condensed:hover,
+  body[data-page="home"] .jump-panel.is-condensed:focus-within{
+    width:var(--jump-collapsed);
+    border-color:color-mix(in srgb,var(--primary) 18%, transparent);
+    background:linear-gradient(160deg,
+      color-mix(in srgb,var(--surface) 94%, #000 6%) 0%,
+      color-mix(in srgb,var(--surface) 86%, #000 14%) 100%);
+  }
+
+  body[data-page="home"] .jump-panel.is-condensed .jump-panel-link,
+  body[data-page="home"] .jump-panel.is-condensed:hover .jump-panel-link,
+  body[data-page="home"] .jump-panel.is-condensed:focus-within .jump-panel-link{
+    justify-content:center;
+    gap:0;
+  }
+
+  body[data-page="home"] .jump-panel.is-condensed .jump-panel-text,
+  body[data-page="home"] .jump-panel.is-condensed:hover .jump-panel-text,
+  body[data-page="home"] .jump-panel.is-condensed:focus-within .jump-panel-text{
+    max-width:0;
+    opacity:0;
+    transform:translateX(6px);
+  }
+
   @media (prefers-reduced-motion: reduce){
     body[data-page="home"] .jump-panel,
     body[data-page="home"] .jump-panel-link,

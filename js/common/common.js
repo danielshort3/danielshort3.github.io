@@ -370,6 +370,11 @@
       }
     };
 
+    const setPanelCondensed = (condensed) => {
+      if (!shouldCondenseOnScroll()) return;
+      panel.classList.toggle('is-condensed', condensed);
+    };
+
     const clearPanelFocusOnScroll = () => {
       if (!shouldCondenseOnScroll()) return;
       const active = document.activeElement;
@@ -390,6 +395,8 @@
     };
     panel.addEventListener('pointerleave', clearPanelFocus);
     panel.addEventListener('mouseleave', clearPanelFocus);
+    panel.addEventListener('pointerdown', () => setPanelCondensed(false));
+    panel.addEventListener('focusin', () => setPanelCondensed(false));
 
     const update = () => {
       ticking = false;
@@ -448,14 +455,21 @@
     requestUpdate();
     const handleScroll = () => {
       clearPanelFocusOnScroll();
+      setPanelCondensed(true);
       if (manualOverrideId) {
         manualOverrideId = null;
       }
       requestUpdate();
     };
+    const handleResize = () => {
+      if (!shouldCondenseOnScroll()) {
+        panel.classList.remove('is-condensed');
+      }
+      requestUpdate();
+    };
     window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', requestUpdate);
-    window.addEventListener('orientationchange', requestUpdate);
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
     document.addEventListener('navheightchange', requestUpdate);
   }
 
