@@ -214,6 +214,10 @@
         }
       } catch {}
     };
+    if (window.__contactModalReady) {
+      open();
+      return;
+    }
     const scriptPromise = ensureContactScript();
     if (scriptPromise && typeof scriptPromise.then === 'function') {
       scriptPromise.then(open);
