@@ -72,6 +72,7 @@
 
   .textcompare-card{
     width:100%;
+    box-sizing:border-box;
     background:linear-gradient(150deg,
       color-mix(in srgb,var(--surface) 92%, #050b12 8%) 0%,
       color-mix(in srgb,var(--surface) 84%, #050b12 16%) 100%);
