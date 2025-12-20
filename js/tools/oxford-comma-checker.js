@@ -17,7 +17,7 @@
   const resetColorsBtn = $('[data-oxford-reset-colors]');
   let hasRun = false;
 
-  if (!form || !input || !summary || !counts || !resultsList || !output) return;
+  if (!form || !input || !summary || !counts || !output) return;
 
   const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const escapeHtml = (value) => value
@@ -121,6 +121,7 @@
   };
 
   const renderResults = (matches) => {
+    if (!resultsList) return;
     resultsList.innerHTML = '';
     if (!matches.length) {
       if (empty) {
@@ -175,7 +176,7 @@
       hasRun = false;
       summary.textContent = 'Paste text and click Check.';
       counts.innerHTML = '';
-      resultsList.innerHTML = '';
+      if (resultsList) resultsList.innerHTML = '';
       if (empty) {
         empty.hidden = false;
         empty.textContent = 'Waiting for input.';
@@ -188,7 +189,7 @@
       hasRun = true;
       summary.textContent = 'Select at least one conjunction to scan.';
       counts.innerHTML = '';
-      resultsList.innerHTML = '';
+      if (resultsList) resultsList.innerHTML = '';
       if (empty) {
         empty.hidden = false;
         empty.textContent = 'Choose "and", "or", or "nor" to scan lists.';
@@ -249,7 +250,7 @@
     input.value = '';
     hasRun = false;
     counts.innerHTML = '';
-    resultsList.innerHTML = '';
+    if (resultsList) resultsList.innerHTML = '';
     summary.textContent = 'Paste text and click Check.';
     if (empty) {
       empty.hidden = false;
