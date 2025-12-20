@@ -37,6 +37,55 @@
       config.defaultIndicator = config.indicator.textContent.trim() || '- Required';
     }
   });
+  const CONTACT_CONTEXT_KEY = 'contactOrigin';
+  const MAX_CONTEXT_AGE_MS = 15 * 60 * 1000;
+
+  const clearStoredContext = () => {
+    try { sessionStorage.removeItem(CONTACT_CONTEXT_KEY); } catch {}
+  };
+
+  const readStoredContext = () => {
+    try {
+      const raw = sessionStorage.getItem(CONTACT_CONTEXT_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return null;
+      const url = typeof parsed.url === 'string' ? parsed.url.trim() : '';
+      const title = typeof parsed.title === 'string' ? parsed.title.trim() : '';
+      const ts = Number(parsed.ts || 0);
+      if (!url && !title) {
+        clearStoredContext();
+        return null;
+      }
+      if (ts && Number.isFinite(ts) && Date.now() - ts > MAX_CONTEXT_AGE_MS) {
+        clearStoredContext();
+        return null;
+      }
+      return { url, title };
+    } catch {
+      clearStoredContext();
+      return null;
+    }
+  };
+
+  const getPageContext = () => {
+    const stored = readStoredContext();
+    if (stored) {
+      clearStoredContext();
+      return stored;
+    }
+    const url = (window.location && window.location.href) ? window.location.href.trim() : '';
+    const title = (document.title || '').trim();
+    return { url, title };
+  };
+
+  const appendPageContext = (message = '') => {
+    const context = getPageContext();
+    if (!context || (!context.url && !context.title)) return message;
+    const label = context.title ? `Page: ${context.title} - ${context.url}` : `Page: ${context.url}`;
+    if (message.includes(label)) return message;
+    return message ? `${message}\n\n${label}` : label;
+  };
 
   const focusables = () => content ? content.querySelectorAll('a,button,input,textarea,select,[tabindex]:not([tabindex="-1"])') : [];
   const trap = (e) => {
@@ -227,7 +276,7 @@
         const payload = {
           name: (formData.get('name') || '').toString().trim(),
           email: (formData.get('email') || '').toString().trim(),
-          message: (formData.get('message') || '').toString().trim(),
+          message: appendPageContext((formData.get('message') || '').toString().trim()),
           company: (formData.get('company') || '').toString().trim()
         };
         const res = await fetch(endpoint, {
