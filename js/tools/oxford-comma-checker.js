@@ -142,8 +142,9 @@
     let html = '';
     sorted.forEach((range) => {
       if (range.start < cursor) return;
+      const tone = range.status === 'present' ? 'present' : 'missing';
       html += escapeHtml(text.slice(cursor, range.start));
-      html += `<mark class="oxford-mark">${escapeHtml(text.slice(range.start, range.end))}</mark>`;
+      html += `<mark class="oxford-mark oxford-mark-${tone}">${escapeHtml(text.slice(range.start, range.end))}</mark>`;
       cursor = range.end;
     });
     html += escapeHtml(text.slice(cursor));
@@ -185,8 +186,13 @@
       summary.textContent = 'No list candidates detected. Try a longer sample.';
     }
     const onlyMissing = Boolean(onlyMissingToggle?.checked);
+    const highlights = matches.map((item) => ({
+      start: item.start,
+      end: item.end,
+      status: item.hasOxford ? 'present' : 'missing',
+    }));
     renderResults(matches, onlyMissing);
-    renderOutput(text, missing);
+    renderOutput(text, highlights);
   };
 
   form.addEventListener('submit', (event) => {
