@@ -207,11 +207,6 @@
     grid-template-columns:1fr;
     gap:16px;
   }
-  @media (min-width: 960px){
-    .oxford-results-grid{
-      grid-template-columns:minmax(0, 1.05fr) minmax(0, 0.95fr);
-    }
-  }
   .oxford-panel{
     display:grid;
     gap:14px;
