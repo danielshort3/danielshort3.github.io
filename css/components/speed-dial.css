@@ -93,6 +93,26 @@
     pointer-events: auto;
   }
 
+  .speed-dial__action--direct {
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, #45c3ff 90%, #ffffff 10%) 0%,
+      color-mix(in srgb, #1a8fe6 70%, #06131b 30%) 100%
+    );
+    color: #f5fbff;
+    border-color: color-mix(in srgb, #45c3ff 65%, transparent);
+  }
+
+  .speed-dial__action--direct:hover {
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, #5ad0ff 92%, #ffffff 8%) 0%,
+      color-mix(in srgb, #239df0 72%, #06131b 28%) 100%
+    );
+    color: #ffffff;
+    border-color: color-mix(in srgb, #5ad0ff 72%, transparent);
+  }
+
   .speed-dial__toggle {
     width: var(--speed-dial-toggle-size);
     height: var(--speed-dial-toggle-size);
