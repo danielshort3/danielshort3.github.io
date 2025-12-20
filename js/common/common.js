@@ -362,6 +362,20 @@
       }
     };
 
+    const shouldCondenseOnScroll = () => {
+      try {
+        return Boolean(window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse), (max-width: 768px)').matches);
+      } catch {
+        return true;
+      }
+    };
+
+    const clearPanelFocusOnScroll = () => {
+      if (!shouldCondenseOnScroll()) return;
+      const active = document.activeElement;
+      if (active && panel.contains(active)) active.blur();
+    };
+
     items.forEach((item) => {
       bindPointerBlur(item.link);
       if (item.link.dataset.jumpManual === 'yes') return;
@@ -433,6 +447,7 @@
 
     requestUpdate();
     const handleScroll = () => {
+      clearPanelFocusOnScroll();
       if (manualOverrideId) {
         manualOverrideId = null;
       }
