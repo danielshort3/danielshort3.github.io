@@ -10,15 +10,17 @@
     --speed-dial-toggle-size: 56px;
     --speed-dial-gap: var(--space-12);
     --speed-dial-label-room: 160px;
+    --speed-dial-join: 10px;
   }
 
   .speed-dial__tray {
     position: absolute;
-    right: var(--speed-dial-toggle-size);
+    right: calc(var(--speed-dial-toggle-size) - var(--speed-dial-join));
     bottom: 0;
     width: max-content;
     clip-path: inset(-40px 0 -40px calc(-1 * var(--speed-dial-label-room)));
     pointer-events: none;
+    z-index: 1;
   }
 
   .speed-dial.is-open .speed-dial__tray {
@@ -30,7 +32,7 @@
     flex-direction: row;
     align-items: center;
     gap: var(--space-12);
-    padding: 4px 10px 4px 8px;
+    padding: 4px calc(10px + var(--speed-dial-join)) 4px 8px;
     border-radius: 999px;
     border: 1px solid var(--border-subtle);
     border-right: none;
@@ -97,6 +99,7 @@
     min-width: var(--speed-dial-toggle-size);
     min-height: var(--speed-dial-toggle-size);
     pointer-events: auto;
+    z-index: 2;
   }
 
   .speed-dial__toggle svg {
