@@ -181,7 +181,9 @@
     form.hidden = show;
     successPanel.hidden = !show;
     if (show) {
-      successPanel.focus({ preventScroll: true });
+      const body = modal?.querySelector('.modal-body');
+      if (body) body.scrollTop = 0;
+      successPanel.focus();
     }
   };
   const prepareForm = () => {
@@ -245,6 +247,7 @@
   modal && modal.addEventListener('click', (e)=>{ if(e.target === modal) close(); });
   document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && modal.classList.contains('active')) close(); });
   document.addEventListener('click', (event) => {
+    if (event.__contactHandled) return;
     const trigger = event.target.closest('[data-contact-modal-link]');
     if (!trigger) return;
     event.preventDefault();
