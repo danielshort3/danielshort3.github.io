@@ -243,6 +243,7 @@
       if (Math.abs(distance) < 1) return;
 
       const jumpPanelToken = options.jumpPanel ? beginJumpPanelAutoScroll() : 0;
+      let jumpPanelTailTimer = null;
       let rafId = null;
       let startTime = null;
       let cleaned = false;
@@ -253,18 +254,39 @@
           : 1 - Math.pow(-2 * t + 2, 2) / 2
       );
 
-      const cleanup = () => {
+      const releaseJumpPanelAutoScroll = (delayMs = 0) => {
+        if (!jumpPanelToken) return;
+        if (jumpPanelTailTimer) {
+          clearTimeout(jumpPanelTailTimer);
+          jumpPanelTailTimer = null;
+        }
+        if (delayMs > 0) {
+          jumpPanelTailTimer = setTimeout(() => {
+            endJumpPanelAutoScroll(jumpPanelToken);
+          }, delayMs);
+          return;
+        }
+        endJumpPanelAutoScroll(jumpPanelToken);
+      };
+
+      const cleanup = ({ cancelled = false } = {}) => {
         if (cleaned) return;
         cleaned = true;
         if (rafId) cancelAnimationFrame(rafId);
         window.removeEventListener('wheel', cancel);
         window.removeEventListener('touchstart', cancel);
         window.removeEventListener('keydown', onKeydown);
-        if (jumpPanelToken) endJumpPanelAutoScroll(jumpPanelToken);
+        if (jumpPanelToken) {
+          if (cancelled) {
+            releaseJumpPanelAutoScroll();
+          } else {
+            releaseJumpPanelAutoScroll(180);
+          }
+        }
       };
 
       const cancel = () => {
-        cleanup();
+        cleanup({ cancelled: true });
       };
 
       const onKeydown = (event) => {
