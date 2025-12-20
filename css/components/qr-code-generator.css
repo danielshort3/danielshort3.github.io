@@ -9,7 +9,7 @@
     box-shadow:0 22px 48px rgba(0,0,0,.32);
   }
   .qrtool-hero .wrapper{
-    max-width:min(1100px, calc(var(--container-max) + 80px));
+    max-width:var(--container-max);
     display:grid;
     gap:clamp(1.2rem,2.4vw,1.8rem);
   }
@@ -203,6 +203,7 @@
   }
 
   .qrtool-input{
+    box-sizing:border-box;
     width:100%;
     border-radius:14px;
     border:1px solid color-mix(in srgb,var(--primary) 26%, transparent);
@@ -224,6 +225,7 @@
   }
 
   .qrtool-select{
+    box-sizing:border-box;
     width:100%;
     border-radius:14px;
     border:1px solid color-mix(in srgb,var(--primary) 26%, transparent);
@@ -400,6 +402,7 @@
     flex-wrap:wrap;
   }
   .qrtool-file{
+    box-sizing:border-box;
     width:100%;
     border-radius:14px;
     border:1px dashed color-mix(in srgb,var(--text-light) 32%, transparent);

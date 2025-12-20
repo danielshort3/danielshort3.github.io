@@ -9,7 +9,7 @@
     box-shadow:0 22px 48px rgba(0,0,0,.32);
   }
   .nbsp-hero .wrapper{
-    max-width:min(1100px, calc(var(--container-max) + 80px));
+    max-width:var(--container-max);
     display:grid;
     gap:clamp(1.2rem,2.4vw,1.8rem);
   }
@@ -101,6 +101,7 @@
     font-family:'Poppins';
   }
   .nbsp-textarea{
+    box-sizing:border-box;
     width:100%;
     min-height:220px;
     border-radius:16px;
