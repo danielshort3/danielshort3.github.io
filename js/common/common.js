@@ -628,35 +628,37 @@
     dial.className = 'speed-dial';
     dial.setAttribute('data-speed-dial', 'true');
     dial.innerHTML = `
-      <div class="speed-dial__actions" id="${menuId}" role="menu" aria-label="Contact options" aria-hidden="true" data-speed-dial-menu>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">Send Email</span>
-          <a class="speed-dial__action btn-icon" href="mailto:daniel@danielshort.me" aria-label="Send Email" role="menuitem" data-speed-dial-action>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="3" y="5" width="18" height="14" rx="2"></rect>
-              <path d="M3 7l9 6 9-6"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">View LinkedIn</span>
-          <a class="speed-dial__action btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" rel="noopener noreferrer" aria-label="View LinkedIn" role="menuitem" data-speed-dial-action>
-            <svg class="brand-fill" viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="4" cy="4" r="2"></circle>
-              <rect x="2" y="9" width="4" height="12" rx="1"></rect>
-              <path d="M10 9h3.8v2.1h.1C14.8 9.7 16.1 9 17.9 9c3 0 5.1 1.9 5.1 5.9V21h-4v-5.9c0-1.7-.7-2.9-2.6-2.9s-2.7 1.4-2.7 3V21H10z"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">Send a Message</span>
-          <a class="speed-dial__action btn-icon" href="contact.html#contact-modal" data-contact-modal-link="true" aria-label="Send a message" role="menuitem" data-speed-dial-action>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-              <path d="M7 9h10"></path>
-              <path d="M7 13h6"></path>
-            </svg>
-          </a>
+      <div class="speed-dial__tray" data-speed-dial-tray>
+        <div class="speed-dial__actions" id="${menuId}" role="menu" aria-label="Contact options" aria-hidden="true" data-speed-dial-menu>
+          <div class="speed-dial__item">
+            <span class="speed-dial__label" aria-hidden="true">Send Email</span>
+            <a class="speed-dial__action btn-icon" href="mailto:daniel@danielshort.me" aria-label="Send Email" role="menuitem" data-speed-dial-action>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+                <path d="M3 7l9 6 9-6"></path>
+              </svg>
+            </a>
+          </div>
+          <div class="speed-dial__item">
+            <span class="speed-dial__label" aria-hidden="true">View LinkedIn</span>
+            <a class="speed-dial__action btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" rel="noopener noreferrer" aria-label="View LinkedIn" role="menuitem" data-speed-dial-action>
+              <svg class="brand-fill" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="4" cy="4" r="2"></circle>
+                <rect x="2" y="9" width="4" height="12" rx="1"></rect>
+                <path d="M10 9h3.8v2.1h.1C14.8 9.7 16.1 9 17.9 9c3 0 5.1 1.9 5.1 5.9V21h-4v-5.9c0-1.7-.7-2.9-2.6-2.9s-2.7 1.4-2.7 3V21H10z"></path>
+              </svg>
+            </a>
+          </div>
+          <div class="speed-dial__item">
+            <span class="speed-dial__label" aria-hidden="true">Send a Message</span>
+            <a class="speed-dial__action btn-icon" href="contact.html#contact-modal" data-contact-modal-link="true" aria-label="Send a message" role="menuitem" data-speed-dial-action>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
+                <path d="M7 9h10"></path>
+                <path d="M7 13h6"></path>
+              </svg>
+            </a>
+          </div>
         </div>
       </div>
       <button class="speed-dial__toggle btn-icon btn-icon-featured" type="button" aria-expanded="false" aria-haspopup="menu" aria-controls="${menuId}" aria-label="Open contact options" data-speed-dial-toggle>
