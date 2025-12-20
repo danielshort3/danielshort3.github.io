@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <base href="/">
+  <title>Oxford Comma Checker | Daniel Short</title>
+  <link rel="canonical" href="https://danielshort.me/tools/oxford-comma-checker">
+  <meta name="description" content="Scan text for possible missing Oxford commas in serial lists. Runs locally in your browser.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta property="og:title" content="Oxford Comma Checker | Daniel Short">
+  <meta property="og:site_name" content="Daniel Short - Data Science &amp; Analytics">
+  <meta property="og:description" content="Check drafts for missing Oxford commas in serial lists. Everything runs locally in your browser.">
+  <meta property="og:url" content="https://danielshort.me/tools/oxford-comma-checker">
+  <meta property="og:image" content="https://danielshort.me/img/hero/head.jpg">
+  <meta property="og:image:alt" content="Portrait photo of Daniel Short">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@danielshort3">
+  <meta name="theme-color" content="#0D1117">
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
+  <link rel="preload" as="image" href="img/ui/logo-64.png" imagesrcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" imagesizes="64px" fetchpriority="high">
+  <link rel="preload" as="font" href="css/fonts/Inter-Latin.woff2" type="font/woff2" crossorigin>
+  <link rel="preload" as="font" href="css/fonts/Poppins-500-Latin.woff2" type="font/woff2" crossorigin>
+  <link rel="preload" as="font" href="css/fonts/Poppins-600-Latin.woff2" type="font/woff2" crossorigin>
+  <script>
+    try {
+      if (document.documentElement.classList) {
+        document.documentElement.classList.remove("no-js");
+      } else {
+        document.documentElement.className = (document.documentElement.className || "").replace(/\bno-js\b/, "").trim();
+      }
+    } catch (_) {}
+  </script>
+</head>
+<body data-page="oxford-comma-checker" class="oxford-comma-page">
+  <a href="#main" class="skip-link">Skip to main content</a>
+  <header id="combined-header-nav"></header>
+
+  <section class="oxford-top-panel">
+    <div class="wrapper oxford-top-inner">
+      <p class="hero-eyebrow">Labs</p>
+      <h1>Oxford Comma Checker</h1>
+      <p class="oxford-top-lead">Paste a draft to scan serial lists for possible missing Oxford commas. Everything runs locally in your browser.</p>
+      <div class="oxford-steps">
+        <div class="oxford-step">
+          <span class="oxford-step-number">1</span>
+          <div>
+            <h3>Paste text</h3>
+            <p>Add a paragraph, email, or report to scan.</p>
+          </div>
+        </div>
+        <div class="oxford-step">
+          <span class="oxford-step-number">2</span>
+          <div>
+            <h3>Scan lists</h3>
+            <p>Looks for comma-separated lists joined by and, or, nor.</p>
+          </div>
+        </div>
+        <div class="oxford-step">
+          <span class="oxford-step-number">3</span>
+          <div>
+            <h3>Review suggestions</h3>
+            <p>Flags possible missing commas and suggests quick fixes.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main id="main">
+    <section class="surface-band oxford-section">
+      <div class="wrapper">
+        <div class="oxford-card oxford-input-card">
+          <h2>Analyze text</h2>
+          <p class="oxford-subtitle">Find possible Oxford comma issues in serial lists. Review the context to confirm.</p>
+          <form class="oxford-form" data-oxford-form novalidate>
+            <label class="oxford-label" for="oxford-text">Text to scan</label>
+            <textarea id="oxford-text" class="oxford-textarea" data-oxford-input name="text" placeholder="We packed apples, bananas and cherries for the picnic.&#10;The review covers pricing, positioning, and messaging.&#10;She thanked her friends, her mentors and her family." required></textarea>
+            <fieldset class="oxford-fieldset">
+              <legend class="oxford-label">Conjunctions to scan</legend>
+              <div class="oxford-option-grid">
+                <label class="oxford-option">
+                  <input type="checkbox" data-oxford-conjunction="and" checked>
+                  <span>and</span>
+                </label>
+                <label class="oxford-option">
+                  <input type="checkbox" data-oxford-conjunction="or" checked>
+                  <span>or</span>
+                </label>
+                <label class="oxford-option">
+                  <input type="checkbox" data-oxford-conjunction="nor" checked>
+                  <span>nor</span>
+                </label>
+              </div>
+            </fieldset>
+            <label class="oxford-option">
+              <input type="checkbox" data-oxford-only-missing checked>
+              <span>Show only missing Oxford commas.</span>
+            </label>
+            <div class="oxford-actions">
+              <button type="submit" class="btn-primary">Check</button>
+              <button type="button" class="btn-ghost" data-oxford-clear>Clear</button>
+            </div>
+            <p class="oxford-note">Processing happens locally in your browser, with no uploads and no tracking.</p>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section class="surface-band oxford-section">
+      <div class="wrapper">
+        <div class="oxford-card oxford-results-card" aria-live="polite">
+          <div class="oxford-results-header">
+            <h2>Results</h2>
+            <p class="oxford-summary" data-oxford-summary>Paste text and click Check.</p>
+          </div>
+          <ul class="oxford-counts" data-oxford-counts></ul>
+          <div class="oxford-results-grid">
+            <div>
+              <div class="oxford-results-title">
+                <h3>Findings</h3>
+                <p class="oxford-hint">Possible list candidates based on punctuation and conjunctions.</p>
+              </div>
+              <p class="oxford-empty" data-oxford-empty>Waiting for input.</p>
+              <ul class="oxford-list" data-oxford-results aria-label="Oxford comma findings"></ul>
+            </div>
+            <div>
+              <div class="oxford-results-title">
+                <h3>Highlighted text</h3>
+                <p class="oxford-hint">Missing Oxford commas highlighted.</p>
+              </div>
+              <div class="oxford-output" data-oxford-output role="region" aria-label="Text with Oxford comma highlights">
+                <p class="oxford-empty">Paste text and click Check.</p>
+              </div>
+            </div>
+          </div>
+          <p class="oxford-footnote">This scan is heuristic; review context for clauses and headlines.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <nav class="privacy-links" aria-label="Privacy shortcuts">
+      <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
+      <a href="#" class="pcz-link" onclick="window.Privacy && window.Privacy.open('doNotSell'); return false;">Do Not Sell/Share My Personal Information</a>
+    </nav>
+  </footer>
+
+  <script defer src="js/tools/oxford-comma-checker.js"></script>
+  <script defer src="js/common/common.js"></script>
+  <script defer src="js/navigation/navigation.js"></script>
+  <script defer src="js/animations/animations.js"></script>
+  <script src="js/privacy/config.js"></script>
+  <script defer src="js/privacy/consent_manager.js"></script>
+</body>
+</html>

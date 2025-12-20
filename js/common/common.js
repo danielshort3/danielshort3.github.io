@@ -151,10 +151,14 @@
           }
         }
         if (location.hash && location.hash.length > 1) {
-          return decodeURIComponent(location.hash.slice(1));
+          const hashId = decodeURIComponent(location.hash.slice(1));
+          if (!document.getElementById(hashId)) return hashId;
         }
       } catch {
-        if (location.hash && location.hash.length > 1) return location.hash.slice(1);
+        if (location.hash && location.hash.length > 1) {
+          const hashId = location.hash.slice(1);
+          if (!document.getElementById(hashId)) return hashId;
+        }
       }
       return null;
     };

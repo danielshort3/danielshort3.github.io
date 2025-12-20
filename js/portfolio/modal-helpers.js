@@ -354,7 +354,7 @@
 
   window.openModal = function(id) {
     const modal = document.getElementById(`${id}-modal`) || document.getElementById(id);
-    if (!modal) return;
+    if (!modal || !modal.classList || !modal.classList.contains('modal')) return;
     // Count views when a project modal is opened
     window.trackProjectView && window.trackProjectView(id);
     __modalPrevFocus = document.activeElement;
