@@ -10,16 +10,16 @@
     --speed-dial-toggle-size: 56px;
     --speed-dial-gap: var(--space-12);
     --speed-dial-label-room: 160px;
-    --speed-dial-offset: calc(var(--speed-dial-toggle-size) / 2);
-    --speed-dial-underlap: var(--speed-dial-offset);
+    --speed-dial-offset: var(--speed-dial-toggle-size);
+    --speed-dial-underlap: var(--speed-dial-toggle-size);
   }
 
   .speed-dial__tray {
     position: absolute;
-    right: var(--speed-dial-offset);
+    right: 0;
     bottom: 0;
     width: max-content;
-    clip-path: inset(-40px calc(-1 * var(--speed-dial-underlap)) -40px calc(-1 * var(--speed-dial-label-room)));
+    clip-path: inset(-40px 0 -40px calc(-1 * var(--speed-dial-label-room)));
     pointer-events: none;
     z-index: 1;
   }
