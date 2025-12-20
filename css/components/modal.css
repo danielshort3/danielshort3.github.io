@@ -299,6 +299,7 @@
     transform: translateX(-50%);
   }
 
+  #contact-modal { z-index: 2700; }
   /* keep modal within the viewport on all screens */
   #contact-modal .modal-content { width: min(760px, calc(100vw - 24px)); margin-inline:auto; }
   #contact-modal .modal-body {
