@@ -1,5 +1,9 @@
 (() => {
   'use strict';
+  if (typeof window !== 'undefined') {
+    if (window.__contactFormInit) return;
+    window.__contactFormInit = true;
+  }
   const modal = document.getElementById('contact-modal');
   const content = modal?.querySelector('.modal-content');
   const openBtn = document.getElementById('contact-form-toggle');

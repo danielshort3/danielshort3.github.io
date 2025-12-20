@@ -438,11 +438,19 @@
     color:var(--text-muted);
   }
   .contact-form-success .form-actions{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
     justify-content:center;
     gap:12px;
+    width:100%;
+  }
+  .contact-form-success .form-actions > *{
+    width:100%;
+    max-width:320px;
   }
   .contact-form-success .form-actions .btn-secondary{
-    min-width:200px;
+    min-width:0;
   }
 
   /* --- Progressive enhancement: keep contact form usable without JS --- */
