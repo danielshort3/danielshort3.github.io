@@ -114,12 +114,14 @@
       <div class="wrapper">
         <div class="oxford-card oxford-results-card" aria-live="polite">
           <div class="oxford-results-header">
-            <h2>Results</h2>
-            <p class="oxford-summary" data-oxford-summary>Paste text and click Check.</p>
+            <div class="oxford-results-title">
+              <h2>Results</h2>
+              <p class="oxford-summary" data-oxford-summary>Paste text and click Check.</p>
+            </div>
+            <ul class="oxford-counts" data-oxford-counts></ul>
           </div>
-          <ul class="oxford-counts" data-oxford-counts></ul>
           <div class="oxford-results-grid">
-            <div>
+            <div class="oxford-panel">
               <div class="oxford-results-title">
                 <h3>Occurrences</h3>
                 <p class="oxford-hint">List candidates based on punctuation and conjunctions.</p>
@@ -127,7 +129,7 @@
               <p class="oxford-empty" data-oxford-empty>Waiting for input.</p>
               <ul class="oxford-list" data-oxford-results aria-label="Oxford comma occurrences"></ul>
             </div>
-            <div>
+            <div class="oxford-panel">
               <details class="oxford-details oxford-color-details">
                 <summary>Highlight colors</summary>
                 <div class="oxford-color-grid" role="group" aria-label="Highlight color options">
