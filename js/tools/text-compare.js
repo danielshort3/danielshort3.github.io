@@ -41,18 +41,27 @@
     try {
       return {
         word: new RegExp(unicodeWord, 'gu'),
+        wordToken: new RegExp(`^${unicodeWord}$`, 'u'),
+        wordChar: new RegExp('[\\p{L}\\p{N}_]', 'u'),
         token: new RegExp(`${unicodeWord}|\\s+|[^\\p{L}\\p{N}_\\s]+`, 'gu')
       };
     } catch {
       const asciiWord = "[A-Za-z0-9_]+(?:['-][A-Za-z0-9_]+)*";
       return {
         word: new RegExp(asciiWord, 'g'),
+        wordToken: new RegExp(`^${asciiWord}$`),
+        wordChar: new RegExp('[A-Za-z0-9_]'),
         token: new RegExp(`${asciiWord}|\\s+|[^A-Za-z0-9_\\s]+`, 'g')
       };
     }
   };
 
-  const { word: WORD_RE, token: TOKEN_RE } = buildTokenRegexes();
+  const {
+    word: WORD_RE,
+    token: TOKEN_RE,
+    wordToken: WORD_TOKEN_RE,
+    wordChar: WORD_CHAR_RE
+  } = buildTokenRegexes();
 
   const matchAll = (re, text) => {
     re.lastIndex = 0;
@@ -62,6 +71,122 @@
   const countWords = (s) => matchAll(WORD_RE, String(s || '')).length;
 
   const tokenize = (text) => matchAll(TOKEN_RE, String(text || ''));
+
+  const isWordToken = (token) => WORD_TOKEN_RE.test(token);
+
+  const hasWordChar = (text) => WORD_CHAR_RE.test(text);
+
+  const countWordTokens = (tokens) => tokens.reduce(
+    (sum, token) => sum + (isWordToken(token) ? 1 : 0),
+    0
+  );
+
+  const buildWordCounts = (tokens) => {
+    const counts = new Map();
+    tokens.forEach((token) => {
+      if (!isWordToken(token)) return;
+      const key = token.toLowerCase();
+      counts.set(key, (counts.get(key) || 0) + 1);
+    });
+    return counts;
+  };
+
+  const isCommonWord = (token, countsA, countsB) => {
+    const key = token.toLowerCase();
+    return (countsA.get(key) || 0) > 1 || (countsB.get(key) || 0) > 1;
+  };
+
+  const isSoftEqual = (run, countsA, countsB) => {
+    if (run.type !== 'equal') return false;
+    const text = run.tokens.join('');
+    if (!text) return true;
+    if (!hasWordChar(text)) return true;
+    const words = run.tokens.filter(isWordToken);
+    if (!words.length) return true;
+    if (words.length <= 2) return true;
+    if (words.length <= 3 && words.every((word) => isCommonWord(word, countsA, countsB))) return true;
+    return false;
+  };
+
+  const coalesceRuns = (runs, countsA, countsB) => {
+    const merged = [];
+    const MIN_MERGE_WORDS = 8;
+    const MIN_MERGE_CHARS = 40;
+    const MIN_MERGE_RUNS = 4;
+
+    for (let i = 0; i < runs.length; i += 1) {
+      const run = runs[i];
+      if (run.type === 'equal') {
+        merged.push(run);
+        continue;
+      }
+
+      const segment = [];
+      let hasInsert = false;
+      let hasDelete = false;
+      let softEqualCount = 0;
+      let editRunCount = 0;
+      let editWordCount = 0;
+      let editCharCount = 0;
+      let j = i;
+
+      while (j < runs.length) {
+        const current = runs[j];
+        if (current.type === 'equal' && !isSoftEqual(current, countsA, countsB)) break;
+        segment.push(current);
+        if (current.type === 'equal') {
+          softEqualCount += 1;
+        } else {
+          editRunCount += 1;
+          if (current.type === 'insert') {
+            hasInsert = true;
+            editWordCount += countWordTokens(current.tokens);
+            editCharCount += current.tokens.join('').length;
+          } else if (current.type === 'delete') {
+            hasDelete = true;
+            editWordCount += countWordTokens(current.tokens);
+            editCharCount += current.tokens.join('').length;
+          } else if (current.type === 'replace') {
+            hasInsert = true;
+            hasDelete = true;
+            editWordCount += countWordTokens(current.delTokens) + countWordTokens(current.insTokens);
+            editCharCount += current.delTokens.join('').length + current.insTokens.join('').length;
+          }
+        }
+        j += 1;
+      }
+
+      const shouldMerge = hasInsert && hasDelete && softEqualCount > 0 && (
+        editWordCount >= MIN_MERGE_WORDS ||
+        editCharCount >= MIN_MERGE_CHARS ||
+        editRunCount >= MIN_MERGE_RUNS
+      );
+
+      if (shouldMerge) {
+        const delTokens = [];
+        const insTokens = [];
+        segment.forEach((seg) => {
+          if (seg.type === 'equal') {
+            delTokens.push(...seg.tokens);
+            insTokens.push(...seg.tokens);
+          } else if (seg.type === 'insert') {
+            insTokens.push(...seg.tokens);
+          } else if (seg.type === 'delete') {
+            delTokens.push(...seg.tokens);
+          } else if (seg.type === 'replace') {
+            delTokens.push(...seg.delTokens);
+            insTokens.push(...seg.insTokens);
+          }
+        });
+        merged.push({ type: 'replace', delTokens, insTokens });
+      } else {
+        merged.push(...segment);
+      }
+
+      i = j - 1;
+    }
+    return merged;
+  };
 
   const myersEdits = (a, b) => {
     const n = a.length;
@@ -509,7 +634,10 @@
       }
 
       const edits = myersEdits(aTokens, bTokens);
-      const runs = normalizeRuns(groupRuns(edits));
+      const rawRuns = normalizeRuns(groupRuns(edits));
+      const countsA = buildWordCounts(aTokens);
+      const countsB = buildWordCounts(bTokens);
+      const runs = coalesceRuns(rawRuns, countsA, countsB);
       lastRuns = runs;
       lastRevisedText = revised;
       const html = renderOutput(runs);
