@@ -198,6 +198,13 @@
     fieldConfigs.forEach(clearFieldError);
   };
 
+  const syncModalOpenState = () => {
+    if (!document || !document.body) return;
+    if (!document.querySelector('.modal.active')) {
+      document.body.classList.remove('modal-open');
+    }
+  };
+
   function open(){ if(!modal || !content) return;
     prepareForm();
     prevFocus = document.activeElement;
@@ -209,13 +216,18 @@
   }
   function close(){ if(!modal || !content) return;
     modal.classList.remove('active');
-    document.body.classList.remove('modal-open');
+    syncModalOpenState();
     content.removeEventListener('keydown', trap);
     if (prevFocus && document.contains(prevFocus)) {
       prevFocus.focus();
     } else if (openBtn) {
       openBtn.focus();
     }
+  }
+  if (typeof window !== 'undefined') {
+    window.openContactModal = open;
+    window.closeContactModal = close;
+    window.__contactModalReady = Boolean(modal);
   }
   const openIfHashMatches = () => {
     if (!modal) return;

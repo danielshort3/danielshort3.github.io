@@ -10,6 +10,59 @@
   const run = fn=>typeof fn==='function'&&fn();
   const isPage = (...names)=>names.includes(document.body.dataset.page);
   const CONTACT_CONTEXT_KEY = 'contactOrigin';
+  const CONTACT_MODAL_ID = 'contact-modal';
+  const CONTACT_MODAL_SCRIPT = 'js/forms/contact.js';
+  const CONTACT_MODAL_MARKUP = `
+    <div id="contact-modal" class="modal">
+      <div class="modal-content" role="dialog" aria-modal="true" tabindex="0" aria-labelledby="contact-modal-title">
+        <button class="modal-close" aria-label="Close dialog">&times;</button>
+        <div class="modal-title-strip">
+          <h3 class="modal-title" id="contact-modal-title">Send a Message</h3>
+        </div>
+        <div class="modal-body">
+          <form id="contact-form" class="contact-form" method="post" action="https://muee4eg6ze.execute-api.us-east-2.amazonaws.com/prod/contact" data-endpoint="https://muee4eg6ze.execute-api.us-east-2.amazonaws.com/prod/contact" novalidate>
+            <div class="form-field">
+              <label for="contact-name">Name <span class="field-required" id="contact-name-required" hidden>- Required</span></label>
+              <input id="contact-name" name="name" type="text" autocomplete="name" required maxlength="200" placeholder="Jane Doe" aria-describedby="contact-name-required">
+            </div>
+            <div class="form-field">
+              <label for="contact-email">Email <span class="field-required" id="contact-email-required" hidden>- Required</span></label>
+              <input id="contact-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com" aria-describedby="contact-email-required">
+            </div>
+            <div class="form-field">
+              <label for="contact-message">How can I help? <span class="field-required" id="contact-message-required" hidden>- Required</span></label>
+              <textarea id="contact-message" name="message" rows="5" maxlength="4000" required placeholder="Share a few details about your project, role, or opportunity." aria-describedby="contact-message-required"></textarea>
+            </div>
+            <div class="form-field honeypot" aria-hidden="true">
+              <label for="contact-company">Company</label>
+              <input id="contact-company" name="company" type="text" tabindex="-1" autocomplete="off">
+            </div>
+            <p id="contact-status" class="contact-form-status" role="status" aria-live="polite" tabindex="-1"></p>
+            <div id="contact-alt" class="contact-form-alt" hidden>
+              <a href="mailto:daniel@danielshort.me" class="btn-ghost">Email me directly</a>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn-primary">
+                <span class="btn-spinner" aria-hidden="true"></span>
+                <span class="btn-label">Send Message</span>
+              </button>
+              <button type="button" class="btn-secondary" data-contact-close>Close</button>
+              <button type="button" class="btn-ghost" data-contact-reset>Clear form</button>
+            </div>
+          </form>
+          <div class="contact-form-success" id="contact-success" hidden tabindex="-1" role="status" aria-live="polite">
+            <span class="success-icon" aria-hidden="true"></span>
+            <h4>Message sent</h4>
+            <p>Thanks for reaching out. I received your note and will reply shortly. If it&rsquo;s urgent, feel free to send a direct email as well.</p>
+            <div class="form-actions">
+              <button type="button" class="btn-primary" data-contact-new>Start another message</button>
+              <a href="mailto:daniel@danielshort.me" class="btn-secondary">Email me directly</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
 
   const storeContactOrigin = () => {
     try {
@@ -113,6 +166,56 @@
     loadedScripts.set(src, promise);
     return promise;
   }
+
+  const ensureContactModal = () => {
+    if (!document || !document.body || typeof document.createElement !== 'function') return null;
+    const existing = document.getElementById(CONTACT_MODAL_ID);
+    if (existing) return existing;
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = CONTACT_MODAL_MARKUP.trim();
+    const modal = wrapper.firstElementChild;
+    if (!modal) return null;
+    document.body.appendChild(modal);
+    return modal;
+  };
+
+  const ensureContactScript = () => {
+    const promise = loadScriptOnce(CONTACT_MODAL_SCRIPT);
+    if (promise && typeof promise.catch === 'function') {
+      promise.catch(err => console.warn('Failed to load contact form script', err));
+    }
+    return promise;
+  };
+
+  const handleContactModalRequest = (event) => {
+    const trigger = event.target.closest('[data-contact-modal-link]');
+    if (!trigger) return;
+    const modal = document.getElementById(CONTACT_MODAL_ID);
+    if (modal && window.__contactModalReady) return;
+    event.preventDefault();
+    storeContactOrigin();
+    const ensured = modal || ensureContactModal();
+    if (!ensured) return;
+    const open = () => {
+      if (typeof window.openContactModal === 'function') {
+        window.openContactModal();
+        return;
+      }
+      try {
+        if (location.hash !== `#${CONTACT_MODAL_ID}`) {
+          location.hash = `#${CONTACT_MODAL_ID}`;
+        }
+      } catch {}
+    };
+    const scriptPromise = ensureContactScript();
+    if (scriptPromise && typeof scriptPromise.then === 'function') {
+      scriptPromise.then(open);
+    } else {
+      open();
+    }
+  };
+
+  document.addEventListener('click', handleContactModalRequest);
 
   function ensurePortfolioScripts(){
     if (portfolioBundle) return portfolioBundle;
@@ -632,7 +735,7 @@
         <div class="speed-dial__actions" id="${menuId}" role="menu" aria-label="Contact options" aria-hidden="true" data-speed-dial-menu>
           <div class="speed-dial__item">
             <span class="speed-dial__label" aria-hidden="true">Direct Message</span>
-            <a class="speed-dial__action btn-icon speed-dial__action--direct" href="contact.html#contact-modal" data-contact-modal-link="true" aria-label="Send a direct message" role="menuitem" data-speed-dial-action>
+            <a class="speed-dial__action btn-icon speed-dial__action--direct" href="#contact-modal" data-contact-modal-link="true" aria-label="Send a direct message" role="menuitem" data-speed-dial-action>
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
                 <path d="M7 9h10"></path>
@@ -763,8 +866,9 @@
     // 1) Close when X is clicked
     const closeBtn = e.target.closest('.modal-close');
     if (closeBtn) {
-      e.preventDefault();
       const modal = closeBtn.closest('.modal');
+      if (modal && modal.id === CONTACT_MODAL_ID) return;
+      e.preventDefault();
       if (modal) {
         const id = modal.id?.replace(/-modal$/, '') || modal.id || 'modal';
         window.closeModal && window.closeModal(id);
@@ -775,6 +879,7 @@
     const backdrop = e.target.closest('.modal');
     const insideContent = e.target.closest('.modal-content');
     if (backdrop && !insideContent) {
+      if (backdrop.id === CONTACT_MODAL_ID) return;
       const id = backdrop.id?.replace(/-modal$/, '') || backdrop.id || 'modal';
       window.closeModal && window.closeModal(id);
     }
