@@ -17,6 +17,11 @@
     flex-direction: row;
     align-items: center;
     gap: var(--space-12);
+    padding: 8px 10px;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--border-subtle));
+    background: color-mix(in srgb, var(--surface) 94%, #000000 6%);
+    box-shadow: var(--shadow-md);
     opacity: 0;
     transform: translateX(10px);
     pointer-events: none;
@@ -37,7 +42,19 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    opacity: 0;
+    transform: translateX(12px) scale(.98);
+    transition: opacity .2s ease, transform .24s ease;
   }
+
+  .speed-dial.is-open .speed-dial__item {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+
+  .speed-dial.is-open .speed-dial__item:nth-child(1) { transition-delay: .12s; }
+  .speed-dial.is-open .speed-dial__item:nth-child(2) { transition-delay: .07s; }
+  .speed-dial.is-open .speed-dial__item:nth-child(3) { transition-delay: .02s; }
 
   .speed-dial__label {
     position: absolute;
@@ -92,6 +109,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     .speed-dial__actions,
+    .speed-dial__item,
     .speed-dial__label,
     .speed-dial__toggle svg {
       transition: none;
