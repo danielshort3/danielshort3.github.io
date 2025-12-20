@@ -128,6 +128,22 @@
               <ul class="oxford-list" data-oxford-results aria-label="Oxford comma occurrences"></ul>
             </div>
             <div>
+              <details class="oxford-details oxford-color-details">
+                <summary>Highlight colors</summary>
+                <div class="oxford-color-grid" role="group" aria-label="Highlight color options">
+                  <div class="oxford-color-field">
+                    <label class="oxford-color-label" for="oxford-present-color">Oxford comma present</label>
+                    <input id="oxford-present-color" class="oxford-color" type="color" value="#2CB67D" data-oxford-color="present">
+                  </div>
+                  <div class="oxford-color-field">
+                    <label class="oxford-color-label" for="oxford-absent-color">Oxford comma absent</label>
+                    <input id="oxford-absent-color" class="oxford-color" type="color" value="#F2A93B" data-oxford-color="absent">
+                  </div>
+                </div>
+                <div class="oxford-color-actions">
+                  <button type="button" class="btn-ghost" data-oxford-reset-colors>Reset colors</button>
+                </div>
+              </details>
               <div class="oxford-output-header">
                 <div class="oxford-results-title">
                   <h3>Highlighted text</h3>

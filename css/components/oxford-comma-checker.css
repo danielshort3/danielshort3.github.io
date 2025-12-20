@@ -1,8 +1,8 @@
 /* Oxford comma checker styles */
 @layer components {
   .oxford-comma-page{
-    --oxford-present-color:var(--primary);
-    --oxford-absent-color:color-mix(in srgb,var(--primary) 35%, var(--text-muted));
+    --oxford-present-color:#2CB67D;
+    --oxford-absent-color:#F2A93B;
   }
   .oxford-top-panel{
     padding:clamp(3.2rem,7vh,4.8rem) 0;
@@ -230,6 +230,43 @@
     font-size:.92rem;
   }
 
+  .oxford-color-details{
+    margin:0 0 12px;
+  }
+  .oxford-color-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+    gap:12px;
+    margin-top:12px;
+  }
+  .oxford-color-field{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:10px 12px;
+    border-radius:12px;
+    border:1px solid color-mix(in srgb,var(--primary) 16%, transparent);
+    background:color-mix(in srgb,var(--surface) 96%, #02070d 4%);
+  }
+  .oxford-color-label{
+    color:var(--text-muted);
+    font-size:.95rem;
+  }
+  .oxford-color{
+    width:44px;
+    height:34px;
+    padding:0;
+    border-radius:10px;
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    background:transparent;
+  }
+  .oxford-color-actions{
+    margin-top:12px;
+    display:flex;
+    justify-content:flex-end;
+  }
+
   .oxford-list{
     list-style:none;
     padding:0;
@@ -315,6 +352,35 @@
     background:color-mix(in srgb,var(--oxford-present-color) 22%, transparent);
     border-color:color-mix(in srgb,var(--oxford-present-color) 50%, transparent);
     color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
+  }
+
+  .oxford-details{
+    border-radius:16px;
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    background:color-mix(in srgb,var(--surface) 94%, #03080f 6%);
+    padding:12px 14px;
+  }
+  .oxford-details > summary{
+    cursor:pointer;
+    list-style:none;
+    font-family:'Poppins';
+    font-weight:600;
+    letter-spacing:.01em;
+    color:color-mix(in srgb,var(--text-light) 92%, #ffffff 8%);
+  }
+  .oxford-details > summary::-webkit-details-marker{
+    display:none;
+  }
+  .oxford-details > summary::before{
+    content:"▸";
+    display:inline-block;
+    width:1em;
+    margin-right:6px;
+    color:color-mix(in srgb,var(--primary) 78%, #ffffff 22%);
+    transition:transform .2s ease;
+  }
+  .oxford-details[open] > summary::before{
+    transform:rotate(90deg);
   }
 
   .oxford-empty{
