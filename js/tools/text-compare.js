@@ -30,37 +30,38 @@
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 
-  const countWords = (s) => (String(s || '').match(/\S+/g) || []).length;
-
   const setCopyStatus = (msg, tone) => {
     if (!copyStatus) return;
     copyStatus.textContent = msg;
     copyStatus.dataset.tone = tone || '';
   };
 
-  const tokenize = (text) => {
-    const s = String(text || '');
-    const tokens = [];
-    const len = s.length;
-    let i = 0;
-
-    if (i < len && /\s/.test(s[i])) {
-      let j = i;
-      while (j < len && /\s/.test(s[j])) j += 1;
-      tokens.push(s.slice(i, j));
-      i = j;
+  const buildTokenRegexes = () => {
+    const unicodeWord = "[\\p{L}\\p{N}_]+(?:['-][\\p{L}\\p{N}_]+)*";
+    try {
+      return {
+        word: new RegExp(unicodeWord, 'gu'),
+        token: new RegExp(`${unicodeWord}|\\s+|[^\\p{L}\\p{N}_\\s]+`, 'gu')
+      };
+    } catch {
+      const asciiWord = "[A-Za-z0-9_]+(?:['-][A-Za-z0-9_]+)*";
+      return {
+        word: new RegExp(asciiWord, 'g'),
+        token: new RegExp(`${asciiWord}|\\s+|[^A-Za-z0-9_\\s]+`, 'g')
+      };
     }
-
-    while (i < len) {
-      let wordEnd = i;
-      while (wordEnd < len && !/\s/.test(s[wordEnd])) wordEnd += 1;
-      let spaceEnd = wordEnd;
-      while (spaceEnd < len && /\s/.test(s[spaceEnd])) spaceEnd += 1;
-      tokens.push(s.slice(i, spaceEnd));
-      i = spaceEnd;
-    }
-    return tokens;
   };
+
+  const { word: WORD_RE, token: TOKEN_RE } = buildTokenRegexes();
+
+  const matchAll = (re, text) => {
+    re.lastIndex = 0;
+    return text.match(re) || [];
+  };
+
+  const countWords = (s) => matchAll(WORD_RE, String(s || '')).length;
+
+  const tokenize = (text) => matchAll(TOKEN_RE, String(text || ''));
 
   const myersEdits = (a, b) => {
     const n = a.length;
