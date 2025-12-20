@@ -593,6 +593,138 @@
     document.addEventListener('navheightchange', requestUpdate);
   }
 
+  function initSpeedDial(){
+    if (!document || !document.body || typeof document.createElement !== 'function') return;
+    if (document.querySelector('[data-speed-dial]')) return;
+
+    const dial = document.createElement('div');
+    if (!dial || typeof dial.setAttribute !== 'function') return;
+    const menuId = 'speed-dial-menu';
+    dial.className = 'speed-dial';
+    dial.setAttribute('data-speed-dial', 'true');
+    dial.innerHTML = `
+      <div class="speed-dial__actions" id="${menuId}" role="menu" aria-label="Contact options" aria-hidden="true" data-speed-dial-menu>
+        <div class="speed-dial__item">
+          <span class="speed-dial__label" aria-hidden="true">Send Email</span>
+          <a class="speed-dial__action btn-icon" href="mailto:daniel@danielshort.me" aria-label="Send Email" role="menuitem" data-speed-dial-action>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+              <path d="M3 7l9 6 9-6"></path>
+            </svg>
+          </a>
+        </div>
+        <div class="speed-dial__item">
+          <span class="speed-dial__label" aria-hidden="true">View LinkedIn</span>
+          <a class="speed-dial__action btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" rel="noopener noreferrer" aria-label="View LinkedIn" role="menuitem" data-speed-dial-action>
+            <svg class="brand-fill" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="4" cy="4" r="2"></circle>
+              <rect x="2" y="9" width="4" height="12" rx="1"></rect>
+              <path d="M10 9h3.8v2.1h.1C14.8 9.7 16.1 9 17.9 9c3 0 5.1 1.9 5.1 5.9V21h-4v-5.9c0-1.7-.7-2.9-2.6-2.9s-2.7 1.4-2.7 3V21H10z"></path>
+            </svg>
+          </a>
+        </div>
+        <div class="speed-dial__item">
+          <span class="speed-dial__label" aria-hidden="true">Send a Message</span>
+          <a class="speed-dial__action btn-icon" href="contact.html#contact-modal" data-contact-modal-link="true" aria-label="Send a message" role="menuitem" data-speed-dial-action>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
+              <path d="M7 9h10"></path>
+              <path d="M7 13h6"></path>
+            </svg>
+          </a>
+        </div>
+      </div>
+      <button class="speed-dial__toggle btn-icon btn-icon-featured" type="button" aria-expanded="false" aria-haspopup="menu" aria-controls="${menuId}" aria-label="Open contact options" data-speed-dial-toggle>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
+          <path d="M12 8v6"></path>
+          <path d="M9 11h6"></path>
+        </svg>
+      </button>
+    `;
+    document.body.appendChild(dial);
+
+    const toggle = dial.querySelector('[data-speed-dial-toggle]');
+    const menu = dial.querySelector('[data-speed-dial-menu]');
+    const actions = [...dial.querySelectorAll('[data-speed-dial-action]')];
+    if (!toggle || !menu || !actions.length) return;
+
+    let isLocked = false;
+    let suppressHover = false;
+
+    const setExpanded = (expanded) => {
+      dial.classList.toggle('is-open', expanded);
+      toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      toggle.setAttribute('aria-label', expanded ? 'Close contact options' : 'Open contact options');
+      menu.setAttribute('aria-hidden', expanded ? 'false' : 'true');
+      actions.forEach(action => {
+        action.tabIndex = expanded ? 0 : -1;
+      });
+      if (!expanded && menu.contains(document.activeElement)) {
+        toggle.focus({ preventScroll: true });
+      }
+    };
+
+    const closeMenu = () => {
+      isLocked = false;
+      suppressHover = false;
+      setExpanded(false);
+    };
+
+    setExpanded(false);
+
+    toggle.addEventListener('click', (event) => {
+      event.preventDefault();
+      if (isLocked) {
+        isLocked = false;
+        try {
+          if (dial.matches(':hover')) suppressHover = true;
+        } catch {}
+        setExpanded(false);
+        return;
+      }
+      isLocked = true;
+      suppressHover = false;
+      setExpanded(true);
+    });
+
+    actions.forEach(action => {
+      action.addEventListener('click', closeMenu);
+    });
+
+    let canHover = false;
+    try {
+      canHover = Boolean(window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches);
+    } catch {}
+    if (canHover) {
+      dial.addEventListener('pointerenter', () => {
+        if (isLocked || suppressHover) return;
+        setExpanded(true);
+      });
+      dial.addEventListener('pointerleave', () => {
+        if (isLocked) return;
+        suppressHover = false;
+        setExpanded(false);
+      });
+    }
+
+    document.addEventListener('click', (event) => {
+      if (!dial.classList.contains('is-open')) return;
+      if (dial.contains(event.target)) return;
+      closeMenu();
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      if (!dial.classList.contains('is-open')) return;
+      event.preventDefault();
+      closeMenu();
+      toggle.focus({ preventScroll: true });
+    });
+  }
+
+  initSpeedDial();
+
   // ---- Global modal close handlers (X button and backdrop) ----
   document.addEventListener('click', (e) => {
     // 1) Close when X is clicked

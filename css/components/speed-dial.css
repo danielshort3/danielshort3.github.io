@@ -1,0 +1,89 @@
+/* Speed dial contact menu */
+@layer components {
+  .speed-dial {
+    position: fixed;
+    right: calc(var(--space-20) + env(safe-area-inset-right));
+    bottom: calc(var(--space-20) + env(safe-area-inset-bottom));
+    z-index: 1500;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--space-12);
+  }
+
+  .speed-dial__actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--space-12);
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
+    transition: opacity .2s ease, transform .2s ease;
+  }
+
+  .speed-dial.is-open .speed-dial__actions {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .speed-dial__item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-10);
+  }
+
+  .speed-dial__label {
+    font-family: 'Poppins';
+    font-size: 12px;
+    letter-spacing: .02em;
+    color: color-mix(in srgb, var(--text-light) 92%, #ffffff 8%);
+    background: color-mix(in srgb, var(--surface) 88%, #000000 12%);
+    border: 1px solid var(--border-subtle);
+    padding: 6px 10px;
+    border-radius: 999px;
+    box-shadow: var(--shadow-sm);
+    opacity: 0;
+    transform: translateX(6px);
+    pointer-events: none;
+    transition: opacity .18s ease, transform .18s ease;
+    white-space: nowrap;
+  }
+
+  .speed-dial__item:hover .speed-dial__label,
+  .speed-dial__item:focus-within .speed-dial__label {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .speed-dial__action {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  .speed-dial__toggle {
+    width: 56px;
+    height: 56px;
+    min-width: 56px;
+    min-height: 56px;
+  }
+
+  .speed-dial__toggle svg {
+    transition: transform .2s ease;
+  }
+
+  .speed-dial.is-open .speed-dial__toggle svg {
+    transform: rotate(-8deg);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .speed-dial__actions,
+    .speed-dial__label,
+    .speed-dial__toggle svg {
+      transition: none;
+    }
+  }
+}
