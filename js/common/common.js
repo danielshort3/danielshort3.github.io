@@ -631,6 +631,16 @@
       <div class="speed-dial__tray" data-speed-dial-tray>
         <div class="speed-dial__actions" id="${menuId}" role="menu" aria-label="Contact options" aria-hidden="true" data-speed-dial-menu>
           <div class="speed-dial__item">
+            <span class="speed-dial__label" aria-hidden="true">Direct Message</span>
+            <a class="speed-dial__action btn-icon speed-dial__action--direct" href="contact.html#contact-modal" data-contact-modal-link="true" aria-label="Send a direct message" role="menuitem" data-speed-dial-action>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
+                <path d="M7 9h10"></path>
+                <path d="M7 13h6"></path>
+              </svg>
+            </a>
+          </div>
+          <div class="speed-dial__item">
             <span class="speed-dial__label" aria-hidden="true">Send Email</span>
             <a class="speed-dial__action btn-icon" href="mailto:daniel@danielshort.me" aria-label="Send Email" role="menuitem" data-speed-dial-action>
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -650,13 +660,9 @@
             </a>
           </div>
           <div class="speed-dial__item">
-            <span class="speed-dial__label" aria-hidden="true">Send a Message</span>
-            <a class="speed-dial__action btn-icon" href="contact.html#contact-modal" data-contact-modal-link="true" aria-label="Send a message" role="menuitem" data-speed-dial-action>
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-                <path d="M7 9h10"></path>
-                <path d="M7 13h6"></path>
-              </svg>
+            <span class="speed-dial__label" aria-hidden="true">View GitHub</span>
+            <a class="speed-dial__action btn-icon" href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer" aria-label="View GitHub" role="menuitem" data-speed-dial-action>
+              <span class="icon icon-github" aria-hidden="true"></span>
             </a>
           </div>
         </div>
