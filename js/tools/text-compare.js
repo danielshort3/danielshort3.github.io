@@ -102,7 +102,10 @@
     if (!text) return true;
     if (!hasWordChar(text)) return true;
     const words = run.tokens.filter(isWordToken);
+    const compact = text.replace(/\s+/g, '');
     if (!words.length) return true;
+    if (compact.length <= 12) return true;
+    if (words.length <= 4 && compact.length <= 24) return true;
     if (words.length <= 2) return true;
     if (words.length <= 3 && words.every((word) => isCommonWord(word, countsA, countsB))) return true;
     return false;
@@ -110,9 +113,9 @@
 
   const coalesceRuns = (runs, countsA, countsB) => {
     const merged = [];
-    const MIN_MERGE_WORDS = 8;
-    const MIN_MERGE_CHARS = 40;
-    const MIN_MERGE_RUNS = 4;
+    const MIN_MERGE_WORDS = 6;
+    const MIN_MERGE_CHARS = 28;
+    const MIN_MERGE_RUNS = 3;
 
     for (let i = 0; i < runs.length; i += 1) {
       const run = runs[i];
@@ -156,11 +159,11 @@
         j += 1;
       }
 
-      const shouldMerge = hasInsert && hasDelete && softEqualCount > 0 && (
+      const shouldMerge = hasInsert && hasDelete && (
         editWordCount >= MIN_MERGE_WORDS ||
         editCharCount >= MIN_MERGE_CHARS ||
         editRunCount >= MIN_MERGE_RUNS
-      );
+      ) && (softEqualCount > 0 || editRunCount >= 2);
 
       if (shouldMerge) {
         const delTokens = [];
