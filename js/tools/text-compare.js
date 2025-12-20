@@ -490,7 +490,7 @@
       'color:#000',
       'background:#fff'
     ].join(';');
-    return `<!doctype html><html><head><meta charset="utf-8"></head><body><div style="${bodyStyle}"><!--StartFragment-->${fragment}<!--EndFragment--></div></body></html>`;
+    return `<div style="${bodyStyle}"><!--StartFragment-->${fragment}<!--EndFragment--></div>`;
   };
 
   const buildClipboardRtf = (runs, style) => {
@@ -546,12 +546,13 @@
     const style = getCopyStyle();
     const html = buildClipboardHtml(lastRuns, style);
     const rtf = buildClipboardRtf(lastRuns, style);
+    const plainText = lastRevisedText || '';
 
     try {
       if (navigator.clipboard && window.ClipboardItem) {
         const item = new ClipboardItem({
           'text/html': new Blob([html], { type: 'text/html' }),
-          'text/plain': new Blob([lastRevisedText || ''], { type: 'text/plain' }),
+          'text/plain': new Blob([plainText], { type: 'text/plain' }),
           'text/rtf': new Blob([rtf], { type: 'text/rtf' })
         });
         await navigator.clipboard.write([item]);
@@ -568,7 +569,8 @@
       temp.style.left = '-9999px';
       temp.style.top = '0';
       temp.style.whiteSpace = 'normal';
-      temp.innerHTML = buildClipboardFragment(lastRuns, style);
+      temp.contentEditable = 'true';
+      temp.innerHTML = html;
       document.body.appendChild(temp);
 
       const selection = window.getSelection();
@@ -576,9 +578,26 @@
       range.selectNodeContents(temp);
       selection?.removeAllRanges();
       selection?.addRange(range);
-      const ok = document.execCommand('copy');
-      selection?.removeAllRanges();
-      temp.remove();
+      const handleCopy = (event) => {
+        if (!event.clipboardData) return;
+        event.clipboardData.setData('text/plain', plainText);
+        event.clipboardData.setData('text/html', html);
+        try {
+          event.clipboardData.setData('text/rtf', rtf);
+        } catch {
+          // ignore if the browser blocks RTF
+        }
+        event.preventDefault();
+      };
+      document.addEventListener('copy', handleCopy);
+      let ok = false;
+      try {
+        ok = document.execCommand('copy');
+      } finally {
+        document.removeEventListener('copy', handleCopy);
+        selection?.removeAllRanges();
+        temp.remove();
+      }
 
       setCopyStatus(ok ? 'Copied with formatting.' : 'Copy failed.', ok ? 'success' : 'error');
     } catch {
