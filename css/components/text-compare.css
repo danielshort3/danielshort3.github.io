@@ -246,6 +246,22 @@
     border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
     background:transparent;
   }
+  .textcompare-number{
+    width:96px;
+    height:34px;
+    padding:0 10px;
+    border-radius:10px;
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    background:color-mix(in srgb,var(--surface) 92%, #02070d 8%);
+    color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
+    font:inherit;
+    text-align:right;
+  }
+  .textcompare-number:focus{
+    outline:none;
+    border-color:color-mix(in srgb,var(--primary) 46%, transparent);
+    box-shadow:0 0 0 2px color-mix(in srgb,var(--primary) 28%, transparent);
+  }
   .textcompare-format-hint{
     margin:10px 0 0;
     color:var(--text-muted);

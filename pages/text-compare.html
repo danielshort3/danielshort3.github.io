@@ -125,6 +125,36 @@
             </div>
             <p class="textcompare-format-hint">Tip: paste into Word using “Keep Source Formatting” to preserve highlights and strikethroughs.</p>
           </details>
+          <details class="textcompare-format-details">
+            <summary>Comparison tuning</summary>
+            <div class="textcompare-format-grid" role="group" aria-label="Comparison tuning options">
+              <div class="textcompare-format-field">
+                <label class="textcompare-format-label" for="textcompare-merge-words">Merge min words</label>
+                <input id="textcompare-merge-words" class="textcompare-number" type="number" min="0" max="200" step="1" value="8" inputmode="numeric">
+              </div>
+              <div class="textcompare-format-field">
+                <label class="textcompare-format-label" for="textcompare-merge-chars">Merge min characters</label>
+                <input id="textcompare-merge-chars" class="textcompare-number" type="number" min="0" max="500" step="1" value="40" inputmode="numeric">
+              </div>
+              <div class="textcompare-format-field">
+                <label class="textcompare-format-label" for="textcompare-merge-runs">Merge min runs</label>
+                <input id="textcompare-merge-runs" class="textcompare-number" type="number" min="1" max="200" step="1" value="4" inputmode="numeric">
+              </div>
+              <div class="textcompare-format-field">
+                <label class="textcompare-format-label" for="textcompare-soft-words">Soft equal max words</label>
+                <input id="textcompare-soft-words" class="textcompare-number" type="number" min="0" max="12" step="1" value="2" inputmode="numeric">
+              </div>
+              <div class="textcompare-format-field">
+                <label class="textcompare-format-label" for="textcompare-soft-word-length">Soft equal max word length</label>
+                <input id="textcompare-soft-word-length" class="textcompare-number" type="number" min="0" max="12" step="1" value="2" inputmode="numeric">
+              </div>
+              <div class="textcompare-format-field">
+                <label class="textcompare-format-label" for="textcompare-common-min">Common word repeats</label>
+                <input id="textcompare-common-min" class="textcompare-number" type="number" min="1" max="20" step="1" value="2" inputmode="numeric">
+              </div>
+            </div>
+            <p class="textcompare-format-hint">Higher merge thresholds keep more text unchanged; lower soft-equal values avoid merging across preserved phrases.</p>
+          </details>
           <div id="textcompare-output" class="textcompare-output" role="region" aria-label="Inline comparison output">
             <p class="textcompare-empty">Waiting for input.</p>
           </div>
