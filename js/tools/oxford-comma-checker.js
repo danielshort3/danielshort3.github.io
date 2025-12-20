@@ -13,6 +13,7 @@
   const clearBtn = $('[data-oxford-clear]');
   const onlyMissingToggle = $('[data-oxford-only-missing]');
   const conjInputs = $$('[data-oxford-conjunction]');
+  let hasRun = false;
 
   if (!form || !input || !summary || !counts || !resultsList || !output) return;
 
@@ -23,6 +24,18 @@
     .replace(/>/g, '&gt;');
   const formatNumber = (value) => value.toLocaleString('en-US');
   const truncate = (value, max = 180) => (value.length <= max ? value : `${value.slice(0, max - 3)}...`);
+
+  const getTextForAnalysis = () => {
+    const raw = input.value || '';
+    if (raw.trim()) {
+      return { text: raw, isPlaceholder: false };
+    }
+    const placeholder = input.placeholder || '';
+    if (placeholder.trim()) {
+      return { text: placeholder, isPlaceholder: true };
+    }
+    return { text: '', isPlaceholder: false };
+  };
 
   const getConjunctions = () => conjInputs
     .filter((item) => item.checked)
@@ -152,8 +165,9 @@
   };
 
   const runAnalysis = () => {
-    const text = input.value || '';
+    const { text } = getTextForAnalysis();
     if (!text.trim()) {
+      hasRun = false;
       summary.textContent = 'Paste text and click Check.';
       counts.innerHTML = '';
       resultsList.innerHTML = '';
@@ -166,6 +180,7 @@
     }
     const conjunctions = getConjunctions();
     if (!conjunctions.length) {
+      hasRun = true;
       summary.textContent = 'Select at least one conjunction to scan.';
       counts.innerHTML = '';
       resultsList.innerHTML = '';
@@ -180,6 +195,7 @@
     const missing = matches.filter((item) => !item.hasOxford);
     const present = matches.length - missing.length;
     renderCounts(matches.length, missing.length, present);
+    hasRun = true;
     if (matches.length) {
       summary.textContent = `${formatNumber(matches.length)} list candidate${matches.length === 1 ? '' : 's'} found. ${formatNumber(missing.length)} missing Oxford comma${missing.length === 1 ? '' : 's'}.`;
     } else {
@@ -201,7 +217,7 @@
   });
 
   const maybeRerun = () => {
-    if (!input.value.trim()) return;
+    if (!hasRun) return;
     runAnalysis();
   };
 
@@ -212,6 +228,7 @@
 
   clearBtn?.addEventListener('click', () => {
     input.value = '';
+    hasRun = false;
     counts.innerHTML = '';
     resultsList.innerHTML = '';
     summary.textContent = 'Paste text and click Check.';
