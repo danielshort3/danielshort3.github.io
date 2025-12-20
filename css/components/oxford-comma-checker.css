@@ -1,5 +1,9 @@
 /* Oxford comma checker styles */
 @layer components {
+  .oxford-comma-page{
+    --oxford-present-color:var(--primary);
+    --oxford-absent-color:color-mix(in srgb,var(--primary) 35%, var(--text-muted));
+  }
   .oxford-top-panel{
     padding:clamp(3.2rem,7vh,4.8rem) 0;
     background:linear-gradient(150deg,
@@ -242,10 +246,10 @@
     gap:8px;
   }
   .oxford-result[data-status="missing"]{
-    border-color:color-mix(in srgb,var(--warning) 60%, transparent);
+    border-color:color-mix(in srgb,var(--oxford-absent-color) 70%, transparent);
   }
   .oxford-result[data-status="present"]{
-    border-color:color-mix(in srgb,var(--success) 50%, transparent);
+    border-color:color-mix(in srgb,var(--oxford-present-color) 55%, transparent);
   }
   .oxford-result-header{
     display:flex;
@@ -263,12 +267,12 @@
     border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
   }
   .oxford-result[data-status="missing"] .oxford-result-status{
-    color:var(--warning);
-    border-color:color-mix(in srgb,var(--warning) 70%, transparent);
+    color:var(--oxford-absent-color);
+    border-color:color-mix(in srgb,var(--oxford-absent-color) 75%, transparent);
   }
   .oxford-result[data-status="present"] .oxford-result-status{
-    color:var(--success);
-    border-color:color-mix(in srgb,var(--success) 70%, transparent);
+    color:var(--oxford-present-color);
+    border-color:color-mix(in srgb,var(--oxford-present-color) 70%, transparent);
   }
   .oxford-result-tag{
     font-size:.85rem;
@@ -276,15 +280,10 @@
     letter-spacing:.08em;
     color:var(--text-muted);
   }
-  .oxford-result-text,
-  .oxford-result-fix{
+  .oxford-result-text{
     margin:0;
     color:var(--text-muted);
     line-height:1.6;
-  }
-  .oxford-result-fix span{
-    color:var(--text-light);
-    font-weight:600;
   }
 
   .oxford-output{
@@ -308,13 +307,13 @@
     -webkit-box-decoration-break:clone;
   }
   .oxford-mark-missing{
-    background:color-mix(in srgb,var(--warning) 22%, transparent);
-    border-color:color-mix(in srgb,var(--warning) 50%, transparent);
+    background:color-mix(in srgb,var(--oxford-absent-color) 22%, transparent);
+    border-color:color-mix(in srgb,var(--oxford-absent-color) 50%, transparent);
     color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
   }
   .oxford-mark-present{
-    background:color-mix(in srgb,var(--success) 22%, transparent);
-    border-color:color-mix(in srgb,var(--success) 50%, transparent);
+    background:color-mix(in srgb,var(--oxford-present-color) 22%, transparent);
+    border-color:color-mix(in srgb,var(--oxford-present-color) 50%, transparent);
     color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
   }
 

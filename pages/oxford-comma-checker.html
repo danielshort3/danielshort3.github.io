@@ -6,11 +6,11 @@
   <base href="/">
   <title>Oxford Comma Checker | Daniel Short</title>
   <link rel="canonical" href="https://danielshort.me/tools/oxford-comma-checker">
-  <meta name="description" content="Scan text for possible missing Oxford commas in serial lists. Runs locally in your browser.">
+  <meta name="description" content="Scan text for Oxford comma usage in serial lists. Runs locally in your browser.">
   <meta name="robots" content="noindex, nofollow">
   <meta property="og:title" content="Oxford Comma Checker | Daniel Short">
   <meta property="og:site_name" content="Daniel Short - Data Science &amp; Analytics">
-  <meta property="og:description" content="Check drafts for missing Oxford commas in serial lists. Everything runs locally in your browser.">
+  <meta property="og:description" content="Check drafts for Oxford comma usage in serial lists. Everything runs locally in your browser.">
   <meta property="og:url" content="https://danielshort.me/tools/oxford-comma-checker">
   <meta property="og:image" content="https://danielshort.me/img/hero/head.jpg">
   <meta property="og:image:alt" content="Portrait photo of Daniel Short">
@@ -47,7 +47,7 @@
     <div class="wrapper oxford-top-inner">
       <p class="hero-eyebrow">Labs</p>
       <h1>Oxford Comma Checker</h1>
-      <p class="oxford-top-lead">Paste a draft to scan serial lists for possible missing Oxford commas. Everything runs locally in your browser.</p>
+      <p class="oxford-top-lead">Paste a draft to scan serial lists and tally Oxford comma usage. Everything runs locally in your browser.</p>
       <div class="oxford-steps">
         <div class="oxford-step">
           <span class="oxford-step-number">1</span>
@@ -66,8 +66,8 @@
         <div class="oxford-step">
           <span class="oxford-step-number">3</span>
           <div>
-            <h3>Review suggestions</h3>
-            <p>Flags possible missing commas and suggests quick fixes.</p>
+            <h3>Review usage</h3>
+            <p>See where Oxford commas are present or absent across list candidates.</p>
           </div>
         </div>
       </div>
@@ -79,7 +79,7 @@
       <div class="wrapper">
         <div class="oxford-card oxford-input-card">
           <h2>Analyze text</h2>
-          <p class="oxford-subtitle">Find possible Oxford comma issues in serial lists. Review the context to confirm.</p>
+          <p class="oxford-subtitle">Tally Oxford comma usage in serial lists. Review the context to confirm.</p>
           <form class="oxford-form" data-oxford-form novalidate>
             <label class="oxford-label" for="oxford-text">Text to scan</label>
             <textarea id="oxford-text" class="oxford-textarea" data-oxford-input name="text" placeholder="We packed apples, bananas and cherries for the picnic.&#10;The review covers pricing, positioning, and messaging.&#10;She thanked her friends, her mentors and her family." required></textarea>
@@ -100,10 +100,6 @@
                 </label>
               </div>
             </fieldset>
-            <label class="oxford-option">
-              <input type="checkbox" data-oxford-only-missing checked>
-              <span>Show only missing Oxford commas.</span>
-            </label>
             <div class="oxford-actions">
               <button type="submit" class="btn-primary">Check</button>
               <button type="button" class="btn-ghost" data-oxford-clear>Clear</button>
@@ -125,20 +121,20 @@
           <div class="oxford-results-grid">
             <div>
               <div class="oxford-results-title">
-                <h3>Findings</h3>
-                <p class="oxford-hint">Possible list candidates based on punctuation and conjunctions.</p>
+                <h3>Occurrences</h3>
+                <p class="oxford-hint">List candidates based on punctuation and conjunctions.</p>
               </div>
               <p class="oxford-empty" data-oxford-empty>Waiting for input.</p>
-              <ul class="oxford-list" data-oxford-results aria-label="Oxford comma findings"></ul>
+              <ul class="oxford-list" data-oxford-results aria-label="Oxford comma occurrences"></ul>
             </div>
             <div>
               <div class="oxford-output-header">
                 <div class="oxford-results-title">
                   <h3>Highlighted text</h3>
-                  <p class="oxford-hint">Oxford comma presence and omissions highlighted.</p>
+                  <p class="oxford-hint">Oxford comma usage highlighted.</p>
                 </div>
                 <div class="oxford-legend" aria-label="Oxford comma legend">
-                  <span class="oxford-legend-pill oxford-mark oxford-mark-missing">Missing Oxford comma</span>
+                  <span class="oxford-legend-pill oxford-mark oxford-mark-missing">Oxford comma absent</span>
                   <span class="oxford-legend-pill oxford-mark oxford-mark-present">Oxford comma present</span>
                 </div>
               </div>

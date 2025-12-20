@@ -11,7 +11,6 @@
   const empty = $('[data-oxford-empty]');
   const output = $('[data-oxford-output]');
   const clearBtn = $('[data-oxford-clear]');
-  const onlyMissingToggle = $('[data-oxford-only-missing]');
   const conjInputs = $$('[data-oxford-conjunction]');
   let hasRun = false;
 
@@ -61,13 +60,6 @@
     return idx;
   };
 
-  const buildSuggestion = (text, conjIndex) => {
-    if (conjIndex < 0) return '';
-    const before = text.slice(0, conjIndex).replace(/\s*$/, '');
-    const after = text.slice(conjIndex).replace(/^\s+/, ' ');
-    return `${before},${after}`;
-  };
-
   const findMatches = (text, conjunctions) => {
     const regex = buildRegex(conjunctions);
     if (!regex) return [];
@@ -87,55 +79,49 @@
         text: raw,
         conj,
         hasOxford,
-        suggestion: hasOxford ? '' : buildSuggestion(raw, conjIndex),
       });
     }
     return matches;
   };
 
-  const renderCounts = (total, missing, present) => {
+  const renderCounts = (total, present, missing) => {
     counts.innerHTML = `
       <li>
         <strong>${formatNumber(total)}</strong>
         <span>List candidates</span>
       </li>
       <li>
-        <strong>${formatNumber(missing)}</strong>
-        <span>Missing Oxford commas</span>
-      </li>
-      <li>
         <strong>${formatNumber(present)}</strong>
         <span>Oxford comma present</span>
+      </li>
+      <li>
+        <strong>${formatNumber(missing)}</strong>
+        <span>Oxford comma absent</span>
       </li>
     `;
   };
 
-  const renderResults = (matches, onlyMissing) => {
+  const renderResults = (matches) => {
     resultsList.innerHTML = '';
-    const visible = onlyMissing ? matches.filter((item) => !item.hasOxford) : matches;
-    if (!visible.length) {
+    if (!matches.length) {
       if (empty) {
         empty.hidden = false;
-        empty.textContent = matches.length
-          ? 'No missing Oxford commas found with the current filters.'
-          : 'No list candidates detected yet.';
+        empty.textContent = 'No list candidates detected yet.';
       }
       return;
     }
     if (empty) empty.hidden = true;
-    visible.forEach((item) => {
+    matches.forEach((item) => {
       const li = document.createElement('li');
       li.className = 'oxford-result';
       li.dataset.status = item.hasOxford ? 'present' : 'missing';
       const snippet = truncate(item.text.trim());
-      const suggestion = item.suggestion ? truncate(item.suggestion.trim()) : '';
       li.innerHTML = `
         <div class="oxford-result-header">
-          <span class="oxford-result-status">${item.hasOxford ? 'Oxford comma present' : 'Missing Oxford comma'}</span>
+          <span class="oxford-result-status">${item.hasOxford ? 'Oxford comma present' : 'Oxford comma absent'}</span>
           <span class="oxford-result-tag">${item.conj}</span>
         </div>
         <p class="oxford-result-text">${escapeHtml(snippet)}</p>
-        ${item.hasOxford ? '' : `<p class="oxford-result-fix"><span>Suggestion:</span> ${escapeHtml(suggestion)}</p>`}
       `;
       resultsList.appendChild(li);
     });
@@ -193,21 +179,26 @@
     }
     const matches = findMatches(text, conjunctions);
     const missing = matches.filter((item) => !item.hasOxford);
-    const present = matches.length - missing.length;
-    renderCounts(matches.length, missing.length, present);
+    const missingCount = missing.length;
+    const present = matches.length - missingCount;
+    renderCounts(matches.length, present, missingCount);
     hasRun = true;
     if (matches.length) {
-      summary.textContent = `${formatNumber(matches.length)} list candidate${matches.length === 1 ? '' : 's'} found. ${formatNumber(missing.length)} missing Oxford comma${missing.length === 1 ? '' : 's'}.`;
+      const majorityLabel = present === missingCount
+        ? 'Tie'
+        : present > missingCount
+          ? 'Oxford comma present'
+          : 'Oxford comma absent';
+      summary.textContent = `${formatNumber(matches.length)} list candidate${matches.length === 1 ? '' : 's'} found. Oxford comma present in ${formatNumber(present)}, absent in ${formatNumber(missingCount)}. Majority: ${majorityLabel}.`;
     } else {
       summary.textContent = 'No list candidates detected. Try a longer sample.';
     }
-    const onlyMissing = Boolean(onlyMissingToggle?.checked);
     const highlights = matches.map((item) => ({
       start: item.start,
       end: item.end,
       status: item.hasOxford ? 'present' : 'missing',
     }));
-    renderResults(matches, onlyMissing);
+    renderResults(matches);
     renderOutput(text, highlights);
   };
 
@@ -224,8 +215,6 @@
   conjInputs.forEach((item) => {
     item.addEventListener('change', maybeRerun);
   });
-  onlyMissingToggle?.addEventListener('change', maybeRerun);
-
   clearBtn?.addEventListener('click', () => {
     input.value = '';
     hasRun = false;
