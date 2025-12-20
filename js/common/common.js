@@ -15,7 +15,24 @@
   let modalsPromise = null;
   let modalsHydrated = false;
 
+  const resetScrollLocks = () => {
+    const body = document.body;
+    if (!body) return;
+    const menu = document.getElementById('primary-menu');
+    if (!menu || !menu.classList.contains('open')) {
+      body.classList.remove('menu-open');
+    }
+    if (!document.querySelector('.modal.active')) {
+      body.classList.remove('modal-open');
+    }
+    if (!document.querySelector('.media-viewer.active')) {
+      body.classList.remove('media-viewer-open');
+    }
+  };
+
+  window.addEventListener('pageshow', resetScrollLocks);
   document.addEventListener('DOMContentLoaded', () => {
+    resetScrollLocks();
     if (isPage('portfolio')) {
       ensurePortfolioScripts().then(() => {
         run(window.buildPortfolioCarousel);
