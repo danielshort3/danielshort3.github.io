@@ -9,23 +9,34 @@
     align-items: center;
     --speed-dial-toggle-size: 56px;
     --speed-dial-gap: var(--space-12);
+    --speed-dial-label-room: 160px;
+  }
+
+  .speed-dial__tray {
+    position: absolute;
+    right: var(--speed-dial-toggle-size);
+    bottom: 0;
+    width: max-content;
+    clip-path: inset(-40px 0 -40px calc(-1 * var(--speed-dial-label-room)));
+    pointer-events: none;
+  }
+
+  .speed-dial.is-open .speed-dial__tray {
+    pointer-events: auto;
   }
 
   .speed-dial__actions {
-    position: absolute;
-    right: 0;
-    bottom: 0;
     display: flex;
     flex-direction: row;
     align-items: center;
     gap: var(--space-12);
-    padding: 4px calc(var(--speed-dial-toggle-size) + var(--speed-dial-gap)) 4px 8px;
+    padding: 4px 10px 4px 8px;
     border-radius: 999px;
     border: 1px solid var(--border-subtle);
     border-right: none;
     background: var(--surface);
     box-shadow: var(--shadow-md);
-    transform: translateX(calc(100% - var(--speed-dial-toggle-size)));
+    transform: translateX(100%);
     pointer-events: none;
     visibility: hidden;
     transition: transform .24s ease, visibility 0s linear .24s;
