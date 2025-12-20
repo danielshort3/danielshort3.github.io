@@ -9,6 +9,30 @@
   const on = (n,e,f,o)=>n&&n.addEventListener(e,f,o);
   const run = fn=>typeof fn==='function'&&fn();
   const isPage = (...names)=>names.includes(document.body.dataset.page);
+  const CONTACT_CONTEXT_KEY = 'contactOrigin';
+
+  const storeContactOrigin = () => {
+    try {
+      const title = (document.title || '').trim();
+      const url = (window.location && window.location.href) ? window.location.href.trim() : '';
+      sessionStorage.setItem(CONTACT_CONTEXT_KEY, JSON.stringify({ title, url, ts: Date.now() }));
+    } catch {}
+  };
+
+  const trackContactOrigin = () => {
+    if (!document || !document.addEventListener) return;
+    document.addEventListener('click', (event) => {
+      const trigger = event.target.closest('[data-contact-modal-link], #contact-form-toggle');
+      if (!trigger) return;
+      storeContactOrigin();
+    });
+    document.addEventListener('submit', (event) => {
+      const target = event.target;
+      if (target && target.id === 'nav-contact-mini-form') {
+        storeContactOrigin();
+      }
+    });
+  };
 
   let jumpPanelScrollToken = 0;
   let activeJumpPanelScrollToken = 0;
@@ -74,6 +98,7 @@
       initJumpPanelSpy();
     }
   });
+  trackContactOrigin();
 
   function loadScriptOnce(src){
     if (loadedScripts.has(src)) return loadedScripts.get(src);

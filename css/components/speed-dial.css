@@ -5,36 +5,44 @@
     right: calc(var(--space-20) + env(safe-area-inset-right));
     bottom: calc(var(--space-20) + env(safe-area-inset-bottom));
     z-index: 1500;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: var(--space-12);
+    display: inline-flex;
+    align-items: center;
   }
 
   .speed-dial__actions {
+    position: absolute;
+    right: calc(100% + var(--space-12));
+    bottom: 0;
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
+    flex-direction: row;
+    align-items: center;
     gap: var(--space-12);
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateX(10px);
     pointer-events: none;
-    transition: opacity .2s ease, transform .2s ease;
+    visibility: hidden;
+    transition: opacity .2s ease, transform .2s ease, visibility 0s linear .2s;
   }
 
   .speed-dial.is-open .speed-dial__actions {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0);
     pointer-events: auto;
+    visibility: visible;
+    transition: opacity .2s ease, transform .2s ease;
   }
 
   .speed-dial__item {
-    display: flex;
+    position: relative;
+    display: inline-flex;
     align-items: center;
-    gap: var(--space-10);
+    justify-content: center;
   }
 
   .speed-dial__label {
+    position: absolute;
+    right: calc(100% + 10px);
+    top: 50%;
     font-family: 'Poppins';
     font-size: 12px;
     letter-spacing: .02em;
@@ -45,16 +53,17 @@
     border-radius: 999px;
     box-shadow: var(--shadow-sm);
     opacity: 0;
-    transform: translateX(6px);
+    transform: translateY(-50%) translateX(6px);
     pointer-events: none;
     transition: opacity .18s ease, transform .18s ease;
     white-space: nowrap;
+    z-index: 1;
   }
 
   .speed-dial__item:hover .speed-dial__label,
   .speed-dial__item:focus-within .speed-dial__label {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateY(-50%) translateX(0);
   }
 
   .speed-dial__action {
@@ -62,6 +71,7 @@
     height: 48px;
     min-width: 48px;
     min-height: 48px;
+    pointer-events: auto;
   }
 
   .speed-dial__toggle {
@@ -69,6 +79,7 @@
     height: 56px;
     min-width: 56px;
     min-height: 56px;
+    pointer-events: auto;
   }
 
   .speed-dial__toggle svg {
