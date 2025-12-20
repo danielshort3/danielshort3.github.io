@@ -11,6 +11,12 @@
   const swapBtn = $('#textcompare-swap');
   const copyBtn = $('#textcompare-copy');
   const copyStatus = $('#textcompare-copy-status');
+  const mergeWordsEl = $('#textcompare-merge-words');
+  const mergeCharsEl = $('#textcompare-merge-chars');
+  const mergeRunsEl = $('#textcompare-merge-runs');
+  const softWordsEl = $('#textcompare-soft-words');
+  const softWordLenEl = $('#textcompare-soft-word-length');
+  const commonMinEl = $('#textcompare-common-min');
   const insBgEl = $('#textcompare-ins-bg');
   const insTextEl = $('#textcompare-ins-text');
   const delBgEl = $('#textcompare-del-bg');
@@ -21,6 +27,14 @@
 
   const MAX_CHARS = 200_000;
   const MAX_TOKENS = 20_000;
+  const DEFAULT_COMPARE_SETTINGS = {
+    mergeMinWords: 8,
+    mergeMinChars: 40,
+    mergeMinRuns: 4,
+    softEqualMaxWords: 2,
+    softEqualMaxWordLength: 2,
+    commonWordMinCount: 2
+  };
   let lastRuns = null;
   let lastRevisedText = '';
 
@@ -35,6 +49,21 @@
     copyStatus.textContent = msg;
     copyStatus.dataset.tone = tone || '';
   };
+
+  const clampInt = (value, min, max, fallback) => {
+    const parsed = Number.parseInt(value, 10);
+    if (Number.isNaN(parsed)) return fallback;
+    return Math.min(max, Math.max(min, parsed));
+  };
+
+  const getCompareSettings = () => ({
+    mergeMinWords: clampInt(mergeWordsEl?.value, 0, 200, DEFAULT_COMPARE_SETTINGS.mergeMinWords),
+    mergeMinChars: clampInt(mergeCharsEl?.value, 0, 500, DEFAULT_COMPARE_SETTINGS.mergeMinChars),
+    mergeMinRuns: clampInt(mergeRunsEl?.value, 1, 200, DEFAULT_COMPARE_SETTINGS.mergeMinRuns),
+    softEqualMaxWords: clampInt(softWordsEl?.value, 0, 12, DEFAULT_COMPARE_SETTINGS.softEqualMaxWords),
+    softEqualMaxWordLength: clampInt(softWordLenEl?.value, 0, 12, DEFAULT_COMPARE_SETTINGS.softEqualMaxWordLength),
+    commonWordMinCount: clampInt(commonMinEl?.value, 1, 20, DEFAULT_COMPARE_SETTINGS.commonWordMinCount)
+  });
 
   const buildTokenRegexes = () => {
     const unicodeWord = "[\\p{L}\\p{N}_]+(?:['-][\\p{L}\\p{N}_]+)*";
@@ -91,29 +120,36 @@
     return counts;
   };
 
-  const isCommonWord = (token, countsA, countsB) => {
+  const isCommonWord = (token, countsA, countsB, settings) => {
     const key = token.toLowerCase();
-    return (countsA.get(key) || 0) > 1 || (countsB.get(key) || 0) > 1;
+    const threshold = settings.commonWordMinCount;
+    return (countsA.get(key) || 0) >= threshold || (countsB.get(key) || 0) >= threshold;
   };
 
-  const isSoftEqual = (run, countsA, countsB) => {
+  const isSoftEqual = (run, countsA, countsB, settings) => {
     if (run.type !== 'equal') return false;
     const text = run.tokens.join('');
     if (!text) return true;
     if (!hasWordChar(text)) return true;
     const words = run.tokens.filter(isWordToken);
     if (!words.length) return true;
-    if (words.length <= 2 && words.every((word) => isCommonWord(word, countsA, countsB))) return true;
-    if (words.length === 1 && words[0].length <= 2) return true;
-    if (words.length === 2 && words[0].length <= 2 && words[1].length <= 2) return true;
+    if (settings.softEqualMaxWords <= 0) return false;
+    if (words.length <= settings.softEqualMaxWords && words.every((word) => isCommonWord(word, countsA, countsB, settings))) return true;
+    if (
+      settings.softEqualMaxWordLength > 0 &&
+      words.length <= settings.softEqualMaxWords &&
+      words.every((word) => word.length <= settings.softEqualMaxWordLength)
+    ) {
+      return true;
+    }
     return false;
   };
 
-  const coalesceRuns = (runs, countsA, countsB) => {
+  const coalesceRuns = (runs, countsA, countsB, settings) => {
     const merged = [];
-    const MIN_MERGE_WORDS = 8;
-    const MIN_MERGE_CHARS = 40;
-    const MIN_MERGE_RUNS = 4;
+    const MIN_MERGE_WORDS = settings.mergeMinWords;
+    const MIN_MERGE_CHARS = settings.mergeMinChars;
+    const MIN_MERGE_RUNS = settings.mergeMinRuns;
 
     for (let i = 0; i < runs.length; i += 1) {
       const run = runs[i];
@@ -133,7 +169,7 @@
 
       while (j < runs.length) {
         const current = runs[j];
-        if (current.type === 'equal' && !isSoftEqual(current, countsA, countsB)) break;
+        if (current.type === 'equal' && !isSoftEqual(current, countsA, countsB, settings)) break;
         segment.push(current);
         if (current.type === 'equal') {
           softEqualCount += 1;
@@ -655,9 +691,10 @@
 
       const edits = myersEdits(aTokens, bTokens);
       const rawRuns = normalizeRuns(groupRuns(edits));
+      const settings = getCompareSettings();
       const countsA = buildWordCounts(aTokens);
       const countsB = buildWordCounts(bTokens);
-      const runs = coalesceRuns(rawRuns, countsA, countsB);
+      const runs = coalesceRuns(rawRuns, countsA, countsB, settings);
       lastRuns = runs;
       lastRevisedText = revised;
       const html = renderOutput(runs);
@@ -692,6 +729,13 @@
     el?.addEventListener('input', applyPreviewStyle);
   });
   applyPreviewStyle();
+
+  [mergeWordsEl, mergeCharsEl, mergeRunsEl, softWordsEl, softWordLenEl, commonMinEl].forEach((el) => {
+    el?.addEventListener('input', () => {
+      if (!lastRuns) return;
+      runCompare();
+    });
+  });
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
