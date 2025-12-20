@@ -326,7 +326,11 @@
     const panel = document.querySelector('.jump-panel');
     if (!panel) return;
     const links = $$('.jump-panel-link', panel);
+    const hideBtn = panel.querySelector('[data-jump-hide]');
+    const showBtn = document.querySelector('[data-jump-show]');
     if (!links.length) return;
+    const focusables = [...links];
+    if (hideBtn) focusables.push(hideBtn);
     const items = links.map((link) => {
       const href = link.getAttribute('href') || '';
       if (!href.startsWith('#') || href.length < 2) return null;
@@ -415,6 +419,48 @@
       if (active && panel.contains(active)) active.blur();
     };
 
+    const setFocusable = (el, hidden) => {
+      if (!el) return;
+      if (hidden) {
+        if (!Object.prototype.hasOwnProperty.call(el.dataset, 'jumpTabindex')) {
+          const prev = el.getAttribute('tabindex');
+          el.dataset.jumpTabindex = prev === null ? '' : prev;
+        }
+        el.setAttribute('tabindex', '-1');
+        return;
+      }
+      if (!Object.prototype.hasOwnProperty.call(el.dataset, 'jumpTabindex')) {
+        return;
+      }
+      const prev = el.dataset.jumpTabindex;
+      delete el.dataset.jumpTabindex;
+      if (prev === '') {
+        el.removeAttribute('tabindex');
+      } else {
+        el.setAttribute('tabindex', prev);
+      }
+    };
+
+    const setPanelHidden = (hidden, { focus = true } = {}) => {
+      panel.classList.toggle('is-hidden', hidden);
+      panel.setAttribute('aria-hidden', hidden ? 'true' : 'false');
+      focusables.forEach((el) => setFocusable(el, hidden));
+      if (showBtn) {
+        showBtn.setAttribute('aria-hidden', hidden ? 'false' : 'true');
+        showBtn.setAttribute('aria-expanded', hidden ? 'false' : 'true');
+        showBtn.setAttribute('tabindex', hidden ? '0' : '-1');
+      }
+      if (hideBtn) {
+        hideBtn.setAttribute('aria-expanded', hidden ? 'false' : 'true');
+      }
+      if (!focus) return;
+      if (hidden) {
+        showBtn?.focus();
+        return;
+      }
+      links[0]?.focus();
+    };
+
     items.forEach((item) => {
       bindPointerBlur(item.link);
       if (item.link.dataset.jumpManual === 'yes') return;
@@ -431,6 +477,21 @@
     panel.addEventListener('mouseleave', clearPanelFocus);
     panel.addEventListener('pointerdown', () => setPanelCondensed(false));
     panel.addEventListener('focusin', () => setPanelCondensed(false));
+
+    if (hideBtn && hideBtn.dataset.jumpHideBound !== 'yes') {
+      hideBtn.dataset.jumpHideBound = 'yes';
+      hideBtn.addEventListener('click', () => setPanelHidden(true));
+    }
+    if (showBtn && showBtn.dataset.jumpShowBound !== 'yes') {
+      showBtn.dataset.jumpShowBound = 'yes';
+      showBtn.addEventListener('click', () => {
+        setPanelHidden(false);
+        setPanelCondensed(false);
+      });
+    }
+    if (hideBtn || showBtn) {
+      setPanelHidden(false, { focus: false });
+    }
 
     const update = () => {
       ticking = false;
