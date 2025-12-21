@@ -91,8 +91,22 @@
       flex-wrap: wrap;
       gap: 8px 12px;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-start;
       width: 100%;
+    }
+
+    .grid-controls .grid-controls-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+      align-items: center;
+      margin-left: auto;
+    }
+
+    .grid-controls .mini-btn {
+      padding: 6px 10px;
+      font-size: .8rem;
+      border-radius: 8px;
     }
 
     .grid-controls label {
@@ -174,9 +188,34 @@
       gap: 8px;
     }
 
+    .latent-row {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 12px;
+      align-items: end;
+      width: 100%;
+    }
+
+    .latent-dim select {
+      width: 86px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid var(--surface-accent);
+      background: var(--surface);
+      color: var(--text);
+      font-size: .85rem;
+    }
+
+    .latent-range label {
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
     .latent-panel input[type="range"] {
       width: 100%;
-      height: 6px;
+      height: 8px;
       accent-color: var(--primary);
     }
 
@@ -355,34 +394,45 @@
     <div class="content">
       <div class="grid-shell">
         <div class="grid-controls">
-          <label>
-            Mode
-            <select id="mode-select">
-              <option value="cluster" selected>Digit cluster</option>
-              <option value="random">Random</option>
-            </select>
-          </label>
-          <label>
-            Cluster
-            <select id="cluster-select">
-              <option value="auto" selected>Auto</option>
-              <option value="0">0</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
-              <option value="6">6</option>
-              <option value="7">7</option>
-              <option value="8">8</option>
-              <option value="9">9</option>
-            </select>
-          </label>
+          <button id="refresh-seed-btn" class="btn-secondary mini-btn" type="button">Refresh</button>
+          <div class="grid-controls-group">
+            <label>
+              Mode
+              <select id="mode-select">
+                <option value="cluster" selected>Digit cluster</option>
+                <option value="random">Random</option>
+              </select>
+            </label>
+            <label>
+              Cluster
+              <select id="cluster-select">
+                <option value="auto" selected>Auto</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+              </select>
+            </label>
+          </div>
         </div>
         <div class="grid" id="grid" aria-live="polite"></div>
         <div class="latent-panel">
-          <label for="value-slider">Latent range</label>
-          <input id="value-slider" type="range" min="-10" max="10" step="0.2" value="6">
+          <div class="latent-row">
+            <label class="latent-dim">
+              Dim
+              <select id="dim-select"></select>
+            </label>
+            <div class="latent-range">
+              <label for="value-slider">Latent range</label>
+              <input id="value-slider" type="range" min="-10" max="10" step="0.2" value="6">
+            </div>
+          </div>
           <div class="value-row">
             <span>Range</span>
             <span id="value-label">6.0</span>
@@ -412,14 +462,9 @@
                 <option value="8" selected>8 x 8</option>
               </select>
             </label>
-            <label>
-              Latent dimension
-              <select id="dim-select"></select>
-            </label>
           </div>
         </details>
         <div class="btn-row">
-          <button id="new-seed-btn" class="btn-secondary" type="button">New Seed</button>
           <button id="refresh-btn" class="btn-primary" type="button">Generate</button>
         </div>
       </aside>
@@ -482,7 +527,7 @@
     const statValue = document.getElementById('stat-value');
     const statLatency = document.getElementById('stat-latency');
 
-    const newSeedBtn = document.getElementById('new-seed-btn');
+    const refreshSeedBtn = document.getElementById('refresh-seed-btn');
     const refreshBtn = document.getElementById('refresh-btn');
 
     let debounceId = null;
@@ -729,7 +774,7 @@
     seedInput.addEventListener('change', () => {
       fetchGrid();
     });
-    newSeedBtn.addEventListener('click', () => {
+    refreshSeedBtn.addEventListener('click', () => {
       ensureSeed(true);
       fetchGrid();
     });
