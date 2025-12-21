@@ -348,6 +348,16 @@
       font-size: 1.2em;
     }
 
+    .result-divider {
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    .result-actual {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
     .score-card {
       display: grid;
       gap: 6px;
@@ -401,47 +411,63 @@
       color: var(--text-muted);
     }
 
-    .confidence-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      min-height: 32px;
+    .confidence-chart {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 12px;
       align-items: center;
     }
 
-    .confidence-chip {
-      display: inline-flex;
-      align-items: center;
+    .confidence-pie {
+      width: 140px;
+      height: 140px;
+      justify-self: center;
+    }
+
+    .confidence-legend {
+      display: grid;
       gap: 8px;
-      padding: 6px 12px;
-      border-radius: 999px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 6px 10px;
+      border-radius: 10px;
       border: 1px solid var(--surface-accent);
       background: var(--surface);
       font-size: .9rem;
-      font-weight: 600;
-      color: var(--text);
     }
 
-    .confidence-chip .chip-digit {
+    .legend-left {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background: var(--surface-2);
-      border: 1px solid var(--surface-accent);
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .legend-swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 4px;
+      flex: none;
+    }
+
+    .legend-label {
       font-weight: 600;
     }
 
-    .confidence-chip .chip-pct {
+    .legend-value {
       color: var(--text-muted);
-      font-weight: 500;
+      font-variant-numeric: tabular-nums;
     }
 
-    .confidence-chip.top {
-      border-color: color-mix(in srgb, var(--primary) 75%, var(--surface-accent) 25%);
-      box-shadow: var(--shadow-1);
+    @media (max-width: 520px) {
+      .confidence-chart {
+        grid-template-columns: 1fr;
+      }
     }
 
     .sample-panel {
@@ -591,22 +617,9 @@
 
     <div class="content">
       <section>
-        <div id="pad-wrapper" class="canvas-frame">
-          <canvas id="pad" width="256" height="256" aria-label="Drawing canvas"></canvas>
-          <button id="erase" class="icon-btn" type="button" aria-label="Erase (clear canvas)">
-            <i class="fa-solid fa-eraser"></i>
-          </button>
-        </div>
-
-        <div class="toolbar" style="margin-top:8px;">
-          <button id="rate" class="btn-primary" type="button">
-            <i class="fa-solid fa-star"></i> Rate digit
-          </button>
-        </div>
-
-        <div class="sample-panel" aria-label="Personal handwriting samples">
+        <div class="sample-panel" aria-label="Daniel's handwritten samples">
           <div class="sample-head">
-            <span class="sample-title">Personal samples</span>
+            <span class="sample-title">Daniel's handwritten samples</span>
             <span class="hint">Click a digit to load a saved example.</span>
           </div>
           <div class="sample-grid" role="list">
@@ -623,12 +636,27 @@
           </div>
           <div id="sample-status" class="hint">No sample loaded.</div>
         </div>
+
+        <div id="pad-wrapper" class="canvas-frame">
+          <canvas id="pad" width="256" height="256" aria-label="Drawing canvas"></canvas>
+          <button id="erase" class="icon-btn" type="button" aria-label="Erase (clear canvas)">
+            <i class="fa-solid fa-eraser"></i>
+          </button>
+        </div>
+
+        <div class="toolbar" style="margin-top:8px;">
+          <button id="rate" class="btn-primary" type="button">
+            <i class="fa-solid fa-star"></i> Rate digit
+          </button>
+        </div>
       </section>
 
       <section class="panel" aria-live="polite">
         <div class="result-badge" id="result-badge" aria-label="Prediction">
           <i class="fa-solid fa-pen-nib"></i>
-          <span id="result-digit">Draw a digit to begin</span>
+          <span id="result-digit">Prediction: --</span>
+          <span class="result-divider" aria-hidden="true">•</span>
+          <span id="result-actual" class="result-actual">Actual: --</span>
         </div>
 
         <div class="score-card">
@@ -643,10 +671,13 @@
 
         <div class="confidence-block">
           <div class="confidence-head">
-            <span>Model guesses (descending)</span>
-            <span id="confidence-summary" class="hint">--</span>
+            <span>Confidence breakdown</span>
+            <span id="confidence-summary" class="hint">Top 3 + Other</span>
           </div>
-          <div id="confidence-chips" class="confidence-chips" aria-label="Per-digit confidence chips"></div>
+          <div class="confidence-chart" aria-label="Top 3 confidence pie chart">
+            <svg id="confidence-pie" class="confidence-pie" viewBox="0 0 120 120" role="img" aria-label="Model confidence pie chart"></svg>
+            <div id="confidence-legend" class="confidence-legend" aria-label="Confidence legend"></div>
+          </div>
         </div>
 
         <div class="hint">Shortcut: press <strong>C</strong> to clear.</div>
@@ -765,10 +796,12 @@
 
     const resultBadge = document.getElementById('result-badge');
     const resultDigit = document.getElementById('result-digit');
+    const resultActual = document.getElementById('result-actual');
     const legibilityValue = document.getElementById('legibility-value');
     const legibilityBar = document.getElementById('legibility-bar');
     const confidenceSummary = document.getElementById('confidence-summary');
-    const confidenceChips = document.getElementById('confidence-chips');
+    const confidencePie = document.getElementById('confidence-pie');
+    const confidenceLegend = document.getElementById('confidence-legend');
     const sampleStatus = document.getElementById('sample-status');
     const sampleButtons = Array.from(document.querySelectorAll('.sample-btn'));
 
@@ -778,6 +811,7 @@
     let currentDPR = 1;
     let hasDrawn = false;
     let drawing = false;
+    let currentActualDigit = null;
 
     function fitCanvasToDisplaySize() {
       const r = canvas.getBoundingClientRect();
@@ -834,6 +868,12 @@
 
     canvas.addEventListener('pointerdown', e => {
       e.preventDefault();
+      if (currentActualDigit !== null) {
+        currentActualDigit = null;
+        setActiveSampleButton(null);
+        sampleStatus.textContent = 'No sample loaded.';
+        resultActual.textContent = 'Actual: --';
+      }
       drawing = true;
       canvas.setPointerCapture?.(e.pointerId);
       setStroke();
@@ -859,6 +899,7 @@
     });
 
     const DIGITS = Array.from({ length: 10 }, (_, i) => i);
+    const CHART_COLORS = ['#2ec4b6', '#f4a261', '#5b8ff9', '#9aa4b2'];
     const SAMPLE_MAP = {
       0: 'img/demos/handwriting-samples/digit-0.jpg',
       1: 'img/demos/handwriting-samples/digit-1.jpg',
@@ -944,8 +985,9 @@
         sampleStatus.textContent = 'Sample not available.';
         return;
       }
+      currentActualDigit = Number(digit);
       sampleStatus.textContent = `Loading sample ${digit}...`;
-      setPredictionUI(`Loading sample ${digit}...`, null, null, null);
+      setPredictionUI(`Loading sample ${digit}...`, null, null, null, digit);
       try {
         const img = await loadImage(src);
         fitCanvasToDisplaySize();
@@ -977,34 +1019,100 @@
         .sort((a, b) => b.value - a.value);
     }
 
-    function renderConfidenceChips(sorted) {
-      confidenceChips.innerHTML = '';
+    function polarToCartesian(cx, cy, radius, angleDeg) {
+      const rad = (angleDeg - 90) * Math.PI / 180.0;
+      return {
+        x: cx + (radius * Math.cos(rad)),
+        y: cy + (radius * Math.sin(rad))
+      };
+    }
+
+    function describeArc(cx, cy, radius, startAngle, endAngle) {
+      const start = polarToCartesian(cx, cy, radius, endAngle);
+      const end = polarToCartesian(cx, cy, radius, startAngle);
+      const largeArc = endAngle - startAngle <= 180 ? '0' : '1';
+      return [
+        'M', cx, cy,
+        'L', start.x, start.y,
+        'A', radius, radius, 0, largeArc, 0, end.x, end.y,
+        'Z'
+      ].join(' ');
+    }
+
+    function renderConfidenceChart(sorted) {
+      confidencePie.innerHTML = '';
+      confidenceLegend.innerHTML = '';
+
       if (!sorted || !sorted.length) {
         const empty = document.createElement('span');
         empty.className = 'hint';
         empty.textContent = 'No guesses yet.';
-        confidenceChips.appendChild(empty);
+        confidenceLegend.appendChild(empty);
+        confidenceSummary.textContent = '--';
         return;
       }
-      sorted.forEach((item, idx) => {
-        const pct = toPercent(item.value);
-        const pctLabel = pct === null
-          ? '--'
-          : (pct < 1 ? `${pct.toFixed(1)}%` : `${Math.round(pct)}%`);
-        const chip = document.createElement('div');
-        chip.className = `confidence-chip${idx === 0 ? ' top' : ''}`;
 
-        const digit = document.createElement('span');
-        digit.className = 'chip-digit';
-        digit.textContent = String(item.digit);
+      const total = sorted.reduce((sum, item) => sum + item.value, 0);
+      if (!total) {
+        confidenceSummary.textContent = '--';
+        return;
+      }
+
+      const top = sorted.slice(0, 3);
+      const topSum = top.reduce((sum, item) => sum + item.value, 0);
+      const otherVal = Math.max(0, total - topSum);
+
+      const items = top.map((item, idx) => ({
+        label: String(item.digit),
+        value: item.value,
+        color: CHART_COLORS[idx]
+      }));
+      items.push({
+        label: 'Other',
+        value: otherVal,
+        color: CHART_COLORS[3]
+      });
+
+      let startAngle = 0;
+      items.forEach(item => {
+        if (item.value <= 0) return;
+        const sliceAngle = (item.value / total) * 360;
+        const endAngle = startAngle + sliceAngle;
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', describeArc(60, 60, 50, startAngle, endAngle));
+        path.setAttribute('fill', item.color);
+        confidencePie.appendChild(path);
+        startAngle = endAngle;
+      });
+
+      items.forEach(item => {
+        const pct = (item.value / total) * 100;
+        const pctLabel = pct < 1 ? `${pct.toFixed(1)}%` : `${Math.round(pct)}%`;
+
+        const row = document.createElement('div');
+        row.className = 'legend-item';
+
+        const left = document.createElement('div');
+        left.className = 'legend-left';
+
+        const swatch = document.createElement('span');
+        swatch.className = 'legend-swatch';
+        swatch.style.background = item.color;
 
         const label = document.createElement('span');
-        label.className = 'chip-pct';
-        label.textContent = pctLabel;
+        label.className = 'legend-label';
+        label.textContent = item.label;
 
-        chip.append(digit, label);
-        confidenceChips.appendChild(chip);
+        const value = document.createElement('span');
+        value.className = 'legend-value';
+        value.textContent = pctLabel;
+
+        left.append(swatch, label);
+        row.append(left, value);
+        confidenceLegend.appendChild(row);
       });
+
+      confidenceSummary.textContent = 'Top 3 + Other';
     }
 
     function updateLegibility(value) {
@@ -1013,28 +1121,32 @@
       legibilityValue.textContent = pct !== null ? `${Math.round(pct)}%` : '--';
     }
 
-    function setPredictionUI(message, confidences, legibility, digit) {
+    function setPredictionUI(message, confidences, legibility, digit, actualDigit = null) {
       const sorted = getSortedConfidences(confidences);
       const top = sorted && sorted.length ? sorted[0] : null;
       const resolvedDigit = Number.isFinite(digit) ? digit : (top ? top.digit : null);
       if (resolvedDigit !== null && resolvedDigit !== undefined) {
         resultDigit.textContent = `Prediction: ${resolvedDigit}`;
       } else {
-        resultDigit.textContent = message || 'Draw a digit to begin';
+        resultDigit.textContent = message || 'Prediction: --';
       }
 
-      renderConfidenceChips(sorted);
-      updateLegibility(Number.isFinite(legibility) ? legibility : (top ? top.value : null));
-
-      if (top) {
-        const pct = toPercent(top.value);
-        const pctLabel = pct === null
-          ? '--'
-          : (pct < 1 ? `${pct.toFixed(1)}%` : `${Math.round(pct)}%`);
-        confidenceSummary.textContent = `Top guess: ${top.digit} (${pctLabel})`;
+      if (Number.isFinite(actualDigit)) {
+        resultActual.textContent = `Actual: ${actualDigit}`;
       } else {
-        confidenceSummary.textContent = '--';
+        resultActual.textContent = 'Actual: --';
       }
+
+      renderConfidenceChart(sorted);
+
+      let legibilityValueSource = null;
+      if (Number.isFinite(actualDigit) && Array.isArray(confidences) && confidences.length === 10) {
+        legibilityValueSource = Number(confidences[actualDigit]);
+      }
+      if (!Number.isFinite(legibilityValueSource)) {
+        legibilityValueSource = Number.isFinite(legibility) ? legibility : (top ? top.value : null);
+      }
+      updateLegibility(legibilityValueSource);
     }
 
     async function canvasToBase64() {
@@ -1052,12 +1164,12 @@
 
     async function scoreDigit() {
       if (!hasDrawn) {
-        setPredictionUI('Please draw a digit first', null, null, null);
+        setPredictionUI('Please draw a digit first', null, null, null, currentActualDigit);
         return;
       }
 
       setStep('submit', 'in-progress');
-      setPredictionUI('Processing...', null, null, null);
+      setPredictionUI('Processing...', null, null, null, currentActualDigit);
       rateBtn.disabled = true;
       resultBadge.classList.add('pulse');
 
@@ -1095,11 +1207,11 @@
         setStep('score', 'done');
         setStep('complete', 'done');
 
-        setPredictionUI('Prediction ready', confidences, legibility, digit);
+        setPredictionUI('Prediction ready', confidences, legibility, digit, currentActualDigit);
       } catch (err) {
         setStep('score', 'not-started');
         setStep('complete', 'not-started');
-        setPredictionUI(`Error: ${err?.message || String(err)}`, null, null, null);
+        setPredictionUI(`Error: ${err?.message || String(err)}`, null, null, null, currentActualDigit);
       } finally {
         rateBtn.disabled = false;
         resultBadge.classList.remove('pulse');
@@ -1117,12 +1229,12 @@
 
     eraseBtn.addEventListener('click', () => {
       resetCanvas();
-      setPredictionUI('Draw a digit to begin', null, null, null);
+      setPredictionUI('Draw a digit to begin', null, null, null, currentActualDigit);
       setActiveSampleButton(null);
       sampleStatus.textContent = 'No sample loaded.';
     });
 
-    setPredictionUI('Draw a digit to begin', null, null, null);
+    setPredictionUI('Draw a digit to begin', null, null, null, currentActualDigit);
     window.addEventListener('load', () => { fitCanvasToDisplaySize(); setStroke(); });
   </script>
   <footer></footer>
