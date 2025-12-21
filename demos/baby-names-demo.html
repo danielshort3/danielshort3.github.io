@@ -25,6 +25,7 @@
       --warn: var(--warning);
       --bad: var(--danger);
       --page-pad: clamp(12px, 3vw, 24px);
+      --list-height: 190px;
     }
 
     * { box-sizing: border-box; }
@@ -172,6 +173,11 @@
       font-size: 0.8rem;
     }
 
+    .status-note {
+      color: var(--muted);
+      font-size: 0.74rem;
+    }
+
     .content {
       display: grid;
       grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
@@ -249,6 +255,10 @@
       margin: 0;
       display: grid;
       gap: 6px;
+      max-height: var(--list-height);
+      min-height: var(--list-height);
+      overflow: auto;
+      scrollbar-gutter: stable;
     }
 
     .mini-list li {
@@ -375,7 +385,9 @@
       display: grid;
       gap: 8px;
       overflow: auto;
-      height: 100%;
+      max-height: var(--list-height);
+      min-height: var(--list-height);
+      scrollbar-gutter: stable;
     }
 
     #name-list-wrap {
@@ -458,10 +470,6 @@
       .content {
         grid-template-columns: 1fr;
       }
-
-      .name-list {
-        max-height: none;
-      }
     }
   </style>
   <script>
@@ -489,10 +497,11 @@
     <div class="status-row">
       <span class="status-pill" id="status-pill" data-state="warn">Loading</span>
       <span class="status-meta" id="status-meta">Fetching demo data...</span>
+      <span class="status-note">My wife has approved publication of this data through this project.</span>
     </div>
 
     <main class="content">
-      <section class="panel">
+      <section class="panel" id="ratings-panel">
         <div class="panel-title">
           <h2>Ratings Snapshot</h2>
           <span class="meta-chip" id="meta-source">SSA latest</span>
@@ -542,7 +551,7 @@
         </div>
       </section>
 
-      <section class="panel explorer">
+      <section class="panel explorer" id="explorer-panel">
         <div class="panel-title">
           <h2>Name Explorer</h2>
           <div class="tabs" role="tablist" aria-label="Name lists">
@@ -595,7 +604,9 @@
       nameSearch: document.getElementById("name-search"),
       sortSelect: document.getElementById("sort-select"),
       segmentButtons: Array.from(document.querySelectorAll(".segment button")),
-      tabButtons: Array.from(document.querySelectorAll(".tab-btn"))
+      tabButtons: Array.from(document.querySelectorAll(".tab-btn")),
+      ratingsPanel: document.getElementById("ratings-panel"),
+      explorerPanel: document.getElementById("explorer-panel")
     };
 
     const notifyResize = (() => {
@@ -611,6 +622,18 @@
       window.addEventListener("resize", () => requestAnimationFrame(postHeight));
       return postHeight;
     })();
+
+    function syncPanelHeights() {
+      if (!DOM.ratingsPanel || !DOM.explorerPanel) return;
+      if (window.matchMedia("(max-width: 980px)").matches) {
+        DOM.explorerPanel.style.height = "auto";
+        return;
+      }
+      const leftHeight = DOM.ratingsPanel.offsetHeight;
+      if (leftHeight) {
+        DOM.explorerPanel.style.height = `${leftHeight}px`;
+      }
+    }
 
     function setStatus(state, text, meta) {
       DOM.statusPill.dataset.state = state;
@@ -747,6 +770,7 @@
       DOM.topRated.innerHTML = stats.topRated.length
         ? stats.topRated.map((row) => `<li><strong>${row.name}</strong><span>${row.rating}/10</span></li>`).join("")
         : "<li class=\"empty-state\">No ratings yet</li>";
+      syncPanelHeights();
       notifyResize();
     }
 
@@ -796,6 +820,7 @@
           </li>
         `;
       }).join("");
+      syncPanelHeights();
       notifyResize();
     }
 
@@ -855,6 +880,10 @@
     DOM.sortSelect.addEventListener("change", (event) => {
       appState.sort = event.target.value;
       renderList();
+    });
+
+    window.addEventListener("resize", () => {
+      syncPanelHeights();
     });
 
     init();
