@@ -235,8 +235,7 @@
     }
 
     .state-shape:focus-visible {
-      stroke: var(--accent);
-      stroke-width: 2;
+      filter: drop-shadow(0 0 6px rgba(32, 26, 20, 0.35));
       outline: none;
     }
 
@@ -1037,12 +1036,14 @@
     }
 
     function updateHotspots(list) {
-      if (!Array.isArray(list)) {
+      if (!Array.isArray(list) || list.length === 0) {
         DOM.hotspotsList.innerHTML = "<li>No data</li>";
         return;
       }
-      const filtered = list.filter((item) => appState.states.get(item.id)?.inMap);
-      const items = filtered.length ? filtered : list;
+      const items = list.slice(0, 5);
+      while (items.length < 5) {
+        items.push({ name: "No data", prob: null });
+      }
       DOM.hotspotsList.innerHTML = items.map((item) => {
         return `<li><span>${item.name}</span><span class="hotspot-score">${formatPercent(item.prob)}</span></li>`;
       }).join("");
@@ -1205,7 +1206,7 @@
       if (!date) return;
       DOM.dateValue.textContent = date;
       if (DOM.legendDate) DOM.legendDate.textContent = date;
-      DOM.dateRange.textContent = `${appState.dates[0]} to ${appState.dates[appState.dates.length - 1]}`;
+      DOM.dateRange.textContent = `Timeline: ${appState.dates[0]} to ${appState.dates[appState.dates.length - 1]}`;
     }
 
     function updateYearTicks(dates) {
