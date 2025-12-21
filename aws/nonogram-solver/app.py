@@ -151,11 +151,20 @@ def solve_nonogram(solution=None, seed=None, max_steps=None):
     torch.manual_seed(seed)
 
   if solution is None:
-    sols, row_clues, col_clues, _ = generate_unique_nonogram(GRID_SIZE, 1, _EXISTING_SOLUTIONS)
+    sols, row_batch, col_batch, _ = generate_unique_nonogram(GRID_SIZE, 1, _EXISTING_SOLUTIONS)
     solution = sols[0]
+    row_clues = row_batch[0]
+    col_clues = col_batch[0]
   else:
     solution = normalize_solution(solution)
     row_clues, col_clues = build_clues(solution)
+
+  if len(row_clues) == 1 and isinstance(row_clues[0], list):
+    if len(row_clues[0]) == GRID_SIZE and all(isinstance(x, list) for x in row_clues[0]):
+      row_clues = row_clues[0]
+  if len(col_clues) == 1 and isinstance(col_clues[0], list):
+    if len(col_clues[0]) == GRID_SIZE and all(isinstance(x, list) for x in col_clues[0]):
+      col_clues = col_clues[0]
 
   row_pad = np.array([[pad_clue(c, clue_max_len) for c in row_clues]], dtype=np.int64)
   col_pad = np.array([[pad_clue(c, clue_max_len) for c in col_clues]], dtype=np.int64)
