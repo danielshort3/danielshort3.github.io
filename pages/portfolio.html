@@ -64,67 +64,65 @@
   <section id="portfolio-carousel-section" class="surface-band reveal" role="region" aria-labelledby="top-projects-title">
     <div class="wrapper">
       <h2 class="section-title" id="top-projects-title">Top 5 Projects</h2>
-      <div id="portfolio-carousel" class="bento-grid bento-grid--portfolio" data-layout="bento" role="list" aria-label="Featured projects">
-        <!-- Static tiles for crawlers / no-JS -->
-        <a
-          class="project-card ripple-in bento-item"
-          role="listitem"
-          href="portfolio/shapeClassifier">
-          <div class="overlay"></div>
-          <div class="project-text">
-            <div class="project-title">Shape Classifier Demo</div>
-            <div class="project-subtitle">Handwritten Shape Recognition</div>
-          </div>
-          <img src="img/projects/shapeClassifier.png" alt="Preview of the Shape Classifier demo interface" width="1280" height="720" loading="lazy" decoding="async">
-        </a>
+      <div id="portfolio-carousel" aria-label="Project Browser">
+        <div class="carousel-track">
+          <!-- Static slides for crawlers / no-JS -->
+	          <a
+	            class="project-card carousel-card ripple-in"
+	            href="portfolio/shapeClassifier">
+	            <div class="overlay"></div>
+	            <div class="project-text">
+	              <div class="project-title">Shape Classifier Demo</div>
+	              <div class="project-subtitle">Handwritten Shape Recognition</div>
+	            </div>
+	            <img src="img/projects/shapeClassifier.png" alt="Preview of the Shape Classifier demo interface" width="1280" height="720" loading="lazy" decoding="async">
+	          </a>
 
-        <a
-          class="project-card ripple-in bento-item"
-          role="listitem"
-          href="portfolio/chatbotLora">
-          <div class="overlay"></div>
-          <div class="project-text">
-            <div class="project-title">Chatbot (LoRA + RAG)</div>
-            <div class="project-subtitle">RAG Chatbot Fine-Tuned with LoRA</div>
-          </div>
-          <img src="img/projects/chatbotLora.png" alt="Screenshot of the Visit Grand Junction chatbot interface" width="1280" height="720" loading="lazy" decoding="async">
-        </a>
+	          <a
+	            class="project-card carousel-card ripple-in"
+	            href="portfolio/chatbotLora">
+	            <div class="overlay"></div>
+	            <div class="project-text">
+	              <div class="project-title">Chatbot (LoRA + RAG)</div>
+	              <div class="project-subtitle">RAG Chatbot Fine-Tuned with LoRA</div>
+	            </div>
+	            <img src="img/projects/chatbotLora.png" alt="Screenshot of the Visit Grand Junction chatbot interface" width="1280" height="720" loading="lazy" decoding="async">
+	          </a>
 
-        <a
-          class="project-card ripple-in bento-item"
-          role="listitem"
-          href="portfolio/sheetMusicUpscale">
-          <div class="overlay"></div>
-          <div class="project-text">
-            <div class="project-title">Sheet Music Watermark Removal &amp; Upscale</div>
-            <div class="project-subtitle">UNet &amp; VDSR Pipeline</div>
-          </div>
-          <img src="img/projects/sheetMusicUpscale.png" alt="Example of cleaned sheet music after processing" width="1604" height="1230" loading="lazy" decoding="async">
-        </a>
+	          <a
+	            class="project-card carousel-card ripple-in"
+	            href="portfolio/sheetMusicUpscale">
+	            <div class="overlay"></div>
+	            <div class="project-text">
+	              <div class="project-title">Sheet Music Watermark Removal &amp; Upscale</div>
+	              <div class="project-subtitle">UNet &amp; VDSR Pipeline</div>
+	            </div>
+	            <img src="img/projects/sheetMusicUpscale.png" alt="Example of cleaned sheet music after processing" width="1604" height="1230" loading="lazy" decoding="async">
+	          </a>
 
-        <a
-          class="project-card ripple-in bento-item"
-          role="listitem"
-          href="portfolio/digitGenerator">
-          <div class="overlay"></div>
-          <div class="project-text">
-            <div class="project-title">Synthetic Digit Generator</div>
-            <div class="project-subtitle">Variational Autoencoder</div>
-          </div>
-          <img src="img/projects/digitGenerator.png" alt="Grid of handwritten digits produced by the VAE model" width="400" height="400" loading="lazy" decoding="async">
-        </a>
+	          <a
+	            class="project-card carousel-card ripple-in"
+	            href="portfolio/digitGenerator">
+	            <div class="overlay"></div>
+	            <div class="project-text">
+	              <div class="project-title">Synthetic Digit Generator</div>
+	              <div class="project-subtitle">Variational Autoencoder</div>
+	            </div>
+	            <img src="img/projects/digitGenerator.png" alt="Grid of handwritten digits produced by the VAE model" width="400" height="400" loading="lazy" decoding="async">
+	          </a>
 
-        <a
-          class="project-card ripple-in bento-item"
-          role="listitem"
-          href="portfolio/nonogram">
-          <div class="overlay"></div>
-          <div class="project-text">
-            <div class="project-title">Nonogram Solver</div>
-            <div class="project-subtitle">Reinforcement Learning (RL)</div>
-          </div>
-          <img src="img/projects/nonogram.png" alt="Visualization of the reinforcement learning Nonogram solver" width="1080" height="1080" loading="lazy" decoding="async">
-        </a>
+	          <a
+	            class="project-card carousel-card ripple-in"
+	            href="portfolio/nonogram">
+	            <div class="overlay"></div>
+	            <div class="project-text">
+	              <div class="project-title">Nonogram Solver</div>
+	              <div class="project-subtitle">Reinforcement Learning (RL)</div>
+            </div>
+            <img src="img/projects/nonogram.png" alt="Visualization of the reinforcement learning Nonogram solver" width="1080" height="1080" loading="lazy" decoding="async">
+          </a>
+        </div>
+        <div class="carousel-dots" role="tablist"></div>
       </div>
       <div style="text-align:center;margin-top:20px;">
         <button id="see-more" class="btn-primary">See More</button>
