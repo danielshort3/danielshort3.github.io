@@ -17,8 +17,8 @@
       --surface-2: var(--surface-light);
       --text: var(--text-light);
       --page-pad: clamp(12px, 3vw, 24px);
-      --cell-size: clamp(52px, 10vw, 72px);
-      --grid-gap: 10px;
+      --cell-size: clamp(28px, 7vw, 64px);
+      --grid-gap: clamp(6px, 1.6vw, 10px);
     }
 
     * { box-sizing: border-box; }
@@ -166,6 +166,17 @@
       display: grid;
       place-items: center;
       overflow: hidden;
+      cursor: pointer;
+      transition: border-color 120ms ease, transform 120ms ease;
+    }
+
+    .digit-cell:hover {
+      border-color: color-mix(in srgb, var(--primary) 65%, var(--surface-accent));
+    }
+
+    .digit-cell:focus {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
     }
 
     .digit-cell img {
@@ -220,7 +231,8 @@
 
     @media (max-width: 520px) {
       :root {
-        --cell-size: 46px;
+        --cell-size: 32px;
+        --grid-gap: 6px;
       }
     }
   </style>
@@ -280,12 +292,20 @@
         <input id="seed-input" type="number" min="0" placeholder="optional">
       </label>
       <label>
+        Grid density
+        <select id="grid-select">
+          <option value="4">4 x 4</option>
+          <option value="6">6 x 6</option>
+          <option value="8" selected>8 x 8</option>
+        </select>
+      </label>
+      <label>
         Latent dimension
         <select id="dim-select"></select>
       </label>
       <label>
         Latent value
-        <input id="value-slider" type="range" min="-3" max="3" step="0.1" value="0">
+        <input id="value-slider" type="range" min="-10" max="10" step="0.1" value="0">
         <div class="value-row">
           <span>Value</span>
           <span id="value-label">0.0</span>
@@ -307,6 +327,7 @@
         <div class="stat"><span>Latency</span> <strong id="stat-latency">-</strong></div>
         <div class="btn-row">
           <button id="new-seed-btn" class="btn-secondary" type="button">New Seed</button>
+          <button id="animate-btn" class="btn-secondary" type="button">Animate</button>
           <button id="refresh-btn" class="btn-primary" type="button">Generate</button>
         </div>
       </aside>
@@ -315,8 +336,11 @@
 
   <script type="module">
     const DEFAULT_FN_URL = "https://w7jbsr55oggohong42ii6wo3jq0bvkvq.lambda-url.us-east-2.on.aws/";
-    const GRID_ROWS = 4;
-    const GRID_COLS = 4;
+    const GRID_SIZES = [4, 6, 8];
+    const VALUE_MIN = -10;
+    const VALUE_MAX = 10;
+    const ANIM_STEP = 1;
+    const ANIM_DELAY = 650;
 
     function normalizeBase(url) { return url.endsWith('/') ? url : `${url}/`; }
     function candidates() {
@@ -355,6 +379,7 @@
 
     const gridEl = document.getElementById('grid');
     const seedInput = document.getElementById('seed-input');
+    const gridSelect = document.getElementById('grid-select');
     const dimSelect = document.getElementById('dim-select');
     const valueSlider = document.getElementById('value-slider');
     const valueLabel = document.getElementById('value-label');
@@ -366,11 +391,26 @@
     const statLatency = document.getElementById('stat-latency');
 
     const newSeedBtn = document.getElementById('new-seed-btn');
+    const animateBtn = document.getElementById('animate-btn');
     const refreshBtn = document.getElementById('refresh-btn');
 
     let debounceId = null;
     let requestId = 0;
     let latentDim = 20;
+    let gridSize = 8;
+    let gridRows = gridSize;
+    let gridCols = gridSize;
+    let lastSeed = null;
+    let animating = false;
+    let animDirection = 1;
+    let animTimer = null;
+    let currentState = {
+      seed: null,
+      dim: 0,
+      value: 0,
+      rows: gridRows,
+      cols: gridCols
+    };
 
     function setStatus(text) {
       statusEl.textContent = text;
@@ -380,20 +420,79 @@
       valueLabel.textContent = Number(valueSlider.value).toFixed(1);
     }
 
-    function ensureSeed() {
-      const raw = Number(seedInput.value);
-      if (Number.isFinite(raw)) return raw;
-      const next = Math.floor(Math.random() * 1000000);
+    function parseSeedInput() {
+      const rawValue = String(seedInput.value || '').trim();
+      if (!rawValue) return null;
+      const raw = Number(rawValue);
+      if (!Number.isFinite(raw)) return null;
+      return raw;
+    }
+
+    function generateSeed() {
+      let next = Math.floor(Math.random() * 1000000);
+      if (lastSeed !== null && next === lastSeed) {
+        next = (next + 1) % 1000000;
+      }
+      lastSeed = next;
+      return next;
+    }
+
+    function ensureSeed(forceNew = false) {
+      const existing = parseSeedInput();
+      if (!forceNew && existing !== null) {
+        lastSeed = existing;
+        return existing;
+      }
+      const next = generateSeed();
       seedInput.value = String(next);
       return next;
     }
 
+    function formatValueForFile(value) {
+      const fixed = Number(value).toFixed(1);
+      return fixed.replace('-', 'neg').replace('.', 'p');
+    }
+
+    function downloadImage(base64, index) {
+      const seed = currentState.seed ?? ensureSeed();
+      const dim = currentState.dim ?? Number(dimSelect.value || 0);
+      const value = currentState.value ?? Number(valueSlider.value || 0);
+      const fileName = `digit_seed-${seed}_dim-${dim}_val-${formatValueForFile(value)}_cell-${index}.png`;
+      const link = document.createElement('a');
+      link.href = `data:image/png;base64,${base64}`;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+
+    function setGridSize(size) {
+      const next = GRID_SIZES.includes(size) ? size : gridSize;
+      gridSize = next;
+      gridRows = next;
+      gridCols = next;
+      currentState.rows = gridRows;
+      currentState.cols = gridCols;
+      gridEl.style.setProperty('--grid-cols', String(gridCols));
+    }
+
     function updateGrid(images) {
-      gridEl.style.setProperty('--grid-cols', String(GRID_COLS));
+      gridEl.style.setProperty('--grid-cols', String(gridCols));
       gridEl.innerHTML = '';
       images.flat().forEach((b64, idx) => {
         const cell = document.createElement('div');
         cell.className = 'digit-cell';
+        cell.title = 'Download digit PNG';
+        cell.tabIndex = 0;
+        cell.setAttribute('role', 'button');
+        cell.setAttribute('aria-label', `Download digit ${idx + 1}`);
+        cell.addEventListener('click', () => downloadImage(b64, idx + 1));
+        cell.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            downloadImage(b64, idx + 1);
+          }
+        });
         const img = document.createElement('img');
         img.alt = `Generated digit ${idx + 1}`;
         img.src = `data:image/png;base64,${b64}`;
@@ -410,8 +509,8 @@
         seed,
         dim,
         value,
-        rows: GRID_ROWS,
-        cols: GRID_COLS
+        rows: gridRows,
+        cols: gridCols
       };
 
       const id = ++requestId;
@@ -434,9 +533,16 @@
 
         latentDim = data.latent_dim || latentDim;
         updateGrid(data.images || []);
-        statSeed.textContent = data.seed ?? seed;
-        statDim.textContent = data.dim ?? dim;
-        statValue.textContent = typeof data.value === 'number' ? data.value.toFixed(2) : value.toFixed(2);
+        currentState = {
+          seed: data.seed ?? seed,
+          dim: data.dim ?? dim,
+          value: typeof data.value === 'number' ? data.value : value,
+          rows: data.rows ?? gridRows,
+          cols: data.cols ?? gridCols
+        };
+        statSeed.textContent = currentState.seed;
+        statDim.textContent = currentState.dim;
+        statValue.textContent = Number(currentState.value).toFixed(2);
         statLatency.textContent = data.duration_ms ? `${data.duration_ms} ms` : '-';
         setStatus('Grid updated.');
       } catch (err) {
@@ -462,22 +568,80 @@
       }
     }
 
+    function stopAnimation() {
+      if (!animating) return;
+      animating = false;
+      if (animTimer) clearTimeout(animTimer);
+      animTimer = null;
+      animateBtn.textContent = 'Animate';
+    }
+
+    function runAnimationTick(value) {
+      if (!animating) return;
+      valueSlider.value = String(value);
+      setValueLabel();
+      fetchGrid();
+      let nextValue = value + (animDirection * ANIM_STEP);
+      if (nextValue > VALUE_MAX) {
+        animDirection = -1;
+        nextValue = VALUE_MAX - ANIM_STEP;
+      } else if (nextValue < VALUE_MIN) {
+        animDirection = 1;
+        nextValue = VALUE_MIN + ANIM_STEP;
+      }
+      animTimer = setTimeout(() => runAnimationTick(nextValue), ANIM_DELAY);
+    }
+
+    function startAnimation() {
+      if (animating) return;
+      animating = true;
+      animateBtn.textContent = 'Stop';
+      ensureSeed(false);
+      animDirection = 1;
+      runAnimationTick(VALUE_MIN);
+    }
+
     valueSlider.addEventListener('input', () => {
+      stopAnimation();
       setValueLabel();
       scheduleFetch(140);
     });
-    dimSelect.addEventListener('change', () => scheduleFetch(120));
-    seedInput.addEventListener('change', () => fetchGrid());
-    newSeedBtn.addEventListener('click', () => {
-      seedInput.value = '';
-      ensureSeed();
+    dimSelect.addEventListener('change', () => {
+      stopAnimation();
+      scheduleFetch(120);
+    });
+    gridSelect.addEventListener('change', () => {
+      stopAnimation();
+      const next = Number(gridSelect.value);
+      setGridSize(Number.isFinite(next) ? next : gridSize);
       fetchGrid();
     });
-    refreshBtn.addEventListener('click', () => fetchGrid());
+    seedInput.addEventListener('change', () => {
+      stopAnimation();
+      fetchGrid();
+    });
+    newSeedBtn.addEventListener('click', () => {
+      stopAnimation();
+      ensureSeed(true);
+      fetchGrid();
+    });
+    refreshBtn.addEventListener('click', () => {
+      stopAnimation();
+      fetchGrid();
+    });
+    animateBtn.addEventListener('click', () => {
+      if (animating) {
+        stopAnimation();
+      } else {
+        startAnimation();
+      }
+    });
 
     buildDimOptions(latentDim);
     setValueLabel();
-    ensureSeed();
+    setGridSize(gridSize);
+    gridSelect.value = String(gridSize);
+    ensureSeed(true);
     fetchGrid();
   </script>
 </body>
