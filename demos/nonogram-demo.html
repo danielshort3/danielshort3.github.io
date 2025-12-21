@@ -124,6 +124,7 @@
     }
 
     .board-shell {
+      position: relative;
       display: grid;
       grid-template-columns: var(--clue-size) repeat(5, var(--cell-size));
       grid-template-rows: var(--clue-size) repeat(5, var(--cell-size));
@@ -131,9 +132,9 @@
       align-items: stretch;
       justify-content: center;
       justify-items: stretch;
-      background: color-mix(in srgb, var(--surface) 90%, #000 10%);
+      background: color-mix(in srgb, var(--surface) 70%, #ffffff 30%);
       border-radius: 16px;
-      padding: 12px;
+      padding: 52px 12px 12px;
       border: 1px solid var(--surface-accent);
       box-shadow: var(--shadow-1);
       overflow: hidden;
@@ -189,8 +190,8 @@
 
     .cell {
       border-radius: 8px;
-      border: 1px solid var(--surface-accent);
-      background: color-mix(in srgb, var(--surface) 85%, #000 15%);
+      border: 1px solid color-mix(in srgb, var(--surface) 50%, #ffffff 50%);
+      background: color-mix(in srgb, var(--surface) 40%, #ffffff 60%);
       display: grid;
       place-items: center;
       font-size: .8rem;
@@ -199,14 +200,15 @@
     }
 
     .cell--filled {
-      background: #0a0d12;
-      border-color: color-mix(in srgb, var(--primary) 35%, transparent);
+      background: #0b0f14;
+      border-color: color-mix(in srgb, var(--primary) 55%, #000 45%);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, #ffffff 12%, transparent);
       transform: scale(1.02);
     }
 
     .cell--empty {
-      background: #e6edf5;
-      border-color: #b9c4d3;
+      background: #f6f8fb;
+      border-color: #c9d3e0;
       color: #0b0f14;
     }
 
@@ -243,7 +245,6 @@
     }
 
     .log {
-      max-height: 240px;
       overflow: auto;
       display: grid;
       gap: 8px;
@@ -266,6 +267,13 @@
       padding: 0 16px 8px;
       font-size: .85rem;
       color: var(--text-muted);
+    }
+
+    .board-action {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 2;
     }
 
     @media (max-width: 860px) {
@@ -333,23 +341,20 @@
     <header class="card-header">
       <div>
         <h1 class="title">Nonogram Solver</h1>
-        <p class="subtitle">The RL agent selects the next cell to reveal until the 5x5 puzzle is solved.</p>
+        <p class="subtitle">Use the row and column clues (numbers show consecutive filled blocks) to fill the grid; the agent reveals a 5x5 puzzle one pick at a time.</p>
       </div>
     </header>
 
     <div class="controls">
-      <label>
-        Seed
-        <input id="seed-input" type="number" min="0" placeholder="optional">
-      </label>
       <button id="new-btn" class="btn-secondary" type="button">New Puzzle</button>
-      <button id="solve-btn" class="btn-primary" type="button" disabled>Solve With AI</button>
+      <button id="solution-btn" class="btn-secondary" type="button" disabled>Show Solution</button>
     </div>
 
     <div class="status" id="status">Ready. Generate a puzzle to begin.</div>
 
     <div class="content">
       <div class="board-shell" aria-label="Nonogram board">
+        <button id="solve-btn" class="btn-primary board-action" type="button" disabled>Solve With AI</button>
         <div class="board-corner" aria-hidden="true"></div>
         <div class="clues-top" id="clues-top"></div>
         <div class="clues-left" id="clues-left"></div>
@@ -357,10 +362,7 @@
       </div>
 
       <aside class="panel" aria-live="polite">
-        <div class="stat"><span>Steps</span> <strong id="stat-steps">-</strong></div>
-        <div class="stat"><span>Correct Picks</span> <strong id="stat-correct">-</strong></div>
         <div class="stat"><span>Accuracy</span> <strong id="stat-accuracy">-</strong></div>
-        <div class="stat"><span>Duration</span> <strong id="stat-duration">-</strong></div>
         <div class="log" id="log"></div>
       </aside>
     </div>
@@ -408,14 +410,11 @@
     const cluesLeft = document.getElementById('clues-left');
     const statusEl = document.getElementById('status');
     const logEl = document.getElementById('log');
-    const seedInput = document.getElementById('seed-input');
     const newBtn = document.getElementById('new-btn');
+    const solutionBtn = document.getElementById('solution-btn');
     const solveBtn = document.getElementById('solve-btn');
 
-    const statSteps = document.getElementById('stat-steps');
-    const statCorrect = document.getElementById('stat-correct');
     const statAccuracy = document.getElementById('stat-accuracy');
-    const statDuration = document.getElementById('stat-duration');
 
     let current = null;
     let solving = false;
@@ -426,10 +425,7 @@
     }
 
     function resetStats() {
-      statSteps.textContent = '-';
-      statCorrect.textContent = '-';
       statAccuracy.textContent = '-';
-      statDuration.textContent = '-';
     }
 
     function clearLog() {
@@ -442,10 +438,8 @@
       const action = step.predicted === 1 ? 'Filled' : 'Empty';
       item.className = 'log-entry';
       item.innerHTML = `Step <strong>${index + 1}</strong>: r${step.row + 1}c${step.col + 1} -> ${action} (${result})`;
-      logEl.prepend(item);
-      while (logEl.children.length > 8) {
-        logEl.removeChild(logEl.lastElementChild);
-      }
+      logEl.appendChild(item);
+      logEl.scrollTop = logEl.scrollHeight;
     }
 
     function renderBoard(gridSize) {
@@ -488,17 +482,51 @@
       });
     }
 
-    function applyStep(step) {
-      const selector = `.cell[data-row="${step.row}"][data-col="${step.col}"]`;
+    function setCellState(row, col, value) {
+      const selector = `.cell[data-row="${row}"][data-col="${col}"]`;
       const cell = gridEl.querySelector(selector);
-      if (!cell) return;
+      if (!cell) return null;
       cell.classList.remove('cell--filled', 'cell--empty', 'cell--miss', 'cell--duplicate');
-      cell.classList.add(step.actual === 1 ? 'cell--filled' : 'cell--empty');
+      cell.classList.add(Number(value) === 1 ? 'cell--filled' : 'cell--empty');
+      return cell;
+    }
+
+    function applyStep(step) {
+      const cell = setCellState(step.row, step.col, step.actual);
+      if (!cell) return;
       if (step.result === 'Duplicate' || step.duplicate) {
         cell.classList.add('cell--duplicate');
       } else if (!step.correct) {
         cell.classList.add('cell--miss');
       }
+    }
+
+    function getSolutionGrid() {
+      if (Array.isArray(current?.solution)) return current.solution;
+      const steps = Array.isArray(current?.steps) ? current.steps : [];
+      const size = Number.isFinite(current?.grid) ? current.grid : 5;
+      if (!steps.length) return null;
+      const grid = Array.from({ length: size }, () => Array(size).fill(0));
+      steps.forEach(step => {
+        if (!Number.isFinite(step.row) || !Number.isFinite(step.col)) return;
+        if (typeof step.actual !== 'number') return;
+        if (!grid[step.row] || typeof grid[step.row][step.col] === 'undefined') return;
+        grid[step.row][step.col] = step.actual;
+      });
+      return grid;
+    }
+
+    function formatAccuracy() {
+      if (!current) return '-';
+      const steps = Array.isArray(current.steps) ? current.steps : [];
+      const total = Number.isFinite(current.step_count) ? current.step_count : steps.length;
+      if (!Number.isFinite(total) || total <= 0) return '-';
+      const correct = Number.isFinite(current.correct_count)
+        ? current.correct_count
+        : steps.reduce((acc, step) => acc + (step.correct ? 1 : 0), 0);
+      const rate = Number.isFinite(current.correct_rate) ? current.correct_rate : (correct / total);
+      if (!Number.isFinite(rate)) return '-';
+      return `${Math.round(rate * 100)}% (${correct}/${total})`;
     }
 
     function stopAnimation() {
@@ -512,13 +540,13 @@
       stopAnimation();
       solving = false;
       solveBtn.disabled = true;
+      solutionBtn.disabled = true;
       setStatus('Generating puzzle...');
       resetStats();
       clearLog();
       clearBoard();
 
-      const seed = seedInput.value ? Number(seedInput.value) : undefined;
-      const payload = seed !== undefined ? { seed } : {};
+      const payload = {};
 
       try {
         const endpoints = candidates();
@@ -539,10 +567,12 @@
         renderClues(data.row_clues, data.col_clues);
         clearBoard();
         solveBtn.disabled = false;
-        setStatus('Puzzle ready. Press Solve to watch the agent.');
+        solutionBtn.disabled = false;
+        setStatus('Puzzle ready. Press Solve With AI to watch the agent.');
       } catch (err) {
         setStatus('Failed to load puzzle.');
         solveBtn.disabled = true;
+        solutionBtn.disabled = true;
       }
     }
 
@@ -579,19 +609,37 @@
       }, 180);
     }
 
+    function showSolution() {
+      if (!current) return;
+      stopAnimation();
+      solving = false;
+      solveBtn.disabled = false;
+      const solution = getSolutionGrid();
+      if (!solution) {
+        setStatus('Solution data unavailable.');
+        return;
+      }
+      clearBoard();
+      solution.forEach((row, r) => {
+        if (!Array.isArray(row)) return;
+        row.forEach((value, c) => {
+          setCellState(r, c, value);
+        });
+      });
+      setStatus('Solution shown.');
+    }
+
     function finishSolve() {
       stopAnimation();
       solving = false;
       solveBtn.disabled = false;
-      statSteps.textContent = current.step_count ?? current.steps.length;
-      statCorrect.textContent = current.correct_count ?? '-';
-      statAccuracy.textContent = typeof current.correct_rate === 'number' ? `${Math.round(current.correct_rate * 100)}%` : '-';
-      statDuration.textContent = current.duration_ms ? `${current.duration_ms} ms` : '-';
+      statAccuracy.textContent = formatAccuracy();
       setStatus('Puzzle Solved!');
     }
 
     newBtn.addEventListener('click', loadPuzzle);
     solveBtn.addEventListener('click', runSolve);
+    solutionBtn.addEventListener('click', showSolution);
 
     renderBoard(5);
     resetStats();
