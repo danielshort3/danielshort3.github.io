@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <base href="/">
+  <title>Nonogram Solver Demo</title>
+
+  <meta name="theme-color" content="#0D1117">
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@600&display=swap">
+
+  <style>
+    :root {
+      --radius: 14px;
+      --shadow-1: 0 2px 10px rgba(0,0,0,.06), 0 1px 4px rgba(0,0,0,.06);
+      --shadow-2: 0 8px 30px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.08);
+      --surface-2: var(--surface-light);
+      --text: var(--text-light);
+      --page-pad: clamp(12px, 3vw, 24px);
+      --cell-size: clamp(38px, 6vw, 54px);
+      --clue-size: clamp(70px, 10vw, 96px);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { height: 100%; }
+    html[data-embedded="true"],
+    html[data-embedded="true"] body{
+      height: auto !important;
+      min-height: 0 !important;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background: radial-gradient(1200px 500px at 50% -10%, color-mix(in srgb, var(--primary) 15%, transparent), transparent 60%) var(--bg);
+      display: grid;
+      place-items: start center;
+      padding: var(--page-pad);
+      overflow-x: hidden;
+    }
+
+    #demo-box {
+      width: min(100%, 980px);
+      background: var(--surface);
+      border: 1px solid var(--surface-accent);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-2);
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      min-height: calc(100vh - var(--page-pad) * 2);
+    }
+
+    @supports (height: 100dvh) {
+      #demo-box {
+        min-height: calc(100dvh - var(--page-pad) * 2 - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      }
+    }
+
+    html[data-embedded="true"] #demo-box{
+      min-height: 0 !important;
+    }
+
+    header.card-header {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      padding: 16px 18px;
+      background: linear-gradient(0deg, var(--surface), var(--surface-2));
+      border-bottom: 1px solid var(--surface-accent);
+    }
+
+    .title {
+      font-family: Poppins, Inter, system-ui, sans-serif;
+      font-weight: 600;
+      margin: 0 0 4px 0;
+      font-size: 1.1rem;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: .9rem;
+      max-width: 60ch;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      padding: 12px 16px 0;
+    }
+
+    .controls label {
+      font-size: .85rem;
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .controls input[type="number"] {
+      width: 110px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--surface-accent);
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) minmax(260px, 320px);
+      gap: 18px;
+      padding: 16px;
+    }
+
+    .board-shell {
+      display: grid;
+      grid-template-columns: var(--clue-size) repeat(5, var(--cell-size));
+      grid-template-rows: var(--clue-size) repeat(5, var(--cell-size));
+      gap: 6px;
+      align-items: stretch;
+      justify-items: stretch;
+      background: color-mix(in srgb, var(--surface) 90%, #000 10%);
+      border-radius: 16px;
+      padding: 12px;
+      border: 1px solid var(--surface-accent);
+      box-shadow: var(--shadow-1);
+      overflow: hidden;
+    }
+
+    .board-corner {
+      grid-column: 1;
+      grid-row: 1;
+      border-radius: 10px;
+      background: color-mix(in srgb, var(--surface) 80%, #000 20%);
+      border: 1px solid var(--surface-accent);
+    }
+
+    .clues-top {
+      grid-column: 2 / span 5;
+      grid-row: 1;
+      display: grid;
+      grid-template-columns: repeat(5, var(--cell-size));
+      gap: 6px;
+    }
+
+    .clues-left {
+      grid-column: 1;
+      grid-row: 2 / span 5;
+      display: grid;
+      grid-template-rows: repeat(5, var(--cell-size));
+      gap: 6px;
+    }
+
+    .clue {
+      background: color-mix(in srgb, var(--surface) 70%, #000 30%);
+      border: 1px solid var(--surface-accent);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-weight: 600;
+      color: color-mix(in srgb, var(--text-light) 88%, #ffffff 12%);
+      font-size: .85rem;
+      white-space: pre-line;
+      padding: 4px;
+    }
+
+    .grid {
+      grid-column: 2 / span 5;
+      grid-row: 2 / span 5;
+      display: grid;
+      grid-template-columns: repeat(5, var(--cell-size));
+      grid-template-rows: repeat(5, var(--cell-size));
+      gap: 6px;
+    }
+
+    .cell {
+      border-radius: 8px;
+      border: 1px solid var(--surface-accent);
+      background: color-mix(in srgb, var(--surface) 85%, #000 15%);
+      display: grid;
+      place-items: center;
+      font-size: .8rem;
+      color: var(--text-muted);
+      transition: transform .2s ease, background .2s ease, border-color .2s ease;
+    }
+
+    .cell--filled {
+      background: #0a0d12;
+      border-color: color-mix(in srgb, var(--primary) 35%, transparent);
+      transform: scale(1.02);
+    }
+
+    .cell--empty {
+      background: #e6edf5;
+      border-color: #b9c4d3;
+      color: #0b0f14;
+    }
+
+    .cell--miss {
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 60%, transparent);
+    }
+
+    .panel {
+      background: color-mix(in srgb, var(--surface) 90%, #000 10%);
+      border: 1px solid var(--surface-accent);
+      border-radius: 16px;
+      padding: 14px 16px;
+      box-shadow: var(--shadow-1);
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .stat {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: .9rem;
+      color: var(--text-muted);
+    }
+
+    .stat strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .log {
+      max-height: 240px;
+      overflow: auto;
+      display: grid;
+      gap: 8px;
+    }
+
+    .log-entry {
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--surface-accent);
+      background: color-mix(in srgb, var(--surface) 86%, #000 14%);
+      font-size: .8rem;
+      color: var(--text-muted);
+    }
+
+    .log-entry strong {
+      color: var(--text);
+    }
+
+    .status {
+      padding: 0 16px 8px;
+      font-size: .85rem;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 860px) {
+      .content {
+        grid-template-columns: 1fr;
+      }
+      .panel {
+        order: 2;
+      }
+    }
+
+    @media (max-width: 520px) {
+      :root {
+        --cell-size: 34px;
+        --clue-size: 62px;
+      }
+      .controls input[type="number"] {
+        width: 90px;
+      }
+    }
+  </style>
+  <script>
+    if (window.self !== window.top) {
+      document.documentElement.setAttribute('data-embedded', 'true');
+    }
+  </script>
+</head>
+<body>
+  <script>
+    (function () {
+      var CHANNEL = 'nonogram-demo-resize';
+      function calcHeight() {
+        var doc = document.documentElement;
+        var body = document.body || doc;
+        return Math.ceil(Math.max(
+          body.scrollHeight,
+          body.offsetHeight,
+          doc.clientHeight,
+          doc.scrollHeight,
+          doc.offsetHeight
+        ));
+      }
+      function postHeight() {
+        try { parent.postMessage({ type: CHANNEL, height: calcHeight() }, '*'); } catch (e) { }
+      }
+      window.addEventListener('load', postHeight);
+      try { document.fonts?.ready?.then(postHeight); } catch (e) { }
+      if ('ResizeObserver' in window) {
+        var ro = new ResizeObserver(function () { postHeight(); });
+        ro.observe(document.documentElement);
+      } else {
+        var prev = 0;
+        setInterval(function () {
+          var h = calcHeight();
+          if (Math.abs(h - prev) > 4) {
+            prev = h;
+            postHeight();
+          }
+        }, 750);
+      }
+    })();
+  </script>
+
+  <div id="demo-box" role="application" aria-label="Nonogram solver demo">
+    <header class="card-header">
+      <div>
+        <h1 class="title">Nonogram Solver</h1>
+        <p class="subtitle">The RL agent selects the next cell to reveal until the 5x5 puzzle is solved.</p>
+      </div>
+    </header>
+
+    <div class="controls">
+      <label>
+        Seed
+        <input id="seed-input" type="number" min="0" placeholder="optional">
+      </label>
+      <button id="new-btn" class="btn-secondary" type="button">New Puzzle</button>
+      <button id="solve-btn" class="btn-primary" type="button" disabled>Solve With AI</button>
+    </div>
+
+    <div class="status" id="status">Ready. Generate a puzzle to begin.</div>
+
+    <div class="content">
+      <div class="board-shell" aria-label="Nonogram board">
+        <div class="board-corner" aria-hidden="true"></div>
+        <div class="clues-top" id="clues-top"></div>
+        <div class="clues-left" id="clues-left"></div>
+        <div class="grid" id="grid"></div>
+      </div>
+
+      <aside class="panel" aria-live="polite">
+        <div class="stat"><span>Steps</span> <strong id="stat-steps">-</strong></div>
+        <div class="stat"><span>Correct Picks</span> <strong id="stat-correct">-</strong></div>
+        <div class="stat"><span>Accuracy</span> <strong id="stat-accuracy">-</strong></div>
+        <div class="stat"><span>Duration</span> <strong id="stat-duration">-</strong></div>
+        <div class="log" id="log"></div>
+      </aside>
+    </div>
+  </div>
+
+  <script type="module">
+    const DEFAULT_FN_URL = "https://gw676aqgd4lpcoxngfvnfki5ce0urcfg.lambda-url.us-east-2.on.aws/";
+    function normalizeBase(url) { return url.endsWith('/') ? url : `${url}/`; }
+    function candidates() {
+      const out = [];
+      try {
+        const qs = new URLSearchParams(location.search);
+        const fromQs = qs.get('fn') || qs.get('endpoint');
+        const fromStore = localStorage.getItem('nonogram_fn_url');
+        if (fromQs) out.push(normalizeBase(fromQs));
+        if (fromStore && fromStore !== fromQs) out.push(normalizeBase(fromStore));
+      } catch {}
+      out.push(normalizeBase(DEFAULT_FN_URL));
+      return Array.from(new Set(out));
+    }
+
+    async function postToEndpoint(base, payload) {
+      const attempts = ['', 'solve', 'predict'];
+      let lastErr = null;
+      for (const path of attempts) {
+        const url = base + path;
+        try {
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+          return await res.json();
+        } catch (err) {
+          lastErr = err;
+          if (!(String(err.message || '').startsWith('404'))) break;
+        }
+      }
+      throw lastErr || new Error('Request failed');
+    }
+
+    const gridEl = document.getElementById('grid');
+    const cluesTop = document.getElementById('clues-top');
+    const cluesLeft = document.getElementById('clues-left');
+    const statusEl = document.getElementById('status');
+    const logEl = document.getElementById('log');
+    const seedInput = document.getElementById('seed-input');
+    const newBtn = document.getElementById('new-btn');
+    const solveBtn = document.getElementById('solve-btn');
+
+    const statSteps = document.getElementById('stat-steps');
+    const statCorrect = document.getElementById('stat-correct');
+    const statAccuracy = document.getElementById('stat-accuracy');
+    const statDuration = document.getElementById('stat-duration');
+
+    let current = null;
+    let solving = false;
+    let intervalId = null;
+
+    function setStatus(text) {
+      statusEl.textContent = text;
+    }
+
+    function resetStats() {
+      statSteps.textContent = '-';
+      statCorrect.textContent = '-';
+      statAccuracy.textContent = '-';
+      statDuration.textContent = '-';
+    }
+
+    function clearLog() {
+      logEl.innerHTML = '';
+    }
+
+    function appendLog(step, index) {
+      const item = document.createElement('div');
+      item.className = 'log-entry';
+      item.innerHTML = `Step <strong>${index + 1}</strong>: r${step.row + 1}c${step.col + 1} -> ${step.correct ? 'correct' : 'wrong'}`;
+      logEl.prepend(item);
+      while (logEl.children.length > 8) {
+        logEl.removeChild(logEl.lastElementChild);
+      }
+    }
+
+    function renderBoard(gridSize) {
+      gridEl.innerHTML = '';
+      cluesTop.innerHTML = '';
+      cluesLeft.innerHTML = '';
+      for (let i = 0; i < gridSize; i++) {
+        const top = document.createElement('div');
+        top.className = 'clue';
+        cluesTop.appendChild(top);
+        const left = document.createElement('div');
+        left.className = 'clue';
+        cluesLeft.appendChild(left);
+      }
+      for (let r = 0; r < gridSize; r++) {
+        for (let c = 0; c < gridSize; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.dataset.row = String(r);
+          cell.dataset.col = String(c);
+          gridEl.appendChild(cell);
+        }
+      }
+    }
+
+    function renderClues(rows, cols) {
+      const rowNodes = cluesLeft.children;
+      const colNodes = cluesTop.children;
+      rows.forEach((clue, idx) => {
+        if (rowNodes[idx]) rowNodes[idx].textContent = clue.join(' ');
+      });
+      cols.forEach((clue, idx) => {
+        if (colNodes[idx]) colNodes[idx].textContent = clue.join('\\n');
+      });
+    }
+
+    function clearBoard() {
+      gridEl.querySelectorAll('.cell').forEach(cell => {
+        cell.classList.remove('cell--filled', 'cell--empty', 'cell--miss');
+      });
+    }
+
+    function applyStep(step) {
+      const selector = `.cell[data-row="${step.row}"][data-col="${step.col}"]`;
+      const cell = gridEl.querySelector(selector);
+      if (!cell) return;
+      cell.classList.remove('cell--filled', 'cell--empty', 'cell--miss');
+      cell.classList.add(step.actual === 1 ? 'cell--filled' : 'cell--empty');
+      if (!step.correct) cell.classList.add('cell--miss');
+    }
+
+    function stopAnimation() {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    }
+
+    async function loadPuzzle() {
+      stopAnimation();
+      solving = false;
+      solveBtn.disabled = true;
+      setStatus('Generating puzzle...');
+      resetStats();
+      clearLog();
+      clearBoard();
+
+      const seed = seedInput.value ? Number(seedInput.value) : undefined;
+      const payload = seed !== undefined ? { seed } : {};
+
+      try {
+        const endpoints = candidates();
+        let data = null;
+        for (const base of endpoints) {
+          try {
+            data = await postToEndpoint(base, payload);
+            localStorage.setItem('nonogram_fn_url', base);
+            break;
+          } catch (err) {
+            data = null;
+          }
+        }
+        if (!data) throw new Error('No endpoint available');
+
+        current = data;
+        renderBoard(data.grid);
+        renderClues(data.row_clues, data.col_clues);
+        clearBoard();
+        solveBtn.disabled = false;
+        setStatus('Puzzle ready. Press Solve to watch the agent.');
+      } catch (err) {
+        setStatus('Failed to load puzzle.');
+        solveBtn.disabled = true;
+      }
+    }
+
+    function runSolve() {
+      if (!current || solving) return;
+      const steps = current.steps || [];
+      if (!steps.length) return;
+      solving = true;
+      solveBtn.disabled = true;
+      setStatus('Solving...');
+      resetStats();
+      clearLog();
+      clearBoard();
+
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (prefersReduced) {
+        steps.forEach((step, idx) => {
+          applyStep(step);
+          appendLog(step, idx);
+        });
+        finishSolve();
+        return;
+      }
+
+      let idx = 0;
+      intervalId = setInterval(() => {
+        if (idx >= steps.length) {
+          finishSolve();
+          return;
+        }
+        applyStep(steps[idx]);
+        appendLog(steps[idx], idx);
+        idx += 1;
+      }, 180);
+    }
+
+    function finishSolve() {
+      stopAnimation();
+      solving = false;
+      solveBtn.disabled = false;
+      statSteps.textContent = current.step_count ?? current.steps.length;
+      statCorrect.textContent = current.correct_count ?? '-';
+      statAccuracy.textContent = typeof current.correct_rate === 'number' ? `${Math.round(current.correct_rate * 100)}%` : '-';
+      statDuration.textContent = current.duration_ms ? `${current.duration_ms} ms` : '-';
+      setStatus(current.solved ? 'Solved.' : 'Solve completed.');
+    }
+
+    newBtn.addEventListener('click', loadPuzzle);
+    solveBtn.addEventListener('click', runSolve);
+
+    renderBoard(5);
+    resetStats();
+  </script>
+</body>
+</html>

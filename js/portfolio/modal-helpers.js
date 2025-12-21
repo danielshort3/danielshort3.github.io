@@ -555,7 +555,7 @@
   window.addEventListener('message', (e) => {
     const data = e && e.data || {};
     const type = typeof data?.type === 'string' ? data.type : '';
-    if (!/(chatbot|shape|sentence)-demo-resize/.test(type)) return;
+    if (!/(chatbot|shape|sentence|nonogram)-demo-resize/.test(type)) return;
     try {
       const ifrs = document.querySelectorAll('.modal-embed iframe');
       for (const f of ifrs) {
