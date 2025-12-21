@@ -15,6 +15,7 @@ const BASE_FEATURES = [
   { key: 'maxTemp', label: 'Max Temp (F)' },
   { key: 'minTemp', label: 'Min Temp (F)' }
 ];
+const SIGNIFICANCE_LEVEL = Number(process.env.SIGNIFICANCE_LEVEL || '0.05');
 
 function parseCSV(text) {
   const rows = [];
@@ -152,8 +153,115 @@ function solveLinear(A, b) {
   return M.map(row => row[n]);
 }
 
-function fitModel(data, targetKey) {
-  const X = data.map(d => d.x);
+function invertMatrix(A) {
+  const n = A.length;
+  const inv = Array.from({ length: n }, () => Array(n).fill(0));
+  for (let i = 0; i < n; i++) {
+    const e = Array(n).fill(0);
+    e[i] = 1;
+    const col = solveLinear(A, e);
+    for (let r = 0; r < n; r++) {
+      inv[r][i] = col[r];
+    }
+  }
+  return inv;
+}
+
+function logGamma(z) {
+  const cof = [
+    57.1562356658629235,
+    -59.5979603554754912,
+    14.1360979747417471,
+    -0.491913816097620199,
+    0.339946499848118887e-4,
+    0.465236289270485756e-4,
+    -0.983744753048795646e-4,
+    0.158088703224912494e-3,
+    -0.210264441724104883e-3,
+    0.217439618115212643e-3,
+    -0.16431810653676389e-3,
+    0.844182239838527433e-4,
+    -0.261908384015814087e-4,
+    0.368991826595316234e-5
+  ];
+  let x = 0.999999999999997092;
+  let y = z;
+  for (let j = 0; j < cof.length; j++) {
+    y += 1;
+    x += cof[j] / y;
+  }
+  const t = z + 5.2421875;
+  return 0.5 * Math.log(2 * Math.PI) + (z + 0.5) * Math.log(t) - t + Math.log(x / z);
+}
+
+function betacf(a, b, x) {
+  const MAX_ITER = 200;
+  const EPS = 3e-7;
+  const FPMIN = 1e-30;
+  let qab = a + b;
+  let qap = a + 1;
+  let qam = a - 1;
+  let c = 1;
+  let d = 1 - qab * x / qap;
+  if (Math.abs(d) < FPMIN) d = FPMIN;
+  d = 1 / d;
+  let h = d;
+  for (let m = 1; m <= MAX_ITER; m++) {
+    const m2 = 2 * m;
+    let aa = m * (b - m) * x / ((qam + m2) * (a + m2));
+    d = 1 + aa * d;
+    if (Math.abs(d) < FPMIN) d = FPMIN;
+    c = 1 + aa / c;
+    if (Math.abs(c) < FPMIN) c = FPMIN;
+    d = 1 / d;
+    h *= d * c;
+    aa = -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2));
+    d = 1 + aa * d;
+    if (Math.abs(d) < FPMIN) d = FPMIN;
+    c = 1 + aa / c;
+    if (Math.abs(c) < FPMIN) c = FPMIN;
+    d = 1 / d;
+    const del = d * c;
+    h *= del;
+    if (Math.abs(del - 1) < EPS) break;
+  }
+  return h;
+}
+
+function betaIncomplete(a, b, x) {
+  if (x <= 0) return 0;
+  if (x >= 1) return 1;
+  const bt = Math.exp(logGamma(a + b) - logGamma(a) - logGamma(b) + a * Math.log(x) + b * Math.log(1 - x));
+  if (x < (a + 1) / (a + b + 2)) {
+    return bt * betacf(a, b, x) / a;
+  }
+  return 1 - bt * betacf(b, a, 1 - x) / b;
+}
+
+function tCdf(t, df) {
+  if (!Number.isFinite(t)) return 1;
+  if (df <= 0) return 0.5;
+  const x = df / (df + t * t);
+  const ib = betaIncomplete(df / 2, 0.5, x);
+  if (t >= 0) {
+    return 1 - 0.5 * ib;
+  }
+  return 0.5 * ib;
+}
+
+function buildMatrix(data, featureKeys) {
+  return data.map((row) => {
+    const values = [1];
+    featureKeys.forEach((key) => {
+      const val = row.values[key];
+      values.push(Number.isFinite(val) ? val : 0);
+    });
+    return values;
+  });
+}
+
+function fitModel(data, featureKeys, targetKey) {
+  const X = buildMatrix(data, featureKeys);
   const y = data.map(d => d[targetKey]);
   const Xt = transpose(X);
   const XtX = matMul(Xt, X);
@@ -170,8 +278,45 @@ function fitModel(data, targetKey) {
     ssTot += dev * dev;
   }
   const rmse = Math.sqrt(ssRes / y.length);
-  const r2 = 1 - ssRes / ssTot;
-  return { coeffs, rmse, r2, n: y.length };
+  const r2 = ssTot ? 1 - ssRes / ssTot : 0;
+  const df = y.length - coeffs.length;
+  const pValues = Array(coeffs.length).fill(1);
+  if (df > 0) {
+    const invXtX = invertMatrix(XtX);
+    const sigma2 = ssRes / df;
+    for (let i = 0; i < coeffs.length; i++) {
+      const se = Math.sqrt(sigma2 * invXtX[i][i]);
+      const t = se > 0 ? coeffs[i] / se : 0;
+      const p = 2 * (1 - tCdf(Math.abs(t), df));
+      pValues[i] = Number.isFinite(p) ? p : 1;
+    }
+  }
+  return { coeffs, rmse, r2, n: y.length, df, pValues };
+}
+
+function selectFeatures(data, featureKeys, targetKey, alpha) {
+  let current = [...featureKeys];
+  const removed = [];
+  while (true) {
+    const stats = fitModel(data, current, targetKey);
+    if (!current.length || stats.df <= 0) {
+      return { featureKeys: current, model: stats, removed };
+    }
+    let worstKey = null;
+    let worstP = -1;
+    current.forEach((key, idx) => {
+      const p = stats.pValues[idx + 1] ?? 1;
+      if (p > worstP) {
+        worstP = p;
+        worstKey = key;
+      }
+    });
+    if (worstP <= alpha) {
+      return { featureKeys: current, model: stats, removed };
+    }
+    current = current.filter(key => key !== worstKey);
+    removed.push({ key: worstKey, p: worstP });
+  }
 }
 
 function summarizeStats(values) {
@@ -331,47 +476,61 @@ const features = [
   ...housingFeatureKeys.map(key => ({ key, label: `Housing: ${key.split(':')[1]}` }))
 ];
 
+const featureKeys = features.map(feature => feature.key);
 const data = rowsData.map((row) => {
-  const cityIndicators = cityFeatureKeys.map((key) => {
+  const values = {
+    cost: row.cost,
+    orderHour: row.hour,
+    deliveryMinutes: row.deliveryMin,
+    rain: row.rain,
+    maxTemp: row.tmax,
+    minTemp: row.tmin
+  };
+  cityFeatureKeys.forEach((key) => {
     const cityName = key.split(':')[1];
-    return row.city === cityName ? 1 : 0;
+    values[key] = row.city === cityName ? 1 : 0;
   });
-  const housingIndicators = housingFeatureKeys.map((key) => {
+  housingFeatureKeys.forEach((key) => {
     const housingName = key.split(':')[1];
-    return row.housing === housingName ? 1 : 0;
+    values[key] = row.housing === housingName ? 1 : 0;
   });
   return {
-    x: [
-      1,
-      row.cost,
-      row.hour,
-      row.deliveryMin,
-      row.rain,
-      row.tmax,
-      row.tmin,
-      ...cityIndicators,
-      ...housingIndicators
-    ],
+    values,
     tip: row.tip,
     tipPct: row.tipPct
   };
 });
 
-const tipModel = fitModel(data, 'tip');
-const pctModel = fitModel(data, 'tipPct');
+const tipSelection = selectFeatures(data, featureKeys, 'tip', SIGNIFICANCE_LEVEL);
+const pctSelection = selectFeatures(data, featureKeys, 'tipPct', SIGNIFICANCE_LEVEL);
 
-const featureKeys = features.map(feature => feature.key);
+const activeFeatureSet = new Set([
+  ...tipSelection.featureKeys,
+  ...pctSelection.featureKeys
+]);
+const activeFeatures = features.filter(feature => activeFeatureSet.has(feature.key));
+const inputFeatures = BASE_FEATURES.map(feature => feature.key).filter(key => activeFeatureSet.has(key));
+const usesHousing = housingFeatureKeys.some(key => activeFeatureSet.has(key));
+
 const tipCoeffValues = {};
 const pctCoeffValues = {};
-featureKeys.forEach((key, idx) => {
-  tipCoeffValues[key] = tipModel.coeffs[idx + 1];
-  pctCoeffValues[key] = pctModel.coeffs[idx + 1];
+tipSelection.featureKeys.forEach((key, idx) => {
+  tipCoeffValues[key] = tipSelection.model.coeffs[idx + 1];
+});
+pctSelection.featureKeys.forEach((key, idx) => {
+  pctCoeffValues[key] = pctSelection.model.coeffs[idx + 1];
 });
 
 const model = {
-  version: 2,
+  version: 3,
   generatedAt: new Date().toISOString(),
-  features,
+  features: activeFeatures,
+  inputFeatures,
+  featureSelection: {
+    alpha: SIGNIFICANCE_LEVEL,
+    tip: tipSelection.featureKeys,
+    tipPercent: pctSelection.featureKeys
+  },
   categories: {
     city: {
       baseline: cityBaseline,
@@ -400,16 +559,16 @@ const model = {
     minTemp: summarizeStats(minTempValues)
   },
   metrics: {
-    tip: { rmse: tipModel.rmse, r2: tipModel.r2, n: tipModel.n },
-    tipPercent: { rmse: pctModel.rmse, r2: pctModel.r2, n: pctModel.n }
+    tip: { rmse: tipSelection.model.rmse, r2: tipSelection.model.r2, n: tipSelection.model.n },
+    tipPercent: { rmse: pctSelection.model.rmse, r2: pctSelection.model.r2, n: pctSelection.model.n }
   },
   coefficients: {
     tip: {
-      intercept: tipModel.coeffs[0],
+      intercept: tipSelection.model.coeffs[0],
       values: tipCoeffValues
     },
     tipPercent: {
-      intercept: pctModel.coeffs[0],
+      intercept: pctSelection.model.coeffs[0],
       values: pctCoeffValues
     }
   }
@@ -425,7 +584,9 @@ const meta = {
   cityBoundaries,
   housingOptions: housingOrder,
   housingBaseline,
-  bounds: model.bounds
+  bounds: model.bounds,
+  inputFeatures,
+  useHousing: usesHousing
 };
 
 fs.mkdirSync(path.dirname(META_PATH), { recursive: true });
