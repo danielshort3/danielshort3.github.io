@@ -206,11 +206,8 @@
 
     .state-shape {
       fill: var(--surface-3);
-      stroke: #fdf6ed;
-      stroke-width: 1;
-      vector-effect: non-scaling-stroke;
       cursor: pointer;
-      transition: fill 0.2s ease, filter 0.2s ease, stroke 0.2s ease;
+      transition: fill 0.2s ease, filter 0.2s ease;
     }
 
     .state-shape:hover {
@@ -234,8 +231,6 @@
     }
 
     .state-shape[data-active="true"] {
-      stroke: var(--accent);
-      stroke-width: 2;
       filter: drop-shadow(0 6px 10px rgba(32, 26, 20, 0.25));
     }
 
@@ -243,6 +238,14 @@
       stroke: var(--accent);
       stroke-width: 2;
       outline: none;
+    }
+
+    .state-border {
+      fill: none;
+      stroke: #fdf6ed;
+      stroke-width: 1;
+      vector-effect: non-scaling-stroke;
+      pointer-events: none;
     }
 
     .state-label,
@@ -253,15 +256,11 @@
     .state-label {
       font-size: 10px;
       font-weight: 600;
-      fill: #fffaf3;
-      paint-order: stroke;
-      stroke: rgba(32, 26, 20, 0.4);
-      stroke-width: 2px;
+      fill: #1e1a16;
     }
 
     .state-label[data-outside="true"] {
-      fill: var(--text);
-      stroke: none;
+      fill: #1e1a16;
       font-size: 11px;
     }
 
@@ -274,11 +273,12 @@
     .map-tooltip {
       position: absolute;
       pointer-events: none;
-      background: #1e1a16;
-      color: #fdf6ed;
+      background: #fdf6ed;
+      color: #1e1a16;
       font-size: 0.75rem;
       padding: 6px 10px;
       border-radius: 8px;
+      border: 1px solid var(--border);
       opacity: 0;
       transform: translate(-50%, -6px);
       transition: opacity 0.15s ease, transform 0.15s ease;
@@ -339,6 +339,30 @@
     input[type="range"] {
       width: 100%;
       accent-color: var(--accent);
+    }
+
+    .timeline-ticks {
+      position: relative;
+      height: 18px;
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    .timeline-tick {
+      position: absolute;
+      top: 0;
+      transform: translateX(-50%);
+      display: grid;
+      justify-items: center;
+      gap: 2px;
+      white-space: nowrap;
+    }
+
+    .timeline-tick::before {
+      content: "";
+      width: 1px;
+      height: 6px;
+      background: var(--border);
     }
 
     .detail-header {
@@ -598,6 +622,7 @@
             <div class="empty-note">Drag to change date</div>
           </div>
           <input id="date-slider" type="range" min="0" max="0" value="0" step="1" aria-label="Date slider" />
+          <div class="timeline-ticks" id="timeline-ticks" aria-hidden="true"></div>
         </div>
       </section>
 
@@ -780,6 +805,7 @@
       dateValue: document.getElementById("date-value"),
       dateRange: document.getElementById("date-range"),
       dateSlider: document.getElementById("date-slider"),
+      timelineTicks: document.getElementById("timeline-ticks"),
       stateTitle: document.getElementById("state-title"),
       riskPill: document.getElementById("risk-pill"),
       probValue: document.getElementById("prob-value"),
@@ -908,6 +934,10 @@
           const stateId = NAME_TO_ABBR[d.properties.name];
           if (stateId) selectState(stateId);
         });
+      const borders = topojson.mesh(topo, topo.objects.states);
+      svg.append("path")
+        .attr("class", "state-border")
+        .attr("d", path(borders));
       const leaderLayer = svg.append("g").attr("class", "state-leaders");
       const labelLayer = svg.append("g").attr("class", "state-labels");
       features.forEach((feature) => {
@@ -1178,6 +1208,26 @@
       DOM.dateRange.textContent = `${appState.dates[0]} to ${appState.dates[appState.dates.length - 1]}`;
     }
 
+    function updateYearTicks(dates) {
+      if (!DOM.timelineTicks) return;
+      if (!Array.isArray(dates) || dates.length === 0) {
+        DOM.timelineTicks.innerHTML = "";
+        return;
+      }
+      const firstIndexByYear = new Map();
+      dates.forEach((date, idx) => {
+        const year = String(date).slice(0, 4);
+        if (!firstIndexByYear.has(year)) {
+          firstIndexByYear.set(year, idx);
+        }
+      });
+      const maxIndex = Math.max(1, dates.length - 1);
+      DOM.timelineTicks.innerHTML = Array.from(firstIndexByYear.entries()).map(([year, idx]) => {
+        const left = ((idx / maxIndex) * 100).toFixed(2);
+        return `<span class=\"timeline-tick\" style=\"left:${left}%\">${year}</span>`;
+      }).join("");
+    }
+
     async function handleDateChange(index) {
       const date = appState.dates[index];
       if (!date) return;
@@ -1212,6 +1262,7 @@
         if (!appState.dates.length) {
           throw new Error("No dates available");
         }
+        updateYearTicks(appState.dates);
         const latestIdx = appState.dates.length - 1;
         DOM.dateSlider.max = String(latestIdx);
         DOM.dateSlider.value = String(latestIdx);

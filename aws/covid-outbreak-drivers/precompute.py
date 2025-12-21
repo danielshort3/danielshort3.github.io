@@ -90,6 +90,20 @@ def parse_float(raw):
     return None
 
 
+def normalize_date(raw):
+  if raw is None:
+    return None
+  value = str(raw).strip()
+  if value == "":
+    return None
+  for fmt in ("%Y-%m-%d", "%Y/%m/%d"):
+    try:
+      return datetime.strptime(value, fmt).strftime("%Y-%m-%d")
+    except ValueError:
+      continue
+  return None
+
+
 def load_probabilities(path):
   prob_map = {}
   dates = set()
@@ -98,7 +112,7 @@ def load_probabilities(path):
     reader = csv.DictReader(f)
     for row in reader:
       state = (row.get("state") or "").strip().upper()
-      date = (row.get("date") or "").strip()
+      date = normalize_date(row.get("date"))
       prob = parse_float(row.get("prob_breach_7d"))
       utilization = parse_float(row.get("adult_icu_bed_utilization"))
       if not state or not date:
@@ -123,7 +137,7 @@ def load_raw_features(path, valid_keys):
     reader = csv.DictReader(f)
     for row in reader:
       state = (row.get("state") or "").strip().upper()
-      date = (row.get("date") or "").strip()
+      date = normalize_date(row.get("date"))
       if (state, date) not in valid_keys:
         continue
       record = {}
