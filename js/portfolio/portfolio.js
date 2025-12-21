@@ -51,24 +51,16 @@ function buildPortfolioCarousel() {
   const container = document.getElementById("portfolio-carousel");
   if (!container || !window.PROJECTS) return;
 
-  const track = container.querySelector(".carousel-track");
-  const dots  = container.querySelector(".carousel-dots");
-  if (!track || !dots) return;
   const isPortfolioPage = document.body && document.body.dataset.page === 'portfolio';
   const usesModals = isPortfolioPage;
   const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isBento = container.dataset.layout === 'bento' || container.classList.contains('bento-grid');
   const isTypingTarget = (node) => {
     if (!node) return false;
     if (node.isContentEditable) return true;
     const tag = (node.tagName || '').toLowerCase();
     return tag === 'input' || tag === 'textarea' || tag === 'select';
   };
-
-  // Make carousel focusable and describe semantics for AT users
-  container.setAttribute('tabindex', '0');
-  container.setAttribute('role', 'region');
-  container.setAttribute('aria-roledescription', 'carousel');
-  container.setAttribute('aria-label', 'Featured projects');
 
   // 1‒5 featured projects -------------------------------------------------
   let projects = [];
@@ -122,12 +114,97 @@ function buildPortfolioCarousel() {
     } catch {}
   }
 
+  const buildProjectMedia = (p, i) => {
+    const sizeAttr = getImageSizeAttr(p);
+    const hasVideo = !!(p.videoWebm || p.videoMp4);
+    const hasImage = !!p.image;
+    const img = (() => {
+      if (!hasImage) return '';
+      const src = p.image || '';
+      const lower = src.toLowerCase();
+      const webp = lower.endsWith('.png') ? src.replace(/\.png$/i, '.webp')
+        : lower.endsWith('.jpg') ? src.replace(/\.jpg$/i, '.webp')
+        : lower.endsWith('.jpeg') ? src.replace(/\.jpeg$/i, '.webp')
+        : null;
+      if (webp) {
+        return `<picture>
+          <source srcset="${webp}" type="image/webp">
+          <img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false"${sizeAttr} fetchpriority="${i===0 ? 'high' : 'auto'}">
+        </picture>`;
+      }
+      return `<img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false"${sizeAttr} fetchpriority="${i===0 ? 'high' : 'auto'}">`;
+    })();
+    if (!hasVideo) return img;
+    const mp4 = p.videoMp4 ? `<source src="${p.videoMp4}" type="video/mp4">` : '';
+    const webm = p.videoWebm ? `<source src="${p.videoWebm}" type="video/webm">` : '';
+    const video = `
+      <video class="gif-video" muted playsinline loop autoplay preload="metadata" draggable="false">
+        ${mp4}
+        ${webm}
+      </video>`;
+    if (p.videoOnly || !hasImage) {
+      return video;
+    }
+    return `
+      ${video}
+      ${img}`;
+  };
+
+  if (isBento) {
+    container.innerHTML = "";
+    container.setAttribute('role', 'list');
+    container.setAttribute('aria-label', 'Featured projects');
+
+    projects.forEach((p, i) => {
+      const card = usesModals ? document.createElement("button") : document.createElement("a");
+      if (usesModals) {
+        card.type = "button";
+      } else {
+        card.href = `portfolio/${p.id}`;
+      }
+      card.className = "project-card bento-item";
+      card.setAttribute("role", "listitem");
+      card.setAttribute("aria-label", usesModals ? `View details of ${p.title}` : `Read case study: ${p.title}`);
+      card.innerHTML = `
+        <div class="overlay"></div>
+        <div class="project-text">
+          <div class="project-title">${p.title}</div>
+          <div class="project-subtitle">${p.subtitle}</div>
+        </div>
+        ${buildProjectMedia(p, i)}
+      `;
+      if (usesModals) {
+        card.addEventListener("click", () => openModal(p.id));
+        card.addEventListener("keydown", ev => {
+          if (ev.key === 'Enter' || ev.key === ' ') {
+            ev.preventDefault();
+            openModal(p.id);
+          }
+        });
+      }
+      card.style.animationDelay = `${i * 80}ms`;
+      card.classList.add("ripple-in");
+      activateGifVideo(card);
+      container.appendChild(card);
+    });
+    return;
+  }
+
+  const track = container.querySelector(".carousel-track");
+  const dots  = container.querySelector(".carousel-dots");
+  if (!track || !dots) return;
+
+  // Make carousel focusable and describe semantics for AT users
+  container.setAttribute('tabindex', '0');
+  container.setAttribute('role', 'region');
+  container.setAttribute('aria-roledescription', 'carousel');
+  container.setAttribute('aria-label', 'Featured projects');
+
   track.innerHTML = "";
   dots.innerHTML  = "";
 
   projects.forEach((p, i) => {
     /* slide */
-    const sizeAttr = getImageSizeAttr(p);
     const card = usesModals ? document.createElement("button") : document.createElement("a");
     if (usesModals) {
       card.type = "button";
@@ -136,47 +213,13 @@ function buildPortfolioCarousel() {
     }
     card.className = "project-card carousel-card";
     card.setAttribute("aria-label", usesModals ? `View details of ${p.title}` : `Read case study: ${p.title}`);
-    const media = (() => {
-      const hasVideo = !!(p.videoWebm || p.videoMp4);
-      const hasImage = !!p.image;
-      const img = (() => {
-        if (!hasImage) return '';
-        const src = p.image || '';
-        const lower = src.toLowerCase();
-        const webp = lower.endsWith('.png') ? src.replace(/\.png$/i, '.webp')
-                   : lower.endsWith('.jpg') ? src.replace(/\.jpg$/i, '.webp')
-                   : lower.endsWith('.jpeg') ? src.replace(/\.jpeg$/i, '.webp')
-                   : null;
-        if (webp) {
-          return `<picture>
-            <source srcset="${webp}" type="image/webp">
-            <img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false"${sizeAttr} fetchpriority="${i===0 ? 'high' : 'auto'}">
-          </picture>`;
-        }
-        return `<img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false"${sizeAttr} fetchpriority="${i===0 ? 'high' : 'auto'}">`;
-      })();
-      if (!hasVideo) return img;
-      const mp4  = p.videoMp4  ? `<source src="${p.videoMp4}" type="video/mp4">`   : '';
-      const webm = p.videoWebm ? `<source src="${p.videoWebm}" type="video/webm">` : '';
-      const video = `
-        <video class="gif-video" muted playsinline loop autoplay preload="metadata" draggable="false">
-          ${mp4}
-          ${webm}
-        </video>`;
-      if (p.videoOnly || !hasImage) {
-        return video;
-      }
-      return `
-        ${video}
-        ${img}`;
-    })();
     card.innerHTML = `
       <div class="overlay"></div>
       <div class="project-text">
         <div class="project-title">${p.title}</div>
         <div class="project-subtitle">${p.subtitle}</div>
       </div>
-      ${media}
+      ${buildProjectMedia(p, i)}
     `;
     if (usesModals) {
       card.addEventListener("click", () => { if (!moved) openModal(p.id); });
