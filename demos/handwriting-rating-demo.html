@@ -401,55 +401,94 @@
       color: var(--text-muted);
     }
 
-    .confidence-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      display: grid;
+    .confidence-chips {
+      display: flex;
+      flex-wrap: wrap;
       gap: 8px;
-    }
-
-    .confidence-row {
-      display: grid;
-      grid-template-columns: 20px 1fr 52px;
-      gap: 8px;
+      min-height: 32px;
       align-items: center;
-      background: var(--surface);
-      border: 1px solid var(--surface-accent);
-      border-radius: 10px;
-      padding: 8px 10px;
     }
 
-    .confidence-row.top {
+    .confidence-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--surface-accent);
+      background: var(--surface);
+      font-size: .9rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .confidence-chip .chip-digit {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--surface-2);
+      border: 1px solid var(--surface-accent);
+      font-weight: 600;
+    }
+
+    .confidence-chip .chip-pct {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .confidence-chip.top {
       border-color: color-mix(in srgb, var(--primary) 75%, var(--surface-accent) 25%);
       box-shadow: var(--shadow-1);
     }
 
-    .confidence-digit {
-      font-weight: 600;
-      text-align: center;
-    }
-
-    .confidence-track {
-      width: 100%;
-      height: 10px;
-      background: var(--surface-2);
+    .sample-panel {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 12px;
       border: 1px solid var(--surface-accent);
-      border-radius: 999px;
-      overflow: hidden;
+      background: var(--surface-2);
+      box-shadow: var(--shadow-1);
     }
 
-    .confidence-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, var(--primary), var(--secondary));
-      transition: width .25s ease;
+    .sample-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: baseline;
+      flex-wrap: wrap;
     }
 
-    .confidence-pct {
-      font-size: .85rem;
-      color: var(--text-muted);
-      text-align: right;
+    .sample-title {
+      font-weight: 600;
+    }
+
+    .sample-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .sample-btn {
+      border: 1px solid var(--surface-accent);
+      background: var(--surface);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 8px 0;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 40px;
+      touch-action: manipulation;
+    }
+
+    .sample-btn.active {
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: var(--shadow-1);
     }
 
     .hint {
@@ -564,6 +603,26 @@
             <i class="fa-solid fa-star"></i> Rate digit
           </button>
         </div>
+
+        <div class="sample-panel" aria-label="Personal handwriting samples">
+          <div class="sample-head">
+            <span class="sample-title">Personal samples</span>
+            <span class="hint">Click a digit to load a saved example.</span>
+          </div>
+          <div class="sample-grid" role="list">
+            <button class="sample-btn" type="button" data-sample-digit="0" aria-pressed="false" aria-label="Load sample digit 0">0</button>
+            <button class="sample-btn" type="button" data-sample-digit="1" aria-pressed="false" aria-label="Load sample digit 1">1</button>
+            <button class="sample-btn" type="button" data-sample-digit="2" aria-pressed="false" aria-label="Load sample digit 2">2</button>
+            <button class="sample-btn" type="button" data-sample-digit="3" aria-pressed="false" aria-label="Load sample digit 3">3</button>
+            <button class="sample-btn" type="button" data-sample-digit="4" aria-pressed="false" aria-label="Load sample digit 4">4</button>
+            <button class="sample-btn" type="button" data-sample-digit="5" aria-pressed="false" aria-label="Load sample digit 5">5</button>
+            <button class="sample-btn" type="button" data-sample-digit="6" aria-pressed="false" aria-label="Load sample digit 6">6</button>
+            <button class="sample-btn" type="button" data-sample-digit="7" aria-pressed="false" aria-label="Load sample digit 7">7</button>
+            <button class="sample-btn" type="button" data-sample-digit="8" aria-pressed="false" aria-label="Load sample digit 8">8</button>
+            <button class="sample-btn" type="button" data-sample-digit="9" aria-pressed="false" aria-label="Load sample digit 9">9</button>
+          </div>
+          <div id="sample-status" class="hint">No sample loaded.</div>
+        </div>
       </section>
 
       <section class="panel" aria-live="polite">
@@ -584,10 +643,10 @@
 
         <div class="confidence-block">
           <div class="confidence-head">
-            <span>Per-digit confidence</span>
+            <span>Model guesses (descending)</span>
             <span id="confidence-summary" class="hint">--</span>
           </div>
-          <ul id="confidence-list" class="confidence-list" aria-label="Per-digit confidence list"></ul>
+          <div id="confidence-chips" class="confidence-chips" aria-label="Per-digit confidence chips"></div>
         </div>
 
         <div class="hint">Shortcut: press <strong>C</strong> to clear.</div>
@@ -709,7 +768,9 @@
     const legibilityValue = document.getElementById('legibility-value');
     const legibilityBar = document.getElementById('legibility-bar');
     const confidenceSummary = document.getElementById('confidence-summary');
-    const confidenceList = document.getElementById('confidence-list');
+    const confidenceChips = document.getElementById('confidence-chips');
+    const sampleStatus = document.getElementById('sample-status');
+    const sampleButtons = Array.from(document.querySelectorAll('.sample-btn'));
 
     let bg = getComputedStyle(document.documentElement).getPropertyValue('--canvas-dark').trim() || '#000';
     const fg = '#fff';
@@ -798,37 +859,18 @@
     });
 
     const DIGITS = Array.from({ length: 10 }, (_, i) => i);
-    const confItems = new Map();
-
-    function initConfidenceList() {
-      confidenceList.innerHTML = '';
-      confItems.clear();
-      DIGITS.forEach(d => {
-        const row = document.createElement('li');
-        row.className = 'confidence-row';
-        row.dataset.digit = String(d);
-
-        const digit = document.createElement('span');
-        digit.className = 'confidence-digit';
-        digit.textContent = String(d);
-
-        const track = document.createElement('div');
-        track.className = 'confidence-track';
-        const fill = document.createElement('div');
-        fill.className = 'confidence-fill';
-        track.appendChild(fill);
-
-        const pct = document.createElement('span');
-        pct.className = 'confidence-pct';
-        pct.textContent = '--';
-
-        row.append(digit, track, pct);
-        confidenceList.appendChild(row);
-        confItems.set(d, { row, fill, pct });
-      });
-    }
-
-    initConfidenceList();
+    const SAMPLE_MAP = {
+      0: 'img/demos/handwriting-samples/digit-0.jpg',
+      1: 'img/demos/handwriting-samples/digit-1.jpg',
+      2: 'img/demos/handwriting-samples/digit-2.jpg',
+      3: 'img/demos/handwriting-samples/digit-3.jpg',
+      4: 'img/demos/handwriting-samples/digit-4.jpg',
+      5: 'img/demos/handwriting-samples/digit-5.jpg',
+      6: 'img/demos/handwriting-samples/digit-6.jpg',
+      7: 'img/demos/handwriting-samples/digit-7.jpg',
+      8: 'img/demos/handwriting-samples/digit-8.jpg',
+      9: 'img/demos/handwriting-samples/digit-9.jpg'
+    };
 
     function numberFrom(...vals) {
       for (const v of vals) {
@@ -874,21 +916,94 @@
       return null;
     }
 
+    function setActiveSampleButton(digit) {
+      sampleButtons.forEach(btn => {
+        const isActive = btn.dataset.sampleDigit === String(digit);
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
+    }
+
+    function loadImage(src) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.decoding = 'async';
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('Sample failed to load.'));
+        img.src = src;
+      });
+    }
+
+    async function loadSampleDigit(digit) {
+      if (rateBtn.disabled) {
+        sampleStatus.textContent = 'Please wait for the current score to finish.';
+        return;
+      }
+      const src = SAMPLE_MAP[digit];
+      if (!src) {
+        sampleStatus.textContent = 'Sample not available.';
+        return;
+      }
+      sampleStatus.textContent = `Loading sample ${digit}...`;
+      setPredictionUI(`Loading sample ${digit}...`, null, null, null);
+      try {
+        const img = await loadImage(src);
+        fitCanvasToDisplaySize();
+        resetCanvas();
+        ctx.save();
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        ctx.restore();
+        hasDrawn = true;
+        setActiveSampleButton(digit);
+        sampleStatus.textContent = `Loaded sample ${digit}.`;
+        await scoreDigit();
+      } catch (err) {
+        sampleStatus.textContent = err?.message || 'Sample failed to load.';
+      }
+    }
+
     function toPercent(value) {
       if (!Number.isFinite(value)) return null;
       if (value > 1.01) return Math.min(100, value);
       return Math.max(0, Math.min(100, value * 100));
     }
 
-    function updateConfidenceBars(confidences, topIndex) {
-      DIGITS.forEach(d => {
-        const item = confItems.get(d);
-        if (!item) return;
-        const val = confidences ? confidences[d] : null;
-        const pct = toPercent(val);
-        item.fill.style.width = pct !== null ? `${Math.round(pct)}%` : '0%';
-        item.pct.textContent = pct !== null ? `${Math.round(pct)}%` : '--';
-        item.row.classList.toggle('top', d === topIndex);
+    function getSortedConfidences(confidences) {
+      if (!Array.isArray(confidences) || confidences.length !== 10) return null;
+      return confidences
+        .map((val, idx) => ({ digit: idx, value: Number(val) || 0 }))
+        .filter(item => item.value > 0)
+        .sort((a, b) => b.value - a.value);
+    }
+
+    function renderConfidenceChips(sorted) {
+      confidenceChips.innerHTML = '';
+      if (!sorted || !sorted.length) {
+        const empty = document.createElement('span');
+        empty.className = 'hint';
+        empty.textContent = 'No guesses yet.';
+        confidenceChips.appendChild(empty);
+        return;
+      }
+      sorted.forEach((item, idx) => {
+        const pct = toPercent(item.value);
+        const pctLabel = pct === null
+          ? '--'
+          : (pct < 1 ? `${pct.toFixed(1)}%` : `${Math.round(pct)}%`);
+        const chip = document.createElement('div');
+        chip.className = `confidence-chip${idx === 0 ? ' top' : ''}`;
+
+        const digit = document.createElement('span');
+        digit.className = 'chip-digit';
+        digit.textContent = String(item.digit);
+
+        const label = document.createElement('span');
+        label.className = 'chip-pct';
+        label.textContent = pctLabel;
+
+        chip.append(digit, label);
+        confidenceChips.appendChild(chip);
       });
     }
 
@@ -899,31 +1014,24 @@
     }
 
     function setPredictionUI(message, confidences, legibility, digit) {
-      let topIndex = null;
-      let topVal = null;
-      if (Array.isArray(confidences) && confidences.length === 10) {
-        confidences.forEach((val, idx) => {
-          const v = Number(val);
-          if (Number.isFinite(v) && (topVal === null || v > topVal)) {
-            topVal = v;
-            topIndex = idx;
-          }
-        });
-      }
-
-      const resolvedDigit = Number.isFinite(digit) ? digit : topIndex;
+      const sorted = getSortedConfidences(confidences);
+      const top = sorted && sorted.length ? sorted[0] : null;
+      const resolvedDigit = Number.isFinite(digit) ? digit : (top ? top.digit : null);
       if (resolvedDigit !== null && resolvedDigit !== undefined) {
         resultDigit.textContent = `Prediction: ${resolvedDigit}`;
       } else {
         resultDigit.textContent = message || 'Draw a digit to begin';
       }
 
-      updateConfidenceBars(confidences, topIndex);
-      updateLegibility(Number.isFinite(legibility) ? legibility : topVal);
+      renderConfidenceChips(sorted);
+      updateLegibility(Number.isFinite(legibility) ? legibility : (top ? top.value : null));
 
-      if (topIndex !== null && topVal !== null) {
-        const pct = Math.round(toPercent(topVal) || 0);
-        confidenceSummary.textContent = `Top guess: ${topIndex} (${pct}%)`;
+      if (top) {
+        const pct = toPercent(top.value);
+        const pctLabel = pct === null
+          ? '--'
+          : (pct < 1 ? `${pct.toFixed(1)}%` : `${Math.round(pct)}%`);
+        confidenceSummary.textContent = `Top guess: ${top.digit} (${pctLabel})`;
       } else {
         confidenceSummary.textContent = '--';
       }
@@ -999,12 +1107,22 @@
     }
 
     rateBtn.addEventListener('click', scoreDigit);
+    sampleButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const digit = btn.dataset.sampleDigit;
+        if (digit === undefined) return;
+        loadSampleDigit(digit);
+      });
+    });
 
     eraseBtn.addEventListener('click', () => {
       resetCanvas();
       setPredictionUI('Draw a digit to begin', null, null, null);
+      setActiveSampleButton(null);
+      sampleStatus.textContent = 'No sample loaded.';
     });
 
+    setPredictionUI('Draw a digit to begin', null, null, null);
     window.addEventListener('load', () => { fitCanvasToDisplaySize(); setStroke(); });
   </script>
   <footer></footer>
