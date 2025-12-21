@@ -675,24 +675,6 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
     c.classList.add("ripple-in");
   });
 
-  /* ── auto-scroll to first card once it fades in (mobile only) ── */
-  const isMobileInitial = window.matchMedia("(max-width: 768px)").matches;
-  if (isMobileInitial && !reduceMotion) {
-    const first = grid.firstElementChild;
-    if (first) {
-      const offset =
-        parseFloat(
-          getComputedStyle(document.documentElement).getPropertyValue(
-            "--nav-height"
-          )
-        ) || 0;
-      const y = first.getBoundingClientRect().top + window.scrollY - offset;
-      setTimeout(() => {
-        window.scrollTo({ top: y, behavior: "smooth" });
-      }, 600); // ripple-in animation ≈550ms
-    }
-  }
-
   /* ➌ Build filter-button counts ----------------------------------- */
   const refreshFilterLabels = () => {
     filterGroups.forEach((buttons, group) => {
