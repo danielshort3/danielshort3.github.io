@@ -17,3 +17,6 @@ node_modules/
 dist/
 public/
 /Slot-Machine-v4
+/Handwriting-Rating
+/Nonogram-Solver
+/aws/handwriting-rating/models/

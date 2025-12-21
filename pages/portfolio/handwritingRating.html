@@ -60,6 +60,7 @@
       <span class="project-tag" role="listitem">Machine Learning</span>
       <span class="project-tag" role="listitem">Python</span>
       <span class="project-tag" role="listitem">PyTorch</span>
+      <span class="project-tag" role="listitem">AWS</span>
       <span class="project-tag" role="listitem">CNN</span>
     </div>
       </div>
@@ -67,10 +68,9 @@
 
     <section class="project-body">
       <div class="wrapper">
-        <picture class="project-media">
-        <source srcset="img/projects/handwritingRating.webp" type="image/webp">
-        <img src="img/projects/handwritingRating.png" alt="Preview image for Handwriting Legibility Scoring" loading="lazy" decoding="async" width="600" height="960">
-      </picture>
+        <div class="project-media project-embed project-embed-iframe">
+        <iframe class="project-embed-frame" src="handwriting-rating-demo.html" title="Handwriting Legibility Scoring interactive demo" loading="lazy" allowfullscreen></iframe>
+      </div>
         <section class="project-section">
       <h2 class="section-title">Context</h2>
       <p class="project-lead">My wife would say my handwriting is illegible. I wanted an objective assessment.</p>
@@ -81,6 +81,7 @@
       <ul class="project-list">
         <li>Created three models of varying complexity to learn to read handwritten digits.</li>
         <li>Trained models on 60,000 handwritten digits.</li>
+        <li>Deployed the best model behind a serverless scoring API for the live demo.</li>
       </ul>
     </section>
         <section class="project-section">
@@ -129,6 +130,7 @@
       <h2 class="section-title">Links</h2>
       <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://github.com/danielshort3/Handwriting-Rating" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
+        <a class="project-link" role="listitem" href="https://danielshort.me/handwriting-rating-demo.html" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
         <a class="project-link" role="listitem" href="documents/Project_8.pdf"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDF</span></a>
         <a class="project-link" role="listitem" href="documents/Project_8.ipynb"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook</span></a>
       </div>

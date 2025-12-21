@@ -9,12 +9,14 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 GRID_SIZE = int(os.getenv("GRID_SIZE", "5"))
-DEFAULT_CLUE_MAX_LEN = int(os.getenv("CLUE_MAX_LEN", "3"))
-DEFAULT_CLUE_VOCAB = int(os.getenv("CLUE_VOCAB", "5"))
+CLUE_MAX_LEN = int(os.getenv("CLUE_MAX_LEN", "3"))
+CLUE_VOCAB = int(os.getenv("CLUE_VOCAB", "5"))
 CHECKPOINT_PATH = os.path.join(os.path.dirname(__file__), "models", "checkpoint_52000.pth")
 
 torch.set_grad_enabled(False)
 torch.set_num_threads(1)
+
+_EXISTING_SOLUTIONS = set()
 
 
 def clues_from_line(line):
@@ -40,6 +42,28 @@ def build_clues(solution):
 
 def pad_clue(clue, max_len):
   return clue + [0] * (max_len - len(clue))
+
+
+def generate_unique_nonogram(grid_size, batch_size, existing_solutions=None):
+  if existing_solutions is None:
+    existing_solutions = set()
+  solutions = []
+  while len(solutions) < batch_size:
+    new = np.random.randint(2, size=(batch_size, grid_size, grid_size))
+    for sol in new:
+      tup = tuple(map(tuple, sol))
+      if tup not in existing_solutions:
+        solutions.append(sol)
+        existing_solutions.add(tup)
+      if len(solutions) == batch_size:
+        break
+  solutions = np.asarray(solutions)
+
+  row_clues, col_clues = [], []
+  for sol in solutions:
+    row_clues.append([[len(s) for s in "".join(map(str, r)).split("0") if s] or [0] for r in sol])
+    col_clues.append([[len(s) for s in "".join(map(str, c)).split("0") if s] or [0] for c in sol.T])
+  return solutions, row_clues, col_clues, existing_solutions
 
 
 class ClueTransformer(nn.Module):
@@ -98,17 +122,15 @@ def load_model():
     raise FileNotFoundError(f"Checkpoint not found at {CHECKPOINT_PATH}")
 
   ckpt = torch.load(CHECKPOINT_PATH, map_location="cpu", weights_only=False)
-  clue_max_len = int(ckpt.get("clue_max_len", DEFAULT_CLUE_MAX_LEN))
-  vocab = int(ckpt.get("clue_dim", DEFAULT_CLUE_VOCAB))
-  model = PolicyNetwork(GRID_SIZE, clue_max_len, vocab)
+  model = PolicyNetwork(GRID_SIZE, CLUE_MAX_LEN, CLUE_VOCAB)
   state = ckpt.get("model_state_dict", ckpt)
   model.load_state_dict(state, strict=False)
-  model.eval()
+  model.train()
 
   _MODEL = model
   _MODEL_META = {
-    "clue_max_len": clue_max_len,
-    "vocab": vocab
+    "clue_max_len": CLUE_MAX_LEN,
+    "vocab": CLUE_VOCAB
   }
   return _MODEL, _MODEL_META
 
@@ -120,7 +142,7 @@ def normalize_solution(raw):
   return np.where(arr > 0, 1, 0)
 
 
-def solve_nonogram(solution, seed=None, max_steps=None):
+def solve_nonogram(solution=None, seed=None, max_steps=None):
   model, meta = load_model()
   clue_max_len = meta["clue_max_len"]
 
@@ -128,69 +150,66 @@ def solve_nonogram(solution, seed=None, max_steps=None):
     np.random.seed(seed)
     torch.manual_seed(seed)
 
-  row_clues, col_clues = build_clues(solution)
+  if solution is None:
+    sols, row_clues, col_clues, _ = generate_unique_nonogram(GRID_SIZE, 1, _EXISTING_SOLUTIONS)
+    solution = sols[0]
+  else:
+    solution = normalize_solution(solution)
+    row_clues, col_clues = build_clues(solution)
+
   row_pad = np.array([[pad_clue(c, clue_max_len) for c in row_clues]], dtype=np.int64)
   col_pad = np.array([[pad_clue(c, clue_max_len) for c in col_clues]], dtype=np.int64)
 
   state = np.full((1, GRID_SIZE, GRID_SIZE), -1, dtype=np.int8)
   chosen = set()
   steps = []
-  max_steps = max_steps or GRID_SIZE * GRID_SIZE
+  step_limit = max_steps or GRID_SIZE * GRID_SIZE
+  step_count = 0
+  done = False
 
-  for _ in range(max_steps):
+  while not done:
     logits = model(
       torch.tensor(state, dtype=torch.float32),
       torch.tensor(row_pad, dtype=torch.long),
       torch.tensor(col_pad, dtype=torch.long)
     )
-    flat_logits = logits.view(-1)
-    probs = torch.softmax(flat_logits, dim=0)
-    order = torch.argsort(probs, descending=True)
+    probs = torch.softmax(logits.view(logits.size(0), -1), dim=-1)
+    dist = torch.distributions.Categorical(probs)
+    selected = int(dist.sample()[0].item())
 
-    selected = None
-    for idx in order.tolist():
-      cell = idx // 2
-      r = cell // GRID_SIZE
-      c = cell % GRID_SIZE
-      if (r, c) in chosen:
-        continue
-      selected = idx
-      break
-
-    if selected is None:
-      break
-
+    pos = selected // 2
     pred = selected % 2
-    cell = selected // 2
-    row = cell // GRID_SIZE
-    col = cell % GRID_SIZE
+    row = pos // GRID_SIZE
+    col = pos % GRID_SIZE
     actual = int(solution[row, col])
-    correct = pred == actual
-    confidence = float(probs[selected].item())
+    duplicate = (row, col) in chosen
+    if not duplicate:
+      chosen.add((row, col))
+      state[0, row, col] = actual
 
-    chosen.add((row, col))
-    state[0, row, col] = actual
+    step_count += 1
+    result = "Duplicate" if duplicate else "Correct"
     steps.append({
       "row": row,
       "col": col,
       "predicted": pred,
       "actual": actual,
-      "correct": bool(correct),
-      "confidence": round(confidence, 4)
+      "correct": not duplicate,
+      "duplicate": duplicate,
+      "result": result
     })
 
-    if len(chosen) >= GRID_SIZE * GRID_SIZE:
-      break
+    done = np.array_equal(state[0], solution) or step_count >= step_limit
 
   correct_count = sum(1 for s in steps if s["correct"])
-  solved = np.array_equal(state[0], solution)
+  solved = bool(done)
   return {
     "grid": GRID_SIZE,
     "row_clues": row_clues,
     "col_clues": col_clues,
     "solution": solution.tolist(),
     "steps": steps,
-    "step_count": len(steps),
+    "step_count": step_count,
     "correct_count": correct_count,
     "correct_rate": round((correct_count / len(steps)) if steps else 0, 4),
     "solved": bool(solved)
@@ -247,15 +266,8 @@ def handler(event, context):
     except (TypeError, ValueError):
       seed = None
 
-  if payload.get("solution") is not None:
-    solution = normalize_solution(payload.get("solution"))
-  else:
-    if seed is not None:
-      np.random.seed(seed)
-    solution = np.random.randint(2, size=(GRID_SIZE, GRID_SIZE))
-
   try:
-    result = solve_nonogram(solution, seed=seed)
+    result = solve_nonogram(payload.get("solution"), seed=seed)
     duration_ms = int((time.time() - start) * 1000)
     result["duration_ms"] = duration_ms
     return {
