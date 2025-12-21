@@ -10,8 +10,9 @@ import torch
 import torch.nn as nn
 
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "models", "model_3.pth")
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "")
-_ALLOWED = [o.strip() for o in ALLOWED_ORIGINS.split(",") if o.strip()]
+RESPONSE_HEADERS = {
+  "Content-Type": "application/json"
+}
 
 torch.set_grad_enabled(False)
 torch.set_num_threads(1)
@@ -72,25 +73,6 @@ def load_model():
   model.eval()
   _MODEL = model
   return _MODEL
-
-
-def choose_origin(headers):
-  origin = headers.get("origin") or headers.get("Origin") or ""
-  if not _ALLOWED:
-    return origin or "*"
-  if "*" in _ALLOWED:
-    return origin or "*"
-  return origin if origin in _ALLOWED else _ALLOWED[0]
-
-
-def build_headers(origin):
-  return {
-    "Access-Control-Allow-Origin": origin or "*",
-    "Access-Control-Allow-Methods": "POST,OPTIONS,GET",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Access-Control-Max-Age": "86400",
-    "Content-Type": "application/json"
-  }
 
 
 def parse_body(event):
@@ -171,9 +153,7 @@ def score_image(img):
 
 def handler(event, context):
   start = time.time()
-  headers_in = event.get("headers") or {} if event else {}
-  cors_origin = choose_origin(headers_in)
-  headers_out = build_headers(cors_origin)
+  headers_out = dict(RESPONSE_HEADERS)
   method = (
     (event.get("requestContext", {}).get("http", {}).get("method"))
     or event.get("httpMethod")
