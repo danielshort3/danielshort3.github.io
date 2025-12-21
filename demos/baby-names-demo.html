@@ -183,6 +183,7 @@
       grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
       gap: 18px;
       padding: 18px;
+      align-items: stretch;
     }
 
     .panel {
@@ -197,6 +198,7 @@
 
     .panel.explorer {
       grid-template-rows: auto auto 1fr;
+      height: 100%;
     }
 
     .panel h2,
@@ -393,6 +395,16 @@
     #name-list-wrap {
       min-height: 0;
       display: grid;
+    }
+
+    .panel.explorer #name-list-wrap {
+      height: 100%;
+    }
+
+    .panel.explorer .name-list {
+      max-height: none;
+      min-height: var(--list-height);
+      height: 100%;
     }
 
     .name-item {
