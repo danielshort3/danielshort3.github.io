@@ -211,22 +211,6 @@ def parse_body(event):
     return {}
 
 
-def cors_headers(origin):
-  allowed = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", "").split(",") if o.strip()]
-  if not allowed:
-    allowed = ["*"]
-  if "*" in allowed:
-    allow_origin = "*"
-  else:
-    allow_origin = origin if origin in allowed else allowed[0]
-  return {
-    "Access-Control-Allow-Origin": allow_origin,
-    "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-    "Access-Control-Allow-Headers": "content-type",
-    "Access-Control-Max-Age": "86400"
-  }
-
-
 def handler(event, context):
   start = time.time()
   method = (
@@ -234,21 +218,20 @@ def handler(event, context):
     or event.get("httpMethod")
     or "GET"
   )
-  headers = event.get("headers") or {}
-  origin = headers.get("origin") or headers.get("Origin") or ""
-  base_headers = cors_headers(origin)
+  response_headers = {
+    "Content-Type": "application/json"
+  }
 
   if method == "OPTIONS":
     return {
-      "statusCode": 204,
-      "headers": base_headers
+      "statusCode": 204
     }
 
   if method == "GET":
     model_loaded = _MODEL is not None
     return {
       "statusCode": 200,
-      "headers": base_headers,
+      "headers": response_headers,
       "body": json.dumps({
         "status": "ok",
         "model_loaded": model_loaded,
@@ -277,13 +260,13 @@ def handler(event, context):
     result["duration_ms"] = duration_ms
     return {
       "statusCode": 200,
-      "headers": base_headers,
+      "headers": response_headers,
       "body": json.dumps(result)
     }
   except Exception as exc:
     return {
       "statusCode": 500,
-      "headers": base_headers,
+      "headers": response_headers,
       "body": json.dumps({
         "error": str(exc)
       })
