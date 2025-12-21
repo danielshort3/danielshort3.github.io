@@ -434,11 +434,11 @@
         <div class="result-label">Coefficient Contributions</div>
         <div class="breakdown-grid">
           <div class="panel">
-            <div class="result-label">Tip Amount</div>
+            <div class="result-label" id="breakdown-tip-label">Tip Amount</div>
             <ul class="breakdown-list" id="breakdown-tip"></ul>
           </div>
           <div class="panel">
-            <div class="result-label">Tip Percent</div>
+            <div class="result-label" id="breakdown-percent-label">Tip Percent</div>
             <ul class="breakdown-list" id="breakdown-percent"></ul>
           </div>
         </div>
@@ -470,6 +470,7 @@
     const INPUT_FEATURES = META.inputFeatures || ['cost', 'orderHour', 'deliveryMinutes', 'rain', 'maxTemp', 'minTemp'];
     const ACTIVE_FEATURES = new Set(INPUT_FEATURES);
     const USE_HOUSING = META.useHousing !== false;
+    const TARGET_TRANSFORMS = META.targetTransforms || { tip: 'none', tipPercent: 'none' };
     const DEFAULTS = {
       latitude: 33.110288,
       longitude: -96.824164,
@@ -518,6 +519,8 @@
     const warningsEl = document.getElementById('warnings');
     const breakdownTip = document.getElementById('breakdown-tip');
     const breakdownPercent = document.getElementById('breakdown-percent');
+    const breakdownTipLabel = document.getElementById('breakdown-tip-label');
+    const breakdownPercentLabel = document.getElementById('breakdown-percent-label');
 
     function normalizeBase(u) {
       try {
@@ -723,6 +726,8 @@
       const tipInterval = result.predictions?.tip?.interval;
       const tipPercent = result.predictions?.tipPercent?.value;
       const tipPercentInterval = result.predictions?.tipPercent?.interval;
+      const tipScale = result.breakdown?.tip?.scale || TARGET_TRANSFORMS.tip || 'none';
+      const tipPercentScale = result.breakdown?.tipPercent?.scale || TARGET_TRANSFORMS.tipPercent || 'none';
       if (result.bucket?.city) {
         cityDisplay.textContent = `City: ${result.bucket.city}`;
       }
@@ -739,11 +744,20 @@
 
       warningsEl.textContent = (result.warnings || []).join(' ');
 
+      if (breakdownTipLabel) {
+        breakdownTipLabel.textContent = tipScale === 'log1p' ? 'Tip Amount (log scale)' : 'Tip Amount';
+      }
+      if (breakdownPercentLabel) {
+        breakdownPercentLabel.textContent = tipPercentScale === 'log1p' ? 'Tip Percent (log scale)' : 'Tip Percent';
+      }
+
       if (result.breakdown?.tip?.items) {
-        renderBreakdown(breakdownTip, result.breakdown.tip.items, formatCurrency);
+        const formatter = tipScale === 'log1p' ? (val) => formatNumber(val, 3) : formatCurrency;
+        renderBreakdown(breakdownTip, result.breakdown.tip.items, formatter);
       }
       if (result.breakdown?.tipPercent?.items) {
-        renderBreakdown(breakdownPercent, result.breakdown.tipPercent.items, formatPercent);
+        const formatter = tipPercentScale === 'log1p' ? (val) => formatNumber(val, 3) : formatPercent;
+        renderBreakdown(breakdownPercent, result.breakdown.tipPercent.items, formatter);
       }
     }
 

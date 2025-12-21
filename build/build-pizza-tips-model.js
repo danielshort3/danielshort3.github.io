@@ -16,6 +16,18 @@ const BASE_FEATURES = [
   { key: 'minTemp', label: 'Min Temp (F)' }
 ];
 const SIGNIFICANCE_LEVEL = Number(process.env.SIGNIFICANCE_LEVEL || '0.05');
+const TARGET_TRANSFORMS = {
+  tip: 'log1p',
+  tipPercent: 'log1p'
+};
+
+function transformTarget(value, transform) {
+  if (!Number.isFinite(value)) return null;
+  if (transform === 'log1p') {
+    return Math.log1p(value);
+  }
+  return value;
+}
 
 function parseCSV(text) {
   const rows = [];
@@ -390,6 +402,11 @@ for (let i = 1; i < rows.length; i++) {
   if ([cost, tip, tipPct, hour, deliveryMin, lat, lon, rain, tmax, tmin].some(v => v === null)) {
     continue;
   }
+  const tipTransformed = transformTarget(tip, TARGET_TRANSFORMS.tip);
+  const tipPctTransformed = transformTarget(tipPct, TARGET_TRANSFORMS.tipPercent);
+  if (!Number.isFinite(tipTransformed) || !Number.isFinite(tipPctTransformed)) {
+    continue;
+  }
   if (!city || !housing) continue;
   costValues.push(cost);
   tipValues.push(tip);
@@ -425,8 +442,8 @@ for (let i = 1; i < rows.length; i++) {
 
   rowsData.push({
     cost,
-    tip,
-    tipPct,
+    tip: tipTransformed,
+    tipPct: tipPctTransformed,
     hour,
     deliveryMin,
     rain,
@@ -522,10 +539,14 @@ pctSelection.featureKeys.forEach((key, idx) => {
 });
 
 const model = {
-  version: 3,
+  version: 4,
   generatedAt: new Date().toISOString(),
   features: activeFeatures,
   inputFeatures,
+  targets: {
+    tip: { transform: TARGET_TRANSFORMS.tip },
+    tipPercent: { transform: TARGET_TRANSFORMS.tipPercent }
+  },
   featureSelection: {
     alpha: SIGNIFICANCE_LEVEL,
     tip: tipSelection.featureKeys,
@@ -586,7 +607,11 @@ const meta = {
   housingBaseline,
   bounds: model.bounds,
   inputFeatures,
-  useHousing: usesHousing
+  useHousing: usesHousing,
+  targetTransforms: {
+    tip: TARGET_TRANSFORMS.tip,
+    tipPercent: TARGET_TRANSFORMS.tipPercent
+  }
 };
 
 fs.mkdirSync(path.dirname(META_PATH), { recursive: true });

@@ -34,6 +34,10 @@ Current housing categories: Residential, Apartment, Hotel, Business.
 
 If housing coefficients are removed during feature selection, housing becomes optional. Fields not listed in `model.inputFeatures` can be omitted.
 
+### Target transforms
+
+The model applies `log1p` transforms to `tip` and `tipPercent` during training and back-transforms predictions with `expm1`. Confidence intervals are computed on the transformed scale and then back-transformed for display.
+
 ### Response
 
 ```
