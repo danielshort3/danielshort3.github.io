@@ -960,9 +960,10 @@
     function showTooltip(event, stateId) {
       if (!stateId) return;
       const data = appState.states.get(stateId);
-      if (!data) return;
+      const name = data?.name || stateId;
+      const value = data ? formatPercent(data.prob) : "--";
       const tooltip = DOM.tooltip;
-      tooltip.textContent = `${data.name}: ${formatPercent(data.prob)}`;
+      tooltip.textContent = `${name}: ${value}`;
       const rect = event.currentTarget.getBoundingClientRect();
       const wrapRect = DOM.mapWrap.getBoundingClientRect();
       tooltip.style.left = `${rect.left - wrapRect.left + rect.width / 2}px`;
