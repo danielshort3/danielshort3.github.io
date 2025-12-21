@@ -189,6 +189,10 @@
       min-height: 0;
     }
 
+    .panel.explorer {
+      grid-template-rows: auto auto 1fr;
+    }
+
     .panel h2,
     .panel h3 {
       margin: 0;
@@ -274,6 +278,28 @@
       align-items: center;
       font-size: 0.75rem;
       color: var(--muted);
+      border: 0;
+      background: transparent;
+      text-align: left;
+      padding: 4px 6px;
+      border-radius: 10px;
+      cursor: pointer;
+      appearance: none;
+      font: inherit;
+    }
+
+    .bar-row:hover {
+      background: color-mix(in srgb, var(--surface) 86%, #000 14%);
+    }
+
+    .bar-row:focus-visible {
+      outline: 2px solid color-mix(in srgb, var(--primary) 60%, #ffffff 40%);
+      outline-offset: 2px;
+    }
+
+    .bar-row.is-active {
+      color: var(--text);
+      background: color-mix(in srgb, var(--primary) 14%, transparent);
     }
 
     .bar-track {
@@ -289,6 +315,17 @@
       background: var(--accent);
       width: 0;
       transition: width 0.3s ease;
+    }
+
+    .rating-detail {
+      display: grid;
+      gap: 6px;
+    }
+
+    .detail-meta {
+      margin: 0;
+      font-size: 0.74rem;
+      color: var(--muted);
     }
 
     .tabs {
@@ -337,8 +374,13 @@
       margin: 0;
       display: grid;
       gap: 8px;
-      max-height: 360px;
       overflow: auto;
+      height: 100%;
+    }
+
+    #name-list-wrap {
+      min-height: 0;
+      display: grid;
     }
 
     .name-item {
@@ -466,12 +508,20 @@
             <div class="stat-value" id="stat-average">--</div>
           </div>
           <div class="stat-card">
+            <div class="stat-label">Median Rating</div>
+            <div class="stat-value" id="stat-median">--</div>
+          </div>
+          <div class="stat-card">
             <div class="stat-label">Top Initial</div>
             <div class="stat-value" id="stat-initial">--</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Common Ending</div>
             <div class="stat-value" id="stat-ending">--</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Avg Name Length</div>
+            <div class="stat-value" id="stat-length">--</div>
           </div>
         </div>
 
@@ -480,18 +530,19 @@
           <div class="bars" id="rating-bars"></div>
         </div>
 
+        <div class="rating-detail">
+          <h3>Selected Rating</h3>
+          <p class="detail-meta" id="rating-detail-meta">Click a rating to view names.</p>
+          <ul class="mini-list" id="rating-detail-list"></ul>
+        </div>
+
         <div>
           <h3>Favorites</h3>
           <ul class="mini-list" id="top-rated"></ul>
         </div>
-
-        <div>
-          <h3>Needs Work</h3>
-          <ul class="mini-list" id="bottom-rated"></ul>
-        </div>
       </section>
 
-      <section class="panel">
+      <section class="panel explorer">
         <div class="panel-title">
           <h2>Name Explorer</h2>
           <div class="tabs" role="tablist" aria-label="Name lists">
@@ -522,7 +573,8 @@
       sex: "F",
       tab: "recommendations",
       query: "",
-      sort: "score"
+      sort: "score",
+      selectedRating: null
     };
 
     const DOM = {
@@ -531,11 +583,14 @@
       metaSource: document.getElementById("meta-source"),
       statRated: document.getElementById("stat-rated"),
       statAverage: document.getElementById("stat-average"),
+      statMedian: document.getElementById("stat-median"),
       statInitial: document.getElementById("stat-initial"),
       statEnding: document.getElementById("stat-ending"),
+      statLength: document.getElementById("stat-length"),
       ratingBars: document.getElementById("rating-bars"),
+      ratingDetailMeta: document.getElementById("rating-detail-meta"),
+      ratingDetailList: document.getElementById("rating-detail-list"),
       topRated: document.getElementById("top-rated"),
-      bottomRated: document.getElementById("bottom-rated"),
       nameList: document.getElementById("name-list"),
       nameSearch: document.getElementById("name-search"),
       sortSelect: document.getElementById("sort-select"),
@@ -568,10 +623,9 @@
       return value.toFixed(1);
     }
 
-    function titleCase(sex) {
-      if (sex === "M") return "Boys";
-      if (sex === "F") return "Girls";
-      return "All";
+    function formatNumber(value) {
+      if (value === null || value === undefined || Number.isNaN(value)) return "--";
+      return value.toFixed(1);
     }
 
     function collectRatings(sex) {
@@ -600,8 +654,16 @@
       const count = ratings.length;
       const sum = ratings.reduce((acc, row) => acc + row.rating, 0);
       const avg = count ? sum / count : 0;
+      const sortedRatings = [...ratings].sort((a, b) => a.rating - b.rating || a.name.localeCompare(b.name));
+      const mid = Math.floor(sortedRatings.length / 2);
+      const median = count
+        ? (sortedRatings.length % 2
+          ? sortedRatings[mid].rating
+          : (sortedRatings[mid - 1].rating + sortedRatings[mid].rating) / 2)
+        : 0;
+      const lengthSum = ratings.reduce((acc, row) => acc + row.name.length, 0);
+      const avgLength = count ? lengthSum / count : 0;
       const sorted = [...ratings].sort((a, b) => b.rating - a.rating || a.name.localeCompare(b.name));
-      const bottom = [...ratings].sort((a, b) => a.rating - b.rating || a.name.localeCompare(b.name));
       const dist = Array.from({ length: 10 }, () => 0);
       const initialCounts = new Map();
       const endingCounts = new Map();
@@ -617,12 +679,35 @@
       return {
         count,
         avg,
+        median,
+        avgLength,
         dist,
         topInitial: topInitial ? `${topInitial[0]} (${topInitial[1]})` : "--",
         topEnding: topEnding ? `${topEnding[0]} (${topEnding[1]})` : "--",
-        topRated: sorted.slice(0, 5),
-        bottomRated: bottom.slice(0, 5)
+        topRated: sorted.slice(0, 5)
       };
+    }
+
+    function renderRatingDetail(ratings) {
+      const rating = appState.selectedRating;
+      if (!rating) {
+        DOM.ratingDetailMeta.textContent = "Click a rating to view names.";
+        DOM.ratingDetailList.innerHTML = "";
+        return;
+      }
+      const matches = ratings
+        .filter((row) => row.rating === rating)
+        .sort((a, b) => a.name.localeCompare(b.name));
+      if (!matches.length) {
+        DOM.ratingDetailMeta.textContent = `No names rated ${rating}/10.`;
+        DOM.ratingDetailList.innerHTML = "";
+        return;
+      }
+      const label = matches.length === 1 ? "name" : "names";
+      DOM.ratingDetailMeta.textContent = `${matches.length} ${label} rated ${rating}/10.`;
+      DOM.ratingDetailList.innerHTML = matches
+        .map((row) => `<li><strong>${row.name}</strong><span>${row.rating}/10</span></li>`)
+        .join("");
     }
 
     function renderStats() {
@@ -630,27 +715,37 @@
       const stats = computeStats(ratings);
       DOM.statRated.textContent = stats.count || "--";
       DOM.statAverage.textContent = stats.count ? formatRating(stats.avg) : "--";
+      DOM.statMedian.textContent = stats.count ? formatRating(stats.median) : "--";
       DOM.statInitial.textContent = stats.topInitial;
       DOM.statEnding.textContent = stats.topEnding;
+      DOM.statLength.textContent = stats.count ? formatNumber(stats.avgLength) : "--";
 
       const maxCount = Math.max(...stats.dist, 1);
       DOM.ratingBars.innerHTML = stats.dist.map((count, idx) => {
         const rating = idx + 1;
         const width = Math.round((count / maxCount) * 100);
+        const isActive = appState.selectedRating === rating;
         return `
-          <div class="bar-row">
+          <button class="bar-row${isActive ? " is-active" : ""}" type="button" data-rating="${rating}" aria-pressed="${isActive}">
             <span>${rating}</span>
             <div class="bar-track"><div class="bar-fill" style="width:${width}%"></div></div>
             <span>${count}</span>
-          </div>
+          </button>
         `;
       }).reverse().join("");
 
+      DOM.ratingBars.querySelectorAll(".bar-row").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const rating = Number(btn.dataset.rating);
+          if (!Number.isFinite(rating)) return;
+          appState.selectedRating = rating;
+          renderStats();
+        });
+      });
+
+      renderRatingDetail(ratings);
       DOM.topRated.innerHTML = stats.topRated.length
         ? stats.topRated.map((row) => `<li><strong>${row.name}</strong><span>${row.rating}/10</span></li>`).join("")
-        : "<li class=\"empty-state\">No ratings yet</li>";
-      DOM.bottomRated.innerHTML = stats.bottomRated.length
-        ? stats.bottomRated.map((row) => `<li><strong>${row.name}</strong><span>${row.rating}/10</span></li>`).join("")
         : "<li class=\"empty-state\">No ratings yet</li>";
       notifyResize();
     }
@@ -706,6 +801,7 @@
 
     function setSex(sex) {
       appState.sex = sex;
+      appState.selectedRating = null;
       DOM.segmentButtons.forEach((btn) => {
         const active = btn.dataset.sex === sex;
         btn.classList.toggle("is-active", active);
@@ -733,7 +829,7 @@
         const data = await res.json();
         appState.data = data;
         DOM.metaSource.textContent = `SSA ${data.meta?.sourceYear || "latest"} (min ${data.meta?.minCount || ""})`;
-        setStatus("ok", "Data ready", `${titleCase(appState.sex)} names loaded`);
+        setStatus("ok", "Data ready", "Recommendations and ratings available");
         renderStats();
         renderList();
       } catch (err) {
