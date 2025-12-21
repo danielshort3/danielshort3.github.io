@@ -776,9 +776,14 @@ window.PROJECTS = [
     tools: ["Excel", "Statistics"],
     concepts: ["Analytics"],
     resources: [
+      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/pizza-tips-demo", label: "Live Demo" },
       { icon: "img/icons/pdf-icon.png",   url: "documents/Project_1.pdf",  label: "PDF"   },
       { icon: "img/icons/excel-icon.png", url: "documents/Project_1.xlsx", label: "Excel" }
     ],
+    embed: {
+      type: "iframe",
+      url: "pizza-tips-demo.html"
+    },
     problem : "Tip income swung wildly across neighborhoods and housing types, but drivers had no data-backed story to explain the variation.",
     actions : [
       "Merged 1,251 delivery tickets with NOAA weather, then cleaned the data in Power Query.",
