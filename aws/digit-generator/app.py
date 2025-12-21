@@ -12,10 +12,10 @@ import torch.nn.functional as F
 
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "model", "VAE.pth")
 LATENT_DIM = int(os.getenv("LATENT_DIM", "20"))
-DEFAULT_ROWS = int(os.getenv("GRID_ROWS", "4"))
-DEFAULT_COLS = int(os.getenv("GRID_COLS", "4"))
-VALUE_MIN = float(os.getenv("VALUE_MIN", "-3"))
-VALUE_MAX = float(os.getenv("VALUE_MAX", "3"))
+DEFAULT_ROWS = int(os.getenv("GRID_ROWS", "8"))
+DEFAULT_COLS = int(os.getenv("GRID_COLS", "8"))
+VALUE_MIN = float(os.getenv("VALUE_MIN", "-10"))
+VALUE_MAX = float(os.getenv("VALUE_MAX", "10"))
 
 RESPONSE_HEADERS = {
   "Content-Type": "application/json"
