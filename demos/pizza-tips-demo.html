@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <base href="/">
+  <title>Pizza Tips Regression Map</title>
+  <meta name="description" content="Estimate pizza tips by clicking a delivery map, adjusting weather, order time, and wait time." />
+  <meta name="theme-color" content="#0D1117" />
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+  <style>
+    :root {
+      --radius: 14px;
+      --shadow-1: 0 2px 10px rgba(0,0,0,.08), 0 1px 4px rgba(0,0,0,.08);
+      --shadow-2: 0 10px 32px rgba(0,0,0,.16), 0 2px 10px rgba(0,0,0,.12);
+      --muted: var(--text-muted, #aeb6c2);
+      --text: var(--text-light, #f1f4f8);
+      --surface-2: var(--surface-light, #1c2231);
+      --page-pad: clamp(12px, 3vw, 24px);
+      --accent: var(--primary, #2bbbad);
+      --accent-2: color-mix(in srgb, var(--accent) 75%, #6adac6 25%);
+      --border: var(--surface-accent, #222838);
+      --danger: #e15b64;
+      --success: #3cbf88;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    html[data-embedded="true"],
+    html[data-embedded="true"] body { height: auto !important; min-height: 0 !important; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background: radial-gradient(1100px 520px at 18% -10%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 60%)
+        var(--bg, #0d1117);
+      display: grid;
+      place-items: start center;
+      padding: var(--page-pad);
+      overflow-x: hidden;
+    }
+    .card {
+      width: min(100%, 1120px);
+      background: var(--surface, #141a24);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-2);
+      overflow: hidden;
+    }
+    .card-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 20px 22px;
+      background: linear-gradient(0deg, var(--surface, #141a24), var(--surface-2));
+      border-bottom: 1px solid var(--border);
+    }
+    .headline {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 200px;
+    }
+    .eyebrow {
+      margin: 0;
+      font-size: .8rem;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--muted);
+    }
+    h1 {
+      margin: 0;
+      font-family: Poppins, Inter, system-ui, sans-serif;
+      font-size: 1.45rem;
+    }
+    .subhead {
+      margin: 0;
+      color: var(--muted);
+      font-size: .95rem;
+    }
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: .85rem;
+      color: var(--muted);
+      background: var(--surface-2);
+    }
+    .pill.ok {
+      color: var(--success);
+      border-color: color-mix(in srgb, var(--success) 65%, var(--border) 35%);
+    }
+    .pill.err {
+      color: var(--danger);
+      border-color: color-mix(in srgb, var(--danger) 65%, var(--border) 35%);
+    }
+    .section {
+      padding: 22px;
+    }
+    .section + .section {
+      border-top: 1px solid var(--border);
+    }
+    .grid {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: minmax(260px, 1.1fr) minmax(280px, 1fr);
+    }
+    .panel {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: var(--shadow-1);
+    }
+    .map-panel {
+      display: grid;
+      gap: 10px;
+    }
+    #map {
+      height: 360px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .map-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: .85rem;
+      color: var(--muted);
+    }
+    .map-meta span {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--border);
+    }
+    form {
+      display: grid;
+      gap: 14px;
+    }
+    label {
+      font-size: .85rem;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 6px;
+    }
+    input[type="text"],
+    input[type="number"],
+    select {
+      width: 100%;
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: .95rem;
+      outline: none;
+    }
+    .input-row {
+      display: grid;
+      gap: 8px;
+    }
+    .inline-fields {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    }
+    .range-row {
+      display: grid;
+      gap: 8px;
+    }
+    .range-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: .85rem;
+      color: var(--muted);
+    }
+    .range-number input {
+      width: 90px;
+      text-align: right;
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.18));
+      border: 1px solid var(--border);
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, var(--accent), var(--accent-2));
+      border: 1px solid rgba(255,255,255,.3);
+      box-shadow: var(--shadow-1);
+      cursor: pointer;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, var(--accent), var(--accent-2));
+      border: 1px solid rgba(255,255,255,.3);
+      box-shadow: var(--shadow-1);
+      cursor: pointer;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-width: 180px;
+      padding: 12px 18px;
+      border-radius: 10px;
+      border: 1px solid color-mix(in srgb, var(--accent) 85%, #fff 15%);
+      color: var(--bg, #0d1117);
+      font-weight: 600;
+      letter-spacing: .01em;
+      background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 95%, #fff 5%), color-mix(in srgb, var(--accent) 75%, #000 25%));
+      cursor: pointer;
+    }
+    .btn.secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      font-weight: 500;
+    }
+    .btn:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+    }
+    .results {
+      display: grid;
+      gap: 14px;
+    }
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .result-card {
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 14px;
+      background: rgba(255,255,255,.02);
+      display: grid;
+      gap: 8px;
+    }
+    .result-label {
+      font-size: .85rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    .result-value {
+      font-size: 1.4rem;
+      font-weight: 600;
+    }
+    .result-meta {
+      font-size: .85rem;
+      color: var(--muted);
+    }
+    .warning {
+      color: var(--danger);
+      font-size: .9rem;
+    }
+    .breakdown {
+      display: grid;
+      gap: 10px;
+    }
+    .breakdown-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+    }
+    .breakdown-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 6px;
+      font-size: .9rem;
+    }
+    .breakdown-list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.03);
+    }
+    .breakdown-list span {
+      color: var(--muted);
+    }
+    .endpoint-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .endpoint-row input {
+      flex: 1 1 240px;
+    }
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      #map {
+        height: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main id="main" class="card">
+    <header class="card-header">
+      <div class="headline">
+        <p class="eyebrow">Pizza Tips Regression</p>
+        <h1>Map-Based Tip Estimator</h1>
+        <p class="subhead">Click the map, set the scenario, and estimate tip amount + percentage.</p>
+      </div>
+      <div class="status">
+        <div class="pill" id="api-status">API: not set</div>
+      </div>
+    </header>
+
+    <section class="section">
+      <div class="grid">
+        <div class="panel map-panel">
+          <div id="map" aria-label="Delivery map"></div>
+          <div class="map-meta">
+            <span id="lat-display">Lat: --</span>
+            <span id="lon-display">Lon: --</span>
+            <span id="city-display">City: --</span>
+            <span id="hour-display">Hour: --</span>
+          </div>
+        </div>
+
+        <form id="scenario-form" class="panel" autocomplete="off">
+          <div class="input-row">
+            <label for="endpoint">Lambda URL (optional)</label>
+            <div class="endpoint-row">
+              <input id="endpoint" type="text" inputmode="url" placeholder="https://...lambda-url.../" />
+              <button id="endpoint-save" class="btn secondary" type="button">Save</button>
+            </div>
+          </div>
+
+          <div class="inline-fields">
+            <div class="input-row">
+              <label for="lat">Latitude</label>
+              <input id="lat" type="number" step="0.000001" />
+            </div>
+            <div class="input-row">
+              <label for="lon">Longitude</label>
+              <input id="lon" type="number" step="0.000001" />
+            </div>
+          </div>
+
+          <div class="input-row">
+            <label for="cost">Order Cost ($)</label>
+            <input id="cost" type="number" min="0" step="0.01" />
+          </div>
+
+          <div class="input-row">
+            <label for="housing">Housing Type</label>
+            <select id="housing"></select>
+          </div>
+
+          <div class="input-row">
+            <label for="order-hour">Order Time (hour)</label>
+            <select id="order-hour"></select>
+          </div>
+
+          <div class="range-row">
+            <div class="range-head">
+              <span>Delivery Wait (minutes)</span>
+              <div class="range-number">
+                <input id="delivery-number" type="number" min="0" step="1" />
+              </div>
+            </div>
+            <input id="delivery" type="range" min="0" max="135" step="1" />
+          </div>
+
+          <div class="inline-fields">
+            <div class="input-row">
+              <label for="rain">Rain (inches)</label>
+              <input id="rain" type="number" min="0" step="0.01" />
+            </div>
+            <div class="input-row">
+              <label for="max-temp">Max Temp (F)</label>
+              <input id="max-temp" type="number" step="1" />
+            </div>
+            <div class="input-row">
+              <label for="min-temp">Min Temp (F)</label>
+              <input id="min-temp" type="number" step="1" />
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn" type="submit" id="predict">Estimate Tip</button>
+            <button class="btn secondary" type="button" id="reset">Reset</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="section results" aria-live="polite">
+      <div class="result-grid">
+        <div class="result-card">
+          <div class="result-label">Tip (Amount)</div>
+          <div class="result-value" id="tip-amount">--</div>
+          <div class="result-meta" id="tip-interval">Confidence: --</div>
+        </div>
+        <div class="result-card">
+          <div class="result-label">Tip (Percent)</div>
+          <div class="result-value" id="tip-percent">--</div>
+          <div class="result-meta" id="tip-percent-interval">Confidence: --</div>
+        </div>
+      </div>
+      <div id="warnings" class="warning"></div>
+      <div class="breakdown">
+        <div class="result-label">Coefficient Contributions</div>
+        <div class="breakdown-grid">
+          <div class="panel">
+            <div class="result-label">Tip Amount</div>
+            <ul class="breakdown-list" id="breakdown-tip"></ul>
+          </div>
+          <div class="panel">
+            <div class="result-label">Tip Percent</div>
+            <ul class="breakdown-list" id="breakdown-percent"></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+  <script src="js/demos/pizza-tips-meta.js"></script>
+  <script type="module">
+    const DEFAULT_FN_URL = '';
+    const META = window.PizzaTipsMeta || {};
+    const MAP_BOUNDS = META.bounds
+      ? {
+        latMin: META.bounds.latitude.min,
+        latMax: META.bounds.latitude.max,
+        lonMin: META.bounds.longitude.min,
+        lonMax: META.bounds.longitude.max
+      }
+      : {
+        latMin: 33.0130544,
+        latMax: 33.1949433,
+        lonMin: -96.93078218,
+        lonMax: -96.7145982
+      };
+    const CITY_BOUNDARIES = META.cityBoundaries || null;
+    const HOUSING_OPTIONS = META.housingOptions || ['Residential'];
+    const HOUSING_BASELINE = META.housingBaseline || HOUSING_OPTIONS[0];
+    const DEFAULTS = {
+      latitude: 33.110288,
+      longitude: -96.824164,
+      cost: 35,
+      housing: HOUSING_BASELINE,
+      orderHour: 18,
+      deliveryMinutes: 40,
+      rain: 0,
+      maxTemp: 85,
+      minTemp: 65
+    };
+    const BREAKDOWN_LABELS = {
+      intercept: 'Intercept',
+      cost: 'Order Cost',
+      orderHour: 'Order Hour',
+      deliveryMinutes: 'Delivery Minutes',
+      rain: 'Rain',
+      maxTemp: 'Max Temp',
+      minTemp: 'Min Temp'
+    };
+
+    const statusEl = document.getElementById('api-status');
+    const endpointInput = document.getElementById('endpoint');
+    const endpointSave = document.getElementById('endpoint-save');
+    const latInput = document.getElementById('lat');
+    const lonInput = document.getElementById('lon');
+    const costInput = document.getElementById('cost');
+    const housingSelect = document.getElementById('housing');
+    const orderHourSelect = document.getElementById('order-hour');
+    const deliveryInput = document.getElementById('delivery');
+    const deliveryNumber = document.getElementById('delivery-number');
+    const rainInput = document.getElementById('rain');
+    const maxTempInput = document.getElementById('max-temp');
+    const minTempInput = document.getElementById('min-temp');
+    const form = document.getElementById('scenario-form');
+    const resetBtn = document.getElementById('reset');
+
+    const latDisplay = document.getElementById('lat-display');
+    const lonDisplay = document.getElementById('lon-display');
+    const cityDisplay = document.getElementById('city-display');
+    const hourDisplay = document.getElementById('hour-display');
+
+    const tipAmountEl = document.getElementById('tip-amount');
+    const tipIntervalEl = document.getElementById('tip-interval');
+    const tipPercentEl = document.getElementById('tip-percent');
+    const tipPercentIntervalEl = document.getElementById('tip-percent-interval');
+    const warningsEl = document.getElementById('warnings');
+    const breakdownTip = document.getElementById('breakdown-tip');
+    const breakdownPercent = document.getElementById('breakdown-percent');
+
+    function normalizeBase(u) {
+      try {
+        if (!u) return '';
+        return u.endsWith('/') ? u : `${u}/`;
+      } catch {
+        return '';
+      }
+    }
+
+    function getEndpointCandidates() {
+      const out = [];
+      try {
+        const qs = new URLSearchParams(location.search);
+        const fromQs = qs.get('fn') || qs.get('endpoint');
+        const fromStore = localStorage.getItem('pizza_tips_fn_url');
+        if (fromQs) out.push(normalizeBase(fromQs));
+        if (fromStore && fromStore !== fromQs) out.push(normalizeBase(fromStore));
+      } catch {}
+      if (DEFAULT_FN_URL) out.push(normalizeBase(DEFAULT_FN_URL));
+      return Array.from(new Set(out)).filter(Boolean);
+    }
+
+    function setStatus(state, text) {
+      statusEl.classList.remove('ok', 'err');
+      if (state) statusEl.classList.add(state);
+      statusEl.textContent = text;
+    }
+
+    function formatCurrency(value) {
+      if (!Number.isFinite(value)) return '--';
+      return `$${value.toFixed(2)}`;
+    }
+
+    function formatPercent(value) {
+      if (!Number.isFinite(value)) return '--';
+      return `${(value * 100).toFixed(1)}%`;
+    }
+
+    function formatNumber(value, digits = 2) {
+      if (!Number.isFinite(value)) return '--';
+      return value.toFixed(digits);
+    }
+
+    function populateHousing() {
+      housingSelect.innerHTML = '';
+      HOUSING_OPTIONS.forEach((name) => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        if (name === DEFAULTS.housing) opt.selected = true;
+        housingSelect.appendChild(opt);
+      });
+    }
+
+    function resolveCityLocal(lat, lon) {
+      if (!CITY_BOUNDARIES || !Array.isArray(CITY_BOUNDARIES.features)) {
+        return { city: null };
+      }
+      const point = [lon, lat];
+      for (const feature of CITY_BOUNDARIES.features) {
+        if (pointInGeometry(point, feature.geometry)) {
+          return { city: feature.properties?.city || null };
+        }
+      }
+      return { city: null };
+    }
+
+    function pointInRing(point, ring) {
+      let inside = false;
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const xi = ring[i][0];
+        const yi = ring[i][1];
+        const xj = ring[j][0];
+        const yj = ring[j][1];
+        const intersect = ((yi > point[1]) !== (yj > point[1]))
+          && (point[0] < (xj - xi) * (point[1] - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+      }
+      return inside;
+    }
+
+    function pointInPolygon(point, rings) {
+      if (!rings.length || !pointInRing(point, rings[0])) return false;
+      for (let i = 1; i < rings.length; i++) {
+        if (pointInRing(point, rings[i])) return false;
+      }
+      return true;
+    }
+
+    function pointInGeometry(point, geometry) {
+      if (!geometry) return false;
+      if (geometry.type === 'Polygon') {
+        return pointInPolygon(point, geometry.coordinates || []);
+      }
+      if (geometry.type === 'MultiPolygon') {
+        return (geometry.coordinates || []).some((rings) => pointInPolygon(point, rings));
+      }
+      return false;
+    }
+
+    function populateHours() {
+      const hours = [];
+      for (let h = 11; h <= 21; h++) hours.push(h);
+      orderHourSelect.innerHTML = '';
+      hours.forEach((h) => {
+        const opt = document.createElement('option');
+        opt.value = h;
+        opt.textContent = `${h}:00`;
+        if (h === DEFAULTS.orderHour) opt.selected = true;
+        orderHourSelect.appendChild(opt);
+      });
+    }
+
+    function syncDeliveryValue() {
+      deliveryNumber.value = deliveryInput.value;
+    }
+
+    function updateMapMeta() {
+      const lat = Number(latInput.value);
+      const lon = Number(lonInput.value);
+      latDisplay.textContent = `Lat: ${lat.toFixed(5)}`;
+      lonDisplay.textContent = `Lon: ${lon.toFixed(5)}`;
+      const resolved = resolveCityLocal(lat, lon);
+      cityDisplay.textContent = resolved.city ? `City: ${resolved.city}` : 'City: Outside coverage';
+      hourDisplay.textContent = `Hour: ${orderHourSelect.value}`;
+    }
+
+    function setInputs(data) {
+      latInput.value = data.latitude.toFixed(6);
+      lonInput.value = data.longitude.toFixed(6);
+      costInput.value = data.cost;
+      housingSelect.value = data.housing;
+      orderHourSelect.value = data.orderHour;
+      deliveryInput.value = data.deliveryMinutes;
+      deliveryNumber.value = data.deliveryMinutes;
+      rainInput.value = data.rain;
+      maxTempInput.value = data.maxTemp;
+      minTempInput.value = data.minTemp;
+      syncDeliveryValue();
+      updateMapMeta();
+    }
+
+    function renderBreakdown(listEl, items, formatter) {
+      listEl.innerHTML = '';
+      items.forEach((entry) => {
+        const li = document.createElement('li');
+        const label = document.createElement('span');
+        label.textContent = formatBreakdownLabel(entry.key);
+        const value = document.createElement('strong');
+        value.textContent = formatter(entry.contribution);
+        li.append(label, value);
+        listEl.appendChild(li);
+      });
+    }
+
+    function formatBreakdownLabel(key) {
+      if (BREAKDOWN_LABELS[key]) return BREAKDOWN_LABELS[key];
+      if (key.startsWith('city:')) return `City: ${key.slice(5)}`;
+      if (key.startsWith('housing:')) return `Housing: ${key.slice(8)}`;
+      return key;
+    }
+
+    async function postToEndpoint(urlBase, payload) {
+      const attempts = ['', 'predict'];
+      let lastErr = null;
+      for (const path of attempts) {
+        const url = urlBase + path;
+        try {
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data?.error || `${res.status} ${res.statusText}`);
+          }
+          return data;
+        } catch (err) {
+          lastErr = err;
+          if (!(String(err.message || '').startsWith('404'))) break;
+        }
+      }
+      throw lastErr || new Error('Request failed');
+    }
+
+    function currentPayload() {
+      return {
+        latitude: Number(latInput.value),
+        longitude: Number(lonInput.value),
+        cost: Number(costInput.value),
+        housing: housingSelect.value,
+        orderHour: Number(orderHourSelect.value),
+        deliveryMinutes: Number(deliveryNumber.value),
+        rain: Number(rainInput.value),
+        maxTemp: Number(maxTempInput.value),
+        minTemp: Number(minTempInput.value)
+      };
+    }
+
+    function applyResponse(result) {
+      const tip = result.predictions?.tip?.value;
+      const tipInterval = result.predictions?.tip?.interval;
+      const tipPercent = result.predictions?.tipPercent?.value;
+      const tipPercentInterval = result.predictions?.tipPercent?.interval;
+      if (result.bucket?.city) {
+        cityDisplay.textContent = `City: ${result.bucket.city}`;
+      }
+
+      tipAmountEl.textContent = formatCurrency(tip);
+      tipPercentEl.textContent = formatPercent(tipPercent);
+
+      if (tipInterval) {
+        tipIntervalEl.textContent = `Confidence ${(tipInterval.level * 100).toFixed(0)}%: ${formatCurrency(tipInterval.low)} to ${formatCurrency(tipInterval.high)}`;
+      }
+      if (tipPercentInterval) {
+        tipPercentIntervalEl.textContent = `Confidence ${(tipPercentInterval.level * 100).toFixed(0)}%: ${formatPercent(tipPercentInterval.low)} to ${formatPercent(tipPercentInterval.high)}`;
+      }
+
+      warningsEl.textContent = (result.warnings || []).join(' ');
+
+      if (result.breakdown?.tip?.items) {
+        renderBreakdown(breakdownTip, result.breakdown.tip.items, formatCurrency);
+      }
+      if (result.breakdown?.tipPercent?.items) {
+        renderBreakdown(breakdownPercent, result.breakdown.tipPercent.items, formatPercent);
+      }
+    }
+
+    function resolveEndpoint() {
+      const candidates = getEndpointCandidates();
+      if (!candidates.length) return '';
+      return candidates[0];
+    }
+
+    function initEndpoint() {
+      const stored = localStorage.getItem('pizza_tips_fn_url');
+      endpointInput.value = stored || DEFAULT_FN_URL || '';
+      setStatus('', endpointInput.value ? 'API: ready' : 'API: not set');
+    }
+
+    endpointSave.addEventListener('click', () => {
+      const value = endpointInput.value.trim();
+      if (value) {
+        localStorage.setItem('pizza_tips_fn_url', value);
+        setStatus('ok', 'API: saved');
+      } else {
+        localStorage.removeItem('pizza_tips_fn_url');
+        setStatus('', 'API: not set');
+      }
+    });
+
+    populateHours();
+    populateHousing();
+    initEndpoint();
+    setInputs(DEFAULTS);
+
+    const map = L.map('map', { zoomControl: true });
+    const bounds = [
+      [MAP_BOUNDS.latMin, MAP_BOUNDS.lonMin],
+      [MAP_BOUNDS.latMax, MAP_BOUNDS.lonMax]
+    ];
+    map.fitBounds(bounds, { padding: [20, 20] });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    if (CITY_BOUNDARIES) {
+      L.geoJSON(CITY_BOUNDARIES, {
+        style: () => ({
+          color: '#2bbbad',
+          weight: 2,
+          fillOpacity: 0.08
+        })
+      }).addTo(map);
+    }
+
+    const marker = L.marker([DEFAULTS.latitude, DEFAULTS.longitude], { draggable: true }).addTo(map);
+
+    function setLatLon(lat, lon) {
+      latInput.value = lat.toFixed(6);
+      lonInput.value = lon.toFixed(6);
+      marker.setLatLng([lat, lon]);
+      updateMapMeta();
+    }
+
+    map.on('click', (evt) => {
+      setLatLon(evt.latlng.lat, evt.latlng.lng);
+    });
+
+    marker.on('dragend', (evt) => {
+      const pos = evt.target.getLatLng();
+      setLatLon(pos.lat, pos.lng);
+    });
+
+    [latInput, lonInput, orderHourSelect].forEach((el) => {
+      el.addEventListener('change', () => {
+        const lat = Number(latInput.value);
+        const lon = Number(lonInput.value);
+        if (Number.isFinite(lat) && Number.isFinite(lon)) {
+          marker.setLatLng([lat, lon]);
+        }
+        updateMapMeta();
+      });
+    });
+
+    deliveryInput.addEventListener('input', syncDeliveryValue);
+    deliveryNumber.addEventListener('input', () => {
+      deliveryInput.value = deliveryNumber.value;
+      syncDeliveryValue();
+    });
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const endpoint = normalizeBase(endpointInput.value || resolveEndpoint());
+      if (!endpoint) {
+        setStatus('err', 'API: missing URL');
+        return;
+      }
+      const lat = Number(latInput.value);
+      const lon = Number(lonInput.value);
+      const resolved = resolveCityLocal(lat, lon);
+      if (!resolved.city) {
+        setStatus('err', 'Outside city boundaries');
+        warningsEl.textContent = 'Choose a point inside the delivery cities to estimate tips.';
+        return;
+      }
+      setStatus('', 'API: working');
+      try {
+        const result = await postToEndpoint(endpoint, currentPayload());
+        applyResponse(result);
+        setStatus('ok', 'API: ready');
+      } catch (err) {
+        console.error(err);
+        setStatus('err', 'API: error');
+        warningsEl.textContent = String(err.message || err);
+      }
+    });
+
+    resetBtn.addEventListener('click', () => {
+      setInputs(DEFAULTS);
+      setLatLon(DEFAULTS.latitude, DEFAULTS.longitude);
+    });
+
+    syncDeliveryValue();
+    updateMapMeta();
+  </script>
+</body>
+</html>

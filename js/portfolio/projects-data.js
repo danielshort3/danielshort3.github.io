@@ -290,13 +290,18 @@ window.PROJECTS = [
     image: "img/projects/covidAnalysis.png",
     imageWidth: 792,
     imageHeight: 524,
-    tools: ["Python"],
+    tools: ["Python", "AWS"],
     concepts: ["Analytics"],
     resources: [
       { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Covid-Analysis", label: "GitHub" },
+      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/covid-outbreak-demo",    label: "Live Demo" },
       { icon: "img/icons/pdf-icon.png",     url: "documents/Project_6.pdf",                        label: "PDF"    },
       { icon: "img/icons/jupyter-icon.png", url: "documents/Project_6.ipynb",                      label: "Notebook"}
     ],
+    embed: {
+      type: "iframe",
+      url: "covid-outbreak-demo.html"
+    },
     problem : "I used COVID historical data to predict future outbreaks.",
     actions : [
       "Cleaned & enriched more than 50k records from the HHS hospital-capacity time-series; added rolling means, trends, and 1/3/7/14-day lag features.",
