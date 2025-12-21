@@ -244,7 +244,6 @@
     }
 
     #pad-wrapper {
-      position: relative;
       display: grid;
       gap: 8px;
       justify-items: center;
@@ -253,7 +252,6 @@
     }
 
     .canvas-frame {
-      position: relative;
       border: 1px solid var(--surface-accent);
       border-radius: 12px;
       background: var(--surface-2);
@@ -262,22 +260,36 @@
       width: 100%;
     }
 
+    .canvas-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 360px) minmax(84px, 120px);
+      gap: 10px;
+      align-items: stretch;
+      justify-content: center;
+    }
+
+    .canvas-area {
+      position: relative;
+      width: min(100%, 360px);
+      aspect-ratio: 1 / 1;
+      justify-self: start;
+    }
+
     canvas {
       display: block;
       user-select: none;
       touch-action: none;
       background: var(--canvas-dark);
-      width: min(88vw, 360px);
+      width: 100%;
       max-width: 100%;
-      height: auto;
-      aspect-ratio: 1 / 1;
+      height: 100%;
       border-radius: 8px;
     }
 
     #erase {
       position: absolute;
-      top: 14px;
-      right: 14px;
+      top: 10px;
+      right: 10px;
       z-index: 2;
       padding: 6px 8px;
       opacity: .95;
@@ -456,49 +468,75 @@
 
     .sample-panel {
       display: grid;
-      gap: 10px;
-      margin-top: 12px;
-      padding: 12px;
-      border-radius: 12px;
-      border: 1px solid var(--surface-accent);
-      background: var(--surface-2);
-      box-shadow: var(--shadow-1);
-    }
-
-    .sample-head {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      align-items: baseline;
-      flex-wrap: wrap;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 6px;
+      padding: 8px 6px;
+      border-left: 1px solid var(--surface-accent);
+      background: transparent;
+      box-shadow: none;
+      border-radius: 0;
+      min-height: 0;
+      align-self: stretch;
     }
 
     .sample-title {
       font-weight: 600;
+      font-size: .8rem;
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    .sample-hint {
+      color: var(--text-muted);
+      font-size: .7rem;
+      line-height: 1.2;
+      text-align: center;
+    }
+
+    .sample-panel .hint {
+      font-size: .7rem;
+      line-height: 1.2;
+      text-align: center;
     }
 
     .sample-grid {
       display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 8px;
+      grid-template-columns: 1fr;
+      grid-template-rows: repeat(10, 1fr);
+      gap: 4px;
+      min-height: 0;
     }
 
     .sample-btn {
       border: 1px solid var(--surface-accent);
-      background: var(--surface);
+      background: var(--surface-2);
       color: var(--text);
-      border-radius: 10px;
-      padding: 8px 0;
+      border-radius: 6px;
+      padding: 0;
       font-weight: 600;
       cursor: pointer;
-      min-height: 40px;
+      min-height: 24px;
+      height: 100%;
       touch-action: manipulation;
+      font-size: .85rem;
     }
 
     .sample-btn.active {
       border-color: var(--primary);
       color: var(--primary);
       box-shadow: var(--shadow-1);
+    }
+
+    @media (max-width: 520px) {
+      .canvas-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sample-panel {
+        order: 2;
+        border-left: none;
+        border-top: 1px solid var(--surface-accent);
+      }
     }
 
     .hint {
@@ -602,10 +640,31 @@
     <div class="content">
       <section>
         <div id="pad-wrapper" class="canvas-frame">
-          <canvas id="pad" width="256" height="256" aria-label="Drawing canvas"></canvas>
-          <button id="erase" class="icon-btn" type="button" aria-label="Erase (clear canvas)">
-            <i class="fa-solid fa-eraser"></i>
-          </button>
+          <div class="canvas-layout">
+            <div class="canvas-area">
+              <canvas id="pad" width="256" height="256" aria-label="Drawing canvas"></canvas>
+              <button id="erase" class="icon-btn" type="button" aria-label="Erase (clear canvas)">
+                <i class="fa-solid fa-eraser"></i>
+              </button>
+            </div>
+            <div class="sample-panel" aria-label="Daniel's handwritten numbers">
+              <div class="sample-title">Daniel's handwritten numbers</div>
+              <div class="sample-hint">Click to load a sample.</div>
+              <div class="sample-grid" role="list">
+                <button class="sample-btn" type="button" data-sample-digit="0" aria-pressed="false" aria-label="Load sample digit 0">0</button>
+                <button class="sample-btn" type="button" data-sample-digit="1" aria-pressed="false" aria-label="Load sample digit 1">1</button>
+                <button class="sample-btn" type="button" data-sample-digit="2" aria-pressed="false" aria-label="Load sample digit 2">2</button>
+                <button class="sample-btn" type="button" data-sample-digit="3" aria-pressed="false" aria-label="Load sample digit 3">3</button>
+                <button class="sample-btn" type="button" data-sample-digit="4" aria-pressed="false" aria-label="Load sample digit 4">4</button>
+                <button class="sample-btn" type="button" data-sample-digit="5" aria-pressed="false" aria-label="Load sample digit 5">5</button>
+                <button class="sample-btn" type="button" data-sample-digit="6" aria-pressed="false" aria-label="Load sample digit 6">6</button>
+                <button class="sample-btn" type="button" data-sample-digit="7" aria-pressed="false" aria-label="Load sample digit 7">7</button>
+                <button class="sample-btn" type="button" data-sample-digit="8" aria-pressed="false" aria-label="Load sample digit 8">8</button>
+                <button class="sample-btn" type="button" data-sample-digit="9" aria-pressed="false" aria-label="Load sample digit 9">9</button>
+              </div>
+              <div id="sample-status" class="hint">No sample loaded.</div>
+            </div>
+          </div>
         </div>
 
         <div class="toolbar" style="margin-top:8px;">
@@ -614,25 +673,6 @@
           </button>
         </div>
 
-        <div class="sample-panel" aria-label="Daniel's handwritten samples">
-          <div class="sample-head">
-            <span class="sample-title">Daniel's handwritten samples</span>
-            <span class="hint">Click a digit to load a saved example.</span>
-          </div>
-          <div class="sample-grid" role="list">
-            <button class="sample-btn" type="button" data-sample-digit="0" aria-pressed="false" aria-label="Load sample digit 0">0</button>
-            <button class="sample-btn" type="button" data-sample-digit="1" aria-pressed="false" aria-label="Load sample digit 1">1</button>
-            <button class="sample-btn" type="button" data-sample-digit="2" aria-pressed="false" aria-label="Load sample digit 2">2</button>
-            <button class="sample-btn" type="button" data-sample-digit="3" aria-pressed="false" aria-label="Load sample digit 3">3</button>
-            <button class="sample-btn" type="button" data-sample-digit="4" aria-pressed="false" aria-label="Load sample digit 4">4</button>
-            <button class="sample-btn" type="button" data-sample-digit="5" aria-pressed="false" aria-label="Load sample digit 5">5</button>
-            <button class="sample-btn" type="button" data-sample-digit="6" aria-pressed="false" aria-label="Load sample digit 6">6</button>
-            <button class="sample-btn" type="button" data-sample-digit="7" aria-pressed="false" aria-label="Load sample digit 7">7</button>
-            <button class="sample-btn" type="button" data-sample-digit="8" aria-pressed="false" aria-label="Load sample digit 8">8</button>
-            <button class="sample-btn" type="button" data-sample-digit="9" aria-pressed="false" aria-label="Load sample digit 9">9</button>
-          </div>
-          <div id="sample-status" class="hint">No sample loaded.</div>
-        </div>
       </section>
 
       <section class="panel" aria-live="polite">
