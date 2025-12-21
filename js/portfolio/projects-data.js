@@ -510,9 +510,14 @@ window.PROJECTS = [
     concepts: ["Machine Learning"],
     resources: [
       { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Handwritten-Digit-Generator", label: "GitHub" },
+      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/digit-generator-demo.html", label: "Live Demo" },
       { icon: "img/icons/pdf-icon.png",     url: "documents/Project_9.pdf",                                   label: "PDF"    },
       { icon: "img/icons/jupyter-icon.png", url: "documents/Project_9.ipynb",                                 label: "Notebook"}
     ],
+    embed: {
+      type: "iframe",
+      url: "digit-generator-demo.html"
+    },
     problem : "I wanted to learn how to generate completely new handwritten digits based on samples.",
     actions : [
       "Built Variational Autoencoder trained on 60,000 handwritten digits."
