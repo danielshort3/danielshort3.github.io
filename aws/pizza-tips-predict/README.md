@@ -10,9 +10,10 @@ Server-side linear regression for pizza tip predictions. Keeps coefficients priv
 ### Environment variables
 
 ```
-ALLOWED_ORIGINS=https://danielshort.dev,https://www.danielshort.dev,https://danielshort3.github.io,https://danielshort3-github-io.vercel.app,https://danielshort.me,https://www.danielshort.me
 CONFIDENCE_LEVEL=0.9
 ```
+
+CORS is configured on the Lambda Function URL. The handler does not append CORS headers.
 
 ### Request
 
@@ -67,7 +68,7 @@ aws lambda update-function-code \
   --zip-file fileb://aws/pizza-tips-predict.zip
 ```
 
-After deploying, update `demos/pizza-tips-demo.html` with the new Function URL and add the URL to the `connect-src` directive in `vercel.json`.
+After deploying, update the Function URL constant in `demos/pizza-tips-demo.html` and add the URL to the `connect-src` directive in `vercel.json`.
 
 ### City boundaries
 

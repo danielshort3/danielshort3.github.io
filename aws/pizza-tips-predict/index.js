@@ -1,7 +1,6 @@
 const model = require('./model.json');
 
-const { ALLOWED_ORIGINS = '', CONFIDENCE_LEVEL = '0.9' } = process.env;
-const allowedOrigins = ALLOWED_ORIGINS.split(',').map(o => o.trim()).filter(Boolean);
+const { CONFIDENCE_LEVEL = '0.9' } = process.env;
 
 const CONF_LEVEL = Number(CONFIDENCE_LEVEL) || 0.9;
 const Z_BY_LEVEL = {
@@ -12,11 +11,7 @@ const Z_BY_LEVEL = {
 };
 const Z_SCORE = Z_BY_LEVEL[CONF_LEVEL] || 1.645;
 
-const buildHeaders = (origin) => ({
-  'Access-Control-Allow-Origin': origin || '*',
-  'Access-Control-Allow-Methods': 'POST,OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-  'Access-Control-Max-Age': '86400',
+const buildHeaders = () => ({
   'Content-Type': 'application/json'
 });
 
@@ -163,21 +158,15 @@ const addRangeWarning = (warnings, label, value, range) => {
 };
 
 exports.handler = async (event) => {
-  const requestOrigin = event?.headers?.origin || event?.headers?.Origin || '';
-  const corsOrigin = allowedOrigins.length === 0
-    ? requestOrigin || '*'
-    : (allowedOrigins.includes('*') ? (requestOrigin || '*')
-      : (allowedOrigins.includes(requestOrigin) ? requestOrigin : allowedOrigins[0]));
-
   if (event.requestContext?.http?.method === 'OPTIONS') {
-    return { statusCode: 204, headers: buildHeaders(corsOrigin) };
+    return { statusCode: 204, headers: buildHeaders() };
   }
 
   const payload = parseBody(event);
   if (!payload || typeof payload !== 'object') {
     return {
       statusCode: 400,
-      headers: buildHeaders(corsOrigin),
+      headers: buildHeaders(),
       body: JSON.stringify({ error: 'Invalid payload.' })
     };
   }
@@ -206,7 +195,7 @@ exports.handler = async (event) => {
   if (errors.length) {
     return {
       statusCode: 400,
-      headers: buildHeaders(corsOrigin),
+      headers: buildHeaders(),
       body: JSON.stringify({ error: 'Missing or invalid inputs.', details: errors })
     };
   }
@@ -217,7 +206,7 @@ exports.handler = async (event) => {
   if (!city) {
     return {
       statusCode: 400,
-      headers: buildHeaders(corsOrigin),
+      headers: buildHeaders(),
       body: JSON.stringify({ error: 'Location is outside supported city boundaries.' })
     };
   }
@@ -304,7 +293,7 @@ exports.handler = async (event) => {
 
   return {
     statusCode: 200,
-    headers: buildHeaders(corsOrigin),
+    headers: buildHeaders(),
     body: JSON.stringify(response)
   };
 };
