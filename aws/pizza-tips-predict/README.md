@@ -17,7 +17,7 @@ CORS is configured on the Lambda Function URL. The handler does not append CORS 
 
 ### Request
 
-POST JSON payload:
+POST JSON payload (required numeric fields follow `model.inputFeatures`):
 
 ```
 {
@@ -25,16 +25,14 @@ POST JSON payload:
   "longitude": -96.82,
   "cost": 35,
   "housing": "Residential",
-  "orderHour": 18,
-  "deliveryMinutes": 35,
-  "rain": 0,
-  "maxTemp": 85,
-  "minTemp": 65
+  "orderHour": 18
 }
 ```
 
 City is inferred from the latitude/longitude using city boundary polygons (lat/lon are not model inputs). Housing must match one of the training categories.
 Current housing categories: Residential, Apartment, Hotel, Business.
+
+If housing coefficients are removed during feature selection, housing becomes optional. Fields not listed in `model.inputFeatures` can be omitted.
 
 ### Response
 

@@ -78092,5 +78092,10 @@ window.PizzaTipsMeta = {
       "min": -96.93078218,
       "max": -96.7145982
     }
-  }
+  },
+  "inputFeatures": [
+    "cost",
+    "orderHour"
+  ],
+  "useHousing": true
 };

@@ -1,6 +1,6 @@
 {
-  "version": 2,
-  "generatedAt": "2025-12-21T20:00:59.105Z",
+  "version": 3,
+  "generatedAt": "2025-12-21T20:19:41.204Z",
   "features": [
     {
       "key": "cost",
@@ -11,58 +11,32 @@
       "label": "Order Hour (24h)"
     },
     {
-      "key": "deliveryMinutes",
-      "label": "Delivery Wait (Minutes)"
-    },
-    {
-      "key": "rain",
-      "label": "Rain (Inches)"
-    },
-    {
-      "key": "maxTemp",
-      "label": "Max Temp (F)"
-    },
-    {
-      "key": "minTemp",
-      "label": "Min Temp (F)"
-    },
-    {
       "key": "city:Plano",
       "label": "City: Plano"
     },
     {
-      "key": "city:The Colony",
-      "label": "City: The Colony"
-    },
-    {
-      "key": "city:Lewisville",
-      "label": "City: Lewisville"
-    },
-    {
-      "key": "city:Carrollton",
-      "label": "City: Carrollton"
-    },
-    {
-      "key": "city:McKinney",
-      "label": "City: McKinney"
-    },
-    {
-      "key": "city:Allen",
-      "label": "City: Allen"
-    },
-    {
       "key": "housing:Apartment",
       "label": "Housing: Apartment"
-    },
-    {
-      "key": "housing:Hotel",
-      "label": "Housing: Hotel"
-    },
-    {
-      "key": "housing:Business",
-      "label": "Housing: Business"
     }
   ],
+  "inputFeatures": [
+    "cost",
+    "orderHour"
+  ],
+  "featureSelection": {
+    "alpha": 0.05,
+    "tip": [
+      "cost",
+      "orderHour",
+      "city:Plano",
+      "housing:Apartment"
+    ],
+    "tipPercent": [
+      "cost",
+      "orderHour",
+      "city:Plano"
+    ]
+  },
   "categories": {
     "city": {
       "baseline": "Frisco",
@@ -78279,55 +78253,32 @@
   },
   "metrics": {
     "tip": {
-      "rmse": 3.5191440119630495,
-      "r2": 0.3945783193133766,
+      "rmse": 3.525606490224731,
+      "r2": 0.3923527116803974,
       "n": 1251
     },
     "tipPercent": {
-      "rmse": 0.14848394927911174,
-      "r2": 0.05600026660581969,
+      "rmse": 0.14867353616335036,
+      "r2": 0.05358809714202317,
       "n": 1251
     }
   },
   "coefficients": {
     "tip": {
-      "intercept": 0.08787970544724165,
+      "intercept": -0.13081657431706603,
       "values": {
-        "cost": 0.10874561181249745,
-        "orderHour": 0.16124857469230802,
-        "deliveryMinutes": -0.0015565936001765467,
-        "rain": 0.1809296262815508,
-        "maxTemp": 0.008488721072836526,
-        "minTemp": -0.012846554913069982,
-        "city:Plano": -0.6765492697716031,
-        "city:The Colony": -0.0918585341927905,
-        "city:Lewisville": 0.11744450517766163,
-        "city:Carrollton": 0.10663476416654961,
-        "city:McKinney": 0.16095518468986664,
-        "city:Allen": -0.7594228022732288,
-        "housing:Apartment": -0.6819044381524982,
-        "housing:Hotel": -0.089216825585308,
-        "housing:Business": -1.1308240623835346
+        "cost": 0.10808124280432986,
+        "orderHour": 0.16744101849417903,
+        "city:Plano": -0.7081777970552692,
+        "housing:Apartment": -0.6509094757989659
       }
     },
     "tipPercent": {
-      "intercept": 0.1324481035868195,
+      "intercept": 0.13605304720999836,
       "values": {
-        "cost": -0.0013050074660714772,
-        "orderHour": 0.006464501196317448,
-        "deliveryMinutes": -0.000006291525904204365,
-        "rain": 0.006309993900948216,
-        "maxTemp": 0.000333725764527008,
-        "minTemp": -0.00038500274438735466,
-        "city:Plano": -0.02062186383122511,
-        "city:The Colony": -0.01019286540364876,
-        "city:Lewisville": -0.01782142273858183,
-        "city:Carrollton": -0.015207648004956865,
-        "city:McKinney": -0.004320312658497833,
-        "city:Allen": -0.03784477923065383,
-        "housing:Apartment": -0.015116932428574115,
-        "housing:Hotel": -0.002752401231721179,
-        "housing:Business": -0.0017600555504545896
+        "cost": -0.001290856768186079,
+        "orderHour": 0.006337520203527524,
+        "city:Plano": -0.02156449949878879
       }
     }
   }

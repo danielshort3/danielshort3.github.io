@@ -65,6 +65,8 @@ const parseDurationMinutes = (value) => {
   return Number.isFinite(m) ? m : null;
 };
 
+const BASE_KEYS = ['cost', 'orderHour', 'deliveryMinutes', 'rain', 'maxTemp', 'minTemp'];
+
 const normalizeOption = (value, options = []) => {
   if (value === null || value === undefined) return null;
   const cleaned = String(value).trim();
@@ -173,24 +175,33 @@ exports.handler = async (event) => {
 
   const latitude = parseNumber(payload.latitude ?? payload.lat);
   const longitude = parseNumber(payload.longitude ?? payload.lon ?? payload.lng);
-  const cost = parseNumber(payload.cost ?? payload.orderCost);
-  const orderHourRaw = parseHour(payload.orderHour ?? payload.hour ?? payload.orderTime);
-  const deliveryMinutesRaw = parseDurationMinutes(payload.deliveryMinutes ?? payload.totalDeliveryMinutes ?? payload.deliveryTime);
-  const rain = parseNumber(payload.rain ?? payload.rainInches);
-  const maxTemp = parseNumber(payload.maxTemp ?? payload.tmax);
-  const minTemp = parseNumber(payload.minTemp ?? payload.tmin);
+  const coeffKeys = new Set([
+    ...Object.keys(model.coefficients?.tip?.values || {}),
+    ...Object.keys(model.coefficients?.tipPercent?.values || {})
+  ]);
+  const activeBase = new Set(model.inputFeatures || BASE_KEYS);
+  const requireBase = (key) => coeffKeys.has(key) || activeBase.has(key);
+  const cost = requireBase('cost') ? parseNumber(payload.cost ?? payload.orderCost) : null;
+  const orderHourRaw = requireBase('orderHour') ? parseHour(payload.orderHour ?? payload.hour ?? payload.orderTime) : null;
+  const deliveryMinutesRaw = requireBase('deliveryMinutes')
+    ? parseDurationMinutes(payload.deliveryMinutes ?? payload.totalDeliveryMinutes ?? payload.deliveryTime)
+    : null;
+  const rain = requireBase('rain') ? parseNumber(payload.rain ?? payload.rainInches) : null;
+  const maxTemp = requireBase('maxTemp') ? parseNumber(payload.maxTemp ?? payload.tmax) : null;
+  const minTemp = requireBase('minTemp') ? parseNumber(payload.minTemp ?? payload.tmin) : null;
   const housingRaw = payload.housing ?? payload.housingType ?? payload.housingCategory;
   const housing = normalizeOption(housingRaw, model.categories?.housing?.values || []);
+  const usesHousing = Array.from(coeffKeys).some((key) => key.startsWith('housing:'));
 
   const errors = [];
   if (latitude === null || longitude === null) errors.push('Latitude and longitude are required.');
-  if (cost === null) errors.push('Cost is required.');
-  if (orderHourRaw === null) errors.push('Order hour is required.');
-  if (deliveryMinutesRaw === null) errors.push('Delivery minutes are required.');
-  if (rain === null) errors.push('Rain (inches) is required.');
-  if (maxTemp === null) errors.push('Max temp is required.');
-  if (minTemp === null) errors.push('Min temp is required.');
-  if (!housing) errors.push('Housing type is required.');
+  if (requireBase('cost') && cost === null) errors.push('Cost is required.');
+  if (requireBase('orderHour') && orderHourRaw === null) errors.push('Order hour is required.');
+  if (requireBase('deliveryMinutes') && deliveryMinutesRaw === null) errors.push('Delivery minutes are required.');
+  if (requireBase('rain') && rain === null) errors.push('Rain (inches) is required.');
+  if (requireBase('maxTemp') && maxTemp === null) errors.push('Max temp is required.');
+  if (requireBase('minTemp') && minTemp === null) errors.push('Min temp is required.');
+  if (usesHousing && !housing) errors.push('Housing type is required.');
 
   if (errors.length) {
     return {
@@ -200,7 +211,7 @@ exports.handler = async (event) => {
     };
   }
 
-  const orderHour = Math.floor(orderHourRaw);
+  const orderHour = orderHourRaw === null ? null : Math.floor(orderHourRaw);
   const deliveryMinutes = deliveryMinutesRaw;
   const { city } = resolveCity(latitude, longitude);
   if (!city) {
@@ -211,26 +222,31 @@ exports.handler = async (event) => {
     };
   }
 
-  const inputs = {
-    cost,
-    orderHour,
-    deliveryMinutes,
-    rain,
-    maxTemp,
-    minTemp
-  };
+  const inputs = {};
+  if (coeffKeys.has('cost')) inputs.cost = cost;
+  if (coeffKeys.has('orderHour')) inputs.orderHour = orderHour;
+  if (coeffKeys.has('deliveryMinutes')) inputs.deliveryMinutes = deliveryMinutes;
+  if (coeffKeys.has('rain')) inputs.rain = rain;
+  if (coeffKeys.has('maxTemp')) inputs.maxTemp = maxTemp;
+  if (coeffKeys.has('minTemp')) inputs.minTemp = minTemp;
   const cityValues = model.categories?.city?.values || [];
   const cityBaseline = model.categories?.city?.baseline || '';
   cityValues.forEach((cityName) => {
     if (cityName !== cityBaseline) {
-      inputs[`city:${cityName}`] = cityName === city ? 1 : 0;
+      const key = `city:${cityName}`;
+      if (coeffKeys.has(key)) {
+        inputs[key] = cityName === city ? 1 : 0;
+      }
     }
   });
   const housingValues = model.categories?.housing?.values || [];
   const housingBaseline = model.categories?.housing?.baseline || '';
   housingValues.forEach((housingName) => {
     if (housingName !== housingBaseline) {
-      inputs[`housing:${housingName}`] = housingName === housing ? 1 : 0;
+      const key = `housing:${housingName}`;
+      if (coeffKeys.has(key)) {
+        inputs[key] = housingName === housing ? 1 : 0;
+      }
     }
   });
 
@@ -246,29 +262,43 @@ exports.handler = async (event) => {
   const warnings = [];
   addRangeWarning(warnings, 'Latitude', latitude, model.bounds.latitude);
   addRangeWarning(warnings, 'Longitude', longitude, model.bounds.longitude);
-  addRangeWarning(warnings, 'Cost', cost, model.ranges.cost);
-  addRangeWarning(warnings, 'Order hour', orderHour, model.ranges.orderHour);
-  addRangeWarning(warnings, 'Delivery minutes', deliveryMinutes, model.ranges.deliveryMinutes);
-  addRangeWarning(warnings, 'Rain', rain, model.ranges.rain);
-  addRangeWarning(warnings, 'Max temp', maxTemp, model.ranges.maxTemp);
-  addRangeWarning(warnings, 'Min temp', minTemp, model.ranges.minTemp);
+  if (requireBase('cost') && cost !== null) {
+    addRangeWarning(warnings, 'Cost', cost, model.ranges.cost);
+  }
+  if (requireBase('orderHour') && orderHour !== null) {
+    addRangeWarning(warnings, 'Order hour', orderHour, model.ranges.orderHour);
+  }
+  if (requireBase('deliveryMinutes') && deliveryMinutes !== null) {
+    addRangeWarning(warnings, 'Delivery minutes', deliveryMinutes, model.ranges.deliveryMinutes);
+  }
+  if (requireBase('rain') && rain !== null) {
+    addRangeWarning(warnings, 'Rain', rain, model.ranges.rain);
+  }
+  if (requireBase('maxTemp') && maxTemp !== null) {
+    addRangeWarning(warnings, 'Max temp', maxTemp, model.ranges.maxTemp);
+  }
+  if (requireBase('minTemp') && minTemp !== null) {
+    addRangeWarning(warnings, 'Min temp', minTemp, model.ranges.minTemp);
+  }
+
+  const responseInputs = {
+    latitude,
+    longitude
+  };
+  if (cost !== null) responseInputs.cost = cost;
+  if (orderHour !== null) responseInputs.orderHour = orderHour;
+  if (deliveryMinutes !== null) responseInputs.deliveryMinutes = deliveryMinutes;
+  if (rain !== null) responseInputs.rain = rain;
+  if (maxTemp !== null) responseInputs.maxTemp = maxTemp;
+  if (minTemp !== null) responseInputs.minTemp = minTemp;
+  if (housing) responseInputs.housing = housing;
 
   const response = {
     ok: true,
-    inputs: {
-      latitude,
-      longitude,
-      cost,
-      orderHour,
-      deliveryMinutes,
-      rain,
-      maxTemp,
-      minTemp,
-      housing
-    },
+    inputs: responseInputs,
     bucket: {
       city,
-      housing
+      housing: housing || null
     },
     location: {
       latitude,

@@ -368,22 +368,22 @@
             </div>
           </div>
 
-          <div class="input-row">
+          <div class="input-row" data-feature="cost">
             <label for="cost">Order Cost ($)</label>
             <input id="cost" type="number" min="0" step="0.01" />
           </div>
 
-          <div class="input-row">
+          <div class="input-row" data-feature="housing">
             <label for="housing">Housing Type</label>
             <select id="housing"></select>
           </div>
 
-          <div class="input-row">
+          <div class="input-row" data-feature="orderHour">
             <label for="order-hour">Order Time (hour)</label>
             <select id="order-hour"></select>
           </div>
 
-          <div class="range-row">
+          <div class="range-row" data-feature="deliveryMinutes">
             <div class="range-head">
               <span>Delivery Wait (minutes)</span>
               <div class="range-number">
@@ -394,15 +394,15 @@
           </div>
 
           <div class="inline-fields">
-            <div class="input-row">
+            <div class="input-row" data-feature="rain">
               <label for="rain">Rain (inches)</label>
               <input id="rain" type="number" min="0" step="0.01" />
             </div>
-            <div class="input-row">
+            <div class="input-row" data-feature="maxTemp">
               <label for="max-temp">Max Temp (F)</label>
               <input id="max-temp" type="number" step="1" />
             </div>
-            <div class="input-row">
+            <div class="input-row" data-feature="minTemp">
               <label for="min-temp">Min Temp (F)</label>
               <input id="min-temp" type="number" step="1" />
             </div>
@@ -467,6 +467,9 @@
     const CITY_BOUNDARIES = META.cityBoundaries || null;
     const HOUSING_OPTIONS = META.housingOptions || ['Residential'];
     const HOUSING_BASELINE = META.housingBaseline || HOUSING_OPTIONS[0];
+    const INPUT_FEATURES = META.inputFeatures || ['cost', 'orderHour', 'deliveryMinutes', 'rain', 'maxTemp', 'minTemp'];
+    const ACTIVE_FEATURES = new Set(INPUT_FEATURES);
+    const USE_HOUSING = META.useHousing !== false;
     const DEFAULTS = {
       latitude: 33.110288,
       longitude: -96.824164,
@@ -557,6 +560,15 @@
       });
     }
 
+    function applyFeatureVisibility() {
+      document.querySelectorAll('[data-feature]').forEach((el) => {
+        const key = el.dataset.feature;
+        const isActive = key === 'housing' ? USE_HOUSING : ACTIVE_FEATURES.has(key);
+        el.style.display = isActive ? '' : 'none';
+      });
+      hourDisplay.style.display = ACTIVE_FEATURES.has('orderHour') ? '' : 'none';
+    }
+
     function resolveCityLocal(lat, lon) {
       if (!CITY_BOUNDARIES || !Array.isArray(CITY_BOUNDARIES.features)) {
         return { city: null };
@@ -627,7 +639,9 @@
       lonDisplay.textContent = `Lon: ${lon.toFixed(5)}`;
       const resolved = resolveCityLocal(lat, lon);
       cityDisplay.textContent = resolved.city ? `City: ${resolved.city}` : 'City: Outside coverage';
-      hourDisplay.textContent = `Hour: ${orderHourSelect.value}`;
+      if (ACTIVE_FEATURES.has('orderHour')) {
+        hourDisplay.textContent = `Hour: ${orderHourSelect.value}`;
+      }
     }
 
     function setInputs(data) {
@@ -690,17 +704,18 @@
     }
 
     function currentPayload() {
-      return {
+      const payload = {
         latitude: Number(latInput.value),
-        longitude: Number(lonInput.value),
-        cost: Number(costInput.value),
-        housing: housingSelect.value,
-        orderHour: Number(orderHourSelect.value),
-        deliveryMinutes: Number(deliveryNumber.value),
-        rain: Number(rainInput.value),
-        maxTemp: Number(maxTempInput.value),
-        minTemp: Number(minTempInput.value)
+        longitude: Number(lonInput.value)
       };
+      if (ACTIVE_FEATURES.has('cost')) payload.cost = Number(costInput.value);
+      if (USE_HOUSING) payload.housing = housingSelect.value;
+      if (ACTIVE_FEATURES.has('orderHour')) payload.orderHour = Number(orderHourSelect.value);
+      if (ACTIVE_FEATURES.has('deliveryMinutes')) payload.deliveryMinutes = Number(deliveryNumber.value);
+      if (ACTIVE_FEATURES.has('rain')) payload.rain = Number(rainInput.value);
+      if (ACTIVE_FEATURES.has('maxTemp')) payload.maxTemp = Number(maxTempInput.value);
+      if (ACTIVE_FEATURES.has('minTemp')) payload.minTemp = Number(minTempInput.value);
+      return payload;
     }
 
     function applyResponse(result) {
@@ -734,6 +749,7 @@
 
     populateHours();
     populateHousing();
+    applyFeatureVisibility();
     setStatus(API_URL ? 'ok' : 'err', API_URL ? 'API: ready' : 'API: missing URL');
     setInputs(DEFAULTS);
 
