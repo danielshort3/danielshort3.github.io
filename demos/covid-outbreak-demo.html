@@ -5,30 +5,33 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <base href="/">
   <title>COVID Outbreak Drivers Demo</title>
-  <meta name="theme-color" content="#f7f3ea" />
+  <meta name="theme-color" content="#0D1117" />
   <link rel="stylesheet" href="dist/styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Work+Sans:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@600&display=swap">
   <style>
     :root {
-      --bg: #f7f3ea;
-      --surface: #fffaf3;
-      --surface-2: #f2ebe1;
-      --surface-3: #eae3d8;
-      --text: #201a14;
-      --muted: #6b6156;
-      --accent: #d9752d;
-      --accent-2: #2e7d7b;
-      --border: #e1d7c8;
-      --shadow: 0 20px 50px rgba(39, 31, 22, 0.12);
-      --risk-low: #2f9d62;
-      --risk-elevated: #f59f00;
-      --risk-high: #d64545;
-      --risk-none: #b6afa4;
-      --radius-lg: 20px;
+      --radius-lg: 18px;
       --radius-md: 14px;
-      --page-pad: clamp(12px, 3vw, 22px);
+      --page-pad: clamp(12px, 3vw, 24px);
+      --shadow-1: 0 2px 10px rgba(0,0,0,.06), 0 1px 4px rgba(0,0,0,.06);
+      --shadow-2: 0 8px 30px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.08);
+      --surface-2: var(--surface-light);
+      --surface-3: color-mix(in srgb, var(--surface) 88%, #000 12%);
+      --text: var(--text-light);
+      --muted: var(--text-muted);
+      --accent: var(--primary);
+      --accent-2: color-mix(in srgb, var(--primary) 60%, #6fe0d6 40%);
+      --border: var(--surface-accent);
+      --risk-low: var(--success);
+      --risk-elevated: var(--warning);
+      --risk-high: var(--danger);
+      --risk-none: color-mix(in srgb, var(--surface) 70%, #ffffff 30%);
+      --map-bg: color-mix(in srgb, var(--surface) 45%, #ffffff 55%);
+      --map-border: color-mix(in srgb, var(--surface) 30%, #ffffff 70%);
+      --map-text: #0D1117;
+      --map-line: color-mix(in srgb, var(--map-text) 70%, #ffffff 30%);
     }
 
     * {
@@ -47,11 +50,10 @@
 
     body {
       margin: 0;
-      font-family: "Work Sans", "Segoe UI", sans-serif;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color: var(--text);
       background:
-        radial-gradient(1200px 500px at 50% -15%, rgba(217, 117, 45, 0.15), transparent 60%),
-        radial-gradient(900px 500px at 110% 10%, rgba(46, 125, 123, 0.18), transparent 55%),
+        radial-gradient(1200px 500px at 50% -10%, color-mix(in srgb, var(--primary) 15%, transparent), transparent 60%)
         var(--bg);
       display: grid;
       place-items: start center;
@@ -64,7 +66,7 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
-      box-shadow: var(--shadow);
+      box-shadow: var(--shadow-2);
       overflow: hidden;
       display: grid;
       grid-template-rows: auto auto 1fr;
@@ -89,7 +91,7 @@
       align-items: center;
       justify-content: space-between;
       padding: 20px 22px 14px;
-      background: linear-gradient(135deg, rgba(217, 117, 45, 0.08), rgba(46, 125, 123, 0.1));
+      background: linear-gradient(0deg, var(--surface), var(--surface-2));
       border-bottom: 1px solid var(--border);
     }
 
@@ -100,7 +102,7 @@
 
     .title {
       margin: 0;
-      font-family: "Space Grotesk", "Work Sans", sans-serif;
+      font-family: Poppins, Inter, system-ui, sans-serif;
       font-weight: 700;
       font-size: clamp(1.2rem, 2vw, 1.6rem);
       letter-spacing: -0.02em;
@@ -119,7 +121,7 @@
       gap: 10px;
       padding: 10px 22px;
       border-bottom: 1px solid var(--border);
-      background: var(--surface-2);
+      background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--primary) 6%, transparent));
     }
 
     .status-pill {
@@ -136,21 +138,21 @@
     }
 
     .status-pill[data-state="ok"] {
-      background: rgba(47, 157, 98, 0.15);
-      color: #1f6a43;
-      border-color: rgba(47, 157, 98, 0.3);
+      background: color-mix(in srgb, var(--success) 18%, transparent);
+      color: color-mix(in srgb, var(--success) 70%, #ffffff 30%);
+      border-color: color-mix(in srgb, var(--success) 40%, transparent);
     }
 
     .status-pill[data-state="warn"] {
-      background: rgba(245, 159, 0, 0.16);
-      color: #8a5b00;
-      border-color: rgba(245, 159, 0, 0.35);
+      background: color-mix(in srgb, var(--warning) 18%, transparent);
+      color: color-mix(in srgb, var(--warning) 72%, #ffffff 28%);
+      border-color: color-mix(in srgb, var(--warning) 42%, transparent);
     }
 
     .status-pill[data-state="err"] {
-      background: rgba(214, 69, 69, 0.16);
-      color: #8c1e1e;
-      border-color: rgba(214, 69, 69, 0.35);
+      background: color-mix(in srgb, var(--danger) 18%, transparent);
+      color: color-mix(in srgb, var(--danger) 70%, #ffffff 30%);
+      border-color: color-mix(in srgb, var(--danger) 40%, transparent);
     }
 
     .status-meta {
@@ -166,7 +168,7 @@
     }
 
     .panel {
-      background: var(--surface-2);
+      background: color-mix(in srgb, var(--surface) 92%, #000 8%);
       border-radius: var(--radius-md);
       border: 1px solid var(--border);
       padding: 16px;
@@ -178,7 +180,7 @@
     .panel h2,
     .panel h3 {
       margin: 0;
-      font-family: "Space Grotesk", "Work Sans", sans-serif;
+      font-family: Poppins, Inter, system-ui, sans-serif;
       font-weight: 600;
     }
 
@@ -190,8 +192,8 @@
 
     .map-svg {
       position: relative;
-      background: var(--surface);
-      border: 1px solid var(--border);
+      background: var(--map-bg);
+      border: 1px solid var(--map-border);
       border-radius: 16px;
       padding: 8px;
       overflow: hidden;
@@ -205,7 +207,7 @@
     }
 
     .state-shape {
-      fill: var(--surface-3);
+      fill: color-mix(in srgb, var(--map-bg) 82%, var(--surface) 18%);
       cursor: pointer;
       transition: fill 0.2s ease, filter 0.2s ease;
     }
@@ -215,19 +217,19 @@
     }
 
     .state-shape[data-risk="low"] {
-      fill: color-mix(in srgb, var(--risk-low) 85%, white 15%);
+      fill: color-mix(in srgb, var(--risk-low) 70%, var(--map-bg) 30%);
     }
 
     .state-shape[data-risk="elevated"] {
-      fill: color-mix(in srgb, var(--risk-elevated) 85%, white 15%);
+      fill: color-mix(in srgb, var(--risk-elevated) 70%, var(--map-bg) 30%);
     }
 
     .state-shape[data-risk="high"] {
-      fill: color-mix(in srgb, var(--risk-high) 88%, white 12%);
+      fill: color-mix(in srgb, var(--risk-high) 72%, var(--map-bg) 28%);
     }
 
     .state-shape[data-risk="unknown"] {
-      fill: var(--surface-3);
+      fill: color-mix(in srgb, var(--map-bg) 78%, var(--surface) 22%);
     }
 
     .state-shape[data-active="true"] {
@@ -241,7 +243,7 @@
 
     .state-border {
       fill: none;
-      stroke: #fdf6ed;
+      stroke: var(--map-border);
       stroke-width: 1;
       vector-effect: non-scaling-stroke;
       pointer-events: none;
@@ -255,16 +257,17 @@
     .state-label {
       font-size: 10px;
       font-weight: 600;
-      fill: #1e1a16;
+      fill: var(--map-text);
+      text-shadow: 0 0 4px rgba(255, 255, 255, 0.5);
     }
 
     .state-label[data-outside="true"] {
-      fill: #1e1a16;
+      fill: var(--map-text);
       font-size: 11px;
     }
 
     .state-leader {
-      stroke: #6b6156;
+      stroke: var(--map-line);
       stroke-width: 1;
       opacity: 0.75;
     }
@@ -272,12 +275,12 @@
     .map-tooltip {
       position: absolute;
       pointer-events: none;
-      background: #fdf6ed;
-      color: #1e1a16;
+      background: color-mix(in srgb, var(--map-bg) 92%, #ffffff 8%);
+      color: var(--map-text);
       font-size: 0.75rem;
       padding: 6px 10px;
       border-radius: 8px;
-      border: 1px solid var(--border);
+      border: 1px solid var(--map-border);
       opacity: 0;
       transform: translate(-50%, -6px);
       transition: opacity 0.15s ease, transform 0.15s ease;
@@ -314,7 +317,7 @@
       width: 14px;
       height: 14px;
       border-radius: 4px;
-      border: 1px solid rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--border);
     }
 
     .controls {
@@ -382,27 +385,27 @@
     }
 
     .risk-pill[data-risk="low"] {
-      background: rgba(47, 157, 98, 0.14);
-      color: #1f6a43;
-      border-color: rgba(47, 157, 98, 0.3);
+      background: color-mix(in srgb, var(--risk-low) 18%, transparent);
+      color: color-mix(in srgb, var(--risk-low) 72%, #ffffff 28%);
+      border-color: color-mix(in srgb, var(--risk-low) 40%, transparent);
     }
 
     .risk-pill[data-risk="elevated"] {
-      background: rgba(245, 159, 0, 0.16);
-      color: #8a5b00;
-      border-color: rgba(245, 159, 0, 0.35);
+      background: color-mix(in srgb, var(--risk-elevated) 18%, transparent);
+      color: color-mix(in srgb, var(--risk-elevated) 72%, #ffffff 28%);
+      border-color: color-mix(in srgb, var(--risk-elevated) 40%, transparent);
     }
 
     .risk-pill[data-risk="high"] {
-      background: rgba(214, 69, 69, 0.16);
-      color: #8c1e1e;
-      border-color: rgba(214, 69, 69, 0.35);
+      background: color-mix(in srgb, var(--risk-high) 18%, transparent);
+      color: color-mix(in srgb, var(--risk-high) 72%, #ffffff 28%);
+      border-color: color-mix(in srgb, var(--risk-high) 40%, transparent);
     }
 
     .risk-pill[data-risk="unknown"] {
-      background: rgba(182, 175, 164, 0.2);
-      color: #6b6156;
-      border-color: rgba(182, 175, 164, 0.4);
+      background: color-mix(in srgb, var(--risk-none) 22%, transparent);
+      color: var(--muted);
+      border-color: color-mix(in srgb, var(--risk-none) 45%, transparent);
     }
 
     .metrics {
@@ -1076,7 +1079,7 @@
       const svg = DOM.trendChart;
       svg.innerHTML = "";
       if (!history || history.length === 0) {
-        svg.innerHTML = "<text x=\"16\" y=\"24\" fill=\"#6b6156\" font-size=\"12\">No history available</text>";
+        svg.innerHTML = "<text x=\"16\" y=\"24\" fill=\"var(--text-muted)\" font-size=\"12\">No history available</text>";
         return;
       }
       const slice = history.slice(-45);
@@ -1109,7 +1112,7 @@
       axisLine.setAttribute("x2", chart.left);
       axisLine.setAttribute("y1", chart.top);
       axisLine.setAttribute("y2", height - chart.bottom);
-      axisLine.setAttribute("stroke", "#e1d7c8");
+      axisLine.setAttribute("stroke", "var(--border)");
       axisLine.setAttribute("stroke-width", "1");
       svg.appendChild(axisLine);
 
@@ -1120,7 +1123,7 @@
         grid.setAttribute("x2", width - chart.right);
         grid.setAttribute("y1", y);
         grid.setAttribute("y2", y);
-        grid.setAttribute("stroke", "#e1d7c8");
+        grid.setAttribute("stroke", "var(--border)");
         grid.setAttribute("stroke-width", "1");
         if (tick !== 0) grid.setAttribute("stroke-dasharray", "3 4");
         svg.appendChild(grid);
@@ -1128,7 +1131,7 @@
         const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
         label.setAttribute("x", chart.left - 6);
         label.setAttribute("y", y + 4);
-        label.setAttribute("fill", "#6b6156");
+        label.setAttribute("fill", "var(--text-muted)");
         label.setAttribute("font-size", "11");
         label.setAttribute("text-anchor", "end");
         label.textContent = `${Math.round(tick * 100)}%`;

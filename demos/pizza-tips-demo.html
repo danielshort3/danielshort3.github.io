@@ -151,6 +151,36 @@
       background: rgba(255,255,255,.04);
       border: 1px solid var(--border);
     }
+    .heat-legend {
+      background: rgba(12, 16, 24, 0.92);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      box-shadow: var(--shadow-1);
+      color: var(--text);
+      font-size: .78rem;
+      min-width: 160px;
+    }
+    .heat-legend-title {
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-size: .7rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .heat-legend-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .heat-legend-bar {
+      flex: 1;
+      height: 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: linear-gradient(90deg, #123548, #2bbbad, #f8b500, #e15b64);
+    }
     form {
       display: grid;
       gap: 14px;
@@ -291,14 +321,13 @@
       color: var(--danger);
       font-size: .9rem;
     }
-    .breakdown {
+    .tip-breakdown {
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(255,255,255,.02);
       display: grid;
-      gap: 10px;
-    }
-    .breakdown-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 14px;
+      gap: 8px;
     }
     .breakdown-list {
       list-style: none;
@@ -368,6 +397,11 @@
             </div>
           </div>
 
+          <div class="input-row">
+            <label for="confidence">Confidence Level</label>
+            <select id="confidence"></select>
+          </div>
+
           <div class="input-row" data-feature="cost">
             <label for="cost">Order Cost ($)</label>
             <input id="cost" type="number" min="0" step="0.01" />
@@ -430,23 +464,15 @@
         </div>
       </div>
       <div id="warnings" class="warning"></div>
-      <div class="breakdown">
-        <div class="result-label">Coefficient Contributions</div>
-        <div class="breakdown-grid">
-          <div class="panel">
-            <div class="result-label" id="breakdown-tip-label">Tip Amount</div>
-            <ul class="breakdown-list" id="breakdown-tip"></ul>
-          </div>
-          <div class="panel">
-            <div class="result-label" id="breakdown-percent-label">Tip Percent</div>
-            <ul class="breakdown-list" id="breakdown-percent"></ul>
-          </div>
-        </div>
+      <div class="tip-breakdown">
+        <div class="result-label">Tip Amount Breakdown</div>
+        <ul class="breakdown-list" id="tip-breakdown"></ul>
       </div>
     </section>
   </main>
 
   <script src="js/vendor/leaflet/leaflet.js"></script>
+  <script src="js/vendor/leaflet/leaflet-heat.js"></script>
   <script src="js/demos/pizza-tips-meta.js"></script>
   <script type="module">
     const DEFAULT_FN_URL = 'https://2d6lrg4ozy564xymwi2epjbqty0nvhje.lambda-url.us-east-2.on.aws/';
@@ -470,10 +496,10 @@
     const INPUT_FEATURES = META.inputFeatures || ['cost', 'orderHour', 'deliveryMinutes', 'rain', 'maxTemp', 'minTemp'];
     const ACTIVE_FEATURES = new Set(INPUT_FEATURES);
     const USE_HOUSING = META.useHousing !== false;
-    const TARGET_TRANSFORMS = META.targetTransforms || { tip: 'none', tipPercent: 'none' };
     const DEFAULTS = {
       latitude: 33.110288,
       longitude: -96.824164,
+      confidenceLevel: 0.8,
       cost: 35,
       housing: HOUSING_BASELINE,
       orderHour: 18,
@@ -482,8 +508,10 @@
       maxTemp: 85,
       minTemp: 65
     };
+    const CONFIDENCE_LEVELS = [0.8, 0.85, 0.9, 0.95];
+    const HEATMAP_GRID = { rows: 24, cols: 24 };
     const BREAKDOWN_LABELS = {
-      intercept: 'Intercept',
+      baseline: 'Baseline',
       cost: 'Order Cost',
       orderHour: 'Order Hour',
       deliveryMinutes: 'Delivery Minutes',
@@ -496,6 +524,7 @@
     const statusEl = document.getElementById('api-status');
     const latInput = document.getElementById('lat');
     const lonInput = document.getElementById('lon');
+    const confidenceSelect = document.getElementById('confidence');
     const costInput = document.getElementById('cost');
     const housingSelect = document.getElementById('housing');
     const orderHourSelect = document.getElementById('order-hour');
@@ -517,10 +546,10 @@
     const tipPercentEl = document.getElementById('tip-percent');
     const tipPercentIntervalEl = document.getElementById('tip-percent-interval');
     const warningsEl = document.getElementById('warnings');
-    const breakdownTip = document.getElementById('breakdown-tip');
-    const breakdownPercent = document.getElementById('breakdown-percent');
-    const breakdownTipLabel = document.getElementById('breakdown-tip-label');
-    const breakdownPercentLabel = document.getElementById('breakdown-percent-label');
+    const tipBreakdownList = document.getElementById('tip-breakdown');
+    let heatLayer = null;
+    let legendMinEl = null;
+    let legendMaxEl = null;
 
     function normalizeBase(u) {
       try {
@@ -547,9 +576,105 @@
       return `${(value * 100).toFixed(1)}%`;
     }
 
-    function formatNumber(value, digits = 2) {
+    function formatSignedCurrency(value) {
       if (!Number.isFinite(value)) return '--';
-      return value.toFixed(digits);
+      const sign = value < 0 ? '-' : '+';
+      return `${sign}${formatCurrency(Math.abs(value))}`;
+    }
+
+    function formatBreakdownLabel(key) {
+      if (BREAKDOWN_LABELS[key]) return BREAKDOWN_LABELS[key];
+      if (key.startsWith('city:')) return `City: ${key.slice(5)}`;
+      if (key.startsWith('housing:')) return `Housing: ${key.slice(8)}`;
+      return key;
+    }
+
+    function buildTipBreakdown(result) {
+      const breakdown = result.breakdown?.tip;
+      if (!breakdown || !Array.isArray(breakdown.items)) return [];
+      const items = breakdown.items;
+      const scale = breakdown.scale || 'none';
+      const output = [];
+      if (scale === 'log1p' && items.length) {
+        let cumulative = 0;
+        let start = 0;
+        if (items[0].key === 'intercept') {
+          cumulative = items[0].contribution;
+          const baseTip = Math.expm1(cumulative);
+          output.push({ key: 'baseline', contribution: baseTip });
+          start = 1;
+        }
+        for (let i = start; i < items.length; i++) {
+          const prevTip = Math.expm1(cumulative);
+          cumulative += items[i].contribution;
+          const nextTip = Math.expm1(cumulative);
+          const delta = nextTip - prevTip;
+          if (Math.abs(delta) > 1e-4) {
+            output.push({ key: items[i].key, contribution: delta });
+          }
+        }
+        return output;
+      }
+      items.forEach((item) => {
+        const key = item.key === 'intercept' ? 'baseline' : item.key;
+        if (Math.abs(item.contribution) > 1e-4 || key === 'baseline') {
+          output.push({ key, contribution: item.contribution });
+        }
+      });
+      return output;
+    }
+
+    function renderTipBreakdown(result) {
+      if (!tipBreakdownList) return;
+      tipBreakdownList.innerHTML = '';
+      const items = buildTipBreakdown(result);
+      if (!items.length) {
+        const li = document.createElement('li');
+        li.textContent = 'No contributing factors for this scenario.';
+        tipBreakdownList.appendChild(li);
+        return;
+      }
+      items.forEach((entry) => {
+        const li = document.createElement('li');
+        const label = document.createElement('span');
+        label.textContent = formatBreakdownLabel(entry.key);
+        const value = document.createElement('strong');
+        value.textContent = entry.key === 'baseline'
+          ? formatCurrency(entry.contribution)
+          : formatSignedCurrency(entry.contribution);
+        li.append(label, value);
+        tipBreakdownList.appendChild(li);
+      });
+    }
+
+    function updateHeatmap(heatmap) {
+      if (!heatLayer) return;
+      if (!heatmap || !Array.isArray(heatmap.points) || !heatmap.points.length) {
+        heatLayer.setLatLngs([]);
+        updateLegend(null, null);
+        return;
+      }
+      const min = Number(heatmap.min);
+      const max = Number(heatmap.max);
+      const range = max - min || 1;
+      const points = heatmap.points.map((pt) => {
+        const value = (pt.tip - min) / range;
+        const intensity = Math.max(0, Math.min(1, value));
+        return [pt.lat, pt.lon, intensity];
+      });
+      heatLayer.setLatLngs(points);
+      updateLegend(min, max);
+    }
+
+    function updateLegend(min, max) {
+      if (!legendMinEl || !legendMaxEl) return;
+      if (!Number.isFinite(min) || !Number.isFinite(max)) {
+        legendMinEl.textContent = '--';
+        legendMaxEl.textContent = '--';
+        return;
+      }
+      legendMinEl.textContent = formatCurrency(min);
+      legendMaxEl.textContent = formatCurrency(max);
     }
 
     function populateHousing() {
@@ -560,6 +685,17 @@
         opt.textContent = name;
         if (name === DEFAULTS.housing) opt.selected = true;
         housingSelect.appendChild(opt);
+      });
+    }
+
+    function populateConfidence() {
+      confidenceSelect.innerHTML = '';
+      CONFIDENCE_LEVELS.forEach((level) => {
+        const opt = document.createElement('option');
+        opt.value = level;
+        opt.textContent = `${Math.round(level * 100)}%`;
+        if (level === DEFAULTS.confidenceLevel) opt.selected = true;
+        confidenceSelect.appendChild(opt);
       });
     }
 
@@ -650,6 +786,7 @@
     function setInputs(data) {
       latInput.value = data.latitude.toFixed(6);
       lonInput.value = data.longitude.toFixed(6);
+      confidenceSelect.value = data.confidenceLevel ?? DEFAULTS.confidenceLevel;
       costInput.value = data.cost;
       housingSelect.value = data.housing;
       orderHourSelect.value = data.orderHour;
@@ -662,25 +799,6 @@
       updateMapMeta();
     }
 
-    function renderBreakdown(listEl, items, formatter) {
-      listEl.innerHTML = '';
-      items.forEach((entry) => {
-        const li = document.createElement('li');
-        const label = document.createElement('span');
-        label.textContent = formatBreakdownLabel(entry.key);
-        const value = document.createElement('strong');
-        value.textContent = formatter(entry.contribution);
-        li.append(label, value);
-        listEl.appendChild(li);
-      });
-    }
-
-    function formatBreakdownLabel(key) {
-      if (BREAKDOWN_LABELS[key]) return BREAKDOWN_LABELS[key];
-      if (key.startsWith('city:')) return `City: ${key.slice(5)}`;
-      if (key.startsWith('housing:')) return `Housing: ${key.slice(8)}`;
-      return key;
-    }
 
     async function postToEndpoint(urlBase, payload) {
       const attempts = ['', 'predict'];
@@ -706,10 +824,12 @@
       throw lastErr || new Error('Request failed');
     }
 
-    function currentPayload() {
+    function currentPayload(includeGrid = false) {
+      const confidenceValue = Number(confidenceSelect.value) || DEFAULTS.confidenceLevel;
       const payload = {
         latitude: Number(latInput.value),
-        longitude: Number(lonInput.value)
+        longitude: Number(lonInput.value),
+        confidenceLevel: confidenceValue
       };
       if (ACTIVE_FEATURES.has('cost')) payload.cost = Number(costInput.value);
       if (USE_HOUSING) payload.housing = housingSelect.value;
@@ -718,6 +838,18 @@
       if (ACTIVE_FEATURES.has('rain')) payload.rain = Number(rainInput.value);
       if (ACTIVE_FEATURES.has('maxTemp')) payload.maxTemp = Number(maxTempInput.value);
       if (ACTIVE_FEATURES.has('minTemp')) payload.minTemp = Number(minTempInput.value);
+      if (includeGrid) {
+        payload.grid = {
+          rows: HEATMAP_GRID.rows,
+          cols: HEATMAP_GRID.cols,
+          bounds: {
+            latMin: MAP_BOUNDS.latMin,
+            latMax: MAP_BOUNDS.latMax,
+            lonMin: MAP_BOUNDS.lonMin,
+            lonMax: MAP_BOUNDS.lonMax
+          }
+        };
+      }
       return payload;
     }
 
@@ -726,8 +858,6 @@
       const tipInterval = result.predictions?.tip?.interval;
       const tipPercent = result.predictions?.tipPercent?.value;
       const tipPercentInterval = result.predictions?.tipPercent?.interval;
-      const tipScale = result.breakdown?.tip?.scale || TARGET_TRANSFORMS.tip || 'none';
-      const tipPercentScale = result.breakdown?.tipPercent?.scale || TARGET_TRANSFORMS.tipPercent || 'none';
       if (result.bucket?.city) {
         cityDisplay.textContent = `City: ${result.bucket.city}`;
       }
@@ -744,25 +874,13 @@
 
       warningsEl.textContent = (result.warnings || []).join(' ');
 
-      if (breakdownTipLabel) {
-        breakdownTipLabel.textContent = tipScale === 'log1p' ? 'Tip Amount (log scale)' : 'Tip Amount';
-      }
-      if (breakdownPercentLabel) {
-        breakdownPercentLabel.textContent = tipPercentScale === 'log1p' ? 'Tip Percent (log scale)' : 'Tip Percent';
-      }
-
-      if (result.breakdown?.tip?.items) {
-        const formatter = tipScale === 'log1p' ? (val) => formatNumber(val, 3) : formatCurrency;
-        renderBreakdown(breakdownTip, result.breakdown.tip.items, formatter);
-      }
-      if (result.breakdown?.tipPercent?.items) {
-        const formatter = tipPercentScale === 'log1p' ? (val) => formatNumber(val, 3) : formatPercent;
-        renderBreakdown(breakdownPercent, result.breakdown.tipPercent.items, formatter);
-      }
+      updateHeatmap(result.heatmap);
+      renderTipBreakdown(result);
     }
 
     populateHours();
     populateHousing();
+    populateConfidence();
     applyFeatureVisibility();
     setStatus(API_URL ? 'ok' : 'err', API_URL ? 'API: ready' : 'API: missing URL');
     setInputs(DEFAULTS);
@@ -778,6 +896,36 @@
       maxZoom: 19,
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
+
+    heatLayer = L.heatLayer([], {
+      radius: 26,
+      blur: 22,
+      minOpacity: 0.25,
+      gradient: {
+        0.0: '#123548',
+        0.4: '#2bbbad',
+        0.7: '#f8b500',
+        1.0: '#e15b64'
+      }
+    }).addTo(map);
+
+    const legendControl = L.control({ position: 'bottomright' });
+    legendControl.onAdd = () => {
+      const div = L.DomUtil.create('div', 'heat-legend');
+      div.innerHTML = `
+        <div class="heat-legend-title">Predicted Tip Hotspots</div>
+        <div class="heat-legend-row">
+          <span data-legend="min">--</span>
+          <div class="heat-legend-bar"></div>
+          <span data-legend="max">--</span>
+        </div>
+      `;
+      legendMinEl = div.querySelector('[data-legend="min"]');
+      legendMaxEl = div.querySelector('[data-legend="max"]');
+      L.DomEvent.disableClickPropagation(div);
+      return div;
+    };
+    legendControl.addTo(map);
 
     if (CITY_BOUNDARIES) {
       L.geoJSON(CITY_BOUNDARIES, {
@@ -840,7 +988,7 @@
       }
       setStatus('', 'API: working');
       try {
-        const result = await postToEndpoint(API_URL, currentPayload());
+        const result = await postToEndpoint(API_URL, currentPayload(true));
         applyResponse(result);
         setStatus('ok', 'API: ready');
       } catch (err) {
@@ -853,6 +1001,11 @@
     resetBtn.addEventListener('click', () => {
       setInputs(DEFAULTS);
       setLatLon(DEFAULTS.latitude, DEFAULTS.longitude);
+      warningsEl.textContent = '';
+      updateHeatmap(null);
+      if (tipBreakdownList) {
+        tipBreakdownList.innerHTML = '';
+      }
     });
 
     syncDeliveryValue();

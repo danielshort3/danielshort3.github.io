@@ -1,15 +1,37 @@
 const model = require('./model.json');
 
-const { CONFIDENCE_LEVEL = '0.9' } = process.env;
+const { CONFIDENCE_LEVEL = '0.8' } = process.env;
 
-const CONF_LEVEL = Number(CONFIDENCE_LEVEL) || 0.9;
 const Z_BY_LEVEL = {
   0.8: 1.282,
   0.85: 1.44,
   0.9: 1.645,
   0.95: 1.96
 };
-const Z_SCORE = Z_BY_LEVEL[CONF_LEVEL] || 1.645;
+const normalizeConfidenceLevel = (value) => {
+  if (value === null || value === undefined || value === '') return null;
+  let num = Number(value);
+  if (!Number.isFinite(num)) {
+    const cleaned = String(value).replace('%', '').trim();
+    num = Number(cleaned);
+  }
+  if (!Number.isFinite(num)) return null;
+  if (num > 1) num /= 100;
+  const levels = Object.keys(Z_BY_LEVEL).map(Number);
+  if (!levels.length) return null;
+  let closest = levels[0];
+  let minDiff = Math.abs(num - closest);
+  levels.forEach((level) => {
+    const diff = Math.abs(num - level);
+    if (diff < minDiff) {
+      minDiff = diff;
+      closest = level;
+    }
+  });
+  return closest;
+};
+const DEFAULT_CONF_LEVEL = normalizeConfidenceLevel(CONFIDENCE_LEVEL) || 0.8;
+const getZScore = (level) => Z_BY_LEVEL[level] || Z_BY_LEVEL[DEFAULT_CONF_LEVEL] || 1.282;
 
 const buildHeaders = () => ({
   'Content-Type': 'application/json'
@@ -142,10 +164,10 @@ const buildBreakdown = (coeffs, inputs) => {
   return { total, items };
 };
 
-const buildInterval = (prediction, rmse) => {
-  const delta = Z_SCORE * rmse;
+const buildInterval = (prediction, rmse, level, zScore) => {
+  const delta = zScore * rmse;
   return {
-    level: CONF_LEVEL,
+    level,
     low: prediction - delta,
     high: prediction + delta,
     rmse
@@ -161,18 +183,18 @@ const inverseTransform = (value, transform) => {
   return value;
 };
 
-const buildIntervalTransformed = (prediction, rmse, transform) => {
+const buildIntervalTransformed = (prediction, rmse, transform, level, zScore) => {
   if (transform === 'log1p') {
-    const delta = Z_SCORE * rmse;
+    const delta = zScore * rmse;
     return {
-      level: CONF_LEVEL,
+      level,
       low: Math.expm1(prediction - delta),
       high: Math.expm1(prediction + delta),
       rmse,
       scale: 'log1p'
     };
   }
-  return buildInterval(prediction, rmse);
+  return buildInterval(prediction, rmse, level, zScore);
 };
 
 const addRangeWarning = (warnings, label, value, range) => {
@@ -180,6 +202,28 @@ const addRangeWarning = (warnings, label, value, range) => {
   if (value < range.min || value > range.max) {
     warnings.push(`${label} ${value} is outside the training range (${range.min} to ${range.max}).`);
   }
+};
+
+const clampInt = (value, min, max, fallback) => {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return fallback;
+  const rounded = Math.round(num);
+  return Math.min(max, Math.max(min, rounded));
+};
+
+const normalizeBounds = (bounds) => {
+  if (!bounds || typeof bounds !== 'object') return null;
+  const latMin = parseNumber(bounds.latMin);
+  const latMax = parseNumber(bounds.latMax);
+  const lonMin = parseNumber(bounds.lonMin);
+  const lonMax = parseNumber(bounds.lonMax);
+  if ([latMin, latMax, lonMin, lonMax].some(v => v === null)) return null;
+  return {
+    latMin: Math.min(latMin, latMax),
+    latMax: Math.max(latMin, latMax),
+    lonMin: Math.min(lonMin, lonMax),
+    lonMax: Math.max(lonMin, lonMax)
+  };
 };
 
 exports.handler = async (event) => {
@@ -195,6 +239,11 @@ exports.handler = async (event) => {
       body: JSON.stringify({ error: 'Invalid payload.' })
     };
   }
+
+  const confidenceLevel = normalizeConfidenceLevel(
+    payload.confidenceLevel ?? payload.confidence ?? payload.interval
+  ) || DEFAULT_CONF_LEVEL;
+  const zScore = getZScore(confidenceLevel);
 
   const latitude = parseNumber(payload.latitude ?? payload.lat);
   const longitude = parseNumber(payload.longitude ?? payload.lon ?? payload.lng);
@@ -245,33 +294,39 @@ exports.handler = async (event) => {
     };
   }
 
-  const inputs = {};
-  if (coeffKeys.has('cost')) inputs.cost = cost;
-  if (coeffKeys.has('orderHour')) inputs.orderHour = orderHour;
-  if (coeffKeys.has('deliveryMinutes')) inputs.deliveryMinutes = deliveryMinutes;
-  if (coeffKeys.has('rain')) inputs.rain = rain;
-  if (coeffKeys.has('maxTemp')) inputs.maxTemp = maxTemp;
-  if (coeffKeys.has('minTemp')) inputs.minTemp = minTemp;
   const cityValues = model.categories?.city?.values || [];
   const cityBaseline = model.categories?.city?.baseline || '';
-  cityValues.forEach((cityName) => {
-    if (cityName !== cityBaseline) {
-      const key = `city:${cityName}`;
-      if (coeffKeys.has(key)) {
-        inputs[key] = cityName === city ? 1 : 0;
-      }
-    }
+  const cityKeyList = cityValues.filter((cityName) => {
+    if (cityName === cityBaseline) return false;
+    return coeffKeys.has(`city:${cityName}`);
   });
   const housingValues = model.categories?.housing?.values || [];
   const housingBaseline = model.categories?.housing?.baseline || '';
-  housingValues.forEach((housingName) => {
-    if (housingName !== housingBaseline) {
-      const key = `housing:${housingName}`;
-      if (coeffKeys.has(key)) {
-        inputs[key] = housingName === housing ? 1 : 0;
-      }
-    }
+  const housingKeyList = housingValues.filter((housingName) => {
+    if (housingName === housingBaseline) return false;
+    return coeffKeys.has(`housing:${housingName}`);
   });
+
+  const baseInputs = {};
+  if (coeffKeys.has('cost') && cost !== null) baseInputs.cost = cost;
+  if (coeffKeys.has('orderHour') && orderHour !== null) baseInputs.orderHour = orderHour;
+  if (coeffKeys.has('deliveryMinutes') && deliveryMinutes !== null) baseInputs.deliveryMinutes = deliveryMinutes;
+  if (coeffKeys.has('rain') && rain !== null) baseInputs.rain = rain;
+  if (coeffKeys.has('maxTemp') && maxTemp !== null) baseInputs.maxTemp = maxTemp;
+  if (coeffKeys.has('minTemp') && minTemp !== null) baseInputs.minTemp = minTemp;
+
+  const buildInputsForLocation = (cityName, housingName) => {
+    const inputs = { ...baseInputs };
+    cityKeyList.forEach((name) => {
+      inputs[`city:${name}`] = name === cityName ? 1 : 0;
+    });
+    housingKeyList.forEach((name) => {
+      inputs[`housing:${name}`] = name === housingName ? 1 : 0;
+    });
+    return inputs;
+  };
+
+  const inputs = buildInputsForLocation(city, housing);
 
   const tipTransform = getTransform('tip');
   const tipPctTransform = getTransform('tipPercent');
@@ -279,12 +334,76 @@ exports.handler = async (event) => {
   const tipPctPredictionTransformed = predictValue(model.coefficients.tipPercent, inputs);
   const tipPrediction = clampMin(inverseTransform(tipPredictionTransformed, tipTransform), 0);
   const tipPctPrediction = clampMin(inverseTransform(tipPctPredictionTransformed, tipPctTransform), 0);
+  const predictForInputs = (inputValues) => {
+    const tipTransformed = predictValue(model.coefficients.tip, inputValues);
+    const tipValue = clampMin(inverseTransform(tipTransformed, tipTransform), 0);
+    const tipPctTransformed = predictValue(model.coefficients.tipPercent, inputValues);
+    const tipPctValue = clampMin(inverseTransform(tipPctTransformed, tipPctTransform), 0);
+    return { tip: tipValue, tipPercent: tipPctValue };
+  };
 
-  const tipInterval = buildIntervalTransformed(tipPredictionTransformed, model.metrics.tip.rmse, tipTransform);
-  const tipPctInterval = buildIntervalTransformed(tipPctPredictionTransformed, model.metrics.tipPercent.rmse, tipPctTransform);
+  const tipInterval = buildIntervalTransformed(
+    tipPredictionTransformed,
+    model.metrics.tip.rmse,
+    tipTransform,
+    confidenceLevel,
+    zScore
+  );
+  const tipPctInterval = buildIntervalTransformed(
+    tipPctPredictionTransformed,
+    model.metrics.tipPercent.rmse,
+    tipPctTransform,
+    confidenceLevel,
+    zScore
+  );
 
   tipInterval.low = clampMin(tipInterval.low, 0);
   tipPctInterval.low = clampMin(tipPctInterval.low, 0);
+
+  let heatmap = null;
+  if (payload.grid) {
+    const gridBounds = normalizeBounds(payload.grid.bounds) || {
+      latMin: model.bounds.latitude.min,
+      latMax: model.bounds.latitude.max,
+      lonMin: model.bounds.longitude.min,
+      lonMax: model.bounds.longitude.max
+    };
+    const rows = clampInt(payload.grid.rows, 10, 40, 24);
+    const cols = clampInt(payload.grid.cols, 10, 40, 24);
+    const latSpan = gridBounds.latMax - gridBounds.latMin;
+    const lonSpan = gridBounds.lonMax - gridBounds.lonMin;
+    const latStep = rows > 1 ? latSpan / (rows - 1) : 0;
+    const lonStep = cols > 1 ? lonSpan / (cols - 1) : 0;
+    const points = [];
+    let minTip = Infinity;
+    let maxTip = -Infinity;
+    for (let r = 0; r < rows; r++) {
+      const lat = gridBounds.latMin + latStep * r;
+      for (let c = 0; c < cols; c++) {
+        const lon = gridBounds.lonMin + lonStep * c;
+        const resolved = resolveCity(lat, lon);
+        if (!resolved.city) continue;
+        const gridInputs = buildInputsForLocation(resolved.city, housing);
+        const prediction = predictForInputs(gridInputs);
+        if (!Number.isFinite(prediction.tip)) continue;
+        points.push({ lat, lon, tip: prediction.tip });
+        minTip = Math.min(minTip, prediction.tip);
+        maxTip = Math.max(maxTip, prediction.tip);
+      }
+    }
+    if (!Number.isFinite(minTip) || !Number.isFinite(maxTip)) {
+      minTip = 0;
+      maxTip = 0;
+    }
+    heatmap = {
+      bounds: gridBounds,
+      rows,
+      cols,
+      min: minTip,
+      max: maxTip,
+      points
+    };
+  }
 
   const warnings = [];
   addRangeWarning(warnings, 'Latitude', latitude, model.bounds.latitude);
@@ -341,6 +460,7 @@ exports.handler = async (event) => {
         interval: tipPctInterval
       }
     },
+    heatmap,
     breakdown: {
       tip: { ...buildBreakdown(model.coefficients.tip, inputs), scale: tipTransform },
       tipPercent: { ...buildBreakdown(model.coefficients.tipPercent, inputs), scale: tipPctTransform }
