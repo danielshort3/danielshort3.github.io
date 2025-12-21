@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <base href="/">
+  <title>COVID Outbreak Drivers Demo</title>
+  <meta name="theme-color" content="#f7f3ea" />
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Work+Sans:wght@400;500;600&display=swap">
+  <style>
+    :root {
+      --bg: #f7f3ea;
+      --surface: #fffaf3;
+      --surface-2: #f2ebe1;
+      --surface-3: #eae3d8;
+      --text: #201a14;
+      --muted: #6b6156;
+      --accent: #d9752d;
+      --accent-2: #2e7d7b;
+      --border: #e1d7c8;
+      --shadow: 0 20px 50px rgba(39, 31, 22, 0.12);
+      --risk-low: #2f9d62;
+      --risk-elevated: #f59f00;
+      --risk-high: #d64545;
+      --risk-none: #b6afa4;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --page-pad: clamp(12px, 3vw, 22px);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    html[data-embedded="true"],
+    html[data-embedded="true"] body {
+      height: auto !important;
+      min-height: 0 !important;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Work Sans", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 500px at 50% -15%, rgba(217, 117, 45, 0.15), transparent 60%),
+        radial-gradient(900px 500px at 110% 10%, rgba(46, 125, 123, 0.18), transparent 55%),
+        var(--bg);
+      display: grid;
+      place-items: start center;
+      padding: var(--page-pad);
+      overflow-x: hidden;
+    }
+
+    #demo-box {
+      width: min(1200px, 100%);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      min-height: calc(100vh - var(--page-pad) * 2);
+      animation: rise 0.6s ease both;
+    }
+
+    @supports (height: 100dvh) {
+      #demo-box {
+        min-height: calc(100dvh - var(--page-pad) * 2 - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      }
+    }
+
+    html[data-embedded="true"] #demo-box {
+      min-height: 0 !important;
+    }
+
+    header.card-header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 22px 14px;
+      background: linear-gradient(135deg, rgba(217, 117, 45, 0.08), rgba(46, 125, 123, 0.1));
+      border-bottom: 1px solid var(--border);
+    }
+
+    .title-group {
+      display: grid;
+      gap: 6px;
+    }
+
+    .title {
+      margin: 0;
+      font-family: "Space Grotesk", "Work Sans", sans-serif;
+      font-weight: 700;
+      font-size: clamp(1.2rem, 2vw, 1.6rem);
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+      max-width: 560px;
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 22px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface-2);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      border: 1px solid transparent;
+    }
+
+    .status-pill[data-state="ok"] {
+      background: rgba(47, 157, 98, 0.15);
+      color: #1f6a43;
+      border-color: rgba(47, 157, 98, 0.3);
+    }
+
+    .status-pill[data-state="warn"] {
+      background: rgba(245, 159, 0, 0.16);
+      color: #8a5b00;
+      border-color: rgba(245, 159, 0, 0.35);
+    }
+
+    .status-pill[data-state="err"] {
+      background: rgba(214, 69, 69, 0.16);
+      color: #8c1e1e;
+      border-color: rgba(214, 69, 69, 0.35);
+    }
+
+    .status-meta {
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      gap: 22px;
+      padding: 20px 22px 24px;
+    }
+
+    .panel {
+      background: var(--surface-2);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      padding: 16px;
+      display: grid;
+      gap: 16px;
+      min-height: 0;
+    }
+
+    .panel h2,
+    .panel h3 {
+      margin: 0;
+      font-family: "Space Grotesk", "Work Sans", sans-serif;
+      font-weight: 600;
+    }
+
+    .map-wrap {
+      display: grid;
+      gap: 14px;
+    }
+
+    .map-grid {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(26px, 1fr));
+      grid-auto-rows: clamp(28px, 4vw, 38px);
+      gap: 6px;
+      position: relative;
+    }
+
+    .state-tile {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      animation: fadeIn 0.4s ease both;
+      animation-delay: var(--delay, 0ms);
+    }
+
+    .state-tile[data-risk="low"] {
+      background: color-mix(in srgb, var(--risk-low) 85%, white 15%);
+      color: #f8fff9;
+    }
+
+    .state-tile[data-risk="elevated"] {
+      background: color-mix(in srgb, var(--risk-elevated) 85%, white 15%);
+      color: #fff7e6;
+    }
+
+    .state-tile[data-risk="high"] {
+      background: color-mix(in srgb, var(--risk-high) 88%, white 12%);
+      color: #fff1f1;
+    }
+
+    .state-tile[data-risk="unknown"] {
+      background: var(--surface-3);
+      color: var(--muted);
+    }
+
+    .state-tile[data-active="true"] {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 6px 16px rgba(32, 26, 20, 0.25);
+      border-color: var(--accent);
+    }
+
+    .state-tile:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .map-tooltip {
+      position: absolute;
+      pointer-events: none;
+      background: #1e1a16;
+      color: #fdf6ed;
+      font-size: 0.75rem;
+      padding: 6px 10px;
+      border-radius: 8px;
+      opacity: 0;
+      transform: translate(-50%, -6px);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      white-space: nowrap;
+      z-index: 5;
+    }
+
+    .map-tooltip.visible {
+      opacity: 1;
+      transform: translate(-50%, -10px);
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 14px;
+      align-items: center;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .legend .key {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .legend .swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .controls {
+      display: grid;
+      gap: 10px;
+    }
+
+    .control-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+    }
+
+    .date-display {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .risk-pill {
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border: 1px solid transparent;
+    }
+
+    .risk-pill[data-risk="low"] {
+      background: rgba(47, 157, 98, 0.14);
+      color: #1f6a43;
+      border-color: rgba(47, 157, 98, 0.3);
+    }
+
+    .risk-pill[data-risk="elevated"] {
+      background: rgba(245, 159, 0, 0.16);
+      color: #8a5b00;
+      border-color: rgba(245, 159, 0, 0.35);
+    }
+
+    .risk-pill[data-risk="high"] {
+      background: rgba(214, 69, 69, 0.16);
+      color: #8c1e1e;
+      border-color: rgba(214, 69, 69, 0.35);
+    }
+
+    .risk-pill[data-risk="unknown"] {
+      background: rgba(182, 175, 164, 0.2);
+      color: #6b6156;
+      border-color: rgba(182, 175, 164, 0.4);
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .metric {
+      padding: 12px;
+      background: var(--surface);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      display: grid;
+      gap: 6px;
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .metric-value {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .drivers {
+      display: grid;
+      gap: 10px;
+    }
+
+    .drivers ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 8px;
+    }
+
+    .drivers li {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.82rem;
+    }
+
+    .drivers .driver-label {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .drivers .driver-value {
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .trend {
+      background: var(--surface);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .trend svg {
+      width: 100%;
+      height: 140px;
+    }
+
+    .trend .legend {
+      justify-content: flex-start;
+      gap: 14px;
+    }
+
+    .hotspots {
+      display: grid;
+      gap: 12px;
+    }
+
+    .hotspots ol {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    .hotspots li {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .hotspots .hotspot-score {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .territories {
+      display: grid;
+      gap: 8px;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .territories ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 6px;
+    }
+
+    .territories li {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .empty-note {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    @media (max-width: 980px) {
+      .content {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .metrics {
+        grid-template-columns: 1fr;
+      }
+
+      .map-grid {
+        grid-template-columns: repeat(12, minmax(22px, 1fr));
+      }
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+  </style>
+  <script>
+    if (window.self !== window.top) {
+      document.documentElement.setAttribute("data-embedded", "true");
+    }
+  </script>
+</head>
+<body>
+  <div id="demo-box" role="application" aria-label="COVID outbreak drivers demo">
+    <header class="card-header">
+      <div class="title-group">
+        <h1 class="title">COVID Outbreak Drivers</h1>
+        <p class="subtitle">Explore 7-day ICU breach risk by state with SHAP-inspired drivers. Move the date slider to surface emerging hotspots.</p>
+      </div>
+    </header>
+
+    <div class="status-row">
+      <span class="status-pill" id="connection-pill" data-state="warn">Loading data</span>
+      <span class="status-meta" id="connection-meta">Connecting to AWS Lambda</span>
+    </div>
+
+    <div class="content">
+      <section class="panel">
+        <div class="map-wrap">
+          <div class="control-row">
+            <div>
+              <h2>Risk Map</h2>
+              <div class="empty-note">Hover a state for a quick readout.</div>
+            </div>
+            <div class="date-display" id="date-value">--</div>
+          </div>
+          <div class="map-grid" id="map-grid" aria-label="State risk map" role="list"></div>
+          <div class="map-tooltip" id="map-tooltip" role="tooltip"></div>
+          <div class="legend">
+            <span class="key"><span class="swatch" style="background:var(--risk-low)"></span> Low</span>
+            <span class="key"><span class="swatch" style="background:var(--risk-elevated)"></span> Elevated</span>
+            <span class="key"><span class="swatch" style="background:var(--risk-high)"></span> High</span>
+            <span class="key"><span class="swatch" style="background:var(--surface-3)"></span> Missing</span>
+          </div>
+        </div>
+
+        <div class="controls">
+          <div class="control-row">
+            <div class="empty-note" id="date-range">--</div>
+            <div class="empty-note">Drag to change date</div>
+          </div>
+          <input id="date-slider" type="range" min="0" max="0" value="0" step="1" aria-label="Date slider" />
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="detail-header">
+          <h2 id="state-title">Select a state</h2>
+          <span class="risk-pill" id="risk-pill" data-risk="unknown">No data</span>
+        </div>
+
+        <div class="metrics">
+          <div class="metric">
+            <div class="metric-label">7-day breach probability</div>
+            <div class="metric-value" id="prob-value">--</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Adult ICU utilization</div>
+            <div class="metric-value" id="icu-value">--</div>
+          </div>
+        </div>
+
+        <div class="drivers">
+          <h3>Top drivers</h3>
+          <ul id="drivers-list"></ul>
+        </div>
+
+        <div class="trend">
+          <h3>Recent trend (45 days)</h3>
+          <svg id="trend-chart" viewBox="0 0 360 140" preserveAspectRatio="none"></svg>
+          <div class="legend">
+            <span class="key"><span class="swatch" style="background:var(--accent)"></span> Risk</span>
+            <span class="key"><span class="swatch" style="background:var(--accent-2)"></span> ICU</span>
+          </div>
+        </div>
+
+        <div class="hotspots">
+          <h3>Top hotspots</h3>
+          <ol id="hotspots-list"></ol>
+        </div>
+
+        <div class="territories" id="territories-panel">
+          <h3>Territories</h3>
+          <ul id="territories-list"></ul>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script type="module">
+    const DEFAULT_API_URL = "https://lv4inwnj6yyo3kfdajpk2v5eda0hrtao.lambda-url.us-east-2.on.aws/";
+    const STORAGE_KEY = "covid_outbreak_api";
+
+    const notifyResize = (() => {
+      const CHANNEL = "covid-outbreak-demo-resize";
+      const calcHeight = () => {
+        const doc = document.documentElement;
+        const body = document.body || doc;
+        return Math.ceil(Math.max(
+          body.scrollHeight,
+          body.offsetHeight,
+          doc.clientHeight,
+          doc.scrollHeight,
+          doc.offsetHeight
+        ));
+      };
+      const postHeight = () => {
+        try { parent.postMessage({ type: CHANNEL, height: calcHeight() }, "*"); } catch (err) {}
+      };
+      window.addEventListener("load", postHeight);
+      try { document.fonts?.ready?.then(postHeight); } catch (err) {}
+      if ("ResizeObserver" in window) {
+        const ro = new ResizeObserver(() => postHeight());
+        ro.observe(document.documentElement);
+      } else {
+        let prev = 0;
+        setInterval(() => {
+          const h = calcHeight();
+          if (Math.abs(h - prev) > 4) {
+            prev = h;
+            postHeight();
+          }
+        }, 750);
+      }
+      return postHeight;
+    })();
+
+    const STATE_TILES = [
+      { id: "WA", col: 1, row: 1 },
+      { id: "ID", col: 2, row: 1 },
+      { id: "MT", col: 3, row: 1 },
+      { id: "ND", col: 4, row: 1 },
+      { id: "MN", col: 5, row: 1 },
+      { id: "WI", col: 6, row: 1 },
+      { id: "MI", col: 7, row: 1 },
+      { id: "VT", col: 8, row: 1 },
+      { id: "NH", col: 9, row: 1 },
+      { id: "ME", col: 10, row: 1 },
+      { id: "OR", col: 1, row: 2 },
+      { id: "NV", col: 2, row: 2 },
+      { id: "WY", col: 3, row: 2 },
+      { id: "SD", col: 4, row: 2 },
+      { id: "IA", col: 5, row: 2 },
+      { id: "IL", col: 6, row: 2 },
+      { id: "IN", col: 7, row: 2 },
+      { id: "OH", col: 8, row: 2 },
+      { id: "PA", col: 9, row: 2 },
+      { id: "NY", col: 10, row: 2 },
+      { id: "MA", col: 11, row: 2 },
+      { id: "CA", col: 1, row: 3 },
+      { id: "UT", col: 2, row: 3 },
+      { id: "CO", col: 3, row: 3 },
+      { id: "NE", col: 4, row: 3 },
+      { id: "MO", col: 5, row: 3 },
+      { id: "KY", col: 6, row: 3 },
+      { id: "WV", col: 7, row: 3 },
+      { id: "VA", col: 8, row: 3 },
+      { id: "MD", col: 9, row: 3 },
+      { id: "NJ", col: 10, row: 3 },
+      { id: "CT", col: 11, row: 3 },
+      { id: "RI", col: 12, row: 3 },
+      { id: "AZ", col: 1, row: 4 },
+      { id: "NM", col: 2, row: 4 },
+      { id: "KS", col: 3, row: 4 },
+      { id: "AR", col: 4, row: 4 },
+      { id: "TN", col: 5, row: 4 },
+      { id: "NC", col: 6, row: 4 },
+      { id: "SC", col: 7, row: 4 },
+      { id: "DE", col: 8, row: 4 },
+      { id: "DC", col: 9, row: 4 },
+      { id: "OK", col: 2, row: 5 },
+      { id: "LA", col: 3, row: 5 },
+      { id: "MS", col: 4, row: 5 },
+      { id: "AL", col: 5, row: 5 },
+      { id: "GA", col: 6, row: 5 },
+      { id: "FL", col: 7, row: 5 },
+      { id: "TX", col: 2, row: 6 },
+      { id: "AK", col: 1, row: 7 },
+      { id: "HI", col: 2, row: 7 }
+    ];
+
+    const DOM = {
+      mapGrid: document.getElementById("map-grid"),
+      tooltip: document.getElementById("map-tooltip"),
+      connectionPill: document.getElementById("connection-pill"),
+      connectionMeta: document.getElementById("connection-meta"),
+      dateValue: document.getElementById("date-value"),
+      dateRange: document.getElementById("date-range"),
+      dateSlider: document.getElementById("date-slider"),
+      stateTitle: document.getElementById("state-title"),
+      riskPill: document.getElementById("risk-pill"),
+      probValue: document.getElementById("prob-value"),
+      icuValue: document.getElementById("icu-value"),
+      driversList: document.getElementById("drivers-list"),
+      hotspotsList: document.getElementById("hotspots-list"),
+      territoriesPanel: document.getElementById("territories-panel"),
+      territoriesList: document.getElementById("territories-list"),
+      trendChart: document.getElementById("trend-chart")
+    };
+
+    const cache = {
+      byDate: new Map(),
+      state: new Map()
+    };
+
+    const appState = {
+      dates: [],
+      activeDate: null,
+      states: new Map(),
+      activeState: null,
+      endpoint: null,
+      meta: null
+    };
+
+    const numberFormat = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+
+    function normalizeBase(url) {
+      if (!url) return DEFAULT_API_URL;
+      return url.endsWith("/") ? url : `${url}/`;
+    }
+
+    function getEndpoint() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const qs = params.get("endpoint") || params.get("fn");
+        if (qs) {
+          localStorage.setItem(STORAGE_KEY, qs);
+          return normalizeBase(qs);
+        }
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) return normalizeBase(stored);
+      } catch (err) {
+        console.warn(err);
+      }
+      return normalizeBase(DEFAULT_API_URL);
+    }
+
+    function setConnection(state, text) {
+      DOM.connectionPill.dataset.state = state;
+      DOM.connectionPill.textContent = text;
+    }
+
+    async function fetchJson(path) {
+      const res = await fetch(`${appState.endpoint}${path}`);
+      if (!res.ok) {
+        throw new Error(`Request failed: ${res.status}`);
+      }
+      return res.json();
+    }
+
+    function formatPercent(value) {
+      if (value === null || value === undefined || Number.isNaN(value)) {
+        return "--";
+      }
+      return `${(value * 100).toFixed(1)}%`;
+    }
+
+    function formatCount(value) {
+      if (value === null || value === undefined || Number.isNaN(value)) {
+        return "--";
+      }
+      return numberFormat.format(Math.round(value));
+    }
+
+    function formatRisk(risk) {
+      if (risk === "high") return "High";
+      if (risk === "elevated") return "Elevated";
+      if (risk === "low") return "Low";
+      return "No data";
+    }
+
+    function renderTiles() {
+      DOM.mapGrid.innerHTML = "";
+      STATE_TILES.forEach((tile, idx) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "state-tile";
+        button.dataset.state = tile.id;
+        button.style.gridColumn = tile.col;
+        button.style.gridRow = tile.row;
+        button.style.setProperty("--delay", `${idx * 12}ms`);
+        button.textContent = tile.id;
+        button.setAttribute("aria-label", tile.id);
+        button.addEventListener("mouseenter", onTileHover);
+        button.addEventListener("mouseleave", hideTooltip);
+        button.addEventListener("focus", onTileHover);
+        button.addEventListener("blur", hideTooltip);
+        button.addEventListener("click", () => selectState(tile.id));
+        DOM.mapGrid.appendChild(button);
+      });
+    }
+
+    function onTileHover(event) {
+      const tile = event.currentTarget;
+      const stateId = tile.dataset.state;
+      const data = appState.states.get(stateId);
+      if (!data) return;
+      const tooltip = DOM.tooltip;
+      tooltip.textContent = `${data.name}: ${formatPercent(data.prob)}`;
+      const rect = tile.getBoundingClientRect();
+      const gridRect = DOM.mapGrid.getBoundingClientRect();
+      tooltip.style.left = `${rect.left - gridRect.left + rect.width / 2}px`;
+      tooltip.style.top = `${rect.top - gridRect.top}px`;
+      tooltip.classList.add("visible");
+    }
+
+    function hideTooltip() {
+      DOM.tooltip.classList.remove("visible");
+    }
+
+    function updateMap() {
+      const tiles = DOM.mapGrid.querySelectorAll(".state-tile");
+      tiles.forEach((tile) => {
+        const stateId = tile.dataset.state;
+        const data = appState.states.get(stateId);
+        const risk = data ? data.risk : "unknown";
+        tile.dataset.risk = risk || "unknown";
+        tile.dataset.active = appState.activeState === stateId;
+        tile.setAttribute("aria-label", data ? `${data.name} ${formatPercent(data.prob)}` : stateId);
+      });
+    }
+
+    function updateHotspots(list) {
+      if (!Array.isArray(list)) {
+        DOM.hotspotsList.innerHTML = "<li>No data</li>";
+        return;
+      }
+      DOM.hotspotsList.innerHTML = list.map((item) => {
+        return `<li><span>${item.name}</span><span class="hotspot-score">${formatPercent(item.prob)}</span></li>`;
+      }).join("");
+    }
+
+    function updateTerritories(states) {
+      const territories = states.filter((item) => !item.inMap);
+      if (!territories.length) {
+        DOM.territoriesPanel.style.display = "none";
+        return;
+      }
+      DOM.territoriesPanel.style.display = "grid";
+      DOM.territoriesList.innerHTML = territories.map((item) => {
+        return `<li><span>${item.name}</span><span>${formatPercent(item.prob)}</span></li>`;
+      }).join("");
+    }
+
+    function updateDrivers(drivers) {
+      if (!drivers || !drivers.length) {
+        DOM.driversList.innerHTML = "<li class=\"empty-note\">No drivers available</li>";
+        return;
+      }
+      DOM.driversList.innerHTML = drivers.map((driver) => {
+        const value = driver.format === "pct" ? formatPercent(driver.value) : formatCount(driver.value);
+        return `<li><span class=\"driver-label\">${driver.label}</span><span class=\"driver-value\">${value}</span></li>`;
+      }).join("");
+    }
+
+    function updateTrend(history) {
+      const svg = DOM.trendChart;
+      svg.innerHTML = "";
+      if (!history || history.length === 0) {
+        svg.innerHTML = "<text x=\"16\" y=\"24\" fill=\"#6b6156\" font-size=\"12\">No history available</text>";
+        return;
+      }
+      const slice = history.slice(-45);
+      const width = 360;
+      const height = 140;
+      const pad = 16;
+      const maxX = slice.length - 1 || 1;
+      const probValues = slice.map((d) => d.prob || 0);
+      const icuValues = slice.map((d) => d.icuUtilization || 0);
+      const maxVal = Math.max(0.1, ...probValues, ...icuValues);
+
+      function buildPath(values) {
+        return values.map((val, idx) => {
+          const x = pad + (idx / maxX) * (width - pad * 2);
+          const y = height - pad - (val / maxVal) * (height - pad * 2);
+          return `${idx === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+        }).join(" ");
+      }
+
+      const grid = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      grid.setAttribute("x1", pad);
+      grid.setAttribute("x2", width - pad);
+      grid.setAttribute("y1", height - pad);
+      grid.setAttribute("y2", height - pad);
+      grid.setAttribute("stroke", "#e1d7c8");
+      grid.setAttribute("stroke-width", "1");
+      svg.appendChild(grid);
+
+      const probPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      probPath.setAttribute("d", buildPath(probValues));
+      probPath.setAttribute("fill", "none");
+      probPath.setAttribute("stroke", "var(--accent)");
+      probPath.setAttribute("stroke-width", "2.5");
+      probPath.setAttribute("stroke-linecap", "round");
+      svg.appendChild(probPath);
+
+      const icuPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      icuPath.setAttribute("d", buildPath(icuValues));
+      icuPath.setAttribute("fill", "none");
+      icuPath.setAttribute("stroke", "var(--accent-2)");
+      icuPath.setAttribute("stroke-width", "2");
+      icuPath.setAttribute("stroke-linecap", "round");
+      icuPath.setAttribute("stroke-dasharray", "5 4");
+      svg.appendChild(icuPath);
+    }
+
+    async function loadStateHistory(stateId) {
+      if (cache.state.has(stateId)) {
+        return cache.state.get(stateId);
+      }
+      try {
+        const data = await fetchJson(`state/${stateId}`);
+        cache.state.set(stateId, data);
+        return data;
+      } catch (err) {
+        console.warn(err);
+        return null;
+      }
+    }
+
+    function selectState(stateId) {
+      appState.activeState = stateId;
+      updateMap();
+      const data = appState.states.get(stateId);
+      if (!data) {
+        DOM.stateTitle.textContent = "No data";
+        DOM.riskPill.dataset.risk = "unknown";
+        DOM.riskPill.textContent = "No data";
+        DOM.probValue.textContent = "--";
+        DOM.icuValue.textContent = "--";
+        updateDrivers([]);
+        updateTrend([]);
+        return;
+      }
+      DOM.stateTitle.textContent = data.name;
+      DOM.riskPill.dataset.risk = data.risk || "unknown";
+      DOM.riskPill.textContent = formatRisk(data.risk);
+      DOM.probValue.textContent = formatPercent(data.prob);
+      DOM.icuValue.textContent = formatPercent(data.icuUtilization);
+      updateDrivers(data.drivers);
+      loadStateHistory(stateId).then((payload) => {
+        updateTrend(payload ? payload.history : []);
+      });
+    }
+
+    async function loadDate(dateStr) {
+      if (cache.byDate.has(dateStr)) {
+        return cache.byDate.get(dateStr);
+      }
+      const data = await fetchJson(`states?date=${dateStr}`);
+      cache.byDate.set(dateStr, data);
+      return data;
+    }
+
+    function syncDateUI(index) {
+      const date = appState.dates[index];
+      if (!date) return;
+      DOM.dateValue.textContent = date;
+      DOM.dateRange.textContent = `${appState.dates[0]} to ${appState.dates[appState.dates.length - 1]}`;
+    }
+
+    async function handleDateChange(index) {
+      const date = appState.dates[index];
+      if (!date) return;
+      appState.activeDate = date;
+      syncDateUI(index);
+      const payload = await loadDate(date);
+      appState.states = new Map(payload.states.map((item) => [item.id, item]));
+      updateMap();
+      updateHotspots(payload.hotspots);
+      updateTerritories(payload.states);
+      if (!appState.activeState) {
+        const mappedHotspot = payload.hotspots?.find((item) => appState.states.get(item.id)?.inMap);
+        const mappedState = payload.states?.find((item) => item.inMap);
+        selectState((mappedHotspot || mappedState || payload.states?.[0])?.id);
+      } else {
+        selectState(appState.activeState);
+      }
+    }
+
+    async function init() {
+      appState.endpoint = getEndpoint();
+      renderTiles();
+      try {
+        const meta = await fetchJson("meta");
+        appState.meta = meta;
+        appState.dates = meta.dates || [];
+        if (!appState.dates.length) {
+          throw new Error("No dates available");
+        }
+        const latestIdx = appState.dates.length - 1;
+        DOM.dateSlider.max = String(latestIdx);
+        DOM.dateSlider.value = String(latestIdx);
+        setConnection("ok", "Connected");
+        DOM.connectionMeta.textContent = "Live data loaded from AWS";
+        DOM.dateSlider.addEventListener("input", (event) => {
+          handleDateChange(Number(event.target.value));
+        });
+        await handleDateChange(latestIdx);
+      } catch (err) {
+        console.error(err);
+        setConnection("err", "Offline");
+        DOM.connectionMeta.textContent = "Unable to reach AWS Lambda. Check the endpoint.";
+        DOM.dateSlider.disabled = true;
+        DOM.dateValue.textContent = "--";
+        updateMap();
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

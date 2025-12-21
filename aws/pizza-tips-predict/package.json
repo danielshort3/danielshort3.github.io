@@ -1,0 +1,12 @@
+{
+  "name": "pizza-tips-predict",
+  "version": "1.0.0",
+  "description": "Lambda Function URL for pizza tip regression predictions",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

@@ -198,7 +198,7 @@ try {
     const contentNode = { focus() {}, querySelectorAll: () => [], addEventListener() {} };
     const modalNode = {
       id: 'proj1-modal',
-      classList: { add() {}, remove() {} },
+      classList: { add() {}, remove() {}, contains() { return true; } },
       dataset: {},
       addEventListener() {},
       querySelector(selector) {
