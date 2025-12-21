@@ -27,10 +27,7 @@ def build_key(*parts):
 
 def json_response(status_code, payload, extra_headers=None):
   headers = {
-    "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "content-type",
-    "Access-Control-Allow-Methods": "GET,POST,OPTIONS"
+    "Content-Type": "application/json"
   }
   if extra_headers:
     headers.update(extra_headers)
