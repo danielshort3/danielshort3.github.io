@@ -915,6 +915,9 @@
         if (!stateId) return;
         const bounds = path.bounds(feature);
         const centroid = path.centroid(feature);
+        if (!Number.isFinite(centroid[0]) || !Number.isFinite(centroid[1])) return;
+        if (!Number.isFinite(bounds[0][0]) || !Number.isFinite(bounds[0][1]) ||
+            !Number.isFinite(bounds[1][0]) || !Number.isFinite(bounds[1][1])) return;
         const w = bounds[1][0] - bounds[0][0];
         const h = bounds[1][1] - bounds[0][1];
         const area = w * h;
@@ -934,6 +937,9 @@
           labelY = centroid[1] + offset[1];
           anchor = offset[0] < 0 ? "end" : "start";
           outside = "true";
+        }
+        if (!Number.isFinite(labelX) || !Number.isFinite(labelY)) return;
+        if (isSmall) {
           const leader = document.createElementNS("http://www.w3.org/2000/svg", "line");
           leader.setAttribute("class", "state-leader");
           leader.setAttribute("data-state", stateId);
