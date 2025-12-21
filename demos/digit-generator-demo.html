@@ -305,7 +305,7 @@
       </label>
       <label>
         Latent value
-        <input id="value-slider" type="range" min="-10" max="10" step="0.1" value="0">
+        <input id="value-slider" type="range" min="-2" max="2" step="0.2" value="0">
         <div class="value-row">
           <span>Value</span>
           <span id="value-label">0.0</span>
@@ -327,7 +327,6 @@
         <div class="stat"><span>Latency</span> <strong id="stat-latency">-</strong></div>
         <div class="btn-row">
           <button id="new-seed-btn" class="btn-secondary" type="button">New Seed</button>
-          <button id="animate-btn" class="btn-secondary" type="button">Animate</button>
           <button id="refresh-btn" class="btn-primary" type="button">Generate</button>
         </div>
       </aside>
@@ -337,10 +336,6 @@
   <script type="module">
     const DEFAULT_FN_URL = "https://w7jbsr55oggohong42ii6wo3jq0bvkvq.lambda-url.us-east-2.on.aws/";
     const GRID_SIZES = [4, 6, 8];
-    const VALUE_MIN = -10;
-    const VALUE_MAX = 10;
-    const ANIM_STEP = 1;
-    const ANIM_DELAY = 650;
 
     function normalizeBase(url) { return url.endsWith('/') ? url : `${url}/`; }
     function candidates() {
@@ -391,7 +386,6 @@
     const statLatency = document.getElementById('stat-latency');
 
     const newSeedBtn = document.getElementById('new-seed-btn');
-    const animateBtn = document.getElementById('animate-btn');
     const refreshBtn = document.getElementById('refresh-btn');
 
     let debounceId = null;
@@ -401,9 +395,6 @@
     let gridRows = gridSize;
     let gridCols = gridSize;
     let lastSeed = null;
-    let animating = false;
-    let animDirection = 1;
-    let animTimer = null;
     let currentState = {
       seed: null,
       dim: 0,
@@ -568,73 +559,27 @@
       }
     }
 
-    function stopAnimation() {
-      if (!animating) return;
-      animating = false;
-      if (animTimer) clearTimeout(animTimer);
-      animTimer = null;
-      animateBtn.textContent = 'Animate';
-    }
-
-    function runAnimationTick(value) {
-      if (!animating) return;
-      valueSlider.value = String(value);
-      setValueLabel();
-      fetchGrid();
-      let nextValue = value + (animDirection * ANIM_STEP);
-      if (nextValue > VALUE_MAX) {
-        animDirection = -1;
-        nextValue = VALUE_MAX - ANIM_STEP;
-      } else if (nextValue < VALUE_MIN) {
-        animDirection = 1;
-        nextValue = VALUE_MIN + ANIM_STEP;
-      }
-      animTimer = setTimeout(() => runAnimationTick(nextValue), ANIM_DELAY);
-    }
-
-    function startAnimation() {
-      if (animating) return;
-      animating = true;
-      animateBtn.textContent = 'Stop';
-      ensureSeed(false);
-      animDirection = 1;
-      runAnimationTick(VALUE_MIN);
-    }
-
     valueSlider.addEventListener('input', () => {
-      stopAnimation();
       setValueLabel();
       scheduleFetch(140);
     });
     dimSelect.addEventListener('change', () => {
-      stopAnimation();
       scheduleFetch(120);
     });
     gridSelect.addEventListener('change', () => {
-      stopAnimation();
       const next = Number(gridSelect.value);
       setGridSize(Number.isFinite(next) ? next : gridSize);
       fetchGrid();
     });
     seedInput.addEventListener('change', () => {
-      stopAnimation();
       fetchGrid();
     });
     newSeedBtn.addEventListener('click', () => {
-      stopAnimation();
       ensureSeed(true);
       fetchGrid();
     });
     refreshBtn.addEventListener('click', () => {
-      stopAnimation();
       fetchGrid();
-    });
-    animateBtn.addEventListener('click', () => {
-      if (animating) {
-        stopAnimation();
-      } else {
-        startAnimation();
-      }
     });
 
     buildDimOptions(latentDim);
