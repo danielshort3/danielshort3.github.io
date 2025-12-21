@@ -321,15 +321,6 @@
     .breakdown-list span {
       color: var(--muted);
     }
-    .endpoint-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-    }
-    .endpoint-row input {
-      flex: 1 1 240px;
-    }
     @media (max-width: 900px) {
       .grid {
         grid-template-columns: 1fr;
@@ -349,7 +340,7 @@
         <p class="subhead">Click the map, set the scenario, and estimate tip amount + percentage.</p>
       </div>
       <div class="status">
-        <div class="pill" id="api-status">API: not set</div>
+        <div class="pill" id="api-status">API: ready</div>
       </div>
     </header>
 
@@ -366,14 +357,6 @@
         </div>
 
         <form id="scenario-form" class="panel" autocomplete="off">
-          <div class="input-row">
-            <label for="endpoint">Lambda URL (optional)</label>
-            <div class="endpoint-row">
-              <input id="endpoint" type="text" inputmode="url" placeholder="https://...lambda-url.../" />
-              <button id="endpoint-save" class="btn secondary" type="button">Save</button>
-            </div>
-          </div>
-
           <div class="inline-fields">
             <div class="input-row">
               <label for="lat">Latitude</label>
@@ -505,9 +488,8 @@
       minTemp: 'Min Temp'
     };
 
+    const API_URL = normalizeBase(DEFAULT_FN_URL);
     const statusEl = document.getElementById('api-status');
-    const endpointInput = document.getElementById('endpoint');
-    const endpointSave = document.getElementById('endpoint-save');
     const latInput = document.getElementById('lat');
     const lonInput = document.getElementById('lon');
     const costInput = document.getElementById('cost');
@@ -541,19 +523,6 @@
       } catch {
         return '';
       }
-    }
-
-    function getEndpointCandidates() {
-      const out = [];
-      try {
-        const qs = new URLSearchParams(location.search);
-        const fromQs = qs.get('fn') || qs.get('endpoint');
-        const fromStore = localStorage.getItem('pizza_tips_fn_url');
-        if (fromQs) out.push(normalizeBase(fromQs));
-        if (fromStore && fromStore !== fromQs) out.push(normalizeBase(fromStore));
-      } catch {}
-      if (DEFAULT_FN_URL) out.push(normalizeBase(DEFAULT_FN_URL));
-      return Array.from(new Set(out)).filter(Boolean);
     }
 
     function setStatus(state, text) {
@@ -763,32 +732,9 @@
       }
     }
 
-    function resolveEndpoint() {
-      const candidates = getEndpointCandidates();
-      if (!candidates.length) return '';
-      return candidates[0];
-    }
-
-    function initEndpoint() {
-      const stored = localStorage.getItem('pizza_tips_fn_url');
-      endpointInput.value = stored || DEFAULT_FN_URL || '';
-      setStatus('', endpointInput.value ? 'API: ready' : 'API: not set');
-    }
-
-    endpointSave.addEventListener('click', () => {
-      const value = endpointInput.value.trim();
-      if (value) {
-        localStorage.setItem('pizza_tips_fn_url', value);
-        setStatus('ok', 'API: saved');
-      } else {
-        localStorage.removeItem('pizza_tips_fn_url');
-        setStatus('', 'API: not set');
-      }
-    });
-
     populateHours();
     populateHousing();
-    initEndpoint();
+    setStatus(API_URL ? 'ok' : 'err', API_URL ? 'API: ready' : 'API: missing URL');
     setInputs(DEFAULTS);
 
     const map = L.map('map', { zoomControl: true });
@@ -850,8 +796,7 @@
 
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
-      const endpoint = normalizeBase(endpointInput.value || resolveEndpoint());
-      if (!endpoint) {
+      if (!API_URL) {
         setStatus('err', 'API: missing URL');
         return;
       }
@@ -865,7 +810,7 @@
       }
       setStatus('', 'API: working');
       try {
-        const result = await postToEndpoint(endpoint, currentPayload());
+        const result = await postToEndpoint(API_URL, currentPayload());
         applyResponse(result);
         setStatus('ok', 'API: ready');
       } catch (err) {
