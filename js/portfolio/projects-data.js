@@ -841,10 +841,14 @@ window.PROJECTS = [
     tools: ["Python", "scikit-learn"],
     concepts: ["Machine Learning"],
     resources: [
+      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/baby-names-demo", label: "Live Demo" },
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Baby-Names", label: "GitHub" },
       { icon: "img/icons/pdf-icon.png",    url: "documents/Project_2.pdf",                    label: "PDFs"  },
       { icon: "img/icons/jupyter-icon.png",url: "documents/Project_2.ipynb",                  label: "Notebook"}
     ],
+    embed: {
+      url: "baby-names-demo.html"
+    },
     problem : "My wife wanted me to come up with new baby names to suggest to her. I wanted to use data-backed insights to solve this problem.",
     actions : [
       "Aggregated & cleaned over 140 years of SSA records, engineering trend and saturation features.",

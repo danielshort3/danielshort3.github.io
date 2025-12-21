@@ -51,6 +51,8 @@
     { "source": "/sentence-demo.html","destination": "/demos/sentence-demo" },
     { "source": "/covid-outbreak-demo",     "destination": "/demos/covid-outbreak-demo" },
     { "source": "/covid-outbreak-demo.html","destination": "/demos/covid-outbreak-demo" },
+    { "source": "/baby-names-demo",     "destination": "/demos/baby-names-demo" },
+    { "source": "/baby-names-demo.html","destination": "/demos/baby-names-demo" },
     { "source": "/nonogram-demo",     "destination": "/demos/nonogram-demo" },
     { "source": "/nonogram-demo.html","destination": "/demos/nonogram-demo" },
     { "source": "/digit-generator-demo",     "destination": "/demos/digit-generator-demo" },

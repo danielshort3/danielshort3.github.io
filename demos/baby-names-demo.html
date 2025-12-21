@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <base href="/">
+  <title>Baby Names Analysis Demo</title>
+
+  <meta name="theme-color" content="#0D1117">
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@600&display=swap">
+
+  <style>
+    :root {
+      --radius: 14px;
+      --shadow-1: 0 2px 10px rgba(0,0,0,.06), 0 1px 4px rgba(0,0,0,.06);
+      --shadow-2: 0 8px 30px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.08);
+      --surface-2: var(--surface-light);
+      --text: var(--text-light);
+      --muted: var(--text-muted);
+      --accent: var(--primary);
+      --good: var(--success);
+      --warn: var(--warning);
+      --bad: var(--danger);
+      --page-pad: clamp(12px, 3vw, 24px);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { height: 100%; }
+    html[data-embedded="true"],
+    html[data-embedded="true"] body {
+      height: auto !important;
+      min-height: 0 !important;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background: radial-gradient(1200px 500px at 50% -10%, color-mix(in srgb, var(--primary) 15%, transparent), transparent 60%) var(--bg);
+      display: grid;
+      place-items: start center;
+      padding: var(--page-pad);
+      overflow-x: hidden;
+    }
+
+    #demo-box {
+      width: min(100%, 1100px);
+      background: var(--surface);
+      border: 1px solid var(--surface-accent);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-2);
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      min-height: calc(100vh - var(--page-pad) * 2);
+    }
+
+    @supports (height: 100dvh) {
+      #demo-box {
+        min-height: calc(100dvh - var(--page-pad) * 2 - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      }
+    }
+
+    html[data-embedded="true"] #demo-box {
+      min-height: 0 !important;
+    }
+
+    header.card-header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 18px;
+      background: linear-gradient(0deg, var(--surface), var(--surface-2));
+      border-bottom: 1px solid var(--surface-accent);
+    }
+
+    .title-group {
+      display: grid;
+      gap: 6px;
+      min-width: 240px;
+    }
+
+    .title {
+      font-family: Poppins, Inter, system-ui, sans-serif;
+      font-weight: 600;
+      margin: 0 0 4px 0;
+      font-size: 1.1rem;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+      max-width: 58ch;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .segment {
+      display: inline-flex;
+      padding: 4px;
+      border-radius: 999px;
+      border: 1px solid var(--surface-accent);
+      background: color-mix(in srgb, var(--surface) 85%, #000 15%);
+      gap: 4px;
+    }
+
+    .segment button {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .segment button.is-active {
+      background: color-mix(in srgb, var(--primary) 22%, transparent);
+      color: color-mix(in srgb, var(--primary) 88%, #ffffff 12%);
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      border-bottom: 1px solid var(--surface-accent);
+      background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--primary) 6%, transparent));
+      flex-wrap: wrap;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      border: 1px solid transparent;
+    }
+
+    .status-pill[data-state="ok"] {
+      background: color-mix(in srgb, var(--success) 18%, transparent);
+      color: color-mix(in srgb, var(--success) 70%, #ffffff 30%);
+      border-color: color-mix(in srgb, var(--success) 40%, transparent);
+    }
+
+    .status-pill[data-state="warn"] {
+      background: color-mix(in srgb, var(--warning) 18%, transparent);
+      color: color-mix(in srgb, var(--warning) 72%, #ffffff 28%);
+      border-color: color-mix(in srgb, var(--warning) 42%, transparent);
+    }
+
+    .status-meta {
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: 18px;
+      padding: 18px;
+    }
+
+    .panel {
+      background: color-mix(in srgb, var(--surface) 92%, #000 8%);
+      border-radius: var(--radius);
+      border: 1px solid var(--surface-accent);
+      padding: 16px;
+      display: grid;
+      gap: 16px;
+      min-height: 0;
+    }
+
+    .panel h2,
+    .panel h3 {
+      margin: 0;
+      font-family: Poppins, Inter, system-ui, sans-serif;
+      font-weight: 600;
+    }
+
+    .panel-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .meta-chip {
+      font-size: 0.72rem;
+      color: var(--muted);
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--surface-accent);
+      background: color-mix(in srgb, var(--surface) 90%, #000 10%);
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .stat-card {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--surface-accent);
+      background: color-mix(in srgb, var(--surface) 88%, #000 12%);
+      display: grid;
+      gap: 4px;
+    }
+
+    .stat-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .stat-value {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .mini-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 6px;
+    }
+
+    .mini-list li {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid var(--surface-accent);
+      background: color-mix(in srgb, var(--surface) 86%, #000 14%);
+      font-size: 0.82rem;
+    }
+
+    .mini-list strong {
+      font-weight: 600;
+    }
+
+    .bars {
+      display: grid;
+      gap: 6px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 26px 1fr 36px;
+      gap: 8px;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .bar-track {
+      height: 8px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--surface) 80%, #000 20%);
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: var(--accent);
+      width: 0;
+      transition: width 0.3s ease;
+    }
+
+    .tabs {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .tab-btn {
+      border: 1px solid var(--surface-accent);
+      background: color-mix(in srgb, var(--surface) 90%, #000 10%);
+      color: var(--muted);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .tab-btn.is-active {
+      color: color-mix(in srgb, var(--primary) 88%, #ffffff 12%);
+      border-color: color-mix(in srgb, var(--primary) 55%, transparent);
+      background: color-mix(in srgb, var(--primary) 18%, transparent);
+    }
+
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .filter-row input,
+    .filter-row select {
+      border-radius: 10px;
+      border: 1px solid var(--surface-accent);
+      background: color-mix(in srgb, var(--surface) 90%, #000 10%);
+      color: var(--text);
+      padding: 8px 10px;
+      font-size: 0.8rem;
+    }
+
+    .name-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 8px;
+      max-height: 360px;
+      overflow: auto;
+    }
+
+    .name-item {
+      display: grid;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--surface-accent);
+      background: color-mix(in srgb, var(--surface) 86%, #000 14%);
+    }
+
+    .name-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .name-text {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .name-chip {
+      font-size: 0.7rem;
+      color: var(--muted);
+      border: 1px solid var(--surface-accent);
+      padding: 2px 8px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .name-score {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .score-value {
+      font-weight: 600;
+      font-size: 0.86rem;
+      min-width: 40px;
+    }
+
+    .score-track {
+      height: 8px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--surface) 80%, #000 20%);
+      overflow: hidden;
+    }
+
+    .score-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: var(--accent);
+      width: 0;
+    }
+
+    .name-meta {
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .empty-state {
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px dashed var(--surface-accent);
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (max-width: 980px) {
+      .content {
+        grid-template-columns: 1fr;
+      }
+
+      .name-list {
+        max-height: none;
+      }
+    }
+  </style>
+  <script>
+    if (window.self !== window.top) {
+      document.documentElement.setAttribute("data-embedded", "true");
+    }
+  </script>
+</head>
+<body>
+  <div id="demo-box" role="application" aria-label="Baby names analysis demo">
+    <header class="card-header">
+      <div class="title-group">
+        <h1 class="title">Baby Name Signals</h1>
+        <p class="subtitle">Interactive look at my wife's ratings and similarity-based recommendations.</p>
+      </div>
+      <div class="header-actions">
+        <div class="segment" role="tablist" aria-label="Name sex">
+          <button class="segment-btn is-active" type="button" data-sex="F" aria-pressed="true">Girls</button>
+          <button class="segment-btn" type="button" data-sex="M" aria-pressed="false">Boys</button>
+          <button class="segment-btn" type="button" data-sex="all" aria-pressed="false">All</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="status-row">
+      <span class="status-pill" id="status-pill" data-state="warn">Loading</span>
+      <span class="status-meta" id="status-meta">Fetching demo data...</span>
+    </div>
+
+    <main class="content">
+      <section class="panel">
+        <div class="panel-title">
+          <h2>Ratings Snapshot</h2>
+          <span class="meta-chip" id="meta-source">SSA latest</span>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-label">Rated Names</div>
+            <div class="stat-value" id="stat-rated">--</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Average Rating</div>
+            <div class="stat-value" id="stat-average">--</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Top Initial</div>
+            <div class="stat-value" id="stat-initial">--</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Common Ending</div>
+            <div class="stat-value" id="stat-ending">--</div>
+          </div>
+        </div>
+
+        <div>
+          <h3>Rating Distribution</h3>
+          <div class="bars" id="rating-bars"></div>
+        </div>
+
+        <div>
+          <h3>Favorites</h3>
+          <ul class="mini-list" id="top-rated"></ul>
+        </div>
+
+        <div>
+          <h3>Needs Work</h3>
+          <ul class="mini-list" id="bottom-rated"></ul>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">
+          <h2>Name Explorer</h2>
+          <div class="tabs" role="tablist" aria-label="Name lists">
+            <button class="tab-btn is-active" type="button" data-tab="recommendations" aria-pressed="true">Recommendations</button>
+            <button class="tab-btn" type="button" data-tab="ratings" aria-pressed="false">Rated Names</button>
+          </div>
+        </div>
+
+        <div class="filter-row">
+          <input id="name-search" type="search" placeholder="Search by name" aria-label="Search by name" />
+          <select id="sort-select" aria-label="Sort list">
+            <option value="score">Sort: Score high to low</option>
+            <option value="alpha">Sort: A to Z</option>
+          </select>
+        </div>
+
+        <div id="name-list-wrap">
+          <ul class="name-list" id="name-list"></ul>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const DATA_URL = "demos/data/baby-names.json";
+    const appState = {
+      data: null,
+      sex: "F",
+      tab: "recommendations",
+      query: "",
+      sort: "score"
+    };
+
+    const DOM = {
+      statusPill: document.getElementById("status-pill"),
+      statusMeta: document.getElementById("status-meta"),
+      metaSource: document.getElementById("meta-source"),
+      statRated: document.getElementById("stat-rated"),
+      statAverage: document.getElementById("stat-average"),
+      statInitial: document.getElementById("stat-initial"),
+      statEnding: document.getElementById("stat-ending"),
+      ratingBars: document.getElementById("rating-bars"),
+      topRated: document.getElementById("top-rated"),
+      bottomRated: document.getElementById("bottom-rated"),
+      nameList: document.getElementById("name-list"),
+      nameSearch: document.getElementById("name-search"),
+      sortSelect: document.getElementById("sort-select"),
+      segmentButtons: Array.from(document.querySelectorAll(".segment button")),
+      tabButtons: Array.from(document.querySelectorAll(".tab-btn"))
+    };
+
+    const notifyResize = (() => {
+      if (window.self === window.top) return () => {};
+      let lastHeight = 0;
+      const postHeight = () => {
+        const height = document.documentElement.scrollHeight;
+        if (Math.abs(height - lastHeight) < 4) return;
+        lastHeight = height;
+        window.parent.postMessage({ type: "baby-names-demo-resize", height }, "*");
+      };
+      window.addEventListener("load", () => requestAnimationFrame(postHeight));
+      window.addEventListener("resize", () => requestAnimationFrame(postHeight));
+      return postHeight;
+    })();
+
+    function setStatus(state, text, meta) {
+      DOM.statusPill.dataset.state = state;
+      DOM.statusPill.textContent = text;
+      if (meta !== undefined) DOM.statusMeta.textContent = meta;
+    }
+
+    function formatRating(value) {
+      if (value === null || value === undefined || Number.isNaN(value)) return "--";
+      return value.toFixed(1);
+    }
+
+    function titleCase(sex) {
+      if (sex === "M") return "Boys";
+      if (sex === "F") return "Girls";
+      return "All";
+    }
+
+    function collectRatings(sex) {
+      const ratings = appState.data?.ratings || {};
+      if (sex === "all") {
+        return [
+          ...(ratings.F || []).map((row) => ({ ...row, sex: "F" })),
+          ...(ratings.M || []).map((row) => ({ ...row, sex: "M" }))
+        ];
+      }
+      return (ratings[sex] || []).map((row) => ({ ...row, sex }));
+    }
+
+    function collectRecommendations(sex) {
+      const recs = appState.data?.recommendations || {};
+      if (sex === "all") {
+        return [
+          ...(recs.F || []).map((row) => ({ ...row, sex: "F" })),
+          ...(recs.M || []).map((row) => ({ ...row, sex: "M" }))
+        ];
+      }
+      return (recs[sex] || []).map((row) => ({ ...row, sex }));
+    }
+
+    function computeStats(ratings) {
+      const count = ratings.length;
+      const sum = ratings.reduce((acc, row) => acc + row.rating, 0);
+      const avg = count ? sum / count : 0;
+      const sorted = [...ratings].sort((a, b) => b.rating - a.rating || a.name.localeCompare(b.name));
+      const bottom = [...ratings].sort((a, b) => a.rating - b.rating || a.name.localeCompare(b.name));
+      const dist = Array.from({ length: 10 }, () => 0);
+      const initialCounts = new Map();
+      const endingCounts = new Map();
+      ratings.forEach((row) => {
+        dist[Math.min(9, Math.max(0, row.rating - 1))] += 1;
+        const initial = row.name[0]?.toUpperCase() || "";
+        const ending = row.name.slice(-1).toUpperCase() || "";
+        initialCounts.set(initial, (initialCounts.get(initial) || 0) + 1);
+        endingCounts.set(ending, (endingCounts.get(ending) || 0) + 1);
+      });
+      const topInitial = [...initialCounts.entries()].sort((a, b) => b[1] - a[1])[0];
+      const topEnding = [...endingCounts.entries()].sort((a, b) => b[1] - a[1])[0];
+      return {
+        count,
+        avg,
+        dist,
+        topInitial: topInitial ? `${topInitial[0]} (${topInitial[1]})` : "--",
+        topEnding: topEnding ? `${topEnding[0]} (${topEnding[1]})` : "--",
+        topRated: sorted.slice(0, 5),
+        bottomRated: bottom.slice(0, 5)
+      };
+    }
+
+    function renderStats() {
+      const ratings = collectRatings(appState.sex);
+      const stats = computeStats(ratings);
+      DOM.statRated.textContent = stats.count || "--";
+      DOM.statAverage.textContent = stats.count ? formatRating(stats.avg) : "--";
+      DOM.statInitial.textContent = stats.topInitial;
+      DOM.statEnding.textContent = stats.topEnding;
+
+      const maxCount = Math.max(...stats.dist, 1);
+      DOM.ratingBars.innerHTML = stats.dist.map((count, idx) => {
+        const rating = idx + 1;
+        const width = Math.round((count / maxCount) * 100);
+        return `
+          <div class="bar-row">
+            <span>${rating}</span>
+            <div class="bar-track"><div class="bar-fill" style="width:${width}%"></div></div>
+            <span>${count}</span>
+          </div>
+        `;
+      }).reverse().join("");
+
+      DOM.topRated.innerHTML = stats.topRated.length
+        ? stats.topRated.map((row) => `<li><strong>${row.name}</strong><span>${row.rating}/10</span></li>`).join("")
+        : "<li class=\"empty-state\">No ratings yet</li>";
+      DOM.bottomRated.innerHTML = stats.bottomRated.length
+        ? stats.bottomRated.map((row) => `<li><strong>${row.name}</strong><span>${row.rating}/10</span></li>`).join("")
+        : "<li class=\"empty-state\">No ratings yet</li>";
+      notifyResize();
+    }
+
+    function sortItems(items) {
+      if (appState.sort === "alpha") {
+        return items.sort((a, b) => a.name.localeCompare(b.name));
+      }
+      return items.sort((a, b) => {
+        const aScore = appState.tab === "ratings" ? a.rating : a.predicted;
+        const bScore = appState.tab === "ratings" ? b.rating : b.predicted;
+        return bScore - aScore || a.name.localeCompare(b.name);
+      });
+    }
+
+    function renderList() {
+      const source = appState.tab === "ratings"
+        ? collectRatings(appState.sex)
+        : collectRecommendations(appState.sex);
+      const query = appState.query.trim().toLowerCase();
+      let items = source.filter((row) => row.name.toLowerCase().includes(query));
+      items = sortItems(items).slice(0, 60);
+
+      if (!items.length) {
+        DOM.nameList.innerHTML = "<li class=\"empty-state\">No matching names</li>";
+        notifyResize();
+        return;
+      }
+
+      DOM.nameList.innerHTML = items.map((row) => {
+        const score = appState.tab === "ratings" ? row.rating : row.predicted;
+        const pct = Math.round((score / 10) * 100);
+        const tag = row.sex === "F" ? "Girl" : "Boy";
+        const meta = appState.tab === "ratings"
+          ? "Rated by my wife"
+          : `SSA count: ${row.count}`;
+        return `
+          <li class="name-item">
+            <div class="name-header">
+              <span class="name-text">${row.name}</span>
+              <span class="name-chip">${tag}</span>
+            </div>
+            <div class="name-score">
+              <span class="score-value">${score}/10</span>
+              <div class="score-track"><div class="score-fill" style="width:${pct}%"></div></div>
+            </div>
+            <div class="name-meta">${meta}</div>
+          </li>
+        `;
+      }).join("");
+      notifyResize();
+    }
+
+    function setSex(sex) {
+      appState.sex = sex;
+      DOM.segmentButtons.forEach((btn) => {
+        const active = btn.dataset.sex === sex;
+        btn.classList.toggle("is-active", active);
+        btn.setAttribute("aria-pressed", String(active));
+      });
+      renderStats();
+      renderList();
+    }
+
+    function setTab(tab) {
+      appState.tab = tab;
+      DOM.tabButtons.forEach((btn) => {
+        const active = btn.dataset.tab === tab;
+        btn.classList.toggle("is-active", active);
+        btn.setAttribute("aria-pressed", String(active));
+      });
+      DOM.sortSelect.value = tab === "ratings" ? "score" : DOM.sortSelect.value;
+      renderList();
+    }
+
+    async function init() {
+      try {
+        const res = await fetch(DATA_URL, { cache: "no-store" });
+        if (!res.ok) throw new Error("Data unavailable");
+        const data = await res.json();
+        appState.data = data;
+        DOM.metaSource.textContent = `SSA ${data.meta?.sourceYear || "latest"} (min ${data.meta?.minCount || ""})`;
+        setStatus("ok", "Data ready", `${titleCase(appState.sex)} names loaded`);
+        renderStats();
+        renderList();
+      } catch (err) {
+        console.error(err);
+        setStatus("warn", "Offline", "Demo data missing");
+        DOM.nameList.innerHTML = "<li class=\"empty-state\">Unable to load data</li>";
+      }
+    }
+
+    DOM.segmentButtons.forEach((btn) => {
+      btn.addEventListener("click", () => setSex(btn.dataset.sex));
+    });
+
+    DOM.tabButtons.forEach((btn) => {
+      btn.addEventListener("click", () => setTab(btn.dataset.tab));
+    });
+
+    DOM.nameSearch.addEventListener("input", (event) => {
+      appState.query = event.target.value || "";
+      renderList();
+    });
+
+    DOM.sortSelect.addEventListener("change", (event) => {
+      appState.sort = event.target.value;
+      renderList();
+    });
+
+    init();
+  </script>
+</body>
+</html>
