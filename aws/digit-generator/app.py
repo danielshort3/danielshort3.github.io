@@ -14,8 +14,8 @@ MODEL_PATH = os.path.join(os.path.dirname(__file__), "model", "VAE.pth")
 LATENT_DIM = int(os.getenv("LATENT_DIM", "20"))
 DEFAULT_ROWS = int(os.getenv("GRID_ROWS", "8"))
 DEFAULT_COLS = int(os.getenv("GRID_COLS", "8"))
-VALUE_MIN = float(os.getenv("VALUE_MIN", "-10"))
-VALUE_MAX = float(os.getenv("VALUE_MAX", "10"))
+VALUE_MIN = float(os.getenv("VALUE_MIN", "-20"))
+VALUE_MAX = float(os.getenv("VALUE_MAX", "20"))
 DEFAULT_MODE = os.getenv("SAMPLING_MODE", "cluster")
 LATENT_STATS_PATH = os.path.join(os.path.dirname(__file__), "latent_stats.json")
 
@@ -183,6 +183,7 @@ def tensor_to_base64(tensor):
 def build_axis_values(extent, count):
   if count <= 1:
     return np.array([0.0], dtype=np.float32)
+  extent = abs(float(extent))
   return np.linspace(-extent, extent, count, dtype=np.float32)
 
 

@@ -173,6 +173,17 @@
       font-size: .85rem;
     }
 
+    .settings-grid input[type="range"] {
+      width: 100%;
+      accent-color: var(--primary);
+      height: 6px;
+    }
+
+    .settings-grid .range-value {
+      font-size: .8rem;
+      color: var(--text);
+    }
+
     .latent-panel {
       padding-top: 10px;
       border-top: 1px solid var(--surface-accent);
@@ -396,22 +407,22 @@
         <div class="grid-controls">
           <button id="refresh-seed-btn" class="btn-secondary mini-btn" type="button">Refresh</button>
           <div class="grid-controls-group">
-            <label>
-              Mode
-              <select id="mode-select">
-                <option value="cluster" selected>Digit cluster</option>
-                <option value="random">Random</option>
-              </select>
-            </label>
-            <label>
-              Cluster
-              <select id="cluster-select">
-                <option value="auto" selected>Auto</option>
-                <option value="0">0</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
+          <label>
+            Mode
+            <select id="mode-select">
+              <option value="cluster" selected>Digit cluster</option>
+              <option value="random">Random</option>
+            </select>
+          </label>
+          <label class="cluster-control">
+            Cluster
+            <select id="cluster-select">
+              <option value="auto">Auto</option>
+              <option value="0" selected>0</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
                 <option value="5">5</option>
                 <option value="6">6</option>
                 <option value="7">7</option>
@@ -429,24 +440,18 @@
               <select id="dim-select"></select>
             </label>
             <div class="latent-range">
-              <label for="value-slider">Latent range</label>
-              <input id="value-slider" type="range" min="-10" max="10" step="0.2" value="6">
+              <label for="value-slider">Grid range</label>
+              <input id="value-slider" type="range" min="-20" max="20" step="0.2" value="12">
             </div>
           </div>
           <div class="value-row">
             <span>Range</span>
-            <span id="value-label">6.0</span>
+            <span id="value-label">12.0</span>
           </div>
         </div>
       </div>
 
       <aside class="panel" aria-live="polite">
-        <div class="stat"><span>Seed</span> <strong id="stat-seed">-</strong></div>
-        <div class="stat"><span>Mode</span> <strong id="stat-mode">-</strong></div>
-        <div class="stat"><span>Cluster digit</span> <strong id="stat-cluster">-</strong></div>
-        <div class="stat"><span>Dimensions</span> <strong id="stat-dim">-</strong></div>
-        <div class="stat"><span>Range</span> <strong id="stat-value">-</strong></div>
-        <div class="stat"><span>Latency</span> <strong id="stat-latency">-</strong></div>
         <details class="settings-panel">
           <summary>Extra settings</summary>
           <div class="settings-grid">
@@ -462,11 +467,13 @@
                 <option value="8" selected>8 x 8</option>
               </select>
             </label>
+            <label>
+              Grid range
+              <input id="range-slider" type="range" min="-20" max="20" step="0.2" value="12">
+              <span id="range-value-label" class="range-value">12.0</span>
+            </label>
           </div>
         </details>
-        <div class="btn-row">
-          <button id="refresh-btn" class="btn-primary" type="button">Generate</button>
-        </div>
       </aside>
     </div>
   </div>
@@ -515,20 +522,15 @@
     const gridSelect = document.getElementById('grid-select');
     const modeSelect = document.getElementById('mode-select');
     const clusterSelect = document.getElementById('cluster-select');
+    const clusterControl = document.querySelector('.cluster-control');
     const dimSelect = document.getElementById('dim-select');
     const valueSlider = document.getElementById('value-slider');
     const valueLabel = document.getElementById('value-label');
+    const rangeSlider = document.getElementById('range-slider');
+    const rangeValueLabel = document.getElementById('range-value-label');
     const statusEl = document.getElementById('status');
 
-    const statSeed = document.getElementById('stat-seed');
-    const statMode = document.getElementById('stat-mode');
-    const statCluster = document.getElementById('stat-cluster');
-    const statDim = document.getElementById('stat-dim');
-    const statValue = document.getElementById('stat-value');
-    const statLatency = document.getElementById('stat-latency');
-
     const refreshSeedBtn = document.getElementById('refresh-seed-btn');
-    const refreshBtn = document.getElementById('refresh-btn');
 
     let debounceId = null;
     let requestId = 0;
@@ -552,8 +554,19 @@
       statusEl.textContent = text;
     }
 
-    function setValueLabel() {
-      valueLabel.textContent = Number(valueSlider.value).toFixed(1);
+    function setValueLabel(value) {
+      const next = Number(value);
+      if (!Number.isFinite(next)) return;
+      valueLabel.textContent = next.toFixed(1);
+      if (rangeValueLabel) rangeValueLabel.textContent = next.toFixed(1);
+    }
+
+    function syncRange(value, source) {
+      const next = Number(value);
+      if (!Number.isFinite(next)) return;
+      if (source !== 'main') valueSlider.value = String(next);
+      if (rangeSlider && source !== 'extra') rangeSlider.value = String(next);
+      setValueLabel(next);
     }
 
     function parseSeedInput() {
@@ -644,6 +657,9 @@
 
     function syncModeState() {
       const isCluster = (modeSelect.value || 'cluster') === 'cluster';
+      if (clusterControl) {
+        clusterControl.hidden = !isCluster;
+      }
       clusterSelect.disabled = !isCluster;
       clusterSelect.setAttribute('aria-disabled', isCluster ? 'false' : 'true');
     }
@@ -692,7 +708,6 @@
 
       const id = ++requestId;
       setStatus('Generating grid...');
-      refreshBtn.disabled = true;
       try {
         const endpoints = candidates();
         let data = null;
@@ -720,18 +735,10 @@
           rows: data.rows ?? gridRows,
           cols: data.cols ?? gridCols
         };
-        statSeed.textContent = currentState.seed;
-        statMode.textContent = currentState.mode === 'random' ? 'Random' : 'Digit cluster';
-        statCluster.textContent = Number.isFinite(currentState.clusterDigit) ? currentState.clusterDigit : '-';
-        statDim.textContent = `${currentState.dim} / ${currentState.dimY}`;
-        statValue.textContent = Number(currentState.value).toFixed(1);
-        statLatency.textContent = data.duration_ms ? `${data.duration_ms} ms` : '-';
         setStatus('Grid updated.');
       } catch (err) {
         if (id !== requestId) return;
         setStatus('Failed to generate digits.');
-      } finally {
-        if (id === requestId) refreshBtn.disabled = false;
       }
     }
 
@@ -751,9 +758,15 @@
     }
 
     valueSlider.addEventListener('input', () => {
-      setValueLabel();
+      syncRange(valueSlider.value, 'main');
       scheduleFetch(140);
     });
+    if (rangeSlider) {
+      rangeSlider.addEventListener('input', () => {
+        syncRange(rangeSlider.value, 'extra');
+        scheduleFetch(140);
+      });
+    }
     dimSelect.addEventListener('change', () => {
       scheduleFetch(120);
     });
@@ -778,12 +791,9 @@
       ensureSeed(true);
       fetchGrid();
     });
-    refreshBtn.addEventListener('click', () => {
-      fetchGrid();
-    });
 
     buildDimOptions(latentDim);
-    setValueLabel();
+    syncRange(valueSlider.value, 'main');
     setGridSize(gridSize);
     gridSelect.value = String(gridSize);
     syncModeState();
