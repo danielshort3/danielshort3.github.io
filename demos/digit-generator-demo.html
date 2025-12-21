@@ -125,6 +125,36 @@
       color: var(--text-muted);
     }
 
+    .latent-panel {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--surface-accent);
+      display: grid;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .latent-panel label {
+      font-size: .9rem;
+      color: var(--text-muted);
+      display: grid;
+      gap: 8px;
+    }
+
+    .latent-panel input[type="range"] {
+      width: 100%;
+      height: 6px;
+      accent-color: var(--primary);
+    }
+
+    .latent-panel .value-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: .95rem;
+      color: var(--text);
+    }
+
     .status {
       padding: 0 16px 8px;
       font-size: .85rem;
@@ -307,16 +337,24 @@
         </select>
       </label>
       <label>
-        Latent dimension
-        <select id="dim-select"></select>
+        Cluster digit
+        <select id="cluster-select">
+          <option value="auto" selected>Auto</option>
+          <option value="0">0</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+        </select>
       </label>
       <label>
-        Latent value
-        <input id="value-slider" type="range" min="-2" max="2" step="0.2" value="0">
-        <div class="value-row">
-          <span>Value</span>
-          <span id="value-label">0.0</span>
-        </div>
+        Latent dimension
+        <select id="dim-select"></select>
       </label>
     </div>
 
@@ -325,14 +363,22 @@
     <div class="content">
       <div class="grid-shell">
         <div class="grid" id="grid" aria-live="polite"></div>
+        <div class="latent-panel">
+          <label for="value-slider">Latent range</label>
+          <input id="value-slider" type="range" min="-10" max="10" step="0.2" value="6">
+          <div class="value-row">
+            <span>Range</span>
+            <span id="value-label">6.0</span>
+          </div>
+        </div>
       </div>
 
       <aside class="panel" aria-live="polite">
         <div class="stat"><span>Seed</span> <strong id="stat-seed">-</strong></div>
         <div class="stat"><span>Mode</span> <strong id="stat-mode">-</strong></div>
         <div class="stat"><span>Cluster digit</span> <strong id="stat-cluster">-</strong></div>
-        <div class="stat"><span>Dimension</span> <strong id="stat-dim">-</strong></div>
-        <div class="stat"><span>Value</span> <strong id="stat-value">-</strong></div>
+        <div class="stat"><span>Dimensions</span> <strong id="stat-dim">-</strong></div>
+        <div class="stat"><span>Range</span> <strong id="stat-value">-</strong></div>
         <div class="stat"><span>Latency</span> <strong id="stat-latency">-</strong></div>
         <div class="btn-row">
           <button id="new-seed-btn" class="btn-secondary" type="button">New Seed</button>
@@ -385,6 +431,7 @@
     const seedInput = document.getElementById('seed-input');
     const gridSelect = document.getElementById('grid-select');
     const modeSelect = document.getElementById('mode-select');
+    const clusterSelect = document.getElementById('cluster-select');
     const dimSelect = document.getElementById('dim-select');
     const valueSlider = document.getElementById('value-slider');
     const valueLabel = document.getElementById('value-label');
@@ -412,6 +459,7 @@
       mode: 'cluster',
       clusterDigit: null,
       dim: 0,
+      dimY: 1,
       value: 0,
       rows: gridRows,
       cols: gridCols
@@ -458,17 +506,47 @@
       return fixed.replace('-', 'neg').replace('.', 'p');
     }
 
+    const DOWNLOAD_BASE_SIZE = 28;
+    const DOWNLOAD_SCALE = 20;
+    const DOWNLOAD_SIZE = DOWNLOAD_BASE_SIZE * DOWNLOAD_SCALE;
+
     function downloadImage(base64, index) {
       const seed = currentState.seed ?? ensureSeed();
       const dim = currentState.dim ?? Number(dimSelect.value || 0);
       const value = currentState.value ?? Number(valueSlider.value || 0);
       const fileName = `digit_seed-${seed}_dim-${dim}_val-${formatValueForFile(value)}_cell-${index}.png`;
-      const link = document.createElement('a');
-      link.href = `data:image/png;base64,${base64}`;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = DOWNLOAD_SIZE;
+        canvas.height = DOWNLOAD_SIZE;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        ctx.imageSmoothingEnabled = false;
+        ctx.clearRect(0, 0, DOWNLOAD_SIZE, DOWNLOAD_SIZE);
+        ctx.drawImage(img, 0, 0, DOWNLOAD_SIZE, DOWNLOAD_SIZE);
+        if (canvas.toBlob) {
+          canvas.toBlob((blob) => {
+            if (!blob) return;
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+          }, 'image/png');
+        } else {
+          const link = document.createElement('a');
+          link.href = canvas.toDataURL('image/png');
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+        }
+      };
+      img.src = `data:image/png;base64,${base64}`;
     }
 
     function setGridSize(size) {
@@ -479,6 +557,12 @@
       currentState.rows = gridRows;
       currentState.cols = gridCols;
       gridEl.style.setProperty('--grid-cols', String(gridCols));
+    }
+
+    function syncModeState() {
+      const isCluster = (modeSelect.value || 'cluster') === 'cluster';
+      clusterSelect.disabled = !isCluster;
+      clusterSelect.setAttribute('aria-disabled', isCluster ? 'false' : 'true');
     }
 
     function updateGrid(images) {
@@ -509,11 +593,14 @@
     async function fetchGrid() {
       const seed = ensureSeed();
       const mode = modeSelect.value || 'cluster';
+      const clusterValue = clusterSelect.value;
+      const clusterDigit = clusterValue === 'auto' ? null : Number(clusterValue);
       const dim = Number(dimSelect.value || 0);
       const value = Number(valueSlider.value || 0);
       const payload = {
         seed,
         mode,
+        cluster_digit: Number.isFinite(clusterDigit) ? clusterDigit : null,
         dim,
         value,
         rows: gridRows,
@@ -545,6 +632,7 @@
           mode: data.mode || mode,
           clusterDigit: Number.isFinite(data.cluster_digit) ? data.cluster_digit : null,
           dim: data.dim ?? dim,
+          dimY: Number.isFinite(data.dim_y) ? data.dim_y : ((data.dim ?? dim) + 1) % latentDim,
           value: typeof data.value === 'number' ? data.value : value,
           rows: data.rows ?? gridRows,
           cols: data.cols ?? gridCols
@@ -552,8 +640,8 @@
         statSeed.textContent = currentState.seed;
         statMode.textContent = currentState.mode === 'random' ? 'Random' : 'Digit cluster';
         statCluster.textContent = Number.isFinite(currentState.clusterDigit) ? currentState.clusterDigit : '-';
-        statDim.textContent = currentState.dim;
-        statValue.textContent = Number(currentState.value).toFixed(2);
+        statDim.textContent = `${currentState.dim} / ${currentState.dimY}`;
+        statValue.textContent = Number(currentState.value).toFixed(1);
         statLatency.textContent = data.duration_ms ? `${data.duration_ms} ms` : '-';
         setStatus('Grid updated.');
       } catch (err) {
@@ -592,7 +680,13 @@
       fetchGrid();
     });
     modeSelect.addEventListener('change', () => {
+      syncModeState();
       fetchGrid();
+    });
+    clusterSelect.addEventListener('change', () => {
+      if ((modeSelect.value || 'cluster') === 'cluster') {
+        fetchGrid();
+      }
     });
     seedInput.addEventListener('change', () => {
       fetchGrid();
@@ -609,6 +703,7 @@
     setValueLabel();
     setGridSize(gridSize);
     gridSelect.value = String(gridSize);
+    syncModeState();
     ensureSeed(true);
     fetchGrid();
   </script>

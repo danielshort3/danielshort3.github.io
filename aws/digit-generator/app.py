@@ -14,9 +14,8 @@ MODEL_PATH = os.path.join(os.path.dirname(__file__), "model", "VAE.pth")
 LATENT_DIM = int(os.getenv("LATENT_DIM", "20"))
 DEFAULT_ROWS = int(os.getenv("GRID_ROWS", "8"))
 DEFAULT_COLS = int(os.getenv("GRID_COLS", "8"))
-VALUE_MIN = float(os.getenv("VALUE_MIN", "-2"))
-VALUE_MAX = float(os.getenv("VALUE_MAX", "2"))
-VALUE_STEP = float(os.getenv("VALUE_STEP", "0.2"))
+VALUE_MIN = float(os.getenv("VALUE_MIN", "-10"))
+VALUE_MAX = float(os.getenv("VALUE_MAX", "10"))
 DEFAULT_MODE = os.getenv("SAMPLING_MODE", "cluster")
 LATENT_STATS_PATH = os.path.join(os.path.dirname(__file__), "latent_stats.json")
 
@@ -181,26 +180,10 @@ def tensor_to_base64(tensor):
   img.save(buf, format="PNG")
   return base64.b64encode(buf.getvalue()).decode("utf-8")
 
-def build_sweep_values(center, rows, cols):
-  count = rows * cols
+def build_axis_values(extent, count):
   if count <= 1:
-    return torch.tensor([center], dtype=torch.float32)
-  step = VALUE_STEP if VALUE_STEP > 0 else 0.2
-  base = np.arange(VALUE_MIN, VALUE_MAX + (step / 2), step, dtype=np.float32)
-  if base.size == 0:
-    base = np.array([VALUE_MIN, VALUE_MAX], dtype=np.float32)
-  if base.size == 1:
-    seq = np.full(count, base[0], dtype=np.float32)
-  else:
-    ping = np.concatenate([base, base[-2:0:-1]])
-    mid = count // 2
-    center_idx = int(np.argmin(np.abs(ping - center)))
-    start_idx = (center_idx - mid) % ping.size
-    seq = np.array([ping[(start_idx + i) % ping.size] for i in range(count)], dtype=np.float32)
-  grid = seq.reshape(rows, cols)
-  for row in range(1, rows, 2):
-    grid[row] = grid[row][::-1]
-  return torch.from_numpy(grid.flatten())
+    return np.array([0.0], dtype=np.float32)
+  return np.linspace(-extent, extent, count, dtype=np.float32)
 
 
 def build_base_vector(mode, seed, cluster_digit):
@@ -222,7 +205,7 @@ def build_base_vector(mode, seed, cluster_digit):
   return base, "random", None
 
 
-def generate_grid(seed, dim, value, rows, cols, mode, cluster_digit):
+def generate_grid(seed, dim_x, dim_y, value, rows, cols, mode, cluster_digit):
   model = load_model()
   count = rows * cols
   torch.manual_seed(seed)
@@ -230,8 +213,13 @@ def generate_grid(seed, dim, value, rows, cols, mode, cluster_digit):
 
   base, resolved_mode, resolved_digit = build_base_vector(mode, seed, cluster_digit)
   latents = base.unsqueeze(0).repeat(count, 1)
-  sweep = build_sweep_values(value, rows, cols)
-  latents[:, dim] = sweep
+  axis_x = torch.tensor(build_axis_values(value, cols), dtype=torch.float32)
+  axis_y = torch.tensor(build_axis_values(value, rows), dtype=torch.float32)
+  for row in range(rows):
+    for col in range(cols):
+      idx = row * cols + col
+      latents[idx, dim_x] = axis_x[col]
+      latents[idx, dim_y] = axis_y[row]
   with torch.no_grad():
     decoded = model.decode(latents).cpu()
 
@@ -272,6 +260,10 @@ def handler(event, context):
   cluster_digit = payload.get("cluster_digit", payload.get("digit"))
   dim = payload.get("dim", payload.get("dimension", 0))
   dim = coerce_int(dim, 0, 0, LATENT_DIM - 1)
+  dim_y = payload.get("dim_y", payload.get("dimY", payload.get("dimension_y")))
+  dim_y = coerce_int(dim_y, (dim + 1) % LATENT_DIM, 0, LATENT_DIM - 1)
+  if dim_y == dim:
+    dim_y = (dim + 1) % LATENT_DIM
   value = payload.get("value", payload.get("latent_value", 0.0))
   value = coerce_float(value, 0.0, VALUE_MIN, VALUE_MAX)
 
@@ -282,7 +274,7 @@ def handler(event, context):
   cols = coerce_int(cols, DEFAULT_COLS, 1, 8)
 
   try:
-    images, resolved_mode, resolved_digit = generate_grid(seed, dim, value, rows, cols, mode, cluster_digit)
+    images, resolved_mode, resolved_digit = generate_grid(seed, dim, dim_y, value, rows, cols, mode, cluster_digit)
     duration_ms = int((time.time() - start) * 1000)
     return {
       "statusCode": 200,
@@ -292,6 +284,7 @@ def handler(event, context):
         "mode": resolved_mode,
         "cluster_digit": resolved_digit,
         "dim": dim,
+        "dim_y": dim_y,
         "value": value,
         "rows": rows,
         "cols": cols,
