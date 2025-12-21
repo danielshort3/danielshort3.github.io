@@ -5,7 +5,7 @@ Server-side linear regression for pizza tip predictions. Keeps coefficients priv
 ### AWS resources
 
 - **Lambda**: `pizza-tips-predict` (runtime `nodejs18.x`)
-- **Lambda Function URL**: enable `Auth: NONE` with CORS
+- **Lambda Function URL**: `https://2d6lrg4ozy564xymwi2epjbqty0nvhje.lambda-url.us-east-2.on.aws/`
 
 ### Environment variables
 
