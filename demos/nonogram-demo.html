@@ -139,14 +139,6 @@
       overflow: hidden;
     }
 
-    .board-corner {
-      grid-column: 1;
-      grid-row: 1;
-      border-radius: 10px;
-      background: color-mix(in srgb, var(--surface) 80%, #000 20%);
-      border: 1px solid var(--surface-accent);
-    }
-
     .clues-top {
       grid-column: 2 / span 5;
       grid-row: 1;
@@ -348,7 +340,6 @@
 
     <div class="content">
       <div class="board-shell" aria-label="Nonogram board">
-        <div class="board-corner" aria-hidden="true"></div>
         <div class="clues-top" id="clues-top"></div>
         <div class="clues-left" id="clues-left"></div>
         <div class="grid" id="grid"></div>

@@ -185,61 +185,64 @@
     .map-wrap {
       display: grid;
       gap: 14px;
-    }
-
-    .map-grid {
-      display: grid;
-      grid-template-columns: repeat(12, minmax(26px, 1fr));
-      grid-auto-rows: clamp(28px, 4vw, 38px);
-      gap: 6px;
       position: relative;
     }
 
-    .state-tile {
-      border: 1px solid var(--border);
+    .map-svg {
+      position: relative;
       background: var(--surface);
-      border-radius: 10px;
-      display: grid;
-      place-items: center;
-      font-size: 0.7rem;
-      font-weight: 600;
-      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 8px;
+      overflow: hidden;
+      min-height: clamp(280px, 45vw, 420px);
+    }
+
+    #map-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .state-shape {
+      fill: var(--surface-3);
+      stroke: #fdf6ed;
+      stroke-width: 1;
+      vector-effect: non-scaling-stroke;
       cursor: pointer;
-      position: relative;
-      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-      animation: fadeIn 0.4s ease both;
-      animation-delay: var(--delay, 0ms);
+      transition: fill 0.2s ease, filter 0.2s ease, stroke 0.2s ease;
     }
 
-    .state-tile[data-risk="low"] {
-      background: color-mix(in srgb, var(--risk-low) 85%, white 15%);
-      color: #f8fff9;
+    .state-shape:hover {
+      filter: brightness(1.04);
     }
 
-    .state-tile[data-risk="elevated"] {
-      background: color-mix(in srgb, var(--risk-elevated) 85%, white 15%);
-      color: #fff7e6;
+    .state-shape[data-risk="low"] {
+      fill: color-mix(in srgb, var(--risk-low) 85%, white 15%);
     }
 
-    .state-tile[data-risk="high"] {
-      background: color-mix(in srgb, var(--risk-high) 88%, white 12%);
-      color: #fff1f1;
+    .state-shape[data-risk="elevated"] {
+      fill: color-mix(in srgb, var(--risk-elevated) 85%, white 15%);
     }
 
-    .state-tile[data-risk="unknown"] {
-      background: var(--surface-3);
-      color: var(--muted);
+    .state-shape[data-risk="high"] {
+      fill: color-mix(in srgb, var(--risk-high) 88%, white 12%);
     }
 
-    .state-tile[data-active="true"] {
-      transform: translateY(-2px) scale(1.02);
-      box-shadow: 0 6px 16px rgba(32, 26, 20, 0.25);
-      border-color: var(--accent);
+    .state-shape[data-risk="unknown"] {
+      fill: var(--surface-3);
     }
 
-    .state-tile:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: 2px;
+    .state-shape[data-active="true"] {
+      stroke: var(--accent);
+      stroke-width: 2;
+      filter: drop-shadow(0 6px 10px rgba(32, 26, 20, 0.25));
+    }
+
+    .state-shape:focus-visible {
+      stroke: var(--accent);
+      stroke-width: 2;
+      outline: none;
     }
 
     .map-tooltip {
@@ -488,8 +491,8 @@
         grid-template-columns: 1fr;
       }
 
-      .map-grid {
-        grid-template-columns: repeat(12, minmax(22px, 1fr));
+      .map-svg {
+        min-height: 260px;
       }
     }
 
@@ -537,7 +540,7 @@
 
     <div class="content">
       <section class="panel">
-        <div class="map-wrap">
+        <div class="map-wrap" id="map-wrap">
           <div class="control-row">
             <div>
               <h2>Risk Map</h2>
@@ -545,7 +548,9 @@
             </div>
             <div class="date-display" id="date-value">--</div>
           </div>
-          <div class="map-grid" id="map-grid" aria-label="State risk map" role="list"></div>
+          <div class="map-svg">
+            <svg id="map-svg" viewBox="0 0 975 610" preserveAspectRatio="xMidYMid meet" role="list" aria-label="State risk map"></svg>
+          </div>
           <div class="map-tooltip" id="map-tooltip" role="tooltip"></div>
           <div class="legend">
             <span class="key"><span class="swatch" style="background:var(--risk-low)"></span> Low</span>
@@ -608,6 +613,8 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
   <script type="module">
     const DEFAULT_API_URL = "https://lv4inwnj6yyo3kfdajpk2v5eda0hrtao.lambda-url.us-east-2.on.aws/";
     const STORAGE_KEY = "covid_outbreak_api";
@@ -646,62 +653,64 @@
       return postHeight;
     })();
 
-    const STATE_TILES = [
-      { id: "WA", col: 1, row: 1 },
-      { id: "ID", col: 2, row: 1 },
-      { id: "MT", col: 3, row: 1 },
-      { id: "ND", col: 4, row: 1 },
-      { id: "MN", col: 5, row: 1 },
-      { id: "WI", col: 6, row: 1 },
-      { id: "MI", col: 7, row: 1 },
-      { id: "VT", col: 8, row: 1 },
-      { id: "NH", col: 9, row: 1 },
-      { id: "ME", col: 10, row: 1 },
-      { id: "OR", col: 1, row: 2 },
-      { id: "NV", col: 2, row: 2 },
-      { id: "WY", col: 3, row: 2 },
-      { id: "SD", col: 4, row: 2 },
-      { id: "IA", col: 5, row: 2 },
-      { id: "IL", col: 6, row: 2 },
-      { id: "IN", col: 7, row: 2 },
-      { id: "OH", col: 8, row: 2 },
-      { id: "PA", col: 9, row: 2 },
-      { id: "NY", col: 10, row: 2 },
-      { id: "MA", col: 11, row: 2 },
-      { id: "CA", col: 1, row: 3 },
-      { id: "UT", col: 2, row: 3 },
-      { id: "CO", col: 3, row: 3 },
-      { id: "NE", col: 4, row: 3 },
-      { id: "MO", col: 5, row: 3 },
-      { id: "KY", col: 6, row: 3 },
-      { id: "WV", col: 7, row: 3 },
-      { id: "VA", col: 8, row: 3 },
-      { id: "MD", col: 9, row: 3 },
-      { id: "NJ", col: 10, row: 3 },
-      { id: "CT", col: 11, row: 3 },
-      { id: "RI", col: 12, row: 3 },
-      { id: "AZ", col: 1, row: 4 },
-      { id: "NM", col: 2, row: 4 },
-      { id: "KS", col: 3, row: 4 },
-      { id: "AR", col: 4, row: 4 },
-      { id: "TN", col: 5, row: 4 },
-      { id: "NC", col: 6, row: 4 },
-      { id: "SC", col: 7, row: 4 },
-      { id: "DE", col: 8, row: 4 },
-      { id: "DC", col: 9, row: 4 },
-      { id: "OK", col: 2, row: 5 },
-      { id: "LA", col: 3, row: 5 },
-      { id: "MS", col: 4, row: 5 },
-      { id: "AL", col: 5, row: 5 },
-      { id: "GA", col: 6, row: 5 },
-      { id: "FL", col: 7, row: 5 },
-      { id: "TX", col: 2, row: 6 },
-      { id: "AK", col: 1, row: 7 },
-      { id: "HI", col: 2, row: 7 }
-    ];
+    const MAP_DATA_URL = "js/maps/us-states-10m.json";
+    const NAME_TO_ABBR = {
+      "Alabama": "AL",
+      "Alaska": "AK",
+      "Arizona": "AZ",
+      "Arkansas": "AR",
+      "California": "CA",
+      "Colorado": "CO",
+      "Connecticut": "CT",
+      "Delaware": "DE",
+      "District of Columbia": "DC",
+      "Florida": "FL",
+      "Georgia": "GA",
+      "Hawaii": "HI",
+      "Idaho": "ID",
+      "Illinois": "IL",
+      "Indiana": "IN",
+      "Iowa": "IA",
+      "Kansas": "KS",
+      "Kentucky": "KY",
+      "Louisiana": "LA",
+      "Maine": "ME",
+      "Maryland": "MD",
+      "Massachusetts": "MA",
+      "Michigan": "MI",
+      "Minnesota": "MN",
+      "Mississippi": "MS",
+      "Missouri": "MO",
+      "Montana": "MT",
+      "Nebraska": "NE",
+      "Nevada": "NV",
+      "New Hampshire": "NH",
+      "New Jersey": "NJ",
+      "New Mexico": "NM",
+      "New York": "NY",
+      "North Carolina": "NC",
+      "North Dakota": "ND",
+      "Ohio": "OH",
+      "Oklahoma": "OK",
+      "Oregon": "OR",
+      "Pennsylvania": "PA",
+      "Rhode Island": "RI",
+      "South Carolina": "SC",
+      "South Dakota": "SD",
+      "Tennessee": "TN",
+      "Texas": "TX",
+      "Utah": "UT",
+      "Vermont": "VT",
+      "Virginia": "VA",
+      "Washington": "WA",
+      "West Virginia": "WV",
+      "Wisconsin": "WI",
+      "Wyoming": "WY"
+    };
 
     const DOM = {
-      mapGrid: document.getElementById("map-grid"),
+      mapWrap: document.getElementById("map-wrap"),
+      mapSvg: document.getElementById("map-svg"),
       tooltip: document.getElementById("map-tooltip"),
       connectionPill: document.getElementById("connection-pill"),
       connectionMeta: document.getElementById("connection-meta"),
@@ -790,38 +799,64 @@
       return "No data";
     }
 
-    function renderTiles() {
-      DOM.mapGrid.innerHTML = "";
-      STATE_TILES.forEach((tile, idx) => {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "state-tile";
-        button.dataset.state = tile.id;
-        button.style.gridColumn = tile.col;
-        button.style.gridRow = tile.row;
-        button.style.setProperty("--delay", `${idx * 12}ms`);
-        button.textContent = tile.id;
-        button.setAttribute("aria-label", tile.id);
-        button.addEventListener("mouseenter", onTileHover);
-        button.addEventListener("mouseleave", hideTooltip);
-        button.addEventListener("focus", onTileHover);
-        button.addEventListener("blur", hideTooltip);
-        button.addEventListener("click", () => selectState(tile.id));
-        DOM.mapGrid.appendChild(button);
+    async function renderMap() {
+      if (!window.d3 || !window.topojson) {
+        throw new Error("Map libraries unavailable");
+      }
+      const res = await fetch(MAP_DATA_URL);
+      if (!res.ok) {
+        throw new Error(`Map data failed: ${res.status}`);
+      }
+      const topo = await res.json();
+      const features = topojson.feature(topo, topo.objects.states).features
+        .filter((feature) => NAME_TO_ABBR[feature.properties.name]);
+      const width = 975;
+      const height = 610;
+      const projection = d3.geoAlbersUsa().fitSize([width, height], {
+        type: "FeatureCollection",
+        features
       });
+      const path = d3.geoPath(projection);
+      const svg = d3.select(DOM.mapSvg);
+      svg.selectAll("*").remove();
+      svg.append("g")
+        .selectAll("path")
+        .data(features)
+        .enter()
+        .append("path")
+        .attr("class", "state-shape")
+        .attr("d", path)
+        .attr("data-state", (d) => NAME_TO_ABBR[d.properties.name] || "")
+        .attr("tabindex", (d) => NAME_TO_ABBR[d.properties.name] ? "0" : null)
+        .attr("role", (d) => NAME_TO_ABBR[d.properties.name] ? "button" : null)
+        .attr("aria-label", (d) => d.properties.name || "")
+        .on("mouseenter", (event, d) => showTooltip(event, NAME_TO_ABBR[d.properties.name]))
+        .on("mouseleave", hideTooltip)
+        .on("focus", (event, d) => showTooltip(event, NAME_TO_ABBR[d.properties.name]))
+        .on("blur", hideTooltip)
+        .on("click", (event, d) => {
+          const stateId = NAME_TO_ABBR[d.properties.name];
+          if (stateId) selectState(stateId);
+        })
+        .on("keydown", (event, d) => {
+          if (event.key !== "Enter" && event.key !== " ") return;
+          event.preventDefault();
+          const stateId = NAME_TO_ABBR[d.properties.name];
+          if (stateId) selectState(stateId);
+        });
+      notifyResize();
     }
 
-    function onTileHover(event) {
-      const tile = event.currentTarget;
-      const stateId = tile.dataset.state;
+    function showTooltip(event, stateId) {
+      if (!stateId) return;
       const data = appState.states.get(stateId);
       if (!data) return;
       const tooltip = DOM.tooltip;
       tooltip.textContent = `${data.name}: ${formatPercent(data.prob)}`;
-      const rect = tile.getBoundingClientRect();
-      const gridRect = DOM.mapGrid.getBoundingClientRect();
-      tooltip.style.left = `${rect.left - gridRect.left + rect.width / 2}px`;
-      tooltip.style.top = `${rect.top - gridRect.top}px`;
+      const rect = event.currentTarget.getBoundingClientRect();
+      const wrapRect = DOM.mapWrap.getBoundingClientRect();
+      tooltip.style.left = `${rect.left - wrapRect.left + rect.width / 2}px`;
+      tooltip.style.top = `${rect.top - wrapRect.top}px`;
       tooltip.classList.add("visible");
     }
 
@@ -830,14 +865,15 @@
     }
 
     function updateMap() {
-      const tiles = DOM.mapGrid.querySelectorAll(".state-tile");
-      tiles.forEach((tile) => {
-        const stateId = tile.dataset.state;
+      const shapes = DOM.mapSvg.querySelectorAll(".state-shape");
+      shapes.forEach((shape) => {
+        const stateId = shape.dataset.state;
+        if (!stateId) return;
         const data = appState.states.get(stateId);
         const risk = data ? data.risk : "unknown";
-        tile.dataset.risk = risk || "unknown";
-        tile.dataset.active = appState.activeState === stateId;
-        tile.setAttribute("aria-label", data ? `${data.name} ${formatPercent(data.prob)}` : stateId);
+        shape.dataset.risk = risk || "unknown";
+        shape.dataset.active = appState.activeState === stateId;
+        shape.setAttribute("aria-label", data ? `${data.name} ${formatPercent(data.prob)}` : stateId);
       });
     }
 
@@ -846,7 +882,9 @@
         DOM.hotspotsList.innerHTML = "<li>No data</li>";
         return;
       }
-      DOM.hotspotsList.innerHTML = list.map((item) => {
+      const filtered = list.filter((item) => appState.states.get(item.id)?.inMap);
+      const items = filtered.length ? filtered : list;
+      DOM.hotspotsList.innerHTML = items.map((item) => {
         return `<li><span>${item.name}</span><span class="hotspot-score">${formatPercent(item.prob)}</span></li>`;
       }).join("");
     }
@@ -1001,7 +1039,12 @@
 
     async function init() {
       appState.endpoint = getEndpoint();
-      renderTiles();
+      try {
+        await renderMap();
+      } catch (err) {
+        console.error(err);
+        DOM.connectionMeta.textContent = "Map assets unavailable.";
+      }
       try {
         const meta = await fetchJson("meta");
         appState.meta = meta;
