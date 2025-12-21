@@ -448,6 +448,7 @@
   .contact-form-success .form-actions > *{
     width:100%;
     max-width:320px;
+    box-sizing:border-box;
   }
   .contact-form-success .form-actions .btn-secondary{
     min-width:0;
