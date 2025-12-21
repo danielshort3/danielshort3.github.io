@@ -152,6 +152,29 @@ const buildInterval = (prediction, rmse) => {
   };
 };
 
+const getTransform = (target) => model.targets?.[target]?.transform || 'none';
+
+const inverseTransform = (value, transform) => {
+  if (transform === 'log1p') {
+    return Math.expm1(value);
+  }
+  return value;
+};
+
+const buildIntervalTransformed = (prediction, rmse, transform) => {
+  if (transform === 'log1p') {
+    const delta = Z_SCORE * rmse;
+    return {
+      level: CONF_LEVEL,
+      low: Math.expm1(prediction - delta),
+      high: Math.expm1(prediction + delta),
+      rmse,
+      scale: 'log1p'
+    };
+  }
+  return buildInterval(prediction, rmse);
+};
+
 const addRangeWarning = (warnings, label, value, range) => {
   if (!range || typeof range.min !== 'number' || typeof range.max !== 'number') return;
   if (value < range.min || value > range.max) {
@@ -250,11 +273,15 @@ exports.handler = async (event) => {
     }
   });
 
-  const tipPrediction = predictValue(model.coefficients.tip, inputs);
-  const tipPctPrediction = predictValue(model.coefficients.tipPercent, inputs);
+  const tipTransform = getTransform('tip');
+  const tipPctTransform = getTransform('tipPercent');
+  const tipPredictionTransformed = predictValue(model.coefficients.tip, inputs);
+  const tipPctPredictionTransformed = predictValue(model.coefficients.tipPercent, inputs);
+  const tipPrediction = clampMin(inverseTransform(tipPredictionTransformed, tipTransform), 0);
+  const tipPctPrediction = clampMin(inverseTransform(tipPctPredictionTransformed, tipPctTransform), 0);
 
-  const tipInterval = buildInterval(tipPrediction, model.metrics.tip.rmse);
-  const tipPctInterval = buildInterval(tipPctPrediction, model.metrics.tipPercent.rmse);
+  const tipInterval = buildIntervalTransformed(tipPredictionTransformed, model.metrics.tip.rmse, tipTransform);
+  const tipPctInterval = buildIntervalTransformed(tipPctPredictionTransformed, model.metrics.tipPercent.rmse, tipPctTransform);
 
   tipInterval.low = clampMin(tipInterval.low, 0);
   tipPctInterval.low = clampMin(tipPctInterval.low, 0);
@@ -315,8 +342,8 @@ exports.handler = async (event) => {
       }
     },
     breakdown: {
-      tip: buildBreakdown(model.coefficients.tip, inputs),
-      tipPercent: buildBreakdown(model.coefficients.tipPercent, inputs)
+      tip: { ...buildBreakdown(model.coefficients.tip, inputs), scale: tipTransform },
+      tipPercent: { ...buildBreakdown(model.coefficients.tipPercent, inputs), scale: tipPctTransform }
     },
     warnings
   };

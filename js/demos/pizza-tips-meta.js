@@ -78097,5 +78097,9 @@ window.PizzaTipsMeta = {
     "cost",
     "orderHour"
   ],
-  "useHousing": true
+  "useHousing": true,
+  "targetTransforms": {
+    "tip": "log1p",
+    "tipPercent": "log1p"
+  }
 };

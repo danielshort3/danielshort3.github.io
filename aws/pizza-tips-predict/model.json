@@ -1,6 +1,6 @@
 {
-  "version": 3,
-  "generatedAt": "2025-12-21T20:19:41.204Z",
+  "version": 4,
+  "generatedAt": "2025-12-21T20:35:54.385Z",
   "features": [
     {
       "key": "cost",
@@ -17,19 +17,31 @@
     {
       "key": "housing:Apartment",
       "label": "Housing: Apartment"
+    },
+    {
+      "key": "housing:Business",
+      "label": "Housing: Business"
     }
   ],
   "inputFeatures": [
     "cost",
     "orderHour"
   ],
+  "targets": {
+    "tip": {
+      "transform": "log1p"
+    },
+    "tipPercent": {
+      "transform": "log1p"
+    }
+  },
   "featureSelection": {
     "alpha": 0.05,
     "tip": [
       "cost",
-      "orderHour",
       "city:Plano",
-      "housing:Apartment"
+      "housing:Apartment",
+      "housing:Business"
     ],
     "tipPercent": [
       "cost",
@@ -78253,32 +78265,32 @@
   },
   "metrics": {
     "tip": {
-      "rmse": 3.525606490224731,
-      "r2": 0.3923527116803974,
+      "rmse": 0.40663783618126387,
+      "r2": 0.3024519062400087,
       "n": 1251
     },
     "tipPercent": {
-      "rmse": 0.14867353616335036,
-      "r2": 0.05358809714202317,
+      "rmse": 0.09039342874618946,
+      "r2": 0.07573431595849545,
       "n": 1251
     }
   },
   "coefficients": {
     "tip": {
-      "intercept": -0.13081657431706603,
+      "intercept": 1.5823081640335854,
       "values": {
-        "cost": 0.10808124280432986,
-        "orderHour": 0.16744101849417903,
-        "city:Plano": -0.7081777970552692,
-        "housing:Apartment": -0.6509094757989659
+        "cost": 0.01022700228091093,
+        "city:Plano": -0.07521221370771652,
+        "housing:Apartment": -0.07491206308191074,
+        "housing:Business": -0.22453944133434225
       }
     },
     "tipPercent": {
-      "intercept": 0.13605304720999836,
+      "intercept": 0.1303849400342169,
       "values": {
-        "cost": -0.001290856768186079,
-        "orderHour": 0.006337520203527524,
-        "city:Plano": -0.02156449949878879
+        "cost": -0.0009515125883025411,
+        "orderHour": 0.004577273574251591,
+        "city:Plano": -0.014459822678887454
       }
     }
   }
