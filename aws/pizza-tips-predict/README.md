@@ -25,7 +25,8 @@ POST JSON payload (required numeric fields follow `model.inputFeatures`):
   "longitude": -96.82,
   "cost": 35,
   "housing": "Residential",
-  "orderHour": 18
+  "orderHour": 18,
+  "confidenceLevel": 0.8
 }
 ```
 
@@ -34,9 +35,27 @@ Current housing categories: Residential, Apartment, Hotel, Business.
 
 If housing coefficients are removed during feature selection, housing becomes optional. Fields not listed in `model.inputFeatures` can be omitted.
 
+`confidenceLevel` supports 0.8, 0.85, 0.9, or 0.95 (defaults to 0.8 when omitted).
+
 ### Target transforms
 
 The model applies `log1p` transforms to `tip` and `tipPercent` during training and back-transforms predictions with `expm1`. Confidence intervals are computed on the transformed scale and then back-transformed for display.
+
+### Heatmap grid
+
+Send an optional `grid` object to receive hotspot predictions for the current scenario:
+
+```
+{
+  "grid": {
+    "rows": 24,
+    "cols": 24,
+    "bounds": { "latMin": 33.01, "latMax": 33.19, "lonMin": -96.93, "lonMax": -96.71 }
+  }
+}
+```
+
+When present, the response includes `heatmap` with `points` (`lat`, `lon`, `tip`) plus min/max tip values for legend scaling.
 
 ### Response
 
