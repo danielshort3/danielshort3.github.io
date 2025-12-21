@@ -718,7 +718,6 @@
         <div class="confidence-block">
           <div class="confidence-head">
             <span>Confidence breakdown</span>
-            <span id="confidence-summary" class="hint">Showing &gt;=1%</span>
           </div>
           <div id="confidence-list" class="confidence-list" aria-label="Confidence list"></div>
         </div>
@@ -1069,7 +1068,7 @@
         empty.className = 'hint';
         empty.textContent = 'No guesses yet.';
         confidenceList.appendChild(empty);
-        confidenceSummary.textContent = '--';
+        if (confidenceSummary) confidenceSummary.textContent = '--';
         return;
       }
 
@@ -1087,7 +1086,7 @@
         empty.className = 'hint';
         empty.textContent = 'No entries >= 1%.';
         confidenceList.appendChild(empty);
-        confidenceSummary.textContent = 'Showing >=1%';
+        if (confidenceSummary) confidenceSummary.textContent = '';
         return;
       }
 
@@ -1125,7 +1124,7 @@
       });
 
       const hasActual = entries.some(item => item.isActual);
-      confidenceSummary.textContent = hasActual ? 'Showing >=1% (Actual highlighted)' : 'Showing >=1%';
+      if (confidenceSummary) confidenceSummary.textContent = '';
     }
 
     function updateLegibility(value) {
