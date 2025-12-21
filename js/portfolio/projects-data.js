@@ -960,9 +960,14 @@ window.PROJECTS = [
     concepts: ["Machine Learning"],
     resources: [
       { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Nonogram-Solver", label: "GitHub" },
+      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/nonogram-demo.html", label: "Live Demo" },
       { icon: "img/icons/pdf-icon.png",     url: "documents/Project_4.pdf",                  label: "PDF"    },
       { icon: "img/icons/jupyter-icon.png", url: "documents/Project_4.ipynb",                label: "Notebook"}
     ],
+    embed: {
+      type: "iframe",
+      url: "nonogram-demo.html"
+    },
     problem : "I wanted to create a machine learning model to automatically solve Nonogram puzzles for me.",
     actions : [
       "Built a hybrid CNN + Transformer policy network and trained it on more than 25 million 5×5 puzzles (52,000 episodes × 512-board batches).",
