@@ -245,6 +245,32 @@
       outline: none;
     }
 
+    .state-label,
+    .state-leader {
+      pointer-events: none;
+    }
+
+    .state-label {
+      font-size: 10px;
+      font-weight: 600;
+      fill: #fffaf3;
+      paint-order: stroke;
+      stroke: rgba(32, 26, 20, 0.4);
+      stroke-width: 2px;
+    }
+
+    .state-label[data-outside="true"] {
+      fill: var(--text);
+      stroke: none;
+      font-size: 11px;
+    }
+
+    .state-leader {
+      stroke: #6b6156;
+      stroke-width: 1;
+      opacity: 0.75;
+    }
+
     .map-tooltip {
       position: absolute;
       pointer-events: none;
@@ -271,6 +297,11 @@
       gap: 10px 14px;
       align-items: center;
       font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .legend-note {
+      font-size: 0.76rem;
       color: var(--muted);
     }
 
@@ -552,10 +583,11 @@
             <svg id="map-svg" viewBox="0 0 975 610" preserveAspectRatio="xMidYMid meet" role="list" aria-label="State risk map"></svg>
           </div>
           <div class="map-tooltip" id="map-tooltip" role="tooltip"></div>
+          <div class="legend-note">Thresholds for <span id="legend-date">--</span></div>
           <div class="legend">
-            <span class="key"><span class="swatch" style="background:var(--risk-low)"></span> Low</span>
-            <span class="key"><span class="swatch" style="background:var(--risk-elevated)"></span> Elevated</span>
-            <span class="key"><span class="swatch" style="background:var(--risk-high)"></span> High</span>
+            <span class="key"><span class="swatch" style="background:var(--risk-low)"></span> Low (&lt;5%)</span>
+            <span class="key"><span class="swatch" style="background:var(--risk-elevated)"></span> Elevated (5-15%)</span>
+            <span class="key"><span class="swatch" style="background:var(--risk-high)"></span> High (15%+)</span>
             <span class="key"><span class="swatch" style="background:var(--surface-3)"></span> Missing</span>
           </div>
         </div>
@@ -614,6 +646,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-composite-projections@1/dist/d3-composite-projections.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
   <script type="module">
     const DEFAULT_API_URL = "https://lv4inwnj6yyo3kfdajpk2v5eda0hrtao.lambda-url.us-east-2.on.aws/";
@@ -705,7 +738,36 @@
       "Washington": "WA",
       "West Virginia": "WV",
       "Wisconsin": "WI",
-      "Wyoming": "WY"
+      "Wyoming": "WY",
+      "American Samoa": "AS",
+      "Guam": "GU",
+      "Commonwealth of the Northern Mariana Islands": "MP",
+      "Puerto Rico": "PR",
+      "United States Virgin Islands": "VI",
+      "U.S. Virgin Islands": "VI"
+    };
+
+    const SMALL_STATES = new Set([
+      "VT", "NH", "MA", "RI", "CT", "NJ", "DE", "MD", "DC", "ME", "HI", "PR", "VI", "AS", "GU", "MP"
+    ]);
+
+    const LABEL_OFFSETS = {
+      VT: [18, -8],
+      NH: [18, -16],
+      MA: [22, -6],
+      RI: [22, 8],
+      CT: [22, 4],
+      NJ: [18, 14],
+      DE: [18, 22],
+      MD: [18, 30],
+      DC: [18, 38],
+      ME: [18, -22],
+      HI: [16, 10],
+      PR: [18, 6],
+      VI: [18, 14],
+      AS: [18, 10],
+      GU: [18, 4],
+      MP: [18, -6]
     };
 
     const DOM = {
@@ -714,6 +776,7 @@
       tooltip: document.getElementById("map-tooltip"),
       connectionPill: document.getElementById("connection-pill"),
       connectionMeta: document.getElementById("connection-meta"),
+      legendDate: document.getElementById("legend-date"),
       dateValue: document.getElementById("date-value"),
       dateRange: document.getElementById("date-range"),
       dateSlider: document.getElementById("date-slider"),
@@ -812,7 +875,8 @@
         .filter((feature) => NAME_TO_ABBR[feature.properties.name]);
       const width = 975;
       const height = 610;
-      const projection = d3.geoAlbersUsa().fitSize([width, height], {
+      const projectionFactory = d3.geoAlbersUsaTerritories || d3.geoAlbersUsa;
+      const projection = projectionFactory().fitSize([width, height], {
         type: "FeatureCollection",
         features
       });
@@ -844,6 +908,52 @@
           const stateId = NAME_TO_ABBR[d.properties.name];
           if (stateId) selectState(stateId);
         });
+      const leaderLayer = svg.append("g").attr("class", "state-leaders");
+      const labelLayer = svg.append("g").attr("class", "state-labels");
+      features.forEach((feature) => {
+        const stateId = NAME_TO_ABBR[feature.properties.name];
+        if (!stateId) return;
+        const bounds = path.bounds(feature);
+        const centroid = path.centroid(feature);
+        const w = bounds[1][0] - bounds[0][0];
+        const h = bounds[1][1] - bounds[0][1];
+        const area = w * h;
+        const isSmall = SMALL_STATES.has(stateId) || area < 700 || w < 26 || h < 18;
+        let labelX = centroid[0];
+        let labelY = centroid[1];
+        let anchor = "middle";
+        let outside = "false";
+        if (isSmall) {
+          const fallbackOffset = (() => {
+            const dx = centroid[0] > width * 0.65 ? -24 : 24;
+            const dy = centroid[1] < height * 0.25 ? -16 : (centroid[1] > height * 0.78 ? 16 : 0);
+            return [dx, dy];
+          })();
+          const offset = LABEL_OFFSETS[stateId] || fallbackOffset;
+          labelX = centroid[0] + offset[0];
+          labelY = centroid[1] + offset[1];
+          anchor = offset[0] < 0 ? "end" : "start";
+          outside = "true";
+          const leader = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          leader.setAttribute("class", "state-leader");
+          leader.setAttribute("data-state", stateId);
+          leader.setAttribute("x1", centroid[0]);
+          leader.setAttribute("y1", centroid[1]);
+          leader.setAttribute("x2", labelX);
+          leader.setAttribute("y2", labelY);
+          leaderLayer.node().appendChild(leader);
+        }
+        const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        label.setAttribute("class", "state-label");
+        label.setAttribute("data-state", stateId);
+        label.setAttribute("data-outside", outside);
+        label.setAttribute("x", labelX);
+        label.setAttribute("y", labelY);
+        label.setAttribute("text-anchor", anchor);
+        label.setAttribute("dominant-baseline", "middle");
+        label.textContent = "--";
+        labelLayer.node().appendChild(label);
+      });
       notifyResize();
     }
 
@@ -865,6 +975,7 @@
     }
 
     function updateMap() {
+      if (!DOM.mapSvg) return;
       const shapes = DOM.mapSvg.querySelectorAll(".state-shape");
       shapes.forEach((shape) => {
         const stateId = shape.dataset.state;
@@ -874,6 +985,17 @@
         shape.dataset.risk = risk || "unknown";
         shape.dataset.active = appState.activeState === stateId;
         shape.setAttribute("aria-label", data ? `${data.name} ${formatPercent(data.prob)}` : stateId);
+      });
+      updateLabels();
+    }
+
+    function updateLabels() {
+      const labels = DOM.mapSvg.querySelectorAll(".state-label");
+      labels.forEach((label) => {
+        const stateId = label.dataset.state;
+        const data = appState.states.get(stateId);
+        label.textContent = data ? formatPercent(data.prob) : "--";
+        label.dataset.risk = data ? data.risk : "unknown";
       });
     }
 
@@ -922,28 +1044,58 @@
       const slice = history.slice(-45);
       const width = 360;
       const height = 140;
-      const pad = 16;
-      const maxX = slice.length - 1 || 1;
-      const probValues = slice.map((d) => d.prob || 0);
-      const icuValues = slice.map((d) => d.icuUtilization || 0);
-      const maxVal = Math.max(0.1, ...probValues, ...icuValues);
+      const chart = { top: 10, right: 12, bottom: 24, left: 44 };
+      const maxX = Math.max(1, slice.length - 1);
+      const clamp = (val) => Math.max(0, Math.min(1, Number.isFinite(val) ? val : 0));
+      const probValues = slice.map((d) => clamp(d.prob));
+      const icuValues = slice.map((d) => clamp(d.icuUtilization));
+      const yScale = (val) => {
+        const span = height - chart.top - chart.bottom;
+        return chart.top + (1 - clamp(val)) * span;
+      };
+      const xScale = (idx) => {
+        const span = width - chart.left - chart.right;
+        return chart.left + (idx / maxX) * span;
+      };
 
       function buildPath(values) {
         return values.map((val, idx) => {
-          const x = pad + (idx / maxX) * (width - pad * 2);
-          const y = height - pad - (val / maxVal) * (height - pad * 2);
+          const x = xScale(idx);
+          const y = yScale(val);
           return `${idx === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
         }).join(" ");
       }
 
-      const grid = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      grid.setAttribute("x1", pad);
-      grid.setAttribute("x2", width - pad);
-      grid.setAttribute("y1", height - pad);
-      grid.setAttribute("y2", height - pad);
-      grid.setAttribute("stroke", "#e1d7c8");
-      grid.setAttribute("stroke-width", "1");
-      svg.appendChild(grid);
+      const axisLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      axisLine.setAttribute("x1", chart.left);
+      axisLine.setAttribute("x2", chart.left);
+      axisLine.setAttribute("y1", chart.top);
+      axisLine.setAttribute("y2", height - chart.bottom);
+      axisLine.setAttribute("stroke", "#e1d7c8");
+      axisLine.setAttribute("stroke-width", "1");
+      svg.appendChild(axisLine);
+
+      [0, 0.25, 0.5, 0.75, 1].forEach((tick, idx) => {
+        const y = yScale(tick);
+        const grid = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        grid.setAttribute("x1", chart.left);
+        grid.setAttribute("x2", width - chart.right);
+        grid.setAttribute("y1", y);
+        grid.setAttribute("y2", y);
+        grid.setAttribute("stroke", "#e1d7c8");
+        grid.setAttribute("stroke-width", "1");
+        if (tick !== 0) grid.setAttribute("stroke-dasharray", "3 4");
+        svg.appendChild(grid);
+
+        const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        label.setAttribute("x", chart.left - 6);
+        label.setAttribute("y", y + 4);
+        label.setAttribute("fill", "#6b6156");
+        label.setAttribute("font-size", "11");
+        label.setAttribute("text-anchor", "end");
+        label.textContent = `${Math.round(tick * 100)}%`;
+        svg.appendChild(label);
+      });
 
       const probPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
       probPath.setAttribute("d", buildPath(probValues));
@@ -1015,6 +1167,7 @@
       const date = appState.dates[index];
       if (!date) return;
       DOM.dateValue.textContent = date;
+      if (DOM.legendDate) DOM.legendDate.textContent = date;
       DOM.dateRange.textContent = `${appState.dates[0]} to ${appState.dates[appState.dates.length - 1]}`;
     }
 
