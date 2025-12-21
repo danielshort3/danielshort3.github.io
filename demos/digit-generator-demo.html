@@ -300,6 +300,13 @@
         </select>
       </label>
       <label>
+        Sampling mode
+        <select id="mode-select">
+          <option value="cluster" selected>Digit cluster</option>
+          <option value="random">Random</option>
+        </select>
+      </label>
+      <label>
         Latent dimension
         <select id="dim-select"></select>
       </label>
@@ -322,6 +329,8 @@
 
       <aside class="panel" aria-live="polite">
         <div class="stat"><span>Seed</span> <strong id="stat-seed">-</strong></div>
+        <div class="stat"><span>Mode</span> <strong id="stat-mode">-</strong></div>
+        <div class="stat"><span>Cluster digit</span> <strong id="stat-cluster">-</strong></div>
         <div class="stat"><span>Dimension</span> <strong id="stat-dim">-</strong></div>
         <div class="stat"><span>Value</span> <strong id="stat-value">-</strong></div>
         <div class="stat"><span>Latency</span> <strong id="stat-latency">-</strong></div>
@@ -375,12 +384,15 @@
     const gridEl = document.getElementById('grid');
     const seedInput = document.getElementById('seed-input');
     const gridSelect = document.getElementById('grid-select');
+    const modeSelect = document.getElementById('mode-select');
     const dimSelect = document.getElementById('dim-select');
     const valueSlider = document.getElementById('value-slider');
     const valueLabel = document.getElementById('value-label');
     const statusEl = document.getElementById('status');
 
     const statSeed = document.getElementById('stat-seed');
+    const statMode = document.getElementById('stat-mode');
+    const statCluster = document.getElementById('stat-cluster');
     const statDim = document.getElementById('stat-dim');
     const statValue = document.getElementById('stat-value');
     const statLatency = document.getElementById('stat-latency');
@@ -397,6 +409,8 @@
     let lastSeed = null;
     let currentState = {
       seed: null,
+      mode: 'cluster',
+      clusterDigit: null,
       dim: 0,
       value: 0,
       rows: gridRows,
@@ -494,10 +508,12 @@
 
     async function fetchGrid() {
       const seed = ensureSeed();
+      const mode = modeSelect.value || 'cluster';
       const dim = Number(dimSelect.value || 0);
       const value = Number(valueSlider.value || 0);
       const payload = {
         seed,
+        mode,
         dim,
         value,
         rows: gridRows,
@@ -526,12 +542,16 @@
         updateGrid(data.images || []);
         currentState = {
           seed: data.seed ?? seed,
+          mode: data.mode || mode,
+          clusterDigit: Number.isFinite(data.cluster_digit) ? data.cluster_digit : null,
           dim: data.dim ?? dim,
           value: typeof data.value === 'number' ? data.value : value,
           rows: data.rows ?? gridRows,
           cols: data.cols ?? gridCols
         };
         statSeed.textContent = currentState.seed;
+        statMode.textContent = currentState.mode === 'random' ? 'Random' : 'Digit cluster';
+        statCluster.textContent = Number.isFinite(currentState.clusterDigit) ? currentState.clusterDigit : '-';
         statDim.textContent = currentState.dim;
         statValue.textContent = Number(currentState.value).toFixed(2);
         statLatency.textContent = data.duration_ms ? `${data.duration_ms} ms` : '-';
@@ -569,6 +589,9 @@
     gridSelect.addEventListener('change', () => {
       const next = Number(gridSelect.value);
       setGridSize(Number.isFinite(next) ? next : gridSize);
+      fetchGrid();
+    });
+    modeSelect.addEventListener('change', () => {
       fetchGrid();
     });
     seedInput.addEventListener('change', () => {
