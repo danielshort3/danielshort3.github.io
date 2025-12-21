@@ -437,17 +437,23 @@ window.PROJECTS = [
     videoWebm: "img/projects/handwritingRating.webm",
     videoMp4:  "img/projects/handwritingRating.mp4",
     videoOnly: true,
-    tools: ["Python", "PyTorch", "CNN"],
+    tools: ["Python", "PyTorch", "AWS", "CNN"],
     concepts: ["Machine Learning"],
     resources: [
       { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Handwriting-Rating", label: "GitHub" },
+      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/handwriting-rating-demo.html", label: "Live Demo" },
       { icon: "img/icons/pdf-icon.png",     url: "documents/Project_8.pdf",                            label: "PDF"    },
       { icon: "img/icons/jupyter-icon.png", url: "documents/Project_8.ipynb",                          label: "Notebook"}
     ],
+    embed: {
+      type: "iframe",
+      url: "handwriting-rating-demo.html"
+    },
     problem : "My wife would say my handwriting is illegible. I wanted an objective assessment.",
     actions : [
       "Created three models of varying complexity to learn to read handwritten digits.",
-      "Trained models on 60,000 handwritten digits."
+      "Trained models on 60,000 handwritten digits.",
+      "Deployed the best model behind a serverless scoring API for the live demo."
     ],
     results : [
       "Model 3 (the most complex) was the most accurate, with 99.1% accuracy.",

@@ -211,6 +211,10 @@
       box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 60%, transparent);
     }
 
+    .cell--duplicate {
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--warning) 70%, transparent);
+    }
+
     .panel {
       background: color-mix(in srgb, var(--surface) 90%, #000 10%);
       border: 1px solid var(--surface-accent);
@@ -431,8 +435,10 @@
 
     function appendLog(step, index) {
       const item = document.createElement('div');
+      const result = step.result || (step.duplicate ? 'Duplicate' : (step.correct ? 'Correct' : 'Incorrect'));
+      const action = step.predicted === 1 ? 'Filled' : 'Empty';
       item.className = 'log-entry';
-      item.innerHTML = `Step <strong>${index + 1}</strong>: r${step.row + 1}c${step.col + 1} -> ${step.correct ? 'correct' : 'wrong'}`;
+      item.innerHTML = `Step <strong>${index + 1}</strong>: r${step.row + 1}c${step.col + 1} -> ${action} (${result})`;
       logEl.prepend(item);
       while (logEl.children.length > 8) {
         logEl.removeChild(logEl.lastElementChild);
@@ -475,7 +481,7 @@
 
     function clearBoard() {
       gridEl.querySelectorAll('.cell').forEach(cell => {
-        cell.classList.remove('cell--filled', 'cell--empty', 'cell--miss');
+        cell.classList.remove('cell--filled', 'cell--empty', 'cell--miss', 'cell--duplicate');
       });
     }
 
@@ -483,9 +489,13 @@
       const selector = `.cell[data-row="${step.row}"][data-col="${step.col}"]`;
       const cell = gridEl.querySelector(selector);
       if (!cell) return;
-      cell.classList.remove('cell--filled', 'cell--empty', 'cell--miss');
+      cell.classList.remove('cell--filled', 'cell--empty', 'cell--miss', 'cell--duplicate');
       cell.classList.add(step.actual === 1 ? 'cell--filled' : 'cell--empty');
-      if (!step.correct) cell.classList.add('cell--miss');
+      if (step.result === 'Duplicate' || step.duplicate) {
+        cell.classList.add('cell--duplicate');
+      } else if (!step.correct) {
+        cell.classList.add('cell--miss');
+      }
     }
 
     function stopAnimation() {
@@ -574,7 +584,7 @@
       statCorrect.textContent = current.correct_count ?? '-';
       statAccuracy.textContent = typeof current.correct_rate === 'number' ? `${Math.round(current.correct_rate * 100)}%` : '-';
       statDuration.textContent = current.duration_ms ? `${current.duration_ms} ms` : '-';
-      setStatus(current.solved ? 'Solved.' : 'Solve completed.');
+      setStatus('Puzzle Solved!');
     }
 
     newBtn.addEventListener('click', loadPuzzle);
