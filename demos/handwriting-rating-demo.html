@@ -437,11 +437,22 @@
       border-radius: 10px;
       border: 1px solid var(--surface-accent);
       background: var(--surface);
+      position: relative;
     }
 
     .confidence-digit {
       font-weight: 600;
       text-align: center;
+    }
+
+    .confidence-row.is-actual {
+      border-color: var(--primary);
+      background: linear-gradient(90deg, color-mix(in srgb, var(--primary) 12%, transparent), var(--surface));
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 28%, transparent);
+    }
+
+    .confidence-row.is-actual .confidence-digit {
+      color: var(--primary);
     }
 
     .confidence-track {
@@ -460,10 +471,21 @@
     }
 
     .confidence-pct {
+      display: grid;
+      justify-items: end;
+      gap: 2px;
       text-align: right;
       font-size: .85rem;
       color: var(--text-muted);
       font-variant-numeric: tabular-nums;
+    }
+
+    .confidence-actual {
+      font-size: .65rem;
+      font-weight: 600;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: var(--primary);
     }
 
     .sample-panel {
@@ -1039,8 +1061,9 @@
         .sort((a, b) => b.value - a.value);
     }
 
-    function renderConfidenceList(sorted) {
+    function renderConfidenceList(sorted, actualDigit = null) {
       confidenceList.innerHTML = '';
+      const actualValue = Number.isFinite(actualDigit) ? Number(actualDigit) : null;
       if (!sorted || !sorted.length) {
         const empty = document.createElement('span');
         empty.className = 'hint';
@@ -1051,8 +1074,13 @@
       }
 
       const entries = sorted
-        .map(item => ({ digit: item.digit, value: item.value, pct: toPercent(item.value) }))
-        .filter(item => item.pct !== null && item.pct >= 1);
+        .map(item => ({
+          digit: item.digit,
+          value: item.value,
+          pct: toPercent(item.value),
+          isActual: actualValue !== null && item.digit === actualValue
+        }))
+        .filter(item => item.pct !== null && (item.pct >= 1 || item.isActual));
 
       if (!entries.length) {
         const empty = document.createElement('span');
@@ -1078,15 +1106,26 @@
         fill.style.width = `${Math.round(item.pct)}%`;
         track.appendChild(fill);
 
-        const pct = document.createElement('span');
+        const pct = document.createElement('div');
         pct.className = 'confidence-pct';
-        pct.textContent = item.pct < 1 ? `${item.pct.toFixed(1)}%` : `${Math.round(item.pct)}%`;
+        const pctValue = document.createElement('span');
+        pctValue.textContent = item.pct < 1 ? `${item.pct.toFixed(1)}%` : `${Math.round(item.pct)}%`;
+        pct.appendChild(pctValue);
+
+        if (item.isActual) {
+          row.classList.add('is-actual');
+          const actualTag = document.createElement('span');
+          actualTag.className = 'confidence-actual';
+          actualTag.textContent = 'Actual';
+          pct.appendChild(actualTag);
+        }
 
         row.append(digit, track, pct);
         confidenceList.appendChild(row);
       });
 
-      confidenceSummary.textContent = 'Showing >=1%';
+      const hasActual = entries.some(item => item.isActual);
+      confidenceSummary.textContent = hasActual ? 'Showing >=1% (Actual highlighted)' : 'Showing >=1%';
     }
 
     function updateLegibility(value) {
@@ -1115,7 +1154,7 @@
         resultDivider.hidden = true;
       }
 
-      renderConfidenceList(sorted);
+      renderConfidenceList(sorted, actualDigit);
 
       let legibilityValueSource = null;
       if (Number.isFinite(actualDigit) && Array.isArray(confidences) && confidences.length === 10) {
