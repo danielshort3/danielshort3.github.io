@@ -190,10 +190,21 @@ function summarizeStats(values) {
   };
 }
 
-if (!fs.existsSync(INPUT_PATH)) {
+const hasInput = fs.existsSync(INPUT_PATH);
+const hasBoundary = fs.existsSync(BOUNDARY_PATH);
+const hasOutputs = fs.existsSync(OUTPUT_PATH) && fs.existsSync(META_PATH);
+
+if (!hasInput) {
+  if (hasBoundary && hasOutputs) {
+    console.warn(`Missing input CSV at ${INPUT_PATH}. Using existing model artifacts.`);
+    process.exit(0);
+  }
+  if (!hasBoundary) {
+    throw new Error(`Missing city boundaries at ${BOUNDARY_PATH}`);
+  }
   throw new Error(`Missing input CSV at ${INPUT_PATH}`);
 }
-if (!fs.existsSync(BOUNDARY_PATH)) {
+if (!hasBoundary) {
   throw new Error(`Missing city boundaries at ${BOUNDARY_PATH}`);
 }
 
