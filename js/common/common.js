@@ -79,12 +79,6 @@
       if (!trigger) return;
       storeContactOrigin();
     });
-    document.addEventListener('submit', (event) => {
-      const target = event.target;
-      if (target && target.id === 'nav-contact-mini-form') {
-        storeContactOrigin();
-      }
-    });
   };
 
   let jumpPanelScrollToken = 0;
