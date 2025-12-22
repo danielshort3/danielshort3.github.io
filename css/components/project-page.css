@@ -84,6 +84,9 @@
     border:0;
     display:block;
   }
+  .project-embed-tableau{
+    --tableau-facade-height:clamp(520px, 75vh, 920px);
+  }
   .project-embed-tableau .project-embed-frame{
     height:clamp(520px, 75vh, 920px);
   }
@@ -144,6 +147,9 @@
   @media (max-width: 768px) {
     .project-embed-frame{
       height:clamp(360px, 70vh, 660px);
+    }
+    .project-embed-tableau{
+      --tableau-facade-height:clamp(420px, 75vh, 760px);
     }
     .project-embed-tableau .project-embed-frame{
       height:clamp(420px, 75vh, 760px);

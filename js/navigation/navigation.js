@@ -280,9 +280,28 @@
                 ${contactMenu}
               </div>
             </div>
+            <button class="nav-link nav-theme-toggle" type="button" data-theme-toggle aria-pressed="false">
+              <span class="nav-theme-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" role="presentation" focusable="false">
+                  <circle cx="12" cy="12" r="5"></circle>
+                  <line x1="12" y1="1" x2="12" y2="3"></line>
+                  <line x1="12" y1="21" x2="12" y2="23"></line>
+                  <line x1="4.2" y1="4.2" x2="5.6" y2="5.6"></line>
+                  <line x1="18.4" y1="18.4" x2="19.8" y2="19.8"></line>
+                  <line x1="1" y1="12" x2="3" y2="12"></line>
+                  <line x1="21" y1="12" x2="23" y2="12"></line>
+                  <line x1="4.2" y1="19.8" x2="5.6" y2="18.4"></line>
+                  <line x1="18.4" y1="5.6" x2="19.8" y2="4.2"></line>
+                </svg>
+              </span>
+              <span class="nav-theme-text" data-theme-label>Dark</span>
+            </button>
           </div>
         </div>
       </nav>`;
+    if (typeof window.syncThemeToggle === 'function') {
+      window.syncThemeToggle();
+    }
     const normalizePath = (path) => {
       if (!path) return '/';
       try {

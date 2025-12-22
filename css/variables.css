@@ -3,23 +3,23 @@
 @layer tokens {
   :root{
     /* palette */
-    --bg:#0D1117;
-    --surface:#161B22;
-    --surface-light:color-mix(in srgb,var(--surface) 85%,#fff 15%);
-    --surface-accent:color-mix(in srgb,var(--surface) 92%,#fff 8%);
+    --bg:#F6F7FA;
+    --surface:#FFFFFF;
+    --surface-light:#F2F4F8;
+    --surface-accent:#E9EDF3;
     --primary:#2396AD;
     /* unify accents: use teal for secondary too */
     --secondary: var(--primary);
-    --text-light:#F1F4F8;
-    --text-muted:#BFC8D3;   /* WCAG-passing grey */
+    --text-light:#1B1F24;
+    --text-muted:#5B6472;   /* WCAG-passing grey */
 
     /* links & focus */
-    --link: color-mix(in srgb, var(--primary) 85%, #fff 15%);
-    --link-hover: color-mix(in srgb, var(--primary) 65%, #fff 35%);
-    --focus: color-mix(in srgb, var(--primary) 70%, #fff 30%);
+    --link: color-mix(in srgb, var(--primary) 82%, #000 18%);
+    --link-hover: color-mix(in srgb, var(--primary) 70%, #000 30%);
+    --focus: color-mix(in srgb, var(--primary) 60%, #000 40%);
 
     /* borders */
-    --border-subtle:#21262D;
+    --border-subtle:#E0E6ED;
 
     /* semantic states (optional) */
     --success:#38B37E;  /* approvals, good states */
@@ -61,6 +61,24 @@
     /* Controls the visual height of project card media (img/gif/video). */
     /* Use a wider ratio but tall enough to avoid crowding. */
     --project-card-aspect: 1 / 1; /* square project cards */
+    --card-overlay-start: rgba(255,255,255,0.04);
+    --card-overlay-end: rgba(255,255,255,0.86);
+  }
+
+  [data-theme="dark"]{
+    --bg:#121212;
+    --surface:#1E1E1E;
+    --surface-light:color-mix(in srgb,var(--surface) 85%,#fff 15%);
+    --surface-accent:color-mix(in srgb,var(--surface) 92%,#fff 8%);
+    --primary:#2396AD;
+    --secondary: var(--primary);
+    --text-light:#E0E0E0;
+    --text-muted:#B3BBC6;
+    --link: color-mix(in srgb, var(--primary) 85%, #fff 15%);
+    --link-hover: color-mix(in srgb, var(--primary) 65%, #fff 35%);
+    --focus: color-mix(in srgb, var(--primary) 70%, #fff 30%);
+    --border-subtle:#2B3138;
+    --card-overlay-start: rgba(0,0,0,0.35);
+    --card-overlay-end: rgba(0,0,0,0.88);
   }
 }
-

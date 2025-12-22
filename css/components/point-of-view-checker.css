@@ -57,7 +57,7 @@
   }
   .povcheck-step h3{
     margin:0 0 4px;
-    font-size:1.05rem;
+    font-size:clamp(1rem,0.95rem + 0.3vw,1.2rem);
     letter-spacing:.01em;
   }
   .povcheck-step p{
@@ -202,7 +202,7 @@
   }
   .povcheck-stat h3{
     margin:0;
-    font-size:1.05rem;
+    font-size:clamp(1rem,0.95rem + 0.3vw,1.2rem);
     letter-spacing:.01em;
   }
   .povcheck-badge{
@@ -297,7 +297,7 @@
   }
   .povcheck-output-header h3{
     margin:0;
-    font-size:1.05rem;
+    font-size:clamp(1rem,0.95rem + 0.3vw,1.2rem);
     letter-spacing:.01em;
   }
   .povcheck-legend{
@@ -436,7 +436,7 @@
   }
   .povcheck-pronoun-col h3{
     margin:0;
-    font-size:1rem;
+    font-size:clamp(0.98rem,0.93rem + 0.25vw,1.12rem);
     letter-spacing:.01em;
   }
   .povcheck-pronoun-col p{
