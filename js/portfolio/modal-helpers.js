@@ -462,9 +462,9 @@
           <iframe data-src="${p.embed.url}" loading="lazy"></iframe>
         </div>`;
       }
-    if (!isTableau) {
-      const aspectStyle = mediaAspect ? ` style="--media-aspect:${mediaAspect};"` : '';
-      return `
+      if (!isTableau) {
+        const aspectStyle = mediaAspect ? ` style="--media-aspect:${mediaAspect};"` : '';
+        return `
         <div class="modal-image media-zoomable"
              ${aspectStyle}
              data-image="${p.image || ''}"
@@ -486,34 +486,9 @@
           </button>
           ${projectMedia(p)}
         </div>`;
-    }
-    const base = p.embed.base || p.embed.url;
-    const sizeAttr = (() => {
-      const w = Number(p.imageWidth);
-      const h = Number(p.imageHeight);
-      return (Number.isFinite(w) && Number.isFinite(h) && w > 0 && h > 0)
-        ? ` width="${w}" height="${h}"`
-        : '';
-    })();
-    const tableauPreview = (() => {
-      if (!p.image) return '';
-      const src = p.image;
-      const lower = src.toLowerCase();
-      const webp = lower.endsWith('.png') ? src.replace(/\.png$/i, '.webp')
-        : lower.endsWith('.jpg') ? src.replace(/\.jpg$/i, '.webp')
-        : lower.endsWith('.jpeg') ? src.replace(/\.jpeg$/i, '.webp')
-        : null;
-      if (webp) {
-        return `<picture class="tableau-facade-media">
-          <source srcset="${webp}" type="image/webp">
-          <img src="${src}" alt="${p.title}" loading="lazy" decoding="async"${sizeAttr}>
-        </picture>`;
       }
-      return `<picture class="tableau-facade-media">
-        <img src="${src}" alt="${p.title}" loading="lazy" decoding="async"${sizeAttr}>
-      </picture>`;
-    })();
-    return `
+      const base = p.embed.base || p.embed.url;
+      return `
       <div class="modal-embed tableau-fit"
            data-embed-base="${base || ''}"
            data-embed-src=""
@@ -527,13 +502,10 @@
           </span>
           <span class="sr-only">Open full view</span>
         </button>
-        <div class="tableau-facade" data-tableau-base="${base || ''}" data-tableau-title="${p.title || ''}">
-          ${tableauPreview}
-          <button class="tableau-facade-overlay" type="button" data-tableau-launch aria-label="Explore data for ${p.title || 'dashboard'}">
-            <span class="tableau-facade-label">Interactive Dashboard</span>
-            <span class="btn-primary tableau-facade-cta">Explore Data</span>
-          </button>
-        </div>
+        <iframe
+          loading="lazy"
+          allowfullscreen
+          data-base="${base}"></iframe>
       </div>`;
     })();
 
