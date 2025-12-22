@@ -322,9 +322,13 @@
       document.documentElement.setAttribute('data-embedded', 'true');
     }
   </script>
+  <script src="js/demos/aws-client.js"></script>
   <script>
     const DEFAULT_URL = "https://7aa3jt3tzkinheprc5ds52bihq0itutx.lambda-url.us-east-2.on.aws/";
     const DEFAULT_QUERY = "She wonders about things.";
+    const STORAGE_KEY = "demo.endpoint.sentence";
+    const { resolveEndpoint, getJson, postJson, joinUrl } = window.DemoAws;
+    const endpointConfig = { defaultUrl: DEFAULT_URL, storageKey: STORAGE_KEY };
 
     const notifyResize = (() => {
       const CHANNEL = 'sentence-demo-resize';
@@ -361,12 +365,10 @@
     })();
 
     async function health() {
-      const url = getEndpoint();
+      const url = joinUrl(getEndpoint(), 'health');
       const $status = document.getElementById('health');
       try {
-        const r = await fetch(url + 'health');
-        if (!r.ok) throw new Error(await r.text());
-        await r.json();
+        await getJson(url);
         $status.className = 'pill ok';
         $status.textContent = 'Server Ready';
         notifyResize();
@@ -379,7 +381,7 @@
     }
 
     function getEndpoint() {
-      return DEFAULT_URL;
+      return resolveEndpoint(endpointConfig);
     }
 
     async function onSubmit(ev) {
@@ -399,14 +401,10 @@
       const top = Math.max(1, Math.min(20, parseInt(form.top.value || '5', 10)));
       form.submitBtn.disabled = true;
       form.submitBtn.textContent = 'Searching…';
-      const url = getEndpoint() + 'rank';
-      const headers = { 'content-type': 'application/json' };
       try {
-        const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify({ query, top }) });
-        const text = await res.text();
-        if (!res.ok) throw new Error(text);
-        const data = JSON.parse(text);
-        renderResults(data);
+        const url = joinUrl(getEndpoint(), 'rank');
+        const data = await postJson(url, { query, top });
+        renderResults(data || {});
       } catch (e) {
         renderError(e);
       } finally {

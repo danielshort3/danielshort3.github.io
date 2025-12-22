@@ -757,44 +757,31 @@
     </div>
   </div>
 
+  <script src="js/demos/aws-client.js"></script>
   <script type="module">
     const DEFAULT_FN_URL = "https://wklw5cb75voj4idwbnigdt6p7a0zrxwv.lambda-url.us-east-2.on.aws/"; // Lambda Function URL.
-    function normalizeBase(u) { try { return u.endsWith('/') ? u : (u + '/'); } catch { return ''; } }
-    function candidates() {
-      const out = [];
-      try {
-        const qs = new URLSearchParams(location.search);
-        const fromQs = qs.get('fn') || qs.get('endpoint');
-        const fromStore = localStorage.getItem('handwriting_fn_url');
-        if (fromQs) out.push(normalizeBase(fromQs));
-        if (fromStore && fromStore !== fromQs) out.push(normalizeBase(fromStore));
-      } catch {}
-      if (DEFAULT_FN_URL) out.push(normalizeBase(DEFAULT_FN_URL));
-      return Array.from(new Set(out)).filter(Boolean);
-    }
+    const STORAGE_KEY = "demo.endpoint.handwriting";
+    const LEGACY_KEYS = ["handwriting_fn_url"];
+    const {
+      listCandidates,
+      postWithFallback,
+      rememberEndpoint,
+      normalizeBase
+    } = window.DemoAws;
+    const endpointConfig = {
+      defaultUrl: DEFAULT_FN_URL,
+      storageKey: STORAGE_KEY,
+      legacyKeys: LEGACY_KEYS
+    };
+    const candidates = () => listCandidates(endpointConfig).filter(Boolean);
 
-    async function postToEndpoint(urlBase, payload) {
+    const postToEndpoint = (urlBase, payload) => {
       const base = normalizeBase(urlBase);
       const hasScore = /\/score\/$/.test(base);
-      const attempts = hasScore ? [''] : ['score', ''];
-      let lastErr = null;
-      for (const path of attempts) {
-        const url = hasScore && !path ? base.replace(/\/$/, '') : base + path;
-        try {
-          const res = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-          if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-          return await res.json();
-        } catch (e) {
-          lastErr = e;
-          if (!(String(e.message || '').startsWith('404'))) break;
-        }
-      }
-      throw lastErr || new Error('Request failed');
-    }
+      const finalBase = hasScore ? base.replace(/\/$/, '') : base;
+      const paths = hasScore ? [''] : ['score', ''];
+      return postWithFallback(finalBase, paths, payload);
+    };
 
     const statusEl = document.getElementById('status');
     const steps = [
@@ -1235,7 +1222,7 @@
         for (const base of bases) {
           try {
             json = await postToEndpoint(base, payload);
-            try { localStorage.setItem('handwriting_fn_url', base); } catch {}
+            rememberEndpoint(base, STORAGE_KEY);
             break;
           } catch (err) {
             lastErr = err;

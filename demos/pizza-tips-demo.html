@@ -516,8 +516,11 @@
   <script src="js/vendor/leaflet/leaflet.js"></script>
   <script src="js/vendor/leaflet/leaflet-heat.js"></script>
   <script src="js/demos/pizza-tips-meta.js"></script>
+  <script src="js/demos/aws-client.js"></script>
   <script type="module">
     const DEFAULT_FN_URL = 'https://2d6lrg4ozy564xymwi2epjbqty0nvhje.lambda-url.us-east-2.on.aws/';
+    const STORAGE_KEY = "demo.endpoint.pizza";
+    const { resolveEndpoint, postWithFallback } = window.DemoAws;
     const META = window.PizzaTipsMeta || {};
     const MAP_BOUNDS = META.bounds
       ? {
@@ -562,7 +565,8 @@
       minTemp: 'Min Temp'
     };
 
-    const API_URL = normalizeBase(DEFAULT_FN_URL);
+    const endpointConfig = { defaultUrl: DEFAULT_FN_URL, storageKey: STORAGE_KEY };
+    const API_URL = resolveEndpoint(endpointConfig);
     const statusEl = document.getElementById('api-status');
     const latInput = document.getElementById('lat');
     const lonInput = document.getElementById('lon');
@@ -592,15 +596,6 @@
     let heatLayer = null;
     let legendMinEl = null;
     let legendMaxEl = null;
-
-    function normalizeBase(u) {
-      try {
-        if (!u) return '';
-        return u.endsWith('/') ? u : `${u}/`;
-      } catch {
-        return '';
-      }
-    }
 
     function setStatus(state, text) {
       statusEl.classList.remove('ok', 'err');
@@ -842,29 +837,7 @@
     }
 
 
-    async function postToEndpoint(urlBase, payload) {
-      const attempts = ['', 'predict'];
-      let lastErr = null;
-      for (const path of attempts) {
-        const url = urlBase + path;
-        try {
-          const res = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-          const data = await res.json();
-          if (!res.ok) {
-            throw new Error(data?.error || `${res.status} ${res.statusText}`);
-          }
-          return data;
-        } catch (err) {
-          lastErr = err;
-          if (!(String(err.message || '').startsWith('404'))) break;
-        }
-      }
-      throw lastErr || new Error('Request failed');
-    }
+    const postToEndpoint = (urlBase, payload) => postWithFallback(urlBase, ['', 'predict'], payload);
 
     function currentPayload(includeGrid = false) {
       const confidenceValue = Number(confidenceSelect.value) || DEFAULTS.confidenceLevel;

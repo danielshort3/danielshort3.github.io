@@ -375,42 +375,19 @@
     </div>
   </div>
 
+  <script src="js/demos/aws-client.js"></script>
   <script type="module">
     const DEFAULT_FN_URL = "https://gw676aqgd4lpcoxngfvnfki5ce0urcfg.lambda-url.us-east-2.on.aws/";
-    function normalizeBase(url) { return url.endsWith('/') ? url : `${url}/`; }
-    function candidates() {
-      const out = [];
-      try {
-        const qs = new URLSearchParams(location.search);
-        const fromQs = qs.get('fn') || qs.get('endpoint');
-        const fromStore = localStorage.getItem('nonogram_fn_url');
-        if (fromQs) out.push(normalizeBase(fromQs));
-        if (fromStore && fromStore !== fromQs) out.push(normalizeBase(fromStore));
-      } catch {}
-      out.push(normalizeBase(DEFAULT_FN_URL));
-      return Array.from(new Set(out));
-    }
-
-    async function postToEndpoint(base, payload) {
-      const attempts = ['', 'solve', 'predict'];
-      let lastErr = null;
-      for (const path of attempts) {
-        const url = base + path;
-        try {
-          const res = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-          if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-          return await res.json();
-        } catch (err) {
-          lastErr = err;
-          if (!(String(err.message || '').startsWith('404'))) break;
-        }
-      }
-      throw lastErr || new Error('Request failed');
-    }
+    const STORAGE_KEY = "demo.endpoint.nonogram";
+    const LEGACY_KEYS = ["nonogram_fn_url"];
+    const { listCandidates, postWithFallback, rememberEndpoint } = window.DemoAws;
+    const endpointConfig = {
+      defaultUrl: DEFAULT_FN_URL,
+      storageKey: STORAGE_KEY,
+      legacyKeys: LEGACY_KEYS
+    };
+    const candidates = () => listCandidates(endpointConfig);
+    const postToEndpoint = (base, payload) => postWithFallback(base, ['', 'solve', 'predict'], payload);
 
     const gridEl = document.getElementById('grid');
     const cluesTop = document.getElementById('clues-top');
@@ -582,7 +559,7 @@
         for (const base of endpoints) {
           try {
             data = await postToEndpoint(base, payload);
-            localStorage.setItem('nonogram_fn_url', base);
+            rememberEndpoint(base, STORAGE_KEY);
             break;
           } catch (err) {
             data = null;

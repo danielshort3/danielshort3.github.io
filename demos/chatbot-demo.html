@@ -886,8 +886,13 @@
         </div>
     </div>
 
+    <script src="js/demos/aws-client.js"></script>
     <script>
-        const API_URL = 'https://ovodkr9oad.execute-api.us-east-2.amazonaws.com/prod';
+        const DEFAULT_API_URL = 'https://ovodkr9oad.execute-api.us-east-2.amazonaws.com/prod';
+        const STORAGE_KEY = 'demo.endpoint.chatbot';
+        const { resolveEndpoint, getJson } = window.DemoAws;
+        const endpointConfig = { defaultUrl: DEFAULT_API_URL, storageKey: STORAGE_KEY };
+        const API_URL = resolveEndpoint(endpointConfig).replace(/\/$/, '');
         const STATUS_URL = `${API_URL}/status`;
         const DEMO_DISABLED = false; // Toggle to true to temporarily disable the AWS-backed demo
         const DEMO_DISABLED_REASON = 'This demo is temporarily disabled due to technical issues with AWS.';
@@ -1253,8 +1258,7 @@
         }
         async function fetchStatusInfo() {
             try {
-                const r = await fetch(STATUS_URL, { cache: 'no-store' });
-                const payload = await r.json();
+                const payload = await getJson(STATUS_URL, { cache: 'no-store' });
                 updateQueueIndicators(payload);
                 const online = isOnlinePayload(payload);
                 const warmSeconds = secondsFromEta(payload?.eta?.to_warm_seconds);
