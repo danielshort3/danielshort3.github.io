@@ -50,6 +50,7 @@
     }
     html[data-embedded="true"] body {
       display: block;
+      padding: clamp(12px, 3vw, 20px);
     }
     main {
       width: min(1100px, 100%);
@@ -2556,11 +2557,49 @@
         right: auto;
       }
       .machine-card {
-        min-width: 150px;
+        min-width: 120px;
         scroll-snap-align: start;
       }
       .chip {
         min-height: 46px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .grid-two,
+      dl,
+      .auth-card,
+      .account-grid,
+      .hud--ribbon,
+      .bet-info,
+      .layout-stats,
+      .action-icons,
+      .gear-card-grid,
+      .gear-slots,
+      .card-slots,
+      .gear-inventory,
+      .card-collection,
+      .hud,
+      .action-buttons {
+        grid-template-columns: 1fr;
+      }
+
+      .top-actions,
+      .machine-chip {
+        flex-wrap: wrap;
+      }
+
+      .currency-chip {
+        min-width: 0;
+      }
+
+      .currency-chip strong {
+        white-space: normal;
+      }
+
+      .bonus-item {
+        flex-direction: column;
+        align-items: flex-start;
       }
     }
 

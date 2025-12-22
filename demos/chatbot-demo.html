@@ -46,6 +46,9 @@
             height:auto !important;
             min-height:0 !important;
         }
+        html[data-embedded="true"] {
+            --page-pad: clamp(8px, 2vw, 16px);
+        }
 
         body {
             margin: 0;
@@ -667,6 +670,12 @@
             .bar-actions {
                 justify-content: center;
                 width: 100%;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .svc-text {
+                min-width: 0;
             }
 
             #prompt {
@@ -684,6 +693,12 @@
             .icon-btn, .btn-primary, .btn-ghost {
                 min-height: 44px;
                 min-width: 44px;
+            }
+
+            #ask,
+            .btn-ghost {
+                width: 100%;
+                min-width: 0;
             }
 
             .qp-viewport {

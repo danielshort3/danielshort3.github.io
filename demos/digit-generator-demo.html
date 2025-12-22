@@ -29,6 +29,9 @@
       height: auto !important;
       min-height: 0 !important;
     }
+    html[data-embedded="true"] {
+      --page-pad: clamp(8px, 2vw, 16px);
+    }
 
     body {
       margin: 0;
@@ -367,6 +370,11 @@
         margin-left: 0;
         width: 100%;
         justify-content: space-between;
+      }
+
+      .grid-controls select {
+        min-width: 0;
+        width: 100%;
       }
 
       .latent-row {

@@ -28,6 +28,9 @@
     html, body { height: 100%; }
     html[data-embedded="true"],
     html[data-embedded="true"] body { height: auto !important; min-height: 0 !important; }
+    html[data-embedded="true"] {
+      --page-pad: clamp(8px, 2vw, 16px);
+    }
     body {
       margin: 0;
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
