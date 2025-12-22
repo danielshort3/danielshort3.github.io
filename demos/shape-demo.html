@@ -43,6 +43,9 @@
             height:auto !important;
             min-height:0 !important;
         }
+        html[data-embedded="true"] {
+            --page-pad: clamp(8px, 2vw, 16px);
+        }
 
         body {
             margin: 0;
@@ -467,6 +470,11 @@
 
             .toolbar {
                 width: 100%;
+            }
+
+            .result-badge {
+                flex-wrap: wrap;
+                white-space: normal;
             }
 
             .panel {
