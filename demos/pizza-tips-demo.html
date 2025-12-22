@@ -92,7 +92,12 @@
       align-items: center;
       gap: 10px;
       flex-wrap: wrap;
-      justify-content: flex-end;
+      justify-content: flex-start;
+    }
+    .status-row {
+      padding: 10px 22px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--accent) 8%, transparent));
     }
     .pill {
       display: inline-flex;
@@ -419,10 +424,10 @@
         <h1>Map-Based Tip Estimator</h1>
         <p class="subhead">Click the map, set the scenario, and estimate tip amount + percentage.</p>
       </div>
-      <div class="status">
-        <div class="pill" id="api-status">API: ready</div>
-      </div>
     </header>
+    <div class="status status-row" role="status" aria-live="polite">
+      <div class="pill" id="api-status">Checking...</div>
+    </div>
 
     <section class="section">
       <div class="grid">
@@ -906,7 +911,7 @@
     populateHousing();
     populateConfidence();
     applyFeatureVisibility();
-    setStatus(API_URL ? 'ok' : 'err', API_URL ? 'API: ready' : 'API: missing URL');
+    setStatus(API_URL ? 'ok' : 'err', API_URL ? 'Ready' : 'Unavailable');
     setInputs(DEFAULTS);
 
     const map = L.map('map', { zoomControl: true });
@@ -999,25 +1004,25 @@
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       if (!API_URL) {
-        setStatus('err', 'API: missing URL');
+        setStatus('err', 'Unavailable');
         return;
       }
       const lat = Number(latInput.value);
       const lon = Number(lonInput.value);
       const resolved = resolveCityLocal(lat, lon);
       if (!resolved.city) {
-        setStatus('err', 'Outside city boundaries');
+        setStatus('err', 'Unavailable');
         warningsEl.textContent = 'Choose a point inside the delivery cities to estimate tips.';
         return;
       }
-      setStatus('', 'API: working');
+      setStatus('', 'Working...');
       try {
         const result = await postToEndpoint(API_URL, currentPayload(true));
         applyResponse(result);
-        setStatus('ok', 'API: ready');
+        setStatus('ok', 'Ready');
       } catch (err) {
         console.error(err);
-        setStatus('err', 'API: error');
+        setStatus('err', 'Error');
         warningsEl.textContent = String(err.message || err);
       }
     });
