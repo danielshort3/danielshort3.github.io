@@ -561,6 +561,36 @@
       }
     }
 
+    @media (max-width: 600px) {
+      .content {
+        padding: 12px;
+      }
+      .canvas-area {
+        width: 100%;
+        justify-self: stretch;
+      }
+      #erase {
+        top: 8px;
+        right: 8px;
+      }
+      .btn-primary {
+        min-width: 0;
+        width: 100%;
+      }
+      .panel {
+        padding: 12px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      :root {
+        --page-pad: 10px;
+      }
+      .toolbar {
+        width: 100%;
+      }
+    }
+
     .hint {
       color: var(--text-muted);
       font-size: .9rem;

@@ -279,6 +279,29 @@
         width: 90px;
       }
     }
+
+    @media (max-width: 420px) {
+      :root {
+        --cell-size: 28px;
+        --clue-size: 50px;
+        --page-pad: 10px;
+      }
+      .content {
+        padding: 12px;
+      }
+      .board-shell {
+        padding: 8px;
+        gap: 4px;
+      }
+      .clues-top,
+      .clues-left,
+      .grid {
+        gap: 4px;
+      }
+      .clue {
+        font-size: .75rem;
+      }
+    }
   </style>
   <script>
     if (window.self !== window.top) {
