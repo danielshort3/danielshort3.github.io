@@ -483,6 +483,62 @@
         grid-template-columns: 1fr;
       }
     }
+
+    @media (max-width: 600px) {
+      :root {
+        --list-height: 160px;
+      }
+      header.card-header {
+        padding: 14px;
+      }
+      .status-row {
+        padding: 8px 14px;
+      }
+      .content {
+        padding: 14px;
+      }
+      .panel {
+        padding: 12px;
+      }
+      .title-group {
+        min-width: 0;
+      }
+      .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+      }
+      .segment {
+        flex-wrap: wrap;
+        width: 100%;
+      }
+      .segment button {
+        flex: 1 1 80px;
+      }
+      .panel-title {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .stat-grid {
+        grid-template-columns: 1fr;
+      }
+      .mini-list {
+        min-height: 0;
+        max-height: var(--list-height);
+      }
+    }
+
+    @media (max-width: 420px) {
+      :root {
+        --page-pad: 10px;
+        --list-height: 140px;
+      }
+      .status-note {
+        font-size: 0.7rem;
+      }
+      .bar-row {
+        grid-template-columns: 22px 1fr 32px;
+      }
+    }
   </style>
   <script>
     if (window.self !== window.top) {
