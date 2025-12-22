@@ -711,9 +711,12 @@
   <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/d3-composite-projections@1/dist/d3-composite-projections.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+  <script src="js/demos/aws-client.js"></script>
   <script type="module">
     const DEFAULT_API_URL = "https://lv4inwnj6yyo3kfdajpk2v5eda0hrtao.lambda-url.us-east-2.on.aws/";
-    const STORAGE_KEY = "covid_outbreak_api";
+    const STORAGE_KEY = "demo.endpoint.covid";
+    const LEGACY_KEYS = ["covid_outbreak_api"];
+    const { resolveEndpoint, getJson, joinUrl } = window.DemoAws;
 
     const notifyResize = (() => {
       const CHANNEL = "covid-outbreak-demo-resize";
@@ -871,26 +874,11 @@
 
     const numberFormat = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 
-    function normalizeBase(url) {
-      if (!url) return DEFAULT_API_URL;
-      return url.endsWith("/") ? url : `${url}/`;
-    }
-
-    function getEndpoint() {
-      try {
-        const params = new URLSearchParams(window.location.search);
-        const qs = params.get("endpoint") || params.get("fn");
-        if (qs) {
-          localStorage.setItem(STORAGE_KEY, qs);
-          return normalizeBase(qs);
-        }
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) return normalizeBase(stored);
-      } catch (err) {
-        console.warn(err);
-      }
-      return normalizeBase(DEFAULT_API_URL);
-    }
+    const endpointConfig = {
+      defaultUrl: DEFAULT_API_URL,
+      storageKey: STORAGE_KEY,
+      legacyKeys: LEGACY_KEYS
+    };
 
     function setConnection(state, text) {
       DOM.connectionPill.dataset.state = state;
@@ -898,11 +886,7 @@
     }
 
     async function fetchJson(path) {
-      const res = await fetch(`${appState.endpoint}${path}`);
-      if (!res.ok) {
-        throw new Error(`Request failed: ${res.status}`);
-      }
-      return res.json();
+      return getJson(joinUrl(appState.endpoint, path));
     }
 
     function formatPercent(value) {
@@ -1288,7 +1272,7 @@
     }
 
     async function init() {
-      appState.endpoint = getEndpoint();
+      appState.endpoint = resolveEndpoint(endpointConfig);
       try {
         await renderMap();
       } catch (err) {

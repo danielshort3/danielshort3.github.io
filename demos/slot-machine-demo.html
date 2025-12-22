@@ -2960,6 +2960,7 @@
     </div>
   </div>
 
+  <script src="js/demos/aws-client.js"></script>
   <script>
     (() => {
       const DEBUG = true;
@@ -3014,7 +3015,11 @@
         debugError('init', 'Missing #main element');
         return;
       }
-      const API_BASE = root.dataset.apiBase;
+      const DEFAULT_API_BASE = root.dataset.apiBase;
+      const STORAGE_KEY = 'demo.endpoint.slot';
+      const { resolveEndpoint } = window.DemoAws;
+      const endpointConfig = { defaultUrl: DEFAULT_API_BASE, storageKey: STORAGE_KEY };
+      const API_BASE = resolveEndpoint(endpointConfig).replace(/\/$/, '');
       const DEFAULT_MAX_BET = Number(root.dataset.maxBet) || 100;
       const MACHINE_CONFIG_URL = root.dataset.machineConfig || '';
       const MACHINE_LIST_URL = 'slot-config/machines/index.json';
