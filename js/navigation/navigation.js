@@ -227,19 +227,6 @@
             }).join('')}
           </div>
         </div>
-        <div class="nav-dropdown-column nav-dropdown-column-actions nav-dropdown-mini-form-wrap">
-          <div class="nav-dropdown-header">Quick message</div>
-          <form id="nav-contact-mini-form" class="nav-mini-form" novalidate>
-            <label for="nav-mini-name">Name</label>
-            <input id="nav-mini-name" name="name" type="text" autocomplete="name" required placeholder="Jane Doe">
-            <label for="nav-mini-email">Email</label>
-            <input id="nav-mini-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com">
-            <label for="nav-mini-message">How can I help?</label>
-            <textarea id="nav-mini-message" name="message" rows="3" required placeholder="Project, role, or opportunity details"></textarea>
-            <p class="nav-mini-status" id="nav-mini-status" role="status" aria-live="polite" hidden></p>
-            <button type="submit" class="btn-primary nav-mini-submit">Start the conversation</button>
-          </form>
-        </div>
       </div>
     `;
 	    const dropdownIds = {
@@ -337,7 +324,6 @@
     });
     const burger = host.querySelector('#nav-toggle');
     const menu   = host.querySelector('#primary-menu');
-    setupMiniContactForm();
     setupDropdown(host.querySelector('.nav-item-portfolio'));
     setupDropdown(host.querySelector('.nav-item-resume'));
     setupDropdown(host.querySelector('.nav-item-contact'));
@@ -497,17 +483,6 @@
     } else {
       item.appendChild(preview);
     }
-    let videoEl = preview.querySelector('video');
-    if(!videoEl){
-      videoEl = document.createElement('video');
-      videoEl.muted = true;
-      videoEl.loop = true;
-      videoEl.playsInline = true;
-      videoEl.autoplay = true;
-      videoEl.setAttribute('aria-hidden','true');
-      videoEl.className = 'nav-project-preview-video';
-      preview.appendChild(videoEl);
-    }
     const setAspectRatio = (w, h) => {
       if (!w || !h) return;
       preview.style.aspectRatio = `${w}/${h}`;
@@ -531,19 +506,6 @@
       }
     };
     let currentPreviewId = null;
-    const setVideoSource = (id) => {
-      if(!videoEl) return;
-      const src = `/img/projects/${id}.webm`;
-      if(videoEl.dataset.src === src) return;
-      videoEl.pause();
-      videoEl.removeAttribute('src');
-      videoEl.load();
-      videoEl.dataset.src = src;
-      videoEl.src = src;
-      videoEl.poster = `/img/projects/${id}.webp`;
-      videoEl.onloadedmetadata = () => setAspectRatio(videoEl.videoWidth, videoEl.videoHeight);
-      videoEl.play().catch(() => {/* ignore autoplay blocks */});
-    };
     const preloadImage = (id) => {
       const img = new Image();
       img.onload = () => setAspectRatio(img.naturalWidth, img.naturalHeight);
@@ -555,7 +517,6 @@
       if(!id || id === currentPreviewId) return;
       currentPreviewId = id;
       preview.style.setProperty('--preview-image', `url('/img/projects/${id}.webp')`);
-      setVideoSource(id);
       preloadImage(id);
       positionPreview(card);
       preview.classList.remove('nav-project-preview-animating');
@@ -576,9 +537,6 @@
     });
     const hide = () => {
       preview.classList.remove('nav-project-preview-visible');
-      if (videoEl) {
-        videoEl.pause();
-      }
     };
     dropdown.addEventListener('pointerleave', hide);
     item.addEventListener('mouseleave', hide);
@@ -593,83 +551,6 @@
       originalClose && originalClose();
       hide();
     };
-  }
-  function setupMiniContactForm(){
-    const form = document.getElementById('nav-contact-mini-form');
-    if(!form) return;
-    const nameInput = form.querySelector('#nav-mini-name');
-    const emailInput = form.querySelector('#nav-mini-email');
-    const messageInput = form.querySelector('#nav-mini-message');
-    const statusEl = document.getElementById('nav-mini-status');
-    const setStatus = (message = '', tone = 'info') => {
-      if (!statusEl) return;
-      statusEl.textContent = message;
-      if (message) {
-        statusEl.dataset.tone = tone;
-        statusEl.hidden = false;
-      } else {
-        statusEl.hidden = true;
-        delete statusEl.dataset.tone;
-      }
-    };
-    const emailValid = (value = '') => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
-    const persistDraft = (payload) => {
-      try {
-        sessionStorage.setItem('navContactPrefill', JSON.stringify(payload));
-      } catch { /* noop */ }
-    };
-    const hydrateContactPage = (payload) => {
-      const contactForm = document.getElementById('contact-form');
-      if (!contactForm || !payload) return false;
-      const nameField = contactForm.querySelector('#contact-name');
-      const emailField = contactForm.querySelector('#contact-email');
-      const messageField = contactForm.querySelector('#contact-message');
-      if (nameField && payload.name) nameField.value = payload.name;
-      if (emailField && payload.email) emailField.value = payload.email;
-      if (messageField && payload.message) messageField.value = payload.message;
-      return true;
-    };
-    form.addEventListener('submit', (event) => {
-      event.preventDefault();
-      const payload = {
-        name: (nameInput?.value || '').trim(),
-        email: (emailInput?.value || '').trim(),
-        message: (messageInput?.value || '').trim()
-      };
-      if (!payload.name || !payload.email || !payload.message) {
-        setStatus('Please add your name, email, and a short note.', 'error');
-        return;
-      }
-      if (!emailValid(payload.email)) {
-        setStatus('That email looks off. Try again?', 'error');
-        return;
-      }
-      if (typeof window.requestContactModal === 'function') {
-        setStatus('Opening the contact form…', 'info');
-        window.requestContactModal(payload);
-        return;
-      }
-      setStatus('Opening the contact form…', 'info');
-      persistDraft(payload);
-      if (location.pathname.includes('/contact.html')) {
-        const hydrated = hydrateContactPage(payload);
-        if (hydrated) {
-          try { sessionStorage.removeItem('navContactPrefill'); } catch { /* noop */ }
-        }
-        location.hash = '#contact-modal';
-      } else {
-        window.location.href = 'contact.html#contact-modal';
-      }
-    });
-    // Hydrate if we're already on contact.html and a draft exists
-    try {
-      const cached = sessionStorage.getItem('navContactPrefill');
-      if (cached) {
-        const payload = JSON.parse(cached);
-        const hydrated = hydrateContactPage(payload);
-        if (hydrated) sessionStorage.removeItem('navContactPrefill');
-      }
-    } catch { /* ignore */ }
   }
   function injectFooter(){
     const f = $('footer');

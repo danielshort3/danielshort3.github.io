@@ -400,18 +400,6 @@
   pointer-events:none;
   z-index:1201;
 }
-.nav-project-preview-video{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  object-fit:contain;
-  opacity:.94;
-  transition:opacity .2s ease;
-}
-.nav-project-preview:not(.nav-project-preview-visible) .nav-project-preview-video{
-  opacity:0;
-}
 .nav-project-preview.nav-project-preview-visible{
   opacity:1;
   transform:translateY(0);
@@ -511,50 +499,8 @@
     text-transform:uppercase;
     color:color-mix(in srgb,var(--text-light) 72%, #ffffff 28%);
   }
-  .nav-dropdown-inner-contact{
-    grid-template-columns:minmax(0, 1fr) minmax(280px, 1.1fr);
-  }
-  .nav-mini-form{
-    display:grid;
-    gap:8px;
-  }
-  .nav-mini-form label{
-    font-size:.85rem;
-    color:color-mix(in srgb,var(--text-light) 82%, #ffffff 18%);
-  }
-  .nav-mini-form input,
-  .nav-mini-form textarea{
-    width:100%;
-    box-sizing:border-box;
-    padding:10px 12px;
-    border-radius:12px;
-    border:1px solid color-mix(in srgb,var(--primary) 22%, var(--surface) 78%);
-    background:color-mix(in srgb,var(--surface) 92%, #000 8%);
-    color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
-    font:inherit;
-    transition:border-color .2s ease, box-shadow .2s ease;
-  }
-  .nav-mini-form input:focus,
-  .nav-mini-form textarea:focus{
-    outline:none;
-    border-color:color-mix(in srgb,var(--primary) 46%, var(--surface) 54%);
-    box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 28%, transparent);
-  }
-  .nav-mini-form textarea{
-    resize:vertical;
-    min-height:96px;
-  }
-  .nav-mini-status{
-    margin:0;
-    font-size:.85rem;
-    color:color-mix(in srgb,var(--text-muted) 92%, #ffffff 8%);
-  }
-  .nav-mini-status[data-tone="error"]{ color:color-mix(in srgb,#ff8787 88%, #410000 12%); }
-  .nav-mini-submit{
-    width:100%;
-    justify-content:center;
-    padding:12px 14px;
-    font-size:1rem;
+  .nav-dropdown-inner.nav-dropdown-inner-contact{
+    grid-template-columns:minmax(0, 1fr);
   }
   @media (max-width: 1200px){
     .nav-dropdown-inner{
