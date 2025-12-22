@@ -64,6 +64,158 @@
     </div>
   `;
 
+  const THEME_STORAGE_KEY = 'theme';
+  const THEME_DARK = 'dark';
+  const THEME_LIGHT = 'light';
+  let activeTheme = THEME_LIGHT;
+
+  const getStoredTheme = () => {
+    try {
+      return localStorage.getItem(THEME_STORAGE_KEY);
+    } catch {
+      return null;
+    }
+  };
+
+  const setStoredTheme = (theme) => {
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, theme);
+    } catch {}
+  };
+
+  const systemTheme = () => {
+    try {
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return THEME_DARK;
+      }
+    } catch {}
+    return THEME_LIGHT;
+  };
+
+  const updateThemeToggle = (theme = activeTheme) => {
+    const isDark = theme === THEME_DARK;
+    $$('[data-theme-toggle]').forEach((btn) => {
+      btn.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+      btn.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+      const label = btn.querySelector('[data-theme-label]');
+      if (label) label.textContent = isDark ? 'Light' : 'Dark';
+      btn.dataset.themeState = isDark ? THEME_DARK : THEME_LIGHT;
+    });
+  };
+
+  const applyTheme = (theme, { persist = false } = {}) => {
+    activeTheme = theme === THEME_DARK ? THEME_DARK : THEME_LIGHT;
+    if (activeTheme === THEME_DARK) {
+      document.documentElement.setAttribute('data-theme', THEME_DARK);
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+    updateThemeToggle(activeTheme);
+    if (persist) {
+      setStoredTheme(activeTheme);
+    }
+  };
+
+  const initTheme = () => {
+    const stored = getStoredTheme();
+    if (stored === THEME_DARK || stored === THEME_LIGHT) {
+      applyTheme(stored);
+    } else {
+      applyTheme(systemTheme());
+    }
+    const matcher = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+    if (!matcher) return;
+    const onChange = (event) => {
+      const currentStored = getStoredTheme();
+      if (currentStored === THEME_DARK || currentStored === THEME_LIGHT) return;
+      applyTheme(event.matches ? THEME_DARK : THEME_LIGHT);
+    };
+    if (typeof matcher.addEventListener === 'function') {
+      matcher.addEventListener('change', onChange);
+    } else if (typeof matcher.addListener === 'function') {
+      matcher.addListener(onChange);
+    }
+  };
+
+  initTheme();
+  window.syncThemeToggle = () => updateThemeToggle(activeTheme);
+
+  document.addEventListener('click', (event) => {
+    const toggle = event.target.closest('[data-theme-toggle]');
+    if (!toggle) return;
+    event.preventDefault();
+    const next = activeTheme === THEME_DARK ? THEME_LIGHT : THEME_DARK;
+    applyTheme(next, { persist: true });
+  });
+
+  let tableauApiPromise = null;
+  const buildTableauUrl = (base) => {
+    if (!base) return '';
+    const isPhone = (() => {
+      try {
+        return Boolean(window.matchMedia && window.matchMedia('(max-width:768px)').matches);
+      } catch {
+        return false;
+      }
+    })();
+    const params = [':embed=y', ':showVizHome=no', `:device=${isPhone ? 'phone' : 'desktop'}`];
+    const joiner = base.includes('?') ? '&' : '?';
+    return `${base}${joiner}${params.join('&')}`;
+  };
+  const loadTableauApi = () => {
+    if (window.tableau && window.tableau.Viz) {
+      return Promise.resolve(window.tableau);
+    }
+    if (tableauApiPromise) return tableauApiPromise;
+    tableauApiPromise = new Promise((resolve, reject) => {
+      const tag = document.createElement('script');
+      tag.src = 'https://public.tableau.com/javascripts/api/tableau-2.min.js';
+      tag.async = true;
+      tag.onload = () => resolve(window.tableau);
+      tag.onerror = () => {
+        tableauApiPromise = null;
+        reject(new Error('Failed to load Tableau API'));
+      };
+      document.head.appendChild(tag);
+    });
+    return tableauApiPromise;
+  };
+  const activateTableauFacade = (facade) => {
+    if (!facade || facade.dataset.tableauLoaded === 'true') return;
+    const base = facade.dataset.tableauBase || facade.dataset.tableauUrl;
+    if (!base) return;
+    facade.dataset.tableauLoaded = 'true';
+    facade.classList.add('tableau-facade-loading');
+    const title = facade.dataset.tableauTitle || 'Interactive dashboard';
+    loadTableauApi()
+      .then(() => {
+        const url = buildTableauUrl(base);
+        if (!url) throw new Error('Missing Tableau URL');
+        const host = document.createElement('div');
+        host.className = 'tableau-viz-host';
+        host.setAttribute('aria-label', title);
+        facade.innerHTML = '';
+        facade.appendChild(host);
+        try {
+          new window.tableau.Viz(host, url, { hideTabs: true });
+        } catch {}
+        facade.classList.remove('tableau-facade-loading');
+        facade.classList.add('tableau-facade-live');
+      })
+      .catch(() => {
+        facade.dataset.tableauLoaded = 'false';
+        facade.classList.remove('tableau-facade-loading');
+      });
+  };
+  document.addEventListener('click', (event) => {
+    const trigger = event.target.closest('[data-tableau-launch]');
+    if (!trigger) return;
+    const facade = trigger.closest('.tableau-facade');
+    if (!facade) return;
+    event.preventDefault();
+    activateTableauFacade(facade);
+  });
+
   const storeContactOrigin = () => {
     try {
       const title = (document.title || '').trim();

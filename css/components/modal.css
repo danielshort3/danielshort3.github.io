@@ -44,7 +44,7 @@
   .modal-close:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
   .modal-close:hover{color:var(--primary);text-shadow:0 0 4px color-mix(in srgb,var(--primary) 40%,transparent)}
   .modal-title-strip{ text-align:center; padding:32px 28px 24px; border-bottom: 1px solid color-mix(in srgb, var(--text-light) 10%, transparent); }
-  .modal-title{margin:0;font-family:'Poppins';font-weight:600;font-size:1.9rem;letter-spacing:.3px;color:var(--primary)}
+  .modal-title{margin:0;font-family:'Poppins';font-weight:600;font-size:clamp(1.6rem,1.3rem + 1.1vw,2.1rem);letter-spacing:.3px;color:var(--primary)}
 
   .modal-header-details{
     flex:0 0 100%;
@@ -86,7 +86,7 @@
   }
   .modal-text p{margin:0 0 .85em}
   .modal-text ul{margin:.5em 0 1em}
-  .modal-text h4{color:var(--primary);margin-top:1em;margin-bottom:.5em;font-size:1.2rem}
+  .modal-text h4{color:var(--primary);margin-top:1em;margin-bottom:.5em;font-size:clamp(1.1rem,1rem + 0.4vw,1.3rem)}
   .modal-text ul{padding-left:20px}
   .modal-subtitle{margin-top:8px;color:var(--text-muted)}
   .modal-image{
@@ -429,7 +429,7 @@
   }
   .contact-form-success h4{
     margin:8px 0;
-    font-size:1.4rem;
+    font-size:clamp(1.2rem,1.1rem + 0.5vw,1.45rem);
     color:var(--text-light);
   }
   .contact-form-success p{
@@ -523,10 +523,12 @@
     max-width:none;
     margin:0;
     flex:0 0 auto;
+    --tableau-facade-height:clamp(520px, 70vh, 980px);
   }
-  .modal-tableau-layout .modal-embed iframe{
+  .modal-tableau-layout .modal-embed iframe,
+  .modal-tableau-layout .tableau-facade{
     min-height:clamp(520px, 68vh, 920px);
-    height:clamp(520px, 70vh, 980px);
+    height:var(--tableau-facade-height);
   }
   .modal-embed {
     width:100%;

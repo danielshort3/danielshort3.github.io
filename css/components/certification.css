@@ -158,7 +158,7 @@
   }
   .cert-card h4{
     margin:4px 0;
-    font-size:1.05rem;
+    font-size:clamp(1rem,0.95rem + 0.3vw,1.2rem);
     font-family:'Poppins';
     color:var(--text-light);
   }

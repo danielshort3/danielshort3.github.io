@@ -15,7 +15,7 @@
     background:linear-gradient(155deg,
       color-mix(in srgb,var(--surface) 94%, #020509 6%) 0%,
       color-mix(in srgb,var(--surface) 86%, #000 14%) 42%,
-      #0f141d 100%);
+      color-mix(in srgb,var(--surface) 70%, #000 30%) 100%);
   }
   body[data-page="home"] .hero{
     margin-bottom:0;
