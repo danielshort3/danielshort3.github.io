@@ -623,13 +623,22 @@ function buildPortfolio() {
     return n;
   };
 
-  const tileMap = {
-    smartSentence: 'hero',
-    pizzaDashboard: 'tall'
-  };
-  const getTile = (project) => tileMap[project.id] || 'standard';
-
 const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+(() => {
+  const mq = window.matchMedia("(max-width:768px)");
+  const updateIframes = () => {
+    document.querySelectorAll(".modal-embed iframe[data-base]")
+      .forEach(f => {
+        const base = f.dataset.base;
+        f.src = `${base}?${[
+          ":embed=y",
+          ":showVizHome=no",
+          `:device=${mq.matches ? "phone" : "desktop"}`
+        ].join("&")}`;
+      });
+  };
+  mq.addEventListener("change", updateIframes);
+})();
 
 
   /* ➊ Build cards & modals ----------------------------------------- */
@@ -646,7 +655,6 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
     card.type = "button";
     card.setAttribute("aria-label", `View details of ${p.title}`);
     card.dataset.index = i;
-    card.dataset.tile = getTile(p);
     card.dataset.tools = (Array.isArray(p.tools) ? p.tools : []).join('|');
     card.dataset.concepts = (Array.isArray(p.concepts) ? p.concepts : []).join('|');
     card.addEventListener("click", () => openModal(p.id));

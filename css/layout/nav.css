@@ -9,7 +9,7 @@
     --brand-tagline-size: clamp(13px, 1.6vw, 16px);
     --nav-accent-gradient:linear-gradient(135deg,
       color-mix(in srgb,var(--primary) 92%, #ffffff 8%) 0%,
-      color-mix(in srgb,var(--primary) 60%, var(--bg) 40%) 100%);
+      color-mix(in srgb,var(--primary) 68%, #0A1A1F 32%) 100%);
     --nav-block-padding: clamp(12px, 1.8vw, 20px);
     --nav-inline-padding: clamp(20px, 5vw, 48px);
     --nav-border-width:1px;
@@ -19,9 +19,9 @@
     width:100%;
     z-index:1000;
     background:linear-gradient(120deg,
-      color-mix(in srgb,var(--surface) 92%, transparent) 0%,
-      color-mix(in srgb,var(--surface) 86%, transparent) 60%,
-      color-mix(in srgb,var(--surface) 82%, transparent) 100%);
+      rgba(13,17,23,.92) 0%,
+      rgba(15,21,30,.86) 60%,
+      rgba(18,25,36,.82) 100%);
     border-bottom:var(--nav-border-width) solid color-mix(in srgb,var(--primary) 18%, transparent);
     backdrop-filter:blur(18px);
   }
@@ -52,7 +52,7 @@
     gap:clamp(8px, 1.4vw, 18px);
     margin-left:auto;
     flex:1 1 480px;
-    max-width:min(720px, 86vw);
+    max-width:min(640px, 80vw);
   }
   .nav-link{
     position:relative;
@@ -70,13 +70,6 @@
     color:color-mix(in srgb,var(--text-light) 78%, #ffffff 22%);
     white-space:nowrap;
     transition:color .25s ease;
-  }
-  button.nav-link{
-    border:0;
-    background:transparent;
-    font:inherit;
-    color:inherit;
-    cursor:pointer;
   }
   .nav-link::after{
     content:"";
@@ -120,39 +113,6 @@
     transform:translateY(-1px);
     box-shadow:0 16px 32px rgba(0,0,0,.32);
     color:color-mix(in srgb,#ffffff 96%, var(--bg) 4%);
-  }
-  .nav-theme-toggle{
-    gap:8px;
-    padding:8px 12px;
-    border-radius:999px;
-    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
-    background:color-mix(in srgb,var(--surface) 88%, transparent);
-    color:color-mix(in srgb,var(--text-light) 84%, #ffffff 16%);
-  }
-  .nav-theme-toggle::after{display:none;}
-  .nav-theme-toggle:hover,
-  .nav-theme-toggle:focus-visible{
-    color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
-    border-color:color-mix(in srgb,var(--primary) 34%, transparent);
-  }
-  .nav-theme-toggle[aria-pressed="true"]{
-    background:color-mix(in srgb,var(--primary) 18%, transparent);
-    border-color:color-mix(in srgb,var(--primary) 46%, transparent);
-    color:var(--primary);
-  }
-  .nav-theme-icon{
-    display:inline-flex;
-    width:18px;
-    height:18px;
-  }
-  .nav-theme-icon svg{
-    width:18px;
-    height:18px;
-    stroke:currentColor;
-    fill:none;
-    stroke-width:2;
-    stroke-linecap:round;
-    stroke-linejoin:round;
   }
   .nav-item{
     position:relative;
