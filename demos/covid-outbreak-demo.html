@@ -630,7 +630,7 @@
     </header>
 
     <div class="status-row">
-      <span class="status-pill" id="connection-pill" data-state="warn">Loading data</span>
+      <span class="status-pill" id="connection-pill" data-state="warn">Checking...</span>
       <span class="status-meta" id="connection-meta">Connecting to AWS Lambda</span>
     </div>
 
@@ -1293,7 +1293,7 @@
         const latestIdx = appState.dates.length - 1;
         DOM.dateSlider.max = String(latestIdx);
         DOM.dateSlider.value = String(latestIdx);
-        setConnection("ok", "Connected");
+        setConnection("ok", "Ready");
         DOM.connectionMeta.textContent = "Live data loaded from AWS";
         DOM.dateSlider.addEventListener("input", (event) => {
           handleDateChange(Number(event.target.value));
@@ -1301,7 +1301,7 @@
         await handleDateChange(latestIdx);
       } catch (err) {
         console.error(err);
-        setConnection("err", "Offline");
+        setConnection("err", "Unavailable");
         DOM.connectionMeta.textContent = "Unable to reach AWS Lambda. Check the endpoint.";
         DOM.dateSlider.disabled = true;
         DOM.dateValue.textContent = "--";

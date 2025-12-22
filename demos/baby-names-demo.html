@@ -566,7 +566,7 @@
     </header>
 
     <div class="status-row">
-      <span class="status-pill" id="status-pill" data-state="warn">Loading</span>
+      <span class="status-pill" id="status-pill" data-state="warn">Checking...</span>
       <span class="status-meta" id="status-meta">Fetching demo data...</span>
       <span class="status-note">My wife has approved publication of this data through this project.</span>
     </div>
@@ -925,12 +925,12 @@
         const data = await res.json();
         appState.data = data;
         DOM.metaSource.textContent = `SSA ${data.meta?.sourceYear || "latest"} (min ${data.meta?.minCount || ""})`;
-        setStatus("ok", "Data ready", "Recommendations and ratings available");
+        setStatus("ok", "Ready", "Recommendations and ratings available");
         renderStats();
         renderList();
       } catch (err) {
         console.error(err);
-        setStatus("warn", "Offline", "Demo data missing");
+        setStatus("warn", "Unavailable", "Demo data missing");
         DOM.nameList.innerHTML = "<li class=\"empty-state\">Unable to load data</li>";
       }
     }

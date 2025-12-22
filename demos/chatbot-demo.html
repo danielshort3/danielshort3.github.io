@@ -863,8 +863,8 @@
         <!-- Service status (does not invoke the model) -->
         <div id="service-status" role="status" aria-live="polite">
             <span class="svc-dot gray" id="svc-dot" aria-hidden="true"></span>
-            <span class="svc-label">Server</span>
-            <span class="svc-text" id="svc-text">Checking…</span>
+            <span class="svc-label">Status</span>
+            <span class="svc-text" id="svc-text">Checking...</span>
             <span class="svc-meta">
                 <span class="sep">•</span>
                 <span id="svc-eta"></span>
@@ -1043,7 +1043,7 @@
             startNotice?.setAttribute('hidden', 'true');
             svcDot?.classList.remove('green', 'amber');
             svcDot?.classList.add('gray');
-            svcText.textContent = 'Demo unavailable';
+            svcText.textContent = 'Unavailable';
             svcETA.textContent = 'AWS maintenance';
             svcQueueWrap?.setAttribute('hidden', 'true');
             svcProg?.setAttribute('hidden', 'true');
@@ -1074,7 +1074,7 @@
             if (disabledBanner) disabledBanner.hidden = true;
             if (disabledCopy) disabledCopy.textContent = '';
             svcDot?.classList.remove('gray');
-            svcText.textContent = 'Checking…';
+            svcText.textContent = 'Checking...';
             svcETA.textContent = '';
             svcQueueWrap?.setAttribute('hidden', 'true');
             svcProg?.setAttribute('hidden', 'true');
@@ -1366,7 +1366,7 @@
                 } else {
                     currentState = STATE.OFFLINE_DETECTED;
                     setDot(currentState);
-                    svcText.textContent = 'Server is offline.';
+                    svcText.textContent = 'Unavailable';
                     svcETA.textContent = '';
                 }
             }
@@ -1448,7 +1448,7 @@
             currentState = STATE.STARTING;
             setDot(currentState);
             const label = describeMinutesLabel(minutes);
-            svcText.textContent = `Server is starting (up to ~${label}).`;
+            svcText.textContent = `Starting... (up to ~${label})`;
             startingDeadline = Date.now() + Math.max(1, Math.round(durationSec)) * 1000;
             if (typeof STORAGE_KEYS !== 'undefined' && typeof writeDeadline === 'function') {
                 writeDeadline(STORAGE_KEYS.startDeadline, startingDeadline);
@@ -1464,7 +1464,7 @@
             svcETA.textContent = fmtClock(remaining);
             if (remaining <= 0) {
                 stopStartingTimer();
-                svcText.textContent = 'Server start is taking longer than expected.';
+                svcText.textContent = 'Starting... (taking longer than expected)';
                 svcETA.textContent = '';
             }
         }
@@ -1493,7 +1493,7 @@
             }
             const minutesLeft = Math.max(1, Math.ceil((graceDeadline - now) / 60000));
             const label = describeMinutesLabel(minutesLeft);
-            svcText.textContent = `Server is online. Auto-shutdown in ~${label}.`;
+            svcText.textContent = `Ready (auto-shutdown in ~${label})`;
             if (typeof recordLog === 'function') {
                 recordLog('status:grace-cycle', { source, deadline: graceDeadline });
             }
@@ -1509,7 +1509,7 @@
                     if (!status.online) {
                         currentState = STATE.SHUTDOWN;
                         setDot(currentState);
-                        svcText.textContent = 'Server has shut down. Send a message to start it again.';
+                        svcText.textContent = 'Unavailable (send a message to start it again)';
                         svcETA.textContent = '';
                     } else if (typeof status.payload?.shutdownSeconds === 'number' && status.payload.shutdownSeconds > 0) {
                         markServerOnline('grace-refresh', {
@@ -1519,7 +1519,7 @@
                     } else if (typeof status.payload?.current === 'number' && status.payload.current <= 0) {
                         currentState = STATE.SHUTDOWN;
                         setDot(currentState);
-                        svcText.textContent = 'Server has shut down. Send a message to start it again.';
+                        svcText.textContent = 'Unavailable (send a message to start it again)';
                         svcETA.textContent = '';
                     } else {
                         markServerOnline('grace-refresh', { useStoredDeadline: true });
