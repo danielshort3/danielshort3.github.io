@@ -511,6 +511,7 @@
     }
     .nav-project-grid{ grid-template-columns:1fr; }
     #nav-dropdown-resume{ width:min(440px, 88vw); }
+    #nav-dropdown-contact{ width:min(440px, 88vw); }
   }
   .nav-item-portfolio:hover .nav-link-caret,
   .nav-item-portfolio:focus-within .nav-link-caret,
@@ -565,12 +566,9 @@
       width:min(460px, 74vw);
       max-width:500px;
     }
-    #nav-dropdown-contact{
-      width:min(460px, 74vw);
-      max-width:500px;
-    }
     #nav-dropdown-contributions{ width:min(640px, 78vw); }
     #nav-dropdown-resume{ width:min(340px, 64vw); }
+    #nav-dropdown-contact{ width:min(340px, 64vw); }
     .nav-item-portfolio:hover .nav-dropdown,
     .nav-item-portfolio:focus-within .nav-dropdown,
     .nav-item-portfolio.dropdown-open .nav-dropdown,
