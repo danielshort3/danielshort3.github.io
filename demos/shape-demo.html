@@ -1008,6 +1008,21 @@
             return null;
         }
 
+        function getTopShape(scores) {
+            if (!scores) return { key: null, value: null };
+            let bestKey = null;
+            let bestValue = -Infinity;
+            SHAPE_ORDER.forEach(shape => {
+                const value = scores[shape.key];
+                if (!Number.isFinite(value)) return;
+                if (value > bestValue) {
+                    bestValue = value;
+                    bestKey = shape.key;
+                }
+            });
+            return { key: bestKey, value: Number.isFinite(bestValue) ? bestValue : null };
+        }
+
         function renderShapeScores(scores, highlightKey = null) {
             if (!shapeScoreList) return;
             shapeScoreList.innerHTML = '';
@@ -1143,11 +1158,15 @@
                     json.probabilities || json.probs || json.scores ||
                     json.per_class || json.perClass || json.distribution
                 );
+                const top = getTopShape(shapeScores);
 
                 // Canonicalize and capitalize
-                const raw = String(cls || '').toLowerCase();
                 const allowed = ['circle', 'triangle', 'square', 'hexagon', 'octagon'];
-                const canonical = allowed.includes(raw) ? raw : 'unknown';
+                let canonical = top.key;
+                if (!canonical) {
+                    const raw = String(cls || '').toLowerCase();
+                    canonical = allowed.includes(raw) ? raw : 'unknown';
+                }
                 const pretty = canonical !== 'unknown'
                     ? canonical.charAt(0).toUpperCase() + canonical.slice(1)
                     : 'Unknown';

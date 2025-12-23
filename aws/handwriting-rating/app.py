@@ -142,12 +142,11 @@ def score_image(img):
   tensor = preprocess_image(img)
   logits = model(tensor)
   probs = torch.softmax(logits, dim=1).squeeze(0).cpu().numpy().tolist()
-  digit = int(np.argmax(probs)) if probs else 0
-  legibility = float(max(probs)) if probs else 0.0
   return {
-    "digit": digit,
-    "confidences": [round(float(p), 6) for p in probs],
-    "legibility": round(legibility, 6)
+    "digit_confidences": {
+      str(i): round(float(p), 6)
+      for i, p in enumerate(probs)
+    }
   }
 
 

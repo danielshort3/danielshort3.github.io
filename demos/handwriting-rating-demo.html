@@ -1318,8 +1318,8 @@
         if (!json) throw lastErr || new Error('All endpoints failed');
 
         const confidences = normalizeConfidences(
-          json.confidences || json.digit_confidences || json.per_digit_confidence ||
-          json.probabilities || json.scores || json.per_digit
+          json.digit_confidences || json.digitConfidences || json.confidences ||
+          json.per_digit_confidence || json.probabilities || json.scores || json.per_digit
         );
         const digit = numberFrom(json.digit, json.prediction, json.class, json.label);
         const legibility = numberFrom(json.legibility, json.legibility_score, json.legibilityScore, json.score);
