@@ -22,6 +22,7 @@
       --page-pad: clamp(12px, 3vw, 24px);
       --cell-size: clamp(38px, 6vw, 54px);
       --clue-size: clamp(70px, 10vw, 96px);
+      --log-row-height: 36px;
     }
 
     * { box-sizing: border-box; }
@@ -179,6 +180,7 @@
     }
 
     .board-shell {
+      position: relative;
       display: grid;
       grid-template-columns: var(--clue-size) repeat(5, var(--cell-size));
       grid-template-rows: var(--clue-size) repeat(5, var(--cell-size));
@@ -192,6 +194,35 @@
       border: 1px solid var(--surface-accent);
       box-shadow: var(--shadow-1);
       overflow: hidden;
+    }
+
+    .accuracy-toast {
+      position: absolute;
+      left: 50%;
+      bottom: 14px;
+      transform: translate(-50%, 6px);
+      display: grid;
+      gap: 2px;
+      min-width: 150px;
+      max-width: calc(100% - 16px);
+      padding: 6px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--surface-accent);
+      background: color-mix(in srgb, var(--surface) 92%, transparent);
+      box-shadow: var(--shadow-1);
+      text-align: center;
+      font-size: .85rem;
+      font-weight: 600;
+      color: var(--text);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease, transform .2s ease;
+      z-index: 3;
+    }
+
+    .accuracy-toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
     }
 
     .clues-top {
@@ -294,6 +325,11 @@
       overflow: auto;
       display: grid;
       gap: 8px;
+      grid-auto-rows: var(--log-row-height);
+      height: calc(var(--log-row-height) * 5 + 8px * 4);
+      max-height: calc(var(--log-row-height) * 5 + 8px * 4);
+      align-content: start;
+      scrollbar-gutter: stable;
     }
 
     .log-entry {
@@ -303,6 +339,12 @@
       background: color-mix(in srgb, var(--surface) 86%, #000 14%);
       font-size: .8rem;
       color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      min-height: var(--log-row-height);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .log-entry strong {
@@ -425,6 +467,10 @@
         <div class="clues-top" id="clues-top"></div>
         <div class="clues-left" id="clues-left"></div>
         <div class="grid" id="grid"></div>
+        <div id="accuracy-toast" class="accuracy-toast" role="status" aria-live="polite" aria-atomic="true">
+          <span class="toast-label">AI Accuracy</span>
+          <span class="toast-score">--</span>
+        </div>
       </div>
 
       <aside class="panel" aria-live="polite">
@@ -454,11 +500,15 @@
     const statusEl = document.getElementById('status');
     const healthPill = document.getElementById('health-pill');
     const logEl = document.getElementById('log');
+    const accuracyToast = document.getElementById('accuracy-toast');
+    const toastScore = accuracyToast?.querySelector('.toast-score');
     const newBtn = document.getElementById('new-btn');
     const solutionBtn = document.getElementById('solution-btn');
     const solveBtn = document.getElementById('solve-btn');
 
     const statAccuracy = document.getElementById('stat-accuracy');
+
+    let toastTimer = null;
 
     let current = null;
     let solving = false;
@@ -487,6 +537,9 @@
 
     function resetStats() {
       statAccuracy.textContent = '-';
+      if (accuracyToast) {
+        accuracyToast.classList.remove('show');
+      }
     }
 
     function clearLog() {
@@ -497,10 +550,22 @@
       const item = document.createElement('div');
       const result = step.result || (step.duplicate ? 'Duplicate' : (step.correct ? 'Correct' : 'Incorrect'));
       const action = step.predicted === 1 ? 'Filled' : 'Empty';
+      const messageText = `Step ${index + 1}: r${step.row + 1}c${step.col + 1} -> ${action} (${result})`;
       item.className = 'log-entry';
       item.innerHTML = `Step <strong>${index + 1}</strong>: r${step.row + 1}c${step.col + 1} -> ${action} (${result})`;
-      logEl.appendChild(item);
-      logEl.scrollTop = logEl.scrollHeight;
+      item.title = messageText;
+      logEl.prepend(item);
+      logEl.scrollTop = 0;
+    }
+
+    function showAccuracyToast(accuracyText) {
+      if (!accuracyToast || !toastScore) return;
+      toastScore.textContent = accuracyText === '-' ? 'Accuracy: --' : `Accuracy: ${accuracyText}`;
+      accuracyToast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        accuracyToast.classList.remove('show');
+      }, 2400);
     }
 
     function renderBoard(gridSize) {
@@ -771,7 +836,9 @@
       stopAnimation();
       solving = false;
       solveBtn.disabled = false;
-      statAccuracy.textContent = formatAccuracy();
+      const accuracyText = formatAccuracy();
+      statAccuracy.textContent = accuracyText;
+      showAccuracyToast(accuracyText);
       setStatus('Puzzle Solved!');
     }
 
