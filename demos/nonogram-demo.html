@@ -56,14 +56,7 @@
       box-shadow: var(--shadow-2);
       overflow: hidden;
       display: grid;
-      grid-template-rows: auto auto 1fr;
-      min-height: calc(100vh - var(--page-pad) * 2);
-    }
-
-    @supports (height: 100dvh) {
-      #demo-box {
-        min-height: calc(100dvh - var(--page-pad) * 2 - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-      }
+      grid-template-rows: auto auto auto;
     }
 
     html[data-embedded="true"] #demo-box{
@@ -217,13 +210,19 @@
       top: 10px;
       left: 10px;
       z-index: 4;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-size: .65rem;
-      letter-spacing: .12em;
-      text-transform: uppercase;
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
       background: color-mix(in srgb, var(--surface) 88%, #000 12%);
       border-color: color-mix(in srgb, var(--surface-accent) 70%, transparent);
+    }
+
+    .board-refresh svg {
+      width: 16px;
+      height: 16px;
     }
 
     .board-refresh:disabled {
@@ -537,7 +536,12 @@
     <div class="content">
       <div class="board-column">
         <div class="board-shell" aria-label="Nonogram board">
-          <button id="new-btn" class="btn-secondary board-refresh" type="button" aria-label="Refresh puzzle">Refresh</button>
+          <button id="new-btn" class="btn-secondary board-refresh" type="button" aria-label="Refresh puzzle" title="Refresh puzzle">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M20 12a8 8 0 1 1-2.35-5.65" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+              <path d="M20 5v5h-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
           <div class="clues-top" id="clues-top"></div>
           <div class="clues-left" id="clues-left"></div>
           <div class="grid" id="grid"></div>
@@ -548,7 +552,7 @@
         </div>
         <div class="board-actions">
           <button id="solve-btn" class="btn-primary" type="button" disabled>Solve With AI</button>
-          <button id="solution-btn" class="solution-trigger" type="button" aria-pressed="false" disabled data-tooltip="Hover or click to show">Solution</button>
+          <button id="solution-btn" class="solution-trigger" type="button" disabled data-tooltip="Hover to show">Solution</button>
         </div>
       </div>
 
@@ -593,9 +597,9 @@
     let solving = false;
     let intervalId = null;
     let solutionVisible = false;
-    let solutionPinned = false;
     let solutionSnapshot = null;
     let serverReady = false;
+    let initialLoadTriggered = false;
 
     function setStatus(text) {
       statusEl.textContent = text;
@@ -756,11 +760,7 @@
 
     function resetSolutionToggle() {
       solutionVisible = false;
-      solutionPinned = false;
       solutionSnapshot = null;
-      if (solutionBtn) {
-        solutionBtn.setAttribute('aria-pressed', 'false');
-      }
     }
 
     async function warmUpServer() {
@@ -781,8 +781,13 @@
           rememberEndpoint(base, STORAGE_KEY);
           serverReady = true;
           setHealth('ok', 'Ready');
-          setStatus('Ready. Generate a puzzle to begin.');
           setControlsEnabled(true);
+          if (!initialLoadTriggered) {
+            initialLoadTriggered = true;
+            await loadPuzzle();
+          } else {
+            setStatus('Ready. Generate a puzzle to begin.');
+          }
           return;
         } catch (err) {
           lastErr = err;
@@ -792,8 +797,13 @@
           rememberEndpoint(base, STORAGE_KEY);
           serverReady = true;
           setHealth('ok', 'Ready');
-          setStatus('Ready. Generate a puzzle to begin.');
           setControlsEnabled(true);
+          if (!initialLoadTriggered) {
+            initialLoadTriggered = true;
+            await loadPuzzle();
+          } else {
+            setStatus('Ready. Generate a puzzle to begin.');
+          }
           return;
         } catch (err) {
           lastErr = err;
@@ -856,6 +866,8 @@
       if (!steps.length) return;
       solving = true;
       solveBtn.disabled = true;
+      setSolutionVisible(false);
+      solutionBtn.disabled = true;
       setStatus('Solving...');
       resetStats();
       resetSolutionToggle();
@@ -913,27 +925,8 @@
       return true;
     }
 
-    function toggleSolutionPinned() {
-      if (!solutionPinned) {
-        const shown = setSolutionVisible(true);
-        if (!shown) return;
-        solutionPinned = true;
-        if (solutionBtn) {
-          solutionBtn.setAttribute('aria-pressed', 'true');
-        }
-        setStatus('Solution shown.');
-        return;
-      }
-      solutionPinned = false;
-      setSolutionVisible(false);
-      if (solutionBtn) {
-        solutionBtn.setAttribute('aria-pressed', 'false');
-      }
-      setStatus('Solution hidden.');
-    }
-
     function previewSolution(show) {
-      if (solutionPinned) return;
+      if (solving || solutionBtn.disabled) return;
       setSolutionVisible(show);
     }
 
@@ -949,11 +942,8 @@
 
     newBtn.addEventListener('click', loadPuzzle);
     solveBtn.addEventListener('click', runSolve);
-    solutionBtn.addEventListener('click', toggleSolutionPinned);
     solutionBtn.addEventListener('mouseenter', () => previewSolution(true));
     solutionBtn.addEventListener('mouseleave', () => previewSolution(false));
-    solutionBtn.addEventListener('focus', () => previewSolution(true));
-    solutionBtn.addEventListener('blur', () => previewSolution(false));
 
     renderBoard(5);
     resetStats();
