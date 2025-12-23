@@ -51,91 +51,67 @@
     }
     .card-header {
       display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      gap: 10px;
-      padding: 18px;
-      background: linear-gradient(0deg, var(--surface), var(--surface-2));
-      border-bottom: 1px solid var(--border);
-    }
-    .headline {
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .eyebrow-row {
-      display: flex;
+      flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      flex-wrap: wrap;
+      padding: 16px 18px;
+      background: linear-gradient(0deg, var(--surface), var(--surface-2));
+      border-bottom: 1px solid var(--border);
     }
-    h1 {
+    .header-copy {
+      min-width: 0;
+      display: grid;
+      gap: 6px;
+    }
+    .title {
       margin: 0;
       font-family: Poppins, Inter, system-ui, sans-serif;
-      font-size: 1.2rem;
+      font-weight: 600;
+      font-size: clamp(1.1rem, 2.2vw, 1.35rem);
       line-height: 1.35;
     }
-    .eyebrow {
-      margin: 0 0 4px;
-      font-size: .8rem;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      color: var(--muted);
-    }
-    .muted {
+    .subtitle {
       color: var(--muted);
       font-size: .9rem;
       margin: 0;
+      max-width: 60ch;
     }
-    .title-copy {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      min-width: 0;
-      flex: 1;
-    }
-    .status {
+    .health-row {
       display: flex;
       align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
       justify-content: flex-start;
-      flex-shrink: 0;
+      padding: 8px 16px 0;
     }
-    .status-row {
-      padding: 10px 18px;
-      border-bottom: 1px solid var(--border);
-      background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--accent) 8%, transparent));
-    }
-    .pill {
+    .health-pill {
       display: inline-flex;
       align-items: center;
       gap: 6px;
       border: 1px solid var(--border);
       padding: 6px 12px;
       border-radius: 999px;
-      font-size: .85rem;
+      font-size: .7rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
       color: var(--muted);
       background: var(--surface-2);
     }
-    .pill.health::before {
+    .health-pill::before {
       content: '';
       width: 8px;
       height: 8px;
       border-radius: 50%;
       background: currentColor;
     }
-    .pill.ok {
+    .health-pill[data-state="ok"] {
       color: var(--success, #38b37e);
       border-color: color-mix(in srgb, var(--success, #38b37e) 65%, var(--border) 35%);
     }
-    .pill.err {
+    .health-pill[data-state="err"] {
       color: var(--danger, #e05757);
       border-color: color-mix(in srgb, var(--danger, #e05757) 65%, var(--border) 35%);
     }
-    .pill.warm {
+    .health-pill[data-state="warming"] {
       color: var(--warning, #f3b550);
       border-color: color-mix(in srgb, var(--warning, #f3b550) 65%, var(--border) 35%);
     }
@@ -389,7 +365,7 @@
       const url = joinUrl(getEndpoint(), 'health');
       const $status = document.getElementById('health');
       if ($status) {
-        $status.className = 'pill health warm';
+        $status.dataset.state = 'warming';
         $status.textContent = 'Warming up';
       }
       serverReady = false;
@@ -398,14 +374,14 @@
         await getJson(url);
         serverReady = true;
         if ($status) {
-          $status.className = 'pill health ok';
+          $status.dataset.state = 'ok';
           $status.textContent = 'Ready';
         }
         notifyResize();
       } catch (e) {
         serverReady = false;
         if ($status) {
-          $status.className = 'pill health err';
+          $status.dataset.state = 'err';
           $status.textContent = 'Unavailable';
         }
         console.error(e);
@@ -542,18 +518,13 @@
 <body>
   <div class="card" id="demo-card">
     <header class="card-header">
-      <div class="headline">
-        <div class="title-copy">
-          <div class="eyebrow-row">
-            <p class="eyebrow">Embeddings demo</p>
-          </div>
-          <h1>Smart Sentence Finder</h1>
-        </div>
-        <p class="muted">Search all of Alice in Wonderland and pull back the most similar sentences.</p>
+      <div class="header-copy">
+        <h1 class="title">Smart Sentence Finder</h1>
+        <p class="subtitle">Search all of Alice in Wonderland and pull back the most similar sentences.</p>
       </div>
     </header>
-    <div class="status status-row" role="status" aria-live="polite">
-      <span id="health" class="pill health warm">Warming up</span>
+    <div class="health-row" role="status" aria-live="polite">
+      <span id="health" class="health-pill" data-state="warming">Warming up</span>
     </div>
     <div class="section">
       <form id="form">

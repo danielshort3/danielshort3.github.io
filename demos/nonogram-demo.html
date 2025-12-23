@@ -70,19 +70,27 @@
     }
 
     header.card-header {
-      display: grid;
-      grid-template-columns: 1fr;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
       gap: 12px;
       padding: 16px 18px;
       background: linear-gradient(0deg, var(--surface), var(--surface-2));
       border-bottom: 1px solid var(--surface-accent);
     }
 
+    .header-copy {
+      min-width: 0;
+      display: grid;
+      gap: 6px;
+    }
+
     .title {
       font-family: Poppins, Inter, system-ui, sans-serif;
       font-weight: 600;
-      margin: 0 0 4px 0;
-      font-size: 1.1rem;
+      margin: 0;
+      font-size: clamp(1.1rem, 2.2vw, 1.35rem);
     }
 
     .subtitle {
@@ -90,6 +98,13 @@
       color: var(--text-muted);
       font-size: .9rem;
       max-width: 60ch;
+    }
+
+    .health-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 8px 16px 0;
     }
 
     .controls {
@@ -387,14 +402,17 @@
 
   <div id="demo-box" role="application" aria-label="Nonogram solver demo">
     <header class="card-header">
-      <div>
+      <div class="header-copy">
         <h1 class="title">Nonogram Solver</h1>
         <p class="subtitle">Use the row and column clues (numbers show consecutive filled blocks) to fill the grid; the agent reveals a 5x5 puzzle one pick at a time.</p>
       </div>
     </header>
 
+    <div class="health-row" role="status" aria-live="polite">
+      <span id="health-pill" class="health-pill" data-state="warming">Warming up</span>
+    </div>
+
     <div class="controls">
-      <span id="health-pill" class="health-pill" data-state="warming" role="status" aria-live="polite">Warming up</span>
       <button id="new-btn" class="btn-secondary" type="button">New Puzzle</button>
       <button id="solve-btn" class="btn-primary" type="button" disabled>Solve With AI</button>
       <button id="solution-btn" class="btn-secondary" type="button" disabled>Show Solution</button>
