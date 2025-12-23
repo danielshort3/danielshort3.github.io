@@ -117,6 +117,44 @@
       color: var(--text);
     }
 
+    .health-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--surface-accent);
+      background: var(--surface-2);
+      font-size: .7rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-left: auto;
+    }
+
+    .health-pill::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .health-pill[data-state="ok"] {
+      color: var(--success, #38b37e);
+      border-color: color-mix(in srgb, var(--success, #38b37e) 55%, var(--surface-accent) 45%);
+    }
+
+    .health-pill[data-state="err"] {
+      color: var(--danger, #e05757);
+      border-color: color-mix(in srgb, var(--danger, #e05757) 55%, var(--surface-accent) 45%);
+    }
+
+    .health-pill[data-state="warming"] {
+      color: var(--warning, #f3b550);
+      border-color: color-mix(in srgb, var(--warning, #f3b550) 55%, var(--surface-accent) 45%);
+    }
+
     .content {
       display: grid;
       grid-template-columns: auto minmax(260px, 320px);
@@ -360,6 +398,7 @@
       <button id="new-btn" class="btn-secondary" type="button">New Puzzle</button>
       <button id="solve-btn" class="btn-primary" type="button" disabled>Solve With AI</button>
       <button id="solution-btn" class="btn-secondary" type="button" disabled>Show Solution</button>
+      <span id="health-pill" class="health-pill" data-state="warming" role="status" aria-live="polite">Warming up</span>
     </div>
 
     <div class="status" id="status">Ready. Generate a puzzle to begin.</div>
@@ -383,7 +422,7 @@
     const DEFAULT_FN_URL = "https://gw676aqgd4lpcoxngfvnfki5ce0urcfg.lambda-url.us-east-2.on.aws/";
     const STORAGE_KEY = "demo.endpoint.nonogram";
     const LEGACY_KEYS = ["nonogram_fn_url"];
-    const { listCandidates, postWithFallback, rememberEndpoint } = window.DemoAws;
+    const { listCandidates, postWithFallback, rememberEndpoint, getJson, normalizeBase } = window.DemoAws;
     const endpointConfig = {
       defaultUrl: DEFAULT_FN_URL,
       storageKey: STORAGE_KEY,
@@ -396,6 +435,7 @@
     const cluesTop = document.getElementById('clues-top');
     const cluesLeft = document.getElementById('clues-left');
     const statusEl = document.getElementById('status');
+    const healthPill = document.getElementById('health-pill');
     const logEl = document.getElementById('log');
     const newBtn = document.getElementById('new-btn');
     const solutionBtn = document.getElementById('solution-btn');
@@ -408,9 +448,24 @@
     let intervalId = null;
     let solutionVisible = false;
     let solutionSnapshot = null;
+    let serverReady = false;
 
     function setStatus(text) {
       statusEl.textContent = text;
+    }
+
+    function setHealth(state, text) {
+      if (!healthPill) return;
+      healthPill.dataset.state = state;
+      healthPill.textContent = text;
+    }
+
+    function setControlsEnabled(enabled) {
+      newBtn.disabled = !enabled;
+      if (!enabled) {
+        solveBtn.disabled = true;
+        solutionBtn.disabled = true;
+      }
     }
 
     function resetStats() {
@@ -543,7 +598,53 @@
       solutionBtn.textContent = 'Show Solution';
     }
 
+    async function warmUpServer() {
+      setHealth('warming', 'Warming AWS');
+      setStatus('Warming server...');
+      setControlsEnabled(false);
+      const endpoints = candidates();
+      if (!endpoints.length) {
+        setHealth('err', 'No endpoint');
+        setStatus('No endpoint configured.');
+        serverReady = false;
+        return;
+      }
+      let lastErr = null;
+      for (const base of endpoints) {
+        try {
+          await postToEndpoint(base, {});
+          rememberEndpoint(base, STORAGE_KEY);
+          serverReady = true;
+          setHealth('ok', 'Ready');
+          setStatus('Ready. Generate a puzzle to begin.');
+          setControlsEnabled(true);
+          return;
+        } catch (err) {
+          lastErr = err;
+        }
+        try {
+          await getJson(normalizeBase(base));
+          rememberEndpoint(base, STORAGE_KEY);
+          serverReady = true;
+          setHealth('ok', 'Ready');
+          setStatus('Ready. Generate a puzzle to begin.');
+          setControlsEnabled(true);
+          return;
+        } catch (err) {
+          lastErr = err;
+        }
+      }
+      serverReady = false;
+      setHealth('err', 'Unavailable');
+      setStatus('Unable to reach AWS Lambda.');
+      if (lastErr) console.error(lastErr);
+    }
+
     async function loadPuzzle() {
+      if (!serverReady) {
+        setStatus('Server warming up...');
+        return;
+      }
       stopAnimation();
       solving = false;
       solveBtn.disabled = true;
@@ -663,6 +764,8 @@
 
     renderBoard(5);
     resetStats();
+    setControlsEnabled(false);
+    warmUpServer();
   </script>
 </body>
 </html>

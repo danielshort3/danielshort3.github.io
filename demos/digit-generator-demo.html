@@ -241,10 +241,54 @@
       color: var(--text);
     }
 
-    .status {
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
       padding: 0 16px 8px;
+    }
+
+    .status {
       font-size: .85rem;
       color: var(--text-muted);
+    }
+
+    .health-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--surface-accent);
+      background: var(--surface-2);
+      font-size: .7rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .health-pill::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .health-pill[data-state="ok"] {
+      color: var(--success, #38b37e);
+      border-color: color-mix(in srgb, var(--success, #38b37e) 55%, var(--surface-accent) 45%);
+    }
+
+    .health-pill[data-state="err"] {
+      color: var(--danger, #e05757);
+      border-color: color-mix(in srgb, var(--danger, #e05757) 55%, var(--surface-accent) 45%);
+    }
+
+    .health-pill[data-state="warming"] {
+      color: var(--warning, #f3b550);
+      border-color: color-mix(in srgb, var(--warning, #f3b550) 55%, var(--surface-accent) 45%);
     }
 
     .content {
@@ -438,7 +482,10 @@
       </div>
     </header>
 
-    <div class="status" id="status">Generating grid...</div>
+    <div class="status-row" role="status" aria-live="polite">
+      <span id="health-pill" class="health-pill" data-state="warming">Warming up</span>
+      <span class="status" id="status">Generating grid...</span>
+    </div>
 
     <div class="content">
       <div class="grid-shell">
@@ -521,7 +568,7 @@
     const DEFAULT_FN_URL = "https://w7jbsr55oggohong42ii6wo3jq0bvkvq.lambda-url.us-east-2.on.aws/";
     const STORAGE_KEY = "demo.endpoint.digit";
     const LEGACY_KEYS = ["digit_fn_url"];
-    const { listCandidates, postWithFallback, rememberEndpoint } = window.DemoAws;
+    const { listCandidates, postWithFallback, rememberEndpoint, getJson, normalizeBase } = window.DemoAws;
     const GRID_SIZES = [4, 6, 8];
     const endpointConfig = {
       defaultUrl: DEFAULT_FN_URL,
@@ -543,6 +590,7 @@
     const rangeSlider = document.getElementById('range-slider');
     const rangeValueLabel = document.getElementById('range-value-label');
     const statusEl = document.getElementById('status');
+    const healthPill = document.getElementById('health-pill');
 
     const refreshSeedBtn = document.getElementById('refresh-seed-btn');
 
@@ -563,9 +611,33 @@
       rows: gridRows,
       cols: gridCols
     };
+    let serverReady = false;
 
     function setStatus(text) {
       statusEl.textContent = text;
+    }
+
+    function setHealth(state, text) {
+      if (!healthPill) return;
+      healthPill.dataset.state = state;
+      healthPill.textContent = text;
+    }
+
+    function setControlsEnabled(enabled) {
+      const controls = [
+        refreshSeedBtn,
+        modeSelect,
+        clusterSelect,
+        dimSelect,
+        valueSlider,
+        rangeSlider,
+        gridSelect,
+        seedInput
+      ];
+      controls.forEach(control => {
+        if (control) control.disabled = !enabled;
+      });
+      if (enabled) syncModeState();
     }
 
     function setValueLabel(value) {
@@ -674,8 +746,8 @@
       if (clusterControl) {
         clusterControl.hidden = !isCluster;
       }
-      clusterSelect.disabled = !isCluster;
-      clusterSelect.setAttribute('aria-disabled', isCluster ? 'false' : 'true');
+      clusterSelect.disabled = !isCluster || !serverReady;
+      clusterSelect.setAttribute('aria-disabled', (isCluster && serverReady) ? 'false' : 'true');
     }
 
     function updateGrid(images) {
@@ -703,7 +775,64 @@
       });
     }
 
+    async function warmUpServer() {
+      setHealth('warming', 'Warming AWS');
+      setStatus('Warming server...');
+      setControlsEnabled(false);
+      const endpoints = candidates();
+      if (!endpoints.length) {
+        setHealth('err', 'No endpoint');
+        setStatus('No endpoint configured.');
+        serverReady = false;
+        return;
+      }
+      const warmPayload = {
+        seed: 1,
+        mode: 'cluster',
+        cluster_digit: 0,
+        dim: 0,
+        value: 0,
+        rows: 1,
+        cols: 1
+      };
+      let lastErr = null;
+      for (const base of endpoints) {
+        try {
+          await postToEndpoint(base, warmPayload);
+          rememberEndpoint(base, STORAGE_KEY);
+          serverReady = true;
+          setHealth('ok', 'Ready');
+          setStatus('Ready.');
+          setControlsEnabled(true);
+          fetchGrid();
+          return;
+        } catch (err) {
+          lastErr = err;
+        }
+        try {
+          await getJson(normalizeBase(base));
+          rememberEndpoint(base, STORAGE_KEY);
+          serverReady = true;
+          setHealth('ok', 'Ready');
+          setStatus('Ready.');
+          setControlsEnabled(true);
+          fetchGrid();
+          return;
+        } catch (err) {
+          lastErr = err;
+        }
+      }
+      serverReady = false;
+      setHealth('err', 'Unavailable');
+      setStatus('Unable to reach AWS Lambda.');
+      if (lastErr) console.error(lastErr);
+    }
+
     async function fetchGrid() {
+      if (!serverReady) {
+        setStatus('Server warming up...');
+        return;
+      }
       const seed = ensureSeed();
       const mode = modeSelect.value || 'cluster';
       const clusterValue = clusterSelect.value;
@@ -812,7 +941,8 @@
     gridSelect.value = String(gridSize);
     syncModeState();
     ensureSeed(true);
-    fetchGrid();
+    setControlsEnabled(false);
+    warmUpServer();
   </script>
 </body>
 </html>

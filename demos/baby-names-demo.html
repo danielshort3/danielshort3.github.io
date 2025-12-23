@@ -159,6 +159,14 @@
       border: 1px solid transparent;
     }
 
+    .status-pill.health::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
     .status-pill[data-state="ok"] {
       background: color-mix(in srgb, var(--success) 18%, transparent);
       color: color-mix(in srgb, var(--success) 70%, #ffffff 30%);
@@ -566,7 +574,7 @@
     </header>
 
     <div class="status-row">
-      <span class="status-pill" id="status-pill" data-state="warn">Checking...</span>
+      <span class="status-pill health" id="status-pill" data-state="warn">Checking...</span>
       <span class="status-meta" id="status-meta">Fetching demo data...</span>
       <span class="status-note">My wife has approved publication of this data through this project.</span>
     </div>
@@ -656,6 +664,7 @@
       sort: "score",
       selectedRating: null
     };
+    let dataReady = false;
 
     const DOM = {
       statusPill: document.getElementById("status-pill"),
@@ -710,6 +719,17 @@
       DOM.statusPill.dataset.state = state;
       DOM.statusPill.textContent = text;
       if (meta !== undefined) DOM.statusMeta.textContent = meta;
+    }
+
+    function setControlsEnabled(enabled) {
+      DOM.segmentButtons.forEach((btn) => {
+        btn.disabled = !enabled;
+      });
+      DOM.tabButtons.forEach((btn) => {
+        btn.disabled = !enabled;
+      });
+      if (DOM.nameSearch) DOM.nameSearch.disabled = !enabled;
+      if (DOM.sortSelect) DOM.sortSelect.disabled = !enabled;
     }
 
     function formatRating(value) {
@@ -896,6 +916,7 @@
     }
 
     function setSex(sex) {
+      if (!dataReady) return;
       appState.sex = sex;
       appState.selectedRating = null;
       DOM.segmentButtons.forEach((btn) => {
@@ -908,6 +929,7 @@
     }
 
     function setTab(tab) {
+      if (!dataReady) return;
       appState.tab = tab;
       DOM.tabButtons.forEach((btn) => {
         const active = btn.dataset.tab === tab;
@@ -919,6 +941,7 @@
     }
 
     async function init() {
+      setControlsEnabled(false);
       try {
         const res = await fetch(DATA_URL, { cache: "no-store" });
         if (!res.ok) throw new Error("Data unavailable");
@@ -926,10 +949,14 @@
         appState.data = data;
         DOM.metaSource.textContent = `SSA ${data.meta?.sourceYear || "latest"} (min ${data.meta?.minCount || ""})`;
         setStatus("ok", "Ready", "Recommendations and ratings available");
+        dataReady = true;
+        setControlsEnabled(true);
         renderStats();
         renderList();
       } catch (err) {
         console.error(err);
+        dataReady = false;
+        setControlsEnabled(false);
         setStatus("warn", "Unavailable", "Demo data missing");
         DOM.nameList.innerHTML = "<li class=\"empty-state\">Unable to load data</li>";
       }
@@ -944,11 +971,13 @@
     });
 
     DOM.nameSearch.addEventListener("input", (event) => {
+      if (!dataReady) return;
       appState.query = event.target.value || "";
       renderList();
     });
 
     DOM.sortSelect.addEventListener("change", (event) => {
+      if (!dataReady) return;
       appState.sort = event.target.value;
       renderList();
     });

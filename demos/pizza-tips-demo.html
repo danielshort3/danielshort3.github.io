@@ -110,6 +110,13 @@
       color: var(--muted);
       background: var(--surface-2);
     }
+    .pill.health::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
     .pill.ok {
       color: var(--success);
       border-color: color-mix(in srgb, var(--success) 65%, var(--border) 35%);
@@ -117,6 +124,10 @@
     .pill.err {
       color: var(--danger);
       border-color: color-mix(in srgb, var(--danger) 65%, var(--border) 35%);
+    }
+    .pill.warm {
+      color: var(--warning, #f3b550);
+      border-color: color-mix(in srgb, var(--warning, #f3b550) 65%, var(--border) 35%);
     }
     .section {
       padding: 22px;
@@ -415,8 +426,47 @@
       }
     }
   </style>
+  <script>
+    if (window.self !== window.top) {
+      document.documentElement.setAttribute('data-embedded', 'true');
+    }
+  </script>
 </head>
 <body>
+  <script>
+    (function () {
+      var CHANNEL = 'pizza-demo-resize';
+      function calcHeight() {
+        var doc = document.documentElement;
+        var body = document.body || doc;
+        return Math.ceil(Math.max(
+          body.scrollHeight,
+          body.offsetHeight,
+          doc.clientHeight,
+          doc.scrollHeight,
+          doc.offsetHeight
+        ));
+      }
+      function postHeight() {
+        try { parent.postMessage({ type: CHANNEL, height: calcHeight() }, '*'); } catch (e) {}
+      }
+      window.addEventListener('load', postHeight);
+      try { document.fonts?.ready?.then(postHeight); } catch (e) {}
+      if ('ResizeObserver' in window) {
+        var ro = new ResizeObserver(function () { postHeight(); });
+        ro.observe(document.documentElement);
+      } else {
+        var prev = 0;
+        setInterval(function () {
+          var h = calcHeight();
+          if (Math.abs(h - prev) > 4) {
+            prev = h;
+            postHeight();
+          }
+        }, 750);
+      }
+    })();
+  </script>
   <main id="main" class="card">
     <header class="card-header">
       <div class="headline">
@@ -426,7 +476,7 @@
       </div>
     </header>
     <div class="status status-row" role="status" aria-live="polite">
-      <div class="pill" id="api-status">Checking...</div>
+      <div class="pill health warm" id="api-status">Warming up</div>
     </div>
 
     <section class="section">
@@ -595,6 +645,7 @@
     const minTempInput = document.getElementById('min-temp');
     const form = document.getElementById('scenario-form');
     const resetBtn = document.getElementById('reset');
+    const predictBtn = document.getElementById('predict');
 
     const latDisplay = document.getElementById('lat-display');
     const lonDisplay = document.getElementById('lon-display');
@@ -610,11 +661,17 @@
     let heatLayer = null;
     let legendMinEl = null;
     let legendMaxEl = null;
+    let serverReady = false;
 
     function setStatus(state, text) {
-      statusEl.classList.remove('ok', 'err');
+      statusEl.classList.remove('ok', 'err', 'warm');
       if (state) statusEl.classList.add(state);
       statusEl.textContent = text;
+    }
+
+    function setServerReady(ready) {
+      serverReady = ready;
+      if (predictBtn) predictBtn.disabled = !ready;
     }
 
     function formatCurrency(value) {
@@ -882,6 +939,32 @@
       return payload;
     }
 
+    async function warmUpServer() {
+      setServerReady(false);
+      setStatus('warm', 'Warming AWS...');
+      const endpoints = candidates();
+      if (!endpoints.length) {
+        setStatus('err', 'No endpoint');
+        return;
+      }
+      const payload = currentPayload(false);
+      let lastErr = null;
+      for (const base of endpoints) {
+        try {
+          await postToEndpoint(base, payload);
+          rememberEndpoint(base, STORAGE_KEY);
+          setServerReady(true);
+          setStatus('ok', 'Ready');
+          return;
+        } catch (err) {
+          lastErr = err;
+        }
+      }
+      setServerReady(false);
+      setStatus('err', 'Unavailable');
+      if (lastErr) console.error(lastErr);
+    }
+
     function applyResponse(result) {
       const tip = result.predictions?.tip?.value;
       const tipInterval = result.predictions?.tip?.interval;
@@ -911,8 +994,12 @@
     populateHousing();
     populateConfidence();
     applyFeatureVisibility();
-    setStatus(API_URL ? 'ok' : 'err', API_URL ? 'Ready' : 'Unavailable');
+    setServerReady(false);
+    setStatus(API_URL ? 'warm' : 'err', API_URL ? 'Warming AWS...' : 'Unavailable');
     setInputs(DEFAULTS);
+    if (API_URL) {
+      warmUpServer();
+    }
 
     const map = L.map('map', { zoomControl: true });
     const bounds = [
@@ -1005,6 +1092,10 @@
       event.preventDefault();
       if (!API_URL) {
         setStatus('err', 'Unavailable');
+        return;
+      }
+      if (!serverReady) {
+        setStatus('warm', 'Warming AWS...');
         return;
       }
       const lat = Number(latInput.value);

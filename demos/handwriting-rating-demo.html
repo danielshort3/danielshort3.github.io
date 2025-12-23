@@ -61,7 +61,7 @@
       box-shadow: var(--shadow-2);
       overflow: hidden;
       display: grid;
-      grid-template-rows: auto auto 1fr;
+      grid-template-rows: auto auto auto 1fr;
       height: calc(100vh - var(--page-pad) * 2);
     }
 
@@ -113,6 +113,49 @@
     .icon-btn:focus-visible {
       outline: 2px solid var(--primary);
       outline-offset: 2px;
+    }
+
+    .health-row {
+      display: flex;
+      justify-content: flex-end;
+      padding: 8px 16px 0;
+    }
+
+    .health-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--surface-accent);
+      background: var(--surface-2);
+      font-size: .7rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .health-pill::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .health-pill[data-state="ok"] {
+      color: var(--success, #38b37e);
+      border-color: color-mix(in srgb, var(--success, #38b37e) 55%, var(--surface-accent) 45%);
+    }
+
+    .health-pill[data-state="err"] {
+      color: var(--danger, #e05757);
+      border-color: color-mix(in srgb, var(--danger, #e05757) 55%, var(--surface-accent) 45%);
+    }
+
+    .health-pill[data-state="warming"] {
+      color: var(--warning, #f3b550);
+      border-color: color-mix(in srgb, var(--warning, #f3b550) 55%, var(--surface-accent) 45%);
     }
 
     #status {
@@ -743,6 +786,10 @@
       </div>
     </header>
 
+    <div class="health-row" role="status" aria-live="polite">
+      <span id="health-pill" class="health-pill" data-state="warming">Warming up</span>
+    </div>
+
     <div id="status" role="status" aria-live="polite"></div>
 
     <div class="content">
@@ -824,6 +871,7 @@
     const LEGACY_KEYS = ["handwriting_fn_url"];
     const {
       listCandidates,
+      getJson,
       postWithFallback,
       rememberEndpoint,
       normalizeBase
@@ -912,6 +960,7 @@
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     const eraseBtn = document.getElementById('erase');
     const rateBtn = document.getElementById('rate');
+    const healthPill = document.getElementById('health-pill');
     const canvasToast = document.getElementById('canvas-toast');
     const toastGuess = canvasToast?.querySelector('.toast-guess');
     const toastScore = canvasToast?.querySelector('.toast-score');
@@ -934,6 +983,8 @@
     let hasDrawn = false;
     let drawing = false;
     let currentActualDigit = null;
+    let serverReady = false;
+    let scoring = false;
     let toastTimer = null;
 
     function fitCanvasToDisplaySize() {
@@ -1098,7 +1149,11 @@
     }
 
     async function loadSampleDigit(digit) {
-      if (rateBtn.disabled) {
+      if (!serverReady) {
+        sampleStatus.textContent = 'Server warming up. Please wait.';
+        return;
+      }
+      if (scoring) {
         sampleStatus.textContent = 'Please wait for the current score to finish.';
         return;
       }
@@ -1282,7 +1337,62 @@
       return btoa(b64);
     }
 
+    function setHealth(state, text) {
+      if (!healthPill) return;
+      healthPill.dataset.state = state;
+      healthPill.textContent = text;
+    }
+
+    function updateRateState() {
+      rateBtn.disabled = !serverReady || scoring;
+    }
+
+    async function warmUpServer() {
+      setHealth('warming', 'Warming AWS');
+      const bases = candidates();
+      if (!bases.length) {
+        setHealth('err', 'No endpoint');
+        serverReady = false;
+        updateRateState();
+        return;
+      }
+      const warmPayload = {
+        b64: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII='
+      };
+      let lastErr = null;
+      for (const base of bases) {
+        try {
+          await postToEndpoint(base, warmPayload);
+          rememberEndpoint(base, STORAGE_KEY);
+          serverReady = true;
+          setHealth('ok', 'Ready');
+          updateRateState();
+          return;
+        } catch (err) {
+          lastErr = err;
+        }
+        try {
+          await getJson(normalizeBase(base));
+          rememberEndpoint(base, STORAGE_KEY);
+          serverReady = true;
+          setHealth('ok', 'Ready');
+          updateRateState();
+          return;
+        } catch (err) {
+          lastErr = err;
+        }
+      }
+      serverReady = false;
+      setHealth('err', 'Unavailable');
+      updateRateState();
+      if (lastErr) console.error(lastErr);
+    }
+
     async function scoreDigit() {
+      if (!serverReady) {
+        setPredictionUI('Server warming up. Please wait.', null, null, null, currentActualDigit);
+        return;
+      }
       if (!hasDrawn) {
         setPredictionUI('Please draw a digit first', null, null, null, currentActualDigit);
         return;
@@ -1290,7 +1400,8 @@
 
       setStep('submit', 'in-progress');
       setPredictionUI('Processing...', null, null, null, currentActualDigit);
-      rateBtn.disabled = true;
+      scoring = true;
+      updateRateState();
       resultBadge.classList.add('pulse');
 
       try {
@@ -1334,7 +1445,8 @@
         setStep('complete', 'not-started');
         setPredictionUI(`Error: ${err?.message || String(err)}`, null, null, null, currentActualDigit);
       } finally {
-        rateBtn.disabled = false;
+        scoring = false;
+        updateRateState();
         resultBadge.classList.remove('pulse');
       }
     }
@@ -1357,6 +1469,8 @@
     });
 
     setPredictionUI('Draw a digit to begin', null, null, null, currentActualDigit);
+    updateRateState();
+    warmUpServer();
     window.addEventListener('load', () => { fitCanvasToDisplaySize(); setStroke(); });
   </script>
   <footer></footer>
