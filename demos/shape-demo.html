@@ -124,7 +124,7 @@
 
         .health-row {
             display: flex;
-            justify-content: flex-end;
+            justify-content: flex-start;
             padding: 8px 16px 0;
         }
 
@@ -740,14 +740,14 @@
         const DEFAULT_FN_URL = "https://zcosyfxhs3sntpwzo3qayki2he0kdxkw.lambda-url.us-east-2.on.aws/"; // Lambda Function URL
         const STORAGE_KEY = "demo.endpoint.shape";
         const LEGACY_KEYS = ["shape_fn_url"];
-        const { listCandidates, postWithFallback, rememberEndpoint, getJson, normalizeBase } = window.DemoAws;
+        const { listCandidates, postWithFallback, rememberEndpoint } = window.DemoAws;
         const endpointConfig = {
           defaultUrl: DEFAULT_FN_URL,
           storageKey: STORAGE_KEY,
           legacyKeys: LEGACY_KEYS
         };
         const candidates = () => listCandidates(endpointConfig);
-        const postToEndpoint = (urlBase, payload) => postWithFallback(urlBase, ['', 'predict', 'classify'], payload);
+        const postToEndpoint = (urlBase, payload) => postWithFallback(urlBase, ['predict', 'classify', ''], payload);
 
         /* ---------- Stepper (same structure/behavior as chatbot) ---------- */
         const statusEl = document.getElementById('status');
@@ -1178,16 +1178,6 @@
             };
             let lastErr = null;
             for (const base of bases) {
-                try {
-                    await getJson(normalizeBase(base));
-                    rememberEndpoint(base, STORAGE_KEY);
-                    serverReady = true;
-                    setHealth('ok', 'Ready');
-                    updateClassifyState();
-                    return;
-                } catch (err) {
-                    lastErr = err;
-                }
                 try {
                     await postToEndpoint(base, warmPayload);
                     rememberEndpoint(base, STORAGE_KEY);

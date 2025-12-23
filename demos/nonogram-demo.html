@@ -129,7 +129,6 @@
       letter-spacing: .12em;
       text-transform: uppercase;
       color: var(--text-muted);
-      margin-left: auto;
     }
 
     .health-pill::before {
@@ -395,10 +394,10 @@
     </header>
 
     <div class="controls">
+      <span id="health-pill" class="health-pill" data-state="warming" role="status" aria-live="polite">Warming up</span>
       <button id="new-btn" class="btn-secondary" type="button">New Puzzle</button>
       <button id="solve-btn" class="btn-primary" type="button" disabled>Solve With AI</button>
       <button id="solution-btn" class="btn-secondary" type="button" disabled>Show Solution</button>
-      <span id="health-pill" class="health-pill" data-state="warming" role="status" aria-live="polite">Warming up</span>
     </div>
 
     <div class="status" id="status">Ready. Generate a puzzle to begin.</div>

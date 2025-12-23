@@ -584,7 +584,7 @@
   <script type="module">
     const DEFAULT_FN_URL = 'https://2d6lrg4ozy564xymwi2epjbqty0nvhje.lambda-url.us-east-2.on.aws/';
     const STORAGE_KEY = "demo.endpoint.pizza";
-    const { resolveEndpoint, postWithFallback } = window.DemoAws;
+    const { resolveEndpoint, listCandidates, postWithFallback, rememberEndpoint } = window.DemoAws;
     const META = window.PizzaTipsMeta || {};
     const MAP_BOUNDS = META.bounds
       ? {
@@ -630,6 +630,7 @@
     };
 
     const endpointConfig = { defaultUrl: DEFAULT_FN_URL, storageKey: STORAGE_KEY };
+    const candidates = () => listCandidates(endpointConfig);
     const API_URL = resolveEndpoint(endpointConfig);
     const statusEl = document.getElementById('api-status');
     const latInput = document.getElementById('lat');
