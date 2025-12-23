@@ -1150,13 +1150,28 @@
                   }
                   throw lastErr || new Error('All endpoints failed');
                 })();
-                const cls = json.class || json.cls || json.label || 'unknown';
-                const conf = numberFrom(json.confidence, json.conf);
+                const payload = (() => {
+                    if (json && typeof json === 'object') {
+                        if (json.shape_confidences || json.shape_scores || json.shapeScores) return json;
+                        const body = json.body;
+                        if (body && typeof body === 'object') return body;
+                        if (typeof body === 'string') {
+                            try {
+                                return JSON.parse(body);
+                            } catch (err) {
+                                return json;
+                            }
+                        }
+                    }
+                    return json;
+                })();
+                const cls = payload?.class || payload?.cls || payload?.label || payload?.shape || payload?.prediction || 'unknown';
+                const conf = numberFrom(payload?.confidence, payload?.conf);
                 const shapeScores = normalizeShapeScores(
-                    json.shape_confidences || json.shape_scores || json.shapeScores ||
-                    json.confidences || json.per_shape || json.perShape ||
-                    json.probabilities || json.probs || json.scores ||
-                    json.per_class || json.perClass || json.distribution
+                    payload?.shape_confidences || payload?.shape_scores || payload?.shapeScores ||
+                    payload?.confidences || payload?.per_shape || payload?.perShape ||
+                    payload?.probabilities || payload?.probs || payload?.scores ||
+                    payload?.per_class || payload?.perClass || payload?.distribution
                 );
                 const top = getTopShape(shapeScores);
 
