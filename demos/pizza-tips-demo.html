@@ -161,6 +161,10 @@
       border-radius: 999px;
       background: rgba(255,255,255,.04);
       border: 1px solid var(--border);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
     }
     .heat-legend {
       background: rgba(12, 16, 24, 0.92);
@@ -963,8 +967,16 @@
     function applyResponse(result) {
       const tip = result.predictions?.tip?.value;
       const tipInterval = result.predictions?.tip?.interval;
-      const tipPercent = result.predictions?.tipPercent?.value;
-      const tipPercentInterval = result.predictions?.tipPercent?.interval;
+      const cost = Number(costInput.value);
+      const hasCost = Number.isFinite(cost) && cost > 0;
+      const tipPercent = hasCost && Number.isFinite(tip) ? tip / cost : null;
+      const tipPercentInterval = hasCost && tipInterval
+        ? {
+          level: tipInterval.level,
+          low: tipInterval.low / cost,
+          high: tipInterval.high / cost
+        }
+        : null;
       if (result.bucket?.city) {
         cityDisplay.textContent = `City: ${result.bucket.city}`;
       }
