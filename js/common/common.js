@@ -897,4 +897,60 @@
       window.closeModal && window.closeModal(id);
     }
   });
+
+  const resizeProjectEmbedIframe = (ifr) => {
+    if (!ifr) return;
+    try {
+      const doc = ifr.contentDocument || ifr.contentWindow?.document;
+      if (!doc) return;
+      const body = doc.body;
+      const docEl = doc.documentElement;
+      const height = Math.max(
+        body ? body.scrollHeight : 0,
+        body ? body.offsetHeight : 0,
+        docEl ? docEl.clientHeight : 0,
+        docEl ? docEl.scrollHeight : 0,
+        docEl ? docEl.offsetHeight : 0
+      );
+      if (height > 0) {
+        ifr.style.height = `${height}px`;
+      }
+    } catch {}
+  };
+
+  const bindProjectEmbedResize = () => {
+    document.querySelectorAll('.project-embed-frame').forEach((ifr) => {
+      if (ifr._resizeBound) return;
+      const src = ifr.getAttribute('src') || ifr.dataset.src || '';
+      if (!/pizza-tips-demo/i.test(src)) return;
+      ifr._resizeBound = true;
+      ifr.addEventListener('load', () => {
+        resizeProjectEmbedIframe(ifr);
+        setTimeout(() => resizeProjectEmbedIframe(ifr), 50);
+        setTimeout(() => resizeProjectEmbedIframe(ifr), 350);
+      });
+    });
+  };
+
+  document.addEventListener('DOMContentLoaded', bindProjectEmbedResize);
+  window.addEventListener('load', bindProjectEmbedResize);
+  window.addEventListener('message', (event) => {
+    const data = event && event.data || {};
+    const type = typeof data?.type === 'string' ? data.type : '';
+    if (type !== 'pizza-demo-resize') return;
+    const ifrs = document.querySelectorAll('.project-embed-frame');
+    for (const ifr of ifrs) {
+      if (ifr.contentWindow === event.source) {
+        const h = typeof data.height === 'number' && isFinite(data.height)
+          ? Math.max(0, Math.floor(data.height))
+          : null;
+        if (h) {
+          ifr.style.height = `${h}px`;
+        } else {
+          resizeProjectEmbedIframe(ifr);
+        }
+        break;
+      }
+    }
+  });
 })();

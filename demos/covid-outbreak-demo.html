@@ -140,6 +140,14 @@
       border: 1px solid transparent;
     }
 
+    .status-pill.health::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
     .status-pill[data-state="ok"] {
       background: color-mix(in srgb, var(--success) 18%, transparent);
       color: color-mix(in srgb, var(--success) 70%, #ffffff 30%);
@@ -191,6 +199,15 @@
       display: grid;
       gap: 14px;
       position: relative;
+    }
+
+    .map-wrap[data-ready="false"] {
+      opacity: 0.65;
+    }
+
+    .map-wrap[data-ready="false"] .map-svg {
+      pointer-events: none;
+      filter: grayscale(0.2);
     }
 
     .map-svg {
@@ -630,13 +647,13 @@
     </header>
 
     <div class="status-row">
-      <span class="status-pill" id="connection-pill" data-state="warn">Checking...</span>
+      <span class="status-pill health" id="connection-pill" data-state="warn">Checking...</span>
       <span class="status-meta" id="connection-meta">Connecting to AWS Lambda</span>
     </div>
 
     <div class="content">
       <section class="panel">
-        <div class="map-wrap" id="map-wrap">
+        <div class="map-wrap" id="map-wrap" data-ready="false">
           <div class="control-row">
             <div>
               <h2>Risk Map</h2>
@@ -874,6 +891,7 @@
       endpoint: null,
       meta: null
     };
+    let serverReady = false;
 
     const numberFormat = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 
@@ -886,6 +904,16 @@
     function setConnection(state, text) {
       DOM.connectionPill.dataset.state = state;
       DOM.connectionPill.textContent = text;
+    }
+
+    function setServerReady(ready) {
+      serverReady = ready;
+      if (DOM.mapWrap) {
+        DOM.mapWrap.dataset.ready = ready ? 'true' : 'false';
+      }
+      if (DOM.dateSlider) {
+        DOM.dateSlider.disabled = !ready;
+      }
     }
 
     async function fetchJson(path) {
@@ -1194,6 +1222,7 @@
     }
 
     function selectState(stateId) {
+      if (!serverReady) return;
       appState.activeState = stateId;
       updateMap();
       const data = appState.states.get(stateId);
@@ -1256,6 +1285,7 @@
     }
 
     async function handleDateChange(index) {
+      if (!serverReady) return;
       const date = appState.dates[index];
       if (!date) return;
       appState.activeDate = date;
@@ -1276,6 +1306,9 @@
 
     async function init() {
       appState.endpoint = resolveEndpoint(endpointConfig);
+      setServerReady(false);
+      setConnection("warn", "Warming");
+      DOM.connectionMeta.textContent = "Warming AWS Lambda";
       try {
         await renderMap();
       } catch (err) {
@@ -1293,6 +1326,7 @@
         const latestIdx = appState.dates.length - 1;
         DOM.dateSlider.max = String(latestIdx);
         DOM.dateSlider.value = String(latestIdx);
+        setServerReady(true);
         setConnection("ok", "Ready");
         DOM.connectionMeta.textContent = "Live data loaded from AWS";
         DOM.dateSlider.addEventListener("input", (event) => {
@@ -1301,9 +1335,9 @@
         await handleDateChange(latestIdx);
       } catch (err) {
         console.error(err);
+        setServerReady(false);
         setConnection("err", "Unavailable");
         DOM.connectionMeta.textContent = "Unable to reach AWS Lambda. Check the endpoint.";
-        DOM.dateSlider.disabled = true;
         DOM.dateValue.textContent = "--";
         updateMap();
       }

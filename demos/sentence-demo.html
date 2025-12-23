@@ -120,6 +120,13 @@
       color: var(--muted);
       background: var(--surface-2);
     }
+    .pill.health::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
     .pill.ok {
       color: var(--success, #38b37e);
       border-color: color-mix(in srgb, var(--success, #38b37e) 65%, var(--border) 35%);
@@ -127,6 +134,10 @@
     .pill.err {
       color: var(--danger, #e05757);
       border-color: color-mix(in srgb, var(--danger, #e05757) 65%, var(--border) 35%);
+    }
+    .pill.warm {
+      color: var(--warning, #f3b550);
+      border-color: color-mix(in srgb, var(--warning, #f3b550) 65%, var(--border) 35%);
     }
     .section {
       padding: 18px;
@@ -337,6 +348,8 @@
     const STORAGE_KEY = "demo.endpoint.sentence";
     const { resolveEndpoint, getJson, postJson, joinUrl } = window.DemoAws;
     const endpointConfig = { defaultUrl: DEFAULT_URL, storageKey: STORAGE_KEY };
+    let serverReady = false;
+    let submitBtn = null;
 
     const notifyResize = (() => {
       const CHANNEL = 'sentence-demo-resize';
@@ -375,16 +388,30 @@
     async function health() {
       const url = joinUrl(getEndpoint(), 'health');
       const $status = document.getElementById('health');
+      if ($status) {
+        $status.className = 'pill health warm';
+        $status.textContent = 'Warming up';
+      }
+      serverReady = false;
+      if (submitBtn) submitBtn.disabled = true;
       try {
         await getJson(url);
-        $status.className = 'pill ok';
-        $status.textContent = 'Ready';
+        serverReady = true;
+        if ($status) {
+          $status.className = 'pill health ok';
+          $status.textContent = 'Ready';
+        }
         notifyResize();
       } catch (e) {
-        $status.className = 'pill err';
-        $status.textContent = 'Unavailable';
+        serverReady = false;
+        if ($status) {
+          $status.className = 'pill health err';
+          $status.textContent = 'Unavailable';
+        }
         console.error(e);
         notifyResize();
+      } finally {
+        if (submitBtn) submitBtn.disabled = !serverReady;
       }
     }
 
@@ -395,6 +422,10 @@
     async function onSubmit(ev) {
       ev.preventDefault();
       const form = ev.currentTarget;
+      if (!serverReady) {
+        renderError('Server warming up. Please wait.');
+        return;
+      }
       const queryInput = form.query;
       const rawQuery = (queryInput?.value || '').trim();
       const fallback = (() => {
@@ -486,6 +517,8 @@
 
     function onLoad() {
       const form = document.getElementById('form');
+      submitBtn = form.submitBtn;
+      if (submitBtn) submitBtn.disabled = true;
       form.addEventListener('submit', onSubmit);
       const topRange = document.getElementById('top');
       const topValue = document.getElementById('top-value');
@@ -520,7 +553,7 @@
       </div>
     </header>
     <div class="status status-row" role="status" aria-live="polite">
-      <span id="health" class="pill">Checking...</span>
+      <span id="health" class="pill health warm">Warming up</span>
     </div>
     <div class="section">
       <form id="form">
