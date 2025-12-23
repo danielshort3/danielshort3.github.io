@@ -565,6 +565,10 @@
       width:min(460px, 74vw);
       max-width:500px;
     }
+    #nav-dropdown-contact{
+      width:min(460px, 74vw);
+      max-width:500px;
+    }
     #nav-dropdown-contributions{ width:min(640px, 78vw); }
     #nav-dropdown-resume{ width:min(340px, 64vw); }
     .nav-item-portfolio:hover .nav-dropdown,

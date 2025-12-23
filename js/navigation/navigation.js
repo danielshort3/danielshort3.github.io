@@ -327,7 +327,6 @@
     setupDropdown(host.querySelector('.nav-item-portfolio'));
     setupDropdown(host.querySelector('.nav-item-resume'));
     setupDropdown(host.querySelector('.nav-item-contact'));
-    setupPortfolioPreview(host.querySelector('.nav-item-portfolio'));
     const hoverMatcher = window.matchMedia('(hover: hover) and (pointer: fine)');
     if (hoverMatcher.matches) {
       host.querySelectorAll('.nav-item').forEach((item) => {
@@ -468,89 +467,6 @@
       prefersHover.addListener(onMediaChange);
     }
     updateNavDropdownOffset();
-  }
-  function setupPortfolioPreview(item){
-    if(!item) return;
-    const dropdown = item.querySelector('.nav-dropdown');
-    let preview = item.querySelector('.nav-project-preview');
-    const cards = item.querySelectorAll('.nav-project-card');
-    if(!dropdown || !cards.length) return;
-    if(!preview){
-      preview = document.createElement('div');
-      preview.className = 'nav-project-preview';
-      preview.setAttribute('aria-hidden', 'true');
-      item.appendChild(preview);
-    } else {
-      item.appendChild(preview);
-    }
-    const setAspectRatio = (w, h) => {
-      if (!w || !h) return;
-      preview.style.aspectRatio = `${w}/${h}`;
-    };
-    const positionPreview = (card) => {
-      const dropdownRect = dropdown.getBoundingClientRect();
-      const cardRect = card?.getBoundingClientRect() || cards[0]?.getBoundingClientRect();
-      const gutter = 16;
-      const vw = document.documentElement?.clientWidth || window.innerWidth || 0;
-      const previewWidth = preview.offsetWidth || 0;
-      let left = dropdownRect.right + gutter;
-      if (vw) {
-        const maxLeft = Math.max(gutter, vw - previewWidth - gutter);
-        left = Math.min(left, maxLeft);
-      }
-      preview.style.left = `${left}px`;
-      if (cardRect) {
-        preview.style.top = `${cardRect.top}px`;
-      } else {
-        preview.style.top = `${dropdownRect.top}px`;
-      }
-    };
-    let currentPreviewId = null;
-    const preloadImage = (id) => {
-      const img = new Image();
-      img.onload = () => setAspectRatio(img.naturalWidth, img.naturalHeight);
-      img.src = `/img/projects/${id}.webp`;
-    };
-    const showPreview = (card) => {
-      if(!card) return;
-      const id = card.getAttribute('data-project-id');
-      if(!id || id === currentPreviewId) return;
-      currentPreviewId = id;
-      preview.style.setProperty('--preview-image', `url('/img/projects/${id}.webp')`);
-      preloadImage(id);
-      positionPreview(card);
-      preview.classList.remove('nav-project-preview-animating');
-      void preview.offsetWidth; // force reflow to restart animation
-      preview.classList.add('nav-project-preview-animating');
-      preview.classList.add('nav-project-preview-visible');
-    };
-    cards.forEach((card, index) => {
-      const activate = () => showPreview(card);
-      const handleLeave = (event) => {
-        const next = event.relatedTarget;
-        if (next && next.closest && next.closest('.nav-project-card')) return;
-        hide();
-      };
-      card.addEventListener('mouseenter', activate);
-      card.addEventListener('focus', activate);
-      card.addEventListener('pointerleave', handleLeave);
-    });
-    const hide = () => {
-      preview.classList.remove('nav-project-preview-visible');
-    };
-    dropdown.addEventListener('pointerleave', hide);
-    item.addEventListener('mouseleave', hide);
-    item.addEventListener('focusout', (event) => {
-      const next = event.relatedTarget;
-      if(!next || !item.contains(next)){
-        hide();
-      }
-    });
-    const originalClose = item.__closeDropdown;
-    item.__closeDropdown = () => {
-      originalClose && originalClose();
-      hide();
-    };
   }
   function injectFooter(){
     const f = $('footer');
