@@ -326,9 +326,16 @@
       color: var(--muted);
     }
 
-    .legend-note {
-      font-size: 0.76rem;
-      color: var(--muted);
+    .map-legend {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .map-legend .key {
+      justify-content: center;
+      width: 100%;
+      text-align: center;
     }
 
     .legend .key {
@@ -667,26 +674,23 @@
             </div>
             <div class="date-display" id="date-value">--</div>
           </div>
+          <div class="legend map-legend" aria-label="Risk legend">
+            <span class="key"><span class="swatch" style="background:var(--risk-low)"></span> Low (&lt;5%)</span>
+            <span class="key"><span class="swatch" style="background:var(--risk-elevated)"></span> Elevated (5-15%)</span>
+            <span class="key"><span class="swatch" style="background:var(--risk-high)"></span> High (15%+)</span>
+          </div>
           <div class="map-svg">
             <svg id="map-svg" viewBox="0 0 975 610" preserveAspectRatio="xMidYMid meet" role="list" aria-label="State risk map"></svg>
           </div>
           <div class="map-tooltip" id="map-tooltip" role="tooltip"></div>
-          <div class="legend-note">Thresholds for <span id="legend-date">--</span></div>
-          <div class="legend">
-            <span class="key"><span class="swatch" style="background:var(--risk-low)"></span> Low (&lt;5%)</span>
-            <span class="key"><span class="swatch" style="background:var(--risk-elevated)"></span> Elevated (5-15%)</span>
-            <span class="key"><span class="swatch" style="background:var(--risk-high)"></span> High (15%+)</span>
-            <span class="key"><span class="swatch" style="background:var(--surface-3)"></span> Missing</span>
-          </div>
         </div>
 
         <div class="controls">
           <div class="control-row">
-            <div class="empty-note" id="date-range">--</div>
-            <div class="empty-note">Drag to change date</div>
+            <div class="empty-note" id="date-range">Range: --</div>
+            <div class="empty-note" id="date-selected">Selected: --</div>
           </div>
           <input id="date-slider" type="range" min="0" max="0" value="0" step="1" aria-label="Date slider" />
-          <div class="timeline-ticks" id="timeline-ticks" aria-hidden="true"></div>
         </div>
       </section>
 
@@ -868,9 +872,9 @@
       tooltip: document.getElementById("map-tooltip"),
       connectionPill: document.getElementById("connection-pill"),
       connectionMeta: document.getElementById("connection-meta"),
-      legendDate: document.getElementById("legend-date"),
       dateValue: document.getElementById("date-value"),
       dateRange: document.getElementById("date-range"),
+      dateSelected: document.getElementById("date-selected"),
       dateSlider: document.getElementById("date-slider"),
       timelineTicks: document.getElementById("timeline-ticks"),
       stateTitle: document.getElementById("state-title"),
@@ -900,6 +904,7 @@
     let serverReady = false;
 
     const numberFormat = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+    const dateFormatter = new Intl.DateTimeFormat("en-US", { year: "numeric", month: "short", day: "numeric" });
 
     const endpointConfig = {
       defaultUrl: DEFAULT_API_URL,
@@ -945,6 +950,16 @@
       if (risk === "elevated") return "Elevated";
       if (risk === "low") return "Low";
       return "No data";
+    }
+
+    function formatDateLabel(dateStr) {
+      if (!dateStr) return "--";
+      const parts = String(dateStr).split("-").map(Number);
+      if (parts.length !== 3) return dateStr;
+      const [year, month, day] = parts;
+      if (!year || !month || !day) return dateStr;
+      const date = new Date(Date.UTC(year, month - 1, day));
+      return dateFormatter.format(date);
     }
 
     async function renderMap() {
@@ -1265,9 +1280,14 @@
     function syncDateUI(index) {
       const date = appState.dates[index];
       if (!date) return;
-      DOM.dateValue.textContent = date;
-      if (DOM.legendDate) DOM.legendDate.textContent = date;
-      DOM.dateRange.textContent = `Timeline: ${appState.dates[0]} to ${appState.dates[appState.dates.length - 1]}`;
+      const displayDate = formatDateLabel(date);
+      const startDate = formatDateLabel(appState.dates[0]);
+      const endDate = formatDateLabel(appState.dates[appState.dates.length - 1]);
+      DOM.dateValue.textContent = displayDate;
+      if (DOM.dateSelected) {
+        DOM.dateSelected.textContent = `Selected: ${displayDate}`;
+      }
+      DOM.dateRange.textContent = `Range: ${startDate} — ${endDate}`;
     }
 
     function updateYearTicks(dates) {
