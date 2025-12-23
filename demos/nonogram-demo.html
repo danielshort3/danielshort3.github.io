@@ -206,23 +206,20 @@
     }
 
     .board-refresh {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      z-index: 4;
-      width: 34px;
-      height: 34px;
-      padding: 0;
-      border-radius: 50%;
+      grid-column: 1;
+      grid-row: 1;
+      justify-self: center;
+      align-self: center;
+      width: calc(var(--clue-size) - 8px);
+      height: calc(var(--clue-size) - 8px);
+      padding: 6px;
+      border-radius: 12px;
       display: grid;
       place-items: center;
-      background: color-mix(in srgb, var(--surface) 88%, #000 12%);
-      border-color: color-mix(in srgb, var(--surface-accent) 70%, transparent);
-    }
-
-    .board-refresh svg {
-      width: 16px;
-      height: 16px;
+      text-align: center;
+      line-height: 1.15;
+      font-size: .7rem;
+      white-space: normal;
     }
 
     .board-refresh:disabled {
@@ -261,15 +258,22 @@
 
     .solution-trigger {
       position: relative;
-      border: 1px dashed var(--surface-accent);
-      background: color-mix(in srgb, var(--surface) 88%, #000 12%);
-      color: var(--text);
-      border-radius: 999px;
-      padding: 8px 12px;
-      font-size: .75rem;
-      letter-spacing: .08em;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: transparent;
+      color: var(--text-muted);
+      border: none;
+      padding: 0;
+      font-size: .72rem;
+      letter-spacing: .06em;
       text-transform: uppercase;
-      cursor: pointer;
+      cursor: help;
+    }
+
+    .solution-label {
+      text-decoration: underline dotted;
+      text-underline-offset: 3px;
     }
 
     .solution-trigger:disabled {
@@ -277,29 +281,17 @@
       cursor: not-allowed;
     }
 
-    .solution-trigger::after {
-      content: attr(data-tooltip);
-      position: absolute;
-      left: 50%;
-      bottom: calc(100% + 8px);
-      transform: translate(-50%, 6px);
-      padding: 6px 8px;
-      border-radius: 8px;
+    .solution-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
       border: 1px solid var(--surface-accent);
-      background: color-mix(in srgb, var(--surface) 92%, transparent);
+      display: grid;
+      place-items: center;
+      font-weight: 600;
+      font-size: .65rem;
       color: var(--text-muted);
-      font-size: .7rem;
-      white-space: nowrap;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .2s ease, transform .2s ease;
-      z-index: 4;
-    }
-
-    .solution-trigger:hover::after,
-    .solution-trigger:focus-visible::after {
-      opacity: 1;
-      transform: translate(-50%, 0);
+      background: color-mix(in srgb, var(--surface) 90%, #000 10%);
     }
 
     .clues-top {
@@ -536,12 +528,7 @@
     <div class="content">
       <div class="board-column">
         <div class="board-shell" aria-label="Nonogram board">
-          <button id="new-btn" class="btn-secondary board-refresh" type="button" aria-label="Refresh puzzle" title="Refresh puzzle">
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path d="M20 12a8 8 0 1 1-2.35-5.65" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-              <path d="M20 5v5h-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </button>
+          <button id="new-btn" class="btn-primary board-refresh" type="button" aria-label="New puzzle">New Puzzle</button>
           <div class="clues-top" id="clues-top"></div>
           <div class="clues-left" id="clues-left"></div>
           <div class="grid" id="grid"></div>
@@ -552,7 +539,10 @@
         </div>
         <div class="board-actions">
           <button id="solve-btn" class="btn-primary" type="button" disabled>Solve With AI</button>
-          <button id="solution-btn" class="solution-trigger" type="button" disabled data-tooltip="Hover to show">Solution</button>
+          <button id="solution-btn" class="solution-trigger" type="button" disabled>
+            <span class="solution-label">Solution</span>
+            <span class="solution-icon" aria-hidden="true">?</span>
+          </button>
         </div>
       </div>
 
