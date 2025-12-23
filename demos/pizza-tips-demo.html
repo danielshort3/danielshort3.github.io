@@ -148,13 +148,15 @@
       border: 1px solid var(--border);
     }
     .map-meta {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 12px;
       font-size: .85rem;
       color: var(--muted);
     }
     .map-meta span {
+      width: 100%;
+      text-align: center;
       padding: 4px 10px;
       border-radius: 999px;
       background: rgba(255,255,255,.04);
@@ -266,9 +268,13 @@
       cursor: pointer;
     }
     .actions {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: 2fr 1fr;
       gap: 12px;
+    }
+    .actions .btn {
+      width: 100%;
+      min-width: 0;
     }
     .btn {
       display: inline-flex;
@@ -391,7 +397,7 @@
         justify-content: flex-start;
       }
       .actions {
-        flex-direction: column;
+        grid-template-columns: 1fr;
       }
       .btn {
         width: 100%;
@@ -850,10 +856,18 @@
       hours.forEach((h) => {
         const opt = document.createElement('option');
         opt.value = h;
-        opt.textContent = `${h}:00`;
+        opt.textContent = formatHour(h);
         if (h === DEFAULTS.orderHour) opt.selected = true;
         orderHourSelect.appendChild(opt);
       });
+    }
+
+    function formatHour(hourValue) {
+      const hour = Number(hourValue);
+      if (!Number.isFinite(hour)) return '--';
+      const period = hour >= 12 ? 'PM' : 'AM';
+      const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+      return `${displayHour}:00 ${period}`;
     }
 
     function syncDeliveryValue() {
@@ -868,7 +882,7 @@
       const resolved = resolveCityLocal(lat, lon);
       cityDisplay.textContent = resolved.city ? `City: ${resolved.city}` : 'City: Outside coverage';
       if (ACTIVE_FEATURES.has('orderHour')) {
-        hourDisplay.textContent = `Hour: ${orderHourSelect.value}`;
+        hourDisplay.textContent = `Time: ${formatHour(orderHourSelect.value)}`;
       }
     }
 
