@@ -84,26 +84,34 @@
         }
 
         header.card-header {
-            display: grid;
-            grid-template-columns: 1fr; /* single column (actions removed) */
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
             gap: 12px;
             padding: 16px 18px;
             background: linear-gradient(0deg, var(--surface), var(--surface-2));
             border-bottom: 1px solid var(--surface-accent);
-            align-items: center;
+        }
+
+        .header-copy {
+            min-width: 0;
+            display: grid;
+            gap: 6px;
         }
 
         .title {
             font-family: Poppins, Inter, system-ui, sans-serif;
             font-weight: 600;
-            margin: 0 0 4px 0;
-            font-size: 1.1rem;
+            margin: 0;
+            font-size: clamp(1.1rem, 2.2vw, 1.35rem);
         }
 
         .subtitle {
             margin: 0;
             color: var(--text-muted);
-            font-size: .85rem;
+            font-size: .9rem;
+            max-width: 60ch;
             overflow-wrap: anywhere; /* wrap long lists on narrow screens */
         }
 
@@ -675,7 +683,7 @@
 
     <div id="demo-box" role="application" aria-label="Shape classifier demo">
         <header class="card-header">
-            <div>
+            <div class="header-copy">
                 <h1 class="title">Draw a Shape</h1>
                 <p class="subtitle">This demo identifies only these shapes: <strong>Circle</strong>, <strong>Triangle</strong>, <strong>Square</strong>, <strong>Hexagon</strong>, <strong>Octagon</strong>.</p>
             </div>

@@ -9,22 +9,25 @@
   <link rel="stylesheet" href="dist/styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600&display=swap" />
   <style>
     :root {
       --app-vh: 1vh;
       --safe-top: env(safe-area-inset-top, 0px);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
       color-scheme: light dark;
-      --bg: #020617;
-      --panel: color-mix(in srgb, var(--surface, #0f172a) 90%, black 10%);
-      --panel-border: color-mix(in srgb, var(--surface-accent, #1e293b) 70%, transparent);
+      --bg: var(--bg, #0d1117);
+      --surface-2: var(--surface-light, #1c2231);
+      --panel: var(--surface, #141a24);
+      --panel-border: var(--surface-accent, #1e293b);
       --text: var(--text-light, #e2e8f0);
-      --muted: color-mix(in srgb, var(--text) 65%, transparent);
-      --accent: #facc15;
-      --accent-2: #6366f1;
-      --danger: #f87171;
+      --muted: var(--text-muted, color-mix(in srgb, var(--text) 65%, transparent));
+      --accent: var(--primary, #2bbbad);
+      --accent-2: color-mix(in srgb, var(--accent) 70%, #ffffff 30%);
+      --danger: var(--danger, #e05757);
       --radius: 16px;
+      --shadow-1: 0 2px 10px rgba(0,0,0,.06), 0 1px 4px rgba(0,0,0,.06);
+      --shadow-2: 0 8px 30px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.08);
     }
     @media (min-width: 769px) {
       .machine-frame__reels {
@@ -39,9 +42,8 @@
       min-height: 100vh;
       font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background:
-        radial-gradient(1200px 800px at 12% -10%, rgba(99, 102, 241, .14), transparent 55%),
-        radial-gradient(1000px 700px at 88% 0%, rgba(14, 165, 233, .12), transparent 55%),
-        linear-gradient(180deg, #010915, var(--bg));
+        radial-gradient(1200px 500px at 50% -10%, color-mix(in srgb, var(--primary) 15%, transparent), transparent 60%)
+        var(--bg);
       color: var(--text);
       padding: clamp(20px, 3vw, 36px);
       display: block;
@@ -54,24 +56,90 @@
     }
     main {
       width: min(1100px, 100%);
-      background: color-mix(in srgb, var(--panel) 90%, #0b1224 10%);
-      border: 1px solid color-mix(in srgb, var(--panel-border) 70%, transparent);
+      background: var(--surface, #141a24);
+      border: 1px solid var(--surface-accent, #1e293b);
       border-radius: 22px;
-      box-shadow: 0 24px 120px rgba(2, 6, 23, .72);
+      box-shadow: var(--shadow-2);
       padding: clamp(24px, 3vw, 36px);
       display: grid;
       gap: 28px;
       margin: 0 auto;
     }
-    header h1 {
-      font-family: "Space Grotesk", Inter, sans-serif;
-      font-size: clamp(1.75rem, 3vw, 2.5rem);
-      margin: 0 0 8px;
+    .card-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 18px;
+      background: linear-gradient(0deg, var(--surface), var(--surface-2));
+      border-bottom: 1px solid var(--surface-accent);
     }
-    header p {
+    .header-copy {
+      min-width: 0;
+      display: grid;
+      gap: 6px;
+    }
+    .title {
+      font-family: Poppins, Inter, sans-serif;
+      font-weight: 600;
+      font-size: clamp(1.1rem, 2.2vw, 1.35rem);
+      margin: 0;
+    }
+    .subtitle {
       margin: 0;
       color: var(--muted);
+      font-size: .9rem;
       line-height: 1.5;
+      max-width: 60ch;
+    }
+    .demo-header {
+      display: grid;
+      gap: 0;
+    }
+    .health-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 10px;
+      padding: 8px 16px 0;
+    }
+    .health-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--surface-accent);
+      background: var(--surface-2);
+      font-size: .7rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .health-pill::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    .health-pill[data-state="ok"] {
+      color: var(--success, #38b37e);
+      border-color: color-mix(in srgb, var(--success, #38b37e) 55%, var(--surface-accent) 45%);
+    }
+    .health-pill[data-state="warming"] {
+      color: var(--warning, #f3b550);
+      border-color: color-mix(in srgb, var(--warning, #f3b550) 55%, var(--surface-accent) 45%);
+    }
+    .health-pill[data-state="error"],
+    .health-pill[data-state="err"] {
+      color: var(--danger);
+      border-color: color-mix(in srgb, var(--danger) 55%, var(--surface-accent) 45%);
+    }
+    .health-meta {
+      font-size: .85rem;
+      color: var(--muted);
     }
     .status-pill {
       display: inline-flex;
@@ -2337,13 +2405,10 @@
       main > * {
         margin-inline: 14px;
       }
-      header {
+      .card-header {
         padding: 10px 12px;
       }
-      .status-row {
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 12px;
+      .demo-header {
         margin: 0;
         grid-row: 1;
         flex-shrink: 0;
@@ -2621,10 +2686,10 @@
     }
 
     @media (max-width: 420px) {
-      header h1 {
+      .title {
         font-size: 1.4rem;
       }
-      header p {
+      .subtitle {
         font-size: .9rem;
       }
       main > * {
@@ -2691,9 +2756,17 @@
   </div>
   <a class="skip-link" href="#main">Skip to content</a>
   <main id="main" data-api-base="https://4kvebym8b3.execute-api.us-east-2.amazonaws.com/prod" data-max-bet="100" data-machine-config="slot-config/classic.json">
-    <div class="status-row">
-      <span class="status-pill health" id="connection-pill" data-state="warn">Warming up</span>
-      <span class="muted-text" id="connection-text">Warming AWS Lambda</span>
+    <div class="demo-header">
+      <header class="card-header">
+        <div class="header-copy">
+          <h1 class="title">Slot Machine Demo</h1>
+          <p class="subtitle">Spin the reels, track your balance, and see payouts validated in AWS.</p>
+        </div>
+      </header>
+      <div class="health-row" role="status" aria-live="polite">
+        <span class="health-pill" id="connection-pill" data-state="warming">Warming up</span>
+        <span class="health-meta" id="connection-text">Warming AWS Lambda</span>
+      </div>
     </div>
     <nav class="desktop-nav" id="desktop-nav" aria-label="Game sections" data-requires-auth hidden>
       <button type="button" data-pane-target="play" class="active">Play</button>
@@ -4675,13 +4748,20 @@
         updateAccountLog();
       };
 
+      const normalizeHealthState = (stateAttr = 'ok') => {
+        if (stateAttr === 'warn') return 'warming';
+        if (stateAttr === 'error') return 'err';
+        return stateAttr;
+      };
+
       const setStatus = (text, stateAttr = 'ok') => {
-        debug('ui:setStatus', { text, stateAttr });
+        const normalized = normalizeHealthState(stateAttr);
+        debug('ui:setStatus', { text, stateAttr: normalized });
         log('Status', text);
         if (els.connectionPill && els.connectionText) {
           els.connectionText.textContent = text;
-          els.connectionPill.dataset.state = stateAttr;
-          els.connectionPill.setAttribute('data-state', stateAttr === 'ok' ? 'ok' : stateAttr);
+          els.connectionPill.dataset.state = normalized;
+          els.connectionPill.setAttribute('data-state', normalized);
         }
       };
 

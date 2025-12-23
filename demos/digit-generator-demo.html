@@ -8,6 +8,9 @@
 
   <meta name="theme-color" content="#0D1117">
   <link rel="stylesheet" href="dist/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@600&display=swap">
 
   <style>
     :root {
@@ -67,26 +70,34 @@
     }
 
     header.card-header {
-      display: grid;
-      grid-template-columns: 1fr;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
       gap: 12px;
       padding: 16px 18px;
       background: linear-gradient(0deg, var(--surface), var(--surface-2));
       border-bottom: 1px solid var(--surface-accent);
     }
 
+    .header-copy {
+      min-width: 0;
+      display: grid;
+      gap: 6px;
+    }
+
     .title {
       font-family: Poppins, Inter, system-ui, sans-serif;
       font-weight: 600;
-      margin: 0 0 4px 0;
-      font-size: 1.1rem;
+      margin: 0;
+      font-size: clamp(1.1rem, 2.2vw, 1.35rem);
     }
 
     .subtitle {
       margin: 0;
       color: var(--text-muted);
       font-size: .9rem;
-      max-width: 64ch;
+      max-width: 60ch;
     }
 
     .grid-controls {
@@ -241,11 +252,15 @@
       color: var(--text);
     }
 
-    .status-row {
+    .health-row {
       display: flex;
       align-items: center;
+      justify-content: flex-start;
       gap: 10px;
-      flex-wrap: wrap;
+      padding: 8px 16px 0;
+    }
+
+    .status-row {
       padding: 0 16px 8px;
     }
 
@@ -476,14 +491,16 @@
 
   <div id="demo-box" role="application" aria-label="Digit generator demo">
     <header class="card-header">
-      <div>
+      <div class="header-copy">
         <h1 class="title">Synthetic Digit Generator</h1>
         <p class="subtitle">Seed a latent vector, choose one dimension, and sweep a single axis to see the grid morph.</p>
       </div>
     </header>
 
-    <div class="status-row" role="status" aria-live="polite">
+    <div class="health-row" role="status" aria-live="polite">
       <span id="health-pill" class="health-pill" data-state="warming">Warming up</span>
+    </div>
+    <div class="status-row">
       <span class="status" id="status">Generating grid...</span>
     </div>
 

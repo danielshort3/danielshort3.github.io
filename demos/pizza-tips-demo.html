@@ -39,7 +39,7 @@
       margin: 0;
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color: var(--text);
-      background: radial-gradient(1100px 520px at 18% -10%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 60%)
+      background: radial-gradient(1200px 500px at 50% -10%, color-mix(in srgb, var(--primary) 15%, transparent), transparent 60%)
         var(--bg, #0d1117);
       display: grid;
       place-items: start center;
@@ -59,73 +59,63 @@
       flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
-      gap: 14px;
-      padding: 20px 22px;
+      gap: 12px;
+      padding: 16px 18px;
       background: linear-gradient(0deg, var(--surface, #141a24), var(--surface-2));
       border-bottom: 1px solid var(--border);
     }
-    .headline {
-      display: flex;
-      flex-direction: column;
+    .header-copy {
+      min-width: 0;
+      display: grid;
       gap: 6px;
-      min-width: 200px;
     }
-    .eyebrow {
-      margin: 0;
-      font-size: .8rem;
-      text-transform: uppercase;
-      letter-spacing: .1em;
-      color: var(--muted);
-    }
-    h1 {
+    .title {
       margin: 0;
       font-family: Poppins, Inter, system-ui, sans-serif;
-      font-size: 1.45rem;
+      font-weight: 600;
+      font-size: clamp(1.1rem, 2.2vw, 1.35rem);
     }
-    .subhead {
+    .subtitle {
       margin: 0;
       color: var(--muted);
-      font-size: .95rem;
+      font-size: .9rem;
+      max-width: 60ch;
     }
-    .status {
+    .health-row {
       display: flex;
       align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
       justify-content: flex-start;
+      padding: 8px 16px 0;
     }
-    .status-row {
-      padding: 10px 22px;
-      border-bottom: 1px solid var(--border);
-      background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--accent) 8%, transparent));
-    }
-    .pill {
+    .health-pill {
       display: inline-flex;
       align-items: center;
       gap: 6px;
       border: 1px solid var(--border);
       padding: 6px 12px;
       border-radius: 999px;
-      font-size: .85rem;
+      font-size: .7rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
       color: var(--muted);
       background: var(--surface-2);
     }
-    .pill.health::before {
+    .health-pill::before {
       content: '';
       width: 8px;
       height: 8px;
       border-radius: 50%;
       background: currentColor;
     }
-    .pill.ok {
+    .health-pill[data-state="ok"] {
       color: var(--success);
       border-color: color-mix(in srgb, var(--success) 65%, var(--border) 35%);
     }
-    .pill.err {
+    .health-pill[data-state="err"] {
       color: var(--danger);
       border-color: color-mix(in srgb, var(--danger) 65%, var(--border) 35%);
     }
-    .pill.warm {
+    .health-pill[data-state="warming"] {
       color: var(--warning, #f3b550);
       border-color: color-mix(in srgb, var(--warning, #f3b550) 65%, var(--border) 35%);
     }
@@ -469,14 +459,13 @@
   </script>
   <main id="main" class="card">
     <header class="card-header">
-      <div class="headline">
-        <p class="eyebrow">Pizza Tips Regression</p>
-        <h1>Map-Based Tip Estimator</h1>
-        <p class="subhead">Click the map, set the scenario, and estimate tip amount + percentage.</p>
+      <div class="header-copy">
+        <h1 class="title">Pizza Tips Regression</h1>
+        <p class="subtitle">Click the map, set the scenario, and estimate tip amount + percentage.</p>
       </div>
     </header>
-    <div class="status status-row" role="status" aria-live="polite">
-      <div class="pill health warm" id="api-status">Warming up</div>
+    <div class="health-row" role="status" aria-live="polite">
+      <span class="health-pill" id="api-status" data-state="warming">Warming up</span>
     </div>
 
     <section class="section">
@@ -665,8 +654,8 @@
     let serverReady = false;
 
     function setStatus(state, text) {
-      statusEl.classList.remove('ok', 'err', 'warm');
-      if (state) statusEl.classList.add(state);
+      if (!statusEl) return;
+      statusEl.dataset.state = state || '';
       statusEl.textContent = text;
     }
 
@@ -942,7 +931,7 @@
 
     async function warmUpServer() {
       setServerReady(false);
-      setStatus('warm', 'Warming AWS...');
+      setStatus('warming', 'Warming AWS...');
       const endpoints = candidates();
       if (!endpoints.length) {
         setStatus('err', 'No endpoint');
@@ -996,7 +985,7 @@
     populateConfidence();
     applyFeatureVisibility();
     setServerReady(false);
-    setStatus(API_URL ? 'warm' : 'err', API_URL ? 'Warming AWS...' : 'Unavailable');
+    setStatus(API_URL ? 'warming' : 'err', API_URL ? 'Warming AWS...' : 'Unavailable');
     setInputs(DEFAULTS);
     if (API_URL) {
       warmUpServer();
@@ -1096,7 +1085,7 @@
         return;
       }
       if (!serverReady) {
-        setStatus('warm', 'Warming AWS...');
+        setStatus('warming', 'Warming AWS...');
         return;
       }
       const lat = Number(latInput.value);
@@ -1107,7 +1096,6 @@
         warningsEl.textContent = 'Choose a point inside the delivery cities to estimate tips.';
         return;
       }
-      setStatus('', 'Working...');
       try {
         const result = await postToEndpoint(API_URL, currentPayload(true));
         applyResponse(result);

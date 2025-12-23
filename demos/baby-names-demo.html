@@ -76,7 +76,7 @@
     header.card-header {
       display: flex;
       flex-wrap: wrap;
-      gap: 16px;
+      gap: 12px;
       align-items: center;
       justify-content: space-between;
       padding: 16px 18px;
@@ -84,24 +84,24 @@
       border-bottom: 1px solid var(--surface-accent);
     }
 
-    .title-group {
+    .header-copy {
       display: grid;
       gap: 6px;
-      min-width: 240px;
+      min-width: 0;
     }
 
     .title {
       font-family: Poppins, Inter, system-ui, sans-serif;
       font-weight: 600;
-      margin: 0 0 4px 0;
-      font-size: 1.1rem;
+      margin: 0;
+      font-size: clamp(1.1rem, 2.2vw, 1.35rem);
     }
 
     .subtitle {
       margin: 0;
       color: var(--muted);
-      font-size: 0.88rem;
-      max-width: 58ch;
+      font-size: 0.9rem;
+      max-width: 60ch;
     }
 
     .header-actions {
@@ -136,30 +136,28 @@
       color: color-mix(in srgb, var(--primary) 88%, #ffffff 12%);
     }
 
-    .status-row {
+    .health-row {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 10px 18px;
-      border-bottom: 1px solid var(--surface-accent);
-      background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--primary) 6%, transparent));
-      flex-wrap: wrap;
+      justify-content: flex-start;
+      padding: 8px 16px 0;
     }
 
-    .status-pill {
+    .health-pill {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       padding: 6px 12px;
       border-radius: 999px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.02em;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      border: 1px solid transparent;
+      border: 1px solid var(--surface-accent);
+      color: var(--muted);
+      background: var(--surface-2);
     }
 
-    .status-pill.health::before {
+    .health-pill::before {
       content: '';
       width: 8px;
       height: 8px;
@@ -167,16 +165,28 @@
       background: currentColor;
     }
 
-    .status-pill[data-state="ok"] {
-      background: color-mix(in srgb, var(--success) 18%, transparent);
-      color: color-mix(in srgb, var(--success) 70%, #ffffff 30%);
-      border-color: color-mix(in srgb, var(--success) 40%, transparent);
+    .health-pill[data-state="ok"] {
+      color: var(--success, #38b37e);
+      border-color: color-mix(in srgb, var(--success, #38b37e) 55%, var(--surface-accent) 45%);
     }
 
-    .status-pill[data-state="warn"] {
-      background: color-mix(in srgb, var(--warning) 18%, transparent);
-      color: color-mix(in srgb, var(--warning) 72%, #ffffff 28%);
-      border-color: color-mix(in srgb, var(--warning) 42%, transparent);
+    .health-pill[data-state="warming"] {
+      color: var(--warning, #f3b550);
+      border-color: color-mix(in srgb, var(--warning, #f3b550) 55%, var(--surface-accent) 45%);
+    }
+
+    .health-pill[data-state="err"] {
+      color: var(--danger, #e05757);
+      border-color: color-mix(in srgb, var(--danger, #e05757) 55%, var(--surface-accent) 45%);
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 4px 18px 12px;
+      border-bottom: 1px solid var(--surface-accent);
+      flex-wrap: wrap;
     }
 
     .status-meta {
@@ -560,7 +570,7 @@
 <body>
   <div id="demo-box" role="application" aria-label="Baby names analysis demo">
     <header class="card-header">
-      <div class="title-group">
+      <div class="header-copy">
         <h1 class="title">Baby Name Signals</h1>
         <p class="subtitle">Interactive look at my wife's ratings and similarity-based recommendations.</p>
       </div>
@@ -573,8 +583,10 @@
       </div>
     </header>
 
+    <div class="health-row" role="status" aria-live="polite">
+      <span class="health-pill" id="status-pill" data-state="warming">Warming up</span>
+    </div>
     <div class="status-row">
-      <span class="status-pill health" id="status-pill" data-state="warn">Checking...</span>
       <span class="status-meta" id="status-meta">Fetching demo data...</span>
       <span class="status-note">My wife has approved publication of this data through this project.</span>
     </div>
@@ -957,7 +969,7 @@
         console.error(err);
         dataReady = false;
         setControlsEnabled(false);
-        setStatus("warn", "Unavailable", "Demo data missing");
+        setStatus("err", "Unavailable", "Demo data missing");
         DOM.nameList.innerHTML = "<li class=\"empty-state\">Unable to load data</li>";
       }
     }
