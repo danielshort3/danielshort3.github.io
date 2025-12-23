@@ -275,6 +275,7 @@
       position: relative;
       width: min(100%, 360px);
       aspect-ratio: 1 / 1;
+      align-self: start;
       justify-self: start;
     }
 
@@ -298,6 +299,35 @@
       opacity: .95;
       min-height: 44px;
       min-width: 44px;
+    }
+
+    .canvas-toast {
+      position: absolute;
+      left: 50%;
+      bottom: 12px;
+      transform: translate(-50%, 6px);
+      display: grid;
+      gap: 2px;
+      min-width: 140px;
+      max-width: calc(100% - 16px);
+      padding: 6px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--surface-accent);
+      background: color-mix(in srgb, var(--surface) 92%, transparent);
+      box-shadow: var(--shadow-1);
+      text-align: center;
+      font-size: .85rem;
+      font-weight: 600;
+      color: var(--text);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease, transform .2s ease;
+      z-index: 3;
+    }
+
+    .canvas-toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
     }
 
     .toolbar {
@@ -554,13 +584,36 @@
 
     @media (max-width: 520px) {
       .canvas-layout {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr) minmax(70px, 92px);
+        gap: 8px;
       }
 
       .sample-panel {
-        order: 2;
-        border-left: none;
-        border-top: 1px solid var(--surface-accent);
+        border-left: 1px solid var(--surface-accent);
+        border-top: none;
+        padding: 6px 4px;
+      }
+
+      .sample-title {
+        font-size: .72rem;
+      }
+
+      .sample-hint,
+      .sample-panel .hint {
+        font-size: .65rem;
+      }
+
+      .sample-grid {
+        gap: 3px;
+      }
+
+      .sample-btn {
+        min-height: 20px;
+        font-size: .8rem;
+      }
+
+      .canvas-toast {
+        font-size: .75rem;
       }
     }
 
@@ -701,6 +754,10 @@
               <button id="erase" class="icon-btn" type="button" aria-label="Erase (clear canvas)">
                 <i class="fa-solid fa-eraser"></i>
               </button>
+              <div id="canvas-toast" class="canvas-toast" role="status" aria-live="polite" aria-atomic="true">
+                <span class="toast-guess"></span>
+                <span class="toast-score"></span>
+              </div>
             </div>
             <div class="sample-panel" aria-label="Daniel's handwritten numbers">
               <div class="sample-title">Daniel's handwritten numbers</div>
@@ -855,6 +912,9 @@
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     const eraseBtn = document.getElementById('erase');
     const rateBtn = document.getElementById('rate');
+    const canvasToast = document.getElementById('canvas-toast');
+    const toastGuess = canvasToast?.querySelector('.toast-guess');
+    const toastScore = canvasToast?.querySelector('.toast-score');
 
     const resultBadge = document.getElementById('result-badge');
     const resultDigit = document.getElementById('result-digit');
@@ -874,6 +934,7 @@
     let hasDrawn = false;
     let drawing = false;
     let currentActualDigit = null;
+    let toastTimer = null;
 
     function fitCanvasToDisplaySize() {
       const r = canvas.getBoundingClientRect();
@@ -1080,6 +1141,22 @@
         .sort((a, b) => b.value - a.value);
     }
 
+    function getPredictionStats(confidences, legibility, digit, actualDigit = null) {
+      const sorted = getSortedConfidences(confidences);
+      const top = sorted && sorted.length ? sorted[0] : null;
+      const resolvedDigit = Number.isFinite(digit) ? digit : (top ? top.digit : null);
+
+      let legibilityValueSource = null;
+      if (Number.isFinite(actualDigit) && Array.isArray(confidences) && confidences.length === 10) {
+        legibilityValueSource = Number(confidences[actualDigit]);
+      }
+      if (!Number.isFinite(legibilityValueSource)) {
+        legibilityValueSource = Number.isFinite(legibility) ? legibility : (top ? top.value : null);
+      }
+
+      return { sorted, resolvedDigit, legibilityValueSource };
+    }
+
     function renderConfidenceList(sorted, actualDigit = null) {
       confidenceList.innerHTML = '';
       const actualValue = Number.isFinite(actualDigit) ? Number(actualDigit) : null;
@@ -1153,11 +1230,24 @@
       legibilityValue.textContent = pct !== null ? `${Math.round(pct)}%` : '--';
     }
 
+    function showCanvasToast(digit, legibilityValue) {
+      if (!canvasToast || !toastGuess || !toastScore) return;
+      const pct = toPercent(legibilityValue);
+      if (!Number.isFinite(digit) || pct === null) return;
+      toastGuess.textContent = `Guess: ${digit}`;
+      toastScore.textContent = `Legibility: ${Math.round(pct)}%`;
+      canvasToast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        canvasToast.classList.remove('show');
+      }, 2000);
+    }
+
     function setPredictionUI(message, confidences, legibility, digit, actualDigit = null) {
-      const sorted = getSortedConfidences(confidences);
-      const top = sorted && sorted.length ? sorted[0] : null;
-      const resolvedDigit = Number.isFinite(digit) ? digit : (top ? top.digit : null);
-      if (resolvedDigit !== null && resolvedDigit !== undefined) {
+      const stats = getPredictionStats(confidences, legibility, digit, actualDigit);
+      const { sorted, resolvedDigit, legibilityValueSource } = stats;
+
+      if (Number.isFinite(resolvedDigit)) {
         resultDigit.textContent = `Prediction: ${resolvedDigit}`;
       } else {
         resultDigit.textContent = message || 'Prediction: --';
@@ -1175,14 +1265,8 @@
 
       renderConfidenceList(sorted, actualDigit);
 
-      let legibilityValueSource = null;
-      if (Number.isFinite(actualDigit) && Array.isArray(confidences) && confidences.length === 10) {
-        legibilityValueSource = Number(confidences[actualDigit]);
-      }
-      if (!Number.isFinite(legibilityValueSource)) {
-        legibilityValueSource = Number.isFinite(legibility) ? legibility : (top ? top.value : null);
-      }
       updateLegibility(legibilityValueSource);
+      return stats;
     }
 
     async function canvasToBase64() {
@@ -1243,7 +1327,8 @@
         setStep('score', 'done');
         setStep('complete', 'done');
 
-        setPredictionUI('Prediction ready', confidences, legibility, digit, currentActualDigit);
+        const stats = setPredictionUI('Prediction ready', confidences, legibility, digit, currentActualDigit);
+        showCanvasToast(stats.resolvedDigit, stats.legibilityValueSource);
       } catch (err) {
         setStep('score', 'not-started');
         setStep('complete', 'not-started');

@@ -305,6 +305,35 @@
             min-width: 44px;
         }
 
+        .canvas-toast {
+            position: absolute;
+            left: 50%;
+            bottom: 12px;
+            transform: translate(-50%, 6px);
+            display: grid;
+            gap: 2px;
+            min-width: 140px;
+            max-width: calc(100% - 16px);
+            padding: 6px 10px;
+            border-radius: 10px;
+            border: 1px solid var(--surface-accent);
+            background: color-mix(in srgb, var(--surface) 92%, transparent);
+            box-shadow: var(--shadow-1);
+            text-align: center;
+            font-size: .85rem;
+            font-weight: 600;
+            color: var(--text);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s ease, transform .2s ease;
+            z-index: 3;
+        }
+
+        .canvas-toast.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
         .toolbar {
             display: flex;
             flex-wrap: wrap;
@@ -411,6 +440,68 @@
             overflow: hidden;
         }
 
+        .shape-scores {
+            display: grid;
+            gap: 8px;
+        }
+
+        .shape-scores-head {
+            font-size: .9rem;
+            color: var(--text-muted);
+        }
+
+        .shape-score-list {
+            display: grid;
+            gap: 8px;
+        }
+
+        .shape-row {
+            display: grid;
+            grid-template-columns: minmax(70px, 110px) 1fr 56px;
+            gap: 10px;
+            align-items: center;
+            padding: 6px 10px;
+            border-radius: 10px;
+            border: 1px solid var(--surface-accent);
+            background: var(--surface);
+        }
+
+        .shape-row.is-top {
+            border-color: var(--primary);
+            background: linear-gradient(90deg, color-mix(in srgb, var(--primary) 12%, transparent), var(--surface));
+            box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 28%, transparent);
+        }
+
+        .shape-row.is-top .shape-name {
+            color: var(--primary);
+        }
+
+        .shape-name {
+            font-weight: 600;
+        }
+
+        .shape-track {
+            height: 10px;
+            border-radius: 999px;
+            background: var(--surface-2);
+            border: 1px solid var(--surface-accent);
+            overflow: hidden;
+        }
+
+        .shape-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transition: width .25s ease;
+        }
+
+        .shape-pct {
+            text-align: right;
+            font-size: .85rem;
+            color: var(--text-muted);
+            font-variant-numeric: tabular-nums;
+        }
+
         .hint {
             color: var(--text-muted);
             font-size: .9rem;
@@ -491,6 +582,10 @@
             .subtitle {
                 font-size: .8rem;
             }
+
+            .canvas-toast {
+                font-size: .75rem;
+            }
         }
   </style>
   <script>
@@ -556,6 +651,10 @@
                     <button id="erase" class="icon-btn" type="button" aria-label="Erase (clear canvas)">
                         <i class="fa-solid fa-eraser"></i>
                     </button>
+                    <div id="canvas-toast" class="canvas-toast" role="status" aria-live="polite" aria-atomic="true">
+                        <span class="toast-guess"></span>
+                        <span class="toast-score"></span>
+                    </div>
                 </div>
 
                 <div class="toolbar" style="margin-top:8px;">
@@ -579,6 +678,10 @@
                     <div id="confidence-bar" class="confidence" style="width:0%"></div>
                 </div>
                 <div id="confidence-text" class="hint">Confidence: –</div>
+                <div class="shape-scores">
+                    <div class="shape-scores-head">Per-shape scores</div>
+                    <div id="shape-score-list" class="shape-score-list" aria-label="Per-shape scores"></div>
+                </div>
                 <div class="hint">Shortcut: press <strong>C</strong> to clear.</div>
             </section>
         </div>
@@ -664,12 +767,16 @@
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         const eraseBtn = document.getElementById('erase');
         const classifyBtn = document.getElementById('classify');
+        const canvasToast = document.getElementById('canvas-toast');
+        const toastGuess = canvasToast?.querySelector('.toast-guess');
+        const toastScore = canvasToast?.querySelector('.toast-score');
 
         const resultBadge = document.getElementById('result-badge');
         const resultShape = document.getElementById('result-shape');
         const resultIcon = document.getElementById('result-icon');
         const confBar = document.getElementById('confidence-bar');
         const confText = document.getElementById('confidence-text');
+        const shapeScoreList = document.getElementById('shape-score-list');
 
         let bg = getComputedStyle(document.documentElement).getPropertyValue('--canvas-dark').trim() || '#000';
         const fg = '#fff';
@@ -677,6 +784,15 @@
         let currentDPR = 1;
         let hasDrawn = false;
         let drawing = false;
+        let toastTimer = null;
+
+        const SHAPE_ORDER = [
+            { key: 'circle', label: 'Circle' },
+            { key: 'triangle', label: 'Triangle' },
+            { key: 'square', label: 'Square' },
+            { key: 'hexagon', label: 'Hexagon' },
+            { key: 'octagon', label: 'Octagon' }
+        ];
 
         function fitCanvasToDisplaySize() {
             const r = canvas.getBoundingClientRect();
@@ -818,14 +934,155 @@
         }
 
         /* ---------- Prediction UI ---------- */
+        function toPercent(value) {
+            if (!Number.isFinite(value)) return null;
+            if (value > 1.01) return Math.min(100, value);
+            return Math.max(0, Math.min(100, value * 100));
+        }
+
+        function numberFrom(...vals) {
+            for (const v of vals) {
+                const n = Number(v);
+                if (Number.isFinite(n)) return n;
+            }
+            return null;
+        }
+
+        function normalizeShapeScores(raw) {
+            if (!raw) return null;
+            const scores = {};
+            const keys = SHAPE_ORDER.map(shape => shape.key);
+            let found = false;
+
+            if (Array.isArray(raw)) {
+                if (raw.length === keys.length && raw.every(v => v === null || v === undefined || Number.isFinite(Number(v)))) {
+                    keys.forEach((key, idx) => {
+                        const val = Number(raw[idx]);
+                        if (Number.isFinite(val)) {
+                            scores[key] = val;
+                            found = true;
+                        }
+                    });
+                    return found ? scores : null;
+                }
+                if (raw.length && typeof raw[0] === 'object') {
+                    raw.forEach(item => {
+                        if (!item) return;
+                        const label = String(item.shape || item.class || item.label || '').toLowerCase();
+                        if (!keys.includes(label)) return;
+                        const conf = numberFrom(item.confidence, item.score, item.prob, item.probability, item.value);
+                        if (Number.isFinite(conf)) {
+                            scores[label] = conf;
+                            found = true;
+                        }
+                    });
+                    return found ? scores : null;
+                }
+            }
+
+            if (typeof raw === 'object') {
+                keys.forEach(key => {
+                    const val = raw[key] ?? raw[key.toUpperCase()] ?? raw[key.charAt(0).toUpperCase() + key.slice(1)];
+                    if (val !== undefined) {
+                        const num = Number(val);
+                        if (Number.isFinite(num)) {
+                            scores[key] = num;
+                            found = true;
+                        }
+                    }
+                });
+                if (!found) {
+                    Object.entries(raw).forEach(([key, val]) => {
+                        const lowered = String(key || '').toLowerCase();
+                        if (!keys.includes(lowered)) return;
+                        const num = Number(val);
+                        if (Number.isFinite(num)) {
+                            scores[lowered] = num;
+                            found = true;
+                        }
+                    });
+                }
+                return found ? scores : null;
+            }
+
+            return null;
+        }
+
+        function renderShapeScores(scores, highlightKey = null) {
+            if (!shapeScoreList) return;
+            shapeScoreList.innerHTML = '';
+            const hasAny = SHAPE_ORDER.some(shape => Number.isFinite(scores?.[shape.key]));
+            if (!hasAny) {
+                const empty = document.createElement('span');
+                empty.className = 'hint';
+                empty.textContent = 'Per-shape scores unavailable.';
+                shapeScoreList.appendChild(empty);
+                return;
+            }
+
+            SHAPE_ORDER.forEach(shape => {
+                const row = document.createElement('div');
+                row.className = 'shape-row';
+                if (highlightKey && shape.key === highlightKey) {
+                    row.classList.add('is-top');
+                }
+
+                const name = document.createElement('span');
+                name.className = 'shape-name';
+                name.textContent = shape.label;
+
+                const track = document.createElement('div');
+                track.className = 'shape-track';
+                const fill = document.createElement('div');
+                fill.className = 'shape-fill';
+                const pct = toPercent(scores?.[shape.key]);
+                fill.style.width = pct !== null ? `${Math.round(pct)}%` : '0%';
+                track.appendChild(fill);
+
+                const pctLabel = document.createElement('span');
+                pctLabel.className = 'shape-pct';
+                if (pct === null) {
+                    pctLabel.textContent = '--';
+                } else {
+                    pctLabel.textContent = pct < 1 ? `${pct.toFixed(1)}%` : `${Math.round(pct)}%`;
+                }
+
+                row.append(name, track, pctLabel);
+                shapeScoreList.appendChild(row);
+            });
+        }
+
+        function resolveConfidence(confidence, scores, key) {
+            if (Number.isFinite(confidence)) return confidence;
+            if (key && Number.isFinite(scores?.[key])) return scores[key];
+            if (scores) {
+                const vals = Object.values(scores).filter(v => Number.isFinite(v));
+                if (vals.length) return Math.max(...vals);
+            }
+            return null;
+        }
+
+        function showCanvasToast(label, confidenceValue) {
+            if (!canvasToast || !toastGuess || !toastScore) return;
+            const pct = toPercent(confidenceValue);
+            if (!label) return;
+            toastGuess.textContent = `Guess: ${label}`;
+            toastScore.textContent = pct === null ? 'Confidence: --' : `Confidence: ${Math.round(pct)}%`;
+            canvasToast.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                canvasToast.classList.remove('show');
+            }, 2000);
+        }
+
         function setPredictionUI(text, confidence, iconName = null) {
             resultShape.textContent = text;
             setIcon(iconName);
 
-            if (typeof confidence === 'number' && !Number.isNaN(confidence)) {
-                const pct = Math.max(0, Math.min(100, Math.round(confidence * 100)));
-                confBar.style.width = pct + '%';
-                confText.textContent = `Confidence: ${pct}%`;
+            const pct = toPercent(confidence);
+            if (pct !== null) {
+                confBar.style.width = `${Math.round(pct)}%`;
+                confText.textContent = `Confidence: ${Math.round(pct)}%`;
             } else {
                 confBar.style.width = '0%';
                 confText.textContent = 'Confidence: –';
@@ -836,6 +1093,7 @@
         async function classify() {
             if (!hasDrawn) {
                 setPredictionUI('Please draw a shape first', null, null);
+                renderShapeScores(null);
                 return;
             }
 
@@ -843,6 +1101,7 @@
 
             // CLEAR previous classification & confidence immediately
             setPredictionUI('Processing…', null, null);
+            renderShapeScores(null);
 
             classifyBtn.disabled = true;
             resultBadge.classList.add('pulse');
@@ -877,8 +1136,13 @@
                   throw lastErr || new Error('All endpoints failed');
                 })();
                 const cls = json.class || json.cls || json.label || 'unknown';
-                const conf = (typeof json.confidence === 'number') ? json.confidence
-                    : (typeof json.conf === 'number') ? json.conf : null;
+                const conf = numberFrom(json.confidence, json.conf);
+                const shapeScores = normalizeShapeScores(
+                    json.shape_confidences || json.shape_scores || json.shapeScores ||
+                    json.confidences || json.per_shape || json.perShape ||
+                    json.probabilities || json.probs || json.scores ||
+                    json.per_class || json.perClass || json.distribution
+                );
 
                 // Canonicalize and capitalize
                 const raw = String(cls || '').toLowerCase();
@@ -887,15 +1151,19 @@
                 const pretty = canonical !== 'unknown'
                     ? canonical.charAt(0).toUpperCase() + canonical.slice(1)
                     : 'Unknown';
+                const resolvedConfidence = resolveConfidence(conf, shapeScores, canonical);
 
                 setStep('process', 'done');
                 setStep('complete', 'done');
 
-                setPredictionUI(`Prediction: ${pretty}`, conf, canonical !== 'unknown' ? canonical : null);
+                setPredictionUI(`Prediction: ${pretty}`, resolvedConfidence, canonical !== 'unknown' ? canonical : null);
+                renderShapeScores(shapeScores, canonical !== 'unknown' ? canonical : null);
+                showCanvasToast(pretty, resolvedConfidence);
             } catch (err) {
                 setStep('process', 'not-started');
                 setStep('complete', 'not-started');
                 setPredictionUI('Error: ' + (err?.message || String(err)), null, null);
+                renderShapeScores(null);
             } finally {
                 classifyBtn.disabled = false;
                 resultBadge.classList.remove('pulse');
@@ -909,7 +1177,10 @@
         eraseBtn.addEventListener('click', () => {
             resetCanvas();
             setPredictionUI('Draw a shape to begin', null, null);
+            renderShapeScores(null);
         });
+
+        renderShapeScores(null);
 
         // Make sure canvas stays crisp when fonts/layout settle
         window.addEventListener('load', () => { fitCanvasToDisplaySize(); setStroke(); });
