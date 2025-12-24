@@ -7,19 +7,27 @@
   const el = {
     formatOptions: $('[data-screenrec="format-options"]'),
     formatHelp: $('[data-screenrec="format-help"]'),
+    fpsSelect: $('[data-screenrec="fps-select"]'),
     audioToggle: $('[data-screenrec="audio-toggle"]'),
     audioHelp: $('[data-screenrec="audio-help"]'),
+    audioLevel: $('[data-screenrec="audio-level"]'),
+    audioLevelValue: $('[data-screenrec="audio-level-value"]'),
+    audioLevelHelp: $('[data-screenrec="audio-level-help"]'),
     startCapture: $('[data-screenrec="start-capture"]'),
     stopCapture: $('[data-screenrec="stop-capture"]'),
     captureActions: $('[data-screenrec="capture-actions"]'),
-    captureActionsSlot: $('[data-screenrec="capture-actions-slot"]'),
+    testCapture: $('[data-screenrec="test-capture"]'),
+    cropToggle: $('[data-screenrec="crop-toggle"]'),
+    cropClear: $('[data-screenrec="crop-clear"]'),
+    cropOverlay: $('[data-screenrec="crop-overlay"]'),
+    cropSelection: $('[data-screenrec="crop-selection"]'),
     grid: $('[data-screenrec="grid"]'),
     controlsPanel: $('[data-screenrec="controls-panel"]'),
     previewPanel: $('[data-screenrec="preview-panel"]'),
+    stage: $('[data-screenrec="stage"]'),
     video: $('[data-screenrec="video"]'),
     placeholder: $('[data-screenrec="placeholder"]'),
     status: $('[data-screenrec="status"]'),
-    statusSecondary: $('[data-screenrec="status-secondary"]'),
     captureMeta: $('[data-screenrec="capture-meta"]'),
     timer: $('[data-screenrec="timer"]'),
     startRecord: $('[data-screenrec="start-record"]'),
@@ -34,10 +42,6 @@
 
   const supportsCapture = Boolean(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
   const supportsRecorder = typeof window.MediaRecorder !== 'undefined';
-  const captureActionsHome = {
-    parent: el.captureActions ? el.captureActions.parentElement : null,
-    nextSibling: el.captureActions ? el.captureActions.nextElementSibling : null
-  };
 
   const state = {
     stream: null,
@@ -56,7 +60,17 @@
     recordedDuration: 0,
     recordedHasAudio: false,
     recordedMimeType: '',
-    stopReason: ''
+    stopReason: '',
+    recordingStream: null,
+    recordingCleanup: null,
+    testMode: false,
+    testTimerId: null,
+    cropRegion: null,
+    cropSelecting: false,
+    cropStart: null,
+    cropCurrent: null,
+    cropAnimationId: null,
+    audioContext: null
   };
 
   const MIME_TYPE_OPTIONS = [
@@ -76,20 +90,13 @@
   ];
 
   const setStatus = (text, tone) => {
-    const targets = [el.status].filter(Boolean);
-    const controlsVisible = !el.controlsPanel || !el.controlsPanel.hidden;
-    if (controlsVisible && el.statusSecondary) {
-      targets.push(el.statusSecondary);
+    if (!el.status) return;
+    el.status.textContent = text;
+    if (tone) {
+      el.status.dataset.tone = tone;
+    } else {
+      delete el.status.dataset.tone;
     }
-    if (!targets.length) return;
-    targets.forEach((target) => {
-      target.textContent = text;
-      if (tone) {
-        target.dataset.tone = tone;
-      } else {
-        delete target.dataset.tone;
-      }
-    });
   };
 
   const formatDuration = (ms) => {
@@ -225,40 +232,144 @@
     });
   };
 
-  const moveCaptureActions = (target) => {
-    if (!el.captureActions || !target) return;
-    if (target.contains(el.captureActions)) return;
-    target.appendChild(el.captureActions);
+  const getSelectedFps = () => {
+    if (!el.fpsSelect) return 0;
+    const value = el.fpsSelect.value;
+    if (value === 'auto') return 0;
+    const fps = Number(value);
+    return Number.isFinite(fps) && fps > 0 ? fps : 0;
   };
 
-  const restoreCaptureActions = () => {
-    if (!el.captureActions || !captureActionsHome.parent) return;
-    if (captureActionsHome.parent.contains(el.captureActions)) return;
-    const sibling = captureActionsHome.nextSibling;
-    if (sibling && sibling.parentElement === captureActionsHome.parent) {
-      captureActionsHome.parent.insertBefore(el.captureActions, sibling);
+  const getAudioGain = () => {
+    if (!el.audioLevel) return 1;
+    const value = Number(el.audioLevel.value);
+    if (!Number.isFinite(value)) return 1;
+    return Math.max(0, value) / 100;
+  };
+
+  const updateAudioLevelValue = () => {
+    if (!el.audioLevel || !el.audioLevelValue) return;
+    const value = Number(el.audioLevel.value);
+    const safeValue = Number.isFinite(value) ? value : 100;
+    el.audioLevelValue.textContent = `${Math.round(safeValue)}%`;
+  };
+
+  const updatePlaceholder = () => {
+    if (!el.placeholder) return;
+    const showPlaceholder = !state.captureActive && !state.recordedUrl;
+    el.placeholder.hidden = !showPlaceholder;
+  };
+
+  const setView = () => {
+    if (el.controlsPanel) el.controlsPanel.hidden = false;
+    if (el.previewPanel) el.previewPanel.hidden = false;
+    if (el.grid) {
+      el.grid.dataset.view = state.captureActive || state.recordedUrl ? 'preview' : 'controls';
+    }
+    updatePlaceholder();
+  };
+
+  const getVideoFrameRect = () => {
+    if (!el.stage || !el.video) return null;
+    const stageRect = el.stage.getBoundingClientRect();
+    const track = state.stream ? state.stream.getVideoTracks()[0] : null;
+    const settings = track && track.getSettings ? track.getSettings() : {};
+    const videoWidth = el.video.videoWidth || settings.width;
+    const videoHeight = el.video.videoHeight || settings.height;
+    if (!videoWidth || !videoHeight || !stageRect.width || !stageRect.height) return null;
+    const stageRatio = stageRect.width / stageRect.height;
+    const videoRatio = videoWidth / videoHeight;
+    let displayWidth = stageRect.width;
+    let displayHeight = stageRect.height;
+    let offsetX = 0;
+    let offsetY = 0;
+    if (videoRatio > stageRatio) {
+      displayWidth = stageRect.width;
+      displayHeight = stageRect.width / videoRatio;
+      offsetY = (stageRect.height - displayHeight) / 2;
     } else {
-      captureActionsHome.parent.appendChild(el.captureActions);
+      displayHeight = stageRect.height;
+      displayWidth = stageRect.height * videoRatio;
+      offsetX = (stageRect.width - displayWidth) / 2;
+    }
+    return {
+      stageRect,
+      videoWidth,
+      videoHeight,
+      displayWidth,
+      displayHeight,
+      offsetX,
+      offsetY
+    };
+  };
+
+  const updateCropSelectionBox = (box) => {
+    if (!el.cropSelection) return;
+    if (!box) {
+      el.cropSelection.hidden = true;
+      return;
+    }
+    el.cropSelection.hidden = false;
+    el.cropSelection.style.left = `${Math.round(box.x)}px`;
+    el.cropSelection.style.top = `${Math.round(box.y)}px`;
+    el.cropSelection.style.width = `${Math.round(box.width)}px`;
+    el.cropSelection.style.height = `${Math.round(box.height)}px`;
+  };
+
+  const syncCropSelection = () => {
+    if (!state.cropRegion) {
+      updateCropSelectionBox(null);
+      return;
+    }
+    const frame = getVideoFrameRect();
+    if (!frame) return;
+    const box = {
+      x: frame.offsetX + state.cropRegion.x * frame.displayWidth,
+      y: frame.offsetY + state.cropRegion.y * frame.displayHeight,
+      width: state.cropRegion.width * frame.displayWidth,
+      height: state.cropRegion.height * frame.displayHeight
+    };
+    updateCropSelectionBox(box);
+  };
+
+  const updateCropOverlay = () => {
+    if (!el.cropOverlay) return;
+    const showOverlay = state.cropSelecting || state.cropRegion;
+    el.cropOverlay.hidden = !showOverlay;
+    if (state.cropSelecting) {
+      el.cropOverlay.dataset.active = 'true';
+    } else {
+      delete el.cropOverlay.dataset.active;
+    }
+    if (!showOverlay) {
+      updateCropSelectionBox(null);
+      return;
+    }
+    if (!state.cropSelecting) {
+      syncCropSelection();
     }
   };
 
-  const setView = (view) => {
-    if (el.controlsPanel) el.controlsPanel.hidden = view === 'preview';
-    if (el.previewPanel) el.previewPanel.hidden = view !== 'preview';
-    if (el.grid) el.grid.dataset.view = view;
-    if (view === 'preview') {
-      if (el.placeholder) el.placeholder.hidden = true;
-      moveCaptureActions(el.captureActionsSlot);
-    } else {
-      if (!state.captureActive && el.placeholder) {
-        el.placeholder.hidden = true;
-      }
-      restoreCaptureActions();
-    }
-    if (view !== 'preview' && el.video) {
-      el.video.pause();
-    }
+  const clearCrop = () => {
+    state.cropRegion = null;
+    state.cropSelecting = false;
+    state.cropStart = null;
+    state.cropCurrent = null;
+    updateCropOverlay();
+    updateButtons();
   };
+
+  const clampPointToFrame = (point, frame) => ({
+    x: Math.min(Math.max(point.x, frame.offsetX), frame.offsetX + frame.displayWidth),
+    y: Math.min(Math.max(point.y, frame.offsetY), frame.offsetY + frame.displayHeight)
+  });
+
+  const isPointInFrame = (point, frame) => (
+    point.x >= frame.offsetX &&
+    point.x <= frame.offsetX + frame.displayWidth &&
+    point.y >= frame.offsetY &&
+    point.y <= frame.offsetY + frame.displayHeight
+  );
 
   const stopTracks = (stream) => {
     if (!stream) return;
@@ -321,6 +432,28 @@
     if (el.audioToggle) {
       el.audioToggle.disabled = !supportsCapture || state.captureActive || state.recording;
     }
+    if (el.fpsSelect) {
+      el.fpsSelect.disabled = !supportsCapture || state.captureActive || state.recording;
+    }
+    if (el.audioLevel) {
+      const audioLocked = !supportsCapture || state.captureActive || state.recording || !el.audioToggle?.checked;
+      el.audioLevel.disabled = audioLocked;
+    }
+    if (el.testCapture) {
+      el.testCapture.disabled = !supportsCapture || !supportsRecorder || state.captureActive || state.recording;
+    }
+    if (el.cropToggle) {
+      el.cropToggle.disabled = !state.captureActive || state.recording;
+      const label = state.cropSelecting
+        ? 'Drag to select area'
+        : state.cropRegion
+          ? 'Select new area'
+          : 'Select crop area';
+      el.cropToggle.textContent = label;
+    }
+    if (el.cropClear) {
+      el.cropClear.disabled = !state.captureActive || state.recording || !state.cropRegion;
+    }
     if (el.downloadLinks.length) {
       const hasDownload = Boolean(state.downloadUrl);
       el.downloadLinks.forEach((link) => {
@@ -378,6 +511,7 @@
     state.recordedMimeType = '';
     clearDownload();
     resetTimer();
+    updatePlaceholder();
   };
 
   const setLivePreview = () => {
@@ -388,7 +522,7 @@
     el.video.loop = false;
     el.video.muted = true;
     el.video.play().catch(() => {});
-    if (el.placeholder) el.placeholder.hidden = true;
+    updatePlaceholder();
   };
 
   const setRecordedClip = (blob, mimeType) => {
@@ -405,7 +539,7 @@
     el.video.loop = false;
     el.video.muted = false;
     el.video.play().catch(() => {});
-    if (el.placeholder) el.placeholder.hidden = true;
+    updatePlaceholder();
 
     const handleMetadata = () => {
       state.recordedDuration = Number.isFinite(el.video.duration) ? el.video.duration : 0;
@@ -423,11 +557,13 @@
   };
 
   const startCapture = async () => {
-    if (!supportsCapture || !supportsRecorder || state.captureActive || state.recording) return;
+    if (!supportsCapture || !supportsRecorder || state.captureActive || state.recording) return false;
     setStatus('Requesting capture permission...', 'pending');
 
     const includeAudio = Boolean(el.audioToggle?.checked);
-    const constraints = { video: true, audio: includeAudio };
+    const fps = getSelectedFps();
+    const videoConstraints = fps ? { frameRate: { ideal: fps } } : true;
+    const constraints = { video: videoConstraints, audio: includeAudio };
     let stream = null;
     let audioFallback = false;
     try {
@@ -435,21 +571,21 @@
     } catch (_) {
       if (includeAudio) {
         try {
-          stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+          stream = await navigator.mediaDevices.getDisplayMedia({ video: videoConstraints, audio: false });
           audioFallback = true;
         } catch (err) {
           setStatus('Capture request failed. Check permissions.', 'error');
-          return;
+          return false;
         }
       } else {
         setStatus('Capture request failed. Check permissions.', 'error');
-        return;
+        return false;
       }
     }
 
     if (!stream) {
       setStatus('Capture did not start.', 'error');
-      return;
+      return false;
     }
 
     if (!includeAudio) {
@@ -464,7 +600,7 @@
     state.captureActive = true;
     state.stopReason = '';
     setLivePreview();
-    setView('preview');
+    setView();
     updateCaptureMeta();
     updateButtons();
     resetTimer();
@@ -484,6 +620,8 @@
     } else {
       setStatus('Capture ready. Start recording when you are ready.', 'ready');
     }
+    updateCropOverlay();
+    return true;
   };
 
   const stopCapture = (reason) => {
@@ -491,9 +629,15 @@
     stopTracks(state.stream);
     state.stream = null;
     state.captureActive = false;
+    if (state.testTimerId) {
+      clearTimeout(state.testTimerId);
+      state.testTimerId = null;
+    }
+    state.testMode = false;
+    cleanupRecordingPipeline();
     updateCaptureMeta();
     updateButtons();
-    setView('controls');
+    setView();
     if (!state.recordedUrl) {
       el.video.srcObject = null;
     }
@@ -501,6 +645,25 @@
     const message = reason || state.stopReason || (state.recordedUrl ? 'Capture stopped. Clip ready to download.' : 'Capture stopped.');
     setStatus(message, state.recordedUrl ? 'ready' : 'idle');
     state.stopReason = '';
+    clearCrop();
+  };
+
+  const startTestCapture = async () => {
+    if (state.captureActive || state.recording) return;
+    state.testMode = true;
+    const started = await startCapture();
+    if (!started) {
+      state.testMode = false;
+      return;
+    }
+    startRecording();
+    if (state.recording) {
+      state.testTimerId = setTimeout(() => {
+        stopRecording();
+      }, 5000);
+    } else {
+      state.testMode = false;
+    }
   };
 
   const createRecorder = (stream, mimeType) => {
@@ -522,17 +685,180 @@
     return { recorder, mimeType: finalMime };
   };
 
+  const getCropPixels = (videoWidth, videoHeight) => {
+    if (!state.cropRegion) {
+      return { sx: 0, sy: 0, sw: videoWidth, sh: videoHeight };
+    }
+    const sx = Math.max(0, Math.round(state.cropRegion.x * videoWidth));
+    const sy = Math.max(0, Math.round(state.cropRegion.y * videoHeight));
+    const sw = Math.max(1, Math.round(state.cropRegion.width * videoWidth));
+    const sh = Math.max(1, Math.round(state.cropRegion.height * videoHeight));
+    return {
+      sx,
+      sy,
+      sw: Math.min(sw, videoWidth - sx),
+      sh: Math.min(sh, videoHeight - sy)
+    };
+  };
+
+  const createCroppedStream = (fps) => {
+    if (!state.cropRegion || !el.video) return null;
+    if (!('captureStream' in HTMLCanvasElement.prototype)) return null;
+    const track = state.stream ? state.stream.getVideoTracks()[0] : null;
+    const settings = track && track.getSettings ? track.getSettings() : {};
+    const videoWidth = el.video.videoWidth || settings.width;
+    const videoHeight = el.video.videoHeight || settings.height;
+    if (!videoWidth || !videoHeight) return null;
+    const crop = getCropPixels(videoWidth, videoHeight);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    canvas.width = crop.sw;
+    canvas.height = crop.sh;
+
+    const drawFrame = () => {
+      if (!state.captureActive || !state.stream) {
+        state.cropAnimationId = null;
+        return;
+      }
+      if (el.video.readyState < 2) {
+        state.cropAnimationId = requestAnimationFrame(drawFrame);
+        return;
+      }
+      ctx.drawImage(
+        el.video,
+        crop.sx,
+        crop.sy,
+        crop.sw,
+        crop.sh,
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
+      state.cropAnimationId = requestAnimationFrame(drawFrame);
+    };
+
+    drawFrame();
+    const stream = fps ? canvas.captureStream(fps) : canvas.captureStream();
+    const cleanup = () => {
+      if (state.cropAnimationId) {
+        cancelAnimationFrame(state.cropAnimationId);
+        state.cropAnimationId = null;
+      }
+      stopTracks(stream);
+    };
+    return { stream, cleanup };
+  };
+
+  const createAdjustedAudioTrack = (stream, gainValue) => {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return null;
+    try {
+      const audioContext = new AudioCtx();
+      const source = audioContext.createMediaStreamSource(stream);
+      const gainNode = audioContext.createGain();
+      gainNode.gain.value = gainValue;
+      const destination = audioContext.createMediaStreamDestination();
+      source.connect(gainNode);
+      gainNode.connect(destination);
+      state.audioContext = audioContext;
+      const track = destination.stream.getAudioTracks()[0];
+      const cleanup = () => {
+        try {
+          track.stop();
+        } catch (_) {}
+        source.disconnect();
+        gainNode.disconnect();
+        destination.disconnect();
+        audioContext.close().catch(() => {});
+        state.audioContext = null;
+      };
+      return { track, cleanup };
+    } catch (_) {
+      return null;
+    }
+  };
+
+  const buildRecordingStream = () => {
+    if (!state.stream) return null;
+    const outputStream = new MediaStream();
+    const cleanupTasks = [];
+    const fps = getSelectedFps();
+    const sourceVideoTrack = state.stream.getVideoTracks()[0];
+    let videoTrack = sourceVideoTrack;
+
+    if (state.cropRegion) {
+      const cropped = createCroppedStream(fps);
+      if (cropped && cropped.stream) {
+        videoTrack = cropped.stream.getVideoTracks()[0];
+        cleanupTasks.push(cropped.cleanup);
+      } else {
+        setStatus('Crop preview unavailable. Recording full frame.', 'warn');
+      }
+    }
+
+    if (videoTrack) {
+      outputStream.addTrack(videoTrack);
+    }
+
+    if (streamHasAudio(state.stream)) {
+      const gainValue = getAudioGain();
+      if (gainValue !== 1) {
+        const adjusted = createAdjustedAudioTrack(state.stream, gainValue);
+        if (adjusted && adjusted.track) {
+          outputStream.addTrack(adjusted.track);
+          cleanupTasks.push(adjusted.cleanup);
+        } else {
+          outputStream.addTrack(state.stream.getAudioTracks()[0]);
+        }
+      } else {
+        outputStream.addTrack(state.stream.getAudioTracks()[0]);
+      }
+    }
+
+    const cleanup = () => {
+      cleanupTasks.forEach((fn) => fn());
+    };
+    return { stream: outputStream, cleanup };
+  };
+
+  const cleanupRecordingPipeline = () => {
+    if (state.recordingCleanup) {
+      state.recordingCleanup();
+    }
+    state.recordingCleanup = null;
+    state.recordingStream = null;
+  };
+
   const startRecording = () => {
     if (!state.captureActive || state.recording || !state.stream) return;
     clearDownload();
     clearRecordedClip();
 
+    setLivePreview();
+
+    const recordingStreamInfo = buildRecordingStream();
+    if (!recordingStreamInfo || !recordingStreamInfo.stream) {
+      setStatus('Recording failed to initialize in this browser.', 'error');
+      if (state.testMode) {
+        state.testMode = false;
+      }
+      return;
+    }
+    state.recordingStream = recordingStreamInfo.stream;
+    state.recordingCleanup = recordingStreamInfo.cleanup;
+
     const mimeType = getSelectedMimeType();
     let recorderInfo;
     try {
-      recorderInfo = createRecorder(state.stream, mimeType);
+      recorderInfo = createRecorder(recordingStreamInfo.stream, mimeType);
     } catch (_) {
       setStatus('Recording failed to initialize in this browser.', 'error');
+      cleanupRecordingPipeline();
+      if (state.testMode) {
+        state.testMode = false;
+      }
       return;
     }
 
@@ -556,22 +882,39 @@
       if (state.chunks.length) {
         const blob = new Blob(state.chunks, { type: mime });
         state.chunks = [];
-        state.recordedHasAudio = streamHasAudio(state.stream);
+        state.recordedHasAudio = streamHasAudio(recordingStreamInfo.stream);
         setRecordedClip(blob, mime);
       } else {
         setStatus('Recording stopped. No data captured.', 'warn');
+      }
+      cleanupRecordingPipeline();
+      if (state.testTimerId) {
+        clearTimeout(state.testTimerId);
+        state.testTimerId = null;
+      }
+      if (state.testMode) {
+        state.testMode = false;
+        stopCapture('Test capture complete. Clip ready to download.');
       }
       updateButtons();
     }, { once: true });
 
     try {
       state.recorder.start(200);
-      setStatus('Recording...', 'recording');
+      if (state.testMode) {
+        setStatus('Recording 5-second test...', 'recording');
+      } else {
+        setStatus('Recording...', 'recording');
+      }
       updateButtons();
     } catch (err) {
       state.recording = false;
       stopTimer();
       setStatus('Recording failed to start.', 'error');
+      cleanupRecordingPipeline();
+      if (state.testMode) {
+        state.testMode = false;
+      }
       updateButtons();
     }
   };
@@ -599,17 +942,115 @@
     }
   };
 
+  const toggleCropSelection = () => {
+    if (!state.captureActive || state.recording) return;
+    state.cropSelecting = !state.cropSelecting;
+    state.cropStart = null;
+    state.cropCurrent = null;
+    updateCropOverlay();
+    updateButtons();
+  };
+
+  const handleCropPointerDown = (event) => {
+    if (!state.cropSelecting || !el.cropOverlay) return;
+    if (event.button && event.button !== 0) return;
+    const frame = getVideoFrameRect();
+    if (!frame) {
+      setStatus('Preview not ready for cropping.', 'warn');
+      return;
+    }
+    const point = {
+      x: event.clientX - frame.stageRect.left,
+      y: event.clientY - frame.stageRect.top
+    };
+    if (!isPointInFrame(point, frame)) return;
+    const clamped = clampPointToFrame(point, frame);
+    state.cropStart = clamped;
+    state.cropCurrent = clamped;
+    updateCropSelectionBox({ x: clamped.x, y: clamped.y, width: 0, height: 0 });
+    el.cropOverlay.setPointerCapture(event.pointerId);
+  };
+
+  const handleCropPointerMove = (event) => {
+    if (!state.cropStart) return;
+    const frame = getVideoFrameRect();
+    if (!frame) return;
+    const point = {
+      x: event.clientX - frame.stageRect.left,
+      y: event.clientY - frame.stageRect.top
+    };
+    const clamped = clampPointToFrame(point, frame);
+    state.cropCurrent = clamped;
+    const box = {
+      x: Math.min(state.cropStart.x, clamped.x),
+      y: Math.min(state.cropStart.y, clamped.y),
+      width: Math.abs(clamped.x - state.cropStart.x),
+      height: Math.abs(clamped.y - state.cropStart.y)
+    };
+    updateCropSelectionBox(box);
+  };
+
+  const handleCropPointerUp = (event) => {
+    if (!state.cropStart) return;
+    const frame = getVideoFrameRect();
+    if (!frame) {
+      state.cropStart = null;
+      state.cropCurrent = null;
+      return;
+    }
+    const point = {
+      x: event.clientX - frame.stageRect.left,
+      y: event.clientY - frame.stageRect.top
+    };
+    const clamped = clampPointToFrame(point, frame);
+    const box = {
+      x: Math.min(state.cropStart.x, clamped.x),
+      y: Math.min(state.cropStart.y, clamped.y),
+      width: Math.abs(clamped.x - state.cropStart.x),
+      height: Math.abs(clamped.y - state.cropStart.y)
+    };
+    const minSize = 24;
+    if (box.width >= minSize && box.height >= minSize) {
+      state.cropRegion = {
+        x: (box.x - frame.offsetX) / frame.displayWidth,
+        y: (box.y - frame.offsetY) / frame.displayHeight,
+        width: box.width / frame.displayWidth,
+        height: box.height / frame.displayHeight
+      };
+    }
+    state.cropSelecting = false;
+    state.cropStart = null;
+    state.cropCurrent = null;
+    updateCropOverlay();
+    updateButtons();
+    if (el.cropOverlay && el.cropOverlay.hasPointerCapture(event.pointerId)) {
+      el.cropOverlay.releasePointerCapture(event.pointerId);
+    }
+  };
+
   const init = () => {
     setFormatOptions();
+    updateAudioLevelValue();
     updateCaptureMeta();
     updateButtons();
-    setView('controls');
+    setView();
 
     el.startCapture?.addEventListener('click', startCapture);
     el.stopCapture?.addEventListener('click', () => stopCapture());
     el.startRecord?.addEventListener('click', startRecording);
     el.pauseRecord?.addEventListener('click', togglePause);
     el.stopRecord?.addEventListener('click', stopRecording);
+    el.testCapture?.addEventListener('click', startTestCapture);
+    el.cropToggle?.addEventListener('click', toggleCropSelection);
+    el.cropClear?.addEventListener('click', clearCrop);
+    el.audioToggle?.addEventListener('change', updateButtons);
+    el.audioLevel?.addEventListener('input', updateAudioLevelValue);
+    el.fpsSelect?.addEventListener('change', updateButtons);
+    el.cropOverlay?.addEventListener('pointerdown', handleCropPointerDown);
+    el.cropOverlay?.addEventListener('pointermove', handleCropPointerMove);
+    el.cropOverlay?.addEventListener('pointerup', handleCropPointerUp);
+    el.cropOverlay?.addEventListener('pointercancel', handleCropPointerUp);
+    window.addEventListener('resize', syncCropSelection);
     el.downloadLinks.forEach((link) => {
       link.addEventListener('click', (event) => {
         if (!state.downloadUrl) {
@@ -619,7 +1060,10 @@
       });
     });
 
-    el.video?.addEventListener('loadedmetadata', updateCaptureMeta);
+    el.video?.addEventListener('loadedmetadata', () => {
+      updateCaptureMeta();
+      syncCropSelection();
+    });
   };
 
   init();

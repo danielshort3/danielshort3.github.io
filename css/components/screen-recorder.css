@@ -169,6 +169,25 @@
     transform:translateY(-1px);
   }
 
+  .screenrec-select{
+    box-sizing:border-box;
+    width:100%;
+    border-radius:14px;
+    border:1px solid color-mix(in srgb,var(--primary) 26%, transparent);
+    background:color-mix(in srgb,var(--surface) 94%, #02070d 6%);
+    color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
+    padding:12px 14px;
+    font:inherit;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+    transition:border-color .2s ease, box-shadow .2s ease, background .2s ease;
+  }
+  .screenrec-select:focus{
+    outline:none;
+    border-color:color-mix(in srgb,var(--primary) 46%, transparent);
+    box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 28%, transparent);
+    background:color-mix(in srgb,var(--surface) 98%, #02070d 2%);
+  }
+
   .screenrec-help{
     margin:0;
     color:var(--text-muted);
@@ -186,11 +205,38 @@
     margin-top:4px;
   }
 
+  .screenrec-range{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .screenrec-range input[type="range"]{
+    flex:1;
+    width:100%;
+    accent-color:var(--primary);
+  }
+  .screenrec-range-value{
+    font-weight:700;
+    color:color-mix(in srgb,var(--text-light) 90%, #ffffff 10%);
+    background:color-mix(in srgb,var(--surface) 88%, #000 12%);
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    border-radius:999px;
+    padding:6px 10px;
+    font-size:.86rem;
+    letter-spacing:.01em;
+    white-space:nowrap;
+    min-width:56px;
+    text-align:center;
+  }
+
   .screenrec-actions,
   .screenrec-download-actions{
     display:flex;
     flex-wrap:wrap;
     gap:10px;
+  }
+  .screenrec-actions-tight{
+    gap:8px;
   }
 
   .screenrec-note{
@@ -312,6 +358,24 @@
     color:var(--text-muted);
     font-size:.95rem;
     background:linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.55));
+  }
+
+  .screenrec-crop-overlay{
+    position:absolute;
+    inset:0;
+    z-index:2;
+    pointer-events:none;
+  }
+  .screenrec-crop-overlay[data-active="true"]{
+    pointer-events:auto;
+    cursor:crosshair;
+  }
+  .screenrec-crop-selection{
+    position:absolute;
+    border:2px solid color-mix(in srgb,var(--primary) 78%, #ffffff 22%);
+    border-radius:10px;
+    background:rgba(255,255,255,.08);
+    box-shadow:0 0 0 9999px rgba(0,0,0,.45);
   }
 
   .screenrec-preview-meta{
