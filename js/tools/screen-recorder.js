@@ -18,7 +18,6 @@
     captureActions: $('[data-screenrec="capture-actions"]'),
     testCapture: $('[data-screenrec="test-capture"]'),
     cropToggle: $('[data-screenrec="crop-toggle"]'),
-    cropClear: $('[data-screenrec="crop-clear"]'),
     cropOverlay: $('[data-screenrec="crop-overlay"]'),
     cropSelection: $('[data-screenrec="crop-selection"]'),
     grid: $('[data-screenrec="grid"]'),
@@ -69,6 +68,8 @@
     cropSelecting: false,
     cropStart: null,
     cropCurrent: null,
+    cropDragging: false,
+    cropDragOffset: null,
     cropAnimationId: null,
     audioContext: null
   };
@@ -256,7 +257,8 @@
 
   const updatePlaceholder = () => {
     if (!el.placeholder) return;
-    const showPlaceholder = !state.captureActive && !state.recordedUrl;
+    const hasSource = Boolean(state.captureActive || state.recordedUrl || el.video?.srcObject);
+    const showPlaceholder = !hasSource;
     el.placeholder.hidden = !showPlaceholder;
   };
 
@@ -303,6 +305,16 @@
     };
   };
 
+  const getCropBoxFromRegion = (frame) => {
+    if (!state.cropRegion || !frame) return null;
+    return {
+      x: frame.offsetX + state.cropRegion.x * frame.displayWidth,
+      y: frame.offsetY + state.cropRegion.y * frame.displayHeight,
+      width: state.cropRegion.width * frame.displayWidth,
+      height: state.cropRegion.height * frame.displayHeight
+    };
+  };
+
   const updateCropSelectionBox = (box) => {
     if (!el.cropSelection) return;
     if (!box) {
@@ -323,13 +335,7 @@
     }
     const frame = getVideoFrameRect();
     if (!frame) return;
-    const box = {
-      x: frame.offsetX + state.cropRegion.x * frame.displayWidth,
-      y: frame.offsetY + state.cropRegion.y * frame.displayHeight,
-      width: state.cropRegion.width * frame.displayWidth,
-      height: state.cropRegion.height * frame.displayHeight
-    };
-    updateCropSelectionBox(box);
+    updateCropSelectionBox(getCropBoxFromRegion(frame));
   };
 
   const updateCropOverlay = () => {
@@ -337,9 +343,11 @@
     const showOverlay = state.cropSelecting || state.cropRegion;
     el.cropOverlay.hidden = !showOverlay;
     if (state.cropSelecting) {
-      el.cropOverlay.dataset.active = 'true';
+      el.cropOverlay.dataset.mode = 'select';
+    } else if (state.cropRegion) {
+      el.cropOverlay.dataset.mode = 'drag';
     } else {
-      delete el.cropOverlay.dataset.active;
+      delete el.cropOverlay.dataset.mode;
     }
     if (!showOverlay) {
       updateCropSelectionBox(null);
@@ -355,6 +363,8 @@
     state.cropSelecting = false;
     state.cropStart = null;
     state.cropCurrent = null;
+    state.cropDragging = false;
+    state.cropDragOffset = null;
     updateCropOverlay();
     updateButtons();
   };
@@ -444,15 +454,8 @@
     }
     if (el.cropToggle) {
       el.cropToggle.disabled = !state.captureActive || state.recording;
-      const label = state.cropSelecting
-        ? 'Drag to select area'
-        : state.cropRegion
-          ? 'Select new area'
-          : 'Select crop area';
+      const label = state.cropSelecting || state.cropRegion ? 'Cancel crop' : 'Crop';
       el.cropToggle.textContent = label;
-    }
-    if (el.cropClear) {
-      el.cropClear.disabled = !state.captureActive || state.recording || !state.cropRegion;
     }
     if (el.downloadLinks.length) {
       const hasDownload = Boolean(state.downloadUrl);
@@ -646,6 +649,7 @@
     setStatus(message, state.recordedUrl ? 'ready' : 'idle');
     state.stopReason = '';
     clearCrop();
+    updatePlaceholder();
   };
 
   const startTestCapture = async () => {
@@ -944,7 +948,11 @@
 
   const toggleCropSelection = () => {
     if (!state.captureActive || state.recording) return;
-    state.cropSelecting = !state.cropSelecting;
+    if (state.cropSelecting || state.cropRegion) {
+      clearCrop();
+      return;
+    }
+    state.cropSelecting = true;
     state.cropStart = null;
     state.cropCurrent = null;
     updateCropOverlay();
@@ -952,7 +960,7 @@
   };
 
   const handleCropPointerDown = (event) => {
-    if (!state.cropSelecting || !el.cropOverlay) return;
+    if (!el.cropOverlay) return;
     if (event.button && event.button !== 0) return;
     const frame = getVideoFrameRect();
     if (!frame) {
@@ -963,64 +971,107 @@
       x: event.clientX - frame.stageRect.left,
       y: event.clientY - frame.stageRect.top
     };
-    if (!isPointInFrame(point, frame)) return;
-    const clamped = clampPointToFrame(point, frame);
-    state.cropStart = clamped;
-    state.cropCurrent = clamped;
-    updateCropSelectionBox({ x: clamped.x, y: clamped.y, width: 0, height: 0 });
+    if (state.cropSelecting) {
+      if (!isPointInFrame(point, frame)) return;
+      const clamped = clampPointToFrame(point, frame);
+      state.cropStart = clamped;
+      state.cropCurrent = clamped;
+      updateCropSelectionBox({ x: clamped.x, y: clamped.y, width: 0, height: 0 });
+      el.cropOverlay.setPointerCapture(event.pointerId);
+      return;
+    }
+
+    if (!state.cropRegion) return;
+    const box = getCropBoxFromRegion(frame);
+    if (!box) return;
+    const inside = point.x >= box.x && point.x <= box.x + box.width &&
+      point.y >= box.y && point.y <= box.y + box.height;
+    if (!inside) return;
+    state.cropDragging = true;
+    state.cropDragOffset = {
+      x: point.x - box.x,
+      y: point.y - box.y
+    };
     el.cropOverlay.setPointerCapture(event.pointerId);
   };
 
   const handleCropPointerMove = (event) => {
-    if (!state.cropStart) return;
+    if (!state.cropStart && !state.cropDragging) return;
     const frame = getVideoFrameRect();
     if (!frame) return;
     const point = {
       x: event.clientX - frame.stageRect.left,
       y: event.clientY - frame.stageRect.top
     };
-    const clamped = clampPointToFrame(point, frame);
-    state.cropCurrent = clamped;
-    const box = {
-      x: Math.min(state.cropStart.x, clamped.x),
-      y: Math.min(state.cropStart.y, clamped.y),
-      width: Math.abs(clamped.x - state.cropStart.x),
-      height: Math.abs(clamped.y - state.cropStart.y)
+    if (state.cropStart) {
+      const clamped = clampPointToFrame(point, frame);
+      state.cropCurrent = clamped;
+      const box = {
+        x: Math.min(state.cropStart.x, clamped.x),
+        y: Math.min(state.cropStart.y, clamped.y),
+        width: Math.abs(clamped.x - state.cropStart.x),
+        height: Math.abs(clamped.y - state.cropStart.y)
+      };
+      updateCropSelectionBox(box);
+      return;
+    }
+
+    if (!state.cropRegion || !state.cropDragOffset) return;
+    const box = getCropBoxFromRegion(frame);
+    if (!box) return;
+    const desiredX = point.x - state.cropDragOffset.x;
+    const desiredY = point.y - state.cropDragOffset.y;
+    const maxX = Math.max(frame.offsetX, frame.offsetX + frame.displayWidth - box.width);
+    const maxY = Math.max(frame.offsetY, frame.offsetY + frame.displayHeight - box.height);
+    const nextX = Math.min(Math.max(desiredX, frame.offsetX), maxX);
+    const nextY = Math.min(Math.max(desiredY, frame.offsetY), maxY);
+    state.cropRegion = {
+      x: (nextX - frame.offsetX) / frame.displayWidth,
+      y: (nextY - frame.offsetY) / frame.displayHeight,
+      width: box.width / frame.displayWidth,
+      height: box.height / frame.displayHeight
     };
-    updateCropSelectionBox(box);
+    updateCropSelectionBox({ x: nextX, y: nextY, width: box.width, height: box.height });
   };
 
   const handleCropPointerUp = (event) => {
-    if (!state.cropStart) return;
+    if (!state.cropStart && !state.cropDragging) return;
     const frame = getVideoFrameRect();
     if (!frame) {
       state.cropStart = null;
       state.cropCurrent = null;
+      state.cropDragging = false;
+      state.cropDragOffset = null;
       return;
     }
-    const point = {
-      x: event.clientX - frame.stageRect.left,
-      y: event.clientY - frame.stageRect.top
-    };
-    const clamped = clampPointToFrame(point, frame);
-    const box = {
-      x: Math.min(state.cropStart.x, clamped.x),
-      y: Math.min(state.cropStart.y, clamped.y),
-      width: Math.abs(clamped.x - state.cropStart.x),
-      height: Math.abs(clamped.y - state.cropStart.y)
-    };
-    const minSize = 24;
-    if (box.width >= minSize && box.height >= minSize) {
-      state.cropRegion = {
-        x: (box.x - frame.offsetX) / frame.displayWidth,
-        y: (box.y - frame.offsetY) / frame.displayHeight,
-        width: box.width / frame.displayWidth,
-        height: box.height / frame.displayHeight
+    if (state.cropStart) {
+      const point = {
+        x: event.clientX - frame.stageRect.left,
+        y: event.clientY - frame.stageRect.top
       };
+      const clamped = clampPointToFrame(point, frame);
+      const box = {
+        x: Math.min(state.cropStart.x, clamped.x),
+        y: Math.min(state.cropStart.y, clamped.y),
+        width: Math.abs(clamped.x - state.cropStart.x),
+        height: Math.abs(clamped.y - state.cropStart.y)
+      };
+      const minSize = 24;
+      if (box.width >= minSize && box.height >= minSize) {
+        state.cropRegion = {
+          x: (box.x - frame.offsetX) / frame.displayWidth,
+          y: (box.y - frame.offsetY) / frame.displayHeight,
+          width: box.width / frame.displayWidth,
+          height: box.height / frame.displayHeight
+        };
+      }
+      state.cropSelecting = false;
+      state.cropStart = null;
+      state.cropCurrent = null;
+    } else if (state.cropDragging) {
+      state.cropDragging = false;
+      state.cropDragOffset = null;
     }
-    state.cropSelecting = false;
-    state.cropStart = null;
-    state.cropCurrent = null;
     updateCropOverlay();
     updateButtons();
     if (el.cropOverlay && el.cropOverlay.hasPointerCapture(event.pointerId)) {
@@ -1042,7 +1093,6 @@
     el.stopRecord?.addEventListener('click', stopRecording);
     el.testCapture?.addEventListener('click', startTestCapture);
     el.cropToggle?.addEventListener('click', toggleCropSelection);
-    el.cropClear?.addEventListener('click', clearCrop);
     el.audioToggle?.addEventListener('change', updateButtons);
     el.audioLevel?.addEventListener('input', updateAudioLevelValue);
     el.fpsSelect?.addEventListener('change', updateButtons);
