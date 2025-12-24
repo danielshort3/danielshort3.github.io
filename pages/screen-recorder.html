@@ -99,29 +99,18 @@
 
               <div class="screenrec-field">
                 <span class="screenrec-label">Audio</span>
-                <label class="screenrec-check" for="screenrec-audio">
-                  <input id="screenrec-audio" type="checkbox" data-screenrec="audio-toggle">
-                  Include system audio (if available)
-                </label>
+                <div class="screenrec-audio-row">
+                  <label class="screenrec-check" for="screenrec-audio">
+                    <input id="screenrec-audio" type="checkbox" data-screenrec="audio-toggle">
+                    Include system audio (if available)
+                  </label>
+                  <div class="screenrec-range screenrec-range-compact">
+                    <input id="screenrec-audio-level" type="range" min="0" max="200" step="5" value="100" data-screenrec="audio-level" aria-label="Audio level">
+                    <span class="screenrec-range-value" data-screenrec="audio-level-value">100%</span>
+                  </div>
+                </div>
                 <p class="screenrec-help" data-screenrec="audio-help">Audio selection is locked once capture starts.</p>
-              </div>
-
-              <div class="screenrec-field">
-                <label class="screenrec-label" for="screenrec-audio-level">Audio level</label>
-                <div class="screenrec-range">
-                  <input id="screenrec-audio-level" type="range" min="0" max="200" step="5" value="100" data-screenrec="audio-level">
-                  <span class="screenrec-range-value" data-screenrec="audio-level-value">100%</span>
-                </div>
                 <p class="screenrec-help" data-screenrec="audio-level-help">Adjust the recording volume before you capture.</p>
-              </div>
-
-              <div class="screenrec-field">
-                <span class="screenrec-label">Crop</span>
-                <div class="screenrec-actions screenrec-actions-tight">
-                  <button type="button" class="btn-secondary" data-screenrec="crop-toggle">Select crop area</button>
-                  <button type="button" class="btn-ghost" data-screenrec="crop-clear" disabled>Reset crop</button>
-                </div>
-                <p class="screenrec-help" data-screenrec="crop-help">Drag on the preview to set a crop area.</p>
               </div>
 
               <div class="screenrec-field">
@@ -142,7 +131,10 @@
                 <p class="screenrec-subtitle">Live preview while capture is active.</p>
               </div>
               <div class="screenrec-preview-controls">
-                <span class="screenrec-status" data-screenrec="status" data-tone="idle">Idle</span>
+                <div class="screenrec-preview-tools">
+                  <span class="screenrec-status" data-screenrec="status" data-tone="idle">Idle</span>
+                  <button type="button" class="btn-ghost" data-screenrec="crop-toggle" disabled>Crop</button>
+                </div>
                 <div class="screenrec-actions" data-screenrec="capture-actions">
                   <button type="button" class="btn-primary" data-screenrec="start-capture">Start capture</button>
                   <button type="button" class="btn-secondary" data-screenrec="stop-capture" disabled>Stop capture</button>

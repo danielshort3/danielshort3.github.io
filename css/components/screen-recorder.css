@@ -205,6 +205,21 @@
     margin-top:4px;
   }
 
+  .screenrec-audio-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .screenrec-audio-row .screenrec-check{
+    flex:1 1 220px;
+  }
+  .screenrec-audio-row .screenrec-range{
+    flex:1 1 180px;
+    justify-content:flex-end;
+  }
+
   .screenrec-range{
     display:flex;
     align-items:center;
@@ -227,6 +242,10 @@
     white-space:nowrap;
     min-width:56px;
     text-align:center;
+  }
+  .screenrec-range-compact{
+    max-width:260px;
+    margin-left:auto;
   }
 
   .screenrec-actions,
@@ -273,6 +292,13 @@
     margin-left:auto;
     flex-direction:column;
     align-items:flex-end;
+  }
+  .screenrec-preview-tools{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:8px;
+    flex-wrap:wrap;
   }
   .screenrec-preview-controls .screenrec-actions{
     justify-content:flex-end;
@@ -366,9 +392,12 @@
     z-index:2;
     pointer-events:none;
   }
-  .screenrec-crop-overlay[data-active="true"]{
+  .screenrec-crop-overlay[data-mode="select"]{
     pointer-events:auto;
     cursor:crosshair;
+  }
+  .screenrec-crop-overlay[data-mode="drag"]{
+    pointer-events:auto;
   }
   .screenrec-crop-selection{
     position:absolute;
@@ -376,6 +405,7 @@
     border-radius:10px;
     background:rgba(255,255,255,.08);
     box-shadow:0 0 0 9999px rgba(0,0,0,.45);
+    cursor:move;
   }
 
   .screenrec-preview-meta{
