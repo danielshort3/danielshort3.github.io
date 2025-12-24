@@ -76,7 +76,11 @@
   ];
 
   const setStatus = (text, tone) => {
-    const targets = [el.status, el.statusSecondary].filter(Boolean);
+    const targets = [el.status].filter(Boolean);
+    const controlsVisible = !el.controlsPanel || !el.controlsPanel.hidden;
+    if (controlsVisible && el.statusSecondary) {
+      targets.push(el.statusSecondary);
+    }
     if (!targets.length) return;
     targets.forEach((target) => {
       target.textContent = text;
