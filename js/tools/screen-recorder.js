@@ -1077,6 +1077,12 @@
       setStatus('Crop cleared.', 'ready');
     });
     el.exportBtn?.addEventListener('click', exportClip);
+    el.download?.addEventListener('click', (event) => {
+      if (!state.downloadUrl) {
+        event.preventDefault();
+        setStatus('Export a clip before downloading.', 'warn');
+      }
+    });
 
     el.overlay?.addEventListener('pointerdown', handlePointerDown);
     el.overlay?.addEventListener('pointermove', handlePointerMove);
