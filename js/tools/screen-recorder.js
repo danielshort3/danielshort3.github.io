@@ -2,16 +2,12 @@
   'use strict';
 
   const $ = (sel, root = document) => root.querySelector(sel);
-  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
   const el = {
-    source: $('[data-screenrec="source"]'),
-    regionModes: $$('[data-screenrec="region-mode"]'),
-    selectRegion: $('[data-screenrec="select-region"]'),
-    clearRegion: $('[data-screenrec="clear-region"]'),
-    regionHelp: $('[data-screenrec="region-help"]'),
     format: $('[data-screenrec="format"]'),
     formatHelp: $('[data-screenrec="format-help"]'),
+    audioToggle: $('[data-screenrec="audio-toggle"]'),
+    audioHelp: $('[data-screenrec="audio-help"]'),
     startCapture: $('[data-screenrec="start-capture"]'),
     stopCapture: $('[data-screenrec="stop-capture"]'),
     video: $('[data-screenrec="video"]'),
@@ -26,11 +22,21 @@
     startRecord: $('[data-screenrec="start-record"]'),
     pauseRecord: $('[data-screenrec="pause-record"]'),
     stopRecord: $('[data-screenrec="stop-record"]'),
+    testRecord: $('[data-screenrec="test-record"]'),
+    editPanel: $('[data-screenrec="edit-panel"]'),
+    trimStart: $('[data-screenrec="trim-start"]'),
+    trimEnd: $('[data-screenrec="trim-end"]'),
+    trimStartLabel: $('[data-screenrec="trim-start-label"]'),
+    trimEndLabel: $('[data-screenrec="trim-end-label"]'),
+    trimLength: $('[data-screenrec="trim-length"]'),
+    selectCrop: $('[data-screenrec="select-crop"]'),
+    clearCrop: $('[data-screenrec="clear-crop"]'),
+    exportBtn: $('[data-screenrec="export"]'),
     download: $('[data-screenrec="download"]'),
     downloadNote: $('[data-screenrec="download-note"]')
   };
 
-  if (!el.source || !el.startCapture || !el.video || !el.startRecord) return;
+  if (!el.startCapture || !el.video || !el.startRecord) return;
 
   const supportsCapture = Boolean(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
   const supportsRecorder = typeof window.MediaRecorder !== 'undefined';
@@ -39,22 +45,31 @@
   const state = {
     stream: null,
     recorder: null,
-    outputStream: null,
     chunks: [],
     recording: false,
     paused: false,
     captureActive: false,
+    testing: false,
     selecting: false,
-    cropMode: 'full',
     cropRegion: null,
-    drawId: null,
     timerId: null,
     timerStart: 0,
     timerPausedAt: 0,
     totalPausedMs: 0,
     downloadUrl: null,
+    recordedBlob: null,
+    recordedUrl: null,
+    recordedDuration: 0,
+    recordedHasAudio: false,
+    trimStart: 0,
+    trimEnd: 0,
+    exporting: false,
     stopReason: ''
   };
+
+  const MIN_TRIM_GAP = 0.2;
+  const DEFAULT_EXPORT_FPS = 30;
+  const TEST_DURATION_MS = 5000;
 
   const MIME_TYPE_OPTIONS = [
     { label: 'MP4 (H.264)', mimeType: 'video/mp4;codecs=avc1.42E01E' },
@@ -201,10 +216,12 @@
     stream.getTracks().forEach((track) => track.stop());
   };
 
+  const streamHasAudio = (stream) => Boolean(stream && stream.getAudioTracks && stream.getAudioTracks().length);
+
   const updateCaptureMeta = () => {
     if (!el.captureMeta) return;
     if (!state.stream) {
-      el.captureMeta.textContent = 'Not started';
+      el.captureMeta.textContent = state.recordedUrl ? 'Recorded clip' : 'Not started';
       return;
     }
     const track = state.stream.getVideoTracks()[0];
@@ -229,20 +246,17 @@
     if (settings.frameRate) {
       parts.push(`${Math.round(settings.frameRate)} fps`);
     }
+    const hasAudio = streamHasAudio(state.stream);
+    parts.push(hasAudio ? 'Audio on' : 'Audio off');
     el.captureMeta.textContent = parts.length ? parts.join(' | ') : 'Capture active';
   };
 
-  const updateRegionMeta = () => {
+  const updateCropMeta = () => {
     if (!el.regionMeta) return;
-    if (state.cropMode === 'custom') {
-      if (state.cropRegion) {
-        const { width, height } = state.cropRegion;
-        el.regionMeta.textContent = `Custom ${Math.round(width)}x${Math.round(height)}`;
-      } else {
-        el.regionMeta.textContent = 'Custom region not set';
-      }
+    if (state.cropRegion) {
+      el.regionMeta.textContent = `Crop ${Math.round(state.cropRegion.width)}x${Math.round(state.cropRegion.height)}`;
     } else {
-      el.regionMeta.textContent = 'Full capture';
+      el.regionMeta.textContent = 'Full frame';
     }
   };
 
@@ -281,54 +295,148 @@
     }
   };
 
-  const resetTimer = () => {
+  const resetTimer = (valueMs) => {
     stopTimer();
-    if (el.timer) el.timer.textContent = '00:00';
+    if (el.timer) {
+      el.timer.textContent = valueMs ? formatDuration(valueMs) : '00:00';
+    }
   };
 
-  const updateButtons = () => {
-    const videoReady = Boolean(el.video && el.video.videoWidth);
-    const canRecord = state.captureActive && !state.recording && (state.cropMode === 'full' || state.cropRegion);
-    const canSelect = state.captureActive && state.cropMode === 'custom' && !state.recording && videoReady;
-    if (el.startCapture) el.startCapture.disabled = !supportsCapture || !supportsRecorder || state.captureActive;
-    if (el.stopCapture) el.stopCapture.disabled = !state.captureActive;
-    if (el.selectRegion) el.selectRegion.disabled = !canSelect;
-    if (el.clearRegion) el.clearRegion.disabled = !state.cropRegion || state.recording;
-    if (el.startRecord) el.startRecord.disabled = !canRecord;
-    if (el.pauseRecord) el.pauseRecord.disabled = !state.recording;
-    if (el.stopRecord) el.stopRecord.disabled = !state.recording;
-    if (el.pauseRecord) el.pauseRecord.textContent = state.paused ? 'Resume' : 'Pause';
+  const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+  const updateTrimUI = (source) => {
+    if (!el.trimStart || !el.trimEnd) return;
+    const duration = Math.max(0, state.recordedDuration || 0);
+    let start = parseFloat(el.trimStart.value);
+    let end = parseFloat(el.trimEnd.value);
+    if (Number.isNaN(start)) start = 0;
+    if (Number.isNaN(end)) end = duration;
+    start = clamp(start, 0, duration);
+    end = clamp(end, 0, duration);
+    if (end - start < MIN_TRIM_GAP) {
+      if (source === 'start') {
+        start = Math.max(0, end - MIN_TRIM_GAP);
+      } else {
+        end = Math.min(duration, start + MIN_TRIM_GAP);
+      }
+    }
+    state.trimStart = start;
+    state.trimEnd = end;
+    el.trimStart.value = start;
+    el.trimEnd.value = end;
+    if (el.trimStartLabel) el.trimStartLabel.textContent = formatDuration(start * 1000);
+    if (el.trimEndLabel) el.trimEndLabel.textContent = formatDuration(end * 1000);
+    if (el.trimLength) el.trimLength.textContent = formatDuration(Math.max(0, (end - start) * 1000));
+  };
+
+  const initTrimControls = () => {
+    if (!el.trimStart || !el.trimEnd) return;
+    el.trimStart.addEventListener('input', () => {
+      updateTrimUI('start');
+      updateButtons();
+    });
+    el.trimEnd.addEventListener('input', () => {
+      updateTrimUI('end');
+      updateButtons();
+    });
+  };
+
+  const resetRecordedClip = () => {
+    if (state.recordedUrl) {
+      URL.revokeObjectURL(state.recordedUrl);
+    }
+    state.recordedUrl = null;
+    state.recordedBlob = null;
+    state.recordedDuration = 0;
+    state.recordedHasAudio = false;
+    state.trimStart = 0;
+    state.trimEnd = 0;
+    clearDownload();
+    clearCrop();
+    if (el.editPanel) el.editPanel.hidden = true;
+    if (el.trimStart) {
+      el.trimStart.max = '0';
+      el.trimStart.value = '0';
+    }
+    if (el.trimEnd) {
+      el.trimEnd.max = '0';
+      el.trimEnd.value = '0';
+    }
+    if (el.trimStartLabel) el.trimStartLabel.textContent = '00:00';
+    if (el.trimEndLabel) el.trimEndLabel.textContent = '00:00';
+    if (el.trimLength) el.trimLength.textContent = '00:00';
+    updateCaptureMeta();
+  };
+
+  const setLivePreview = () => {
+    if (!state.stream) return;
+    el.video.src = '';
+    el.video.srcObject = state.stream;
+    el.video.controls = false;
+    el.video.loop = false;
+    el.video.muted = true;
+    el.video.play().catch(() => {});
+    if (el.placeholder) el.placeholder.hidden = true;
+  };
+
+  const setRecordedClip = (blob) => {
+    if (!blob) return;
+    resetTimer();
+    if (state.recordedUrl) {
+      URL.revokeObjectURL(state.recordedUrl);
+    }
+    state.recordedBlob = blob;
+    state.recordedUrl = URL.createObjectURL(blob);
+    el.video.srcObject = null;
+    el.video.src = state.recordedUrl;
+    el.video.controls = true;
+    el.video.loop = true;
+    el.video.muted = false;
+    el.video.play().catch(() => {});
+    if (el.placeholder) el.placeholder.hidden = true;
+
+    const handleMetadata = () => {
+      state.recordedDuration = Number.isFinite(el.video.duration) ? el.video.duration : 0;
+      if (el.trimStart) el.trimStart.max = String(state.recordedDuration);
+      if (el.trimEnd) el.trimEnd.max = String(state.recordedDuration);
+      if (el.trimStart) el.trimStart.value = '0';
+      if (el.trimEnd) el.trimEnd.value = String(state.recordedDuration);
+      updateTrimUI('end');
+      resetTimer(state.recordedDuration * 1000);
+      updateCropMeta();
+      updateButtons();
+    };
+    if (el.video.readyState >= 1) {
+      handleMetadata();
+    } else {
+      el.video.addEventListener('loadedmetadata', handleMetadata, { once: true });
+    }
+
+    if (el.editPanel) el.editPanel.hidden = false;
+    setStatus('Clip ready to edit.', 'ready');
+  };
+
+  const showOverlay = (active) => {
+    if (el.overlay) {
+      el.overlay.classList.toggle('is-active', active);
+    }
+    if (el.overlayLabel) {
+      el.overlayLabel.hidden = !active;
+    }
   };
 
   const clearSelection = () => {
-    state.cropRegion = null;
     if (el.selection) {
       el.selection.hidden = true;
       el.selection.style.width = '0px';
       el.selection.style.height = '0px';
     }
-    updateRegionMeta();
-    updateButtons();
   };
 
-  const setCropMode = (mode) => {
-    if (mode === 'custom' && !supportsCanvasCapture) {
-      state.cropMode = 'full';
-      updateRegionMeta();
-      updateButtons();
-      setStatus('Custom region capture is not supported in this browser.', 'warn');
-      return;
-    }
-    state.cropMode = mode;
-    if (mode === 'full') {
-      clearSelection();
-      if (el.regionHelp) {
-        el.regionHelp.textContent = 'Custom region is cropped locally after capture.';
-      }
-    } else if (el.regionHelp) {
-      el.regionHelp.textContent = 'Click Select region, then drag on the preview.';
-    }
-    updateRegionMeta();
+  const clearCrop = () => {
+    state.cropRegion = null;
+    clearSelection();
+    updateCropMeta();
     updateButtons();
   };
 
@@ -367,8 +475,6 @@
     return { rect, videoWidth, videoHeight, displayWidth, displayHeight, offsetX, offsetY };
   };
 
-  const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
-
   const normalizePoint = (clientX, clientY, metrics) => {
     const x = clientX - metrics.rect.left;
     const y = clientY - metrics.rect.top;
@@ -402,23 +508,20 @@
     metrics: null
   };
 
-  const startRegionSelection = () => {
-    if (!state.captureActive || state.recording) return;
+  const startCropSelection = () => {
+    if (!state.recordedUrl || state.recording || state.exporting) return;
     state.selecting = true;
-    if (el.overlay) el.overlay.classList.add('is-active');
-    if (el.overlayLabel) el.overlayLabel.hidden = false;
-    if (el.selection) el.selection.hidden = true;
-    setStatus('Drag to select a region.', 'pending');
+    showOverlay(true);
+    setStatus('Drag to select a crop region.', 'pending');
   };
 
-  const endRegionSelection = () => {
+  const endCropSelection = () => {
     state.selecting = false;
-    if (el.overlay) el.overlay.classList.remove('is-active');
-    if (el.overlayLabel) el.overlayLabel.hidden = true;
+    showOverlay(false);
   };
 
   const handlePointerDown = (event) => {
-    if (!state.selecting || !el.video) return;
+    if (!state.selecting) return;
     const metrics = getDisplayMetrics();
     const point = normalizePoint(event.clientX, event.clientY, metrics);
     selectionState.active = true;
@@ -456,9 +559,9 @@
 
     const minSize = 40;
     if (width < minSize || height < minSize) {
-      clearSelection();
-      setStatus('Region too small. Drag a larger area.', 'warn');
-      endRegionSelection();
+      clearCrop();
+      setStatus('Crop region too small. Drag a larger area.', 'warn');
+      endCropSelection();
       return;
     }
 
@@ -477,50 +580,72 @@
     };
 
     showSelection(x, y, width, height);
-    setStatus('Region selected. Ready to record.', 'ready');
-    endRegionSelection();
-    updateRegionMeta();
+    setStatus('Crop region set.', 'ready');
+    endCropSelection();
+    updateCropMeta();
     updateButtons();
   };
 
   const handlePointerCancel = () => {
     if (!selectionState.active) return;
     selectionState.active = false;
-    clearSelection();
-    endRegionSelection();
+    clearCrop();
+    endCropSelection();
   };
 
-  const buildConstraints = (surface) => {
-    const video = {
-      frameRate: { ideal: 30, max: 60 },
-      cursor: 'motion'
-    };
-    if (surface && surface !== 'any') {
-      video.displaySurface = surface;
+  const updateButtons = () => {
+    const hasRecording = Boolean(state.recordedUrl);
+    const trimOk = hasRecording && (state.trimEnd - state.trimStart) >= MIN_TRIM_GAP;
+    const busy = state.recording || state.exporting || state.testing;
+    if (el.startCapture) {
+      el.startCapture.disabled = !supportsCapture || !supportsRecorder || state.captureActive || busy;
     }
-    return {
-      video,
-      audio: false,
-      selfBrowserSurface: 'exclude',
-      surfaceSwitching: 'include',
-      monitorTypeSurfaces: 'include'
-    };
+    if (el.stopCapture) {
+      el.stopCapture.disabled = !state.captureActive || busy;
+    }
+    if (el.startRecord) {
+      el.startRecord.disabled = !state.captureActive || busy;
+    }
+    if (el.pauseRecord) {
+      el.pauseRecord.disabled = !state.recording || state.exporting || state.testing;
+      el.pauseRecord.textContent = state.paused ? 'Resume' : 'Pause';
+    }
+    if (el.stopRecord) {
+      el.stopRecord.disabled = !state.recording || state.exporting || state.testing;
+    }
+    if (el.testRecord) {
+      el.testRecord.disabled = !state.captureActive || state.recording || state.exporting || state.testing;
+    }
+    if (el.selectCrop) {
+      el.selectCrop.disabled = !hasRecording || !supportsCanvasCapture || state.exporting;
+    }
+    if (el.clearCrop) {
+      el.clearCrop.disabled = !state.cropRegion || state.exporting;
+    }
+    if (el.exportBtn) {
+      el.exportBtn.disabled = !hasRecording || !supportsCanvasCapture || state.exporting || !trimOk;
+    }
+    if (el.audioToggle) {
+      el.audioToggle.disabled = !supportsCapture || state.captureActive || state.recording || state.exporting || state.testing;
+    }
   };
 
   const startCapture = async () => {
-    if (!supportsCapture || !supportsRecorder || state.captureActive) return;
-    clearDownload();
+    if (!supportsCapture || !supportsRecorder || state.captureActive || state.recording || state.testing) return;
     setStatus('Requesting capture permission...', 'pending');
 
+    const includeAudio = Boolean(el.audioToggle?.checked);
+    const constraints = { video: true, audio: includeAudio };
     let stream = null;
-    const surface = el.source ? el.source.value : 'any';
+    let audioFallback = false;
     try {
-      stream = await navigator.mediaDevices.getDisplayMedia(buildConstraints(surface));
-    } catch (err) {
-      if (surface !== 'any') {
+      stream = await navigator.mediaDevices.getDisplayMedia(constraints);
+    } catch (_) {
+      if (includeAudio) {
         try {
           stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
-        } catch (fallbackErr) {
+          audioFallback = true;
+        } catch (err) {
           setStatus('Capture request failed. Check permissions.', 'error');
           return;
         }
@@ -535,179 +660,127 @@
       return;
     }
 
-    stream.getAudioTracks().forEach((track) => stream.removeTrack(track));
+    if (!includeAudio) {
+      stream.getAudioTracks().forEach((track) => {
+        stream.removeTrack(track);
+        track.stop();
+      });
+    }
+
+    clearDownload();
+    resetRecordedClip();
     state.stream = stream;
     state.captureActive = true;
     state.stopReason = '';
-    el.video.srcObject = stream;
-    el.video.play().catch(() => {});
-    if (el.placeholder) el.placeholder.hidden = true;
+    setLivePreview();
     updateCaptureMeta();
-    updateRegionMeta();
+    updateCropMeta();
     updateButtons();
     resetTimer();
 
     const track = stream.getVideoTracks()[0];
     track.addEventListener('ended', () => {
-      stopCapture('Capture ended by the browser.');
+      if (state.recording) {
+        state.stopReason = 'Capture ended by the browser.';
+        stopRecording();
+      } else if (state.testing) {
+        state.stopReason = 'Capture ended by the browser.';
+        state.testing = false;
+        updateButtons();
+        stopCapture('Capture ended by the browser.');
+      } else {
+        stopCapture('Capture ended by the browser.');
+      }
     }, { once: true });
 
-    setStatus('Capture ready. Select a region if needed, then start recording.', 'ready');
-  };
-
-  const finalizeStopCapture = () => {
-    stopTracks(state.stream);
-    state.stream = null;
-    state.captureActive = false;
-    state.recording = false;
-    state.paused = false;
-    state.recorder = null;
-    state.outputStream = null;
-    stopTimer();
-    if (el.video) el.video.srcObject = null;
-    if (el.placeholder) el.placeholder.hidden = false;
-    clearSelection();
-    updateCaptureMeta();
-    updateRegionMeta();
-    updateButtons();
-    const message = state.stopReason || (state.downloadUrl ? 'Capture stopped. Download ready.' : 'Capture stopped.');
-    setStatus(message, 'idle');
-    state.stopReason = '';
+    if (audioFallback) {
+      setStatus('Audio capture is not available. Capturing without audio.', 'warn');
+    } else {
+      setStatus('Capture ready. Start recording when you are ready.', 'ready');
+    }
   };
 
   const stopCapture = (reason) => {
     if (!state.captureActive) return;
-    if (reason) state.stopReason = reason;
-    if (state.recording && state.recorder && state.recorder.state !== 'inactive') {
-      state.recorder.addEventListener('stop', finalizeStopCapture, { once: true });
-      state.recorder.stop();
-      return;
+    stopTracks(state.stream);
+    state.stream = null;
+    state.captureActive = false;
+    updateCaptureMeta();
+    updateButtons();
+    if (!state.recordedUrl) {
+      el.video.srcObject = null;
+      if (el.placeholder) el.placeholder.hidden = false;
     }
-    finalizeStopCapture();
+    resetTimer(state.recordedDuration ? state.recordedDuration * 1000 : 0);
+    const message = reason || state.stopReason || (state.recordedUrl ? 'Capture stopped. Clip ready to edit.' : 'Capture stopped.');
+    setStatus(message, state.recordedUrl ? 'ready' : 'idle');
+    state.stopReason = '';
   };
 
-  const stopDrawLoop = () => {
-    if (state.drawId) {
-      cancelAnimationFrame(state.drawId);
-      state.drawId = null;
-    }
-  };
-
-  const startDrawLoop = () => {
-    if (!state.cropRegion || !state.recording || !state.outputStream) return;
-    const { x, y, width, height } = state.cropRegion;
-    const canvas = state.outputStream.canvas;
-    const ctx = state.outputStream.ctx;
-    if (!canvas || !ctx) return;
-    canvas.width = Math.round(width);
-    canvas.height = Math.round(height);
-    const fps = 30;
-    const frameDuration = 1000 / fps;
-    let lastFrame = performance.now();
-
-    const draw = (now) => {
-      if (!state.recording || state.paused) return;
-      if (now - lastFrame >= frameDuration) {
-        ctx.drawImage(el.video, x, y, width, height, 0, 0, canvas.width, canvas.height);
-        lastFrame = now;
+  const createRecorder = (stream, mimeType) => {
+    const options = {};
+    if (mimeType) options.mimeType = mimeType;
+    let recorder;
+    let finalMime = mimeType;
+    try {
+      recorder = new MediaRecorder(stream, options);
+    } catch (err) {
+      if (mimeType) {
+        recorder = new MediaRecorder(stream);
+        finalMime = '';
+        setStatus('Selected format not supported. Using browser default.', 'warn');
+      } else {
+        throw err;
       }
-      state.drawId = requestAnimationFrame(draw);
-    };
-
-    state.drawId = requestAnimationFrame(draw);
-  };
-
-  const buildOutputStream = () => {
-    if (state.cropMode !== 'custom' || !state.cropRegion || !supportsCanvasCapture) return state.stream;
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d', { alpha: false });
-    canvas.width = Math.round(state.cropRegion.width);
-    canvas.height = Math.round(state.cropRegion.height);
-    const fps = 30;
-    const canvasStream = canvas.captureStream(fps);
-    canvasStream.canvas = canvas;
-    canvasStream.ctx = ctx;
-    return canvasStream;
+    }
+    return { recorder, mimeType: finalMime };
   };
 
   const startRecording = () => {
-    if (!state.captureActive || state.recording) return;
-    if (state.cropMode === 'custom' && !state.cropRegion) {
-      setStatus('Select a region before recording.', 'warn');
-      return;
-    }
-    if (state.cropMode === 'custom' && !supportsCanvasCapture) {
-      setStatus('Custom region capture is not supported in this browser.', 'error');
-      return;
-    }
-
+    if (!state.captureActive || state.recording || state.testing || !state.stream) return;
     clearDownload();
+    resetRecordedClip();
+    clearCrop();
+
     const mimeType = getSelectedMimeType();
-    const outputStream = buildOutputStream();
-    if (state.cropMode === 'custom' && state.cropRegion && outputStream.canvas && outputStream.ctx) {
-      const { x, y, width, height } = state.cropRegion;
-      outputStream.ctx.drawImage(el.video, x, y, width, height, 0, 0, outputStream.canvas.width, outputStream.canvas.height);
-    }
-    const options = {};
-    if (mimeType) options.mimeType = mimeType;
-
-    let recorder;
+    let recorderInfo;
     try {
-      recorder = new MediaRecorder(outputStream, options);
-    } catch (err) {
-      if (options.mimeType) {
-        try {
-          recorder = new MediaRecorder(outputStream);
-          setStatus('Selected format not supported. Using browser default.', 'warn');
-        } catch (fallbackErr) {
-          setStatus('Recording failed to initialize in this browser.', 'error');
-          return;
-        }
-      } else {
-        setStatus('Recording failed to initialize in this browser.', 'error');
-        return;
-      }
+      recorderInfo = createRecorder(state.stream, mimeType);
+    } catch (_) {
+      setStatus('Recording failed to initialize in this browser.', 'error');
+      return;
     }
 
-    state.recorder = recorder;
-    state.outputStream = outputStream !== state.stream ? outputStream : null;
+    state.recorder = recorderInfo.recorder;
     state.chunks = [];
     state.recording = true;
     state.paused = false;
-    resetTimer();
     startTimer();
 
-    recorder.addEventListener('dataavailable', (event) => {
+    state.recorder.addEventListener('dataavailable', (event) => {
       if (event.data && event.data.size > 0) {
         state.chunks.push(event.data);
       }
     });
 
-    recorder.addEventListener('stop', () => {
-      stopDrawLoop();
+    state.recorder.addEventListener('stop', () => {
       state.recording = false;
       state.paused = false;
       stopTimer();
-      const mime = recorder.mimeType || mimeType || 'video/webm';
+      const mime = state.recorder.mimeType || recorderInfo.mimeType || 'video/webm';
       if (state.chunks.length) {
         const blob = new Blob(state.chunks, { type: mime });
-        setDownload(blob, mime);
-        setStatus('Recording stopped. Download ready.', 'ready');
         state.chunks = [];
+        state.recordedHasAudio = streamHasAudio(state.stream);
+        setRecordedClip(blob);
       } else {
         setStatus('Recording stopped. No data captured.', 'warn');
       }
-      if (state.outputStream && state.outputStream !== state.stream) {
-        stopTracks(state.outputStream);
-        state.outputStream = null;
-      }
+      stopCapture();
       updateButtons();
-    });
+    }, { once: true });
 
-    recorder.start(200);
-    if (state.cropMode === 'custom') {
-      startDrawLoop();
-    }
+    state.recorder.start(200);
     setStatus('Recording...', 'recording');
     updateButtons();
   };
@@ -718,15 +791,11 @@
       state.recorder.pause();
       state.paused = true;
       pauseTimer();
-      stopDrawLoop();
       setStatus('Recording paused.', 'warn');
     } else if (state.recorder.state === 'paused') {
       state.recorder.resume();
       state.paused = false;
       resumeTimer();
-      if (state.cropMode === 'custom') {
-        startDrawLoop();
-      }
       setStatus('Recording...', 'recording');
     }
     updateButtons();
@@ -736,6 +805,245 @@
     if (!state.recorder || !state.recording) return;
     if (state.recorder.state !== 'inactive') {
       state.recorder.stop();
+    }
+  };
+
+  const playTestClip = (blob) => {
+    if (!blob) {
+      setStatus('Test recording failed.', 'warn');
+      return;
+    }
+    const url = URL.createObjectURL(blob);
+    el.video.srcObject = null;
+    el.video.src = url;
+    el.video.controls = true;
+    el.video.loop = false;
+    el.video.muted = false;
+    el.video.play().catch(() => {});
+
+    const restore = () => {
+      URL.revokeObjectURL(url);
+      if (state.captureActive && state.stream) {
+        setLivePreview();
+        setStatus('Test complete. Live preview restored.', 'ready');
+        updateCaptureMeta();
+      } else {
+        setStatus('Test complete.', 'ready');
+      }
+      updateButtons();
+    };
+
+    el.video.addEventListener('ended', restore, { once: true });
+  };
+
+  const recordTestClip = () => {
+    if (!state.captureActive || state.recording || state.exporting || state.testing || !state.stream) return;
+    state.testing = true;
+    updateButtons();
+    setStatus('Recording test clip...', 'pending');
+
+    const mimeType = getSelectedMimeType();
+    let recorderInfo;
+    try {
+      recorderInfo = createRecorder(state.stream, mimeType);
+    } catch (_) {
+      state.testing = false;
+      updateButtons();
+      setStatus('Test recording failed to initialize.', 'error');
+      return;
+    }
+
+    const testRecorder = recorderInfo.recorder;
+    const chunks = [];
+
+    testRecorder.addEventListener('dataavailable', (event) => {
+      if (event.data && event.data.size > 0) {
+        chunks.push(event.data);
+      }
+    });
+
+    const stopTimerId = setTimeout(() => {
+      if (testRecorder.state !== 'inactive') {
+        testRecorder.stop();
+      }
+    }, TEST_DURATION_MS);
+
+    testRecorder.addEventListener('stop', () => {
+      clearTimeout(stopTimerId);
+      state.testing = false;
+      updateButtons();
+      const mime = testRecorder.mimeType || recorderInfo.mimeType || 'video/webm';
+      if (chunks.length) {
+        const blob = new Blob(chunks, { type: mime });
+        setStatus('Playing test clip...', 'ready');
+        playTestClip(blob);
+      } else {
+        setStatus('Test recording produced no data.', 'warn');
+      }
+    }, { once: true });
+
+    try {
+      testRecorder.start(200);
+    } catch (err) {
+      clearTimeout(stopTimerId);
+      state.testing = false;
+      updateButtons();
+      setStatus('Test recording failed to start.', 'error');
+    }
+  };
+
+  const waitForEvent = (target, event, readyCheck) => new Promise((resolve) => {
+    if (readyCheck && readyCheck()) {
+      resolve();
+      return;
+    }
+    const handler = () => {
+      target.removeEventListener(event, handler);
+      resolve();
+    };
+    target.addEventListener(event, handler);
+  });
+
+  const exportClip = async () => {
+    if (!state.recordedUrl || !supportsCanvasCapture || state.exporting) return;
+    if ((state.trimEnd - state.trimStart) < MIN_TRIM_GAP) {
+      setStatus('Trim range is too short.', 'warn');
+      return;
+    }
+
+    state.exporting = true;
+    updateButtons();
+    clearDownload();
+    setStatus('Exporting clip...', 'pending');
+
+    const exportVideo = document.createElement('video');
+    exportVideo.src = state.recordedUrl;
+    exportVideo.muted = !state.recordedHasAudio;
+    exportVideo.playsInline = true;
+    exportVideo.preload = 'auto';
+
+    let didCleanup = false;
+    let cleanup = () => {};
+
+    try {
+      await waitForEvent(exportVideo, 'loadedmetadata', () => exportVideo.readyState >= 1);
+      const duration = Number.isFinite(exportVideo.duration) ? exportVideo.duration : state.recordedDuration;
+      const start = clamp(state.trimStart, 0, duration);
+      const end = clamp(state.trimEnd, 0, duration);
+
+      if (end - start < MIN_TRIM_GAP) {
+        setStatus('Trim range is too short.', 'warn');
+        state.exporting = false;
+        updateButtons();
+        return;
+      }
+
+      exportVideo.currentTime = start;
+      await waitForEvent(exportVideo, 'seeked', () => Math.abs(exportVideo.currentTime - start) < 0.01);
+
+      const sourceWidth = exportVideo.videoWidth || 1;
+      const sourceHeight = exportVideo.videoHeight || 1;
+      const crop = state.cropRegion;
+      const sx = crop ? crop.x : 0;
+      const sy = crop ? crop.y : 0;
+      const sw = crop ? crop.width : sourceWidth;
+      const sh = crop ? crop.height : sourceHeight;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(sw);
+      canvas.height = Math.round(sh);
+      const ctx = canvas.getContext('2d', { alpha: false });
+      const canvasStream = canvas.captureStream(DEFAULT_EXPORT_FPS);
+      const outputStream = new MediaStream();
+      const videoTrack = canvasStream.getVideoTracks()[0];
+      if (videoTrack) outputStream.addTrack(videoTrack);
+
+      let audioContext = null;
+      let audioTracks = [];
+      if (state.recordedHasAudio && (window.AudioContext || window.webkitAudioContext)) {
+        try {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          audioContext = new AudioCtx();
+          const source = audioContext.createMediaElementSource(exportVideo);
+          const destination = audioContext.createMediaStreamDestination();
+          source.connect(destination);
+          if (audioContext.state === 'suspended') {
+            await audioContext.resume();
+          }
+          audioTracks = destination.stream.getAudioTracks();
+          audioTracks.forEach((track) => outputStream.addTrack(track));
+        } catch (_) {
+          audioTracks = [];
+        }
+      }
+
+      if (state.recordedHasAudio && !audioTracks.length) {
+        setStatus('Exporting clip without audio (browser limitation).', 'warn');
+      }
+
+      cleanup = () => {
+        if (didCleanup) return;
+        didCleanup = true;
+        stopTracks(canvasStream);
+        audioTracks.forEach((track) => track.stop());
+        if (audioContext) {
+          audioContext.close().catch(() => {});
+        }
+      };
+
+      const mimeType = getSelectedMimeType();
+      const { recorder, mimeType: recorderMime } = createRecorder(outputStream, mimeType);
+      const chunks = [];
+
+      recorder.addEventListener('dataavailable', (event) => {
+        if (event.data && event.data.size > 0) {
+          chunks.push(event.data);
+        }
+      });
+
+      const stopPromise = new Promise((resolve) => {
+        recorder.addEventListener('stop', () => {
+          cleanup();
+          resolve();
+        }, { once: true });
+      });
+
+      recorder.start(200);
+
+      const drawFrame = () => {
+        if (exportVideo.paused || exportVideo.ended) return;
+        ctx.drawImage(exportVideo, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+        requestAnimationFrame(drawFrame);
+      };
+
+      const monitor = () => {
+        if (exportVideo.currentTime >= (end - 0.03) || exportVideo.ended) {
+          exportVideo.pause();
+          recorder.stop();
+          return;
+        }
+        requestAnimationFrame(monitor);
+      };
+
+      await exportVideo.play();
+      drawFrame();
+      monitor();
+      await stopPromise;
+
+      if (chunks.length) {
+        const mime = recorder.mimeType || recorderMime || 'video/webm';
+        const blob = new Blob(chunks, { type: mime });
+        setDownload(blob, mime);
+        setStatus('Export ready. Download below.', 'ready');
+      } else {
+        setStatus('Export failed to produce data.', 'error');
+      }
+    } catch (err) {
+      setStatus('Export failed. Try again.', 'error');
+    } finally {
+      state.exporting = false;
+      cleanup();
+      updateButtons();
     }
   };
 
@@ -750,39 +1058,25 @@
     }
 
     setFormatOptions();
-    updateButtons();
-    updateRegionMeta();
-
-    if (!supportsCanvasCapture) {
-      el.regionModes.forEach((input) => {
-        if (input.value === 'custom') {
-          input.disabled = true;
-          input.closest('label')?.classList.add('is-disabled');
-        }
-      });
-      if (el.regionHelp) {
-        el.regionHelp.textContent = 'Custom region capture is not supported in this browser.';
-      }
+    if (!supportsCanvasCapture && el.formatHelp) {
+      el.formatHelp.textContent += ' Trim and crop require canvas capture support.';
     }
+    updateButtons();
+    updateCropMeta();
+    initTrimControls();
 
     el.startCapture?.addEventListener('click', startCapture);
     el.stopCapture?.addEventListener('click', () => stopCapture());
     el.startRecord?.addEventListener('click', startRecording);
     el.pauseRecord?.addEventListener('click', togglePause);
     el.stopRecord?.addEventListener('click', stopRecording);
-    el.selectRegion?.addEventListener('click', startRegionSelection);
-    el.clearRegion?.addEventListener('click', () => {
-      clearSelection();
-      setStatus('Region cleared.', 'ready');
+    el.testRecord?.addEventListener('click', recordTestClip);
+    el.selectCrop?.addEventListener('click', startCropSelection);
+    el.clearCrop?.addEventListener('click', () => {
+      clearCrop();
+      setStatus('Crop cleared.', 'ready');
     });
-
-    el.regionModes.forEach((input) => {
-      input.addEventListener('change', () => {
-        if (input.checked) {
-          setCropMode(input.value);
-        }
-      });
-    });
+    el.exportBtn?.addEventListener('click', exportClip);
 
     el.overlay?.addEventListener('pointerdown', handlePointerDown);
     el.overlay?.addEventListener('pointermove', handlePointerMove);
@@ -793,14 +1087,11 @@
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && state.selecting) {
         handlePointerCancel();
-        setStatus('Region selection cancelled.', 'warn');
+        setStatus('Crop selection cancelled.', 'warn');
       }
     });
 
-    el.video?.addEventListener('loadedmetadata', () => {
-      updateCaptureMeta();
-      updateButtons();
-    });
+    el.video?.addEventListener('loadedmetadata', updateCaptureMeta);
   };
 
   init();
