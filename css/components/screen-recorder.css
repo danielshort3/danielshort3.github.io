@@ -225,6 +225,8 @@
     gap:10px;
     flex-wrap:wrap;
     margin-left:auto;
+    flex-direction:column;
+    align-items:flex-end;
   }
   .screenrec-preview-controls .screenrec-actions{
     justify-content:flex-end;
@@ -320,14 +322,15 @@
   }
 
   .screenrec-meta-row{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
+    display:grid;
+    gap:6px;
     font-size:.92rem;
     min-width:0;
-    flex-wrap:wrap;
     width:100%;
+    padding:10px 12px;
+    border-radius:12px;
+    border:1px solid color-mix(in srgb,var(--primary) 16%, transparent);
+    background:color-mix(in srgb,var(--surface) 90%, #03070c 10%);
   }
   .screenrec-meta-row span{
     min-width:0;
@@ -339,6 +342,10 @@
     text-transform:uppercase;
     letter-spacing:.08em;
     font-size:.7rem;
+  }
+  .screenrec-meta-value{
+    color:color-mix(in srgb,var(--text-light) 92%, #ffffff 8%);
+    font-size:.95rem;
   }
 
   .screenrec-preview-actions{
@@ -353,6 +360,11 @@
     padding-top:0;
     border-top:none;
     justify-content:center;
+  }
+  .screenrec-download{
+    width:min(360px, 100%);
+    min-width:220px;
+    text-align:center;
   }
 
   .screenrec-download-note{
