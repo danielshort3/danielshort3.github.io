@@ -405,19 +405,47 @@
       }
     }
 
-    @media (max-width: 520px) {
+    @media (max-width: 520px), (max-height: 700px) {
       :root {
-        --cell-size: 32px;
-        --grid-gap: 6px;
-        --page-pad: 10px;
+        --cell-size: clamp(22px, 6vw, 28px);
+        --grid-gap: clamp(4px, 1.2vw, 6px);
+        --page-pad: 8px;
+      }
+
+      header.card-header {
+        padding: 10px 12px;
+        gap: 6px;
+      }
+
+      .subtitle {
+        display: none;
+      }
+
+      .health-row {
+        padding: 6px 12px 0;
+      }
+
+      .status-row {
+        padding: 0 12px 6px;
+      }
+
+      .status {
+        font-size: .75rem;
+      }
+
+      .health-pill {
+        font-size: .62rem;
+        padding: 4px 8px;
       }
 
       .content {
-        padding: 12px;
+        padding: 10px;
+        gap: 12px;
       }
 
       .grid-shell {
-        padding: 12px;
+        padding: 10px;
+        gap: 10px;
       }
 
       .grid-controls {
@@ -436,9 +464,26 @@
         width: 100%;
       }
 
+      .grid-controls label {
+        font-size: .7rem;
+      }
+
+      .grid-controls select,
+      .grid-controls .mini-btn {
+        font-size: .8rem;
+      }
+
       .latent-row {
         grid-template-columns: 1fr;
         gap: 8px;
+      }
+
+      .latent-panel label {
+        font-size: .8rem;
+      }
+
+      .latent-panel .value-row {
+        font-size: .85rem;
       }
 
       .btn-row .btn-secondary,
@@ -587,6 +632,7 @@
     const LEGACY_KEYS = ["digit_fn_url"];
     const { listCandidates, postWithFallback, rememberEndpoint, getJson, normalizeBase } = window.DemoAws;
     const GRID_SIZES = [4, 6, 8];
+    const compactLayout = !!(window.matchMedia && window.matchMedia('(max-width: 520px), (max-height: 700px)').matches);
     const endpointConfig = {
       defaultUrl: DEFAULT_FN_URL,
       storageKey: STORAGE_KEY,
@@ -614,7 +660,7 @@
     let debounceId = null;
     let requestId = 0;
     let latentDim = 20;
-    let gridSize = 8;
+    let gridSize = compactLayout ? 6 : 8;
     let gridRows = gridSize;
     let gridCols = gridSize;
     let lastSeed = null;
