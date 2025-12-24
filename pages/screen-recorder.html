@@ -77,7 +77,6 @@
           <div class="screenrec-card screenrec-controls" data-screenrec="controls-panel">
             <div class="screenrec-panel-head">
               <h2>Capture settings</h2>
-              <span class="screenrec-status" data-screenrec="status-secondary" data-tone="idle">Idle</span>
             </div>
             <p class="screenrec-subtitle">All recording stays on-device. No uploads, with optional system audio.</p>
             <form class="screenrec-form" novalidate>
@@ -85,6 +84,17 @@
                 <span class="screenrec-label">Download format</span>
                 <div class="screenrec-radio-group" data-screenrec="format-options"></div>
                 <p class="screenrec-help" data-screenrec="format-help">Detecting supported formats...</p>
+              </div>
+
+              <div class="screenrec-field">
+                <label class="screenrec-label" for="screenrec-fps">Frame rate</label>
+                <select id="screenrec-fps" class="screenrec-select" data-screenrec="fps-select">
+                  <option value="auto">Auto (best available)</option>
+                  <option value="15">15 fps</option>
+                  <option value="30">30 fps</option>
+                  <option value="60">60 fps</option>
+                </select>
+                <p class="screenrec-help">Applies when starting a new capture.</p>
               </div>
 
               <div class="screenrec-field">
@@ -96,15 +106,36 @@
                 <p class="screenrec-help" data-screenrec="audio-help">Audio selection is locked once capture starts.</p>
               </div>
 
-              <div class="screenrec-actions" data-screenrec="capture-actions">
-                <button type="button" class="btn-primary" data-screenrec="start-capture">Start capture</button>
-                <button type="button" class="btn-secondary" data-screenrec="stop-capture" disabled>Stop capture</button>
+              <div class="screenrec-field">
+                <label class="screenrec-label" for="screenrec-audio-level">Audio level</label>
+                <div class="screenrec-range">
+                  <input id="screenrec-audio-level" type="range" min="0" max="200" step="5" value="100" data-screenrec="audio-level">
+                  <span class="screenrec-range-value" data-screenrec="audio-level-value">100%</span>
+                </div>
+                <p class="screenrec-help" data-screenrec="audio-level-help">Adjust the recording volume before you capture.</p>
+              </div>
+
+              <div class="screenrec-field">
+                <span class="screenrec-label">Crop</span>
+                <div class="screenrec-actions screenrec-actions-tight">
+                  <button type="button" class="btn-secondary" data-screenrec="crop-toggle">Select crop area</button>
+                  <button type="button" class="btn-ghost" data-screenrec="crop-clear" disabled>Reset crop</button>
+                </div>
+                <p class="screenrec-help" data-screenrec="crop-help">Drag on the preview to set a crop area.</p>
+              </div>
+
+              <div class="screenrec-field">
+                <span class="screenrec-label">Quick test</span>
+                <div class="screenrec-actions screenrec-actions-tight">
+                  <button type="button" class="btn-ghost" data-screenrec="test-capture">Run 5-second test</button>
+                </div>
+                <p class="screenrec-help">Records a 5-second clip with your current settings.</p>
               </div>
               <p class="screenrec-note">Your browser will ask which screen, window, or tab to share. Everything runs locally, and system audio depends on browser support.</p>
             </form>
           </div>
 
-          <div class="screenrec-card screenrec-preview" data-screenrec="preview-panel" aria-live="polite" hidden>
+          <div class="screenrec-card screenrec-preview" data-screenrec="preview-panel" aria-live="polite">
             <div class="screenrec-preview-header">
               <div class="screenrec-preview-title">
                 <h2>Preview</h2>
@@ -112,12 +143,18 @@
               </div>
               <div class="screenrec-preview-controls">
                 <span class="screenrec-status" data-screenrec="status" data-tone="idle">Idle</span>
-                <div data-screenrec="capture-actions-slot"></div>
+                <div class="screenrec-actions" data-screenrec="capture-actions">
+                  <button type="button" class="btn-primary" data-screenrec="start-capture">Start capture</button>
+                  <button type="button" class="btn-secondary" data-screenrec="stop-capture" disabled>Stop capture</button>
+                </div>
               </div>
             </div>
             <div class="screenrec-stage" data-screenrec="stage">
               <video class="screenrec-video" data-screenrec="video" playsinline muted></video>
-              <div class="screenrec-placeholder" data-screenrec="placeholder" hidden>Start capture to see a live preview.</div>
+              <div class="screenrec-placeholder" data-screenrec="placeholder">Start capture to see a live preview.</div>
+              <div class="screenrec-crop-overlay" data-screenrec="crop-overlay" hidden>
+                <div class="screenrec-crop-selection" data-screenrec="crop-selection" hidden></div>
+              </div>
             </div>
 
             <div class="screenrec-preview-meta">
