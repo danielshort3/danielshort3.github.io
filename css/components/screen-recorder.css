@@ -181,6 +181,11 @@
     align-items:flex-start;
     justify-content:space-between;
     gap:12px;
+    flex-wrap:wrap;
+    min-width:0;
+  }
+  .screenrec-preview-header > div{
+    min-width:0;
   }
 
   .screenrec-status{
@@ -195,7 +200,11 @@
     text-transform:uppercase;
     letter-spacing:.1em;
     color:var(--text-muted);
-    white-space:nowrap;
+    min-width:0;
+    max-width:100%;
+    white-space:normal;
+    overflow-wrap:anywhere;
+    text-align:right;
   }
   .screenrec-status[data-tone="recording"]{
     color:var(--success);
