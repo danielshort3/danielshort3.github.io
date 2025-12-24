@@ -672,6 +672,25 @@
       .content {
         padding: 12px;
       }
+      .canvas-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto;
+      }
+      .sample-panel {
+        order: -1;
+        border-left: none;
+        border-top: none;
+        border-bottom: 1px solid var(--surface-accent);
+        padding: 6px 6px 10px;
+        width: 100%;
+        grid-template-rows: auto auto auto auto;
+        align-self: stretch;
+      }
+      .sample-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        grid-template-rows: repeat(2, minmax(24px, 1fr));
+        gap: 6px;
+      }
       .canvas-area {
         width: 100%;
         justify-self: stretch;
