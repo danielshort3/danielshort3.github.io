@@ -32,6 +32,8 @@
     { "source": "/tools/image-optimizer.html","destination": "/pages/image-optimizer" },
     { "source": "/tools/qr-code-generator","destination": "/pages/qr-code-generator" },
     { "source": "/tools/qr-code-generator.html","destination": "/pages/qr-code-generator" },
+    { "source": "/tools/screen-recorder","destination": "/pages/screen-recorder" },
+    { "source": "/tools/screen-recorder.html","destination": "/pages/screen-recorder" },
     { "source": "/tools/ocean-wave-simulation","destination": "/pages/ocean-wave-simulation" },
     { "source": "/tools/ocean-wave-simulation.html","destination": "/pages/ocean-wave-simulation" },
     { "source": "/tools",             "destination": "/pages/tools" },
