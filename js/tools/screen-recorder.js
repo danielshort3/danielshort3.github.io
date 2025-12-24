@@ -4,35 +4,20 @@
   const $ = (sel, root = document) => root.querySelector(sel);
 
   const el = {
-    format: $('[data-screenrec="format"]'),
+    formatOptions: $('[data-screenrec="format-options"]'),
     formatHelp: $('[data-screenrec="format-help"]'),
     audioToggle: $('[data-screenrec="audio-toggle"]'),
     audioHelp: $('[data-screenrec="audio-help"]'),
     startCapture: $('[data-screenrec="start-capture"]'),
     stopCapture: $('[data-screenrec="stop-capture"]'),
     video: $('[data-screenrec="video"]'),
-    overlay: $('[data-screenrec="overlay"]'),
-    overlayLabel: $('[data-screenrec="overlay-label"]'),
-    selection: $('[data-screenrec="selection"]'),
     placeholder: $('[data-screenrec="placeholder"]'),
     status: $('[data-screenrec="status"]'),
     captureMeta: $('[data-screenrec="capture-meta"]'),
-    regionMeta: $('[data-screenrec="region-meta"]'),
     timer: $('[data-screenrec="timer"]'),
     startRecord: $('[data-screenrec="start-record"]'),
     pauseRecord: $('[data-screenrec="pause-record"]'),
     stopRecord: $('[data-screenrec="stop-record"]'),
-    testRecord: $('[data-screenrec="test-record"]'),
-    trimPanel: $('[data-screenrec="trim-panel"]'),
-    trimStart: $('[data-screenrec="trim-start"]'),
-    trimEnd: $('[data-screenrec="trim-end"]'),
-    trimStartLabel: $('[data-screenrec="trim-start-label"]'),
-    trimEndLabel: $('[data-screenrec="trim-end-label"]'),
-    trimLength: $('[data-screenrec="trim-length"]'),
-    trimWindow: $('[data-screenrec="trim-window"]'),
-    selectCrop: $('[data-screenrec="select-crop"]'),
-    clearCrop: $('[data-screenrec="clear-crop"]'),
-    exportBtn: $('[data-screenrec="export"]'),
     download: $('[data-screenrec="download"]'),
     downloadNote: $('[data-screenrec="download-note"]')
   };
@@ -41,7 +26,6 @@
 
   const supportsCapture = Boolean(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
   const supportsRecorder = typeof window.MediaRecorder !== 'undefined';
-  const supportsCanvasCapture = Boolean(window.HTMLCanvasElement && HTMLCanvasElement.prototype && HTMLCanvasElement.prototype.captureStream);
 
   const state = {
     stream: null,
@@ -50,9 +34,6 @@
     recording: false,
     paused: false,
     captureActive: false,
-    testing: false,
-    selecting: false,
-    cropRegion: null,
     timerId: null,
     timerStart: 0,
     timerPausedAt: 0,
@@ -62,15 +43,9 @@
     recordedUrl: null,
     recordedDuration: 0,
     recordedHasAudio: false,
-    trimStart: 0,
-    trimEnd: 0,
-    exporting: false,
+    recordedMimeType: '',
     stopReason: ''
   };
-
-  const MIN_TRIM_GAP = 0.2;
-  const DEFAULT_EXPORT_FPS = 30;
-  const TEST_DURATION_MS = 5000;
 
   const MIME_TYPE_OPTIONS = [
     { label: 'MP4 (H.264)', mimeType: 'video/mp4;codecs=avc1.42E01E' },
@@ -143,22 +118,32 @@
   };
 
   const setFormatOptions = () => {
-    if (!el.format) return;
-    el.format.innerHTML = '';
-    const autoOpt = document.createElement('option');
-    autoOpt.value = 'auto';
-    autoOpt.textContent = 'Auto (best supported)';
-    el.format.appendChild(autoOpt);
+    if (!el.formatOptions) return;
+    el.formatOptions.innerHTML = '';
 
     const supported = getSupportedFormats();
-    supported.forEach((opt) => {
-      const option = document.createElement('option');
-      option.value = opt.mimeType;
-      option.textContent = opt.label;
-      el.format.appendChild(option);
-    });
+    const options = [
+      { label: 'Auto (best supported)', mimeType: 'auto' },
+      ...supported
+    ];
 
-    el.format.value = 'auto';
+    options.forEach((opt, index) => {
+      const label = document.createElement('label');
+      label.className = 'screenrec-radio';
+
+      const input = document.createElement('input');
+      input.type = 'radio';
+      input.name = 'screenrec-format';
+      input.value = opt.mimeType;
+      input.checked = index === 0;
+
+      const text = document.createElement('span');
+      text.textContent = opt.label || opt.mimeType;
+
+      label.appendChild(input);
+      label.appendChild(text);
+      el.formatOptions.appendChild(label);
+    });
 
     if (el.formatHelp) {
       if (!supported.length) {
@@ -173,9 +158,10 @@
   };
 
   const getSelectedMimeType = () => {
-    if (!el.format) return '';
-    if (el.format.value && el.format.value !== 'auto') return el.format.value;
-    return getPreferredMimeType();
+    if (!el.formatOptions) return '';
+    const selected = el.formatOptions.querySelector('input[name="screenrec-format"]:checked');
+    if (!selected || selected.value === 'auto') return getPreferredMimeType();
+    return selected.value;
   };
 
   const setDownload = (blob, mimeType) => {
@@ -252,31 +238,44 @@
     el.captureMeta.textContent = parts.length ? parts.join(' | ') : 'Capture active';
   };
 
-  const updateCropMeta = () => {
-    if (!el.regionMeta) return;
-    if (state.cropRegion) {
-      el.regionMeta.textContent = `Crop ${Math.round(state.cropRegion.width)}x${Math.round(state.cropRegion.height)}`;
-    } else {
-      el.regionMeta.textContent = 'Full frame';
+  const updateButtons = () => {
+    const hasRecording = Boolean(state.recordedUrl);
+    if (el.startCapture) {
+      el.startCapture.disabled = !supportsCapture || !supportsRecorder || state.captureActive || state.recording;
+    }
+    if (el.stopCapture) {
+      el.stopCapture.disabled = !state.captureActive || state.recording;
+    }
+    if (el.startRecord) {
+      el.startRecord.disabled = !state.captureActive || state.recording;
+    }
+    if (el.pauseRecord) {
+      el.pauseRecord.disabled = !state.recording;
+      el.pauseRecord.textContent = state.paused ? 'Resume' : 'Pause';
+    }
+    if (el.stopRecord) {
+      el.stopRecord.disabled = !state.recording;
+    }
+    if (el.audioToggle) {
+      el.audioToggle.disabled = !supportsCapture || state.captureActive || state.recording;
+    }
+    if (el.download) {
+      el.download.hidden = !hasRecording;
     }
   };
 
-  const updateTimer = () => {
-    if (!el.timer) return;
-    if (!state.recording) return;
-    const now = performance.now();
-    const endTime = state.timerPausedAt || now;
-    const elapsed = endTime - state.timerStart - state.totalPausedMs;
-    el.timer.textContent = formatDuration(elapsed);
-  };
-
   const startTimer = () => {
+    if (state.timerId) return;
     state.timerStart = performance.now();
-    state.timerPausedAt = 0;
     state.totalPausedMs = 0;
-    if (el.timer) el.timer.textContent = '00:00';
-    if (state.timerId) clearInterval(state.timerId);
-    state.timerId = setInterval(updateTimer, 250);
+    state.timerPausedAt = 0;
+    state.timerId = setInterval(() => {
+      const now = performance.now();
+      const elapsed = now - state.timerStart - state.totalPausedMs;
+      if (el.timer) {
+        el.timer.textContent = formatDuration(elapsed);
+      }
+    }, 250);
   };
 
   const pauseTimer = () => {
@@ -303,139 +302,7 @@
     }
   };
 
-  const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
-
-  const getRecordedDuration = () => {
-    if (state.recordedDuration) return state.recordedDuration;
-    const duration = el.video && Number.isFinite(el.video.duration) ? el.video.duration : 0;
-    return duration || 0;
-  };
-
-  const updateTrimWindow = () => {
-    if (!el.trimWindow) return;
-    const duration = getRecordedDuration();
-    if (!duration) {
-      el.trimWindow.style.left = '0%';
-      el.trimWindow.style.width = '100%';
-      return;
-    }
-    const startPct = clamp(state.trimStart / duration, 0, 1) * 100;
-    const endPct = clamp(state.trimEnd / duration, 0, 1) * 100;
-    const width = Math.max(0, endPct - startPct);
-    el.trimWindow.style.left = `${startPct}%`;
-    el.trimWindow.style.width = `${width}%`;
-  };
-
-  const updateTrimHandleStack = (source) => {
-    if (!el.trimStart || !el.trimEnd) return;
-    if (source === 'start') {
-      el.trimStart.style.zIndex = '5';
-      el.trimEnd.style.zIndex = '4';
-      return;
-    }
-    if (source === 'end') {
-      el.trimStart.style.zIndex = '3';
-      el.trimEnd.style.zIndex = '5';
-      return;
-    }
-    const nearEnd = state.trimStart > state.trimEnd - (MIN_TRIM_GAP * 2);
-    el.trimStart.style.zIndex = nearEnd ? '5' : '3';
-    el.trimEnd.style.zIndex = '4';
-  };
-
-  const isTrimActive = (duration) => {
-    const clipDuration = duration || getRecordedDuration();
-    if (!clipDuration) return false;
-    return state.trimStart > 0 || state.trimEnd < clipDuration;
-  };
-
-  const enforceTrimPlayback = (forceSeek) => {
-    if (!el.video || !state.recordedUrl || state.testing || state.captureActive) return;
-    const duration = getRecordedDuration();
-    if (!duration || !isTrimActive(duration)) return;
-    const start = clamp(state.trimStart, 0, duration);
-    const end = clamp(state.trimEnd, 0, duration);
-    if (end - start < MIN_TRIM_GAP) return;
-    if (forceSeek || el.video.currentTime < start || el.video.currentTime > end) {
-      el.video.currentTime = start;
-    }
-  };
-
-  const handleVideoTimeUpdate = () => {
-    if (!el.video || !state.recordedUrl || state.testing || state.captureActive) return;
-    const duration = getRecordedDuration();
-    if (!duration || !isTrimActive(duration)) return;
-    const end = clamp(state.trimEnd, 0, duration);
-    if (el.video.currentTime >= end) {
-      el.video.pause();
-      el.video.currentTime = end;
-    }
-  };
-
-  const handleVideoSeeking = () => {
-    if (!el.video || !state.recordedUrl || state.testing || state.captureActive) return;
-    const duration = getRecordedDuration();
-    if (!duration || !isTrimActive(duration)) return;
-    const start = clamp(state.trimStart, 0, duration);
-    const end = clamp(state.trimEnd, 0, duration);
-    const clamped = clamp(el.video.currentTime, start, end);
-    if (Math.abs(clamped - el.video.currentTime) > 0.01) {
-      el.video.currentTime = clamped;
-    }
-  };
-
-  const handleVideoPlay = () => {
-    if (!el.video || !state.recordedUrl || state.testing || state.captureActive) return;
-    const duration = getRecordedDuration();
-    if (!duration || !isTrimActive(duration)) return;
-    const start = clamp(state.trimStart, 0, duration);
-    const end = clamp(state.trimEnd, 0, duration);
-    if (el.video.currentTime < start || el.video.currentTime >= end) {
-      el.video.currentTime = start;
-    }
-  };
-
-  const updateTrimUI = (source) => {
-    if (!el.trimStart || !el.trimEnd) return;
-    const duration = Math.max(0, getRecordedDuration());
-    let start = parseFloat(el.trimStart.value);
-    let end = parseFloat(el.trimEnd.value);
-    if (Number.isNaN(start)) start = 0;
-    if (Number.isNaN(end)) end = duration;
-    start = clamp(start, 0, duration);
-    end = clamp(end, 0, duration);
-    if (end - start < MIN_TRIM_GAP) {
-      if (source === 'start') {
-        start = Math.max(0, end - MIN_TRIM_GAP);
-      } else {
-        end = Math.min(duration, start + MIN_TRIM_GAP);
-      }
-    }
-    state.trimStart = start;
-    state.trimEnd = end;
-    el.trimStart.value = start;
-    el.trimEnd.value = end;
-    if (el.trimStartLabel) el.trimStartLabel.textContent = formatDuration(start * 1000);
-    if (el.trimEndLabel) el.trimEndLabel.textContent = formatDuration(end * 1000);
-    if (el.trimLength) el.trimLength.textContent = formatDuration(Math.max(0, (end - start) * 1000));
-    updateTrimWindow();
-    updateTrimHandleStack(source);
-    enforceTrimPlayback(false);
-  };
-
-  const initTrimControls = () => {
-    if (!el.trimStart || !el.trimEnd) return;
-    el.trimStart.addEventListener('input', () => {
-      updateTrimUI('start');
-      updateButtons();
-    });
-    el.trimEnd.addEventListener('input', () => {
-      updateTrimUI('end');
-      updateButtons();
-    });
-  };
-
-  const resetRecordedClip = () => {
+  const clearRecordedClip = () => {
     if (state.recordedUrl) {
       URL.revokeObjectURL(state.recordedUrl);
     }
@@ -443,24 +310,9 @@
     state.recordedBlob = null;
     state.recordedDuration = 0;
     state.recordedHasAudio = false;
-    state.trimStart = 0;
-    state.trimEnd = 0;
+    state.recordedMimeType = '';
     clearDownload();
-    clearCrop();
-    if (el.trimPanel) el.trimPanel.hidden = true;
-    if (el.trimStart) {
-      el.trimStart.max = '0';
-      el.trimStart.value = '0';
-    }
-    if (el.trimEnd) {
-      el.trimEnd.max = '0';
-      el.trimEnd.value = '0';
-    }
-    if (el.trimStartLabel) el.trimStartLabel.textContent = '00:00';
-    if (el.trimEndLabel) el.trimEndLabel.textContent = '00:00';
-    if (el.trimLength) el.trimLength.textContent = '00:00';
-    updateTrimWindow();
-    updateCaptureMeta();
+    resetTimer();
   };
 
   const setLivePreview = () => {
@@ -474,13 +326,13 @@
     if (el.placeholder) el.placeholder.hidden = true;
   };
 
-  const setRecordedClip = (blob) => {
+  const setRecordedClip = (blob, mimeType) => {
     if (!blob) return;
-    resetTimer();
     if (state.recordedUrl) {
       URL.revokeObjectURL(state.recordedUrl);
     }
     state.recordedBlob = blob;
+    state.recordedMimeType = mimeType || blob.type || '';
     state.recordedUrl = URL.createObjectURL(blob);
     el.video.srcObject = null;
     el.video.src = state.recordedUrl;
@@ -492,15 +344,8 @@
 
     const handleMetadata = () => {
       state.recordedDuration = Number.isFinite(el.video.duration) ? el.video.duration : 0;
-      if (el.trimStart) el.trimStart.max = String(state.recordedDuration);
-      if (el.trimEnd) el.trimEnd.max = String(state.recordedDuration);
-      if (el.trimStart) el.trimStart.value = '0';
-      if (el.trimEnd) el.trimEnd.value = String(state.recordedDuration);
-      updateTrimUI('end');
       resetTimer(state.recordedDuration * 1000);
-      updateCropMeta();
       updateButtons();
-      enforceTrimPlayback(true);
     };
     if (el.video.readyState >= 1) {
       handleMetadata();
@@ -508,226 +353,12 @@
       el.video.addEventListener('loadedmetadata', handleMetadata, { once: true });
     }
 
-    if (el.trimPanel) el.trimPanel.hidden = false;
-    setStatus('Clip ready to trim.', 'ready');
-  };
-
-  const showOverlay = (active) => {
-    if (el.overlay) {
-      el.overlay.classList.toggle('is-active', active);
-    }
-    if (el.overlayLabel) {
-      el.overlayLabel.hidden = !active;
-    }
-  };
-
-  const clearSelection = () => {
-    if (el.selection) {
-      el.selection.hidden = true;
-      el.selection.style.width = '0px';
-      el.selection.style.height = '0px';
-    }
-  };
-
-  const clearCrop = () => {
-    state.cropRegion = null;
-    clearSelection();
-    updateCropMeta();
-    updateButtons();
-  };
-
-  const getDisplayMetrics = () => {
-    const rect = el.video.getBoundingClientRect();
-    const videoWidth = el.video.videoWidth || rect.width;
-    const videoHeight = el.video.videoHeight || rect.height;
-    const elementWidth = rect.width;
-    const elementHeight = rect.height;
-    if (!videoWidth || !videoHeight) {
-      return {
-        rect,
-        videoWidth: elementWidth,
-        videoHeight: elementHeight,
-        displayWidth: elementWidth,
-        displayHeight: elementHeight,
-        offsetX: 0,
-        offsetY: 0
-      };
-    }
-    const videoAspect = videoWidth / videoHeight;
-    const elementAspect = elementWidth / elementHeight;
-    let displayWidth = elementWidth;
-    let displayHeight = elementHeight;
-    let offsetX = 0;
-    let offsetY = 0;
-    if (videoAspect > elementAspect) {
-      displayWidth = elementWidth;
-      displayHeight = elementWidth / videoAspect;
-      offsetY = (elementHeight - displayHeight) / 2;
-    } else {
-      displayHeight = elementHeight;
-      displayWidth = elementHeight * videoAspect;
-      offsetX = (elementWidth - displayWidth) / 2;
-    }
-    return { rect, videoWidth, videoHeight, displayWidth, displayHeight, offsetX, offsetY };
-  };
-
-  const normalizePoint = (clientX, clientY, metrics) => {
-    const x = clientX - metrics.rect.left;
-    const y = clientY - metrics.rect.top;
-    const minX = metrics.offsetX;
-    const minY = metrics.offsetY;
-    const maxX = metrics.offsetX + metrics.displayWidth;
-    const maxY = metrics.offsetY + metrics.displayHeight;
-    return {
-      x: clamp(x, minX, maxX),
-      y: clamp(y, minY, maxY),
-      minX,
-      minY,
-      maxX,
-      maxY
-    };
-  };
-
-  const showSelection = (x, y, width, height) => {
-    if (!el.selection) return;
-    el.selection.hidden = false;
-    el.selection.style.left = `${x}px`;
-    el.selection.style.top = `${y}px`;
-    el.selection.style.width = `${width}px`;
-    el.selection.style.height = `${height}px`;
-  };
-
-  const selectionState = {
-    active: false,
-    startX: 0,
-    startY: 0,
-    metrics: null
-  };
-
-  const startCropSelection = () => {
-    if (!state.recordedUrl || state.recording || state.exporting) return;
-    state.selecting = true;
-    showOverlay(true);
-    setStatus('Drag to select a crop region.', 'pending');
-  };
-
-  const endCropSelection = () => {
-    state.selecting = false;
-    showOverlay(false);
-  };
-
-  const handlePointerDown = (event) => {
-    if (!state.selecting) return;
-    const metrics = getDisplayMetrics();
-    const point = normalizePoint(event.clientX, event.clientY, metrics);
-    selectionState.active = true;
-    selectionState.startX = point.x;
-    selectionState.startY = point.y;
-    selectionState.metrics = metrics;
-    showSelection(point.x, point.y, 0, 0);
-    el.overlay?.setPointerCapture?.(event.pointerId);
-  };
-
-  const handlePointerMove = (event) => {
-    if (!selectionState.active) return;
-    const metrics = selectionState.metrics || getDisplayMetrics();
-    const point = normalizePoint(event.clientX, event.clientY, metrics);
-    const startX = selectionState.startX;
-    const startY = selectionState.startY;
-    const x = Math.min(startX, point.x);
-    const y = Math.min(startY, point.y);
-    const width = Math.abs(point.x - startX);
-    const height = Math.abs(point.y - startY);
-    showSelection(x, y, width, height);
-  };
-
-  const handlePointerUp = (event) => {
-    if (!selectionState.active) return;
-    const metrics = selectionState.metrics || getDisplayMetrics();
-    const point = normalizePoint(event.clientX, event.clientY, metrics);
-    const startX = selectionState.startX;
-    const startY = selectionState.startY;
-    const x = Math.min(startX, point.x);
-    const y = Math.min(startY, point.y);
-    const width = Math.abs(point.x - startX);
-    const height = Math.abs(point.y - startY);
-    selectionState.active = false;
-
-    const minSize = 40;
-    if (width < minSize || height < minSize) {
-      clearCrop();
-      setStatus('Crop region too small. Drag a larger area.', 'warn');
-      endCropSelection();
-      return;
-    }
-
-    const scaleX = metrics.videoWidth / metrics.displayWidth;
-    const scaleY = metrics.videoHeight / metrics.displayHeight;
-    const cropX = (x - metrics.offsetX) * scaleX;
-    const cropY = (y - metrics.offsetY) * scaleY;
-    const cropWidth = width * scaleX;
-    const cropHeight = height * scaleY;
-
-    state.cropRegion = {
-      x: Math.max(0, cropX),
-      y: Math.max(0, cropY),
-      width: Math.max(1, cropWidth),
-      height: Math.max(1, cropHeight)
-    };
-
-    showSelection(x, y, width, height);
-    setStatus('Crop region set.', 'ready');
-    endCropSelection();
-    updateCropMeta();
-    updateButtons();
-  };
-
-  const handlePointerCancel = () => {
-    if (!selectionState.active) return;
-    selectionState.active = false;
-    clearCrop();
-    endCropSelection();
-  };
-
-  const updateButtons = () => {
-    const hasRecording = Boolean(state.recordedUrl);
-    const trimOk = hasRecording && (state.trimEnd - state.trimStart) >= MIN_TRIM_GAP;
-    const busy = state.recording || state.exporting || state.testing;
-    if (el.startCapture) {
-      el.startCapture.disabled = !supportsCapture || !supportsRecorder || state.captureActive || busy;
-    }
-    if (el.stopCapture) {
-      el.stopCapture.disabled = !state.captureActive || busy;
-    }
-    if (el.startRecord) {
-      el.startRecord.disabled = !state.captureActive || busy;
-    }
-    if (el.pauseRecord) {
-      el.pauseRecord.disabled = !state.recording || state.exporting || state.testing;
-      el.pauseRecord.textContent = state.paused ? 'Resume' : 'Pause';
-    }
-    if (el.stopRecord) {
-      el.stopRecord.disabled = !state.recording || state.exporting || state.testing;
-    }
-    if (el.testRecord) {
-      el.testRecord.disabled = !state.captureActive || state.recording || state.exporting || state.testing;
-    }
-    if (el.selectCrop) {
-      el.selectCrop.disabled = !hasRecording || !supportsCanvasCapture || state.exporting;
-    }
-    if (el.clearCrop) {
-      el.clearCrop.disabled = !state.cropRegion || state.exporting;
-    }
-    if (el.exportBtn) {
-      el.exportBtn.disabled = !hasRecording || !supportsCanvasCapture || state.exporting || !trimOk;
-    }
-    if (el.audioToggle) {
-      el.audioToggle.disabled = !supportsCapture || state.captureActive || state.recording || state.exporting || state.testing;
-    }
+    setDownload(blob, state.recordedMimeType);
+    setStatus('Clip ready to download.', 'ready');
   };
 
   const startCapture = async () => {
-    if (!supportsCapture || !supportsRecorder || state.captureActive || state.recording || state.testing) return;
+    if (!supportsCapture || !supportsRecorder || state.captureActive || state.recording) return;
     setStatus('Requesting capture permission...', 'pending');
 
     const includeAudio = Boolean(el.audioToggle?.checked);
@@ -763,14 +394,12 @@
       });
     }
 
-    clearDownload();
-    resetRecordedClip();
+    clearRecordedClip();
     state.stream = stream;
     state.captureActive = true;
     state.stopReason = '';
     setLivePreview();
     updateCaptureMeta();
-    updateCropMeta();
     updateButtons();
     resetTimer();
 
@@ -779,11 +408,6 @@
       if (state.recording) {
         state.stopReason = 'Capture ended by the browser.';
         stopRecording();
-      } else if (state.testing) {
-        state.stopReason = 'Capture ended by the browser.';
-        state.testing = false;
-        updateButtons();
-        stopCapture('Capture ended by the browser.');
       } else {
         stopCapture('Capture ended by the browser.');
       }
@@ -808,7 +432,7 @@
       if (el.placeholder) el.placeholder.hidden = false;
     }
     resetTimer(state.recordedDuration ? state.recordedDuration * 1000 : 0);
-    const message = reason || state.stopReason || (state.recordedUrl ? 'Capture stopped. Clip ready to trim.' : 'Capture stopped.');
+    const message = reason || state.stopReason || (state.recordedUrl ? 'Capture stopped. Clip ready to download.' : 'Capture stopped.');
     setStatus(message, state.recordedUrl ? 'ready' : 'idle');
     state.stopReason = '';
   };
@@ -833,10 +457,9 @@
   };
 
   const startRecording = () => {
-    if (!state.captureActive || state.recording || state.testing || !state.stream) return;
+    if (!state.captureActive || state.recording || !state.stream) return;
     clearDownload();
-    resetRecordedClip();
-    clearCrop();
+    clearRecordedClip();
 
     const mimeType = getSelectedMimeType();
     let recorderInfo;
@@ -868,7 +491,7 @@
         const blob = new Blob(state.chunks, { type: mime });
         state.chunks = [];
         state.recordedHasAudio = streamHasAudio(state.stream);
-        setRecordedClip(blob);
+        setRecordedClip(blob, mime);
       } else {
         setStatus('Recording stopped. No data captured.', 'warn');
       }
@@ -876,9 +499,16 @@
       updateButtons();
     }, { once: true });
 
-    state.recorder.start(200);
-    setStatus('Recording...', 'recording');
-    updateButtons();
+    try {
+      state.recorder.start(200);
+      setStatus('Recording...', 'recording');
+      updateButtons();
+    } catch (err) {
+      state.recording = false;
+      stopTimer();
+      setStatus('Recording failed to start.', 'error');
+      updateButtons();
+    }
   };
 
   const togglePause = () => {
@@ -904,304 +534,24 @@
     }
   };
 
-  const playTestClip = (blob) => {
-    if (!blob) {
-      setStatus('Test recording failed.', 'warn');
-      state.testing = false;
-      updateButtons();
-      return;
-    }
-    const url = URL.createObjectURL(blob);
-    state.testing = true;
-    el.video.srcObject = null;
-    el.video.src = url;
-    el.video.controls = true;
-    el.video.loop = false;
-    el.video.muted = false;
-    el.video.play().catch(() => {});
-
-    const restore = () => {
-      URL.revokeObjectURL(url);
-      state.testing = false;
-      if (state.captureActive && state.stream) {
-        setLivePreview();
-        setStatus('Test complete. Live preview restored.', 'ready');
-        updateCaptureMeta();
-      } else {
-        setStatus('Test complete.', 'ready');
-      }
-      updateButtons();
-    };
-
-    el.video.addEventListener('ended', restore, { once: true });
-  };
-
-  const recordTestClip = () => {
-    if (!state.captureActive || state.recording || state.exporting || state.testing || !state.stream) return;
-    state.testing = true;
-    updateButtons();
-    setStatus('Recording test clip...', 'pending');
-
-    const mimeType = getSelectedMimeType();
-    let recorderInfo;
-    try {
-      recorderInfo = createRecorder(state.stream, mimeType);
-    } catch (_) {
-      state.testing = false;
-      updateButtons();
-      setStatus('Test recording failed to initialize.', 'error');
-      return;
-    }
-
-    const testRecorder = recorderInfo.recorder;
-    const chunks = [];
-
-    testRecorder.addEventListener('dataavailable', (event) => {
-      if (event.data && event.data.size > 0) {
-        chunks.push(event.data);
-      }
-    });
-
-    const stopTimerId = setTimeout(() => {
-      if (testRecorder.state !== 'inactive') {
-        testRecorder.stop();
-      }
-    }, TEST_DURATION_MS);
-
-  testRecorder.addEventListener('stop', () => {
-      clearTimeout(stopTimerId);
-      const mime = testRecorder.mimeType || recorderInfo.mimeType || 'video/webm';
-      if (chunks.length) {
-        const blob = new Blob(chunks, { type: mime });
-        setStatus('Playing test clip...', 'ready');
-        playTestClip(blob);
-      } else {
-        state.testing = false;
-        updateButtons();
-        setStatus('Test recording produced no data.', 'warn');
-      }
-    }, { once: true });
-
-    try {
-      testRecorder.start(200);
-    } catch (err) {
-      clearTimeout(stopTimerId);
-      state.testing = false;
-      updateButtons();
-      setStatus('Test recording failed to start.', 'error');
-    }
-  };
-
-  const waitForEvent = (target, event, readyCheck) => new Promise((resolve) => {
-    if (readyCheck && readyCheck()) {
-      resolve();
-      return;
-    }
-    const handler = () => {
-      target.removeEventListener(event, handler);
-      resolve();
-    };
-    target.addEventListener(event, handler);
-  });
-
-  const exportClip = async () => {
-    if (!state.recordedUrl || !supportsCanvasCapture || state.exporting) return;
-    if ((state.trimEnd - state.trimStart) < MIN_TRIM_GAP) {
-      setStatus('Trim range is too short.', 'warn');
-      return;
-    }
-
-    state.exporting = true;
-    updateButtons();
-    clearDownload();
-    setStatus('Exporting clip...', 'pending');
-
-    const exportVideo = document.createElement('video');
-    exportVideo.src = state.recordedUrl;
-    exportVideo.muted = !state.recordedHasAudio;
-    exportVideo.playsInline = true;
-    exportVideo.preload = 'auto';
-
-    let didCleanup = false;
-    let cleanup = () => {};
-
-    try {
-      await waitForEvent(exportVideo, 'loadedmetadata', () => exportVideo.readyState >= 1);
-      const duration = Number.isFinite(exportVideo.duration) ? exportVideo.duration : state.recordedDuration;
-      const start = clamp(state.trimStart, 0, duration);
-      const end = clamp(state.trimEnd, 0, duration);
-
-      if (end - start < MIN_TRIM_GAP) {
-        setStatus('Trim range is too short.', 'warn');
-        state.exporting = false;
-        updateButtons();
-        return;
-      }
-
-      exportVideo.currentTime = start;
-      await waitForEvent(exportVideo, 'seeked', () => Math.abs(exportVideo.currentTime - start) < 0.01);
-
-      const sourceWidth = exportVideo.videoWidth || 1;
-      const sourceHeight = exportVideo.videoHeight || 1;
-      const crop = state.cropRegion;
-      const sx = crop ? crop.x : 0;
-      const sy = crop ? crop.y : 0;
-      const sw = crop ? crop.width : sourceWidth;
-      const sh = crop ? crop.height : sourceHeight;
-
-      const canvas = document.createElement('canvas');
-      canvas.width = Math.round(sw);
-      canvas.height = Math.round(sh);
-      const ctx = canvas.getContext('2d', { alpha: false });
-      const canvasStream = canvas.captureStream(DEFAULT_EXPORT_FPS);
-      const outputStream = new MediaStream();
-      const videoTrack = canvasStream.getVideoTracks()[0];
-      if (videoTrack) outputStream.addTrack(videoTrack);
-
-      let audioContext = null;
-      let audioTracks = [];
-      if (state.recordedHasAudio && (window.AudioContext || window.webkitAudioContext)) {
-        try {
-          const AudioCtx = window.AudioContext || window.webkitAudioContext;
-          audioContext = new AudioCtx();
-          const source = audioContext.createMediaElementSource(exportVideo);
-          const destination = audioContext.createMediaStreamDestination();
-          source.connect(destination);
-          if (audioContext.state === 'suspended') {
-            await audioContext.resume();
-          }
-          audioTracks = destination.stream.getAudioTracks();
-          audioTracks.forEach((track) => outputStream.addTrack(track));
-        } catch (_) {
-          audioTracks = [];
-        }
-      }
-
-      if (state.recordedHasAudio && !audioTracks.length) {
-        setStatus('Exporting clip without audio (browser limitation).', 'warn');
-      }
-
-      cleanup = () => {
-        if (didCleanup) return;
-        didCleanup = true;
-        stopTracks(canvasStream);
-        audioTracks.forEach((track) => track.stop());
-        if (audioContext) {
-          audioContext.close().catch(() => {});
-        }
-      };
-
-      const mimeType = getSelectedMimeType();
-      const { recorder, mimeType: recorderMime } = createRecorder(outputStream, mimeType);
-      const chunks = [];
-
-      recorder.addEventListener('dataavailable', (event) => {
-        if (event.data && event.data.size > 0) {
-          chunks.push(event.data);
-        }
-      });
-
-      const stopPromise = new Promise((resolve) => {
-        recorder.addEventListener('stop', () => {
-          cleanup();
-          resolve();
-        }, { once: true });
-      });
-
-      recorder.start(200);
-
-      const drawFrame = () => {
-        if (exportVideo.paused || exportVideo.ended) return;
-        ctx.drawImage(exportVideo, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
-        requestAnimationFrame(drawFrame);
-      };
-
-      const monitor = () => {
-        if (exportVideo.currentTime >= (end - 0.03) || exportVideo.ended) {
-          exportVideo.pause();
-          recorder.stop();
-          return;
-        }
-        requestAnimationFrame(monitor);
-      };
-
-      await exportVideo.play();
-      drawFrame();
-      monitor();
-      await stopPromise;
-
-      if (chunks.length) {
-        const mime = recorder.mimeType || recorderMime || 'video/webm';
-        const blob = new Blob(chunks, { type: mime });
-        setDownload(blob, mime);
-        setStatus('Export ready. Download below.', 'ready');
-      } else {
-        setStatus('Export failed to produce data.', 'error');
-      }
-    } catch (err) {
-      setStatus('Export failed. Try again.', 'error');
-    } finally {
-      state.exporting = false;
-      cleanup();
-      updateButtons();
-    }
-  };
-
   const init = () => {
-    if (!supportsCapture || !supportsRecorder) {
-      setStatus('Screen recording is not supported in this browser.', 'error');
-      if (el.formatHelp) {
-        el.formatHelp.textContent = 'Upgrade to a modern browser with Screen Capture and MediaRecorder support.';
-      }
-      updateButtons();
-      return;
-    }
-
     setFormatOptions();
-    if (!supportsCanvasCapture && el.formatHelp) {
-      el.formatHelp.textContent += ' Trim and crop require canvas capture support.';
-    }
+    updateCaptureMeta();
     updateButtons();
-    updateCropMeta();
-    initTrimControls();
 
     el.startCapture?.addEventListener('click', startCapture);
     el.stopCapture?.addEventListener('click', () => stopCapture());
     el.startRecord?.addEventListener('click', startRecording);
     el.pauseRecord?.addEventListener('click', togglePause);
     el.stopRecord?.addEventListener('click', stopRecording);
-    el.testRecord?.addEventListener('click', recordTestClip);
-    el.selectCrop?.addEventListener('click', startCropSelection);
-    el.clearCrop?.addEventListener('click', () => {
-      clearCrop();
-      setStatus('Crop cleared.', 'ready');
-    });
-    el.exportBtn?.addEventListener('click', exportClip);
     el.download?.addEventListener('click', (event) => {
       if (!state.downloadUrl) {
         event.preventDefault();
-        setStatus('Export a clip before downloading.', 'warn');
-      }
-    });
-
-    el.overlay?.addEventListener('pointerdown', handlePointerDown);
-    el.overlay?.addEventListener('pointermove', handlePointerMove);
-    el.overlay?.addEventListener('pointerup', handlePointerUp);
-    el.overlay?.addEventListener('pointercancel', handlePointerCancel);
-    el.overlay?.addEventListener('pointerleave', handlePointerCancel);
-
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && state.selecting) {
-        handlePointerCancel();
-        setStatus('Crop selection cancelled.', 'warn');
+        setStatus('Record a clip before downloading.', 'warn');
       }
     });
 
     el.video?.addEventListener('loadedmetadata', updateCaptureMeta);
-    el.video?.addEventListener('loadedmetadata', updateTrimWindow);
-    el.video?.addEventListener('timeupdate', handleVideoTimeUpdate);
-    el.video?.addEventListener('seeking', handleVideoSeeking);
-    el.video?.addEventListener('play', handleVideoPlay);
   };
 
   init();
