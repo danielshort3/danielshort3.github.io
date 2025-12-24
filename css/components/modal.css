@@ -542,6 +542,36 @@
     overflow:hidden;
     position:relative;
   }
+  .modal-embed-loader{
+    position:absolute;
+    inset:0;
+    display:grid;
+    place-items:center;
+    gap:10px;
+    background:color-mix(in srgb,var(--surface) 88%, #020507 12%);
+    color:var(--text);
+    text-align:center;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 160ms ease;
+    z-index:2;
+  }
+  .modal-embed.is-loading .modal-embed-loader{
+    opacity:1;
+    pointer-events:auto;
+  }
+  .modal-embed-spinner{
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    border:3px solid color-mix(in srgb,var(--primary) 55%, #fff 45%);
+    border-right-color:transparent;
+    animation:modal-spin 1s linear infinite;
+  }
+  .modal-embed-text{
+    font-size:.92rem;
+    color:var(--text-muted);
+  }
   .modal-embed iframe {
     width:100%;
     border:none;

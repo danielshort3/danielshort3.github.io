@@ -366,6 +366,10 @@
 
     const ifr = modal.querySelector('.modal-embed iframe');
     if (ifr) {
+      const embedShell = ifr.closest('.modal-embed');
+      if (embedShell && ifr.dataset.loaded !== 'true') {
+        embedShell.classList.add('is-loading');
+      }
       if (ifr.dataset.src && !ifr.src) {
         ifr.src = ifr.dataset.src;
       }
@@ -376,11 +380,16 @@
       if (!ifr._resizeBound) {
         ifr._resizeBound = true;
         ifr.addEventListener('load', () => {
+          ifr.dataset.loaded = 'true';
+          const shell = ifr.closest('.modal-embed');
+          if (shell) shell.classList.remove('is-loading');
           try { resizeIframeToContent(ifr); } catch {}
           setTimeout(() => { try { resizeIframeToContent(ifr); } catch {}; }, 50);
           setTimeout(() => { try { resizeIframeToContent(ifr); } catch {}; }, 350);
           try { ifr.contentWindow?.document?.fonts?.ready?.then(() => resizeIframeToContent(ifr)); } catch {}
         });
+      } else if (embedShell && ifr.dataset.loaded === 'true') {
+        embedShell.classList.remove('is-loading');
       }
     }
 
@@ -459,6 +468,10 @@
       if (isIframe) {
         return `
         <div class="modal-embed">
+          <div class="modal-embed-loader" role="status" aria-live="polite">
+            <span class="modal-embed-spinner" aria-hidden="true"></span>
+            <span class="modal-embed-text">Loading demo...</span>
+          </div>
           <iframe data-src="${p.embed.url}" loading="lazy"></iframe>
         </div>`;
       }
@@ -493,6 +506,10 @@
            data-embed-base="${base || ''}"
            data-embed-src=""
            data-title="${p.title || ''}">
+        <div class="modal-embed-loader" role="status" aria-live="polite">
+          <span class="modal-embed-spinner" aria-hidden="true"></span>
+          <span class="modal-embed-text">Loading demo...</span>
+        </div>
         <button class="media-zoom-toggle" type="button" aria-label="Open larger media" aria-pressed="false">
           <span class="media-zoom-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
