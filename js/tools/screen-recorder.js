@@ -10,16 +10,21 @@
     audioHelp: $('[data-screenrec="audio-help"]'),
     startCapture: $('[data-screenrec="start-capture"]'),
     stopCapture: $('[data-screenrec="stop-capture"]'),
+    grid: $('[data-screenrec="grid"]'),
+    controlsPanel: $('[data-screenrec="controls-panel"]'),
+    previewPanel: $('[data-screenrec="preview-panel"]'),
     video: $('[data-screenrec="video"]'),
     placeholder: $('[data-screenrec="placeholder"]'),
     status: $('[data-screenrec="status"]'),
+    statusSecondary: $('[data-screenrec="status-secondary"]'),
     captureMeta: $('[data-screenrec="capture-meta"]'),
     timer: $('[data-screenrec="timer"]'),
     startRecord: $('[data-screenrec="start-record"]'),
     pauseRecord: $('[data-screenrec="pause-record"]'),
     stopRecord: $('[data-screenrec="stop-record"]'),
     download: $('[data-screenrec="download"]'),
-    downloadNote: $('[data-screenrec="download-note"]')
+    downloadNote: $('[data-screenrec="download-note"]'),
+    downloadPanel: $('[data-screenrec="download-panel"]')
   };
 
   if (!el.startCapture || !el.video || !el.startRecord) return;
@@ -64,13 +69,16 @@
   ];
 
   const setStatus = (text, tone) => {
-    if (!el.status) return;
-    el.status.textContent = text;
-    if (tone) {
-      el.status.dataset.tone = tone;
-    } else {
-      delete el.status.dataset.tone;
-    }
+    const targets = [el.status, el.statusSecondary].filter(Boolean);
+    if (!targets.length) return;
+    targets.forEach((target) => {
+      target.textContent = text;
+      if (tone) {
+        target.dataset.tone = tone;
+      } else {
+        delete target.dataset.tone;
+      }
+    });
   };
 
   const formatDuration = (ms) => {
@@ -176,6 +184,9 @@
     el.download.href = url;
     el.download.download = name;
     el.download.hidden = false;
+    if (el.downloadPanel) {
+      el.downloadPanel.hidden = false;
+    }
     if (el.downloadNote) {
       el.downloadNote.textContent = `Ready: ${name} (${formatBytes(blob.size)}).`;
       el.downloadNote.hidden = false;
@@ -192,9 +203,26 @@
       el.download.href = '#';
       el.download.removeAttribute('download');
     }
+    if (el.downloadPanel) {
+      el.downloadPanel.hidden = true;
+    }
     if (el.downloadNote) {
       el.downloadNote.hidden = true;
       el.downloadNote.textContent = '';
+    }
+  };
+
+  const setView = (view) => {
+    if (el.controlsPanel) el.controlsPanel.hidden = view === 'preview';
+    if (el.previewPanel) el.previewPanel.hidden = view !== 'preview';
+    if (el.grid) el.grid.dataset.view = view;
+    if (view === 'preview') {
+      if (el.placeholder) el.placeholder.hidden = true;
+    } else if (!state.captureActive && el.placeholder) {
+      el.placeholder.hidden = true;
+    }
+    if (view !== 'preview' && el.video) {
+      el.video.pause();
     }
   };
 
@@ -399,6 +427,7 @@
     state.captureActive = true;
     state.stopReason = '';
     setLivePreview();
+    setView('preview');
     updateCaptureMeta();
     updateButtons();
     resetTimer();
@@ -427,9 +456,9 @@
     state.captureActive = false;
     updateCaptureMeta();
     updateButtons();
+    setView('controls');
     if (!state.recordedUrl) {
       el.video.srcObject = null;
-      if (el.placeholder) el.placeholder.hidden = false;
     }
     resetTimer(state.recordedDuration ? state.recordedDuration * 1000 : 0);
     const message = reason || state.stopReason || (state.recordedUrl ? 'Capture stopped. Clip ready to download.' : 'Capture stopped.');
@@ -538,6 +567,7 @@
     setFormatOptions();
     updateCaptureMeta();
     updateButtons();
+    setView('controls');
 
     el.startCapture?.addEventListener('click', startCapture);
     el.stopCapture?.addEventListener('click', () => stopCapture());
