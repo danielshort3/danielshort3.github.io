@@ -218,6 +218,17 @@
   .screenrec-preview-header > div{
     min-width:0;
   }
+  .screenrec-preview-controls{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-left:auto;
+  }
+  .screenrec-preview-controls .screenrec-actions{
+    justify-content:flex-end;
+  }
 
   .screenrec-status{
     display:inline-flex;
@@ -303,7 +314,8 @@
 
   .screenrec-preview-meta{
     display:grid;
-    gap:8px;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:12px;
     min-width:0;
   }
 
@@ -315,6 +327,7 @@
     font-size:.92rem;
     min-width:0;
     flex-wrap:wrap;
+    width:100%;
   }
   .screenrec-meta-row span{
     min-width:0;
@@ -329,13 +342,17 @@
   }
 
   .screenrec-preview-actions{
-    display:flex;
-    flex-wrap:wrap;
+    display:grid;
+    grid-template-columns:repeat(3, minmax(0, 1fr));
     gap:10px;
+  }
+  .screenrec-preview-actions button{
+    width:100%;
   }
   .screenrec-download-actions{
     padding-top:0;
     border-top:none;
+    justify-content:center;
   }
 
   .screenrec-download-note{

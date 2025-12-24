@@ -96,7 +96,7 @@
                 <p class="screenrec-help" data-screenrec="audio-help">Audio selection is locked once capture starts.</p>
               </div>
 
-              <div class="screenrec-actions">
+              <div class="screenrec-actions" data-screenrec="capture-actions">
                 <button type="button" class="btn-primary" data-screenrec="start-capture">Start capture</button>
                 <button type="button" class="btn-secondary" data-screenrec="stop-capture" disabled>Stop capture</button>
               </div>
@@ -113,11 +113,14 @@
 
           <div class="screenrec-card screenrec-preview" data-screenrec="preview-panel" aria-live="polite" hidden>
             <div class="screenrec-preview-header">
-              <div>
+              <div class="screenrec-preview-title">
                 <h2>Preview</h2>
                 <p class="screenrec-subtitle">Live preview while capture is active.</p>
               </div>
-              <span class="screenrec-status" data-screenrec="status" data-tone="idle">Idle</span>
+              <div class="screenrec-preview-controls">
+                <span class="screenrec-status" data-screenrec="status" data-tone="idle">Idle</span>
+                <div data-screenrec="capture-actions-slot"></div>
+              </div>
             </div>
             <div class="screenrec-stage" data-screenrec="stage">
               <video class="screenrec-video" data-screenrec="video" playsinline muted></video>
@@ -139,6 +142,12 @@
               <button type="button" class="btn-primary" data-screenrec="start-record" disabled>Start recording</button>
               <button type="button" class="btn-secondary" data-screenrec="pause-record" disabled>Pause</button>
               <button type="button" class="btn-ghost" data-screenrec="stop-record" disabled>Stop recording</button>
+            </div>
+            <div class="screenrec-download-panel" data-screenrec="download-panel" hidden>
+              <div class="screenrec-download-actions">
+                <a class="btn-primary screenrec-download" data-screenrec="download" href="#" download hidden>Download</a>
+              </div>
+              <p class="screenrec-download-note" data-screenrec="download-note" hidden></p>
             </div>
           </div>
         </div>

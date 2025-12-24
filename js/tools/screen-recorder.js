@@ -2,6 +2,7 @@
   'use strict';
 
   const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
   const el = {
     formatOptions: $('[data-screenrec="format-options"]'),
@@ -10,6 +11,8 @@
     audioHelp: $('[data-screenrec="audio-help"]'),
     startCapture: $('[data-screenrec="start-capture"]'),
     stopCapture: $('[data-screenrec="stop-capture"]'),
+    captureActions: $('[data-screenrec="capture-actions"]'),
+    captureActionsSlot: $('[data-screenrec="capture-actions-slot"]'),
     grid: $('[data-screenrec="grid"]'),
     controlsPanel: $('[data-screenrec="controls-panel"]'),
     previewPanel: $('[data-screenrec="preview-panel"]'),
@@ -22,15 +25,19 @@
     startRecord: $('[data-screenrec="start-record"]'),
     pauseRecord: $('[data-screenrec="pause-record"]'),
     stopRecord: $('[data-screenrec="stop-record"]'),
-    download: $('[data-screenrec="download"]'),
-    downloadNote: $('[data-screenrec="download-note"]'),
-    downloadPanel: $('[data-screenrec="download-panel"]')
+    downloadLinks: $$('[data-screenrec="download"]'),
+    downloadNotes: $$('[data-screenrec="download-note"]'),
+    downloadPanels: $$('[data-screenrec="download-panel"]')
   };
 
   if (!el.startCapture || !el.video || !el.startRecord) return;
 
   const supportsCapture = Boolean(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
   const supportsRecorder = typeof window.MediaRecorder !== 'undefined';
+  const captureActionsHome = {
+    parent: el.captureActions ? el.captureActions.parentElement : null,
+    nextSibling: el.captureActions ? el.captureActions.nextElementSibling : null
+  };
 
   const state = {
     stream: null,
@@ -173,7 +180,7 @@
   };
 
   const setDownload = (blob, mimeType) => {
-    if (!el.download) return;
+    if (!el.downloadLinks.length) return;
     if (state.downloadUrl) {
       URL.revokeObjectURL(state.downloadUrl);
     }
@@ -181,16 +188,18 @@
     const name = buildFilename(ext);
     const url = URL.createObjectURL(blob);
     state.downloadUrl = url;
-    el.download.href = url;
-    el.download.download = name;
-    el.download.hidden = false;
-    if (el.downloadPanel) {
-      el.downloadPanel.hidden = false;
-    }
-    if (el.downloadNote) {
-      el.downloadNote.textContent = `Ready: ${name} (${formatBytes(blob.size)}).`;
-      el.downloadNote.hidden = false;
-    }
+    el.downloadPanels.forEach((panel) => {
+      panel.hidden = false;
+    });
+    el.downloadLinks.forEach((link) => {
+      link.href = url;
+      link.download = name;
+      link.hidden = false;
+    });
+    el.downloadNotes.forEach((note) => {
+      note.textContent = `Ready: ${name} (${formatBytes(blob.size)}).`;
+      note.hidden = false;
+    });
   };
 
   const clearDownload = () => {
@@ -198,17 +207,34 @@
       URL.revokeObjectURL(state.downloadUrl);
     }
     state.downloadUrl = null;
-    if (el.download) {
-      el.download.hidden = true;
-      el.download.href = '#';
-      el.download.removeAttribute('download');
-    }
-    if (el.downloadPanel) {
-      el.downloadPanel.hidden = true;
-    }
-    if (el.downloadNote) {
-      el.downloadNote.hidden = true;
-      el.downloadNote.textContent = '';
+    el.downloadPanels.forEach((panel) => {
+      panel.hidden = true;
+    });
+    el.downloadLinks.forEach((link) => {
+      link.hidden = true;
+      link.href = '#';
+      link.removeAttribute('download');
+    });
+    el.downloadNotes.forEach((note) => {
+      note.hidden = true;
+      note.textContent = '';
+    });
+  };
+
+  const moveCaptureActions = (target) => {
+    if (!el.captureActions || !target) return;
+    if (target.contains(el.captureActions)) return;
+    target.appendChild(el.captureActions);
+  };
+
+  const restoreCaptureActions = () => {
+    if (!el.captureActions || !captureActionsHome.parent) return;
+    if (captureActionsHome.parent.contains(el.captureActions)) return;
+    const sibling = captureActionsHome.nextSibling;
+    if (sibling && sibling.parentElement === captureActionsHome.parent) {
+      captureActionsHome.parent.insertBefore(el.captureActions, sibling);
+    } else {
+      captureActionsHome.parent.appendChild(el.captureActions);
     }
   };
 
@@ -218,8 +244,12 @@
     if (el.grid) el.grid.dataset.view = view;
     if (view === 'preview') {
       if (el.placeholder) el.placeholder.hidden = true;
-    } else if (!state.captureActive && el.placeholder) {
-      el.placeholder.hidden = true;
+      moveCaptureActions(el.captureActionsSlot);
+    } else {
+      if (!state.captureActive && el.placeholder) {
+        el.placeholder.hidden = true;
+      }
+      restoreCaptureActions();
     }
     if (view !== 'preview' && el.video) {
       el.video.pause();
@@ -287,8 +317,11 @@
     if (el.audioToggle) {
       el.audioToggle.disabled = !supportsCapture || state.captureActive || state.recording;
     }
-    if (el.download) {
-      el.download.hidden = !hasRecording;
+    if (el.downloadLinks.length) {
+      const hasDownload = Boolean(state.downloadUrl);
+      el.downloadLinks.forEach((link) => {
+        link.hidden = !hasRecording || !hasDownload;
+      });
     }
   };
 
@@ -382,7 +415,7 @@
     }
 
     setDownload(blob, state.recordedMimeType);
-    setStatus('Clip ready to download.', 'ready');
+    setStatus('Clip ready to download. Stop capture when you are done.', 'ready');
   };
 
   const startCapture = async () => {
@@ -524,7 +557,6 @@
       } else {
         setStatus('Recording stopped. No data captured.', 'warn');
       }
-      stopCapture();
       updateButtons();
     }, { once: true });
 
@@ -574,11 +606,13 @@
     el.startRecord?.addEventListener('click', startRecording);
     el.pauseRecord?.addEventListener('click', togglePause);
     el.stopRecord?.addEventListener('click', stopRecording);
-    el.download?.addEventListener('click', (event) => {
-      if (!state.downloadUrl) {
-        event.preventDefault();
-        setStatus('Record a clip before downloading.', 'warn');
-      }
+    el.downloadLinks.forEach((link) => {
+      link.addEventListener('click', (event) => {
+        if (!state.downloadUrl) {
+          event.preventDefault();
+          setStatus('Record a clip before downloading.', 'warn');
+        }
+      });
     });
 
     el.video?.addEventListener('loadedmetadata', updateCaptureMeta);
