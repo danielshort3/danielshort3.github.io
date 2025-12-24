@@ -6,11 +6,11 @@
   <base href="/">
   <title>Screen Recorder | Daniel Short</title>
   <link rel="canonical" href="https://danielshort.me/tools/screen-recorder">
-  <meta name="description" content="Record your screen with optional system audio, then trim and crop the clip before exporting in browser-supported formats. Everything runs locally.">
+  <meta name="description" content="Record your screen with optional system audio and download the clip in browser-supported formats. Everything runs locally.">
   <meta name="robots" content="noindex, nofollow">
   <meta property="og:title" content="Screen Recorder | Daniel Short">
   <meta property="og:site_name" content="Daniel Short - Data Science &amp; Analytics">
-  <meta property="og:description" content="Capture your screen with optional system audio, then trim and crop the clip before exporting in browser-supported formats. Everything runs locally.">
+  <meta property="og:description" content="Capture your screen with optional system audio and download the clip in browser-supported formats. Everything runs locally.">
   <meta property="og:url" content="https://danielshort.me/tools/screen-recorder">
   <meta property="og:image" content="https://danielshort.me/img/hero/head.jpg">
   <meta property="og:image:alt" content="Portrait photo of Daniel Short">
@@ -43,7 +43,7 @@
     <div class="wrapper">
       <p class="hero-eyebrow">Labs</p>
       <h1>Screen Recorder</h1>
-      <p class="screenrec-lead">Record your screen, window, or browser tab, then trim and crop the clip before exporting. Choose a format your browser supports, with optional system audio capture.</p>
+      <p class="screenrec-lead">Record your screen, window, or browser tab and download the clip in a format your browser supports, with optional system audio capture.</p>
       <div class="screenrec-steps">
         <div class="screenrec-step">
           <span class="screenrec-step-number">1</span>
@@ -62,8 +62,8 @@
         <div class="screenrec-step">
           <span class="screenrec-step-number">3</span>
           <div>
-            <h3>Trim and crop</h3>
-            <p>Adjust the in/out points, select a crop region, and export your clip.</p>
+            <h3>Download the clip</h3>
+            <p>Stop recording and grab the file in your selected format.</p>
           </div>
         </div>
       </div>
@@ -79,8 +79,8 @@
             <p class="screenrec-subtitle">All recording stays on-device. No uploads, with optional system audio.</p>
             <form class="screenrec-form" novalidate>
               <div class="screenrec-field">
-                <label class="screenrec-label" for="screenrec-format">Output format</label>
-                <select id="screenrec-format" class="screenrec-select" data-screenrec="format"></select>
+                <span class="screenrec-label">Download format</span>
+                <div class="screenrec-radio-group" data-screenrec="format-options"></div>
                 <p class="screenrec-help" data-screenrec="format-help">Detecting supported formats...</p>
               </div>
 
@@ -105,49 +105,19 @@
             <div class="screenrec-preview-header">
               <div>
                 <h2>Preview</h2>
-                <p class="screenrec-subtitle">Preview the capture and edit the clip after you stop recording.</p>
+                <p class="screenrec-subtitle">Preview the capture and download the clip after you stop recording.</p>
               </div>
               <span class="screenrec-status" data-screenrec="status" data-tone="idle">Idle</span>
             </div>
             <div class="screenrec-stage" data-screenrec="stage">
               <video class="screenrec-video" data-screenrec="video" playsinline muted></video>
-              <div class="screenrec-overlay" data-screenrec="overlay">
-                <div class="screenrec-overlay-label" data-screenrec="overlay-label" hidden>Drag to select a crop region</div>
-                <div class="screenrec-selection" data-screenrec="selection" aria-hidden="true" hidden></div>
-              </div>
               <div class="screenrec-placeholder" data-screenrec="placeholder">Start capture to see a live preview.</div>
-            </div>
-            <div class="screenrec-trim" data-screenrec="trim-panel" hidden>
-              <div class="screenrec-trim-head">
-                <span class="screenrec-trim-label">Trim</span>
-                <div class="screenrec-trim-times">
-                  <span data-screenrec="trim-start-label">00:00</span>
-                  <span class="screenrec-trim-sep">to</span>
-                  <span data-screenrec="trim-end-label">00:00</span>
-                </div>
-                <span class="screenrec-trim-length" data-screenrec="trim-length">00:00</span>
-              </div>
-              <div class="screenrec-trim-track">
-                <div class="screenrec-trim-window" data-screenrec="trim-window"></div>
-                <input id="screenrec-trim-start" class="screenrec-trim-range screenrec-trim-range-start" type="range" min="0" max="0" step="0.1" value="0" data-screenrec="trim-start" aria-label="Trim start">
-                <input id="screenrec-trim-end" class="screenrec-trim-range screenrec-trim-range-end" type="range" min="0" max="0" step="0.1" value="0" data-screenrec="trim-end" aria-label="Trim end">
-              </div>
-              <p class="screenrec-help">Drag the handles to trim the clip. Playback and export respect the trim.</p>
-              <div class="screenrec-crop-actions">
-                <button type="button" class="btn-secondary" data-screenrec="select-crop" disabled>Select crop</button>
-                <button type="button" class="btn-ghost" data-screenrec="clear-crop" disabled>Clear crop</button>
-              </div>
-              <p class="screenrec-help">Drag on the preview to crop the exported video.</p>
             </div>
 
             <div class="screenrec-preview-meta">
               <div class="screenrec-meta-row">
                 <span class="screenrec-meta-label">Capture</span>
                 <span data-screenrec="capture-meta">Not started</span>
-              </div>
-              <div class="screenrec-meta-row">
-                <span class="screenrec-meta-label">Crop</span>
-                <span data-screenrec="region-meta">Full frame</span>
               </div>
               <div class="screenrec-meta-row">
                 <span class="screenrec-meta-label">Timer</span>
@@ -159,11 +129,8 @@
               <button type="button" class="btn-primary" data-screenrec="start-record" disabled>Start recording</button>
               <button type="button" class="btn-secondary" data-screenrec="pause-record" disabled>Pause</button>
               <button type="button" class="btn-ghost" data-screenrec="stop-record" disabled>Stop recording</button>
-              <button type="button" class="btn-secondary" data-screenrec="test-record" disabled>Test capture</button>
             </div>
-            <p class="screenrec-help screenrec-test-note">Test capture records a short clip with your current audio setting and plays it back.</p>
-            <div class="screenrec-export-actions">
-              <button type="button" class="btn-primary" data-screenrec="export" disabled>Export clip</button>
+            <div class="screenrec-download-actions">
               <a class="btn-primary screenrec-download" data-screenrec="download" href="#" download hidden>Download</a>
             </div>
             <p class="screenrec-download-note" data-screenrec="download-note" hidden></p>
