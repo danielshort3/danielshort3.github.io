@@ -73,9 +73,12 @@
   <main id="main">
     <section class="surface-band screenrec-section">
       <div class="wrapper">
-        <div class="screenrec-grid">
-          <div class="screenrec-card screenrec-controls">
-            <h2>Capture settings</h2>
+        <div class="screenrec-grid" data-screenrec="grid" data-view="controls">
+          <div class="screenrec-card screenrec-controls" data-screenrec="controls-panel">
+            <div class="screenrec-panel-head">
+              <h2>Capture settings</h2>
+              <span class="screenrec-status" data-screenrec="status-secondary" data-tone="idle">Idle</span>
+            </div>
             <p class="screenrec-subtitle">All recording stays on-device. No uploads, with optional system audio.</p>
             <form class="screenrec-form" novalidate>
               <div class="screenrec-field">
@@ -99,19 +102,26 @@
               </div>
               <p class="screenrec-note">Your browser will ask which screen, window, or tab to share. Everything runs locally, and system audio depends on browser support.</p>
             </form>
+            <div class="screenrec-download-panel" data-screenrec="download-panel" hidden>
+              <p class="screenrec-subtitle">Recording ready to download.</p>
+              <div class="screenrec-download-actions">
+                <a class="btn-primary screenrec-download" data-screenrec="download" href="#" download hidden>Download</a>
+              </div>
+              <p class="screenrec-download-note" data-screenrec="download-note" hidden></p>
+            </div>
           </div>
 
-          <div class="screenrec-card screenrec-preview" aria-live="polite">
+          <div class="screenrec-card screenrec-preview" data-screenrec="preview-panel" aria-live="polite" hidden>
             <div class="screenrec-preview-header">
               <div>
                 <h2>Preview</h2>
-                <p class="screenrec-subtitle">Preview the capture and download the clip after you stop recording.</p>
+                <p class="screenrec-subtitle">Live preview while capture is active.</p>
               </div>
               <span class="screenrec-status" data-screenrec="status" data-tone="idle">Idle</span>
             </div>
             <div class="screenrec-stage" data-screenrec="stage">
               <video class="screenrec-video" data-screenrec="video" playsinline muted></video>
-              <div class="screenrec-placeholder" data-screenrec="placeholder">Start capture to see a live preview.</div>
+              <div class="screenrec-placeholder" data-screenrec="placeholder" hidden>Start capture to see a live preview.</div>
             </div>
 
             <div class="screenrec-preview-meta">
@@ -130,10 +140,6 @@
               <button type="button" class="btn-secondary" data-screenrec="pause-record" disabled>Pause</button>
               <button type="button" class="btn-ghost" data-screenrec="stop-record" disabled>Stop recording</button>
             </div>
-            <div class="screenrec-download-actions">
-              <a class="btn-primary screenrec-download" data-screenrec="download" href="#" download hidden>Download</a>
-            </div>
-            <p class="screenrec-download-note" data-screenrec="download-note" hidden></p>
           </div>
         </div>
       </div>
