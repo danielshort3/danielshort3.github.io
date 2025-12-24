@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <base href="/">
+  <title>Screen Recorder | Daniel Short</title>
+  <link rel="canonical" href="https://danielshort.me/tools/screen-recorder">
+  <meta name="description" content="Record your screen, window, or a custom region with local-only capture and export options that match your browser's supported formats.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta property="og:title" content="Screen Recorder | Daniel Short">
+  <meta property="og:site_name" content="Daniel Short - Data Science &amp; Analytics">
+  <meta property="og:description" content="Capture your screen, window, or a custom region with local-only recording and format options based on your browser support.">
+  <meta property="og:url" content="https://danielshort.me/tools/screen-recorder">
+  <meta property="og:image" content="https://danielshort.me/img/hero/head.jpg">
+  <meta property="og:image:alt" content="Portrait photo of Daniel Short">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@danielshort3">
+  <meta name="theme-color" content="#0D1117">
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
+  <script>
+    try {
+      if (document.documentElement.classList) {
+        document.documentElement.classList.remove("no-js");
+      } else {
+        document.documentElement.className = (document.documentElement.className || "").replace(/\bno-js\b/, "").trim();
+      }
+    } catch (_) {}
+  </script>
+</head>
+<body data-page="screen-recorder" class="screenrec-page">
+  <a href="#main" class="skip-link">Skip to main content</a>
+  <header id="combined-header-nav"></header>
+
+  <section class="screenrec-hero">
+    <div class="wrapper">
+      <p class="hero-eyebrow">Labs</p>
+      <h1>Screen Recorder</h1>
+      <p class="screenrec-lead">Record your screen, window, or browser tab and optionally crop down to a custom region. Export using the formats your browser supports, with no audio capture required.</p>
+      <div class="screenrec-steps">
+        <div class="screenrec-step">
+          <span class="screenrec-step-number">1</span>
+          <div>
+            <h3>Choose a source</h3>
+            <p>Select screen, window, or tab. Your browser will let you pick the exact display.</p>
+          </div>
+        </div>
+        <div class="screenrec-step">
+          <span class="screenrec-step-number">2</span>
+          <div>
+            <h3>Draw a region</h3>
+            <p>Optional: crop to a specific area of the capture without recording audio.</p>
+          </div>
+        </div>
+        <div class="screenrec-step">
+          <span class="screenrec-step-number">3</span>
+          <div>
+            <h3>Record and export</h3>
+            <p>Start recording, pause if needed, and download the file in your preferred format.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main id="main">
+    <section class="surface-band screenrec-section">
+      <div class="wrapper">
+        <div class="screenrec-grid">
+          <div class="screenrec-card screenrec-controls">
+            <h2>Capture settings</h2>
+            <p class="screenrec-subtitle">All recording stays on-device. No uploads and no audio capture.</p>
+            <form class="screenrec-form" novalidate>
+              <div class="screenrec-field">
+                <label class="screenrec-label" for="screenrec-source">Capture source</label>
+                <select id="screenrec-source" class="screenrec-select" data-screenrec="source">
+                  <option value="any" selected>Let me choose (recommended)</option>
+                  <option value="monitor">Entire screen / monitor</option>
+                  <option value="window">Application window</option>
+                  <option value="browser">Browser tab</option>
+                </select>
+                <p class="screenrec-help">The browser picker still lets you choose the exact monitor, window, or tab.</p>
+              </div>
+
+              <fieldset class="screenrec-fieldset">
+                <legend>Recording area</legend>
+                <label class="screenrec-radio">
+                  <input type="radio" name="screenrec-region" value="full" data-screenrec="region-mode" checked>
+                  Full capture
+                </label>
+                <label class="screenrec-radio">
+                  <input type="radio" name="screenrec-region" value="custom" data-screenrec="region-mode">
+                  Custom region (draw on preview)
+                </label>
+                <div class="screenrec-region-actions">
+                  <button type="button" class="btn-secondary" data-screenrec="select-region" disabled>Select region</button>
+                  <button type="button" class="btn-ghost" data-screenrec="clear-region" disabled>Clear region</button>
+                </div>
+                <p class="screenrec-help" data-screenrec="region-help">Custom region is cropped locally after capture.</p>
+              </fieldset>
+
+              <div class="screenrec-field">
+                <label class="screenrec-label" for="screenrec-format">Output format</label>
+                <select id="screenrec-format" class="screenrec-select" data-screenrec="format"></select>
+                <p class="screenrec-help" data-screenrec="format-help">Detecting supported formats...</p>
+              </div>
+
+              <div class="screenrec-actions">
+                <button type="button" class="btn-primary" data-screenrec="start-capture">Start capture</button>
+                <button type="button" class="btn-secondary" data-screenrec="stop-capture" disabled>Stop capture</button>
+              </div>
+              <p class="screenrec-note">Everything runs locally in your browser. No uploads, no tracking, and audio capture stays off.</p>
+            </form>
+          </div>
+
+          <div class="screenrec-card screenrec-preview" aria-live="polite">
+            <div class="screenrec-preview-header">
+              <div>
+                <h2>Preview</h2>
+                <p class="screenrec-subtitle">Use the preview to pick a region before recording.</p>
+              </div>
+              <span class="screenrec-status" data-screenrec="status" data-tone="idle">Idle</span>
+            </div>
+            <div class="screenrec-stage" data-screenrec="stage">
+              <video class="screenrec-video" data-screenrec="video" playsinline muted></video>
+              <div class="screenrec-overlay" data-screenrec="overlay">
+                <div class="screenrec-overlay-label" data-screenrec="overlay-label" hidden>Drag to select a region</div>
+                <div class="screenrec-selection" data-screenrec="selection" aria-hidden="true" hidden></div>
+              </div>
+              <div class="screenrec-placeholder" data-screenrec="placeholder">Start capture to see a live preview.</div>
+            </div>
+
+            <div class="screenrec-preview-meta">
+              <div class="screenrec-meta-row">
+                <span class="screenrec-meta-label">Capture</span>
+                <span data-screenrec="capture-meta">Not started</span>
+              </div>
+              <div class="screenrec-meta-row">
+                <span class="screenrec-meta-label">Region</span>
+                <span data-screenrec="region-meta">Full capture</span>
+              </div>
+              <div class="screenrec-meta-row">
+                <span class="screenrec-meta-label">Timer</span>
+                <span data-screenrec="timer">00:00</span>
+              </div>
+            </div>
+
+            <div class="screenrec-preview-actions">
+              <button type="button" class="btn-primary" data-screenrec="start-record" disabled>Start recording</button>
+              <button type="button" class="btn-secondary" data-screenrec="pause-record" disabled>Pause</button>
+              <button type="button" class="btn-ghost" data-screenrec="stop-record" disabled>Stop recording</button>
+              <a class="btn-primary screenrec-download" data-screenrec="download" href="#" download hidden>Download</a>
+            </div>
+            <p class="screenrec-download-note" data-screenrec="download-note" hidden></p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <nav class="privacy-links" aria-label="Privacy shortcuts">
+      <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
+      <a href="#" class="pcz-link" onclick="window.Privacy && window.Privacy.open('doNotSell'); return false;">Do Not Sell/Share My Personal Information</a>
+    </nav>
+  </footer>
+
+  <script defer src="js/tools/screen-recorder.js"></script>
+  <script defer src="js/common/common.js"></script>
+  <script defer src="js/navigation/navigation.js"></script>
+  <script defer src="js/animations/animations.js"></script>
+  <script src="js/privacy/config.js"></script>
+  <script defer src="js/privacy/consent_manager.js"></script>
+</body>
+</html>
