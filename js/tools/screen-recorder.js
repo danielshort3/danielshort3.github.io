@@ -23,12 +23,13 @@
     pauseRecord: $('[data-screenrec="pause-record"]'),
     stopRecord: $('[data-screenrec="stop-record"]'),
     testRecord: $('[data-screenrec="test-record"]'),
-    editPanel: $('[data-screenrec="edit-panel"]'),
+    trimPanel: $('[data-screenrec="trim-panel"]'),
     trimStart: $('[data-screenrec="trim-start"]'),
     trimEnd: $('[data-screenrec="trim-end"]'),
     trimStartLabel: $('[data-screenrec="trim-start-label"]'),
     trimEndLabel: $('[data-screenrec="trim-end-label"]'),
     trimLength: $('[data-screenrec="trim-length"]'),
+    trimWindow: $('[data-screenrec="trim-window"]'),
     selectCrop: $('[data-screenrec="select-crop"]'),
     clearCrop: $('[data-screenrec="clear-crop"]'),
     exportBtn: $('[data-screenrec="export"]'),
@@ -304,9 +305,99 @@
 
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
+  const getRecordedDuration = () => {
+    if (state.recordedDuration) return state.recordedDuration;
+    const duration = el.video && Number.isFinite(el.video.duration) ? el.video.duration : 0;
+    return duration || 0;
+  };
+
+  const updateTrimWindow = () => {
+    if (!el.trimWindow) return;
+    const duration = getRecordedDuration();
+    if (!duration) {
+      el.trimWindow.style.left = '0%';
+      el.trimWindow.style.width = '100%';
+      return;
+    }
+    const startPct = clamp(state.trimStart / duration, 0, 1) * 100;
+    const endPct = clamp(state.trimEnd / duration, 0, 1) * 100;
+    const width = Math.max(0, endPct - startPct);
+    el.trimWindow.style.left = `${startPct}%`;
+    el.trimWindow.style.width = `${width}%`;
+  };
+
+  const updateTrimHandleStack = (source) => {
+    if (!el.trimStart || !el.trimEnd) return;
+    if (source === 'start') {
+      el.trimStart.style.zIndex = '5';
+      el.trimEnd.style.zIndex = '4';
+      return;
+    }
+    if (source === 'end') {
+      el.trimStart.style.zIndex = '3';
+      el.trimEnd.style.zIndex = '5';
+      return;
+    }
+    const nearEnd = state.trimStart > state.trimEnd - (MIN_TRIM_GAP * 2);
+    el.trimStart.style.zIndex = nearEnd ? '5' : '3';
+    el.trimEnd.style.zIndex = '4';
+  };
+
+  const isTrimActive = (duration) => {
+    const clipDuration = duration || getRecordedDuration();
+    if (!clipDuration) return false;
+    return state.trimStart > 0 || state.trimEnd < clipDuration;
+  };
+
+  const enforceTrimPlayback = (forceSeek) => {
+    if (!el.video || !state.recordedUrl || state.testing || state.captureActive) return;
+    const duration = getRecordedDuration();
+    if (!duration || !isTrimActive(duration)) return;
+    const start = clamp(state.trimStart, 0, duration);
+    const end = clamp(state.trimEnd, 0, duration);
+    if (end - start < MIN_TRIM_GAP) return;
+    if (forceSeek || el.video.currentTime < start || el.video.currentTime > end) {
+      el.video.currentTime = start;
+    }
+  };
+
+  const handleVideoTimeUpdate = () => {
+    if (!el.video || !state.recordedUrl || state.testing || state.captureActive) return;
+    const duration = getRecordedDuration();
+    if (!duration || !isTrimActive(duration)) return;
+    const end = clamp(state.trimEnd, 0, duration);
+    if (el.video.currentTime >= end) {
+      el.video.pause();
+      el.video.currentTime = end;
+    }
+  };
+
+  const handleVideoSeeking = () => {
+    if (!el.video || !state.recordedUrl || state.testing || state.captureActive) return;
+    const duration = getRecordedDuration();
+    if (!duration || !isTrimActive(duration)) return;
+    const start = clamp(state.trimStart, 0, duration);
+    const end = clamp(state.trimEnd, 0, duration);
+    const clamped = clamp(el.video.currentTime, start, end);
+    if (Math.abs(clamped - el.video.currentTime) > 0.01) {
+      el.video.currentTime = clamped;
+    }
+  };
+
+  const handleVideoPlay = () => {
+    if (!el.video || !state.recordedUrl || state.testing || state.captureActive) return;
+    const duration = getRecordedDuration();
+    if (!duration || !isTrimActive(duration)) return;
+    const start = clamp(state.trimStart, 0, duration);
+    const end = clamp(state.trimEnd, 0, duration);
+    if (el.video.currentTime < start || el.video.currentTime >= end) {
+      el.video.currentTime = start;
+    }
+  };
+
   const updateTrimUI = (source) => {
     if (!el.trimStart || !el.trimEnd) return;
-    const duration = Math.max(0, state.recordedDuration || 0);
+    const duration = Math.max(0, getRecordedDuration());
     let start = parseFloat(el.trimStart.value);
     let end = parseFloat(el.trimEnd.value);
     if (Number.isNaN(start)) start = 0;
@@ -327,6 +418,9 @@
     if (el.trimStartLabel) el.trimStartLabel.textContent = formatDuration(start * 1000);
     if (el.trimEndLabel) el.trimEndLabel.textContent = formatDuration(end * 1000);
     if (el.trimLength) el.trimLength.textContent = formatDuration(Math.max(0, (end - start) * 1000));
+    updateTrimWindow();
+    updateTrimHandleStack(source);
+    enforceTrimPlayback(false);
   };
 
   const initTrimControls = () => {
@@ -353,7 +447,7 @@
     state.trimEnd = 0;
     clearDownload();
     clearCrop();
-    if (el.editPanel) el.editPanel.hidden = true;
+    if (el.trimPanel) el.trimPanel.hidden = true;
     if (el.trimStart) {
       el.trimStart.max = '0';
       el.trimStart.value = '0';
@@ -365,6 +459,7 @@
     if (el.trimStartLabel) el.trimStartLabel.textContent = '00:00';
     if (el.trimEndLabel) el.trimEndLabel.textContent = '00:00';
     if (el.trimLength) el.trimLength.textContent = '00:00';
+    updateTrimWindow();
     updateCaptureMeta();
   };
 
@@ -390,7 +485,7 @@
     el.video.srcObject = null;
     el.video.src = state.recordedUrl;
     el.video.controls = true;
-    el.video.loop = true;
+    el.video.loop = false;
     el.video.muted = false;
     el.video.play().catch(() => {});
     if (el.placeholder) el.placeholder.hidden = true;
@@ -405,6 +500,7 @@
       resetTimer(state.recordedDuration * 1000);
       updateCropMeta();
       updateButtons();
+      enforceTrimPlayback(true);
     };
     if (el.video.readyState >= 1) {
       handleMetadata();
@@ -412,8 +508,8 @@
       el.video.addEventListener('loadedmetadata', handleMetadata, { once: true });
     }
 
-    if (el.editPanel) el.editPanel.hidden = false;
-    setStatus('Clip ready to edit.', 'ready');
+    if (el.trimPanel) el.trimPanel.hidden = false;
+    setStatus('Clip ready to trim.', 'ready');
   };
 
   const showOverlay = (active) => {
@@ -712,7 +808,7 @@
       if (el.placeholder) el.placeholder.hidden = false;
     }
     resetTimer(state.recordedDuration ? state.recordedDuration * 1000 : 0);
-    const message = reason || state.stopReason || (state.recordedUrl ? 'Capture stopped. Clip ready to edit.' : 'Capture stopped.');
+    const message = reason || state.stopReason || (state.recordedUrl ? 'Capture stopped. Clip ready to trim.' : 'Capture stopped.');
     setStatus(message, state.recordedUrl ? 'ready' : 'idle');
     state.stopReason = '';
   };
@@ -811,9 +907,12 @@
   const playTestClip = (blob) => {
     if (!blob) {
       setStatus('Test recording failed.', 'warn');
+      state.testing = false;
+      updateButtons();
       return;
     }
     const url = URL.createObjectURL(blob);
+    state.testing = true;
     el.video.srcObject = null;
     el.video.src = url;
     el.video.controls = true;
@@ -823,6 +922,7 @@
 
     const restore = () => {
       URL.revokeObjectURL(url);
+      state.testing = false;
       if (state.captureActive && state.stream) {
         setLivePreview();
         setStatus('Test complete. Live preview restored.', 'ready');
@@ -868,16 +968,16 @@
       }
     }, TEST_DURATION_MS);
 
-    testRecorder.addEventListener('stop', () => {
+  testRecorder.addEventListener('stop', () => {
       clearTimeout(stopTimerId);
-      state.testing = false;
-      updateButtons();
       const mime = testRecorder.mimeType || recorderInfo.mimeType || 'video/webm';
       if (chunks.length) {
         const blob = new Blob(chunks, { type: mime });
         setStatus('Playing test clip...', 'ready');
         playTestClip(blob);
       } else {
+        state.testing = false;
+        updateButtons();
         setStatus('Test recording produced no data.', 'warn');
       }
     }, { once: true });
@@ -1098,6 +1198,10 @@
     });
 
     el.video?.addEventListener('loadedmetadata', updateCaptureMeta);
+    el.video?.addEventListener('loadedmetadata', updateTrimWindow);
+    el.video?.addEventListener('timeupdate', handleVideoTimeUpdate);
+    el.video?.addEventListener('seeking', handleVideoSeeking);
+    el.video?.addEventListener('play', handleVideoPlay);
   };
 
   init();

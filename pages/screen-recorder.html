@@ -117,6 +117,28 @@
               </div>
               <div class="screenrec-placeholder" data-screenrec="placeholder">Start capture to see a live preview.</div>
             </div>
+            <div class="screenrec-trim" data-screenrec="trim-panel" hidden>
+              <div class="screenrec-trim-head">
+                <span class="screenrec-trim-label">Trim</span>
+                <div class="screenrec-trim-times">
+                  <span data-screenrec="trim-start-label">00:00</span>
+                  <span class="screenrec-trim-sep">to</span>
+                  <span data-screenrec="trim-end-label">00:00</span>
+                </div>
+                <span class="screenrec-trim-length" data-screenrec="trim-length">00:00</span>
+              </div>
+              <div class="screenrec-trim-track">
+                <div class="screenrec-trim-window" data-screenrec="trim-window"></div>
+                <input id="screenrec-trim-start" class="screenrec-trim-range screenrec-trim-range-start" type="range" min="0" max="0" step="0.1" value="0" data-screenrec="trim-start" aria-label="Trim start">
+                <input id="screenrec-trim-end" class="screenrec-trim-range screenrec-trim-range-end" type="range" min="0" max="0" step="0.1" value="0" data-screenrec="trim-end" aria-label="Trim end">
+              </div>
+              <p class="screenrec-help">Drag the handles to trim the clip. Playback and export respect the trim.</p>
+              <div class="screenrec-crop-actions">
+                <button type="button" class="btn-secondary" data-screenrec="select-crop" disabled>Select crop</button>
+                <button type="button" class="btn-ghost" data-screenrec="clear-crop" disabled>Clear crop</button>
+              </div>
+              <p class="screenrec-help">Drag on the preview to crop the exported video.</p>
+            </div>
 
             <div class="screenrec-preview-meta">
               <div class="screenrec-meta-row">
@@ -140,34 +162,6 @@
               <button type="button" class="btn-secondary" data-screenrec="test-record" disabled>Test capture</button>
             </div>
             <p class="screenrec-help screenrec-test-note">Test capture records a short clip with your current audio setting and plays it back.</p>
-            <div class="screenrec-edit" data-screenrec="edit-panel" hidden>
-              <h3>Edit clip</h3>
-              <div class="screenrec-trim-grid">
-                <div class="screenrec-trim-field">
-                  <div class="screenrec-trim-head">
-                    <label class="screenrec-label" for="screenrec-trim-start">Trim start</label>
-                    <span class="screenrec-trim-value" data-screenrec="trim-start-label">00:00</span>
-                  </div>
-                  <input id="screenrec-trim-start" class="screenrec-range" type="range" min="0" max="0" step="0.1" value="0" data-screenrec="trim-start">
-                </div>
-                <div class="screenrec-trim-field">
-                  <div class="screenrec-trim-head">
-                    <label class="screenrec-label" for="screenrec-trim-end">Trim end</label>
-                    <span class="screenrec-trim-value" data-screenrec="trim-end-label">00:00</span>
-                  </div>
-                  <input id="screenrec-trim-end" class="screenrec-range" type="range" min="0" max="0" step="0.1" value="0" data-screenrec="trim-end">
-                </div>
-              </div>
-              <div class="screenrec-trim-meta">
-                <span class="screenrec-trim-label">Clip length</span>
-                <span data-screenrec="trim-length">00:00</span>
-              </div>
-              <div class="screenrec-crop-actions">
-                <button type="button" class="btn-secondary" data-screenrec="select-crop" disabled>Select crop</button>
-                <button type="button" class="btn-ghost" data-screenrec="clear-crop" disabled>Clear crop</button>
-              </div>
-              <p class="screenrec-help">Drag on the preview to crop the exported video.</p>
-            </div>
             <div class="screenrec-export-actions">
               <button type="button" class="btn-primary" data-screenrec="export" disabled>Export clip</button>
               <a class="btn-primary screenrec-download" data-screenrec="download" href="#" download hidden>Download</a>
