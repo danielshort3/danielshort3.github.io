@@ -1,9 +1,9 @@
 /* Screen recorder tool styles */
 @layer components {
   .screenrec-page{
-    --screenrec-accent:#3ee6b0;
-    --screenrec-accent-strong:#18c98a;
-    --screenrec-accent-soft:color-mix(in srgb,var(--screenrec-accent) 28%, transparent);
+    --screenrec-accent:var(--primary);
+    --screenrec-accent-strong:color-mix(in srgb,var(--primary) 68%, #0A1A1F 32%);
+    --screenrec-accent-soft:color-mix(in srgb,var(--primary) 24%, transparent);
     --screenrec-surface:color-mix(in srgb,var(--surface) 88%, #09121c 12%);
     --screenrec-surface-strong:color-mix(in srgb,var(--surface) 78%, #050b12 22%);
   }
@@ -12,8 +12,8 @@
     overflow:hidden;
     padding:clamp(3rem,7vh,5rem) 0;
     background:
-      radial-gradient(900px circle at 8% 12%, rgba(62,230,176,.18), transparent 60%),
-      radial-gradient(800px circle at 92% 0%, rgba(84,176,255,.18), transparent 55%),
+      radial-gradient(900px circle at 8% 12%, color-mix(in srgb,var(--primary) 24%, transparent), transparent 60%),
+      radial-gradient(800px circle at 92% 0%, color-mix(in srgb,var(--primary) 20%, #ffffff 8%), transparent 55%),
       linear-gradient(160deg,
         color-mix(in srgb,var(--surface) 90%, #070e15 10%) 0%,
         color-mix(in srgb,var(--surface) 78%, #050b12 22%) 100%);
@@ -363,6 +363,14 @@
     flex:1 1 180px;
     justify-content:flex-end;
   }
+  .screenrec-audio-row .screenrec-select{
+    flex:1 1 220px;
+    min-width:200px;
+    max-width:260px;
+  }
+  .screenrec-select-compact{
+    margin-left:auto;
+  }
 
   .screenrec-range{
     display:flex;
@@ -412,9 +420,9 @@
     transform:scaleX(0);
     transform-origin:left;
     background:linear-gradient(90deg,
-      #2dd17a 0%,
-      #f2c94c 65%,
-      #f04438 100%);
+      color-mix(in srgb,var(--primary) 85%, #ffffff 15%) 0%,
+      color-mix(in srgb,var(--primary) 62%, var(--warning) 38%) 65%,
+      color-mix(in srgb,var(--danger) 85%, #ffffff 15%) 100%);
     transition:transform .08s linear;
   }
 
