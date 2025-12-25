@@ -7,8 +7,6 @@
   const el = {
     formatOptions: $('[data-screenrec="format-options"]'),
     formatHelp: $('[data-screenrec="format-help"]'),
-    extraFormatOptions: $('[data-screenrec="extra-format-options"]'),
-    extraFormatHelp: $('[data-screenrec="extra-format-help"]'),
     fpsSelect: $('[data-screenrec="fps-select"]'),
     audioToggle: $('[data-screenrec="audio-toggle"]'),
     audioHelp: $('[data-screenrec="audio-help"]'),
@@ -17,6 +15,8 @@
     audioLevelHelp: $('[data-screenrec="audio-level-help"]'),
     audioMeter: $('[data-screenrec="audio-meter"]'),
     audioMeterFill: $('[data-screenrec="audio-meter-fill"]'),
+    micLevel: $('[data-screenrec="mic-level"]'),
+    micLevelValue: $('[data-screenrec="mic-level-value"]'),
     micToggle: $('[data-screenrec="mic-toggle"]'),
     micSelect: $('[data-screenrec="mic-select"]'),
     micHelp: $('[data-screenrec="mic-help"]'),
@@ -83,6 +83,9 @@
     cropCurrent: null,
     cropDragging: false,
     cropDragOffset: null,
+    cropResizing: false,
+    cropResizeHandle: null,
+    cropResizeStart: null,
     cropAnimationId: null,
     audioContext: null,
     audioMeterContext: null,
@@ -169,9 +172,6 @@
   const setFormatOptions = () => {
     if (!el.formatOptions) return;
     el.formatOptions.innerHTML = '';
-    if (el.extraFormatOptions) {
-      el.extraFormatOptions.innerHTML = '';
-    }
 
     const supported = getSupportedFormats();
     const options = [
@@ -179,15 +179,18 @@
       ...supported
     ];
 
-    options.forEach((opt, index) => {
+    options.forEach((opt) => {
       const label = document.createElement('label');
       label.className = 'screenrec-radio';
 
       const input = document.createElement('input');
-      input.type = 'radio';
+      input.type = 'checkbox';
       input.name = 'screenrec-format';
       input.value = opt.mimeType;
-      input.checked = index === 0;
+      if (opt.mimeType === 'auto') {
+        input.dataset.auto = 'true';
+        input.checked = true;
+      }
 
       const text = document.createElement('span');
       text.textContent = opt.label || opt.mimeType;
@@ -197,55 +200,52 @@
       el.formatOptions.appendChild(label);
     });
 
-    if (el.extraFormatOptions && supported.length) {
-      supported.forEach((opt) => {
-        const label = document.createElement('label');
-        label.className = 'screenrec-chip';
-
-        const input = document.createElement('input');
-        input.type = 'checkbox';
-        input.name = 'screenrec-format-extra';
-        input.value = opt.mimeType;
-
-        const text = document.createElement('span');
-        text.textContent = opt.label || opt.mimeType;
-
-        label.appendChild(input);
-        label.appendChild(text);
-        el.extraFormatOptions.appendChild(label);
-      });
-    }
-
     if (el.formatHelp) {
       if (!supported.length) {
-        el.formatHelp.textContent = 'No explicit formats detected. The browser default will be used.';
+        el.formatHelp.textContent = 'No explicit formats detected. Auto will use the browser default.';
       } else {
         const labels = supported.map((opt) => opt.label).join(', ');
         const mp4Supported = supported.some((opt) => opt.mimeType.includes('mp4'));
         const mp4Note = mp4Supported ? 'MP4 is supported in this browser.' : 'MP4 recording is not supported here.';
-        el.formatHelp.textContent = `Supported: ${labels}. ${mp4Note}`;
+        el.formatHelp.textContent = `Select one or more formats. Supported: ${labels}. ${mp4Note}`;
       }
     }
-    if (el.extraFormatHelp) {
-      if (!supported.length) {
-        el.extraFormatHelp.textContent = 'Extra exports are unavailable in this browser.';
-      } else {
-        el.extraFormatHelp.textContent = 'Select extra formats to generate alongside your main recording.';
-      }
+
+    const formatInputs = Array.from(el.formatOptions.querySelectorAll('input[name="screenrec-format"]'));
+    const autoInput = formatInputs.find((input) => input.dataset.auto === 'true');
+    formatInputs.forEach((input) => {
+      input.addEventListener('change', () => {
+        if (input.dataset.auto === 'true' && input.checked) {
+          formatInputs.forEach((other) => {
+            if (other !== input) other.checked = false;
+          });
+          return;
+        }
+        if (input.dataset.auto !== 'true' && input.checked && autoInput) {
+          autoInput.checked = false;
+        }
+        const anyExplicitChecked = formatInputs.some((item) => item.dataset.auto !== 'true' && item.checked);
+        if (!anyExplicitChecked && autoInput) {
+          autoInput.checked = true;
+        }
+      });
+    });
+  };
+
+  const getSelectedMimeTypes = () => {
+    if (!el.formatOptions) return [];
+    const inputs = Array.from(el.formatOptions.querySelectorAll('input[name="screenrec-format"]'));
+    const explicitInputs = inputs.filter((input) => input.dataset.auto !== 'true');
+    const selectedExplicit = explicitInputs.filter((input) => input.checked).map((input) => input.value);
+    if (selectedExplicit.length) {
+      return Array.from(new Set(selectedExplicit));
     }
-  };
-
-  const getSelectedMimeType = () => {
-    if (!el.formatOptions) return '';
-    const selected = el.formatOptions.querySelector('input[name="screenrec-format"]:checked');
-    if (!selected || selected.value === 'auto') return getPreferredMimeType();
-    return selected.value;
-  };
-
-  const getExtraMimeTypes = () => {
-    if (!el.extraFormatOptions) return [];
-    const selected = Array.from(el.extraFormatOptions.querySelectorAll('input[name="screenrec-format-extra"]:checked'));
-    return selected.map((input) => input.value);
+    const autoInput = inputs.find((input) => input.dataset.auto === 'true');
+    if (autoInput?.checked || !selectedExplicit.length) {
+      const preferred = getPreferredMimeType();
+      return preferred ? [preferred] : [''];
+    }
+    return [''];
   };
 
   const slugify = (value) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -318,7 +318,7 @@
     return Number.isFinite(fps) && fps > 0 ? fps : 0;
   };
 
-  const getAudioGain = () => {
+  const getSystemGain = () => {
     if (!el.audioLevel) return 1;
     const value = Number(el.audioLevel.value);
     if (!Number.isFinite(value)) return 1;
@@ -332,26 +332,40 @@
     el.audioLevelValue.textContent = `${Math.round(safeValue)}%`;
   };
 
+  const getMicGain = () => {
+    if (!el.micLevel) return 1;
+    const value = Number(el.micLevel.value);
+    if (!Number.isFinite(value)) return 1;
+    return Math.max(0, value) / 100;
+  };
+
+  const updateMicLevelValue = () => {
+    if (!el.micLevel || !el.micLevelValue) return;
+    const value = Number(el.micLevel.value);
+    const safeValue = Number.isFinite(value) ? value : 100;
+    el.micLevelValue.textContent = `${Math.round(safeValue)}%`;
+  };
+
   const getActiveAudioStreams = () => {
     const streams = [];
-    if (state.captureActive && streamHasAudio(state.stream)) {
+    if (state.captureActive && streamHasAudio(state.stream) && el.audioToggle?.checked) {
       streams.push(state.stream);
     }
-    if (streamHasAudio(state.micStream)) {
+    if (streamHasAudio(state.micStream) && el.micToggle?.checked) {
       streams.push(state.micStream);
     }
     return streams;
   };
 
-  const getRecordingAudioStreams = () => {
-    const streams = [];
-    if (streamHasAudio(state.stream)) {
-      streams.push(state.stream);
+  const getRecordingAudioSources = () => {
+    const sources = [];
+    if (streamHasAudio(state.stream) && el.audioToggle?.checked) {
+      sources.push({ stream: state.stream, gain: getSystemGain() });
     }
-    if (streamHasAudio(state.micStream)) {
-      streams.push(state.micStream);
+    if (streamHasAudio(state.micStream) && el.micToggle?.checked) {
+      sources.push({ stream: state.micStream, gain: getMicGain() });
     }
-    return streams;
+    return sources;
   };
 
   const getAudioSummary = () => {
@@ -513,6 +527,71 @@
     };
   };
 
+  const MIN_CROP_SIZE = 24;
+
+  const normalizeCropBox = (box, frame) => ({
+    x: Math.min(Math.max((box.x - frame.offsetX) / frame.displayWidth, 0), 1),
+    y: Math.min(Math.max((box.y - frame.offsetY) / frame.displayHeight, 0), 1),
+    width: Math.min(Math.max(box.width / frame.displayWidth, 0), 1),
+    height: Math.min(Math.max(box.height / frame.displayHeight, 0), 1)
+  });
+
+  const clampCropBox = (box, frame, handle) => {
+    let { x, y, width, height } = box;
+    const minX = frame.offsetX;
+    const minY = frame.offsetY;
+    const maxX = frame.offsetX + frame.displayWidth;
+    const maxY = frame.offsetY + frame.displayHeight;
+
+    if (width < MIN_CROP_SIZE) {
+      if (handle && handle.includes('w')) {
+        x -= MIN_CROP_SIZE - width;
+      }
+      width = MIN_CROP_SIZE;
+    }
+    if (height < MIN_CROP_SIZE) {
+      if (handle && handle.includes('n')) {
+        y -= MIN_CROP_SIZE - height;
+      }
+      height = MIN_CROP_SIZE;
+    }
+
+    if (x < minX) {
+      if (handle && handle.includes('w')) {
+        width -= minX - x;
+      }
+      x = minX;
+    }
+    if (y < minY) {
+      if (handle && handle.includes('n')) {
+        height -= minY - y;
+      }
+      y = minY;
+    }
+
+    if (x + width > maxX) {
+      if (handle && handle.includes('e')) {
+        width = maxX - x;
+      } else {
+        x = maxX - width;
+      }
+    }
+    if (y + height > maxY) {
+      if (handle && handle.includes('s')) {
+        height = maxY - y;
+      } else {
+        y = maxY - height;
+      }
+    }
+
+    width = Math.max(MIN_CROP_SIZE, Math.min(width, maxX - minX));
+    height = Math.max(MIN_CROP_SIZE, Math.min(height, maxY - minY));
+    x = Math.min(Math.max(x, minX), maxX - width);
+    y = Math.min(Math.max(y, minY), maxY - height);
+
+    return { x, y, width, height };
+  };
+
   const updateCropSelectionBox = (box) => {
     if (!el.cropSelection) return;
     if (!box) {
@@ -563,6 +642,9 @@
     state.cropCurrent = null;
     state.cropDragging = false;
     state.cropDragOffset = null;
+    state.cropResizing = false;
+    state.cropResizeHandle = null;
+    state.cropResizeStart = null;
     updateCropOverlay();
     updateButtons();
   };
@@ -848,17 +930,15 @@
       el.fpsSelect.disabled = !supportsCapture || state.captureActive || state.recording;
     }
     if (el.audioLevel) {
-      const audioLocked = !supportsCapture || state.captureActive || state.recording ||
-        (!el.audioToggle?.checked && !el.micToggle?.checked);
+      const audioLocked = !supportsCapture || state.captureActive || state.recording || !el.audioToggle?.checked;
       el.audioLevel.disabled = audioLocked;
+    }
+    if (el.micLevel) {
+      const micLevelLocked = !supportsMicrophone || state.captureActive || state.recording || !el.micToggle?.checked;
+      el.micLevel.disabled = micLevelLocked;
     }
     if (el.formatOptions) {
       el.formatOptions.querySelectorAll('input').forEach((input) => {
-        input.disabled = state.recording;
-      });
-    }
-    if (el.extraFormatOptions) {
-      el.extraFormatOptions.querySelectorAll('input').forEach((input) => {
         input.disabled = state.recording;
       });
     }
@@ -1119,32 +1199,17 @@
   };
 
   const buildRecorderSet = (stream) => {
-    const primaryMimeType = getSelectedMimeType();
-    const extras = getExtraMimeTypes();
-    const selections = [
-      {
-        mimeType: primaryMimeType,
-        label: formatLabelFromMime(primaryMimeType),
-        isPrimary: true
-      }
-    ];
-    const seen = new Set();
-    if (primaryMimeType) {
-      seen.add(primaryMimeType);
-    }
-    extras.forEach((mimeType) => {
-      if (!mimeType || seen.has(mimeType)) return;
-      seen.add(mimeType);
-      selections.push({
-        mimeType,
-        label: formatLabelFromMime(mimeType),
-        isPrimary: false
-      });
-    });
+    const selections = getSelectedMimeTypes();
+    const uniqueSelections = selections.length ? Array.from(new Set(selections)) : [''];
 
     const recorders = [];
     const failed = [];
-    selections.forEach((selection) => {
+    uniqueSelections.forEach((mimeType, index) => {
+      const selection = {
+        mimeType,
+        label: formatLabelFromMime(mimeType),
+        isPrimary: index === 0
+      };
       let recorderInfo;
       try {
         recorderInfo = createRecorder(stream, selection.mimeType, selection.isPrimary);
@@ -1230,25 +1295,31 @@
     return { stream, cleanup };
   };
 
-  const createMixedAudioTrack = (streams, gainValue) => {
+  const createMixedAudioTrack = (sources) => {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return null;
     try {
       const audioContext = new AudioCtx();
-      const gainNode = audioContext.createGain();
-      gainNode.gain.value = gainValue;
       const destination = audioContext.createMediaStreamDestination();
-      const sources = streams.map((sourceStream) => audioContext.createMediaStreamSource(sourceStream));
-      sources.forEach((source) => source.connect(gainNode));
-      gainNode.connect(destination);
+      const sourceNodes = [];
+      const gainNodes = [];
+      sources.forEach((entry) => {
+        const source = audioContext.createMediaStreamSource(entry.stream);
+        const gainNode = audioContext.createGain();
+        gainNode.gain.value = Number.isFinite(entry.gain) ? entry.gain : 1;
+        source.connect(gainNode);
+        gainNode.connect(destination);
+        sourceNodes.push(source);
+        gainNodes.push(gainNode);
+      });
       state.audioContext = audioContext;
       const track = destination.stream.getAudioTracks()[0];
       const cleanup = () => {
         try {
           track.stop();
         } catch (_) {}
-        sources.forEach((source) => source.disconnect());
-        gainNode.disconnect();
+        sourceNodes.forEach((source) => source.disconnect());
+        gainNodes.forEach((gainNode) => gainNode.disconnect());
         destination.disconnect();
         audioContext.close().catch(() => {});
         state.audioContext = null;
@@ -1281,19 +1352,19 @@
       outputStream.addTrack(videoTrack);
     }
 
-    const audioStreams = getRecordingAudioStreams();
-    if (audioStreams.length) {
-      const gainValue = getAudioGain();
-      if (audioStreams.length > 1 || gainValue !== 1) {
-        const mixed = createMixedAudioTrack(audioStreams, gainValue);
+    const audioSources = getRecordingAudioSources();
+    if (audioSources.length) {
+      const shouldMix = audioSources.length > 1 || audioSources.some((entry) => entry.gain !== 1);
+      if (shouldMix) {
+        const mixed = createMixedAudioTrack(audioSources);
         if (mixed && mixed.track) {
           outputStream.addTrack(mixed.track);
           cleanupTasks.push(mixed.cleanup);
         } else {
-          outputStream.addTrack(audioStreams[0].getAudioTracks()[0]);
+          outputStream.addTrack(audioSources[0].stream.getAudioTracks()[0]);
         }
       } else {
-        outputStream.addTrack(audioStreams[0].getAudioTracks()[0]);
+        outputStream.addTrack(audioSources[0].stream.getAudioTracks()[0]);
       }
     }
 
@@ -1432,15 +1503,14 @@
       }
 
       const primaryMissing = !state.recorders.some((entry) => entry.isPrimary);
-      const extraFailed = recorderSet.failed.some((entry) => !entry.isPrimary) ||
-        failedStarts.some((entry) => !entry.isPrimary);
+      const formatsSkipped = recorderSet.failed.length > 0 || failedStarts.length > 0;
       let statusMessage = state.testMode ? 'Recording 5-second test...' : 'Recording...';
-      if (primaryMissing && extraFailed) {
-        statusMessage = `${statusMessage} Primary format unavailable; extras skipped.`;
+      if (primaryMissing && formatsSkipped) {
+        statusMessage = `${statusMessage} Primary format unavailable; some formats skipped.`;
       } else if (primaryMissing) {
         statusMessage = `${statusMessage} Primary format unavailable.`;
-      } else if (extraFailed) {
-        statusMessage = `${statusMessage} Extra formats skipped.`;
+      } else if (formatsSkipped) {
+        statusMessage = `${statusMessage} Some formats skipped.`;
       }
       setStatus(statusMessage, 'recording');
       updateButtons();
@@ -1531,6 +1601,17 @@
     }
 
     if (!state.cropRegion) return;
+    const resizeHandle = event.target.closest('[data-screenrec-resize]');
+    if (resizeHandle) {
+      const box = getCropBoxFromRegion(frame);
+      if (!box) return;
+      state.cropResizing = true;
+      state.cropResizeHandle = resizeHandle.dataset.screenrecResize || '';
+      state.cropResizeStart = { box, point };
+      el.cropOverlay.setPointerCapture(event.pointerId);
+      return;
+    }
+
     const box = getCropBoxFromRegion(frame);
     if (!box) return;
     const inside = point.x >= box.x && point.x <= box.x + box.width &&
@@ -1545,13 +1626,40 @@
   };
 
   const handleCropPointerMove = (event) => {
-    if (!state.cropStart && !state.cropDragging) return;
+    if (!state.cropStart && !state.cropDragging && !state.cropResizing) return;
     const frame = getVideoFrameRect();
     if (!frame) return;
     const point = {
       x: event.clientX - frame.stageRect.left,
       y: event.clientY - frame.stageRect.top
     };
+
+    if (state.cropResizing && state.cropResizeStart) {
+      const { box: startBox, point: startPoint } = state.cropResizeStart;
+      const dx = point.x - startPoint.x;
+      const dy = point.y - startPoint.y;
+      const handle = state.cropResizeHandle || '';
+      let nextBox = { ...startBox };
+      if (handle.includes('n')) {
+        nextBox.y = startBox.y + dy;
+        nextBox.height = startBox.height - dy;
+      }
+      if (handle.includes('s')) {
+        nextBox.height = startBox.height + dy;
+      }
+      if (handle.includes('w')) {
+        nextBox.x = startBox.x + dx;
+        nextBox.width = startBox.width - dx;
+      }
+      if (handle.includes('e')) {
+        nextBox.width = startBox.width + dx;
+      }
+      nextBox = clampCropBox(nextBox, frame, handle);
+      state.cropRegion = normalizeCropBox(nextBox, frame);
+      updateCropSelectionBox(nextBox);
+      return;
+    }
+
     if (state.cropStart) {
       const clamped = clampPointToFrame(point, frame);
       state.cropCurrent = clamped;
@@ -1584,16 +1692,23 @@
   };
 
   const handleCropPointerUp = (event) => {
-    if (!state.cropStart && !state.cropDragging) return;
+    if (!state.cropStart && !state.cropDragging && !state.cropResizing) return;
     const frame = getVideoFrameRect();
     if (!frame) {
       state.cropStart = null;
       state.cropCurrent = null;
       state.cropDragging = false;
       state.cropDragOffset = null;
+      state.cropResizing = false;
+      state.cropResizeHandle = null;
+      state.cropResizeStart = null;
       return;
     }
-    if (state.cropStart) {
+    if (state.cropResizing) {
+      state.cropResizing = false;
+      state.cropResizeHandle = null;
+      state.cropResizeStart = null;
+    } else if (state.cropStart) {
       const point = {
         x: event.clientX - frame.stageRect.left,
         y: event.clientY - frame.stageRect.top
@@ -1605,8 +1720,7 @@
         width: Math.abs(clamped.x - state.cropStart.x),
         height: Math.abs(clamped.y - state.cropStart.y)
       };
-      const minSize = 24;
-      if (box.width >= minSize && box.height >= minSize) {
+      if (box.width >= MIN_CROP_SIZE && box.height >= MIN_CROP_SIZE) {
         state.cropRegion = {
           x: (box.x - frame.offsetX) / frame.displayWidth,
           y: (box.y - frame.offsetY) / frame.displayHeight,
@@ -1631,6 +1745,7 @@
   const init = () => {
     setFormatOptions();
     updateAudioLevelValue();
+    updateMicLevelValue();
     updateCaptureMeta();
     updateButtons();
     setView();
@@ -1677,6 +1792,7 @@
       }
     });
     el.audioLevel?.addEventListener('input', updateAudioLevelValue);
+    el.micLevel?.addEventListener('input', updateMicLevelValue);
     el.fpsSelect?.addEventListener('change', updateButtons);
     el.cropOverlay?.addEventListener('pointerdown', handleCropPointerDown);
     el.cropOverlay?.addEventListener('pointermove', handleCropPointerMove);

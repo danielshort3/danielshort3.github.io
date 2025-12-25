@@ -98,13 +98,7 @@
               <div class="screenrec-field screenrec-field-wide">
                 <span class="screenrec-label">Download format</span>
                 <div class="screenrec-radio-group" data-screenrec="format-options"></div>
-                <p class="screenrec-help" data-screenrec="format-help">Detecting supported formats...</p>
-              </div>
-
-              <div class="screenrec-field screenrec-field-wide">
-                <span class="screenrec-label">Also export as</span>
-                <div class="screenrec-chip-group" data-screenrec="extra-format-options"></div>
-                <p class="screenrec-help" data-screenrec="extra-format-help">Select extra formats to generate alongside your main recording.</p>
+                <p class="screenrec-help" data-screenrec="format-help">Select one or more formats to export.</p>
               </div>
 
                 <div class="screenrec-field">
@@ -126,7 +120,7 @@
                       Include system audio (if available)
                     </label>
                     <div class="screenrec-range screenrec-range-compact">
-                      <input id="screenrec-audio-level" type="range" min="0" max="200" step="5" value="100" data-screenrec="audio-level" aria-label="Audio level">
+                      <input id="screenrec-audio-level" type="range" min="0" max="200" step="5" value="100" data-screenrec="audio-level" aria-label="System audio level">
                       <span class="screenrec-range-value" data-screenrec="audio-level-value">100%</span>
                     </div>
                   </div>
@@ -136,6 +130,10 @@
                       <input id="screenrec-mic" type="checkbox" data-screenrec="mic-toggle">
                       Include microphone
                     </label>
+                    <div class="screenrec-range screenrec-range-compact">
+                      <input id="screenrec-mic-level" type="range" min="0" max="200" step="5" value="100" data-screenrec="mic-level" aria-label="Microphone level">
+                      <span class="screenrec-range-value" data-screenrec="mic-level-value">100%</span>
+                    </div>
                     <select id="screenrec-mic-select" class="screenrec-select screenrec-select-compact" data-screenrec="mic-select" disabled>
                       <option value="">Default microphone</option>
                     </select>
@@ -179,7 +177,12 @@
                 </button>
               </div>
               <div class="screenrec-crop-overlay" data-screenrec="crop-overlay" hidden>
-                <div class="screenrec-crop-selection" data-screenrec="crop-selection" hidden></div>
+                <div class="screenrec-crop-selection" data-screenrec="crop-selection" hidden>
+                  <span class="screenrec-crop-handle screenrec-crop-handle--nw" data-screenrec-resize="nw"></span>
+                  <span class="screenrec-crop-handle screenrec-crop-handle--ne" data-screenrec-resize="ne"></span>
+                  <span class="screenrec-crop-handle screenrec-crop-handle--sw" data-screenrec-resize="sw"></span>
+                  <span class="screenrec-crop-handle screenrec-crop-handle--se" data-screenrec-resize="se"></span>
+                </div>
               </div>
             </div>
 
