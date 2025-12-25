@@ -67,6 +67,8 @@
     totalPausedMs: 0,
     downloadUrls: [],
     downloadFiles: [],
+    downloadZipUrl: null,
+    downloadZipName: '',
     recordedBlob: null,
     recordedUrl: null,
     recordedDuration: 0,
@@ -259,6 +261,116 @@
     return 'Video';
   };
 
+  const CRC_TABLE = (() => {
+    const table = new Uint32Array(256);
+    for (let i = 0; i < 256; i++) {
+      let c = i;
+      for (let j = 0; j < 8; j++) {
+        c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1;
+      }
+      table[i] = c;
+    }
+    return table;
+  })();
+
+  const crc32 = (data) => {
+    let crc = 0xFFFFFFFF;
+    for (let i = 0; i < data.length; i++) {
+      crc = CRC_TABLE[(crc ^ data[i]) & 0xFF] ^ (crc >>> 8);
+    }
+    return (crc ^ 0xFFFFFFFF) >>> 0;
+  };
+
+  const getDosTimestamp = () => {
+    const now = new Date();
+    const year = Math.max(1980, now.getFullYear());
+    const month = now.getMonth() + 1;
+    const day = now.getDate();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    const seconds = Math.floor(now.getSeconds() / 2);
+    return {
+      dosDate: ((year - 1980) << 9) | (month << 5) | day,
+      dosTime: (hours << 11) | (minutes << 5) | seconds
+    };
+  };
+
+  const buildZipBlob = async (files) => {
+    const parts = [];
+    const centralParts = [];
+    const encoder = new TextEncoder();
+    const { dosDate, dosTime } = getDosTimestamp();
+    const fileCount = Math.min(files.length, 65535);
+    let offset = 0;
+    let centralSize = 0;
+    const zipFlags = 0x0800;
+    const zipVersion = 20;
+
+    for (let i = 0; i < fileCount; i++) {
+      const file = files[i];
+      const nameBytes = encoder.encode(file.name);
+      const data = new Uint8Array(await file.blob.arrayBuffer());
+      const crc = crc32(data);
+      const localHeader = new Uint8Array(30 + nameBytes.length);
+      const view = new DataView(localHeader.buffer);
+      view.setUint32(0, 0x04034b50, true);
+      view.setUint16(4, zipVersion, true);
+      view.setUint16(6, zipFlags, true);
+      view.setUint16(8, 0, true);
+      view.setUint16(10, dosTime, true);
+      view.setUint16(12, dosDate, true);
+      view.setUint32(14, crc, true);
+      view.setUint32(18, data.length, true);
+      view.setUint32(22, data.length, true);
+      view.setUint16(26, nameBytes.length, true);
+      view.setUint16(28, 0, true);
+      localHeader.set(nameBytes, 30);
+      const localOffset = offset;
+      parts.push(localHeader, data);
+      offset += localHeader.length + data.length;
+
+      const centralHeader = new Uint8Array(46 + nameBytes.length);
+      const cview = new DataView(centralHeader.buffer);
+      cview.setUint32(0, 0x02014b50, true);
+      cview.setUint16(4, zipVersion, true);
+      cview.setUint16(6, zipVersion, true);
+      cview.setUint16(8, zipFlags, true);
+      cview.setUint16(10, 0, true);
+      cview.setUint16(12, dosTime, true);
+      cview.setUint16(14, dosDate, true);
+      cview.setUint32(16, crc, true);
+      cview.setUint32(20, data.length, true);
+      cview.setUint32(24, data.length, true);
+      cview.setUint16(28, nameBytes.length, true);
+      cview.setUint16(30, 0, true);
+      cview.setUint16(32, 0, true);
+      cview.setUint16(34, 0, true);
+      cview.setUint16(36, 0, true);
+      cview.setUint32(38, 0, true);
+      cview.setUint32(42, localOffset, true);
+      centralHeader.set(nameBytes, 46);
+      centralParts.push(centralHeader);
+      centralSize += centralHeader.length;
+    }
+
+    const centralOffset = offset;
+    parts.push(...centralParts);
+
+    const endRecord = new Uint8Array(22);
+    const endView = new DataView(endRecord.buffer);
+    endView.setUint32(0, 0x06054b50, true);
+    endView.setUint16(4, 0, true);
+    endView.setUint16(6, 0, true);
+    endView.setUint16(8, fileCount, true);
+    endView.setUint16(10, fileCount, true);
+    endView.setUint32(12, centralSize, true);
+    endView.setUint32(16, centralOffset, true);
+    endView.setUint16(20, 0, true);
+    parts.push(endRecord);
+
+    return new Blob(parts, { type: 'application/zip' });
+  };
+
   const setDownloads = (files) => {
     if (!el.downloadAll || !el.downloadNote) return;
     clearDownload();
@@ -270,6 +382,7 @@
       return acc;
     }, {});
     const noteParts = [];
+    state.downloadZipName = buildFilename('zip', '', stamp);
     state.downloadFiles = files.map((file) => {
       const ext = extensionFromMime(file.mimeType);
       const label = file.label || formatLabelFromMime(file.mimeType);
@@ -277,13 +390,17 @@
       const name = buildFilename(ext, suffix, stamp);
       const url = URL.createObjectURL(file.blob);
       noteParts.push(`${label} ${formatBytes(file.blob.size)}`);
-      return { url, name, mimeType: file.mimeType, label };
+      return { url, name, mimeType: file.mimeType, label, blob: file.blob };
     });
     state.downloadUrls = state.downloadFiles.map((file) => file.url);
     const fileCount = state.downloadFiles.length;
     el.downloadAll.disabled = fileCount === 0;
     el.downloadAll.textContent = fileCount > 1 ? `Download ${fileCount} formats` : 'Download format';
-    el.downloadNote.textContent = `Ready: ${noteParts.join(' · ')}.`;
+    if (fileCount > 1) {
+      el.downloadNote.textContent = `Ready: ${noteParts.join(' · ')}. Download as zip.`;
+    } else {
+      el.downloadNote.textContent = `Ready: ${noteParts.join(' · ')}.`;
+    }
   };
 
   const clearDownload = () => {
@@ -292,6 +409,11 @@
     }
     state.downloadUrls = [];
     state.downloadFiles = [];
+    if (state.downloadZipUrl) {
+      URL.revokeObjectURL(state.downloadZipUrl);
+    }
+    state.downloadZipUrl = null;
+    state.downloadZipName = '';
     if (el.downloadAll) {
       el.downloadAll.disabled = true;
       el.downloadAll.textContent = 'Download formats';
@@ -301,9 +423,10 @@
     }
   };
 
-  const triggerDownloads = () => {
+  const triggerDownloads = async () => {
     if (!state.downloadFiles.length) return;
-    state.downloadFiles.forEach((file) => {
+    if (state.downloadFiles.length === 1) {
+      const file = state.downloadFiles[0];
       const link = document.createElement('a');
       link.href = file.url;
       link.download = file.name;
@@ -312,9 +435,40 @@
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    });
-    if (state.downloadFiles.length > 1) {
-      setStatus('Download started. Allow multiple downloads if prompted.', 'ready');
+      setStatus('Download started.', 'ready');
+      return;
+    }
+
+    const button = el.downloadAll;
+    const originalText = button?.textContent || '';
+    if (button) {
+      button.disabled = true;
+      button.textContent = 'Preparing zip...';
+    }
+    setStatus('Preparing zip...', 'pending');
+
+    try {
+      if (!state.downloadZipUrl) {
+        const zipBlob = await buildZipBlob(state.downloadFiles);
+        state.downloadZipUrl = URL.createObjectURL(zipBlob);
+      }
+      const zipName = state.downloadZipName || buildFilename('zip');
+      const link = document.createElement('a');
+      link.href = state.downloadZipUrl;
+      link.download = zipName;
+      link.rel = 'noopener';
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setStatus('Zip download started.', 'ready');
+    } catch (_) {
+      setStatus('Zip creation failed.', 'error');
+    } finally {
+      if (button) {
+        button.textContent = originalText || 'Download formats';
+        button.disabled = state.downloadFiles.length === 0;
+      }
     }
   };
 
