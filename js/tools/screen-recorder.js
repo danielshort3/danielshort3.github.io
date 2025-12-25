@@ -27,6 +27,10 @@
     testCapture: $('[data-screenrec="test-capture"]'),
     cropToggle: $('[data-screenrec="crop-toggle"]'),
     cropLabel: $('[data-screenrec="crop-label"]'),
+    cropPresetsToggle: $('[data-screenrec="crop-presets-toggle"]'),
+    cropPresets: $('[data-screenrec="crop-presets"]'),
+    cropPresetsLabel: $('[data-screenrec="crop-presets-label"]'),
+    cropPresetButtons: $$('[data-screenrec="crop-preset"]'),
     controlsToggle: $('[data-screenrec="controls-toggle"]'),
     controlsBody: $('[data-screenrec="controls-body"]'),
     cropOverlay: $('[data-screenrec="crop-overlay"]'),
@@ -89,6 +93,9 @@
     cropResizeHandle: null,
     cropResizeStart: null,
     cropAnimationId: null,
+    cropAspectValue: 'free',
+    cropAspectLabel: 'Free',
+    cropPresetsOpen: false,
     audioContext: null,
     audioMeterContext: null,
     audioMeterAnalyser: null,
@@ -691,6 +698,111 @@
 
   const MIN_CROP_SIZE = 24;
 
+  const parseAspectRatioValue = (value) => {
+    if (!value || value === 'free') return null;
+    const parts = value.split(':').map((part) => Number(part));
+    if (parts.length !== 2) return null;
+    const [width, height] = parts;
+    if (!Number.isFinite(width) || !Number.isFinite(height) || height === 0) return null;
+    return width / height;
+  };
+
+  const getCropAspectRatio = () => {
+    const ratio = parseAspectRatioValue(state.cropAspectValue);
+    return Number.isFinite(ratio) && ratio > 0 ? ratio : null;
+  };
+
+  const getMinCropSizeForRatio = (ratio) => {
+    if (!ratio || !Number.isFinite(ratio) || ratio <= 0) {
+      return { minWidth: MIN_CROP_SIZE, minHeight: MIN_CROP_SIZE };
+    }
+    if (ratio >= 1) {
+      return { minWidth: MIN_CROP_SIZE * ratio, minHeight: MIN_CROP_SIZE };
+    }
+    return { minWidth: MIN_CROP_SIZE, minHeight: MIN_CROP_SIZE / ratio };
+  };
+
+  const getHandleDirection = (handle) => ({
+    x: handle && handle.includes('w') ? -1 : 1,
+    y: handle && handle.includes('n') ? -1 : 1
+  });
+
+  const getResizeAnchor = (box, handle) => ({
+    x: handle && handle.includes('w') ? box.x + box.width : box.x,
+    y: handle && handle.includes('n') ? box.y + box.height : box.y
+  });
+
+  const getFreeformCropBox = (anchor, point, frame, direction, enforceMin) => {
+    let width = Math.abs(point.x - anchor.x);
+    let height = Math.abs(point.y - anchor.y);
+    const maxWidth = direction.x > 0
+      ? frame.offsetX + frame.displayWidth - anchor.x
+      : anchor.x - frame.offsetX;
+    const maxHeight = direction.y > 0
+      ? frame.offsetY + frame.displayHeight - anchor.y
+      : anchor.y - frame.offsetY;
+    width = Math.min(width, maxWidth);
+    height = Math.min(height, maxHeight);
+    if (enforceMin) {
+      width = Math.max(width, MIN_CROP_SIZE);
+      height = Math.max(height, MIN_CROP_SIZE);
+      width = Math.min(width, maxWidth);
+      height = Math.min(height, maxHeight);
+    }
+    const x = direction.x > 0 ? anchor.x : anchor.x - width;
+    const y = direction.y > 0 ? anchor.y : anchor.y - height;
+    return { x, y, width, height };
+  };
+
+  const getRatioCropBox = (anchor, point, frame, direction, ratio, enforceMin) => {
+    if (!ratio || !Number.isFinite(ratio) || ratio <= 0) {
+      return getFreeformCropBox(anchor, point, frame, direction, enforceMin);
+    }
+    let width = Math.abs(point.x - anchor.x);
+    let height = Math.abs(point.y - anchor.y);
+    if (width === 0 && height === 0) {
+      if (!enforceMin) {
+        return { x: anchor.x, y: anchor.y, width: 0, height: 0 };
+      }
+      const min = getMinCropSizeForRatio(ratio);
+      width = min.minWidth;
+      height = width / ratio;
+    } else if (height === 0) {
+      height = width / ratio;
+    } else if (width === 0) {
+      width = height * ratio;
+    } else if (width / height > ratio) {
+      width = height * ratio;
+    } else {
+      height = width / ratio;
+    }
+
+    const maxWidth = direction.x > 0
+      ? frame.offsetX + frame.displayWidth - anchor.x
+      : anchor.x - frame.offsetX;
+    const maxHeight = direction.y > 0
+      ? frame.offsetY + frame.displayHeight - anchor.y
+      : anchor.y - frame.offsetY;
+    if (width > 0 && height > 0) {
+      const scale = Math.min(1, maxWidth / width, maxHeight / height);
+      width *= scale;
+      height *= scale;
+    }
+    if (enforceMin) {
+      const min = getMinCropSizeForRatio(ratio);
+      if (width < min.minWidth || height < min.minHeight) {
+        width = min.minWidth;
+        height = width / ratio;
+        const scale = Math.min(1, maxWidth / width, maxHeight / height);
+        width *= scale;
+        height *= scale;
+      }
+    }
+    const x = direction.x > 0 ? anchor.x : anchor.x - width;
+    const y = direction.y > 0 ? anchor.y : anchor.y - height;
+    return { x, y, width, height };
+  };
+
   const normalizeCropBox = (box, frame) => ({
     x: Math.min(Math.max((box.x - frame.offsetX) / frame.displayWidth, 0), 1),
     y: Math.min(Math.max((box.y - frame.offsetY) / frame.displayHeight, 0), 1),
@@ -809,6 +921,86 @@
     state.cropResizeStart = null;
     updateCropOverlay();
     updateButtons();
+  };
+
+  const updateCropPresetUI = () => {
+    if (el.cropPresetsLabel) {
+      el.cropPresetsLabel.textContent = state.cropAspectLabel || 'Free';
+    }
+    if (el.cropPresetsToggle) {
+      el.cropPresetsToggle.title = `Crop preset: ${state.cropAspectLabel || 'Free'}`;
+    }
+    if (el.cropPresetButtons && el.cropPresetButtons.length) {
+      el.cropPresetButtons.forEach((button) => {
+        const value = button.dataset.ratio || 'free';
+        const isActive = value === state.cropAspectValue;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
+    }
+  };
+
+  const setCropPresetsOpen = (open) => {
+    state.cropPresetsOpen = Boolean(open);
+    if (el.cropPresets) {
+      el.cropPresets.hidden = !state.cropPresetsOpen;
+    }
+    if (el.cropPresetsToggle) {
+      el.cropPresetsToggle.setAttribute('aria-expanded', state.cropPresetsOpen ? 'true' : 'false');
+    }
+  };
+
+  const applyCropAspectRatio = () => {
+    const ratio = getCropAspectRatio();
+    if (!ratio || !state.cropRegion) return;
+    const frame = getVideoFrameRect();
+    if (!frame) return;
+    const box = getCropBoxFromRegion(frame);
+    if (!box) return;
+    const centerX = box.x + box.width / 2;
+    const centerY = box.y + box.height / 2;
+    let width = box.width;
+    let height = box.height;
+    if (width / height > ratio) {
+      width = height * ratio;
+    } else {
+      height = width / ratio;
+    }
+    const min = getMinCropSizeForRatio(ratio);
+    if (width < min.minWidth || height < min.minHeight) {
+      width = min.minWidth;
+      height = width / ratio;
+    }
+    const maxWidth = frame.displayWidth;
+    const maxHeight = frame.displayHeight;
+    if (width > maxWidth || height > maxHeight) {
+      const scale = Math.min(1, maxWidth / width, maxHeight / height);
+      width *= scale;
+      height *= scale;
+    }
+    let x = centerX - width / 2;
+    let y = centerY - height / 2;
+    x = Math.min(Math.max(x, frame.offsetX), frame.offsetX + frame.displayWidth - width);
+    y = Math.min(Math.max(y, frame.offsetY), frame.offsetY + frame.displayHeight - height);
+    state.cropRegion = normalizeCropBox({ x, y, width, height }, frame);
+    updateCropSelectionBox({ x, y, width, height });
+    updateCropOverlay();
+  };
+
+  const setCropPreset = (value, label) => {
+    const nextValue = value || 'free';
+    const ratio = parseAspectRatioValue(nextValue);
+    if (!ratio && nextValue !== 'free') {
+      state.cropAspectValue = 'free';
+      state.cropAspectLabel = 'Free';
+    } else {
+      state.cropAspectValue = nextValue;
+      state.cropAspectLabel = label || (nextValue === 'free' ? 'Free' : nextValue);
+    }
+    updateCropPresetUI();
+    if (state.cropRegion) {
+      applyCropAspectRatio();
+    }
   };
 
   const stopAudioMeter = () => {
@@ -1113,6 +1305,12 @@
       el.cropToggle.title = label;
       if (el.cropLabel) {
         el.cropLabel.textContent = label;
+      }
+    }
+    if (el.cropPresetsToggle) {
+      el.cropPresetsToggle.disabled = !captureLive || state.recording;
+      if (el.cropPresetsToggle.disabled && state.cropPresetsOpen) {
+        setCropPresetsOpen(false);
       }
     }
     if (el.downloadAll) {
@@ -1728,6 +1926,9 @@
 
   const toggleCropSelection = () => {
     if (!isCaptureLive() || state.recording) return;
+    if (state.cropPresetsOpen) {
+      setCropPresetsOpen(false);
+    }
     if (state.cropSelecting || state.cropRegion) {
       clearCrop();
       return;
@@ -1794,42 +1995,61 @@
       x: event.clientX - frame.stageRect.left,
       y: event.clientY - frame.stageRect.top
     };
+    const ratio = getCropAspectRatio();
 
     if (state.cropResizing && state.cropResizeStart) {
       const { box: startBox, point: startPoint } = state.cropResizeStart;
       const dx = point.x - startPoint.x;
       const dy = point.y - startPoint.y;
       const handle = state.cropResizeHandle || '';
-      let nextBox = { ...startBox };
-      if (handle.includes('n')) {
-        nextBox.y = startBox.y + dy;
-        nextBox.height = startBox.height - dy;
+      if (ratio) {
+        const clamped = clampPointToFrame(point, frame);
+        const anchor = getResizeAnchor(startBox, handle);
+        const direction = getHandleDirection(handle);
+        const nextBox = getRatioCropBox(anchor, clamped, frame, direction, ratio, true);
+        state.cropRegion = normalizeCropBox(nextBox, frame);
+        updateCropSelectionBox(nextBox);
+      } else {
+        let nextBox = { ...startBox };
+        if (handle.includes('n')) {
+          nextBox.y = startBox.y + dy;
+          nextBox.height = startBox.height - dy;
+        }
+        if (handle.includes('s')) {
+          nextBox.height = startBox.height + dy;
+        }
+        if (handle.includes('w')) {
+          nextBox.x = startBox.x + dx;
+          nextBox.width = startBox.width - dx;
+        }
+        if (handle.includes('e')) {
+          nextBox.width = startBox.width + dx;
+        }
+        nextBox = clampCropBox(nextBox, frame, handle);
+        state.cropRegion = normalizeCropBox(nextBox, frame);
+        updateCropSelectionBox(nextBox);
       }
-      if (handle.includes('s')) {
-        nextBox.height = startBox.height + dy;
-      }
-      if (handle.includes('w')) {
-        nextBox.x = startBox.x + dx;
-        nextBox.width = startBox.width - dx;
-      }
-      if (handle.includes('e')) {
-        nextBox.width = startBox.width + dx;
-      }
-      nextBox = clampCropBox(nextBox, frame, handle);
-      state.cropRegion = normalizeCropBox(nextBox, frame);
-      updateCropSelectionBox(nextBox);
       return;
     }
 
     if (state.cropStart) {
       const clamped = clampPointToFrame(point, frame);
       state.cropCurrent = clamped;
-      const box = {
-        x: Math.min(state.cropStart.x, clamped.x),
-        y: Math.min(state.cropStart.y, clamped.y),
-        width: Math.abs(clamped.x - state.cropStart.x),
-        height: Math.abs(clamped.y - state.cropStart.y)
-      };
+      let box;
+      if (ratio) {
+        const direction = {
+          x: clamped.x >= state.cropStart.x ? 1 : -1,
+          y: clamped.y >= state.cropStart.y ? 1 : -1
+        };
+        box = getRatioCropBox(state.cropStart, clamped, frame, direction, ratio, false);
+      } else {
+        box = {
+          x: Math.min(state.cropStart.x, clamped.x),
+          y: Math.min(state.cropStart.y, clamped.y),
+          width: Math.abs(clamped.x - state.cropStart.x),
+          height: Math.abs(clamped.y - state.cropStart.y)
+        };
+      }
       updateCropSelectionBox(box);
       return;
     }
@@ -1875,19 +2095,33 @@
         y: event.clientY - frame.stageRect.top
       };
       const clamped = clampPointToFrame(point, frame);
-      const box = {
-        x: Math.min(state.cropStart.x, clamped.x),
-        y: Math.min(state.cropStart.y, clamped.y),
-        width: Math.abs(clamped.x - state.cropStart.x),
-        height: Math.abs(clamped.y - state.cropStart.y)
-      };
-      if (box.width >= MIN_CROP_SIZE && box.height >= MIN_CROP_SIZE) {
-        state.cropRegion = {
-          x: (box.x - frame.offsetX) / frame.displayWidth,
-          y: (box.y - frame.offsetY) / frame.displayHeight,
-          width: box.width / frame.displayWidth,
-          height: box.height / frame.displayHeight
+      const ratio = getCropAspectRatio();
+      let box;
+      if (ratio) {
+        const direction = {
+          x: clamped.x >= state.cropStart.x ? 1 : -1,
+          y: clamped.y >= state.cropStart.y ? 1 : -1
         };
+        box = getRatioCropBox(state.cropStart, clamped, frame, direction, ratio, false);
+        const min = getMinCropSizeForRatio(ratio);
+        if (box.width >= min.minWidth && box.height >= min.minHeight) {
+          state.cropRegion = normalizeCropBox(box, frame);
+        }
+      } else {
+        box = {
+          x: Math.min(state.cropStart.x, clamped.x),
+          y: Math.min(state.cropStart.y, clamped.y),
+          width: Math.abs(clamped.x - state.cropStart.x),
+          height: Math.abs(clamped.y - state.cropStart.y)
+        };
+        if (box.width >= MIN_CROP_SIZE && box.height >= MIN_CROP_SIZE) {
+          state.cropRegion = {
+            x: (box.x - frame.offsetX) / frame.displayWidth,
+            y: (box.y - frame.offsetY) / frame.displayHeight,
+            width: box.width / frame.displayWidth,
+            height: box.height / frame.displayHeight
+          };
+        }
       }
       state.cropSelecting = false;
       state.cropStart = null;
@@ -1907,6 +2141,7 @@
     setFormatOptions();
     updateAudioLevelValue();
     updateMicLevelValue();
+    updateCropPresetUI();
     updateCaptureMeta();
     updateButtons();
     setView();
@@ -1926,6 +2161,28 @@
     el.stopRecord?.addEventListener('click', stopRecording);
     el.testCapture?.addEventListener('click', startTestCapture);
     el.cropToggle?.addEventListener('click', toggleCropSelection);
+    el.cropPresetsToggle?.addEventListener('click', (event) => {
+      event.stopPropagation();
+      if (el.cropPresetsToggle?.disabled) return;
+      setCropPresetsOpen(!state.cropPresetsOpen);
+    });
+    el.cropPresets?.addEventListener('click', (event) => {
+      const target = event.target.closest('[data-screenrec="crop-preset"]');
+      if (!target) return;
+      const value = target.dataset.ratio || 'free';
+      const label = target.dataset.label || target.textContent.trim();
+      setCropPreset(value, label);
+      setCropPresetsOpen(false);
+    });
+    document.addEventListener('click', (event) => {
+      if (!state.cropPresetsOpen) return;
+      if (el.cropPresets?.contains(event.target) || el.cropPresetsToggle?.contains(event.target)) return;
+      setCropPresetsOpen(false);
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape' || !state.cropPresetsOpen) return;
+      setCropPresetsOpen(false);
+    });
     el.controlsToggle?.addEventListener('click', () => {
       if (!el.controlsPanel) return;
       const collapsed = el.controlsPanel.dataset.collapsed === 'true';

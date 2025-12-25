@@ -168,13 +168,33 @@
               <video class="screenrec-video" data-screenrec="video" playsinline muted></video>
               <div class="screenrec-placeholder" data-screenrec="placeholder">Start capture to see a live preview.</div>
               <div class="screenrec-stage-controls">
-                <button type="button" class="btn-ghost screenrec-crop-button" data-screenrec="crop-toggle" aria-label="Crop" title="Crop" disabled>
-                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path d="M7 3v12a2 2 0 0 0 2 2h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
-                    <path d="M3 7h12a2 2 0 0 1 2 2v12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
-                  </svg>
-                  <span class="sr-only" data-screenrec="crop-label">Crop</span>
-                </button>
+                <div class="screenrec-crop-group" data-screenrec="crop-group">
+                  <button type="button" class="btn-ghost screenrec-crop-presets-toggle" data-screenrec="crop-presets-toggle" aria-expanded="false" aria-haspopup="true" aria-controls="screenrec-crop-presets" disabled>
+                    <span class="screenrec-crop-presets-label" data-screenrec="crop-presets-label">Free</span>
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                      <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                    <span class="sr-only">Crop presets</span>
+                  </button>
+                  <button type="button" class="btn-ghost screenrec-crop-button" data-screenrec="crop-toggle" aria-label="Crop" title="Crop" disabled>
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                      <path d="M7 3v12a2 2 0 0 0 2 2h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+                      <path d="M3 7h12a2 2 0 0 1 2 2v12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                    <span class="sr-only" data-screenrec="crop-label">Crop</span>
+                  </button>
+                  <div class="screenrec-crop-presets" id="screenrec-crop-presets" data-screenrec="crop-presets" hidden>
+                    <p class="screenrec-crop-presets-title">Crop presets</p>
+                    <div class="screenrec-crop-presets-grid" role="group" aria-label="Crop aspect ratio">
+                      <button type="button" class="screenrec-crop-preset is-active" data-screenrec="crop-preset" data-ratio="free" data-label="Free">Free</button>
+                      <button type="button" class="screenrec-crop-preset" data-screenrec="crop-preset" data-ratio="16:9" data-label="16:9">16:9 (1920x1080)</button>
+                      <button type="button" class="screenrec-crop-preset" data-screenrec="crop-preset" data-ratio="9:16" data-label="9:16">9:16 (1080x1920)</button>
+                      <button type="button" class="screenrec-crop-preset" data-screenrec="crop-preset" data-ratio="1:1" data-label="1:1">1:1 (1080x1080)</button>
+                      <button type="button" class="screenrec-crop-preset" data-screenrec="crop-preset" data-ratio="4:3" data-label="4:3">4:3 (1440x1080)</button>
+                      <button type="button" class="screenrec-crop-preset" data-screenrec="crop-preset" data-ratio="21:9" data-label="21:9">21:9 (2560x1080)</button>
+                    </div>
+                  </div>
+                </div>
               </div>
               <div class="screenrec-crop-overlay" data-screenrec="crop-overlay" hidden>
                 <div class="screenrec-crop-selection" data-screenrec="crop-selection" hidden>
