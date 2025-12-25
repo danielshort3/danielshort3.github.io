@@ -21,6 +21,8 @@
     testCapture: $('[data-screenrec="test-capture"]'),
     cropToggle: $('[data-screenrec="crop-toggle"]'),
     cropLabel: $('[data-screenrec="crop-label"]'),
+    controlsToggle: $('[data-screenrec="controls-toggle"]'),
+    controlsBody: $('[data-screenrec="controls-body"]'),
     cropOverlay: $('[data-screenrec="crop-overlay"]'),
     cropSelection: $('[data-screenrec="crop-selection"]'),
     grid: $('[data-screenrec="grid"]'),
@@ -280,6 +282,13 @@
       delete el.audioMeter.dataset.active;
       setAudioMeterLevel(0);
     }
+  };
+
+  const setControlsCollapsed = (collapsed) => {
+    if (!el.controlsPanel || !el.controlsToggle || !el.controlsBody) return;
+    el.controlsPanel.dataset.collapsed = collapsed ? 'true' : 'false';
+    el.controlsToggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    el.controlsBody.hidden = collapsed;
   };
 
   const updatePlaceholder = () => {
@@ -1210,6 +1219,10 @@
     updateCaptureMeta();
     updateButtons();
     setView();
+    if (el.controlsPanel && el.controlsBody && el.controlsToggle) {
+      const shouldCollapse = el.controlsPanel.dataset.collapsed === 'true' || el.controlsBody.hidden;
+      setControlsCollapsed(shouldCollapse);
+    }
 
     el.startCapture?.addEventListener('click', startCapture);
     el.stopCapture?.addEventListener('click', () => stopCapture());
@@ -1218,6 +1231,11 @@
     el.stopRecord?.addEventListener('click', stopRecording);
     el.testCapture?.addEventListener('click', startTestCapture);
     el.cropToggle?.addEventListener('click', toggleCropSelection);
+    el.controlsToggle?.addEventListener('click', () => {
+      if (!el.controlsPanel) return;
+      const collapsed = el.controlsPanel.dataset.collapsed === 'true';
+      setControlsCollapsed(!collapsed);
+    });
     el.audioToggle?.addEventListener('change', updateButtons);
     el.audioLevel?.addEventListener('input', updateAudioLevelValue);
     el.fpsSelect?.addEventListener('change', updateButtons);

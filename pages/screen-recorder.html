@@ -74,56 +74,65 @@
     <section class="surface-band screenrec-section">
       <div class="wrapper">
         <div class="screenrec-grid" data-screenrec="grid" data-view="controls">
-          <div class="screenrec-card screenrec-controls" data-screenrec="controls-panel">
+          <div class="screenrec-card screenrec-controls" data-screenrec="controls-panel" data-collapsed="true">
             <div class="screenrec-panel-head">
-              <div class="screenrec-panel-title">
-                <p class="screenrec-kicker">Setup</p>
-                <h2>Capture settings</h2>
-                <p class="screenrec-subtitle">All recording stays on-device. No uploads, with optional system audio.</p>
-              </div>
+              <button type="button" class="screenrec-panel-toggle" data-screenrec="controls-toggle" aria-expanded="false" aria-controls="screenrec-controls-body">
+                <div class="screenrec-panel-title">
+                  <p class="screenrec-kicker">Setup</p>
+                  <h2>Capture settings</h2>
+                  <p class="screenrec-subtitle">All recording stays on-device. No uploads, with optional system audio.</p>
+                </div>
+                <span class="screenrec-panel-toggle-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+                  </svg>
+                </span>
+              </button>
               <div class="screenrec-panel-actions">
                 <button type="button" class="btn-ghost screenrec-test-button" data-screenrec="test-capture">Run 5-second test</button>
                 <span class="screenrec-panel-note">Records a 5-second clip with your current settings.</span>
               </div>
             </div>
-            <form class="screenrec-form" novalidate>
-              <div class="screenrec-field screenrec-field-wide">
-                <span class="screenrec-label">Download format</span>
-                <div class="screenrec-radio-group" data-screenrec="format-options"></div>
-                <p class="screenrec-help" data-screenrec="format-help">Detecting supported formats...</p>
-              </div>
+            <div class="screenrec-panel-body" id="screenrec-controls-body" data-screenrec="controls-body" hidden>
+              <form class="screenrec-form" novalidate>
+                <div class="screenrec-field screenrec-field-wide">
+                  <span class="screenrec-label">Download format</span>
+                  <div class="screenrec-radio-group" data-screenrec="format-options"></div>
+                  <p class="screenrec-help" data-screenrec="format-help">Detecting supported formats...</p>
+                </div>
 
-              <div class="screenrec-field">
-                <label class="screenrec-label" for="screenrec-fps">Frame rate</label>
-                <select id="screenrec-fps" class="screenrec-select" data-screenrec="fps-select">
-                  <option value="auto">Auto (best available)</option>
-                  <option value="15">15 fps</option>
-                  <option value="30">30 fps</option>
-                  <option value="60">60 fps</option>
-                </select>
-                <p class="screenrec-help">Applies when starting a new capture.</p>
-              </div>
+                <div class="screenrec-field">
+                  <label class="screenrec-label" for="screenrec-fps">Frame rate</label>
+                  <select id="screenrec-fps" class="screenrec-select" data-screenrec="fps-select">
+                    <option value="auto">Auto (best available)</option>
+                    <option value="15">15 fps</option>
+                    <option value="30">30 fps</option>
+                    <option value="60">60 fps</option>
+                  </select>
+                  <p class="screenrec-help">Applies when starting a new capture.</p>
+                </div>
 
-              <div class="screenrec-field screenrec-field-wide">
-                <span class="screenrec-label">Audio</span>
-                <div class="screenrec-audio-row">
-                  <label class="screenrec-check" for="screenrec-audio">
-                    <input id="screenrec-audio" type="checkbox" data-screenrec="audio-toggle">
-                    Include system audio (if available)
-                  </label>
-                  <div class="screenrec-range screenrec-range-compact">
-                    <input id="screenrec-audio-level" type="range" min="0" max="200" step="5" value="100" data-screenrec="audio-level" aria-label="Audio level">
-                    <span class="screenrec-range-value" data-screenrec="audio-level-value">100%</span>
+                <div class="screenrec-field screenrec-field-wide">
+                  <span class="screenrec-label">Audio</span>
+                  <div class="screenrec-audio-row">
+                    <label class="screenrec-check" for="screenrec-audio">
+                      <input id="screenrec-audio" type="checkbox" data-screenrec="audio-toggle">
+                      Include system audio (if available)
+                    </label>
+                    <div class="screenrec-range screenrec-range-compact">
+                      <input id="screenrec-audio-level" type="range" min="0" max="200" step="5" value="100" data-screenrec="audio-level" aria-label="Audio level">
+                      <span class="screenrec-range-value" data-screenrec="audio-level-value">100%</span>
+                    </div>
+                  </div>
+                  <p class="screenrec-help" data-screenrec="audio-help">Audio selection is locked once capture starts.</p>
+                  <p class="screenrec-help" data-screenrec="audio-level-help">Adjust the recording volume before you capture.</p>
+                  <div class="screenrec-audio-meter" data-screenrec="audio-meter" role="meter" aria-label="Audio level" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                    <div class="screenrec-audio-meter-fill" data-screenrec="audio-meter-fill"></div>
                   </div>
                 </div>
-                <p class="screenrec-help" data-screenrec="audio-help">Audio selection is locked once capture starts.</p>
-                <p class="screenrec-help" data-screenrec="audio-level-help">Adjust the recording volume before you capture.</p>
-                <div class="screenrec-audio-meter" data-screenrec="audio-meter" role="meter" aria-label="Audio level" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-                  <div class="screenrec-audio-meter-fill" data-screenrec="audio-meter-fill"></div>
-                </div>
-              </div>
-              <p class="screenrec-note">Your browser will ask which screen, window, or tab to share. Everything runs locally, and system audio depends on browser support.</p>
-            </form>
+                <p class="screenrec-note">Your browser will ask which screen, window, or tab to share. Everything runs locally, and system audio depends on browser support.</p>
+              </form>
+            </div>
           </div>
 
           <div class="screenrec-card screenrec-preview" data-screenrec="preview-panel" aria-live="polite">
