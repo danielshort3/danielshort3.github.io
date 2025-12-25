@@ -1,8 +1,22 @@
 const { randomUUID } = require('crypto');
-const AWS = require('aws-sdk');
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const {
+  DynamoDBDocumentClient,
+  PutCommand,
+  UpdateCommand,
+  DeleteCommand,
+  QueryCommand
+} = require('@aws-sdk/lib-dynamodb');
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
-const dynamo = new AWS.DynamoDB.DocumentClient({ convertEmptyValues: true });
-const s3 = new AWS.S3();
+const dynamo = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
+  marshallOptions: {
+    removeUndefinedValues: true,
+    convertEmptyValues: true
+  }
+});
+const s3 = new S3Client({});
 
 const {
   APPLICATIONS_TABLE,
@@ -130,7 +144,7 @@ const queryApplications = async (userId, { range, limit, scanForward } = {}) => 
   let items = [];
   let lastKey;
   do {
-    const result = await dynamo.query({ ...params, ExclusiveStartKey: lastKey }).promise();
+    const result = await dynamo.send(new QueryCommand({ ...params, ExclusiveStartKey: lastKey }));
     items = items.concat(result.Items || []);
     lastKey = result.LastEvaluatedKey;
     if (params.Limit) break;
@@ -212,10 +226,10 @@ const handleCreateApplication = async (userId, payload = {}) => {
     createdAt: now,
     updatedAt: now
   };
-  await dynamo.put({
+  await dynamo.send(new PutCommand({
     TableName: APPLICATIONS_TABLE,
     Item: item
-  }).promise();
+  }));
   return item;
 };
 
@@ -254,23 +268,23 @@ const handleUpdateApplication = async (userId, applicationId, payload = {}) => {
   updates.push('#updatedAt = :updatedAt');
   names['#updatedAt'] = 'updatedAt';
 
-  const result = await dynamo.update({
+  const result = await dynamo.send(new UpdateCommand({
     TableName: APPLICATIONS_TABLE,
     Key: { userId, applicationId },
     UpdateExpression: `SET ${updates.join(', ')}`,
     ExpressionAttributeNames: names,
     ExpressionAttributeValues: values,
     ReturnValues: 'ALL_NEW'
-  }).promise();
+  }));
   return result.Attributes;
 };
 
 const handleDeleteApplication = async (userId, applicationId) => {
   if (!applicationId) throw httpError(400, 'Missing applicationId.');
-  await dynamo.delete({
+  await dynamo.send(new DeleteCommand({
     TableName: APPLICATIONS_TABLE,
     Key: { userId, applicationId }
-  }).promise();
+  }));
   return { ok: true };
 };
 
@@ -284,12 +298,15 @@ const handlePresign = async (userId, payload = {}) => {
   }
   const safeName = filename.replace(/[^a-zA-Z0-9._-]+/g, '-');
   const key = `${userId}/${applicationId}/${Date.now()}-${safeName}`;
-  const uploadUrl = await s3.getSignedUrlPromise('putObject', {
-    Bucket: ATTACHMENTS_BUCKET,
-    Key: key,
-    ContentType: contentType,
-    Expires: presignTtl
-  });
+  const uploadUrl = await getSignedUrl(
+    s3,
+    new PutObjectCommand({
+      Bucket: ATTACHMENTS_BUCKET,
+      Key: key,
+      ContentType: contentType
+    }),
+    { expiresIn: presignTtl }
+  );
   return {
     uploadUrl,
     key,
