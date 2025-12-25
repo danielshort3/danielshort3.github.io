@@ -140,12 +140,35 @@
                 <label class="jobtrack-label" for="jobtrack-notes">Notes</label>
                 <textarea id="jobtrack-notes" class="jobtrack-textarea" name="notes" rows="4" placeholder="Next step, hiring manager, or follow-up reminders."></textarea>
               </div>
+              <div class="jobtrack-field jobtrack-field-wide">
+                <label class="jobtrack-label" for="jobtrack-resume">Resume (optional)</label>
+                <input id="jobtrack-resume" class="jobtrack-input jobtrack-file-input" name="resume" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+              </div>
+              <div class="jobtrack-field jobtrack-field-wide">
+                <label class="jobtrack-label" for="jobtrack-cover">Cover letter (optional)</label>
+                <input id="jobtrack-cover" class="jobtrack-input jobtrack-file-input" name="coverLetter" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                <p class="jobtrack-help">Files are stored privately with this application for future downloads.</p>
+              </div>
               <div class="jobtrack-form-actions">
                 <button type="submit" class="btn-primary">Save application</button>
                 <button type="reset" class="btn-ghost">Clear</button>
               </div>
               <p class="jobtrack-form-status" data-jobtrack="form-status" role="status" aria-live="polite">Sign in to save new applications.</p>
             </form>
+
+            <div class="jobtrack-import">
+              <div>
+                <p class="jobtrack-kicker">Bulk import</p>
+                <h3>Import applications from CSV</h3>
+                <p class="jobtrack-subtitle">Use columns: company, title, appliedDate, status, notes.</p>
+              </div>
+              <div class="jobtrack-import-actions">
+                <input id="jobtrack-import-file" class="jobtrack-input jobtrack-file-input" type="file" accept=".csv,text/csv">
+                <button type="button" class="btn-secondary" data-jobtrack="import-submit">Import CSV</button>
+                <button type="button" class="btn-ghost" data-jobtrack="import-template">Download template</button>
+              </div>
+              <p class="jobtrack-form-status" data-jobtrack="import-status" role="status" aria-live="polite">Sign in to import applications.</p>
+            </div>
           </article>
 
           <article class="jobtrack-card jobtrack-recent-card" aria-live="polite">
@@ -162,6 +185,7 @@
             <ul class="jobtrack-recent-list" data-jobtrack="recent-list">
               <li class="jobtrack-recent-empty">Sign in to load your recent applications.</li>
             </ul>
+            <p class="jobtrack-form-status" data-jobtrack="recent-status" role="status" aria-live="polite">Sign in to download attachments.</p>
           </article>
         </div>
       </div>
