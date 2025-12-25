@@ -2105,6 +2105,15 @@
     });
   };
 
+  const beginCropSelection = () => {
+    if (!isCaptureLive() || state.recording) return;
+    state.cropSelecting = true;
+    state.cropStart = null;
+    state.cropCurrent = null;
+    updateCropOverlay();
+    updateButtons();
+  };
+
   const toggleCropSelection = () => {
     if (!isCaptureLive() || state.recording) return;
     if (state.cropPresetsOpen) {
@@ -2114,11 +2123,7 @@
       clearCrop();
       return;
     }
-    state.cropSelecting = true;
-    state.cropStart = null;
-    state.cropCurrent = null;
-    updateCropOverlay();
-    updateButtons();
+    beginCropSelection();
   };
 
   const handleCropPointerDown = (event) => {
@@ -2353,6 +2358,9 @@
       const value = target.dataset.ratio || 'free';
       const label = target.dataset.label || target.textContent.trim();
       setCropPreset(value, label);
+      if (!state.cropRegion && isCaptureLive() && !state.recording) {
+        beginCropSelection();
+      }
       setCropPresetsOpen(false);
     });
     document.addEventListener('click', (event) => {

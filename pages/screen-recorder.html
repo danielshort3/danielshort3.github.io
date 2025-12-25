@@ -105,7 +105,7 @@
                   <label class="screenrec-label" for="screenrec-fps">Frame rate</label>
                   <select id="screenrec-fps" class="screenrec-select" data-screenrec="fps-select">
                     <option value="auto">Auto (best available)</option>
-                    <option value="15">15 fps</option>
+                    <option value="15" selected>15 fps</option>
                     <option value="30">30 fps</option>
                     <option value="60">60 fps</option>
                   </select>
@@ -117,8 +117,8 @@
                   <select id="screenrec-quality" class="screenrec-select" data-screenrec="quality-select">
                     <option value="auto">Auto (browser default)</option>
                     <option value="tiny">Tiny preview (0.8 Mbps)</option>
-                    <option value="low">Small (1.5 Mbps)</option>
-                    <option value="medium" selected>Balanced (4 Mbps)</option>
+                    <option value="low" selected>Small (1.5 Mbps)</option>
+                    <option value="medium">Balanced (4 Mbps)</option>
                     <option value="high">High (8 Mbps)</option>
                   </select>
                   <p class="screenrec-help">Lower quality reduces file size. Applies when starting a new recording.</p>
@@ -127,8 +127,8 @@
                 <div class="screenrec-field">
                   <label class="screenrec-label" for="screenrec-scale">Resolution scale</label>
                   <select id="screenrec-scale" class="screenrec-select" data-screenrec="scale-select">
-                    <option value="1" selected>100% (original)</option>
-                    <option value="0.75">75%</option>
+                    <option value="1">100% (original)</option>
+                    <option value="0.75" selected>75%</option>
                     <option value="0.5">50%</option>
                     <option value="0.33">33%</option>
                   </select>
@@ -139,7 +139,7 @@
                   <span class="screenrec-label">Audio</span>
                   <div class="screenrec-audio-row">
                     <label class="screenrec-check" for="screenrec-audio">
-                      <input id="screenrec-audio" type="checkbox" data-screenrec="audio-toggle" checked>
+                      <input id="screenrec-audio" type="checkbox" data-screenrec="audio-toggle">
                       Include system audio (if available)
                     </label>
                     <div class="screenrec-range screenrec-range-compact">
