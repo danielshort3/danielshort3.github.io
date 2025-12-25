@@ -130,11 +130,22 @@
                       <span class="screenrec-range-value" data-screenrec="audio-level-value">100%</span>
                     </div>
                   </div>
-                  <p class="screenrec-help" data-screenrec="audio-help">Audio selection is locked once capture starts.</p>
                   <p class="screenrec-help" data-screenrec="audio-level-help">Adjust the recording volume before you capture.</p>
+                  <div class="screenrec-audio-row">
+                    <label class="screenrec-check" for="screenrec-mic">
+                      <input id="screenrec-mic" type="checkbox" data-screenrec="mic-toggle">
+                      Include microphone
+                    </label>
+                    <select id="screenrec-mic-select" class="screenrec-select screenrec-select-compact" data-screenrec="mic-select" disabled>
+                      <option value="">Default microphone</option>
+                    </select>
+                  </div>
+                  <p class="screenrec-help" data-screenrec="audio-help">System audio appears only when you share a tab and enable &quot;Share audio&quot;. Audio sources lock once capture starts.</p>
+                  <p class="screenrec-help" data-screenrec="mic-help">Microphone access is requested the first time you enable it.</p>
                   <div class="screenrec-audio-meter" data-screenrec="audio-meter" role="meter" aria-label="Audio level" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
                     <div class="screenrec-audio-meter-fill" data-screenrec="audio-meter-fill"></div>
                   </div>
+                  <p class="screenrec-help" data-screenrec="audio-status">No audio sources selected.</p>
                 </div>
                 <p class="screenrec-note">Your browser will ask which screen, window, or tab to share. Everything runs locally, and system audio depends on browser support.</p>
               </form>

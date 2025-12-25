@@ -17,6 +17,10 @@
     audioLevelHelp: $('[data-screenrec="audio-level-help"]'),
     audioMeter: $('[data-screenrec="audio-meter"]'),
     audioMeterFill: $('[data-screenrec="audio-meter-fill"]'),
+    micToggle: $('[data-screenrec="mic-toggle"]'),
+    micSelect: $('[data-screenrec="mic-select"]'),
+    micHelp: $('[data-screenrec="mic-help"]'),
+    audioStatus: $('[data-screenrec="audio-status"]'),
     startCapture: $('[data-screenrec="start-capture"]'),
     stopCapture: $('[data-screenrec="stop-capture"]'),
     captureActions: $('[data-screenrec="capture-actions"]'),
@@ -48,6 +52,7 @@
 
   const supportsCapture = Boolean(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
   const supportsRecorder = typeof window.MediaRecorder !== 'undefined';
+  const supportsMicrophone = Boolean(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
 
   const state = {
     stream: null,
@@ -82,10 +87,12 @@
     audioContext: null,
     audioMeterContext: null,
     audioMeterAnalyser: null,
-    audioMeterSource: null,
+    audioMeterSources: [],
     audioMeterData: null,
     audioMeterId: null,
-    audioMeterLevel: 0
+    audioMeterLevel: 0,
+    micStream: null,
+    micDeviceId: ''
   };
 
   const MIME_TYPE_OPTIONS = [
@@ -325,6 +332,89 @@
     el.audioLevelValue.textContent = `${Math.round(safeValue)}%`;
   };
 
+  const getActiveAudioStreams = () => {
+    const streams = [];
+    if (state.captureActive && streamHasAudio(state.stream)) {
+      streams.push(state.stream);
+    }
+    if (streamHasAudio(state.micStream)) {
+      streams.push(state.micStream);
+    }
+    return streams;
+  };
+
+  const getRecordingAudioStreams = () => {
+    const streams = [];
+    if (streamHasAudio(state.stream)) {
+      streams.push(state.stream);
+    }
+    if (streamHasAudio(state.micStream)) {
+      streams.push(state.micStream);
+    }
+    return streams;
+  };
+
+  const getAudioSummary = () => {
+    const systemAvailable = streamHasAudio(state.stream);
+    const micAvailable = streamHasAudio(state.micStream);
+    const systemRequested = Boolean(el.audioToggle?.checked);
+    const micRequested = Boolean(el.micToggle?.checked);
+    const activeSources = [];
+    if (systemAvailable) activeSources.push('System');
+    if (micAvailable) activeSources.push('Mic');
+    if (activeSources.length) {
+      return `Audio on (${activeSources.join(' + ')})`;
+    }
+    const requestedSources = [];
+    if (systemRequested) requestedSources.push('System');
+    if (micRequested) requestedSources.push('Mic');
+    if (requestedSources.length) {
+      return `Audio requested (${requestedSources.join(' + ')})`;
+    }
+    return 'Audio off';
+  };
+
+  const updateAudioStatus = () => {
+    if (!el.audioStatus) return;
+    const systemAvailable = streamHasAudio(state.stream);
+    const micAvailable = streamHasAudio(state.micStream);
+    const systemRequested = Boolean(el.audioToggle?.checked);
+    const micRequested = Boolean(el.micToggle?.checked);
+    if (systemAvailable || micAvailable) {
+      const parts = [];
+      if (systemAvailable) parts.push('System audio detected.');
+      if (micAvailable) parts.push('Microphone detected.');
+      if (systemRequested && !systemAvailable) {
+        if (state.captureActive) {
+          parts.push('System audio not detected. Enable "Share audio" in the browser prompt.');
+        } else {
+          parts.push('System audio appears after you start capture and enable "Share audio".');
+        }
+      }
+      if (micRequested && !micAvailable) {
+        parts.push('Microphone not detected.');
+      }
+      el.audioStatus.textContent = parts.join(' ');
+      return;
+    }
+    if (systemRequested || micRequested) {
+      const parts = [];
+      if (systemRequested) {
+        if (state.captureActive) {
+          parts.push('System audio not detected. Enable "Share audio" in the browser prompt.');
+        } else {
+          parts.push('System audio appears after you start capture and enable "Share audio".');
+        }
+      }
+      if (micRequested) {
+        parts.push('Microphone not detected.');
+      }
+      el.audioStatus.textContent = parts.join(' ');
+      return;
+    }
+    el.audioStatus.textContent = 'No audio sources selected.';
+  };
+
   const setAudioMeterLevel = (value) => {
     if (!el.audioMeter || !el.audioMeterFill) return;
     const clamped = Math.max(0, Math.min(1, value));
@@ -334,7 +424,7 @@
 
   const updateAudioMeterState = () => {
     if (!el.audioMeter) return;
-    const active = state.captureActive && streamHasAudio(state.stream);
+    const active = getActiveAudioStreams().length > 0;
     if (active) {
       el.audioMeter.dataset.active = 'true';
     } else {
@@ -482,10 +572,12 @@
       cancelAnimationFrame(state.audioMeterId);
       state.audioMeterId = null;
     }
-    if (state.audioMeterSource) {
-      try {
-        state.audioMeterSource.disconnect();
-      } catch (_) {}
+    if (state.audioMeterSources.length) {
+      state.audioMeterSources.forEach((source) => {
+        try {
+          source.disconnect();
+        } catch (_) {}
+      });
     }
     if (state.audioMeterAnalyser) {
       try {
@@ -497,7 +589,7 @@
     }
     state.audioMeterContext = null;
     state.audioMeterAnalyser = null;
-    state.audioMeterSource = null;
+    state.audioMeterSources = [];
     state.audioMeterData = null;
     state.audioMeterLevel = 0;
     setAudioMeterLevel(0);
@@ -506,7 +598,8 @@
   const startAudioMeter = () => {
     stopAudioMeter();
     updateAudioMeterState();
-    if (!state.stream || !streamHasAudio(state.stream)) return;
+    const meterStreams = getActiveAudioStreams();
+    if (!meterStreams.length) return;
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return;
     let audioContext;
@@ -515,27 +608,29 @@
     } catch (_) {
       return;
     }
-    let source;
+    const sources = [];
     let analyser;
     try {
-      source = audioContext.createMediaStreamSource(state.stream);
+      meterStreams.forEach((stream) => {
+        sources.push(audioContext.createMediaStreamSource(stream));
+      });
       analyser = audioContext.createAnalyser();
       analyser.fftSize = 512;
       analyser.smoothingTimeConstant = 0.85;
-      source.connect(analyser);
+      sources.forEach((source) => source.connect(analyser));
     } catch (_) {
       audioContext.close().catch(() => {});
       return;
     }
 
     state.audioMeterContext = audioContext;
-    state.audioMeterSource = source;
+    state.audioMeterSources = sources;
     state.audioMeterAnalyser = analyser;
     state.audioMeterData = new Uint8Array(analyser.fftSize);
     state.audioMeterLevel = 0;
 
     const tick = () => {
-      if (!state.captureActive || !state.stream || !streamHasAudio(state.stream)) {
+      if (!getActiveAudioStreams().length) {
         stopAudioMeter();
         updateAudioMeterState();
         return;
@@ -572,12 +667,125 @@
     stream.getTracks().forEach((track) => track.stop());
   };
 
-  const streamHasAudio = (stream) => Boolean(stream && stream.getAudioTracks && stream.getAudioTracks().length);
+  const streamHasAudio = (stream) => Boolean(
+    stream &&
+    stream.getAudioTracks &&
+    stream.getAudioTracks().some((track) => track.readyState !== 'ended')
+  );
+
+  const isCaptureLive = () => {
+    if (!state.captureActive || !state.stream || !state.stream.active) return false;
+    const tracks = state.stream.getVideoTracks();
+    return tracks.length > 0 && tracks.some((track) => track.readyState === 'live');
+  };
+
+  const setMicHelp = (text) => {
+    if (!el.micHelp) return;
+    el.micHelp.textContent = text;
+  };
+
+  const stopMicStream = () => {
+    if (!state.micStream) return;
+    stopTracks(state.micStream);
+    state.micStream = null;
+  };
+
+  const updateMicDevices = async () => {
+    if (!el.micSelect || !navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+    let devices = [];
+    try {
+      devices = await navigator.mediaDevices.enumerateDevices();
+    } catch (_) {
+      return;
+    }
+    const audioInputs = devices.filter((device) => device.kind === 'audioinput');
+    const currentValue = state.micDeviceId || el.micSelect.value;
+    el.micSelect.innerHTML = '';
+
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Default microphone';
+    el.micSelect.appendChild(defaultOption);
+
+    audioInputs.forEach((device, index) => {
+      const option = document.createElement('option');
+      option.value = device.deviceId;
+      option.textContent = device.label || `Microphone ${index + 1}`;
+      el.micSelect.appendChild(option);
+    });
+
+    if (currentValue && audioInputs.some((device) => device.deviceId === currentValue)) {
+      el.micSelect.value = currentValue;
+    } else {
+      el.micSelect.value = '';
+    }
+  };
+
+  const ensureMicStream = async () => {
+    if (!el.micToggle?.checked) {
+      stopMicStream();
+      updateAudioStatus();
+      startAudioMeter();
+      return false;
+    }
+    if (!supportsMicrophone) {
+      setMicHelp('Microphone capture is not supported in this browser.');
+      if (el.micToggle) {
+        el.micToggle.checked = false;
+      }
+      updateButtons();
+      return false;
+    }
+
+    const requestedId = el.micSelect?.value || '';
+    if (state.micStream && requestedId === state.micDeviceId) {
+      setMicHelp('Microphone ready.');
+      updateAudioStatus();
+      startAudioMeter();
+      return true;
+    }
+
+    const constraints = requestedId ? { deviceId: { exact: requestedId } } : true;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: constraints });
+      stopMicStream();
+      state.micStream = stream;
+      state.micDeviceId = requestedId;
+      const micTrack = stream.getAudioTracks()[0];
+      micTrack?.addEventListener('ended', () => {
+        stopMicStream();
+        updateAudioStatus();
+        startAudioMeter();
+        updateCaptureMeta();
+      }, { once: true });
+      setMicHelp('Microphone ready.');
+      await updateMicDevices();
+      updateAudioStatus();
+      startAudioMeter();
+      updateCaptureMeta();
+      return true;
+    } catch (_) {
+      stopMicStream();
+      if (el.micToggle) {
+        el.micToggle.checked = false;
+      }
+      setMicHelp('Microphone access denied or unavailable.');
+      setStatus('Microphone access denied or unavailable.', 'warn');
+      updateAudioStatus();
+      startAudioMeter();
+      updateButtons();
+      return false;
+    }
+  };
 
   const updateCaptureMeta = () => {
-    if (!el.captureMeta) return;
+    if (!el.captureMeta) {
+      updateAudioStatus();
+      return;
+    }
     if (!state.stream) {
       el.captureMeta.textContent = state.recordedUrl ? 'Recorded clip' : 'Not started';
+      updateAudioStatus();
       return;
     }
     const track = state.stream.getVideoTracks()[0];
@@ -602,21 +810,22 @@
     if (settings.frameRate) {
       parts.push(`${Math.round(settings.frameRate)} fps`);
     }
-    const hasAudio = streamHasAudio(state.stream);
-    parts.push(hasAudio ? 'Audio on' : 'Audio off');
+    parts.push(getAudioSummary());
     el.captureMeta.textContent = parts.length ? parts.join(' | ') : 'Capture active';
+    updateAudioStatus();
   };
 
   const updateButtons = () => {
     const hasRecording = Boolean(state.recordedUrl);
+    const captureLive = isCaptureLive();
     if (el.startCapture) {
-      el.startCapture.disabled = !supportsCapture || !supportsRecorder || state.captureActive || state.recording;
+      el.startCapture.disabled = !supportsCapture || !supportsRecorder || captureLive || state.recording;
     }
     if (el.stopCapture) {
-      el.stopCapture.disabled = !state.captureActive || state.recording;
+      el.stopCapture.disabled = !captureLive || state.recording;
     }
     if (el.startRecord) {
-      el.startRecord.disabled = !state.captureActive || state.recording;
+      el.startRecord.disabled = !captureLive || state.recording;
     }
     if (el.pauseRecord) {
       el.pauseRecord.disabled = !state.recording;
@@ -628,11 +837,19 @@
     if (el.audioToggle) {
       el.audioToggle.disabled = !supportsCapture || state.captureActive || state.recording;
     }
+    if (el.micToggle) {
+      el.micToggle.disabled = !supportsMicrophone || state.captureActive || state.recording;
+    }
+    if (el.micSelect) {
+      const micLocked = !supportsMicrophone || state.captureActive || state.recording || !el.micToggle?.checked;
+      el.micSelect.disabled = micLocked;
+    }
     if (el.fpsSelect) {
       el.fpsSelect.disabled = !supportsCapture || state.captureActive || state.recording;
     }
     if (el.audioLevel) {
-      const audioLocked = !supportsCapture || state.captureActive || state.recording || !el.audioToggle?.checked;
+      const audioLocked = !supportsCapture || state.captureActive || state.recording ||
+        (!el.audioToggle?.checked && !el.micToggle?.checked);
       el.audioLevel.disabled = audioLocked;
     }
     if (el.formatOptions) {
@@ -649,7 +866,7 @@
       el.testCapture.disabled = !supportsCapture || !supportsRecorder || state.captureActive || state.recording;
     }
     if (el.cropToggle) {
-      el.cropToggle.disabled = !state.captureActive || state.recording;
+      el.cropToggle.disabled = !captureLive || state.recording;
       const label = state.cropSelecting || state.cropRegion ? 'Cancel crop' : 'Crop';
       el.cropToggle.setAttribute('aria-label', label);
       el.cropToggle.title = label;
@@ -762,6 +979,9 @@
   };
 
   const startCapture = async () => {
+    if (state.captureActive && (!state.stream || !state.stream.active)) {
+      stopCapture('Capture ended by the browser.');
+    }
     if (!supportsCapture || !supportsRecorder || state.captureActive || state.recording) return false;
     setStatus('Requesting capture permission...', 'pending');
 
@@ -804,6 +1024,9 @@
     state.stream = stream;
     state.captureActive = true;
     state.stopReason = '';
+    if (el.micToggle?.checked && !streamHasAudio(state.micStream)) {
+      await ensureMicStream();
+    }
     setLivePreview();
     setView();
     updateCaptureMeta();
@@ -823,6 +1046,8 @@
 
     if (audioFallback) {
       setStatus('Audio capture is not available. Capturing without audio.', 'warn');
+    } else if (includeAudio && !streamHasAudio(stream)) {
+      setStatus('System audio not detected. Enable "Share audio" in the browser prompt.', 'warn');
     } else {
       setStatus('Capture ready. Start recording when you are ready.', 'ready');
     }
@@ -853,7 +1078,7 @@
     state.stopReason = '';
     clearCrop();
     updatePlaceholder();
-    stopAudioMeter();
+    startAudioMeter();
   };
 
   const startTestCapture = async () => {
@@ -864,7 +1089,7 @@
       state.testMode = false;
       return;
     }
-    startRecording();
+    await startRecording();
     if (state.recording) {
       state.testTimerId = setTimeout(() => {
         stopRecording();
@@ -1005,16 +1230,16 @@
     return { stream, cleanup };
   };
 
-  const createAdjustedAudioTrack = (stream, gainValue) => {
+  const createMixedAudioTrack = (streams, gainValue) => {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return null;
     try {
       const audioContext = new AudioCtx();
-      const source = audioContext.createMediaStreamSource(stream);
       const gainNode = audioContext.createGain();
       gainNode.gain.value = gainValue;
       const destination = audioContext.createMediaStreamDestination();
-      source.connect(gainNode);
+      const sources = streams.map((sourceStream) => audioContext.createMediaStreamSource(sourceStream));
+      sources.forEach((source) => source.connect(gainNode));
       gainNode.connect(destination);
       state.audioContext = audioContext;
       const track = destination.stream.getAudioTracks()[0];
@@ -1022,7 +1247,7 @@
         try {
           track.stop();
         } catch (_) {}
-        source.disconnect();
+        sources.forEach((source) => source.disconnect());
         gainNode.disconnect();
         destination.disconnect();
         audioContext.close().catch(() => {});
@@ -1056,18 +1281,19 @@
       outputStream.addTrack(videoTrack);
     }
 
-    if (streamHasAudio(state.stream)) {
+    const audioStreams = getRecordingAudioStreams();
+    if (audioStreams.length) {
       const gainValue = getAudioGain();
-      if (gainValue !== 1) {
-        const adjusted = createAdjustedAudioTrack(state.stream, gainValue);
-        if (adjusted && adjusted.track) {
-          outputStream.addTrack(adjusted.track);
-          cleanupTasks.push(adjusted.cleanup);
+      if (audioStreams.length > 1 || gainValue !== 1) {
+        const mixed = createMixedAudioTrack(audioStreams, gainValue);
+        if (mixed && mixed.track) {
+          outputStream.addTrack(mixed.track);
+          cleanupTasks.push(mixed.cleanup);
         } else {
-          outputStream.addTrack(state.stream.getAudioTracks()[0]);
+          outputStream.addTrack(audioStreams[0].getAudioTracks()[0]);
         }
       } else {
-        outputStream.addTrack(state.stream.getAudioTracks()[0]);
+        outputStream.addTrack(audioStreams[0].getAudioTracks()[0]);
       }
     }
 
@@ -1085,11 +1311,14 @@
     state.recordingStream = null;
   };
 
-  const startRecording = () => {
-    if (!state.captureActive || state.recording || !state.stream) return;
+  const startRecording = async () => {
+    if (!isCaptureLive() || state.recording || !state.stream) return;
     clearRecordedClip();
 
     setLivePreview();
+    if (el.micToggle?.checked && !streamHasAudio(state.micStream)) {
+      await ensureMicStream();
+    }
 
     const recordingStreamInfo = buildRecordingStream();
     if (!recordingStreamInfo || !recordingStreamInfo.stream) {
@@ -1144,6 +1373,11 @@
       if (state.testMode) {
         state.testMode = false;
         stopCapture('Test capture complete. Clip ready to download.');
+        return;
+      }
+      if (state.captureActive && state.stream && !state.stream.active) {
+        stopCapture(state.stopReason || 'Capture ended by the browser.');
+        return;
       }
       updateButtons();
     };
@@ -1262,7 +1496,7 @@
   };
 
   const toggleCropSelection = () => {
-    if (!state.captureActive || state.recording) return;
+    if (!isCaptureLive() || state.recording) return;
     if (state.cropSelecting || state.cropRegion) {
       clearCrop();
       return;
@@ -1404,6 +1638,10 @@
       const shouldCollapse = el.controlsPanel.dataset.collapsed === 'true' || el.controlsBody.hidden;
       setControlsCollapsed(shouldCollapse);
     }
+    updateMicDevices();
+    if (!supportsMicrophone) {
+      setMicHelp('Microphone capture is not supported in this browser.');
+    }
 
     el.startCapture?.addEventListener('click', startCapture);
     el.stopCapture?.addEventListener('click', () => stopCapture());
@@ -1417,7 +1655,27 @@
       const collapsed = el.controlsPanel.dataset.collapsed === 'true';
       setControlsCollapsed(!collapsed);
     });
-    el.audioToggle?.addEventListener('change', updateButtons);
+    el.audioToggle?.addEventListener('change', () => {
+      updateButtons();
+      updateAudioStatus();
+    });
+    el.micToggle?.addEventListener('change', () => {
+      if (el.micToggle.checked) {
+        ensureMicStream();
+      } else {
+        stopMicStream();
+        updateAudioStatus();
+        startAudioMeter();
+        updateCaptureMeta();
+      }
+      updateButtons();
+    });
+    el.micSelect?.addEventListener('change', () => {
+      state.micDeviceId = el.micSelect.value;
+      if (el.micToggle?.checked) {
+        ensureMicStream();
+      }
+    });
     el.audioLevel?.addEventListener('input', updateAudioLevelValue);
     el.fpsSelect?.addEventListener('change', updateButtons);
     el.cropOverlay?.addEventListener('pointerdown', handleCropPointerDown);
@@ -1443,6 +1701,7 @@
     el.video?.addEventListener('canplay', handleVideoReady);
     el.video?.addEventListener('playing', handleVideoReady);
     el.video?.addEventListener('emptied', updatePlaceholder);
+    navigator.mediaDevices?.addEventListener('devicechange', updateMicDevices);
   };
 
   init();
