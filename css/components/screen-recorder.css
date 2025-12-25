@@ -458,6 +458,14 @@
     background:color-mix(in srgb,var(--screenrec-surface) 92%, #050b12 8%);
     display:grid;
     gap:10px;
+    grid-template-columns:minmax(0, 1fr);
+    align-items:center;
+  }
+  @media (min-width: 760px) {
+    .screenrec-download-panel{
+      grid-template-columns:minmax(0, 1fr) minmax(0, 1fr);
+      gap:16px;
+    }
   }
 
   .screenrec-preview-header{
@@ -790,19 +798,39 @@
   .screenrec-download-actions{
     padding-top:0;
     border-top:none;
-    justify-content:center;
+    justify-content:flex-start;
   }
   .screenrec-download{
-    width:min(360px, 100%);
+    width:100%;
     min-width:220px;
+    max-width:360px;
     text-align:center;
     border-radius:999px;
+  }
+
+  .screenrec-download-meta{
+    display:grid;
+    gap:6px;
   }
 
   .screenrec-download-note{
     margin:0;
     color:color-mix(in srgb,var(--text-muted) 90%, #ffffff 10%);
     font-size:.88rem;
+  }
+  .screenrec-download-list{
+    list-style:none;
+    padding:0;
+    margin:0;
+    display:grid;
+    gap:6px;
+    font-size:.86rem;
+    color:color-mix(in srgb,var(--text-light) 90%, #ffffff 10%);
+  }
+  .screenrec-download-list li{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
   }
 
   .screenrec-card{
