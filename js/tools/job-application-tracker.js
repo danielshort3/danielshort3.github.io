@@ -1009,7 +1009,7 @@
     if (!confirmAction(`Delete ${label}? This cannot be undone.`)) return;
     try {
       setStatus(els.recentStatus, 'Deleting application...', 'info');
-      await requestJson(`/api/applications/${applicationId}`, { method: 'DELETE' });
+      await requestJson(`/api/applications/${encodeURIComponent(applicationId)}`, { method: 'DELETE' });
       if (state.editingApplicationId === applicationId) {
         clearApplicationEditMode('Ready to log a new application.');
         if (els.form) {
@@ -1146,7 +1146,7 @@
     if (!confirmAction(`Delete ${label}? This cannot be undone.`)) return;
     try {
       setStatus(els.prospectListStatus, 'Deleting prospect...', 'info');
-      await requestJson(`/api/applications/${prospectId}`, { method: 'DELETE' });
+      await requestJson(`/api/applications/${encodeURIComponent(prospectId)}`, { method: 'DELETE' });
       if (state.editingProspectId === prospectId) {
         clearProspectEditMode();
         if (els.prospectForm) {
@@ -1173,7 +1173,7 @@
     try {
       setStatus(els.prospectStatus, editingId ? 'Updating prospect...' : 'Saving prospect...', 'info');
       if (editingId) {
-        await requestJson(`/api/prospects/${editingId}`, { method: 'PATCH', body: payload });
+        await requestJson(`/api/prospects/${encodeURIComponent(editingId)}`, { method: 'PATCH', body: payload });
       } else {
         await requestJson('/api/prospects', { method: 'POST', body: payload });
       }
@@ -1192,7 +1192,7 @@
     if (!prospectId) return;
     try {
       setStatus(els.prospectListStatus, 'Updating prospect...', 'info');
-      await requestJson(`/api/prospects/${prospectId}`, {
+      await requestJson(`/api/prospects/${encodeURIComponent(prospectId)}`, {
         method: 'PATCH',
         body: { status: nextStatus }
       });
@@ -1319,7 +1319,7 @@
       let applicationId = editingId;
       let currentAttachments = Array.isArray(editingItem?.attachments) ? editingItem.attachments : [];
       if (editingId) {
-        await requestJson(`/api/applications/${editingId}`, { method: 'PATCH', body: payload });
+        await requestJson(`/api/applications/${encodeURIComponent(editingId)}`, { method: 'PATCH', body: payload });
       } else {
         const created = await requestJson('/api/applications', { method: 'POST', body: payload });
         applicationId = created?.applicationId;
@@ -1332,7 +1332,7 @@
           setStatus(els.formStatus, `Uploading ${attachments.length} ${label}...`, 'info');
           const uploaded = await uploadAttachments(applicationId, attachments);
           const merged = [...currentAttachments, ...uploaded].slice(-12);
-          await requestJson(`/api/applications/${applicationId}`, {
+          await requestJson(`/api/applications/${encodeURIComponent(applicationId)}`, {
             method: 'PATCH',
             body: { attachments: merged }
           });
