@@ -61,6 +61,8 @@
     { "source": "/digit-generator-demo.html","destination": "/demos/digit-generator-demo" },
     { "source": "/pizza-tips-demo", "destination": "/demos/pizza-tips-demo" },
     { "source": "/pizza-tips-demo.html", "destination": "/demos/pizza-tips-demo" },
+    { "source": "/target-empty-package-demo", "destination": "/demos/target-empty-package-demo" },
+    { "source": "/target-empty-package-demo.html", "destination": "/demos/target-empty-package-demo" },
     { "source": "/slot-machine-demo", "destination": "/demos/slot-machine-demo" },
     { "source": "/slot-machine-demo.html", "destination": "/demos/slot-machine-demo" }
   ],
