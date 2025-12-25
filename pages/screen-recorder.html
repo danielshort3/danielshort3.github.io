@@ -76,9 +76,16 @@
         <div class="screenrec-grid" data-screenrec="grid" data-view="controls">
           <div class="screenrec-card screenrec-controls" data-screenrec="controls-panel">
             <div class="screenrec-panel-head">
-              <h2>Capture settings</h2>
+              <div class="screenrec-panel-title">
+                <p class="screenrec-kicker">Setup</p>
+                <h2>Capture settings</h2>
+                <p class="screenrec-subtitle">All recording stays on-device. No uploads, with optional system audio.</p>
+              </div>
+              <div class="screenrec-panel-actions">
+                <button type="button" class="btn-ghost screenrec-test-button" data-screenrec="test-capture">Run 5-second test</button>
+                <span class="screenrec-panel-note">Records a 5-second clip with your current settings.</span>
+              </div>
             </div>
-            <p class="screenrec-subtitle">All recording stays on-device. No uploads, with optional system audio.</p>
             <form class="screenrec-form" novalidate>
               <div class="screenrec-field screenrec-field-wide">
                 <span class="screenrec-label">Download format</span>
@@ -115,14 +122,6 @@
                   <div class="screenrec-audio-meter-fill" data-screenrec="audio-meter-fill"></div>
                 </div>
               </div>
-
-              <div class="screenrec-field">
-                <span class="screenrec-label">Quick test</span>
-                <div class="screenrec-actions screenrec-actions-tight">
-                  <button type="button" class="btn-ghost" data-screenrec="test-capture">Run 5-second test</button>
-                </div>
-                <p class="screenrec-help">Records a 5-second clip with your current settings.</p>
-              </div>
               <p class="screenrec-note">Your browser will ask which screen, window, or tab to share. Everything runs locally, and system audio depends on browser support.</p>
             </form>
           </div>
@@ -135,7 +134,7 @@
               </div>
               <div class="screenrec-preview-controls">
                 <span class="screenrec-status" data-screenrec="status" data-tone="idle">Idle</span>
-                <div class="screenrec-actions" data-screenrec="capture-actions">
+                <div class="screenrec-actions screenrec-actions-capture" data-screenrec="capture-actions">
                   <button type="button" class="btn-primary" data-screenrec="start-capture">Start capture</button>
                   <button type="button" class="btn-secondary" data-screenrec="stop-capture" disabled>Stop capture</button>
                 </div>
