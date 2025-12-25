@@ -248,6 +248,32 @@
     margin-left:auto;
   }
 
+  .screenrec-audio-meter{
+    position:relative;
+    height:12px;
+    border-radius:999px;
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    background:linear-gradient(90deg,
+      rgba(16,24,32,.9) 0%,
+      rgba(10,16,24,.9) 100%);
+    overflow:hidden;
+    box-shadow:inset 0 1px 2px rgba(0,0,0,.45);
+  }
+  .screenrec-audio-meter:not([data-active="true"]){
+    opacity:.5;
+  }
+  .screenrec-audio-meter-fill{
+    position:absolute;
+    inset:0;
+    transform:scaleX(0);
+    transform-origin:left;
+    background:linear-gradient(90deg,
+      #2dd17a 0%,
+      #f2c94c 65%,
+      #f04438 100%);
+    transition:transform .08s linear;
+  }
+
   .screenrec-actions,
   .screenrec-download-actions{
     display:flex;
@@ -384,6 +410,9 @@
     color:var(--text-muted);
     font-size:.95rem;
     background:linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,.55));
+  }
+  .screenrec-placeholder[hidden]{
+    display:none;
   }
 
   .screenrec-crop-overlay{
