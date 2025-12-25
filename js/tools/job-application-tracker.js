@@ -48,7 +48,17 @@
     importSubmit: $('[data-jobtrack="import-submit"]'),
     importTemplate: $('[data-jobtrack="import-template"]'),
     importStatus: $('[data-jobtrack="import-status"]'),
-    recentStatus: $('[data-jobtrack="recent-status"]')
+    recentStatus: $('[data-jobtrack="recent-status"]'),
+    prospectForm: $('[data-jobtrack="prospect-form"]'),
+    prospectStatus: $('[data-jobtrack="prospect-status"]'),
+    prospectList: $('[data-jobtrack="prospect-list"]'),
+    prospectRefresh: $('[data-jobtrack="refresh-prospects"]'),
+    prospectListStatus: $('[data-jobtrack="prospect-list-status"]')
+  };
+
+  const tabs = {
+    buttons: $$('[data-jobtrack-tab]'),
+    panels: $$('[data-jobtrack-panel]')
   };
 
   const STORAGE_KEY = 'jobTrackerAuth';
@@ -174,6 +184,13 @@
     return Number.isNaN(parsed.getTime()) ? '' : formatDateInput(parsed);
   };
 
+  const normalizeUrl = (value) => {
+    const trimmed = (value || '').toString().trim();
+    if (!trimmed) return '';
+    if (/^https?:\/\//i.test(trimmed)) return trimmed;
+    return `https://${trimmed}`;
+  };
+
   const readFileText = (file) => {
     if (file && typeof file.text === 'function') return file.text();
     return new Promise((resolve, reject) => {
@@ -291,6 +308,59 @@
     }
   };
 
+  const activateTab = (name, shouldFocus = false) => {
+    if (!tabs.buttons.length || !tabs.panels.length) return;
+    tabs.buttons.forEach((button) => {
+      const selected = button.dataset.jobtrackTab === name;
+      button.setAttribute('aria-selected', selected ? 'true' : 'false');
+      button.tabIndex = selected ? 0 : -1;
+    });
+    tabs.panels.forEach((panel) => {
+      panel.hidden = panel.dataset.jobtrackPanel !== name;
+    });
+    if (shouldFocus) {
+      const activeButton = tabs.buttons.find(button => button.dataset.jobtrackTab === name);
+      if (activeButton) activeButton.focus();
+    }
+    if (name === 'dashboard') {
+      window.requestAnimationFrame(() => {
+        if (state.lineChart) state.lineChart.resize();
+        if (state.statusChart) state.statusChart.resize();
+      });
+    }
+  };
+
+  const initTabs = () => {
+    if (!tabs.buttons.length || !tabs.panels.length) return;
+    const defaultTab = tabs.buttons.find(button => button.getAttribute('aria-selected') === 'true')?.dataset.jobtrackTab
+      || tabs.buttons[0].dataset.jobtrackTab;
+    const hash = window.location && window.location.hash
+      ? window.location.hash.replace('#', '')
+      : '';
+    const initial = tabs.buttons.some(button => button.dataset.jobtrackTab === hash) ? hash : defaultTab;
+    activateTab(initial);
+    tabs.buttons.forEach((button, index) => {
+      button.addEventListener('click', () => activateTab(button.dataset.jobtrackTab, true));
+      button.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowRight') {
+          event.preventDefault();
+          const next = (index + 1) % tabs.buttons.length;
+          activateTab(tabs.buttons[next].dataset.jobtrackTab, true);
+        } else if (event.key === 'ArrowLeft') {
+          event.preventDefault();
+          const prev = (index - 1 + tabs.buttons.length) % tabs.buttons.length;
+          activateTab(tabs.buttons[prev].dataset.jobtrackTab, true);
+        } else if (event.key === 'Home') {
+          event.preventDefault();
+          activateTab(tabs.buttons[0].dataset.jobtrackTab, true);
+        } else if (event.key === 'End') {
+          event.preventDefault();
+          activateTab(tabs.buttons[tabs.buttons.length - 1].dataset.jobtrackTab, true);
+        }
+      });
+    });
+  };
+
   const randomBase64Url = (size = 32) => {
     const buffer = new Uint8Array(size);
     crypto.getRandomValues(buffer);
@@ -403,6 +473,12 @@
     }
     if (els.recentStatus) {
       setStatus(els.recentStatus, authed ? 'Select an attachment to download.' : 'Sign in to download attachments.', authed ? '' : 'info');
+    }
+    if (els.prospectStatus) {
+      setStatus(els.prospectStatus, authed ? 'Ready to save prospects.' : 'Sign in to save prospects.', authed ? '' : 'info');
+    }
+    if (els.prospectListStatus) {
+      setStatus(els.prospectListStatus, authed ? 'Select a prospect to update.' : 'Sign in to manage prospects.', authed ? '' : 'info');
     }
   };
 
@@ -799,6 +875,166 @@
     }
   };
 
+  const renderProspects = (items = [], emptyLabel = 'No prospects yet.') => {
+    if (!els.prospectList) return;
+    els.prospectList.innerHTML = '';
+    if (!items.length) {
+      const empty = document.createElement('li');
+      empty.className = 'jobtrack-prospect-empty';
+      empty.textContent = emptyLabel;
+      els.prospectList.appendChild(empty);
+      return;
+    }
+    items.forEach((item) => {
+      const li = document.createElement('li');
+      li.className = 'jobtrack-prospect-item';
+      const title = document.createElement('div');
+      title.className = 'jobtrack-prospect-title';
+      title.textContent = `${item.title || 'Role'} · ${item.company || 'Company'}`;
+      li.appendChild(title);
+
+      const metaBits = [];
+      const statusLabel = toTitle(item.status || 'Active');
+      if (statusLabel) metaBits.push(statusLabel);
+      if (item.location) metaBits.push(item.location);
+      if (item.source) metaBits.push(item.source);
+      if (metaBits.length) {
+        const meta = document.createElement('div');
+        meta.className = 'jobtrack-prospect-meta';
+        meta.textContent = metaBits.join(' · ');
+        li.appendChild(meta);
+      }
+
+      if (item.jobUrl) {
+        const link = document.createElement('a');
+        link.className = 'jobtrack-prospect-link';
+        link.href = item.jobUrl;
+        link.target = '_blank';
+        link.rel = 'noopener';
+        link.textContent = 'Open job posting';
+        li.appendChild(link);
+      }
+
+      if (item.notes) {
+        const notes = document.createElement('p');
+        notes.className = 'jobtrack-prospect-notes';
+        notes.textContent = item.notes;
+        li.appendChild(notes);
+      }
+
+      const actions = document.createElement('div');
+      actions.className = 'jobtrack-prospect-actions';
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'btn-ghost jobtrack-prospect-action';
+      toggle.dataset.jobtrackProspect = 'toggle';
+      toggle.dataset.id = item.applicationId || '';
+      const isInactive = (item.status || '').toString().toLowerCase() === 'inactive';
+      toggle.dataset.nextStatus = isInactive ? 'Active' : 'Inactive';
+      toggle.textContent = isInactive ? 'Mark active' : 'Mark inactive';
+      actions.appendChild(toggle);
+      li.appendChild(actions);
+
+      els.prospectList.appendChild(li);
+    });
+  };
+
+  const refreshProspects = async () => {
+    if (!els.prospectList) return;
+    if (!config.apiBase) {
+      renderProspects([], 'Set the API base URL to load prospects.');
+      return;
+    }
+    if (!authIsValid(state.auth)) {
+      renderProspects([], 'Sign in to load prospects.');
+      return;
+    }
+    try {
+      const data = await requestJson('/api/prospects?limit=8');
+      renderProspects(data.items || []);
+    } catch (err) {
+      console.error('Prospect load failed', err);
+      renderProspects([], 'Unable to load prospects.');
+    }
+  };
+
+  const submitProspect = async (payload) => {
+    if (!els.prospectStatus) return;
+    if (!authIsValid(state.auth)) {
+      setStatus(els.prospectStatus, 'Sign in to save prospects.', 'error');
+      return;
+    }
+    try {
+      setStatus(els.prospectStatus, 'Saving prospect...', 'info');
+      await requestJson('/api/prospects', { method: 'POST', body: payload });
+      setStatus(els.prospectStatus, 'Saved. Refreshing list...', 'success');
+      await sleep(200);
+      await refreshProspects();
+    } catch (err) {
+      console.error('Prospect save failed', err);
+      setStatus(els.prospectStatus, err?.message || 'Unable to save prospect.', 'error');
+    }
+  };
+
+  const updateProspectStatus = async (prospectId, nextStatus) => {
+    if (!prospectId) return;
+    try {
+      setStatus(els.prospectListStatus, 'Updating prospect...', 'info');
+      await requestJson(`/api/prospects/${prospectId}`, {
+        method: 'PATCH',
+        body: { status: nextStatus }
+      });
+      setStatus(els.prospectListStatus, 'Prospect updated.', 'success');
+      await refreshProspects();
+    } catch (err) {
+      console.error('Prospect update failed', err);
+      setStatus(els.prospectListStatus, err?.message || 'Unable to update prospect.', 'error');
+    }
+  };
+
+  const initProspects = () => {
+    if (els.prospectForm) {
+      els.prospectForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const formData = new FormData(els.prospectForm);
+        const company = (formData.get('company') || '').toString().trim();
+        const title = (formData.get('title') || '').toString().trim();
+        const jobUrl = normalizeUrl(formData.get('jobUrl'));
+        const location = (formData.get('location') || '').toString().trim();
+        const source = (formData.get('source') || '').toString().trim();
+        const status = (formData.get('status') || 'Active').toString().trim();
+        const notes = (formData.get('notes') || '').toString().trim();
+        if (!company || !title || !jobUrl) {
+          setStatus(els.prospectStatus, 'Company, role title, and job URL are required.', 'error');
+          return;
+        }
+        submitProspect({ company, title, jobUrl, location, source, status, notes });
+        els.prospectForm.reset();
+        setStatus(els.prospectStatus, 'Ready to save prospects.', '');
+      });
+      els.prospectForm.addEventListener('reset', () => {
+        setStatus(els.prospectStatus, 'Ready to save prospects.', '');
+      });
+    }
+
+    if (els.prospectRefresh) {
+      els.prospectRefresh.addEventListener('click', () => refreshProspects());
+    }
+
+    if (els.prospectList) {
+      els.prospectList.addEventListener('click', (event) => {
+        const target = event.target && event.target.closest
+          ? event.target.closest('[data-jobtrack-prospect="toggle"]')
+          : null;
+        if (!target) return;
+        event.preventDefault();
+        const prospectId = (target.dataset.id || '').trim();
+        const nextStatus = (target.dataset.nextStatus || 'Inactive').trim();
+        updateProspectStatus(prospectId, nextStatus);
+      });
+    }
+  };
+
   const initAttachmentDownloads = () => {
     if (!els.recentList) return;
     els.recentList.addEventListener('click', async (event) => {
@@ -1031,15 +1267,18 @@
         updateAuthUI();
         refreshDashboard();
         refreshRecent();
+        refreshProspects();
       });
     }
   };
 
   const init = async () => {
+    initTabs();
     initFilters();
     initForm();
     initImport();
     initAttachmentDownloads();
+    initProspects();
     if (els.recentRefresh) {
       els.recentRefresh.addEventListener('click', () => refreshRecent());
     }
@@ -1047,6 +1286,7 @@
     updateAuthUI();
     refreshDashboard();
     refreshRecent();
+    refreshProspects();
   };
 
   init();

@@ -85,6 +85,13 @@ const normalizeStatus = (value) => {
     .join(' ');
 };
 
+const normalizeUrl = (value) => {
+  const trimmed = (value || '').toString().trim();
+  if (!trimmed) return '';
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+};
+
 const normalizeAttachments = (userId, attachments) => {
   if (attachments === undefined || attachments === null) return [];
   if (!Array.isArray(attachments)) {
@@ -151,21 +158,36 @@ const getUserId = (event) => {
   return userId;
 };
 
-const queryApplications = async (userId, { range, limit, scanForward } = {}) => {
+const queryApplications = async (userId, { range, limit, scanForward, recordType } = {}) => {
   const params = {
     TableName: APPLICATIONS_TABLE,
     KeyConditionExpression: 'userId = :userId',
     ExpressionAttributeValues: { ':userId': userId },
     ScanIndexForward: scanForward !== false
   };
+  const filters = [];
+  const names = {};
   if (Number.isFinite(limit) && limit > 0) {
     params.Limit = Math.max(1, Math.floor(limit));
   }
   if (range) {
-    params.FilterExpression = '#appliedDate BETWEEN :start AND :end';
-    params.ExpressionAttributeNames = { '#appliedDate': 'appliedDate' };
+    filters.push('#appliedDate BETWEEN :start AND :end');
+    names['#appliedDate'] = 'appliedDate';
     params.ExpressionAttributeValues[':start'] = formatDate(range.start);
     params.ExpressionAttributeValues[':end'] = formatDate(range.end);
+  }
+  if (recordType) {
+    names['#recordType'] = 'recordType';
+    params.ExpressionAttributeValues[':recordType'] = recordType;
+    if (recordType === 'application') {
+      filters.push('(attribute_not_exists(#recordType) OR #recordType = :recordType)');
+    } else {
+      filters.push('#recordType = :recordType');
+    }
+  }
+  if (filters.length) {
+    params.FilterExpression = filters.join(' AND ');
+    params.ExpressionAttributeNames = names;
   }
 
   let items = [];
@@ -245,6 +267,7 @@ const handleCreateApplication = async (userId, payload = {}) => {
   const item = {
     userId,
     applicationId,
+    recordType: 'application',
     company,
     title,
     appliedDate: formatDate(parsedDate),
@@ -260,6 +283,80 @@ const handleCreateApplication = async (userId, payload = {}) => {
     Item: item
   }));
   return item;
+};
+
+const handleCreateProspect = async (userId, payload = {}) => {
+  const company = (payload.company || '').toString().trim();
+  const title = (payload.title || '').toString().trim();
+  const jobUrl = normalizeUrl(payload.jobUrl || payload.url);
+  if (!company || !title || !jobUrl) {
+    throw httpError(400, 'Company, title, and jobUrl are required.');
+  }
+  const status = normalizeStatus(payload.status || 'Active');
+  const now = nowIso();
+  const prospectId = `PROSPECT#${Date.now()}#${randomUUID()}`;
+  const item = {
+    userId,
+    applicationId: prospectId,
+    recordType: 'prospect',
+    company,
+    title,
+    jobUrl,
+    location: (payload.location || '').toString().trim(),
+    source: (payload.source || '').toString().trim(),
+    status,
+    notes: (payload.notes || '').toString().trim(),
+    createdAt: now,
+    updatedAt: now
+  };
+  await dynamo.send(new PutCommand({
+    TableName: APPLICATIONS_TABLE,
+    Item: item
+  }));
+  return item;
+};
+
+const handleUpdateProspect = async (userId, applicationId, payload = {}) => {
+  if (!applicationId) throw httpError(400, 'Missing prospectId.');
+  const updates = [];
+  const names = {};
+  const values = { ':updatedAt': nowIso() };
+
+  const addField = (key, value) => {
+    if (value === undefined || value === null) return;
+    const nameKey = `#${key}`;
+    const valueKey = `:${key}`;
+    names[nameKey] = key;
+    values[valueKey] = value;
+    updates.push(`${nameKey} = ${valueKey}`);
+  };
+
+  addField('company', payload.company?.toString().trim());
+  addField('title', payload.title?.toString().trim());
+  if (payload.jobUrl || payload.url) {
+    const jobUrl = normalizeUrl(payload.jobUrl || payload.url);
+    if (!jobUrl) throw httpError(400, 'jobUrl is required.');
+    addField('jobUrl', jobUrl);
+  }
+  addField('location', payload.location?.toString().trim());
+  addField('source', payload.source?.toString().trim());
+  addField('notes', payload.notes?.toString().trim());
+  if (payload.status) {
+    addField('status', normalizeStatus(payload.status));
+  }
+
+  updates.push('#updatedAt = :updatedAt');
+  names['#updatedAt'] = 'updatedAt';
+
+  const result = await dynamo.send(new UpdateCommand({
+    TableName: APPLICATIONS_TABLE,
+    Key: { userId, applicationId },
+    UpdateExpression: `SET ${updates.join(', ')}`,
+    ExpressionAttributeNames: names,
+    ExpressionAttributeValues: values,
+    ReturnValues: 'ALL_NEW'
+  }));
+  return result.Attributes;
 };
 
 const handleUpdateApplication = async (userId, applicationId, payload = {}) => {
@@ -385,7 +482,7 @@ exports.handler = async (event) => {
 
     if (routeKey.startsWith('GET /api/analytics/summary')) {
       const range = getRange(event.queryStringParameters || {});
-      const items = await queryApplications(userId, { range });
+      const items = await queryApplications(userId, { range, recordType: 'application' });
       const summary = buildSummary(items);
       return {
         statusCode: 200,
@@ -400,7 +497,7 @@ exports.handler = async (event) => {
 
     if (routeKey.startsWith('GET /api/analytics/applications-over-time')) {
       const range = getRange(event.queryStringParameters || {});
-      const items = await queryApplications(userId, { range });
+      const items = await queryApplications(userId, { range, recordType: 'application' });
       const series = buildDailySeries(items, range);
       return {
         statusCode: 200,
@@ -415,7 +512,7 @@ exports.handler = async (event) => {
 
     if (routeKey.startsWith('GET /api/analytics/status-breakdown')) {
       const range = getRange(event.queryStringParameters || {});
-      const items = await queryApplications(userId, { range });
+      const items = await queryApplications(userId, { range, recordType: 'application' });
       const statuses = buildStatusBreakdown(items);
       return {
         statusCode: 200,
@@ -430,7 +527,7 @@ exports.handler = async (event) => {
 
     if (routeKey.startsWith('GET /api/analytics/calendar')) {
       const range = getRange(event.queryStringParameters || {});
-      const items = await queryApplications(userId, { range });
+      const items = await queryApplications(userId, { range, recordType: 'application' });
       const days = buildDailySeries(items, range);
       return {
         statusCode: 200,
@@ -445,7 +542,17 @@ exports.handler = async (event) => {
 
     if (routeKey === 'GET /api/applications') {
       const limit = parseInt(event.queryStringParameters?.limit || '0', 10) || 0;
-      const items = await queryApplications(userId, { limit, scanForward: false });
+      const items = await queryApplications(userId, { limit, scanForward: false, recordType: 'application' });
+      return {
+        statusCode: 200,
+        headers: buildHeaders(corsOrigin),
+        body: JSON.stringify({ items })
+      };
+    }
+
+    if (routeKey === 'GET /api/prospects') {
+      const limit = parseInt(event.queryStringParameters?.limit || '0', 10) || 0;
+      const items = await queryApplications(userId, { limit, scanForward: false, recordType: 'prospect' });
       return {
         statusCode: 200,
         headers: buildHeaders(corsOrigin),
@@ -460,6 +567,27 @@ exports.handler = async (event) => {
         statusCode: 201,
         headers: buildHeaders(corsOrigin),
         body: JSON.stringify(item)
+      };
+    }
+
+    if (routeKey === 'POST /api/prospects') {
+      const payload = parseBody(event);
+      const item = await handleCreateProspect(userId, payload);
+      return {
+        statusCode: 201,
+        headers: buildHeaders(corsOrigin),
+        body: JSON.stringify(item)
+      };
+    }
+
+    if (routeKey.startsWith('PATCH /api/prospects')) {
+      const id = path.split('/').pop();
+      const payload = parseBody(event);
+      const updated = await handleUpdateProspect(userId, id, payload);
+      return {
+        statusCode: 200,
+        headers: buildHeaders(corsOrigin),
+        body: JSON.stringify(updated)
       };
     }
 

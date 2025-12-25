@@ -159,6 +159,47 @@ Response:
 }
 ```
 
+`GET /api/prospects`
+
+```json
+{
+  "items": [
+    {
+      "applicationId": "PROSPECT#1737061085123#...",
+      "company": "Acme Corp",
+      "title": "Senior Analyst",
+      "jobUrl": "https://company.com/jobs/123",
+      "status": "Active",
+      "location": "Remote",
+      "source": "LinkedIn",
+      "notes": "Follow up next week."
+    }
+  ]
+}
+```
+
+`POST /api/prospects`
+
+```json
+{
+  "company": "Acme Corp",
+  "title": "Senior Analyst",
+  "jobUrl": "https://company.com/jobs/123",
+  "status": "Active",
+  "location": "Remote",
+  "source": "LinkedIn",
+  "notes": "Follow up next week."
+}
+```
+
+`PATCH /api/prospects/{id}`
+
+```json
+{
+  "status": "Inactive"
+}
+```
+
 `POST /api/attachments/presign`
 
 ```json
