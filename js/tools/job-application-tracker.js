@@ -182,7 +182,7 @@
     const buffer = new Uint8Array(size);
     crypto.getRandomValues(buffer);
     const binary = String.fromCharCode(...buffer);
-    return btoa(binary).replace(/\\+/g, '-').replace(/\\//g, '_').replace(/=+$/, '');
+    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   };
 
   const sha256 = async (plain) => {
@@ -196,8 +196,8 @@
     const verifier = randomBase64Url(48);
     const challengeBytes = await sha256(verifier);
     const challenge = btoa(String.fromCharCode(...challengeBytes))
-      .replace(/\\+/g, '-')
-      .replace(/\\//g, '_')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
       .replace(/=+$/, '');
     const authState = randomBase64Url(16);
     sessionStorage.setItem(STATE_KEY, authState);
