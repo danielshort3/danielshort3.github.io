@@ -398,7 +398,16 @@
     flex-wrap:wrap;
     gap:8px;
   }
+  .jobtrack-recent-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
   .jobtrack-attachment-btn{
+    padding:6px 10px;
+    font-size:.85rem;
+  }
+  .jobtrack-recent-action{
     padding:6px 10px;
     font-size:.85rem;
   }
