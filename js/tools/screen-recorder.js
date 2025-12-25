@@ -51,6 +51,7 @@
     stopRecord: $('[data-screenrec="stop-record"]'),
     downloadAll: $('[data-screenrec="download-all"]'),
     downloadNote: $('[data-screenrec="download-note"]'),
+    downloadItems: $('[data-screenrec="download-items"]'),
     downloadPanel: $('[data-screenrec="download-panel"]')
   };
 
@@ -448,7 +449,7 @@
       acc[ext] = (acc[ext] || 0) + 1;
       return acc;
     }, {});
-    const noteParts = [];
+    const downloadItems = [];
     state.downloadZipName = buildFilename('zip', '', stamp);
     state.downloadFiles = files.map((file) => {
       const ext = extensionFromMime(file.mimeType);
@@ -456,7 +457,7 @@
       const suffix = extCounts[ext] > 1 ? slugify(label) : '';
       const name = buildFilename(ext, suffix, stamp);
       const url = URL.createObjectURL(file.blob);
-      noteParts.push(`${label} ${formatBytes(file.blob.size)}`);
+      downloadItems.push({ label, size: formatBytes(file.blob.size) });
       return { url, name, mimeType: file.mimeType, label, blob: file.blob };
     });
     state.downloadUrls = state.downloadFiles.map((file) => file.url);
@@ -464,9 +465,22 @@
     el.downloadAll.disabled = fileCount === 0;
     el.downloadAll.textContent = fileCount > 1 ? `Download ${fileCount} formats` : 'Download format';
     if (fileCount > 1) {
-      el.downloadNote.textContent = `Ready: ${noteParts.join(' · ')}. Download as zip.`;
+      el.downloadNote.textContent = 'Ready to download. Multiple formats will download as a zip.';
     } else {
-      el.downloadNote.textContent = `Ready: ${noteParts.join(' · ')}.`;
+      el.downloadNote.textContent = 'Ready to download.';
+    }
+    if (el.downloadItems) {
+      el.downloadItems.innerHTML = '';
+      downloadItems.forEach((item) => {
+        const li = document.createElement('li');
+        const label = document.createElement('span');
+        label.textContent = item.label;
+        const size = document.createElement('span');
+        size.textContent = item.size;
+        li.appendChild(label);
+        li.appendChild(size);
+        el.downloadItems.appendChild(li);
+      });
     }
   };
 
@@ -487,6 +501,9 @@
     }
     if (el.downloadNote) {
       el.downloadNote.textContent = 'Record a clip to enable download.';
+    }
+    if (el.downloadItems) {
+      el.downloadItems.innerHTML = '';
     }
   };
 
