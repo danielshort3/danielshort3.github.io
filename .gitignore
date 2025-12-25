@@ -24,4 +24,5 @@ public/
 tips_data_geocoded.csv
 Covid-Analysis/
 /aws/covid-outbreak-drivers/output
+/aws/target-empty-package/output
 Baby-Names/

@@ -664,8 +664,13 @@
     </main>
   </div>
 
-  <script>
-    const DATA_URL = "demos/data/target-empty-package.json";
+  <script src="js/demos/aws-client.js"></script>
+  <script type="module">
+    const DEFAULT_API_URL = "https://e7axe2ymmx2kadovfvvji23wkq0xmybn.lambda-url.us-east-2.on.aws/";
+    const STORAGE_KEY = "demo.endpoint.targetEmptyPackage";
+    const { resolveEndpoint, joinUrl, getJson } = window.DemoAws;
+    const endpointConfig = { defaultUrl: DEFAULT_API_URL, storageKey: STORAGE_KEY };
+    const API_URL = resolveEndpoint(endpointConfig);
     const state = {
       rows: [],
       filtered: [],
@@ -1078,10 +1083,15 @@
 
     async function init() {
       setFiltersEnabled(false);
+      if (!API_URL) {
+        setStatus("err", "Unavailable", "API endpoint missing");
+        DOM.breakdownList.innerHTML = "<li class=\"empty-state\">Unable to load data</li>";
+        DOM.recordList.innerHTML = "<li class=\"empty-state\">Unable to load data</li>";
+        return;
+      }
+      setStatus("warming", "Connecting", "Fetching demo data...");
       try {
-        const res = await fetch(DATA_URL, { cache: "no-store" });
-        if (!res.ok) throw new Error("Data unavailable");
-        const data = await res.json();
+        const data = await getJson(joinUrl(API_URL, "data"), { cache: "no-store" });
         state.rows = (data.rows || []).map((row) => ({
           ...row,
           value: Number(row.value) || 0,
