@@ -376,8 +376,13 @@ window.PROJECTS = [
     concepts: ["Automation", "Analytics"],
     resources: [
       { icon: "img/icons/pdf-icon.png",   url: "documents/Project_7.pdf",  label: "PDF"   },
-      { icon: "img/icons/excel-icon.png", url: "documents/Project_7.xlsx", label: "Excel" }
+      { icon: "img/icons/excel-icon.png", url: "documents/Project_7.xlsx", label: "Excel" },
+      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/target-empty-package-demo.html", label: "Live Demo" }
     ],
+    embed: {
+      type: "iframe",
+      url: "target-empty-package-demo.html"
+    },
     role: [
       "Built the Excel BI workflow (data cleanup, drill-down views, and reporting)."
     ],

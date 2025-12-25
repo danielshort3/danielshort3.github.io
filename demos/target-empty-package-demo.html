@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <base href="/">
+  <title>Empty-Package Shrink Explorer</title>
+  <meta name="theme-color" content="#0D1117" />
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@600&display=swap">
+  <style>
+    :root {
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+      --page-pad: clamp(12px, 3vw, 24px);
+      --shadow-1: 0 6px 18px rgba(0,0,0,.25);
+      --shadow-2: 0 18px 40px rgba(0,0,0,.45);
+      --surface-2: color-mix(in srgb, var(--surface) 88%, #000 12%);
+      --surface-3: color-mix(in srgb, var(--surface) 80%, #000 20%);
+      --text: var(--text-light);
+      --muted: var(--text-muted);
+      --accent: color-mix(in srgb, var(--primary) 70%, #7be9e0 30%);
+      --accent-strong: color-mix(in srgb, var(--primary) 85%, #8ffff0 15%);
+      --accent-soft: color-mix(in srgb, var(--primary) 18%, transparent);
+      --chart-grid: color-mix(in srgb, var(--surface) 75%, #ffffff 25%);
+      --chart-line: color-mix(in srgb, var(--primary) 70%, #bffcf2 30%);
+      --chart-dot: #e7fbf7;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    html[data-embedded="true"],
+    html[data-embedded="true"] body {
+      height: auto !important;
+      min-height: 0 !important;
+    }
+
+    html[data-embedded="true"] {
+      --page-pad: clamp(8px, 2vw, 16px);
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(900px 460px at 8% -12%, color-mix(in srgb, var(--primary) 28%, transparent), transparent 62%),
+        radial-gradient(680px 380px at 100% 0%, color-mix(in srgb, var(--warning) 22%, transparent), transparent 68%),
+        linear-gradient(140deg, #0b141d, #0b1218 55%, #0e1822 100%);
+      display: grid;
+      place-items: start center;
+      padding: var(--page-pad);
+      overflow-x: hidden;
+    }
+
+    #demo-box {
+      width: min(1200px, 100%);
+      background: var(--surface);
+      border: 1px solid var(--surface-accent);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-2);
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto auto auto 1fr;
+      min-height: calc(100vh - var(--page-pad) * 2);
+      animation: rise 0.6s ease both;
+    }
+
+    @supports (height: 100dvh) {
+      #demo-box {
+        min-height: calc(100dvh - var(--page-pad) * 2 - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      }
+    }
+
+    html[data-embedded="true"] #demo-box {
+      min-height: 0 !important;
+    }
+
+    header.card-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 20px;
+      background: linear-gradient(0deg, var(--surface), var(--surface-2));
+      border-bottom: 1px solid var(--surface-accent);
+    }
+
+    .header-copy {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .title {
+      margin: 0;
+      font-family: Poppins, Inter, system-ui, sans-serif;
+      font-weight: 600;
+      font-size: clamp(1.2rem, 2.4vw, 1.45rem);
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+      max-width: 64ch;
+    }
+
+    .header-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .pill {
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--surface-accent);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      background: color-mix(in srgb, var(--surface) 84%, #000 16%);
+    }
+
+    .btn-ghost {
+      border-radius: 999px;
+      border: 1px solid color-mix(in srgb, var(--primary) 45%, transparent);
+      background: color-mix(in srgb, var(--primary) 16%, transparent);
+      color: color-mix(in srgb, var(--primary) 80%, #ffffff 20%);
+      padding: 6px 14px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-ghost:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px color-mix(in srgb, var(--primary) 28%, transparent);
+    }
+
+    .health-row {
+      display: flex;
+      align-items: center;
+      padding: 8px 18px 0;
+    }
+
+    .health-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      border: 1px solid var(--surface-accent);
+      color: var(--muted);
+      background: var(--surface-2);
+    }
+
+    .health-pill::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .health-pill[data-state="ok"] {
+      color: var(--success, #38b37e);
+      border-color: color-mix(in srgb, var(--success, #38b37e) 55%, var(--surface-accent) 45%);
+    }
+
+    .health-pill[data-state="warming"] {
+      color: var(--warning, #e0a328);
+      border-color: color-mix(in srgb, var(--warning, #e0a328) 55%, var(--surface-accent) 45%);
+    }
+
+    .health-pill[data-state="err"] {
+      color: var(--danger, #e05757);
+      border-color: color-mix(in srgb, var(--danger, #e05757) 55%, var(--surface-accent) 45%);
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 6px 18px 14px;
+      border-bottom: 1px solid var(--surface-accent);
+    }
+
+    .status-meta {
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .status-note {
+      margin-left: auto;
+      font-size: 0.72rem;
+      color: color-mix(in srgb, var(--muted) 75%, #ffffff 25%);
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+      gap: 22px;
+      padding: 20px 22px 24px;
+    }
+
+    .column {
+      display: grid;
+      gap: 22px;
+    }
+
+    .panel {
+      background: color-mix(in srgb, var(--surface) 92%, #000 8%);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--surface-accent);
+      padding: 16px;
+      display: grid;
+      gap: 16px;
+      min-height: 0;
+    }
+
+    .panel h2,
+    .panel h3 {
+      margin: 0;
+      font-family: Poppins, Inter, system-ui, sans-serif;
+      font-weight: 600;
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .panel-title .meta-chip {
+      border-radius: 999px;
+      border: 1px solid var(--surface-accent);
+      padding: 4px 10px;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      background: var(--surface-2);
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+    }
+
+    .stat-card {
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--surface-accent);
+      background: color-mix(in srgb, var(--surface) 86%, #000 14%);
+      display: grid;
+      gap: 6px;
+    }
+
+    .stat-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .stat-value {
+      font-size: 1.15rem;
+      font-weight: 600;
+    }
+
+    .stat-sub {
+      font-size: 0.74rem;
+      color: var(--muted);
+    }
+
+    .insight-grid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+
+    .insight-card {
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--surface-accent);
+      background: color-mix(in srgb, var(--surface) 90%, #000 10%);
+      padding: 10px 12px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .insight-title {
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .insight-value {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .insight-meta {
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .tabs {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .tab-btn {
+      border: 1px solid var(--surface-accent);
+      background: color-mix(in srgb, var(--surface) 90%, #000 10%);
+      color: var(--muted);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .tab-btn.is-active {
+      color: color-mix(in srgb, var(--primary) 88%, #ffffff 12%);
+      border-color: color-mix(in srgb, var(--primary) 55%, transparent);
+      background: color-mix(in srgb, var(--primary) 18%, transparent);
+    }
+
+    .chart-wrap {
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--surface-accent);
+      background: color-mix(in srgb, var(--surface) 88%, #000 12%);
+      padding: 12px;
+    }
+
+    svg {
+      width: 100%;
+      height: 220px;
+      display: block;
+    }
+
+    .chart-meta {
+      font-size: 0.76rem;
+      color: var(--muted);
+    }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+    }
+
+    .filter-grid label {
+      display: grid;
+      gap: 6px;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .filter-grid input,
+    .filter-grid select {
+      border-radius: 10px;
+      border: 1px solid var(--surface-accent);
+      background: color-mix(in srgb, var(--surface) 90%, #000 10%);
+      color: var(--text);
+      padding: 8px 10px;
+      font-size: 0.8rem;
+    }
+
+    .filter-grid input:focus,
+    .filter-grid select:focus {
+      outline: 2px solid color-mix(in srgb, var(--primary) 60%, #ffffff 40%);
+      outline-offset: 2px;
+    }
+
+    .filter-note {
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .breakdown-list,
+    .record-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .breakdown-item {
+      display: grid;
+      gap: 6px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--surface-accent);
+      background: color-mix(in srgb, var(--surface) 86%, #000 14%);
+    }
+
+    .breakdown-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .breakdown-meta {
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .bar-track {
+      height: 8px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--surface) 78%, #000 22%);
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+      width: 0;
+      transition: width 0.4s ease;
+    }
+
+    .record-item {
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--surface-accent);
+      background: color-mix(in srgb, var(--surface) 84%, #000 16%);
+      display: grid;
+      gap: 6px;
+    }
+
+    .record-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .record-meta {
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .empty-state {
+      padding: 16px;
+      border-radius: var(--radius-sm);
+      border: 1px dashed var(--surface-accent);
+      color: var(--muted);
+      text-align: center;
+      font-size: 0.8rem;
+    }
+
+    @media (max-width: 980px) {
+      .content {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      header.card-header {
+        padding: 14px;
+      }
+      .status-row {
+        padding: 8px 14px 12px;
+      }
+      .content {
+        padding: 14px;
+      }
+      svg {
+        height: 200px;
+      }
+      .status-note {
+        display: none;
+      }
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+  <script>
+    if (window.self !== window.top) {
+      document.documentElement.setAttribute("data-embedded", "true");
+    }
+  </script>
+</head>
+<body>
+  <div id="demo-box" role="application" aria-label="Empty package shrink demo">
+    <header class="card-header">
+      <div class="header-copy">
+        <h1 class="title">Empty-Package Shrink Explorer</h1>
+        <p class="subtitle">Interactive view of anonymized recovery records, built to highlight concentration and acceleration.</p>
+      </div>
+      <div class="header-actions">
+        <span class="pill" id="date-range-pill">Loading dates</span>
+        <button class="btn-ghost" id="reset-filters" type="button">Reset filters</button>
+      </div>
+    </header>
+
+    <div class="health-row" role="status" aria-live="polite">
+      <span class="health-pill" id="status-pill" data-state="warming">Loading</span>
+    </div>
+    <div class="status-row">
+      <span class="status-meta" id="status-meta">Loading anonymized data...</span>
+      <span class="status-note">Employee and location identifiers are anonymized.</span>
+    </div>
+
+    <main class="content">
+      <div class="column">
+        <section class="panel" id="kpi-panel">
+          <div class="panel-title">
+            <h2>Recovery Snapshot</h2>
+            <span class="meta-chip" id="snapshot-meta">All records</span>
+          </div>
+          <div class="stat-grid">
+            <div class="stat-card">
+              <div class="stat-label">Recovered Value</div>
+              <div class="stat-value" id="stat-total">--</div>
+              <div class="stat-sub" id="stat-total-sub">--</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Incidents</div>
+              <div class="stat-value" id="stat-count">--</div>
+              <div class="stat-sub" id="stat-count-sub">--</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Average Value</div>
+              <div class="stat-value" id="stat-avg">--</div>
+              <div class="stat-sub">Per incident</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Peak Quarter</div>
+              <div class="stat-value" id="stat-peak">--</div>
+              <div class="stat-sub" id="stat-peak-sub">--</div>
+            </div>
+          </div>
+          <div class="insight-grid">
+            <div class="insight-card">
+              <div class="insight-title">Location Concentration</div>
+              <div class="insight-value" id="insight-locations">--</div>
+              <div class="insight-meta" id="insight-locations-meta">--</div>
+            </div>
+            <div class="insight-card">
+              <div class="insight-title">Department Skew</div>
+              <div class="insight-value" id="insight-departments">--</div>
+              <div class="insight-meta" id="insight-departments-meta">--</div>
+            </div>
+            <div class="insight-card">
+              <div class="insight-title">Associate Concentration</div>
+              <div class="insight-value" id="insight-employees">--</div>
+              <div class="insight-meta" id="insight-employees-meta">--</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="trend-panel">
+          <div class="panel-title">
+            <h2>Quarterly Trend</h2>
+            <div class="tabs" role="tablist" aria-label="Metric toggle">
+              <button class="tab-btn is-active" type="button" data-metric="value" aria-pressed="true">Retail Value</button>
+              <button class="tab-btn" type="button" data-metric="count" aria-pressed="false">Incident Count</button>
+            </div>
+          </div>
+          <div class="chart-wrap">
+            <svg id="trend-chart" viewBox="0 0 640 220" aria-label="Quarterly trend chart" role="img"></svg>
+          </div>
+          <div class="chart-meta" id="trend-meta">--</div>
+        </section>
+      </div>
+
+      <section class="panel explorer" id="explorer-panel">
+        <div class="panel-title">
+          <h2>Explore the Data</h2>
+          <span class="meta-chip" id="filter-meta">Filters</span>
+        </div>
+
+        <div class="filter-grid">
+          <label>
+            Location
+            <select id="filter-location" aria-label="Filter by location" disabled>
+              <option value="all">All locations</option>
+            </select>
+          </label>
+          <label>
+            Package Condition
+            <select id="filter-condition" aria-label="Filter by condition" disabled>
+              <option value="all">All conditions</option>
+            </select>
+          </label>
+          <label>
+            Department
+            <input id="filter-department" list="department-list" placeholder="All departments" aria-label="Filter by department" disabled />
+          </label>
+          <label>
+            Associate
+            <input id="filter-employee" list="employee-list" placeholder="All associates" aria-label="Filter by employee" disabled />
+          </label>
+          <label>
+            Start date
+            <input id="filter-start" type="date" aria-label="Filter start date" disabled />
+          </label>
+          <label>
+            End date
+            <input id="filter-end" type="date" aria-label="Filter end date" disabled />
+          </label>
+        </div>
+        <datalist id="department-list"></datalist>
+        <datalist id="employee-list"></datalist>
+        <div class="filter-note">Type to search departments or associates. Empty input means all.</div>
+
+        <div class="panel-title">
+          <h3>Breakdown</h3>
+          <div class="tabs" role="tablist" aria-label="Breakdown toggle">
+            <button class="tab-btn is-active" type="button" data-breakdown="location" aria-pressed="true">Location</button>
+            <button class="tab-btn" type="button" data-breakdown="department" aria-pressed="false">Department</button>
+            <button class="tab-btn" type="button" data-breakdown="employee" aria-pressed="false">Associate</button>
+          </div>
+        </div>
+        <ul class="breakdown-list" id="breakdown-list"></ul>
+
+        <div class="panel-title">
+          <h3>Recent Recoveries</h3>
+          <span class="meta-chip" id="record-meta">Latest 12</span>
+        </div>
+        <ul class="record-list" id="record-list"></ul>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const DATA_URL = "demos/data/target-empty-package.json";
+    const state = {
+      rows: [],
+      filtered: [],
+      metric: "value",
+      breakdown: "location",
+      filters: {
+        location: "all",
+        condition: "all",
+        department: "",
+        employee: "",
+        start: null,
+        end: null
+      }
+    };
+    let dataReady = false;
+
+    const DOM = {
+      statusPill: document.getElementById("status-pill"),
+      statusMeta: document.getElementById("status-meta"),
+      dateRangePill: document.getElementById("date-range-pill"),
+      snapshotMeta: document.getElementById("snapshot-meta"),
+      statTotal: document.getElementById("stat-total"),
+      statTotalSub: document.getElementById("stat-total-sub"),
+      statCount: document.getElementById("stat-count"),
+      statCountSub: document.getElementById("stat-count-sub"),
+      statAvg: document.getElementById("stat-avg"),
+      statPeak: document.getElementById("stat-peak"),
+      statPeakSub: document.getElementById("stat-peak-sub"),
+      insightLocations: document.getElementById("insight-locations"),
+      insightLocationsMeta: document.getElementById("insight-locations-meta"),
+      insightDepartments: document.getElementById("insight-departments"),
+      insightDepartmentsMeta: document.getElementById("insight-departments-meta"),
+      insightEmployees: document.getElementById("insight-employees"),
+      insightEmployeesMeta: document.getElementById("insight-employees-meta"),
+      trendChart: document.getElementById("trend-chart"),
+      trendMeta: document.getElementById("trend-meta"),
+      metricButtons: Array.from(document.querySelectorAll("[data-metric]")),
+      breakdownButtons: Array.from(document.querySelectorAll("[data-breakdown]")),
+      filterLocation: document.getElementById("filter-location"),
+      filterCondition: document.getElementById("filter-condition"),
+      filterDepartment: document.getElementById("filter-department"),
+      filterEmployee: document.getElementById("filter-employee"),
+      filterStart: document.getElementById("filter-start"),
+      filterEnd: document.getElementById("filter-end"),
+      departmentList: document.getElementById("department-list"),
+      employeeList: document.getElementById("employee-list"),
+      breakdownList: document.getElementById("breakdown-list"),
+      recordList: document.getElementById("record-list"),
+      recordMeta: document.getElementById("record-meta"),
+      filterMeta: document.getElementById("filter-meta"),
+      resetFilters: document.getElementById("reset-filters")
+    };
+
+    const notifyResize = (() => {
+      if (window.self === window.top) return () => {};
+      let lastHeight = 0;
+      const postHeight = () => {
+        const height = document.documentElement.scrollHeight;
+        if (Math.abs(height - lastHeight) < 4) return;
+        lastHeight = height;
+        window.parent.postMessage({ type: "target-empty-package-demo-resize", height }, "*");
+      };
+      window.addEventListener("load", () => requestAnimationFrame(postHeight));
+      window.addEventListener("resize", () => requestAnimationFrame(postHeight));
+      return postHeight;
+    })();
+
+    function setStatus(stateValue, label, meta) {
+      DOM.statusPill.dataset.state = stateValue;
+      DOM.statusPill.textContent = label;
+      if (meta !== undefined) DOM.statusMeta.textContent = meta;
+    }
+
+    function formatCurrency(value, digits) {
+      const maxDigits = Number.isFinite(digits) ? digits : 0;
+      return value.toLocaleString("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: maxDigits,
+        maximumFractionDigits: maxDigits
+      });
+    }
+
+    function formatNumber(value) {
+      return value.toLocaleString("en-US");
+    }
+
+    function formatDate(date) {
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric"
+      });
+    }
+
+    function parseDateValue(value) {
+      if (!value) return null;
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function buildQuarterSeries(rows) {
+      const map = new Map();
+      rows.forEach((row) => {
+        if (!row.date) return;
+        const year = row.date.getFullYear();
+        const quarter = Math.floor(row.date.getMonth() / 3) + 1;
+        const key = `${year} Q${quarter}`;
+        const entry = map.get(key) || { key, year, quarter, value: 0, count: 0 };
+        entry.value += row.value;
+        entry.count += 1;
+        map.set(key, entry);
+      });
+      return Array.from(map.values()).sort((a, b) => {
+        if (a.year !== b.year) return a.year - b.year;
+        return a.quarter - b.quarter;
+      });
+    }
+
+    function groupBy(rows, key) {
+      const map = new Map();
+      rows.forEach((row) => {
+        const value = row[key] || "Unknown";
+        const entry = map.get(value) || { key: value, value: 0, count: 0 };
+        entry.value += row.value;
+        entry.count += 1;
+        map.set(value, entry);
+      });
+      return Array.from(map.values()).sort((a, b) => b.value - a.value);
+    }
+
+    function topShare(rows, key, count) {
+      const grouped = groupBy(rows, key);
+      const total = grouped.reduce((sum, item) => sum + item.value, 0);
+      const top = grouped.slice(0, count);
+      const share = total > 0 ? top.reduce((sum, item) => sum + item.value, 0) / total : 0;
+      return { total, top, share };
+    }
+
+    function applyFilters() {
+      const location = state.filters.location;
+      const condition = state.filters.condition;
+      const department = state.filters.department.trim().toLowerCase();
+      const employee = state.filters.employee.trim().toLowerCase();
+      const start = state.filters.start;
+      const end = state.filters.end;
+
+      state.filtered = state.rows.filter((row) => {
+        if (location !== "all" && row.location !== location) return false;
+        if (condition !== "all" && row.condition !== condition) return false;
+        if (department && !String(row.department).toLowerCase().includes(department)) return false;
+        if (employee && !String(row.employee).toLowerCase().includes(employee)) return false;
+        if (start && row.date && row.date < start) return false;
+        if (end && row.date && row.date > end) return false;
+        return true;
+      });
+    }
+
+    function renderStats(series) {
+      const rows = state.filtered;
+      const totalValue = rows.reduce((sum, row) => sum + row.value, 0);
+      const totalCount = rows.length;
+      const avgValue = totalCount ? totalValue / totalCount : 0;
+
+      DOM.statTotal.textContent = formatCurrency(totalValue, 0);
+      DOM.statTotalSub.textContent = totalCount ? `Avg ${formatCurrency(avgValue, 2)}` : "No data";
+      DOM.statCount.textContent = formatNumber(totalCount);
+      DOM.statCountSub.textContent = totalCount ? `Sum ${formatCurrency(totalValue, 0)}` : "--";
+      DOM.statAvg.textContent = totalCount ? formatCurrency(avgValue, 2) : "--";
+
+      if (series.length) {
+        const peak = series.reduce((max, item) => (item.value > max.value ? item : max), series[0]);
+        DOM.statPeak.textContent = peak.key;
+        DOM.statPeakSub.textContent = formatCurrency(peak.value, 0);
+      } else {
+        DOM.statPeak.textContent = "--";
+        DOM.statPeakSub.textContent = "--";
+      }
+    }
+
+    function renderInsights() {
+      const rows = state.filtered;
+      const locationShare = topShare(rows, "location", 2);
+      const departmentShare = topShare(rows, "department", 3);
+      const employeeShare = topShare(rows, "employee", 3);
+
+      const topLocations = locationShare.top.map((item) => item.key).join(", ") || "--";
+      const locationPct = locationShare.total ? Math.round(locationShare.share * 100) : 0;
+      DOM.insightLocations.textContent = topLocations;
+      DOM.insightLocationsMeta.textContent = locationShare.total
+        ? `${locationPct}% of recovered value in top 2 locations`
+        : "No data";
+
+      const topDepartments = departmentShare.top.map((item) => `Dept ${item.key}`).join(", ") || "--";
+      const deptPct = departmentShare.total ? Math.round(departmentShare.share * 100) : 0;
+      DOM.insightDepartments.textContent = topDepartments;
+      DOM.insightDepartmentsMeta.textContent = departmentShare.total
+        ? `${deptPct}% of recovered value in top 3 departments`
+        : "No data";
+
+      const topEmployees = employeeShare.top.map((item) => item.key).join(", ") || "--";
+      const empPct = employeeShare.total ? Math.round(employeeShare.share * 100) : 0;
+      DOM.insightEmployees.textContent = topEmployees;
+      DOM.insightEmployeesMeta.textContent = employeeShare.total
+        ? `${empPct}% of recovered value in top 3 associates`
+        : "No data";
+    }
+
+    function renderTrend(series) {
+      const metric = state.metric;
+      if (!series.length) {
+        DOM.trendChart.innerHTML = "<text x=\"50%\" y=\"50%\" fill=\"#94a3b8\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-size=\"14\">No data</text>";
+        DOM.trendMeta.textContent = "No records to plot.";
+        return;
+      }
+
+      const width = 640;
+      const height = 220;
+      const pad = { top: 20, right: 18, bottom: 34, left: 46 };
+      const maxValue = Math.max(...series.map((item) => item[metric]), 1);
+      const chartWidth = width - pad.left - pad.right;
+      const chartHeight = height - pad.top - pad.bottom;
+      const step = series.length > 1 ? chartWidth / (series.length - 1) : 0;
+
+      const points = series.map((item, idx) => {
+        const x = pad.left + idx * step;
+        const y = pad.top + chartHeight - (item[metric] / maxValue) * chartHeight;
+        return [x, y];
+      });
+
+      const style = getComputedStyle(document.documentElement);
+      const gridColor = style.getPropertyValue("--chart-grid").trim() || "#2f3b45";
+      const lineColor = style.getPropertyValue("--chart-line").trim() || "#4fd1c5";
+      const dotColor = style.getPropertyValue("--chart-dot").trim() || "#e7fbf7";
+
+      const path = points.map((point, idx) => `${idx === 0 ? "M" : "L"}${point[0]} ${point[1]}`).join(" ");
+      const gridLines = 4;
+      const labels = Array.from({ length: gridLines + 1 }).map((_, i) => {
+        const value = Math.round((maxValue / gridLines) * (gridLines - i));
+        const y = pad.top + (chartHeight / gridLines) * i;
+        return {
+          value,
+          y
+        };
+      });
+
+      const labelStep = Math.max(1, Math.ceil(series.length / 6));
+      const xLabels = series.map((item, idx) => {
+        if (idx % labelStep !== 0 && idx !== series.length - 1) return null;
+        return {
+          text: item.key,
+          x: pad.left + idx * step
+        };
+      }).filter(Boolean);
+
+      DOM.trendChart.innerHTML = `
+        <rect x="0" y="0" width="${width}" height="${height}" fill="none" />
+        ${labels.map((label) => `
+          <line x1="${pad.left}" x2="${width - pad.right}" y1="${label.y}" y2="${label.y}" stroke="${gridColor}" stroke-width="1" opacity="0.5" />
+          <text x="${pad.left - 10}" y="${label.y + 4}" text-anchor="end" font-size="11" fill="#94a3b8">${metric === "value" ? formatCurrency(label.value, 0) : formatNumber(label.value)}</text>
+        `).join("")}
+        ${xLabels.map((label) => `
+          <text x="${label.x}" y="${height - 10}" text-anchor="middle" font-size="11" fill="#94a3b8">${label.text}</text>
+        `).join("")}
+        <path d="${path}" fill="none" stroke="${lineColor}" stroke-width="2.4" />
+        ${points.map((point) => `
+          <circle cx="${point[0]}" cy="${point[1]}" r="3.5" fill="${dotColor}" stroke="${lineColor}" stroke-width="1" />
+        `).join("")}
+      `;
+
+      const peak = series.reduce((max, item) => (item[metric] > max[metric] ? item : max), series[0]);
+      const unit = metric === "value" ? formatCurrency(peak.value, 0) : `${formatNumber(peak.count)} incidents`;
+      DOM.trendMeta.textContent = `Peak quarter: ${peak.key} (${unit}).`;
+    }
+
+    function renderBreakdown() {
+      const rows = state.filtered;
+      const breakdownKey = state.breakdown;
+      const grouped = groupBy(rows, breakdownKey).slice(0, 6);
+      if (!grouped.length) {
+        DOM.breakdownList.innerHTML = "<li class=\"empty-state\">No matching records</li>";
+        return;
+      }
+      const maxValue = Math.max(...grouped.map((item) => item.value), 1);
+      DOM.breakdownList.innerHTML = grouped.map((item) => {
+        const pct = Math.round((item.value / maxValue) * 100);
+        const label = breakdownKey === "department" ? `Dept ${item.key}` : item.key;
+        return `
+          <li class="breakdown-item">
+            <div class="breakdown-top">
+              <span>${label}</span>
+              <span>${formatCurrency(item.value, 0)}</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+            <div class="breakdown-meta">${formatNumber(item.count)} incidents</div>
+          </li>
+        `;
+      }).join("");
+    }
+
+    function renderRecords() {
+      const rows = state.filtered
+        .filter((row) => row.date)
+        .sort((a, b) => b.date - a.date)
+        .slice(0, 12);
+
+      DOM.recordMeta.textContent = rows.length ? `Latest ${rows.length}` : "No records";
+      if (!rows.length) {
+        DOM.recordList.innerHTML = "<li class=\"empty-state\">No records in this view</li>";
+        return;
+      }
+      DOM.recordList.innerHTML = rows.map((row) => `
+        <li class="record-item">
+          <div class="record-row">
+            <span>${formatDate(row.date)}</span>
+            <span>${formatCurrency(row.value, 2)}</span>
+          </div>
+          <div class="record-meta">${row.location} - ${row.employee} - Dept ${row.department}</div>
+        </li>
+      `).join("");
+    }
+
+    function renderAll() {
+      applyFilters();
+      const series = buildQuarterSeries(state.filtered);
+      renderStats(series);
+      renderInsights();
+      renderTrend(series);
+      renderBreakdown();
+      renderRecords();
+
+      const count = state.filtered.length;
+      const dateRange = (() => {
+        const dates = state.filtered.map((row) => row.date).filter(Boolean).sort((a, b) => a - b);
+        if (!dates.length) return "No dates";
+        return `${formatDate(dates[0])} - ${formatDate(dates[dates.length - 1])}`;
+      })();
+      DOM.snapshotMeta.textContent = count ? `${formatNumber(count)} records` : "No records";
+      DOM.filterMeta.textContent = count ? "Filters" : "No matches";
+      DOM.statusMeta.textContent = count ? `Showing ${formatNumber(count)} records (${dateRange}).` : "No matching records.";
+
+      notifyResize();
+    }
+
+    function setFiltersEnabled(enabled) {
+      [
+        DOM.filterLocation,
+        DOM.filterCondition,
+        DOM.filterDepartment,
+        DOM.filterEmployee,
+        DOM.filterStart,
+        DOM.filterEnd
+      ].forEach((el) => {
+        if (el) el.disabled = !enabled;
+      });
+      DOM.resetFilters.disabled = !enabled;
+    }
+
+    function resetFilters() {
+      state.filters = {
+        location: "all",
+        condition: "all",
+        department: "",
+        employee: "",
+        start: null,
+        end: null
+      };
+      DOM.filterLocation.value = "all";
+      DOM.filterCondition.value = "all";
+      DOM.filterDepartment.value = "";
+      DOM.filterEmployee.value = "";
+      DOM.filterStart.value = "";
+      DOM.filterEnd.value = "";
+      renderAll();
+    }
+
+    function initControls(data) {
+      const locations = Array.from(new Set(data.rows.map((row) => row.location))).sort();
+      const conditions = Array.from(new Set(data.rows.map((row) => row.condition))).sort();
+      const departments = Array.from(new Set(data.rows.map((row) => row.department))).sort((a, b) => Number(a) - Number(b));
+      const employees = Array.from(new Set(data.rows.map((row) => row.employee))).sort();
+
+      locations.forEach((loc) => {
+        const option = document.createElement("option");
+        option.value = loc;
+        option.textContent = loc;
+        DOM.filterLocation.appendChild(option);
+      });
+
+      conditions.forEach((cond) => {
+        const option = document.createElement("option");
+        option.value = cond;
+        option.textContent = cond.replace(/_/g, " ");
+        DOM.filterCondition.appendChild(option);
+      });
+
+      DOM.departmentList.innerHTML = departments.map((dept) => `<option value="${dept}"></option>`).join("");
+      DOM.employeeList.innerHTML = employees.map((emp) => `<option value="${emp}"></option>`).join("");
+
+      if (data.meta && data.meta.startDate) {
+        const start = data.meta.startDate.slice(0, 10);
+        const end = data.meta.endDate.slice(0, 10);
+        DOM.filterStart.min = start;
+        DOM.filterStart.max = end;
+        DOM.filterEnd.min = start;
+        DOM.filterEnd.max = end;
+        DOM.dateRangePill.textContent = `${start} to ${end}`;
+      }
+    }
+
+    async function init() {
+      setFiltersEnabled(false);
+      try {
+        const res = await fetch(DATA_URL, { cache: "no-store" });
+        if (!res.ok) throw new Error("Data unavailable");
+        const data = await res.json();
+        state.rows = (data.rows || []).map((row) => ({
+          ...row,
+          value: Number(row.value) || 0,
+          date: parseDateValue(row.datetime)
+        }));
+        dataReady = true;
+        initControls(data);
+        setStatus("ok", "Ready", "Anonymized data loaded");
+        setFiltersEnabled(true);
+        renderAll();
+      } catch (err) {
+        console.error(err);
+        dataReady = false;
+        setFiltersEnabled(false);
+        setStatus("err", "Unavailable", "Demo data missing");
+        DOM.breakdownList.innerHTML = "<li class=\"empty-state\">Unable to load data</li>";
+        DOM.recordList.innerHTML = "<li class=\"empty-state\">Unable to load data</li>";
+      }
+    }
+
+    DOM.metricButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (!dataReady) return;
+        const metric = btn.dataset.metric;
+        state.metric = metric;
+        DOM.metricButtons.forEach((button) => {
+          const active = button.dataset.metric === metric;
+          button.classList.toggle("is-active", active);
+          button.setAttribute("aria-pressed", String(active));
+        });
+        renderAll();
+      });
+    });
+
+    DOM.breakdownButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (!dataReady) return;
+        const breakdown = btn.dataset.breakdown;
+        state.breakdown = breakdown;
+        DOM.breakdownButtons.forEach((button) => {
+          const active = button.dataset.breakdown === breakdown;
+          button.classList.toggle("is-active", active);
+          button.setAttribute("aria-pressed", String(active));
+        });
+        renderBreakdown();
+      });
+    });
+
+    DOM.filterLocation.addEventListener("change", (event) => {
+      if (!dataReady) return;
+      state.filters.location = event.target.value || "all";
+      renderAll();
+    });
+
+    DOM.filterCondition.addEventListener("change", (event) => {
+      if (!dataReady) return;
+      state.filters.condition = event.target.value || "all";
+      renderAll();
+    });
+
+    DOM.filterDepartment.addEventListener("input", (event) => {
+      if (!dataReady) return;
+      state.filters.department = event.target.value || "";
+      renderAll();
+    });
+
+    DOM.filterEmployee.addEventListener("input", (event) => {
+      if (!dataReady) return;
+      state.filters.employee = event.target.value || "";
+      renderAll();
+    });
+
+    DOM.filterStart.addEventListener("change", (event) => {
+      if (!dataReady) return;
+      const date = event.target.value ? new Date(`${event.target.value}T00:00:00`) : null;
+      state.filters.start = date;
+      renderAll();
+    });
+
+    DOM.filterEnd.addEventListener("change", (event) => {
+      if (!dataReady) return;
+      const date = event.target.value ? new Date(`${event.target.value}T23:59:59`) : null;
+      state.filters.end = date;
+      renderAll();
+    });
+
+    DOM.resetFilters.addEventListener("click", () => {
+      if (!dataReady) return;
+      resetFilters();
+    });
+
+    init();
+  </script>
+</body>
+</html>

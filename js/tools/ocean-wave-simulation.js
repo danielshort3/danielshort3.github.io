@@ -27,6 +27,7 @@
   const G = 9.81;
   const DEG = Math.PI / 180;
   const MAX_WAVE_HEIGHT = 5.5;
+  const WIND_DIR = 86 * DEG;
 
   const DEFAULTS = {
     wind: 7.5,
@@ -47,6 +48,56 @@
   const pseudo = (seed) => frac(Math.sin(seed * 127.1 + 311.7) * 43758.5453123);
 
   const BAYER4 = new Float32Array([0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]);
+  const NOISE_SIZE = 128;
+  const NOISE_MASK = NOISE_SIZE - 1;
+  const noiseTile = new Float32Array(NOISE_SIZE * NOISE_SIZE);
+
+  const buildNoise = () => {
+    let i = 0;
+    for (let y = 0; y < NOISE_SIZE; y++) {
+      for (let x = 0; x < NOISE_SIZE; x++, i++) {
+        const v1 = pseudo(x * 12.9898 + y * 78.233);
+        const v2 = pseudo(x * 39.3468 + y * 11.135 + 3.1);
+        noiseTile[i] = (v1 + v2 * 0.5) / 1.5;
+      }
+    }
+  };
+
+  const sampleNoise = (x, y) => {
+    const xi = Math.floor(x);
+    const yi = Math.floor(y);
+    const tx = x - xi;
+    const ty = y - yi;
+    const x0 = xi & NOISE_MASK;
+    const y0 = yi & NOISE_MASK;
+    const x1 = (x0 + 1) & NOISE_MASK;
+    const y1 = (y0 + 1) & NOISE_MASK;
+    const i00 = x0 + y0 * NOISE_SIZE;
+    const i10 = x1 + y0 * NOISE_SIZE;
+    const i01 = x0 + y1 * NOISE_SIZE;
+    const i11 = x1 + y1 * NOISE_SIZE;
+    const v00 = noiseTile[i00];
+    const v10 = noiseTile[i10];
+    const v01 = noiseTile[i01];
+    const v11 = noiseTile[i11];
+    const sx = tx * tx * (3 - 2 * tx);
+    const sy = ty * ty * (3 - 2 * ty);
+    const ax = lerp(v00, v10, sx);
+    const bx = lerp(v01, v11, sx);
+    return lerp(ax, bx, sy);
+  };
+
+  const fbmNoise = (x, y) => {
+    let sum = 0;
+    let amp = 0.65;
+    let freq = 1;
+    for (let i = 0; i < 3; i++) {
+      sum += amp * sampleNoise(x * freq, y * freq);
+      amp *= 0.5;
+      freq *= 2.07;
+    }
+    return sum;
+  };
 
   const state = {
     wind: DEFAULTS.wind,
@@ -234,44 +285,62 @@
 
   const buildWaves = () => {
     const sea = clamp(state.wind / 20, 0, 1);
-    const lengthScale = lerp(0.85, 1.55, sea);
-    const speedScale = lerp(0.72, 1.65, sea);
-    const ampScale = lerp(0.06, 0.92, Math.pow(sea, 0.9));
-    const spread = lerp(1.55, 0.65, sea);
-    const windDir = 86 * DEG;
-    const baseChop = lerp(0.05, 0.62, Math.pow(sea, 0.95));
+    const energy = lerp(0.22, 0.9, Math.pow(sea, 0.9));
+    const lengthScale = lerp(1.25, 0.95, sea);
+    const speedScale = lerp(0.78, 1.7, sea);
+    const windSpread = lerp(0.22, 0.95, sea);
+    const swellSpread = lerp(0.06, 0.18, sea);
+    const baseChop = lerp(0.07, 0.95, Math.pow(sea, 0.92));
+    const swellDir = WIND_DIR - lerp(0.45, 0.2, sea);
 
-    const components = [
-      { length: 92, weight: 1.0, offset: 0.0 },
-      { length: 58, weight: 0.72, offset: 0.52 },
-      { length: 36, weight: 0.52, offset: -0.66 },
-      { length: 22, weight: 0.36, offset: 1.18 },
-      { length: 14, weight: 0.26, offset: -1.28 },
-      { length: 9.2, weight: 0.19, offset: 0.28 },
-    ];
+    waves = [];
 
-    waves = components.map((c, idx) => {
-      const shortness = components.length === 1 ? 0 : idx / (components.length - 1);
-      const jitter = (pseudo(idx + 11.2) - 0.5) * 0.18;
-      const theta = windDir + c.offset * spread;
-      const dirX = Math.cos(theta + jitter);
-      const dirZ = Math.sin(theta + jitter);
-      const lambda = c.length * lengthScale;
+    const pushWave = (length, weight, direction, speedMul, chop, shortness, seed) => {
+      const lambda = length * lengthScale;
       const k = TAU / lambda;
-      const omega = Math.sqrt(G * k) * speedScale;
-      const phase = pseudo(idx + 1) * TAU;
-      const amp = ampScale * c.weight;
-      const chop = baseChop * lerp(0.18, 1.0, shortness);
-      return {
+      const omega = Math.sqrt(G * k) * speedScale * speedMul;
+      const dirX = Math.cos(direction);
+      const dirZ = Math.sin(direction);
+      waves.push({
         kx: k * dirX,
         kz: k * dirZ,
         omega,
-        phase,
-        amp,
+        phase: pseudo(seed) * TAU,
+        amp: weight,
         chop,
         shortness,
-      };
-    });
+      });
+    };
+
+    const swellLengths = [210, 150, 110];
+    for (let i = 0; i < swellLengths.length; i++) {
+      const shortness = swellLengths.length === 1 ? 0 : i / (swellLengths.length - 1);
+      const jitter = (pseudo(i + 2.1) - 0.5) * swellSpread;
+      const weight = energy * lerp(0.3, 0.18, shortness) * lerp(0.9, 0.65, sea);
+      pushWave(swellLengths[i], weight, swellDir + jitter, 0.86, baseChop * 0.16, shortness, i + 10.7);
+    }
+
+    const windCount = 5;
+    for (let i = 0; i < windCount; i++) {
+      const shortness = windCount === 1 ? 0 : i / (windCount - 1);
+      const length = lerp(86, 26, shortness);
+      const dirJitter = (pseudo(i + 19.8) - 0.5) * windSpread * lerp(0.6, 1.4, shortness);
+      const weight = energy * (0.18 + 0.34 * Math.pow(1 - shortness, 0.8));
+      const chop = baseChop * lerp(0.32, 1.0, shortness);
+      const speedMul = lerp(0.9, 1.18, shortness);
+      pushWave(length, weight, WIND_DIR + dirJitter, speedMul, chop, shortness, i + 29.3);
+    }
+
+    const chopCount = 2;
+    for (let i = 0; i < chopCount; i++) {
+      const shortness = chopCount === 1 ? 0 : i / (chopCount - 1);
+      const length = lerp(18, 11, shortness);
+      const dirJitter = (pseudo(i + 38.6) - 0.5) * windSpread * 1.8;
+      const weight = energy * lerp(0.14, 0.09, shortness);
+      const chop = baseChop * lerp(0.9, 1.25, shortness);
+      const speedMul = lerp(1.05, 1.25, shortness);
+      pushWave(length, weight, WIND_DIR + dirJitter, speedMul, chop, shortness + 0.6, i + 40.2);
+    }
   };
 
   const resize = () => {
@@ -405,27 +474,35 @@
   const renderFrame = (t) => {
     if (!imageData || !pixels) return;
 
+    const sea = clamp(state.wind / 20, 0, 1);
+    const heightScale = clamp(state.waveHeight, 0, MAX_WAVE_HEIGHT);
+    const heightNorm = MAX_WAVE_HEIGHT ? heightScale / MAX_WAVE_HEIGHT : 0;
     const elevNorm = clamp((state.sunElevationDeg - 5) / 70, 0, 1);
     const warmth = Math.pow(1 - elevNorm, 1.35);
+    const sunIntensity = lerp(0.9, 1.25, 1 - elevNorm);
 
-    const skyTopR = lerp(10, 22, elevNorm);
-    const skyTopG = lerp(22, 74, elevNorm);
-    const skyTopB = lerp(56, 124, elevNorm);
+    const skyTopR = lerp(8, 24, elevNorm);
+    const skyTopG = lerp(18, 78, elevNorm);
+    const skyTopB = lerp(52, 142, elevNorm);
 
-    let skyHorizonR = lerp(64, 138, elevNorm);
-    let skyHorizonG = lerp(84, 182, elevNorm);
-    let skyHorizonB = lerp(104, 206, elevNorm);
+    let skyHorizonR = lerp(68, 170, elevNorm);
+    let skyHorizonG = lerp(92, 204, elevNorm);
+    let skyHorizonB = lerp(118, 228, elevNorm);
 
-    skyHorizonR = lerp(skyHorizonR, 196, warmth);
-    skyHorizonG = lerp(skyHorizonG, 132, warmth);
-    skyHorizonB = lerp(skyHorizonB, 102, warmth);
+    skyHorizonR = lerp(skyHorizonR, 218, warmth * 0.9);
+    skyHorizonG = lerp(skyHorizonG, 164, warmth * 0.8);
+    skyHorizonB = lerp(skyHorizonB, 122, warmth * 0.6);
 
-    const sunR = lerp(252, 255, 0.4) * (1 - warmth) + lerp(255, 255, 0.4) * warmth;
-    const sunG = lerp(252, 220, warmth);
-    const sunB = lerp(255, 186, warmth);
+    const sunR = lerp(250, 255, 0.5) * (1 - warmth * 0.35);
+    const sunG = lerp(244, 214, warmth);
+    const sunB = lerp(232, 182, warmth);
+
+    const cloudScale = lerp(2.1, 3.6, elevNorm);
+    const cloudStrength = lerp(0.12, 0.05, elevNorm);
+    const cloudDrift = t * lerp(0.006, 0.02, sea);
 
     for (let y = 0; y < height; y++) {
-      const s = smoothstep(0.0, 0.78, rowNorm[y]);
+      const s = smoothstep(0.0, 0.8, rowNorm[y]);
       skyRowR[y] = lerp(skyTopR, skyHorizonR, s);
       skyRowG[y] = lerp(skyTopG, skyHorizonG, s);
       skyRowB[y] = lerp(skyTopB, skyHorizonB, s);
@@ -435,29 +512,32 @@
     const lx = light.dirX;
     const ly = light.dirY;
     const lz = light.dirZ;
+    const windX = Math.cos(WIND_DIR);
+    const windZ = Math.sin(WIND_DIR);
 
     const baseWaterNearR = 6;
-    const baseWaterNearG = 30;
-    const baseWaterNearB = 42;
-    const baseWaterFarR = 14;
-    const baseWaterFarG = 86;
-    const baseWaterFarB = 108;
+    const baseWaterNearG = 34;
+    const baseWaterNearB = 50;
+    const baseWaterFarR = 12;
+    const baseWaterFarG = 88;
+    const baseWaterFarB = 114;
 
-    const foamR = 204;
-    const foamG = 232;
-    const foamB = 236;
+    const foamR = 214;
+    const foamG = 240;
+    const foamB = 242;
 
-    const sunSpecStrength = lerp(0.66, 1.02, 1 - elevNorm);
-    const shininess = lerp(128, 186, 1 - elevNorm);
-    const heightScale = clamp(state.waveHeight, 0, MAX_WAVE_HEIGHT);
-    const heightNorm = MAX_WAVE_HEIGHT ? heightScale / MAX_WAVE_HEIGHT : 0;
     const ampScale = heightScale;
-    const chopBoost = lerp(0.8, 1.25, heightNorm);
+    const chopBoost = lerp(0.78, 1.35, heightNorm);
+    const rippleScale = lerp(0.55, 1.05, sea);
+    const rippleAmp = lerp(0.04, 0.15, sea) * (0.35 + 0.65 * heightNorm);
+    const rippleDrift = t * lerp(0.06, 0.18, sea);
+    const foamScale = lerp(0.035, 0.08, sea);
+    const foamDrift = t * lerp(0.04, 0.12, sea);
 
-    const vignetteStrength = 0.14;
-    const glowStrength = 0.9;
-    const discR2 = 0.0007;
-    const glowR2 = 0.035;
+    const vignetteStrength = 0.12;
+    const glowStrength = 0.95;
+    const discR2 = 0.00062;
+    const glowR2 = 0.03;
 
     let o = 0;
     let p = 0;
@@ -467,16 +547,28 @@
       const skyB = skyRowB[y];
       const v2 = rowSq[y];
       const yv = rowNorm[y];
+      const cloudFade = smoothstep(0.05, 0.75, 1 - yv);
       for (let x = 0; x < width; x++, p++, o += 4) {
         const u = colNorm[x];
         const u2 = colSq[x];
-        const vignette = clamp(1 - (u2 + v2) * vignetteStrength, 0.72, 1);
-        const dither = (BAYER4[(x & 3) + ((y & 3) << 2)] / 16 - 0.5) * 1.4;
+        const vignette = clamp(1 - (u2 + v2) * vignetteStrength, 0.76, 1);
+        const dither = (BAYER4[(x & 3) + ((y & 3) << 2)] / 16 - 0.5) * 1.2;
 
         if (!waterMask[p]) {
           let r = skyR;
           let g = skyG;
           let b = skyB;
+
+          if (cloudStrength > 0.001) {
+            const cloudU = u * cloudScale + cloudDrift;
+            const cloudV = yv * cloudScale * 0.7 + cloudDrift * 0.6;
+            const cloudNoise = fbmNoise(cloudU, cloudV);
+            const cloudMask = smoothstep(0.52, 0.82, cloudNoise) * cloudFade;
+            const cloud = cloudMask * cloudStrength;
+            r = lerp(r, r * 0.86 + 16, cloud);
+            g = lerp(g, g * 0.88 + 18, cloud);
+            b = lerp(b, b * 0.9 + 22, cloud);
+          }
 
           if (light.sunVisible) {
             const dx = u - light.sunU;
@@ -484,7 +576,7 @@
             const r2 = dx * dx + dy * dy;
             const disc = Math.max(0, 1 - r2 / discR2);
             const glow = Math.max(0, 1 - r2 / glowR2);
-            const sun = disc * disc * disc * 1.15 + glow * glow * 0.32;
+            const sun = disc * disc * disc * 1.2 + glow * glow * 0.34;
             r += sun * sunR * glowStrength;
             g += sun * sunG * glowStrength;
             b += sun * sunB * glowStrength;
@@ -502,23 +594,39 @@
         let dhdx = 0;
         let dhdz = 0;
         let h = 0;
+        let crest = -1;
 
         for (let i = 0; i < waves.length; i++) {
           const wave = waves[i];
-          const shortTaper = 1 - wave.shortness * heightNorm * 0.42;
-          const amp = wave.amp * ampScale * Math.max(0.35, shortTaper);
+          const shortTaper = 1 - wave.shortness * heightNorm * 0.45;
+          const amp = wave.amp * ampScale * Math.max(0.3, shortTaper);
           const phase = wx * wave.kx + wz * wave.kz + t * wave.omega + wave.phase;
           const s1 = Math.sin(phase);
           const c1 = Math.cos(phase);
           const chop = wave.chop * chopBoost;
           const s2 = 2 * s1 * c1;
           const c2 = c1 * c1 - s1 * s1;
-          const s = s1 + chop * 0.35 * s2;
-          const dSdP = c1 + chop * 0.70 * c2;
+          const s3 = s2 * c1 + c2 * s1;
+          const c3 = c2 * c1 - s2 * s1;
+          const s = s1 + chop * (0.32 * s2 + 0.15 * s3);
+          const dSdP = c1 + chop * (0.64 * c2 + 0.45 * c3);
           h += amp * s;
           dhdx += amp * dSdP * wave.kx;
           dhdz += amp * dSdP * wave.kz;
+          if (s1 > crest) crest = s1;
         }
+
+        const flowX = wx * windX + wz * windZ;
+        const flowZ = -wx * windZ + wz * windX;
+        const rippleU = flowX * rippleScale + rippleDrift;
+        const rippleV = flowZ * rippleScale - rippleDrift * 0.6;
+        const rippleBase = sampleNoise(rippleU, rippleV);
+        const rippleDx = sampleNoise(rippleU + 0.8, rippleV);
+        const rippleDz = sampleNoise(rippleU, rippleV + 0.8);
+        const microSlopeX = (rippleDx - rippleBase) * 1.6;
+        const microSlopeZ = (rippleDz - rippleBase) * 1.6;
+        dhdx += microSlopeX * rippleAmp;
+        dhdz += microSlopeZ * rippleAmp;
 
         let nx = -dhdx;
         let ny = 1;
@@ -532,59 +640,102 @@
         const vy = viewY[p];
         const vz = viewZ[p];
         const ndv = nx * vx + ny * vy + nz * vz;
-        const ndotv = clamp(ndv, 0, 1);
+        const ndotv = clamp(ndv, 0.001, 1);
         const ndotl = clamp(nx * lx + ny * ly + nz * lz, 0, 1);
 
-        const f0 = 0.02;
-        const fresnel = f0 + (1 - f0) * Math.pow(1 - ndotv, 5);
-        const ambient = lerp(0.12, 0.20, elevNorm);
-        const diffuse = ambient + ndotl * lerp(0.55, 0.82, elevNorm);
+        const fresnel = 0.02 + (1 - 0.02) * Math.pow(1 - ndotv, 5);
 
-        const reflY = -vy + 2 * ndv * ny;
+        const reflX = 2 * ndv * nx - vx;
+        const reflY = 2 * ndv * ny - vy;
+        const reflZ = 2 * ndv * nz - vz;
         const reflUp = clamp(reflY, 0, 1);
-        const reflMix = smoothstep(0.0, 0.78, 1 - reflUp);
-        const reflSkyR = lerp(skyTopR, skyHorizonR, reflMix);
-        const reflSkyG = lerp(skyTopG, skyHorizonG, reflMix);
-        const reflSkyB = lerp(skyTopB, skyHorizonB, reflMix);
+        const reflMix = smoothstep(0.0, 0.85, 1 - reflUp);
+        let reflSkyR = lerp(skyTopR, skyHorizonR, reflMix);
+        let reflSkyG = lerp(skyTopG, skyHorizonG, reflMix);
+        let reflSkyB = lerp(skyTopB, skyHorizonB, reflMix);
 
-        const inX = -lx;
-        const inY = -ly;
-        const inZ = -lz;
-        const inDotN = inX * nx + inY * ny + inZ * nz;
-        const rx = inX - 2 * inDotN * nx;
-        const ry = inY - 2 * inDotN * ny;
-        const rz = inZ - 2 * inDotN * nz;
-        const rdotv = clamp(rx * vx + ry * vy + rz * vz, 0, 1);
-        const rough = clamp((dhdx * dhdx + dhdz * dhdz) * 0.12, 0, 1);
-        const spec = Math.pow(rdotv, shininess * lerp(1, 0.55, rough)) * sunSpecStrength;
+        const sunAlign = clamp(reflX * lx + reflY * ly + reflZ * lz, 0, 1);
+        const slope2 = dhdx * dhdx + dhdz * dhdz;
+        const foamHint = smoothstep(0.2, 0.9, slope2 * (0.6 + sea))
+          * smoothstep(0.0, 0.75, h / (ampScale + 0.6));
+        const roughBase = lerp(0.06, 0.22, sea);
+        const rough = clamp(roughBase + slope2 * 0.12 + rippleAmp * 0.6 + foamHint * 0.35, 0.04, 0.7);
+
+        const sunFocus = Math.pow(sunAlign, lerp(42, 210, 1 - rough));
+        const sunBoost = sunFocus * sunIntensity;
+        reflSkyR += sunBoost * sunR;
+        reflSkyG += sunBoost * sunG;
+        reflSkyB += sunBoost * sunB;
+
+        const hx = lx + vx;
+        const hy = ly + vy;
+        const hz = lz + vz;
+        const hLen = Math.sqrt(hx * hx + hy * hy + hz * hz) || 1;
+        const hxN = hx / hLen;
+        const hyN = hy / hLen;
+        const hzN = hz / hLen;
+        const ndoth = clamp(nx * hxN + ny * hyN + nz * hzN, 0, 1);
+        const vdoth = clamp(vx * hxN + vy * hyN + vz * hzN, 0, 1);
+
+        const alpha = rough * rough;
+        const alpha2 = alpha * alpha;
+        const denom = ndoth * ndoth * (alpha2 - 1) + 1;
+        const D = alpha2 / (Math.PI * denom * denom);
+        const k = rough + 1;
+        const k2 = (k * k) / 8;
+        const Gv = ndotv / (ndotv * (1 - k2) + k2);
+        const Gl = ndotl / (ndotl * (1 - k2) + k2);
+        const G = Gv * Gl;
+        const F = 0.02 + (1 - 0.02) * Math.pow(1 - vdoth, 5);
+        let spec = (D * G * F) / Math.max(0.001, 4 * ndotv * ndotl);
+        const sparkle = smoothstep(0.6, 0.95, rippleBase) * (1 - rough);
+        spec *= (1 + sparkle * 1.8) * (1 - foamHint * 0.6);
 
         const d = clamp(distance[p] / maxD, 0, 1);
-        const depthMix = smoothstep(0.05, 0.92, d);
+        const depthMix = smoothstep(0.04, 0.98, d);
         let baseR = lerp(baseWaterNearR, baseWaterFarR, depthMix);
         let baseG = lerp(baseWaterNearG, baseWaterFarG, depthMix);
         let baseB = lerp(baseWaterNearB, baseWaterFarB, depthMix);
 
-        const tint = clamp(h * 0.06 + 0.5, 0, 1);
+        const depth = lerp(0.8, 12.5, depthMix * depthMix);
+        const attenR = 1 / (1 + depth * 0.28);
+        const attenG = 1 / (1 + depth * 0.12);
+        const attenB = 1 / (1 + depth * 0.05);
+        baseR *= attenR;
+        baseG *= attenG;
+        baseB *= attenB;
+
+        const tint = clamp(h * 0.08 + 0.5, 0, 1);
         baseR = lerp(baseR * 0.92, baseR * 1.06, tint);
         baseG = lerp(baseG * 0.92, baseG * 1.06, tint);
         baseB = lerp(baseB * 0.92, baseB * 1.06, tint);
 
-        let r = lerp(baseR, reflSkyR, fresnel);
-        let g = lerp(baseG, reflSkyG, fresnel);
-        let b = lerp(baseB, reflSkyB, fresnel);
+        const ambient = lerp(0.1, 0.2, elevNorm);
+        const diffuse = ambient + ndotl * lerp(0.35, 0.68, elevNorm);
+        const refractR = baseR * diffuse;
+        const refractG = baseG * diffuse;
+        const refractB = baseB * diffuse;
 
-        r = r * diffuse + spec * sunR;
-        g = g * diffuse + spec * sunG;
-        b = b * diffuse + spec * sunB;
+        let r = lerp(refractR, reflSkyR, fresnel);
+        let g = lerp(refractG, reflSkyG, fresnel);
+        let b = lerp(refractB, reflSkyB, fresnel);
 
-        const haze = smoothstep(0.28, 1.0, d);
-        r = lerp(r, skyR, haze * 0.82);
-        g = lerp(g, skyG, haze * 0.82);
-        b = lerp(b, skyB, haze * 0.86);
+        r += spec * sunR * sunIntensity;
+        g += spec * sunG * sunIntensity;
+        b += spec * sunB * sunIntensity;
 
-        const slope2 = dhdx * dhdx + dhdz * dhdz;
-        const foamStrength = lerp(0.16, 0.62, clamp(heightNorm, 0, 1));
-        const foam = smoothstep(0.22, lerp(1.55, 1.02, elevNorm), slope2) * foamStrength;
+        const haze = smoothstep(0.25, 1.0, d);
+        r = lerp(r, skyR, haze * 0.78);
+        g = lerp(g, skyG, haze * 0.78);
+        b = lerp(b, skyB, haze * 0.82);
+
+        const foamNoiseA = sampleNoise(flowX * foamScale + foamDrift, flowZ * foamScale - foamDrift * 0.7);
+        const foamNoiseB = sampleNoise(flowX * foamScale * 2.1 + foamDrift * 1.4, flowZ * foamScale * 2.1 - foamDrift * 1.1);
+        const foamField = foamNoiseA * 0.7 + foamNoiseB * 0.3;
+        const crestBoost = smoothstep(0.15, 0.85, crest) * smoothstep(0.0, 0.75, h / (ampScale + 0.6));
+        const foamBase = smoothstep(0.2, lerp(1.1, 0.75, elevNorm), slope2 * (0.6 + 1.1 * sea));
+        const foam = foamBase * smoothstep(0.4, 0.85, foamField) * (0.3 + 0.7 * crestBoost)
+          * lerp(0.18, 0.68, sea);
         if (foam > 0.001) {
           r = lerp(r, foamR, foam);
           g = lerp(g, foamG, foam);
@@ -699,6 +850,7 @@
     else if (!state.paused) start();
   });
 
+  buildNoise();
   syncFromInputs();
   resize();
 
