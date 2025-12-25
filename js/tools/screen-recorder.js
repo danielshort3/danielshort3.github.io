@@ -43,7 +43,7 @@
     startRecord: $('[data-screenrec="start-record"]'),
     pauseRecord: $('[data-screenrec="pause-record"]'),
     stopRecord: $('[data-screenrec="stop-record"]'),
-    downloadList: $('[data-screenrec="download-list"]'),
+    downloadAll: $('[data-screenrec="download-all"]'),
     downloadNote: $('[data-screenrec="download-note"]'),
     downloadPanel: $('[data-screenrec="download-panel"]')
   };
@@ -260,7 +260,7 @@
   };
 
   const setDownloads = (files) => {
-    if (!el.downloadList || !el.downloadPanel || !el.downloadNote) return;
+    if (!el.downloadAll || !el.downloadNote) return;
     clearDownload();
     if (!files.length) return;
     const stamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -270,26 +270,20 @@
       return acc;
     }, {});
     const noteParts = [];
-    el.downloadList.innerHTML = '';
-    state.downloadFiles = files.map((file, index) => {
+    state.downloadFiles = files.map((file) => {
       const ext = extensionFromMime(file.mimeType);
       const label = file.label || formatLabelFromMime(file.mimeType);
       const suffix = extCounts[ext] > 1 ? slugify(label) : '';
       const name = buildFilename(ext, suffix, stamp);
       const url = URL.createObjectURL(file.blob);
-      const link = document.createElement('a');
-      link.className = `${index === 0 ? 'btn-primary' : 'btn-secondary'} screenrec-download`;
-      link.textContent = `Download ${label}`;
-      link.href = url;
-      link.download = name;
-      el.downloadList.appendChild(link);
       noteParts.push(`${label} ${formatBytes(file.blob.size)}`);
-      return { url, name, mimeType: file.mimeType };
+      return { url, name, mimeType: file.mimeType, label };
     });
     state.downloadUrls = state.downloadFiles.map((file) => file.url);
-    el.downloadPanel.hidden = false;
+    const fileCount = state.downloadFiles.length;
+    el.downloadAll.disabled = fileCount === 0;
+    el.downloadAll.textContent = fileCount > 1 ? `Download ${fileCount} formats` : 'Download format';
     el.downloadNote.textContent = `Ready: ${noteParts.join(' · ')}.`;
-    el.downloadNote.hidden = false;
   };
 
   const clearDownload = () => {
@@ -298,15 +292,29 @@
     }
     state.downloadUrls = [];
     state.downloadFiles = [];
-    if (el.downloadPanel) {
-      el.downloadPanel.hidden = true;
-    }
-    if (el.downloadList) {
-      el.downloadList.innerHTML = '';
+    if (el.downloadAll) {
+      el.downloadAll.disabled = true;
+      el.downloadAll.textContent = 'Download formats';
     }
     if (el.downloadNote) {
-      el.downloadNote.hidden = true;
-      el.downloadNote.textContent = '';
+      el.downloadNote.textContent = 'Record a clip to enable download.';
+    }
+  };
+
+  const triggerDownloads = () => {
+    if (!state.downloadFiles.length) return;
+    state.downloadFiles.forEach((file) => {
+      const link = document.createElement('a');
+      link.href = file.url;
+      link.download = file.name;
+      link.rel = 'noopener';
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+    if (state.downloadFiles.length > 1) {
+      setStatus('Download started. Allow multiple downloads if prompted.', 'ready');
     }
   };
 
@@ -898,7 +906,6 @@
   };
 
   const updateButtons = () => {
-    const hasRecording = Boolean(state.recordedUrl);
     const captureLive = isCaptureLive();
     if (el.startCapture) {
       el.startCapture.disabled = !supportsCapture || !supportsRecorder || captureLive || state.recording;
@@ -954,9 +961,9 @@
         el.cropLabel.textContent = label;
       }
     }
-    if (el.downloadPanel) {
+    if (el.downloadAll) {
       const hasDownload = state.downloadUrls.length > 0;
-      el.downloadPanel.hidden = !hasRecording || !hasDownload;
+      el.downloadAll.disabled = !hasDownload;
     }
     updateAudioMeterState();
   };
@@ -1799,13 +1806,12 @@
     el.cropOverlay?.addEventListener('pointerup', handleCropPointerUp);
     el.cropOverlay?.addEventListener('pointercancel', handleCropPointerUp);
     window.addEventListener('resize', syncCropSelection);
-    el.downloadList?.addEventListener('click', (event) => {
-      const link = event.target.closest('a');
-      if (!link) return;
+    el.downloadAll?.addEventListener('click', () => {
       if (!state.downloadUrls.length) {
-        event.preventDefault();
         setStatus('Record a clip before downloading.', 'warn');
+        return;
       }
+      triggerDownloads();
     });
 
     el.video?.addEventListener('loadedmetadata', () => {
