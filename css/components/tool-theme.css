@@ -1,0 +1,271 @@
+/* Tool theme aligned with the Screen Recorder visuals */
+@layer components {
+  :is(
+    body[data-page="word-frequency"],
+    body[data-page="text-compare"],
+    body[data-page="point-of-view-checker"],
+    body[data-page="oxford-comma-checker"],
+    body[data-page="nbsp-cleaner"],
+    body[data-page="background-remover"],
+    body[data-page="image-optimizer"],
+    body[data-page="ocean-wave-simulation"],
+    body[data-page="qr-code-generator"]
+  ){
+    --tool-accent:var(--primary);
+    --tool-accent-strong:color-mix(in srgb,var(--primary) 68%, #0A1A1F 32%);
+    --tool-accent-soft:color-mix(in srgb,var(--primary) 24%, transparent);
+    --tool-surface:color-mix(in srgb,var(--surface) 88%, #09121c 12%);
+    --tool-surface-strong:color-mix(in srgb,var(--surface) 78%, #050b12 22%);
+  }
+
+  body[data-page="text-compare"] .hero-eyebrow{
+    opacity:0;
+    transform:translateY(32px);
+    animation:heroFade 1s .3s forwards;
+  }
+
+  :is(
+    .bgtool-hero,
+    .imgopt-hero,
+    .wordfreq-top-panel,
+    .textcompare-top-panel,
+    .povcheck-top-panel,
+    .oxford-top-panel,
+    .nbsp-hero,
+    .ocean-wave-hero,
+    .qrtool-hero
+  ){
+    position:relative;
+    overflow:hidden;
+    padding:clamp(3rem,7vh,5rem) 0;
+    background:
+      radial-gradient(900px circle at 8% 12%, color-mix(in srgb,var(--tool-accent) 24%, transparent), transparent 60%),
+      radial-gradient(800px circle at 92% 0%, color-mix(in srgb,var(--tool-accent) 20%, #ffffff 8%), transparent 55%),
+      linear-gradient(160deg,
+        color-mix(in srgb,var(--tool-surface) 90%, #070e15 10%) 0%,
+        color-mix(in srgb,var(--tool-surface-strong) 78%, #050b12 22%) 100%);
+    border-bottom:1px solid color-mix(in srgb,var(--tool-accent) 25%, transparent);
+    box-shadow:0 30px 60px rgba(0,0,0,.4);
+  }
+
+  :is(
+    .bgtool-hero,
+    .imgopt-hero,
+    .wordfreq-top-panel,
+    .textcompare-top-panel,
+    .povcheck-top-panel,
+    .oxford-top-panel,
+    .nbsp-hero,
+    .ocean-wave-hero,
+    .qrtool-hero
+  ) .wrapper{
+    max-width:var(--container-max);
+    display:grid;
+    gap:clamp(1.4rem,2.8vw,2.1rem);
+  }
+
+  :is(
+    .bgtool-lead,
+    .imgopt-lead,
+    .wordfreq-top-lead,
+    .textcompare-top-lead,
+    .povcheck-top-lead,
+    .oxford-top-lead,
+    .nbsp-lead,
+    .ocean-wave-lead,
+    .qrtool-lead
+  ){
+    margin:0;
+    max-width:64ch;
+    color:var(--text-muted);
+    font-size:1.1rem;
+    line-height:1.7;
+  }
+
+  :is(
+    .bgtool-steps,
+    .imgopt-steps,
+    .wordfreq-steps,
+    .povcheck-steps,
+    .oxford-steps,
+    .nbsp-steps,
+    .ocean-wave-steps,
+    .qrtool-steps
+  ){
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:clamp(12px,2vw,16px);
+  }
+
+  :is(
+    .bgtool-step,
+    .imgopt-step,
+    .wordfreq-step,
+    .povcheck-step,
+    .oxford-step,
+    .nbsp-step,
+    .ocean-wave-step,
+    .qrtool-step
+  ){
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    padding:14px 16px;
+    border-radius:16px;
+    border:1px solid color-mix(in srgb,var(--tool-accent) 22%, transparent);
+    background:linear-gradient(160deg,
+      color-mix(in srgb,var(--tool-surface) 92%, #060d14 8%) 0%,
+      color-mix(in srgb,var(--tool-surface) 82%, #040a11 18%) 100%);
+    box-shadow:0 16px 32px rgba(0,0,0,.28);
+  }
+
+  :is(
+    .bgtool-step-number,
+    .imgopt-step-number,
+    .wordfreq-step-number,
+    .povcheck-step-number,
+    .oxford-step-number,
+    .nbsp-step-number,
+    .ocean-wave-step-number,
+    .qrtool-step-number
+  ){
+    width:36px;
+    height:36px;
+    border-radius:12px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    color:color-mix(in srgb,#ffffff 94%, var(--bg) 6%);
+    background:linear-gradient(135deg,
+      color-mix(in srgb,var(--tool-accent) 78%, #ffffff 22%) 0%,
+      color-mix(in srgb,var(--tool-accent-strong) 62%, #071219 38%) 100%);
+    box-shadow:0 12px 22px rgba(0,0,0,.28);
+  }
+
+  :is(
+    .bgtool-step,
+    .imgopt-step,
+    .wordfreq-step,
+    .povcheck-step,
+    .oxford-step,
+    .nbsp-step,
+    .ocean-wave-step,
+    .qrtool-step
+  ) h3{
+    margin:0 0 4px;
+    font-size:1.02rem;
+    letter-spacing:.01em;
+  }
+
+  :is(
+    .bgtool-step,
+    .imgopt-step,
+    .wordfreq-step,
+    .povcheck-step,
+    .oxford-step,
+    .nbsp-step,
+    .ocean-wave-step,
+    .qrtool-step
+  ) p{
+    margin:0;
+    color:var(--text-muted);
+    font-size:.95rem;
+    line-height:1.6;
+  }
+
+  :is(
+    .bgtool-section,
+    .imgopt-section,
+    .wordfreq-section,
+    .textcompare-section,
+    .povcheck-section,
+    .oxford-section,
+    .nbsp-section,
+    .ocean-wave-section,
+    .qrtool-section
+  ){
+    padding:clamp(2.8rem,6vh,3.8rem) 0;
+  }
+
+  :is(
+    .bgtool-card,
+    .imgopt-card,
+    .wordfreq-card,
+    .textcompare-card,
+    .povcheck-card,
+    .oxford-card,
+    .nbsp-card,
+    .ocean-wave-card,
+    .qrtool-card
+  ){
+    background:linear-gradient(160deg,
+      color-mix(in srgb,var(--tool-surface) 92%, #04090f 8%) 0%,
+      color-mix(in srgb,var(--tool-surface-strong) 84%, #04090f 16%) 100%);
+    border:1px solid color-mix(in srgb,var(--tool-accent) 24%, transparent);
+    border-radius:20px;
+    padding:clamp(1.4rem,2.4vw,2rem);
+    box-shadow:0 20px 42px rgba(0,0,0,.32);
+  }
+
+  :is(
+    .bgtool-card,
+    .imgopt-card,
+    .wordfreq-card,
+    .textcompare-card,
+    .povcheck-card,
+    .oxford-card,
+    .nbsp-card,
+    .ocean-wave-card,
+    .qrtool-card
+  ){
+    animation:tool-rise .6s ease both;
+  }
+  :is(
+    .bgtool-step,
+    .imgopt-step,
+    .wordfreq-step,
+    .povcheck-step,
+    .oxford-step,
+    .nbsp-step,
+    .ocean-wave-step,
+    .qrtool-step
+  ){
+    animation:tool-rise .5s ease both;
+  }
+
+  @keyframes tool-rise{
+    from{
+      opacity:0;
+      transform:translateY(12px);
+    }
+    to{
+      opacity:1;
+      transform:translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :is(
+      .bgtool-card,
+      .imgopt-card,
+      .wordfreq-card,
+      .textcompare-card,
+      .povcheck-card,
+      .oxford-card,
+      .nbsp-card,
+      .ocean-wave-card,
+      .qrtool-card,
+      .bgtool-step,
+      .imgopt-step,
+      .wordfreq-step,
+      .povcheck-step,
+      .oxford-step,
+      .nbsp-step,
+      .ocean-wave-step,
+      .qrtool-step
+    ){
+      animation:none;
+    }
+  }
+}
