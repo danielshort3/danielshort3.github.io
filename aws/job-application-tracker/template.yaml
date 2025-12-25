@@ -250,6 +250,33 @@ Resources:
       AuthorizerId: !Ref HttpApiAuthorizer
       Target: !Sub 'integrations/${HttpApiIntegration}'
 
+  ProspectsListRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'GET /api/prospects'
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiAuthorizer
+      Target: !Sub 'integrations/${HttpApiIntegration}'
+
+  ProspectsCreateRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'POST /api/prospects'
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiAuthorizer
+      Target: !Sub 'integrations/${HttpApiIntegration}'
+
+  ProspectsUpdateRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'PATCH /api/prospects/{id}'
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiAuthorizer
+      Target: !Sub 'integrations/${HttpApiIntegration}'
+
   AttachmentsPresignRoute:
     Type: AWS::ApiGatewayV2::Route
     Properties:
