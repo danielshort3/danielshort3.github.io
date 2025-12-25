@@ -204,7 +204,6 @@
       input.value = opt.mimeType;
       if (opt.mimeType === 'auto') {
         input.dataset.auto = 'true';
-        input.checked = true;
       }
 
       const text = document.createElement('span');
@@ -234,6 +233,22 @@
 
     const formatInputs = Array.from(el.formatOptions.querySelectorAll('input[name="screenrec-format"]'));
     const autoInput = formatInputs.find((input) => input.dataset.auto === 'true');
+    const mp4DefaultInput = formatInputs.find((input) => input.value === MP4_BASE_MIME);
+    const webmDefaultInput = formatInputs.find((input) => input.value === 'video/webm');
+    const mp4FallbackInput = formatInputs.find((input) => input.dataset.auto !== 'true' && input.value.includes('mp4'));
+    const defaultInputs = [
+      mp4DefaultInput || mp4FallbackInput,
+      webmDefaultInput
+    ].filter(Boolean);
+
+    if (defaultInputs.length) {
+      defaultInputs.forEach((input) => {
+        input.checked = true;
+      });
+      if (autoInput) autoInput.checked = false;
+    } else if (autoInput) {
+      autoInput.checked = true;
+    }
     formatInputs.forEach((input) => {
       input.addEventListener('change', () => {
         if (input.dataset.auto === 'true' && input.checked) {
