@@ -13,6 +13,8 @@
     audioLevel: $('[data-screenrec="audio-level"]'),
     audioLevelValue: $('[data-screenrec="audio-level-value"]'),
     audioLevelHelp: $('[data-screenrec="audio-level-help"]'),
+    audioMeter: $('[data-screenrec="audio-meter"]'),
+    audioMeterFill: $('[data-screenrec="audio-meter-fill"]'),
     startCapture: $('[data-screenrec="start-capture"]'),
     stopCapture: $('[data-screenrec="stop-capture"]'),
     captureActions: $('[data-screenrec="capture-actions"]'),
@@ -71,7 +73,13 @@
     cropDragging: false,
     cropDragOffset: null,
     cropAnimationId: null,
-    audioContext: null
+    audioContext: null,
+    audioMeterContext: null,
+    audioMeterAnalyser: null,
+    audioMeterSource: null,
+    audioMeterData: null,
+    audioMeterId: null,
+    audioMeterLevel: 0
   };
 
   const MIME_TYPE_OPTIONS = [
@@ -255,11 +263,42 @@
     el.audioLevelValue.textContent = `${Math.round(safeValue)}%`;
   };
 
+  const setAudioMeterLevel = (value) => {
+    if (!el.audioMeter || !el.audioMeterFill) return;
+    const clamped = Math.max(0, Math.min(1, value));
+    el.audioMeterFill.style.transform = `scaleX(${clamped})`;
+    el.audioMeter.setAttribute('aria-valuenow', `${Math.round(clamped * 100)}`);
+  };
+
+  const updateAudioMeterState = () => {
+    if (!el.audioMeter) return;
+    const active = state.captureActive && streamHasAudio(state.stream);
+    if (active) {
+      el.audioMeter.dataset.active = 'true';
+    } else {
+      delete el.audioMeter.dataset.active;
+      setAudioMeterLevel(0);
+    }
+  };
+
   const updatePlaceholder = () => {
     if (!el.placeholder) return;
-    const hasSource = Boolean(state.captureActive || state.recordedUrl || el.video?.srcObject);
+    const hasMediaSource = Boolean(el.video && (el.video.srcObject || el.video.currentSrc));
+    const hasSource = Boolean(state.captureActive || state.recordedUrl || hasMediaSource);
     const showPlaceholder = !hasSource;
     el.placeholder.hidden = !showPlaceholder;
+  };
+
+  const hidePlaceholder = () => {
+    if (!el.placeholder) return;
+    el.placeholder.hidden = true;
+  };
+
+  const handleVideoReady = () => {
+    if (!el.video) return;
+    if (el.video.srcObject || el.video.currentSrc) {
+      hidePlaceholder();
+    }
   };
 
   const setView = () => {
@@ -369,6 +408,84 @@
     updateButtons();
   };
 
+  const stopAudioMeter = () => {
+    if (state.audioMeterId) {
+      cancelAnimationFrame(state.audioMeterId);
+      state.audioMeterId = null;
+    }
+    if (state.audioMeterSource) {
+      try {
+        state.audioMeterSource.disconnect();
+      } catch (_) {}
+    }
+    if (state.audioMeterAnalyser) {
+      try {
+        state.audioMeterAnalyser.disconnect();
+      } catch (_) {}
+    }
+    if (state.audioMeterContext) {
+      state.audioMeterContext.close().catch(() => {});
+    }
+    state.audioMeterContext = null;
+    state.audioMeterAnalyser = null;
+    state.audioMeterSource = null;
+    state.audioMeterData = null;
+    state.audioMeterLevel = 0;
+    setAudioMeterLevel(0);
+  };
+
+  const startAudioMeter = () => {
+    stopAudioMeter();
+    updateAudioMeterState();
+    if (!state.stream || !streamHasAudio(state.stream)) return;
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    let audioContext;
+    try {
+      audioContext = new AudioCtx();
+    } catch (_) {
+      return;
+    }
+    let source;
+    let analyser;
+    try {
+      source = audioContext.createMediaStreamSource(state.stream);
+      analyser = audioContext.createAnalyser();
+      analyser.fftSize = 512;
+      analyser.smoothingTimeConstant = 0.85;
+      source.connect(analyser);
+    } catch (_) {
+      audioContext.close().catch(() => {});
+      return;
+    }
+
+    state.audioMeterContext = audioContext;
+    state.audioMeterSource = source;
+    state.audioMeterAnalyser = analyser;
+    state.audioMeterData = new Uint8Array(analyser.fftSize);
+    state.audioMeterLevel = 0;
+
+    const tick = () => {
+      if (!state.captureActive || !state.stream || !streamHasAudio(state.stream)) {
+        stopAudioMeter();
+        updateAudioMeterState();
+        return;
+      }
+      analyser.getByteTimeDomainData(state.audioMeterData);
+      let sum = 0;
+      for (let i = 0; i < state.audioMeterData.length; i++) {
+        const value = (state.audioMeterData[i] - 128) / 128;
+        sum += value * value;
+      }
+      const rms = Math.sqrt(sum / state.audioMeterData.length);
+      const normalized = Math.min(1, rms * 2.6);
+      state.audioMeterLevel = state.audioMeterLevel * 0.75 + normalized * 0.25;
+      setAudioMeterLevel(state.audioMeterLevel);
+      state.audioMeterId = requestAnimationFrame(tick);
+    };
+    state.audioMeterId = requestAnimationFrame(tick);
+  };
+
   const clampPointToFrame = (point, frame) => ({
     x: Math.min(Math.max(point.x, frame.offsetX), frame.offsetX + frame.displayWidth),
     y: Math.min(Math.max(point.y, frame.offsetY), frame.offsetY + frame.displayHeight)
@@ -463,6 +580,7 @@
         link.hidden = !hasRecording || !hasDownload;
       });
     }
+    updateAudioMeterState();
   };
 
   const startTimer = () => {
@@ -607,6 +725,7 @@
     updateCaptureMeta();
     updateButtons();
     resetTimer();
+    startAudioMeter();
 
     const track = stream.getVideoTracks()[0];
     track.addEventListener('ended', () => {
@@ -650,6 +769,7 @@
     state.stopReason = '';
     clearCrop();
     updatePlaceholder();
+    stopAudioMeter();
   };
 
   const startTestCapture = async () => {
@@ -1113,7 +1233,12 @@
     el.video?.addEventListener('loadedmetadata', () => {
       updateCaptureMeta();
       syncCropSelection();
+      handleVideoReady();
     });
+    el.video?.addEventListener('loadeddata', handleVideoReady);
+    el.video?.addEventListener('canplay', handleVideoReady);
+    el.video?.addEventListener('playing', handleVideoReady);
+    el.video?.addEventListener('emptied', updatePlaceholder);
   };
 
   init();
