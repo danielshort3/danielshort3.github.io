@@ -112,6 +112,17 @@
                   <p class="screenrec-help">Applies when starting a new capture.</p>
                 </div>
 
+                <div class="screenrec-field">
+                  <label class="screenrec-label" for="screenrec-quality">Quality</label>
+                  <select id="screenrec-quality" class="screenrec-select" data-screenrec="quality-select">
+                    <option value="auto">Auto (browser default)</option>
+                    <option value="low">Data saver (2 Mbps)</option>
+                    <option value="medium" selected>Balanced (4 Mbps)</option>
+                    <option value="high">High (8 Mbps)</option>
+                  </select>
+                  <p class="screenrec-help">Lower quality reduces file size. Applies when starting a new recording.</p>
+                </div>
+
                 <div class="screenrec-field screenrec-field-wide">
                   <span class="screenrec-label">Audio</span>
                   <div class="screenrec-audio-row">
