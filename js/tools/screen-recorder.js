@@ -107,17 +107,23 @@
     micDeviceId: ''
   };
 
+  const MP4_AAC_MIME = 'video/mp4;codecs=avc1.42E01E,mp4a.40.2';
+  const MP4_H264_MIME = 'video/mp4;codecs=avc1.42E01E';
+  const MP4_BASE_MIME = 'video/mp4';
+
   const MIME_TYPE_OPTIONS = [
-    { label: 'MP4 (H.264)', mimeType: 'video/mp4;codecs=avc1.42E01E' },
-    { label: 'MP4 (default)', mimeType: 'video/mp4' },
+    { label: 'MP4 (H.264 + AAC)', mimeType: MP4_AAC_MIME },
+    { label: 'MP4 (H.264)', mimeType: MP4_H264_MIME },
+    { label: 'MP4 (default)', mimeType: MP4_BASE_MIME },
     { label: 'WebM (VP9)', mimeType: 'video/webm;codecs=vp9' },
     { label: 'WebM (VP8)', mimeType: 'video/webm;codecs=vp8' },
     { label: 'WebM (default)', mimeType: 'video/webm' }
   ];
 
   const PREFERRED_MIME_TYPES = [
-    'video/mp4;codecs=avc1.42E01E',
-    'video/mp4',
+    MP4_AAC_MIME,
+    MP4_H264_MIME,
+    MP4_BASE_MIME,
     'video/webm;codecs=vp9',
     'video/webm;codecs=vp8',
     'video/webm'
@@ -215,7 +221,13 @@
       } else {
         const labels = supported.map((opt) => opt.label).join(', ');
         const mp4Supported = supported.some((opt) => opt.mimeType.includes('mp4'));
-        const mp4Note = mp4Supported ? 'MP4 is supported in this browser.' : 'MP4 recording is not supported here.';
+        const mp4AacSupported = supported.some((opt) => opt.mimeType === MP4_AAC_MIME);
+        let mp4Note = 'MP4 recording is not supported here.';
+        if (mp4Supported) {
+          mp4Note = mp4AacSupported
+            ? 'MP4 with AAC audio is supported in this browser.'
+            : 'MP4 audio may be limited; MP4 exports may be video-only for compatibility.';
+        }
         el.formatHelp.textContent = `Select one or more formats. Supported: ${labels}. ${mp4Note}`;
       }
     }
@@ -266,6 +278,28 @@
     if (mimeType.includes('mp4')) return 'MP4';
     if (mimeType.includes('webm')) return 'WebM';
     return 'Video';
+  };
+
+  const isMp4Mime = (mimeType) => Boolean(mimeType && mimeType.includes('mp4'));
+
+  const supportsMp4Aac = () => (
+    supportsRecorder &&
+    typeof MediaRecorder !== 'undefined' &&
+    typeof MediaRecorder.isTypeSupported === 'function' &&
+    MediaRecorder.isTypeSupported(MP4_AAC_MIME)
+  );
+
+  const resolveMp4Recording = (mimeType, hasAudio) => {
+    if (!isMp4Mime(mimeType)) {
+      return { mimeType, stripAudio: false };
+    }
+    if (!hasAudio) {
+      return { mimeType, stripAudio: false };
+    }
+    if (supportsMp4Aac()) {
+      return { mimeType: MP4_AAC_MIME, stripAudio: false };
+    }
+    return { mimeType, stripAudio: true };
   };
 
   const CRC_TABLE = (() => {
@@ -1538,7 +1572,7 @@
     }
   };
 
-  const createRecorder = (stream, mimeType, allowFallback = true) => {
+  const createRecorder = (stream, mimeType, allowFallback = true, fallbackStream = stream) => {
     const options = {};
     if (mimeType) options.mimeType = mimeType;
     let recorder;
@@ -1547,7 +1581,7 @@
       recorder = new MediaRecorder(stream, options);
     } catch (err) {
       if (mimeType && allowFallback) {
-        recorder = new MediaRecorder(stream);
+        recorder = new MediaRecorder(fallbackStream);
         finalMime = '';
         setStatus('Selected format not supported. Using browser default.', 'warn');
       } else {
@@ -1560,18 +1594,26 @@
   const buildRecorderSet = (stream) => {
     const selections = getSelectedMimeTypes();
     const uniqueSelections = selections.length ? Array.from(new Set(selections)) : [''];
+    const hasAudio = streamHasAudio(stream);
+    const videoOnlyStream = hasAudio ? new MediaStream(stream.getVideoTracks()) : stream;
 
     const recorders = [];
     const failed = [];
+    let mp4AudioStripped = false;
     uniqueSelections.forEach((mimeType, index) => {
+      const resolved = resolveMp4Recording(mimeType, hasAudio);
+      if (resolved.stripAudio) {
+        mp4AudioStripped = true;
+      }
       const selection = {
-        mimeType,
-        label: formatLabelFromMime(mimeType),
+        mimeType: resolved.mimeType,
+        label: formatLabelFromMime(resolved.mimeType || mimeType),
         isPrimary: index === 0
       };
+      const recorderStream = resolved.stripAudio ? videoOnlyStream : stream;
       let recorderInfo;
       try {
-        recorderInfo = createRecorder(stream, selection.mimeType, selection.isPrimary);
+        recorderInfo = createRecorder(recorderStream, selection.mimeType, selection.isPrimary, stream);
       } catch (_) {
         failed.push(selection);
         return;
@@ -1585,7 +1627,7 @@
         file: null
       });
     });
-    return { recorders, failed };
+    return { recorders, failed, mp4AudioStripped };
   };
 
   const getCropPixels = (videoWidth, videoHeight) => {
@@ -1771,6 +1813,7 @@
       return;
     }
 
+    const mp4AudioStripped = recorderSet.mp4AudioStripped;
     state.recorders = recorderSet.recorders;
     state.primaryRecorder = state.recorders.find((entry) => entry.isPrimary)?.recorder || state.recorders[0]?.recorder || null;
     state.recording = true;
@@ -1870,6 +1913,9 @@
         statusMessage = `${statusMessage} Primary format unavailable.`;
       } else if (formatsSkipped) {
         statusMessage = `${statusMessage} Some formats skipped.`;
+      }
+      if (mp4AudioStripped) {
+        statusMessage = `${statusMessage} MP4 audio isn't supported here; MP4 will be video-only.`;
       }
       setStatus(statusMessage, 'recording');
       updateButtons();
