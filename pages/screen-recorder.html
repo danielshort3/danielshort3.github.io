@@ -95,11 +95,11 @@
             </div>
             <div class="screenrec-panel-body" id="screenrec-controls-body" data-screenrec="controls-body" hidden>
               <form class="screenrec-form" novalidate>
-              <div class="screenrec-field screenrec-field-wide">
-                <span class="screenrec-label">Download format</span>
-                <div class="screenrec-radio-group" data-screenrec="format-options"></div>
-                <p class="screenrec-help" data-screenrec="format-help">Select one or more formats to export.</p>
-              </div>
+                <div class="screenrec-field screenrec-field-wide">
+                  <span class="screenrec-label">Download format</span>
+                  <div class="screenrec-radio-group" data-screenrec="format-options"></div>
+                  <p class="screenrec-help" data-screenrec="format-help">Select one or more formats to export.</p>
+                </div>
 
                 <div class="screenrec-field">
                   <label class="screenrec-label" for="screenrec-fps">Frame rate</label>
@@ -202,9 +202,11 @@
               <button type="button" class="btn-secondary" data-screenrec="pause-record" disabled>Pause</button>
               <button type="button" class="btn-ghost" data-screenrec="stop-record" disabled>Stop recording</button>
             </div>
-            <div class="screenrec-download-panel" data-screenrec="download-panel" hidden>
-              <div class="screenrec-download-actions screenrec-download-list" data-screenrec="download-list"></div>
-              <p class="screenrec-download-note" data-screenrec="download-note" hidden></p>
+            <div class="screenrec-download-panel" data-screenrec="download-panel">
+              <div class="screenrec-download-actions">
+                <button type="button" class="btn-primary screenrec-download" data-screenrec="download-all" disabled>Download formats</button>
+              </div>
+              <p class="screenrec-download-note" data-screenrec="download-note">Record a clip to enable download.</p>
             </div>
           </div>
         </div>
