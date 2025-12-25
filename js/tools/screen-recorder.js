@@ -8,6 +8,7 @@
     formatOptions: $('[data-screenrec="format-options"]'),
     formatHelp: $('[data-screenrec="format-help"]'),
     fpsSelect: $('[data-screenrec="fps-select"]'),
+    qualitySelect: $('[data-screenrec="quality-select"]'),
     audioToggle: $('[data-screenrec="audio-toggle"]'),
     audioHelp: $('[data-screenrec="audio-help"]'),
     audioLevel: $('[data-screenrec="audio-level"]'),
@@ -128,6 +129,13 @@
     'video/webm;codecs=vp8',
     'video/webm'
   ];
+
+  const QUALITY_PRESETS = {
+    auto: { label: 'Auto', video: 0, audio: 0 },
+    low: { label: 'Data saver', video: 2000000, audio: 96000 },
+    medium: { label: 'Balanced', video: 4000000, audio: 128000 },
+    high: { label: 'High', video: 8000000, audio: 192000 }
+  };
 
   const setStatus = (text, tone) => {
     if (!el.status) return;
@@ -534,6 +542,21 @@
     if (value === 'auto') return 0;
     const fps = Number(value);
     return Number.isFinite(fps) && fps > 0 ? fps : 0;
+  };
+
+  const getQualitySettings = () => {
+    if (!el.qualitySelect) return null;
+    const value = el.qualitySelect.value || 'auto';
+    const preset = QUALITY_PRESETS[value] || QUALITY_PRESETS.auto;
+    if (!preset || value === 'auto') return null;
+    const options = {};
+    if (Number.isFinite(preset.video) && preset.video > 0) {
+      options.videoBitsPerSecond = preset.video;
+    }
+    if (Number.isFinite(preset.audio) && preset.audio > 0) {
+      options.audioBitsPerSecond = preset.audio;
+    }
+    return Object.keys(options).length ? options : null;
   };
 
   const getSystemGain = () => {
@@ -1331,6 +1354,9 @@
     if (el.fpsSelect) {
       el.fpsSelect.disabled = !supportsCapture || state.captureActive || state.recording;
     }
+    if (el.qualitySelect) {
+      el.qualitySelect.disabled = !supportsRecorder || state.captureActive || state.recording;
+    }
     if (el.audioLevel) {
       const audioLocked = !supportsCapture || state.captureActive || state.recording || !el.audioToggle?.checked;
       el.audioLevel.disabled = audioLocked;
@@ -1587,8 +1613,8 @@
     }
   };
 
-  const createRecorder = (stream, mimeType, allowFallback = true, fallbackStream = stream) => {
-    const options = {};
+  const createRecorder = (stream, mimeType, allowFallback = true, fallbackStream = stream, baseOptions = null) => {
+    const options = { ...(baseOptions || {}) };
     if (mimeType) options.mimeType = mimeType;
     let recorder;
     let finalMime = mimeType;
@@ -1596,7 +1622,8 @@
       recorder = new MediaRecorder(stream, options);
     } catch (err) {
       if (mimeType && allowFallback) {
-        recorder = new MediaRecorder(fallbackStream);
+        const fallbackOptions = { ...(baseOptions || {}) };
+        recorder = new MediaRecorder(fallbackStream, fallbackOptions);
         finalMime = '';
         setStatus('Selected format not supported. Using browser default.', 'warn');
       } else {
@@ -1611,6 +1638,7 @@
     const uniqueSelections = selections.length ? Array.from(new Set(selections)) : [''];
     const hasAudio = streamHasAudio(stream);
     const videoOnlyStream = hasAudio ? new MediaStream(stream.getVideoTracks()) : stream;
+    const qualityOptions = getQualitySettings();
 
     const recorders = [];
     const failed = [];
@@ -1626,9 +1654,13 @@
         isPrimary: index === 0
       };
       const recorderStream = resolved.stripAudio ? videoOnlyStream : stream;
+      const recorderOptions = qualityOptions ? { ...qualityOptions } : null;
+      if (recorderOptions && recorderOptions.audioBitsPerSecond && !streamHasAudio(recorderStream)) {
+        delete recorderOptions.audioBitsPerSecond;
+      }
       let recorderInfo;
       try {
-        recorderInfo = createRecorder(recorderStream, selection.mimeType, selection.isPrimary, stream);
+        recorderInfo = createRecorder(recorderStream, selection.mimeType, selection.isPrimary, stream, recorderOptions);
       } catch (_) {
         failed.push(selection);
         return;
