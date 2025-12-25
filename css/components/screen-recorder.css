@@ -573,6 +573,35 @@
     gap:8px;
     pointer-events:auto;
   }
+  .screenrec-crop-group{
+    position:relative;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    z-index:4;
+  }
+  .screenrec-crop-presets-toggle{
+    height:40px;
+    padding:0 12px;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    border-radius:999px;
+    border:1px solid color-mix(in srgb,var(--screenrec-accent) 30%, transparent);
+    background:color-mix(in srgb,var(--screenrec-surface) 88%, transparent);
+    backdrop-filter:blur(6px);
+    font-size:.7rem;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--text-light);
+  }
+  .screenrec-crop-presets-toggle svg{
+    width:14px;
+    height:14px;
+  }
+  .screenrec-crop-presets-label{
+    white-space:nowrap;
+  }
   .screenrec-crop-button{
     width:40px;
     height:40px;
@@ -587,6 +616,59 @@
   .screenrec-crop-button svg{
     width:18px;
     height:18px;
+  }
+  .screenrec-crop-button:disabled,
+  .screenrec-crop-presets-toggle:disabled{
+    opacity:.55;
+    cursor:not-allowed;
+  }
+  .screenrec-crop-presets{
+    position:absolute;
+    top:calc(100% + 10px);
+    right:0;
+    min-width:220px;
+    padding:12px;
+    border-radius:14px;
+    border:1px solid color-mix(in srgb,var(--screenrec-accent) 22%, transparent);
+    background:color-mix(in srgb,var(--screenrec-surface) 94%, #03070c 6%);
+    box-shadow:0 16px 30px rgba(0,0,0,.35);
+    display:grid;
+    gap:10px;
+    z-index:5;
+  }
+  .screenrec-crop-presets[hidden]{
+    display:none;
+  }
+  .screenrec-crop-presets-title{
+    margin:0;
+    font-size:.68rem;
+    text-transform:uppercase;
+    letter-spacing:.12em;
+    color:var(--text-muted);
+  }
+  .screenrec-crop-presets-grid{
+    display:grid;
+    gap:8px;
+  }
+  .screenrec-crop-preset{
+    text-align:left;
+    padding:8px 10px;
+    border-radius:10px;
+    border:1px solid transparent;
+    background:color-mix(in srgb,var(--screenrec-surface) 85%, #000 15%);
+    color:var(--text-light);
+    font-size:.85rem;
+    line-height:1.3;
+    cursor:pointer;
+  }
+  .screenrec-crop-preset.is-active{
+    border-color:color-mix(in srgb,var(--primary) 55%, transparent);
+    background:color-mix(in srgb,var(--primary) 20%, transparent);
+    color:color-mix(in srgb,var(--primary) 80%, #ffffff 20%);
+  }
+  .screenrec-crop-preset:focus-visible{
+    outline:2px solid color-mix(in srgb,var(--primary) 70%, #ffffff 30%);
+    outline-offset:2px;
   }
 
   .screenrec-placeholder{
