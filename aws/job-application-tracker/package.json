@@ -1,6 +1,8 @@
 {
   "name": "job-application-tracker",
   "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
   "description": "Lambda handler for job application tracker analytics.",
   "main": "index.js",
   "scripts": {
@@ -8,5 +10,11 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.609.0",
+    "@aws-sdk/lib-dynamodb": "^3.609.0",
+    "@aws-sdk/client-s3": "^3.609.0",
+    "@aws-sdk/s3-request-presigner": "^3.609.0"
+  }
 }

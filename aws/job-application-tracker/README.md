@@ -4,7 +4,14 @@ Private tracker API with Cognito auth, DynamoDB storage, S3 attachments, and ana
 
 ## Deploy
 
-1) Zip the Lambda code:
+1) Install Lambda dependencies (only needed after dependency changes):
+
+```bash
+cd aws/job-application-tracker
+npm install
+```
+
+2) Zip the Lambda code:
 
 ```bash
 python3 - <<'PY'
@@ -12,17 +19,19 @@ import zipfile, pathlib
 root = pathlib.Path('aws/job-application-tracker')
 zip_path = root / 'job-application-tracker.zip'
 with zipfile.ZipFile(zip_path, 'w', compression=zipfile.ZIP_DEFLATED) as zf:
-    zf.write(root / 'index.js', 'index.js')
+    for path in root.rglob('*'):
+        if path.is_file() and path.name != 'job-application-tracker.zip':
+            zf.write(path, path.relative_to(root))
 PY
 ```
 
-2) Upload to S3:
+3) Upload to S3:
 
 ```bash
 aws s3 cp aws/job-application-tracker/job-application-tracker.zip s3://YOUR_BUCKET/job-application-tracker/job-application-tracker.zip
 ```
 
-3) Deploy CloudFormation:
+4) Deploy CloudFormation:
 
 ```bash
 aws cloudformation deploy \
@@ -38,7 +47,7 @@ aws cloudformation deploy \
     LogoutUrls="https://danielshort.me/tools/job-application-tracker"
 ```
 
-4) Update `pages/job-application-tracker.html` with:
+5) Update `pages/job-application-tracker.html` with:
 
 - `data-api-base` (from stack output `ApiEndpoint`)
 - `data-cognito-domain` (from stack output `UserPoolDomain`)
