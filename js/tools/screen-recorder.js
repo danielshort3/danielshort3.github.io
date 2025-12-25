@@ -7,6 +7,8 @@
   const el = {
     formatOptions: $('[data-screenrec="format-options"]'),
     formatHelp: $('[data-screenrec="format-help"]'),
+    extraFormatOptions: $('[data-screenrec="extra-format-options"]'),
+    extraFormatHelp: $('[data-screenrec="extra-format-help"]'),
     fpsSelect: $('[data-screenrec="fps-select"]'),
     audioToggle: $('[data-screenrec="audio-toggle"]'),
     audioHelp: $('[data-screenrec="audio-help"]'),
@@ -37,9 +39,9 @@
     startRecord: $('[data-screenrec="start-record"]'),
     pauseRecord: $('[data-screenrec="pause-record"]'),
     stopRecord: $('[data-screenrec="stop-record"]'),
-    downloadLinks: $$('[data-screenrec="download"]'),
-    downloadNotes: $$('[data-screenrec="download-note"]'),
-    downloadPanels: $$('[data-screenrec="download-panel"]')
+    downloadList: $('[data-screenrec="download-list"]'),
+    downloadNote: $('[data-screenrec="download-note"]'),
+    downloadPanel: $('[data-screenrec="download-panel"]')
   };
 
   if (!el.startCapture || !el.video || !el.startRecord) return;
@@ -49,8 +51,8 @@
 
   const state = {
     stream: null,
-    recorder: null,
-    chunks: [],
+    recorders: [],
+    primaryRecorder: null,
     recording: false,
     paused: false,
     captureActive: false,
@@ -58,7 +60,8 @@
     timerStart: 0,
     timerPausedAt: 0,
     totalPausedMs: 0,
-    downloadUrl: null,
+    downloadUrls: [],
+    downloadFiles: [],
     recordedBlob: null,
     recordedUrl: null,
     recordedDuration: 0,
@@ -137,9 +140,10 @@
     return 'webm';
   };
 
-  const buildFilename = (ext) => {
-    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-    return `screen-recording-${stamp}.${ext}`;
+  const buildFilename = (ext, suffix, stampOverride) => {
+    const stamp = stampOverride || new Date().toISOString().replace(/[:.]/g, '-');
+    const safeSuffix = suffix ? `-${suffix}` : '';
+    return `screen-recording-${stamp}${safeSuffix}.${ext}`;
   };
 
   const getSupportedFormats = () => {
@@ -158,6 +162,9 @@
   const setFormatOptions = () => {
     if (!el.formatOptions) return;
     el.formatOptions.innerHTML = '';
+    if (el.extraFormatOptions) {
+      el.extraFormatOptions.innerHTML = '';
+    }
 
     const supported = getSupportedFormats();
     const options = [
@@ -183,6 +190,25 @@
       el.formatOptions.appendChild(label);
     });
 
+    if (el.extraFormatOptions && supported.length) {
+      supported.forEach((opt) => {
+        const label = document.createElement('label');
+        label.className = 'screenrec-chip';
+
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.name = 'screenrec-format-extra';
+        input.value = opt.mimeType;
+
+        const text = document.createElement('span');
+        text.textContent = opt.label || opt.mimeType;
+
+        label.appendChild(input);
+        label.appendChild(text);
+        el.extraFormatOptions.appendChild(label);
+      });
+    }
+
     if (el.formatHelp) {
       if (!supported.length) {
         el.formatHelp.textContent = 'No explicit formats detected. The browser default will be used.';
@@ -191,6 +217,13 @@
         const mp4Supported = supported.some((opt) => opt.mimeType.includes('mp4'));
         const mp4Note = mp4Supported ? 'MP4 is supported in this browser.' : 'MP4 recording is not supported here.';
         el.formatHelp.textContent = `Supported: ${labels}. ${mp4Note}`;
+      }
+    }
+    if (el.extraFormatHelp) {
+      if (!supported.length) {
+        el.extraFormatHelp.textContent = 'Extra exports are unavailable in this browser.';
+      } else {
+        el.extraFormatHelp.textContent = 'Select extra formats to generate alongside your main recording.';
       }
     }
   };
@@ -202,46 +235,72 @@
     return selected.value;
   };
 
-  const setDownload = (blob, mimeType) => {
-    if (!el.downloadLinks.length) return;
-    if (state.downloadUrl) {
-      URL.revokeObjectURL(state.downloadUrl);
-    }
-    const ext = extensionFromMime(mimeType);
-    const name = buildFilename(ext);
-    const url = URL.createObjectURL(blob);
-    state.downloadUrl = url;
-    el.downloadPanels.forEach((panel) => {
-      panel.hidden = false;
-    });
-    el.downloadLinks.forEach((link) => {
+  const getExtraMimeTypes = () => {
+    if (!el.extraFormatOptions) return [];
+    const selected = Array.from(el.extraFormatOptions.querySelectorAll('input[name="screenrec-format-extra"]:checked'));
+    return selected.map((input) => input.value);
+  };
+
+  const slugify = (value) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
+  const formatLabelFromMime = (mimeType) => {
+    if (!mimeType) return 'Default';
+    const match = MIME_TYPE_OPTIONS.find((opt) => opt.mimeType === mimeType);
+    if (match) return match.label;
+    if (mimeType.includes('mp4')) return 'MP4';
+    if (mimeType.includes('webm')) return 'WebM';
+    return 'Video';
+  };
+
+  const setDownloads = (files) => {
+    if (!el.downloadList || !el.downloadPanel || !el.downloadNote) return;
+    clearDownload();
+    if (!files.length) return;
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const extCounts = files.reduce((acc, file) => {
+      const ext = extensionFromMime(file.mimeType);
+      acc[ext] = (acc[ext] || 0) + 1;
+      return acc;
+    }, {});
+    const noteParts = [];
+    el.downloadList.innerHTML = '';
+    state.downloadFiles = files.map((file, index) => {
+      const ext = extensionFromMime(file.mimeType);
+      const label = file.label || formatLabelFromMime(file.mimeType);
+      const suffix = extCounts[ext] > 1 ? slugify(label) : '';
+      const name = buildFilename(ext, suffix, stamp);
+      const url = URL.createObjectURL(file.blob);
+      const link = document.createElement('a');
+      link.className = `${index === 0 ? 'btn-primary' : 'btn-secondary'} screenrec-download`;
+      link.textContent = `Download ${label}`;
       link.href = url;
       link.download = name;
-      link.hidden = false;
+      el.downloadList.appendChild(link);
+      noteParts.push(`${label} ${formatBytes(file.blob.size)}`);
+      return { url, name, mimeType: file.mimeType };
     });
-    el.downloadNotes.forEach((note) => {
-      note.textContent = `Ready: ${name} (${formatBytes(blob.size)}).`;
-      note.hidden = false;
-    });
+    state.downloadUrls = state.downloadFiles.map((file) => file.url);
+    el.downloadPanel.hidden = false;
+    el.downloadNote.textContent = `Ready: ${noteParts.join(' · ')}.`;
+    el.downloadNote.hidden = false;
   };
 
   const clearDownload = () => {
-    if (state.downloadUrl) {
-      URL.revokeObjectURL(state.downloadUrl);
+    if (state.downloadUrls.length) {
+      state.downloadUrls.forEach((url) => URL.revokeObjectURL(url));
     }
-    state.downloadUrl = null;
-    el.downloadPanels.forEach((panel) => {
-      panel.hidden = true;
-    });
-    el.downloadLinks.forEach((link) => {
-      link.hidden = true;
-      link.href = '#';
-      link.removeAttribute('download');
-    });
-    el.downloadNotes.forEach((note) => {
-      note.hidden = true;
-      note.textContent = '';
-    });
+    state.downloadUrls = [];
+    state.downloadFiles = [];
+    if (el.downloadPanel) {
+      el.downloadPanel.hidden = true;
+    }
+    if (el.downloadList) {
+      el.downloadList.innerHTML = '';
+    }
+    if (el.downloadNote) {
+      el.downloadNote.hidden = true;
+      el.downloadNote.textContent = '';
+    }
   };
 
   const getSelectedFps = () => {
@@ -576,6 +635,16 @@
       const audioLocked = !supportsCapture || state.captureActive || state.recording || !el.audioToggle?.checked;
       el.audioLevel.disabled = audioLocked;
     }
+    if (el.formatOptions) {
+      el.formatOptions.querySelectorAll('input').forEach((input) => {
+        input.disabled = state.recording;
+      });
+    }
+    if (el.extraFormatOptions) {
+      el.extraFormatOptions.querySelectorAll('input').forEach((input) => {
+        input.disabled = state.recording;
+      });
+    }
     if (el.testCapture) {
       el.testCapture.disabled = !supportsCapture || !supportsRecorder || state.captureActive || state.recording;
     }
@@ -588,11 +657,9 @@
         el.cropLabel.textContent = label;
       }
     }
-    if (el.downloadLinks.length) {
-      const hasDownload = Boolean(state.downloadUrl);
-      el.downloadLinks.forEach((link) => {
-        link.hidden = !hasRecording || !hasDownload;
-      });
+    if (el.downloadPanel) {
+      const hasDownload = state.downloadUrls.length > 0;
+      el.downloadPanel.hidden = !hasRecording || !hasDownload;
     }
     updateAudioMeterState();
   };
@@ -660,7 +727,7 @@
     updatePlaceholder();
   };
 
-  const setRecordedClip = (blob, mimeType) => {
+  const setRecordedClip = (blob, mimeType, files) => {
     if (!blob) return;
     if (state.recordedUrl) {
       URL.revokeObjectURL(state.recordedUrl);
@@ -687,7 +754,10 @@
       el.video.addEventListener('loadedmetadata', handleMetadata, { once: true });
     }
 
-    setDownload(blob, state.recordedMimeType);
+    const downloadFiles = Array.isArray(files) && files.length
+      ? files
+      : [{ blob, mimeType: state.recordedMimeType, label: formatLabelFromMime(state.recordedMimeType) }];
+    setDownloads(downloadFiles);
     setStatus('Clip ready to download. Stop capture when you are done.', 'ready');
   };
 
@@ -804,7 +874,7 @@
     }
   };
 
-  const createRecorder = (stream, mimeType) => {
+  const createRecorder = (stream, mimeType, allowFallback = true) => {
     const options = {};
     if (mimeType) options.mimeType = mimeType;
     let recorder;
@@ -812,7 +882,7 @@
     try {
       recorder = new MediaRecorder(stream, options);
     } catch (err) {
-      if (mimeType) {
+      if (mimeType && allowFallback) {
         recorder = new MediaRecorder(stream);
         finalMime = '';
         setStatus('Selected format not supported. Using browser default.', 'warn');
@@ -821,6 +891,52 @@
       }
     }
     return { recorder, mimeType: finalMime };
+  };
+
+  const buildRecorderSet = (stream) => {
+    const primaryMimeType = getSelectedMimeType();
+    const extras = getExtraMimeTypes();
+    const selections = [
+      {
+        mimeType: primaryMimeType,
+        label: formatLabelFromMime(primaryMimeType),
+        isPrimary: true
+      }
+    ];
+    const seen = new Set();
+    if (primaryMimeType) {
+      seen.add(primaryMimeType);
+    }
+    extras.forEach((mimeType) => {
+      if (!mimeType || seen.has(mimeType)) return;
+      seen.add(mimeType);
+      selections.push({
+        mimeType,
+        label: formatLabelFromMime(mimeType),
+        isPrimary: false
+      });
+    });
+
+    const recorders = [];
+    const failed = [];
+    selections.forEach((selection) => {
+      let recorderInfo;
+      try {
+        recorderInfo = createRecorder(stream, selection.mimeType, selection.isPrimary);
+      } catch (_) {
+        failed.push(selection);
+        return;
+      }
+      recorders.push({
+        recorder: recorderInfo.recorder,
+        mimeType: recorderInfo.mimeType || selection.mimeType,
+        label: selection.label,
+        isPrimary: selection.isPrimary,
+        chunks: [],
+        file: null
+      });
+    });
+    return { recorders, failed };
   };
 
   const getCropPixels = (videoWidth, videoHeight) => {
@@ -971,7 +1087,6 @@
 
   const startRecording = () => {
     if (!state.captureActive || state.recording || !state.stream) return;
-    clearDownload();
     clearRecordedClip();
 
     setLivePreview();
@@ -987,11 +1102,8 @@
     state.recordingStream = recordingStreamInfo.stream;
     state.recordingCleanup = recordingStreamInfo.cleanup;
 
-    const mimeType = getSelectedMimeType();
-    let recorderInfo;
-    try {
-      recorderInfo = createRecorder(recordingStreamInfo.stream, mimeType);
-    } catch (_) {
+    const recorderSet = buildRecorderSet(recordingStreamInfo.stream);
+    if (!recorderSet.recorders.length) {
       setStatus('Recording failed to initialize in this browser.', 'error');
       cleanupRecordingPipeline();
       if (state.testMode) {
@@ -1000,32 +1112,31 @@
       return;
     }
 
-    state.recorder = recorderInfo.recorder;
-    state.chunks = [];
+    state.recorders = recorderSet.recorders;
+    state.primaryRecorder = state.recorders.find((entry) => entry.isPrimary)?.recorder || state.recorders[0]?.recorder || null;
     state.recording = true;
     state.paused = false;
     startTimer();
 
-    state.recorder.addEventListener('dataavailable', (event) => {
-      if (event.data && event.data.size > 0) {
-        state.chunks.push(event.data);
-      }
-    });
-
-    state.recorder.addEventListener('stop', () => {
+    let stoppedCount = 0;
+    const finalizeRecording = () => {
       state.recording = false;
       state.paused = false;
       stopTimer();
-      const mime = state.recorder.mimeType || recorderInfo.mimeType || 'video/webm';
-      if (state.chunks.length) {
-        const blob = new Blob(state.chunks, { type: mime });
-        state.chunks = [];
+      const files = state.recorders
+        .map((entry) => entry.file)
+        .filter(Boolean);
+      const primaryEntry = state.recorders.find((entry) => entry.isPrimary && entry.file);
+      const primaryFile = primaryEntry?.file || files[0];
+      if (files.length && primaryFile) {
         state.recordedHasAudio = streamHasAudio(recordingStreamInfo.stream);
-        setRecordedClip(blob, mime);
+        setRecordedClip(primaryFile.blob, primaryFile.mimeType, files);
       } else {
         setStatus('Recording stopped. No data captured.', 'warn');
       }
       cleanupRecordingPipeline();
+      state.recorders = [];
+      state.primaryRecorder = null;
       if (state.testTimerId) {
         clearTimeout(state.testTimerId);
         state.testTimerId = null;
@@ -1035,21 +1146,77 @@
         stopCapture('Test capture complete. Clip ready to download.');
       }
       updateButtons();
-    }, { once: true });
+    };
+
+    const handleRecorderStop = (entry) => {
+      if (!state.recorders.includes(entry)) return;
+      const mime = entry.recorder.mimeType || entry.mimeType || 'video/webm';
+      if (entry.chunks.length) {
+        const blob = new Blob(entry.chunks, { type: mime });
+        entry.chunks = [];
+        entry.file = {
+          blob,
+          mimeType: mime,
+          label: formatLabelFromMime(mime),
+          isPrimary: entry.isPrimary
+        };
+      }
+      stoppedCount += 1;
+      if (stoppedCount === state.recorders.length) {
+        finalizeRecording();
+      }
+    };
+
+    state.recorders.forEach((entry) => {
+      entry.recorder.addEventListener('dataavailable', (event) => {
+        if (event.data && event.data.size > 0) {
+          entry.chunks.push(event.data);
+        }
+      });
+      entry.recorder.addEventListener('stop', () => {
+        handleRecorderStop(entry);
+      }, { once: true });
+    });
 
     try {
-      state.recorder.start(200);
-      if (state.testMode) {
-        setStatus('Recording 5-second test...', 'recording');
-      } else {
-        setStatus('Recording...', 'recording');
+      const started = [];
+      const failedStarts = [];
+      state.recorders.forEach((entry) => {
+        try {
+          entry.recorder.start(200);
+          started.push(entry);
+        } catch (_) {
+          failedStarts.push(entry);
+        }
+      });
+
+      state.recorders = started;
+      state.primaryRecorder = state.recorders.find((entry) => entry.isPrimary)?.recorder || state.recorders[0]?.recorder || null;
+
+      if (!state.recorders.length) {
+        throw new Error('Recorder start failed.');
       }
+
+      const primaryMissing = !state.recorders.some((entry) => entry.isPrimary);
+      const extraFailed = recorderSet.failed.some((entry) => !entry.isPrimary) ||
+        failedStarts.some((entry) => !entry.isPrimary);
+      let statusMessage = state.testMode ? 'Recording 5-second test...' : 'Recording...';
+      if (primaryMissing && extraFailed) {
+        statusMessage = `${statusMessage} Primary format unavailable; extras skipped.`;
+      } else if (primaryMissing) {
+        statusMessage = `${statusMessage} Primary format unavailable.`;
+      } else if (extraFailed) {
+        statusMessage = `${statusMessage} Extra formats skipped.`;
+      }
+      setStatus(statusMessage, 'recording');
       updateButtons();
     } catch (err) {
       state.recording = false;
       stopTimer();
       setStatus('Recording failed to start.', 'error');
       cleanupRecordingPipeline();
+      state.recorders = [];
+      state.primaryRecorder = null;
       if (state.testMode) {
         state.testMode = false;
       }
@@ -1058,14 +1225,26 @@
   };
 
   const togglePause = () => {
-    if (!state.recorder || !state.recording) return;
-    if (state.recorder.state === 'recording') {
-      state.recorder.pause();
+    if (!state.recorders.length || !state.recording) return;
+    if (state.primaryRecorder && state.primaryRecorder.state === 'recording') {
+      state.recorders.forEach((entry) => {
+        if (entry.recorder.state === 'recording') {
+          try {
+            entry.recorder.pause();
+          } catch (_) {}
+        }
+      });
       state.paused = true;
       pauseTimer();
       setStatus('Recording paused.', 'warn');
-    } else if (state.recorder.state === 'paused') {
-      state.recorder.resume();
+    } else if (state.primaryRecorder && state.primaryRecorder.state === 'paused') {
+      state.recorders.forEach((entry) => {
+        if (entry.recorder.state === 'paused') {
+          try {
+            entry.recorder.resume();
+          } catch (_) {}
+        }
+      });
       state.paused = false;
       resumeTimer();
       setStatus('Recording...', 'recording');
@@ -1074,10 +1253,12 @@
   };
 
   const stopRecording = () => {
-    if (!state.recorder || !state.recording) return;
-    if (state.recorder.state !== 'inactive') {
-      state.recorder.stop();
-    }
+    if (!state.recorders.length || !state.recording) return;
+    state.recorders.forEach((entry) => {
+      if (entry.recorder.state !== 'inactive') {
+        entry.recorder.stop();
+      }
+    });
   };
 
   const toggleCropSelection = () => {
@@ -1244,13 +1425,13 @@
     el.cropOverlay?.addEventListener('pointerup', handleCropPointerUp);
     el.cropOverlay?.addEventListener('pointercancel', handleCropPointerUp);
     window.addEventListener('resize', syncCropSelection);
-    el.downloadLinks.forEach((link) => {
-      link.addEventListener('click', (event) => {
-        if (!state.downloadUrl) {
-          event.preventDefault();
-          setStatus('Record a clip before downloading.', 'warn');
-        }
-      });
+    el.downloadList?.addEventListener('click', (event) => {
+      const link = event.target.closest('a');
+      if (!link) return;
+      if (!state.downloadUrls.length) {
+        event.preventDefault();
+        setStatus('Record a clip before downloading.', 'warn');
+      }
     });
 
     el.video?.addEventListener('loadedmetadata', () => {
