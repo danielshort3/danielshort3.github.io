@@ -41,12 +41,20 @@
     calendarRange: $('[data-jobtrack="calendar-range"]'),
     lineOverlay: $('[data-jobtrack="line-overlay"]'),
     statusOverlay: $('[data-jobtrack="status-overlay"]'),
-    calendarGrid: $('[data-jobtrack="calendar-grid"]')
+    calendarGrid: $('[data-jobtrack="calendar-grid"]'),
+    resumeInput: $('#jobtrack-resume'),
+    coverInput: $('#jobtrack-cover'),
+    importFile: $('#jobtrack-import-file'),
+    importSubmit: $('[data-jobtrack="import-submit"]'),
+    importTemplate: $('[data-jobtrack="import-template"]'),
+    importStatus: $('[data-jobtrack="import-status"]'),
+    recentStatus: $('[data-jobtrack="recent-status"]')
   };
 
   const STORAGE_KEY = 'jobTrackerAuth';
   const STATE_KEY = 'jobTrackerAuthState';
   const VERIFIER_KEY = 'jobTrackerCodeVerifier';
+  const CSV_TEMPLATE = 'company,title,appliedDate,status,notes\nAcme Corp,Data Analyst,2025-01-15,Applied,Reached out to recruiter';
 
   const state = {
     auth: null,
@@ -56,6 +64,27 @@
   };
 
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  const runWithConcurrency = async (items, limit, task) => {
+    const results = [];
+    let index = 0;
+    const runWorker = async () => {
+      while (index < items.length) {
+        const current = items[index];
+        index += 1;
+        try {
+          const value = await task(current);
+          results.push({ ok: true, value });
+        } catch (err) {
+          results.push({ ok: false, error: err });
+        }
+      }
+    };
+    const workerCount = Math.max(1, Math.min(limit, items.length));
+    const workers = Array.from({ length: workerCount }, () => runWorker());
+    await Promise.all(workers);
+    return results;
+  };
 
   const formatDateInput = (date) => date.toISOString().slice(0, 10);
   const parseDateInput = (value) => {
@@ -70,6 +99,90 @@
     .filter(Boolean)
     .map(word => word[0].toUpperCase() + word.slice(1))
     .join(' ');
+
+  const stripBom = (value) => value.replace(/^\uFEFF/, '');
+
+  const normalizeHeader = (value) => stripBom(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '');
+
+  const parseCsv = (text) => {
+    const rows = [];
+    let row = [];
+    let field = '';
+    let inQuotes = false;
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      if (char === '"') {
+        if (inQuotes && text[i + 1] === '"') {
+          field += '"';
+          i += 1;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (char === ',' && !inQuotes) {
+        row.push(field);
+        field = '';
+      } else if ((char === '\n' || char === '\r') && !inQuotes) {
+        if (char === '\r' && text[i + 1] === '\n') i += 1;
+        row.push(field);
+        if (row.some(cell => cell.trim() !== '')) rows.push(row);
+        row = [];
+        field = '';
+      } else {
+        field += char;
+      }
+    }
+    if (field.length || row.length) {
+      row.push(field);
+      if (row.some(cell => cell.trim() !== '')) rows.push(row);
+    }
+    return rows;
+  };
+
+  const CSV_HEADERS = {
+    company: ['company', 'companyname', 'employer', 'organization'],
+    title: ['title', 'role', 'position', 'jobtitle'],
+    appliedDate: ['applieddate', 'dateapplied', 'applicationdate', 'applied', 'date'],
+    status: ['status', 'stage'],
+    notes: ['notes', 'note', 'details']
+  };
+
+  const buildHeaderMap = (headers = []) => {
+    const normalized = headers.map(header => normalizeHeader(header));
+    const map = {};
+    Object.entries(CSV_HEADERS).forEach(([key, aliases]) => {
+      const idx = normalized.findIndex(value => aliases.includes(value));
+      if (idx >= 0) map[key] = idx;
+    });
+    return map;
+  };
+
+  const parseCsvDate = (value) => {
+    const trimmed = (value || '').toString().trim();
+    if (!trimmed) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+    const mdy = trimmed.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})$/);
+    if (mdy) {
+      const year = mdy[3].length === 2 ? `20${mdy[3]}` : mdy[3];
+      const month = mdy[1].padStart(2, '0');
+      const day = mdy[2].padStart(2, '0');
+      const iso = `${year}-${month}-${day}`;
+      return parseDateInput(iso) ? iso : '';
+    }
+    const parsed = new Date(trimmed);
+    return Number.isNaN(parsed.getTime()) ? '' : formatDateInput(parsed);
+  };
+
+  const readFileText = (file) => {
+    if (file && typeof file.text === 'function') return file.text();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result || '');
+      reader.onerror = () => reject(reader.error || new Error('Unable to read file.'));
+      reader.readAsText(file);
+    });
+  };
 
   const parseJwt = (token) => {
     try {
@@ -285,6 +398,12 @@
         els.authStatus.textContent = 'Not signed in.';
       }
     }
+    if (els.importStatus) {
+      setStatus(els.importStatus, authed ? 'Ready to import applications.' : 'Sign in to import applications.', authed ? '' : 'info');
+    }
+    if (els.recentStatus) {
+      setStatus(els.recentStatus, authed ? 'Select an attachment to download.' : 'Sign in to download attachments.', authed ? '' : 'info');
+    }
   };
 
   const getAuthHeader = () => {
@@ -318,6 +437,68 @@
     }
     return data || {};
   };
+
+  const getAttachmentLabel = (attachment = {}) => {
+    const kind = (attachment.kind || '').toString().toLowerCase();
+    if (kind === 'cover' || kind === 'cover-letter' || kind === 'coverletter') return 'Cover letter';
+    return 'Resume';
+  };
+
+  const collectAttachments = () => {
+    const attachments = [];
+    const resumeFile = els.resumeInput?.files?.[0];
+    const coverFile = els.coverInput?.files?.[0];
+    if (resumeFile) attachments.push({ file: resumeFile, kind: 'resume' });
+    if (coverFile) attachments.push({ file: coverFile, kind: 'cover-letter' });
+    return attachments;
+  };
+
+  const clearAttachmentInputs = () => {
+    if (els.resumeInput) els.resumeInput.value = '';
+    if (els.coverInput) els.coverInput.value = '';
+  };
+
+  const uploadAttachment = async (applicationId, attachment) => {
+    const file = attachment.file;
+    const contentType = file.type || 'application/octet-stream';
+    const presign = await requestJson('/api/attachments/presign', {
+      method: 'POST',
+      body: {
+        applicationId,
+        filename: file.name || 'attachment',
+        contentType
+      }
+    });
+    const res = await fetch(presign.uploadUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': contentType },
+      body: file
+    });
+    if (!res.ok) {
+      throw new Error('Unable to upload attachment.');
+    }
+    return {
+      key: presign.key,
+      filename: file.name || 'attachment',
+      contentType,
+      kind: attachment.kind || '',
+      uploadedAt: new Date().toISOString()
+    };
+  };
+
+  const uploadAttachments = async (applicationId, attachments = []) => {
+    const uploaded = [];
+    for (const attachment of attachments) {
+      const item = await uploadAttachment(applicationId, attachment);
+      uploaded.push(item);
+    }
+    return uploaded;
+  };
+
+  const requestAttachmentDownload = async (key) => requestJson('/api/attachments/download', {
+    method: 'POST',
+    body: { key }
+  });
 
   const defaultRange = () => {
     const end = new Date();
@@ -574,6 +755,27 @@
       meta.textContent = `${dateLabel} · ${toTitle(item.status || 'Applied')}`;
       li.appendChild(title);
       li.appendChild(meta);
+      const attachments = Array.isArray(item.attachments)
+        ? item.attachments.filter(attachment => attachment && attachment.key)
+        : [];
+      if (attachments.length) {
+        const wrap = document.createElement('div');
+        wrap.className = 'jobtrack-recent-attachments';
+        attachments.forEach((attachment) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'btn-ghost jobtrack-attachment-btn';
+          button.dataset.jobtrackAttachment = 'download';
+          button.dataset.key = attachment.key;
+          if (attachment.filename) button.dataset.filename = attachment.filename;
+          const label = getAttachmentLabel(attachment);
+          const name = attachment.filename ? `${label}: ${attachment.filename}` : `Download ${label}`;
+          button.textContent = name;
+          button.title = name;
+          wrap.appendChild(button);
+        });
+        li.appendChild(wrap);
+      }
       els.recentList.appendChild(li);
     });
   };
@@ -597,7 +799,33 @@
     }
   };
 
-  const submitApplication = async (payload) => {
+  const initAttachmentDownloads = () => {
+    if (!els.recentList) return;
+    els.recentList.addEventListener('click', async (event) => {
+      const target = event.target && event.target.closest
+        ? event.target.closest('[data-jobtrack-attachment="download"]')
+        : null;
+      if (!target) return;
+      event.preventDefault();
+      const key = (target.dataset.key || '').trim();
+      if (!key) return;
+      try {
+        setStatus(els.recentStatus, 'Preparing download...', 'info');
+        const data = await requestAttachmentDownload(key);
+        if (data?.downloadUrl) {
+          window.open(data.downloadUrl, '_blank', 'noopener');
+          setStatus(els.recentStatus, 'Download ready.', 'success');
+        } else {
+          throw new Error('Download unavailable.');
+        }
+      } catch (err) {
+        console.error('Attachment download failed', err);
+        setStatus(els.recentStatus, err?.message || 'Unable to download attachment.', 'error');
+      }
+    });
+  };
+
+  const submitApplication = async (payload, attachments = []) => {
     if (!els.formStatus) return;
     if (!authIsValid(state.auth)) {
       setStatus(els.formStatus, 'Sign in to save new applications.', 'error');
@@ -605,8 +833,27 @@
     }
     try {
       setStatus(els.formStatus, 'Saving application...', 'info');
-      await requestJson('/api/applications', { method: 'POST', body: payload });
-      setStatus(els.formStatus, 'Saved. Updating dashboards...', 'success');
+      const created = await requestJson('/api/applications', { method: 'POST', body: payload });
+      let attachmentError = null;
+      if (attachments.length && created?.applicationId) {
+        try {
+          const label = attachments.length === 1 ? 'attachment' : 'attachments';
+          setStatus(els.formStatus, `Uploading ${attachments.length} ${label}...`, 'info');
+          const uploaded = await uploadAttachments(created.applicationId, attachments);
+          await requestJson(`/api/applications/${created.applicationId}`, {
+            method: 'PATCH',
+            body: { attachments: uploaded }
+          });
+        } catch (err) {
+          attachmentError = err;
+        }
+      }
+      if (attachmentError) {
+        console.error('Attachment upload failed', attachmentError);
+        setStatus(els.formStatus, 'Saved application, but attachments failed to upload.', 'error');
+      } else {
+        setStatus(els.formStatus, 'Saved. Updating dashboards...', 'success');
+      }
       await sleep(200);
       await Promise.all([refreshDashboard(), refreshRecent()]);
     } catch (err) {
@@ -629,9 +876,110 @@
         setStatus(els.formStatus, 'Company, role title, and applied date are required.', 'error');
         return;
       }
-      submitApplication({ company, title, appliedDate, status, notes });
+      const attachments = collectAttachments();
+      submitApplication({ company, title, appliedDate, status, notes }, attachments);
       els.form.reset();
+      clearAttachmentInputs();
     });
+    els.form.addEventListener('reset', () => {
+      clearAttachmentInputs();
+      setStatus(els.formStatus, 'Ready to log a new application.', '');
+    });
+  };
+
+  const parseImportPayloads = (text) => {
+    const rows = parseCsv(text || '');
+    if (!rows.length) return { payloads: [], skipped: 0, missing: ['company', 'title', 'appliedDate'] };
+    const headers = rows.shift().map(header => header.trim());
+    const map = buildHeaderMap(headers);
+    const missing = ['company', 'title', 'appliedDate'].filter(key => map[key] === undefined);
+    if (missing.length) return { payloads: [], skipped: rows.length, missing };
+
+    const payloads = [];
+    let skipped = 0;
+    rows.forEach((row) => {
+      const company = (row[map.company] || '').toString().trim();
+      const title = (row[map.title] || '').toString().trim();
+      const appliedDate = parseCsvDate(row[map.appliedDate]);
+      const status = map.status !== undefined ? (row[map.status] || '').toString().trim() : '';
+      const notes = map.notes !== undefined ? (row[map.notes] || '').toString().trim() : '';
+      if (!company || !title || !appliedDate) {
+        skipped += 1;
+        return;
+      }
+      payloads.push({
+        company,
+        title,
+        appliedDate,
+        status: status || 'Applied',
+        notes
+      });
+    });
+    return { payloads, skipped, missing: [] };
+  };
+
+  const initImport = () => {
+    if (els.importTemplate) {
+      els.importTemplate.addEventListener('click', () => {
+        const blob = new Blob([CSV_TEMPLATE], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'job-applications-template.csv';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      });
+    }
+    if (els.importSubmit) {
+      els.importSubmit.addEventListener('click', async () => {
+        if (!authIsValid(state.auth)) {
+          setStatus(els.importStatus, 'Sign in to import applications.', 'error');
+          return;
+        }
+        if (!config.apiBase) {
+          setStatus(els.importStatus, 'Set the API base URL to import applications.', 'error');
+          return;
+        }
+        const file = els.importFile?.files?.[0];
+        if (!file) {
+          setStatus(els.importStatus, 'Choose a CSV file to import.', 'error');
+          return;
+        }
+        try {
+          setStatus(els.importStatus, 'Reading CSV...', 'info');
+          const text = await readFileText(file);
+          const { payloads, skipped, missing } = parseImportPayloads(text);
+          if (missing.length) {
+            setStatus(els.importStatus, `Missing columns: ${missing.join(', ')}.`, 'error');
+            return;
+          }
+          if (!payloads.length) {
+            setStatus(els.importStatus, 'No valid rows found in the CSV.', 'error');
+            return;
+          }
+          setStatus(els.importStatus, `Importing ${payloads.length} applications...`, 'info');
+          const results = await runWithConcurrency(payloads, 3, (payload) => requestJson('/api/applications', {
+            method: 'POST',
+            body: payload
+          }));
+          const success = results.filter(result => result.ok).length;
+          const failed = results.length - success;
+          const parts = [`Imported ${success} of ${payloads.length} applications.`];
+          if (skipped) parts.push(`Skipped ${skipped} rows.`);
+          if (failed) parts.push(`${failed} failed.`);
+          setStatus(els.importStatus, parts.join(' '), failed ? 'error' : 'success');
+          if (success) {
+            await Promise.all([refreshDashboard(), refreshRecent()]);
+          }
+          if (els.importFile) els.importFile.value = '';
+        } catch (err) {
+          console.error('CSV import failed', err);
+          setStatus(els.importStatus, err?.message || 'Unable to import applications.', 'error');
+        }
+      });
+    }
   };
 
   const initFilters = () => {
@@ -690,6 +1038,8 @@
   const init = async () => {
     initFilters();
     initForm();
+    initImport();
+    initAttachmentDownloads();
     if (els.recentRefresh) {
       els.recentRefresh.addEventListener('click', () => refreshRecent());
     }

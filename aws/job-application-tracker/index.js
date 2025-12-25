@@ -7,7 +7,7 @@ const {
   DeleteCommand,
   QueryCommand
 } = require('@aws-sdk/lib-dynamodb');
-const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+const { S3Client, PutObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
 const dynamo = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
@@ -83,6 +83,33 @@ const normalizeStatus = (value) => {
     .split(/\s+/)
     .map(word => word ? word[0].toUpperCase() + word.slice(1).toLowerCase() : '')
     .join(' ');
+};
+
+const normalizeAttachments = (userId, attachments) => {
+  if (attachments === undefined || attachments === null) return [];
+  if (!Array.isArray(attachments)) {
+    throw httpError(400, 'attachments must be an array.');
+  }
+  const now = nowIso();
+  const safe = [];
+  for (const attachment of attachments) {
+    if (!attachment || typeof attachment !== 'object') continue;
+    const key = (attachment.key || '').toString().trim();
+    const filename = (attachment.filename || '').toString().trim();
+    if (!key || !filename) continue;
+    if (!key.startsWith(`${userId}/`)) {
+      throw httpError(400, 'Invalid attachment key.');
+    }
+    safe.push({
+      key,
+      filename,
+      contentType: (attachment.contentType || '').toString().trim(),
+      kind: (attachment.kind || '').toString().trim(),
+      uploadedAt: (attachment.uploadedAt || now).toString().trim()
+    });
+    if (safe.length >= 12) break;
+  }
+  return safe;
 };
 
 const normalizePath = (event) => {
@@ -212,6 +239,7 @@ const handleCreateApplication = async (userId, payload = {}) => {
   const parsedDate = parseDate(appliedDate);
   if (!parsedDate) throw httpError(400, 'appliedDate must be YYYY-MM-DD.');
   const status = normalizeStatus(payload.status || 'Applied');
+  const attachments = normalizeAttachments(userId, payload.attachments);
   const now = nowIso();
   const applicationId = `APP#${Date.now()}#${randomUUID()}`;
   const item = {
@@ -226,6 +254,7 @@ const handleCreateApplication = async (userId, payload = {}) => {
     createdAt: now,
     updatedAt: now
   };
+  if (attachments.length) item.attachments = attachments;
   await dynamo.send(new PutCommand({
     TableName: APPLICATIONS_TABLE,
     Item: item
@@ -257,6 +286,10 @@ const handleUpdateApplication = async (userId, applicationId, payload = {}) => {
     addField('appliedDate', formatDate(parsedDate));
   }
   addField('notes', payload.notes?.toString().trim());
+  if (payload.attachments) {
+    const attachments = normalizeAttachments(userId, payload.attachments);
+    addField('attachments', attachments);
+  }
   if (pushStatus) {
     addField('status', pushStatus);
     names['#statusHistory'] = 'statusHistory';
@@ -311,6 +344,26 @@ const handlePresign = async (userId, payload = {}) => {
     uploadUrl,
     key,
     bucket: ATTACHMENTS_BUCKET,
+    expiresIn: presignTtl
+  };
+};
+
+const handlePresignDownload = async (userId, payload = {}) => {
+  if (!ATTACHMENTS_BUCKET) throw httpError(500, 'Attachments bucket not configured.');
+  const key = (payload.key || '').toString().trim();
+  if (!key) throw httpError(400, 'key is required.');
+  if (!key.startsWith(`${userId}/`)) throw httpError(403, 'Unauthorized.');
+  const downloadUrl = await getSignedUrl(
+    s3,
+    new GetObjectCommand({
+      Bucket: ATTACHMENTS_BUCKET,
+      Key: key
+    }),
+    { expiresIn: presignTtl }
+  );
+  return {
+    downloadUrl,
+    key,
     expiresIn: presignTtl
   };
 };
@@ -434,6 +487,16 @@ exports.handler = async (event) => {
     if (routeKey === 'POST /api/attachments/presign') {
       const payload = parseBody(event);
       const data = await handlePresign(userId, payload);
+      return {
+        statusCode: 200,
+        headers: buildHeaders(corsOrigin),
+        body: JSON.stringify(data)
+      };
+    }
+
+    if (routeKey === 'POST /api/attachments/download') {
+      const payload = parseBody(event);
+      const data = await handlePresignDownload(userId, payload);
       return {
         statusCode: 200,
         headers: buildHeaders(corsOrigin),

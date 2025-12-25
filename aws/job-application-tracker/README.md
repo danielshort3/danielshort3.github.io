@@ -179,3 +179,21 @@ Response:
   "expiresIn": 900
 }
 ```
+
+`POST /api/attachments/download`
+
+```json
+{
+  "key": "USER_SUB/APP#1737061085123#/1737061090000-resume.pdf"
+}
+```
+
+Response:
+
+```json
+{
+  "downloadUrl": "https://bucket.s3.amazonaws.com/user-id/APP...",
+  "key": "USER_SUB/APP#1737061085123#/1737061090000-resume.pdf",
+  "expiresIn": 900
+}
+```

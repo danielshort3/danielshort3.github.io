@@ -129,6 +129,14 @@ try {
     assert(consentCode.includes('ga4-helper'), 'consent manager should inject analytics helper script');
   });
 
+  section('Job tracker UI additions', () => {
+    checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-import-file"');
+    checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="import-submit"');
+    checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-resume"');
+    checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-cover"');
+    checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="recent-status"');
+  });
+
   section('Data contracts', () => {
     let env = evalScript('js/portfolio/projects-data.js');
     assert(Array.isArray(env.window.PROJECTS) && env.window.PROJECTS.length > 0,
