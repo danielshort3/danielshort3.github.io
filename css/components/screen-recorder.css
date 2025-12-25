@@ -68,6 +68,8 @@
   .screenrec-grid{
     display:grid;
     gap:clamp(18px,3vw,28px);
+    grid-template-columns:minmax(0,1fr);
+    align-items:start;
   }
   .screenrec-grid[data-view="controls"],
   .screenrec-grid[data-view="preview"]{
@@ -75,8 +77,7 @@
   }
   @media (min-width: 980px) {
     .screenrec-grid{
-      grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);
-      align-items:start;
+      grid-template-columns:minmax(0,1fr);
     }
   }
 
@@ -123,6 +124,26 @@
   .screenrec-form{
     display:grid;
     gap:16px;
+  }
+  .screenrec-controls{
+    padding:clamp(1.2rem,2.2vw,1.6rem);
+    gap:12px;
+  }
+  .screenrec-controls .screenrec-form{
+    gap:12px;
+  }
+  .screenrec-field-wide{
+    grid-column:1 / -1;
+  }
+  @media (min-width: 880px) {
+    .screenrec-controls .screenrec-form{
+      grid-template-columns:repeat(auto-fit, minmax(240px,1fr));
+      column-gap:16px;
+      align-items:start;
+    }
+    .screenrec-controls .screenrec-note{
+      grid-column:1 / -1;
+    }
   }
 
   .screenrec-field{
@@ -398,6 +419,28 @@
     object-fit:contain;
     object-position:center;
     background:color-mix(in srgb,var(--bg) 90%, #000 10%);
+  }
+
+  .screenrec-stage-controls{
+    position:absolute;
+    top:12px;
+    right:12px;
+    z-index:3;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    pointer-events:auto;
+  }
+  .screenrec-crop-button{
+    width:38px;
+    height:38px;
+    padding:0;
+    display:grid;
+    place-items:center;
+  }
+  .screenrec-crop-button svg{
+    width:18px;
+    height:18px;
   }
 
   .screenrec-placeholder{

@@ -80,7 +80,7 @@
             </div>
             <p class="screenrec-subtitle">All recording stays on-device. No uploads, with optional system audio.</p>
             <form class="screenrec-form" novalidate>
-              <div class="screenrec-field">
+              <div class="screenrec-field screenrec-field-wide">
                 <span class="screenrec-label">Download format</span>
                 <div class="screenrec-radio-group" data-screenrec="format-options"></div>
                 <p class="screenrec-help" data-screenrec="format-help">Detecting supported formats...</p>
@@ -97,7 +97,7 @@
                 <p class="screenrec-help">Applies when starting a new capture.</p>
               </div>
 
-              <div class="screenrec-field">
+              <div class="screenrec-field screenrec-field-wide">
                 <span class="screenrec-label">Audio</span>
                 <div class="screenrec-audio-row">
                   <label class="screenrec-check" for="screenrec-audio">
@@ -134,10 +134,7 @@
                 <p class="screenrec-subtitle">Live preview while capture is active.</p>
               </div>
               <div class="screenrec-preview-controls">
-                <div class="screenrec-preview-tools">
-                  <span class="screenrec-status" data-screenrec="status" data-tone="idle">Idle</span>
-                  <button type="button" class="btn-ghost" data-screenrec="crop-toggle" disabled>Crop</button>
-                </div>
+                <span class="screenrec-status" data-screenrec="status" data-tone="idle">Idle</span>
                 <div class="screenrec-actions" data-screenrec="capture-actions">
                   <button type="button" class="btn-primary" data-screenrec="start-capture">Start capture</button>
                   <button type="button" class="btn-secondary" data-screenrec="stop-capture" disabled>Stop capture</button>
@@ -147,6 +144,15 @@
             <div class="screenrec-stage" data-screenrec="stage">
               <video class="screenrec-video" data-screenrec="video" playsinline muted></video>
               <div class="screenrec-placeholder" data-screenrec="placeholder">Start capture to see a live preview.</div>
+              <div class="screenrec-stage-controls">
+                <button type="button" class="btn-ghost screenrec-crop-button" data-screenrec="crop-toggle" aria-label="Crop" title="Crop" disabled>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M7 3v12a2 2 0 0 0 2 2h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M3 7h12a2 2 0 0 1 2 2v12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+                  </svg>
+                  <span class="sr-only" data-screenrec="crop-label">Crop</span>
+                </button>
+              </div>
               <div class="screenrec-crop-overlay" data-screenrec="crop-overlay" hidden>
                 <div class="screenrec-crop-selection" data-screenrec="crop-selection" hidden></div>
               </div>
