@@ -76,6 +76,15 @@
     border-color: color-mix(in srgb, var(--primary) 55%, transparent);
     color: color-mix(in srgb, #ffffff 92%, var(--bg) 8%);
   }
+  .btn-secondary:disabled{
+    background:color-mix(in srgb,var(--surface) 85%, #0f141d 15%);
+    color:color-mix(in srgb,var(--text-light) 55%, #ffffff 45%);
+    border-color:color-mix(in srgb,var(--text-light) 20%, transparent);
+    box-shadow:none;
+    transform:none;
+    cursor:not-allowed;
+    opacity:.8;
+  }
 
   .btn-ghost {
     padding: 12px 22px;
@@ -90,6 +99,15 @@
     border-color: color-mix(in srgb, var(--primary) 45%, transparent);
     color: color-mix(in srgb, #ffffff 92%, var(--bg) 8%);
     background: color-mix(in srgb, var(--primary) 18%, transparent);
+  }
+  .btn-ghost:disabled{
+    border-color:color-mix(in srgb,var(--text-light) 20%, transparent);
+    color:color-mix(in srgb,var(--text-light) 55%, #ffffff 45%);
+    background:transparent;
+    box-shadow:none;
+    transform:none;
+    cursor:not-allowed;
+    opacity:.7;
   }
 
   .btn-icon {
