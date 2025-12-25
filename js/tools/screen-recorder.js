@@ -132,7 +132,8 @@
 
   const QUALITY_PRESETS = {
     auto: { label: 'Auto', video: 0, audio: 0 },
-    low: { label: 'Data saver', video: 2000000, audio: 96000 },
+    tiny: { label: 'Tiny preview', video: 800000, audio: 64000 },
+    low: { label: 'Small', video: 1500000, audio: 80000 },
     medium: { label: 'Balanced', video: 4000000, audio: 128000 },
     high: { label: 'High', video: 8000000, audio: 192000 }
   };
