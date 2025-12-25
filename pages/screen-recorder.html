@@ -124,6 +124,17 @@
                   <p class="screenrec-help">Lower quality reduces file size. Applies when starting a new recording.</p>
                 </div>
 
+                <div class="screenrec-field">
+                  <label class="screenrec-label" for="screenrec-scale">Resolution scale</label>
+                  <select id="screenrec-scale" class="screenrec-select" data-screenrec="scale-select">
+                    <option value="1" selected>100% (original)</option>
+                    <option value="0.75">75%</option>
+                    <option value="0.5">50%</option>
+                    <option value="0.33">33%</option>
+                  </select>
+                  <p class="screenrec-help">Downscales the recording to shrink files. Preview stays full size.</p>
+                </div>
+
                 <div class="screenrec-field screenrec-field-wide">
                   <span class="screenrec-label">Audio</span>
                   <div class="screenrec-audio-row">

@@ -9,6 +9,7 @@
     formatHelp: $('[data-screenrec="format-help"]'),
     fpsSelect: $('[data-screenrec="fps-select"]'),
     qualitySelect: $('[data-screenrec="quality-select"]'),
+    scaleSelect: $('[data-screenrec="scale-select"]'),
     audioToggle: $('[data-screenrec="audio-toggle"]'),
     audioHelp: $('[data-screenrec="audio-help"]'),
     audioLevel: $('[data-screenrec="audio-level"]'),
@@ -94,6 +95,7 @@
     cropResizeHandle: null,
     cropResizeStart: null,
     cropAnimationId: null,
+    scaleAnimationId: null,
     cropAspectValue: 'free',
     cropAspectLabel: 'Free',
     cropPresetsOpen: false,
@@ -558,6 +560,13 @@
       options.audioBitsPerSecond = preset.audio;
     }
     return Object.keys(options).length ? options : null;
+  };
+
+  const getResolutionScale = () => {
+    if (!el.scaleSelect) return 1;
+    const value = Number(el.scaleSelect.value);
+    if (!Number.isFinite(value) || value <= 0) return 1;
+    return Math.min(1, Math.max(0.1, value));
   };
 
   const getSystemGain = () => {
@@ -1358,6 +1367,9 @@
     if (el.qualitySelect) {
       el.qualitySelect.disabled = !supportsRecorder || state.captureActive || state.recording;
     }
+    if (el.scaleSelect) {
+      el.scaleSelect.disabled = !supportsRecorder || state.captureActive || state.recording;
+    }
     if (el.audioLevel) {
       const audioLocked = !supportsCapture || state.captureActive || state.recording || !el.audioToggle?.checked;
       el.audioLevel.disabled = audioLocked;
@@ -1695,7 +1707,7 @@
   };
 
   const createCroppedStream = (fps) => {
-    if (!state.cropRegion || !el.video) return null;
+    if (!state.cropRegion || !state.stream) return null;
     if (!('captureStream' in HTMLCanvasElement.prototype)) return null;
     const track = state.stream ? state.stream.getVideoTracks()[0] : null;
     const settings = track && track.getSettings ? track.getSettings() : {};
@@ -1708,18 +1720,22 @@
     if (!ctx) return null;
     canvas.width = crop.sw;
     canvas.height = crop.sh;
+    const bufferVideo = document.createElement('video');
+    bufferVideo.muted = true;
+    bufferVideo.playsInline = true;
+    bufferVideo.srcObject = state.stream;
 
     const drawFrame = () => {
       if (!state.captureActive || !state.stream) {
         state.cropAnimationId = null;
         return;
       }
-      if (el.video.readyState < 2) {
+      if (bufferVideo.readyState < 2) {
         state.cropAnimationId = requestAnimationFrame(drawFrame);
         return;
       }
       ctx.drawImage(
-        el.video,
+        bufferVideo,
         crop.sx,
         crop.sy,
         crop.sw,
@@ -1739,9 +1755,10 @@
         cancelAnimationFrame(state.cropAnimationId);
         state.cropAnimationId = null;
       }
+      bufferVideo.srcObject = null;
       stopTracks(stream);
     };
-    return { stream, cleanup };
+    return { stream, cleanup, video: bufferVideo };
   };
 
   const createMixedAudioTrack = (sources) => {
@@ -1779,21 +1796,72 @@
     }
   };
 
+  const createScaledStream = (fps, scale, sourceVideo) => {
+    if (!state.stream) return null;
+    if (!('captureStream' in HTMLCanvasElement.prototype)) return null;
+    const track = state.stream.getVideoTracks()[0];
+    const settings = track && track.getSettings ? track.getSettings() : {};
+    const source = sourceVideo || el.video;
+    if (!source) return null;
+    const videoWidth = source.videoWidth || settings.width;
+    const videoHeight = source.videoHeight || settings.height;
+    if (!videoWidth || !videoHeight) return null;
+    const clampedScale = Math.min(1, Math.max(0.1, scale));
+    const width = Math.max(1, Math.round(videoWidth * clampedScale));
+    const height = Math.max(1, Math.round(videoHeight * clampedScale));
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    canvas.width = width;
+    canvas.height = height;
+
+    const drawFrame = () => {
+      if (!source) return;
+      if (source.readyState >= 2) {
+        ctx.drawImage(source, 0, 0, width, height);
+      }
+      state.scaleAnimationId = requestAnimationFrame(drawFrame);
+    };
+    state.scaleAnimationId = requestAnimationFrame(drawFrame);
+
+    const stream = canvas.captureStream(fps || undefined);
+    const cleanup = () => {
+      if (state.scaleAnimationId) {
+        cancelAnimationFrame(state.scaleAnimationId);
+        state.scaleAnimationId = null;
+      }
+    };
+    return { stream, cleanup };
+  };
+
   const buildRecordingStream = () => {
     if (!state.stream) return null;
     const outputStream = new MediaStream();
     const cleanupTasks = [];
     const fps = getSelectedFps();
+    const scale = getResolutionScale();
     const sourceVideoTrack = state.stream.getVideoTracks()[0];
     let videoTrack = sourceVideoTrack;
+    let sourceVideoElement = null;
 
     if (state.cropRegion) {
       const cropped = createCroppedStream(fps);
       if (cropped && cropped.stream) {
         videoTrack = cropped.stream.getVideoTracks()[0];
+        sourceVideoElement = cropped.video;
         cleanupTasks.push(cropped.cleanup);
       } else {
         setStatus('Crop preview unavailable. Recording full frame.', 'warn');
+      }
+    }
+
+    if (scale < 1) {
+      const scaled = createScaledStream(fps, scale, sourceVideoElement);
+      if (scaled && scaled.stream) {
+        videoTrack = scaled.stream.getVideoTracks()[0];
+        cleanupTasks.push(scaled.cleanup);
+      } else {
+        setStatus('Resolution scaling unavailable. Recording full size.', 'warn');
       }
     }
 
@@ -1829,6 +1897,10 @@
     }
     state.recordingCleanup = null;
     state.recordingStream = null;
+    if (state.scaleAnimationId) {
+      cancelAnimationFrame(state.scaleAnimationId);
+      state.scaleAnimationId = null;
+    }
   };
 
   const startRecording = async () => {
