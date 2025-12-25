@@ -20,6 +20,7 @@
     captureActions: $('[data-screenrec="capture-actions"]'),
     testCapture: $('[data-screenrec="test-capture"]'),
     cropToggle: $('[data-screenrec="crop-toggle"]'),
+    cropLabel: $('[data-screenrec="crop-label"]'),
     cropOverlay: $('[data-screenrec="crop-overlay"]'),
     cropSelection: $('[data-screenrec="crop-selection"]'),
     grid: $('[data-screenrec="grid"]'),
@@ -572,7 +573,11 @@
     if (el.cropToggle) {
       el.cropToggle.disabled = !state.captureActive || state.recording;
       const label = state.cropSelecting || state.cropRegion ? 'Cancel crop' : 'Crop';
-      el.cropToggle.textContent = label;
+      el.cropToggle.setAttribute('aria-label', label);
+      el.cropToggle.title = label;
+      if (el.cropLabel) {
+        el.cropLabel.textContent = label;
+      }
     }
     if (el.downloadLinks.length) {
       const hasDownload = Boolean(state.downloadUrl);
