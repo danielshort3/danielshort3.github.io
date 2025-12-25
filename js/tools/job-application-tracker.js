@@ -23,6 +23,12 @@
     cognitoStatus: $('[data-jobtrack="cognito-status"]'),
     form: $('[data-jobtrack="application-form"]'),
     formStatus: $('[data-jobtrack="form-status"]'),
+    companyInput: $('#jobtrack-company'),
+    titleInput: $('#jobtrack-title'),
+    dateInput: $('#jobtrack-date'),
+    statusInput: $('#jobtrack-status'),
+    notesInput: $('#jobtrack-notes'),
+    applicationSubmit: $('[data-jobtrack="application-submit"]'),
     recentList: $('[data-jobtrack="recent-list"]'),
     recentRefresh: $('[data-jobtrack="refresh-recent"]'),
     dashboard: $('[data-jobtrack="dashboard"]'),
@@ -53,7 +59,15 @@
     prospectStatus: $('[data-jobtrack="prospect-status"]'),
     prospectList: $('[data-jobtrack="prospect-list"]'),
     prospectRefresh: $('[data-jobtrack="refresh-prospects"]'),
-    prospectListStatus: $('[data-jobtrack="prospect-list-status"]')
+    prospectListStatus: $('[data-jobtrack="prospect-list-status"]'),
+    prospectCompanyInput: $('#jobtrack-prospect-company'),
+    prospectTitleInput: $('#jobtrack-prospect-title'),
+    prospectUrlInput: $('#jobtrack-prospect-url'),
+    prospectLocationInput: $('#jobtrack-prospect-location'),
+    prospectSourceInput: $('#jobtrack-prospect-source'),
+    prospectStatusInput: $('#jobtrack-prospect-status'),
+    prospectNotesInput: $('#jobtrack-prospect-notes'),
+    prospectSubmit: $('[data-jobtrack="prospect-submit"]')
   };
 
   const tabs = {
@@ -70,7 +84,15 @@
     auth: null,
     lineChart: null,
     statusChart: null,
-    range: null
+    range: null,
+    editingApplicationId: null,
+    editingApplication: null,
+    editingProspectId: null,
+    editingProspect: null,
+    recentItems: new Map(),
+    prospectItems: new Map(),
+    isResettingApplication: false,
+    isResettingProspect: false
   };
 
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -297,6 +319,11 @@
     el.textContent = message;
   };
 
+  const confirmAction = (message) => {
+    if (typeof window === 'undefined' || typeof window.confirm !== 'function') return true;
+    return window.confirm(message);
+  };
+
   const updateConfigStatus = () => {
     if (els.apiStatus) {
       els.apiStatus.textContent = config.apiBase ? 'Configured' : 'Not configured';
@@ -306,6 +333,71 @@
         ? 'Configured'
         : 'Not configured';
     }
+  };
+
+  const storeRecentItems = (items = []) => {
+    state.recentItems = new Map();
+    items.forEach((item) => {
+      if (item && item.applicationId) state.recentItems.set(item.applicationId, item);
+    });
+  };
+
+  const storeProspectItems = (items = []) => {
+    state.prospectItems = new Map();
+    items.forEach((item) => {
+      if (item && item.applicationId) state.prospectItems.set(item.applicationId, item);
+    });
+  };
+
+  const setApplicationEditMode = (item) => {
+    if (!item) return;
+    state.editingApplicationId = item.applicationId || null;
+    state.editingApplication = item;
+    if (els.companyInput) els.companyInput.value = item.company || '';
+    if (els.titleInput) els.titleInput.value = item.title || '';
+    if (els.dateInput) els.dateInput.value = item.appliedDate || '';
+    if (els.statusInput) els.statusInput.value = item.status || 'Applied';
+    if (els.notesInput) els.notesInput.value = item.notes || '';
+    clearAttachmentInputs();
+    if (els.applicationSubmit) els.applicationSubmit.textContent = 'Update application';
+    if (els.formStatus) {
+      const label = [item.title, item.company].filter(Boolean).join(' · ') || 'application';
+      setStatus(els.formStatus, `Editing ${label}. Save to update or clear to cancel.`, 'info');
+    }
+    activateTab('applications', true);
+  };
+
+  const clearApplicationEditMode = (message = 'Ready to log a new application.', tone = '') => {
+    state.editingApplicationId = null;
+    state.editingApplication = null;
+    if (els.applicationSubmit) els.applicationSubmit.textContent = 'Save application';
+    if (els.formStatus && message) setStatus(els.formStatus, message, tone);
+  };
+
+  const setProspectEditMode = (item) => {
+    if (!item) return;
+    state.editingProspectId = item.applicationId || null;
+    state.editingProspect = item;
+    if (els.prospectCompanyInput) els.prospectCompanyInput.value = item.company || '';
+    if (els.prospectTitleInput) els.prospectTitleInput.value = item.title || '';
+    if (els.prospectUrlInput) els.prospectUrlInput.value = item.jobUrl || '';
+    if (els.prospectLocationInput) els.prospectLocationInput.value = item.location || '';
+    if (els.prospectSourceInput) els.prospectSourceInput.value = item.source || '';
+    if (els.prospectStatusInput) els.prospectStatusInput.value = item.status || 'Active';
+    if (els.prospectNotesInput) els.prospectNotesInput.value = item.notes || '';
+    if (els.prospectSubmit) els.prospectSubmit.textContent = 'Update prospect';
+    if (els.prospectStatus) {
+      const label = [item.title, item.company].filter(Boolean).join(' · ') || 'prospect';
+      setStatus(els.prospectStatus, `Editing ${label}. Save to update or clear to cancel.`, 'info');
+    }
+    activateTab('prospects', true);
+  };
+
+  const clearProspectEditMode = (message = 'Ready to save prospects.', tone = '') => {
+    state.editingProspectId = null;
+    state.editingProspect = null;
+    if (els.prospectSubmit) els.prospectSubmit.textContent = 'Save prospect';
+    if (els.prospectStatus && message) setStatus(els.prospectStatus, message, tone);
   };
 
   const activateTab = (name, shouldFocus = false) => {
@@ -471,10 +563,13 @@
     if (els.importStatus) {
       setStatus(els.importStatus, authed ? 'Ready to import applications.' : 'Sign in to import applications.', authed ? '' : 'info');
     }
+    if (els.formStatus && !state.editingApplicationId) {
+      setStatus(els.formStatus, authed ? 'Ready to log a new application.' : 'Sign in to save new applications.', authed ? '' : 'info');
+    }
     if (els.recentStatus) {
       setStatus(els.recentStatus, authed ? 'Select an attachment to download.' : 'Sign in to download attachments.', authed ? '' : 'info');
     }
-    if (els.prospectStatus) {
+    if (els.prospectStatus && !state.editingProspectId) {
       setStatus(els.prospectStatus, authed ? 'Ready to save prospects.' : 'Sign in to save prospects.', authed ? '' : 'info');
     }
     if (els.prospectListStatus) {
@@ -852,6 +947,25 @@
         });
         li.appendChild(wrap);
       }
+      if (item.applicationId) {
+        const actions = document.createElement('div');
+        actions.className = 'jobtrack-recent-actions';
+        const editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.className = 'btn-ghost jobtrack-recent-action';
+        editBtn.dataset.jobtrackApplication = 'edit';
+        editBtn.dataset.id = item.applicationId;
+        editBtn.textContent = 'Edit';
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.className = 'btn-ghost jobtrack-recent-action';
+        deleteBtn.dataset.jobtrackApplication = 'delete';
+        deleteBtn.dataset.id = item.applicationId;
+        deleteBtn.textContent = 'Delete';
+        actions.appendChild(editBtn);
+        actions.appendChild(deleteBtn);
+        li.appendChild(actions);
+      }
       els.recentList.appendChild(li);
     });
   };
@@ -859,19 +973,57 @@
   const refreshRecent = async () => {
     if (!els.recentList) return;
     if (!config.apiBase) {
+      storeRecentItems([]);
       renderRecentList([]);
       return;
     }
     if (!authIsValid(state.auth)) {
+      storeRecentItems([]);
       renderRecentList([]);
       return;
     }
     try {
       const data = await requestJson('/api/applications?limit=5');
-      renderRecentList(data.items || []);
+      const items = data.items || [];
+      storeRecentItems(items);
+      renderRecentList(items);
     } catch (err) {
       console.error('Recent applications failed', err);
+      storeRecentItems([]);
       renderRecentList([]);
+    }
+  };
+
+  const deleteApplication = async (applicationId) => {
+    if (!applicationId) return;
+    if (!config.apiBase) {
+      setStatus(els.recentStatus, 'Set the API base URL to delete applications.', 'error');
+      return;
+    }
+    if (!authIsValid(state.auth)) {
+      setStatus(els.recentStatus, 'Sign in to delete applications.', 'error');
+      return;
+    }
+    const item = state.recentItems.get(applicationId);
+    const label = [item?.title, item?.company].filter(Boolean).join(' · ') || 'this application';
+    if (!confirmAction(`Delete ${label}? This cannot be undone.`)) return;
+    try {
+      setStatus(els.recentStatus, 'Deleting application...', 'info');
+      await requestJson(`/api/applications/${applicationId}`, { method: 'DELETE' });
+      if (state.editingApplicationId === applicationId) {
+        clearApplicationEditMode('Ready to log a new application.');
+        if (els.form) {
+          state.isResettingApplication = true;
+          els.form.reset();
+          state.isResettingApplication = false;
+          clearAttachmentInputs();
+        }
+      }
+      setStatus(els.recentStatus, 'Application deleted.', 'success');
+      await Promise.all([refreshDashboard(), refreshRecent()]);
+    } catch (err) {
+      console.error('Application delete failed', err);
+      setStatus(els.recentStatus, err?.message || 'Unable to delete application.', 'error');
     }
   };
 
@@ -922,18 +1074,34 @@
         li.appendChild(notes);
       }
 
-      const actions = document.createElement('div');
-      actions.className = 'jobtrack-prospect-actions';
-      const toggle = document.createElement('button');
-      toggle.type = 'button';
-      toggle.className = 'btn-ghost jobtrack-prospect-action';
-      toggle.dataset.jobtrackProspect = 'toggle';
-      toggle.dataset.id = item.applicationId || '';
-      const isInactive = (item.status || '').toString().toLowerCase() === 'inactive';
-      toggle.dataset.nextStatus = isInactive ? 'Active' : 'Inactive';
-      toggle.textContent = isInactive ? 'Mark active' : 'Mark inactive';
-      actions.appendChild(toggle);
-      li.appendChild(actions);
+      if (item.applicationId) {
+        const actions = document.createElement('div');
+        actions.className = 'jobtrack-prospect-actions';
+        const editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.className = 'btn-ghost jobtrack-prospect-action';
+        editBtn.dataset.jobtrackProspect = 'edit';
+        editBtn.dataset.id = item.applicationId;
+        editBtn.textContent = 'Edit';
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'btn-ghost jobtrack-prospect-action';
+        toggle.dataset.jobtrackProspect = 'toggle';
+        toggle.dataset.id = item.applicationId;
+        const isInactive = (item.status || '').toString().toLowerCase() === 'inactive';
+        toggle.dataset.nextStatus = isInactive ? 'Active' : 'Inactive';
+        toggle.textContent = isInactive ? 'Mark active' : 'Mark inactive';
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.className = 'btn-ghost jobtrack-prospect-action';
+        deleteBtn.dataset.jobtrackProspect = 'delete';
+        deleteBtn.dataset.id = item.applicationId;
+        deleteBtn.textContent = 'Delete';
+        actions.appendChild(editBtn);
+        actions.appendChild(toggle);
+        actions.appendChild(deleteBtn);
+        li.appendChild(actions);
+      }
 
       els.prospectList.appendChild(li);
     });
@@ -942,37 +1110,81 @@
   const refreshProspects = async () => {
     if (!els.prospectList) return;
     if (!config.apiBase) {
+      storeProspectItems([]);
       renderProspects([], 'Set the API base URL to load prospects.');
       return;
     }
     if (!authIsValid(state.auth)) {
+      storeProspectItems([]);
       renderProspects([], 'Sign in to load prospects.');
       return;
     }
     try {
       const data = await requestJson('/api/prospects?limit=8');
-      renderProspects(data.items || []);
+      const items = data.items || [];
+      storeProspectItems(items);
+      renderProspects(items);
     } catch (err) {
       console.error('Prospect load failed', err);
+      storeProspectItems([]);
       renderProspects([], 'Unable to load prospects.');
     }
   };
 
-  const submitProspect = async (payload) => {
-    if (!els.prospectStatus) return;
-    if (!authIsValid(state.auth)) {
-      setStatus(els.prospectStatus, 'Sign in to save prospects.', 'error');
+  const deleteProspect = async (prospectId) => {
+    if (!prospectId) return;
+    if (!config.apiBase) {
+      setStatus(els.prospectListStatus, 'Set the API base URL to delete prospects.', 'error');
       return;
     }
+    if (!authIsValid(state.auth)) {
+      setStatus(els.prospectListStatus, 'Sign in to delete prospects.', 'error');
+      return;
+    }
+    const item = state.prospectItems.get(prospectId);
+    const label = [item?.title, item?.company].filter(Boolean).join(' · ') || 'this prospect';
+    if (!confirmAction(`Delete ${label}? This cannot be undone.`)) return;
     try {
-      setStatus(els.prospectStatus, 'Saving prospect...', 'info');
-      await requestJson('/api/prospects', { method: 'POST', body: payload });
-      setStatus(els.prospectStatus, 'Saved. Refreshing list...', 'success');
+      setStatus(els.prospectListStatus, 'Deleting prospect...', 'info');
+      await requestJson(`/api/applications/${prospectId}`, { method: 'DELETE' });
+      if (state.editingProspectId === prospectId) {
+        clearProspectEditMode();
+        if (els.prospectForm) {
+          state.isResettingProspect = true;
+          els.prospectForm.reset();
+          state.isResettingProspect = false;
+        }
+      }
+      setStatus(els.prospectListStatus, 'Prospect deleted.', 'success');
+      await refreshProspects();
+    } catch (err) {
+      console.error('Prospect delete failed', err);
+      setStatus(els.prospectListStatus, err?.message || 'Unable to delete prospect.', 'error');
+    }
+  };
+
+  const submitProspect = async (payload) => {
+    if (!els.prospectStatus) return false;
+    if (!authIsValid(state.auth)) {
+      setStatus(els.prospectStatus, 'Sign in to save prospects.', 'error');
+      return false;
+    }
+    const editingId = state.editingProspectId;
+    try {
+      setStatus(els.prospectStatus, editingId ? 'Updating prospect...' : 'Saving prospect...', 'info');
+      if (editingId) {
+        await requestJson(`/api/prospects/${editingId}`, { method: 'PATCH', body: payload });
+      } else {
+        await requestJson('/api/prospects', { method: 'POST', body: payload });
+      }
+      clearProspectEditMode(editingId ? 'Prospect updated.' : 'Prospect saved.', 'success');
       await sleep(200);
       await refreshProspects();
+      return true;
     } catch (err) {
       console.error('Prospect save failed', err);
       setStatus(els.prospectStatus, err?.message || 'Unable to save prospect.', 'error');
+      return false;
     }
   };
 
@@ -994,7 +1206,7 @@
 
   const initProspects = () => {
     if (els.prospectForm) {
-      els.prospectForm.addEventListener('submit', (event) => {
+      els.prospectForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         const formData = new FormData(els.prospectForm);
         const company = (formData.get('company') || '').toString().trim();
@@ -1008,12 +1220,17 @@
           setStatus(els.prospectStatus, 'Company, role title, and job URL are required.', 'error');
           return;
         }
-        submitProspect({ company, title, jobUrl, location, source, status, notes });
-        els.prospectForm.reset();
-        setStatus(els.prospectStatus, 'Ready to save prospects.', '');
+        const payload = { company, title, jobUrl, location, source, status, notes };
+        const ok = await submitProspect(payload);
+        if (ok) {
+          state.isResettingProspect = true;
+          els.prospectForm.reset();
+          state.isResettingProspect = false;
+        }
       });
       els.prospectForm.addEventListener('reset', () => {
-        setStatus(els.prospectStatus, 'Ready to save prospects.', '');
+        if (state.isResettingProspect) return;
+        clearProspectEditMode();
       });
     }
 
@@ -1024,13 +1241,21 @@
     if (els.prospectList) {
       els.prospectList.addEventListener('click', (event) => {
         const target = event.target && event.target.closest
-          ? event.target.closest('[data-jobtrack-prospect="toggle"]')
+          ? event.target.closest('[data-jobtrack-prospect]')
           : null;
         if (!target) return;
         event.preventDefault();
+        const action = target.dataset.jobtrackProspect;
         const prospectId = (target.dataset.id || '').trim();
-        const nextStatus = (target.dataset.nextStatus || 'Inactive').trim();
-        updateProspectStatus(prospectId, nextStatus);
+        if (action === 'toggle') {
+          const nextStatus = (target.dataset.nextStatus || 'Inactive').trim();
+          updateProspectStatus(prospectId, nextStatus);
+        } else if (action === 'edit') {
+          const item = state.prospectItems.get(prospectId);
+          if (item) setProspectEditMode(item);
+        } else if (action === 'delete') {
+          deleteProspect(prospectId);
+        }
       });
     }
   };
@@ -1061,24 +1286,55 @@
     });
   };
 
+  const initApplicationActions = () => {
+    if (!els.recentList) return;
+    els.recentList.addEventListener('click', (event) => {
+      const target = event.target && event.target.closest
+        ? event.target.closest('[data-jobtrack-application]')
+        : null;
+      if (!target) return;
+      event.preventDefault();
+      const action = target.dataset.jobtrackApplication;
+      const applicationId = (target.dataset.id || '').trim();
+      if (!applicationId) return;
+      if (action === 'edit') {
+        const item = state.recentItems.get(applicationId);
+        if (item) setApplicationEditMode(item);
+      } else if (action === 'delete') {
+        deleteApplication(applicationId);
+      }
+    });
+  };
+
   const submitApplication = async (payload, attachments = []) => {
-    if (!els.formStatus) return;
+    if (!els.formStatus) return false;
     if (!authIsValid(state.auth)) {
       setStatus(els.formStatus, 'Sign in to save new applications.', 'error');
-      return;
+      return false;
     }
+    const editingId = state.editingApplicationId;
+    const editingItem = state.editingApplication;
     try {
-      setStatus(els.formStatus, 'Saving application...', 'info');
-      const created = await requestJson('/api/applications', { method: 'POST', body: payload });
+      setStatus(els.formStatus, editingId ? 'Updating application...' : 'Saving application...', 'info');
+      let applicationId = editingId;
+      let currentAttachments = Array.isArray(editingItem?.attachments) ? editingItem.attachments : [];
+      if (editingId) {
+        await requestJson(`/api/applications/${editingId}`, { method: 'PATCH', body: payload });
+      } else {
+        const created = await requestJson('/api/applications', { method: 'POST', body: payload });
+        applicationId = created?.applicationId;
+        currentAttachments = Array.isArray(created?.attachments) ? created.attachments : [];
+      }
       let attachmentError = null;
-      if (attachments.length && created?.applicationId) {
+      if (attachments.length && applicationId) {
         try {
           const label = attachments.length === 1 ? 'attachment' : 'attachments';
           setStatus(els.formStatus, `Uploading ${attachments.length} ${label}...`, 'info');
-          const uploaded = await uploadAttachments(created.applicationId, attachments);
-          await requestJson(`/api/applications/${created.applicationId}`, {
+          const uploaded = await uploadAttachments(applicationId, attachments);
+          const merged = [...currentAttachments, ...uploaded].slice(-12);
+          await requestJson(`/api/applications/${applicationId}`, {
             method: 'PATCH',
-            body: { attachments: uploaded }
+            body: { attachments: merged }
           });
         } catch (err) {
           attachmentError = err;
@@ -1086,21 +1342,29 @@
       }
       if (attachmentError) {
         console.error('Attachment upload failed', attachmentError);
-        setStatus(els.formStatus, 'Saved application, but attachments failed to upload.', 'error');
+        clearApplicationEditMode(
+          editingId ? 'Updated application, but attachments failed to upload.' : 'Saved application, but attachments failed to upload.',
+          'error'
+        );
       } else {
-        setStatus(els.formStatus, 'Saved. Updating dashboards...', 'success');
+        clearApplicationEditMode(
+          editingId ? 'Application updated. Refreshing dashboards...' : 'Application saved. Updating dashboards...',
+          'success'
+        );
       }
       await sleep(200);
       await Promise.all([refreshDashboard(), refreshRecent()]);
+      return true;
     } catch (err) {
       console.error('Application save failed', err);
       setStatus(els.formStatus, err?.message || 'Unable to save application.', 'error');
+      return false;
     }
   };
 
   const initForm = () => {
     if (!els.form) return;
-    els.form.addEventListener('submit', (event) => {
+    els.form.addEventListener('submit', async (event) => {
       event.preventDefault();
       const formData = new FormData(els.form);
       const company = (formData.get('company') || '').toString().trim();
@@ -1113,13 +1377,24 @@
         return;
       }
       const attachments = collectAttachments();
-      submitApplication({ company, title, appliedDate, status, notes }, attachments);
-      els.form.reset();
-      clearAttachmentInputs();
+      const editing = state.editingApplication;
+      const payload = { company, title, appliedDate, notes };
+      const existingStatus = editing?.status ? editing.status.toString().trim().toLowerCase() : '';
+      if (!editing || !existingStatus || status.toLowerCase() !== existingStatus) {
+        payload.status = status;
+      }
+      const ok = await submitApplication(payload, attachments);
+      if (ok) {
+        state.isResettingApplication = true;
+        els.form.reset();
+        state.isResettingApplication = false;
+        clearAttachmentInputs();
+      }
     });
     els.form.addEventListener('reset', () => {
       clearAttachmentInputs();
-      setStatus(els.formStatus, 'Ready to log a new application.', '');
+      if (state.isResettingApplication) return;
+      clearApplicationEditMode();
     });
   };
 
@@ -1264,6 +1539,8 @@
     if (els.signOut) {
       els.signOut.addEventListener('click', () => {
         clearAuth();
+        clearApplicationEditMode('Sign in to save new applications.', 'info');
+        clearProspectEditMode('Sign in to save prospects.', 'info');
         updateAuthUI();
         refreshDashboard();
         refreshRecent();
@@ -1278,6 +1555,7 @@
     initForm();
     initImport();
     initAttachmentDownloads();
+    initApplicationActions();
     initProspects();
     if (els.recentRefresh) {
       els.recentRefresh.addEventListener('click', () => refreshRecent());
