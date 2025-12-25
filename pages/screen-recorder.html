@@ -95,11 +95,17 @@
             </div>
             <div class="screenrec-panel-body" id="screenrec-controls-body" data-screenrec="controls-body" hidden>
               <form class="screenrec-form" novalidate>
-                <div class="screenrec-field screenrec-field-wide">
-                  <span class="screenrec-label">Download format</span>
-                  <div class="screenrec-radio-group" data-screenrec="format-options"></div>
-                  <p class="screenrec-help" data-screenrec="format-help">Detecting supported formats...</p>
-                </div>
+              <div class="screenrec-field screenrec-field-wide">
+                <span class="screenrec-label">Download format</span>
+                <div class="screenrec-radio-group" data-screenrec="format-options"></div>
+                <p class="screenrec-help" data-screenrec="format-help">Detecting supported formats...</p>
+              </div>
+
+              <div class="screenrec-field screenrec-field-wide">
+                <span class="screenrec-label">Also export as</span>
+                <div class="screenrec-chip-group" data-screenrec="extra-format-options"></div>
+                <p class="screenrec-help" data-screenrec="extra-format-help">Select extra formats to generate alongside your main recording.</p>
+              </div>
 
                 <div class="screenrec-field">
                   <label class="screenrec-label" for="screenrec-fps">Frame rate</label>
@@ -183,9 +189,7 @@
               <button type="button" class="btn-ghost" data-screenrec="stop-record" disabled>Stop recording</button>
             </div>
             <div class="screenrec-download-panel" data-screenrec="download-panel" hidden>
-              <div class="screenrec-download-actions">
-                <a class="btn-primary screenrec-download" data-screenrec="download" href="#" download hidden>Download</a>
-              </div>
+              <div class="screenrec-download-actions screenrec-download-list" data-screenrec="download-list"></div>
               <p class="screenrec-download-note" data-screenrec="download-note" hidden></p>
             </div>
           </div>
