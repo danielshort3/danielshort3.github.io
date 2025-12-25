@@ -1,0 +1,12 @@
+{
+  "name": "job-application-tracker",
+  "version": "1.0.0",
+  "description": "Lambda handler for job application tracker analytics.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"No tests configured\" && exit 0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

@@ -92,7 +92,7 @@ try {
       checkFileContains(f, 'class="skip-link"');
       checkFileContains(f, '<main id="main">');
     });
-    ['pages/tools.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/screen-recorder.html'].forEach(f => {
+    ['pages/tools.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/screen-recorder.html','pages/job-application-tracker.html'].forEach(f => {
       checkFileContains(f, 'js/common/common.js');
       checkFileContains(f, 'class="skip-link"');
       checkFileContains(f, '<main id="main">');
@@ -283,7 +283,7 @@ try {
 
     const projectIds = evalScript('js/portfolio/projects-data.js').window.PROJECTS.map(p => p.id);
     const projectPages = projectIds.map(id => `pages/portfolio/${id}.html`);
-    const toolPages = ['pages/tools.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html'];
+    const toolPages = ['pages/tools.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html'];
     ['index.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','pages/privacy.html','404.html', ...toolPages, ...projectPages].forEach(f => {
       checkFileContains(f, '<header id="combined-header-nav">');
       checkFileContains(f, '<main id="main"');
@@ -457,7 +457,7 @@ try {
 
   section('Base hrefs and redirect sanity', () => {
     ['pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html','pages/resume.html',
-     'pages/tools.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html',
+     'pages/tools.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html',
      'demos/chatbot-demo.html','demos/shape-demo.html','demos/sentence-demo.html']
       .forEach(f => checkFileContains(f, '<base href="/">'));
 
