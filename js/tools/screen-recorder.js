@@ -1724,6 +1724,7 @@
     bufferVideo.muted = true;
     bufferVideo.playsInline = true;
     bufferVideo.srcObject = state.stream;
+    bufferVideo.play().catch(() => {});
 
     const drawFrame = () => {
       if (!state.captureActive || !state.stream) {
@@ -1801,7 +1802,18 @@
     if (!('captureStream' in HTMLCanvasElement.prototype)) return null;
     const track = state.stream.getVideoTracks()[0];
     const settings = track && track.getSettings ? track.getSettings() : {};
-    const source = sourceVideo || el.video;
+    let source = sourceVideo || el.video;
+    let ownsSource = false;
+    if (!source) {
+      source = document.createElement('video');
+      source.muted = true;
+      source.playsInline = true;
+      source.srcObject = state.stream;
+      source.play().catch(() => {});
+      ownsSource = true;
+    } else if (source.play) {
+      source.play().catch(() => {});
+    }
     if (!source) return null;
     const videoWidth = source.videoWidth || settings.width;
     const videoHeight = source.videoHeight || settings.height;
@@ -1829,6 +1841,9 @@
       if (state.scaleAnimationId) {
         cancelAnimationFrame(state.scaleAnimationId);
         state.scaleAnimationId = null;
+      }
+      if (ownsSource && source.srcObject) {
+        source.srcObject = null;
       }
     };
     return { stream, cleanup };
