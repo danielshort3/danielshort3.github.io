@@ -1,0 +1,288 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Job application tracker API (Cognito + HTTP API + Lambda + DynamoDB + S3).
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: job-application-tracker
+  AllowedOrigins:
+    Type: CommaDelimitedList
+    Default: "https://danielshort.me,https://www.danielshort.me"
+  LambdaCodeBucket:
+    Type: String
+    Description: S3 bucket containing the Lambda deployment zip.
+  LambdaCodeKey:
+    Type: String
+    Description: S3 key for the Lambda deployment zip.
+  CognitoDomainPrefix:
+    Type: String
+    Default: job-tracker-auth
+  CallbackUrls:
+    Type: CommaDelimitedList
+    Default: "https://danielshort.me/tools/job-application-tracker"
+  LogoutUrls:
+    Type: CommaDelimitedList
+    Default: "https://danielshort.me/tools/job-application-tracker"
+
+Resources:
+  ApplicationsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${ProjectName}-applications'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: applicationId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: applicationId
+          KeyType: RANGE
+
+  AttachmentsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${ProjectName}-attachments-${AWS::AccountId}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub '${ProjectName}-users'
+      UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub '${ProjectName}-client'
+      UserPoolId: !Ref UserPool
+      GenerateSecret: false
+      SupportedIdentityProviders:
+        - COGNITO
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows:
+        - code
+      AllowedOAuthScopes:
+        - openid
+        - email
+        - profile
+      CallbackURLs: !Ref CallbackUrls
+      LogoutURLs: !Ref LogoutUrls
+
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: !Ref CognitoDomainPrefix
+      UserPoolId: !Ref UserPool
+
+  TrackerFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: JobTrackerDataAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:GetItem
+                  - dynamodb:Query
+                Resource: !GetAtt ApplicationsTable.Arn
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                Resource: !Sub '${AttachmentsBucket.Arn}/*'
+
+  TrackerFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-api'
+      Runtime: nodejs18.x
+      Handler: index.handler
+      Role: !GetAtt TrackerFunctionRole.Arn
+      Code:
+        S3Bucket: !Ref LambdaCodeBucket
+        S3Key: !Ref LambdaCodeKey
+      Timeout: 20
+      Environment:
+        Variables:
+          APPLICATIONS_TABLE: !Ref ApplicationsTable
+          ATTACHMENTS_BUCKET: !Ref AttachmentsBucket
+          ALLOWED_ORIGINS: !Join [",", !Ref AllowedOrigins]
+          PRESIGN_TTL_SECONDS: "900"
+
+  HttpApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: !Sub '${ProjectName}-api'
+      ProtocolType: HTTP
+      CorsConfiguration:
+        AllowOrigins: !Ref AllowedOrigins
+        AllowMethods:
+          - GET
+          - POST
+          - PATCH
+          - DELETE
+          - OPTIONS
+        AllowHeaders:
+          - Content-Type
+          - Authorization
+
+  HttpApiStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref HttpApi
+      StageName: prod
+      AutoDeploy: true
+
+  HttpApiIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref HttpApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TrackerFunction.Arn}/invocations'
+      PayloadFormatVersion: '2.0'
+
+  HttpApiAuthorizer:
+    Type: AWS::ApiGatewayV2::Authorizer
+    Properties:
+      ApiId: !Ref HttpApi
+      Name: !Sub '${ProjectName}-jwt'
+      AuthorizerType: JWT
+      IdentitySource:
+        - '$request.header.Authorization'
+      JwtConfiguration:
+        Audience:
+          - !Ref UserPoolClient
+        Issuer: !Sub 'https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}'
+
+  AnalyticsSummaryRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'GET /api/analytics/summary'
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiAuthorizer
+      Target: !Sub 'integrations/${HttpApiIntegration}'
+
+  AnalyticsTimeRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'GET /api/analytics/applications-over-time'
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiAuthorizer
+      Target: !Sub 'integrations/${HttpApiIntegration}'
+
+  AnalyticsStatusRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'GET /api/analytics/status-breakdown'
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiAuthorizer
+      Target: !Sub 'integrations/${HttpApiIntegration}'
+
+  AnalyticsCalendarRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'GET /api/analytics/calendar'
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiAuthorizer
+      Target: !Sub 'integrations/${HttpApiIntegration}'
+
+  ApplicationsListRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'GET /api/applications'
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiAuthorizer
+      Target: !Sub 'integrations/${HttpApiIntegration}'
+
+  ApplicationsCreateRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'POST /api/applications'
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiAuthorizer
+      Target: !Sub 'integrations/${HttpApiIntegration}'
+
+  ApplicationsUpdateRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'PATCH /api/applications/{id}'
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiAuthorizer
+      Target: !Sub 'integrations/${HttpApiIntegration}'
+
+  ApplicationsDeleteRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'DELETE /api/applications/{id}'
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiAuthorizer
+      Target: !Sub 'integrations/${HttpApiIntegration}'
+
+  AttachmentsPresignRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'POST /api/attachments/presign'
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiAuthorizer
+      Target: !Sub 'integrations/${HttpApiIntegration}'
+
+  HttpApiPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref TrackerFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${HttpApi}/*/*'
+
+Outputs:
+  ApiEndpoint:
+    Description: HTTP API base URL.
+    Value: !Sub 'https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/prod'
+  UserPoolId:
+    Description: Cognito user pool ID.
+    Value: !Ref UserPool
+  UserPoolClientId:
+    Description: Cognito user pool app client ID.
+    Value: !Ref UserPoolClient
+  UserPoolDomain:
+    Description: Cognito hosted UI domain.
+    Value: !Sub '${CognitoDomainPrefix}.auth.${AWS::Region}.amazoncognito.com'
+  ApplicationsTableName:
+    Description: DynamoDB applications table.
+    Value: !Ref ApplicationsTable
+  AttachmentsBucketName:
+    Description: S3 attachments bucket name.
+    Value: !Ref AttachmentsBucket

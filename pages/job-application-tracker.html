@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <base href="/">
+  <title>Job Application Tracker | Daniel Short</title>
+  <link rel="canonical" href="https://danielshort.me/tools/job-application-tracker">
+  <meta name="description" content="Track your job applications with private dashboards, KPI cards, and interview momentum charts.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta property="og:title" content="Job Application Tracker | Daniel Short">
+  <meta property="og:site_name" content="Daniel Short - Data Science &amp; Analytics">
+  <meta property="og:description" content="Log applications, monitor status changes, and review interview momentum in a private, in-browser tracker.">
+  <meta property="og:url" content="https://danielshort.me/tools/job-application-tracker">
+  <meta property="og:image" content="https://danielshort.me/img/hero/head.jpg">
+  <meta property="og:image:alt" content="Portrait photo of Daniel Short">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@danielshort3">
+  <meta name="theme-color" content="#0D1117">
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
+  <script>
+    try {
+      if (document.documentElement.classList) {
+        document.documentElement.classList.remove("no-js");
+      } else {
+        document.documentElement.className = (document.documentElement.className || "").replace(/\bno-js\b/, "").trim();
+      }
+    } catch (_) {}
+  </script>
+</head>
+<body data-page="job-application-tracker" class="jobtrack-page" data-api-base="https://fhp2is6v8h.execute-api.us-east-2.amazonaws.com/prod" data-cognito-domain="job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com" data-cognito-client-id="78oo663obb0t28u63u9bqn00o9" data-cognito-redirect="https://danielshort.me/tools/job-application-tracker" data-cognito-scopes="openid email profile">
+  <a href="#main" class="skip-link">Skip to main content</a>
+  <header id="combined-header-nav"></header>
+
+  <section class="jobtrack-hero">
+    <div class="wrapper">
+      <p class="hero-eyebrow">Labs</p>
+      <h1>Job Application Tracker</h1>
+      <p class="jobtrack-lead">Track every application and spot momentum quickly with in-page dashboards, KPI cards, and a calendar heatmap. Everything is built to stay private and scoped to your signed-in account.</p>
+      <div class="jobtrack-steps">
+        <div class="jobtrack-step">
+          <span class="jobtrack-step-number">1</span>
+          <div>
+            <h3>Log applications</h3>
+            <p>Capture role, company, status, and applied date with quick notes in one place.</p>
+          </div>
+        </div>
+        <div class="jobtrack-step">
+          <span class="jobtrack-step-number">2</span>
+          <div>
+            <h3>Monitor progress</h3>
+            <p>See totals, interview counts, and offers at a glance across your timeline.</p>
+          </div>
+        </div>
+        <div class="jobtrack-step">
+          <span class="jobtrack-step-number">3</span>
+          <div>
+            <h3>Review activity</h3>
+            <p>Use the charts and calendar to spot patterns and follow-up windows.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main id="main">
+    <section class="surface-band jobtrack-section">
+      <div class="wrapper">
+        <article class="jobtrack-card jobtrack-auth-card">
+          <div class="jobtrack-auth-head">
+            <div class="jobtrack-auth-title">
+              <p class="jobtrack-kicker">Secure access</p>
+              <h2>Connect your tracker</h2>
+              <p class="jobtrack-subtitle">Sign in with your Cognito account to load your private dashboards and application history.</p>
+            </div>
+            <div class="jobtrack-auth-actions">
+              <button type="button" class="btn-primary" data-jobtrack="sign-in">Sign in</button>
+              <button type="button" class="btn-secondary" data-jobtrack="sign-out" hidden>Sign out</button>
+            </div>
+          </div>
+          <div class="jobtrack-auth-status" data-jobtrack="auth-status">Not signed in.</div>
+          <div class="jobtrack-auth-meta">
+            <div>
+              <span class="jobtrack-meta-label">API</span>
+              <span class="jobtrack-meta-value" data-jobtrack="api-status">Not configured</span>
+            </div>
+            <div>
+              <span class="jobtrack-meta-label">User pool</span>
+              <span class="jobtrack-meta-value" data-jobtrack="cognito-status">Not configured</span>
+            </div>
+          </div>
+          <p class="jobtrack-note">Update the API and Cognito settings in this page before sharing. Tokens are stored locally in your browser.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="surface-band jobtrack-section">
+      <div class="wrapper">
+        <div class="jobtrack-entry-grid">
+          <article class="jobtrack-card jobtrack-entry-card">
+            <div class="jobtrack-panel-head">
+              <div>
+                <p class="jobtrack-kicker">Log entry</p>
+                <h2>Add an application</h2>
+                <p class="jobtrack-subtitle">Capture the essentials, then let the dashboards update automatically.</p>
+              </div>
+            </div>
+            <form class="jobtrack-form" data-jobtrack="application-form" novalidate>
+              <div class="jobtrack-field">
+                <label class="jobtrack-label" for="jobtrack-company">Company</label>
+                <input id="jobtrack-company" class="jobtrack-input" name="company" type="text" placeholder="Acme Corp" required>
+              </div>
+              <div class="jobtrack-field">
+                <label class="jobtrack-label" for="jobtrack-title">Role title</label>
+                <input id="jobtrack-title" class="jobtrack-input" name="title" type="text" placeholder="Data Analyst" required>
+              </div>
+              <div class="jobtrack-field">
+                <label class="jobtrack-label" for="jobtrack-date">Applied date</label>
+                <input id="jobtrack-date" class="jobtrack-input" name="appliedDate" type="date" required>
+              </div>
+              <div class="jobtrack-field">
+                <label class="jobtrack-label" for="jobtrack-status">Status</label>
+                <select id="jobtrack-status" class="jobtrack-select" name="status">
+                  <option value="Applied">Applied</option>
+                  <option value="Screening">Screening</option>
+                  <option value="Interview">Interview</option>
+                  <option value="Offer">Offer</option>
+                  <option value="Rejected">Rejected</option>
+                  <option value="Withdrawn">Withdrawn</option>
+                </select>
+              </div>
+              <div class="jobtrack-field jobtrack-field-wide">
+                <label class="jobtrack-label" for="jobtrack-notes">Notes</label>
+                <textarea id="jobtrack-notes" class="jobtrack-textarea" name="notes" rows="4" placeholder="Next step, hiring manager, or follow-up reminders."></textarea>
+              </div>
+              <div class="jobtrack-form-actions">
+                <button type="submit" class="btn-primary">Save application</button>
+                <button type="reset" class="btn-ghost">Clear</button>
+              </div>
+              <p class="jobtrack-form-status" data-jobtrack="form-status" role="status" aria-live="polite">Sign in to save new applications.</p>
+            </form>
+          </article>
+
+          <article class="jobtrack-card jobtrack-recent-card" aria-live="polite">
+            <div class="jobtrack-panel-head">
+              <div>
+                <p class="jobtrack-kicker">Recent activity</p>
+                <h2>Latest applications</h2>
+                <p class="jobtrack-subtitle">Your most recent entries, sorted by date added.</p>
+              </div>
+              <div class="jobtrack-panel-actions">
+                <button type="button" class="btn-ghost" data-jobtrack="refresh-recent">Refresh</button>
+              </div>
+            </div>
+            <ul class="jobtrack-recent-list" data-jobtrack="recent-list">
+              <li class="jobtrack-recent-empty">Sign in to load your recent applications.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="surface-band jobtrack-section">
+      <div class="wrapper">
+        <article class="jobtrack-card jobtrack-dashboard-card" data-jobtrack="dashboard" aria-busy="false">
+          <div class="jobtrack-dashboard-head">
+            <div>
+              <p class="jobtrack-kicker">Dashboard</p>
+              <h2>Application pulse</h2>
+              <p class="jobtrack-subtitle">Filter by date range to see momentum, status mix, and daily activity.</p>
+            </div>
+            <form class="jobtrack-filter" data-jobtrack="filter" novalidate>
+              <div class="jobtrack-field">
+                <label class="jobtrack-label" for="jobtrack-filter-start">Start date</label>
+                <input id="jobtrack-filter-start" class="jobtrack-input" type="date" data-jobtrack="filter-start">
+              </div>
+              <div class="jobtrack-field">
+                <label class="jobtrack-label" for="jobtrack-filter-end">End date</label>
+                <input id="jobtrack-filter-end" class="jobtrack-input" type="date" data-jobtrack="filter-end">
+              </div>
+              <div class="jobtrack-filter-actions">
+                <button type="button" class="btn-ghost" data-jobtrack="filter-reset">Last 90 days</button>
+                <button type="button" class="btn-secondary" data-jobtrack="filter-refresh">Refresh</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="jobtrack-kpi-grid" role="list">
+            <div class="jobtrack-kpi" role="listitem">
+              <p class="jobtrack-kpi-label">Total applications</p>
+              <p class="jobtrack-kpi-value" data-jobtrack="kpi-total">--</p>
+            </div>
+            <div class="jobtrack-kpi" role="listitem">
+              <p class="jobtrack-kpi-label">Interviews</p>
+              <p class="jobtrack-kpi-value" data-jobtrack="kpi-interviews">--</p>
+            </div>
+            <div class="jobtrack-kpi" role="listitem">
+              <p class="jobtrack-kpi-label">Offers</p>
+              <p class="jobtrack-kpi-value" data-jobtrack="kpi-offers">--</p>
+            </div>
+            <div class="jobtrack-kpi" role="listitem">
+              <p class="jobtrack-kpi-label">Rejections</p>
+              <p class="jobtrack-kpi-value" data-jobtrack="kpi-rejections">--</p>
+            </div>
+          </div>
+
+          <div class="jobtrack-panels">
+            <div class="jobtrack-panel">
+              <div class="jobtrack-panel-head">
+                <div>
+                  <h3>Applications over time</h3>
+                  <p class="jobtrack-panel-subtitle" data-jobtrack="line-range">Last 90 days</p>
+                </div>
+                <span class="jobtrack-panel-meta" data-jobtrack="line-total">0 apps</span>
+              </div>
+              <div class="jobtrack-chart">
+                <canvas id="jobtrack-line-chart" aria-label="Applications over time" role="img"></canvas>
+                <div class="jobtrack-chart-overlay" data-jobtrack="line-overlay">Loading chart...</div>
+              </div>
+            </div>
+
+            <div class="jobtrack-panel">
+              <div class="jobtrack-panel-head">
+                <div>
+                  <h3>Status breakdown</h3>
+                  <p class="jobtrack-panel-subtitle">Current pipeline mix</p>
+                </div>
+                <span class="jobtrack-panel-meta" data-jobtrack="status-total">0 statuses</span>
+              </div>
+              <div class="jobtrack-chart">
+                <canvas id="jobtrack-status-chart" aria-label="Status breakdown" role="img"></canvas>
+                <div class="jobtrack-chart-overlay" data-jobtrack="status-overlay">Loading chart...</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="jobtrack-panel jobtrack-calendar-panel">
+            <div class="jobtrack-panel-head">
+              <div>
+                <h3>Calendar heatmap</h3>
+                <p class="jobtrack-panel-subtitle" data-jobtrack="calendar-range">Daily activity</p>
+              </div>
+              <span class="jobtrack-panel-meta">Applications per day</span>
+            </div>
+            <div class="jobtrack-calendar" data-jobtrack="calendar-grid" role="grid" aria-label="Daily application activity"></div>
+            <div class="jobtrack-calendar-legend">
+              <span>Less</span>
+              <div class="jobtrack-legend-swatches" aria-hidden="true">
+                <span data-intensity="0"></span>
+                <span data-intensity="1"></span>
+                <span data-intensity="2"></span>
+                <span data-intensity="3"></span>
+                <span data-intensity="4"></span>
+              </div>
+              <span>More</span>
+            </div>
+          </div>
+
+          <p class="jobtrack-dashboard-status" data-jobtrack="dashboard-status" role="status" aria-live="polite">Sign in to load your dashboards.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <nav class="privacy-links" aria-label="Privacy shortcuts">
+      <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
+      <a href="#" class="pcz-link" onclick="window.Privacy && window.Privacy.open('doNotSell'); return false;">Do Not Sell/Share My Personal Information</a>
+    </nav>
+  </footer>
+
+  <script defer src="js/vendor/chartjs/chart.umd.min.js"></script>
+  <script defer src="js/tools/job-application-tracker.js"></script>
+  <script defer src="js/common/common.js"></script>
+  <script defer src="js/navigation/navigation.js"></script>
+  <script defer src="js/animations/animations.js"></script>
+  <script src="js/privacy/config.js"></script>
+  <script defer src="js/privacy/consent_manager.js"></script>
+</body>
+</html>
