@@ -612,6 +612,18 @@
     </section>
   </main>
 
+  <div id="jobtrack-entry-modal" class="modal" data-jobtrack="detail-modal">
+    <div class="modal-content jobtrack-entry-modal" role="dialog" aria-modal="true" aria-labelledby="jobtrack-entry-modal-title" tabindex="-1">
+      <button type="button" class="modal-close" data-jobtrack="detail-modal-close" aria-label="Close dialog">&times;</button>
+      <div class="modal-title-strip">
+        <h3 class="modal-title" id="jobtrack-entry-modal-title" data-jobtrack="detail-modal-title">Entry details</h3>
+        <p class="jobtrack-modal-subtitle" data-jobtrack="detail-modal-subtitle"></p>
+      </div>
+      <div class="modal-body jobtrack-modal-body" data-jobtrack="detail-modal-body"></div>
+      <p class="jobtrack-form-status jobtrack-modal-status" data-jobtrack="detail-modal-status" role="status" aria-live="polite"></p>
+    </div>
+  </div>
+
   <footer>
     <nav class="privacy-links" aria-label="Privacy shortcuts">
       <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>

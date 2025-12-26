@@ -158,6 +158,8 @@
     box-shadow:0 20px 42px rgba(0,0,0,.32);
     display:grid;
     gap:18px;
+    overflow-wrap:anywhere;
+    word-break:break-word;
   }
 
   .jobtrack-kicker{
@@ -457,6 +459,9 @@
     font-size:.92rem;
     color:var(--text-muted);
     border-right:1px solid color-mix(in srgb,var(--jobtrack-accent) 12%, transparent);
+    min-width:0;
+    overflow-wrap:anywhere;
+    word-break:break-word;
   }
   .jobtrack-table-cell:last-child{
     border-right:0;
@@ -513,11 +518,13 @@
   .jobtrack-table-actions{
     display:grid;
     gap:8px;
+    min-width:0;
   }
   .jobtrack-table-actions-row{
     display:flex;
     gap:6px;
     flex-wrap:wrap;
+    min-width:0;
   }
   .jobtrack-selected-count{
     font-size:.85rem;
@@ -588,6 +595,8 @@
     background:color-mix(in srgb,var(--surface) 92%, #02060c 8%);
     display:grid;
     gap:6px;
+    overflow-wrap:anywhere;
+    word-break:break-word;
   }
   .jobtrack-recent-title{
     font-weight:600;
@@ -611,6 +620,8 @@
     background:color-mix(in srgb,var(--jobtrack-surface) 92%, #02060c 8%);
     display:grid;
     gap:8px;
+    overflow-wrap:anywhere;
+    word-break:break-word;
   }
   .jobtrack-prospect-title{
     font-weight:600;
@@ -720,6 +731,8 @@
     background:color-mix(in srgb,var(--surface) 92%, #01060c 8%);
     display:grid;
     gap:8px;
+    overflow-wrap:anywhere;
+    word-break:break-word;
   }
   .jobtrack-kpi-label{
     margin:0;
@@ -753,6 +766,8 @@
     border-radius:18px;
     border:1px solid color-mix(in srgb,var(--jobtrack-accent) 18%, transparent);
     background:color-mix(in srgb,var(--surface) 94%, #02060c 6%);
+    overflow-wrap:anywhere;
+    word-break:break-word;
   }
   .jobtrack-panel h3{
     margin:0;
@@ -998,6 +1013,14 @@
   .jobtrack-detail-body{
     font-size:.95rem;
     color:var(--text-muted);
+    display:grid;
+    gap:12px;
+    max-height:clamp(220px, 34vh, 360px);
+    overflow-y:auto;
+    overflow-x:hidden;
+    padding-right:4px;
+    overflow-wrap:anywhere;
+    word-break:break-word;
   }
   .jobtrack-detail-list{
     list-style:none;
@@ -1006,6 +1029,174 @@
     display:grid;
     gap:6px;
     color:var(--text-light);
+    overflow-wrap:anywhere;
+    word-break:break-word;
+  }
+  .jobtrack-detail-entries{
+    display:grid;
+    gap:8px;
+  }
+  .jobtrack-detail-entries-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:6px;
+    font-size:.72rem;
+    text-transform:uppercase;
+    letter-spacing:.16em;
+    color:var(--text-muted);
+  }
+  .jobtrack-detail-entry-list{
+    list-style:none;
+    padding:0;
+    margin:0;
+    display:grid;
+    gap:8px;
+  }
+  .jobtrack-detail-entry{
+    border:1px solid color-mix(in srgb,var(--jobtrack-accent) 16%, transparent);
+    border-radius:12px;
+    padding:10px 12px;
+    background:color-mix(in srgb,var(--jobtrack-surface) 92%, #050b12 8%);
+    color:var(--text-light);
+    text-align:left;
+    width:100%;
+    display:grid;
+    gap:4px;
+    font-family:inherit;
+    overflow-wrap:anywhere;
+    word-break:break-word;
+    cursor:pointer;
+    transition:border-color .2s ease, transform .2s ease;
+  }
+  .jobtrack-detail-entry:hover{
+    border-color:color-mix(in srgb,var(--jobtrack-accent) 45%, transparent);
+    transform:translateY(-1px);
+  }
+  .jobtrack-detail-entry[disabled]{
+    opacity:.6;
+    cursor:not-allowed;
+    transform:none;
+  }
+  .jobtrack-detail-entry:focus-visible{
+    outline:2px solid color-mix(in srgb,var(--jobtrack-accent) 70%, #ffffff 30%);
+    outline-offset:2px;
+  }
+  .jobtrack-detail-entry-title{
+    font-weight:600;
+    font-size:.95rem;
+  }
+  .jobtrack-detail-entry-meta{
+    font-size:.85rem;
+    color:var(--text-muted);
+  }
+  .jobtrack-entry-modal .modal-title-strip{
+    padding-bottom:18px;
+  }
+  .jobtrack-modal-subtitle{
+    margin:8px 0 0;
+    color:var(--text-muted);
+    font-size:.95rem;
+  }
+  .jobtrack-modal-body{
+    display:grid;
+    gap:18px;
+    padding:20px 32px 24px;
+  }
+  .jobtrack-modal-status{
+    padding:0 32px 24px;
+  }
+  .jobtrack-modal-meta{
+    display:grid;
+    gap:10px;
+  }
+  .jobtrack-modal-meta-row{
+    display:grid;
+    grid-template-columns:minmax(120px, 160px) minmax(0, 1fr);
+    gap:10px;
+    align-items:start;
+  }
+  .jobtrack-modal-meta-label{
+    font-size:.78rem;
+    text-transform:uppercase;
+    letter-spacing:.14em;
+    color:var(--text-muted);
+  }
+  .jobtrack-modal-meta-value{
+    color:var(--text-light);
+    font-size:.95rem;
+    min-width:0;
+    overflow-wrap:anywhere;
+    word-break:break-word;
+  }
+  .jobtrack-modal-notes{
+    margin:0;
+    color:var(--text-light);
+    font-size:.95rem;
+    line-height:1.6;
+    white-space:pre-line;
+    overflow-wrap:anywhere;
+    word-break:break-word;
+  }
+  .jobtrack-modal-attachments{
+    display:grid;
+    gap:10px;
+  }
+  .jobtrack-modal-attachments-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .jobtrack-modal-attachments-title{
+    font-weight:600;
+    font-size:.95rem;
+    margin:0;
+  }
+  .jobtrack-modal-attachment-list{
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:grid;
+    gap:8px;
+  }
+  .jobtrack-modal-attachment{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:10px;
+    padding:8px 10px;
+    border-radius:10px;
+    border:1px solid color-mix(in srgb,var(--jobtrack-accent) 16%, transparent);
+    background:color-mix(in srgb,var(--jobtrack-surface) 92%, #050b12 8%);
+  }
+  .jobtrack-modal-attachment-info{
+    min-width:0;
+    display:grid;
+    gap:4px;
+    flex:1;
+  }
+  .jobtrack-modal-attachment-name{
+    font-size:.9rem;
+    color:var(--text-light);
+    overflow-wrap:anywhere;
+    word-break:break-word;
+  }
+  .jobtrack-modal-attachment-meta{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    color:var(--text-muted);
+    font-size:.78rem;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+  }
+  .jobtrack-modal-attachment-btn{
+    padding:6px 10px;
+    font-size:.85rem;
+    flex-shrink:0;
   }
   .jobtrack-tooltip{
     position:fixed;
