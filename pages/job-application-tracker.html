@@ -225,6 +225,10 @@
                       </div>
                       <div class="jobtrack-import-actions">
                         <div class="jobtrack-import-field">
+                          <label class="jobtrack-label" for="jobtrack-import-batch">Batch name (optional)</label>
+                          <input id="jobtrack-import-batch" class="jobtrack-input" type="text" placeholder="Spring outreach 2025">
+                        </div>
+                        <div class="jobtrack-import-field">
                           <label class="jobtrack-label" for="jobtrack-import-file">Applications CSV</label>
                           <input id="jobtrack-import-file" class="jobtrack-input jobtrack-file-input" type="file" accept=".csv,text/csv">
                         </div>
@@ -251,17 +255,21 @@
                       <span>Bulk import prospects</span>
                       <span class="jobtrack-import-summary-note">CSV only</span>
                     </summary>
-                    <div class="jobtrack-import-body">
-                  <div>
-                    <p class="jobtrack-kicker">Bulk import</p>
-                    <h3>Import prospects from CSV</h3>
-                    <p class="jobtrack-subtitle">Use columns: company, title, jobUrl, location, source, postingDate, captureDate, status, notes.</p>
-                  </div>
-                  <div class="jobtrack-import-actions">
-                    <div class="jobtrack-import-field">
-                      <label class="jobtrack-label" for="jobtrack-prospect-import-file">Prospects CSV</label>
-                      <input id="jobtrack-prospect-import-file" class="jobtrack-input jobtrack-file-input" type="file" accept=".csv,text/csv">
+                  <div class="jobtrack-import-body">
+                    <div>
+                      <p class="jobtrack-kicker">Bulk import</p>
+                      <h3>Import prospects from CSV</h3>
+                      <p class="jobtrack-subtitle">Use columns: company, title, jobUrl, location, source, postingDate, captureDate, status, notes.</p>
                     </div>
+                    <div class="jobtrack-import-actions">
+                      <div class="jobtrack-import-field">
+                        <label class="jobtrack-label" for="jobtrack-prospect-import-batch">Batch name (optional)</label>
+                        <input id="jobtrack-prospect-import-batch" class="jobtrack-input" type="text" placeholder="Remote data roles · March">
+                      </div>
+                      <div class="jobtrack-import-field">
+                        <label class="jobtrack-label" for="jobtrack-prospect-import-file">Prospects CSV</label>
+                        <input id="jobtrack-prospect-import-file" class="jobtrack-input jobtrack-file-input" type="file" accept=".csv,text/csv">
+                      </div>
                     <div class="jobtrack-import-buttons">
                       <button type="button" class="btn-secondary" data-jobtrack="prospect-import-submit">Import CSV</button>
                       <button type="button" class="btn-ghost" data-jobtrack="prospect-import-template">Download template</button>
@@ -365,6 +373,7 @@
                       <button type="button" class="jobtrack-table-cell jobtrack-table-header" role="columnheader" aria-sort="none" data-jobtrack-sort="postingDate">Posted</button>
                       <button type="button" class="jobtrack-table-cell jobtrack-table-header" role="columnheader" aria-sort="none" data-jobtrack-sort="date">Applied/Found</button>
                       <button type="button" class="jobtrack-table-cell jobtrack-table-header" role="columnheader" aria-sort="none" data-jobtrack-sort="source">Source</button>
+                      <button type="button" class="jobtrack-table-cell jobtrack-table-header" role="columnheader" aria-sort="none" data-jobtrack-sort="batch">Batch</button>
                       <div class="jobtrack-table-cell jobtrack-table-header" role="columnheader">Actions</div>
                     </div>
                     <div class="jobtrack-table-body" data-jobtrack="entry-list"></div>
@@ -473,11 +482,6 @@
                       <p class="jobtrack-kpi-label">Top source</p>
                       <p class="jobtrack-kpi-value" data-jobtrack="kpi-top-source">--</p>
                       <p class="jobtrack-kpi-meta" data-jobtrack="kpi-top-source-count">--</p>
-                    </div>
-                    <div class="jobtrack-kpi" role="listitem">
-                      <p class="jobtrack-kpi-label">Best weekday to apply</p>
-                      <p class="jobtrack-kpi-value" data-jobtrack="kpi-best-weekday">--</p>
-                      <p class="jobtrack-kpi-meta" data-jobtrack="kpi-best-weekday-count">--</p>
                     </div>
                   </div>
                 </div>

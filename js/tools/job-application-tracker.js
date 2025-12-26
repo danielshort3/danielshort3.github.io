@@ -46,6 +46,7 @@
     coverInput: $('#jobtrack-cover'),
     importFile: $('#jobtrack-import-file'),
     importAttachments: $('#jobtrack-import-attachments'),
+    importBatch: $('#jobtrack-import-batch'),
     importSubmit: $('[data-jobtrack="import-submit"]'),
     importTemplate: $('[data-jobtrack="import-template"]'),
     importStatus: $('[data-jobtrack="import-status"]'),
@@ -53,6 +54,7 @@
     importProgressLabel: $('[data-jobtrack="import-progress-label"]'),
     importProgress: $('[data-jobtrack="import-progress"]'),
     prospectImportFile: $('#jobtrack-prospect-import-file'),
+    prospectImportBatch: $('#jobtrack-prospect-import-batch'),
     prospectImportSubmit: $('[data-jobtrack="prospect-import-submit"]'),
     prospectImportTemplate: $('[data-jobtrack="prospect-import-template"]'),
     prospectPromptDownload: $('[data-jobtrack="prospect-prompt-download"]'),
@@ -511,6 +513,7 @@
     jobUrl: ['joburl', 'url', 'link', 'joblink', 'applicationurl'],
     location: ['location', 'city', 'region', 'locale'],
     source: ['source', 'referral', 'channel', 'board'],
+    batch: ['batch', 'batchname', 'importbatch'],
     attachments: ['attachments', 'attachmentfiles', 'attachmentfile', 'files', 'documents'],
     resumeFile: ['resume', 'resumefile', 'resumefilename', 'resumeattachment', 'resumeattachmentname'],
     coverLetterFile: ['coverletter', 'coverletterfile', 'coverletterfilename', 'cover', 'coverfile']
@@ -733,6 +736,8 @@
     if (location) parts.push(location);
     const appliedDate = entry?.appliedDate ? parseDateInput(entry.appliedDate) : null;
     if (appliedDate) parts.push(`Applied ${formatDateLabel(entry.appliedDate)}`);
+    const batch = (entry?.batch || '').toString().trim();
+    if (batch) parts.push(`Batch: ${batch}`);
     const attachments = Array.isArray(entry?.attachments) ? entry.attachments : [];
     if (attachments.length) {
       parts.push(`${attachments.length} attachment${attachments.length === 1 ? '' : 's'}`);
@@ -845,6 +850,7 @@
       els.detailModalBody.textContent = 'Entry details unavailable.';
       return;
     }
+    const entryType = entry.entryType || getEntryType(entry);
 
     const title = entry.title || 'Entry details';
     if (els.detailModalTitle) els.detailModalTitle.textContent = title;
@@ -863,17 +869,22 @@
     const postingLabel = entry.postingDate && parseDateInput(entry.postingDate)
       ? formatDateLabel(entry.postingDate)
       : '';
+    const statusDateLabel = entry.statusDate && parseDateInput(entry.statusDate)
+      ? formatDateLabel(entry.statusDate)
+      : '';
 
     const meta = document.createElement('div');
     meta.className = 'jobtrack-modal-meta';
     const rows = [
       buildDetailModalRow('Company', entry.company || ''),
       buildDetailModalRow('Status', getEntryStatusLabel(entry)),
+      buildDetailModalRow('Status date', statusDateLabel),
       buildDetailModalRow('Applied date', appliedLabel),
       buildDetailModalRow('Found date', captureLabel),
       buildDetailModalRow('Posted', postingLabel),
       buildDetailModalRow('Location', entry.location || ''),
       buildDetailModalRow('Source', entry.source || ''),
+      buildDetailModalRow('Batch', entry.batch || ''),
       buildDetailModalRow('Job URL', entry.jobUrl || '', entry.jobUrl ? normalizeUrl(entry.jobUrl) : '')
     ].filter(Boolean);
     rows.forEach((row) => meta.appendChild(row));
@@ -890,6 +901,121 @@
       notesWrap.appendChild(notesTitle);
       notesWrap.appendChild(notes);
       els.detailModalBody.appendChild(notesWrap);
+    }
+
+    const actionsWrap = document.createElement('div');
+    actionsWrap.className = 'jobtrack-modal-actions';
+
+    const actionRow = document.createElement('div');
+    actionRow.className = 'jobtrack-modal-action-row';
+    if (entry.applicationId) {
+      const editBtn = document.createElement('button');
+      editBtn.type = 'button';
+      editBtn.className = 'btn-ghost';
+      editBtn.textContent = 'Edit entry';
+      editBtn.addEventListener('click', () => {
+        setEntryEditMode(entry);
+        closeDetailModal();
+      });
+      actionRow.appendChild(editBtn);
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.className = 'btn-ghost';
+      deleteBtn.textContent = 'Delete entry';
+      deleteBtn.addEventListener('click', async () => {
+        await deleteEntry(entry.applicationId);
+        closeDetailModal();
+      });
+      actionRow.appendChild(deleteBtn);
+
+      if (entryType === 'prospect') {
+        const applyBtn = document.createElement('button');
+        applyBtn.type = 'button';
+        applyBtn.className = 'btn-ghost';
+        applyBtn.textContent = 'Apply prospect';
+        applyBtn.addEventListener('click', async () => {
+          await applyProspect(entry.applicationId);
+          closeDetailModal();
+        });
+        actionRow.appendChild(applyBtn);
+      }
+    }
+    if (actionRow.childNodes.length) actionsWrap.appendChild(actionRow);
+
+    if (entry.applicationId) {
+      const statusWrap = document.createElement('div');
+      statusWrap.className = 'jobtrack-modal-status-form';
+      const statusTitle = document.createElement('p');
+      statusTitle.className = 'jobtrack-modal-attachments-title';
+      statusTitle.textContent = 'Update status';
+      statusWrap.appendChild(statusTitle);
+
+      const statusFields = document.createElement('div');
+      statusFields.className = 'jobtrack-modal-status-fields';
+      const idSuffix = entry.applicationId.toString().replace(/[^a-z0-9_-]/gi, '') || 'entry';
+
+      const statusField = document.createElement('div');
+      statusField.className = 'jobtrack-field';
+      const statusLabel = document.createElement('label');
+      const statusId = `jobtrack-modal-status-${idSuffix}`;
+      statusLabel.className = 'jobtrack-label';
+      statusLabel.setAttribute('for', statusId);
+      statusLabel.textContent = 'Status';
+      const statusSelect = document.createElement('select');
+      statusSelect.className = 'jobtrack-select';
+      statusSelect.id = statusId;
+      const statusOptions = entryType === 'prospect' ? PROSPECT_STATUSES : APPLICATION_STATUSES;
+      const currentStatus = toTitle((entry.status || (entryType === 'prospect' ? 'Active' : 'Applied')).toString());
+      const optionList = statusOptions.includes(currentStatus)
+        ? statusOptions
+        : [currentStatus, ...statusOptions];
+      optionList.forEach((option) => {
+        const opt = document.createElement('option');
+        opt.value = option;
+        opt.textContent = option;
+        statusSelect.appendChild(opt);
+      });
+      statusSelect.value = currentStatus;
+      statusField.appendChild(statusLabel);
+      statusField.appendChild(statusSelect);
+      statusFields.appendChild(statusField);
+
+      let statusDateInput = null;
+      if (entryType === 'application') {
+        const dateField = document.createElement('div');
+        dateField.className = 'jobtrack-field';
+        const dateLabel = document.createElement('label');
+        const dateId = `jobtrack-modal-status-date-${idSuffix}`;
+        dateLabel.className = 'jobtrack-label';
+        dateLabel.setAttribute('for', dateId);
+        dateLabel.textContent = 'Status date';
+        statusDateInput = document.createElement('input');
+        statusDateInput.type = 'date';
+        statusDateInput.className = 'jobtrack-input';
+        statusDateInput.id = dateId;
+        statusDateInput.value = entry.statusDate && parseDateInput(entry.statusDate)
+          ? entry.statusDate
+          : formatDateInput(new Date());
+        dateField.appendChild(dateLabel);
+        dateField.appendChild(statusDateInput);
+        statusFields.appendChild(dateField);
+      }
+
+      const updateBtn = document.createElement('button');
+      updateBtn.type = 'button';
+      updateBtn.className = 'btn-primary jobtrack-modal-status-btn';
+      updateBtn.textContent = 'Save status';
+      updateBtn.addEventListener('click', () => {
+        updateEntryStatus(entry, statusSelect.value, statusDateInput?.value || '');
+      });
+      statusFields.appendChild(updateBtn);
+      statusWrap.appendChild(statusFields);
+      actionsWrap.appendChild(statusWrap);
+    }
+
+    if (actionsWrap.childNodes.length) {
+      els.detailModalBody.appendChild(actionsWrap);
     }
 
     const attachments = Array.isArray(entry.attachments) ? entry.attachments : [];
@@ -2477,6 +2603,7 @@
       entry.title,
       entry.location,
       entry.source,
+      entry.batch,
       entry.notes,
       entry.status
     ].join(' ').toLowerCase();
@@ -2553,6 +2680,9 @@
       } else if (key === 'source') {
         aVal = a.source || '';
         bVal = b.source || '';
+      } else if (key === 'batch') {
+        aVal = a.batch || '';
+        bVal = b.batch || '';
       }
       return aVal.toString().localeCompare(bVal.toString(), 'en', { sensitivity: 'base' }) * multiplier;
     });
@@ -2575,6 +2705,11 @@
       row.setAttribute('role', 'row');
       const entryType = entry.entryType || getEntryType(entry);
       const entryLabel = [entry.title, entry.company].filter(Boolean).join(' · ') || 'entry';
+      if (entry.applicationId) {
+        row.dataset.jobtrackRow = entry.applicationId;
+        row.tabIndex = 0;
+        row.setAttribute('aria-label', `View ${entryLabel}`);
+      }
 
       const selectCell = document.createElement('div');
       selectCell.className = 'jobtrack-table-cell jobtrack-table-select';
@@ -2639,6 +2774,11 @@
       sourceCell.className = 'jobtrack-table-cell';
       sourceCell.textContent = entry.source || '—';
       row.appendChild(sourceCell);
+
+      const batchCell = document.createElement('div');
+      batchCell.className = 'jobtrack-table-cell';
+      batchCell.textContent = entry.batch || '—';
+      row.appendChild(batchCell);
 
       const actionsCell = document.createElement('div');
       actionsCell.className = 'jobtrack-table-cell jobtrack-table-actions';
@@ -2886,28 +3026,48 @@
       });
       els.entryList.addEventListener('click', (event) => {
         const button = event.target.closest('button[data-jobtrack-entry]');
-        if (!button) return;
-        const action = button.dataset.jobtrackEntry;
-        if (action === 'download-zip') {
+        if (button) {
+          const action = button.dataset.jobtrackEntry;
+          if (action === 'download-zip') {
+            const entryId = button.dataset.id;
+            if (!entryId) return;
+            downloadEntryZip(entryId);
+            return;
+          }
           const entryId = button.dataset.id;
           if (!entryId) return;
-          downloadEntryZip(entryId);
+          if (action === 'edit') {
+            const item = state.entryItems.get(entryId);
+            if (item) setEntryEditMode(item);
+            return;
+          }
+          if (action === 'apply') {
+            applyProspect(entryId);
+            return;
+          }
+          if (action === 'delete') {
+            deleteEntry(entryId);
+          }
           return;
         }
-        const entryId = button.dataset.id;
+        if (event.target.closest('input, label, a')) return;
+        const row = event.target.closest('.jobtrack-table-row');
+        if (!row || !els.entryList.contains(row)) return;
+        const entryId = row.dataset.jobtrackRow;
         if (!entryId) return;
-        if (action === 'edit') {
-          const item = state.entryItems.get(entryId);
-          if (item) setEntryEditMode(item);
-          return;
-        }
-        if (action === 'apply') {
-          applyProspect(entryId);
-          return;
-        }
-        if (action === 'delete') {
-          deleteEntry(entryId);
-        }
+        const entry = state.entryItems.get(entryId);
+        if (entry) openDetailModal(entry);
+      });
+      els.entryList.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        if (event.target.closest('button, input, label, a')) return;
+        const row = event.target.closest('.jobtrack-table-row');
+        if (!row || !els.entryList.contains(row)) return;
+        const entryId = row.dataset.jobtrackRow;
+        if (!entryId) return;
+        event.preventDefault();
+        const entry = state.entryItems.get(entryId);
+        if (entry) openDetailModal(entry);
       });
     }
   };
@@ -2977,6 +3137,56 @@
           setStatus(els.exportStatus, err?.message || 'Unable to export applications.', 'error');
         }
       });
+    }
+  };
+
+  const updateEntryStatus = async (entry, nextStatus, statusDate = '') => {
+    if (!entry || !entry.applicationId) return false;
+    const statusTarget = els.detailModalStatus || els.entryListStatus;
+    if (!authIsValid(state.auth)) {
+      setStatus(statusTarget, 'Sign in to update statuses.', 'error');
+      return false;
+    }
+    if (!config.apiBase) {
+      setStatus(statusTarget, 'Set the API base URL to update statuses.', 'error');
+      return false;
+    }
+    const entryType = entry.entryType || getEntryType(entry);
+    const normalizedStatus = (nextStatus || '').toString().trim();
+    if (!normalizedStatus) {
+      setStatus(statusTarget, 'Choose a status to apply.', 'error');
+      return false;
+    }
+    const payload = { status: normalizedStatus };
+    if (entryType === 'application') {
+      let safeDate = (statusDate || '').toString().trim();
+      if (safeDate && !parseDateInput(safeDate)) {
+        setStatus(statusTarget, 'Status date must be valid (YYYY-MM-DD).', 'error');
+        return false;
+      }
+      if (!safeDate) safeDate = formatDateInput(new Date());
+      payload.statusDate = safeDate;
+    }
+    try {
+      setStatus(statusTarget, 'Updating status...', 'info');
+      const endpoint = entryType === 'prospect'
+        ? `/api/prospects/${encodeURIComponent(entry.applicationId)}`
+        : `/api/applications/${encodeURIComponent(entry.applicationId)}`;
+      await requestJson(endpoint, { method: 'PATCH', body: payload });
+      const updatedEntry = normalizeEntry({
+        ...entry,
+        status: normalizedStatus,
+        statusDate: payload.statusDate || entry.statusDate
+      }, entryType);
+      if (updatedEntry.applicationId) state.entryItems.set(updatedEntry.applicationId, updatedEntry);
+      renderDetailModal(updatedEntry);
+      setStatus(statusTarget, 'Status updated.', 'success');
+      await Promise.all([refreshEntries(), refreshDashboard()]);
+      return true;
+    } catch (err) {
+      console.error('Status update failed', err);
+      setStatus(statusTarget, err?.message || 'Unable to update status.', 'error');
+      return false;
     }
   };
 
@@ -3230,6 +3440,7 @@
     if (item?.jobUrl) payload.jobUrl = item.jobUrl;
     if (item?.location) payload.location = item.location;
     if (item?.source) payload.source = item.source;
+    if (item?.batch) payload.batch = item.batch;
     if (item?.postingDate) payload.postingDate = item.postingDate;
     if (item?.captureDate) payload.captureDate = item.captureDate;
     return payload;
@@ -3501,6 +3712,7 @@
       const jobUrl = map.jobUrl !== undefined ? normalizeUrl(row[map.jobUrl]) : '';
       const location = map.location !== undefined ? (row[map.location] || '').toString().trim() : '';
       const source = map.source !== undefined ? (row[map.source] || '').toString().trim() : '';
+      const batch = map.batch !== undefined ? (row[map.batch] || '').toString().trim() : '';
       const attachmentsValue = map.attachments !== undefined ? (row[map.attachments] || '').toString().trim() : '';
       const resumeFile = map.resumeFile !== undefined ? (row[map.resumeFile] || '').toString().trim() : '';
       const coverLetterFile = map.coverLetterFile !== undefined ? (row[map.coverLetterFile] || '').toString().trim() : '';
@@ -3515,6 +3727,7 @@
         status: status || 'Applied',
         notes
       };
+      if (batch) payload.batch = batch;
       if (postingDate) payload.postingDate = postingDate;
       if (jobUrl) payload.jobUrl = jobUrl;
       if (location) payload.location = location;
@@ -3556,6 +3769,7 @@
       const jobUrl = map.jobUrl !== undefined ? normalizeUrl(row[map.jobUrl]) : '';
       const location = map.location !== undefined ? (row[map.location] || '').toString().trim() : '';
       const source = map.source !== undefined ? (row[map.source] || '').toString().trim() : '';
+      const batch = map.batch !== undefined ? (row[map.batch] || '').toString().trim() : '';
       const postingDate = map.postingDate !== undefined ? parseCsvDate(row[map.postingDate]) : '';
       const captureDate = map.captureDate !== undefined ? parseCsvDate(row[map.captureDate]) : '';
       const status = map.status !== undefined ? (row[map.status] || '').toString().trim() : '';
@@ -3572,6 +3786,7 @@
         status: status || 'Active',
         notes
       };
+      if (batch) payload.batch = batch;
       if (postingDate) payload.postingDate = postingDate;
       if (location) payload.location = location;
       if (source) payload.source = source;
@@ -3639,6 +3854,12 @@
           if (!entries.length) {
             setStatus(els.importStatus, 'No valid rows found in the CSV.', 'error');
             return;
+          }
+          const importBatch = (els.importBatch?.value || '').toString().trim();
+          if (importBatch) {
+            entries.forEach((entry) => {
+              entry.payload.batch = importBatch;
+            });
           }
           const attachmentLookup = buildImportAttachmentMap(Array.from(els.importAttachments?.files || []));
           const totalEntries = entries.length;
@@ -3799,6 +4020,12 @@
           if (!entries.length) {
             setStatus(els.prospectImportStatus, 'No valid rows found in the CSV.', 'error');
             return;
+          }
+          const importBatch = (els.prospectImportBatch?.value || '').toString().trim();
+          if (importBatch) {
+            entries.forEach((entry) => {
+              entry.payload.batch = importBatch;
+            });
           }
           const totalEntries = entries.length;
           let entriesProcessed = 0;
