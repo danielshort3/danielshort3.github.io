@@ -136,6 +136,9 @@ try {
     checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-cover"');
     checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-posting-date"');
     checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-posting-unknown"');
+    checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-job-url"');
+    checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-location"');
+    checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-source"');
     checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="recent-status"');
     checkFileContains('pages/job-application-tracker.html', 'data-jobtrack-tab="applications"');
     checkFileContains('pages/job-application-tracker.html', 'data-jobtrack-tab="prospects"');
@@ -143,6 +146,7 @@ try {
     checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-prospect-url"');
     checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-prospect-posting-date"');
     checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-prospect-posting-unknown"');
+    checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-prospect-applied-date"');
     checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-prospect-capture-date"');
     checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="prospect-list"');
   });
