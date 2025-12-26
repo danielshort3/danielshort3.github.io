@@ -439,14 +439,14 @@
     background:color-mix(in srgb,var(--jobtrack-surface) 92%, #02060c 8%);
   }
   .jobtrack-table{
-    min-width:1200px;
+    min-width:1600px;
     display:grid;
     gap:0;
   }
   .jobtrack-table-head,
   .jobtrack-table-row{
     display:grid;
-    grid-template-columns:48px 120px 180px 200px 140px 180px 120px 160px 160px 160px 170px;
+    grid-template-columns:48px 140px 190px 220px 150px 180px 130px 170px 170px 160px 170px;
     align-items:center;
   }
   .jobtrack-table-head{
@@ -457,8 +457,8 @@
     border-bottom:1px solid color-mix(in srgb,var(--jobtrack-accent) 20%, transparent);
   }
   .jobtrack-table-cell{
-    padding:12px 14px;
-    font-size:.92rem;
+    padding:10px 12px;
+    font-size:.86rem;
     color:var(--text-muted);
     border-right:1px solid color-mix(in srgb,var(--jobtrack-accent) 12%, transparent);
     min-width:0;
@@ -474,11 +474,12 @@
     border:0;
     text-align:left;
     font-weight:600;
-    font-size:.8rem;
+    font-size:.72rem;
     text-transform:uppercase;
-    letter-spacing:.18em;
+    letter-spacing:.12em;
     color:color-mix(in srgb,var(--text-light) 85%, #ffffff 15%);
     cursor:pointer;
+    white-space:nowrap;
   }
   .jobtrack-table-select{
     display:flex;
@@ -526,7 +527,7 @@
   }
   .jobtrack-table-row .jobtrack-table-cell{
     color:var(--text-light);
-    font-size:.93rem;
+    font-size:.86rem;
   }
   .jobtrack-table-actions{
     display:grid;
@@ -547,14 +548,15 @@
     display:inline-flex;
     align-items:center;
     justify-content:center;
-    padding:4px 10px;
+    padding:3px 8px;
     border-radius:999px;
-    font-size:.76rem;
+    font-size:.7rem;
     font-weight:600;
-    letter-spacing:.08em;
+    letter-spacing:.05em;
     text-transform:uppercase;
     background:color-mix(in srgb,var(--jobtrack-accent) 28%, transparent);
     color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
+    white-space:nowrap;
   }
   .jobtrack-pill[data-tone="prospect"]{
     background:color-mix(in srgb,var(--jobtrack-accent) 12%, var(--jobtrack-surface) 88%);
