@@ -112,6 +112,7 @@
     statusOverlay: $('[data-jobtrack="status-overlay"]'),
     calendarGrid: $('[data-jobtrack="calendar-grid"]'),
     calendarMonths: $('[data-jobtrack="calendar-months"]'),
+    calendarWeekdays: $('[data-jobtrack="calendar-weekdays"]'),
     mapContainer: $('[data-jobtrack="map"]'),
     mapPlaceholder: $('[data-jobtrack="map-placeholder"]'),
     mapTotal: $('[data-jobtrack="map-total"]'),
@@ -1301,6 +1302,7 @@
     if (els.calendarRange) els.calendarRange.textContent = rangeLabel;
     els.calendarGrid.innerHTML = '';
     if (els.calendarMonths) els.calendarMonths.innerHTML = '';
+    if (els.calendarWeekdays) els.calendarWeekdays.innerHTML = '';
     const counts = new Map(days.map(item => [item.date, item.count]));
     const max = Math.max(0, ...days.map(item => item.count || 0));
     const scale = (count) => {
@@ -1309,86 +1311,70 @@
       return Math.min(4, Math.ceil((count / max) * 4));
     };
 
-    const start = new Date(range.start);
-    const end = new Date(range.end);
-    const startDay = start.getUTCDay();
-    const startOffset = (startDay + 6) % 7;
-    const calendarStart = new Date(start);
-    calendarStart.setUTCDate(start.getUTCDate() - startOffset);
-    const endDay = end.getUTCDay();
-    const endOffset = (7 - ((endDay + 6) % 7) - 1);
-    const calendarEnd = new Date(end);
-    calendarEnd.setUTCDate(end.getUTCDate() + endOffset);
-
-    const weeks = [];
-    let cursor = new Date(calendarStart);
-    while (cursor <= calendarEnd) {
-      const weekStart = new Date(cursor);
-      const daysInWeek = [];
-      for (let i = 0; i < 7; i += 1) {
-        const day = new Date(weekStart);
-        day.setUTCDate(weekStart.getUTCDate() + i);
-        daysInWeek.push(day);
-      }
-      weeks.push({ start: weekStart, days: daysInWeek });
-      cursor = new Date(weekStart);
-      cursor.setUTCDate(weekStart.getUTCDate() + 7);
-    }
-
-    if (weeks.length) {
-      const columns = `repeat(${weeks.length}, 12px)`;
-      if (els.calendarGrid) els.calendarGrid.style.gridTemplateColumns = columns;
-      if (els.calendarMonths) els.calendarMonths.style.gridTemplateColumns = columns;
-    }
-
-    const monthLabels = [];
-    weeks.forEach((week, index) => {
-      const monthStartDay = week.days.find(day => day.getUTCDate() === 1);
-      if (monthStartDay) {
-        monthLabels.push({ index, month: monthStartDay.getUTCMonth(), year: monthStartDay.getUTCFullYear() });
-      }
-    });
-    if (!monthLabels.length && weeks.length) {
-      monthLabels.push({
-        index: 0,
-        month: weeks[0].start.getUTCMonth(),
-        year: weeks[0].start.getUTCFullYear()
-      });
-    } else if (monthLabels.length && monthLabels[0].index !== 0) {
-      monthLabels.unshift({
-        index: 0,
-        month: weeks[0].start.getUTCMonth(),
-        year: weeks[0].start.getUTCFullYear()
+    if (els.calendarWeekdays) {
+      const labels = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
+      labels.forEach((label) => {
+        const item = document.createElement('span');
+        item.className = 'jobtrack-calendar-weekday';
+        item.textContent = label;
+        els.calendarWeekdays.appendChild(item);
       });
     }
-    const monthDividerIndexes = new Set(monthLabels.map(item => item.index));
-    monthLabels.forEach((item) => {
-      if (!els.calendarMonths) return;
-      const label = document.createElement('span');
-      label.className = 'jobtrack-calendar-month';
-      label.style.gridColumnStart = String(item.index + 1);
-      label.textContent = new Date(Date.UTC(item.year, item.month, 1)).toLocaleDateString('en-US', {
+
+    const startMonth = new Date(Date.UTC(range.start.getUTCFullYear(), range.start.getUTCMonth(), 1));
+    const endMonth = new Date(Date.UTC(range.end.getUTCFullYear(), range.end.getUTCMonth(), 1));
+    const cursor = new Date(startMonth);
+
+    while (cursor <= endMonth) {
+      const year = cursor.getUTCFullYear();
+      const month = cursor.getUTCMonth();
+      const monthLabel = new Date(Date.UTC(year, month, 1)).toLocaleDateString('en-US', {
         month: 'short',
         timeZone: 'UTC'
       });
-      els.calendarMonths.appendChild(label);
-    });
 
-    weeks.forEach((week, weekIndex) => {
-      const isDivider = weekIndex !== 0 && monthDividerIndexes.has(weekIndex);
-      week.days.forEach((day) => {
-        const iso = formatDateInput(day);
-        const count = counts.get(iso) || 0;
-        const intensity = scale(count);
+      if (els.calendarMonths) {
+        const label = document.createElement('span');
+        label.className = 'jobtrack-calendar-month';
+        label.textContent = monthLabel;
+        els.calendarMonths.appendChild(label);
+      }
+
+      const block = document.createElement('div');
+      block.className = 'jobtrack-calendar-month-block';
+      const grid = document.createElement('div');
+      grid.className = 'jobtrack-calendar-month-grid';
+
+      const firstDay = new Date(Date.UTC(year, month, 1));
+      const firstOffset = firstDay.getUTCDay();
+      const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+      const totalSlots = 42;
+
+      for (let slot = 0; slot < totalSlots; slot += 1) {
+        const dayNumber = slot - firstOffset + 1;
         const cell = document.createElement('div');
         cell.className = 'jobtrack-calendar-day';
-        cell.dataset.intensity = String(intensity);
-        if (isDivider) cell.dataset.monthDivider = 'true';
-        const dateLabel = new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-US', {
+        if (dayNumber < 1 || dayNumber > daysInMonth) {
+          cell.dataset.empty = 'true';
+          cell.setAttribute('aria-hidden', 'true');
+          grid.appendChild(cell);
+          continue;
+        }
+        const date = new Date(Date.UTC(year, month, dayNumber));
+        const iso = formatDateInput(date);
+        const count = counts.get(iso) || 0;
+        const intensity = scale(count);
+        if (intensity) {
+          cell.dataset.intensity = String(intensity);
+        } else {
+          cell.removeAttribute('data-intensity');
+        }
+        const dateLabel = date.toLocaleDateString('en-US', {
           weekday: 'short',
           month: 'short',
           day: 'numeric',
-          year: 'numeric'
+          year: 'numeric',
+          timeZone: 'UTC'
         });
         const labelText = count
           ? `${dateLabel}: ${count} application${count === 1 ? '' : 's'}`
@@ -1402,9 +1388,13 @@
         cell.dataset.jobtrackTooltip = tooltipText;
         cell.dataset.jobtrackDate = iso;
         cell.tabIndex = 0;
-        els.calendarGrid.appendChild(cell);
-      });
-    });
+        grid.appendChild(cell);
+      }
+
+      block.appendChild(grid);
+      els.calendarGrid.appendChild(block);
+      cursor.setUTCMonth(month + 1);
+    }
     bindCalendarTooltip();
   };
 
