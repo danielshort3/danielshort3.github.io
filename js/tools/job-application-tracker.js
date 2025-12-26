@@ -21,21 +21,51 @@
     authStatus: $('[data-jobtrack="auth-status"]'),
     apiStatus: $('[data-jobtrack="api-status"]'),
     cognitoStatus: $('[data-jobtrack="cognito-status"]'),
-    form: $('[data-jobtrack="application-form"]'),
-    formStatus: $('[data-jobtrack="form-status"]'),
+    entryForm: $('[data-jobtrack="entry-form"]'),
+    entryFormStatus: $('[data-jobtrack="entry-form-status"]'),
+    entryType: $('[data-jobtrack="entry-type"]'),
+    entryTypeInputs: $$('[data-jobtrack="entry-type"] input[name="entryType"]'),
     companyInput: $('#jobtrack-company'),
     titleInput: $('#jobtrack-title'),
     jobUrlInput: $('#jobtrack-job-url'),
+    jobUrlHelp: $('[data-jobtrack="job-url-help"]'),
     locationInput: $('#jobtrack-location'),
     sourceInput: $('#jobtrack-source'),
-    dateInput: $('#jobtrack-date'),
+    appliedDateInput: $('#jobtrack-date'),
     postingDateInput: $('#jobtrack-posting-date'),
     postingUnknownInput: $('#jobtrack-posting-unknown'),
+    captureDateInput: $('#jobtrack-capture-date'),
+    captureLabel: $('[data-jobtrack="capture-label"]'),
+    captureHelp: $('[data-jobtrack="capture-help"]'),
     statusInput: $('#jobtrack-status'),
     notesInput: $('#jobtrack-notes'),
-    applicationSubmit: $('[data-jobtrack="application-submit"]'),
-    recentList: $('[data-jobtrack="recent-list"]'),
-    recentRefresh: $('[data-jobtrack="refresh-recent"]'),
+    entrySubmit: $('[data-jobtrack="entry-submit"]'),
+    entryApplicationFields: $$('[data-jobtrack-entry="application"]'),
+    entryProspectFields: $$('[data-jobtrack-entry="prospect"]'),
+    resumeInput: $('#jobtrack-resume'),
+    coverInput: $('#jobtrack-cover'),
+    importFile: $('#jobtrack-import-file'),
+    importAttachments: $('#jobtrack-import-attachments'),
+    importSubmit: $('[data-jobtrack="import-submit"]'),
+    importTemplate: $('[data-jobtrack="import-template"]'),
+    importStatus: $('[data-jobtrack="import-status"]'),
+    entryList: $('[data-jobtrack="entry-list"]'),
+    entryListStatus: $('[data-jobtrack="entry-list-status"]'),
+    entriesRefresh: $('[data-jobtrack="refresh-entries"]'),
+    entryFilter: $('[data-jobtrack="entry-filter"]'),
+    entryFilterQuery: $('[data-jobtrack="entry-filter-query"]'),
+    entryFilterType: $('[data-jobtrack="entry-filter-type"]'),
+    entryFilterStatus: $('[data-jobtrack="entry-filter-status"]'),
+    entryFilterLocation: $('[data-jobtrack="entry-filter-location"]'),
+    entryFilterStart: $('[data-jobtrack="entry-filter-start"]'),
+    entryFilterEnd: $('[data-jobtrack="entry-filter-end"]'),
+    entryFilterReset: $('[data-jobtrack="entry-filter-reset"]'),
+    entrySortButtons: $$('[data-jobtrack-sort]'),
+    exportForm: $('[data-jobtrack="export-form"]'),
+    exportStart: $('[data-jobtrack="export-start"]'),
+    exportEnd: $('[data-jobtrack="export-end"]'),
+    exportSubmit: $('[data-jobtrack="export-submit"]'),
+    exportStatus: $('[data-jobtrack="export-status"]'),
     dashboard: $('[data-jobtrack="dashboard"]'),
     dashboardStatus: $('[data-jobtrack="dashboard-status"]'),
     filterStart: $('[data-jobtrack="filter-start"]'),
@@ -46,6 +76,18 @@
     kpiInterviews: $('[data-jobtrack="kpi-interviews"]'),
     kpiOffers: $('[data-jobtrack="kpi-offers"]'),
     kpiRejections: $('[data-jobtrack="kpi-rejections"]'),
+    kpiFoundToApplied: $('[data-jobtrack="kpi-found-to-applied"]'),
+    kpiFoundCount: $('[data-jobtrack="kpi-found-count"]'),
+    kpiPostedToApplied: $('[data-jobtrack="kpi-posted-to-applied"]'),
+    kpiPostedCount: $('[data-jobtrack="kpi-posted-count"]'),
+    kpiResponseTime: $('[data-jobtrack="kpi-response-time"]'),
+    kpiResponseTimeCount: $('[data-jobtrack="kpi-response-time-count"]'),
+    kpiResponseRate: $('[data-jobtrack="kpi-response-rate"]'),
+    kpiResponseCount: $('[data-jobtrack="kpi-response-count"]'),
+    kpiTopSource: $('[data-jobtrack="kpi-top-source"]'),
+    kpiTopSourceCount: $('[data-jobtrack="kpi-top-source-count"]'),
+    kpiBestWeekday: $('[data-jobtrack="kpi-best-weekday"]'),
+    kpiBestWeekdayCount: $('[data-jobtrack="kpi-best-weekday-count"]'),
     lineRange: $('[data-jobtrack="line-range"]'),
     lineTotal: $('[data-jobtrack="line-total"]'),
     statusTotal: $('[data-jobtrack="status-total"]'),
@@ -53,31 +95,9 @@
     lineOverlay: $('[data-jobtrack="line-overlay"]'),
     statusOverlay: $('[data-jobtrack="status-overlay"]'),
     calendarGrid: $('[data-jobtrack="calendar-grid"]'),
-    resumeInput: $('#jobtrack-resume'),
-    coverInput: $('#jobtrack-cover'),
-    importFile: $('#jobtrack-import-file'),
-    importAttachments: $('#jobtrack-import-attachments'),
-    importSubmit: $('[data-jobtrack="import-submit"]'),
-    importTemplate: $('[data-jobtrack="import-template"]'),
-    importStatus: $('[data-jobtrack="import-status"]'),
-    recentStatus: $('[data-jobtrack="recent-status"]'),
-    prospectForm: $('[data-jobtrack="prospect-form"]'),
-    prospectStatus: $('[data-jobtrack="prospect-status"]'),
-    prospectList: $('[data-jobtrack="prospect-list"]'),
-    prospectRefresh: $('[data-jobtrack="refresh-prospects"]'),
-    prospectListStatus: $('[data-jobtrack="prospect-list-status"]'),
-    prospectCompanyInput: $('#jobtrack-prospect-company'),
-    prospectTitleInput: $('#jobtrack-prospect-title'),
-    prospectUrlInput: $('#jobtrack-prospect-url'),
-    prospectLocationInput: $('#jobtrack-prospect-location'),
-    prospectSourceInput: $('#jobtrack-prospect-source'),
-    prospectPostingDateInput: $('#jobtrack-prospect-posting-date'),
-    prospectPostingUnknownInput: $('#jobtrack-prospect-posting-unknown'),
-    prospectAppliedDateInput: $('#jobtrack-prospect-applied-date'),
-    prospectCaptureDateInput: $('#jobtrack-prospect-capture-date'),
-    prospectStatusInput: $('#jobtrack-prospect-status'),
-    prospectNotesInput: $('#jobtrack-prospect-notes'),
-    prospectSubmit: $('[data-jobtrack="prospect-submit"]')
+    mapContainer: $('[data-jobtrack="map"]'),
+    mapPlaceholder: $('[data-jobtrack="map-placeholder"]'),
+    mapTotal: $('[data-jobtrack="map-total"]')
   };
 
   const tabs = {
@@ -89,20 +109,90 @@
   const STATE_KEY = 'jobTrackerAuthState';
   const VERIFIER_KEY = 'jobTrackerCodeVerifier';
   const CSV_TEMPLATE = 'company,title,jobUrl,location,source,postingDate,appliedDate,status,notes,resumeFile,coverLetterFile\nAcme Corp,Data Analyst,https://acme.com/jobs/123,Remote,LinkedIn,2025-01-10,2025-01-15,Applied,Reached out to recruiter,Acme-Resume.pdf,Acme-Cover.pdf';
+  const APPLICATION_STATUSES = ['Applied', 'Screening', 'Interview', 'Offer', 'Rejected', 'Withdrawn'];
+  const PROSPECT_STATUSES = ['Active', 'Interested', 'Inactive'];
+  const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const REMOTE_HINTS = ['remote', 'work from home', 'wfh', 'virtual'];
+  const ONSITE_HINTS = ['on-site', 'onsite', 'on site', 'in office', 'in-office', 'hybrid'];
+  const US_STATES = [
+    { code: 'AL', name: 'Alabama' },
+    { code: 'AK', name: 'Alaska' },
+    { code: 'AZ', name: 'Arizona' },
+    { code: 'AR', name: 'Arkansas' },
+    { code: 'CA', name: 'California' },
+    { code: 'CO', name: 'Colorado' },
+    { code: 'CT', name: 'Connecticut' },
+    { code: 'DE', name: 'Delaware' },
+    { code: 'FL', name: 'Florida' },
+    { code: 'GA', name: 'Georgia' },
+    { code: 'HI', name: 'Hawaii' },
+    { code: 'ID', name: 'Idaho' },
+    { code: 'IL', name: 'Illinois' },
+    { code: 'IN', name: 'Indiana' },
+    { code: 'IA', name: 'Iowa' },
+    { code: 'KS', name: 'Kansas' },
+    { code: 'KY', name: 'Kentucky' },
+    { code: 'LA', name: 'Louisiana' },
+    { code: 'ME', name: 'Maine' },
+    { code: 'MD', name: 'Maryland' },
+    { code: 'MA', name: 'Massachusetts' },
+    { code: 'MI', name: 'Michigan' },
+    { code: 'MN', name: 'Minnesota' },
+    { code: 'MS', name: 'Mississippi' },
+    { code: 'MO', name: 'Missouri' },
+    { code: 'MT', name: 'Montana' },
+    { code: 'NE', name: 'Nebraska' },
+    { code: 'NV', name: 'Nevada' },
+    { code: 'NH', name: 'New Hampshire' },
+    { code: 'NJ', name: 'New Jersey' },
+    { code: 'NM', name: 'New Mexico' },
+    { code: 'NY', name: 'New York' },
+    { code: 'NC', name: 'North Carolina' },
+    { code: 'ND', name: 'North Dakota' },
+    { code: 'OH', name: 'Ohio' },
+    { code: 'OK', name: 'Oklahoma' },
+    { code: 'OR', name: 'Oregon' },
+    { code: 'PA', name: 'Pennsylvania' },
+    { code: 'RI', name: 'Rhode Island' },
+    { code: 'SC', name: 'South Carolina' },
+    { code: 'SD', name: 'South Dakota' },
+    { code: 'TN', name: 'Tennessee' },
+    { code: 'TX', name: 'Texas' },
+    { code: 'UT', name: 'Utah' },
+    { code: 'VT', name: 'Vermont' },
+    { code: 'VA', name: 'Virginia' },
+    { code: 'WA', name: 'Washington' },
+    { code: 'WV', name: 'West Virginia' },
+    { code: 'WI', name: 'Wisconsin' },
+    { code: 'WY', name: 'Wyoming' },
+    { code: 'DC', name: 'District Of Columbia' }
+  ];
+  const STATE_CODE_SET = new Set(US_STATES.map(state => state.code.toLowerCase()));
+  const STATE_NAME_LOOKUP = new Map(US_STATES.map(state => [state.code, state.name]));
+  const STATE_NAME_BY_LOWER = new Map(US_STATES.map(state => [state.name.toLowerCase(), state.code]));
 
   const state = {
     auth: null,
     lineChart: null,
     statusChart: null,
     range: null,
-    editingApplicationId: null,
-    editingApplication: null,
-    editingProspectId: null,
-    editingProspect: null,
-    recentItems: new Map(),
-    prospectItems: new Map(),
-    isResettingApplication: false,
-    isResettingProspect: false
+    editingEntryId: null,
+    editingEntry: null,
+    entryType: 'application',
+    entries: [],
+    entryItems: new Map(),
+    entrySort: { key: 'date', direction: 'desc' },
+    entryFilters: {
+      query: '',
+      type: 'all',
+      status: 'all',
+      location: 'all',
+      start: '',
+      end: ''
+    },
+    mapLoaded: false,
+    mapSvg: null,
+    isResettingEntry: false
   };
 
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -133,6 +223,44 @@
     if (!value) return null;
     const parsed = new Date(`${value}T00:00:00Z`);
     return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
+  const parseIsoDate = (value) => {
+    if (!value) return null;
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
+  const formatDateLabel = (value) => {
+    const parsed = parseDateInput(value) || parseIsoDate(value);
+    if (!parsed) return '—';
+    return parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+  const formatDays = (value) => {
+    if (!Number.isFinite(value)) return '--';
+    return `${value.toFixed(1)} days`;
+  };
+  const formatPercent = (value) => {
+    if (!Number.isFinite(value)) return '--';
+    return `${Math.round(value)}%`;
+  };
+  const isRemoteLocation = (location = '') => {
+    const text = (location || '').toString().toLowerCase();
+    if (!text) return false;
+    const hasRemote = REMOTE_HINTS.some(hint => text.includes(hint));
+    const hasOnsite = ONSITE_HINTS.some(hint => text.includes(hint));
+    return hasRemote && !hasOnsite;
+  };
+  const extractStateCode = (location = '') => {
+    const text = (location || '').toString().toLowerCase();
+    if (!text) return null;
+    for (const [nameLower, code] of STATE_NAME_BY_LOWER.entries()) {
+      if (text.includes(nameLower)) return code;
+    }
+    const upper = text.toUpperCase();
+    for (const state of US_STATES) {
+      const pattern = new RegExp(`\\b${state.code}\\b`);
+      if (pattern.test(upper)) return state.code;
+    }
+    return null;
   };
 
   const syncUnknownDate = (dateInput, unknownInput) => {
@@ -376,95 +504,129 @@
     }
   };
 
-  const storeRecentItems = (items = []) => {
-    state.recentItems = new Map();
+  const storeEntries = (items = []) => {
+    state.entries = items;
+    state.entryItems = new Map();
     items.forEach((item) => {
-      if (item && item.applicationId) state.recentItems.set(item.applicationId, item);
+      if (item && item.applicationId) state.entryItems.set(item.applicationId, item);
     });
   };
 
-  const storeProspectItems = (items = []) => {
-    state.prospectItems = new Map();
-    items.forEach((item) => {
-      if (item && item.applicationId) state.prospectItems.set(item.applicationId, item);
+  const getEntryType = (item) => (item && item.recordType === 'prospect' ? 'prospect' : 'application');
+
+  const updateEntrySubmitLabel = () => {
+    if (!els.entrySubmit) return;
+    const label = state.entryType === 'prospect' ? 'prospect' : 'application';
+    els.entrySubmit.textContent = state.editingEntryId ? `Update ${label}` : `Save ${label}`;
+  };
+
+  const toggleEntryGroup = (nodes = [], isVisible) => {
+    nodes.forEach((node) => {
+      node.hidden = !isVisible;
+      const inputs = node.querySelectorAll('input,select,textarea,button');
+      inputs.forEach((input) => {
+        input.disabled = !isVisible;
+      });
     });
   };
 
-  const setApplicationEditMode = (item) => {
+  const updateStatusOptions = (type, preserveSelection = true) => {
+    if (!els.statusInput) return;
+    const options = type === 'prospect' ? PROSPECT_STATUSES : APPLICATION_STATUSES;
+    const current = preserveSelection ? els.statusInput.value : '';
+    els.statusInput.innerHTML = '';
+    options.forEach((option) => {
+      const opt = document.createElement('option');
+      opt.value = option;
+      opt.textContent = option;
+      els.statusInput.appendChild(opt);
+    });
+    if (current && options.includes(current)) {
+      els.statusInput.value = current;
+    } else {
+      els.statusInput.value = options[0];
+    }
+  };
+
+  const setEntryType = (type, { preserveStatus = true } = {}) => {
+    const nextType = type === 'prospect' ? 'prospect' : 'application';
+    state.entryType = nextType;
+    if (els.entryTypeInputs.length) {
+      els.entryTypeInputs.forEach((input) => {
+        input.checked = input.value === nextType;
+      });
+    }
+    toggleEntryGroup(els.entryApplicationFields, nextType === 'application');
+    toggleEntryGroup(els.entryProspectFields, nextType === 'prospect');
+    if (els.jobUrlInput) els.jobUrlInput.required = nextType === 'prospect';
+    if (els.appliedDateInput) els.appliedDateInput.required = nextType === 'application';
+    if (els.captureDateInput) els.captureDateInput.required = nextType === 'prospect';
+    if (els.jobUrlHelp) {
+      els.jobUrlHelp.textContent = nextType === 'prospect' ? 'Required for prospects.' : 'Optional for applications.';
+    }
+    if (els.captureLabel) {
+      els.captureLabel.textContent = nextType === 'prospect' ? 'Found date' : 'Found date (optional)';
+    }
+    if (els.captureHelp) {
+      els.captureHelp.textContent = nextType === 'prospect'
+        ? 'Defaults to today for prospects.'
+        : 'When you first saved or discovered the role.';
+    }
+    updateStatusOptions(nextType, preserveStatus);
+    if (nextType === 'prospect') clearAttachmentInputs();
+    updateEntrySubmitLabel();
+  };
+
+  const setEntryEditMode = (item) => {
     if (!item) return;
-    state.editingApplicationId = item.applicationId || null;
-    state.editingApplication = item;
+    const entryType = getEntryType(item);
+    state.editingEntryId = item.applicationId || null;
+    state.editingEntry = item;
+    setEntryType(entryType, { preserveStatus: false });
     if (els.companyInput) els.companyInput.value = item.company || '';
     if (els.titleInput) els.titleInput.value = item.title || '';
     if (els.jobUrlInput) els.jobUrlInput.value = item.jobUrl || '';
     if (els.locationInput) els.locationInput.value = item.location || '';
     if (els.sourceInput) els.sourceInput.value = item.source || '';
-    if (els.dateInput) els.dateInput.value = item.appliedDate || '';
+    if (els.appliedDateInput) els.appliedDateInput.value = item.appliedDate || '';
+    if (els.captureDateInput) {
+      els.captureDateInput.value = item.captureDate || '';
+    }
     setUnknownDateValue(els.postingDateInput, els.postingUnknownInput, item.postingDate || '');
-    if (els.statusInput) els.statusInput.value = item.status || 'Applied';
+    if (els.statusInput) els.statusInput.value = item.status || (entryType === 'prospect' ? 'Active' : 'Applied');
     if (els.notesInput) els.notesInput.value = item.notes || '';
-    clearAttachmentInputs();
-    if (els.applicationSubmit) els.applicationSubmit.textContent = 'Update application';
-    if (els.formStatus) {
-      const label = [item.title, item.company].filter(Boolean).join(' · ') || 'application';
-      setStatus(els.formStatus, `Editing ${label}. Save to update or clear to cancel.`, 'info');
+    updateEntrySubmitLabel();
+    if (els.entryFormStatus) {
+      const label = [item.title, item.company].filter(Boolean).join(' · ') || 'entry';
+      setStatus(els.entryFormStatus, `Editing ${label}. Save to update or clear to cancel.`, 'info');
     }
-    activateTab('applications', true);
+    activateTab('entry', true);
   };
 
-  const clearApplicationEditMode = (message = 'Ready to log a new application.', tone = '') => {
-    state.editingApplicationId = null;
-    state.editingApplication = null;
-    if (els.applicationSubmit) els.applicationSubmit.textContent = 'Save application';
-    if (els.formStatus && message) setStatus(els.formStatus, message, tone);
-  };
-
-  const setProspectEditMode = (item) => {
-    if (!item) return;
-    state.editingProspectId = item.applicationId || null;
-    state.editingProspect = item;
-    if (els.prospectCompanyInput) els.prospectCompanyInput.value = item.company || '';
-    if (els.prospectTitleInput) els.prospectTitleInput.value = item.title || '';
-    if (els.prospectUrlInput) els.prospectUrlInput.value = item.jobUrl || '';
-    if (els.prospectLocationInput) els.prospectLocationInput.value = item.location || '';
-    if (els.prospectSourceInput) els.prospectSourceInput.value = item.source || '';
-    setUnknownDateValue(els.prospectPostingDateInput, els.prospectPostingUnknownInput, item.postingDate || '');
-    if (els.prospectAppliedDateInput) els.prospectAppliedDateInput.value = item.appliedDate || '';
-    if (els.prospectCaptureDateInput) {
-      els.prospectCaptureDateInput.value = item.captureDate || formatDateInput(new Date());
-    }
-    if (els.prospectStatusInput) els.prospectStatusInput.value = item.status || 'Active';
-    if (els.prospectNotesInput) els.prospectNotesInput.value = item.notes || '';
-    if (els.prospectSubmit) els.prospectSubmit.textContent = 'Update prospect';
-    if (els.prospectStatus) {
-      const label = [item.title, item.company].filter(Boolean).join(' · ') || 'prospect';
-      setStatus(els.prospectStatus, `Editing ${label}. Save to update or clear to cancel.`, 'info');
-    }
-    activateTab('prospects', true);
-  };
-
-  const clearProspectEditMode = (message = 'Ready to save prospects.', tone = '') => {
-    state.editingProspectId = null;
-    state.editingProspect = null;
-    if (els.prospectSubmit) els.prospectSubmit.textContent = 'Save prospect';
-    if (els.prospectStatus && message) setStatus(els.prospectStatus, message, tone);
+  const clearEntryEditMode = (message = 'Ready to save entries.', tone = '') => {
+    state.editingEntryId = null;
+    state.editingEntry = null;
+    updateEntrySubmitLabel();
+    if (els.entryFormStatus && message) setStatus(els.entryFormStatus, message, tone);
   };
 
   const activateTab = (name, shouldFocus = false) => {
     if (!tabs.buttons.length || !tabs.panels.length) return;
+    const authed = authIsValid(state.auth);
+    const safeName = authed || name === 'account' ? name : 'account';
     tabs.buttons.forEach((button) => {
-      const selected = button.dataset.jobtrackTab === name;
+      const selected = button.dataset.jobtrackTab === safeName;
       button.setAttribute('aria-selected', selected ? 'true' : 'false');
       button.tabIndex = selected ? 0 : -1;
     });
     tabs.panels.forEach((panel) => {
-      panel.hidden = panel.dataset.jobtrackPanel !== name;
+      panel.hidden = panel.dataset.jobtrackPanel !== safeName;
     });
     if (shouldFocus) {
-      const activeButton = tabs.buttons.find(button => button.dataset.jobtrackTab === name);
+      const activeButton = tabs.buttons.find(button => button.dataset.jobtrackTab === safeName);
       if (activeButton) activeButton.focus();
     }
-    if (name === 'dashboard') {
+    if (safeName === 'dashboard') {
       window.requestAnimationFrame(() => {
         if (state.lineChart) state.lineChart.resize();
         if (state.statusChart) state.statusChart.resize();
@@ -599,8 +761,14 @@
 
   const updateAuthUI = () => {
     const authed = authIsValid(state.auth);
-    if (els.signIn) els.signIn.hidden = authed;
-    if (els.signOut) els.signOut.hidden = !authed;
+    if (els.signIn) {
+      els.signIn.disabled = authed;
+      els.signIn.setAttribute('aria-disabled', authed ? 'true' : 'false');
+    }
+    if (els.signOut) {
+      els.signOut.disabled = !authed;
+      els.signOut.setAttribute('aria-disabled', !authed ? 'true' : 'false');
+    }
     if (els.authStatus) {
       if (authed) {
         const claims = state.auth?.claims || parseJwt(state.auth?.idToken || '') || {};
@@ -610,20 +778,25 @@
         els.authStatus.textContent = 'Not signed in.';
       }
     }
+    tabs.buttons.forEach((button) => {
+      const isAccount = button.dataset.jobtrackTab === 'account';
+      const disabled = !authed && !isAccount;
+      button.disabled = disabled;
+      button.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+    });
+    if (!authed) activateTab('account');
     if (els.importStatus) {
       setStatus(els.importStatus, authed ? 'Ready to import applications.' : 'Sign in to import applications.', authed ? '' : 'info');
     }
-    if (els.formStatus && !state.editingApplicationId) {
-      setStatus(els.formStatus, authed ? 'Ready to log a new application.' : 'Sign in to save new applications.', authed ? '' : 'info');
+    if (els.entryFormStatus && !state.editingEntryId) {
+      const entryLabel = state.entryType === 'prospect' ? 'prospects' : 'applications';
+      setStatus(els.entryFormStatus, authed ? `Ready to save ${entryLabel}.` : 'Sign in to save entries.', authed ? '' : 'info');
     }
-    if (els.recentStatus) {
-      setStatus(els.recentStatus, authed ? 'Select an attachment to download.' : 'Sign in to download attachments.', authed ? '' : 'info');
+    if (els.entryListStatus) {
+      setStatus(els.entryListStatus, authed ? 'Use filters and sorting to review your entries.' : 'Sign in to load your entries.', authed ? '' : 'info');
     }
-    if (els.prospectStatus && !state.editingProspectId) {
-      setStatus(els.prospectStatus, authed ? 'Ready to save prospects.' : 'Sign in to save prospects.', authed ? '' : 'info');
-    }
-    if (els.prospectListStatus) {
-      setStatus(els.prospectListStatus, authed ? 'Select a prospect to update.' : 'Sign in to manage prospects.', authed ? '' : 'info');
+    if (els.exportStatus) {
+      setStatus(els.exportStatus, authed ? 'Choose a date range to export applications.' : 'Sign in to export applications.', authed ? '' : 'info');
     }
   };
 
@@ -679,20 +852,11 @@
     if (els.coverInput) els.coverInput.value = '';
   };
 
-  const resetApplicationDateFields = () => {
+  const resetEntryDateFields = (type = state.entryType) => {
     setUnknownDateValue(els.postingDateInput, els.postingUnknownInput, '');
-  };
-
-  const resetProspectDateFields = () => {
-    const today = formatDateInput(new Date());
-    if (els.prospectCaptureDateInput) {
-      els.prospectCaptureDateInput.value = els.prospectCaptureDateInput.value || today;
+    if (type === 'prospect' && els.captureDateInput) {
+      els.captureDateInput.value = els.captureDateInput.value || formatDateInput(new Date());
     }
-    if (els.prospectAppliedDateInput) {
-      els.prospectAppliedDateInput.value = '';
-    }
-    const postingValue = els.prospectPostingDateInput?.value || '';
-    setUnknownDateValue(els.prospectPostingDateInput, els.prospectPostingUnknownInput, postingValue);
   };
 
   const uploadAttachment = async (applicationId, attachment) => {
@@ -924,14 +1088,273 @@
     }
   };
 
+  const getFirstResponseDate = (entry) => {
+    const history = Array.isArray(entry?.statusHistory) ? entry.statusHistory : [];
+    if (!history.length) {
+      const status = (entry?.status || '').toString().trim().toLowerCase();
+      if (status && status !== 'applied') {
+        return parseIsoDate(entry?.updatedAt) || parseIsoDate(entry?.createdAt);
+      }
+      return null;
+    }
+    const sorted = history
+      .map(item => ({
+        status: (item?.status || '').toString().trim().toLowerCase(),
+        date: parseIsoDate(item?.date) || parseDateInput(item?.date)
+      }))
+      .filter(item => item.date)
+      .sort((a, b) => a.date - b.date);
+    for (const item of sorted) {
+      if (item.status && item.status !== 'applied') return item.date;
+    }
+    return null;
+  };
+
+  const buildInsights = (items = []) => {
+    let foundSum = 0;
+    let foundCount = 0;
+    let postedSum = 0;
+    let postedCount = 0;
+    let responseSum = 0;
+    let responseCount = 0;
+    const sourceCounts = new Map();
+    const weekdayCounts = new Map(WEEKDAYS.map(day => [day, 0]));
+
+    items.forEach((item) => {
+      const applied = parseDateInput(item?.appliedDate);
+      if (!applied) return;
+      const appliedTime = applied.getTime();
+
+      const captureDate = parseDateInput(item?.captureDate);
+      if (captureDate) {
+        const delta = (appliedTime - captureDate.getTime()) / 86400000;
+        if (Number.isFinite(delta) && delta >= 0) {
+          foundSum += delta;
+          foundCount += 1;
+        }
+      }
+
+      const postingDate = parseDateInput(item?.postingDate);
+      if (postingDate) {
+        const delta = (appliedTime - postingDate.getTime()) / 86400000;
+        if (Number.isFinite(delta) && delta >= 0) {
+          postedSum += delta;
+          postedCount += 1;
+        }
+      }
+
+      const responseDate = getFirstResponseDate(item);
+      if (responseDate) {
+        const delta = (responseDate.getTime() - appliedTime) / 86400000;
+        if (Number.isFinite(delta) && delta >= 0) {
+          responseSum += delta;
+          responseCount += 1;
+        }
+      }
+
+      const source = (item?.source || '').toString().trim();
+      if (source) {
+        const key = source.toLowerCase();
+        const current = sourceCounts.get(key) || { label: source, count: 0 };
+        current.count += 1;
+        sourceCounts.set(key, current);
+      }
+
+      const weekday = WEEKDAYS[applied.getUTCDay()];
+      if (weekday) {
+        weekdayCounts.set(weekday, (weekdayCounts.get(weekday) || 0) + 1);
+      }
+    });
+
+    let topSource = null;
+    let topSourceCount = 0;
+    sourceCounts.forEach((value) => {
+      if (value.count > topSourceCount) {
+        topSourceCount = value.count;
+        topSource = value.label;
+      }
+    });
+
+    let bestWeekday = null;
+    let bestWeekdayCount = 0;
+    weekdayCounts.forEach((count, day) => {
+      if (count > bestWeekdayCount) {
+        bestWeekdayCount = count;
+        bestWeekday = day;
+      }
+    });
+
+    const total = items.length;
+    return {
+      avgFoundToApplied: foundCount ? foundSum / foundCount : null,
+      foundCount,
+      avgPostedToApplied: postedCount ? postedSum / postedCount : null,
+      postedCount,
+      avgResponseTime: responseCount ? responseSum / responseCount : null,
+      responseCount,
+      responseRate: total ? (responseCount / total) * 100 : null,
+      total,
+      topSource: topSource || null,
+      topSourceCount,
+      bestWeekday: bestWeekday || null,
+      bestWeekdayCount
+    };
+  };
+
+  const updateInsights = (insights = {}) => {
+    if (els.kpiFoundToApplied) {
+      els.kpiFoundToApplied.textContent = formatDays(insights.avgFoundToApplied);
+    }
+    if (els.kpiFoundCount) {
+      els.kpiFoundCount.textContent = insights.foundCount
+        ? `${insights.foundCount} apps`
+        : 'No data yet';
+    }
+    if (els.kpiPostedToApplied) {
+      els.kpiPostedToApplied.textContent = formatDays(insights.avgPostedToApplied);
+    }
+    if (els.kpiPostedCount) {
+      els.kpiPostedCount.textContent = insights.postedCount
+        ? `${insights.postedCount} apps`
+        : 'No data yet';
+    }
+    if (els.kpiResponseTime) {
+      els.kpiResponseTime.textContent = formatDays(insights.avgResponseTime);
+    }
+    if (els.kpiResponseTimeCount) {
+      els.kpiResponseTimeCount.textContent = insights.responseCount
+        ? `${insights.responseCount} responses`
+        : 'No responses yet';
+    }
+    if (els.kpiResponseRate) {
+      els.kpiResponseRate.textContent = formatPercent(insights.responseRate);
+    }
+    if (els.kpiResponseCount) {
+      els.kpiResponseCount.textContent = insights.total
+        ? `${insights.responseCount} of ${insights.total} apps`
+        : 'No data yet';
+    }
+    if (els.kpiTopSource) {
+      els.kpiTopSource.textContent = insights.topSource || '--';
+    }
+    if (els.kpiTopSourceCount) {
+      els.kpiTopSourceCount.textContent = insights.topSourceCount
+        ? `${insights.topSourceCount} apps`
+        : 'No sources yet';
+    }
+    if (els.kpiBestWeekday) {
+      els.kpiBestWeekday.textContent = insights.bestWeekday || '--';
+    }
+    if (els.kpiBestWeekdayCount) {
+      els.kpiBestWeekdayCount.textContent = insights.bestWeekdayCount
+        ? `${insights.bestWeekdayCount} apps`
+        : 'No data yet';
+    }
+  };
+
+  const getMapStateCode = (node) => {
+    const className = (node.getAttribute('class') || '').toString();
+    const classes = className.split(/\s+/).filter(Boolean);
+    const match = classes.find(value => STATE_CODE_SET.has(value.toLowerCase()));
+    return match ? match.toUpperCase() : null;
+  };
+
+  const loadMap = async () => {
+    if (!els.mapContainer || state.mapLoaded) return state.mapSvg;
+    const src = (els.mapContainer.dataset.jobtrackMapSrc || '').trim();
+    if (!src) {
+      if (els.mapPlaceholder) els.mapPlaceholder.textContent = 'Map source missing.';
+      return null;
+    }
+    try {
+      const res = await fetch(src);
+      if (!res.ok) throw new Error('Unable to load map.');
+      const text = await res.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(text, 'image/svg+xml');
+      const svg = doc.querySelector('svg');
+      if (!svg) throw new Error('Map SVG not found.');
+      svg.classList.add('jobtrack-map-svg');
+      svg.removeAttribute('width');
+      svg.removeAttribute('height');
+      const style = svg.querySelector('style');
+      if (style) style.remove();
+      els.mapContainer.innerHTML = '';
+      els.mapContainer.appendChild(svg);
+      state.mapLoaded = true;
+      state.mapSvg = svg;
+      return svg;
+    } catch (err) {
+      console.error('Map load failed', err);
+      if (els.mapPlaceholder) els.mapPlaceholder.textContent = 'Unable to load map.';
+      return null;
+    }
+  };
+
+  const updateMap = async (applications = []) => {
+    if (!els.mapContainer) return;
+    const svg = await loadMap();
+    if (!svg) return;
+
+    const counts = new Map();
+    let totalApps = 0;
+    applications.forEach((item) => {
+      const location = (item?.location || '').toString();
+      if (!location || isRemoteLocation(location)) return;
+      const code = extractStateCode(location);
+      if (!code) return;
+      counts.set(code, (counts.get(code) || 0) + 1);
+      totalApps += 1;
+    });
+
+    const max = Math.max(0, ...Array.from(counts.values()));
+    const scale = (count) => {
+      if (!count) return 0;
+      if (max <= 1) return 1;
+      return Math.min(4, Math.ceil((count / max) * 4));
+    };
+
+    const nodes = svg.querySelectorAll('.state path, .state circle');
+    nodes.forEach((node) => {
+      const code = getMapStateCode(node);
+      if (!code) return;
+      const count = counts.get(code) || 0;
+      const intensity = scale(count);
+      if (intensity) {
+        node.dataset.intensity = String(intensity);
+      } else {
+        node.removeAttribute('data-intensity');
+      }
+      const name = STATE_NAME_LOOKUP.get(code) || code;
+      const label = `${name}: ${count} application${count === 1 ? '' : 's'}`;
+      node.setAttribute('aria-label', label);
+      node.setAttribute('title', label);
+    });
+
+    if (els.mapTotal) {
+      const stateCount = counts.size;
+      if (stateCount) {
+        els.mapTotal.textContent = `${stateCount} state${stateCount === 1 ? '' : 's'} · ${totalApps} application${totalApps === 1 ? '' : 's'}`;
+      } else {
+        els.mapTotal.textContent = 'No states yet';
+      }
+    }
+  };
+
   const refreshDashboard = async () => {
     if (!els.dashboard || !els.dashboardStatus) return;
     if (!config.apiBase) {
       setStatus(els.dashboardStatus, 'Set the API base URL to load dashboards.', 'error');
+      if (els.mapPlaceholder) els.mapPlaceholder.textContent = 'Set the API base URL to load the map.';
+      if (els.mapTotal) els.mapTotal.textContent = 'Map unavailable';
+      updateInsights({});
       return;
     }
     if (!authIsValid(state.auth)) {
       setStatus(els.dashboardStatus, 'Sign in to load your dashboards.', 'info');
+      if (els.mapPlaceholder) els.mapPlaceholder.textContent = 'Sign in to load the map.';
+      if (els.mapTotal) els.mapTotal.textContent = 'Sign in to view map';
+      updateInsights({});
       return;
     }
     const range = readRange();
@@ -944,11 +1367,12 @@
     setOverlay(els.statusOverlay, 'Loading chart...');
     try {
       const query = buildQuery(range);
-      const [summary, timeline, statuses, calendar] = await Promise.all([
+      const [summary, timeline, statuses, calendar, applications] = await Promise.all([
         requestJson(`/api/analytics/summary?${query}`),
         requestJson(`/api/analytics/applications-over-time?${query}`),
         requestJson(`/api/analytics/status-breakdown?${query}`),
-        requestJson(`/api/analytics/calendar?${query}`)
+        requestJson(`/api/analytics/calendar?${query}`),
+        requestJson(`/api/applications?${query}`)
       ]);
       updateKpis(summary);
       const series = timeline.series || [];
@@ -956,6 +1380,9 @@
       updateLineChart(series, rangeLabel);
       updateStatusChart(statusSeries);
       buildCalendar(calendar.days || [], rangeLabel, range);
+      const appItems = Array.isArray(applications.items) ? applications.items : [];
+      updateInsights(buildInsights(appItems));
+      await updateMap(appItems);
       setOverlay(els.lineOverlay, series.length ? '' : 'No activity yet.');
       setOverlay(els.statusOverlay, statusSeries.length ? '' : 'No statuses yet.');
       setStatus(els.dashboardStatus, `Loaded ${summary.totalApplications || 0} applications.`, 'success');
@@ -963,300 +1390,488 @@
       console.error('Dashboard load failed', err);
       setOverlay(els.lineOverlay, 'Unable to load chart.');
       setOverlay(els.statusOverlay, 'Unable to load chart.');
+      if (els.mapPlaceholder) els.mapPlaceholder.textContent = 'Unable to load map.';
+      if (els.mapTotal) els.mapTotal.textContent = 'Map unavailable';
+      updateInsights({});
       setStatus(els.dashboardStatus, err?.message || 'Unable to load dashboards.', 'error');
     } finally {
       if (els.dashboard) els.dashboard.setAttribute('aria-busy', 'false');
     }
   };
 
-  const renderRecentList = (items = []) => {
-    if (!els.recentList) return;
-    els.recentList.innerHTML = '';
-    if (!items.length) {
-      const empty = document.createElement('li');
-      empty.className = 'jobtrack-recent-empty';
-      empty.textContent = 'No applications found in this range yet.';
-      els.recentList.appendChild(empty);
-      return;
-    }
+  const normalizeEntry = (item, entryType) => ({
+    ...item,
+    recordType: entryType,
+    entryType
+  });
+
+  const getEntryDateValue = (entry) => (entry.entryType === 'prospect' ? entry.captureDate : entry.appliedDate);
+
+  const getEntryDate = (entry) => {
+    const raw = getEntryDateValue(entry);
+    return parseDateInput(raw);
+  };
+
+  const updateEntryStatusFilter = (items = []) => {
+    if (!els.entryFilterStatus) return;
+    const current = els.entryFilterStatus.value || 'all';
+    const statuses = new Set();
     items.forEach((item) => {
-      const li = document.createElement('li');
-      li.className = 'jobtrack-recent-item';
-      const title = document.createElement('div');
-      title.className = 'jobtrack-recent-title';
-      title.textContent = `${item.title || 'Role'} · ${item.company || 'Company'}`;
-      const meta = document.createElement('div');
-      meta.className = 'jobtrack-recent-meta';
-      const date = item.appliedDate ? new Date(`${item.appliedDate}T00:00:00Z`) : null;
-      const dateLabel = date ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No date';
-      meta.textContent = `${dateLabel} · ${toTitle(item.status || 'Applied')}`;
-      li.appendChild(title);
-      li.appendChild(meta);
-      const attachments = Array.isArray(item.attachments)
-        ? item.attachments.filter(attachment => attachment && attachment.key)
-        : [];
-      if (attachments.length) {
-        const wrap = document.createElement('div');
-        wrap.className = 'jobtrack-recent-attachments';
-        attachments.forEach((attachment) => {
-          const button = document.createElement('button');
-          button.type = 'button';
-          button.className = 'btn-ghost jobtrack-attachment-btn';
-          button.dataset.jobtrackAttachment = 'download';
-          button.dataset.key = attachment.key;
-          if (attachment.filename) button.dataset.filename = attachment.filename;
-          const label = getAttachmentLabel(attachment);
-          const name = attachment.filename ? `${label}: ${attachment.filename}` : `Download ${label}`;
-          button.textContent = name;
-          button.title = name;
-          wrap.appendChild(button);
-        });
-        li.appendChild(wrap);
+      const entryType = getEntryType(item);
+      const raw = (item.status || (entryType === 'prospect' ? 'Active' : 'Applied')).toString();
+      statuses.add(toTitle(raw));
+    });
+    const sorted = Array.from(statuses).sort((a, b) => a.localeCompare(b));
+    els.entryFilterStatus.innerHTML = '';
+    const allOpt = document.createElement('option');
+    allOpt.value = 'all';
+    allOpt.textContent = 'All statuses';
+    els.entryFilterStatus.appendChild(allOpt);
+    sorted.forEach((status) => {
+      const opt = document.createElement('option');
+      opt.value = status.toLowerCase();
+      opt.textContent = status;
+      els.entryFilterStatus.appendChild(opt);
+    });
+    if ([...els.entryFilterStatus.options].some(opt => opt.value === current)) {
+      els.entryFilterStatus.value = current;
+    }
+  };
+
+  const matchesQuery = (entry, terms = []) => {
+    if (!terms.length) return true;
+    const haystack = [
+      entry.company,
+      entry.title,
+      entry.location,
+      entry.source,
+      entry.notes,
+      entry.status
+    ].join(' ').toLowerCase();
+    return terms.every(term => haystack.includes(term));
+  };
+
+  const filterEntries = (items = []) => {
+    const query = (els.entryFilterQuery?.value || '').trim().toLowerCase();
+    const terms = query.split(/\s+/).filter(Boolean);
+    const type = (els.entryFilterType?.value || 'all').trim();
+    const status = (els.entryFilterStatus?.value || 'all').trim();
+    const locationType = (els.entryFilterLocation?.value || 'all').trim();
+    const start = parseDateInput(els.entryFilterStart?.value || '');
+    const end = parseDateInput(els.entryFilterEnd?.value || '');
+
+    return items.filter((entry) => {
+      const entryType = entry.entryType || getEntryType(entry);
+      if (type !== 'all' && entryType !== type) return false;
+      const entryStatus = toTitle((entry.status || (entryType === 'prospect' ? 'Active' : 'Applied')).toString());
+      if (status !== 'all' && entryStatus.toLowerCase() !== status) return false;
+      if (locationType !== 'all') {
+        const hasLocation = Boolean((entry.location || '').trim());
+        const remote = isRemoteLocation(entry.location || '');
+        if (locationType === 'remote' && (!hasLocation || !remote)) return false;
+        if (locationType === 'onsite' && (!hasLocation || remote)) return false;
       }
-      if (item.applicationId) {
-        const actions = document.createElement('div');
-        actions.className = 'jobtrack-recent-actions';
-        const editBtn = document.createElement('button');
-        editBtn.type = 'button';
-        editBtn.className = 'btn-ghost jobtrack-recent-action';
-        editBtn.dataset.jobtrackApplication = 'edit';
-        editBtn.dataset.id = item.applicationId;
-        editBtn.textContent = 'Edit';
-        const deleteBtn = document.createElement('button');
-        deleteBtn.type = 'button';
-        deleteBtn.className = 'btn-ghost jobtrack-recent-action';
-        deleteBtn.dataset.jobtrackApplication = 'delete';
-        deleteBtn.dataset.id = item.applicationId;
-        deleteBtn.textContent = 'Delete';
-        actions.appendChild(editBtn);
-        actions.appendChild(deleteBtn);
-        li.appendChild(actions);
+      if (!matchesQuery(entry, terms)) return false;
+      if (start || end) {
+        const dateValue = getEntryDate(entry);
+        if (!dateValue) return false;
+        if (start && dateValue < start) return false;
+        if (end && dateValue > end) return false;
       }
-      els.recentList.appendChild(li);
+      return true;
     });
   };
 
-  const refreshRecent = async () => {
-    if (!els.recentList) return;
+  const sortEntries = (items = []) => {
+    const { key, direction } = state.entrySort;
+    const multiplier = direction === 'asc' ? 1 : -1;
+    const sorted = [...items];
+    sorted.sort((a, b) => {
+      let aVal = '';
+      let bVal = '';
+      if (key === 'date') {
+        const aDate = getEntryDate(a);
+        const bDate = getEntryDate(b);
+        const aTime = aDate ? aDate.getTime() : 0;
+        const bTime = bDate ? bDate.getTime() : 0;
+        return (aTime - bTime) * multiplier;
+      }
+      if (key === 'postingDate') {
+        const aDate = parseDateInput(a.postingDate);
+        const bDate = parseDateInput(b.postingDate);
+        const aTime = aDate ? aDate.getTime() : 0;
+        const bTime = bDate ? bDate.getTime() : 0;
+        return (aTime - bTime) * multiplier;
+      }
+      if (key === 'type') {
+        aVal = a.entryType || getEntryType(a);
+        bVal = b.entryType || getEntryType(b);
+      } else if (key === 'company') {
+        aVal = a.company || '';
+        bVal = b.company || '';
+      } else if (key === 'title') {
+        aVal = a.title || '';
+        bVal = b.title || '';
+      } else if (key === 'status') {
+        aVal = a.status || '';
+        bVal = b.status || '';
+      } else if (key === 'location') {
+        aVal = a.location || '';
+        bVal = b.location || '';
+      } else if (key === 'source') {
+        aVal = a.source || '';
+        bVal = b.source || '';
+      }
+      return aVal.toString().localeCompare(bVal.toString(), 'en', { sensitivity: 'base' }) * multiplier;
+    });
+    return sorted;
+  };
+
+  const renderEntryList = (items = [], emptyLabel = 'No entries yet.') => {
+    if (!els.entryList) return;
+    els.entryList.innerHTML = '';
+    if (!items.length) {
+      const empty = document.createElement('div');
+      empty.className = 'jobtrack-table-empty';
+      empty.textContent = emptyLabel;
+      els.entryList.appendChild(empty);
+      return;
+    }
+    items.forEach((entry) => {
+      const row = document.createElement('div');
+      row.className = 'jobtrack-table-row';
+      row.setAttribute('role', 'row');
+      const entryType = entry.entryType || getEntryType(entry);
+
+      const typeCell = document.createElement('div');
+      typeCell.className = 'jobtrack-table-cell';
+      const pill = document.createElement('span');
+      pill.className = 'jobtrack-pill';
+      if (entryType === 'prospect') pill.dataset.tone = 'prospect';
+      pill.textContent = entryType === 'prospect' ? 'Prospect' : 'Application';
+      typeCell.appendChild(pill);
+      row.appendChild(typeCell);
+
+      const companyCell = document.createElement('div');
+      companyCell.className = 'jobtrack-table-cell';
+      companyCell.textContent = entry.company || '—';
+      row.appendChild(companyCell);
+
+      const titleCell = document.createElement('div');
+      titleCell.className = 'jobtrack-table-cell';
+      titleCell.textContent = entry.title || '—';
+      row.appendChild(titleCell);
+
+      const statusCell = document.createElement('div');
+      statusCell.className = 'jobtrack-table-cell';
+      statusCell.textContent = toTitle(entry.status || (entryType === 'prospect' ? 'Active' : 'Applied'));
+      row.appendChild(statusCell);
+
+      const locationCell = document.createElement('div');
+      locationCell.className = 'jobtrack-table-cell';
+      locationCell.textContent = entry.location || '—';
+      row.appendChild(locationCell);
+
+      const postingCell = document.createElement('div');
+      postingCell.className = 'jobtrack-table-cell';
+      postingCell.textContent = entry.postingDate ? formatDateLabel(entry.postingDate) : '—';
+      row.appendChild(postingCell);
+
+      const dateCell = document.createElement('div');
+      dateCell.className = 'jobtrack-table-cell';
+      const dateLabel = getEntryDateValue(entry);
+      dateCell.textContent = dateLabel
+        ? `${entryType === 'prospect' ? 'Found' : 'Applied'} ${formatDateLabel(dateLabel)}`
+        : '—';
+      row.appendChild(dateCell);
+
+      const sourceCell = document.createElement('div');
+      sourceCell.className = 'jobtrack-table-cell';
+      sourceCell.textContent = entry.source || '—';
+      row.appendChild(sourceCell);
+
+      const actionsCell = document.createElement('div');
+      actionsCell.className = 'jobtrack-table-cell jobtrack-table-actions';
+      if (entry.applicationId) {
+        const editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.className = 'btn-ghost';
+        editBtn.dataset.jobtrackEntry = 'edit';
+        editBtn.dataset.id = entry.applicationId;
+        editBtn.textContent = 'Edit';
+        actionsCell.appendChild(editBtn);
+
+        if (entryType === 'prospect') {
+          const applyBtn = document.createElement('button');
+          applyBtn.type = 'button';
+          applyBtn.className = 'btn-ghost';
+          applyBtn.dataset.jobtrackEntry = 'apply';
+          applyBtn.dataset.id = entry.applicationId;
+          applyBtn.textContent = 'Apply';
+          actionsCell.appendChild(applyBtn);
+        }
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.className = 'btn-ghost';
+        deleteBtn.dataset.jobtrackEntry = 'delete';
+        deleteBtn.dataset.id = entry.applicationId;
+        deleteBtn.textContent = 'Delete';
+        actionsCell.appendChild(deleteBtn);
+      }
+      row.appendChild(actionsCell);
+
+      els.entryList.appendChild(row);
+    });
+  };
+
+  const updateSortIndicators = () => {
+    if (!els.entrySortButtons.length) return;
+    els.entrySortButtons.forEach((button) => {
+      const key = button.dataset.jobtrackSort;
+      if (key === state.entrySort.key) {
+        button.setAttribute('aria-sort', state.entrySort.direction === 'asc' ? 'ascending' : 'descending');
+      } else {
+        button.setAttribute('aria-sort', 'none');
+      }
+    });
+  };
+
+  const applyEntryFilters = () => {
+    const filtered = filterEntries(state.entries);
+    const sorted = sortEntries(filtered);
+    const emptyLabel = state.entries.length ? 'No entries match your filters yet.' : 'No entries yet.';
+    renderEntryList(sorted, emptyLabel);
+    updateSortIndicators();
+  };
+
+  const refreshEntries = async () => {
+    if (!els.entryList) return;
     if (!config.apiBase) {
-      storeRecentItems([]);
-      renderRecentList([]);
+      storeEntries([]);
+      renderEntryList([], 'Set the API base URL to load entries.');
       return;
     }
     if (!authIsValid(state.auth)) {
-      storeRecentItems([]);
-      renderRecentList([]);
+      storeEntries([]);
+      renderEntryList([], 'Sign in to load your entries.');
       return;
     }
     try {
-      const data = await requestJson('/api/applications?limit=5');
-      const items = data.items || [];
-      storeRecentItems(items);
-      renderRecentList(items);
+      setStatus(els.entryListStatus, 'Loading entries...', 'info');
+      const [apps, prospects] = await Promise.all([
+        requestJson('/api/applications'),
+        requestJson('/api/prospects')
+      ]);
+      const appItems = (apps.items || []).map(item => normalizeEntry(item, 'application'));
+      const prospectItems = (prospects.items || []).map(item => normalizeEntry(item, 'prospect'));
+      const items = [...appItems, ...prospectItems];
+      storeEntries(items);
+      updateEntryStatusFilter(items);
+      applyEntryFilters();
+      setStatus(els.entryListStatus, `Loaded ${items.length} entries.`, 'success');
     } catch (err) {
-      console.error('Recent applications failed', err);
-      storeRecentItems([]);
-      renderRecentList([]);
+      console.error('Entry load failed', err);
+      storeEntries([]);
+      renderEntryList([], 'Unable to load entries.');
+      setStatus(els.entryListStatus, err?.message || 'Unable to load entries.', 'error');
     }
   };
 
-  const deleteApplication = async (applicationId) => {
-    if (!applicationId) return;
+  const initEntryList = () => {
+    if (els.entriesRefresh) {
+      els.entriesRefresh.addEventListener('click', () => refreshEntries());
+    }
+    if (els.entryFilterQuery) {
+      els.entryFilterQuery.addEventListener('input', () => applyEntryFilters());
+    }
+    if (els.entryFilterType) {
+      els.entryFilterType.addEventListener('change', () => applyEntryFilters());
+    }
+    if (els.entryFilterStatus) {
+      els.entryFilterStatus.addEventListener('change', () => applyEntryFilters());
+    }
+    if (els.entryFilterLocation) {
+      els.entryFilterLocation.addEventListener('change', () => applyEntryFilters());
+    }
+    if (els.entryFilterStart) {
+      els.entryFilterStart.addEventListener('change', () => applyEntryFilters());
+    }
+    if (els.entryFilterEnd) {
+      els.entryFilterEnd.addEventListener('change', () => applyEntryFilters());
+    }
+    if (els.entryFilterReset) {
+      els.entryFilterReset.addEventListener('click', () => {
+        if (els.entryFilterQuery) els.entryFilterQuery.value = '';
+        if (els.entryFilterType) els.entryFilterType.value = 'all';
+        if (els.entryFilterStatus) els.entryFilterStatus.value = 'all';
+        if (els.entryFilterLocation) els.entryFilterLocation.value = 'all';
+        if (els.entryFilterStart) els.entryFilterStart.value = '';
+        if (els.entryFilterEnd) els.entryFilterEnd.value = '';
+        applyEntryFilters();
+      });
+    }
+    if (els.entrySortButtons.length) {
+      els.entrySortButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const key = button.dataset.jobtrackSort;
+          if (!key) return;
+          if (state.entrySort.key === key) {
+            state.entrySort.direction = state.entrySort.direction === 'asc' ? 'desc' : 'asc';
+          } else {
+            state.entrySort.key = key;
+            state.entrySort.direction = key === 'date' ? 'desc' : 'asc';
+          }
+          applyEntryFilters();
+        });
+      });
+    }
+    if (els.entryList) {
+      els.entryList.addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-jobtrack-entry]');
+        if (!button) return;
+        const entryId = button.dataset.id;
+        if (!entryId) return;
+        const action = button.dataset.jobtrackEntry;
+        if (action === 'edit') {
+          const item = state.entryItems.get(entryId);
+          if (item) setEntryEditMode(item);
+          return;
+        }
+        if (action === 'apply') {
+          applyProspect(entryId);
+          return;
+        }
+        if (action === 'delete') {
+          deleteEntry(entryId);
+        }
+      });
+    }
+  };
+
+  const initExport = () => {
+    if (!els.exportForm) return;
+    const range = defaultRange();
+    if (els.exportStart && !els.exportStart.value) els.exportStart.value = formatDateInput(range.start);
+    if (els.exportEnd && !els.exportEnd.value) els.exportEnd.value = formatDateInput(range.end);
+    if (els.exportSubmit) {
+      els.exportSubmit.addEventListener('click', async () => {
+        if (!authIsValid(state.auth)) {
+          setStatus(els.exportStatus, 'Sign in to export applications.', 'error');
+          return;
+        }
+        if (!config.apiBase) {
+          setStatus(els.exportStatus, 'Set the API base URL to export applications.', 'error');
+          return;
+        }
+        let startValue = (els.exportStart?.value || '').trim();
+        let endValue = (els.exportEnd?.value || '').trim();
+        if (!startValue && !endValue) {
+          const fallback = defaultRange();
+          startValue = formatDateInput(fallback.start);
+          endValue = formatDateInput(fallback.end);
+          if (els.exportStart) els.exportStart.value = startValue;
+          if (els.exportEnd) els.exportEnd.value = endValue;
+        }
+        if (!startValue || !endValue) {
+          setStatus(els.exportStatus, 'Choose a start and end date for the export.', 'error');
+          return;
+        }
+        const startDate = parseDateInput(startValue);
+        const endDate = parseDateInput(endValue);
+        if (!startDate || !endDate) {
+          setStatus(els.exportStatus, 'Export dates must be valid.', 'error');
+          return;
+        }
+        let start = startValue;
+        let end = endValue;
+        if (startDate > endDate) {
+          start = endValue;
+          end = startValue;
+          if (els.exportStart) els.exportStart.value = start;
+          if (els.exportEnd) els.exportEnd.value = end;
+        }
+        try {
+          setStatus(els.exportStatus, 'Preparing export...', 'info');
+          const result = await requestJson('/api/exports', {
+            method: 'POST',
+            body: { start, end }
+          });
+          const url = result?.downloadUrl;
+          if (url) {
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = '';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setStatus(els.exportStatus, 'Export ready. Download should begin shortly.', 'success');
+          } else {
+            setStatus(els.exportStatus, 'Export ready, but no download link was returned.', 'error');
+          }
+        } catch (err) {
+          console.error('Export failed', err);
+          setStatus(els.exportStatus, err?.message || 'Unable to export applications.', 'error');
+        }
+      });
+    }
+  };
+
+  const deleteEntry = async (entryId) => {
+    if (!entryId) return;
     if (!config.apiBase) {
-      setStatus(els.recentStatus, 'Set the API base URL to delete applications.', 'error');
+      setStatus(els.entryListStatus, 'Set the API base URL to delete entries.', 'error');
       return;
     }
     if (!authIsValid(state.auth)) {
-      setStatus(els.recentStatus, 'Sign in to delete applications.', 'error');
+      setStatus(els.entryListStatus, 'Sign in to delete entries.', 'error');
       return;
     }
-    const item = state.recentItems.get(applicationId);
-    const label = [item?.title, item?.company].filter(Boolean).join(' · ') || 'this application';
+    const item = state.entryItems.get(entryId);
+    const label = [item?.title, item?.company].filter(Boolean).join(' · ') || 'this entry';
     if (!confirmAction(`Delete ${label}? This cannot be undone.`)) return;
     try {
-      setStatus(els.recentStatus, 'Deleting application...', 'info');
-      await requestJson(`/api/applications/${encodeURIComponent(applicationId)}`, { method: 'DELETE' });
-      if (state.editingApplicationId === applicationId) {
-        clearApplicationEditMode('Ready to log a new application.');
-        if (els.form) {
-          state.isResettingApplication = true;
-          els.form.reset();
-          state.isResettingApplication = false;
+      setStatus(els.entryListStatus, 'Deleting entry...', 'info');
+      await requestJson(`/api/applications/${encodeURIComponent(entryId)}`, { method: 'DELETE' });
+      if (state.editingEntryId === entryId) {
+        clearEntryEditMode('Ready to save entries.', 'info');
+        if (els.entryForm) {
+          state.isResettingEntry = true;
+          els.entryForm.reset();
+          state.isResettingEntry = false;
+          resetEntryDateFields();
           clearAttachmentInputs();
         }
       }
-      setStatus(els.recentStatus, 'Application deleted.', 'success');
-      await Promise.all([refreshDashboard(), refreshRecent()]);
+      setStatus(els.entryListStatus, 'Entry deleted.', 'success');
+      await Promise.all([refreshEntries(), refreshDashboard()]);
     } catch (err) {
-      console.error('Application delete failed', err);
-      setStatus(els.recentStatus, err?.message || 'Unable to delete application.', 'error');
-    }
-  };
-
-  const renderProspects = (items = [], emptyLabel = 'No prospects yet.') => {
-    if (!els.prospectList) return;
-    els.prospectList.innerHTML = '';
-    if (!items.length) {
-      const empty = document.createElement('li');
-      empty.className = 'jobtrack-prospect-empty';
-      empty.textContent = emptyLabel;
-      els.prospectList.appendChild(empty);
-      return;
-    }
-    items.forEach((item) => {
-      const li = document.createElement('li');
-      li.className = 'jobtrack-prospect-item';
-      const title = document.createElement('div');
-      title.className = 'jobtrack-prospect-title';
-      title.textContent = `${item.title || 'Role'} · ${item.company || 'Company'}`;
-      li.appendChild(title);
-
-      const metaBits = [];
-      const statusLabel = toTitle(item.status || 'Active');
-      if (statusLabel) metaBits.push(statusLabel);
-      if (item.location) metaBits.push(item.location);
-      if (item.source) metaBits.push(item.source);
-      if (metaBits.length) {
-        const meta = document.createElement('div');
-        meta.className = 'jobtrack-prospect-meta';
-        meta.textContent = metaBits.join(' · ');
-        li.appendChild(meta);
-      }
-
-      if (item.jobUrl) {
-        const link = document.createElement('a');
-        link.className = 'jobtrack-prospect-link';
-        link.href = item.jobUrl;
-        link.target = '_blank';
-        link.rel = 'noopener';
-        link.textContent = 'Open job posting';
-        li.appendChild(link);
-      }
-
-      if (item.notes) {
-        const notes = document.createElement('p');
-        notes.className = 'jobtrack-prospect-notes';
-        notes.textContent = item.notes;
-        li.appendChild(notes);
-      }
-
-      if (item.applicationId) {
-        const actions = document.createElement('div');
-        actions.className = 'jobtrack-prospect-actions';
-        const editBtn = document.createElement('button');
-        editBtn.type = 'button';
-        editBtn.className = 'btn-ghost jobtrack-prospect-action';
-        editBtn.dataset.jobtrackProspect = 'edit';
-        editBtn.dataset.id = item.applicationId;
-        editBtn.textContent = 'Edit';
-        const applyBtn = document.createElement('button');
-        applyBtn.type = 'button';
-        applyBtn.className = 'btn-ghost jobtrack-prospect-action';
-        applyBtn.dataset.jobtrackProspect = 'apply';
-        applyBtn.dataset.id = item.applicationId;
-        applyBtn.textContent = 'Mark applied';
-        const toggle = document.createElement('button');
-        toggle.type = 'button';
-        toggle.className = 'btn-ghost jobtrack-prospect-action';
-        toggle.dataset.jobtrackProspect = 'toggle';
-        toggle.dataset.id = item.applicationId;
-        const isInactive = (item.status || '').toString().toLowerCase() === 'inactive';
-        toggle.dataset.nextStatus = isInactive ? 'Active' : 'Inactive';
-        toggle.textContent = isInactive ? 'Mark active' : 'Mark inactive';
-        const deleteBtn = document.createElement('button');
-        deleteBtn.type = 'button';
-        deleteBtn.className = 'btn-ghost jobtrack-prospect-action';
-        deleteBtn.dataset.jobtrackProspect = 'delete';
-        deleteBtn.dataset.id = item.applicationId;
-        deleteBtn.textContent = 'Delete';
-        actions.appendChild(editBtn);
-        actions.appendChild(applyBtn);
-        actions.appendChild(toggle);
-        actions.appendChild(deleteBtn);
-        li.appendChild(actions);
-      }
-
-      els.prospectList.appendChild(li);
-    });
-  };
-
-  const refreshProspects = async () => {
-    if (!els.prospectList) return;
-    if (!config.apiBase) {
-      storeProspectItems([]);
-      renderProspects([], 'Set the API base URL to load prospects.');
-      return;
-    }
-    if (!authIsValid(state.auth)) {
-      storeProspectItems([]);
-      renderProspects([], 'Sign in to load prospects.');
-      return;
-    }
-    try {
-      const data = await requestJson('/api/prospects?limit=8');
-      const items = data.items || [];
-      storeProspectItems(items);
-      renderProspects(items);
-    } catch (err) {
-      console.error('Prospect load failed', err);
-      storeProspectItems([]);
-      renderProspects([], 'Unable to load prospects.');
-    }
-  };
-
-  const deleteProspect = async (prospectId) => {
-    if (!prospectId) return;
-    if (!config.apiBase) {
-      setStatus(els.prospectListStatus, 'Set the API base URL to delete prospects.', 'error');
-      return;
-    }
-    if (!authIsValid(state.auth)) {
-      setStatus(els.prospectListStatus, 'Sign in to delete prospects.', 'error');
-      return;
-    }
-    const item = state.prospectItems.get(prospectId);
-    const label = [item?.title, item?.company].filter(Boolean).join(' · ') || 'this prospect';
-    if (!confirmAction(`Delete ${label}? This cannot be undone.`)) return;
-    try {
-      setStatus(els.prospectListStatus, 'Deleting prospect...', 'info');
-      await requestJson(`/api/applications/${encodeURIComponent(prospectId)}`, { method: 'DELETE' });
-      if (state.editingProspectId === prospectId) {
-        clearProspectEditMode();
-        if (els.prospectForm) {
-          state.isResettingProspect = true;
-          els.prospectForm.reset();
-          state.isResettingProspect = false;
-        }
-      }
-      setStatus(els.prospectListStatus, 'Prospect deleted.', 'success');
-      await refreshProspects();
-    } catch (err) {
-      console.error('Prospect delete failed', err);
-      setStatus(els.prospectListStatus, err?.message || 'Unable to delete prospect.', 'error');
+      console.error('Entry delete failed', err);
+      setStatus(els.entryListStatus, err?.message || 'Unable to delete entry.', 'error');
     }
   };
 
   const submitProspect = async (payload) => {
-    if (!els.prospectStatus) return false;
+    if (!els.entryFormStatus) return false;
     if (!authIsValid(state.auth)) {
-      setStatus(els.prospectStatus, 'Sign in to save prospects.', 'error');
+      setStatus(els.entryFormStatus, 'Sign in to save prospects.', 'error');
       return false;
     }
-    const editingId = state.editingProspectId;
+    const editingId = state.editingEntryId;
     try {
-      setStatus(els.prospectStatus, editingId ? 'Updating prospect...' : 'Saving prospect...', 'info');
+      setStatus(els.entryFormStatus, editingId ? 'Updating prospect...' : 'Saving prospect...', 'info');
       if (editingId) {
         await requestJson(`/api/prospects/${encodeURIComponent(editingId)}`, { method: 'PATCH', body: payload });
       } else {
         await requestJson('/api/prospects', { method: 'POST', body: payload });
       }
-      clearProspectEditMode(editingId ? 'Prospect updated.' : 'Prospect saved.', 'success');
+      clearEntryEditMode(editingId ? 'Prospect updated.' : 'Prospect saved.', 'success');
       await sleep(200);
-      await refreshProspects();
+      await refreshEntries();
       return true;
     } catch (err) {
       console.error('Prospect save failed', err);
-      setStatus(els.prospectStatus, err?.message || 'Unable to save prospect.', 'error');
+      setStatus(els.entryFormStatus, err?.message || 'Unable to save prospect.', 'error');
       return false;
     }
   };
@@ -1273,17 +1888,18 @@
     if (item?.location) payload.location = item.location;
     if (item?.source) payload.source = item.source;
     if (item?.postingDate) payload.postingDate = item.postingDate;
+    if (item?.captureDate) payload.captureDate = item.captureDate;
     return payload;
   };
 
-  const convertProspectToApplication = async (payload, prospectId) => {
-    if (!els.prospectStatus) return false;
+  const convertProspectToApplication = async (payload, prospectId, statusEl = null) => {
+    const statusTarget = statusEl || els.entryListStatus || els.entryFormStatus;
     if (!authIsValid(state.auth)) {
-      setStatus(els.prospectStatus, 'Sign in to save applications.', 'error');
+      setStatus(statusTarget, 'Sign in to save applications.', 'error');
       return false;
     }
     try {
-      setStatus(els.prospectStatus, 'Moving prospect to applications...', 'info');
+      setStatus(statusTarget, 'Moving prospect to applications...', 'info');
       await requestJson('/api/applications', { method: 'POST', body: payload });
       let deleteError = null;
       if (prospectId) {
@@ -1293,239 +1909,54 @@
           deleteError = err;
         }
       }
-      clearProspectEditMode(
-        deleteError
-          ? 'Application saved, but the prospect could not be removed.'
-          : (prospectId ? 'Prospect moved to applications.' : 'Application saved.'),
-        deleteError ? 'error' : 'success'
-      );
+      if (deleteError) {
+        setStatus(statusTarget, 'Application saved, but the prospect could not be removed.', 'error');
+      } else {
+        setStatus(statusTarget, prospectId ? 'Prospect moved to applications.' : 'Application saved.', 'success');
+      }
+      clearEntryEditMode();
       await sleep(200);
-      await Promise.all([refreshProspects(), refreshRecent(), refreshDashboard()]);
+      await Promise.all([refreshEntries(), refreshDashboard()]);
       return true;
     } catch (err) {
       console.error('Prospect conversion failed', err);
-      setStatus(els.prospectStatus, err?.message || 'Unable to move prospect to applications.', 'error');
+      setStatus(statusTarget, err?.message || 'Unable to move prospect to applications.', 'error');
       return false;
-    }
-  };
-
-  const updateProspectStatus = async (prospectId, nextStatus) => {
-    if (!prospectId) return;
-    try {
-      setStatus(els.prospectListStatus, 'Updating prospect...', 'info');
-      await requestJson(`/api/prospects/${encodeURIComponent(prospectId)}`, {
-        method: 'PATCH',
-        body: { status: nextStatus }
-      });
-      setStatus(els.prospectListStatus, 'Prospect updated.', 'success');
-      await refreshProspects();
-    } catch (err) {
-      console.error('Prospect update failed', err);
-      setStatus(els.prospectListStatus, err?.message || 'Unable to update prospect.', 'error');
     }
   };
 
   const applyProspect = async (prospectId) => {
     if (!prospectId) return;
-    const item = state.prospectItems.get(prospectId);
+    const item = state.entryItems.get(prospectId);
     if (!item) return;
     if (!authIsValid(state.auth)) {
-      setStatus(els.prospectListStatus, 'Sign in to move prospects.', 'error');
+      setStatus(els.entryListStatus, 'Sign in to move prospects.', 'error');
       return;
     }
     const defaultDate = formatDateInput(new Date());
-    if (typeof window === 'undefined' || typeof window.prompt !== 'function') {
-      setProspectEditMode(item);
-      if (els.prospectAppliedDateInput) {
-        els.prospectAppliedDateInput.value = defaultDate;
-        els.prospectAppliedDateInput.focus();
-      }
-      setStatus(els.prospectStatus, 'Enter an applied date to move this prospect.', 'info');
-      return;
-    }
-    const response = window.prompt('Applied date (YYYY-MM-DD):', defaultDate);
+    const response = typeof window !== 'undefined' && typeof window.prompt === 'function'
+      ? window.prompt('Applied date (YYYY-MM-DD):', defaultDate)
+      : defaultDate;
     if (response === null) return;
     const appliedDate = response.toString().trim();
     if (!appliedDate || !parseDateInput(appliedDate)) {
-      setStatus(els.prospectListStatus, 'Applied date must be valid (YYYY-MM-DD).', 'error');
+      setStatus(els.entryListStatus, 'Applied date must be valid (YYYY-MM-DD).', 'error');
       return;
     }
     const payload = buildApplicationPayloadFromProspect(item, appliedDate);
-    await convertProspectToApplication(payload, prospectId);
-  };
-
-  const initProspects = () => {
-    if (els.prospectForm) {
-      initUnknownDateToggle(els.prospectPostingDateInput, els.prospectPostingUnknownInput, true);
-      resetProspectDateFields();
-      els.prospectForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const formData = new FormData(els.prospectForm);
-        const company = (formData.get('company') || '').toString().trim();
-        const title = (formData.get('title') || '').toString().trim();
-        const jobUrl = normalizeUrl(formData.get('jobUrl'));
-        const location = (formData.get('location') || '').toString().trim();
-        const source = (formData.get('source') || '').toString().trim();
-        const postingDate = (formData.get('postingDate') || '').toString().trim();
-        const postingUnknown = Boolean(formData.get('postingDateUnknown'));
-        const appliedDate = (formData.get('appliedDate') || '').toString().trim();
-        const captureDate = (formData.get('captureDate') || '').toString().trim();
-        const status = (formData.get('status') || 'Active').toString().trim();
-        const notes = (formData.get('notes') || '').toString().trim();
-        if (!company || !title || !jobUrl) {
-          setStatus(els.prospectStatus, 'Company, role title, and job URL are required.', 'error');
-          return;
-        }
-        if (!postingUnknown && !postingDate) {
-          setStatus(els.prospectStatus, 'Add a posting date or mark it as unknown.', 'error');
-          return;
-        }
-        if (postingDate && !parseDateInput(postingDate)) {
-          setStatus(els.prospectStatus, 'Posting date must be valid.', 'error');
-          return;
-        }
-        if (appliedDate && !parseDateInput(appliedDate)) {
-          setStatus(els.prospectStatus, 'Applied date must be valid.', 'error');
-          return;
-        }
-        if (!captureDate) {
-          setStatus(els.prospectStatus, 'Capture date is required.', 'error');
-          return;
-        }
-        if (!parseDateInput(captureDate)) {
-          setStatus(els.prospectStatus, 'Capture date must be valid.', 'error');
-          return;
-        }
-        if (appliedDate) {
-          const applicationPayload = {
-            company,
-            title,
-            appliedDate,
-            status: 'Applied',
-            notes
-          };
-          if (jobUrl) applicationPayload.jobUrl = jobUrl;
-          if (location) applicationPayload.location = location;
-          if (source) applicationPayload.source = source;
-          if (postingUnknown) {
-            applicationPayload.postingDate = null;
-          } else if (postingDate) {
-            applicationPayload.postingDate = postingDate;
-          }
-          const ok = await convertProspectToApplication(applicationPayload, state.editingProspectId);
-          if (ok) {
-            state.isResettingProspect = true;
-            els.prospectForm.reset();
-            state.isResettingProspect = false;
-            resetProspectDateFields();
-          }
-          return;
-        }
-        const payload = { company, title, jobUrl, location, source, status, notes, captureDate };
-        if (postingUnknown) {
-          payload.postingDate = null;
-        } else if (postingDate) {
-          payload.postingDate = postingDate;
-        }
-        const ok = await submitProspect(payload);
-        if (ok) {
-          state.isResettingProspect = true;
-          els.prospectForm.reset();
-          state.isResettingProspect = false;
-          resetProspectDateFields();
-        }
-      });
-      els.prospectForm.addEventListener('reset', () => {
-        if (state.isResettingProspect) return;
-        resetProspectDateFields();
-        clearProspectEditMode();
-      });
-    }
-
-    if (els.prospectRefresh) {
-      els.prospectRefresh.addEventListener('click', () => refreshProspects());
-    }
-
-    if (els.prospectList) {
-      els.prospectList.addEventListener('click', (event) => {
-        const target = event.target && event.target.closest
-          ? event.target.closest('[data-jobtrack-prospect]')
-          : null;
-        if (!target) return;
-        event.preventDefault();
-        const action = target.dataset.jobtrackProspect;
-        const prospectId = (target.dataset.id || '').trim();
-        if (action === 'toggle') {
-          const nextStatus = (target.dataset.nextStatus || 'Inactive').trim();
-          updateProspectStatus(prospectId, nextStatus);
-        } else if (action === 'apply') {
-          applyProspect(prospectId);
-        } else if (action === 'edit') {
-          const item = state.prospectItems.get(prospectId);
-          if (item) setProspectEditMode(item);
-        } else if (action === 'delete') {
-          deleteProspect(prospectId);
-        }
-      });
-    }
-  };
-
-  const initAttachmentDownloads = () => {
-    if (!els.recentList) return;
-    els.recentList.addEventListener('click', async (event) => {
-      const target = event.target && event.target.closest
-        ? event.target.closest('[data-jobtrack-attachment="download"]')
-        : null;
-      if (!target) return;
-      event.preventDefault();
-      const key = (target.dataset.key || '').trim();
-      if (!key) return;
-      try {
-        setStatus(els.recentStatus, 'Preparing download...', 'info');
-        const data = await requestAttachmentDownload(key);
-        if (data?.downloadUrl) {
-          window.open(data.downloadUrl, '_blank', 'noopener');
-          setStatus(els.recentStatus, 'Download ready.', 'success');
-        } else {
-          throw new Error('Download unavailable.');
-        }
-      } catch (err) {
-        console.error('Attachment download failed', err);
-        setStatus(els.recentStatus, err?.message || 'Unable to download attachment.', 'error');
-      }
-    });
-  };
-
-  const initApplicationActions = () => {
-    if (!els.recentList) return;
-    els.recentList.addEventListener('click', (event) => {
-      const target = event.target && event.target.closest
-        ? event.target.closest('[data-jobtrack-application]')
-        : null;
-      if (!target) return;
-      event.preventDefault();
-      const action = target.dataset.jobtrackApplication;
-      const applicationId = (target.dataset.id || '').trim();
-      if (!applicationId) return;
-      if (action === 'edit') {
-        const item = state.recentItems.get(applicationId);
-        if (item) setApplicationEditMode(item);
-      } else if (action === 'delete') {
-        deleteApplication(applicationId);
-      }
-    });
+    await convertProspectToApplication(payload, prospectId, els.entryListStatus);
   };
 
   const submitApplication = async (payload, attachments = []) => {
-    if (!els.formStatus) return false;
+    if (!els.entryFormStatus) return false;
     if (!authIsValid(state.auth)) {
-      setStatus(els.formStatus, 'Sign in to save new applications.', 'error');
+      setStatus(els.entryFormStatus, 'Sign in to save applications.', 'error');
       return false;
     }
-    const editingId = state.editingApplicationId;
-    const editingItem = state.editingApplication;
+    const editingId = state.editingEntryId;
+    const editingItem = state.editingEntry;
     try {
-      setStatus(els.formStatus, editingId ? 'Updating application...' : 'Saving application...', 'info');
+      setStatus(els.entryFormStatus, editingId ? 'Updating application...' : 'Saving application...', 'info');
       let applicationId = editingId;
       let currentAttachments = Array.isArray(editingItem?.attachments) ? editingItem.attachments : [];
       if (editingId) {
@@ -1539,7 +1970,7 @@
       if (attachments.length && applicationId) {
         try {
           const label = attachments.length === 1 ? 'attachment' : 'attachments';
-          setStatus(els.formStatus, `Uploading ${attachments.length} ${label}...`, 'info');
+          setStatus(els.entryFormStatus, `Uploading ${attachments.length} ${label}...`, 'info');
           const uploaded = await uploadAttachments(applicationId, attachments);
           const merged = [...currentAttachments, ...uploaded].slice(-12);
           await requestJson(`/api/applications/${encodeURIComponent(applicationId)}`, {
@@ -1552,32 +1983,47 @@
       }
       if (attachmentError) {
         console.error('Attachment upload failed', attachmentError);
-        clearApplicationEditMode(
+        clearEntryEditMode(
           editingId ? 'Updated application, but attachments failed to upload.' : 'Saved application, but attachments failed to upload.',
           'error'
         );
       } else {
-        clearApplicationEditMode(
+        clearEntryEditMode(
           editingId ? 'Application updated. Refreshing dashboards...' : 'Application saved. Updating dashboards...',
           'success'
         );
       }
       await sleep(200);
-      await Promise.all([refreshDashboard(), refreshRecent()]);
+      await Promise.all([refreshDashboard(), refreshEntries()]);
       return true;
     } catch (err) {
       console.error('Application save failed', err);
-      setStatus(els.formStatus, err?.message || 'Unable to save application.', 'error');
+      setStatus(els.entryFormStatus, err?.message || 'Unable to save application.', 'error');
       return false;
     }
   };
 
-  const initForm = () => {
-    if (!els.form) return;
+  const initEntryForm = () => {
+    if (!els.entryForm) return;
     initUnknownDateToggle(els.postingDateInput, els.postingUnknownInput, true);
-    els.form.addEventListener('submit', async (event) => {
+    setEntryType(state.entryType, { preserveStatus: false });
+    resetEntryDateFields(state.entryType);
+    if (els.entryTypeInputs.length) {
+      els.entryTypeInputs.forEach((input) => {
+        input.addEventListener('change', () => {
+          const nextType = input.value;
+          if (state.editingEntry && getEntryType(state.editingEntry) !== nextType) {
+            clearEntryEditMode('Entry type changed. Start a new entry below.', 'info');
+          }
+          setEntryType(nextType);
+          resetEntryDateFields(nextType);
+        });
+      });
+    }
+    els.entryForm.addEventListener('submit', async (event) => {
       event.preventDefault();
-      const formData = new FormData(els.form);
+      const formData = new FormData(els.entryForm);
+      const entryType = (formData.get('entryType') || state.entryType).toString().trim();
       const company = (formData.get('company') || '').toString().trim();
       const title = (formData.get('title') || '').toString().trim();
       const jobUrl = normalizeUrl(formData.get('jobUrl'));
@@ -1586,49 +2032,104 @@
       const appliedDate = (formData.get('appliedDate') || '').toString().trim();
       const postingDate = (formData.get('postingDate') || '').toString().trim();
       const postingUnknown = Boolean(formData.get('postingDateUnknown'));
-      const status = (formData.get('status') || 'Applied').toString().trim();
+      const captureDate = (formData.get('captureDate') || '').toString().trim();
+      const status = (formData.get('status') || (entryType === 'prospect' ? 'Active' : 'Applied')).toString().trim();
       const notes = (formData.get('notes') || '').toString().trim();
-      if (!company || !title || !appliedDate) {
-        setStatus(els.formStatus, 'Company, role title, and applied date are required.', 'error');
+
+      if (!company || !title) {
+        setStatus(els.entryFormStatus, 'Company and role title are required.', 'error');
         return;
       }
       if (!postingUnknown && !postingDate) {
-        setStatus(els.formStatus, 'Add a posting date or mark it as unknown.', 'error');
+        setStatus(els.entryFormStatus, 'Add a posting date or mark it as unknown.', 'error');
         return;
       }
       if (postingDate && !parseDateInput(postingDate)) {
-        setStatus(els.formStatus, 'Posting date must be valid.', 'error');
+        setStatus(els.entryFormStatus, 'Posting date must be valid.', 'error');
         return;
       }
-      const attachments = collectAttachments();
-      const editing = state.editingApplication;
-      const payload = { company, title, appliedDate, notes };
-      if (jobUrl || editing?.jobUrl) payload.jobUrl = jobUrl;
-      if (location || editing?.location) payload.location = location;
-      if (source || editing?.source) payload.source = source;
+
+      if (entryType === 'application') {
+        if (!appliedDate) {
+          setStatus(els.entryFormStatus, 'Applied date is required for applications.', 'error');
+          return;
+        }
+        if (!parseDateInput(appliedDate)) {
+          setStatus(els.entryFormStatus, 'Applied date must be valid.', 'error');
+          return;
+        }
+        if (captureDate && !parseDateInput(captureDate)) {
+          setStatus(els.entryFormStatus, 'Found date must be valid.', 'error');
+          return;
+        }
+        const attachments = collectAttachments();
+        const editing = state.editingEntry;
+        const payload = { company, title, appliedDate, notes };
+        if (jobUrl || editing?.jobUrl) payload.jobUrl = jobUrl;
+        if (location || editing?.location) payload.location = location;
+        if (source || editing?.source) payload.source = source;
+        if (postingUnknown) {
+          payload.postingDate = null;
+        } else if (postingDate) {
+          payload.postingDate = postingDate;
+        }
+        if (captureDate) {
+          payload.captureDate = captureDate;
+        } else if (editing?.captureDate) {
+          payload.captureDate = null;
+        }
+        const existingStatus = editing?.status ? editing.status.toString().trim().toLowerCase() : '';
+        if (!editing || !existingStatus || status.toLowerCase() !== existingStatus) {
+          payload.status = status;
+        }
+        const ok = await submitApplication(payload, attachments);
+        if (ok) {
+          const nextType = entryType;
+          state.isResettingEntry = true;
+          els.entryForm.reset();
+          state.isResettingEntry = false;
+          clearAttachmentInputs();
+          setEntryType(nextType);
+          resetEntryDateFields(nextType);
+        }
+        return;
+      }
+
+      if (!jobUrl) {
+        setStatus(els.entryFormStatus, 'Job URL is required for prospects.', 'error');
+        return;
+      }
+      if (!captureDate) {
+        setStatus(els.entryFormStatus, 'Found date is required for prospects.', 'error');
+        return;
+      }
+      if (!parseDateInput(captureDate)) {
+        setStatus(els.entryFormStatus, 'Found date must be valid.', 'error');
+        return;
+      }
+      const payload = { company, title, jobUrl, location, source, status, notes, captureDate };
       if (postingUnknown) {
         payload.postingDate = null;
       } else if (postingDate) {
         payload.postingDate = postingDate;
       }
-      const existingStatus = editing?.status ? editing.status.toString().trim().toLowerCase() : '';
-      if (!editing || !existingStatus || status.toLowerCase() !== existingStatus) {
-        payload.status = status;
-      }
-      const ok = await submitApplication(payload, attachments);
+      const ok = await submitProspect(payload);
       if (ok) {
-        state.isResettingApplication = true;
-        els.form.reset();
-        state.isResettingApplication = false;
-        clearAttachmentInputs();
-        resetApplicationDateFields();
+        const nextType = entryType;
+        state.isResettingEntry = true;
+        els.entryForm.reset();
+        state.isResettingEntry = false;
+        setEntryType(nextType);
+        resetEntryDateFields(nextType);
       }
     });
-    els.form.addEventListener('reset', () => {
+    els.entryForm.addEventListener('reset', () => {
       clearAttachmentInputs();
-      resetApplicationDateFields();
-      if (state.isResettingApplication) return;
-      clearApplicationEditMode();
+      const nextType = state.entryType;
+      resetEntryDateFields(nextType);
+      if (state.isResettingEntry) return;
+      setEntryType(nextType);
+      clearEntryEditMode();
     });
   };
 
@@ -1802,7 +2303,7 @@
           const hasIssues = failed || attachmentTotals.failed || missingAttachments.size;
           setStatus(els.importStatus, parts.join(' '), hasIssues ? 'error' : 'success');
           if (success) {
-            await Promise.all([refreshDashboard(), refreshRecent()]);
+            await Promise.all([refreshDashboard(), refreshEntries()]);
           }
           if (els.importFile) els.importFile.value = '';
           if (els.importAttachments) els.importAttachments.value = '';
@@ -1860,12 +2361,18 @@
     if (els.signOut) {
       els.signOut.addEventListener('click', () => {
         clearAuth();
-        clearApplicationEditMode('Sign in to save new applications.', 'info');
-        clearProspectEditMode('Sign in to save prospects.', 'info');
+        clearEntryEditMode('Sign in to save entries.', 'info');
+        if (els.entryForm) {
+          state.isResettingEntry = true;
+          els.entryForm.reset();
+          state.isResettingEntry = false;
+          setEntryType('application');
+          resetEntryDateFields('application');
+          clearAttachmentInputs();
+        }
         updateAuthUI();
         refreshDashboard();
-        refreshRecent();
-        refreshProspects();
+        refreshEntries();
       });
     }
   };
@@ -1873,19 +2380,14 @@
   const init = async () => {
     initTabs();
     initFilters();
-    initForm();
+    initEntryForm();
     initImport();
-    initAttachmentDownloads();
-    initApplicationActions();
-    initProspects();
-    if (els.recentRefresh) {
-      els.recentRefresh.addEventListener('click', () => refreshRecent());
-    }
+    initEntryList();
+    initExport();
     await initAuth();
     updateAuthUI();
     refreshDashboard();
-    refreshRecent();
-    refreshProspects();
+    refreshEntries();
   };
 
   init();

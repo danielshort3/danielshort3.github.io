@@ -209,10 +209,48 @@
     gap:clamp(18px,3vw,28px);
     grid-template-columns:minmax(0,1fr);
   }
-  @media (min-width: 980px) {
-    .jobtrack-entry-grid{
-      grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);
-    }
+
+  .jobtrack-segmented{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    padding:6px;
+    border-radius:999px;
+    border:1px solid color-mix(in srgb,var(--jobtrack-accent) 24%, transparent);
+    background:color-mix(in srgb,var(--jobtrack-surface) 88%, #050b12 12%);
+  }
+  .jobtrack-segmented-option{
+    position:relative;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:6px 16px;
+    border-radius:999px;
+    font-weight:600;
+    color:var(--text-muted);
+    cursor:pointer;
+    transition:background .2s ease,color .2s ease;
+  }
+  .jobtrack-segmented-input{
+    position:absolute;
+    opacity:0;
+    pointer-events:none;
+  }
+  .jobtrack-segmented-input:focus-visible + span{
+    outline:2px solid color-mix(in srgb,var(--jobtrack-accent) 70%, #ffffff 30%);
+    outline-offset:4px;
+    border-radius:999px;
+  }
+  .jobtrack-segmented-input:checked + span{
+    color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
+  }
+  .jobtrack-segmented-option span{
+    display:block;
+    padding:6px 10px;
+    border-radius:999px;
+  }
+  .jobtrack-segmented-input:checked + span{
+    background:color-mix(in srgb,var(--jobtrack-accent) 30%, transparent);
   }
 
   .jobtrack-form{
@@ -319,6 +357,103 @@
     border-top:1px solid color-mix(in srgb,var(--jobtrack-accent) 18%, transparent);
     display:grid;
     gap:12px;
+  }
+
+  .jobtrack-table-scroll{
+    overflow-x:auto;
+    border-radius:16px;
+    border:1px solid color-mix(in srgb,var(--jobtrack-accent) 18%, transparent);
+    background:color-mix(in srgb,var(--jobtrack-surface) 92%, #02060c 8%);
+  }
+  .jobtrack-table{
+    min-width:980px;
+    display:grid;
+    gap:0;
+  }
+  .jobtrack-table-head,
+  .jobtrack-table-row{
+    display:grid;
+    grid-template-columns:120px 180px 200px 140px 180px 120px 160px 160px 160px;
+    align-items:center;
+  }
+  .jobtrack-table-head{
+    position:sticky;
+    top:0;
+    z-index:1;
+    background:color-mix(in srgb,var(--jobtrack-surface) 92%, #050b12 8%);
+    border-bottom:1px solid color-mix(in srgb,var(--jobtrack-accent) 20%, transparent);
+  }
+  .jobtrack-table-cell{
+    padding:12px 14px;
+    font-size:.92rem;
+    color:var(--text-muted);
+    border-right:1px solid color-mix(in srgb,var(--jobtrack-accent) 12%, transparent);
+  }
+  .jobtrack-table-cell:last-child{
+    border-right:0;
+  }
+  .jobtrack-table-header{
+    background:transparent;
+    border:0;
+    text-align:left;
+    font-weight:600;
+    font-size:.8rem;
+    text-transform:uppercase;
+    letter-spacing:.18em;
+    color:color-mix(in srgb,var(--text-light) 85%, #ffffff 15%);
+    cursor:pointer;
+  }
+  .jobtrack-table-header::after{
+    content:'';
+    margin-left:6px;
+    font-size:.75rem;
+    opacity:.6;
+  }
+  .jobtrack-table-header[aria-sort="ascending"]::after{
+    content:'▲';
+  }
+  .jobtrack-table-header[aria-sort="descending"]::after{
+    content:'▼';
+  }
+  .jobtrack-table-body{
+    display:grid;
+  }
+  .jobtrack-table-row{
+    border-bottom:1px solid color-mix(in srgb,var(--jobtrack-accent) 12%, transparent);
+    background:color-mix(in srgb,var(--jobtrack-surface) 94%, #01060c 6%);
+  }
+  .jobtrack-table-row:last-child{
+    border-bottom:0;
+  }
+  .jobtrack-table-row .jobtrack-table-cell{
+    color:var(--text-light);
+    font-size:.93rem;
+  }
+  .jobtrack-table-actions{
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+  }
+  .jobtrack-pill{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:4px 10px;
+    border-radius:999px;
+    font-size:.76rem;
+    font-weight:600;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    background:color-mix(in srgb,var(--jobtrack-accent) 28%, transparent);
+    color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
+  }
+  .jobtrack-pill[data-tone="prospect"]{
+    background:color-mix(in srgb,var(--jobtrack-accent) 12%, var(--jobtrack-surface) 88%);
+    color:var(--text-muted);
+  }
+  .jobtrack-table-empty{
+    padding:16px;
+    color:var(--text-muted);
   }
   .jobtrack-import-actions{
     display:grid;
@@ -432,6 +567,19 @@
 
   .jobtrack-dashboard-head{
     gap:24px;
+  }
+  .jobtrack-insights-panel{
+    gap:16px;
+  }
+  .jobtrack-insight-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:14px;
+  }
+  .jobtrack-kpi-meta{
+    margin:0;
+    font-size:.82rem;
+    color:var(--text-muted);
   }
   .jobtrack-filter{
     display:grid;
@@ -596,6 +744,52 @@
   }
   .jobtrack-dashboard-status[data-tone="success"]{
     color:var(--success);
+  }
+
+  .jobtrack-map{
+    width:100%;
+    min-height:220px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .jobtrack-map-svg{
+    width:100%;
+    height:auto;
+  }
+  .jobtrack-map-placeholder{
+    color:var(--text-muted);
+    font-size:.95rem;
+  }
+  .jobtrack-map-svg .state path,
+  .jobtrack-map-svg .state circle{
+    fill:var(--jobtrack-heat-0);
+    stroke:color-mix(in srgb,var(--jobtrack-accent) 18%, transparent);
+    stroke-width:1;
+    transition:fill .2s ease;
+  }
+  .jobtrack-map-svg .state path[data-intensity="1"],
+  .jobtrack-map-svg .state circle[data-intensity="1"]{fill:var(--jobtrack-heat-1);}
+  .jobtrack-map-svg .state path[data-intensity="2"],
+  .jobtrack-map-svg .state circle[data-intensity="2"]{fill:var(--jobtrack-heat-2);}
+  .jobtrack-map-svg .state path[data-intensity="3"],
+  .jobtrack-map-svg .state circle[data-intensity="3"]{fill:var(--jobtrack-heat-3);}
+  .jobtrack-map-svg .state path[data-intensity="4"],
+  .jobtrack-map-svg .state circle[data-intensity="4"]{fill:var(--jobtrack-heat-4);}
+  .jobtrack-map-svg .borders,
+  .jobtrack-map-svg .separator1{
+    stroke:color-mix(in srgb,var(--jobtrack-accent) 24%, transparent);
+    stroke-width:1;
+  }
+  .jobtrack-map-legend{
+    justify-content:flex-end;
+  }
+
+  .jobtrack-auth-actions button[disabled],
+  .jobtrack-tab[disabled]{
+    opacity:.55;
+    cursor:not-allowed;
+    pointer-events:none;
   }
 
   @media (prefers-reduced-motion: reduce) {

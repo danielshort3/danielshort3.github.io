@@ -130,6 +130,15 @@ try {
   });
 
   section('Job tracker UI additions', () => {
+    checkFileContains('pages/job-application-tracker.html', 'data-jobtrack-tab="account"');
+    checkFileContains('pages/job-application-tracker.html', 'data-jobtrack-tab="entries"');
+    checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="entry-form"');
+    checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="entry-type"');
+    checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="entry-list"');
+    checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="entry-filter-query"');
+    checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="export-submit"');
+    checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="map"');
+    checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="kpi-found-to-applied"');
     checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-import-file"');
     checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="import-submit"');
     checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-resume"');
@@ -139,16 +148,6 @@ try {
     checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-job-url"');
     checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-location"');
     checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-source"');
-    checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="recent-status"');
-    checkFileContains('pages/job-application-tracker.html', 'data-jobtrack-tab="applications"');
-    checkFileContains('pages/job-application-tracker.html', 'data-jobtrack-tab="prospects"');
-    checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="prospect-form"');
-    checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-prospect-url"');
-    checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-prospect-posting-date"');
-    checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-prospect-posting-unknown"');
-    checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-prospect-applied-date"');
-    checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-prospect-capture-date"');
-    checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="prospect-list"');
   });
 
   section('Data contracts', () => {
