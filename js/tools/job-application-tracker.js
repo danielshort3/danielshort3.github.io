@@ -1149,6 +1149,12 @@
         editBtn.dataset.jobtrackProspect = 'edit';
         editBtn.dataset.id = item.applicationId;
         editBtn.textContent = 'Edit';
+        const applyBtn = document.createElement('button');
+        applyBtn.type = 'button';
+        applyBtn.className = 'btn-ghost jobtrack-prospect-action';
+        applyBtn.dataset.jobtrackProspect = 'apply';
+        applyBtn.dataset.id = item.applicationId;
+        applyBtn.textContent = 'Mark applied';
         const toggle = document.createElement('button');
         toggle.type = 'button';
         toggle.className = 'btn-ghost jobtrack-prospect-action';
@@ -1164,6 +1170,7 @@
         deleteBtn.dataset.id = item.applicationId;
         deleteBtn.textContent = 'Delete';
         actions.appendChild(editBtn);
+        actions.appendChild(applyBtn);
         actions.appendChild(toggle);
         actions.appendChild(deleteBtn);
         li.appendChild(actions);
@@ -1254,6 +1261,21 @@
     }
   };
 
+  const buildApplicationPayloadFromProspect = (item, appliedDate) => {
+    const payload = {
+      company: (item?.company || '').toString().trim(),
+      title: (item?.title || '').toString().trim(),
+      appliedDate,
+      status: 'Applied',
+      notes: (item?.notes || '').toString().trim()
+    };
+    if (item?.jobUrl) payload.jobUrl = item.jobUrl;
+    if (item?.location) payload.location = item.location;
+    if (item?.source) payload.source = item.source;
+    if (item?.postingDate) payload.postingDate = item.postingDate;
+    return payload;
+  };
+
   const convertProspectToApplication = async (payload, prospectId) => {
     if (!els.prospectStatus) return false;
     if (!authIsValid(state.auth)) {
@@ -1301,6 +1323,35 @@
       console.error('Prospect update failed', err);
       setStatus(els.prospectListStatus, err?.message || 'Unable to update prospect.', 'error');
     }
+  };
+
+  const applyProspect = async (prospectId) => {
+    if (!prospectId) return;
+    const item = state.prospectItems.get(prospectId);
+    if (!item) return;
+    if (!authIsValid(state.auth)) {
+      setStatus(els.prospectListStatus, 'Sign in to move prospects.', 'error');
+      return;
+    }
+    const defaultDate = formatDateInput(new Date());
+    if (typeof window === 'undefined' || typeof window.prompt !== 'function') {
+      setProspectEditMode(item);
+      if (els.prospectAppliedDateInput) {
+        els.prospectAppliedDateInput.value = defaultDate;
+        els.prospectAppliedDateInput.focus();
+      }
+      setStatus(els.prospectStatus, 'Enter an applied date to move this prospect.', 'info');
+      return;
+    }
+    const response = window.prompt('Applied date (YYYY-MM-DD):', defaultDate);
+    if (response === null) return;
+    const appliedDate = response.toString().trim();
+    if (!appliedDate || !parseDateInput(appliedDate)) {
+      setStatus(els.prospectListStatus, 'Applied date must be valid (YYYY-MM-DD).', 'error');
+      return;
+    }
+    const payload = buildApplicationPayloadFromProspect(item, appliedDate);
+    await convertProspectToApplication(payload, prospectId);
   };
 
   const initProspects = () => {
@@ -1407,6 +1458,8 @@
         if (action === 'toggle') {
           const nextStatus = (target.dataset.nextStatus || 'Inactive').trim();
           updateProspectStatus(prospectId, nextStatus);
+        } else if (action === 'apply') {
+          applyProspect(prospectId);
         } else if (action === 'edit') {
           const item = state.prospectItems.get(prospectId);
           if (item) setProspectEditMode(item);
