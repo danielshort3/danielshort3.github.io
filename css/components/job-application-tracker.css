@@ -977,6 +977,14 @@
     stroke:color-mix(in srgb,var(--jobtrack-accent) 65%, transparent);
     stroke-width:1.5;
   }
+  .jobtrack-map-svg .state path:focus,
+  .jobtrack-map-svg .state circle:focus,
+  .jobtrack-map-svg .state path:focus-visible,
+  .jobtrack-map-svg .state circle:focus-visible{
+    outline:none;
+    stroke:color-mix(in srgb,var(--jobtrack-accent) 65%, transparent);
+    stroke-width:1.5;
+  }
   .jobtrack-map-svg .state path[data-intensity="1"],
   .jobtrack-map-svg .state circle[data-intensity="1"]{fill:var(--jobtrack-heat-1);}
   .jobtrack-map-svg .state path[data-intensity="2"],
