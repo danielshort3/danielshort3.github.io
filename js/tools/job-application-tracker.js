@@ -49,6 +49,9 @@
     importSubmit: $('[data-jobtrack="import-submit"]'),
     importTemplate: $('[data-jobtrack="import-template"]'),
     importStatus: $('[data-jobtrack="import-status"]'),
+    importProgressWrap: $('[data-jobtrack="import-progress-wrap"]'),
+    importProgressLabel: $('[data-jobtrack="import-progress-label"]'),
+    importProgress: $('[data-jobtrack="import-progress"]'),
     prospectImportFile: $('#jobtrack-prospect-import-file'),
     prospectImportSubmit: $('[data-jobtrack="prospect-import-submit"]'),
     prospectImportTemplate: $('[data-jobtrack="prospect-import-template"]'),
@@ -540,6 +543,28 @@
     }
   };
 
+  const setImportProgress = (value, max, label) => {
+    if (!els.importProgress || !els.importProgressWrap) return;
+    const safeMax = Math.max(1, Number.isFinite(max) ? Math.floor(max) : 1);
+    const safeValue = Math.max(0, Math.min(Number.isFinite(value) ? Math.floor(value) : 0, safeMax));
+    els.importProgress.max = safeMax;
+    els.importProgress.value = safeValue;
+    els.importProgressWrap.dataset.state = 'visible';
+    if (els.importProgressLabel && label) {
+      els.importProgressLabel.textContent = label;
+    }
+  };
+
+  const resetImportProgress = (label = 'Upload progress') => {
+    if (!els.importProgress || !els.importProgressWrap) return;
+    els.importProgressWrap.dataset.state = 'hidden';
+    els.importProgress.max = 1;
+    els.importProgress.value = 0;
+    if (els.importProgressLabel) {
+      els.importProgressLabel.textContent = label;
+    }
+  };
+
   const setOverlay = (el, message) => {
     if (!el) return;
     if (!message) {
@@ -947,11 +972,17 @@
     };
   };
 
-  const uploadAttachments = async (applicationId, attachments = []) => {
+  const uploadAttachments = async (applicationId, attachments = [], onProgress) => {
     const uploaded = [];
     for (const attachment of attachments) {
-      const item = await uploadAttachment(applicationId, attachment);
-      uploaded.push(item);
+      try {
+        const item = await uploadAttachment(applicationId, attachment);
+        uploaded.push(item);
+        if (onProgress) onProgress({ ok: true, attachment, item });
+      } catch (err) {
+        if (onProgress) onProgress({ ok: false, attachment, error: err });
+        throw err;
+      }
     }
     return uploaded;
   };
@@ -1000,6 +1031,55 @@
     if (els.kpiRejections) els.kpiRejections.textContent = summary.rejections ?? 0;
   };
 
+  const startOfWeek = (date) => {
+    const start = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+    const day = start.getUTCDay();
+    const diff = (day + 6) % 7;
+    start.setUTCDate(start.getUTCDate() - diff);
+    return start;
+  };
+
+  const formatWeekLabel = (start, end) => {
+    const includeYear = start.getUTCFullYear() !== end.getUTCFullYear();
+    if (start.getUTCMonth() === end.getUTCMonth() && start.getUTCFullYear() === end.getUTCFullYear()) {
+      const month = start.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' });
+      const yearSuffix = includeYear ? `, ${start.getUTCFullYear()}` : '';
+      return `${month} ${start.getUTCDate()}–${end.getUTCDate()}${yearSuffix}`;
+    }
+    const options = includeYear
+      ? { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }
+      : { month: 'short', day: 'numeric', timeZone: 'UTC' };
+    const startLabel = start.toLocaleDateString('en-US', options);
+    const endLabel = end.toLocaleDateString('en-US', options);
+    return `${startLabel}–${endLabel}`;
+  };
+
+  const groupSeriesByWeek = (series = []) => {
+    const buckets = new Map();
+    series.forEach((item) => {
+      const date = parseDateInput(item?.date);
+      if (!date) return;
+      const weekStart = startOfWeek(date);
+      const key = formatDateInput(weekStart);
+      const bucket = buckets.get(key) || {
+        start: weekStart,
+        minDate: date,
+        maxDate: date,
+        count: 0
+      };
+      bucket.count += item?.count || 0;
+      if (date < bucket.minDate) bucket.minDate = date;
+      if (date > bucket.maxDate) bucket.maxDate = date;
+      buckets.set(key, bucket);
+    });
+    return Array.from(buckets.values())
+      .sort((a, b) => a.start - b.start)
+      .map(bucket => ({
+        label: formatWeekLabel(bucket.minDate, bucket.maxDate),
+        count: bucket.count
+      }));
+  };
+
   const updateLineChart = (series, rangeLabel) => {
     if (els.lineRange) els.lineRange.textContent = rangeLabel;
     if (els.lineTotal) {
@@ -1008,8 +1088,9 @@
     }
     const ctx = document.getElementById('jobtrack-line-chart');
     if (!ctx || !window.Chart) return;
-    const labels = series.map(item => item.date);
-    const data = series.map(item => item.count);
+    const weeklySeries = groupSeriesByWeek(series);
+    const labels = weeklySeries.map(item => item.label);
+    const data = weeklySeries.map(item => item.count);
     const accent = readCssVar('--jobtrack-accent', '#2396AD');
     const grid = toRgba('#ffffff', 0.08);
     const text = readCssVar('--text-muted', '#BFC8D3');
@@ -2604,6 +2685,7 @@
     }
     if (els.importSubmit) {
       els.importSubmit.addEventListener('click', async () => {
+        resetImportProgress();
         if (!authIsValid(state.auth)) {
           setStatus(els.importStatus, 'Sign in to import applications.', 'error');
           return;
@@ -2630,40 +2712,63 @@
             return;
           }
           const attachmentLookup = buildImportAttachmentMap(Array.from(els.importAttachments?.files || []));
+          const totalEntries = entries.length;
+          const totalAttachments = entries.reduce((sum, entry) => {
+            const resumeKey = (entry.resumeFile || '').toString().trim().toLowerCase();
+            const coverKey = (entry.coverLetterFile || '').toString().trim().toLowerCase();
+            return sum
+              + (resumeKey && attachmentLookup.has(resumeKey) ? 1 : 0)
+              + (coverKey && attachmentLookup.has(coverKey) ? 1 : 0);
+          }, 0);
+          let entriesProcessed = 0;
+          let attachmentsProcessed = 0;
+          const updateProgress = () => {
+            const label = totalAttachments
+              ? `Uploading ${attachmentsProcessed}/${totalAttachments} attachments · ${entriesProcessed}/${totalEntries} entries`
+              : `Importing ${entriesProcessed}/${totalEntries} applications`;
+            setImportProgress(entriesProcessed, totalEntries, label);
+          };
+          updateProgress();
           const missingAttachments = new Set();
-          const attachmentRequests = entries.reduce((total, entry) => total
-            + (entry.resumeFile ? 1 : 0)
-            + (entry.coverLetterFile ? 1 : 0), 0);
-          const importLabel = attachmentRequests
-            ? `Importing ${entries.length} applications and ${attachmentRequests} attachments...`
+          const importLabel = totalAttachments
+            ? `Importing ${entries.length} applications and ${totalAttachments} attachments...`
             : `Importing ${entries.length} applications...`;
           setStatus(els.importStatus, importLabel, 'info');
+          const handleAttachmentProgress = () => {
+            attachmentsProcessed += 1;
+            updateProgress();
+          };
           const results = await runWithConcurrency(entries, 3, async (entry) => {
-            const created = await requestJson('/api/applications', {
-              method: 'POST',
-              body: entry.payload
-            });
-            const applicationId = created?.applicationId;
-            const attachments = [];
-            const resumeFile = resolveImportAttachment(entry.resumeFile, attachmentLookup, missingAttachments);
-            if (resumeFile) attachments.push({ file: resumeFile, kind: 'resume' });
-            const coverFile = resolveImportAttachment(entry.coverLetterFile, attachmentLookup, missingAttachments);
-            if (coverFile) attachments.push({ file: coverFile, kind: 'cover-letter' });
             let attachmentsUploaded = 0;
             let attachmentsFailed = 0;
-            if (attachments.length && applicationId) {
-              try {
-                const uploaded = await uploadAttachments(applicationId, attachments);
-                await requestJson(`/api/applications/${encodeURIComponent(applicationId)}`, {
-                  method: 'PATCH',
-                  body: { attachments: uploaded }
-                });
-                attachmentsUploaded = uploaded.length;
-              } catch {
+            try {
+              const created = await requestJson('/api/applications', {
+                method: 'POST',
+                body: entry.payload
+              });
+              const applicationId = created?.applicationId;
+              const attachments = [];
+              const resumeFile = resolveImportAttachment(entry.resumeFile, attachmentLookup, missingAttachments);
+              if (resumeFile) attachments.push({ file: resumeFile, kind: 'resume' });
+              const coverFile = resolveImportAttachment(entry.coverLetterFile, attachmentLookup, missingAttachments);
+              if (coverFile) attachments.push({ file: coverFile, kind: 'cover-letter' });
+              if (attachments.length && applicationId) {
+                try {
+                  const uploaded = await uploadAttachments(applicationId, attachments, handleAttachmentProgress);
+                  await requestJson(`/api/applications/${encodeURIComponent(applicationId)}`, {
+                    method: 'PATCH',
+                    body: { attachments: uploaded }
+                  });
+                  attachmentsUploaded = uploaded.length;
+                } catch {
+                  attachmentsFailed = attachments.length;
+                }
+              } else if (attachments.length && !applicationId) {
                 attachmentsFailed = attachments.length;
               }
-            } else if (attachments.length && !applicationId) {
-              attachmentsFailed = attachments.length;
+            } finally {
+              entriesProcessed += 1;
+              updateProgress();
             }
             return { attachmentsUploaded, attachmentsFailed };
           });
@@ -2693,6 +2798,12 @@
           }
           const hasIssues = failed || attachmentTotals.failed || missingAttachments.size;
           setStatus(els.importStatus, parts.join(' '), hasIssues ? 'error' : 'success');
+          if (totalEntries) {
+            const finalLabel = totalAttachments
+              ? `Uploaded ${attachmentsProcessed}/${totalAttachments} attachments · ${entriesProcessed}/${totalEntries} entries`
+              : `Imported ${entriesProcessed}/${totalEntries} applications`;
+            setImportProgress(entriesProcessed, totalEntries, finalLabel);
+          }
           if (success) {
             await Promise.all([refreshDashboard(), refreshEntries()]);
           }
