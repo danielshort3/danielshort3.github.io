@@ -306,6 +306,7 @@
   .jobtrack-select,
   .jobtrack-textarea{
     width:100%;
+    box-sizing:border-box;
     border-radius:12px;
     border:1px solid color-mix(in srgb,var(--jobtrack-accent) 22%, transparent);
     background:color-mix(in srgb,var(--surface) 90%, #050b12 10%);
@@ -320,6 +321,7 @@
   }
   .jobtrack-file-input{
     padding:8px 12px;
+    box-sizing:border-box;
   }
   .jobtrack-file-input::file-selector-button{
     margin-right:10px;
@@ -460,6 +462,7 @@
     color:var(--text-muted);
     border-right:1px solid color-mix(in srgb,var(--jobtrack-accent) 12%, transparent);
     min-width:0;
+    box-sizing:border-box;
     overflow-wrap:anywhere;
     word-break:break-word;
   }
@@ -862,6 +865,7 @@
     border-radius:3px;
     background:var(--jobtrack-heat-0);
     border:1px solid color-mix(in srgb,var(--jobtrack-accent) 8%, transparent);
+    box-sizing:border-box;
     cursor:pointer;
   }
   .jobtrack-calendar-day[data-empty="true"]{
@@ -896,6 +900,7 @@
     border-radius:6px;
     background:var(--jobtrack-heat-0);
     border:1px solid color-mix(in srgb,var(--jobtrack-accent) 8%, transparent);
+    box-sizing:border-box;
     cursor:pointer;
   }
   .jobtrack-weekday-cell[data-intensity="1"]{background:var(--jobtrack-heat-1);}
@@ -925,6 +930,7 @@
     border-radius:3px;
     background:var(--jobtrack-heat-0);
     border:1px solid color-mix(in srgb,var(--jobtrack-accent) 8%, transparent);
+    box-sizing:border-box;
   }
   .jobtrack-legend-swatches span[data-intensity="1"]{background:var(--jobtrack-heat-1);}
   .jobtrack-legend-swatches span[data-intensity="2"]{background:var(--jobtrack-heat-2);}
