@@ -321,6 +321,7 @@ const buildExportData = (items, userId) => {
       jobUrl: (item.jobUrl || '').toString().trim(),
       location: (item.location || '').toString().trim(),
       source: (item.source || '').toString().trim(),
+      batch: (item.batch || '').toString().trim(),
       postingDate: (item.postingDate || '').toString().trim(),
       captureDate: (item.captureDate || '').toString().trim(),
       appliedDate: (item.appliedDate || '').toString().trim(),
@@ -346,6 +347,7 @@ const buildExportCsv = (items) => {
     'captureDate',
     'appliedDate',
     'status',
+    'batch',
     'notes',
     'attachments'
   ];
@@ -365,6 +367,7 @@ const buildExportCsv = (items) => {
       item.captureDate,
       item.appliedDate,
       item.status,
+      item.batch,
       item.notes,
       attachmentList
     ];
@@ -385,11 +388,19 @@ const handleCreateApplication = async (userId, payload = {}) => {
   const status = normalizeStatus(payload.status || 'Applied');
   const postingDateRaw = payload.postingDate;
   const captureDateRaw = payload.captureDate;
+  const statusDateRaw = payload.statusDate;
   const jobUrl = normalizeUrl(payload.jobUrl || payload.url);
   const location = (payload.location || '').toString().trim();
   const source = (payload.source || '').toString().trim();
+  const batch = (payload.batch || '').toString().trim();
   const attachments = normalizeAttachments(userId, payload.attachments);
   const now = nowIso();
+  let statusHistoryDate = now;
+  if (statusDateRaw !== undefined && statusDateRaw !== null && statusDateRaw !== '') {
+    const parsedStatusDate = parseDate(statusDateRaw);
+    if (!parsedStatusDate) throw httpError(400, 'statusDate must be YYYY-MM-DD.');
+    statusHistoryDate = formatDate(parsedStatusDate);
+  }
   const applicationId = `APP#${Date.now()}#${randomUUID()}`;
   const item = {
     userId,
@@ -400,7 +411,7 @@ const handleCreateApplication = async (userId, payload = {}) => {
     appliedDate: formatDate(parsedDate),
     status,
     notes: (payload.notes || '').toString().trim(),
-    statusHistory: [{ status, date: now }],
+    statusHistory: [{ status, date: statusHistoryDate }],
     createdAt: now,
     updatedAt: now
   };
@@ -417,6 +428,7 @@ const handleCreateApplication = async (userId, payload = {}) => {
   if (jobUrl) item.jobUrl = jobUrl;
   if (location) item.location = location;
   if (source) item.source = source;
+  if (batch) item.batch = batch;
   if (attachments.length) item.attachments = attachments;
   await dynamo.send(new PutCommand({
     TableName: APPLICATIONS_TABLE,
@@ -435,6 +447,8 @@ const handleCreateProspect = async (userId, payload = {}) => {
   const status = normalizeStatus(payload.status || 'Active');
   const postingDateRaw = payload.postingDate;
   const captureDateRaw = payload.captureDate;
+  const statusDateRaw = payload.statusDate;
+  const batch = (payload.batch || '').toString().trim();
   let captureDate = new Date();
   if (captureDateRaw) {
     const parsedCapture = parseDate(captureDateRaw);
@@ -442,6 +456,12 @@ const handleCreateProspect = async (userId, payload = {}) => {
     captureDate = parsedCapture;
   }
   const now = nowIso();
+  let statusHistoryDate = now;
+  if (statusDateRaw !== undefined && statusDateRaw !== null && statusDateRaw !== '') {
+    const parsedStatusDate = parseDate(statusDateRaw);
+    if (!parsedStatusDate) throw httpError(400, 'statusDate must be YYYY-MM-DD.');
+    statusHistoryDate = formatDate(parsedStatusDate);
+  }
   const prospectId = `PROSPECT#${Date.now()}#${randomUUID()}`;
   const item = {
     userId,
@@ -455,6 +475,7 @@ const handleCreateProspect = async (userId, payload = {}) => {
     status,
     notes: (payload.notes || '').toString().trim(),
     captureDate: formatDate(captureDate),
+    statusHistory: [{ status, date: statusHistoryDate }],
     createdAt: now,
     updatedAt: now
   };
@@ -463,6 +484,7 @@ const handleCreateProspect = async (userId, payload = {}) => {
     if (!postingDate) throw httpError(400, 'postingDate must be YYYY-MM-DD.');
     item.postingDate = formatDate(postingDate);
   }
+  if (batch) item.batch = batch;
   await dynamo.send(new PutCommand({
     TableName: APPLICATIONS_TABLE,
     Item: item
@@ -476,6 +498,16 @@ const handleUpdateProspect = async (userId, applicationId, payload = {}) => {
   const removeFields = [];
   const names = {};
   const values = { ':updatedAt': nowIso() };
+  const pushStatus = payload.status ? normalizeStatus(payload.status) : null;
+  let statusHistoryDate = values[':updatedAt'];
+  if (payload.statusDate !== undefined) {
+    if (!pushStatus) throw httpError(400, 'statusDate requires status.');
+    if (payload.statusDate) {
+      const parsedStatusDate = parseDate(payload.statusDate);
+      if (!parsedStatusDate) throw httpError(400, 'statusDate must be YYYY-MM-DD.');
+      statusHistoryDate = formatDate(parsedStatusDate);
+    }
+  }
 
   const addField = (key, value) => {
     if (value === undefined || value === null) return;
@@ -483,6 +515,19 @@ const handleUpdateProspect = async (userId, applicationId, payload = {}) => {
     const valueKey = `:${key}`;
     names[nameKey] = key;
     values[valueKey] = value;
+    updates.push(`${nameKey} = ${valueKey}`);
+  };
+  const addOptionalField = (key, value) => {
+    if (value === undefined) return;
+    const trimmed = (value || '').toString().trim();
+    const nameKey = `#${key}`;
+    names[nameKey] = key;
+    if (!trimmed) {
+      removeFields.push(nameKey);
+      return;
+    }
+    const valueKey = `:${key}`;
+    values[valueKey] = trimmed;
     updates.push(`${nameKey} = ${valueKey}`);
   };
   const addDateField = (key, value) => {
@@ -507,11 +552,16 @@ const handleUpdateProspect = async (userId, applicationId, payload = {}) => {
   }
   addField('location', payload.location?.toString().trim());
   addField('source', payload.source?.toString().trim());
+  addOptionalField('batch', payload.batch);
   addDateField('postingDate', payload.postingDate);
   addDateField('captureDate', payload.captureDate);
   addField('notes', payload.notes?.toString().trim());
-  if (payload.status) {
-    addField('status', normalizeStatus(payload.status));
+  if (pushStatus) {
+    addField('status', pushStatus);
+    names['#statusHistory'] = 'statusHistory';
+    values[':empty'] = [];
+    values[':statusEntry'] = [{ status: pushStatus, date: statusHistoryDate }];
+    updates.push('#statusHistory = list_append(if_not_exists(#statusHistory, :empty), :statusEntry)');
   }
 
   updates.push('#updatedAt = :updatedAt');
@@ -558,6 +608,19 @@ const handleUpdateApplication = async (userId, applicationId, payload = {}) => {
     values[valueKey] = value;
     updates.push(`${nameKey} = ${valueKey}`);
   };
+  const addOptionalField = (key, value) => {
+    if (value === undefined) return;
+    const trimmed = (value || '').toString().trim();
+    const nameKey = `#${key}`;
+    names[nameKey] = key;
+    if (!trimmed) {
+      removeFields.push(nameKey);
+      return;
+    }
+    const valueKey = `:${key}`;
+    values[valueKey] = trimmed;
+    updates.push(`${nameKey} = ${valueKey}`);
+  };
   const addDateField = (key, value) => {
     if (value === undefined) return;
     if (value === null || value === '') {
@@ -586,6 +649,7 @@ const handleUpdateApplication = async (userId, applicationId, payload = {}) => {
   }
   addField('location', payload.location?.toString().trim());
   addField('source', payload.source?.toString().trim());
+  addOptionalField('batch', payload.batch);
   addField('notes', payload.notes?.toString().trim());
   if (payload.attachments) {
     const attachments = normalizeAttachments(userId, payload.attachments);

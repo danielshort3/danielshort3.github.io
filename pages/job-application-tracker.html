@@ -165,6 +165,10 @@
                       <input id="jobtrack-source" class="jobtrack-input" name="source" type="text" placeholder="LinkedIn, referral, company site">
                     </div>
                     <div class="jobtrack-field">
+                      <label class="jobtrack-label" for="jobtrack-batch">Batch (optional)</label>
+                      <input id="jobtrack-batch" class="jobtrack-input" name="batch" type="text" placeholder="Spring outreach 2025">
+                    </div>
+                    <div class="jobtrack-field">
                       <label class="jobtrack-label" for="jobtrack-posting-date">Posting date</label>
                       <input id="jobtrack-posting-date" class="jobtrack-input" name="postingDate" type="date">
                       <label class="jobtrack-checkbox">
@@ -298,6 +302,7 @@
                   </div>
                   <div class="jobtrack-panel-actions">
                     <span class="jobtrack-selected-count" data-jobtrack="entry-selected-count">0 selected</span>
+                    <span class="jobtrack-entry-count" data-jobtrack="entry-count">0 entries</span>
                     <div class="jobtrack-bulk-status">
                       <label class="jobtrack-label" for="jobtrack-bulk-status">Update status</label>
                       <select id="jobtrack-bulk-status" class="jobtrack-select" data-jobtrack="bulk-status">
@@ -321,7 +326,7 @@
                 <form class="jobtrack-filter jobtrack-filter-entries" data-jobtrack="entry-filter" novalidate>
                   <div class="jobtrack-field">
                     <label class="jobtrack-label" for="jobtrack-entry-search">Search</label>
-                    <input id="jobtrack-entry-search" class="jobtrack-input" type="search" data-jobtrack="entry-filter-query" placeholder="Company, role, notes">
+                    <input id="jobtrack-entry-search" class="jobtrack-input" type="search" data-jobtrack="entry-filter-query" placeholder="Company, role, notes, batch">
                   </div>
                   <div class="jobtrack-field">
                     <label class="jobtrack-label" for="jobtrack-entry-type-filter">Type</label>
@@ -335,6 +340,18 @@
                     <label class="jobtrack-label" for="jobtrack-entry-status-filter">Status</label>
                     <select id="jobtrack-entry-status-filter" class="jobtrack-select" data-jobtrack="entry-filter-status">
                       <option value="all">All statuses</option>
+                    </select>
+                  </div>
+                  <div class="jobtrack-field">
+                    <label class="jobtrack-label" for="jobtrack-entry-source-filter">Source</label>
+                    <select id="jobtrack-entry-source-filter" class="jobtrack-select" data-jobtrack="entry-filter-source">
+                      <option value="all">All sources</option>
+                    </select>
+                  </div>
+                  <div class="jobtrack-field">
+                    <label class="jobtrack-label" for="jobtrack-entry-batch-filter">Batch</label>
+                    <select id="jobtrack-entry-batch-filter" class="jobtrack-select" data-jobtrack="entry-filter-batch">
+                      <option value="all">All batches</option>
                     </select>
                   </div>
                   <div class="jobtrack-field">
