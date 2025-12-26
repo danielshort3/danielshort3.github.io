@@ -139,8 +139,8 @@
   const STORAGE_KEY = 'jobTrackerAuth';
   const STATE_KEY = 'jobTrackerAuthState';
   const VERIFIER_KEY = 'jobTrackerCodeVerifier';
-  const CSV_TEMPLATE = 'company,title,jobUrl,location,source,postingDate,appliedDate,status,notes,attachments\nAcme Corp,Data Analyst,https://acme.com/jobs/123,Remote,LinkedIn,2025-01-10,2025-01-15,Applied,Reached out to recruiter,Acme-Resume.pdf;Acme-Cover.pdf';
-  const PROSPECT_CSV_TEMPLATE = 'company,title,jobUrl,location,source,postingDate,captureDate,status,notes\nAcme Corp,Data Analyst,https://acme.com/jobs/123,Remote,LinkedIn,2025-01-10,2025-01-12,Active,Follow up next week.';
+  const CSV_TEMPLATE = 'company,title,jobUrl,location,source,postingDate,appliedDate,status,batch,notes,attachments\nAcme Corp,Data Analyst,https://acme.com/jobs/123,Remote,LinkedIn,2025-01-10,2025-01-15,Applied,Spring outreach 2025,Reached out to recruiter,Acme-Resume.pdf;Acme-Cover.pdf';
+  const PROSPECT_CSV_TEMPLATE = 'company,title,jobUrl,location,source,postingDate,captureDate,status,batch,notes\nAcme Corp,Data Analyst,https://acme.com/jobs/123,Remote,LinkedIn,2025-01-10,2025-01-12,Active,Remote data roles · March,Follow up next week.';
   const PROSPECT_PROMPT_TEMPLATE = [
     'Prompt:',
     'Using reputable sources and live job data, identify data analyst, data scientist, machine learning engineer, research scientist, analytics engineer, or closely related roles that align with my preferences below. Treat the strict criteria as non-negotiable unless otherwise marked.',
