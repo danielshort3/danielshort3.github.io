@@ -916,6 +916,11 @@
     body: { key }
   });
 
+  const requestAttachmentZip = async (applicationId) => requestJson('/api/attachments/zip', {
+    method: 'POST',
+    body: { applicationId }
+  });
+
   const defaultRange = () => {
     const end = new Date();
     const start = new Date();
@@ -1677,6 +1682,21 @@
         }
 
         const attachments = Array.isArray(entry.attachments) ? entry.attachments : [];
+        const zipBtn = document.createElement('button');
+        zipBtn.type = 'button';
+        zipBtn.className = 'btn-ghost jobtrack-attachment-btn';
+        zipBtn.dataset.jobtrackEntry = 'download-zip';
+        zipBtn.dataset.id = entry.applicationId;
+        zipBtn.textContent = 'Download ZIP';
+        if (!attachments.length) {
+          zipBtn.disabled = true;
+          zipBtn.setAttribute('aria-disabled', 'true');
+          zipBtn.title = 'No attachments to zip';
+        } else {
+          zipBtn.title = 'Download all attachments as ZIP';
+        }
+        actionsCell.appendChild(zipBtn);
+
         attachments.forEach((attachment) => {
           if (!attachment?.key) return;
           const downloadBtn = document.createElement('button');
@@ -1885,6 +1905,12 @@
           downloadAttachment(key, label.toLowerCase());
           return;
         }
+        if (action === 'download-zip') {
+          const entryId = button.dataset.id;
+          if (!entryId) return;
+          downloadEntryZip(entryId);
+          return;
+        }
         const entryId = button.dataset.id;
         if (!entryId) return;
         if (action === 'edit') {
@@ -2033,6 +2059,35 @@
     } catch (err) {
       console.error('Download failed', err);
       setStatus(els.entryListStatus, err?.message || 'Unable to download attachment.', 'error');
+    }
+  };
+
+  const downloadEntryZip = async (entryId) => {
+    if (!entryId) return;
+    if (!authIsValid(state.auth)) {
+      setStatus(els.entryListStatus, 'Sign in to download attachments.', 'error');
+      return;
+    }
+    try {
+      const item = state.entryItems.get(entryId);
+      const label = [item?.title, item?.company].filter(Boolean).join(' · ') || 'entry';
+      setStatus(els.entryListStatus, `Preparing ${label} attachments...`, 'info');
+      const data = await requestAttachmentZip(entryId);
+      const url = data?.downloadUrl;
+      if (!url) {
+        setStatus(els.entryListStatus, 'Download link unavailable.', 'error');
+        return;
+      }
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = '';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setStatus(els.entryListStatus, 'Download started.', 'success');
+    } catch (err) {
+      console.error('Download zip failed', err);
+      setStatus(els.entryListStatus, err?.message || 'Unable to download attachments zip.', 'error');
     }
   };
 

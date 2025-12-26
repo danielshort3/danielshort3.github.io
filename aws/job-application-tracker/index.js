@@ -6,6 +6,7 @@ const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const {
   DynamoDBDocumentClient,
   PutCommand,
+  GetCommand,
   UpdateCommand,
   DeleteCommand,
   QueryCommand
@@ -209,6 +210,16 @@ const queryApplications = async (userId, { range, limit, scanForward, recordType
     if (params.Limit) break;
   } while (lastKey);
   return items;
+};
+
+const getApplication = async (userId, applicationId) => {
+  if (!applicationId) throw httpError(400, 'Missing applicationId.');
+  const result = await dynamo.send(new GetCommand({
+    TableName: APPLICATIONS_TABLE,
+    Key: { userId, applicationId }
+  }));
+  if (!result.Item) throw httpError(404, 'Application not found.');
+  return result.Item;
 };
 
 const buildDailySeries = (items, range) => {
@@ -743,6 +754,90 @@ const handleCreateExport = async (userId, range) => {
   };
 };
 
+const handleCreateAttachmentZip = async (userId, payload = {}) => {
+  if (!ATTACHMENTS_BUCKET) throw httpError(500, 'Attachments bucket not configured.');
+  const applicationId = (payload.applicationId || '').toString().trim();
+  if (!applicationId) throw httpError(400, 'applicationId is required.');
+  const item = await getApplication(userId, applicationId);
+  const attachments = Array.isArray(item.attachments) ? item.attachments : [];
+  if (!attachments.length) throw httpError(400, 'No attachments to zip.');
+
+  const label = sanitizeFilename(
+    [item.company, item.title].filter(Boolean).join('-'),
+    sanitizeFilename(applicationId, 'entry')
+  );
+  const key = `${userId}/exports/attachments-${sanitizeFilename(applicationId, 'entry')}-${Date.now()}.zip`;
+  const uploadStream = new PassThrough();
+  const archive = archiver('zip', { zlib: { level: 9 } });
+  archive.pipe(uploadStream);
+
+  let attachmentsExported = 0;
+  let attachmentsMissing = 0;
+  for (let index = 0; index < attachments.length; index += 1) {
+    const attachment = attachments[index];
+    const attachmentKey = (attachment?.key || '').toString().trim();
+    const filename = (attachment?.filename || '').toString().trim();
+    if (!attachmentKey || !attachmentKey.startsWith(`${userId}/`)) {
+      attachmentsMissing += 1;
+      continue;
+    }
+    const safeFilename = sanitizeFilename(filename, `attachment-${index + 1}`);
+    const exportPath = `${label}/${String(index + 1).padStart(2, '0')}-${safeFilename}`;
+    try {
+      const response = await s3.send(new GetObjectCommand({
+        Bucket: ATTACHMENTS_BUCKET,
+        Key: attachmentKey
+      }));
+      if (response.Body) {
+        archive.append(response.Body, { name: exportPath });
+        attachmentsExported += 1;
+      } else {
+        attachmentsMissing += 1;
+      }
+    } catch {
+      attachmentsMissing += 1;
+    }
+  }
+
+  const uploader = new Upload({
+    client: s3,
+    params: {
+      Bucket: ATTACHMENTS_BUCKET,
+      Key: key,
+      Body: uploadStream,
+      ContentType: 'application/zip'
+    }
+  });
+  const uploadPromise = uploader.done();
+  const archivePromise = new Promise((resolve, reject) => {
+    archive.on('warning', err => {
+      if (err.code !== 'ENOENT') reject(err);
+    });
+    archive.on('error', reject);
+    uploadStream.on('finish', resolve);
+    uploadStream.on('close', resolve);
+    uploadStream.on('error', reject);
+  });
+  archive.finalize();
+  await Promise.all([uploadPromise, archivePromise]);
+
+  const downloadUrl = await getSignedUrl(
+    s3,
+    new GetObjectCommand({
+      Bucket: ATTACHMENTS_BUCKET,
+      Key: key
+    }),
+    { expiresIn: presignTtl }
+  );
+  return {
+    downloadUrl,
+    key,
+    expiresIn: presignTtl,
+    attachmentsExported,
+    attachmentsMissing
+  };
+};
+
 exports.handler = async (event) => {
   const requestOrigin = event?.headers?.origin || event?.headers?.Origin || '';
   const corsOrigin = resolveCorsOrigin(requestOrigin);
@@ -921,6 +1016,16 @@ exports.handler = async (event) => {
     if (routeKey === 'POST /api/attachments/download') {
       const payload = parseBody(event);
       const data = await handlePresignDownload(userId, payload);
+      return {
+        statusCode: 200,
+        headers: buildHeaders(corsOrigin),
+        body: JSON.stringify(data)
+      };
+    }
+
+    if (routeKey === 'POST /api/attachments/zip') {
+      const payload = parseBody(event);
+      const data = await handleCreateAttachmentZip(userId, payload);
       return {
         statusCode: 200,
         headers: buildHeaders(corsOrigin),
