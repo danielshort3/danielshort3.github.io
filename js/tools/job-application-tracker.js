@@ -31,6 +31,7 @@
     jobUrlHelp: $('[data-jobtrack="job-url-help"]'),
     locationInput: $('#jobtrack-location'),
     sourceInput: $('#jobtrack-source'),
+    batchInput: $('#jobtrack-batch'),
     appliedDateInput: $('#jobtrack-date'),
     postingDateInput: $('#jobtrack-posting-date'),
     postingUnknownInput: $('#jobtrack-posting-unknown'),
@@ -69,6 +70,8 @@
     entryFilterQuery: $('[data-jobtrack="entry-filter-query"]'),
     entryFilterType: $('[data-jobtrack="entry-filter-type"]'),
     entryFilterStatus: $('[data-jobtrack="entry-filter-status"]'),
+    entryFilterSource: $('[data-jobtrack="entry-filter-source"]'),
+    entryFilterBatch: $('[data-jobtrack="entry-filter-batch"]'),
     entryFilterLocation: $('[data-jobtrack="entry-filter-location"]'),
     entryFilterStart: $('[data-jobtrack="entry-filter-start"]'),
     entryFilterEnd: $('[data-jobtrack="entry-filter-end"]'),
@@ -77,6 +80,7 @@
     entrySelectAll: $('[data-jobtrack="entry-select-all"]'),
     entryBulkDelete: $('[data-jobtrack="entry-bulk-delete"]'),
     entrySelectedCount: $('[data-jobtrack="entry-selected-count"]'),
+    entryCount: $('[data-jobtrack="entry-count"]'),
     bulkStatusSelect: $('[data-jobtrack="bulk-status"]'),
     bulkStatusDate: $('[data-jobtrack="bulk-date"]'),
     bulkStatusApply: $('[data-jobtrack="bulk-status-apply"]'),
@@ -187,7 +191,7 @@
     '',
     'OUTPUT FORMAT (STRICT, CSV FOR JOB TRACKER PROSPECTS IMPORT)',
     '- Return only CSV (no markdown).',
-    '- Header must be: company,title,jobUrl,location,source,postingDate,captureDate,status,notes',
+    '- Header must be: company,title,jobUrl,location,source,postingDate,captureDate,status,batch,notes',
     '- One role per row. Quote any field that contains commas.',
     '- jobUrl must be a direct company/ATS link.',
     '- source should be the site name (Company site, Workday, Greenhouse, Lever, Taleo, etc).',
@@ -195,6 +199,7 @@
     '- captureDate should be today in YYYY-MM-DD.',
     '- status must be Active.',
     '- location should include the city/state or region plus classification in parentheses (Remote/Hybrid/On-site).',
+    '- batch should be a shared label for this search (e.g., "Remote data roles · March"), or leave blank if you will add it in the import form.',
     '- notes should be one short line that includes: why the role fits, estimated salary range, stability signal, and work-life balance snapshot.',
     '- End with a weekly hiring trend summary by appending "Weekly trend: ..." to the notes field of the final job row.'
   ].join('\n');
@@ -383,6 +388,7 @@
     const parsed = new Date(value);
     return Number.isNaN(parsed.getTime()) ? null : parsed;
   };
+  const parseHistoryDate = (value) => parseDateInput(value) || parseIsoDate(value);
   const formatDateLabel = (value) => {
     const parsed = parseDateInput(value) || parseIsoDate(value);
     if (!parsed) return '—';
@@ -395,6 +401,28 @@
   const formatPercent = (value) => {
     if (!Number.isFinite(value)) return '--';
     return `${Math.round(value)}%`;
+  };
+
+  const deriveStatusDate = (entry) => {
+    if (!entry) return '';
+    const direct = (entry.statusDate || '').toString().trim();
+    if (direct && parseDateInput(direct)) return direct;
+    const history = Array.isArray(entry.statusHistory) ? entry.statusHistory : [];
+    if (!history.length) return '';
+    const currentStatus = (entry.status || '').toString().trim().toLowerCase();
+    let latestForStatus = null;
+    let latestAny = null;
+    history.forEach((item) => {
+      const date = parseHistoryDate(item?.date);
+      if (!date) return;
+      if (!latestAny || date > latestAny) latestAny = date;
+      const status = (item?.status || '').toString().trim().toLowerCase();
+      if (currentStatus && status === currentStatus) {
+        if (!latestForStatus || date > latestForStatus) latestForStatus = date;
+      }
+    });
+    const target = latestForStatus || latestAny;
+    return target ? formatDateInput(target) : '';
   };
 
   const incrementCount = (map, key) => {
@@ -734,8 +762,12 @@
     if (status) parts.push(status);
     const location = (entry?.location || '').toString().trim();
     if (location) parts.push(location);
-    const appliedDate = entry?.appliedDate ? parseDateInput(entry.appliedDate) : null;
-    if (appliedDate) parts.push(`Applied ${formatDateLabel(entry.appliedDate)}`);
+    const entryType = entry?.entryType || getEntryType(entry);
+    const dateValue = entryType === 'prospect' ? entry?.captureDate : entry?.appliedDate;
+    const dateLabel = dateValue ? parseDateInput(dateValue) : null;
+    if (dateLabel) {
+      parts.push(`${entryType === 'prospect' ? 'Found' : 'Applied'} ${formatDateLabel(dateValue)}`);
+    }
     const batch = (entry?.batch || '').toString().trim();
     if (batch) parts.push(`Batch: ${batch}`);
     const attachments = Array.isArray(entry?.attachments) ? entry.attachments : [];
@@ -842,6 +874,90 @@
     return row;
   };
 
+  const buildStatusHistoryList = (entry) => {
+    const history = Array.isArray(entry?.statusHistory) ? entry.statusHistory : [];
+    if (!history.length) return null;
+    const items = history
+      .map(item => ({
+        status: toTitle((item?.status || '').toString()),
+        date: parseHistoryDate(item?.date)
+      }))
+      .filter(item => item.date)
+      .sort((a, b) => b.date - a.date);
+    if (!items.length) return null;
+    const wrap = document.createElement('div');
+    wrap.className = 'jobtrack-modal-history';
+    const title = document.createElement('p');
+    title.className = 'jobtrack-modal-attachments-title';
+    title.textContent = 'Status history';
+    const list = document.createElement('ul');
+    list.className = 'jobtrack-modal-history-list';
+    items.forEach((item) => {
+      const row = document.createElement('li');
+      row.className = 'jobtrack-modal-history-item';
+      const status = document.createElement('span');
+      status.className = 'jobtrack-modal-history-status';
+      status.textContent = item.status || 'Status update';
+      const date = document.createElement('span');
+      date.className = 'jobtrack-modal-history-date';
+      date.textContent = formatDateLabel(formatDateInput(item.date));
+      row.appendChild(status);
+      row.appendChild(date);
+      list.appendChild(row);
+    });
+    wrap.appendChild(title);
+    wrap.appendChild(list);
+    return wrap;
+  };
+
+  const buildProspectApplyForm = (entry) => {
+    if (!entry?.applicationId) return null;
+    const wrap = document.createElement('div');
+    wrap.className = 'jobtrack-modal-apply-form';
+    const title = document.createElement('p');
+    title.className = 'jobtrack-modal-attachments-title';
+    title.textContent = 'Convert to application';
+    wrap.appendChild(title);
+
+    const fields = document.createElement('div');
+    fields.className = 'jobtrack-modal-apply-fields';
+    const dateField = document.createElement('div');
+    dateField.className = 'jobtrack-field';
+    const dateLabel = document.createElement('label');
+    const dateId = `jobtrack-modal-apply-date-${entry.applicationId.toString().replace(/[^a-z0-9_-]/gi, '') || 'prospect'}`;
+    dateLabel.className = 'jobtrack-label';
+    dateLabel.setAttribute('for', dateId);
+    dateLabel.textContent = 'Applied date';
+    const dateInput = document.createElement('input');
+    dateInput.type = 'date';
+    dateInput.className = 'jobtrack-input';
+    dateInput.id = dateId;
+    dateInput.dataset.jobtrack = 'apply-date-input';
+    const fallbackDate = entry.captureDate && parseDateInput(entry.captureDate)
+      ? entry.captureDate
+      : formatDateInput(new Date());
+    dateInput.value = fallbackDate;
+    dateField.appendChild(dateLabel);
+    dateField.appendChild(dateInput);
+    fields.appendChild(dateField);
+
+    const applyBtn = document.createElement('button');
+    applyBtn.type = 'button';
+    applyBtn.className = 'btn-primary jobtrack-modal-apply-btn';
+    applyBtn.textContent = 'Convert and apply';
+    applyBtn.addEventListener('click', async () => {
+      const ok = await applyProspect(entry.applicationId, dateInput.value, els.detailModalStatus);
+      if (ok) closeDetailModal();
+    });
+    fields.appendChild(applyBtn);
+    wrap.appendChild(fields);
+    const help = document.createElement('p');
+    help.className = 'jobtrack-help';
+    help.textContent = 'Creates an application entry and removes this prospect.';
+    wrap.appendChild(help);
+    return wrap;
+  };
+
   const renderDetailModal = (entry) => {
     if (!els.detailModalBody) return;
     els.detailModalBody.innerHTML = '';
@@ -856,7 +972,11 @@
     if (els.detailModalTitle) els.detailModalTitle.textContent = title;
     if (els.detailModalSubtitle) {
       const subtitleParts = [entry.company, getEntryStatusLabel(entry)];
-      if (entry.appliedDate) subtitleParts.push(`Applied ${formatDateLabel(entry.appliedDate)}`);
+      if (entryType === 'prospect') {
+        if (entry.captureDate) subtitleParts.push(`Found ${formatDateLabel(entry.captureDate)}`);
+      } else if (entry.appliedDate) {
+        subtitleParts.push(`Applied ${formatDateLabel(entry.appliedDate)}`);
+      }
       els.detailModalSubtitle.textContent = subtitleParts.filter(Boolean).join(' · ');
     }
 
@@ -903,6 +1023,9 @@
       els.detailModalBody.appendChild(notesWrap);
     }
 
+    const historyWrap = buildStatusHistoryList(entry);
+    if (historyWrap) els.detailModalBody.appendChild(historyWrap);
+
     const actionsWrap = document.createElement('div');
     actionsWrap.className = 'jobtrack-modal-actions';
 
@@ -928,18 +1051,6 @@
         closeDetailModal();
       });
       actionRow.appendChild(deleteBtn);
-
-      if (entryType === 'prospect') {
-        const applyBtn = document.createElement('button');
-        applyBtn.type = 'button';
-        applyBtn.className = 'btn-ghost';
-        applyBtn.textContent = 'Apply prospect';
-        applyBtn.addEventListener('click', async () => {
-          await applyProspect(entry.applicationId);
-          closeDetailModal();
-        });
-        actionRow.appendChild(applyBtn);
-      }
     }
     if (actionRow.childNodes.length) actionsWrap.appendChild(actionRow);
 
@@ -982,21 +1093,26 @@
       statusFields.appendChild(statusField);
 
       let statusDateInput = null;
-      if (entryType === 'application') {
+      const allowStatusDate = entryType === 'application' || entryType === 'prospect';
+      if (allowStatusDate) {
         const dateField = document.createElement('div');
         dateField.className = 'jobtrack-field';
         const dateLabel = document.createElement('label');
         const dateId = `jobtrack-modal-status-date-${idSuffix}`;
         dateLabel.className = 'jobtrack-label';
         dateLabel.setAttribute('for', dateId);
-        dateLabel.textContent = 'Status date';
+        dateLabel.textContent = entryType === 'application' ? 'Status date' : 'Status date (optional)';
         statusDateInput = document.createElement('input');
         statusDateInput.type = 'date';
         statusDateInput.className = 'jobtrack-input';
         statusDateInput.id = dateId;
-        statusDateInput.value = entry.statusDate && parseDateInput(entry.statusDate)
-          ? entry.statusDate
-          : formatDateInput(new Date());
+        if (entry.statusDate && parseDateInput(entry.statusDate)) {
+          statusDateInput.value = entry.statusDate;
+        } else if (entryType === 'application') {
+          statusDateInput.value = formatDateInput(new Date());
+        } else {
+          statusDateInput.value = '';
+        }
         dateField.appendChild(dateLabel);
         dateField.appendChild(statusDateInput);
         statusFields.appendChild(dateField);
@@ -1012,6 +1128,11 @@
       statusFields.appendChild(updateBtn);
       statusWrap.appendChild(statusFields);
       actionsWrap.appendChild(statusWrap);
+    }
+
+    if (entryType === 'prospect') {
+      const applyWrap = buildProspectApplyForm(entry);
+      if (applyWrap) actionsWrap.appendChild(applyWrap);
     }
 
     if (actionsWrap.childNodes.length) {
@@ -1100,7 +1221,7 @@
     els.detailModalBody.appendChild(attachmentWrap);
   };
 
-  const openDetailModal = (entry) => {
+  const openDetailModal = (entry, focusSelector = '') => {
     if (!els.detailModal) return;
     state.detailModalEntryId = entry?.applicationId || null;
     state.detailModalPrevFocus = document.activeElement;
@@ -1108,6 +1229,11 @@
     els.detailModal.classList.add('active');
     document.body.classList.add('modal-open');
     const content = els.detailModal.querySelector('.modal-content');
+    const focusTarget = focusSelector ? els.detailModal.querySelector(focusSelector) : null;
+    if (focusTarget && typeof focusTarget.focus === 'function') {
+      focusTarget.focus({ preventScroll: true });
+      return;
+    }
     if (content && typeof content.focus === 'function') {
       content.focus({ preventScroll: true });
     }
@@ -1226,6 +1352,7 @@
     if (els.jobUrlInput) els.jobUrlInput.value = item.jobUrl || '';
     if (els.locationInput) els.locationInput.value = item.location || '';
     if (els.sourceInput) els.sourceInput.value = item.source || '';
+    if (els.batchInput) els.batchInput.value = item.batch || '';
     if (els.appliedDateInput) els.appliedDateInput.value = item.appliedDate || '';
     if (els.captureDateInput) {
       els.captureDateInput.value = item.captureDate || '';
@@ -2560,7 +2687,8 @@
   const normalizeEntry = (item, entryType) => ({
     ...item,
     recordType: entryType,
-    entryType
+    entryType,
+    statusDate: deriveStatusDate(item)
   });
 
   const getEntryDateValue = (entry) => (entry.entryType === 'prospect' ? entry.captureDate : entry.appliedDate);
@@ -2596,6 +2724,62 @@
     }
   };
 
+  const updateEntrySourceFilter = (items = []) => {
+    if (!els.entryFilterSource) return;
+    const current = els.entryFilterSource.value || 'all';
+    const sources = new Map();
+    items.forEach((item) => {
+      const source = (item.source || '').toString().trim();
+      if (!source) return;
+      const key = source.toLowerCase();
+      if (!sources.has(key)) sources.set(key, source);
+    });
+    const sorted = Array.from(sources.entries())
+      .sort((a, b) => a[1].localeCompare(b[1], 'en', { sensitivity: 'base' }));
+    els.entryFilterSource.innerHTML = '';
+    const allOpt = document.createElement('option');
+    allOpt.value = 'all';
+    allOpt.textContent = 'All sources';
+    els.entryFilterSource.appendChild(allOpt);
+    sorted.forEach(([key, label]) => {
+      const opt = document.createElement('option');
+      opt.value = key;
+      opt.textContent = label;
+      els.entryFilterSource.appendChild(opt);
+    });
+    if ([...els.entryFilterSource.options].some(opt => opt.value === current)) {
+      els.entryFilterSource.value = current;
+    }
+  };
+
+  const updateEntryBatchFilter = (items = []) => {
+    if (!els.entryFilterBatch) return;
+    const current = els.entryFilterBatch.value || 'all';
+    const batches = new Map();
+    items.forEach((item) => {
+      const batch = (item.batch || '').toString().trim();
+      if (!batch) return;
+      const key = batch.toLowerCase();
+      if (!batches.has(key)) batches.set(key, batch);
+    });
+    const sorted = Array.from(batches.entries())
+      .sort((a, b) => a[1].localeCompare(b[1], 'en', { sensitivity: 'base' }));
+    els.entryFilterBatch.innerHTML = '';
+    const allOpt = document.createElement('option');
+    allOpt.value = 'all';
+    allOpt.textContent = 'All batches';
+    els.entryFilterBatch.appendChild(allOpt);
+    sorted.forEach(([key, label]) => {
+      const opt = document.createElement('option');
+      opt.value = key;
+      opt.textContent = label;
+      els.entryFilterBatch.appendChild(opt);
+    });
+    if ([...els.entryFilterBatch.options].some(opt => opt.value === current)) {
+      els.entryFilterBatch.value = current;
+    }
+  };
+
   const matchesQuery = (entry, terms = []) => {
     if (!terms.length) return true;
     const haystack = [
@@ -2615,6 +2799,8 @@
     const terms = query.split(/\s+/).filter(Boolean);
     const type = (els.entryFilterType?.value || 'all').trim();
     const status = (els.entryFilterStatus?.value || 'all').trim();
+    const source = (els.entryFilterSource?.value || 'all').trim();
+    const batch = (els.entryFilterBatch?.value || 'all').trim();
     const locationType = (els.entryFilterLocation?.value || 'all').trim();
     const start = parseDateInput(els.entryFilterStart?.value || '');
     const end = parseDateInput(els.entryFilterEnd?.value || '');
@@ -2624,6 +2810,14 @@
       if (type !== 'all' && entryType !== type) return false;
       const entryStatus = toTitle((entry.status || (entryType === 'prospect' ? 'Active' : 'Applied')).toString());
       if (status !== 'all' && entryStatus.toLowerCase() !== status) return false;
+      if (source !== 'all') {
+        const entrySource = (entry.source || '').toString().trim().toLowerCase();
+        if (entrySource !== source) return false;
+      }
+      if (batch !== 'all') {
+        const entryBatch = (entry.batch || '').toString().trim().toLowerCase();
+        if (entryBatch !== batch) return false;
+      }
       if (locationType !== 'all') {
         const hasLocation = Boolean((entry.location || '').trim());
         const remote = isRemoteLocation(entry.location || '');
@@ -2892,7 +3086,30 @@
       els.bulkStatusApply.disabled = disabled;
       els.bulkStatusApply.setAttribute('aria-disabled', disabled ? 'true' : 'false');
     }
+    if (els.bulkStatusSelect) {
+      const disabled = selectedApplications === 0;
+      els.bulkStatusSelect.disabled = disabled;
+      els.bulkStatusSelect.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+    }
+    if (els.bulkStatusDate) {
+      const disabled = selectedApplications === 0;
+      els.bulkStatusDate.disabled = disabled;
+      els.bulkStatusDate.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+    }
     updateSelectAllState();
+  };
+
+  const updateEntryCount = (visibleCount, totalCount) => {
+    if (!els.entryCount) return;
+    if (!totalCount) {
+      els.entryCount.textContent = '0 entries';
+      return;
+    }
+    const noun = totalCount === 1 ? 'entry' : 'entries';
+    const label = visibleCount === totalCount
+      ? `${totalCount} ${noun}`
+      : `Showing ${visibleCount} of ${totalCount} ${noun}`;
+    els.entryCount.textContent = label;
   };
 
   const applyEntryFilters = () => {
@@ -2903,18 +3120,25 @@
     setVisibleEntryIds(sorted);
     updateSortIndicators();
     updateEntrySelectionUI();
+    updateEntryCount(sorted.length, state.entries.length);
   };
 
   const refreshEntries = async () => {
     if (!els.entryList) return;
     if (!config.apiBase) {
       storeEntries([]);
+      state.selectedEntryIds.clear();
       renderEntryList([], 'Set the API base URL to load entries.');
+      updateEntrySelectionUI();
+      updateEntryCount(0, 0);
       return;
     }
     if (!authIsValid(state.auth)) {
       storeEntries([]);
+      state.selectedEntryIds.clear();
       renderEntryList([], 'Sign in to load your entries.');
+      updateEntrySelectionUI();
+      updateEntryCount(0, 0);
       return;
     }
     try {
@@ -2929,12 +3153,16 @@
       storeEntries(items);
       state.selectedEntryIds.clear();
       updateEntryStatusFilter(items);
+      updateEntrySourceFilter(items);
+      updateEntryBatchFilter(items);
       applyEntryFilters();
       setStatus(els.entryListStatus, `Loaded ${items.length} entries.`, 'success');
     } catch (err) {
       console.error('Entry load failed', err);
       storeEntries([]);
       renderEntryList([], 'Unable to load entries.');
+      updateEntrySelectionUI();
+      updateEntryCount(0, 0);
       setStatus(els.entryListStatus, err?.message || 'Unable to load entries.', 'error');
     }
   };
@@ -2958,6 +3186,12 @@
     if (els.entryFilterStatus) {
       els.entryFilterStatus.addEventListener('change', () => applyEntryFilters());
     }
+    if (els.entryFilterSource) {
+      els.entryFilterSource.addEventListener('change', () => applyEntryFilters());
+    }
+    if (els.entryFilterBatch) {
+      els.entryFilterBatch.addEventListener('change', () => applyEntryFilters());
+    }
     if (els.entryFilterLocation) {
       els.entryFilterLocation.addEventListener('change', () => applyEntryFilters());
     }
@@ -2972,6 +3206,8 @@
         if (els.entryFilterQuery) els.entryFilterQuery.value = '';
         if (els.entryFilterType) els.entryFilterType.value = 'all';
         if (els.entryFilterStatus) els.entryFilterStatus.value = 'all';
+        if (els.entryFilterSource) els.entryFilterSource.value = 'all';
+        if (els.entryFilterBatch) els.entryFilterBatch.value = 'all';
         if (els.entryFilterLocation) els.entryFilterLocation.value = 'all';
         if (els.entryFilterStart) els.entryFilterStart.value = '';
         if (els.entryFilterEnd) els.entryFilterEnd.value = '';
@@ -3042,7 +3278,8 @@
             return;
           }
           if (action === 'apply') {
-            applyProspect(entryId);
+            const item = state.entryItems.get(entryId);
+            if (item) openDetailModal(item, '[data-jobtrack="apply-date-input"]');
             return;
           }
           if (action === 'delete') {
@@ -3158,13 +3395,15 @@
       return false;
     }
     const payload = { status: normalizedStatus };
-    if (entryType === 'application') {
-      let safeDate = (statusDate || '').toString().trim();
-      if (safeDate && !parseDateInput(safeDate)) {
-        setStatus(statusTarget, 'Status date must be valid (YYYY-MM-DD).', 'error');
-        return false;
-      }
-      if (!safeDate) safeDate = formatDateInput(new Date());
+    let safeDate = (statusDate || '').toString().trim();
+    if (safeDate && !parseDateInput(safeDate)) {
+      setStatus(statusTarget, 'Status date must be valid (YYYY-MM-DD).', 'error');
+      return false;
+    }
+    if (!safeDate && entryType === 'application') {
+      safeDate = formatDateInput(new Date());
+    }
+    if (safeDate) {
       payload.statusDate = safeDate;
     }
     try {
@@ -3173,10 +3412,16 @@
         ? `/api/prospects/${encodeURIComponent(entry.applicationId)}`
         : `/api/applications/${encodeURIComponent(entry.applicationId)}`;
       await requestJson(endpoint, { method: 'PATCH', body: payload });
+      const nextHistory = Array.isArray(entry.statusHistory) ? [...entry.statusHistory] : [];
+      nextHistory.push({
+        status: normalizedStatus,
+        date: payload.statusDate || new Date().toISOString()
+      });
       const updatedEntry = normalizeEntry({
         ...entry,
         status: normalizedStatus,
-        statusDate: payload.statusDate || entry.statusDate
+        statusDate: payload.statusDate || entry.statusDate,
+        statusHistory: nextHistory
       }, entryType);
       if (updatedEntry.applicationId) state.entryItems.set(updatedEntry.applicationId, updatedEntry);
       renderDetailModal(updatedEntry);
@@ -3435,6 +3680,7 @@
       title: (item?.title || '').toString().trim(),
       appliedDate,
       status: 'Applied',
+      statusDate: appliedDate,
       notes: (item?.notes || '').toString().trim()
     };
     if (item?.jobUrl) payload.jobUrl = item.jobUrl;
@@ -3479,30 +3725,27 @@
     }
   };
 
-  const applyProspect = async (prospectId) => {
-    if (!prospectId) return;
+  const applyProspect = async (prospectId, appliedDateValue = '', statusEl = null) => {
+    if (!prospectId) return false;
     const item = state.entryItems.get(prospectId);
-    if (!item) return;
+    if (!item) return false;
+    const statusTarget = statusEl || els.entryListStatus;
     if (!authIsValid(state.auth)) {
-      setStatus(els.entryListStatus, 'Sign in to move prospects.', 'error');
-      return;
+      setStatus(statusTarget, 'Sign in to move prospects.', 'error');
+      return false;
     }
     const captureDate = item.captureDate && parseDateInput(item.captureDate) ? item.captureDate : '';
     const defaultDate = captureDate || formatDateInput(new Date());
-    const response = typeof window !== 'undefined' && typeof window.prompt === 'function'
-      ? window.prompt('Applied date (optional, YYYY-MM-DD). Leave blank to use the suggested date:', defaultDate)
-      : defaultDate;
-    if (response === null) return;
-    let appliedDate = response.toString().trim();
+    let appliedDate = (appliedDateValue || '').toString().trim();
     if (appliedDate && !parseDateInput(appliedDate)) {
-      setStatus(els.entryListStatus, 'Applied date must be valid (YYYY-MM-DD).', 'error');
-      return;
+      setStatus(statusTarget, 'Applied date must be valid (YYYY-MM-DD).', 'error');
+      return false;
     }
     if (!appliedDate) {
       appliedDate = defaultDate;
     }
     const payload = buildApplicationPayloadFromProspect(item, appliedDate);
-    await convertProspectToApplication(payload, prospectId, els.entryListStatus);
+    return convertProspectToApplication(payload, prospectId, statusTarget);
   };
 
   const submitApplication = async (payload, attachments = []) => {
@@ -3587,12 +3830,14 @@
       const jobUrl = normalizeUrl(formData.get('jobUrl'));
       const location = (formData.get('location') || '').toString().trim();
       const source = (formData.get('source') || '').toString().trim();
+      const batch = (formData.get('batch') || '').toString().trim();
       const appliedDate = (formData.get('appliedDate') || '').toString().trim();
       const postingDate = (formData.get('postingDate') || '').toString().trim();
       const postingUnknown = Boolean(formData.get('postingDateUnknown'));
       const captureDate = (formData.get('captureDate') || '').toString().trim();
       const status = (formData.get('status') || (entryType === 'prospect' ? 'Active' : 'Applied')).toString().trim();
       const notes = (formData.get('notes') || '').toString().trim();
+      const editing = state.editingEntry;
 
       if (!company || !title) {
         setStatus(els.entryFormStatus, 'Company and role title are required.', 'error');
@@ -3621,11 +3866,11 @@
           return;
         }
         const attachments = collectAttachments();
-        const editing = state.editingEntry;
         const payload = { company, title, appliedDate, notes };
         if (jobUrl || editing?.jobUrl) payload.jobUrl = jobUrl;
         if (location || editing?.location) payload.location = location;
         if (source || editing?.source) payload.source = source;
+        if (batch || editing?.batch) payload.batch = batch;
         if (postingUnknown) {
           payload.postingDate = null;
         } else if (postingDate) {
@@ -3666,6 +3911,7 @@
         return;
       }
       const payload = { company, title, jobUrl, location, source, status, notes, captureDate };
+      if (batch || editing?.batch) payload.batch = batch;
       if (postingUnknown) {
         payload.postingDate = null;
       } else if (postingDate) {
