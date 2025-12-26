@@ -119,7 +119,13 @@
     mapRemote: $('[data-jobtrack="map-remote"]'),
     detailSubtitle: $('[data-jobtrack="detail-subtitle"]'),
     detailBody: $('[data-jobtrack="detail-body"]'),
-    detailReset: $('[data-jobtrack="detail-reset"]')
+    detailReset: $('[data-jobtrack="detail-reset"]'),
+    detailModal: $('[data-jobtrack="detail-modal"]'),
+    detailModalTitle: $('[data-jobtrack="detail-modal-title"]'),
+    detailModalSubtitle: $('[data-jobtrack="detail-modal-subtitle"]'),
+    detailModalBody: $('[data-jobtrack="detail-modal-body"]'),
+    detailModalClose: $('[data-jobtrack="detail-modal-close"]'),
+    detailModalStatus: $('[data-jobtrack="detail-modal-status"]')
   };
 
   const tabs = {
@@ -205,6 +211,7 @@
     editingEntry: null,
     entryType: 'application',
     entries: [],
+    dashboardEntries: [],
     entryItems: new Map(),
     entrySort: { key: 'date', direction: 'desc' },
     entryFilters: {
@@ -225,6 +232,8 @@
     weekDetails: null,
     weekdayDetails: null,
     weeklySeries: [],
+    detailModalEntryId: null,
+    detailModalPrevFocus: null,
     mapTooltipBound: false,
     calendarTooltipBound: false,
     weekdayTooltipBound: false,
@@ -638,29 +647,299 @@
     el.textContent = message;
   };
 
-  const setDashboardDetail = (title, lines = []) => {
+  const getEntryLabel = (entry) => {
+    const label = [entry?.title, entry?.company].filter(Boolean).join(' · ');
+    return label || 'Entry';
+  };
+
+  const getEntryStatusLabel = (entry) => toTitle((entry?.status || 'Applied').toString());
+
+  const sortEntriesByAppliedDate = (items = []) => {
+    const sorted = [...items];
+    sorted.sort((a, b) => {
+      const aDate = parseDateInput(a?.appliedDate);
+      const bDate = parseDateInput(b?.appliedDate);
+      const aTime = aDate ? aDate.getTime() : 0;
+      const bTime = bDate ? bDate.getTime() : 0;
+      if (aTime !== bTime) return bTime - aTime;
+      return getEntryLabel(a).localeCompare(getEntryLabel(b), 'en', { sensitivity: 'base' });
+    });
+    return sorted;
+  };
+
+  const formatEntryMeta = (entry) => {
+    const parts = [];
+    const status = getEntryStatusLabel(entry);
+    if (status) parts.push(status);
+    const location = (entry?.location || '').toString().trim();
+    if (location) parts.push(location);
+    const appliedDate = entry?.appliedDate ? parseDateInput(entry.appliedDate) : null;
+    if (appliedDate) parts.push(`Applied ${formatDateLabel(entry.appliedDate)}`);
+    const attachments = Array.isArray(entry?.attachments) ? entry.attachments : [];
+    if (attachments.length) {
+      parts.push(`${attachments.length} attachment${attachments.length === 1 ? '' : 's'}`);
+    }
+    return parts.filter(Boolean).join(' · ');
+  };
+
+  const buildDetailEntryList = (entries = []) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'jobtrack-detail-entries';
+
+    const head = document.createElement('div');
+    head.className = 'jobtrack-detail-entries-head';
+    const label = document.createElement('span');
+    label.textContent = 'Entries';
+    const count = document.createElement('span');
+    count.textContent = `${entries.length} total`;
+    head.appendChild(label);
+    head.appendChild(count);
+    wrap.appendChild(head);
+
+    const list = document.createElement('ul');
+    list.className = 'jobtrack-detail-entry-list';
+    entries.forEach((entry) => {
+      const entryLabel = getEntryLabel(entry);
+      const item = document.createElement('li');
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'jobtrack-detail-entry';
+      button.dataset.jobtrackDetailEntry = entry?.applicationId || '';
+      button.setAttribute('aria-label', `View ${entryLabel}`);
+
+      const title = document.createElement('span');
+      title.className = 'jobtrack-detail-entry-title';
+      title.textContent = entryLabel;
+      const meta = document.createElement('span');
+      meta.className = 'jobtrack-detail-entry-meta';
+      meta.textContent = formatEntryMeta(entry) || 'View entry details';
+
+      button.appendChild(title);
+      button.appendChild(meta);
+      if (!entry?.applicationId) {
+        button.disabled = true;
+        button.setAttribute('aria-disabled', 'true');
+        button.title = 'Entry details unavailable';
+      }
+      item.appendChild(button);
+      list.appendChild(item);
+    });
+    wrap.appendChild(list);
+    return wrap;
+  };
+
+  const setDashboardDetail = (title, lines = [], entries = []) => {
     if (els.detailSubtitle) {
       els.detailSubtitle.textContent = title || DETAIL_DEFAULT_SUBTITLE;
     }
     if (!els.detailBody) return;
     els.detailBody.innerHTML = '';
-    if (!lines.length) {
+    if (!lines.length && !entries.length) {
       els.detailBody.textContent = DETAIL_DEFAULT_BODY;
       return;
     }
-    const list = document.createElement('ul');
-    list.className = 'jobtrack-detail-list';
-    lines.forEach((line) => {
-      const item = document.createElement('li');
-      item.textContent = line;
-      list.appendChild(item);
-    });
-    els.detailBody.appendChild(list);
+    if (lines.length) {
+      const list = document.createElement('ul');
+      list.className = 'jobtrack-detail-list';
+      lines.forEach((line) => {
+        const item = document.createElement('li');
+        item.textContent = line;
+        list.appendChild(item);
+      });
+      els.detailBody.appendChild(list);
+    }
+    if (entries.length) {
+      const sorted = sortEntriesByAppliedDate(entries);
+      els.detailBody.appendChild(buildDetailEntryList(sorted));
+    }
   };
 
   const clearDashboardDetail = () => {
     if (els.detailSubtitle) els.detailSubtitle.textContent = DETAIL_DEFAULT_SUBTITLE;
     if (els.detailBody) els.detailBody.textContent = DETAIL_DEFAULT_BODY;
+  };
+
+  const buildDetailModalRow = (label, value, href = '') => {
+    if (!value) return null;
+    const row = document.createElement('div');
+    row.className = 'jobtrack-modal-meta-row';
+    const labelEl = document.createElement('span');
+    labelEl.className = 'jobtrack-modal-meta-label';
+    labelEl.textContent = label;
+    const valueEl = document.createElement(href ? 'a' : 'span');
+    valueEl.className = 'jobtrack-modal-meta-value';
+    valueEl.textContent = value;
+    if (href) {
+      valueEl.href = href;
+      valueEl.target = '_blank';
+      valueEl.rel = 'noopener';
+    }
+    row.appendChild(labelEl);
+    row.appendChild(valueEl);
+    return row;
+  };
+
+  const renderDetailModal = (entry) => {
+    if (!els.detailModalBody) return;
+    els.detailModalBody.innerHTML = '';
+    if (els.detailModalStatus) setStatus(els.detailModalStatus, '', '');
+    if (!entry) {
+      els.detailModalBody.textContent = 'Entry details unavailable.';
+      return;
+    }
+
+    const title = entry.title || 'Entry details';
+    if (els.detailModalTitle) els.detailModalTitle.textContent = title;
+    if (els.detailModalSubtitle) {
+      const subtitleParts = [entry.company, getEntryStatusLabel(entry)];
+      if (entry.appliedDate) subtitleParts.push(`Applied ${formatDateLabel(entry.appliedDate)}`);
+      els.detailModalSubtitle.textContent = subtitleParts.filter(Boolean).join(' · ');
+    }
+
+    const appliedLabel = entry.appliedDate && parseDateInput(entry.appliedDate)
+      ? formatDateLabel(entry.appliedDate)
+      : '';
+    const captureLabel = entry.captureDate && parseDateInput(entry.captureDate)
+      ? formatDateLabel(entry.captureDate)
+      : '';
+    const postingLabel = entry.postingDate && parseDateInput(entry.postingDate)
+      ? formatDateLabel(entry.postingDate)
+      : '';
+
+    const meta = document.createElement('div');
+    meta.className = 'jobtrack-modal-meta';
+    const rows = [
+      buildDetailModalRow('Company', entry.company || ''),
+      buildDetailModalRow('Status', getEntryStatusLabel(entry)),
+      buildDetailModalRow('Applied date', appliedLabel),
+      buildDetailModalRow('Found date', captureLabel),
+      buildDetailModalRow('Posted', postingLabel),
+      buildDetailModalRow('Location', entry.location || ''),
+      buildDetailModalRow('Source', entry.source || ''),
+      buildDetailModalRow('Job URL', entry.jobUrl || '', entry.jobUrl ? normalizeUrl(entry.jobUrl) : '')
+    ].filter(Boolean);
+    rows.forEach((row) => meta.appendChild(row));
+    if (rows.length) els.detailModalBody.appendChild(meta);
+
+    if (entry.notes) {
+      const notesWrap = document.createElement('div');
+      const notesTitle = document.createElement('p');
+      notesTitle.className = 'jobtrack-modal-attachments-title';
+      notesTitle.textContent = 'Notes';
+      const notes = document.createElement('p');
+      notes.className = 'jobtrack-modal-notes';
+      notes.textContent = entry.notes;
+      notesWrap.appendChild(notesTitle);
+      notesWrap.appendChild(notes);
+      els.detailModalBody.appendChild(notesWrap);
+    }
+
+    const attachments = Array.isArray(entry.attachments) ? entry.attachments : [];
+    const attachmentWrap = document.createElement('div');
+    attachmentWrap.className = 'jobtrack-modal-attachments';
+    const attachmentHead = document.createElement('div');
+    attachmentHead.className = 'jobtrack-modal-attachments-head';
+    const attachmentTitle = document.createElement('p');
+    attachmentTitle.className = 'jobtrack-modal-attachments-title';
+    attachmentTitle.textContent = 'Attachments';
+    attachmentHead.appendChild(attachmentTitle);
+
+    if (entry.applicationId) {
+      const zipBtn = document.createElement('button');
+      zipBtn.type = 'button';
+      zipBtn.className = 'btn-ghost jobtrack-modal-attachment-btn';
+      zipBtn.textContent = 'Download ZIP';
+      zipBtn.setAttribute('aria-label', 'Download all attachments as ZIP');
+      if (!attachments.length) {
+        zipBtn.disabled = true;
+        zipBtn.setAttribute('aria-disabled', 'true');
+        zipBtn.title = 'No attachments to zip';
+      } else {
+        zipBtn.addEventListener('click', () => downloadEntryZip(entry.applicationId, els.detailModalStatus));
+      }
+      attachmentHead.appendChild(zipBtn);
+    }
+    attachmentWrap.appendChild(attachmentHead);
+
+    if (!attachments.length) {
+      const empty = document.createElement('p');
+      empty.className = 'jobtrack-form-status';
+      empty.textContent = 'No attachments uploaded yet.';
+      attachmentWrap.appendChild(empty);
+    } else {
+      const list = document.createElement('ul');
+      list.className = 'jobtrack-modal-attachment-list';
+      attachments.forEach((attachment, index) => {
+        const row = document.createElement('li');
+        row.className = 'jobtrack-modal-attachment';
+
+        const info = document.createElement('div');
+        info.className = 'jobtrack-modal-attachment-info';
+        const name = document.createElement('div');
+        name.className = 'jobtrack-modal-attachment-name';
+        name.textContent = attachment?.filename || `Attachment ${index + 1}`;
+        info.appendChild(name);
+
+        const metaInfo = document.createElement('div');
+        metaInfo.className = 'jobtrack-modal-attachment-meta';
+        if (attachment?.kind) {
+          const kind = document.createElement('span');
+          kind.textContent = toTitle(attachment.kind.replace(/-/g, ' '));
+          metaInfo.appendChild(kind);
+        }
+        if (attachment?.uploadedAt) {
+          const uploaded = document.createElement('span');
+          uploaded.textContent = formatDateLabel(attachment.uploadedAt);
+          metaInfo.appendChild(uploaded);
+        }
+        if (metaInfo.childNodes.length) info.appendChild(metaInfo);
+
+        const downloadBtn = document.createElement('button');
+        downloadBtn.type = 'button';
+        downloadBtn.className = 'btn-ghost jobtrack-modal-attachment-btn';
+        downloadBtn.textContent = 'Download';
+        downloadBtn.setAttribute('aria-label', `Download ${name.textContent}`);
+        if (!attachment?.key) {
+          downloadBtn.disabled = true;
+          downloadBtn.setAttribute('aria-disabled', 'true');
+          downloadBtn.title = 'Attachment unavailable';
+        } else {
+          downloadBtn.addEventListener('click', () => downloadAttachment(attachment, els.detailModalStatus));
+        }
+
+        row.appendChild(info);
+        row.appendChild(downloadBtn);
+        list.appendChild(row);
+      });
+      attachmentWrap.appendChild(list);
+    }
+    els.detailModalBody.appendChild(attachmentWrap);
+  };
+
+  const openDetailModal = (entry) => {
+    if (!els.detailModal) return;
+    state.detailModalEntryId = entry?.applicationId || null;
+    state.detailModalPrevFocus = document.activeElement;
+    renderDetailModal(entry);
+    els.detailModal.classList.add('active');
+    document.body.classList.add('modal-open');
+    const content = els.detailModal.querySelector('.modal-content');
+    if (content && typeof content.focus === 'function') {
+      content.focus({ preventScroll: true });
+    }
+  };
+
+  const closeDetailModal = () => {
+    if (!els.detailModal) return;
+    els.detailModal.classList.remove('active');
+    if (!document.querySelector('.modal.active')) {
+      document.body.classList.remove('modal-open');
+    }
+    if (state.detailModalPrevFocus && typeof state.detailModalPrevFocus.focus === 'function') {
+      state.detailModalPrevFocus.focus();
+    }
+    state.detailModalPrevFocus = null;
+    state.detailModalEntryId = null;
   };
 
   const confirmAction = (message) => {
@@ -1628,6 +1907,8 @@
     return lines;
   };
 
+  const getDashboardEntries = () => (Array.isArray(state.dashboardEntries) ? state.dashboardEntries : []);
+
   const showMapDetail = (code, label, kind = 'on-site') => {
     if (!code) return;
     const detail = code === 'REMOTE'
@@ -1635,7 +1916,14 @@
       : state.mapDetails?.states?.get(code);
     const total = detail?.total || 0;
     const title = `${label}: ${total} ${kind} application${total === 1 ? '' : 's'}`;
-    setDashboardDetail(title, formatDetailLines(detail));
+    const entries = getDashboardEntries().filter((entry) => {
+      const location = (entry?.location || '').toString();
+      if (!location) return false;
+      if (code === 'REMOTE') return isRemoteLocation(location);
+      if (isRemoteLocation(location)) return false;
+      return extractStateCode(location) === code;
+    });
+    setDashboardDetail(title, formatDetailLines(detail), entries);
   };
 
   const showCalendarDetail = (dateKey) => {
@@ -1643,7 +1931,11 @@
     const detail = state.calendarDetails?.get(dateKey);
     const total = detail?.total || 0;
     const title = `${formatDateLabel(dateKey)}: ${total} application${total === 1 ? '' : 's'}`;
-    setDashboardDetail(title, formatDetailLines(detail));
+    const entries = getDashboardEntries().filter((entry) => {
+      const date = parseDateInput(entry?.appliedDate);
+      return date ? formatDateInput(date) === dateKey : false;
+    });
+    setDashboardDetail(title, formatDetailLines(detail), entries);
   };
 
   const showStatusDetail = (status) => {
@@ -1651,7 +1943,9 @@
     const detail = state.statusDetails?.get(status);
     const total = detail?.total || 0;
     const title = `${status}: ${total} application${total === 1 ? '' : 's'}`;
-    setDashboardDetail(title, formatDetailLines(detail));
+    const target = status.toString().toLowerCase();
+    const entries = getDashboardEntries().filter((entry) => getEntryStatusLabel(entry).toLowerCase() === target);
+    setDashboardDetail(title, formatDetailLines(detail), entries);
   };
 
   const showWeekDetail = (weekKey, label, count) => {
@@ -1659,7 +1953,16 @@
     const detail = state.weekDetails?.get(weekKey);
     const total = detail?.total ?? count ?? 0;
     const title = `Week of ${label}: ${total} application${total === 1 ? '' : 's'}`;
-    setDashboardDetail(title, formatDetailLines(detail));
+    const start = parseDateInput(weekKey);
+    const end = start ? new Date(start) : null;
+    if (end) end.setUTCDate(end.getUTCDate() + 6);
+    const entries = start && end
+      ? getDashboardEntries().filter((entry) => {
+        const date = parseDateInput(entry?.appliedDate);
+        return date ? date >= start && date <= end : false;
+      })
+      : [];
+    setDashboardDetail(title, formatDetailLines(detail), entries);
   };
 
   const showWeekdayDetail = (weekday) => {
@@ -1667,7 +1970,11 @@
     const detail = state.weekdayDetails?.get(weekday);
     const total = detail?.total || 0;
     const title = `${weekday}: ${total} application${total === 1 ? '' : 's'}`;
-    setDashboardDetail(title, formatDetailLines(detail));
+    const entries = getDashboardEntries().filter((entry) => {
+      const date = parseDateInput(entry?.appliedDate);
+      return date ? WEEKDAYS[date.getUTCDay()] === weekday : false;
+    });
+    setDashboardDetail(title, formatDetailLines(detail), entries);
   };
 
   const updateInsights = (insights = {}) => {
@@ -1978,6 +2285,7 @@
       if (els.mapRemote) els.mapRemote.textContent = 'Remote: --';
       updateInsights({});
       clearDashboardDetail();
+      state.dashboardEntries = [];
       state.mapDetails = null;
       state.calendarDetails = null;
       state.statusDetails = null;
@@ -1994,6 +2302,7 @@
       if (els.mapRemote) els.mapRemote.textContent = 'Remote: --';
       updateInsights({});
       clearDashboardDetail();
+      state.dashboardEntries = [];
       state.mapDetails = null;
       state.calendarDetails = null;
       state.statusDetails = null;
@@ -2023,7 +2332,9 @@
       ]);
       const series = timeline.series || [];
       const statusSeries = statuses.statuses || [];
-      const appItems = Array.isArray(applications.items) ? applications.items : [];
+      const appItems = (Array.isArray(applications.items) ? applications.items : [])
+        .map(item => normalizeEntry(item, 'application'));
+      state.dashboardEntries = appItems;
       const detailData = buildDashboardDetails(appItems);
       state.calendarDetails = detailData.calendarDetails;
       state.statusDetails = detailData.statusDetails;
@@ -2048,6 +2359,7 @@
       if (els.mapRemote) els.mapRemote.textContent = 'Remote: --';
       updateInsights({});
       clearDashboardDetail();
+      state.dashboardEntries = [];
       state.mapDetails = null;
       state.calendarDetails = null;
       state.statusDetails = null;
@@ -2648,20 +2960,60 @@
     }
   };
 
-  const downloadEntryZip = async (entryId) => {
+  const downloadAttachment = async (attachment, statusEl = els.detailModalStatus || els.entryListStatus) => {
+    if (!attachment) return;
+    if (!authIsValid(state.auth)) {
+      setStatus(statusEl, 'Sign in to download attachments.', 'error');
+      return;
+    }
+    if (!config.apiBase) {
+      setStatus(statusEl, 'Set the API base URL to download attachments.', 'error');
+      return;
+    }
+    const key = (attachment.key || '').toString().trim();
+    if (!key) {
+      setStatus(statusEl, 'Attachment key missing.', 'error');
+      return;
+    }
+    const filename = (attachment.filename || attachment.name || 'attachment').toString().trim();
+    try {
+      setStatus(statusEl, `Preparing ${filename}...`, 'info');
+      const data = await requestJson('/api/attachments/download', {
+        method: 'POST',
+        body: { key }
+      });
+      const url = data?.downloadUrl;
+      if (!url) {
+        setStatus(statusEl, 'Download link unavailable.', 'error');
+        return;
+      }
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename || '';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setStatus(statusEl, 'Download started.', 'success');
+    } catch (err) {
+      console.error('Attachment download failed', err);
+      setStatus(statusEl, err?.message || 'Unable to download attachment.', 'error');
+    }
+  };
+
+  const downloadEntryZip = async (entryId, statusEl = els.entryListStatus) => {
     if (!entryId) return;
     if (!authIsValid(state.auth)) {
-      setStatus(els.entryListStatus, 'Sign in to download attachments.', 'error');
+      setStatus(statusEl, 'Sign in to download attachments.', 'error');
       return;
     }
     try {
       const item = state.entryItems.get(entryId);
       const label = [item?.title, item?.company].filter(Boolean).join(' · ') || 'entry';
-      setStatus(els.entryListStatus, `Preparing ${label} attachments...`, 'info');
+      setStatus(statusEl, `Preparing ${label} attachments...`, 'info');
       const data = await requestAttachmentZip(entryId);
       const url = data?.downloadUrl;
       if (!url) {
-        setStatus(els.entryListStatus, 'Download link unavailable.', 'error');
+        setStatus(statusEl, 'Download link unavailable.', 'error');
         return;
       }
       const link = document.createElement('a');
@@ -2670,10 +3022,10 @@
       document.body.appendChild(link);
       link.click();
       link.remove();
-      setStatus(els.entryListStatus, 'Download started.', 'success');
+      setStatus(statusEl, 'Download started.', 'success');
     } catch (err) {
       console.error('Download zip failed', err);
-      setStatus(els.entryListStatus, err?.message || 'Unable to download attachments zip.', 'error');
+      setStatus(statusEl, err?.message || 'Unable to download attachments zip.', 'error');
     }
   };
 
@@ -2866,15 +3218,19 @@
       setStatus(els.entryListStatus, 'Sign in to move prospects.', 'error');
       return;
     }
-    const defaultDate = formatDateInput(new Date());
+    const captureDate = item.captureDate && parseDateInput(item.captureDate) ? item.captureDate : '';
+    const defaultDate = captureDate || formatDateInput(new Date());
     const response = typeof window !== 'undefined' && typeof window.prompt === 'function'
-      ? window.prompt('Applied date (YYYY-MM-DD):', defaultDate)
+      ? window.prompt('Applied date (optional, YYYY-MM-DD). Leave blank to use the suggested date:', defaultDate)
       : defaultDate;
     if (response === null) return;
-    const appliedDate = response.toString().trim();
-    if (!appliedDate || !parseDateInput(appliedDate)) {
+    let appliedDate = response.toString().trim();
+    if (appliedDate && !parseDateInput(appliedDate)) {
       setStatus(els.entryListStatus, 'Applied date must be valid (YYYY-MM-DD).', 'error');
       return;
+    }
+    if (!appliedDate) {
+      appliedDate = defaultDate;
     }
     const payload = buildApplicationPayloadFromProspect(item, appliedDate);
     await convertProspectToApplication(payload, prospectId, els.entryListStatus);
@@ -3443,6 +3799,32 @@
     if (els.detailReset) {
       els.detailReset.addEventListener('click', () => clearDashboardDetail());
     }
+    if (els.detailBody) {
+      els.detailBody.addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-jobtrack-detail-entry]');
+        if (!button || !els.detailBody.contains(button)) return;
+        const entryId = button.dataset.jobtrackDetailEntry;
+        if (!entryId) return;
+        const entry = state.entryItems.get(entryId)
+          || state.dashboardEntries.find(item => item.applicationId === entryId);
+        if (!entry) return;
+        openDetailModal(entry);
+      });
+    }
+    if (els.detailModalClose) {
+      els.detailModalClose.addEventListener('click', () => closeDetailModal());
+    }
+    if (els.detailModal) {
+      els.detailModal.addEventListener('click', (event) => {
+        if (event.target === els.detailModal) closeDetailModal();
+      });
+    }
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      if (!els.detailModal || !els.detailModal.classList.contains('active')) return;
+      event.preventDefault();
+      closeDetailModal();
+    });
   };
 
   const initAuth = async () => {
