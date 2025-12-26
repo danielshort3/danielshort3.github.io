@@ -102,8 +102,16 @@
                       <input id="jobtrack-title" class="jobtrack-input" name="title" type="text" placeholder="Data Analyst" required>
                     </div>
                     <div class="jobtrack-field">
-                      <label class="jobtrack-label" for="jobtrack-date">Applied date</label>
-                      <input id="jobtrack-date" class="jobtrack-input" name="appliedDate" type="date" required>
+                      <label class="jobtrack-label" for="jobtrack-job-url">Job URL</label>
+                      <input id="jobtrack-job-url" class="jobtrack-input" name="jobUrl" type="url" placeholder="https://company.com/jobs/123">
+                    </div>
+                    <div class="jobtrack-field">
+                      <label class="jobtrack-label" for="jobtrack-location">Location</label>
+                      <input id="jobtrack-location" class="jobtrack-input" name="location" type="text" placeholder="Remote · Austin, TX">
+                    </div>
+                    <div class="jobtrack-field">
+                      <label class="jobtrack-label" for="jobtrack-source">Source</label>
+                      <input id="jobtrack-source" class="jobtrack-input" name="source" type="text" placeholder="LinkedIn, referral, company site">
                     </div>
                     <div class="jobtrack-field">
                       <label class="jobtrack-label" for="jobtrack-posting-date">Posting date</label>
@@ -112,6 +120,10 @@
                         <input id="jobtrack-posting-unknown" class="jobtrack-checkbox-input" name="postingDateUnknown" type="checkbox">
                         Posting date unknown
                       </label>
+                    </div>
+                    <div class="jobtrack-field">
+                      <label class="jobtrack-label" for="jobtrack-date">Applied date</label>
+                      <input id="jobtrack-date" class="jobtrack-input" name="appliedDate" type="date" required>
                     </div>
                     <div class="jobtrack-field">
                       <label class="jobtrack-label" for="jobtrack-status">Status</label>
@@ -148,7 +160,7 @@
                     <div>
                       <p class="jobtrack-kicker">Bulk import</p>
                       <h3>Import applications from CSV</h3>
-                      <p class="jobtrack-subtitle">Use columns: company, title, appliedDate, postingDate, status, notes, jobUrl, location, source, resumeFile, coverLetterFile.</p>
+                      <p class="jobtrack-subtitle">Use columns: company, title, jobUrl, location, source, postingDate, appliedDate, status, notes, resumeFile, coverLetterFile.</p>
                     </div>
                     <div class="jobtrack-import-actions">
                       <input id="jobtrack-import-file" class="jobtrack-input jobtrack-file-input" type="file" accept=".csv,text/csv">
@@ -218,6 +230,11 @@
                         <input id="jobtrack-prospect-posting-unknown" class="jobtrack-checkbox-input" name="postingDateUnknown" type="checkbox">
                         Posting date unknown
                       </label>
+                    </div>
+                    <div class="jobtrack-field">
+                      <label class="jobtrack-label" for="jobtrack-prospect-applied-date">Applied date</label>
+                      <input id="jobtrack-prospect-applied-date" class="jobtrack-input" name="appliedDate" type="date">
+                      <p class="jobtrack-help">If set, this prospect moves into applications.</p>
                     </div>
                     <div class="jobtrack-field">
                       <label class="jobtrack-label" for="jobtrack-prospect-capture-date">Capture date</label>

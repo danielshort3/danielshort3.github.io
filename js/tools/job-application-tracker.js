@@ -25,6 +25,9 @@
     formStatus: $('[data-jobtrack="form-status"]'),
     companyInput: $('#jobtrack-company'),
     titleInput: $('#jobtrack-title'),
+    jobUrlInput: $('#jobtrack-job-url'),
+    locationInput: $('#jobtrack-location'),
+    sourceInput: $('#jobtrack-source'),
     dateInput: $('#jobtrack-date'),
     postingDateInput: $('#jobtrack-posting-date'),
     postingUnknownInput: $('#jobtrack-posting-unknown'),
@@ -70,6 +73,7 @@
     prospectSourceInput: $('#jobtrack-prospect-source'),
     prospectPostingDateInput: $('#jobtrack-prospect-posting-date'),
     prospectPostingUnknownInput: $('#jobtrack-prospect-posting-unknown'),
+    prospectAppliedDateInput: $('#jobtrack-prospect-applied-date'),
     prospectCaptureDateInput: $('#jobtrack-prospect-capture-date'),
     prospectStatusInput: $('#jobtrack-prospect-status'),
     prospectNotesInput: $('#jobtrack-prospect-notes'),
@@ -84,7 +88,7 @@
   const STORAGE_KEY = 'jobTrackerAuth';
   const STATE_KEY = 'jobTrackerAuthState';
   const VERIFIER_KEY = 'jobTrackerCodeVerifier';
-  const CSV_TEMPLATE = 'company,title,appliedDate,postingDate,status,notes,jobUrl,location,source,resumeFile,coverLetterFile\nAcme Corp,Data Analyst,2025-01-15,2025-01-10,Applied,Reached out to recruiter,https://acme.com/jobs/123,Remote,LinkedIn,Acme-Resume.pdf,Acme-Cover.pdf';
+  const CSV_TEMPLATE = 'company,title,jobUrl,location,source,postingDate,appliedDate,status,notes,resumeFile,coverLetterFile\nAcme Corp,Data Analyst,https://acme.com/jobs/123,Remote,LinkedIn,2025-01-10,2025-01-15,Applied,Reached out to recruiter,Acme-Resume.pdf,Acme-Cover.pdf';
 
   const state = {
     auth: null,
@@ -392,6 +396,9 @@
     state.editingApplication = item;
     if (els.companyInput) els.companyInput.value = item.company || '';
     if (els.titleInput) els.titleInput.value = item.title || '';
+    if (els.jobUrlInput) els.jobUrlInput.value = item.jobUrl || '';
+    if (els.locationInput) els.locationInput.value = item.location || '';
+    if (els.sourceInput) els.sourceInput.value = item.source || '';
     if (els.dateInput) els.dateInput.value = item.appliedDate || '';
     setUnknownDateValue(els.postingDateInput, els.postingUnknownInput, item.postingDate || '');
     if (els.statusInput) els.statusInput.value = item.status || 'Applied';
@@ -422,6 +429,7 @@
     if (els.prospectLocationInput) els.prospectLocationInput.value = item.location || '';
     if (els.prospectSourceInput) els.prospectSourceInput.value = item.source || '';
     setUnknownDateValue(els.prospectPostingDateInput, els.prospectPostingUnknownInput, item.postingDate || '');
+    if (els.prospectAppliedDateInput) els.prospectAppliedDateInput.value = item.appliedDate || '';
     if (els.prospectCaptureDateInput) {
       els.prospectCaptureDateInput.value = item.captureDate || formatDateInput(new Date());
     }
@@ -679,6 +687,9 @@
     const today = formatDateInput(new Date());
     if (els.prospectCaptureDateInput) {
       els.prospectCaptureDateInput.value = els.prospectCaptureDateInput.value || today;
+    }
+    if (els.prospectAppliedDateInput) {
+      els.prospectAppliedDateInput.value = '';
     }
     const postingValue = els.prospectPostingDateInput?.value || '';
     setUnknownDateValue(els.prospectPostingDateInput, els.prospectPostingUnknownInput, postingValue);
@@ -1243,6 +1254,39 @@
     }
   };
 
+  const convertProspectToApplication = async (payload, prospectId) => {
+    if (!els.prospectStatus) return false;
+    if (!authIsValid(state.auth)) {
+      setStatus(els.prospectStatus, 'Sign in to save applications.', 'error');
+      return false;
+    }
+    try {
+      setStatus(els.prospectStatus, 'Moving prospect to applications...', 'info');
+      await requestJson('/api/applications', { method: 'POST', body: payload });
+      let deleteError = null;
+      if (prospectId) {
+        try {
+          await requestJson(`/api/applications/${encodeURIComponent(prospectId)}`, { method: 'DELETE' });
+        } catch (err) {
+          deleteError = err;
+        }
+      }
+      clearProspectEditMode(
+        deleteError
+          ? 'Application saved, but the prospect could not be removed.'
+          : (prospectId ? 'Prospect moved to applications.' : 'Application saved.'),
+        deleteError ? 'error' : 'success'
+      );
+      await sleep(200);
+      await Promise.all([refreshProspects(), refreshRecent(), refreshDashboard()]);
+      return true;
+    } catch (err) {
+      console.error('Prospect conversion failed', err);
+      setStatus(els.prospectStatus, err?.message || 'Unable to move prospect to applications.', 'error');
+      return false;
+    }
+  };
+
   const updateProspectStatus = async (prospectId, nextStatus) => {
     if (!prospectId) return;
     try {
@@ -1273,6 +1317,7 @@
         const source = (formData.get('source') || '').toString().trim();
         const postingDate = (formData.get('postingDate') || '').toString().trim();
         const postingUnknown = Boolean(formData.get('postingDateUnknown'));
+        const appliedDate = (formData.get('appliedDate') || '').toString().trim();
         const captureDate = (formData.get('captureDate') || '').toString().trim();
         const status = (formData.get('status') || 'Active').toString().trim();
         const notes = (formData.get('notes') || '').toString().trim();
@@ -1288,12 +1333,41 @@
           setStatus(els.prospectStatus, 'Posting date must be valid.', 'error');
           return;
         }
+        if (appliedDate && !parseDateInput(appliedDate)) {
+          setStatus(els.prospectStatus, 'Applied date must be valid.', 'error');
+          return;
+        }
         if (!captureDate) {
           setStatus(els.prospectStatus, 'Capture date is required.', 'error');
           return;
         }
         if (!parseDateInput(captureDate)) {
           setStatus(els.prospectStatus, 'Capture date must be valid.', 'error');
+          return;
+        }
+        if (appliedDate) {
+          const applicationPayload = {
+            company,
+            title,
+            appliedDate,
+            status: 'Applied',
+            notes
+          };
+          if (jobUrl) applicationPayload.jobUrl = jobUrl;
+          if (location) applicationPayload.location = location;
+          if (source) applicationPayload.source = source;
+          if (postingUnknown) {
+            applicationPayload.postingDate = null;
+          } else if (postingDate) {
+            applicationPayload.postingDate = postingDate;
+          }
+          const ok = await convertProspectToApplication(applicationPayload, state.editingProspectId);
+          if (ok) {
+            state.isResettingProspect = true;
+            els.prospectForm.reset();
+            state.isResettingProspect = false;
+            resetProspectDateFields();
+          }
           return;
         }
         const payload = { company, title, jobUrl, location, source, status, notes, captureDate };
@@ -1453,6 +1527,9 @@
       const formData = new FormData(els.form);
       const company = (formData.get('company') || '').toString().trim();
       const title = (formData.get('title') || '').toString().trim();
+      const jobUrl = normalizeUrl(formData.get('jobUrl'));
+      const location = (formData.get('location') || '').toString().trim();
+      const source = (formData.get('source') || '').toString().trim();
       const appliedDate = (formData.get('appliedDate') || '').toString().trim();
       const postingDate = (formData.get('postingDate') || '').toString().trim();
       const postingUnknown = Boolean(formData.get('postingDateUnknown'));
@@ -1473,6 +1550,9 @@
       const attachments = collectAttachments();
       const editing = state.editingApplication;
       const payload = { company, title, appliedDate, notes };
+      if (jobUrl || editing?.jobUrl) payload.jobUrl = jobUrl;
+      if (location || editing?.location) payload.location = location;
+      if (source || editing?.source) payload.source = source;
       if (postingUnknown) {
         payload.postingDate = null;
       } else if (postingDate) {
