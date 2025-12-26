@@ -217,7 +217,7 @@
                       <div>
                         <p class="jobtrack-kicker">Bulk import</p>
                         <h3>Import applications from CSV</h3>
-                        <p class="jobtrack-subtitle">Use columns: company, title, jobUrl, location, source, postingDate, appliedDate, status, notes, resumeFile, coverLetterFile.</p>
+                        <p class="jobtrack-subtitle">Use columns: company, title, jobUrl, location, source, postingDate, appliedDate, status, notes, attachments.</p>
                       </div>
                       <div class="jobtrack-import-actions">
                         <div class="jobtrack-import-field">
@@ -226,14 +226,14 @@
                         </div>
                         <div class="jobtrack-import-field">
                           <label class="jobtrack-label" for="jobtrack-import-attachments">Attachment files</label>
-                          <input id="jobtrack-import-attachments" class="jobtrack-input jobtrack-file-input" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple aria-label="Resume and cover letter files">
+                          <input id="jobtrack-import-attachments" class="jobtrack-input jobtrack-file-input" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple aria-label="Attachment files">
                         </div>
                         <div class="jobtrack-import-buttons">
                           <button type="button" class="btn-secondary" data-jobtrack="import-submit">Import CSV</button>
                           <button type="button" class="btn-ghost" data-jobtrack="import-template">Download template</button>
                         </div>
                       </div>
-                      <p class="jobtrack-help">Match resumeFile and coverLetterFile to the exact filenames you select above.</p>
+                      <p class="jobtrack-help">List attachment filenames in the CSV (semicolon-separated) exactly as selected above.</p>
                       <div class="jobtrack-import-progress" data-jobtrack="import-progress-wrap" data-state="hidden">
                         <span class="jobtrack-import-progress-label" data-jobtrack="import-progress-label">Upload progress</span>
                         <progress class="jobtrack-import-progress-bar" data-jobtrack="import-progress" value="0" max="1">0%</progress>
@@ -264,6 +264,10 @@
                         </div>
                       </div>
                       <p class="jobtrack-help">Capture date is required for prospects and defaults to the date you found the role.</p>
+                      <div class="jobtrack-import-progress" data-jobtrack="prospect-import-progress-wrap" data-state="hidden">
+                        <span class="jobtrack-import-progress-label" data-jobtrack="prospect-import-progress-label">Import progress</span>
+                        <progress class="jobtrack-import-progress-bar" data-jobtrack="prospect-import-progress" value="0" max="1">0%</progress>
+                      </div>
                       <p class="jobtrack-form-status" data-jobtrack="prospect-import-status" role="status" aria-live="polite">Sign in to import prospects.</p>
                     </div>
                   </details>
@@ -281,6 +285,22 @@
                   </div>
                   <div class="jobtrack-panel-actions">
                     <span class="jobtrack-selected-count" data-jobtrack="entry-selected-count">0 selected</span>
+                    <div class="jobtrack-bulk-status">
+                      <label class="jobtrack-label" for="jobtrack-bulk-status">Update status</label>
+                      <select id="jobtrack-bulk-status" class="jobtrack-select" data-jobtrack="bulk-status">
+                        <option value="Applied">Applied</option>
+                        <option value="Screening">Screening</option>
+                        <option value="Interview">Interview</option>
+                        <option value="Offer">Offer</option>
+                        <option value="Rejected">Rejected</option>
+                        <option value="Withdrawn">Withdrawn</option>
+                      </select>
+                    </div>
+                    <div class="jobtrack-bulk-status">
+                      <label class="jobtrack-label" for="jobtrack-bulk-date">Status date</label>
+                      <input id="jobtrack-bulk-date" class="jobtrack-input" type="date" data-jobtrack="bulk-date">
+                    </div>
+                    <button type="button" class="btn-ghost" data-jobtrack="bulk-status-apply">Apply status</button>
                     <button type="button" class="btn-ghost" data-jobtrack="entry-bulk-delete" disabled>Delete selected</button>
                     <button type="button" class="btn-ghost" data-jobtrack="refresh-entries">Refresh</button>
                   </div>
@@ -502,7 +522,7 @@
                     <span class="jobtrack-map-remote" data-jobtrack="map-remote">Remote: --</span>
                   </div>
                   <div class="jobtrack-calendar-legend jobtrack-map-legend">
-                    <span>Fewer</span>
+                    <span>Fewer on-site applications</span>
                     <div class="jobtrack-legend-swatches" aria-hidden="true">
                       <span data-intensity="0"></span>
                       <span data-intensity="1"></span>
@@ -510,7 +530,7 @@
                       <span data-intensity="3"></span>
                       <span data-intensity="4"></span>
                     </div>
-                    <span>More</span>
+                    <span>More on-site applications</span>
                   </div>
                 </div>
 
@@ -522,9 +542,12 @@
                     </div>
                     <span class="jobtrack-panel-meta">Applications per day</span>
                   </div>
-                  <div class="jobtrack-calendar" data-jobtrack="calendar-grid" role="grid" aria-label="Daily application activity"></div>
+                  <div class="jobtrack-calendar-shell">
+                    <div class="jobtrack-calendar-months" data-jobtrack="calendar-months" aria-hidden="true"></div>
+                    <div class="jobtrack-calendar" data-jobtrack="calendar-grid" role="grid" aria-label="Daily application activity"></div>
+                  </div>
                   <div class="jobtrack-calendar-legend">
-                    <span>Less</span>
+                    <span>Fewer applications per day</span>
                     <div class="jobtrack-legend-swatches" aria-hidden="true">
                       <span data-intensity="0"></span>
                       <span data-intensity="1"></span>
@@ -532,8 +555,19 @@
                       <span data-intensity="3"></span>
                       <span data-intensity="4"></span>
                     </div>
-                    <span>More</span>
+                    <span>More applications per day</span>
                   </div>
+                </div>
+
+                <div class="jobtrack-panel jobtrack-detail-panel">
+                  <div class="jobtrack-panel-head">
+                    <div>
+                      <h3>Detail view</h3>
+                      <p class="jobtrack-panel-subtitle" data-jobtrack="detail-subtitle">Click a chart element to inspect activity.</p>
+                    </div>
+                    <button type="button" class="btn-ghost" data-jobtrack="detail-reset">Clear</button>
+                  </div>
+                  <div class="jobtrack-detail-body" data-jobtrack="detail-body">Select a state, week, day, or status to see details here.</div>
                 </div>
 
                 <p class="jobtrack-dashboard-status" data-jobtrack="dashboard-status" role="status" aria-live="polite">Sign in to load your dashboards.</p>
