@@ -544,7 +544,6 @@
                   </div>
                   <div class="jobtrack-calendar-shell">
                     <div class="jobtrack-calendar-months" data-jobtrack="calendar-months" aria-hidden="true"></div>
-                    <div class="jobtrack-calendar-weekdays" data-jobtrack="calendar-weekdays" aria-hidden="true"></div>
                     <div class="jobtrack-calendar" data-jobtrack="calendar-grid" role="grid" aria-label="Daily application activity"></div>
                   </div>
                   <div class="jobtrack-calendar-legend">
@@ -560,6 +559,39 @@
                   </div>
                 </div>
 
+                <div class="jobtrack-panel jobtrack-weekday-panel">
+                  <div class="jobtrack-panel-head">
+                    <div>
+                      <h3>Weekday heatmap</h3>
+                      <p class="jobtrack-panel-subtitle">Applied volume by day of week</p>
+                    </div>
+                    <span class="jobtrack-panel-meta">Weekly cadence</span>
+                  </div>
+                  <div class="jobtrack-weekday-shell">
+                    <div class="jobtrack-weekday-labels" aria-hidden="true">
+                      <span>Sun</span>
+                      <span>Mon</span>
+                      <span>Tue</span>
+                      <span>Wed</span>
+                      <span>Thu</span>
+                      <span>Fri</span>
+                      <span>Sat</span>
+                    </div>
+                    <div class="jobtrack-weekday-grid" data-jobtrack="weekday-heatmap" role="grid" aria-label="Applications by weekday"></div>
+                  </div>
+                  <div class="jobtrack-calendar-legend jobtrack-weekday-legend">
+                    <span>Fewer applications per weekday</span>
+                    <div class="jobtrack-legend-swatches" aria-hidden="true">
+                      <span data-intensity="0"></span>
+                      <span data-intensity="1"></span>
+                      <span data-intensity="2"></span>
+                      <span data-intensity="3"></span>
+                      <span data-intensity="4"></span>
+                    </div>
+                    <span>More applications per weekday</span>
+                  </div>
+                </div>
+
                 <div class="jobtrack-panel jobtrack-detail-panel">
                   <div class="jobtrack-panel-head">
                     <div>
@@ -568,7 +600,7 @@
                     </div>
                     <button type="button" class="btn-ghost" data-jobtrack="detail-reset">Clear</button>
                   </div>
-                  <div class="jobtrack-detail-body" data-jobtrack="detail-body">Select a state, week, day, or status to see details here.</div>
+                  <div class="jobtrack-detail-body" data-jobtrack="detail-body">Select a state, week, weekday, day, or status to see details here.</div>
                 </div>
 
                 <p class="jobtrack-dashboard-status" data-jobtrack="dashboard-status" role="status" aria-live="polite">Sign in to load your dashboards.</p>
