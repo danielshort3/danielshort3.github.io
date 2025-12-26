@@ -112,7 +112,7 @@
     statusOverlay: $('[data-jobtrack="status-overlay"]'),
     calendarGrid: $('[data-jobtrack="calendar-grid"]'),
     calendarMonths: $('[data-jobtrack="calendar-months"]'),
-    calendarWeekdays: $('[data-jobtrack="calendar-weekdays"]'),
+    weekdayHeatmap: $('[data-jobtrack="weekday-heatmap"]'),
     mapContainer: $('[data-jobtrack="map"]'),
     mapPlaceholder: $('[data-jobtrack="map-placeholder"]'),
     mapTotal: $('[data-jobtrack="map-total"]'),
@@ -135,7 +135,7 @@
   const APPLICATION_STATUSES = ['Applied', 'Screening', 'Interview', 'Offer', 'Rejected', 'Withdrawn'];
   const PROSPECT_STATUSES = ['Active', 'Interested', 'Inactive'];
   const DETAIL_DEFAULT_SUBTITLE = 'Click a chart element to inspect activity.';
-  const DETAIL_DEFAULT_BODY = 'Select a state, week, day, or status to see details here.';
+  const DETAIL_DEFAULT_BODY = 'Select a state, week, weekday, day, or status to see details here.';
   const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const REMOTE_HINTS = ['remote', 'work from home', 'wfh', 'virtual'];
   const ONSITE_HINTS = ['on-site', 'onsite', 'on site', 'in office', 'in-office', 'hybrid'];
@@ -223,9 +223,11 @@
     calendarDetails: null,
     statusDetails: null,
     weekDetails: null,
+    weekdayDetails: null,
     weeklySeries: [],
     mapTooltipBound: false,
     calendarTooltipBound: false,
+    weekdayTooltipBound: false,
     isResettingEntry: false
   };
 
@@ -1302,7 +1304,6 @@
     if (els.calendarRange) els.calendarRange.textContent = rangeLabel;
     els.calendarGrid.innerHTML = '';
     if (els.calendarMonths) els.calendarMonths.innerHTML = '';
-    if (els.calendarWeekdays) els.calendarWeekdays.innerHTML = '';
     const counts = new Map(days.map(item => [item.date, item.count]));
     const max = Math.max(0, ...days.map(item => item.count || 0));
     const scale = (count) => {
@@ -1310,16 +1311,6 @@
       if (max <= 1) return 1;
       return Math.min(4, Math.ceil((count / max) * 4));
     };
-
-    if (els.calendarWeekdays) {
-      const labels = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
-      labels.forEach((label) => {
-        const item = document.createElement('span');
-        item.className = 'jobtrack-calendar-weekday';
-        item.textContent = label;
-        els.calendarWeekdays.appendChild(item);
-      });
-    }
 
     const startMonth = new Date(Date.UTC(range.start.getUTCFullYear(), range.start.getUTCMonth(), 1));
     const endMonth = new Date(Date.UTC(range.end.getUTCFullYear(), range.end.getUTCMonth(), 1));
@@ -1396,6 +1387,39 @@
       cursor.setUTCMonth(month + 1);
     }
     bindCalendarTooltip();
+  };
+
+  const buildWeekdayHeatmap = (weekdayDetails = new Map()) => {
+    if (!els.weekdayHeatmap) return;
+    els.weekdayHeatmap.innerHTML = '';
+    const counts = WEEKDAYS.map(day => weekdayDetails.get(day)?.total || 0);
+    const max = Math.max(0, ...counts);
+    const scale = (count) => {
+      if (!count) return 0;
+      if (max <= 1) return 1;
+      return Math.min(4, Math.ceil((count / max) * 4));
+    };
+    WEEKDAYS.forEach((day) => {
+      const detail = weekdayDetails.get(day);
+      const count = detail?.total || 0;
+      const intensity = scale(count);
+      const cell = document.createElement('div');
+      cell.className = 'jobtrack-weekday-cell';
+      if (intensity) {
+        cell.dataset.intensity = String(intensity);
+      }
+      const labelText = `${day}: ${count} application${count === 1 ? '' : 's'}`;
+      const detailLines = count && detail ? formatDetailLines(detail) : [];
+      const tooltipText = detailLines.length ? [labelText, ...detailLines].join('\n') : labelText;
+      cell.setAttribute('role', 'gridcell');
+      cell.setAttribute('aria-label', tooltipText);
+      cell.title = tooltipText;
+      cell.dataset.jobtrackTooltip = tooltipText;
+      cell.dataset.jobtrackWeekday = day;
+      cell.tabIndex = 0;
+      els.weekdayHeatmap.appendChild(cell);
+    });
+    bindWeekdayTooltip();
   };
 
   const getFirstResponseDate = (entry) => {
@@ -1535,6 +1559,7 @@
     const calendarDetails = new Map();
     const statusDetails = new Map();
     const weekDetails = new Map();
+    const weekdayDetails = new Map();
 
     applications.forEach((item) => {
       const status = toTitle((item?.status || 'Applied').toString());
@@ -1551,6 +1576,12 @@
         const weekKey = formatDateInput(weekStart);
         if (!weekDetails.has(weekKey)) weekDetails.set(weekKey, createDetail());
         updateDetail(weekDetails.get(weekKey), status, company, applied);
+
+        const weekday = WEEKDAYS[applied.getUTCDay()];
+        if (weekday) {
+          if (!weekdayDetails.has(weekday)) weekdayDetails.set(weekday, createDetail());
+          updateDetail(weekdayDetails.get(weekday), status, company, applied);
+        }
       }
 
       if (status) {
@@ -1575,7 +1606,8 @@
       remoteDetail,
       calendarDetails,
       statusDetails,
-      weekDetails
+      weekDetails,
+      weekdayDetails
     };
   };
 
@@ -1627,6 +1659,14 @@
     const detail = state.weekDetails?.get(weekKey);
     const total = detail?.total ?? count ?? 0;
     const title = `Week of ${label}: ${total} application${total === 1 ? '' : 's'}`;
+    setDashboardDetail(title, formatDetailLines(detail));
+  };
+
+  const showWeekdayDetail = (weekday) => {
+    if (!weekday) return;
+    const detail = state.weekdayDetails?.get(weekday);
+    const total = detail?.total || 0;
+    const title = `${weekday}: ${total} application${total === 1 ? '' : 's'}`;
     setDashboardDetail(title, formatDetailLines(detail));
   };
 
@@ -1776,6 +1816,43 @@
     state.calendarTooltipBound = true;
   };
 
+  const bindWeekdayTooltip = () => {
+    if (!els.weekdayHeatmap || state.weekdayTooltipBound) return;
+    const handleMove = (event) => {
+      const cell = event.target.closest('.jobtrack-weekday-cell');
+      if (!cell || !els.weekdayHeatmap.contains(cell)) {
+        tooltip.hide();
+        return;
+      }
+      const label = cell.dataset.jobtrackTooltip;
+      if (!label) {
+        tooltip.hide();
+        return;
+      }
+      tooltip.show(label, event.clientX, event.clientY);
+    };
+    const handleLeave = () => tooltip.hide();
+    const handleClick = (event) => {
+      const cell = event.target.closest('.jobtrack-weekday-cell');
+      if (!cell || !els.weekdayHeatmap.contains(cell)) return;
+      const weekday = cell.dataset.jobtrackWeekday;
+      showWeekdayDetail(weekday);
+    };
+    const handleKey = (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      const cell = event.target.closest('.jobtrack-weekday-cell');
+      if (!cell || !els.weekdayHeatmap.contains(cell)) return;
+      event.preventDefault();
+      const weekday = cell.dataset.jobtrackWeekday;
+      showWeekdayDetail(weekday);
+    };
+    els.weekdayHeatmap.addEventListener('pointermove', handleMove);
+    els.weekdayHeatmap.addEventListener('pointerleave', handleLeave);
+    els.weekdayHeatmap.addEventListener('click', handleClick);
+    els.weekdayHeatmap.addEventListener('keydown', handleKey);
+    state.weekdayTooltipBound = true;
+  };
+
   const loadMap = async () => {
     if (!els.mapContainer || state.mapLoaded) return state.mapSvg;
     const src = (els.mapContainer.dataset.jobtrackMapSrc || '').trim();
@@ -1905,7 +1982,9 @@
       state.calendarDetails = null;
       state.statusDetails = null;
       state.weekDetails = null;
+      state.weekdayDetails = null;
       state.weeklySeries = [];
+      buildWeekdayHeatmap(new Map());
       return;
     }
     if (!authIsValid(state.auth)) {
@@ -1919,7 +1998,9 @@
       state.calendarDetails = null;
       state.statusDetails = null;
       state.weekDetails = null;
+      state.weekdayDetails = null;
       state.weeklySeries = [];
+      buildWeekdayHeatmap(new Map());
       return;
     }
     const range = readRange();
@@ -1947,10 +2028,12 @@
       state.calendarDetails = detailData.calendarDetails;
       state.statusDetails = detailData.statusDetails;
       state.weekDetails = detailData.weekDetails;
+      state.weekdayDetails = detailData.weekdayDetails;
       updateKpis(summary);
       updateLineChart(series, rangeLabel);
       updateStatusChart(statusSeries);
       buildCalendar(calendar.days || [], rangeLabel, range, detailData.calendarDetails);
+      buildWeekdayHeatmap(detailData.weekdayDetails);
       updateInsights(buildInsights(appItems));
       await updateMap(appItems, detailData);
       setOverlay(els.lineOverlay, series.length ? '' : 'No activity yet.');
@@ -1969,7 +2052,9 @@
       state.calendarDetails = null;
       state.statusDetails = null;
       state.weekDetails = null;
+      state.weekdayDetails = null;
       state.weeklySeries = [];
+      buildWeekdayHeatmap(new Map());
       setStatus(els.dashboardStatus, err?.message || 'Unable to load dashboards.', 'error');
     } finally {
       if (els.dashboard) els.dashboard.setAttribute('aria-busy', 'false');
