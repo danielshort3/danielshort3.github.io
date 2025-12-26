@@ -446,7 +446,7 @@
   .jobtrack-table-head,
   .jobtrack-table-row{
     display:grid;
-    grid-template-columns:48px 120px 180px 200px 140px 180px 120px 160px 160px 170px;
+    grid-template-columns:48px 120px 180px 200px 140px 180px 120px 160px 160px 160px 170px;
     align-items:center;
   }
   .jobtrack-table-head{
@@ -510,6 +510,16 @@
   .jobtrack-table-row{
     border-bottom:1px solid color-mix(in srgb,var(--jobtrack-accent) 12%, transparent);
     background:color-mix(in srgb,var(--jobtrack-surface) 94%, #01060c 6%);
+  }
+  .jobtrack-table-row[data-jobtrack-row]{
+    cursor:pointer;
+  }
+  .jobtrack-table-row[data-jobtrack-row]:hover{
+    background:color-mix(in srgb,var(--jobtrack-surface) 88%, #030812 12%);
+  }
+  .jobtrack-table-row[data-jobtrack-row]:focus-visible{
+    outline:2px solid color-mix(in srgb,var(--jobtrack-accent) 60%, #ffffff 40%);
+    outline-offset:-2px;
   }
   .jobtrack-table-row:last-child{
     border-bottom:0;
@@ -1211,6 +1221,29 @@
     padding:6px 10px;
     font-size:.85rem;
     flex-shrink:0;
+  }
+  .jobtrack-modal-actions{
+    display:grid;
+    gap:14px;
+  }
+  .jobtrack-modal-action-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:center;
+  }
+  .jobtrack-modal-status-form{
+    display:grid;
+    gap:10px;
+  }
+  .jobtrack-modal-status-fields{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    align-items:flex-end;
+  }
+  .jobtrack-modal-status-btn{
+    align-self:flex-end;
   }
   .jobtrack-tooltip{
     position:fixed;
