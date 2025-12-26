@@ -55,6 +55,7 @@
     prospectImportFile: $('#jobtrack-prospect-import-file'),
     prospectImportSubmit: $('[data-jobtrack="prospect-import-submit"]'),
     prospectImportTemplate: $('[data-jobtrack="prospect-import-template"]'),
+    prospectPromptDownload: $('[data-jobtrack="prospect-prompt-download"]'),
     prospectImportStatus: $('[data-jobtrack="prospect-import-status"]'),
     prospectImportProgressWrap: $('[data-jobtrack="prospect-import-progress-wrap"]'),
     prospectImportProgressLabel: $('[data-jobtrack="prospect-import-progress-label"]'),
@@ -138,6 +139,28 @@
   const VERIFIER_KEY = 'jobTrackerCodeVerifier';
   const CSV_TEMPLATE = 'company,title,jobUrl,location,source,postingDate,appliedDate,status,notes,attachments\nAcme Corp,Data Analyst,https://acme.com/jobs/123,Remote,LinkedIn,2025-01-10,2025-01-15,Applied,Reached out to recruiter,Acme-Resume.pdf;Acme-Cover.pdf';
   const PROSPECT_CSV_TEMPLATE = 'company,title,jobUrl,location,source,postingDate,captureDate,status,notes\nAcme Corp,Data Analyst,https://acme.com/jobs/123,Remote,LinkedIn,2025-01-10,2025-01-12,Active,Follow up next week.';
+  const PROSPECT_PROMPT_TEMPLATE = [
+    'Job Prospect Finder Prompt (CSV for Job Tracker Prospects Import)',
+    '',
+    'Act as a job sourcing assistant for data-focused roles. Use the inputs:',
+    '1) Resume content (Word doc) describing Business Analyst, AI Data Quality Analyst, and Asset Protection Data Analyst roles with quantified impacts (99% reporting time reduction, 750% traffic lift, 200+ hours saved, 180% theft prevention lift).',
+    '2) Target role or job description URL: .',
+    '3) Portfolio: danielshort.me. Focus only on Chatbot (LoRA + RAG), Shape Classifier Demo, and Sheet Music Restoration. Ignore other projects. Include relevant metrics (94% RL solver accuracy, 200+ hours saved through automation, 750% traffic lift).',
+    '4) Location and work model preferences.',
+    '',
+    'Instructions:',
+    '- Find open roles that match the resume and portfolio. Prefer company sites, then major job boards.',
+    '- Only include roles with a direct job URL.',
+    '- Fill source with the site name (Company site, LinkedIn, etc).',
+    '- Use ISO dates YYYY-MM-DD. If postingDate is unknown, leave it blank. Set captureDate to today.',
+    '- Set status to Active.',
+    '- Notes: one short line with why the role fits or key keywords.',
+    '',
+    'Output:',
+    'Return only CSV (no markdown). Header must be:',
+    'company,title,jobUrl,location,source,postingDate,captureDate,status,notes',
+    'One role per row. Quote any field that contains commas.'
+  ].join('\n');
   const APPLICATION_STATUSES = ['Applied', 'Screening', 'Interview', 'Offer', 'Rejected', 'Withdrawn'];
   const PROSPECT_STATUSES = ['Active', 'Interested', 'Inactive'];
   const DETAIL_DEFAULT_SUBTITLE = 'Click a chart element to inspect activity.';
@@ -3695,6 +3718,19 @@
         const link = document.createElement('a');
         link.href = url;
         link.download = 'job-prospects-template.csv';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      });
+    }
+    if (els.prospectPromptDownload) {
+      els.prospectPromptDownload.addEventListener('click', () => {
+        const blob = new Blob([PROSPECT_PROMPT_TEMPLATE], { type: 'text/plain;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'job-prospect-prompt.txt';
         document.body.appendChild(link);
         link.click();
         link.remove();
