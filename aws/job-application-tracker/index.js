@@ -125,7 +125,14 @@ const normalizePath = (event) => {
   const rawPath = event.rawPath || event.path || '';
   const stage = event.requestContext?.stage;
   if (stage && rawPath.startsWith(`/${stage}/`)) {
-    return rawPath.slice(stage.length + 1);
+    const stripped = rawPath.slice(stage.length + 1);
+    if (stripped.length > 1 && stripped.endsWith('/')) {
+      return stripped.slice(0, -1);
+    }
+    return stripped;
+  }
+  if (rawPath.length > 1 && rawPath.endsWith('/')) {
+    return rawPath.slice(0, -1);
   }
   return rawPath;
 };
@@ -852,7 +859,7 @@ exports.handler = async (event) => {
       };
     }
 
-    if (routeKey === 'POST /api/exports') {
+    if (routeKey === 'POST /api/exports' || (method === 'POST' && path === '/api/exports')) {
       const payload = parseBody(event);
       const range = getExportRange(payload);
       const data = await handleCreateExport(userId, range);

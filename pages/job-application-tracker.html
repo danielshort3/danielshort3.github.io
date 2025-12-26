@@ -73,6 +73,11 @@
   <main id="main">
     <section class="surface-band jobtrack-section jobtrack-tabs-section">
       <div class="wrapper">
+        <div class="jobtrack-tool-header">
+          <p class="hero-eyebrow">Labs</p>
+          <h2>Job Application Tracker</h2>
+          <p class="jobtrack-tool-lead">Capture applications, build a prospect pipeline, and review dashboards without leaving the tracker.</p>
+        </div>
         <div class="jobtrack-tabs" data-jobtrack="tabs">
           <div class="jobtrack-tablist" role="tablist" aria-label="Job tracker sections">
             <button id="jobtrack-tab-account" class="jobtrack-tab" type="button" role="tab" aria-selected="true" aria-controls="jobtrack-panel-account" data-jobtrack-tab="account">Account</button>
@@ -218,6 +223,21 @@
                     <p class="jobtrack-help">Match resumeFile and coverLetterFile to the exact filenames you select above.</p>
                     <p class="jobtrack-form-status" data-jobtrack="import-status" role="status" aria-live="polite">Sign in to import applications.</p>
                   </div>
+
+                  <div class="jobtrack-import" data-jobtrack-entry="prospect">
+                    <div>
+                      <p class="jobtrack-kicker">Bulk import</p>
+                      <h3>Import prospects from CSV</h3>
+                      <p class="jobtrack-subtitle">Use columns: company, title, jobUrl, location, source, postingDate, captureDate, status, notes.</p>
+                    </div>
+                    <div class="jobtrack-import-actions">
+                      <input id="jobtrack-prospect-import-file" class="jobtrack-input jobtrack-file-input" type="file" accept=".csv,text/csv">
+                      <button type="button" class="btn-secondary" data-jobtrack="prospect-import-submit">Import CSV</button>
+                      <button type="button" class="btn-ghost" data-jobtrack="prospect-import-template">Download template</button>
+                    </div>
+                    <p class="jobtrack-help">Capture date is required for prospects and defaults to the date you found the role.</p>
+                    <p class="jobtrack-form-status" data-jobtrack="prospect-import-status" role="status" aria-live="polite">Sign in to import prospects.</p>
+                  </div>
                 </article>
               </div>
             </section>
@@ -231,6 +251,8 @@
                     <p class="jobtrack-subtitle">Scan every entry, then sort or filter like a lightweight file explorer.</p>
                   </div>
                   <div class="jobtrack-panel-actions">
+                    <span class="jobtrack-selected-count" data-jobtrack="entry-selected-count">0 selected</span>
+                    <button type="button" class="btn-ghost" data-jobtrack="entry-bulk-delete" disabled>Delete selected</button>
                     <button type="button" class="btn-ghost" data-jobtrack="refresh-entries">Refresh</button>
                   </div>
                 </div>
@@ -276,6 +298,11 @@
                 <div class="jobtrack-table-scroll">
                   <div class="jobtrack-table" role="table">
                     <div class="jobtrack-table-head" role="row">
+                      <div class="jobtrack-table-cell jobtrack-table-header jobtrack-table-select" role="columnheader">
+                        <label class="jobtrack-checkbox">
+                          <input class="jobtrack-checkbox-input" type="checkbox" data-jobtrack="entry-select-all" aria-label="Select all entries">
+                        </label>
+                      </div>
                       <button type="button" class="jobtrack-table-cell jobtrack-table-header" role="columnheader" aria-sort="none" data-jobtrack-sort="type">Type</button>
                       <button type="button" class="jobtrack-table-cell jobtrack-table-header" role="columnheader" aria-sort="none" data-jobtrack-sort="company">Company</button>
                       <button type="button" class="jobtrack-table-cell jobtrack-table-header" role="columnheader" aria-sort="none" data-jobtrack-sort="title">Role</button>
@@ -435,12 +462,15 @@
                   <div class="jobtrack-panel-head">
                     <div>
                       <h3>On-site footprint</h3>
-                      <p class="jobtrack-panel-subtitle">Non-remote applications by state.</p>
+                      <p class="jobtrack-panel-subtitle">Non-remote applications by state, with remote totals called out below.</p>
                     </div>
                     <span class="jobtrack-panel-meta" data-jobtrack="map-total">No states yet</span>
                   </div>
                   <div class="jobtrack-map" data-jobtrack="map" data-jobtrack-map-src="img/ui/us-map.svg">
                     <div class="jobtrack-map-placeholder" data-jobtrack="map-placeholder">Loading map...</div>
+                  </div>
+                  <div class="jobtrack-map-meta">
+                    <span class="jobtrack-map-remote" data-jobtrack="map-remote">Remote: --</span>
                   </div>
                   <div class="jobtrack-calendar-legend jobtrack-map-legend">
                     <span>Fewer</span>

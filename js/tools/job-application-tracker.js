@@ -49,6 +49,10 @@
     importSubmit: $('[data-jobtrack="import-submit"]'),
     importTemplate: $('[data-jobtrack="import-template"]'),
     importStatus: $('[data-jobtrack="import-status"]'),
+    prospectImportFile: $('#jobtrack-prospect-import-file'),
+    prospectImportSubmit: $('[data-jobtrack="prospect-import-submit"]'),
+    prospectImportTemplate: $('[data-jobtrack="prospect-import-template"]'),
+    prospectImportStatus: $('[data-jobtrack="prospect-import-status"]'),
     entryList: $('[data-jobtrack="entry-list"]'),
     entryListStatus: $('[data-jobtrack="entry-list-status"]'),
     entriesRefresh: $('[data-jobtrack="refresh-entries"]'),
@@ -61,6 +65,9 @@
     entryFilterEnd: $('[data-jobtrack="entry-filter-end"]'),
     entryFilterReset: $('[data-jobtrack="entry-filter-reset"]'),
     entrySortButtons: $$('[data-jobtrack-sort]'),
+    entrySelectAll: $('[data-jobtrack="entry-select-all"]'),
+    entryBulkDelete: $('[data-jobtrack="entry-bulk-delete"]'),
+    entrySelectedCount: $('[data-jobtrack="entry-selected-count"]'),
     exportForm: $('[data-jobtrack="export-form"]'),
     exportStart: $('[data-jobtrack="export-start"]'),
     exportEnd: $('[data-jobtrack="export-end"]'),
@@ -97,7 +104,8 @@
     calendarGrid: $('[data-jobtrack="calendar-grid"]'),
     mapContainer: $('[data-jobtrack="map"]'),
     mapPlaceholder: $('[data-jobtrack="map-placeholder"]'),
-    mapTotal: $('[data-jobtrack="map-total"]')
+    mapTotal: $('[data-jobtrack="map-total"]'),
+    mapRemote: $('[data-jobtrack="map-remote"]')
   };
 
   const tabs = {
@@ -109,6 +117,7 @@
   const STATE_KEY = 'jobTrackerAuthState';
   const VERIFIER_KEY = 'jobTrackerCodeVerifier';
   const CSV_TEMPLATE = 'company,title,jobUrl,location,source,postingDate,appliedDate,status,notes,resumeFile,coverLetterFile\nAcme Corp,Data Analyst,https://acme.com/jobs/123,Remote,LinkedIn,2025-01-10,2025-01-15,Applied,Reached out to recruiter,Acme-Resume.pdf,Acme-Cover.pdf';
+  const PROSPECT_CSV_TEMPLATE = 'company,title,jobUrl,location,source,postingDate,captureDate,status,notes\nAcme Corp,Data Analyst,https://acme.com/jobs/123,Remote,LinkedIn,2025-01-10,2025-01-12,Active,Follow up next week.';
   const APPLICATION_STATUSES = ['Applied', 'Screening', 'Interview', 'Offer', 'Rejected', 'Withdrawn'];
   const PROSPECT_STATUSES = ['Active', 'Interested', 'Inactive'];
   const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -190,6 +199,8 @@
       start: '',
       end: ''
     },
+    selectedEntryIds: new Set(),
+    visibleEntryIds: [],
     mapLoaded: false,
     mapSvg: null,
     isResettingEntry: false
@@ -340,6 +351,7 @@
     title: ['title', 'role', 'position', 'jobtitle'],
     appliedDate: ['applieddate', 'dateapplied', 'applicationdate', 'applied', 'date'],
     postingDate: ['postingdate', 'posteddate', 'jobpostingdate', 'dateposted'],
+    captureDate: ['capturedate', 'founddate', 'discoverdate', 'datefound', 'captured'],
     status: ['status', 'stage'],
     notes: ['notes', 'note', 'details'],
     jobUrl: ['joburl', 'url', 'link', 'joblink', 'applicationurl'],
@@ -788,6 +800,9 @@
     if (els.importStatus) {
       setStatus(els.importStatus, authed ? 'Ready to import applications.' : 'Sign in to import applications.', authed ? '' : 'info');
     }
+    if (els.prospectImportStatus) {
+      setStatus(els.prospectImportStatus, authed ? 'Ready to import prospects.' : 'Sign in to import prospects.', authed ? '' : 'info');
+    }
     if (els.entryFormStatus && !state.editingEntryId) {
       const entryLabel = state.entryType === 'prospect' ? 'prospects' : 'applications';
       setStatus(els.entryFormStatus, authed ? `Ready to save ${entryLabel}.` : 'Sign in to save entries.', authed ? '' : 'info');
@@ -1080,9 +1095,18 @@
       const cell = document.createElement('div');
       cell.className = 'jobtrack-calendar-day';
       cell.dataset.intensity = String(intensity);
+      const dateLabel = new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+      const labelText = count
+        ? `${dateLabel}: ${count} application${count === 1 ? '' : 's'}`
+        : `${dateLabel}: No applications`;
       cell.setAttribute('role', 'gridcell');
-      cell.setAttribute('aria-label', `${iso}: ${count} applications`);
-      cell.title = `${iso}: ${count} applications`;
+      cell.setAttribute('aria-label', labelText);
+      cell.title = labelText;
       els.calendarGrid.appendChild(cell);
       cursor = new Date(cursor.getTime() + 86400000);
     }
@@ -1275,6 +1299,14 @@
       const svg = doc.querySelector('svg');
       if (!svg) throw new Error('Map SVG not found.');
       svg.classList.add('jobtrack-map-svg');
+      if (!svg.getAttribute('viewBox')) {
+        const width = parseFloat(svg.getAttribute('width') || '0');
+        const height = parseFloat(svg.getAttribute('height') || '0');
+        if (width && height) {
+          svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        }
+      }
+      svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
       svg.removeAttribute('width');
       svg.removeAttribute('height');
       const style = svg.querySelector('style');
@@ -1298,9 +1330,14 @@
 
     const counts = new Map();
     let totalApps = 0;
+    let remoteCount = 0;
     applications.forEach((item) => {
       const location = (item?.location || '').toString();
-      if (!location || isRemoteLocation(location)) return;
+      if (!location) return;
+      if (isRemoteLocation(location)) {
+        remoteCount += 1;
+        return;
+      }
       const code = extractStateCode(location);
       if (!code) return;
       counts.set(code, (counts.get(code) || 0) + 1);
@@ -1326,7 +1363,7 @@
         node.removeAttribute('data-intensity');
       }
       const name = STATE_NAME_LOOKUP.get(code) || code;
-      const label = `${name}: ${count} application${count === 1 ? '' : 's'}`;
+      const label = `${name}: ${count} on-site application${count === 1 ? '' : 's'}`;
       node.setAttribute('aria-label', label);
       node.setAttribute('title', label);
     });
@@ -1334,10 +1371,17 @@
     if (els.mapTotal) {
       const stateCount = counts.size;
       if (stateCount) {
-        els.mapTotal.textContent = `${stateCount} state${stateCount === 1 ? '' : 's'} · ${totalApps} application${totalApps === 1 ? '' : 's'}`;
+        els.mapTotal.textContent = `${stateCount} state${stateCount === 1 ? '' : 's'} · ${totalApps} on-site · ${remoteCount} remote`;
       } else {
-        els.mapTotal.textContent = 'No states yet';
+        els.mapTotal.textContent = remoteCount
+          ? `No states yet · ${remoteCount} remote`
+          : 'No states yet';
       }
+    }
+    if (els.mapRemote) {
+      const label = `Remote: ${remoteCount} application${remoteCount === 1 ? '' : 's'}`;
+      els.mapRemote.textContent = label;
+      els.mapRemote.title = label;
     }
   };
 
@@ -1347,6 +1391,7 @@
       setStatus(els.dashboardStatus, 'Set the API base URL to load dashboards.', 'error');
       if (els.mapPlaceholder) els.mapPlaceholder.textContent = 'Set the API base URL to load the map.';
       if (els.mapTotal) els.mapTotal.textContent = 'Map unavailable';
+      if (els.mapRemote) els.mapRemote.textContent = 'Remote: --';
       updateInsights({});
       return;
     }
@@ -1354,6 +1399,7 @@
       setStatus(els.dashboardStatus, 'Sign in to load your dashboards.', 'info');
       if (els.mapPlaceholder) els.mapPlaceholder.textContent = 'Sign in to load the map.';
       if (els.mapTotal) els.mapTotal.textContent = 'Sign in to view map';
+      if (els.mapRemote) els.mapRemote.textContent = 'Remote: --';
       updateInsights({});
       return;
     }
@@ -1392,6 +1438,7 @@
       setOverlay(els.statusOverlay, 'Unable to load chart.');
       if (els.mapPlaceholder) els.mapPlaceholder.textContent = 'Unable to load map.';
       if (els.mapTotal) els.mapTotal.textContent = 'Map unavailable';
+      if (els.mapRemote) els.mapRemote.textContent = 'Remote: --';
       updateInsights({});
       setStatus(els.dashboardStatus, err?.message || 'Unable to load dashboards.', 'error');
     } finally {
@@ -1542,6 +1589,24 @@
       row.className = 'jobtrack-table-row';
       row.setAttribute('role', 'row');
       const entryType = entry.entryType || getEntryType(entry);
+      const entryLabel = [entry.title, entry.company].filter(Boolean).join(' · ') || 'entry';
+
+      const selectCell = document.createElement('div');
+      selectCell.className = 'jobtrack-table-cell jobtrack-table-select';
+      if (entry.applicationId) {
+        const checkboxLabel = document.createElement('label');
+        checkboxLabel.className = 'jobtrack-checkbox';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'jobtrack-checkbox-input';
+        checkbox.dataset.jobtrackEntry = 'select';
+        checkbox.dataset.id = entry.applicationId;
+        checkbox.checked = state.selectedEntryIds.has(entry.applicationId);
+        checkbox.setAttribute('aria-label', `Select ${entryLabel}`);
+        checkboxLabel.appendChild(checkbox);
+        selectCell.appendChild(checkboxLabel);
+      }
+      row.appendChild(selectCell);
 
       const typeCell = document.createElement('div');
       typeCell.className = 'jobtrack-table-cell';
@@ -1611,6 +1676,21 @@
           actionsCell.appendChild(applyBtn);
         }
 
+        const attachments = Array.isArray(entry.attachments) ? entry.attachments : [];
+        attachments.forEach((attachment) => {
+          if (!attachment?.key) return;
+          const downloadBtn = document.createElement('button');
+          downloadBtn.type = 'button';
+          downloadBtn.className = 'btn-ghost jobtrack-attachment-btn';
+          downloadBtn.dataset.jobtrackEntry = 'download';
+          downloadBtn.dataset.key = attachment.key;
+          downloadBtn.textContent = getAttachmentLabel(attachment);
+          if (attachment.filename) {
+            downloadBtn.title = `Download ${attachment.filename}`;
+          }
+          actionsCell.appendChild(downloadBtn);
+        });
+
         const deleteBtn = document.createElement('button');
         deleteBtn.type = 'button';
         deleteBtn.className = 'btn-ghost';
@@ -1637,12 +1717,49 @@
     });
   };
 
+  const setVisibleEntryIds = (items = []) => {
+    state.visibleEntryIds = items
+      .map(item => item.applicationId)
+      .filter(Boolean);
+  };
+
+  const updateSelectAllState = () => {
+    if (!els.entrySelectAll) return;
+    const visible = state.visibleEntryIds || [];
+    if (!visible.length) {
+      els.entrySelectAll.checked = false;
+      els.entrySelectAll.indeterminate = false;
+      els.entrySelectAll.disabled = true;
+      els.entrySelectAll.setAttribute('aria-disabled', 'true');
+      return;
+    }
+    els.entrySelectAll.disabled = false;
+    els.entrySelectAll.setAttribute('aria-disabled', 'false');
+    const selectedVisible = visible.filter(id => state.selectedEntryIds.has(id)).length;
+    els.entrySelectAll.checked = selectedVisible === visible.length;
+    els.entrySelectAll.indeterminate = selectedVisible > 0 && selectedVisible < visible.length;
+  };
+
+  const updateEntrySelectionUI = () => {
+    const selectedCount = state.selectedEntryIds.size;
+    if (els.entrySelectedCount) {
+      els.entrySelectedCount.textContent = `${selectedCount} selected`;
+    }
+    if (els.entryBulkDelete) {
+      els.entryBulkDelete.disabled = selectedCount === 0;
+      els.entryBulkDelete.setAttribute('aria-disabled', selectedCount === 0 ? 'true' : 'false');
+    }
+    updateSelectAllState();
+  };
+
   const applyEntryFilters = () => {
     const filtered = filterEntries(state.entries);
     const sorted = sortEntries(filtered);
     const emptyLabel = state.entries.length ? 'No entries match your filters yet.' : 'No entries yet.';
     renderEntryList(sorted, emptyLabel);
+    setVisibleEntryIds(sorted);
     updateSortIndicators();
+    updateEntrySelectionUI();
   };
 
   const refreshEntries = async () => {
@@ -1667,6 +1784,7 @@
       const prospectItems = (prospects.items || []).map(item => normalizeEntry(item, 'prospect'));
       const items = [...appItems, ...prospectItems];
       storeEntries(items);
+      state.selectedEntryIds.clear();
       updateEntryStatusFilter(items);
       applyEntryFilters();
       setStatus(els.entryListStatus, `Loaded ${items.length} entries.`, 'success');
@@ -1726,13 +1844,49 @@
         });
       });
     }
+    if (els.entrySelectAll) {
+      els.entrySelectAll.addEventListener('change', () => {
+        const visibleIds = state.visibleEntryIds || [];
+        if (!visibleIds.length) return;
+        if (els.entrySelectAll.checked) {
+          visibleIds.forEach(id => state.selectedEntryIds.add(id));
+        } else {
+          visibleIds.forEach(id => state.selectedEntryIds.delete(id));
+        }
+        updateEntrySelectionUI();
+        applyEntryFilters();
+      });
+    }
+    if (els.entryBulkDelete) {
+      els.entryBulkDelete.addEventListener('click', () => {
+        deleteEntriesBulk(Array.from(state.selectedEntryIds));
+      });
+    }
     if (els.entryList) {
+      els.entryList.addEventListener('change', (event) => {
+        const input = event.target.closest('input[data-jobtrack-entry="select"]');
+        if (!input) return;
+        const entryId = input.dataset.id;
+        if (!entryId) return;
+        if (input.checked) {
+          state.selectedEntryIds.add(entryId);
+        } else {
+          state.selectedEntryIds.delete(entryId);
+        }
+        updateEntrySelectionUI();
+      });
       els.entryList.addEventListener('click', (event) => {
         const button = event.target.closest('button[data-jobtrack-entry]');
         if (!button) return;
+        const action = button.dataset.jobtrackEntry;
+        if (action === 'download') {
+          const key = button.dataset.key;
+          const label = button.textContent || 'attachment';
+          downloadAttachment(key, label.toLowerCase());
+          return;
+        }
         const entryId = button.dataset.id;
         if (!entryId) return;
-        const action = button.dataset.jobtrackEntry;
         if (action === 'edit') {
           const item = state.entryItems.get(entryId);
           if (item) setEntryEditMode(item);
@@ -1843,11 +1997,87 @@
           clearAttachmentInputs();
         }
       }
+      if (state.selectedEntryIds.has(entryId)) {
+        state.selectedEntryIds.delete(entryId);
+        updateEntrySelectionUI();
+      }
       setStatus(els.entryListStatus, 'Entry deleted.', 'success');
       await Promise.all([refreshEntries(), refreshDashboard()]);
     } catch (err) {
       console.error('Entry delete failed', err);
       setStatus(els.entryListStatus, err?.message || 'Unable to delete entry.', 'error');
+    }
+  };
+
+  const downloadAttachment = async (key, label = 'attachment') => {
+    if (!key) return;
+    if (!authIsValid(state.auth)) {
+      setStatus(els.entryListStatus, 'Sign in to download attachments.', 'error');
+      return;
+    }
+    try {
+      setStatus(els.entryListStatus, `Preparing ${label} download...`, 'info');
+      const data = await requestAttachmentDownload(key);
+      const url = data?.downloadUrl;
+      if (!url) {
+        setStatus(els.entryListStatus, 'Download link unavailable.', 'error');
+        return;
+      }
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = '';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setStatus(els.entryListStatus, 'Download started.', 'success');
+    } catch (err) {
+      console.error('Download failed', err);
+      setStatus(els.entryListStatus, err?.message || 'Unable to download attachment.', 'error');
+    }
+  };
+
+  const deleteEntriesBulk = async (entryIds = []) => {
+    const ids = entryIds.filter(Boolean);
+    if (!ids.length) return;
+    if (!config.apiBase) {
+      setStatus(els.entryListStatus, 'Set the API base URL to delete entries.', 'error');
+      return;
+    }
+    if (!authIsValid(state.auth)) {
+      setStatus(els.entryListStatus, 'Sign in to delete entries.', 'error');
+      return;
+    }
+    const label = ids.length === 1 ? 'this entry' : `${ids.length} entries`;
+    if (!confirmAction(`Delete ${label}? This cannot be undone.`)) return;
+    try {
+      setStatus(els.entryListStatus, `Deleting ${label}...`, 'info');
+      const results = await runWithConcurrency(ids, 3, async (entryId) => {
+        await requestJson(`/api/applications/${encodeURIComponent(entryId)}`, { method: 'DELETE' });
+        return entryId;
+      });
+      const failed = results.filter(result => !result.ok).length;
+      const deleted = ids.length - failed;
+      if (state.editingEntryId && ids.includes(state.editingEntryId)) {
+        clearEntryEditMode('Ready to save entries.', 'info');
+        if (els.entryForm) {
+          state.isResettingEntry = true;
+          els.entryForm.reset();
+          state.isResettingEntry = false;
+          resetEntryDateFields();
+          clearAttachmentInputs();
+        }
+      }
+      state.selectedEntryIds.clear();
+      updateEntrySelectionUI();
+      await Promise.all([refreshEntries(), refreshDashboard()]);
+      if (failed) {
+        setStatus(els.entryListStatus, `${deleted} deleted, ${failed} failed.`, 'error');
+      } else {
+        setStatus(els.entryListStatus, `Deleted ${deleted} entries.`, 'success');
+      }
+    } catch (err) {
+      console.error('Bulk delete failed', err);
+      setStatus(els.entryListStatus, err?.message || 'Unable to delete entries.', 'error');
     }
   };
 
@@ -2149,6 +2379,7 @@
       const appliedDate = parseCsvDate(row[map.appliedDate]);
       const postingDate = map.postingDate !== undefined ? parseCsvDate(row[map.postingDate]) : '';
       const status = map.status !== undefined ? (row[map.status] || '').toString().trim() : '';
+      const captureDate = map.captureDate !== undefined ? parseCsvDate(row[map.captureDate]) : '';
       const notes = map.notes !== undefined ? (row[map.notes] || '').toString().trim() : '';
       const jobUrl = map.jobUrl !== undefined ? normalizeUrl(row[map.jobUrl]) : '';
       const location = map.location !== undefined ? (row[map.location] || '').toString().trim() : '';
@@ -2170,11 +2401,52 @@
       if (jobUrl) payload.jobUrl = jobUrl;
       if (location) payload.location = location;
       if (source) payload.source = source;
+      if (captureDate) payload.captureDate = captureDate;
       entries.push({
         payload,
         resumeFile,
         coverLetterFile
       });
+    });
+    return { entries, skipped, missing: [] };
+  };
+
+  const parseProspectPayloads = (text) => {
+    const rows = parseCsv(text || '');
+    if (!rows.length) return { entries: [], skipped: 0, missing: ['company', 'title', 'jobUrl', 'captureDate'] };
+    const headers = rows.shift().map(header => header.trim());
+    const map = buildHeaderMap(headers);
+    const missing = ['company', 'title', 'jobUrl', 'captureDate'].filter(key => map[key] === undefined);
+    if (missing.length) return { entries: [], skipped: rows.length, missing };
+
+    const entries = [];
+    let skipped = 0;
+    rows.forEach((row) => {
+      const company = (row[map.company] || '').toString().trim();
+      const title = (row[map.title] || '').toString().trim();
+      const jobUrl = map.jobUrl !== undefined ? normalizeUrl(row[map.jobUrl]) : '';
+      const location = map.location !== undefined ? (row[map.location] || '').toString().trim() : '';
+      const source = map.source !== undefined ? (row[map.source] || '').toString().trim() : '';
+      const postingDate = map.postingDate !== undefined ? parseCsvDate(row[map.postingDate]) : '';
+      const captureDate = map.captureDate !== undefined ? parseCsvDate(row[map.captureDate]) : '';
+      const status = map.status !== undefined ? (row[map.status] || '').toString().trim() : '';
+      const notes = map.notes !== undefined ? (row[map.notes] || '').toString().trim() : '';
+      if (!company || !title || !jobUrl || !captureDate) {
+        skipped += 1;
+        return;
+      }
+      const payload = {
+        company,
+        title,
+        jobUrl,
+        captureDate,
+        status: status || 'Active',
+        notes
+      };
+      if (postingDate) payload.postingDate = postingDate;
+      if (location) payload.location = location;
+      if (source) payload.source = source;
+      entries.push({ payload });
     });
     return { entries, skipped, missing: [] };
   };
@@ -2315,6 +2587,74 @@
     }
   };
 
+  const initProspectImport = () => {
+    if (els.prospectImportTemplate) {
+      els.prospectImportTemplate.addEventListener('click', () => {
+        const blob = new Blob([PROSPECT_CSV_TEMPLATE], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'job-prospects-template.csv';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      });
+    }
+    if (els.prospectImportSubmit) {
+      els.prospectImportSubmit.addEventListener('click', async () => {
+        if (!authIsValid(state.auth)) {
+          setStatus(els.prospectImportStatus, 'Sign in to import prospects.', 'error');
+          return;
+        }
+        if (!config.apiBase) {
+          setStatus(els.prospectImportStatus, 'Set the API base URL to import prospects.', 'error');
+          return;
+        }
+        const file = els.prospectImportFile?.files?.[0];
+        if (!file) {
+          setStatus(els.prospectImportStatus, 'Choose a CSV file to import.', 'error');
+          return;
+        }
+        try {
+          setStatus(els.prospectImportStatus, 'Reading CSV...', 'info');
+          const text = await readFileText(file);
+          const { entries, skipped, missing } = parseProspectPayloads(text);
+          if (missing.length) {
+            setStatus(els.prospectImportStatus, `Missing columns: ${missing.join(', ')}.`, 'error');
+            return;
+          }
+          if (!entries.length) {
+            setStatus(els.prospectImportStatus, 'No valid rows found in the CSV.', 'error');
+            return;
+          }
+          setStatus(els.prospectImportStatus, `Importing ${entries.length} prospects...`, 'info');
+          const results = await runWithConcurrency(entries, 3, async (entry) => {
+            await requestJson('/api/prospects', {
+              method: 'POST',
+              body: entry.payload
+            });
+            return true;
+          });
+          const success = results.filter(result => result.ok).length;
+          const failed = results.length - success;
+          const parts = [`Imported ${success} of ${entries.length} prospects.`];
+          if (skipped) parts.push(`Skipped ${skipped} rows.`);
+          if (failed) parts.push(`${failed} failed.`);
+          const hasIssues = failed || skipped;
+          setStatus(els.prospectImportStatus, parts.join(' '), hasIssues ? 'error' : 'success');
+          if (success) {
+            await refreshEntries();
+          }
+          if (els.prospectImportFile) els.prospectImportFile.value = '';
+        } catch (err) {
+          console.error('Prospect CSV import failed', err);
+          setStatus(els.prospectImportStatus, err?.message || 'Unable to import prospects.', 'error');
+        }
+      });
+    }
+  };
+
   const initFilters = () => {
     const range = defaultRange();
     updateRangeInputs(range);
@@ -2382,6 +2722,7 @@
     initFilters();
     initEntryForm();
     initImport();
+    initProspectImport();
     initEntryList();
     initExport();
     await initAuth();
