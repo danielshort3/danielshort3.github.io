@@ -45,8 +45,7 @@
     resumeInput: $('#jobtrack-resume'),
     coverInput: $('#jobtrack-cover'),
     importFile: $('#jobtrack-import-file'),
-    importResumes: $('#jobtrack-import-resumes'),
-    importCovers: $('#jobtrack-import-covers'),
+    importAttachments: $('#jobtrack-import-attachments'),
     importSubmit: $('[data-jobtrack="import-submit"]'),
     importTemplate: $('[data-jobtrack="import-template"]'),
     importStatus: $('[data-jobtrack="import-status"]'),
@@ -204,10 +203,61 @@
     visibleEntryIds: [],
     mapLoaded: false,
     mapSvg: null,
+    mapTooltipBound: false,
+    calendarTooltipBound: false,
     isResettingEntry: false
   };
 
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  const createTooltip = () => {
+    const el = document.createElement('div');
+    el.className = 'jobtrack-tooltip';
+    el.dataset.state = 'hidden';
+    el.setAttribute('role', 'tooltip');
+    el.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(el);
+
+    const position = (x, y) => {
+      const offset = 14;
+      const rect = el.getBoundingClientRect();
+      let left = x + offset;
+      let top = y + offset;
+      if (left + rect.width > window.innerWidth - 12) {
+        left = x - rect.width - offset;
+      }
+      if (top + rect.height > window.innerHeight - 12) {
+        top = y - rect.height - offset;
+      }
+      left = Math.max(8, Math.min(left, window.innerWidth - rect.width - 8));
+      top = Math.max(8, Math.min(top, window.innerHeight - rect.height - 8));
+      el.style.left = `${left}px`;
+      el.style.top = `${top}px`;
+    };
+
+    const show = (text, x, y) => {
+      if (!text) return;
+      if (el.textContent !== text) el.textContent = text;
+      if (el.dataset.state !== 'visible') {
+        el.dataset.state = 'visible';
+        el.setAttribute('aria-hidden', 'false');
+      }
+      position(x, y);
+    };
+
+    const hide = () => {
+      if (el.dataset.state !== 'visible') return;
+      el.dataset.state = 'hidden';
+      el.setAttribute('aria-hidden', 'true');
+    };
+
+    window.addEventListener('scroll', hide, { passive: true });
+    window.addEventListener('resize', hide, { passive: true });
+
+    return { show, hide };
+  };
+
+  const tooltip = createTooltip();
 
   const runWithConcurrency = async (items, limit, task) => {
     const results = [];
@@ -1102,9 +1152,11 @@
       cell.setAttribute('role', 'gridcell');
       cell.setAttribute('aria-label', labelText);
       cell.title = labelText;
+      cell.dataset.jobtrackTooltip = labelText;
       els.calendarGrid.appendChild(cell);
       cursor = new Date(cursor.getTime() + 86400000);
     }
+    bindCalendarTooltip();
   };
 
   const getFirstResponseDate = (entry) => {
@@ -1278,6 +1330,58 @@
     return match ? match.toUpperCase() : null;
   };
 
+  const bindMapTooltip = (svg) => {
+    if (!svg || state.mapTooltipBound) return;
+    const handleMove = (event) => {
+      const node = event.target.closest('path, circle');
+      if (!node || !svg.contains(node)) {
+        tooltip.hide();
+        return;
+      }
+      const label = node.dataset.jobtrackTooltip;
+      if (!label) {
+        tooltip.hide();
+        return;
+      }
+      tooltip.show(label, event.clientX, event.clientY);
+    };
+    const handleLeave = () => tooltip.hide();
+    const handleFocus = (event) => {
+      const node = event.target.closest('path, circle');
+      if (!node || !svg.contains(node)) return;
+      const label = node.dataset.jobtrackTooltip;
+      if (!label) return;
+      const rect = node.getBoundingClientRect();
+      tooltip.show(label, rect.left + rect.width / 2, rect.top + rect.height / 2);
+    };
+    svg.addEventListener('pointermove', handleMove);
+    svg.addEventListener('pointerleave', handleLeave);
+    svg.addEventListener('focusin', handleFocus);
+    svg.addEventListener('focusout', handleLeave);
+    state.mapTooltipBound = true;
+  };
+
+  const bindCalendarTooltip = () => {
+    if (!els.calendarGrid || state.calendarTooltipBound) return;
+    const handleMove = (event) => {
+      const cell = event.target.closest('.jobtrack-calendar-day');
+      if (!cell || !els.calendarGrid.contains(cell)) {
+        tooltip.hide();
+        return;
+      }
+      const label = cell.dataset.jobtrackTooltip;
+      if (!label) {
+        tooltip.hide();
+        return;
+      }
+      tooltip.show(label, event.clientX, event.clientY);
+    };
+    const handleLeave = () => tooltip.hide();
+    els.calendarGrid.addEventListener('pointermove', handleMove);
+    els.calendarGrid.addEventListener('pointerleave', handleLeave);
+    state.calendarTooltipBound = true;
+  };
+
   const loadMap = async () => {
     if (!els.mapContainer || state.mapLoaded) return state.mapSvg;
     const src = (els.mapContainer.dataset.jobtrackMapSrc || '').trim();
@@ -1358,11 +1462,21 @@
         node.removeAttribute('data-intensity');
       }
       const name = STATE_NAME_LOOKUP.get(code) || code;
-      const label = `${name}: ${count} on-site application${count === 1 ? '' : 's'}`;
+      const share = totalApps ? Math.round((count / totalApps) * 100) : 0;
+      const label = `${name}: ${count} on-site application${count === 1 ? '' : 's'}${share ? ` · ${share}% of on-site` : ''}`;
+      node.dataset.jobtrackTooltip = label;
       node.setAttribute('aria-label', label);
       node.setAttribute('title', label);
+      let titleNode = node.querySelector('title');
+      if (!titleNode) {
+        titleNode = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+        node.appendChild(titleNode);
+      }
+      titleNode.textContent = label;
+      node.setAttribute('tabindex', '0');
     });
 
+    bindMapTooltip(svg);
     if (els.mapTotal) {
       const stateCount = counts.size;
       if (stateCount) {
@@ -2515,11 +2629,7 @@
             setStatus(els.importStatus, 'No valid rows found in the CSV.', 'error');
             return;
           }
-          const attachmentFiles = [
-            ...Array.from(els.importResumes?.files || []),
-            ...Array.from(els.importCovers?.files || [])
-          ];
-          const attachmentLookup = buildImportAttachmentMap(attachmentFiles);
+          const attachmentLookup = buildImportAttachmentMap(Array.from(els.importAttachments?.files || []));
           const missingAttachments = new Set();
           const attachmentRequests = entries.reduce((total, entry) => total
             + (entry.resumeFile ? 1 : 0)
@@ -2587,8 +2697,7 @@
             await Promise.all([refreshDashboard(), refreshEntries()]);
           }
           if (els.importFile) els.importFile.value = '';
-          if (els.importResumes) els.importResumes.value = '';
-          if (els.importCovers) els.importCovers.value = '';
+          if (els.importAttachments) els.importAttachments.value = '';
         } catch (err) {
           console.error('CSV import failed', err);
           setStatus(els.importStatus, err?.message || 'Unable to import applications.', 'error');

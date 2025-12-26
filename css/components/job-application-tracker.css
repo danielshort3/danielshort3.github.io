@@ -882,6 +882,27 @@
     background:color-mix(in srgb,var(--jobtrack-accent) 55%, transparent);
     border:1px solid color-mix(in srgb,var(--jobtrack-accent) 25%, transparent);
   }
+  .jobtrack-tooltip{
+    position:fixed;
+    z-index:200;
+    max-width:240px;
+    padding:8px 10px;
+    border-radius:10px;
+    background:color-mix(in srgb,var(--jobtrack-surface) 92%, #03070d 8%);
+    border:1px solid color-mix(in srgb,var(--jobtrack-accent) 28%, transparent);
+    color:var(--text-light);
+    font-size:.82rem;
+    line-height:1.3;
+    box-shadow:0 8px 18px rgba(0,0,0,.35);
+    pointer-events:none;
+    opacity:0;
+    transform:translateY(6px);
+    transition:opacity .12s ease, transform .12s ease;
+  }
+  .jobtrack-tooltip[data-state="visible"]{
+    opacity:1;
+    transform:translateY(0);
+  }
 
   .jobtrack-auth-actions button[disabled],
   .jobtrack-tab[disabled]{
