@@ -134,11 +134,16 @@ try {
     checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="import-submit"');
     checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-resume"');
     checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-cover"');
+    checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-posting-date"');
+    checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-posting-unknown"');
     checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="recent-status"');
     checkFileContains('pages/job-application-tracker.html', 'data-jobtrack-tab="applications"');
     checkFileContains('pages/job-application-tracker.html', 'data-jobtrack-tab="prospects"');
     checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="prospect-form"');
     checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-prospect-url"');
+    checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-prospect-posting-date"');
+    checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-prospect-posting-unknown"');
+    checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-prospect-capture-date"');
     checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="prospect-list"');
   });
 

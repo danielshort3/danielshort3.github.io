@@ -137,8 +137,12 @@ API Gateway uses a Cognito JWT authorizer. The Lambda reads the `sub` claim from
   "company": "Acme Corp",
   "title": "Data Analyst",
   "appliedDate": "2025-01-15",
+  "postingDate": "2025-01-10",
   "status": "Applied",
-  "notes": "Reached out to recruiter."
+  "notes": "Reached out to recruiter.",
+  "jobUrl": "https://acme.com/jobs/123",
+  "location": "Remote",
+  "source": "LinkedIn"
 }
 ```
 
@@ -151,8 +155,12 @@ Response:
   "company": "Acme Corp",
   "title": "Data Analyst",
   "appliedDate": "2025-01-15",
+  "postingDate": "2025-01-10",
   "status": "Applied",
   "notes": "Reached out to recruiter.",
+  "jobUrl": "https://acme.com/jobs/123",
+  "location": "Remote",
+  "source": "LinkedIn",
   "statusHistory": [{ "status": "Applied", "date": "2025-01-20T02:40:03.123Z" }],
   "createdAt": "2025-01-20T02:40:03.123Z",
   "updatedAt": "2025-01-20T02:40:03.123Z"
@@ -172,6 +180,8 @@ Response:
       "status": "Active",
       "location": "Remote",
       "source": "LinkedIn",
+      "postingDate": "2025-01-10",
+      "captureDate": "2025-01-15",
       "notes": "Follow up next week."
     }
   ]
@@ -188,6 +198,8 @@ Response:
   "status": "Active",
   "location": "Remote",
   "source": "LinkedIn",
+  "postingDate": "2025-01-10",
+  "captureDate": "2025-01-15",
   "notes": "Follow up next week."
 }
 ```

@@ -106,6 +106,14 @@
                       <input id="jobtrack-date" class="jobtrack-input" name="appliedDate" type="date" required>
                     </div>
                     <div class="jobtrack-field">
+                      <label class="jobtrack-label" for="jobtrack-posting-date">Posting date</label>
+                      <input id="jobtrack-posting-date" class="jobtrack-input" name="postingDate" type="date">
+                      <label class="jobtrack-checkbox">
+                        <input id="jobtrack-posting-unknown" class="jobtrack-checkbox-input" name="postingDateUnknown" type="checkbox">
+                        Posting date unknown
+                      </label>
+                    </div>
+                    <div class="jobtrack-field">
                       <label class="jobtrack-label" for="jobtrack-status">Status</label>
                       <select id="jobtrack-status" class="jobtrack-select" name="status">
                         <option value="Applied">Applied</option>
@@ -140,13 +148,15 @@
                     <div>
                       <p class="jobtrack-kicker">Bulk import</p>
                       <h3>Import applications from CSV</h3>
-                      <p class="jobtrack-subtitle">Use columns: company, title, appliedDate, status, notes.</p>
+                      <p class="jobtrack-subtitle">Use columns: company, title, appliedDate, postingDate, status, notes, jobUrl, location, source, resumeFile, coverLetterFile.</p>
                     </div>
                     <div class="jobtrack-import-actions">
                       <input id="jobtrack-import-file" class="jobtrack-input jobtrack-file-input" type="file" accept=".csv,text/csv">
+                      <input id="jobtrack-import-attachments" class="jobtrack-input jobtrack-file-input" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple aria-label="Resume and cover letter files">
                       <button type="button" class="btn-secondary" data-jobtrack="import-submit">Import CSV</button>
                       <button type="button" class="btn-ghost" data-jobtrack="import-template">Download template</button>
                     </div>
+                    <p class="jobtrack-help">Match resumeFile and coverLetterFile to the exact filenames you select above.</p>
                     <p class="jobtrack-form-status" data-jobtrack="import-status" role="status" aria-live="polite">Sign in to import applications.</p>
                   </div>
                 </article>
@@ -200,6 +210,19 @@
                     <div class="jobtrack-field">
                       <label class="jobtrack-label" for="jobtrack-prospect-source">Source</label>
                       <input id="jobtrack-prospect-source" class="jobtrack-input" name="source" type="text" placeholder="LinkedIn, referral, company site">
+                    </div>
+                    <div class="jobtrack-field">
+                      <label class="jobtrack-label" for="jobtrack-prospect-posting-date">Posting date</label>
+                      <input id="jobtrack-prospect-posting-date" class="jobtrack-input" name="postingDate" type="date">
+                      <label class="jobtrack-checkbox">
+                        <input id="jobtrack-prospect-posting-unknown" class="jobtrack-checkbox-input" name="postingDateUnknown" type="checkbox">
+                        Posting date unknown
+                      </label>
+                    </div>
+                    <div class="jobtrack-field">
+                      <label class="jobtrack-label" for="jobtrack-prospect-capture-date">Capture date</label>
+                      <input id="jobtrack-prospect-capture-date" class="jobtrack-input" name="captureDate" type="date" required>
+                      <p class="jobtrack-help">Defaults to today.</p>
                     </div>
                     <div class="jobtrack-field">
                       <label class="jobtrack-label" for="jobtrack-prospect-status">Status</label>

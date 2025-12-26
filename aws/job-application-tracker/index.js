@@ -261,6 +261,10 @@ const handleCreateApplication = async (userId, payload = {}) => {
   const parsedDate = parseDate(appliedDate);
   if (!parsedDate) throw httpError(400, 'appliedDate must be YYYY-MM-DD.');
   const status = normalizeStatus(payload.status || 'Applied');
+  const postingDateRaw = payload.postingDate;
+  const jobUrl = normalizeUrl(payload.jobUrl || payload.url);
+  const location = (payload.location || '').toString().trim();
+  const source = (payload.source || '').toString().trim();
   const attachments = normalizeAttachments(userId, payload.attachments);
   const now = nowIso();
   const applicationId = `APP#${Date.now()}#${randomUUID()}`;
@@ -277,6 +281,14 @@ const handleCreateApplication = async (userId, payload = {}) => {
     createdAt: now,
     updatedAt: now
   };
+  if (postingDateRaw !== undefined && postingDateRaw !== null && postingDateRaw !== '') {
+    const postingDate = parseDate(postingDateRaw);
+    if (!postingDate) throw httpError(400, 'postingDate must be YYYY-MM-DD.');
+    item.postingDate = formatDate(postingDate);
+  }
+  if (jobUrl) item.jobUrl = jobUrl;
+  if (location) item.location = location;
+  if (source) item.source = source;
   if (attachments.length) item.attachments = attachments;
   await dynamo.send(new PutCommand({
     TableName: APPLICATIONS_TABLE,
@@ -293,6 +305,14 @@ const handleCreateProspect = async (userId, payload = {}) => {
     throw httpError(400, 'Company, title, and jobUrl are required.');
   }
   const status = normalizeStatus(payload.status || 'Active');
+  const postingDateRaw = payload.postingDate;
+  const captureDateRaw = payload.captureDate;
+  let captureDate = new Date();
+  if (captureDateRaw) {
+    const parsedCapture = parseDate(captureDateRaw);
+    if (!parsedCapture) throw httpError(400, 'captureDate must be YYYY-MM-DD.');
+    captureDate = parsedCapture;
+  }
   const now = nowIso();
   const prospectId = `PROSPECT#${Date.now()}#${randomUUID()}`;
   const item = {
@@ -306,9 +326,15 @@ const handleCreateProspect = async (userId, payload = {}) => {
     source: (payload.source || '').toString().trim(),
     status,
     notes: (payload.notes || '').toString().trim(),
+    captureDate: formatDate(captureDate),
     createdAt: now,
     updatedAt: now
   };
+  if (postingDateRaw !== undefined && postingDateRaw !== null && postingDateRaw !== '') {
+    const postingDate = parseDate(postingDateRaw);
+    if (!postingDate) throw httpError(400, 'postingDate must be YYYY-MM-DD.');
+    item.postingDate = formatDate(postingDate);
+  }
   await dynamo.send(new PutCommand({
     TableName: APPLICATIONS_TABLE,
     Item: item
@@ -319,6 +345,7 @@ const handleCreateProspect = async (userId, payload = {}) => {
 const handleUpdateProspect = async (userId, applicationId, payload = {}) => {
   if (!applicationId) throw httpError(400, 'Missing prospectId.');
   const updates = [];
+  const removeFields = [];
   const names = {};
   const values = { ':updatedAt': nowIso() };
 
@@ -330,6 +357,18 @@ const handleUpdateProspect = async (userId, applicationId, payload = {}) => {
     values[valueKey] = value;
     updates.push(`${nameKey} = ${valueKey}`);
   };
+  const addDateField = (key, value) => {
+    if (value === undefined) return;
+    if (value === null || value === '') {
+      const nameKey = `#${key}`;
+      names[nameKey] = key;
+      removeFields.push(nameKey);
+      return;
+    }
+    const parsed = parseDate(value);
+    if (!parsed) throw httpError(400, `${key} must be YYYY-MM-DD.`);
+    addField(key, formatDate(parsed));
+  };
 
   addField('company', payload.company?.toString().trim());
   addField('title', payload.title?.toString().trim());
@@ -340,6 +379,8 @@ const handleUpdateProspect = async (userId, applicationId, payload = {}) => {
   }
   addField('location', payload.location?.toString().trim());
   addField('source', payload.source?.toString().trim());
+  addDateField('postingDate', payload.postingDate);
+  addDateField('captureDate', payload.captureDate);
   addField('notes', payload.notes?.toString().trim());
   if (payload.status) {
     addField('status', normalizeStatus(payload.status));
@@ -348,10 +389,15 @@ const handleUpdateProspect = async (userId, applicationId, payload = {}) => {
   updates.push('#updatedAt = :updatedAt');
   names['#updatedAt'] = 'updatedAt';
 
+  let updateExpression = `SET ${updates.join(', ')}`;
+  if (removeFields.length) {
+    updateExpression += ` REMOVE ${removeFields.join(', ')}`;
+  }
+
   const result = await dynamo.send(new UpdateCommand({
     TableName: APPLICATIONS_TABLE,
     Key: { userId, applicationId },
-    UpdateExpression: `SET ${updates.join(', ')}`,
+    UpdateExpression: updateExpression,
     ExpressionAttributeNames: names,
     ExpressionAttributeValues: values,
     ReturnValues: 'ALL_NEW'
@@ -362,6 +408,7 @@ const handleUpdateProspect = async (userId, applicationId, payload = {}) => {
 const handleUpdateApplication = async (userId, applicationId, payload = {}) => {
   if (!applicationId) throw httpError(400, 'Missing applicationId.');
   const updates = [];
+  const removeFields = [];
   const names = {};
   const values = { ':updatedAt': nowIso() };
   const pushStatus = payload.status ? normalizeStatus(payload.status) : null;
@@ -374,6 +421,18 @@ const handleUpdateApplication = async (userId, applicationId, payload = {}) => {
     values[valueKey] = value;
     updates.push(`${nameKey} = ${valueKey}`);
   };
+  const addDateField = (key, value) => {
+    if (value === undefined) return;
+    if (value === null || value === '') {
+      const nameKey = `#${key}`;
+      names[nameKey] = key;
+      removeFields.push(nameKey);
+      return;
+    }
+    const parsed = parseDate(value);
+    if (!parsed) throw httpError(400, `${key} must be YYYY-MM-DD.`);
+    addField(key, formatDate(parsed));
+  };
 
   addField('company', payload.company?.toString().trim());
   addField('title', payload.title?.toString().trim());
@@ -382,6 +441,13 @@ const handleUpdateApplication = async (userId, applicationId, payload = {}) => {
     if (!parsedDate) throw httpError(400, 'appliedDate must be YYYY-MM-DD.');
     addField('appliedDate', formatDate(parsedDate));
   }
+  addDateField('postingDate', payload.postingDate);
+  if (payload.jobUrl !== undefined || payload.url !== undefined) {
+    const jobUrl = normalizeUrl(payload.jobUrl || payload.url);
+    addField('jobUrl', jobUrl);
+  }
+  addField('location', payload.location?.toString().trim());
+  addField('source', payload.source?.toString().trim());
   addField('notes', payload.notes?.toString().trim());
   if (payload.attachments) {
     const attachments = normalizeAttachments(userId, payload.attachments);
@@ -398,10 +464,15 @@ const handleUpdateApplication = async (userId, applicationId, payload = {}) => {
   updates.push('#updatedAt = :updatedAt');
   names['#updatedAt'] = 'updatedAt';
 
+  let updateExpression = `SET ${updates.join(', ')}`;
+  if (removeFields.length) {
+    updateExpression += ` REMOVE ${removeFields.join(', ')}`;
+  }
+
   const result = await dynamo.send(new UpdateCommand({
     TableName: APPLICATIONS_TABLE,
     Key: { userId, applicationId },
-    UpdateExpression: `SET ${updates.join(', ')}`,
+    UpdateExpression: updateExpression,
     ExpressionAttributeNames: names,
     ExpressionAttributeValues: values,
     ReturnValues: 'ALL_NEW'
