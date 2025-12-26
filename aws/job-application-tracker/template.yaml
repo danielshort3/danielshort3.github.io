@@ -125,7 +125,7 @@ Resources:
       Code:
         S3Bucket: !Ref LambdaCodeBucket
         S3Key: !Ref LambdaCodeKey
-      Timeout: 20
+      Timeout: 60
       Environment:
         Variables:
           APPLICATIONS_TABLE: !Ref ApplicationsTable
@@ -273,6 +273,15 @@ Resources:
     Properties:
       ApiId: !Ref HttpApi
       RouteKey: 'PATCH /api/prospects/{id}'
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiAuthorizer
+      Target: !Sub 'integrations/${HttpApiIntegration}'
+
+  ExportsCreateRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'POST /api/exports'
       AuthorizationType: JWT
       AuthorizerId: !Ref HttpApiAuthorizer
       Target: !Sub 'integrations/${HttpApiIntegration}'

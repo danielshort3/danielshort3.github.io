@@ -1,4 +1,6 @@
 const { randomUUID } = require('crypto');
+const { PassThrough } = require('stream');
+const archiver = require('archiver');
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const {
   DynamoDBDocumentClient,
@@ -251,6 +253,104 @@ const buildSummary = (items) => {
   };
 };
 
+const sanitizeFilename = (value, fallback = 'attachment') => {
+  const cleaned = (value || '')
+    .toString()
+    .trim()
+    .replace(/[^a-zA-Z0-9._-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return cleaned || fallback;
+};
+
+const escapeCsv = (value) => {
+  const text = (value ?? '').toString();
+  if (/[",\n]/.test(text)) {
+    return `"${text.replace(/"/g, '""')}"`;
+  }
+  return text;
+};
+
+const buildExportData = (items, userId) => {
+  const attachments = [];
+  const exportItems = items.map((item) => {
+    const applicationId = (item.applicationId || '').toString();
+    const folder = sanitizeFilename(applicationId || 'application');
+    const mappedAttachments = (Array.isArray(item.attachments) ? item.attachments : []).map((attachment, index) => {
+      const key = (attachment?.key || '').toString().trim();
+      const filename = (attachment?.filename || '').toString().trim();
+      const safeFilename = sanitizeFilename(filename || `attachment-${index + 1}`);
+      const exportPath = `attachments/${folder}/${String(index + 1).padStart(2, '0')}-${safeFilename}`;
+      if (key && key.startsWith(`${userId}/`)) {
+        attachments.push({ key, exportPath });
+      }
+      return {
+        key,
+        filename,
+        contentType: (attachment?.contentType || '').toString().trim(),
+        kind: (attachment?.kind || '').toString().trim(),
+        uploadedAt: (attachment?.uploadedAt || '').toString().trim(),
+        exportPath
+      };
+    });
+    return {
+      applicationId,
+      company: (item.company || '').toString().trim(),
+      title: (item.title || '').toString().trim(),
+      jobUrl: (item.jobUrl || '').toString().trim(),
+      location: (item.location || '').toString().trim(),
+      source: (item.source || '').toString().trim(),
+      postingDate: (item.postingDate || '').toString().trim(),
+      captureDate: (item.captureDate || '').toString().trim(),
+      appliedDate: (item.appliedDate || '').toString().trim(),
+      status: (item.status || '').toString().trim(),
+      notes: (item.notes || '').toString().trim(),
+      createdAt: (item.createdAt || '').toString().trim(),
+      updatedAt: (item.updatedAt || '').toString().trim(),
+      statusHistory: Array.isArray(item.statusHistory) ? item.statusHistory : [],
+      attachments: mappedAttachments
+    };
+  });
+  return { exportItems, attachments };
+};
+
+const buildExportCsv = (items) => {
+  const headers = [
+    'company',
+    'title',
+    'jobUrl',
+    'location',
+    'source',
+    'postingDate',
+    'captureDate',
+    'appliedDate',
+    'status',
+    'notes',
+    'attachments'
+  ];
+  const rows = [headers.join(',')];
+  items.forEach((item) => {
+    const attachmentList = (Array.isArray(item.attachments) ? item.attachments : [])
+      .map(attachment => attachment.exportPath || attachment.filename)
+      .filter(Boolean)
+      .join(' | ');
+    const values = [
+      item.company,
+      item.title,
+      item.jobUrl,
+      item.location,
+      item.source,
+      item.postingDate,
+      item.captureDate,
+      item.appliedDate,
+      item.status,
+      item.notes,
+      attachmentList
+    ];
+    rows.push(values.map(escapeCsv).join(','));
+  });
+  return rows.join('\n');
+};
+
 const handleCreateApplication = async (userId, payload = {}) => {
   const company = (payload.company || '').toString().trim();
   const title = (payload.title || '').toString().trim();
@@ -262,6 +362,7 @@ const handleCreateApplication = async (userId, payload = {}) => {
   if (!parsedDate) throw httpError(400, 'appliedDate must be YYYY-MM-DD.');
   const status = normalizeStatus(payload.status || 'Applied');
   const postingDateRaw = payload.postingDate;
+  const captureDateRaw = payload.captureDate;
   const jobUrl = normalizeUrl(payload.jobUrl || payload.url);
   const location = (payload.location || '').toString().trim();
   const source = (payload.source || '').toString().trim();
@@ -285,6 +386,11 @@ const handleCreateApplication = async (userId, payload = {}) => {
     const postingDate = parseDate(postingDateRaw);
     if (!postingDate) throw httpError(400, 'postingDate must be YYYY-MM-DD.');
     item.postingDate = formatDate(postingDate);
+  }
+  if (captureDateRaw !== undefined && captureDateRaw !== null && captureDateRaw !== '') {
+    const captureDate = parseDate(captureDateRaw);
+    if (!captureDate) throw httpError(400, 'captureDate must be YYYY-MM-DD.');
+    item.captureDate = formatDate(captureDate);
   }
   if (jobUrl) item.jobUrl = jobUrl;
   if (location) item.location = location;
@@ -442,6 +548,7 @@ const handleUpdateApplication = async (userId, applicationId, payload = {}) => {
     addField('appliedDate', formatDate(parsedDate));
   }
   addDateField('postingDate', payload.postingDate);
+  addDateField('captureDate', payload.captureDate);
   if (payload.jobUrl !== undefined || payload.url !== undefined) {
     const jobUrl = normalizeUrl(payload.jobUrl || payload.url);
     addField('jobUrl', jobUrl);
@@ -536,6 +643,93 @@ const handlePresignDownload = async (userId, payload = {}) => {
   };
 };
 
+const getExportRange = (payload = {}) => {
+  const startValue = payload.start;
+  const endValue = payload.end;
+  if (startValue && !parseDate(startValue)) throw httpError(400, 'start must be YYYY-MM-DD.');
+  if (endValue && !parseDate(endValue)) throw httpError(400, 'end must be YYYY-MM-DD.');
+  return getRange({
+    start: startValue,
+    end: endValue
+  });
+};
+
+const handleCreateExport = async (userId, range) => {
+  if (!ATTACHMENTS_BUCKET) throw httpError(500, 'Attachments bucket not configured.');
+  const items = await queryApplications(userId, { range, recordType: 'application' });
+  const sorted = [...items].sort((a, b) => (a.appliedDate || '').localeCompare(b.appliedDate || ''));
+  const { exportItems, attachments } = buildExportData(sorted, userId);
+  const exportPayload = {
+    generatedAt: nowIso(),
+    start: formatDate(range.start),
+    end: formatDate(range.end),
+    totalApplications: exportItems.length,
+    items: exportItems
+  };
+  const csv = buildExportCsv(exportItems);
+  const key = `${userId}/exports/job-applications-${formatDate(range.start)}-to-${formatDate(range.end)}-${Date.now()}.zip`;
+  const uploadStream = new PassThrough();
+  const archive = archiver('zip', { zlib: { level: 9 } });
+  archive.pipe(uploadStream);
+  archive.append(JSON.stringify(exportPayload, null, 2), { name: 'applications.json' });
+  archive.append(csv, { name: 'applications.csv' });
+
+  let attachmentsExported = 0;
+  let attachmentsMissing = 0;
+  for (const attachment of attachments) {
+    try {
+      const response = await s3.send(new GetObjectCommand({
+        Bucket: ATTACHMENTS_BUCKET,
+        Key: attachment.key
+      }));
+      if (response.Body) {
+        archive.append(response.Body, { name: attachment.exportPath });
+        attachmentsExported += 1;
+      } else {
+        attachmentsMissing += 1;
+      }
+    } catch {
+      attachmentsMissing += 1;
+    }
+  }
+
+  const uploadPromise = s3.send(new PutObjectCommand({
+    Bucket: ATTACHMENTS_BUCKET,
+    Key: key,
+    Body: uploadStream,
+    ContentType: 'application/zip'
+  }));
+  const archivePromise = new Promise((resolve, reject) => {
+    archive.on('warning', err => {
+      if (err.code !== 'ENOENT') reject(err);
+    });
+    archive.on('error', reject);
+    uploadStream.on('finish', resolve);
+    uploadStream.on('error', reject);
+  });
+  archive.finalize();
+  await Promise.all([uploadPromise, archivePromise]);
+
+  const downloadUrl = await getSignedUrl(
+    s3,
+    new GetObjectCommand({
+      Bucket: ATTACHMENTS_BUCKET,
+      Key: key
+    }),
+    { expiresIn: presignTtl }
+  );
+  return {
+    downloadUrl,
+    key,
+    expiresIn: presignTtl,
+    start: exportPayload.start,
+    end: exportPayload.end,
+    totalApplications: exportItems.length,
+    attachmentsExported,
+    attachmentsMissing
+  };
+};
+
 exports.handler = async (event) => {
   const requestOrigin = event?.headers?.origin || event?.headers?.Origin || '';
   const corsOrigin = resolveCorsOrigin(requestOrigin);
@@ -612,8 +806,15 @@ exports.handler = async (event) => {
     }
 
     if (routeKey === 'GET /api/applications') {
-      const limit = parseInt(event.queryStringParameters?.limit || '0', 10) || 0;
-      const items = await queryApplications(userId, { limit, scanForward: false, recordType: 'application' });
+      const query = event.queryStringParameters || {};
+      const limit = parseInt(query.limit || '0', 10) || 0;
+      const range = (query.start || query.end) ? getRange(query) : null;
+      const items = await queryApplications(userId, {
+        limit,
+        scanForward: false,
+        recordType: 'application',
+        range
+      });
       return {
         statusCode: 200,
         headers: buildHeaders(corsOrigin),
@@ -648,6 +849,17 @@ exports.handler = async (event) => {
         statusCode: 201,
         headers: buildHeaders(corsOrigin),
         body: JSON.stringify(item)
+      };
+    }
+
+    if (routeKey === 'POST /api/exports') {
+      const payload = parseBody(event);
+      const range = getExportRange(payload);
+      const data = await handleCreateExport(userId, range);
+      return {
+        statusCode: 200,
+        headers: buildHeaders(corsOrigin),
+        body: JSON.stringify(data)
       };
     }
 

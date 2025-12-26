@@ -138,6 +138,7 @@ API Gateway uses a Cognito JWT authorizer. The Lambda reads the `sub` claim from
   "title": "Data Analyst",
   "appliedDate": "2025-01-15",
   "postingDate": "2025-01-10",
+  "captureDate": "2025-01-12",
   "status": "Applied",
   "notes": "Reached out to recruiter.",
   "jobUrl": "https://acme.com/jobs/123",
@@ -156,6 +157,7 @@ Response:
   "title": "Data Analyst",
   "appliedDate": "2025-01-15",
   "postingDate": "2025-01-10",
+  "captureDate": "2025-01-12",
   "status": "Applied",
   "notes": "Reached out to recruiter.",
   "jobUrl": "https://acme.com/jobs/123",
@@ -209,6 +211,30 @@ Response:
 ```json
 {
   "status": "Inactive"
+}
+```
+
+`POST /api/exports`
+
+```json
+{
+  "start": "2025-01-01",
+  "end": "2025-03-31"
+}
+```
+
+Response:
+
+```json
+{
+  "downloadUrl": "https://bucket.s3.amazonaws.com/user-id/exports/job-applications-2025-01-01-to-2025-03-31-1737061090000.zip",
+  "key": "USER_SUB/exports/job-applications-2025-01-01-to-2025-03-31-1737061090000.zip",
+  "expiresIn": 900,
+  "start": "2025-01-01",
+  "end": "2025-03-31",
+  "totalApplications": 12,
+  "attachmentsExported": 8,
+  "attachmentsMissing": 1
 }
 ```
 
