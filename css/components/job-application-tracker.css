@@ -6,11 +6,11 @@
     --jobtrack-accent-soft:color-mix(in srgb,var(--primary) 24%, transparent);
     --jobtrack-surface:color-mix(in srgb,var(--surface) 88%, #09121c 12%);
     --jobtrack-surface-strong:color-mix(in srgb,var(--surface) 78%, #050b12 22%);
-    --jobtrack-heat-0:color-mix(in srgb,var(--surface) 92%, #01060c 8%);
-    --jobtrack-heat-1:color-mix(in srgb,var(--primary) 25%, var(--surface) 75%);
-    --jobtrack-heat-2:color-mix(in srgb,var(--primary) 45%, var(--surface) 55%);
-    --jobtrack-heat-3:color-mix(in srgb,var(--primary) 65%, var(--surface) 35%);
-    --jobtrack-heat-4:color-mix(in srgb,var(--primary) 85%, #ffffff 15%);
+    --jobtrack-heat-0:color-mix(in srgb,var(--primary) 10%, var(--surface) 90%);
+    --jobtrack-heat-1:color-mix(in srgb,var(--primary) 30%, var(--surface) 70%);
+    --jobtrack-heat-2:color-mix(in srgb,var(--primary) 50%, var(--surface) 50%);
+    --jobtrack-heat-3:color-mix(in srgb,var(--primary) 70%, var(--surface) 30%);
+    --jobtrack-heat-4:color-mix(in srgb,var(--primary) 88%, #ffffff 12%);
   }
 
   .jobtrack-hero{
