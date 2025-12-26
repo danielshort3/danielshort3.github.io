@@ -26,6 +26,8 @@
     companyInput: $('#jobtrack-company'),
     titleInput: $('#jobtrack-title'),
     dateInput: $('#jobtrack-date'),
+    postingDateInput: $('#jobtrack-posting-date'),
+    postingUnknownInput: $('#jobtrack-posting-unknown'),
     statusInput: $('#jobtrack-status'),
     notesInput: $('#jobtrack-notes'),
     applicationSubmit: $('[data-jobtrack="application-submit"]'),
@@ -51,6 +53,7 @@
     resumeInput: $('#jobtrack-resume'),
     coverInput: $('#jobtrack-cover'),
     importFile: $('#jobtrack-import-file'),
+    importAttachments: $('#jobtrack-import-attachments'),
     importSubmit: $('[data-jobtrack="import-submit"]'),
     importTemplate: $('[data-jobtrack="import-template"]'),
     importStatus: $('[data-jobtrack="import-status"]'),
@@ -65,6 +68,9 @@
     prospectUrlInput: $('#jobtrack-prospect-url'),
     prospectLocationInput: $('#jobtrack-prospect-location'),
     prospectSourceInput: $('#jobtrack-prospect-source'),
+    prospectPostingDateInput: $('#jobtrack-prospect-posting-date'),
+    prospectPostingUnknownInput: $('#jobtrack-prospect-posting-unknown'),
+    prospectCaptureDateInput: $('#jobtrack-prospect-capture-date'),
     prospectStatusInput: $('#jobtrack-prospect-status'),
     prospectNotesInput: $('#jobtrack-prospect-notes'),
     prospectSubmit: $('[data-jobtrack="prospect-submit"]')
@@ -78,7 +84,7 @@
   const STORAGE_KEY = 'jobTrackerAuth';
   const STATE_KEY = 'jobTrackerAuthState';
   const VERIFIER_KEY = 'jobTrackerCodeVerifier';
-  const CSV_TEMPLATE = 'company,title,appliedDate,status,notes\nAcme Corp,Data Analyst,2025-01-15,Applied,Reached out to recruiter';
+  const CSV_TEMPLATE = 'company,title,appliedDate,postingDate,status,notes,jobUrl,location,source,resumeFile,coverLetterFile\nAcme Corp,Data Analyst,2025-01-15,2025-01-10,Applied,Reached out to recruiter,https://acme.com/jobs/123,Remote,LinkedIn,Acme-Resume.pdf,Acme-Cover.pdf';
 
   const state = {
     auth: null,
@@ -123,6 +129,31 @@
     if (!value) return null;
     const parsed = new Date(`${value}T00:00:00Z`);
     return Number.isNaN(parsed.getTime()) ? null : parsed;
+  };
+
+  const syncUnknownDate = (dateInput, unknownInput) => {
+    if (!dateInput || !unknownInput) return;
+    const isUnknown = Boolean(unknownInput.checked);
+    dateInput.disabled = isUnknown;
+    if (isUnknown) dateInput.value = '';
+  };
+
+  const initUnknownDateToggle = (dateInput, unknownInput, defaultUnknown = true) => {
+    if (!dateInput || !unknownInput) return;
+    if (defaultUnknown && !dateInput.value) {
+      unknownInput.checked = true;
+    }
+    const sync = () => syncUnknownDate(dateInput, unknownInput);
+    unknownInput.addEventListener('change', sync);
+    sync();
+  };
+
+  const setUnknownDateValue = (dateInput, unknownInput, value, defaultUnknown = true) => {
+    if (dateInput) dateInput.value = value || '';
+    if (unknownInput) {
+      unknownInput.checked = value ? false : defaultUnknown;
+    }
+    syncUnknownDate(dateInput, unknownInput);
   };
 
   const toTitle = (value) => value
@@ -176,8 +207,14 @@
     company: ['company', 'companyname', 'employer', 'organization'],
     title: ['title', 'role', 'position', 'jobtitle'],
     appliedDate: ['applieddate', 'dateapplied', 'applicationdate', 'applied', 'date'],
+    postingDate: ['postingdate', 'posteddate', 'jobpostingdate', 'dateposted'],
     status: ['status', 'stage'],
-    notes: ['notes', 'note', 'details']
+    notes: ['notes', 'note', 'details'],
+    jobUrl: ['joburl', 'url', 'link', 'joblink', 'applicationurl'],
+    location: ['location', 'city', 'region', 'locale'],
+    source: ['source', 'referral', 'channel', 'board'],
+    resumeFile: ['resume', 'resumefile', 'resumefilename', 'resumeattachment', 'resumeattachmentname'],
+    coverLetterFile: ['coverletter', 'coverletterfile', 'coverletterfilename', 'cover', 'coverfile']
   };
 
   const buildHeaderMap = (headers = []) => {
@@ -356,6 +393,7 @@
     if (els.companyInput) els.companyInput.value = item.company || '';
     if (els.titleInput) els.titleInput.value = item.title || '';
     if (els.dateInput) els.dateInput.value = item.appliedDate || '';
+    setUnknownDateValue(els.postingDateInput, els.postingUnknownInput, item.postingDate || '');
     if (els.statusInput) els.statusInput.value = item.status || 'Applied';
     if (els.notesInput) els.notesInput.value = item.notes || '';
     clearAttachmentInputs();
@@ -383,6 +421,10 @@
     if (els.prospectUrlInput) els.prospectUrlInput.value = item.jobUrl || '';
     if (els.prospectLocationInput) els.prospectLocationInput.value = item.location || '';
     if (els.prospectSourceInput) els.prospectSourceInput.value = item.source || '';
+    setUnknownDateValue(els.prospectPostingDateInput, els.prospectPostingUnknownInput, item.postingDate || '');
+    if (els.prospectCaptureDateInput) {
+      els.prospectCaptureDateInput.value = item.captureDate || formatDateInput(new Date());
+    }
     if (els.prospectStatusInput) els.prospectStatusInput.value = item.status || 'Active';
     if (els.prospectNotesInput) els.prospectNotesInput.value = item.notes || '';
     if (els.prospectSubmit) els.prospectSubmit.textContent = 'Update prospect';
@@ -627,6 +669,19 @@
   const clearAttachmentInputs = () => {
     if (els.resumeInput) els.resumeInput.value = '';
     if (els.coverInput) els.coverInput.value = '';
+  };
+
+  const resetApplicationDateFields = () => {
+    setUnknownDateValue(els.postingDateInput, els.postingUnknownInput, '');
+  };
+
+  const resetProspectDateFields = () => {
+    const today = formatDateInput(new Date());
+    if (els.prospectCaptureDateInput) {
+      els.prospectCaptureDateInput.value = els.prospectCaptureDateInput.value || today;
+    }
+    const postingValue = els.prospectPostingDateInput?.value || '';
+    setUnknownDateValue(els.prospectPostingDateInput, els.prospectPostingUnknownInput, postingValue);
   };
 
   const uploadAttachment = async (applicationId, attachment) => {
@@ -1206,6 +1261,8 @@
 
   const initProspects = () => {
     if (els.prospectForm) {
+      initUnknownDateToggle(els.prospectPostingDateInput, els.prospectPostingUnknownInput, true);
+      resetProspectDateFields();
       els.prospectForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         const formData = new FormData(els.prospectForm);
@@ -1214,22 +1271,48 @@
         const jobUrl = normalizeUrl(formData.get('jobUrl'));
         const location = (formData.get('location') || '').toString().trim();
         const source = (formData.get('source') || '').toString().trim();
+        const postingDate = (formData.get('postingDate') || '').toString().trim();
+        const postingUnknown = Boolean(formData.get('postingDateUnknown'));
+        const captureDate = (formData.get('captureDate') || '').toString().trim();
         const status = (formData.get('status') || 'Active').toString().trim();
         const notes = (formData.get('notes') || '').toString().trim();
         if (!company || !title || !jobUrl) {
           setStatus(els.prospectStatus, 'Company, role title, and job URL are required.', 'error');
           return;
         }
-        const payload = { company, title, jobUrl, location, source, status, notes };
+        if (!postingUnknown && !postingDate) {
+          setStatus(els.prospectStatus, 'Add a posting date or mark it as unknown.', 'error');
+          return;
+        }
+        if (postingDate && !parseDateInput(postingDate)) {
+          setStatus(els.prospectStatus, 'Posting date must be valid.', 'error');
+          return;
+        }
+        if (!captureDate) {
+          setStatus(els.prospectStatus, 'Capture date is required.', 'error');
+          return;
+        }
+        if (!parseDateInput(captureDate)) {
+          setStatus(els.prospectStatus, 'Capture date must be valid.', 'error');
+          return;
+        }
+        const payload = { company, title, jobUrl, location, source, status, notes, captureDate };
+        if (postingUnknown) {
+          payload.postingDate = null;
+        } else if (postingDate) {
+          payload.postingDate = postingDate;
+        }
         const ok = await submitProspect(payload);
         if (ok) {
           state.isResettingProspect = true;
           els.prospectForm.reset();
           state.isResettingProspect = false;
+          resetProspectDateFields();
         }
       });
       els.prospectForm.addEventListener('reset', () => {
         if (state.isResettingProspect) return;
+        resetProspectDateFields();
         clearProspectEditMode();
       });
     }
@@ -1364,21 +1447,37 @@
 
   const initForm = () => {
     if (!els.form) return;
+    initUnknownDateToggle(els.postingDateInput, els.postingUnknownInput, true);
     els.form.addEventListener('submit', async (event) => {
       event.preventDefault();
       const formData = new FormData(els.form);
       const company = (formData.get('company') || '').toString().trim();
       const title = (formData.get('title') || '').toString().trim();
       const appliedDate = (formData.get('appliedDate') || '').toString().trim();
+      const postingDate = (formData.get('postingDate') || '').toString().trim();
+      const postingUnknown = Boolean(formData.get('postingDateUnknown'));
       const status = (formData.get('status') || 'Applied').toString().trim();
       const notes = (formData.get('notes') || '').toString().trim();
       if (!company || !title || !appliedDate) {
         setStatus(els.formStatus, 'Company, role title, and applied date are required.', 'error');
         return;
       }
+      if (!postingUnknown && !postingDate) {
+        setStatus(els.formStatus, 'Add a posting date or mark it as unknown.', 'error');
+        return;
+      }
+      if (postingDate && !parseDateInput(postingDate)) {
+        setStatus(els.formStatus, 'Posting date must be valid.', 'error');
+        return;
+      }
       const attachments = collectAttachments();
       const editing = state.editingApplication;
       const payload = { company, title, appliedDate, notes };
+      if (postingUnknown) {
+        payload.postingDate = null;
+      } else if (postingDate) {
+        payload.postingDate = postingDate;
+      }
       const existingStatus = editing?.status ? editing.status.toString().trim().toLowerCase() : '';
       if (!editing || !existingStatus || status.toLowerCase() !== existingStatus) {
         payload.status = status;
@@ -1389,10 +1488,12 @@
         els.form.reset();
         state.isResettingApplication = false;
         clearAttachmentInputs();
+        resetApplicationDateFields();
       }
     });
     els.form.addEventListener('reset', () => {
       clearAttachmentInputs();
+      resetApplicationDateFields();
       if (state.isResettingApplication) return;
       clearApplicationEditMode();
     });
@@ -1400,33 +1501,66 @@
 
   const parseImportPayloads = (text) => {
     const rows = parseCsv(text || '');
-    if (!rows.length) return { payloads: [], skipped: 0, missing: ['company', 'title', 'appliedDate'] };
+    if (!rows.length) return { entries: [], skipped: 0, missing: ['company', 'title', 'appliedDate'] };
     const headers = rows.shift().map(header => header.trim());
     const map = buildHeaderMap(headers);
     const missing = ['company', 'title', 'appliedDate'].filter(key => map[key] === undefined);
-    if (missing.length) return { payloads: [], skipped: rows.length, missing };
+    if (missing.length) return { entries: [], skipped: rows.length, missing };
 
-    const payloads = [];
+    const entries = [];
     let skipped = 0;
     rows.forEach((row) => {
       const company = (row[map.company] || '').toString().trim();
       const title = (row[map.title] || '').toString().trim();
       const appliedDate = parseCsvDate(row[map.appliedDate]);
+      const postingDate = map.postingDate !== undefined ? parseCsvDate(row[map.postingDate]) : '';
       const status = map.status !== undefined ? (row[map.status] || '').toString().trim() : '';
       const notes = map.notes !== undefined ? (row[map.notes] || '').toString().trim() : '';
+      const jobUrl = map.jobUrl !== undefined ? normalizeUrl(row[map.jobUrl]) : '';
+      const location = map.location !== undefined ? (row[map.location] || '').toString().trim() : '';
+      const source = map.source !== undefined ? (row[map.source] || '').toString().trim() : '';
+      const resumeFile = map.resumeFile !== undefined ? (row[map.resumeFile] || '').toString().trim() : '';
+      const coverLetterFile = map.coverLetterFile !== undefined ? (row[map.coverLetterFile] || '').toString().trim() : '';
       if (!company || !title || !appliedDate) {
         skipped += 1;
         return;
       }
-      payloads.push({
+      const payload = {
         company,
         title,
         appliedDate,
         status: status || 'Applied',
         notes
+      };
+      if (postingDate) payload.postingDate = postingDate;
+      if (jobUrl) payload.jobUrl = jobUrl;
+      if (location) payload.location = location;
+      if (source) payload.source = source;
+      entries.push({
+        payload,
+        resumeFile,
+        coverLetterFile
       });
     });
-    return { payloads, skipped, missing: [] };
+    return { entries, skipped, missing: [] };
+  };
+
+  const buildImportAttachmentMap = (files = []) => {
+    const map = new Map();
+    files.forEach((file) => {
+      if (file && file.name) {
+        map.set(file.name.toLowerCase(), file);
+      }
+    });
+    return map;
+  };
+
+  const resolveImportAttachment = (name, lookup, missing) => {
+    const trimmed = (name || '').toString().trim();
+    if (!trimmed) return null;
+    const file = lookup.get(trimmed.toLowerCase());
+    if (!file && missing) missing.add(trimmed);
+    return file || null;
   };
 
   const initImport = () => {
@@ -1461,30 +1595,84 @@
         try {
           setStatus(els.importStatus, 'Reading CSV...', 'info');
           const text = await readFileText(file);
-          const { payloads, skipped, missing } = parseImportPayloads(text);
+          const { entries, skipped, missing } = parseImportPayloads(text);
           if (missing.length) {
             setStatus(els.importStatus, `Missing columns: ${missing.join(', ')}.`, 'error');
             return;
           }
-          if (!payloads.length) {
+          if (!entries.length) {
             setStatus(els.importStatus, 'No valid rows found in the CSV.', 'error');
             return;
           }
-          setStatus(els.importStatus, `Importing ${payloads.length} applications...`, 'info');
-          const results = await runWithConcurrency(payloads, 3, (payload) => requestJson('/api/applications', {
-            method: 'POST',
-            body: payload
-          }));
+          const attachmentLookup = buildImportAttachmentMap(Array.from(els.importAttachments?.files || []));
+          const missingAttachments = new Set();
+          const attachmentRequests = entries.reduce((total, entry) => total
+            + (entry.resumeFile ? 1 : 0)
+            + (entry.coverLetterFile ? 1 : 0), 0);
+          const importLabel = attachmentRequests
+            ? `Importing ${entries.length} applications and ${attachmentRequests} attachments...`
+            : `Importing ${entries.length} applications...`;
+          setStatus(els.importStatus, importLabel, 'info');
+          const results = await runWithConcurrency(entries, 3, async (entry) => {
+            const created = await requestJson('/api/applications', {
+              method: 'POST',
+              body: entry.payload
+            });
+            const applicationId = created?.applicationId;
+            const attachments = [];
+            const resumeFile = resolveImportAttachment(entry.resumeFile, attachmentLookup, missingAttachments);
+            if (resumeFile) attachments.push({ file: resumeFile, kind: 'resume' });
+            const coverFile = resolveImportAttachment(entry.coverLetterFile, attachmentLookup, missingAttachments);
+            if (coverFile) attachments.push({ file: coverFile, kind: 'cover-letter' });
+            let attachmentsUploaded = 0;
+            let attachmentsFailed = 0;
+            if (attachments.length && applicationId) {
+              try {
+                const uploaded = await uploadAttachments(applicationId, attachments);
+                await requestJson(`/api/applications/${encodeURIComponent(applicationId)}`, {
+                  method: 'PATCH',
+                  body: { attachments: uploaded }
+                });
+                attachmentsUploaded = uploaded.length;
+              } catch {
+                attachmentsFailed = attachments.length;
+              }
+            } else if (attachments.length && !applicationId) {
+              attachmentsFailed = attachments.length;
+            }
+            return { attachmentsUploaded, attachmentsFailed };
+          });
           const success = results.filter(result => result.ok).length;
           const failed = results.length - success;
-          const parts = [`Imported ${success} of ${payloads.length} applications.`];
+          const attachmentTotals = results.reduce((acc, result) => {
+            if (result.ok) {
+              acc.uploaded += result.value?.attachmentsUploaded || 0;
+              acc.failed += result.value?.attachmentsFailed || 0;
+            }
+            return acc;
+          }, { uploaded: 0, failed: 0 });
+          const parts = [`Imported ${success} of ${entries.length} applications.`];
           if (skipped) parts.push(`Skipped ${skipped} rows.`);
           if (failed) parts.push(`${failed} failed.`);
-          setStatus(els.importStatus, parts.join(' '), failed ? 'error' : 'success');
+          if (missingAttachments.size) {
+            const missingList = Array.from(missingAttachments);
+            const preview = missingList.slice(0, 3);
+            const suffix = missingList.length > preview.length ? ', ...' : '';
+            parts.push(`Missing ${missingList.length} attachment file${missingList.length === 1 ? '' : 's'}: ${preview.join(', ')}${suffix}.`);
+          }
+          if (attachmentTotals.uploaded) {
+            parts.push(`Uploaded ${attachmentTotals.uploaded} attachment${attachmentTotals.uploaded === 1 ? '' : 's'}.`);
+          }
+          if (attachmentTotals.failed) {
+            parts.push(`Attachment uploads failed for ${attachmentTotals.failed} file${attachmentTotals.failed === 1 ? '' : 's'}.`);
+          }
+          const hasIssues = failed || attachmentTotals.failed || missingAttachments.size;
+          setStatus(els.importStatus, parts.join(' '), hasIssues ? 'error' : 'success');
           if (success) {
             await Promise.all([refreshDashboard(), refreshRecent()]);
           }
           if (els.importFile) els.importFile.value = '';
+          if (els.importAttachments) els.importAttachments.value = '';
         } catch (err) {
           console.error('CSV import failed', err);
           setStatus(els.importStatus, err?.message || 'Unable to import applications.', 'error');
