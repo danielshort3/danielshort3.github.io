@@ -56,6 +56,9 @@
     prospectImportSubmit: $('[data-jobtrack="prospect-import-submit"]'),
     prospectImportTemplate: $('[data-jobtrack="prospect-import-template"]'),
     prospectImportStatus: $('[data-jobtrack="prospect-import-status"]'),
+    prospectImportProgressWrap: $('[data-jobtrack="prospect-import-progress-wrap"]'),
+    prospectImportProgressLabel: $('[data-jobtrack="prospect-import-progress-label"]'),
+    prospectImportProgress: $('[data-jobtrack="prospect-import-progress"]'),
     entryList: $('[data-jobtrack="entry-list"]'),
     entryListStatus: $('[data-jobtrack="entry-list-status"]'),
     entriesRefresh: $('[data-jobtrack="refresh-entries"]'),
@@ -71,6 +74,9 @@
     entrySelectAll: $('[data-jobtrack="entry-select-all"]'),
     entryBulkDelete: $('[data-jobtrack="entry-bulk-delete"]'),
     entrySelectedCount: $('[data-jobtrack="entry-selected-count"]'),
+    bulkStatusSelect: $('[data-jobtrack="bulk-status"]'),
+    bulkStatusDate: $('[data-jobtrack="bulk-date"]'),
+    bulkStatusApply: $('[data-jobtrack="bulk-status-apply"]'),
     exportForm: $('[data-jobtrack="export-form"]'),
     exportStart: $('[data-jobtrack="export-start"]'),
     exportEnd: $('[data-jobtrack="export-end"]'),
@@ -105,10 +111,14 @@
     lineOverlay: $('[data-jobtrack="line-overlay"]'),
     statusOverlay: $('[data-jobtrack="status-overlay"]'),
     calendarGrid: $('[data-jobtrack="calendar-grid"]'),
+    calendarMonths: $('[data-jobtrack="calendar-months"]'),
     mapContainer: $('[data-jobtrack="map"]'),
     mapPlaceholder: $('[data-jobtrack="map-placeholder"]'),
     mapTotal: $('[data-jobtrack="map-total"]'),
-    mapRemote: $('[data-jobtrack="map-remote"]')
+    mapRemote: $('[data-jobtrack="map-remote"]'),
+    detailSubtitle: $('[data-jobtrack="detail-subtitle"]'),
+    detailBody: $('[data-jobtrack="detail-body"]'),
+    detailReset: $('[data-jobtrack="detail-reset"]')
   };
 
   const tabs = {
@@ -119,10 +129,12 @@
   const STORAGE_KEY = 'jobTrackerAuth';
   const STATE_KEY = 'jobTrackerAuthState';
   const VERIFIER_KEY = 'jobTrackerCodeVerifier';
-  const CSV_TEMPLATE = 'company,title,jobUrl,location,source,postingDate,appliedDate,status,notes,resumeFile,coverLetterFile\nAcme Corp,Data Analyst,https://acme.com/jobs/123,Remote,LinkedIn,2025-01-10,2025-01-15,Applied,Reached out to recruiter,Acme-Resume.pdf,Acme-Cover.pdf';
+  const CSV_TEMPLATE = 'company,title,jobUrl,location,source,postingDate,appliedDate,status,notes,attachments\nAcme Corp,Data Analyst,https://acme.com/jobs/123,Remote,LinkedIn,2025-01-10,2025-01-15,Applied,Reached out to recruiter,Acme-Resume.pdf;Acme-Cover.pdf';
   const PROSPECT_CSV_TEMPLATE = 'company,title,jobUrl,location,source,postingDate,captureDate,status,notes\nAcme Corp,Data Analyst,https://acme.com/jobs/123,Remote,LinkedIn,2025-01-10,2025-01-12,Active,Follow up next week.';
   const APPLICATION_STATUSES = ['Applied', 'Screening', 'Interview', 'Offer', 'Rejected', 'Withdrawn'];
   const PROSPECT_STATUSES = ['Active', 'Interested', 'Inactive'];
+  const DETAIL_DEFAULT_SUBTITLE = 'Click a chart element to inspect activity.';
+  const DETAIL_DEFAULT_BODY = 'Select a state, week, day, or status to see details here.';
   const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const REMOTE_HINTS = ['remote', 'work from home', 'wfh', 'virtual'];
   const ONSITE_HINTS = ['on-site', 'onsite', 'on site', 'in office', 'in-office', 'hybrid'];
@@ -206,6 +218,11 @@
     visibleEntryIds: [],
     mapLoaded: false,
     mapSvg: null,
+    mapDetails: null,
+    calendarDetails: null,
+    statusDetails: null,
+    weekDetails: null,
+    weeklySeries: [],
     mapTooltipBound: false,
     calendarTooltipBound: false,
     isResettingEntry: false
@@ -306,6 +323,19 @@
   const formatPercent = (value) => {
     if (!Number.isFinite(value)) return '--';
     return `${Math.round(value)}%`;
+  };
+
+  const incrementCount = (map, key) => {
+    if (!key) return;
+    map.set(key, (map.get(key) || 0) + 1);
+  };
+
+  const formatCountList = (map, limit = 4) => {
+    const items = Array.from(map.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, limit)
+      .map(([label, count]) => `${label} (${count})`);
+    return items.length ? items.join(', ') : '--';
   };
   const isRemoteLocation = (location = '') => {
     const text = (location || '').toString().toLowerCase();
@@ -411,6 +441,7 @@
     jobUrl: ['joburl', 'url', 'link', 'joblink', 'applicationurl'],
     location: ['location', 'city', 'region', 'locale'],
     source: ['source', 'referral', 'channel', 'board'],
+    attachments: ['attachments', 'attachmentfiles', 'attachmentfile', 'files', 'documents'],
     resumeFile: ['resume', 'resumefile', 'resumefilename', 'resumeattachment', 'resumeattachmentname'],
     coverLetterFile: ['coverletter', 'coverletterfile', 'coverletterfilename', 'cover', 'coverfile']
   };
@@ -439,6 +470,14 @@
     }
     const parsed = new Date(trimmed);
     return Number.isNaN(parsed.getTime()) ? '' : formatDateInput(parsed);
+  };
+  const parseAttachmentList = (value) => {
+    const trimmed = (value || '').toString().trim();
+    if (!trimmed) return [];
+    return trimmed
+      .split(/[;|]/)
+      .map(item => item.trim())
+      .filter(Boolean);
   };
 
   const normalizeUrl = (value) => {
@@ -564,6 +603,26 @@
       els.importProgressLabel.textContent = label;
     }
   };
+  const setProspectImportProgress = (value, max, label) => {
+    if (!els.prospectImportProgress || !els.prospectImportProgressWrap) return;
+    const safeMax = Number.isFinite(max) && max > 0 ? max : 1;
+    const safeValue = Number.isFinite(value) ? Math.min(Math.max(value, 0), safeMax) : 0;
+    els.prospectImportProgress.max = safeMax;
+    els.prospectImportProgress.value = safeValue;
+    els.prospectImportProgressWrap.dataset.state = 'visible';
+    if (els.prospectImportProgressLabel && label) {
+      els.prospectImportProgressLabel.textContent = label;
+    }
+  };
+  const resetProspectImportProgress = (label = 'Import progress') => {
+    if (!els.prospectImportProgress || !els.prospectImportProgressWrap) return;
+    els.prospectImportProgressWrap.dataset.state = 'hidden';
+    els.prospectImportProgress.max = 1;
+    els.prospectImportProgress.value = 0;
+    if (els.prospectImportProgressLabel) {
+      els.prospectImportProgressLabel.textContent = label;
+    }
+  };
 
   const setOverlay = (el, message) => {
     if (!el) return;
@@ -574,6 +633,31 @@
     }
     el.dataset.state = '';
     el.textContent = message;
+  };
+
+  const setDashboardDetail = (title, lines = []) => {
+    if (els.detailSubtitle) {
+      els.detailSubtitle.textContent = title || DETAIL_DEFAULT_SUBTITLE;
+    }
+    if (!els.detailBody) return;
+    els.detailBody.innerHTML = '';
+    if (!lines.length) {
+      els.detailBody.textContent = DETAIL_DEFAULT_BODY;
+      return;
+    }
+    const list = document.createElement('ul');
+    list.className = 'jobtrack-detail-list';
+    lines.forEach((line) => {
+      const item = document.createElement('li');
+      item.textContent = line;
+      list.appendChild(item);
+    });
+    els.detailBody.appendChild(list);
+  };
+
+  const clearDashboardDetail = () => {
+    if (els.detailSubtitle) els.detailSubtitle.textContent = DETAIL_DEFAULT_SUBTITLE;
+    if (els.detailBody) els.detailBody.textContent = DETAIL_DEFAULT_BODY;
   };
 
   const confirmAction = (message) => {
@@ -1075,8 +1159,11 @@
     return Array.from(buckets.values())
       .sort((a, b) => a.start - b.start)
       .map(bucket => ({
+        key: formatDateInput(bucket.start),
         label: formatWeekLabel(bucket.minDate, bucket.maxDate),
-        count: bucket.count
+        count: bucket.count,
+        start: bucket.minDate,
+        end: bucket.maxDate
       }));
   };
 
@@ -1089,6 +1176,7 @@
     const ctx = document.getElementById('jobtrack-line-chart');
     if (!ctx || !window.Chart) return;
     const weeklySeries = groupSeriesByWeek(series);
+    state.weeklySeries = weeklySeries;
     const labels = weeklySeries.map(item => item.label);
     const data = weeklySeries.map(item => item.count);
     const accent = readCssVar('--jobtrack-accent', '#2396AD');
@@ -1106,9 +1194,17 @@
       borderWidth: 2
     };
 
+    const handleClick = (event, elements) => {
+      if (!elements || !elements.length) return;
+      const idx = elements[0].index;
+      const item = state.weeklySeries[idx];
+      if (!item) return;
+      showWeekDetail(item.key, item.label, item.count);
+    };
     if (state.lineChart) {
       state.lineChart.data.labels = labels;
       state.lineChart.data.datasets = [dataset];
+      state.lineChart.options.onClick = handleClick;
       state.lineChart.update();
       return;
     }
@@ -1124,6 +1220,7 @@
         plugins: {
           legend: { display: false }
         },
+        onClick: handleClick,
         scales: {
           x: {
             ticks: { color: text, maxTicksLimit: 6 },
@@ -1158,9 +1255,17 @@
       borderColor: accent,
       borderWidth: 1.5
     };
+    const handleClick = (event, elements) => {
+      if (!elements || !elements.length) return;
+      const idx = elements[0].index;
+      const status = labels[idx];
+      if (!status) return;
+      showStatusDetail(status);
+    };
     if (state.statusChart) {
       state.statusChart.data.labels = labels;
       state.statusChart.data.datasets = [dataset];
+      state.statusChart.options.onClick = handleClick;
       state.statusChart.update();
       return;
     }
@@ -1175,6 +1280,7 @@
         responsive: true,
         maintainAspectRatio: false,
         plugins: { legend: { display: false } },
+        onClick: handleClick,
         scales: {
           x: {
             ticks: { color: text, precision: 0 },
@@ -1190,10 +1296,11 @@
     });
   };
 
-  const buildCalendar = (days, rangeLabel, range) => {
+  const buildCalendar = (days, rangeLabel, range, detailMap = null) => {
     if (!els.calendarGrid) return;
     if (els.calendarRange) els.calendarRange.textContent = rangeLabel;
     els.calendarGrid.innerHTML = '';
+    if (els.calendarMonths) els.calendarMonths.innerHTML = '';
     const counts = new Map(days.map(item => [item.date, item.count]));
     const max = Math.max(0, ...days.map(item => item.count || 0));
     const scale = (count) => {
@@ -1213,30 +1320,91 @@
     const calendarEnd = new Date(end);
     calendarEnd.setUTCDate(end.getUTCDate() + endOffset);
 
+    const weeks = [];
     let cursor = new Date(calendarStart);
     while (cursor <= calendarEnd) {
-      const iso = formatDateInput(cursor);
-      const count = counts.get(iso) || 0;
-      const intensity = scale(count);
-      const cell = document.createElement('div');
-      cell.className = 'jobtrack-calendar-day';
-      cell.dataset.intensity = String(intensity);
-      const dateLabel = new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-US', {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-      });
-      const labelText = count
-        ? `${dateLabel}: ${count} application${count === 1 ? '' : 's'}`
-        : `${dateLabel}: No applications`;
-      cell.setAttribute('role', 'gridcell');
-      cell.setAttribute('aria-label', labelText);
-      cell.title = labelText;
-      cell.dataset.jobtrackTooltip = labelText;
-      els.calendarGrid.appendChild(cell);
-      cursor = new Date(cursor.getTime() + 86400000);
+      const weekStart = new Date(cursor);
+      const daysInWeek = [];
+      for (let i = 0; i < 7; i += 1) {
+        const day = new Date(weekStart);
+        day.setUTCDate(weekStart.getUTCDate() + i);
+        daysInWeek.push(day);
+      }
+      weeks.push({ start: weekStart, days: daysInWeek });
+      cursor = new Date(weekStart);
+      cursor.setUTCDate(weekStart.getUTCDate() + 7);
     }
+
+    if (weeks.length) {
+      const columns = `repeat(${weeks.length}, 12px)`;
+      if (els.calendarGrid) els.calendarGrid.style.gridTemplateColumns = columns;
+      if (els.calendarMonths) els.calendarMonths.style.gridTemplateColumns = columns;
+    }
+
+    const monthLabels = [];
+    weeks.forEach((week, index) => {
+      const monthStartDay = week.days.find(day => day.getUTCDate() === 1);
+      if (monthStartDay) {
+        monthLabels.push({ index, month: monthStartDay.getUTCMonth(), year: monthStartDay.getUTCFullYear() });
+      }
+    });
+    if (!monthLabels.length && weeks.length) {
+      monthLabels.push({
+        index: 0,
+        month: weeks[0].start.getUTCMonth(),
+        year: weeks[0].start.getUTCFullYear()
+      });
+    } else if (monthLabels.length && monthLabels[0].index !== 0) {
+      monthLabels.unshift({
+        index: 0,
+        month: weeks[0].start.getUTCMonth(),
+        year: weeks[0].start.getUTCFullYear()
+      });
+    }
+    const monthDividerIndexes = new Set(monthLabels.map(item => item.index));
+    monthLabels.forEach((item) => {
+      if (!els.calendarMonths) return;
+      const label = document.createElement('span');
+      label.className = 'jobtrack-calendar-month';
+      label.style.gridColumnStart = String(item.index + 1);
+      label.textContent = new Date(Date.UTC(item.year, item.month, 1)).toLocaleDateString('en-US', {
+        month: 'short',
+        timeZone: 'UTC'
+      });
+      els.calendarMonths.appendChild(label);
+    });
+
+    weeks.forEach((week, weekIndex) => {
+      const isDivider = weekIndex !== 0 && monthDividerIndexes.has(weekIndex);
+      week.days.forEach((day) => {
+        const iso = formatDateInput(day);
+        const count = counts.get(iso) || 0;
+        const intensity = scale(count);
+        const cell = document.createElement('div');
+        cell.className = 'jobtrack-calendar-day';
+        cell.dataset.intensity = String(intensity);
+        if (isDivider) cell.dataset.monthDivider = 'true';
+        const dateLabel = new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-US', {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        });
+        const labelText = count
+          ? `${dateLabel}: ${count} application${count === 1 ? '' : 's'}`
+          : `${dateLabel}: No applications`;
+        const detail = detailMap?.get(iso);
+        const detailLines = count && detail ? formatDetailLines(detail) : [];
+        const tooltipText = detailLines.length ? [labelText, ...detailLines].join('\n') : labelText;
+        cell.setAttribute('role', 'gridcell');
+        cell.setAttribute('aria-label', tooltipText);
+        cell.title = tooltipText;
+        cell.dataset.jobtrackTooltip = tooltipText;
+        cell.dataset.jobtrackDate = iso;
+        cell.tabIndex = 0;
+        els.calendarGrid.appendChild(cell);
+      });
+    });
     bindCalendarTooltip();
   };
 
@@ -1353,6 +1521,125 @@
     };
   };
 
+  const createDetail = () => ({
+    total: 0,
+    statuses: new Map(),
+    companies: new Map(),
+    start: null,
+    end: null
+  });
+
+  const updateDetail = (detail, status, company, date) => {
+    detail.total += 1;
+    if (status) incrementCount(detail.statuses, status);
+    if (company) incrementCount(detail.companies, company);
+    if (date) {
+      if (!detail.start || date < detail.start) detail.start = date;
+      if (!detail.end || date > detail.end) detail.end = date;
+    }
+  };
+
+  const buildDashboardDetails = (applications = []) => {
+    const mapDetails = new Map();
+    const remoteDetail = createDetail();
+    const calendarDetails = new Map();
+    const statusDetails = new Map();
+    const weekDetails = new Map();
+
+    applications.forEach((item) => {
+      const status = toTitle((item?.status || 'Applied').toString());
+      const company = (item?.company || '').toString().trim();
+      const appliedDate = item?.appliedDate;
+      const applied = parseDateInput(appliedDate);
+
+      if (applied) {
+        const dateKey = formatDateInput(applied);
+        if (!calendarDetails.has(dateKey)) calendarDetails.set(dateKey, createDetail());
+        updateDetail(calendarDetails.get(dateKey), status, company, applied);
+
+        const weekStart = startOfWeek(applied);
+        const weekKey = formatDateInput(weekStart);
+        if (!weekDetails.has(weekKey)) weekDetails.set(weekKey, createDetail());
+        updateDetail(weekDetails.get(weekKey), status, company, applied);
+      }
+
+      if (status) {
+        if (!statusDetails.has(status)) statusDetails.set(status, createDetail());
+        updateDetail(statusDetails.get(status), status, company, applied);
+      }
+
+      const location = (item?.location || '').toString();
+      if (!location) return;
+      if (isRemoteLocation(location)) {
+        updateDetail(remoteDetail, status, company, applied);
+        return;
+      }
+      const code = extractStateCode(location);
+      if (!code) return;
+      if (!mapDetails.has(code)) mapDetails.set(code, createDetail());
+      updateDetail(mapDetails.get(code), status, company, applied);
+    });
+
+    return {
+      mapDetails,
+      remoteDetail,
+      calendarDetails,
+      statusDetails,
+      weekDetails
+    };
+  };
+
+  const formatDetailLines = (detail) => {
+    if (!detail || !detail.total) {
+      return ['No applications recorded in this view yet.'];
+    }
+    const lines = [
+      `Statuses: ${formatCountList(detail.statuses, 5)}`,
+      `Top companies: ${formatCountList(detail.companies, 4)}`
+    ];
+    if (detail.start) {
+      const startLabel = formatDateLabel(formatDateInput(detail.start));
+      const endLabel = detail.end ? formatDateLabel(formatDateInput(detail.end)) : startLabel;
+      const rangeLabel = startLabel === endLabel ? startLabel : `${startLabel}–${endLabel}`;
+      lines.push(`Activity span: ${rangeLabel}`);
+    }
+    return lines;
+  };
+
+  const showMapDetail = (code, label, kind = 'on-site') => {
+    if (!code) return;
+    const detail = code === 'REMOTE'
+      ? state.mapDetails?.remote
+      : state.mapDetails?.states?.get(code);
+    const total = detail?.total || 0;
+    const title = `${label}: ${total} ${kind} application${total === 1 ? '' : 's'}`;
+    setDashboardDetail(title, formatDetailLines(detail));
+  };
+
+  const showCalendarDetail = (dateKey) => {
+    if (!dateKey) return;
+    const detail = state.calendarDetails?.get(dateKey);
+    const total = detail?.total || 0;
+    const title = `${formatDateLabel(dateKey)}: ${total} application${total === 1 ? '' : 's'}`;
+    setDashboardDetail(title, formatDetailLines(detail));
+  };
+
+  const showStatusDetail = (status) => {
+    if (!status) return;
+    const detail = state.statusDetails?.get(status);
+    const total = detail?.total || 0;
+    const title = `${status}: ${total} application${total === 1 ? '' : 's'}`;
+    setDashboardDetail(title, formatDetailLines(detail));
+  };
+
+  const showWeekDetail = (weekKey, label, count) => {
+    if (!weekKey) return;
+    const detail = state.weekDetails?.get(weekKey);
+    const total = detail?.total ?? count ?? 0;
+    const title = `Week of ${label}: ${total} application${total === 1 ? '' : 's'}`;
+    setDashboardDetail(title, formatDetailLines(detail));
+  };
+
   const updateInsights = (insights = {}) => {
     if (els.kpiFoundToApplied) {
       els.kpiFoundToApplied.textContent = formatDays(insights.avgFoundToApplied);
@@ -1435,10 +1722,30 @@
       const rect = node.getBoundingClientRect();
       tooltip.show(label, rect.left + rect.width / 2, rect.top + rect.height / 2);
     };
+    const handleClick = (event) => {
+      const node = event.target.closest('path, circle');
+      if (!node || !svg.contains(node)) return;
+      const code = node.dataset.jobtrackState;
+      const name = node.dataset.jobtrackStateName || STATE_NAME_LOOKUP.get(code) || code;
+      if (!code) return;
+      showMapDetail(code, name, 'on-site');
+    };
+    const handleKey = (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      const node = event.target.closest('path, circle');
+      if (!node || !svg.contains(node)) return;
+      event.preventDefault();
+      const code = node.dataset.jobtrackState;
+      const name = node.dataset.jobtrackStateName || STATE_NAME_LOOKUP.get(code) || code;
+      if (!code) return;
+      showMapDetail(code, name, 'on-site');
+    };
     svg.addEventListener('pointermove', handleMove);
     svg.addEventListener('pointerleave', handleLeave);
     svg.addEventListener('focusin', handleFocus);
     svg.addEventListener('focusout', handleLeave);
+    svg.addEventListener('click', handleClick);
+    svg.addEventListener('keydown', handleKey);
     state.mapTooltipBound = true;
   };
 
@@ -1458,8 +1765,24 @@
       tooltip.show(label, event.clientX, event.clientY);
     };
     const handleLeave = () => tooltip.hide();
+    const handleClick = (event) => {
+      const cell = event.target.closest('.jobtrack-calendar-day');
+      if (!cell || !els.calendarGrid.contains(cell)) return;
+      const dateKey = cell.dataset.jobtrackDate;
+      showCalendarDetail(dateKey);
+    };
+    const handleKey = (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      const cell = event.target.closest('.jobtrack-calendar-day');
+      if (!cell || !els.calendarGrid.contains(cell)) return;
+      event.preventDefault();
+      const dateKey = cell.dataset.jobtrackDate;
+      showCalendarDetail(dateKey);
+    };
     els.calendarGrid.addEventListener('pointermove', handleMove);
     els.calendarGrid.addEventListener('pointerleave', handleLeave);
+    els.calendarGrid.addEventListener('click', handleClick);
+    els.calendarGrid.addEventListener('keydown', handleKey);
     state.calendarTooltipBound = true;
   };
 
@@ -1503,26 +1826,20 @@
     }
   };
 
-  const updateMap = async (applications = []) => {
+  const updateMap = async (applications = [], detailData = null) => {
     if (!els.mapContainer) return;
     const svg = await loadMap();
     if (!svg) return;
 
+    const details = detailData || buildDashboardDetails(applications);
     const counts = new Map();
     let totalApps = 0;
-    let remoteCount = 0;
-    applications.forEach((item) => {
-      const location = (item?.location || '').toString();
-      if (!location) return;
-      if (isRemoteLocation(location)) {
-        remoteCount += 1;
-        return;
-      }
-      const code = extractStateCode(location);
-      if (!code) return;
-      counts.set(code, (counts.get(code) || 0) + 1);
-      totalApps += 1;
+    details.mapDetails.forEach((detail, code) => {
+      counts.set(code, detail.total);
+      totalApps += detail.total;
     });
+    const remoteCount = details.remoteDetail?.total || 0;
+    state.mapDetails = { states: details.mapDetails, remote: details.remoteDetail };
 
     const max = Math.max(0, ...Array.from(counts.values()));
     const scale = (count) => {
@@ -1545,15 +1862,20 @@
       const name = STATE_NAME_LOOKUP.get(code) || code;
       const share = totalApps ? Math.round((count / totalApps) * 100) : 0;
       const label = `${name}: ${count} on-site application${count === 1 ? '' : 's'}${share ? ` · ${share}% of on-site` : ''}`;
-      node.dataset.jobtrackTooltip = label;
-      node.setAttribute('aria-label', label);
-      node.setAttribute('title', label);
+      const detail = details.mapDetails.get(code);
+      const detailLines = detail?.total ? formatDetailLines(detail) : [];
+      const tooltipText = detailLines.length ? [label, ...detailLines].join('\n') : label;
+      node.dataset.jobtrackTooltip = tooltipText;
+      node.dataset.jobtrackState = code;
+      node.dataset.jobtrackStateName = name;
+      node.setAttribute('aria-label', tooltipText);
+      node.setAttribute('title', tooltipText);
       let titleNode = node.querySelector('title');
       if (!titleNode) {
         titleNode = document.createElementNS('http://www.w3.org/2000/svg', 'title');
         node.appendChild(titleNode);
       }
-      titleNode.textContent = label;
+      titleNode.textContent = tooltipText;
       node.setAttribute('tabindex', '0');
     });
 
@@ -1570,8 +1892,13 @@
     }
     if (els.mapRemote) {
       const label = `Remote: ${remoteCount} application${remoteCount === 1 ? '' : 's'}`;
+      const detailLines = details.remoteDetail?.total ? formatDetailLines(details.remoteDetail) : [];
+      const tooltipText = detailLines.length ? [label, ...detailLines].join('\n') : label;
       els.mapRemote.textContent = label;
-      els.mapRemote.title = label;
+      els.mapRemote.title = tooltipText;
+      els.mapRemote.dataset.jobtrackTooltip = tooltipText;
+      els.mapRemote.setAttribute('role', 'button');
+      els.mapRemote.tabIndex = 0;
     }
   };
 
@@ -1583,6 +1910,12 @@
       if (els.mapTotal) els.mapTotal.textContent = 'Map unavailable';
       if (els.mapRemote) els.mapRemote.textContent = 'Remote: --';
       updateInsights({});
+      clearDashboardDetail();
+      state.mapDetails = null;
+      state.calendarDetails = null;
+      state.statusDetails = null;
+      state.weekDetails = null;
+      state.weeklySeries = [];
       return;
     }
     if (!authIsValid(state.auth)) {
@@ -1591,6 +1924,12 @@
       if (els.mapTotal) els.mapTotal.textContent = 'Sign in to view map';
       if (els.mapRemote) els.mapRemote.textContent = 'Remote: --';
       updateInsights({});
+      clearDashboardDetail();
+      state.mapDetails = null;
+      state.calendarDetails = null;
+      state.statusDetails = null;
+      state.weekDetails = null;
+      state.weeklySeries = [];
       return;
     }
     const range = readRange();
@@ -1601,6 +1940,7 @@
     if (els.dashboard) els.dashboard.setAttribute('aria-busy', 'true');
     setOverlay(els.lineOverlay, 'Loading chart...');
     setOverlay(els.statusOverlay, 'Loading chart...');
+    clearDashboardDetail();
     try {
       const query = buildQuery(range);
       const [summary, timeline, statuses, calendar, applications] = await Promise.all([
@@ -1610,15 +1950,19 @@
         requestJson(`/api/analytics/calendar?${query}`),
         requestJson(`/api/applications?${query}`)
       ]);
-      updateKpis(summary);
       const series = timeline.series || [];
       const statusSeries = statuses.statuses || [];
+      const appItems = Array.isArray(applications.items) ? applications.items : [];
+      const detailData = buildDashboardDetails(appItems);
+      state.calendarDetails = detailData.calendarDetails;
+      state.statusDetails = detailData.statusDetails;
+      state.weekDetails = detailData.weekDetails;
+      updateKpis(summary);
       updateLineChart(series, rangeLabel);
       updateStatusChart(statusSeries);
-      buildCalendar(calendar.days || [], rangeLabel, range);
-      const appItems = Array.isArray(applications.items) ? applications.items : [];
+      buildCalendar(calendar.days || [], rangeLabel, range, detailData.calendarDetails);
       updateInsights(buildInsights(appItems));
-      await updateMap(appItems);
+      await updateMap(appItems, detailData);
       setOverlay(els.lineOverlay, series.length ? '' : 'No activity yet.');
       setOverlay(els.statusOverlay, statusSeries.length ? '' : 'No statuses yet.');
       setStatus(els.dashboardStatus, `Loaded ${summary.totalApplications || 0} applications.`, 'success');
@@ -1630,6 +1974,12 @@
       if (els.mapTotal) els.mapTotal.textContent = 'Map unavailable';
       if (els.mapRemote) els.mapRemote.textContent = 'Remote: --';
       updateInsights({});
+      clearDashboardDetail();
+      state.mapDetails = null;
+      state.calendarDetails = null;
+      state.statusDetails = null;
+      state.weekDetails = null;
+      state.weeklySeries = [];
       setStatus(els.dashboardStatus, err?.message || 'Unable to load dashboards.', 'error');
     } finally {
       if (els.dashboard) els.dashboard.setAttribute('aria-busy', 'false');
@@ -1939,13 +2289,23 @@
   };
 
   const updateEntrySelectionUI = () => {
-    const selectedCount = state.selectedEntryIds.size;
+    const selectedIds = Array.from(state.selectedEntryIds);
+    const selectedCount = selectedIds.length;
+    const selectedApplications = selectedIds.filter(id => {
+      const item = state.entryItems.get(id);
+      return item?.entryType === 'application';
+    }).length;
     if (els.entrySelectedCount) {
       els.entrySelectedCount.textContent = `${selectedCount} selected`;
     }
     if (els.entryBulkDelete) {
       els.entryBulkDelete.disabled = selectedCount === 0;
       els.entryBulkDelete.setAttribute('aria-disabled', selectedCount === 0 ? 'true' : 'false');
+    }
+    if (els.bulkStatusApply) {
+      const disabled = selectedApplications === 0;
+      els.bulkStatusApply.disabled = disabled;
+      els.bulkStatusApply.setAttribute('aria-disabled', disabled ? 'true' : 'false');
     }
     updateSelectAllState();
   };
@@ -1997,6 +2357,12 @@
   const initEntryList = () => {
     if (els.entriesRefresh) {
       els.entriesRefresh.addEventListener('click', () => refreshEntries());
+    }
+    if (els.bulkStatusDate && !els.bulkStatusDate.value) {
+      els.bulkStatusDate.value = formatDateInput(new Date());
+    }
+    if (els.bulkStatusApply) {
+      els.bulkStatusApply.addEventListener('click', () => applyBulkStatus());
     }
     if (els.entryFilterQuery) {
       els.entryFilterQuery.addEventListener('input', () => applyEntryFilters());
@@ -2278,6 +2644,68 @@
     } catch (err) {
       console.error('Bulk delete failed', err);
       setStatus(els.entryListStatus, err?.message || 'Unable to delete entries.', 'error');
+    }
+  };
+
+  const applyBulkStatus = async () => {
+    const status = (els.bulkStatusSelect?.value || '').toString().trim();
+    if (!status) {
+      setStatus(els.entryListStatus, 'Choose a status to apply.', 'error');
+      return;
+    }
+    if (!config.apiBase) {
+      setStatus(els.entryListStatus, 'Set the API base URL to update statuses.', 'error');
+      return;
+    }
+    if (!authIsValid(state.auth)) {
+      setStatus(els.entryListStatus, 'Sign in to update statuses.', 'error');
+      return;
+    }
+    const selectedIds = Array.from(state.selectedEntryIds);
+    const applicationIds = selectedIds.filter((id) => {
+      const item = state.entryItems.get(id);
+      return item?.entryType === 'application';
+    });
+    const skippedProspects = selectedIds.length - applicationIds.length;
+    if (!applicationIds.length) {
+      setStatus(els.entryListStatus, 'Select at least one application to update.', 'error');
+      return;
+    }
+    let statusDate = (els.bulkStatusDate?.value || '').toString().trim();
+    if (statusDate && !parseDateInput(statusDate)) {
+      setStatus(els.entryListStatus, 'Status date must be valid (YYYY-MM-DD).', 'error');
+      return;
+    }
+    if (!statusDate) {
+      statusDate = formatDateInput(new Date());
+      if (els.bulkStatusDate) els.bulkStatusDate.value = statusDate;
+    }
+    const label = applicationIds.length === 1 ? '1 application' : `${applicationIds.length} applications`;
+    try {
+      setStatus(els.entryListStatus, `Updating ${label}...`, 'info');
+      const results = await runWithConcurrency(applicationIds, 3, async (entryId) => {
+        await requestJson(`/api/applications/${encodeURIComponent(entryId)}`, {
+          method: 'PATCH',
+          body: { status, statusDate }
+        });
+        return entryId;
+      });
+      const failed = results.filter(result => !result.ok).length;
+      const updated = applicationIds.length - failed;
+      const parts = [
+        `Updated ${updated} ${updated === 1 ? 'application' : 'applications'} to ${status}.`
+      ];
+      if (failed) parts.push(`${failed} failed.`);
+      if (skippedProspects) {
+        parts.push(`Skipped ${skippedProspects} prospect${skippedProspects === 1 ? '' : 's'}.`);
+      }
+      setStatus(els.entryListStatus, parts.join(' '), failed ? 'error' : 'success');
+      if (updated) {
+        await Promise.all([refreshEntries(), refreshDashboard()]);
+      }
+    } catch (err) {
+      console.error('Bulk status update failed', err);
+      setStatus(els.entryListStatus, err?.message || 'Unable to update statuses.', 'error');
     }
   };
 
@@ -2584,6 +3012,7 @@
       const jobUrl = map.jobUrl !== undefined ? normalizeUrl(row[map.jobUrl]) : '';
       const location = map.location !== undefined ? (row[map.location] || '').toString().trim() : '';
       const source = map.source !== undefined ? (row[map.source] || '').toString().trim() : '';
+      const attachmentsValue = map.attachments !== undefined ? (row[map.attachments] || '').toString().trim() : '';
       const resumeFile = map.resumeFile !== undefined ? (row[map.resumeFile] || '').toString().trim() : '';
       const coverLetterFile = map.coverLetterFile !== undefined ? (row[map.coverLetterFile] || '').toString().trim() : '';
       if (!company || !title || !appliedDate) {
@@ -2602,10 +3031,21 @@
       if (location) payload.location = location;
       if (source) payload.source = source;
       if (captureDate) payload.captureDate = captureDate;
+      const attachmentFiles = [];
+      const attachmentLookup = new Set();
+      const addAttachment = (name, kind) => {
+        if (!name) return;
+        const key = name.toLowerCase();
+        if (attachmentLookup.has(key)) return;
+        attachmentLookup.add(key);
+        attachmentFiles.push({ name, kind });
+      };
+      parseAttachmentList(attachmentsValue).forEach(name => addAttachment(name, 'attachment'));
+      addAttachment(resumeFile, 'resume');
+      addAttachment(coverLetterFile, 'cover-letter');
       entries.push({
         payload,
-        resumeFile,
-        coverLetterFile
+        attachmentFiles
       });
     });
     return { entries, skipped, missing: [] };
@@ -2714,11 +3154,9 @@
           const attachmentLookup = buildImportAttachmentMap(Array.from(els.importAttachments?.files || []));
           const totalEntries = entries.length;
           const totalAttachments = entries.reduce((sum, entry) => {
-            const resumeKey = (entry.resumeFile || '').toString().trim().toLowerCase();
-            const coverKey = (entry.coverLetterFile || '').toString().trim().toLowerCase();
-            return sum
-              + (resumeKey && attachmentLookup.has(resumeKey) ? 1 : 0)
-              + (coverKey && attachmentLookup.has(coverKey) ? 1 : 0);
+            const files = Array.isArray(entry.attachmentFiles) ? entry.attachmentFiles : [];
+            const matched = files.filter(item => attachmentLookup.has((item?.name || '').toLowerCase())).length;
+            return sum + matched;
           }, 0);
           let entriesProcessed = 0;
           let attachmentsProcessed = 0;
@@ -2748,10 +3186,11 @@
               });
               const applicationId = created?.applicationId;
               const attachments = [];
-              const resumeFile = resolveImportAttachment(entry.resumeFile, attachmentLookup, missingAttachments);
-              if (resumeFile) attachments.push({ file: resumeFile, kind: 'resume' });
-              const coverFile = resolveImportAttachment(entry.coverLetterFile, attachmentLookup, missingAttachments);
-              if (coverFile) attachments.push({ file: coverFile, kind: 'cover-letter' });
+              const fileSpecs = Array.isArray(entry.attachmentFiles) ? entry.attachmentFiles : [];
+              fileSpecs.forEach((item) => {
+                const file = resolveImportAttachment(item?.name, attachmentLookup, missingAttachments);
+                if (file) attachments.push({ file, kind: item?.kind || 'attachment' });
+              });
               if (attachments.length && applicationId) {
                 try {
                   const uploaded = await uploadAttachments(applicationId, attachments, handleAttachmentProgress);
@@ -2833,6 +3272,7 @@
     }
     if (els.prospectImportSubmit) {
       els.prospectImportSubmit.addEventListener('click', async () => {
+        resetProspectImportProgress();
         if (!authIsValid(state.auth)) {
           setStatus(els.prospectImportStatus, 'Sign in to import prospects.', 'error');
           return;
@@ -2858,13 +3298,25 @@
             setStatus(els.prospectImportStatus, 'No valid rows found in the CSV.', 'error');
             return;
           }
-          setStatus(els.prospectImportStatus, `Importing ${entries.length} prospects...`, 'info');
+          const totalEntries = entries.length;
+          let entriesProcessed = 0;
+          const updateProgress = () => {
+            const label = `Imported ${entriesProcessed}/${totalEntries} prospects`;
+            setProspectImportProgress(entriesProcessed, totalEntries, label);
+          };
+          updateProgress();
+          setStatus(els.prospectImportStatus, `Importing ${totalEntries} prospects...`, 'info');
           const results = await runWithConcurrency(entries, 3, async (entry) => {
-            await requestJson('/api/prospects', {
-              method: 'POST',
-              body: entry.payload
-            });
-            return true;
+            try {
+              await requestJson('/api/prospects', {
+                method: 'POST',
+                body: entry.payload
+              });
+              return true;
+            } finally {
+              entriesProcessed += 1;
+              updateProgress();
+            }
           });
           const success = results.filter(result => result.ok).length;
           const failed = results.length - success;
@@ -2873,6 +3325,9 @@
           if (failed) parts.push(`${failed} failed.`);
           const hasIssues = failed || skipped;
           setStatus(els.prospectImportStatus, parts.join(' '), hasIssues ? 'error' : 'success');
+          if (totalEntries) {
+            setProspectImportProgress(entriesProcessed, totalEntries, `Imported ${entriesProcessed}/${totalEntries} prospects`);
+          }
           if (success) {
             await refreshEntries();
           }
@@ -2897,6 +3352,21 @@
     }
     if (els.filterRefresh) {
       els.filterRefresh.addEventListener('click', () => refreshDashboard());
+    }
+  };
+
+  const initDashboardInteractions = () => {
+    if (els.mapRemote) {
+      const showRemote = () => showMapDetail('REMOTE', 'Remote', 'remote');
+      els.mapRemote.addEventListener('click', showRemote);
+      els.mapRemote.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        showRemote();
+      });
+    }
+    if (els.detailReset) {
+      els.detailReset.addEventListener('click', () => clearDashboardDetail());
     }
   };
 
@@ -2950,6 +3420,7 @@
   const init = async () => {
     initTabs();
     initFilters();
+    initDashboardInteractions();
     initEntryForm();
     initImport();
     initProspectImport();

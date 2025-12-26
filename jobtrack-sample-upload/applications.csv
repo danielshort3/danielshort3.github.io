@@ -1,13 +1,13 @@
-company,title,jobUrl,location,source,postingDate,appliedDate,status,notes,resumeFile,coverLetterFile
-Acme Corp,Data Analyst,https://acme.example/jobs/401,"Austin, TX",LinkedIn,2025-09-25,2025-10-02,Applied,Saved from LinkedIn post.,Acme-Resume.pdf,Acme-Cover.pdf
-Blue River Analytics,Business Intelligence Analyst,https://blueriver.example/careers/bi-analyst,"Chicago, IL",Indeed,2025-10-05,2025-10-10,Screening,Phone screen scheduled.,BlueRiver-Resume.pdf,BlueRiver-Cover.pdf
-Cedar Labs,Data Scientist,https://cedarlabs.example/jobs/ds-02,Remote,Company site,2025-10-15,2025-10-18,Rejected,Auto rejection after 3 days.,Cedar-Resume.pdf,Cedar-Cover.pdf
-Delta Health,Analytics Consultant,https://deltahealth.example/jobs/consultant,"Hybrid - Denver, CO",Referral,2025-10-20,2025-10-28,Interview,Round 1 complete.,Delta-Resume.pdf,Delta-Cover.pdf
-Evergreen Retail,Marketing Data Analyst,https://evergreen.example/careers/marketing-analyst,"Seattle, WA",LinkedIn,2025-11-01,2025-11-04,Applied,Applied via company site.,Evergreen-Resume.pdf,Evergreen-Cover.pdf
-Foxglove Finance,Risk Analyst,https://foxglove.example/jobs/risk-analyst,"Boston, MA",Glassdoor,2025-11-08,2025-11-12,Screening,Recruiter email received.,Foxglove-Resume.pdf,Foxglove-Cover.pdf
-Granite Systems,Product Analyst,https://granite.example/jobs/product-analyst,Remote - US,Otta,2025-11-18,2025-11-20,Applied,Submitted portfolio link.,Granite-Resume.pdf,Granite-Cover.pdf
-Harbor Logistics,Operations Analyst,https://harborlogistics.example/careers/ops-analyst,"Atlanta, GA",Indeed,2025-11-25,2025-11-29,Offer,Offer received pending follow up.,Harbor-Resume.pdf,Harbor-Cover.pdf
-Indigo Energy,Data Engineer,https://indigoenergy.example/jobs/de-01,"Phoenix, AZ",Referral,2025-12-01,2025-12-05,Interview,Technical round scheduled.,Indigo-Resume.pdf,Indigo-Cover.pdf
-Juniper Media,Growth Analyst,https://junipermedia.example/jobs/growth-analyst,"New York, NY",Company site,2025-12-05,2025-12-10,Applied,Waiting on response.,Juniper-Resume.pdf,Juniper-Cover.pdf
-Kestrel Tech,Data Analyst II,https://kestreltech.example/jobs/da-ii,"Charlotte, NC",LinkedIn,2025-12-08,2025-12-12,Applied,Used tailored resume.,Kestrel-Resume.pdf,Kestrel-Cover.pdf
-Lumen Labs,Research Analyst,https://lumenlabs.example/jobs/research-analyst,"San Diego, CA",Wellfound,2025-12-12,2025-12-18,Screening,Recruiter asked for availability.,Lumen-Resume.pdf,Lumen-Cover.pdf
+company,title,jobUrl,location,source,postingDate,appliedDate,status,notes,attachments
+Acme Corp,Data Analyst,https://acme.example/jobs/401,"Austin, TX",LinkedIn,2025-09-25,2025-10-02,Applied,Saved from LinkedIn post.,Acme-Resume.pdf;Acme-Cover.pdf
+Blue River Analytics,Business Intelligence Analyst,https://blueriver.example/careers/bi-analyst,"Chicago, IL",Indeed,2025-10-05,2025-10-10,Screening,Phone screen scheduled.,BlueRiver-Resume.pdf;BlueRiver-Cover.pdf
+Cedar Labs,Data Scientist,https://cedarlabs.example/jobs/ds-02,Remote,Company site,2025-10-15,2025-10-18,Rejected,Auto rejection after 3 days.,Cedar-Resume.pdf;Cedar-Cover.pdf
+Delta Health,Analytics Consultant,https://deltahealth.example/jobs/consultant,"Hybrid - Denver, CO",Referral,2025-10-20,2025-10-28,Interview,Round 1 complete.,Delta-Resume.pdf;Delta-Cover.pdf
+Evergreen Retail,Marketing Data Analyst,https://evergreen.example/careers/marketing-analyst,"Seattle, WA",LinkedIn,2025-11-01,2025-11-04,Applied,Applied via company site.,Evergreen-Resume.pdf;Evergreen-Cover.pdf
+Foxglove Finance,Risk Analyst,https://foxglove.example/jobs/risk-analyst,"Boston, MA",Glassdoor,2025-11-08,2025-11-12,Screening,Recruiter email received.,Foxglove-Resume.pdf;Foxglove-Cover.pdf
+Granite Systems,Product Analyst,https://granite.example/jobs/product-analyst,Remote - US,Otta,2025-11-18,2025-11-20,Applied,Submitted portfolio link.,Granite-Resume.pdf;Granite-Cover.pdf
+Harbor Logistics,Operations Analyst,https://harborlogistics.example/careers/ops-analyst,"Atlanta, GA",Indeed,2025-11-25,2025-11-29,Offer,Offer received pending follow up.,Harbor-Resume.pdf;Harbor-Cover.pdf
+Indigo Energy,Data Engineer,https://indigoenergy.example/jobs/de-01,"Phoenix, AZ",Referral,2025-12-01,2025-12-05,Interview,Technical round scheduled.,Indigo-Resume.pdf;Indigo-Cover.pdf
+Juniper Media,Growth Analyst,https://junipermedia.example/jobs/growth-analyst,"New York, NY",Company site,2025-12-05,2025-12-10,Applied,Waiting on response.,Juniper-Resume.pdf;Juniper-Cover.pdf
+Kestrel Tech,Data Analyst II,https://kestreltech.example/jobs/da-ii,"Charlotte, NC",LinkedIn,2025-12-08,2025-12-12,Applied,Used tailored resume.,Kestrel-Resume.pdf;Kestrel-Cover.pdf
+Lumen Labs,Research Analyst,https://lumenlabs.example/jobs/research-analyst,"San Diego, CA",Wellfound,2025-12-12,2025-12-18,Screening,Recruiter asked for availability.,Lumen-Resume.pdf;Lumen-Cover.pdf

@@ -20,7 +20,10 @@ const dynamo = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
     convertEmptyValues: true
   }
 });
-const s3 = new S3Client({});
+const s3 = new S3Client({
+  requestChecksumCalculation: 'when_required',
+  responseChecksumValidation: 'when_required'
+});
 
 const {
   APPLICATIONS_TABLE,
@@ -537,6 +540,15 @@ const handleUpdateApplication = async (userId, applicationId, payload = {}) => {
   const names = {};
   const values = { ':updatedAt': nowIso() };
   const pushStatus = payload.status ? normalizeStatus(payload.status) : null;
+  let statusHistoryDate = values[':updatedAt'];
+  if (payload.statusDate !== undefined) {
+    if (!pushStatus) throw httpError(400, 'statusDate requires status.');
+    if (payload.statusDate) {
+      const parsedStatusDate = parseDate(payload.statusDate);
+      if (!parsedStatusDate) throw httpError(400, 'statusDate must be YYYY-MM-DD.');
+      statusHistoryDate = formatDate(parsedStatusDate);
+    }
+  }
 
   const addField = (key, value) => {
     if (value === undefined || value === null) return;
@@ -583,7 +595,7 @@ const handleUpdateApplication = async (userId, applicationId, payload = {}) => {
     addField('status', pushStatus);
     names['#statusHistory'] = 'statusHistory';
     values[':empty'] = [];
-    values[':statusEntry'] = [{ status: pushStatus, date: values[':updatedAt'] }];
+    values[':statusEntry'] = [{ status: pushStatus, date: statusHistoryDate }];
     updates.push('#statusHistory = list_append(if_not_exists(#statusHistory, :empty), :statusEntry)');
   }
 

@@ -261,6 +261,62 @@
       background: var(--surface-2);
     }
 
+    .exec-panel {
+      grid-column: 1 / -1;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .kpi-card {
+      padding: 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--surface-accent);
+      background: color-mix(in srgb, var(--surface) 86%, #000 14%);
+      display: grid;
+      gap: 6px;
+      min-height: 92px;
+    }
+
+    .kpi-card.is-primary {
+      background: color-mix(in srgb, var(--primary) 22%, var(--surface) 78%);
+      border-color: color-mix(in srgb, var(--primary) 45%, var(--surface-accent) 55%);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .kpi-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .kpi-value {
+      font-size: 1.35rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+
+    .kpi-value[data-trend="up"] {
+      color: var(--success, #38b37e);
+    }
+
+    .kpi-value[data-trend="down"] {
+      color: var(--danger, #e05757);
+    }
+
+    .kpi-value[data-trend="flat"] {
+      color: color-mix(in srgb, var(--muted) 80%, #ffffff 20%);
+    }
+
+    .kpi-sub {
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
     .stat-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -526,7 +582,7 @@
     <header class="card-header">
       <div class="header-copy">
         <h1 class="title">Empty-Package Shrink Explorer</h1>
-        <p class="subtitle">Interactive view of anonymized recovery records, built to highlight concentration and acceleration.</p>
+        <p class="subtitle">Executive KPIs and aggregated drilldowns highlight concentration and acceleration.</p>
       </div>
       <div class="header-actions">
         <span class="pill" id="date-range-pill">Loading dates</span>
@@ -543,47 +599,63 @@
     </div>
 
     <main class="content">
+      <section class="panel exec-panel" id="executive-panel">
+        <div class="panel-title">
+          <h2>Executive KPIs</h2>
+          <span class="meta-chip" id="kpi-meta">All records</span>
+        </div>
+        <div class="kpi-grid">
+          <div class="kpi-card is-primary">
+            <div class="kpi-label">Recovered Value</div>
+            <div class="kpi-value" id="kpi-total">--</div>
+            <div class="kpi-sub" id="kpi-total-sub">--</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">QoQ Change</div>
+            <div class="kpi-value" id="kpi-qoq" data-trend="flat">--</div>
+            <div class="kpi-sub" id="kpi-qoq-sub">--</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Incidents</div>
+            <div class="kpi-value" id="kpi-incidents">--</div>
+            <div class="kpi-sub" id="kpi-incidents-sub">--</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Avg Recovery</div>
+            <div class="kpi-value" id="kpi-avg">--</div>
+            <div class="kpi-sub" id="kpi-avg-sub">Per incident</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Top Hotspot</div>
+            <div class="kpi-value" id="kpi-hotspot">--</div>
+            <div class="kpi-sub" id="kpi-hotspot-sub">--</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Largest Single Recovery</div>
+            <div class="kpi-value" id="kpi-largest">--</div>
+            <div class="kpi-sub" id="kpi-largest-sub">--</div>
+          </div>
+        </div>
+      </section>
       <div class="column">
         <section class="panel" id="kpi-panel">
           <div class="panel-title">
-            <h2>Recovery Snapshot</h2>
+            <h2>Action Drivers</h2>
             <span class="meta-chip" id="snapshot-meta">All records</span>
-          </div>
-          <div class="stat-grid">
-            <div class="stat-card">
-              <div class="stat-label">Recovered Value</div>
-              <div class="stat-value" id="stat-total">--</div>
-              <div class="stat-sub" id="stat-total-sub">--</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">Incidents</div>
-              <div class="stat-value" id="stat-count">--</div>
-              <div class="stat-sub" id="stat-count-sub">--</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">Average Value</div>
-              <div class="stat-value" id="stat-avg">--</div>
-              <div class="stat-sub">Per incident</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">Peak Quarter</div>
-              <div class="stat-value" id="stat-peak">--</div>
-              <div class="stat-sub" id="stat-peak-sub">--</div>
-            </div>
           </div>
           <div class="insight-grid">
             <div class="insight-card">
-              <div class="insight-title">Location Concentration</div>
+              <div class="insight-title">Hotspot Locations</div>
               <div class="insight-value" id="insight-locations">--</div>
               <div class="insight-meta" id="insight-locations-meta">--</div>
             </div>
             <div class="insight-card">
-              <div class="insight-title">Department Skew</div>
+              <div class="insight-title">Department Concentration</div>
               <div class="insight-value" id="insight-departments">--</div>
               <div class="insight-meta" id="insight-departments-meta">--</div>
             </div>
             <div class="insight-card">
-              <div class="insight-title">Associate Concentration</div>
+              <div class="insight-title">Repeat Associates</div>
               <div class="insight-value" id="insight-employees">--</div>
               <div class="insight-meta" id="insight-employees-meta">--</div>
             </div>
@@ -643,7 +715,7 @@
         </div>
         <datalist id="department-list"></datalist>
         <datalist id="employee-list"></datalist>
-        <div class="filter-note">Type to search departments or associates. Empty input means all.</div>
+        <div class="filter-note">Filters update KPIs, trend, and breakdowns. Empty input means all.</div>
 
         <div class="panel-title">
           <h3>Breakdown</h3>
@@ -656,8 +728,8 @@
         <ul class="breakdown-list" id="breakdown-list"></ul>
 
         <div class="panel-title">
-          <h3>Recent Recoveries</h3>
-          <span class="meta-chip" id="record-meta">Latest 12</span>
+          <h3>Priority Recoveries</h3>
+          <span class="meta-chip" id="record-meta">Top 6 by value</span>
         </div>
         <ul class="record-list" id="record-list"></ul>
       </section>
@@ -691,14 +763,20 @@
       statusPill: document.getElementById("status-pill"),
       statusMeta: document.getElementById("status-meta"),
       dateRangePill: document.getElementById("date-range-pill"),
+      kpiMeta: document.getElementById("kpi-meta"),
       snapshotMeta: document.getElementById("snapshot-meta"),
-      statTotal: document.getElementById("stat-total"),
-      statTotalSub: document.getElementById("stat-total-sub"),
-      statCount: document.getElementById("stat-count"),
-      statCountSub: document.getElementById("stat-count-sub"),
-      statAvg: document.getElementById("stat-avg"),
-      statPeak: document.getElementById("stat-peak"),
-      statPeakSub: document.getElementById("stat-peak-sub"),
+      kpiTotal: document.getElementById("kpi-total"),
+      kpiTotalSub: document.getElementById("kpi-total-sub"),
+      kpiQoQ: document.getElementById("kpi-qoq"),
+      kpiQoQSub: document.getElementById("kpi-qoq-sub"),
+      kpiIncidents: document.getElementById("kpi-incidents"),
+      kpiIncidentsSub: document.getElementById("kpi-incidents-sub"),
+      kpiAvg: document.getElementById("kpi-avg"),
+      kpiAvgSub: document.getElementById("kpi-avg-sub"),
+      kpiHotspot: document.getElementById("kpi-hotspot"),
+      kpiHotspotSub: document.getElementById("kpi-hotspot-sub"),
+      kpiLargest: document.getElementById("kpi-largest"),
+      kpiLargestSub: document.getElementById("kpi-largest-sub"),
       insightLocations: document.getElementById("insight-locations"),
       insightLocationsMeta: document.getElementById("insight-locations-meta"),
       insightDepartments: document.getElementById("insight-departments"),
@@ -766,6 +844,11 @@
       });
     }
 
+    function formatCondition(value) {
+      if (!value) return "Unknown";
+      return String(value).replace(/_/g, " ");
+    }
+
     function parseDateValue(value) {
       if (!value) return null;
       const date = new Date(value);
@@ -810,6 +893,12 @@
       return { total, top, share };
     }
 
+    function getDateRange(rows) {
+      const dates = rows.map((row) => row.date).filter(Boolean).sort((a, b) => a - b);
+      if (!dates.length) return null;
+      return { start: dates[0], end: dates[dates.length - 1] };
+    }
+
     function applyFilters() {
       const location = state.filters.location;
       const condition = state.filters.condition;
@@ -829,53 +918,102 @@
       });
     }
 
-    function renderStats(series) {
+    function renderExecutiveKpis(series, range) {
       const rows = state.filtered;
       const totalValue = rows.reduce((sum, row) => sum + row.value, 0);
       const totalCount = rows.length;
       const avgValue = totalCount ? totalValue / totalCount : 0;
+      const locationCount = new Set(rows.map((row) => row.location).filter(Boolean)).size;
+      const topLocation = groupBy(rows, "location")[0];
+      const largest = rows.reduce((max, row) => (row.value > max.value ? row : max), rows[0] || null);
 
-      DOM.statTotal.textContent = formatCurrency(totalValue, 0);
-      DOM.statTotalSub.textContent = totalCount ? `Avg ${formatCurrency(avgValue, 2)}` : "No data";
-      DOM.statCount.textContent = formatNumber(totalCount);
-      DOM.statCountSub.textContent = totalCount ? `Sum ${formatCurrency(totalValue, 0)}` : "--";
-      DOM.statAvg.textContent = totalCount ? formatCurrency(avgValue, 2) : "--";
+      DOM.kpiTotal.textContent = formatCurrency(totalValue, 0);
+      DOM.kpiTotalSub.textContent = totalCount
+        ? (range ? `${formatDate(range.start)} to ${formatDate(range.end)}` : "No dates")
+        : "No data";
 
-      if (series.length) {
-        const peak = series.reduce((max, item) => (item.value > max.value ? item : max), series[0]);
-        DOM.statPeak.textContent = peak.key;
-        DOM.statPeakSub.textContent = formatCurrency(peak.value, 0);
-      } else {
-        DOM.statPeak.textContent = "--";
-        DOM.statPeakSub.textContent = "--";
+      DOM.kpiIncidents.textContent = formatNumber(totalCount);
+      DOM.kpiIncidentsSub.textContent = totalCount
+        ? `${formatNumber(locationCount)} locations`
+        : "No data";
+
+      DOM.kpiAvg.textContent = totalCount ? formatCurrency(avgValue, 2) : "--";
+      DOM.kpiAvgSub.textContent = "Avg per incident";
+
+      let qoqText = "--";
+      let qoqSub = series.length ? "No prior quarter" : "No data";
+      let qoqTrend = "flat";
+      if (series.length >= 2) {
+        const latest = series[series.length - 1];
+        const prev = series[series.length - 2];
+        const diff = latest.value - prev.value;
+        if (prev.value > 0) {
+          const pct = Math.round((diff / prev.value) * 100);
+          qoqText = `${pct >= 0 ? "+" : ""}${pct}%`;
+          if (pct > 2) qoqTrend = "up";
+          if (pct < -2) qoqTrend = "down";
+        } else if (diff !== 0) {
+          qoqText = `${diff >= 0 ? "+" : "-"}${formatCurrency(Math.abs(diff), 0)}`;
+          qoqTrend = diff > 0 ? "up" : "down";
+        } else {
+          qoqText = "0%";
+        }
+        qoqSub = `${latest.key} vs ${prev.key}`;
+      } else if (series.length === 1) {
+        qoqSub = `${series[0].key} only`;
       }
+
+      DOM.kpiQoQ.textContent = qoqText;
+      DOM.kpiQoQ.dataset.trend = qoqTrend;
+      DOM.kpiQoQSub.textContent = qoqSub;
+
+      if (topLocation && totalValue > 0) {
+        const share = Math.round((topLocation.value / totalValue) * 100);
+        DOM.kpiHotspot.textContent = topLocation.key;
+        DOM.kpiHotspotSub.textContent = `${formatCurrency(topLocation.value, 0)} (${share}% of value)`;
+      } else {
+        DOM.kpiHotspot.textContent = "--";
+        DOM.kpiHotspotSub.textContent = "No data";
+      }
+
+      if (largest) {
+        const dateLabel = largest.date ? formatDate(largest.date) : "No date";
+        const locationLabel = largest.location || "Unknown";
+        DOM.kpiLargest.textContent = formatCurrency(largest.value, 0);
+        DOM.kpiLargestSub.textContent = `${locationLabel} - ${dateLabel}`;
+      } else {
+        DOM.kpiLargest.textContent = "--";
+        DOM.kpiLargestSub.textContent = "No data";
+      }
+
+      DOM.kpiMeta.textContent = totalCount ? `${formatNumber(totalCount)} records` : "No records";
     }
 
     function renderInsights() {
       const rows = state.filtered;
       const locationShare = topShare(rows, "location", 2);
-      const departmentShare = topShare(rows, "department", 3);
-      const employeeShare = topShare(rows, "employee", 3);
+      const departmentShare = topShare(rows, "department", 2);
+      const employeeShare = topShare(rows, "employee", 2);
 
       const topLocations = locationShare.top.map((item) => item.key).join(", ") || "--";
       const locationPct = locationShare.total ? Math.round(locationShare.share * 100) : 0;
       DOM.insightLocations.textContent = topLocations;
       DOM.insightLocationsMeta.textContent = locationShare.total
-        ? `${locationPct}% of recovered value in top 2 locations`
+        ? `${locationPct}% of value in top 2 locations`
         : "No data";
 
       const topDepartments = departmentShare.top.map((item) => `Dept ${item.key}`).join(", ") || "--";
       const deptPct = departmentShare.total ? Math.round(departmentShare.share * 100) : 0;
       DOM.insightDepartments.textContent = topDepartments;
       DOM.insightDepartmentsMeta.textContent = departmentShare.total
-        ? `${deptPct}% of recovered value in top 3 departments`
+        ? `${deptPct}% of value in top 2 departments`
         : "No data";
 
       const topEmployees = employeeShare.top.map((item) => item.key).join(", ") || "--";
       const empPct = employeeShare.total ? Math.round(employeeShare.share * 100) : 0;
       DOM.insightEmployees.textContent = topEmployees;
       DOM.insightEmployeesMeta.textContent = employeeShare.total
-        ? `${empPct}% of recovered value in top 3 associates`
+        ? `${empPct}% of value in top 2 associates`
         : "No data";
     }
 
@@ -973,41 +1111,48 @@
 
     function renderRecords() {
       const rows = state.filtered
-        .filter((row) => row.date)
-        .sort((a, b) => b.date - a.date)
-        .slice(0, 12);
+        .filter((row) => Number.isFinite(row.value))
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 6);
 
-      DOM.recordMeta.textContent = rows.length ? `Latest ${rows.length}` : "No records";
+      DOM.recordMeta.textContent = rows.length ? `Top ${rows.length} by value` : "No records";
       if (!rows.length) {
         DOM.recordList.innerHTML = "<li class=\"empty-state\">No records in this view</li>";
         return;
       }
-      DOM.recordList.innerHTML = rows.map((row) => `
-        <li class="record-item">
-          <div class="record-row">
-            <span>${formatDate(row.date)}</span>
-            <span>${formatCurrency(row.value, 2)}</span>
-          </div>
-          <div class="record-meta">${row.location} - ${row.employee} - Dept ${row.department}</div>
-        </li>
-      `).join("");
+      DOM.recordList.innerHTML = rows.map((row) => {
+        const locationLabel = row.location || "Unknown";
+        const dateLabel = row.date ? formatDate(row.date) : "No date";
+        const deptLabel = row.department !== undefined && row.department !== null && row.department !== ""
+          ? row.department
+          : "n/a";
+        const conditionLabel = formatCondition(row.condition);
+        return `
+          <li class="record-item">
+            <div class="record-row">
+              <span>${locationLabel}</span>
+              <span>${formatCurrency(row.value, 0)}</span>
+            </div>
+            <div class="record-meta">${dateLabel} | Dept ${deptLabel} | ${conditionLabel}</div>
+          </li>
+        `;
+      }).join("");
     }
 
     function renderAll() {
       applyFilters();
       const series = buildQuarterSeries(state.filtered);
-      renderStats(series);
+      const range = getDateRange(state.filtered);
+      renderExecutiveKpis(series, range);
       renderInsights();
       renderTrend(series);
       renderBreakdown();
       renderRecords();
 
       const count = state.filtered.length;
-      const dateRange = (() => {
-        const dates = state.filtered.map((row) => row.date).filter(Boolean).sort((a, b) => a - b);
-        if (!dates.length) return "No dates";
-        return `${formatDate(dates[0])} - ${formatDate(dates[dates.length - 1])}`;
-      })();
+      const dateRange = range
+        ? `${formatDate(range.start)} to ${formatDate(range.end)}`
+        : "No dates";
       DOM.snapshotMeta.textContent = count ? `${formatNumber(count)} records` : "No records";
       DOM.filterMeta.textContent = count ? "Filters" : "No matches";
       DOM.statusMeta.textContent = count ? `Showing ${formatNumber(count)} records (${dateRange}).` : "No matching records.";
