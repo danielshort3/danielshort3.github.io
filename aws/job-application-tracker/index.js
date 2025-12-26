@@ -1,5 +1,6 @@
 const { randomUUID } = require('crypto');
 const { PassThrough } = require('stream');
+const { Upload } = require('@aws-sdk/lib-storage');
 const archiver = require('archiver');
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const {
@@ -700,18 +701,23 @@ const handleCreateExport = async (userId, range) => {
     }
   }
 
-  const uploadPromise = s3.send(new PutObjectCommand({
-    Bucket: ATTACHMENTS_BUCKET,
-    Key: key,
-    Body: uploadStream,
-    ContentType: 'application/zip'
-  }));
+  const uploader = new Upload({
+    client: s3,
+    params: {
+      Bucket: ATTACHMENTS_BUCKET,
+      Key: key,
+      Body: uploadStream,
+      ContentType: 'application/zip'
+    }
+  });
+  const uploadPromise = uploader.done();
   const archivePromise = new Promise((resolve, reject) => {
     archive.on('warning', err => {
       if (err.code !== 'ENOENT') reject(err);
     });
     archive.on('error', reject);
     uploadStream.on('finish', resolve);
+    uploadStream.on('close', resolve);
     uploadStream.on('error', reject);
   });
   archive.finalize();
