@@ -45,7 +45,8 @@
     resumeInput: $('#jobtrack-resume'),
     coverInput: $('#jobtrack-cover'),
     importFile: $('#jobtrack-import-file'),
-    importAttachments: $('#jobtrack-import-attachments'),
+    importResumes: $('#jobtrack-import-resumes'),
+    importCovers: $('#jobtrack-import-covers'),
     importSubmit: $('[data-jobtrack="import-submit"]'),
     importTemplate: $('[data-jobtrack="import-template"]'),
     importStatus: $('[data-jobtrack="import-status"]'),
@@ -847,12 +848,6 @@
     return data || {};
   };
 
-  const getAttachmentLabel = (attachment = {}) => {
-    const kind = (attachment.kind || '').toString().toLowerCase();
-    if (kind === 'cover' || kind === 'cover-letter' || kind === 'coverletter') return 'Cover letter';
-    return 'Resume';
-  };
-
   const collectAttachments = () => {
     const attachments = [];
     const resumeFile = els.resumeInput?.files?.[0];
@@ -910,11 +905,6 @@
     }
     return uploaded;
   };
-
-  const requestAttachmentDownload = async (key) => requestJson('/api/attachments/download', {
-    method: 'POST',
-    body: { key }
-  });
 
   const requestAttachmentZip = async (applicationId) => requestJson('/api/attachments/zip', {
     method: 'POST',
@@ -1663,13 +1653,24 @@
       const actionsCell = document.createElement('div');
       actionsCell.className = 'jobtrack-table-cell jobtrack-table-actions';
       if (entry.applicationId) {
+        const primaryRow = document.createElement('div');
+        primaryRow.className = 'jobtrack-table-actions-row';
+
         const editBtn = document.createElement('button');
         editBtn.type = 'button';
         editBtn.className = 'btn-ghost';
         editBtn.dataset.jobtrackEntry = 'edit';
         editBtn.dataset.id = entry.applicationId;
         editBtn.textContent = 'Edit';
-        actionsCell.appendChild(editBtn);
+        primaryRow.appendChild(editBtn);
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.className = 'btn-ghost';
+        deleteBtn.dataset.jobtrackEntry = 'delete';
+        deleteBtn.dataset.id = entry.applicationId;
+        deleteBtn.textContent = 'Delete';
+        primaryRow.appendChild(deleteBtn);
 
         if (entryType === 'prospect') {
           const applyBtn = document.createElement('button');
@@ -1678,10 +1679,13 @@
           applyBtn.dataset.jobtrackEntry = 'apply';
           applyBtn.dataset.id = entry.applicationId;
           applyBtn.textContent = 'Apply';
-          actionsCell.appendChild(applyBtn);
+          primaryRow.appendChild(applyBtn);
         }
+        actionsCell.appendChild(primaryRow);
 
         const attachments = Array.isArray(entry.attachments) ? entry.attachments : [];
+        const zipRow = document.createElement('div');
+        zipRow.className = 'jobtrack-table-actions-row';
         const zipBtn = document.createElement('button');
         zipBtn.type = 'button';
         zipBtn.className = 'btn-ghost jobtrack-attachment-btn';
@@ -1695,29 +1699,8 @@
         } else {
           zipBtn.title = 'Download all attachments as ZIP';
         }
-        actionsCell.appendChild(zipBtn);
-
-        attachments.forEach((attachment) => {
-          if (!attachment?.key) return;
-          const downloadBtn = document.createElement('button');
-          downloadBtn.type = 'button';
-          downloadBtn.className = 'btn-ghost jobtrack-attachment-btn';
-          downloadBtn.dataset.jobtrackEntry = 'download';
-          downloadBtn.dataset.key = attachment.key;
-          downloadBtn.textContent = getAttachmentLabel(attachment);
-          if (attachment.filename) {
-            downloadBtn.title = `Download ${attachment.filename}`;
-          }
-          actionsCell.appendChild(downloadBtn);
-        });
-
-        const deleteBtn = document.createElement('button');
-        deleteBtn.type = 'button';
-        deleteBtn.className = 'btn-ghost';
-        deleteBtn.dataset.jobtrackEntry = 'delete';
-        deleteBtn.dataset.id = entry.applicationId;
-        deleteBtn.textContent = 'Delete';
-        actionsCell.appendChild(deleteBtn);
+        zipRow.appendChild(zipBtn);
+        actionsCell.appendChild(zipRow);
       }
       row.appendChild(actionsCell);
 
@@ -1899,12 +1882,6 @@
         const button = event.target.closest('button[data-jobtrack-entry]');
         if (!button) return;
         const action = button.dataset.jobtrackEntry;
-        if (action === 'download') {
-          const key = button.dataset.key;
-          const label = button.textContent || 'attachment';
-          downloadAttachment(key, label.toLowerCase());
-          return;
-        }
         if (action === 'download-zip') {
           const entryId = button.dataset.id;
           if (!entryId) return;
@@ -2032,33 +2009,6 @@
     } catch (err) {
       console.error('Entry delete failed', err);
       setStatus(els.entryListStatus, err?.message || 'Unable to delete entry.', 'error');
-    }
-  };
-
-  const downloadAttachment = async (key, label = 'attachment') => {
-    if (!key) return;
-    if (!authIsValid(state.auth)) {
-      setStatus(els.entryListStatus, 'Sign in to download attachments.', 'error');
-      return;
-    }
-    try {
-      setStatus(els.entryListStatus, `Preparing ${label} download...`, 'info');
-      const data = await requestAttachmentDownload(key);
-      const url = data?.downloadUrl;
-      if (!url) {
-        setStatus(els.entryListStatus, 'Download link unavailable.', 'error');
-        return;
-      }
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = '';
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      setStatus(els.entryListStatus, 'Download started.', 'success');
-    } catch (err) {
-      console.error('Download failed', err);
-      setStatus(els.entryListStatus, err?.message || 'Unable to download attachment.', 'error');
     }
   };
 
@@ -2565,7 +2515,11 @@
             setStatus(els.importStatus, 'No valid rows found in the CSV.', 'error');
             return;
           }
-          const attachmentLookup = buildImportAttachmentMap(Array.from(els.importAttachments?.files || []));
+          const attachmentFiles = [
+            ...Array.from(els.importResumes?.files || []),
+            ...Array.from(els.importCovers?.files || [])
+          ];
+          const attachmentLookup = buildImportAttachmentMap(attachmentFiles);
           const missingAttachments = new Set();
           const attachmentRequests = entries.reduce((total, entry) => total
             + (entry.resumeFile ? 1 : 0)
@@ -2633,7 +2587,8 @@
             await Promise.all([refreshDashboard(), refreshEntries()]);
           }
           if (els.importFile) els.importFile.value = '';
-          if (els.importAttachments) els.importAttachments.value = '';
+          if (els.importResumes) els.importResumes.value = '';
+          if (els.importCovers) els.importCovers.value = '';
         } catch (err) {
           console.error('CSV import failed', err);
           setStatus(els.importStatus, err?.message || 'Unable to import applications.', 'error');

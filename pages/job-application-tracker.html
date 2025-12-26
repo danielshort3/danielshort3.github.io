@@ -208,36 +208,65 @@
                     <p class="jobtrack-form-status" data-jobtrack="entry-form-status" role="status" aria-live="polite">Sign in to save entries.</p>
                   </form>
 
-                  <div class="jobtrack-import" data-jobtrack-entry="application">
-                    <div>
-                      <p class="jobtrack-kicker">Bulk import</p>
-                      <h3>Import applications from CSV</h3>
-                      <p class="jobtrack-subtitle">Use columns: company, title, jobUrl, location, source, postingDate, appliedDate, status, notes, resumeFile, coverLetterFile.</p>
+                  <details class="jobtrack-import jobtrack-import-collapse" data-jobtrack-entry="application">
+                    <summary class="jobtrack-import-summary">
+                      <span>Bulk import applications</span>
+                      <span class="jobtrack-import-summary-note">CSV + attachments</span>
+                    </summary>
+                    <div class="jobtrack-import-body">
+                      <div>
+                        <p class="jobtrack-kicker">Bulk import</p>
+                        <h3>Import applications from CSV</h3>
+                        <p class="jobtrack-subtitle">Use columns: company, title, jobUrl, location, source, postingDate, appliedDate, status, notes, resumeFile, coverLetterFile.</p>
+                      </div>
+                      <div class="jobtrack-import-actions">
+                        <div class="jobtrack-import-field">
+                          <label class="jobtrack-label" for="jobtrack-import-file">Applications CSV</label>
+                          <input id="jobtrack-import-file" class="jobtrack-input jobtrack-file-input" type="file" accept=".csv,text/csv">
+                        </div>
+                        <div class="jobtrack-import-field">
+                          <label class="jobtrack-label" for="jobtrack-import-resumes">Resume files</label>
+                          <input id="jobtrack-import-resumes" class="jobtrack-input jobtrack-file-input" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple>
+                        </div>
+                        <div class="jobtrack-import-field">
+                          <label class="jobtrack-label" for="jobtrack-import-covers">Cover letter files</label>
+                          <input id="jobtrack-import-covers" class="jobtrack-input jobtrack-file-input" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple>
+                        </div>
+                        <div class="jobtrack-import-buttons">
+                          <button type="button" class="btn-secondary" data-jobtrack="import-submit">Import CSV</button>
+                          <button type="button" class="btn-ghost" data-jobtrack="import-template">Download template</button>
+                        </div>
+                      </div>
+                      <p class="jobtrack-help">Match resumeFile and coverLetterFile to the exact filenames you select above.</p>
+                      <p class="jobtrack-form-status" data-jobtrack="import-status" role="status" aria-live="polite">Sign in to import applications.</p>
                     </div>
-                    <div class="jobtrack-import-actions">
-                      <input id="jobtrack-import-file" class="jobtrack-input jobtrack-file-input" type="file" accept=".csv,text/csv">
-                      <input id="jobtrack-import-attachments" class="jobtrack-input jobtrack-file-input" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple aria-label="Resume and cover letter files">
-                      <button type="button" class="btn-secondary" data-jobtrack="import-submit">Import CSV</button>
-                      <button type="button" class="btn-ghost" data-jobtrack="import-template">Download template</button>
-                    </div>
-                    <p class="jobtrack-help">Match resumeFile and coverLetterFile to the exact filenames you select above.</p>
-                    <p class="jobtrack-form-status" data-jobtrack="import-status" role="status" aria-live="polite">Sign in to import applications.</p>
-                  </div>
+                  </details>
 
-                  <div class="jobtrack-import" data-jobtrack-entry="prospect">
-                    <div>
-                      <p class="jobtrack-kicker">Bulk import</p>
-                      <h3>Import prospects from CSV</h3>
-                      <p class="jobtrack-subtitle">Use columns: company, title, jobUrl, location, source, postingDate, captureDate, status, notes.</p>
+                  <details class="jobtrack-import jobtrack-import-collapse" data-jobtrack-entry="prospect">
+                    <summary class="jobtrack-import-summary">
+                      <span>Bulk import prospects</span>
+                      <span class="jobtrack-import-summary-note">CSV only</span>
+                    </summary>
+                    <div class="jobtrack-import-body">
+                      <div>
+                        <p class="jobtrack-kicker">Bulk import</p>
+                        <h3>Import prospects from CSV</h3>
+                        <p class="jobtrack-subtitle">Use columns: company, title, jobUrl, location, source, postingDate, captureDate, status, notes.</p>
+                      </div>
+                      <div class="jobtrack-import-actions">
+                        <div class="jobtrack-import-field">
+                          <label class="jobtrack-label" for="jobtrack-prospect-import-file">Prospects CSV</label>
+                          <input id="jobtrack-prospect-import-file" class="jobtrack-input jobtrack-file-input" type="file" accept=".csv,text/csv">
+                        </div>
+                        <div class="jobtrack-import-buttons">
+                          <button type="button" class="btn-secondary" data-jobtrack="prospect-import-submit">Import CSV</button>
+                          <button type="button" class="btn-ghost" data-jobtrack="prospect-import-template">Download template</button>
+                        </div>
+                      </div>
+                      <p class="jobtrack-help">Capture date is required for prospects and defaults to the date you found the role.</p>
+                      <p class="jobtrack-form-status" data-jobtrack="prospect-import-status" role="status" aria-live="polite">Sign in to import prospects.</p>
                     </div>
-                    <div class="jobtrack-import-actions">
-                      <input id="jobtrack-prospect-import-file" class="jobtrack-input jobtrack-file-input" type="file" accept=".csv,text/csv">
-                      <button type="button" class="btn-secondary" data-jobtrack="prospect-import-submit">Import CSV</button>
-                      <button type="button" class="btn-ghost" data-jobtrack="prospect-import-template">Download template</button>
-                    </div>
-                    <p class="jobtrack-help">Capture date is required for prospects and defaults to the date you found the role.</p>
-                    <p class="jobtrack-form-status" data-jobtrack="prospect-import-status" role="status" aria-live="polite">Sign in to import prospects.</p>
-                  </div>
+                  </details>
                 </article>
               </div>
             </section>
