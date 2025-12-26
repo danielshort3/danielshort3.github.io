@@ -252,11 +252,12 @@
                       <span class="jobtrack-import-summary-note">CSV only</span>
                     </summary>
                     <div class="jobtrack-import-body">
-                      <div>
-                        <p class="jobtrack-kicker">Bulk import</p>
-                        <h3>Import prospects from CSV</h3>
-                        <p class="jobtrack-subtitle">Use columns: company, title, jobUrl, location, source, postingDate, captureDate, status, notes.</p>
-                      </div>
+                  <div>
+                    <p class="jobtrack-kicker">Bulk import</p>
+                    <h3>Import prospects from CSV</h3>
+                    <p class="jobtrack-subtitle">Use columns: company, title, jobUrl, location, source, postingDate, captureDate, status, notes.</p>
+                    <p class="jobtrack-help">Need a sourcing prompt? <button type="button" class="jobtrack-tooltip-trigger" title="Job Prospect Finder Prompt (CSV for Job Tracker Prospects Import)&#10;&#10;Act as a job sourcing assistant for data-focused roles. Use the inputs:&#10;1) Resume content (Word doc) describing Business Analyst, AI Data Quality Analyst, and Asset Protection Data Analyst roles with quantified impacts (99% reporting time reduction, 750% traffic lift, 200+ hours saved, 180% theft prevention lift).&#10;2) Target role or job description URL: .&#10;3) Portfolio: danielshort.me. Focus only on Chatbot (LoRA + RAG), Shape Classifier Demo, and Sheet Music Restoration. Ignore other projects. Include relevant metrics (94% RL solver accuracy, 200+ hours saved through automation, 750% traffic lift).&#10;4) Location and work model preferences.&#10;&#10;Instructions:&#10;- Find open roles that match the resume and portfolio. Prefer company sites, then major job boards.&#10;- Only include roles with a direct job URL.&#10;- Fill source with the site name (Company site, LinkedIn, etc).&#10;- Use ISO dates YYYY-MM-DD. If postingDate is unknown, leave it blank. Set captureDate to today.&#10;- Set status to Active.&#10;- Notes: one short line with why the role fits or key keywords.&#10;&#10;Output:&#10;Return only CSV (no markdown). Header must be:&#10;company,title,jobUrl,location,source,postingDate,captureDate,status,notes&#10;One role per row. Quote any field that contains commas.">Prospect prompt template</button></p>
+                  </div>
                       <div class="jobtrack-import-actions">
                         <div class="jobtrack-import-field">
                           <label class="jobtrack-label" for="jobtrack-prospect-import-file">Prospects CSV</label>
