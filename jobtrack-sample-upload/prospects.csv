@@ -1,0 +1,7 @@
+company,title,jobUrl,location,source,postingDate,captureDate,status,notes
+Maple Health,Data Analyst,https://maplehealth.example/jobs/da-1,Remote,LinkedIn,2025-12-02,2025-12-07,Active,Saved for later review.
+Northwind Analytics,Senior BI Analyst,https://northwind.example/careers/bi-7,"Dallas, TX",Indeed,2025-12-10,2025-12-14,Interested,Waiting on networking intro.
+Orbit Insurance,Pricing Analyst,https://orbitinsure.example/jobs/pricing-analyst,"Columbus, OH",Company site,2025-11-28,2025-12-01,Active,Set reminder to apply.
+Prairie Systems,Data Engineer,https://prairiesystems.example/jobs/de-3,"Hybrid - Minneapolis, MN",Referral,2025-11-20,2025-11-22,Interested,Referral outreach pending.
+Quill Robotics,ML Analyst,https://quillrobotics.example/jobs/ml-analyst,Remote - US,Wellfound,2025-12-15,2025-12-20,Active,Collect extra project notes.
+Redwood Capital,Portfolio Analyst,https://redwoodcapital.example/jobs/pa-2,"San Francisco, CA",LinkedIn,2025-10-30,2025-11-02,Inactive,Role is now closed.
