@@ -10,6 +10,8 @@ import torch.nn.functional as F
 
 MODEL_DIR = os.path.join(os.path.dirname(__file__), "models")
 DEFAULT_MODEL_PREFIX = os.getenv("MODEL_PREFIX", "")
+DEFAULT_GRID_SIZE = int(os.getenv("GRID_SIZE", "9"))
+DEFAULT_MINE_RATIO = float(os.getenv("MINE_RATIO", "0.2"))
 
 torch.set_grad_enabled(False)
 torch.set_num_threads(1)
@@ -130,13 +132,29 @@ class InferenceAgent:
     model.eval()
     self.model = model
 
-  def act(self, state):
+  def act(self, state, board_size=None):
     if self.model is None:
       raise RuntimeError("Model not loaded")
     state_tensor = torch.FloatTensor(state).unsqueeze(0).to(self.device)
     with torch.no_grad():
       q_values = self.model(state_tensor).cpu().numpy().squeeze()
     board = state[0]
+    board_size = board_size or board.shape[0]
+    if q_values.size != board_size * board_size:
+      model_grid = self.grid_size
+      try:
+        q_grid = q_values.reshape(model_grid, model_grid)
+      except ValueError:
+        q_values = q_values[:board_size * board_size]
+      else:
+        if board_size < model_grid:
+          q_grid = q_grid[:board_size, :board_size]
+        elif board_size > model_grid:
+          fill = np.min(q_grid)
+          padded = np.full((board_size, board_size), fill)
+          padded[:model_grid, :model_grid] = q_grid
+          q_grid = padded
+        q_values = q_grid.flatten()
     flat_board = board.flatten()
     revealed_mask = (np.abs(flat_board + 0.125) > 1e-6)
     if revealed_mask.all():
@@ -368,8 +386,11 @@ def load_agent():
 
 def solve_game(seed=None, max_steps=None):
   agent, meta = load_agent()
-  grid_size = agent.grid_size
-  env = MinesweeperEnv(size=grid_size, num_mines=agent.num_mines, seed=seed)
+  grid_size = DEFAULT_GRID_SIZE if DEFAULT_GRID_SIZE > 0 else agent.grid_size
+  num_mines = agent.num_mines
+  if DEFAULT_MINE_RATIO > 0:
+    num_mines = max(1, int(round(grid_size * grid_size * DEFAULT_MINE_RATIO)))
+  env = MinesweeperEnv(size=grid_size, num_mines=num_mines, seed=seed)
   state = env.get_state_representation()
   steps = []
   solution = None
@@ -378,7 +399,7 @@ def solve_game(seed=None, max_steps=None):
   step_limit = max_steps or (grid_size * grid_size * 2)
 
   for _ in range(step_limit):
-    action = agent.act(state)
+    action = agent.act(state, board_size=grid_size)
     prev_revealed = env.revealed.copy()
     next_state, reward, done, info = env.step(action, "reveal")
     last = info.get("last_action") or {}
@@ -417,7 +438,7 @@ def solve_game(seed=None, max_steps=None):
 
   return {
     "grid": grid_size,
-    "mines": int(agent.num_mines),
+    "mines": int(num_mines),
     "solution": solution,
     "steps": steps,
     "step_count": len(steps),
@@ -448,14 +469,18 @@ def handler(event, context):
 
   if method == "GET":
     agent, meta = load_agent()
+    grid_size = DEFAULT_GRID_SIZE if DEFAULT_GRID_SIZE > 0 else agent.grid_size
+    num_mines = agent.num_mines
+    if DEFAULT_MINE_RATIO > 0:
+      num_mines = max(1, int(round(grid_size * grid_size * DEFAULT_MINE_RATIO)))
     return {
       "statusCode": 200,
       "headers": response_headers,
       "body": json.dumps({
         "status": "ok",
         "model": meta,
-        "grid": agent.grid_size,
-        "mines": agent.num_mines
+        "grid": grid_size,
+        "mines": num_mines
       })
     }
 

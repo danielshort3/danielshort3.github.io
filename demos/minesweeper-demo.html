@@ -20,9 +20,10 @@
       --surface-2: var(--surface-light);
       --text: var(--text-light);
       --page-pad: clamp(12px, 3vw, 24px);
-      --cell-size: clamp(30px, 4.6vw, 46px);
+      --cell-size: clamp(26px, 3.8vw, 34px);
+      --cell-gap: 4px;
       --log-row-height: 36px;
-      --grid-size: 8;
+      --grid-size: 9;
     }
 
     * { box-sizing: border-box; }
@@ -101,42 +102,6 @@
       padding: 8px 16px 0;
     }
 
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-      padding: 12px 16px 0;
-    }
-
-    .controls label {
-      font-size: .85rem;
-      color: var(--text-muted);
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .controls input[type="number"] {
-      width: 110px;
-      padding: 8px 10px;
-      border-radius: 8px;
-      border: 1px solid var(--surface-accent);
-      background: var(--surface);
-      color: var(--text);
-    }
-
-    .controls input[type="text"] {
-      flex: 1 1 260px;
-      min-width: 220px;
-      max-width: 420px;
-      padding: 8px 10px;
-      border-radius: 8px;
-      border: 1px solid var(--surface-accent);
-      background: var(--surface);
-      color: var(--text);
-    }
-
     .health-pill {
       display: inline-flex;
       align-items: center;
@@ -212,11 +177,11 @@
       align-items: stretch;
       justify-content: center;
       justify-items: stretch;
-      background: color-mix(in srgb, var(--surface) 70%, #ffffff 30%);
+      background: #bfc5cc;
       border-radius: 16px;
-      padding: 14px;
-      border: 1px solid var(--surface-accent);
-      box-shadow: var(--shadow-1);
+      padding: 16px;
+      border: 1px solid #a4aab2;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.6), var(--shadow-1);
       overflow: hidden;
     }
 
@@ -224,34 +189,88 @@
       display: grid;
       grid-template-columns: repeat(var(--grid-size), var(--cell-size));
       grid-template-rows: repeat(var(--grid-size), var(--cell-size));
-      gap: 6px;
+      gap: var(--cell-gap);
     }
 
     .cell {
-      border-radius: 8px;
-      background: #e6edf3;
-      border: 1px solid #d2d8df;
+      position: relative;
+      border-radius: 4px;
+      background: linear-gradient(145deg, #e9eef3, #b6bcc4);
+      border: 2px solid #d8dde3;
+      border-right-color: #8e959f;
+      border-bottom-color: #8e959f;
+      box-shadow: inset 1px 1px 0 #f8fafc, inset -1px -1px 0 #a3aab3;
       display: grid;
       place-items: center;
-      font-weight: 600;
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      font-weight: 700;
       font-size: clamp(.78rem, 2.2vw, .95rem);
       color: #1f2933;
-      transition: transform .2s ease, background .2s ease, border-color .2s ease;
+      text-shadow: 0 1px 0 rgba(255,255,255,.6);
+      transition: transform .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
     }
 
     .cell.revealed {
-      background: #f7fafc;
-      border-color: #c7d1db;
+      background: #e3e7eb;
+      border: 1px solid #b2b8c0;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.4);
     }
 
     .cell.mine {
-      background: #ffdede;
-      border-color: #f5a6a6;
-      color: #912323;
+      background: #f7d5d5;
+      border-color: #d9a0a0;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.5);
+      color: #7a1f1f;
     }
 
     .cell.newly-opened {
       animation: pop .4s ease;
+    }
+
+    .cell.mine::before {
+      content: '';
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #1f2933;
+      box-shadow: 0 0 0 2px #0f172a;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .cell.flagged,
+    .cell.flagged.revealed {
+      background: linear-gradient(145deg, #e9eef3, #b6bcc4);
+      border: 2px solid #d8dde3;
+      border-right-color: #8e959f;
+      border-bottom-color: #8e959f;
+      box-shadow: inset 1px 1px 0 #f8fafc, inset -1px -1px 0 #a3aab3;
+    }
+
+    .cell.flagged::before {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 0;
+      border-top: 7px solid transparent;
+      border-bottom: 7px solid transparent;
+      border-left: 12px solid #d93025;
+      left: 50%;
+      top: 45%;
+      transform: translate(-20%, -50%);
+    }
+
+    .cell.flagged::after {
+      content: '';
+      position: absolute;
+      width: 2px;
+      height: 18px;
+      background: #4b5563;
+      left: 50%;
+      top: 32%;
+      transform: translateX(-50%);
     }
 
     .cell.n1 { color: #1d4ed8; }
@@ -316,22 +335,71 @@
       color: var(--primary);
     }
 
+    .performance-toast {
+      position: absolute;
+      left: 50%;
+      bottom: 12px;
+      transform: translate(-50%, 6px);
+      display: grid;
+      gap: 2px;
+      min-width: 160px;
+      max-width: calc(100% - 16px);
+      padding: 6px 10px;
+      border-radius: 10px;
+      border: 1px solid #b2b8c0;
+      background: rgba(255, 255, 255, 0.85);
+      box-shadow: var(--shadow-1);
+      text-align: center;
+      font-size: .85rem;
+      font-weight: 600;
+      color: #1f2933;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease, transform .2s ease;
+      z-index: 3;
+    }
+
+    .performance-toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
     .solution-trigger {
+      position: relative;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      border-radius: 999px;
-      padding: 6px 12px;
-      border: 1px solid var(--surface-accent);
       background: transparent;
-      font-size: .75rem;
       color: var(--text-muted);
-      cursor: pointer;
+      border: none;
+      padding: 0;
+      font-size: .72rem;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      cursor: help;
     }
 
-    .solution-trigger.active {
-      color: var(--text);
-      border-color: color-mix(in srgb, var(--primary) 40%, var(--surface-accent));
+    .solution-label {
+      text-decoration: underline dotted;
+      text-underline-offset: 3px;
+    }
+
+    .solution-trigger:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    .solution-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 1px solid var(--surface-accent);
+      display: grid;
+      place-items: center;
+      font-weight: 600;
+      font-size: .65rem;
+      color: var(--text-muted);
+      background: color-mix(in srgb, var(--surface) 90%, #000 10%);
     }
 
     @media (max-width: 880px){
@@ -353,7 +421,6 @@
         <h1 class="title">Minesweeper AI Solver</h1>
         <p class="subtitle">A reinforcement learning agent reads the board, picks safe moves, and closes the puzzle step-by-step.</p>
       </div>
-      <button id="solution-btn" class="solution-trigger" type="button" disabled>Show solution</button>
     </header>
 
     <div class="health-row" role="status" aria-live="polite">
@@ -362,19 +429,22 @@
 
     <div class="status" id="status">Ready. Generate a puzzle to begin.</div>
 
-    <div class="controls">
-      <label for="prompt-input">Prompt</label>
-      <input id="prompt-input" type="text" maxlength="160" placeholder="Ask the AI to solve this board..." />
-    </div>
-
     <div class="content">
       <div class="board-column">
         <div class="board-shell" aria-label="Minesweeper board">
           <div class="grid" id="grid"></div>
+          <div id="performance-toast" class="performance-toast" role="status" aria-live="polite" aria-atomic="true">
+            <span class="toast-label">AI Result</span>
+            <span class="toast-score">--</span>
+          </div>
         </div>
         <div class="board-actions">
           <button id="new-btn" class="btn-primary" type="button" disabled>New Puzzle</button>
           <button id="solve-btn" class="btn-primary" type="button" disabled>Solve With AI</button>
+          <button id="solution-btn" class="solution-trigger" type="button" disabled>
+            <span class="solution-label">Solution</span>
+            <span class="solution-icon" aria-hidden="true">?</span>
+          </button>
         </div>
       </div>
 
@@ -407,7 +477,8 @@
     const newBtn = document.getElementById('new-btn');
     const solveBtn = document.getElementById('solve-btn');
     const solutionBtn = document.getElementById('solution-btn');
-    const promptInput = document.getElementById('prompt-input');
+    const performanceToast = document.getElementById('performance-toast');
+    const toastScore = performanceToast?.querySelector('.toast-score');
 
     const statModel = document.getElementById('stat-model');
     const statSuccess = document.getElementById('stat-success');
@@ -422,7 +493,7 @@
     let revealSnapshot = null;
     let serverReady = false;
     let initialLoadTriggered = false;
-    let currentPrompt = '';
+    let toastTimer = null;
 
     const notifyResize = (() => {
       if (window.self === window.top) return () => {};
@@ -454,19 +525,13 @@
       solutionBtn.disabled = !enabled;
     }
 
-    function escapeHtml(value) {
-      return String(value)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    }
-
     function resetStats() {
       statMoves.textContent = '-';
       statOutcome.textContent = '-';
       logEl.innerHTML = '';
+      if (performanceToast) {
+        performanceToast.classList.remove('show');
+      }
     }
 
     function setModelStats(model) {
@@ -496,11 +561,15 @@
       return current.solution[row][col];
     }
 
-    function applyCellClass(cell, value) {
-      cell.classList.remove('mine', 'n1', 'n2', 'n3', 'n4', 'n5', 'n6', 'n7', 'n8');
+    function applyCellClass(cell, value, showFlag) {
+      cell.classList.remove('mine', 'flagged', 'n1', 'n2', 'n3', 'n4', 'n5', 'n6', 'n7', 'n8');
       if (value < 0) {
-        cell.classList.add('mine');
-        cell.textContent = '*';
+        if (showFlag) {
+          cell.classList.add('flagged');
+        } else {
+          cell.classList.add('mine');
+        }
+        cell.textContent = '';
         return;
       }
       if (value > 0) {
@@ -521,7 +590,7 @@
         setTimeout(() => cell.classList.remove('newly-opened'), 350);
       }
       const value = cellValueAt(row, col);
-      applyCellClass(cell, value);
+      applyCellClass(cell, value, solutionVisible);
     }
 
     function renderState() {
@@ -567,15 +636,6 @@
       logEl.scrollTop = 0;
     }
 
-    function appendPrompt(prompt) {
-      if (!prompt) return;
-      const item = document.createElement('div');
-      item.className = 'log-entry';
-      item.innerHTML = `<span><strong>Prompt</strong> ${escapeHtml(prompt)}</span><span>Sent</span>`;
-      logEl.prepend(item);
-      logEl.scrollTop = 0;
-    }
-
     function applyStep(step, index) {
       const opened = Array.isArray(step.newly_opened) ? step.newly_opened : [];
       opened.forEach(([x, y]) => {
@@ -603,6 +663,16 @@
       }
     }
 
+    function showPerformanceToast(message) {
+      if (!performanceToast || !toastScore) return;
+      toastScore.textContent = message || 'Result ready';
+      performanceToast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        performanceToast.classList.remove('show');
+      }, 2600);
+    }
+
     function runSolve() {
       if (!current || solving) return;
       const steps = current.steps || [];
@@ -610,12 +680,9 @@
       solving = true;
       stopAnimation();
       solveBtn.disabled = true;
-      currentPrompt = (promptInput?.value || '').trim();
-      setStatus(currentPrompt ? `Solving: ${currentPrompt}` : 'Solving...');
+      setStatus('Solving...');
       resetStats();
-      appendPrompt(currentPrompt);
       solutionVisible = false;
-      solutionBtn.classList.remove('active');
       renderBoard(current.grid);
 
       const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -626,7 +693,12 @@
         solveBtn.disabled = false;
         statMoves.textContent = `${current.step_count} moves`;
         updateOutcome();
+        const resultMessage = current.success
+          ? `Solved in ${current.step_count} moves`
+          : (current.hit_mine ? `Mine triggered on move ${current.step_count}` : `Stopped after ${current.step_count} moves`);
+        showPerformanceToast(resultMessage);
         setStatus('Solve complete. Generate a new puzzle to try again.');
+        notifyResize();
       };
 
       if (prefersReduced) {
@@ -691,7 +763,6 @@
       solveBtn.disabled = true;
       solutionBtn.disabled = true;
       solutionVisible = false;
-      solutionBtn.classList.remove('active');
       setStatus('Generating puzzle...');
       resetStats();
 
@@ -728,18 +799,9 @@
     newBtn.addEventListener('click', loadPuzzle);
     solveBtn.addEventListener('click', runSolve);
 
-    promptInput?.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        if (!solveBtn.disabled) runSolve();
-      }
-    });
-
     solutionBtn.addEventListener('click', () => {
       if (!current) return;
       solutionVisible = !solutionVisible;
-      solutionBtn.classList.toggle('active', solutionVisible);
-      solutionBtn.textContent = solutionVisible ? 'Hide solution' : 'Show solution';
       if (solutionVisible) {
         revealSnapshot = captureRevealedSnapshot();
         revealSolution();
