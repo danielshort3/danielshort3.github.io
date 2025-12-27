@@ -352,12 +352,27 @@
     display:inline-block;
     width:96px;
     height:72px;
+    position:relative;
+    overflow:hidden;
     background-size:cover;
     background-position:center;
     background-repeat:no-repeat;
     border-radius:12px;
     box-shadow:0 6px 14px rgba(0,0,0,.24);
     filter:saturate(1.02);
+  }
+  .nav-project-thumb-media{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+    border-radius:inherit;
+    pointer-events:none;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .nav-project-thumb-media{
+      display:none;
+    }
   }
   .nav-project-meta{
     display:flex;
