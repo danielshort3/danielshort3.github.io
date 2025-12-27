@@ -3372,7 +3372,7 @@
 
     const dateCell = document.createElement('div');
     dateCell.className = 'jobtrack-table-cell';
-    dateCell.dataset.label = 'Applied/Found';
+    dateCell.dataset.label = entryType === 'prospect' ? 'Found date' : 'Applied date';
     const dateLabel = getEntryDateValue(entry);
     dateCell.textContent = dateLabel
       ? `${entryType === 'prospect' ? 'Found' : 'Applied'} ${formatDateLabel(dateLabel)}`
