@@ -400,6 +400,8 @@ const handleCreateApplication = async (userId, payload = {}) => {
     const parsedStatusDate = parseDate(statusDateRaw);
     if (!parsedStatusDate) throw httpError(400, 'statusDate must be YYYY-MM-DD.');
     statusHistoryDate = formatDate(parsedStatusDate);
+  } else if (status.toLowerCase() === 'applied') {
+    statusHistoryDate = formatDate(parsedDate);
   }
   const applicationId = `APP#${Date.now()}#${randomUUID()}`;
   const item = {

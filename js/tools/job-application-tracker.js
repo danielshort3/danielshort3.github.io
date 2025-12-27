@@ -877,13 +877,24 @@
   const buildStatusHistoryList = (entry) => {
     const history = Array.isArray(entry?.statusHistory) ? entry.statusHistory : [];
     if (!history.length) return null;
-    const items = history
-      .map(item => ({
-        status: toTitle((item?.status || '').toString()),
-        date: parseHistoryDate(item?.date)
-      }))
-      .filter(item => item.date)
-      .sort((a, b) => b.date - a.date);
+    const entryType = entry?.entryType || getEntryType(entry);
+    const appliedDateValue = entryType === 'application' && entry?.appliedDate && parseDateInput(entry.appliedDate)
+      ? entry.appliedDate
+      : '';
+    let items = history
+      .map(item => {
+        const statusRaw = (item?.status || '').toString().trim();
+        return {
+          status: toTitle(statusRaw),
+          statusLower: statusRaw.toLowerCase(),
+          date: parseHistoryDate(item?.date)
+        };
+      })
+      .filter(item => item.date);
+    if (appliedDateValue) {
+      items = items.filter(item => item.statusLower !== 'applied');
+    }
+    items.sort((a, b) => b.date - a.date);
     if (!items.length) return null;
     const wrap = document.createElement('div');
     wrap.className = 'jobtrack-modal-history';
@@ -967,6 +978,7 @@
       return;
     }
     const entryType = entry.entryType || getEntryType(entry);
+    const statusValue = (entry.status || '').toString().trim().toLowerCase();
 
     const title = entry.title || 'Entry details';
     if (els.detailModalTitle) els.detailModalTitle.textContent = title;
@@ -980,25 +992,29 @@
       els.detailModalSubtitle.textContent = subtitleParts.filter(Boolean).join(' · ');
     }
 
-    const appliedLabel = entry.appliedDate && parseDateInput(entry.appliedDate)
-      ? formatDateLabel(entry.appliedDate)
+    const appliedValue = entry.appliedDate && parseDateInput(entry.appliedDate)
+      ? entry.appliedDate
       : '';
+    const appliedLabel = appliedValue ? formatDateLabel(appliedValue) : '';
     const captureLabel = entry.captureDate && parseDateInput(entry.captureDate)
       ? formatDateLabel(entry.captureDate)
       : '';
     const postingLabel = entry.postingDate && parseDateInput(entry.postingDate)
       ? formatDateLabel(entry.postingDate)
       : '';
-    const statusDateLabel = entry.statusDate && parseDateInput(entry.statusDate)
-      ? formatDateLabel(entry.statusDate)
+    const statusDateValue = entry.statusDate && parseDateInput(entry.statusDate)
+      ? entry.statusDate
       : '';
+    const statusDateLabel = statusDateValue ? formatDateLabel(statusDateValue) : '';
+    const showStatusDate = Boolean(statusDateLabel)
+      && !(entryType === 'application' && statusValue === 'applied' && appliedValue);
 
     const meta = document.createElement('div');
     meta.className = 'jobtrack-modal-meta';
     const rows = [
       buildDetailModalRow('Company', entry.company || ''),
       buildDetailModalRow('Status', getEntryStatusLabel(entry)),
-      buildDetailModalRow('Status date', statusDateLabel),
+      showStatusDate ? buildDetailModalRow('Status date', statusDateLabel) : null,
       buildDetailModalRow('Applied date', appliedLabel),
       buildDetailModalRow('Found date', captureLabel),
       buildDetailModalRow('Posted', postingLabel),
