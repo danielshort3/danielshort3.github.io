@@ -12,6 +12,9 @@
     --jobtrack-heat-3:color-mix(in srgb,var(--primary) 70%, var(--surface) 30%);
     --jobtrack-heat-4:color-mix(in srgb,var(--primary) 88%, #ffffff 12%);
   }
+  .jobtrack-page [hidden]{
+    display:none;
+  }
 
   .jobtrack-hero{
     position:relative;
@@ -31,22 +34,12 @@
     display:grid;
     gap:clamp(1.4rem,2.8vw,2.1rem);
   }
-  .jobtrack-hero-title{
-    margin:0;
-    font-size:clamp(2rem,3.6vw,3rem);
-    letter-spacing:-.01em;
-  }
   .jobtrack-lead{
     margin:0;
     max-width:64ch;
     color:var(--text-muted);
     font-size:1.1rem;
     line-height:1.7;
-  }
-  .jobtrack-hero-actions{
-    display:flex;
-    flex-wrap:wrap;
-    gap:12px;
   }
   .jobtrack-steps{
     display:grid;
@@ -335,6 +328,12 @@
   .jobtrack-form{
     display:grid;
     gap:14px;
+  }
+  .jobtrack-form[data-entry-type="application"] [data-jobtrack-entry="prospect"]{
+    display:none;
+  }
+  .jobtrack-form[data-entry-type="prospect"] [data-jobtrack-entry="application"]{
+    display:none;
   }
   .jobtrack-form-section{
     display:grid;
@@ -711,6 +710,7 @@
     z-index:5;
     display:grid;
     gap:14px;
+    max-width:100%;
     padding:14px;
     border-radius:16px;
     border:1px solid color-mix(in srgb,var(--jobtrack-accent) 18%, transparent);
@@ -720,16 +720,23 @@
   .jobtrack-entries-toolbar-main{
     display:grid;
     gap:12px;
+    min-width:0;
   }
   .jobtrack-entries-toolbar-actions{
     display:flex;
     flex-wrap:wrap;
     gap:12px;
     align-items:flex-end;
+    min-width:0;
+    max-width:100%;
+  }
+  .jobtrack-entries-toolbar-actions .jobtrack-field{
+    flex:1 1 220px;
+    min-width:0;
   }
   @media (min-width: 980px) {
     .jobtrack-entries-toolbar{
-      grid-template-columns:minmax(0,1fr) auto;
+      grid-template-columns:minmax(0,1fr) minmax(0, 440px);
       align-items:end;
     }
     .jobtrack-entries-toolbar-actions{
