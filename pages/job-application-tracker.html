@@ -55,6 +55,7 @@
           <div class="jobtrack-tablist" role="tablist" aria-label="Job tracker sections">
             <button id="jobtrack-tab-account" class="jobtrack-tab" type="button" role="tab" aria-selected="true" aria-controls="jobtrack-panel-account" data-jobtrack-tab="account">Account</button>
             <button id="jobtrack-tab-entry" class="jobtrack-tab" type="button" role="tab" aria-selected="false" aria-controls="jobtrack-panel-entry" data-jobtrack-tab="entry" tabindex="-1">Add entry</button>
+            <button id="jobtrack-tab-prospects" class="jobtrack-tab" type="button" role="tab" aria-selected="false" aria-controls="jobtrack-panel-prospects" data-jobtrack-tab="prospects" tabindex="-1">Prospects</button>
             <button id="jobtrack-tab-entries" class="jobtrack-tab" type="button" role="tab" aria-selected="false" aria-controls="jobtrack-panel-entries" data-jobtrack-tab="entries" tabindex="-1">Entries</button>
             <button id="jobtrack-tab-dashboard" class="jobtrack-tab" type="button" role="tab" aria-selected="false" aria-controls="jobtrack-panel-dashboard" data-jobtrack-tab="dashboard" tabindex="-1">Dashboard</button>
           </div>
@@ -290,6 +291,23 @@
                   </details>
                 </article>
               </div>
+            </section>
+
+            <section id="jobtrack-panel-prospects" class="jobtrack-tab-panel" role="tabpanel" aria-labelledby="jobtrack-tab-prospects" data-jobtrack-panel="prospects" hidden>
+              <article class="jobtrack-card jobtrack-prospect-review-card" aria-live="polite">
+                <div class="jobtrack-panel-head">
+                  <div>
+                    <p class="jobtrack-kicker">Prospect queue</p>
+                    <h2>Review and act on prospects</h2>
+                    <p class="jobtrack-subtitle">Sorted by most recent posted date so you can apply quickly or remove roles you no longer want.</p>
+                  </div>
+                  <div class="jobtrack-panel-actions">
+                    <button type="button" class="btn-ghost" data-jobtrack="prospect-review-refresh">Refresh</button>
+                  </div>
+                </div>
+                <div class="jobtrack-prospect-review-list" data-jobtrack="prospect-review-list"></div>
+                <p class="jobtrack-form-status" data-jobtrack="prospect-review-status" role="status" aria-live="polite">Sign in to load prospects.</p>
+              </article>
             </section>
 
             <section id="jobtrack-panel-entries" class="jobtrack-tab-panel" role="tabpanel" aria-labelledby="jobtrack-tab-entries" data-jobtrack-panel="entries" hidden>

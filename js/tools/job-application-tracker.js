@@ -63,6 +63,9 @@
     prospectImportProgressWrap: $('[data-jobtrack="prospect-import-progress-wrap"]'),
     prospectImportProgressLabel: $('[data-jobtrack="prospect-import-progress-label"]'),
     prospectImportProgress: $('[data-jobtrack="prospect-import-progress"]'),
+    prospectReviewList: $('[data-jobtrack="prospect-review-list"]'),
+    prospectReviewStatus: $('[data-jobtrack="prospect-review-status"]'),
+    prospectReviewRefresh: $('[data-jobtrack="prospect-review-refresh"]'),
     entryList: $('[data-jobtrack="entry-list"]'),
     entryListStatus: $('[data-jobtrack="entry-list-status"]'),
     entriesRefresh: $('[data-jobtrack="refresh-entries"]'),
@@ -774,6 +777,33 @@
     if (attachments.length) {
       parts.push(`${attachments.length} attachment${attachments.length === 1 ? '' : 's'}`);
     }
+    return parts.filter(Boolean).join(' · ');
+  };
+
+  const getProspectSortDate = (entry) => {
+    const posted = parseDateInput(entry?.postingDate);
+    if (posted) return posted;
+    const captured = parseDateInput(entry?.captureDate);
+    if (captured) return captured;
+    return parseIsoDate(entry?.createdAt) || parseIsoDate(entry?.updatedAt);
+  };
+
+  const formatProspectMeta = (entry) => {
+    const parts = [];
+    const status = toTitle((entry?.status || 'Active').toString());
+    if (status) parts.push(status);
+    if (entry?.postingDate && parseDateInput(entry.postingDate)) {
+      parts.push(`Posted ${formatDateLabel(entry.postingDate)}`);
+    }
+    if (entry?.captureDate && parseDateInput(entry.captureDate)) {
+      parts.push(`Found ${formatDateLabel(entry.captureDate)}`);
+    }
+    const location = (entry?.location || '').toString().trim();
+    if (location) parts.push(location);
+    const source = (entry?.source || '').toString().trim();
+    if (source) parts.push(source);
+    const batch = (entry?.batch || '').toString().trim();
+    if (batch) parts.push(`Batch: ${batch}`);
     return parts.filter(Boolean).join(' · ');
   };
 
@@ -1578,6 +1608,9 @@
     }
     if (els.entryListStatus) {
       setStatus(els.entryListStatus, authed ? 'Use filters and sorting to review your entries.' : 'Sign in to load your entries.', authed ? '' : 'info');
+    }
+    if (els.prospectReviewStatus) {
+      setStatus(els.prospectReviewStatus, authed ? 'Review your prospect queue.' : 'Sign in to load prospects.', authed ? '' : 'info');
     }
     if (els.exportStatus) {
       setStatus(els.exportStatus, authed ? 'Choose a date range to export applications.' : 'Sign in to export applications.', authed ? '' : 'info');
@@ -3048,6 +3081,192 @@
     });
   };
 
+  const buildProspectApplyAttachments = (form) => {
+    if (!form) return [];
+    const resume = form.querySelector('[data-jobtrack-prospect="resume"]')?.files?.[0];
+    const cover = form.querySelector('[data-jobtrack-prospect="cover"]')?.files?.[0];
+    const attachments = [];
+    if (resume) attachments.push({ file: resume, kind: 'resume' });
+    if (cover) attachments.push({ file: cover, kind: 'cover-letter' });
+    return attachments;
+  };
+
+  const renderProspectReviewList = (items = []) => {
+    if (!els.prospectReviewList) return;
+    els.prospectReviewList.innerHTML = '';
+    if (!items.length) {
+      const empty = document.createElement('p');
+      empty.className = 'jobtrack-prospect-empty';
+      empty.textContent = 'No prospects in the queue.';
+      els.prospectReviewList.appendChild(empty);
+      return;
+    }
+    const list = document.createElement('ul');
+    list.className = 'jobtrack-prospect-list';
+    items.forEach((entry) => {
+      const item = document.createElement('li');
+      item.className = 'jobtrack-prospect-item';
+
+      const title = document.createElement('div');
+      title.className = 'jobtrack-prospect-title';
+      title.textContent = [entry.title, entry.company].filter(Boolean).join(' · ') || 'Prospect';
+      item.appendChild(title);
+
+      const meta = document.createElement('div');
+      meta.className = 'jobtrack-prospect-meta';
+      meta.textContent = formatProspectMeta(entry) || 'Prospect details';
+      item.appendChild(meta);
+
+      if (entry.jobUrl) {
+        const link = document.createElement('a');
+        link.className = 'jobtrack-prospect-link';
+        link.href = normalizeUrl(entry.jobUrl);
+        link.target = '_blank';
+        link.rel = 'noopener';
+        link.textContent = 'Open job posting';
+        item.appendChild(link);
+      }
+
+      if (entry.notes) {
+        const notes = document.createElement('p');
+        notes.className = 'jobtrack-prospect-notes';
+        notes.textContent = entry.notes;
+        item.appendChild(notes);
+      }
+
+      const actions = document.createElement('div');
+      actions.className = 'jobtrack-prospect-actions';
+
+      const detailBtn = document.createElement('button');
+      detailBtn.type = 'button';
+      detailBtn.className = 'btn-ghost jobtrack-prospect-action';
+      detailBtn.textContent = 'View details';
+      detailBtn.addEventListener('click', () => openDetailModal(entry));
+      actions.appendChild(detailBtn);
+
+      const rejectBtn = document.createElement('button');
+      rejectBtn.type = 'button';
+      rejectBtn.className = 'btn-ghost jobtrack-prospect-action';
+      rejectBtn.textContent = 'Reject + delete';
+      rejectBtn.addEventListener('click', () => deleteProspectEntry(entry));
+      actions.appendChild(rejectBtn);
+
+      item.appendChild(actions);
+
+      const applyDetails = document.createElement('details');
+      applyDetails.className = 'jobtrack-prospect-apply';
+      const applySummary = document.createElement('summary');
+      applySummary.textContent = 'Apply to this role';
+      applyDetails.appendChild(applySummary);
+
+      const applyForm = document.createElement('form');
+      applyForm.className = 'jobtrack-prospect-apply-form';
+      applyForm.noValidate = true;
+
+      const fields = document.createElement('div');
+      fields.className = 'jobtrack-prospect-apply-fields';
+
+      const dateField = document.createElement('div');
+      dateField.className = 'jobtrack-field';
+      const dateLabel = document.createElement('label');
+      dateLabel.className = 'jobtrack-label';
+      const dateId = `jobtrack-prospect-apply-date-${(entry.applicationId || 'prospect').toString().replace(/[^a-z0-9_-]/gi, '')}`;
+      dateLabel.setAttribute('for', dateId);
+      dateLabel.textContent = 'Applied date';
+      const dateInput = document.createElement('input');
+      dateInput.type = 'date';
+      dateInput.className = 'jobtrack-input';
+      dateInput.id = dateId;
+      dateInput.required = true;
+      dateInput.value = formatDateInput(new Date());
+      dateField.appendChild(dateLabel);
+      dateField.appendChild(dateInput);
+      fields.appendChild(dateField);
+
+      const resumeField = document.createElement('div');
+      resumeField.className = 'jobtrack-field';
+      const resumeLabel = document.createElement('label');
+      resumeLabel.className = 'jobtrack-label';
+      const resumeId = `jobtrack-prospect-apply-resume-${(entry.applicationId || 'prospect').toString().replace(/[^a-z0-9_-]/gi, '')}`;
+      resumeLabel.setAttribute('for', resumeId);
+      resumeLabel.textContent = 'Resume (optional)';
+      const resumeInput = document.createElement('input');
+      resumeInput.type = 'file';
+      resumeInput.className = 'jobtrack-input jobtrack-file-input';
+      resumeInput.id = resumeId;
+      resumeInput.dataset.jobtrackProspect = 'resume';
+      resumeInput.accept = '.pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      resumeField.appendChild(resumeLabel);
+      resumeField.appendChild(resumeInput);
+      fields.appendChild(resumeField);
+
+      const coverField = document.createElement('div');
+      coverField.className = 'jobtrack-field';
+      const coverLabel = document.createElement('label');
+      coverLabel.className = 'jobtrack-label';
+      const coverId = `jobtrack-prospect-apply-cover-${(entry.applicationId || 'prospect').toString().replace(/[^a-z0-9_-]/gi, '')}`;
+      coverLabel.setAttribute('for', coverId);
+      coverLabel.textContent = 'Cover letter (optional)';
+      const coverInput = document.createElement('input');
+      coverInput.type = 'file';
+      coverInput.className = 'jobtrack-input jobtrack-file-input';
+      coverInput.id = coverId;
+      coverInput.dataset.jobtrackProspect = 'cover';
+      coverInput.accept = '.pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      coverField.appendChild(coverLabel);
+      coverField.appendChild(coverInput);
+      fields.appendChild(coverField);
+
+      applyForm.appendChild(fields);
+
+      const applyHelp = document.createElement('p');
+      applyHelp.className = 'jobtrack-help';
+      applyHelp.textContent = 'Optional files are stored with the new application.';
+      applyForm.appendChild(applyHelp);
+
+      const applyActions = document.createElement('div');
+      applyActions.className = 'jobtrack-prospect-apply-actions';
+      const applyBtn = document.createElement('button');
+      applyBtn.type = 'submit';
+      applyBtn.className = 'btn-primary';
+      applyBtn.textContent = 'Convert and apply';
+      applyActions.appendChild(applyBtn);
+      applyForm.appendChild(applyActions);
+
+      const status = document.createElement('p');
+      status.className = 'jobtrack-form-status';
+      status.dataset.jobtrackProspectStatus = entry.applicationId || '';
+      status.textContent = 'Ready to apply.';
+      applyForm.appendChild(status);
+
+      applyForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const appliedDate = (dateInput.value || '').toString().trim();
+        if (!appliedDate) {
+          setStatus(status, 'Applied date is required.', 'error');
+          return;
+        }
+        if (!parseDateInput(appliedDate)) {
+          setStatus(status, 'Applied date must be valid (YYYY-MM-DD).', 'error');
+          return;
+        }
+        const attachments = buildProspectApplyAttachments(applyForm);
+        applyBtn.disabled = true;
+        applyBtn.setAttribute('aria-disabled', 'true');
+        const ok = await convertProspectToApplicationWithAttachments(entry, appliedDate, attachments, status);
+        if (!ok) {
+          applyBtn.disabled = false;
+          applyBtn.setAttribute('aria-disabled', 'false');
+        }
+      });
+
+      applyDetails.appendChild(applyForm);
+      item.appendChild(applyDetails);
+      list.appendChild(item);
+    });
+    els.prospectReviewList.appendChild(list);
+  };
+
   const updateSortIndicators = () => {
     if (!els.entrySortButtons.length) return;
     els.entrySortButtons.forEach((button) => {
@@ -3145,6 +3364,10 @@
       storeEntries([]);
       state.selectedEntryIds.clear();
       renderEntryList([], 'Set the API base URL to load entries.');
+      renderProspectReviewList([]);
+      if (els.prospectReviewStatus) {
+        setStatus(els.prospectReviewStatus, 'Set the API base URL to load prospects.', 'error');
+      }
       updateEntrySelectionUI();
       updateEntryCount(0, 0);
       return;
@@ -3153,6 +3376,10 @@
       storeEntries([]);
       state.selectedEntryIds.clear();
       renderEntryList([], 'Sign in to load your entries.');
+      renderProspectReviewList([]);
+      if (els.prospectReviewStatus) {
+        setStatus(els.prospectReviewStatus, 'Sign in to load prospects.', 'info');
+      }
       updateEntrySelectionUI();
       updateEntryCount(0, 0);
       return;
@@ -3165,6 +3392,14 @@
       ]);
       const appItems = (apps.items || []).map(item => normalizeEntry(item, 'application'));
       const prospectItems = (prospects.items || []).map(item => normalizeEntry(item, 'prospect'));
+      const sortedProspects = [...prospectItems].sort((a, b) => {
+        const aDate = getProspectSortDate(a);
+        const bDate = getProspectSortDate(b);
+        const aTime = aDate ? aDate.getTime() : 0;
+        const bTime = bDate ? bDate.getTime() : 0;
+        if (aTime !== bTime) return bTime - aTime;
+        return getEntryLabel(a).localeCompare(getEntryLabel(b), 'en', { sensitivity: 'base' });
+      });
       const items = [...appItems, ...prospectItems];
       storeEntries(items);
       state.selectedEntryIds.clear();
@@ -3172,14 +3407,23 @@
       updateEntrySourceFilter(items);
       updateEntryBatchFilter(items);
       applyEntryFilters();
+      renderProspectReviewList(sortedProspects);
+      if (els.prospectReviewStatus) {
+        const label = sortedProspects.length === 1 ? '1 prospect' : `${sortedProspects.length} prospects`;
+        setStatus(els.prospectReviewStatus, `Loaded ${label}.`, 'success');
+      }
       setStatus(els.entryListStatus, `Loaded ${items.length} entries.`, 'success');
     } catch (err) {
       console.error('Entry load failed', err);
       storeEntries([]);
       renderEntryList([], 'Unable to load entries.');
+      renderProspectReviewList([]);
       updateEntrySelectionUI();
       updateEntryCount(0, 0);
       setStatus(els.entryListStatus, err?.message || 'Unable to load entries.', 'error');
+      if (els.prospectReviewStatus) {
+        setStatus(els.prospectReviewStatus, err?.message || 'Unable to load prospects.', 'error');
+      }
     }
   };
 
@@ -3322,6 +3566,12 @@
         const entry = state.entryItems.get(entryId);
         if (entry) openDetailModal(entry);
       });
+    }
+  };
+
+  const initProspectReview = () => {
+    if (els.prospectReviewRefresh) {
+      els.prospectReviewRefresh.addEventListener('click', () => refreshEntries());
     }
   };
 
@@ -3738,6 +3988,92 @@
       console.error('Prospect conversion failed', err);
       setStatus(statusTarget, err?.message || 'Unable to move prospect to applications.', 'error');
       return false;
+    }
+  };
+
+  const convertProspectToApplicationWithAttachments = async (entry, appliedDate, attachments = [], statusEl = null) => {
+    const statusTarget = statusEl || els.prospectReviewStatus || els.entryListStatus || els.entryFormStatus;
+    if (!entry || !entry.applicationId) return false;
+    if (!authIsValid(state.auth)) {
+      setStatus(statusTarget, 'Sign in to save applications.', 'error');
+      return false;
+    }
+    if (!config.apiBase) {
+      setStatus(statusTarget, 'Set the API base URL to save applications.', 'error');
+      return false;
+    }
+    const payload = buildApplicationPayloadFromProspect(entry, appliedDate);
+    try {
+      setStatus(statusTarget, 'Saving application...', 'info');
+      const created = await requestJson('/api/applications', { method: 'POST', body: payload });
+      const applicationId = created?.applicationId;
+      if (!applicationId) {
+        setStatus(statusTarget, 'Application saved, but no ID was returned.', 'error');
+        return false;
+      }
+      let attachmentError = null;
+      if (attachments.length && applicationId) {
+        try {
+          const label = attachments.length === 1 ? 'attachment' : 'attachments';
+          setStatus(statusTarget, `Uploading ${attachments.length} ${label}...`, 'info');
+          const uploaded = await uploadAttachments(applicationId, attachments);
+          await requestJson(`/api/applications/${encodeURIComponent(applicationId)}`, {
+            method: 'PATCH',
+            body: { attachments: uploaded }
+          });
+        } catch (err) {
+          attachmentError = err;
+        }
+      }
+      let deleteError = null;
+      try {
+        await requestJson(`/api/applications/${encodeURIComponent(entry.applicationId)}`, { method: 'DELETE' });
+      } catch (err) {
+        deleteError = err;
+      }
+      const messages = [];
+      if (attachmentError) {
+        messages.push('Application saved, but attachments failed to upload.');
+      }
+      if (deleteError) {
+        messages.push('Prospect could not be removed.');
+      }
+      if (!messages.length) {
+        messages.push('Prospect moved to applications.');
+      }
+      setStatus(statusTarget, messages.join(' '), attachmentError || deleteError ? 'error' : 'success');
+      clearEntryEditMode();
+      await sleep(200);
+      await Promise.all([refreshEntries(), refreshDashboard()]);
+      return true;
+    } catch (err) {
+      console.error('Prospect conversion failed', err);
+      setStatus(statusTarget, err?.message || 'Unable to move prospect to applications.', 'error');
+      return false;
+    }
+  };
+
+  const deleteProspectEntry = async (entry, statusEl = null) => {
+    if (!entry || !entry.applicationId) return;
+    const statusTarget = statusEl || els.prospectReviewStatus || els.entryListStatus;
+    if (!config.apiBase) {
+      setStatus(statusTarget, 'Set the API base URL to delete prospects.', 'error');
+      return;
+    }
+    if (!authIsValid(state.auth)) {
+      setStatus(statusTarget, 'Sign in to delete prospects.', 'error');
+      return;
+    }
+    const label = [entry.title, entry.company].filter(Boolean).join(' · ') || 'this prospect';
+    if (!confirmAction(`Reject and delete ${label}? This cannot be undone.`)) return;
+    try {
+      setStatus(statusTarget, 'Deleting prospect...', 'info');
+      await requestJson(`/api/applications/${encodeURIComponent(entry.applicationId)}`, { method: 'DELETE' });
+      setStatus(statusTarget, 'Prospect deleted.', 'success');
+      await Promise.all([refreshEntries(), refreshDashboard()]);
+    } catch (err) {
+      console.error('Prospect delete failed', err);
+      setStatus(statusTarget, err?.message || 'Unable to delete prospect.', 'error');
     }
   };
 
@@ -4442,6 +4778,7 @@
     initImport();
     initProspectImport();
     initEntryList();
+    initProspectReview();
     initExport();
     await initAuth();
     updateAuthUI();
