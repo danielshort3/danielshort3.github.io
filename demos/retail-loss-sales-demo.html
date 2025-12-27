@@ -609,6 +609,11 @@
           <span class="meta-chip" id="outlier-meta">Z-score &gt; 2</span>
         </div>
         <ul class="list" id="outlier-list"></ul>
+        <div class="panel-title">
+          <h3>Store Format Risk</h3>
+          <span class="meta-chip" id="format-meta">Avg incidents per store</span>
+        </div>
+        <ul class="list" id="format-list"></ul>
       </section>
 
       <section class="panel signals-panel">
@@ -620,6 +625,13 @@
           <div class="chart-wrap small">
             <canvas id="shrink-chart" aria-label="Shrink trend chart"></canvas>
           </div>
+        </div>
+        <div class="signal-block">
+          <div class="panel-title">
+            <h2>Daily Theft by State</h2>
+            <span class="meta-chip" id="state-meta">Avg per store/day</span>
+          </div>
+          <ul class="list" id="state-list"></ul>
         </div>
         <div class="signal-block">
           <div class="panel-title">
@@ -672,7 +684,11 @@
       incidentMeta: document.getElementById("incident-meta"),
       incidentTable: document.getElementById("incident-table"),
       outlierList: document.getElementById("outlier-list"),
+      formatMeta: document.getElementById("format-meta"),
+      formatList: document.getElementById("format-list"),
       shrinkMeta: document.getElementById("shrink-meta"),
+      stateMeta: document.getElementById("state-meta"),
+      stateList: document.getElementById("state-list"),
       emptyList: document.getElementById("empty-list"),
       emptyNote: document.getElementById("empty-note"),
       resetFilters: document.getElementById("reset-filters"),
@@ -886,21 +902,73 @@
       }).join("");
     }
 
+    function renderFormatList() {
+      const data = state.data;
+      if (!data) return;
+      const formats = data.incidents.formats || [];
+      if (!formats.length) {
+        DOM.formatList.innerHTML = `<li class="list-item"><div class="list-row"><span class="list-title">No format data</span></div></li>`;
+        return;
+      }
+      const maxValue = Math.max(...formats.map((item) => item.avgIncidents), 1);
+      DOM.formatMeta.textContent = `Top ${Math.min(formats.length, 5)} formats`;
+      DOM.formatList.innerHTML = formats.slice(0, 5).map((item) => {
+        const width = Math.max(4, (item.avgIncidents / maxValue) * 100);
+        return `
+          <li class="list-item">
+            <div class="list-row">
+              <span class="list-title">${item.format}</span>
+              <span class="list-meta">${item.avgIncidents.toFixed(1)} avg incidents</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:${width}%"></div></div>
+          </li>`;
+      }).join("");
+    }
+
+    function renderStateList() {
+      const data = state.data;
+      if (!data) return;
+      const states = data.incidents.states || [];
+      if (!states.length) {
+        DOM.stateList.innerHTML = `<li class="list-item"><div class="list-row"><span class="list-title">No state data</span></div></li>`;
+        return;
+      }
+      const maxValue = Math.max(...states.map((item) => item.avgDailyTheft), 1);
+      DOM.stateMeta.textContent = `Top ${Math.min(states.length, 6)} states`;
+      DOM.stateList.innerHTML = states.slice(0, 6).map((item) => {
+        const width = Math.max(4, (item.avgDailyTheft / maxValue) * 100);
+        return `
+          <li class="list-item">
+            <div class="list-row">
+              <span class="list-title">${item.state}</span>
+              <span class="list-meta">${formatCurrency(item.avgDailyTheft, 2)}</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:${width}%"></div></div>
+          </li>`;
+      }).join("");
+    }
+
     function renderEmptySignals() {
       const data = state.data;
       if (!data) return;
       const metric = state.emptyMetric;
-      const source = data.emptyPackages[metric] || [];
+      const currentMonth = data.emptyPackages.currentMonth || {};
+      const source = currentMonth[metric] || data.emptyPackages[metric] || [];
       const maxValue = Math.max(...source.map((item) => item.estimatedValue), 1);
       const labelMap = {
-        employees: "associate",
+        employees: "employee",
         areas: "area",
         conditions: "condition"
       };
       const labelKey = labelMap[metric] || "label";
+      if (!source.length) {
+        DOM.emptyList.innerHTML = `<li class="list-item"><div class="list-row"><span class="list-title">No recovery data</span></div></li>`;
+        DOM.emptyNote.textContent = "No empty-package signals available.";
+        return;
+      }
       DOM.emptyList.innerHTML = source.slice(0, 6).map((item) => {
         const width = Math.max(4, (item.estimatedValue / maxValue) * 100);
-        const title = item[labelKey];
+        const title = item[labelKey] || "Unknown";
         return `
           <li class="list-item">
             <div class="list-row">
@@ -914,13 +982,17 @@
             </div>
           </li>`;
       }).join("");
-      DOM.emptyNote.textContent = `Top ${metric} ranked by estimated value.`;
+      if (currentMonth.month) {
+        DOM.emptyNote.textContent = `Current month (${formatMonthLabel(currentMonth.month)}): top ${metric} ranked by estimated value.`;
+      } else {
+        DOM.emptyNote.textContent = `Top ${metric} ranked by estimated value.`;
+      }
     }
 
     function updateSalesChart() {
       const data = state.data;
       if (!data) return;
-      const series = buildMonthlySeries(data.sales.weekly, state.salesMetric);
+      const series = buildMonthlySeries(data.sales.weekly, state.salesMetric).filter((item) => item.month >= "2020-01");
       const labels = series.map((item) => formatMonthLabel(item.month));
       const values = series.map((item) => item.value);
       if (!charts.sales) {
@@ -1172,7 +1244,9 @@
         initRegionFilter();
         updateSalesChart();
         updateIncidentChart();
+        renderFormatList();
         updateShrinkChart();
+        renderStateList();
         renderEmptySignals();
         bindControls();
         notifyResize();

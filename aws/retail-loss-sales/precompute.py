@@ -188,6 +188,8 @@ def parse_sales():
 def parse_incidents(store_info):
   monthly = defaultdict(lambda: {"incidents": 0.0, "proven": 0.0})
   store_year = defaultdict(lambda: {"incidents": 0.0, "proven": 0.0})
+  format_stats = defaultdict(lambda: {"sum": 0.0, "count": 0})
+  state_stats = defaultdict(lambda: {"sum": 0.0, "count": 0})
   rows = 0
   max_year = 0
 
@@ -198,6 +200,7 @@ def parse_incidents(store_info):
       store = (row.get("Store_Number") or "").strip()
       count = to_float(row.get("Total_Theft_Incidents_Count"))
       proven = to_float(row.get("Total_Theft_Proven_$"))
+      security_incidents = to_float(row.get("Security_Incident_Count"))
       raw_month = (row.get("Incident_Month_Year") or "").strip()
       if not raw_month:
         continue
@@ -206,6 +209,15 @@ def parse_incidents(store_info):
         dt = datetime.strptime(raw_month, "%y-%b")
       except Exception:
         continue
+      info = store_info.get(store, {})
+      store_format = info.get("format", "")
+      if store_format:
+        format_stats[store_format]["sum"] += security_incidents
+        format_stats[store_format]["count"] += 1
+      state = info.get("state", "")
+      if state:
+        state_stats[state]["sum"] += proven
+        state_stats[state]["count"] += 1
       key = f"{dt.year:04d}-{dt.month:02d}"
       monthly[key]["incidents"] += count
       monthly[key]["proven"] += proven
@@ -266,12 +278,34 @@ def parse_incidents(store_info):
   ]
   region_list.sort(key=lambda item: item["incidents"], reverse=True)
 
+  format_list = []
+  for store_format, values in format_stats.items():
+    avg = values["sum"] / values["count"] if values["count"] else 0.0
+    format_list.append({
+      "format": store_format,
+      "avgIncidents": avg,
+      "recordCount": values["count"]
+    })
+  format_list.sort(key=lambda item: item["avgIncidents"], reverse=True)
+
+  state_list = []
+  for state, values in state_stats.items():
+    avg_daily = (values["sum"] / values["count"]) / 30.0 if values["count"] else 0.0
+    state_list.append({
+      "state": state,
+      "avgDailyTheft": avg_daily,
+      "recordCount": values["count"]
+    })
+  state_list.sort(key=lambda item: item["avgDailyTheft"], reverse=True)
+
   return {
     "rows": rows,
     "year": max_year,
     "monthly": monthly_list,
     "stores": store_list,
-    "regions": region_list
+    "regions": region_list,
+    "formats": format_list[:5],
+    "states": state_list[:10]
   }
 
 
@@ -339,6 +373,9 @@ def parse_empty_packages(prices):
   areas = defaultdict(lambda: {"count": 0, "value": 0.0})
   conditions = defaultdict(lambda: {"count": 0, "value": 0.0})
   monthly = defaultdict(lambda: {"count": 0, "value": 0.0})
+  monthly_employees = defaultdict(lambda: defaultdict(lambda: {"count": 0, "value": 0.0}))
+  monthly_areas = defaultdict(lambda: defaultdict(lambda: {"count": 0, "value": 0.0}))
+  monthly_conditions = defaultdict(lambda: defaultdict(lambda: {"count": 0, "value": 0.0}))
   rows = 0
 
   with EMPTY_FILE.open("r", newline="", encoding="utf-8-sig") as handle:
@@ -370,6 +407,15 @@ def parse_empty_packages(prices):
         key = month_key(date)
         monthly[key]["count"] += quantity
         monthly[key]["value"] += value
+        if employee:
+          monthly_employees[key][employee]["count"] += quantity
+          monthly_employees[key][employee]["value"] += value
+        if area:
+          monthly_areas[key][area]["count"] += quantity
+          monthly_areas[key][area]["value"] += value
+        if condition:
+          monthly_conditions[key][condition]["count"] += quantity
+          monthly_conditions[key][condition]["value"] += value
 
   def build_list(source, key_name):
     items = []
@@ -396,12 +442,21 @@ def parse_empty_packages(prices):
   ]
   monthly_list.sort(key=lambda item: item["month"])
 
+  latest_month = monthly_list[-1]["month"] if monthly_list else ""
+  current_month = {
+    "month": latest_month,
+    "employees": build_list(monthly_employees.get(latest_month, {}), "employee")[:12],
+    "areas": build_list(monthly_areas.get(latest_month, {}), "area")[:8],
+    "conditions": build_list(monthly_conditions.get(latest_month, {}), "condition")[:8]
+  }
+
   return {
     "rows": rows,
     "employees": employees_list,
     "areas": areas_list,
     "conditions": conditions_list,
-    "monthly": monthly_list
+    "monthly": monthly_list,
+    "currentMonth": current_month
   }
 
 
