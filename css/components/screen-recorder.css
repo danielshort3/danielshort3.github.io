@@ -792,6 +792,65 @@
   .screenrec-preview-actions button{
     width:100%;
   }
+  .screenrec-record-stack{
+    grid-column:1 / -1;
+    display:grid;
+    gap:8px;
+  }
+  .screenrec-record-group{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    width:100%;
+    min-width:0;
+  }
+  .screenrec-record-group button{
+    width:auto;
+  }
+  .screenrec-record-group .btn-primary{
+    flex:1 1 auto;
+    min-width:0;
+  }
+  .screenrec-delay-button{
+    flex:0 0 auto;
+    padding:10px 14px;
+    font-size:.72rem;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    border-style:solid;
+    min-width:96px;
+    white-space:nowrap;
+  }
+  .screenrec-delay-button[data-countdown="true"]{
+    border-color:color-mix(in srgb,var(--warning) 60%, transparent);
+    color:var(--warning);
+    background:color-mix(in srgb,var(--warning) 12%, transparent);
+  }
+  .screenrec-countdown{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:6px 12px;
+    border-radius:999px;
+    border:1px solid color-mix(in srgb,var(--screenrec-accent) 32%, transparent);
+    background:color-mix(in srgb,var(--screenrec-accent) 12%, transparent);
+    color:color-mix(in srgb,var(--screenrec-accent) 85%, #ffffff 15%);
+    font-size:.7rem;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    justify-self:start;
+  }
+  .screenrec-countdown::before{
+    content:"";
+    width:6px;
+    height:6px;
+    border-radius:999px;
+    background:currentColor;
+    box-shadow:0 0 10px color-mix(in srgb,currentColor 60%, transparent);
+  }
+  .screenrec-countdown[hidden]{
+    display:none;
+  }
   .screenrec-preview-actions .btn-primary{
     box-shadow:0 14px 28px rgba(0,0,0,.28);
   }

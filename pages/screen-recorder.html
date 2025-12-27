@@ -100,6 +100,11 @@
                   <div class="screenrec-radio-group" data-screenrec="format-options"></div>
                   <p class="screenrec-help" data-screenrec="format-help">Select one or more formats to export.</p>
                 </div>
+                <div class="screenrec-field screenrec-field-wide">
+                  <span class="screenrec-label">First frame images</span>
+                  <div class="screenrec-radio-group" data-screenrec="image-format-options"></div>
+                  <p class="screenrec-help" data-screenrec="image-format-help">Select image formats to export the first frame.</p>
+                </div>
 
                 <div class="screenrec-field">
                   <label class="screenrec-label" for="screenrec-fps">Frame rate</label>
@@ -241,7 +246,13 @@
             </div>
 
             <div class="screenrec-preview-actions">
-              <button type="button" class="btn-primary" data-screenrec="start-record" disabled>Start recording</button>
+              <div class="screenrec-record-stack">
+                <div class="screenrec-record-group">
+                  <button type="button" class="btn-primary" data-screenrec="start-record" disabled>Start recording</button>
+                  <button type="button" class="btn-ghost screenrec-delay-button" data-screenrec="delay-record" aria-pressed="false" title="Start recording after a 5-second countdown" disabled>Start in 5s</button>
+                </div>
+                <div class="screenrec-countdown" data-screenrec="countdown" role="status" aria-live="polite" hidden></div>
+              </div>
               <button type="button" class="btn-secondary" data-screenrec="pause-record" disabled>Pause</button>
               <button type="button" class="btn-ghost" data-screenrec="stop-record" disabled>Stop recording</button>
             </div>
