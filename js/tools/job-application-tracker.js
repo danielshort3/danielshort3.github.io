@@ -18,11 +18,14 @@
   const els = {
     signIn: $('[data-jobtrack="sign-in"]'),
     signOut: $('[data-jobtrack="sign-out"]'),
+    jumpEntryButtons: $$('[data-jobtrack="jump-entry"]'),
+    jumpTabButtons: $$('[data-jobtrack-jump]'),
     authStatus: $('[data-jobtrack="auth-status"]'),
     apiStatus: $('[data-jobtrack="api-status"]'),
     cognitoStatus: $('[data-jobtrack="cognito-status"]'),
     entryForm: $('[data-jobtrack="entry-form"]'),
     entryFormStatus: $('[data-jobtrack="entry-form-status"]'),
+    entryDraftStatus: $('[data-jobtrack="entry-draft-status"]'),
     entryType: $('[data-jobtrack="entry-type"]'),
     entryTypeInputs: $$('[data-jobtrack="entry-type"] input[name="entryType"]'),
     companyInput: $('#jobtrack-company'),
@@ -71,6 +74,7 @@
     entriesRefresh: $('[data-jobtrack="refresh-entries"]'),
     entryFilter: $('[data-jobtrack="entry-filter"]'),
     entryFilterQuery: $('[data-jobtrack="entry-filter-query"]'),
+    entryFilterGroup: $('[data-jobtrack="entry-filter-group"]'),
     entryFilterType: $('[data-jobtrack="entry-filter-type"]'),
     entryFilterStatus: $('[data-jobtrack="entry-filter-status"]'),
     entryFilterSource: $('[data-jobtrack="entry-filter-source"]'),
@@ -80,10 +84,17 @@
     entryFilterEnd: $('[data-jobtrack="entry-filter-end"]'),
     entryFilterReset: $('[data-jobtrack="entry-filter-reset"]'),
     entrySortButtons: $$('[data-jobtrack-sort]'),
+    entrySortSelect: $('[data-jobtrack="entry-sort-select"]'),
+    entryViewWrap: $('[data-jobtrack="entry-view-wrap"]'),
+    entryViewInputs: $$('[data-jobtrack="entry-view"] input[name="entryView"]'),
     entrySelectAll: $('[data-jobtrack="entry-select-all"]'),
     entryBulkDelete: $('[data-jobtrack="entry-bulk-delete"]'),
     entrySelectedCount: $('[data-jobtrack="entry-selected-count"]'),
     entryCount: $('[data-jobtrack="entry-count"]'),
+    entrySummary: $('[data-jobtrack="entry-summary"]'),
+    entryUndoBanner: $('[data-jobtrack="entry-undo"]'),
+    entryUndoMessage: $('[data-jobtrack="entry-undo-message"]'),
+    entryUndoAction: $('[data-jobtrack="entry-undo-action"]'),
     bulkStatusSelect: $('[data-jobtrack="bulk-status"]'),
     bulkStatusDate: $('[data-jobtrack="bulk-date"]'),
     bulkStatusApply: $('[data-jobtrack="bulk-status-apply"]'),
@@ -146,6 +157,8 @@
   const STORAGE_KEY = 'jobTrackerAuth';
   const STATE_KEY = 'jobTrackerAuthState';
   const VERIFIER_KEY = 'jobTrackerCodeVerifier';
+  const ENTRY_VIEW_KEY = 'jobTrackerEntryView';
+  const ENTRY_DRAFT_KEY = 'jobTrackerEntryDraft';
   const CSV_TEMPLATE = 'company,title,jobUrl,location,source,postingDate,appliedDate,status,batch,notes,attachments\nAcme Corp,Data Analyst,https://acme.com/jobs/123,Remote,LinkedIn,2025-01-10,2025-01-15,Applied,Spring outreach 2025,Reached out to recruiter,Acme-Resume.pdf;Acme-Cover.pdf';
   const PROSPECT_CSV_TEMPLATE = 'company,title,jobUrl,location,source,postingDate,captureDate,status,batch,notes\nAcme Corp,Data Analyst,https://acme.com/jobs/123,Remote,LinkedIn,2025-01-10,2025-01-12,Active,Remote data roles · March,Follow up next week.';
   const PROSPECT_PROMPT_TEMPLATE = [
@@ -208,6 +221,18 @@
   ].join('\n');
   const APPLICATION_STATUSES = ['Applied', 'Screening', 'Interview', 'Offer', 'Rejected', 'Withdrawn'];
   const PROSPECT_STATUSES = ['Active', 'Interested', 'Inactive'];
+  const STATUS_GROUPS = {
+    active: new Set(['applied', 'screening', 'interview', 'offer', 'active', 'interested']),
+    archived: new Set(['withdrawn', 'inactive']),
+    rejected: new Set(['rejected'])
+  };
+  const FOLLOW_UP_DAYS = {
+    applied: 7,
+    screening: 5,
+    interview: 3,
+    active: 5,
+    interested: 3
+  };
   const DETAIL_DEFAULT_SUBTITLE = 'Click a chart element to inspect activity.';
   const DETAIL_DEFAULT_BODY = 'Select a state, week, weekday, day, or status to see details here.';
   const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -282,6 +307,7 @@
     dashboardEntries: [],
     entryItems: new Map(),
     entrySort: { key: 'date', direction: 'desc' },
+    entryView: 'table',
     entryFilters: {
       query: '',
       type: 'all',
@@ -292,6 +318,9 @@
     },
     selectedEntryIds: new Set(),
     visibleEntryIds: [],
+    entryDraftTimer: null,
+    entryUndoTimer: null,
+    lastDeletedEntry: null,
     mapLoaded: false,
     mapSvg: null,
     mapDetails: null,
@@ -744,7 +773,11 @@
     return label || 'Entry';
   };
 
-  const getEntryStatusLabel = (entry) => toTitle((entry?.status || 'Applied').toString());
+  const getEntryStatusLabel = (entry) => {
+    const entryType = entry?.entryType || getEntryType(entry);
+    const fallback = entryType === 'prospect' ? 'Active' : 'Applied';
+    return toTitle((entry?.status || fallback).toString());
+  };
 
   const sortEntriesByAppliedDate = (items = []) => {
     const sorted = [...items];
@@ -802,6 +835,69 @@
     const batch = (entry?.batch || '').toString().trim();
     if (batch) parts.push(`Batch: ${batch}`);
     return parts.filter(Boolean).join(' · ');
+  };
+
+  const getEntryStatusKey = (entry) => getEntryStatusLabel(entry).toLowerCase();
+
+  const getEntryStatusGroup = (entry) => {
+    const key = getEntryStatusKey(entry);
+    if (STATUS_GROUPS.rejected.has(key)) return 'rejected';
+    if (STATUS_GROUPS.archived.has(key)) return 'archived';
+    if (STATUS_GROUPS.active.has(key)) return 'active';
+    return 'active';
+  };
+
+  const getStatusTone = (statusKey = '') => {
+    const key = (statusKey || '').toString().trim().toLowerCase();
+    if (['applied', 'screening', 'interview', 'offer', 'rejected', 'withdrawn', 'active', 'interested', 'inactive'].includes(key)) {
+      return key;
+    }
+    return 'applied';
+  };
+
+  const getDayKey = (date) => Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+
+  const addDays = (value, days) => {
+    if (!value && value !== 0) return null;
+    const parsed = parseDateInput(value) || parseIsoDate(value);
+    if (!parsed) return null;
+    const due = new Date(parsed.getTime());
+    due.setUTCDate(due.getUTCDate() + days);
+    return due;
+  };
+
+  const buildNextAction = (verb, dueDate) => {
+    if (!verb) return { label: 'Follow up soon', tone: '' };
+    if (!dueDate) return { label: `${verb} soon`, tone: '' };
+    const dayMs = 24 * 60 * 60 * 1000;
+    const todayKey = getDayKey(new Date());
+    const dueKey = getDayKey(dueDate);
+    const diffDays = Math.round((dueKey - todayKey) / dayMs);
+    const dateLabel = formatDateLabel(formatDateInput(dueDate));
+    if (diffDays <= 0) {
+      return { label: `${verb} now`, tone: 'danger' };
+    }
+    if (diffDays <= 2) {
+      return { label: `${verb} by ${dateLabel}`, tone: 'warning' };
+    }
+    return { label: `${verb} by ${dateLabel}`, tone: '' };
+  };
+
+  const getNextAction = (entry) => {
+    const entryType = entry?.entryType || getEntryType(entry);
+    const statusKey = getEntryStatusKey(entry);
+    if (entryType === 'prospect') {
+      if (statusKey === 'inactive') return { label: 'Archived', tone: 'muted' };
+      const verb = statusKey === 'interested' ? 'Apply' : 'Review';
+      const baseDate = entry.captureDate || deriveStatusDate(entry);
+      const offset = FOLLOW_UP_DAYS[statusKey] ?? 5;
+      return buildNextAction(verb, addDays(baseDate, offset));
+    }
+    if (statusKey === 'offer') return { label: 'Review offer', tone: 'success' };
+    if (statusKey === 'rejected' || statusKey === 'withdrawn') return { label: 'Closed', tone: 'muted' };
+    const baseDate = deriveStatusDate(entry) || entry.appliedDate;
+    const offset = FOLLOW_UP_DAYS[statusKey] ?? 7;
+    return buildNextAction('Follow up', addDays(baseDate, offset));
   };
 
   const buildDetailEntryList = (entries = []) => {
@@ -1311,12 +1407,36 @@
     }
   };
 
+  const updateEntrySummary = (items = []) => {
+    if (!els.entrySummary) return;
+    if (!authIsValid(state.auth)) {
+      els.entrySummary.textContent = 'Sign in to view summary.';
+      return;
+    }
+    if (!items.length) {
+      els.entrySummary.textContent = 'No activity yet.';
+      return;
+    }
+    let active = 0;
+    let interviews = 0;
+    let offers = 0;
+    items.forEach((entry) => {
+      const entryType = entry?.entryType || getEntryType(entry);
+      const statusKey = getEntryStatusKey(entry);
+      if (STATUS_GROUPS.active.has(statusKey)) active += 1;
+      if (entryType === 'application' && statusKey === 'interview') interviews += 1;
+      if (entryType === 'application' && statusKey === 'offer') offers += 1;
+    });
+    els.entrySummary.textContent = `${active} active · ${interviews} interviews · ${offers} offers`;
+  };
+
   const storeEntries = (items = []) => {
     state.entries = items;
     state.entryItems = new Map();
     items.forEach((item) => {
       if (item && item.applicationId) state.entryItems.set(item.applicationId, item);
     });
+    updateEntrySummary(items);
   };
 
   const getEntryType = (item) => (item && item.recordType === 'prospect' ? 'prospect' : 'application');
@@ -1369,7 +1489,8 @@
     if (els.appliedDateInput) els.appliedDateInput.required = nextType === 'application';
     if (els.captureDateInput) els.captureDateInput.required = nextType === 'prospect';
     if (els.jobUrlHelp) {
-      els.jobUrlHelp.textContent = nextType === 'prospect' ? 'Required for prospects.' : 'Optional for applications.';
+      const label = nextType === 'prospect' ? 'Required for prospects.' : 'Optional for applications.';
+      els.jobUrlHelp.textContent = `${label} Paste a job URL to auto-fill company and role.`;
     }
     if (els.captureLabel) {
       els.captureLabel.textContent = nextType === 'prospect' ? 'Found date' : 'Found date (optional)';
@@ -1404,6 +1525,7 @@
     if (els.statusInput) els.statusInput.value = item.status || (entryType === 'prospect' ? 'Active' : 'Applied');
     if (els.notesInput) els.notesInput.value = item.notes || '';
     updateEntrySubmitLabel();
+    setDraftStatus('');
     if (els.entryFormStatus) {
       const label = [item.title, item.company].filter(Boolean).join(' · ') || 'entry';
       setStatus(els.entryFormStatus, `Editing ${label}. Save to update or clear to cancel.`, 'info');
@@ -1471,6 +1593,31 @@
         }
       });
     });
+  };
+
+  const initJumpButtons = () => {
+    if (els.jumpEntryButtons.length) {
+      els.jumpEntryButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+          activateTab('entry', true);
+          if (els.entryForm && typeof els.entryForm.scrollIntoView === 'function') {
+            els.entryForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      });
+    }
+    if (els.jumpTabButtons.length) {
+      els.jumpTabButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const target = button.dataset.jobtrackJump;
+          if (!target) return;
+          activateTab(target, true);
+          if (target === 'entry' && els.entryForm && typeof els.entryForm.scrollIntoView === 'function') {
+            els.entryForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      });
+    }
   };
 
   const randomBase64Url = (size = 32) => {
@@ -1606,6 +1753,9 @@
     if (els.entryListStatus) {
       setStatus(els.entryListStatus, authed ? 'Use filters and sorting to review your entries.' : 'Sign in to load your entries.', authed ? '' : 'info');
     }
+    if (els.entrySummary && !authed) {
+      els.entrySummary.textContent = 'Sign in to view summary.';
+    }
     if (els.prospectReviewStatus) {
       setStatus(els.prospectReviewStatus, authed ? 'Review your prospect queue.' : 'Sign in to load prospects.', authed ? '' : 'info');
     }
@@ -1662,9 +1812,209 @@
 
   const resetEntryDateFields = (type = state.entryType) => {
     setUnknownDateValue(els.postingDateInput, els.postingUnknownInput, '');
+    if (type === 'application' && els.appliedDateInput) {
+      els.appliedDateInput.value = els.appliedDateInput.value || formatDateInput(new Date());
+    }
     if (type === 'prospect' && els.captureDateInput) {
       els.captureDateInput.value = els.captureDateInput.value || formatDateInput(new Date());
     }
+  };
+
+  const parseUrlSafe = (value = '') => {
+    const raw = (value || '').toString().trim();
+    if (!raw) return null;
+    try {
+      return new URL(raw);
+    } catch {
+      try {
+        return new URL(`https://${raw}`);
+      } catch {
+        return null;
+      }
+    }
+  };
+
+  const isJobBoardHost = (host = '') => {
+    const boardHosts = [
+      'linkedin.com',
+      'indeed.com',
+      'glassdoor.com',
+      'ziprecruiter.com',
+      'monster.com',
+      'careerbuilder.com',
+      'simplyhired.com'
+    ];
+    return boardHosts.some(domain => host === domain || host.endsWith(`.${domain}`));
+  };
+
+  const cleanCompanyName = (value = '') => {
+    const cleaned = value
+      .replace(/[-_]+/g, ' ')
+      .replace(/\bcareers?\b|\bjobs?\b/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    return cleaned ? toTitle(cleaned) : '';
+  };
+
+  const extractCompanyFromUrl = (value) => {
+    const parsed = value instanceof URL ? value : parseUrlSafe(value);
+    if (!parsed) return '';
+    const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
+    if (isJobBoardHost(host)) return '';
+    const pathParts = parsed.pathname.split('/').filter(Boolean);
+    if (host.includes('greenhouse.io') || host.includes('lever.co') || host.includes('ashbyhq.com')) {
+      return cleanCompanyName(pathParts[0] || '');
+    }
+    if (host.includes('workdayjobs.com') || host.includes('myworkdayjobs.com')) {
+      return cleanCompanyName(pathParts[0] || host.split('.')[0]);
+    }
+    return cleanCompanyName(host.split('.')[0] || '');
+  };
+
+  const extractRoleFromUrl = (value) => {
+    const parsed = value instanceof URL ? value : parseUrlSafe(value);
+    if (!parsed) return '';
+    const parts = parsed.pathname.split('/').filter(Boolean);
+    if (!parts.length) return '';
+    let slug = parts[parts.length - 1];
+    slug = slug.replace(/\.(html|php|aspx)$/i, '');
+    try {
+      slug = decodeURIComponent(slug);
+    } catch {
+      slug = slug.replace(/%[0-9a-f]{2}/gi, ' ');
+    }
+    slug = slug.replace(/[-_]+/g, ' ');
+    slug = slug.replace(/\b(jobs?|careers?|openings?|positions?|req|requisition|posting)\b/gi, '');
+    slug = slug.replace(/\s+/g, ' ').trim();
+    if (!slug || /^\d+$/.test(slug)) return '';
+    return toTitle(slug);
+  };
+
+  const maybeAutofillFromJobUrl = () => {
+    if (!els.jobUrlInput) return;
+    if (state.editingEntryId) return;
+    const raw = (els.jobUrlInput.value || '').toString().trim();
+    if (!raw) return;
+    const parsed = parseUrlSafe(raw);
+    if (!parsed) return;
+    if (els.companyInput && !els.companyInput.value.trim()) {
+      const company = extractCompanyFromUrl(parsed);
+      if (company) els.companyInput.value = company;
+    }
+    if (els.titleInput && !els.titleInput.value.trim()) {
+      const title = extractRoleFromUrl(parsed);
+      if (title) els.titleInput.value = title;
+    }
+  };
+
+  const setDraftStatus = (message, tone = '') => {
+    if (!els.entryDraftStatus) return;
+    els.entryDraftStatus.textContent = message;
+    if (tone) {
+      els.entryDraftStatus.dataset.tone = tone;
+    } else {
+      delete els.entryDraftStatus.dataset.tone;
+    }
+  };
+
+  const buildEntryDraft = () => ({
+    entryType: state.entryType,
+    company: els.companyInput?.value || '',
+    title: els.titleInput?.value || '',
+    jobUrl: els.jobUrlInput?.value || '',
+    location: els.locationInput?.value || '',
+    source: els.sourceInput?.value || '',
+    batch: els.batchInput?.value || '',
+    postingDate: els.postingDateInput?.value || '',
+    postingDateUnknown: Boolean(els.postingUnknownInput?.checked),
+    appliedDate: els.appliedDateInput?.value || '',
+    captureDate: els.captureDateInput?.value || '',
+    status: els.statusInput?.value || '',
+    notes: els.notesInput?.value || ''
+  });
+
+  const hasEntryDraftValues = (draft) => {
+    if (!draft) return false;
+    const fields = [
+      draft.company,
+      draft.title,
+      draft.jobUrl,
+      draft.location,
+      draft.source,
+      draft.batch,
+      draft.postingDate,
+      draft.notes
+    ];
+    return fields.some(value => (value || '').toString().trim());
+  };
+
+  const saveEntryDraft = () => {
+    if (!els.entryForm || state.editingEntryId) return;
+    const draft = buildEntryDraft();
+    if (!hasEntryDraftValues(draft)) {
+      try {
+        localStorage.removeItem(ENTRY_DRAFT_KEY);
+      } catch {}
+      setDraftStatus('');
+      return;
+    }
+    try {
+      localStorage.setItem(ENTRY_DRAFT_KEY, JSON.stringify(draft));
+      setDraftStatus('Draft saved.');
+    } catch {
+      setDraftStatus('');
+    }
+  };
+
+  const scheduleEntryDraftSave = () => {
+    if (state.entryDraftTimer) window.clearTimeout(state.entryDraftTimer);
+    state.entryDraftTimer = window.setTimeout(saveEntryDraft, 400);
+  };
+
+  const clearEntryDraft = () => {
+    try {
+      localStorage.removeItem(ENTRY_DRAFT_KEY);
+    } catch {}
+    setDraftStatus('');
+  };
+
+  const restoreEntryDraft = () => {
+    if (!els.entryForm || state.editingEntryId) return;
+    let draft = null;
+    try {
+      draft = JSON.parse(localStorage.getItem(ENTRY_DRAFT_KEY) || 'null');
+    } catch {
+      draft = null;
+    }
+    if (!hasEntryDraftValues(draft)) return;
+    const hasValues = [
+      els.companyInput?.value,
+      els.titleInput?.value,
+      els.jobUrlInput?.value,
+      els.locationInput?.value,
+      els.sourceInput?.value,
+      els.batchInput?.value,
+      els.notesInput?.value
+    ].some(value => (value || '').toString().trim());
+    if (hasValues) return;
+    setEntryType(draft.entryType || 'application', { preserveStatus: false });
+    if (els.companyInput && draft.company) els.companyInput.value = draft.company;
+    if (els.titleInput && draft.title) els.titleInput.value = draft.title;
+    if (els.jobUrlInput && draft.jobUrl) els.jobUrlInput.value = draft.jobUrl;
+    if (els.locationInput && draft.location) els.locationInput.value = draft.location;
+    if (els.sourceInput && draft.source) els.sourceInput.value = draft.source;
+    if (els.batchInput && draft.batch) els.batchInput.value = draft.batch;
+    if (els.appliedDateInput && draft.appliedDate) els.appliedDateInput.value = draft.appliedDate;
+    if (els.captureDateInput && draft.captureDate) els.captureDateInput.value = draft.captureDate;
+    if (els.statusInput && draft.status) els.statusInput.value = draft.status;
+    if (els.notesInput && draft.notes) els.notesInput.value = draft.notes;
+    setUnknownDateValue(
+      els.postingDateInput,
+      els.postingUnknownInput,
+      draft.postingDate || '',
+      draft.postingDateUnknown !== undefined ? draft.postingDateUnknown : true
+    );
+    setDraftStatus('Draft restored.', 'info');
   };
 
   const uploadAttachment = async (applicationId, attachment) => {
@@ -2737,7 +3087,10 @@
     statusDate: deriveStatusDate(item)
   });
 
-  const getEntryDateValue = (entry) => (entry.entryType === 'prospect' ? entry.captureDate : entry.appliedDate);
+  const getEntryDateValue = (entry) => {
+    const entryType = entry?.entryType || getEntryType(entry);
+    return entryType === 'prospect' ? entry.captureDate : entry.appliedDate;
+  };
 
   const getEntryDate = (entry) => {
     const raw = getEntryDateValue(entry);
@@ -2749,9 +3102,7 @@
     const current = els.entryFilterStatus.value || 'all';
     const statuses = new Set();
     items.forEach((item) => {
-      const entryType = getEntryType(item);
-      const raw = (item.status || (entryType === 'prospect' ? 'Active' : 'Applied')).toString();
-      statuses.add(toTitle(raw));
+      statuses.add(getEntryStatusLabel(item));
     });
     const sorted = Array.from(statuses).sort((a, b) => a.localeCompare(b));
     els.entryFilterStatus.innerHTML = '';
@@ -2844,6 +3195,7 @@
     const query = (els.entryFilterQuery?.value || '').trim().toLowerCase();
     const terms = query.split(/\s+/).filter(Boolean);
     const type = (els.entryFilterType?.value || 'all').trim();
+    const statusGroup = (els.entryFilterGroup?.value || 'all').trim();
     const status = (els.entryFilterStatus?.value || 'all').trim();
     const source = (els.entryFilterSource?.value || 'all').trim();
     const batch = (els.entryFilterBatch?.value || 'all').trim();
@@ -2854,7 +3206,8 @@
     return items.filter((entry) => {
       const entryType = entry.entryType || getEntryType(entry);
       if (type !== 'all' && entryType !== type) return false;
-      const entryStatus = toTitle((entry.status || (entryType === 'prospect' ? 'Active' : 'Applied')).toString());
+      if (statusGroup !== 'all' && getEntryStatusGroup(entry) !== statusGroup) return false;
+      const entryStatus = getEntryStatusLabel(entry);
       if (status !== 'all' && entryStatus.toLowerCase() !== status) return false;
       if (source !== 'all') {
         const entrySource = (entry.source || '').toString().trim().toLowerCase();
@@ -2929,152 +3282,200 @@
     return sorted;
   };
 
+  const createEntryRow = (entry, { isExample = false } = {}) => {
+    const row = document.createElement('div');
+    row.className = 'jobtrack-table-row';
+    if (isExample) row.classList.add('jobtrack-table-example');
+    row.setAttribute('role', 'row');
+    const entryType = entry.entryType || getEntryType(entry);
+    const entryLabel = [entry.title, entry.company].filter(Boolean).join(' · ') || 'entry';
+    if (entry.applicationId) {
+      row.dataset.jobtrackRow = entry.applicationId;
+      row.tabIndex = 0;
+      row.setAttribute('aria-label', `View ${entryLabel}`);
+    }
+
+    const selectCell = document.createElement('div');
+    selectCell.className = 'jobtrack-table-cell jobtrack-table-select';
+    selectCell.dataset.label = 'Select';
+    selectCell.dataset.cell = 'select';
+    if (entry.applicationId) {
+      const checkboxLabel = document.createElement('label');
+      checkboxLabel.className = 'jobtrack-checkbox';
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.className = 'jobtrack-checkbox-input';
+      checkbox.dataset.jobtrackEntry = 'select';
+      checkbox.dataset.id = entry.applicationId;
+      checkbox.checked = state.selectedEntryIds.has(entry.applicationId);
+      checkbox.setAttribute('aria-label', `Select ${entryLabel}`);
+      checkboxLabel.appendChild(checkbox);
+      selectCell.appendChild(checkboxLabel);
+    }
+    row.appendChild(selectCell);
+
+    const typeCell = document.createElement('div');
+    typeCell.className = 'jobtrack-table-cell';
+    typeCell.dataset.label = 'Type';
+    const pill = document.createElement('span');
+    pill.className = 'jobtrack-pill';
+    if (entryType === 'prospect') pill.dataset.tone = 'prospect';
+    pill.textContent = entryType === 'prospect' ? 'Prospect' : 'Application';
+    typeCell.appendChild(pill);
+    row.appendChild(typeCell);
+
+    const companyCell = document.createElement('div');
+    companyCell.className = 'jobtrack-table-cell';
+    companyCell.dataset.label = 'Company';
+    companyCell.textContent = entry.company || '—';
+    row.appendChild(companyCell);
+
+    const titleCell = document.createElement('div');
+    titleCell.className = 'jobtrack-table-cell';
+    titleCell.dataset.label = 'Role';
+    titleCell.textContent = entry.title || '—';
+    row.appendChild(titleCell);
+
+    const statusCell = document.createElement('div');
+    statusCell.className = 'jobtrack-table-cell';
+    statusCell.dataset.label = 'Status';
+    const statusLabel = getEntryStatusLabel(entry);
+    const statusPill = document.createElement('span');
+    statusPill.className = 'jobtrack-status-pill';
+    statusPill.dataset.tone = getStatusTone(statusLabel);
+    statusPill.textContent = statusLabel;
+    statusCell.appendChild(statusPill);
+    row.appendChild(statusCell);
+
+    const nextActionCell = document.createElement('div');
+    nextActionCell.className = 'jobtrack-table-cell';
+    nextActionCell.dataset.label = 'Next action';
+    const action = getNextAction(entry);
+    const actionPill = document.createElement('span');
+    actionPill.className = 'jobtrack-action-pill';
+    if (action.tone) actionPill.dataset.tone = action.tone;
+    actionPill.textContent = action.label;
+    nextActionCell.appendChild(actionPill);
+    row.appendChild(nextActionCell);
+
+    const locationCell = document.createElement('div');
+    locationCell.className = 'jobtrack-table-cell';
+    locationCell.dataset.label = 'Location';
+    locationCell.textContent = entry.location || '—';
+    row.appendChild(locationCell);
+
+    const postingCell = document.createElement('div');
+    postingCell.className = 'jobtrack-table-cell';
+    postingCell.dataset.label = 'Posted';
+    postingCell.textContent = entry.postingDate ? formatDateLabel(entry.postingDate) : '—';
+    row.appendChild(postingCell);
+
+    const dateCell = document.createElement('div');
+    dateCell.className = 'jobtrack-table-cell';
+    dateCell.dataset.label = 'Applied/Found';
+    const dateLabel = getEntryDateValue(entry);
+    dateCell.textContent = dateLabel
+      ? `${entryType === 'prospect' ? 'Found' : 'Applied'} ${formatDateLabel(dateLabel)}`
+      : '—';
+    row.appendChild(dateCell);
+
+    const sourceCell = document.createElement('div');
+    sourceCell.className = 'jobtrack-table-cell';
+    sourceCell.dataset.label = 'Source';
+    sourceCell.textContent = entry.source || '—';
+    row.appendChild(sourceCell);
+
+    const batchCell = document.createElement('div');
+    batchCell.className = 'jobtrack-table-cell';
+    batchCell.dataset.label = 'Batch';
+    batchCell.textContent = entry.batch || '—';
+    row.appendChild(batchCell);
+
+    const actionsCell = document.createElement('div');
+    actionsCell.className = 'jobtrack-table-cell jobtrack-table-actions';
+    actionsCell.dataset.label = 'Actions';
+    actionsCell.dataset.cell = 'actions';
+    if (entry.applicationId) {
+      const primaryRow = document.createElement('div');
+      primaryRow.className = 'jobtrack-table-actions-row';
+
+      const editBtn = document.createElement('button');
+      editBtn.type = 'button';
+      editBtn.className = 'btn-ghost';
+      editBtn.dataset.jobtrackEntry = 'edit';
+      editBtn.dataset.id = entry.applicationId;
+      editBtn.textContent = 'Edit';
+      primaryRow.appendChild(editBtn);
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.className = 'btn-ghost';
+      deleteBtn.dataset.jobtrackEntry = 'delete';
+      deleteBtn.dataset.id = entry.applicationId;
+      deleteBtn.textContent = 'Delete';
+      primaryRow.appendChild(deleteBtn);
+
+      if (entryType === 'prospect') {
+        const applyBtn = document.createElement('button');
+        applyBtn.type = 'button';
+        applyBtn.className = 'btn-ghost';
+        applyBtn.dataset.jobtrackEntry = 'apply';
+        applyBtn.dataset.id = entry.applicationId;
+        applyBtn.textContent = 'Apply';
+        primaryRow.appendChild(applyBtn);
+      }
+      actionsCell.appendChild(primaryRow);
+
+      const attachments = Array.isArray(entry.attachments) ? entry.attachments : [];
+      const zipRow = document.createElement('div');
+      zipRow.className = 'jobtrack-table-actions-row';
+      const zipBtn = document.createElement('button');
+      zipBtn.type = 'button';
+      zipBtn.className = 'btn-ghost jobtrack-attachment-btn';
+      zipBtn.dataset.jobtrackEntry = 'download-zip';
+      zipBtn.dataset.id = entry.applicationId;
+      zipBtn.textContent = 'Download ZIP';
+      if (!attachments.length) {
+        zipBtn.disabled = true;
+        zipBtn.setAttribute('aria-disabled', 'true');
+        zipBtn.title = 'No attachments to zip';
+      } else {
+        zipBtn.title = 'Download all attachments as ZIP';
+      }
+      zipRow.appendChild(zipBtn);
+      actionsCell.appendChild(zipRow);
+    } else {
+      actionsCell.textContent = '—';
+    }
+    row.appendChild(actionsCell);
+    return row;
+  };
+
   const renderEntryList = (items = [], emptyLabel = 'No entries yet.') => {
     if (!els.entryList) return;
     els.entryList.innerHTML = '';
     if (!items.length) {
       const empty = document.createElement('div');
       empty.className = 'jobtrack-table-empty';
-      empty.textContent = emptyLabel;
+      empty.textContent = `${emptyLabel} Example row below shows what goes where.`;
       els.entryList.appendChild(empty);
+      const example = createEntryRow({
+        entryType: 'application',
+        company: 'Acme Corp',
+        title: 'Data Analyst',
+        status: 'Interview',
+        statusDate: '2025-03-10',
+        location: 'Remote - US',
+        postingDate: '2025-03-01',
+        appliedDate: '2025-03-05',
+        source: 'LinkedIn',
+        batch: 'March outreach'
+      }, { isExample: true });
+      els.entryList.appendChild(example);
       return;
     }
     items.forEach((entry) => {
-      const row = document.createElement('div');
-      row.className = 'jobtrack-table-row';
-      row.setAttribute('role', 'row');
-      const entryType = entry.entryType || getEntryType(entry);
-      const entryLabel = [entry.title, entry.company].filter(Boolean).join(' · ') || 'entry';
-      if (entry.applicationId) {
-        row.dataset.jobtrackRow = entry.applicationId;
-        row.tabIndex = 0;
-        row.setAttribute('aria-label', `View ${entryLabel}`);
-      }
-
-      const selectCell = document.createElement('div');
-      selectCell.className = 'jobtrack-table-cell jobtrack-table-select';
-      if (entry.applicationId) {
-        const checkboxLabel = document.createElement('label');
-        checkboxLabel.className = 'jobtrack-checkbox';
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.className = 'jobtrack-checkbox-input';
-        checkbox.dataset.jobtrackEntry = 'select';
-        checkbox.dataset.id = entry.applicationId;
-        checkbox.checked = state.selectedEntryIds.has(entry.applicationId);
-        checkbox.setAttribute('aria-label', `Select ${entryLabel}`);
-        checkboxLabel.appendChild(checkbox);
-        selectCell.appendChild(checkboxLabel);
-      }
-      row.appendChild(selectCell);
-
-      const typeCell = document.createElement('div');
-      typeCell.className = 'jobtrack-table-cell';
-      const pill = document.createElement('span');
-      pill.className = 'jobtrack-pill';
-      if (entryType === 'prospect') pill.dataset.tone = 'prospect';
-      pill.textContent = entryType === 'prospect' ? 'Prospect' : 'Application';
-      typeCell.appendChild(pill);
-      row.appendChild(typeCell);
-
-      const companyCell = document.createElement('div');
-      companyCell.className = 'jobtrack-table-cell';
-      companyCell.textContent = entry.company || '—';
-      row.appendChild(companyCell);
-
-      const titleCell = document.createElement('div');
-      titleCell.className = 'jobtrack-table-cell';
-      titleCell.textContent = entry.title || '—';
-      row.appendChild(titleCell);
-
-      const statusCell = document.createElement('div');
-      statusCell.className = 'jobtrack-table-cell';
-      statusCell.textContent = toTitle(entry.status || (entryType === 'prospect' ? 'Active' : 'Applied'));
-      row.appendChild(statusCell);
-
-      const locationCell = document.createElement('div');
-      locationCell.className = 'jobtrack-table-cell';
-      locationCell.textContent = entry.location || '—';
-      row.appendChild(locationCell);
-
-      const postingCell = document.createElement('div');
-      postingCell.className = 'jobtrack-table-cell';
-      postingCell.textContent = entry.postingDate ? formatDateLabel(entry.postingDate) : '—';
-      row.appendChild(postingCell);
-
-      const dateCell = document.createElement('div');
-      dateCell.className = 'jobtrack-table-cell';
-      const dateLabel = getEntryDateValue(entry);
-      dateCell.textContent = dateLabel
-        ? `${entryType === 'prospect' ? 'Found' : 'Applied'} ${formatDateLabel(dateLabel)}`
-        : '—';
-      row.appendChild(dateCell);
-
-      const sourceCell = document.createElement('div');
-      sourceCell.className = 'jobtrack-table-cell';
-      sourceCell.textContent = entry.source || '—';
-      row.appendChild(sourceCell);
-
-      const batchCell = document.createElement('div');
-      batchCell.className = 'jobtrack-table-cell';
-      batchCell.textContent = entry.batch || '—';
-      row.appendChild(batchCell);
-
-      const actionsCell = document.createElement('div');
-      actionsCell.className = 'jobtrack-table-cell jobtrack-table-actions';
-      if (entry.applicationId) {
-        const primaryRow = document.createElement('div');
-        primaryRow.className = 'jobtrack-table-actions-row';
-
-        const editBtn = document.createElement('button');
-        editBtn.type = 'button';
-        editBtn.className = 'btn-ghost';
-        editBtn.dataset.jobtrackEntry = 'edit';
-        editBtn.dataset.id = entry.applicationId;
-        editBtn.textContent = 'Edit';
-        primaryRow.appendChild(editBtn);
-
-        const deleteBtn = document.createElement('button');
-        deleteBtn.type = 'button';
-        deleteBtn.className = 'btn-ghost';
-        deleteBtn.dataset.jobtrackEntry = 'delete';
-        deleteBtn.dataset.id = entry.applicationId;
-        deleteBtn.textContent = 'Delete';
-        primaryRow.appendChild(deleteBtn);
-
-        if (entryType === 'prospect') {
-          const applyBtn = document.createElement('button');
-          applyBtn.type = 'button';
-          applyBtn.className = 'btn-ghost';
-          applyBtn.dataset.jobtrackEntry = 'apply';
-          applyBtn.dataset.id = entry.applicationId;
-          applyBtn.textContent = 'Apply';
-          primaryRow.appendChild(applyBtn);
-        }
-        actionsCell.appendChild(primaryRow);
-
-        const attachments = Array.isArray(entry.attachments) ? entry.attachments : [];
-        const zipRow = document.createElement('div');
-        zipRow.className = 'jobtrack-table-actions-row';
-        const zipBtn = document.createElement('button');
-        zipBtn.type = 'button';
-        zipBtn.className = 'btn-ghost jobtrack-attachment-btn';
-        zipBtn.dataset.jobtrackEntry = 'download-zip';
-        zipBtn.dataset.id = entry.applicationId;
-        zipBtn.textContent = 'Download ZIP';
-        if (!attachments.length) {
-          zipBtn.disabled = true;
-          zipBtn.setAttribute('aria-disabled', 'true');
-          zipBtn.title = 'No attachments to zip';
-        } else {
-          zipBtn.title = 'Download all attachments as ZIP';
-        }
-        zipRow.appendChild(zipBtn);
-        actionsCell.appendChild(zipRow);
-      }
-      row.appendChild(actionsCell);
-
-      els.entryList.appendChild(row);
+      els.entryList.appendChild(createEntryRow(entry));
     });
   };
 
@@ -3283,15 +3684,26 @@
   };
 
   const updateSortIndicators = () => {
-    if (!els.entrySortButtons.length) return;
-    els.entrySortButtons.forEach((button) => {
-      const key = button.dataset.jobtrackSort;
-      if (key === state.entrySort.key) {
-        button.setAttribute('aria-sort', state.entrySort.direction === 'asc' ? 'ascending' : 'descending');
-      } else {
-        button.setAttribute('aria-sort', 'none');
+    if (els.entrySortButtons.length) {
+      els.entrySortButtons.forEach((button) => {
+        const key = button.dataset.jobtrackSort;
+        if (key === state.entrySort.key) {
+          button.setAttribute('aria-sort', state.entrySort.direction === 'asc' ? 'ascending' : 'descending');
+        } else {
+          button.setAttribute('aria-sort', 'none');
+        }
+      });
+    }
+    if (els.entrySortSelect) {
+      const exact = `${state.entrySort.key}-${state.entrySort.direction}`;
+      const fallback = `${state.entrySort.key}-asc`;
+      const options = [...els.entrySortSelect.options].map(opt => opt.value);
+      if (options.includes(exact)) {
+        els.entrySortSelect.value = exact;
+      } else if (options.includes(fallback)) {
+        els.entrySortSelect.value = fallback;
       }
-    });
+    }
   };
 
   const setVisibleEntryIds = (items = []) => {
@@ -3360,6 +3772,34 @@
       ? `${totalCount} ${noun}`
       : `Showing ${visibleCount} of ${totalCount} ${noun}`;
     els.entryCount.textContent = label;
+  };
+
+  const setEntryView = (view) => {
+    const nextView = view === 'cards' ? 'cards' : 'table';
+    state.entryView = nextView;
+    if (els.entryViewWrap) els.entryViewWrap.dataset.view = nextView;
+    if (els.entryViewInputs.length) {
+      els.entryViewInputs.forEach((input) => {
+        input.checked = input.value === nextView;
+      });
+    }
+    try {
+      localStorage.setItem(ENTRY_VIEW_KEY, nextView);
+    } catch {}
+  };
+
+  const initEntryView = () => {
+    if (!els.entryViewWrap) return;
+    let stored = '';
+    try {
+      stored = localStorage.getItem(ENTRY_VIEW_KEY) || '';
+    } catch {}
+    setEntryView(stored || state.entryView);
+    if (els.entryViewInputs.length) {
+      els.entryViewInputs.forEach((input) => {
+        input.addEventListener('change', () => setEntryView(input.value));
+      });
+    }
   };
 
   const applyEntryFilters = () => {
@@ -3443,6 +3883,7 @@
   };
 
   const initEntryList = () => {
+    initEntryView();
     if (els.entriesRefresh) {
       els.entriesRefresh.addEventListener('click', () => refreshEntries());
     }
@@ -3454,6 +3895,9 @@
     }
     if (els.entryFilterQuery) {
       els.entryFilterQuery.addEventListener('input', () => applyEntryFilters());
+    }
+    if (els.entryFilterGroup) {
+      els.entryFilterGroup.addEventListener('change', () => applyEntryFilters());
     }
     if (els.entryFilterType) {
       els.entryFilterType.addEventListener('change', () => applyEntryFilters());
@@ -3476,9 +3920,18 @@
     if (els.entryFilterEnd) {
       els.entryFilterEnd.addEventListener('change', () => applyEntryFilters());
     }
+    if (els.entrySortSelect) {
+      els.entrySortSelect.addEventListener('change', () => {
+        const [key, direction] = (els.entrySortSelect.value || 'date-desc').split('-');
+        state.entrySort.key = key || 'date';
+        state.entrySort.direction = direction === 'asc' ? 'asc' : 'desc';
+        applyEntryFilters();
+      });
+    }
     if (els.entryFilterReset) {
       els.entryFilterReset.addEventListener('click', () => {
         if (els.entryFilterQuery) els.entryFilterQuery.value = '';
+        if (els.entryFilterGroup) els.entryFilterGroup.value = 'all';
         if (els.entryFilterType) els.entryFilterType.value = 'all';
         if (els.entryFilterStatus) els.entryFilterStatus.value = 'all';
         if (els.entryFilterSource) els.entryFilterSource.value = 'all';
@@ -3503,6 +3956,9 @@
           applyEntryFilters();
         });
       });
+    }
+    if (els.entryUndoAction) {
+      els.entryUndoAction.addEventListener('click', () => restoreDeletedEntry());
     }
     if (els.entrySelectAll) {
       els.entrySelectAll.addEventListener('change', () => {
@@ -3716,6 +4172,84 @@
     }
   };
 
+  const hideUndoBanner = () => {
+    if (!els.entryUndoBanner) return;
+    els.entryUndoBanner.dataset.state = 'hidden';
+    state.lastDeletedEntry = null;
+    if (state.entryUndoTimer) {
+      window.clearTimeout(state.entryUndoTimer);
+      state.entryUndoTimer = null;
+    }
+  };
+
+  const showUndoBanner = (entry) => {
+    if (!els.entryUndoBanner || !els.entryUndoMessage || !els.entryUndoAction) return;
+    if (!entry) return;
+    state.lastDeletedEntry = entry;
+    const label = getEntryLabel(entry);
+    const hasAttachments = Array.isArray(entry.attachments) && entry.attachments.length;
+    els.entryUndoMessage.textContent = hasAttachments
+      ? `${label} deleted. Undo restores details (attachments are not restored).`
+      : `${label} deleted. Undo?`;
+    els.entryUndoBanner.dataset.state = '';
+    if (state.entryUndoTimer) window.clearTimeout(state.entryUndoTimer);
+    state.entryUndoTimer = window.setTimeout(() => hideUndoBanner(), 10000);
+  };
+
+  const restoreDeletedEntry = async () => {
+    const entry = state.lastDeletedEntry;
+    if (!entry) return;
+    if (!authIsValid(state.auth)) {
+      setStatus(els.entryListStatus, 'Sign in to restore entries.', 'error');
+      return;
+    }
+    if (!config.apiBase) {
+      setStatus(els.entryListStatus, 'Set the API base URL to restore entries.', 'error');
+      return;
+    }
+    const entryType = entry.entryType || getEntryType(entry);
+    const company = (entry.company || '').toString().trim();
+    const title = (entry.title || '').toString().trim();
+    const payload = {
+      company,
+      title,
+      status: getEntryStatusLabel(entry),
+      notes: (entry.notes || '').toString().trim()
+    };
+    if (entry.location) payload.location = entry.location;
+    if (entry.source) payload.source = entry.source;
+    if (entry.batch) payload.batch = entry.batch;
+    if (entry.postingDate) payload.postingDate = entry.postingDate;
+    if (entry.captureDate) payload.captureDate = entry.captureDate;
+    if (entry.jobUrl) payload.jobUrl = entry.jobUrl;
+    if (entryType === 'application') {
+      const appliedDate = (entry.appliedDate || '').toString().trim();
+      if (!company || !title || !appliedDate) {
+        setStatus(els.entryListStatus, 'Unable to restore. Missing company, title, or applied date.', 'error');
+        return;
+      }
+      payload.appliedDate = appliedDate;
+    } else {
+      const jobUrl = (entry.jobUrl || '').toString().trim();
+      if (!company || !title || !jobUrl) {
+        setStatus(els.entryListStatus, 'Unable to restore. Missing company, title, or job URL.', 'error');
+        return;
+      }
+      if (entry.captureDate) payload.captureDate = entry.captureDate;
+    }
+    try {
+      setStatus(els.entryListStatus, 'Restoring entry...', 'info');
+      const endpoint = entryType === 'prospect' ? '/api/prospects' : '/api/applications';
+      await requestJson(endpoint, { method: 'POST', body: payload });
+      hideUndoBanner();
+      setStatus(els.entryListStatus, 'Entry restored.', 'success');
+      await Promise.all([refreshEntries(), refreshDashboard()]);
+    } catch (err) {
+      console.error('Entry restore failed', err);
+      setStatus(els.entryListStatus, err?.message || 'Unable to restore entry.', 'error');
+    }
+  };
+
   const deleteEntry = async (entryId) => {
     if (!entryId) return;
     if (!config.apiBase) {
@@ -3747,6 +4281,7 @@
         updateEntrySelectionUI();
       }
       setStatus(els.entryListStatus, 'Entry deleted.', 'success');
+      showUndoBanner(item);
       await Promise.all([refreshEntries(), refreshDashboard()]);
     } catch (err) {
       console.error('Entry delete failed', err);
@@ -3856,6 +4391,7 @@
       }
       state.selectedEntryIds.clear();
       updateEntrySelectionUI();
+      hideUndoBanner();
       await Promise.all([refreshEntries(), refreshDashboard()]);
       if (failed) {
         setStatus(els.entryListStatus, `${deleted} deleted, ${failed} failed.`, 'error');
@@ -3945,6 +4481,8 @@
         await requestJson('/api/prospects', { method: 'POST', body: payload });
       }
       clearEntryEditMode(editingId ? 'Prospect updated.' : 'Prospect saved.', 'success');
+      clearEntryDraft();
+      setDraftStatus('Saved to tracker.');
       await sleep(200);
       await refreshEntries();
       return true;
@@ -4085,6 +4623,7 @@
       setStatus(statusTarget, 'Deleting prospect...', 'info');
       await requestJson(`/api/applications/${encodeURIComponent(entry.applicationId)}`, { method: 'DELETE' });
       setStatus(statusTarget, 'Prospect deleted.', 'success');
+      showUndoBanner(entry);
       await Promise.all([refreshEntries(), refreshDashboard()]);
     } catch (err) {
       console.error('Prospect delete failed', err);
@@ -4161,6 +4700,8 @@
           'success'
         );
       }
+      clearEntryDraft();
+      setDraftStatus('Saved to tracker.');
       await sleep(200);
       await Promise.all([refreshDashboard(), refreshEntries()]);
       return true;
@@ -4176,6 +4717,7 @@
     initUnknownDateToggle(els.postingDateInput, els.postingUnknownInput, true);
     setEntryType(state.entryType, { preserveStatus: false });
     resetEntryDateFields(state.entryType);
+    restoreEntryDraft();
     if (els.entryTypeInputs.length) {
       els.entryTypeInputs.forEach((input) => {
         input.addEventListener('change', () => {
@@ -4188,6 +4730,16 @@
         });
       });
     }
+    if (els.jobUrlInput) {
+      els.jobUrlInput.addEventListener('blur', () => maybeAutofillFromJobUrl());
+      els.jobUrlInput.addEventListener('change', () => maybeAutofillFromJobUrl());
+    }
+    const handleDraftInput = () => {
+      if (state.isResettingEntry) return;
+      scheduleEntryDraftSave();
+    };
+    els.entryForm.addEventListener('input', handleDraftInput);
+    els.entryForm.addEventListener('change', handleDraftInput);
     els.entryForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       const formData = new FormData(els.entryForm);
@@ -4301,6 +4853,7 @@
       if (state.isResettingEntry) return;
       setEntryType(nextType);
       clearEntryEditMode();
+      clearEntryDraft();
     });
   };
 
@@ -4787,6 +5340,7 @@
 
   const init = async () => {
     initTabs();
+    initJumpButtons();
     initFilters();
     initDashboardInteractions();
     initEntryForm();

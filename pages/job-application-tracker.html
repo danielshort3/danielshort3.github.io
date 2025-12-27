@@ -41,7 +41,12 @@
 
   <section class="jobtrack-hero">
     <div class="wrapper">
-      <p class="hero-eyebrow">Job Application Tracker - Capture applications, manage prospects, and review dashboards.</p>
+      <p class="hero-eyebrow">Job Application Tracker</p>
+      <h1 class="jobtrack-hero-title">Track every job application in one place.</h1>
+      <p class="jobtrack-lead">Track applications by stage, dates, and follow-ups. Add a job in under a minute with the essentials.</p>
+      <div class="jobtrack-hero-actions">
+        <button type="button" class="btn-primary" data-jobtrack="jump-entry">Add job</button>
+      </div>
     </div>
   </section>
 
@@ -50,14 +55,15 @@
       <div class="wrapper">
         <div class="jobtrack-tool-header">
           <h2>Job Application Tracker</h2>
+          <p class="jobtrack-tool-lead">Track applications by stage, dates, and follow-ups. Each section below is labeled so you can jump straight in.</p>
         </div>
         <div class="jobtrack-tabs" data-jobtrack="tabs">
           <div class="jobtrack-tablist" role="tablist" aria-label="Job tracker sections">
-            <button id="jobtrack-tab-account" class="jobtrack-tab" type="button" role="tab" aria-selected="true" aria-controls="jobtrack-panel-account" data-jobtrack-tab="account">Account</button>
-            <button id="jobtrack-tab-entry" class="jobtrack-tab" type="button" role="tab" aria-selected="false" aria-controls="jobtrack-panel-entry" data-jobtrack-tab="entry" tabindex="-1">Add entry</button>
+            <button id="jobtrack-tab-account" class="jobtrack-tab" type="button" role="tab" aria-selected="true" aria-controls="jobtrack-panel-account" data-jobtrack-tab="account">Start here</button>
+            <button id="jobtrack-tab-entry" class="jobtrack-tab" type="button" role="tab" aria-selected="false" aria-controls="jobtrack-panel-entry" data-jobtrack-tab="entry" tabindex="-1">Add job</button>
             <button id="jobtrack-tab-prospects" class="jobtrack-tab" type="button" role="tab" aria-selected="false" aria-controls="jobtrack-panel-prospects" data-jobtrack-tab="prospects" tabindex="-1">Prospects</button>
-            <button id="jobtrack-tab-entries" class="jobtrack-tab" type="button" role="tab" aria-selected="false" aria-controls="jobtrack-panel-entries" data-jobtrack-tab="entries" tabindex="-1">Entries</button>
-            <button id="jobtrack-tab-dashboard" class="jobtrack-tab" type="button" role="tab" aria-selected="false" aria-controls="jobtrack-panel-dashboard" data-jobtrack-tab="dashboard" tabindex="-1">Dashboard</button>
+            <button id="jobtrack-tab-entries" class="jobtrack-tab" type="button" role="tab" aria-selected="false" aria-controls="jobtrack-panel-entries" data-jobtrack-tab="entries" tabindex="-1">Applications</button>
+            <button id="jobtrack-tab-dashboard" class="jobtrack-tab" type="button" role="tab" aria-selected="false" aria-controls="jobtrack-panel-dashboard" data-jobtrack-tab="dashboard" tabindex="-1">Summary</button>
           </div>
 
           <div class="jobtrack-tab-panels">
@@ -65,7 +71,7 @@
               <article class="jobtrack-card">
                 <div class="jobtrack-panel-head">
                   <div>
-                    <h1>Job Application Tracker</h1>
+                    <h2>Job Application Tracker</h2>
                     <p class="jobtrack-lead">Track every application and spot momentum quickly with in-page dashboards, KPI cards, and a calendar heatmap. Everything is built to stay private and scoped to your signed-in account.</p>
                   </div>
                 </div>
@@ -91,6 +97,36 @@
                       <p>Use the charts and calendar to spot patterns and follow-up windows.</p>
                     </div>
                   </div>
+                </div>
+              </article>
+              <article class="jobtrack-card jobtrack-overview-card">
+                <div class="jobtrack-panel-head">
+                  <div>
+                    <p class="jobtrack-kicker">Start here</p>
+                    <h2>Know where everything lives</h2>
+                    <p class="jobtrack-subtitle">Jump to the section that matches what you want to do right now.</p>
+                  </div>
+                  <div class="jobtrack-panel-actions">
+                    <button type="button" class="btn-primary" data-jobtrack="jump-entry">Add job</button>
+                  </div>
+                </div>
+                <div class="jobtrack-overview-grid">
+                  <button type="button" class="jobtrack-overview-item" data-jobtrack-jump="dashboard">
+                    <span class="jobtrack-overview-title">Summary</span>
+                    <span class="jobtrack-overview-copy">KPIs, trends, and response insights.</span>
+                  </button>
+                  <button type="button" class="jobtrack-overview-item" data-jobtrack-jump="entries">
+                    <span class="jobtrack-overview-title">Applications</span>
+                    <span class="jobtrack-overview-copy">All applications and prospects with filters.</span>
+                  </button>
+                  <button type="button" class="jobtrack-overview-item" data-jobtrack-jump="entries">
+                    <span class="jobtrack-overview-title">Upcoming follow-ups</span>
+                    <span class="jobtrack-overview-copy">Next actions called out on every entry.</span>
+                  </button>
+                  <button type="button" class="jobtrack-overview-item" data-jobtrack-jump="entry">
+                    <span class="jobtrack-overview-title">Notes</span>
+                    <span class="jobtrack-overview-copy">Add notes, links, and attachments as you log.</span>
+                  </button>
                 </div>
               </article>
               <article class="jobtrack-card jobtrack-auth-card">
@@ -131,90 +167,110 @@
                     </div>
                   </div>
                   <form class="jobtrack-form" data-jobtrack="entry-form" novalidate>
-                    <div class="jobtrack-field jobtrack-field-wide">
-                      <label class="jobtrack-label" for="jobtrack-entry-type-application">Entry type</label>
-                      <div class="jobtrack-segmented" role="radiogroup" aria-label="Entry type" data-jobtrack="entry-type">
-                        <label class="jobtrack-segmented-option">
-                          <input id="jobtrack-entry-type-application" class="jobtrack-segmented-input" name="entryType" type="radio" value="application" checked>
-                          <span>Application</span>
-                        </label>
-                        <label class="jobtrack-segmented-option">
-                          <input id="jobtrack-entry-type-prospect" class="jobtrack-segmented-input" name="entryType" type="radio" value="prospect">
-                          <span>Prospect</span>
-                        </label>
+                    <div class="jobtrack-form-section">
+                      <div class="jobtrack-section-head">
+                        <p class="jobtrack-kicker">Quick add</p>
+                        <h3>Essential details</h3>
+                        <p class="jobtrack-subtitle">Only the basics needed to start tracking this role.</p>
+                      </div>
+                      <div class="jobtrack-form-grid">
+                        <div class="jobtrack-field jobtrack-field-wide">
+                          <label class="jobtrack-label" for="jobtrack-entry-type-application">Entry type</label>
+                          <div class="jobtrack-segmented" role="radiogroup" aria-label="Entry type" data-jobtrack="entry-type">
+                            <label class="jobtrack-segmented-option">
+                              <input id="jobtrack-entry-type-application" class="jobtrack-segmented-input" name="entryType" type="radio" value="application" checked>
+                              <span>Application</span>
+                            </label>
+                            <label class="jobtrack-segmented-option">
+                              <input id="jobtrack-entry-type-prospect" class="jobtrack-segmented-input" name="entryType" type="radio" value="prospect">
+                              <span>Prospect</span>
+                            </label>
+                          </div>
+                        </div>
+                        <div class="jobtrack-field">
+                          <label class="jobtrack-label" for="jobtrack-company">Company <span class="jobtrack-required">Required</span></label>
+                          <input id="jobtrack-company" class="jobtrack-input" name="company" type="text" placeholder="Acme Corp" required>
+                        </div>
+                        <div class="jobtrack-field">
+                          <label class="jobtrack-label" for="jobtrack-title">Role title <span class="jobtrack-required">Required</span></label>
+                          <input id="jobtrack-title" class="jobtrack-input" name="title" type="text" placeholder="Data Analyst" required>
+                        </div>
+                        <div class="jobtrack-field">
+                          <label class="jobtrack-label" for="jobtrack-job-url">Job URL</label>
+                          <input id="jobtrack-job-url" class="jobtrack-input" name="jobUrl" type="url" placeholder="https://company.com/jobs/123">
+                          <p class="jobtrack-help" data-jobtrack="job-url-help">Required for prospects. Paste a job URL to auto-fill company and role.</p>
+                        </div>
+                        <div class="jobtrack-field">
+                          <label class="jobtrack-label" for="jobtrack-location">Location</label>
+                          <input id="jobtrack-location" class="jobtrack-input" name="location" type="text" placeholder="Remote · Austin, TX">
+                          <p class="jobtrack-help">Remote, hybrid, or city/state.</p>
+                        </div>
+                        <div class="jobtrack-field" data-jobtrack-entry="application">
+                          <label class="jobtrack-label" for="jobtrack-date">Applied date <span class="jobtrack-required">Required</span></label>
+                          <input id="jobtrack-date" class="jobtrack-input" name="appliedDate" type="date" required>
+                          <p class="jobtrack-help">Defaults to today.</p>
+                        </div>
+                        <div class="jobtrack-field">
+                          <label class="jobtrack-label" for="jobtrack-capture-date" data-jobtrack="capture-label">Found date</label>
+                          <input id="jobtrack-capture-date" class="jobtrack-input" name="captureDate" type="date">
+                          <p class="jobtrack-help" data-jobtrack="capture-help">Defaults to today for prospects.</p>
+                        </div>
+                        <div class="jobtrack-field">
+                          <label class="jobtrack-label" for="jobtrack-status">Status</label>
+                          <select id="jobtrack-status" class="jobtrack-select" name="status" data-jobtrack="status-select">
+                            <option value="Applied">Applied</option>
+                            <option value="Screening">Screening</option>
+                            <option value="Interview">Interview</option>
+                            <option value="Offer">Offer</option>
+                            <option value="Rejected">Rejected</option>
+                            <option value="Withdrawn">Withdrawn</option>
+                          </select>
+                          <p class="jobtrack-help">Defaults to Applied.</p>
+                        </div>
                       </div>
                     </div>
-                    <div class="jobtrack-field">
-                      <label class="jobtrack-label" for="jobtrack-company">Company</label>
-                      <input id="jobtrack-company" class="jobtrack-input" name="company" type="text" placeholder="Acme Corp" required>
-                    </div>
-                    <div class="jobtrack-field">
-                      <label class="jobtrack-label" for="jobtrack-title">Role title</label>
-                      <input id="jobtrack-title" class="jobtrack-input" name="title" type="text" placeholder="Data Analyst" required>
-                    </div>
-                    <div class="jobtrack-field">
-                      <label class="jobtrack-label" for="jobtrack-job-url">Job URL</label>
-                      <input id="jobtrack-job-url" class="jobtrack-input" name="jobUrl" type="url" placeholder="https://company.com/jobs/123">
-                      <p class="jobtrack-help" data-jobtrack="job-url-help">Required for prospects.</p>
-                    </div>
-                    <div class="jobtrack-field">
-                      <label class="jobtrack-label" for="jobtrack-location">Location</label>
-                      <input id="jobtrack-location" class="jobtrack-input" name="location" type="text" placeholder="Remote · Austin, TX">
-                    </div>
-                    <div class="jobtrack-field">
-                      <label class="jobtrack-label" for="jobtrack-source">Source</label>
-                      <input id="jobtrack-source" class="jobtrack-input" name="source" type="text" placeholder="LinkedIn, referral, company site">
-                    </div>
-                    <div class="jobtrack-field">
-                      <label class="jobtrack-label" for="jobtrack-batch">Batch (optional)</label>
-                      <input id="jobtrack-batch" class="jobtrack-input" name="batch" type="text" placeholder="Spring outreach 2025">
-                    </div>
-                    <div class="jobtrack-field">
-                      <label class="jobtrack-label" for="jobtrack-posting-date">Posting date</label>
-                      <input id="jobtrack-posting-date" class="jobtrack-input" name="postingDate" type="date">
-                      <label class="jobtrack-checkbox">
-                        <input id="jobtrack-posting-unknown" class="jobtrack-checkbox-input" name="postingDateUnknown" type="checkbox">
-                        Posting date unknown
-                      </label>
-                    </div>
-                    <div class="jobtrack-field" data-jobtrack-entry="application">
-                      <label class="jobtrack-label" for="jobtrack-date">Applied date</label>
-                      <input id="jobtrack-date" class="jobtrack-input" name="appliedDate" type="date" required>
-                    </div>
-                    <div class="jobtrack-field">
-                      <label class="jobtrack-label" for="jobtrack-capture-date" data-jobtrack="capture-label">Found date</label>
-                      <input id="jobtrack-capture-date" class="jobtrack-input" name="captureDate" type="date">
-                      <p class="jobtrack-help" data-jobtrack="capture-help">Defaults to today for prospects.</p>
-                    </div>
-                    <div class="jobtrack-field">
-                      <label class="jobtrack-label" for="jobtrack-status">Status</label>
-                      <select id="jobtrack-status" class="jobtrack-select" name="status" data-jobtrack="status-select">
-                        <option value="Applied">Applied</option>
-                        <option value="Screening">Screening</option>
-                        <option value="Interview">Interview</option>
-                        <option value="Offer">Offer</option>
-                        <option value="Rejected">Rejected</option>
-                        <option value="Withdrawn">Withdrawn</option>
-                      </select>
-                    </div>
-                    <div class="jobtrack-field jobtrack-field-wide">
-                      <label class="jobtrack-label" for="jobtrack-notes">Notes</label>
-                      <textarea id="jobtrack-notes" class="jobtrack-textarea" name="notes" rows="4" placeholder="Next step, hiring manager, or follow-up reminders."></textarea>
-                    </div>
-                    <div class="jobtrack-field jobtrack-field-wide" data-jobtrack-entry="application">
-                      <label class="jobtrack-label" for="jobtrack-resume">Resume (optional)</label>
-                      <input id="jobtrack-resume" class="jobtrack-input jobtrack-file-input" name="resume" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
-                    </div>
-                    <div class="jobtrack-field jobtrack-field-wide" data-jobtrack-entry="application">
-                      <label class="jobtrack-label" for="jobtrack-cover">Cover letter (optional)</label>
-                      <input id="jobtrack-cover" class="jobtrack-input jobtrack-file-input" name="coverLetter" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
-                      <p class="jobtrack-help">Files are stored privately with this application for future downloads.</p>
-                    </div>
+                    <details class="jobtrack-form-details">
+                      <summary class="jobtrack-form-summary">More details &amp; attachments</summary>
+                      <div class="jobtrack-form-grid">
+                        <div class="jobtrack-field">
+                          <label class="jobtrack-label" for="jobtrack-source">Source</label>
+                          <input id="jobtrack-source" class="jobtrack-input" name="source" type="text" placeholder="LinkedIn, referral, company site">
+                          <p class="jobtrack-help">Where you found the role.</p>
+                        </div>
+                        <div class="jobtrack-field">
+                          <label class="jobtrack-label" for="jobtrack-batch">Batch (optional)</label>
+                          <input id="jobtrack-batch" class="jobtrack-input" name="batch" type="text" placeholder="Spring outreach 2025">
+                          <p class="jobtrack-help">Optional label for grouping related entries.</p>
+                        </div>
+                        <div class="jobtrack-field">
+                          <label class="jobtrack-label" for="jobtrack-posting-date">Posting date</label>
+                          <input id="jobtrack-posting-date" class="jobtrack-input" name="postingDate" type="date">
+                          <label class="jobtrack-checkbox">
+                            <input id="jobtrack-posting-unknown" class="jobtrack-checkbox-input" name="postingDateUnknown" type="checkbox">
+                            Posting date unknown
+                          </label>
+                        </div>
+                        <div class="jobtrack-field jobtrack-field-wide">
+                          <label class="jobtrack-label" for="jobtrack-notes">Notes</label>
+                          <textarea id="jobtrack-notes" class="jobtrack-textarea" name="notes" rows="4" placeholder="Next step, hiring manager, or follow-up reminders."></textarea>
+                        </div>
+                        <div class="jobtrack-field jobtrack-field-wide" data-jobtrack-entry="application">
+                          <label class="jobtrack-label" for="jobtrack-resume">Resume (optional)</label>
+                          <input id="jobtrack-resume" class="jobtrack-input jobtrack-file-input" name="resume" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                        </div>
+                        <div class="jobtrack-field jobtrack-field-wide" data-jobtrack-entry="application">
+                          <label class="jobtrack-label" for="jobtrack-cover">Cover letter (optional)</label>
+                          <input id="jobtrack-cover" class="jobtrack-input jobtrack-file-input" name="coverLetter" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+                          <p class="jobtrack-help">Files are stored privately with this application for future downloads.</p>
+                        </div>
+                      </div>
+                    </details>
                     <div class="jobtrack-form-actions">
                       <button type="submit" class="btn-primary" data-jobtrack="entry-submit">Save entry</button>
                       <button type="reset" class="btn-ghost">Clear</button>
                     </div>
                     <p class="jobtrack-form-status" data-jobtrack="entry-form-status" role="status" aria-live="polite">Sign in to save entries.</p>
+                    <p class="jobtrack-draft-status" data-jobtrack="entry-draft-status" role="status" aria-live="polite"></p>
                   </form>
 
                   <details class="jobtrack-import jobtrack-import-collapse" data-jobtrack-entry="application">
@@ -317,10 +373,123 @@
                     <p class="jobtrack-kicker">Explorer</p>
                     <h2>Applications and prospects</h2>
                     <p class="jobtrack-subtitle">Scan every entry, then sort or filter like a lightweight file explorer.</p>
+                    <p class="jobtrack-progress-summary" data-jobtrack="entry-summary">0 active · 0 interviews · 0 offers</p>
                   </div>
                   <div class="jobtrack-panel-actions">
                     <span class="jobtrack-selected-count" data-jobtrack="entry-selected-count">0 selected</span>
                     <span class="jobtrack-entry-count" data-jobtrack="entry-count">0 entries</span>
+                    <button type="button" class="btn-ghost" data-jobtrack="refresh-entries">Refresh</button>
+                  </div>
+                </div>
+                <div class="jobtrack-entries-toolbar" data-jobtrack="entry-toolbar">
+                  <div class="jobtrack-entries-toolbar-main">
+                    <div class="jobtrack-field">
+                      <label class="jobtrack-label" for="jobtrack-entry-search">Search</label>
+                      <input id="jobtrack-entry-search" class="jobtrack-input" type="search" data-jobtrack="entry-filter-query" placeholder="Company, role, notes, batch">
+                    </div>
+                    <div class="jobtrack-field">
+                      <label class="jobtrack-label" for="jobtrack-entry-group-filter">Status group</label>
+                      <select id="jobtrack-entry-group-filter" class="jobtrack-select" data-jobtrack="entry-filter-group">
+                        <option value="all">All activity</option>
+                        <option value="active">Active</option>
+                        <option value="archived">Archived</option>
+                        <option value="rejected">Rejected</option>
+                      </select>
+                    </div>
+                    <div class="jobtrack-field">
+                      <label class="jobtrack-label" for="jobtrack-entry-type-filter">Type</label>
+                      <select id="jobtrack-entry-type-filter" class="jobtrack-select" data-jobtrack="entry-filter-type">
+                        <option value="all">All types</option>
+                        <option value="application">Applications</option>
+                        <option value="prospect">Prospects</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="jobtrack-entries-toolbar-actions">
+                    <div class="jobtrack-field">
+                      <label class="jobtrack-label" for="jobtrack-entry-sort">Sort</label>
+                      <select id="jobtrack-entry-sort" class="jobtrack-select" data-jobtrack="entry-sort-select">
+                        <option value="date-desc">Applied/Found date (newest)</option>
+                        <option value="date-asc">Applied/Found date (oldest)</option>
+                        <option value="company-asc">Company (A-Z)</option>
+                        <option value="title-asc">Role (A-Z)</option>
+                        <option value="status-asc">Status (A-Z)</option>
+                      </select>
+                    </div>
+                    <div class="jobtrack-field">
+                      <span class="jobtrack-label">View</span>
+                      <div class="jobtrack-segmented" role="radiogroup" aria-label="Entry view" data-jobtrack="entry-view">
+                        <label class="jobtrack-segmented-option">
+                          <input id="jobtrack-entry-view-table" class="jobtrack-segmented-input" name="entryView" type="radio" value="table" checked>
+                          <span>Table</span>
+                        </label>
+                        <label class="jobtrack-segmented-option">
+                          <input id="jobtrack-entry-view-cards" class="jobtrack-segmented-input" name="entryView" type="radio" value="cards">
+                          <span>Cards</span>
+                        </label>
+                      </div>
+                    </div>
+                    <button type="button" class="btn-primary" data-jobtrack="jump-entry">Add job</button>
+                  </div>
+                </div>
+                <div class="jobtrack-status-legend" aria-label="Status legend">
+                  <span class="jobtrack-legend-label">Applications</span>
+                  <span class="jobtrack-status-pill" data-tone="applied">Applied</span>
+                  <span class="jobtrack-status-pill" data-tone="screening">Screening</span>
+                  <span class="jobtrack-status-pill" data-tone="interview">Interview</span>
+                  <span class="jobtrack-status-pill" data-tone="offer">Offer</span>
+                  <span class="jobtrack-status-pill" data-tone="rejected">Rejected</span>
+                  <span class="jobtrack-status-pill" data-tone="withdrawn">Withdrawn</span>
+                  <span class="jobtrack-legend-label">Prospects</span>
+                  <span class="jobtrack-status-pill" data-tone="active">Active</span>
+                  <span class="jobtrack-status-pill" data-tone="interested">Interested</span>
+                  <span class="jobtrack-status-pill" data-tone="inactive">Inactive</span>
+                </div>
+                <details class="jobtrack-filter-details">
+                  <summary class="jobtrack-filter-summary">More filters</summary>
+                  <form class="jobtrack-filter jobtrack-filter-entries" data-jobtrack="entry-filter" novalidate>
+                    <div class="jobtrack-field">
+                      <label class="jobtrack-label" for="jobtrack-entry-status-filter">Status</label>
+                      <select id="jobtrack-entry-status-filter" class="jobtrack-select" data-jobtrack="entry-filter-status">
+                        <option value="all">All statuses</option>
+                      </select>
+                    </div>
+                    <div class="jobtrack-field">
+                      <label class="jobtrack-label" for="jobtrack-entry-source-filter">Source</label>
+                      <select id="jobtrack-entry-source-filter" class="jobtrack-select" data-jobtrack="entry-filter-source">
+                        <option value="all">All sources</option>
+                      </select>
+                    </div>
+                    <div class="jobtrack-field">
+                      <label class="jobtrack-label" for="jobtrack-entry-batch-filter">Batch</label>
+                      <select id="jobtrack-entry-batch-filter" class="jobtrack-select" data-jobtrack="entry-filter-batch">
+                        <option value="all">All batches</option>
+                      </select>
+                    </div>
+                    <div class="jobtrack-field">
+                      <label class="jobtrack-label" for="jobtrack-entry-location-filter">Location type</label>
+                      <select id="jobtrack-entry-location-filter" class="jobtrack-select" data-jobtrack="entry-filter-location">
+                        <option value="all">All locations</option>
+                        <option value="remote">Remote</option>
+                        <option value="onsite">On-site</option>
+                      </select>
+                    </div>
+                    <div class="jobtrack-field">
+                      <label class="jobtrack-label" for="jobtrack-entry-start-filter">From</label>
+                      <input id="jobtrack-entry-start-filter" class="jobtrack-input" type="date" data-jobtrack="entry-filter-start">
+                    </div>
+                    <div class="jobtrack-field">
+                      <label class="jobtrack-label" for="jobtrack-entry-end-filter">To</label>
+                      <input id="jobtrack-entry-end-filter" class="jobtrack-input" type="date" data-jobtrack="entry-filter-end">
+                    </div>
+                    <div class="jobtrack-filter-actions">
+                      <button type="button" class="btn-ghost" data-jobtrack="entry-filter-reset">Reset filters</button>
+                    </div>
+                  </form>
+                </details>
+                <details class="jobtrack-bulk-details">
+                  <summary class="jobtrack-bulk-summary">Bulk actions</summary>
+                  <div class="jobtrack-bulk-actions">
                     <div class="jobtrack-bulk-status">
                       <label class="jobtrack-label" for="jobtrack-bulk-status">Update status</label>
                       <select id="jobtrack-bulk-status" class="jobtrack-select" data-jobtrack="bulk-status">
@@ -338,81 +507,36 @@
                     </div>
                     <button type="button" class="btn-ghost" data-jobtrack="bulk-status-apply">Apply status</button>
                     <button type="button" class="btn-ghost" data-jobtrack="entry-bulk-delete" disabled>Delete selected</button>
-                    <button type="button" class="btn-ghost" data-jobtrack="refresh-entries">Refresh</button>
+                  </div>
+                </details>
+                <div class="jobtrack-entry-view" data-jobtrack="entry-view-wrap" data-view="table">
+                  <div class="jobtrack-table-scroll">
+                    <div class="jobtrack-table" role="table">
+                      <div class="jobtrack-table-head" role="row">
+                        <div class="jobtrack-table-cell jobtrack-table-header jobtrack-table-select" role="columnheader">
+                          <label class="jobtrack-checkbox">
+                            <input class="jobtrack-checkbox-input" type="checkbox" data-jobtrack="entry-select-all" aria-label="Select all entries">
+                          </label>
+                        </div>
+                        <button type="button" class="jobtrack-table-cell jobtrack-table-header" role="columnheader" aria-sort="none" data-jobtrack-sort="type">Type</button>
+                        <button type="button" class="jobtrack-table-cell jobtrack-table-header" role="columnheader" aria-sort="none" data-jobtrack-sort="company">Company</button>
+                        <button type="button" class="jobtrack-table-cell jobtrack-table-header" role="columnheader" aria-sort="none" data-jobtrack-sort="title">Role</button>
+                        <button type="button" class="jobtrack-table-cell jobtrack-table-header" role="columnheader" aria-sort="none" data-jobtrack-sort="status">Status</button>
+                        <div class="jobtrack-table-cell jobtrack-table-header" role="columnheader">Next action</div>
+                        <button type="button" class="jobtrack-table-cell jobtrack-table-header" role="columnheader" aria-sort="none" data-jobtrack-sort="location">Location</button>
+                        <button type="button" class="jobtrack-table-cell jobtrack-table-header" role="columnheader" aria-sort="none" data-jobtrack-sort="postingDate">Posted</button>
+                        <button type="button" class="jobtrack-table-cell jobtrack-table-header" role="columnheader" aria-sort="none" data-jobtrack-sort="date">Applied/Found</button>
+                        <button type="button" class="jobtrack-table-cell jobtrack-table-header" role="columnheader" aria-sort="none" data-jobtrack-sort="source">Source</button>
+                        <button type="button" class="jobtrack-table-cell jobtrack-table-header" role="columnheader" aria-sort="none" data-jobtrack-sort="batch">Batch</button>
+                        <div class="jobtrack-table-cell jobtrack-table-header" role="columnheader">Actions</div>
+                      </div>
+                      <div class="jobtrack-table-body" data-jobtrack="entry-list"></div>
+                    </div>
                   </div>
                 </div>
-                <form class="jobtrack-filter jobtrack-filter-entries" data-jobtrack="entry-filter" novalidate>
-                  <div class="jobtrack-field">
-                    <label class="jobtrack-label" for="jobtrack-entry-search">Search</label>
-                    <input id="jobtrack-entry-search" class="jobtrack-input" type="search" data-jobtrack="entry-filter-query" placeholder="Company, role, notes, batch">
-                  </div>
-                  <div class="jobtrack-field">
-                    <label class="jobtrack-label" for="jobtrack-entry-type-filter">Type</label>
-                    <select id="jobtrack-entry-type-filter" class="jobtrack-select" data-jobtrack="entry-filter-type">
-                      <option value="all">All types</option>
-                      <option value="application">Applications</option>
-                      <option value="prospect">Prospects</option>
-                    </select>
-                  </div>
-                  <div class="jobtrack-field">
-                    <label class="jobtrack-label" for="jobtrack-entry-status-filter">Status</label>
-                    <select id="jobtrack-entry-status-filter" class="jobtrack-select" data-jobtrack="entry-filter-status">
-                      <option value="all">All statuses</option>
-                    </select>
-                  </div>
-                  <div class="jobtrack-field">
-                    <label class="jobtrack-label" for="jobtrack-entry-source-filter">Source</label>
-                    <select id="jobtrack-entry-source-filter" class="jobtrack-select" data-jobtrack="entry-filter-source">
-                      <option value="all">All sources</option>
-                    </select>
-                  </div>
-                  <div class="jobtrack-field">
-                    <label class="jobtrack-label" for="jobtrack-entry-batch-filter">Batch</label>
-                    <select id="jobtrack-entry-batch-filter" class="jobtrack-select" data-jobtrack="entry-filter-batch">
-                      <option value="all">All batches</option>
-                    </select>
-                  </div>
-                  <div class="jobtrack-field">
-                    <label class="jobtrack-label" for="jobtrack-entry-location-filter">Location type</label>
-                    <select id="jobtrack-entry-location-filter" class="jobtrack-select" data-jobtrack="entry-filter-location">
-                      <option value="all">All locations</option>
-                      <option value="remote">Remote</option>
-                      <option value="onsite">On-site</option>
-                    </select>
-                  </div>
-                  <div class="jobtrack-field">
-                    <label class="jobtrack-label" for="jobtrack-entry-start-filter">From</label>
-                    <input id="jobtrack-entry-start-filter" class="jobtrack-input" type="date" data-jobtrack="entry-filter-start">
-                  </div>
-                  <div class="jobtrack-field">
-                    <label class="jobtrack-label" for="jobtrack-entry-end-filter">To</label>
-                    <input id="jobtrack-entry-end-filter" class="jobtrack-input" type="date" data-jobtrack="entry-filter-end">
-                  </div>
-                  <div class="jobtrack-filter-actions">
-                    <button type="button" class="btn-ghost" data-jobtrack="entry-filter-reset">Reset filters</button>
-                  </div>
-                </form>
-                <div class="jobtrack-table-scroll">
-                  <div class="jobtrack-table" role="table">
-                    <div class="jobtrack-table-head" role="row">
-                      <div class="jobtrack-table-cell jobtrack-table-header jobtrack-table-select" role="columnheader">
-                        <label class="jobtrack-checkbox">
-                          <input class="jobtrack-checkbox-input" type="checkbox" data-jobtrack="entry-select-all" aria-label="Select all entries">
-                        </label>
-                      </div>
-                      <button type="button" class="jobtrack-table-cell jobtrack-table-header" role="columnheader" aria-sort="none" data-jobtrack-sort="type">Type</button>
-                      <button type="button" class="jobtrack-table-cell jobtrack-table-header" role="columnheader" aria-sort="none" data-jobtrack-sort="company">Company</button>
-                      <button type="button" class="jobtrack-table-cell jobtrack-table-header" role="columnheader" aria-sort="none" data-jobtrack-sort="title">Role</button>
-                      <button type="button" class="jobtrack-table-cell jobtrack-table-header" role="columnheader" aria-sort="none" data-jobtrack-sort="status">Status</button>
-                      <button type="button" class="jobtrack-table-cell jobtrack-table-header" role="columnheader" aria-sort="none" data-jobtrack-sort="location">Location</button>
-                      <button type="button" class="jobtrack-table-cell jobtrack-table-header" role="columnheader" aria-sort="none" data-jobtrack-sort="postingDate">Posted</button>
-                      <button type="button" class="jobtrack-table-cell jobtrack-table-header" role="columnheader" aria-sort="none" data-jobtrack-sort="date">Applied/Found</button>
-                      <button type="button" class="jobtrack-table-cell jobtrack-table-header" role="columnheader" aria-sort="none" data-jobtrack-sort="source">Source</button>
-                      <button type="button" class="jobtrack-table-cell jobtrack-table-header" role="columnheader" aria-sort="none" data-jobtrack-sort="batch">Batch</button>
-                      <div class="jobtrack-table-cell jobtrack-table-header" role="columnheader">Actions</div>
-                    </div>
-                    <div class="jobtrack-table-body" data-jobtrack="entry-list"></div>
-                  </div>
+                <div class="jobtrack-undo-banner" data-jobtrack="entry-undo" data-state="hidden" role="status" aria-live="polite">
+                  <span class="jobtrack-undo-message" data-jobtrack="entry-undo-message"></span>
+                  <button type="button" class="btn-ghost" data-jobtrack="entry-undo-action">Undo</button>
                 </div>
                 <p class="jobtrack-form-status" data-jobtrack="entry-list-status" role="status" aria-live="polite">Sign in to load your entries.</p>
               </article>
@@ -446,7 +570,7 @@
               <article class="jobtrack-card jobtrack-dashboard-card" data-jobtrack="dashboard" aria-busy="false">
                 <div class="jobtrack-dashboard-head">
                   <div>
-                    <p class="jobtrack-kicker">Dashboard</p>
+                    <p class="jobtrack-kicker">Summary</p>
                     <h2>Application pulse</h2>
                     <p class="jobtrack-subtitle">Filter by date range to see momentum, status mix, daily activity, and efficiency gains.</p>
                   </div>
