@@ -540,8 +540,23 @@
     gap:12px;
   }
 
+  .jobtrack-list-card{
+    max-width:100%;
+  }
+  .jobtrack-list-card > *{
+    min-width:0;
+  }
+  .jobtrack-entry-view{
+    min-width:0;
+    max-width:100%;
+    overflow-x:hidden;
+  }
   .jobtrack-table-scroll{
     overflow-x:auto;
+    width:100%;
+    max-width:100%;
+    min-width:0;
+    box-sizing:border-box;
     border-radius:16px;
     border:1px solid color-mix(in srgb,var(--jobtrack-accent) 18%, transparent);
     background:color-mix(in srgb,var(--jobtrack-surface) 92%, #02060c 8%);
