@@ -720,8 +720,13 @@ window.PROJECTS = [
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/target-packaging-analysis-mssql", label: "GitHub" },
       { icon: "img/icons/pdf-icon.png",    url: "documents/Project_12.pdf",                                        label: "PDF"    },
-      { icon: "img/icons/jupyter-icon.png",url: "documents/Project_12.ipynb",                                      label: "Notebook"}
+      { icon: "img/icons/jupyter-icon.png",url: "documents/Project_12.ipynb",                                      label: "Notebook"},
+      { icon: "img/icons/website-icon.png",url: "https://danielshort.me/retail-loss-sales-demo.html",              label: "Live Demo" }
     ],
+    embed: {
+      type: "iframe",
+      url: "retail-loss-sales-demo.html"
+    },
     role: [
       "Owned the analysis end-to-end: SQL data modeling/ETL, anomaly detection, and reporting."
     ],
