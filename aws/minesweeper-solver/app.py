@@ -12,6 +12,7 @@ MODEL_DIR = os.path.join(os.path.dirname(__file__), "models")
 DEFAULT_MODEL_PREFIX = os.getenv("MODEL_PREFIX", "")
 DEFAULT_GRID_SIZE = int(os.getenv("GRID_SIZE", "9"))
 DEFAULT_MINE_RATIO = float(os.getenv("MINE_RATIO", "0.2"))
+MAX_GUESS_COMPONENT = int(os.getenv("GUESS_COMPONENT_MAX", "18"))
 
 torch.set_grad_enabled(False)
 torch.set_num_threads(1)
@@ -311,6 +312,178 @@ class MinesweeperEnv:
     return scaled[np.newaxis, :, :]
 
 
+def enumerate_component(num_vars, constraints):
+  if num_vars == 0:
+    return 1, []
+  var_to_constraints = [[] for _ in range(num_vars)]
+  totals = []
+  for idx, (vars_in, total) in enumerate(constraints):
+    totals.append(int(total))
+    for v in vars_in:
+      var_to_constraints[v].append(idx)
+  rem_sum = totals[:]
+  rem_vars = [len(vars_in) for vars_in, _ in constraints]
+  order = sorted(range(num_vars), key=lambda v: len(var_to_constraints[v]), reverse=True)
+  assignment = [0] * num_vars
+  mine_counts = [0] * num_vars
+  total_solutions = 0
+
+  def backtrack(depth):
+    nonlocal total_solutions
+    if depth == num_vars:
+      if all(rs == 0 for rs in rem_sum):
+        total_solutions += 1
+        for v in range(num_vars):
+          if assignment[v]:
+            mine_counts[v] += 1
+      return
+    var = order[depth]
+    for val in (0, 1):
+      ok = True
+      changed = []
+      for c in var_to_constraints[var]:
+        rem_sum[c] -= val
+        rem_vars[c] -= 1
+        changed.append(c)
+        if rem_sum[c] < 0 or rem_sum[c] > rem_vars[c]:
+          ok = False
+          break
+      if ok:
+        assignment[var] = val
+        backtrack(depth + 1)
+        assignment[var] = 0
+      for c in changed:
+        rem_sum[c] += val
+        rem_vars[c] += 1
+
+  backtrack(0)
+  return total_solutions, mine_counts
+
+
+def analyze_guess(env, action):
+  size = env.size
+  revealed = env.revealed
+  numbers = env.state
+  frontier_set = set()
+  constraints = []
+
+  for y in range(size):
+    for x in range(size):
+      if not revealed[y, x]:
+        continue
+      if numbers[y, x] < 0:
+        continue
+      neighbors = []
+      for dy in (-1, 0, 1):
+        for dx in (-1, 0, 1):
+          if dy == 0 and dx == 0:
+            continue
+          ny, nx = y + dy, x + dx
+          if 0 <= ny < size and 0 <= nx < size and not revealed[ny, nx]:
+            neighbors.append((ny, nx))
+      if not neighbors:
+        continue
+      for cell in neighbors:
+        frontier_set.add(cell)
+
+  if not frontier_set:
+    return {"computed": False, "frontier_size": 0}
+
+  frontier = list(frontier_set)
+  index_map = {coord: idx for idx, coord in enumerate(frontier)}
+
+  for y in range(size):
+    for x in range(size):
+      if not revealed[y, x]:
+        continue
+      if numbers[y, x] < 0:
+        continue
+      neighbors = []
+      for dy in (-1, 0, 1):
+        for dx in (-1, 0, 1):
+          if dy == 0 and dx == 0:
+            continue
+          ny, nx = y + dy, x + dx
+          if 0 <= ny < size and 0 <= nx < size and not revealed[ny, nx]:
+            neighbors.append(index_map[(ny, nx)])
+      if not neighbors:
+        continue
+      total = int(numbers[y, x])
+      if total < 0 or total > len(neighbors):
+        return {"computed": False, "frontier_size": len(frontier)}
+      constraints.append((neighbors, total))
+
+  if not constraints:
+    return {"computed": False, "frontier_size": len(frontier)}
+
+  parent = list(range(len(frontier)))
+
+  def find(a):
+    while parent[a] != a:
+      parent[a] = parent[parent[a]]
+      a = parent[a]
+    return a
+
+  def union(a, b):
+    ra, rb = find(a), find(b)
+    if ra != rb:
+      parent[rb] = ra
+
+  for vars_in, _ in constraints:
+    if len(vars_in) < 2:
+      continue
+    anchor = vars_in[0]
+    for v in vars_in[1:]:
+      union(anchor, v)
+
+  components = {}
+  for idx in range(len(frontier)):
+    root = find(idx)
+    components.setdefault(root, []).append(idx)
+
+  constraints_by_root = {root: [] for root in components}
+  for vars_in, total in constraints:
+    root = find(vars_in[0])
+    constraints_by_root[root].append((vars_in, total))
+
+  mine_probs = [None] * len(frontier)
+  safe_moves = 0
+
+  for root, vars_list in components.items():
+    if len(vars_list) > MAX_GUESS_COMPONENT:
+      return {"computed": False, "frontier_size": len(frontier)}
+    local_index = {v: i for i, v in enumerate(vars_list)}
+    local_constraints = []
+    for vars_in, total in constraints_by_root[root]:
+      local_constraints.append(([local_index[v] for v in vars_in], total))
+    total_solutions, mine_counts = enumerate_component(len(vars_list), local_constraints)
+    if total_solutions == 0:
+      return {"computed": False, "frontier_size": len(frontier)}
+    for v in vars_list:
+      prob = mine_counts[local_index[v]] / total_solutions
+      mine_probs[v] = prob
+      if prob == 0:
+        safe_moves += 1
+
+  row, col = divmod(action, size)
+  action_idx = index_map.get((row, col))
+  prob_mine = None
+  if action_idx is not None:
+    prob_mine = mine_probs[action_idx]
+
+  forced_guess = bool(prob_mine is not None and safe_moves == 0)
+  is_5050 = bool(forced_guess and prob_mine is not None and abs(prob_mine - 0.5) <= 1e-6)
+
+  return {
+    "computed": True,
+    "frontier_size": len(frontier),
+    "safe_moves": safe_moves,
+    "prob_mine": prob_mine,
+    "forced_guess": forced_guess,
+    "is_5050": is_5050
+  }
+
+
 def parse_body(event):
   if not event:
     return {}
@@ -396,10 +569,17 @@ def solve_game(seed=None, max_steps=None):
   solution = None
   safe_moves = 0
   hit_mine = False
+  guess_summary = {
+    "forced_guess_total": 0,
+    "forced_guess_correct": 0,
+    "forced_5050_total": 0,
+    "forced_5050_correct": 0
+  }
   step_limit = max_steps or (grid_size * grid_size * 2)
 
   for _ in range(step_limit):
     action = agent.act(state, board_size=grid_size)
+    guess_info = analyze_guess(env, action)
     prev_revealed = env.revealed.copy()
     next_state, reward, done, info = env.step(action, "reveal")
     last = info.get("last_action") or {}
@@ -415,6 +595,15 @@ def solve_game(seed=None, max_steps=None):
 
     if env.revealed[row, col] and env.state[row, col] == -1:
       hit_mine = True
+    if guess_info and guess_info.get("forced_guess"):
+      guess_info["correct"] = not hit_mine
+      guess_summary["forced_guess_total"] += 1
+      if guess_info["correct"]:
+        guess_summary["forced_guess_correct"] += 1
+      if guess_info.get("is_5050"):
+        guess_summary["forced_5050_total"] += 1
+        if guess_info["correct"]:
+          guess_summary["forced_5050_correct"] += 1
 
     if reward > 0:
       safe_moves += 1
@@ -426,7 +615,8 @@ def solve_game(seed=None, max_steps=None):
       "done": bool(done),
       "message": info.get("message", ""),
       "newly_opened": newly_opened,
-      "hit_mine": bool(hit_mine and done)
+      "hit_mine": bool(hit_mine and done),
+      "guess": guess_info
     })
 
     state = next_state
@@ -445,7 +635,8 @@ def solve_game(seed=None, max_steps=None):
     "safe_moves": safe_moves,
     "hit_mine": bool(hit_mine),
     "success": bool(not hit_mine and env.done),
-    "model": meta
+    "model": meta,
+    "guess_summary": guess_summary
   }
 
 

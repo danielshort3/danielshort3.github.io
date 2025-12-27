@@ -273,6 +273,26 @@
       transform: translateX(-50%);
     }
 
+    .cell.guess-5050-correct {
+      outline: 2px solid #16a34a;
+      outline-offset: -2px;
+    }
+
+    .cell.guess-5050-wrong {
+      outline: 2px solid #dc2626;
+      outline-offset: -2px;
+    }
+
+    .cell.guess-forced-correct {
+      outline: 2px dashed #16a34a;
+      outline-offset: -2px;
+    }
+
+    .cell.guess-forced-wrong {
+      outline: 2px dashed #dc2626;
+      outline-offset: -2px;
+    }
+
     .cell.n1 { color: #1d4ed8; }
     .cell.n2 { color: #15803d; }
     .cell.n3 { color: #b91c1c; }
@@ -536,7 +556,12 @@
 
     function setModelStats(model) {
       if (!model) return;
-      const label = `${model.dqn_variant} / ${model.cnn_variant}`;
+      const dqnLabel = model.dqn_variant === 'DoubleDQN'
+        ? 'Double DQN'
+        : (model.dqn_variant || '');
+      const cnnLabel = String(model.cnn_variant || '').replace(/_/g, ' ');
+      const replayLabel = String(model.replay_type || '').replace(/_/g, ' ');
+      const label = `${dqnLabel} / ${cnnLabel} / ${replayLabel}`;
       statModel.textContent = label;
       statSuccess.textContent = `${Math.round((model.success_rate || 0) * 100)}%`;
     }
@@ -630,8 +655,22 @@
       const item = document.createElement('div');
       const coord = `r${step.row + 1}c${step.col + 1}`;
       const message = step.message || 'Move processed.';
+      const guess = step.guess || {};
+      let guessLabel = '';
+      if (guess.forced_guess && Number.isFinite(guess.prob_mine)) {
+        const minePct = Math.round(guess.prob_mine * 100);
+        const outcome = guess.correct ? 'Correct' : 'Wrong';
+        if (guess.is_5050) {
+          guessLabel = `Forced 50/50 (${outcome})`;
+        } else {
+          guessLabel = `Forced guess (${minePct}% mine · ${outcome})`;
+        }
+      } else if (guess.forced_guess) {
+        const outcome = guess.correct ? 'Correct' : 'Wrong';
+        guessLabel = `Forced guess (${outcome})`;
+      }
       item.className = 'log-entry';
-      item.innerHTML = `<span><strong>#${index + 1}</strong> ${coord}</span><span>${message}</span>`;
+      item.innerHTML = `<span><strong>#${index + 1}</strong> ${coord}</span><span>${guessLabel ? `${message} · ${guessLabel}` : message}</span>`;
       logEl.prepend(item);
       logEl.scrollTop = 0;
     }
@@ -642,6 +681,17 @@
         revealed[y][x] = true;
         revealCell(y, x, true);
       });
+      const guess = step.guess || {};
+      if (guess.forced_guess && typeof guess.correct === 'boolean') {
+        const selector = `.cell[data-row="${step.row}"][data-col="${step.col}"]`;
+        const actionCell = gridEl.querySelector(selector);
+        if (actionCell) {
+          const className = guess.is_5050
+            ? (guess.correct ? 'guess-5050-correct' : 'guess-5050-wrong')
+            : (guess.correct ? 'guess-forced-correct' : 'guess-forced-wrong');
+          actionCell.classList.add(className);
+        }
+      }
       appendLog(step, index);
     }
 
@@ -683,6 +733,7 @@
       setStatus('Solving...');
       resetStats();
       solutionVisible = false;
+      revealSnapshot = null;
       renderBoard(current.grid);
 
       const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -693,9 +744,16 @@
         solveBtn.disabled = false;
         statMoves.textContent = `${current.step_count} moves`;
         updateOutcome();
-        const resultMessage = current.success
+        const summary = current.guess_summary || {};
+        let resultMessage = current.success
           ? `Solved in ${current.step_count} moves`
           : (current.hit_mine ? `Mine triggered on move ${current.step_count}` : `Stopped after ${current.step_count} moves`);
+        if (summary.forced_guess_total) {
+          resultMessage += ` • forced guesses ${summary.forced_guess_correct}/${summary.forced_guess_total}`;
+        }
+        if (summary.forced_5050_total) {
+          resultMessage += ` • 50/50 ${summary.forced_5050_correct}/${summary.forced_5050_total}`;
+        }
         showPerformanceToast(resultMessage);
         setStatus('Solve complete. Generate a new puzzle to try again.');
         notifyResize();
@@ -763,6 +821,7 @@
       solveBtn.disabled = true;
       solutionBtn.disabled = true;
       solutionVisible = false;
+      revealSnapshot = null;
       setStatus('Generating puzzle...');
       resetStats();
 
@@ -796,19 +855,32 @@
       }
     }
 
+    function setSolutionVisible(nextVisible) {
+      if (!current) return false;
+      if (nextVisible === solutionVisible) return true;
+      if (nextVisible) {
+        revealSnapshot = captureRevealedSnapshot();
+        solutionVisible = true;
+        revealSolution();
+        return true;
+      }
+      solutionVisible = false;
+      restoreRevealedSnapshot(revealSnapshot);
+      revealSnapshot = null;
+      return true;
+    }
+
+    function previewSolution(show) {
+      if (solving || solutionBtn.disabled) return;
+      setSolutionVisible(show);
+    }
+
     newBtn.addEventListener('click', loadPuzzle);
     solveBtn.addEventListener('click', runSolve);
-
-    solutionBtn.addEventListener('click', () => {
-      if (!current) return;
-      solutionVisible = !solutionVisible;
-      if (solutionVisible) {
-        revealSnapshot = captureRevealedSnapshot();
-        revealSolution();
-      } else {
-        restoreRevealedSnapshot(revealSnapshot);
-      }
-    });
+    solutionBtn.addEventListener('mouseenter', () => previewSolution(true));
+    solutionBtn.addEventListener('mouseleave', () => previewSolution(false));
+    solutionBtn.addEventListener('focus', () => previewSolution(true));
+    solutionBtn.addEventListener('blur', () => previewSolution(false));
 
     warmUpServer();
   </script>
