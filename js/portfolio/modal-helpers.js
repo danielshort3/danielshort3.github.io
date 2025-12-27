@@ -572,7 +572,7 @@
   window.addEventListener('message', (e) => {
     const data = e && e.data || {};
     const type = typeof data?.type === 'string' ? data.type : '';
-    if (!/(chatbot|shape|sentence|nonogram|handwriting|digit-generator|covid-outbreak|baby-names|pizza|target-empty-package|retail-loss-sales)-demo-resize/.test(type)) return;
+    if (!/(chatbot|shape|sentence|nonogram|minesweeper|handwriting|digit-generator|covid-outbreak|baby-names|pizza|target-empty-package|retail-loss-sales)-demo-resize/.test(type)) return;
     try {
       const ifrs = document.querySelectorAll('.modal-embed iframe');
       for (const f of ifrs) {

@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <base href="/">
+  <title>Minesweeper Solver Demo</title>
+
+  <meta name="theme-color" content="#0D1117">
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@600&display=swap">
+
+  <style>
+    :root {
+      --radius: 14px;
+      --shadow-1: 0 2px 10px rgba(0,0,0,.06), 0 1px 4px rgba(0,0,0,.06);
+      --shadow-2: 0 8px 30px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.08);
+      --surface-2: var(--surface-light);
+      --text: var(--text-light);
+      --page-pad: clamp(12px, 3vw, 24px);
+      --cell-size: clamp(30px, 4.6vw, 46px);
+      --log-row-height: 36px;
+      --grid-size: 8;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { height: 100%; }
+    html[data-embedded="true"],
+    html[data-embedded="true"] body{
+      height: auto !important;
+      min-height: 0 !important;
+    }
+    html[data-embedded="true"] {
+      --page-pad: clamp(8px, 2vw, 16px);
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background: radial-gradient(1200px 500px at 50% -10%, color-mix(in srgb, var(--primary) 15%, transparent), transparent 60%) var(--bg);
+      display: grid;
+      place-items: start center;
+      padding: var(--page-pad);
+      overflow-x: hidden;
+    }
+
+    #demo-box {
+      width: min(100%, 980px);
+      background: var(--surface);
+      border: 1px solid var(--surface-accent);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-2);
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto auto auto;
+    }
+
+    html[data-embedded="true"] #demo-box{
+      min-height: 0 !important;
+    }
+
+    header.card-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 18px;
+      background: linear-gradient(0deg, var(--surface), var(--surface-2));
+      border-bottom: 1px solid var(--surface-accent);
+    }
+
+    .header-copy {
+      min-width: 0;
+      display: grid;
+      gap: 6px;
+    }
+
+    .title {
+      font-family: Poppins, Inter, system-ui, sans-serif;
+      font-weight: 600;
+      margin: 0;
+      font-size: clamp(1.1rem, 2.2vw, 1.35rem);
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: .9rem;
+      max-width: 60ch;
+    }
+
+    .health-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 8px 16px 0;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      padding: 12px 16px 0;
+    }
+
+    .controls label {
+      font-size: .85rem;
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .controls input[type="number"] {
+      width: 110px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--surface-accent);
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    .controls input[type="text"] {
+      flex: 1 1 260px;
+      min-width: 220px;
+      max-width: 420px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--surface-accent);
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    .health-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--surface-accent);
+      background: var(--surface-2);
+      font-size: .7rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .health-pill::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .health-pill[data-state="ok"] {
+      color: var(--success, #38b37e);
+      border-color: color-mix(in srgb, var(--success, #38b37e) 55%, var(--surface-accent) 45%);
+    }
+
+    .health-pill[data-state="err"] {
+      color: var(--danger, #e05757);
+      border-color: color-mix(in srgb, var(--danger, #e05757) 55%, var(--surface-accent) 45%);
+    }
+
+    .health-pill[data-state="warming"] {
+      color: var(--warning, #f3b550);
+      border-color: color-mix(in srgb, var(--warning, #f3b550) 55%, var(--surface-accent) 45%);
+    }
+
+    .status {
+      padding: 10px 16px 0;
+      color: var(--text-muted);
+      font-size: .9rem;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: auto minmax(260px, 320px);
+      gap: 18px;
+      justify-content: center;
+      align-items: start;
+      padding: 16px;
+    }
+
+    .board-column {
+      display: grid;
+      gap: 12px;
+      align-items: start;
+      justify-items: center;
+    }
+
+    .board-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .board-shell {
+      position: relative;
+      display: grid;
+      gap: 10px;
+      align-items: stretch;
+      justify-content: center;
+      justify-items: stretch;
+      background: color-mix(in srgb, var(--surface) 70%, #ffffff 30%);
+      border-radius: 16px;
+      padding: 14px;
+      border: 1px solid var(--surface-accent);
+      box-shadow: var(--shadow-1);
+      overflow: hidden;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(var(--grid-size), var(--cell-size));
+      grid-template-rows: repeat(var(--grid-size), var(--cell-size));
+      gap: 6px;
+    }
+
+    .cell {
+      border-radius: 8px;
+      background: #e6edf3;
+      border: 1px solid #d2d8df;
+      display: grid;
+      place-items: center;
+      font-weight: 600;
+      font-size: clamp(.78rem, 2.2vw, .95rem);
+      color: #1f2933;
+      transition: transform .2s ease, background .2s ease, border-color .2s ease;
+    }
+
+    .cell.revealed {
+      background: #f7fafc;
+      border-color: #c7d1db;
+    }
+
+    .cell.mine {
+      background: #ffdede;
+      border-color: #f5a6a6;
+      color: #912323;
+    }
+
+    .cell.newly-opened {
+      animation: pop .4s ease;
+    }
+
+    .cell.n1 { color: #1d4ed8; }
+    .cell.n2 { color: #15803d; }
+    .cell.n3 { color: #b91c1c; }
+    .cell.n4 { color: #7c3aed; }
+    .cell.n5 { color: #c2410c; }
+    .cell.n6 { color: #0e7490; }
+    .cell.n7 { color: #0f172a; }
+    .cell.n8 { color: #4b5563; }
+
+    @keyframes pop {
+      0% { transform: scale(.94); }
+      100% { transform: scale(1); }
+    }
+
+    .panel {
+      background: var(--surface-2);
+      border: 1px solid var(--surface-accent);
+      border-radius: 12px;
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+      box-shadow: var(--shadow-1);
+      min-height: 100%;
+    }
+
+    .stat {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: .85rem;
+      color: var(--text-muted);
+    }
+
+    .stat strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .log {
+      display: grid;
+      gap: 8px;
+      max-height: calc(var(--log-row-height) * 7);
+      overflow: auto;
+      padding-right: 6px;
+    }
+
+    .log-entry {
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--surface-accent);
+      background: var(--surface);
+      font-size: .8rem;
+      line-height: 1.4;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .log-entry strong {
+      color: var(--primary);
+    }
+
+    .solution-trigger {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 6px 12px;
+      border: 1px solid var(--surface-accent);
+      background: transparent;
+      font-size: .75rem;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .solution-trigger.active {
+      color: var(--text);
+      border-color: color-mix(in srgb, var(--primary) 40%, var(--surface-accent));
+    }
+
+    @media (max-width: 880px){
+      .content{
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+  <script>
+    if (window.self !== window.top) {
+      document.documentElement.setAttribute("data-embedded", "true");
+    }
+  </script>
+</head>
+<body>
+  <div id="demo-box" role="application" aria-label="Minesweeper solver demo">
+    <header class="card-header">
+      <div class="header-copy">
+        <h1 class="title">Minesweeper AI Solver</h1>
+        <p class="subtitle">A reinforcement learning agent reads the board, picks safe moves, and closes the puzzle step-by-step.</p>
+      </div>
+      <button id="solution-btn" class="solution-trigger" type="button" disabled>Show solution</button>
+    </header>
+
+    <div class="health-row" role="status" aria-live="polite">
+      <span id="health-pill" class="health-pill" data-state="warming">Warming up</span>
+    </div>
+
+    <div class="status" id="status">Ready. Generate a puzzle to begin.</div>
+
+    <div class="controls">
+      <label for="prompt-input">Prompt</label>
+      <input id="prompt-input" type="text" maxlength="160" placeholder="Ask the AI to solve this board..." />
+    </div>
+
+    <div class="content">
+      <div class="board-column">
+        <div class="board-shell" aria-label="Minesweeper board">
+          <div class="grid" id="grid"></div>
+        </div>
+        <div class="board-actions">
+          <button id="new-btn" class="btn-primary" type="button" disabled>New Puzzle</button>
+          <button id="solve-btn" class="btn-primary" type="button" disabled>Solve With AI</button>
+        </div>
+      </div>
+
+      <aside class="panel" aria-live="polite">
+        <div class="stat"><span>Model</span> <strong id="stat-model">-</strong></div>
+        <div class="stat"><span>Success Rate</span> <strong id="stat-success">-</strong></div>
+        <div class="stat"><span>Moves</span> <strong id="stat-moves">-</strong></div>
+        <div class="stat"><span>Outcome</span> <strong id="stat-outcome">-</strong></div>
+        <div class="log" id="log"></div>
+      </aside>
+    </div>
+  </div>
+
+  <script src="js/demos/aws-client.js"></script>
+  <script type="module">
+    const DEFAULT_FN_URL = "https://jnvd3mdbyb5f44yh4afzsvqlwy0mdtzy.lambda-url.us-east-2.on.aws/";
+    const STORAGE_KEY = "demo.endpoint.minesweeper";
+    const { listCandidates, postWithFallback, rememberEndpoint, getJson, normalizeBase } = window.DemoAws;
+    const endpointConfig = {
+      defaultUrl: DEFAULT_FN_URL,
+      storageKey: STORAGE_KEY
+    };
+    const candidates = () => listCandidates(endpointConfig);
+    const postToEndpoint = (base, payload) => postWithFallback(base, ['', 'solve', 'predict'], payload);
+
+    const gridEl = document.getElementById('grid');
+    const statusEl = document.getElementById('status');
+    const healthPill = document.getElementById('health-pill');
+    const logEl = document.getElementById('log');
+    const newBtn = document.getElementById('new-btn');
+    const solveBtn = document.getElementById('solve-btn');
+    const solutionBtn = document.getElementById('solution-btn');
+    const promptInput = document.getElementById('prompt-input');
+
+    const statModel = document.getElementById('stat-model');
+    const statSuccess = document.getElementById('stat-success');
+    const statMoves = document.getElementById('stat-moves');
+    const statOutcome = document.getElementById('stat-outcome');
+
+    let current = null;
+    let revealed = [];
+    let solving = false;
+    let intervalId = null;
+    let solutionVisible = false;
+    let revealSnapshot = null;
+    let serverReady = false;
+    let initialLoadTriggered = false;
+    let currentPrompt = '';
+
+    const notifyResize = (() => {
+      if (window.self === window.top) return () => {};
+      let lastHeight = 0;
+      const postHeight = () => {
+        const height = document.documentElement.scrollHeight;
+        if (Math.abs(height - lastHeight) < 4) return;
+        lastHeight = height;
+        window.parent.postMessage({ type: "minesweeper-demo-resize", height }, "*");
+      };
+      window.addEventListener("load", () => requestAnimationFrame(postHeight));
+      window.addEventListener("resize", () => requestAnimationFrame(postHeight));
+      return postHeight;
+    })();
+
+    function setStatus(text) {
+      statusEl.textContent = text;
+    }
+
+    function setHealth(state, text) {
+      if (!healthPill) return;
+      healthPill.dataset.state = state;
+      healthPill.textContent = text;
+    }
+
+    function setControlsEnabled(enabled) {
+      newBtn.disabled = !enabled;
+      solveBtn.disabled = !enabled;
+      solutionBtn.disabled = !enabled;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function resetStats() {
+      statMoves.textContent = '-';
+      statOutcome.textContent = '-';
+      logEl.innerHTML = '';
+    }
+
+    function setModelStats(model) {
+      if (!model) return;
+      const label = `${model.dqn_variant} / ${model.cnn_variant}`;
+      statModel.textContent = label;
+      statSuccess.textContent = `${Math.round((model.success_rate || 0) * 100)}%`;
+    }
+
+    function renderBoard(gridSize) {
+      gridEl.innerHTML = '';
+      document.documentElement.style.setProperty('--grid-size', gridSize);
+      revealed = Array.from({ length: gridSize }, () => Array(gridSize).fill(false));
+      for (let r = 0; r < gridSize; r++) {
+        for (let c = 0; c < gridSize; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.dataset.row = String(r);
+          cell.dataset.col = String(c);
+          gridEl.appendChild(cell);
+        }
+      }
+    }
+
+    function cellValueAt(row, col) {
+      if (!current || !Array.isArray(current.solution)) return 0;
+      return current.solution[row][col];
+    }
+
+    function applyCellClass(cell, value) {
+      cell.classList.remove('mine', 'n1', 'n2', 'n3', 'n4', 'n5', 'n6', 'n7', 'n8');
+      if (value < 0) {
+        cell.classList.add('mine');
+        cell.textContent = '*';
+        return;
+      }
+      if (value > 0) {
+        cell.classList.add(`n${value}`);
+        cell.textContent = String(value);
+      } else {
+        cell.textContent = '';
+      }
+    }
+
+    function revealCell(row, col, newlyOpened) {
+      const selector = `.cell[data-row="${row}"][data-col="${col}"]`;
+      const cell = gridEl.querySelector(selector);
+      if (!cell) return;
+      cell.classList.add('revealed');
+      if (newlyOpened) {
+        cell.classList.add('newly-opened');
+        setTimeout(() => cell.classList.remove('newly-opened'), 350);
+      }
+      const value = cellValueAt(row, col);
+      applyCellClass(cell, value);
+    }
+
+    function renderState() {
+      for (let r = 0; r < revealed.length; r++) {
+        for (let c = 0; c < revealed[r].length; c++) {
+          if (revealed[r][c]) {
+            revealCell(r, c, false);
+          }
+        }
+      }
+    }
+
+    function revealSolution() {
+      if (!current) return;
+      for (let r = 0; r < current.grid; r++) {
+        for (let c = 0; c < current.grid; c++) {
+          revealCell(r, c, false);
+        }
+      }
+    }
+
+    function captureRevealedSnapshot() {
+      return revealed.map(row => row.slice());
+    }
+
+    function restoreRevealedSnapshot(snapshot) {
+      if (!snapshot) return;
+      revealed = snapshot.map(row => row.slice());
+      gridEl.querySelectorAll('.cell').forEach(cell => {
+        cell.className = 'cell';
+        cell.textContent = '';
+      });
+      renderState();
+    }
+
+    function appendLog(step, index) {
+      const item = document.createElement('div');
+      const coord = `r${step.row + 1}c${step.col + 1}`;
+      const message = step.message || 'Move processed.';
+      item.className = 'log-entry';
+      item.innerHTML = `<span><strong>#${index + 1}</strong> ${coord}</span><span>${message}</span>`;
+      logEl.prepend(item);
+      logEl.scrollTop = 0;
+    }
+
+    function appendPrompt(prompt) {
+      if (!prompt) return;
+      const item = document.createElement('div');
+      item.className = 'log-entry';
+      item.innerHTML = `<span><strong>Prompt</strong> ${escapeHtml(prompt)}</span><span>Sent</span>`;
+      logEl.prepend(item);
+      logEl.scrollTop = 0;
+    }
+
+    function applyStep(step, index) {
+      const opened = Array.isArray(step.newly_opened) ? step.newly_opened : [];
+      opened.forEach(([x, y]) => {
+        revealed[y][x] = true;
+        revealCell(y, x, true);
+      });
+      appendLog(step, index);
+    }
+
+    function stopAnimation() {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    }
+
+    function updateOutcome() {
+      if (!current) return;
+      if (current.success) {
+        statOutcome.textContent = 'Solved';
+      } else if (current.hit_mine) {
+        statOutcome.textContent = 'Mine triggered';
+      } else {
+        statOutcome.textContent = 'Stopped';
+      }
+    }
+
+    function runSolve() {
+      if (!current || solving) return;
+      const steps = current.steps || [];
+      if (!steps.length) return;
+      solving = true;
+      stopAnimation();
+      solveBtn.disabled = true;
+      currentPrompt = (promptInput?.value || '').trim();
+      setStatus(currentPrompt ? `Solving: ${currentPrompt}` : 'Solving...');
+      resetStats();
+      appendPrompt(currentPrompt);
+      solutionVisible = false;
+      solutionBtn.classList.remove('active');
+      renderBoard(current.grid);
+
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let idx = 0;
+
+      const finish = () => {
+        solving = false;
+        solveBtn.disabled = false;
+        statMoves.textContent = `${current.step_count} moves`;
+        updateOutcome();
+        setStatus('Solve complete. Generate a new puzzle to try again.');
+      };
+
+      if (prefersReduced) {
+        steps.forEach((step, stepIndex) => applyStep(step, stepIndex));
+        finish();
+        return;
+      }
+
+      intervalId = setInterval(() => {
+        if (idx >= steps.length) {
+          stopAnimation();
+          finish();
+          return;
+        }
+        applyStep(steps[idx], idx);
+        idx += 1;
+      }, 160);
+    }
+
+    async function warmUpServer() {
+      setHealth('warming', 'Warming AWS');
+      setStatus('Warming server...');
+      setControlsEnabled(false);
+      const endpoints = candidates();
+      if (!endpoints.length) {
+        setHealth('err', 'No endpoint');
+        setStatus('No endpoint configured.');
+        return;
+      }
+      let lastErr = null;
+      for (const base of endpoints) {
+        try {
+          await getJson(normalizeBase(base));
+          rememberEndpoint(base, STORAGE_KEY);
+          serverReady = true;
+          setHealth('ok', 'Ready');
+          setControlsEnabled(true);
+          if (!initialLoadTriggered) {
+            initialLoadTriggered = true;
+            await loadPuzzle();
+          } else {
+            setStatus('Ready. Generate a puzzle to begin.');
+          }
+          return;
+        } catch (err) {
+          lastErr = err;
+        }
+      }
+      serverReady = false;
+      setHealth('err', 'Unavailable');
+      setStatus('Unable to reach AWS Lambda.');
+      if (lastErr) console.error(lastErr);
+    }
+
+    async function loadPuzzle() {
+      if (!serverReady) {
+        setStatus('Server warming up...');
+        return;
+      }
+      stopAnimation();
+      solving = false;
+      solveBtn.disabled = true;
+      solutionBtn.disabled = true;
+      solutionVisible = false;
+      solutionBtn.classList.remove('active');
+      setStatus('Generating puzzle...');
+      resetStats();
+
+      try {
+        const endpoints = candidates();
+        let data = null;
+        for (const base of endpoints) {
+          try {
+            data = await postToEndpoint(base, {});
+            rememberEndpoint(base, STORAGE_KEY);
+            break;
+          } catch (err) {
+            data = null;
+          }
+        }
+        if (!data) throw new Error('No endpoint available');
+
+        current = data;
+        renderBoard(data.grid);
+        statMoves.textContent = `${data.step_count} moves`;
+        setModelStats(data.model);
+        setStatus('Puzzle ready. Press Solve With AI to watch the agent.');
+        solveBtn.disabled = false;
+        solutionBtn.disabled = false;
+        updateOutcome();
+        notifyResize();
+      } catch (err) {
+        setStatus('Failed to load puzzle.');
+        solveBtn.disabled = true;
+        solutionBtn.disabled = true;
+      }
+    }
+
+    newBtn.addEventListener('click', loadPuzzle);
+    solveBtn.addEventListener('click', runSolve);
+
+    promptInput?.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        if (!solveBtn.disabled) runSolve();
+      }
+    });
+
+    solutionBtn.addEventListener('click', () => {
+      if (!current) return;
+      solutionVisible = !solutionVisible;
+      solutionBtn.classList.toggle('active', solutionVisible);
+      solutionBtn.textContent = solutionVisible ? 'Hide solution' : 'Show solution';
+      if (solutionVisible) {
+        revealSnapshot = captureRevealedSnapshot();
+        revealSolution();
+      } else {
+        restoreRevealedSnapshot(revealSnapshot);
+      }
+    });
+
+    warmUpServer();
+  </script>
+</body>
+</html>
