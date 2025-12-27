@@ -221,7 +221,7 @@
     '- End with a weekly hiring trend summary by appending "Weekly trend: ..." to the notes field of the final job row.'
   ].join('\n');
   const APPLICATION_STATUSES = ['Applied', 'Screening', 'Interview', 'Offer', 'Rejected', 'Withdrawn'];
-  const PROSPECT_STATUSES = ['Active', 'Interested', 'Inactive'];
+  const PROSPECT_STATUSES = ['Active', 'Interested', 'Rejected', 'Inactive'];
   const STATUS_GROUPS = {
     active: new Set(['applied', 'screening', 'interview', 'offer', 'active', 'interested']),
     archived: new Set(['withdrawn', 'inactive']),
@@ -888,6 +888,7 @@
     const entryType = entry?.entryType || getEntryType(entry);
     const statusKey = getEntryStatusKey(entry);
     if (entryType === 'prospect') {
+      if (statusKey === 'rejected') return { label: 'Closed', tone: 'muted' };
       if (statusKey === 'inactive') return { label: 'Archived', tone: 'muted' };
       const verb = statusKey === 'interested' ? 'Apply' : 'Review';
       const baseDate = entry.captureDate || deriveStatusDate(entry);
@@ -3498,7 +3499,7 @@
     if (!items.length) {
       const empty = document.createElement('p');
       empty.className = 'jobtrack-prospect-empty';
-      empty.textContent = 'No prospects in the queue.';
+      empty.textContent = 'No active prospects in the queue.';
       els.prospectReviewList.appendChild(empty);
       return;
     }
@@ -3566,8 +3567,8 @@
       const rejectBtn = document.createElement('button');
       rejectBtn.type = 'button';
       rejectBtn.className = 'btn-ghost jobtrack-prospect-action';
-      rejectBtn.textContent = 'Reject + delete';
-      rejectBtn.addEventListener('click', () => deleteProspectEntry(entry));
+      rejectBtn.textContent = 'Reject + archive';
+      rejectBtn.addEventListener('click', () => archiveProspectEntry(entry));
       actions.appendChild(rejectBtn);
 
       item.appendChild(actions);
@@ -3865,10 +3866,11 @@
       updateEntrySourceFilter(items);
       updateEntryBatchFilter(items);
       applyEntryFilters();
-      renderProspectReviewList(sortedProspects);
+      const reviewProspects = sortedProspects.filter((entry) => getEntryStatusGroup(entry) === 'active');
+      renderProspectReviewList(reviewProspects);
       if (els.prospectReviewStatus) {
-        const label = sortedProspects.length === 1 ? '1 prospect' : `${sortedProspects.length} prospects`;
-        setStatus(els.prospectReviewStatus, `Loaded ${label}.`, 'success');
+        const label = reviewProspects.length === 1 ? '1 prospect' : `${reviewProspects.length} prospects`;
+        setStatus(els.prospectReviewStatus, `Loaded ${label} in the queue.`, 'success');
       }
       setStatus(els.entryListStatus, `Loaded ${items.length} entries.`, 'success');
     } catch (err) {
@@ -4609,28 +4611,30 @@
     }
   };
 
-  const deleteProspectEntry = async (entry, statusEl = null) => {
+  const archiveProspectEntry = async (entry, statusEl = null) => {
     if (!entry || !entry.applicationId) return;
     const statusTarget = statusEl || els.prospectReviewStatus || els.entryListStatus;
     if (!config.apiBase) {
-      setStatus(statusTarget, 'Set the API base URL to delete prospects.', 'error');
+      setStatus(statusTarget, 'Set the API base URL to archive prospects.', 'error');
       return;
     }
     if (!authIsValid(state.auth)) {
-      setStatus(statusTarget, 'Sign in to delete prospects.', 'error');
+      setStatus(statusTarget, 'Sign in to archive prospects.', 'error');
       return;
     }
     const label = [entry.title, entry.company].filter(Boolean).join(' · ') || 'this prospect';
-    if (!confirmAction(`Reject and delete ${label}? This cannot be undone.`)) return;
+    if (!confirmAction(`Reject and archive ${label}? It will move to your rejected list.`)) return;
     try {
-      setStatus(statusTarget, 'Deleting prospect...', 'info');
-      await requestJson(`/api/applications/${encodeURIComponent(entry.applicationId)}`, { method: 'DELETE' });
-      setStatus(statusTarget, 'Prospect deleted.', 'success');
-      showUndoBanner(entry);
+      setStatus(statusTarget, 'Archiving prospect...', 'info');
+      await requestJson(`/api/prospects/${encodeURIComponent(entry.applicationId)}`, {
+        method: 'PATCH',
+        body: { status: 'Rejected', statusDate: formatDateInput(new Date()) }
+      });
+      setStatus(statusTarget, 'Prospect rejected.', 'success');
       await Promise.all([refreshEntries(), refreshDashboard()]);
     } catch (err) {
-      console.error('Prospect delete failed', err);
-      setStatus(statusTarget, err?.message || 'Unable to delete prospect.', 'error');
+      console.error('Prospect archive failed', err);
+      setStatus(statusTarget, err?.message || 'Unable to archive prospect.', 'error');
     }
   };
 
