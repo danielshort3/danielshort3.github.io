@@ -792,9 +792,6 @@
     const parts = [];
     const status = toTitle((entry?.status || 'Active').toString());
     if (status) parts.push(status);
-    if (entry?.postingDate && parseDateInput(entry.postingDate)) {
-      parts.push(`Posted ${formatDateLabel(entry.postingDate)}`);
-    }
     if (entry?.captureDate && parseDateInput(entry.captureDate)) {
       parts.push(`Found ${formatDateLabel(entry.captureDate)}`);
     }
@@ -3103,14 +3100,32 @@
     }
     const list = document.createElement('ul');
     list.className = 'jobtrack-prospect-list';
-    items.forEach((entry) => {
+    items.forEach((entry, index) => {
       const item = document.createElement('li');
       item.className = 'jobtrack-prospect-item';
+
+      const header = document.createElement('div');
+      header.className = 'jobtrack-prospect-head';
+
+      const indexBadge = document.createElement('span');
+      indexBadge.className = 'jobtrack-prospect-index';
+      indexBadge.textContent = `${index + 1}`;
+      header.appendChild(indexBadge);
 
       const title = document.createElement('div');
       title.className = 'jobtrack-prospect-title';
       title.textContent = [entry.title, entry.company].filter(Boolean).join(' · ') || 'Prospect';
-      item.appendChild(title);
+      header.appendChild(title);
+
+      const posted = document.createElement('span');
+      posted.className = 'jobtrack-prospect-posted';
+      const postedLabel = entry.postingDate && parseDateInput(entry.postingDate)
+        ? formatDateLabel(entry.postingDate)
+        : 'Date unknown';
+      posted.textContent = `Posted ${postedLabel}`;
+      header.appendChild(posted);
+
+      item.appendChild(header);
 
       const meta = document.createElement('div');
       meta.className = 'jobtrack-prospect-meta';
