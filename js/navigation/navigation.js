@@ -104,11 +104,29 @@
     const animate = !sessionStorage.getItem('navEntryPlayed');
     sessionStorage.setItem('navEntryPlayed','yes');
     const projectAsset = (id, ext = 'webp') => `/img/projects/${id}.${ext}`;
+    const getProjectVideo = (project) => {
+      const hasVideo = Boolean(project && (project.videoWebm || project.videoMp4 || project.hasVideo));
+      if (!hasVideo) return { hasVideo: false };
+      return {
+        hasVideo: true,
+        webm: project.videoWebm || projectAsset(project.id, 'webm'),
+        mp4: project.videoMp4 || projectAsset(project.id, 'mp4')
+      };
+    };
     const renderProjectCard = (project, index) => {
       const thumb = projectAsset(project.id, 'webp');
+      const video = getProjectVideo(project);
+      const media = video.hasVideo
+        ? `<span class="nav-project-thumb" style="background-image:url('${thumb}');" aria-hidden="true">
+            <video class="nav-project-thumb-media" muted playsinline loop autoplay preload="metadata" poster="${thumb}">
+              ${video.webm ? `<source src="${video.webm}" type="video/webm">` : ''}
+              ${video.mp4 ? `<source src="${video.mp4}" type="video/mp4">` : ''}
+            </video>
+          </span>`
+        : `<span class="nav-project-thumb" style="background-image:url('${thumb}');" aria-hidden="true"></span>`;
       return `<a href="portfolio.html?project=${project.id}" class="nav-project-card" data-project-id="${project.id}" role="listitem">
                 <span class="nav-project-rank">#${index}</span>
-                <span class="nav-project-thumb" style="background-image:url('${thumb}');"></span>
+                ${media}
                 <span class="nav-project-meta">
                   <span class="nav-dropdown-title">${project.title}</span>
                   <span class="nav-dropdown-subtitle">${project.subtitle}</span>
@@ -123,11 +141,11 @@
       </a>
     `;
     const portfolioHighlights = [
-      { id: 'shapeClassifier',  title: 'Shape Classifier',                    subtitle: 'Handwritten shape recognition' },
+      { id: 'shapeClassifier',  title: 'Shape Classifier',                    subtitle: 'Handwritten shape recognition', hasVideo: true },
       { id: 'retailStore',      title: 'Store-Level Loss & Sales ETL',         subtitle: 'SQL ETL + anomaly detection' },
-      { id: 'sheetMusicUpscale',title: 'Sheet Music Watermark Removal & Upscale', subtitle: 'UNet watermark removal + VDSR' },
-      { id: 'digitGenerator',   title: 'Synthetic Digit Generator',  subtitle: 'Variational autoencoder (VAE)' },
-      { id: 'nonogram',         title: 'Nonogram Solver',            subtitle: '94% accuracy reinforcement learning' }
+      { id: 'sheetMusicUpscale',title: 'Sheet Music Watermark Removal & Upscale', subtitle: 'UNet watermark removal + VDSR', hasVideo: true },
+      { id: 'digitGenerator',   title: 'Synthetic Digit Generator',  subtitle: 'Variational autoencoder (VAE)', hasVideo: true },
+      { id: 'nonogram',         title: 'Nonogram Solver',            subtitle: '94% accuracy reinforcement learning', hasVideo: true }
     ];
     const portfolioMenu = `
       <div class="nav-dropdown-inner nav-dropdown-inner-portfolio">

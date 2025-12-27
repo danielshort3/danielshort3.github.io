@@ -290,6 +290,8 @@ window.PROJECTS = [
     image: "img/projects/covidAnalysis.png",
     imageWidth: 792,
     imageHeight: 524,
+    videoWebm: "img/projects/covidAnalysis.webm",
+    videoMp4: "img/projects/covidAnalysis.mp4",
     tools: ["Python", "AWS"],
     concepts: ["Analytics"],
     resources: [
@@ -372,6 +374,8 @@ window.PROJECTS = [
     image: "img/projects/targetEmptyPackage.png",
     imageWidth: 896,
     imageHeight: 480,
+    videoWebm: "img/projects/targetEmptyPackage.webm",
+    videoMp4: "img/projects/targetEmptyPackage.mp4",
     tools: ["Excel", "Time-Series"],
     concepts: ["Automation", "Analytics"],
     resources: [
@@ -778,6 +782,8 @@ window.PROJECTS = [
     image: "img/projects/pizza.png",
     imageWidth: 1726,
     imageHeight: 1054,
+    videoWebm: "img/projects/pizza.webm",
+    videoMp4: "img/projects/pizza.mp4",
     tools: ["Excel", "Statistics"],
     concepts: ["Analytics"],
     resources: [
@@ -843,6 +849,8 @@ window.PROJECTS = [
     image: "img/projects/babynames.png",
     imageWidth: 1420,
     imageHeight: 940,
+    videoWebm: "img/projects/babynames.webm",
+    videoMp4: "img/projects/babynames.mp4",
     tools: ["Python", "scikit-learn"],
     concepts: ["Machine Learning"],
     resources: [
@@ -1051,6 +1059,8 @@ window.PROJECTS = [
     image: "img/projects/website.png",
     imageWidth: 1240,
     imageHeight: 1456,
+    videoWebm: "img/projects/website.webm",
+    videoMp4: "img/projects/website.mp4",
     tools: ["HTML", "CSS", "JavaScript"],
     concepts: ["Product", "Visualization"],
     resources: [
