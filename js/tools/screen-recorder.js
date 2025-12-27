@@ -2044,7 +2044,7 @@
     };
   };
 
-  const createCroppedStream = (fps) => {
+  const createCroppedStream = (fps, scale = 1) => {
     if (!state.cropRegion || !state.stream) return null;
     if (!('captureStream' in HTMLCanvasElement.prototype)) return null;
     const track = state.stream ? state.stream.getVideoTracks()[0] : null;
@@ -2056,8 +2056,9 @@
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
-    canvas.width = crop.sw;
-    canvas.height = crop.sh;
+    const clampedScale = Math.min(1, Math.max(0.1, scale));
+    canvas.width = Math.max(1, Math.round(crop.sw * clampedScale));
+    canvas.height = Math.max(1, Math.round(crop.sh * clampedScale));
     const bufferVideo = document.createElement('video');
     bufferVideo.muted = true;
     bufferVideo.playsInline = true;
@@ -2196,19 +2197,22 @@
     const sourceVideoTrack = state.stream.getVideoTracks()[0];
     let videoTrack = sourceVideoTrack;
     let sourceVideoElement = null;
+    let scaleApplied = false;
 
     if (state.cropRegion) {
-      const cropped = createCroppedStream(fps);
+      const cropScale = scale < 1 ? scale : 1;
+      const cropped = createCroppedStream(fps, cropScale);
       if (cropped && cropped.stream) {
         videoTrack = cropped.stream.getVideoTracks()[0];
         sourceVideoElement = cropped.video;
         cleanupTasks.push(cropped.cleanup);
+        scaleApplied = cropScale < 1;
       } else {
         setStatus('Crop preview unavailable. Recording full frame.', 'warn');
       }
     }
 
-    if (scale < 1) {
+    if (scale < 1 && !scaleApplied) {
       const scaled = createScaledStream(fps, scale, sourceVideoElement);
       if (scaled && scaled.stream) {
         videoTrack = scaled.stream.getVideoTracks()[0];
