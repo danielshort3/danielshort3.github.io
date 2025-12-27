@@ -630,21 +630,55 @@
     margin:0;
     padding:0;
     display:grid;
-    gap:12px;
+    gap:16px;
   }
   .jobtrack-prospect-item{
-    padding:12px 14px;
-    border-radius:14px;
-    border:1px solid color-mix(in srgb,var(--jobtrack-accent) 18%, transparent);
+    padding:16px 18px;
+    border-radius:18px;
+    border:1px solid color-mix(in srgb,var(--jobtrack-accent) 28%, transparent);
     background:color-mix(in srgb,var(--jobtrack-surface) 92%, #02060c 8%);
     display:grid;
     gap:8px;
     overflow-wrap:anywhere;
     word-break:break-word;
+    box-shadow:0 16px 28px rgba(0,0,0,.28);
   }
   .jobtrack-prospect-title{
     font-weight:600;
     font-size:1rem;
+    min-width:0;
+  }
+  .jobtrack-prospect-head{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:10px;
+  }
+  .jobtrack-prospect-index{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:32px;
+    height:32px;
+    border-radius:10px;
+    font-weight:700;
+    color:color-mix(in srgb,#ffffff 90%, var(--bg) 10%);
+    background:linear-gradient(135deg,
+      color-mix(in srgb,var(--jobtrack-accent) 80%, #ffffff 20%),
+      color-mix(in srgb,var(--jobtrack-accent-strong) 70%, #0b141b 30%));
+    box-shadow:0 10px 18px rgba(0,0,0,.25);
+  }
+  .jobtrack-prospect-posted{
+    margin-left:auto;
+    font-size:.8rem;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:.12em;
+    padding:4px 10px;
+    border-radius:999px;
+    color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
+    background:color-mix(in srgb,var(--jobtrack-accent) 26%, transparent);
+    border:1px solid color-mix(in srgb,var(--jobtrack-accent) 32%, transparent);
   }
   .jobtrack-prospect-meta{
     color:var(--text-muted);
@@ -1184,6 +1218,14 @@
     display:grid;
     gap:18px;
     padding:20px 32px 24px;
+  }
+  .jobtrack-entry-modal .modal-body,
+  .jobtrack-entry-modal .jobtrack-modal-body{
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    gap:18px;
+    padding:20px 32px 24px;
+    width:100%;
   }
   .jobtrack-modal-status{
     padding:0 32px 24px;
