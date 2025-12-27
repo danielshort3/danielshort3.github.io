@@ -7,6 +7,8 @@
   const el = {
     formatOptions: $('[data-screenrec="format-options"]'),
     formatHelp: $('[data-screenrec="format-help"]'),
+    imageOptions: $('[data-screenrec="image-format-options"]'),
+    imageHelp: $('[data-screenrec="image-format-help"]'),
     fpsSelect: $('[data-screenrec="fps-select"]'),
     qualitySelect: $('[data-screenrec="quality-select"]'),
     scaleSelect: $('[data-screenrec="scale-select"]'),
@@ -47,8 +49,10 @@
     captureMeta: $('[data-screenrec="capture-meta"]'),
     timer: $('[data-screenrec="timer"]'),
     startRecord: $('[data-screenrec="start-record"]'),
+    delayRecord: $('[data-screenrec="delay-record"]'),
     pauseRecord: $('[data-screenrec="pause-record"]'),
     stopRecord: $('[data-screenrec="stop-record"]'),
+    countdown: $('[data-screenrec="countdown"]'),
     downloadAll: $('[data-screenrec="download-all"]'),
     downloadNote: $('[data-screenrec="download-note"]'),
     downloadItems: $('[data-screenrec="download-items"]'),
@@ -72,6 +76,13 @@
     timerStart: 0,
     timerPausedAt: 0,
     totalPausedMs: 0,
+    countdownId: null,
+    countdownRemaining: 0,
+    countdownActive: false,
+    countdownPrevStatus: null,
+    statusText: '',
+    statusTone: '',
+    firstFrameJobId: 0,
     downloadUrls: [],
     downloadFiles: [],
     downloadZipUrl: null,
@@ -133,6 +144,26 @@
     'video/webm'
   ];
 
+  const IMAGE_FORMAT_OPTIONS = [
+    { label: 'PNG', mimeType: 'image/png' },
+    { label: 'WebP', mimeType: 'image/webp' }
+  ];
+
+  const IMAGE_TYPE_SUPPORT = (() => {
+    const support = { 'image/png': true, 'image/webp': false };
+    if (typeof document === 'undefined' || !document.createElement) return support;
+    try {
+      const canvas = document.createElement('canvas');
+      if (canvas && typeof canvas.toDataURL === 'function') {
+        const result = canvas.toDataURL('image/webp');
+        support['image/webp'] = result.startsWith('data:image/webp');
+      }
+    } catch (_) {}
+    return support;
+  })();
+
+  const isImageTypeSupported = (mimeType) => Boolean(IMAGE_TYPE_SUPPORT[mimeType]);
+
   const QUALITY_PRESETS = {
     auto: { label: 'Auto', video: 0, audio: 0 },
     tiny: { label: 'Tiny preview', video: 800000, audio: 64000 },
@@ -140,10 +171,13 @@
     medium: { label: 'Balanced', video: 4000000, audio: 128000 },
     high: { label: 'High', video: 8000000, audio: 192000 }
   };
+  const RECORD_DELAY_SECONDS = 5;
 
   const setStatus = (text, tone) => {
     if (!el.status) return;
     el.status.textContent = text;
+    state.statusText = text;
+    state.statusTone = tone || '';
     if (tone) {
       el.status.dataset.tone = tone;
     } else {
@@ -172,6 +206,8 @@
 
   const extensionFromMime = (mimeType) => {
     if (!mimeType) return 'webm';
+    if (mimeType.includes('image/png')) return 'png';
+    if (mimeType.includes('image/webp')) return 'webp';
     if (mimeType.includes('mp4')) return 'mp4';
     if (mimeType.includes('webm')) return 'webm';
     return 'webm';
@@ -280,6 +316,46 @@
     });
   };
 
+  const setImageOptions = () => {
+    if (!el.imageOptions) return;
+    el.imageOptions.innerHTML = '';
+
+    const options = IMAGE_FORMAT_OPTIONS.map((opt) => ({
+      ...opt,
+      supported: isImageTypeSupported(opt.mimeType)
+    }));
+
+    options.forEach((opt) => {
+      const label = document.createElement('label');
+      label.className = 'screenrec-radio';
+
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.name = 'screenrec-image-format';
+      input.value = opt.mimeType;
+      input.dataset.supported = opt.supported ? 'true' : 'false';
+      input.disabled = !opt.supported;
+
+      const text = document.createElement('span');
+      text.textContent = opt.label;
+
+      label.appendChild(input);
+      label.appendChild(text);
+      el.imageOptions.appendChild(label);
+    });
+
+    if (el.imageHelp) {
+      const supported = options.filter((opt) => opt.supported);
+      if (!supported.length) {
+        el.imageHelp.textContent = 'First-frame images are not supported in this browser.';
+      } else {
+        const webpSupported = options.some((opt) => opt.mimeType === 'image/webp' && opt.supported);
+        const webpNote = webpSupported ? '' : ' WebP export is not supported in this browser.';
+        el.imageHelp.textContent = `Select image formats to export the first frame alongside your recordings.${webpNote}`;
+      }
+    }
+  };
+
   const getSelectedMimeTypes = () => {
     if (!el.formatOptions) return [];
     const inputs = Array.from(el.formatOptions.querySelectorAll('input[name="screenrec-format"]'));
@@ -296,12 +372,21 @@
     return [''];
   };
 
+  const getSelectedImageMimeTypes = () => {
+    if (!el.imageOptions) return [];
+    const inputs = Array.from(el.imageOptions.querySelectorAll('input[name="screenrec-image-format"]'));
+    const selected = inputs.filter((input) => input.checked && input.dataset.supported !== 'false');
+    return Array.from(new Set(selected.map((input) => input.value)));
+  };
+
   const slugify = (value) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
   const formatLabelFromMime = (mimeType) => {
     if (!mimeType) return 'Default';
     const match = MIME_TYPE_OPTIONS.find((opt) => opt.mimeType === mimeType);
     if (match) return match.label;
+    if (mimeType.includes('image/png')) return 'PNG image';
+    if (mimeType.includes('image/webp')) return 'WebP image';
     if (mimeType.includes('mp4')) return 'MP4';
     if (mimeType.includes('webm')) return 'WebM';
     return 'Video';
@@ -454,7 +539,7 @@
     state.downloadFiles = files.map((file) => {
       const ext = extensionFromMime(file.mimeType);
       const label = file.label || formatLabelFromMime(file.mimeType);
-      const suffix = extCounts[ext] > 1 ? slugify(label) : '';
+      const suffix = file.suffix ? slugify(file.suffix) : (extCounts[ext] > 1 ? slugify(label) : '');
       const name = buildFilename(ext, suffix, stamp);
       const url = URL.createObjectURL(file.blob);
       downloadItems.push({ label, size: formatBytes(file.blob.size) });
@@ -505,6 +590,138 @@
     if (el.downloadItems) {
       el.downloadItems.innerHTML = '';
     }
+  };
+
+  const setDownloadPending = (message) => {
+    if (el.downloadAll) {
+      el.downloadAll.disabled = true;
+      el.downloadAll.textContent = 'Preparing downloads...';
+    }
+    if (el.downloadNote) {
+      el.downloadNote.textContent = message || 'Preparing downloads...';
+    }
+    if (el.downloadItems) {
+      el.downloadItems.innerHTML = '';
+    }
+  };
+
+  const dataUrlToBlob = (dataUrl) => {
+    if (!dataUrl || typeof dataUrl !== 'string') return null;
+    const parts = dataUrl.split(',');
+    if (parts.length < 2) return null;
+    const match = parts[0].match(/data:([^;]+);/);
+    const mimeType = match ? match[1] : 'application/octet-stream';
+    const binary = atob(parts[1]);
+    const buffer = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      buffer[i] = binary.charCodeAt(i);
+    }
+    return new Blob([buffer], { type: mimeType });
+  };
+
+  const canvasToBlob = (canvas, mimeType) => new Promise((resolve) => {
+    if (!canvas) {
+      resolve(null);
+      return;
+    }
+    const quality = mimeType === 'image/webp' ? 0.92 : undefined;
+    if (canvas.toBlob) {
+      canvas.toBlob((blob) => resolve(blob), mimeType, quality);
+      return;
+    }
+    if (!canvas.toDataURL) {
+      resolve(null);
+      return;
+    }
+    const dataUrl = canvas.toDataURL(mimeType, quality);
+    resolve(dataUrlToBlob(dataUrl));
+  });
+
+  const getFirstFrameCanvas = (blob) => new Promise((resolve) => {
+    if (!blob || typeof document === 'undefined' || !document.createElement) {
+      resolve(null);
+      return;
+    }
+    const video = document.createElement('video');
+    if (!video) {
+      resolve(null);
+      return;
+    }
+    let settled = false;
+    const url = URL.createObjectURL(blob);
+    const finalize = (canvas) => {
+      if (settled) return;
+      settled = true;
+      URL.revokeObjectURL(url);
+      video.removeAttribute('src');
+      video.load();
+      resolve(canvas || null);
+    };
+    const drawFrame = () => {
+      const width = video.videoWidth;
+      const height = video.videoHeight;
+      if (!width || !height) {
+        finalize(null);
+        return;
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        finalize(null);
+        return;
+      }
+      ctx.drawImage(video, 0, 0, width, height);
+      finalize(canvas);
+    };
+    const handleLoadedData = () => {
+      if (video.currentTime !== 0) {
+        video.currentTime = 0;
+        video.addEventListener('seeked', drawFrame, { once: true });
+        return;
+      }
+      drawFrame();
+    };
+    const failTimer = setTimeout(() => finalize(null), 5000);
+    const clearFailTimer = () => clearTimeout(failTimer);
+    video.addEventListener('loadeddata', () => {
+      clearFailTimer();
+      handleLoadedData();
+    }, { once: true });
+    video.addEventListener('error', () => {
+      clearFailTimer();
+      finalize(null);
+    }, { once: true });
+    video.preload = 'auto';
+    video.muted = true;
+    video.playsInline = true;
+    video.src = url;
+    video.load();
+  });
+
+  const formatImageLabel = (mimeType) => {
+    if (mimeType.includes('png')) return 'First frame (PNG)';
+    if (mimeType.includes('webp')) return 'First frame (WebP)';
+    return 'First frame';
+  };
+
+  const buildFirstFrameImages = async (blob, mimeTypes) => {
+    if (!blob || !mimeTypes.length) return [];
+    const canvas = await getFirstFrameCanvas(blob);
+    if (!canvas) return [];
+    const files = [];
+    for (const mimeType of mimeTypes) {
+      const imageBlob = await canvasToBlob(canvas, mimeType);
+      if (!imageBlob || !imageBlob.size) continue;
+      files.push({
+        blob: imageBlob,
+        mimeType: imageBlob.type || mimeType,
+        label: formatImageLabel(mimeType),
+        suffix: 'first-frame'
+      });
+    }
+    return files;
   };
 
   const triggerDownloads = async () => {
@@ -1359,7 +1576,10 @@
       el.stopCapture.disabled = !captureLive || state.recording;
     }
     if (el.startRecord) {
-      el.startRecord.disabled = !captureLive || state.recording;
+      el.startRecord.disabled = !captureLive || state.recording || state.countdownActive;
+    }
+    if (el.delayRecord) {
+      el.delayRecord.disabled = !captureLive || state.recording;
     }
     if (el.pauseRecord) {
       el.pauseRecord.disabled = !state.recording;
@@ -1400,6 +1620,12 @@
         input.disabled = state.recording;
       });
     }
+    if (el.imageOptions) {
+      el.imageOptions.querySelectorAll('input').forEach((input) => {
+        const supported = input.dataset.supported !== 'false';
+        input.disabled = state.recording || !supported;
+      });
+    }
     if (el.testCapture) {
       el.testCapture.disabled = !supportsCapture || !supportsRecorder || state.captureActive || state.recording;
     }
@@ -1423,6 +1649,97 @@
       el.downloadAll.disabled = !hasDownload;
     }
     updateAudioMeterState();
+  };
+
+  const updateDelayButtonState = () => {
+    if (!el.delayRecord) return;
+    if (state.countdownActive) {
+      el.delayRecord.textContent = 'Cancel';
+      el.delayRecord.setAttribute('aria-pressed', 'true');
+      el.delayRecord.title = 'Cancel delayed start';
+      el.delayRecord.dataset.countdown = 'true';
+      return;
+    }
+    el.delayRecord.textContent = `Start in ${RECORD_DELAY_SECONDS}s`;
+    el.delayRecord.setAttribute('aria-pressed', 'false');
+    el.delayRecord.title = `Start recording after a ${RECORD_DELAY_SECONDS}-second countdown`;
+    delete el.delayRecord.dataset.countdown;
+  };
+
+  const updateCountdownDisplay = () => {
+    if (!el.countdown) return;
+    if (!state.countdownActive || state.countdownRemaining <= 0) {
+      el.countdown.hidden = true;
+      el.countdown.textContent = '';
+      return;
+    }
+    el.countdown.textContent = `Recording starts in ${state.countdownRemaining}s`;
+    el.countdown.hidden = false;
+  };
+
+  const cancelCountdown = (restoreStatus = true) => {
+    if (state.countdownId) {
+      clearInterval(state.countdownId);
+      state.countdownId = null;
+    }
+    if (!state.countdownActive && state.countdownRemaining === 0) return;
+    const previousStatus = state.countdownPrevStatus;
+    state.countdownActive = false;
+    state.countdownRemaining = 0;
+    state.countdownPrevStatus = null;
+    updateCountdownDisplay();
+    updateDelayButtonState();
+    if (restoreStatus && previousStatus && previousStatus.text) {
+      setStatus(previousStatus.text, previousStatus.tone);
+    }
+    updateButtons();
+  };
+
+  const startCountdown = () => {
+    if (!isCaptureLive() || state.recording || state.countdownActive) return;
+    const currentText = state.statusText || el.status?.textContent || '';
+    const currentTone = state.statusTone || el.status?.dataset?.tone || '';
+    state.countdownPrevStatus = { text: currentText, tone: currentTone };
+    state.countdownActive = true;
+    state.countdownRemaining = RECORD_DELAY_SECONDS;
+    updateDelayButtonState();
+    updateCountdownDisplay();
+    setStatus(`Recording starts in ${state.countdownRemaining}s...`, 'pending');
+    updateButtons();
+    if (state.countdownId) {
+      clearInterval(state.countdownId);
+    }
+    state.countdownId = setInterval(() => {
+      if (!isCaptureLive() || state.recording) {
+        cancelCountdown();
+        return;
+      }
+      state.countdownRemaining -= 1;
+      if (state.countdownRemaining <= 0) {
+        if (state.countdownId) {
+          clearInterval(state.countdownId);
+          state.countdownId = null;
+        }
+        state.countdownActive = false;
+        state.countdownPrevStatus = null;
+        updateDelayButtonState();
+        updateCountdownDisplay();
+        updateButtons();
+        setStatus('Starting recording...', 'pending');
+        startRecording();
+        return;
+      }
+      updateCountdownDisplay();
+      setStatus(`Recording starts in ${state.countdownRemaining}s...`, 'pending');
+    }, 1000);
+  };
+
+  const toggleDelayedRecording = () => {
+    if (state.countdownActive) {
+      cancelCountdown();
+      return;
+    }
+    startCountdown();
   };
 
   const startTimer = () => {
@@ -1464,6 +1781,7 @@
   };
 
   const clearRecordedClip = () => {
+    state.firstFrameJobId += 1;
     if (state.recordedUrl) {
       URL.revokeObjectURL(state.recordedUrl);
     }
@@ -1488,8 +1806,9 @@
     updatePlaceholder();
   };
 
-  const setRecordedClip = (blob, mimeType, files) => {
+  const setRecordedClip = (blob, mimeType, files, options = {}) => {
     if (!blob) return;
+    const { skipDownloads = false, statusMessage = '' } = options;
     if (state.recordedUrl) {
       URL.revokeObjectURL(state.recordedUrl);
     }
@@ -1518,8 +1837,9 @@
     const downloadFiles = Array.isArray(files) && files.length
       ? files
       : [{ blob, mimeType: state.recordedMimeType, label: formatLabelFromMime(state.recordedMimeType) }];
+    if (skipDownloads) return;
     setDownloads(downloadFiles);
-    setStatus('Clip ready to download. Stop capture when you are done.', 'ready');
+    setStatus(statusMessage || 'Clip ready to download. Stop capture when you are done.', 'ready');
   };
 
   const startCapture = async () => {
@@ -1601,6 +1921,7 @@
 
   const stopCapture = (reason) => {
     if (!state.captureActive) return;
+    cancelCountdown(false);
     stopTracks(state.stream);
     state.stream = null;
     state.captureActive = false;
@@ -1937,6 +2258,7 @@
 
   const startRecording = async () => {
     if (!isCaptureLive() || state.recording || !state.stream) return;
+    cancelCountdown(false);
     clearRecordedClip();
 
     setLivePreview();
@@ -1984,7 +2306,32 @@
       const primaryFile = primaryEntry?.file || files[0];
       if (files.length && primaryFile) {
         state.recordedHasAudio = streamHasAudio(recordingStreamInfo.stream);
-        setRecordedClip(primaryFile.blob, primaryFile.mimeType, files);
+        const imageTypes = getSelectedImageMimeTypes();
+        if (imageTypes.length) {
+          setRecordedClip(primaryFile.blob, primaryFile.mimeType, files, { skipDownloads: true });
+          const jobId = state.firstFrameJobId + 1;
+          state.firstFrameJobId = jobId;
+          setDownloadPending('Preparing first-frame images...');
+          setStatus('Preparing first-frame images...', 'pending');
+          buildFirstFrameImages(primaryFile.blob, imageTypes).then((imageFiles) => {
+            if (state.firstFrameJobId !== jobId || state.recordedBlob !== primaryFile.blob) return;
+            if (imageFiles.length) {
+              setDownloads(files.concat(imageFiles));
+              setStatus('Clip ready to download. Stop capture when you are done.', 'ready');
+            } else {
+              setDownloads(files);
+              setStatus('Clip ready to download. First-frame image export failed.', 'warn');
+            }
+            updateButtons();
+          }).catch(() => {
+            if (state.firstFrameJobId !== jobId || state.recordedBlob !== primaryFile.blob) return;
+            setDownloads(files);
+            setStatus('Clip ready to download. First-frame image export failed.', 'warn');
+            updateButtons();
+          });
+        } else {
+          setRecordedClip(primaryFile.blob, primaryFile.mimeType, files);
+        }
       } else {
         setStatus('Recording stopped. No data captured.', 'warn');
       }
@@ -2342,11 +2689,14 @@
 
   const init = () => {
     setFormatOptions();
+    setImageOptions();
     updateAudioLevelValue();
     updateMicLevelValue();
     updateCropPresetUI();
     updateCaptureMeta();
     updateButtons();
+    updateDelayButtonState();
+    updateCountdownDisplay();
     setView();
     if (el.controlsPanel && el.controlsBody && el.controlsToggle) {
       const shouldCollapse = el.controlsPanel.dataset.collapsed === 'true' || el.controlsBody.hidden;
@@ -2360,6 +2710,7 @@
     el.startCapture?.addEventListener('click', startCapture);
     el.stopCapture?.addEventListener('click', () => stopCapture());
     el.startRecord?.addEventListener('click', startRecording);
+    el.delayRecord?.addEventListener('click', toggleDelayedRecording);
     el.pauseRecord?.addEventListener('click', togglePause);
     el.stopRecord?.addEventListener('click', stopRecording);
     el.testCapture?.addEventListener('click', startTestCapture);
