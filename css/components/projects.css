@@ -35,6 +35,18 @@
     box-shadow:0 12px 28px color-mix(in srgb, var(--primary) 26%, transparent),0 6px 18px rgba(0,0,0,.5)
   }
   .project-card:hover::before{border-color:var(--primary)}
+  @keyframes previewPan{
+    0%{transform:scale(1) translateY(0)}
+    50%{transform:scale(1.04) translateY(-2%)}
+    100%{transform:scale(1) translateY(0)}
+  }
+  .project-card.is-animated-preview img{
+    animation:previewPan 12s ease-in-out infinite;
+    transform-origin:center;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .project-card.is-animated-preview img{animation:none}
+  }
   #projects.grid{
     display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
     gap:28px;padding:24px;
