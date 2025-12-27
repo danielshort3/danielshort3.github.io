@@ -49,6 +49,8 @@
     entryProspectFields: $$('[data-jobtrack-entry="prospect"]'),
     resumeInput: $('#jobtrack-resume'),
     coverInput: $('#jobtrack-cover'),
+    resumePromptDownload: $('[data-jobtrack="resume-prompt-download"]'),
+    coverPromptDownload: $('[data-jobtrack="cover-prompt-download"]'),
     importFile: $('#jobtrack-import-file'),
     importAttachments: $('#jobtrack-import-attachments'),
     importBatch: $('#jobtrack-import-batch'),
@@ -434,6 +436,144 @@
   const formatPercent = (value) => {
     if (!Number.isFinite(value)) return '--';
     return `${Math.round(value)}%`;
+  };
+
+  const toPromptValue = (value) => (value || '').toString().trim();
+  const formatPromptValue = (value, fallback = 'Not provided') => {
+    const trimmed = toPromptValue(value);
+    return trimmed ? trimmed : fallback;
+  };
+  const mergePromptContext = (base, overrides) => {
+    const merged = { ...base };
+    Object.keys(overrides).forEach((key) => {
+      if (overrides[key]) merged[key] = overrides[key];
+    });
+    return merged;
+  };
+  const buildPromptContextFromEntry = (entry = {}) => {
+    const jobUrl = normalizeUrl(entry.jobUrl || entry.url || '');
+    return {
+      company: toPromptValue(entry.company),
+      title: toPromptValue(entry.title),
+      jobUrl,
+      location: toPromptValue(entry.location),
+      source: toPromptValue(entry.source),
+      postingDate: parseDateInput(entry.postingDate) ? entry.postingDate : '',
+      appliedDate: parseDateInput(entry.appliedDate) ? entry.appliedDate : '',
+      captureDate: parseDateInput(entry.captureDate) ? entry.captureDate : '',
+      status: toPromptValue(entry.status),
+      batch: toPromptValue(entry.batch),
+      notes: toPromptValue(entry.notes)
+    };
+  };
+  const buildPromptContextFromForm = () => {
+    const base = state.editingEntry ? buildPromptContextFromEntry(state.editingEntry) : {};
+    const formValues = {
+      company: toPromptValue(els.companyInput?.value),
+      title: toPromptValue(els.titleInput?.value),
+      jobUrl: normalizeUrl(toPromptValue(els.jobUrlInput?.value)),
+      location: toPromptValue(els.locationInput?.value),
+      source: toPromptValue(els.sourceInput?.value),
+      postingDate: parseDateInput(els.postingDateInput?.value) ? els.postingDateInput.value : '',
+      appliedDate: parseDateInput(els.appliedDateInput?.value) ? els.appliedDateInput.value : '',
+      captureDate: parseDateInput(els.captureDateInput?.value) ? els.captureDateInput.value : '',
+      status: toPromptValue(els.statusInput?.value),
+      batch: toPromptValue(els.batchInput?.value),
+      notes: toPromptValue(els.notesInput?.value)
+    };
+    return mergePromptContext(base, formValues);
+  };
+  const buildPromptHeader = (context = {}) => {
+    const lines = [
+      'Job details (from tracker):',
+      `Company: ${formatPromptValue(context.company)}`,
+      `Role: ${formatPromptValue(context.title)}`,
+      `Job description URL: ${formatPromptValue(context.jobUrl)}`,
+      `Location: ${formatPromptValue(context.location)}`,
+      `Source: ${formatPromptValue(context.source)}`,
+      `Posting date: ${formatPromptValue(context.postingDate)}`,
+      `Applied date: ${formatPromptValue(context.appliedDate)}`,
+      `Found date: ${formatPromptValue(context.captureDate)}`,
+      `Status: ${formatPromptValue(context.status)}`,
+      `Batch: ${formatPromptValue(context.batch)}`,
+      `Notes: ${formatPromptValue(context.notes)}`
+    ];
+    return lines.join('\n');
+  };
+  const buildResumePrompt = (context = {}) => {
+    const jobUrl = formatPromptValue(context.jobUrl);
+    return [
+      buildPromptHeader(context),
+      '',
+      'Prompt for Optimizing My Resume Using a Job Description and Personal Website',
+      '',
+      'Act as an expert resume writer and career coach for data-focused roles. I need you to optimize my existing resume to align with a specific job description. Use the following inputs:',
+      '',
+      '1. Resume content (attached as a Word document). It describes my roles as a Business Analyst, AI Data Quality Analyst, and Asset Protection Data Analyst, including quantified achievements like reducing reporting time by 99%, lifting site traffic by 750%, saving 200+ hours per year, and increasing theft prevention by 180%.',
+      `2. Job description URL: ${jobUrl}.`,
+      '3. Portfolio website: danielshort.me. This site lists my projects and highlights key metrics (e.g., 94% RL solver accuracy, 200+ hours saved through automation, 750% traffic lift). For this resume, focus on three projects - Chatbot (LoRA + RAG), Shape Classifier Demo, and Sheet Music Restoration - and ignore the others. It also includes sections on certifications, degrees and demonstrated strengths (Python, SQL & ETL, Tableau dashboards, data wrangling, reinforcement learning, regression analysis).',
+      '',
+      'Instructions:',
+      '- Review the job description to identify core responsibilities, must-have skills, and preferred qualifications.',
+      '- Analyze my resume and note any gaps or misalignments relative to the job description. Use the additional details from danielshort.me (project descriptions, metrics, certifications, strengths) to enrich the resume where appropriate.',
+      '- Rewrite the professional summary to highlight my most relevant experience, drawing on the website\'s metrics (e.g., 750% traffic lift, 200+ hours saved, 94% model accuracy) and emphasizing skills that match the job description.',
+      '- Refine each experience bullet point so it begins with a strong action verb, incorporates tools/technologies used (e.g., PyTorch, SQL, RAG) and quantifies results. Align the emphasis with the job description - focus on automation and data-pipeline achievements if the role stresses MLOps; highlight generative-AI work if LLMs or RAG are mentioned.',
+      '- Update the skills section to group technical skills logically (Programming & ML frameworks, Data Engineering & SQL, Visualization, Soft skills) and prioritize those required by the job description. Include certifications and strengths from the website\'s "Certifications & Degrees" and "Demonstrated Strengths" sections.',
+      '- Expand the projects section by summarizing only three projects - Chatbot (LoRA + RAG), Shape Classifier Demo, and Sheet Music Restoration. For each, describe the problem, approach, and outcome using the descriptions from the website. Do not include other projects.',
+      '- Maintain ATS-friendly formatting - use standard section headings, avoid tables or images, and aim for a concise one-page length.',
+      '',
+      'Return a revised resume in plain text with updated summary, experience bullets, skills, projects, education and certifications. Note any assumptions or additional information you needed to make alignment recommendations.'
+    ].join('\n');
+  };
+  const buildCoverLetterPrompt = (context = {}) => {
+    const role = toPromptValue(context.title) || 'the role';
+    const company = toPromptValue(context.company) || 'the company';
+    return [
+      buildPromptHeader(context),
+      '',
+      `You are a professional cover letter writer. I am applying for the position of ${role} at ${company}. I have attached my resume as a file. Please research ${company} from reliable sources (e.g., official website, recent news) to understand its mission, values, and current initiatives, and use that context to craft a personalized, one-page cover letter.`,
+      '',
+      'Attached Resume:',
+      '(Use the contents of the attached resume file provided.)',
+      '',
+      'Instructions:',
+      '1. Refer to the attached resume file to identify my key roles, achievements, and skills.',
+      `2. Look up ${company} to find its mission statement, values, products or services, and any noteworthy recent projects or goals.`,
+      '3. Write a tailored cover letter that:',
+      '- Starts with a personal greeting addressed to the hiring manager or relevant department (use "Dear Hiring Team" if no name is known).',
+      '- In the opening paragraph, states the role I am applying for and expresses genuine enthusiasm for the company, referencing specific company values, goals, or recent initiatives discovered during your research.',
+      '- In the body, highlights 1-2 achievements from my resume that illustrate how my skills match the key requirements of the job description, quantifying results where possible and explaining context, actions, and outcomes.',
+      '- Discusses how the company\'s mission resonates with me and how my experience aligns with its goals.',
+      '- Maintains a professional yet conversational tone; avoids cliches and overly formal language; keeps the letter under three or four concise paragraphs.',
+      '- Concludes by summarizing why I am a strong fit, expressing appreciation for the opportunity, and inviting further discussion. Use a professional sign-off (e.g., "Sincerely").',
+      '',
+      `Ensure the cover letter sounds authentic and reflects my unique voice, demonstrating that you have genuinely researched ${company}. Remove any generic or robotic phrasing. If any details in the resume are unclear, ask clarifying questions. Please write the cover letter now.`
+    ].join('\n');
+  };
+  const buildPromptFilename = (context = {}, type = 'prompt') => {
+    const parts = [context.company, context.title, type]
+      .map(value => toPromptValue(value).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''))
+      .filter(Boolean);
+    const base = parts.join('-');
+    return base ? `${base}.txt` : `${type}.txt`;
+  };
+  const downloadPromptFile = (content, filename) => {
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
+  const downloadEntryPrompt = (context, type) => {
+    const content = type === 'cover'
+      ? buildCoverLetterPrompt(context)
+      : buildResumePrompt(context);
+    const filename = buildPromptFilename(context, type === 'cover' ? 'cover-letter-prompt' : 'resume-prompt');
+    downloadPromptFile(content, filename);
   };
 
   const deriveStatusDate = (entry) => {
@@ -3506,6 +3646,7 @@
     const list = document.createElement('ul');
     list.className = 'jobtrack-prospect-list';
     items.forEach((entry, index) => {
+      const promptContext = buildPromptContextFromEntry(entry);
       const item = document.createElement('li');
       item.className = 'jobtrack-prospect-item';
 
@@ -3618,6 +3759,15 @@
       resumeInput.accept = '.pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
       resumeField.appendChild(resumeLabel);
       resumeField.appendChild(resumeInput);
+      const resumePromptActions = document.createElement('div');
+      resumePromptActions.className = 'jobtrack-prompt-actions';
+      const resumePromptBtn = document.createElement('button');
+      resumePromptBtn.type = 'button';
+      resumePromptBtn.className = 'btn-ghost jobtrack-prompt-action';
+      resumePromptBtn.textContent = 'Download resume prompt';
+      resumePromptBtn.addEventListener('click', () => downloadEntryPrompt(promptContext, 'resume'));
+      resumePromptActions.appendChild(resumePromptBtn);
+      resumeField.appendChild(resumePromptActions);
       fields.appendChild(resumeField);
 
       const coverField = document.createElement('div');
@@ -3635,6 +3785,15 @@
       coverInput.accept = '.pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
       coverField.appendChild(coverLabel);
       coverField.appendChild(coverInput);
+      const coverPromptActions = document.createElement('div');
+      coverPromptActions.className = 'jobtrack-prompt-actions';
+      const coverPromptBtn = document.createElement('button');
+      coverPromptBtn.type = 'button';
+      coverPromptBtn.className = 'btn-ghost jobtrack-prompt-action';
+      coverPromptBtn.textContent = 'Download cover letter prompt';
+      coverPromptBtn.addEventListener('click', () => downloadEntryPrompt(promptContext, 'cover'));
+      coverPromptActions.appendChild(coverPromptBtn);
+      coverField.appendChild(coverPromptActions);
       fields.appendChild(coverField);
 
       applyForm.appendChild(fields);
@@ -4725,6 +4884,18 @@
     setEntryType(state.entryType, { preserveStatus: false });
     resetEntryDateFields(state.entryType);
     restoreEntryDraft();
+    if (els.resumePromptDownload) {
+      els.resumePromptDownload.addEventListener('click', () => {
+        const context = buildPromptContextFromForm();
+        downloadEntryPrompt(context, 'resume');
+      });
+    }
+    if (els.coverPromptDownload) {
+      els.coverPromptDownload.addEventListener('click', () => {
+        const context = buildPromptContextFromForm();
+        downloadEntryPrompt(context, 'cover');
+      });
+    }
     if (els.entryTypeInputs.length) {
       els.entryTypeInputs.forEach((input) => {
         input.addEventListener('change', () => {
