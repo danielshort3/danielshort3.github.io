@@ -922,7 +922,7 @@
     document.querySelectorAll('.project-embed-frame').forEach((ifr) => {
       if (ifr._resizeBound) return;
       const src = ifr.getAttribute('src') || ifr.dataset.src || '';
-      if (!/pizza-tips-demo/i.test(src)) return;
+      if (!/(pizza-tips-demo|retail-loss-sales-demo)/i.test(src)) return;
       ifr._resizeBound = true;
       ifr.addEventListener('load', () => {
         resizeProjectEmbedIframe(ifr);
@@ -937,7 +937,7 @@
   window.addEventListener('message', (event) => {
     const data = event && event.data || {};
     const type = typeof data?.type === 'string' ? data.type : '';
-    if (type !== 'pizza-demo-resize') return;
+    if (!/(pizza-demo-resize|retail-loss-sales-demo-resize)/.test(type)) return;
     const ifrs = document.querySelectorAll('.project-embed-frame');
     for (const ifr of ifrs) {
       if (ifr.contentWindow === event.source) {
