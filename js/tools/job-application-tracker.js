@@ -36,6 +36,7 @@
     sourceInput: $('#jobtrack-source'),
     batchInput: $('#jobtrack-batch'),
     appliedDateInput: $('#jobtrack-date'),
+    appliedRequired: $('[data-jobtrack="applied-required"]'),
     postingDateInput: $('#jobtrack-posting-date'),
     postingUnknownInput: $('#jobtrack-posting-unknown'),
     captureDateInput: $('#jobtrack-capture-date'),
@@ -1478,6 +1479,7 @@
   const setEntryType = (type, { preserveStatus = true } = {}) => {
     const nextType = type === 'prospect' ? 'prospect' : 'application';
     state.entryType = nextType;
+    if (els.entryForm) els.entryForm.dataset.entryType = nextType;
     if (els.entryTypeInputs.length) {
       els.entryTypeInputs.forEach((input) => {
         input.checked = input.value === nextType;
@@ -1487,6 +1489,7 @@
     toggleEntryGroup(els.entryProspectFields, nextType === 'prospect');
     if (els.jobUrlInput) els.jobUrlInput.required = nextType === 'prospect';
     if (els.appliedDateInput) els.appliedDateInput.required = nextType === 'application';
+    if (els.appliedRequired) els.appliedRequired.hidden = nextType !== 'application';
     if (els.captureDateInput) els.captureDateInput.required = nextType === 'prospect';
     if (els.jobUrlHelp) {
       const label = nextType === 'prospect' ? 'Required for prospects.' : 'Optional for applications.';
