@@ -1,1 +1,0 @@
-{"grid_size": 8, "num_mines": 3, "dqn_variant": "DuelingDQN", "cnn_variant": "global_avg", "replay_type": "regular", "episodes_trained": 8200, "success_rate": 0.5, "training_finished": false, "epsilon": 0.09995093964326238, "step_count": 83321}

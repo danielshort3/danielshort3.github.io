@@ -1082,7 +1082,7 @@ window.PROJECTS = [
     ],
     results : [
       "Top model reached a 10x10 grid with about 35% success on the hardest tier.",
-      "Current demo model solves 8x8 boards at roughly a 50% success rate."
+      "Current demo model runs 9x9 boards with roughly a 35% success rate."
     ],
     caseStudy : [
       {

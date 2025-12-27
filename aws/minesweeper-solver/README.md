@@ -1,6 +1,6 @@
 # Minesweeper Solver Demo API
 
-Serverless Minesweeper solver powered by a DQN model (PyTorch) and exposed via a Lambda Function URL.
+Serverless Minesweeper solver powered by a Double DQN model (PyTorch) and exposed via a Lambda Function URL.
 
 ## Docker build + push
 
@@ -33,6 +33,14 @@ aws lambda create-function \
   --role arn:aws:iam::886623862678:role/minesweeperSolverLambdaRole \
   --memory-size 2048 \
   --timeout 15
+```
+
+Environment variables (demo defaults):
+
+```bash
+aws lambda update-function-configuration \
+  --function-name minesweeper-solver \
+  --environment "Variables={MODEL_PREFIX=DoubleDQN_adaptive_pool_regular_20250408-075910_best,GRID_SIZE=9,MINE_RATIO=0.2}"
 ```
 
 ## Function URL
