@@ -672,6 +672,52 @@
     padding:6px 10px;
     font-size:.85rem;
   }
+  .jobtrack-prospect-review-list{
+    display:grid;
+    gap:12px;
+  }
+  .jobtrack-prospect-apply{
+    margin-top:8px;
+    padding-top:10px;
+    border-top:1px solid color-mix(in srgb,var(--jobtrack-accent) 18%, transparent);
+    display:grid;
+    gap:10px;
+  }
+  .jobtrack-prospect-apply summary{
+    list-style:none;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    cursor:pointer;
+    font-weight:600;
+    color:var(--text-light);
+  }
+  .jobtrack-prospect-apply summary::-webkit-details-marker{
+    display:none;
+  }
+  .jobtrack-prospect-apply summary::after{
+    content:'+';
+    margin-left:auto;
+    opacity:.7;
+  }
+  .jobtrack-prospect-apply[open] summary::after{
+    content:'-';
+  }
+  .jobtrack-prospect-apply-form{
+    display:grid;
+    gap:10px;
+  }
+  .jobtrack-prospect-apply-fields{
+    display:grid;
+    gap:10px;
+    grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+  }
+  .jobtrack-prospect-apply-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:center;
+  }
   .jobtrack-prospect-empty{
     color:var(--text-muted);
     font-size:.95rem;
