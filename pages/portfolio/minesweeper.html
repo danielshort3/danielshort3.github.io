@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <base href="/">
+  <title>Minesweeper Solver | Daniel Short</title>
+  <link rel="canonical" href="https://danielshort.me/portfolio/minesweeper">
+  <meta name="description" content="Reinforcement Learning (RL): I wanted to train reinforcement learning agents that can reliably play Minesweeper and expose them in a friendly web demo.">
+
+  <meta property="og:title" content="Minesweeper Solver | Daniel Short">
+  <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
+  <meta property="og:description" content="Reinforcement Learning (RL): I wanted to train reinforcement learning agents that can reliably play Minesweeper and expose them in a friendly web demo.">
+  <meta property="og:url" content="https://danielshort.me/portfolio/minesweeper">
+  <meta property="og:image" content="https://danielshort.me/img/projects/minesweeper.png">
+  <meta property="og:image:alt" content="Preview image for Minesweeper Solver">
+  <meta property="og:type" content="article">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@danielshort3">
+
+  <meta name="theme-color" content="#0D1117">
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
+
+
+  <!-- Local fonts with legacy reference retained for tooling: https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap -->
+  <script>
+    try {
+      if (document.documentElement.classList) {
+        document.documentElement.classList.remove('no-js');
+      } else {
+        document.documentElement.className = (document.documentElement.className || '').replace(/\bno-js\b/, '').trim();
+      }
+    } catch (_) {}
+  </script>
+  <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"CreativeWork","name":"Minesweeper Solver","description":"Reinforcement Learning (RL): I wanted to train reinforcement learning agents that can reliably play Minesweeper and expose them in a friendly web demo.","url":"https://danielshort.me/portfolio/minesweeper","image":"https://danielshort.me/img/projects/minesweeper.png"}
+  </script>
+</head>
+<body data-page="project" class="project-page">
+  <a href="#main" class="skip-link">Skip to main content</a>
+  <header id="combined-header-nav"></header>
+
+  <main id="main">
+    <section class="project-hero">
+      <div class="wrapper">
+        <p class="hero-eyebrow">Portfolio Project</p>
+        <h1>Minesweeper Solver</h1>
+        <p class="project-subtitle">Reinforcement Learning (RL)</p>
+        <div class="cta-group project-cta">
+          <a class="btn-primary hero-cta" href="portfolio.html?project=minesweeper">Open interactive view</a>
+          <a class="btn-secondary hero-cta" href="portfolio.html">View all projects</a>
+        </div>
+        <div class="project-tags" role="list">
+      <span class="project-tag" role="listitem">Machine Learning</span>
+      <span class="project-tag" role="listitem">Automation</span>
+      <span class="project-tag" role="listitem">Python</span>
+      <span class="project-tag" role="listitem">PyTorch</span>
+      <span class="project-tag" role="listitem">AWS</span>
+      <span class="project-tag" role="listitem">Docker</span>
+    </div>
+      </div>
+    </section>
+
+    <section class="project-body">
+      <div class="wrapper">
+        <div class="project-media project-embed project-embed-iframe">
+        <iframe class="project-embed-frame" src="minesweeper-demo.html" title="Minesweeper Solver interactive demo" loading="lazy" allowfullscreen></iframe>
+      </div>
+        <section class="project-section">
+      <h2 class="section-title">Context</h2>
+      <p class="project-lead">I wanted to train reinforcement learning agents that can reliably play Minesweeper and expose them in a friendly web demo.</p>
+    </section>
+        
+        <section class="project-section">
+      <h2 class="section-title">Approach</h2>
+      <ul class="project-list">
+        <li>Built a custom Minesweeper environment that generates boards on demand (5x5 to 10x10) with 10% to 20% mines and safe first-click logic.</li>
+        <li>Trained 12 model variants across DQN, Double DQN, and Dueling DQN architectures with multiple CNN pooling heads and replay buffers.</li>
+        <li>Packaged the best model behind an AWS Lambda + container image endpoint for interactive inference.</li>
+      </ul>
+    </section>
+        <section class="project-section">
+      <h2 class="section-title">Impact</h2>
+      <ul class="project-list">
+        <li>Top model reached a 10x10 grid with about 35% success on the hardest tier.</li>
+        <li>Current demo model solves 8x8 boards at roughly a 50% success rate.</li>
+      </ul>
+    </section>
+        <section class="project-section">
+      <h2 class="section-title">Environment &amp; Data Generation</h2>
+      <p class="project-lead">The training data is created on the fly, so every episode is a fresh Minesweeper board.</p>
+      <ul class="project-list">
+        <li>Generated boards dynamically with randomized mine placement (10% to 20% density) and a protected 3x3 first click.</li>
+        <li>Normalized cell values between -0.25 and 1 to speed convergence and keep inputs stable.</li>
+        <li>Validated board shapes and reveal rules with a debug mode to guarantee consistent training inputs.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">Model Variants</h2>
+      <ul class="project-list">
+        <li>Evaluated DQN, Double DQN, and Dueling DQN policies with max-pool, adaptive-pool, and global-average CNN heads.</li>
+        <li>Compared regular vs. prioritized replay buffers across each architecture (12 total combinations).</li>
+        <li>Found Double DQN with adaptive pooling to be the strongest family on larger grid sizes.</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">Training &amp; Curriculum</h2>
+      <ul class="project-list">
+        <li>Trained each model for 10,000 episodes with 64 parallel games per episode and a periodically updated target network.</li>
+        <li>Advanced grid size after hitting 50% success on a 100-game test set three times in a row.</li>
+        <li>Reward shaping favored safe reveals (+0.3), penalized blind guesses (-0.3), and heavily penalized mine hits (-1.0).</li>
+      </ul>
+    </section>
+<section class="project-section">
+      <h2 class="section-title">What I&#39;d Improve</h2>
+      <ul class="project-list">
+        <li>Add flagging actions and a second head for mine probability to reduce late-game guesswork.</li>
+        <li>Pair the RL policy with a lightweight search layer for harder boards.</li>
+        <li>Expand evaluation with a fixed benchmark suite to compare against classical Minesweeper solvers.</li>
+      </ul>
+    </section>
+
+        <section class="project-section">
+      <h2 class="section-title">Links</h2>
+      <div class="project-links" role="list">
+        <a class="project-link" role="listitem" href="https://danielshort.me/minesweeper-demo.html" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
+        <a class="project-link" role="listitem" href="documents/Minesweeper_Reinforcement_Learning_Web_Application.pdf"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDF</span></a>
+      </div>
+    </section>
+        
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <nav class="privacy-links" aria-label="Privacy shortcuts">
+      <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
+      <a href="#" class="pcz-link" onclick="window.Privacy && window.Privacy.open('doNotSell'); return false;">Do Not Sell/Share My Personal Information</a>
+    </nav>
+  </footer>
+
+  <script defer src="js/common/common.js"></script>
+  <script defer src="js/navigation/navigation.js"></script>
+  <script defer src="js/animations/animations.js"></script>
+  <script src="js/privacy/config.js"></script>
+  <script defer src="js/privacy/consent_manager.js"></script>
+</body>
+</html>

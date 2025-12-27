@@ -1058,6 +1058,70 @@ window.PROJECTS = [
   },
 
   {
+    id: "minesweeper",
+    title: "Minesweeper Solver",
+    subtitle: "Reinforcement Learning (RL)",
+    image: "img/projects/minesweeper.png",
+    imageWidth: 1280,
+    imageHeight: 720,
+    tools: ["Python", "PyTorch", "AWS", "Docker"],
+    concepts: ["Machine Learning", "Automation"],
+    resources: [
+      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/minesweeper-demo.html", label: "Live Demo" },
+      { icon: "img/icons/pdf-icon.png", url: "documents/Minesweeper_Reinforcement_Learning_Web_Application.pdf", label: "PDF" }
+    ],
+    embed: {
+      type: "iframe",
+      url: "minesweeper-demo.html"
+    },
+    problem : "I wanted to train reinforcement learning agents that can reliably play Minesweeper and expose them in a friendly web demo.",
+    actions : [
+      "Built a custom Minesweeper environment that generates boards on demand (5x5 to 10x10) with 10% to 20% mines and safe first-click logic.",
+      "Trained 12 model variants across DQN, Double DQN, and Dueling DQN architectures with multiple CNN pooling heads and replay buffers.",
+      "Packaged the best model behind an AWS Lambda + container image endpoint for interactive inference."
+    ],
+    results : [
+      "Top model reached a 10x10 grid with about 35% success on the hardest tier.",
+      "Current demo model solves 8x8 boards at roughly a 50% success rate."
+    ],
+    caseStudy : [
+      {
+        title: "Environment & Data Generation",
+        lead: "The training data is created on the fly, so every episode is a fresh Minesweeper board.",
+        bullets: [
+          "Generated boards dynamically with randomized mine placement (10% to 20% density) and a protected 3x3 first click.",
+          "Normalized cell values between -0.25 and 1 to speed convergence and keep inputs stable.",
+          "Validated board shapes and reveal rules with a debug mode to guarantee consistent training inputs."
+        ]
+      },
+      {
+        title: "Model Variants",
+        bullets: [
+          "Evaluated DQN, Double DQN, and Dueling DQN policies with max-pool, adaptive-pool, and global-average CNN heads.",
+          "Compared regular vs. prioritized replay buffers across each architecture (12 total combinations).",
+          "Found Double DQN with adaptive pooling to be the strongest family on larger grid sizes."
+        ]
+      },
+      {
+        title: "Training & Curriculum",
+        bullets: [
+          "Trained each model for 10,000 episodes with 64 parallel games per episode and a periodically updated target network.",
+          "Advanced grid size after hitting 50% success on a 100-game test set three times in a row.",
+          "Reward shaping favored safe reveals (+0.3), penalized blind guesses (-0.3), and heavily penalized mine hits (-1.0)."
+        ]
+      },
+      {
+        title: "What I'd Improve",
+        bullets: [
+          "Add flagging actions and a second head for mine probability to reduce late-game guesswork.",
+          "Pair the RL policy with a lightweight search layer for harder boards.",
+          "Expand evaluation with a fixed benchmark suite to compare against classical Minesweeper solvers."
+        ]
+      }
+    ]
+  },
+
+  {
     id: "website",
     title: "danielshort.me",
     subtitle: "Responsive Portfolio Site",
