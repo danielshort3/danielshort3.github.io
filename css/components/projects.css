@@ -26,6 +26,15 @@
   .project-card .project-title{position:static;font-family:'Poppins';font-weight:600;font-size:20px;margin:0}
   .project-card .project-subtitle{position:static;font-size:14px;color:var(--text-muted);margin:0;
     display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis}
+  .project-card .project-tools{
+    position:absolute;top:16px;left:16px;right:16px;z-index:2;
+    display:flex;flex-wrap:wrap;gap:6px;pointer-events:none
+  }
+  .project-card .project-tool{
+    background:color-mix(in srgb,var(--primary) 18%,transparent);
+    color:var(--primary);font-size:.72rem;font-weight:600;padding:4px 8px;
+    border-radius:999px;letter-spacing:.02em;line-height:1;white-space:nowrap
+  }
   .project-card::before{
     content:"";position:absolute;inset:0;border:2px solid transparent;border-radius:14px;
     pointer-events:none;transition:border-color .35s cubic-bezier(.22,.61,.36,1)

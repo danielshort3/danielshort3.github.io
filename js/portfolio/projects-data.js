@@ -376,7 +376,7 @@ window.PROJECTS = [
     imageHeight: 480,
     videoWebm: "img/projects/targetEmptyPackage.webm",
     videoMp4: "img/projects/targetEmptyPackage.mp4",
-    tools: ["Excel", "Time-Series"],
+    tools: ["Excel", "Time-Series", "AWS"],
     concepts: ["Automation", "Analytics"],
     resources: [
       { icon: "img/icons/pdf-icon.png",   url: "documents/Project_7.pdf",  label: "PDF"   },
@@ -451,7 +451,7 @@ window.PROJECTS = [
     videoWebm: "img/projects/handwritingRating.webm",
     videoMp4:  "img/projects/handwritingRating.mp4",
     videoOnly: true,
-    tools: ["Python", "PyTorch", "AWS", "CNN"],
+    tools: ["Python", "PyTorch", "AWS", "Docker", "CNN"],
     concepts: ["Machine Learning"],
     resources: [
       { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Handwriting-Rating", label: "GitHub" },
@@ -520,7 +520,7 @@ window.PROJECTS = [
     imageHeight: 400,
     videoWebm: "img/projects/digitGenerator.webm",
     videoMp4:  "img/projects/digitGenerator.mp4",
-    tools: ["Python", "VAE"],
+    tools: ["Python", "VAE", "AWS", "Docker"],
     concepts: ["Machine Learning"],
     resources: [
       { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Handwritten-Digit-Generator", label: "GitHub" },
@@ -715,7 +715,7 @@ window.PROJECTS = [
     image: "img/projects/retailStore.png",
     imageWidth: 1423,
     imageHeight: 947,
-    tools: ["SQL", "Python"],
+    tools: ["SQL", "Python", "AWS"],
     concepts: ["Automation", "Analytics"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/target-packaging-analysis-mssql", label: "GitHub" },
@@ -789,7 +789,7 @@ window.PROJECTS = [
     imageHeight: 1054,
     videoWebm: "img/projects/pizza.webm",
     videoMp4: "img/projects/pizza.mp4",
-    tools: ["Excel", "Statistics"],
+    tools: ["Excel", "Statistics", "AWS"],
     concepts: ["Analytics"],
     resources: [
       { icon: "img/icons/website-icon.png", url: "https://danielshort.me/pizza-tips-demo", label: "Live Demo" },
@@ -1000,7 +1000,7 @@ window.PROJECTS = [
     imageHeight: 1080,
     videoWebm: "img/projects/nonogram.webm",
     videoMp4:  "img/projects/nonogram.mp4",
-    tools: ["Python", "PyTorch"],
+    tools: ["Python", "PyTorch", "AWS", "Docker"],
     concepts: ["Machine Learning"],
     resources: [
       { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Nonogram-Solver", label: "GitHub" },
