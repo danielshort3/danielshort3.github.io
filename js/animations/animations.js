@@ -14,6 +14,7 @@
     initCertTicker();
     initScrollProgress();
     initHeroParallax();
+    initProjectPreviewVideos();
   });
   function initReveal(){
     const io = new IntersectionObserver((ents,o)=>{
@@ -60,6 +61,29 @@
     onScroll();
     window.addEventListener('scroll', onScroll, { passive:true });
     window.addEventListener('resize', onScroll);
+  }
+
+  function initProjectPreviewVideos(){
+    if (document.body?.dataset?.page !== 'home') return;
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) return;
+    document.querySelectorAll('.project-examples-card').forEach((card) => {
+      const vid = card.querySelector('video.gif-video');
+      if (!vid) return;
+      const showVideo = () => {
+        vid.style.display = 'block';
+        const next = vid.nextElementSibling;
+        if (next && (next.tagName === 'IMG' || next.tagName === 'PICTURE')) next.style.display = 'none';
+        try { vid.play && vid.play().catch(() => {}); } catch {}
+      };
+      if (vid.readyState >= 2) {
+        showVideo();
+      } else {
+        ['loadeddata', 'canplay', 'canplaythrough', 'playing'].forEach(evt => {
+          vid.addEventListener(evt, showVideo, { once: true });
+        });
+      }
+    });
   }
 
   // Subtle ambient light following the mouse inside the hero
