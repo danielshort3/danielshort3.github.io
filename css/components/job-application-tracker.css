@@ -392,6 +392,16 @@
     padding:8px 12px;
     box-sizing:border-box;
   }
+  .jobtrack-prompt-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:8px;
+  }
+  .jobtrack-prompt-action{
+    padding:6px 10px;
+    font-size:.82rem;
+  }
   .jobtrack-file-input::file-selector-button{
     margin-right:10px;
     border:0;
