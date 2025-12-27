@@ -623,30 +623,135 @@ function buildPortfolio() {
     return n;
   };
 
-const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-(() => {
-  const mq = window.matchMedia("(max-width:768px)");
-  const updateIframes = () => {
-    document.querySelectorAll(".modal-embed iframe[data-base]")
-      .forEach(f => {
-        const base = f.dataset.base;
-        f.src = `${base}?${[
-          ":embed=y",
-          ":showVizHome=no",
-          `:device=${mq.matches ? "phone" : "desktop"}`
-        ].join("&")}`;
-      });
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const mobileMq = window.matchMedia
+    ? window.matchMedia("(max-width: 768px)")
+    : { matches: false, addEventListener() {}, addListener() {} };
+
+  const buildToolBadges = (tools = []) => {
+    const list = Array.isArray(tools) ? tools.filter(Boolean) : [];
+    if (!list.length) return "";
+    return `<div class="project-tools">
+      ${list.map(t => `<span class="project-tool">${t}</span>`).join("")}
+    </div>`;
   };
-  mq.addEventListener("change", updateIframes);
-})();
+
+  const setupCardPreview = (card) => {
+    const vid = card.querySelector("video.gif-video");
+    if (!vid) return;
+    const still = (() => {
+      const next = vid.nextElementSibling;
+      if (!next) return null;
+      const tag = (next.tagName || "").toUpperCase();
+      return (tag === "IMG" || tag === "PICTURE") ? next : null;
+    })();
+    let wantsVideo = false;
+    let pending = false;
+
+    try {
+      vid.muted = true;
+      vid.autoplay = true;
+      vid.playsInline = true;
+      vid.setAttribute("muted", "");
+      vid.setAttribute("autoplay", "");
+      vid.setAttribute("playsinline", "");
+    } catch {}
+
+    const showVideo = () => {
+      vid.style.display = "block";
+      if (still) still.style.display = "none";
+      try { vid.play && vid.play().catch(() => {}); } catch {}
+    };
+    const hideVideo = () => {
+      if (still) {
+        vid.style.display = "none";
+        still.style.display = "";
+      } else {
+        vid.style.display = "block";
+      }
+      try { vid.pause && vid.pause(); } catch {}
+    };
+
+    const requestShow = () => {
+      wantsVideo = true;
+      if (vid.readyState >= 2) {
+        pending = false;
+        showVideo();
+        return;
+      }
+      if (pending) return;
+      pending = true;
+      const onReady = () => {
+        pending = false;
+        if (wantsVideo) showVideo();
+      };
+      ["loadeddata", "canplay", "canplaythrough", "playing"].forEach(evt => {
+        vid.addEventListener(evt, onReady, { once: true });
+      });
+    };
+    const requestHide = () => {
+      wantsVideo = false;
+      hideVideo();
+    };
+    const updateMode = () => {
+      if (reduceMotion) {
+        requestHide();
+        return;
+      }
+      if (mobileMq.matches) {
+        requestShow();
+      } else {
+        requestHide();
+      }
+    };
+
+    const handleEnter = () => {
+      if (reduceMotion || mobileMq.matches) return;
+      requestShow();
+    };
+    const handleLeave = () => {
+      if (reduceMotion || mobileMq.matches) return;
+      requestHide();
+    };
+
+    card.addEventListener("mouseenter", handleEnter);
+    card.addEventListener("focusin", handleEnter);
+    card.addEventListener("mouseleave", handleLeave);
+    card.addEventListener("focusout", handleLeave);
+
+    if (mobileMq.addEventListener) {
+      mobileMq.addEventListener("change", updateMode);
+    } else if (mobileMq.addListener) {
+      mobileMq.addListener(updateMode);
+    }
+
+    updateMode();
+  };
+
+  (() => {
+    const updateIframes = () => {
+      document.querySelectorAll(".modal-embed iframe[data-base]")
+        .forEach(f => {
+          const base = f.dataset.base;
+          f.src = `${base}?${[
+            ":embed=y",
+            ":showVizHome=no",
+            `:device=${mobileMq.matches ? "phone" : "desktop"}`
+          ].join("&")}`;
+        });
+    };
+    mobileMq.addEventListener("change", updateIframes);
+  })();
 
 
   /* ➊ Build cards & modals ----------------------------------------- */
   window.PROJECTS.forEach((p, i) => {
     /* card */
     const mediaMarkup = projectMedia(p);
+    const toolBadges = buildToolBadges(p.tools);
     const card = el("button", "project-card", `
       <div class="overlay"></div>
+      ${toolBadges}
       <div class="project-text">
         <div class="project-title">${p.title}</div>
         <div class="project-subtitle">${p.subtitle}</div>
@@ -658,7 +763,7 @@ const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-mo
     card.dataset.tools = (Array.isArray(p.tools) ? p.tools : []).join('|');
     card.dataset.concepts = (Array.isArray(p.concepts) ? p.concepts : []).join('|');
     card.addEventListener("click", () => openModal(p.id));
-    activateGifVideo(card);
+    setupCardPreview(card);
     grid.appendChild(card);
 
     /* modal */
