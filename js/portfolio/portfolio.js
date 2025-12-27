@@ -628,14 +628,6 @@ function buildPortfolio() {
     ? window.matchMedia("(max-width: 768px)")
     : { matches: false, addEventListener() {}, addListener() {} };
 
-  const buildToolBadges = (tools = []) => {
-    const list = Array.isArray(tools) ? tools.filter(Boolean) : [];
-    if (!list.length) return "";
-    return `<div class="project-tools">
-      ${list.map(t => `<span class="project-tool">${t}</span>`).join("")}
-    </div>`;
-  };
-
   const setupCardPreview = (card) => {
     const vid = card.querySelector("video.gif-video");
     if (!vid) return;
@@ -748,10 +740,8 @@ function buildPortfolio() {
   window.PROJECTS.forEach((p, i) => {
     /* card */
     const mediaMarkup = projectMedia(p);
-    const toolBadges = buildToolBadges(p.tools);
     const card = el("button", "project-card", `
       <div class="overlay"></div>
-      ${toolBadges}
       <div class="project-text">
         <div class="project-title">${p.title}</div>
         <div class="project-subtitle">${p.subtitle}</div>
