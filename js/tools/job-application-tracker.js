@@ -500,6 +500,60 @@
     ];
     return lines.join('\n');
   };
+  const buildNaturalLanguagePrompt = (topicOrRequest) => {
+    const topic = toPromptValue(topicOrRequest) || '[INSERT YOUR TOPIC OR REQUEST HERE]';
+    return [
+      'Act like a professional content writer and communication strategist. Your task is to write with a natural, human-like tone that avoids the usual pitfalls of AI-generated content.',
+      '',
+      'The goal is to produce clear, simple, and authentic writing that resonates with real people. Your responses should feel like they were written by a thoughtful and concise human writer.',
+      '',
+      'You are writing the following:',
+      topic,
+      '',
+      'Follow these detailed step-by-step guidelines:',
+      '',
+      'Step 1: Use plain and simple language. Avoid long or complex sentences. Opt for short, clear statements.',
+      '',
+      '- Example: Instead of "We should leverage this opportunity," write "Let\'s use this chance."',
+      '',
+      'Step 2: Avoid AI giveaway phrases and generic clichés such as "let\'s dive in," "game-changing," or "unleash potential." Replace them with straightforward language.',
+      '',
+      '- Example: Replace "Let\'s dive into this amazing tool" with "Here’s how it works."',
+      '',
+      'Step 3: Be direct and concise. Eliminate filler words and unnecessary phrases. Focus on getting to the point.',
+      '',
+      '- Example: Say "We should meet tomorrow," instead of "I think it would be best if we could possibly try to meet."',
+      '',
+      'Step 4: Maintain a natural tone. Write like you speak. It’s okay to start sentences with “and” or “but.” Make it feel conversational, not robotic.',
+      '',
+      '- Example: “And that’s why it matters.”',
+      '',
+      'Step 5: Avoid marketing buzzwords, hype, and overpromises. Use neutral, honest descriptions.',
+      '',
+      '- Avoid: "This revolutionary app will change your life."',
+      '- Use instead: "This app can help you stay organized."',
+      '',
+      'Step 6: Keep it real. Be honest. Don’t try to fake friendliness or exaggerate.',
+      '',
+      '- Example: “I don’t think that’s the best idea.”',
+      '',
+      'Step 7: Simplify grammar. Don’t worry about perfect grammar if it disrupts natural flow. Casual expressions are okay.',
+      '',
+      '- Example: “i guess we can try that.”',
+      '',
+      'Step 8: Remove fluff. Avoid using unnecessary adjectives or adverbs. Stick to the facts or your core message.',
+      '',
+      '- Example: Say “We finished the task,” not “We quickly and efficiently completed the important task.”',
+      '',
+      'Step 9: Focus on clarity. Your message should be easy to read and understand without ambiguity.',
+      '',
+      '- Example: “Please send the file by Monday.”',
+      '',
+      'Follow this structure rigorously. Your final writing should feel honest, grounded, and like it was written by a clear-thinking, real person.',
+      '',
+      'Take a deep breath and work on this step-by-step.'
+    ];
+  };
   const buildResumePrompt = (context = {}) => {
     const jobUrl = formatPromptValue(context.jobUrl);
     return [
@@ -512,6 +566,8 @@
       '1. Resume content (attached as a Word document). It describes my roles as a Business Analyst, AI Data Quality Analyst, and Asset Protection Data Analyst, including quantified achievements like reducing reporting time by 99%, lifting site traffic by 750%, saving 200+ hours per year, and increasing theft prevention by 180%.',
       `2. Job description URL: ${jobUrl}.`,
       '3. Portfolio website: danielshort.me. This site lists my projects and highlights key metrics (e.g., 94% RL solver accuracy, 200+ hours saved through automation, 750% traffic lift). For this resume, focus on three projects - Chatbot (LoRA + RAG), Shape Classifier Demo, and Sheet Music Restoration - and ignore the others. It also includes sections on certifications, degrees and demonstrated strengths (Python, SQL & ETL, Tableau dashboards, data wrangling, reinforcement learning, regression analysis).',
+      '',
+      ...buildNaturalLanguagePrompt('Rewrite my resume in plain text.'),
       '',
       'Instructions:',
       '- Review the job description to identify core responsibilities, must-have skills, and preferred qualifications.',
@@ -535,6 +591,8 @@
       '',
       'Attached Resume:',
       '(Use the contents of the attached resume file provided.)',
+      '',
+      ...buildNaturalLanguagePrompt('A tailored, one-page cover letter.'),
       '',
       'Instructions:',
       '1. Refer to the attached resume file to identify my key roles, achievements, and skills.',
