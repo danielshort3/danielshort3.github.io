@@ -6,11 +6,11 @@
   <base href="/">
   <title>Chatbot (LoRA + RAG) | Daniel Short</title>
   <link rel="canonical" href="https://danielshort.me/portfolio/chatbotLora">
-  <meta name="description" content="RAG Chatbot Fine-Tuned with LoRA: Generic chatbots lacked Visit Grand Junction&#39;s tone and rarely suggested our content.">
+  <meta name="description" content="RAG Chatbot Fine-Tuned with LoRA: Off-the-shelf chatbots didn&#39;t sound like Visit Grand Junction, and they rarely pointed people to our pages.">
 
   <meta property="og:title" content="Chatbot (LoRA + RAG) | Daniel Short">
   <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
-  <meta property="og:description" content="RAG Chatbot Fine-Tuned with LoRA: Generic chatbots lacked Visit Grand Junction&#39;s tone and rarely suggested our content.">
+  <meta property="og:description" content="RAG Chatbot Fine-Tuned with LoRA: Off-the-shelf chatbots didn&#39;t sound like Visit Grand Junction, and they rarely pointed people to our pages.">
   <meta property="og:url" content="https://danielshort.me/portfolio/chatbotLora">
   <meta property="og:image" content="https://danielshort.me/img/projects/chatbotLora.png">
   <meta property="og:image:alt" content="Preview image for Chatbot (LoRA + RAG)">
@@ -39,7 +39,7 @@
     } catch (_) {}
   </script>
   <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"CreativeWork","name":"Chatbot (LoRA + RAG)","description":"RAG Chatbot Fine-Tuned with LoRA: Generic chatbots lacked Visit Grand Junction's tone and rarely suggested our content.","url":"https://danielshort.me/portfolio/chatbotLora","image":"https://danielshort.me/img/projects/chatbotLora.png"}
+    {"@context":"https://schema.org","@type":"CreativeWork","name":"Chatbot (LoRA + RAG)","description":"RAG Chatbot Fine-Tuned with LoRA: Off-the-shelf chatbots didn't sound like Visit Grand Junction, and they rarely pointed people to our pages.","url":"https://danielshort.me/portfolio/chatbotLora","image":"https://danielshort.me/img/projects/chatbotLora.png"}
   </script>
 </head>
 <body data-page="project" class="project-page">
@@ -74,60 +74,60 @@
       </div>
         <section class="project-section">
       <h2 class="section-title">Context</h2>
-      <p class="project-lead">Generic chatbots lacked Visit Grand Junction&#39;s tone and rarely suggested our content.</p>
+      <p class="project-lead">Off-the-shelf chatbots didn&#39;t sound like Visit Grand Junction, and they rarely pointed people to our pages.</p>
     </section>
         <section class="project-section">
       <h2 class="section-title">Role</h2>
       <ul class="project-list">
-        <li>Led the end-to-end prototype: data ingestion, retrieval, fine-tuning, deployment, and web integration.</li>
+        <li>Built the prototype from crawl to deployment, including the web demo.</li>
       </ul>
     </section>
         <section class="project-section">
       <h2 class="section-title">Approach</h2>
       <ul class="project-list">
-        <li>Scraped Visit Grand Junction pages and created a FAISS retrieval index.</li>
-        <li>Automated a fine-tuning dataset with GPT-OSS 20B via Ollama.</li>
-        <li>Fine-tuned Mistral 7B on the generated QA set and deployed it to AWS SageMaker.</li>
-        <li>Created Lambda endpoints so the website can interact with the model.</li>
+        <li>Crawled Visit Grand Junction pages and built a FAISS retrieval index.</li>
+        <li>Generated a fine-tuning dataset with GPT-OSS 20B (via Ollama).</li>
+        <li>Fine-tuned Mistral 7B with LoRA on the Q&amp;A set and deployed it to AWS SageMaker.</li>
+        <li>Added Lambda endpoints so the website can talk to the model.</li>
       </ul>
     </section>
         <section class="project-section">
       <h2 class="section-title">Impact</h2>
       <ul class="project-list">
-        <li>Serverless RAG chatbot scales on demand and returns grounded answers with references after a 10‑minute server warm‑up.</li>
+        <li>The demo answers with citations, but it needs a warm-up after idle time (about 10 minutes).</li>
       </ul>
     </section>
         <section class="project-section">
       <h2 class="section-title">System Design</h2>
-      <p class="project-lead">A RAG pipeline tuned for a single domain: crawl → index → generate training data → fine-tune with LoRA → deploy behind an API the website can call.</p>
+      <p class="project-lead">Pipeline: crawl → index → generate training data → LoRA fine-tune → deploy behind an API the site can call.</p>
       <ul class="project-list">
-        <li>Ingestion: crawl Visit Grand Junction pages and store cleaned text chunks.</li>
-        <li>Retrieval: build a FAISS index so responses can cite relevant source passages.</li>
-        <li>Generation: fine-tune Mistral 7B with LoRA on auto-generated domain Q&amp;A pairs.</li>
+        <li>Ingestion: crawl pages and store cleaned text chunks.</li>
+        <li>Retrieval: use FAISS so answers can cite the right source passages.</li>
+        <li>Fine-tuning: train Mistral 7B with LoRA on auto-generated Q&amp;A pairs.</li>
       </ul>
     </section>
 <section class="project-section">
       <h2 class="section-title">Dataset Generation</h2>
       <ul class="project-list">
-        <li>Used GPT-OSS 20B via Ollama to generate Q&amp;A pairs from the crawled content, keeping the dataset aligned to the site’s tone and facts.</li>
-        <li>Automated the end-to-end pipeline with scripts (crawl, build index, build dataset, finetune, merge LoRA).</li>
-        <li>Optimized for iteration: run locally or in Docker, then deploy the same artifacts for hosting.</li>
+        <li>Used GPT-OSS 20B (Ollama) to turn crawled content into Q&amp;A pairs.</li>
+        <li>Automated crawl → index → dataset → fine-tune so runs are repeatable.</li>
+        <li>Kept it Docker-friendly so I could run locally and deploy the same artifacts.</li>
       </ul>
     </section>
 <section class="project-section">
       <h2 class="section-title">Serving and Deployment</h2>
       <ul class="project-list">
-        <li>Merged the LoRA adapter into a 4-bit model and exposed a FastAPI inference endpoint.</li>
-        <li>Deployed the model behind AWS (SageMaker + Lambda endpoints) so the website can query it without shipping model code to the client.</li>
-        <li>Added a status check and warm-up UX in the demo to handle cold starts gracefully.</li>
+        <li>Merged the LoRA adapter into a 4-bit model and served it with FastAPI.</li>
+        <li>Hosted it behind AWS (SageMaker + Lambda) so the browser only calls an API.</li>
+        <li>Added a status check and a warm-up message to handle cold starts.</li>
       </ul>
     </section>
 <section class="project-section">
       <h2 class="section-title">What I&#39;d Improve</h2>
       <ul class="project-list">
-        <li>Add automated RAG evaluation (retrieval hit-rate, groundedness, and citation accuracy).</li>
-        <li>Introduce caching for common questions and streaming tokens for a faster perceived response.</li>
-        <li>Add guardrails for prompt injection and a tighter citation-first response format.</li>
+        <li>Add basic eval for retrieval quality and citation accuracy.</li>
+        <li>Cache common questions and stream tokens to make replies feel faster.</li>
+        <li>Add stronger guardrails against prompt injection.</li>
       </ul>
     </section>
 
@@ -140,7 +140,7 @@
     </section>
         <section class="project-section">
       <h2 class="section-title">Notes</h2>
-      <p class="project-lead">Built from public Visit Grand Junction web content; tuned to return grounded answers with references.</p>
+      <p class="project-lead">Uses public Visit Grand Junction pages. Answers include citations.</p>
     </section>
       </div>
     </section>

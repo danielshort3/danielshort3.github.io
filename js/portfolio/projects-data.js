@@ -34,49 +34,49 @@ window.PROJECTS = [
       type: "iframe",
       url: "sentence-demo.html"
     },
-    problem: "I wanted a quick way to retrieve relevant sentences by meaning, not exact wording.",
+    problem: "I wanted a fast way to find sentences that match a question, even when the wording is different.",
     actions: [
-      "Prepared the corpus (Alice in Wonderland), split into sentences, and precomputed embeddings.",
-      "Benchmarked 6+ embedding models on 800 sentences (k=2–6), tracking both silhouette score and efficiency (silhouette per million parameters).",
-      "Chose the best silhouette‑score model and deployed it as a stateless AWS Lambda endpoint with CORS for top‑k ranking."
+      "Cleaned the text of Alice in Wonderland, split it into sentences, and precomputed embeddings.",
+      "Tested 6+ embedding models on 800 sentences (k=2–6) and tracked both quality (silhouette score) and model size.",
+      "Deployed the best-quality model behind an AWS Lambda API (with CORS) that returns the top-k matches."
     ],
     results: [
-      "Best absolute silhouette: 0.313 – Snowflake/snowflake‑arctic‑embed‑l‑v2.0 (k=2, 1024‑d, ~568M params).",
-      "Best efficiency: 0.0116 per M params – jinaai/jina‑embeddings‑v3 (~12.9M params, k=6, 1024‑d).",
-      "Deployed AWS model: Snowflake/snowflake‑arctic‑embed‑l‑v2.0 (prioritizing quality); live demo runs on a lightweight, scalable Lambda API."
+      "Best silhouette score: 0.313 with Snowflake Arctic Embed L v2.0 (k=2).",
+      "Best score per million parameters: 0.0116 with Jina Embeddings v3 (k=6).",
+      "Deployed Arctic Embed L v2.0; the demo calls a Lambda endpoint to rank sentences by meaning."
     ],
     caseStudy: [
       {
         title: "System Design",
-        lead: "This is a retrieval system for a fixed corpus (Alice in Wonderland): precompute sentence embeddings once, then embed each query at runtime and rank by cosine similarity.",
+        lead: "This uses a fixed corpus (Alice in Wonderland): embed each sentence once, then embed each query and rank by cosine similarity.",
         bullets: [
-          "Offline: chunk raw text, segment into sentences, normalize whitespace, and precompute embeddings.",
-          "Online: embed the query, score against the cached embedding matrix, and return top-k sentences with similarity scores.",
-          "Frontend: a lightweight demo that calls `/health` and `/rank` and renders ranked results with confidence meters."
+          "Offline: clean the text, split into sentences, and store embeddings.",
+          "Online: embed the query, score against the cached matrix, and return the top-k with scores.",
+          "Frontend: a small demo that calls `/health` and `/rank` and shows the top matches."
         ]
       },
       {
         title: "Model Selection",
         bullets: [
-          "Benchmarked multiple embedding models and used silhouette score (plus silhouette per million parameters) to balance quality vs. cost.",
-          "Selected Snowflake Arctic Embed L v2 for highest silhouette score; tracked Jina v3 as the best efficiency baseline.",
-          "Kept the evaluation reproducible by fixing the corpus, sampling strategy, and k-range for clustering."
+          "Compared several embedding models using silhouette score.",
+          "Tracked silhouette score per million parameters to keep size and cost in mind.",
+          "Kept the setup fixed (same corpus, same sample, same k range) so results are comparable."
         ]
       },
       {
         title: "Serverless Deployment",
         bullets: [
-          "Built an AWS Lambda container image that bundles CPU-only PyTorch, FastAPI + Mangum, the cached embedding model, and precomputed corpus artifacts.",
-          "Forced the Hugging Face backend (no sentence-transformers) to keep the cold start smaller and avoid multiprocess warnings on Lambda.",
-          "Exposed a Lambda Function URL with CORS so the website demo can call it directly from the browser."
+          "Built a Lambda container with CPU PyTorch, FastAPI/Mangum, and the precomputed artifacts.",
+          "Used the plain Hugging Face stack (no sentence-transformers) to keep cold starts smaller.",
+          "Exposed a Lambda Function URL with CORS so the website can call it from the browser."
         ]
       },
       {
         title: "What I'd Improve",
         bullets: [
-          "Add support for user-provided documents (upload + background embedding job) instead of a fixed corpus.",
-          "Introduce ANN search (HNSW/FAISS) for larger corpora and faster top-k retrieval.",
-          "Move beyond silhouette score with a small labeled relevance set and offline evaluation metrics (e.g., nDCG@k)."
+          "Let users upload documents and build embeddings in the background.",
+          "Add ANN search (HNSW/FAISS) for bigger corpora and faster top-k.",
+          "Add a small labeled set and evaluate with metrics like nDCG@k."
         ]
       }
     ]
@@ -102,51 +102,51 @@ window.PROJECTS = [
       url: "chatbot-demo.html"
     },
     role: [
-      "Led the end-to-end prototype: data ingestion, retrieval, fine-tuning, deployment, and web integration."
+      "Built the prototype from crawl to deployment, including the web demo."
     ],
-    notes: "Built from public Visit Grand Junction web content; tuned to return grounded answers with references.",
-    problem: "Generic chatbots lacked Visit Grand Junction's tone and rarely suggested our content.",
+    notes: "Uses public Visit Grand Junction pages. Answers include citations.",
+    problem: "Off-the-shelf chatbots didn't sound like Visit Grand Junction, and they rarely pointed people to our pages.",
     actions: [
-      "Scraped Visit Grand Junction pages and created a FAISS retrieval index.",
-      "Automated a fine-tuning dataset with GPT-OSS 20B via Ollama.",
-      "Fine-tuned Mistral 7B on the generated QA set and deployed it to AWS SageMaker.",
-      "Created Lambda endpoints so the website can interact with the model."
+      "Crawled Visit Grand Junction pages and built a FAISS retrieval index.",
+      "Generated a fine-tuning dataset with GPT-OSS 20B (via Ollama).",
+      "Fine-tuned Mistral 7B with LoRA on the Q&A set and deployed it to AWS SageMaker.",
+      "Added Lambda endpoints so the website can talk to the model."
     ],
     results: [
-      "Serverless RAG chatbot scales on demand and returns grounded answers with references after a 10‑minute server warm‑up."
+      "The demo answers with citations, but it needs a warm-up after idle time (about 10 minutes)."
     ],
     caseStudy: [
       {
         title: "System Design",
-        lead: "A RAG pipeline tuned for a single domain: crawl → index → generate training data → fine-tune with LoRA → deploy behind an API the website can call.",
+        lead: "Pipeline: crawl → index → generate training data → LoRA fine-tune → deploy behind an API the site can call.",
         bullets: [
-          "Ingestion: crawl Visit Grand Junction pages and store cleaned text chunks.",
-          "Retrieval: build a FAISS index so responses can cite relevant source passages.",
-          "Generation: fine-tune Mistral 7B with LoRA on auto-generated domain Q&A pairs."
+          "Ingestion: crawl pages and store cleaned text chunks.",
+          "Retrieval: use FAISS so answers can cite the right source passages.",
+          "Fine-tuning: train Mistral 7B with LoRA on auto-generated Q&A pairs."
         ]
       },
       {
         title: "Dataset Generation",
         bullets: [
-          "Used GPT-OSS 20B via Ollama to generate Q&A pairs from the crawled content, keeping the dataset aligned to the site’s tone and facts.",
-          "Automated the end-to-end pipeline with scripts (crawl, build index, build dataset, finetune, merge LoRA).",
-          "Optimized for iteration: run locally or in Docker, then deploy the same artifacts for hosting."
+          "Used GPT-OSS 20B (Ollama) to turn crawled content into Q&A pairs.",
+          "Automated crawl → index → dataset → fine-tune so runs are repeatable.",
+          "Kept it Docker-friendly so I could run locally and deploy the same artifacts."
         ]
       },
       {
         title: "Serving and Deployment",
         bullets: [
-          "Merged the LoRA adapter into a 4-bit model and exposed a FastAPI inference endpoint.",
-          "Deployed the model behind AWS (SageMaker + Lambda endpoints) so the website can query it without shipping model code to the client.",
-          "Added a status check and warm-up UX in the demo to handle cold starts gracefully."
+          "Merged the LoRA adapter into a 4-bit model and served it with FastAPI.",
+          "Hosted it behind AWS (SageMaker + Lambda) so the browser only calls an API.",
+          "Added a status check and a warm-up message to handle cold starts."
         ]
       },
       {
         title: "What I'd Improve",
         bullets: [
-          "Add automated RAG evaluation (retrieval hit-rate, groundedness, and citation accuracy).",
-          "Introduce caching for common questions and streaming tokens for a faster perceived response.",
-          "Add guardrails for prompt injection and a tighter citation-first response format."
+          "Add basic eval for retrieval quality and citation accuracy.",
+          "Cache common questions and stream tokens to make replies feel faster.",
+          "Add stronger guardrails against prompt injection."
         ]
       }
     ]
@@ -171,48 +171,48 @@ window.PROJECTS = [
       type: "iframe",
       url: "shape-demo.html"
     },
-    problem: "I wanted to create a model that recognizes handwritten shapes.",
+    problem: "I wanted a model that can tell what shape someone drew.",
     actions: [
-      "Downloaded images from Google's QuickDraw dataset to build training and validation splits.",
-      "Trained a compact ResNet18 using PyTorch Lightning.",
-      "Deployed a minimal AWS Lambda handler for serverless CPU inference from the browser."
+      "Used Google's QuickDraw sketches and built train/validation splits.",
+      "Trained a small ResNet18 classifier in PyTorch.",
+      "Deployed a CPU-only AWS Lambda endpoint so the browser can request predictions."
     ],
     results: [
-      "Predicts circle, triangle, square, hexagon, or octagon from a single drawing with about 90% accuracy.",
-      "Demo shows responses return in under a second after a 10‑second warm‑up."
+      "About 90% accuracy on five shapes: circle, triangle, square, hexagon, and octagon.",
+      "After warm-up (~10 seconds), predictions return in under a second."
     ],
     caseStudy: [
       {
         title: "Data and Training",
-        lead: "I trained a compact classifier on Google’s QuickDraw sketches to recognize five basic shapes from a single monochrome drawing.",
+        lead: "I trained a small classifier on Google’s QuickDraw sketches to recognize five basic shapes from a simple black-and-white drawing.",
         bullets: [
-          "Built class-balanced train/validation splits from QuickDraw categories (circle, triangle, square, hexagon, octagon).",
-          "Used a ResNet18 backbone in PyTorch Lightning to keep training and reproducibility simple.",
-          "Exported lightweight weights (`model.pt`) so inference doesn’t require Lightning."
+          "Built class-balanced train/validation splits from QuickDraw categories.",
+          "Used ResNet18 to keep the model small and fast.",
+          "Exported plain weights (`model.pt`) so inference stays simple."
         ]
       },
       {
         title: "Inference API",
         bullets: [
-          "Implemented an AWS Lambda handler that accepts a base64-encoded image and returns the predicted class + confidence.",
-          "Designed the API to be browser-friendly (CORS + small JSON payloads) for a responsive demo experience.",
-          "Kept inference CPU-friendly so it can run in serverless environments without GPUs."
+          "Implemented an AWS Lambda handler that takes a base64 image and returns a class plus confidence.",
+          "Kept the API browser-friendly (CORS and small JSON payloads).",
+          "Ran CPU-only inference so it works well in serverless environments."
         ]
       },
       {
         title: "Demo UX",
         bullets: [
-          "Canvas-based drawing UI with a clear action to submit and a confidence bar to interpret predictions.",
-          "Graceful endpoint fallbacks and clear status messaging during warm-up/cold starts.",
-          "Tuned the preprocessing so messy real-world strokes still map to the training distribution."
+          "Canvas drawing UI with a clear submit step and a confidence bar.",
+          "Clear status messaging during warm-up and cold starts.",
+          "Preprocessing tuned so messy real-world strokes still work."
         ]
       },
       {
         title: "What I'd Improve",
         bullets: [
-          "Add calibration (e.g., temperature scaling) so confidence is more trustworthy.",
-          "Expand to more shapes and train with augmentation to handle stroke width and incomplete outlines.",
-          "Add a small human-drawn validation set to measure real-world generalization beyond QuickDraw."
+          "Calibrate confidence (for example, temperature scaling) so scores are more reliable.",
+          "Expand to more shapes and add augmentation for stroke width and incomplete outlines.",
+          "Create a small human-drawn validation set to measure real-world performance."
         ]
       }
     ]
@@ -237,47 +237,47 @@ window.PROJECTS = [
       type : "tableau",
       base : "https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013"
     },
-    problem : "I was curious what trends could be found in UFO sightings across the United States.",
+    problem : "I wanted to see patterns in UFO sighting reports across the U.S.",
     actions : [
-      "Cleaned and standardized hundreds of UFO sightings.",
-      "Built heat maps, bar charts, and line charts for rapid exploratory analysis."
+      "Cleaned and standardized a UFO sightings dataset.",
+      "Built a Tableau dashboard with maps and time-based charts."
     ],
     results : [
-      "Determined that most UFO sightings tend to occur just after sunset (earlier in the winter months and later in the summer months).",
-      "Found that California is the most common state for UFO sightings, with fewer in the central U.S."
+      "Most reports happen just after sunset (earlier in winter, later in summer).",
+      "California has the most reports, while central states have fewer."
     ],
     caseStudy : [
       {
         title: "Dashboard Design",
-        lead: "I built a single-screen Tableau dashboard that makes it easy to explore UFO sightings by where, when, and what people reported seeing.",
+        lead: "I built a one-page Tableau dashboard to explore sightings by place, time, and reported shape.",
         bullets: [
-          "Geospatial views: state and city maps to compare hotspots at different levels of detail.",
-          "Time patterns: a month/hour heatmap to spot seasonal and daypart effects.",
-          "Shape analysis: top shapes and a month-by-month prevalence view to see how reports shift over the year."
+          "Maps: state and city views to compare hotspots at different levels.",
+          "Time: a month/hour heatmap to spot seasonal and time-of-day patterns.",
+          "Shapes: a breakdown of common shapes and how they change over the year."
         ]
       },
       {
         title: "Data Preparation",
         bullets: [
-          "Standardized location fields so records could be mapped consistently.",
-          "Normalized timestamp fields to compare reports by month and hour.",
-          "Cleaned categorical fields (shape labels) to reduce fragmentation from spelling/formatting variants."
+          "Standardized location fields so points map consistently.",
+          "Normalized timestamps so reports compare cleanly by month and hour.",
+          "Cleaned shape labels to reduce duplicates from spelling and formatting."
         ]
       },
       {
         title: "Insights and Interpretation",
         bullets: [
-          "Reports cluster around dusk/night hours, supporting the 'after sunset' effect.",
-          "Seasonality shifts the peak hour later in summer and earlier in winter (longer vs. shorter daylight).",
-          "California stands out as the highest-volume state, while central regions are comparatively sparse."
+          "Reports cluster around dusk and nighttime.",
+          "The peak hour shifts with daylight (later in summer, earlier in winter).",
+          "California stands out in volume; central regions are lower."
         ]
       },
       {
         title: "What I'd Improve",
         bullets: [
-          "Normalize by population (per-capita rates) and add confidence intervals for low-count areas.",
-          "Add dashboard parameters for filtering by year, duration, and report quality.",
-          "Flag potential data-quality issues (missing locations, ambiguous shapes) directly in the UI."
+          "Normalize by population (per-capita rates), especially for smaller areas.",
+          "Add filters for year, duration, and report quality.",
+          "Surface data-quality issues (missing locations, unclear shapes) in the UI."
         ]
       }
     ]
@@ -304,39 +304,39 @@ window.PROJECTS = [
       type: "iframe",
       url: "covid-outbreak-demo.html"
     },
-    problem : "I used COVID historical data to predict future outbreaks.",
+    problem : "I built an early-warning model to flag states at risk of crossing 90% ICU utilization in the next 7 days.",
     actions : [
-      "Cleaned & enriched more than 50k records from the HHS hospital-capacity time-series; added rolling means, trends, and 1/3/7/14-day lag features.",
-      "Built an XGBoost classifier with class-imbalance weighting and a strict time-based train/test split.",
+      "Cleaned and enriched 50k+ rows from the HHS hospital-capacity time series; added rolling stats, trends, and 1/3/7/14-day lag features.",
+      "Trained an XGBoost classifier with class-imbalance weighting and a strict time-based train/test split.",
     ],
     results : [
-      "Used SHAP to surface the 7 most influential drivers and embedded the interactive plot in the report.",
-      "The most significant driver of COVID outbreaks was the percentage of ICU beds with COVID.",
-      "Utah was the most likely next location for a COVID outbreak (6.1%)."
+      "Used SHAP to highlight the top drivers and embedded an interactive plot in the report.",
+      "Top driver was the share of ICU beds occupied by COVID patients.",
+      "In the final snapshot, Utah had the highest predicted risk (6.1%)."
     ],
     caseStudy : [
       {
         title: "Problem Framing",
-        lead: "I framed this as a short-horizon risk prediction: estimate the probability that a state will breach 90% ICU occupancy within the next 7 days.",
+        lead: "Goal: estimate the probability a state will breach 90% ICU utilization within the next 7 days.",
         bullets: [
           "Target label: max(adult ICU bed utilization) over the next 7 days ≥ 0.90.",
-          "Constraint: extreme class imbalance (breaches are rare), so metrics must focus on ranking and precision/recall tradeoffs.",
-          "Goal: provide an interpretable early-warning signal rather than a black-box forecast."
+          "Breaches are rare, so I focused on ranking and precision/recall tradeoffs.",
+          "Output is a risk score meant to support decisions, not a perfect forecast."
         ]
       },
       {
         title: "Data and Feature Engineering",
         bullets: [
-          "Started from the HHS hospital capacity time series (state × day) and cleaned missingness with forward-filling and column pruning.",
-          "Created rolling-window features and lag features (1/3/7/14 days) to capture trend and momentum.",
-          "Built ratio features like ICU beds with COVID (%) and inpatient COVID share to normalize across states."
+          "Started with the HHS hospital-capacity time series (state × day) and handled missing data with forward-fills and pruning.",
+          "Added rolling-window features and lag features (1/3/7/14 days) to capture trend and momentum.",
+          "Built ratio features like ICU beds with COVID (%) to normalize across states."
         ]
       },
       {
         title: "Modeling and Evaluation",
         bullets: [
           "Trained an XGBoost classifier with a time-based train/test split and class-imbalance handling.",
-          "Measured ranking quality with AUROC (0.606) and PR-AUC (0.060); at a 0.5 threshold the confusion matrix was [[17601, 276], [728, 31]].",
+          "Measured ranking quality with AUROC (0.606) and PR-AUC (0.060).",
           "Used the model as a risk scorer (probability output) rather than a hard yes/no classifier."
         ]
       },
@@ -344,7 +344,7 @@ window.PROJECTS = [
         title: "Explainability (SHAP)",
         bullets: [
           "Used SHAP to identify which daily metrics raise or lower the chance of an ICU crisis in the next week.",
-          "Key takeaway: a high % of ICU beds already filled by COVID patients is the clearest early-warning signal; lower overall utilization reduces risk.",
+          "Key takeaway: when a high share of ICU beds are already filled by COVID patients, risk rises quickly.",
           "Renamed feature labels in the SHAP plot to keep it stakeholder-friendly."
         ]
       },
@@ -359,9 +359,9 @@ window.PROJECTS = [
       {
         title: "What I'd Improve",
         bullets: [
-          "Calibrate probabilities and tune thresholds for a target precision/recall operating point.",
-          "Add exogenous signals (vaccination, policy, mobility, variant waves) to improve early warning power.",
-          "Evaluate stability across time (drift) and add monitoring for feature shifts."
+          "Calibrate probabilities and tune thresholds for a clear precision/recall target.",
+          "Add outside signals (vaccination, policy, mobility, variants) to improve early warning.",
+          "Monitor drift and retrain when feature patterns shift."
         ]
       }
     ]
@@ -388,54 +388,54 @@ window.PROJECTS = [
       url: "target-empty-package-demo.html"
     },
     role: [
-      "Built the Excel BI workflow (data cleanup, drill-down views, and reporting)."
+      "Built the Excel dashboard workflow (cleanup, drill-downs, and reporting)."
     ],
     notes: "Employee and location identifiers are anonymized in the write-up.",
-    problem : "Empty‑package theft had ballooned: recovered retail value jumped 5× from Q1 2021 to Q2 2023, and leaders needed a single view to see where losses were concentrated.",
+    problem : "Empty-package theft was rising fast. Recovered retail value was 5× higher in Q2 2023 than Q1 2021, and leaders needed one view of where it was happening.",
     actions : [
-      "Consolidated 5,900+ loss-prevention records (2021-2023).",
-      "Cleaned and anonymized employee IDs, DPCI codes, dates, and dollar values.",
+      "Consolidated 5,900+ loss-prevention records (2021–2023).",
+      "Cleaned the data and anonymized employee IDs, DPCI codes, dates, locations, and retail values.",
       "Built an interactive Excel dashboard with drill-downs by associate, department, and recovery location.",
-      "Compiled results in a report for management."
+      "Summarized the findings in a short report."
     ],
     results : [
-      "Two recovery locations (anonymized) emerged as the primary hot spots.",
-      "Shrink doubled in under 12 months at one hot spot, with the second doubling in a single quarter.",
+      "Two recovery locations (anonymized) stood out as hotspots.",
+      "Shrink doubled in under 12 months at one hotspot, with the second doubling in a single quarter.",
       "Three departments (anonymized) drove most recoveries; the top department jumped ~4× in two quarters.",
       "Three associates (anonymized) accounted for ~47% of recovered value."
     ],
     caseStudy : [
       {
         title: "Data Cleanup and Governance",
-        lead: "This analysis turns messy operational loss-prevention logs into a decision-ready dashboard while preserving privacy through anonymization.",
+        lead: "I turned messy loss-prevention logs into a usable dashboard while keeping people and locations anonymous.",
         bullets: [
           "Consolidated 5,900+ records (2021–2023) and standardized dates, locations, departments, and retail values.",
-          "Anonymized employee and store identifiers to keep the write-up shareable without exposing internal details.",
-          "Created consistent fields for quarter/time-series trend analysis."
+          "Anonymized employee and store identifiers so the write-up is shareable.",
+          "Added quarter fields so trends are easy to track over time."
         ]
       },
       {
         title: "Dashboard and KPIs",
         bullets: [
-          "Built pivot-based drill-downs by associate, department, and recovery location to identify concentration of losses.",
-          "Tracked both retail value and item count so volume vs. value trends are visible together.",
-          "Added trend views to highlight acceleration (doubling patterns) rather than only totals."
+          "Built pivot-based drill-downs by associate, department, and recovery location.",
+          "Tracked both retail value and item count to separate volume from severity.",
+          "Added trend views to spot fast growth (doubling patterns), not just totals."
         ]
       },
       {
         title: "Key Findings",
         bullets: [
-          "Recovered retail value increased five-fold from Q1 2021 to Q2 2023 (no sign of slowing).",
-          "Two recovery locations emerged as hot spots; one doubled in <12 months and another doubled in a single quarter.",
+          "Recovered retail value increased five-fold from Q1 2021 to Q2 2023.",
+          "Two recovery locations were hotspots; one doubled in <12 months and another doubled in a single quarter.",
           "A small set of associates and departments drove a disproportionate share of recovered value (~47% from three associates)."
         ]
       },
       {
         title: "What I'd Improve",
         bullets: [
-          "Add normalization (per-store traffic or shipments) to separate growth from volume changes.",
-          "Introduce control charts / anomaly alerts to flag sudden spikes automatically.",
-          "Automate refresh via scheduled exports so leaders always see current quarter performance."
+          "Normalize by store traffic or shipments to separate growth from volume changes.",
+          "Add control charts or anomaly alerts to flag spikes automatically.",
+          "Automate refresh via scheduled exports so the dashboard stays current."
         ]
       }
     ]
@@ -463,41 +463,41 @@ window.PROJECTS = [
       type: "iframe",
       url: "handwriting-rating-demo.html"
     },
-    problem : "My wife would say my handwriting is illegible. I wanted an objective assessment.",
+    problem : "My wife says my handwriting is hard to read. I wanted an objective score.",
     actions : [
-      "Created three models of varying complexity to learn to read handwritten digits.",
-      "Trained models on 60,000 handwritten digits.",
-      "Deployed the best model behind a serverless scoring API for the live demo."
+      "Built three digit-recognition models (simple baseline → CNN).",
+      "Trained on MNIST (60,000 digits) and selected the best model.",
+      "Deployed it behind a serverless scoring API for the live demo."
     ],
     results : [
-      "Model 3 (the most complex) was the most accurate, with 99.1% accuracy.",
-      "My handwriting was determined to be 72.5% legible, with digits 0, 3, 5, and 8 the most illegible.",
-      "My wife was correct in her assessment of my poor handwriting."
+      "The best model reached 99.1% accuracy on MNIST.",
+      "My digits scored 72.5% legible; 0, 3, 5, and 8 were the toughest.",
+      "My wife was right."
     ],
     caseStudy : [
       {
         title: "Experiment Setup",
-        lead: "I treated MNIST as a controllable baseline and then tested whether the model judged my own handwriting by the same standards.",
+        lead: "I used MNIST as a baseline, then scored my own handwriting with the same setup.",
         bullets: [
           "Dataset: MNIST (60,000 train / 10,000 test) for digit recognition.",
-          "Goal: compare model families and quantify personal legibility with a consistent metric.",
+          "Goal: compare model types and quantify my own legibility with a consistent metric.",
           "Output: per-digit accuracy and a confusion matrix to see which digits I write most ambiguously."
         ]
       },
       {
         title: "Model Iteration",
         bullets: [
-          "Model 1: simple linear classifier to establish a quick baseline.",
-          "Model 2: a small CNN (TinyVGG-style) to capture local stroke structure.",
-          "Model 3: a deeper CNN (VGG16-style) that achieved the best test performance (99.1% accuracy)."
+          "Model 1: simple linear classifier as a baseline.",
+          "Model 2: small CNN (TinyVGG-style) to capture strokes and curves.",
+          "Model 3: deeper CNN (VGG16-style) with the best test accuracy (99.1%)."
         ]
       },
       {
         title: "Custom Handwriting Evaluation",
         bullets: [
-          "Built a small custom dataset loader so new images could be preprocessed and scored consistently.",
-          "Computed overall legibility (72.5%) and identified the hardest digits for me (0, 3, 5, and 8).",
-          "Used the error breakdown to make the result actionable (which digits to practice)."
+          "Built a loader so new images can be preprocessed and scored consistently.",
+          "Computed overall legibility (72.5%) and found my hardest digits (0, 3, 5, and 8).",
+          "Used the breakdown to make it actionable (which digits to practice)."
         ]
       },
       {
@@ -532,46 +532,46 @@ window.PROJECTS = [
       type: "iframe",
       url: "/digit-generator-demo"
     },
-    problem : "I wanted to learn how to generate completely new handwritten digits based on samples.",
+    problem : "I wanted to generate new handwritten digits, not just recognize them.",
     actions : [
-      "Built Variational Autoencoder trained on 60,000 handwritten digits."
+      "Trained a Variational Autoencoder (VAE) on MNIST (60,000 handwritten digits)."
     ],
     results : [
-      "Successfully visualized latent digits through the trained model.",
-      "I can generate unique handwritten digits when needed."
+      "Generated new digits by sampling the learned latent space.",
+      "Saved the trained model so generation is a quick inference step."
     ],
     caseStudy : [
       {
         title: "Model Architecture (VAE)",
-        lead: "I trained a Variational Autoencoder to learn a compact latent representation of handwritten digits and generate new samples by sampling that latent space.",
+        lead: "I trained a VAE to learn a compact latent space for handwritten digits and generate new samples from it.",
         bullets: [
-          "Encoder: convolutional stack that maps an image to a latent mean and variance.",
-          "Reparameterization trick to sample latents during training while keeping gradients stable.",
-          "Decoder: transposed convolutions that reconstruct images from latent vectors."
+          "Encoder: CNN that maps an image to a latent mean and variance.",
+          "Reparameterization trick to sample during training while keeping gradients stable.",
+          "Decoder: transposed convolutions that reconstruct an image from a latent vector."
         ]
       },
       {
         title: "Training and Sampling",
         bullets: [
-          "Trained on MNIST and monitored the reconstruction vs. KL-divergence tradeoff.",
-          "Validated by comparing original vs. reconstructed digits and by sampling random latent vectors.",
-          "Saved the model so generation is a one-command inference step, not a re-train."
+          "Trained on MNIST and balanced reconstruction loss vs. KL divergence.",
+          "Validated by comparing original vs. reconstructed digits and sampling random latent vectors.",
+          "Saved the model so generation doesn't require retraining."
         ]
       },
       {
         title: "Latent Space Analysis",
         bullets: [
           "Used PCA, t-SNE, and UMAP to visualize how digits cluster in latent space.",
-          "Applied clustering (HDBSCAN/DBSCAN) to study structure and identify outliers.",
-          "Performed reconstruction-error analysis to see which digits are hardest to model."
+          "Applied clustering (HDBSCAN/DBSCAN) to study structure and spot outliers.",
+          "Checked reconstruction error to see which digits are hardest to model."
         ]
       },
       {
         title: "What I'd Improve",
         bullets: [
           "Build a conditional VAE so I can generate a specific digit on demand.",
-          "Improve sample sharpness with stronger decoders, perceptual losses, or diffusion-based refinement.",
-          "Add quantitative generative metrics (FID-like proxies) to compare models over time."
+          "Improve sample sharpness with stronger decoders or better loss functions.",
+          "Add quantitative metrics (FID-like proxies) to compare models over time."
         ]
       }
     ]
@@ -593,48 +593,48 @@ window.PROJECTS = [
       { icon: "img/icons/pdf-icon.png",    url: "documents/Project_10_pdf.zip",                      label: "PDFs"  },
       { icon: "img/icons/jupyter-icon.png",url: "documents/Project_10.zip",                          label: "Notebook"}
     ],
-    problem : "I wanted the ability to participate in playing music as my church but did not have any sheet music.",
+    problem : "I needed clean, readable sheet music. Most of what I could find was low-res and watermarked.",
     actions : [
-      "Trained a UNet model on more 20,000 paired pages for watermark removal.",
+      "Trained a UNet model on 20,000+ paired pages for watermark removal.",
       "Upscaled 612×792 scans to 1700×2200 with Very Deep Super-Resolution (VDSR).", 
-      "Wrapped functionality in a GUI for a simple pipeline."
+      "Wrapped it in a simple GUI so I could run the full pipeline."
     ],
     results : [
-      "Delivers cleaned and legible sheet music in <10 seconds.",
+      "Typical runs produce clean, readable output in under 10 seconds.",
     ],
     caseStudy : [
       {
         title: "End-to-End Pipeline",
-        lead: "This project combines web scraping, image restoration, super-resolution, and PDF compilation into a single workflow so sheet music is playable again.",
+        lead: "One workflow: pull pages, clean them up, upscale them, and rebuild the PDF.",
         bullets: [
-          "Input: low-resolution, watermarked page images (scanned sheet music).",
-          "Step 1: watermark removal with a UNet segmentation/restoration model.",
-          "Step 2: upscaling with VDSR to produce print-friendly pages.",
-          "Output: cleaned images compiled into a ready-to-use PDF."
+          "Input: low-resolution, watermarked page images.",
+          "Step 1: remove watermark artifacts with a UNet model.",
+          "Step 2: upscale with VDSR for print-friendly pages.",
+          "Output: cleaned images compiled into a PDF."
         ]
       },
       {
         title: "Modeling Choices",
         bullets: [
-          "UNet works well for structured, local artifacts (watermarks) while preserving staff lines and note heads.",
-          "VDSR adds detail and readability when starting from low-resolution scans.",
-          "Packaged model weights as state dicts so the pipeline can run without retraining."
+          "UNet handles local watermark artifacts while preserving staff lines and note heads.",
+          "VDSR improves readability when starting from low-resolution scans.",
+          "Saved model weights so the pipeline runs without retraining."
         ]
       },
       {
         title: "GUI and Automation",
         bullets: [
-          "Built a PyQt5 GUI to scrape, process, and compile pages without needing to run notebook cells manually.",
-          "Used background worker threads to keep the UI responsive while processing batches.",
-          "Designed the workflow for repeat use (new songs in, clean PDFs out)."
+          "Built a PyQt5 GUI to scrape, process, and compile pages without running a notebook.",
+          "Used background worker threads so the UI stays responsive during batches.",
+          "Designed it for repeat use: new songs in, clean PDFs out."
         ]
       },
       {
         title: "Performance and Reliability",
         bullets: [
-          "Optimized for practical speed: the pipeline produces legible output in under 10 seconds for typical use cases.",
-          "Added sensible defaults and a simple 'one path' experience so non-ML users can run it.",
-          "Kept the pipeline modular so either model can be swapped or improved independently."
+          "Kept it fast enough for real use (often under 10 seconds).",
+          "Added sensible defaults and a simple flow so it runs without tuning.",
+          "Kept steps modular so either model can be swapped or improved later."
         ]
       },
       {
@@ -661,40 +661,40 @@ window.PROJECTS = [
       { icon: "img/icons/pdf-icon.png",   url: "documents/Project_11.pdf",  label: "PDF"   },
       { icon: "img/icons/excel-icon.png", url: "documents/Project_11.xlsx", label: "Excel" }
     ],
-    problem : "Drivers wanted optimal shift times & zones for higher tips.",
+    problem : "I wanted to know which shifts and neighborhoods lead to better tips.",
     actions : [
-      "Built a geospatial heat map and pivot filters on 1,251 deliveries.",
-      "Compared tip averages by daypart, zone, and order size."
+      "Built a geospatial heat map and pivot filters from 1,251 deliveries.",
+      "Compared tips by daypart, zone, and order size."
     ],
     results : [
-      "Identified Wednesday as the day tips average the highest dollar amount ($8.07/delivery).",
-      "However, Friday is the best day in terms of tips per hour ($10.34/hour).",
-      "Increased weekly earnings by 12% following the insights."
+      "Wednesday had the highest average tip per delivery ($8.07).",
+      "Friday had the best tips per hour ($10.34/hour).",
+      "Using the changes, I increased my weekly earnings by about 12%."
     ],
     caseStudy : [
       {
         title: "Dataset and Cleaning",
-        lead: "I analyzed delivery tickets (orders, tips, timing, city, and housing attributes) and built an Excel workflow that stays usable for non-technical drivers.",
+        lead: "I analyzed delivery tickets and built an Excel workflow that drivers can keep updating.",
         bullets: [
-          "Normalized timestamps and derived metrics like total delivery time (minutes) and tip percentage.",
+          "Normalized timestamps and derived delivery time (minutes) and tip percentage.",
           "Standardized location fields (city and neighborhood) for mapping and rollups.",
-          "Used Power Query so the dataset can be refreshed without redoing manual steps."
+          "Used Power Query so refresh doesn't require manual cleanup."
         ]
       },
       {
         title: "Geo-Analytics Dashboard",
         bullets: [
-          "Built a tip heatmap by housing/neighborhood to identify the best delivery zones.",
-          "Created pivot filters to compare performance by housing type, gated communities, city, and order size.",
-          "Added weekday and shift-level summaries to support scheduling decisions."
+          "Built a tip heatmap by neighborhood to spot strong zones.",
+          "Added pivot filters for housing type, gated communities, city, and order size.",
+          "Added weekday and shift-level summaries for scheduling."
         ]
       },
       {
         title: "Key Findings",
         bullets: [
-          "Wednesday had the highest average tip per delivery ($8.07), while Friday produced the best tips per hour ($10.34/hour).",
-          "Tip behavior varied by housing type and neighborhood, which helped prioritize zones during peak hours.",
-          "Documented personal baseline stats (e.g., average tip $7.14 and ~42-minute average delivery time) to track improvement over time."
+          "Wednesday had the highest average tip per delivery ($8.07); Friday had the best tips per hour ($10.34/hour).",
+          "Tips varied a lot by housing type and neighborhood, which helped with zone choices.",
+          "Tracked baseline stats (average tip and delivery time) to measure changes over time."
         ]
       },
       {
@@ -728,53 +728,53 @@ window.PROJECTS = [
       url: "retail-loss-sales-demo.html"
     },
     role: [
-      "Owned the analysis end-to-end: SQL data modeling/ETL, anomaly detection, and reporting."
+      "Led the analysis: SQL modeling/ETL, anomaly detection, and reporting."
     ],
     notes: "Store, state, and employee identifiers are anonymized in the case study.",
-    problem : "Our store lacked visibility into security incidents, theft hot-spots, and boycott-driven sales swings.",
+    problem : "We didn't have a single view of security incidents, theft hotspots, and boycott-driven sales swings.",
     actions : [
-      "Merged incident, sales & HR tables in SQL; automated KPIs via views and stored procedures.",
-      "Built Python dashboards mapping theft vs. sales, tagged by format, state and boycott timeline.",
-      "Applied anomaly detection to spotlight outlier stores and employees."
+      "Joined incident, sales, and HR tables in SQL and automated KPIs with views and stored procedures.",
+      "Built Python dashboards to compare theft vs. sales by format, state, and time.",
+      "Used anomaly detection to flag outlier stores and associates."
     ],
     results : [
-      "Identified an outlier store cluster averaging 14 incidents/store (~4–5× higher than peers).",
-      "Flagged multiple regions as top theft hot spots (up to ~$991/store/day).",
-      "Quantified boycott hit: –28.7% (May ’23), –11.6% (Jun ’23), –60.2% (Jul ’23) YoY sales.",
-      "Surfaced a small set of high-risk associates (anonymized) for empty-package reports; one outlier averaged $249/item on just 2 items."
+      "Found a cluster of outlier stores averaging 14 incidents per store (about 4–5× peers).",
+      "Flagged high-theft regions (up to about $991 per store per day).",
+      "Quantified year-over-year boycott drops: –28.7% (May ’23), –11.6% (Jun ’23), –60.2% (Jul ’23).",
+      "Flagged a small set of high-risk associates (anonymized); one outlier averaged $249 per item on two items."
     ],
     caseStudy : [
       {
         title: "Data Modeling and ETL",
-        lead: "I built a SQL-first analytics layer that consolidates incidents, theft, sales, and HR attributes so leaders can answer 'where is risk growing?' with a single source of truth.",
+        lead: "I built a SQL layer that joins incidents, theft, sales, and HR attributes so the team can slice risk by store, region, and time.",
         bullets: [
-          "Joined incident, sales, and employee tables and created reusable views for KPI rollups.",
-          "Standardized date keys and dimensions (store format, region/state) to support consistent slicing.",
-          "Kept identifiers anonymized so insights can be shared without exposing sensitive internal data."
+          "Joined incident, sales, and employee tables and created reusable KPI views.",
+          "Standardized date keys and dimensions (store format, region/state) so filters stay consistent.",
+          "Anonymized identifiers so insights can be shared safely."
         ]
       },
       {
         title: "Analysis Workflow",
         bullets: [
-          "Implemented targeted queries to find high-incident store formats, top-theft states, and high-risk associates.",
-          "Measured boycott impact with year-over-year comparisons around the boycott timeline.",
-          "Used Python visualizations to communicate findings clearly (hotspots, trends, and outliers)."
+          "Ran targeted queries to find high-incident formats, top-theft states, and high-risk associates.",
+          "Measured boycott impact with year-over-year comparisons around the timeline.",
+          "Used Python charts to highlight hotspots, trends, and outliers."
         ]
       },
       {
         title: "Anomaly Detection",
         bullets: [
-          "Flagged outlier stores and associates by comparing against peer baselines rather than raw totals.",
-          "Highlighted both 'high frequency' (incidents/store) and 'high severity' (value per item) anomalies.",
-          "Focused outputs on investigations leaders can act on (where to send resources next)."
+          "Flagged outlier stores and associates by comparing against peer baselines, not raw totals.",
+          "Separated 'high frequency' (incidents per store) from 'high severity' (value per item).",
+          "Kept the output focused on a short list people can investigate."
         ]
       },
       {
         title: "What I'd Improve",
         bullets: [
-          "Add automated alerting (weekly anomaly reports) and an audit trail for investigations.",
-          "Normalize by traffic/shipments to separate volume effects from true risk changes.",
-          "Expand to causal analysis for boycott drivers and mitigation experiments."
+          "Add automated weekly anomaly alerts and an audit trail for investigations.",
+          "Normalize by traffic or shipments to separate volume from risk changes.",
+          "Explore causal analysis for boycott drivers and mitigation tests."
         ]
       }
     ]
@@ -800,40 +800,40 @@ window.PROJECTS = [
       type: "iframe",
       url: "pizza-tips-demo.html"
     },
-    problem : "Tip income swung wildly across neighborhoods and housing types, but drivers had no data-backed story to explain the variation.",
+    problem : "Tips varied a lot by neighborhood and housing type. I wanted to see what actually drives them.",
     actions : [
       "Merged 1,251 delivery tickets with NOAA weather, then cleaned the data in Power Query.",
       "Ran a multiple regression in Excel: Tip = f(cost, delivery time, rain, max/min temperature)."
     ],
     results : [
-      "Order cost explains about 38% of tip variance; every extra $10 on the bill lifts the tip by about $1.10.",
-      "Apartment customers tip 28% less than house residents (p < 0.001).",
-      "Weather and delivery time showed no significant effect on tip size."
+      "Order cost explains ~38% of tip variance (about +$1.10 tip per +$10 bill).",
+      "Apartment customers tipped ~28% less than house residents (p < 0.001).",
+      "Weather and delivery time didn’t show a meaningful effect on tip size."
     ],
     caseStudy : [
       {
         title: "Data Integration",
-        lead: "I merged delivery tickets with local NOAA weather to test common hypotheses about what drives tipping behavior.",
+        lead: "I merged delivery tickets with NOAA weather to test common ideas about what drives tipping.",
         bullets: [
-          "Combined 1,251 deliveries with daily weather features (rainfall, max/min temperature, wind).",
-          "Cleaned the dataset in Power Query and created derived fields like tip percentage and delivery time (minutes).",
-          "Separated housing types (apartment vs. residential) to test neighborhood effects."
+          "Combined 1,251 deliveries with daily weather features (rain, max/min temperature, wind).",
+          "Cleaned the dataset in Power Query and derived tip percentage and delivery time (minutes).",
+          "Separated housing types (apartment vs. house) to test neighborhood effects."
         ]
       },
       {
         title: "Exploratory Analysis",
         bullets: [
-          "Found a strong positive correlation (0.6181) between order cost and tip amount.",
-          "Observed only a mild relationship between rainfall and delivery duration (correlation 0.1410).",
-          "Identified clear seasonal demand swings (order counts more than doubled in summer/early fall)."
+          "Found a strong positive correlation (0.62) between order cost and tip amount.",
+          "Rainfall had only a mild relationship with delivery duration (correlation 0.14).",
+          "Order counts more than doubled in summer/early fall (clear seasonality)."
         ]
       },
       {
         title: "Regression and Hypothesis Tests",
         bullets: [
           "Ran a multiple regression: Tip = f(cost, delivery time, rain, max/min temperature).",
-          "Result: order cost was the primary driver, explaining ~38% of tip variance (≈ +$1.10 tip per +$10 bill).",
-          "Validated housing differences with a two-sample t-test: apartment customers tipped ~28% less than house residents (p < 0.001)."
+          "Result: order cost was the main driver, explaining ~38% of tip variance (≈ +$1.10 tip per +$10 bill).",
+          "Validated housing differences with a two-sample t-test: apartment customers tipped ~28% less (p < 0.001)."
         ]
       },
       {
@@ -868,48 +868,48 @@ window.PROJECTS = [
       type: "iframe",
       url: "baby-names-demo.html"
     },
-    problem : "My wife wanted me to come up with new baby names to suggest to her. I wanted to use data-backed insights to solve this problem.",
+    problem : "My wife asked me to suggest baby names. I wanted something that learns her taste instead of guessing.",
     actions : [
-      "Aggregated & cleaned over 140 years of SSA records, engineering trend and saturation features.",
-      "Created a script to suggest names so I could quiz my wife.",
-      "Engineered multiple models then averaged results to provide recommendations."
+      "Aggregated and cleaned 140+ years of SSA records and engineered trend features.",
+      "Built a simple 'quiz' script to collect like/dislike labels.",
+      "Trained several models and averaged their scores to produce recommendations."
     ],
     results : [
-      "Generated personalized top 50 names for boys and girls for my wife.",
-      "Successfully named my child with recommendations."
+      "Generated personalized top 50 name lists for boys and girls.",
+      "Helped us narrow the list when naming our child."
     ],
     caseStudy : [
       {
         title: "Data and Labeling",
-        lead: "I combined Social Security Administration name data (national + Colorado) with my own preference labels to build a personalized recommender.",
+        lead: "I combined Social Security Administration name data with preference labels to build a personalized recommender.",
         bullets: [
-          "Aggregated 140+ years of SSA records and engineered 'recency' and trend features to avoid only recommending historically popular names.",
-          "Focused on Colorado to keep suggestions relevant to the names my wife actually encounters.",
-          "Collected preference labels through a simple 'quiz' workflow so the model learns her taste over time."
+          "Aggregated 140+ years of SSA records and added recency/trend features so it doesn’t just recommend the most common names.",
+          "Focused on Colorado to keep suggestions closer to what my wife actually hears day to day.",
+          "Collected labels through quick quizzes so the model learns her taste over time."
         ]
       },
       {
         title: "Feature Engineering",
         bullets: [
-          "Name morphology: length, vowels/consonants, syllable count, start/end vowel flags, and entropy.",
-          "Popularity dynamics: total count, most popular year, and recent-count features to capture saturation and momentum.",
-          "Language-root signal via `langdetect` as a lightweight proxy for name origin."
+          "Name shape features: length, vowel/consonant mix, syllable count, start/end vowel flags, and entropy.",
+          "Popularity features: total count, peak year, and recent-count features to capture saturation and momentum.",
+          "A rough origin signal via `langdetect` as a lightweight proxy."
         ]
       },
       {
         title: "Modeling Strategy",
         bullets: [
-          "Trained multiple models (Random Forest, XGBoost, SVM, KNN, and a deep learning baseline) with randomized hyperparameter search.",
+          "Trained multiple models (Random Forest, XGBoost, SVM, KNN, plus a deep learning baseline) with randomized hyperparameter search.",
           "Optimized for weighted F1 to handle class imbalance in 'liked' vs. 'not liked' labels.",
-          "Ensembled predictions across models to reduce single-model brittleness."
+          "Averaged predictions across models to reduce quirks from any single model."
         ]
       },
       {
         title: "Recommendation Workflow",
         bullets: [
           "Generated a ranked Top 50 list for boys and girls and exported results for easy review.",
-          "Designed the loop so new feedback becomes new training data (continual improvement).",
-          "Kept the system explainable by surfacing which features correlated with higher predicted preference."
+          "Designed the loop so new feedback becomes new training data.",
+          "Kept it explainable by surfacing which features correlated with higher predicted preference."
         ]
       },
       {
@@ -943,41 +943,41 @@ window.PROJECTS = [
       base : "https://public.tableau.com/views/Pizza_Delivery/PizzaDeliveryDashboard"
     },
     role: [
-      "Built the dataset and Tableau dashboard end-to-end (data shaping, KPIs, and forecasting)."
+      "Built the dataset and Tableau dashboard (data shaping, KPIs, and forecasting)."
     ],
-    problem : "I needed a fast way to track earnings drivers, compare delivery zones, and forecast performance.",
+    problem : "I wanted one dashboard to track earnings, compare delivery zones, and forecast tips.",
     actions : [
-      "Reshaped 12,000 rows for Tableau, built map, histogram & 12-month forecast with date/zone filters.",
-      "Enabled live updates on current performance and the ability to anticipate future performance."
+      "Reshaped ~12,000 rows for Tableau and built maps, histograms, and a 12-month forecast with date/zone filters.",
+      "Set it up so I can compare zones quickly during a shift."
     ],
     results : [
-      "Able to review potential deliveries and choose which to take.",
+      "Used it to compare zones and plan shifts based on tips and delivery time.",
       "Improved tip revenue per delivery by more than 10%."
     ],
     caseStudy : [
       {
         title: "Data Shaping for Tableau",
-        lead: "I built a Tableau-ready dataset that supports both exploration and operational decisions (where to deliver, when to work, and what to expect).",
+        lead: "I built a Tableau-ready dataset so the dashboard stays fast and the filters work cleanly.",
         bullets: [
-          "Reshaped ~12,000 rows into a tidy format with consistent date fields, zones/cities, and housing types.",
-          "Defined core KPIs (tip $, tip %, delivery time) and ensured they work across filters and aggregations.",
-          "Created a dashboard layout that fits 'one glance' decisions during a shift."
+          "Reshaped ~12,000 rows into a tidy table with consistent dates, zones/cities, and housing types.",
+          "Defined KPIs (tip $, tip %, delivery time) that work across filters and aggregations.",
+          "Kept the layout simple enough to use mid-shift."
         ]
       },
       {
         title: "Dashboard UX",
         bullets: [
           "Maps to compare zones by average tip, tip %, and delivery time.",
-          "Histograms to understand the distribution of tips and delivery times (not just averages).",
-          "Breakdowns by housing type and city to explain why zones perform differently."
+          "Histograms to understand distributions, not just averages.",
+          "Breakdowns by housing type and city to explain why zones differ."
         ]
       },
       {
         title: "Forecasting",
         bullets: [
-          "Added a 12-month tip forecast to anticipate seasonal changes and plan shift strategies.",
-          "Used filtering (date/zone) so forecasts and comparisons stay apples-to-apples.",
-          "Designed the view to help decide between 'high tip per delivery' vs. 'high tip per hour' tradeoffs."
+          "Added a 12-month tip forecast to see seasonal changes.",
+          "Used date/zone filters so forecasts and comparisons stay consistent.",
+          "Made it easy to compare 'tip per delivery' vs. 'tip per hour'."
         ]
       },
       {
@@ -1012,37 +1012,37 @@ window.PROJECTS = [
       type: "iframe",
       url: "nonogram-demo.html"
     },
-    problem : "I wanted to create a machine learning model to automatically solve Nonogram puzzles for me.",
+    problem : "I wanted to see if an RL agent could learn to solve Nonogram puzzles.",
     actions : [
-      "Built a hybrid CNN + Transformer policy network and trained it on more than 25 million 5×5 puzzles (52,000 episodes × 512-board batches).",
-      "Shaped the reward signal around unique guesses, row/column completions, and full-board solves to speed up exploration."
+      "Trained a hybrid CNN + Transformer policy network on 25M+ generated 5×5 puzzles.",
+      "Shaped rewards around unique guesses, row/column completions, and full-board solves to guide exploration."
     ],
     results : [
-      "Reached 94% accuracy on unseen 5×5 boards.",
+      "Reached 94% accuracy on unseen 5×5 boards."
     ],
     caseStudy : [
       {
         title: "Environment Design",
-        lead: "I built a reinforcement learning environment for Nonograms, including puzzle generation, clue computation, and reward shaping.",
+        lead: "I built a reinforcement learning environment for Nonograms: puzzle generation, clue computation, and reward shaping.",
         bullets: [
           "Generated large batches of unique 5×5 puzzles and computed row/column clues automatically.",
-          "Represented state as (board + clue embeddings) so the agent can condition actions on constraints.",
-          "Designed rewards to encourage progress (row/column completions) and discourage repeated guesses."
+          "Represented state as board + clue embeddings so the agent can act on constraints.",
+          "Rewarded progress (row/column completions) and penalized repeated guesses."
         ]
       },
       {
         title: "Policy Network",
         bullets: [
-          "Combined a CNN (board perception) with a Transformer (clue encoding) to capture both spatial and sequential structure.",
-          "Output an action distribution over grid cells so the agent learns a strategy, not a fixed solver rule set.",
-          "Kept the architecture small enough to train over millions of puzzles efficiently."
+          "Combined a CNN (board) with a Transformer (clues) to capture both spatial and sequence structure.",
+          "Output an action distribution over grid cells so the agent learns a strategy, not a hard-coded solver.",
+          "Kept the network small enough to train over millions of puzzles."
         ]
       },
       {
         title: "Training",
         bullets: [
-          "Trained with policy gradients at scale (25M+ puzzles; large batched episodes) to learn general solving behavior.",
-          "Used reward shaping around unique guesses, row/column completions, and full-board solves to speed exploration.",
+          "Trained with policy gradients at scale (25M+ puzzles; large batched episodes).",
+          "Used reward shaping around unique guesses, row/column completions, and full-board solves.",
           "Tracked learning curves and saved checkpoints to compare policy improvements over time."
         ]
       },
@@ -1050,8 +1050,8 @@ window.PROJECTS = [
         title: "What I'd Improve",
         bullets: [
           "Scale beyond 5×5 with curriculum learning (5×5 → 10×10) and stronger value baselines.",
-          "Add search (e.g., MCTS) on top of the learned policy for harder puzzles.",
-          "Evaluate on benchmark Nonogram sets to compare against classical solvers."
+          "Add search (like MCTS) on top of the learned policy for harder puzzles.",
+          "Evaluate on benchmark Nonogram sets and compare against classical solvers."
         ]
       }
     ]
@@ -1074,40 +1074,40 @@ window.PROJECTS = [
       type: "iframe",
       url: "minesweeper-demo.html"
     },
-    problem : "I wanted to train reinforcement learning agents that can reliably play Minesweeper and expose them in a friendly web demo.",
+    problem : "I wanted to train an RL agent to play Minesweeper and ship it as a web demo.",
     actions : [
-      "Built a custom Minesweeper environment that generates boards on demand (5x5 to 10x10) with 10% to 20% mines and safe first-click logic.",
-      "Trained 12 model variants across DQN, Double DQN, and Dueling DQN architectures with multiple CNN pooling heads and replay buffers.",
-      "Packaged the best model behind an AWS Lambda + container image endpoint for interactive inference."
+      "Built a Minesweeper environment that generates boards on demand (5×5 to 10×10), with safe first-click logic and 10–20% mines.",
+      "Trained 12 variants across DQN, Double DQN, and Dueling DQN with different CNN heads and replay buffers.",
+      "Deployed the best model behind an AWS Lambda container endpoint for interactive inference."
     ],
     results : [
       "Best evaluation reached ~72% success on 9x9 boards with 10 mines.",
-      "Current demo uses the 9x9 / 10-mine model for interactive inference."
+      "The demo uses the 9x9 / 10-mine model for interactive inference."
     ],
     caseStudy : [
       {
         title: "Environment & Data Generation",
         lead: "The training data is created on the fly, so every episode is a fresh Minesweeper board.",
         bullets: [
-          "Generated boards dynamically with randomized mine placement (10% to 20% density) and a protected 3x3 first click.",
-          "Normalized cell values between -0.25 and 1 to speed convergence and keep inputs stable.",
-          "Validated board shapes and reveal rules with a debug mode to guarantee consistent training inputs."
+          "Generated random boards (10–20% mine density) with a protected 3×3 first click.",
+          "Normalized cell values between -0.25 and 1 to keep inputs stable.",
+          "Used a debug mode to validate board rules and training inputs."
         ]
       },
       {
         title: "Model Variants",
         bullets: [
-          "Evaluated DQN, Double DQN, and Dueling DQN policies with max-pool, adaptive-pool, and global-average CNN heads.",
-          "Compared regular vs. prioritized replay buffers across each architecture (12 total combinations).",
-          "Found Double DQN with adaptive pooling to be the strongest family on larger grid sizes."
+          "Evaluated DQN, Double DQN, and Dueling DQN with max-pool, adaptive-pool, and global-average CNN heads.",
+          "Compared regular vs. prioritized replay buffers across each architecture (12 combinations).",
+          "Found Double DQN with adaptive pooling worked best on larger grids."
         ]
       },
       {
         title: "Training & Curriculum",
         bullets: [
-          "Trained each model for 10,000 episodes with 64 parallel games per episode and a periodically updated target network.",
-          "Advanced grid size after hitting 50% success on a 100-game test set three times in a row.",
-          "Reward shaping favored safe reveals (+0.3), penalized blind guesses (-0.3), and heavily penalized mine hits (-1.0)."
+          "Trained each model for 10,000 episodes with 64 parallel games and a periodically updated target network.",
+          "Increased grid size after hitting 50% success on a 100-game test set three times in a row.",
+          "Reward shaping: safe reveals (+0.3), blind guesses (-0.3), mine hits (-1.0)."
         ]
       },
       {
@@ -1115,7 +1115,7 @@ window.PROJECTS = [
         bullets: [
           "Add flagging actions and a second head for mine probability to reduce late-game guesswork.",
           "Pair the RL policy with a lightweight search layer for harder boards.",
-          "Expand evaluation with a fixed benchmark suite to compare against classical Minesweeper solvers."
+          "Add a fixed benchmark suite to compare against classical Minesweeper solvers."
         ]
       }
     ]
@@ -1136,38 +1136,38 @@ window.PROJECTS = [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/danielshort3.github.io", label: "GitHub" },
       { icon: "img/icons/website-icon.png", url: "https://danielshort.me/", label: "Live Site" }
     ],
-    problem: "Needed a fast, mobile-friendly hub to showcase analytics and ML projects.",
+    problem: "I needed a fast site to show my work, especially on mobile.",
     actions: [
-      "Built a semantic static site with dynamic project loading via JSON.",
-      "Integrated Google Analytics 4, structured data, and lazy-loaded assets."
+      "Built a static site and rendered portfolio projects from a single data file.",
+      "Added Google Analytics 4, structured data, and lazy loading for heavy assets."
     ],
     results: [
       "First Contentful Paint: 1.2s (mobile).",
-      "This site and its content helped secure my current role."
+      "This site helped me share my work during my job search."
     ],
     caseStudy: [
       {
         title: "Goals",
-        lead: "I built this as a fast, mobile-first portfolio that showcases projects clearly and stays easy to maintain as the project list grows.",
+        lead: "I built this site to be fast, easy to use, and easy to update as I add projects.",
         bullets: [
-          "Performance: keep page weight low and avoid blocking resources.",
+          "Performance: keep pages light and avoid blocking resources.",
           "Accessibility: semantic landmarks, keyboard-friendly components, and predictable navigation.",
-          "Maintainability: centralized project data + build scripts to generate deployable pages."
+          "Maintainability: one project data file + build scripts to generate pages."
         ]
       },
       {
         title: "Architecture",
         bullets: [
-          "Static HTML pages with a shared JS layer for navigation, lazy-loading, and UI behaviors.",
-          "Portfolio projects defined in one data file and rendered dynamically (modals + filtering).",
-          "Progressive enhancement: the portfolio page works without JS via pre-rendered cards."
+          "Static HTML pages with shared JS for navigation, lazy loading, and UI behavior.",
+          "Portfolio projects defined in one data file and rendered into modals and filters.",
+          "Progressive enhancement: the portfolio page still works without JS via pre-rendered cards."
         ]
       },
       {
         title: "SEO and Sharing",
         bullets: [
           "Generated `/portfolio/<id>` pages for each project (canonical URLs, Open Graph metadata, JSON-LD).",
-          "Kept `sitemap.xml` in sync via a build step so projects are discoverable by search engines.",
+          "Kept `sitemap.xml` in sync via a build step.",
           "Configured Vercel rewrites so clean URLs map to generated pages under `pages/`."
         ]
       },
@@ -1176,15 +1176,15 @@ window.PROJECTS = [
         bullets: [
           "CSS is bundled into a hashed file for caching while still allowing quick invalidation.",
           "Build scripts generate project pages and copy deployable artifacts into `public/`.",
-          "Lightweight tests enforce markup contracts and ensure project pages exist for every project ID."
+          "Lightweight tests enforce markup contracts and ensure pages exist for every project ID."
         ]
       },
       {
         title: "What I'd Improve",
         bullets: [
           "Add richer case studies (diagrams, metrics, and lessons learned) for the top projects.",
-          "Reduce third-party dependencies in demos and harden CSP as the site grows.",
-          "Automate screenshots/preview generation so project cards stay consistent."
+          "Reduce third-party dependencies in demos and tighten CSP over time.",
+          "Automate screenshots so project cards stay consistent."
         ]
       }
     ],

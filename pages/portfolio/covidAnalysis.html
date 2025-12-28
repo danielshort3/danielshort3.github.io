@@ -6,11 +6,11 @@
   <base href="/">
   <title>COVID-19 Outbreak Drivers | Daniel Short</title>
   <link rel="canonical" href="https://danielshort.me/portfolio/covidAnalysis">
-  <meta name="description" content="Python XGBoost &amp; SHAP: I used COVID historical data to predict future outbreaks.">
+  <meta name="description" content="Python XGBoost &amp; SHAP: I built an early-warning model to flag states at risk of crossing 90% ICU utilization in the next 7 days.">
 
   <meta property="og:title" content="COVID-19 Outbreak Drivers | Daniel Short">
   <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
-  <meta property="og:description" content="Python XGBoost &amp; SHAP: I used COVID historical data to predict future outbreaks.">
+  <meta property="og:description" content="Python XGBoost &amp; SHAP: I built an early-warning model to flag states at risk of crossing 90% ICU utilization in the next 7 days.">
   <meta property="og:url" content="https://danielshort.me/portfolio/covidAnalysis">
   <meta property="og:image" content="https://danielshort.me/img/projects/covidAnalysis.png">
   <meta property="og:image:alt" content="Preview image for COVID-19 Outbreak Drivers">
@@ -39,7 +39,7 @@
     } catch (_) {}
   </script>
   <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"CreativeWork","name":"COVID-19 Outbreak Drivers","description":"Python XGBoost & SHAP: I used COVID historical data to predict future outbreaks.","url":"https://danielshort.me/portfolio/covidAnalysis","image":"https://danielshort.me/img/projects/covidAnalysis.png"}
+    {"@context":"https://schema.org","@type":"CreativeWork","name":"COVID-19 Outbreak Drivers","description":"Python XGBoost & SHAP: I built an early-warning model to flag states at risk of crossing 90% ICU utilization in the next 7 days.","url":"https://danielshort.me/portfolio/covidAnalysis","image":"https://danielshort.me/img/projects/covidAnalysis.png"}
   </script>
 </head>
 <body data-page="project" class="project-page">
@@ -71,46 +71,46 @@
       </div>
         <section class="project-section">
       <h2 class="section-title">Context</h2>
-      <p class="project-lead">I used COVID historical data to predict future outbreaks.</p>
+      <p class="project-lead">I built an early-warning model to flag states at risk of crossing 90% ICU utilization in the next 7 days.</p>
     </section>
         
         <section class="project-section">
       <h2 class="section-title">Approach</h2>
       <ul class="project-list">
-        <li>Cleaned &amp; enriched more than 50k records from the HHS hospital-capacity time-series; added rolling means, trends, and 1/3/7/14-day lag features.</li>
-        <li>Built an XGBoost classifier with class-imbalance weighting and a strict time-based train/test split.</li>
+        <li>Cleaned and enriched 50k+ rows from the HHS hospital-capacity time series; added rolling stats, trends, and 1/3/7/14-day lag features.</li>
+        <li>Trained an XGBoost classifier with class-imbalance weighting and a strict time-based train/test split.</li>
       </ul>
     </section>
         <section class="project-section">
       <h2 class="section-title">Impact</h2>
       <ul class="project-list">
-        <li>Used SHAP to surface the 7 most influential drivers and embedded the interactive plot in the report.</li>
-        <li>The most significant driver of COVID outbreaks was the percentage of ICU beds with COVID.</li>
-        <li>Utah was the most likely next location for a COVID outbreak (6.1%).</li>
+        <li>Used SHAP to highlight the top drivers and embedded an interactive plot in the report.</li>
+        <li>Top driver was the share of ICU beds occupied by COVID patients.</li>
+        <li>In the final snapshot, Utah had the highest predicted risk (6.1%).</li>
       </ul>
     </section>
         <section class="project-section">
       <h2 class="section-title">Problem Framing</h2>
-      <p class="project-lead">I framed this as a short-horizon risk prediction: estimate the probability that a state will breach 90% ICU occupancy within the next 7 days.</p>
+      <p class="project-lead">Goal: estimate the probability a state will breach 90% ICU utilization within the next 7 days.</p>
       <ul class="project-list">
         <li>Target label: max(adult ICU bed utilization) over the next 7 days ≥ 0.90.</li>
-        <li>Constraint: extreme class imbalance (breaches are rare), so metrics must focus on ranking and precision/recall tradeoffs.</li>
-        <li>Goal: provide an interpretable early-warning signal rather than a black-box forecast.</li>
+        <li>Breaches are rare, so I focused on ranking and precision/recall tradeoffs.</li>
+        <li>Output is a risk score meant to support decisions, not a perfect forecast.</li>
       </ul>
     </section>
 <section class="project-section">
       <h2 class="section-title">Data and Feature Engineering</h2>
       <ul class="project-list">
-        <li>Started from the HHS hospital capacity time series (state × day) and cleaned missingness with forward-filling and column pruning.</li>
-        <li>Created rolling-window features and lag features (1/3/7/14 days) to capture trend and momentum.</li>
-        <li>Built ratio features like ICU beds with COVID (%) and inpatient COVID share to normalize across states.</li>
+        <li>Started with the HHS hospital-capacity time series (state × day) and handled missing data with forward-fills and pruning.</li>
+        <li>Added rolling-window features and lag features (1/3/7/14 days) to capture trend and momentum.</li>
+        <li>Built ratio features like ICU beds with COVID (%) to normalize across states.</li>
       </ul>
     </section>
 <section class="project-section">
       <h2 class="section-title">Modeling and Evaluation</h2>
       <ul class="project-list">
         <li>Trained an XGBoost classifier with a time-based train/test split and class-imbalance handling.</li>
-        <li>Measured ranking quality with AUROC (0.606) and PR-AUC (0.060); at a 0.5 threshold the confusion matrix was [[17601, 276], [728, 31]].</li>
+        <li>Measured ranking quality with AUROC (0.606) and PR-AUC (0.060).</li>
         <li>Used the model as a risk scorer (probability output) rather than a hard yes/no classifier.</li>
       </ul>
     </section>
@@ -118,7 +118,7 @@
       <h2 class="section-title">Explainability (SHAP)</h2>
       <ul class="project-list">
         <li>Used SHAP to identify which daily metrics raise or lower the chance of an ICU crisis in the next week.</li>
-        <li>Key takeaway: a high % of ICU beds already filled by COVID patients is the clearest early-warning signal; lower overall utilization reduces risk.</li>
+        <li>Key takeaway: when a high share of ICU beds are already filled by COVID patients, risk rises quickly.</li>
         <li>Renamed feature labels in the SHAP plot to keep it stakeholder-friendly.</li>
       </ul>
     </section>
@@ -133,9 +133,9 @@
 <section class="project-section">
       <h2 class="section-title">What I&#39;d Improve</h2>
       <ul class="project-list">
-        <li>Calibrate probabilities and tune thresholds for a target precision/recall operating point.</li>
-        <li>Add exogenous signals (vaccination, policy, mobility, variant waves) to improve early warning power.</li>
-        <li>Evaluate stability across time (drift) and add monitoring for feature shifts.</li>
+        <li>Calibrate probabilities and tune thresholds for a clear precision/recall target.</li>
+        <li>Add outside signals (vaccination, policy, mobility, variants) to improve early warning.</li>
+        <li>Monitor drift and retrain when feature patterns shift.</li>
       </ul>
     </section>
 

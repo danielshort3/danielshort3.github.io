@@ -6,11 +6,11 @@
   <base href="/">
   <title>Synthetic Digit Generator | Daniel Short</title>
   <link rel="canonical" href="https://danielshort.me/portfolio/digitGenerator">
-  <meta name="description" content="Variational Autoencoder: I wanted to learn how to generate completely new handwritten digits based on samples.">
+  <meta name="description" content="Variational Autoencoder: I wanted to generate new handwritten digits, not just recognize them.">
 
   <meta property="og:title" content="Synthetic Digit Generator | Daniel Short">
   <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
-  <meta property="og:description" content="Variational Autoencoder: I wanted to learn how to generate completely new handwritten digits based on samples.">
+  <meta property="og:description" content="Variational Autoencoder: I wanted to generate new handwritten digits, not just recognize them.">
   <meta property="og:url" content="https://danielshort.me/portfolio/digitGenerator">
   <meta property="og:image" content="https://danielshort.me/img/projects/digitGenerator.png">
   <meta property="og:image:alt" content="Preview image for Synthetic Digit Generator">
@@ -39,7 +39,7 @@
     } catch (_) {}
   </script>
   <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"CreativeWork","name":"Synthetic Digit Generator","description":"Variational Autoencoder: I wanted to learn how to generate completely new handwritten digits based on samples.","url":"https://danielshort.me/portfolio/digitGenerator","image":"https://danielshort.me/img/projects/digitGenerator.png"}
+    {"@context":"https://schema.org","@type":"CreativeWork","name":"Synthetic Digit Generator","description":"Variational Autoencoder: I wanted to generate new handwritten digits, not just recognize them.","url":"https://danielshort.me/portfolio/digitGenerator","image":"https://danielshort.me/img/projects/digitGenerator.png"}
   </script>
 </head>
 <body data-page="project" class="project-page">
@@ -73,53 +73,53 @@
       </div>
         <section class="project-section">
       <h2 class="section-title">Context</h2>
-      <p class="project-lead">I wanted to learn how to generate completely new handwritten digits based on samples.</p>
+      <p class="project-lead">I wanted to generate new handwritten digits, not just recognize them.</p>
     </section>
         
         <section class="project-section">
       <h2 class="section-title">Approach</h2>
       <ul class="project-list">
-        <li>Built Variational Autoencoder trained on 60,000 handwritten digits.</li>
+        <li>Trained a Variational Autoencoder (VAE) on MNIST (60,000 handwritten digits).</li>
       </ul>
     </section>
         <section class="project-section">
       <h2 class="section-title">Impact</h2>
       <ul class="project-list">
-        <li>Successfully visualized latent digits through the trained model.</li>
-        <li>I can generate unique handwritten digits when needed.</li>
+        <li>Generated new digits by sampling the learned latent space.</li>
+        <li>Saved the trained model so generation is a quick inference step.</li>
       </ul>
     </section>
         <section class="project-section">
       <h2 class="section-title">Model Architecture (VAE)</h2>
-      <p class="project-lead">I trained a Variational Autoencoder to learn a compact latent representation of handwritten digits and generate new samples by sampling that latent space.</p>
+      <p class="project-lead">I trained a VAE to learn a compact latent space for handwritten digits and generate new samples from it.</p>
       <ul class="project-list">
-        <li>Encoder: convolutional stack that maps an image to a latent mean and variance.</li>
-        <li>Reparameterization trick to sample latents during training while keeping gradients stable.</li>
-        <li>Decoder: transposed convolutions that reconstruct images from latent vectors.</li>
+        <li>Encoder: CNN that maps an image to a latent mean and variance.</li>
+        <li>Reparameterization trick to sample during training while keeping gradients stable.</li>
+        <li>Decoder: transposed convolutions that reconstruct an image from a latent vector.</li>
       </ul>
     </section>
 <section class="project-section">
       <h2 class="section-title">Training and Sampling</h2>
       <ul class="project-list">
-        <li>Trained on MNIST and monitored the reconstruction vs. KL-divergence tradeoff.</li>
-        <li>Validated by comparing original vs. reconstructed digits and by sampling random latent vectors.</li>
-        <li>Saved the model so generation is a one-command inference step, not a re-train.</li>
+        <li>Trained on MNIST and balanced reconstruction loss vs. KL divergence.</li>
+        <li>Validated by comparing original vs. reconstructed digits and sampling random latent vectors.</li>
+        <li>Saved the model so generation doesn&#39;t require retraining.</li>
       </ul>
     </section>
 <section class="project-section">
       <h2 class="section-title">Latent Space Analysis</h2>
       <ul class="project-list">
         <li>Used PCA, t-SNE, and UMAP to visualize how digits cluster in latent space.</li>
-        <li>Applied clustering (HDBSCAN/DBSCAN) to study structure and identify outliers.</li>
-        <li>Performed reconstruction-error analysis to see which digits are hardest to model.</li>
+        <li>Applied clustering (HDBSCAN/DBSCAN) to study structure and spot outliers.</li>
+        <li>Checked reconstruction error to see which digits are hardest to model.</li>
       </ul>
     </section>
 <section class="project-section">
       <h2 class="section-title">What I&#39;d Improve</h2>
       <ul class="project-list">
         <li>Build a conditional VAE so I can generate a specific digit on demand.</li>
-        <li>Improve sample sharpness with stronger decoders, perceptual losses, or diffusion-based refinement.</li>
-        <li>Add quantitative generative metrics (FID-like proxies) to compare models over time.</li>
+        <li>Improve sample sharpness with stronger decoders or better loss functions.</li>
+        <li>Add quantitative metrics (FID-like proxies) to compare models over time.</li>
       </ul>
     </section>
 

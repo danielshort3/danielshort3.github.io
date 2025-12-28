@@ -6,11 +6,11 @@
   <base href="/">
   <title>Minesweeper Solver | Daniel Short</title>
   <link rel="canonical" href="https://danielshort.me/portfolio/minesweeper">
-  <meta name="description" content="Reinforcement Learning (RL): I wanted to train reinforcement learning agents that can reliably play Minesweeper and expose them in a friendly web demo.">
+  <meta name="description" content="Reinforcement Learning (RL): I wanted to train an RL agent to play Minesweeper and ship it as a web demo.">
 
   <meta property="og:title" content="Minesweeper Solver | Daniel Short">
   <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
-  <meta property="og:description" content="Reinforcement Learning (RL): I wanted to train reinforcement learning agents that can reliably play Minesweeper and expose them in a friendly web demo.">
+  <meta property="og:description" content="Reinforcement Learning (RL): I wanted to train an RL agent to play Minesweeper and ship it as a web demo.">
   <meta property="og:url" content="https://danielshort.me/portfolio/minesweeper">
   <meta property="og:image" content="https://danielshort.me/img/projects/minesweeper.png">
   <meta property="og:image:alt" content="Preview image for Minesweeper Solver">
@@ -39,7 +39,7 @@
     } catch (_) {}
   </script>
   <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"CreativeWork","name":"Minesweeper Solver","description":"Reinforcement Learning (RL): I wanted to train reinforcement learning agents that can reliably play Minesweeper and expose them in a friendly web demo.","url":"https://danielshort.me/portfolio/minesweeper","image":"https://danielshort.me/img/projects/minesweeper.png"}
+    {"@context":"https://schema.org","@type":"CreativeWork","name":"Minesweeper Solver","description":"Reinforcement Learning (RL): I wanted to train an RL agent to play Minesweeper and ship it as a web demo.","url":"https://danielshort.me/portfolio/minesweeper","image":"https://danielshort.me/img/projects/minesweeper.png"}
   </script>
 </head>
 <body data-page="project" class="project-page">
@@ -74,47 +74,47 @@
       </div>
         <section class="project-section">
       <h2 class="section-title">Context</h2>
-      <p class="project-lead">I wanted to train reinforcement learning agents that can reliably play Minesweeper and expose them in a friendly web demo.</p>
+      <p class="project-lead">I wanted to train an RL agent to play Minesweeper and ship it as a web demo.</p>
     </section>
         
         <section class="project-section">
       <h2 class="section-title">Approach</h2>
       <ul class="project-list">
-        <li>Built a custom Minesweeper environment that generates boards on demand (5x5 to 10x10) with 10% to 20% mines and safe first-click logic.</li>
-        <li>Trained 12 model variants across DQN, Double DQN, and Dueling DQN architectures with multiple CNN pooling heads and replay buffers.</li>
-        <li>Packaged the best model behind an AWS Lambda + container image endpoint for interactive inference.</li>
+        <li>Built a Minesweeper environment that generates boards on demand (5×5 to 10×10), with safe first-click logic and 10–20% mines.</li>
+        <li>Trained 12 variants across DQN, Double DQN, and Dueling DQN with different CNN heads and replay buffers.</li>
+        <li>Deployed the best model behind an AWS Lambda container endpoint for interactive inference.</li>
       </ul>
     </section>
         <section class="project-section">
       <h2 class="section-title">Impact</h2>
       <ul class="project-list">
         <li>Best evaluation reached ~72% success on 9x9 boards with 10 mines.</li>
-        <li>Current demo uses the 9x9 / 10-mine model for interactive inference.</li>
+        <li>The demo uses the 9x9 / 10-mine model for interactive inference.</li>
       </ul>
     </section>
         <section class="project-section">
       <h2 class="section-title">Environment &amp; Data Generation</h2>
       <p class="project-lead">The training data is created on the fly, so every episode is a fresh Minesweeper board.</p>
       <ul class="project-list">
-        <li>Generated boards dynamically with randomized mine placement (10% to 20% density) and a protected 3x3 first click.</li>
-        <li>Normalized cell values between -0.25 and 1 to speed convergence and keep inputs stable.</li>
-        <li>Validated board shapes and reveal rules with a debug mode to guarantee consistent training inputs.</li>
+        <li>Generated random boards (10–20% mine density) with a protected 3×3 first click.</li>
+        <li>Normalized cell values between -0.25 and 1 to keep inputs stable.</li>
+        <li>Used a debug mode to validate board rules and training inputs.</li>
       </ul>
     </section>
 <section class="project-section">
       <h2 class="section-title">Model Variants</h2>
       <ul class="project-list">
-        <li>Evaluated DQN, Double DQN, and Dueling DQN policies with max-pool, adaptive-pool, and global-average CNN heads.</li>
-        <li>Compared regular vs. prioritized replay buffers across each architecture (12 total combinations).</li>
-        <li>Found Double DQN with adaptive pooling to be the strongest family on larger grid sizes.</li>
+        <li>Evaluated DQN, Double DQN, and Dueling DQN with max-pool, adaptive-pool, and global-average CNN heads.</li>
+        <li>Compared regular vs. prioritized replay buffers across each architecture (12 combinations).</li>
+        <li>Found Double DQN with adaptive pooling worked best on larger grids.</li>
       </ul>
     </section>
 <section class="project-section">
       <h2 class="section-title">Training &amp; Curriculum</h2>
       <ul class="project-list">
-        <li>Trained each model for 10,000 episodes with 64 parallel games per episode and a periodically updated target network.</li>
-        <li>Advanced grid size after hitting 50% success on a 100-game test set three times in a row.</li>
-        <li>Reward shaping favored safe reveals (+0.3), penalized blind guesses (-0.3), and heavily penalized mine hits (-1.0).</li>
+        <li>Trained each model for 10,000 episodes with 64 parallel games and a periodically updated target network.</li>
+        <li>Increased grid size after hitting 50% success on a 100-game test set three times in a row.</li>
+        <li>Reward shaping: safe reveals (+0.3), blind guesses (-0.3), mine hits (-1.0).</li>
       </ul>
     </section>
 <section class="project-section">
@@ -122,7 +122,7 @@
       <ul class="project-list">
         <li>Add flagging actions and a second head for mine probability to reduce late-game guesswork.</li>
         <li>Pair the RL policy with a lightweight search layer for harder boards.</li>
-        <li>Expand evaluation with a fixed benchmark suite to compare against classical Minesweeper solvers.</li>
+        <li>Add a fixed benchmark suite to compare against classical Minesweeper solvers.</li>
       </ul>
     </section>
 
