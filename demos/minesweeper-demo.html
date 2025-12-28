@@ -237,14 +237,13 @@
     .cell.mine::before {
       content: '';
       position: absolute;
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: #0b0f14;
-      box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger, #e05757) 35%, transparent);
+      width: 70%;
+      height: 70%;
+      background: url("img/demos/bomb.png") center / contain no-repeat;
       left: 50%;
       top: 50%;
       transform: translate(-50%, -50%);
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,.35));
     }
 
     .cell.flagged,
@@ -257,27 +256,13 @@
     .cell.flagged::before {
       content: '';
       position: absolute;
-      width: 0;
-      height: 0;
-      border-top: 6px solid transparent;
-      border-bottom: 6px solid transparent;
-      border-left: 13px solid #d93025;
+      width: 70%;
+      height: 70%;
+      background: url("img/demos/flag.png") center / contain no-repeat;
       left: 50%;
-      top: 42%;
-      transform: translate(-15%, -50%);
-      filter: drop-shadow(0 1px 0 rgba(0,0,0,.2));
-    }
-
-    .cell.flagged::after {
-      content: '';
-      position: absolute;
-      width: 2px;
-      height: 18px;
-      background: #111827;
-      left: 50%;
-      top: 32%;
-      transform: translateX(-50%);
-      box-shadow: 0 10px 0 0 #111827;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,.25));
     }
 
     .cell.mine-hit {
