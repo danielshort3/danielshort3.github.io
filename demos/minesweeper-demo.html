@@ -272,16 +272,6 @@
       color: #fff5f5;
     }
 
-    .cell.guess-forced-correct {
-      outline: 2px dashed #16a34a;
-      outline-offset: -2px;
-    }
-
-    .cell.guess-forced-wrong {
-      outline: 2px dashed #dc2626;
-      outline-offset: -2px;
-    }
-
     .cell.n1 { color: #1d4ed8; }
     .cell.n2 { color: #15803d; }
     .cell.n3 { color: #b91c1c; }
@@ -697,18 +687,8 @@
       const item = document.createElement('div');
       const coord = `r${step.row + 1}c${step.col + 1}`;
       const message = step.message || 'Move processed.';
-      const guess = step.guess || {};
-      let guessLabel = '';
-      if (guess.forced_guess && Number.isFinite(guess.prob_mine)) {
-        const minePct = Math.round(guess.prob_mine * 100);
-        const outcome = guess.correct ? 'Correct' : 'Wrong';
-        guessLabel = `Forced guess (${minePct}% mine · ${outcome})`;
-      } else if (guess.forced_guess) {
-        const outcome = guess.correct ? 'Correct' : 'Wrong';
-        guessLabel = `Forced guess (${outcome})`;
-      }
       item.className = 'log-entry';
-      item.innerHTML = `<span><strong>#${index + 1}</strong> ${coord}</span><span>${guessLabel ? `${message} · ${guessLabel}` : message}</span>`;
+      item.innerHTML = `<span><strong>#${index + 1}</strong> ${coord}</span><span>${message}</span>`;
       logEl.prepend(item);
       logEl.scrollTop = 0;
     }
@@ -736,11 +716,6 @@
       }
       if (step.hit_mine) {
         hitCell = { row: step.row, col: step.col };
-      }
-      const guess = step.guess || {};
-      if (guess.forced_guess && typeof guess.correct === 'boolean' && actionCell) {
-        const className = guess.correct ? 'guess-forced-correct' : 'guess-forced-wrong';
-        actionCell.classList.add(className);
       }
       appendLog(step, index);
     }
@@ -798,13 +773,9 @@
         revealSnapshot = null;
         revealFlags();
         solutionBtn.disabled = true;
-        const summary = current.guess_summary || {};
         let resultMessage = current.success
           ? `Solved in ${current.step_count} moves`
           : (current.hit_mine ? `Mine triggered on move ${current.step_count}` : `Stopped after ${current.step_count} moves`);
-        if (summary.forced_guess_total) {
-          resultMessage += ` • forced guesses ${summary.forced_guess_correct}/${summary.forced_guess_total}`;
-        }
         showPerformanceToast(resultMessage);
         setStatus('Solve complete. Generate a new puzzle to try again.');
         notifyResize();
