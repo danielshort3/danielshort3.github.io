@@ -106,12 +106,19 @@
     exportEnd: $('[data-jobtrack="export-end"]'),
     exportSubmit: $('[data-jobtrack="export-submit"]'),
     exportStatus: $('[data-jobtrack="export-status"]'),
-    dashboard: $('[data-jobtrack="dashboard"]'),
-    dashboardStatus: $('[data-jobtrack="dashboard-status"]'),
-    filterStart: $('[data-jobtrack="filter-start"]'),
-    filterEnd: $('[data-jobtrack="filter-end"]'),
-    filterReset: $('[data-jobtrack="filter-reset"]'),
-    filterRefresh: $('[data-jobtrack="filter-refresh"]'),
+	    dashboard: $('[data-jobtrack="dashboard"]'),
+	    dashboardStatus: $('[data-jobtrack="dashboard-status"]'),
+	    dashboardTitle: $('[data-jobtrack="dashboard-title"]'),
+	    dashboardSubtitle: $('[data-jobtrack="dashboard-subtitle"]'),
+	    dashboardViewInputs: $$('[data-jobtrack="dashboard-view"] input[name="dashboardView"]'),
+	    dashboardApplications: $('[data-jobtrack="dashboard-applications"]'),
+	    dashboardProspects: $('[data-jobtrack="dashboard-prospects"]'),
+	    dashboardProspectOpen: $('[data-jobtrack="dashboard-prospect-open"]'),
+	    dashboardProspectStatus: $('[data-jobtrack="dashboard-prospect-status"]'),
+	    filterStart: $('[data-jobtrack="filter-start"]'),
+	    filterEnd: $('[data-jobtrack="filter-end"]'),
+	    filterReset: $('[data-jobtrack="filter-reset"]'),
+	    filterRefresh: $('[data-jobtrack="filter-refresh"]'),
     kpiTotal: $('[data-jobtrack="kpi-total"]'),
     kpiInterviews: $('[data-jobtrack="kpi-interviews"]'),
     kpiOffers: $('[data-jobtrack="kpi-offers"]'),
@@ -140,10 +147,16 @@
     mapContainer: $('[data-jobtrack="map"]'),
     mapPlaceholder: $('[data-jobtrack="map-placeholder"]'),
     mapTotal: $('[data-jobtrack="map-total"]'),
-    mapRemote: $('[data-jobtrack="map-remote"]'),
-    detailSubtitle: $('[data-jobtrack="detail-subtitle"]'),
-    detailBody: $('[data-jobtrack="detail-body"]'),
-    detailReset: $('[data-jobtrack="detail-reset"]'),
+	    mapRemote: $('[data-jobtrack="map-remote"]'),
+	    kpiProspectsPending: $('[data-jobtrack="kpi-prospects-pending"]'),
+	    kpiProspectsActive: $('[data-jobtrack="kpi-prospects-active"]'),
+	    kpiProspectsInterested: $('[data-jobtrack="kpi-prospects-interested"]'),
+	    kpiProspectsNeedsAction: $('[data-jobtrack="kpi-prospects-needs-action"]'),
+	    prospectSummaryCount: $('[data-jobtrack="prospect-summary-count"]'),
+	    prospectSummaryList: $('[data-jobtrack="prospect-summary-list"]'),
+	    detailSubtitle: $('[data-jobtrack="detail-subtitle"]'),
+	    detailBody: $('[data-jobtrack="detail-body"]'),
+	    detailReset: $('[data-jobtrack="detail-reset"]'),
     detailModal: $('[data-jobtrack="detail-modal"]'),
     detailModalTitle: $('[data-jobtrack="detail-modal-title"]'),
     detailModalSubtitle: $('[data-jobtrack="detail-modal-subtitle"]'),
@@ -157,11 +170,12 @@
     panels: $$('[data-jobtrack-panel]')
   };
 
-  const STORAGE_KEY = 'jobTrackerAuth';
-  const STATE_KEY = 'jobTrackerAuthState';
-  const VERIFIER_KEY = 'jobTrackerCodeVerifier';
-  const ENTRY_VIEW_KEY = 'jobTrackerEntryView';
-  const ENTRY_DRAFT_KEY = 'jobTrackerEntryDraft';
+	  const STORAGE_KEY = 'jobTrackerAuth';
+	  const STATE_KEY = 'jobTrackerAuthState';
+	  const VERIFIER_KEY = 'jobTrackerCodeVerifier';
+	  const ENTRY_VIEW_KEY = 'jobTrackerEntryView';
+	  const DASHBOARD_VIEW_KEY = 'jobTrackerDashboardView';
+	  const ENTRY_DRAFT_KEY = 'jobTrackerEntryDraft';
   const CSV_TEMPLATE = 'company,title,jobUrl,location,source,postingDate,appliedDate,status,batch,notes,attachments\nAcme Corp,Data Analyst,https://acme.com/jobs/123,Remote,LinkedIn,2025-01-10,2025-01-15,Applied,Spring outreach 2025,Reached out to recruiter,Acme-Resume.pdf;Acme-Cover.pdf';
   const PROSPECT_CSV_TEMPLATE = 'company,title,jobUrl,location,source,postingDate,captureDate,status,batch,notes\nAcme Corp,Data Analyst,https://acme.com/jobs/123,Remote,LinkedIn,2025-01-10,2025-01-12,Active,Remote data roles · March,Follow up next week.';
   const PROSPECT_PROMPT_TEMPLATE = [
@@ -236,11 +250,12 @@
     active: 5,
     interested: 3
   };
-  const DETAIL_DEFAULT_SUBTITLE = 'Click a chart element to inspect activity.';
-  const DETAIL_DEFAULT_BODY = 'Select a state, week, weekday, day, or status to see details here.';
-  const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  const REMOTE_HINTS = ['remote', 'work from home', 'wfh', 'virtual'];
-  const ONSITE_HINTS = ['on-site', 'onsite', 'on site', 'in office', 'in-office', 'hybrid'];
+	  const DETAIL_DEFAULT_SUBTITLE = 'Click a chart element to inspect activity.';
+	  const DETAIL_DEFAULT_BODY = 'Select a state, week, weekday, day, or status to see details here.';
+	  const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+	  const REMOTE_HINTS = ['remote', 'work from home', 'wfh', 'virtual'];
+	  const HYBRID_HINTS = ['hybrid'];
+	  const ONSITE_HINTS = ['on-site', 'onsite', 'on site', 'in office', 'in-office', 'in person', 'in-person'];
   const US_STATES = [
     { code: 'AL', name: 'Alabama' },
     { code: 'AK', name: 'Alaska' },
@@ -305,13 +320,15 @@
     range: null,
     editingEntryId: null,
     editingEntry: null,
-    entryType: 'application',
-    entries: [],
-    dashboardEntries: [],
-    entryItems: new Map(),
-    entrySort: { key: 'date', direction: 'desc' },
-    entryView: 'table',
-    entryFilters: {
+	    entryType: 'application',
+	    entries: [],
+	    entriesLoaded: false,
+	    dashboardEntries: [],
+	    entryItems: new Map(),
+	    entrySort: { key: 'date', direction: 'desc' },
+	    entryView: 'table',
+	    dashboardView: 'applications',
+	    entryFilters: {
       query: '',
       type: 'all',
       status: 'all',
@@ -661,33 +678,120 @@
     map.set(key, (map.get(key) || 0) + 1);
   };
 
-  const formatCountList = (map, limit = 4) => {
-    const items = Array.from(map.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, limit)
-      .map(([label, count]) => `${label} (${count})`);
-    return items.length ? items.join(', ') : '--';
-  };
-  const isRemoteLocation = (location = '') => {
-    const text = (location || '').toString().toLowerCase();
-    if (!text) return false;
-    const hasRemote = REMOTE_HINTS.some(hint => text.includes(hint));
-    const hasOnsite = ONSITE_HINTS.some(hint => text.includes(hint));
-    return hasRemote && !hasOnsite;
-  };
-  const extractStateCode = (location = '') => {
-    const text = (location || '').toString().toLowerCase();
-    if (!text) return null;
-    for (const [nameLower, code] of STATE_NAME_BY_LOWER.entries()) {
-      if (text.includes(nameLower)) return code;
-    }
-    const upper = text.toUpperCase();
-    for (const state of US_STATES) {
-      const pattern = new RegExp(`\\b${state.code}\\b`);
-      if (pattern.test(upper)) return state.code;
-    }
-    return null;
-  };
+	  const formatCountList = (map, limit = 4) => {
+	    const items = Array.from(map.entries())
+	      .sort((a, b) => b[1] - a[1])
+	      .slice(0, limit)
+	      .map(([label, count]) => `${label} (${count})`);
+	    return items.length ? items.join(', ') : '--';
+	  };
+
+	  const extractStateCodeFromText = (location = '') => {
+	    const raw = (location || '').toString();
+	    if (!raw.trim()) return null;
+	    const upper = raw.toUpperCase();
+	    let bestIndex = Number.POSITIVE_INFINITY;
+	    let bestCode = null;
+	    const codePattern = /\b([A-Z]{2})\b/g;
+	    let match = null;
+	    while ((match = codePattern.exec(upper))) {
+	      const code = match[1];
+	      if (!STATE_CODE_SET.has(code.toLowerCase())) continue;
+	      if (match.index < bestIndex) {
+	        bestIndex = match.index;
+	        bestCode = code;
+	      }
+	    }
+
+	    const lower = raw.toLowerCase();
+	    for (const [nameLower, code] of STATE_NAME_BY_LOWER.entries()) {
+	      const index = lower.indexOf(nameLower);
+	      if (index === -1) continue;
+	      const before = index === 0 ? '' : lower[index - 1];
+	      const afterIndex = index + nameLower.length;
+	      const after = afterIndex >= lower.length ? '' : lower[afterIndex];
+	      const beforeOk = !before || /[^a-z]/.test(before);
+	      const afterOk = !after || /[^a-z]/.test(after);
+	      if (!beforeOk || !afterOk) continue;
+	      if (index < bestIndex) {
+	        bestIndex = index;
+	        bestCode = code;
+	      }
+	    }
+	    return bestCode;
+	  };
+
+	  const cleanLocationLabel = (location = '') => {
+	    const raw = (location || '').toString().trim();
+	    if (!raw) return '';
+	    const withoutTags = raw
+	      .replace(/\(\s*(?:remote|wfh|work from home|virtual)\s*\)/gi, '')
+	      .replace(/\(\s*(?:hybrid)\s*\)/gi, '')
+	      .replace(/\(\s*(?:on[- ]?site|onsite|on site|in[- ]office|in office|in[- ]person|in person)\s*\)/gi, '')
+	      .replace(/[-–—]\s*(?:remote|wfh)\b/gi, '')
+	      .replace(/[-–—]\s*hybrid\b/gi, '')
+	      .replace(/[-–—]\s*(?:on[- ]?site|onsite|on site|in[- ]office|in office|in[- ]person|in person)\b/gi, '');
+	    const normalized = withoutTags
+	      .replace(/\s*\/\s*/g, ' / ')
+	      .replace(/\s*,\s*/g, ', ')
+	      .replace(/\(\s*\)/g, '')
+	      .replace(/\(\s+/g, '(')
+	      .replace(/\s+\)/g, ')')
+	      .replace(/\s{2,}/g, ' ')
+	      .replace(/(?:\s*\/\s*)+$/g, '')
+	      .trim();
+	    return normalized;
+	  };
+
+	  const parseLocation = (location = '') => {
+	    const raw = (location || '').toString().trim();
+	    if (!raw) {
+	      return {
+	        raw: '',
+	        display: '',
+	        type: 'unknown',
+	        stateCode: null
+	      };
+	    }
+	    const lower = raw.toLowerCase();
+	    const hasRemote = REMOTE_HINTS.some(hint => lower.includes(hint));
+	    const hasHybrid = HYBRID_HINTS.some(hint => lower.includes(hint));
+	    const hasOnsite = ONSITE_HINTS.some(hint => lower.includes(hint));
+	    let type = 'unknown';
+	    if (hasHybrid) type = 'hybrid';
+	    else if (hasOnsite) type = 'onsite';
+	    else if (hasRemote) type = 'remote';
+
+	    let display = cleanLocationLabel(raw);
+	    if (!display) {
+	      if (type === 'remote') display = 'Remote';
+	      if (type === 'hybrid') display = 'Hybrid';
+	      if (type === 'onsite') display = 'On-site';
+	    }
+	    if (type === 'remote' && display && !/\bremote\b/i.test(display)) {
+	      display = `${display} (Remote)`;
+	    }
+	    if (type === 'hybrid' && display && !/\bhybrid\b/i.test(display)) {
+	      display = `${display} (Hybrid)`;
+	    }
+	    const stateCode = type === 'remote'
+	      ? null
+	      : extractStateCodeFromText(display || raw) || extractStateCodeFromText(raw);
+	    if (type === 'unknown' && stateCode) type = 'onsite';
+
+	    return {
+	      raw,
+	      display: display || raw,
+	      type,
+	      stateCode
+	    };
+	  };
+
+	  const formatLocationDisplay = (location = '') => parseLocation(location).display || '';
+
+	  const isRemoteLocation = (location = '') => parseLocation(location).type === 'remote';
+
+	  const extractStateCode = (location = '') => parseLocation(location).stateCode;
 
   const syncUnknownDate = (dateInput, unknownInput) => {
     if (!dateInput || !unknownInput) return;
@@ -991,14 +1095,14 @@
     return sorted;
   };
 
-  const formatEntryMeta = (entry) => {
-    const parts = [];
-    const status = getEntryStatusLabel(entry);
-    if (status) parts.push(status);
-    const location = (entry?.location || '').toString().trim();
-    if (location) parts.push(location);
-    const entryType = entry?.entryType || getEntryType(entry);
-    const dateValue = entryType === 'prospect' ? entry?.captureDate : entry?.appliedDate;
+	  const formatEntryMeta = (entry) => {
+	    const parts = [];
+	    const status = getEntryStatusLabel(entry);
+	    if (status) parts.push(status);
+	    const location = formatLocationDisplay(entry?.location || '');
+	    if (location) parts.push(location);
+	    const entryType = entry?.entryType || getEntryType(entry);
+	    const dateValue = entryType === 'prospect' ? entry?.captureDate : entry?.appliedDate;
     const dateLabel = dateValue ? parseDateInput(dateValue) : null;
     if (dateLabel) {
       parts.push(`${entryType === 'prospect' ? 'Found' : 'Applied'} ${formatDateLabel(dateValue)}`);
@@ -1020,17 +1124,17 @@
     return parseIsoDate(entry?.createdAt) || parseIsoDate(entry?.updatedAt);
   };
 
-  const formatProspectMeta = (entry) => {
-    const parts = [];
-    const status = toTitle((entry?.status || 'Active').toString());
-    if (status) parts.push(status);
-    if (entry?.captureDate && parseDateInput(entry.captureDate)) {
-      parts.push(`Found ${formatDateLabel(entry.captureDate)}`);
-    }
-    const location = (entry?.location || '').toString().trim();
-    if (location) parts.push(location);
-    const source = (entry?.source || '').toString().trim();
-    if (source) parts.push(source);
+	  const formatProspectMeta = (entry) => {
+	    const parts = [];
+	    const status = toTitle((entry?.status || 'Active').toString());
+	    if (status) parts.push(status);
+	    if (entry?.captureDate && parseDateInput(entry.captureDate)) {
+	      parts.push(`Found ${formatDateLabel(entry.captureDate)}`);
+	    }
+	    const location = formatLocationDisplay(entry?.location || '');
+	    if (location) parts.push(location);
+	    const source = (entry?.source || '').toString().trim();
+	    if (source) parts.push(source);
     const batch = (entry?.batch || '').toString().trim();
     if (batch) parts.push(`Batch: ${batch}`);
     return parts.filter(Boolean).join(' · ');
@@ -1341,7 +1445,7 @@
       buildDetailModalRow('Applied date', appliedLabel),
       buildDetailModalRow('Found date', captureLabel),
       buildDetailModalRow('Posted', postingLabel),
-      buildDetailModalRow('Location', entry.location || ''),
+      buildDetailModalRow('Location', formatLocationDisplay(entry.location || '')),
       buildDetailModalRow('Source', entry.source || ''),
       buildDetailModalRow('Batch', entry.batch || ''),
       buildDetailModalRow('Job URL', entry.jobUrl || '', entry.jobUrl ? normalizeUrl(entry.jobUrl) : '')
@@ -1594,6 +1698,21 @@
   const confirmAction = (message) => {
     if (typeof window === 'undefined' || typeof window.confirm !== 'function') return true;
     return window.confirm(message);
+  };
+
+  const promptActionNote = (message, defaultValue = '') => {
+    if (typeof window === 'undefined' || typeof window.prompt !== 'function') return '';
+    const response = window.prompt(message, defaultValue);
+    if (response === null || response === undefined) return '';
+    return response.toString().trim();
+  };
+
+  const appendEntryNote = (existingNotes, noteLine) => {
+    const base = (existingNotes || '').toString().trim();
+    const next = (noteLine || '').toString().trim();
+    if (!next) return base;
+    if (!base) return next;
+    return `${base}\n${next}`;
   };
 
   const updateConfigStatus = () => {
@@ -2299,16 +2418,227 @@
     return params.toString();
   };
 
-  const updateKpis = (summary) => {
-    if (els.kpiTotal) els.kpiTotal.textContent = summary.totalApplications ?? 0;
-    if (els.kpiInterviews) els.kpiInterviews.textContent = summary.interviews ?? 0;
-    if (els.kpiOffers) els.kpiOffers.textContent = summary.offers ?? 0;
-    if (els.kpiRejections) els.kpiRejections.textContent = summary.rejections ?? 0;
-  };
+	  const updateKpis = (summary) => {
+	    if (els.kpiTotal) els.kpiTotal.textContent = summary.totalApplications ?? 0;
+	    if (els.kpiInterviews) els.kpiInterviews.textContent = summary.interviews ?? 0;
+	    if (els.kpiOffers) els.kpiOffers.textContent = summary.offers ?? 0;
+	    if (els.kpiRejections) els.kpiRejections.textContent = summary.rejections ?? 0;
+	  };
 
-  const startOfWeek = (date) => {
-    const start = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-    const day = start.getUTCDay();
+	  const DASHBOARD_VIEW_COPY = {
+	    applications: {
+	      title: 'Application pulse',
+	      subtitle: 'Filter by date range to see momentum, status mix, daily activity, and efficiency gains.'
+	    },
+	    prospects: {
+	      title: 'Prospect pulse',
+	      subtitle: 'See pending prospects, what needs action next, and jump into your queue.'
+	    }
+	  };
+
+	  const updateDashboardCopy = (view) => {
+	    const safeView = view === 'prospects' ? 'prospects' : 'applications';
+	    const copy = DASHBOARD_VIEW_COPY[safeView] || DASHBOARD_VIEW_COPY.applications;
+	    if (els.dashboardTitle) els.dashboardTitle.textContent = copy.title;
+	    if (els.dashboardSubtitle) els.dashboardSubtitle.textContent = copy.subtitle;
+	  };
+
+	  const setProspectDashboardStatus = (message, tone = '') => {
+	    if (!els.dashboardProspectStatus) return;
+	    setStatus(els.dashboardProspectStatus, message, tone);
+	  };
+
+	  const resetProspectDashboard = () => {
+	    if (els.kpiProspectsPending) els.kpiProspectsPending.textContent = '--';
+	    if (els.kpiProspectsActive) els.kpiProspectsActive.textContent = '--';
+	    if (els.kpiProspectsInterested) els.kpiProspectsInterested.textContent = '--';
+	    if (els.kpiProspectsNeedsAction) els.kpiProspectsNeedsAction.textContent = '--';
+	    if (els.prospectSummaryCount) els.prospectSummaryCount.textContent = '0 total';
+	    if (els.prospectSummaryList) els.prospectSummaryList.innerHTML = '';
+	  };
+
+	  const isDateInRange = (date, range) => {
+	    if (!date || !range) return false;
+	    const dateKey = getDayKey(date);
+	    const startKey = getDayKey(range.start);
+	    const endKey = getDayKey(range.end);
+	    return dateKey >= startKey && dateKey <= endKey;
+	  };
+
+	  const getProspectDashboardEntries = (range) => {
+	    const entries = Array.isArray(state.entries) ? state.entries : [];
+	    return entries.filter((entry) => {
+	      if (!entry) return false;
+	      const entryType = entry.entryType || getEntryType(entry);
+	      if (entryType !== 'prospect') return false;
+	      if (getEntryStatusGroup(entry) !== 'active') return false;
+	      const captured = getEntryDate(entry);
+	      if (!captured) return false;
+	      return isDateInRange(captured, range);
+	    });
+	  };
+
+	  const renderProspectDashboardList = (entries = []) => {
+	    if (!els.prospectSummaryList) return;
+	    els.prospectSummaryList.innerHTML = '';
+	    if (!entries.length) {
+	      const empty = document.createElement('li');
+	      empty.className = 'jobtrack-prospect-empty';
+	      empty.textContent = 'No pending prospects in this date range.';
+	      els.prospectSummaryList.appendChild(empty);
+	      return;
+	    }
+	    entries.forEach((entry) => {
+	      const entryId = entry?.applicationId || '';
+	      const item = document.createElement('li');
+	      const button = document.createElement('button');
+	      button.type = 'button';
+	      button.className = 'jobtrack-detail-entry';
+	      if (entryId) {
+	        button.dataset.id = entryId;
+	        button.setAttribute('aria-label', `View ${getEntryLabel(entry)}`);
+	        button.addEventListener('click', () => openDetailModal(entry));
+	      } else {
+	        button.disabled = true;
+	        button.setAttribute('aria-disabled', 'true');
+	      }
+
+	      const title = document.createElement('span');
+	      title.className = 'jobtrack-detail-entry-title';
+	      title.textContent = getEntryLabel(entry);
+	      const meta = document.createElement('span');
+	      meta.className = 'jobtrack-detail-entry-meta';
+	      const action = getNextAction(entry);
+	      meta.textContent = [action.label, formatProspectMeta(entry)].filter(Boolean).join(' · ') || 'View entry details';
+
+	      button.appendChild(title);
+	      button.appendChild(meta);
+	      item.appendChild(button);
+	      els.prospectSummaryList.appendChild(item);
+	    });
+	  };
+
+	  const updateProspectDashboard = () => {
+	    if (!els.dashboardProspects) return;
+	    if (!config.apiBase) {
+	      resetProspectDashboard();
+	      setProspectDashboardStatus('Set the API base URL to load prospects.', 'error');
+	      return;
+	    }
+		    if (!authIsValid(state.auth)) {
+		      resetProspectDashboard();
+		      setProspectDashboardStatus('Sign in to load prospects.', 'info');
+		      return;
+		    }
+		    if (!state.entriesLoaded) {
+		      resetProspectDashboard();
+		      setProspectDashboardStatus('Loading prospects...', 'info');
+		      return;
+		    }
+		    const range = state.range || readRange();
+		    state.range = range;
+		    updateRangeInputs(range);
+
+	    const prospects = getProspectDashboardEntries(range);
+	    const pendingCount = prospects.length;
+	    let activeCount = 0;
+	    let interestedCount = 0;
+	    let needsActionCount = 0;
+
+	    prospects.forEach((entry) => {
+	      const statusKey = getEntryStatusKey(entry);
+	      if (statusKey === 'active') activeCount += 1;
+	      if (statusKey === 'interested') interestedCount += 1;
+	      const actionTone = getNextAction(entry).tone;
+	      if (actionTone === 'danger' || actionTone === 'warning') needsActionCount += 1;
+	    });
+
+	    if (els.kpiProspectsPending) els.kpiProspectsPending.textContent = pendingCount;
+	    if (els.kpiProspectsActive) els.kpiProspectsActive.textContent = activeCount;
+	    if (els.kpiProspectsInterested) els.kpiProspectsInterested.textContent = interestedCount;
+	    if (els.kpiProspectsNeedsAction) els.kpiProspectsNeedsAction.textContent = needsActionCount;
+	    if (els.prospectSummaryCount) {
+	      els.prospectSummaryCount.textContent = `${pendingCount} total`;
+	    }
+
+	    const sorted = [...prospects].sort((a, b) => {
+	      const toneRank = (entry) => {
+	        const tone = getNextAction(entry).tone;
+	        if (tone === 'danger') return 0;
+	        if (tone === 'warning') return 1;
+	        return 2;
+	      };
+	      const aRank = toneRank(a);
+	      const bRank = toneRank(b);
+	      if (aRank !== bRank) return aRank - bRank;
+	      const aDate = getEntryDate(a);
+	      const bDate = getEntryDate(b);
+	      const aTime = aDate ? aDate.getTime() : 0;
+	      const bTime = bDate ? bDate.getTime() : 0;
+	      if (aTime !== bTime) return aTime - bTime;
+	      return getEntryLabel(a).localeCompare(getEntryLabel(b), 'en', { sensitivity: 'base' });
+	    }).slice(0, 8);
+
+	    renderProspectDashboardList(sorted);
+	    setProspectDashboardStatus(
+	      pendingCount
+	        ? `Loaded ${pendingCount} pending prospect${pendingCount === 1 ? '' : 's'}.`
+	        : 'No pending prospects in this date range.',
+	      'success'
+	    );
+	  };
+
+	  const setDashboardView = (view) => {
+	    const nextView = view === 'prospects' ? 'prospects' : 'applications';
+	    state.dashboardView = nextView;
+	    if (els.dashboardApplications) els.dashboardApplications.hidden = nextView !== 'applications';
+	    if (els.dashboardProspects) els.dashboardProspects.hidden = nextView !== 'prospects';
+	    if (els.dashboardViewInputs.length) {
+	      els.dashboardViewInputs.forEach((input) => {
+	        input.checked = input.value === nextView;
+	      });
+	    }
+	    updateDashboardCopy(nextView);
+	    if (nextView === 'applications') {
+	      window.requestAnimationFrame(() => {
+	        if (state.lineChart) state.lineChart.resize();
+	        if (state.statusChart) state.statusChart.resize();
+	      });
+	    } else {
+	      updateProspectDashboard();
+	    }
+	    try {
+	      localStorage.setItem(DASHBOARD_VIEW_KEY, nextView);
+	    } catch {}
+	  };
+
+	  const initDashboardView = () => {
+	    if (!els.dashboardApplications || !els.dashboardProspects) return;
+	    let stored = '';
+	    try {
+	      stored = localStorage.getItem(DASHBOARD_VIEW_KEY) || '';
+	    } catch {}
+	    setDashboardView(stored || state.dashboardView);
+	    if (els.dashboardViewInputs.length) {
+	      els.dashboardViewInputs.forEach((input) => {
+	        input.addEventListener('change', () => setDashboardView(input.value));
+	      });
+	    }
+	    if (els.dashboardProspectOpen) {
+	      els.dashboardProspectOpen.addEventListener('click', () => {
+	        activateTab('prospects', true);
+	        window.requestAnimationFrame(() => {
+	          if (els.prospectReviewList && typeof els.prospectReviewList.scrollIntoView === 'function') {
+	            els.prospectReviewList.scrollIntoView({ behavior: 'smooth', block: 'start' });
+	          }
+	        });
+	      });
+	    }
+	  };
+
+	  const startOfWeek = (date) => {
+	    const start = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+	    const day = start.getUTCDay();
     const diff = (day + 6) % 7;
     start.setUTCDate(start.getUTCDate() - diff);
     return start;
@@ -3418,13 +3748,15 @@
       if (batch !== 'all') {
         const entryBatch = (entry.batch || '').toString().trim().toLowerCase();
         if (entryBatch !== batch) return false;
-      }
-      if (locationType !== 'all') {
-        const hasLocation = Boolean((entry.location || '').trim());
-        const remote = isRemoteLocation(entry.location || '');
-        if (locationType === 'remote' && (!hasLocation || !remote)) return false;
-        if (locationType === 'onsite' && (!hasLocation || remote)) return false;
-      }
+	      }
+	      if (locationType !== 'all') {
+	        const info = parseLocation(entry.location || '');
+	        const hasLocation = Boolean(info.raw);
+	        const isRemote = info.type === 'remote';
+	        const isOnsite = info.type === 'onsite' || info.type === 'hybrid';
+	        if (locationType === 'remote' && (!hasLocation || !isRemote)) return false;
+	        if (locationType === 'onsite' && (!hasLocation || !isOnsite)) return false;
+	      }
       if (!matchesQuery(entry, terms)) return false;
       if (start || end) {
         const dateValue = getEntryDate(entry);
@@ -3469,12 +3801,12 @@
       } else if (key === 'status') {
         aVal = a.status || '';
         bVal = b.status || '';
-      } else if (key === 'location') {
-        aVal = a.location || '';
-        bVal = b.location || '';
-      } else if (key === 'source') {
-        aVal = a.source || '';
-        bVal = b.source || '';
+	      } else if (key === 'location') {
+	        aVal = formatLocationDisplay(a.location || '');
+	        bVal = formatLocationDisplay(b.location || '');
+	      } else if (key === 'source') {
+	        aVal = a.source || '';
+	        bVal = b.source || '';
       } else if (key === 'batch') {
         aVal = a.batch || '';
         bVal = b.batch || '';
@@ -3560,11 +3892,11 @@
     nextActionCell.appendChild(actionPill);
     row.appendChild(nextActionCell);
 
-    const locationCell = document.createElement('div');
-    locationCell.className = 'jobtrack-table-cell';
-    locationCell.dataset.label = 'Location';
-    locationCell.textContent = entry.location || '—';
-    row.appendChild(locationCell);
+	    const locationCell = document.createElement('div');
+	    locationCell.className = 'jobtrack-table-cell';
+	    locationCell.dataset.label = 'Location';
+	    locationCell.textContent = formatLocationDisplay(entry.location || '') || '—';
+	    row.appendChild(locationCell);
 
     const postingCell = document.createElement('div');
     postingCell.className = 'jobtrack-table-cell';
@@ -4034,38 +4366,41 @@
     updateEntryCount(sorted.length, state.entries.length);
   };
 
-  const refreshEntries = async () => {
-    if (!els.entryList) return;
-    if (!config.apiBase) {
-      storeEntries([]);
-      state.selectedEntryIds.clear();
-      renderEntryList([], 'Set the API base URL to load entries.');
-      renderProspectReviewList([]);
-      if (els.prospectReviewStatus) {
-        setStatus(els.prospectReviewStatus, 'Set the API base URL to load prospects.', 'error');
+	  const refreshEntries = async () => {
+	    if (!els.entryList) return;
+	    state.entriesLoaded = false;
+	    if (!config.apiBase) {
+	      storeEntries([]);
+	      updateProspectDashboard();
+	      state.selectedEntryIds.clear();
+	      renderEntryList([], 'Set the API base URL to load entries.');
+	      renderProspectReviewList([]);
+	      if (els.prospectReviewStatus) {
+	        setStatus(els.prospectReviewStatus, 'Set the API base URL to load prospects.', 'error');
+      }
+      updateEntrySelectionUI();
+      updateEntryCount(0, 0);
+      return;
+	    }
+	    if (!authIsValid(state.auth)) {
+	      storeEntries([]);
+	      updateProspectDashboard();
+	      state.selectedEntryIds.clear();
+	      renderEntryList([], 'Sign in to load your entries.');
+	      renderProspectReviewList([]);
+	      if (els.prospectReviewStatus) {
+	        setStatus(els.prospectReviewStatus, 'Sign in to load prospects.', 'info');
       }
       updateEntrySelectionUI();
       updateEntryCount(0, 0);
       return;
     }
-    if (!authIsValid(state.auth)) {
-      storeEntries([]);
-      state.selectedEntryIds.clear();
-      renderEntryList([], 'Sign in to load your entries.');
-      renderProspectReviewList([]);
-      if (els.prospectReviewStatus) {
-        setStatus(els.prospectReviewStatus, 'Sign in to load prospects.', 'info');
-      }
-      updateEntrySelectionUI();
-      updateEntryCount(0, 0);
-      return;
-    }
-    try {
-      setStatus(els.entryListStatus, 'Loading entries...', 'info');
-      const [apps, prospects] = await Promise.all([
-        requestJson('/api/applications'),
-        requestJson('/api/prospects')
-      ]);
+	    try {
+	      setStatus(els.entryListStatus, 'Loading entries...', 'info');
+	      const [apps, prospects] = await Promise.all([
+	        requestJson('/api/applications'),
+	        requestJson('/api/prospects')
+	      ]);
       const appItems = (apps.items || []).map(item => normalizeEntry(item, 'application'));
       const prospectItems = (prospects.items || []).map(item => normalizeEntry(item, 'prospect'));
       const sortedProspects = [...prospectItems].sort((a, b) => {
@@ -4076,13 +4411,15 @@
         if (aTime !== bTime) return bTime - aTime;
         return getEntryLabel(a).localeCompare(getEntryLabel(b), 'en', { sensitivity: 'base' });
       });
-      const items = [...appItems, ...prospectItems];
-      storeEntries(items);
-      state.selectedEntryIds.clear();
-      updateEntryStatusFilter(items);
-      updateEntrySourceFilter(items);
-      updateEntryBatchFilter(items);
-      applyEntryFilters();
+	      const items = [...appItems, ...prospectItems];
+	      storeEntries(items);
+	      state.entriesLoaded = true;
+	      updateProspectDashboard();
+	      state.selectedEntryIds.clear();
+	      updateEntryStatusFilter(items);
+	      updateEntrySourceFilter(items);
+	      updateEntryBatchFilter(items);
+	      applyEntryFilters();
       const reviewProspects = sortedProspects.filter((entry) => getEntryStatusGroup(entry) === 'active');
       renderProspectReviewList(reviewProspects);
       if (els.prospectReviewStatus) {
@@ -4090,13 +4427,15 @@
         setStatus(els.prospectReviewStatus, `Loaded ${label} in the queue.`, 'success');
       }
       setStatus(els.entryListStatus, `Loaded ${items.length} entries.`, 'success');
-    } catch (err) {
-      console.error('Entry load failed', err);
-      storeEntries([]);
-      renderEntryList([], 'Unable to load entries.');
-      renderProspectReviewList([]);
-      updateEntrySelectionUI();
-      updateEntryCount(0, 0);
+	    } catch (err) {
+	      console.error('Entry load failed', err);
+	      storeEntries([]);
+	      state.entriesLoaded = true;
+	      updateProspectDashboard();
+	      renderEntryList([], 'Unable to load entries.');
+	      renderProspectReviewList([]);
+	      updateEntrySelectionUI();
+	      updateEntryCount(0, 0);
       setStatus(els.entryListStatus, err?.message || 'Unable to load entries.', 'error');
       if (els.prospectReviewStatus) {
         setStatus(els.prospectReviewStatus, err?.message || 'Unable to load prospects.', 'error');
@@ -4841,11 +5180,17 @@
     }
     const label = [entry.title, entry.company].filter(Boolean).join(' · ') || 'this prospect';
     if (!confirmAction(`Reject and archive ${label}? It will move to your rejected list.`)) return;
+    const statusDate = formatDateInput(new Date());
+    const rejectNote = promptActionNote('Optional: add a quick note on why you rejected this role (leave blank to skip).', '');
     try {
       setStatus(statusTarget, 'Archiving prospect...', 'info');
       await requestJson(`/api/prospects/${encodeURIComponent(entry.applicationId)}`, {
         method: 'PATCH',
-        body: { status: 'Rejected', statusDate: formatDateInput(new Date()) }
+        body: {
+          status: 'Rejected',
+          statusDate,
+          ...(rejectNote ? { notes: appendEntryNote(entry.notes, `Rejection note (${statusDate}): ${rejectNote}`) } : {})
+        }
       });
       setStatus(statusTarget, 'Prospect rejected.', 'success');
       await Promise.all([refreshEntries(), refreshDashboard()]);
@@ -5471,20 +5816,34 @@
     }
   };
 
-  const initFilters = () => {
-    const range = defaultRange();
-    updateRangeInputs(range);
-    if (els.filterReset) {
-      els.filterReset.addEventListener('click', () => {
-        const next = defaultRange();
-        updateRangeInputs(next);
-        refreshDashboard();
-      });
-    }
-    if (els.filterRefresh) {
-      els.filterRefresh.addEventListener('click', () => refreshDashboard());
-    }
-  };
+	  const initFilters = () => {
+	    const range = defaultRange();
+	    updateRangeInputs(range);
+	    if (els.filterReset) {
+	      els.filterReset.addEventListener('click', () => {
+	        const next = defaultRange();
+	        updateRangeInputs(next);
+	        state.range = next;
+	        if (state.dashboardView === 'prospects') {
+	          updateProspectDashboard();
+	          return;
+	        }
+	        refreshDashboard();
+	      });
+	    }
+	    if (els.filterRefresh) {
+	      els.filterRefresh.addEventListener('click', () => {
+	        if (state.dashboardView === 'prospects') {
+	          const next = readRange();
+	          state.range = next;
+	          updateRangeInputs(next);
+	          updateProspectDashboard();
+	          return;
+	        }
+	        refreshDashboard();
+	      });
+	    }
+	  };
 
   const initDashboardInteractions = () => {
     if (els.mapRemote) {
@@ -5574,14 +5933,15 @@
     }
   };
 
-  const init = async () => {
-    initTabs();
-    initJumpButtons();
-    initFilters();
-    initDashboardInteractions();
-    initEntryForm();
-    initImport();
-    initProspectImport();
+	  const init = async () => {
+	    initTabs();
+	    initJumpButtons();
+	    initFilters();
+	    initDashboardView();
+	    initDashboardInteractions();
+	    initEntryForm();
+	    initImport();
+	    initProspectImport();
     initEntryList();
     initProspectReview();
     initExport();
