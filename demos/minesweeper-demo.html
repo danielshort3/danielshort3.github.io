@@ -481,6 +481,8 @@
   <script src="js/demos/aws-client.js"></script>
   <script type="module">
     const DEFAULT_FN_URL = "https://jnvd3mdbyb5f44yh4afzsvqlwy0mdtzy.lambda-url.us-east-2.on.aws/";
+    const TARGET_GRID = 9;
+    const TARGET_MINES = 10;
     const STORAGE_KEY = "demo.endpoint.minesweeper";
     const { listCandidates, postWithFallback, rememberEndpoint, getJson, normalizeBase } = window.DemoAws;
     const endpointConfig = {
@@ -830,7 +832,10 @@
         let data = null;
         for (const base of endpoints) {
           try {
-            data = await postToEndpoint(base, {});
+            data = await postToEndpoint(base, {
+              grid: TARGET_GRID,
+              mines: TARGET_MINES
+            });
             rememberEndpoint(base, STORAGE_KEY);
             break;
           } catch (err) {

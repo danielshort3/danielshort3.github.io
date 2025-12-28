@@ -11,7 +11,12 @@ import torch.nn.functional as F
 MODEL_DIR = os.path.join(os.path.dirname(__file__), "models")
 DEFAULT_MODEL_PREFIX = os.getenv("MODEL_PREFIX", "")
 DEFAULT_GRID_SIZE = int(os.getenv("GRID_SIZE", "9"))
-DEFAULT_MINE_RATIO = float(os.getenv("MINE_RATIO", "0.2"))
+MINE_RATIO_ENV = os.getenv("MINE_RATIO")
+try:
+  DEFAULT_MINE_RATIO = float(MINE_RATIO_ENV) if MINE_RATIO_ENV else 0.0
+except ValueError:
+  DEFAULT_MINE_RATIO = 0.0
+DEFAULT_MINE_COUNT = int(os.getenv("MINE_COUNT", "0"))
 MAX_GUESS_COMPONENT = int(os.getenv("GUESS_COMPONENT_MAX", "18"))
 
 torch.set_grad_enabled(False)
@@ -498,7 +503,7 @@ def parse_body(event):
     return {}
 
 
-def find_best_model():
+def find_best_model(target_grid=None, target_mines=None):
   best = None
   for name in os.listdir(MODEL_DIR):
     if not name.endswith("_metadata.json"):
@@ -510,8 +515,13 @@ def find_best_model():
     except Exception:
       continue
     grid = int(meta.get("grid_size", 0))
+    mines = int(meta.get("num_mines", 0))
+    if target_grid and grid != target_grid:
+      continue
+    if target_mines and mines != target_mines:
+      continue
     score = float(meta.get("success_rate", 0.0))
-    candidate = (grid, score, prefix, meta)
+    candidate = (score, grid, mines, prefix, meta)
     if best is None or candidate > best:
       best = candidate
   return best
@@ -537,10 +547,18 @@ def load_agent():
       "success_rate": agent.success_rate
     }
   else:
-    best = find_best_model()
+    target_grid = DEFAULT_GRID_SIZE if DEFAULT_GRID_SIZE > 0 else None
+    target_mines = None
+    if DEFAULT_MINE_COUNT > 0:
+      target_mines = DEFAULT_MINE_COUNT
+    elif DEFAULT_MINE_RATIO > 0 and target_grid:
+      target_mines = max(1, int(round(target_grid * target_grid * DEFAULT_MINE_RATIO)))
+    best = find_best_model(target_grid, target_mines)
+    if best is None:
+      best = find_best_model()
     if best is None:
       raise FileNotFoundError("No model metadata found.")
-    _, _, prefix, meta = best
+    _, _, _, prefix, meta = best
     agent.load_model(prefix)
     meta = {
       "prefix": os.path.basename(prefix),
@@ -557,12 +575,41 @@ def load_agent():
   return agent, meta
 
 
-def solve_game(seed=None, max_steps=None):
-  agent, meta = load_agent()
-  grid_size = DEFAULT_GRID_SIZE if DEFAULT_GRID_SIZE > 0 else agent.grid_size
-  num_mines = agent.num_mines
-  if DEFAULT_MINE_RATIO > 0:
+def resolve_grid_size(agent, override=None):
+  if override is not None:
+    try:
+      override = int(override)
+    except (TypeError, ValueError):
+      override = None
+  if override and override > 0:
+    return override
+  if DEFAULT_GRID_SIZE > 0:
+    return DEFAULT_GRID_SIZE
+  return agent.grid_size
+
+
+def resolve_mine_count(grid_size, agent, override=None):
+  if override is not None:
+    try:
+      override = int(override)
+    except (TypeError, ValueError):
+      override = None
+  if override and override > 0:
+    num_mines = override
+  elif DEFAULT_MINE_COUNT > 0:
+    num_mines = DEFAULT_MINE_COUNT
+  elif DEFAULT_MINE_RATIO > 0:
     num_mines = max(1, int(round(grid_size * grid_size * DEFAULT_MINE_RATIO)))
+  else:
+    num_mines = agent.num_mines
+  max_mines = max(1, (grid_size * grid_size) - 1)
+  return min(num_mines, max_mines)
+
+
+def solve_game(seed=None, max_steps=None, grid_size=None, num_mines=None):
+  agent, meta = load_agent()
+  grid_size = resolve_grid_size(agent, grid_size)
+  num_mines = resolve_mine_count(grid_size, agent, num_mines)
   env = MinesweeperEnv(size=grid_size, num_mines=num_mines, seed=seed)
   state = env.get_state_representation()
   steps = []
@@ -660,10 +707,8 @@ def handler(event, context):
 
   if method == "GET":
     agent, meta = load_agent()
-    grid_size = DEFAULT_GRID_SIZE if DEFAULT_GRID_SIZE > 0 else agent.grid_size
-    num_mines = agent.num_mines
-    if DEFAULT_MINE_RATIO > 0:
-      num_mines = max(1, int(round(grid_size * grid_size * DEFAULT_MINE_RATIO)))
+    grid_size = resolve_grid_size(agent)
+    num_mines = resolve_mine_count(grid_size, agent)
     return {
       "statusCode": 200,
       "headers": response_headers,
@@ -676,6 +721,8 @@ def handler(event, context):
     }
 
   payload = parse_body(event)
+  grid_size = payload.get("grid_size") or payload.get("grid") or payload.get("size")
+  num_mines = payload.get("num_mines") or payload.get("mines") or payload.get("mine_count")
   seed = payload.get("seed")
   if seed is not None:
     try:
@@ -688,9 +735,19 @@ def handler(event, context):
       max_steps = int(max_steps)
     except (TypeError, ValueError):
       max_steps = None
+  if grid_size is not None:
+    try:
+      grid_size = int(grid_size)
+    except (TypeError, ValueError):
+      grid_size = None
+  if num_mines is not None:
+    try:
+      num_mines = int(num_mines)
+    except (TypeError, ValueError):
+      num_mines = None
 
   try:
-    result = solve_game(seed=seed, max_steps=max_steps)
+    result = solve_game(seed=seed, max_steps=max_steps, grid_size=grid_size, num_mines=num_mines)
     duration_ms = int((time.time() - start) * 1000)
     result["duration_ms"] = duration_ms
     return {
