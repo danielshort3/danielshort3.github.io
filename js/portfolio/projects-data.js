@@ -1059,6 +1059,7 @@ window.PROJECTS = [
 
   {
     id: "minesweeper",
+    published: false,
     title: "Minesweeper Solver",
     subtitle: "Reinforcement Learning (RL)",
     image: "img/projects/minesweeper.png",

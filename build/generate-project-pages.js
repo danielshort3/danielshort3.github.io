@@ -16,6 +16,10 @@ const outDir = path.join(root, 'pages', 'portfolio');
 const sitemapPath = path.join(root, 'sitemap.xml');
 const SITE_ORIGIN = 'https://danielshort.me';
 
+function isPublishedProject(project) {
+  return project && project.published !== false;
+}
+
 function escapeHtml(value) {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
@@ -378,6 +382,20 @@ ${tableauPreconnect}
 
 function writeProjectPages(projects) {
   fs.mkdirSync(outDir, { recursive: true });
+  const expected = new Set(
+    projects
+      .map((project) => String(project?.id || '').trim())
+      .filter(Boolean)
+      .map((id) => `${id}.html`)
+  );
+  try {
+    fs.readdirSync(outDir).forEach((name) => {
+      if (!name.endsWith('.html')) return;
+      if (expected.has(name)) return;
+      fs.rmSync(path.join(outDir, name), { force: true });
+    });
+  } catch (_) {}
+
   projects.forEach((project) => {
     const id = String(project.id || '').trim();
     if (!id) throw new Error('Project missing id');
@@ -413,7 +431,7 @@ function writeSitemap(projects) {
 }
 
 function main() {
-  const projects = loadProjects();
+  const projects = loadProjects().filter(isPublishedProject);
   writeProjectPages(projects);
   writeSitemap(projects);
   process.stdout.write(`Generated ${projects.length} project pages in pages/portfolio/ and updated sitemap.xml\n`);
