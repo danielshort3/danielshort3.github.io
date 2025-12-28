@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 MODEL_DIR = os.path.join(os.path.dirname(__file__), "models")
-DEFAULT_MODEL_PREFIX = os.getenv("MODEL_PREFIX", "")
+DEFAULT_MODEL_PREFIX = os.getenv("MODEL_PREFIX", "Guesser_tiny_transformer_20251228-005944_final")
 DEFAULT_GRID_SIZE = int(os.getenv("GRID_SIZE", "9"))
 MINE_RATIO_ENV = os.getenv("MINE_RATIO")
 try:
@@ -18,6 +18,7 @@ except ValueError:
   DEFAULT_MINE_RATIO = 0.0
 DEFAULT_MINE_COUNT = int(os.getenv("MINE_COUNT", "0"))
 MAX_GUESS_COMPONENT = int(os.getenv("GUESS_COMPONENT_MAX", "18"))
+EPS = 1e-9
 
 torch.set_grad_enabled(False)
 torch.set_num_threads(1)
@@ -100,6 +101,192 @@ class BaseCNN(nn.Module):
     return self.fc(x)
 
 
+class DistributionalCNN(nn.Module):
+  def __init__(self, input_channels=1, output_size=25, num_atoms=51, cnn_variant="adaptive_pool", dueling=False, grid_size=5):
+    super().__init__()
+    self.dueling = dueling
+    self.cnn_variant = cnn_variant
+    self.output_size = output_size
+    self.num_atoms = num_atoms
+
+    self.conv1 = nn.Conv2d(input_channels, 128, kernel_size=3, padding=1)
+    self.conv2 = nn.Conv2d(128, 128, kernel_size=3, padding=1)
+    self.conv3 = nn.Conv2d(128, 128, kernel_size=3, padding=1)
+    self.conv4 = nn.Conv2d(128, 128, kernel_size=3, padding=1)
+
+    if self.cnn_variant == "max_pool":
+      self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
+    elif self.cnn_variant == "adaptive_pool":
+      self.pool = nn.AdaptiveAvgPool2d((5, 5))
+    elif self.cnn_variant == "global_avg":
+      self.pool = None
+    else:
+      raise ValueError(f"Unknown CNN variant: {self.cnn_variant}")
+
+    fc_input_dim = self._compute_fc_input_dim(grid_size)
+
+    if self.dueling:
+      self.value_fc = nn.Sequential(
+        nn.Linear(fc_input_dim, 512),
+        nn.ReLU(),
+        nn.Linear(512, self.num_atoms)
+      )
+      self.adv_fc = nn.Sequential(
+        nn.Linear(fc_input_dim, 512),
+        nn.ReLU(),
+        nn.Linear(512, self.output_size * self.num_atoms)
+      )
+    else:
+      self.fc = nn.Sequential(
+        nn.Linear(fc_input_dim, 512),
+        nn.ReLU(),
+        nn.Linear(512, self.output_size * self.num_atoms)
+      )
+
+  def _compute_fc_input_dim(self, grid_size):
+    with torch.no_grad():
+      dummy = torch.zeros(1, 1, grid_size, grid_size)
+      x = F.relu(self.conv1(dummy))
+      x = F.relu(self.conv2(x))
+      x = F.relu(self.conv3(x))
+      x = F.relu(self.conv4(x))
+      if self.cnn_variant == "global_avg":
+        x = x.mean(dim=[2, 3])
+        return x.shape[1]
+      x = self.pool(x)
+      return x.numel()
+
+  def forward(self, x):
+    x = F.relu(self.conv1(x))
+    x = F.relu(self.conv2(x))
+    x = F.relu(self.conv3(x))
+    x = F.relu(self.conv4(x))
+
+    if self.cnn_variant == "global_avg":
+      x = x.mean(dim=[2, 3])
+    else:
+      x = self.pool(x)
+      x = x.view(x.size(0), -1)
+
+    if self.dueling:
+      value = self.value_fc(x).view(-1, 1, self.num_atoms)
+      adv = self.adv_fc(x).view(-1, self.output_size, self.num_atoms)
+      return value + adv - adv.mean(dim=1, keepdim=True)
+
+    return self.fc(x).view(-1, self.output_size, self.num_atoms)
+
+
+class TinyTransformer(nn.Module):
+  def __init__(self, input_channels=1, output_size=25, d_model=64, nhead=4, num_layers=2, dim_feedforward=128, dropout=0.1, dueling=False, grid_size=5):
+    super().__init__()
+    self.dueling = dueling
+    self.output_size = output_size
+    self.grid_size = grid_size
+    self.input_channels = input_channels
+    self.seq_len = grid_size * grid_size
+
+    if self.output_size != self.seq_len:
+      raise ValueError("TinyTransformer output_size must match grid_size * grid_size.")
+
+    self.input_proj = nn.Linear(self.input_channels, d_model)
+    self.pos_embed = nn.Parameter(torch.zeros(1, self.seq_len, d_model))
+    self.dropout = nn.Dropout(dropout)
+
+    encoder_layer = nn.TransformerEncoderLayer(
+      d_model=d_model,
+      nhead=nhead,
+      dim_feedforward=dim_feedforward,
+      dropout=dropout,
+      batch_first=True,
+      activation="gelu"
+    )
+    self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
+
+    if self.dueling:
+      self.value_head = nn.Sequential(
+        nn.Linear(d_model, d_model),
+        nn.ReLU(),
+        nn.Linear(d_model, 1)
+      )
+      self.adv_head = nn.Linear(d_model, 1)
+    else:
+      self.head = nn.Linear(d_model, 1)
+
+  def forward(self, x):
+    b, c, h, w = x.shape
+    if h * w != self.seq_len:
+      raise ValueError("Input size does not match transformer grid size.")
+
+    x = x.permute(0, 2, 3, 1).contiguous().view(b, self.seq_len, c)
+    x = self.input_proj(x)
+    x = self.dropout(x + self.pos_embed)
+    x = self.encoder(x)
+
+    if self.dueling:
+      pooled = x.mean(dim=1)
+      value = self.value_head(pooled)
+      adv = self.adv_head(x).squeeze(-1)
+      return value + adv - adv.mean(dim=1, keepdim=True)
+
+    return self.head(x).squeeze(-1)
+
+
+class DistributionalTinyTransformer(nn.Module):
+  def __init__(self, input_channels=1, output_size=25, num_atoms=51, d_model=64, nhead=4, num_layers=2, dim_feedforward=128, dropout=0.1, dueling=False, grid_size=5):
+    super().__init__()
+    self.dueling = dueling
+    self.output_size = output_size
+    self.grid_size = grid_size
+    self.input_channels = input_channels
+    self.num_atoms = num_atoms
+    self.seq_len = grid_size * grid_size
+
+    if self.output_size != self.seq_len:
+      raise ValueError("DistributionalTinyTransformer output_size must match grid_size * grid_size.")
+
+    self.input_proj = nn.Linear(self.input_channels, d_model)
+    self.pos_embed = nn.Parameter(torch.zeros(1, self.seq_len, d_model))
+    self.dropout = nn.Dropout(dropout)
+
+    encoder_layer = nn.TransformerEncoderLayer(
+      d_model=d_model,
+      nhead=nhead,
+      dim_feedforward=dim_feedforward,
+      dropout=dropout,
+      batch_first=True,
+      activation="gelu"
+    )
+    self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
+
+    if self.dueling:
+      self.value_head = nn.Sequential(
+        nn.Linear(d_model, d_model),
+        nn.ReLU(),
+        nn.Linear(d_model, self.num_atoms)
+      )
+      self.adv_head = nn.Linear(d_model, self.num_atoms)
+    else:
+      self.head = nn.Linear(d_model, self.num_atoms)
+
+  def forward(self, x):
+    b, c, h, w = x.shape
+    if h * w != self.seq_len:
+      raise ValueError("Input size does not match transformer grid size.")
+
+    x = x.permute(0, 2, 3, 1).contiguous().view(b, self.seq_len, c)
+    x = self.input_proj(x)
+    x = self.dropout(x + self.pos_embed)
+    x = self.encoder(x)
+
+    if self.dueling:
+      pooled = x.mean(dim=1)
+      value = self.value_head(pooled).view(-1, 1, self.num_atoms)
+      adv = self.adv_head(x).view(-1, self.seq_len, self.num_atoms)
+      return value + adv - adv.mean(dim=1, keepdim=True)
+
+    return self.head(x).view(-1, self.seq_len, self.num_atoms)
+
+
 class InferenceAgent:
   def __init__(self, device="cpu"):
     self.device = device
@@ -110,7 +297,78 @@ class InferenceAgent:
     self.cnn_variant = "adaptive_pool"
     self.replay_type = "regular"
     self.success_rate = 0.0
-    self.epsilon = 0.0
+    self.state_channels = 1
+    self.distributional = False
+    self.num_atoms = 51
+    self.v_min = None
+    self.v_max = None
+    self.use_dueling = False
+    self.support = None
+    self.delta_z = None
+    self.transformer_config = None
+
+  def _default_value_range(self, grid_size):
+    max_steps = grid_size * grid_size
+    step_reward = 0.3
+    win_reward = 1.0
+    loss_reward = -1.0
+    v_max = win_reward + step_reward * (max_steps - 1)
+    v_min = loss_reward - step_reward * (max_steps - 1)
+    return v_min, v_max
+
+  def _build_model(self):
+    if self.cnn_variant == "tiny_transformer":
+      cfg = self.transformer_config or {
+        "d_model": 64,
+        "nhead": 4,
+        "num_layers": 2,
+        "dim_feedforward": 128,
+        "dropout": 0.1
+      }
+      if self.distributional:
+        return DistributionalTinyTransformer(
+          input_channels=self.state_channels,
+          output_size=self.grid_size * self.grid_size,
+          num_atoms=self.num_atoms,
+          dueling=self.use_dueling,
+          grid_size=self.grid_size,
+          **cfg
+        )
+      return TinyTransformer(
+        input_channels=self.state_channels,
+        output_size=self.grid_size * self.grid_size,
+        dueling=self.use_dueling,
+        grid_size=self.grid_size,
+        **cfg
+      )
+
+    if self.cnn_variant not in ["max_pool", "adaptive_pool", "global_avg"]:
+      raise ValueError(f"Unknown model variant: {self.cnn_variant}")
+
+    if self.distributional:
+      return DistributionalCNN(
+        input_channels=self.state_channels,
+        output_size=self.grid_size * self.grid_size,
+        num_atoms=self.num_atoms,
+        cnn_variant=self.cnn_variant,
+        dueling=self.use_dueling,
+        grid_size=self.grid_size
+      )
+
+    return BaseCNN(
+      input_channels=self.state_channels,
+      output_size=self.grid_size * self.grid_size,
+      cnn_variant=self.cnn_variant,
+      dueling=self.use_dueling,
+      grid_size=self.grid_size
+    )
+
+  def _get_expected_q_values(self, model, state_tensor):
+    if self.distributional:
+      logits = model(state_tensor)
+      probs = F.softmax(logits, dim=2)
+      return torch.sum(probs * self.support, dim=2)
+    return model(state_tensor)
 
   def load_model(self, prefix):
     meta_path = f"{prefix}_metadata.json"
@@ -118,32 +376,51 @@ class InferenceAgent:
     with open(meta_path, "r", encoding="utf-8") as handle:
       meta = json.load(handle)
 
+    self.state_channels = int(meta.get("state_channels", 1))
     self.grid_size = int(meta.get("grid_size", 5))
     self.num_mines = int(meta.get("num_mines", 3))
     self.dqn_variant = meta.get("dqn_variant", "DQN")
     self.cnn_variant = meta.get("cnn_variant", "adaptive_pool")
     self.replay_type = meta.get("replay_type", "regular")
     self.success_rate = float(meta.get("success_rate", 0.0))
+    self.transformer_config = meta.get("transformer_config") or {
+      "d_model": 64,
+      "nhead": 4,
+      "num_layers": 2,
+      "dim_feedforward": 128,
+      "dropout": 0.1
+    }
 
-    dueling = (self.dqn_variant == "DuelingDQN")
-    model = BaseCNN(
-      input_channels=1,
-      output_size=self.grid_size * self.grid_size,
-      cnn_variant=self.cnn_variant,
-      dueling=dueling,
-      grid_size=self.grid_size
-    ).to(self.device)
+    self.use_dueling = self.dqn_variant in ["DuelingDQN", "Rainbow"]
+    self.distributional = meta.get("distributional", self.dqn_variant == "Rainbow")
+    self.num_atoms = int(meta.get("num_atoms") or 51)
+    self.v_min = meta.get("v_min")
+    self.v_max = meta.get("v_max")
+    if self.distributional:
+      if self.v_min is None or self.v_max is None:
+        self.v_min, self.v_max = self._default_value_range(self.grid_size)
+      self.support = torch.linspace(self.v_min, self.v_max, self.num_atoms).to(self.device)
+      self.delta_z = (self.v_max - self.v_min) / (self.num_atoms - 1)
+    else:
+      self.support = None
+      self.delta_z = None
+
+    model = self._build_model().to(self.device)
     state = torch.load(weights_path, map_location=self.device)
     model.load_state_dict(state)
     model.eval()
     self.model = model
 
-  def act(self, state, board_size=None):
+  def get_action_scores(self, state):
     if self.model is None:
       raise RuntimeError("Model not loaded")
     state_tensor = torch.FloatTensor(state).unsqueeze(0).to(self.device)
     with torch.no_grad():
-      q_values = self.model(state_tensor).cpu().numpy().squeeze()
+      q_values = self._get_expected_q_values(self.model, state_tensor).cpu().numpy().squeeze()
+    return q_values
+
+  def act(self, state, board_size=None):
+    q_values = self.get_action_scores(state)
     board = state[0]
     board_size = board_size or board.shape[0]
     if q_values.size != board_size * board_size:
@@ -365,9 +642,64 @@ def enumerate_component(num_vars, constraints):
   return total_solutions, mine_counts
 
 
-def analyze_guess(env, action):
+def get_unknown_cells(env):
+  unknown_mask = np.logical_not(env.revealed) & np.logical_not(env.flagged)
+  coords = np.argwhere(unknown_mask)
+  return [tuple(map(int, coord)) for coord in coords]
+
+
+def _pick_best_with_agent(env, agent, candidates):
+  if not candidates:
+    return None
+  try:
+    scores = agent.get_action_scores(env.get_state_representation())
+  except Exception:
+    return None
+  size = env.size
+  best = max(candidates, key=lambda coord: scores[coord[0] * size + coord[1]])
+  return best
+
+
+def select_guess_action(env, analysis, agent=None, rng=None):
+  if rng is None:
+    rng = np.random.default_rng()
+  unknown = get_unknown_cells(env)
+  if not unknown:
+    return None, "none"
+
+  if analysis and analysis.get("mine_probs"):
+    frontier = analysis.get("frontier", [])
+    mine_probs = analysis.get("mine_probs", [])
+    if frontier and mine_probs:
+      min_prob = min(mine_probs)
+      candidates = [
+        frontier[idx]
+        for idx, prob in enumerate(mine_probs)
+        if abs(prob - min_prob) <= EPS
+      ]
+      if candidates:
+        if agent and len(candidates) > 1:
+          best = _pick_best_with_agent(env, agent, candidates)
+          if best is not None:
+            y, x = best
+            return y * env.size + x, "nn_tiebreak"
+        y, x = rng.choice(candidates)
+        return y * env.size + x, "probability"
+
+  if agent:
+    best = _pick_best_with_agent(env, agent, unknown)
+    if best is not None:
+      y, x = best
+      return y * env.size + x, "nn"
+
+  y, x = rng.choice(unknown)
+  return y * env.size + x, "random"
+
+
+def build_constraints(env):
   size = env.size
   revealed = env.revealed
+  flagged = env.flagged
   numbers = env.state
   frontier_set = set()
   constraints = []
@@ -378,48 +710,50 @@ def analyze_guess(env, action):
         continue
       if numbers[y, x] < 0:
         continue
-      neighbors = []
+      unknown = []
+      flagged_count = 0
       for dy in (-1, 0, 1):
         for dx in (-1, 0, 1):
           if dy == 0 and dx == 0:
             continue
           ny, nx = y + dy, x + dx
-          if 0 <= ny < size and 0 <= nx < size and not revealed[ny, nx]:
-            neighbors.append((ny, nx))
-      if not neighbors:
+          if 0 <= ny < size and 0 <= nx < size:
+            if flagged[ny, nx]:
+              flagged_count += 1
+            elif not revealed[ny, nx]:
+              unknown.append((ny, nx))
+      if not unknown:
         continue
-      for cell in neighbors:
+      total = int(numbers[y, x]) - flagged_count
+      if total < 0 or total > len(unknown):
+        return None, None
+      for cell in unknown:
         frontier_set.add(cell)
-
-  if not frontier_set:
-    return {"computed": False, "frontier_size": 0}
+      constraints.append((unknown, total))
 
   frontier = list(frontier_set)
+  if not frontier:
+    return [], []
+
   index_map = {coord: idx for idx, coord in enumerate(frontier)}
+  indexed_constraints = []
+  for neighbors, total in constraints:
+    idxs = [index_map[n] for n in neighbors]
+    if total < 0 or total > len(idxs):
+      return None, None
+    indexed_constraints.append((idxs, total))
 
-  for y in range(size):
-    for x in range(size):
-      if not revealed[y, x]:
-        continue
-      if numbers[y, x] < 0:
-        continue
-      neighbors = []
-      for dy in (-1, 0, 1):
-        for dx in (-1, 0, 1):
-          if dy == 0 and dx == 0:
-            continue
-          ny, nx = y + dy, x + dx
-          if 0 <= ny < size and 0 <= nx < size and not revealed[ny, nx]:
-            neighbors.append(index_map[(ny, nx)])
-      if not neighbors:
-        continue
-      total = int(numbers[y, x])
-      if total < 0 or total > len(neighbors):
-        return {"computed": False, "frontier_size": len(frontier)}
-      constraints.append((neighbors, total))
+  return frontier, indexed_constraints
 
+
+def analyze_board(env, max_component):
+  frontier, constraints = build_constraints(env)
+  if frontier is None:
+    return None
+  if not frontier:
+    return {"safe": [], "mines": [], "frontier": [], "mine_probs": []}
   if not constraints:
-    return {"computed": False, "frontier_size": len(frontier)}
+    return None
 
   parent = list(range(len(frontier)))
 
@@ -451,41 +785,144 @@ def analyze_guess(env, action):
     root = find(vars_in[0])
     constraints_by_root[root].append((vars_in, total))
 
+  safe = []
+  mines = []
   mine_probs = [None] * len(frontier)
-  safe_moves = 0
 
   for root, vars_list in components.items():
-    if len(vars_list) > MAX_GUESS_COMPONENT:
-      return {"computed": False, "frontier_size": len(frontier)}
+    if len(vars_list) > max_component:
+      return None
     local_index = {v: i for i, v in enumerate(vars_list)}
     local_constraints = []
     for vars_in, total in constraints_by_root[root]:
       local_constraints.append(([local_index[v] for v in vars_in], total))
     total_solutions, mine_counts = enumerate_component(len(vars_list), local_constraints)
     if total_solutions == 0:
-      return {"computed": False, "frontier_size": len(frontier)}
+      return None
     for v in vars_list:
       prob = mine_counts[local_index[v]] / total_solutions
       mine_probs[v] = prob
-      if prob == 0:
-        safe_moves += 1
+      if abs(prob) <= EPS:
+        safe.append(frontier[v])
+      elif abs(prob - 1.0) <= EPS:
+        mines.append(frontier[v])
 
-  row, col = divmod(action, size)
-  action_idx = index_map.get((row, col))
-  prob_mine = None
-  if action_idx is not None:
-    prob_mine = mine_probs[action_idx]
-
-  forced_guess = bool(prob_mine is not None and safe_moves == 0)
-  is_5050 = bool(forced_guess and prob_mine is not None and abs(prob_mine - 0.5) <= 1e-6)
+  if any(prob is None for prob in mine_probs):
+    return None
 
   return {
-    "computed": True,
-    "frontier_size": len(frontier),
-    "safe_moves": safe_moves,
-    "prob_mine": prob_mine,
-    "forced_guess": forced_guess,
-    "is_5050": is_5050
+    "safe": safe,
+    "mines": mines,
+    "frontier": frontier,
+    "mine_probs": mine_probs
+  }
+
+
+def collect_newly_opened(prev_revealed, new_revealed):
+  newly_opened = []
+  for y in range(new_revealed.shape[0]):
+    for x in range(new_revealed.shape[1]):
+      if new_revealed[y, x] and not prev_revealed[y, x]:
+        newly_opened.append([x, y])
+  return newly_opened
+
+
+def hybrid_step(env, agent, max_component=18, max_forced_steps=1000):
+  total_reward = 0.0
+  newly_opened = []
+  last_action = {}
+  message = ""
+  forced_steps = 0
+  guess_used = False
+  guess_source = "none"
+
+  while not env.done:
+    analysis = analyze_board(env, max_component)
+    if analysis is None:
+      break
+    safe_moves = analysis["safe"]
+    mine_moves = analysis["mines"]
+    if not safe_moves and not mine_moves:
+      action, guess_source = select_guess_action(env, analysis, agent=agent)
+      if action is None:
+        break
+      guess_used = True
+      prev = env.revealed.copy()
+      _, reward, done, msg = env.step(action, "reveal")
+      total_reward += reward
+      last_action = msg.get("last_action", {}) if isinstance(msg, dict) else {}
+      message = msg.get("message", "") if isinstance(msg, dict) else str(msg)
+      newly_opened.extend(collect_newly_opened(prev, env.revealed))
+      return {
+        "reward": total_reward,
+        "done": bool(done),
+        "message": message,
+        "last_action": last_action,
+        "newly_opened": newly_opened,
+        "guess_used": guess_used,
+        "guess_source": guess_source,
+        "forced_steps": forced_steps
+      }
+
+    for y, x in mine_moves:
+      if not env.flagged[y, x] and not env.revealed[y, x]:
+        env.flagged[y, x] = True
+
+    for y, x in safe_moves:
+      if env.revealed[y, x] or env.flagged[y, x]:
+        continue
+      prev = env.revealed.copy()
+      _, reward, done, msg = env.step(y * env.size + x, "reveal")
+      total_reward += reward
+      last_action = msg.get("last_action", {}) if isinstance(msg, dict) else {}
+      message = msg.get("message", "") if isinstance(msg, dict) else str(msg)
+      newly_opened.extend(collect_newly_opened(prev, env.revealed))
+      if done:
+        return {
+          "reward": total_reward,
+          "done": True,
+          "message": message,
+          "last_action": last_action,
+          "newly_opened": newly_opened,
+          "guess_used": guess_used,
+          "guess_source": guess_source,
+          "forced_steps": forced_steps
+        }
+
+    forced_steps += 1
+    if forced_steps >= max_forced_steps:
+      break
+
+  if not env.done:
+    action, guess_source = select_guess_action(env, analysis, agent=agent)
+    if action is None:
+      return {
+        "reward": total_reward,
+        "done": bool(env.done),
+        "message": message,
+        "last_action": last_action,
+        "newly_opened": newly_opened,
+        "guess_used": guess_used,
+        "guess_source": guess_source,
+        "forced_steps": forced_steps
+      }
+    guess_used = True
+    prev = env.revealed.copy()
+    _, reward, done, msg = env.step(action, "reveal")
+    total_reward += reward
+    last_action = msg.get("last_action", {}) if isinstance(msg, dict) else {}
+    message = msg.get("message", "") if isinstance(msg, dict) else str(msg)
+    newly_opened.extend(collect_newly_opened(prev, env.revealed))
+
+  return {
+    "reward": total_reward,
+    "done": bool(env.done),
+    "message": message,
+    "last_action": last_action,
+    "newly_opened": newly_opened,
+    "guess_used": guess_used,
+    "guess_source": guess_source,
+    "forced_steps": forced_steps
   }
 
 
@@ -611,47 +1048,33 @@ def solve_game(seed=None, max_steps=None, grid_size=None, num_mines=None):
   grid_size = resolve_grid_size(agent, grid_size)
   num_mines = resolve_mine_count(grid_size, agent, num_mines)
   env = MinesweeperEnv(size=grid_size, num_mines=num_mines, seed=seed)
-  state = env.get_state_representation()
   steps = []
   solution = None
   safe_moves = 0
   hit_mine = False
-  guess_summary = {
-    "forced_guess_total": 0,
-    "forced_guess_correct": 0,
-    "forced_5050_total": 0,
-    "forced_5050_correct": 0
-  }
   step_limit = max_steps or (grid_size * grid_size * 2)
 
   for _ in range(step_limit):
-    action = agent.act(state, board_size=grid_size)
-    guess_info = analyze_guess(env, action)
-    prev_revealed = env.revealed.copy()
-    next_state, reward, done, info = env.step(action, "reveal")
-    last = info.get("last_action") or {}
-    row = int(last.get("y", action // grid_size))
-    col = int(last.get("x", action % grid_size))
+    result = hybrid_step(env, agent, max_component=MAX_GUESS_COMPONENT)
+    last = result.get("last_action") or {}
+    newly_opened = result.get("newly_opened", [])
+    done = bool(result.get("done"))
+    if not last and not newly_opened and not done:
+      break
+    row = int(last.get("y", 0))
+    col = int(last.get("x", 0))
     if solution is None and not env.first_click:
       solution = env.state.tolist()
 
-    newly_opened = []
-    newly = np.logical_and(env.revealed, np.logical_not(prev_revealed))
-    for y, x in zip(*np.where(newly)):
-      newly_opened.append([int(x), int(y)])
-
     if env.revealed[row, col] and env.state[row, col] == -1:
       hit_mine = True
-    if guess_info and guess_info.get("forced_guess"):
-      guess_info["correct"] = not hit_mine
-      guess_summary["forced_guess_total"] += 1
-      if guess_info["correct"]:
-        guess_summary["forced_guess_correct"] += 1
-      if guess_info.get("is_5050"):
-        guess_summary["forced_5050_total"] += 1
-        if guess_info["correct"]:
-          guess_summary["forced_5050_correct"] += 1
 
+    decision = "logic"
+    if result.get("guess_used"):
+      source = result.get("guess_source") or "unknown"
+      decision = f"guess:{source}"
+
+    reward = result.get("reward", 0.0)
     if reward > 0:
       safe_moves += 1
 
@@ -660,13 +1083,12 @@ def solve_game(seed=None, max_steps=None, grid_size=None, num_mines=None):
       "col": col,
       "reward": float(reward),
       "done": bool(done),
-      "message": info.get("message", ""),
+      "message": result.get("message", ""),
       "newly_opened": newly_opened,
       "hit_mine": bool(hit_mine and done),
-      "guess": guess_info
+      "decision": decision
     })
 
-    state = next_state
     if done:
       break
 
@@ -682,8 +1104,7 @@ def solve_game(seed=None, max_steps=None, grid_size=None, num_mines=None):
     "safe_moves": safe_moves,
     "hit_mine": bool(hit_mine),
     "success": bool(not hit_mine and env.done),
-    "model": meta,
-    "guess_summary": guess_summary
+    "model": meta
   }
 
 

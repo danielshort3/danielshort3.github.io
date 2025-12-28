@@ -693,6 +693,19 @@
       logEl.scrollTop = 0;
     }
 
+    function logDecision(step, index) {
+      if (!step || !step.decision) return;
+      const coord = `r${step.row + 1}c${step.col + 1}`;
+      const raw = String(step.decision);
+      let detail = raw;
+      if (raw.startsWith('guess:')) {
+        detail = `guess (${raw.slice(6).replace(/_/g, ' ')})`;
+      } else {
+        detail = raw.replace(/_/g, ' ');
+      }
+      console.info(`[Minesweeper AI] #${index + 1} ${coord}: ${detail}`);
+    }
+
     function applyStep(step, index) {
       const opened = Array.isArray(step.newly_opened) ? step.newly_opened : [];
       opened.forEach(([x, y]) => {
@@ -718,6 +731,7 @@
         hitCell = { row: step.row, col: step.col };
       }
       appendLog(step, index);
+      logDecision(step, index);
     }
 
     function stopAnimation() {
