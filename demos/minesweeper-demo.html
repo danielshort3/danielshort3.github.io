@@ -687,22 +687,41 @@
       const item = document.createElement('div');
       const coord = `r${step.row + 1}c${step.col + 1}`;
       const message = step.message || 'Move processed.';
+      const decisionLabel = formatDecisionLabel(step.decision);
+      const detail = decisionLabel ? `${message} · ${decisionLabel}` : message;
       item.className = 'log-entry';
-      item.innerHTML = `<span><strong>#${index + 1}</strong> ${coord}</span><span>${message}</span>`;
+      item.innerHTML = `<span><strong>#${index + 1}</strong> ${coord}</span><span>${detail}</span>`;
       logEl.prepend(item);
       logEl.scrollTop = 0;
+    }
+
+    function formatDecisionLabel(decision) {
+      if (!decision) return '';
+      if (decision === 'logic') return 'Driver: deterministic';
+      if (!decision.startsWith('guess:')) {
+        return `Driver: ${decision.replace(/_/g, ' ')}`;
+      }
+      const source = decision.slice(6);
+      switch (source) {
+        case 'nn':
+          return 'Driver: neural network';
+        case 'nn_tiebreak':
+          return 'Driver: neural network (tie-break)';
+        case 'probability':
+          return 'Driver: probability estimate';
+        case 'random':
+          return 'Driver: random guess';
+        case 'none':
+          return 'Driver: none';
+        default:
+          return `Driver: ${source.replace(/_/g, ' ')}`;
+      }
     }
 
     function logDecision(step, index) {
       if (!step || !step.decision) return;
       const coord = `r${step.row + 1}c${step.col + 1}`;
-      const raw = String(step.decision);
-      let detail = raw;
-      if (raw.startsWith('guess:')) {
-        detail = `guess (${raw.slice(6).replace(/_/g, ' ')})`;
-      } else {
-        detail = raw.replace(/_/g, ' ');
-      }
+      const detail = formatDecisionLabel(step.decision) || step.decision;
       console.info(`[Minesweeper AI] #${index + 1} ${coord}: ${detail}`);
     }
 
