@@ -6,11 +6,11 @@
   <base href="/">
   <title>Nonogram Solver | Daniel Short</title>
   <link rel="canonical" href="https://danielshort.me/portfolio/nonogram">
-  <meta name="description" content="Reinforcement Learning (RL): I wanted to create a machine learning model to automatically solve Nonogram puzzles for me.">
+  <meta name="description" content="Reinforcement Learning (RL): I wanted to see if an RL agent could learn to solve Nonogram puzzles.">
 
   <meta property="og:title" content="Nonogram Solver | Daniel Short">
   <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
-  <meta property="og:description" content="Reinforcement Learning (RL): I wanted to create a machine learning model to automatically solve Nonogram puzzles for me.">
+  <meta property="og:description" content="Reinforcement Learning (RL): I wanted to see if an RL agent could learn to solve Nonogram puzzles.">
   <meta property="og:url" content="https://danielshort.me/portfolio/nonogram">
   <meta property="og:image" content="https://danielshort.me/img/projects/nonogram.png">
   <meta property="og:image:alt" content="Preview image for Nonogram Solver">
@@ -39,7 +39,7 @@
     } catch (_) {}
   </script>
   <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"CreativeWork","name":"Nonogram Solver","description":"Reinforcement Learning (RL): I wanted to create a machine learning model to automatically solve Nonogram puzzles for me.","url":"https://danielshort.me/portfolio/nonogram","image":"https://danielshort.me/img/projects/nonogram.png"}
+    {"@context":"https://schema.org","@type":"CreativeWork","name":"Nonogram Solver","description":"Reinforcement Learning (RL): I wanted to see if an RL agent could learn to solve Nonogram puzzles.","url":"https://danielshort.me/portfolio/nonogram","image":"https://danielshort.me/img/projects/nonogram.png"}
   </script>
 </head>
 <body data-page="project" class="project-page">
@@ -73,14 +73,14 @@
       </div>
         <section class="project-section">
       <h2 class="section-title">Context</h2>
-      <p class="project-lead">I wanted to create a machine learning model to automatically solve Nonogram puzzles for me.</p>
+      <p class="project-lead">I wanted to see if an RL agent could learn to solve Nonogram puzzles.</p>
     </section>
         
         <section class="project-section">
       <h2 class="section-title">Approach</h2>
       <ul class="project-list">
-        <li>Built a hybrid CNN + Transformer policy network and trained it on more than 25 million 5×5 puzzles (52,000 episodes × 512-board batches).</li>
-        <li>Shaped the reward signal around unique guesses, row/column completions, and full-board solves to speed up exploration.</li>
+        <li>Trained a hybrid CNN + Transformer policy network on 25M+ generated 5×5 puzzles.</li>
+        <li>Shaped rewards around unique guesses, row/column completions, and full-board solves to guide exploration.</li>
       </ul>
     </section>
         <section class="project-section">
@@ -91,26 +91,26 @@
     </section>
         <section class="project-section">
       <h2 class="section-title">Environment Design</h2>
-      <p class="project-lead">I built a reinforcement learning environment for Nonograms, including puzzle generation, clue computation, and reward shaping.</p>
+      <p class="project-lead">I built a reinforcement learning environment for Nonograms: puzzle generation, clue computation, and reward shaping.</p>
       <ul class="project-list">
         <li>Generated large batches of unique 5×5 puzzles and computed row/column clues automatically.</li>
-        <li>Represented state as (board + clue embeddings) so the agent can condition actions on constraints.</li>
-        <li>Designed rewards to encourage progress (row/column completions) and discourage repeated guesses.</li>
+        <li>Represented state as board + clue embeddings so the agent can act on constraints.</li>
+        <li>Rewarded progress (row/column completions) and penalized repeated guesses.</li>
       </ul>
     </section>
 <section class="project-section">
       <h2 class="section-title">Policy Network</h2>
       <ul class="project-list">
-        <li>Combined a CNN (board perception) with a Transformer (clue encoding) to capture both spatial and sequential structure.</li>
-        <li>Output an action distribution over grid cells so the agent learns a strategy, not a fixed solver rule set.</li>
-        <li>Kept the architecture small enough to train over millions of puzzles efficiently.</li>
+        <li>Combined a CNN (board) with a Transformer (clues) to capture both spatial and sequence structure.</li>
+        <li>Output an action distribution over grid cells so the agent learns a strategy, not a hard-coded solver.</li>
+        <li>Kept the network small enough to train over millions of puzzles.</li>
       </ul>
     </section>
 <section class="project-section">
       <h2 class="section-title">Training</h2>
       <ul class="project-list">
-        <li>Trained with policy gradients at scale (25M+ puzzles; large batched episodes) to learn general solving behavior.</li>
-        <li>Used reward shaping around unique guesses, row/column completions, and full-board solves to speed exploration.</li>
+        <li>Trained with policy gradients at scale (25M+ puzzles; large batched episodes).</li>
+        <li>Used reward shaping around unique guesses, row/column completions, and full-board solves.</li>
         <li>Tracked learning curves and saved checkpoints to compare policy improvements over time.</li>
       </ul>
     </section>
@@ -118,8 +118,8 @@
       <h2 class="section-title">What I&#39;d Improve</h2>
       <ul class="project-list">
         <li>Scale beyond 5×5 with curriculum learning (5×5 → 10×10) and stronger value baselines.</li>
-        <li>Add search (e.g., MCTS) on top of the learned policy for harder puzzles.</li>
-        <li>Evaluate on benchmark Nonogram sets to compare against classical solvers.</li>
+        <li>Add search (like MCTS) on top of the learned policy for harder puzzles.</li>
+        <li>Evaluate on benchmark Nonogram sets and compare against classical solvers.</li>
       </ul>
     </section>
 

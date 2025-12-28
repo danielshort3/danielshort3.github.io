@@ -6,11 +6,11 @@
   <base href="/">
   <title>Sheet Music Watermark Removal &amp; Upscale | Daniel Short</title>
   <link rel="canonical" href="https://danielshort.me/portfolio/sheetMusicUpscale">
-  <meta name="description" content="UNet &amp; VDSR Pipeline: I wanted the ability to participate in playing music as my church but did not have any sheet music.">
+  <meta name="description" content="UNet &amp; VDSR Pipeline: I needed clean, readable sheet music. Most of what I could find was low-res and watermarked.">
 
   <meta property="og:title" content="Sheet Music Watermark Removal &amp; Upscale | Daniel Short">
   <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
-  <meta property="og:description" content="UNet &amp; VDSR Pipeline: I wanted the ability to participate in playing music as my church but did not have any sheet music.">
+  <meta property="og:description" content="UNet &amp; VDSR Pipeline: I needed clean, readable sheet music. Most of what I could find was low-res and watermarked.">
   <meta property="og:url" content="https://danielshort.me/portfolio/sheetMusicUpscale">
   <meta property="og:image" content="https://danielshort.me/img/projects/sheetMusicUpscale.png">
   <meta property="og:image:alt" content="Preview image for Sheet Music Watermark Removal &amp; Upscale">
@@ -39,7 +39,7 @@
     } catch (_) {}
   </script>
   <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"CreativeWork","name":"Sheet Music Watermark Removal & Upscale","description":"UNet & VDSR Pipeline: I wanted the ability to participate in playing music as my church but did not have any sheet music.","url":"https://danielshort.me/portfolio/sheetMusicUpscale","image":"https://danielshort.me/img/projects/sheetMusicUpscale.png"}
+    {"@context":"https://schema.org","@type":"CreativeWork","name":"Sheet Music Watermark Removal & Upscale","description":"UNet & VDSR Pipeline: I needed clean, readable sheet music. Most of what I could find was low-res and watermarked.","url":"https://danielshort.me/portfolio/sheetMusicUpscale","image":"https://danielshort.me/img/projects/sheetMusicUpscale.png"}
   </script>
 </head>
 <body data-page="project" class="project-page">
@@ -72,55 +72,55 @@
       </picture>
         <section class="project-section">
       <h2 class="section-title">Context</h2>
-      <p class="project-lead">I wanted the ability to participate in playing music as my church but did not have any sheet music.</p>
+      <p class="project-lead">I needed clean, readable sheet music. Most of what I could find was low-res and watermarked.</p>
     </section>
         
         <section class="project-section">
       <h2 class="section-title">Approach</h2>
       <ul class="project-list">
-        <li>Trained a UNet model on more 20,000 paired pages for watermark removal.</li>
+        <li>Trained a UNet model on 20,000+ paired pages for watermark removal.</li>
         <li>Upscaled 612×792 scans to 1700×2200 with Very Deep Super-Resolution (VDSR).</li>
-        <li>Wrapped functionality in a GUI for a simple pipeline.</li>
+        <li>Wrapped it in a simple GUI so I could run the full pipeline.</li>
       </ul>
     </section>
         <section class="project-section">
       <h2 class="section-title">Impact</h2>
       <ul class="project-list">
-        <li>Delivers cleaned and legible sheet music in &lt;10 seconds.</li>
+        <li>Typical runs produce clean, readable output in under 10 seconds.</li>
       </ul>
     </section>
         <section class="project-section">
       <h2 class="section-title">End-to-End Pipeline</h2>
-      <p class="project-lead">This project combines web scraping, image restoration, super-resolution, and PDF compilation into a single workflow so sheet music is playable again.</p>
+      <p class="project-lead">One workflow: pull pages, clean them up, upscale them, and rebuild the PDF.</p>
       <ul class="project-list">
-        <li>Input: low-resolution, watermarked page images (scanned sheet music).</li>
-        <li>Step 1: watermark removal with a UNet segmentation/restoration model.</li>
-        <li>Step 2: upscaling with VDSR to produce print-friendly pages.</li>
-        <li>Output: cleaned images compiled into a ready-to-use PDF.</li>
+        <li>Input: low-resolution, watermarked page images.</li>
+        <li>Step 1: remove watermark artifacts with a UNet model.</li>
+        <li>Step 2: upscale with VDSR for print-friendly pages.</li>
+        <li>Output: cleaned images compiled into a PDF.</li>
       </ul>
     </section>
 <section class="project-section">
       <h2 class="section-title">Modeling Choices</h2>
       <ul class="project-list">
-        <li>UNet works well for structured, local artifacts (watermarks) while preserving staff lines and note heads.</li>
-        <li>VDSR adds detail and readability when starting from low-resolution scans.</li>
-        <li>Packaged model weights as state dicts so the pipeline can run without retraining.</li>
+        <li>UNet handles local watermark artifacts while preserving staff lines and note heads.</li>
+        <li>VDSR improves readability when starting from low-resolution scans.</li>
+        <li>Saved model weights so the pipeline runs without retraining.</li>
       </ul>
     </section>
 <section class="project-section">
       <h2 class="section-title">GUI and Automation</h2>
       <ul class="project-list">
-        <li>Built a PyQt5 GUI to scrape, process, and compile pages without needing to run notebook cells manually.</li>
-        <li>Used background worker threads to keep the UI responsive while processing batches.</li>
-        <li>Designed the workflow for repeat use (new songs in, clean PDFs out).</li>
+        <li>Built a PyQt5 GUI to scrape, process, and compile pages without running a notebook.</li>
+        <li>Used background worker threads so the UI stays responsive during batches.</li>
+        <li>Designed it for repeat use: new songs in, clean PDFs out.</li>
       </ul>
     </section>
 <section class="project-section">
       <h2 class="section-title">Performance and Reliability</h2>
       <ul class="project-list">
-        <li>Optimized for practical speed: the pipeline produces legible output in under 10 seconds for typical use cases.</li>
-        <li>Added sensible defaults and a simple &#39;one path&#39; experience so non-ML users can run it.</li>
-        <li>Kept the pipeline modular so either model can be swapped or improved independently.</li>
+        <li>Kept it fast enough for real use (often under 10 seconds).</li>
+        <li>Added sensible defaults and a simple flow so it runs without tuning.</li>
+        <li>Kept steps modular so either model can be swapped or improved later.</li>
       </ul>
     </section>
 <section class="project-section">

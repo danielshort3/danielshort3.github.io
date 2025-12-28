@@ -6,11 +6,11 @@
   <base href="/">
   <title>Store-Level Loss &amp; Sales ETL | Daniel Short</title>
   <link rel="canonical" href="https://danielshort.me/portfolio/retailStore">
-  <meta name="description" content="SQL ETL + Anomaly Detection: Our store lacked visibility into security incidents, theft hot-spots, and boycott-driven sales swings.">
+  <meta name="description" content="SQL ETL + Anomaly Detection: We didn&#39;t have a single view of security incidents, theft hotspots, and boycott-driven sales swings.">
 
   <meta property="og:title" content="Store-Level Loss &amp; Sales ETL | Daniel Short">
   <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
-  <meta property="og:description" content="SQL ETL + Anomaly Detection: Our store lacked visibility into security incidents, theft hot-spots, and boycott-driven sales swings.">
+  <meta property="og:description" content="SQL ETL + Anomaly Detection: We didn&#39;t have a single view of security incidents, theft hotspots, and boycott-driven sales swings.">
   <meta property="og:url" content="https://danielshort.me/portfolio/retailStore">
   <meta property="og:image" content="https://danielshort.me/img/projects/retailStore.png">
   <meta property="og:image:alt" content="Preview image for Store-Level Loss &amp; Sales ETL">
@@ -39,7 +39,7 @@
     } catch (_) {}
   </script>
   <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"CreativeWork","name":"Store-Level Loss & Sales ETL","description":"SQL ETL + Anomaly Detection: Our store lacked visibility into security incidents, theft hot-spots, and boycott-driven sales swings.","url":"https://danielshort.me/portfolio/retailStore","image":"https://danielshort.me/img/projects/retailStore.png"}
+    {"@context":"https://schema.org","@type":"CreativeWork","name":"Store-Level Loss & Sales ETL","description":"SQL ETL + Anomaly Detection: We didn't have a single view of security incidents, theft hotspots, and boycott-driven sales swings.","url":"https://danielshort.me/portfolio/retailStore","image":"https://danielshort.me/img/projects/retailStore.png"}
   </script>
 </head>
 <body data-page="project" class="project-page">
@@ -73,62 +73,62 @@
       </div>
         <section class="project-section">
       <h2 class="section-title">Context</h2>
-      <p class="project-lead">Our store lacked visibility into security incidents, theft hot-spots, and boycott-driven sales swings.</p>
+      <p class="project-lead">We didn&#39;t have a single view of security incidents, theft hotspots, and boycott-driven sales swings.</p>
     </section>
         <section class="project-section">
       <h2 class="section-title">Role</h2>
       <ul class="project-list">
-        <li>Owned the analysis end-to-end: SQL data modeling/ETL, anomaly detection, and reporting.</li>
+        <li>Led the analysis: SQL modeling/ETL, anomaly detection, and reporting.</li>
       </ul>
     </section>
         <section class="project-section">
       <h2 class="section-title">Approach</h2>
       <ul class="project-list">
-        <li>Merged incident, sales &amp; HR tables in SQL; automated KPIs via views and stored procedures.</li>
-        <li>Built Python dashboards mapping theft vs. sales, tagged by format, state and boycott timeline.</li>
-        <li>Applied anomaly detection to spotlight outlier stores and employees.</li>
+        <li>Joined incident, sales, and HR tables in SQL and automated KPIs with views and stored procedures.</li>
+        <li>Built Python dashboards to compare theft vs. sales by format, state, and time.</li>
+        <li>Used anomaly detection to flag outlier stores and associates.</li>
       </ul>
     </section>
         <section class="project-section">
       <h2 class="section-title">Impact</h2>
       <ul class="project-list">
-        <li>Identified an outlier store cluster averaging 14 incidents/store (~4–5× higher than peers).</li>
-        <li>Flagged multiple regions as top theft hot spots (up to ~$991/store/day).</li>
-        <li>Quantified boycott hit: –28.7% (May ’23), –11.6% (Jun ’23), –60.2% (Jul ’23) YoY sales.</li>
-        <li>Surfaced a small set of high-risk associates (anonymized) for empty-package reports; one outlier averaged $249/item on just 2 items.</li>
+        <li>Found a cluster of outlier stores averaging 14 incidents per store (about 4–5× peers).</li>
+        <li>Flagged high-theft regions (up to about $991 per store per day).</li>
+        <li>Quantified year-over-year boycott drops: –28.7% (May ’23), –11.6% (Jun ’23), –60.2% (Jul ’23).</li>
+        <li>Flagged a small set of high-risk associates (anonymized); one outlier averaged $249 per item on two items.</li>
       </ul>
     </section>
         <section class="project-section">
       <h2 class="section-title">Data Modeling and ETL</h2>
-      <p class="project-lead">I built a SQL-first analytics layer that consolidates incidents, theft, sales, and HR attributes so leaders can answer &#39;where is risk growing?&#39; with a single source of truth.</p>
+      <p class="project-lead">I built a SQL layer that joins incidents, theft, sales, and HR attributes so the team can slice risk by store, region, and time.</p>
       <ul class="project-list">
-        <li>Joined incident, sales, and employee tables and created reusable views for KPI rollups.</li>
-        <li>Standardized date keys and dimensions (store format, region/state) to support consistent slicing.</li>
-        <li>Kept identifiers anonymized so insights can be shared without exposing sensitive internal data.</li>
+        <li>Joined incident, sales, and employee tables and created reusable KPI views.</li>
+        <li>Standardized date keys and dimensions (store format, region/state) so filters stay consistent.</li>
+        <li>Anonymized identifiers so insights can be shared safely.</li>
       </ul>
     </section>
 <section class="project-section">
       <h2 class="section-title">Analysis Workflow</h2>
       <ul class="project-list">
-        <li>Implemented targeted queries to find high-incident store formats, top-theft states, and high-risk associates.</li>
-        <li>Measured boycott impact with year-over-year comparisons around the boycott timeline.</li>
-        <li>Used Python visualizations to communicate findings clearly (hotspots, trends, and outliers).</li>
+        <li>Ran targeted queries to find high-incident formats, top-theft states, and high-risk associates.</li>
+        <li>Measured boycott impact with year-over-year comparisons around the timeline.</li>
+        <li>Used Python charts to highlight hotspots, trends, and outliers.</li>
       </ul>
     </section>
 <section class="project-section">
       <h2 class="section-title">Anomaly Detection</h2>
       <ul class="project-list">
-        <li>Flagged outlier stores and associates by comparing against peer baselines rather than raw totals.</li>
-        <li>Highlighted both &#39;high frequency&#39; (incidents/store) and &#39;high severity&#39; (value per item) anomalies.</li>
-        <li>Focused outputs on investigations leaders can act on (where to send resources next).</li>
+        <li>Flagged outlier stores and associates by comparing against peer baselines, not raw totals.</li>
+        <li>Separated &#39;high frequency&#39; (incidents per store) from &#39;high severity&#39; (value per item).</li>
+        <li>Kept the output focused on a short list people can investigate.</li>
       </ul>
     </section>
 <section class="project-section">
       <h2 class="section-title">What I&#39;d Improve</h2>
       <ul class="project-list">
-        <li>Add automated alerting (weekly anomaly reports) and an audit trail for investigations.</li>
-        <li>Normalize by traffic/shipments to separate volume effects from true risk changes.</li>
-        <li>Expand to causal analysis for boycott drivers and mitigation experiments.</li>
+        <li>Add automated weekly anomaly alerts and an audit trail for investigations.</li>
+        <li>Normalize by traffic or shipments to separate volume from risk changes.</li>
+        <li>Explore causal analysis for boycott drivers and mitigation tests.</li>
       </ul>
     </section>
 

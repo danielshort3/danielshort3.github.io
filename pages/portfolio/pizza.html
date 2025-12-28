@@ -6,11 +6,11 @@
   <base href="/">
   <title>Pizza Tips Regression Modeling | Daniel Short</title>
   <link rel="canonical" href="https://danielshort.me/portfolio/pizza">
-  <meta name="description" content="Excel Analytics &amp; Regression Modeling: Tip income swung wildly across neighborhoods and housing types, but drivers had no data-backed story to explain the…">
+  <meta name="description" content="Excel Analytics &amp; Regression Modeling: Tips varied a lot by neighborhood and housing type. I wanted to see what actually drives them.">
 
   <meta property="og:title" content="Pizza Tips Regression Modeling | Daniel Short">
   <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
-  <meta property="og:description" content="Excel Analytics &amp; Regression Modeling: Tip income swung wildly across neighborhoods and housing types, but drivers had no data-backed story to explain the…">
+  <meta property="og:description" content="Excel Analytics &amp; Regression Modeling: Tips varied a lot by neighborhood and housing type. I wanted to see what actually drives them.">
   <meta property="og:url" content="https://danielshort.me/portfolio/pizza">
   <meta property="og:image" content="https://danielshort.me/img/projects/pizza.png">
   <meta property="og:image:alt" content="Preview image for Pizza Tips Regression Modeling">
@@ -39,7 +39,7 @@
     } catch (_) {}
   </script>
   <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"CreativeWork","name":"Pizza Tips Regression Modeling","description":"Excel Analytics & Regression Modeling: Tip income swung wildly across neighborhoods and housing types, but drivers had no data-backed story to explain the…","url":"https://danielshort.me/portfolio/pizza","image":"https://danielshort.me/img/projects/pizza.png"}
+    {"@context":"https://schema.org","@type":"CreativeWork","name":"Pizza Tips Regression Modeling","description":"Excel Analytics & Regression Modeling: Tips varied a lot by neighborhood and housing type. I wanted to see what actually drives them.","url":"https://danielshort.me/portfolio/pizza","image":"https://danielshort.me/img/projects/pizza.png"}
   </script>
 </head>
 <body data-page="project" class="project-page">
@@ -72,7 +72,7 @@
       </div>
         <section class="project-section">
       <h2 class="section-title">Context</h2>
-      <p class="project-lead">Tip income swung wildly across neighborhoods and housing types, but drivers had no data-backed story to explain the variation.</p>
+      <p class="project-lead">Tips varied a lot by neighborhood and housing type. I wanted to see what actually drives them.</p>
     </section>
         
         <section class="project-section">
@@ -85,34 +85,34 @@
         <section class="project-section">
       <h2 class="section-title">Impact</h2>
       <ul class="project-list">
-        <li>Order cost explains about 38% of tip variance; every extra $10 on the bill lifts the tip by about $1.10.</li>
-        <li>Apartment customers tip 28% less than house residents (p &lt; 0.001).</li>
-        <li>Weather and delivery time showed no significant effect on tip size.</li>
+        <li>Order cost explains ~38% of tip variance (about +$1.10 tip per +$10 bill).</li>
+        <li>Apartment customers tipped ~28% less than house residents (p &lt; 0.001).</li>
+        <li>Weather and delivery time didn’t show a meaningful effect on tip size.</li>
       </ul>
     </section>
         <section class="project-section">
       <h2 class="section-title">Data Integration</h2>
-      <p class="project-lead">I merged delivery tickets with local NOAA weather to test common hypotheses about what drives tipping behavior.</p>
+      <p class="project-lead">I merged delivery tickets with NOAA weather to test common ideas about what drives tipping.</p>
       <ul class="project-list">
-        <li>Combined 1,251 deliveries with daily weather features (rainfall, max/min temperature, wind).</li>
-        <li>Cleaned the dataset in Power Query and created derived fields like tip percentage and delivery time (minutes).</li>
-        <li>Separated housing types (apartment vs. residential) to test neighborhood effects.</li>
+        <li>Combined 1,251 deliveries with daily weather features (rain, max/min temperature, wind).</li>
+        <li>Cleaned the dataset in Power Query and derived tip percentage and delivery time (minutes).</li>
+        <li>Separated housing types (apartment vs. house) to test neighborhood effects.</li>
       </ul>
     </section>
 <section class="project-section">
       <h2 class="section-title">Exploratory Analysis</h2>
       <ul class="project-list">
-        <li>Found a strong positive correlation (0.6181) between order cost and tip amount.</li>
-        <li>Observed only a mild relationship between rainfall and delivery duration (correlation 0.1410).</li>
-        <li>Identified clear seasonal demand swings (order counts more than doubled in summer/early fall).</li>
+        <li>Found a strong positive correlation (0.62) between order cost and tip amount.</li>
+        <li>Rainfall had only a mild relationship with delivery duration (correlation 0.14).</li>
+        <li>Order counts more than doubled in summer/early fall (clear seasonality).</li>
       </ul>
     </section>
 <section class="project-section">
       <h2 class="section-title">Regression and Hypothesis Tests</h2>
       <ul class="project-list">
         <li>Ran a multiple regression: Tip = f(cost, delivery time, rain, max/min temperature).</li>
-        <li>Result: order cost was the primary driver, explaining ~38% of tip variance (≈ +$1.10 tip per +$10 bill).</li>
-        <li>Validated housing differences with a two-sample t-test: apartment customers tipped ~28% less than house residents (p &lt; 0.001).</li>
+        <li>Result: order cost was the main driver, explaining ~38% of tip variance (≈ +$1.10 tip per +$10 bill).</li>
+        <li>Validated housing differences with a two-sample t-test: apartment customers tipped ~28% less (p &lt; 0.001).</li>
       </ul>
     </section>
 <section class="project-section">

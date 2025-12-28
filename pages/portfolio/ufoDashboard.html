@@ -6,11 +6,11 @@
   <base href="/">
   <title>UFO Sightings Dashboard | Daniel Short</title>
   <link rel="canonical" href="https://danielshort.me/portfolio/ufoDashboard">
-  <meta name="description" content="Tableau Geospatial Analytics: I was curious what trends could be found in UFO sightings across the United States.">
+  <meta name="description" content="Tableau Geospatial Analytics: I wanted to see patterns in UFO sighting reports across the U.S.">
 
   <meta property="og:title" content="UFO Sightings Dashboard | Daniel Short">
   <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
-  <meta property="og:description" content="Tableau Geospatial Analytics: I was curious what trends could be found in UFO sightings across the United States.">
+  <meta property="og:description" content="Tableau Geospatial Analytics: I wanted to see patterns in UFO sighting reports across the U.S.">
   <meta property="og:url" content="https://danielshort.me/portfolio/ufoDashboard">
   <meta property="og:image" content="https://danielshort.me/img/projects/ufoDashboard.png">
   <meta property="og:image:alt" content="Preview image for UFO Sightings Dashboard">
@@ -40,7 +40,7 @@
     } catch (_) {}
   </script>
   <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"CreativeWork","name":"UFO Sightings Dashboard","description":"Tableau Geospatial Analytics: I was curious what trends could be found in UFO sightings across the United States.","url":"https://danielshort.me/portfolio/ufoDashboard","image":"https://danielshort.me/img/projects/ufoDashboard.png"}
+    {"@context":"https://schema.org","@type":"CreativeWork","name":"UFO Sightings Dashboard","description":"Tableau Geospatial Analytics: I wanted to see patterns in UFO sighting reports across the U.S.","url":"https://danielshort.me/portfolio/ufoDashboard","image":"https://danielshort.me/img/projects/ufoDashboard.png"}
   </script>
 </head>
 <body data-page="project" class="project-page">
@@ -72,54 +72,54 @@
       </div>
         <section class="project-section">
       <h2 class="section-title">Context</h2>
-      <p class="project-lead">I was curious what trends could be found in UFO sightings across the United States.</p>
+      <p class="project-lead">I wanted to see patterns in UFO sighting reports across the U.S.</p>
     </section>
         
         <section class="project-section">
       <h2 class="section-title">Approach</h2>
       <ul class="project-list">
-        <li>Cleaned and standardized hundreds of UFO sightings.</li>
-        <li>Built heat maps, bar charts, and line charts for rapid exploratory analysis.</li>
+        <li>Cleaned and standardized a UFO sightings dataset.</li>
+        <li>Built a Tableau dashboard with maps and time-based charts.</li>
       </ul>
     </section>
         <section class="project-section">
       <h2 class="section-title">Impact</h2>
       <ul class="project-list">
-        <li>Determined that most UFO sightings tend to occur just after sunset (earlier in the winter months and later in the summer months).</li>
-        <li>Found that California is the most common state for UFO sightings, with fewer in the central U.S.</li>
+        <li>Most reports happen just after sunset (earlier in winter, later in summer).</li>
+        <li>California has the most reports, while central states have fewer.</li>
       </ul>
     </section>
         <section class="project-section">
       <h2 class="section-title">Dashboard Design</h2>
-      <p class="project-lead">I built a single-screen Tableau dashboard that makes it easy to explore UFO sightings by where, when, and what people reported seeing.</p>
+      <p class="project-lead">I built a one-page Tableau dashboard to explore sightings by place, time, and reported shape.</p>
       <ul class="project-list">
-        <li>Geospatial views: state and city maps to compare hotspots at different levels of detail.</li>
-        <li>Time patterns: a month/hour heatmap to spot seasonal and daypart effects.</li>
-        <li>Shape analysis: top shapes and a month-by-month prevalence view to see how reports shift over the year.</li>
+        <li>Maps: state and city views to compare hotspots at different levels.</li>
+        <li>Time: a month/hour heatmap to spot seasonal and time-of-day patterns.</li>
+        <li>Shapes: a breakdown of common shapes and how they change over the year.</li>
       </ul>
     </section>
 <section class="project-section">
       <h2 class="section-title">Data Preparation</h2>
       <ul class="project-list">
-        <li>Standardized location fields so records could be mapped consistently.</li>
-        <li>Normalized timestamp fields to compare reports by month and hour.</li>
-        <li>Cleaned categorical fields (shape labels) to reduce fragmentation from spelling/formatting variants.</li>
+        <li>Standardized location fields so points map consistently.</li>
+        <li>Normalized timestamps so reports compare cleanly by month and hour.</li>
+        <li>Cleaned shape labels to reduce duplicates from spelling and formatting.</li>
       </ul>
     </section>
 <section class="project-section">
       <h2 class="section-title">Insights and Interpretation</h2>
       <ul class="project-list">
-        <li>Reports cluster around dusk/night hours, supporting the &#39;after sunset&#39; effect.</li>
-        <li>Seasonality shifts the peak hour later in summer and earlier in winter (longer vs. shorter daylight).</li>
-        <li>California stands out as the highest-volume state, while central regions are comparatively sparse.</li>
+        <li>Reports cluster around dusk and nighttime.</li>
+        <li>The peak hour shifts with daylight (later in summer, earlier in winter).</li>
+        <li>California stands out in volume; central regions are lower.</li>
       </ul>
     </section>
 <section class="project-section">
       <h2 class="section-title">What I&#39;d Improve</h2>
       <ul class="project-list">
-        <li>Normalize by population (per-capita rates) and add confidence intervals for low-count areas.</li>
-        <li>Add dashboard parameters for filtering by year, duration, and report quality.</li>
-        <li>Flag potential data-quality issues (missing locations, ambiguous shapes) directly in the UI.</li>
+        <li>Normalize by population (per-capita rates), especially for smaller areas.</li>
+        <li>Add filters for year, duration, and report quality.</li>
+        <li>Surface data-quality issues (missing locations, unclear shapes) in the UI.</li>
       </ul>
     </section>
 

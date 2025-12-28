@@ -6,11 +6,11 @@
   <base href="/">
   <title>Smart Sentence Retriever | Daniel Short</title>
   <link rel="canonical" href="https://danielshort.me/portfolio/smartSentence">
-  <meta name="description" content="NLP Embeddings &amp; Serverless Retrieval: I wanted a quick way to retrieve relevant sentences by meaning, not exact wording.">
+  <meta name="description" content="NLP Embeddings &amp; Serverless Retrieval: I wanted a fast way to find sentences that match a question, even when the wording is different.">
 
   <meta property="og:title" content="Smart Sentence Retriever | Daniel Short">
   <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
-  <meta property="og:description" content="NLP Embeddings &amp; Serverless Retrieval: I wanted a quick way to retrieve relevant sentences by meaning, not exact wording.">
+  <meta property="og:description" content="NLP Embeddings &amp; Serverless Retrieval: I wanted a fast way to find sentences that match a question, even when the wording is different.">
   <meta property="og:url" content="https://danielshort.me/portfolio/smartSentence">
   <meta property="og:image" content="https://danielshort.me/img/projects/smartSentence.png">
   <meta property="og:image:alt" content="Preview image for Smart Sentence Retriever">
@@ -39,7 +39,7 @@
     } catch (_) {}
   </script>
   <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"CreativeWork","name":"Smart Sentence Retriever","description":"NLP Embeddings & Serverless Retrieval: I wanted a quick way to retrieve relevant sentences by meaning, not exact wording.","url":"https://danielshort.me/portfolio/smartSentence","image":"https://danielshort.me/img/projects/smartSentence.png"}
+    {"@context":"https://schema.org","@type":"CreativeWork","name":"Smart Sentence Retriever","description":"NLP Embeddings & Serverless Retrieval: I wanted a fast way to find sentences that match a question, even when the wording is different.","url":"https://danielshort.me/portfolio/smartSentence","image":"https://danielshort.me/img/projects/smartSentence.png"}
   </script>
 </head>
 <body data-page="project" class="project-page">
@@ -74,56 +74,56 @@
       </div>
         <section class="project-section">
       <h2 class="section-title">Context</h2>
-      <p class="project-lead">I wanted a quick way to retrieve relevant sentences by meaning, not exact wording.</p>
+      <p class="project-lead">I wanted a fast way to find sentences that match a question, even when the wording is different.</p>
     </section>
         
         <section class="project-section">
       <h2 class="section-title">Approach</h2>
       <ul class="project-list">
-        <li>Prepared the corpus (Alice in Wonderland), split into sentences, and precomputed embeddings.</li>
-        <li>Benchmarked 6+ embedding models on 800 sentences (k=2–6), tracking both silhouette score and efficiency (silhouette per million parameters).</li>
-        <li>Chose the best silhouette‑score model and deployed it as a stateless AWS Lambda endpoint with CORS for top‑k ranking.</li>
+        <li>Cleaned the text of Alice in Wonderland, split it into sentences, and precomputed embeddings.</li>
+        <li>Tested 6+ embedding models on 800 sentences (k=2–6) and tracked both quality (silhouette score) and model size.</li>
+        <li>Deployed the best-quality model behind an AWS Lambda API (with CORS) that returns the top-k matches.</li>
       </ul>
     </section>
         <section class="project-section">
       <h2 class="section-title">Impact</h2>
       <ul class="project-list">
-        <li>Best absolute silhouette: 0.313 – Snowflake/snowflake‑arctic‑embed‑l‑v2.0 (k=2, 1024‑d, ~568M params).</li>
-        <li>Best efficiency: 0.0116 per M params – jinaai/jina‑embeddings‑v3 (~12.9M params, k=6, 1024‑d).</li>
-        <li>Deployed AWS model: Snowflake/snowflake‑arctic‑embed‑l‑v2.0 (prioritizing quality); live demo runs on a lightweight, scalable Lambda API.</li>
+        <li>Best silhouette score: 0.313 with Snowflake Arctic Embed L v2.0 (k=2).</li>
+        <li>Best score per million parameters: 0.0116 with Jina Embeddings v3 (k=6).</li>
+        <li>Deployed Arctic Embed L v2.0; the demo calls a Lambda endpoint to rank sentences by meaning.</li>
       </ul>
     </section>
         <section class="project-section">
       <h2 class="section-title">System Design</h2>
-      <p class="project-lead">This is a retrieval system for a fixed corpus (Alice in Wonderland): precompute sentence embeddings once, then embed each query at runtime and rank by cosine similarity.</p>
+      <p class="project-lead">This uses a fixed corpus (Alice in Wonderland): embed each sentence once, then embed each query and rank by cosine similarity.</p>
       <ul class="project-list">
-        <li>Offline: chunk raw text, segment into sentences, normalize whitespace, and precompute embeddings.</li>
-        <li>Online: embed the query, score against the cached embedding matrix, and return top-k sentences with similarity scores.</li>
-        <li>Frontend: a lightweight demo that calls `/health` and `/rank` and renders ranked results with confidence meters.</li>
+        <li>Offline: clean the text, split into sentences, and store embeddings.</li>
+        <li>Online: embed the query, score against the cached matrix, and return the top-k with scores.</li>
+        <li>Frontend: a small demo that calls `/health` and `/rank` and shows the top matches.</li>
       </ul>
     </section>
 <section class="project-section">
       <h2 class="section-title">Model Selection</h2>
       <ul class="project-list">
-        <li>Benchmarked multiple embedding models and used silhouette score (plus silhouette per million parameters) to balance quality vs. cost.</li>
-        <li>Selected Snowflake Arctic Embed L v2 for highest silhouette score; tracked Jina v3 as the best efficiency baseline.</li>
-        <li>Kept the evaluation reproducible by fixing the corpus, sampling strategy, and k-range for clustering.</li>
+        <li>Compared several embedding models using silhouette score.</li>
+        <li>Tracked silhouette score per million parameters to keep size and cost in mind.</li>
+        <li>Kept the setup fixed (same corpus, same sample, same k range) so results are comparable.</li>
       </ul>
     </section>
 <section class="project-section">
       <h2 class="section-title">Serverless Deployment</h2>
       <ul class="project-list">
-        <li>Built an AWS Lambda container image that bundles CPU-only PyTorch, FastAPI + Mangum, the cached embedding model, and precomputed corpus artifacts.</li>
-        <li>Forced the Hugging Face backend (no sentence-transformers) to keep the cold start smaller and avoid multiprocess warnings on Lambda.</li>
-        <li>Exposed a Lambda Function URL with CORS so the website demo can call it directly from the browser.</li>
+        <li>Built a Lambda container with CPU PyTorch, FastAPI/Mangum, and the precomputed artifacts.</li>
+        <li>Used the plain Hugging Face stack (no sentence-transformers) to keep cold starts smaller.</li>
+        <li>Exposed a Lambda Function URL with CORS so the website can call it from the browser.</li>
       </ul>
     </section>
 <section class="project-section">
       <h2 class="section-title">What I&#39;d Improve</h2>
       <ul class="project-list">
-        <li>Add support for user-provided documents (upload + background embedding job) instead of a fixed corpus.</li>
-        <li>Introduce ANN search (HNSW/FAISS) for larger corpora and faster top-k retrieval.</li>
-        <li>Move beyond silhouette score with a small labeled relevance set and offline evaluation metrics (e.g., nDCG@k).</li>
+        <li>Let users upload documents and build embeddings in the background.</li>
+        <li>Add ANN search (HNSW/FAISS) for bigger corpora and faster top-k.</li>
+        <li>Add a small labeled set and evaluate with metrics like nDCG@k.</li>
       </ul>
     </section>
 
