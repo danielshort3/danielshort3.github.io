@@ -40,7 +40,11 @@ Environment variables (demo defaults):
 ```bash
 aws lambda update-function-configuration \
   --function-name minesweeper-solver \
-  --environment "Variables={MODEL_PREFIX=DoubleDQN_adaptive_pool_regular_20250408-075910_best,GRID_SIZE=9,MINE_RATIO=0.2}"
+  --environment "Variables={MODEL_PREFIX=DoubleDQN_adaptive_pool_regular_20251227-193659_best,GRID_SIZE=9,MINE_COUNT=10}"
+
+Notes:
+- `MINE_COUNT` overrides `MINE_RATIO`. If neither is set, the model metadata drives the mine count.
+- Use `MINE_RATIO` only when you want percentage-based mine density across varying grid sizes.
 ```
 
 ## Function URL

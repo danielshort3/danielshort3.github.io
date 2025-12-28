@@ -1,1 +1,0 @@
-{"grid_size": 10, "num_mines": 3, "dqn_variant": "DoubleDQN", "cnn_variant": "adaptive_pool", "replay_type": "regular", "episodes_trained": 9850, "success_rate": 0.35, "training_finished": false, "epsilon": 0.09995093964326238, "step_count": 125914}

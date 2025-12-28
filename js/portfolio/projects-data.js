@@ -1081,8 +1081,8 @@ window.PROJECTS = [
       "Packaged the best model behind an AWS Lambda + container image endpoint for interactive inference."
     ],
     results : [
-      "Top model reached a 10x10 grid with about 35% success on the hardest tier.",
-      "Current demo model runs 9x9 boards with roughly a 35% success rate."
+      "Best evaluation reached ~72% success on 9x9 boards with 10 mines.",
+      "Current demo uses the 9x9 / 10-mine model for interactive inference."
     ],
     caseStudy : [
       {
