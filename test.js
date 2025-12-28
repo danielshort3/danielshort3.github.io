@@ -185,7 +185,9 @@ try {
 
   section('Project pages and sitemap entries', () => {
     const pdata = evalScript('js/portfolio/projects-data.js');
-    const ids = pdata.window.PROJECTS.map(p => p.id);
+    const ids = pdata.window.PROJECTS
+      .filter(p => p && p.published !== false)
+      .map(p => p.id);
     assert(ids.length > 0, 'no project ids found');
 
     const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
@@ -309,7 +311,9 @@ try {
     assert(fs.existsSync(`dist/${hashedCss}`), `dist/${hashedCss} missing`);
     assert(fs.existsSync('dist/styles.css'), 'dist/styles.css missing');
 
-    const projectIds = evalScript('js/portfolio/projects-data.js').window.PROJECTS.map(p => p.id);
+    const projectIds = evalScript('js/portfolio/projects-data.js').window.PROJECTS
+      .filter(p => p && p.published !== false)
+      .map(p => p.id);
     const projectPages = projectIds.map(id => `pages/portfolio/${id}.html`);
     const toolPages = ['pages/tools.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html'];
     ['index.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','pages/privacy.html','404.html', ...toolPages, ...projectPages].forEach(f => {

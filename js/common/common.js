@@ -251,6 +251,7 @@
       return d;
     })();
     window.PROJECTS.forEach(p => {
+      if (!p || p.published === false) return;
       if ($('#' + p.id + '-modal')) return;
       const modal = document.createElement('div');
       modal.className = 'modal';

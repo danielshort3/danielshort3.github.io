@@ -38,6 +38,8 @@ const projectMedia = window.projectMedia || ((p = {}) => {
   return `<img src="${p.image}" alt="${p.title || ''}" loading="lazy" decoding="async" draggable="false"${sizeAttr}>`;
 });
 
+const isPublishedProject = (project) => project && project.published !== false;
+
 const hasModalHelpers = typeof window.openModal === 'function' && typeof window.generateProjectModal === 'function';
 if (!hasModalHelpers) {
   console.warn('modal-helpers.js was not loaded before portfolio.js; modal interactions will be limited.');
@@ -50,6 +52,8 @@ const openModal = hasModalHelpers ? window.openModal.bind(window) : () => {};
 function buildPortfolioCarousel() {
   const container = document.getElementById("portfolio-carousel");
   if (!container || !window.PROJECTS) return;
+  const allProjects = (Array.isArray(window.PROJECTS) ? window.PROJECTS : []).filter(isPublishedProject);
+  if (!allProjects.length) return;
 
   const track = container.querySelector(".carousel-track");
   const dots  = container.querySelector(".carousel-dots");
@@ -74,11 +78,11 @@ function buildPortfolioCarousel() {
   let projects = [];
   if (Array.isArray(window.FEATURED_IDS) && window.FEATURED_IDS.length) {
     window.FEATURED_IDS.forEach(id => {
-      const p = window.PROJECTS.find(pr => pr.id === id);
+      const p = allProjects.find(pr => pr.id === id);
       if (p) projects.push(p);
     });
   } else {
-    projects = window.PROJECTS.slice(0, 5);
+    projects = allProjects.slice(0, 5);
   }
 
   const ld = {
@@ -106,7 +110,7 @@ function buildPortfolioCarousel() {
   // Per-project structured data for better discoverability
   if (isPortfolioPage) {
     try {
-      const graph = window.PROJECTS.map(p => ({
+      const graph = allProjects.map(p => ({
         "@type": "CreativeWork",
         "name": p.title,
         "description": p.subtitle,
@@ -548,10 +552,12 @@ function buildPortfolio() {
   const modals = document.getElementById("modals");
   const menu   = document.getElementById("filter-menu");
   if (!grid || !modals || !menu || !window.PROJECTS) return;
+  const projects = (Array.isArray(window.PROJECTS) ? window.PROJECTS : []).filter(isPublishedProject);
+  if (!projects.length) return;
 
   grid.innerHTML = "";
   modals.innerHTML = "";
-  const TOTAL_PROJECTS = window.PROJECTS.length;
+  const TOTAL_PROJECTS = projects.length;
   const filterGroups = new Map();
   const groupState = {};
   const groupButtons = [...menu.querySelectorAll('button[data-filter-group]')];
@@ -587,7 +593,7 @@ function buildPortfolio() {
   };
   const computeGroupCounts = (group) => {
     const counts = { all: 0 };
-    window.PROJECTS.forEach((project) => {
+    projects.forEach((project) => {
       if (!matchesState(project, { [group]: 'all' })) return;
       counts.all++;
       getProjectValues(project, group).forEach((value) => {
@@ -737,7 +743,7 @@ function buildPortfolio() {
 
 
   /* ➊ Build cards & modals ----------------------------------------- */
-  window.PROJECTS.forEach((p, i) => {
+  projects.forEach((p, i) => {
     /* card */
     const mediaMarkup = projectMedia(p);
     const card = el("button", "project-card", `
@@ -811,7 +817,7 @@ function buildPortfolio() {
   };
   const matchesSelections = (card) => {
     const index = Number(card.dataset.index);
-    const project = window.PROJECTS[index];
+    const project = projects[index];
     if (!project) return true;
     return matchesState(project);
   };
