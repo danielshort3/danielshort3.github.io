@@ -569,13 +569,23 @@
 
             <section id="jobtrack-panel-dashboard" class="jobtrack-tab-panel" role="tabpanel" aria-labelledby="jobtrack-tab-dashboard" data-jobtrack-panel="dashboard" hidden>
               <article class="jobtrack-card jobtrack-dashboard-card" data-jobtrack="dashboard" aria-busy="false">
-                <div class="jobtrack-dashboard-head">
-                  <div>
-                    <p class="jobtrack-kicker">Summary</p>
-                    <h2>Application pulse</h2>
-                    <p class="jobtrack-subtitle">Filter by date range to see momentum, status mix, daily activity, and efficiency gains.</p>
-                  </div>
-                  <form class="jobtrack-filter" data-jobtrack="filter" novalidate>
+	                <div class="jobtrack-dashboard-head">
+	                  <div>
+	                    <p class="jobtrack-kicker">Summary</p>
+	                    <h2 data-jobtrack="dashboard-title">Application pulse</h2>
+	                    <p class="jobtrack-subtitle" data-jobtrack="dashboard-subtitle">Filter by date range to see momentum, status mix, daily activity, and efficiency gains.</p>
+	                    <div class="jobtrack-segmented" role="radiogroup" aria-label="Summary view" data-jobtrack="dashboard-view">
+	                      <label class="jobtrack-segmented-option">
+	                        <input id="jobtrack-dashboard-view-applications" class="jobtrack-segmented-input" name="dashboardView" type="radio" value="applications" checked>
+	                        <span>Applications</span>
+	                      </label>
+	                      <label class="jobtrack-segmented-option">
+	                        <input id="jobtrack-dashboard-view-prospects" class="jobtrack-segmented-input" name="dashboardView" type="radio" value="prospects">
+	                        <span>Prospects</span>
+	                      </label>
+	                    </div>
+	                  </div>
+	                  <form class="jobtrack-filter" data-jobtrack="filter" novalidate>
                     <div class="jobtrack-field">
                       <label class="jobtrack-label" for="jobtrack-filter-start">Start date</label>
                       <input id="jobtrack-filter-start" class="jobtrack-input" type="date" data-jobtrack="filter-start">
@@ -591,190 +601,232 @@
                   </form>
                 </div>
 
-                <div class="jobtrack-kpi-grid" role="list">
-                  <div class="jobtrack-kpi" role="listitem">
-                    <p class="jobtrack-kpi-label">Total applications</p>
-                    <p class="jobtrack-kpi-value" data-jobtrack="kpi-total">--</p>
-                  </div>
-                  <div class="jobtrack-kpi" role="listitem">
-                    <p class="jobtrack-kpi-label">Interviews</p>
-                    <p class="jobtrack-kpi-value" data-jobtrack="kpi-interviews">--</p>
-                  </div>
-                  <div class="jobtrack-kpi" role="listitem">
-                    <p class="jobtrack-kpi-label">Offers</p>
-                    <p class="jobtrack-kpi-value" data-jobtrack="kpi-offers">--</p>
-                  </div>
-                  <div class="jobtrack-kpi" role="listitem">
-                    <p class="jobtrack-kpi-label">Rejections</p>
-                    <p class="jobtrack-kpi-value" data-jobtrack="kpi-rejections">--</p>
-                  </div>
-                </div>
+	                <div data-jobtrack="dashboard-applications">
+	                  <div class="jobtrack-kpi-grid" role="list">
+	                    <div class="jobtrack-kpi" role="listitem">
+	                      <p class="jobtrack-kpi-label">Total applications</p>
+	                      <p class="jobtrack-kpi-value" data-jobtrack="kpi-total">--</p>
+	                    </div>
+	                    <div class="jobtrack-kpi" role="listitem">
+	                      <p class="jobtrack-kpi-label">Interviews</p>
+	                      <p class="jobtrack-kpi-value" data-jobtrack="kpi-interviews">--</p>
+	                    </div>
+	                    <div class="jobtrack-kpi" role="listitem">
+	                      <p class="jobtrack-kpi-label">Offers</p>
+	                      <p class="jobtrack-kpi-value" data-jobtrack="kpi-offers">--</p>
+	                    </div>
+	                    <div class="jobtrack-kpi" role="listitem">
+	                      <p class="jobtrack-kpi-label">Rejections</p>
+	                      <p class="jobtrack-kpi-value" data-jobtrack="kpi-rejections">--</p>
+	                    </div>
+	                  </div>
 
-                <div class="jobtrack-panel jobtrack-insights-panel">
-                  <div class="jobtrack-panel-head">
-                    <div>
-                      <h3>Optimization insights</h3>
-                      <p class="jobtrack-panel-subtitle">Track how quickly you move from discovery to submission.</p>
-                    </div>
-                  </div>
-                  <div class="jobtrack-insight-grid" role="list">
-                    <div class="jobtrack-kpi" role="listitem">
-                      <p class="jobtrack-kpi-label">Avg days found → applied</p>
-                      <p class="jobtrack-kpi-value" data-jobtrack="kpi-found-to-applied">--</p>
-                      <p class="jobtrack-kpi-meta" data-jobtrack="kpi-found-count">--</p>
-                    </div>
-                    <div class="jobtrack-kpi" role="listitem">
-                      <p class="jobtrack-kpi-label">Avg days posted → applied</p>
-                      <p class="jobtrack-kpi-value" data-jobtrack="kpi-posted-to-applied">--</p>
-                      <p class="jobtrack-kpi-meta" data-jobtrack="kpi-posted-count">--</p>
-                    </div>
-                    <div class="jobtrack-kpi" role="listitem">
-                      <p class="jobtrack-kpi-label">Avg days to first response</p>
-                      <p class="jobtrack-kpi-value" data-jobtrack="kpi-response-time">--</p>
-                      <p class="jobtrack-kpi-meta" data-jobtrack="kpi-response-time-count">--</p>
-                    </div>
-                    <div class="jobtrack-kpi" role="listitem">
-                      <p class="jobtrack-kpi-label">Response rate</p>
-                      <p class="jobtrack-kpi-value" data-jobtrack="kpi-response-rate">--</p>
-                      <p class="jobtrack-kpi-meta" data-jobtrack="kpi-response-count">--</p>
-                    </div>
-                    <div class="jobtrack-kpi" role="listitem">
-                      <p class="jobtrack-kpi-label">Top source</p>
-                      <p class="jobtrack-kpi-value" data-jobtrack="kpi-top-source">--</p>
-                      <p class="jobtrack-kpi-meta" data-jobtrack="kpi-top-source-count">--</p>
-                    </div>
-                  </div>
-                </div>
+	                  <div class="jobtrack-panel jobtrack-insights-panel">
+	                    <div class="jobtrack-panel-head">
+	                      <div>
+	                        <h3>Optimization insights</h3>
+	                        <p class="jobtrack-panel-subtitle">Track how quickly you move from discovery to submission.</p>
+	                      </div>
+	                    </div>
+	                    <div class="jobtrack-insight-grid" role="list">
+	                      <div class="jobtrack-kpi" role="listitem">
+	                        <p class="jobtrack-kpi-label">Avg days found → applied</p>
+	                        <p class="jobtrack-kpi-value" data-jobtrack="kpi-found-to-applied">--</p>
+	                        <p class="jobtrack-kpi-meta" data-jobtrack="kpi-found-count">--</p>
+	                      </div>
+	                      <div class="jobtrack-kpi" role="listitem">
+	                        <p class="jobtrack-kpi-label">Avg days posted → applied</p>
+	                        <p class="jobtrack-kpi-value" data-jobtrack="kpi-posted-to-applied">--</p>
+	                        <p class="jobtrack-kpi-meta" data-jobtrack="kpi-posted-count">--</p>
+	                      </div>
+	                      <div class="jobtrack-kpi" role="listitem">
+	                        <p class="jobtrack-kpi-label">Avg days to first response</p>
+	                        <p class="jobtrack-kpi-value" data-jobtrack="kpi-response-time">--</p>
+	                        <p class="jobtrack-kpi-meta" data-jobtrack="kpi-response-time-count">--</p>
+	                      </div>
+	                      <div class="jobtrack-kpi" role="listitem">
+	                        <p class="jobtrack-kpi-label">Response rate</p>
+	                        <p class="jobtrack-kpi-value" data-jobtrack="kpi-response-rate">--</p>
+	                        <p class="jobtrack-kpi-meta" data-jobtrack="kpi-response-count">--</p>
+	                      </div>
+	                      <div class="jobtrack-kpi" role="listitem">
+	                        <p class="jobtrack-kpi-label">Top source</p>
+	                        <p class="jobtrack-kpi-value" data-jobtrack="kpi-top-source">--</p>
+	                        <p class="jobtrack-kpi-meta" data-jobtrack="kpi-top-source-count">--</p>
+	                      </div>
+	                    </div>
+	                  </div>
 
-                <div class="jobtrack-panels">
-                  <div class="jobtrack-panel">
-                    <div class="jobtrack-panel-head">
-                      <div>
-                        <h3>Applications over time</h3>
-                        <p class="jobtrack-panel-subtitle" data-jobtrack="line-range">Last 90 days</p>
-                      </div>
-                      <span class="jobtrack-panel-meta" data-jobtrack="line-total">0 apps</span>
-                    </div>
-                    <div class="jobtrack-chart">
-                      <canvas id="jobtrack-line-chart" aria-label="Applications over time" role="img"></canvas>
-                      <div class="jobtrack-chart-overlay" data-jobtrack="line-overlay">Loading chart...</div>
-                    </div>
-                  </div>
+	                  <div class="jobtrack-panels">
+	                    <div class="jobtrack-panel">
+	                      <div class="jobtrack-panel-head">
+	                        <div>
+	                          <h3>Applications over time</h3>
+	                          <p class="jobtrack-panel-subtitle" data-jobtrack="line-range">Last 90 days</p>
+	                        </div>
+	                        <span class="jobtrack-panel-meta" data-jobtrack="line-total">0 apps</span>
+	                      </div>
+	                      <div class="jobtrack-chart">
+	                        <canvas id="jobtrack-line-chart" aria-label="Applications over time" role="img"></canvas>
+	                        <div class="jobtrack-chart-overlay" data-jobtrack="line-overlay">Loading chart...</div>
+	                      </div>
+	                    </div>
 
-                  <div class="jobtrack-panel">
-                    <div class="jobtrack-panel-head">
-                      <div>
-                        <h3>Status breakdown</h3>
-                        <p class="jobtrack-panel-subtitle">Current pipeline mix</p>
-                      </div>
-                      <span class="jobtrack-panel-meta" data-jobtrack="status-total">0 statuses</span>
-                    </div>
-                    <div class="jobtrack-chart">
-                      <canvas id="jobtrack-status-chart" aria-label="Status breakdown" role="img"></canvas>
-                      <div class="jobtrack-chart-overlay" data-jobtrack="status-overlay">Loading chart...</div>
-                    </div>
-                  </div>
-                </div>
+	                    <div class="jobtrack-panel">
+	                      <div class="jobtrack-panel-head">
+	                        <div>
+	                          <h3>Status breakdown</h3>
+	                          <p class="jobtrack-panel-subtitle">Current pipeline mix</p>
+	                        </div>
+	                        <span class="jobtrack-panel-meta" data-jobtrack="status-total">0 statuses</span>
+	                      </div>
+	                      <div class="jobtrack-chart">
+	                        <canvas id="jobtrack-status-chart" aria-label="Status breakdown" role="img"></canvas>
+	                        <div class="jobtrack-chart-overlay" data-jobtrack="status-overlay">Loading chart...</div>
+	                      </div>
+	                    </div>
+	                  </div>
 
-                <div class="jobtrack-panel jobtrack-map-panel">
-                  <div class="jobtrack-panel-head">
-                    <div>
-                      <h3>On-site footprint</h3>
-                      <p class="jobtrack-panel-subtitle">Non-remote applications by state, with remote totals called out below.</p>
-                    </div>
-                    <span class="jobtrack-panel-meta" data-jobtrack="map-total">No states yet</span>
-                  </div>
-                  <div class="jobtrack-map" data-jobtrack="map" data-jobtrack-map-src="img/ui/us-map.svg">
-                    <div class="jobtrack-map-placeholder" data-jobtrack="map-placeholder">Loading map...</div>
-                  </div>
-                  <div class="jobtrack-map-meta">
-                    <span class="jobtrack-map-remote" data-jobtrack="map-remote">Remote: --</span>
-                  </div>
-                  <div class="jobtrack-calendar-legend jobtrack-map-legend">
-                    <span>Fewer on-site applications</span>
-                    <div class="jobtrack-legend-swatches" aria-hidden="true">
-                      <span data-intensity="0"></span>
-                      <span data-intensity="1"></span>
-                      <span data-intensity="2"></span>
-                      <span data-intensity="3"></span>
-                      <span data-intensity="4"></span>
-                    </div>
-                    <span>More on-site applications</span>
-                  </div>
-                </div>
+	                  <div class="jobtrack-panel jobtrack-map-panel">
+	                    <div class="jobtrack-panel-head">
+	                      <div>
+	                        <h3>On-site footprint</h3>
+	                        <p class="jobtrack-panel-subtitle">Non-remote applications by state, with remote totals called out below.</p>
+	                      </div>
+	                      <span class="jobtrack-panel-meta" data-jobtrack="map-total">No states yet</span>
+	                    </div>
+	                    <div class="jobtrack-map" data-jobtrack="map" data-jobtrack-map-src="img/ui/us-map.svg">
+	                      <div class="jobtrack-map-placeholder" data-jobtrack="map-placeholder">Loading map...</div>
+	                    </div>
+	                    <div class="jobtrack-map-meta">
+	                      <span class="jobtrack-map-remote" data-jobtrack="map-remote">Remote: --</span>
+	                    </div>
+	                    <div class="jobtrack-calendar-legend jobtrack-map-legend">
+	                      <span>Fewer on-site applications</span>
+	                      <div class="jobtrack-legend-swatches" aria-hidden="true">
+	                        <span data-intensity="0"></span>
+	                        <span data-intensity="1"></span>
+	                        <span data-intensity="2"></span>
+	                        <span data-intensity="3"></span>
+	                        <span data-intensity="4"></span>
+	                      </div>
+	                      <span>More on-site applications</span>
+	                    </div>
+	                  </div>
 
-                <div class="jobtrack-panel jobtrack-calendar-panel">
-                  <div class="jobtrack-panel-head">
-                    <div>
-                      <h3>Calendar heatmap</h3>
-                      <p class="jobtrack-panel-subtitle" data-jobtrack="calendar-range">Daily activity</p>
-                    </div>
-                    <span class="jobtrack-panel-meta">Applications per day</span>
-                  </div>
-                  <div class="jobtrack-calendar-shell">
-                    <div class="jobtrack-calendar-months" data-jobtrack="calendar-months" aria-hidden="true"></div>
-                    <div class="jobtrack-calendar" data-jobtrack="calendar-grid" role="grid" aria-label="Daily application activity"></div>
-                  </div>
-                  <div class="jobtrack-calendar-legend">
-                    <span>Fewer applications per day</span>
-                    <div class="jobtrack-legend-swatches" aria-hidden="true">
-                      <span data-intensity="0"></span>
-                      <span data-intensity="1"></span>
-                      <span data-intensity="2"></span>
-                      <span data-intensity="3"></span>
-                      <span data-intensity="4"></span>
-                    </div>
-                    <span>More applications per day</span>
-                  </div>
-                </div>
+	                  <div class="jobtrack-panel jobtrack-calendar-panel">
+	                    <div class="jobtrack-panel-head">
+	                      <div>
+	                        <h3>Calendar heatmap</h3>
+	                        <p class="jobtrack-panel-subtitle" data-jobtrack="calendar-range">Daily activity</p>
+	                      </div>
+	                      <span class="jobtrack-panel-meta">Applications per day</span>
+	                    </div>
+	                    <div class="jobtrack-calendar-shell">
+	                      <div class="jobtrack-calendar-months" data-jobtrack="calendar-months" aria-hidden="true"></div>
+	                      <div class="jobtrack-calendar" data-jobtrack="calendar-grid" role="grid" aria-label="Daily application activity"></div>
+	                    </div>
+	                    <div class="jobtrack-calendar-legend">
+	                      <span>Fewer applications per day</span>
+	                      <div class="jobtrack-legend-swatches" aria-hidden="true">
+	                        <span data-intensity="0"></span>
+	                        <span data-intensity="1"></span>
+	                        <span data-intensity="2"></span>
+	                        <span data-intensity="3"></span>
+	                        <span data-intensity="4"></span>
+	                      </div>
+	                      <span>More applications per day</span>
+	                    </div>
+	                  </div>
 
-                <div class="jobtrack-panel jobtrack-weekday-panel">
-                  <div class="jobtrack-panel-head">
-                    <div>
-                      <h3>Weekday heatmap</h3>
-                      <p class="jobtrack-panel-subtitle">Applied volume by day of week</p>
-                    </div>
-                    <span class="jobtrack-panel-meta">Weekly cadence</span>
-                  </div>
-                  <div class="jobtrack-weekday-shell">
-                    <div class="jobtrack-weekday-labels" aria-hidden="true">
-                      <span>Sun</span>
-                      <span>Mon</span>
-                      <span>Tue</span>
-                      <span>Wed</span>
-                      <span>Thu</span>
-                      <span>Fri</span>
-                      <span>Sat</span>
-                    </div>
-                    <div class="jobtrack-weekday-grid" data-jobtrack="weekday-heatmap" role="grid" aria-label="Applications by weekday"></div>
-                  </div>
-                  <div class="jobtrack-calendar-legend jobtrack-weekday-legend">
-                    <span>Fewer applications per weekday</span>
-                    <div class="jobtrack-legend-swatches" aria-hidden="true">
-                      <span data-intensity="0"></span>
-                      <span data-intensity="1"></span>
-                      <span data-intensity="2"></span>
-                      <span data-intensity="3"></span>
-                      <span data-intensity="4"></span>
-                    </div>
-                    <span>More applications per weekday</span>
-                  </div>
-                </div>
+	                  <div class="jobtrack-panel jobtrack-weekday-panel">
+	                    <div class="jobtrack-panel-head">
+	                      <div>
+	                        <h3>Weekday heatmap</h3>
+	                        <p class="jobtrack-panel-subtitle">Applied volume by day of week</p>
+	                      </div>
+	                      <span class="jobtrack-panel-meta">Weekly cadence</span>
+	                    </div>
+	                    <div class="jobtrack-weekday-shell">
+	                      <div class="jobtrack-weekday-labels" aria-hidden="true">
+	                        <span>Sun</span>
+	                        <span>Mon</span>
+	                        <span>Tue</span>
+	                        <span>Wed</span>
+	                        <span>Thu</span>
+	                        <span>Fri</span>
+	                        <span>Sat</span>
+	                      </div>
+	                      <div class="jobtrack-weekday-grid" data-jobtrack="weekday-heatmap" role="grid" aria-label="Applications by weekday"></div>
+	                    </div>
+	                    <div class="jobtrack-calendar-legend jobtrack-weekday-legend">
+	                      <span>Fewer applications per weekday</span>
+	                      <div class="jobtrack-legend-swatches" aria-hidden="true">
+	                        <span data-intensity="0"></span>
+	                        <span data-intensity="1"></span>
+	                        <span data-intensity="2"></span>
+	                        <span data-intensity="3"></span>
+	                        <span data-intensity="4"></span>
+	                      </div>
+	                      <span>More applications per weekday</span>
+	                    </div>
+	                  </div>
 
-                <div class="jobtrack-panel jobtrack-detail-panel">
-                  <div class="jobtrack-panel-head">
-                    <div>
-                      <h3>Detail view</h3>
-                      <p class="jobtrack-panel-subtitle" data-jobtrack="detail-subtitle">Click a chart element to inspect activity.</p>
-                    </div>
-                    <button type="button" class="btn-ghost" data-jobtrack="detail-reset">Clear</button>
-                  </div>
-                  <div class="jobtrack-detail-body" data-jobtrack="detail-body">Select a state, week, weekday, day, or status to see details here.</div>
-                </div>
+	                  <div class="jobtrack-panel jobtrack-detail-panel">
+	                    <div class="jobtrack-panel-head">
+	                      <div>
+	                        <h3>Detail view</h3>
+	                        <p class="jobtrack-panel-subtitle" data-jobtrack="detail-subtitle">Click a chart element to inspect activity.</p>
+	                      </div>
+	                      <button type="button" class="btn-ghost" data-jobtrack="detail-reset">Clear</button>
+	                    </div>
+	                    <div class="jobtrack-detail-body" data-jobtrack="detail-body">Select a state, week, weekday, day, or status to see details here.</div>
+	                  </div>
 
-                <p class="jobtrack-dashboard-status" data-jobtrack="dashboard-status" role="status" aria-live="polite">Sign in to load your dashboards.</p>
-              </article>
-            </section>
+	                  <p class="jobtrack-dashboard-status" data-jobtrack="dashboard-status" role="status" aria-live="polite">Sign in to load your dashboards.</p>
+	                </div>
+
+	                <div data-jobtrack="dashboard-prospects" hidden>
+	                  <div class="jobtrack-kpi-grid" role="list">
+	                    <div class="jobtrack-kpi" role="listitem">
+	                      <p class="jobtrack-kpi-label">Pending prospects</p>
+	                      <p class="jobtrack-kpi-value" data-jobtrack="kpi-prospects-pending">--</p>
+	                    </div>
+	                    <div class="jobtrack-kpi" role="listitem">
+	                      <p class="jobtrack-kpi-label">Active</p>
+	                      <p class="jobtrack-kpi-value" data-jobtrack="kpi-prospects-active">--</p>
+	                    </div>
+	                    <div class="jobtrack-kpi" role="listitem">
+	                      <p class="jobtrack-kpi-label">Interested</p>
+	                      <p class="jobtrack-kpi-value" data-jobtrack="kpi-prospects-interested">--</p>
+	                    </div>
+	                    <div class="jobtrack-kpi" role="listitem">
+	                      <p class="jobtrack-kpi-label">Needs action</p>
+	                      <p class="jobtrack-kpi-value" data-jobtrack="kpi-prospects-needs-action">--</p>
+	                    </div>
+	                  </div>
+
+	                  <div class="jobtrack-panel jobtrack-prospect-dashboard-panel">
+	                    <div class="jobtrack-panel-head">
+	                      <div>
+	                        <h3>Pending prospects</h3>
+	                        <p class="jobtrack-panel-subtitle">Quick look at the queue for this date range.</p>
+	                      </div>
+	                      <button type="button" class="btn-ghost" data-jobtrack="dashboard-prospect-open">Open prospect queue</button>
+	                    </div>
+	                    <div class="jobtrack-detail-entries">
+	                      <div class="jobtrack-detail-entries-head">
+	                        <span>Prospects</span>
+	                        <span data-jobtrack="prospect-summary-count">0 total</span>
+	                      </div>
+	                      <ul class="jobtrack-detail-entry-list" data-jobtrack="prospect-summary-list"></ul>
+	                    </div>
+	                  </div>
+
+	                  <p class="jobtrack-dashboard-status" data-jobtrack="dashboard-prospect-status" role="status" aria-live="polite">Sign in to load prospects.</p>
+	                </div>
+	              </article>
+	            </section>
           </div>
         </div>
       </div>
