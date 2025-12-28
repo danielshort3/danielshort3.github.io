@@ -21,7 +21,7 @@
       --text: var(--text-light);
       --page-pad: clamp(12px, 3vw, 24px);
       --cell-size: clamp(26px, 3.8vw, 34px);
-      --cell-gap: 4px;
+      --cell-gap: 6px;
       --log-row-height: 36px;
       --grid-size: 9;
     }
@@ -177,11 +177,11 @@
       align-items: stretch;
       justify-content: center;
       justify-items: stretch;
-      background: #bfc5cc;
+      background: color-mix(in srgb, var(--surface) 70%, #ffffff 30%);
       border-radius: 16px;
       padding: 16px;
-      border: 1px solid #a4aab2;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.6), var(--shadow-1);
+      border: 1px solid var(--surface-accent);
+      box-shadow: var(--shadow-1);
       overflow: hidden;
     }
 
@@ -194,32 +194,31 @@
 
     .cell {
       position: relative;
-      border-radius: 4px;
-      background: linear-gradient(145deg, #e9eef3, #b6bcc4);
-      border: 2px solid #d8dde3;
-      border-right-color: #8e959f;
-      border-bottom-color: #8e959f;
-      box-shadow: inset 1px 1px 0 #f8fafc, inset -1px -1px 0 #a3aab3;
+      border-radius: 8px;
+      border: 1px solid color-mix(in srgb, var(--surface) 50%, #ffffff 50%);
+      background: color-mix(in srgb, var(--surface) 40%, #ffffff 60%);
       display: grid;
       place-items: center;
       font-family: "Segoe UI", Tahoma, Arial, sans-serif;
       font-weight: 700;
       font-size: clamp(.78rem, 2.2vw, .95rem);
       color: #1f2933;
-      text-shadow: 0 1px 0 rgba(255,255,255,.6);
+      text-shadow: none;
       transition: transform .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+      will-change: transform;
     }
 
     .cell.revealed {
-      background: #e3e7eb;
-      border: 1px solid #b2b8c0;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.4);
+      background: #f6f8fb;
+      border-color: #c9d3e0;
+      color: #0b0f14;
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, #ffffff 35%, transparent);
     }
 
     .cell.mine {
-      background: #f7d5d5;
-      border-color: #d9a0a0;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.5);
+      background: color-mix(in srgb, var(--danger, #e05757) 18%, #f6f8fb 82%);
+      border-color: color-mix(in srgb, var(--danger, #e05757) 40%, #c9d3e0 60%);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger, #e05757) 35%, transparent);
       color: #7a1f1f;
     }
 
@@ -233,8 +232,8 @@
       width: 12px;
       height: 12px;
       border-radius: 50%;
-      background: #1f2933;
-      box-shadow: 0 0 0 2px #0f172a;
+      background: #0b0f14;
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger, #e05757) 35%, transparent);
       left: 50%;
       top: 50%;
       transform: translate(-50%, -50%);
@@ -242,11 +241,9 @@
 
     .cell.flagged,
     .cell.flagged.revealed {
-      background: linear-gradient(145deg, #e9eef3, #b6bcc4);
-      border: 2px solid #d8dde3;
-      border-right-color: #8e959f;
-      border-bottom-color: #8e959f;
-      box-shadow: inset 1px 1px 0 #f8fafc, inset -1px -1px 0 #a3aab3;
+      background: color-mix(in srgb, var(--surface) 30%, #ffffff 70%);
+      border-color: color-mix(in srgb, var(--primary) 35%, #c9d3e0 65%);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 18%, transparent);
     }
 
     .cell.flagged::before {
@@ -256,7 +253,7 @@
       height: 0;
       border-top: 7px solid transparent;
       border-bottom: 7px solid transparent;
-      border-left: 12px solid #d93025;
+      border-left: 12px solid color-mix(in srgb, var(--primary) 70%, #d93025 30%);
       left: 50%;
       top: 45%;
       transform: translate(-20%, -50%);
@@ -267,20 +264,10 @@
       position: absolute;
       width: 2px;
       height: 18px;
-      background: #4b5563;
+      background: #1f2933;
       left: 50%;
       top: 32%;
       transform: translateX(-50%);
-    }
-
-    .cell.guess-5050-correct {
-      outline: 2px solid #16a34a;
-      outline-offset: -2px;
-    }
-
-    .cell.guess-5050-wrong {
-      outline: 2px solid #dc2626;
-      outline-offset: -2px;
     }
 
     .cell.guess-forced-correct {
@@ -303,19 +290,36 @@
     .cell.n8 { color: #4b5563; }
 
     @keyframes pop {
-      0% { transform: scale(.94); }
-      100% { transform: scale(1); }
+      0% { transform: scale(.92); box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 25%, transparent); }
+      60% { transform: scale(1.03); box-shadow: 0 0 0 6px color-mix(in srgb, var(--primary) 25%, transparent); }
+      100% { transform: scale(1); box-shadow: none; }
+    }
+
+    @keyframes aiPulse {
+      0% { transform: scale(1); box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 35%, transparent); }
+      60% { transform: scale(1.03); box-shadow: 0 0 0 6px color-mix(in srgb, var(--primary) 35%, transparent); }
+      100% { transform: scale(1); box-shadow: none; }
+    }
+
+    .cell.ai-step {
+      animation: aiPulse .45s ease;
+      z-index: 1;
+    }
+
+    .cell.newly-opened.ai-step {
+      animation: pop .5s ease, aiPulse .45s ease;
     }
 
     .panel {
-      background: var(--surface-2);
+      background: color-mix(in srgb, var(--surface) 90%, #000 10%);
       border: 1px solid var(--surface-accent);
-      border-radius: 12px;
-      padding: 14px;
+      border-radius: 16px;
+      padding: 14px 16px;
       display: grid;
       gap: 12px;
       box-shadow: var(--shadow-1);
       min-height: 100%;
+      align-content: start;
     }
 
     .stat {
@@ -332,27 +336,35 @@
     }
 
     .log {
+      overflow: auto;
       display: grid;
       gap: 8px;
+      grid-auto-rows: var(--log-row-height);
+      height: calc(var(--log-row-height) * 5 + 8px * 4);
       max-height: calc(var(--log-row-height) * 7);
-      overflow: auto;
-      padding-right: 6px;
+      align-content: start;
+      scrollbar-gutter: stable;
     }
 
     .log-entry {
       padding: 8px 10px;
       border-radius: 10px;
       border: 1px solid var(--surface-accent);
-      background: var(--surface);
+      background: color-mix(in srgb, var(--surface) 86%, #000 14%);
       font-size: .8rem;
-      line-height: 1.4;
+      color: var(--text-muted);
       display: flex;
+      align-items: center;
       justify-content: space-between;
+      min-height: var(--log-row-height);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
       gap: 10px;
     }
 
     .log-entry strong {
-      color: var(--primary);
+      color: var(--text);
     }
 
     .performance-toast {
@@ -516,6 +528,8 @@
     let serverReady = false;
     let initialLoadTriggered = false;
     let toastTimer = null;
+    let lastActionCell = null;
+    let stepHighlightTimer = null;
 
     const notifyResize = (() => {
       if (window.self === window.top) return () => {};
@@ -639,6 +653,21 @@
       }
     }
 
+    function revealFlags() {
+      if (!current) return;
+      for (let r = 0; r < current.grid; r++) {
+        for (let c = 0; c < current.grid; c++) {
+          if (cellValueAt(r, c) < 0) {
+            const selector = `.cell[data-row="${r}"][data-col="${c}"]`;
+            const cell = gridEl.querySelector(selector);
+            if (!cell) continue;
+            cell.classList.add('revealed');
+            applyCellClass(cell, -1, true);
+          }
+        }
+      }
+    }
+
     function captureRevealedSnapshot() {
       return revealed.map(row => row.slice());
     }
@@ -662,11 +691,7 @@
       if (guess.forced_guess && Number.isFinite(guess.prob_mine)) {
         const minePct = Math.round(guess.prob_mine * 100);
         const outcome = guess.correct ? 'Correct' : 'Wrong';
-        if (guess.is_5050) {
-          guessLabel = `Forced 50/50 (${outcome})`;
-        } else {
-          guessLabel = `Forced guess (${minePct}% mine · ${outcome})`;
-        }
+        guessLabel = `Forced guess (${minePct}% mine · ${outcome})`;
       } else if (guess.forced_guess) {
         const outcome = guess.correct ? 'Correct' : 'Wrong';
         guessLabel = `Forced guess (${outcome})`;
@@ -683,16 +708,25 @@
         revealed[y][x] = true;
         revealCell(y, x, true);
       });
-      const guess = step.guess || {};
-      if (guess.forced_guess && typeof guess.correct === 'boolean') {
-        const selector = `.cell[data-row="${step.row}"][data-col="${step.col}"]`;
-        const actionCell = gridEl.querySelector(selector);
-        if (actionCell) {
-          const className = guess.is_5050
-            ? (guess.correct ? 'guess-5050-correct' : 'guess-5050-wrong')
-            : (guess.correct ? 'guess-forced-correct' : 'guess-forced-wrong');
-          actionCell.classList.add(className);
+      const selector = `.cell[data-row="${step.row}"][data-col="${step.col}"]`;
+      const actionCell = gridEl.querySelector(selector);
+      if (actionCell) {
+        if (lastActionCell && lastActionCell !== actionCell) {
+          lastActionCell.classList.remove('ai-step');
         }
+        actionCell.classList.remove('ai-step');
+        void actionCell.offsetWidth;
+        actionCell.classList.add('ai-step');
+        clearTimeout(stepHighlightTimer);
+        stepHighlightTimer = setTimeout(() => {
+          actionCell.classList.remove('ai-step');
+        }, 520);
+        lastActionCell = actionCell;
+      }
+      const guess = step.guess || {};
+      if (guess.forced_guess && typeof guess.correct === 'boolean' && actionCell) {
+        const className = guess.correct ? 'guess-forced-correct' : 'guess-forced-wrong';
+        actionCell.classList.add(className);
       }
       appendLog(step, index);
     }
@@ -746,15 +780,16 @@
         solveBtn.disabled = false;
         statMoves.textContent = `${current.step_count} moves`;
         updateOutcome();
+        solutionVisible = true;
+        revealSnapshot = null;
+        revealFlags();
+        solutionBtn.disabled = true;
         const summary = current.guess_summary || {};
         let resultMessage = current.success
           ? `Solved in ${current.step_count} moves`
           : (current.hit_mine ? `Mine triggered on move ${current.step_count}` : `Stopped after ${current.step_count} moves`);
         if (summary.forced_guess_total) {
           resultMessage += ` • forced guesses ${summary.forced_guess_correct}/${summary.forced_guess_total}`;
-        }
-        if (summary.forced_5050_total) {
-          resultMessage += ` • 50/50 ${summary.forced_5050_correct}/${summary.forced_5050_total}`;
         }
         showPerformanceToast(resultMessage);
         setStatus('Solve complete. Generate a new puzzle to try again.');
