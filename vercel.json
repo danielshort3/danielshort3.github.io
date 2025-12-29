@@ -45,6 +45,11 @@
     { "source": "/tools/nbsp-cleaner","destination": "/pages/nbsp-cleaner" },
     { "source": "/tools/nbsp-cleaner.html","destination": "/pages/nbsp-cleaner" },
 
+    { "source": "/games/slot-machine", "destination": "/demos/slot-machine-demo" },
+    { "source": "/games/slot-machine.html", "destination": "/demos/slot-machine-demo" },
+    { "source": "/games",             "destination": "/pages/games" },
+    { "source": "/games.html",        "destination": "/pages/games" },
+
     { "source": "/chatbot-demo",      "destination": "/demos/chatbot-demo" },
     { "source": "/chatbot-demo.html", "destination": "/demos/chatbot-demo" },
     { "source": "/shape-demo",        "destination": "/demos/shape-demo" },

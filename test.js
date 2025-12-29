@@ -82,6 +82,7 @@ try {
     checkFileContains('index.html', 'made actionable');
     checkFileContains('pages/contact.html', '<title>Daniel Short - Contact');
     checkFileContains('pages/tools.html', '<title>Tools | Daniel Short');
+    checkFileContains('pages/games.html', '<title>Games | Daniel Short');
     checkFileContains('pages/point-of-view-checker.html', '<title>Point of View Checker | Daniel Short');
     checkFileContains('pages/oxford-comma-checker.html', '<title>Oxford Comma Checker | Daniel Short');
     checkFileContains('pages/ocean-wave-simulation.html', '<title>Ocean Wave Simulation | Daniel Short');
@@ -92,13 +93,13 @@ try {
       checkFileContains(f, 'class="skip-link"');
       checkFileContains(f, '<main id="main">');
     });
-    ['pages/tools.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/screen-recorder.html','pages/job-application-tracker.html'].forEach(f => {
+    ['pages/tools.html','pages/games.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/screen-recorder.html','pages/job-application-tracker.html'].forEach(f => {
       checkFileContains(f, 'js/common/common.js');
       checkFileContains(f, 'class="skip-link"');
       checkFileContains(f, '<main id="main">');
       checkFileContains(f, 'noindex, nofollow');
     });
-    ['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/tools.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','404.html'].forEach(f => {
+    ['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/tools.html','pages/games.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','404.html'].forEach(f => {
       checkFileContains(f, 'og:image');
     });
     assert(fs.existsSync('robots.txt'), 'robots.txt missing');
@@ -439,6 +440,10 @@ try {
     const hasProjectRewrite = rewrites.some(r => r.source === '/portfolio/:project' && r.destination === '/pages/portfolio/:project');
     assert(hasPortfolio && hasPortfolioHtml, 'portfolio rewrites missing');
     assert(hasProjectRewrite, 'project rewrite missing (/portfolio/:project)');
+    const hasGames = rewrites.some(r => r.source === '/games' && r.destination === '/pages/games');
+    const hasGameSlot = rewrites.some(r => r.source === '/games/slot-machine' && r.destination === '/demos/slot-machine-demo');
+    assert(hasGames, 'games landing rewrite missing');
+    assert(hasGameSlot, 'slot machine games rewrite missing');
   });
 
   section('Chatbot demo startup timer', () => {
@@ -489,8 +494,8 @@ try {
 
   section('Base hrefs and redirect sanity', () => {
     ['pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html','pages/resume.html',
-     'pages/tools.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html',
-     'demos/chatbot-demo.html','demos/shape-demo.html','demos/sentence-demo.html']
+     'pages/tools.html','pages/games.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html',
+     'demos/chatbot-demo.html','demos/shape-demo.html','demos/sentence-demo.html','demos/slot-machine-demo.html']
       .forEach(f => checkFileContains(f, '<base href="/">'));
 
     ['pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html','pages/resume.html']

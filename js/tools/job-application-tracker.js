@@ -15,14 +15,15 @@
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
-  const els = {
-    signIn: $('[data-jobtrack="sign-in"]'),
-    signOut: $('[data-jobtrack="sign-out"]'),
-    jumpEntryButtons: $$('[data-jobtrack="jump-entry"]'),
-    jumpTabButtons: $$('[data-jobtrack-jump]'),
-    authStatus: $('[data-jobtrack="auth-status"]'),
-    apiStatus: $('[data-jobtrack="api-status"]'),
-    cognitoStatus: $('[data-jobtrack="cognito-status"]'),
+	  const els = {
+	    signIn: $('[data-jobtrack="sign-in"]'),
+	    signOut: $('[data-jobtrack="sign-out"]'),
+	    authModal: $('[data-jobtrack="auth-modal"]'),
+	    jumpEntryButtons: $$('[data-jobtrack="jump-entry"]'),
+	    jumpTabButtons: $$('[data-jobtrack-jump]'),
+	    authStatus: $('[data-jobtrack="auth-status"]'),
+	    apiStatus: $('[data-jobtrack="api-status"]'),
+	    cognitoStatus: $('[data-jobtrack="cognito-status"]'),
     entryForm: $('[data-jobtrack="entry-form"]'),
     entryFormStatus: $('[data-jobtrack="entry-form-status"]'),
     entryDraftStatus: $('[data-jobtrack="entry-draft-status"]'),
@@ -170,12 +171,13 @@
     panels: $$('[data-jobtrack-panel]')
   };
 
-	  const STORAGE_KEY = 'jobTrackerAuth';
-	  const STATE_KEY = 'jobTrackerAuthState';
-	  const VERIFIER_KEY = 'jobTrackerCodeVerifier';
-	  const ENTRY_VIEW_KEY = 'jobTrackerEntryView';
-	  const DASHBOARD_VIEW_KEY = 'jobTrackerDashboardView';
-	  const ENTRY_DRAFT_KEY = 'jobTrackerEntryDraft';
+		  const STORAGE_KEY = 'jobTrackerAuth';
+		  const STATE_KEY = 'jobTrackerAuthState';
+		  const VERIFIER_KEY = 'jobTrackerCodeVerifier';
+		  const RETURN_TAB_KEY = 'jobTrackerReturnTab';
+		  const ENTRY_VIEW_KEY = 'jobTrackerEntryView';
+		  const DASHBOARD_VIEW_KEY = 'jobTrackerDashboardView';
+		  const ENTRY_DRAFT_KEY = 'jobTrackerEntryDraft';
   const CSV_TEMPLATE = 'company,title,jobUrl,location,source,postingDate,appliedDate,status,batch,notes,attachments\nAcme Corp,Data Analyst,https://acme.com/jobs/123,Remote,LinkedIn,2025-01-10,2025-01-15,Applied,Spring outreach 2025,Reached out to recruiter,Acme-Resume.pdf;Acme-Cover.pdf';
   const PROSPECT_CSV_TEMPLATE = 'company,title,jobUrl,location,source,postingDate,captureDate,status,batch,notes\nAcme Corp,Data Analyst,https://acme.com/jobs/123,Remote,LinkedIn,2025-01-10,2025-01-12,Active,Remote data roles · March,Follow up next week.';
   const PROSPECT_PROMPT_TEMPLATE = [
@@ -313,11 +315,11 @@
   const STATE_NAME_LOOKUP = new Map(US_STATES.map(state => [state.code, state.name]));
   const STATE_NAME_BY_LOWER = new Map(US_STATES.map(state => [state.name.toLowerCase(), state.code]));
 
-  const state = {
-    auth: null,
-    lineChart: null,
-    statusChart: null,
-    range: null,
+	  const state = {
+	    auth: null,
+	    lineChart: null,
+	    statusChart: null,
+	    range: null,
     editingEntryId: null,
     editingEntry: null,
 	    entryType: 'application',
@@ -353,11 +355,24 @@
     detailModalPrevFocus: null,
     mapTooltipBound: false,
     calendarTooltipBound: false,
-    weekdayTooltipBound: false,
-    isResettingEntry: false
-  };
+	    weekdayTooltipBound: false,
+	    isResettingEntry: false
+	  };
 
-  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+	  let authExpiryTimer = null;
+	  let authModalPrevFocus = null;
+	  let authModalTrapBound = false;
+	  let authUiMessage = '';
+	  let authUiTone = '';
+	  const authModalBackgroundEls = [
+	    $('.skip-link'),
+	    $('#combined-header-nav'),
+	    $('.jobtrack-hero'),
+	    main,
+	    $('footer')
+	  ].filter(Boolean);
+
+	  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
   const createTooltip = () => {
     const el = document.createElement('div');
@@ -945,6 +960,30 @@
     }
   };
 
+  const getAuthClaims = (auth) => {
+    if (!auth?.idToken) return {};
+    return auth.claims || parseJwt(auth.idToken) || {};
+  };
+
+  const getAuthExpiresAt = (auth) => {
+    const numeric = Number(auth?.expiresAt) || 0;
+    if (numeric) return numeric;
+    const claims = getAuthClaims(auth);
+    if (claims?.exp) return claims.exp * 1000;
+    return 0;
+  };
+
+  const normalizeAuth = (auth) => {
+    if (!auth?.idToken) return null;
+    const claims = getAuthClaims(auth);
+    const expiresAt = getAuthExpiresAt({ ...auth, claims });
+    return {
+      ...auth,
+      claims,
+      expiresAt
+    };
+  };
+
   const loadAuth = () => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -972,7 +1011,9 @@
 
   const authIsValid = (auth) => {
     if (!auth || !auth.idToken) return false;
-    if (auth.expiresAt && Date.now() > auth.expiresAt - 60 * 1000) return false;
+    const expiresAt = getAuthExpiresAt(auth);
+    if (!expiresAt) return false;
+    if (Date.now() > expiresAt - 60 * 1000) return false;
     return true;
   };
 
@@ -1016,6 +1057,138 @@
     } else {
       delete el.dataset.tone;
     }
+  };
+
+  const setAuthMessage = (message, tone = '') => {
+    authUiMessage = (message || '').toString();
+    authUiTone = tone || '';
+    if (els.authStatus) setStatus(els.authStatus, authUiMessage, authUiTone);
+  };
+
+  const clearAuthMessage = () => {
+    authUiMessage = '';
+    authUiTone = '';
+    if (els.authStatus) setStatus(els.authStatus, '', '');
+  };
+
+  const setAuthModalBackgroundLocked = (locked) => {
+    authModalBackgroundEls.forEach((el) => {
+      if (locked) {
+        if (!('jobtrackAuthHidden' in el.dataset)) {
+          el.dataset.jobtrackAuthHidden = el.getAttribute('aria-hidden') || '';
+        }
+        el.setAttribute('aria-hidden', 'true');
+        el.setAttribute('inert', '');
+        return;
+      }
+      if (!('jobtrackAuthHidden' in el.dataset)) return;
+      if (el.dataset.jobtrackAuthHidden) {
+        el.setAttribute('aria-hidden', el.dataset.jobtrackAuthHidden);
+      } else {
+        el.removeAttribute('aria-hidden');
+      }
+      delete el.dataset.jobtrackAuthHidden;
+      el.removeAttribute('inert');
+    });
+  };
+
+  const AUTH_MODAL_FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex=\"-1\"])';
+
+  const trapAuthModalFocus = (event) => {
+    if (event.key !== 'Tab') return;
+    if (!els.authModal || !els.authModal.classList.contains('active')) return;
+    const content = els.authModal.querySelector('.modal-content');
+    if (!content) return;
+    const focusables = $$(AUTH_MODAL_FOCUSABLE, content).filter(el => el.offsetParent !== null);
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    const active = document.activeElement;
+
+    if (!content.contains(active)) {
+      event.preventDefault();
+      first.focus({ preventScroll: true });
+      return;
+    }
+
+    if (event.shiftKey && active === first) {
+      event.preventDefault();
+      last.focus({ preventScroll: true });
+      return;
+    }
+
+    if (!event.shiftKey && active === last) {
+      event.preventDefault();
+      first.focus({ preventScroll: true });
+    }
+  };
+
+  const openAuthModal = () => {
+    if (!els.authModal) return;
+    if (els.authModal.classList.contains('active') && !els.authModal.hasAttribute('hidden')) return;
+    authModalPrevFocus = document.activeElement;
+    if (els.detailModal && els.detailModal.classList.contains('active')) {
+      closeDetailModal();
+    }
+    els.authModal.removeAttribute('hidden');
+    els.authModal.classList.add('active');
+    document.body.classList.add('modal-open');
+    setAuthModalBackgroundLocked(true);
+
+    const content = els.authModal.querySelector('.modal-content');
+    if (content && !authModalTrapBound) {
+      content.addEventListener('keydown', trapAuthModalFocus);
+      authModalTrapBound = true;
+    }
+
+    if (els.signIn && typeof els.signIn.focus === 'function') {
+      els.signIn.focus({ preventScroll: true });
+      return;
+    }
+    if (content && typeof content.focus === 'function') {
+      content.focus({ preventScroll: true });
+    }
+  };
+
+  const closeAuthModal = () => {
+    if (!els.authModal) return;
+    const content = els.authModal.querySelector('.modal-content');
+    if (content && authModalTrapBound) {
+      content.removeEventListener('keydown', trapAuthModalFocus);
+      authModalTrapBound = false;
+    }
+
+    els.authModal.classList.remove('active');
+    els.authModal.setAttribute('hidden', '');
+    setAuthModalBackgroundLocked(false);
+    if (!document.querySelector('.modal.active')) {
+      document.body.classList.remove('modal-open');
+    }
+    if (authModalPrevFocus && typeof authModalPrevFocus.focus === 'function') {
+      authModalPrevFocus.focus({ preventScroll: true });
+    }
+    authModalPrevFocus = null;
+  };
+
+  const startAuthWatcher = () => {
+    if (authExpiryTimer) {
+      window.clearTimeout(authExpiryTimer);
+      authExpiryTimer = null;
+    }
+    if (!state.auth) return;
+    const expiresAt = getAuthExpiresAt(state.auth);
+    if (!expiresAt) return;
+    const msUntil = Math.max(0, expiresAt - 60 * 1000 - Date.now());
+    authExpiryTimer = window.setTimeout(() => {
+      if (!state.auth) return;
+      if (authIsValid(state.auth)) {
+        startAuthWatcher();
+        return;
+      }
+      clearAuth();
+      setAuthMessage('Your session ended. Please sign in again.', 'info');
+      updateAuthUI();
+    }, msUntil);
   };
 
   const setImportProgress = (value, max, label) => {
@@ -2016,56 +2189,70 @@
     return auth;
   };
 
-  const handleAuthRedirect = async () => {
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get('code');
-    const returnedState = params.get('state') || '';
-    const storedState = sessionStorage.getItem(STATE_KEY) || '';
-    if (!code) return false;
-    if (storedState && returnedState && storedState !== returnedState) {
-      throw new Error('Auth state mismatch.');
-    }
-    setStatus(els.authStatus, 'Finalizing sign-in...', 'info');
-    await exchangeCodeForTokens(code);
-    params.delete('code');
-    params.delete('state');
-    const next = params.toString();
-    const nextUrl = next ? `${window.location.pathname}?${next}` : window.location.pathname;
-    window.history.replaceState({}, document.title, nextUrl);
-    return true;
-  };
+	  const handleAuthRedirect = async () => {
+	    const params = new URLSearchParams(window.location.search);
+	    const code = params.get('code');
+	    const returnedState = params.get('state') || '';
+	    const storedState = sessionStorage.getItem(STATE_KEY) || '';
+	    if (!code) return false;
+	    if (storedState && returnedState && storedState !== returnedState) {
+	      throw new Error('Auth state mismatch.');
+	    }
+	    setStatus(els.authStatus, 'Finalizing sign-in...', 'info');
+	    await exchangeCodeForTokens(code);
+	    params.delete('code');
+	    params.delete('state');
+	    const next = params.toString();
+	    const nextUrl = next ? `${window.location.pathname}?${next}` : window.location.pathname;
+	    window.history.replaceState({}, document.title, nextUrl);
+	    const returnTab = sessionStorage.getItem(RETURN_TAB_KEY) || '';
+	    sessionStorage.removeItem(RETURN_TAB_KEY);
+	    if (returnTab && tabs.buttons.some(button => button.dataset.jobtrackTab === returnTab)) {
+	      activateTab(returnTab);
+	    }
+	    return true;
+	  };
 
-  const updateAuthUI = () => {
-    const authed = authIsValid(state.auth);
-    if (els.signIn) {
-      els.signIn.disabled = authed;
-      els.signIn.setAttribute('aria-disabled', authed ? 'true' : 'false');
-    }
-    if (els.signOut) {
-      els.signOut.disabled = !authed;
-      els.signOut.setAttribute('aria-disabled', !authed ? 'true' : 'false');
-    }
-    if (els.authStatus) {
-      if (authed) {
-        const claims = state.auth?.claims || parseJwt(state.auth?.idToken || '') || {};
-        const label = claims.email || claims['cognito:username'] || claims.username || 'Signed in';
-        els.authStatus.textContent = `Signed in as ${label}.`;
-      } else {
-        els.authStatus.textContent = 'Not signed in.';
-      }
-    }
-    tabs.buttons.forEach((button) => {
-      const isAccount = button.dataset.jobtrackTab === 'account';
-      const disabled = !authed && !isAccount;
-      button.disabled = disabled;
-      button.setAttribute('aria-disabled', disabled ? 'true' : 'false');
-    });
-    if (!authed) activateTab('account');
-    if (els.importStatus) {
-      setStatus(els.importStatus, authed ? 'Ready to import applications.' : 'Sign in to import applications.', authed ? '' : 'info');
-    }
-    if (els.prospectImportStatus) {
-      setStatus(els.prospectImportStatus, authed ? 'Ready to import prospects.' : 'Sign in to import prospects.', authed ? '' : 'info');
+	  const updateAuthUI = () => {
+	    const authed = authIsValid(state.auth);
+	    if (els.signIn) {
+	      els.signIn.disabled = authed;
+	      els.signIn.setAttribute('aria-disabled', authed ? 'true' : 'false');
+	    }
+	    if (els.signOut) {
+	      els.signOut.disabled = !authed;
+	      els.signOut.setAttribute('aria-disabled', !authed ? 'true' : 'false');
+	    }
+	    if (els.authStatus) {
+	      if (authed) {
+	        clearAuthMessage();
+	        const claims = getAuthClaims(state.auth);
+	        const label = claims.email || claims['cognito:username'] || claims.username || 'Signed in';
+	        setStatus(els.authStatus, `Signed in as ${label}.`, 'success');
+	      } else if (authUiMessage) {
+	        setStatus(els.authStatus, authUiMessage, authUiTone);
+	      } else {
+	        setStatus(els.authStatus, 'Sign in to continue.', 'info');
+	      }
+	    }
+	    tabs.buttons.forEach((button) => {
+	      const disabled = !authed;
+	      button.disabled = disabled;
+	      button.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+	    });
+	    els.jumpEntryButtons.forEach((button) => {
+	      button.disabled = !authed;
+	      button.setAttribute('aria-disabled', !authed ? 'true' : 'false');
+	    });
+	    els.jumpTabButtons.forEach((button) => {
+	      button.disabled = !authed;
+	      button.setAttribute('aria-disabled', !authed ? 'true' : 'false');
+	    });
+	    if (els.importStatus) {
+	      setStatus(els.importStatus, authed ? 'Ready to import applications.' : 'Sign in to import applications.', authed ? '' : 'info');
+	    }
+	    if (els.prospectImportStatus) {
+	      setStatus(els.prospectImportStatus, authed ? 'Ready to import prospects.' : 'Sign in to import prospects.', authed ? '' : 'info');
     }
     if (els.entryFormStatus && !state.editingEntryId) {
       const entryLabel = state.entryType === 'prospect' ? 'prospects' : 'applications';
@@ -2080,30 +2267,42 @@
     if (els.prospectReviewStatus) {
       setStatus(els.prospectReviewStatus, authed ? 'Review your prospect queue.' : 'Sign in to load prospects.', authed ? '' : 'info');
     }
-    if (els.exportStatus) {
-      setStatus(els.exportStatus, authed ? 'Choose a date range to export applications.' : 'Sign in to export applications.', authed ? '' : 'info');
-    }
-  };
+	    if (els.exportStatus) {
+	      setStatus(els.exportStatus, authed ? 'Choose a date range to export applications.' : 'Sign in to export applications.', authed ? '' : 'info');
+	    }
+	    if (authed) {
+	      closeAuthModal();
+	    } else {
+	      openAuthModal();
+	    }
+	    startAuthWatcher();
+	  };
 
-  const getAuthHeader = () => {
-    if (!state.auth || !state.auth.idToken) return null;
-    return `Bearer ${state.auth.idToken}`;
-  };
+	  const getAuthHeader = () => {
+	    if (!authIsValid(state.auth)) return null;
+	    if (!state.auth || !state.auth.idToken) return null;
+	    return `Bearer ${state.auth.idToken}`;
+	  };
 
-  const requestJson = async (path, { method = 'GET', body } = {}) => {
-    if (!config.apiBase) throw new Error('API base URL is not configured.');
-    const authHeader = getAuthHeader();
-    if (!authHeader) throw new Error('Sign in to use the tracker.');
-    const res = await fetch(joinUrl(config.apiBase, path), {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: authHeader
-      },
-      body: body ? JSON.stringify(body) : undefined
-    });
-    const text = await res.text();
-    let data = null;
+	  const requestJson = async (path, { method = 'GET', body } = {}) => {
+	    if (!config.apiBase) throw new Error('API base URL is not configured.');
+	    const authHeader = getAuthHeader();
+	    if (!authHeader) {
+	      clearAuth();
+	      setAuthMessage('Sign in to continue.', 'info');
+	      updateAuthUI();
+	      throw new Error('Sign in to use the tracker.');
+	    }
+	    const res = await fetch(joinUrl(config.apiBase, path), {
+	      method,
+	      headers: {
+	        'Content-Type': 'application/json',
+	        Authorization: authHeader
+	      },
+	      body: body ? JSON.stringify(body) : undefined
+	    });
+	    const text = await res.text();
+	    let data = null;
     if (text) {
       try {
         data = JSON.parse(text);
@@ -2111,11 +2310,16 @@
         data = null;
       }
     }
-    if (!res.ok) {
-      throw new Error(data?.error || data?.message || text || `${res.status} ${res.statusText}`);
-    }
-    return data || {};
-  };
+	    if (!res.ok) {
+	      if (res.status === 401 || res.status === 403) {
+	        clearAuth();
+	        setAuthMessage('Your session ended. Please sign in again.', 'error');
+	        updateAuthUI();
+	      }
+	      throw new Error(data?.error || data?.message || text || `${res.status} ${res.statusText}`);
+	    }
+	    return data || {};
+	  };
 
   const collectAttachments = () => {
     const attachments = [];
@@ -5886,52 +6090,72 @@
     });
   };
 
-  const initAuth = async () => {
-    updateConfigStatus();
-    const stored = loadAuth();
-    if (authIsValid(stored)) {
-      state.auth = stored;
-    }
-    try {
-      await handleAuthRedirect();
-    } catch (err) {
-      console.error('Auth redirect failed', err);
-      setStatus(els.authStatus, err?.message || 'Sign-in failed.', 'error');
-    }
-    updateAuthUI();
-    if (els.signIn) {
-      els.signIn.addEventListener('click', async () => {
-        if (!config.cognitoDomain || !config.cognitoClientId || !config.cognitoRedirect) {
-          setStatus(els.authStatus, 'Cognito settings are missing.', 'error');
-          return;
-        }
-        try {
-          const url = await buildAuthorizeUrl();
-          window.location.assign(url);
-        } catch (err) {
-          console.error('Sign-in failed', err);
-          setStatus(els.authStatus, err?.message || 'Unable to start sign-in.', 'error');
-        }
-      });
-    }
-    if (els.signOut) {
-      els.signOut.addEventListener('click', () => {
-        clearAuth();
-        clearEntryEditMode('Sign in to save entries.', 'info');
-        if (els.entryForm) {
-          state.isResettingEntry = true;
-          els.entryForm.reset();
+	  const initAuth = async () => {
+	    updateConfigStatus();
+	    const storedRaw = loadAuth();
+	    const stored = normalizeAuth(storedRaw);
+	    if (authIsValid(stored)) {
+	      state.auth = stored;
+	      saveAuth(stored);
+	    } else if (storedRaw) {
+	      clearAuth();
+	      setAuthMessage('Your session ended. Please sign in again.', 'info');
+	    }
+	    try {
+	      await handleAuthRedirect();
+	    } catch (err) {
+	      console.error('Auth redirect failed', err);
+	      setAuthMessage(err?.message || 'Sign-in failed.', 'error');
+	    }
+	    updateAuthUI();
+	    if (els.signIn) {
+	      els.signIn.addEventListener('click', async () => {
+	        const hash = window.location && window.location.hash
+	          ? window.location.hash.replace('#', '')
+	          : '';
+	        const selectedTab = tabs.buttons.find(button => button.getAttribute('aria-selected') === 'true')?.dataset.jobtrackTab || '';
+	        const returnTab = tabs.buttons.some(button => button.dataset.jobtrackTab === hash) ? hash : selectedTab;
+	        try {
+	          sessionStorage.setItem(RETURN_TAB_KEY, returnTab || 'account');
+	        } catch {}
+
+	        if (!config.cognitoDomain || !config.cognitoClientId || !config.cognitoRedirect) {
+	          setAuthMessage('Cognito settings are missing.', 'error');
+	          updateAuthUI();
+	          return;
+	        }
+	        try {
+	          setAuthMessage('Redirecting to sign-in...', 'info');
+	          updateAuthUI();
+	          const url = await buildAuthorizeUrl();
+	          window.location.assign(url);
+	        } catch (err) {
+	          console.error('Sign-in failed', err);
+	          setAuthMessage(err?.message || 'Unable to start sign-in.', 'error');
+	          updateAuthUI();
+	        }
+	      });
+	    }
+	    if (els.signOut) {
+	      els.signOut.addEventListener('click', () => {
+	        clearAuth();
+	        setAuthMessage('Signed out. Sign in to continue.', 'info');
+	        clearEntryEditMode('Sign in to save entries.', 'info');
+	        if (els.entryForm) {
+	          state.isResettingEntry = true;
+	          els.entryForm.reset();
           state.isResettingEntry = false;
           setEntryType('application');
           resetEntryDateFields('application');
           clearAttachmentInputs();
-        }
-        updateAuthUI();
-        refreshDashboard();
-        refreshEntries();
-      });
-    }
-  };
+	        }
+	        updateAuthUI();
+	        refreshDashboard();
+	        refreshEntries();
+	      });
+	    }
+	    startAuthWatcher();
+	  };
 
 	  const init = async () => {
 	    initTabs();
