@@ -708,17 +708,19 @@ window.PROJECTS = [
     ]
   },
 
-  {
-    id: "retailStore",
-    title: "Store-Level Loss & Sales ETL",
-    subtitle: "SQL ETL + Anomaly Detection",
-    image: "img/projects/retailStore.png",
-    imageWidth: 1423,
-    imageHeight: 947,
-    tools: ["SQL", "Python", "AWS"],
-    concepts: ["Automation", "Analytics"],
-    resources: [
-      { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/target-packaging-analysis-mssql", label: "GitHub" },
+	  {
+	    id: "retailStore",
+	    title: "Store-Level Loss & Sales ETL",
+	    subtitle: "SQL ETL + Anomaly Detection",
+	    image: "img/projects/retailStore.png",
+	    imageWidth: 1410,
+	    imageHeight: 1410,
+	    videoWebm: "img/projects/retailStore.webm",
+	    videoMp4: "img/projects/retailStore.mp4",
+	    tools: ["SQL", "Python", "AWS"],
+	    concepts: ["Automation", "Analytics"],
+	    resources: [
+	      { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/target-packaging-analysis-mssql", label: "GitHub" },
       { icon: "img/icons/pdf-icon.png",    url: "documents/Project_12.pdf",                                        label: "PDF"    },
       { icon: "img/icons/jupyter-icon.png",url: "documents/Project_12.ipynb",                                      label: "Notebook"},
       { icon: "img/icons/website-icon.png",url: "https://danielshort.me/retail-loss-sales-demo.html",              label: "Live Demo" }
