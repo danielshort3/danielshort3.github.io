@@ -16,6 +16,10 @@
     display:none;
   }
 
+  #jobtrack-auth-modal{
+    z-index:2100;
+  }
+
   .jobtrack-hero{
     position:relative;
     overflow:hidden;
