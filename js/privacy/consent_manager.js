@@ -187,6 +187,15 @@
     }
   }
 
+  function isEmbeddedSameOrigin() {
+    try {
+      if (window.self === window.top) return false;
+      return window.top.location.origin === window.location.origin;
+    } catch (err) {
+      return false;
+    }
+  }
+
   /**
    * Simple region detection. For proper enforcement you should integrate
    * a server‑side IP geolocation service that returns the visitor’s region.
@@ -606,6 +615,19 @@
    * Initialize the CMP. Apply saved consent or show banner.
    */
   function init() {
+    if (isEmbeddedSameOrigin()) {
+      const saved = loadConsent();
+      if (saved) {
+        if (hasGPC() && saved.categories && saved.categories.advertising) {
+          saved.categories.advertising = false;
+          saveConsent(saved.categories);
+        }
+        applyConsent(saved.categories);
+      } else {
+        applyConsent(getDefaultState());
+      }
+      return;
+    }
     loadStyles();
     const locale = getLocale();
     const localeStrings = CONFIG.languages[locale];
