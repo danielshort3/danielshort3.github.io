@@ -60,8 +60,8 @@
 
   .speed-dial__label {
     position: absolute;
-    right: calc(100% + 10px);
-    top: 50%;
+    left: 50%;
+    bottom: calc(100% + 10px);
     font-family: 'Poppins';
     font-size: 12px;
     letter-spacing: .02em;
@@ -72,7 +72,7 @@
     border-radius: 999px;
     box-shadow: var(--shadow-sm);
     opacity: 0;
-    transform: translateY(-50%) translateX(6px);
+    transform: translateX(-50%) translateY(6px);
     pointer-events: none;
     transition: opacity .18s ease, transform .18s ease;
     white-space: nowrap;
@@ -82,7 +82,7 @@
   .speed-dial__item:hover .speed-dial__label,
   .speed-dial__item:focus-within .speed-dial__label {
     opacity: 1;
-    transform: translateY(-50%) translateX(0);
+    transform: translateX(-50%) translateY(0);
   }
 
   .speed-dial__action {
