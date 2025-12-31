@@ -15,6 +15,10 @@
   <meta name="twitter:site" content="@danielshort3">
 
   <meta name="theme-color" content="#0D1117">
+  <link rel="preload" href="img/hero/head.jpg" as="image">
+  <link rel="preload" href="css/fonts/Inter-Latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="css/fonts/Poppins-500-Latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="css/fonts/Poppins-600-Latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="dist/styles.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
@@ -151,10 +155,10 @@
 	              <div class="project-title">Shape Classifier</div>
 	              <div class="project-subtitle">Handwritten Shape Recognition</div>
 	            </div>
-	            <video class="gif-video" muted playsinline loop autoplay preload="metadata" aria-label="Shape Classifier preview" draggable="false">
-	              <source src="img/projects/shapeClassifier.webm" type="video/webm">
-	              <source src="img/projects/shapeClassifier.mp4" type="video/mp4">
-	            </video>
+            <video class="gif-video" muted playsinline loop preload="none" aria-label="Shape Classifier preview" draggable="false" poster="img/projects/shapeClassifier.png">
+              <source data-src="img/projects/shapeClassifier.webm" type="video/webm">
+              <source data-src="img/projects/shapeClassifier.mp4" type="video/mp4">
+            </video>
 	            <picture>
 	              <source srcset="img/projects/shapeClassifier.webp" type="image/webp">
 	              <img src="img/projects/shapeClassifier.png" alt="Preview of the Shape Classifier demo interface" width="1280" height="720" loading="lazy" decoding="async">
@@ -173,10 +177,10 @@
 		              <div class="project-title">Store-Level Loss &amp; Sales ETL</div>
 		              <div class="project-subtitle">SQL ETL + Anomaly Detection</div>
 		            </div>
-		            <video class="gif-video" muted playsinline loop autoplay preload="metadata" aria-label="Store-level loss and sales preview" draggable="false">
-		              <source src="img/projects/retailStore.webm" type="video/webm">
-		              <source src="img/projects/retailStore.mp4" type="video/mp4">
-		            </video>
+            <video class="gif-video" muted playsinline loop preload="none" aria-label="Store-level loss and sales preview" draggable="false" poster="img/projects/retailStore.png">
+              <source data-src="img/projects/retailStore.webm" type="video/webm">
+              <source data-src="img/projects/retailStore.mp4" type="video/mp4">
+            </video>
 		            <picture>
 		              <source srcset="img/projects/retailStore.webp" type="image/webp">
 		              <img src="img/projects/retailStore.png" alt="Preview of store-level loss and sales analysis dashboard" width="1410" height="1410" loading="lazy" decoding="async">
@@ -195,9 +199,9 @@
               <div class="project-title">Sheet Music Watermark Removal &amp; Upscale</div>
               <div class="project-subtitle">UNet &amp; VDSR Pipeline</div>
             </div>
-            <video class="gif-video" muted playsinline loop autoplay preload="metadata" aria-label="Sheet music restoration preview" draggable="false">
-              <source src="img/projects/sheetMusicUpscale.webm" type="video/webm">
-              <source src="img/projects/sheetMusicUpscale.mp4" type="video/mp4">
+            <video class="gif-video" muted playsinline loop preload="none" aria-label="Sheet music restoration preview" draggable="false" poster="img/projects/sheetMusicUpscale.png">
+              <source data-src="img/projects/sheetMusicUpscale.webm" type="video/webm">
+              <source data-src="img/projects/sheetMusicUpscale.mp4" type="video/mp4">
             </video>
             <picture>
               <source srcset="img/projects/sheetMusicUpscale.webp" type="image/webp">

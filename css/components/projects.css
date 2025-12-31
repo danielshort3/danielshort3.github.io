@@ -20,6 +20,10 @@
   /* keep GIF replacement <video> hidden until JS confirms it can play */
   .gif-video{display:none}
   .project-card .gif-video{display:none}
+  .project-card .gif-video.gif-video-only{display:block}
+  .project-card.is-video-active .gif-video{display:block}
+  .project-card.is-video-active .gif-video + picture,
+  .project-card.is-video-active .gif-video + img{display:none}
   .project-card .overlay{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(0,0,0,.35)0%,rgba(0,0,0,.95)100%)}
   /* Stack title and subtitle in a single block to avoid overlap on wrap */
   .project-card .project-text{position:absolute;left:18px;right:18px;bottom:18px;display:flex;flex-direction:column;gap:4px;z-index:2;transform:translateZ(0);-webkit-transform:translateZ(0);backface-visibility:hidden;will-change:transform}

@@ -140,6 +140,19 @@
     box-shadow:0 14px 28px rgba(0,0,0,.3);
     outline:none;
   }
+  .project-nav{
+    margin-top:32px;
+    padding-top:24px;
+    border-top:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+  }
+  .project-nav .cta-group{
+    align-items:flex-start;
+    margin:12px 0 0;
+    width:auto;
+  }
+  .project-nav .cta-group a{
+    width:auto;
+  }
 
   @media (max-width: 768px) {
     .project-embed-frame{
@@ -147,6 +160,13 @@
     }
     .project-embed-tableau .project-embed-frame{
       height:clamp(420px, 75vh, 760px);
+    }
+    .project-nav .cta-group{
+      align-items:stretch;
+      width:100%;
+    }
+    .project-nav .cta-group a{
+      width:100%;
     }
   }
 }
