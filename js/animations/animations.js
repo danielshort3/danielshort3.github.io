@@ -66,12 +66,15 @@
   function initProjectPreviewVideos(){
     if (document.body?.dataset?.page !== 'home') return;
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const finePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
-    if (reduce || !finePointer) return;
-    document.querySelectorAll('.project-examples-card').forEach((card) => {
+    if (reduce) return;
+    const cards = [...document.querySelectorAll('.project-examples-card')];
+    if (!cards.length) return;
+    const setupCard = (card) => {
+      if (!card || card._previewAutoplayBound) return;
       const vid = card.querySelector('video.gif-video');
       if (!vid) return;
       const sources = [...vid.querySelectorAll('source[data-src]')];
+      let pending = false;
       const loadSources = () => {
         if (vid.dataset.loaded === 'true') return;
         sources.forEach((source) => {
@@ -82,20 +85,64 @@
         vid.dataset.loaded = 'true';
         try { vid.load(); } catch {}
       };
-      const playVideo = () => {
-        loadSources();
+      const showAndPlay = () => {
         card.classList.add('is-video-active');
+        try {
+          vid.muted = true;
+          vid.playsInline = true;
+          vid.autoplay = true;
+          vid.preload = 'metadata';
+          vid.setAttribute('muted', '');
+          vid.setAttribute('playsinline', '');
+          vid.setAttribute('autoplay', '');
+        } catch {}
         try { vid.play && vid.play().catch(() => {}); } catch {}
       };
+      const playVideo = () => {
+        card._previewAutoplayActive = true;
+        loadSources();
+        if (vid.readyState >= 2) {
+          pending = false;
+          showAndPlay();
+          return;
+        }
+        if (pending) return;
+        pending = true;
+        const onReady = () => {
+          pending = false;
+          if (card._previewAutoplayActive) showAndPlay();
+        };
+        ['loadeddata', 'canplay', 'canplaythrough', 'playing'].forEach((evt) => {
+          vid.addEventListener(evt, onReady, { once: true });
+        });
+      };
       const pauseVideo = () => {
+        card._previewAutoplayActive = false;
         try { vid.pause && vid.pause(); } catch {}
         card.classList.remove('is-video-active');
       };
-      card.addEventListener('pointerenter', playVideo);
-      card.addEventListener('focusin', playVideo);
-      card.addEventListener('pointerleave', pauseVideo);
-      card.addEventListener('focusout', pauseVideo);
-    });
+      card._previewAutoplayBound = true;
+      card._previewAutoplayStart = playVideo;
+      card._previewAutoplayStop = pauseVideo;
+    };
+    cards.forEach(setupCard);
+
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          const card = entry.target;
+          if (!card || !card._previewAutoplayStart) return;
+          if (entry.isIntersecting) {
+            card._previewAutoplayStart();
+          } else if (card._previewAutoplayStop) {
+            card._previewAutoplayStop();
+          }
+        });
+      }, { threshold: 0.35 });
+      cards.forEach((card) => observer.observe(card));
+    } else {
+      cards.forEach((card) => card._previewAutoplayStart && card._previewAutoplayStart());
+    }
   }
 
   // Subtle ambient light following the mouse inside the hero
