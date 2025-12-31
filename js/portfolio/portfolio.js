@@ -22,7 +22,6 @@ const getSrStatus = typeof window.getSrStatusNode === 'function'
     })();
 
 const srStatus = () => getSrStatus();
-const activateGifVideo = window.activateGifVideo || (() => {});
 const getImageSizeAttr = (p = {}) => {
   const width = Number(p.imageWidth);
   const height = Number(p.imageHeight);
@@ -37,6 +36,44 @@ const projectMedia = window.projectMedia || ((p = {}) => {
   const sizeAttr = getImageSizeAttr(p);
   return `<img src="${p.image}" alt="${p.title || ''}" loading="lazy" decoding="async" draggable="false"${sizeAttr}>`;
 });
+
+const setupPreviewVideo = (card) => {
+  if (!card || card._previewVideoBound) return;
+  const vid = card.querySelector && card.querySelector('video.gif-video');
+  if (!vid) return;
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const finePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
+  const sources = [...vid.querySelectorAll('source[data-src]')];
+  const loadSources = () => {
+    if (vid.dataset.loaded === 'true') return;
+    sources.forEach((source) => {
+      if (!source.src && source.dataset.src) {
+        source.src = source.dataset.src;
+      }
+    });
+    vid.dataset.loaded = 'true';
+    try { vid.load(); } catch {}
+  };
+  const playVideo = () => {
+    loadSources();
+    card.classList.add('is-video-active');
+    try { vid.play && vid.play().catch(() => {}); } catch {}
+  };
+  const pauseVideo = () => {
+    try { vid.pause && vid.pause(); } catch {}
+    card.classList.remove('is-video-active');
+  };
+  card._previewVideoStop = pauseVideo;
+  if (reduce || !finePointer) {
+    pauseVideo();
+    return;
+  }
+  card._previewVideoBound = true;
+  card.addEventListener('pointerenter', playVideo);
+  card.addEventListener('focusin', playVideo);
+  card.addEventListener('pointerleave', pauseVideo);
+  card.addEventListener('focusout', pauseVideo);
+};
 
 const isPublishedProject = (project) => project && project.published !== false;
 
@@ -160,10 +197,12 @@ function buildPortfolioCarousel() {
         return `<img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false"${sizeAttr} fetchpriority="${i===0 ? 'high' : 'auto'}">`;
       })();
       if (!hasVideo) return img;
-      const mp4  = p.videoMp4  ? `<source src="${p.videoMp4}" type="video/mp4">`   : '';
-      const webm = p.videoWebm ? `<source src="${p.videoWebm}" type="video/webm">` : '';
+      const mp4  = p.videoMp4  ? `<source data-src="${p.videoMp4}" type="video/mp4">`   : '';
+      const webm = p.videoWebm ? `<source data-src="${p.videoWebm}" type="video/webm">` : '';
+      const poster = p.image ? ` poster="${p.image}"` : '';
+      const videoClass = (p.videoOnly || !hasImage) ? 'gif-video gif-video-only' : 'gif-video';
       const video = `
-        <video class="gif-video" muted playsinline loop autoplay preload="metadata" draggable="false">
+        <video class="${videoClass}" muted playsinline loop preload="none"${poster} draggable="false">
           ${mp4}
           ${webm}
         </video>`;
@@ -195,7 +234,7 @@ function buildPortfolioCarousel() {
         if (moved) ev.preventDefault();
       });
     }
-    activateGifVideo(card);
+    setupPreviewVideo(card);
     track.appendChild(card);
 
     /* nav dot */
@@ -230,20 +269,11 @@ function buildPortfolioCarousel() {
       d.setAttribute('aria-selected', String(i === current));
       d.tabIndex = i === current ? 0 : -1;
     });
-    // Keep the active slide's video playing; pause others (stabilizes iOS autoplay)
+    // Ensure non-active slides don't keep preview videos running
     try {
       [...track.children].forEach((card, i) => {
-        const v = card.querySelector('video.gif-video');
-        if (!v) return;
-        if (i === current) {
-          v.muted = true; v.playsInline = true;
-          v.setAttribute('muted',''); v.setAttribute('playsinline','');
-          v.style.display = 'block';
-          const next = v.nextElementSibling;
-          if (next && (next.tagName === 'IMG' || next.tagName === 'PICTURE')) next.style.display = 'none';
-          try { v.play && v.play().catch(() => {}); } catch {}
-        } else {
-          try { v.pause && v.pause(); } catch {}
+        if (i !== current && card._previewVideoStop) {
+          card._previewVideoStop();
         }
       });
     } catch {}
@@ -635,95 +665,7 @@ function buildPortfolio() {
     : { matches: false, addEventListener() {}, addListener() {} };
 
   const setupCardPreview = (card) => {
-    const vid = card.querySelector("video.gif-video");
-    if (!vid) return;
-    const still = (() => {
-      const next = vid.nextElementSibling;
-      if (!next) return null;
-      const tag = (next.tagName || "").toUpperCase();
-      return (tag === "IMG" || tag === "PICTURE") ? next : null;
-    })();
-    let wantsVideo = false;
-    let pending = false;
-
-    try {
-      vid.muted = true;
-      vid.autoplay = true;
-      vid.playsInline = true;
-      vid.setAttribute("muted", "");
-      vid.setAttribute("autoplay", "");
-      vid.setAttribute("playsinline", "");
-    } catch {}
-
-    const showVideo = () => {
-      vid.style.display = "block";
-      if (still) still.style.display = "none";
-      try { vid.play && vid.play().catch(() => {}); } catch {}
-    };
-    const hideVideo = () => {
-      if (still) {
-        vid.style.display = "none";
-        still.style.display = "";
-      } else {
-        vid.style.display = "block";
-      }
-      try { vid.pause && vid.pause(); } catch {}
-    };
-
-    const requestShow = () => {
-      wantsVideo = true;
-      if (vid.readyState >= 2) {
-        pending = false;
-        showVideo();
-        return;
-      }
-      if (pending) return;
-      pending = true;
-      const onReady = () => {
-        pending = false;
-        if (wantsVideo) showVideo();
-      };
-      ["loadeddata", "canplay", "canplaythrough", "playing"].forEach(evt => {
-        vid.addEventListener(evt, onReady, { once: true });
-      });
-    };
-    const requestHide = () => {
-      wantsVideo = false;
-      hideVideo();
-    };
-    const updateMode = () => {
-      if (reduceMotion) {
-        requestHide();
-        return;
-      }
-      if (mobileMq.matches) {
-        requestShow();
-      } else {
-        requestHide();
-      }
-    };
-
-    const handleEnter = () => {
-      if (reduceMotion || mobileMq.matches) return;
-      requestShow();
-    };
-    const handleLeave = () => {
-      if (reduceMotion || mobileMq.matches) return;
-      requestHide();
-    };
-
-    card.addEventListener("mouseenter", handleEnter);
-    card.addEventListener("focusin", handleEnter);
-    card.addEventListener("mouseleave", handleLeave);
-    card.addEventListener("focusout", handleLeave);
-
-    if (mobileMq.addEventListener) {
-      mobileMq.addEventListener("change", updateMode);
-    } else if (mobileMq.addListener) {
-      mobileMq.addListener(updateMode);
-    }
-
-    updateMode();
+    setupPreviewVideo(card);
   };
 
   (() => {
@@ -767,7 +709,6 @@ function buildPortfolio() {
     modal.id = `${p.id}-modal`;
     modal.innerHTML = window.generateProjectModal(p);
     modals.appendChild(modal);
-    activateGifVideo(modal);
   });
 
   /* ➋ Animate cards right away (no IntersectionObserver) ----------- */

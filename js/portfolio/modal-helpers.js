@@ -230,32 +230,78 @@
     if (modalEl._trap) modalEl.removeEventListener('keydown', modalEl._trap);
   }
 
-  function activateGifVideo(container) {
+  function activateGifVideo(container, options = {}) {
     const vid = container && container.querySelector && container.querySelector('video.gif-video');
     if (!vid) return;
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const finePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
+    const mode = options.mode || vid.dataset.videoMode || 'hover';
+    const sources = [...vid.querySelectorAll('source[data-src]')];
+    const still = (() => {
+      const next = vid.nextElementSibling;
+      if (!next) return null;
+      const tag = (next.tagName || '').toUpperCase();
+      return (tag === 'IMG' || tag === 'PICTURE') ? next : null;
+    })();
+    const loadSources = () => {
+      if (vid.dataset.loaded === 'true') return;
+      sources.forEach((source) => {
+        if (!source.src && source.dataset.src) {
+          source.src = source.dataset.src;
+        }
+      });
+      vid.dataset.loaded = 'true';
+      try { vid.load(); } catch {}
+    };
+    const showVideo = () => {
+      vid.style.display = 'block';
+      if (still) still.style.display = 'none';
+    };
+    const hideVideo = () => {
+      if (still) {
+        vid.style.display = 'none';
+        still.style.display = '';
+      } else {
+        vid.style.display = 'block';
+      }
+    };
+    const playVideo = () => {
+      loadSources();
+      showVideo();
+      try { vid.play && vid.play().catch(() => {}); } catch {}
+    };
+    const pauseVideo = () => {
+      try { vid.pause && vid.pause(); } catch {}
+      hideVideo();
+    };
+
     try {
       vid.muted = true;
-      vid.autoplay = true;
       vid.playsInline = true;
       vid.setAttribute('muted', '');
-      vid.setAttribute('autoplay', '');
       vid.setAttribute('playsinline', '');
     } catch {}
 
-    const showVideo = () => {
-      vid.style.display = 'block';
-      const next = vid.nextElementSibling;
-      if (next && (next.tagName === 'IMG' || next.tagName === 'PICTURE')) next.style.display = 'none';
-      try { vid.play && vid.play().catch(() => {}); } catch {}
-    };
-
-    if (vid.readyState >= 2) {
-      showVideo();
-    } else {
-      ['loadeddata', 'canplay', 'canplaythrough', 'playing'].forEach(evt => {
-        vid.addEventListener(evt, showVideo, { once: true });
-      });
+    if (mode === 'auto') {
+      if (reduce) {
+        pauseVideo();
+        return;
+      }
+      playVideo();
+      return;
     }
+
+    if (reduce || !finePointer) {
+      pauseVideo();
+      return;
+    }
+
+    if (container._previewVideoBound) return;
+    container._previewVideoBound = true;
+    container.addEventListener('pointerenter', playVideo);
+    container.addEventListener('focusin', playVideo);
+    container.addEventListener('pointerleave', pauseVideo);
+    container.addEventListener('focusout', pauseVideo);
   }
 
   function portfolioBasePath() {
@@ -285,9 +331,11 @@
     }
   }
 
-  function projectMedia(p) {
+  function projectMedia(p, options = {}) {
     const hasVideo = !!(p.videoWebm || p.videoMp4);
     const hasImage = !!p.image;
+    const mode = options.mode || 'hover';
+    const videoOnly = p.videoOnly || !hasImage;
     const img = (() => {
       if (!hasImage) return '';
       const src = p.image || '';
@@ -306,14 +354,17 @@
     })();
 
     if (!hasVideo) return img;
-    const mp4 = p.videoMp4 ? `<source src="${p.videoMp4}" type="video/mp4">` : '';
-    const webm = p.videoWebm ? `<source src="${p.videoWebm}" type="video/webm">` : '';
+    const mp4 = p.videoMp4 ? `<source data-src="${p.videoMp4}" type="video/mp4">` : '';
+    const webm = p.videoWebm ? `<source data-src="${p.videoWebm}" type="video/webm">` : '';
+    const poster = p.image ? ` poster="${p.image}"` : '';
+    const modeAttr = mode ? ` data-video-mode="${mode}"` : '';
+    const videoClass = videoOnly ? 'gif-video gif-video-only' : 'gif-video';
     const video = `
-    <video class="gif-video" muted playsinline loop autoplay preload="metadata" aria-label="${p.title}" draggable="false">
+    <video class="${videoClass}" muted playsinline loop preload="none"${poster}${modeAttr} aria-label="${p.title}" draggable="false">
       ${mp4}
       ${webm}
     </video>`;
-    if (p.videoOnly || !hasImage) {
+    if (videoOnly) {
       return video;
     }
     return `
@@ -363,6 +414,7 @@
     const content = modal.querySelector('.modal-content') || modal;
     content.focus({ preventScroll: true });
     trapFocus(content);
+    activateGifVideo(modal, { mode: 'auto' });
 
     const ifr = modal.querySelector('.modal-embed iframe');
     if (ifr) {
@@ -497,7 +549,7 @@
             </span>
             <span class="sr-only">Open full view</span>
           </button>
-          ${projectMedia(p)}
+          ${projectMedia(p, { mode: 'auto' })}
         </div>`;
       }
       const base = p.embed.base || p.embed.url;

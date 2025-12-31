@@ -98,6 +98,42 @@
     updateNavDropdownOffset();
     clampDropdownsToViewport();
   }
+  function setupNavPreviewVideos(root){
+    if (!root) return;
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const finePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
+    if (reduce || !finePointer) return;
+    root.querySelectorAll('.nav-project-card').forEach((card) => {
+      if (card._previewVideoBound) return;
+      const vid = card.querySelector('video.nav-project-thumb-media');
+      if (!vid) return;
+      const sources = [...vid.querySelectorAll('source[data-src]')];
+      const loadSources = () => {
+        if (vid.dataset.loaded === 'true') return;
+        sources.forEach((source) => {
+          if (!source.src && source.dataset.src) {
+            source.src = source.dataset.src;
+          }
+        });
+        vid.dataset.loaded = 'true';
+        try { vid.load(); } catch {}
+      };
+      const playVideo = () => {
+        loadSources();
+        card.classList.add('is-video-active');
+        try { vid.play && vid.play().catch(() => {}); } catch {}
+      };
+      const pauseVideo = () => {
+        try { vid.pause && vid.pause(); } catch {}
+        card.classList.remove('is-video-active');
+      };
+      card._previewVideoBound = true;
+      card.addEventListener('pointerenter', playVideo);
+      card.addEventListener('focusin', playVideo);
+      card.addEventListener('pointerleave', pauseVideo);
+      card.addEventListener('focusout', pauseVideo);
+    });
+  }
   function injectNav(){
     const host = $('#combined-header-nav');
     if(!host) return;
@@ -118,9 +154,9 @@
       const video = getProjectVideo(project);
       const media = video.hasVideo
         ? `<span class="nav-project-thumb" style="background-image:url('${thumb}');" aria-hidden="true">
-            <video class="nav-project-thumb-media" muted playsinline loop autoplay preload="metadata" poster="${thumb}">
-              ${video.webm ? `<source src="${video.webm}" type="video/webm">` : ''}
-              ${video.mp4 ? `<source src="${video.mp4}" type="video/mp4">` : ''}
+            <video class="nav-project-thumb-media" muted playsinline loop preload="none" poster="${thumb}">
+              ${video.webm ? `<source data-src="${video.webm}" type="video/webm">` : ''}
+              ${video.mp4 ? `<source data-src="${video.mp4}" type="video/mp4">` : ''}
             </video>
           </span>`
         : `<span class="nav-project-thumb" style="background-image:url('${thumb}');" aria-hidden="true"></span>`;
@@ -301,6 +337,7 @@
           </div>
         </div>
       </nav>`;
+    setupNavPreviewVideos(host);
     const normalizePath = (path) => {
       if (!path) return '/';
       try {
