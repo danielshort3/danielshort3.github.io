@@ -37,12 +37,13 @@ const projectMedia = window.projectMedia || ((p = {}) => {
   return `<img src="${p.image}" alt="${p.title || ''}" loading="lazy" decoding="async" draggable="false"${sizeAttr}>`;
 });
 
-const setupPreviewVideo = (card) => {
+const setupPreviewVideo = (card, options = {}) => {
   if (!card || card._previewVideoBound) return;
   const vid = card.querySelector && card.querySelector('video.gif-video');
   if (!vid) return;
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const finePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
+  const allowUserPreview = options.allowUserPreview !== false;
   const sources = [...vid.querySelectorAll('source[data-src]')];
   const loadSources = () => {
     if (vid.dataset.loaded === 'true') return;
@@ -55,6 +56,7 @@ const setupPreviewVideo = (card) => {
     try { vid.load(); } catch {}
   };
   const playVideo = () => {
+    if (reduce) return;
     loadSources();
     card.classList.add('is-video-active');
     try { vid.play && vid.play().catch(() => {}); } catch {}
@@ -63,12 +65,13 @@ const setupPreviewVideo = (card) => {
     try { vid.pause && vid.pause(); } catch {}
     card.classList.remove('is-video-active');
   };
+  card._previewVideoPlay = playVideo;
   card._previewVideoStop = pauseVideo;
-  if (reduce || !finePointer) {
+  card._previewVideoBound = true;
+  if (!allowUserPreview || reduce || !finePointer) {
     pauseVideo();
     return;
   }
-  card._previewVideoBound = true;
   card.addEventListener('pointerenter', playVideo);
   card.addEventListener('focusin', playVideo);
   card.addEventListener('pointerleave', pauseVideo);
@@ -234,7 +237,7 @@ function buildPortfolioCarousel() {
         if (moved) ev.preventDefault();
       });
     }
-    setupPreviewVideo(card);
+    setupPreviewVideo(card, { allowUserPreview: false });
     track.appendChild(card);
 
     /* nav dot */
@@ -262,21 +265,24 @@ function buildPortfolioCarousel() {
     const offset = (container.offsetWidth - cardWidth) / 2;       // center a single card (no gap)
     track.style.transform = `translateX(${ -current * step + offset }px)`;
 
-    [...track.children].forEach((c, i) => c.classList.toggle("active", i === current));
+    [...track.children].forEach((card, i) => {
+      const isActive = i === current;
+      card.classList.toggle("active", isActive);
+      card.classList.toggle("is-animated-preview", isActive);
+      if (card._previewVideoStop) {
+        if (prefersReduced || !isActive) {
+          card._previewVideoStop();
+        } else if (card._previewVideoPlay) {
+          card._previewVideoPlay();
+        }
+      }
+    });
     [...dots.children].forEach((d, i) => {
       d.classList.toggle("active", i === current);
       d.setAttribute('role', 'tab');
       d.setAttribute('aria-selected', String(i === current));
       d.tabIndex = i === current ? 0 : -1;
     });
-    // Ensure non-active slides don't keep preview videos running
-    try {
-      [...track.children].forEach((card, i) => {
-        if (i !== current && card._previewVideoStop) {
-          card._previewVideoStop();
-        }
-      });
-    } catch {}
     try {
       const title = projects[current]?.title || '';
       srStatus().textContent = `Slide ${current+1} of ${projects.length}: ${title}`;
