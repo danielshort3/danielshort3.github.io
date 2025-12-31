@@ -3185,12 +3185,12 @@
       const OFFLINE_START_BALANCE = 50000;
       const isLocalhost = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
       const offlineDefault = (window.location.protocol === 'file:' || isLocalhost);
-      const offlineMode = offlineForced || (offlineDefault && !offlineDisabled) || (!offlineDisabled && !getStored(storageKeys.token));
       const reelState = new Map();
       const getStored = (key) => {
         const value = localStorage.getItem(key);
         return value && value !== 'null' ? value : null;
       };
+      const offlineMode = offlineForced || (offlineDefault && !offlineDisabled) || (!offlineDisabled && !getStored(storageKeys.token));
       const clearDebugLocalState = () => {
         const keys = [
           LOCAL_MACHINE_KEY,
