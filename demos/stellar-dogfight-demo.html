@@ -242,6 +242,10 @@
       scroll-behavior: smooth;
     }
 
+    .armory-nav {
+      margin-top: 6px;
+    }
+
     .tab-btn {
       border: 1px solid rgba(255, 255, 255, 0.12);
       background: rgba(12, 18, 32, 0.7);
@@ -525,6 +529,17 @@
     .card-grid {
       display: grid;
       gap: 10px;
+    }
+
+    #tab-armory .card-grid,
+    #tab-shipyard .card-grid {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      align-content: start;
+    }
+
+    #tab-armory .card-grid > .tier-section,
+    #tab-shipyard .card-grid > .tier-section {
+      grid-column: 1 / -1;
     }
 
     .select-card {
@@ -955,10 +970,22 @@
       gap: 10px;
     }
 
+    .overlay-badges {
+      justify-content: flex-start;
+    }
+
     .upgrade-grid {
       display: grid;
       gap: 12px;
       grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    }
+
+    .arena-overlay .upgrade-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .arena-overlay .reward-grid {
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
     }
 
     .upgrade-card {
@@ -974,6 +1001,11 @@
       transition: transform 0.2s ease, border-color 0.2s ease;
       position: relative;
       overflow: hidden;
+    }
+
+    .upgrade-card.is-static {
+      cursor: default;
+      pointer-events: none;
     }
 
     .upgrade-card[data-tier] {
@@ -1317,6 +1349,17 @@
                 <span class="badge" data-stat="blueprints">Blueprints 0</span>
               </div>
               <p class="panel-note">Unlock ships with credits, rank, and blueprints to expand your fleet.</p>
+              <div class="setting-group">
+                <div class="setting-row">
+                  <span>Tier Filter</span>
+                  <div class="option-buttons" data-setting="shipyard-tier">
+                    <button class="option-btn is-active" type="button" data-option="all">All</button>
+                    <button class="option-btn" type="button" data-option="1">Tier 1</button>
+                    <button class="option-btn" type="button" data-option="2">Tier 2</button>
+                    <button class="option-btn" type="button" data-option="3">Tier 3</button>
+                  </div>
+                </div>
+              </div>
               <div class="card-grid" data-role="shipyard"></div>
             </section>
 
@@ -1336,24 +1379,41 @@
                 <span class="select-pill tier-pill" data-tier="epic">Epic</span>
                 <span class="select-pill tier-pill" data-tier="legendary">Legendary</span>
               </div>
-              <div class="panel-subsection">
+              <div class="tab-bar armory-nav" data-armory-nav>
+                <button class="tab-btn is-active" type="button" data-armory-target="weapons">Weapons</button>
+                <button class="tab-btn" type="button" data-armory-target="upgrades">Weapon Upgrades</button>
+                <button class="tab-btn" type="button" data-armory-target="secondaries">Secondaries</button>
+                <button class="tab-btn" type="button" data-armory-target="parts">Parts</button>
+                <button class="tab-btn" type="button" data-armory-target="salvage">Salvage</button>
+              </div>
+              <div class="panel-subsection" data-armory-section="weapons">
                 <h3 class="panel-title">Primary Weapons</h3>
                 <div class="card-grid" data-role="weapons"></div>
               </div>
-              <div class="panel-subsection">
+              <div class="panel-subsection" data-armory-section="upgrades">
                 <h3 class="panel-title">Weapon Upgrades</h3>
                 <div class="upgrade-grid" data-role="weapon-upgrades"></div>
               </div>
-              <div class="panel-subsection">
+              <div class="panel-subsection" data-armory-section="secondaries">
                 <h3 class="panel-title">Secondary Systems</h3>
                 <div class="card-grid" data-role="secondaries"></div>
               </div>
-              <div class="panel-subsection">
+              <div class="panel-subsection" data-armory-section="parts">
                 <h3 class="panel-title">Parts</h3>
+                <div class="setting-group">
+                  <div class="setting-row">
+                    <span>Parts Mode</span>
+                    <div class="option-buttons" data-setting="parts-mode">
+                      <button class="option-btn is-active" type="button" data-option="equip">Equip</button>
+                      <button class="option-btn" type="button" data-option="dismantle">Dismantle</button>
+                    </div>
+                  </div>
+                </div>
+                <p class="panel-note">Dismantle mode sells parts for credits and removes them from inventory.</p>
                 <div class="card-grid" data-role="parts-slots"></div>
                 <div class="card-grid" data-role="parts-inventory"></div>
               </div>
-              <div class="panel-subsection">
+              <div class="panel-subsection" data-armory-section="salvage">
                 <h3 class="panel-title">Salvage Cache</h3>
                 <p class="panel-note">Recover salvage keys from enemy drops to open caches with random rewards.</p>
                 <div class="card-grid" data-role="salvage"></div>
@@ -1507,6 +1567,7 @@
       "use strict";
 
       const STORAGE_KEY = "stellarDogfightProgress";
+      const UPGRADE_REROLL_COST = 60;
       const dom = {
         canvas: document.querySelector("[data-role='battlefield']"),
         overlay: document.querySelector("[data-role='overlay']"),
@@ -1613,7 +1674,8 @@
         lastHullHitAt: 0,
         upgradeStacks: {},
         upgradeOptions: [],
-        frontier: null
+        frontier: null,
+        lossRewards: null
       };
 
       const BASE_PLAYER = {
@@ -1653,6 +1715,7 @@
         barrageSplashRadius: 0,
         barrageSplashDamage: 0,
         barrageCounter: 0,
+        upgradeLuck: 0,
         aegisCooldown: 0,
         aegisReadyAt: 0,
         aegisShieldRestore: 0,
@@ -1725,6 +1788,7 @@
 
       function init() {
         setupTabs();
+        setupArmoryNav();
         setupCanvas();
         attachEvents();
         applySettingsFromProgress();
@@ -1962,6 +2026,11 @@
           if (!button) return;
           const part = progress.partsInventory.find((item) => item.id === button.dataset.partId);
           if (!part) return;
+          const partsMode = progress.settings.partsMode || "equip";
+          if (partsMode === "dismantle") {
+            dismantlePart(part.id);
+            return;
+          }
           const slot = part.slot;
           if (!slot) return;
           progress.equippedParts[slot] = part.id;
@@ -2000,6 +2069,10 @@
             if (state.runActive) {
               logEvent("Mode change applies on the next launch.");
             }
+          } else if (setting === "shipyard-tier") {
+            progress.settings.shipyardTier = option;
+          } else if (setting === "parts-mode") {
+            progress.settings.partsMode = option;
           } else if (setting === "input-mode") {
             progress.settings.inputMode = option;
           } else if (setting === "particles") {
@@ -2167,6 +2240,41 @@
         });
       }
 
+      function setupArmoryNav() {
+        const nav = document.querySelector("[data-armory-nav]");
+        if (!nav) return;
+        const buttons = Array.from(nav.querySelectorAll("[data-armory-target]"));
+        const sections = Array.from(document.querySelectorAll("[data-armory-section]"));
+        if (!buttons.length || !sections.length) return;
+
+        const activate = (target, shouldSave) => {
+          let nextTarget = target;
+          if (!buttons.some((button) => button.dataset.armoryTarget === nextTarget)) {
+            nextTarget = buttons[0].dataset.armoryTarget;
+          }
+          buttons.forEach((button) => {
+            button.classList.toggle("is-active", button.dataset.armoryTarget === nextTarget);
+          });
+          sections.forEach((section) => {
+            const isActive = section.dataset.armorySection === nextTarget;
+            section.hidden = !isActive;
+          });
+          if (shouldSave) {
+            progress.settings.armorySection = nextTarget;
+            saveProgress();
+          }
+        };
+
+        const storedTarget = progress.settings.armorySection || buttons[0].dataset.armoryTarget;
+        activate(storedTarget, false);
+
+        nav.addEventListener("click", (event) => {
+          const button = event.target.closest("[data-armory-target]");
+          if (!button) return;
+          activate(button.dataset.armoryTarget, true);
+        });
+      }
+
       function loadProgress() {
         const fallback = {
           rank: 1,
@@ -2219,7 +2327,10 @@
             gameMode: "arcade",
             inputMode: "hybrid",
             particles: "medium",
-            hitFlash: true
+            hitFlash: true,
+            armorySection: "weapons",
+            partsMode: "equip",
+            shipyardTier: "all"
           },
           keybinds: {
             forward: "w",
@@ -2721,6 +2832,7 @@
         state.enemyAccuracyMod = 1;
         state.upgradeStacks = {};
         state.upgradeOptions = [];
+        state.lossRewards = null;
         state.wave = 1;
         state.score = 0;
         state.credits = 0;
@@ -2769,6 +2881,7 @@
         state.enemyAccuracyMod = 1;
         state.upgradeStacks = {};
         state.upgradeOptions = [];
+        state.lossRewards = null;
         state.wave = 1;
         state.score = 0;
         state.credits = 0;
@@ -2804,6 +2917,7 @@
         particles = [];
         state.upgradeStacks = {};
         state.upgradeOptions = [];
+        state.lossRewards = null;
         state.wave = 1;
         state.score = 0;
         state.credits = 0;
@@ -3786,6 +3900,15 @@
         player.energy = player.maxEnergy;
       }
 
+      function getUpgradeWeight(tier, luck) {
+        const meta = getTierMeta(tier);
+        if (!luck) return meta.weight;
+        const tierIndex = Math.max(0, TIER_ORDER.indexOf(tier));
+        const normalized = tierIndex / Math.max(1, TIER_ORDER.length - 1);
+        const bias = 1 + luck * (normalized * 1.6 - 0.4);
+        return Math.max(0.12, meta.weight * bias);
+      }
+
       function rollUpgrades() {
         const available = FIELD_UPGRADES.filter((upgrade) => {
           const stack = state.upgradeStacks[upgrade.id] || 0;
@@ -3793,8 +3916,9 @@
         });
         const picks = [];
         const pool = [...available];
+        const luck = player ? player.upgradeLuck || 0 : 0;
         while (picks.length < Math.min(3, pool.length)) {
-          const weights = pool.map((upgrade) => (TIER_META[upgrade.tier] || TIER_META.common).weight);
+          const weights = pool.map((upgrade) => getUpgradeWeight(upgrade.tier || "common", luck));
           const selected = pickWeighted(pool, weights);
           picks.push(selected);
           pool.splice(pool.indexOf(selected), 1);
@@ -3821,12 +3945,11 @@
       }
 
       function rerollUpgrades() {
-        const rerollCost = 60;
-        if (state.credits < rerollCost) {
+        if (state.credits < UPGRADE_REROLL_COST) {
           logEvent("Not enough credits to reroll upgrades.");
           return;
         }
-        state.credits -= rerollCost;
+        state.credits -= UPGRADE_REROLL_COST;
         state.upgradeOptions = rollUpgrades();
         setOverlay("upgrade");
       }
@@ -4034,6 +4157,157 @@
         saveProgress();
       }
 
+      function getRunSummary() {
+        const durationSec = state.runStart ? Math.max(1, (performance.now() - state.runStart) / 1000) : 0;
+        const difficulty = DIFFICULTY_SETTINGS[state.difficulty] || DIFFICULTY_SETTINGS.normal;
+        const rewardMultiplier = getDifficultySettings().reward;
+        return {
+          wave: Math.max(1, state.wave),
+          kills: state.kills,
+          score: Math.round(state.score),
+          credits: Math.round(state.credits),
+          durationSec,
+          difficultyLabel: difficulty.label,
+          rewardMultiplier
+        };
+      }
+
+      function getPerformanceScore(summary) {
+        const minutes = summary.durationSec / 60;
+        const waveScore = Math.max(0, summary.wave - 1) * 1.1;
+        const killScore = summary.kills * 0.08;
+        const scoreScore = summary.score / 1200;
+        const timeScore = minutes * 0.8;
+        return (waveScore + killScore + scoreScore + timeScore) * summary.rewardMultiplier;
+      }
+
+      function getPerformanceTier(score) {
+        if (score >= 24) return "legendary";
+        if (score >= 18) return "epic";
+        if (score >= 12) return "rare";
+        if (score >= 6) return "uncommon";
+        return "common";
+      }
+
+      function buildLossRewards() {
+        const summary = getRunSummary();
+        const performanceScore = getPerformanceScore(summary);
+        const performanceTier = getPerformanceTier(performanceScore);
+        const tierIndex = Math.max(0, TIER_ORDER.indexOf(performanceTier));
+        const minutes = summary.durationSec / 60;
+        const creditBase = 40
+          + summary.wave * 12
+          + summary.kills * 2
+          + summary.score / 140
+          + minutes * 12;
+        const creditBonus = Math.round(creditBase * (1 + tierIndex * 0.18) * summary.rewardMultiplier);
+        const blueprintCount = clamp(
+          Math.floor(Math.max(0, summary.wave - 1) / 3) + (tierIndex >= 2 ? 1 : 0),
+          0,
+          tierIndex >= 4 ? 3 : 2
+        );
+        const salvageCount = clamp(
+          Math.floor(summary.kills / 25) + (tierIndex >= 1 ? 1 : 0),
+          0,
+          tierIndex >= 3 ? 3 : 2
+        );
+        const partCount = (tierIndex >= 4 && summary.wave >= 8) ? 2 : (tierIndex >= 2 ? 1 : 0);
+        const blueprintTier = tierIndex >= 3 ? "rare" : tierIndex >= 1 ? "uncommon" : "common";
+        const salvageTier = tierIndex >= 3 ? "rare" : tierIndex >= 1 ? "uncommon" : "common";
+        const partTier = tierIndex >= 4 ? "epic" : tierIndex >= 3 ? "epic" : tierIndex >= 2 ? "rare" : "uncommon";
+        const rewards = [];
+        if (creditBonus > 0) {
+          rewards.push({
+            type: "credits",
+            amount: creditBonus,
+            tier: performanceTier,
+            title: "Recovery credits",
+            desc: `${creditBonus.toLocaleString()} credits secured`
+          });
+        }
+        if (blueprintCount > 0) {
+          rewards.push({
+            type: "blueprints",
+            amount: blueprintCount,
+            tier: blueprintTier,
+            title: "Blueprint cache",
+            desc: `+${blueprintCount} blueprint${blueprintCount === 1 ? "" : "s"}`
+          });
+        }
+        if (salvageCount > 0) {
+          rewards.push({
+            type: "salvage",
+            amount: salvageCount,
+            tier: salvageTier,
+            title: "Salvage keys",
+            desc: `+${salvageCount} key${salvageCount === 1 ? "" : "s"}`
+          });
+        }
+        const parts = [];
+        for (let i = 0; i < partCount; i += 1) {
+          const part = generatePart(partTier);
+          if (part) {
+            parts.push(part);
+          }
+        }
+        parts.forEach((part) => {
+          rewards.push({
+            type: "part",
+            amount: 1,
+            tier: part.rarityId || getPartTier(part),
+            title: part.name,
+            desc: part.description,
+            part
+          });
+        });
+        return {
+          tier: performanceTier,
+          score: performanceScore,
+          summary,
+          rewards
+        };
+      }
+
+      function applyLossRewards(result) {
+        if (!result || !result.rewards) return;
+        result.rewards.forEach((reward) => {
+          if (reward.type === "credits") {
+            progress.bankedCredits += reward.amount;
+          }
+          if (reward.type === "blueprints") {
+            progress.blueprints += reward.amount;
+          }
+          if (reward.type === "salvage") {
+            progress.salvageKeys += reward.amount;
+          }
+          if (reward.type === "part" && reward.part) {
+            progress.partsInventory.unshift(reward.part);
+            if (progress.partsInventory.length > 18) {
+              progress.partsInventory.pop();
+            }
+          }
+        });
+        saveProgress();
+        checkProgressionUnlocks();
+        renderShipyard();
+        renderArmory();
+        renderContracts();
+        if (result.rewards.length) {
+          const summary = result.rewards.map((reward) => {
+            if (reward.type === "part") return reward.title;
+            if (reward.type === "credits") return `${reward.amount}c`;
+            if (reward.type === "blueprints") {
+              return `${reward.amount} blueprint${reward.amount === 1 ? "" : "s"}`;
+            }
+            if (reward.type === "salvage") {
+              return `${reward.amount} key${reward.amount === 1 ? "" : "s"}`;
+            }
+            return `${reward.amount} ${reward.type}`;
+          }).join(", ");
+          logEvent(`Recovery rewards secured: ${summary}.`);
+        }
+      }
+
       function endRun(reason) {
         if (!state.runActive || state.runBanked) return;
         state.runActive = false;
@@ -4078,6 +4352,12 @@
           saveProgress();
         }
         endRun("wrecked");
+        if (!state.training) {
+          state.lossRewards = buildLossRewards();
+          applyLossRewards(state.lossRewards);
+        } else {
+          state.lossRewards = null;
+        }
         spawnExplosion(player.x, player.y, "#ffffff", 26);
         setOverlay("gameover");
         logEvent("Ship destroyed. Returning to hangar.");
@@ -4358,7 +4638,22 @@
           dom.shipyard.innerHTML = renderLockedCard("Shipyard locked", getFeatureHint("shipyard"));
           return;
         }
-        dom.shipyard.innerHTML = SHIPS.map((ship) => {
+        const tierGroup = document.querySelector("[data-setting='shipyard-tier']");
+        let tierFilter = progress.settings.shipyardTier || "all";
+        if (tierGroup && !tierGroup.querySelector(`[data-option="${tierFilter}"]`)) {
+          tierFilter = "all";
+          progress.settings.shipyardTier = "all";
+          saveProgress();
+        }
+        if (tierGroup) {
+          tierGroup.querySelectorAll(".option-btn").forEach((btn) => {
+            btn.classList.toggle("is-active", btn.dataset.option === tierFilter);
+          });
+        }
+        const filteredShips = tierFilter === "all"
+          ? SHIPS
+          : SHIPS.filter((ship) => String(Number(ship.tier) || 1) === tierFilter);
+        const renderShipCard = (ship) => {
           const unlocked = !!progress.shipUnlocks[ship.id];
           const selected = progress.selectedShip === ship.id;
           const unlockable = canUnlock(ship, progress.shipUnlocks);
@@ -4366,20 +4661,54 @@
           const statusLabel = unlocked ? (selected ? "Active" : "Select") : (unlockable ? "Unlock" : "Locked");
           const unlockText = formatUnlockText(ship.unlock);
           const signatureWeapon = ship.signatureWeapon ? getWeaponById(ship.signatureWeapon).name : "";
+          const shipTierValue = Number(ship.tier) || 1;
+          const tierStyle = getShipTierStyle(shipTierValue);
+          const tierPill = ship.tier ? `<span class="select-pill tier-pill" data-tier="${tierStyle}">Tier ${shipTierValue}</span>` : "";
+          const tierAttr = ship.tier ? `data-tier="${tierStyle}"` : "";
           return `
-            <button class="select-card ${selected ? "is-active" : ""}" data-ship-id="${ship.id}" ${disabled}>
+            <button class="select-card ${selected ? "is-active" : ""}" ${tierAttr} data-ship-id="${ship.id}" ${disabled}>
               <span class="select-title">${ship.name}</span>
               <span class="select-meta">${ship.desc}</span>
-              ${ship.tier ? `<span class="select-meta">Tier ${ship.tier}${signatureWeapon ? ` • Signature: ${signatureWeapon}` : ""}</span>` : ""}
+              ${signatureWeapon ? `<span class="select-meta">Signature: ${signatureWeapon}</span>` : ""}
               <span class="select-meta">Passive: ${ship.passive}</span>
               <div class="select-pills">
+                ${tierPill}
                 <span class="select-pill">${ABILITIES[ship.abilityId].name}</span>
                 <span class="select-pill">${statusLabel}</span>
                 ${unlockText ? `<span class="select-pill">${unlockText}</span>` : ""}
               </div>
             </button>
           `;
-        }).join("");
+        };
+        if (!filteredShips.length) {
+          dom.shipyard.innerHTML = "<span class=\"select-meta\">No ships available for this tier yet.</span>";
+          return;
+        }
+        if (tierFilter === "all") {
+          const shipsByTier = {};
+          filteredShips.forEach((ship) => {
+            const shipTierValue = Number(ship.tier) || 1;
+            if (!shipsByTier[shipTierValue]) shipsByTier[shipTierValue] = [];
+            shipsByTier[shipTierValue].push(ship);
+          });
+          const tiers = Object.keys(shipsByTier).map(Number).sort((a, b) => a - b);
+          dom.shipyard.innerHTML = tiers.map((tier) => {
+            const items = shipsByTier[tier] || [];
+            return `
+              <div class="tier-section">
+                <div class="tier-header">
+                  <span class="tier-title">Tier ${tier}</span>
+                  <span class="tier-count">${items.length} ship${items.length === 1 ? "" : "s"}</span>
+                </div>
+                <div class="card-grid">
+                  ${items.map(renderShipCard).join("")}
+                </div>
+              </div>
+            `;
+          }).join("");
+          return;
+        }
+        dom.shipyard.innerHTML = filteredShips.map(renderShipCard).join("");
       }
 
       function renderArmory() {
@@ -4492,6 +4821,13 @@
           dom.partsInventory.innerHTML = "";
           return;
         }
+        const partsModeGroup = document.querySelector("[data-setting='parts-mode']");
+        const partsMode = progress.settings.partsMode || "equip";
+        if (partsModeGroup) {
+          partsModeGroup.querySelectorAll(".option-btn").forEach((btn) => {
+            btn.classList.toggle("is-active", btn.dataset.option === partsMode);
+          });
+        }
         const equipped = progress.equippedParts || {};
         dom.partsSlots.innerHTML = PART_SLOTS.map((slot) => {
           const part = progress.partsInventory.find((item) => item.id === equipped[slot]);
@@ -4525,8 +4861,11 @@
         dom.partsInventory.innerHTML = partGroups.map((group) => {
           return renderTierSection(group.tier, group.items, (part) => {
             const equippedSlot = Object.keys(progress.equippedParts).find((slot) => progress.equippedParts[slot] === part.id);
-            const status = equippedSlot ? `Equipped (${equippedSlot})` : "Equip";
-            const disabled = equippedSlot ? "disabled" : "";
+            const scrapValue = getPartScrapValue(part);
+            const status = partsMode === "dismantle"
+              ? `Scrap ${scrapValue}c${equippedSlot ? " (equipped)" : ""}`
+              : (equippedSlot ? `Equipped (${equippedSlot})` : "Equip");
+            const disabled = partsMode === "equip" && equippedSlot ? "disabled" : "";
             const tier = part.tier || "common";
             const tierLabel = formatTierLabel(tier);
             const equippedId = progress.equippedParts[part.slot];
@@ -4546,6 +4885,21 @@
             `;
           });
         }).join("");
+      }
+
+      function dismantlePart(partId) {
+        const index = progress.partsInventory.findIndex((part) => part.id === partId);
+        if (index === -1) return;
+        const part = progress.partsInventory[index];
+        const scrapValue = getPartScrapValue(part);
+        progress.partsInventory.splice(index, 1);
+        Object.keys(progress.equippedParts).forEach((slot) => {
+          if (progress.equippedParts[slot] === partId) {
+            progress.equippedParts[slot] = null;
+          }
+        });
+        progress.bankedCredits += scrapValue;
+        applyLoadoutChange(`Part dismantled: ${part.name}. +${scrapValue} credits.`);
       }
 
       function renderLockedCard(title, message) {
@@ -4818,6 +5172,13 @@
         return `${signed}${suffix} ${label}`;
       }
 
+      function formatDuration(seconds) {
+        const total = Math.max(0, Math.round(seconds));
+        const minutes = Math.floor(total / 60);
+        const secs = total % 60;
+        return `${minutes}:${secs.toString().padStart(2, "0")}`;
+      }
+
       const LOWER_BETTER_STATS = new Set(["energyCost", "spread", "cooldown"]);
 
       function getTierMeta(tier) {
@@ -4918,6 +5279,24 @@
         if (!part) return "common";
         if (part.rarityId) return part.rarityId;
         return (part.rarity || "Common").toLowerCase();
+      }
+
+      function getPartScrapValue(part) {
+        const tier = getPartTier(part);
+        const values = {
+          common: 60,
+          uncommon: 120,
+          rare: 200,
+          epic: 320
+        };
+        return values[tier] || 80;
+      }
+
+      function getShipTierStyle(tier) {
+        if (tier >= 4) return "epic";
+        if (tier === 3) return "rare";
+        if (tier === 2) return "uncommon";
+        return "common";
       }
 
       function renderTierSection(tier, items, renderItem) {
@@ -5032,6 +5411,7 @@
         }
         if (mode === "upgrade") {
           const hasUpgrades = state.upgradeOptions.length > 0;
+          const creditsLabel = Math.round(state.credits).toLocaleString();
           const upgradeCards = hasUpgrades
             ? state.upgradeOptions.map((upgrade) => {
               const tier = upgrade.tier || "common";
@@ -5070,7 +5450,10 @@
             <div class="overlay-header">
               <p class="eyebrow">Wave ${state.wave - 1} cleared</p>
               <h3>Choose a field upgrade</h3>
-              <p>Upgrades stack for the rest of the run. Higher tiers are rarer. Reroll costs 60 credits.</p>
+              <p>Upgrades stack for the rest of the run. Higher tiers are rarer. Reroll costs ${UPGRADE_REROLL_COST} credits.</p>
+            </div>
+            <div class="badge-group overlay-badges">
+              <span class="badge">Credits ${creditsLabel}</span>
             </div>
             <div class="upgrade-grid">
               ${upgradeCards}
@@ -5164,6 +5547,46 @@
           const headerCopy = state.training
             ? "No rewards earned. Adjust your loadout and launch again when ready."
             : "Recover your data logs and refit in the hangar before the next sortie.";
+          const lossRewards = state.lossRewards;
+          const summary = lossRewards ? lossRewards.summary : getRunSummary();
+          const performanceTier = lossRewards ? lossRewards.tier : "common";
+          const performanceLabel = formatTierLabel(performanceTier);
+          const rewardCards = lossRewards && lossRewards.rewards.length
+            ? lossRewards.rewards.map((reward) => {
+              const tier = reward.tier || "common";
+              const typeLabel = reward.type === "credits"
+                ? "Credits"
+                : reward.type === "blueprints"
+                  ? "Blueprints"
+                  : reward.type === "salvage"
+                    ? "Salvage keys"
+                    : "Part";
+              return `
+                <div class="upgrade-card is-static" data-tier="${tier}">
+                  <div class="upgrade-meta">
+                    <span class="select-pill tier-pill" data-tier="${tier}">${formatTierLabel(tier)}</span>
+                    <span class="select-pill">${typeLabel}</span>
+                  </div>
+                  <span class="upgrade-title">${reward.title}</span>
+                  <span class="upgrade-desc">${reward.desc}</span>
+                </div>
+              `;
+            }).join("")
+            : "<div class=\"select-meta\">No salvage recovered.</div>";
+          const rewardSection = state.training ? "" : `
+            <div class="panel-subsection">
+              <h4 class="panel-title">Recovery rewards</h4>
+              <p class="panel-note">Rewards scale with wave, kills, time, score, and difficulty.</p>
+              <div class="chip-list">
+                <span class="chip" data-tier="${performanceTier}">${performanceLabel} performance</span>
+                <span class="chip">Survival ${formatDuration(summary.durationSec)}</span>
+                <span class="chip">${summary.difficultyLabel} difficulty</span>
+              </div>
+              <div class="upgrade-grid reward-grid">
+                ${rewardCards}
+              </div>
+            </div>
+          `;
           dom.overlayContent.innerHTML = `
             <div class="overlay-header">
               <p class="eyebrow">${headerEyebrow}</p>
@@ -5171,10 +5594,13 @@
               <p>${headerCopy}</p>
             </div>
             <div class="progress-grid">
-              <div class="stat-tile"><span>Wave</span><strong>${state.wave}</strong></div>
-              <div class="stat-tile"><span>Score</span><strong>${Math.round(state.score).toLocaleString()}</strong></div>
-              <div class="stat-tile"><span>Credits</span><strong>${Math.round(state.credits).toLocaleString()}</strong></div>
+              <div class="stat-tile"><span>Wave</span><strong>${summary.wave}</strong></div>
+              <div class="stat-tile"><span>Kills</span><strong>${summary.kills}</strong></div>
+              <div class="stat-tile"><span>Score</span><strong>${summary.score.toLocaleString()}</strong></div>
+              <div class="stat-tile"><span>Survival</span><strong>${formatDuration(summary.durationSec)}</strong></div>
+              <div class="stat-tile"><span>Credits</span><strong>${summary.credits.toLocaleString()}</strong></div>
             </div>
+            ${rewardSection}
             <div class="overlay-actions">
               <button class="btn primary" data-overlay-action="reset">Return to hangar</button>
             </div>
