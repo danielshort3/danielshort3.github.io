@@ -1698,8 +1698,6 @@
         generatePart: (rarity) => generatePart(rarity)
       };
 
-      init();
-
       function init() {
         setupTabs();
         setupCanvas();
@@ -4866,6 +4864,8 @@
       function pick(array) {
         return array[Math.floor(Math.random() * array.length)];
       }
+
+      init();
     })();
   </script>
 </body>
