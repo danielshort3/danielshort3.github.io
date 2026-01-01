@@ -780,6 +780,39 @@
       }
     },
     {
+      id: "signal-forecast",
+      name: "Signal Forecast",
+      tier: "uncommon",
+      category: "Strategy",
+      desc: "Higher chance for rare upgrades later.",
+      maxStacks: 2,
+      apply: (ship) => {
+        ship.upgradeLuck = Math.min(0.9, (ship.upgradeLuck || 0) + 0.2);
+      }
+    },
+    {
+      id: "longrange-intel",
+      name: "Longrange Intel",
+      tier: "rare",
+      category: "Strategy",
+      desc: "Higher chance for epic upgrades later.",
+      maxStacks: 2,
+      apply: (ship) => {
+        ship.upgradeLuck = Math.min(0.9, (ship.upgradeLuck || 0) + 0.35);
+      }
+    },
+    {
+      id: "oracle-array",
+      name: "Oracle Array",
+      tier: "epic",
+      category: "Strategy",
+      desc: "Greatly increases chances for epic and legendary upgrades.",
+      maxStacks: 1,
+      apply: (ship) => {
+        ship.upgradeLuck = Math.min(0.9, (ship.upgradeLuck || 0) + 0.5);
+      }
+    },
+    {
       id: "overcharged-blasters",
       name: "Overcharged Blasters",
       tier: "uncommon",
