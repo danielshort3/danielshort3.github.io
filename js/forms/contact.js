@@ -15,6 +15,7 @@
   const submitBtn = form?.querySelector('[type="submit"]');
   const successPanel = document.getElementById('contact-success');
   const newMessageBtn = successPanel?.querySelector('[data-contact-new]');
+  const successClass = 'contact-success';
   const endpoint = form?.dataset.endpoint || form?.getAttribute('action') || '';
   let prevFocus = null;
   let sending = false;
@@ -184,6 +185,11 @@
     if (!form || !successPanel) return;
     form.hidden = show;
     successPanel.hidden = !show;
+    form.setAttribute('aria-hidden', show ? 'true' : 'false');
+    successPanel.setAttribute('aria-hidden', show ? 'false' : 'true');
+    if (modal) {
+      modal.classList.toggle(successClass, show);
+    }
     if (show) {
       const body = modal?.querySelector('.modal-body');
       if (body) body.scrollTop = 0;
