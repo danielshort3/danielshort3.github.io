@@ -4223,9 +4223,9 @@
         dom.shipyard.innerHTML = SHIPS.map((ship) => {
           const unlocked = !!progress.shipUnlocks[ship.id];
           const selected = progress.selectedShip === ship.id;
-          const canUnlock = canUnlock(ship, progress.shipUnlocks);
-          const disabled = !unlocked && !canUnlock ? "disabled" : "";
-          const statusLabel = unlocked ? (selected ? "Active" : "Select") : (canUnlock ? "Unlock" : "Locked");
+          const unlockable = canUnlock(ship, progress.shipUnlocks);
+          const disabled = !unlocked && !unlockable ? "disabled" : "";
+          const statusLabel = unlocked ? (selected ? "Active" : "Select") : (unlockable ? "Unlock" : "Locked");
           const unlockText = formatUnlockText(ship.unlock);
           return `
             <button class="select-card ${selected ? "is-active" : ""}" data-ship-id="${ship.id}" ${disabled}>
@@ -4257,9 +4257,9 @@
         dom.weapons.innerHTML = WEAPONS.map((item) => {
           const unlocked = !!progress.weaponUnlocks[item.id];
           const selected = progress.selectedWeapon === item.id;
-          const canUnlock = canUnlock(item, progress.weaponUnlocks);
-          const disabled = !unlocked && !canUnlock ? "disabled" : "";
-          const statusLabel = unlocked ? (selected ? "Equipped" : "Select") : (canUnlock ? "Unlock" : "Locked");
+          const unlockable = canUnlock(item, progress.weaponUnlocks);
+          const disabled = !unlocked && !unlockable ? "disabled" : "";
+          const statusLabel = unlocked ? (selected ? "Equipped" : "Select") : (unlockable ? "Unlock" : "Locked");
           const unlockText = formatUnlockText(item.unlock);
           return `
             <button class="select-card ${selected ? "is-active" : ""}" data-weapon-id="${item.id}" ${disabled}>
@@ -4300,9 +4300,9 @@
           dom.secondaries.innerHTML = SECONDARIES.map((item) => {
             const unlocked = !!progress.secondaryUnlocks[item.id];
             const selected = progress.selectedSecondary === item.id;
-            const canUnlock = canUnlock(item, progress.secondaryUnlocks);
-            const disabled = !unlocked && !canUnlock ? "disabled" : "";
-            const statusLabel = unlocked ? (selected ? "Equipped" : "Select") : (canUnlock ? "Unlock" : "Locked");
+            const unlockable = canUnlock(item, progress.secondaryUnlocks);
+            const disabled = !unlocked && !unlockable ? "disabled" : "";
+            const statusLabel = unlocked ? (selected ? "Equipped" : "Select") : (unlockable ? "Unlock" : "Locked");
             const unlockText = formatUnlockText(item.unlock);
             return `
               <button class="select-card ${selected ? "is-active" : ""}" data-secondary-id="${item.id}" ${disabled}>
