@@ -246,9 +246,21 @@
       unlock: { rank: 1 },
       stats: { damage: 12, fireRate: 4, energyCost: 16, bulletSpeed: 520, projectiles: 1, spread: 0.14 },
       upgrades: [
-        { tier: "common", name: "Phase Capacitors", cost: 120, desc: "+3 damage.", apply: (stats) => { stats.damage += 3; } },
-        { tier: "uncommon", name: "Accelerated Coils", cost: 180, desc: "+15% fire rate.", apply: (stats) => { stats.fireRate *= 1.15; } },
-        { tier: "rare", name: "Twin Emitters", cost: 260, desc: "+1 projectile, +spread.", apply: (stats) => { stats.projectiles += 1; stats.spread += 0.06; } }
+        { tier: "common", name: "Phase Capacitors I", cost: 120, desc: "+4 damage.", apply: (stats) => { stats.damage += 4; } },
+        { tier: "uncommon", name: "Phase Capacitors II", cost: 180, desc: "+4 damage.", apply: (stats) => { stats.damage += 4; } },
+        { tier: "rare", name: "Harmonic Cycling", cost: 250, desc: "+25% fire rate.", apply: (stats) => { stats.fireRate *= 1.25; } },
+        { tier: "rare", name: "Flux Recycling", cost: 320, desc: "-18% energy cost.", apply: (stats) => { stats.energyCost *= 0.82; } },
+        {
+          tier: "epic",
+          name: "Overcharge Burst",
+          cost: 420,
+          desc: "Every 4th shot fires an extra bolt with +60% damage.",
+          apply: (stats) => {
+            stats.barrageEvery = 4;
+            stats.barrageProjectiles = (stats.barrageProjectiles || 0) + 1;
+            stats.barrageBonusDamage = Math.max(stats.barrageBonusDamage || 1, 1.6);
+          }
+        }
       ]
     },
     {
@@ -260,23 +272,47 @@
       unlock: { rank: 1, credits: 80 },
       stats: { damage: 7, fireRate: 6.2, energyCost: 12, bulletSpeed: 520, projectiles: 1, spread: 0.12 },
       upgrades: [
-        { tier: "common", name: "Servo Feed", cost: 100, desc: "+12% fire rate.", apply: (stats) => { stats.fireRate *= 1.12; } },
-        { tier: "uncommon", name: "Heat Sinks", cost: 160, desc: "-10% energy cost.", apply: (stats) => { stats.energyCost *= 0.9; } },
-        { tier: "rare", name: "Quad Bank", cost: 230, desc: "+1 projectile, +spread.", apply: (stats) => { stats.projectiles += 1; stats.spread += 0.05; } }
+        { tier: "common", name: "Servo Feed I", cost: 110, desc: "+18% fire rate.", apply: (stats) => { stats.fireRate *= 1.18; } },
+        { tier: "uncommon", name: "Servo Feed II", cost: 170, desc: "+18% fire rate.", apply: (stats) => { stats.fireRate *= 1.18; } },
+        { tier: "uncommon", name: "Heat Sinks", cost: 230, desc: "-20% energy cost.", apply: (stats) => { stats.energyCost *= 0.8; } },
+        { tier: "rare", name: "Staccato Rails", cost: 300, desc: "+20% bullet speed, -spread.", apply: (stats) => { stats.bulletSpeed *= 1.2; stats.spread = Math.max(0.08, stats.spread - 0.04); } },
+        {
+          tier: "epic",
+          name: "Saturation Burst",
+          cost: 420,
+          desc: "Every 6th shot fires 2 extra bolts.",
+          apply: (stats) => {
+            stats.barrageEvery = 6;
+            stats.barrageProjectiles = (stats.barrageProjectiles || 0) + 2;
+            stats.barrageBonusDamage = Math.max(stats.barrageBonusDamage || 1, 1.35);
+          }
+        }
       ]
     },
     {
       id: "rail",
-      tier: "rare",
+      tier: "epic",
       name: "Rail Lance",
       desc: "High-velocity slugs for precision bursts.",
       tags: ["Precision", "High Damage"],
-      unlock: { rank: 3, credits: 180 },
-      stats: { damage: 26, fireRate: 1.7, energyCost: 24, bulletSpeed: 720, projectiles: 1, spread: 0.05 },
+      unlock: { rank: 4, credits: 260 },
+      stats: { damage: 28, fireRate: 1.5, energyCost: 28, bulletSpeed: 760, projectiles: 1, spread: 0.045 },
       upgrades: [
-        { tier: "common", name: "Mag-Rail Focus", cost: 150, desc: "+20% bullet speed.", apply: (stats) => { stats.bulletSpeed *= 1.2; } },
-        { tier: "uncommon", name: "Recoil Dampers", cost: 210, desc: "+10% fire rate, -spread.", apply: (stats) => { stats.fireRate *= 1.1; stats.spread = Math.max(0.02, stats.spread - 0.02); } },
-        { tier: "rare", name: "Piercing Core", cost: 300, desc: "Shots pierce one target.", apply: (stats) => { stats.pierce += 1; } }
+        { tier: "uncommon", name: "Mag-Rail Focus I", cost: 180, desc: "+25% bullet speed, +10% damage.", apply: (stats) => { stats.bulletSpeed *= 1.25; stats.damage *= 1.1; } },
+        { tier: "rare", name: "Mag-Rail Focus II", cost: 250, desc: "+25% bullet speed, +10% damage.", apply: (stats) => { stats.bulletSpeed *= 1.25; stats.damage *= 1.1; } },
+        { tier: "rare", name: "Recoil Dampers", cost: 320, desc: "+25% fire rate, -spread.", apply: (stats) => { stats.fireRate *= 1.25; stats.spread = Math.max(0.02, stats.spread - 0.02); } },
+        { tier: "epic", name: "Penetrator Core", cost: 420, desc: "Shots pierce two targets.", apply: (stats) => { stats.pierce += 2; } },
+        {
+          tier: "legendary",
+          name: "Singularity Charge",
+          cost: 520,
+          desc: "Every 3rd shot overcharges for +120% damage and +1 pierce.",
+          apply: (stats) => {
+            stats.barrageEvery = 3;
+            stats.barrageBonusDamage = Math.max(stats.barrageBonusDamage || 1, 2.2);
+            stats.barragePierce = Math.max(stats.barragePierce || 0, 1);
+          }
+        }
       ]
     },
     {
@@ -288,9 +324,31 @@
       unlock: { rank: 2, credits: 140 },
       stats: { damage: 7, fireRate: 3.2, energyCost: 20, bulletSpeed: 460, projectiles: 4, spread: 0.3 },
       upgrades: [
-        { tier: "common", name: "Refined Chokes", cost: 130, desc: "-spread, +projectile speed.", apply: (stats) => { stats.spread = Math.max(0.18, stats.spread - 0.08); stats.bulletSpeed *= 1.08; } },
-        { tier: "uncommon", name: "Burst Loader", cost: 200, desc: "+1 projectile.", apply: (stats) => { stats.projectiles += 1; } },
-        { tier: "rare", name: "Overpressure Cells", cost: 280, desc: "+15% damage.", apply: (stats) => { stats.damage *= 1.15; } }
+        { tier: "common", name: "Choke Ring I", cost: 130, desc: "-spread, +10% bullet speed.", apply: (stats) => { stats.spread = Math.max(0.18, stats.spread - 0.08); stats.bulletSpeed *= 1.1; } },
+        { tier: "uncommon", name: "Choke Ring II", cost: 190, desc: "-spread.", apply: (stats) => { stats.spread = Math.max(0.14, stats.spread - 0.06); } },
+        { tier: "rare", name: "Heavy Shot", cost: 260, desc: "+25% damage.", apply: (stats) => { stats.damage *= 1.25; } },
+        {
+          tier: "rare",
+          name: "Concussive Pellets",
+          cost: 320,
+          desc: "Pellets slow targets.",
+          apply: (stats) => {
+            stats.slowChance = (stats.slowChance || 0) + 0.18;
+            stats.slowDuration = Math.max(stats.slowDuration || 0, 1.4);
+          }
+        },
+        {
+          tier: "epic",
+          name: "Overpressure Barrage",
+          cost: 420,
+          desc: "Every 4th shot overloads pellets for +90% damage and splash.",
+          apply: (stats) => {
+            stats.barrageEvery = 4;
+            stats.barrageBonusDamage = Math.max(stats.barrageBonusDamage || 1, 1.9);
+            stats.barrageSplashRadius = Math.max(stats.barrageSplashRadius || 0, 18);
+            stats.barrageSplashDamage = Math.max(stats.barrageSplashDamage || 0, 0.55);
+          }
+        }
       ]
     },
     {
@@ -302,9 +360,22 @@
       unlock: { rank: 2, credits: 160 },
       stats: { damage: 10, fireRate: 3.1, energyCost: 19, bulletSpeed: 500, projectiles: 3, spread: 0.22 },
       upgrades: [
-        { tier: "common", name: "Tight Spread", cost: 130, desc: "-spread.", apply: (stats) => { stats.spread = Math.max(0.14, stats.spread - 0.06); } },
-        { tier: "uncommon", name: "Capacitor Rounds", cost: 190, desc: "+15% damage.", apply: (stats) => { stats.damage *= 1.15; } },
-        { tier: "rare", name: "Volley Rack", cost: 260, desc: "+1 projectile.", apply: (stats) => { stats.projectiles += 1; } }
+        { tier: "common", name: "Ballistic Tuning I", cost: 130, desc: "+12% bullet speed, -spread.", apply: (stats) => { stats.bulletSpeed *= 1.12; stats.spread = Math.max(0.18, stats.spread - 0.04); } },
+        { tier: "uncommon", name: "Ballistic Tuning II", cost: 190, desc: "+12% bullet speed, -spread.", apply: (stats) => { stats.bulletSpeed *= 1.12; stats.spread = Math.max(0.14, stats.spread - 0.04); } },
+        { tier: "rare", name: "Capacitor Rounds", cost: 260, desc: "+20% damage.", apply: (stats) => { stats.damage *= 1.2; } },
+        { tier: "rare", name: "Volley Rack", cost: 320, desc: "+1 projectile.", apply: (stats) => { stats.projectiles += 1; } },
+        {
+          tier: "epic",
+          name: "Backline Salvo",
+          cost: 420,
+          desc: "Every 5th shot fires 2 extra bolts with +50% damage and pierce.",
+          apply: (stats) => {
+            stats.barrageEvery = 5;
+            stats.barrageProjectiles = (stats.barrageProjectiles || 0) + 2;
+            stats.barrageBonusDamage = Math.max(stats.barrageBonusDamage || 1, 1.5);
+            stats.barragePierce = Math.max(stats.barragePierce || 0, 1);
+          }
+        }
       ]
     },
     {
@@ -316,9 +387,22 @@
       unlock: { rank: 4, credits: 220 },
       stats: { damage: 18, fireRate: 2.2, energyCost: 22, bulletSpeed: 440, projectiles: 1, spread: 0.12, splashRadius: 26 },
       upgrades: [
-        { tier: "uncommon", name: "Volatile Mix", cost: 170, desc: "+30% splash radius.", apply: (stats) => { stats.splashRadius *= 1.3; } },
-        { tier: "rare", name: "Pressure Injectors", cost: 240, desc: "+15% damage.", apply: (stats) => { stats.damage *= 1.15; } },
-        { tier: "rare", name: "Thermal Focus", cost: 320, desc: "+10% fire rate.", apply: (stats) => { stats.fireRate *= 1.1; } }
+        { tier: "uncommon", name: "Volatile Mix I", cost: 170, desc: "+30% splash radius.", apply: (stats) => { stats.splashRadius *= 1.3; } },
+        { tier: "rare", name: "Volatile Mix II", cost: 240, desc: "+25% splash radius.", apply: (stats) => { stats.splashRadius *= 1.25; } },
+        { tier: "rare", name: "Pressure Injectors", cost: 320, desc: "+25% damage.", apply: (stats) => { stats.damage *= 1.25; stats.splashDamage = Math.max(stats.splashDamage || 0.6, 0.75); } },
+        { tier: "epic", name: "Thermal Focus", cost: 400, desc: "+20% fire rate.", apply: (stats) => { stats.fireRate *= 1.2; } },
+        {
+          tier: "legendary",
+          name: "Plasma Superheat",
+          cost: 520,
+          desc: "Every 3rd shot detonates in a larger blast with +40% damage.",
+          apply: (stats) => {
+            stats.barrageEvery = 3;
+            stats.barrageBonusDamage = Math.max(stats.barrageBonusDamage || 1, 1.4);
+            stats.barrageSplashRadius = Math.max(stats.barrageSplashRadius || 0, 52);
+            stats.barrageSplashDamage = Math.max(stats.barrageSplashDamage || 0, 0.85);
+          }
+        }
       ]
     },
     {
@@ -330,9 +414,22 @@
       unlock: { rank: 4, credits: 240 },
       stats: { damage: 28, fireRate: 1.2, energyCost: 28, bulletSpeed: 360, projectiles: 1, spread: 0.18, splashRadius: 38, splashDamage: 0.75 },
       upgrades: [
-        { tier: "uncommon", name: "Reinforced Payloads", cost: 170, desc: "+20% splash radius.", apply: (stats) => { stats.splashRadius *= 1.2; } },
-        { tier: "rare", name: "Siege Core", cost: 240, desc: "+20% damage.", apply: (stats) => { stats.damage *= 1.2; } },
-        { tier: "epic", name: "Cycler Assembly", cost: 320, desc: "+15% fire rate.", apply: (stats) => { stats.fireRate *= 1.15; } }
+        { tier: "uncommon", name: "Reinforced Payloads I", cost: 170, desc: "+20% splash radius.", apply: (stats) => { stats.splashRadius *= 1.2; } },
+        { tier: "rare", name: "Reinforced Payloads II", cost: 240, desc: "+20% splash radius.", apply: (stats) => { stats.splashRadius *= 1.2; } },
+        { tier: "rare", name: "Siege Core", cost: 320, desc: "+30% damage.", apply: (stats) => { stats.damage *= 1.3; stats.splashDamage = Math.max(stats.splashDamage || 0.6, 0.85); } },
+        { tier: "epic", name: "Cycler Assembly", cost: 400, desc: "+20% fire rate.", apply: (stats) => { stats.fireRate *= 1.2; } },
+        {
+          tier: "legendary",
+          name: "Cataclysm Charge",
+          cost: 520,
+          desc: "Every 4th shot detonates with massive splash and +50% damage.",
+          apply: (stats) => {
+            stats.barrageEvery = 4;
+            stats.barrageBonusDamage = Math.max(stats.barrageBonusDamage || 1, 1.5);
+            stats.barrageSplashRadius = Math.max(stats.barrageSplashRadius || 0, 64);
+            stats.barrageSplashDamage = Math.max(stats.barrageSplashDamage || 0, 0.9);
+          }
+        }
       ]
     },
     {
@@ -357,9 +454,39 @@
         arcRequiresSlow: true
       },
       upgrades: [
-        { tier: "uncommon", name: "Stasis Filament", cost: 150, desc: "+10% slow chance.", apply: (stats) => { stats.slowChance += 0.1; } },
-        { tier: "rare", name: "Ion Conduits", cost: 220, desc: "-10% energy cost.", apply: (stats) => { stats.energyCost *= 0.9; } },
-        { tier: "epic", name: "Rapid Cycling", cost: 300, desc: "+15% fire rate.", apply: (stats) => { stats.fireRate *= 1.15; } }
+        {
+          tier: "uncommon",
+          name: "Stasis Filament I",
+          cost: 170,
+          desc: "+15% slow chance.",
+          apply: (stats) => {
+            stats.slowChance = (stats.slowChance || 0) + 0.15;
+            stats.slowDuration = Math.max(stats.slowDuration || 0, 1.3);
+          }
+        },
+        {
+          tier: "rare",
+          name: "Stasis Filament II",
+          cost: 240,
+          desc: "+15% slow chance.",
+          apply: (stats) => {
+            stats.slowChance = (stats.slowChance || 0) + 0.15;
+            stats.slowDuration = Math.max(stats.slowDuration || 0, 1.5);
+          }
+        },
+        { tier: "rare", name: "Ion Conduits I", cost: 320, desc: "-18% energy cost.", apply: (stats) => { stats.energyCost *= 0.82; } },
+        { tier: "epic", name: "Ion Conduits II", cost: 400, desc: "-18% energy cost.", apply: (stats) => { stats.energyCost *= 0.82; } },
+        {
+          tier: "legendary",
+          name: "Arc Cascade",
+          cost: 520,
+          desc: "+1 arc chain, +25% arc damage, +15% arc radius.",
+          apply: (stats) => {
+            stats.arcChains = (stats.arcChains || 0) + 1;
+            stats.arcDamage *= 1.25;
+            stats.arcRadius *= 1.15;
+          }
+        }
       ]
     }
   ];
