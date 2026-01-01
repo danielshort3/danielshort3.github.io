@@ -130,6 +130,13 @@
       transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
     }
 
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
     .btn.primary {
       background: linear-gradient(120deg, var(--accent), #3aa3d8);
       color: #041219;
@@ -173,6 +180,49 @@
       box-shadow: var(--shadow);
     }
 
+    .panel-subsection {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--text-muted);
+    }
+
+    .loadout-grid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    }
+
+    .loadout-item {
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      background: rgba(8, 14, 24, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: grid;
+      gap: 6px;
+    }
+
+    .loadout-item span {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--text-muted);
+    }
+
+    .loadout-item strong {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
     .tab-shell {
       display: grid;
       gap: 12px;
@@ -180,9 +230,11 @@
     }
 
     .tab-bar {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+      display: flex;
       gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scroll-behavior: smooth;
     }
 
     .tab-btn {
@@ -209,6 +261,15 @@
     .tab-btn:focus-visible {
       outline: 2px solid color-mix(in srgb, var(--accent) 80%, transparent);
       outline-offset: 2px;
+    }
+
+    .tab-bar::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .tab-bar::-webkit-scrollbar-thumb {
+      background: rgba(68, 210, 194, 0.35);
+      border-radius: 999px;
     }
 
     .tab-panels {
@@ -251,6 +312,14 @@
       background: rgba(12, 18, 32, 0.7);
       border: 1px solid var(--stroke);
       color: var(--text-muted);
+    }
+
+    .badge-group {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
     }
 
     .meter-row {
@@ -334,6 +403,227 @@
       border: 1px solid rgba(255, 255, 255, 0.12);
       font-size: 0.78rem;
       color: var(--text);
+    }
+
+    .card-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .select-card {
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(10, 16, 28, 0.8);
+      padding: 10px 12px;
+      text-align: left;
+      color: var(--text);
+      cursor: pointer;
+      display: grid;
+      gap: 6px;
+      transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .select-card:hover,
+    .select-card:focus-visible {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .select-card.is-active {
+      border-color: var(--accent-2);
+      background: rgba(22, 34, 54, 0.9);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .select-card[disabled] {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .select-card.is-static {
+      cursor: default;
+    }
+
+    .select-card.is-static:hover,
+    .select-card.is-static:focus-visible {
+      border-color: rgba(255, 255, 255, 0.12);
+      transform: none;
+    }
+
+    .select-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .select-meta {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .select-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .select-pill {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .contract-card {
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(12, 18, 32, 0.75);
+      padding: 10px 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .contract-title {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .contract-meta {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 12px;
+    }
+
+    .contract-progress {
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(8, 14, 24, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+    }
+
+    .contract-progress span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, #4f9cf7, #57e0ff);
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+
+    .faction-grid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+
+    .faction-card {
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(12, 18, 32, 0.75);
+      padding: 10px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .faction-card span {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .faction-card strong {
+      font-size: 0.95rem;
+    }
+
+    .history-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .history-entry {
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(8, 14, 24, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      display: grid;
+      gap: 4px;
+    }
+
+    .setting-group {
+      display: grid;
+      gap: 10px;
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      background: rgba(8, 14, 24, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .setting-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.85rem;
+    }
+
+    .setting-row span {
+      color: var(--text-muted);
+    }
+
+    .option-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .option-btn {
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(12, 18, 32, 0.7);
+      color: var(--text-muted);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+      transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+    }
+
+    .option-btn.is-active {
+      background: rgba(68, 210, 194, 0.2);
+      border-color: rgba(68, 210, 194, 0.6);
+      color: var(--text);
+    }
+
+    .keybind-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .keybind-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 0.82rem;
+    }
+
+    .keybind-btn {
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(12, 18, 32, 0.8);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 6px 10px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      min-width: 68px;
+      text-align: center;
     }
 
     .hangar-grid {
@@ -428,6 +718,39 @@
       flex-wrap: wrap;
       gap: 8px;
       z-index: 3;
+    }
+
+    .arena-tips {
+      position: absolute;
+      right: 16px;
+      top: 16px;
+      display: grid;
+      gap: 8px;
+      max-width: 260px;
+      z-index: 4;
+    }
+
+    .tip-card {
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(12, 18, 32, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      font-size: 0.8rem;
+      line-height: 1.4;
+      box-shadow: 0 12px 26px rgba(0, 0, 0, 0.35);
+      cursor: pointer;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .tip-card:hover {
+      border-color: rgba(68, 210, 194, 0.6);
+      transform: translateY(-1px);
+    }
+
+    .tip-card strong {
+      display: block;
+      font-size: 0.86rem;
+      margin-bottom: 4px;
     }
 
     .hud-pill {
@@ -712,6 +1035,7 @@
       </div>
       <div class="action-stack">
         <button class="btn primary" data-action="launch">Launch mission</button>
+        <button class="btn ghost" data-action="training">Training</button>
         <button class="btn ghost" data-action="pause">Pause</button>
         <button class="btn ghost" data-action="reset">Reset run</button>
       </div>
@@ -722,17 +1046,21 @@
         <div class="tab-shell" data-tab-group="sidebar" data-tab-default="systems">
           <div class="tab-bar" role="tablist" aria-label="Ship panels">
             <button class="tab-btn is-active" id="tab-btn-systems" type="button" data-tab-target="systems" role="tab" aria-controls="tab-systems" aria-selected="true" tabindex="0">Systems</button>
-            <button class="tab-btn" id="tab-btn-stats" type="button" data-tab-target="stats" role="tab" aria-controls="tab-stats" aria-selected="false" tabindex="-1">Stats</button>
-            <button class="tab-btn" id="tab-btn-field" type="button" data-tab-target="field" role="tab" aria-controls="tab-field" aria-selected="false" tabindex="-1">Upgrades</button>
-            <button class="tab-btn" id="tab-btn-hangar" type="button" data-tab-target="hangar" role="tab" aria-controls="tab-hangar" aria-selected="false" tabindex="-1">Hangar</button>
+            <button class="tab-btn" id="tab-btn-upgrades" type="button" data-tab-target="upgrades" role="tab" aria-controls="tab-upgrades" aria-selected="false" tabindex="-1">Upgrades</button>
+            <button class="tab-btn" id="tab-btn-shipyard" type="button" data-tab-target="shipyard" role="tab" aria-controls="tab-shipyard" aria-selected="false" tabindex="-1">Shipyard</button>
+            <button class="tab-btn" id="tab-btn-armory" type="button" data-tab-target="armory" role="tab" aria-controls="tab-armory" aria-selected="false" tabindex="-1">Armory</button>
+            <button class="tab-btn" id="tab-btn-contracts" type="button" data-tab-target="contracts" role="tab" aria-controls="tab-contracts" aria-selected="false" tabindex="-1">Contracts</button>
             <button class="tab-btn" id="tab-btn-progress" type="button" data-tab-target="progress" role="tab" aria-controls="tab-progress" aria-selected="false" tabindex="-1">Progress</button>
-            <button class="tab-btn" id="tab-btn-log" type="button" data-tab-target="log" role="tab" aria-controls="tab-log" aria-selected="false" tabindex="-1">Log</button>
+            <button class="tab-btn" id="tab-btn-settings" type="button" data-tab-target="settings" role="tab" aria-controls="tab-settings" aria-selected="false" tabindex="-1">Settings</button>
           </div>
           <div class="tab-panels">
             <section class="panel tab-panel is-active" id="tab-systems" data-tab-panel="systems" role="tabpanel" aria-labelledby="tab-btn-systems">
               <div class="panel-header">
                 <h2>Ship Systems</h2>
-                <span class="badge" data-stat="status">Hangar</span>
+                <div class="badge-group">
+                  <span class="badge" data-stat="status">Hangar</span>
+                  <span class="badge" data-stat="sector">Sector 01</span>
+                </div>
               </div>
               <div class="meter-row">
                 <div class="meter-label">Hull</div>
@@ -755,39 +1083,114 @@
                 </div>
                 <div class="meter-value" data-stat="energy-text">--</div>
               </div>
+              <div class="panel-subsection">
+                <h3 class="panel-title">Loadout</h3>
+                <div class="loadout-grid">
+                  <div class="loadout-item">
+                    <span>Ship</span>
+                    <strong data-stat="ship-name">-</strong>
+                  </div>
+                  <div class="loadout-item">
+                    <span>Weapon</span>
+                    <strong data-stat="weapon-name">-</strong>
+                  </div>
+                  <div class="loadout-item">
+                    <span>Secondary</span>
+                    <strong data-stat="secondary-name">-</strong>
+                  </div>
+                </div>
+              </div>
+              <div class="panel-subsection">
+                <h3 class="panel-title">Systems</h3>
+                <div class="stat-row"><span>Ability</span><strong data-stat="ability-status">Ready</strong></div>
+                <div class="stat-row"><span>Secondary</span><strong data-stat="secondary-status">Ready</strong></div>
+                <div class="stat-row"><span>Sector Mod</span><strong data-stat="sector-mod">Clear</strong></div>
+              </div>
+              <div class="panel-subsection">
+                <h3 class="panel-title">Flight Stats</h3>
+                <div class="stat-row"><span>Damage</span><strong data-stat="damage">-</strong></div>
+                <div class="stat-row"><span>Fire Rate</span><strong data-stat="fire-rate">-</strong></div>
+                <div class="stat-row"><span>Max Speed</span><strong data-stat="speed">-</strong></div>
+                <div class="stat-row"><span>Shield Regen</span><strong data-stat="shield-regen">-</strong></div>
+                <div class="stat-row"><span>Energy Regen</span><strong data-stat="energy-regen">-</strong></div>
+                <div class="stat-row"><span>Crit Chance</span><strong data-stat="crit">-</strong></div>
+              </div>
             </section>
 
-            <section class="panel tab-panel" id="tab-stats" data-tab-panel="stats" role="tabpanel" aria-labelledby="tab-btn-stats" hidden>
+            <section class="panel tab-panel" id="tab-upgrades" data-tab-panel="upgrades" role="tabpanel" aria-labelledby="tab-btn-upgrades" hidden>
               <div class="panel-header">
-                <h2>Flight Stats</h2>
+                <h2>Upgrades</h2>
               </div>
-              <div class="stat-row"><span>Damage</span><strong data-stat="damage">-</strong></div>
-              <div class="stat-row"><span>Fire Rate</span><strong data-stat="fire-rate">-</strong></div>
-              <div class="stat-row"><span>Max Speed</span><strong data-stat="speed">-</strong></div>
-              <div class="stat-row"><span>Shield Regen</span><strong data-stat="shield-regen">-</strong></div>
-              <div class="stat-row"><span>Energy Regen</span><strong data-stat="energy-regen">-</strong></div>
-              <div class="stat-row"><span>Crit Chance</span><strong data-stat="crit">-</strong></div>
+              <div class="panel-subsection">
+                <h3 class="panel-title">Field Upgrades</h3>
+                <p class="panel-note">Choose one upgrade after each wave. Stacks carry through the run.</p>
+                <div class="chip-list" data-role="active-upgrades"></div>
+              </div>
+              <div class="panel-subsection">
+                <h3 class="panel-title">Hangar Upgrades</h3>
+                <p class="panel-note">Spend tech points between sorties. Upgrades apply to the next launch.</p>
+                <div class="hangar-grid" data-role="hangar"></div>
+              </div>
             </section>
 
-            <section class="panel tab-panel" id="tab-field" data-tab-panel="field" role="tabpanel" aria-labelledby="tab-btn-field" hidden>
+            <section class="panel tab-panel" id="tab-shipyard" data-tab-panel="shipyard" role="tabpanel" aria-labelledby="tab-btn-shipyard" hidden>
               <div class="panel-header">
-                <h2>Field Upgrades</h2>
+                <h2>Shipyard</h2>
+                <span class="badge" data-stat="blueprints">Blueprints 0</span>
               </div>
-              <p class="panel-note">Choose one upgrade after each wave. Stacks carry through the run.</p>
-              <div class="chip-list" data-role="active-upgrades"></div>
+              <p class="panel-note">Unlock ships with credits, rank, and blueprints to expand your fleet.</p>
+              <div class="card-grid" data-role="shipyard"></div>
             </section>
 
-            <section class="panel tab-panel" id="tab-hangar" data-tab-panel="hangar" role="tabpanel" aria-labelledby="tab-btn-hangar" hidden>
+            <section class="panel tab-panel" id="tab-armory" data-tab-panel="armory" role="tabpanel" aria-labelledby="tab-btn-armory" hidden>
               <div class="panel-header">
-                <h2>Hangar Upgrades</h2>
+                <h2>Armory</h2>
+                <div class="badge-group">
+                  <span class="badge" data-stat="banked-credits">Credits 0</span>
+                  <span class="badge" data-stat="salvage-keys">Keys 0</span>
+                </div>
               </div>
-              <p class="panel-note">Spend tech points between sorties. Upgrades apply to the next launch.</p>
-              <div class="hangar-grid" data-role="hangar"></div>
+              <p class="panel-note">Swap weapons and secondaries. Upgrades persist between runs.</p>
+              <div class="panel-subsection">
+                <h3 class="panel-title">Primary Weapons</h3>
+                <div class="card-grid" data-role="weapons"></div>
+              </div>
+              <div class="panel-subsection">
+                <h3 class="panel-title">Weapon Upgrades</h3>
+                <div class="upgrade-grid" data-role="weapon-upgrades"></div>
+              </div>
+              <div class="panel-subsection">
+                <h3 class="panel-title">Secondary Systems</h3>
+                <div class="card-grid" data-role="secondaries"></div>
+              </div>
+              <div class="panel-subsection">
+                <h3 class="panel-title">Parts</h3>
+                <div class="card-grid" data-role="parts-slots"></div>
+                <div class="card-grid" data-role="parts-inventory"></div>
+              </div>
+              <div class="panel-subsection">
+                <h3 class="panel-title">Salvage Cache</h3>
+                <p class="panel-note">Recover salvage keys from enemy drops to open caches with random rewards.</p>
+                <div class="card-grid" data-role="salvage"></div>
+              </div>
+            </section>
+
+            <section class="panel tab-panel" id="tab-contracts" data-tab-panel="contracts" role="tabpanel" aria-labelledby="tab-btn-contracts" hidden>
+              <div class="panel-header">
+                <h2>Contracts</h2>
+                <span class="badge" data-stat="contract-status">Offline</span>
+              </div>
+              <p class="panel-note">Optional objectives add bonuses and faction reputation.</p>
+              <div class="card-grid" data-role="contracts"></div>
+              <div class="panel-subsection">
+                <h3 class="panel-title">Faction Reputation</h3>
+                <div class="faction-grid" data-role="factions"></div>
+              </div>
             </section>
 
             <section class="panel tab-panel" id="tab-progress" data-tab-panel="progress" role="tabpanel" aria-labelledby="tab-btn-progress" hidden>
               <div class="panel-header">
-                <h2>Progression</h2>
+                <h2>Progress</h2>
               </div>
               <div class="progress-grid">
                 <div class="stat-tile">
@@ -803,6 +1206,10 @@
                   <strong data-stat="tech-points">0</strong>
                 </div>
                 <div class="stat-tile">
+                  <span>Banked Credits</span>
+                  <strong data-stat="banked-credits-total">0</strong>
+                </div>
+                <div class="stat-tile">
                   <span>Best Wave</span>
                   <strong data-stat="best-wave">1</strong>
                 </div>
@@ -811,14 +1218,68 @@
                   <strong data-stat="total-kills">0</strong>
                 </div>
               </div>
+              <div class="panel-subsection">
+                <h3 class="panel-title">Run History</h3>
+                <div class="history-list" data-role="history"></div>
+              </div>
+              <div class="panel-subsection">
+                <h3 class="panel-title">Mission Log</h3>
+                <div class="log-list" data-role="log"></div>
+              </div>
             </section>
 
-            <section class="panel tab-panel mission-log" id="tab-log" data-tab-panel="log" role="tabpanel" aria-labelledby="tab-btn-log" hidden>
+            <section class="panel tab-panel" id="tab-settings" data-tab-panel="settings" role="tabpanel" aria-labelledby="tab-btn-settings" hidden>
               <div class="panel-header">
-                <h2>Mission Log</h2>
-                <span class="badge" data-stat="sector">Sector 01</span>
+                <h2>Settings</h2>
+                <span class="badge" data-stat="control-mode">Hybrid</span>
               </div>
-              <div class="log-list" data-role="log"></div>
+              <div class="panel-subsection">
+                <h3 class="panel-title">Difficulty</h3>
+                <div class="setting-group">
+                  <div class="setting-row">
+                    <span>AI Difficulty</span>
+                    <div class="option-buttons" data-setting="difficulty">
+                      <button class="option-btn" type="button" data-option="easy">Easy</button>
+                      <button class="option-btn is-active" type="button" data-option="normal">Normal</button>
+                      <button class="option-btn" type="button" data-option="hard">Hard</button>
+                      <button class="option-btn" type="button" data-option="adaptive">Adaptive</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="panel-subsection">
+                <h3 class="panel-title">Controls</h3>
+                <div class="setting-group">
+                  <div class="setting-row">
+                    <span>Input Preset</span>
+                    <div class="option-buttons" data-setting="input-mode">
+                      <button class="option-btn is-active" type="button" data-option="hybrid">Mouse + Keyboard</button>
+                      <button class="option-btn" type="button" data-option="keyboard">Keyboard Only</button>
+                    </div>
+                  </div>
+                  <div class="keybind-list" data-role="keybinds"></div>
+                </div>
+              </div>
+              <div class="panel-subsection">
+                <h3 class="panel-title">Visuals</h3>
+                <div class="setting-group">
+                  <div class="setting-row">
+                    <span>Particle Density</span>
+                    <div class="option-buttons" data-setting="particles">
+                      <button class="option-btn" type="button" data-option="low">Low</button>
+                      <button class="option-btn is-active" type="button" data-option="medium">Medium</button>
+                      <button class="option-btn" type="button" data-option="high">High</button>
+                    </div>
+                  </div>
+                  <div class="setting-row">
+                    <span>Hit Flash</span>
+                    <div class="option-buttons" data-setting="hit-flash">
+                      <button class="option-btn is-active" type="button" data-option="on">On</button>
+                      <button class="option-btn" type="button" data-option="off">Off</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </section>
           </div>
         </div>
@@ -830,6 +1291,7 @@
           <div class="arena-overlay" data-role="overlay">
             <div class="overlay-card" data-role="overlay-content"></div>
           </div>
+          <div class="arena-tips" data-role="tips" aria-live="polite"></div>
           <div class="arena-hud">
             <div class="hud-pill">Wave <strong data-stat="wave">1</strong></div>
             <div class="hud-pill">Enemies <strong data-stat="enemy-count">0</strong></div>
@@ -850,9 +1312,21 @@
         canvas: document.querySelector("[data-role='battlefield']"),
         overlay: document.querySelector("[data-role='overlay']"),
         overlayContent: document.querySelector("[data-role='overlay-content']"),
+        tips: document.querySelector("[data-role='tips']"),
         log: document.querySelector("[data-role='log']"),
         activeUpgrades: document.querySelector("[data-role='active-upgrades']"),
-        hangar: document.querySelector("[data-role='hangar']")
+        hangar: document.querySelector("[data-role='hangar']"),
+        shipyard: document.querySelector("[data-role='shipyard']"),
+        weapons: document.querySelector("[data-role='weapons']"),
+        weaponUpgrades: document.querySelector("[data-role='weapon-upgrades']"),
+        secondaries: document.querySelector("[data-role='secondaries']"),
+        partsSlots: document.querySelector("[data-role='parts-slots']"),
+        partsInventory: document.querySelector("[data-role='parts-inventory']"),
+        salvage: document.querySelector("[data-role='salvage']"),
+        contracts: document.querySelector("[data-role='contracts']"),
+        factions: document.querySelector("[data-role='factions']"),
+        history: document.querySelector("[data-role='history']"),
+        keybinds: document.querySelector("[data-role='keybinds']")
       };
 
       const ctx = dom.canvas.getContext("2d", { alpha: false });
@@ -869,8 +1343,20 @@
         techPoints: document.querySelector("[data-stat='tech-points']"),
         bestWave: document.querySelector("[data-stat='best-wave']"),
         totalKills: document.querySelector("[data-stat='total-kills']"),
+        shipName: document.querySelector("[data-stat='ship-name']"),
+        weaponName: document.querySelector("[data-stat='weapon-name']"),
+        secondaryName: document.querySelector("[data-stat='secondary-name']"),
+        abilityStatus: document.querySelector("[data-stat='ability-status']"),
+        secondaryStatus: document.querySelector("[data-stat='secondary-status']"),
+        sectorMod: document.querySelector("[data-stat='sector-mod']"),
         status: document.querySelector("[data-stat='status']"),
         sector: document.querySelector("[data-stat='sector']"),
+        blueprints: document.querySelector("[data-stat='blueprints']"),
+        bankedCredits: document.querySelector("[data-stat='banked-credits']"),
+        bankedCreditsTotal: document.querySelector("[data-stat='banked-credits-total']"),
+        salvageKeys: document.querySelector("[data-stat='salvage-keys']"),
+        contractStatus: document.querySelector("[data-stat='contract-status']"),
+        controlMode: document.querySelector("[data-stat='control-mode']"),
         damage: document.querySelector("[data-stat='damage']"),
         fireRate: document.querySelector("[data-stat='fire-rate']"),
         speed: document.querySelector("[data-stat='speed']"),
@@ -890,7 +1376,9 @@
         firing: false,
         boost: false,
         aimAngle: 0,
-        aimSource: "mouse"
+        aimSource: "mouse",
+        aimMode: "hybrid",
+        capture: null
       };
 
       const state = {
@@ -900,8 +1388,26 @@
         credits: 0,
         kills: 0,
         lastTime: 0,
+        runStart: 0,
+        waveStart: 0,
         width: 0,
         height: 0,
+        sector: 1,
+        sectorMod: null,
+        contracts: [],
+        training: false,
+        resumeMode: "flight",
+        runActive: false,
+        runBanked: false,
+        runLoadout: null,
+        lastContractRender: 0,
+        onboardingTimer: 0,
+        onboardingSave: 0,
+        difficulty: "normal",
+        enemyAccuracyMod: 1,
+        decoy: null,
+        mines: [],
+        lastHullHitAt: 0,
         upgradeStacks: {},
         upgradeOptions: []
       };
@@ -923,6 +1429,9 @@
         critMultiplier: 1.6,
         projectiles: 1,
         spread: 0.14,
+        splashRadius: 0,
+        splashDamage: 0.6,
+        pierce: 0,
         boostMultiplier: 1.35,
         boostCost: 20,
         damageReduction: 0,
@@ -933,6 +1442,351 @@
         healOnKill: 0,
         energyOnKill: 0
       };
+
+      const DIFFICULTY_SETTINGS = {
+        easy: { label: "Easy", enemyScale: 0.85, enemyDamage: 0.9, reward: 0.9 },
+        normal: { label: "Normal", enemyScale: 1, enemyDamage: 1, reward: 1 },
+        hard: { label: "Hard", enemyScale: 1.15, enemyDamage: 1.1, reward: 1.1 },
+        adaptive: { label: "Adaptive", enemyScale: 1, enemyDamage: 1, reward: 1 }
+      };
+
+      const ABILITIES = {
+        overdrive: {
+          id: "overdrive",
+          name: "Overdrive",
+          desc: "Boosts fire rate and damage for 6 seconds.",
+          cooldown: 16,
+          duration: 6,
+          onStart: (ship, state) => {
+            ship.damage *= 1.2;
+            ship.fireRate *= 1.3;
+            logEvent("Overdrive engaged. Weapons hot.");
+          },
+          onEnd: (ship) => {
+            ship.damage /= 1.2;
+            ship.fireRate /= 1.3;
+          }
+        },
+        barrier: {
+          id: "barrier",
+          name: "Barrier Field",
+          desc: "Reduces incoming damage and restores shields.",
+          cooldown: 18,
+          duration: 4,
+          onStart: (ship, state) => {
+            ship.damageReduction = Math.min(0.6, ship.damageReduction + 0.35);
+            ship.shield = Math.min(ship.maxShield, ship.shield + ship.maxShield * 0.35);
+            logEvent("Barrier field online.");
+          },
+          onEnd: (ship) => {
+            ship.damageReduction = Math.max(0, ship.damageReduction - 0.35);
+          }
+        },
+        blink: {
+          id: "blink",
+          name: "Blink Drive",
+          desc: "Short-range teleport in the aim direction.",
+          cooldown: 12,
+          duration: 0.6,
+          onStart: (ship, state) => {
+            const distance = 160;
+            ship.x += Math.cos(ship.angle) * distance;
+            ship.y += Math.sin(ship.angle) * distance;
+            ship.invulnerable = 0.5;
+            wrapEntity(ship);
+            spawnPulse(ship.x, ship.y, "#44d2c2");
+            logEvent("Blink drive executed.");
+          },
+          onEnd: () => {}
+        },
+        cloak: {
+          id: "cloak",
+          name: "Phase Cloak",
+          desc: "Scrambles enemy targeting for a short time.",
+          cooldown: 20,
+          duration: 6,
+          onStart: (ship, state) => {
+            state.enemyAccuracyMod = 0.75;
+            logEvent("Cloak active. Enemy accuracy reduced.");
+          },
+          onEnd: (ship, state) => {
+            state.enemyAccuracyMod = 1;
+          }
+        }
+      };
+
+      const SHIPS = [
+        {
+          id: "vanguard",
+          name: "Vanguard",
+          desc: "Balanced hull with steady energy throughput.",
+          passive: "+10% energy regen.",
+          unlock: { rank: 1 },
+          mods: { mult: { energyRegen: 1.1 } },
+          abilityId: "overdrive"
+        },
+        {
+          id: "warden",
+          name: "Warden",
+          desc: "Reinforced shield plating with a slower top speed.",
+          passive: "+40 shield, +20 hull, -10% speed.",
+          unlock: { rank: 3, credits: 240 },
+          mods: { add: { maxShield: 40, maxHealth: 20 }, mult: { maxSpeed: 0.9 } },
+          abilityId: "barrier"
+        },
+        {
+          id: "rift",
+          name: "Rift",
+          desc: "High-velocity interceptor with blink mobility.",
+          passive: "+20% speed, -10% hull.",
+          unlock: { rank: 4, credits: 320, blueprints: 2 },
+          mods: { mult: { maxSpeed: 1.2, accel: 1.2, maxHealth: 0.9 } },
+          abilityId: "blink"
+        },
+        {
+          id: "specter",
+          name: "Specter",
+          desc: "Stealth striker tuned for critical hits.",
+          passive: "+10% crit chance, -8% shield.",
+          unlock: { rank: 5, credits: 420, faction: { id: "nova", rep: 18 } },
+          mods: { add: { critChance: 0.1 }, mult: { maxShield: 0.92 } },
+          abilityId: "cloak"
+        }
+      ];
+
+      const WEAPONS = [
+        {
+          id: "pulse",
+          name: "Pulse Blaster",
+          desc: "Reliable bolts with steady energy costs.",
+          tags: ["Balanced", "Energy"],
+          unlock: { rank: 1 },
+          stats: { damage: 12, fireRate: 4, energyCost: 16, bulletSpeed: 520, projectiles: 1, spread: 0.14 },
+          upgrades: [
+            { name: "Phase Capacitors", cost: 120, desc: "+3 damage.", apply: (stats) => { stats.damage += 3; } },
+            { name: "Accelerated Coils", cost: 180, desc: "+15% fire rate.", apply: (stats) => { stats.fireRate *= 1.15; } },
+            { name: "Twin Emitters", cost: 260, desc: "+1 projectile, +spread.", apply: (stats) => { stats.projectiles += 1; stats.spread += 0.06; } }
+          ]
+        },
+        {
+          id: "rail",
+          name: "Rail Lance",
+          desc: "High-velocity slugs for precision bursts.",
+          tags: ["Precision", "High Damage"],
+          unlock: { rank: 3, credits: 180 },
+          stats: { damage: 26, fireRate: 1.7, energyCost: 24, bulletSpeed: 720, projectiles: 1, spread: 0.05 },
+          upgrades: [
+            { name: "Mag-Rail Focus", cost: 150, desc: "+20% bullet speed.", apply: (stats) => { stats.bulletSpeed *= 1.2; } },
+            { name: "Recoil Dampers", cost: 210, desc: "+10% fire rate, -spread.", apply: (stats) => { stats.fireRate *= 1.1; stats.spread = Math.max(0.02, stats.spread - 0.02); } },
+            { name: "Piercing Core", cost: 300, desc: "Shots pierce one target.", apply: (stats) => { stats.pierce += 1; } }
+          ]
+        },
+        {
+          id: "scatter",
+          name: "Scattershot",
+          desc: "Wide cone for close-range pressure.",
+          tags: ["Spread", "Close"],
+          unlock: { rank: 2, credits: 140 },
+          stats: { damage: 7, fireRate: 3.2, energyCost: 20, bulletSpeed: 460, projectiles: 4, spread: 0.3 },
+          upgrades: [
+            { name: "Refined Chokes", cost: 130, desc: "-spread, +projectile speed.", apply: (stats) => { stats.spread = Math.max(0.18, stats.spread - 0.08); stats.bulletSpeed *= 1.08; } },
+            { name: "Burst Loader", cost: 200, desc: "+1 projectile.", apply: (stats) => { stats.projectiles += 1; } },
+            { name: "Overpressure Cells", cost: 280, desc: "+15% damage.", apply: (stats) => { stats.damage *= 1.15; } }
+          ]
+        },
+        {
+          id: "plasma",
+          name: "Plasma Burst",
+          desc: "Slow shots with splash damage.",
+          tags: ["Splash", "Area"],
+          unlock: { rank: 4, credits: 220 },
+          stats: { damage: 18, fireRate: 2.2, energyCost: 22, bulletSpeed: 440, projectiles: 1, spread: 0.12, splashRadius: 26 },
+          upgrades: [
+            { name: "Volatile Mix", cost: 170, desc: "+30% splash radius.", apply: (stats) => { stats.splashRadius *= 1.3; } },
+            { name: "Pressure Injectors", cost: 240, desc: "+15% damage.", apply: (stats) => { stats.damage *= 1.15; } },
+            { name: "Thermal Focus", cost: 320, desc: "+10% fire rate.", apply: (stats) => { stats.fireRate *= 1.1; } }
+          ]
+        },
+        {
+          id: "ion",
+          name: "Ion Stream",
+          desc: "Rapid fire that slows targets.",
+          tags: ["Rapid", "Debuff"],
+          unlock: { rank: 5, credits: 260, faction: { id: "nova", rep: 12 } },
+          stats: { damage: 6, fireRate: 7.5, energyCost: 11, bulletSpeed: 420, projectiles: 1, spread: 0.16, slowChance: 0.25, slowDuration: 1.1 },
+          upgrades: [
+            { name: "Stasis Filament", cost: 150, desc: "+10% slow chance.", apply: (stats) => { stats.slowChance += 0.1; } },
+            { name: "Ion Conduits", cost: 220, desc: "-10% energy cost.", apply: (stats) => { stats.energyCost *= 0.9; } },
+            { name: "Rapid Cycling", cost: 300, desc: "+15% fire rate.", apply: (stats) => { stats.fireRate *= 1.15; } }
+          ]
+        }
+      ];
+
+      const SECONDARIES = [
+        {
+          id: "emp",
+          name: "EMP Pulse",
+          desc: "Disables enemies in a radius.",
+          cooldown: 18,
+          unlock: { rank: 2 },
+          activate: (ship, state) => {
+            const radius = 160;
+            enemies.forEach((enemy) => {
+              if (distanceBetween(ship, enemy) <= radius) {
+                enemy.slowTimer = Math.max(enemy.slowTimer, 2.2);
+                enemy.fireCooldown = Math.max(enemy.fireCooldown, 2);
+              }
+            });
+            spawnPulse(ship.x, ship.y, "#57e0ff", radius);
+            logEvent("EMP pulse detonated.");
+          }
+        },
+        {
+          id: "decoy",
+          name: "Decoy Drone",
+          desc: "Deploys a decoy that draws fire.",
+          cooldown: 22,
+          unlock: { rank: 3, credits: 160 },
+          activate: (ship, state) => {
+            state.decoy = {
+              x: ship.x + Math.cos(ship.angle) * 40,
+              y: ship.y + Math.sin(ship.angle) * 40,
+              timer: 6
+            };
+            spawnPulse(state.decoy.x, state.decoy.y, "#f6c65f", 60);
+            logEvent("Decoy drone deployed.");
+          }
+        },
+        {
+          id: "mine",
+          name: "Mine Layer",
+          desc: "Drops proximity mines behind you.",
+          cooldown: 16,
+          unlock: { rank: 4, credits: 200 },
+          activate: (ship, state) => {
+            state.mines.push({
+              x: ship.x - Math.cos(ship.angle) * 40,
+              y: ship.y - Math.sin(ship.angle) * 40,
+              radius: 18,
+              timer: 8
+            });
+            logEvent("Mine deployed.");
+          }
+        },
+        {
+          id: "repair",
+          name: "Repair Burst",
+          desc: "Restores hull and shield instantly.",
+          cooldown: 20,
+          unlock: { rank: 2, credits: 140 },
+          activate: (ship, state) => {
+            ship.health = Math.min(ship.maxHealth, ship.health + ship.maxHealth * 0.25);
+            ship.shield = Math.min(ship.maxShield, ship.shield + ship.maxShield * 0.3);
+            spawnPulse(ship.x, ship.y, "#6ee7b7", 120);
+            logEvent("Repair burst triggered.");
+          }
+        }
+      ];
+
+      const PART_RARITIES = {
+        common: { label: "Common", mult: 1 },
+        uncommon: { label: "Uncommon", mult: 1.2 },
+        rare: { label: "Rare", mult: 1.4 },
+        epic: { label: "Epic", mult: 1.7 }
+      };
+
+      const PART_SLOTS = ["barrel", "core", "targeting", "thruster"];
+
+      const PART_TEMPLATES = {
+        barrel: { name: "Barrel", stats: { damage: [2, 6], bulletSpeed: [20, 60] } },
+        core: { name: "Core", stats: { fireRate: [0.3, 0.9], energyCost: [-2, -0.5] } },
+        targeting: { name: "Targeting", stats: { critChance: [0.02, 0.06], spread: [-0.05, -0.02] } },
+        thruster: { name: "Thruster", stats: { maxSpeed: [8, 22], accel: [18, 50] } }
+      };
+
+      const FACTIONS = [
+        { id: "nova", name: "Nova Forge", desc: "Weapons research guild." },
+        { id: "aegis", name: "Aegis Union", desc: "Defensive fleet coalition." },
+        { id: "vortex", name: "Vortex Syndicate", desc: "Speed and mobility cartel." }
+      ];
+
+      const SECTOR_MODIFIERS = [
+        {
+          id: "nebula",
+          name: "Nebula Drift",
+          desc: "Weapon spread +20%, energy regen -10%.",
+          player: { spreadMult: 1.2, energyRegen: 0.9 },
+          enemy: { fireRate: 0.95 }
+        },
+        {
+          id: "meteor",
+          name: "Meteor Wake",
+          desc: "Speed -10%, enemy speed +10%.",
+          player: { speed: 0.9 },
+          enemy: { speed: 1.1 }
+        },
+        {
+          id: "flare",
+          name: "Solar Flare",
+          desc: "Shield regen -20%, enemy fire rate -10%.",
+          player: { shieldRegen: 0.8 },
+          enemy: { fireRate: 0.9 }
+        },
+        {
+          id: "surge",
+          name: "Power Surge",
+          desc: "Energy regen +15%, energy costs +10%.",
+          player: { energyRegen: 1.15, energyCost: 1.1 },
+          enemy: { damage: 1 }
+        }
+      ];
+
+      const CONTRACT_DEFS = [
+        {
+          id: "elimination",
+          title: "Elimination Order",
+          desc: "Destroy 12 hostile ships.",
+          target: 12,
+          type: "kills",
+          reward: { credits: 120, xp: 50, rep: 6 }
+        },
+        {
+          id: "ace",
+          title: "Ace Intercept",
+          desc: "Defeat an elite or boss.",
+          target: 1,
+          type: "elite",
+          reward: { credits: 160, xp: 70, rep: 8 }
+        },
+        {
+          id: "flawless",
+          title: "Flawless Drift",
+          desc: "Avoid hull damage for 40 seconds.",
+          target: 40,
+          type: "noDamage",
+          reward: { credits: 140, xp: 60, rep: 7 }
+        }
+      ];
+
+      const SALVAGE_CACHE = {
+        name: "Vortex Salvage Cache",
+        pityThreshold: 4,
+        rareIds: ["part-rare", "part-epic"],
+        table: [
+          { id: "credits-small", label: "Credit Payout", weight: 34, roll: () => ({ type: "credits", amount: randInt(120, 200) }) },
+          { id: "credits-jackpot", label: "Credit Jackpot", weight: 14, roll: () => ({ type: "credits", amount: randInt(260, 420) }) },
+          { id: "blueprints", label: "Blueprint Cache", weight: 16, roll: () => ({ type: "blueprints", amount: randInt(1, 2) }) },
+          { id: "part-uncommon", label: "Enhanced Part", weight: 18, roll: () => ({ type: "part", part: generatePart("uncommon") }) },
+          { id: "part-rare", label: "Rare Part", weight: 10, roll: () => ({ type: "part", part: generatePart("rare") }) },
+          { id: "part-epic", label: "Epic Part", weight: 6, roll: () => ({ type: "part", part: generatePart("epic") }) }
+        ]
+      };
+
+      const ELITE_MODS = [
+        { id: "shielded", name: "Shielded", color: "#7ca8ff", mods: { maxShield: 0.6 } },
+        { id: "agile", name: "Agile", color: "#6ee7b7", mods: { speed: 1.2, accel: 1.2 } },
+        { id: "berserk", name: "Berserk", color: "#f48b7f", mods: { damage: 1.25, fireRate: 1.2 } }
+      ];
 
       const HANGAR_UPGRADES = [
         {
@@ -1187,11 +2041,30 @@
         color: "#7ca8ff"
       };
 
+      const BOSS_TYPE = {
+        id: "dreadnought",
+        name: "Dreadnought",
+        health: 380,
+        shield: 140,
+        speed: 150,
+        accel: 220,
+        fireRate: 0.9,
+        bulletSpeed: 320,
+        damage: 20,
+        radius: 26,
+        credits: 220,
+        score: 620,
+        color: "#b98cff",
+        pattern: "spread"
+      };
+
       let progress = loadProgress();
+      syncProgressSelections();
       let player = null;
       let enemies = [];
       let bullets = [];
       let particles = [];
+      let pulses = [];
       let stars = [];
       let backgroundGradient = null;
 
@@ -1201,8 +2074,15 @@
         setupTabs();
         setupCanvas();
         attachEvents();
+        applySettingsFromProgress();
+        checkProgressionUnlocks();
         player = createPlayer();
         renderHangar();
+        renderShipyard();
+        renderArmory();
+        renderContracts();
+        renderSettings();
+        renderHistory();
         setOverlay("start");
         logEvent("Hangar systems online. Launch when ready.");
         state.lastTime = performance.now();
@@ -1240,7 +2120,7 @@
         backgroundGradient.addColorStop(0, "rgba(68, 210, 194, 0.15)");
         backgroundGradient.addColorStop(0.45, "rgba(16, 28, 46, 0.9)");
         backgroundGradient.addColorStop(1, "rgba(5, 8, 14, 1)");
-        stars = createStars(140);
+        stars = createStars(getParticleCount(140));
       }
 
       function attachEvents() {
@@ -1249,9 +2129,19 @@
           if (!action) return;
           const actionName = action.dataset.action;
           if (actionName === "launch") startMission();
+          if (actionName === "training") startTraining();
           if (actionName === "pause") togglePause();
           if (actionName === "reset") resetMission();
         });
+
+        if (dom.tips) {
+          dom.tips.addEventListener("click", (event) => {
+            const card = event.target.closest("[data-tip-id]");
+            if (card) {
+              card.remove();
+            }
+          });
+        }
 
         dom.overlay.addEventListener("click", (event) => {
           const overlayAction = event.target.closest("[data-overlay-action]");
@@ -1272,6 +2162,10 @@
         });
 
         dom.hangar.addEventListener("click", (event) => {
+          if (!isFeatureUnlocked("hangar")) {
+            showTip("locked-hangar", "Hangar locked", getFeatureHint("hangar"));
+            return;
+          }
           const button = event.target.closest("[data-hangar-id]");
           if (!button) return;
           const upgrade = HANGAR_UPGRADES.find((item) => item.id === button.dataset.hangarId);
@@ -1287,6 +2181,164 @@
           } else {
             player = createPlayer();
           }
+        });
+
+        dom.shipyard.addEventListener("click", (event) => {
+          if (!isFeatureUnlocked("shipyard")) {
+            showTip("locked-shipyard", "Shipyard locked", getFeatureHint("shipyard"));
+            return;
+          }
+          const button = event.target.closest("[data-ship-id]");
+          if (!button) return;
+          const ship = SHIPS.find((item) => item.id === button.dataset.shipId);
+          if (!ship) return;
+          const unlocked = !!progress.shipUnlocks[ship.id];
+          if (!unlocked) {
+            if (!unlockItem(ship, progress.shipUnlocks)) return;
+            logEvent(`Ship unlocked: ${ship.name}.`);
+          }
+          if (progress.selectedShip !== ship.id) {
+            progress.selectedShip = ship.id;
+            applyLoadoutChange("Ship selection updated. Applies next sortie.");
+          } else {
+            saveProgress();
+            renderShipyard();
+          }
+        });
+
+        dom.weapons.addEventListener("click", (event) => {
+          if (!isFeatureUnlocked("armory")) {
+            showTip("locked-armory", "Armory locked", getFeatureHint("armory"));
+            return;
+          }
+          const button = event.target.closest("[data-weapon-id]");
+          if (!button) return;
+          const weapon = WEAPONS.find((item) => item.id === button.dataset.weaponId);
+          if (!weapon) return;
+          const unlocked = !!progress.weaponUnlocks[weapon.id];
+          if (!unlocked) {
+            if (!unlockItem(weapon, progress.weaponUnlocks)) return;
+            logEvent(`Weapon unlocked: ${weapon.name}.`);
+          }
+          if (progress.selectedWeapon !== weapon.id) {
+            progress.selectedWeapon = weapon.id;
+            applyLoadoutChange("Weapon selection updated. Applies next sortie.");
+          } else {
+            saveProgress();
+            renderArmory();
+          }
+        });
+
+        dom.weaponUpgrades.addEventListener("click", (event) => {
+          if (!isFeatureUnlocked("weaponUpgrades")) {
+            showTip("locked-weapon-upgrades", "Weapon upgrades locked", getFeatureHint("weaponUpgrades"));
+            return;
+          }
+          const button = event.target.closest("[data-weapon-upgrade]");
+          if (!button) return;
+          const weapon = getWeaponById(progress.selectedWeapon);
+          const index = Number(button.dataset.weaponUpgrade);
+          const level = progress.weaponLevels[weapon.id] || 0;
+          if (!weapon.upgrades || index !== level) return;
+          const upgrade = weapon.upgrades[index];
+          if (!upgrade || progress.bankedCredits < upgrade.cost) return;
+          progress.bankedCredits -= upgrade.cost;
+          progress.weaponLevels[weapon.id] = level + 1;
+          applyLoadoutChange("Weapon upgrade installed. Applies next sortie.");
+          logEvent(`Upgrade installed: ${upgrade.name}.`);
+        });
+
+        dom.secondaries.addEventListener("click", (event) => {
+          if (!isFeatureUnlocked("armory")) {
+            showTip("locked-armory-secondary", "Secondary bay locked", getFeatureHint("armory"));
+            return;
+          }
+          const button = event.target.closest("[data-secondary-id]");
+          if (!button) return;
+          const secondary = SECONDARIES.find((item) => item.id === button.dataset.secondaryId);
+          if (!secondary) return;
+          const unlocked = !!progress.secondaryUnlocks[secondary.id];
+          if (!unlocked) {
+            if (!unlockItem(secondary, progress.secondaryUnlocks)) return;
+            logEvent(`Secondary unlocked: ${secondary.name}.`);
+          }
+          if (progress.selectedSecondary !== secondary.id) {
+            progress.selectedSecondary = secondary.id;
+            applyLoadoutChange("Secondary selection updated. Applies next sortie.");
+          } else {
+            saveProgress();
+            renderArmory();
+          }
+        });
+
+        dom.partsSlots.addEventListener("click", (event) => {
+          if (!isFeatureUnlocked("parts")) {
+            showTip("locked-parts", "Parts bay locked", getFeatureHint("parts"));
+            return;
+          }
+          const button = event.target.closest("[data-part-slot]");
+          if (!button) return;
+          const slot = button.dataset.partSlot;
+          if (!progress.equippedParts[slot]) return;
+          progress.equippedParts[slot] = null;
+          applyLoadoutChange("Part unequipped. Applies next sortie.");
+        });
+
+        dom.partsInventory.addEventListener("click", (event) => {
+          if (!isFeatureUnlocked("parts")) {
+            showTip("locked-parts-inventory", "Parts bay locked", getFeatureHint("parts"));
+            return;
+          }
+          const button = event.target.closest("[data-part-id]");
+          if (!button) return;
+          const part = progress.partsInventory.find((item) => item.id === button.dataset.partId);
+          if (!part) return;
+          const slot = part.slot;
+          if (!slot) return;
+          progress.equippedParts[slot] = part.id;
+          applyLoadoutChange("Part equipped. Applies next sortie.");
+        });
+
+        dom.salvage.addEventListener("click", (event) => {
+          if (!isFeatureUnlocked("salvage")) {
+            showTip("locked-salvage", "Salvage cache locked", getFeatureHint("salvage"));
+            return;
+          }
+          const button = event.target.closest("[data-salvage-action='open']");
+          if (!button) return;
+          openSalvageCache();
+        });
+
+        dom.keybinds.addEventListener("click", (event) => {
+          const button = event.target.closest("[data-bind]");
+          if (!button) return;
+          input.capture = button.dataset.bind;
+          renderKeybinds();
+        });
+
+        document.addEventListener("click", (event) => {
+          const optionBtn = event.target.closest(".option-btn");
+          if (!optionBtn) return;
+          const group = optionBtn.closest("[data-setting]");
+          if (!group) return;
+          const setting = group.dataset.setting;
+          const option = optionBtn.dataset.option;
+          if (!option) return;
+          if (setting === "difficulty") {
+            progress.settings.difficulty = option;
+          } else if (setting === "input-mode") {
+            progress.settings.inputMode = option;
+          } else if (setting === "particles") {
+            progress.settings.particles = option;
+          } else if (setting === "hit-flash") {
+            progress.settings.hitFlash = option === "on";
+          }
+          saveProgress();
+          applySettingsFromProgress();
+          renderSettings();
+          renderShipyard();
+          renderArmory();
+          logEvent(`Settings updated: ${setting.replace("-", " ")}.`);
         });
 
         dom.canvas.addEventListener("pointermove", (event) => {
@@ -1306,11 +2358,30 @@
         });
 
         window.addEventListener("keydown", (event) => {
-          const key = event.key.toLowerCase();
-          if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(key) || event.code === "Space") {
+          const key = normalizeKey(event);
+          if (!key) return;
+          if (input.capture) {
+            event.preventDefault();
+            if (key === "escape") {
+              input.capture = null;
+              renderKeybinds();
+              return;
+            }
+            if (!isBindableKey(key)) {
+              logEvent("Key not supported for binding.");
+              return;
+            }
+            progress.keybinds[input.capture] = key;
+            input.capture = null;
+            saveProgress();
+            renderSettings();
+            logEvent("Keybind updated.");
+            return;
+          }
+          if (key === " " || key.startsWith("arrow")) {
             event.preventDefault();
           }
-          if (key === "p") {
+          if (key === (progress.keybinds.pause || "p")) {
             togglePause();
             return;
           }
@@ -1318,23 +2389,20 @@
             resetMission();
             return;
           }
-          if (event.code === "Space") {
-            input.firing = true;
-          }
-          if (key === "shift") {
-            input.boost = true;
+          if (!event.repeat) {
+            if (key === progress.keybinds.ability) {
+              activateAbility();
+            }
+            if (key === progress.keybinds.secondary) {
+              activateSecondary();
+            }
           }
           input.keys.add(key);
         });
 
         window.addEventListener("keyup", (event) => {
-          const key = event.key.toLowerCase();
-          if (event.code === "Space") {
-            input.firing = false;
-          }
-          if (key === "shift") {
-            input.boost = false;
-          }
+          const key = normalizeKey(event);
+          if (!key) return;
           input.keys.delete(key);
         });
 
@@ -1413,6 +2481,68 @@
           techPoints: 0,
           bestWave: 1,
           totalKills: 0,
+          bankedCredits: 0,
+          blueprints: 0,
+          salvageKeys: 0,
+          salvagePity: 0,
+          salvageHistory: [],
+          featureUnlocks: {
+            upgrades: false,
+            ability: false,
+            secondary: false,
+            hangar: false,
+            armory: false,
+            weaponUpgrades: false,
+            parts: false,
+            shipyard: false,
+            contracts: false,
+            salvage: false
+          },
+          onboarding: {
+            flightSeconds: 0
+          },
+          tipsSeen: {},
+          selectedShip: "vanguard",
+          selectedWeapon: "pulse",
+          selectedSecondary: "emp",
+          shipUnlocks: { vanguard: true },
+          weaponUnlocks: { pulse: true },
+          secondaryUnlocks: { emp: true },
+          weaponLevels: {},
+          partsInventory: [],
+          equippedParts: {
+            barrel: null,
+            core: null,
+            targeting: null,
+            thruster: null
+          },
+          factions: {
+            nova: 0,
+            aegis: 0,
+            vortex: 0
+          },
+          settings: {
+            difficulty: "normal",
+            inputMode: "hybrid",
+            particles: "medium",
+            hitFlash: true
+          },
+          keybinds: {
+            forward: "w",
+            back: "s",
+            left: "a",
+            right: "d",
+            aimUp: "i",
+            aimDown: "k",
+            aimLeft: "j",
+            aimRight: "l",
+            fire: " ",
+            boost: "shift",
+            ability: "e",
+            secondary: "q",
+            pause: "p"
+          },
+          runHistory: [],
           hangar: {
             hull: 0,
             reactor: 0,
@@ -1430,6 +2560,52 @@
             hangar: {
               ...fallback.hangar,
               ...(stored.hangar || {})
+            },
+            shipUnlocks: {
+              ...fallback.shipUnlocks,
+              ...(stored.shipUnlocks || {})
+            },
+            weaponUnlocks: {
+              ...fallback.weaponUnlocks,
+              ...(stored.weaponUnlocks || {})
+            },
+            secondaryUnlocks: {
+              ...fallback.secondaryUnlocks,
+              ...(stored.secondaryUnlocks || {})
+            },
+            weaponLevels: {
+              ...fallback.weaponLevels,
+              ...(stored.weaponLevels || {})
+            },
+            equippedParts: {
+              ...fallback.equippedParts,
+              ...(stored.equippedParts || {})
+            },
+            factions: {
+              ...fallback.factions,
+              ...(stored.factions || {})
+            },
+            settings: {
+              ...fallback.settings,
+              ...(stored.settings || {})
+            },
+            keybinds: {
+              ...fallback.keybinds,
+              ...(stored.keybinds || {})
+            },
+            runHistory: Array.isArray(stored.runHistory) ? stored.runHistory.slice(0, 8) : fallback.runHistory,
+            salvageHistory: Array.isArray(stored.salvageHistory) ? stored.salvageHistory.slice(0, 6) : fallback.salvageHistory,
+            featureUnlocks: {
+              ...fallback.featureUnlocks,
+              ...(stored.featureUnlocks || {})
+            },
+            onboarding: {
+              ...fallback.onboarding,
+              ...(stored.onboarding || {})
+            },
+            tipsSeen: {
+              ...fallback.tipsSeen,
+              ...(stored.tipsSeen || {})
             }
           };
         } catch (error) {
@@ -1445,19 +2621,292 @@
         }
       }
 
+      function syncProgressSelections() {
+        const shipIds = SHIPS.map((ship) => ship.id);
+        if (!shipIds.includes(progress.selectedShip)) {
+          progress.selectedShip = SHIPS[0].id;
+        }
+        if (!progress.shipUnlocks[progress.selectedShip]) {
+          const unlockedShip = SHIPS.find((ship) => progress.shipUnlocks[ship.id]);
+          progress.selectedShip = unlockedShip ? unlockedShip.id : SHIPS[0].id;
+          progress.shipUnlocks[progress.selectedShip] = true;
+        }
+
+        const weaponIds = WEAPONS.map((weapon) => weapon.id);
+        if (!weaponIds.includes(progress.selectedWeapon)) {
+          progress.selectedWeapon = WEAPONS[0].id;
+        }
+        if (!progress.weaponUnlocks[progress.selectedWeapon]) {
+          const unlockedWeapon = WEAPONS.find((weapon) => progress.weaponUnlocks[weapon.id]);
+          progress.selectedWeapon = unlockedWeapon ? unlockedWeapon.id : WEAPONS[0].id;
+          progress.weaponUnlocks[progress.selectedWeapon] = true;
+        }
+
+        const secondaryIds = SECONDARIES.map((secondary) => secondary.id);
+        if (!secondaryIds.includes(progress.selectedSecondary)) {
+          progress.selectedSecondary = SECONDARIES[0].id;
+        }
+        if (!progress.secondaryUnlocks[progress.selectedSecondary]) {
+          const unlockedSecondary = SECONDARIES.find((secondary) => progress.secondaryUnlocks[secondary.id]);
+          progress.selectedSecondary = unlockedSecondary ? unlockedSecondary.id : SECONDARIES[0].id;
+          progress.secondaryUnlocks[progress.selectedSecondary] = true;
+        }
+
+        PART_SLOTS.forEach((slot) => {
+          const equippedId = progress.equippedParts[slot];
+          if (!equippedId) return;
+          const hasPart = progress.partsInventory.some((part) => part.id === equippedId);
+          if (!hasPart) {
+            progress.equippedParts[slot] = null;
+          }
+        });
+      }
+
+      function applySettingsFromProgress() {
+        state.difficulty = progress.settings.difficulty || "normal";
+        input.aimMode = progress.settings.inputMode || "hybrid";
+        if (input.aimMode === "keyboard") {
+          input.aimSource = "keyboard";
+        } else {
+          input.aimSource = "mouse";
+        }
+        updateParticleSettings();
+      }
+
+      function isFeatureUnlocked(feature) {
+        return !!(progress.featureUnlocks && progress.featureUnlocks[feature]);
+      }
+
+      function getFeatureHint(feature) {
+        const hints = {
+          upgrades: "Unlocks after your first wave clear.",
+          ability: "Unlocks after a few waves of combat.",
+          secondary: "Unlocks after mastering abilities.",
+          hangar: "Unlocks at Rank 2.",
+          armory: "Unlocks at Rank 3.",
+          weaponUpgrades: "Unlocks at Rank 4.",
+          parts: "Unlocks after earning parts or Rank 4.",
+          shipyard: "Unlocks at Rank 4.",
+          contracts: "Unlocks after reaching Wave 3.",
+          salvage: "Unlocks after recovering salvage keys."
+        };
+        return hints[feature] || "Unlocks later in the campaign.";
+      }
+
+      function getFeatureTip(feature) {
+        const abilityKey = formatKeybind(progress.keybinds.ability);
+        const secondaryKey = formatKeybind(progress.keybinds.secondary);
+        const tips = {
+          upgrades: {
+            title: "Field upgrades unlocked",
+            message: "After each wave, choose a permanent upgrade for the run."
+          },
+          ability: {
+            title: "Ability systems online",
+            message: `Activate your ship ability with ${abilityKey}.`
+          },
+          secondary: {
+            title: "Secondary system unlocked",
+            message: `Deploy secondary gear with ${secondaryKey}.`
+          },
+          hangar: {
+            title: "Hangar upgrades online",
+            message: "Spend tech points in the Upgrades tab between runs."
+          },
+          armory: {
+            title: "Armory unlocked",
+            message: "Swap weapons and secondaries in the Armory tab."
+          },
+          weaponUpgrades: {
+            title: "Weapon upgrades unlocked",
+            message: "Spend banked credits to enhance your primary weapon."
+          },
+          parts: {
+            title: "Parts bay unlocked",
+            message: "Equip recovered parts in the Armory > Parts section."
+          },
+          shipyard: {
+            title: "Shipyard unlocked",
+            message: "Unlock new ships and abilities in the Shipyard tab."
+          },
+          contracts: {
+            title: "Contracts unlocked",
+            message: "Pick bonus objectives in the Contracts tab for extra rewards."
+          },
+          salvage: {
+            title: "Salvage cache unlocked",
+            message: "Open caches in the Armory using salvage keys."
+          }
+        };
+        return tips[feature] || null;
+      }
+
+      function showTip(id, title, message) {
+        if (!dom.tips || !title || !message) return;
+        progress.tipsSeen = progress.tipsSeen || {};
+        if (progress.tipsSeen[id]) return;
+        progress.tipsSeen[id] = true;
+        saveProgress();
+        const card = document.createElement("div");
+        card.className = "tip-card";
+        card.dataset.tipId = id;
+        card.innerHTML = `<strong>${title}</strong><span>${message}</span>`;
+        dom.tips.prepend(card);
+        while (dom.tips.children.length > 3) {
+          dom.tips.removeChild(dom.tips.lastChild);
+        }
+        setTimeout(() => {
+          if (card.parentElement) {
+            card.remove();
+          }
+        }, 9000);
+      }
+
+      function unlockFeature(feature) {
+        progress.featureUnlocks = progress.featureUnlocks || {};
+        if (isFeatureUnlocked(feature)) return false;
+        progress.featureUnlocks[feature] = true;
+        const tip = getFeatureTip(feature);
+        if (tip) {
+          showTip(`unlock-${feature}`, tip.title, tip.message);
+          logEvent(tip.title);
+        }
+        saveProgress();
+        renderHangar();
+        renderShipyard();
+        renderArmory();
+        renderContracts();
+        renderSettings();
+        return true;
+      }
+
+      function checkProgressionUnlocks() {
+        const flightSeconds = progress.onboarding?.flightSeconds || 0;
+        const waveProgress = Math.max(progress.bestWave || 1, state.wave || 1);
+
+        if (!isFeatureUnlocked("upgrades") && (flightSeconds >= 45 || waveProgress >= 2)) {
+          unlockFeature("upgrades");
+        }
+        if (isFeatureUnlocked("upgrades") && !isFeatureUnlocked("ability")
+          && (flightSeconds >= 90 || waveProgress >= 3 || progress.rank >= 2)) {
+          unlockFeature("ability");
+        }
+        if (isFeatureUnlocked("ability") && !isFeatureUnlocked("secondary")
+          && (flightSeconds >= 140 || waveProgress >= 4 || progress.rank >= 3)) {
+          unlockFeature("secondary");
+        }
+        if (!isFeatureUnlocked("hangar") && progress.rank >= 2) {
+          unlockFeature("hangar");
+        }
+        if (isFeatureUnlocked("hangar") && !isFeatureUnlocked("armory") && progress.rank >= 3) {
+          unlockFeature("armory");
+        }
+        if (isFeatureUnlocked("armory") && !isFeatureUnlocked("weaponUpgrades") && progress.rank >= 4) {
+          unlockFeature("weaponUpgrades");
+        }
+        if (isFeatureUnlocked("armory") && !isFeatureUnlocked("parts")
+          && (progress.rank >= 4 || (progress.partsInventory || []).length > 0)) {
+          unlockFeature("parts");
+        }
+        if (!isFeatureUnlocked("shipyard") && (progress.rank >= 4 || progress.blueprints >= 1)) {
+          unlockFeature("shipyard");
+        }
+        if (!isFeatureUnlocked("contracts") && (progress.bestWave >= 3 || progress.runHistory.length > 0)) {
+          unlockFeature("contracts");
+        }
+        if (isFeatureUnlocked("armory") && !isFeatureUnlocked("salvage")
+          && ((progress.salvageKeys || 0) >= 1 || progress.totalKills >= 12)) {
+          unlockFeature("salvage");
+        }
+      }
+
+      function updateParticleSettings() {
+        if (!state.width || !state.height) return;
+        stars = createStars(getParticleCount(140));
+      }
+
+      function getParticleScale() {
+        const setting = progress.settings.particles || "medium";
+        if (setting === "low") return 0.6;
+        if (setting === "high") return 1.4;
+        return 1;
+      }
+
+      function getParticleCount(base) {
+        return Math.max(1, Math.round(base * getParticleScale()));
+      }
+
+      function getShipById(id) {
+        return SHIPS.find((ship) => ship.id === id) || SHIPS[0];
+      }
+
+      function getWeaponById(id) {
+        return WEAPONS.find((weapon) => weapon.id === id) || WEAPONS[0];
+      }
+
+      function getSecondaryById(id) {
+        return SECONDARIES.find((secondary) => secondary.id === id) || SECONDARIES[0];
+      }
+
+      function applyMods(stats, mods) {
+        if (!mods) return;
+        const add = mods.add || {};
+        const mult = mods.mult || {};
+        Object.keys(add).forEach((key) => {
+          stats[key] = (stats[key] || 0) + add[key];
+        });
+        Object.keys(mult).forEach((key) => {
+          stats[key] = (stats[key] || 0) * mult[key];
+        });
+      }
+
+      function getEquippedParts() {
+        return PART_SLOTS.map((slot) => {
+          const id = progress.equippedParts[slot];
+          return progress.partsInventory.find((part) => part.id === id) || null;
+        }).filter(Boolean);
+      }
+
+      function applyPartStats(stats, part) {
+        if (!part || !part.stats) return;
+        Object.keys(part.stats).forEach((key) => {
+          stats[key] = (stats[key] || 0) + part.stats[key];
+        });
+      }
+
+      function applyWeaponUpgrades(stats, weapon) {
+        const level = progress.weaponLevels[weapon.id] || 0;
+        const upgrades = weapon.upgrades || [];
+        upgrades.slice(0, level).forEach((upgrade) => {
+          if (upgrade.apply) upgrade.apply(stats);
+        });
+      }
+
       function buildBaseStats() {
         const stats = { ...BASE_PLAYER };
+        const ship = getShipById(progress.selectedShip);
+        const weapon = getWeaponById(progress.selectedWeapon);
+        const secondary = getSecondaryById(progress.selectedSecondary);
+        applyMods(stats, ship.mods);
         HANGAR_UPGRADES.forEach((upgrade) => {
           const level = progress.hangar[upgrade.id] || 0;
           upgrade.apply(stats, level);
         });
+        Object.assign(stats, weapon.stats);
+        applyWeaponUpgrades(stats, weapon);
+        getEquippedParts().forEach((part) => applyPartStats(stats, part));
+        stats.ship = ship;
+        stats.weapon = weapon;
+        stats.secondary = secondary;
         return stats;
       }
 
       function createPlayer() {
         const base = buildBaseStats();
+        const ability = ABILITIES[base.ship.abilityId];
         return {
           ...base,
+          ability,
           x: state.width * 0.5,
           y: state.height * 0.5,
           vx: 0,
@@ -1469,7 +2918,11 @@
           radius: 14,
           shieldCooldown: 0,
           fireCooldown: 0,
-          hitFlash: 0
+          hitFlash: 0,
+          abilityTimer: 0,
+          abilityCooldown: 0,
+          secondaryCooldown: 0,
+          invulnerable: 0
         };
       }
 
@@ -1483,25 +2936,132 @@
         }));
       }
 
+      function rollSectorModifier() {
+        return pick(SECTOR_MODIFIERS);
+      }
+
+      function updateSector() {
+        const nextSector = Math.max(1, Math.ceil(state.wave / 3));
+        if (nextSector !== state.sector) {
+          state.sector = nextSector;
+          state.sectorMod = rollSectorModifier();
+          if (state.sectorMod) {
+            logEvent(`Sector ${state.sector.toString().padStart(2, "0")} anomaly: ${state.sectorMod.name}.`);
+          }
+        }
+      }
+
+      function rollContracts() {
+        if (state.training || !isFeatureUnlocked("contracts")) return [];
+        const pool = shuffle([...CONTRACT_DEFS]);
+        const count = 2 + Math.round(Math.random());
+        return pool.slice(0, count).map((contract) => ({
+          ...contract,
+          progress: 0,
+          complete: false,
+          factionId: pick(FACTIONS).id
+        }));
+      }
+
+      function getDifficultySettings() {
+        const base = DIFFICULTY_SETTINGS[state.difficulty] || DIFFICULTY_SETTINGS.normal;
+        if (state.difficulty !== "adaptive" || !player) {
+          return base;
+        }
+        const healthRatio = player.health / player.maxHealth;
+        const performance = clamp((healthRatio - 0.5) * 0.4, -0.1, 0.15);
+        return {
+          ...base,
+          enemyScale: base.enemyScale + performance,
+          enemyDamage: base.enemyDamage + performance * 0.6,
+          reward: base.reward + performance * 0.3
+        };
+      }
+
       function startMission() {
         if (state.mode !== "hangar" && state.mode !== "gameover") return;
+        applySettingsFromProgress();
+        input.keys.clear();
+        input.firing = false;
+        checkProgressionUnlocks();
         player = createPlayer();
         enemies = [];
         bullets = [];
         particles = [];
+        state.mines = [];
+        state.decoy = null;
+        state.enemyAccuracyMod = 1;
         state.upgradeStacks = {};
         state.upgradeOptions = [];
         state.wave = 1;
         state.score = 0;
         state.credits = 0;
         state.kills = 0;
+        state.sector = 1;
+        state.sectorMod = rollSectorModifier();
+        state.training = false;
+        state.resumeMode = "flight";
+        state.runActive = true;
+        state.runBanked = false;
+        state.runLoadout = { ship: player.ship?.name || "Unknown", weapon: player.weapon?.name || "Unknown" };
+        state.lastContractRender = 0;
+        state.contracts = rollContracts();
+        state.runStart = performance.now();
+        state.waveStart = performance.now();
         spawnWave(state.wave);
         hideOverlay();
         setMode("flight");
+        if (state.sectorMod) {
+          logEvent(`Sector 01 anomaly: ${state.sectorMod.name}.`);
+        }
         logEvent("Wave 1 launched. Stay mobile.");
+        renderContracts();
+      }
+
+      function startTraining() {
+        if (state.mode !== "hangar" && state.mode !== "gameover") return;
+        applySettingsFromProgress();
+        input.keys.clear();
+        input.firing = false;
+        checkProgressionUnlocks();
+        player = createPlayer();
+        enemies = [];
+        bullets = [];
+        particles = [];
+        state.mines = [];
+        state.decoy = null;
+        state.enemyAccuracyMod = 1;
+        state.upgradeStacks = {};
+        state.upgradeOptions = [];
+        state.wave = 1;
+        state.score = 0;
+        state.credits = 0;
+        state.kills = 0;
+        state.sector = 1;
+        state.sectorMod = rollSectorModifier();
+        state.training = true;
+        state.resumeMode = "training";
+        state.runActive = true;
+        state.runBanked = false;
+        state.runLoadout = { ship: player.ship?.name || "Unknown", weapon: player.weapon?.name || "Unknown" };
+        state.contracts = [];
+        state.runStart = performance.now();
+        state.waveStart = performance.now();
+        state.lastContractRender = 0;
+        spawnWave(state.wave);
+        hideOverlay();
+        setMode("training");
+        if (state.sectorMod) {
+          logEvent(`Training sector: ${state.sectorMod.name}.`);
+        }
+        logEvent("Training session initiated. No rewards earned.");
+        renderContracts();
       }
 
       function resetMission() {
+        if (state.mode !== "hangar") {
+          endRun("abort");
+        }
         setMode("hangar");
         enemies = [];
         bullets = [];
@@ -1512,8 +3072,22 @@
         state.score = 0;
         state.credits = 0;
         state.kills = 0;
+        state.contracts = [];
+        state.sector = 1;
+        state.sectorMod = null;
+        state.training = false;
+        state.runActive = false;
+        state.runBanked = false;
+        state.runLoadout = null;
+        state.lastContractRender = 0;
+        input.keys.clear();
+        input.firing = false;
         player = createPlayer();
         setOverlay("start");
+        renderContracts();
+        renderShipyard();
+        renderArmory();
+        renderHistory();
         logEvent("Run reset. Hangar ready.");
       }
 
@@ -1524,13 +3098,14 @@
           flight: "In Flight",
           upgrade: "Upgrade Bay",
           paused: "Paused",
-          gameover: "Wrecked"
+          gameover: "Wrecked",
+          training: "Training"
         };
         stats.status.textContent = labels[mode] || "Hangar";
       }
 
       function togglePause() {
-        if (state.mode === "flight") {
+        if (state.mode === "flight" || state.mode === "training") {
           setPaused(true);
         } else if (state.mode === "paused") {
           setPaused(false);
@@ -1539,31 +3114,44 @@
 
       function setPaused(shouldPause) {
         if (shouldPause) {
+          state.resumeMode = state.mode === "paused" ? state.resumeMode : state.mode;
           setMode("paused");
           setOverlay("paused");
         } else {
-          setMode("flight");
+          setMode(state.resumeMode === "training" ? "training" : "flight");
           hideOverlay();
         }
       }
 
       function spawnWave(wave) {
         const baseCount = Math.min(4 + Math.floor(wave * 0.9), 14);
-        const enemyScale = 1 + wave * 0.06;
+        const difficulty = getDifficultySettings();
+        const enemyScale = (1 + wave * 0.06) * difficulty.enemyScale;
         const spawnCount = baseCount + (wave % 3 === 0 ? 1 : 0);
         for (let i = 0; i < spawnCount; i += 1) {
           const type = pick(ENEMY_TYPES);
-          enemies.push(createEnemy(type, enemyScale));
+          enemies.push(createEnemy(type, enemyScale, difficulty));
         }
         if (wave % 5 === 0) {
-          enemies.push(createEnemy(ACE_TYPE, enemyScale + 0.2));
+          enemies.push(createEnemy(ACE_TYPE, enemyScale + 0.2, difficulty, true));
           logEvent("Enemy ace incoming. Focus fire.");
+        }
+        if (wave % 10 === 0) {
+          enemies.push(createEnemy(BOSS_TYPE, enemyScale + 0.4, difficulty, true));
+          logEvent("Capital dreadnought detected. Brace for impact.");
         }
       }
 
-      function createEnemy(type, scale) {
+      function createEnemy(type, scale, difficulty, forceElite) {
         const position = randomEdgePosition();
-        return {
+        const baseHealth = type.health * scale;
+        const baseShield = type.shield * scale;
+        const baseSpeed = type.speed + scale * 12;
+        const baseAccel = type.accel + scale * 16;
+        const baseFireRate = type.fireRate + scale * 0.04;
+        const baseBulletSpeed = type.bulletSpeed + scale * 10;
+        const baseDamage = (type.damage + scale * 1.2) * (difficulty ? difficulty.enemyDamage : 1);
+        const enemy = {
           id: type.id,
           name: type.name,
           x: position.x,
@@ -1572,15 +3160,15 @@
           vy: 0,
           angle: rand(0, Math.PI * 2),
           radius: type.radius,
-          maxHealth: type.health * scale,
-          health: type.health * scale,
-          maxShield: type.shield * scale,
-          shield: type.shield * scale,
-          speed: type.speed + scale * 12,
-          accel: type.accel + scale * 16,
-          fireRate: type.fireRate + scale * 0.04,
-          bulletSpeed: type.bulletSpeed + scale * 10,
-          damage: type.damage + scale * 1.2,
+          maxHealth: baseHealth,
+          health: baseHealth,
+          maxShield: baseShield,
+          shield: baseShield,
+          baseSpeed,
+          baseAccel,
+          baseFireRate,
+          baseBulletSpeed,
+          baseDamage,
           fireCooldown: rand(0.2, 0.6),
           color: type.color,
           credits: type.credits,
@@ -1589,8 +3177,36 @@
           slowTimer: 0,
           slowFactor: 1,
           preferredRange: rand(180, 260),
-          strafeBias: Math.random() > 0.5 ? 1 : -1
+          strafeBias: Math.random() > 0.5 ? 1 : -1,
+          pattern: type.pattern || "single"
         };
+        const eliteChance = forceElite ? 1 : (scale > 1.1 && Math.random() < 0.18);
+        if (eliteChance && type.id !== "dreadnought") {
+          applyEliteMod(enemy);
+        }
+        return enemy;
+      }
+
+      function applyEliteMod(enemy) {
+        const mod = pick(ELITE_MODS);
+        enemy.elite = mod;
+        if (mod.mods.maxShield) {
+          enemy.maxShield *= 1 + mod.mods.maxShield;
+          enemy.shield = enemy.maxShield;
+        }
+        if (mod.mods.speed) {
+          enemy.baseSpeed *= mod.mods.speed;
+        }
+        if (mod.mods.accel) {
+          enemy.baseAccel *= mod.mods.accel;
+        }
+        if (mod.mods.damage) {
+          enemy.baseDamage *= mod.mods.damage;
+        }
+        if (mod.mods.fireRate) {
+          enemy.baseFireRate *= mod.mods.fireRate;
+        }
+        enemy.color = mod.color || enemy.color;
       }
 
       function randomEdgePosition() {
@@ -1620,14 +3236,35 @@
       function update(delta) {
         updateStars(delta);
         updateParticles(delta);
-        if (state.mode !== "flight") {
+        updatePulses(delta);
+        trackOnboarding(delta);
+        if (state.mode !== "flight" && state.mode !== "training") {
           return;
         }
         updatePlayer(delta);
+        updateDecoy(delta);
         updateEnemies(delta);
         updateBullets(delta);
+        updateMines(delta);
+        updateContracts(delta);
         handleCollisions();
         checkWaveStatus();
+      }
+
+      function trackOnboarding(delta) {
+        if (state.mode !== "flight" && state.mode !== "training") return;
+        state.onboardingTimer += delta;
+        if (state.onboardingTimer < 1) return;
+        const elapsed = Math.floor(state.onboardingTimer);
+        state.onboardingTimer -= elapsed;
+        progress.onboarding = progress.onboarding || { flightSeconds: 0 };
+        progress.onboarding.flightSeconds = (progress.onboarding.flightSeconds || 0) + elapsed;
+        state.onboardingSave += elapsed;
+        checkProgressionUnlocks();
+        if (state.onboardingSave >= 12) {
+          state.onboardingSave = 0;
+          saveProgress();
+        }
       }
 
       function updateStars(delta) {
@@ -1655,30 +3292,58 @@
         }
       }
 
+      function updatePulses(delta) {
+        for (let i = pulses.length - 1; i >= 0; i -= 1) {
+          const pulse = pulses[i];
+          pulse.life -= delta;
+          pulse.radius = Math.min(pulse.maxRadius, pulse.radius + pulse.speed * delta);
+          if (pulse.life <= 0) {
+            pulses.splice(i, 1);
+          }
+        }
+      }
+
       function updatePlayer(delta) {
         if (!player) return;
         const keyboardAim = getKeyboardAimVector();
         if (keyboardAim.active) {
           input.aimAngle = Math.atan2(keyboardAim.y, keyboardAim.x);
           input.aimSource = "keyboard";
-        } else if (input.pointer.moved) {
+        } else if (input.aimMode !== "keyboard" && input.pointer.moved) {
           input.aimAngle = Math.atan2(input.pointer.y - player.y, input.pointer.x - player.x);
           input.aimSource = "mouse";
         }
         player.angle = input.aimAngle;
         input.pointer.moved = false;
 
-        const thrustForward = hasKey("w") || hasKey("arrowup");
-        const thrustBack = hasKey("s") || hasKey("arrowdown");
-        const strafeLeft = hasKey("a") || hasKey("arrowleft");
-        const strafeRight = hasKey("d") || hasKey("arrowright");
-        const boosting = input.boost && player.energy > player.boostCost * delta;
+        if (player.abilityCooldown > 0) {
+          player.abilityCooldown = Math.max(0, player.abilityCooldown - delta);
+        }
+        if (player.abilityTimer > 0) {
+          player.abilityTimer = Math.max(0, player.abilityTimer - delta);
+          if (player.abilityTimer <= 0 && player.ability && player.ability.onEnd) {
+            player.ability.onEnd(player, state);
+          }
+        }
+        if (player.secondaryCooldown > 0) {
+          player.secondaryCooldown = Math.max(0, player.secondaryCooldown - delta);
+        }
+        if (player.invulnerable > 0) {
+          player.invulnerable = Math.max(0, player.invulnerable - delta);
+        }
+
+        const thrustForward = isActionActive("forward") || hasKey("arrowup");
+        const thrustBack = isActionActive("back") || hasKey("arrowdown");
+        const strafeLeft = isActionActive("left") || hasKey("arrowleft");
+        const strafeRight = isActionActive("right") || hasKey("arrowright");
+        const boosting = isActionActive("boost") && player.energy > player.boostCost * delta;
 
         if (boosting) {
           player.energy = Math.max(0, player.energy - player.boostCost * delta);
         }
 
-        const accel = player.accel * (boosting ? player.boostMultiplier : 1);
+        const playerMod = state.sectorMod ? state.sectorMod.player : {};
+        const accel = player.accel * (boosting ? player.boostMultiplier : 1) * (playerMod.speed || 1);
         let ax = 0;
         let ay = 0;
         player.thrusting = false;
@@ -1711,7 +3376,7 @@
         player.vx *= damping;
         player.vy *= damping;
 
-        const speedLimit = player.maxSpeed * (boosting ? player.boostMultiplier : 1);
+        const speedLimit = player.maxSpeed * (boosting ? player.boostMultiplier : 1) * (playerMod.speed || 1);
         const speed = Math.hypot(player.vx, player.vy);
         if (speed > speedLimit) {
           const ratio = speedLimit / speed;
@@ -1726,17 +3391,50 @@
         player.fireCooldown = Math.max(0, player.fireCooldown - delta);
         player.shieldCooldown = Math.max(0, player.shieldCooldown - delta);
 
-        player.energy = Math.min(player.maxEnergy, player.energy + player.energyRegen * delta);
+        const energyRegen = player.energyRegen * (playerMod.energyRegen || 1);
+        const shieldRegen = player.shieldRegen * (playerMod.shieldRegen || 1);
+        player.energy = Math.min(player.maxEnergy, player.energy + energyRegen * delta);
         if (player.shieldCooldown <= 0) {
-          player.shield = Math.min(player.maxShield, player.shield + player.shieldRegen * delta);
+          player.shield = Math.min(player.maxShield, player.shield + shieldRegen * delta);
         }
 
         if (player.hitFlash > 0) {
           player.hitFlash = Math.max(0, player.hitFlash - delta);
         }
 
-        if (input.firing && player.fireCooldown <= 0 && player.energy >= player.energyCost) {
+        const firing = input.firing || isActionActive("fire");
+        const energyCost = player.energyCost * (playerMod.energyCost || 1);
+        if (firing && player.fireCooldown <= 0 && player.energy >= energyCost) {
           firePlayer();
+        }
+      }
+
+      function activateAbility() {
+        if (!player || !player.ability) return;
+        if (state.mode !== "flight" && state.mode !== "training") return;
+        if (!isFeatureUnlocked("ability")) {
+          showTip("locked-ability", "Ability systems locked", getFeatureHint("ability"));
+          return;
+        }
+        if (player.abilityCooldown > 0 || player.abilityTimer > 0) return;
+        player.abilityTimer = player.ability.duration || 0;
+        player.abilityCooldown = player.ability.cooldown || 0;
+        if (player.ability.onStart) {
+          player.ability.onStart(player, state);
+        }
+      }
+
+      function activateSecondary() {
+        if (!player || !player.secondary) return;
+        if (state.mode !== "flight" && state.mode !== "training") return;
+        if (!isFeatureUnlocked("secondary")) {
+          showTip("locked-secondary", "Secondary system locked", getFeatureHint("secondary"));
+          return;
+        }
+        if (player.secondaryCooldown > 0) return;
+        player.secondaryCooldown = player.secondary.cooldown || 0;
+        if (player.secondary.activate) {
+          player.secondary.activate(player, state);
         }
       }
 
@@ -1751,16 +3449,18 @@
             enemy.slowFactor = enemy.slowTimer > 0 ? 0.6 : 1;
           }
 
-          const dx = player.x - enemy.x;
-          const dy = player.y - enemy.y;
+          const target = state.decoy && state.decoy.timer > 0 ? state.decoy : player;
+          const dx = target.x - enemy.x;
+          const dy = target.y - enemy.y;
           const distance = Math.hypot(dx, dy) || 1;
-          const leadTime = Math.min(0.8, distance / enemy.bulletSpeed);
-          const targetX = player.x + player.vx * leadTime;
-          const targetY = player.y + player.vy * leadTime;
+          const bulletSpeed = enemy.baseBulletSpeed * (state.sectorMod?.enemy?.bulletSpeed || 1);
+          const leadTime = Math.min(0.8, distance / bulletSpeed);
+          const targetX = target.x + (target.vx || 0) * leadTime;
+          const targetY = target.y + (target.vy || 0) * leadTime;
           const aimAngle = Math.atan2(targetY - enemy.y, targetX - enemy.x);
           enemy.angle = aimAngle;
 
-          const accel = enemy.accel * enemy.slowFactor;
+          const accel = enemy.baseAccel * (state.sectorMod?.enemy?.accel || 1) * enemy.slowFactor;
           let ax = 0;
           let ay = 0;
 
@@ -1780,7 +3480,7 @@
           enemy.vx *= damping;
           enemy.vy *= damping;
 
-          const maxSpeed = enemy.speed * enemy.slowFactor;
+          const maxSpeed = enemy.baseSpeed * (state.sectorMod?.enemy?.speed || 1) * enemy.slowFactor;
           const speed = Math.hypot(enemy.vx, enemy.vy);
           if (speed > maxSpeed) {
             const ratio = maxSpeed / speed;
@@ -1792,8 +3492,10 @@
           enemy.y += enemy.vy * delta;
           wrapEntity(enemy);
 
+          const fireRate = enemy.baseFireRate * (state.sectorMod?.enemy?.fireRate || 1);
           if (enemy.fireCooldown <= 0 && distance < 520) {
             fireEnemy(enemy, aimAngle);
+            enemy.fireCooldown = 1 / fireRate;
           }
         });
       }
@@ -1810,6 +3512,38 @@
         }
       }
 
+      function updateDecoy(delta) {
+        if (!state.decoy) return;
+        state.decoy.timer -= delta;
+        if (state.decoy.timer <= 0) {
+          state.decoy = null;
+        }
+      }
+
+      function updateMines(delta) {
+        if (!state.mines.length) return;
+        for (let i = state.mines.length - 1; i >= 0; i -= 1) {
+          const mine = state.mines[i];
+          mine.timer -= delta;
+          if (mine.timer <= 0) {
+            state.mines.splice(i, 1);
+            continue;
+          }
+          for (let j = enemies.length - 1; j >= 0; j -= 1) {
+            const enemy = enemies[j];
+            if (distanceBetween(mine, enemy) <= mine.radius + enemy.radius) {
+              applyDamage(enemy, 40, { owner: "player" });
+              spawnExplosion(mine.x, mine.y, "#f6c65f");
+              state.mines.splice(i, 1);
+              if (enemy.health <= 0) {
+                destroyEnemy(enemy, j);
+              }
+              break;
+            }
+          }
+        }
+      }
+
       function handleCollisions() {
         for (let i = bullets.length - 1; i >= 0; i -= 1) {
           const bullet = bullets[i];
@@ -1818,15 +3552,22 @@
               const enemy = enemies[j];
               if (distanceBetween(bullet, enemy) <= bullet.radius + enemy.radius) {
                 applyDamage(enemy, bullet.damage, bullet);
-                bullets.splice(i, 1);
+                if (bullet.splashRadius && bullet.splashRadius > 0) {
+                  applySplashDamage(enemy, bullet);
+                }
                 if (enemy.health <= 0) {
                   destroyEnemy(enemy, j);
+                }
+                if (bullet.pierce && bullet.pierce > 0) {
+                  bullet.pierce -= 1;
+                } else {
+                  bullets.splice(i, 1);
                 }
                 break;
               }
             }
           } else if (bullet.owner === "enemy") {
-            if (distanceBetween(bullet, player) <= bullet.radius + player.radius) {
+            if (player.invulnerable <= 0 && distanceBetween(bullet, player) <= bullet.radius + player.radius) {
               applyDamage(player, bullet.damage, bullet);
               bullets.splice(i, 1);
               if (player.health <= 0) {
@@ -1837,16 +3578,174 @@
         }
       }
 
+      function applySplashDamage(primary, bullet) {
+        const radius = bullet.splashRadius || 0;
+        if (!radius) return;
+        const splashDamage = bullet.damage * (bullet.splashDamage || 0.6);
+        for (let j = enemies.length - 1; j >= 0; j -= 1) {
+          const enemy = enemies[j];
+          if (enemy === primary) continue;
+          if (distanceBetween(primary, enemy) <= radius) {
+            applyDamage(enemy, splashDamage, bullet);
+            if (enemy.health <= 0) {
+              destroyEnemy(enemy, j);
+            }
+          }
+        }
+      }
+
+      function updateContracts(delta) {
+        if (!state.contracts.length || state.training) return;
+        let changed = false;
+        const now = performance.now();
+        state.contracts.forEach((contract) => {
+          if (contract.complete) return;
+          if (contract.type === "noDamage") {
+            const prev = contract.progress;
+            contract.progress = Math.min(contract.target, contract.progress + delta);
+            if (Math.floor(contract.progress) !== Math.floor(prev)) {
+              changed = true;
+            }
+            if (contract.progress >= contract.target) {
+              completeContract(contract);
+            }
+          }
+        });
+        if (changed && now - state.lastContractRender > 250) {
+          state.lastContractRender = now;
+          renderContracts();
+        }
+      }
+
+      function resetNoDamageContracts() {
+        if (!state.contracts.length) return;
+        let updated = false;
+        state.contracts.forEach((contract) => {
+          if (contract.type === "noDamage" && !contract.complete) {
+            contract.progress = 0;
+            updated = true;
+          }
+        });
+        if (updated) {
+          renderContracts();
+        }
+      }
+
+      function completeContract(contract) {
+        contract.complete = true;
+        contract.progress = contract.target;
+        state.credits += contract.reward.credits;
+        awardXp(contract.reward.xp);
+        progress.factions[contract.factionId] = (progress.factions[contract.factionId] || 0) + contract.reward.rep;
+        saveProgress();
+        renderContracts();
+        renderShipyard();
+        renderArmory();
+        logEvent(`Contract complete: ${contract.title}.`);
+      }
+
+      function updateKillContracts(enemy) {
+        if (!state.contracts.length) return;
+        let updated = false;
+        state.contracts.forEach((contract) => {
+          if (contract.complete) return;
+          if (contract.type === "kills") {
+            contract.progress += 1;
+            updated = true;
+            if (contract.progress >= contract.target) {
+              completeContract(contract);
+            }
+          }
+          if (contract.type === "elite" && (enemy.elite || enemy.id === "dreadnought" || enemy.id === "ace")) {
+            contract.progress = contract.target;
+            updated = true;
+            completeContract(contract);
+          }
+        });
+        if (updated) {
+          renderContracts();
+        }
+      }
+
+      function maybeDropLoot(enemy) {
+        const isBoss = enemy.id === "dreadnought";
+        const isElite = enemy.elite || enemy.id === "ace";
+        const keyChance = isBoss ? 1 : isElite ? 0.35 : 0.12;
+        if (Math.random() < keyChance) {
+          progress.salvageKeys += 1;
+          logEvent("Salvage key recovered from the wreckage.");
+        }
+        const blueprintChance = isBoss ? 1 : isElite ? 0.35 : 0.08;
+        if (Math.random() < blueprintChance) {
+          progress.blueprints += 1;
+          logEvent("Blueprint recovered from debris.");
+        }
+
+        const partChance = isBoss ? 1 : isElite ? 0.45 : 0.12;
+        if (Math.random() < partChance) {
+          const part = generatePart(isBoss ? "epic" : isElite ? "rare" : null);
+          if (part) {
+            progress.partsInventory.unshift(part);
+            if (progress.partsInventory.length > 18) {
+              progress.partsInventory.pop();
+            }
+            logEvent(`Recovered part: ${part.name}.`);
+          }
+        }
+        checkProgressionUnlocks();
+      }
+
+      function generatePart(preferred) {
+        const rarityPool = ["common", "uncommon", "rare", "epic"];
+        const rarityId = preferred || pickWeighted(rarityPool, [0.5, 0.3, 0.15, 0.05]);
+        const templateSlot = pick(PART_SLOTS);
+        const template = PART_TEMPLATES[templateSlot];
+        if (!template) return null;
+        const rarity = PART_RARITIES[rarityId];
+        const stats = {};
+        const desc = [];
+        Object.keys(template.stats).forEach((key) => {
+          const range = template.stats[key];
+          const value = rand(range[0], range[1]) * rarity.mult;
+          const rounded = Math.abs(value) < 1 ? parseFloat(value.toFixed(2)) : Math.round(value);
+          stats[key] = rounded;
+          desc.push(formatStat(key, rounded));
+        });
+        return {
+          id: `part_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+          slot: templateSlot,
+          rarityId,
+          rarity: rarity.label,
+          name: `${rarity.label} ${template.name}`,
+          stats,
+          description: desc.join(" · ")
+        };
+      }
+
       function checkWaveStatus() {
-        if (enemies.length === 0 && state.mode === "flight") {
-          progress.bestWave = Math.max(progress.bestWave, state.wave);
-          saveProgress();
+        if (enemies.length === 0 && (state.mode === "flight" || state.mode === "training")) {
+          if (!state.training) {
+            progress.bestWave = Math.max(progress.bestWave, state.wave);
+            saveProgress();
+          }
           state.wave += 1;
+          state.waveStart = performance.now();
+          updateSector();
           restoreBetweenWaves();
-          state.upgradeOptions = rollUpgrades();
-          setMode("upgrade");
-          setOverlay("upgrade");
-          logEvent("Wave cleared. Choose a field upgrade.");
+          checkProgressionUnlocks();
+          if (state.training) {
+            spawnWave(state.wave);
+            logEvent(`Training wave ${state.wave} online.`);
+            return;
+          }
+          if (isFeatureUnlocked("upgrades")) {
+            state.upgradeOptions = rollUpgrades();
+            setMode("upgrade");
+            setOverlay("upgrade");
+            logEvent("Wave cleared. Choose a field upgrade.");
+          } else {
+            spawnWave(state.wave);
+          }
         }
       }
 
@@ -1872,6 +3771,7 @@
 
       function acceptUpgrade(id) {
         if (state.mode !== "upgrade") return;
+        if (!isFeatureUnlocked("upgrades")) return;
         if (id) {
           const upgrade = FIELD_UPGRADES.find((item) => item.id === id);
           if (upgrade) {
@@ -1899,10 +3799,12 @@
       }
 
       function firePlayer() {
+        const playerMod = state.sectorMod ? state.sectorMod.player : {};
+        const energyCost = player.energyCost * (playerMod.energyCost || 1);
         player.fireCooldown = 1 / player.fireRate;
-        player.energy = Math.max(0, player.energy - player.energyCost);
+        player.energy = Math.max(0, player.energy - energyCost);
         const count = Math.max(1, player.projectiles);
-        const spread = count > 1 ? player.spread : 0;
+        const spread = (count > 1 ? player.spread : 0) * (playerMod.spreadMult || 1);
         const baseAngle = player.angle - spread * (count - 1) * 0.5;
         for (let i = 0; i < count; i += 1) {
           const angle = baseAngle + spread * i;
@@ -1919,37 +3821,61 @@
             life: 1.4,
             damage,
             crit,
-            slow: player.slowChance > 0 && Math.random() < player.slowChance
+            slow: player.slowChance > 0 && Math.random() < player.slowChance,
+            splashRadius: player.splashRadius || 0,
+            splashDamage: player.splashDamage || 0.6,
+            pierce: player.pierce || 0
           });
         }
       }
 
       function fireEnemy(enemy, angle) {
-        enemy.fireCooldown = 1 / enemy.fireRate;
-        bullets.push({
-          owner: "enemy",
-          x: enemy.x + Math.cos(angle) * (enemy.radius + 4),
-          y: enemy.y + Math.sin(angle) * (enemy.radius + 4),
-          vx: Math.cos(angle) * enemy.bulletSpeed,
-          vy: Math.sin(angle) * enemy.bulletSpeed,
-          radius: 3,
-          life: 1.6,
-          damage: enemy.damage
-        });
+        const accuracy = state.enemyAccuracyMod || 1;
+        const jitter = (1 - accuracy) * 0.6;
+        const bulletSpeed = enemy.baseBulletSpeed * (state.sectorMod?.enemy?.bulletSpeed || 1);
+        const damage = enemy.baseDamage * (state.sectorMod?.enemy?.damage || 1);
+        const pattern = enemy.pattern || "single";
+        const spreadCount = pattern === "spread" ? 5 : 1;
+        const spread = pattern === "spread" ? 0.18 : 0;
+        const baseAngle = angle - spread * (spreadCount - 1) * 0.5;
+        for (let i = 0; i < spreadCount; i += 1) {
+          const shotAngle = baseAngle + spread * i + rand(-jitter, jitter);
+          bullets.push({
+            owner: "enemy",
+            x: enemy.x + Math.cos(shotAngle) * (enemy.radius + 4),
+            y: enemy.y + Math.sin(shotAngle) * (enemy.radius + 4),
+            vx: Math.cos(shotAngle) * bulletSpeed,
+            vy: Math.sin(shotAngle) * bulletSpeed,
+            radius: 3,
+            life: 1.6,
+            damage
+          });
+        }
       }
 
       function applyDamage(target, amount, bullet) {
+        if (target === player && player.invulnerable > 0) {
+          return;
+        }
         const mitigation = target.damageReduction || 0;
         let finalDamage = amount * (1 - mitigation);
         if (target.shield > 0) {
           const absorbed = Math.min(target.shield, finalDamage);
           target.shield -= absorbed;
           finalDamage -= absorbed;
-          target.hitFlash = 0.15;
+          if (progress.settings.hitFlash) {
+            target.hitFlash = 0.15;
+          }
         }
         if (finalDamage > 0) {
           target.health -= finalDamage;
-          target.hitFlash = 0.2;
+          if (progress.settings.hitFlash) {
+            target.hitFlash = 0.2;
+          }
+          if (target === player) {
+            state.lastHullHitAt = performance.now();
+            resetNoDamageContracts();
+          }
         }
         if (target.health < 0) {
           target.health = 0;
@@ -1964,14 +3890,23 @@
 
       function destroyEnemy(enemy, index) {
         enemies.splice(index, 1);
-        const creditsGain = Math.round(enemy.credits * (1 + player.salvageBonus));
-        const xpGain = Math.round((10 + state.wave * 2) * (1 + player.xpBonus));
         state.score += enemy.score;
-        state.credits += creditsGain;
         state.kills += 1;
-        progress.totalKills += 1;
-        awardXp(xpGain);
         spawnExplosion(enemy.x, enemy.y, enemy.color);
+        if (!state.training) {
+          const difficulty = getDifficultySettings();
+          const creditsGain = Math.round(enemy.credits * (1 + player.salvageBonus) * difficulty.reward);
+          const xpGain = Math.round((10 + state.wave * 2) * (1 + player.xpBonus) * difficulty.reward);
+          state.credits += creditsGain;
+          progress.totalKills += 1;
+          awardXp(xpGain);
+          updateKillContracts(enemy);
+          maybeDropLoot(enemy);
+          saveProgress();
+          renderShipyard();
+          renderArmory();
+          renderContracts();
+        }
         if (player.healOnKill > 0) {
           player.health = Math.min(player.maxHealth, player.health + player.maxHealth * player.healOnKill);
         }
@@ -1993,7 +3928,37 @@
           logEvent(`Rank up. Pilot rank is now ${progress.rank}.`);
           renderHangar();
         }
+        checkProgressionUnlocks();
         saveProgress();
+      }
+
+      function endRun(reason) {
+        if (!state.runActive || state.runBanked) return;
+        state.runActive = false;
+        state.runBanked = true;
+        if (state.training) return;
+        const bankedCredits = Math.round(state.credits);
+        progress.bankedCredits += bankedCredits;
+        const difficultyLabel = (DIFFICULTY_SETTINGS[state.difficulty] || DIFFICULTY_SETTINGS.normal).label;
+        const entry = {
+          wave: state.wave,
+          score: Math.round(state.score),
+          credits: bankedCredits,
+          kills: state.kills,
+          ship: state.runLoadout?.ship || player?.ship?.name || "Unknown",
+          weapon: state.runLoadout?.weapon || player?.weapon?.name || "Unknown",
+          difficulty: difficultyLabel
+        };
+        progress.runHistory = [entry, ...progress.runHistory].slice(0, 8);
+        saveProgress();
+        checkProgressionUnlocks();
+        renderHistory();
+        renderShipyard();
+        renderArmory();
+        renderContracts();
+        if (bankedCredits > 0) {
+          logEvent(`Run banked: ${bankedCredits} credits secured.`);
+        }
       }
 
       function xpToNext(rank) {
@@ -2002,8 +3967,11 @@
 
       function triggerGameOver() {
         setMode("gameover");
-        progress.bestWave = Math.max(progress.bestWave, state.wave);
-        saveProgress();
+        if (!state.training) {
+          progress.bestWave = Math.max(progress.bestWave, state.wave);
+          saveProgress();
+        }
+        endRun("wrecked");
         spawnExplosion(player.x, player.y, "#ffffff", 26);
         setOverlay("gameover");
         logEvent("Ship destroyed. Returning to hangar.");
@@ -2031,6 +3999,31 @@
           ctx.fill();
         });
         ctx.globalAlpha = 1;
+
+        pulses.forEach((pulse) => {
+          ctx.globalAlpha = Math.max(0, pulse.life / pulse.maxLife);
+          ctx.strokeStyle = pulse.color;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(pulse.x, pulse.y, pulse.radius, 0, Math.PI * 2);
+          ctx.stroke();
+        });
+        ctx.globalAlpha = 1;
+
+        if (state.decoy) {
+          ctx.strokeStyle = "rgba(246, 198, 95, 0.6)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(state.decoy.x, state.decoy.y, 12, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        state.mines.forEach((mine) => {
+          ctx.fillStyle = "rgba(246, 198, 95, 0.8)";
+          ctx.beginPath();
+          ctx.arc(mine.x, mine.y, mine.radius * 0.5, 0, Math.PI * 2);
+          ctx.fill();
+        });
 
         bullets.forEach((bullet) => {
           ctx.fillStyle = bullet.owner === "player" ? (bullet.crit ? "#f6c65f" : "#6ee7b7") : "#f06969";
@@ -2112,14 +4105,16 @@
       function updateHud() {
         if (!player) return;
         const hullPct = clamp(player.health / player.maxHealth, 0, 1) * 100;
-        const shieldPct = clamp(player.shield / player.maxShield, 0, 1) * 100;
+        const shieldPct = player.maxShield > 0 ? clamp(player.shield / player.maxShield, 0, 1) * 100 : 0;
         const energyPct = clamp(player.energy / player.maxEnergy, 0, 1) * 100;
         meters.hull.style.width = `${hullPct}%`;
         meters.shield.style.width = `${shieldPct}%`;
         meters.energy.style.width = `${energyPct}%`;
 
         stats.hullText.textContent = `${Math.round(player.health)} / ${Math.round(player.maxHealth)}`;
-        stats.shieldText.textContent = `${Math.round(player.shield)} / ${Math.round(player.maxShield)}`;
+        stats.shieldText.textContent = player.maxShield > 0
+          ? `${Math.round(player.shield)} / ${Math.round(player.maxShield)}`
+          : "0 / 0";
         stats.energyText.textContent = `${Math.round(player.energy)} / ${Math.round(player.maxEnergy)}`;
 
         stats.wave.textContent = state.wave;
@@ -2132,6 +4127,10 @@
         stats.techPoints.textContent = progress.techPoints;
         stats.bestWave.textContent = progress.bestWave;
         stats.totalKills.textContent = progress.totalKills;
+        stats.bankedCredits.textContent = `Credits ${Math.round(progress.bankedCredits)}`;
+        stats.bankedCreditsTotal.textContent = Math.round(progress.bankedCredits).toLocaleString();
+        stats.blueprints.textContent = `Blueprints ${progress.blueprints}`;
+        stats.salvageKeys.textContent = `Keys ${progress.salvageKeys || 0}`;
 
         stats.damage.textContent = Math.round(player.damage);
         stats.fireRate.textContent = `${player.fireRate.toFixed(1)} / sec`;
@@ -2140,13 +4139,49 @@
         stats.energyRegen.textContent = `${player.energyRegen.toFixed(1)} / sec`;
         stats.crit.textContent = `${Math.round(player.critChance * 100)}%`;
 
-        const sectorNumber = Math.max(1, Math.floor((state.wave - 1) / 3) + 1);
-        stats.sector.textContent = `Sector ${sectorNumber.toString().padStart(2, "0")}`;
+        stats.shipName.textContent = player.ship ? player.ship.name : "-";
+        stats.weaponName.textContent = player.weapon ? player.weapon.name : "-";
+        stats.secondaryName.textContent = isFeatureUnlocked("secondary")
+          ? (player.secondary ? player.secondary.name : "-")
+          : "Locked";
+        stats.sector.textContent = `Sector ${state.sector.toString().padStart(2, "0")}`;
+        stats.sectorMod.textContent = state.sectorMod ? state.sectorMod.name : "Clear";
+        if (!isFeatureUnlocked("contracts")) {
+          stats.contractStatus.textContent = "Locked";
+        } else if (!state.contracts.length) {
+          stats.contractStatus.textContent = "Offline";
+        } else {
+          const activeCount = state.contracts.filter((contract) => !contract.complete).length;
+          stats.contractStatus.textContent = activeCount ? `${activeCount} Active` : "Complete";
+        }
+        stats.controlMode.textContent = progress.settings.inputMode === "keyboard" ? "Keyboard" : "Hybrid";
+
+        if (!isFeatureUnlocked("ability")) {
+          stats.abilityStatus.textContent = "Locked";
+        } else {
+          const abilityReady = player.abilityCooldown <= 0 && player.abilityTimer <= 0;
+          stats.abilityStatus.textContent = player.abilityTimer > 0
+            ? "Active"
+            : abilityReady
+              ? "Ready"
+              : `CD ${Math.ceil(player.abilityCooldown)}s`;
+        }
+
+        if (!isFeatureUnlocked("secondary")) {
+          stats.secondaryStatus.textContent = "Locked";
+        } else {
+          const secondaryReady = player.secondaryCooldown <= 0;
+          stats.secondaryStatus.textContent = secondaryReady ? "Ready" : `CD ${Math.ceil(player.secondaryCooldown)}s`;
+        }
 
         renderActiveUpgrades();
       }
 
       function renderActiveUpgrades() {
+        if (!isFeatureUnlocked("upgrades")) {
+          dom.activeUpgrades.innerHTML = "<span class=\"chip\">Field upgrades locked</span>";
+          return;
+        }
         const entries = FIELD_UPGRADES.filter((upgrade) => state.upgradeStacks[upgrade.id]);
         if (!entries.length) {
           dom.activeUpgrades.innerHTML = "<span class=\"chip\">No upgrades yet</span>";
@@ -2162,6 +4197,10 @@
       }
 
       function renderHangar() {
+        if (!isFeatureUnlocked("hangar")) {
+          dom.hangar.innerHTML = renderLockedCard("Hangar upgrades locked", getFeatureHint("hangar"));
+          return;
+        }
         dom.hangar.innerHTML = HANGAR_UPGRADES.map((upgrade) => {
           const level = progress.hangar[upgrade.id] || 0;
           const disabled = progress.techPoints < 1 || level >= upgrade.maxLevel ? "disabled" : "";
@@ -2175,8 +4214,473 @@
         }).join("");
       }
 
+      function renderShipyard() {
+        if (!dom.shipyard) return;
+        if (!isFeatureUnlocked("shipyard")) {
+          dom.shipyard.innerHTML = renderLockedCard("Shipyard locked", getFeatureHint("shipyard"));
+          return;
+        }
+        dom.shipyard.innerHTML = SHIPS.map((ship) => {
+          const unlocked = !!progress.shipUnlocks[ship.id];
+          const selected = progress.selectedShip === ship.id;
+          const canUnlock = canUnlock(ship, progress.shipUnlocks);
+          const disabled = !unlocked && !canUnlock ? "disabled" : "";
+          const statusLabel = unlocked ? (selected ? "Active" : "Select") : (canUnlock ? "Unlock" : "Locked");
+          const unlockText = formatUnlockText(ship.unlock);
+          return `
+            <button class="select-card ${selected ? "is-active" : ""}" data-ship-id="${ship.id}" ${disabled}>
+              <span class="select-title">${ship.name}</span>
+              <span class="select-meta">${ship.desc}</span>
+              <span class="select-meta">Passive: ${ship.passive}</span>
+              <div class="select-pills">
+                <span class="select-pill">${ABILITIES[ship.abilityId].name}</span>
+                <span class="select-pill">${statusLabel}</span>
+                ${unlockText ? `<span class="select-pill">${unlockText}</span>` : ""}
+              </div>
+            </button>
+          `;
+        }).join("");
+      }
+
+      function renderArmory() {
+        if (!dom.weapons) return;
+        if (!isFeatureUnlocked("armory")) {
+          dom.weapons.innerHTML = renderLockedCard("Armory locked", getFeatureHint("armory"));
+          dom.weaponUpgrades.innerHTML = renderLockedCard("Weapon upgrades locked", getFeatureHint("weaponUpgrades"));
+          dom.secondaries.innerHTML = renderLockedCard("Secondary bay locked", getFeatureHint("armory"));
+          dom.partsSlots.innerHTML = renderLockedCard("Parts bay locked", getFeatureHint("parts"));
+          dom.partsInventory.innerHTML = "";
+          renderSalvage();
+          return;
+        }
+        const weapon = getWeaponById(progress.selectedWeapon);
+        dom.weapons.innerHTML = WEAPONS.map((item) => {
+          const unlocked = !!progress.weaponUnlocks[item.id];
+          const selected = progress.selectedWeapon === item.id;
+          const canUnlock = canUnlock(item, progress.weaponUnlocks);
+          const disabled = !unlocked && !canUnlock ? "disabled" : "";
+          const statusLabel = unlocked ? (selected ? "Equipped" : "Select") : (canUnlock ? "Unlock" : "Locked");
+          const unlockText = formatUnlockText(item.unlock);
+          return `
+            <button class="select-card ${selected ? "is-active" : ""}" data-weapon-id="${item.id}" ${disabled}>
+              <span class="select-title">${item.name}</span>
+              <span class="select-meta">${item.desc}</span>
+              <div class="select-pills">
+                ${item.tags.map((tag) => `<span class="select-pill">${tag}</span>`).join("")}
+                <span class="select-pill">${statusLabel}</span>
+                ${unlockText ? `<span class="select-pill">${unlockText}</span>` : ""}
+              </div>
+            </button>
+          `;
+        }).join("");
+
+        if (!isFeatureUnlocked("weaponUpgrades")) {
+          dom.weaponUpgrades.innerHTML = renderLockedCard("Weapon upgrades locked", getFeatureHint("weaponUpgrades"));
+        } else {
+          dom.weaponUpgrades.innerHTML = (weapon.upgrades || []).map((upgrade, index) => {
+            const level = progress.weaponLevels[weapon.id] || 0;
+            const owned = index < level;
+            const next = index === level;
+            const canBuy = next && progress.bankedCredits >= upgrade.cost;
+            const status = owned ? "Installed" : (next ? `Upgrade (${upgrade.cost})` : "Locked");
+            const disabled = owned || !canBuy ? "disabled" : "";
+            return `
+              <button class="upgrade-card" data-weapon-upgrade="${index}" ${disabled}>
+                <span class="upgrade-title">${upgrade.name}</span>
+                <span class="upgrade-desc">${upgrade.desc}</span>
+                <span class="upgrade-desc">${status}</span>
+              </button>
+            `;
+          }).join("") || "<span class=\"select-meta\">No upgrades available.</span>";
+        }
+
+        if (!isFeatureUnlocked("secondary")) {
+          dom.secondaries.innerHTML = renderLockedCard("Secondary systems locked", getFeatureHint("secondary"));
+        } else {
+          dom.secondaries.innerHTML = SECONDARIES.map((item) => {
+            const unlocked = !!progress.secondaryUnlocks[item.id];
+            const selected = progress.selectedSecondary === item.id;
+            const canUnlock = canUnlock(item, progress.secondaryUnlocks);
+            const disabled = !unlocked && !canUnlock ? "disabled" : "";
+            const statusLabel = unlocked ? (selected ? "Equipped" : "Select") : (canUnlock ? "Unlock" : "Locked");
+            const unlockText = formatUnlockText(item.unlock);
+            return `
+              <button class="select-card ${selected ? "is-active" : ""}" data-secondary-id="${item.id}" ${disabled}>
+                <span class="select-title">${item.name}</span>
+                <span class="select-meta">${item.desc}</span>
+                <div class="select-pills">
+                  <span class="select-pill">Cooldown ${item.cooldown}s</span>
+                  <span class="select-pill">${statusLabel}</span>
+                  ${unlockText ? `<span class="select-pill">${unlockText}</span>` : ""}
+                </div>
+              </button>
+            `;
+          }).join("");
+        }
+
+        renderParts();
+        renderSalvage();
+      }
+
+      function renderParts() {
+        if (!isFeatureUnlocked("parts")) {
+          dom.partsSlots.innerHTML = renderLockedCard("Parts bay locked", getFeatureHint("parts"));
+          dom.partsInventory.innerHTML = "";
+          return;
+        }
+        const equipped = progress.equippedParts || {};
+        dom.partsSlots.innerHTML = PART_SLOTS.map((slot) => {
+          const part = progress.partsInventory.find((item) => item.id === equipped[slot]);
+          return `
+            <button class="select-card ${part ? "is-active" : ""}" data-part-slot="${slot}">
+              <span class="select-title">${slot.charAt(0).toUpperCase() + slot.slice(1)} Slot</span>
+              <span class="select-meta">${part ? `${part.name} (${part.rarity})` : "Empty"}</span>
+              <span class="select-meta">${part ? part.description : "Tap to unequip or select a part."}</span>
+            </button>
+          `;
+        }).join("");
+
+        if (!progress.partsInventory.length) {
+          dom.partsInventory.innerHTML = "<span class=\"select-meta\">No parts collected yet.</span>";
+          return;
+        }
+
+        dom.partsInventory.innerHTML = progress.partsInventory.map((part) => {
+          const equippedSlot = Object.keys(progress.equippedParts).find((slot) => progress.equippedParts[slot] === part.id);
+          const status = equippedSlot ? `Equipped (${equippedSlot})` : "Equip";
+          const disabled = equippedSlot ? "disabled" : "";
+          return `
+            <button class="select-card" data-part-id="${part.id}" ${disabled}>
+              <span class="select-title">${part.name}</span>
+              <span class="select-meta">${part.description}</span>
+              <div class="select-pills">
+                <span class="select-pill">${part.rarity}</span>
+                <span class="select-pill">${status}</span>
+              </div>
+            </button>
+          `;
+        }).join("");
+      }
+
+      function renderLockedCard(title, message) {
+        return `
+          <div class="select-card is-static">
+            <span class="select-title">${title}</span>
+            <span class="select-meta">${message}</span>
+          </div>
+        `;
+      }
+
+      function renderSalvage() {
+        if (!dom.salvage) return;
+        if (!isFeatureUnlocked("salvage")) {
+          dom.salvage.innerHTML = renderLockedCard("Salvage cache locked", getFeatureHint("salvage"));
+          return;
+        }
+        const keys = progress.salvageKeys || 0;
+        const pityThreshold = SALVAGE_CACHE.pityThreshold;
+        const pity = Math.min(progress.salvagePity || 0, pityThreshold);
+        const pityText = pity >= pityThreshold ? "Rare guarantee ready" : `Rare guarantee ${pity} / ${pityThreshold}`;
+        const odds = getSalvageOdds();
+        const oddsPills = odds.map((item) => {
+          return `<span class="select-pill">${item.label} ${item.percent}%</span>`;
+        }).join("");
+        const historyHtml = progress.salvageHistory && progress.salvageHistory.length
+          ? progress.salvageHistory.map((entry) => `
+            <div class="history-entry">
+              <strong>${entry.title}</strong>
+              <span>${entry.detail}</span>
+            </div>
+          `).join("")
+          : "<span class=\"select-meta\">No caches opened yet.</span>";
+        dom.salvage.innerHTML = `
+          <div class="select-card is-static">
+            <span class="select-title">${SALVAGE_CACHE.name}</span>
+            <span class="select-meta">Keys ${keys} • ${pityText}</span>
+            <span class="select-meta">Rewards roll on open. No real currency involved.</span>
+            <div class="select-pills">
+              ${oddsPills}
+            </div>
+            <button class="btn primary" type="button" data-salvage-action="open" ${keys ? "" : "disabled"}>Open Cache</button>
+          </div>
+          <div class="select-card is-static">
+            <span class="select-title">Recent Hauls</span>
+            <div class="history-list">
+              ${historyHtml}
+            </div>
+          </div>
+        `;
+      }
+
+      function getSalvageOdds() {
+        const total = SALVAGE_CACHE.table.reduce((sum, item) => sum + item.weight, 0);
+        return SALVAGE_CACHE.table.map((item) => ({
+          id: item.id,
+          label: item.label,
+          percent: Math.round((item.weight / total) * 100)
+        }));
+      }
+
+      function openSalvageCache() {
+        if (!progress.salvageKeys || progress.salvageKeys < 1) return;
+        progress.salvageKeys -= 1;
+        let rewardDef = rollSalvageReward();
+        const rareReady = progress.salvagePity >= SALVAGE_CACHE.pityThreshold;
+        if (rareReady && !SALVAGE_CACHE.rareIds.includes(rewardDef.id)) {
+          const rareTable = SALVAGE_CACHE.table.filter((item) => SALVAGE_CACHE.rareIds.includes(item.id));
+          rewardDef = pickWeighted(rareTable, rareTable.map((item) => item.weight));
+        }
+        const reward = rewardDef.roll();
+        let detail = "";
+        if (reward.type === "credits") {
+          progress.bankedCredits += reward.amount;
+          detail = `${reward.amount.toLocaleString()} credits`;
+        }
+        if (reward.type === "blueprints") {
+          progress.blueprints += reward.amount;
+          detail = `${reward.amount} blueprint${reward.amount === 1 ? "" : "s"}`;
+        }
+        if (reward.type === "part") {
+          const part = reward.part;
+          if (part) {
+            progress.partsInventory.unshift(part);
+            if (progress.partsInventory.length > 18) {
+              progress.partsInventory.pop();
+            }
+            detail = part.name;
+          } else {
+            detail = "Component fragment";
+          }
+        }
+        const isRare = SALVAGE_CACHE.rareIds.includes(rewardDef.id);
+        progress.salvagePity = isRare ? 0 : (progress.salvagePity || 0) + 1;
+        recordSalvageHistory({ title: rewardDef.label, detail });
+        saveProgress();
+        checkProgressionUnlocks();
+        renderShipyard();
+        renderArmory();
+        logEvent(`Salvage cache opened: ${detail}.`);
+      }
+
+      function rollSalvageReward() {
+        const table = SALVAGE_CACHE.table;
+        return pickWeighted(table, table.map((item) => item.weight));
+      }
+
+      function recordSalvageHistory(entry) {
+        progress.salvageHistory = [entry, ...(progress.salvageHistory || [])].slice(0, 6);
+      }
+
+      function applyLoadoutChange(message) {
+        saveProgress();
+        renderShipyard();
+        renderArmory();
+        if (state.mode === "hangar" || state.mode === "gameover") {
+          player = createPlayer();
+        } else if (message) {
+          logEvent(message);
+        }
+      }
+
+      function renderContracts() {
+        if (!dom.contracts) return;
+        if (!isFeatureUnlocked("contracts")) {
+          dom.contracts.innerHTML = "<span class=\"select-meta\">Contracts locked. " + getFeatureHint("contracts") + "</span>";
+          dom.factions.innerHTML = renderLockedCard("Faction intel locked", getFeatureHint("contracts"));
+          return;
+        }
+        const active = state.contracts || [];
+        if (!active.length) {
+          dom.contracts.innerHTML = "<span class=\"select-meta\">No active contracts. Launch a mission to receive new objectives.</span>";
+        } else {
+          dom.contracts.innerHTML = active.map((contract) => {
+            const pct = contract.complete ? 100 : (contract.target ? Math.min(100, (contract.progress / contract.target) * 100) : 0);
+            const progressText = contract.type === "noDamage"
+              ? `${Math.floor(contract.progress)}s / ${contract.target}s`
+              : `${contract.progress} / ${contract.target}`;
+            const statusText = contract.complete ? "Complete" : progressText;
+            const faction = FACTIONS.find((item) => item.id === contract.factionId);
+            return `
+              <div class="contract-card">
+                <div class="contract-title">${contract.title}</div>
+                <div class="contract-meta">
+                  <span>${contract.desc}</span>
+                  <span>${statusText}</span>
+                  <span>Reward: ${contract.reward.credits}c, ${contract.reward.xp}xp, +${contract.reward.rep} rep</span>
+                  <span>${faction ? faction.name : contract.factionId}</span>
+                </div>
+                <div class="contract-progress"><span style="width:${pct}%"></span></div>
+              </div>
+            `;
+          }).join("");
+        }
+
+        dom.factions.innerHTML = FACTIONS.map((faction) => {
+          const rep = progress.factions[faction.id] || 0;
+          return `
+            <div class="faction-card">
+              <span>${faction.desc}</span>
+              <strong>${faction.name}</strong>
+              <div class="contract-meta">Rep ${rep}</div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      function renderSettings() {
+        const difficultyGroup = document.querySelector("[data-setting='difficulty']");
+        const inputGroup = document.querySelector("[data-setting='input-mode']");
+        const particleGroup = document.querySelector("[data-setting='particles']");
+        const hitFlashGroup = document.querySelector("[data-setting='hit-flash']");
+        [difficultyGroup, inputGroup, particleGroup, hitFlashGroup].forEach((group) => {
+          if (!group) return;
+          const setting = group.dataset.setting;
+          const value = setting === "difficulty" ? progress.settings.difficulty
+            : setting === "input-mode" ? progress.settings.inputMode
+            : setting === "particles" ? progress.settings.particles
+            : progress.settings.hitFlash ? "on" : "off";
+          group.querySelectorAll(".option-btn").forEach((btn) => {
+            btn.classList.toggle("is-active", btn.dataset.option === value);
+          });
+        });
+
+        renderKeybinds();
+      }
+
+      function renderKeybinds() {
+        const labels = {
+          forward: "Move Forward",
+          back: "Move Back",
+          left: "Strafe Left",
+          right: "Strafe Right",
+          aimUp: "Aim Up",
+          aimDown: "Aim Down",
+          aimLeft: "Aim Left",
+          aimRight: "Aim Right",
+          fire: "Fire",
+          boost: "Boost",
+          ability: "Ability",
+          secondary: "Secondary",
+          pause: "Pause"
+        };
+        dom.keybinds.innerHTML = Object.keys(labels).map((key) => {
+          const value = input.capture === key ? "Press key" : formatKeybind(progress.keybinds[key]);
+          return `
+            <div class="keybind-row">
+              <span>${labels[key]}</span>
+              <button class="keybind-btn" type="button" data-bind="${key}">${value}</button>
+            </div>
+          `;
+        }).join("");
+      }
+
+      function renderHistory() {
+        if (!dom.history) return;
+        if (!progress.runHistory.length) {
+          dom.history.innerHTML = "<span class=\"select-meta\">No runs logged yet.</span>";
+          return;
+        }
+        dom.history.innerHTML = progress.runHistory.map((run) => {
+          const difficultyLabel = run.difficulty || "Normal";
+          const score = Number.isFinite(run.score) ? Math.round(run.score).toLocaleString() : run.score;
+          const credits = Number.isFinite(run.credits) ? Math.round(run.credits).toLocaleString() : run.credits;
+          return `
+            <div class="history-entry">
+              <strong>${run.ship} / ${run.weapon}</strong>
+              <span>Wave ${run.wave} • Score ${score} • ${difficultyLabel}</span>
+              <span>${run.kills} kills • ${credits} credits</span>
+            </div>
+          `;
+        }).join("");
+      }
+
+      function formatKeybind(value) {
+        if (!value) return "-";
+        if (value === " ") return "Space";
+        if (value.startsWith("arrow")) {
+          return `Arrow ${value.replace("arrow", "").toUpperCase()}`;
+        }
+        if (value === "shift") return "Shift";
+        if (value === "control") return "Ctrl";
+        if (value === "alt") return "Alt";
+        if (value === "meta") return "Meta";
+        return value.length > 1 ? value.toUpperCase() : value.toUpperCase();
+      }
+
+      function formatStat(key, value) {
+        const labels = {
+          damage: "Damage",
+          bulletSpeed: "Velocity",
+          fireRate: "Fire Rate",
+          energyCost: "Energy Cost",
+          critChance: "Crit Chance",
+          spread: "Spread",
+          maxSpeed: "Max Speed",
+          accel: "Acceleration"
+        };
+        const label = labels[key] || key;
+        const isPercent = key === "critChance";
+        const displayValue = isPercent ? value * 100 : value;
+        const formatted = Number.isInteger(displayValue) ? displayValue.toString() : displayValue.toFixed(2);
+        const signed = displayValue > 0 ? `+${formatted}` : formatted;
+        const suffix = isPercent ? "%" : "";
+        return `${signed}${suffix} ${label}`;
+      }
+
+      function formatUnlockText(unlock) {
+        if (!unlock) return "";
+        const parts = [];
+        if (unlock.rank) parts.push(`Rank ${unlock.rank}`);
+        if (unlock.credits) parts.push(`${unlock.credits}c`);
+        if (unlock.blueprints) parts.push(`${unlock.blueprints} blueprints`);
+        if (unlock.faction) parts.push(`${unlock.faction.id.toUpperCase()} ${unlock.faction.rep}`);
+        return parts.join(" · ");
+      }
+
+      function canUnlock(item, unlocks) {
+        if (unlocks[item.id]) return true;
+        const unlock = item.unlock || {};
+        if (unlock.rank && progress.rank < unlock.rank) return false;
+        if (unlock.faction) {
+          const rep = progress.factions[unlock.faction.id] || 0;
+          if (rep < unlock.faction.rep) return false;
+        }
+        if (unlock.credits && progress.bankedCredits < unlock.credits) return false;
+        if (unlock.blueprints && progress.blueprints < unlock.blueprints) return false;
+        return true;
+      }
+
+      function spendUnlockCost(unlock) {
+        if (!unlock) return;
+        if (unlock.credits) {
+          progress.bankedCredits = Math.max(0, progress.bankedCredits - unlock.credits);
+        }
+        if (unlock.blueprints) {
+          progress.blueprints = Math.max(0, progress.blueprints - unlock.blueprints);
+        }
+      }
+
+      function unlockItem(item, unlocks) {
+        if (unlocks[item.id]) return true;
+        if (!canUnlock(item, unlocks)) return false;
+        spendUnlockCost(item.unlock);
+        unlocks[item.id] = true;
+        saveProgress();
+        return true;
+      }
+
       function setOverlay(mode) {
         if (mode === "start") {
+          const fireKey = formatKeybind(progress.keybinds.fire);
+          const boostKey = formatKeybind(progress.keybinds.boost);
+          const abilityKey = formatKeybind(progress.keybinds.ability);
+          const secondaryKey = formatKeybind(progress.keybinds.secondary);
+          const aimKeys = [
+            progress.keybinds.aimUp,
+            progress.keybinds.aimLeft,
+            progress.keybinds.aimDown,
+            progress.keybinds.aimRight
+          ].map(formatKeybind).join("/");
           dom.overlayContent.innerHTML = `
             <div class="overlay-header">
               <p class="eyebrow">Hangar ready</p>
@@ -2185,8 +4689,10 @@
             </div>
             <ul class="overlay-list">
               <li>Mouse aims the nose. WASD or arrow keys thrust.</li>
-              <li>Keyboard-only: aim with IJKL while thrusting with WASD.</li>
-              <li>Hold left click or Space to fire. Shift boosts.</li>
+              <li>Keyboard-only: aim with ${aimKeys} while thrusting with WASD.</li>
+              <li>Fire: ${fireKey}. Boost: ${boostKey}. Ability: ${abilityKey}. Secondary: ${secondaryKey}.</li>
+              <li>Advanced systems unlock as you progress through waves.</li>
+              <li>Training runs do not award credits or XP.</li>
             </ul>
             <div class="overlay-actions">
               <button class="btn primary" data-overlay-action="launch">Launch mission</button>
@@ -2246,11 +4752,16 @@
           `;
         }
         if (mode === "gameover") {
+          const headerEyebrow = state.training ? "Training ended" : "Mission failed";
+          const headerTitle = state.training ? "Debrief complete" : "Ship lost in the rift";
+          const headerCopy = state.training
+            ? "No rewards earned. Adjust your loadout and launch again when ready."
+            : "Recover your data logs and refit in the hangar before the next sortie.";
           dom.overlayContent.innerHTML = `
             <div class="overlay-header">
-              <p class="eyebrow">Mission failed</p>
-              <h3>Ship lost in the rift</h3>
-              <p>Recover your data logs and refit in the hangar before the next sortie.</p>
+              <p class="eyebrow">${headerEyebrow}</p>
+              <h3>${headerTitle}</h3>
+              <p>${headerCopy}</p>
             </div>
             <div class="progress-grid">
               <div class="stat-tile"><span>Wave</span><strong>${state.wave}</strong></div>
@@ -2281,7 +4792,7 @@
       }
 
       function spawnExplosion(x, y, color, size = 18) {
-        const count = 14;
+        const count = getParticleCount(14);
         for (let i = 0; i < count; i += 1) {
           const angle = Math.random() * Math.PI * 2;
           const speed = rand(60, 220);
@@ -2298,6 +4809,19 @@
         }
       }
 
+      function spawnPulse(x, y, color, maxRadius = 120) {
+        pulses.push({
+          x,
+          y,
+          color,
+          radius: 10,
+          maxRadius,
+          life: 0.6,
+          maxLife: 0.6,
+          speed: (maxRadius - 10) / 0.6
+        });
+      }
+
       function wrapEntity(entity) {
         const margin = 40;
         if (entity.x < -margin) entity.x = state.width + margin;
@@ -2311,6 +4835,27 @@
         return entity.x < -margin || entity.x > state.width + margin || entity.y < -margin || entity.y > state.height + margin;
       }
 
+      function normalizeKey(event) {
+        if (!event) return "";
+        if (event.code === "Space") return " ";
+        const key = event.key;
+        if (!key || key === "Unidentified") return "";
+        if (key === " " || key === "Spacebar") return " ";
+        return key.toLowerCase();
+      }
+
+      function isBindableKey(key) {
+        if (!key) return false;
+        const blocked = ["meta", "alt", "control", "capslock", "tab"];
+        return !blocked.includes(key);
+      }
+
+      function isActionActive(action) {
+        const key = progress.keybinds[action];
+        if (!key) return false;
+        return input.keys.has(key);
+      }
+
       function hasKey(key) {
         return input.keys.has(key);
       }
@@ -2318,10 +4863,14 @@
       function getKeyboardAimVector() {
         let x = 0;
         let y = 0;
-        if (hasKey("i")) y -= 1;
-        if (hasKey("k")) y += 1;
-        if (hasKey("j")) x -= 1;
-        if (hasKey("l")) x += 1;
+        const aimUp = progress.keybinds.aimUp;
+        const aimDown = progress.keybinds.aimDown;
+        const aimLeft = progress.keybinds.aimLeft;
+        const aimRight = progress.keybinds.aimRight;
+        if (aimUp && hasKey(aimUp)) y -= 1;
+        if (aimDown && hasKey(aimDown)) y += 1;
+        if (aimLeft && hasKey(aimLeft)) x -= 1;
+        if (aimRight && hasKey(aimRight)) x += 1;
         const length = Math.hypot(x, y);
         if (length === 0) {
           return { active: false, x: 0, y: 0 };
@@ -2349,8 +4898,32 @@
         return Math.random() * (max - min) + min;
       }
 
+      function randInt(min, max) {
+        return Math.floor(rand(min, max + 1));
+      }
+
       function clamp(value, min, max) {
         return Math.min(max, Math.max(min, value));
+      }
+
+      function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+      }
+
+      function pickWeighted(items, weights) {
+        const total = weights.reduce((sum, weight) => sum + weight, 0);
+        let roll = Math.random() * total;
+        for (let i = 0; i < items.length; i += 1) {
+          roll -= weights[i];
+          if (roll <= 0) {
+            return items[i];
+          }
+        }
+        return items[items.length - 1];
       }
 
       function pick(array) {
