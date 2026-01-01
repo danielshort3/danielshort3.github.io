@@ -1200,11 +1200,12 @@
       <div class="title-block">
         <p class="eyebrow">Arcade dogfighter</p>
         <h1>Stellar Dogfight: Vanguard Rift</h1>
-        <p>Mouse aim with WASD or arrow thrust. Keyboard-only: aim with arrow keys and thrust with WASD. Hold left click or Space to fire, Shift boosts, and Esc or P pauses.</p>
+        <p>Mouse aim with WASD or arrow thrust. Keyboard-only: aim with arrow keys and thrust with WASD. Hold left click or Space to fire, Shift boosts, Esc or P pauses, and U opens the upgrade dock in Frontier mode.</p>
       </div>
       <div class="action-stack">
         <button class="btn primary" data-action="launch">Launch mission</button>
         <button class="btn ghost" data-action="training">Training</button>
+        <button class="btn ghost" data-action="dock">Upgrade dock</button>
         <button class="btn ghost" data-action="pause">Pause</button>
         <button class="btn ghost" data-action="reset">Reset run</button>
       </div>
@@ -1228,6 +1229,7 @@
                 <h2>Ship Systems</h2>
                 <div class="badge-group">
                   <span class="badge" data-stat="status">Hangar</span>
+                  <span class="badge" data-stat="mode-label">Arcade</span>
                   <span class="badge" data-stat="sector">Sector 01</span>
                 </div>
               </div>
@@ -1417,6 +1419,18 @@
                 <span class="badge" data-stat="control-mode">Hybrid</span>
               </div>
               <div class="panel-subsection">
+                <h3 class="panel-title">Mission Mode</h3>
+                <div class="setting-group">
+                  <div class="setting-row">
+                    <span>Run Type</span>
+                    <div class="option-buttons" data-setting="game-mode">
+                      <button class="option-btn is-active" type="button" data-option="arcade">Arcade</button>
+                      <button class="option-btn" type="button" data-option="frontier">Frontier</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="panel-subsection">
                 <h3 class="panel-title">Difficulty</h3>
                 <div class="setting-group">
                   <div class="setting-row">
@@ -1477,6 +1491,7 @@
           <div class="arena-tips" data-role="tips" aria-live="polite"></div>
           <div class="arena-hud">
             <div class="hud-pill">Wave <strong data-stat="wave">1</strong></div>
+            <div class="hud-pill" data-role="tier-pill">Tier <strong data-stat="tier">1</strong></div>
             <div class="hud-pill">Enemies <strong data-stat="enemy-count">0</strong></div>
             <div class="hud-pill">Score <strong data-stat="score">0</strong></div>
             <div class="hud-pill">Credits <strong data-stat="credits">0</strong></div>
@@ -1510,7 +1525,8 @@
         contracts: document.querySelector("[data-role='contracts']"),
         factions: document.querySelector("[data-role='factions']"),
         history: document.querySelector("[data-role='history']"),
-        keybinds: document.querySelector("[data-role='keybinds']")
+        keybinds: document.querySelector("[data-role='keybinds']"),
+        tierPill: document.querySelector("[data-role='tier-pill']")
       };
 
       const ctx = dom.canvas.getContext("2d", { alpha: false });
@@ -1519,6 +1535,7 @@
         shieldText: document.querySelector("[data-stat='shield-text']"),
         energyText: document.querySelector("[data-stat='energy-text']"),
         wave: document.querySelector("[data-stat='wave']"),
+        tier: document.querySelector("[data-stat='tier']"),
         enemyCount: document.querySelector("[data-stat='enemy-count']"),
         score: document.querySelector("[data-stat='score']"),
         credits: document.querySelector("[data-stat='credits']"),
@@ -1534,6 +1551,7 @@
         secondaryStatus: document.querySelector("[data-stat='secondary-status']"),
         sectorMod: document.querySelector("[data-stat='sector-mod']"),
         status: document.querySelector("[data-stat='status']"),
+        modeLabel: document.querySelector("[data-stat='mode-label']"),
         sector: document.querySelector("[data-stat='sector']"),
         blueprints: document.querySelector("[data-stat='blueprints']"),
         bankedCredits: document.querySelector("[data-stat='banked-credits']"),
@@ -1567,6 +1585,7 @@
 
       const state = {
         mode: "hangar",
+        gameMode: "arcade",
         wave: 1,
         score: 0,
         credits: 0,
@@ -1593,7 +1612,8 @@
         mines: [],
         lastHullHitAt: 0,
         upgradeStacks: {},
-        upgradeOptions: []
+        upgradeOptions: [],
+        frontier: null
       };
 
       const BASE_PLAYER = {
@@ -1671,6 +1691,8 @@
         SALVAGE_CACHE,
         ELITE_MODS,
         HANGAR_UPGRADES,
+        FRONTIER_STARTERS,
+        FRONTIER_UPGRADES,
         FIELD_UPGRADES,
         ENEMY_TYPES,
         ACE_TYPE,
@@ -1761,6 +1783,7 @@
           const actionName = action.dataset.action;
           if (actionName === "launch") startMission();
           if (actionName === "training") startTraining();
+          if (actionName === "dock") toggleFrontierDock();
           if (actionName === "pause") togglePause();
           if (actionName === "reset") resetMission();
         });
@@ -1783,12 +1806,27 @@
             if (actionName === "reset") resetMission();
             if (actionName === "reroll") rerollUpgrades();
             if (actionName === "skip") acceptUpgrade(null);
+            if (actionName === "dock-close") closeFrontierDock();
+            if (actionName === "dock") openFrontierDock();
+            if (actionName === "tier-up") openFrontierTierSelect();
             return;
           }
 
           const upgradeButton = event.target.closest("[data-upgrade-id]");
           if (upgradeButton) {
             acceptUpgrade(upgradeButton.dataset.upgradeId);
+            return;
+          }
+
+          const frontierUpgrade = event.target.closest("[data-frontier-upgrade]");
+          if (frontierUpgrade) {
+            purchaseFrontierUpgrade(frontierUpgrade.dataset.frontierUpgrade);
+            return;
+          }
+
+          const frontierShip = event.target.closest("[data-frontier-ship]");
+          if (frontierShip) {
+            selectFrontierShip(frontierShip.dataset.frontierShip);
           }
         });
 
@@ -1957,6 +1995,11 @@
           if (!option) return;
           if (setting === "difficulty") {
             progress.settings.difficulty = option;
+          } else if (setting === "game-mode") {
+            progress.settings.gameMode = option;
+            if (state.runActive) {
+              logEvent("Mode change applies on the next launch.");
+            }
           } else if (setting === "input-mode") {
             progress.settings.inputMode = option;
           } else if (setting === "particles") {
@@ -2010,6 +2053,11 @@
             return;
           }
           if (key === "escape") {
+            if (state.mode === "dock" || state.mode === "tier-select") {
+              event.preventDefault();
+              closeFrontierDock();
+              return;
+            }
             if (state.mode === "flight" || state.mode === "training" || state.mode === "paused") {
               event.preventDefault();
               togglePause();
@@ -2020,7 +2068,11 @@
             event.preventDefault();
           }
           if (key === (progress.keybinds.pause || "p")) {
-            togglePause();
+            if (state.mode === "dock" || state.mode === "tier-select") {
+              closeFrontierDock();
+            } else {
+              togglePause();
+            }
             return;
           }
           if (key === "r") {
@@ -2033,6 +2085,9 @@
             }
             if (key === progress.keybinds.secondary) {
               activateSecondary();
+            }
+            if (key === progress.keybinds.dock) {
+              toggleFrontierDock();
             }
           }
           input.keys.add(key);
@@ -2143,8 +2198,8 @@
           selectedShip: "vanguard",
           selectedWeapon: "pulse",
           selectedSecondary: "emp",
-          shipUnlocks: { vanguard: true },
-          weaponUnlocks: { pulse: true },
+          shipUnlocks: { vanguard: true, scout: true },
+          weaponUnlocks: { pulse: true, repeater: true },
           secondaryUnlocks: { emp: true },
           weaponLevels: {},
           partsInventory: [],
@@ -2161,6 +2216,7 @@
           },
           settings: {
             difficulty: "normal",
+            gameMode: "arcade",
             inputMode: "hybrid",
             particles: "medium",
             hitFlash: true
@@ -2178,6 +2234,7 @@
             boost: "shift",
             ability: "e",
             secondary: "q",
+            dock: "u",
             pause: "p"
           },
           runHistory: [],
@@ -2320,6 +2377,9 @@
 
       function applySettingsFromProgress() {
         state.difficulty = progress.settings.difficulty || "normal";
+        if (!state.runActive || state.mode === "hangar" || state.mode === "gameover") {
+          state.gameMode = progress.settings.gameMode || "arcade";
+        }
         input.aimMode = progress.settings.inputMode || "hybrid";
         if (input.aimMode === "keyboard") {
           input.aimSource = "keyboard";
@@ -2538,11 +2598,21 @@
         });
       }
 
-      function buildBaseStats() {
+      function applyFrontierUpgrades(stats, upgrades) {
+        if (!upgrades) return;
+        FRONTIER_UPGRADES.forEach((upgrade) => {
+          const level = upgrades[upgrade.id] || 0;
+          for (let i = 0; i < level; i += 1) {
+            if (upgrade.apply) upgrade.apply(stats, i + 1);
+          }
+        });
+      }
+
+      function buildBaseStats(loadout = {}) {
         const stats = { ...BASE_PLAYER };
-        const ship = getShipById(progress.selectedShip);
-        const weapon = getWeaponById(progress.selectedWeapon);
-        const secondary = getSecondaryById(progress.selectedSecondary);
+        const ship = getShipById(loadout.shipId || progress.selectedShip);
+        const weapon = getWeaponById(loadout.weaponId || progress.selectedWeapon);
+        const secondary = getSecondaryById(loadout.secondaryId || progress.selectedSecondary);
         applyMods(stats, ship.mods);
         HANGAR_UPGRADES.forEach((upgrade) => {
           const level = progress.hangar[upgrade.id] || 0;
@@ -2557,8 +2627,11 @@
         return stats;
       }
 
-      function createPlayer() {
-        const base = buildBaseStats();
+      function createPlayer(loadout = {}) {
+        const base = buildBaseStats(loadout);
+        if (state.gameMode === "frontier" && state.frontier && state.frontier.active) {
+          applyFrontierUpgrades(base, state.frontier.upgrades);
+        }
         const ability = ABILITIES[base.ship.abilityId];
         return {
           ...base,
@@ -2640,7 +2713,6 @@
         input.keys.clear();
         input.firing = false;
         checkProgressionUnlocks();
-        player = createPlayer();
         enemies = [];
         bullets = [];
         particles = [];
@@ -2659,27 +2731,35 @@
         state.resumeMode = "flight";
         state.runActive = true;
         state.runBanked = false;
-        state.runLoadout = { ship: player.ship?.name || "Unknown", weapon: player.weapon?.name || "Unknown" };
         state.lastContractRender = 0;
         state.contracts = rollContracts();
         state.runStart = performance.now();
         state.waveStart = performance.now();
+        if (isFrontierMode()) {
+          initFrontierRun();
+        } else {
+          state.frontier = null;
+          player = createPlayer();
+        }
+        state.runLoadout = { ship: player.ship?.name || "Unknown", weapon: player.weapon?.name || "Unknown" };
         spawnWave(state.wave);
         hideOverlay();
         setMode("flight");
         if (state.sectorMod) {
           logEvent(`Sector 01 anomaly: ${state.sectorMod.name}.`);
         }
-        logEvent("Wave 1 launched. Stay mobile.");
+        logEvent(isFrontierMode() ? "Frontier patrol launched. Upgrade at the dock." : "Wave 1 launched. Stay mobile.");
         renderContracts();
       }
 
       function startTraining() {
         if (state.mode !== "hangar" && state.mode !== "gameover") return;
         applySettingsFromProgress();
+        state.gameMode = "arcade";
         input.keys.clear();
         input.firing = false;
         checkProgressionUnlocks();
+        state.frontier = null;
         player = createPlayer();
         enemies = [];
         bullets = [];
@@ -2736,6 +2816,7 @@
         state.runBanked = false;
         state.runLoadout = null;
         state.lastContractRender = 0;
+        state.frontier = null;
         input.keys.clear();
         input.firing = false;
         player = createPlayer();
@@ -2753,6 +2834,8 @@
           hangar: "Hangar",
           flight: "In Flight",
           upgrade: "Upgrade Bay",
+          dock: "Docked",
+          "tier-select": "Tier Uplink",
           paused: "Paused",
           gameover: "Wrecked",
           training: "Training"
@@ -2761,7 +2844,9 @@
       }
 
       function togglePause() {
-        if (state.mode === "flight" || state.mode === "training") {
+        if (state.mode === "dock" || state.mode === "tier-select") {
+          closeFrontierDock();
+        } else if (state.mode === "flight" || state.mode === "training") {
           setPaused(true);
         } else if (state.mode === "paused") {
           setPaused(false);
@@ -2779,11 +2864,141 @@
         }
       }
 
+      function isFrontierMode() {
+        return state.gameMode === "frontier";
+      }
+
+      function getFrontierStarterId() {
+        const starters = (FRONTIER_STARTERS || []).filter((id) => progress.shipUnlocks[id]);
+        if (progress.selectedShip && starters.includes(progress.selectedShip)) {
+          return progress.selectedShip;
+        }
+        if (starters.length) return starters[0];
+        return (FRONTIER_STARTERS && FRONTIER_STARTERS[0]) || progress.selectedShip;
+      }
+
+      function initFrontierRun() {
+        const starterId = getFrontierStarterId();
+        const starterShip = getShipById(starterId);
+        const weaponId = starterShip.signatureWeapon || progress.selectedWeapon;
+        state.frontier = {
+          active: true,
+          tier: starterShip.tier || 1,
+          shipId: starterShip.id,
+          weaponId,
+          upgrades: {},
+          spawnTimer: 0
+        };
+        player = createPlayer({ shipId: starterShip.id, weaponId });
+      }
+
+      function getFrontierUpgradeCost(upgrade, level, tier) {
+        const tierScale = 1 + Math.max(0, tier - 1) * 0.35;
+        const levelScale = 1 + level * 0.6;
+        return Math.round((upgrade.baseCost || 100) * tierScale * levelScale);
+      }
+
+      function getFrontierTierCost(tier) {
+        return Math.round(280 * Math.pow(Math.max(1, tier), 1.35));
+      }
+
+      function getFrontierNextShips() {
+        if (!state.frontier || !state.frontier.shipId) return [];
+        const ship = getShipById(state.frontier.shipId);
+        const nextIds = ship.nextIds || [];
+        return nextIds.map((id) => getShipById(id)).filter(Boolean);
+      }
+
+      function purchaseFrontierUpgrade(id) {
+        if (!isFrontierMode() || !state.frontier || !player) return;
+        const upgrade = FRONTIER_UPGRADES.find((item) => item.id === id);
+        if (!upgrade) return;
+        const level = state.frontier.upgrades[upgrade.id] || 0;
+        const maxLevel = upgrade.maxLevel || 1;
+        if (level >= maxLevel) return;
+        const cost = getFrontierUpgradeCost(upgrade, level, state.frontier.tier);
+        if (state.credits < cost) return;
+        const healthRatio = player.maxHealth ? player.health / player.maxHealth : 1;
+        const shieldRatio = player.maxShield ? player.shield / player.maxShield : 1;
+        const energyRatio = player.maxEnergy ? player.energy / player.maxEnergy : 1;
+        state.credits -= cost;
+        state.frontier.upgrades[upgrade.id] = level + 1;
+        if (upgrade.apply) {
+          upgrade.apply(player, level + 1);
+        }
+        player.health = Math.min(player.maxHealth, player.maxHealth * healthRatio);
+        player.shield = Math.min(player.maxShield, player.maxShield * shieldRatio);
+        player.energy = Math.min(player.maxEnergy, player.maxEnergy * energyRatio);
+        logEvent(`Frontier upgrade installed: ${upgrade.name}.`);
+        renderActiveUpgrades();
+        setOverlay("dock");
+      }
+
+      function toggleFrontierDock() {
+        if (!isFrontierMode()) {
+          logEvent("Frontier dock available in Frontier mode.");
+          return;
+        }
+        if (state.mode === "dock" || state.mode === "tier-select") {
+          closeFrontierDock();
+        } else if (state.mode === "flight") {
+          openFrontierDock();
+        }
+      }
+
+      function openFrontierDock() {
+        if (!isFrontierMode() || !state.frontier || state.mode !== "flight") return;
+        setMode("dock");
+        setOverlay("dock");
+      }
+
+      function closeFrontierDock() {
+        if (state.mode !== "dock" && state.mode !== "tier-select") return;
+        setMode("flight");
+        hideOverlay();
+      }
+
+      function openFrontierTierSelect() {
+        if (!isFrontierMode() || !state.frontier) return;
+        const nextShips = getFrontierNextShips();
+        if (!nextShips.length) return;
+        const cost = getFrontierTierCost(state.frontier.tier);
+        if (state.credits < cost) {
+          logEvent("Not enough credits to upgrade tiers.");
+          return;
+        }
+        setMode("tier-select");
+        setOverlay("tier-select");
+      }
+
+      function selectFrontierShip(id) {
+        if (!isFrontierMode() || !state.frontier) return;
+        const nextShips = getFrontierNextShips().map((ship) => ship.id);
+        if (!nextShips.includes(id)) return;
+        const cost = getFrontierTierCost(state.frontier.tier);
+        if (state.credits < cost) return;
+        const ship = getShipById(id);
+        state.credits -= cost;
+        state.frontier.tier = ship.tier || state.frontier.tier + 1;
+        state.frontier.shipId = ship.id;
+        state.frontier.weaponId = ship.signatureWeapon || progress.selectedWeapon;
+        state.frontier.upgrades = {};
+        state.frontier.spawnTimer = 0;
+        player = createPlayer({ shipId: ship.id, weaponId: state.frontier.weaponId });
+        state.runLoadout = { ship: ship.name, weapon: player.weapon?.name || "Unknown" };
+        logEvent(`Tier ${state.frontier.tier} frame acquired: ${ship.name}.`);
+        closeFrontierDock();
+        renderActiveUpgrades();
+      }
+
       function spawnWave(wave) {
         const baseCount = Math.min(4 + Math.floor(wave * 0.9), 14);
         const difficulty = getDifficultySettings();
-        const enemyScale = (1 + wave * 0.06) * difficulty.enemyScale;
-        const spawnCount = baseCount + (wave % 3 === 0 ? 1 : 0);
+        const frontierTier = isFrontierMode() && state.frontier ? state.frontier.tier : 1;
+        const enemyScale = (1 + wave * 0.06) * difficulty.enemyScale * (1 + (frontierTier - 1) * 0.15);
+        const spawnCount = baseCount
+          + (wave % 3 === 0 ? 1 : 0)
+          + (isFrontierMode() ? Math.max(0, Math.floor((frontierTier - 1) * 1.1)) : 0);
         const availableTypes = ENEMY_TYPES.filter((type) => {
           if (type.minWave && wave < type.minWave) return false;
           if (type.maxWave && wave > type.maxWave) return false;
@@ -2947,7 +3162,11 @@
         updateMines(delta);
         updateContracts(delta);
         handleCollisions();
-        checkWaveStatus();
+        if (isFrontierMode()) {
+          updateFrontierSpawner(delta);
+        } else {
+          checkWaveStatus();
+        }
       }
 
       function trackOnboarding(delta) {
@@ -3543,6 +3762,24 @@
         }
       }
 
+      function updateFrontierSpawner(delta) {
+        if (!state.frontier || !state.frontier.active) return;
+        state.frontier.spawnTimer += delta;
+        const tier = state.frontier.tier || 1;
+        const interval = Math.max(10, 18 - tier * 1.2);
+        const shouldForce = enemies.length === 0 && state.frontier.spawnTimer >= 2.5;
+        if (state.frontier.spawnTimer >= interval || shouldForce) {
+          state.frontier.spawnTimer = 0;
+          state.wave += 1;
+          state.waveStart = performance.now();
+          updateSector();
+          spawnWave(state.wave);
+          if (state.wave % 3 === 0) {
+            logEvent(`Frontier spike: threat level ${state.wave}.`);
+          }
+        }
+      }
+
       function restoreBetweenWaves() {
         player.health = Math.min(player.maxHealth, player.health + player.maxHealth * 0.25);
         player.shield = player.maxShield;
@@ -3801,6 +4038,9 @@
         if (!state.runActive || state.runBanked) return;
         state.runActive = false;
         state.runBanked = true;
+        if (state.frontier) {
+          state.frontier.active = false;
+        }
         if (state.training) return;
         const bankedCredits = Math.round(state.credits);
         progress.bankedCredits += bankedCredits;
@@ -3812,7 +4052,8 @@
           kills: state.kills,
           ship: state.runLoadout?.ship || player?.ship?.name || "Unknown",
           weapon: state.runLoadout?.weapon || player?.weapon?.name || "Unknown",
-          difficulty: difficultyLabel
+          difficulty: difficultyLabel,
+          mode: isFrontierMode() ? "Frontier" : "Arcade"
         };
         progress.runHistory = [entry, ...progress.runHistory].slice(0, 8);
         saveProgress();
@@ -3990,6 +4231,16 @@
         stats.enemyCount.textContent = enemies.length;
         stats.score.textContent = Math.round(state.score).toLocaleString();
         stats.credits.textContent = Math.round(state.credits).toLocaleString();
+        if (stats.modeLabel) {
+          stats.modeLabel.textContent = isFrontierMode() ? "Frontier" : "Arcade";
+        }
+        if (dom.tierPill && stats.tier) {
+          const showTier = isFrontierMode() && state.frontier && state.frontier.active;
+          dom.tierPill.hidden = !showTier;
+          if (showTier) {
+            stats.tier.textContent = state.frontier.tier || 1;
+          }
+        }
 
         stats.rank.textContent = progress.rank;
         stats.xp.textContent = `${Math.round(progress.xp)} / ${xpToNext(progress.rank)}`;
@@ -4047,6 +4298,23 @@
       }
 
       function renderActiveUpgrades() {
+        if (isFrontierMode()) {
+          if (!state.frontier || !state.frontier.active) {
+            dom.activeUpgrades.innerHTML = "<span class=\"chip\">Frontier upgrades available at the dock</span>";
+            return;
+          }
+          const entries = FRONTIER_UPGRADES.filter((upgrade) => state.frontier.upgrades[upgrade.id]);
+          if (!entries.length) {
+            dom.activeUpgrades.innerHTML = "<span class=\"chip\">No frontier upgrades yet</span>";
+            return;
+          }
+          dom.activeUpgrades.innerHTML = entries.map((upgrade) => {
+            const level = state.frontier.upgrades[upgrade.id] || 0;
+            const tier = upgrade.tier || "common";
+            return `<span class=\"chip\" data-tier="${tier}">${upgrade.name} Lv ${level}</span>`;
+          }).join("");
+          return;
+        }
         if (!isFeatureUnlocked("upgrades")) {
           dom.activeUpgrades.innerHTML = "<span class=\"chip\">Field upgrades locked</span>";
           return;
@@ -4097,10 +4365,12 @@
           const disabled = !unlocked && !unlockable ? "disabled" : "";
           const statusLabel = unlocked ? (selected ? "Active" : "Select") : (unlockable ? "Unlock" : "Locked");
           const unlockText = formatUnlockText(ship.unlock);
+          const signatureWeapon = ship.signatureWeapon ? getWeaponById(ship.signatureWeapon).name : "";
           return `
             <button class="select-card ${selected ? "is-active" : ""}" data-ship-id="${ship.id}" ${disabled}>
               <span class="select-title">${ship.name}</span>
               <span class="select-meta">${ship.desc}</span>
+              ${ship.tier ? `<span class="select-meta">Tier ${ship.tier}${signatureWeapon ? ` • Signature: ${signatureWeapon}` : ""}</span>` : ""}
               <span class="select-meta">Passive: ${ship.passive}</span>
               <div class="select-pills">
                 <span class="select-pill">${ABILITIES[ship.abilityId].name}</span>
@@ -4444,14 +4714,16 @@
       }
 
       function renderSettings() {
+        const modeGroup = document.querySelector("[data-setting='game-mode']");
         const difficultyGroup = document.querySelector("[data-setting='difficulty']");
         const inputGroup = document.querySelector("[data-setting='input-mode']");
         const particleGroup = document.querySelector("[data-setting='particles']");
         const hitFlashGroup = document.querySelector("[data-setting='hit-flash']");
-        [difficultyGroup, inputGroup, particleGroup, hitFlashGroup].forEach((group) => {
+        [modeGroup, difficultyGroup, inputGroup, particleGroup, hitFlashGroup].forEach((group) => {
           if (!group) return;
           const setting = group.dataset.setting;
-          const value = setting === "difficulty" ? progress.settings.difficulty
+          const value = setting === "game-mode" ? progress.settings.gameMode
+            : setting === "difficulty" ? progress.settings.difficulty
             : setting === "input-mode" ? progress.settings.inputMode
             : setting === "particles" ? progress.settings.particles
             : progress.settings.hitFlash ? "on" : "off";
@@ -4477,6 +4749,7 @@
           boost: "Boost",
           ability: "Ability",
           secondary: "Secondary",
+          dock: "Upgrade Dock",
           pause: "Pause"
         };
         dom.keybinds.innerHTML = Object.keys(labels).map((key) => {
@@ -4498,12 +4771,13 @@
         }
         dom.history.innerHTML = progress.runHistory.map((run) => {
           const difficultyLabel = run.difficulty || "Normal";
+          const modeLabel = run.mode ? ` • ${run.mode}` : "";
           const score = Number.isFinite(run.score) ? Math.round(run.score).toLocaleString() : run.score;
           const credits = Number.isFinite(run.credits) ? Math.round(run.credits).toLocaleString() : run.credits;
           return `
             <div class="history-entry">
               <strong>${run.ship} / ${run.weapon}</strong>
-              <span>Wave ${run.wave} • Score ${score} • ${difficultyLabel}</span>
+              <span>Wave ${run.wave} • Score ${score} • ${difficultyLabel}${modeLabel}</span>
               <span>${run.kills} kills • ${credits} credits</span>
             </div>
           `;
@@ -4709,6 +4983,14 @@
           const boostKey = formatKeybind(progress.keybinds.boost);
           const abilityKey = formatKeybind(progress.keybinds.ability);
           const secondaryKey = formatKeybind(progress.keybinds.secondary);
+          const dockKey = formatKeybind(progress.keybinds.dock);
+          const modeLabel = isFrontierMode() ? "Frontier patrol" : "Wave sortie";
+          const modeCopy = isFrontierMode()
+            ? "Push deep into hostile space. Upgrade your ship at the dock to survive longer."
+            : "Your fighter follows the cursor. Keep moving to recharge shields and pick upgrades between waves.";
+          const modeTip = isFrontierMode()
+            ? `<li>Dock: ${dockKey} to upgrade your ship and tier up mid-run.</li>`
+            : "<li>Upgrades appear between waves to power up your run.</li>";
           const aimKeys = [
             progress.keybinds.aimUp,
             progress.keybinds.aimLeft,
@@ -4718,14 +5000,15 @@
           dom.overlayContent.innerHTML = `
             <div class="overlay-header">
               <p class="eyebrow">Hangar ready</p>
-              <h3>Vanguard Rift briefing</h3>
-              <p>Your fighter follows the cursor. Keep moving to recharge shields and pick upgrades between waves.</p>
+              <h3>${modeLabel} briefing</h3>
+              <p>${modeCopy}</p>
             </div>
             <ul class="overlay-list">
               <li>Mouse aims the nose. WASD or arrow keys thrust.</li>
               <li>Keyboard-only: aim with ${aimKeys} and thrust with WASD.</li>
               <li>Fire: ${fireKey}. Boost: ${boostKey}. Ability: ${abilityKey}. Secondary: ${secondaryKey}.</li>
               <li>Pause: P or Esc.</li>
+              ${modeTip}
               <li>Advanced systems unlock as you progress through waves.</li>
               <li>Training runs do not award credits or XP.</li>
             </ul>
@@ -4794,6 +5077,84 @@
             </div>
             <div class="overlay-actions">
               ${upgradeActions}
+            </div>
+          `;
+        }
+        if (mode === "dock") {
+          const tier = state.frontier ? state.frontier.tier : 1;
+          const upgradesHtml = FRONTIER_UPGRADES.map((upgrade) => {
+            const level = state.frontier?.upgrades[upgrade.id] || 0;
+            const maxLevel = upgrade.maxLevel || 1;
+            const cost = getFrontierUpgradeCost(upgrade, level, tier);
+            const canBuy = level < maxLevel && state.credits >= cost;
+            const status = level >= maxLevel ? "Maxed" : `Cost ${cost} credits`;
+            const tierId = upgrade.tier || "common";
+            const tierLabel = formatTierLabel(tierId);
+            const levelLabel = `Lv ${level} / ${maxLevel}`;
+            return `
+              <button class="upgrade-card" data-tier="${tierId}" data-frontier-upgrade="${upgrade.id}" ${canBuy ? "" : "disabled"}>
+                <div class="upgrade-meta">
+                  <span class="select-pill tier-pill" data-tier="${tierId}">${tierLabel}</span>
+                  <span class="select-pill">${upgrade.category || "Upgrade"}</span>
+                  <span class="select-pill">${levelLabel}</span>
+                </div>
+                <span class="upgrade-title">${upgrade.name}</span>
+                <span class="upgrade-desc">${upgrade.desc}</span>
+                <span class="upgrade-desc">${status}</span>
+              </button>
+            `;
+          }).join("");
+          const nextShips = getFrontierNextShips();
+          const tierCost = getFrontierTierCost(tier);
+          const canTierUp = nextShips.length && state.credits >= tierCost;
+          const tierButton = nextShips.length
+            ? `<button class="btn primary" data-overlay-action="tier-up" ${canTierUp ? "" : "disabled"}>Tier up (${tierCost} credits)</button>`
+            : "<button class=\"btn ghost\" disabled>Max tier reached</button>";
+          dom.overlayContent.innerHTML = `
+            <div class="overlay-header">
+              <p class="eyebrow">Frontier dock</p>
+              <h3>Upgrade your ship</h3>
+              <p>Spend credits to tune your frame. Tier upgrades reset dock upgrades but unlock stronger hulls.</p>
+            </div>
+            <div class="upgrade-grid">
+              ${upgradesHtml}
+            </div>
+            <div class="overlay-actions">
+              <button class="btn ghost" data-overlay-action="dock-close">Resume patrol</button>
+              ${tierButton}
+            </div>
+          `;
+        }
+        if (mode === "tier-select") {
+          const nextShips = getFrontierNextShips();
+          const tierCost = getFrontierTierCost(state.frontier?.tier || 1);
+          const shipCards = nextShips.map((ship) => {
+            const weaponName = ship.signatureWeapon ? getWeaponById(ship.signatureWeapon).name : "Standard";
+            const tierText = ship.tier ? `Tier ${ship.tier}` : "Tier upgrade";
+            const abilityName = ABILITIES[ship.abilityId]?.name || "Ability";
+            return `
+              <button class="select-card" data-frontier-ship="${ship.id}">
+                <span class="select-title">${ship.name}</span>
+                <span class="select-meta">${ship.desc}</span>
+                <div class="select-pills">
+                  <span class="select-pill">${tierText}</span>
+                  <span class="select-pill">Signature: ${weaponName}</span>
+                  <span class="select-pill">${abilityName}</span>
+                </div>
+              </button>
+            `;
+          }).join("");
+          dom.overlayContent.innerHTML = `
+            <div class="overlay-header">
+              <p class="eyebrow">Tier upgrade ready</p>
+              <h3>Select your next frame</h3>
+              <p>Upgrade cost: ${tierCost} credits. Dock upgrades reset after the swap.</p>
+            </div>
+            <div class="card-grid">
+              ${shipCards || "<div class=\"select-meta\">No upgrades available.</div>"}
+            </div>
+            <div class="overlay-actions">
+              <button class="btn ghost" data-overlay-action="dock">Back to dock</button>
             </div>
           `;
         }

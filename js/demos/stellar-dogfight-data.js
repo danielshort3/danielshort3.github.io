@@ -127,40 +127,112 @@
 
   const SHIPS = [
     {
+      id: "scout",
+      name: "Scout",
+      tier: 1,
+      desc: "Light interceptor that stays mobile and charges quickly.",
+      passive: "+15% speed, +10% energy regen, -12% shield.",
+      unlock: { rank: 1 },
+      mods: { mult: { maxSpeed: 1.15, accel: 1.15, energyRegen: 1.1, maxShield: 0.88 } },
+      abilityId: "overdrive",
+      signatureWeapon: "repeater",
+      nextIds: ["rift", "corsair"]
+    },
+    {
       id: "vanguard",
       name: "Vanguard",
+      tier: 1,
       desc: "Balanced hull with steady energy throughput.",
       passive: "+10% energy regen.",
       unlock: { rank: 1 },
       mods: { mult: { energyRegen: 1.1 } },
-      abilityId: "overdrive"
+      abilityId: "overdrive",
+      signatureWeapon: "pulse",
+      nextIds: ["warden", "striker"]
     },
     {
       id: "warden",
       name: "Warden",
+      tier: 2,
       desc: "Reinforced shield plating with a slower top speed.",
       passive: "+40 shield, +20 hull, -10% speed.",
       unlock: { rank: 3, credits: 240 },
       mods: { add: { maxShield: 40, maxHealth: 20 }, mult: { maxSpeed: 0.9 } },
-      abilityId: "barrier"
+      abilityId: "barrier",
+      signatureWeapon: "plasma",
+      nextIds: ["titan", "specter"]
+    },
+    {
+      id: "striker",
+      name: "Striker",
+      tier: 2,
+      desc: "Aggressive assault frame built for close-range fights.",
+      passive: "+12% damage, +8% fire rate, -10% shield.",
+      unlock: { rank: 2, credits: 180 },
+      mods: { mult: { damage: 1.12, fireRate: 1.08, maxShield: 0.9 } },
+      abilityId: "overdrive",
+      signatureWeapon: "scatter",
+      nextIds: ["tempest", "specter"]
     },
     {
       id: "rift",
       name: "Rift",
+      tier: 2,
       desc: "High-velocity interceptor with blink mobility.",
       passive: "+20% speed, -10% hull.",
       unlock: { rank: 4, credits: 320, blueprints: 2 },
       mods: { mult: { maxSpeed: 1.2, accel: 1.2, maxHealth: 0.9 } },
-      abilityId: "blink"
+      abilityId: "blink",
+      signatureWeapon: "rail",
+      nextIds: ["specter", "tempest"]
+    },
+    {
+      id: "corsair",
+      name: "Corsair",
+      tier: 2,
+      desc: "Crit-focused raider that darts between volleys.",
+      passive: "+12% crit chance, +6% speed, -10% energy.",
+      unlock: { rank: 3, credits: 220, blueprints: 1 },
+      mods: { add: { critChance: 0.12 }, mult: { maxSpeed: 1.06, maxEnergy: 0.9 } },
+      abilityId: "cloak",
+      signatureWeapon: "volley",
+      nextIds: ["specter", "tempest"]
     },
     {
       id: "specter",
       name: "Specter",
+      tier: 3,
       desc: "Stealth striker tuned for critical hits.",
       passive: "+10% crit chance, -8% shield.",
       unlock: { rank: 5, credits: 420, faction: { id: "nova", rep: 18 } },
       mods: { add: { critChance: 0.1 }, mult: { maxShield: 0.92 } },
-      abilityId: "cloak"
+      abilityId: "cloak",
+      signatureWeapon: "ion",
+      nextIds: []
+    },
+    {
+      id: "titan",
+      name: "Titan",
+      tier: 3,
+      desc: "Heavy siege platform built to anchor the line.",
+      passive: "+80 shield, +40 hull, -18% speed.",
+      unlock: { rank: 5, credits: 480, blueprints: 2 },
+      mods: { add: { maxShield: 80, maxHealth: 40 }, mult: { maxSpeed: 0.82, accel: 0.85 } },
+      abilityId: "barrier",
+      signatureWeapon: "siege",
+      nextIds: []
+    },
+    {
+      id: "tempest",
+      name: "Tempest",
+      tier: 3,
+      desc: "Rapid-strike frame that chews through lighter targets.",
+      passive: "+20% fire rate, +15% energy regen, -10% damage.",
+      unlock: { rank: 5, credits: 460, faction: { id: "vortex", rep: 12 } },
+      mods: { mult: { fireRate: 1.2, energyRegen: 1.15, damage: 0.9 } },
+      abilityId: "overdrive",
+      signatureWeapon: "repeater",
+      nextIds: []
     }
   ];
 
@@ -177,6 +249,20 @@
         { tier: "common", name: "Phase Capacitors", cost: 120, desc: "+3 damage.", apply: (stats) => { stats.damage += 3; } },
         { tier: "uncommon", name: "Accelerated Coils", cost: 180, desc: "+15% fire rate.", apply: (stats) => { stats.fireRate *= 1.15; } },
         { tier: "rare", name: "Twin Emitters", cost: 260, desc: "+1 projectile, +spread.", apply: (stats) => { stats.projectiles += 1; stats.spread += 0.06; } }
+      ]
+    },
+    {
+      id: "repeater",
+      tier: "common",
+      name: "Repeater Array",
+      desc: "Rapid-fire pulses for sustained pressure.",
+      tags: ["Rapid", "Sustain"],
+      unlock: { rank: 1, credits: 80 },
+      stats: { damage: 7, fireRate: 6.2, energyCost: 12, bulletSpeed: 520, projectiles: 1, spread: 0.12 },
+      upgrades: [
+        { tier: "common", name: "Servo Feed", cost: 100, desc: "+12% fire rate.", apply: (stats) => { stats.fireRate *= 1.12; } },
+        { tier: "uncommon", name: "Heat Sinks", cost: 160, desc: "-10% energy cost.", apply: (stats) => { stats.energyCost *= 0.9; } },
+        { tier: "rare", name: "Quad Bank", cost: 230, desc: "+1 projectile, +spread.", apply: (stats) => { stats.projectiles += 1; stats.spread += 0.05; } }
       ]
     },
     {
@@ -208,6 +294,20 @@
       ]
     },
     {
+      id: "volley",
+      tier: "uncommon",
+      name: "Volley Cannon",
+      desc: "Triple-bolt volleys with high burst damage.",
+      tags: ["Burst", "Mid-range"],
+      unlock: { rank: 2, credits: 160 },
+      stats: { damage: 10, fireRate: 3.1, energyCost: 19, bulletSpeed: 500, projectiles: 3, spread: 0.22 },
+      upgrades: [
+        { tier: "common", name: "Tight Spread", cost: 130, desc: "-spread.", apply: (stats) => { stats.spread = Math.max(0.14, stats.spread - 0.06); } },
+        { tier: "uncommon", name: "Capacitor Rounds", cost: 190, desc: "+15% damage.", apply: (stats) => { stats.damage *= 1.15; } },
+        { tier: "rare", name: "Volley Rack", cost: 260, desc: "+1 projectile.", apply: (stats) => { stats.projectiles += 1; } }
+      ]
+    },
+    {
       id: "plasma",
       tier: "epic",
       name: "Plasma Burst",
@@ -219,6 +319,20 @@
         { tier: "uncommon", name: "Volatile Mix", cost: 170, desc: "+30% splash radius.", apply: (stats) => { stats.splashRadius *= 1.3; } },
         { tier: "rare", name: "Pressure Injectors", cost: 240, desc: "+15% damage.", apply: (stats) => { stats.damage *= 1.15; } },
         { tier: "rare", name: "Thermal Focus", cost: 320, desc: "+10% fire rate.", apply: (stats) => { stats.fireRate *= 1.1; } }
+      ]
+    },
+    {
+      id: "siege",
+      tier: "epic",
+      name: "Siege Mortar",
+      desc: "Slow siege shells that detonate in a wide radius.",
+      tags: ["Splash", "Heavy"],
+      unlock: { rank: 4, credits: 240 },
+      stats: { damage: 28, fireRate: 1.2, energyCost: 28, bulletSpeed: 360, projectiles: 1, spread: 0.18, splashRadius: 38, splashDamage: 0.75 },
+      upgrades: [
+        { tier: "uncommon", name: "Reinforced Payloads", cost: 170, desc: "+20% splash radius.", apply: (stats) => { stats.splashRadius *= 1.2; } },
+        { tier: "rare", name: "Siege Core", cost: 240, desc: "+20% damage.", apply: (stats) => { stats.damage *= 1.2; } },
+        { tier: "epic", name: "Cycler Assembly", cost: 320, desc: "+15% fire rate.", apply: (stats) => { stats.fireRate *= 1.15; } }
       ]
     },
     {
@@ -476,6 +590,121 @@
       maxLevel: 4,
       apply: (stats, level) => {
         stats.turnRate += level * 0.4;
+      }
+    }
+  ];
+
+  const FRONTIER_STARTERS = ["vanguard", "scout"];
+
+  const FRONTIER_UPGRADES = [
+    {
+      id: "hull-plating",
+      name: "Hull Plating",
+      tier: "common",
+      category: "Defense",
+      desc: "+18 max hull.",
+      maxLevel: 6,
+      baseCost: 90,
+      apply: (stats) => {
+        stats.maxHealth += 18;
+      }
+    },
+    {
+      id: "shield-capacitor",
+      name: "Shield Capacitor",
+      tier: "common",
+      category: "Defense",
+      desc: "+20 max shield.",
+      maxLevel: 6,
+      baseCost: 100,
+      apply: (stats) => {
+        stats.maxShield += 20;
+      }
+    },
+    {
+      id: "shield-regenerator",
+      name: "Shield Regenerator",
+      tier: "uncommon",
+      category: "Defense",
+      desc: "+2 shield regen.",
+      maxLevel: 5,
+      baseCost: 120,
+      apply: (stats) => {
+        stats.shieldRegen += 2;
+      }
+    },
+    {
+      id: "energy-cell",
+      name: "Energy Cells",
+      tier: "common",
+      category: "Utility",
+      desc: "+18 max energy.",
+      maxLevel: 6,
+      baseCost: 90,
+      apply: (stats) => {
+        stats.maxEnergy += 18;
+      }
+    },
+    {
+      id: "reactor-tuning",
+      name: "Reactor Tuning",
+      tier: "uncommon",
+      category: "Utility",
+      desc: "+3 energy regen.",
+      maxLevel: 5,
+      baseCost: 120,
+      apply: (stats) => {
+        stats.energyRegen += 3;
+      }
+    },
+    {
+      id: "weapon-calibration",
+      name: "Weapon Calibration",
+      tier: "uncommon",
+      category: "Offense",
+      desc: "+12% weapon damage.",
+      maxLevel: 6,
+      baseCost: 130,
+      apply: (stats) => {
+        stats.damage *= 1.12;
+      }
+    },
+    {
+      id: "rate-accelerator",
+      name: "Rate Accelerator",
+      tier: "rare",
+      category: "Offense",
+      desc: "+12% fire rate.",
+      maxLevel: 5,
+      baseCost: 140,
+      apply: (stats) => {
+        stats.fireRate *= 1.12;
+      }
+    },
+    {
+      id: "thruster-rigging",
+      name: "Thruster Rigging",
+      tier: "uncommon",
+      category: "Mobility",
+      desc: "+10% speed, +14 accel.",
+      maxLevel: 5,
+      baseCost: 120,
+      apply: (stats) => {
+        stats.maxSpeed *= 1.1;
+        stats.accel += 14;
+      }
+    },
+    {
+      id: "gimbal-array",
+      name: "Gimbal Array",
+      tier: "rare",
+      category: "Mobility",
+      desc: "+0.35 turn rate, +8 accel.",
+      maxLevel: 4,
+      baseCost: 140,
+      apply: (stats) => {
+        stats.turnRate += 0.35;
+        stats.accel += 8;
       }
     }
   ];
@@ -1063,6 +1292,8 @@
     SALVAGE_CACHE,
     ELITE_MODS,
     HANGAR_UPGRADES,
+    FRONTIER_STARTERS,
+    FRONTIER_UPGRADES,
     FIELD_UPGRADES,
     ENEMY_TYPES,
     ACE_TYPE,
