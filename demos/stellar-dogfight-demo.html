@@ -1616,6 +1616,7 @@
         splashRadius: 0,
         splashDamage: 0.6,
         pierce: 0,
+        turnRate: 4.2,
         boostMultiplier: 1.35,
         boostCost: 20,
         damageReduction: 0,
@@ -1641,7 +1642,9 @@
         arcDamage: 0,
         arcRadius: 0,
         arcChains: 0,
-        arcRequiresSlow: false
+        arcRequiresSlow: false,
+        slowTimer: 0,
+        slowFactor: 1
       };
 
       const DIFFICULTY_SETTINGS = {
@@ -2781,8 +2784,15 @@
         const difficulty = getDifficultySettings();
         const enemyScale = (1 + wave * 0.06) * difficulty.enemyScale;
         const spawnCount = baseCount + (wave % 3 === 0 ? 1 : 0);
+        const availableTypes = ENEMY_TYPES.filter((type) => {
+          if (type.minWave && wave < type.minWave) return false;
+          if (type.maxWave && wave > type.maxWave) return false;
+          return true;
+        });
+        const selectionPool = availableTypes.length ? availableTypes : ENEMY_TYPES;
+        const weights = selectionPool.map((type) => type.weight || 1);
         for (let i = 0; i < spawnCount; i += 1) {
-          const type = pick(ENEMY_TYPES);
+          const type = pickWeighted(selectionPool, weights);
           enemies.push(createEnemy(type, enemyScale, difficulty));
         }
         if (wave % 5 === 0) {
@@ -2804,6 +2814,18 @@
         const baseFireRate = type.fireRate + scale * 0.04;
         const baseBulletSpeed = type.bulletSpeed + scale * 10;
         const baseDamage = (type.damage + scale * 1.2) * (difficulty ? difficulty.enemyDamage : 1);
+        const baseTurnRate = type.turnRate || 2.6;
+        const preferredRange = Number.isFinite(type.preferredRange)
+          ? type.preferredRange + rand(-18, 18)
+          : rand(180, 260);
+        const strafeBias = Number.isFinite(type.strafeBias)
+          ? type.strafeBias
+          : (Math.random() > 0.5 ? 1 : -1);
+        const burstCount = type.burstCount || 0;
+        const burstInterval = type.burstInterval || 0.12;
+        const burstCooldown = type.burstCooldown || 1.2;
+        const shieldPulseCooldown = type.shieldPulseCooldown || 0;
+        const ramCooldown = type.ramCooldown || 0;
         const enemy = {
           id: type.id,
           name: type.name,
@@ -2822,6 +2844,7 @@
           baseFireRate,
           baseBulletSpeed,
           baseDamage,
+          baseTurnRate,
           fireCooldown: rand(0.2, 0.6),
           color: type.color,
           credits: type.credits,
@@ -2829,9 +2852,32 @@
           hitFlash: 0,
           slowTimer: 0,
           slowFactor: 1,
-          preferredRange: rand(180, 260),
-          strafeBias: Math.random() > 0.5 ? 1 : -1,
-          pattern: type.pattern || "single"
+          preferredRange,
+          strafeBias,
+          pattern: type.pattern || (type.spreadCount ? "spread" : "single"),
+          spreadCount: type.spreadCount || 0,
+          spreadAngle: Number.isFinite(type.spreadAngle) ? type.spreadAngle : null,
+          bulletRadius: type.bulletRadius || 3,
+          bulletLife: type.bulletLife || 1.6,
+          bulletTint: type.bulletTint || null,
+          bulletSlowPlayer: !!type.bulletSlowPlayer,
+          bulletSlowDuration: type.bulletSlowDuration || 1.4,
+          burstCount,
+          burstInterval,
+          burstCooldown,
+          burstRemaining: 0,
+          burstTimer: 0,
+          shieldPulseCooldown,
+          shieldPulseTimer: shieldPulseCooldown ? rand(0.3, shieldPulseCooldown) : 0,
+          shieldPulseRadius: type.shieldPulseRadius || 0,
+          shieldPulseAmount: type.shieldPulseAmount || 0,
+          shieldPulseColor: type.shieldPulseColor || "#7ca8ff",
+          shieldPulseSelf: !!type.shieldPulseSelf,
+          ramDamage: type.ramDamage || 0,
+          ramCooldown,
+          ramTimer: ramCooldown ? rand(0.3, ramCooldown) : 0,
+          ramRange: type.ramRange || 0,
+          ramKnockback: type.ramKnockback || 0
         };
         const eliteChance = forceElite ? 1 : (scale > 1.1 && Math.random() < 0.18);
         if (eliteChance && type.id !== "dreadnought") {
@@ -2958,6 +3004,10 @@
 
       function updatePlayer(delta) {
         if (!player) return;
+        if (player.slowTimer > 0) {
+          player.slowTimer = Math.max(0, player.slowTimer - delta);
+        }
+        player.slowFactor = player.slowTimer > 0 ? 0.7 : 1;
         const keyboardAim = getKeyboardAimVector();
         if (keyboardAim.active) {
           input.aimAngle = Math.atan2(keyboardAim.y, keyboardAim.x);
@@ -2966,7 +3016,8 @@
           input.aimAngle = Math.atan2(input.pointer.y - player.y, input.pointer.x - player.x);
           input.aimSource = "mouse";
         }
-        player.angle = input.aimAngle;
+        const turnRate = (player.turnRate || 0) * (player.slowFactor || 1);
+        player.angle = rotateTowards(player.angle, input.aimAngle, turnRate * delta);
         input.pointer.moved = false;
 
         if (player.abilityCooldown > 0) {
@@ -2997,7 +3048,8 @@
         }
 
         const playerMod = state.sectorMod ? state.sectorMod.player : {};
-        const accel = player.accel * (boosting ? player.boostMultiplier : 1) * (playerMod.speed || 1);
+        const slowFactor = player.slowFactor || 1;
+        const accel = player.accel * (boosting ? player.boostMultiplier : 1) * (playerMod.speed || 1) * slowFactor;
         let ax = 0;
         let ay = 0;
         player.thrusting = false;
@@ -3030,7 +3082,7 @@
         player.vx *= damping;
         player.vy *= damping;
 
-        const speedLimit = player.maxSpeed * (boosting ? player.boostMultiplier : 1) * (playerMod.speed || 1);
+        const speedLimit = player.maxSpeed * (boosting ? player.boostMultiplier : 1) * (playerMod.speed || 1) * slowFactor;
         const speed = Math.hypot(player.vx, player.vy);
         if (speed > speedLimit) {
           const ratio = speedLimit / speed;
@@ -3102,6 +3154,15 @@
             enemy.slowTimer = Math.max(0, enemy.slowTimer - delta);
             enemy.slowFactor = enemy.slowTimer > 0 ? 0.6 : 1;
           }
+          if (enemy.shieldPulseCooldown > 0) {
+            enemy.shieldPulseTimer = Math.max(0, enemy.shieldPulseTimer - delta);
+          }
+          if (enemy.ramCooldown > 0) {
+            enemy.ramTimer = Math.max(0, enemy.ramTimer - delta);
+          }
+          if (enemy.burstRemaining > 0) {
+            enemy.burstTimer = Math.max(0, enemy.burstTimer - delta);
+          }
 
           const target = state.decoy && state.decoy.timer > 0 ? state.decoy : player;
           const dx = target.x - enemy.x;
@@ -3112,7 +3173,8 @@
           const targetX = target.x + (target.vx || 0) * leadTime;
           const targetY = target.y + (target.vy || 0) * leadTime;
           const aimAngle = Math.atan2(targetY - enemy.y, targetX - enemy.x);
-          enemy.angle = aimAngle;
+          const turnRate = (enemy.baseTurnRate || 0) * enemy.slowFactor;
+          enemy.angle = rotateTowards(enemy.angle, aimAngle, turnRate * delta);
 
           const accel = enemy.baseAccel * (state.sectorMod?.enemy?.accel || 1) * enemy.slowFactor;
           let ax = 0;
@@ -3146,10 +3208,57 @@
           enemy.y += enemy.vy * delta;
           wrapEntity(enemy);
 
+          if (enemy.shieldPulseCooldown > 0 && enemy.shieldPulseTimer <= 0) {
+            const radius = enemy.shieldPulseRadius || 0;
+            const amount = enemy.shieldPulseAmount || 0;
+            if (amount > 0) {
+              enemies.forEach((ally) => {
+                if (radius <= 0) {
+                  if (!enemy.shieldPulseSelf || ally !== enemy) return;
+                } else if (distanceBetween(enemy, ally) > radius) {
+                  return;
+                }
+                ally.shield = Math.min(ally.maxShield, ally.shield + amount);
+              });
+            }
+            spawnPulse(enemy.x, enemy.y, enemy.shieldPulseColor || "#7ca8ff", radius || 120);
+            enemy.shieldPulseTimer = enemy.shieldPulseCooldown;
+          }
+
+          if (enemy.ramDamage > 0 && player && enemy.ramTimer <= 0) {
+            const playerDistance = distanceBetween(enemy, player);
+            const ramRange = enemy.ramRange || (enemy.radius + player.radius + 8);
+            if (playerDistance <= ramRange) {
+              applyDamage(player, enemy.ramDamage, { owner: "enemy" });
+              enemy.ramTimer = enemy.ramCooldown || 0;
+              enemy.hitFlash = 0.2;
+              spawnPulse(enemy.x, enemy.y, "#f06969", 90);
+              if (enemy.ramKnockback) {
+                const pushAngle = Math.atan2(player.y - enemy.y, player.x - enemy.x);
+                player.vx += Math.cos(pushAngle) * enemy.ramKnockback;
+                player.vy += Math.sin(pushAngle) * enemy.ramKnockback;
+              }
+            }
+          }
+
           const fireRate = enemy.baseFireRate * (state.sectorMod?.enemy?.fireRate || 1);
-          if (enemy.fireCooldown <= 0 && distance < 520) {
-            fireEnemy(enemy, aimAngle);
-            enemy.fireCooldown = 1 / fireRate;
+          const inRange = distance < 520;
+          if (enemy.burstRemaining > 0) {
+            if (enemy.burstTimer <= 0 && inRange) {
+              fireEnemy(enemy, enemy.angle);
+              enemy.burstRemaining -= 1;
+              enemy.burstTimer = enemy.burstInterval || 0.12;
+            }
+          } else if (enemy.fireCooldown <= 0 && inRange) {
+            if (enemy.burstCount > 1) {
+              fireEnemy(enemy, enemy.angle);
+              enemy.burstRemaining = enemy.burstCount - 1;
+              enemy.burstTimer = enemy.burstInterval || 0.12;
+              enemy.fireCooldown = enemy.burstCooldown || (1 / fireRate);
+            } else {
+              fireEnemy(enemy, enemy.angle);
+              enemy.fireCooldown = 1 / fireRate;
+            }
           }
         });
       }
@@ -3543,8 +3652,14 @@
         const bulletSpeed = enemy.baseBulletSpeed * (state.sectorMod?.enemy?.bulletSpeed || 1);
         const damage = enemy.baseDamage * (state.sectorMod?.enemy?.damage || 1);
         const pattern = enemy.pattern || "single";
-        const spreadCount = pattern === "spread" ? 5 : 1;
-        const spread = pattern === "spread" ? 0.18 : 0;
+        const spreadCount = enemy.spreadCount || (pattern === "spread" ? 5 : 1);
+        const spreadAngle = Number.isFinite(enemy.spreadAngle)
+          ? enemy.spreadAngle
+          : (pattern === "spread" ? 0.18 : 0);
+        const spread = spreadCount > 1 ? spreadAngle : 0;
+        const bulletRadius = enemy.bulletRadius || 3;
+        const bulletLife = enemy.bulletLife || 1.6;
+        const bulletTint = enemy.bulletTint || null;
         const baseAngle = angle - spread * (spreadCount - 1) * 0.5;
         for (let i = 0; i < spreadCount; i += 1) {
           const shotAngle = baseAngle + spread * i + rand(-jitter, jitter);
@@ -3554,9 +3669,12 @@
             y: enemy.y + Math.sin(shotAngle) * (enemy.radius + 4),
             vx: Math.cos(shotAngle) * bulletSpeed,
             vy: Math.sin(shotAngle) * bulletSpeed,
-            radius: 3,
-            life: 1.6,
-            damage
+            radius: bulletRadius,
+            life: bulletLife,
+            damage,
+            slowPlayer: !!enemy.bulletSlowPlayer,
+            slowDuration: enemy.bulletSlowDuration || 1.4,
+            tint: bulletTint
           });
         }
       }
@@ -3593,6 +3711,10 @@
           player.shieldCooldown = 1.6;
           if (hadShield && target.shield <= 0) {
             triggerAegisMatrix();
+          }
+          if (bullet && bullet.slowPlayer) {
+            const slowDuration = bullet.slowDuration || 1.4;
+            player.slowTimer = Math.max(player.slowTimer || 0, slowDuration);
           }
         }
         if (bullet && bullet.slow && target !== player) {
@@ -4409,6 +4531,7 @@
           energyCost: "Energy Cost",
           critChance: "Crit Chance",
           spread: "Spread",
+          turnRate: "Turn Rate",
           maxSpeed: "Max Speed",
           accel: "Acceleration"
         };
@@ -4827,6 +4950,21 @@
 
       function distanceBetween(a, b) {
         return Math.hypot(a.x - b.x, a.y - b.y);
+      }
+
+      function normalizeAngle(angle) {
+        return Math.atan2(Math.sin(angle), Math.cos(angle));
+      }
+
+      function rotateTowards(current, target, maxDelta) {
+        if (!Number.isFinite(maxDelta) || maxDelta <= 0) {
+          return normalizeAngle(current);
+        }
+        const diff = normalizeAngle(target - current);
+        if (Math.abs(diff) <= maxDelta) {
+          return normalizeAngle(target);
+        }
+        return normalizeAngle(current + Math.sign(diff) * maxDelta);
       }
 
       function rand(min, max) {

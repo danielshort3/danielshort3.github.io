@@ -468,6 +468,15 @@
         stats.maxSpeed += level * 6;
         stats.accel += level * 12;
       }
+    },
+    {
+      id: "attitude-control",
+      name: "Attitude Control",
+      desc: "+0.4 turn rate per level.",
+      maxLevel: 4,
+      apply: (stats, level) => {
+        stats.turnRate += level * 0.4;
+      }
     }
   ];
 
@@ -577,6 +586,17 @@
       }
     },
     {
+      id: "attitude-jets",
+      name: "Attitude Jets",
+      tier: "uncommon",
+      category: "Mobility",
+      desc: "+25% turn rate.",
+      maxStacks: 2,
+      apply: (ship) => {
+        ship.turnRate *= 1.25;
+      }
+    },
+    {
       id: "reinforced-hull",
       name: "Reinforced Hull",
       tier: "uncommon",
@@ -636,6 +656,18 @@
       apply: (ship) => {
         ship.maxSpeed *= 1.1;
         ship.damageReduction = Math.min(0.4, ship.damageReduction + 0.08);
+      }
+    },
+    {
+      id: "gimbal-core",
+      name: "Gimbal Core",
+      tier: "rare",
+      category: "Mobility",
+      desc: "+40% turn rate and +6% max speed.",
+      maxStacks: 1,
+      apply: (ship) => {
+        ship.turnRate *= 1.4;
+        ship.maxSpeed *= 1.06;
       }
     },
     {
@@ -789,62 +821,194 @@
     {
       id: "scout",
       name: "Scout",
-      health: 32,
+      health: 30,
       shield: 0,
-      speed: 230,
-      accel: 420,
-      fireRate: 0.7,
-      bulletSpeed: 320,
-      damage: 7,
-      radius: 11,
+      speed: 240,
+      accel: 440,
+      turnRate: 4.8,
+      fireRate: 0.8,
+      bulletSpeed: 330,
+      damage: 6,
+      radius: 10,
       credits: 14,
       score: 60,
-      color: "#4dd1c5"
+      color: "#4dd1c5",
+      preferredRange: 180,
+      weight: 1.3
     },
     {
       id: "fighter",
       name: "Fighter",
-      health: 55,
-      shield: 16,
+      health: 60,
+      shield: 18,
       speed: 190,
       accel: 330,
+      turnRate: 3.6,
       fireRate: 0.85,
       bulletSpeed: 340,
       damage: 9,
       radius: 13,
       credits: 22,
       score: 80,
-      color: "#f6c65f"
+      color: "#f6c65f",
+      preferredRange: 220,
+      weight: 1.1
     },
     {
       id: "interceptor",
       name: "Interceptor",
       health: 42,
       shield: 10,
-      speed: 260,
-      accel: 450,
+      speed: 270,
+      accel: 470,
+      turnRate: 5.4,
       fireRate: 1.15,
       bulletSpeed: 360,
       damage: 8,
       radius: 12,
       credits: 24,
       score: 90,
-      color: "#6ee7b7"
+      color: "#6ee7b7",
+      preferredRange: 210,
+      weight: 1.0
+    },
+    {
+      id: "skirmisher",
+      name: "Skirmisher",
+      health: 34,
+      shield: 0,
+      speed: 300,
+      accel: 520,
+      turnRate: 4.6,
+      fireRate: 1.1,
+      bulletSpeed: 360,
+      damage: 6,
+      radius: 10,
+      credits: 20,
+      score: 85,
+      color: "#8fd3ff",
+      burstCount: 3,
+      burstInterval: 0.12,
+      burstCooldown: 1.4,
+      preferredRange: 200,
+      minWave: 2,
+      weight: 1.0
+    },
+    {
+      id: "disruptor",
+      name: "Disruptor",
+      health: 52,
+      shield: 16,
+      speed: 210,
+      accel: 330,
+      turnRate: 3.2,
+      fireRate: 0.95,
+      bulletSpeed: 320,
+      damage: 9,
+      radius: 12,
+      credits: 26,
+      score: 110,
+      color: "#43e0c0",
+      bulletSlowPlayer: true,
+      bulletSlowDuration: 1.6,
+      bulletTint: "#43e0c0",
+      preferredRange: 230,
+      minWave: 3,
+      weight: 0.9
+    },
+    {
+      id: "sniper",
+      name: "Sniper",
+      health: 38,
+      shield: 10,
+      speed: 170,
+      accel: 240,
+      turnRate: 2.4,
+      fireRate: 0.55,
+      bulletSpeed: 640,
+      damage: 18,
+      radius: 11,
+      credits: 32,
+      score: 130,
+      color: "#b98cff",
+      preferredRange: 360,
+      minWave: 4,
+      weight: 0.7
     },
     {
       id: "bomber",
       name: "Bomber",
-      health: 90,
-      shield: 30,
+      health: 95,
+      shield: 28,
       speed: 150,
-      accel: 240,
-      fireRate: 0.55,
-      bulletSpeed: 300,
-      damage: 14,
-      radius: 16,
-      credits: 30,
-      score: 130,
-      color: "#f48b7f"
+      accel: 230,
+      turnRate: 2.1,
+      fireRate: 0.6,
+      bulletSpeed: 260,
+      damage: 15,
+      radius: 17,
+      credits: 32,
+      score: 140,
+      color: "#f48b7f",
+      pattern: "spread",
+      spreadCount: 3,
+      spreadAngle: 0.24,
+      bulletRadius: 4,
+      bulletLife: 2.1,
+      preferredRange: 260,
+      minWave: 3,
+      weight: 0.8
+    },
+    {
+      id: "rusher",
+      name: "Rusher",
+      health: 68,
+      shield: 8,
+      speed: 260,
+      accel: 430,
+      turnRate: 3.4,
+      fireRate: 0.7,
+      bulletSpeed: 330,
+      damage: 8,
+      radius: 14,
+      credits: 28,
+      score: 120,
+      color: "#ff8a7a",
+      ramDamage: 16,
+      ramCooldown: 5,
+      ramRange: 28,
+      preferredRange: 150,
+      minWave: 4,
+      weight: 0.7
+    },
+    {
+      id: "bulwark",
+      name: "Bulwark",
+      health: 170,
+      shield: 70,
+      speed: 120,
+      accel: 170,
+      turnRate: 1.6,
+      fireRate: 0.45,
+      bulletSpeed: 240,
+      damage: 22,
+      radius: 24,
+      credits: 54,
+      score: 210,
+      color: "#f6c65f",
+      pattern: "spread",
+      spreadCount: 4,
+      spreadAngle: 0.2,
+      bulletRadius: 4,
+      bulletLife: 2.2,
+      preferredRange: 280,
+      shieldPulseCooldown: 8,
+      shieldPulseRadius: 220,
+      shieldPulseAmount: 14,
+      shieldPulseSelf: true,
+      shieldPulseColor: "#7ca8ff",
+      minWave: 5,
+      weight: 0.5
     }
   ];
 
@@ -855,6 +1019,7 @@
     shield: 60,
     speed: 210,
     accel: 360,
+    turnRate: 3.8,
     fireRate: 1.4,
     bulletSpeed: 420,
     damage: 16,
@@ -871,6 +1036,7 @@
     shield: 140,
     speed: 150,
     accel: 220,
+    turnRate: 1.4,
     fireRate: 0.9,
     bulletSpeed: 320,
     damage: 20,
