@@ -14,6 +14,8 @@
     { "source": "/privacy.html",      "destination": "/pages/privacy" },
     { "source": "/resume",            "destination": "/pages/resume" },
     { "source": "/resume.html",       "destination": "/pages/resume" },
+    { "source": "/resume-pdf",        "destination": "/pages/resume-pdf" },
+    { "source": "/resume-pdf.html",   "destination": "/pages/resume-pdf" },
     { "source": "/word-frequency",    "destination": "/pages/word-frequency" },
     { "source": "/word-frequency.html","destination": "/pages/word-frequency" },
     { "source": "/tools/word-frequency","destination": "/pages/word-frequency" },
