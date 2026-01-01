@@ -1769,6 +1769,7 @@
       let bullets = [];
       let particles = [];
       let pulses = [];
+      let lootBursts = [];
       let stars = [];
       let backgroundGradient = null;
 
@@ -2827,6 +2828,7 @@
         enemies = [];
         bullets = [];
         particles = [];
+        lootBursts = [];
         state.mines = [];
         state.decoy = null;
         state.enemyAccuracyMod = 1;
@@ -2876,6 +2878,7 @@
         enemies = [];
         bullets = [];
         particles = [];
+        lootBursts = [];
         state.mines = [];
         state.decoy = null;
         state.enemyAccuracyMod = 1;
@@ -2915,6 +2918,7 @@
         enemies = [];
         bullets = [];
         particles = [];
+        lootBursts = [];
         state.upgradeStacks = {};
         state.upgradeOptions = [];
         state.lossRewards = null;
@@ -3265,6 +3269,7 @@
         updateStars(delta);
         updateParticles(delta);
         updatePulses(delta);
+        updateLootBursts(delta);
         trackOnboarding(delta);
         if (state.mode !== "flight" && state.mode !== "training") {
           return;
@@ -3331,6 +3336,17 @@
           pulse.radius = Math.min(pulse.maxRadius, pulse.radius + pulse.speed * delta);
           if (pulse.life <= 0) {
             pulses.splice(i, 1);
+          }
+        }
+      }
+
+      function updateLootBursts(delta) {
+        for (let i = lootBursts.length - 1; i >= 0; i -= 1) {
+          const burst = lootBursts[i];
+          burst.life -= delta;
+          burst.y += burst.vy * delta;
+          if (burst.life <= 0) {
+            lootBursts.splice(i, 1);
           }
         }
       }
@@ -3797,15 +3813,24 @@
       function maybeDropLoot(enemy) {
         const isBoss = enemy.id === "dreadnought";
         const isElite = enemy.elite || enemy.id === "ace";
+        const drops = [];
         const keyChance = isBoss ? 1 : isElite ? 0.35 : 0.12;
         if (Math.random() < keyChance) {
           progress.salvageKeys += 1;
           logEvent("Salvage key recovered from the wreckage.");
+          drops.push({
+            label: "Salvage Key +1",
+            tier: isBoss ? "epic" : isElite ? "rare" : "uncommon"
+          });
         }
         const blueprintChance = isBoss ? 1 : isElite ? 0.35 : 0.08;
         if (Math.random() < blueprintChance) {
           progress.blueprints += 1;
           logEvent("Blueprint recovered from debris.");
+          drops.push({
+            label: "Blueprint +1",
+            tier: isBoss ? "epic" : isElite ? "rare" : "uncommon"
+          });
         }
 
         const partChance = isBoss ? 1 : isElite ? 0.45 : 0.12;
@@ -3817,7 +3842,14 @@
               progress.partsInventory.pop();
             }
             logEvent(`Recovered part: ${part.name}.`);
+            drops.push({
+              label: `Part: ${part.name}`,
+              tier: part.rarityId || getPartTier(part)
+            });
           }
+        }
+        if (drops.length) {
+          spawnLootBursts(enemy.x, enemy.y, drops);
         }
         checkProgressionUnlocks();
       }
@@ -4363,6 +4395,26 @@
         logEvent("Ship destroyed. Returning to hangar.");
       }
 
+      function renderLootBursts() {
+        if (!lootBursts.length) return;
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = "600 12px \"Chakra Petch\", sans-serif";
+        lootBursts.forEach((burst) => {
+          const alpha = clamp(burst.life / burst.maxLife, 0, 1);
+          const color = TIER_COLORS[burst.tier] || "#e5f1ff";
+          ctx.globalAlpha = alpha;
+          ctx.strokeStyle = "rgba(4, 8, 16, 0.8)";
+          ctx.lineWidth = 3;
+          ctx.strokeText(burst.label, burst.x, burst.y);
+          ctx.fillStyle = color;
+          ctx.fillText(burst.label, burst.x, burst.y);
+        });
+        ctx.restore();
+        ctx.globalAlpha = 1;
+      }
+
       function render() {
         ctx.clearRect(0, 0, state.width, state.height);
         ctx.fillStyle = backgroundGradient || "#05090f";
@@ -4432,6 +4484,7 @@
           drawShield(player);
         }
 
+        renderLootBursts();
         drawCrosshair();
       }
 
@@ -5179,6 +5232,14 @@
         return `${minutes}:${secs.toString().padStart(2, "0")}`;
       }
 
+      const TIER_COLORS = {
+        common: "#6ee7b7",
+        uncommon: "#44d2c2",
+        rare: "#7ca8ff",
+        epic: "#b98cff",
+        legendary: "#f6c65f"
+      };
+
       const LOWER_BETTER_STATS = new Set(["energyCost", "spread", "cooldown"]);
 
       function getTierMeta(tier) {
@@ -5652,6 +5713,23 @@
           life: 0.6,
           maxLife: 0.6,
           speed: (maxRadius - 10) / 0.6
+        });
+      }
+
+      function spawnLootBursts(x, y, drops) {
+        if (!drops || !drops.length) return;
+        const baseX = clamp(x, 24, state.width - 24);
+        const baseY = clamp(y, 24, state.height - 24);
+        drops.forEach((drop, index) => {
+          lootBursts.push({
+            x: clamp(baseX + rand(-12, 12), 16, state.width - 16),
+            y: clamp(baseY - index * 18, 16, state.height - 16),
+            vy: -28 - index * 4,
+            life: 1.4,
+            maxLife: 1.4,
+            label: drop.label,
+            tier: drop.tier || "common"
+          });
         });
       }
 
