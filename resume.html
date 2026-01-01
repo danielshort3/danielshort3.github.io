@@ -31,15 +31,146 @@
   <header id="combined-header-nav"></header>
 
   <main id="main">
-    <section class="surface-band">
+    <section class="surface-band resume-section">
       <div class="wrapper">
-        <h1>Resume</h1>
-        <div class="cta-group">
+        <p class="resume-eyebrow">Resume</p>
+        <div class="resume-header">
+          <h1 class="resume-name">Daniel Short</h1>
+          <p class="resume-title">Data Scientist | Machine Learning</p>
+          <ul class="resume-contact">
+            <li><a href="mailto:daniel@danielshort.me">daniel@danielshort.me</a></li>
+            <li>Grand Junction, CO</li>
+            <li><a href="tel:+14696002297">469-600-2297</a></li>
+            <li><a href="https://www.linkedin.com/in/danielshort3/" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+            <li><a href="/portfolio">Portfolio</a></li>
+            <li><a href="/">Website</a></li>
+          </ul>
+        </div>
+        <p class="resume-summary">Data scientist with 3 years of experience translating machine learning insights into 500%+ KPI gains. Expert in Python (PyTorch, scikit-learn), SQL, and Gen-AI (LLMs, RAG). Automates pipelines that save 200+ hours per year and delivers clear executive-ready insights.</p>
+        <div class="resume-actions">
+          <a href="documents/Resume.pdf" class="btn-secondary" download>Download PDF</a>
+          <a href="#resume-pdf" class="btn-secondary">View PDF</a>
+        </div>
+
+        <div class="resume-block">
+          <h2 class="resume-block-title">Skills</h2>
+          <ul class="resume-skill-list">
+            <li class="resume-skill-item">
+              <span class="resume-skill-label">Generative AI (Gen AI)</span>
+              <span>LLMs, RAG, LoRA fine-tuning, Embeddings, Transformers</span>
+            </li>
+            <li class="resume-skill-item">
+              <span class="resume-skill-label">Deep Learning</span>
+              <span>Autoencoders, VAEs, CNNs, RNNs, RL</span>
+            </li>
+            <li class="resume-skill-item">
+              <span class="resume-skill-label">Python</span>
+              <span>PyTorch, TensorFlow, scikit-learn (Decision Trees, Random Forests), Pandas, NumPy</span>
+            </li>
+            <li class="resume-skill-item">
+              <span class="resume-skill-label">SQL</span>
+              <span>PostgreSQL, MSSQL, SQLite; Views, Stored Procedures, CTEs</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="resume-block">
+          <h2 class="resume-block-title">Experience</h2>
+          <article class="resume-role">
+            <div class="resume-role-header">
+              <div>
+                <h3 class="resume-role-title">Business Analyst</h3>
+                <p class="resume-role-company">Visit Grand Junction, Grand Junction, CO</p>
+              </div>
+              <p class="resume-role-dates">Feb 2024 - Present</p>
+            </div>
+            <ul class="resume-role-list">
+              <li>Automated weekly reporting, saving 200+ hours per year and cutting turnaround time by 99%.</li>
+              <li>Built an NLP link-repair model that lifted traffic 750% and improved engagement 56%.</li>
+              <li>Delivered a new analytics program that increased page views 565% and sessions 122%.</li>
+            </ul>
+          </article>
+          <article class="resume-role">
+            <div class="resume-role-header">
+              <div>
+                <h3 class="resume-role-title">AI Data Quality Analyst</h3>
+                <p class="resume-role-company">Randall Reilly, Remote</p>
+              </div>
+              <p class="resume-role-dates">Nov 2023 - Jan 2024</p>
+            </div>
+            <ul class="resume-role-list">
+              <li>Re-platformed R workflows into a one-click Python app, cutting delivery time by 95%.</li>
+              <li>Expanded serial tracking by 10x with decision trees and delivered 98% anomaly precision.</li>
+              <li>Deployed an autoencoder model that lifted overall data quality for downstream analytics.</li>
+            </ul>
+          </article>
+          <article class="resume-role">
+            <div class="resume-role-header">
+              <div>
+                <h3 class="resume-role-title">Asset Protection Data Analyst</h3>
+                <p class="resume-role-company">Target, Montrose, CO</p>
+              </div>
+              <p class="resume-role-dates">Jun 2022 - Nov 2023</p>
+            </div>
+            <ul class="resume-role-list">
+              <li>Designed dashboards that boosted theft reporting by 57.6% and increased prevention 180%.</li>
+              <li>Reduced inventory loss by 24% through analytics-driven investigations and tooling.</li>
+              <li>Presented actionable insights to non-technical stakeholders across multiple teams.</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="resume-block">
+          <h2 class="resume-block-title">Education</h2>
+          <ul class="resume-education-list">
+            <li class="resume-education-item">
+              <div>
+                <p class="resume-education-title">M.S. Data Science, Eastern University</p>
+                <p class="resume-education-meta">GPA 4.0</p>
+              </div>
+              <p class="resume-education-meta">May 2025</p>
+            </li>
+            <li class="resume-education-item">
+              <div>
+                <p class="resume-education-title">B.S. Data Analytics, Purdue University Global</p>
+                <p class="resume-education-meta">GPA 3.6</p>
+              </div>
+              <p class="resume-education-meta">May 2023</p>
+            </li>
+          </ul>
+          <ul class="resume-cert-list">
+            <li>IBM Data Analyst</li>
+            <li>IBM Machine Learning</li>
+            <li>Google Analytics</li>
+            <li>Google Data Analytics</li>
+            <li>Google Advanced Data Analytics</li>
+          </ul>
+        </div>
+
+        <div class="resume-block">
+          <h2 class="resume-block-title">Projects</h2>
+          <ul class="resume-projects-list">
+            <li><strong>Sheet Music Watermark Removal:</strong> Built an ML pipeline to remove watermarks and upscale scans.</li>
+            <li><strong>Synthetic Digit Generator:</strong> Trained a VAE to generate MNIST-style digits.</li>
+            <li><strong>Nonogram Solver:</strong> Reinforcement learning model achieving a 94% solve rate.</li>
+            <li><strong>Chatbot (LoRA + RAG):</strong> Fine-tuned Mistral with FAISS RAG and a Gradio UI for sourced answers.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="surface-band resume-section" id="resume-pdf">
+      <div class="wrapper">
+        <h2 class="resume-block-title">PDF Resume</h2>
+        <p class="resume-pdf-note">Need the downloadable version? Preview it here or grab the file.</p>
+        <div class="resume-actions">
           <a href="documents/Resume.pdf" class="btn-secondary" download>Download PDF</a>
         </div>
-        <object data="documents/Resume.pdf" type="application/pdf" width="100%" height="800" aria-label="Resume preview">
-          <p>Your browser does not support embedded PDFs. <a href="documents/Resume.pdf" download>Download the PDF</a>.</p>
-        </object>
+        <div class="resume-pdf">
+          <object data="documents/Resume.pdf" type="application/pdf" aria-label="Resume preview">
+            <p>Your browser does not support embedded PDFs. <a href="documents/Resume.pdf" download>Download the PDF</a>.</p>
+          </object>
+        </div>
       </div>
     </section>
   </main>

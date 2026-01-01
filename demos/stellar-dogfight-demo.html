@@ -1,0 +1,2169 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <base href="/">
+  <title>Stellar Dogfight | Daniel Short</title>
+  <meta name="theme-color" content="#0b1220" />
+  <link rel="stylesheet" href="dist/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" />
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #0b1220;
+      --surface: #141f33;
+      --surface-2: #1c2b45;
+      --surface-3: #233456;
+      --stroke: rgba(94, 146, 166, 0.35);
+      --text: #e5f1ff;
+      --text-muted: #a5b5d1;
+      --accent: #44d2c2;
+      --accent-2: #f6c65f;
+      --danger: #f06969;
+      --success: #6ee7b7;
+      --shadow: 0 24px 50px rgba(4, 10, 24, 0.55);
+      --radius: 18px;
+      --radius-sm: 12px;
+      --font-display: "Space Grotesk", "Chakra Petch", sans-serif;
+      --font-body: "Chakra Petch", "Space Grotesk", sans-serif;
+      --page-pad: clamp(16px, 3vw, 28px);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-body);
+      color: var(--text);
+      background:
+        radial-gradient(900px 420px at 15% -10%, rgba(68, 210, 194, 0.18), transparent 60%),
+        radial-gradient(900px 520px at 85% -15%, rgba(246, 198, 95, 0.22), transparent 65%),
+        linear-gradient(180deg, #0b1220 0%, #0b1728 55%, #0a101d 100%);
+      padding: var(--page-pad);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.08) 1px, transparent 0);
+      background-size: 36px 36px;
+      opacity: 0.25;
+      pointer-events: none;
+      mix-blend-mode: screen;
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+    }
+
+    .mission-shell {
+      width: min(1200px, 100%);
+      margin: 0 auto;
+      display: grid;
+      gap: clamp(18px, 3vw, 26px);
+    }
+
+    .mission-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      padding: clamp(18px, 3vw, 26px);
+      border-radius: var(--radius);
+      background: linear-gradient(130deg, rgba(26, 40, 63, 0.92), rgba(17, 28, 46, 0.92));
+      border: 1px solid var(--stroke);
+      box-shadow: var(--shadow);
+    }
+
+    .title-block {
+      display: grid;
+      gap: 8px;
+      max-width: 640px;
+    }
+
+    .eyebrow {
+      margin: 0;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      color: var(--accent-2);
+      font-weight: 600;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 2.6vw, 2.4rem);
+    }
+
+    .title-block p {
+      margin: 0;
+      color: var(--text-muted);
+      line-height: 1.6;
+      font-size: 0.98rem;
+    }
+
+    .action-stack {
+      display: grid;
+      gap: 10px;
+      min-width: 170px;
+    }
+
+    .btn {
+      border: 1px solid transparent;
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-family: var(--font-body);
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .btn.primary {
+      background: linear-gradient(120deg, var(--accent), #3aa3d8);
+      color: #041219;
+      box-shadow: 0 12px 26px rgba(68, 210, 194, 0.35);
+    }
+
+    .btn.primary:hover,
+    .btn.primary:focus-visible {
+      transform: translateY(-1px) scale(1.02);
+    }
+
+    .btn.ghost {
+      background: rgba(12, 18, 32, 0.6);
+      border-color: color-mix(in srgb, var(--stroke) 70%, transparent);
+      color: var(--text);
+    }
+
+    .btn.ghost:hover,
+    .btn.ghost:focus-visible {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .mission-grid {
+      display: grid;
+      grid-template-columns: minmax(240px, 340px) minmax(0, 1fr);
+      gap: clamp(16px, 2.4vw, 24px);
+    }
+
+    .mission-sidebar,
+    .mission-main {
+      display: grid;
+      gap: clamp(14px, 2vw, 20px);
+    }
+
+    .panel {
+      background: linear-gradient(160deg, rgba(26, 38, 60, 0.92), rgba(14, 22, 38, 0.94));
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-family: var(--font-display);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      background: rgba(12, 18, 32, 0.7);
+      border: 1px solid var(--stroke);
+      color: var(--text-muted);
+    }
+
+    .meter-row {
+      display: grid;
+      grid-template-columns: 60px 1fr auto;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .meter-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .meter {
+      position: relative;
+      height: 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(8, 14, 24, 0.7);
+      overflow: hidden;
+    }
+
+    .meter-fill {
+      position: absolute;
+      inset: 0;
+      width: 0;
+      border-radius: inherit;
+      transition: width 0.2s ease;
+    }
+
+    .meter-fill.hull {
+      background: linear-gradient(90deg, #46c1a3, #6ee7b7);
+    }
+
+    .meter-fill.shield {
+      background: linear-gradient(90deg, #4f9cf7, #57e0ff);
+    }
+
+    .meter-fill.energy {
+      background: linear-gradient(90deg, #f6c65f, #f39c3f);
+    }
+
+    .meter-value {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 0.9rem;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .stat-row:last-child {
+      border-bottom: none;
+    }
+
+    .panel-note {
+      margin: 6px 0 12px;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+
+    .chip-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 32px;
+    }
+
+    .chip {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(12, 18, 32, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      font-size: 0.78rem;
+      color: var(--text);
+    }
+
+    .hangar-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .hangar-card {
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(10, 16, 28, 0.8);
+      padding: 10px 12px;
+      text-align: left;
+      color: var(--text);
+      cursor: pointer;
+      display: grid;
+      gap: 6px;
+      transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .hangar-card:hover,
+    .hangar-card:focus-visible {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .hangar-card[disabled] {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .hangar-title {
+      font-weight: 600;
+    }
+
+    .hangar-meta {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .progress-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+    }
+
+    .stat-tile {
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      background: rgba(10, 16, 28, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: grid;
+      gap: 6px;
+    }
+
+    .stat-tile span {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .stat-tile strong {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .arena-frame {
+      position: relative;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: #05090f;
+      aspect-ratio: 16 / 9;
+      min-height: 320px;
+      box-shadow: var(--shadow);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+      cursor: crosshair;
+    }
+
+    .arena-hud {
+      position: absolute;
+      left: 16px;
+      bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      z-index: 3;
+    }
+
+    .hud-pill {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(12, 18, 32, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+    }
+
+    .hud-pill strong {
+      font-size: 0.85rem;
+      letter-spacing: normal;
+    }
+
+    .arena-overlay {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: rgba(6, 10, 18, 0.65);
+      backdrop-filter: blur(5px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      z-index: 4;
+    }
+
+    .arena-overlay.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .overlay-card {
+      background: linear-gradient(160deg, rgba(24, 36, 56, 0.95), rgba(15, 23, 40, 0.96));
+      border-radius: var(--radius);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      padding: 22px;
+      width: min(620px, 90%);
+      display: grid;
+      gap: 16px;
+      box-shadow: var(--shadow);
+      animation: floatIn 0.4s ease;
+    }
+
+    .overlay-header h3 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+    }
+
+    .overlay-header p {
+      margin: 0;
+      color: var(--text-muted);
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
+    .overlay-list {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 6px;
+      color: var(--text-muted);
+      font-size: 0.92rem;
+    }
+
+    .overlay-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .upgrade-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .upgrade-card {
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(12, 18, 32, 0.8);
+      padding: 12px 14px;
+      text-align: left;
+      color: var(--text);
+      cursor: pointer;
+      display: grid;
+      gap: 6px;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .upgrade-card:hover,
+    .upgrade-card:focus-visible {
+      transform: translateY(-1px);
+      border-color: var(--accent-2);
+    }
+
+    .upgrade-title {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .upgrade-desc {
+      font-size: 0.86rem;
+      color: var(--text-muted);
+    }
+
+    .mission-log {
+      max-height: 220px;
+      overflow: hidden;
+    }
+
+    .log-list {
+      display: grid;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .log-entry {
+      padding: 6px 8px;
+      border-radius: 10px;
+      background: rgba(8, 14, 24, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .mission-header,
+    .mission-sidebar .panel,
+    .arena-frame,
+    .mission-main .panel {
+      animation: riseIn 0.6s ease both;
+    }
+
+    .mission-header {
+      animation-delay: 0.05s;
+    }
+
+    .mission-sidebar .panel:nth-child(1) {
+      animation-delay: 0.08s;
+    }
+
+    .mission-sidebar .panel:nth-child(2) {
+      animation-delay: 0.12s;
+    }
+
+    .mission-sidebar .panel:nth-child(3) {
+      animation-delay: 0.16s;
+    }
+
+    .mission-sidebar .panel:nth-child(4) {
+      animation-delay: 0.2s;
+    }
+
+    .mission-sidebar .panel:nth-child(5) {
+      animation-delay: 0.24s;
+    }
+
+    .arena-frame {
+      animation-delay: 0.14s;
+    }
+
+    .mission-main .panel {
+      animation-delay: 0.2s;
+    }
+
+    @keyframes floatIn {
+      0% {
+        transform: translateY(12px) scale(0.98);
+        opacity: 0;
+      }
+      100% {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes riseIn {
+      0% {
+        transform: translateY(16px);
+        opacity: 0;
+      }
+      100% {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .mission-header,
+      .mission-sidebar .panel,
+      .arena-frame,
+      .mission-main .panel,
+      .overlay-card {
+        animation: none;
+      }
+
+      .btn,
+      .hangar-card,
+      .upgrade-card {
+        transition: none;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .mission-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .action-stack {
+        width: 100%;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      }
+
+      .mission-header {
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .mission-header {
+        padding: 16px;
+      }
+
+      .panel {
+        padding: 14px;
+      }
+
+      .arena-hud {
+        left: 10px;
+        bottom: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="mission-shell">
+    <header class="mission-header">
+      <div class="title-block">
+        <p class="eyebrow">Arcade dogfighter</p>
+        <h1>Stellar Dogfight: Vanguard Rift</h1>
+        <p>Mouse aim with WASD or arrow thrust. Hold left click or Space to fire, Shift boosts, and P pauses.</p>
+      </div>
+      <div class="action-stack">
+        <button class="btn primary" data-action="launch">Launch mission</button>
+        <button class="btn ghost" data-action="pause">Pause</button>
+        <button class="btn ghost" data-action="reset">Reset run</button>
+      </div>
+    </header>
+
+    <section class="mission-grid">
+      <div class="mission-sidebar">
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Ship Systems</h2>
+            <span class="badge" data-stat="status">Hangar</span>
+          </div>
+          <div class="meter-row">
+            <div class="meter-label">Hull</div>
+            <div class="meter">
+              <span class="meter-fill hull" data-meter="hull"></span>
+            </div>
+            <div class="meter-value" data-stat="hull-text">--</div>
+          </div>
+          <div class="meter-row">
+            <div class="meter-label">Shield</div>
+            <div class="meter">
+              <span class="meter-fill shield" data-meter="shield"></span>
+            </div>
+            <div class="meter-value" data-stat="shield-text">--</div>
+          </div>
+          <div class="meter-row">
+            <div class="meter-label">Energy</div>
+            <div class="meter">
+              <span class="meter-fill energy" data-meter="energy"></span>
+            </div>
+            <div class="meter-value" data-stat="energy-text">--</div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Flight Stats</h2>
+          </div>
+          <div class="stat-row"><span>Damage</span><strong data-stat="damage">-</strong></div>
+          <div class="stat-row"><span>Fire Rate</span><strong data-stat="fire-rate">-</strong></div>
+          <div class="stat-row"><span>Max Speed</span><strong data-stat="speed">-</strong></div>
+          <div class="stat-row"><span>Shield Regen</span><strong data-stat="shield-regen">-</strong></div>
+          <div class="stat-row"><span>Energy Regen</span><strong data-stat="energy-regen">-</strong></div>
+          <div class="stat-row"><span>Crit Chance</span><strong data-stat="crit">-</strong></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Field Upgrades</h2>
+          </div>
+          <p class="panel-note">Choose one upgrade after each wave. Stacks carry through the run.</p>
+          <div class="chip-list" data-role="active-upgrades"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Hangar Upgrades</h2>
+          </div>
+          <p class="panel-note">Spend tech points between sorties. Upgrades apply to the next launch.</p>
+          <div class="hangar-grid" data-role="hangar"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Progression</h2>
+          </div>
+          <div class="progress-grid">
+            <div class="stat-tile">
+              <span>Rank</span>
+              <strong data-stat="rank">1</strong>
+            </div>
+            <div class="stat-tile">
+              <span>XP</span>
+              <strong data-stat="xp">0 / 0</strong>
+            </div>
+            <div class="stat-tile">
+              <span>Tech Points</span>
+              <strong data-stat="tech-points">0</strong>
+            </div>
+            <div class="stat-tile">
+              <span>Best Wave</span>
+              <strong data-stat="best-wave">1</strong>
+            </div>
+            <div class="stat-tile">
+              <span>Total Kills</span>
+              <strong data-stat="total-kills">0</strong>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="mission-main">
+        <div class="arena-frame">
+          <canvas data-role="battlefield"></canvas>
+          <div class="arena-overlay" data-role="overlay">
+            <div class="overlay-card" data-role="overlay-content"></div>
+          </div>
+          <div class="arena-hud">
+            <div class="hud-pill">Wave <strong data-stat="wave">1</strong></div>
+            <div class="hud-pill">Enemies <strong data-stat="enemy-count">0</strong></div>
+            <div class="hud-pill">Score <strong data-stat="score">0</strong></div>
+            <div class="hud-pill">Credits <strong data-stat="credits">0</strong></div>
+          </div>
+        </div>
+
+        <section class="panel mission-log">
+          <div class="panel-header">
+            <h2>Mission Log</h2>
+            <span class="badge" data-stat="sector">Sector 01</span>
+          </div>
+          <div class="log-list" data-role="log"></div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const STORAGE_KEY = "stellarDogfightProgress";
+      const dom = {
+        canvas: document.querySelector("[data-role='battlefield']"),
+        overlay: document.querySelector("[data-role='overlay']"),
+        overlayContent: document.querySelector("[data-role='overlay-content']"),
+        log: document.querySelector("[data-role='log']"),
+        activeUpgrades: document.querySelector("[data-role='active-upgrades']"),
+        hangar: document.querySelector("[data-role='hangar']")
+      };
+
+      const ctx = dom.canvas.getContext("2d", { alpha: false });
+      const stats = {
+        hullText: document.querySelector("[data-stat='hull-text']"),
+        shieldText: document.querySelector("[data-stat='shield-text']"),
+        energyText: document.querySelector("[data-stat='energy-text']"),
+        wave: document.querySelector("[data-stat='wave']"),
+        enemyCount: document.querySelector("[data-stat='enemy-count']"),
+        score: document.querySelector("[data-stat='score']"),
+        credits: document.querySelector("[data-stat='credits']"),
+        rank: document.querySelector("[data-stat='rank']"),
+        xp: document.querySelector("[data-stat='xp']"),
+        techPoints: document.querySelector("[data-stat='tech-points']"),
+        bestWave: document.querySelector("[data-stat='best-wave']"),
+        totalKills: document.querySelector("[data-stat='total-kills']"),
+        status: document.querySelector("[data-stat='status']"),
+        sector: document.querySelector("[data-stat='sector']"),
+        damage: document.querySelector("[data-stat='damage']"),
+        fireRate: document.querySelector("[data-stat='fire-rate']"),
+        speed: document.querySelector("[data-stat='speed']"),
+        shieldRegen: document.querySelector("[data-stat='shield-regen']"),
+        energyRegen: document.querySelector("[data-stat='energy-regen']"),
+        crit: document.querySelector("[data-stat='crit']")
+      };
+      const meters = {
+        hull: document.querySelector("[data-meter='hull']"),
+        shield: document.querySelector("[data-meter='shield']"),
+        energy: document.querySelector("[data-meter='energy']")
+      };
+
+      const input = {
+        keys: new Set(),
+        pointer: { x: 0, y: 0, active: false },
+        firing: false,
+        boost: false
+      };
+
+      const state = {
+        mode: "hangar",
+        wave: 1,
+        score: 0,
+        credits: 0,
+        kills: 0,
+        lastTime: 0,
+        width: 0,
+        height: 0,
+        upgradeStacks: {},
+        upgradeOptions: []
+      };
+
+      const BASE_PLAYER = {
+        maxHealth: 120,
+        maxShield: 90,
+        shieldRegen: 6,
+        maxEnergy: 120,
+        energyRegen: 24,
+        energyCost: 16,
+        damage: 12,
+        fireRate: 4,
+        bulletSpeed: 520,
+        maxSpeed: 240,
+        accel: 620,
+        damping: 2.4,
+        critChance: 0.06,
+        critMultiplier: 1.6,
+        projectiles: 1,
+        spread: 0.14,
+        boostMultiplier: 1.35,
+        boostCost: 20,
+        damageReduction: 0,
+        slowChance: 0,
+        slowDuration: 0,
+        salvageBonus: 0,
+        xpBonus: 0,
+        healOnKill: 0,
+        energyOnKill: 0
+      };
+
+      const HANGAR_UPGRADES = [
+        {
+          id: "hull",
+          name: "Hull Plating",
+          desc: "+6 max hull per level.",
+          maxLevel: 5,
+          apply: (stats, level) => {
+            stats.maxHealth += level * 6;
+          }
+        },
+        {
+          id: "reactor",
+          name: "Reactor Coils",
+          desc: "+4 energy regen per level.",
+          maxLevel: 5,
+          apply: (stats, level) => {
+            stats.energyRegen += level * 4;
+          }
+        },
+        {
+          id: "shield",
+          name: "Shield Array",
+          desc: "+3 shield regen and +4 shield per level.",
+          maxLevel: 5,
+          apply: (stats, level) => {
+            stats.shieldRegen += level * 3;
+            stats.maxShield += level * 4;
+          }
+        },
+        {
+          id: "targeting",
+          name: "Targeting Suite",
+          desc: "+2% crit chance per level.",
+          maxLevel: 4,
+          apply: (stats, level) => {
+            stats.critChance += level * 0.02;
+          }
+        },
+        {
+          id: "thrusters",
+          name: "Vector Thrusters",
+          desc: "+6 max speed and +12 accel per level.",
+          maxLevel: 4,
+          apply: (stats, level) => {
+            stats.maxSpeed += level * 6;
+            stats.accel += level * 12;
+          }
+        }
+      ];
+
+      const FIELD_UPGRADES = [
+        {
+          id: "overcharged-blasters",
+          name: "Overcharged Blasters",
+          desc: "+20% weapon damage.",
+          maxStacks: 3,
+          apply: (ship) => {
+            ship.damage *= 1.2;
+          }
+        },
+        {
+          id: "rapid-cyclers",
+          name: "Rapid Cyclers",
+          desc: "+25% fire rate and -10% energy cost.",
+          maxStacks: 2,
+          apply: (ship) => {
+            ship.fireRate *= 1.25;
+            ship.energyCost *= 0.9;
+          }
+        },
+        {
+          id: "afterburners",
+          name: "Afterburners",
+          desc: "+15% max speed and +20% accel.",
+          maxStacks: 2,
+          apply: (ship) => {
+            ship.maxSpeed *= 1.15;
+            ship.accel *= 1.2;
+          }
+        },
+        {
+          id: "reinforced-hull",
+          name: "Reinforced Hull",
+          desc: "+30 max hull and heal 20 now.",
+          maxStacks: 2,
+          apply: (ship) => {
+            ship.maxHealth += 30;
+            ship.health = Math.min(ship.maxHealth, ship.health + 20);
+          }
+        },
+        {
+          id: "shield-harmonizer",
+          name: "Shield Harmonizer",
+          desc: "+25 max shield and +20% regen.",
+          maxStacks: 2,
+          apply: (ship) => {
+            ship.maxShield += 25;
+            ship.shield = Math.min(ship.maxShield, ship.shield + 25);
+            ship.shieldRegen *= 1.2;
+          }
+        },
+        {
+          id: "twin-cannons",
+          name: "Twin Cannons",
+          desc: "+1 projectile per shot with a wider spread.",
+          maxStacks: 1,
+          apply: (ship) => {
+            ship.projectiles += 1;
+            ship.spread += 0.08;
+          }
+        },
+        {
+          id: "ion-rounds",
+          name: "Ion Rounds",
+          desc: "Shots have a 30% chance to slow targets.",
+          maxStacks: 1,
+          apply: (ship) => {
+            ship.slowChance = 0.3;
+            ship.slowDuration = 1.4;
+          }
+        },
+        {
+          id: "reactor-surge",
+          name: "Reactor Surge",
+          desc: "+30 max energy and +20% regen.",
+          maxStacks: 2,
+          apply: (ship) => {
+            ship.maxEnergy += 30;
+            ship.energy = Math.min(ship.maxEnergy, ship.energy + 30);
+            ship.energyRegen *= 1.2;
+          }
+        },
+        {
+          id: "precision-targeting",
+          name: "Precision Targeting",
+          desc: "+8% crit chance and +0.2 crit multiplier.",
+          maxStacks: 2,
+          apply: (ship) => {
+            ship.critChance += 0.08;
+            ship.critMultiplier += 0.2;
+          }
+        },
+        {
+          id: "salvage-drones",
+          name: "Salvage Drones",
+          desc: "+25% credits and +15% XP per kill.",
+          maxStacks: 2,
+          apply: (ship) => {
+            ship.salvageBonus += 0.25;
+            ship.xpBonus += 0.15;
+          }
+        },
+        {
+          id: "nanobot-rig",
+          name: "Nanobot Rig",
+          desc: "Restore 5% hull and 10 energy on every kill.",
+          maxStacks: 1,
+          apply: (ship) => {
+            ship.healOnKill = 0.05;
+            ship.energyOnKill = 10;
+          }
+        },
+        {
+          id: "evasive-thrusters",
+          name: "Evasive Thrusters",
+          desc: "+10% speed and 8% damage reduction.",
+          maxStacks: 2,
+          apply: (ship) => {
+            ship.maxSpeed *= 1.1;
+            ship.damageReduction = Math.min(0.4, ship.damageReduction + 0.08);
+          }
+        }
+      ];
+
+      const ENEMY_TYPES = [
+        {
+          id: "scout",
+          name: "Scout",
+          health: 32,
+          shield: 0,
+          speed: 230,
+          accel: 420,
+          fireRate: 0.7,
+          bulletSpeed: 320,
+          damage: 7,
+          radius: 11,
+          credits: 14,
+          score: 60,
+          color: "#4dd1c5"
+        },
+        {
+          id: "fighter",
+          name: "Fighter",
+          health: 55,
+          shield: 16,
+          speed: 190,
+          accel: 330,
+          fireRate: 0.85,
+          bulletSpeed: 340,
+          damage: 9,
+          radius: 13,
+          credits: 22,
+          score: 80,
+          color: "#f6c65f"
+        },
+        {
+          id: "interceptor",
+          name: "Interceptor",
+          health: 42,
+          shield: 10,
+          speed: 260,
+          accel: 450,
+          fireRate: 1.15,
+          bulletSpeed: 360,
+          damage: 8,
+          radius: 12,
+          credits: 24,
+          score: 90,
+          color: "#6ee7b7"
+        },
+        {
+          id: "bomber",
+          name: "Bomber",
+          health: 90,
+          shield: 30,
+          speed: 150,
+          accel: 240,
+          fireRate: 0.55,
+          bulletSpeed: 300,
+          damage: 14,
+          radius: 16,
+          credits: 30,
+          score: 130,
+          color: "#f48b7f"
+        }
+      ];
+
+      const ACE_TYPE = {
+        id: "ace",
+        name: "Ace",
+        health: 170,
+        shield: 60,
+        speed: 210,
+        accel: 360,
+        fireRate: 1.4,
+        bulletSpeed: 420,
+        damage: 16,
+        radius: 19,
+        credits: 90,
+        score: 320,
+        color: "#7ca8ff"
+      };
+
+      let progress = loadProgress();
+      let player = null;
+      let enemies = [];
+      let bullets = [];
+      let particles = [];
+      let stars = [];
+      let backgroundGradient = null;
+
+      init();
+
+      function init() {
+        setupCanvas();
+        attachEvents();
+        player = createPlayer();
+        renderHangar();
+        setOverlay("start");
+        logEvent("Hangar systems online. Launch when ready.");
+        state.lastTime = performance.now();
+        requestAnimationFrame(loop);
+      }
+
+      function setupCanvas() {
+        resizeCanvas();
+        window.addEventListener("resize", () => {
+          resizeCanvas();
+          if (!input.pointer.active) {
+            input.pointer.x = state.width * 0.5;
+            input.pointer.y = state.height * 0.5;
+          }
+        });
+      }
+
+      function resizeCanvas() {
+        const rect = dom.canvas.getBoundingClientRect();
+        const dpr = Math.max(1, window.devicePixelRatio || 1);
+        if (!rect.width || !rect.height) return;
+        dom.canvas.width = Math.floor(rect.width * dpr);
+        dom.canvas.height = Math.floor(rect.height * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        state.width = rect.width;
+        state.height = rect.height;
+        backgroundGradient = ctx.createRadialGradient(
+          state.width * 0.5,
+          state.height * -0.2,
+          120,
+          state.width * 0.5,
+          state.height * 0.4,
+          state.width * 1.1
+        );
+        backgroundGradient.addColorStop(0, "rgba(68, 210, 194, 0.15)");
+        backgroundGradient.addColorStop(0.45, "rgba(16, 28, 46, 0.9)");
+        backgroundGradient.addColorStop(1, "rgba(5, 8, 14, 1)");
+        stars = createStars(140);
+      }
+
+      function attachEvents() {
+        document.addEventListener("click", (event) => {
+          const action = event.target.closest("[data-action]");
+          if (!action) return;
+          const actionName = action.dataset.action;
+          if (actionName === "launch") startMission();
+          if (actionName === "pause") togglePause();
+          if (actionName === "reset") resetMission();
+        });
+
+        dom.overlay.addEventListener("click", (event) => {
+          const overlayAction = event.target.closest("[data-overlay-action]");
+          if (overlayAction) {
+            const actionName = overlayAction.dataset.overlayAction;
+            if (actionName === "launch") startMission();
+            if (actionName === "resume") togglePause();
+            if (actionName === "reset") resetMission();
+            if (actionName === "reroll") rerollUpgrades();
+            if (actionName === "skip") acceptUpgrade(null);
+            return;
+          }
+
+          const upgradeButton = event.target.closest("[data-upgrade-id]");
+          if (upgradeButton) {
+            acceptUpgrade(upgradeButton.dataset.upgradeId);
+          }
+        });
+
+        dom.hangar.addEventListener("click", (event) => {
+          const button = event.target.closest("[data-hangar-id]");
+          if (!button) return;
+          const upgrade = HANGAR_UPGRADES.find((item) => item.id === button.dataset.hangarId);
+          if (!upgrade) return;
+          const currentLevel = progress.hangar[upgrade.id] || 0;
+          if (progress.techPoints < 1 || currentLevel >= upgrade.maxLevel) return;
+          progress.techPoints -= 1;
+          progress.hangar[upgrade.id] = currentLevel + 1;
+          saveProgress();
+          renderHangar();
+          if (state.mode === "flight" || state.mode === "upgrade" || state.mode === "paused") {
+            logEvent("Hangar upgrade installed for next sortie.");
+          } else {
+            player = createPlayer();
+          }
+        });
+
+        dom.canvas.addEventListener("pointermove", (event) => {
+          const rect = dom.canvas.getBoundingClientRect();
+          input.pointer.x = event.clientX - rect.left;
+          input.pointer.y = event.clientY - rect.top;
+          input.pointer.active = true;
+        });
+
+        dom.canvas.addEventListener("pointerdown", () => {
+          input.firing = true;
+        });
+
+        window.addEventListener("pointerup", () => {
+          input.firing = false;
+        });
+
+        window.addEventListener("keydown", (event) => {
+          const key = event.key.toLowerCase();
+          if (["arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(key) || event.code === "Space") {
+            event.preventDefault();
+          }
+          if (key === "p") {
+            togglePause();
+            return;
+          }
+          if (key === "r") {
+            resetMission();
+            return;
+          }
+          if (event.code === "Space") {
+            input.firing = true;
+          }
+          if (key === "shift") {
+            input.boost = true;
+          }
+          input.keys.add(key);
+        });
+
+        window.addEventListener("keyup", (event) => {
+          const key = event.key.toLowerCase();
+          if (event.code === "Space") {
+            input.firing = false;
+          }
+          if (key === "shift") {
+            input.boost = false;
+          }
+          input.keys.delete(key);
+        });
+
+        window.addEventListener("blur", () => {
+          if (state.mode === "flight") {
+            setPaused(true);
+          }
+        });
+
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden && state.mode === "flight") {
+            setPaused(true);
+          }
+        });
+      }
+
+      function loadProgress() {
+        const fallback = {
+          rank: 1,
+          xp: 0,
+          techPoints: 0,
+          bestWave: 1,
+          totalKills: 0,
+          hangar: {
+            hull: 0,
+            reactor: 0,
+            shield: 0,
+            targeting: 0,
+            thrusters: 0
+          }
+        };
+        try {
+          const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
+          if (!stored) return fallback;
+          return {
+            ...fallback,
+            ...stored,
+            hangar: {
+              ...fallback.hangar,
+              ...(stored.hangar || {})
+            }
+          };
+        } catch (error) {
+          return fallback;
+        }
+      }
+
+      function saveProgress() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+        } catch (error) {
+          // Storage can be unavailable in some browser modes.
+        }
+      }
+
+      function buildBaseStats() {
+        const stats = { ...BASE_PLAYER };
+        HANGAR_UPGRADES.forEach((upgrade) => {
+          const level = progress.hangar[upgrade.id] || 0;
+          upgrade.apply(stats, level);
+        });
+        return stats;
+      }
+
+      function createPlayer() {
+        const base = buildBaseStats();
+        return {
+          ...base,
+          x: state.width * 0.5,
+          y: state.height * 0.5,
+          vx: 0,
+          vy: 0,
+          angle: 0,
+          health: base.maxHealth,
+          shield: base.maxShield,
+          energy: base.maxEnergy,
+          radius: 14,
+          shieldCooldown: 0,
+          fireCooldown: 0,
+          hitFlash: 0
+        };
+      }
+
+      function createStars(count) {
+        return Array.from({ length: count }, () => ({
+          x: Math.random() * state.width,
+          y: Math.random() * state.height,
+          radius: rand(0.6, 1.6),
+          speed: rand(6, 26),
+          alpha: rand(0.3, 0.9)
+        }));
+      }
+
+      function startMission() {
+        if (state.mode !== "hangar" && state.mode !== "gameover") return;
+        player = createPlayer();
+        enemies = [];
+        bullets = [];
+        particles = [];
+        state.upgradeStacks = {};
+        state.upgradeOptions = [];
+        state.wave = 1;
+        state.score = 0;
+        state.credits = 0;
+        state.kills = 0;
+        spawnWave(state.wave);
+        hideOverlay();
+        setMode("flight");
+        logEvent("Wave 1 launched. Stay mobile.");
+      }
+
+      function resetMission() {
+        setMode("hangar");
+        enemies = [];
+        bullets = [];
+        particles = [];
+        state.upgradeStacks = {};
+        state.upgradeOptions = [];
+        state.wave = 1;
+        state.score = 0;
+        state.credits = 0;
+        state.kills = 0;
+        player = createPlayer();
+        setOverlay("start");
+        logEvent("Run reset. Hangar ready.");
+      }
+
+      function setMode(mode) {
+        state.mode = mode;
+        const labels = {
+          hangar: "Hangar",
+          flight: "In Flight",
+          upgrade: "Upgrade Bay",
+          paused: "Paused",
+          gameover: "Wrecked"
+        };
+        stats.status.textContent = labels[mode] || "Hangar";
+      }
+
+      function togglePause() {
+        if (state.mode === "flight") {
+          setPaused(true);
+        } else if (state.mode === "paused") {
+          setPaused(false);
+        }
+      }
+
+      function setPaused(shouldPause) {
+        if (shouldPause) {
+          setMode("paused");
+          setOverlay("paused");
+        } else {
+          setMode("flight");
+          hideOverlay();
+        }
+      }
+
+      function spawnWave(wave) {
+        const baseCount = Math.min(4 + Math.floor(wave * 0.9), 14);
+        const enemyScale = 1 + wave * 0.06;
+        const spawnCount = baseCount + (wave % 3 === 0 ? 1 : 0);
+        for (let i = 0; i < spawnCount; i += 1) {
+          const type = pick(ENEMY_TYPES);
+          enemies.push(createEnemy(type, enemyScale));
+        }
+        if (wave % 5 === 0) {
+          enemies.push(createEnemy(ACE_TYPE, enemyScale + 0.2));
+          logEvent("Enemy ace incoming. Focus fire.");
+        }
+      }
+
+      function createEnemy(type, scale) {
+        const position = randomEdgePosition();
+        return {
+          id: type.id,
+          name: type.name,
+          x: position.x,
+          y: position.y,
+          vx: 0,
+          vy: 0,
+          angle: rand(0, Math.PI * 2),
+          radius: type.radius,
+          maxHealth: type.health * scale,
+          health: type.health * scale,
+          maxShield: type.shield * scale,
+          shield: type.shield * scale,
+          speed: type.speed + scale * 12,
+          accel: type.accel + scale * 16,
+          fireRate: type.fireRate + scale * 0.04,
+          bulletSpeed: type.bulletSpeed + scale * 10,
+          damage: type.damage + scale * 1.2,
+          fireCooldown: rand(0.2, 0.6),
+          color: type.color,
+          credits: type.credits,
+          score: type.score,
+          hitFlash: 0,
+          slowTimer: 0,
+          slowFactor: 1,
+          preferredRange: rand(180, 260),
+          strafeBias: Math.random() > 0.5 ? 1 : -1
+        };
+      }
+
+      function randomEdgePosition() {
+        const margin = 30;
+        const edge = Math.floor(Math.random() * 4);
+        if (edge === 0) {
+          return { x: -margin, y: rand(0, state.height) };
+        }
+        if (edge === 1) {
+          return { x: state.width + margin, y: rand(0, state.height) };
+        }
+        if (edge === 2) {
+          return { x: rand(0, state.width), y: -margin };
+        }
+        return { x: rand(0, state.width), y: state.height + margin };
+      }
+
+      function loop(timestamp) {
+        const delta = Math.min(0.033, (timestamp - state.lastTime) / 1000 || 0);
+        state.lastTime = timestamp;
+        update(delta);
+        render();
+        updateHud();
+        requestAnimationFrame(loop);
+      }
+
+      function update(delta) {
+        updateStars(delta);
+        updateParticles(delta);
+        if (state.mode !== "flight") {
+          return;
+        }
+        updatePlayer(delta);
+        updateEnemies(delta);
+        updateBullets(delta);
+        handleCollisions();
+        checkWaveStatus();
+      }
+
+      function updateStars(delta) {
+        const driftX = player ? -player.vx * 0.02 * delta : 0;
+        const driftY = player ? -player.vy * 0.02 * delta : 0;
+        stars.forEach((star) => {
+          star.x += driftX;
+          star.y += driftY + star.speed * delta * 0.2;
+          if (star.x < 0) star.x += state.width;
+          if (star.x > state.width) star.x -= state.width;
+          if (star.y < 0) star.y += state.height;
+          if (star.y > state.height) star.y -= state.height;
+        });
+      }
+
+      function updateParticles(delta) {
+        for (let i = particles.length - 1; i >= 0; i -= 1) {
+          const particle = particles[i];
+          particle.x += particle.vx * delta;
+          particle.y += particle.vy * delta;
+          particle.life -= delta;
+          if (particle.life <= 0) {
+            particles.splice(i, 1);
+          }
+        }
+      }
+
+      function updatePlayer(delta) {
+        if (!player) return;
+        const aimX = input.pointer.active ? input.pointer.x : state.width * 0.5;
+        const aimY = input.pointer.active ? input.pointer.y : state.height * 0.5;
+        player.angle = Math.atan2(aimY - player.y, aimX - player.x);
+
+        const thrustForward = hasKey("w") || hasKey("arrowup");
+        const thrustBack = hasKey("s") || hasKey("arrowdown");
+        const strafeLeft = hasKey("a") || hasKey("arrowleft");
+        const strafeRight = hasKey("d") || hasKey("arrowright");
+        const boosting = input.boost && player.energy > player.boostCost * delta;
+
+        if (boosting) {
+          player.energy = Math.max(0, player.energy - player.boostCost * delta);
+        }
+
+        const accel = player.accel * (boosting ? player.boostMultiplier : 1);
+        let ax = 0;
+        let ay = 0;
+        player.thrusting = false;
+
+        if (thrustForward) {
+          ax += Math.cos(player.angle) * accel;
+          ay += Math.sin(player.angle) * accel;
+          player.thrusting = true;
+        }
+        if (thrustBack) {
+          ax -= Math.cos(player.angle) * accel * 0.6;
+          ay -= Math.sin(player.angle) * accel * 0.6;
+          player.thrusting = true;
+        }
+        if (strafeLeft) {
+          ax += Math.cos(player.angle - Math.PI / 2) * accel * 0.7;
+          ay += Math.sin(player.angle - Math.PI / 2) * accel * 0.7;
+          player.thrusting = true;
+        }
+        if (strafeRight) {
+          ax += Math.cos(player.angle + Math.PI / 2) * accel * 0.7;
+          ay += Math.sin(player.angle + Math.PI / 2) * accel * 0.7;
+          player.thrusting = true;
+        }
+
+        player.vx += ax * delta;
+        player.vy += ay * delta;
+
+        const damping = Math.max(0, 1 - player.damping * delta);
+        player.vx *= damping;
+        player.vy *= damping;
+
+        const speedLimit = player.maxSpeed * (boosting ? player.boostMultiplier : 1);
+        const speed = Math.hypot(player.vx, player.vy);
+        if (speed > speedLimit) {
+          const ratio = speedLimit / speed;
+          player.vx *= ratio;
+          player.vy *= ratio;
+        }
+
+        player.x += player.vx * delta;
+        player.y += player.vy * delta;
+        wrapEntity(player);
+
+        player.fireCooldown = Math.max(0, player.fireCooldown - delta);
+        player.shieldCooldown = Math.max(0, player.shieldCooldown - delta);
+
+        player.energy = Math.min(player.maxEnergy, player.energy + player.energyRegen * delta);
+        if (player.shieldCooldown <= 0) {
+          player.shield = Math.min(player.maxShield, player.shield + player.shieldRegen * delta);
+        }
+
+        if (player.hitFlash > 0) {
+          player.hitFlash = Math.max(0, player.hitFlash - delta);
+        }
+
+        if (input.firing && player.fireCooldown <= 0 && player.energy >= player.energyCost) {
+          firePlayer();
+        }
+      }
+
+      function updateEnemies(delta) {
+        enemies.forEach((enemy) => {
+          enemy.fireCooldown = Math.max(0, enemy.fireCooldown - delta);
+          if (enemy.hitFlash > 0) {
+            enemy.hitFlash = Math.max(0, enemy.hitFlash - delta);
+          }
+          if (enemy.slowTimer > 0) {
+            enemy.slowTimer = Math.max(0, enemy.slowTimer - delta);
+            enemy.slowFactor = enemy.slowTimer > 0 ? 0.6 : 1;
+          }
+
+          const dx = player.x - enemy.x;
+          const dy = player.y - enemy.y;
+          const distance = Math.hypot(dx, dy) || 1;
+          const leadTime = Math.min(0.8, distance / enemy.bulletSpeed);
+          const targetX = player.x + player.vx * leadTime;
+          const targetY = player.y + player.vy * leadTime;
+          const aimAngle = Math.atan2(targetY - enemy.y, targetX - enemy.x);
+          enemy.angle = aimAngle;
+
+          const accel = enemy.accel * enemy.slowFactor;
+          let ax = 0;
+          let ay = 0;
+
+          if (distance > enemy.preferredRange) {
+            ax += Math.cos(aimAngle) * accel;
+            ay += Math.sin(aimAngle) * accel;
+          } else {
+            const strafeAngle = aimAngle + Math.PI / 2 * enemy.strafeBias;
+            ax += Math.cos(strafeAngle) * accel * 0.85;
+            ay += Math.sin(strafeAngle) * accel * 0.85;
+          }
+
+          enemy.vx += ax * delta;
+          enemy.vy += ay * delta;
+
+          const damping = Math.max(0, 1 - 2 * delta);
+          enemy.vx *= damping;
+          enemy.vy *= damping;
+
+          const maxSpeed = enemy.speed * enemy.slowFactor;
+          const speed = Math.hypot(enemy.vx, enemy.vy);
+          if (speed > maxSpeed) {
+            const ratio = maxSpeed / speed;
+            enemy.vx *= ratio;
+            enemy.vy *= ratio;
+          }
+
+          enemy.x += enemy.vx * delta;
+          enemy.y += enemy.vy * delta;
+          wrapEntity(enemy);
+
+          if (enemy.fireCooldown <= 0 && distance < 520) {
+            fireEnemy(enemy, aimAngle);
+          }
+        });
+      }
+
+      function updateBullets(delta) {
+        for (let i = bullets.length - 1; i >= 0; i -= 1) {
+          const bullet = bullets[i];
+          bullet.x += bullet.vx * delta;
+          bullet.y += bullet.vy * delta;
+          bullet.life -= delta;
+          if (bullet.life <= 0 || isOutOfBounds(bullet)) {
+            bullets.splice(i, 1);
+          }
+        }
+      }
+
+      function handleCollisions() {
+        for (let i = bullets.length - 1; i >= 0; i -= 1) {
+          const bullet = bullets[i];
+          if (bullet.owner === "player") {
+            for (let j = enemies.length - 1; j >= 0; j -= 1) {
+              const enemy = enemies[j];
+              if (distanceBetween(bullet, enemy) <= bullet.radius + enemy.radius) {
+                applyDamage(enemy, bullet.damage, bullet);
+                bullets.splice(i, 1);
+                if (enemy.health <= 0) {
+                  destroyEnemy(enemy, j);
+                }
+                break;
+              }
+            }
+          } else if (bullet.owner === "enemy") {
+            if (distanceBetween(bullet, player) <= bullet.radius + player.radius) {
+              applyDamage(player, bullet.damage, bullet);
+              bullets.splice(i, 1);
+              if (player.health <= 0) {
+                triggerGameOver();
+              }
+            }
+          }
+        }
+      }
+
+      function checkWaveStatus() {
+        if (enemies.length === 0 && state.mode === "flight") {
+          progress.bestWave = Math.max(progress.bestWave, state.wave);
+          saveProgress();
+          state.wave += 1;
+          restoreBetweenWaves();
+          state.upgradeOptions = rollUpgrades();
+          setMode("upgrade");
+          setOverlay("upgrade");
+          logEvent("Wave cleared. Choose a field upgrade.");
+        }
+      }
+
+      function restoreBetweenWaves() {
+        player.health = Math.min(player.maxHealth, player.health + player.maxHealth * 0.25);
+        player.shield = player.maxShield;
+        player.energy = player.maxEnergy;
+      }
+
+      function rollUpgrades() {
+        const available = FIELD_UPGRADES.filter((upgrade) => {
+          const stack = state.upgradeStacks[upgrade.id] || 0;
+          return stack < (upgrade.maxStacks || 99);
+        });
+        const picks = [];
+        const pool = [...available];
+        while (picks.length < Math.min(3, pool.length)) {
+          const index = Math.floor(Math.random() * pool.length);
+          picks.push(pool.splice(index, 1)[0]);
+        }
+        return picks;
+      }
+
+      function acceptUpgrade(id) {
+        if (state.mode !== "upgrade") return;
+        if (id) {
+          const upgrade = FIELD_UPGRADES.find((item) => item.id === id);
+          if (upgrade) {
+            upgrade.apply(player);
+            state.upgradeStacks[upgrade.id] = (state.upgradeStacks[upgrade.id] || 0) + 1;
+            logEvent(`Upgrade acquired: ${upgrade.name}.`);
+          }
+        } else {
+          logEvent("Upgrade skipped. Launching next wave.");
+        }
+        hideOverlay();
+        setMode("flight");
+        spawnWave(state.wave);
+      }
+
+      function rerollUpgrades() {
+        const rerollCost = 60;
+        if (state.credits < rerollCost) {
+          logEvent("Not enough credits to reroll upgrades.");
+          return;
+        }
+        state.credits -= rerollCost;
+        state.upgradeOptions = rollUpgrades();
+        setOverlay("upgrade");
+      }
+
+      function firePlayer() {
+        player.fireCooldown = 1 / player.fireRate;
+        player.energy = Math.max(0, player.energy - player.energyCost);
+        const count = Math.max(1, player.projectiles);
+        const spread = count > 1 ? player.spread : 0;
+        const baseAngle = player.angle - spread * (count - 1) * 0.5;
+        for (let i = 0; i < count; i += 1) {
+          const angle = baseAngle + spread * i;
+          const crit = Math.random() < player.critChance;
+          const damage = player.damage * (crit ? player.critMultiplier : 1);
+          const speed = player.bulletSpeed;
+          bullets.push({
+            owner: "player",
+            x: player.x + Math.cos(angle) * (player.radius + 4),
+            y: player.y + Math.sin(angle) * (player.radius + 4),
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            radius: 3,
+            life: 1.4,
+            damage,
+            crit,
+            slow: player.slowChance > 0 && Math.random() < player.slowChance
+          });
+        }
+      }
+
+      function fireEnemy(enemy, angle) {
+        enemy.fireCooldown = 1 / enemy.fireRate;
+        bullets.push({
+          owner: "enemy",
+          x: enemy.x + Math.cos(angle) * (enemy.radius + 4),
+          y: enemy.y + Math.sin(angle) * (enemy.radius + 4),
+          vx: Math.cos(angle) * enemy.bulletSpeed,
+          vy: Math.sin(angle) * enemy.bulletSpeed,
+          radius: 3,
+          life: 1.6,
+          damage: enemy.damage
+        });
+      }
+
+      function applyDamage(target, amount, bullet) {
+        const mitigation = target.damageReduction || 0;
+        let finalDamage = amount * (1 - mitigation);
+        if (target.shield > 0) {
+          const absorbed = Math.min(target.shield, finalDamage);
+          target.shield -= absorbed;
+          finalDamage -= absorbed;
+          target.hitFlash = 0.15;
+        }
+        if (finalDamage > 0) {
+          target.health -= finalDamage;
+          target.hitFlash = 0.2;
+        }
+        if (target.health < 0) {
+          target.health = 0;
+        }
+        if (target === player) {
+          player.shieldCooldown = 1.6;
+        }
+        if (bullet && bullet.slow && target !== player) {
+          target.slowTimer = player.slowDuration;
+        }
+      }
+
+      function destroyEnemy(enemy, index) {
+        enemies.splice(index, 1);
+        const creditsGain = Math.round(enemy.credits * (1 + player.salvageBonus));
+        const xpGain = Math.round((10 + state.wave * 2) * (1 + player.xpBonus));
+        state.score += enemy.score;
+        state.credits += creditsGain;
+        state.kills += 1;
+        progress.totalKills += 1;
+        awardXp(xpGain);
+        spawnExplosion(enemy.x, enemy.y, enemy.color);
+        if (player.healOnKill > 0) {
+          player.health = Math.min(player.maxHealth, player.health + player.maxHealth * player.healOnKill);
+        }
+        if (player.energyOnKill > 0) {
+          player.energy = Math.min(player.maxEnergy, player.energy + player.energyOnKill);
+        }
+      }
+
+      function awardXp(amount) {
+        progress.xp += amount;
+        let leveled = false;
+        while (progress.xp >= xpToNext(progress.rank)) {
+          progress.xp -= xpToNext(progress.rank);
+          progress.rank += 1;
+          progress.techPoints += 1;
+          leveled = true;
+        }
+        if (leveled) {
+          logEvent(`Rank up. Pilot rank is now ${progress.rank}.`);
+          renderHangar();
+        }
+        saveProgress();
+      }
+
+      function xpToNext(rank) {
+        return Math.floor(120 + (rank - 1) * 80);
+      }
+
+      function triggerGameOver() {
+        setMode("gameover");
+        progress.bestWave = Math.max(progress.bestWave, state.wave);
+        saveProgress();
+        spawnExplosion(player.x, player.y, "#ffffff", 26);
+        setOverlay("gameover");
+        logEvent("Ship destroyed. Returning to hangar.");
+      }
+
+      function render() {
+        ctx.clearRect(0, 0, state.width, state.height);
+        ctx.fillStyle = backgroundGradient || "#05090f";
+        ctx.fillRect(0, 0, state.width, state.height);
+
+        ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+        stars.forEach((star) => {
+          ctx.globalAlpha = star.alpha;
+          ctx.beginPath();
+          ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        ctx.globalAlpha = 1;
+
+        particles.forEach((particle) => {
+          ctx.globalAlpha = Math.max(0, particle.life / particle.maxLife);
+          ctx.fillStyle = particle.color;
+          ctx.beginPath();
+          ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        ctx.globalAlpha = 1;
+
+        bullets.forEach((bullet) => {
+          ctx.fillStyle = bullet.owner === "player" ? (bullet.crit ? "#f6c65f" : "#6ee7b7") : "#f06969";
+          ctx.beginPath();
+          ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        enemies.forEach((enemy) => {
+          drawShip(enemy.x, enemy.y, enemy.angle, enemy.radius, enemy.color, enemy.hitFlash > 0);
+          drawShield(enemy);
+        });
+
+        if (player) {
+          drawShip(player.x, player.y, player.angle, player.radius, "#44d2c2", player.hitFlash > 0, player.thrusting);
+          drawShield(player);
+        }
+
+        drawCrosshair();
+      }
+
+      function drawShip(x, y, angle, size, color, hitFlash, thrusting) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+
+        if (thrusting) {
+          ctx.fillStyle = "rgba(246, 198, 95, 0.8)";
+          ctx.beginPath();
+          ctx.moveTo(-size * 0.8, 0);
+          ctx.lineTo(-size * 1.4, size * 0.5);
+          ctx.lineTo(-size * 1.6, 0);
+          ctx.lineTo(-size * 1.4, -size * 0.5);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        ctx.fillStyle = hitFlash ? "#ffffff" : color;
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(size, 0);
+        ctx.lineTo(-size * 0.7, size * 0.7);
+        ctx.lineTo(-size * 0.4, 0);
+        ctx.lineTo(-size * 0.7, -size * 0.7);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      function drawShield(entity) {
+        if (entity.maxShield <= 0 || entity.shield <= 0) return;
+        const ratio = entity.shield / entity.maxShield;
+        ctx.save();
+        ctx.globalAlpha = 0.2 + ratio * 0.4;
+        ctx.strokeStyle = entity === player ? "#57e0ff" : "#f6c65f";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(entity.x, entity.y, entity.radius + 6, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawCrosshair() {
+        const aimX = input.pointer.active ? input.pointer.x : state.width * 0.5;
+        const aimY = input.pointer.active ? input.pointer.y : state.height * 0.5;
+        ctx.save();
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(aimX, aimY, 10, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function updateHud() {
+        if (!player) return;
+        const hullPct = clamp(player.health / player.maxHealth, 0, 1) * 100;
+        const shieldPct = clamp(player.shield / player.maxShield, 0, 1) * 100;
+        const energyPct = clamp(player.energy / player.maxEnergy, 0, 1) * 100;
+        meters.hull.style.width = `${hullPct}%`;
+        meters.shield.style.width = `${shieldPct}%`;
+        meters.energy.style.width = `${energyPct}%`;
+
+        stats.hullText.textContent = `${Math.round(player.health)} / ${Math.round(player.maxHealth)}`;
+        stats.shieldText.textContent = `${Math.round(player.shield)} / ${Math.round(player.maxShield)}`;
+        stats.energyText.textContent = `${Math.round(player.energy)} / ${Math.round(player.maxEnergy)}`;
+
+        stats.wave.textContent = state.wave;
+        stats.enemyCount.textContent = enemies.length;
+        stats.score.textContent = Math.round(state.score).toLocaleString();
+        stats.credits.textContent = Math.round(state.credits).toLocaleString();
+
+        stats.rank.textContent = progress.rank;
+        stats.xp.textContent = `${Math.round(progress.xp)} / ${xpToNext(progress.rank)}`;
+        stats.techPoints.textContent = progress.techPoints;
+        stats.bestWave.textContent = progress.bestWave;
+        stats.totalKills.textContent = progress.totalKills;
+
+        stats.damage.textContent = Math.round(player.damage);
+        stats.fireRate.textContent = `${player.fireRate.toFixed(1)} / sec`;
+        stats.speed.textContent = Math.round(player.maxSpeed);
+        stats.shieldRegen.textContent = `${player.shieldRegen.toFixed(1)} / sec`;
+        stats.energyRegen.textContent = `${player.energyRegen.toFixed(1)} / sec`;
+        stats.crit.textContent = `${Math.round(player.critChance * 100)}%`;
+
+        const sectorNumber = Math.max(1, Math.floor((state.wave - 1) / 3) + 1);
+        stats.sector.textContent = `Sector ${sectorNumber.toString().padStart(2, "0")}`;
+
+        renderActiveUpgrades();
+      }
+
+      function renderActiveUpgrades() {
+        const entries = FIELD_UPGRADES.filter((upgrade) => state.upgradeStacks[upgrade.id]);
+        if (!entries.length) {
+          dom.activeUpgrades.innerHTML = "<span class=\"chip\">No upgrades yet</span>";
+          return;
+        }
+        dom.activeUpgrades.innerHTML = entries
+          .map((upgrade) => {
+            const stack = state.upgradeStacks[upgrade.id] || 0;
+            const label = stack > 1 ? `${upgrade.name} x${stack}` : upgrade.name;
+            return `<span class=\"chip\">${label}</span>`;
+          })
+          .join("");
+      }
+
+      function renderHangar() {
+        dom.hangar.innerHTML = HANGAR_UPGRADES.map((upgrade) => {
+          const level = progress.hangar[upgrade.id] || 0;
+          const disabled = progress.techPoints < 1 || level >= upgrade.maxLevel ? "disabled" : "";
+          return `
+            <button class="hangar-card" data-hangar-id="${upgrade.id}" ${disabled}>
+              <span class="hangar-title">${upgrade.name}</span>
+              <span class="hangar-meta">${upgrade.desc}</span>
+              <span class="hangar-meta">Level ${level} of ${upgrade.maxLevel}</span>
+            </button>
+          `;
+        }).join("");
+      }
+
+      function setOverlay(mode) {
+        if (mode === "start") {
+          dom.overlayContent.innerHTML = `
+            <div class="overlay-header">
+              <p class="eyebrow">Hangar ready</p>
+              <h3>Vanguard Rift briefing</h3>
+              <p>Your fighter follows the cursor. Keep moving to recharge shields and pick upgrades between waves.</p>
+            </div>
+            <ul class="overlay-list">
+              <li>Mouse aims the nose. WASD or arrow keys thrust.</li>
+              <li>Hold left click or Space to fire. Shift boosts.</li>
+              <li>Clear waves to earn credits and pilot rank XP.</li>
+            </ul>
+            <div class="overlay-actions">
+              <button class="btn primary" data-overlay-action="launch">Launch mission</button>
+            </div>
+          `;
+        }
+        if (mode === "paused") {
+          dom.overlayContent.innerHTML = `
+            <div class="overlay-header">
+              <p class="eyebrow">Systems paused</p>
+              <h3>Mission on hold</h3>
+              <p>Ready when you are. Resume to continue the dogfight.</p>
+            </div>
+            <div class="overlay-actions">
+              <button class="btn primary" data-overlay-action="resume">Resume mission</button>
+              <button class="btn ghost" data-overlay-action="reset">Return to hangar</button>
+            </div>
+          `;
+        }
+        if (mode === "upgrade") {
+          const hasUpgrades = state.upgradeOptions.length > 0;
+          const upgradeCards = hasUpgrades
+            ? state.upgradeOptions.map((upgrade) => {
+              return `
+                <button class="upgrade-card" data-upgrade-id="${upgrade.id}">
+                  <span class="upgrade-title">${upgrade.name}</span>
+                  <span class="upgrade-desc">${upgrade.desc}</span>
+                </button>
+              `;
+            }).join("")
+            : `
+              <div class="upgrade-card" aria-disabled="true">
+                <span class="upgrade-title">All upgrades installed</span>
+                <span class="upgrade-desc">Your ship is fully tuned. Launch the next wave.</span>
+              </div>
+            `;
+          const upgradeActions = hasUpgrades
+            ? `
+              <button class="btn ghost" data-overlay-action="reroll">Reroll upgrades</button>
+              <button class="btn ghost" data-overlay-action="skip">Skip upgrade</button>
+            `
+            : `
+              <button class="btn primary" data-overlay-action="skip">Launch next wave</button>
+            `;
+          dom.overlayContent.innerHTML = `
+            <div class="overlay-header">
+              <p class="eyebrow">Wave ${state.wave - 1} cleared</p>
+              <h3>Choose a field upgrade</h3>
+              <p>Upgrades stack for the rest of the run. Reroll costs 60 credits.</p>
+            </div>
+            <div class="upgrade-grid">
+              ${upgradeCards}
+            </div>
+            <div class="overlay-actions">
+              ${upgradeActions}
+            </div>
+          `;
+        }
+        if (mode === "gameover") {
+          dom.overlayContent.innerHTML = `
+            <div class="overlay-header">
+              <p class="eyebrow">Mission failed</p>
+              <h3>Ship lost in the rift</h3>
+              <p>Recover your data logs and refit in the hangar before the next sortie.</p>
+            </div>
+            <div class="progress-grid">
+              <div class="stat-tile"><span>Wave</span><strong>${state.wave}</strong></div>
+              <div class="stat-tile"><span>Score</span><strong>${Math.round(state.score).toLocaleString()}</strong></div>
+              <div class="stat-tile"><span>Credits</span><strong>${Math.round(state.credits).toLocaleString()}</strong></div>
+            </div>
+            <div class="overlay-actions">
+              <button class="btn primary" data-overlay-action="reset">Return to hangar</button>
+            </div>
+          `;
+        }
+
+        dom.overlay.classList.add("is-visible");
+      }
+
+      function hideOverlay() {
+        dom.overlay.classList.remove("is-visible");
+      }
+
+      function logEvent(message) {
+        const entry = document.createElement("div");
+        entry.className = "log-entry";
+        entry.textContent = message;
+        dom.log.prepend(entry);
+        while (dom.log.children.length > 6) {
+          dom.log.removeChild(dom.log.lastChild);
+        }
+      }
+
+      function spawnExplosion(x, y, color, size = 18) {
+        const count = 14;
+        for (let i = 0; i < count; i += 1) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = rand(60, 220);
+          particles.push({
+            x,
+            y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            life: rand(0.4, 0.9),
+            maxLife: 0.9,
+            size: rand(2, size / 6),
+            color
+          });
+        }
+      }
+
+      function wrapEntity(entity) {
+        const margin = 40;
+        if (entity.x < -margin) entity.x = state.width + margin;
+        if (entity.x > state.width + margin) entity.x = -margin;
+        if (entity.y < -margin) entity.y = state.height + margin;
+        if (entity.y > state.height + margin) entity.y = -margin;
+      }
+
+      function isOutOfBounds(entity) {
+        const margin = 60;
+        return entity.x < -margin || entity.x > state.width + margin || entity.y < -margin || entity.y > state.height + margin;
+      }
+
+      function hasKey(key) {
+        return input.keys.has(key);
+      }
+
+      function distanceBetween(a, b) {
+        return Math.hypot(a.x - b.x, a.y - b.y);
+      }
+
+      function rand(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+
+      function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+      }
+
+      function pick(array) {
+        return array[Math.floor(Math.random() * array.length)];
+      }
+    })();
+  </script>
+</body>
+</html>
