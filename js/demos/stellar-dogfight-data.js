@@ -907,6 +907,78 @@
       }
     },
     {
+      id: "core-overclock",
+      name: "Core Overclock",
+      tier: "common",
+      category: "Offense",
+      desc: "+10% weapon damage.",
+      maxStacks: 3,
+      apply: (ship) => {
+        ship.damage *= 1.1;
+      }
+    },
+    {
+      id: "targeting-lenses",
+      name: "Targeting Lenses",
+      tier: "common",
+      category: "Offense",
+      desc: "+4% crit chance and +0.15 crit damage.",
+      maxStacks: 2,
+      apply: (ship) => {
+        ship.critChance += 0.04;
+        ship.critMultiplier += 0.15;
+      }
+    },
+    {
+      id: "power-routing",
+      name: "Power Routing",
+      tier: "common",
+      category: "Utility",
+      desc: "+20 max energy and +15% regen.",
+      maxStacks: 3,
+      apply: (ship) => {
+        ship.maxEnergy += 20;
+        ship.energy = Math.min(ship.maxEnergy, ship.energy + 20);
+        ship.energyRegen *= 1.15;
+      }
+    },
+    {
+      id: "boost-servos",
+      name: "Boost Servos",
+      tier: "common",
+      category: "Mobility",
+      desc: "+12% boost power and -8% boost cost.",
+      maxStacks: 3,
+      apply: (ship) => {
+        ship.boostMultiplier *= 1.12;
+        ship.boostCost *= 0.92;
+      }
+    },
+    {
+      id: "ablative-lattice",
+      name: "Ablative Lattice",
+      tier: "common",
+      category: "Defense",
+      desc: "+10 max hull and 5% damage reduction.",
+      maxStacks: 3,
+      apply: (ship) => {
+        ship.maxHealth += 10;
+        ship.damageReduction = Math.min(0.45, ship.damageReduction + 0.05);
+      }
+    },
+    {
+      id: "vector-jets",
+      name: "Vector Jets",
+      tier: "common",
+      category: "Mobility",
+      desc: "+0.25 turn rate and +10% accel.",
+      maxStacks: 3,
+      apply: (ship) => {
+        ship.turnRate += 0.25;
+        ship.accel *= 1.1;
+      }
+    },
+    {
       id: "signal-forecast",
       name: "Signal Forecast",
       tier: "uncommon",
@@ -1036,6 +1108,80 @@
       }
     },
     {
+      id: "strike-accelerators",
+      name: "Strike Accelerators",
+      tier: "uncommon",
+      category: "Offense",
+      desc: "+15% fire rate and +10% projectile speed.",
+      maxStacks: 2,
+      apply: (ship) => {
+        ship.fireRate *= 1.15;
+        ship.bulletSpeed *= 1.1;
+      }
+    },
+    {
+      id: "high-output-cells",
+      name: "High Output Cells",
+      tier: "uncommon",
+      category: "Offense",
+      desc: "+18% weapon damage and +10 max energy.",
+      maxStacks: 2,
+      apply: (ship) => {
+        ship.damage *= 1.18;
+        ship.maxEnergy += 10;
+        ship.energy = Math.min(ship.maxEnergy, ship.energy + 10);
+      }
+    },
+    {
+      id: "target-stabilizers",
+      name: "Target Stabilizers",
+      tier: "uncommon",
+      category: "Utility",
+      desc: "-0.05 weapon spread and +12% projectile speed.",
+      maxStacks: 2,
+      apply: (ship) => {
+        ship.spread = Math.max(0.04, ship.spread - 0.05);
+        ship.bulletSpeed *= 1.12;
+      }
+    },
+    {
+      id: "siphon-cells",
+      name: "Siphon Cells",
+      tier: "uncommon",
+      category: "Defense",
+      desc: "Restore 3% hull and 6 energy on kill.",
+      maxStacks: 2,
+      apply: (ship) => {
+        ship.healOnKill = Math.max(ship.healOnKill, 0.03);
+        ship.energyOnKill = Math.max(ship.energyOnKill, 6);
+      }
+    },
+    {
+      id: "shield-overclock",
+      name: "Shield Overclock",
+      tier: "uncommon",
+      category: "Defense",
+      desc: "+35 max shield and +15% regen.",
+      maxStacks: 2,
+      apply: (ship) => {
+        ship.maxShield += 35;
+        ship.shield = Math.min(ship.maxShield, ship.shield + 20);
+        ship.shieldRegen *= 1.15;
+      }
+    },
+    {
+      id: "afterimage-thrusters",
+      name: "Afterimage Thrusters",
+      tier: "uncommon",
+      category: "Mobility",
+      desc: "+20% accel and +12% max speed.",
+      maxStacks: 2,
+      apply: (ship) => {
+        ship.accel *= 1.2;
+        ship.maxSpeed *= 1.12;
+      }
+    },
+    {
       id: "evasive-thrusters",
       name: "Evasive Thrusters",
       tier: "rare",
@@ -1121,6 +1267,80 @@
       }
     },
     {
+      id: "precision-matrix",
+      name: "Precision Matrix",
+      tier: "rare",
+      category: "Offense",
+      desc: "+12% crit chance and +0.3 crit damage.",
+      maxStacks: 1,
+      apply: (ship) => {
+        ship.critChance += 0.12;
+        ship.critMultiplier += 0.3;
+      }
+    },
+    {
+      id: "phase-rounds",
+      name: "Phase Rounds",
+      tier: "rare",
+      category: "Offense",
+      desc: "+1 pierce and +18% projectile speed.",
+      maxStacks: 1,
+      apply: (ship) => {
+        ship.pierce += 1;
+        ship.bulletSpeed *= 1.18;
+      }
+    },
+    {
+      id: "arc-conduit",
+      name: "Arc Conduit",
+      tier: "rare",
+      category: "Control",
+      desc: "Shots arc to 1 target for 35% damage.",
+      maxStacks: 1,
+      apply: (ship) => {
+        ship.arcDamage = Math.max(ship.arcDamage || 0, 0.35);
+        ship.arcRadius = Math.max(ship.arcRadius || 0, 120);
+        ship.arcChains = Math.max(ship.arcChains || 0, 1);
+      }
+    },
+    {
+      id: "cryo-core",
+      name: "Cryo Core",
+      tier: "rare",
+      category: "Control",
+      desc: "Shots have a 45% chance to slow for 1.8s.",
+      maxStacks: 1,
+      apply: (ship) => {
+        ship.slowChance = Math.max(ship.slowChance, 0.45);
+        ship.slowDuration = Math.max(ship.slowDuration, 1.8);
+      }
+    },
+    {
+      id: "overdrive-reactor",
+      name: "Overdrive Reactor",
+      tier: "rare",
+      category: "Utility",
+      desc: "+60 max energy and +30% regen.",
+      maxStacks: 1,
+      apply: (ship) => {
+        ship.maxEnergy += 60;
+        ship.energy = Math.min(ship.maxEnergy, ship.energy + 30);
+        ship.energyRegen *= 1.3;
+      }
+    },
+    {
+      id: "hunter-gyros",
+      name: "Hunter Gyros",
+      tier: "rare",
+      category: "Mobility",
+      desc: "+20% max speed and +0.5 turn rate.",
+      maxStacks: 1,
+      apply: (ship) => {
+        ship.maxSpeed *= 1.2;
+        ship.turnRate += 0.5;
+      }
+    },
+    {
       id: "nanobot-rig",
       name: "Nanobot Rig",
       tier: "epic",
@@ -1169,6 +1389,84 @@
       }
     },
     {
+      id: "barrage-protocol",
+      name: "Barrage Protocol",
+      tier: "epic",
+      category: "Offense",
+      desc: "Every 5th shot fires +2 projectiles with +50% damage.",
+      maxStacks: 1,
+      apply: (ship) => {
+        ship.barrageEvery = ship.barrageEvery ? Math.min(ship.barrageEvery, 5) : 5;
+        ship.barrageProjectiles = Math.max(ship.barrageProjectiles || 0, 2);
+        ship.barrageBonusDamage = Math.max(ship.barrageBonusDamage || 1, 1.5);
+      }
+    },
+    {
+      id: "phase-cyclone",
+      name: "Phase Cyclone",
+      tier: "epic",
+      category: "Offense",
+      desc: "+3 pierce and +20% damage.",
+      maxStacks: 1,
+      apply: (ship) => {
+        ship.pierce += 3;
+        ship.damage *= 1.2;
+      }
+    },
+    {
+      id: "fortress-plating",
+      name: "Fortress Plating",
+      tier: "epic",
+      category: "Defense",
+      desc: "+120 max hull, +20% shield regen, +15% damage reduction.",
+      maxStacks: 1,
+      apply: (ship) => {
+        ship.maxHealth += 120;
+        ship.shieldRegen *= 1.2;
+        ship.damageReduction = Math.min(0.6, ship.damageReduction + 0.15);
+      }
+    },
+    {
+      id: "nova-reactor",
+      name: "Nova Reactor",
+      tier: "epic",
+      category: "Utility",
+      desc: "+80 max energy, +50% regen, +15% fire rate.",
+      maxStacks: 1,
+      apply: (ship) => {
+        ship.maxEnergy += 80;
+        ship.energy = Math.min(ship.maxEnergy, ship.energy + 40);
+        ship.energyRegen *= 1.5;
+        ship.fireRate *= 1.15;
+      }
+    },
+    {
+      id: "phantom-thrusters",
+      name: "Phantom Thrusters",
+      tier: "epic",
+      category: "Mobility",
+      desc: "+30% speed, +30% accel, +0.8 turn rate.",
+      maxStacks: 1,
+      apply: (ship) => {
+        ship.maxSpeed *= 1.3;
+        ship.accel *= 1.3;
+        ship.turnRate += 0.8;
+      }
+    },
+    {
+      id: "entropy-shells",
+      name: "Entropy Shells",
+      tier: "epic",
+      category: "Offense",
+      desc: "Shots gain splash (radius 28) and +20% damage.",
+      maxStacks: 1,
+      apply: (ship) => {
+        ship.splashRadius = ship.splashRadius > 0 ? ship.splashRadius * 1.3 : 28;
+        ship.splashDamage = Math.max(ship.splashDamage || 0.6, 0.7);
+        ship.damage *= 1.2;
+      }
+    },
+    {
       id: "quantum-barrage",
       name: "Quantum Barrage",
       tier: "legendary",
@@ -1202,6 +1500,60 @@
         ship.aegisPulseRadius = Math.max(ship.aegisPulseRadius || 0, 170);
         ship.aegisPulseDamage = Math.max(ship.aegisPulseDamage || 0, 28);
         ship.aegisPulseSlow = Math.max(ship.aegisPulseSlow || 0, 1.6);
+      }
+    },
+    {
+      id: "starforged-core",
+      name: "Starforged Core",
+      tier: "legendary",
+      category: "Offense",
+      desc: "+35% damage, +25% fire rate, -20% energy cost.",
+      maxStacks: 1,
+      apply: (ship) => {
+        ship.damage *= 1.35;
+        ship.fireRate *= 1.25;
+        ship.energyCost *= 0.8;
+      }
+    },
+    {
+      id: "tempest-drive",
+      name: "Tempest Drive",
+      tier: "legendary",
+      category: "Mobility",
+      desc: "+40% speed, +35% accel, +1.2 turn rate, -30% boost cost.",
+      maxStacks: 1,
+      apply: (ship) => {
+        ship.maxSpeed *= 1.4;
+        ship.accel *= 1.35;
+        ship.turnRate += 1.2;
+        ship.boostCost *= 0.7;
+      }
+    },
+    {
+      id: "event-horizon",
+      name: "Event Horizon",
+      tier: "legendary",
+      category: "Control",
+      desc: "Shots arc to 2 targets for 70% damage and slow.",
+      maxStacks: 1,
+      apply: (ship) => {
+        ship.arcDamage = Math.max(ship.arcDamage || 0, 0.7);
+        ship.arcRadius = Math.max(ship.arcRadius || 0, 180);
+        ship.arcChains = Math.max(ship.arcChains || 0, 2);
+        ship.slowChance = Math.max(ship.slowChance, 0.35);
+        ship.slowDuration = Math.max(ship.slowDuration, 1.8);
+      }
+    },
+    {
+      id: "phoenix-swarm",
+      name: "Phoenix Swarm",
+      tier: "legendary",
+      category: "Defense",
+      desc: "Restore 12% hull and 22 energy on every kill.",
+      maxStacks: 1,
+      apply: (ship) => {
+        ship.healOnKill = Math.max(ship.healOnKill, 0.12);
+        ship.energyOnKill = Math.max(ship.energyOnKill, 22);
       }
     }
   ];
