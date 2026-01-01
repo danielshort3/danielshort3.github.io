@@ -71,6 +71,7 @@
       margin: 0 auto;
       display: grid;
       gap: clamp(18px, 3vw, 26px);
+      min-height: calc(100vh - (var(--page-pad) * 2));
     }
 
     .mission-header {
@@ -170,6 +171,58 @@
       border-radius: var(--radius);
       padding: 16px;
       box-shadow: var(--shadow);
+    }
+
+    .tab-shell {
+      display: grid;
+      gap: 12px;
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    .tab-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+      gap: 8px;
+    }
+
+    .tab-btn {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(12, 18, 32, 0.7);
+      color: var(--text-muted);
+      border-radius: 999px;
+      padding: 8px 10px;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-family: var(--font-body);
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    .tab-btn.is-active {
+      background: linear-gradient(120deg, var(--accent), #3aa3d8);
+      border-color: rgba(68, 210, 194, 0.7);
+      color: #041219;
+    }
+
+    .tab-btn:focus-visible {
+      outline: 2px solid color-mix(in srgb, var(--accent) 80%, transparent);
+      outline-offset: 2px;
+    }
+
+    .tab-panels {
+      min-height: 0;
+    }
+
+    .tab-panel {
+      display: none;
+      height: 100%;
+      overflow-y: auto;
+    }
+
+    .tab-panel.is-active {
+      display: block;
     }
 
     .panel-header {
@@ -488,8 +541,7 @@
     }
 
     .mission-log {
-      max-height: 220px;
-      overflow: hidden;
+      min-height: 0;
     }
 
     .log-list {
@@ -583,6 +635,42 @@
       }
     }
 
+    @media (min-width: 980px) {
+      body {
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      .mission-shell {
+        height: calc(100vh - (var(--page-pad) * 2));
+        grid-template-rows: auto minmax(0, 1fr);
+      }
+
+      .mission-grid {
+        align-items: stretch;
+        min-height: 0;
+        height: 100%;
+      }
+
+      .mission-sidebar,
+      .mission-main {
+        min-height: 0;
+        height: 100%;
+      }
+
+      .tab-shell,
+      .tab-panels {
+        min-height: 0;
+        height: 100%;
+      }
+
+      .arena-frame {
+        height: 100%;
+        min-height: 0;
+        aspect-ratio: auto;
+      }
+    }
+
     @media (max-width: 980px) {
       .mission-grid {
         grid-template-columns: 1fr;
@@ -620,7 +708,7 @@
       <div class="title-block">
         <p class="eyebrow">Arcade dogfighter</p>
         <h1>Stellar Dogfight: Vanguard Rift</h1>
-        <p>Mouse aim with WASD or arrow thrust. Hold left click or Space to fire, Shift boosts, and P pauses.</p>
+        <p>Mouse aim with WASD or arrow thrust. Keyboard-only: aim with IJKL. Hold left click or Space to fire, Shift boosts, and P pauses.</p>
       </div>
       <div class="action-stack">
         <button class="btn primary" data-action="launch">Launch mission</button>
@@ -631,89 +719,109 @@
 
     <section class="mission-grid">
       <div class="mission-sidebar">
-        <section class="panel">
-          <div class="panel-header">
-            <h2>Ship Systems</h2>
-            <span class="badge" data-stat="status">Hangar</span>
+        <div class="tab-shell" data-tab-group="sidebar" data-tab-default="systems">
+          <div class="tab-bar" role="tablist" aria-label="Ship panels">
+            <button class="tab-btn is-active" id="tab-btn-systems" type="button" data-tab-target="systems" role="tab" aria-controls="tab-systems" aria-selected="true" tabindex="0">Systems</button>
+            <button class="tab-btn" id="tab-btn-stats" type="button" data-tab-target="stats" role="tab" aria-controls="tab-stats" aria-selected="false" tabindex="-1">Stats</button>
+            <button class="tab-btn" id="tab-btn-field" type="button" data-tab-target="field" role="tab" aria-controls="tab-field" aria-selected="false" tabindex="-1">Upgrades</button>
+            <button class="tab-btn" id="tab-btn-hangar" type="button" data-tab-target="hangar" role="tab" aria-controls="tab-hangar" aria-selected="false" tabindex="-1">Hangar</button>
+            <button class="tab-btn" id="tab-btn-progress" type="button" data-tab-target="progress" role="tab" aria-controls="tab-progress" aria-selected="false" tabindex="-1">Progress</button>
+            <button class="tab-btn" id="tab-btn-log" type="button" data-tab-target="log" role="tab" aria-controls="tab-log" aria-selected="false" tabindex="-1">Log</button>
           </div>
-          <div class="meter-row">
-            <div class="meter-label">Hull</div>
-            <div class="meter">
-              <span class="meter-fill hull" data-meter="hull"></span>
-            </div>
-            <div class="meter-value" data-stat="hull-text">--</div>
-          </div>
-          <div class="meter-row">
-            <div class="meter-label">Shield</div>
-            <div class="meter">
-              <span class="meter-fill shield" data-meter="shield"></span>
-            </div>
-            <div class="meter-value" data-stat="shield-text">--</div>
-          </div>
-          <div class="meter-row">
-            <div class="meter-label">Energy</div>
-            <div class="meter">
-              <span class="meter-fill energy" data-meter="energy"></span>
-            </div>
-            <div class="meter-value" data-stat="energy-text">--</div>
-          </div>
-        </section>
+          <div class="tab-panels">
+            <section class="panel tab-panel is-active" id="tab-systems" data-tab-panel="systems" role="tabpanel" aria-labelledby="tab-btn-systems">
+              <div class="panel-header">
+                <h2>Ship Systems</h2>
+                <span class="badge" data-stat="status">Hangar</span>
+              </div>
+              <div class="meter-row">
+                <div class="meter-label">Hull</div>
+                <div class="meter">
+                  <span class="meter-fill hull" data-meter="hull"></span>
+                </div>
+                <div class="meter-value" data-stat="hull-text">--</div>
+              </div>
+              <div class="meter-row">
+                <div class="meter-label">Shield</div>
+                <div class="meter">
+                  <span class="meter-fill shield" data-meter="shield"></span>
+                </div>
+                <div class="meter-value" data-stat="shield-text">--</div>
+              </div>
+              <div class="meter-row">
+                <div class="meter-label">Energy</div>
+                <div class="meter">
+                  <span class="meter-fill energy" data-meter="energy"></span>
+                </div>
+                <div class="meter-value" data-stat="energy-text">--</div>
+              </div>
+            </section>
 
-        <section class="panel">
-          <div class="panel-header">
-            <h2>Flight Stats</h2>
-          </div>
-          <div class="stat-row"><span>Damage</span><strong data-stat="damage">-</strong></div>
-          <div class="stat-row"><span>Fire Rate</span><strong data-stat="fire-rate">-</strong></div>
-          <div class="stat-row"><span>Max Speed</span><strong data-stat="speed">-</strong></div>
-          <div class="stat-row"><span>Shield Regen</span><strong data-stat="shield-regen">-</strong></div>
-          <div class="stat-row"><span>Energy Regen</span><strong data-stat="energy-regen">-</strong></div>
-          <div class="stat-row"><span>Crit Chance</span><strong data-stat="crit">-</strong></div>
-        </section>
+            <section class="panel tab-panel" id="tab-stats" data-tab-panel="stats" role="tabpanel" aria-labelledby="tab-btn-stats" hidden>
+              <div class="panel-header">
+                <h2>Flight Stats</h2>
+              </div>
+              <div class="stat-row"><span>Damage</span><strong data-stat="damage">-</strong></div>
+              <div class="stat-row"><span>Fire Rate</span><strong data-stat="fire-rate">-</strong></div>
+              <div class="stat-row"><span>Max Speed</span><strong data-stat="speed">-</strong></div>
+              <div class="stat-row"><span>Shield Regen</span><strong data-stat="shield-regen">-</strong></div>
+              <div class="stat-row"><span>Energy Regen</span><strong data-stat="energy-regen">-</strong></div>
+              <div class="stat-row"><span>Crit Chance</span><strong data-stat="crit">-</strong></div>
+            </section>
 
-        <section class="panel">
-          <div class="panel-header">
-            <h2>Field Upgrades</h2>
-          </div>
-          <p class="panel-note">Choose one upgrade after each wave. Stacks carry through the run.</p>
-          <div class="chip-list" data-role="active-upgrades"></div>
-        </section>
+            <section class="panel tab-panel" id="tab-field" data-tab-panel="field" role="tabpanel" aria-labelledby="tab-btn-field" hidden>
+              <div class="panel-header">
+                <h2>Field Upgrades</h2>
+              </div>
+              <p class="panel-note">Choose one upgrade after each wave. Stacks carry through the run.</p>
+              <div class="chip-list" data-role="active-upgrades"></div>
+            </section>
 
-        <section class="panel">
-          <div class="panel-header">
-            <h2>Hangar Upgrades</h2>
-          </div>
-          <p class="panel-note">Spend tech points between sorties. Upgrades apply to the next launch.</p>
-          <div class="hangar-grid" data-role="hangar"></div>
-        </section>
+            <section class="panel tab-panel" id="tab-hangar" data-tab-panel="hangar" role="tabpanel" aria-labelledby="tab-btn-hangar" hidden>
+              <div class="panel-header">
+                <h2>Hangar Upgrades</h2>
+              </div>
+              <p class="panel-note">Spend tech points between sorties. Upgrades apply to the next launch.</p>
+              <div class="hangar-grid" data-role="hangar"></div>
+            </section>
 
-        <section class="panel">
-          <div class="panel-header">
-            <h2>Progression</h2>
+            <section class="panel tab-panel" id="tab-progress" data-tab-panel="progress" role="tabpanel" aria-labelledby="tab-btn-progress" hidden>
+              <div class="panel-header">
+                <h2>Progression</h2>
+              </div>
+              <div class="progress-grid">
+                <div class="stat-tile">
+                  <span>Rank</span>
+                  <strong data-stat="rank">1</strong>
+                </div>
+                <div class="stat-tile">
+                  <span>XP</span>
+                  <strong data-stat="xp">0 / 0</strong>
+                </div>
+                <div class="stat-tile">
+                  <span>Tech Points</span>
+                  <strong data-stat="tech-points">0</strong>
+                </div>
+                <div class="stat-tile">
+                  <span>Best Wave</span>
+                  <strong data-stat="best-wave">1</strong>
+                </div>
+                <div class="stat-tile">
+                  <span>Total Kills</span>
+                  <strong data-stat="total-kills">0</strong>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel tab-panel mission-log" id="tab-log" data-tab-panel="log" role="tabpanel" aria-labelledby="tab-btn-log" hidden>
+              <div class="panel-header">
+                <h2>Mission Log</h2>
+                <span class="badge" data-stat="sector">Sector 01</span>
+              </div>
+              <div class="log-list" data-role="log"></div>
+            </section>
           </div>
-          <div class="progress-grid">
-            <div class="stat-tile">
-              <span>Rank</span>
-              <strong data-stat="rank">1</strong>
-            </div>
-            <div class="stat-tile">
-              <span>XP</span>
-              <strong data-stat="xp">0 / 0</strong>
-            </div>
-            <div class="stat-tile">
-              <span>Tech Points</span>
-              <strong data-stat="tech-points">0</strong>
-            </div>
-            <div class="stat-tile">
-              <span>Best Wave</span>
-              <strong data-stat="best-wave">1</strong>
-            </div>
-            <div class="stat-tile">
-              <span>Total Kills</span>
-              <strong data-stat="total-kills">0</strong>
-            </div>
-          </div>
-        </section>
+        </div>
       </div>
 
       <div class="mission-main">
@@ -729,14 +837,6 @@
             <div class="hud-pill">Credits <strong data-stat="credits">0</strong></div>
           </div>
         </div>
-
-        <section class="panel mission-log">
-          <div class="panel-header">
-            <h2>Mission Log</h2>
-            <span class="badge" data-stat="sector">Sector 01</span>
-          </div>
-          <div class="log-list" data-role="log"></div>
-        </section>
       </div>
     </section>
   </main>
@@ -786,9 +886,11 @@
 
       const input = {
         keys: new Set(),
-        pointer: { x: 0, y: 0, active: false },
+        pointer: { x: 0, y: 0, active: false, moved: false },
         firing: false,
-        boost: false
+        boost: false,
+        aimAngle: 0,
+        aimSource: "mouse"
       };
 
       const state = {
@@ -1096,6 +1198,7 @@
       init();
 
       function init() {
+        setupTabs();
         setupCanvas();
         attachEvents();
         player = createPlayer();
@@ -1191,6 +1294,7 @@
           input.pointer.x = event.clientX - rect.left;
           input.pointer.y = event.clientY - rect.top;
           input.pointer.active = true;
+          input.pointer.moved = true;
         });
 
         dom.canvas.addEventListener("pointerdown", () => {
@@ -1244,6 +1348,61 @@
           if (document.hidden && state.mode === "flight") {
             setPaused(true);
           }
+        });
+      }
+
+      function setupTabs() {
+        const groups = document.querySelectorAll("[data-tab-group]");
+        groups.forEach((group) => {
+          const buttons = Array.from(group.querySelectorAll("[data-tab-target]"));
+          const panels = Array.from(group.querySelectorAll("[data-tab-panel]"));
+          if (!buttons.length || !panels.length) return;
+          const defaultTarget = group.dataset.tabDefault || buttons[0].dataset.tabTarget;
+
+          const activate = (target, focusButton) => {
+            buttons.forEach((button) => {
+              const isActive = button.dataset.tabTarget === target;
+              button.classList.toggle("is-active", isActive);
+              button.setAttribute("aria-selected", isActive ? "true" : "false");
+              button.tabIndex = isActive ? 0 : -1;
+              if (isActive && focusButton) {
+                button.focus();
+              }
+            });
+
+            panels.forEach((panel) => {
+              const isActive = panel.dataset.tabPanel === target;
+              panel.classList.toggle("is-active", isActive);
+              panel.hidden = !isActive;
+            });
+          };
+
+          activate(defaultTarget, false);
+
+          group.addEventListener("click", (event) => {
+            const button = event.target.closest("[data-tab-target]");
+            if (!button || !group.contains(button)) return;
+            activate(button.dataset.tabTarget, true);
+          });
+
+          group.addEventListener("keydown", (event) => {
+            const currentIndex = buttons.findIndex((button) => button.classList.contains("is-active"));
+            if (currentIndex === -1) return;
+            let nextIndex = currentIndex;
+            if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+              nextIndex = (currentIndex + 1) % buttons.length;
+            } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+              nextIndex = (currentIndex - 1 + buttons.length) % buttons.length;
+            } else if (event.key === "Home") {
+              nextIndex = 0;
+            } else if (event.key === "End") {
+              nextIndex = buttons.length - 1;
+            } else {
+              return;
+            }
+            event.preventDefault();
+            activate(buttons[nextIndex].dataset.tabTarget, true);
+          });
         });
       }
 
@@ -1498,9 +1657,16 @@
 
       function updatePlayer(delta) {
         if (!player) return;
-        const aimX = input.pointer.active ? input.pointer.x : state.width * 0.5;
-        const aimY = input.pointer.active ? input.pointer.y : state.height * 0.5;
-        player.angle = Math.atan2(aimY - player.y, aimX - player.x);
+        const keyboardAim = getKeyboardAimVector();
+        if (keyboardAim.active) {
+          input.aimAngle = Math.atan2(keyboardAim.y, keyboardAim.x);
+          input.aimSource = "keyboard";
+        } else if (input.pointer.moved) {
+          input.aimAngle = Math.atan2(input.pointer.y - player.y, input.pointer.x - player.x);
+          input.aimSource = "mouse";
+        }
+        player.angle = input.aimAngle;
+        input.pointer.moved = false;
 
         const thrustForward = hasKey("w") || hasKey("arrowup");
         const thrustBack = hasKey("s") || hasKey("arrowdown");
@@ -1931,8 +2097,9 @@
       }
 
       function drawCrosshair() {
-        const aimX = input.pointer.active ? input.pointer.x : state.width * 0.5;
-        const aimY = input.pointer.active ? input.pointer.y : state.height * 0.5;
+        const target = getAimTarget();
+        const aimX = target.x;
+        const aimY = target.y;
         ctx.save();
         ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
         ctx.lineWidth = 1;
@@ -2018,8 +2185,8 @@
             </div>
             <ul class="overlay-list">
               <li>Mouse aims the nose. WASD or arrow keys thrust.</li>
+              <li>Keyboard-only: aim with IJKL while thrusting with WASD.</li>
               <li>Hold left click or Space to fire. Shift boosts.</li>
-              <li>Clear waves to earn credits and pilot rank XP.</li>
             </ul>
             <div class="overlay-actions">
               <button class="btn primary" data-overlay-action="launch">Launch mission</button>
@@ -2146,6 +2313,32 @@
 
       function hasKey(key) {
         return input.keys.has(key);
+      }
+
+      function getKeyboardAimVector() {
+        let x = 0;
+        let y = 0;
+        if (hasKey("i")) y -= 1;
+        if (hasKey("k")) y += 1;
+        if (hasKey("j")) x -= 1;
+        if (hasKey("l")) x += 1;
+        const length = Math.hypot(x, y);
+        if (length === 0) {
+          return { active: false, x: 0, y: 0 };
+        }
+        return { active: true, x: x / length, y: y / length };
+      }
+
+      function getAimTarget() {
+        if (input.aimSource === "keyboard" && player) {
+          return {
+            x: player.x + Math.cos(player.angle) * 70,
+            y: player.y + Math.sin(player.angle) * 70
+          };
+        }
+        const x = Number.isFinite(input.pointer.x) ? input.pointer.x : state.width * 0.5;
+        const y = Number.isFinite(input.pointer.y) ? input.pointer.y : state.height * 0.5;
+        return { x, y };
       }
 
       function distanceBetween(a, b) {

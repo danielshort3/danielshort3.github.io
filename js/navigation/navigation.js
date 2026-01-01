@@ -244,8 +244,12 @@
       <div class="nav-dropdown-header" aria-hidden="true">Resume shortcuts</div>
       <div class="nav-dropdown-list" role="list">
         <a href="resume.html" class="nav-dropdown-link" role="listitem">
-          <span class="nav-dropdown-title">View Resume</span>
-          <span class="nav-dropdown-subtitle">Open the full resume page</span>
+          <span class="nav-dropdown-title">View Digital Resume</span>
+          <span class="nav-dropdown-subtitle">Open the digital resume page</span>
+        </a>
+        <a href="resume-pdf.html" class="nav-dropdown-link" role="listitem">
+          <span class="nav-dropdown-title">Preview PDF</span>
+          <span class="nav-dropdown-subtitle">Open the PDF resume page</span>
         </a>
         <a href="documents/Resume.pdf" class="nav-dropdown-link" role="listitem" download>
           <span class="nav-dropdown-title">Download Resume</span>
