@@ -1,0 +1,213 @@
+/* Resume page layout */
+@layer components {
+  .resume-section{
+    padding:clamp(2.4rem, 6vw, 3.6rem) 0;
+  }
+  .resume-header{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .resume-eyebrow{
+    margin:0;
+    text-transform:uppercase;
+    letter-spacing:.25em;
+    font-size:.72rem;
+    color:var(--text-muted);
+  }
+  .resume-name{
+    margin:0;
+    font-family:'Poppins';
+    font-size:clamp(2.1rem, 4vw, 3rem);
+    color:var(--text-light);
+  }
+  .resume-title{
+    margin:0;
+    font-size:.95rem;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:var(--primary);
+    font-weight:600;
+  }
+  .resume-contact{
+    list-style:none;
+    padding:0;
+    margin:0;
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px 18px;
+    color:var(--text-muted);
+    font-size:.95rem;
+  }
+  .resume-contact li{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .resume-contact li + li::before{
+    content:"|";
+    color:color-mix(in srgb,var(--primary) 55%, transparent);
+    margin-right:8px;
+  }
+  .resume-contact a{
+    color:inherit;
+    text-decoration:none;
+    border-bottom:1px dashed color-mix(in srgb,var(--primary) 45%, transparent);
+  }
+  .resume-contact a:hover{
+    color:var(--text-light);
+    border-color:var(--primary);
+  }
+  .resume-summary{
+    margin-top:24px;
+    color:var(--text-light);
+  }
+  .resume-actions{
+    margin-top:16px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+  }
+  .resume-block{
+    margin-top:28px;
+    padding-top:24px;
+    border-top:1px solid color-mix(in srgb,var(--text-light) 10%, transparent);
+  }
+  .resume-block-title{
+    margin:0 0 12px;
+    font-family:'Poppins';
+    font-size:1.2rem;
+    color:var(--text-light);
+  }
+  .resume-skill-list{
+    list-style:none;
+    padding:0;
+    margin:0;
+    display:grid;
+    gap:12px;
+  }
+  .resume-skill-item{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px 12px;
+  }
+  .resume-skill-label{
+    font-weight:600;
+    color:var(--primary);
+    min-width:160px;
+  }
+  .resume-role{
+    padding:18px 20px;
+    border-radius:14px;
+    border:1px solid var(--border-subtle);
+    background:color-mix(in srgb,var(--surface) 92%, #000 8%);
+  }
+  .resume-role + .resume-role{
+    margin-top:16px;
+  }
+  .resume-role-header{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:space-between;
+    gap:8px 16px;
+    align-items:baseline;
+  }
+  .resume-role-title{
+    margin:0;
+    font-size:1.1rem;
+    color:var(--text-light);
+  }
+  .resume-role-company{
+    margin:4px 0 0;
+    color:var(--text-muted);
+  }
+  .resume-role-dates{
+    margin:0;
+    font-size:.95rem;
+    color:var(--text-muted);
+  }
+  .resume-role-list{
+    margin:12px 0 0 18px;
+    display:grid;
+    gap:8px;
+    color:var(--text-light);
+  }
+  .resume-education-list{
+    list-style:none;
+    padding:0;
+    margin:0;
+    display:grid;
+    gap:12px;
+  }
+  .resume-education-item{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:space-between;
+    gap:8px 16px;
+    padding:14px 16px;
+    border-radius:12px;
+    border:1px solid var(--border-subtle);
+    background:color-mix(in srgb,var(--surface) 94%, #000 6%);
+  }
+  .resume-education-title{
+    margin:0;
+    font-weight:600;
+    color:var(--text-light);
+  }
+  .resume-education-meta{
+    margin:4px 0 0;
+    color:var(--text-muted);
+  }
+  .resume-cert-list{
+    list-style:none;
+    padding:0;
+    margin:12px 0 0;
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .resume-cert-list li{
+    padding:6px 12px;
+    border-radius:999px;
+    background:color-mix(in srgb,var(--primary) 15%, transparent);
+    color:var(--primary);
+    font-size:.85rem;
+  }
+  .resume-projects-list{
+    margin:0 0 0 18px;
+    display:grid;
+    gap:8px;
+    color:var(--text-light);
+  }
+  .resume-pdf{
+    margin-top:16px;
+    border-radius:16px;
+    overflow:hidden;
+    border:1px solid color-mix(in srgb,var(--primary) 25%, transparent);
+    box-shadow:0 18px 38px rgba(0,0,0,.3);
+  }
+  .resume-pdf object{
+    width:100%;
+    height:clamp(480px, 70vh, 900px);
+    display:block;
+    background:var(--surface);
+  }
+  .resume-pdf-note{
+    color:var(--text-muted);
+    margin:0;
+  }
+  @media (max-width: 720px){
+    .resume-skill-label{
+      min-width:0;
+      width:100%;
+    }
+    .resume-role-header{
+      flex-direction:column;
+      align-items:flex-start;
+    }
+    .resume-education-item{
+      flex-direction:column;
+      align-items:flex-start;
+    }
+  }
+}

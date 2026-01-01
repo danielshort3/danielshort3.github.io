@@ -442,8 +442,12 @@ try {
     assert(hasProjectRewrite, 'project rewrite missing (/portfolio/:project)');
     const hasGames = rewrites.some(r => r.source === '/games' && r.destination === '/pages/games');
     const hasGameSlot = rewrites.some(r => r.source === '/games/slot-machine' && r.destination === '/demos/slot-machine-demo');
+    const hasGameDogfight = rewrites.some(r => r.source === '/games/stellar-dogfight' && r.destination === '/demos/stellar-dogfight-demo');
+    const hasGameDogfightHtml = rewrites.some(r => r.source === '/games/stellar-dogfight.html' && r.destination === '/demos/stellar-dogfight-demo');
     assert(hasGames, 'games landing rewrite missing');
     assert(hasGameSlot, 'slot machine games rewrite missing');
+    assert(hasGameDogfight, 'stellar dogfight games rewrite missing');
+    assert(hasGameDogfightHtml, 'stellar dogfight html rewrite missing');
   });
 
   section('Chatbot demo startup timer', () => {
@@ -495,7 +499,7 @@ try {
   section('Base hrefs and redirect sanity', () => {
     ['pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html','pages/resume.html',
      'pages/tools.html','pages/games.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html',
-     'demos/chatbot-demo.html','demos/shape-demo.html','demos/sentence-demo.html','demos/slot-machine-demo.html']
+     'demos/chatbot-demo.html','demos/shape-demo.html','demos/sentence-demo.html','demos/slot-machine-demo.html','demos/stellar-dogfight-demo.html']
       .forEach(f => checkFileContains(f, '<base href="/">'));
 
     ['pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html','pages/resume.html']
