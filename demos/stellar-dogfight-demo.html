@@ -171,6 +171,19 @@
       gap: clamp(16px, 2.4vw, 24px);
     }
 
+    .mission-shell.is-wide {
+      width: 100%;
+      max-width: none;
+    }
+
+    .mission-grid.is-wide {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .mission-grid.is-wide .mission-main {
+      display: none;
+    }
+
     .mission-sidebar,
     .mission-main {
       display: grid;
@@ -2193,6 +2206,8 @@
           const panels = Array.from(group.querySelectorAll("[data-tab-panel]"));
           if (!buttons.length || !panels.length) return;
           const defaultTarget = group.dataset.tabDefault || buttons[0].dataset.tabTarget;
+          const missionGrid = document.querySelector(".mission-grid");
+          const missionShell = document.querySelector(".mission-shell");
 
           const activate = (target, focusButton) => {
             buttons.forEach((button) => {
@@ -2210,6 +2225,16 @@
               panel.classList.toggle("is-active", isActive);
               panel.hidden = !isActive;
             });
+
+            if (group.dataset.tabGroup === "sidebar") {
+              const isWide = target !== "systems" && target !== "upgrades";
+              if (missionGrid) {
+                missionGrid.classList.toggle("is-wide", isWide);
+              }
+              if (missionShell) {
+                missionShell.classList.toggle("is-wide", isWide);
+              }
+            }
           };
 
           activate(defaultTarget, false);
@@ -3110,13 +3135,28 @@
       }
 
       function spawnWave(wave) {
-        const baseCount = Math.min(4 + Math.floor(wave * 0.9), 14);
+        const isHardWave = wave % 5 === 0;
+        const isBossWave = wave % 10 === 0;
+        const baseCount = Math.min(4 + Math.floor(wave * 1.05), 18);
         const difficulty = getDifficultySettings();
         const frontierTier = isFrontierMode() && state.frontier ? state.frontier.tier : 1;
-        const enemyScale = (1 + wave * 0.06) * difficulty.enemyScale * (1 + (frontierTier - 1) * 0.15);
+        const waveRamp = 1
+          + wave * 0.07
+          + Math.max(0, wave - 12) * 0.015
+          + Math.max(0, wave - 20) * 0.02;
+        let enemyScale = waveRamp * difficulty.enemyScale * (1 + (frontierTier - 1) * 0.18);
+        if (isBossWave) {
+          enemyScale *= 1.2;
+        } else if (isHardWave) {
+          enemyScale *= 1.12;
+        }
+        const hardBonus = isHardWave && !isBossWave ? 2 : 0;
+        const bossBonus = isBossWave ? 3 : 0;
         const spawnCount = baseCount
           + (wave % 3 === 0 ? 1 : 0)
-          + (isFrontierMode() ? Math.max(0, Math.floor((frontierTier - 1) * 1.1)) : 0);
+          + hardBonus
+          + bossBonus
+          + (isFrontierMode() ? Math.max(0, Math.floor((frontierTier - 1) * 1.2)) : 0);
         const availableTypes = ENEMY_TYPES.filter((type) => {
           if (type.minWave && wave < type.minWave) return false;
           if (type.maxWave && wave > type.maxWave) return false;
@@ -3128,13 +3168,13 @@
           const type = pickWeighted(selectionPool, weights);
           enemies.push(createEnemy(type, enemyScale, difficulty));
         }
-        if (wave % 5 === 0) {
-          enemies.push(createEnemy(ACE_TYPE, enemyScale + 0.2, difficulty, true));
-          logEvent("Enemy ace incoming. Focus fire.");
+        if (isHardWave && !isBossWave) {
+          enemies.push(createEnemy(ACE_TYPE, enemyScale + 0.25, difficulty, true));
+          logEvent("Hard wave incoming. Enemy ace spotted.");
         }
-        if (wave % 10 === 0) {
-          enemies.push(createEnemy(BOSS_TYPE, enemyScale + 0.4, difficulty, true));
-          logEvent("Capital dreadnought detected. Brace for impact.");
+        if (isBossWave) {
+          enemies.push(createEnemy(BOSS_TYPE, enemyScale + 0.5, difficulty, true));
+          logEvent("Boss wave: capital dreadnought detected.");
         }
       }
 
@@ -5471,14 +5511,19 @@
           `;
         }
         if (mode === "upgrade") {
-          const hasUpgrades = state.upgradeOptions.length > 0;
+          const availableUpgrades = state.upgradeOptions.filter((upgrade) => {
+            const stack = state.upgradeStacks[upgrade.id] || 0;
+            const maxStacks = Number.isFinite(upgrade.maxStacks) ? upgrade.maxStacks : 1;
+            return stack < maxStacks;
+          });
+          const hasUpgrades = availableUpgrades.length > 0;
           const creditsLabel = Math.round(state.credits).toLocaleString();
           const upgradeCards = hasUpgrades
-            ? state.upgradeOptions.map((upgrade) => {
+            ? availableUpgrades.map((upgrade) => {
               const tier = upgrade.tier || "common";
               const tierLabel = formatTierLabel(tier);
               const stack = state.upgradeStacks[upgrade.id] || 0;
-              const maxStacks = upgrade.maxStacks || 1;
+              const maxStacks = Number.isFinite(upgrade.maxStacks) ? upgrade.maxStacks : 1;
               const stackLabel = maxStacks > 1 ? `Stack ${Math.min(stack + 1, maxStacks)} / ${maxStacks}` : "Unique";
               const category = upgrade.category || "Upgrade";
               return `
@@ -5499,9 +5544,11 @@
                 <span class="upgrade-desc">Your ship is fully tuned. Launch the next wave.</span>
               </div>
             `;
+          const rerollCost = UPGRADE_REROLL_COST;
+          const canReroll = state.credits >= rerollCost;
           const upgradeActions = hasUpgrades
             ? `
-              <button class="btn ghost" data-overlay-action="reroll">Reroll upgrades</button>
+              <button class="btn ghost" data-overlay-action="reroll" ${canReroll ? "" : "disabled"}>Reroll (${rerollCost} credits)</button>
               <button class="btn ghost" data-overlay-action="skip">Skip upgrade</button>
             `
             : `
