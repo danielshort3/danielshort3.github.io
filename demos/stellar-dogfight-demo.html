@@ -1054,6 +1054,10 @@
       grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
     }
 
+    .upgrade-choice-grid {
+      align-items: stretch;
+    }
+
     .arena-overlay .upgrade-grid {
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
@@ -1075,6 +1079,86 @@
       transition: transform 0.2s ease, border-color 0.2s ease;
       position: relative;
       overflow: hidden;
+    }
+
+    .upgrade-card.is-choice {
+      text-align: center;
+      padding: 42px 16px 16px;
+      min-height: 255px;
+      justify-items: center;
+      gap: 8px;
+    }
+
+    .upgrade-card.is-choice .upgrade-ribbon {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--tier-color) 70%, rgba(10, 16, 28, 0.6));
+      border: 1px solid color-mix(in srgb, var(--tier-color) 80%, rgba(255, 255, 255, 0.2));
+      font-size: 0.62rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #081019;
+      font-weight: 700;
+    }
+
+    .upgrade-card.is-choice .upgrade-icon {
+      width: 58px;
+      height: 58px;
+      border-radius: 18px;
+      border: 1px solid color-mix(in srgb, var(--tier-color) 60%, rgba(255, 255, 255, 0.2));
+      background: color-mix(in srgb, var(--tier-color) 18%, rgba(12, 18, 32, 0.7));
+      display: grid;
+      place-items: center;
+      font-size: 1.6rem;
+      margin-top: 6px;
+    }
+
+    .upgrade-card.is-choice .upgrade-category {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--text-muted);
+    }
+
+    .upgrade-card.is-choice .upgrade-title {
+      font-size: 1.05rem;
+    }
+
+    .upgrade-card.is-choice .upgrade-desc {
+      font-size: 0.8rem;
+      line-height: 1.5;
+    }
+
+    .upgrade-card.is-choice .upgrade-kind {
+      margin-top: auto;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 0.62rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .upgrade-card.is-choice[data-kind="skill"] .upgrade-kind {
+      border-color: rgba(68, 210, 194, 0.6);
+      color: var(--accent);
+      background: rgba(68, 210, 194, 0.12);
+    }
+
+    .upgrade-card.is-choice[data-kind="stat"] .upgrade-kind {
+      border-color: rgba(124, 168, 255, 0.5);
+      color: #7ca8ff;
+      background: rgba(124, 168, 255, 0.1);
+    }
+
+    .upgrade-card.is-choice .upgrade-stack {
+      top: 12px;
+      right: 16px;
     }
 
     .upgrade-stack {
@@ -6242,27 +6326,26 @@
               const stackLabel = `${stack}/${maxStacks}`;
               const category = upgrade.category || "Upgrade";
               const categoryIcon = getUpgradeCategoryIcon(category);
-              const categoryKey = normalizeCategory(category);
               const isSkill = isSkillUpgrade(upgrade);
               const kindLabel = isSkill ? "Skill" : "Stat";
-              const kindClass = isSkill ? "skill-pill" : "";
               return `
-                <button class="upgrade-card" data-tier="${tier}" data-kind="${isSkill ? "skill" : "stat"}" data-upgrade-id="${upgrade.id}">
-                  <div class="upgrade-meta">
-                    <span class="select-pill tier-pill" data-tier="${tier}">${tierLabel}</span>
-                    <span class="select-pill ${kindClass}">${kindLabel}</span>
-                    <span class="select-pill category-pill" data-category="${categoryKey}" aria-label="${category}" title="${category}">${categoryIcon}</span>
-                  </div>
+                <button class="upgrade-card is-choice" data-tier="${tier}" data-kind="${isSkill ? "skill" : "stat"}" data-upgrade-id="${upgrade.id}">
+                  <span class="upgrade-ribbon" data-tier="${tier}">${tierLabel}</span>
                   <span class="upgrade-stack">${stackLabel}</span>
+                  <span class="upgrade-icon" aria-hidden="true">${categoryIcon}</span>
                   <span class="upgrade-title">${upgrade.name}</span>
                   <span class="upgrade-desc">${upgrade.desc}</span>
+                  <span class="upgrade-kind">${kindLabel}</span>
                 </button>
               `;
             }).join("")
             : `
-              <div class="upgrade-card" aria-disabled="true">
+              <div class="upgrade-card is-choice is-static" data-tier="common" aria-disabled="true">
+                <span class="upgrade-ribbon" data-tier="common">Complete</span>
+                <span class="upgrade-icon" aria-hidden="true">${getUpgradeCategoryIcon("upgrade")}</span>
                 <span class="upgrade-title">All upgrades installed</span>
                 <span class="upgrade-desc">Your ship is fully tuned. Launch the next wave.</span>
+                <span class="upgrade-kind">Ready</span>
               </div>
             `;
           const rerollCost = UPGRADE_REROLL_COST;
@@ -6285,7 +6368,7 @@
               <span class="badge">Credits ${creditsLabel}</span>
               <span class="badge">Skills ${skillSlots}</span>
             </div>
-            <div class="upgrade-grid">
+            <div class="upgrade-grid upgrade-choice-grid">
               ${upgradeCards}
             </div>
             <div class="overlay-actions">
