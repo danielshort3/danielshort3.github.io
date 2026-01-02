@@ -910,6 +910,27 @@
       z-index: 3;
     }
 
+    .arena-minimap {
+      position: absolute;
+      right: 16px;
+      bottom: 16px;
+      width: 160px;
+      height: 160px;
+      padding: 8px;
+      border-radius: 14px;
+      background: rgba(8, 14, 24, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35);
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .arena-minimap canvas {
+      width: 100%;
+      height: 100%;
+      cursor: default;
+    }
+
     .vital-row {
       display: grid;
       grid-template-columns: 52px 1fr auto;
@@ -1222,43 +1243,70 @@
 
     .reward-grid {
       display: grid;
-      gap: 10px;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 14px;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      justify-items: center;
     }
 
     .reward-item {
+      position: relative;
       display: grid;
-      grid-template-columns: auto 1fr;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
-      border-radius: var(--radius-sm);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      background: rgba(10, 16, 28, 0.8);
+      place-items: center;
+      gap: 6px;
+      min-height: 108px;
+      width: 100%;
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid color-mix(in srgb, var(--tier-color) 45%, rgba(255, 255, 255, 0.12));
+      background: linear-gradient(160deg, rgba(34, 24, 16, 0.9), rgba(18, 14, 12, 0.95));
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tier-color) 18%, transparent);
     }
 
     .reward-icon {
-      width: 34px;
-      height: 34px;
-      border-radius: 12px;
-      border: 1px solid color-mix(in srgb, var(--tier-color) 55%, rgba(255, 255, 255, 0.2));
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      border: 1px solid color-mix(in srgb, var(--tier-color) 60%, rgba(255, 255, 255, 0.2));
       display: grid;
       place-items: center;
-      font-size: 1rem;
+      font-size: 1.4rem;
       color: var(--tier-color);
-      background: color-mix(in srgb, var(--tier-color) 18%, transparent);
+      background: color-mix(in srgb, var(--tier-color) 18%, rgba(10, 16, 28, 0.7));
     }
 
     .reward-value {
-      font-size: 1rem;
-      font-weight: 600;
-      display: block;
+      position: absolute;
+      right: 12px;
+      bottom: 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
     }
 
     .reward-name {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      display: block;
+      display: none;
+    }
+
+    .reward-banner {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .reward-line {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .reward-title {
+      font-size: 0.72rem;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: var(--text);
+      font-weight: 600;
     }
 
     .upgrade-card:hover,
@@ -1455,6 +1503,14 @@
       .arena-hud {
         left: 10px;
         bottom: 10px;
+      }
+
+      .arena-minimap {
+        right: 10px;
+        bottom: 10px;
+        width: 120px;
+        height: 120px;
+        padding: 6px;
       }
     }
   </style>
@@ -1812,6 +1868,9 @@
               <span class="vital-value" data-hud-stat="energy">--</span>
             </div>
           </div>
+          <div class="arena-minimap" aria-hidden="true">
+            <canvas data-role="minimap"></canvas>
+          </div>
         </div>
       </div>
     </section>
@@ -1824,6 +1883,9 @@
 
       const STORAGE_KEY = "stellarDogfightProgress";
       const UPGRADE_REROLL_COST = 60;
+      const UPGRADE_REROLL_SCALE = 1.85;
+      const WORLD_WIDTH = 3200;
+      const WORLD_HEIGHT = 1800;
       const SKILL_LIMIT = 3;
       const HUD_UPDATE_INTERVAL_MS = 50;
       const dom = {
@@ -1845,7 +1907,8 @@
         factions: document.querySelector("[data-role='factions']"),
         history: document.querySelector("[data-role='history']"),
         keybinds: document.querySelector("[data-role='keybinds']"),
-        tierPill: document.querySelector("[data-role='tier-pill']")
+        tierPill: document.querySelector("[data-role='tier-pill']"),
+        minimap: document.querySelector("[data-role='minimap']")
       };
 
       const ctx = dom.canvas.getContext("2d", { alpha: false });
@@ -1903,7 +1966,7 @@
 
       const input = {
         keys: new Set(),
-        pointer: { x: 0, y: 0, active: false, moved: false },
+        pointer: { x: 0, y: 0, screenX: 0, screenY: 0, active: false, moved: false },
         firing: false,
         boost: false,
         aimAngle: 0,
@@ -1945,6 +2008,10 @@
         lastHullHitAt: 0,
         upgradeStacks: {},
         upgradeOptions: [],
+        upgradeRerolls: 0,
+        worldWidth: WORLD_WIDTH,
+        worldHeight: WORLD_HEIGHT,
+        camera: { x: 0, y: 0 },
         frontier: null,
         lossRewards: null
       };
@@ -2070,7 +2137,9 @@
       let lootBursts = [];
       let damageNumbers = [];
       let stars = [];
+      let obstacles = [];
       let backgroundGradient = null;
+      let minimapCtx = null;
 
       window.STELLAR_DOGFIGHT_HELPERS = {
         logEvent,
@@ -2093,6 +2162,7 @@
         attachEvents();
         applySettingsFromProgress();
         checkProgressionUnlocks();
+        setupWorld();
         player = createPlayer();
         renderHangar();
         renderShipyard();
@@ -2108,11 +2178,14 @@
 
       function setupCanvas() {
         resizeCanvas();
+        resizeMinimap();
         window.addEventListener("resize", () => {
           resizeCanvas();
+          resizeMinimap();
           if (!input.pointer.active) {
-            input.pointer.x = state.width * 0.5;
-            input.pointer.y = state.height * 0.5;
+            input.pointer.screenX = state.width * 0.5;
+            input.pointer.screenY = state.height * 0.5;
+            updatePointerWorld();
           }
         });
       }
@@ -2137,7 +2210,20 @@
         backgroundGradient.addColorStop(0, "rgba(68, 210, 194, 0.15)");
         backgroundGradient.addColorStop(0.45, "rgba(16, 28, 46, 0.9)");
         backgroundGradient.addColorStop(1, "rgba(5, 8, 14, 1)");
-        stars = createStars(getParticleCount(140));
+        updateStarfield();
+      }
+
+      function resizeMinimap() {
+        if (!dom.minimap) return;
+        const rect = dom.minimap.getBoundingClientRect();
+        const dpr = Math.max(1, window.devicePixelRatio || 1);
+        if (!rect.width || !rect.height) return;
+        dom.minimap.width = Math.floor(rect.width * dpr);
+        dom.minimap.height = Math.floor(rect.height * dpr);
+        if (!minimapCtx) {
+          minimapCtx = dom.minimap.getContext("2d");
+        }
+        minimapCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
       }
 
       function attachEvents() {
@@ -2392,10 +2478,11 @@
 
         dom.canvas.addEventListener("pointermove", (event) => {
           const rect = dom.canvas.getBoundingClientRect();
-          input.pointer.x = event.clientX - rect.left;
-          input.pointer.y = event.clientY - rect.top;
+          input.pointer.screenX = event.clientX - rect.left;
+          input.pointer.screenY = event.clientY - rect.top;
           input.pointer.active = true;
           input.pointer.moved = true;
+          updatePointerWorld();
         });
 
         dom.canvas.addEventListener("pointerdown", () => {
@@ -2981,7 +3068,7 @@
 
       function updateParticleSettings() {
         if (!state.width || !state.height) return;
-        stars = createStars(getParticleCount(140));
+        updateStarfield();
       }
 
       function getParticleScale() {
@@ -3076,11 +3163,12 @@
           applyFrontierUpgrades(base, state.frontier.upgrades);
         }
         const ability = ABILITIES[base.ship.abilityId];
+        const spawn = getSpawnPoint();
         return {
           ...base,
           ability,
-          x: state.width * 0.5,
-          y: state.height * 0.5,
+          x: spawn.x,
+          y: spawn.y,
           vx: 0,
           vy: 0,
           angle: 0,
@@ -3099,13 +3187,173 @@
       }
 
       function createStars(count) {
+        const width = state.worldWidth || state.width;
+        const height = state.worldHeight || state.height;
         return Array.from({ length: count }, () => ({
-          x: Math.random() * state.width,
-          y: Math.random() * state.height,
+          x: Math.random() * width,
+          y: Math.random() * height,
           radius: rand(0.6, 1.6),
           speed: rand(6, 26),
           alpha: rand(0.3, 0.9)
         }));
+      }
+
+      function updateStarfield() {
+        stars = createStars(getStarCount());
+      }
+
+      function getStarCount() {
+        const base = getParticleCount(160);
+        const viewArea = state.width * state.height;
+        const worldArea = state.worldWidth * state.worldHeight;
+        if (!viewArea || !worldArea) return base;
+        const density = clamp(worldArea / viewArea, 1, 4);
+        return Math.round(base * density);
+      }
+
+      function setupWorld() {
+        state.worldWidth = WORLD_WIDTH;
+        state.worldHeight = WORLD_HEIGHT;
+        obstacles = generateObstacles();
+        updateStarfield();
+        updateCamera();
+        updatePointerWorld();
+      }
+
+      function generateObstacles() {
+        const width = state.worldWidth;
+        const height = state.worldHeight;
+        const padding = 160;
+        const safeRadius = 200;
+        const obstacles = [];
+        const rockSeeds = [
+          { x: width * 0.28, y: height * 0.3 },
+          { x: width * 0.7, y: height * 0.3 },
+          { x: width * 0.32, y: height * 0.7 },
+          { x: width * 0.68, y: height * 0.66 }
+        ];
+        rockSeeds.forEach((seed) => {
+          const radius = rand(110, 170);
+          const x = clamp(seed.x + rand(-130, 130), radius + padding, width - radius - padding);
+          const y = clamp(seed.y + rand(-120, 120), radius + padding, height - radius - padding);
+          obstacles.push({
+            kind: "rock",
+            x,
+            y,
+            radius,
+            shade: rand(0.3, 0.7)
+          });
+        });
+        const debrisSeeds = [
+          { x: width * 0.5, y: height * 0.18, width: 520, height: 90 },
+          { x: width * 0.5, y: height * 0.82, width: 520, height: 90 },
+          { x: width * 0.18, y: height * 0.5, width: 90, height: 420 },
+          { x: width * 0.82, y: height * 0.5, width: 90, height: 420 }
+        ];
+        debrisSeeds.forEach((seed) => {
+          const x = clamp(seed.x + rand(-90, 90), seed.width / 2 + padding, width - seed.width / 2 - padding);
+          const y = clamp(seed.y + rand(-90, 90), seed.height / 2 + padding, height - seed.height / 2 - padding);
+          obstacles.push({
+            kind: "debris",
+            x,
+            y,
+            width: seed.width,
+            height: seed.height,
+            shade: rand(0.2, 0.6)
+          });
+        });
+        for (let i = 0; i < 6; i += 1) {
+          const radius = rand(60, 100);
+          const x = rand(radius + padding, width - radius - padding);
+          const y = rand(radius + padding, height - radius - padding);
+          obstacles.push({
+            kind: "rock",
+            x,
+            y,
+            radius,
+            shade: rand(0.25, 0.55)
+          });
+        }
+        return obstacles.filter((obstacle) => !isObstacleNearPoint(obstacle, width * 0.5, height * 0.5, safeRadius));
+      }
+
+      function isObstacleNearPoint(obstacle, x, y, buffer) {
+        if (!obstacle) return false;
+        if (obstacle.kind === "rock") {
+          return distanceBetween(obstacle, { x, y }) <= obstacle.radius + buffer;
+        }
+        const halfWidth = obstacle.width * 0.5;
+        const halfHeight = obstacle.height * 0.5;
+        const closestX = clamp(x, obstacle.x - halfWidth, obstacle.x + halfWidth);
+        const closestY = clamp(y, obstacle.y - halfHeight, obstacle.y + halfHeight);
+        return Math.hypot(x - closestX, y - closestY) <= buffer;
+      }
+
+      function getSpawnPoint() {
+        const center = { x: state.worldWidth * 0.5, y: state.worldHeight * 0.5 };
+        if (!isPointInObstacle(center, 140)) return center;
+        for (let i = 0; i < 12; i += 1) {
+          const angle = rand(0, Math.PI * 2);
+          const distance = rand(140, 320);
+          const candidate = {
+            x: clamp(center.x + Math.cos(angle) * distance, 80, state.worldWidth - 80),
+            y: clamp(center.y + Math.sin(angle) * distance, 80, state.worldHeight - 80)
+          };
+          if (!isPointInObstacle(candidate, 140)) {
+            return candidate;
+          }
+        }
+        return center;
+      }
+
+      function isPointInObstacle(point, buffer = 0) {
+        return obstacles.some((obstacle) => {
+          if (obstacle.kind === "rock") {
+            return distanceBetween(point, obstacle) <= obstacle.radius + buffer;
+          }
+          const halfWidth = obstacle.width * 0.5;
+          const halfHeight = obstacle.height * 0.5;
+          const insideX = point.x >= obstacle.x - halfWidth - buffer && point.x <= obstacle.x + halfWidth + buffer;
+          const insideY = point.y >= obstacle.y - halfHeight - buffer && point.y <= obstacle.y + halfHeight + buffer;
+          return insideX && insideY;
+        });
+      }
+
+      function getViewportBounds() {
+        const left = state.camera.x;
+        const top = state.camera.y;
+        return {
+          left,
+          top,
+          right: left + state.width,
+          bottom: top + state.height
+        };
+      }
+
+      function updateCamera() {
+        if (!player) return;
+        const maxX = Math.max(0, state.worldWidth - state.width);
+        const maxY = Math.max(0, state.worldHeight - state.height);
+        state.camera.x = clamp(player.x - state.width * 0.5, 0, maxX);
+        state.camera.y = clamp(player.y - state.height * 0.5, 0, maxY);
+      }
+
+      function screenToWorld(x, y) {
+        return {
+          x: clamp(x + state.camera.x, 0, state.worldWidth),
+          y: clamp(y + state.camera.y, 0, state.worldHeight)
+        };
+      }
+
+      function updatePointerWorld() {
+        if (!input.pointer.active || !player) {
+          input.pointer.x = player ? player.x : state.worldWidth * 0.5;
+          input.pointer.y = player ? player.y : state.worldHeight * 0.5;
+          return;
+        }
+        const world = screenToWorld(input.pointer.screenX, input.pointer.screenY);
+        input.pointer.x = world.x;
+        input.pointer.y = world.y;
       }
 
       function rollSectorModifier() {
@@ -3167,6 +3415,7 @@
         state.enemyAccuracyMod = 1;
         state.upgradeStacks = {};
         state.upgradeOptions = [];
+        state.upgradeRerolls = 0;
         state.skillSlots = [];
         state.lossRewards = null;
         state.wave = 1;
@@ -3183,12 +3432,15 @@
         state.contracts = rollContracts();
         state.runStart = performance.now();
         state.waveStart = performance.now();
+        setupWorld();
         if (isFrontierMode()) {
           initFrontierRun();
         } else {
           state.frontier = null;
           player = createPlayer();
         }
+        updateCamera();
+        updatePointerWorld();
         state.runLoadout = { ship: player.ship?.name || "Unknown", weapon: player.weapon?.name || "Unknown" };
         spawnWave(state.wave);
         hideOverlay();
@@ -3208,7 +3460,6 @@
         input.firing = false;
         checkProgressionUnlocks();
         state.frontier = null;
-        player = createPlayer();
         enemies = [];
         bullets = [];
         helpers = [];
@@ -3220,6 +3471,7 @@
         state.enemyAccuracyMod = 1;
         state.upgradeStacks = {};
         state.upgradeOptions = [];
+        state.upgradeRerolls = 0;
         state.skillSlots = [];
         state.lossRewards = null;
         state.wave = 1;
@@ -3237,6 +3489,10 @@
         state.runStart = performance.now();
         state.waveStart = performance.now();
         state.lastContractRender = 0;
+        setupWorld();
+        player = createPlayer();
+        updateCamera();
+        updatePointerWorld();
         spawnWave(state.wave);
         hideOverlay();
         setMode("training");
@@ -3263,6 +3519,7 @@
         state.enemyAccuracyMod = 1;
         state.upgradeStacks = {};
         state.upgradeOptions = [];
+        state.upgradeRerolls = 0;
         state.skillSlots = [];
         state.lossRewards = null;
         state.wave = 1;
@@ -3280,6 +3537,7 @@
         state.frontier = null;
         input.keys.clear();
         input.firing = false;
+        setupWorld();
         player = createPlayer();
         setOverlay("start");
         renderContracts();
@@ -3606,18 +3864,37 @@
       }
 
       function randomEdgePosition() {
-        const margin = 30;
-        const edge = Math.floor(Math.random() * 4);
-        if (edge === 0) {
-          return { x: -margin, y: rand(0, state.height) };
+        const margin = 60;
+        const bounds = getViewportBounds();
+        for (let i = 0; i < 10; i += 1) {
+          const edge = Math.floor(Math.random() * 4);
+          let x = 0;
+          let y = 0;
+          if (edge === 0) {
+            x = bounds.left - margin;
+            y = rand(bounds.top, bounds.bottom);
+          } else if (edge === 1) {
+            x = bounds.right + margin;
+            y = rand(bounds.top, bounds.bottom);
+          } else if (edge === 2) {
+            x = rand(bounds.left, bounds.right);
+            y = bounds.top - margin;
+          } else {
+            x = rand(bounds.left, bounds.right);
+            y = bounds.bottom + margin;
+          }
+          const position = {
+            x: clamp(x, 20, state.worldWidth - 20),
+            y: clamp(y, 20, state.worldHeight - 20)
+          };
+          if (!isPointInObstacle(position, 40)) {
+            return position;
+          }
         }
-        if (edge === 1) {
-          return { x: state.width + margin, y: rand(0, state.height) };
-        }
-        if (edge === 2) {
-          return { x: rand(0, state.width), y: -margin };
-        }
-        return { x: rand(0, state.width), y: state.height + margin };
+        return {
+          x: clamp(bounds.left - margin, 20, state.worldWidth - 20),
+          y: clamp(bounds.top - margin, 20, state.worldHeight - 20)
+        };
       }
 
       function loop(timestamp) {
@@ -3636,10 +3913,14 @@
         updateLootBursts(delta);
         updateDamageNumbers(delta);
         trackOnboarding(delta);
+        updateCamera();
+        updatePointerWorld();
         if (state.mode !== "flight" && state.mode !== "training") {
           return;
         }
         updatePlayer(delta);
+        updateCamera();
+        updatePointerWorld();
         updateDecoy(delta);
         updateEnemies(delta);
         updateSkillSystems(delta);
@@ -3672,15 +3953,15 @@
       }
 
       function updateStars(delta) {
-        const driftX = player ? -player.vx * 0.02 * delta : 0;
-        const driftY = player ? -player.vy * 0.02 * delta : 0;
+        const width = state.worldWidth || state.width;
+        const height = state.worldHeight || state.height;
         stars.forEach((star) => {
-          star.x += driftX;
-          star.y += driftY + star.speed * delta * 0.2;
-          if (star.x < 0) star.x += state.width;
-          if (star.x > state.width) star.x -= state.width;
-          if (star.y < 0) star.y += state.height;
-          if (star.y > state.height) star.y -= state.height;
+          star.x += star.speed * delta * 0.03;
+          star.y += star.speed * delta * 0.18;
+          if (star.x < 0) star.x += width;
+          if (star.x > width) star.x -= width;
+          if (star.y < 0) star.y += height;
+          if (star.y > height) star.y -= height;
         });
       }
 
@@ -3740,7 +4021,7 @@
         if (keyboardAim.active) {
           input.aimAngle = Math.atan2(keyboardAim.y, keyboardAim.x);
           input.aimSource = "keyboard";
-        } else if (input.aimMode !== "keyboard" && input.pointer.moved) {
+        } else if (input.aimMode !== "keyboard" && input.pointer.active) {
           input.aimAngle = Math.atan2(input.pointer.y - player.y, input.pointer.x - player.x);
           input.aimSource = "mouse";
         }
@@ -3820,6 +4101,8 @@
 
         player.x += player.vx * delta;
         player.y += player.vy * delta;
+        wrapEntity(player);
+        resolveObstacleCollisions(player);
         wrapEntity(player);
 
         player.fireCooldown = Math.max(0, player.fireCooldown - delta);
@@ -4071,6 +4354,10 @@
             ay += Math.sin(strafeAngle) * accel * 0.85;
           }
 
+          const avoidance = getObstacleAvoidance(enemy);
+          ax += avoidance.x * accel * 0.9;
+          ay += avoidance.y * accel * 0.9;
+
           enemy.vx += ax * delta;
           enemy.vy += ay * delta;
 
@@ -4088,6 +4375,8 @@
 
           enemy.x += enemy.vx * delta;
           enemy.y += enemy.vy * delta;
+          wrapEntity(enemy);
+          resolveObstacleCollisions(enemy);
           wrapEntity(enemy);
 
           if (enemy.shieldPulseCooldown > 0 && enemy.shieldPulseTimer <= 0) {
@@ -4151,6 +4440,10 @@
           bullet.x += bullet.vx * delta;
           bullet.y += bullet.vy * delta;
           bullet.life -= delta;
+          if (isPointInObstacle(bullet, bullet.radius + 2)) {
+            bullets.splice(i, 1);
+            continue;
+          }
           if (bullet.life <= 0 || isOutOfBounds(bullet)) {
             bullets.splice(i, 1);
           }
@@ -4431,6 +4724,7 @@
             return;
           }
           if (isFeatureUnlocked("upgrades")) {
+            state.upgradeRerolls = 0;
             state.upgradeOptions = rollUpgrades();
             setMode("upgrade");
             setOverlay("upgrade");
@@ -4472,6 +4766,11 @@
         const normalized = tierIndex / Math.max(1, TIER_ORDER.length - 1);
         const bias = 1 + luck * (normalized * 1.6 - 0.4);
         return Math.max(0.12, meta.weight * bias);
+      }
+
+      function getUpgradeRerollCost() {
+        const rerolls = Math.max(0, state.upgradeRerolls || 0);
+        return Math.round(UPGRADE_REROLL_COST * Math.pow(UPGRADE_REROLL_SCALE, rerolls));
       }
 
       function getSkillId(upgrade) {
@@ -4549,11 +4848,13 @@
       }
 
       function rerollUpgrades() {
-        if (state.credits < UPGRADE_REROLL_COST) {
+        const rerollCost = getUpgradeRerollCost();
+        if (state.credits < rerollCost) {
           logEvent("Not enough credits to reroll upgrades.");
           return;
         }
-        state.credits -= UPGRADE_REROLL_COST;
+        state.credits -= rerollCost;
+        state.upgradeRerolls += 1;
         state.upgradeOptions = rollUpgrades();
         setOverlay("upgrade");
       }
@@ -5040,19 +5341,156 @@
         ctx.globalAlpha = 1;
       }
 
+      function renderObstacles() {
+        if (!obstacles.length) return;
+        const bounds = getViewportBounds();
+        obstacles.forEach((obstacle) => {
+          if (obstacle.kind === "rock") {
+            const radius = obstacle.radius;
+            if (obstacle.x + radius < bounds.left - 80 || obstacle.x - radius > bounds.right + 80
+              || obstacle.y + radius < bounds.top - 80 || obstacle.y - radius > bounds.bottom + 80) {
+              return;
+            }
+            const gradient = ctx.createRadialGradient(
+              obstacle.x - radius * 0.3,
+              obstacle.y - radius * 0.3,
+              radius * 0.2,
+              obstacle.x,
+              obstacle.y,
+              radius
+            );
+            const shade = obstacle.shade || 0.5;
+            gradient.addColorStop(0, `rgba(140, 170, 195, ${0.4 + shade * 0.2})`);
+            gradient.addColorStop(1, `rgba(30, 42, 60, ${0.8 + shade * 0.15})`);
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(obstacle.x, obstacle.y, radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            return;
+          }
+          const halfWidth = obstacle.width * 0.5;
+          const halfHeight = obstacle.height * 0.5;
+          if (obstacle.x + halfWidth < bounds.left - 80 || obstacle.x - halfWidth > bounds.right + 80
+            || obstacle.y + halfHeight < bounds.top - 80 || obstacle.y - halfHeight > bounds.bottom + 80) {
+            return;
+          }
+          const x = obstacle.x - halfWidth;
+          const y = obstacle.y - halfHeight;
+          ctx.fillStyle = `rgba(22, 34, 48, ${0.7 + (obstacle.shade || 0.3) * 0.2})`;
+          ctx.fillRect(x, y, obstacle.width, obstacle.height);
+          ctx.strokeStyle = "rgba(160, 190, 220, 0.12)";
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(x, y, obstacle.width, obstacle.height);
+        });
+      }
+
+      function drawWorldBounds() {
+        ctx.save();
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(4, 4, state.worldWidth - 8, state.worldHeight - 8);
+        ctx.restore();
+      }
+
+      function renderMinimap() {
+        if (!minimapCtx || !dom.minimap) return;
+        const dpr = Math.max(1, window.devicePixelRatio || 1);
+        const width = dom.minimap.width / dpr;
+        const height = dom.minimap.height / dpr;
+        minimapCtx.clearRect(0, 0, width, height);
+        if (!player || (state.mode !== "flight" && state.mode !== "training")) return;
+        minimapCtx.fillStyle = "rgba(6, 10, 18, 0.9)";
+        minimapCtx.fillRect(0, 0, width, height);
+
+        const padding = 6;
+        const mapWidth = width - padding * 2;
+        const mapHeight = height - padding * 2;
+        const scaleX = mapWidth / state.worldWidth;
+        const scaleY = mapHeight / state.worldHeight;
+        const scale = Math.min(scaleX, scaleY);
+        const offsetX = (width - state.worldWidth * scale) * 0.5;
+        const offsetY = (height - state.worldHeight * scale) * 0.5;
+
+        minimapCtx.strokeStyle = "rgba(255, 255, 255, 0.18)";
+        minimapCtx.lineWidth = 1;
+        minimapCtx.strokeRect(offsetX, offsetY, state.worldWidth * scale, state.worldHeight * scale);
+
+        minimapCtx.fillStyle = "rgba(140, 170, 195, 0.35)";
+        obstacles.forEach((obstacle) => {
+          if (obstacle.kind === "rock") {
+            minimapCtx.beginPath();
+            minimapCtx.arc(
+              offsetX + obstacle.x * scale,
+              offsetY + obstacle.y * scale,
+              Math.max(2, obstacle.radius * scale),
+              0,
+              Math.PI * 2
+            );
+            minimapCtx.fill();
+            return;
+          }
+          minimapCtx.fillRect(
+            offsetX + (obstacle.x - obstacle.width * 0.5) * scale,
+            offsetY + (obstacle.y - obstacle.height * 0.5) * scale,
+            obstacle.width * scale,
+            obstacle.height * scale
+          );
+        });
+
+        minimapCtx.fillStyle = "#f06969";
+        enemies.forEach((enemy) => {
+          const x = offsetX + enemy.x * scale;
+          const y = offsetY + enemy.y * scale;
+          minimapCtx.fillRect(x - 1, y - 1, 2, 2);
+        });
+
+        minimapCtx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+        minimapCtx.strokeRect(
+          offsetX + state.camera.x * scale,
+          offsetY + state.camera.y * scale,
+          state.width * scale,
+          state.height * scale
+        );
+
+        minimapCtx.fillStyle = "#44d2c2";
+        minimapCtx.beginPath();
+        minimapCtx.arc(
+          offsetX + player.x * scale,
+          offsetY + player.y * scale,
+          3,
+          0,
+          Math.PI * 2
+        );
+        minimapCtx.fill();
+      }
+
       function render() {
         ctx.clearRect(0, 0, state.width, state.height);
         ctx.fillStyle = backgroundGradient || "#05090f";
         ctx.fillRect(0, 0, state.width, state.height);
 
+        updateCamera();
+        const bounds = getViewportBounds();
+        ctx.save();
+        ctx.translate(-state.camera.x, -state.camera.y);
+
         ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
         stars.forEach((star) => {
+          if (star.x < bounds.left - 40 || star.x > bounds.right + 40
+            || star.y < bounds.top - 40 || star.y > bounds.bottom + 40) {
+            return;
+          }
           ctx.globalAlpha = star.alpha;
           ctx.beginPath();
           ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
           ctx.fill();
         });
         ctx.globalAlpha = 1;
+
+        renderObstacles();
 
         particles.forEach((particle) => {
           ctx.globalAlpha = Math.max(0, particle.life / particle.maxLife);
@@ -5117,7 +5555,11 @@
         renderHelpers();
         renderLootBursts();
         renderDamageNumbers();
+        drawWorldBounds();
         drawCrosshair();
+        ctx.restore();
+
+        renderMinimap();
       }
 
       function drawAura() {
@@ -6348,8 +6790,9 @@
                 <span class="upgrade-kind">Ready</span>
               </div>
             `;
-          const rerollCost = UPGRADE_REROLL_COST;
+          const rerollCost = getUpgradeRerollCost();
           const canReroll = state.credits >= rerollCost;
+          const rerollCopy = `Reroll cost scales each time this wave. Current reroll: ${rerollCost} credits.`;
           const upgradeActions = hasUpgrades
             ? `
               <button class="btn ghost" data-overlay-action="reroll" ${canReroll ? "" : "disabled"}>Reroll (${rerollCost} credits)</button>
@@ -6362,7 +6805,7 @@
             <div class="overlay-header">
               <p class="eyebrow">Wave ${state.wave - 1} cleared</p>
               <h3>Choose a field upgrade</h3>
-              <p>Upgrades stack for the rest of the run. Skill systems are limited to ${SKILL_LIMIT} selections. Reroll costs ${UPGRADE_REROLL_COST} credits.</p>
+              <p>Upgrades stack for the rest of the run. Skill systems are limited to ${SKILL_LIMIT} selections. ${rerollCopy}</p>
             </div>
             <div class="badge-group overlay-badges">
               <span class="badge">Credits ${creditsLabel}</span>
@@ -6474,20 +6917,20 @@
               const label = getRewardLabel(reward);
               const value = formatRewardValue(reward);
               return `
-                <div class="reward-item" data-tier="${tier}">
+                <div class="reward-item" data-tier="${tier}" title="${label} x${value}" aria-label="${label} x${value}">
                   <span class="reward-icon" aria-hidden="true">${icon}</span>
-                  <div>
-                    <span class="reward-value">${value}</span>
-                    <span class="reward-name">${label}</span>
-                  </div>
+                  <span class="reward-value">x${value}</span>
                 </div>
               `;
             }).join("")
             : "<div class=\"select-meta\">No salvage recovered.</div>";
           const rewardSection = state.training ? "" : `
             <div class="panel-subsection">
-              <h4 class="panel-title">Recovery rewards</h4>
-              <p class="panel-note">Rewards scale with wave, kills, time, score, and difficulty.</p>
+              <div class="reward-banner">
+                <span class="reward-line"></span>
+                <span class="reward-title">Rewards</span>
+                <span class="reward-line"></span>
+              </div>
               <div class="chip-list">
                 <span class="chip" data-tier="${performanceTier}">${performanceLabel} performance</span>
                 <span class="chip">Survival ${formatDuration(summary.durationSec)}</span>
@@ -6568,12 +7011,12 @@
 
       function spawnLootBursts(x, y, drops) {
         if (!drops || !drops.length) return;
-        const baseX = clamp(x, 24, state.width - 24);
-        const baseY = clamp(y, 24, state.height - 24);
+        const baseX = clamp(x, 24, state.worldWidth - 24);
+        const baseY = clamp(y, 24, state.worldHeight - 24);
         drops.forEach((drop, index) => {
           lootBursts.push({
-            x: clamp(baseX + rand(-12, 12), 16, state.width - 16),
-            y: clamp(baseY - index * 18, 16, state.height - 16),
+            x: clamp(baseX + rand(-12, 12), 16, state.worldWidth - 16),
+            y: clamp(baseY - index * 18, 16, state.worldHeight - 16),
             vy: -28 - index * 4,
             life: 1.4,
             maxLife: 1.4,
@@ -6587,8 +7030,8 @@
         const value = Math.round(amount);
         if (!Number.isFinite(value) || value === 0) return;
         const prefix = options.prefix || "";
-        const safeX = clamp(x, 16, state.width - 16);
-        const safeY = clamp(y, 16, state.height - 16);
+        const safeX = clamp(x, 16, state.worldWidth - 16);
+        const safeY = clamp(y, 16, state.worldHeight - 16);
         damageNumbers.push({
           x: safeX,
           y: safeY,
@@ -6602,16 +7045,114 @@
       }
 
       function wrapEntity(entity) {
-        const margin = 40;
-        if (entity.x < -margin) entity.x = state.width + margin;
-        if (entity.x > state.width + margin) entity.x = -margin;
-        if (entity.y < -margin) entity.y = state.height + margin;
-        if (entity.y > state.height + margin) entity.y = -margin;
+        const radius = entity.radius || 0;
+        const minX = radius + 4;
+        const minY = radius + 4;
+        const maxX = state.worldWidth - radius - 4;
+        const maxY = state.worldHeight - radius - 4;
+        if (entity.x < minX) {
+          entity.x = minX;
+          if (entity.vx) entity.vx = Math.max(0, entity.vx) * 0.6;
+        }
+        if (entity.x > maxX) {
+          entity.x = maxX;
+          if (entity.vx) entity.vx = Math.min(0, entity.vx) * 0.6;
+        }
+        if (entity.y < minY) {
+          entity.y = minY;
+          if (entity.vy) entity.vy = Math.max(0, entity.vy) * 0.6;
+        }
+        if (entity.y > maxY) {
+          entity.y = maxY;
+          if (entity.vy) entity.vy = Math.min(0, entity.vy) * 0.6;
+        }
+      }
+
+      function resolveObstacleCollisions(entity) {
+        if (!entity || !obstacles.length) return;
+        obstacles.forEach((obstacle) => {
+          if (obstacle.kind === "rock") {
+            const dx = entity.x - obstacle.x;
+            const dy = entity.y - obstacle.y;
+            const distance = Math.hypot(dx, dy) || 1;
+            const minDistance = (entity.radius || 0) + obstacle.radius + 2;
+            if (distance < minDistance) {
+              const push = minDistance - distance;
+              const nx = dx / distance;
+              const ny = dy / distance;
+              entity.x += nx * push;
+              entity.y += ny * push;
+              if (entity.vx) entity.vx *= 0.6;
+              if (entity.vy) entity.vy *= 0.6;
+            }
+            return;
+          }
+          const halfWidth = obstacle.width * 0.5;
+          const halfHeight = obstacle.height * 0.5;
+          const closestX = clamp(entity.x, obstacle.x - halfWidth, obstacle.x + halfWidth);
+          const closestY = clamp(entity.y, obstacle.y - halfHeight, obstacle.y + halfHeight);
+          const dx = entity.x - closestX;
+          const dy = entity.y - closestY;
+          const distance = Math.hypot(dx, dy) || 0;
+          const minDistance = (entity.radius || 0) + 2;
+          if (distance < minDistance) {
+            const push = minDistance - distance;
+            const nx = distance ? dx / distance : 1;
+            const ny = distance ? dy / distance : 0;
+            entity.x += nx * push;
+            entity.y += ny * push;
+            if (entity.vx) entity.vx *= 0.5;
+            if (entity.vy) entity.vy *= 0.5;
+          }
+        });
+      }
+
+      function getObstacleAvoidance(entity) {
+        if (!entity || !obstacles.length) {
+          return { x: 0, y: 0 };
+        }
+        let steerX = 0;
+        let steerY = 0;
+        obstacles.forEach((obstacle) => {
+          if (obstacle.kind === "rock") {
+            const dx = entity.x - obstacle.x;
+            const dy = entity.y - obstacle.y;
+            const distance = Math.hypot(dx, dy) || 1;
+            const range = obstacle.radius + (entity.radius || 0) + 140;
+            if (distance < range) {
+              const strength = (range - distance) / range;
+              steerX += (dx / distance) * strength;
+              steerY += (dy / distance) * strength;
+            }
+            return;
+          }
+          const halfWidth = obstacle.width * 0.5 + 100;
+          const halfHeight = obstacle.height * 0.5 + 100;
+          const closestX = clamp(entity.x, obstacle.x - halfWidth, obstacle.x + halfWidth);
+          const closestY = clamp(entity.y, obstacle.y - halfHeight, obstacle.y + halfHeight);
+          const dx = entity.x - closestX;
+          const dy = entity.y - closestY;
+          const distance = Math.hypot(dx, dy) || 1;
+          const range = 140;
+          if (distance < range) {
+            const strength = (range - distance) / range;
+            steerX += (dx / distance) * strength;
+            steerY += (dy / distance) * strength;
+          }
+        });
+        const length = Math.hypot(steerX, steerY);
+        if (!length) {
+          return { x: 0, y: 0 };
+        }
+        return { x: steerX / length, y: steerY / length };
       }
 
       function isOutOfBounds(entity) {
         const margin = 60;
-        return entity.x < -margin || entity.x > state.width + margin || entity.y < -margin || entity.y > state.height + margin;
+        return entity.x < -margin
+          || entity.x > state.worldWidth + margin
+          || entity.y < -margin
+          || entity.y > state.worldHeight + margin;
       }
 
       function normalizeKey(event) {
@@ -6676,9 +7217,13 @@
             y: player.y + Math.sin(player.angle) * 70
           };
         }
-        const x = Number.isFinite(input.pointer.x) ? input.pointer.x : state.width * 0.5;
-        const y = Number.isFinite(input.pointer.y) ? input.pointer.y : state.height * 0.5;
-        return { x, y };
+        if (input.pointer.active && Number.isFinite(input.pointer.x) && Number.isFinite(input.pointer.y)) {
+          return { x: input.pointer.x, y: input.pointer.y };
+        }
+        if (player) {
+          return { x: player.x, y: player.y };
+        }
+        return { x: state.worldWidth * 0.5, y: state.worldHeight * 0.5 };
       }
 
       function distanceBetween(a, b) {
