@@ -666,57 +666,333 @@
     {
       id: "hull",
       name: "Hull Plating",
-      desc: "+6 max hull per level.",
-      maxLevel: 5,
+      tier: "common",
+      category: "Defense",
+      desc: "+10 max hull per level.",
+      maxLevel: 12,
+      baseCost: 1,
+      costScale: 1.18,
       apply: (stats, level) => {
-        stats.maxHealth += level * 6;
-      }
-    },
-    {
-      id: "reactor",
-      name: "Reactor Coils",
-      desc: "+4 energy regen per level.",
-      maxLevel: 5,
-      apply: (stats, level) => {
-        stats.energyRegen += level * 4;
+        stats.maxHealth += level * 10;
       }
     },
     {
       id: "shield",
       name: "Shield Array",
-      desc: "+3 shield regen and +4 shield per level.",
-      maxLevel: 5,
+      tier: "common",
+      category: "Defense",
+      desc: "+8 max shield per level.",
+      maxLevel: 12,
+      baseCost: 1,
+      costScale: 1.18,
       apply: (stats, level) => {
-        stats.shieldRegen += level * 3;
-        stats.maxShield += level * 4;
+        stats.maxShield += level * 8;
+      }
+    },
+    {
+      id: "shield-regenerator",
+      name: "Shield Regenerator",
+      tier: "uncommon",
+      category: "Defense",
+      desc: "+1.5 shield regen per level.",
+      maxLevel: 10,
+      baseCost: 1,
+      costScale: 1.22,
+      apply: (stats, level) => {
+        stats.shieldRegen += level * 1.5;
+      }
+    },
+    {
+      id: "damage-dampers",
+      name: "Damage Dampers",
+      tier: "rare",
+      category: "Defense",
+      desc: "Reduce damage taken by 1.8% per level.",
+      maxLevel: 8,
+      baseCost: 2,
+      costScale: 1.25,
+      apply: (stats, level) => {
+        const current = stats.damageReduction || 0;
+        const next = current + level * 0.018;
+        stats.damageReduction = current > 0.3 ? current : Math.min(0.3, next);
+      }
+    },
+    {
+      id: "reactive-repair",
+      name: "Reactive Repair",
+      tier: "epic",
+      category: "Defense",
+      desc: "Restore 2.5% hull on kill per level.",
+      maxLevel: 6,
+      baseCost: 2,
+      costScale: 1.3,
+      apply: (stats, level) => {
+        const current = stats.healOnKill || 0;
+        const next = current + level * 0.025;
+        stats.healOnKill = current > 0.2 ? current : Math.min(0.2, next);
+      }
+    },
+    {
+      id: "aegis-relay",
+      name: "Aegis Relay",
+      tier: "legendary",
+      category: "Defense",
+      desc: "Periodic aegis pulse restores shields and slows nearby foes.",
+      maxLevel: 3,
+      baseCost: 3,
+      costScale: 1.35,
+      apply: (stats, level) => {
+        if (level <= 0) return;
+        const cooldown = Math.max(14, 24 - level * 2);
+        stats.aegisCooldown = stats.aegisCooldown
+          ? Math.min(stats.aegisCooldown, cooldown)
+          : cooldown;
+        stats.aegisShieldRestore = Math.max(stats.aegisShieldRestore || 0, 0.18 + level * 0.06);
+        stats.aegisPulseRadius = Math.max(stats.aegisPulseRadius || 0, 120 + level * 25);
+        stats.aegisPulseDamage = Math.max(stats.aegisPulseDamage || 0, 12 + level * 6);
+        stats.aegisPulseSlow = Math.max(stats.aegisPulseSlow || 0, 0.6 + level * 0.25);
+      }
+    },
+    {
+      id: "weapon-calibration",
+      name: "Weapon Calibration",
+      tier: "common",
+      category: "Offense",
+      desc: "+5% weapon damage per level.",
+      maxLevel: 12,
+      baseCost: 1,
+      costScale: 1.18,
+      apply: (stats, level) => {
+        stats.damage *= 1 + level * 0.05;
+      }
+    },
+    {
+      id: "fire-control",
+      name: "Fire Control",
+      tier: "uncommon",
+      category: "Offense",
+      desc: "+5% fire rate per level.",
+      maxLevel: 10,
+      baseCost: 1,
+      costScale: 1.22,
+      apply: (stats, level) => {
+        stats.fireRate *= 1 + level * 0.05;
       }
     },
     {
       id: "targeting",
       name: "Targeting Suite",
+      tier: "rare",
+      category: "Offense",
       desc: "+2% crit chance per level.",
-      maxLevel: 4,
+      maxLevel: 8,
+      baseCost: 2,
+      costScale: 1.25,
       apply: (stats, level) => {
-        stats.critChance += level * 0.02;
+        const current = stats.critChance || 0;
+        const next = current + level * 0.02;
+        stats.critChance = current > 0.4 ? current : Math.min(0.4, next);
+      }
+    },
+    {
+      id: "munitions-loader",
+      name: "Munitions Loader",
+      tier: "rare",
+      category: "Offense",
+      desc: "+30 projectile speed per level.",
+      maxLevel: 8,
+      baseCost: 2,
+      costScale: 1.25,
+      apply: (stats, level) => {
+        stats.bulletSpeed += level * 30;
+      }
+    },
+    {
+      id: "amplifier-core",
+      name: "Amplifier Core",
+      tier: "epic",
+      category: "Offense",
+      desc: "+0.15 crit multiplier per level.",
+      maxLevel: 6,
+      baseCost: 2,
+      costScale: 1.3,
+      apply: (stats, level) => {
+        stats.critMultiplier += level * 0.15;
+      }
+    },
+    {
+      id: "barrage-sync",
+      name: "Barrage Sync",
+      tier: "legendary",
+      category: "Offense",
+      desc: "Every few shots, unleash a barrage with extra projectiles.",
+      maxLevel: 3,
+      baseCost: 3,
+      costScale: 1.35,
+      apply: (stats, level) => {
+        if (level <= 0) return;
+        const cadence = Math.max(4, 7 - level);
+        stats.barrageEvery = stats.barrageEvery
+          ? Math.min(stats.barrageEvery, cadence)
+          : cadence;
+        stats.barrageProjectiles = Math.max(stats.barrageProjectiles || 0, 1 + Math.floor(level / 2));
+        stats.barrageBonusDamage = Math.max(stats.barrageBonusDamage || 1, 1.25 + level * 0.1);
+        if (level >= 2) {
+          stats.barragePierce = Math.max(stats.barragePierce || 0, 1);
+        }
       }
     },
     {
       id: "thrusters",
       name: "Vector Thrusters",
-      desc: "+6 max speed and +12 accel per level.",
-      maxLevel: 4,
+      tier: "common",
+      category: "Mobility",
+      desc: "+8 max speed and +14 accel per level.",
+      maxLevel: 10,
+      baseCost: 1,
+      costScale: 1.18,
       apply: (stats, level) => {
-        stats.maxSpeed += level * 6;
-        stats.accel += level * 12;
+        stats.maxSpeed += level * 8;
+        stats.accel += level * 14;
       }
     },
     {
       id: "attitude-control",
       name: "Attitude Control",
-      desc: "+0.4 turn rate per level.",
-      maxLevel: 4,
+      tier: "uncommon",
+      category: "Mobility",
+      desc: "+0.25 turn rate per level (caps at 6.5).",
+      maxLevel: 8,
+      baseCost: 1,
+      costScale: 1.22,
       apply: (stats, level) => {
-        stats.turnRate += level * 0.4;
+        const target = stats.turnRate + level * 0.25;
+        stats.turnRate = stats.turnRate > 6.5 ? stats.turnRate : Math.min(6.5, target);
+      }
+    },
+    {
+      id: "inertial-dampers",
+      name: "Inertial Dampers",
+      tier: "rare",
+      category: "Mobility",
+      desc: "Reduce drift loss by 0.1 per level (caps at 1.4).",
+      maxLevel: 8,
+      baseCost: 2,
+      costScale: 1.25,
+      apply: (stats, level) => {
+        const target = stats.damping - level * 0.1;
+        stats.damping = stats.damping < 1.4 ? stats.damping : Math.max(1.4, target);
+      }
+    },
+    {
+      id: "boost-couplers",
+      name: "Boost Couplers",
+      tier: "epic",
+      category: "Mobility",
+      desc: "+6% boost speed and -1 boost cost per level.",
+      maxLevel: 6,
+      baseCost: 2,
+      costScale: 1.3,
+      apply: (stats, level) => {
+        stats.boostMultiplier += level * 0.06;
+        stats.boostCost = Math.max(6, stats.boostCost - level);
+      }
+    },
+    {
+      id: "reactor",
+      name: "Reactor Coils",
+      tier: "common",
+      category: "Utility",
+      desc: "+5 energy regen per level.",
+      maxLevel: 10,
+      baseCost: 1,
+      costScale: 1.18,
+      apply: (stats, level) => {
+        stats.energyRegen += level * 5;
+      }
+    },
+    {
+      id: "capacitor-banks",
+      name: "Capacitor Banks",
+      tier: "common",
+      category: "Utility",
+      desc: "+14 max energy per level.",
+      maxLevel: 10,
+      baseCost: 1,
+      costScale: 1.18,
+      apply: (stats, level) => {
+        stats.maxEnergy += level * 14;
+      }
+    },
+    {
+      id: "efficiency-tuning",
+      name: "Efficiency Tuning",
+      tier: "uncommon",
+      category: "Utility",
+      desc: "-0.6 energy cost per level (caps at 8).",
+      maxLevel: 8,
+      baseCost: 1,
+      costScale: 1.22,
+      apply: (stats, level) => {
+        stats.energyCost = Math.max(8, stats.energyCost - level * 0.6);
+      }
+    },
+    {
+      id: "salvage-magnet",
+      name: "Salvage Magnetics",
+      tier: "rare",
+      category: "Utility",
+      desc: "+4% salvage bonus per level.",
+      maxLevel: 6,
+      baseCost: 2,
+      costScale: 1.25,
+      apply: (stats, level) => {
+        const current = stats.salvageBonus || 0;
+        const next = current + level * 0.04;
+        stats.salvageBonus = current > 0.5 ? current : Math.min(0.5, next);
+      }
+    },
+    {
+      id: "tactical-scanner",
+      name: "Tactical Scanner",
+      tier: "rare",
+      category: "Utility",
+      desc: "+4% XP gain per level.",
+      maxLevel: 6,
+      baseCost: 2,
+      costScale: 1.25,
+      apply: (stats, level) => {
+        const current = stats.xpBonus || 0;
+        const next = current + level * 0.04;
+        stats.xpBonus = current > 0.5 ? current : Math.min(0.5, next);
+      }
+    },
+    {
+      id: "upgrade-forecast",
+      name: "Upgrade Forecast",
+      tier: "epic",
+      category: "Utility",
+      desc: "+0.06 upgrade luck per level (caps at 0.4).",
+      maxLevel: 5,
+      baseCost: 2,
+      costScale: 1.3,
+      apply: (stats, level) => {
+        const current = stats.upgradeLuck || 0;
+        const next = current + level * 0.06;
+        stats.upgradeLuck = current > 0.4 ? current : Math.min(0.4, next);
+      }
+    },
+    {
+      id: "energy-siphon",
+      name: "Energy Siphon",
+      tier: "legendary",
+      category: "Utility",
+      desc: "Restore 6 energy on kill per level.",
+      maxLevel: 3,
+      baseCost: 3,
+      costScale: 1.35,
+      apply: (stats, level) => {
+        stats.energyOnKill += level * 6;
       }
     }
   ];
@@ -837,6 +1113,86 @@
   ];
 
   const FIELD_UPGRADES = [
+    {
+      id: "halo-emitter",
+      name: "Halo Emitter",
+      tier: "uncommon",
+      category: "Control",
+      kind: "skill",
+      skillId: "halo",
+      desc: "Skill: damaging halo that grows in radius and power.",
+      maxStacks: 5,
+      apply: (ship) => {
+        ship.auraRadius = (ship.auraRadius || 50) + 16;
+        ship.auraDamage = (ship.auraDamage || 6) + 4;
+        ship.auraInterval = Math.max(0.25, (ship.auraInterval || 0.45) - 0.02);
+      }
+    },
+    {
+      id: "minefield-protocol",
+      name: "Minefield Protocol",
+      tier: "uncommon",
+      category: "Control",
+      kind: "skill",
+      skillId: "minefield",
+      desc: "Skill: randomly deploys mines that explode on contact.",
+      maxStacks: 4,
+      apply: (ship) => {
+        ship.mineDropChance = Math.min(0.75, (ship.mineDropChance || 0) + 0.18);
+        ship.mineRadius = (ship.mineRadius || 34) + 10;
+        ship.mineDamage = (ship.mineDamage || 30) + 14;
+        ship.mineDuration = Math.min(8, (ship.mineDuration || 5) + 0.6);
+        ship.mineInterval = Math.max(0.8, (ship.mineInterval || 1.2) - 0.08);
+      }
+    },
+    {
+      id: "escort-wing",
+      name: "Escort Wing",
+      tier: "rare",
+      category: "Offense",
+      kind: "skill",
+      skillId: "escort",
+      desc: "Skill: helper ships auto-fire with a share of your damage.",
+      maxStacks: 3,
+      apply: (ship) => {
+        ship.helperCount = Math.min(3, (ship.helperCount || 0) + 1);
+        ship.helperDamageRatio = Math.min(0.75, (ship.helperDamageRatio || 0.25) + 0.15);
+        ship.helperFireRate = Math.max(ship.helperFireRate || 1.1, 1.1 + ship.helperCount * 0.2);
+        ship.helperRange = Math.max(ship.helperRange || 320, 320 + ship.helperCount * 40);
+      }
+    },
+    {
+      id: "shockwave-core",
+      name: "Shockwave Core",
+      tier: "rare",
+      category: "Control",
+      kind: "skill",
+      skillId: "shockwave",
+      desc: "Skill: periodic pulse damages and slows nearby enemies.",
+      maxStacks: 4,
+      apply: (ship) => {
+        ship.shockwaveInterval = Math.max(2.6, (ship.shockwaveInterval || 4.6) - 0.4);
+        ship.shockwaveRadius = (ship.shockwaveRadius || 90) + 18;
+        ship.shockwaveDamage = (ship.shockwaveDamage || 18) + 10;
+        ship.shockwaveSlow = Math.min(2.2, (ship.shockwaveSlow || 0.6) + 0.2);
+      }
+    },
+    {
+      id: "harrier-missiles",
+      name: "Harrier Missiles",
+      tier: "epic",
+      category: "Offense",
+      kind: "skill",
+      skillId: "harrier",
+      desc: "Skill: launches auto-targeted missiles at nearby enemies.",
+      maxStacks: 3,
+      apply: (ship) => {
+        ship.missileInterval = Math.max(2.2, (ship.missileInterval || 4.2) - 0.6);
+        ship.missileDamage = (ship.missileDamage || 20) + 14;
+        ship.missileCount = Math.min(3, (ship.missileCount || 0) + 1);
+        ship.missileSpeed = Math.max(ship.missileSpeed || 520, 520 + ship.missileCount * 40);
+      }
+    },
     {
       id: "calibrated-coils",
       name: "Calibrated Coils",
