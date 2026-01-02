@@ -1741,6 +1741,7 @@
       const STORAGE_KEY = "stellarDogfightProgress";
       const UPGRADE_REROLL_COST = 60;
       const SKILL_LIMIT = 3;
+      const HUD_UPDATE_INTERVAL_MS = 50;
       const dom = {
         canvas: document.querySelector("[data-role='battlefield']"),
         overlay: document.querySelector("[data-role='overlay']"),
@@ -1855,6 +1856,8 @@
         decoy: null,
         mines: [],
         skillSlots: [],
+        lastHudUpdate: 0,
+        activeUpgradeKey: "",
         lastHullHitAt: 0,
         upgradeStacks: {},
         upgradeOptions: [],
@@ -4937,12 +4940,15 @@
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.font = "700 13px \"Chakra Petch\", sans-serif";
+        const useStroke = damageNumbers.length < 80;
         damageNumbers.forEach((burst) => {
           const alpha = clamp(burst.life / burst.maxLife, 0, 1);
           ctx.globalAlpha = alpha;
-          ctx.strokeStyle = "rgba(4, 8, 16, 0.85)";
-          ctx.lineWidth = 3;
-          ctx.strokeText(burst.text, burst.x, burst.y);
+          if (useStroke) {
+            ctx.strokeStyle = "rgba(4, 8, 16, 0.85)";
+            ctx.lineWidth = 3;
+            ctx.strokeText(burst.text, burst.x, burst.y);
+          }
           ctx.fillStyle = burst.color;
           ctx.fillText(burst.text, burst.x, burst.y);
         });
@@ -5145,6 +5151,11 @@
       }
 
       function updateHud() {
+        const now = performance.now();
+        if (now - state.lastHudUpdate < HUD_UPDATE_INTERVAL_MS) {
+          return;
+        }
+        state.lastHudUpdate = now;
         if (!player) return;
         const hullPct = clamp(player.health / player.maxHealth, 0, 1) * 100;
         const shieldPct = player.maxShield > 0 ? clamp(player.shield / player.maxShield, 0, 1) * 100 : 0;
@@ -5244,6 +5255,11 @@
       }
 
       function renderActiveUpgrades() {
+        const upgradeKey = getActiveUpgradeKey();
+        if (upgradeKey === state.activeUpgradeKey) {
+          return;
+        }
+        state.activeUpgradeKey = upgradeKey;
         if (isFrontierMode()) {
           if (!state.frontier || !state.frontier.active) {
             dom.activeUpgrades.innerHTML = "<span class=\"chip\">Frontier upgrades available at the dock</span>";
@@ -5291,6 +5307,24 @@
           </div>
         `;
         dom.activeUpgrades.innerHTML = `${skillHtml}${statHtml}`;
+      }
+
+      function getActiveUpgradeKey() {
+        if (isFrontierMode()) {
+          if (!state.frontier || !state.frontier.upgrades) return "frontier:none";
+          const entries = Object.entries(state.frontier.upgrades)
+            .filter(([, level]) => level > 0)
+            .sort((a, b) => a[0].localeCompare(b[0]))
+            .map(([id, level]) => `${id}:${level}`)
+            .join("|");
+          return `frontier:${entries}`;
+        }
+        const stacks = Object.entries(state.upgradeStacks || {})
+          .filter(([, count]) => count > 0)
+          .sort((a, b) => a[0].localeCompare(b[0]))
+          .map(([id, count]) => `${id}:${count}`)
+          .join("|");
+        return `arcade:${state.skillSlots.join(",")}:${stacks}`;
       }
 
       function renderHangar() {
