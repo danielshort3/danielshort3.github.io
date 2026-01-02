@@ -22,8 +22,8 @@
       --text-muted: #a5b5d1;
       --accent: #44d2c2;
       --accent-2: #f6c65f;
-      --tier-common: #6ee7b7;
-      --tier-uncommon: #44d2c2;
+      --tier-common: #ffffff;
+      --tier-uncommon: #6ee7b7;
       --tier-rare: #7ca8ff;
       --tier-epic: #b98cff;
       --tier-legendary: #f6c65f;
@@ -427,6 +427,18 @@
       color: var(--text);
     }
 
+    .upgrade-group {
+      display: grid;
+      gap: 8px;
+    }
+
+    .upgrade-group-title {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--text-muted);
+    }
+
     [data-tier] {
       --tier-color: var(--tier-common);
     }
@@ -495,6 +507,9 @@
     }
 
     .tier-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
       font-size: 0.7rem;
       letter-spacing: 0.22em;
       text-transform: uppercase;
@@ -545,13 +560,15 @@
     }
 
     #tab-armory .card-grid,
-    #tab-shipyard .card-grid {
+    #tab-shipyard .card-grid,
+    #tab-hangar .card-grid {
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       align-content: start;
     }
 
     #tab-armory .card-grid > .tier-section,
-    #tab-shipyard .card-grid > .tier-section {
+    #tab-shipyard .card-grid > .tier-section,
+    #tab-hangar .card-grid > .tier-section {
       grid-column: 1 / -1;
     }
 
@@ -800,13 +817,18 @@
 
     .hangar-card:hover,
     .hangar-card:focus-visible {
-      border-color: var(--accent);
+      border-color: color-mix(in srgb, var(--tier-color, var(--accent)) 70%, var(--accent) 30%);
       transform: translateY(-1px);
     }
 
     .hangar-card[disabled] {
       opacity: 0.55;
       cursor: not-allowed;
+    }
+
+    .hangar-card[data-tier] {
+      border-color: color-mix(in srgb, var(--tier-color) 45%, rgba(255, 255, 255, 0.12));
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--tier-color) 20%, transparent);
     }
 
     .hangar-title {
@@ -872,6 +894,45 @@
       flex-wrap: wrap;
       gap: 8px;
       z-index: 3;
+    }
+
+    .arena-vitals {
+      position: absolute;
+      left: 16px;
+      top: 16px;
+      display: grid;
+      gap: 6px;
+      min-width: 220px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(8, 14, 24, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      z-index: 3;
+    }
+
+    .vital-row {
+      display: grid;
+      grid-template-columns: 52px 1fr auto;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+    }
+
+    .vital-label {
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      font-size: 0.65rem;
+    }
+
+    .vital-value {
+      color: var(--text);
+      font-size: 0.75rem;
+      white-space: nowrap;
+    }
+
+    .arena-vitals .meter {
+      height: 8px;
     }
 
     .arena-tips {
@@ -1016,6 +1077,26 @@
       overflow: hidden;
     }
 
+    .upgrade-stack {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(8, 14, 24, 0.7);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+    }
+
+    .category-pill {
+      min-width: 28px;
+      text-align: center;
+      font-size: 0.8rem;
+      padding: 4px 6px;
+    }
+
     .upgrade-card.is-static {
       cursor: default;
       pointer-events: none;
@@ -1024,6 +1105,20 @@
     .upgrade-card[data-tier] {
       border-color: color-mix(in srgb, var(--tier-color) 45%, rgba(255, 255, 255, 0.16));
       box-shadow: 0 0 0 1px color-mix(in srgb, var(--tier-color) 20%, transparent);
+    }
+
+    .upgrade-card[data-kind="skill"] {
+      background: linear-gradient(160deg, rgba(18, 26, 44, 0.9), rgba(12, 18, 32, 0.9));
+      box-shadow: 0 0 0 1px rgba(68, 210, 194, 0.25);
+    }
+
+    .skill-pill {
+      border-color: rgba(68, 210, 194, 0.6);
+      color: var(--accent);
+      background: rgba(68, 210, 194, 0.12);
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-weight: 600;
     }
 
     .upgrade-card[data-tier="epic"],
@@ -1039,6 +1134,47 @@
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
+    }
+
+    .reward-grid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+
+    .reward-item {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(10, 16, 28, 0.8);
+    }
+
+    .reward-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      border: 1px solid color-mix(in srgb, var(--tier-color) 55%, rgba(255, 255, 255, 0.2));
+      display: grid;
+      place-items: center;
+      font-size: 1rem;
+      color: var(--tier-color);
+      background: color-mix(in srgb, var(--tier-color) 18%, transparent);
+    }
+
+    .reward-value {
+      font-size: 1rem;
+      font-weight: 600;
+      display: block;
+    }
+
+    .reward-name {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: block;
     }
 
     .upgrade-card:hover,
@@ -1339,7 +1475,7 @@
               </div>
               <div class="panel-subsection">
                 <h3 class="panel-title">Field Upgrades</h3>
-                <p class="panel-note">Choose one upgrade after each wave. Stacks carry through the run.</p>
+                <p class="panel-note">Choose one upgrade after each wave. Skill systems are limited to 3 choices and can only be upgraded once selected.</p>
                 <div class="tier-legend" aria-label="Upgrade tiers">
                   <span class="select-pill tier-pill" data-tier="common">Common</span>
                   <span class="select-pill tier-pill" data-tier="uncommon">Uncommon</span>
@@ -1351,8 +1487,8 @@
               </div>
               <div class="panel-subsection">
                 <h3 class="panel-title">Hangar Upgrades</h3>
-                <p class="panel-note">Spend tech points between sorties. Upgrades apply to the next launch.</p>
-                <div class="hangar-grid" data-role="hangar"></div>
+                <p class="panel-note">Spend tech points between sorties. Costs rise with each level and upgrades apply to the next launch.</p>
+                <div class="hangar-grid card-grid" data-role="hangar"></div>
               </div>
             </section>
 
@@ -1569,6 +1705,29 @@
             <div class="hud-pill">Score <strong data-stat="score">0</strong></div>
             <div class="hud-pill">Credits <strong data-stat="credits">0</strong></div>
           </div>
+          <div class="arena-vitals" aria-label="Ship vitals">
+            <div class="vital-row">
+              <span class="vital-label">Hull</span>
+              <div class="meter">
+                <span class="meter-fill hull" data-hud-meter="hull"></span>
+              </div>
+              <span class="vital-value" data-hud-stat="hull">--</span>
+            </div>
+            <div class="vital-row">
+              <span class="vital-label">Shield</span>
+              <div class="meter">
+                <span class="meter-fill shield" data-hud-meter="shield"></span>
+              </div>
+              <span class="vital-value" data-hud-stat="shield">--</span>
+            </div>
+            <div class="vital-row">
+              <span class="vital-label">Energy</span>
+              <div class="meter">
+                <span class="meter-fill energy" data-hud-meter="energy"></span>
+              </div>
+              <span class="vital-value" data-hud-stat="energy">--</span>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -1581,6 +1740,7 @@
 
       const STORAGE_KEY = "stellarDogfightProgress";
       const UPGRADE_REROLL_COST = 60;
+      const SKILL_LIMIT = 3;
       const dom = {
         canvas: document.querySelector("[data-role='battlefield']"),
         overlay: document.querySelector("[data-role='overlay']"),
@@ -1645,6 +1805,16 @@
         shield: document.querySelector("[data-meter='shield']"),
         energy: document.querySelector("[data-meter='energy']")
       };
+      const hudMeters = {
+        hull: document.querySelector("[data-hud-meter='hull']"),
+        shield: document.querySelector("[data-hud-meter='shield']"),
+        energy: document.querySelector("[data-hud-meter='energy']")
+      };
+      const hudStats = {
+        hull: document.querySelector("[data-hud-stat='hull']"),
+        shield: document.querySelector("[data-hud-stat='shield']"),
+        energy: document.querySelector("[data-hud-stat='energy']")
+      };
 
       const input = {
         keys: new Set(),
@@ -1684,6 +1854,7 @@
         enemyAccuracyMod: 1,
         decoy: null,
         mines: [],
+        skillSlots: [],
         lastHullHitAt: 0,
         upgradeStacks: {},
         upgradeOptions: [],
@@ -1729,6 +1900,32 @@
         barrageSplashDamage: 0,
         barrageCounter: 0,
         upgradeLuck: 0,
+        auraRadius: 0,
+        auraDamage: 0,
+        auraInterval: 0.45,
+        auraTimer: 0,
+        mineDropChance: 0,
+        mineInterval: 1.2,
+        mineTimer: 0,
+        mineRadius: 0,
+        mineDamage: 0,
+        mineDuration: 5,
+        helperCount: 0,
+        helperDamageRatio: 0,
+        helperFireRate: 0,
+        helperRange: 0,
+        helperOrbitRadius: 26,
+        helperOrbitSpeed: 1.4,
+        shockwaveInterval: 0,
+        shockwaveTimer: 0,
+        shockwaveRadius: 0,
+        shockwaveDamage: 0,
+        shockwaveSlow: 0,
+        missileInterval: 0,
+        missileTimer: 0,
+        missileDamage: 0,
+        missileCount: 0,
+        missileSpeed: 0,
         aegisCooldown: 0,
         aegisReadyAt: 0,
         aegisShieldRestore: 0,
@@ -1780,9 +1977,11 @@
       let player = null;
       let enemies = [];
       let bullets = [];
+      let helpers = [];
       let particles = [];
       let pulses = [];
       let lootBursts = [];
+      let damageNumbers = [];
       let stars = [];
       let backgroundGradient = null;
 
@@ -1918,8 +2117,10 @@
           const upgrade = HANGAR_UPGRADES.find((item) => item.id === button.dataset.hangarId);
           if (!upgrade) return;
           const currentLevel = progress.hangar[upgrade.id] || 0;
-          if (progress.techPoints < 1 || currentLevel >= upgrade.maxLevel) return;
-          progress.techPoints -= 1;
+          const maxLevel = upgrade.maxLevel || 1;
+          const cost = getHangarUpgradeCost(upgrade, currentLevel);
+          if (progress.techPoints < cost || currentLevel >= maxLevel) return;
+          progress.techPoints = Math.max(0, progress.techPoints - cost);
           progress.hangar[upgrade.id] = currentLevel + 1;
           saveProgress();
           renderHangar();
@@ -2377,10 +2578,28 @@
           runHistory: [],
           hangar: {
             hull: 0,
-            reactor: 0,
             shield: 0,
+            "shield-regenerator": 0,
+            "damage-dampers": 0,
+            "reactive-repair": 0,
+            "aegis-relay": 0,
+            "weapon-calibration": 0,
+            "fire-control": 0,
             targeting: 0,
-            thrusters: 0
+            "munitions-loader": 0,
+            "amplifier-core": 0,
+            "barrage-sync": 0,
+            thrusters: 0,
+            "attitude-control": 0,
+            "inertial-dampers": 0,
+            "boost-couplers": 0,
+            reactor: 0,
+            "capacitor-banks": 0,
+            "efficiency-tuning": 0,
+            "salvage-magnet": 0,
+            "tactical-scanner": 0,
+            "upgrade-forecast": 0,
+            "energy-siphon": 0
           }
         };
         try {
@@ -2751,12 +2970,12 @@
         const weapon = getWeaponById(loadout.weaponId || progress.selectedWeapon);
         const secondary = getSecondaryById(loadout.secondaryId || progress.selectedSecondary);
         applyMods(stats, ship.mods);
+        Object.assign(stats, weapon.stats);
+        applyWeaponUpgrades(stats, weapon);
         HANGAR_UPGRADES.forEach((upgrade) => {
           const level = progress.hangar[upgrade.id] || 0;
           upgrade.apply(stats, level);
         });
-        Object.assign(stats, weapon.stats);
-        applyWeaponUpgrades(stats, weapon);
         getEquippedParts().forEach((part) => applyPartStats(stats, part));
         stats.ship = ship;
         stats.weapon = weapon;
@@ -2852,13 +3071,16 @@
         checkProgressionUnlocks();
         enemies = [];
         bullets = [];
+        helpers = [];
         particles = [];
         lootBursts = [];
+        damageNumbers = [];
         state.mines = [];
         state.decoy = null;
         state.enemyAccuracyMod = 1;
         state.upgradeStacks = {};
         state.upgradeOptions = [];
+        state.skillSlots = [];
         state.lossRewards = null;
         state.wave = 1;
         state.score = 0;
@@ -2902,13 +3124,16 @@
         player = createPlayer();
         enemies = [];
         bullets = [];
+        helpers = [];
         particles = [];
         lootBursts = [];
+        damageNumbers = [];
         state.mines = [];
         state.decoy = null;
         state.enemyAccuracyMod = 1;
         state.upgradeStacks = {};
         state.upgradeOptions = [];
+        state.skillSlots = [];
         state.lossRewards = null;
         state.wave = 1;
         state.score = 0;
@@ -2942,10 +3167,16 @@
         setMode("hangar");
         enemies = [];
         bullets = [];
+        helpers = [];
         particles = [];
         lootBursts = [];
+        damageNumbers = [];
+        state.mines = [];
+        state.decoy = null;
+        state.enemyAccuracyMod = 1;
         state.upgradeStacks = {};
         state.upgradeOptions = [];
+        state.skillSlots = [];
         state.lossRewards = null;
         state.wave = 1;
         state.score = 0;
@@ -3043,6 +3274,12 @@
 
       function getFrontierTierCost(tier) {
         return Math.round(280 * Math.pow(Math.max(1, tier), 1.35));
+      }
+
+      function getHangarUpgradeCost(upgrade, level) {
+        const baseCost = Number.isFinite(upgrade.baseCost) ? upgrade.baseCost : 1;
+        const scale = Number.isFinite(upgrade.costScale) ? upgrade.costScale : 1.2;
+        return Math.max(1, Math.ceil(baseCost * Math.pow(scale, level)));
       }
 
       function getFrontierNextShips() {
@@ -3310,6 +3547,7 @@
         updateParticles(delta);
         updatePulses(delta);
         updateLootBursts(delta);
+        updateDamageNumbers(delta);
         trackOnboarding(delta);
         if (state.mode !== "flight" && state.mode !== "training") {
           return;
@@ -3317,6 +3555,8 @@
         updatePlayer(delta);
         updateDecoy(delta);
         updateEnemies(delta);
+        updateSkillSystems(delta);
+        updateHelpers(delta);
         updateBullets(delta);
         updateMines(delta);
         updateContracts(delta);
@@ -3387,6 +3627,18 @@
           burst.y += burst.vy * delta;
           if (burst.life <= 0) {
             lootBursts.splice(i, 1);
+          }
+        }
+      }
+
+      function updateDamageNumbers(delta) {
+        for (let i = damageNumbers.length - 1; i >= 0; i -= 1) {
+          const burst = damageNumbers[i];
+          burst.life -= delta;
+          burst.x += burst.vx * delta;
+          burst.y += burst.vy * delta;
+          if (burst.life <= 0) {
+            damageNumbers.splice(i, 1);
           }
         }
       }
@@ -3502,6 +3754,160 @@
         if (firing && player.fireCooldown <= 0 && player.energy >= energyCost) {
           firePlayer();
         }
+      }
+
+      function updateSkillSystems(delta) {
+        if (!player) return;
+        updateAura(delta);
+        updateMineDeployment(delta);
+        updateShockwave(delta);
+        updateMissiles(delta);
+      }
+
+      function updateAura(delta) {
+        if (player.auraRadius <= 0 || player.auraDamage <= 0) return;
+        player.auraTimer = (player.auraTimer || 0) - delta;
+        if (player.auraTimer > 0) return;
+        const interval = player.auraInterval || 0.45;
+        player.auraTimer = interval;
+        const damage = player.auraDamage * interval;
+        for (let i = enemies.length - 1; i >= 0; i -= 1) {
+          const enemy = enemies[i];
+          if (distanceBetween(player, enemy) <= player.auraRadius + enemy.radius) {
+            applyDamage(enemy, damage, { owner: "player" });
+            if (enemy.health <= 0) {
+              destroyEnemy(enemy, i);
+            }
+          }
+        }
+      }
+
+      function updateMineDeployment(delta) {
+        if (player.mineDropChance <= 0 || player.mineRadius <= 0 || player.mineDamage <= 0) return;
+        player.mineTimer = (player.mineTimer || 0) - delta;
+        if (player.mineTimer > 0) return;
+        player.mineTimer = player.mineInterval || 1.2;
+        if (Math.random() < player.mineDropChance) {
+          state.mines.push({
+            x: player.x + rand(-10, 10),
+            y: player.y + rand(-10, 10),
+            radius: player.mineRadius,
+            damage: player.mineDamage,
+            timer: player.mineDuration || 5
+          });
+        }
+      }
+
+      function updateShockwave(delta) {
+        if (player.shockwaveInterval <= 0 || player.shockwaveRadius <= 0 || player.shockwaveDamage <= 0) return;
+        player.shockwaveTimer = (player.shockwaveTimer || 0) - delta;
+        if (player.shockwaveTimer > 0) return;
+        player.shockwaveTimer = player.shockwaveInterval;
+        spawnPulse(player.x, player.y, "#7ca8ff", player.shockwaveRadius);
+        for (let i = enemies.length - 1; i >= 0; i -= 1) {
+          const enemy = enemies[i];
+          if (distanceBetween(player, enemy) <= player.shockwaveRadius + enemy.radius) {
+            applyDamage(enemy, player.shockwaveDamage, { owner: "player" });
+            if (player.shockwaveSlow > 0) {
+              enemy.slowTimer = Math.max(enemy.slowTimer || 0, player.shockwaveSlow);
+            }
+            if (enemy.health <= 0) {
+              destroyEnemy(enemy, i);
+            }
+          }
+        }
+      }
+
+      function updateMissiles(delta) {
+        if (player.missileInterval <= 0 || player.missileDamage <= 0 || player.missileCount <= 0) return;
+        player.missileTimer = (player.missileTimer || 0) - delta;
+        if (player.missileTimer > 0) return;
+        const target = getNearestEnemy(player.x, player.y, 520);
+        if (!target) return;
+        player.missileTimer = player.missileInterval;
+        const count = Math.max(1, player.missileCount);
+        for (let i = 0; i < count; i += 1) {
+          const angle = Math.atan2(target.y - player.y, target.x - player.x) + rand(-0.2, 0.2);
+          const speed = player.missileSpeed || 520;
+          bullets.push({
+            owner: "player",
+            x: player.x + Math.cos(angle) * (player.radius + 6),
+            y: player.y + Math.sin(angle) * (player.radius + 6),
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            radius: 3,
+            life: 1.6,
+            damage: player.missileDamage,
+            tint: "#f6c65f"
+          });
+        }
+      }
+
+      function updateHelpers(delta) {
+        if (!player || player.helperCount <= 0) {
+          helpers = [];
+          return;
+        }
+        const count = Math.min(3, Math.max(1, player.helperCount));
+        const orbitRadius = player.helperOrbitRadius || 26;
+        const orbitSpeed = player.helperOrbitSpeed || 1.4;
+        while (helpers.length < count) {
+          helpers.push({
+            angle: Math.random() * Math.PI * 2,
+            fireCooldown: rand(0.1, 0.6)
+          });
+        }
+        if (helpers.length > count) {
+          helpers = helpers.slice(0, count);
+        }
+        const baseAngle = player.angle;
+        helpers.forEach((helper, index) => {
+          helper.angle += orbitSpeed * delta;
+          const offset = helper.angle + (index * Math.PI * 2) / count;
+          helper.x = player.x + Math.cos(offset) * orbitRadius;
+          helper.y = player.y + Math.sin(offset) * orbitRadius;
+          helper.fireCooldown = Math.max(0, helper.fireCooldown - delta);
+        });
+        const target = getNearestEnemy(player.x, player.y, player.helperRange || 360);
+        if (!target) return;
+        const rate = Math.max(0.4, player.helperFireRate || 1.2);
+        helpers.forEach((helper) => {
+          if (helper.fireCooldown > 0) return;
+          fireHelper(helper, target);
+          helper.fireCooldown = 1 / rate;
+        });
+      }
+
+      function fireHelper(helper, target) {
+        if (!helper || !target) return;
+        const angle = Math.atan2(target.y - helper.y, target.x - helper.x) + rand(-0.1, 0.1);
+        const speed = player.bulletSpeed * 0.9;
+        const damage = player.damage * (player.helperDamageRatio || 0.3);
+        bullets.push({
+          owner: "player",
+          x: helper.x + Math.cos(angle) * 6,
+          y: helper.y + Math.sin(angle) * 6,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          radius: 2.6,
+          life: 1.4,
+          damage,
+          tint: "#6ee7b7"
+        });
+      }
+
+      function getNearestEnemy(x, y, range) {
+        let best = null;
+        let bestDist = range || Infinity;
+        for (let i = 0; i < enemies.length; i += 1) {
+          const enemy = enemies[i];
+          const distance = Math.hypot(enemy.x - x, enemy.y - y);
+          if (distance < bestDist) {
+            best = enemy;
+            bestDist = distance;
+          }
+        }
+        return best;
       }
 
       function activateAbility() {
@@ -3684,7 +4090,7 @@
           for (let j = enemies.length - 1; j >= 0; j -= 1) {
             const enemy = enemies[j];
             if (distanceBetween(mine, enemy) <= mine.radius + enemy.radius) {
-              applyDamage(enemy, 40, { owner: "player" });
+              applyDamage(enemy, mine.damage || 40, { owner: "player" });
               spawnExplosion(mine.x, mine.y, "#f6c65f");
               state.mines.splice(i, 1);
               if (enemy.health <= 0) {
@@ -3967,8 +4373,8 @@
       }
 
       function restoreBetweenWaves() {
-        player.health = Math.min(player.maxHealth, player.health + player.maxHealth * 0.25);
-        player.shield = player.maxShield;
+        applyHullHeal(player, player.maxHealth * 0.25);
+        applyShieldHeal(player, player.maxShield - player.shield);
         player.energy = player.maxEnergy;
       }
 
@@ -3981,10 +4387,25 @@
         return Math.max(0.12, meta.weight * bias);
       }
 
+      function getSkillId(upgrade) {
+        return upgrade.skillId || upgrade.id;
+      }
+
+      function isSkillUpgrade(upgrade) {
+        return upgrade && upgrade.kind === "skill";
+      }
+
+      function canSelectSkillUpgrade(upgrade) {
+        if (!isSkillUpgrade(upgrade)) return true;
+        const skillId = getSkillId(upgrade);
+        return state.skillSlots.includes(skillId) || state.skillSlots.length < SKILL_LIMIT;
+      }
+
       function rollUpgrades() {
         const available = FIELD_UPGRADES.filter((upgrade) => {
           const stack = state.upgradeStacks[upgrade.id] || 0;
-          return stack < (upgrade.maxStacks || 99);
+          if (stack >= (upgrade.maxStacks || 99)) return false;
+          return canSelectSkillUpgrade(upgrade);
         });
         const picks = [];
         const pool = [...available];
@@ -4004,9 +4425,33 @@
         if (id) {
           const upgrade = FIELD_UPGRADES.find((item) => item.id === id);
           if (upgrade) {
+            const wasSkill = isSkillUpgrade(upgrade);
+            const skillId = wasSkill ? getSkillId(upgrade) : null;
+            const isNewSkill = wasSkill && !state.skillSlots.includes(skillId);
+            if (isNewSkill && state.skillSlots.length >= SKILL_LIMIT) {
+              logEvent("Skill slots are full. Choose a different upgrade.");
+              return;
+            }
+            const previousHealth = player.health;
+            const previousShield = player.shield;
             upgrade.apply(player);
             state.upgradeStacks[upgrade.id] = (state.upgradeStacks[upgrade.id] || 0) + 1;
-            logEvent(`Upgrade acquired: ${upgrade.name}.`);
+            if (isNewSkill) {
+              state.skillSlots.push(skillId);
+              logEvent(`Skill system online: ${upgrade.name}.`);
+            } else if (wasSkill) {
+              logEvent(`Skill upgraded: ${upgrade.name}.`);
+            } else {
+              logEvent(`Upgrade acquired: ${upgrade.name}.`);
+            }
+            const healthGain = player.health - previousHealth;
+            const shieldGain = player.shield - previousShield;
+            if (healthGain > 0) {
+              spawnDamageNumber(player.x, player.y - player.radius - 12, healthGain, { color: "#6ee7b7", prefix: "+" });
+            }
+            if (shieldGain > 0) {
+              spawnDamageNumber(player.x, player.y - player.radius - 22, shieldGain, { color: "#57e0ff", prefix: "+" });
+            }
           }
         } else {
           logEvent("Upgrade skipped. Launching next wave.");
@@ -4118,16 +4563,20 @@
         const hadShield = target.shield > 0;
         const mitigation = target.damageReduction || 0;
         let finalDamage = amount * (1 - mitigation);
+        let shieldDamage = 0;
+        let hullDamage = 0;
         if (target.shield > 0) {
           const absorbed = Math.min(target.shield, finalDamage);
           target.shield -= absorbed;
           finalDamage -= absorbed;
+          shieldDamage = absorbed;
           if (progress.settings.hitFlash) {
             target.hitFlash = 0.15;
           }
         }
         if (finalDamage > 0) {
           target.health -= finalDamage;
+          hullDamage = finalDamage;
           if (progress.settings.hitFlash) {
             target.hitFlash = 0.2;
           }
@@ -4138,6 +4587,12 @@
         }
         if (target.health < 0) {
           target.health = 0;
+        }
+        if (shieldDamage > 0) {
+          spawnDamageNumber(target.x, target.y - target.radius - 12, shieldDamage, { color: "#57e0ff", prefix: "-" });
+        }
+        if (hullDamage > 0) {
+          spawnDamageNumber(target.x, target.y - target.radius - 22, hullDamage, { color: "#f06969", prefix: "-" });
         }
         if (target === player) {
           player.shieldCooldown = 1.6;
@@ -4154,13 +4609,34 @@
         }
       }
 
+      function applyHullHeal(target, amount) {
+        if (!target || amount <= 0) return;
+        const before = target.health;
+        target.health = Math.min(target.maxHealth, target.health + amount);
+        const delta = target.health - before;
+        if (delta > 0) {
+          spawnDamageNumber(target.x, target.y - target.radius - 12, delta, { color: "#6ee7b7", prefix: "+" });
+        }
+      }
+
+      function applyShieldHeal(target, amount) {
+        if (!target || amount <= 0) return;
+        const before = target.shield;
+        target.shield = Math.min(target.maxShield, target.shield + amount);
+        const delta = target.shield - before;
+        if (delta > 0) {
+          spawnDamageNumber(target.x, target.y - target.radius - 18, delta, { color: "#57e0ff", prefix: "+" });
+        }
+      }
+
       function triggerAegisMatrix() {
         if (!player || !player.aegisCooldown) return;
         const now = performance.now();
         if (player.aegisReadyAt && now < player.aegisReadyAt) return;
         player.aegisReadyAt = now + player.aegisCooldown * 1000;
         if (player.aegisShieldRestore > 0) {
-          player.shield = Math.min(player.maxShield, player.maxShield * player.aegisShieldRestore);
+          const targetShield = player.maxShield * player.aegisShieldRestore;
+          applyShieldHeal(player, targetShield - player.shield);
         }
         player.invulnerable = Math.max(player.invulnerable, 1.4);
         if (player.aegisPulseRadius > 0) {
@@ -4205,7 +4681,7 @@
           renderContracts();
         }
         if (player.healOnKill > 0) {
-          player.health = Math.min(player.maxHealth, player.health + player.maxHealth * player.healOnKill);
+          applyHullHeal(player, player.maxHealth * player.healOnKill);
         }
         if (player.energyOnKill > 0) {
           player.energy = Math.min(player.maxEnergy, player.energy + player.energyOnKill);
@@ -4455,6 +4931,25 @@
         ctx.globalAlpha = 1;
       }
 
+      function renderDamageNumbers() {
+        if (!damageNumbers.length) return;
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = "700 13px \"Chakra Petch\", sans-serif";
+        damageNumbers.forEach((burst) => {
+          const alpha = clamp(burst.life / burst.maxLife, 0, 1);
+          ctx.globalAlpha = alpha;
+          ctx.strokeStyle = "rgba(4, 8, 16, 0.85)";
+          ctx.lineWidth = 3;
+          ctx.strokeText(burst.text, burst.x, burst.y);
+          ctx.fillStyle = burst.color;
+          ctx.fillText(burst.text, burst.x, burst.y);
+        });
+        ctx.restore();
+        ctx.globalAlpha = 1;
+      }
+
       function render() {
         ctx.clearRect(0, 0, state.width, state.height);
         ctx.fillStyle = backgroundGradient || "#05090f";
@@ -4488,6 +4983,10 @@
         });
         ctx.globalAlpha = 1;
 
+        if (player) {
+          drawAura();
+        }
+
         if (state.decoy) {
           ctx.strokeStyle = "rgba(246, 198, 95, 0.6)";
           ctx.lineWidth = 2;
@@ -4517,6 +5016,7 @@
         enemies.forEach((enemy) => {
           drawShip(enemy.x, enemy.y, enemy.angle, enemy.radius, enemy.color, enemy.hitFlash > 0);
           drawShield(enemy);
+          drawEnemyVitals(enemy);
         });
 
         if (player) {
@@ -4524,8 +5024,41 @@
           drawShield(player);
         }
 
+        renderHelpers();
         renderLootBursts();
+        renderDamageNumbers();
         drawCrosshair();
+      }
+
+      function drawAura() {
+        if (!player || player.auraRadius <= 0 || player.auraDamage <= 0) return;
+        if (state.mode !== "flight" && state.mode !== "training") return;
+        ctx.save();
+        ctx.strokeStyle = "rgba(124, 168, 255, 0.4)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(player.x, player.y, player.auraRadius, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function renderHelpers() {
+        if (!helpers.length || (state.mode !== "flight" && state.mode !== "training")) return;
+        helpers.forEach((helper) => {
+          ctx.save();
+          ctx.translate(helper.x, helper.y);
+          ctx.fillStyle = "#6ee7b7";
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.moveTo(6, 0);
+          ctx.lineTo(-4, 4);
+          ctx.lineTo(-4, -4);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+          ctx.restore();
+        });
       }
 
       function drawShip(x, y, angle, size, color, hitFlash, thrusting) {
@@ -4572,6 +5105,32 @@
         ctx.restore();
       }
 
+      function drawEnemyVitals(enemy) {
+        if (!enemy) return;
+        const barWidth = Math.max(26, enemy.radius * 3.2);
+        const barHeight = 4;
+        const gap = 2;
+        const hasShield = enemy.maxShield > 0;
+        const totalHeight = barHeight + (hasShield ? barHeight + gap : 0);
+        const x = enemy.x - barWidth / 2;
+        let y = enemy.y - enemy.radius - 12 - totalHeight;
+        y = Math.max(6, y);
+        ctx.save();
+        ctx.globalAlpha = 0.9;
+        ctx.fillStyle = "rgba(5, 8, 14, 0.7)";
+        ctx.fillRect(x - 1, y - 1, barWidth + 2, totalHeight + 2);
+        if (hasShield) {
+          const shieldRatio = clamp(enemy.shield / enemy.maxShield, 0, 1);
+          ctx.fillStyle = "#57e0ff";
+          ctx.fillRect(x, y, barWidth * shieldRatio, barHeight);
+          y += barHeight + gap;
+        }
+        const hullRatio = clamp(enemy.health / enemy.maxHealth, 0, 1);
+        ctx.fillStyle = "#f06969";
+        ctx.fillRect(x, y, barWidth * hullRatio, barHeight);
+        ctx.restore();
+      }
+
       function drawCrosshair() {
         const target = getAimTarget();
         const aimX = target.x;
@@ -4593,12 +5152,26 @@
         meters.hull.style.width = `${hullPct}%`;
         meters.shield.style.width = `${shieldPct}%`;
         meters.energy.style.width = `${energyPct}%`;
+        if (hudMeters.hull) hudMeters.hull.style.width = `${hullPct}%`;
+        if (hudMeters.shield) hudMeters.shield.style.width = `${shieldPct}%`;
+        if (hudMeters.energy) hudMeters.energy.style.width = `${energyPct}%`;
 
         stats.hullText.textContent = `${Math.round(player.health)} / ${Math.round(player.maxHealth)}`;
         stats.shieldText.textContent = player.maxShield > 0
           ? `${Math.round(player.shield)} / ${Math.round(player.maxShield)}`
           : "0 / 0";
         stats.energyText.textContent = `${Math.round(player.energy)} / ${Math.round(player.maxEnergy)}`;
+        if (hudStats.hull) {
+          hudStats.hull.textContent = `${Math.round(player.health)}/${Math.round(player.maxHealth)}`;
+        }
+        if (hudStats.shield) {
+          hudStats.shield.textContent = player.maxShield > 0
+            ? `${Math.round(player.shield)}/${Math.round(player.maxShield)}`
+            : "0/0";
+        }
+        if (hudStats.energy) {
+          hudStats.energy.textContent = `${Math.round(player.energy)}/${Math.round(player.maxEnergy)}`;
+        }
 
         stats.wave.textContent = state.wave;
         stats.enemyCount.textContent = enemies.length;
@@ -4693,18 +5266,31 @@
           return;
         }
         const entries = FIELD_UPGRADES.filter((upgrade) => state.upgradeStacks[upgrade.id]);
-        if (!entries.length) {
-          dom.activeUpgrades.innerHTML = "<span class=\"chip\">No upgrades yet</span>";
-          return;
-        }
-        dom.activeUpgrades.innerHTML = entries
-          .map((upgrade) => {
-            const stack = state.upgradeStacks[upgrade.id] || 0;
-            const label = stack > 1 ? `${upgrade.name} x${stack}` : upgrade.name;
-            const tier = upgrade.tier || "common";
-            return `<span class=\"chip\" data-tier="${tier}">${label}</span>`;
-          })
-          .join("");
+        const skillEntries = entries.filter((upgrade) => isSkillUpgrade(upgrade));
+        const statEntries = entries.filter((upgrade) => !isSkillUpgrade(upgrade));
+        const renderChips = (list) => list.map((upgrade) => {
+          const stack = state.upgradeStacks[upgrade.id] || 0;
+          const label = stack > 1 ? `${upgrade.name} x${stack}` : upgrade.name;
+          const tier = upgrade.tier || "common";
+          return `<span class=\"chip\" data-tier="${tier}">${label}</span>`;
+        }).join("");
+        const skillHtml = `
+          <div class="upgrade-group">
+            <span class="upgrade-group-title">Skill systems (${state.skillSlots.length}/${SKILL_LIMIT})</span>
+            <div class="chip-list">
+              ${skillEntries.length ? renderChips(skillEntries) : "<span class=\"chip\">No skills selected</span>"}
+            </div>
+          </div>
+        `;
+        const statHtml = `
+          <div class="upgrade-group">
+            <span class="upgrade-group-title">Field upgrades</span>
+            <div class="chip-list">
+              ${statEntries.length ? renderChips(statEntries) : "<span class=\"chip\">No stat upgrades yet</span>"}
+            </div>
+          </div>
+        `;
+        dom.activeUpgrades.innerHTML = `${skillHtml}${statHtml}`;
       }
 
       function renderHangar() {
@@ -4712,15 +5298,65 @@
           dom.hangar.innerHTML = renderLockedCard("Hangar upgrades locked", getFeatureHint("hangar"));
           return;
         }
-        dom.hangar.innerHTML = HANGAR_UPGRADES.map((upgrade) => {
-          const level = progress.hangar[upgrade.id] || 0;
-          const disabled = progress.techPoints < 1 || level >= upgrade.maxLevel ? "disabled" : "";
+        const grouped = {};
+        HANGAR_UPGRADES.forEach((upgrade) => {
+          const category = upgrade.category || "Utility";
+          if (!grouped[category]) grouped[category] = [];
+          grouped[category].push(upgrade);
+        });
+        const categoryOrder = ["Defense", "Offense", "Mobility", "Utility", "Strategy", "Systems", "Control"];
+        const sortedCategories = Object.keys(grouped).sort((a, b) => {
+          const aIndex = categoryOrder.indexOf(a);
+          const bIndex = categoryOrder.indexOf(b);
+          if (aIndex === -1 && bIndex === -1) return a.localeCompare(b);
+          if (aIndex === -1) return 1;
+          if (bIndex === -1) return -1;
+          return aIndex - bIndex;
+        });
+        dom.hangar.innerHTML = sortedCategories.map((category) => {
+          const items = grouped[category] || [];
+          items.sort((a, b) => {
+            const tierA = a.tier || "common";
+            const tierB = b.tier || "common";
+            const tierIndexA = TIER_ORDER.indexOf(tierA);
+            const tierIndexB = TIER_ORDER.indexOf(tierB);
+            if (tierIndexA !== tierIndexB) return tierIndexA - tierIndexB;
+            return a.name.localeCompare(b.name);
+          });
+          const categoryIcon = getUpgradeCategoryIcon(category);
+          const categoryKey = normalizeCategory(category);
           return `
-            <button class="hangar-card" data-hangar-id="${upgrade.id}" ${disabled}>
-              <span class="hangar-title">${upgrade.name}</span>
-              <span class="hangar-meta">${upgrade.desc}</span>
-              <span class="hangar-meta">Level ${level} of ${upgrade.maxLevel}</span>
-            </button>
+            <div class="tier-section">
+              <div class="tier-header">
+                <span class="tier-title">
+                  <span class="select-pill category-pill" data-category="${categoryKey}" aria-label="${category}" title="${category}">${categoryIcon}</span>
+                  ${category}
+                </span>
+                <span class="tier-count">${items.length} upgrade${items.length === 1 ? "" : "s"}</span>
+              </div>
+              <div class="card-grid">
+                ${items.map((upgrade) => {
+                  const level = progress.hangar[upgrade.id] || 0;
+                  const maxLevel = upgrade.maxLevel || 1;
+                  const tier = upgrade.tier || "common";
+                  const tierLabel = formatTierLabel(tier);
+                  const cost = getHangarUpgradeCost(upgrade, level);
+                  const canBuy = level < maxLevel && progress.techPoints >= cost;
+                  const costLabel = level >= maxLevel ? "Maxed" : `Cost ${cost} tech`;
+                  return `
+                    <button class="hangar-card" data-tier="${tier}" data-hangar-id="${upgrade.id}" ${canBuy ? "" : "disabled"}>
+                      <span class="hangar-title">${upgrade.name}</span>
+                      <span class="hangar-meta">${upgrade.desc}</span>
+                      <div class="select-pills">
+                        <span class="select-pill tier-pill" data-tier="${tier}">${tierLabel}</span>
+                        <span class="select-pill">Level ${level}/${maxLevel}</span>
+                        <span class="select-pill">${costLabel}</span>
+                      </div>
+                    </button>
+                  `;
+                }).join("")}
+              </div>
+            </div>
           `;
         }).join("");
       }
@@ -5273,8 +5909,8 @@
       }
 
       const TIER_COLORS = {
-        common: "#6ee7b7",
-        uncommon: "#44d2c2",
+        common: "#ffffff",
+        uncommon: "#6ee7b7",
         rare: "#7ca8ff",
         epic: "#b98cff",
         legendary: "#f6c65f"
@@ -5288,6 +5924,50 @@
 
       function formatTierLabel(tier) {
         return getTierMeta(tier).label;
+      }
+
+      function normalizeCategory(category) {
+        return (category || "upgrade").toLowerCase().replace(/\s+/g, "-");
+      }
+
+      function getUpgradeCategoryIcon(category) {
+        const key = normalizeCategory(category);
+        const icons = {
+          offense: "⚔",
+          defense: "🛡",
+          mobility: "➜",
+          utility: "🔧",
+          strategy: "🧭",
+          control: "❄",
+          systems: "⚙",
+          upgrade: "★"
+        };
+        return icons[key] || icons.upgrade;
+      }
+
+      function getRewardIcon(reward) {
+        const icons = {
+          credits: "🪙",
+          blueprints: "📘",
+          salvage: "🔑",
+          part: "⚙"
+        };
+        return icons[reward.type] || "★";
+      }
+
+      function getRewardLabel(reward) {
+        if (!reward) return "";
+        if (reward.type === "credits") return "Credits";
+        if (reward.type === "blueprints") return "Blueprints";
+        if (reward.type === "salvage") return "Salvage keys";
+        if (reward.type === "part") return reward.title || "Part";
+        return reward.type;
+      }
+
+      function formatRewardValue(reward) {
+        if (!reward) return "0";
+        const amount = Number.isFinite(reward.amount) ? reward.amount : 1;
+        return amount.toLocaleString();
       }
 
       function groupByTier(items) {
@@ -5514,25 +6194,32 @@
           const availableUpgrades = state.upgradeOptions.filter((upgrade) => {
             const stack = state.upgradeStacks[upgrade.id] || 0;
             const maxStacks = Number.isFinite(upgrade.maxStacks) ? upgrade.maxStacks : 1;
-            return stack < maxStacks;
+            return stack < maxStacks && canSelectSkillUpgrade(upgrade);
           });
           const hasUpgrades = availableUpgrades.length > 0;
           const creditsLabel = Math.round(state.credits).toLocaleString();
+          const skillSlots = `${state.skillSlots.length}/${SKILL_LIMIT}`;
           const upgradeCards = hasUpgrades
             ? availableUpgrades.map((upgrade) => {
               const tier = upgrade.tier || "common";
               const tierLabel = formatTierLabel(tier);
               const stack = state.upgradeStacks[upgrade.id] || 0;
               const maxStacks = Number.isFinite(upgrade.maxStacks) ? upgrade.maxStacks : 1;
-              const stackLabel = maxStacks > 1 ? `Stack ${Math.min(stack + 1, maxStacks)} / ${maxStacks}` : "Unique";
+              const stackLabel = `${stack}/${maxStacks}`;
               const category = upgrade.category || "Upgrade";
+              const categoryIcon = getUpgradeCategoryIcon(category);
+              const categoryKey = normalizeCategory(category);
+              const isSkill = isSkillUpgrade(upgrade);
+              const kindLabel = isSkill ? "Skill" : "Stat";
+              const kindClass = isSkill ? "skill-pill" : "";
               return `
-                <button class="upgrade-card" data-tier="${tier}" data-upgrade-id="${upgrade.id}">
+                <button class="upgrade-card" data-tier="${tier}" data-kind="${isSkill ? "skill" : "stat"}" data-upgrade-id="${upgrade.id}">
                   <div class="upgrade-meta">
                     <span class="select-pill tier-pill" data-tier="${tier}">${tierLabel}</span>
-                    <span class="select-pill">${category}</span>
-                    <span class="select-pill">${stackLabel}</span>
+                    <span class="select-pill ${kindClass}">${kindLabel}</span>
+                    <span class="select-pill category-pill" data-category="${categoryKey}" aria-label="${category}" title="${category}">${categoryIcon}</span>
                   </div>
+                  <span class="upgrade-stack">${stackLabel}</span>
                   <span class="upgrade-title">${upgrade.name}</span>
                   <span class="upgrade-desc">${upgrade.desc}</span>
                 </button>
@@ -5558,10 +6245,11 @@
             <div class="overlay-header">
               <p class="eyebrow">Wave ${state.wave - 1} cleared</p>
               <h3>Choose a field upgrade</h3>
-              <p>Upgrades stack for the rest of the run. Higher tiers are rarer. Reroll costs ${UPGRADE_REROLL_COST} credits.</p>
+              <p>Upgrades stack for the rest of the run. Skill systems are limited to ${SKILL_LIMIT} selections. Reroll costs ${UPGRADE_REROLL_COST} credits.</p>
             </div>
             <div class="badge-group overlay-badges">
               <span class="badge">Credits ${creditsLabel}</span>
+              <span class="badge">Skills ${skillSlots}</span>
             </div>
             <div class="upgrade-grid">
               ${upgradeCards}
@@ -5582,11 +6270,14 @@
             const tierId = upgrade.tier || "common";
             const tierLabel = formatTierLabel(tierId);
             const levelLabel = `Lv ${level} / ${maxLevel}`;
+            const category = upgrade.category || "Upgrade";
+            const categoryIcon = getUpgradeCategoryIcon(category);
+            const categoryKey = normalizeCategory(category);
             return `
               <button class="upgrade-card" data-tier="${tierId}" data-frontier-upgrade="${upgrade.id}" ${canBuy ? "" : "disabled"}>
                 <div class="upgrade-meta">
                   <span class="select-pill tier-pill" data-tier="${tierId}">${tierLabel}</span>
-                  <span class="select-pill">${upgrade.category || "Upgrade"}</span>
+                  <span class="select-pill category-pill" data-category="${categoryKey}" aria-label="${category}" title="${category}">${categoryIcon}</span>
                   <span class="select-pill">${levelLabel}</span>
                 </div>
                 <span class="upgrade-title">${upgrade.name}</span>
@@ -5662,21 +6353,16 @@
           const rewardCards = lossRewards && lossRewards.rewards.length
             ? lossRewards.rewards.map((reward) => {
               const tier = reward.tier || "common";
-              const typeLabel = reward.type === "credits"
-                ? "Credits"
-                : reward.type === "blueprints"
-                  ? "Blueprints"
-                  : reward.type === "salvage"
-                    ? "Salvage keys"
-                    : "Part";
+              const icon = getRewardIcon(reward);
+              const label = getRewardLabel(reward);
+              const value = formatRewardValue(reward);
               return `
-                <div class="upgrade-card is-static" data-tier="${tier}">
-                  <div class="upgrade-meta">
-                    <span class="select-pill tier-pill" data-tier="${tier}">${formatTierLabel(tier)}</span>
-                    <span class="select-pill">${typeLabel}</span>
+                <div class="reward-item" data-tier="${tier}">
+                  <span class="reward-icon" aria-hidden="true">${icon}</span>
+                  <div>
+                    <span class="reward-value">${value}</span>
+                    <span class="reward-name">${label}</span>
                   </div>
-                  <span class="upgrade-title">${reward.title}</span>
-                  <span class="upgrade-desc">${reward.desc}</span>
                 </div>
               `;
             }).join("")
@@ -5690,7 +6376,7 @@
                 <span class="chip">Survival ${formatDuration(summary.durationSec)}</span>
                 <span class="chip">${summary.difficultyLabel} difficulty</span>
               </div>
-              <div class="upgrade-grid reward-grid">
+              <div class="reward-grid">
                 ${rewardCards}
               </div>
             </div>
@@ -5777,6 +6463,24 @@
             label: drop.label,
             tier: drop.tier || "common"
           });
+        });
+      }
+
+      function spawnDamageNumber(x, y, amount, options = {}) {
+        const value = Math.round(amount);
+        if (!Number.isFinite(value) || value === 0) return;
+        const prefix = options.prefix || "";
+        const safeX = clamp(x, 16, state.width - 16);
+        const safeY = clamp(y, 16, state.height - 16);
+        damageNumbers.push({
+          x: safeX,
+          y: safeY,
+          vx: rand(-10, 10),
+          vy: -28,
+          life: 0.9,
+          maxLife: 0.9,
+          text: `${prefix}${Math.abs(value)}`,
+          color: options.color || "#f06969"
         });
       }
 
