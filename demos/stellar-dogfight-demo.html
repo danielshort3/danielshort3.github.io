@@ -4552,13 +4552,19 @@
           const turnRate = (enemy.baseTurnRate || 0) * enemy.slowFactor;
           enemy.angle = rotateTowards(enemy.angle, aimAngle, turnRate * delta);
 
+          const navTarget = getNavigationTarget(enemy, target);
+          const navDx = navTarget.x - enemy.x;
+          const navDy = navTarget.y - enemy.y;
+          const navDistance = Math.hypot(navDx, navDy) || 1;
+          const navAngle = Math.atan2(navDy, navDx);
+
           const accel = enemy.baseAccel * (state.sectorMod?.enemy?.accel || 1) * enemy.slowFactor;
           let ax = 0;
           let ay = 0;
 
-          if (distance > enemy.preferredRange) {
-            ax += Math.cos(aimAngle) * accel;
-            ay += Math.sin(aimAngle) * accel;
+          if (navTarget !== target || navDistance > enemy.preferredRange) {
+            ax += Math.cos(navAngle) * accel;
+            ay += Math.sin(navAngle) * accel;
           } else {
             const strafeAngle = aimAngle + Math.PI / 2 * enemy.strafeBias;
             ax += Math.cos(strafeAngle) * accel * 0.85;
@@ -4568,6 +4574,9 @@
           const avoidance = getObstacleAvoidance(enemy);
           ax += avoidance.x * accel * 1.15;
           ay += avoidance.y * accel * 1.15;
+          const edgeAvoidance = getBoundaryAvoidance(enemy);
+          ax += edgeAvoidance.x * accel * 1.35;
+          ay += edgeAvoidance.y * accel * 1.35;
 
           enemy.vx += ax * delta;
           enemy.vy += ay * delta;
@@ -7424,6 +7433,176 @@
           return { x: 0, y: 0 };
         }
         return { x: steerX / length, y: steerY / length };
+      }
+
+      function getBoundaryAvoidance(entity) {
+        if (!entity) {
+          return { x: 0, y: 0 };
+        }
+        const buffer = 160 + (entity.radius || 0);
+        const maxX = state.worldWidth - buffer;
+        const maxY = state.worldHeight - buffer;
+        let steerX = 0;
+        let steerY = 0;
+        if (entity.x < buffer) {
+          steerX += (buffer - entity.x) / buffer;
+        } else if (entity.x > maxX) {
+          steerX -= (entity.x - maxX) / buffer;
+        }
+        if (entity.y < buffer) {
+          steerY += (buffer - entity.y) / buffer;
+        } else if (entity.y > maxY) {
+          steerY -= (entity.y - maxY) / buffer;
+        }
+        const length = Math.hypot(steerX, steerY);
+        if (!length) {
+          return { x: 0, y: 0 };
+        }
+        return { x: steerX / length, y: steerY / length };
+      }
+
+      function segmentIntersectsCircle(ax, ay, bx, by, cx, cy, radius) {
+        const dx = bx - ax;
+        const dy = by - ay;
+        const fx = ax - cx;
+        const fy = ay - cy;
+        const a = dx * dx + dy * dy;
+        if (a <= 0) return false;
+        const b = 2 * (fx * dx + fy * dy);
+        const c = fx * fx + fy * fy - radius * radius;
+        let discriminant = b * b - 4 * a * c;
+        if (discriminant < 0) return false;
+        discriminant = Math.sqrt(discriminant);
+        const t1 = (-b - discriminant) / (2 * a);
+        const t2 = (-b + discriminant) / (2 * a);
+        return (t1 >= 0 && t1 <= 1) || (t2 >= 0 && t2 <= 1);
+      }
+
+      function segmentIntersectsAabb(ax, ay, bx, by, minX, minY, maxX, maxY) {
+        let t0 = 0;
+        let t1 = 1;
+        const dx = bx - ax;
+        const dy = by - ay;
+        const p = [-dx, dx, -dy, dy];
+        const q = [ax - minX, maxX - ax, ay - minY, maxY - ay];
+        for (let i = 0; i < 4; i += 1) {
+          if (p[i] === 0) {
+            if (q[i] < 0) return false;
+          } else {
+            const r = q[i] / p[i];
+            if (p[i] < 0) {
+              if (r > t1) return false;
+              if (r > t0) t0 = r;
+            } else {
+              if (r < t0) return false;
+              if (r < t1) t1 = r;
+            }
+          }
+        }
+        return true;
+      }
+
+      function findBlockingObstacle(entity, target, buffer) {
+        if (!entity || !target || !obstacles.length) return null;
+        const ax = entity.x;
+        const ay = entity.y;
+        const bx = target.x;
+        const by = target.y;
+        let closest = null;
+        let bestDist = Infinity;
+        obstacles.forEach((obstacle) => {
+          let intersects = false;
+          if (obstacle.kind === "rock") {
+            intersects = segmentIntersectsCircle(
+              ax,
+              ay,
+              bx,
+              by,
+              obstacle.x,
+              obstacle.y,
+              obstacle.radius + buffer
+            );
+          } else {
+            const halfWidth = obstacle.width * 0.5 + buffer;
+            const halfHeight = obstacle.height * 0.5 + buffer;
+            intersects = segmentIntersectsAabb(
+              ax,
+              ay,
+              bx,
+              by,
+              obstacle.x - halfWidth,
+              obstacle.y - halfHeight,
+              obstacle.x + halfWidth,
+              obstacle.y + halfHeight
+            );
+          }
+          if (intersects) {
+            const dist = distanceBetween(entity, obstacle);
+            if (dist < bestDist) {
+              bestDist = dist;
+              closest = obstacle;
+            }
+          }
+        });
+        return closest;
+      }
+
+      function getEdgePenalty(point) {
+        const margin = 170;
+        const edgeDistance = Math.min(
+          point.x,
+          point.y,
+          state.worldWidth - point.x,
+          state.worldHeight - point.y
+        );
+        if (edgeDistance >= margin) return 0;
+        return (margin - edgeDistance) / margin;
+      }
+
+      function scoreNavPoint(point, target) {
+        const edgePenalty = getEdgePenalty(point);
+        const obstaclePenalty = isPointInObstacle(point, 40) ? 1 : 0;
+        const distance = Math.hypot(point.x - target.x, point.y - target.y);
+        return distance + edgePenalty * 520 + obstaclePenalty * 900;
+      }
+
+      function clampNavPoint(point, margin) {
+        return {
+          x: clamp(point.x, margin, state.worldWidth - margin),
+          y: clamp(point.y, margin, state.worldHeight - margin)
+        };
+      }
+
+      function getDetourPoint(entity, target, obstacle, buffer) {
+        const dx = target.x - entity.x;
+        const dy = target.y - entity.y;
+        const length = Math.hypot(dx, dy);
+        if (!length) return target;
+        const dirX = dx / length;
+        const dirY = dy / length;
+        const perpX = -dirY;
+        const perpY = dirX;
+        const clearance = obstacle.kind === "rock"
+          ? obstacle.radius
+          : Math.max(obstacle.width, obstacle.height) * 0.5;
+        const offset = clearance + buffer + 90;
+        const margin = 120;
+        const left = clampNavPoint({ x: obstacle.x + perpX * offset, y: obstacle.y + perpY * offset }, margin);
+        const right = clampNavPoint({ x: obstacle.x - perpX * offset, y: obstacle.y - perpY * offset }, margin);
+        const leftScore = scoreNavPoint(left, target);
+        const rightScore = scoreNavPoint(right, target);
+        if (Math.abs(leftScore - rightScore) < 18) {
+          return entity.strafeBias >= 0 ? left : right;
+        }
+        return leftScore < rightScore ? left : right;
+      }
+
+      function getNavigationTarget(entity, target) {
+        if (!entity || !target) return target;
+        const buffer = (entity.radius || 0) + 28;
+        const blocking = findBlockingObstacle(entity, target, buffer);
+        if (!blocking) return target;
+        return getDetourPoint(entity, target, blocking, buffer);
       }
 
       function isOutOfBounds(entity) {
