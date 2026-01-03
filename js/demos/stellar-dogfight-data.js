@@ -1116,81 +1116,155 @@
     {
       id: "halo-emitter",
       name: "Halo Emitter",
-      tier: "uncommon",
+      tier: "common",
       category: "Control",
       kind: "skill",
       skillId: "halo",
-      desc: "Skill: damaging halo that grows in radius and power.",
+      desc: "Skill: damaging halo scales in radius, power, and pulse rate.",
       maxStacks: 5,
-      apply: (ship) => {
-        ship.auraRadius = (ship.auraRadius || 50) + 16;
-        ship.auraDamage = (ship.auraDamage || 6) + 4;
-        ship.auraInterval = Math.max(0.25, (ship.auraInterval || 0.45) - 0.02);
+      apply: (ship, level = 1) => {
+        const radiusBoost = 16 + level * 6;
+        const damageBoost = 4 + level * 3;
+        const intervalDrop = 0.02 + level * 0.01;
+        ship.auraRadius = (ship.auraRadius || 60) + radiusBoost;
+        ship.auraDamage = (ship.auraDamage || 8) + damageBoost;
+        ship.auraInterval = Math.max(0.22, (ship.auraInterval || 0.48) - intervalDrop);
       }
     },
     {
       id: "minefield-protocol",
       name: "Minefield Protocol",
-      tier: "uncommon",
+      tier: "common",
       category: "Control",
       kind: "skill",
       skillId: "minefield",
-      desc: "Skill: randomly deploys mines that explode on contact.",
-      maxStacks: 4,
-      apply: (ship) => {
-        ship.mineDropChance = Math.min(0.75, (ship.mineDropChance || 0) + 0.18);
-        ship.mineRadius = (ship.mineRadius || 34) + 10;
-        ship.mineDamage = (ship.mineDamage || 30) + 14;
-        ship.mineDuration = Math.min(8, (ship.mineDuration || 5) + 0.6);
-        ship.mineInterval = Math.max(0.8, (ship.mineInterval || 1.2) - 0.08);
+      desc: "Skill: automated mines grow in damage, radius, and drop rate.",
+      maxStacks: 5,
+      apply: (ship, level = 1) => {
+        const dropBoost = 0.12 + level * 0.05;
+        const radiusBoost = 8 + level * 6;
+        const damageBoost = 12 + level * 8;
+        const durationBoost = 0.4 + level * 0.35;
+        const intervalDrop = 0.05 + level * 0.03;
+        ship.mineDropChance = Math.min(0.85, (ship.mineDropChance || 0) + dropBoost);
+        ship.mineRadius = (ship.mineRadius || 30) + radiusBoost;
+        ship.mineDamage = (ship.mineDamage || 28) + damageBoost;
+        ship.mineDuration = Math.min(10, (ship.mineDuration || 5) + durationBoost);
+        ship.mineInterval = Math.max(0.6, (ship.mineInterval || 1.2) - intervalDrop);
       }
     },
     {
       id: "escort-wing",
       name: "Escort Wing",
-      tier: "rare",
+      tier: "common",
       category: "Offense",
       kind: "skill",
       skillId: "escort",
-      desc: "Skill: helper ships auto-fire with a share of your damage.",
-      maxStacks: 3,
-      apply: (ship) => {
-        ship.helperCount = Math.min(3, (ship.helperCount || 0) + 1);
-        ship.helperDamageRatio = Math.min(0.75, (ship.helperDamageRatio || 0.25) + 0.15);
-        ship.helperFireRate = Math.max(ship.helperFireRate || 1.1, 1.1 + ship.helperCount * 0.2);
-        ship.helperRange = Math.max(ship.helperRange || 320, 320 + ship.helperCount * 40);
+      desc: "Skill: helper ships scale in count, damage, and fire rate.",
+      maxStacks: 5,
+      apply: (ship, level = 1) => {
+        const damageBoost = 0.08 + level * 0.04;
+        ship.helperCount = Math.min(5, (ship.helperCount || 0) + 1);
+        ship.helperDamageRatio = Math.min(0.9, (ship.helperDamageRatio || 0.25) + damageBoost);
+        ship.helperFireRate = Math.max(ship.helperFireRate || 1.1, 0.9 + level * 0.35);
+        ship.helperRange = Math.max(ship.helperRange || 320, 320 + level * 80);
+        ship.helperOrbitRadius = Math.max(ship.helperOrbitRadius || 26, 26 + level * 5);
+        ship.helperOrbitSpeed = Math.max(ship.helperOrbitSpeed || 1.4, 1.4 + level * 0.2);
       }
     },
     {
       id: "shockwave-core",
       name: "Shockwave Core",
-      tier: "rare",
+      tier: "common",
       category: "Control",
       kind: "skill",
       skillId: "shockwave",
-      desc: "Skill: periodic pulse damages and slows nearby enemies.",
-      maxStacks: 4,
-      apply: (ship) => {
-        ship.shockwaveInterval = Math.max(2.6, (ship.shockwaveInterval || 4.6) - 0.4);
-        ship.shockwaveRadius = (ship.shockwaveRadius || 90) + 18;
-        ship.shockwaveDamage = (ship.shockwaveDamage || 18) + 10;
-        ship.shockwaveSlow = Math.min(2.2, (ship.shockwaveSlow || 0.6) + 0.2);
+      desc: "Skill: periodic shockwaves hit harder, wider, and more often.",
+      maxStacks: 5,
+      apply: (ship, level = 1) => {
+        const intervalDrop = 0.3 + level * 0.12;
+        const radiusBoost = 14 + level * 8;
+        const damageBoost = 10 + level * 7;
+        ship.shockwaveInterval = Math.max(1.6, (ship.shockwaveInterval || 4.4) - intervalDrop);
+        ship.shockwaveRadius = (ship.shockwaveRadius || 100) + radiusBoost;
+        ship.shockwaveDamage = (ship.shockwaveDamage || 20) + damageBoost;
+        ship.shockwaveSlow = Math.min(3, (ship.shockwaveSlow || 0.7) + 0.2 + level * 0.15);
       }
     },
     {
       id: "harrier-missiles",
       name: "Harrier Missiles",
-      tier: "epic",
+      tier: "common",
       category: "Offense",
       kind: "skill",
       skillId: "harrier",
-      desc: "Skill: launches auto-targeted missiles at nearby enemies.",
-      maxStacks: 3,
-      apply: (ship) => {
-        ship.missileInterval = Math.max(2.2, (ship.missileInterval || 4.2) - 0.6);
-        ship.missileDamage = (ship.missileDamage || 20) + 14;
-        ship.missileCount = Math.min(3, (ship.missileCount || 0) + 1);
-        ship.missileSpeed = Math.max(ship.missileSpeed || 520, 520 + ship.missileCount * 40);
+      desc: "Skill: seeker missiles ramp up in count, damage, and cadence.",
+      maxStacks: 5,
+      apply: (ship, level = 1) => {
+        const intervalDrop = 0.28 + level * 0.12;
+        const damageBoost = 12 + level * 6;
+        ship.missileInterval = Math.max(1.1, (ship.missileInterval || 3.8) - intervalDrop);
+        ship.missileDamage = (ship.missileDamage || 22) + damageBoost;
+        ship.missileCount = Math.min(5, (ship.missileCount || 0) + 1);
+        ship.missileSpeed = Math.max(ship.missileSpeed || 520, 520 + level * 70);
+      }
+    },
+    {
+      id: "barrage-matrix",
+      name: "Barrage Matrix",
+      tier: "common",
+      category: "Offense",
+      kind: "skill",
+      skillId: "barrage",
+      desc: "Skill: rhythmic barrages add projectiles, pierce, and splash.",
+      maxStacks: 5,
+      apply: (ship, level = 1) => {
+        const cadence = Math.max(4, 8 - level);
+        const projectileBonus = 1 + Math.floor(level / 2);
+        ship.barrageEvery = ship.barrageEvery ? Math.min(ship.barrageEvery, cadence) : cadence;
+        ship.barrageProjectiles = Math.max(ship.barrageProjectiles || 0, projectileBonus);
+        ship.barragePierce = Math.max(ship.barragePierce || 0, Math.floor((level + 1) / 2));
+        ship.barrageBonusDamage = Math.max(ship.barrageBonusDamage || 1, 1 + 0.15 + level * 0.08);
+        ship.barrageSplashRadius = Math.max(ship.barrageSplashRadius || 0, 18 + level * 8);
+        ship.barrageSplashDamage = Math.max(ship.barrageSplashDamage || 0.6, 0.6 + level * 0.05);
+      }
+    },
+    {
+      id: "arc-lattice",
+      name: "Arc Lattice",
+      tier: "common",
+      category: "Control",
+      kind: "skill",
+      skillId: "arc-lattice",
+      desc: "Skill: shots chain lightning with growing range and damage.",
+      maxStacks: 5,
+      apply: (ship, level = 1) => {
+        ship.arcDamage = Math.max(ship.arcDamage || 0, 0.25 + level * 0.1);
+        ship.arcRadius = Math.max(ship.arcRadius || 0, 120 + level * 25);
+        ship.arcChains = Math.max(ship.arcChains || 0, 1 + Math.floor((level - 1) / 2));
+        ship.arcRequiresSlow = false;
+        ship.slowChance = Math.min(0.6, (ship.slowChance || 0) + 0.04 + level * 0.02);
+        ship.slowDuration = Math.max(ship.slowDuration || 0, 1.2 + level * 0.2);
+      }
+    },
+    {
+      id: "bulwark-resonance",
+      name: "Bulwark Resonance",
+      tier: "common",
+      category: "Defense",
+      kind: "skill",
+      skillId: "bulwark",
+      desc: "Skill: shield breaks trigger restoring aegis pulses.",
+      maxStacks: 5,
+      apply: (ship, level = 1) => {
+        const cooldown = Math.max(10, 22 - level * 2.2);
+        ship.aegisCooldown = ship.aegisCooldown
+          ? Math.min(ship.aegisCooldown, cooldown)
+          : cooldown;
+        ship.aegisShieldRestore = Math.max(ship.aegisShieldRestore || 0, 0.16 + level * 0.06);
+        ship.aegisPulseRadius = Math.max(ship.aegisPulseRadius || 0, 110 + level * 24);
+        ship.aegisPulseDamage = Math.max(ship.aegisPulseDamage || 0, 12 + level * 8);
+        ship.aegisPulseSlow = Math.max(ship.aegisPulseSlow || 0, 0.7 + level * 0.28);
       }
     },
     {
