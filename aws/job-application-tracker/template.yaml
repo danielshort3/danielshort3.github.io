@@ -146,6 +146,10 @@ Resources:
           ATTACHMENTS_BUCKET: !Ref AttachmentsBucket
           ALLOWED_ORIGINS: !Join [",", !Ref AllowedOrigins]
           PRESIGN_TTL_SECONDS: "900"
+          MAX_ATTACHMENT_BYTES: "10485760"
+          MAX_ATTACHMENT_COUNT: "12"
+          MAX_TAGS: "12"
+          MAX_CUSTOM_FIELDS: "12"
 
   HttpApi:
     Type: AWS::ApiGatewayV2::Api
@@ -228,11 +232,65 @@ Resources:
       AuthorizerId: !Ref HttpApiAuthorizer
       Target: !Sub 'integrations/${HttpApiIntegration}'
 
+  AnalyticsFunnelRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'GET /api/analytics/funnel'
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiAuthorizer
+      Target: !Sub 'integrations/${HttpApiIntegration}'
+
+  AnalyticsTimeInStageRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'GET /api/analytics/time-in-stage'
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiAuthorizer
+      Target: !Sub 'integrations/${HttpApiIntegration}'
+
+  AnalyticsFollowupsRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'GET /api/analytics/followups'
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiAuthorizer
+      Target: !Sub 'integrations/${HttpApiIntegration}'
+
   ApplicationsListRoute:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId: !Ref HttpApi
       RouteKey: 'GET /api/applications'
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiAuthorizer
+      Target: !Sub 'integrations/${HttpApiIntegration}'
+
+  ViewsListRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'GET /api/views'
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiAuthorizer
+      Target: !Sub 'integrations/${HttpApiIntegration}'
+
+  ViewsCreateRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'POST /api/views'
+      AuthorizationType: JWT
+      AuthorizerId: !Ref HttpApiAuthorizer
+      Target: !Sub 'integrations/${HttpApiIntegration}'
+
+  ViewsDeleteRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref HttpApi
+      RouteKey: 'DELETE /api/views/{id}'
       AuthorizationType: JWT
       AuthorizerId: !Ref HttpApiAuthorizer
       Target: !Sub 'integrations/${HttpApiIntegration}'

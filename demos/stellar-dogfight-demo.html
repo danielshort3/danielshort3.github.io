@@ -1020,6 +1020,73 @@
       cursor: default;
     }
 
+    .perf-overlay {
+      position: absolute;
+      left: 16px;
+      top: 120px;
+      min-width: 180px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(8, 14, 24, 0.82);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35);
+      font-size: 0.72rem;
+      display: grid;
+      gap: 6px;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .perf-overlay.is-compact {
+      min-width: 160px;
+    }
+
+    .perf-overlay--detail {
+      top: 220px;
+      min-width: 220px;
+    }
+
+    .perf-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .perf-label {
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+    }
+
+    .perf-value {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .perf-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px 12px;
+    }
+
+    .perf-muted {
+      color: var(--text-muted);
+      font-size: 0.7rem;
+    }
+
+    .perf-settings {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(8, 14, 24, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: grid;
+      gap: 8px;
+      font-size: 0.72rem;
+    }
+
     .settings-overlay {
       position: absolute;
       inset: 0;
@@ -1635,6 +1702,15 @@
         height: 120px;
         padding: 6px;
       }
+
+      .perf-overlay {
+        left: 10px;
+        top: 110px;
+      }
+
+      .perf-overlay--detail {
+        top: 210px;
+      }
     }
   </style>
 </head>
@@ -1949,6 +2025,33 @@
                   </div>
                 </div>
               </div>
+              <div class="panel-subsection">
+                <h3 class="panel-title">Performance</h3>
+                <div class="setting-group">
+                  <div class="setting-row">
+                    <span>Performance Overlay</span>
+                    <div class="option-buttons" data-setting="perf-overlay">
+                      <button class="option-btn is-active" type="button" data-option="off">Off</button>
+                      <button class="option-btn" type="button" data-option="on">On</button>
+                    </div>
+                  </div>
+                  <div class="setting-row">
+                    <span>Detailed Metrics</span>
+                    <div class="option-buttons" data-setting="perf-detail">
+                      <button class="option-btn is-active" type="button" data-option="off">Off</button>
+                      <button class="option-btn" type="button" data-option="on">On</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="perf-settings">
+                  <div class="perf-row">
+                    <span class="perf-label">Live Metrics</span>
+                    <span class="perf-muted">Launch a mission to capture data.</span>
+                  </div>
+                  <div data-role="perf-settings-basic"></div>
+                  <div data-role="perf-settings-detail"></div>
+                </div>
+              </div>
             </section>
           </div>
         </div>
@@ -1997,6 +2100,8 @@
           <div class="arena-minimap" aria-hidden="true">
             <canvas data-role="minimap"></canvas>
           </div>
+          <div class="perf-overlay is-compact" data-role="perf-overlay" hidden></div>
+          <div class="perf-overlay perf-overlay--detail" data-role="perf-detail-overlay" hidden></div>
         </div>
         <div class="settings-overlay" data-role="settings-overlay" hidden>
           <div class="settings-shell">
@@ -2042,7 +2147,11 @@
         tierPill: document.querySelector("[data-role='tier-pill']"),
         minimap: document.querySelector("[data-role='minimap']"),
         settingsOverlay: document.querySelector("[data-role='settings-overlay']"),
-        settingsBody: document.querySelector("[data-role='settings-body']")
+        settingsBody: document.querySelector("[data-role='settings-body']"),
+        perfOverlay: document.querySelector("[data-role='perf-overlay']"),
+        perfDetailOverlay: document.querySelector("[data-role='perf-detail-overlay']"),
+        perfSettingsBasic: document.querySelector("[data-role='perf-settings-basic']"),
+        perfSettingsDetail: document.querySelector("[data-role='perf-settings-detail']")
       };
       const settingsPanel = document.querySelector("[data-tab-panel='settings']");
       const settingsHome = settingsPanel ? settingsPanel.parentElement : null;
@@ -2280,6 +2389,21 @@
       let obstacles = [];
       let backgroundGradient = null;
       let minimapCtx = null;
+      const perfMetrics = {
+        fps: 0,
+        frameMs: 0,
+        avgFrameMs: 0,
+        updateMs: 0,
+        avgUpdateMs: 0,
+        renderMs: 0,
+        avgRenderMs: 0,
+        hudMs: 0,
+        avgHudMs: 0,
+        maxFrameMs: 0,
+        frames: 0,
+        lastFpsAt: performance.now(),
+        lastOverlayUpdate: 0
+      };
 
       window.STELLAR_DOGFIGHT_HELPERS = {
         logEvent,
@@ -2618,6 +2742,10 @@
             progress.settings.particles = option;
           } else if (setting === "hit-flash") {
             progress.settings.hitFlash = option === "on";
+          } else if (setting === "perf-overlay") {
+            progress.settings.perfOverlay = option === "on";
+          } else if (setting === "perf-detail") {
+            progress.settings.perfDetail = option === "on";
           }
           saveProgress();
           applySettingsFromProgress();
@@ -2954,7 +3082,9 @@
             hitFlash: true,
             armorySection: "weapons",
             partsMode: "equip",
-            shipyardTier: "all"
+            shipyardTier: "all",
+            perfOverlay: false,
+            perfDetail: false
           },
           keybinds: {
             forward: "w",
@@ -3140,6 +3270,7 @@
           input.aimSource = "mouse";
         }
         updateParticleSettings();
+        updatePerformanceOverlayVisibility();
       }
 
       function isFeatureUnlocked(feature) {
@@ -4109,11 +4240,26 @@
       }
 
       function loop(timestamp) {
+        const shouldMeasure = progress.settings.perfOverlay
+          || progress.settings.perfDetail
+          || (settingsPanel && !settingsPanel.hidden);
         const delta = Math.min(0.033, (timestamp - state.lastTime) / 1000 || 0);
         state.lastTime = timestamp;
-        update(delta);
-        render();
-        updateHud();
+        if (shouldMeasure) {
+          const frameStart = performance.now();
+          const updateStart = performance.now();
+          update(delta);
+          const updateEnd = performance.now();
+          render();
+          const renderEnd = performance.now();
+          updateHud();
+          const hudEnd = performance.now();
+          recordPerformance(frameStart, updateEnd - updateStart, renderEnd - updateEnd, hudEnd - renderEnd);
+        } else {
+          update(delta);
+          render();
+          updateHud();
+        }
         requestAnimationFrame(loop);
       }
 
@@ -6021,6 +6167,142 @@
         renderActiveUpgrades();
       }
 
+      function updatePerformanceOverlayVisibility() {
+        const showBasic = !!progress.settings.perfOverlay;
+        const showDetail = !!progress.settings.perfDetail;
+        if (dom.perfOverlay) {
+          dom.perfOverlay.hidden = !showBasic;
+        }
+        if (dom.perfDetailOverlay) {
+          dom.perfDetailOverlay.hidden = !showDetail;
+        }
+        renderPerformanceOverlays(performance.now(), true);
+      }
+
+      function formatPerfValue(value, digits = 1) {
+        if (!Number.isFinite(value)) return "--";
+        return value.toFixed(digits);
+      }
+
+      function formatPerfInt(value) {
+        if (!Number.isFinite(value)) return "--";
+        return Math.round(value).toString();
+      }
+
+      function buildPerformanceBasicHtml() {
+        return `
+          <div class="perf-row"><span class="perf-label">FPS</span><span class="perf-value">${formatPerfInt(perfMetrics.fps)}</span></div>
+          <div class="perf-row"><span class="perf-label">Frame</span><span class="perf-value">${formatPerfValue(perfMetrics.avgFrameMs)} ms</span></div>
+          <div class="perf-row"><span class="perf-label">Update</span><span class="perf-value">${formatPerfValue(perfMetrics.avgUpdateMs)} ms</span></div>
+          <div class="perf-row"><span class="perf-label">Render</span><span class="perf-value">${formatPerfValue(perfMetrics.avgRenderMs)} ms</span></div>
+        `;
+      }
+
+      function buildPerformanceDetailHtml() {
+        const memory = performance && performance.memory
+          ? (performance.memory.usedJSHeapSize / (1024 * 1024))
+          : null;
+        return `
+          <div class="perf-row"><span class="perf-label">FPS</span><span class="perf-value">${formatPerfInt(perfMetrics.fps)}</span></div>
+          <div class="perf-grid">
+            <div class="perf-row"><span class="perf-label">Frame Avg</span><span class="perf-value">${formatPerfValue(perfMetrics.avgFrameMs)} ms</span></div>
+            <div class="perf-row"><span class="perf-label">Frame Max</span><span class="perf-value">${formatPerfValue(perfMetrics.maxFrameMs)} ms</span></div>
+            <div class="perf-row"><span class="perf-label">Update Avg</span><span class="perf-value">${formatPerfValue(perfMetrics.avgUpdateMs)} ms</span></div>
+            <div class="perf-row"><span class="perf-label">Render Avg</span><span class="perf-value">${formatPerfValue(perfMetrics.avgRenderMs)} ms</span></div>
+            <div class="perf-row"><span class="perf-label">HUD Avg</span><span class="perf-value">${formatPerfValue(perfMetrics.avgHudMs)} ms</span></div>
+            <div class="perf-row"><span class="perf-label">Mode</span><span class="perf-value">${state.mode}</span></div>
+            <div class="perf-row"><span class="perf-label">Enemies</span><span class="perf-value">${enemies.length}</span></div>
+            <div class="perf-row"><span class="perf-label">Bullets</span><span class="perf-value">${bullets.length}</span></div>
+            <div class="perf-row"><span class="perf-label">Particles</span><span class="perf-value">${particles.length}</span></div>
+            <div class="perf-row"><span class="perf-label">Pulses</span><span class="perf-value">${pulses.length}</span></div>
+            <div class="perf-row"><span class="perf-label">Mines</span><span class="perf-value">${state.mines.length}</span></div>
+            <div class="perf-row"><span class="perf-label">Helpers</span><span class="perf-value">${helpers.length}</span></div>
+            <div class="perf-row"><span class="perf-label">Obstacles</span><span class="perf-value">${obstacles.length}</span></div>
+            <div class="perf-row"><span class="perf-label">Stars</span><span class="perf-value">${stars.length}</span></div>
+            <div class="perf-row"><span class="perf-label">Canvas</span><span class="perf-value">${Math.round(state.width)}x${Math.round(state.height)}</span></div>
+            <div class="perf-row"><span class="perf-label">World</span><span class="perf-value">${state.worldWidth}x${state.worldHeight}</span></div>
+            ${memory !== null ? `<div class="perf-row"><span class="perf-label">Memory</span><span class="perf-value">${memory.toFixed(1)} MB</span></div>` : ""}
+          </div>
+        `;
+      }
+
+      function renderPerformanceOverlays(now, force = false) {
+        const showBasic = !!progress.settings.perfOverlay;
+        const showDetail = !!progress.settings.perfDetail;
+        const showSettings = !!(settingsPanel && !settingsPanel.hidden);
+        if (!showBasic && !showDetail && !showSettings) return;
+        if (!force && now - perfMetrics.lastOverlayUpdate < 250) return;
+        perfMetrics.lastOverlayUpdate = now;
+        const basicHtml = buildPerformanceBasicHtml();
+        const detailHtml = (showDetail || (showSettings && progress.settings.perfDetail))
+          ? buildPerformanceDetailHtml()
+          : "";
+
+        if (dom.perfOverlay) {
+          if (showBasic) {
+            dom.perfOverlay.hidden = false;
+            dom.perfOverlay.innerHTML = basicHtml;
+          } else {
+            dom.perfOverlay.hidden = true;
+          }
+        }
+
+        if (dom.perfDetailOverlay) {
+          if (showDetail) {
+            dom.perfDetailOverlay.hidden = false;
+            dom.perfDetailOverlay.innerHTML = detailHtml;
+          } else {
+            dom.perfDetailOverlay.hidden = true;
+          }
+        }
+
+        if (showSettings) {
+          if (dom.perfSettingsBasic) {
+            dom.perfSettingsBasic.innerHTML = basicHtml;
+          }
+          if (dom.perfSettingsDetail) {
+            dom.perfSettingsDetail.innerHTML = showDetail
+              ? detailHtml
+              : "<div class=\"perf-row\"><span class=\"perf-muted\">Detailed metrics are off.</span></div>";
+          }
+        }
+      }
+
+      function recordPerformance(frameStart, updateMs, renderMs, hudMs) {
+        const shouldSample = progress.settings.perfOverlay
+          || progress.settings.perfDetail
+          || (settingsPanel && !settingsPanel.hidden);
+        if (!shouldSample) return;
+        const now = performance.now();
+        const frameMs = now - frameStart;
+        const smoothing = 0.12;
+        perfMetrics.frameMs = frameMs;
+        perfMetrics.updateMs = updateMs;
+        perfMetrics.renderMs = renderMs;
+        perfMetrics.hudMs = hudMs;
+        perfMetrics.avgFrameMs = perfMetrics.avgFrameMs
+          ? perfMetrics.avgFrameMs * (1 - smoothing) + frameMs * smoothing
+          : frameMs;
+        perfMetrics.avgUpdateMs = perfMetrics.avgUpdateMs
+          ? perfMetrics.avgUpdateMs * (1 - smoothing) + updateMs * smoothing
+          : updateMs;
+        perfMetrics.avgRenderMs = perfMetrics.avgRenderMs
+          ? perfMetrics.avgRenderMs * (1 - smoothing) + renderMs * smoothing
+          : renderMs;
+        perfMetrics.avgHudMs = perfMetrics.avgHudMs
+          ? perfMetrics.avgHudMs * (1 - smoothing) + hudMs * smoothing
+          : hudMs;
+        perfMetrics.maxFrameMs = Math.max(perfMetrics.maxFrameMs, frameMs);
+        perfMetrics.frames += 1;
+        if (now - perfMetrics.lastFpsAt >= 500) {
+          perfMetrics.fps = perfMetrics.frames / ((now - perfMetrics.lastFpsAt) / 1000);
+          perfMetrics.frames = 0;
+          perfMetrics.lastFpsAt = now;
+          perfMetrics.maxFrameMs = 0;
+        }
+        renderPerformanceOverlays(now);
+      }
+
       function renderActiveUpgrades() {
         const upgradeKey = getActiveUpgradeKey();
         if (upgradeKey === state.activeUpgradeKey) {
@@ -6604,13 +6886,17 @@
         const inputGroup = document.querySelector("[data-setting='input-mode']");
         const particleGroup = document.querySelector("[data-setting='particles']");
         const hitFlashGroup = document.querySelector("[data-setting='hit-flash']");
-        [modeGroup, difficultyGroup, inputGroup, particleGroup, hitFlashGroup].forEach((group) => {
+        const perfOverlayGroup = document.querySelector("[data-setting='perf-overlay']");
+        const perfDetailGroup = document.querySelector("[data-setting='perf-detail']");
+        [modeGroup, difficultyGroup, inputGroup, particleGroup, hitFlashGroup, perfOverlayGroup, perfDetailGroup].forEach((group) => {
           if (!group) return;
           const setting = group.dataset.setting;
           const value = setting === "game-mode" ? progress.settings.gameMode
             : setting === "difficulty" ? progress.settings.difficulty
             : setting === "input-mode" ? progress.settings.inputMode
             : setting === "particles" ? progress.settings.particles
+            : setting === "perf-overlay" ? (progress.settings.perfOverlay ? "on" : "off")
+            : setting === "perf-detail" ? (progress.settings.perfDetail ? "on" : "off")
             : progress.settings.hitFlash ? "on" : "off";
           group.querySelectorAll(".option-btn").forEach((btn) => {
             btn.classList.toggle("is-active", btn.dataset.option === value);
@@ -6618,6 +6904,7 @@
         });
 
         renderKeybinds();
+        renderPerformanceOverlays(performance.now(), true);
       }
 
       function renderKeybinds() {

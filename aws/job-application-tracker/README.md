@@ -64,6 +64,10 @@ Provided via CloudFormation:
 - `ATTACHMENTS_BUCKET` - S3 bucket for uploads.
 - `ALLOWED_ORIGINS` - comma-separated CORS allowlist.
 - `PRESIGN_TTL_SECONDS` - presign TTL (defaults to 900).
+- `MAX_ATTACHMENT_BYTES` - max bytes per attachment (defaults to 10 MB).
+- `MAX_ATTACHMENT_COUNT` - max attachments stored per entry (defaults to 12).
+- `MAX_TAGS` - max tags per entry (defaults to 12).
+- `MAX_CUSTOM_FIELDS` - max custom fields per entry (defaults to 12).
 
 ## Auth
 
@@ -144,7 +148,11 @@ API Gateway uses a Cognito JWT authorizer. The Lambda reads the `sub` claim from
   "jobUrl": "https://acme.com/jobs/123",
   "location": "Remote",
   "source": "LinkedIn",
-  "batch": "Spring outreach 2025"
+  "batch": "Spring outreach 2025",
+  "tags": ["referral", "remote"],
+  "followUpDate": "2025-01-20",
+  "followUpNote": "Nudge recruiter after screening.",
+  "customFields": { "salary": "120k", "priority": "High" }
 }
 ```
 

@@ -29,11 +29,22 @@ const {
   APPLICATIONS_TABLE,
   ATTACHMENTS_BUCKET,
   ALLOWED_ORIGINS = '',
-  PRESIGN_TTL_SECONDS = '900'
+  PRESIGN_TTL_SECONDS = '900',
+  MAX_ATTACHMENT_BYTES = '10485760',
+  MAX_ATTACHMENT_COUNT = '12',
+  MAX_TAGS = '12',
+  MAX_CUSTOM_FIELDS = '12'
 } = process.env;
 
 const allowedOrigins = ALLOWED_ORIGINS.split(',').map(origin => origin.trim()).filter(Boolean);
 const presignTtl = Math.max(parseInt(PRESIGN_TTL_SECONDS, 10) || 900, 60);
+const maxAttachmentBytes = Math.max(parseInt(MAX_ATTACHMENT_BYTES, 10) || 10485760, 1048576);
+const maxAttachmentCount = Math.max(parseInt(MAX_ATTACHMENT_COUNT, 10) || 12, 1);
+const maxTags = Math.max(parseInt(MAX_TAGS, 10) || 12, 1);
+const maxCustomFields = Math.max(parseInt(MAX_CUSTOM_FIELDS, 10) || 12, 1);
+const MAX_TAG_LENGTH = 36;
+const MAX_CUSTOM_FIELD_KEY_LENGTH = 40;
+const MAX_CUSTOM_FIELD_VALUE_LENGTH = 180;
 
 const INTERVIEW_STATUSES = new Set([
   'screening',
@@ -44,8 +55,23 @@ const INTERVIEW_STATUSES = new Set([
   'onsite',
   'assessment'
 ]);
+const SCREENING_STATUSES = new Set([
+  'screening',
+  'screen',
+  'phone screen',
+  'recruiter screen',
+  'technical screen',
+  'assessment'
+]);
 const OFFER_STATUSES = new Set(['offer', 'accepted']);
-const REJECTION_STATUSES = new Set(['rejected', 'declined', 'no response', 'ghosted']);
+const REJECTION_STATUSES = new Set(['rejected', 'declined', 'no response', 'ghosted', 'withdrawn']);
+const FOLLOW_UP_DAYS = {
+  applied: 7,
+  screening: 5,
+  interview: 3,
+  active: 5,
+  interested: 3
+};
 
 const httpError = (statusCode, message) => {
   const err = new Error(message);
@@ -114,14 +140,24 @@ const normalizeAttachments = (userId, attachments) => {
     if (!key.startsWith(`${userId}/`)) {
       throw httpError(400, 'Invalid attachment key.');
     }
+    const rawSize = attachment.size;
+    const size = rawSize === undefined || rawSize === null || rawSize === ''
+      ? null
+      : parseInt(rawSize, 10);
+    if (Number.isFinite(size)) {
+      if (size <= 0 || size > maxAttachmentBytes) {
+        throw httpError(400, `Attachment size exceeds ${maxAttachmentBytes} bytes.`);
+      }
+    }
     safe.push({
       key,
       filename,
       contentType: (attachment.contentType || '').toString().trim(),
       kind: (attachment.kind || '').toString().trim(),
-      uploadedAt: (attachment.uploadedAt || now).toString().trim()
+      uploadedAt: (attachment.uploadedAt || now).toString().trim(),
+      ...(Number.isFinite(size) ? { size } : {})
     });
-    if (safe.length >= 12) break;
+    if (safe.length >= maxAttachmentCount) break;
   }
   return safe;
 };
@@ -150,6 +186,102 @@ const parseDate = (value) => {
 };
 
 const formatDate = (date) => date.toISOString().slice(0, 10);
+
+const parseDateValue = (value) => {
+  if (!value) return null;
+  const parsed = parseDate(value);
+  if (parsed) return parsed;
+  const iso = new Date(value);
+  return Number.isNaN(iso.getTime()) ? null : iso;
+};
+
+const normalizeTags = (tags) => {
+  if (tags === undefined || tags === null) return [];
+  let values = [];
+  if (Array.isArray(tags)) {
+    values = tags;
+  } else if (typeof tags === 'string') {
+    values = tags.split(/[;,]+/);
+  } else {
+    throw httpError(400, 'tags must be an array or string.');
+  }
+  const cleaned = [];
+  const seen = new Set();
+  values.forEach((tag) => {
+    if (cleaned.length >= maxTags) return;
+    const trimmed = (tag || '').toString().trim();
+    if (!trimmed) return;
+    const clipped = trimmed.slice(0, MAX_TAG_LENGTH);
+    const key = clipped.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    cleaned.push(clipped);
+  });
+  return cleaned;
+};
+
+const normalizeCustomFields = (fields) => {
+  if (fields === undefined || fields === null) return {};
+  let entries = [];
+  if (Array.isArray(fields)) {
+    entries = fields.map(item => [item?.key, item?.value]);
+  } else if (typeof fields === 'string') {
+    try {
+      const parsed = JSON.parse(fields);
+      if (parsed && typeof parsed === 'object') {
+        entries = Object.entries(parsed);
+      }
+    } catch {
+      throw httpError(400, 'customFields must be an object or JSON string.');
+    }
+  } else if (typeof fields === 'object') {
+    entries = Object.entries(fields);
+  } else {
+    throw httpError(400, 'customFields must be an object.');
+  }
+
+  const cleaned = {};
+  let count = 0;
+  entries.forEach(([key, value]) => {
+    if (count >= maxCustomFields) return;
+    const safeKey = (key || '').toString().trim().slice(0, MAX_CUSTOM_FIELD_KEY_LENGTH);
+    if (!safeKey) return;
+    const safeValue = (value ?? '').toString().trim().slice(0, MAX_CUSTOM_FIELD_VALUE_LENGTH);
+    if (!safeValue) return;
+    cleaned[safeKey] = safeValue;
+    count += 1;
+  });
+  return cleaned;
+};
+
+const normalizeViewFilters = (filters) => {
+  if (!filters || typeof filters !== 'object') return {};
+  const allowKeys = [
+    'query',
+    'type',
+    'statusGroup',
+    'status',
+    'source',
+    'batch',
+    'location',
+    'start',
+    'end',
+    'tags',
+    'sort',
+    'view'
+  ];
+  const cleaned = {};
+  allowKeys.forEach((key) => {
+    if (filters[key] === undefined) return;
+    if (key === 'tags') {
+      cleaned.tags = normalizeTags(filters.tags);
+      return;
+    }
+    const value = (filters[key] || '').toString().trim();
+    if (value) cleaned[key] = value;
+  });
+  return cleaned;
+};
 
 const getRange = (query = {}) => {
   const end = parseDate(query.end) || new Date();
@@ -275,6 +407,181 @@ const buildSummary = (items) => {
   };
 };
 
+const getEntryType = (item) => (item && item.recordType === 'prospect' ? 'prospect' : 'application');
+
+const buildStatusTimeline = (entry = {}) => {
+  const history = Array.isArray(entry.statusHistory) ? entry.statusHistory : [];
+  const timeline = history
+    .map(item => ({
+      status: (item?.status || '').toString().trim(),
+      date: parseDateValue(item?.date)
+    }))
+    .filter(item => item.status && item.date);
+
+  if (!timeline.length) {
+    const status = (entry.status || '').toString().trim();
+    const fallbackDate = parseDateValue(entry.appliedDate || entry.captureDate || entry.updatedAt || entry.createdAt);
+    if (status && fallbackDate) {
+      timeline.push({ status, date: fallbackDate });
+    }
+  } else {
+    const currentStatus = (entry.status || '').toString().trim();
+    const last = timeline[timeline.length - 1];
+    if (currentStatus && currentStatus !== last.status) {
+      const fallbackDate = parseDateValue(entry.updatedAt || entry.createdAt || entry.appliedDate || entry.captureDate);
+      if (fallbackDate) {
+        timeline.push({ status: currentStatus, date: fallbackDate });
+      }
+    }
+  }
+
+  return timeline.sort((a, b) => a.date - b.date);
+};
+
+const getStageKey = (status = '') => {
+  const key = status.toString().trim().toLowerCase();
+  if (!key) return null;
+  if (REJECTION_STATUSES.has(key)) return 'rejected';
+  if (OFFER_STATUSES.has(key)) return 'offer';
+  if (INTERVIEW_STATUSES.has(key)) return 'interview';
+  if (SCREENING_STATUSES.has(key)) return 'screening';
+  if (key === 'applied') return 'applied';
+  return 'applied';
+};
+
+const getStageLabel = (stage) => {
+  switch (stage) {
+    case 'screening':
+      return 'Screening';
+    case 'interview':
+      return 'Interview';
+    case 'offer':
+      return 'Offer';
+    case 'rejected':
+      return 'Rejected';
+    default:
+      return 'Applied';
+  }
+};
+
+const buildFunnel = (items = []) => {
+  const stageKeys = ['applied', 'screening', 'interview', 'offer', 'rejected'];
+  const counts = stageKeys.reduce((acc, key) => ({ ...acc, [key]: 0 }), {});
+  items.forEach((entry) => {
+    const reached = new Set(['applied']);
+    const timeline = buildStatusTimeline(entry);
+    timeline.forEach((item) => {
+      const stage = getStageKey(item.status);
+      if (stage) reached.add(stage);
+    });
+    reached.forEach((stage) => {
+      if (counts[stage] !== undefined) counts[stage] += 1;
+    });
+  });
+  const base = counts.applied || items.length || 0;
+  const stages = stageKeys.map(key => ({
+    stage: getStageLabel(key),
+    count: counts[key] || 0,
+    rate: base ? (counts[key] / base) * 100 : 0
+  }));
+  const conversions = [
+    ['applied', 'screening'],
+    ['screening', 'interview'],
+    ['interview', 'offer']
+  ].map(([from, to]) => ({
+    from: getStageLabel(from),
+    to: getStageLabel(to),
+    rate: counts[from] ? (counts[to] / counts[from]) * 100 : 0
+  }));
+  return { stages, conversions };
+};
+
+const buildTimeInStage = (items = []) => {
+  const stageKeys = ['applied', 'screening', 'interview', 'offer'];
+  const durations = stageKeys.reduce((acc, key) => ({ ...acc, [key]: [] }), {});
+  items.forEach((entry) => {
+    const timeline = buildStatusTimeline(entry);
+    if (timeline.length < 2) return;
+    for (let i = 0; i < timeline.length - 1; i += 1) {
+      const current = timeline[i];
+      const next = timeline[i + 1];
+      const stage = getStageKey(current.status);
+      if (!stage || !durations[stage] || !current.date || !next.date) continue;
+      const diff = (next.date.getTime() - current.date.getTime()) / 86400000;
+      if (Number.isFinite(diff) && diff >= 0) durations[stage].push(diff);
+    }
+  });
+  const stages = stageKeys.map((key) => {
+    const values = durations[key] || [];
+    if (!values.length) {
+      return { stage: getStageLabel(key), avgDays: null, medianDays: null, count: 0 };
+    }
+    const sorted = [...values].sort((a, b) => a - b);
+    const sum = sorted.reduce((acc, val) => acc + val, 0);
+    const mid = Math.floor(sorted.length / 2);
+    const median = sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+    return {
+      stage: getStageLabel(key),
+      avgDays: sum / sorted.length,
+      medianDays: median,
+      count: sorted.length
+    };
+  });
+  return { stages, entriesAnalyzed: items.length };
+};
+
+const addDays = (value, days) => {
+  if (!value && value !== 0) return null;
+  const parsed = value instanceof Date ? value : parseDateValue(value);
+  if (!parsed) return null;
+  const due = new Date(parsed.getTime());
+  due.setUTCDate(due.getUTCDate() + days);
+  return due;
+};
+
+const deriveStatusDate = (entry) => {
+  const timeline = buildStatusTimeline(entry);
+  if (!timeline.length) return null;
+  return timeline[timeline.length - 1].date || null;
+};
+
+const buildNextAction = (verb, dueDate) => {
+  if (!verb) return { label: 'Follow up soon', tone: '', dueDate: null };
+  if (!dueDate) return { label: `${verb} soon`, tone: '', dueDate: null };
+  const dayMs = 86400000;
+  const todayKey = Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate());
+  const dueKey = Date.UTC(dueDate.getUTCFullYear(), dueDate.getUTCMonth(), dueDate.getUTCDate());
+  const diffDays = Math.round((dueKey - todayKey) / dayMs);
+  const label = diffDays <= 0 ? `${verb} now` : `${verb} by ${formatDate(dueDate)}`;
+  const tone = diffDays <= 0 ? 'danger' : diffDays <= 2 ? 'warning' : '';
+  return { label, tone, dueDate };
+};
+
+const buildFollowUpAction = (entry) => {
+  const entryType = getEntryType(entry);
+  const statusKey = (entry?.status || '').toString().trim().toLowerCase();
+  if (entryType === 'prospect') {
+    if (statusKey === 'rejected' || statusKey === 'inactive') return null;
+    const verb = statusKey === 'interested' ? 'Apply' : 'Review';
+    const followUpDate = parseDateValue(entry.followUpDate);
+    if (followUpDate) {
+      return { ...buildNextAction(verb, followUpDate), source: 'manual' };
+    }
+    const baseDate = entry.captureDate || deriveStatusDate(entry);
+    const offset = FOLLOW_UP_DAYS[statusKey] ?? 5;
+    return { ...buildNextAction(verb, addDays(baseDate, offset)), source: 'auto' };
+  }
+  if (statusKey === 'offer') return { label: 'Review offer', tone: 'success', dueDate: null, source: 'auto' };
+  if (statusKey === 'rejected' || statusKey === 'withdrawn') return null;
+  const followUpDate = parseDateValue(entry.followUpDate);
+  if (followUpDate) {
+    return { ...buildNextAction('Follow up', followUpDate), source: 'manual' };
+  }
+  const baseDate = deriveStatusDate(entry) || entry.appliedDate;
+  const offset = FOLLOW_UP_DAYS[statusKey] ?? 7;
+  return { ...buildNextAction('Follow up', addDays(baseDate, offset)), source: 'auto' };
+};
+
 const sanitizeFilename = (value, fallback = 'attachment') => {
   const cleaned = (value || '')
     .toString()
@@ -327,6 +634,10 @@ const buildExportData = (items, userId) => {
       appliedDate: (item.appliedDate || '').toString().trim(),
       status: (item.status || '').toString().trim(),
       notes: (item.notes || '').toString().trim(),
+      tags: Array.isArray(item.tags) ? item.tags : [],
+      followUpDate: (item.followUpDate || '').toString().trim(),
+      followUpNote: (item.followUpNote || '').toString().trim(),
+      customFields: item.customFields && typeof item.customFields === 'object' ? item.customFields : {},
       createdAt: (item.createdAt || '').toString().trim(),
       updatedAt: (item.updatedAt || '').toString().trim(),
       statusHistory: Array.isArray(item.statusHistory) ? item.statusHistory : [],
@@ -349,6 +660,10 @@ const buildExportCsv = (items) => {
     'status',
     'batch',
     'notes',
+    'tags',
+    'followUpDate',
+    'followUpNote',
+    'customFields',
     'attachments'
   ];
   const rows = [headers.join(',')];
@@ -357,6 +672,8 @@ const buildExportCsv = (items) => {
       .map(attachment => attachment.exportPath || attachment.filename)
       .filter(Boolean)
       .join(' | ');
+    const tags = Array.isArray(item.tags) ? item.tags.join(';') : '';
+    const customFields = item.customFields ? JSON.stringify(item.customFields) : '';
     const values = [
       item.company,
       item.title,
@@ -369,6 +686,10 @@ const buildExportCsv = (items) => {
       item.status,
       item.batch,
       item.notes,
+      tags,
+      item.followUpDate,
+      item.followUpNote,
+      customFields,
       attachmentList
     ];
     rows.push(values.map(escapeCsv).join(','));
@@ -389,10 +710,14 @@ const handleCreateApplication = async (userId, payload = {}) => {
   const postingDateRaw = payload.postingDate;
   const captureDateRaw = payload.captureDate;
   const statusDateRaw = payload.statusDate;
+  const followUpDateRaw = payload.followUpDate;
   const jobUrl = normalizeUrl(payload.jobUrl || payload.url);
   const location = (payload.location || '').toString().trim();
   const source = (payload.source || '').toString().trim();
   const batch = (payload.batch || '').toString().trim();
+  const tags = normalizeTags(payload.tags);
+  const customFields = normalizeCustomFields(payload.customFields);
+  const followUpNote = (payload.followUpNote || '').toString().trim();
   const attachments = normalizeAttachments(userId, payload.attachments);
   const now = nowIso();
   let statusHistoryDate = now;
@@ -431,6 +756,14 @@ const handleCreateApplication = async (userId, payload = {}) => {
   if (location) item.location = location;
   if (source) item.source = source;
   if (batch) item.batch = batch;
+  if (followUpDateRaw !== undefined && followUpDateRaw !== null && followUpDateRaw !== '') {
+    const followUpDate = parseDate(followUpDateRaw);
+    if (!followUpDate) throw httpError(400, 'followUpDate must be YYYY-MM-DD.');
+    item.followUpDate = formatDate(followUpDate);
+  }
+  if (followUpNote) item.followUpNote = followUpNote;
+  if (tags.length) item.tags = tags;
+  if (Object.keys(customFields).length) item.customFields = customFields;
   if (attachments.length) item.attachments = attachments;
   await dynamo.send(new PutCommand({
     TableName: APPLICATIONS_TABLE,
@@ -450,7 +783,11 @@ const handleCreateProspect = async (userId, payload = {}) => {
   const postingDateRaw = payload.postingDate;
   const captureDateRaw = payload.captureDate;
   const statusDateRaw = payload.statusDate;
+  const followUpDateRaw = payload.followUpDate;
   const batch = (payload.batch || '').toString().trim();
+  const tags = normalizeTags(payload.tags);
+  const customFields = normalizeCustomFields(payload.customFields);
+  const followUpNote = (payload.followUpNote || '').toString().trim();
   let captureDate = new Date();
   if (captureDateRaw) {
     const parsedCapture = parseDate(captureDateRaw);
@@ -487,11 +824,57 @@ const handleCreateProspect = async (userId, payload = {}) => {
     item.postingDate = formatDate(postingDate);
   }
   if (batch) item.batch = batch;
+  if (followUpDateRaw !== undefined && followUpDateRaw !== null && followUpDateRaw !== '') {
+    const followUpDate = parseDate(followUpDateRaw);
+    if (!followUpDate) throw httpError(400, 'followUpDate must be YYYY-MM-DD.');
+    item.followUpDate = formatDate(followUpDate);
+  }
+  if (followUpNote) item.followUpNote = followUpNote;
+  if (tags.length) item.tags = tags;
+  if (Object.keys(customFields).length) item.customFields = customFields;
   await dynamo.send(new PutCommand({
     TableName: APPLICATIONS_TABLE,
     Item: item
   }));
   return item;
+};
+
+const handleCreateView = async (userId, payload = {}) => {
+  const name = (payload.name || '').toString().trim();
+  if (!name) throw httpError(400, 'name is required.');
+  const filters = normalizeViewFilters(payload.filters || {});
+  const now = nowIso();
+  const viewId = `VIEW#${Date.now()}#${randomUUID()}`;
+  const item = {
+    userId,
+    applicationId: viewId,
+    recordType: 'view',
+    name: name.slice(0, 80),
+    filters,
+    createdAt: now,
+    updatedAt: now
+  };
+  await dynamo.send(new PutCommand({
+    TableName: APPLICATIONS_TABLE,
+    Item: item
+  }));
+  return item;
+};
+
+const handleListViews = async (userId) => {
+  const items = await queryApplications(userId, { recordType: 'view', scanForward: true });
+  return items.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+};
+
+const handleDeleteView = async (userId, viewId) => {
+  if (!viewId) throw httpError(400, 'Missing viewId.');
+  const item = await getApplication(userId, viewId);
+  if (item.recordType !== 'view') throw httpError(400, 'Not a saved view.');
+  await dynamo.send(new DeleteCommand({
+    TableName: APPLICATIONS_TABLE,
+    Key: { userId, applicationId: viewId }
+  }));
+  return { ok: true };
 };
 
 const handleUpdateProspect = async (userId, applicationId, payload = {}) => {
@@ -557,7 +940,29 @@ const handleUpdateProspect = async (userId, applicationId, payload = {}) => {
   addOptionalField('batch', payload.batch);
   addDateField('postingDate', payload.postingDate);
   addDateField('captureDate', payload.captureDate);
+  addDateField('followUpDate', payload.followUpDate);
+  addOptionalField('followUpNote', payload.followUpNote);
   addField('notes', payload.notes?.toString().trim());
+  if (payload.tags !== undefined) {
+    const tags = normalizeTags(payload.tags);
+    names['#tags'] = 'tags';
+    if (tags.length) {
+      values[':tags'] = tags;
+      updates.push('#tags = :tags');
+    } else {
+      removeFields.push('#tags');
+    }
+  }
+  if (payload.customFields !== undefined) {
+    const customFields = normalizeCustomFields(payload.customFields);
+    names['#customFields'] = 'customFields';
+    if (Object.keys(customFields).length) {
+      values[':customFields'] = customFields;
+      updates.push('#customFields = :customFields');
+    } else {
+      removeFields.push('#customFields');
+    }
+  }
   if (pushStatus) {
     addField('status', pushStatus);
     names['#statusHistory'] = 'statusHistory';
@@ -645,6 +1050,7 @@ const handleUpdateApplication = async (userId, applicationId, payload = {}) => {
   }
   addDateField('postingDate', payload.postingDate);
   addDateField('captureDate', payload.captureDate);
+  addDateField('followUpDate', payload.followUpDate);
   if (payload.jobUrl !== undefined || payload.url !== undefined) {
     const jobUrl = normalizeUrl(payload.jobUrl || payload.url);
     addField('jobUrl', jobUrl);
@@ -652,7 +1058,28 @@ const handleUpdateApplication = async (userId, applicationId, payload = {}) => {
   addField('location', payload.location?.toString().trim());
   addField('source', payload.source?.toString().trim());
   addOptionalField('batch', payload.batch);
+  addOptionalField('followUpNote', payload.followUpNote);
   addField('notes', payload.notes?.toString().trim());
+  if (payload.tags !== undefined) {
+    const tags = normalizeTags(payload.tags);
+    names['#tags'] = 'tags';
+    if (tags.length) {
+      values[':tags'] = tags;
+      updates.push('#tags = :tags');
+    } else {
+      removeFields.push('#tags');
+    }
+  }
+  if (payload.customFields !== undefined) {
+    const customFields = normalizeCustomFields(payload.customFields);
+    names['#customFields'] = 'customFields';
+    if (Object.keys(customFields).length) {
+      values[':customFields'] = customFields;
+      updates.push('#customFields = :customFields');
+    } else {
+      removeFields.push('#customFields');
+    }
+  }
   if (payload.attachments) {
     const attachments = normalizeAttachments(userId, payload.attachments);
     addField('attachments', attachments);
@@ -698,8 +1125,15 @@ const handlePresign = async (userId, payload = {}) => {
   const applicationId = (payload.applicationId || '').toString().trim();
   const filename = (payload.filename || '').toString().trim();
   const contentType = (payload.contentType || 'application/octet-stream').toString().trim();
+  const size = parseInt(payload.size, 10);
   if (!applicationId || !filename) {
     throw httpError(400, 'applicationId and filename are required.');
+  }
+  if (!Number.isFinite(size) || size <= 0) {
+    throw httpError(400, 'size is required.');
+  }
+  if (size > maxAttachmentBytes) {
+    throw httpError(400, `Attachment exceeds ${maxAttachmentBytes} bytes.`);
   }
   const safeName = filename.replace(/[^a-zA-Z0-9._-]+/g, '-');
   const key = `${userId}/${applicationId}/${Date.now()}-${safeName}`;
@@ -716,7 +1150,9 @@ const handlePresign = async (userId, payload = {}) => {
     uploadUrl,
     key,
     bucket: ATTACHMENTS_BUCKET,
-    expiresIn: presignTtl
+    expiresIn: presignTtl,
+    maxBytes: maxAttachmentBytes,
+    maxCount: maxAttachmentCount
   };
 };
 
@@ -916,6 +1352,47 @@ const handleCreateAttachmentZip = async (userId, payload = {}) => {
   };
 };
 
+const handleFollowUps = async (userId, query = {}) => {
+  const range = getRange({ start: query.start, end: query.end });
+  const includeOverdue = query.includeOverdue !== 'false';
+  const [applications, prospects] = await Promise.all([
+    queryApplications(userId, { recordType: 'application' }),
+    queryApplications(userId, { recordType: 'prospect' })
+  ]);
+  const followUps = [];
+  const items = applications.concat(prospects);
+  items.forEach((entry) => {
+    const action = buildFollowUpAction(entry);
+    if (!action || !action.dueDate) return;
+    const dueDate = action.dueDate;
+    if (dueDate > range.end) return;
+    const isOverdue = dueDate < range.start;
+    if (isOverdue && !includeOverdue) return;
+    followUps.push({
+      applicationId: entry.applicationId,
+      entryType: getEntryType(entry),
+      company: (entry.company || '').toString().trim(),
+      title: (entry.title || '').toString().trim(),
+      status: (entry.status || '').toString().trim(),
+      jobUrl: (entry.jobUrl || '').toString().trim(),
+      followUpDate: (entry.followUpDate || '').toString().trim(),
+      followUpNote: (entry.followUpNote || '').toString().trim(),
+      dueDate: formatDate(dueDate),
+      actionLabel: action.label,
+      actionTone: action.tone,
+      actionSource: action.source,
+      overdue: isOverdue
+    });
+  });
+  followUps.sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+  return {
+    items: followUps,
+    start: formatDate(range.start),
+    end: formatDate(range.end),
+    total: followUps.length
+  };
+};
+
 exports.handler = async (event) => {
   const requestOrigin = event?.headers?.origin || event?.headers?.Origin || '';
   const corsOrigin = resolveCorsOrigin(requestOrigin);
@@ -991,6 +1468,45 @@ exports.handler = async (event) => {
       };
     }
 
+    if (routeKey.startsWith('GET /api/analytics/funnel')) {
+      const range = getRange(event.queryStringParameters || {});
+      const items = await queryApplications(userId, { range, recordType: 'application' });
+      const data = buildFunnel(items);
+      return {
+        statusCode: 200,
+        headers: buildHeaders(corsOrigin),
+        body: JSON.stringify({
+          ...data,
+          start: formatDate(range.start),
+          end: formatDate(range.end)
+        })
+      };
+    }
+
+    if (routeKey.startsWith('GET /api/analytics/time-in-stage')) {
+      const range = getRange(event.queryStringParameters || {});
+      const items = await queryApplications(userId, { range, recordType: 'application' });
+      const data = buildTimeInStage(items);
+      return {
+        statusCode: 200,
+        headers: buildHeaders(corsOrigin),
+        body: JSON.stringify({
+          ...data,
+          start: formatDate(range.start),
+          end: formatDate(range.end)
+        })
+      };
+    }
+
+    if (routeKey.startsWith('GET /api/analytics/followups')) {
+      const data = await handleFollowUps(userId, event.queryStringParameters || {});
+      return {
+        statusCode: 200,
+        headers: buildHeaders(corsOrigin),
+        body: JSON.stringify(data)
+      };
+    }
+
     if (routeKey === 'GET /api/applications') {
       const query = event.queryStringParameters || {};
       const limit = parseInt(query.limit || '0', 10) || 0;
@@ -1001,6 +1517,15 @@ exports.handler = async (event) => {
         recordType: 'application',
         range
       });
+      return {
+        statusCode: 200,
+        headers: buildHeaders(corsOrigin),
+        body: JSON.stringify({ items })
+      };
+    }
+
+    if (routeKey === 'GET /api/views') {
+      const items = await handleListViews(userId);
       return {
         statusCode: 200,
         headers: buildHeaders(corsOrigin),
@@ -1028,6 +1553,16 @@ exports.handler = async (event) => {
       };
     }
 
+    if (routeKey === 'POST /api/views') {
+      const payload = parseBody(event);
+      const item = await handleCreateView(userId, payload);
+      return {
+        statusCode: 201,
+        headers: buildHeaders(corsOrigin),
+        body: JSON.stringify(item)
+      };
+    }
+
     if (routeKey === 'POST /api/prospects') {
       const payload = parseBody(event);
       const item = await handleCreateProspect(userId, payload);
@@ -1035,6 +1570,16 @@ exports.handler = async (event) => {
         statusCode: 201,
         headers: buildHeaders(corsOrigin),
         body: JSON.stringify(item)
+      };
+    }
+
+    if (routeKey.startsWith('DELETE /api/views')) {
+      const id = path.split('/').pop();
+      const result = await handleDeleteView(userId, id);
+      return {
+        statusCode: 200,
+        headers: buildHeaders(corsOrigin),
+        body: JSON.stringify(result)
       };
     }
 

@@ -9,7 +9,9 @@
     cognitoDomain: (configSource.dataset.cognitoDomain || '').trim(),
     cognitoClientId: (configSource.dataset.cognitoClientId || '').trim(),
     cognitoRedirect: (configSource.dataset.cognitoRedirect || '').trim(),
-    cognitoScopes: (configSource.dataset.cognitoScopes || 'openid email profile').trim()
+    cognitoScopes: (configSource.dataset.cognitoScopes || 'openid email profile').trim(),
+    maxAttachmentBytes: parseInt(configSource.dataset.maxAttachmentBytes || '10485760', 10) || 10485760,
+    maxAttachmentCount: parseInt(configSource.dataset.maxAttachmentCount || '12', 10) || 12
   };
 
   const $ = (sel, root = document) => root.querySelector(sel);
@@ -45,6 +47,11 @@
     captureHelp: $('[data-jobtrack="capture-help"]'),
     statusInput: $('#jobtrack-status'),
     notesInput: $('#jobtrack-notes'),
+    tagsInput: $('#jobtrack-tags'),
+    followUpDateInput: $('#jobtrack-follow-up-date'),
+    followUpNoteInput: $('#jobtrack-follow-up-note'),
+    customFieldList: $('[data-jobtrack="custom-field-list"]'),
+    customFieldAdd: $('[data-jobtrack="custom-field-add"]'),
     entrySubmit: $('[data-jobtrack="entry-submit"]'),
     entryApplicationFields: $$('[data-jobtrack-entry="application"]'),
     entryProspectFields: $$('[data-jobtrack-entry="prospect"]'),
@@ -86,6 +93,7 @@
     entryFilterLocation: $('[data-jobtrack="entry-filter-location"]'),
     entryFilterStart: $('[data-jobtrack="entry-filter-start"]'),
     entryFilterEnd: $('[data-jobtrack="entry-filter-end"]'),
+    entryFilterTags: $('[data-jobtrack="entry-filter-tags"]'),
     entryFilterReset: $('[data-jobtrack="entry-filter-reset"]'),
     entrySortButtons: $$('[data-jobtrack-sort]'),
     entrySortSelect: $('[data-jobtrack="entry-sort-select"]'),
@@ -102,11 +110,20 @@
     bulkStatusSelect: $('[data-jobtrack="bulk-status"]'),
     bulkStatusDate: $('[data-jobtrack="bulk-date"]'),
     bulkStatusApply: $('[data-jobtrack="bulk-status-apply"]'),
+    savedViewSelect: $('[data-jobtrack="saved-view-select"]'),
+    savedViewName: $('[data-jobtrack="saved-view-name"]'),
+    savedViewSave: $('[data-jobtrack="saved-view-save"]'),
+    savedViewDelete: $('[data-jobtrack="saved-view-delete"]'),
+    savedViewStatus: $('[data-jobtrack="saved-view-status"]'),
+    followupList: $('[data-jobtrack="followup-list"]'),
+    followupStatus: $('[data-jobtrack="followup-status"]'),
+    followupRefresh: $('[data-jobtrack="followup-refresh"]'),
     exportForm: $('[data-jobtrack="export-form"]'),
     exportStart: $('[data-jobtrack="export-start"]'),
     exportEnd: $('[data-jobtrack="export-end"]'),
     exportSubmit: $('[data-jobtrack="export-submit"]'),
     exportStatus: $('[data-jobtrack="export-status"]'),
+    attachmentLimit: $('[data-jobtrack="attachment-limit"]'),
 	    dashboard: $('[data-jobtrack="dashboard"]'),
 	    dashboardStatus: $('[data-jobtrack="dashboard-status"]'),
 	    dashboardTitle: $('[data-jobtrack="dashboard-title"]'),
@@ -149,6 +166,8 @@
     mapPlaceholder: $('[data-jobtrack="map-placeholder"]'),
     mapTotal: $('[data-jobtrack="map-total"]'),
 	    mapRemote: $('[data-jobtrack="map-remote"]'),
+    funnelList: $('[data-jobtrack="funnel-list"]'),
+    timeInStageList: $('[data-jobtrack="time-in-stage-list"]'),
 	    kpiProspectsPending: $('[data-jobtrack="kpi-prospects-pending"]'),
 	    kpiProspectsActive: $('[data-jobtrack="kpi-prospects-active"]'),
 	    kpiProspectsInterested: $('[data-jobtrack="kpi-prospects-interested"]'),
@@ -178,8 +197,8 @@
 		  const ENTRY_VIEW_KEY = 'jobTrackerEntryView';
 		  const DASHBOARD_VIEW_KEY = 'jobTrackerDashboardView';
 		  const ENTRY_DRAFT_KEY = 'jobTrackerEntryDraft';
-  const CSV_TEMPLATE = 'company,title,jobUrl,location,source,postingDate,appliedDate,status,batch,notes,attachments\nAcme Corp,Data Analyst,https://acme.com/jobs/123,Remote,LinkedIn,2025-01-10,2025-01-15,Applied,Spring outreach 2025,Reached out to recruiter,Acme-Resume.pdf;Acme-Cover.pdf';
-  const PROSPECT_CSV_TEMPLATE = 'company,title,jobUrl,location,source,postingDate,captureDate,status,batch,notes\nAcme Corp,Data Analyst,https://acme.com/jobs/123,Remote,LinkedIn,2025-01-10,2025-01-12,Active,Remote data roles · March,Follow up next week.';
+  const CSV_TEMPLATE = 'company,title,jobUrl,location,source,postingDate,appliedDate,status,batch,notes,tags,followUpDate,followUpNote,customFields,attachments\nAcme Corp,Data Analyst,https://acme.com/jobs/123,Remote,LinkedIn,2025-01-10,2025-01-15,Applied,Spring outreach 2025,Reached out to recruiter,referral;remote,2025-01-20,Nudge recruiter after screening,"{\"salary\":\"120k\",\"priority\":\"High\"}",Acme-Resume.pdf;Acme-Cover.pdf';
+  const PROSPECT_CSV_TEMPLATE = 'company,title,jobUrl,location,source,postingDate,captureDate,status,batch,notes,tags,followUpDate,followUpNote,customFields\nAcme Corp,Data Analyst,https://acme.com/jobs/123,Remote,LinkedIn,2025-01-10,2025-01-12,Active,Remote data roles · March,Follow up next week,remote;priority,2025-01-18,Review again Friday,"{\"priority\":\"High\"}"';
   const PROSPECT_PROMPT_TEMPLATE = [
     'Prompt:',
     'Using reputable sources and live job data, identify data analyst, data scientist, machine learning engineer, research scientist, analytics engineer, or closely related roles that align with my preferences below. Treat the strict criteria as non-negotiable unless otherwise marked.',
@@ -226,7 +245,7 @@
     '',
     'OUTPUT FORMAT (STRICT, CSV FOR JOB TRACKER PROSPECTS IMPORT)',
     '- Return only CSV (no markdown).',
-    '- Header must be: company,title,jobUrl,location,source,postingDate,captureDate,status,batch,notes',
+    '- Header must be: company,title,jobUrl,location,source,postingDate,captureDate,status,batch,notes,tags,followUpDate,followUpNote,customFields',
     '- One role per row. Quote any field that contains commas.',
     '- jobUrl must be a direct company/ATS link.',
     '- source should be the site name (Company site, Workday, Greenhouse, Lever, Taleo, etc).',
@@ -236,6 +255,9 @@
     '- location should include the city/state or region plus classification in parentheses (Remote/Hybrid/On-site).',
     '- batch should be a shared label for this search (e.g., "Remote data roles · March"), or leave blank if you will add it in the import form.',
     '- notes should be one short line that includes: why the role fits, estimated salary range, stability signal, and work-life balance snapshot.',
+    '- tags should be semicolon-separated labels like "remote;priority".',
+    '- followUpDate and followUpNote are optional; leave blank if not needed.',
+    '- customFields should be JSON (e.g., {"priority":"High","salary":"90k"}) or blank.',
     '- End with a weekly hiring trend summary by appending "Weekly trend: ..." to the notes field of the final job row.'
   ].join('\n');
   const APPLICATION_STATUSES = ['Applied', 'Screening', 'Interview', 'Offer', 'Rejected', 'Withdrawn'];
@@ -252,6 +274,7 @@
     active: 5,
     interested: 3
   };
+  const FOLLOWUP_RANGE_DAYS = 14;
 	  const DETAIL_DEFAULT_SUBTITLE = 'Click a chart element to inspect activity.';
 	  const DETAIL_DEFAULT_BODY = 'Select a state, week, weekday, day, or status to see details here.';
 	  const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -325,11 +348,14 @@
 	    entryType: 'application',
 	    entries: [],
 	    entriesLoaded: false,
+	    followups: [],
 	    dashboardEntries: [],
 	    entryItems: new Map(),
 	    entrySort: { key: 'date', direction: 'desc' },
 	    entryView: 'table',
 	    dashboardView: 'applications',
+	    savedViews: [],
+	    activeViewId: '',
 	    entryFilters: {
       query: '',
       type: 'all',
@@ -892,6 +918,10 @@
     location: ['location', 'city', 'region', 'locale'],
     source: ['source', 'referral', 'channel', 'board'],
     batch: ['batch', 'batchname', 'importbatch'],
+    tags: ['tags', 'tag', 'labels', 'label'],
+    followUpDate: ['followupdate', 'followup', 'nextactiondate', 'followupdate'],
+    followUpNote: ['followupnote', 'followupnotes', 'nextactionnote', 'nextactionnotes'],
+    customFields: ['customfields', 'customfield', 'fields', 'metadata'],
     attachments: ['attachments', 'attachmentfiles', 'attachmentfile', 'files', 'documents'],
     resumeFile: ['resume', 'resumefile', 'resumefilename', 'resumeattachment', 'resumeattachmentname'],
     coverLetterFile: ['coverletter', 'coverletterfile', 'coverletterfilename', 'cover', 'coverfile']
@@ -929,6 +959,45 @@
       .split(/[;|]/)
       .map(item => item.trim())
       .filter(Boolean);
+  };
+
+  const parseTagList = (value) => {
+    const trimmed = (value || '').toString().trim();
+    if (!trimmed) return [];
+    return trimmed
+      .split(/[;,|]/)
+      .map(item => item.trim())
+      .filter(Boolean);
+  };
+
+  const parseCustomFieldsInput = (value) => {
+    const trimmed = (value || '').toString().trim();
+    if (!trimmed) return {};
+    if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          return parsed;
+        }
+        if (Array.isArray(parsed)) {
+          return parsed.reduce((acc, item) => {
+            const key = (item?.key || '').toString().trim();
+            const val = (item?.value || '').toString().trim();
+            if (key && val) acc[key] = val;
+            return acc;
+          }, {});
+        }
+      } catch {}
+    }
+    const fields = {};
+    trimmed.split(/[;|]/).forEach((pair) => {
+      const parts = pair.split(':');
+      if (!parts.length) return;
+      const key = (parts.shift() || '').trim();
+      const val = parts.join(':').trim();
+      if (key && val) fields[key] = val;
+    });
+    return fields;
   };
 
   const normalizeUrl = (value) => {
@@ -1335,7 +1404,7 @@
 
   const addDays = (value, days) => {
     if (!value && value !== 0) return null;
-    const parsed = parseDateInput(value) || parseIsoDate(value);
+    const parsed = value instanceof Date ? value : (parseDateInput(value) || parseIsoDate(value));
     if (!parsed) return null;
     const due = new Date(parsed.getTime());
     due.setUTCDate(due.getUTCDate() + days);
@@ -1362,16 +1431,23 @@
   const getNextAction = (entry) => {
     const entryType = entry?.entryType || getEntryType(entry);
     const statusKey = getEntryStatusKey(entry);
+    const followUpDate = parseDateInput(entry?.followUpDate);
     if (entryType === 'prospect') {
       if (statusKey === 'rejected') return { label: 'Closed', tone: 'muted' };
       if (statusKey === 'inactive') return { label: 'Archived', tone: 'muted' };
       const verb = statusKey === 'interested' ? 'Apply' : 'Review';
+      if (followUpDate) {
+        return buildNextAction(verb, followUpDate);
+      }
       const baseDate = entry.captureDate || deriveStatusDate(entry);
       const offset = FOLLOW_UP_DAYS[statusKey] ?? 5;
       return buildNextAction(verb, addDays(baseDate, offset));
     }
     if (statusKey === 'offer') return { label: 'Review offer', tone: 'success' };
     if (statusKey === 'rejected' || statusKey === 'withdrawn') return { label: 'Closed', tone: 'muted' };
+    if (followUpDate) {
+      return buildNextAction('Follow up', followUpDate);
+    }
     const baseDate = deriveStatusDate(entry) || entry.appliedDate;
     const offset = FOLLOW_UP_DAYS[statusKey] ?? 7;
     return buildNextAction('Follow up', addDays(baseDate, offset));
@@ -1608,6 +1684,13 @@
     const statusDateLabel = statusDateValue ? formatDateLabel(statusDateValue) : '';
     const showStatusDate = Boolean(statusDateLabel)
       && !(entryType === 'application' && statusValue === 'applied' && appliedValue);
+    const tagsLabel = Array.isArray(entry.tags) && entry.tags.length ? entry.tags.join(', ') : '';
+    const followUpLabel = entry.followUpDate && parseDateInput(entry.followUpDate)
+      ? formatDateLabel(entry.followUpDate)
+      : '';
+    const customFieldLabel = entry.customFields && typeof entry.customFields === 'object'
+      ? Object.entries(entry.customFields).map(([key, value]) => `${key}: ${value}`).join(' · ')
+      : '';
 
     const meta = document.createElement('div');
     meta.className = 'jobtrack-modal-meta';
@@ -1621,6 +1704,10 @@
       buildDetailModalRow('Location', formatLocationDisplay(entry.location || '')),
       buildDetailModalRow('Source', entry.source || ''),
       buildDetailModalRow('Batch', entry.batch || ''),
+      buildDetailModalRow('Tags', tagsLabel),
+      buildDetailModalRow('Follow-up', followUpLabel),
+      buildDetailModalRow('Follow-up note', entry.followUpNote || ''),
+      buildDetailModalRow('Custom fields', customFieldLabel),
       buildDetailModalRow('Job URL', entry.jobUrl || '', entry.jobUrl ? normalizeUrl(entry.jobUrl) : '')
     ].filter(Boolean);
     rows.forEach((row) => meta.appendChild(row));
@@ -1812,6 +1899,11 @@
           const uploaded = document.createElement('span');
           uploaded.textContent = formatDateLabel(attachment.uploadedAt);
           metaInfo.appendChild(uploaded);
+        }
+        if (attachment?.size) {
+          const size = document.createElement('span');
+          size.textContent = formatFileSize(Number(attachment.size));
+          metaInfo.appendChild(size);
         }
         if (metaInfo.childNodes.length) info.appendChild(metaInfo);
 
@@ -2018,6 +2110,10 @@
     setUnknownDateValue(els.postingDateInput, els.postingUnknownInput, item.postingDate || '');
     if (els.statusInput) els.statusInput.value = item.status || (entryType === 'prospect' ? 'Active' : 'Applied');
     if (els.notesInput) els.notesInput.value = item.notes || '';
+    if (els.tagsInput) els.tagsInput.value = formatTagInput(item.tags || []);
+    if (els.followUpDateInput) els.followUpDateInput.value = item.followUpDate || '';
+    if (els.followUpNoteInput) els.followUpNoteInput.value = item.followUpNote || '';
+    setCustomFieldsFromEntry(item.customFields || {});
     updateEntrySubmitLabel();
     setDraftStatus('');
     if (els.entryFormStatus) {
@@ -2335,6 +2431,36 @@
     if (els.coverInput) els.coverInput.value = '';
   };
 
+  const formatFileSize = (bytes) => {
+    if (!Number.isFinite(bytes) || bytes <= 0) return '0 B';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+    if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+  };
+
+  const validateAttachmentFiles = (attachments = [], statusEl) => {
+    const maxBytes = config.maxAttachmentBytes || 0;
+    if (!maxBytes) return true;
+    for (const attachment of attachments) {
+      const file = attachment?.file;
+      if (!file || !Number.isFinite(file.size)) continue;
+      if (file.size > maxBytes) {
+        const limitLabel = formatFileSize(maxBytes);
+        setStatus(statusEl, `${file.name || 'Attachment'} exceeds ${limitLabel}.`, 'error');
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const updateAttachmentLimitText = () => {
+    if (!els.attachmentLimit) return;
+    const maxBytes = config.maxAttachmentBytes || 0;
+    if (!maxBytes) return;
+    els.attachmentLimit.textContent = `Files are stored privately with this application (max ${formatFileSize(maxBytes)} each).`;
+  };
+
   const resetEntryDateFields = (type = state.entryType) => {
     setUnknownDateValue(els.postingDateInput, els.postingUnknownInput, '');
     if (type === 'application' && els.appliedDateInput) {
@@ -2442,6 +2568,82 @@
     }
   };
 
+  const formatTagInput = (tags = []) => (Array.isArray(tags) ? tags.join(', ') : '');
+
+  const parseTagInput = (value) => {
+    const raw = (value || '').toString().trim();
+    if (!raw) return [];
+    const seen = new Set();
+    return raw.split(/[;,]+/)
+      .map(tag => tag.trim())
+      .filter(Boolean)
+      .filter((tag) => {
+        const key = tag.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+  };
+
+  const clearCustomFields = () => {
+    if (!els.customFieldList) return;
+    els.customFieldList.innerHTML = '';
+  };
+
+  const addCustomFieldRow = (key = '', value = '') => {
+    if (!els.customFieldList) return;
+    const row = document.createElement('div');
+    row.className = 'jobtrack-custom-field-row';
+
+    const keyInput = document.createElement('input');
+    keyInput.type = 'text';
+    keyInput.className = 'jobtrack-input';
+    keyInput.placeholder = 'Field name';
+    keyInput.value = key;
+    keyInput.dataset.jobtrackCustom = 'key';
+
+    const valueInput = document.createElement('input');
+    valueInput.type = 'text';
+    valueInput.className = 'jobtrack-input';
+    valueInput.placeholder = 'Value';
+    valueInput.value = value;
+    valueInput.dataset.jobtrackCustom = 'value';
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'btn-ghost';
+    removeBtn.textContent = 'Remove';
+    removeBtn.addEventListener('click', () => {
+      row.remove();
+      scheduleEntryDraftSave();
+    });
+
+    row.appendChild(keyInput);
+    row.appendChild(valueInput);
+    row.appendChild(removeBtn);
+    els.customFieldList.appendChild(row);
+  };
+
+  const setCustomFieldsFromEntry = (fields = {}) => {
+    clearCustomFields();
+    const entries = fields && typeof fields === 'object' ? Object.entries(fields) : [];
+    if (!entries.length) return;
+    entries.forEach(([key, value]) => addCustomFieldRow(key, value));
+  };
+
+  const readCustomFields = () => {
+    if (!els.customFieldList) return {};
+    const rows = [...els.customFieldList.querySelectorAll('.jobtrack-custom-field-row')];
+    return rows.reduce((acc, row) => {
+      const key = row.querySelector('[data-jobtrack-custom="key"]')?.value || '';
+      const value = row.querySelector('[data-jobtrack-custom="value"]')?.value || '';
+      const trimmedKey = key.toString().trim();
+      const trimmedValue = value.toString().trim();
+      if (trimmedKey && trimmedValue) acc[trimmedKey] = trimmedValue;
+      return acc;
+    }, {});
+  };
+
   const buildEntryDraft = () => ({
     entryType: state.entryType,
     company: els.companyInput?.value || '',
@@ -2455,7 +2657,11 @@
     appliedDate: els.appliedDateInput?.value || '',
     captureDate: els.captureDateInput?.value || '',
     status: els.statusInput?.value || '',
-    notes: els.notesInput?.value || ''
+    notes: els.notesInput?.value || '',
+    tags: parseTagInput(els.tagsInput?.value || ''),
+    followUpDate: els.followUpDateInput?.value || '',
+    followUpNote: els.followUpNoteInput?.value || '',
+    customFields: readCustomFields()
   });
 
   const hasEntryDraftValues = (draft) => {
@@ -2468,9 +2674,14 @@
       draft.source,
       draft.batch,
       draft.postingDate,
-      draft.notes
+      draft.notes,
+      draft.followUpDate,
+      draft.followUpNote
     ];
-    return fields.some(value => (value || '').toString().trim());
+    if (fields.some(value => (value || '').toString().trim())) return true;
+    if (Array.isArray(draft.tags) && draft.tags.length) return true;
+    if (draft.customFields && Object.keys(draft.customFields).length) return true;
+    return false;
   };
 
   const saveEntryDraft = () => {
@@ -2519,9 +2730,12 @@
       els.locationInput?.value,
       els.sourceInput?.value,
       els.batchInput?.value,
-      els.notesInput?.value
+      els.notesInput?.value,
+      els.tagsInput?.value,
+      els.followUpDateInput?.value,
+      els.followUpNoteInput?.value
     ].some(value => (value || '').toString().trim());
-    if (hasValues) return;
+    if (hasValues || (els.customFieldList && els.customFieldList.childElementCount)) return;
     setEntryType(draft.entryType || 'application', { preserveStatus: false });
     if (els.companyInput && draft.company) els.companyInput.value = draft.company;
     if (els.titleInput && draft.title) els.titleInput.value = draft.title;
@@ -2533,6 +2747,10 @@
     if (els.captureDateInput && draft.captureDate) els.captureDateInput.value = draft.captureDate;
     if (els.statusInput && draft.status) els.statusInput.value = draft.status;
     if (els.notesInput && draft.notes) els.notesInput.value = draft.notes;
+    if (els.tagsInput && Array.isArray(draft.tags)) els.tagsInput.value = formatTagInput(draft.tags);
+    if (els.followUpDateInput && draft.followUpDate) els.followUpDateInput.value = draft.followUpDate;
+    if (els.followUpNoteInput && draft.followUpNote) els.followUpNoteInput.value = draft.followUpNote;
+    if (draft.customFields) setCustomFieldsFromEntry(draft.customFields);
     setUnknownDateValue(
       els.postingDateInput,
       els.postingUnknownInput,
@@ -2550,7 +2768,8 @@
       body: {
         applicationId,
         filename: file.name || 'attachment',
-        contentType
+        contentType,
+        size: file.size
       }
     });
     const res = await fetch(presign.uploadUrl, {
@@ -2566,11 +2785,15 @@
       filename: file.name || 'attachment',
       contentType,
       kind: attachment.kind || '',
-      uploadedAt: new Date().toISOString()
+      uploadedAt: new Date().toISOString(),
+      size: file.size
     };
   };
 
-  const uploadAttachments = async (applicationId, attachments = [], onProgress) => {
+  const uploadAttachments = async (applicationId, attachments = [], onProgress, statusEl = null) => {
+    if (!validateAttachmentFiles(attachments, statusEl)) {
+      throw new Error('Attachment exceeds size limit.');
+    }
     const uploaded = [];
     for (const attachment of attachments) {
       try {
@@ -3471,6 +3694,84 @@
     }
   };
 
+  const renderFunnel = (data = {}) => {
+    if (!els.funnelList) return;
+    const stages = Array.isArray(data.stages) ? data.stages : [];
+    els.funnelList.innerHTML = '';
+    if (!stages.length) {
+      const empty = document.createElement('p');
+      empty.className = 'jobtrack-form-status';
+      empty.textContent = 'No funnel data yet.';
+      els.funnelList.appendChild(empty);
+      return;
+    }
+    const max = Math.max(0, ...stages.map(stage => stage.count || 0));
+    stages.forEach((stage) => {
+      const row = document.createElement('div');
+      row.className = 'jobtrack-funnel-row';
+
+      const meta = document.createElement('div');
+      meta.className = 'jobtrack-funnel-meta';
+      const label = document.createElement('span');
+      label.textContent = stage.stage || 'Stage';
+      const count = document.createElement('span');
+      count.textContent = `${stage.count || 0} · ${formatPercent(stage.rate)}`;
+      meta.appendChild(label);
+      meta.appendChild(count);
+
+      const bar = document.createElement('div');
+      bar.className = 'jobtrack-funnel-bar';
+      const fill = document.createElement('span');
+      const width = max ? Math.round(((stage.count || 0) / max) * 100) : 0;
+      fill.style.width = `${width}%`;
+      bar.appendChild(fill);
+
+      row.appendChild(meta);
+      row.appendChild(bar);
+      els.funnelList.appendChild(row);
+    });
+    const conversions = Array.isArray(data.conversions) ? data.conversions : [];
+    if (conversions.length) {
+      const conversionWrap = document.createElement('div');
+      conversionWrap.className = 'jobtrack-funnel-conversions';
+      conversions.forEach((conversion) => {
+        const line = document.createElement('div');
+        line.className = 'jobtrack-funnel-conversion';
+        const label = `${conversion.from} → ${conversion.to}`;
+        line.textContent = `${label}: ${formatPercent(conversion.rate)}`;
+        conversionWrap.appendChild(line);
+      });
+      els.funnelList.appendChild(conversionWrap);
+    }
+  };
+
+  const renderTimeInStage = (data = {}) => {
+    if (!els.timeInStageList) return;
+    const stages = Array.isArray(data.stages) ? data.stages : [];
+    els.timeInStageList.innerHTML = '';
+    if (!stages.length) {
+      const empty = document.createElement('p');
+      empty.className = 'jobtrack-form-status';
+      empty.textContent = 'No timing data yet.';
+      els.timeInStageList.appendChild(empty);
+      return;
+    }
+    stages.forEach((stage) => {
+      const row = document.createElement('div');
+      row.className = 'jobtrack-time-row';
+      const name = document.createElement('strong');
+      name.textContent = stage.stage || 'Stage';
+      const avg = document.createElement('span');
+      avg.textContent = Number.isFinite(stage.avgDays) ? `Avg ${formatDays(stage.avgDays)}` : 'Avg --';
+      const median = document.createElement('span');
+      median.textContent = Number.isFinite(stage.medianDays) ? `Median ${formatDays(stage.medianDays)}` : 'Median --';
+      row.appendChild(name);
+      row.appendChild(avg);
+      row.appendChild(median);
+      els.timeInStageList.appendChild(row);
+    });
+  };
+
   const getMapStateCode = (node) => {
     const className = (node.getAttribute('class') || '').toString();
     const classes = className.split(/\s+/).filter(Boolean);
@@ -3727,6 +4028,8 @@
       if (els.mapTotal) els.mapTotal.textContent = 'Map unavailable';
       if (els.mapRemote) els.mapRemote.textContent = 'Remote: --';
       updateInsights({});
+      renderFunnel({});
+      renderTimeInStage({});
       clearDashboardDetail();
       state.dashboardEntries = [];
       state.mapDetails = null;
@@ -3744,6 +4047,8 @@
       if (els.mapTotal) els.mapTotal.textContent = 'Sign in to view map';
       if (els.mapRemote) els.mapRemote.textContent = 'Remote: --';
       updateInsights({});
+      renderFunnel({});
+      renderTimeInStage({});
       clearDashboardDetail();
       state.dashboardEntries = [];
       state.mapDetails = null;
@@ -3766,12 +4071,14 @@
     clearDashboardDetail();
     try {
       const query = buildQuery(range);
-      const [summary, timeline, statuses, calendar, applications] = await Promise.all([
+      const [summary, timeline, statuses, calendar, applications, funnel, timeInStage] = await Promise.all([
         requestJson(`/api/analytics/summary?${query}`),
         requestJson(`/api/analytics/applications-over-time?${query}`),
         requestJson(`/api/analytics/status-breakdown?${query}`),
         requestJson(`/api/analytics/calendar?${query}`),
-        requestJson(`/api/applications?${query}`)
+        requestJson(`/api/applications?${query}`),
+        requestJson(`/api/analytics/funnel?${query}`),
+        requestJson(`/api/analytics/time-in-stage?${query}`)
       ]);
       const series = timeline.series || [];
       const statusSeries = statuses.statuses || [];
@@ -3789,6 +4096,8 @@
       buildCalendar(calendar.days || [], rangeLabel, range, detailData.calendarDetails);
       buildWeekdayHeatmap(detailData.weekdayDetails);
       updateInsights(buildInsights(appItems));
+      renderFunnel(funnel || {});
+      renderTimeInStage(timeInStage || {});
       await updateMap(appItems, detailData);
       setOverlay(els.lineOverlay, series.length ? '' : 'No activity yet.');
       setOverlay(els.statusOverlay, statusSeries.length ? '' : 'No statuses yet.');
@@ -3801,6 +4110,8 @@
       if (els.mapTotal) els.mapTotal.textContent = 'Map unavailable';
       if (els.mapRemote) els.mapRemote.textContent = 'Remote: --';
       updateInsights({});
+      renderFunnel({});
+      renderTimeInStage({});
       clearDashboardDetail();
       state.dashboardEntries = [];
       state.mapDetails = null;
@@ -3820,7 +4131,9 @@
     ...item,
     recordType: entryType,
     entryType,
-    statusDate: deriveStatusDate(item)
+    statusDate: deriveStatusDate(item),
+    tags: Array.isArray(item?.tags) ? item.tags : [],
+    customFields: item?.customFields && typeof item.customFields === 'object' ? item.customFields : {}
   });
 
   const getEntryDateValue = (entry) => {
@@ -3915,6 +4228,10 @@
 
   const matchesQuery = (entry, terms = []) => {
     if (!terms.length) return true;
+    const tags = Array.isArray(entry.tags) ? entry.tags.join(' ') : '';
+    const customFields = entry.customFields && typeof entry.customFields === 'object'
+      ? Object.entries(entry.customFields).map(([key, value]) => `${key} ${value}`).join(' ')
+      : '';
     const haystack = [
       entry.company,
       entry.title,
@@ -3922,7 +4239,10 @@
       entry.source,
       entry.batch,
       entry.notes,
-      entry.status
+      entry.status,
+      entry.followUpNote,
+      tags,
+      customFields
     ].join(' ').toLowerCase();
     return terms.every(term => haystack.includes(term));
   };
@@ -3938,6 +4258,7 @@
     const locationType = (els.entryFilterLocation?.value || 'all').trim();
     const start = parseDateInput(els.entryFilterStart?.value || '');
     const end = parseDateInput(els.entryFilterEnd?.value || '');
+    const tagTerms = parseTagList(els.entryFilterTags?.value || '').map(tag => tag.toLowerCase());
 
     return items.filter((entry) => {
       const entryType = entry.entryType || getEntryType(entry);
@@ -3952,7 +4273,13 @@
       if (batch !== 'all') {
         const entryBatch = (entry.batch || '').toString().trim().toLowerCase();
         if (entryBatch !== batch) return false;
-	      }
+      }
+      if (tagTerms.length) {
+        const entryTags = Array.isArray(entry.tags)
+          ? entry.tags.map(tag => tag.toString().trim().toLowerCase())
+          : [];
+        if (!tagTerms.every(tag => entryTags.includes(tag))) return false;
+      }
 	      if (locationType !== 'all') {
 	        const info = parseLocation(entry.location || '');
 	        const hasLocation = Boolean(info.raw);
@@ -4128,6 +4455,31 @@
     batchCell.dataset.label = 'Batch';
     batchCell.textContent = entry.batch || '—';
     row.appendChild(batchCell);
+
+    const tagsCell = document.createElement('div');
+    tagsCell.className = 'jobtrack-table-cell';
+    tagsCell.dataset.label = 'Tags';
+    const tagValues = Array.isArray(entry.tags) ? entry.tags.filter(Boolean) : [];
+    if (tagValues.length) {
+      const wrap = document.createElement('div');
+      wrap.className = 'jobtrack-tag-list';
+      tagValues.slice(0, 3).forEach((tag) => {
+        const pill = document.createElement('span');
+        pill.className = 'jobtrack-tag';
+        pill.textContent = tag;
+        wrap.appendChild(pill);
+      });
+      if (tagValues.length > 3) {
+        const more = document.createElement('span');
+        more.className = 'jobtrack-tag';
+        more.textContent = `+${tagValues.length - 3}`;
+        wrap.appendChild(more);
+      }
+      tagsCell.appendChild(wrap);
+    } else {
+      tagsCell.textContent = '—';
+    }
+    row.appendChild(tagsCell);
 
     const actionsCell = document.createElement('div');
     actionsCell.className = 'jobtrack-table-cell jobtrack-table-actions';
@@ -4570,6 +4922,249 @@
     updateEntryCount(sorted.length, state.entries.length);
   };
 
+  const buildSavedViewFilters = () => ({
+    query: (els.entryFilterQuery?.value || '').toString().trim(),
+    statusGroup: (els.entryFilterGroup?.value || 'all').toString().trim(),
+    type: (els.entryFilterType?.value || 'all').toString().trim(),
+    status: (els.entryFilterStatus?.value || 'all').toString().trim(),
+    source: (els.entryFilterSource?.value || 'all').toString().trim(),
+    batch: (els.entryFilterBatch?.value || 'all').toString().trim(),
+    location: (els.entryFilterLocation?.value || 'all').toString().trim(),
+    start: (els.entryFilterStart?.value || '').toString().trim(),
+    end: (els.entryFilterEnd?.value || '').toString().trim(),
+    tags: parseTagInput(els.entryFilterTags?.value || ''),
+    sort: els.entrySortSelect?.value || `${state.entrySort.key}-${state.entrySort.direction}`,
+    view: state.entryView
+  });
+
+  const updateSavedViewActions = () => {
+    if (!els.savedViewDelete) return;
+    const hasSelection = Boolean(state.activeViewId);
+    els.savedViewDelete.disabled = !hasSelection;
+    els.savedViewDelete.setAttribute('aria-disabled', hasSelection ? 'false' : 'true');
+  };
+
+  const renderSavedViews = () => {
+    if (!els.savedViewSelect) return;
+    els.savedViewSelect.innerHTML = '';
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = 'Choose a saved view';
+    els.savedViewSelect.appendChild(placeholder);
+    state.savedViews.forEach((view) => {
+      const option = document.createElement('option');
+      option.value = view.applicationId || '';
+      option.textContent = view.name || 'Saved view';
+      els.savedViewSelect.appendChild(option);
+    });
+    if (state.activeViewId) {
+      els.savedViewSelect.value = state.activeViewId;
+    }
+    updateSavedViewActions();
+  };
+
+  const applySavedView = (view) => {
+    if (!view) return;
+    const filters = view.filters || {};
+    if (els.entryFilterQuery) els.entryFilterQuery.value = filters.query || '';
+    if (els.entryFilterGroup) els.entryFilterGroup.value = filters.statusGroup || 'all';
+    if (els.entryFilterType) els.entryFilterType.value = filters.type || 'all';
+    if (els.entryFilterStatus) els.entryFilterStatus.value = filters.status || 'all';
+    if (els.entryFilterSource) els.entryFilterSource.value = filters.source || 'all';
+    if (els.entryFilterBatch) els.entryFilterBatch.value = filters.batch || 'all';
+    if (els.entryFilterLocation) els.entryFilterLocation.value = filters.location || 'all';
+    if (els.entryFilterStart) els.entryFilterStart.value = filters.start || '';
+    if (els.entryFilterEnd) els.entryFilterEnd.value = filters.end || '';
+    if (els.entryFilterTags) {
+      const tags = Array.isArray(filters.tags) ? filters.tags : parseTagInput(filters.tags || '');
+      els.entryFilterTags.value = formatTagInput(tags);
+    }
+    if (filters.sort) {
+      const [key, direction] = filters.sort.split('-');
+      state.entrySort.key = key || 'date';
+      state.entrySort.direction = direction === 'asc' ? 'asc' : 'desc';
+    }
+    if (filters.view) {
+      setEntryView(filters.view);
+    }
+    applyEntryFilters();
+  };
+
+  const loadSavedViews = async () => {
+    if (!els.savedViewSelect) return;
+    if (!config.apiBase || !authIsValid(state.auth)) {
+      state.savedViews = [];
+      state.activeViewId = '';
+      renderSavedViews();
+      if (els.savedViewStatus) {
+        setStatus(els.savedViewStatus, 'Sign in to use saved views.', 'info');
+      }
+      return;
+    }
+    try {
+      const data = await requestJson('/api/views');
+      state.savedViews = Array.isArray(data.items) ? data.items : [];
+      if (state.activeViewId && !state.savedViews.find(view => view.applicationId === state.activeViewId)) {
+        state.activeViewId = '';
+      }
+      renderSavedViews();
+      if (els.savedViewStatus) setStatus(els.savedViewStatus, '', '');
+    } catch (err) {
+      state.savedViews = [];
+      state.activeViewId = '';
+      renderSavedViews();
+      if (els.savedViewStatus) {
+        setStatus(els.savedViewStatus, err?.message || 'Unable to load saved views.', 'error');
+      }
+    }
+  };
+
+  const saveCurrentView = async () => {
+    if (!els.savedViewName) return;
+    const name = (els.savedViewName.value || '').toString().trim();
+    if (!name) {
+      setStatus(els.savedViewStatus, 'Name the view before saving.', 'error');
+      return;
+    }
+    if (!authIsValid(state.auth)) {
+      setStatus(els.savedViewStatus, 'Sign in to save views.', 'error');
+      return;
+    }
+    if (!config.apiBase) {
+      setStatus(els.savedViewStatus, 'Set the API base URL to save views.', 'error');
+      return;
+    }
+    try {
+      setStatus(els.savedViewStatus, 'Saving view...', 'info');
+      const created = await requestJson('/api/views', {
+        method: 'POST',
+        body: { name, filters: buildSavedViewFilters() }
+      });
+      if (created?.applicationId) {
+        state.savedViews = [...state.savedViews, created];
+        state.activeViewId = created.applicationId;
+        renderSavedViews();
+        els.savedViewName.value = '';
+        setStatus(els.savedViewStatus, 'View saved.', 'success');
+      } else {
+        setStatus(els.savedViewStatus, 'View saved.', 'success');
+        await loadSavedViews();
+      }
+    } catch (err) {
+      setStatus(els.savedViewStatus, err?.message || 'Unable to save view.', 'error');
+    }
+  };
+
+  const deleteSavedView = async () => {
+    if (!state.activeViewId) return;
+    if (!confirmAction('Delete this saved view?')) return;
+    if (!authIsValid(state.auth)) {
+      setStatus(els.savedViewStatus, 'Sign in to delete views.', 'error');
+      return;
+    }
+    if (!config.apiBase) {
+      setStatus(els.savedViewStatus, 'Set the API base URL to delete views.', 'error');
+      return;
+    }
+    try {
+      setStatus(els.savedViewStatus, 'Deleting view...', 'info');
+      await requestJson(`/api/views/${encodeURIComponent(state.activeViewId)}`, { method: 'DELETE' });
+      state.savedViews = state.savedViews.filter(view => view.applicationId !== state.activeViewId);
+      state.activeViewId = '';
+      renderSavedViews();
+      setStatus(els.savedViewStatus, 'View deleted.', 'success');
+    } catch (err) {
+      setStatus(els.savedViewStatus, err?.message || 'Unable to delete view.', 'error');
+    }
+  };
+
+  const renderFollowups = (items = []) => {
+    if (!els.followupList) return;
+    els.followupList.innerHTML = '';
+    if (!items.length) {
+      const empty = document.createElement('p');
+      empty.className = 'jobtrack-form-status';
+      empty.textContent = 'No follow-ups due in this window.';
+      els.followupList.appendChild(empty);
+      return;
+    }
+    items.forEach((item) => {
+      const row = document.createElement('div');
+      row.className = 'jobtrack-followup-item';
+      if (item.actionTone) row.dataset.tone = item.actionTone;
+
+      const info = document.createElement('div');
+      const title = document.createElement('div');
+      title.className = 'jobtrack-followup-title';
+      title.textContent = [item.title, item.company].filter(Boolean).join(' · ') || 'Follow-up';
+      const meta = document.createElement('div');
+      meta.className = 'jobtrack-followup-meta';
+      const dueLabel = item.dueDate ? formatDateLabel(item.dueDate) : 'Soon';
+      const duePrefix = item.overdue ? 'Overdue' : 'Due';
+      const statusLabel = item.status ? ` · ${item.status}` : '';
+      const noteLabel = item.followUpNote ? ` · ${item.followUpNote}` : '';
+      meta.textContent = `${item.actionLabel || 'Follow up'} · ${duePrefix} ${dueLabel}${statusLabel}${noteLabel}`;
+      info.appendChild(title);
+      info.appendChild(meta);
+
+      const actions = document.createElement('div');
+      actions.className = 'jobtrack-followup-actions';
+      const viewBtn = document.createElement('button');
+      viewBtn.type = 'button';
+      viewBtn.className = 'btn-ghost';
+      viewBtn.textContent = 'View';
+      viewBtn.addEventListener('click', () => {
+        const entry = state.entryItems.get(item.applicationId);
+        if (entry) {
+          openDetailModal(entry);
+          return;
+        }
+        setStatus(els.followupStatus, 'Entry details are not loaded yet.', 'info');
+      });
+      actions.appendChild(viewBtn);
+      if (item.jobUrl) {
+        const linkBtn = document.createElement('a');
+        linkBtn.className = 'btn-ghost';
+        linkBtn.href = normalizeUrl(item.jobUrl);
+        linkBtn.target = '_blank';
+        linkBtn.rel = 'noopener noreferrer';
+        linkBtn.textContent = 'Job link';
+        actions.appendChild(linkBtn);
+      }
+
+      row.appendChild(info);
+      row.appendChild(actions);
+      els.followupList.appendChild(row);
+    });
+  };
+
+  const refreshFollowups = async () => {
+    if (!els.followupStatus) return;
+    if (!config.apiBase) {
+      renderFollowups([]);
+      setStatus(els.followupStatus, 'Set the API base URL to load follow-ups.', 'error');
+      return;
+    }
+    if (!authIsValid(state.auth)) {
+      renderFollowups([]);
+      setStatus(els.followupStatus, 'Sign in to load follow-ups.', 'info');
+      return;
+    }
+    const start = formatDateInput(new Date());
+    const end = formatDateInput(addDays(new Date(), FOLLOWUP_RANGE_DAYS));
+    try {
+      setStatus(els.followupStatus, 'Loading follow-ups...', 'info');
+      const data = await requestJson(`/api/analytics/followups?start=${start}&end=${end}&includeOverdue=true`);
+      const items = Array.isArray(data.items) ? data.items : [];
+      state.followups = items;
+      renderFollowups(items);
+      setStatus(els.followupStatus, items.length ? `Loaded ${items.length} follow-up${items.length === 1 ? '' : 's'}.` : 'No follow-ups due.', 'success');
+    } catch (err) {
+      renderFollowups([]);
+      setStatus(els.followupStatus, err?.message || 'Unable to load follow-ups.', 'error');
+    }
+  };
+
 	  const refreshEntries = async () => {
 	    if (!els.entryList) return;
 	    state.entriesLoaded = false;
@@ -4584,6 +5179,8 @@
       }
       updateEntrySelectionUI();
       updateEntryCount(0, 0);
+      loadSavedViews();
+      refreshFollowups();
       return;
 	    }
 	    if (!authIsValid(state.auth)) {
@@ -4592,11 +5189,13 @@
 	      state.selectedEntryIds.clear();
 	      renderEntryList([], 'Sign in to load your entries.');
 	      renderProspectReviewList([]);
-	      if (els.prospectReviewStatus) {
-	        setStatus(els.prospectReviewStatus, 'Sign in to load prospects.', 'info');
+      if (els.prospectReviewStatus) {
+        setStatus(els.prospectReviewStatus, 'Sign in to load prospects.', 'info');
       }
       updateEntrySelectionUI();
       updateEntryCount(0, 0);
+      loadSavedViews();
+      refreshFollowups();
       return;
     }
 	    try {
@@ -4631,6 +5230,8 @@
         setStatus(els.prospectReviewStatus, `Loaded ${label} in the queue.`, 'success');
       }
       setStatus(els.entryListStatus, `Loaded ${items.length} entries.`, 'success');
+      loadSavedViews();
+      refreshFollowups();
 	    } catch (err) {
 	      console.error('Entry load failed', err);
 	      storeEntries([]);
@@ -4644,11 +5245,32 @@
       if (els.prospectReviewStatus) {
         setStatus(els.prospectReviewStatus, err?.message || 'Unable to load prospects.', 'error');
       }
+      loadSavedViews();
+      refreshFollowups();
     }
   };
 
   const initEntryList = () => {
     initEntryView();
+    if (els.savedViewSelect) {
+      els.savedViewSelect.addEventListener('change', () => {
+        const viewId = els.savedViewSelect.value || '';
+        state.activeViewId = viewId;
+        updateSavedViewActions();
+        if (!viewId) return;
+        const view = state.savedViews.find(item => item.applicationId === viewId);
+        if (view) applySavedView(view);
+      });
+    }
+    if (els.savedViewSave) {
+      els.savedViewSave.addEventListener('click', () => saveCurrentView());
+    }
+    if (els.savedViewDelete) {
+      els.savedViewDelete.addEventListener('click', () => deleteSavedView());
+    }
+    if (els.followupRefresh) {
+      els.followupRefresh.addEventListener('click', () => refreshFollowups());
+    }
     if (els.entriesRefresh) {
       els.entriesRefresh.addEventListener('click', () => refreshEntries());
     }
@@ -4679,6 +5301,9 @@
     if (els.entryFilterLocation) {
       els.entryFilterLocation.addEventListener('change', () => applyEntryFilters());
     }
+    if (els.entryFilterTags) {
+      els.entryFilterTags.addEventListener('input', () => applyEntryFilters());
+    }
     if (els.entryFilterStart) {
       els.entryFilterStart.addEventListener('change', () => applyEntryFilters());
     }
@@ -4702,6 +5327,7 @@
         if (els.entryFilterSource) els.entryFilterSource.value = 'all';
         if (els.entryFilterBatch) els.entryFilterBatch.value = 'all';
         if (els.entryFilterLocation) els.entryFilterLocation.value = 'all';
+        if (els.entryFilterTags) els.entryFilterTags.value = '';
         if (els.entryFilterStart) els.entryFilterStart.value = '';
         if (els.entryFilterEnd) els.entryFilterEnd.value = '';
         applyEntryFilters();
@@ -4984,6 +5610,12 @@
     if (entry.location) payload.location = entry.location;
     if (entry.source) payload.source = entry.source;
     if (entry.batch) payload.batch = entry.batch;
+    if (Array.isArray(entry.tags) && entry.tags.length) payload.tags = entry.tags;
+    if (entry.followUpDate) payload.followUpDate = entry.followUpDate;
+    if (entry.followUpNote) payload.followUpNote = entry.followUpNote;
+    if (entry.customFields && typeof entry.customFields === 'object' && Object.keys(entry.customFields).length) {
+      payload.customFields = entry.customFields;
+    }
     if (entry.postingDate) payload.postingDate = entry.postingDate;
     if (entry.captureDate) payload.captureDate = entry.captureDate;
     if (entry.jobUrl) payload.jobUrl = entry.jobUrl;
@@ -5273,6 +5905,12 @@
     if (item?.batch) payload.batch = item.batch;
     if (item?.postingDate) payload.postingDate = item.postingDate;
     if (item?.captureDate) payload.captureDate = item.captureDate;
+    if (Array.isArray(item?.tags) && item.tags.length) payload.tags = item.tags;
+    if (item?.followUpDate) payload.followUpDate = item.followUpDate;
+    if (item?.followUpNote) payload.followUpNote = item.followUpNote;
+    if (item?.customFields && typeof item.customFields === 'object' && Object.keys(item.customFields).length) {
+      payload.customFields = item.customFields;
+    }
     return payload;
   };
 
@@ -5321,6 +5959,9 @@
       return false;
     }
     const payload = buildApplicationPayloadFromProspect(entry, appliedDate);
+    if (attachments.length && !validateAttachmentFiles(attachments, statusTarget)) {
+      return false;
+    }
     try {
       setStatus(statusTarget, 'Saving application...', 'info');
       const created = await requestJson('/api/applications', { method: 'POST', body: payload });
@@ -5334,7 +5975,7 @@
         try {
           const label = attachments.length === 1 ? 'attachment' : 'attachments';
           setStatus(statusTarget, `Uploading ${attachments.length} ${label}...`, 'info');
-          const uploaded = await uploadAttachments(applicationId, attachments);
+          const uploaded = await uploadAttachments(applicationId, attachments, null, statusTarget);
           await requestJson(`/api/applications/${encodeURIComponent(applicationId)}`, {
             method: 'PATCH',
             body: { attachments: uploaded }
@@ -5451,8 +6092,9 @@
         try {
           const label = attachments.length === 1 ? 'attachment' : 'attachments';
           setStatus(els.entryFormStatus, `Uploading ${attachments.length} ${label}...`, 'info');
-          const uploaded = await uploadAttachments(applicationId, attachments);
-          const merged = [...currentAttachments, ...uploaded].slice(-12);
+          const uploaded = await uploadAttachments(applicationId, attachments, null, els.entryFormStatus);
+          const maxCount = config.maxAttachmentCount || 12;
+          const merged = [...currentAttachments, ...uploaded].slice(-maxCount);
           await requestJson(`/api/applications/${encodeURIComponent(applicationId)}`, {
             method: 'PATCH',
             body: { attachments: merged }
@@ -5487,6 +6129,13 @@
 
   const initEntryForm = () => {
     if (!els.entryForm) return;
+    updateAttachmentLimitText();
+    if (els.customFieldAdd) {
+      els.customFieldAdd.addEventListener('click', () => {
+        addCustomFieldRow();
+        scheduleEntryDraftSave();
+      });
+    }
     initUnknownDateToggle(els.postingDateInput, els.postingUnknownInput, true);
     setEntryType(state.entryType, { preserveStatus: false });
     resetEntryDateFields(state.entryType);
@@ -5541,6 +6190,10 @@
       const captureDate = (formData.get('captureDate') || '').toString().trim();
       const status = (formData.get('status') || (entryType === 'prospect' ? 'Active' : 'Applied')).toString().trim();
       const notes = (formData.get('notes') || '').toString().trim();
+      const tags = parseTagInput(formData.get('tags') || '');
+      const followUpDate = (formData.get('followUpDate') || '').toString().trim();
+      const followUpNote = (formData.get('followUpNote') || '').toString().trim();
+      const customFields = readCustomFields();
       const editing = state.editingEntry;
 
       if (!company || !title) {
@@ -5553,6 +6206,10 @@
       }
       if (postingDate && !parseDateInput(postingDate)) {
         setStatus(els.entryFormStatus, 'Posting date must be valid.', 'error');
+        return;
+      }
+      if (followUpDate && !parseDateInput(followUpDate)) {
+        setStatus(els.entryFormStatus, 'Follow-up date must be valid.', 'error');
         return;
       }
 
@@ -5570,11 +6227,26 @@
           return;
         }
         const attachments = collectAttachments();
+        if (!validateAttachmentFiles(attachments, els.entryFormStatus)) return;
         const payload = { company, title, appliedDate, notes };
         if (jobUrl || editing?.jobUrl) payload.jobUrl = jobUrl;
         if (location || editing?.location) payload.location = location;
         if (source || editing?.source) payload.source = source;
         if (batch || editing?.batch) payload.batch = batch;
+        if (tags.length || (editing?.tags && editing.tags.length)) payload.tags = tags;
+        if (followUpDate) {
+          payload.followUpDate = followUpDate;
+        } else if (editing?.followUpDate) {
+          payload.followUpDate = null;
+        }
+        if (followUpNote) {
+          payload.followUpNote = followUpNote;
+        } else if (editing?.followUpNote) {
+          payload.followUpNote = '';
+        }
+        if (Object.keys(customFields).length || (editing?.customFields && Object.keys(editing.customFields).length)) {
+          payload.customFields = customFields;
+        }
         if (postingUnknown) {
           payload.postingDate = null;
         } else if (postingDate) {
@@ -5595,6 +6267,7 @@
           state.isResettingEntry = true;
           els.entryForm.reset();
           state.isResettingEntry = false;
+          clearCustomFields();
           clearAttachmentInputs();
           setEntryType(nextType);
           resetEntryDateFields(nextType);
@@ -5616,6 +6289,20 @@
       }
       const payload = { company, title, jobUrl, location, source, status, notes, captureDate };
       if (batch || editing?.batch) payload.batch = batch;
+      if (tags.length || (editing?.tags && editing.tags.length)) payload.tags = tags;
+      if (followUpDate) {
+        payload.followUpDate = followUpDate;
+      } else if (editing?.followUpDate) {
+        payload.followUpDate = null;
+      }
+      if (followUpNote) {
+        payload.followUpNote = followUpNote;
+      } else if (editing?.followUpNote) {
+        payload.followUpNote = '';
+      }
+      if (Object.keys(customFields).length || (editing?.customFields && Object.keys(editing.customFields).length)) {
+        payload.customFields = customFields;
+      }
       if (postingUnknown) {
         payload.postingDate = null;
       } else if (postingDate) {
@@ -5627,12 +6314,14 @@
         state.isResettingEntry = true;
         els.entryForm.reset();
         state.isResettingEntry = false;
+        clearCustomFields();
         setEntryType(nextType);
         resetEntryDateFields(nextType);
       }
     });
     els.entryForm.addEventListener('reset', () => {
       clearAttachmentInputs();
+      clearCustomFields();
       const nextType = state.entryType;
       resetEntryDateFields(nextType);
       if (state.isResettingEntry) return;
@@ -5660,6 +6349,10 @@
       const status = map.status !== undefined ? (row[map.status] || '').toString().trim() : '';
       const captureDate = map.captureDate !== undefined ? parseCsvDate(row[map.captureDate]) : '';
       const notes = map.notes !== undefined ? (row[map.notes] || '').toString().trim() : '';
+      const tagsValue = map.tags !== undefined ? (row[map.tags] || '').toString().trim() : '';
+      const followUpDate = map.followUpDate !== undefined ? parseCsvDate(row[map.followUpDate]) : '';
+      const followUpNote = map.followUpNote !== undefined ? (row[map.followUpNote] || '').toString().trim() : '';
+      const customFieldsValue = map.customFields !== undefined ? (row[map.customFields] || '').toString().trim() : '';
       const jobUrl = map.jobUrl !== undefined ? normalizeUrl(row[map.jobUrl]) : '';
       const location = map.location !== undefined ? (row[map.location] || '').toString().trim() : '';
       const source = map.source !== undefined ? (row[map.source] || '').toString().trim() : '';
@@ -5684,6 +6377,12 @@
       if (location) payload.location = location;
       if (source) payload.source = source;
       if (captureDate) payload.captureDate = captureDate;
+      const tags = parseTagList(tagsValue);
+      if (tags.length) payload.tags = tags;
+      if (followUpDate) payload.followUpDate = followUpDate;
+      if (followUpNote) payload.followUpNote = followUpNote;
+      const customFields = parseCustomFieldsInput(customFieldsValue);
+      if (Object.keys(customFields).length) payload.customFields = customFields;
       const attachmentFiles = [];
       const attachmentLookup = new Set();
       const addAttachment = (name, kind) => {
@@ -5725,6 +6424,10 @@
       const captureDate = map.captureDate !== undefined ? parseCsvDate(row[map.captureDate]) : '';
       const status = map.status !== undefined ? (row[map.status] || '').toString().trim() : '';
       const notes = map.notes !== undefined ? (row[map.notes] || '').toString().trim() : '';
+      const tagsValue = map.tags !== undefined ? (row[map.tags] || '').toString().trim() : '';
+      const followUpDate = map.followUpDate !== undefined ? parseCsvDate(row[map.followUpDate]) : '';
+      const followUpNote = map.followUpNote !== undefined ? (row[map.followUpNote] || '').toString().trim() : '';
+      const customFieldsValue = map.customFields !== undefined ? (row[map.customFields] || '').toString().trim() : '';
       if (!company || !title || !jobUrl || !captureDate) {
         skipped += 1;
         return;
@@ -5741,6 +6444,12 @@
       if (postingDate) payload.postingDate = postingDate;
       if (location) payload.location = location;
       if (source) payload.source = source;
+      const tags = parseTagList(tagsValue);
+      if (tags.length) payload.tags = tags;
+      if (followUpDate) payload.followUpDate = followUpDate;
+      if (followUpNote) payload.followUpNote = followUpNote;
+      const customFields = parseCustomFieldsInput(customFieldsValue);
+      if (Object.keys(customFields).length) payload.customFields = customFields;
       entries.push({ payload });
     });
     return { entries, skipped, missing: [] };
@@ -5854,7 +6563,7 @@
               });
               if (attachments.length && applicationId) {
                 try {
-                  const uploaded = await uploadAttachments(applicationId, attachments, handleAttachmentProgress);
+                  const uploaded = await uploadAttachments(applicationId, attachments, handleAttachmentProgress, els.importStatus);
                   await requestJson(`/api/applications/${encodeURIComponent(applicationId)}`, {
                     method: 'PATCH',
                     body: { attachments: uploaded }
@@ -6148,6 +6857,7 @@
           setEntryType('application');
           resetEntryDateFields('application');
           clearAttachmentInputs();
+          clearCustomFields();
 	        }
 	        updateAuthUI();
 	        refreshDashboard();
