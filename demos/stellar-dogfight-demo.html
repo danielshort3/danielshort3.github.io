@@ -4552,31 +4552,32 @@
           const turnRate = (enemy.baseTurnRate || 0) * enemy.slowFactor;
           enemy.angle = rotateTowards(enemy.angle, aimAngle, turnRate * delta);
 
-          const navTarget = getNavigationTarget(enemy, target);
-          const navDx = navTarget.x - enemy.x;
-          const navDy = navTarget.y - enemy.y;
-          const navDistance = Math.hypot(navDx, navDy) || 1;
-          const navAngle = Math.atan2(navDy, navDx);
-
           const accel = enemy.baseAccel * (state.sectorMod?.enemy?.accel || 1) * enemy.slowFactor;
           let ax = 0;
           let ay = 0;
+          const toTargetX = dx / distance;
+          const toTargetY = dy / distance;
+          const currentSpeed = Math.hypot(enemy.vx, enemy.vy);
 
-          if (navTarget !== target || navDistance > enemy.preferredRange) {
-            ax += Math.cos(navAngle) * accel;
-            ay += Math.sin(navAngle) * accel;
+          if (distance > enemy.preferredRange) {
+            ax += toTargetX * accel;
+            ay += toTargetY * accel;
           } else {
             const strafeAngle = aimAngle + Math.PI / 2 * enemy.strafeBias;
             ax += Math.cos(strafeAngle) * accel * 0.85;
             ay += Math.sin(strafeAngle) * accel * 0.85;
           }
 
-          const avoidance = getObstacleAvoidance(enemy);
-          ax += avoidance.x * accel * 1.15;
-          ay += avoidance.y * accel * 1.15;
-          const edgeAvoidance = getBoundaryAvoidance(enemy);
-          ax += edgeAvoidance.x * accel * 1.35;
-          ay += edgeAvoidance.y * accel * 1.35;
+          const avoidance = getObstacleAvoidance(enemy, toTargetX, toTargetY);
+          ax += avoidance.x * accel * 0.65;
+          ay += avoidance.y * accel * 0.65;
+          const edgeAvoidance = getBoundaryAvoidance(enemy, toTargetX, toTargetY);
+          ax += edgeAvoidance.x * accel * 0.85;
+          ay += edgeAvoidance.y * accel * 0.85;
+          if (distance > enemy.preferredRange * 0.7 && currentSpeed < 34) {
+            ax += toTargetX * accel * 0.45;
+            ay += toTargetY * accel * 0.45;
+          }
 
           enemy.vx += ax * delta;
           enemy.vy += ay * delta;
@@ -7384,7 +7385,7 @@
         });
       }
 
-      function getObstacleAvoidance(entity) {
+      function getObstacleAvoidance(entity, forwardX, forwardY) {
         if (!entity || !obstacles.length) {
           return { x: 0, y: 0 };
         }
@@ -7396,14 +7397,14 @@
             const dx = entity.x - obstacle.x;
             const dy = entity.y - obstacle.y;
             const distance = Math.hypot(dx, dy) || 1;
-            const range = obstacle.radius + (entity.radius || 0) + 220;
+            const range = obstacle.radius + (entity.radius || 0) + 160;
             if (distance < range) {
               const strength = (range - distance) / range;
               const nx = dx / distance;
               const ny = dy / distance;
               steerX += nx * strength;
               steerY += ny * strength;
-              const lateral = strength * 0.45 * bias;
+              const lateral = strength * 0.3 * bias;
               steerX += -ny * lateral;
               steerY += nx * lateral;
             }
@@ -7416,30 +7417,38 @@
           const dx = entity.x - closestX;
           const dy = entity.y - closestY;
           const distance = Math.hypot(dx, dy) || 1;
-          const range = Math.max(halfWidth, halfHeight) + (entity.radius || 0) + 190;
+          const range = Math.max(halfWidth, halfHeight) + (entity.radius || 0) + 140;
           if (distance < range) {
             const strength = (range - distance) / range;
             const nx = distance ? dx / distance : (entity.x >= obstacle.x ? 1 : -1);
             const ny = distance ? dy / distance : (entity.y >= obstacle.y ? 1 : -1);
             steerX += nx * strength;
             steerY += ny * strength;
-            const lateral = strength * 0.35 * bias;
+            const lateral = strength * 0.25 * bias;
             steerX += -ny * lateral;
             steerY += nx * lateral;
           }
         });
+        if (Number.isFinite(forwardX) && Number.isFinite(forwardY)) {
+          const backward = steerX * forwardX + steerY * forwardY;
+          if (backward < 0) {
+            steerX -= backward * forwardX;
+            steerY -= backward * forwardY;
+          }
+        }
         const length = Math.hypot(steerX, steerY);
         if (!length) {
           return { x: 0, y: 0 };
         }
-        return { x: steerX / length, y: steerY / length };
+        const scale = length > 1 ? 1 / length : 1;
+        return { x: steerX * scale, y: steerY * scale };
       }
 
-      function getBoundaryAvoidance(entity) {
+      function getBoundaryAvoidance(entity, forwardX, forwardY) {
         if (!entity) {
           return { x: 0, y: 0 };
         }
-        const buffer = 160 + (entity.radius || 0);
+        const buffer = 140 + (entity.radius || 0);
         const maxX = state.worldWidth - buffer;
         const maxY = state.worldHeight - buffer;
         let steerX = 0;
@@ -7454,11 +7463,19 @@
         } else if (entity.y > maxY) {
           steerY -= (entity.y - maxY) / buffer;
         }
+        if (Number.isFinite(forwardX) && Number.isFinite(forwardY)) {
+          const backward = steerX * forwardX + steerY * forwardY;
+          if (backward < 0) {
+            steerX -= backward * forwardX;
+            steerY -= backward * forwardY;
+          }
+        }
         const length = Math.hypot(steerX, steerY);
         if (!length) {
           return { x: 0, y: 0 };
         }
-        return { x: steerX / length, y: steerY / length };
+        const scale = length > 1 ? 1 / length : 1;
+        return { x: steerX * scale, y: steerY * scale };
       }
 
       function segmentIntersectsCircle(ax, ay, bx, by, cx, cy, radius) {
