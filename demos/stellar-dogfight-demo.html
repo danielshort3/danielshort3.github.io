@@ -55,6 +55,16 @@
       overflow-x: hidden;
     }
 
+    body.is-playing {
+      padding: 0;
+      overflow: hidden;
+      background: #05090f;
+    }
+
+    body.is-playing::before {
+      opacity: 0;
+    }
+
     body::before {
       content: "";
       position: fixed;
@@ -79,6 +89,20 @@
       min-height: calc(100vh - (var(--page-pad) * 2));
     }
 
+    body.is-playing .mission-shell {
+      width: 100%;
+      max-width: none;
+      height: 100vh;
+      min-height: 100vh;
+      gap: 0;
+      grid-template-rows: minmax(0, 1fr);
+    }
+
+    body.is-hangar .mission-shell {
+      width: 100%;
+      max-width: none;
+    }
+
     .mission-header {
       display: flex;
       align-items: flex-start;
@@ -89,6 +113,10 @@
       background: linear-gradient(130deg, rgba(26, 40, 63, 0.92), rgba(17, 28, 46, 0.92));
       border: 1px solid var(--stroke);
       box-shadow: var(--shadow);
+    }
+
+    body.is-playing .mission-header {
+      display: none;
     }
 
     .title-block {
@@ -171,6 +199,25 @@
       gap: clamp(16px, 2.4vw, 24px);
     }
 
+    body.is-playing .mission-grid {
+      height: 100%;
+      grid-template-columns: 1fr;
+      grid-template-rows: minmax(0, 1fr);
+      gap: 0;
+    }
+
+    body.is-hangar .mission-grid {
+      grid-template-columns: 1fr;
+    }
+
+    body.is-hangar .mission-grid,
+    body.is-hangar .mission-sidebar,
+    body.is-hangar .tab-shell,
+    body.is-hangar .tab-panels {
+      min-height: 0;
+      height: 100%;
+    }
+
     .mission-shell.is-wide {
       width: 100%;
       max-width: none;
@@ -184,10 +231,30 @@
       display: none;
     }
 
+    body.is-playing .mission-grid.is-wide .mission-main {
+      display: grid;
+    }
+
     .mission-sidebar,
     .mission-main {
       display: grid;
       gap: clamp(14px, 2vw, 20px);
+    }
+
+    body.is-playing .mission-sidebar {
+      display: none;
+    }
+
+    body.is-playing .mission-main {
+      height: 100%;
+    }
+
+    body.is-hangar .mission-main {
+      display: none;
+    }
+
+    .mission-main {
+      position: relative;
     }
 
     .panel {
@@ -878,12 +945,34 @@
       box-shadow: var(--shadow);
     }
 
+    body.is-playing .arena-frame {
+      height: 100%;
+      min-height: 100%;
+      border-radius: 0;
+      border: none;
+      box-shadow: none;
+    }
+
     canvas {
       display: block;
       width: 100%;
       height: 100%;
       touch-action: none;
       cursor: crosshair;
+    }
+
+    .arena-controls {
+      position: absolute;
+      right: 16px;
+      top: 16px;
+      display: flex;
+      gap: 8px;
+      z-index: 4;
+    }
+
+    .btn.btn-mini {
+      padding: 8px 12px;
+      font-size: 0.75rem;
     }
 
     .arena-hud {
@@ -931,6 +1020,40 @@
       cursor: default;
     }
 
+    .settings-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(5, 9, 15, 0.8);
+      backdrop-filter: blur(6px);
+      z-index: 6;
+    }
+
+    .settings-overlay[hidden] {
+      display: none;
+    }
+
+    .settings-shell {
+      position: relative;
+      width: min(720px, 92vw);
+      max-height: min(90vh, 900px);
+      overflow: hidden;
+    }
+
+    .settings-shell .panel {
+      max-height: min(90vh, 900px);
+      overflow-y: auto;
+    }
+
+    .settings-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 1;
+    }
+
     .vital-row {
       display: grid;
       grid-template-columns: 52px 1fr auto;
@@ -959,7 +1082,7 @@
     .arena-tips {
       position: absolute;
       right: 16px;
-      top: 16px;
+      top: 60px;
       display: grid;
       gap: 8px;
       max-width: 260px;
@@ -1615,7 +1738,7 @@
               </div>
               <div class="panel-subsection">
                 <h3 class="panel-title">Field Upgrades</h3>
-                <p class="panel-note">Choose one upgrade after each wave. Skill systems are limited to 3 choices and can only be upgraded once selected.</p>
+                <p class="panel-note">Choose one upgrade after each wave. Skill systems are limited to 3 choices and level from Common to Legendary over 5 upgrades.</p>
                 <div class="tier-legend" aria-label="Upgrade tiers">
                   <span class="select-pill tier-pill" data-tier="common">Common</span>
                   <span class="select-pill tier-pill" data-tier="uncommon">Uncommon</span>
@@ -1838,6 +1961,9 @@
             <div class="overlay-card" data-role="overlay-content"></div>
           </div>
           <div class="arena-tips" data-role="tips" aria-live="polite"></div>
+          <div class="arena-controls">
+            <button class="btn ghost btn-mini" type="button" data-action="settings">Settings</button>
+          </div>
           <div class="arena-hud">
             <div class="hud-pill">Wave <strong data-stat="wave">1</strong></div>
             <div class="hud-pill" data-role="tier-pill">Tier <strong data-stat="tier">1</strong></div>
@@ -1870,6 +1996,12 @@
           </div>
           <div class="arena-minimap" aria-hidden="true">
             <canvas data-role="minimap"></canvas>
+          </div>
+        </div>
+        <div class="settings-overlay" data-role="settings-overlay" hidden>
+          <div class="settings-shell">
+            <button class="btn ghost btn-mini settings-close" type="button" data-action="settings-close">Close</button>
+            <div data-role="settings-body"></div>
           </div>
         </div>
       </div>
@@ -1908,8 +2040,16 @@
         history: document.querySelector("[data-role='history']"),
         keybinds: document.querySelector("[data-role='keybinds']"),
         tierPill: document.querySelector("[data-role='tier-pill']"),
-        minimap: document.querySelector("[data-role='minimap']")
+        minimap: document.querySelector("[data-role='minimap']"),
+        settingsOverlay: document.querySelector("[data-role='settings-overlay']"),
+        settingsBody: document.querySelector("[data-role='settings-body']")
       };
+      const settingsPanel = document.querySelector("[data-tab-panel='settings']");
+      const settingsHome = settingsPanel ? settingsPanel.parentElement : null;
+      const settingsAnchor = settingsPanel ? settingsPanel.nextElementSibling : null;
+      let settingsOpen = false;
+      let settingsReturnTab = "systems";
+      let settingsResumeMode = null;
 
       const ctx = dom.canvas.getContext("2d", { alpha: false });
       const stats = {
@@ -2171,6 +2311,7 @@
         renderSettings();
         renderHistory();
         setOverlay("start");
+        updateLayout();
         logEvent("Hangar systems online. Launch when ready.");
         state.lastTime = performance.now();
         requestAnimationFrame(loop);
@@ -2236,7 +2377,17 @@
           if (actionName === "dock") toggleFrontierDock();
           if (actionName === "pause") togglePause();
           if (actionName === "reset") resetMission();
+          if (actionName === "settings") openSettings();
+          if (actionName === "settings-close") closeSettings();
         });
+
+        if (dom.settingsOverlay) {
+          dom.settingsOverlay.addEventListener("click", (event) => {
+            if (event.target === dom.settingsOverlay) {
+              closeSettings();
+            }
+          });
+        }
 
         if (dom.tips) {
           dom.tips.addEventListener("click", (event) => {
@@ -2496,6 +2647,11 @@
         window.addEventListener("keydown", (event) => {
           const key = normalizeKey(event);
           if (!key) return;
+          if (key === "escape" && settingsOpen) {
+            event.preventDefault();
+            closeSettings();
+            return;
+          }
           if (input.capture) {
             event.preventDefault();
             if (key === "escape") {
@@ -2639,6 +2795,73 @@
             activate(buttons[nextIndex].dataset.tabTarget, true);
           });
         });
+      }
+
+      function getActiveTabTarget() {
+        const activeButton = document.querySelector("[data-tab-group='sidebar'] [data-tab-target].is-active");
+        return activeButton ? activeButton.dataset.tabTarget : "systems";
+      }
+
+      function selectTab(target) {
+        const button = document.querySelector(`[data-tab-group='sidebar'] [data-tab-target="${target}"]`);
+        if (button) {
+          button.click();
+        }
+      }
+
+      function isPlayingMode(mode) {
+        return ["flight", "training", "paused", "upgrade", "dock", "tier-select", "gameover"].includes(mode);
+      }
+
+      function updateLayout() {
+        const playing = isPlayingMode(state.mode);
+        document.body.classList.toggle("is-playing", playing);
+        document.body.classList.toggle("is-hangar", !playing);
+        resizeCanvas();
+        resizeMinimap();
+      }
+
+      function openSettings() {
+        if (settingsOpen) return;
+        settingsOpen = true;
+        settingsReturnTab = getActiveTabTarget();
+        settingsResumeMode = state.mode;
+        if (state.mode === "flight" || state.mode === "training") {
+          setPaused(true);
+        }
+        if (settingsPanel && dom.settingsBody) {
+          selectTab("settings");
+          settingsPanel.hidden = false;
+          settingsPanel.classList.add("is-active");
+          dom.settingsBody.appendChild(settingsPanel);
+        }
+        if (dom.settingsOverlay) {
+          dom.settingsOverlay.hidden = false;
+        }
+        updateLayout();
+        renderSettings();
+      }
+
+      function closeSettings(shouldResume = true) {
+        if (!settingsOpen) return;
+        settingsOpen = false;
+        if (settingsPanel && settingsHome) {
+          if (settingsAnchor && settingsAnchor.parentElement === settingsHome) {
+            settingsHome.insertBefore(settingsPanel, settingsAnchor);
+          } else {
+            settingsHome.appendChild(settingsPanel);
+          }
+        }
+        if (settingsReturnTab) {
+          selectTab(settingsReturnTab);
+        }
+        if (dom.settingsOverlay) {
+          dom.settingsOverlay.hidden = true;
+        }
+        if (shouldResume && (settingsResumeMode === "flight" || settingsResumeMode === "training")) {
+          setPaused(false);
+        }
+        updateLayout();
       }
 
       function setupArmoryNav() {
@@ -3549,6 +3772,9 @@
 
       function setMode(mode) {
         state.mode = mode;
+        if (mode === "hangar" && settingsOpen) {
+          closeSettings(false);
+        }
         const labels = {
           hangar: "Hangar",
           flight: "In Flight",
@@ -3560,6 +3786,7 @@
           training: "Training"
         };
         stats.status.textContent = labels[mode] || "Hangar";
+        updateLayout();
       }
 
       function togglePause() {
@@ -3761,7 +3988,7 @@
       }
 
       function createEnemy(type, scale, difficulty, forceElite) {
-        const position = randomEdgePosition();
+        const position = randomWorldPosition();
         const baseHealth = type.health * scale;
         const baseShield = type.shield * scale;
         const baseSpeed = type.speed + scale * 12;
@@ -3863,37 +4090,21 @@
         enemy.color = mod.color || enemy.color;
       }
 
-      function randomEdgePosition() {
-        const margin = 60;
-        const bounds = getViewportBounds();
-        for (let i = 0; i < 10; i += 1) {
-          const edge = Math.floor(Math.random() * 4);
-          let x = 0;
-          let y = 0;
-          if (edge === 0) {
-            x = bounds.left - margin;
-            y = rand(bounds.top, bounds.bottom);
-          } else if (edge === 1) {
-            x = bounds.right + margin;
-            y = rand(bounds.top, bounds.bottom);
-          } else if (edge === 2) {
-            x = rand(bounds.left, bounds.right);
-            y = bounds.top - margin;
-          } else {
-            x = rand(bounds.left, bounds.right);
-            y = bounds.bottom + margin;
-          }
+      function randomWorldPosition() {
+        const padding = 60;
+        const minDistance = player ? 240 : 0;
+        for (let i = 0; i < 12; i += 1) {
           const position = {
-            x: clamp(x, 20, state.worldWidth - 20),
-            y: clamp(y, 20, state.worldHeight - 20)
+            x: rand(padding, state.worldWidth - padding),
+            y: rand(padding, state.worldHeight - padding)
           };
-          if (!isPointInObstacle(position, 40)) {
-            return position;
-          }
+          if (isPointInObstacle(position, 50)) continue;
+          if (player && distanceBetween(position, player) < minDistance) continue;
+          return position;
         }
         return {
-          x: clamp(bounds.left - margin, 20, state.worldWidth - 20),
-          y: clamp(bounds.top - margin, 20, state.worldHeight - 20)
+          x: clamp(state.worldWidth * 0.5 + rand(-120, 120), padding, state.worldWidth - padding),
+          y: clamp(state.worldHeight * 0.5 + rand(-120, 120), padding, state.worldHeight - padding)
         };
       }
 
@@ -4218,7 +4429,7 @@
           helpers = [];
           return;
         }
-        const count = Math.min(3, Math.max(1, player.helperCount));
+        const count = Math.min(5, Math.max(1, player.helperCount));
         const orbitRadius = player.helperOrbitRadius || 26;
         const orbitSpeed = player.helperOrbitSpeed || 1.4;
         while (helpers.length < count) {
@@ -4355,8 +4566,8 @@
           }
 
           const avoidance = getObstacleAvoidance(enemy);
-          ax += avoidance.x * accel * 0.9;
-          ay += avoidance.y * accel * 0.9;
+          ax += avoidance.x * accel * 1.15;
+          ay += avoidance.y * accel * 1.15;
 
           enemy.vx += ax * delta;
           enemy.vy += ay * delta;
@@ -4781,6 +4992,20 @@
         return upgrade && upgrade.kind === "skill";
       }
 
+      function getSkillTier(level) {
+        const index = clamp((level || 1) - 1, 0, TIER_ORDER.length - 1);
+        return TIER_ORDER[index] || "common";
+      }
+
+      function getUpgradeTier(upgrade, level) {
+        if (!upgrade) return "common";
+        if (isSkillUpgrade(upgrade)) {
+          const resolvedLevel = Number.isFinite(level) ? level : 1;
+          return getSkillTier(resolvedLevel);
+        }
+        return upgrade.tier || "common";
+      }
+
       function canSelectSkillUpgrade(upgrade) {
         if (!isSkillUpgrade(upgrade)) return true;
         const skillId = getSkillId(upgrade);
@@ -4797,7 +5022,11 @@
         const pool = [...available];
         const luck = player ? player.upgradeLuck || 0 : 0;
         while (picks.length < Math.min(3, pool.length)) {
-          const weights = pool.map((upgrade) => getUpgradeWeight(upgrade.tier || "common", luck));
+          const weights = pool.map((upgrade) => {
+            const stack = state.upgradeStacks[upgrade.id] || 0;
+            const tier = getUpgradeTier(upgrade, stack + 1);
+            return getUpgradeWeight(tier, luck);
+          });
           const selected = pickWeighted(pool, weights);
           picks.push(selected);
           pool.splice(pool.indexOf(selected), 1);
@@ -4820,8 +5049,10 @@
             }
             const previousHealth = player.health;
             const previousShield = player.shield;
-            upgrade.apply(player);
-            state.upgradeStacks[upgrade.id] = (state.upgradeStacks[upgrade.id] || 0) + 1;
+            const stack = state.upgradeStacks[upgrade.id] || 0;
+            const nextLevel = stack + 1;
+            upgrade.apply(player, nextLevel);
+            state.upgradeStacks[upgrade.id] = nextLevel;
             if (isNewSkill) {
               state.skillSlots.push(skillId);
               logEvent(`Skill system online: ${upgrade.name}.`);
@@ -5812,8 +6043,9 @@
         const statEntries = entries.filter((upgrade) => !isSkillUpgrade(upgrade));
         const renderChips = (list) => list.map((upgrade) => {
           const stack = state.upgradeStacks[upgrade.id] || 0;
-          const label = stack > 1 ? `${upgrade.name} x${stack}` : upgrade.name;
-          const tier = upgrade.tier || "common";
+          const isSkill = isSkillUpgrade(upgrade);
+          const label = isSkill ? `${upgrade.name} Lv ${stack}` : (stack > 1 ? `${upgrade.name} x${stack}` : upgrade.name);
+          const tier = getUpgradeTier(upgrade, stack);
           return `<span class=\"chip\" data-tier="${tier}">${label}</span>`;
         }).join("");
         const skillHtml = `
@@ -6761,14 +6993,15 @@
           const skillSlots = `${state.skillSlots.length}/${SKILL_LIMIT}`;
           const upgradeCards = hasUpgrades
             ? availableUpgrades.map((upgrade) => {
-              const tier = upgrade.tier || "common";
-              const tierLabel = formatTierLabel(tier);
               const stack = state.upgradeStacks[upgrade.id] || 0;
               const maxStacks = Number.isFinite(upgrade.maxStacks) ? upgrade.maxStacks : 1;
-              const stackLabel = `${stack}/${maxStacks}`;
+              const nextLevel = stack + 1;
+              const tier = getUpgradeTier(upgrade, nextLevel);
+              const tierLabel = formatTierLabel(tier);
               const category = upgrade.category || "Upgrade";
               const categoryIcon = getUpgradeCategoryIcon(category);
               const isSkill = isSkillUpgrade(upgrade);
+              const stackLabel = isSkill ? `Lv ${nextLevel}/${maxStacks}` : `${stack}/${maxStacks}`;
               const kindLabel = isSkill ? "Skill" : "Stat";
               return `
                 <button class="upgrade-card is-choice" data-tier="${tier}" data-kind="${isSkill ? "skill" : "stat"}" data-upgrade-id="${upgrade.id}">
@@ -6805,7 +7038,7 @@
             <div class="overlay-header">
               <p class="eyebrow">Wave ${state.wave - 1} cleared</p>
               <h3>Choose a field upgrade</h3>
-              <p>Upgrades stack for the rest of the run. Skill systems are limited to ${SKILL_LIMIT} selections. ${rerollCopy}</p>
+              <p>Upgrades stack for the rest of the run. Skill systems are limited to ${SKILL_LIMIT} selections and climb tiers each level. ${rerollCopy}</p>
             </div>
             <div class="badge-group overlay-badges">
               <span class="badge">Credits ${creditsLabel}</span>
@@ -7070,20 +7303,40 @@
 
       function resolveObstacleCollisions(entity) {
         if (!entity || !obstacles.length) return;
+        const applyBounce = (nx, ny) => {
+          if (!Number.isFinite(entity.vx) || !Number.isFinite(entity.vy)) return;
+          const speed = Math.hypot(entity.vx, entity.vy);
+          const bounce = clamp(speed / 240, 0.12, 0.45);
+          const dot = entity.vx * nx + entity.vy * ny;
+          if (dot < 0) {
+            entity.vx -= (1 + bounce) * dot * nx;
+            entity.vy -= (1 + bounce) * dot * ny;
+          } else if (speed < 10) {
+            entity.vx += nx * 28 * bounce;
+            entity.vy += ny * 28 * bounce;
+          }
+        };
         obstacles.forEach((obstacle) => {
           if (obstacle.kind === "rock") {
             const dx = entity.x - obstacle.x;
             const dy = entity.y - obstacle.y;
-            const distance = Math.hypot(dx, dy) || 1;
+            const distance = Math.hypot(dx, dy);
             const minDistance = (entity.radius || 0) + obstacle.radius + 2;
             if (distance < minDistance) {
               const push = minDistance - distance;
-              const nx = dx / distance;
-              const ny = dy / distance;
+              let nx = 0;
+              let ny = 0;
+              if (distance < 0.01) {
+                const angle = rand(0, Math.PI * 2);
+                nx = Math.cos(angle);
+                ny = Math.sin(angle);
+              } else {
+                nx = dx / distance;
+                ny = dy / distance;
+              }
               entity.x += nx * push;
               entity.y += ny * push;
-              if (entity.vx) entity.vx *= 0.6;
-              if (entity.vy) entity.vy *= 0.6;
+              applyBounce(nx, ny);
             }
             return;
           }
@@ -7096,13 +7349,28 @@
           const distance = Math.hypot(dx, dy) || 0;
           const minDistance = (entity.radius || 0) + 2;
           if (distance < minDistance) {
-            const push = minDistance - distance;
-            const nx = distance ? dx / distance : 1;
-            const ny = distance ? dy / distance : 0;
+            let push = minDistance - distance;
+            let nx = 0;
+            let ny = 0;
+            if (distance === 0) {
+              const offsetX = entity.x - obstacle.x;
+              const offsetY = entity.y - obstacle.y;
+              const overlapX = halfWidth + minDistance - Math.abs(offsetX);
+              const overlapY = halfHeight + minDistance - Math.abs(offsetY);
+              if (overlapX < overlapY) {
+                nx = offsetX >= 0 ? 1 : -1;
+                push = overlapX;
+              } else {
+                ny = offsetY >= 0 ? 1 : -1;
+                push = overlapY;
+              }
+            } else {
+              nx = dx / distance;
+              ny = dy / distance;
+            }
             entity.x += nx * push;
             entity.y += ny * push;
-            if (entity.vx) entity.vx *= 0.5;
-            if (entity.vy) entity.vy *= 0.5;
+            applyBounce(nx, ny);
           }
         });
       }
@@ -7113,31 +7381,42 @@
         }
         let steerX = 0;
         let steerY = 0;
+        const bias = Number.isFinite(entity.strafeBias) ? entity.strafeBias : 1;
         obstacles.forEach((obstacle) => {
           if (obstacle.kind === "rock") {
             const dx = entity.x - obstacle.x;
             const dy = entity.y - obstacle.y;
             const distance = Math.hypot(dx, dy) || 1;
-            const range = obstacle.radius + (entity.radius || 0) + 140;
+            const range = obstacle.radius + (entity.radius || 0) + 220;
             if (distance < range) {
               const strength = (range - distance) / range;
-              steerX += (dx / distance) * strength;
-              steerY += (dy / distance) * strength;
+              const nx = dx / distance;
+              const ny = dy / distance;
+              steerX += nx * strength;
+              steerY += ny * strength;
+              const lateral = strength * 0.45 * bias;
+              steerX += -ny * lateral;
+              steerY += nx * lateral;
             }
             return;
           }
-          const halfWidth = obstacle.width * 0.5 + 100;
-          const halfHeight = obstacle.height * 0.5 + 100;
+          const halfWidth = obstacle.width * 0.5;
+          const halfHeight = obstacle.height * 0.5;
           const closestX = clamp(entity.x, obstacle.x - halfWidth, obstacle.x + halfWidth);
           const closestY = clamp(entity.y, obstacle.y - halfHeight, obstacle.y + halfHeight);
           const dx = entity.x - closestX;
           const dy = entity.y - closestY;
           const distance = Math.hypot(dx, dy) || 1;
-          const range = 140;
+          const range = Math.max(halfWidth, halfHeight) + (entity.radius || 0) + 190;
           if (distance < range) {
             const strength = (range - distance) / range;
-            steerX += (dx / distance) * strength;
-            steerY += (dy / distance) * strength;
+            const nx = distance ? dx / distance : (entity.x >= obstacle.x ? 1 : -1);
+            const ny = distance ? dy / distance : (entity.y >= obstacle.y ? 1 : -1);
+            steerX += nx * strength;
+            steerY += ny * strength;
+            const lateral = strength * 0.35 * bias;
+            steerX += -ny * lateral;
+            steerY += nx * lateral;
           }
         });
         const length = Math.hypot(steerX, steerY);
