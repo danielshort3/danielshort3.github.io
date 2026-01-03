@@ -156,6 +156,15 @@ try {
     checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-job-url"');
     checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-location"');
     checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-source"');
+    checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-follow-up-date"');
+    checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-follow-up-note"');
+    checkFileContains('pages/job-application-tracker.html', 'id="jobtrack-tags"');
+    checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="custom-field-list"');
+    checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="saved-view-select"');
+    checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="followup-list"');
+    checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="entry-filter-tags"');
+    checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="funnel-list"');
+    checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="time-in-stage-list"');
   });
 
   section('Data contracts', () => {

@@ -6,6 +6,7 @@
   <base href="/">
   <title>Job Application Tracker | Daniel Short</title>
   <link rel="canonical" href="https://danielshort.me/tools/job-application-tracker">
+  <meta name="robots" content="noindex, nofollow">
   <meta name="description" content="Track your job applications with private dashboards, KPI cards, and interview momentum charts.">
   <meta property="og:title" content="Job Application Tracker | Daniel Short">
   <meta property="og:site_name" content="Daniel Short - Data Science &amp; Analytics">
@@ -34,7 +35,7 @@
     } catch (_) {}
   </script>
 </head>
-<body data-page="job-application-tracker" class="jobtrack-page" data-api-base="https://fhp2is6v8h.execute-api.us-east-2.amazonaws.com/prod" data-cognito-domain="job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com" data-cognito-client-id="78oo663obb0t28u63u9bqn00o9" data-cognito-redirect="https://danielshort.me/tools/job-application-tracker" data-cognito-scopes="openid email profile">
+<body data-page="job-application-tracker" class="jobtrack-page" data-api-base="https://fhp2is6v8h.execute-api.us-east-2.amazonaws.com/prod" data-cognito-domain="job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com" data-cognito-client-id="78oo663obb0t28u63u9bqn00o9" data-cognito-redirect="https://danielshort.me/tools/job-application-tracker" data-cognito-scopes="openid email profile" data-max-attachment-bytes="10485760" data-max-attachment-count="12">
   <a href="#main" class="skip-link">Skip to main content</a>
   <header id="combined-header-nav"></header>
 
@@ -226,9 +227,33 @@
                             Posting date unknown
                           </label>
                         </div>
+                        <div class="jobtrack-field">
+                          <label class="jobtrack-label" for="jobtrack-follow-up-date">Follow-up date</label>
+                          <input id="jobtrack-follow-up-date" class="jobtrack-input" name="followUpDate" type="date">
+                          <p class="jobtrack-help">Overrides the automatic follow-up timing.</p>
+                        </div>
+                        <div class="jobtrack-field jobtrack-field-wide">
+                          <label class="jobtrack-label" for="jobtrack-follow-up-note">Follow-up note</label>
+                          <input id="jobtrack-follow-up-note" class="jobtrack-input" name="followUpNote" type="text" placeholder="Email recruiter about timeline">
+                        </div>
+                        <div class="jobtrack-field jobtrack-field-wide">
+                          <label class="jobtrack-label" for="jobtrack-tags">Tags</label>
+                          <input id="jobtrack-tags" class="jobtrack-input" name="tags" type="text" placeholder="referral, remote, priority">
+                          <p class="jobtrack-help">Comma-separated labels for filtering and saved views.</p>
+                        </div>
                         <div class="jobtrack-field jobtrack-field-wide">
                           <label class="jobtrack-label" for="jobtrack-notes">Notes</label>
                           <textarea id="jobtrack-notes" class="jobtrack-textarea" name="notes" rows="4" placeholder="Next step, hiring manager, or follow-up reminders."></textarea>
+                        </div>
+                        <div class="jobtrack-field jobtrack-field-wide">
+                          <div class="jobtrack-custom-fields">
+                            <div class="jobtrack-custom-fields-head">
+                              <p class="jobtrack-label">Custom fields</p>
+                              <button type="button" class="btn-ghost" data-jobtrack="custom-field-add">Add field</button>
+                            </div>
+                            <div class="jobtrack-custom-fields-list" data-jobtrack="custom-field-list"></div>
+                            <p class="jobtrack-help">Add key/value pairs like salary, recruiter, or target level.</p>
+                          </div>
                         </div>
                         <div class="jobtrack-field jobtrack-field-wide" data-jobtrack-entry="application">
                           <label class="jobtrack-label" for="jobtrack-resume">Resume (optional)</label>
@@ -243,7 +268,7 @@
                           <div class="jobtrack-prompt-actions">
                             <button type="button" class="btn-ghost jobtrack-prompt-action" data-jobtrack="cover-prompt-download">Download cover letter prompt</button>
                           </div>
-                          <p class="jobtrack-help">Files are stored privately with this application for future downloads.</p>
+                          <p class="jobtrack-help" data-jobtrack="attachment-limit">Files are stored privately with this application for future downloads.</p>
                         </div>
                       </div>
                     </details>
@@ -264,7 +289,7 @@
                       <div>
                         <p class="jobtrack-kicker">Bulk import</p>
                         <h3>Import applications from CSV</h3>
-                      <p class="jobtrack-subtitle">Use columns: company, title, jobUrl, location, source, postingDate, appliedDate, status, batch, notes, attachments.</p>
+                      <p class="jobtrack-subtitle">Use columns: company, title, jobUrl, location, source, postingDate, appliedDate, status, batch, notes, tags, followUpDate, followUpNote, customFields, attachments.</p>
                       </div>
                       <div class="jobtrack-import-actions">
                         <div class="jobtrack-import-field">
@@ -302,7 +327,7 @@
                     <div>
                       <p class="jobtrack-kicker">Bulk import</p>
                       <h3>Import prospects from CSV</h3>
-                      <p class="jobtrack-subtitle">Use columns: company, title, jobUrl, location, source, postingDate, captureDate, status, batch, notes.</p>
+                      <p class="jobtrack-subtitle">Use columns: company, title, jobUrl, location, source, postingDate, captureDate, status, batch, notes, tags, followUpDate, followUpNote, customFields.</p>
                     </div>
                     <div class="jobtrack-import-actions">
                       <div class="jobtrack-import-field">
@@ -349,6 +374,20 @@
             </section>
 
             <section id="jobtrack-panel-entries" class="jobtrack-tab-panel" role="tabpanel" aria-labelledby="jobtrack-tab-entries" data-jobtrack-panel="entries" hidden>
+              <article class="jobtrack-card jobtrack-followup-card" aria-live="polite">
+                <div class="jobtrack-panel-head">
+                  <div>
+                    <p class="jobtrack-kicker">Follow-ups</p>
+                    <h2>Upcoming reminders</h2>
+                    <p class="jobtrack-subtitle">Due in the next two weeks, plus anything overdue.</p>
+                  </div>
+                  <div class="jobtrack-panel-actions">
+                    <button type="button" class="btn-ghost" data-jobtrack="followup-refresh">Refresh</button>
+                  </div>
+                </div>
+                <div class="jobtrack-followup-list" data-jobtrack="followup-list"></div>
+                <p class="jobtrack-form-status" data-jobtrack="followup-status" role="status" aria-live="polite">Sign in to load follow-ups.</p>
+              </article>
               <article class="jobtrack-card jobtrack-list-card" aria-live="polite">
                 <div class="jobtrack-panel-head">
                   <div>
@@ -362,6 +401,25 @@
                     <span class="jobtrack-entry-count" data-jobtrack="entry-count">0 entries</span>
                     <button type="button" class="btn-ghost" data-jobtrack="refresh-entries">Refresh</button>
                   </div>
+                </div>
+                <div class="jobtrack-saved-views" data-jobtrack="saved-views">
+                  <div class="jobtrack-saved-views-main">
+                    <div class="jobtrack-field">
+                      <label class="jobtrack-label" for="jobtrack-saved-view">Saved views</label>
+                      <select id="jobtrack-saved-view" class="jobtrack-select" data-jobtrack="saved-view-select">
+                        <option value="">Choose a saved view</option>
+                      </select>
+                    </div>
+                    <div class="jobtrack-field">
+                      <label class="jobtrack-label" for="jobtrack-saved-view-name">Save current view</label>
+                      <input id="jobtrack-saved-view-name" class="jobtrack-input" type="text" placeholder="Active remote roles" data-jobtrack="saved-view-name">
+                    </div>
+                  </div>
+                  <div class="jobtrack-saved-views-actions">
+                    <button type="button" class="btn-secondary" data-jobtrack="saved-view-save">Save view</button>
+                    <button type="button" class="btn-ghost" data-jobtrack="saved-view-delete" disabled>Delete view</button>
+                  </div>
+                  <p class="jobtrack-form-status" data-jobtrack="saved-view-status" role="status" aria-live="polite"></p>
                 </div>
                 <div class="jobtrack-entries-toolbar" data-jobtrack="entry-toolbar">
                   <div class="jobtrack-entries-toolbar-main">
@@ -449,6 +507,10 @@
                       </select>
                     </div>
                     <div class="jobtrack-field">
+                      <label class="jobtrack-label" for="jobtrack-entry-tags-filter">Tags</label>
+                      <input id="jobtrack-entry-tags-filter" class="jobtrack-input" type="text" data-jobtrack="entry-filter-tags" placeholder="remote, referral">
+                    </div>
+                    <div class="jobtrack-field">
                       <label class="jobtrack-label" for="jobtrack-entry-location-filter">Location type</label>
                       <select id="jobtrack-entry-location-filter" class="jobtrack-select" data-jobtrack="entry-filter-location">
                         <option value="all">All locations</option>
@@ -510,6 +572,7 @@
                         <button type="button" class="jobtrack-table-cell jobtrack-table-header" role="columnheader" aria-sort="none" data-jobtrack-sort="date">Applied/Found</button>
                         <button type="button" class="jobtrack-table-cell jobtrack-table-header" role="columnheader" aria-sort="none" data-jobtrack-sort="source">Source</button>
                         <button type="button" class="jobtrack-table-cell jobtrack-table-header" role="columnheader" aria-sort="none" data-jobtrack-sort="batch">Batch</button>
+                        <div class="jobtrack-table-cell jobtrack-table-header" role="columnheader">Tags</div>
                         <div class="jobtrack-table-cell jobtrack-table-header" role="columnheader">Actions</div>
                       </div>
                       <div class="jobtrack-table-body" data-jobtrack="entry-list"></div>
@@ -665,6 +728,28 @@
 	                        <canvas id="jobtrack-status-chart" aria-label="Status breakdown" role="img"></canvas>
 	                        <div class="jobtrack-chart-overlay" data-jobtrack="status-overlay">Loading chart...</div>
 	                      </div>
+	                    </div>
+	                  </div>
+
+	                  <div class="jobtrack-panels jobtrack-analytics-panels">
+	                    <div class="jobtrack-panel">
+	                      <div class="jobtrack-panel-head">
+	                        <div>
+	                          <h3>Pipeline funnel</h3>
+	                          <p class="jobtrack-panel-subtitle">How far applications advance across stages.</p>
+	                        </div>
+	                      </div>
+	                      <div class="jobtrack-funnel" data-jobtrack="funnel-list"></div>
+	                    </div>
+
+	                    <div class="jobtrack-panel">
+	                      <div class="jobtrack-panel-head">
+	                        <div>
+	                          <h3>Time in stage</h3>
+	                          <p class="jobtrack-panel-subtitle">Average and median days between status changes.</p>
+	                        </div>
+	                      </div>
+	                      <div class="jobtrack-time-table" data-jobtrack="time-in-stage-list"></div>
 	                    </div>
 	                  </div>
 
