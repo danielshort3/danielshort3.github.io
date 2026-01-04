@@ -181,6 +181,17 @@
       transform: translateY(-1px) scale(1.02);
     }
 
+    .btn.danger {
+      background: linear-gradient(120deg, #f16b6b, #f4a261);
+      color: #140707;
+      box-shadow: 0 12px 26px rgba(240, 105, 105, 0.35);
+    }
+
+    .btn.danger:hover,
+    .btn.danger:focus-visible {
+      transform: translateY(-1px) scale(1.02);
+    }
+
     .btn.ghost {
       background: rgba(12, 18, 32, 0.6);
       border-color: color-mix(in srgb, var(--stroke) 70%, transparent);
@@ -710,6 +721,29 @@
       border: 1px solid rgba(255, 255, 255, 0.1);
       font-size: 0.7rem;
       color: var(--text-muted);
+    }
+
+    .inventory-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .inventory-actions .btn {
+      padding: 6px 10px;
+      font-size: 0.72rem;
+    }
+
+    .salvage-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    [data-role="equipped-items"] {
+      margin-bottom: 16px;
     }
 
     .contract-card {
@@ -1278,7 +1312,7 @@
     }
 
     .arena-overlay .reward-grid {
-      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      justify-content: center;
     }
 
     .upgrade-card {
@@ -1436,50 +1470,59 @@
     }
 
     .reward-grid {
-      display: grid;
+      display: flex;
+      flex-wrap: wrap;
       gap: 14px;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      justify-items: center;
+      justify-content: center;
     }
 
     .reward-item {
-      position: relative;
       display: grid;
-      place-items: center;
+      justify-items: center;
       gap: 6px;
-      min-height: 108px;
-      width: 100%;
-      padding: 12px;
+      min-width: 86px;
+      padding: 10px 8px 12px;
       border-radius: 16px;
       border: 1px solid color-mix(in srgb, var(--tier-color) 45%, rgba(255, 255, 255, 0.12));
-      background: linear-gradient(160deg, rgba(34, 24, 16, 0.9), rgba(18, 14, 12, 0.95));
+      background: linear-gradient(160deg, rgba(30, 22, 16, 0.9), rgba(16, 12, 10, 0.95));
       box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tier-color) 18%, transparent);
     }
 
     .reward-icon {
-      width: 56px;
-      height: 56px;
+      width: 52px;
+      height: 52px;
       border-radius: 14px;
       border: 1px solid color-mix(in srgb, var(--tier-color) 60%, rgba(255, 255, 255, 0.2));
       display: grid;
       place-items: center;
-      font-size: 1.4rem;
+      font-size: 1.35rem;
       color: var(--tier-color);
       background: color-mix(in srgb, var(--tier-color) 18%, rgba(10, 16, 28, 0.7));
     }
 
     .reward-value {
-      position: absolute;
-      right: 12px;
-      bottom: 10px;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       font-weight: 700;
-      letter-spacing: 0.04em;
-      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+      letter-spacing: 0.06em;
+      color: var(--text);
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
     }
 
     .reward-name {
       display: none;
+    }
+
+    .reward-label {
+      font-size: 0.72rem;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    .reward-note {
+      font-size: 0.68rem;
+      text-align: center;
+      color: var(--text-muted);
+      opacity: 0.8;
     }
 
     .reward-banner {
@@ -1488,6 +1531,47 @@
       align-items: center;
       gap: 12px;
       margin-bottom: 12px;
+    }
+
+    .salvage-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+      max-height: min(56vh, 420px);
+      overflow: auto;
+      padding: 8px;
+    }
+
+    .salvage-item {
+      position: relative;
+      opacity: 0;
+      transform: translateY(10px) scale(0.96);
+      animation: salvageReveal 0.45s ease forwards;
+      animation-delay: var(--reveal-delay, 0s);
+    }
+
+    .salvage-item.is-glow {
+      animation: salvageReveal 0.45s ease forwards, salvageGlow 2.6s ease-in-out infinite;
+      animation-delay: var(--reveal-delay, 0s), calc(var(--reveal-delay, 0s) + 0.2s);
+    }
+
+    @keyframes salvageReveal {
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes salvageGlow {
+      0%,
+      100% {
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--tier-color) 25%, transparent),
+          0 0 14px color-mix(in srgb, var(--tier-color) 25%, transparent);
+      }
+      50% {
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--tier-color) 45%, transparent),
+          0 0 26px color-mix(in srgb, var(--tier-color) 55%, transparent);
+      }
     }
 
     .reward-line {
@@ -1863,7 +1947,7 @@
                   <span class="badge" data-stat="salvage-keys">Keys 0</span>
                 </div>
               </div>
-              <p class="panel-note">Swap weapons and secondaries. Cards show tier and stat deltas vs your equipped loadout. Upgrades persist between runs.</p>
+              <p class="panel-note">Manage your inventory. Hover to inspect stats, compare against equipped gear, and use actions to equip, upgrade (consumes items), or sell.</p>
               <div class="tier-legend" aria-label="Armory tiers">
                 <span class="select-pill tier-pill" data-tier="common">Common</span>
                 <span class="select-pill tier-pill" data-tier="uncommon">Uncommon</span>
@@ -1872,38 +1956,28 @@
                 <span class="select-pill tier-pill" data-tier="legendary">Legendary</span>
               </div>
               <div class="tab-bar armory-nav" data-armory-nav>
-                <button class="tab-btn is-active" type="button" data-armory-target="weapons">Weapons</button>
-                <button class="tab-btn" type="button" data-armory-target="upgrades">Weapon Upgrades</button>
+                <button class="tab-btn is-active" type="button" data-armory-target="inventory">Inventory</button>
                 <button class="tab-btn" type="button" data-armory-target="secondaries">Secondaries</button>
-                <button class="tab-btn" type="button" data-armory-target="parts">Parts</button>
                 <button class="tab-btn" type="button" data-armory-target="salvage">Salvage</button>
               </div>
-              <div class="panel-subsection" data-armory-section="weapons">
-                <h3 class="panel-title">Primary Weapons</h3>
-                <div class="card-grid" data-role="weapons"></div>
-              </div>
-              <div class="panel-subsection" data-armory-section="upgrades">
-                <h3 class="panel-title">Weapon Upgrades</h3>
-                <div class="upgrade-grid" data-role="weapon-upgrades"></div>
+              <div class="panel-subsection" data-armory-section="inventory">
+                <h3 class="panel-title">Inventory</h3>
+                <div class="setting-group">
+                  <div class="setting-row">
+                    <span>Filter</span>
+                    <div class="option-buttons" data-setting="inventory-filter">
+                      <button class="option-btn is-active" type="button" data-option="all">All</button>
+                      <button class="option-btn" type="button" data-option="weapon">Weapons</button>
+                      <button class="option-btn" type="button" data-option="attachment">Attachments</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-grid" data-role="equipped-items"></div>
+                <div class="card-grid" data-role="inventory"></div>
               </div>
               <div class="panel-subsection" data-armory-section="secondaries">
                 <h3 class="panel-title">Secondary Systems</h3>
                 <div class="card-grid" data-role="secondaries"></div>
-              </div>
-              <div class="panel-subsection" data-armory-section="parts">
-                <h3 class="panel-title">Parts</h3>
-                <div class="setting-group">
-                  <div class="setting-row">
-                    <span>Parts Mode</span>
-                    <div class="option-buttons" data-setting="parts-mode">
-                      <button class="option-btn is-active" type="button" data-option="equip">Equip</button>
-                      <button class="option-btn" type="button" data-option="dismantle">Dismantle</button>
-                    </div>
-                  </div>
-                </div>
-                <p class="panel-note">Dismantle mode sells parts for credits and removes them from inventory.</p>
-                <div class="card-grid" data-role="parts-slots"></div>
-                <div class="card-grid" data-role="parts-inventory"></div>
               </div>
               <div class="panel-subsection" data-armory-section="salvage">
                 <h3 class="panel-title">Salvage Cache</h3>
@@ -2058,13 +2132,23 @@
                     </div>
                   </div>
                 </div>
-                <div class="perf-settings">
+                <div class="perf-settings" data-role="perf-settings-card">
                   <div class="perf-row">
                     <span class="perf-label">Live Metrics</span>
                     <span class="perf-muted">Launch a mission to capture data.</span>
                   </div>
                   <div data-role="perf-settings-basic"></div>
                   <div data-role="perf-settings-detail"></div>
+                </div>
+              </div>
+              <div class="panel-subsection">
+                <h3 class="panel-title">Account</h3>
+                <div class="setting-group">
+                  <div class="setting-row">
+                    <span>Reset Progress</span>
+                    <button class="btn danger btn-mini" type="button" data-action="reset-progress">Wipe Account</button>
+                  </div>
+                  <p class="panel-note">Clears all saved progress, inventory, and settings from this device.</p>
                 </div>
               </div>
             </section>
@@ -2140,6 +2224,174 @@
       const WORLD_HEIGHT = 1800;
       const SKILL_LIMIT = 3;
       const HUD_UPDATE_INTERVAL_MS = 50;
+      const INVENTORY_LIMIT = 42;
+      const ITEM_UPGRADE_SLOTS = {
+        common: 2,
+        uncommon: 3,
+        rare: 4,
+        epic: 5,
+        legendary: 6
+      };
+      const ITEM_UPGRADE_CHANCE = {
+        common: 0.8,
+        uncommon: 0.65,
+        rare: 0.5,
+        epic: 0.36,
+        legendary: 0.24
+      };
+      const WEAPON_TIER_SCALING = {
+        damage: 0.12,
+        fireRate: 0.08,
+        bulletSpeed: 0.06,
+        energyCost: 0.05,
+        spread: 0.04
+      };
+      const WEAPON_AFFIX_POOL = [
+        {
+          id: "accelerated",
+          label: "Accelerated",
+          desc: "+18% bullet speed.",
+          minTier: "common",
+          apply: (stats) => { stats.bulletSpeed *= 1.18; }
+        },
+        {
+          id: "charged",
+          label: "Charged Coils",
+          desc: "+15% damage.",
+          minTier: "uncommon",
+          apply: (stats) => { stats.damage *= 1.15; }
+        },
+        {
+          id: "overclocked",
+          label: "Overclocked",
+          desc: "+15% fire rate.",
+          minTier: "uncommon",
+          apply: (stats) => { stats.fireRate *= 1.15; }
+        },
+        {
+          id: "stabilized",
+          label: "Stabilized",
+          desc: "-20% spread.",
+          minTier: "rare",
+          apply: (stats) => { stats.spread = Math.max(0.02, stats.spread * 0.8); }
+        },
+        {
+          id: "piercing",
+          label: "Piercing",
+          desc: "+1 pierce.",
+          minTier: "rare",
+          apply: (stats) => { stats.pierce = (stats.pierce || 0) + 1; }
+        },
+        {
+          id: "cluster",
+          label: "Cluster Rounds",
+          desc: "+1 projectile, +spread.",
+          minTier: "rare",
+          apply: (stats) => {
+            stats.projectiles = (stats.projectiles || 1) + 1;
+            stats.spread = Math.min(0.36, stats.spread + 0.06);
+          }
+        },
+        {
+          id: "detonator",
+          label: "Detonator",
+          desc: "Adds splash damage.",
+          minTier: "epic",
+          apply: (stats) => {
+            stats.splashRadius = Math.max(stats.splashRadius || 0, 24);
+            stats.splashDamage = Math.max(stats.splashDamage || 0.6, 0.65);
+          }
+        },
+        {
+          id: "arc-conduit",
+          label: "Arc Conduit",
+          desc: "Bolts arc to nearby foes.",
+          minTier: "epic",
+          apply: (stats) => {
+            stats.arcDamage = Math.max(stats.arcDamage || 0, 0.45);
+            stats.arcRadius = Math.max(stats.arcRadius || 0, 120);
+            stats.arcChains = Math.max(stats.arcChains || 0, 1);
+          }
+        },
+        {
+          id: "barrage",
+          label: "Barrage Sync",
+          desc: "Every 5th shot fires extra bolts.",
+          minTier: "epic",
+          apply: (stats) => {
+            stats.barrageEvery = Math.min(stats.barrageEvery || 5, 5);
+            stats.barrageProjectiles = (stats.barrageProjectiles || 0) + 2;
+            stats.barrageBonusDamage = Math.max(stats.barrageBonusDamage || 1, 1.4);
+          }
+        },
+        {
+          id: "singularity",
+          label: "Void Singularity",
+          desc: "Each shot spawns a black hole.",
+          minTier: "legendary",
+          apply: (stats) => {
+            stats.blackHoleChance = Math.max(stats.blackHoleChance || 0, 1);
+            stats.blackHoleRadius = Math.max(stats.blackHoleRadius || 0, 120);
+            stats.blackHoleDuration = Math.max(stats.blackHoleDuration || 0, 1.6);
+            stats.blackHoleForce = Math.max(stats.blackHoleForce || 0, 380);
+            stats.blackHoleDamage = Math.max(stats.blackHoleDamage || 0, 18);
+          }
+        },
+        {
+          id: "rift-echo",
+          label: "Rift Echo",
+          desc: "22% chance to echo the volley.",
+          minTier: "legendary",
+          apply: (stats) => {
+            stats.echoChance = Math.max(stats.echoChance || 0, 0.22);
+            stats.echoDamage = Math.max(stats.echoDamage || 0, 0.55);
+          }
+        }
+      ];
+      const ATTACHMENT_AFFIX_POOL = [
+        {
+          id: "reinforced",
+          label: "Reinforced",
+          desc: "+20 max shield.",
+          minTier: "uncommon",
+          apply: (stats) => { stats.maxShield = (stats.maxShield || 0) + 20; }
+        },
+        {
+          id: "reactive",
+          label: "Reactive",
+          desc: "+10 max hull.",
+          minTier: "uncommon",
+          apply: (stats) => { stats.maxHealth = (stats.maxHealth || 0) + 10; }
+        },
+        {
+          id: "tuned",
+          label: "Tuned",
+          desc: "+8 energy regen.",
+          minTier: "rare",
+          apply: (stats) => { stats.energyRegen = (stats.energyRegen || 0) + 8; }
+        },
+        {
+          id: "precision",
+          label: "Precision",
+          desc: "+2% crit chance.",
+          minTier: "rare",
+          apply: (stats) => { stats.critChance = (stats.critChance || 0) + 0.02; }
+        },
+        {
+          id: "overdrive",
+          label: "Overdrive",
+          desc: "+8% max speed.",
+          minTier: "epic",
+          apply: (stats) => { stats.maxSpeed = (stats.maxSpeed || 0) * 1.08; }
+        },
+        {
+          id: "tactician",
+          label: "Tactician",
+          desc: "+0.2 upgrade luck.",
+          minTier: "epic",
+          apply: (stats) => { stats.upgradeLuck = (stats.upgradeLuck || 0) + 0.2; }
+        }
+      ];
       const dom = {
         canvas: document.querySelector("[data-role='battlefield']"),
         overlay: document.querySelector("[data-role='overlay']"),
@@ -2149,11 +2401,9 @@
         activeUpgrades: document.querySelector("[data-role='active-upgrades']"),
         hangar: document.querySelector("[data-role='hangar']"),
         shipyard: document.querySelector("[data-role='shipyard']"),
-        weapons: document.querySelector("[data-role='weapons']"),
-        weaponUpgrades: document.querySelector("[data-role='weapon-upgrades']"),
+        inventory: document.querySelector("[data-role='inventory']"),
+        equippedItems: document.querySelector("[data-role='equipped-items']"),
         secondaries: document.querySelector("[data-role='secondaries']"),
-        partsSlots: document.querySelector("[data-role='parts-slots']"),
-        partsInventory: document.querySelector("[data-role='parts-inventory']"),
         salvage: document.querySelector("[data-role='salvage']"),
         contracts: document.querySelector("[data-role='contracts']"),
         factions: document.querySelector("[data-role='factions']"),
@@ -2165,6 +2415,7 @@
         settingsBody: document.querySelector("[data-role='settings-body']"),
         perfOverlay: document.querySelector("[data-role='perf-overlay']"),
         perfDetailOverlay: document.querySelector("[data-role='perf-detail-overlay']"),
+        perfSettingsCard: document.querySelector("[data-role='perf-settings-card']"),
         perfSettingsBasic: document.querySelector("[data-role='perf-settings-basic']"),
         perfSettingsDetail: document.querySelector("[data-role='perf-settings-detail']"),
         perfLogBtn: document.querySelector("[data-role='perf-log-btn']"),
@@ -2268,6 +2519,7 @@
         enemyAccuracyMod: 1,
         decoy: null,
         mines: [],
+        blackHoles: [],
         skillSlots: [],
         lastHudUpdate: 0,
         activeUpgradeKey: "",
@@ -2280,7 +2532,8 @@
         renderScale: 1,
         camera: { x: 0, y: 0 },
         frontier: null,
-        lossRewards: null
+        lossRewards: null,
+        salvageResults: null
       };
 
       const BASE_PLAYER = {
@@ -2357,6 +2610,13 @@
         arcRadius: 0,
         arcChains: 0,
         arcRequiresSlow: false,
+        blackHoleChance: 0,
+        blackHoleRadius: 0,
+        blackHoleDuration: 0,
+        blackHoleForce: 0,
+        blackHoleDamage: 0,
+        echoChance: 0,
+        echoDamage: 0,
         slowTimer: 0,
         slowFactor: 1
       };
@@ -2573,6 +2833,7 @@
           if (actionName === "settings") openSettings();
           if (actionName === "settings-close") closeSettings();
           if (actionName === "perf-log") togglePerfLog();
+          if (actionName === "reset-progress") resetProgress();
         });
 
         if (dom.settingsOverlay) {
@@ -2604,6 +2865,14 @@
             if (actionName === "dock-close") closeFrontierDock();
             if (actionName === "dock") openFrontierDock();
             if (actionName === "tier-up") openFrontierTierSelect();
+            if (actionName === "salvage-close") {
+              state.salvageResults = null;
+              if (state.mode === "hangar" && !state.runActive) {
+                setOverlay("start");
+              } else {
+                hideOverlay();
+              }
+            }
             return;
           }
 
@@ -2672,47 +2941,28 @@
           }
         });
 
-        dom.weapons.addEventListener("click", (event) => {
-          if (!isFeatureUnlocked("armory")) {
-            showTip("locked-armory", "Armory locked", getFeatureHint("armory"));
-            return;
-          }
-          const button = event.target.closest("[data-weapon-id]");
-          if (!button) return;
-          const weapon = WEAPONS.find((item) => item.id === button.dataset.weaponId);
-          if (!weapon) return;
-          const unlocked = !!progress.weaponUnlocks[weapon.id];
-          if (!unlocked) {
-            if (!unlockItem(weapon, progress.weaponUnlocks)) return;
-            logEvent(`Weapon unlocked: ${weapon.name}.`);
-          }
-          if (progress.selectedWeapon !== weapon.id) {
-            progress.selectedWeapon = weapon.id;
-            applyLoadoutChange("Weapon selection updated. Applies next sortie.");
-          } else {
-            saveProgress();
-            renderArmory();
-          }
-        });
-
-        dom.weaponUpgrades.addEventListener("click", (event) => {
-          if (!isFeatureUnlocked("weaponUpgrades")) {
-            showTip("locked-weapon-upgrades", "Weapon upgrades locked", getFeatureHint("weaponUpgrades"));
-            return;
-          }
-          const button = event.target.closest("[data-weapon-upgrade]");
-          if (!button) return;
-          const weapon = getWeaponById(progress.selectedWeapon);
-          const index = Number(button.dataset.weaponUpgrade);
-          const level = progress.weaponLevels[weapon.id] || 0;
-          if (!weapon.upgrades || index !== level) return;
-          const upgrade = weapon.upgrades[index];
-          if (!upgrade || progress.bankedCredits < upgrade.cost) return;
-          progress.bankedCredits -= upgrade.cost;
-          progress.weaponLevels[weapon.id] = level + 1;
-          applyLoadoutChange("Weapon upgrade installed. Applies next sortie.");
-          logEvent(`Upgrade installed: ${upgrade.name}.`);
-        });
+        if (dom.inventory) {
+          dom.inventory.addEventListener("click", (event) => {
+            if (!isFeatureUnlocked("armory")) {
+              showTip("locked-armory", "Armory locked", getFeatureHint("armory"));
+              return;
+            }
+            const action = event.target.closest("[data-item-action]");
+            const card = event.target.closest("[data-item-id]");
+            if (!card) return;
+            const item = getItemById(card.dataset.itemId);
+            if (!item) return;
+            if (!action) return;
+            const actionName = action.dataset.itemAction;
+            if (actionName === "equip") {
+              equipItem(item);
+            } else if (actionName === "upgrade") {
+              upgradeItem(item);
+            } else if (actionName === "sell") {
+              sellItem(item);
+            }
+          });
+        }
 
         dom.secondaries.addEventListener("click", (event) => {
           if (!isFeatureUnlocked("armory")) {
@@ -2737,38 +2987,6 @@
           }
         });
 
-        dom.partsSlots.addEventListener("click", (event) => {
-          if (!isFeatureUnlocked("parts")) {
-            showTip("locked-parts", "Parts bay locked", getFeatureHint("parts"));
-            return;
-          }
-          const button = event.target.closest("[data-part-slot]");
-          if (!button) return;
-          const slot = button.dataset.partSlot;
-          if (!progress.equippedParts[slot]) return;
-          progress.equippedParts[slot] = null;
-          applyLoadoutChange("Part unequipped. Applies next sortie.");
-        });
-
-        dom.partsInventory.addEventListener("click", (event) => {
-          if (!isFeatureUnlocked("parts")) {
-            showTip("locked-parts-inventory", "Parts bay locked", getFeatureHint("parts"));
-            return;
-          }
-          const button = event.target.closest("[data-part-id]");
-          if (!button) return;
-          const part = progress.partsInventory.find((item) => item.id === button.dataset.partId);
-          if (!part) return;
-          const partsMode = progress.settings.partsMode || "equip";
-          if (partsMode === "dismantle") {
-            dismantlePart(part.id);
-            return;
-          }
-          const slot = part.slot;
-          if (!slot) return;
-          progress.equippedParts[slot] = part.id;
-          applyLoadoutChange("Part equipped. Applies next sortie.");
-        });
 
         dom.salvage.addEventListener("click", (event) => {
           if (!isFeatureUnlocked("salvage")) {
@@ -2777,7 +2995,8 @@
           }
           const button = event.target.closest("[data-salvage-action='open']");
           if (!button) return;
-          openSalvageCache();
+          const count = button.dataset.salvageCount || "1";
+          openSalvageCaches(count);
         });
 
         dom.keybinds.addEventListener("click", (event) => {
@@ -2804,8 +3023,8 @@
             }
           } else if (setting === "shipyard-tier") {
             progress.settings.shipyardTier = option;
-          } else if (setting === "parts-mode") {
-            progress.settings.partsMode = option;
+          } else if (setting === "inventory-filter") {
+            progress.settings.inventoryFilter = option;
           } else if (setting === "input-mode") {
             progress.settings.inputMode = option;
           } else if (setting === "particles") {
@@ -3115,8 +3334,6 @@
             secondary: false,
             hangar: false,
             armory: false,
-            weaponUpgrades: false,
-            parts: false,
             shipyard: false,
             contracts: false,
             salvage: false
@@ -3126,12 +3343,22 @@
           },
           tipsSeen: {},
           selectedShip: "vanguard",
-          selectedWeapon: "pulse",
+          selectedWeapon: "basic",
           selectedSecondary: "emp",
           shipUnlocks: { vanguard: true, scout: true },
-          weaponUnlocks: { pulse: true, repeater: true },
+          weaponUnlocks: { basic: true },
           secondaryUnlocks: { emp: true },
           weaponLevels: {},
+          inventory: [],
+          equipped: {
+            weaponId: null,
+            attachments: {
+              barrel: null,
+              core: null,
+              targeting: null,
+              thruster: null
+            }
+          },
           partsInventory: [],
           equippedParts: {
             barrel: null,
@@ -3150,9 +3377,10 @@
             inputMode: "hybrid",
             particles: "medium",
             hitFlash: true,
-            armorySection: "weapons",
+            armorySection: "inventory",
             partsMode: "equip",
             shipyardTier: "all",
+            inventoryFilter: "all",
             renderScale: "auto",
             perfMode: "off",
             perfOverlay: false,
@@ -3227,6 +3455,15 @@
               ...fallback.weaponLevels,
               ...(stored.weaponLevels || {})
             },
+            inventory: Array.isArray(stored.inventory) ? stored.inventory : fallback.inventory,
+            equipped: {
+              ...fallback.equipped,
+              ...(stored.equipped || {}),
+              attachments: {
+                ...fallback.equipped.attachments,
+                ...((stored.equipped && stored.equipped.attachments) || {})
+              }
+            },
             equippedParts: {
               ...fallback.equippedParts,
               ...(stored.equippedParts || {})
@@ -3289,6 +3526,17 @@
         }
       }
 
+      function resetProgress() {
+        const confirmed = window.confirm("Reset all progress? This cannot be undone.");
+        if (!confirmed) return;
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+        } catch (error) {
+          // Ignore storage failures.
+        }
+        window.location.reload();
+      }
+
       function syncProgressSelections() {
         const shipIds = SHIPS.map((ship) => ship.id);
         if (!shipIds.includes(progress.selectedShip)) {
@@ -3300,16 +3548,6 @@
           progress.shipUnlocks[progress.selectedShip] = true;
         }
 
-        const weaponIds = WEAPONS.map((weapon) => weapon.id);
-        if (!weaponIds.includes(progress.selectedWeapon)) {
-          progress.selectedWeapon = WEAPONS[0].id;
-        }
-        if (!progress.weaponUnlocks[progress.selectedWeapon]) {
-          const unlockedWeapon = WEAPONS.find((weapon) => progress.weaponUnlocks[weapon.id]);
-          progress.selectedWeapon = unlockedWeapon ? unlockedWeapon.id : WEAPONS[0].id;
-          progress.weaponUnlocks[progress.selectedWeapon] = true;
-        }
-
         const secondaryIds = SECONDARIES.map((secondary) => secondary.id);
         if (!secondaryIds.includes(progress.selectedSecondary)) {
           progress.selectedSecondary = SECONDARIES[0].id;
@@ -3319,13 +3557,80 @@
           progress.selectedSecondary = unlockedSecondary ? unlockedSecondary.id : SECONDARIES[0].id;
           progress.secondaryUnlocks[progress.selectedSecondary] = true;
         }
+        ensureInventory();
+        saveProgress();
+      }
+
+      function ensureInventory() {
+        progress.inventory = Array.isArray(progress.inventory) ? progress.inventory : [];
+        progress.equipped = progress.equipped || {
+          weaponId: null,
+          attachments: {
+            barrel: null,
+            core: null,
+            targeting: null,
+            thruster: null
+          }
+        };
+        progress.equipped.attachments = {
+          barrel: null,
+          core: null,
+          targeting: null,
+          thruster: null,
+          ...(progress.equipped.attachments || {})
+        };
+
+        const existingIds = new Set(progress.inventory.map((item) => item.id));
+        if (Array.isArray(progress.partsInventory) && progress.partsInventory.length) {
+          progress.partsInventory.forEach((part) => {
+            if (!part || existingIds.has(part.id)) return;
+            const attachment = convertPartToAttachment(part);
+            if (!attachment) return;
+            progress.inventory.push(attachment);
+            existingIds.add(attachment.id);
+          });
+        }
+
+        const legacyWeaponId = progress.selectedWeapon || "basic";
+        const hasWeaponItem = progress.inventory.some((item) => item.type === "weapon");
+        if (!hasWeaponItem) {
+          const starter = createWeaponItem({ templateId: legacyWeaponId, tier: "common", isStarter: true });
+          progress.inventory.push(starter);
+          progress.equipped.weaponId = starter.id;
+        }
+        if (!progress.equipped.weaponId || !getItemById(progress.equipped.weaponId)) {
+          const fallbackWeapon = progress.inventory.find((item) => item.type === "weapon");
+          progress.equipped.weaponId = fallbackWeapon ? fallbackWeapon.id : null;
+        }
 
         PART_SLOTS.forEach((slot) => {
-          const equippedId = progress.equippedParts[slot];
-          if (!equippedId) return;
-          const hasPart = progress.partsInventory.some((part) => part.id === equippedId);
-          if (!hasPart) {
-            progress.equippedParts[slot] = null;
+          const legacyEquipped = progress.equippedParts ? progress.equippedParts[slot] : null;
+          const preferredId = progress.equipped.attachments[slot] || legacyEquipped;
+          const attachment = preferredId ? getItemById(preferredId) : null;
+          progress.equipped.attachments[slot] = attachment ? attachment.id : null;
+        });
+
+        if (progress.inventory.length > INVENTORY_LIMIT) {
+          progress.inventory = progress.inventory.slice(0, INVENTORY_LIMIT);
+        }
+
+        progress.inventory.forEach((item) => {
+          if (!item) return;
+          if (!item.type) {
+            if (item.templateId) {
+              item.type = "weapon";
+            } else if (item.slot) {
+              item.type = "attachment";
+            }
+          }
+          if (!item.tier) {
+            item.tier = getPartTier(item);
+          }
+          if (!item.upgradeSlots) {
+            item.upgradeSlots = ITEM_UPGRADE_SLOTS[item.tier] || 2;
+          }
+          if (!Number.isFinite(item.upgradeSuccesses)) {
+            item.upgradeSuccesses = 0;
           }
         });
       }
@@ -3400,8 +3705,6 @@
           secondary: "Unlocks after mastering abilities.",
           hangar: "Unlocks at Rank 2.",
           armory: "Unlocks at Rank 3.",
-          weaponUpgrades: "Unlocks at Rank 4.",
-          parts: "Unlocks after earning parts or Rank 4.",
           shipyard: "Unlocks at Rank 4.",
           contracts: "Unlocks after reaching Wave 3.",
           salvage: "Unlocks after recovering salvage keys."
@@ -3431,15 +3734,7 @@
           },
           armory: {
             title: "Armory unlocked",
-            message: "Swap weapons and secondaries in the Armory tab."
-          },
-          weaponUpgrades: {
-            title: "Weapon upgrades unlocked",
-            message: "Spend banked credits to enhance your primary weapon."
-          },
-          parts: {
-            title: "Parts bay unlocked",
-            message: "Equip recovered parts in the Armory > Parts section."
+            message: "Manage your inventory, attachments, and secondaries in the Armory tab."
           },
           shipyard: {
             title: "Shipyard unlocked",
@@ -3517,13 +3812,6 @@
         if (isFeatureUnlocked("hangar") && !isFeatureUnlocked("armory") && progress.rank >= 3) {
           unlockFeature("armory");
         }
-        if (isFeatureUnlocked("armory") && !isFeatureUnlocked("weaponUpgrades") && progress.rank >= 4) {
-          unlockFeature("weaponUpgrades");
-        }
-        if (isFeatureUnlocked("armory") && !isFeatureUnlocked("parts")
-          && (progress.rank >= 4 || (progress.partsInventory || []).length > 0)) {
-          unlockFeature("parts");
-        }
         if (!isFeatureUnlocked("shipyard") && (progress.rank >= 4 || progress.blueprints >= 1)) {
           unlockFeature("shipyard");
         }
@@ -3564,6 +3852,219 @@
         return SECONDARIES.find((secondary) => secondary.id === id) || SECONDARIES[0];
       }
 
+      function getItemById(id) {
+        if (!id || !Array.isArray(progress.inventory)) return null;
+        return progress.inventory.find((item) => item.id === id) || null;
+      }
+
+      function getEquippedWeapon() {
+        const weaponId = progress.equipped?.weaponId;
+        return weaponId ? getItemById(weaponId) : null;
+      }
+
+      function getEquippedAttachment(slot) {
+        if (!slot) return null;
+        const attachmentId = progress.equipped?.attachments?.[slot];
+        return attachmentId ? getItemById(attachmentId) : null;
+      }
+
+      function getEquippedAttachments() {
+        return PART_SLOTS.map((slot) => getEquippedAttachment(slot)).filter(Boolean);
+      }
+
+      function getTierIndex(tier) {
+        const index = TIER_ORDER.indexOf(tier);
+        return index >= 0 ? index : 0;
+      }
+
+      function rollItemTier(preferred, weights) {
+        if (preferred) return preferred;
+        const tiers = TIER_ORDER.slice();
+        const baseWeights = tiers.map((tier) => (TIER_META[tier] ? TIER_META[tier].weight : 1));
+        const finalWeights = Array.isArray(weights) && weights.length === tiers.length ? weights : baseWeights;
+        return pickWeighted(tiers, finalWeights);
+      }
+
+      function getAffixCount(tier, type) {
+        const base = {
+          common: 1,
+          uncommon: 1,
+          rare: 2,
+          epic: 2,
+          legendary: 3
+        };
+        const baseCount = base[tier] || 1;
+        const allowBonus = tier === "epic" || tier === "legendary";
+        const bonus = allowBonus && Math.random() < 0.45 ? 1 : 0;
+        const cap = type === "attachment" ? 2 : 3;
+        return Math.min(baseCount + bonus, cap);
+      }
+
+      function pickAffixes(pool, tier, count) {
+        if (!count) return [];
+        const tierIndex = getTierIndex(tier);
+        const eligible = pool.filter((affix) => getTierIndex(affix.minTier || "common") <= tierIndex);
+        if (!eligible.length) return [];
+        const picks = shuffle([...eligible]).slice(0, count);
+        if (tierIndex >= getTierIndex("epic")) {
+          const tierAffixes = eligible.filter((affix) => getTierIndex(affix.minTier || "common") >= tierIndex);
+          if (tierAffixes.length && !picks.some((affix) => tierAffixes.includes(affix))) {
+            picks[0] = pick(tierAffixes);
+          }
+        }
+        return picks;
+      }
+
+      function applyWeaponTierScaling(stats, tier) {
+        const tierIndex = getTierIndex(tier);
+        if (!tierIndex) return;
+        stats.damage *= 1 + WEAPON_TIER_SCALING.damage * tierIndex;
+        stats.fireRate *= 1 + WEAPON_TIER_SCALING.fireRate * tierIndex;
+        stats.bulletSpeed *= 1 + WEAPON_TIER_SCALING.bulletSpeed * tierIndex;
+        if (Number.isFinite(stats.energyCost)) {
+          stats.energyCost = Math.max(4, stats.energyCost * (1 - WEAPON_TIER_SCALING.energyCost * tierIndex));
+        }
+        if (Number.isFinite(stats.spread)) {
+          stats.spread = Math.max(0.02, stats.spread * (1 - WEAPON_TIER_SCALING.spread * tierIndex));
+        }
+      }
+
+      function applyWeaponUpgradeScaling(stats, item) {
+        const level = item.upgradeSuccesses || 0;
+        if (!level) return;
+        stats.damage *= 1 + level * 0.08;
+        stats.fireRate *= 1 + level * 0.06;
+        stats.bulletSpeed *= 1 + level * 0.05;
+        if (Number.isFinite(stats.energyCost)) {
+          stats.energyCost = Math.max(3, stats.energyCost * (1 - level * 0.05));
+        }
+        if (Number.isFinite(stats.spread)) {
+          stats.spread = Math.max(0.02, stats.spread * (1 - level * 0.04));
+        }
+        if (Number.isFinite(stats.critChance)) {
+          stats.critChance += level * 0.01;
+        }
+      }
+
+      function applyAttachmentUpgradeScaling(stats, item) {
+        const level = item.upgradeSuccesses || 0;
+        if (!level) return;
+        const scale = 1 + level * 0.12;
+        Object.keys(stats).forEach((key) => {
+          if (!Number.isFinite(stats[key])) return;
+          stats[key] *= scale;
+        });
+      }
+
+      function getWeaponItemStats(item) {
+        if (!item || !item.stats) return null;
+        const stats = { ...item.stats };
+        applyWeaponUpgradeScaling(stats, item);
+        return stats;
+      }
+
+      function getAttachmentStats(item) {
+        if (!item || !item.stats) return null;
+        const stats = { ...item.stats };
+        applyAttachmentUpgradeScaling(stats, item);
+        return stats;
+      }
+
+      function buildStatSummary(stats) {
+        if (!stats) return "";
+        return Object.keys(stats)
+          .filter((key) => Number.isFinite(stats[key]) && stats[key] !== 0 && !BARRAGE_STAT_KEYS.has(key))
+          .map((key) => formatStat(key, stats[key]))
+          .join(" · ");
+      }
+
+      function createWeaponItem({ templateId, tier, isStarter } = {}) {
+        const pool = isStarter ? WEAPONS : WEAPONS.filter((weapon) => weapon.id !== "basic");
+        const template = templateId ? getWeaponById(templateId) : pick(pool.length ? pool : WEAPONS);
+        const finalTier = rollItemTier(tier);
+        const stats = { ...template.stats };
+        applyWeaponTierScaling(stats, finalTier);
+        const affixCount = getAffixCount(finalTier, "weapon");
+        const affixes = pickAffixes(WEAPON_AFFIX_POOL, finalTier, affixCount);
+        affixes.forEach((affix) => affix.apply(stats));
+        return {
+          id: `weapon_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+          type: "weapon",
+          templateId: template.id,
+          tier: finalTier,
+          name: template.name,
+          stats,
+          affixes: affixes.map((affix) => ({ id: affix.id, label: affix.label, desc: affix.desc })),
+          upgradeSlots: ITEM_UPGRADE_SLOTS[finalTier] || 2,
+          upgradeSuccesses: 0,
+          createdAt: Date.now(),
+          isStarter: !!isStarter
+        };
+      }
+
+      function createAttachmentItem({ tier, slot } = {}) {
+        const finalTier = rollItemTier(tier);
+        const templateSlot = slot || pick(PART_SLOTS);
+        const template = PART_TEMPLATES[templateSlot];
+        if (!template) return null;
+        const rarity = PART_RARITIES[finalTier] || PART_RARITIES.common;
+        const stats = {};
+        Object.keys(template.stats).forEach((key) => {
+          const range = template.stats[key];
+          const value = rand(range[0], range[1]) * rarity.mult;
+          const rounded = Math.abs(value) < 1 ? parseFloat(value.toFixed(2)) : Math.round(value);
+          stats[key] = rounded;
+        });
+        const affixCount = getAffixCount(finalTier, "attachment");
+        const affixes = pickAffixes(ATTACHMENT_AFFIX_POOL, finalTier, affixCount);
+        affixes.forEach((affix) => affix.apply(stats));
+        const tierLabel = formatTierLabel(finalTier);
+        return {
+          id: `att_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+          type: "attachment",
+          slot: templateSlot,
+          tier: finalTier,
+          name: `${tierLabel} ${template.name}`,
+          stats,
+          affixes: affixes.map((affix) => ({ id: affix.id, label: affix.label, desc: affix.desc })),
+          upgradeSlots: ITEM_UPGRADE_SLOTS[finalTier] || 2,
+          upgradeSuccesses: 0,
+          createdAt: Date.now()
+        };
+      }
+
+      function convertPartToAttachment(part) {
+        if (!part || !part.stats || !part.slot) return null;
+        const tier = getPartTier(part);
+        return {
+          id: part.id || `att_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+          type: "attachment",
+          slot: part.slot,
+          tier,
+          name: part.name || part.slot,
+          stats: { ...part.stats },
+          affixes: Array.isArray(part.affixes) ? part.affixes : [],
+          upgradeSlots: ITEM_UPGRADE_SLOTS[tier] || 2,
+          upgradeSuccesses: part.upgradeSuccesses || 0,
+          createdAt: part.createdAt || Date.now()
+        };
+      }
+
+      function addInventoryItem(item, options = {}) {
+        if (!item) return false;
+        progress.inventory = Array.isArray(progress.inventory) ? progress.inventory : [];
+        if (progress.inventory.length >= INVENTORY_LIMIT) {
+          const value = getItemSellValue(item);
+          progress.bankedCredits += value;
+          if (options.notify) {
+            logEvent(`Inventory full. Auto-sold ${item.name} for ${value} credits.`);
+          }
+          return false;
+        }
+        progress.inventory.unshift(item);
+        return true;
+      }
+
       function applyMods(stats, mods) {
         if (!mods) return;
         const add = mods.add || {};
@@ -3576,25 +4077,11 @@
         });
       }
 
-      function getEquippedParts() {
-        return PART_SLOTS.map((slot) => {
-          const id = progress.equippedParts[slot];
-          return progress.partsInventory.find((part) => part.id === id) || null;
-        }).filter(Boolean);
-      }
-
-      function applyPartStats(stats, part) {
-        if (!part || !part.stats) return;
-        Object.keys(part.stats).forEach((key) => {
-          stats[key] = (stats[key] || 0) + part.stats[key];
-        });
-      }
-
-      function applyWeaponUpgrades(stats, weapon) {
-        const level = progress.weaponLevels[weapon.id] || 0;
-        const upgrades = weapon.upgrades || [];
-        upgrades.slice(0, level).forEach((upgrade) => {
-          if (upgrade.apply) upgrade.apply(stats);
+      function applyAttachmentStats(stats, item) {
+        const attachmentStats = getAttachmentStats(item);
+        if (!attachmentStats) return;
+        Object.keys(attachmentStats).forEach((key) => {
+          stats[key] = (stats[key] || 0) + attachmentStats[key];
         });
       }
 
@@ -3611,18 +4098,22 @@
       function buildBaseStats(loadout = {}) {
         const stats = { ...BASE_PLAYER };
         const ship = getShipById(loadout.shipId || progress.selectedShip);
-        const weapon = getWeaponById(loadout.weaponId || progress.selectedWeapon);
+        const weaponItem = loadout.weaponItem || getEquippedWeapon();
         const secondary = getSecondaryById(loadout.secondaryId || progress.selectedSecondary);
         applyMods(stats, ship.mods);
-        Object.assign(stats, weapon.stats);
-        applyWeaponUpgrades(stats, weapon);
+        if (weaponItem) {
+          const weaponStats = getWeaponItemStats(weaponItem);
+          if (weaponStats) {
+            Object.assign(stats, weaponStats);
+          }
+        }
         HANGAR_UPGRADES.forEach((upgrade) => {
           const level = progress.hangar[upgrade.id] || 0;
           upgrade.apply(stats, level);
         });
-        getEquippedParts().forEach((part) => applyPartStats(stats, part));
+        getEquippedAttachments().forEach((attachment) => applyAttachmentStats(stats, attachment));
         stats.ship = ship;
-        stats.weapon = weapon;
+        stats.weapon = weaponItem || null;
         stats.secondary = secondary;
         return stats;
       }
@@ -3888,6 +4379,8 @@
         state.upgradeRerolls = 0;
         state.skillSlots = [];
         state.lossRewards = null;
+        state.salvageResults = null;
+        state.blackHoles = [];
         state.wave = 1;
         state.score = 0;
         state.credits = 0;
@@ -3944,6 +4437,8 @@
         state.upgradeRerolls = 0;
         state.skillSlots = [];
         state.lossRewards = null;
+        state.salvageResults = null;
+        state.blackHoles = [];
         state.wave = 1;
         state.score = 0;
         state.credits = 0;
@@ -3974,6 +4469,10 @@
       }
 
       function resetMission() {
+        if (state.mode !== "hangar" && state.mode !== "gameover") {
+          triggerAbortRewards();
+          return;
+        }
         if (state.mode !== "hangar") {
           endRun("abort");
         }
@@ -3992,6 +4491,8 @@
         state.upgradeRerolls = 0;
         state.skillSlots = [];
         state.lossRewards = null;
+        state.salvageResults = null;
+        state.blackHoles = [];
         state.wave = 1;
         state.score = 0;
         state.credits = 0;
@@ -4073,16 +4574,16 @@
       function initFrontierRun() {
         const starterId = getFrontierStarterId();
         const starterShip = getShipById(starterId);
-        const weaponId = starterShip.signatureWeapon || progress.selectedWeapon;
+        const weaponItem = getEquippedWeapon();
         state.frontier = {
           active: true,
           tier: starterShip.tier || 1,
           shipId: starterShip.id,
-          weaponId,
+          weaponItem,
           upgrades: {},
           spawnTimer: 0
         };
-        player = createPlayer({ shipId: starterShip.id, weaponId });
+        player = createPlayer({ shipId: starterShip.id, weaponItem });
       }
 
       function getFrontierUpgradeCost(upgrade, level, tier) {
@@ -4180,10 +4681,10 @@
         state.credits -= cost;
         state.frontier.tier = ship.tier || state.frontier.tier + 1;
         state.frontier.shipId = ship.id;
-        state.frontier.weaponId = ship.signatureWeapon || progress.selectedWeapon;
+        state.frontier.weaponItem = getEquippedWeapon();
         state.frontier.upgrades = {};
         state.frontier.spawnTimer = 0;
-        player = createPlayer({ shipId: ship.id, weaponId: state.frontier.weaponId });
+        player = createPlayer({ shipId: ship.id, weaponItem: state.frontier.weaponItem });
         state.runLoadout = { ship: ship.name, weapon: player.weapon?.name || "Unknown" };
         logEvent(`Tier ${state.frontier.tier} frame acquired: ${ship.name}.`);
         closeFrontierDock();
@@ -4306,7 +4807,12 @@
           ramCooldown,
           ramTimer: ramCooldown ? rand(0.3, ramCooldown) : 0,
           ramRange: type.ramRange || 0,
-          ramKnockback: type.ramKnockback || 0
+          ramKnockback: type.ramKnockback || 0,
+          navTarget: null,
+          navTimer: 0,
+          navCooldown: 0,
+          stuckTimer: 0,
+          lastTargetDist: null
         };
         const eliteChance = forceElite ? 1 : (scale > 1.1 && Math.random() < 0.18);
         if (eliteChance && type.id !== "dreadnought") {
@@ -4403,6 +4909,7 @@
         updatePointerWorld();
         updateDecoy(delta);
         updateEnemies(delta);
+        updateBlackHoles(delta);
         updateSkillSystems(delta);
         updateHelpers(delta);
         updateBullets(delta);
@@ -4464,6 +4971,34 @@
           pulse.radius = Math.min(pulse.maxRadius, pulse.radius + pulse.speed * delta);
           if (pulse.life <= 0) {
             pulses.splice(i, 1);
+          }
+        }
+      }
+
+      function updateBlackHoles(delta) {
+        if (!state.blackHoles || !state.blackHoles.length) return;
+        for (let i = state.blackHoles.length - 1; i >= 0; i -= 1) {
+          const hole = state.blackHoles[i];
+          hole.life -= delta;
+          if (hole.life <= 0) {
+            state.blackHoles.splice(i, 1);
+            continue;
+          }
+          for (let j = enemies.length - 1; j >= 0; j -= 1) {
+            const enemy = enemies[j];
+            const dx = hole.x - enemy.x;
+            const dy = hole.y - enemy.y;
+            const dist = Math.hypot(dx, dy) || 1;
+            if (dist > hole.radius) continue;
+            const pull = (1 - dist / hole.radius) * hole.force;
+            enemy.vx += (dx / dist) * pull * delta;
+            enemy.vy += (dy / dist) * pull * delta;
+            if (hole.damage > 0) {
+              applyDamage(enemy, hole.damage * delta, { owner: "player" });
+              if (enemy.health <= 0) {
+                destroyEnemy(enemy, j);
+              }
+            }
           }
         }
       }
@@ -4824,11 +5359,16 @@
           const accel = enemy.baseAccel * (state.sectorMod?.enemy?.accel || 1) * enemy.slowFactor;
           let ax = 0;
           let ay = 0;
-          const toTargetX = dx / distance;
-          const toTargetY = dy / distance;
+          const moveTarget = getEnemyNavigationTarget(enemy, target, delta, distance);
+          const moveDx = moveTarget.x - enemy.x;
+          const moveDy = moveTarget.y - enemy.y;
+          const moveDistance = Math.hypot(moveDx, moveDy) || 1;
+          const toTargetX = moveDx / moveDistance;
+          const toTargetY = moveDy / moveDistance;
           const currentSpeed = Math.hypot(enemy.vx, enemy.vy);
+          const isDetouring = moveTarget !== target;
 
-          if (distance > enemy.preferredRange) {
+          if (isDetouring || distance > enemy.preferredRange) {
             ax += toTargetX * accel;
             ay += toTargetY * accel;
           } else {
@@ -4843,7 +5383,7 @@
           const edgeAvoidance = getBoundaryAvoidance(enemy, toTargetX, toTargetY);
           ax += edgeAvoidance.x * accel * 0.85;
           ay += edgeAvoidance.y * accel * 0.85;
-          if (distance > enemy.preferredRange * 0.7 && currentSpeed < 34) {
+          if ((isDetouring || distance > enemy.preferredRange * 0.7) && currentSpeed < 34) {
             ax += toTargetX * accel * 0.45;
             ay += toTargetY * accel * 0.45;
           }
@@ -5149,18 +5689,34 @@
           });
         }
 
-        const partChance = isBoss ? 1 : isElite ? 0.45 : 0.12;
-        if (Math.random() < partChance) {
-          const part = generatePart(isBoss ? "epic" : isElite ? "rare" : null);
-          if (part) {
-            progress.partsInventory.unshift(part);
-            if (progress.partsInventory.length > 18) {
-              progress.partsInventory.pop();
-            }
-            logEvent(`Recovered part: ${part.name}.`);
+        const attachmentChance = isBoss ? 0.75 : isElite ? 0.35 : 0.12;
+        if (Math.random() < attachmentChance) {
+          const attachmentTier = rollItemTier(null, isBoss
+            ? [1.6, 2.4, 2.1, 1.5, 0.9]
+            : isElite ? [3.8, 3, 2.4, 1.4, 0.7] : null);
+          const attachment = createAttachmentItem({ tier: attachmentTier });
+          if (attachment) {
+            addInventoryItem(attachment, { notify: true });
+            logEvent(`Recovered attachment: ${attachment.name}.`);
             drops.push({
-              label: `Part: ${part.name}`,
-              tier: part.rarityId || getPartTier(part)
+              label: `Attachment: ${attachment.name}`,
+              tier: attachment.tier
+            });
+          }
+        }
+
+        const weaponChance = isBoss ? 0.55 : isElite ? 0.24 : 0.08;
+        if (Math.random() < weaponChance) {
+          const weaponTier = rollItemTier(null, isBoss
+            ? [1.2, 2.2, 2.2, 1.6, 1]
+            : isElite ? [3.5, 3, 2.4, 1.4, 0.8] : null);
+          const weaponDrop = createWeaponItem({ tier: weaponTier });
+          if (weaponDrop) {
+            addInventoryItem(weaponDrop, { notify: true });
+            logEvent(`Recovered weapon: ${weaponDrop.name}.`);
+            drops.push({
+              label: `Weapon: ${weaponDrop.name}`,
+              tier: weaponDrop.tier
             });
           }
         }
@@ -5171,30 +5727,7 @@
       }
 
       function generatePart(preferred) {
-        const rarityPool = ["common", "uncommon", "rare", "epic"];
-        const rarityId = preferred || pickWeighted(rarityPool, [0.5, 0.3, 0.15, 0.05]);
-        const templateSlot = pick(PART_SLOTS);
-        const template = PART_TEMPLATES[templateSlot];
-        if (!template) return null;
-        const rarity = PART_RARITIES[rarityId];
-        const stats = {};
-        const desc = [];
-        Object.keys(template.stats).forEach((key) => {
-          const range = template.stats[key];
-          const value = rand(range[0], range[1]) * rarity.mult;
-          const rounded = Math.abs(value) < 1 ? parseFloat(value.toFixed(2)) : Math.round(value);
-          stats[key] = rounded;
-          desc.push(formatStat(key, rounded));
-        });
-        return {
-          id: `part_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-          slot: templateSlot,
-          rarityId,
-          rarity: rarity.label,
-          name: `${rarity.label} ${template.name}`,
-          stats,
-          description: desc.join(" · ")
-        };
+        return createAttachmentItem({ tier: preferred });
       }
 
       function checkWaveStatus() {
@@ -5417,6 +5950,47 @@
             arcRequiresSlow: !!player.arcRequiresSlow,
             isBarrage,
             tint
+          });
+        }
+        if (player.echoChance > 0 && Math.random() < player.echoChance) {
+          const echoTint = "#9aa7ff";
+          const echoDamage = player.echoDamage || 0.55;
+          for (let i = 0; i < count; i += 1) {
+            const angle = baseAngle + spread * i;
+            const damage = player.damage * damageBoost * echoDamage;
+            const speed = player.bulletSpeed * 0.95;
+            bullets.push({
+              owner: "player",
+              x: player.x + Math.cos(angle) * (player.radius + 4),
+              y: player.y + Math.sin(angle) * (player.radius + 4),
+              vx: Math.cos(angle) * speed,
+              vy: Math.sin(angle) * speed,
+              radius: 3,
+              life: 1.2,
+              damage,
+              crit: false,
+              slow: false,
+              splashRadius,
+              splashDamage,
+              pierce,
+              arcDamage: player.arcDamage || 0,
+              arcRadius: player.arcRadius || 0,
+              arcChains: player.arcChains || 0,
+              arcRequiresSlow: !!player.arcRequiresSlow,
+              isBarrage: false,
+              tint: echoTint
+            });
+          }
+        }
+        if (player.blackHoleChance > 0 && Math.random() < player.blackHoleChance) {
+          const distance = 120 + (player.blackHoleRadius || 0) * 0.35;
+          const holeX = clamp(player.x + Math.cos(player.angle) * distance, 0, state.worldWidth);
+          const holeY = clamp(player.y + Math.sin(player.angle) * distance, 0, state.worldHeight);
+          spawnBlackHole(holeX, holeY, {
+            radius: player.blackHoleRadius || 120,
+            duration: player.blackHoleDuration || 1.6,
+            force: player.blackHoleForce || 360,
+            damage: player.blackHoleDamage || 0
           });
         }
       }
@@ -5658,9 +6232,11 @@
           tierIndex >= 3 ? 3 : 2
         );
         const partCount = (tierIndex >= 4 && summary.wave >= 8) ? 2 : (tierIndex >= 2 ? 1 : 0);
+        const weaponCount = tierIndex >= 3 && summary.wave >= 6 ? 1 : 0;
         const blueprintTier = tierIndex >= 3 ? "rare" : tierIndex >= 1 ? "uncommon" : "common";
         const salvageTier = tierIndex >= 3 ? "rare" : tierIndex >= 1 ? "uncommon" : "common";
-        const partTier = tierIndex >= 4 ? "epic" : tierIndex >= 3 ? "epic" : tierIndex >= 2 ? "rare" : "uncommon";
+        const partTier = tierIndex >= 4 ? "legendary" : tierIndex >= 3 ? "epic" : tierIndex >= 2 ? "rare" : "uncommon";
+        const weaponTier = tierIndex >= 4 ? "legendary" : "epic";
         const rewards = [];
         if (creditBonus > 0) {
           rewards.push({
@@ -5697,15 +6273,29 @@
           }
         }
         parts.forEach((part) => {
+          const summaryText = buildStatSummary(getAttachmentStats(part) || part.stats);
           rewards.push({
             type: "part",
             amount: 1,
-            tier: part.rarityId || getPartTier(part),
+            tier: part.tier || getPartTier(part),
             title: part.name,
-            desc: part.description,
+            desc: summaryText,
             part
           });
         });
+        if (weaponCount > 0) {
+          const weapon = createWeaponItem({ tier: weaponTier });
+          if (weapon) {
+            rewards.push({
+              type: "weapon",
+              amount: 1,
+              tier: weapon.tier,
+              title: weapon.name,
+              desc: buildStatSummary(getWeaponItemStats(weapon) || weapon.stats),
+              item: weapon
+            });
+          }
+        }
         return {
           tier: performanceTier,
           score: performanceScore,
@@ -5727,10 +6317,10 @@
             progress.salvageKeys += reward.amount;
           }
           if (reward.type === "part" && reward.part) {
-            progress.partsInventory.unshift(reward.part);
-            if (progress.partsInventory.length > 18) {
-              progress.partsInventory.pop();
-            }
+            addInventoryItem(reward.part, { notify: true });
+          }
+          if (reward.type === "weapon" && reward.item) {
+            addInventoryItem(reward.item, { notify: true });
           }
         });
         saveProgress();
@@ -5741,6 +6331,7 @@
         if (result.rewards.length) {
           const summary = result.rewards.map((reward) => {
             if (reward.type === "part") return reward.title;
+            if (reward.type === "weapon") return reward.title;
             if (reward.type === "credits") return `${reward.amount}c`;
             if (reward.type === "blueprints") {
               return `${reward.amount} blueprint${reward.amount === 1 ? "" : "s"}`;
@@ -5758,6 +6349,7 @@
         if (!state.runActive || state.runBanked) return;
         state.runActive = false;
         state.runBanked = true;
+        state.blackHoles = [];
         if (state.frontier) {
           state.frontier.active = false;
         }
@@ -5807,6 +6399,23 @@
         spawnExplosion(player.x, player.y, "#ffffff", 26);
         setOverlay("gameover");
         logEvent("Ship destroyed. Returning to hangar.");
+      }
+
+      function triggerAbortRewards() {
+        setMode("gameover");
+        if (!state.training) {
+          progress.bestWave = Math.max(progress.bestWave, state.wave);
+          saveProgress();
+        }
+        endRun("abort");
+        if (!state.training) {
+          state.lossRewards = buildLossRewards();
+          applyLossRewards(state.lossRewards);
+        } else {
+          state.lossRewards = null;
+        }
+        setOverlay("gameover");
+        logEvent("Run aborted. Returning to hangar.");
       }
 
       function renderLootBursts() {
@@ -6021,6 +6630,8 @@
         });
         ctx.globalAlpha = 1;
 
+        renderBlackHoles();
+
         if (player) {
           drawAura();
         }
@@ -6082,6 +6693,25 @@
         ctx.arc(player.x, player.y, player.auraRadius, 0, Math.PI * 2);
         ctx.stroke();
         ctx.restore();
+      }
+
+      function renderBlackHoles() {
+        if (!state.blackHoles || !state.blackHoles.length) return;
+        state.blackHoles.forEach((hole) => {
+          const lifeRatio = hole.maxLife ? hole.life / hole.maxLife : 1;
+          const alpha = clamp(0.2 + lifeRatio * 0.4, 0, 0.7);
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          const gradient = ctx.createRadialGradient(hole.x, hole.y, hole.radius * 0.2, hole.x, hole.y, hole.radius);
+          gradient.addColorStop(0, "rgba(16, 28, 46, 0.9)");
+          gradient.addColorStop(0.45, "rgba(88, 122, 208, 0.45)");
+          gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(hole.x, hole.y, hole.radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        });
       }
 
       function renderHelpers() {
@@ -6380,6 +7010,7 @@
             <div class="perf-row"><span class="perf-label">Bullets</span><span class="perf-value">${bullets.length}</span></div>
             <div class="perf-row"><span class="perf-label">Particles</span><span class="perf-value">${particles.length}</span></div>
             <div class="perf-row"><span class="perf-label">Pulses</span><span class="perf-value">${pulses.length}</span></div>
+            <div class="perf-row"><span class="perf-label">Black Holes</span><span class="perf-value">${state.blackHoles ? state.blackHoles.length : 0}</span></div>
             <div class="perf-row"><span class="perf-label">Mines</span><span class="perf-value">${state.mines.length}</span></div>
             <div class="perf-row"><span class="perf-label">Helpers</span><span class="perf-value">${helpers.length}</span></div>
             <div class="perf-row"><span class="perf-label">Obstacles</span><span class="perf-value">${obstacles.length}</span></div>
@@ -6397,7 +7028,7 @@
         const showBasic = perfMode === "basic";
         const showDetail = perfMode === "detail";
         const showSettings = !!(settingsPanel && !settingsPanel.hidden);
-        const allowSettingsMetrics = perfMode !== "off" || perfLog.active;
+        const allowSettingsMetrics = perfMode !== "off";
         if (!showBasic && !showDetail && !showSettings) return;
         if (!force && now - perfMetrics.lastOverlayUpdate < 250) return;
         perfMetrics.lastOverlayUpdate = now;
@@ -6425,15 +7056,16 @@
         }
 
         if (showSettings) {
+          if (dom.perfSettingsCard) {
+            dom.perfSettingsCard.hidden = !allowSettingsMetrics;
+          }
           if (dom.perfSettingsBasic) {
-            dom.perfSettingsBasic.innerHTML = allowSettingsMetrics
-              ? basicHtml
-              : "<div class=\"perf-row\"><span class=\"perf-muted\">Performance metrics are off.</span></div>";
+            dom.perfSettingsBasic.hidden = perfMode !== "basic";
+            dom.perfSettingsBasic.innerHTML = perfMode === "basic" ? basicHtml : "";
           }
           if (dom.perfSettingsDetail) {
-            dom.perfSettingsDetail.innerHTML = (perfMode === "detail" && allowSettingsMetrics)
-              ? detailHtml
-              : "<div class=\"perf-row\"><span class=\"perf-muted\">Detailed metrics are off.</span></div>";
+            dom.perfSettingsDetail.hidden = perfMode !== "detail";
+            dom.perfSettingsDetail.innerHTML = perfMode === "detail" ? detailHtml : "";
           }
         }
       }
@@ -6539,7 +7171,7 @@
         perfLog.entries.push(`# Sample Interval: ${perfLog.sampleIntervalMs} ms`);
         perfLog.lastLongTaskCount = longTaskMetrics.count;
         perfLog.lastLongTaskDuration = longTaskMetrics.totalDuration;
-        perfLog.entries.push("t_ms,fps,frame_ms,update_ms,render_ms,hud_ms,raf_ms,idle_ms,busy_pct,delta_ms,enemies,bullets,particles,pulses,mines,helpers,obstacles,stars,longtasks_total,longtasks_delta,longtask_ms_total,longtask_ms_delta,mode,visibility,focus,dpr,render_scale,canvas_w,canvas_h,canvas_px_w,canvas_px_h,world_w,world_h,memory_mb");
+        perfLog.entries.push("t_ms,fps,frame_ms,update_ms,render_ms,hud_ms,raf_ms,idle_ms,busy_pct,delta_ms,enemies,bullets,particles,pulses,blackholes,mines,helpers,obstacles,stars,longtasks_total,longtasks_delta,longtask_ms_total,longtask_ms_delta,mode,visibility,focus,dpr,render_scale,canvas_w,canvas_h,canvas_px_w,canvas_px_h,world_w,world_h,memory_mb");
         updatePerfLogUi();
         logEvent("Performance log recording started.");
       }
@@ -6588,6 +7220,7 @@
           bullets.length,
           particles.length,
           pulses.length,
+          state.blackHoles ? state.blackHoles.length : 0,
           state.mines.length,
           helpers.length,
           obstacles.length,
@@ -6857,38 +7490,93 @@
       }
 
       function renderArmory() {
-        if (!dom.weapons) return;
+        if (!dom.inventory) return;
         if (!isFeatureUnlocked("armory")) {
-          dom.weapons.innerHTML = renderLockedCard("Armory locked", getFeatureHint("armory"));
-          dom.weaponUpgrades.innerHTML = renderLockedCard("Weapon upgrades locked", getFeatureHint("weaponUpgrades"));
-          dom.secondaries.innerHTML = renderLockedCard("Secondary bay locked", getFeatureHint("armory"));
-          dom.partsSlots.innerHTML = renderLockedCard("Parts bay locked", getFeatureHint("parts"));
-          dom.partsInventory.innerHTML = "";
+          dom.inventory.innerHTML = renderLockedCard("Armory locked", getFeatureHint("armory"));
+          if (dom.equippedItems) {
+            dom.equippedItems.innerHTML = "";
+          }
+          dom.secondaries.innerHTML = renderLockedCard("Secondary systems locked", getFeatureHint("secondary"));
           renderSalvage();
           return;
         }
-        const weapon = getWeaponById(progress.selectedWeapon);
-        const weaponGroups = groupByTier(WEAPONS);
-        dom.weapons.innerHTML = weaponGroups.map((group) => {
+        renderInventory();
+        renderSecondaries();
+        renderSalvage();
+      }
+
+      function renderInventory() {
+        if (!dom.inventory) return;
+        const filterGroup = document.querySelector("[data-setting='inventory-filter']");
+        const filter = progress.settings.inventoryFilter || "all";
+        if (filterGroup) {
+          filterGroup.querySelectorAll(".option-btn").forEach((btn) => {
+            btn.classList.toggle("is-active", btn.dataset.option === filter);
+          });
+        }
+
+        const equippedWeapon = getEquippedWeapon();
+        const equippedCards = [
+          renderEquippedItemCard(equippedWeapon, "Equipped Weapon")
+        ];
+        PART_SLOTS.forEach((slot) => {
+          const attachment = getEquippedAttachment(slot);
+          const label = `${slot.charAt(0).toUpperCase() + slot.slice(1)} Slot`;
+          equippedCards.push(renderEquippedItemCard(attachment, label, slot));
+        });
+        if (dom.equippedItems) {
+          dom.equippedItems.innerHTML = equippedCards.join("");
+        }
+
+        if (!Array.isArray(progress.inventory) || !progress.inventory.length) {
+          dom.inventory.innerHTML = "<span class=\"select-meta\">No gear collected yet.</span>";
+          return;
+        }
+        const filteredItems = progress.inventory.filter((item) => {
+          if (!item) return false;
+          if (!item.type) return false;
+          if (filter === "weapon") return item.type === "weapon";
+          if (filter === "attachment") return item.type === "attachment";
+          return true;
+        });
+        if (!filteredItems.length) {
+          dom.inventory.innerHTML = "<span class=\"select-meta\">No matching items.</span>";
+          return;
+        }
+        const groups = groupByTier(filteredItems);
+        dom.inventory.innerHTML = groups.map((group) => {
+          return renderTierSection(group.tier, group.items, renderInventoryCard);
+        }).join("");
+      }
+
+      function renderSecondaries() {
+        if (!dom.secondaries) return;
+        if (!isFeatureUnlocked("secondary")) {
+          dom.secondaries.innerHTML = renderLockedCard("Secondary systems locked", getFeatureHint("secondary"));
+          return;
+        }
+        const currentSecondary = getSecondaryById(progress.selectedSecondary);
+        const secondaryGroups = groupByTier(SECONDARIES);
+        dom.secondaries.innerHTML = secondaryGroups.map((group) => {
           return renderTierSection(group.tier, group.items, (item) => {
-            const unlocked = !!progress.weaponUnlocks[item.id];
-            const selected = progress.selectedWeapon === item.id;
-            const unlockable = canUnlock(item, progress.weaponUnlocks);
+            const unlocked = !!progress.secondaryUnlocks[item.id];
+            const selected = progress.selectedSecondary === item.id;
+            const unlockable = canUnlock(item, progress.secondaryUnlocks);
             const disabled = !unlocked && !unlockable ? "disabled" : "";
             const statusLabel = unlocked ? (selected ? "Equipped" : "Select") : (unlockable ? "Unlock" : "Locked");
             const unlockText = formatUnlockText(item.unlock);
             const tier = item.tier || "common";
             const tierLabel = formatTierLabel(tier);
-            const comparison = selected ? "" : buildWeaponComparison(weapon, item);
+            const comparison = selected ? "" : buildSecondaryComparison(currentSecondary, item);
             const compareBlock = comparison ? `<div class="compare-list">${comparison}</div>` : "";
             return `
-              <button class="select-card ${selected ? "is-active" : ""}" data-tier="${tier}" data-weapon-id="${item.id}" ${disabled}>
+              <button class="select-card ${selected ? "is-active" : ""}" data-tier="${tier}" data-secondary-id="${item.id}" ${disabled}>
                 <span class="select-title">${item.name}</span>
                 <span class="select-meta">${item.desc}</span>
                 ${compareBlock}
                 <div class="select-pills">
                   <span class="select-pill tier-pill" data-tier="${tier}">${tierLabel}</span>
-                  ${item.tags.map((tag) => `<span class="select-pill">${tag}</span>`).join("")}
+                  <span class="select-pill">Cooldown ${item.cooldown}s</span>
                   <span class="select-pill">${statusLabel}</span>
                   ${unlockText ? `<span class="select-pill">${unlockText}</span>` : ""}
                 </div>
@@ -6896,155 +7584,248 @@
             `;
           });
         }).join("");
-
-        if (!isFeatureUnlocked("weaponUpgrades")) {
-          dom.weaponUpgrades.innerHTML = renderLockedCard("Weapon upgrades locked", getFeatureHint("weaponUpgrades"));
-        } else {
-          dom.weaponUpgrades.innerHTML = (weapon.upgrades || []).map((upgrade, index) => {
-            const level = progress.weaponLevels[weapon.id] || 0;
-            const owned = index < level;
-            const next = index === level;
-            const canBuy = next && progress.bankedCredits >= upgrade.cost;
-            const status = owned ? "Installed" : (next ? `Upgrade (${upgrade.cost})` : "Locked");
-            const disabled = owned || !canBuy ? "disabled" : "";
-            const tier = upgrade.tier || "common";
-            const tierLabel = formatTierLabel(tier);
-            return `
-              <button class="upgrade-card" data-tier="${tier}" data-weapon-upgrade="${index}" ${disabled}>
-                <div class="upgrade-meta">
-                  <span class="select-pill tier-pill" data-tier="${tier}">${tierLabel}</span>
-                  <span class="select-pill">${status}</span>
-                </div>
-                <span class="upgrade-title">${upgrade.name}</span>
-                <span class="upgrade-desc">${upgrade.desc}</span>
-              </button>
-            `;
-          }).join("") || "<span class=\"select-meta\">No upgrades available.</span>";
-        }
-
-        if (!isFeatureUnlocked("secondary")) {
-          dom.secondaries.innerHTML = renderLockedCard("Secondary systems locked", getFeatureHint("secondary"));
-        } else {
-          const currentSecondary = getSecondaryById(progress.selectedSecondary);
-          const secondaryGroups = groupByTier(SECONDARIES);
-          dom.secondaries.innerHTML = secondaryGroups.map((group) => {
-            return renderTierSection(group.tier, group.items, (item) => {
-              const unlocked = !!progress.secondaryUnlocks[item.id];
-              const selected = progress.selectedSecondary === item.id;
-              const unlockable = canUnlock(item, progress.secondaryUnlocks);
-              const disabled = !unlocked && !unlockable ? "disabled" : "";
-              const statusLabel = unlocked ? (selected ? "Equipped" : "Select") : (unlockable ? "Unlock" : "Locked");
-              const unlockText = formatUnlockText(item.unlock);
-              const tier = item.tier || "common";
-              const tierLabel = formatTierLabel(tier);
-              const comparison = selected ? "" : buildSecondaryComparison(currentSecondary, item);
-              const compareBlock = comparison ? `<div class="compare-list">${comparison}</div>` : "";
-              return `
-                <button class="select-card ${selected ? "is-active" : ""}" data-tier="${tier}" data-secondary-id="${item.id}" ${disabled}>
-                  <span class="select-title">${item.name}</span>
-                  <span class="select-meta">${item.desc}</span>
-                  ${compareBlock}
-                  <div class="select-pills">
-                    <span class="select-pill tier-pill" data-tier="${tier}">${tierLabel}</span>
-                    <span class="select-pill">Cooldown ${item.cooldown}s</span>
-                    <span class="select-pill">${statusLabel}</span>
-                    ${unlockText ? `<span class="select-pill">${unlockText}</span>` : ""}
-                  </div>
-                </button>
-              `;
-            });
-          }).join("");
-        }
-
-        renderParts();
-        renderSalvage();
       }
 
-      function renderParts() {
-        if (!isFeatureUnlocked("parts")) {
-          dom.partsSlots.innerHTML = renderLockedCard("Parts bay locked", getFeatureHint("parts"));
-          dom.partsInventory.innerHTML = "";
-          return;
-        }
-        const partsModeGroup = document.querySelector("[data-setting='parts-mode']");
-        const partsMode = progress.settings.partsMode || "equip";
-        if (partsModeGroup) {
-          partsModeGroup.querySelectorAll(".option-btn").forEach((btn) => {
-            btn.classList.toggle("is-active", btn.dataset.option === partsMode);
-          });
-        }
-        const equipped = progress.equippedParts || {};
-        dom.partsSlots.innerHTML = PART_SLOTS.map((slot) => {
-          const part = progress.partsInventory.find((item) => item.id === equipped[slot]);
-          const tier = part ? getPartTier(part) : "common";
-          const tierLabel = part ? formatTierLabel(tier) : "";
-          const tierAttr = part ? `data-tier="${tier}"` : "";
-          const statusLabel = part ? "Equipped" : "Empty";
-          return `
-            <button class="select-card ${part ? "is-active" : ""}" ${tierAttr} data-part-slot="${slot}">
-              <span class="select-title">${slot.charAt(0).toUpperCase() + slot.slice(1)} Slot</span>
-              <span class="select-meta">${part ? `${part.name} (${part.rarity})` : "Empty"}</span>
-              <span class="select-meta">${part ? part.description : "Tap to unequip or select a part."}</span>
-              <div class="select-pills">
-                ${part ? `<span class="select-pill tier-pill" data-tier="${tier}">${tierLabel}</span>` : ""}
-                <span class="select-pill">${statusLabel}</span>
-              </div>
-            </button>
-          `;
-        }).join("");
-
-        if (!progress.partsInventory.length) {
-          dom.partsInventory.innerHTML = "<span class=\"select-meta\">No parts collected yet.</span>";
-          return;
-        }
-
-        const partsWithTier = progress.partsInventory.map((part) => ({
-          ...part,
-          tier: getPartTier(part)
-        }));
-        const partGroups = groupByTier(partsWithTier);
-        dom.partsInventory.innerHTML = partGroups.map((group) => {
-          return renderTierSection(group.tier, group.items, (part) => {
-            const equippedSlot = Object.keys(progress.equippedParts).find((slot) => progress.equippedParts[slot] === part.id);
-            const scrapValue = getPartScrapValue(part);
-            const status = partsMode === "dismantle"
-              ? `Scrap ${scrapValue}c${equippedSlot ? " (equipped)" : ""}`
-              : (equippedSlot ? `Equipped (${equippedSlot})` : "Equip");
-            const disabled = partsMode === "equip" && equippedSlot ? "disabled" : "";
-            const tier = part.tier || "common";
-            const tierLabel = formatTierLabel(tier);
-            const equippedId = progress.equippedParts[part.slot];
-            const equippedPart = progress.partsInventory.find((item) => item.id === equippedId);
-            const comparison = equippedSlot ? "" : buildPartComparison(part, equippedPart);
-            const compareBlock = comparison ? `<div class="compare-list">${comparison}</div>` : "";
-            return `
-              <button class="select-card" data-tier="${tier}" data-part-id="${part.id}" ${disabled}>
-                <span class="select-title">${part.name}</span>
-                <span class="select-meta">${part.description}</span>
-                ${compareBlock}
-                <div class="select-pills">
-                  <span class="select-pill tier-pill" data-tier="${tier}">${tierLabel}</span>
-                  <span class="select-pill">${status}</span>
-                </div>
-              </button>
-            `;
-          });
-        }).join("");
+      function renderEquippedItemCard(item, label, slot) {
+        const hasItem = !!item;
+        const tier = hasItem ? (item.tier || "common") : "common";
+        const tierLabel = hasItem ? formatTierLabel(tier) : "";
+        const summary = hasItem ? getItemSummary(item) : "Empty slot";
+        const tag = hasItem
+          ? (item.type === "attachment" ? `${slot.charAt(0).toUpperCase() + slot.slice(1)} Attachment` : "Weapon")
+          : "Empty";
+        const tooltip = hasItem ? buildItemTooltip(item) : "";
+        return `
+          <div class="select-card is-static" ${hasItem ? `data-tier="${tier}"` : ""} ${tooltip ? `title="${escapeAttribute(tooltip)}"` : ""}>
+            <span class="select-title">${label}</span>
+            <span class="select-meta">${hasItem ? item.name : "No item equipped"}</span>
+            <span class="select-meta">${summary}</span>
+            <div class="select-pills">
+              ${hasItem ? `<span class="select-pill tier-pill" data-tier="${tier}">${tierLabel}</span>` : ""}
+              <span class="select-pill">${tag}</span>
+              ${hasItem ? `<span class="select-pill">Upgrades ${item.upgradeSuccesses || 0}/${item.upgradeSlots || 0}</span>` : ""}
+              ${hasItem ? (item.affixes || []).slice(0, 2).map((affix) => `<span class="select-pill">${affix.label}</span>`).join("") : ""}
+            </div>
+          </div>
+        `;
       }
 
-      function dismantlePart(partId) {
-        const index = progress.partsInventory.findIndex((part) => part.id === partId);
-        if (index === -1) return;
-        const part = progress.partsInventory[index];
-        const scrapValue = getPartScrapValue(part);
-        progress.partsInventory.splice(index, 1);
-        Object.keys(progress.equippedParts).forEach((slot) => {
-          if (progress.equippedParts[slot] === partId) {
-            progress.equippedParts[slot] = null;
-          }
+      function renderInventoryCard(item) {
+        const equipped = isItemEquipped(item);
+        const tier = item.tier || "common";
+        const tierLabel = formatTierLabel(tier);
+        const summary = getItemSummary(item);
+        const isWeapon = item.type === "weapon";
+        const isAttachment = item.type === "attachment";
+        const comparison = isWeapon
+          ? (equipped ? "" : buildWeaponComparison(getEquippedWeapon(), item))
+          : (isAttachment && !equipped ? buildAttachmentComparison(item, getEquippedAttachment(item.slot)) : "");
+        const compareBlock = comparison ? `<div class="compare-list">${comparison}</div>` : "";
+        const upgradeChance = getUpgradeSuccessChance(item);
+        const upgradeLabel = item.upgradeSuccesses >= item.upgradeSlots
+          ? "Maxed"
+          : `Upgrade ${Math.round(upgradeChance * 100)}%`;
+        const canUpgrade = canUpgradeItem(item);
+        const canSell = canSellItem(item);
+        const tooltip = buildItemTooltip(item);
+        const affixPills = (item.affixes || []).map((affix) => `<span class="select-pill">${affix.label}</span>`).join("");
+        const typeLabel = isWeapon
+          ? "Weapon"
+          : (item.slot ? `${item.slot.charAt(0).toUpperCase() + item.slot.slice(1)} Attachment` : "Item");
+        return `
+          <div class="select-card" data-tier="${tier}" data-item-id="${item.id}" ${tooltip ? `title="${escapeAttribute(tooltip)}"` : ""}>
+            <span class="select-title">${item.name}</span>
+            <span class="select-meta">${typeLabel} · ${summary}</span>
+            ${compareBlock}
+            <div class="select-pills">
+              <span class="select-pill tier-pill" data-tier="${tier}">${tierLabel}</span>
+              <span class="select-pill">${typeLabel}</span>
+              <span class="select-pill">Upgrades ${item.upgradeSuccesses || 0}/${item.upgradeSlots || 0}</span>
+              ${equipped ? "<span class=\"select-pill\">Equipped</span>" : ""}
+              ${affixPills}
+            </div>
+            <div class="inventory-actions">
+              <button class="btn ghost btn-mini" type="button" data-item-action="equip" ${equipped ? "disabled" : ""}>
+                ${equipped ? "Equipped" : "Equip"}
+              </button>
+              <button class="btn ghost btn-mini" type="button" data-item-action="upgrade" ${canUpgrade ? "" : "disabled"}>
+                ${upgradeLabel}
+              </button>
+              <button class="btn ghost btn-mini" type="button" data-item-action="sell" ${canSell ? "" : "disabled"}>
+                Sell ${getItemSellValue(item)}c
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      function getItemSummary(item) {
+        if (!item) return "";
+        const stats = item.type === "weapon" ? getWeaponItemStats(item) : getAttachmentStats(item);
+        if (!stats) return "";
+        if (item.type === "weapon") {
+          const parts = [
+            `DMG ${Math.round(stats.damage)}`,
+            `FR ${stats.fireRate.toFixed(1)}`,
+            `EN ${stats.energyCost.toFixed(1)}`
+          ];
+          if (stats.projectiles > 1) parts.push(`Proj ${stats.projectiles}`);
+          if (stats.pierce > 0) parts.push(`Pierce ${stats.pierce}`);
+          if (stats.splashRadius > 0) parts.push(`Splash ${Math.round(stats.splashRadius)}`);
+          if (stats.arcChains > 0) parts.push(`Arc ${stats.arcChains}`);
+          return parts.join(" · ");
+        }
+        const entries = Object.keys(stats)
+          .filter((key) => Number.isFinite(stats[key]) && stats[key] !== 0)
+          .map((key) => formatStat(key, stats[key]));
+        return entries.slice(0, 3).join(" · ");
+      }
+
+      function buildItemTooltip(item) {
+        if (!item) return "";
+        const stats = item.type === "weapon" ? getWeaponItemStats(item) : getAttachmentStats(item);
+        const lines = [];
+        const tierLabel = formatTierLabel(item.tier || "common");
+        lines.push(`${tierLabel} ${item.name}`);
+        if (item.type === "attachment" && item.slot) {
+          lines.push(`Slot: ${item.slot.charAt(0).toUpperCase() + item.slot.slice(1)}`);
+        }
+        if (stats) {
+          lines.push(buildStatSummary(stats));
+        }
+        if (item.affixes && item.affixes.length) {
+          item.affixes.forEach((affix) => {
+            if (affix.desc) {
+              lines.push(`${affix.label}: ${affix.desc}`);
+            } else {
+              lines.push(affix.label);
+            }
+          });
+        }
+        lines.push(`Upgrades: ${item.upgradeSuccesses || 0}/${item.upgradeSlots || 0}`);
+        return lines.filter(Boolean).join("\n");
+      }
+
+      function escapeAttribute(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/"/g, "&quot;");
+      }
+
+      function isItemEquipped(item) {
+        if (!item) return false;
+        if (item.type === "weapon") {
+          return progress.equipped?.weaponId === item.id;
+        }
+        if (item.type === "attachment") {
+          return progress.equipped?.attachments?.[item.slot] === item.id;
+        }
+        return false;
+      }
+
+      function getUpgradeMaterial(item) {
+        if (!item || !Array.isArray(progress.inventory)) return null;
+        let pool = progress.inventory.filter((candidate) => {
+          if (!candidate || candidate.id === item.id) return false;
+          if (candidate.type !== item.type) return false;
+          if (isItemEquipped(candidate)) return false;
+          if (item.type === "attachment" && candidate.slot !== item.slot) return false;
+          return true;
         });
-        progress.bankedCredits += scrapValue;
-        applyLoadoutChange(`Part dismantled: ${part.name}. +${scrapValue} credits.`);
+        if (item.type === "weapon") {
+          const sameTemplate = pool.filter((candidate) => candidate.templateId === item.templateId);
+          if (sameTemplate.length) {
+            pool = sameTemplate;
+          }
+        }
+        if (!pool.length) return null;
+        pool.sort((a, b) => {
+          const tierDiff = getTierIndex(a.tier) - getTierIndex(b.tier);
+          if (tierDiff !== 0) return tierDiff;
+          return (a.upgradeSuccesses || 0) - (b.upgradeSuccesses || 0);
+        });
+        return pool[0];
+      }
+
+      function getUpgradeSuccessChance(item) {
+        if (!item) return 0;
+        const base = ITEM_UPGRADE_CHANCE[item.tier] || 0.5;
+        const penalty = (item.upgradeSuccesses || 0) * 0.08;
+        return clamp(base - penalty, 0.1, 0.95);
+      }
+
+      function canUpgradeItem(item) {
+        if (!item) return false;
+        if ((item.upgradeSuccesses || 0) >= (item.upgradeSlots || 0)) return false;
+        return !!getUpgradeMaterial(item);
+      }
+
+      function canSellItem(item) {
+        if (!item) return false;
+        if (isItemEquipped(item)) return false;
+        if (item.type === "weapon") {
+          const weaponCount = progress.inventory.filter((entry) => entry.type === "weapon").length;
+          return weaponCount > 1;
+        }
+        return true;
+      }
+
+      function equipItem(item) {
+        if (!item) return;
+        if (item.type === "weapon") {
+          progress.equipped.weaponId = item.id;
+          applyLoadoutChange("Weapon equipped. Applies next sortie.");
+          return;
+        }
+        if (item.type === "attachment") {
+          progress.equipped.attachments[item.slot] = item.id;
+          applyLoadoutChange("Attachment equipped. Applies next sortie.");
+        }
+      }
+
+      function upgradeItem(item) {
+        if (!item) return;
+        if ((item.upgradeSuccesses || 0) >= (item.upgradeSlots || 0)) {
+          logEvent("Upgrade slots full.");
+          return;
+        }
+        const material = getUpgradeMaterial(item);
+        if (!material) {
+          logEvent("No compatible item to consume.");
+          return;
+        }
+        const chance = getUpgradeSuccessChance(item);
+        progress.inventory = progress.inventory.filter((entry) => entry.id !== material.id);
+        const success = Math.random() < chance;
+        if (success) {
+          item.upgradeSuccesses = (item.upgradeSuccesses || 0) + 1;
+          applyLoadoutChange(`Upgrade succeeded: ${item.name} +1.`);
+        } else {
+          applyLoadoutChange(`Upgrade failed: ${item.name} resisted the fusion.`);
+        }
+      }
+
+      function sellItem(item) {
+        if (!item || !canSellItem(item)) return;
+        const value = getItemSellValue(item);
+        progress.inventory = progress.inventory.filter((entry) => entry.id !== item.id);
+        progress.bankedCredits += value;
+        applyLoadoutChange(`Sold ${item.name} for ${value} credits.`);
+      }
+
+      function getItemSellValue(item) {
+        if (!item) return 0;
+        const values = {
+          common: 80,
+          uncommon: 140,
+          rare: 220,
+          epic: 340,
+          legendary: 520
+        };
+        const base = values[item.tier] || 80;
+        const typeBonus = item.type === "weapon" ? 1.1 : 0.9;
+        const upgradeBonus = 1 + (item.upgradeSuccesses || 0) * 0.2;
+        return Math.round(base * typeBonus * upgradeBonus);
       }
 
       function renderLockedCard(title, message) {
@@ -7070,6 +7851,23 @@
         const oddsPills = odds.map((item) => {
           return `<span class="select-pill">${item.label} ${item.percent}%</span>`;
         }).join("");
+        const openOptions = [
+          { label: "Open 1", count: 1 },
+          { label: "Open 10", count: 10 },
+          { label: "Open 100", count: 100 },
+          { label: `Open Max (${keys})`, count: "max" }
+        ];
+        const openButtons = openOptions.map((option) => {
+          const isMax = option.count === "max";
+          const requiredKeys = isMax ? keys : option.count;
+          const canOpen = requiredKeys > 0 && keys >= requiredKeys;
+          const label = isMax ? `Open Max (${keys})` : option.label;
+          return `
+            <button class="btn ghost btn-mini" type="button" data-salvage-action="open" data-salvage-count="${option.count}" ${canOpen ? "" : "disabled"}>
+              ${label}
+            </button>
+          `;
+        }).join("");
         const historyHtml = progress.salvageHistory && progress.salvageHistory.length
           ? progress.salvageHistory.map((entry) => `
             <div class="history-entry">
@@ -7086,7 +7884,9 @@
             <div class="select-pills">
               ${oddsPills}
             </div>
-            <button class="btn primary" type="button" data-salvage-action="open" ${keys ? "" : "disabled"}>Open Cache</button>
+            <div class="salvage-actions">
+              ${openButtons}
+            </div>
           </div>
           <div class="select-card is-static">
             <span class="select-title">Recent Hauls</span>
@@ -7106,45 +7906,99 @@
         }));
       }
 
-      function openSalvageCache() {
-        if (!progress.salvageKeys || progress.salvageKeys < 1) return;
-        progress.salvageKeys -= 1;
-        let rewardDef = rollSalvageReward();
-        const rareReady = progress.salvagePity >= SALVAGE_CACHE.pityThreshold;
-        if (rareReady && !SALVAGE_CACHE.rareIds.includes(rewardDef.id)) {
-          const rareTable = SALVAGE_CACHE.table.filter((item) => SALVAGE_CACHE.rareIds.includes(item.id));
-          rewardDef = pickWeighted(rareTable, rareTable.map((item) => item.weight));
+      function resolveSalvageOpenCount(token, keys) {
+        if (!keys) return 0;
+        if (token === "max") return keys;
+        const count = parseInt(token, 10);
+        if (!Number.isFinite(count) || count <= 0) return 0;
+        return Math.min(count, keys);
+      }
+
+      function getSalvageRewardTier(reward, rewardDef) {
+        if (reward.type === "part" && reward.part) {
+          return reward.part.tier || getPartTier(reward.part);
         }
-        const reward = rewardDef.roll();
+        if (rewardDef && rewardDef.id === "credits-jackpot") return "rare";
+        if (rewardDef && rewardDef.id === "blueprints") return "uncommon";
+        return "common";
+      }
+
+      function buildSalvageRewardResult(reward, rewardDef) {
+        let title = rewardDef ? rewardDef.label : "Salvage";
+        let amount = Number.isFinite(reward.amount) ? reward.amount : 1;
+        let tier = getSalvageRewardTier(reward, rewardDef);
         let detail = "";
+        let note = "";
         if (reward.type === "credits") {
           progress.bankedCredits += reward.amount;
+          title = "Credits";
           detail = `${reward.amount.toLocaleString()} credits`;
         }
         if (reward.type === "blueprints") {
           progress.blueprints += reward.amount;
+          title = "Blueprints";
           detail = `${reward.amount} blueprint${reward.amount === 1 ? "" : "s"}`;
         }
         if (reward.type === "part") {
           const part = reward.part;
           if (part) {
-            progress.partsInventory.unshift(part);
-            if (progress.partsInventory.length > 18) {
-              progress.partsInventory.pop();
-            }
+            const stored = addInventoryItem(part, { notify: false });
+            title = part.name;
+            amount = 1;
+            tier = part.tier || getPartTier(part);
             detail = part.name;
+            if (!stored) {
+              const value = getItemSellValue(part);
+              note = `Auto-sold ${value}c`;
+            }
           } else {
+            title = "Attachment";
+            amount = 1;
             detail = "Component fragment";
           }
         }
-        const isRare = SALVAGE_CACHE.rareIds.includes(rewardDef.id);
+        const isRare = rewardDef && SALVAGE_CACHE.rareIds.includes(rewardDef.id);
         progress.salvagePity = isRare ? 0 : (progress.salvagePity || 0) + 1;
-        recordSalvageHistory({ title: rewardDef.label, detail });
+        recordSalvageHistory({ title: rewardDef ? rewardDef.label : "Salvage", detail });
+        return {
+          type: reward.type,
+          amount,
+          tier,
+          title,
+          desc: detail,
+          note
+        };
+      }
+
+      function openSalvageCaches(token) {
+        const keys = progress.salvageKeys || 0;
+        const count = resolveSalvageOpenCount(token, keys);
+        if (!count) return;
+        progress.salvageKeys = Math.max(0, keys - count);
+        const rewards = [];
+        for (let i = 0; i < count; i += 1) {
+          let rewardDef = rollSalvageReward();
+          const rareReady = progress.salvagePity >= SALVAGE_CACHE.pityThreshold;
+          if (rareReady && !SALVAGE_CACHE.rareIds.includes(rewardDef.id)) {
+            const rareTable = SALVAGE_CACHE.table.filter((item) => SALVAGE_CACHE.rareIds.includes(item.id));
+            rewardDef = pickWeighted(rareTable, rareTable.map((item) => item.weight));
+          }
+          const reward = rewardDef.roll();
+          const result = buildSalvageRewardResult(reward, rewardDef);
+          rewards.push(result);
+        }
         saveProgress();
         checkProgressionUnlocks();
         renderShipyard();
         renderArmory();
-        logEvent(`Salvage cache opened: ${detail}.`);
+        if (rewards.length) {
+          state.salvageResults = {
+            count,
+            rewards
+          };
+          setOverlay("salvage");
+        }
+        logEvent(`Salvage caches opened: ${count}.`);
       }
 
       function rollSalvageReward() {
@@ -7312,10 +8166,39 @@
           spread: "Spread",
           turnRate: "Turn Rate",
           maxSpeed: "Max Speed",
-          accel: "Acceleration"
+          accel: "Acceleration",
+          projectiles: "Projectiles",
+          pierce: "Pierce",
+          splashRadius: "Splash Radius",
+          splashDamage: "Splash Damage",
+          arcDamage: "Arc Damage",
+          arcRadius: "Arc Radius",
+          arcChains: "Arc Chains",
+          slowChance: "Slow Chance",
+          slowDuration: "Slow Duration",
+          maxShield: "Max Shield",
+          maxHealth: "Max Hull",
+          maxEnergy: "Max Energy",
+          energyRegen: "Energy Regen",
+          boostMultiplier: "Boost Mult",
+          boostCost: "Boost Cost",
+          damageReduction: "Damage Reduction",
+          upgradeLuck: "Upgrade Luck",
+          blackHoleChance: "Black Hole Chance",
+          blackHoleRadius: "Black Hole Radius",
+          blackHoleDuration: "Black Hole Duration",
+          blackHoleForce: "Black Hole Force",
+          blackHoleDamage: "Black Hole Damage",
+          echoChance: "Echo Chance",
+          echoDamage: "Echo Damage"
         };
         const label = labels[key] || key;
-        const isPercent = key === "critChance";
+        const isPercent = key === "critChance"
+          || key === "damageReduction"
+          || key === "slowChance"
+          || key === "blackHoleChance"
+          || key === "echoChance"
+          || key === "echoDamage";
         const displayValue = isPercent ? value * 100 : value;
         const formatted = Number.isInteger(displayValue) ? displayValue.toString() : displayValue.toFixed(2);
         const signed = displayValue > 0 ? `+${formatted}` : formatted;
@@ -7338,7 +8221,17 @@
         legendary: "#f6c65f"
       };
 
-      const LOWER_BETTER_STATS = new Set(["energyCost", "spread", "cooldown"]);
+      const BARRAGE_STAT_KEYS = new Set([
+        "barrageEvery",
+        "barrageProjectiles",
+        "barrageBonusDamage",
+        "barrageSplashRadius",
+        "barrageSplashDamage",
+        "barragePierce",
+        "barrageCounter"
+      ]);
+
+      const LOWER_BETTER_STATS = new Set(["energyCost", "spread", "cooldown", "boostCost"]);
 
       function getTierMeta(tier) {
         return TIER_META[tier] || TIER_META.common;
@@ -7372,7 +8265,8 @@
           credits: "🪙",
           blueprints: "📘",
           salvage: "🔑",
-          part: "⚙"
+          part: "⚙",
+          weapon: "⚡"
         };
         return icons[reward.type] || "★";
       }
@@ -7382,7 +8276,8 @@
         if (reward.type === "credits") return "Credits";
         if (reward.type === "blueprints") return "Blueprints";
         if (reward.type === "salvage") return "Salvage keys";
-        if (reward.type === "part") return reward.title || "Part";
+        if (reward.type === "part") return reward.title || "Attachment";
+        if (reward.type === "weapon") return reward.title || "Weapon";
         return reward.type;
       }
 
@@ -7390,6 +8285,32 @@
         if (!reward) return "0";
         const amount = Number.isFinite(reward.amount) ? reward.amount : 1;
         return amount.toLocaleString();
+      }
+
+      function sortRewardsByTier(rewards) {
+        if (!Array.isArray(rewards)) return [];
+        return rewards.slice().sort((a, b) => {
+          const tierA = a && a.tier ? a.tier : "common";
+          const tierB = b && b.tier ? b.tier : "common";
+          const diff = getTierIndex(tierA) - getTierIndex(tierB);
+          if (diff !== 0) return diff;
+          return (a && a.title ? a.title : "").localeCompare(b && b.title ? b.title : "");
+        });
+      }
+
+      function getSalvageRevealDelay(tier, index) {
+        const tierIndex = getTierIndex(tier || "common");
+        const baseDelay = index * 0.08;
+        const tierBonus = tierIndex >= 4
+          ? 0.3
+          : tierIndex >= 3
+            ? 0.22
+            : tierIndex >= 2
+              ? 0.14
+              : tierIndex >= 1
+                ? 0.08
+                : 0;
+        return (baseDelay + tierBonus).toFixed(2);
       }
 
       function groupByTier(items) {
@@ -7414,14 +8335,8 @@
         return LOWER_BETTER_STATS.has(key) ? diff < 0 : diff > 0;
       }
 
-      function getWeaponStatsSnapshot(weapon) {
-        const stats = { ...weapon.stats };
-        const level = progress.weaponLevels[weapon.id] || 0;
-        const upgrades = weapon.upgrades || [];
-        upgrades.slice(0, level).forEach((upgrade) => {
-          if (upgrade.apply) upgrade.apply(stats);
-        });
-        return stats;
+      function getWeaponStatsSnapshot(item) {
+        return getWeaponItemStats(item) || {};
       }
 
       function buildWeaponComparison(currentWeapon, candidateWeapon) {
@@ -7463,23 +8378,25 @@
         return `<span class="stat-diff ${better ? "is-positive" : "is-negative"}">${formatDelta(diff, 0)}s Cooldown</span>`;
       }
 
-      function buildPartComparison(part, equippedPart) {
-        if (!part || !part.stats) return "";
-        const compareFrom = equippedPart && equippedPart.stats ? equippedPart.stats : {};
-        const chips = Object.keys(part.stats).map((key) => {
-          const diff = (part.stats[key] || 0) - (compareFrom[key] || 0);
+      function buildAttachmentComparison(item, equippedItem) {
+        if (!item || !item.stats) return "";
+        const currentStats = equippedItem ? (getAttachmentStats(equippedItem) || {}) : {};
+        const candidateStats = getAttachmentStats(item) || {};
+        const chips = Object.keys(candidateStats).map((key) => {
+          const diff = (candidateStats[key] || 0) - (currentStats[key] || 0);
           if (Math.abs(diff) < 0.01) return "";
           const better = isBetterStat(key, diff);
           return `<span class="stat-diff ${better ? "is-positive" : "is-negative"}">${formatStat(key, diff)}</span>`;
         }).filter(Boolean);
         if (!chips.length) {
-          return "<span class=\"stat-diff is-neutral\">Matches equipped part</span>";
+          return "<span class=\"stat-diff is-neutral\">Matches equipped attachment</span>";
         }
         return chips.slice(0, 4).join("");
       }
 
       function getPartTier(part) {
         if (!part) return "common";
+        if (part.tier) return part.tier;
         if (part.rarityId) return part.rarityId;
         return (part.rarity || "Common").toLowerCase();
       }
@@ -7490,7 +8407,8 @@
           common: 60,
           uncommon: 120,
           rare: 200,
-          epic: 320
+          epic: 320,
+          legendary: 520
         };
         return values[tier] || 80;
       }
@@ -7763,6 +8681,43 @@
             </div>
           `;
         }
+        if (mode === "salvage") {
+          const results = state.salvageResults || { rewards: [], count: 0 };
+          const rewards = sortRewardsByTier(results.rewards || []);
+          const rewardCards = rewards.length
+            ? rewards.map((reward, index) => {
+              const tier = reward.tier || "common";
+              const tierIndex = getTierIndex(tier);
+              const glow = tierIndex >= 2;
+              const icon = getRewardIcon(reward);
+              const label = reward.title || getRewardLabel(reward);
+              const value = formatRewardValue(reward);
+              const delay = getSalvageRevealDelay(tier, index);
+              return `
+                <div class="reward-item salvage-item ${glow ? "is-glow" : ""}" data-tier="${tier}" style="--reveal-delay:${delay}s;">
+                  <span class="reward-icon" role="img" aria-label="${label} x${value}" title="${label} x${value}">${icon}</span>
+                  <span class="reward-value">${value}</span>
+                  <span class="reward-label">${label}</span>
+                  ${reward.note ? `<span class="reward-note">${reward.note}</span>` : ""}
+                </div>
+              `;
+            }).join("")
+            : "<div class=\"select-meta\">No salvage recovered.</div>";
+          const countLabel = results.count === 1 ? "1 cache" : `${results.count} caches`;
+          dom.overlayContent.innerHTML = `
+            <div class="overlay-header">
+              <p class="eyebrow">Salvage recovered</p>
+              <h3>${countLabel} opened</h3>
+              <p>Rewards reveal in ascending rarity. Higher tier items glow on arrival.</p>
+            </div>
+            <div class="salvage-grid">
+              ${rewardCards}
+            </div>
+            <div class="overlay-actions">
+              <button class="btn primary" data-overlay-action="salvage-close">Back to armory</button>
+            </div>
+          `;
+        }
         if (mode === "gameover") {
           const headerEyebrow = state.training ? "Training ended" : "Mission failed";
           const headerTitle = state.training ? "Debrief complete" : "Ship lost in the rift";
@@ -7780,9 +8735,9 @@
               const label = getRewardLabel(reward);
               const value = formatRewardValue(reward);
               return `
-                <div class="reward-item" data-tier="${tier}" title="${label} x${value}" aria-label="${label} x${value}">
-                  <span class="reward-icon" aria-hidden="true">${icon}</span>
-                  <span class="reward-value">x${value}</span>
+                <div class="reward-item" data-tier="${tier}">
+                  <span class="reward-icon" role="img" aria-label="${label} x${value}" title="${label} x${value}">${icon}</span>
+                  <span class="reward-value">${value}</span>
                 </div>
               `;
             }).join("")
@@ -7870,6 +8825,24 @@
           maxLife: 0.6,
           speed: (maxRadius - 10) / 0.6
         });
+      }
+
+      function spawnBlackHole(x, y, options = {}) {
+        const duration = options.duration || 1.6;
+        const hole = {
+          x,
+          y,
+          radius: options.radius || 120,
+          force: options.force || 360,
+          damage: options.damage || 0,
+          life: duration,
+          maxLife: duration
+        };
+        state.blackHoles = state.blackHoles || [];
+        state.blackHoles.push(hole);
+        if (state.blackHoles.length > 6) {
+          state.blackHoles.splice(0, state.blackHoles.length - 6);
+        }
       }
 
       function spawnLootBursts(x, y, drops) {
@@ -8011,7 +8984,16 @@
         }
         let steerX = 0;
         let steerY = 0;
+        let bestStrength = 0;
+        let bestNX = 0;
+        let bestNY = 0;
         const bias = Number.isFinite(entity.strafeBias) ? entity.strafeBias : 1;
+        const forwardValid = Number.isFinite(forwardX) && Number.isFinite(forwardY);
+        const getTangentSign = (nx, ny) => {
+          if (!forwardValid) return bias;
+          const cross = forwardX * ny - forwardY * nx;
+          return cross === 0 ? bias : Math.sign(cross);
+        };
         obstacles.forEach((obstacle) => {
           if (obstacle.kind === "rock") {
             const dx = entity.x - obstacle.x;
@@ -8024,9 +9006,15 @@
               const ny = dy / distance;
               steerX += nx * strength;
               steerY += ny * strength;
-              const lateral = strength * 0.3 * bias;
+              const tangentSign = getTangentSign(nx, ny);
+              const lateral = strength * 0.38 * tangentSign;
               steerX += -ny * lateral;
               steerY += nx * lateral;
+              if (strength > bestStrength) {
+                bestStrength = strength;
+                bestNX = nx;
+                bestNY = ny;
+              }
             }
             return;
           }
@@ -8044,19 +9032,32 @@
             const ny = distance ? dy / distance : (entity.y >= obstacle.y ? 1 : -1);
             steerX += nx * strength;
             steerY += ny * strength;
-            const lateral = strength * 0.25 * bias;
+            const tangentSign = getTangentSign(nx, ny);
+            const lateral = strength * 0.32 * tangentSign;
             steerX += -ny * lateral;
             steerY += nx * lateral;
+            if (strength > bestStrength) {
+              bestStrength = strength;
+              bestNX = nx;
+              bestNY = ny;
+            }
           }
         });
-        if (Number.isFinite(forwardX) && Number.isFinite(forwardY)) {
+        let length = Math.hypot(steerX, steerY);
+        if (length < 0.08 && bestStrength > 0.1) {
+          const tangentSign = getTangentSign(bestNX, bestNY);
+          const tangent = bestStrength * 0.45 * tangentSign;
+          steerX = bestNX * bestStrength + -bestNY * tangent;
+          steerY = bestNY * bestStrength + bestNX * tangent;
+        }
+        if (forwardValid) {
           const backward = steerX * forwardX + steerY * forwardY;
           if (backward < 0) {
             steerX -= backward * forwardX;
             steerY -= backward * forwardY;
           }
         }
-        const length = Math.hypot(steerX, steerY);
+        length = Math.hypot(steerX, steerY);
         if (!length) {
           return { x: 0, y: 0 };
         }
@@ -8240,6 +9241,48 @@
         const blocking = findBlockingObstacle(entity, target, buffer);
         if (!blocking) return target;
         return getDetourPoint(entity, target, blocking, buffer);
+      }
+
+      function getEnemyNavigationTarget(enemy, target, delta, distanceToTarget) {
+        if (!enemy || !target) return target;
+        const buffer = (enemy.radius || 0) + 26;
+        enemy.navTimer = Math.max(0, (enemy.navTimer || 0) - delta);
+        enemy.navCooldown = Math.max(0, (enemy.navCooldown || 0) - delta);
+        const distance = Number.isFinite(distanceToTarget) ? distanceToTarget : distanceBetween(enemy, target);
+        const directBlock = findBlockingObstacle(enemy, target, buffer);
+        const detouring = enemy.navTarget && enemy.navTimer > 0;
+        if (!detouring) {
+          if (!Number.isFinite(enemy.lastTargetDist)) {
+            enemy.lastTargetDist = distance;
+          } else {
+            const progress = enemy.lastTargetDist - distance;
+            if (progress < 1.2 && distance > enemy.preferredRange * 0.7) {
+              enemy.stuckTimer = (enemy.stuckTimer || 0) + delta;
+            } else {
+              enemy.stuckTimer = Math.max(0, (enemy.stuckTimer || 0) - delta * 0.6);
+            }
+            enemy.lastTargetDist = distance;
+          }
+        } else {
+          enemy.stuckTimer = Math.max(0, (enemy.stuckTimer || 0) - delta * 0.8);
+          enemy.lastTargetDist = distance;
+        }
+        if (directBlock && (enemy.stuckTimer > 0.45 || !detouring) && enemy.navCooldown <= 0) {
+          enemy.navTarget = getDetourPoint(enemy, target, directBlock, buffer);
+          enemy.navTimer = 1.25;
+          enemy.navCooldown = 0.4;
+          enemy.stuckTimer = 0;
+        }
+        if (enemy.navTarget && enemy.navTimer > 0) {
+          const navDistance = Math.hypot(enemy.navTarget.x - enemy.x, enemy.navTarget.y - enemy.y);
+          if (navDistance < 60 || (!directBlock && navDistance < 120)) {
+            enemy.navTarget = null;
+            enemy.navTimer = 0;
+          }
+        } else {
+          enemy.navTarget = null;
+        }
+        return enemy.navTarget || target;
       }
 
       function isOutOfBounds(entity) {
