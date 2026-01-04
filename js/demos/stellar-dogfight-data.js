@@ -238,6 +238,15 @@
 
   const WEAPONS = [
     {
+      id: "basic",
+      tier: "common",
+      name: "Basic Blaster",
+      desc: "Starter cannon with steady output.",
+      tags: ["Starter", "Reliable"],
+      unlock: { rank: 1 },
+      stats: { damage: 9, fireRate: 3.6, energyCost: 18, bulletSpeed: 500, projectiles: 1, spread: 0.16 }
+    },
+    {
       id: "pulse",
       tier: "common",
       name: "Pulse Blaster",
@@ -566,7 +575,8 @@
     common: { label: "Common", mult: 1 },
     uncommon: { label: "Uncommon", mult: 1.2 },
     rare: { label: "Rare", mult: 1.4 },
-    epic: { label: "Epic", mult: 1.7 }
+    epic: { label: "Epic", mult: 1.7 },
+    legendary: { label: "Legendary", mult: 2 }
   };
 
   const PART_SLOTS = ["barrel", "core", "targeting", "thruster"];
@@ -650,9 +660,9 @@
       { id: "credits-small", label: "Credit Payout", weight: 34, roll: () => ({ type: "credits", amount: safeRandInt(120, 200) }) },
       { id: "credits-jackpot", label: "Credit Jackpot", weight: 14, roll: () => ({ type: "credits", amount: safeRandInt(260, 420) }) },
       { id: "blueprints", label: "Blueprint Cache", weight: 16, roll: () => ({ type: "blueprints", amount: safeRandInt(1, 2) }) },
-      { id: "part-uncommon", label: "Enhanced Part", weight: 18, roll: () => ({ type: "part", part: safeGeneratePart("uncommon") }) },
-      { id: "part-rare", label: "Rare Part", weight: 10, roll: () => ({ type: "part", part: safeGeneratePart("rare") }) },
-      { id: "part-epic", label: "Epic Part", weight: 6, roll: () => ({ type: "part", part: safeGeneratePart("epic") }) }
+      { id: "part-uncommon", label: "Enhanced Attachment", weight: 18, roll: () => ({ type: "part", part: safeGeneratePart("uncommon") }) },
+      { id: "part-rare", label: "Rare Attachment", weight: 10, roll: () => ({ type: "part", part: safeGeneratePart("rare") }) },
+      { id: "part-epic", label: "Epic Attachment", weight: 6, roll: () => ({ type: "part", part: safeGeneratePart("epic") }) }
     ]
   };
 
