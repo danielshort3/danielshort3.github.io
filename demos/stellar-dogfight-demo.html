@@ -820,6 +820,10 @@
       gap: 6px;
     }
 
+    .perf-log-actions {
+      align-items: center;
+    }
+
     .option-btn {
       border: 1px solid rgba(255, 255, 255, 0.14);
       background: rgba(12, 18, 32, 0.7);
@@ -2030,16 +2034,17 @@
                 <div class="setting-group">
                   <div class="setting-row">
                     <span>Performance Overlay</span>
-                    <div class="option-buttons" data-setting="perf-overlay">
+                    <div class="option-buttons" data-setting="perf-mode">
                       <button class="option-btn is-active" type="button" data-option="off">Off</button>
-                      <button class="option-btn" type="button" data-option="on">On</button>
+                      <button class="option-btn" type="button" data-option="basic">Simple</button>
+                      <button class="option-btn" type="button" data-option="detail">Detailed</button>
                     </div>
                   </div>
                   <div class="setting-row">
-                    <span>Detailed Metrics</span>
-                    <div class="option-buttons" data-setting="perf-detail">
-                      <button class="option-btn is-active" type="button" data-option="off">Off</button>
-                      <button class="option-btn" type="button" data-option="on">On</button>
+                    <span>Performance Log</span>
+                    <div class="option-buttons perf-log-actions">
+                      <button class="btn ghost btn-mini" type="button" data-action="perf-log" data-role="perf-log-btn">Start Perf Log</button>
+                      <span class="perf-muted" data-role="perf-log-status">Idle</span>
                     </div>
                   </div>
                 </div>
@@ -2151,7 +2156,9 @@
         perfOverlay: document.querySelector("[data-role='perf-overlay']"),
         perfDetailOverlay: document.querySelector("[data-role='perf-detail-overlay']"),
         perfSettingsBasic: document.querySelector("[data-role='perf-settings-basic']"),
-        perfSettingsDetail: document.querySelector("[data-role='perf-settings-detail']")
+        perfSettingsDetail: document.querySelector("[data-role='perf-settings-detail']"),
+        perfLogBtn: document.querySelector("[data-role='perf-log-btn']"),
+        perfLogStatus: document.querySelector("[data-role='perf-log-status']")
       };
       const settingsPanel = document.querySelector("[data-tab-panel='settings']");
       const settingsHome = settingsPanel ? settingsPanel.parentElement : null;
@@ -2376,6 +2383,7 @@
       } = GAME_DB;
 
       let progress = loadProgress();
+      setPerfMode(normalizePerfMode(progress.settings));
       syncProgressSelections();
       let player = null;
       let enemies = [];
@@ -2417,6 +2425,14 @@
         lastFpsAt: performance.now(),
         lastOverlayUpdate: 0,
         lastFrameEnd: 0
+      };
+      const perfLog = {
+        active: false,
+        entries: [],
+        startAt: 0,
+        lastSampleAt: 0,
+        samples: 0,
+        sampleIntervalMs: 250
       };
 
       window.STELLAR_DOGFIGHT_HELPERS = {
@@ -2517,6 +2533,7 @@
           if (actionName === "reset") resetMission();
           if (actionName === "settings") openSettings();
           if (actionName === "settings-close") closeSettings();
+          if (actionName === "perf-log") togglePerfLog();
         });
 
         if (dom.settingsOverlay) {
@@ -2756,10 +2773,8 @@
             progress.settings.particles = option;
           } else if (setting === "hit-flash") {
             progress.settings.hitFlash = option === "on";
-          } else if (setting === "perf-overlay") {
-            progress.settings.perfOverlay = option === "on";
-          } else if (setting === "perf-detail") {
-            progress.settings.perfDetail = option === "on";
+          } else if (setting === "perf-mode") {
+            setPerfMode(option);
           }
           saveProgress();
           applySettingsFromProgress();
@@ -3097,6 +3112,7 @@
             armorySection: "weapons",
             partsMode: "equip",
             shipyardTier: "all",
+            perfMode: "off",
             perfOverlay: false,
             perfDetail: false
           },
@@ -3270,6 +3286,32 @@
             progress.equippedParts[slot] = null;
           }
         });
+      }
+
+      function normalizePerfMode(settings) {
+        if (!settings) return "off";
+        if (settings.perfMode === "basic" || settings.perfMode === "detail") {
+          return settings.perfMode;
+        }
+        if (settings.perfMode === "off") {
+          if (settings.perfDetail) return "detail";
+          if (settings.perfOverlay) return "basic";
+          return "off";
+        }
+        if (settings.perfDetail) return "detail";
+        if (settings.perfOverlay) return "basic";
+        return "off";
+      }
+
+      function setPerfMode(mode) {
+        const normalized = mode === "basic" || mode === "detail" || mode === "off" ? mode : "off";
+        progress.settings.perfMode = normalized;
+        progress.settings.perfOverlay = normalized === "basic";
+        progress.settings.perfDetail = normalized === "detail";
+      }
+
+      function getPerfMode() {
+        return normalizePerfMode(progress.settings);
       }
 
       function applySettingsFromProgress() {
@@ -4254,9 +4296,8 @@
       }
 
       function loop(timestamp) {
-        const shouldMeasure = progress.settings.perfOverlay
-          || progress.settings.perfDetail
-          || (settingsPanel && !settingsPanel.hidden);
+        const perfMode = getPerfMode();
+        const shouldMeasure = perfMode !== "off" || perfLog.active;
         const rawDeltaMs = Math.max(0, timestamp - state.lastTime || 0);
         const delta = Math.min(0.033, rawDeltaMs / 1000 || 0);
         state.lastTime = timestamp;
@@ -6190,8 +6231,9 @@
       }
 
       function updatePerformanceOverlayVisibility() {
-        const showBasic = !!progress.settings.perfOverlay;
-        const showDetail = !!progress.settings.perfDetail;
+        const perfMode = getPerfMode();
+        const showBasic = perfMode === "basic";
+        const showDetail = perfMode === "detail";
         if (dom.perfOverlay) {
           dom.perfOverlay.hidden = !showBasic;
         }
@@ -6214,6 +6256,11 @@
       function formatPerfPercent(value, digits = 0) {
         if (!Number.isFinite(value)) return "--";
         return `${value.toFixed(digits)}%`;
+      }
+
+      function formatPerfLogNumber(value, digits = 2) {
+        if (!Number.isFinite(value)) return "";
+        return value.toFixed(digits);
       }
 
       function buildPerformanceBasicHtml() {
@@ -6280,14 +6327,16 @@
       }
 
       function renderPerformanceOverlays(now, force = false) {
-        const showBasic = !!progress.settings.perfOverlay;
-        const showDetail = !!progress.settings.perfDetail;
+        const perfMode = getPerfMode();
+        const showBasic = perfMode === "basic";
+        const showDetail = perfMode === "detail";
         const showSettings = !!(settingsPanel && !settingsPanel.hidden);
+        const allowSettingsMetrics = perfMode !== "off" || perfLog.active;
         if (!showBasic && !showDetail && !showSettings) return;
         if (!force && now - perfMetrics.lastOverlayUpdate < 250) return;
         perfMetrics.lastOverlayUpdate = now;
         const basicHtml = buildPerformanceBasicHtml();
-        const detailHtml = (showDetail || (showSettings && progress.settings.perfDetail))
+        const detailHtml = (showDetail || (showSettings && perfMode === "detail"))
           ? buildPerformanceDetailHtml()
           : "";
 
@@ -6311,10 +6360,12 @@
 
         if (showSettings) {
           if (dom.perfSettingsBasic) {
-            dom.perfSettingsBasic.innerHTML = basicHtml;
+            dom.perfSettingsBasic.innerHTML = allowSettingsMetrics
+              ? basicHtml
+              : "<div class=\"perf-row\"><span class=\"perf-muted\">Performance metrics are off.</span></div>";
           }
           if (dom.perfSettingsDetail) {
-            dom.perfSettingsDetail.innerHTML = showDetail
+            dom.perfSettingsDetail.innerHTML = (perfMode === "detail" && allowSettingsMetrics)
               ? detailHtml
               : "<div class=\"perf-row\"><span class=\"perf-muted\">Detailed metrics are off.</span></div>";
           }
@@ -6322,9 +6373,8 @@
       }
 
       function recordPerformance(frameStart, updateMs, renderMs, hudMs, rafDeltaMs, deltaMs) {
-        const shouldSample = progress.settings.perfOverlay
-          || progress.settings.perfDetail
-          || (settingsPanel && !settingsPanel.hidden);
+        const perfMode = getPerfMode();
+        const shouldSample = perfMode !== "off" || perfLog.active;
         if (!shouldSample) return;
         const now = performance.now();
         const idleMs = perfMetrics.lastFrameEnd ? Math.max(0, frameStart - perfMetrics.lastFrameEnd) : 0;
@@ -6382,7 +6432,127 @@
           perfMetrics.hitchFrames = 0;
         }
         perfMetrics.lastFrameEnd = now;
+        appendPerfLogSample(now);
         renderPerformanceOverlays(now);
+      }
+
+      function updatePerfLogUi() {
+        if (dom.perfLogBtn) {
+          dom.perfLogBtn.textContent = perfLog.active ? "Stop & Download Log" : "Start Perf Log";
+          dom.perfLogBtn.setAttribute("aria-pressed", perfLog.active ? "true" : "false");
+        }
+        if (dom.perfLogStatus) {
+          if (perfLog.active) {
+            const elapsed = Math.max(0, performance.now() - perfLog.startAt);
+            const seconds = Math.floor(elapsed / 1000);
+            dom.perfLogStatus.textContent = `Recording ${seconds}s • ${perfLog.samples} samples`;
+          } else {
+            dom.perfLogStatus.textContent = "Idle";
+          }
+        }
+      }
+
+      function togglePerfLog() {
+        if (perfLog.active) {
+          stopPerfLog();
+        } else {
+          startPerfLog();
+        }
+      }
+
+      function startPerfLog() {
+        perfLog.active = true;
+        perfLog.entries = [];
+        perfLog.samples = 0;
+        perfLog.startAt = performance.now();
+        perfLog.lastSampleAt = 0;
+        const startedAt = new Date().toISOString();
+        perfLog.entries.push("# Stellar Dogfight Performance Log");
+        perfLog.entries.push(`# Started: ${startedAt}`);
+        perfLog.entries.push(`# Perf Mode: ${getPerfMode()}`);
+        perfLog.entries.push(`# Sample Interval: ${perfLog.sampleIntervalMs} ms`);
+        perfLog.entries.push("t_ms,fps,frame_ms,update_ms,render_ms,hud_ms,raf_ms,idle_ms,busy_pct,delta_ms,enemies,bullets,particles,pulses,mines,helpers,obstacles,stars,mode,visibility,focus,dpr,canvas_w,canvas_h,canvas_px_w,canvas_px_h,world_w,world_h,memory_mb");
+        updatePerfLogUi();
+        logEvent("Performance log recording started.");
+      }
+
+      function stopPerfLog() {
+        perfLog.active = false;
+        updatePerfLogUi();
+        if (!perfLog.entries.length) return;
+        downloadPerfLog();
+        logEvent("Performance log saved.");
+      }
+
+      function appendPerfLogSample(now) {
+        if (!perfLog.active) return;
+        if (now - perfLog.lastSampleAt < perfLog.sampleIntervalMs) return;
+        perfLog.lastSampleAt = now;
+        perfLog.samples += 1;
+        const elapsedMs = Math.max(0, now - perfLog.startAt);
+        const memory = performance && performance.memory
+          ? (performance.memory.usedJSHeapSize / (1024 * 1024))
+          : null;
+        const visibility = document.visibilityState || "unknown";
+        const focusState = typeof document.hasFocus === "function"
+          ? (document.hasFocus() ? "yes" : "no")
+          : "n/a";
+        const dpr = window.devicePixelRatio || 1;
+        const canvasPxW = dom.canvas ? dom.canvas.width : 0;
+        const canvasPxH = dom.canvas ? dom.canvas.height : 0;
+        const line = [
+          formatPerfLogNumber(elapsedMs, 0),
+          formatPerfLogNumber(perfMetrics.fps, 1),
+          formatPerfLogNumber(perfMetrics.frameMs, 2),
+          formatPerfLogNumber(perfMetrics.updateMs, 2),
+          formatPerfLogNumber(perfMetrics.renderMs, 2),
+          formatPerfLogNumber(perfMetrics.hudMs, 2),
+          formatPerfLogNumber(perfMetrics.rafIntervalMs, 2),
+          formatPerfLogNumber(perfMetrics.idleMs, 2),
+          formatPerfLogNumber(perfMetrics.busyRatio * 100, 1),
+          formatPerfLogNumber(perfMetrics.deltaMs, 2),
+          enemies.length,
+          bullets.length,
+          particles.length,
+          pulses.length,
+          state.mines.length,
+          helpers.length,
+          obstacles.length,
+          stars.length,
+          state.mode,
+          visibility,
+          focusState,
+          formatPerfLogNumber(dpr, 2),
+          Math.round(state.width),
+          Math.round(state.height),
+          canvasPxW,
+          canvasPxH,
+          state.worldWidth,
+          state.worldHeight,
+          memory !== null ? memory.toFixed(1) : ""
+        ].join(",");
+        perfLog.entries.push(line);
+        if (settingsPanel && !settingsPanel.hidden) {
+          updatePerfLogUi();
+        }
+      }
+
+      function downloadPerfLog() {
+        const content = perfLog.entries.join("\n");
+        const blob = new Blob([content], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `stellar-dogfight-perf-${formatPerfLogTimestamp(new Date())}.txt`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+
+      function formatPerfLogTimestamp(date) {
+        const pad = (value) => value.toString().padStart(2, "0");
+        return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
       }
 
       function renderActiveUpgrades() {
@@ -6968,17 +7138,15 @@
         const inputGroup = document.querySelector("[data-setting='input-mode']");
         const particleGroup = document.querySelector("[data-setting='particles']");
         const hitFlashGroup = document.querySelector("[data-setting='hit-flash']");
-        const perfOverlayGroup = document.querySelector("[data-setting='perf-overlay']");
-        const perfDetailGroup = document.querySelector("[data-setting='perf-detail']");
-        [modeGroup, difficultyGroup, inputGroup, particleGroup, hitFlashGroup, perfOverlayGroup, perfDetailGroup].forEach((group) => {
+        const perfModeGroup = document.querySelector("[data-setting='perf-mode']");
+        [modeGroup, difficultyGroup, inputGroup, particleGroup, hitFlashGroup, perfModeGroup].forEach((group) => {
           if (!group) return;
           const setting = group.dataset.setting;
           const value = setting === "game-mode" ? progress.settings.gameMode
             : setting === "difficulty" ? progress.settings.difficulty
             : setting === "input-mode" ? progress.settings.inputMode
             : setting === "particles" ? progress.settings.particles
-            : setting === "perf-overlay" ? (progress.settings.perfOverlay ? "on" : "off")
-            : setting === "perf-detail" ? (progress.settings.perfDetail ? "on" : "off")
+            : setting === "perf-mode" ? getPerfMode()
             : progress.settings.hitFlash ? "on" : "off";
           group.querySelectorAll(".option-btn").forEach((btn) => {
             btn.classList.toggle("is-active", btn.dataset.option === value);
@@ -6987,6 +7155,7 @@
 
         renderKeybinds();
         renderPerformanceOverlays(performance.now(), true);
+        updatePerfLogUi();
       }
 
       function renderKeybinds() {
