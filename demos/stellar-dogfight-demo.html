@@ -2400,9 +2400,23 @@
         hudMs: 0,
         avgHudMs: 0,
         maxFrameMs: 0,
+        rafIntervalMs: 0,
+        avgRafIntervalMs: 0,
+        maxRafIntervalMs: 0,
+        idleMs: 0,
+        avgIdleMs: 0,
+        busyRatio: 0,
+        avgBusyRatio: 0,
+        deltaMs: 0,
+        avgDeltaMs: 0,
+        slowFrames: 0,
+        hitchFrames: 0,
+        slowRate: 0,
+        hitchRate: 0,
         frames: 0,
         lastFpsAt: performance.now(),
-        lastOverlayUpdate: 0
+        lastOverlayUpdate: 0,
+        lastFrameEnd: 0
       };
 
       window.STELLAR_DOGFIGHT_HELPERS = {
@@ -4243,7 +4257,8 @@
         const shouldMeasure = progress.settings.perfOverlay
           || progress.settings.perfDetail
           || (settingsPanel && !settingsPanel.hidden);
-        const delta = Math.min(0.033, (timestamp - state.lastTime) / 1000 || 0);
+        const rawDeltaMs = Math.max(0, timestamp - state.lastTime || 0);
+        const delta = Math.min(0.033, rawDeltaMs / 1000 || 0);
         state.lastTime = timestamp;
         if (shouldMeasure) {
           const frameStart = performance.now();
@@ -4254,7 +4269,14 @@
           const renderEnd = performance.now();
           updateHud();
           const hudEnd = performance.now();
-          recordPerformance(frameStart, updateEnd - updateStart, renderEnd - updateEnd, hudEnd - renderEnd);
+          recordPerformance(
+            frameStart,
+            updateEnd - updateStart,
+            renderEnd - updateEnd,
+            hudEnd - renderEnd,
+            rawDeltaMs,
+            delta * 1000
+          );
         } else {
           update(delta);
           render();
@@ -6189,6 +6211,11 @@
         return Math.round(value).toString();
       }
 
+      function formatPerfPercent(value, digits = 0) {
+        if (!Number.isFinite(value)) return "--";
+        return `${value.toFixed(digits)}%`;
+      }
+
       function buildPerformanceBasicHtml() {
         return `
           <div class="perf-row"><span class="perf-label">FPS</span><span class="perf-value">${formatPerfInt(perfMetrics.fps)}</span></div>
@@ -6202,6 +6229,20 @@
         const memory = performance && performance.memory
           ? (performance.memory.usedJSHeapSize / (1024 * 1024))
           : null;
+        const rafHz = perfMetrics.avgRafIntervalMs
+          ? 1000 / perfMetrics.avgRafIntervalMs
+          : NaN;
+        const busyPercent = perfMetrics.avgBusyRatio
+          ? perfMetrics.avgBusyRatio * 100
+          : NaN;
+        const focusState = typeof document.hasFocus === "function"
+          ? (document.hasFocus() ? "yes" : "no")
+          : "n/a";
+        const visibility = document.visibilityState || "unknown";
+        const dpr = window.devicePixelRatio || 1;
+        const canvasPx = dom.canvas
+          ? `${dom.canvas.width}x${dom.canvas.height}`
+          : "--";
         return `
           <div class="perf-row"><span class="perf-label">FPS</span><span class="perf-value">${formatPerfInt(perfMetrics.fps)}</span></div>
           <div class="perf-grid">
@@ -6210,7 +6251,18 @@
             <div class="perf-row"><span class="perf-label">Update Avg</span><span class="perf-value">${formatPerfValue(perfMetrics.avgUpdateMs)} ms</span></div>
             <div class="perf-row"><span class="perf-label">Render Avg</span><span class="perf-value">${formatPerfValue(perfMetrics.avgRenderMs)} ms</span></div>
             <div class="perf-row"><span class="perf-label">HUD Avg</span><span class="perf-value">${formatPerfValue(perfMetrics.avgHudMs)} ms</span></div>
+            <div class="perf-row"><span class="perf-label">RAF Avg</span><span class="perf-value">${formatPerfValue(perfMetrics.avgRafIntervalMs)} ms</span></div>
+            <div class="perf-row"><span class="perf-label">RAF Max</span><span class="perf-value">${formatPerfValue(perfMetrics.maxRafIntervalMs)} ms</span></div>
+            <div class="perf-row"><span class="perf-label">RAF Hz</span><span class="perf-value">${formatPerfValue(rafHz, 1)}</span></div>
+            <div class="perf-row"><span class="perf-label">Idle Avg</span><span class="perf-value">${formatPerfValue(perfMetrics.avgIdleMs)} ms</span></div>
+            <div class="perf-row"><span class="perf-label">Util Avg</span><span class="perf-value">${formatPerfPercent(busyPercent, 0)}</span></div>
+            <div class="perf-row"><span class="perf-label">Delta Avg</span><span class="perf-value">${formatPerfValue(perfMetrics.avgDeltaMs)} ms</span></div>
+            <div class="perf-row"><span class="perf-label">33ms+ /s</span><span class="perf-value">${formatPerfValue(perfMetrics.slowRate, 1)}</span></div>
+            <div class="perf-row"><span class="perf-label">50ms+ /s</span><span class="perf-value">${formatPerfValue(perfMetrics.hitchRate, 1)}</span></div>
             <div class="perf-row"><span class="perf-label">Mode</span><span class="perf-value">${state.mode}</span></div>
+            <div class="perf-row"><span class="perf-label">Visibility</span><span class="perf-value">${visibility}</span></div>
+            <div class="perf-row"><span class="perf-label">Focus</span><span class="perf-value">${focusState}</span></div>
+            <div class="perf-row"><span class="perf-label">DPR</span><span class="perf-value">${formatPerfValue(dpr, 2)}</span></div>
             <div class="perf-row"><span class="perf-label">Enemies</span><span class="perf-value">${enemies.length}</span></div>
             <div class="perf-row"><span class="perf-label">Bullets</span><span class="perf-value">${bullets.length}</span></div>
             <div class="perf-row"><span class="perf-label">Particles</span><span class="perf-value">${particles.length}</span></div>
@@ -6220,6 +6272,7 @@
             <div class="perf-row"><span class="perf-label">Obstacles</span><span class="perf-value">${obstacles.length}</span></div>
             <div class="perf-row"><span class="perf-label">Stars</span><span class="perf-value">${stars.length}</span></div>
             <div class="perf-row"><span class="perf-label">Canvas</span><span class="perf-value">${Math.round(state.width)}x${Math.round(state.height)}</span></div>
+            <div class="perf-row"><span class="perf-label">Canvas Px</span><span class="perf-value">${canvasPx}</span></div>
             <div class="perf-row"><span class="perf-label">World</span><span class="perf-value">${state.worldWidth}x${state.worldHeight}</span></div>
             ${memory !== null ? `<div class="perf-row"><span class="perf-label">Memory</span><span class="perf-value">${memory.toFixed(1)} MB</span></div>` : ""}
           </div>
@@ -6268,18 +6321,25 @@
         }
       }
 
-      function recordPerformance(frameStart, updateMs, renderMs, hudMs) {
+      function recordPerformance(frameStart, updateMs, renderMs, hudMs, rafDeltaMs, deltaMs) {
         const shouldSample = progress.settings.perfOverlay
           || progress.settings.perfDetail
           || (settingsPanel && !settingsPanel.hidden);
         if (!shouldSample) return;
         const now = performance.now();
+        const idleMs = perfMetrics.lastFrameEnd ? Math.max(0, frameStart - perfMetrics.lastFrameEnd) : 0;
         const frameMs = now - frameStart;
+        const rafIntervalMs = Math.max(0, rafDeltaMs || 0);
+        const busyRatio = rafIntervalMs ? frameMs / rafIntervalMs : 0;
         const smoothing = 0.12;
         perfMetrics.frameMs = frameMs;
         perfMetrics.updateMs = updateMs;
         perfMetrics.renderMs = renderMs;
         perfMetrics.hudMs = hudMs;
+        perfMetrics.rafIntervalMs = rafIntervalMs;
+        perfMetrics.idleMs = idleMs;
+        perfMetrics.busyRatio = busyRatio;
+        perfMetrics.deltaMs = deltaMs;
         perfMetrics.avgFrameMs = perfMetrics.avgFrameMs
           ? perfMetrics.avgFrameMs * (1 - smoothing) + frameMs * smoothing
           : frameMs;
@@ -6292,14 +6352,36 @@
         perfMetrics.avgHudMs = perfMetrics.avgHudMs
           ? perfMetrics.avgHudMs * (1 - smoothing) + hudMs * smoothing
           : hudMs;
+        perfMetrics.avgRafIntervalMs = perfMetrics.avgRafIntervalMs
+          ? perfMetrics.avgRafIntervalMs * (1 - smoothing) + rafIntervalMs * smoothing
+          : rafIntervalMs;
+        perfMetrics.avgIdleMs = perfMetrics.avgIdleMs
+          ? perfMetrics.avgIdleMs * (1 - smoothing) + idleMs * smoothing
+          : idleMs;
+        perfMetrics.avgBusyRatio = perfMetrics.avgBusyRatio
+          ? perfMetrics.avgBusyRatio * (1 - smoothing) + busyRatio * smoothing
+          : busyRatio;
+        perfMetrics.avgDeltaMs = perfMetrics.avgDeltaMs
+          ? perfMetrics.avgDeltaMs * (1 - smoothing) + deltaMs * smoothing
+          : deltaMs;
         perfMetrics.maxFrameMs = Math.max(perfMetrics.maxFrameMs, frameMs);
+        perfMetrics.maxRafIntervalMs = Math.max(perfMetrics.maxRafIntervalMs, rafIntervalMs);
         perfMetrics.frames += 1;
+        if (rafIntervalMs >= 33) perfMetrics.slowFrames += 1;
+        if (rafIntervalMs >= 50) perfMetrics.hitchFrames += 1;
         if (now - perfMetrics.lastFpsAt >= 500) {
-          perfMetrics.fps = perfMetrics.frames / ((now - perfMetrics.lastFpsAt) / 1000);
+          const windowSeconds = (now - perfMetrics.lastFpsAt) / 1000;
+          perfMetrics.fps = perfMetrics.frames / windowSeconds;
+          perfMetrics.slowRate = perfMetrics.slowFrames / windowSeconds;
+          perfMetrics.hitchRate = perfMetrics.hitchFrames / windowSeconds;
           perfMetrics.frames = 0;
           perfMetrics.lastFpsAt = now;
           perfMetrics.maxFrameMs = 0;
+          perfMetrics.maxRafIntervalMs = 0;
+          perfMetrics.slowFrames = 0;
+          perfMetrics.hitchFrames = 0;
         }
+        perfMetrics.lastFrameEnd = now;
         renderPerformanceOverlays(now);
       }
 
