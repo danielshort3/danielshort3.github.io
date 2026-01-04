@@ -2041,6 +2041,16 @@
                     </div>
                   </div>
                   <div class="setting-row">
+                    <span>Render Scale</span>
+                    <div class="option-buttons" data-setting="render-scale">
+                      <button class="option-btn is-active" type="button" data-option="auto">Auto</button>
+                      <button class="option-btn" type="button" data-option="1">1x</button>
+                      <button class="option-btn" type="button" data-option="1.25">1.25x</button>
+                      <button class="option-btn" type="button" data-option="1.5">1.5x</button>
+                      <button class="option-btn" type="button" data-option="2">2x</button>
+                    </div>
+                  </div>
+                  <div class="setting-row">
                     <span>Performance Log</span>
                     <div class="option-buttons perf-log-actions">
                       <button class="btn ghost btn-mini" type="button" data-action="perf-log" data-role="perf-log-btn">Start Perf Log</button>
@@ -2267,6 +2277,7 @@
         upgradeRerolls: 0,
         worldWidth: WORLD_WIDTH,
         worldHeight: WORLD_HEIGHT,
+        renderScale: 1,
         camera: { x: 0, y: 0 },
         frontier: null,
         lossRewards: null
@@ -2426,12 +2437,20 @@
         lastOverlayUpdate: 0,
         lastFrameEnd: 0
       };
+      const longTaskMetrics = {
+        count: 0,
+        totalDuration: 0,
+        supported: false
+      };
+      let longTaskObserver = null;
       const perfLog = {
         active: false,
         entries: [],
         startAt: 0,
         lastSampleAt: 0,
         samples: 0,
+        lastLongTaskCount: 0,
+        lastLongTaskDuration: 0,
         sampleIntervalMs: 250
       };
 
@@ -2453,6 +2472,7 @@
         setupTabs();
         setupArmoryNav();
         setupCanvas();
+        setupLongTaskObserver();
         attachEvents();
         applySettingsFromProgress();
         checkProgressionUnlocks();
@@ -2487,7 +2507,7 @@
 
       function resizeCanvas() {
         const rect = dom.canvas.getBoundingClientRect();
-        const dpr = Math.max(1, window.devicePixelRatio || 1);
+        const dpr = getRenderScaleDpr();
         if (!rect.width || !rect.height) return;
         dom.canvas.width = Math.floor(rect.width * dpr);
         dom.canvas.height = Math.floor(rect.height * dpr);
@@ -2511,7 +2531,7 @@
       function resizeMinimap() {
         if (!dom.minimap) return;
         const rect = dom.minimap.getBoundingClientRect();
-        const dpr = Math.max(1, window.devicePixelRatio || 1);
+        const dpr = getRenderScaleDpr();
         if (!rect.width || !rect.height) return;
         dom.minimap.width = Math.floor(rect.width * dpr);
         dom.minimap.height = Math.floor(rect.height * dpr);
@@ -2519,6 +2539,25 @@
           minimapCtx = dom.minimap.getContext("2d");
         }
         minimapCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      function setupLongTaskObserver() {
+        if (!("PerformanceObserver" in window)) return;
+        const supported = PerformanceObserver.supportedEntryTypes;
+        if (Array.isArray(supported) && !supported.includes("longtask")) return;
+        longTaskMetrics.supported = true;
+        try {
+          longTaskObserver = new PerformanceObserver((list) => {
+            list.getEntries().forEach((entry) => {
+              longTaskMetrics.count += 1;
+              longTaskMetrics.totalDuration += entry.duration || 0;
+            });
+          });
+          longTaskObserver.observe({ entryTypes: ["longtask"] });
+        } catch (error) {
+          longTaskMetrics.supported = false;
+          longTaskObserver = null;
+        }
       }
 
       function attachEvents() {
@@ -2773,6 +2812,8 @@
             progress.settings.particles = option;
           } else if (setting === "hit-flash") {
             progress.settings.hitFlash = option === "on";
+          } else if (setting === "render-scale") {
+            progress.settings.renderScale = option;
           } else if (setting === "perf-mode") {
             setPerfMode(option);
           }
@@ -3112,6 +3153,7 @@
             armorySection: "weapons",
             partsMode: "equip",
             shipyardTier: "all",
+            renderScale: "auto",
             perfMode: "off",
             perfOverlay: false,
             perfDetail: false
@@ -3314,6 +3356,22 @@
         return normalizePerfMode(progress.settings);
       }
 
+      function getRenderScaleCap() {
+        const value = progress.settings.renderScale || "auto";
+        if (value === "auto") return null;
+        const cap = parseFloat(value);
+        if (!Number.isFinite(cap) || cap <= 0) return null;
+        return cap;
+      }
+
+      function getRenderScaleDpr() {
+        const baseDpr = Math.max(1, window.devicePixelRatio || 1);
+        const cap = getRenderScaleCap();
+        const dpr = cap ? Math.min(baseDpr, cap) : baseDpr;
+        state.renderScale = dpr;
+        return dpr;
+      }
+
       function applySettingsFromProgress() {
         state.difficulty = progress.settings.difficulty || "normal";
         if (!state.runActive || state.mode === "hangar" || state.mode === "gameover") {
@@ -3326,6 +3384,8 @@
           input.aimSource = "mouse";
         }
         updateParticleSettings();
+        resizeCanvas();
+        resizeMinimap();
         updatePerformanceOverlayVisibility();
       }
 
@@ -6287,9 +6347,13 @@
           : "n/a";
         const visibility = document.visibilityState || "unknown";
         const dpr = window.devicePixelRatio || 1;
+        const renderScale = state.renderScale || dpr;
         const canvasPx = dom.canvas
           ? `${dom.canvas.width}x${dom.canvas.height}`
           : "--";
+        const longTaskSummary = longTaskMetrics.supported
+          ? `${longTaskMetrics.count} • ${formatPerfValue(longTaskMetrics.totalDuration)} ms`
+          : "n/a";
         return `
           <div class="perf-row"><span class="perf-label">FPS</span><span class="perf-value">${formatPerfInt(perfMetrics.fps)}</span></div>
           <div class="perf-grid">
@@ -6310,6 +6374,8 @@
             <div class="perf-row"><span class="perf-label">Visibility</span><span class="perf-value">${visibility}</span></div>
             <div class="perf-row"><span class="perf-label">Focus</span><span class="perf-value">${focusState}</span></div>
             <div class="perf-row"><span class="perf-label">DPR</span><span class="perf-value">${formatPerfValue(dpr, 2)}</span></div>
+            <div class="perf-row"><span class="perf-label">Render Scale</span><span class="perf-value">${formatPerfValue(renderScale, 2)}</span></div>
+            <div class="perf-row"><span class="perf-label">Long Tasks</span><span class="perf-value">${longTaskSummary}</span></div>
             <div class="perf-row"><span class="perf-label">Enemies</span><span class="perf-value">${enemies.length}</span></div>
             <div class="perf-row"><span class="perf-label">Bullets</span><span class="perf-value">${bullets.length}</span></div>
             <div class="perf-row"><span class="perf-label">Particles</span><span class="perf-value">${particles.length}</span></div>
@@ -6471,7 +6537,9 @@
         perfLog.entries.push(`# Started: ${startedAt}`);
         perfLog.entries.push(`# Perf Mode: ${getPerfMode()}`);
         perfLog.entries.push(`# Sample Interval: ${perfLog.sampleIntervalMs} ms`);
-        perfLog.entries.push("t_ms,fps,frame_ms,update_ms,render_ms,hud_ms,raf_ms,idle_ms,busy_pct,delta_ms,enemies,bullets,particles,pulses,mines,helpers,obstacles,stars,mode,visibility,focus,dpr,canvas_w,canvas_h,canvas_px_w,canvas_px_h,world_w,world_h,memory_mb");
+        perfLog.lastLongTaskCount = longTaskMetrics.count;
+        perfLog.lastLongTaskDuration = longTaskMetrics.totalDuration;
+        perfLog.entries.push("t_ms,fps,frame_ms,update_ms,render_ms,hud_ms,raf_ms,idle_ms,busy_pct,delta_ms,enemies,bullets,particles,pulses,mines,helpers,obstacles,stars,longtasks_total,longtasks_delta,longtask_ms_total,longtask_ms_delta,mode,visibility,focus,dpr,render_scale,canvas_w,canvas_h,canvas_px_w,canvas_px_h,world_w,world_h,memory_mb");
         updatePerfLogUi();
         logEvent("Performance log recording started.");
       }
@@ -6498,8 +6566,13 @@
           ? (document.hasFocus() ? "yes" : "no")
           : "n/a";
         const dpr = window.devicePixelRatio || 1;
+        const renderScale = state.renderScale || dpr;
         const canvasPxW = dom.canvas ? dom.canvas.width : 0;
         const canvasPxH = dom.canvas ? dom.canvas.height : 0;
+        const longTaskCount = longTaskMetrics.count;
+        const longTaskDuration = longTaskMetrics.totalDuration;
+        const longTaskDelta = Math.max(0, longTaskCount - perfLog.lastLongTaskCount);
+        const longTaskDurationDelta = Math.max(0, longTaskDuration - perfLog.lastLongTaskDuration);
         const line = [
           formatPerfLogNumber(elapsedMs, 0),
           formatPerfLogNumber(perfMetrics.fps, 1),
@@ -6519,10 +6592,15 @@
           helpers.length,
           obstacles.length,
           stars.length,
+          longTaskCount,
+          longTaskDelta,
+          formatPerfLogNumber(longTaskDuration, 2),
+          formatPerfLogNumber(longTaskDurationDelta, 2),
           state.mode,
           visibility,
           focusState,
           formatPerfLogNumber(dpr, 2),
+          formatPerfLogNumber(renderScale, 2),
           Math.round(state.width),
           Math.round(state.height),
           canvasPxW,
@@ -6531,6 +6609,8 @@
           state.worldHeight,
           memory !== null ? memory.toFixed(1) : ""
         ].join(",");
+        perfLog.lastLongTaskCount = longTaskCount;
+        perfLog.lastLongTaskDuration = longTaskDuration;
         perfLog.entries.push(line);
         if (settingsPanel && !settingsPanel.hidden) {
           updatePerfLogUi();
@@ -7139,7 +7219,8 @@
         const particleGroup = document.querySelector("[data-setting='particles']");
         const hitFlashGroup = document.querySelector("[data-setting='hit-flash']");
         const perfModeGroup = document.querySelector("[data-setting='perf-mode']");
-        [modeGroup, difficultyGroup, inputGroup, particleGroup, hitFlashGroup, perfModeGroup].forEach((group) => {
+        const renderScaleGroup = document.querySelector("[data-setting='render-scale']");
+        [modeGroup, difficultyGroup, inputGroup, particleGroup, hitFlashGroup, perfModeGroup, renderScaleGroup].forEach((group) => {
           if (!group) return;
           const setting = group.dataset.setting;
           const value = setting === "game-mode" ? progress.settings.gameMode
@@ -7147,6 +7228,7 @@
             : setting === "input-mode" ? progress.settings.inputMode
             : setting === "particles" ? progress.settings.particles
             : setting === "perf-mode" ? getPerfMode()
+            : setting === "render-scale" ? (progress.settings.renderScale || "auto")
             : progress.settings.hitFlash ? "on" : "off";
           group.querySelectorAll(".option-btn").forEach((btn) => {
             btn.classList.toggle("is-active", btn.dataset.option === value);
