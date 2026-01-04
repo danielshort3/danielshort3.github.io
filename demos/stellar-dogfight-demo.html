@@ -735,6 +735,127 @@
       font-size: 0.72rem;
     }
 
+    .inventory-panel {
+      display: grid;
+      gap: 12px;
+    }
+
+    .inventory-grid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    }
+
+    .inventory-cell {
+      position: relative;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(10, 16, 28, 0.85);
+      color: var(--text);
+      aspect-ratio: 1 / 1;
+      padding: 8px;
+      display: grid;
+      place-items: center;
+      gap: 4px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    .inventory-cell[data-tier] {
+      border-color: color-mix(in srgb, var(--tier-color) 45%, rgba(255, 255, 255, 0.12));
+      background: radial-gradient(circle at top, color-mix(in srgb, var(--tier-color) 18%, rgba(12, 18, 32, 0.85)) 0%, rgba(10, 16, 28, 0.9) 60%);
+    }
+
+    .inventory-cell:hover,
+    .inventory-cell:focus-visible {
+      border-color: color-mix(in srgb, var(--tier-color, var(--accent)) 70%, rgba(255, 255, 255, 0.2));
+      transform: translateY(-1px);
+    }
+
+    .inventory-cell.is-selected {
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--tier-color, var(--accent)) 55%, transparent);
+    }
+
+    .inventory-cell.is-equipped::after {
+      content: "EQ";
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 0.6rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      background: color-mix(in srgb, var(--tier-color, var(--accent)) 20%, rgba(10, 16, 28, 0.9));
+      border: 1px solid color-mix(in srgb, var(--tier-color, var(--accent)) 55%, transparent);
+      color: var(--text);
+    }
+
+    .inventory-icon {
+      font-size: 0.75rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: color-mix(in srgb, var(--tier-color, var(--text)) 80%, var(--text));
+      white-space: nowrap;
+    }
+
+    .inventory-slot {
+      font-size: 0.62rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    .inventory-upgrades {
+      font-size: 0.62rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .inventory-detail {
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(10, 16, 28, 0.85);
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .inventory-detail[data-tier] {
+      border-color: color-mix(in srgb, var(--tier-color) 45%, rgba(255, 255, 255, 0.12));
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--tier-color) 20%, transparent);
+    }
+
+    .inventory-detail-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .inventory-detail-title {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .inventory-detail-meta {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .inventory-detail.empty {
+      align-items: center;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
     .salvage-actions {
       display: flex;
       flex-wrap: wrap;
@@ -1973,7 +2094,7 @@
                   </div>
                 </div>
                 <div class="card-grid" data-role="equipped-items"></div>
-                <div class="card-grid" data-role="inventory"></div>
+                <div class="inventory-panel" data-role="inventory"></div>
               </div>
               <div class="panel-subsection" data-armory-section="secondaries">
                 <h3 class="panel-title">Secondary Systems</h3>
@@ -2021,7 +2142,7 @@
                   <strong data-stat="banked-credits-total">0</strong>
                 </div>
                 <div class="stat-tile">
-                  <span>Best Wave</span>
+                  <span>Campaign Level</span>
                   <strong data-stat="best-wave">1</strong>
                 </div>
                 <div class="stat-tile">
@@ -2222,6 +2343,7 @@
       const UPGRADE_REROLL_SCALE = 1.85;
       const WORLD_WIDTH = 3200;
       const WORLD_HEIGHT = 1800;
+      const LEVEL_WAVES = 10;
       const SKILL_LIMIT = 3;
       const HUD_UPDATE_INTERVAL_MS = 50;
       const INVENTORY_LIMIT = 42;
@@ -2239,6 +2361,70 @@
         epic: 0.36,
         legendary: 0.24
       };
+      const FIELD_DROP_LIMIT = 10;
+      const FIELD_DROP_INTERVAL = 12;
+      const FIELD_DROP_LIFETIME = 26;
+      const FIELD_DROP_MIN_DISTANCE = 180;
+      const FIELD_DROP_TYPES = [
+        {
+          id: "nova",
+          name: "Nova Strike",
+          tier: "epic",
+          weight: 0.5,
+          symbol: "NOVA",
+          damageScale: 4.2
+        },
+        {
+          id: "hull",
+          name: "Hull Patch",
+          tier: "uncommon",
+          weight: 1.6,
+          symbol: "HULL",
+          healRatio: 0.35
+        },
+        {
+          id: "shield",
+          name: "Shield Battery",
+          tier: "uncommon",
+          weight: 1.4,
+          symbol: "SHLD",
+          healRatio: 0.4
+        },
+        {
+          id: "energy",
+          name: "Energy Cell",
+          tier: "common",
+          weight: 1.6,
+          symbol: "ENG",
+          healRatio: 0.45
+        },
+        {
+          id: "invuln",
+          name: "Phase Ward",
+          tier: "rare",
+          weight: 0.9,
+          symbol: "WARD",
+          duration: 5.5
+        },
+        {
+          id: "damage",
+          name: "Overcharge",
+          tier: "rare",
+          weight: 0.95,
+          symbol: "DMG",
+          duration: 7,
+          multiplier: 2
+        },
+        {
+          id: "speed",
+          name: "Afterburner",
+          tier: "uncommon",
+          weight: 1.1,
+          symbol: "SPD",
+          duration: 7,
+          multiplier: 1.35
+        }
+      ];
       const WEAPON_TIER_SCALING = {
         damage: 0.12,
         fireRate: 0.08,
@@ -2495,6 +2681,7 @@
       const state = {
         mode: "hangar",
         gameMode: "arcade",
+        level: 1,
         wave: 1,
         score: 0,
         credits: 0,
@@ -2513,6 +2700,7 @@
         runBanked: false,
         runLoadout: null,
         lastContractRender: 0,
+        inventorySelectionId: null,
         onboardingTimer: 0,
         onboardingSave: 0,
         difficulty: "normal",
@@ -2531,8 +2719,10 @@
         worldHeight: WORLD_HEIGHT,
         renderScale: 1,
         camera: { x: 0, y: 0 },
+        fieldDropTimer: 0,
         frontier: null,
         lossRewards: null,
+        levelRewards: null,
         salvageResults: null
       };
 
@@ -2574,6 +2764,10 @@
         barrageSplashDamage: 0,
         barrageCounter: 0,
         upgradeLuck: 0,
+        damageBoostTimer: 0,
+        damageBoostMultiplier: 1,
+        speedBoostTimer: 0,
+        speedBoostMultiplier: 1,
         auraRadius: 0,
         auraDamage: 0,
         auraInterval: 0.45,
@@ -2666,6 +2860,7 @@
       let damageNumbers = [];
       let stars = [];
       let obstacles = [];
+      let fieldDrops = [];
       let backgroundGradient = null;
       let minimapCtx = null;
       const perfMetrics = {
@@ -2865,6 +3060,7 @@
             if (actionName === "dock-close") closeFrontierDock();
             if (actionName === "dock") openFrontierDock();
             if (actionName === "tier-up") openFrontierTierSelect();
+            if (actionName === "next-level") startMission();
             if (actionName === "salvage-close") {
               state.salvageResults = null;
               if (state.mode === "hangar" && !state.runActive) {
@@ -2945,6 +3141,12 @@
           dom.inventory.addEventListener("click", (event) => {
             if (!isFeatureUnlocked("armory")) {
               showTip("locked-armory", "Armory locked", getFeatureHint("armory"));
+              return;
+            }
+            const selection = event.target.closest("[data-inventory-select]");
+            if (selection) {
+              state.inventorySelectionId = selection.dataset.inventorySelect;
+              renderInventory();
               return;
             }
             const action = event.target.closest("[data-item-action]");
@@ -3227,7 +3429,7 @@
       }
 
       function isPlayingMode(mode) {
-        return ["flight", "training", "paused", "upgrade", "dock", "tier-select", "gameover"].includes(mode);
+        return ["flight", "training", "paused", "upgrade", "dock", "tier-select", "gameover", "victory"].includes(mode);
       }
 
       function updateLayout() {
@@ -3322,6 +3524,8 @@
           xp: 0,
           techPoints: 0,
           bestWave: 1,
+          bestLevel: 1,
+          campaignLevel: 1,
           totalKills: 0,
           bankedCredits: 0,
           blueprints: 0,
@@ -3495,6 +3699,16 @@
               ...(stored.tipsSeen || {})
             }
           };
+          merged.bestWave = Number.isFinite(merged.bestWave) ? Math.max(1, merged.bestWave) : 1;
+          const inferredCampaign = Math.max(1, Math.floor((merged.bestWave || 1) / LEVEL_WAVES) + 1);
+          const storedCampaign = Number.isFinite(stored.campaignLevel) ? stored.campaignLevel : null;
+          merged.campaignLevel = Number.isFinite(storedCampaign)
+            ? Math.max(1, storedCampaign, inferredCampaign)
+            : inferredCampaign;
+          const storedBestLevel = Number.isFinite(stored.bestLevel) ? stored.bestLevel : null;
+          merged.bestLevel = Number.isFinite(storedBestLevel)
+            ? Math.max(1, storedBestLevel, merged.campaignLevel - 1)
+            : Math.max(1, merged.campaignLevel - 1);
           const legacyAim = {
             aimUp: "i",
             aimDown: "k",
@@ -3679,7 +3893,7 @@
 
       function applySettingsFromProgress() {
         state.difficulty = progress.settings.difficulty || "normal";
-        if (!state.runActive || state.mode === "hangar" || state.mode === "gameover") {
+        if (!state.runActive || state.mode === "hangar" || state.mode === "gameover" || state.mode === "victory") {
           state.gameMode = progress.settings.gameMode || "arcade";
         }
         input.aimMode = progress.settings.inputMode || "hybrid";
@@ -3793,7 +4007,10 @@
 
       function checkProgressionUnlocks() {
         const flightSeconds = progress.onboarding?.flightSeconds || 0;
-        const waveProgress = Math.max(progress.bestWave || 1, state.wave || 1);
+        const activeWave = isCampaignMode()
+          ? getGlobalWave(state.wave || 1)
+          : (state.wave || 1);
+        const waveProgress = Math.max(progress.bestWave || 1, activeWave);
 
         if (!isFeatureUnlocked("upgrades") && (flightSeconds >= 45 || waveProgress >= 2)) {
           unlockFeature("upgrades");
@@ -3870,6 +4087,14 @@
 
       function getEquippedAttachments() {
         return PART_SLOTS.map((slot) => getEquippedAttachment(slot)).filter(Boolean);
+      }
+
+      function getFieldDropDef(id) {
+        return FIELD_DROP_TYPES.find((entry) => entry.id === id) || FIELD_DROP_TYPES[0];
+      }
+
+      function rollFieldDropDef() {
+        return pickWeighted(FIELD_DROP_TYPES, FIELD_DROP_TYPES.map((entry) => entry.weight));
       }
 
       function getTierIndex(tier) {
@@ -4267,6 +4492,26 @@
         return center;
       }
 
+      function getFieldDropSpawnPoint() {
+        const padding = 70;
+        const buffer = 30;
+        for (let i = 0; i < 20; i += 1) {
+          const candidate = {
+            x: rand(padding, state.worldWidth - padding),
+            y: rand(padding, state.worldHeight - padding)
+          };
+          if (isPointInObstacle(candidate, buffer)) continue;
+          if (player && distanceBetween(candidate, player) < FIELD_DROP_MIN_DISTANCE) continue;
+          const tooClose = fieldDrops.some((drop) => distanceBetween(candidate, drop) < (drop.radius || 16) + 32);
+          if (tooClose) continue;
+          return candidate;
+        }
+        return {
+          x: rand(padding, state.worldWidth - padding),
+          y: rand(padding, state.worldHeight - padding)
+        };
+      }
+
       function isPointInObstacle(point, buffer = 0) {
         return obstacles.some((obstacle) => {
           if (obstacle.kind === "rock") {
@@ -4322,7 +4567,8 @@
       }
 
       function updateSector() {
-        const nextSector = Math.max(1, Math.ceil(state.wave / 3));
+        const waveProgress = getGlobalWave(state.wave);
+        const nextSector = Math.max(1, Math.ceil(waveProgress / 3));
         if (nextSector !== state.sector) {
           state.sector = nextSector;
           state.sectorMod = rollSectorModifier();
@@ -4360,8 +4606,9 @@
       }
 
       function startMission() {
-        if (state.mode !== "hangar" && state.mode !== "gameover") return;
+        if (state.mode !== "hangar" && state.mode !== "gameover" && state.mode !== "victory") return;
         applySettingsFromProgress();
+        state.level = isFrontierMode() ? 1 : Math.max(1, progress.campaignLevel || 1);
         input.keys.clear();
         input.firing = false;
         checkProgressionUnlocks();
@@ -4371,6 +4618,7 @@
         particles = [];
         lootBursts = [];
         damageNumbers = [];
+        fieldDrops = [];
         state.mines = [];
         state.decoy = null;
         state.enemyAccuracyMod = 1;
@@ -4379,8 +4627,10 @@
         state.upgradeRerolls = 0;
         state.skillSlots = [];
         state.lossRewards = null;
+        state.levelRewards = null;
         state.salvageResults = null;
         state.blackHoles = [];
+        state.fieldDropTimer = 0;
         state.wave = 1;
         state.score = 0;
         state.credits = 0;
@@ -4411,12 +4661,16 @@
         if (state.sectorMod) {
           logEvent(`Sector 01 anomaly: ${state.sectorMod.name}.`);
         }
-        logEvent(isFrontierMode() ? "Frontier patrol launched. Upgrade at the dock." : "Wave 1 launched. Stay mobile.");
+        if (isFrontierMode()) {
+          logEvent("Frontier patrol launched. Upgrade at the dock.");
+        } else {
+          logEvent(`Level ${state.level} launched. Wave 1 inbound.`);
+        }
         renderContracts();
       }
 
       function startTraining() {
-        if (state.mode !== "hangar" && state.mode !== "gameover") return;
+        if (state.mode !== "hangar" && state.mode !== "gameover" && state.mode !== "victory") return;
         applySettingsFromProgress();
         state.gameMode = "arcade";
         input.keys.clear();
@@ -4429,6 +4683,7 @@
         particles = [];
         lootBursts = [];
         damageNumbers = [];
+        fieldDrops = [];
         state.mines = [];
         state.decoy = null;
         state.enemyAccuracyMod = 1;
@@ -4437,8 +4692,11 @@
         state.upgradeRerolls = 0;
         state.skillSlots = [];
         state.lossRewards = null;
+        state.levelRewards = null;
         state.salvageResults = null;
         state.blackHoles = [];
+        state.fieldDropTimer = 0;
+        state.level = 1;
         state.wave = 1;
         state.score = 0;
         state.credits = 0;
@@ -4469,7 +4727,7 @@
       }
 
       function resetMission() {
-        if (state.mode !== "hangar" && state.mode !== "gameover") {
+        if (state.mode !== "hangar" && state.mode !== "gameover" && state.mode !== "victory") {
           triggerAbortRewards();
           return;
         }
@@ -4483,6 +4741,7 @@
         particles = [];
         lootBursts = [];
         damageNumbers = [];
+        fieldDrops = [];
         state.mines = [];
         state.decoy = null;
         state.enemyAccuracyMod = 1;
@@ -4491,8 +4750,11 @@
         state.upgradeRerolls = 0;
         state.skillSlots = [];
         state.lossRewards = null;
+        state.levelRewards = null;
         state.salvageResults = null;
         state.blackHoles = [];
+        state.fieldDropTimer = 0;
+        state.level = isFrontierMode() ? 1 : Math.max(1, progress.campaignLevel || 1);
         state.wave = 1;
         state.score = 0;
         state.credits = 0;
@@ -4531,7 +4793,8 @@
           "tier-select": "Tier Uplink",
           paused: "Paused",
           gameover: "Wrecked",
-          training: "Training"
+          training: "Training",
+          victory: "Victory"
         };
         stats.status.textContent = labels[mode] || "Hangar";
         updateLayout();
@@ -4560,6 +4823,21 @@
 
       function isFrontierMode() {
         return state.gameMode === "frontier";
+      }
+
+      function isCampaignMode() {
+        return !isFrontierMode() && !state.training;
+      }
+
+      function getGlobalWave(wave = state.wave) {
+        if (!isCampaignMode()) return wave;
+        const level = Math.max(1, state.level || progress.campaignLevel || 1);
+        return (level - 1) * LEVEL_WAVES + wave;
+      }
+
+      function getWaveDisplay(wave = state.wave) {
+        if (!isCampaignMode()) return `${wave}`;
+        return `${wave}/${LEVEL_WAVES}`;
       }
 
       function getFrontierStarterId() {
@@ -4692,15 +4970,16 @@
       }
 
       function spawnWave(wave) {
+        const globalWave = getGlobalWave(wave);
         const isHardWave = wave % 5 === 0;
-        const isBossWave = wave % 10 === 0;
-        const baseCount = Math.min(4 + Math.floor(wave * 1.05), 18);
+        const isBossWave = isCampaignMode() ? wave === LEVEL_WAVES : wave % 10 === 0;
+        const baseCount = Math.min(4 + Math.floor(globalWave * 1.05), 18);
         const difficulty = getDifficultySettings();
         const frontierTier = isFrontierMode() && state.frontier ? state.frontier.tier : 1;
         const waveRamp = 1
-          + wave * 0.07
-          + Math.max(0, wave - 12) * 0.015
-          + Math.max(0, wave - 20) * 0.02;
+          + globalWave * 0.07
+          + Math.max(0, globalWave - 12) * 0.015
+          + Math.max(0, globalWave - 20) * 0.02;
         let enemyScale = waveRamp * difficulty.enemyScale * (1 + (frontierTier - 1) * 0.18);
         if (isBossWave) {
           enemyScale *= 1.2;
@@ -4715,8 +4994,8 @@
           + bossBonus
           + (isFrontierMode() ? Math.max(0, Math.floor((frontierTier - 1) * 1.2)) : 0);
         const availableTypes = ENEMY_TYPES.filter((type) => {
-          if (type.minWave && wave < type.minWave) return false;
-          if (type.maxWave && wave > type.maxWave) return false;
+          if (type.minWave && globalWave < type.minWave) return false;
+          if (type.maxWave && globalWave > type.maxWave) return false;
           return true;
         });
         const selectionPool = availableTypes.length ? availableTypes : ENEMY_TYPES;
@@ -4908,6 +5187,7 @@
         updateCamera();
         updatePointerWorld();
         updateDecoy(delta);
+        updateFieldDrops(delta);
         updateEnemies(delta);
         updateBlackHoles(delta);
         updateSkillSystems(delta);
@@ -5059,6 +5339,18 @@
         if (player.invulnerable > 0) {
           player.invulnerable = Math.max(0, player.invulnerable - delta);
         }
+        if (player.damageBoostTimer > 0) {
+          player.damageBoostTimer = Math.max(0, player.damageBoostTimer - delta);
+          if (player.damageBoostTimer <= 0) {
+            player.damageBoostMultiplier = 1;
+          }
+        }
+        if (player.speedBoostTimer > 0) {
+          player.speedBoostTimer = Math.max(0, player.speedBoostTimer - delta);
+          if (player.speedBoostTimer <= 0) {
+            player.speedBoostMultiplier = 1;
+          }
+        }
 
         const allowArrowThrust = input.aimMode !== "keyboard";
         const thrustForward = isActionActive("forward") || (allowArrowThrust && hasKey("arrowup"));
@@ -5073,7 +5365,8 @@
 
         const playerMod = state.sectorMod ? state.sectorMod.player : {};
         const slowFactor = player.slowFactor || 1;
-        const accel = player.accel * (boosting ? player.boostMultiplier : 1) * (playerMod.speed || 1) * slowFactor;
+        const speedBoost = player.speedBoostTimer > 0 ? (player.speedBoostMultiplier || 1) : 1;
+        const accel = player.accel * (boosting ? player.boostMultiplier : 1) * (playerMod.speed || 1) * slowFactor * speedBoost;
         let ax = 0;
         let ay = 0;
         player.thrusting = false;
@@ -5106,7 +5399,7 @@
         player.vx *= damping;
         player.vy *= damping;
 
-        const speedLimit = player.maxSpeed * (boosting ? player.boostMultiplier : 1) * (playerMod.speed || 1) * slowFactor;
+        const speedLimit = player.maxSpeed * (boosting ? player.boostMultiplier : 1) * (playerMod.speed || 1) * slowFactor * speedBoost;
         const speed = Math.hypot(player.vx, player.vy);
         if (speed > speedLimit) {
           const ratio = speedLimit / speed;
@@ -5512,6 +5805,121 @@
         }
       }
 
+      function getFieldDropInterval() {
+        const wave = Math.max(1, getGlobalWave(state.wave || 1));
+        return Math.max(7, FIELD_DROP_INTERVAL - wave * 0.25);
+      }
+
+      function spawnFieldDrop() {
+        if (fieldDrops.length >= FIELD_DROP_LIMIT) return;
+        const def = rollFieldDropDef();
+        const point = getFieldDropSpawnPoint();
+        fieldDrops.push({
+          id: `drop_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+          typeId: def.id,
+          x: point.x,
+          y: point.y,
+          radius: 16,
+          life: FIELD_DROP_LIFETIME,
+          maxLife: FIELD_DROP_LIFETIME,
+          phase: rand(0, Math.PI * 2)
+        });
+      }
+
+      function triggerNovaStrike(def) {
+        if (!player || !enemies.length) return;
+        const wave = Math.max(1, getGlobalWave(state.wave || 1));
+        const damage = Math.round(30 + wave * (def.damageScale || 4));
+        const pulseRadius = Math.max(state.worldWidth, state.worldHeight);
+        spawnPulse(player.x, player.y, "#f6c65f", pulseRadius);
+        for (let i = enemies.length - 1; i >= 0; i -= 1) {
+          const enemy = enemies[i];
+          applyDamage(enemy, damage, { owner: "player" });
+          if (enemy.health <= 0) {
+            destroyEnemy(enemy, i);
+          }
+        }
+        logEvent("Nova strike detonated across the sector.");
+      }
+
+      function applyFieldDropEffect(drop) {
+        if (!drop || !player) return;
+        const def = getFieldDropDef(drop.typeId);
+        if (!def) return;
+        if (def.id === "nova") {
+          triggerNovaStrike(def);
+          return;
+        }
+        if (def.id === "hull") {
+          const amount = Math.round(player.maxHealth * (def.healRatio || 0.3));
+          const before = player.health;
+          player.health = Math.min(player.maxHealth, player.health + amount);
+          const restored = Math.round(player.health - before);
+          spawnPulse(player.x, player.y, "#6ee7b7", 140);
+          logEvent(`Hull patch applied: +${restored} hull.`);
+          return;
+        }
+        if (def.id === "shield") {
+          const amount = Math.round(player.maxShield * (def.healRatio || 0.35));
+          const before = player.shield;
+          player.shield = Math.min(player.maxShield, player.shield + amount);
+          const restored = Math.round(player.shield - before);
+          spawnPulse(player.x, player.y, "#7ca8ff", 140);
+          logEvent(`Shield battery charged: +${restored} shield.`);
+          return;
+        }
+        if (def.id === "energy") {
+          const amount = Math.round(player.maxEnergy * (def.healRatio || 0.35));
+          const before = player.energy;
+          player.energy = Math.min(player.maxEnergy, player.energy + amount);
+          const restored = Math.round(player.energy - before);
+          spawnPulse(player.x, player.y, "#44d2c2", 140);
+          logEvent(`Energy cell absorbed: +${restored} energy.`);
+          return;
+        }
+        if (def.id === "invuln") {
+          player.invulnerable = Math.max(player.invulnerable, def.duration || 4);
+          spawnPulse(player.x, player.y, "#f6c65f", 160);
+          logEvent("Phase ward online. Invulnerable.");
+          return;
+        }
+        if (def.id === "damage") {
+          player.damageBoostTimer = Math.max(player.damageBoostTimer || 0, def.duration || 6);
+          player.damageBoostMultiplier = Math.max(player.damageBoostMultiplier || 1, def.multiplier || 2);
+          spawnPulse(player.x, player.y, "#f48b7f", 160);
+          logEvent("Overcharge active. Damage doubled.");
+          return;
+        }
+        if (def.id === "speed") {
+          player.speedBoostTimer = Math.max(player.speedBoostTimer || 0, def.duration || 6);
+          player.speedBoostMultiplier = Math.max(player.speedBoostMultiplier || 1, def.multiplier || 1.3);
+          spawnPulse(player.x, player.y, "#6ee7b7", 160);
+          logEvent("Afterburners engaged. Speed boosted.");
+        }
+      }
+
+      function updateFieldDrops(delta) {
+        if (state.mode !== "flight" && state.mode !== "training") return;
+        state.fieldDropTimer += delta;
+        const interval = getFieldDropInterval();
+        if (state.fieldDropTimer >= interval) {
+          state.fieldDropTimer = state.fieldDropTimer % interval;
+          spawnFieldDrop();
+        }
+        for (let i = fieldDrops.length - 1; i >= 0; i -= 1) {
+          const drop = fieldDrops[i];
+          drop.life -= delta;
+          if (drop.life <= 0) {
+            fieldDrops.splice(i, 1);
+            continue;
+          }
+          if (player && distanceBetween(player, drop) <= (drop.radius || 16) + player.radius) {
+            applyFieldDropEffect(drop);
+            fieldDrops.splice(i, 1);
+          }
+        }
+      }
+
       function handleCollisions() {
         for (let i = bullets.length - 1; i >= 0; i -= 1) {
           const bullet = bullets[i];
@@ -5732,20 +6140,28 @@
 
       function checkWaveStatus() {
         if (enemies.length === 0 && (state.mode === "flight" || state.mode === "training")) {
-          if (!state.training) {
-            progress.bestWave = Math.max(progress.bestWave, state.wave);
-            saveProgress();
+          if (state.training) {
+            state.wave += 1;
+            state.waveStart = performance.now();
+            updateSector();
+            restoreBetweenWaves();
+            checkProgressionUnlocks();
+            spawnWave(state.wave);
+            logEvent(`Training wave ${state.wave} online.`);
+            return;
+          }
+          const globalWave = getGlobalWave(state.wave);
+          progress.bestWave = Math.max(progress.bestWave, globalWave);
+          saveProgress();
+          if (isCampaignMode() && state.wave >= LEVEL_WAVES) {
+            completeLevel();
+            return;
           }
           state.wave += 1;
           state.waveStart = performance.now();
           updateSector();
           restoreBetweenWaves();
           checkProgressionUnlocks();
-          if (state.training) {
-            spawnWave(state.wave);
-            logEvent(`Training wave ${state.wave} online.`);
-            return;
-          }
           if (isFeatureUnlocked("upgrades")) {
             state.upgradeRerolls = 0;
             state.upgradeOptions = rollUpgrades();
@@ -5916,7 +6332,8 @@
         const count = Math.max(1, player.projectiles + bonusProjectiles);
         const spread = (count > 1 ? player.spread : 0) * (playerMod.spreadMult || 1);
         const baseAngle = player.angle - spread * (count - 1) * 0.5;
-        const damageBoost = isBarrage ? (player.barrageBonusDamage || 1) : 1;
+        const barrageMultiplier = isBarrage ? (player.barrageBonusDamage || 1) : 1;
+        const damageMultiplier = player.damageBoostTimer > 0 ? (player.damageBoostMultiplier || 1) : 1;
         const splashRadius = isBarrage
           ? Math.max(player.splashRadius || 0, player.barrageSplashRadius || 0)
           : (player.splashRadius || 0);
@@ -5928,7 +6345,7 @@
         for (let i = 0; i < count; i += 1) {
           const angle = baseAngle + spread * i;
           const crit = Math.random() < player.critChance;
-          const damage = player.damage * damageBoost * (crit ? player.critMultiplier : 1);
+          const damage = player.damage * barrageMultiplier * damageMultiplier * (crit ? player.critMultiplier : 1);
           const speed = player.bulletSpeed;
           bullets.push({
             owner: "player",
@@ -5957,7 +6374,7 @@
           const echoDamage = player.echoDamage || 0.55;
           for (let i = 0; i < count; i += 1) {
             const angle = baseAngle + spread * i;
-            const damage = player.damage * damageBoost * echoDamage;
+            const damage = player.damage * barrageMultiplier * damageMultiplier * echoDamage;
             const speed = player.bulletSpeed * 0.95;
             bullets.push({
               owner: "player",
@@ -6141,7 +6558,8 @@
         if (!state.training) {
           const difficulty = getDifficultySettings();
           const creditsGain = Math.round(enemy.credits * (1 + player.salvageBonus) * difficulty.reward);
-          const xpGain = Math.round((10 + state.wave * 2) * (1 + player.xpBonus) * difficulty.reward);
+          const waveScale = Math.max(1, getGlobalWave(state.wave || 1));
+          const xpGain = Math.round((10 + waveScale * 2) * (1 + player.xpBonus) * difficulty.reward);
           state.credits += creditsGain;
           progress.totalKills += 1;
           awardXp(xpGain);
@@ -6181,8 +6599,13 @@
         const durationSec = state.runStart ? Math.max(1, (performance.now() - state.runStart) / 1000) : 0;
         const difficulty = DIFFICULTY_SETTINGS[state.difficulty] || DIFFICULTY_SETTINGS.normal;
         const rewardMultiplier = getDifficultySettings().reward;
+        const globalWave = getGlobalWave(state.wave);
+        const level = isCampaignMode() ? Math.max(1, state.level || progress.campaignLevel || 1) : 1;
         return {
           wave: Math.max(1, state.wave),
+          globalWave,
+          waveDisplay: getWaveDisplay(state.wave),
+          level,
           kills: state.kills,
           score: Math.round(state.score),
           credits: Math.round(state.credits),
@@ -6194,7 +6617,8 @@
 
       function getPerformanceScore(summary) {
         const minutes = summary.durationSec / 60;
-        const waveScore = Math.max(0, summary.wave - 1) * 1.1;
+        const waveProgress = summary.globalWave || summary.wave;
+        const waveScore = Math.max(0, waveProgress - 1) * 1.1;
         const killScore = summary.kills * 0.08;
         const scoreScore = summary.score / 1200;
         const timeScore = minutes * 0.8;
@@ -6214,15 +6638,16 @@
         const performanceScore = getPerformanceScore(summary);
         const performanceTier = getPerformanceTier(performanceScore);
         const tierIndex = Math.max(0, TIER_ORDER.indexOf(performanceTier));
+        const waveProgress = summary.globalWave || summary.wave;
         const minutes = summary.durationSec / 60;
         const creditBase = 40
-          + summary.wave * 12
+          + waveProgress * 12
           + summary.kills * 2
           + summary.score / 140
           + minutes * 12;
         const creditBonus = Math.round(creditBase * (1 + tierIndex * 0.18) * summary.rewardMultiplier);
         const blueprintCount = clamp(
-          Math.floor(Math.max(0, summary.wave - 1) / 3) + (tierIndex >= 2 ? 1 : 0),
+          Math.floor(Math.max(0, waveProgress - 1) / 3) + (tierIndex >= 2 ? 1 : 0),
           0,
           tierIndex >= 4 ? 3 : 2
         );
@@ -6231,8 +6656,8 @@
           0,
           tierIndex >= 3 ? 3 : 2
         );
-        const partCount = (tierIndex >= 4 && summary.wave >= 8) ? 2 : (tierIndex >= 2 ? 1 : 0);
-        const weaponCount = tierIndex >= 3 && summary.wave >= 6 ? 1 : 0;
+        const partCount = (tierIndex >= 4 && waveProgress >= 8) ? 2 : (tierIndex >= 2 ? 1 : 0);
+        const weaponCount = tierIndex >= 3 && waveProgress >= 6 ? 1 : 0;
         const blueprintTier = tierIndex >= 3 ? "rare" : tierIndex >= 1 ? "uncommon" : "common";
         const salvageTier = tierIndex >= 3 ? "rare" : tierIndex >= 1 ? "uncommon" : "common";
         const partTier = tierIndex >= 4 ? "legendary" : tierIndex >= 3 ? "epic" : tierIndex >= 2 ? "rare" : "uncommon";
@@ -6304,7 +6729,111 @@
         };
       }
 
-      function applyLossRewards(result) {
+      function getLevelRewardTierWeights(level) {
+        if (level <= 2) return [6, 3.5, 1.4, 0.4, 0.1];
+        if (level <= 4) return [4.6, 3.3, 1.8, 0.7, 0.2];
+        if (level <= 6) return [3.1, 3, 2.4, 1.2, 0.4];
+        if (level <= 8) return [2.1, 2.6, 2.4, 1.6, 0.8];
+        return [1.1, 1.8, 2.3, 2.2, 1.2];
+      }
+
+      function buildLevelRewards(level, summary) {
+        const safeLevel = Math.max(1, level);
+        const rewards = [];
+        const tierIndex = clamp(Math.floor((safeLevel - 1) / 2), 0, TIER_ORDER.length - 1);
+        const rewardTier = TIER_ORDER[tierIndex] || "common";
+        const creditBase = 140
+          + safeLevel * 42
+          + summary.kills * 2
+          + summary.score / 180;
+        const creditBonus = Math.round(creditBase * summary.rewardMultiplier);
+        if (creditBonus > 0) {
+          rewards.push({
+            type: "credits",
+            amount: creditBonus,
+            tier: rewardTier,
+            title: "Mission credits",
+            desc: `${creditBonus.toLocaleString()} credits secured`
+          });
+        }
+        const salvageCount = safeLevel <= 3
+          ? 2
+          : safeLevel <= 6
+            ? 1
+            : (Math.random() < 0.35 ? 1 : 0);
+        const blueprintCount = safeLevel <= 3
+          ? 2
+          : safeLevel <= 5
+            ? 1
+            : (Math.random() < 0.25 ? 1 : 0);
+        const supportTier = tierIndex >= 4
+          ? "legendary"
+          : tierIndex >= 3
+            ? "epic"
+            : tierIndex >= 2
+              ? "rare"
+              : tierIndex >= 1
+                ? "uncommon"
+                : "common";
+        if (salvageCount > 0) {
+          rewards.push({
+            type: "salvage",
+            amount: salvageCount,
+            tier: supportTier,
+            title: "Salvage keys",
+            desc: `+${salvageCount} key${salvageCount === 1 ? "" : "s"}`
+          });
+        }
+        if (blueprintCount > 0) {
+          rewards.push({
+            type: "blueprints",
+            amount: blueprintCount,
+            tier: supportTier,
+            title: "Blueprint cache",
+            desc: `+${blueprintCount} blueprint${blueprintCount === 1 ? "" : "s"}`
+          });
+        }
+        const baseItemCount = safeLevel <= 2 ? 2 : 1;
+        const bonusChance = safeLevel <= 3 ? 0.45 : safeLevel <= 6 ? 0.25 : safeLevel <= 9 ? 0.16 : 0.12;
+        const itemCount = baseItemCount + (Math.random() < bonusChance ? 1 : 0);
+        const tierWeights = getLevelRewardTierWeights(safeLevel);
+        for (let i = 0; i < itemCount; i += 1) {
+          const rollWeapon = Math.random() < 0.45;
+          if (rollWeapon) {
+            const weapon = createWeaponItem({ tier: rollItemTier(null, tierWeights) });
+            if (weapon) {
+              rewards.push({
+                type: "weapon",
+                amount: 1,
+                tier: weapon.tier,
+                title: weapon.name,
+                desc: buildStatSummary(getWeaponItemStats(weapon) || weapon.stats),
+                item: weapon
+              });
+            }
+          } else {
+            const attachment = createAttachmentItem({ tier: rollItemTier(null, tierWeights) });
+            if (attachment) {
+              rewards.push({
+                type: "part",
+                amount: 1,
+                tier: attachment.tier || getPartTier(attachment),
+                title: attachment.name,
+                desc: buildStatSummary(getAttachmentStats(attachment) || attachment.stats),
+                part: attachment
+              });
+            }
+          }
+        }
+        return {
+          level: safeLevel,
+          tier: rewardTier,
+          summary,
+          rewards
+        };
+      }
+
+      function applyRewardBundle(result, logLabel) {
         if (!result || !result.rewards) return;
         result.rewards.forEach((reward) => {
           if (reward.type === "credits") {
@@ -6328,7 +6857,7 @@
         renderShipyard();
         renderArmory();
         renderContracts();
-        if (result.rewards.length) {
+        if (result.rewards.length && logLabel) {
           const summary = result.rewards.map((reward) => {
             if (reward.type === "part") return reward.title;
             if (reward.type === "weapon") return reward.title;
@@ -6341,8 +6870,33 @@
             }
             return `${reward.amount} ${reward.type}`;
           }).join(", ");
-          logEvent(`Recovery rewards secured: ${summary}.`);
+          logEvent(`${logLabel}: ${summary}.`);
         }
+      }
+
+      function applyLossRewards(result) {
+        applyRewardBundle(result, "Recovery rewards secured");
+      }
+
+      function applyLevelRewards(result) {
+        applyRewardBundle(result, "Level rewards secured");
+      }
+
+      function completeLevel() {
+        if (!isCampaignMode()) return;
+        const completedLevel = Math.max(1, state.level || progress.campaignLevel || 1);
+        const summary = getRunSummary();
+        const globalWave = summary.globalWave || getGlobalWave(state.wave);
+        state.levelRewards = buildLevelRewards(completedLevel, summary);
+        applyLevelRewards(state.levelRewards);
+        progress.bestWave = Math.max(progress.bestWave, globalWave);
+        progress.bestLevel = Math.max(progress.bestLevel || 1, completedLevel);
+        progress.campaignLevel = Math.max(progress.campaignLevel || 1, completedLevel + 1);
+        saveProgress();
+        endRun("victory");
+        setMode("victory");
+        setOverlay("victory");
+        logEvent(`Level ${completedLevel} cleared. Rewards secured.`);
       }
 
       function endRun(reason) {
@@ -6357,8 +6911,11 @@
         const bankedCredits = Math.round(state.credits);
         progress.bankedCredits += bankedCredits;
         const difficultyLabel = (DIFFICULTY_SETTINGS[state.difficulty] || DIFFICULTY_SETTINGS.normal).label;
+        const summary = getRunSummary();
         const entry = {
           wave: state.wave,
+          level: summary.level,
+          globalWave: summary.globalWave,
           score: Math.round(state.score),
           credits: bankedCredits,
           kills: state.kills,
@@ -6386,7 +6943,7 @@
       function triggerGameOver() {
         setMode("gameover");
         if (!state.training) {
-          progress.bestWave = Math.max(progress.bestWave, state.wave);
+          progress.bestWave = Math.max(progress.bestWave, getGlobalWave(state.wave));
           saveProgress();
         }
         endRun("wrecked");
@@ -6404,7 +6961,7 @@
       function triggerAbortRewards() {
         setMode("gameover");
         if (!state.training) {
-          progress.bestWave = Math.max(progress.bestWave, state.wave);
+          progress.bestWave = Math.max(progress.bestWave, getGlobalWave(state.wave));
           saveProgress();
         }
         endRun("abort");
@@ -6506,6 +7063,50 @@
         });
       }
 
+      function renderFieldDrops() {
+        if (!fieldDrops.length) return;
+        const bounds = getViewportBounds();
+        const now = performance.now() * 0.001;
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = "600 9px \"Space Grotesk\", \"Chakra Petch\", sans-serif";
+        fieldDrops.forEach((drop) => {
+          const def = getFieldDropDef(drop.typeId);
+          if (!def) return;
+          const radius = drop.radius || 16;
+          if (drop.x + radius < bounds.left - 40 || drop.x - radius > bounds.right + 40
+            || drop.y + radius < bounds.top - 40 || drop.y - radius > bounds.bottom + 40) {
+            return;
+          }
+          const color = TIER_COLORS[def.tier] || "#ffffff";
+          const bob = Math.sin(now * 2 + drop.phase) * 4;
+          const x = drop.x;
+          const y = drop.y + bob;
+          const alpha = clamp(drop.life / drop.maxLife, 0, 1);
+          ctx.globalAlpha = alpha * 0.9;
+          const glow = ctx.createRadialGradient(x, y, 4, x, y, radius + 14);
+          glow.addColorStop(0, color);
+          glow.addColorStop(1, "rgba(0, 0, 0, 0)");
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(x, y, radius + 14, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = alpha;
+          ctx.fillStyle = "rgba(8, 14, 24, 0.85)";
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(x, y, radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = color;
+          ctx.fillText(def.symbol || "DROP", x, y);
+        });
+        ctx.restore();
+        ctx.globalAlpha = 1;
+      }
+
       function drawWorldBounds() {
         ctx.save();
         ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
@@ -6566,6 +7167,18 @@
           minimapCtx.fillRect(x - 1, y - 1, 2, 2);
         });
 
+        fieldDrops.forEach((drop) => {
+          const def = getFieldDropDef(drop.typeId);
+          const color = TIER_COLORS[def.tier] || "#ffffff";
+          minimapCtx.fillStyle = color;
+          minimapCtx.fillRect(
+            offsetX + drop.x * scale - 1,
+            offsetY + drop.y * scale - 1,
+            2,
+            2
+          );
+        });
+
         minimapCtx.strokeStyle = "rgba(255, 255, 255, 0.35)";
         minimapCtx.strokeRect(
           offsetX + state.camera.x * scale,
@@ -6610,6 +7223,7 @@
         ctx.globalAlpha = 1;
 
         renderObstacles();
+        renderFieldDrops();
 
         particles.forEach((particle) => {
           ctx.globalAlpha = Math.max(0, particle.life / particle.maxLife);
@@ -6850,12 +7464,18 @@
           hudStats.energy.textContent = `${Math.round(player.energy)}/${Math.round(player.maxEnergy)}`;
         }
 
-        stats.wave.textContent = state.wave;
+        stats.wave.textContent = getWaveDisplay(state.wave);
         stats.enemyCount.textContent = enemies.length;
         stats.score.textContent = Math.round(state.score).toLocaleString();
         stats.credits.textContent = Math.round(state.credits).toLocaleString();
         if (stats.modeLabel) {
-          stats.modeLabel.textContent = isFrontierMode() ? "Frontier" : "Arcade";
+          if (state.training) {
+            stats.modeLabel.textContent = "Training";
+          } else if (isFrontierMode()) {
+            stats.modeLabel.textContent = "Frontier";
+          } else {
+            stats.modeLabel.textContent = `Arcade L${state.level || 1}`;
+          }
         }
         if (dom.tierPill && stats.tier) {
           const showTier = isFrontierMode() && state.frontier && state.frontier.active;
@@ -6868,7 +7488,7 @@
         stats.rank.textContent = progress.rank;
         stats.xp.textContent = `${Math.round(progress.xp)} / ${xpToNext(progress.rank)}`;
         stats.techPoints.textContent = progress.techPoints;
-        stats.bestWave.textContent = progress.bestWave;
+        stats.bestWave.textContent = progress.campaignLevel || 1;
         stats.totalKills.textContent = progress.totalKills;
         stats.bankedCredits.textContent = `Credits ${Math.round(progress.bankedCredits)}`;
         stats.bankedCreditsTotal.textContent = Math.round(progress.bankedCredits).toLocaleString();
@@ -7529,6 +8149,7 @@
         }
 
         if (!Array.isArray(progress.inventory) || !progress.inventory.length) {
+          state.inventorySelectionId = null;
           dom.inventory.innerHTML = "<span class=\"select-meta\">No gear collected yet.</span>";
           return;
         }
@@ -7540,13 +8161,137 @@
           return true;
         });
         if (!filteredItems.length) {
+          state.inventorySelectionId = null;
           dom.inventory.innerHTML = "<span class=\"select-meta\">No matching items.</span>";
           return;
         }
-        const groups = groupByTier(filteredItems);
-        dom.inventory.innerHTML = groups.map((group) => {
-          return renderTierSection(group.tier, group.items, renderInventoryCard);
-        }).join("");
+        const sortedItems = sortInventoryItems(filteredItems);
+        let selectedItem = sortedItems.find((item) => item.id === state.inventorySelectionId) || null;
+        if (!selectedItem) {
+          selectedItem = sortedItems[0];
+          state.inventorySelectionId = selectedItem ? selectedItem.id : null;
+        }
+        const grid = sortedItems.map((item) => renderInventoryCell(item)).join("");
+        const detail = selectedItem
+          ? renderInventoryDetail(selectedItem)
+          : "<div class=\"inventory-detail empty\">Select a piece of gear to inspect and equip.</div>";
+        dom.inventory.innerHTML = `
+          <div class="inventory-grid">
+            ${grid}
+          </div>
+          ${detail}
+        `;
+      }
+
+      function getInventoryCellIcon(item) {
+        if (!item) return "G";
+        if (item.type === "weapon") return "WPN";
+        if (item.type === "attachment") {
+          const slotIcons = {
+            barrel: "BAR",
+            core: "CORE",
+            targeting: "TRG",
+            thruster: "THR"
+          };
+          return slotIcons[item.slot] || "MOD";
+        }
+        return "GEAR";
+      }
+
+      function getInventoryCellLabel(item) {
+        if (!item) return "Gear";
+        if (item.type === "weapon") return "Weapon";
+        if (item.type === "attachment") {
+          const slotLabels = {
+            barrel: "Barrel",
+            core: "Core",
+            targeting: "Target",
+            thruster: "Thruster"
+          };
+          return slotLabels[item.slot] || "Module";
+        }
+        return "Gear";
+      }
+
+      function getInventoryTypeLabel(item) {
+        if (!item) return "Item";
+        if (item.type === "weapon") return "Weapon";
+        if (item.type === "attachment") {
+          return `${item.slot ? item.slot.charAt(0).toUpperCase() + item.slot.slice(1) : "Attachment"} Attachment`;
+        }
+        return "Item";
+      }
+
+      function sortInventoryItems(items) {
+        return items.slice().sort((a, b) => {
+          const tierDiff = getTierIndex(b.tier || "common") - getTierIndex(a.tier || "common");
+          if (tierDiff !== 0) return tierDiff;
+          const typeDiff = (a.type || "").localeCompare(b.type || "");
+          if (typeDiff !== 0) return typeDiff;
+          return (a.name || "").localeCompare(b.name || "");
+        });
+      }
+
+      function renderInventoryCell(item) {
+        const tier = item.tier || "common";
+        const equipped = isItemEquipped(item);
+        const isSelected = item.id === state.inventorySelectionId;
+        const icon = getInventoryCellIcon(item);
+        const label = getInventoryCellLabel(item);
+        const tooltip = buildItemTooltip(item);
+        const upgrades = `${item.upgradeSuccesses || 0}/${item.upgradeSlots || 0}`;
+        return `
+          <button class="inventory-cell ${isSelected ? "is-selected" : ""} ${equipped ? "is-equipped" : ""}" data-tier="${tier}" data-item-id="${item.id}" data-inventory-select="${item.id}" ${tooltip ? `title="${escapeAttribute(tooltip)}"` : ""}>
+            <span class="inventory-icon">${icon}</span>
+            <span class="inventory-slot">${label}</span>
+            <span class="inventory-upgrades">Upg ${upgrades}</span>
+          </button>
+        `;
+      }
+
+      function renderInventoryDetail(item) {
+        const tier = item.tier || "common";
+        const tierLabel = formatTierLabel(tier);
+        const summary = getItemSummary(item);
+        const typeLabel = getInventoryTypeLabel(item);
+        const equipped = isItemEquipped(item);
+        const comparison = item.type === "weapon"
+          ? buildWeaponComparison(getEquippedWeapon(), item)
+          : buildAttachmentComparison(item, getEquippedAttachment(item.slot));
+        const compareBlock = equipped
+          ? "<div class=\"compare-list\"><span class=\"stat-diff is-neutral\">Equipped</span></div>"
+          : (comparison ? `<div class="compare-list">${comparison}</div>` : "");
+        const upgradeChance = getUpgradeSuccessChance(item);
+        const upgradeLabel = item.upgradeSuccesses >= item.upgradeSlots
+          ? "Maxed"
+          : `Upgrade ${Math.round(upgradeChance * 100)}%`;
+        const canUpgrade = canUpgradeItem(item);
+        const canSell = canSellItem(item);
+        const affixPills = (item.affixes || []).map((affix) => `<span class="select-pill">${affix.label}</span>`).join("");
+        return `
+          <div class="inventory-detail" data-tier="${tier}" data-item-id="${item.id}">
+            <div class="inventory-detail-header">
+              <div>
+                <div class="inventory-detail-title">${item.name}</div>
+                <div class="inventory-detail-meta">${typeLabel} · ${summary}</div>
+              </div>
+              <span class="select-pill tier-pill" data-tier="${tier}">${tierLabel}</span>
+            </div>
+            ${compareBlock}
+            ${affixPills ? `<div class="select-pills">${affixPills}</div>` : ""}
+            <div class="inventory-actions">
+              <button class="btn ghost btn-mini" type="button" data-item-action="equip" ${equipped ? "disabled" : ""}>
+                ${equipped ? "Equipped" : "Equip"}
+              </button>
+              <button class="btn ghost btn-mini" type="button" data-item-action="upgrade" ${canUpgrade ? "" : "disabled"}>
+                ${upgradeLabel}
+              </button>
+              <button class="btn ghost btn-mini" type="button" data-item-action="sell" ${canSell ? "" : "disabled"}>
+                Sell ${getItemSellValue(item)}c
+              </button>
+            </div>
+          </div>
+        `;
       }
 
       function renderSecondaries() {
@@ -7605,55 +8350,6 @@
               <span class="select-pill">${tag}</span>
               ${hasItem ? `<span class="select-pill">Upgrades ${item.upgradeSuccesses || 0}/${item.upgradeSlots || 0}</span>` : ""}
               ${hasItem ? (item.affixes || []).slice(0, 2).map((affix) => `<span class="select-pill">${affix.label}</span>`).join("") : ""}
-            </div>
-          </div>
-        `;
-      }
-
-      function renderInventoryCard(item) {
-        const equipped = isItemEquipped(item);
-        const tier = item.tier || "common";
-        const tierLabel = formatTierLabel(tier);
-        const summary = getItemSummary(item);
-        const isWeapon = item.type === "weapon";
-        const isAttachment = item.type === "attachment";
-        const comparison = isWeapon
-          ? (equipped ? "" : buildWeaponComparison(getEquippedWeapon(), item))
-          : (isAttachment && !equipped ? buildAttachmentComparison(item, getEquippedAttachment(item.slot)) : "");
-        const compareBlock = comparison ? `<div class="compare-list">${comparison}</div>` : "";
-        const upgradeChance = getUpgradeSuccessChance(item);
-        const upgradeLabel = item.upgradeSuccesses >= item.upgradeSlots
-          ? "Maxed"
-          : `Upgrade ${Math.round(upgradeChance * 100)}%`;
-        const canUpgrade = canUpgradeItem(item);
-        const canSell = canSellItem(item);
-        const tooltip = buildItemTooltip(item);
-        const affixPills = (item.affixes || []).map((affix) => `<span class="select-pill">${affix.label}</span>`).join("");
-        const typeLabel = isWeapon
-          ? "Weapon"
-          : (item.slot ? `${item.slot.charAt(0).toUpperCase() + item.slot.slice(1)} Attachment` : "Item");
-        return `
-          <div class="select-card" data-tier="${tier}" data-item-id="${item.id}" ${tooltip ? `title="${escapeAttribute(tooltip)}"` : ""}>
-            <span class="select-title">${item.name}</span>
-            <span class="select-meta">${typeLabel} · ${summary}</span>
-            ${compareBlock}
-            <div class="select-pills">
-              <span class="select-pill tier-pill" data-tier="${tier}">${tierLabel}</span>
-              <span class="select-pill">${typeLabel}</span>
-              <span class="select-pill">Upgrades ${item.upgradeSuccesses || 0}/${item.upgradeSlots || 0}</span>
-              ${equipped ? "<span class=\"select-pill\">Equipped</span>" : ""}
-              ${affixPills}
-            </div>
-            <div class="inventory-actions">
-              <button class="btn ghost btn-mini" type="button" data-item-action="equip" ${equipped ? "disabled" : ""}>
-                ${equipped ? "Equipped" : "Equip"}
-              </button>
-              <button class="btn ghost btn-mini" type="button" data-item-action="upgrade" ${canUpgrade ? "" : "disabled"}>
-                ${upgradeLabel}
-              </button>
-              <button class="btn ghost btn-mini" type="button" data-item-action="sell" ${canSell ? "" : "disabled"}>
-                Sell ${getItemSellValue(item)}c
-              </button>
             </div>
           </div>
         `;
@@ -8133,10 +8829,14 @@
           const modeLabel = run.mode ? ` • ${run.mode}` : "";
           const score = Number.isFinite(run.score) ? Math.round(run.score).toLocaleString() : run.score;
           const credits = Number.isFinite(run.credits) ? Math.round(run.credits).toLocaleString() : run.credits;
+          const usesLevel = run.mode !== "Frontier" && Number.isFinite(run.level);
+          const progressText = usesLevel
+            ? `Level ${run.level} • Wave ${run.wave}/${LEVEL_WAVES}`
+            : `Wave ${run.wave}`;
           return `
             <div class="history-entry">
               <strong>${run.ship} / ${run.weapon}</strong>
-              <span>Wave ${run.wave} • Score ${score} • ${difficultyLabel}${modeLabel}</span>
+              <span>${progressText} • Score ${score} • ${difficultyLabel}${modeLabel}</span>
               <span>${run.kills} kills • ${credits} credits</span>
             </div>
           `;
@@ -8484,13 +9184,14 @@
           const abilityKey = formatKeybind(progress.keybinds.ability);
           const secondaryKey = formatKeybind(progress.keybinds.secondary);
           const dockKey = formatKeybind(progress.keybinds.dock);
-          const modeLabel = isFrontierMode() ? "Frontier patrol" : "Wave sortie";
+          const level = Math.max(1, progress.campaignLevel || 1);
+          const modeLabel = isFrontierMode() ? "Frontier patrol" : `Level ${level} briefing`;
           const modeCopy = isFrontierMode()
             ? "Push deep into hostile space. Upgrade your ship at the dock to survive longer."
-            : "Your fighter follows the cursor. Keep moving to recharge shields and pick upgrades between waves.";
+            : `Clear ${LEVEL_WAVES} waves to finish the level. Boss arrives on wave ${LEVEL_WAVES}.`;
           const modeTip = isFrontierMode()
             ? `<li>Dock: ${dockKey} to upgrade your ship and tier up mid-run.</li>`
-            : "<li>Upgrades appear between waves to power up your run.</li>";
+            : `<li>Complete ${LEVEL_WAVES} waves to unlock the next level and rewards.</li>`;
           const aimKeys = [
             progress.keybinds.aimUp,
             progress.keybinds.aimLeft,
@@ -8584,7 +9285,7 @@
             `;
           dom.overlayContent.innerHTML = `
             <div class="overlay-header">
-              <p class="eyebrow">Wave ${state.wave - 1} cleared</p>
+              <p class="eyebrow">Wave ${getWaveDisplay(state.wave - 1)} cleared</p>
               <h3>Choose a field upgrade</h3>
               <p>Upgrades stack for the rest of the run. Skill systems are limited to ${SKILL_LIMIT} selections and climb tiers each level. ${rerollCopy}</p>
             </div>
@@ -8728,6 +9429,7 @@
           const summary = lossRewards ? lossRewards.summary : getRunSummary();
           const performanceTier = lossRewards ? lossRewards.tier : "common";
           const performanceLabel = formatTierLabel(performanceTier);
+          const levelChip = isCampaignMode() ? `<span class="chip">Level ${summary.level}</span>` : "";
           const rewardCards = lossRewards && lossRewards.rewards.length
             ? lossRewards.rewards.map((reward) => {
               const tier = reward.tier || "common";
@@ -8753,6 +9455,7 @@
                 <span class="chip" data-tier="${performanceTier}">${performanceLabel} performance</span>
                 <span class="chip">Survival ${formatDuration(summary.durationSec)}</span>
                 <span class="chip">${summary.difficultyLabel} difficulty</span>
+                ${levelChip}
               </div>
               <div class="reward-grid">
                 ${rewardCards}
@@ -8766,7 +9469,7 @@
               <p>${headerCopy}</p>
             </div>
             <div class="progress-grid">
-              <div class="stat-tile"><span>Wave</span><strong>${summary.wave}</strong></div>
+              <div class="stat-tile"><span>Wave</span><strong>${summary.waveDisplay}</strong></div>
               <div class="stat-tile"><span>Kills</span><strong>${summary.kills}</strong></div>
               <div class="stat-tile"><span>Score</span><strong>${summary.score.toLocaleString()}</strong></div>
               <div class="stat-tile"><span>Survival</span><strong>${formatDuration(summary.durationSec)}</strong></div>
@@ -8775,6 +9478,61 @@
             ${rewardSection}
             <div class="overlay-actions">
               <button class="btn primary" data-overlay-action="reset">Return to hangar</button>
+            </div>
+          `;
+        }
+        if (mode === "victory") {
+          const result = state.levelRewards;
+          const summary = result ? result.summary : getRunSummary();
+          const level = result ? result.level : summary.level;
+          const nextLevel = Math.max(progress.campaignLevel || level + 1, level + 1);
+          const rewardTier = result ? result.tier : "common";
+          const rewardLabel = formatTierLabel(rewardTier);
+          const rewardCards = result && result.rewards.length
+            ? result.rewards.map((reward) => {
+              const tier = reward.tier || "common";
+              const icon = getRewardIcon(reward);
+              const label = getRewardLabel(reward);
+              const value = formatRewardValue(reward);
+              return `
+                <div class="reward-item" data-tier="${tier}">
+                  <span class="reward-icon" role="img" aria-label="${label} x${value}" title="${label} x${value}">${icon}</span>
+                  <span class="reward-value">${value}</span>
+                </div>
+              `;
+            }).join("")
+            : "<div class=\"select-meta\">No rewards recovered.</div>";
+          dom.overlayContent.innerHTML = `
+            <div class="overlay-header">
+              <p class="eyebrow">Level ${level} complete</p>
+              <h3>Mission cleared</h3>
+              <p>Dock for refits or launch straight into Level ${nextLevel}.</p>
+            </div>
+            <div class="progress-grid">
+              <div class="stat-tile"><span>Wave</span><strong>${summary.waveDisplay}</strong></div>
+              <div class="stat-tile"><span>Kills</span><strong>${summary.kills}</strong></div>
+              <div class="stat-tile"><span>Score</span><strong>${summary.score.toLocaleString()}</strong></div>
+              <div class="stat-tile"><span>Survival</span><strong>${formatDuration(summary.durationSec)}</strong></div>
+              <div class="stat-tile"><span>Credits</span><strong>${summary.credits.toLocaleString()}</strong></div>
+            </div>
+            <div class="panel-subsection">
+              <div class="reward-banner">
+                <span class="reward-line"></span>
+                <span class="reward-title">Rewards</span>
+                <span class="reward-line"></span>
+              </div>
+              <div class="chip-list">
+                <span class="chip">Level ${level}</span>
+                <span class="chip" data-tier="${rewardTier}">${rewardLabel} rewards</span>
+                <span class="chip">${summary.difficultyLabel} difficulty</span>
+              </div>
+              <div class="reward-grid">
+                ${rewardCards}
+              </div>
+            </div>
+            <div class="overlay-actions">
+              <button class="btn primary" data-overlay-action="next-level">Launch Level ${nextLevel}</button>
+              <button class="btn ghost" data-overlay-action="reset">Return to hangar</button>
             </div>
           `;
         }
