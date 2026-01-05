@@ -25,8 +25,9 @@
 
   if (!form || !originalEl || !revisedEl || !outputEl || !summaryEl) return;
 
-  const MAX_CHARS = 200_000;
-  const MAX_TOKENS = 20_000;
+  const MAX_CHARS = 600_000;
+  const MAX_TOKENS = 200_000;
+  const MAX_TRACE_CELLS = 16_000_000;
   const DEFAULT_COMPARE_SETTINGS = {
     mergeMinWords: 8,
     mergeMinChars: 40,
@@ -225,27 +226,42 @@
     return merged;
   };
 
-  const myersEdits = (a, b) => {
+  const myersEdits = (a, b, options) => {
     const n = a.length;
     const m = b.length;
-    const max = n + m;
-    const offset = max;
-    let v = new Array(2 * max + 1).fill(0);
-    const trace = [];
+    if (!n && !m) return [];
+    if (!n) return b.map((value) => ({ type: 'insert', value }));
+    if (!m) return a.map((value) => ({ type: 'delete', value }));
 
-    const backtrack = () => {
+    const max = n + m;
+    const maxDFromTrace = Math.max(0, Math.floor(Math.sqrt(MAX_TRACE_CELLS)) - 1);
+    const maxD = Math.min(
+      max,
+      Math.max(0, options?.maxD ?? maxDFromTrace)
+    );
+
+    const trace = [];
+    let vPrev = new Int32Array(1);
+    let prefix = 0;
+    while (prefix < n && prefix < m && a[prefix] === b[prefix]) prefix += 1;
+    vPrev[0] = prefix;
+    trace.push(vPrev);
+    if (prefix >= n && prefix >= m) {
+      return a.map((value) => ({ type: 'equal', value }));
+    }
+
+    const backtrack = (D) => {
       let x = n;
       let y = m;
       const edits = [];
-      const D = trace.length - 1;
 
       for (let d = D; d > 0; d -= 1) {
-        const vPrev = trace[d - 1];
+        const v = trace[d - 1];
+        const offset = d - 1;
         const k = x - y;
-        const kIdx = k + offset;
-        const down = k === -d || (k !== d && vPrev[kIdx - 1] < vPrev[kIdx + 1]);
+        const down = k === -d || (k !== d && v[k - 1 + offset] < v[k + 1 + offset]);
         const prevK = down ? k + 1 : k - 1;
-        const prevX = vPrev[prevK + offset];
+        const prevX = v[prevK + offset];
         const prevY = prevX - prevK;
 
         while (x > prevX && y > prevY) {
@@ -282,30 +298,38 @@
       return edits;
     };
 
-    for (let d = 0; d <= max; d += 1) {
+    for (let d = 1; d <= maxD; d += 1) {
+      const offsetPrev = d - 1;
+      const vNext = new Int32Array(2 * d + 1);
+      const offset = d;
+
       for (let k = -d; k <= d; k += 2) {
         const kIdx = k + offset;
+        const down = k === -d || (k !== d && vPrev[k - 1 + offsetPrev] < vPrev[k + 1 + offsetPrev]);
         let x;
-        const down = k === -d || (k !== d && v[kIdx - 1] < v[kIdx + 1]);
         if (down) {
-          x = v[kIdx + 1];
+          x = vPrev[k + 1 + offsetPrev];
         } else {
-          x = v[kIdx - 1] + 1;
+          x = vPrev[k - 1 + offsetPrev] + 1;
         }
         let y = x - k;
         while (x < n && y < m && a[x] === b[y]) {
           x += 1;
           y += 1;
         }
-        v[kIdx] = x;
+        vNext[kIdx] = x;
+
         if (x >= n && y >= m) {
-          trace.push(v.slice());
-          return backtrack();
+          trace.push(vNext);
+          return backtrack(d);
         }
       }
-      trace.push(v.slice());
+
+      trace.push(vNext);
+      vPrev = vNext;
     }
-    return [];
+
+    return null;
   };
 
   const groupRuns = (edits) => {
@@ -682,7 +706,7 @@
       const aTokens = tokenize(original);
       const bTokens = tokenize(revised);
       if (aTokens.length + bTokens.length > MAX_TOKENS) {
-        summaryEl.textContent = 'Text is too large to compare quickly. Please compare smaller sections.';
+        summaryEl.textContent = 'Text is too large to compare in-browser. Please compare smaller sections.';
         setEmpty('Input too large.');
         lastRuns = null;
         lastRevisedText = '';
@@ -690,11 +714,16 @@
       }
 
       const edits = myersEdits(aTokens, bTokens);
-      const rawRuns = normalizeRuns(groupRuns(edits));
-      const settings = getCompareSettings();
-      const countsA = buildWordCounts(aTokens);
-      const countsB = buildWordCounts(bTokens);
-      const runs = coalesceRuns(rawRuns, countsA, countsB, settings);
+      let runs;
+      if (!edits) {
+        runs = [{ type: 'replace', delTokens: aTokens, insTokens: bTokens }];
+      } else {
+        const rawRuns = normalizeRuns(groupRuns(edits));
+        const settings = getCompareSettings();
+        const countsA = buildWordCounts(aTokens);
+        const countsB = buildWordCounts(bTokens);
+        runs = coalesceRuns(rawRuns, countsA, countsB, settings);
+      }
       lastRuns = runs;
       lastRevisedText = revised;
       const html = renderOutput(runs);
