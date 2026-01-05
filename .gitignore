@@ -10,12 +10,19 @@ Thumbs.db
 # Node dependencies (none currently, but useful for future)
 node_modules/
 
+# Local env files
+.env
+.env.*.local
+.env.local
+
 # Local Vercel CLI state
 .vercel/
 
 # Build output (Vercel will run the build)
 dist/
 public/
+/go/
+.short-links-generated
 /Slot-Machine-v4
 /Handwriting-Rating
 /Nonogram-Solver

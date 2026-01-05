@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <base href="/">
+  <title>Short Links (Admin) | Daniel Short</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Private dashboard for managing short redirect links.">
+  <meta name="theme-color" content="#0D1117">
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
+  <script>
+    try {
+      if (document.documentElement.classList) {
+        document.documentElement.classList.remove("no-js");
+      } else {
+        document.documentElement.className = (document.documentElement.className || "").replace(/\bno-js\b/, "").trim();
+      }
+    } catch (_) {}
+  </script>
+</head>
+<body data-page="short-links">
+  <a href="#main" class="skip-link">Skip to main content</a>
+  <header id="combined-header-nav"></header>
+
+  <main id="main">
+    <section class="tools-hero">
+      <div class="wrapper">
+        <p class="hero-eyebrow">Admin dashboard</p>
+        <h1>Short Links</h1>
+        <p>Create and manage redirect links like <code>/go/github</code>, backed by KV storage and served as HTTP redirects.</p>
+      </div>
+    </section>
+
+    <section class="surface-band tools-section reveal">
+      <div class="wrapper">
+        <h2 class="section-title">Access</h2>
+        <form class="contact-form" data-shortlinks="auth">
+          <div class="form-field">
+            <label for="shortlinks-token">Admin token</label>
+            <input id="shortlinks-token" type="password" inputmode="text" autocomplete="current-password" data-shortlinks="token">
+            <p class="contact-form-note">Stored in <code>sessionStorage</code> for this tab only.</p>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary"><span class="btn-label">Save token</span></button>
+            <button type="button" class="btn-secondary" data-shortlinks="refresh">Refresh list</button>
+          </div>
+          <div class="contact-form-status" data-shortlinks="status" role="status" aria-live="polite"></div>
+        </form>
+      </div>
+    </section>
+
+    <section class="surface-band tools-section reveal">
+      <div class="wrapper">
+        <h2 class="section-title">Create / Update</h2>
+        <form class="contact-form" data-shortlinks="editor">
+          <div class="form-field">
+            <label for="shortlinks-slug">Slug</label>
+            <input id="shortlinks-slug" type="text" inputmode="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="github" data-shortlinks="slug">
+            <p class="contact-form-note">Allowed: <code>a-z</code>, <code>0-9</code>, <code>-</code>, <code>_</code>, and <code>/</code> (for nesting).</p>
+          </div>
+          <div class="form-field">
+            <label for="shortlinks-destination">Destination</label>
+            <input id="shortlinks-destination" type="text" inputmode="url" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="https://example.com" data-shortlinks="destination">
+            <p class="contact-form-note">Must start with <code>/</code> or <code>http(s)://</code>.</p>
+          </div>
+          <div class="form-field">
+            <label>
+              <input type="checkbox" data-shortlinks="permanent">
+              Permanent redirect (301)
+            </label>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary"><span class="btn-label">Save link</span></button>
+            <button type="button" class="btn-secondary" data-shortlinks="clear">Clear</button>
+          </div>
+          <div class="contact-form-status" data-shortlinks="editor-status" role="status" aria-live="polite"></div>
+        </form>
+      </div>
+    </section>
+
+    <section class="surface-band tools-section reveal">
+      <div class="wrapper">
+        <h2 class="section-title">Links</h2>
+        <div class="tools-grid" data-shortlinks="list" aria-live="polite"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <nav class="privacy-links" aria-label="Privacy shortcuts">
+      <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
+      <a href="#" class="pcz-link" onclick="window.Privacy && window.Privacy.open('doNotSell'); return false;">
+        Do Not Sell/Share My Personal Information
+      </a>
+    </nav>
+  </footer>
+
+  <script defer src="js/common/common.js"></script>
+  <script defer src="js/navigation/navigation.js"></script>
+  <script defer src="js/animations/animations.js"></script>
+  <script defer src="js/admin/short-links.js"></script>
+  <script src="js/privacy/config.js"></script>
+  <script defer src="js/privacy/consent_manager.js"></script>
+</body>
+</html>
+

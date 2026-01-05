@@ -56,6 +56,15 @@ Welcome to the GitHub repository for my personal portfolio website. This site sh
     - **CSS**: Modify styles in `css/styles.css` to change the appearance.
     - **JavaScript**: Update functionality in `js/common.js`.
 
+## Short links (private dashboard)
+
+This repo includes a small, Bitly-style redirect service intended for a single trusted admin (you).
+
+- **Redirects:** `https://<your-domain>/go/<slug>` returns a `301` or `302` to the stored destination.
+- **Dashboard:** `pages/short-links.html` (enter your admin token to list/create/update/delete links).
+- **Admin auth:** set `SHORTLINKS_ADMIN_TOKEN` in your Vercel environment (do not commit it).
+- **Storage:** set either Vercel KV env vars (`KV_REST_API_URL`, `KV_REST_API_TOKEN`) or Upstash REST env vars (`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`).
+
 ## File Structure
 
 ```plaintext
