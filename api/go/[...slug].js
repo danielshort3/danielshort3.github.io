@@ -1,11 +1,11 @@
 /*
   Public redirect endpoint: /go/<slug>
-  Backed by Upstash/Vercel KV.
+  Backed by AWS DynamoDB.
 */
 'use strict';
 
-const { kvGet, kvIncr } = require('../_lib/kv');
-const { clicksKey, linkKey, normalizeSlug, getRequestBaseUrl } = require('../_lib/short-links');
+const { getLink, incrementClicks } = require('../_lib/short-links-store');
+const { normalizeSlug, getRequestBaseUrl } = require('../_lib/short-links');
 
 function getSlugFromRequest(req){
   const querySlug = req.query && req.query.slug;
@@ -36,34 +36,24 @@ module.exports = async (req, res) => {
     return;
   }
 
-  let linkRaw;
+  let link;
   try {
-    linkRaw = await kvGet(linkKey(slug));
+    link = await getLink(slug);
   } catch (err) {
-    res.statusCode = err.code === 'KV_ENV_MISSING' ? 503 : 502;
+    res.statusCode = err.code === 'DDB_ENV_MISSING' ? 503 : 502;
     res.setHeader('Cache-Control', 'no-store');
     res.end('Short links backend unavailable');
     return;
   }
 
-  if (!linkRaw) {
+  if (!link) {
     res.statusCode = 404;
     res.setHeader('Cache-Control', 'no-store');
     res.end('Not Found');
     return;
   }
 
-  let link;
-  try {
-    link = JSON.parse(linkRaw);
-  } catch {
-    res.statusCode = 500;
-    res.setHeader('Cache-Control', 'no-store');
-    res.end('Invalid short link record');
-    return;
-  }
-
-  const destination = typeof link.destination === 'string' ? link.destination.trim() : '';
+  const destination = typeof link.destination === 'string' ? String(link.destination).trim() : '';
   if (!destination) {
     res.statusCode = 404;
     res.setHeader('Cache-Control', 'no-store');
@@ -83,7 +73,7 @@ module.exports = async (req, res) => {
   }
 
   try {
-    await kvIncr(clicksKey(slug));
+    await incrementClicks(slug);
   } catch {}
 
   res.statusCode = link.permanent ? 301 : 302;
