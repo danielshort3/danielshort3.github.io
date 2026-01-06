@@ -1,14 +1,11 @@
 /*
   Admin API for managing short links.
-  Requires SHORTLINKS_ADMIN_TOKEN and KV env vars.
+  Requires SHORTLINKS_ADMIN_TOKEN and DynamoDB env vars.
 */
 'use strict';
 
-const { kvGet, kvSet, kvSadd, kvSmembers } = require('../_lib/kv');
+const { listLinks, upsertLink } = require('../_lib/short-links-store');
 const {
-  SLUG_SET_KEY,
-  linkKey,
-  clicksKey,
   getAdminToken,
   isAdminRequest,
   sendJson,
@@ -16,12 +13,6 @@ const {
   normalizeSlug,
   normalizeDestination
 } = require('../_lib/short-links');
-
-async function getClicksForSlug(slug){
-  const raw = await kvGet(clicksKey(slug));
-  const parsedClicks = raw == null ? 0 : parseInt(String(raw), 10);
-  return Number.isFinite(parsedClicks) ? parsedClicks : 0;
-}
 
 module.exports = async (req, res) => {
   const adminToken = getAdminToken();
@@ -35,36 +26,25 @@ module.exports = async (req, res) => {
   }
 
   if (req.method === 'GET') {
-    let slugs = [];
+    let items = [];
     try {
-      slugs = await kvSmembers(SLUG_SET_KEY);
+      items = await listLinks();
     } catch (err) {
-      sendJson(res, err.code === 'KV_ENV_MISSING' ? 503 : 502, { ok: false, error: 'KV backend unavailable' });
+      sendJson(res, err.code === 'DDB_ENV_MISSING' ? 503 : 502, { ok: false, error: 'DynamoDB backend unavailable' });
       return;
     }
 
-    const uniqueSlugs = Array.from(new Set(slugs.map(slugValue => normalizeSlug(slugValue)).filter(Boolean)));
-    uniqueSlugs.sort((a, b) => a.localeCompare(b));
-
-    const links = [];
-    for (const slug of uniqueSlugs) {
-      try {
-        const raw = await kvGet(linkKey(slug));
-        if (!raw) continue;
-        const link = JSON.parse(raw);
-        const clicks = await getClicksForSlug(slug);
-        links.push({
-          slug,
-          destination: link.destination || '',
-          permanent: !!link.permanent,
-          createdAt: link.createdAt || '',
-          updatedAt: link.updatedAt || '',
-          clicks
-        });
-      } catch {
-        continue;
-      }
-    }
+    const links = items
+      .map(item => ({
+        slug: normalizeSlug(item.slug),
+        destination: typeof item.destination === 'string' ? item.destination : '',
+        permanent: !!item.permanent,
+        createdAt: typeof item.createdAt === 'string' ? item.createdAt : '',
+        updatedAt: typeof item.updatedAt === 'string' ? item.updatedAt : '',
+        clicks: Number.isFinite(Number(item.clicks)) ? Number(item.clicks) : 0
+      }))
+      .filter(link => link.slug && link.destination)
+      .sort((a, b) => a.slug.localeCompare(b.slug));
 
     sendJson(res, 200, { ok: true, basePath: 'go', links });
     return;
@@ -93,29 +73,26 @@ module.exports = async (req, res) => {
     }
 
     const now = new Date().toISOString();
-    let createdAt = now;
-    try {
-      const existingRaw = await kvGet(linkKey(slug));
-      if (existingRaw) {
-        const existing = JSON.parse(existingRaw);
-        if (existing && typeof existing.createdAt === 'string' && existing.createdAt.trim()) {
-          createdAt = existing.createdAt.trim();
-        }
-      }
-    } catch {}
 
-    const record = { slug, destination, permanent, createdAt, updatedAt: now };
-
+    let record;
     try {
-      await kvSet(linkKey(slug), JSON.stringify(record));
-      await kvSadd(SLUG_SET_KEY, slug);
+      record = await upsertLink({ slug, destination, permanent, updatedAt: now });
     } catch (err) {
-      sendJson(res, err.code === 'KV_ENV_MISSING' ? 503 : 502, { ok: false, error: 'KV backend unavailable' });
+      sendJson(res, err.code === 'DDB_ENV_MISSING' ? 503 : 502, { ok: false, error: 'DynamoDB backend unavailable' });
       return;
     }
 
-    const clicks = await getClicksForSlug(slug).catch(() => 0);
-    sendJson(res, 200, { ok: true, link: { ...record, clicks } });
+    sendJson(res, 200, {
+      ok: true,
+      link: {
+        slug,
+        destination,
+        permanent,
+        createdAt: record && record.createdAt ? record.createdAt : now,
+        updatedAt: now,
+        clicks: record && Number.isFinite(Number(record.clicks)) ? Number(record.clicks) : 0
+      }
+    });
     return;
   }
 

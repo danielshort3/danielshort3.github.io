@@ -3,11 +3,8 @@
 */
 'use strict';
 
-const { kvGet, kvDel, kvSrem } = require('../_lib/kv');
+const { deleteLink, getLink } = require('../_lib/short-links-store');
 const {
-  SLUG_SET_KEY,
-  linkKey,
-  clicksKey,
   getAdminToken,
   isAdminRequest,
   sendJson,
@@ -19,12 +16,6 @@ function getSlugFromRequest(req){
   if (Array.isArray(querySlug)) return querySlug.join('/');
   if (typeof querySlug === 'string') return querySlug;
   return '';
-}
-
-async function getClicksForSlug(slug){
-  const raw = await kvGet(clicksKey(slug));
-  const parsedClicks = raw == null ? 0 : parseInt(String(raw), 10);
-  return Number.isFinite(parsedClicks) ? parsedClicks : 0;
 }
 
 module.exports = async (req, res) => {
@@ -45,37 +36,28 @@ module.exports = async (req, res) => {
   }
 
   if (req.method === 'GET') {
-    let raw;
+    let link;
     try {
-      raw = await kvGet(linkKey(slug));
+      link = await getLink(slug);
     } catch (err) {
-      sendJson(res, err.code === 'KV_ENV_MISSING' ? 503 : 502, { ok: false, error: 'KV backend unavailable' });
+      sendJson(res, err.code === 'DDB_ENV_MISSING' ? 503 : 502, { ok: false, error: 'DynamoDB backend unavailable' });
       return;
     }
 
-    if (!raw) {
+    if (!link) {
       sendJson(res, 404, { ok: false, error: 'Not Found' });
       return;
     }
 
-    let link;
-    try {
-      link = JSON.parse(raw);
-    } catch {
-      sendJson(res, 500, { ok: false, error: 'Invalid short link record' });
-      return;
-    }
-
-    const clicks = await getClicksForSlug(slug).catch(() => 0);
     sendJson(res, 200, {
       ok: true,
       link: {
         slug,
-        destination: link.destination || '',
+        destination: typeof link.destination === 'string' ? link.destination : '',
         permanent: !!link.permanent,
-        createdAt: link.createdAt || '',
-        updatedAt: link.updatedAt || '',
-        clicks
+        createdAt: typeof link.createdAt === 'string' ? link.createdAt : '',
+        updatedAt: typeof link.updatedAt === 'string' ? link.updatedAt : '',
+        clicks: Number.isFinite(Number(link.clicks)) ? Number(link.clicks) : 0
       }
     });
     return;
@@ -83,10 +65,9 @@ module.exports = async (req, res) => {
 
   if (req.method === 'DELETE') {
     try {
-      await kvDel(linkKey(slug), clicksKey(slug));
-      await kvSrem(SLUG_SET_KEY, slug);
+      await deleteLink(slug);
     } catch (err) {
-      sendJson(res, err.code === 'KV_ENV_MISSING' ? 503 : 502, { ok: false, error: 'KV backend unavailable' });
+      sendJson(res, err.code === 'DDB_ENV_MISSING' ? 503 : 502, { ok: false, error: 'DynamoDB backend unavailable' });
       return;
     }
 
