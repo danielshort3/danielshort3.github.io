@@ -13,7 +13,7 @@ function getSlugFromRequest(req){
   if (typeof querySlug === 'string') return querySlug;
   try {
     const url = new URL(req.url, getRequestBaseUrl(req));
-    const match = url.pathname.match(/\/api\/go\/(.+)$/);
+    const match = url.pathname.match(/\/(?:api\/)?go\/(.+)$/);
     return match ? decodeURIComponent(match[1]) : '';
   } catch {
     return '';
