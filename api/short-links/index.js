@@ -30,7 +30,11 @@ module.exports = async (req, res) => {
     try {
       items = await listLinks();
     } catch (err) {
-      sendJson(res, err.code === 'DDB_ENV_MISSING' ? 503 : 502, { ok: false, error: 'DynamoDB backend unavailable' });
+      if (err.code === 'DDB_ENV_MISSING') {
+        sendJson(res, 503, { ok: false, error: err.message });
+        return;
+      }
+      sendJson(res, 502, { ok: false, error: 'DynamoDB backend unavailable' });
       return;
     }
 
@@ -78,7 +82,11 @@ module.exports = async (req, res) => {
     try {
       record = await upsertLink({ slug, destination, permanent, updatedAt: now });
     } catch (err) {
-      sendJson(res, err.code === 'DDB_ENV_MISSING' ? 503 : 502, { ok: false, error: 'DynamoDB backend unavailable' });
+      if (err.code === 'DDB_ENV_MISSING') {
+        sendJson(res, 503, { ok: false, error: err.message });
+        return;
+      }
+      sendJson(res, 502, { ok: false, error: 'DynamoDB backend unavailable' });
       return;
     }
 

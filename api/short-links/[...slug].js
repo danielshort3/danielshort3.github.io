@@ -8,14 +8,21 @@ const {
   getAdminToken,
   isAdminRequest,
   sendJson,
-  normalizeSlug
+  normalizeSlug,
+  getRequestBaseUrl
 } = require('../_lib/short-links');
 
 function getSlugFromRequest(req){
   const querySlug = req.query && req.query.slug;
   if (Array.isArray(querySlug)) return querySlug.join('/');
   if (typeof querySlug === 'string') return querySlug;
-  return '';
+  try {
+    const url = new URL(req.url, getRequestBaseUrl(req));
+    const match = url.pathname.match(/\/api\/short-links\/(.+)$/);
+    return match ? decodeURIComponent(match[1]) : '';
+  } catch {
+    return '';
+  }
 }
 
 module.exports = async (req, res) => {
@@ -40,7 +47,11 @@ module.exports = async (req, res) => {
     try {
       link = await getLink(slug);
     } catch (err) {
-      sendJson(res, err.code === 'DDB_ENV_MISSING' ? 503 : 502, { ok: false, error: 'DynamoDB backend unavailable' });
+      if (err.code === 'DDB_ENV_MISSING') {
+        sendJson(res, 503, { ok: false, error: err.message });
+        return;
+      }
+      sendJson(res, 502, { ok: false, error: 'DynamoDB backend unavailable' });
       return;
     }
 
@@ -67,7 +78,11 @@ module.exports = async (req, res) => {
     try {
       await deleteLink(slug);
     } catch (err) {
-      sendJson(res, err.code === 'DDB_ENV_MISSING' ? 503 : 502, { ok: false, error: 'DynamoDB backend unavailable' });
+      if (err.code === 'DDB_ENV_MISSING') {
+        sendJson(res, 503, { ok: false, error: err.message });
+        return;
+      }
+      sendJson(res, 502, { ok: false, error: 'DynamoDB backend unavailable' });
       return;
     }
 
