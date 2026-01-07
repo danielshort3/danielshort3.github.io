@@ -68,45 +68,57 @@
 
     <section class="surface-band tools-section reveal">
       <div class="wrapper">
-        <h2 class="section-title">Create / Update</h2>
-        <form class="contact-form" data-shortlinks="editor">
-          <div class="form-field">
-            <label for="shortlinks-slug">Slug</label>
-            <input id="shortlinks-slug" type="text" inputmode="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="github" data-shortlinks="slug">
-            <p class="contact-form-note">Allowed: <code>a-z</code>, <code>0-9</code>, <code>-</code>, <code>_</code>, and <code>/</code> (for nesting).</p>
+        <details class="shortlinks-panel" open data-shortlinks="editor-details">
+          <summary class="shortlinks-panel-summary">
+            <h2 class="section-title">Create / Update</h2>
+          </summary>
+          <div class="shortlinks-panel-body">
+            <form class="contact-form" data-shortlinks="editor">
+              <div class="form-field">
+                <label for="shortlinks-slug">Slug</label>
+                <input id="shortlinks-slug" type="text" inputmode="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="github" data-shortlinks="slug">
+                <p class="contact-form-note">Allowed: <code>a-z</code>, <code>0-9</code>, <code>-</code>, <code>_</code>, and <code>/</code> (for nesting).</p>
+              </div>
+              <div class="form-field">
+                <label for="shortlinks-destination">Destination</label>
+                <input id="shortlinks-destination" type="text" inputmode="url" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="https://example.com" data-shortlinks="destination">
+                <p class="contact-form-note">Must start with <code>/</code> or <code>http(s)://</code>.</p>
+              </div>
+              <div class="form-field">
+                <label class="shortlinks-toggle">
+                  <span>Permanent redirect (301)</span>
+                  <input id="shortlinks-permanent" type="checkbox" data-shortlinks="permanent">
+                </label>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn-primary"><span class="btn-label">Save link</span></button>
+                <button type="button" class="btn-secondary" data-shortlinks="clear">Reset form</button>
+              </div>
+              <div class="contact-form-status" data-shortlinks="editor-status" role="status" aria-live="polite"></div>
+            </form>
           </div>
-          <div class="form-field">
-            <label for="shortlinks-destination">Destination</label>
-            <input id="shortlinks-destination" type="text" inputmode="url" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="https://example.com" data-shortlinks="destination">
-            <p class="contact-form-note">Must start with <code>/</code> or <code>http(s)://</code>.</p>
-          </div>
-          <div class="form-field">
-            <label>
-              <input type="checkbox" data-shortlinks="permanent">
-              Permanent redirect (301)
-            </label>
-          </div>
-          <div class="form-actions">
-            <button type="submit" class="btn-primary"><span class="btn-label">Save link</span></button>
-            <button type="button" class="btn-secondary" data-shortlinks="clear">Reset form</button>
-          </div>
-          <div class="contact-form-status" data-shortlinks="editor-status" role="status" aria-live="polite"></div>
-        </form>
+        </details>
       </div>
     </section>
 
     <section class="surface-band tools-section reveal">
       <div class="wrapper">
-        <h2 class="section-title">Links</h2>
-        <div class="shortlinks-toolbar">
-          <label class="shortlinks-filter">
-            <span class="shortlinks-filter-label">Filter</span>
-            <input type="search" autocomplete="off" spellcheck="false" placeholder="Search slugs & destinations…" data-shortlinks="filter">
-          </label>
-          <p class="shortlinks-count" data-shortlinks="count" aria-live="polite"></p>
-        </div>
-        <div class="contact-form-status" data-shortlinks="list-status" role="status" aria-live="polite"></div>
-        <div class="shortlinks-list" data-shortlinks="list" aria-live="polite"></div>
+        <details class="shortlinks-panel" open data-shortlinks="links-details">
+          <summary class="shortlinks-panel-summary">
+            <h2 class="section-title">Links</h2>
+          </summary>
+          <div class="shortlinks-panel-body">
+            <div class="shortlinks-toolbar">
+              <label class="shortlinks-filter">
+                <span class="shortlinks-filter-label">Filter</span>
+                <input type="search" autocomplete="off" spellcheck="false" placeholder="Search slugs & destinations…" data-shortlinks="filter">
+              </label>
+              <p class="shortlinks-count" data-shortlinks="count" aria-live="polite"></p>
+            </div>
+            <div class="contact-form-status" data-shortlinks="list-status" role="status" aria-live="polite"></div>
+            <div class="shortlinks-list" data-shortlinks="list" aria-live="polite"></div>
+          </div>
+        </details>
       </div>
     </section>
   </main>

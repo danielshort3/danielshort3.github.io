@@ -140,13 +140,32 @@ async function upsertLink({ slug, destination, permanent, updatedAt }){
     TableName: tableName,
     Key: { slug },
     UpdateExpression: 'SET destination = :destination, permanent = :permanent, updatedAt = :updatedAt, ' +
-      'createdAt = if_not_exists(createdAt, :createdAt), clicks = if_not_exists(clicks, :zero)',
+      'disabled = if_not_exists(disabled, :disabled), createdAt = if_not_exists(createdAt, :createdAt), ' +
+      'clicks = if_not_exists(clicks, :zero)',
     ExpressionAttributeValues: {
       ':destination': destination,
       ':permanent': !!permanent,
       ':updatedAt': updatedAt,
+      ':disabled': false,
       ':createdAt': updatedAt,
       ':zero': 0
+    },
+    ReturnValues: 'ALL_NEW'
+  }));
+  return result && result.Attributes ? result.Attributes : null;
+}
+
+async function setLinkDisabled({ slug, disabled, updatedAt }){
+  const { tableName } = getRequiredEnv();
+  const client = getDocClient();
+  const result = await client.send(new UpdateCommand({
+    TableName: tableName,
+    Key: { slug },
+    ConditionExpression: 'attribute_exists(slug)',
+    UpdateExpression: 'SET disabled = :disabled, updatedAt = :updatedAt',
+    ExpressionAttributeValues: {
+      ':disabled': !!disabled,
+      ':updatedAt': updatedAt
     },
     ReturnValues: 'ALL_NEW'
   }));
@@ -200,6 +219,7 @@ module.exports = {
   getRequiredEnv,
   getLink,
   upsertLink,
+  setLinkDisabled,
   deleteLink,
   incrementClicks,
   listLinks

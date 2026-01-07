@@ -7,6 +7,12 @@
 const { getLink, incrementClicks } = require('../_lib/short-links-store');
 const { normalizeSlug, getRequestBaseUrl } = require('../_lib/short-links');
 
+function isShortDomainHost(req){
+  const hostHeader = req.headers && req.headers.host ? String(req.headers.host) : '';
+  const host = hostHeader.split(':')[0].trim().toLowerCase();
+  return host === 'dshort.me' || host === 'www.dshort.me';
+}
+
 function getSlugFromRequest(req){
   const querySlug = req.query && req.query.slug;
   if (Array.isArray(querySlug)) return querySlug.join('/');
@@ -14,7 +20,9 @@ function getSlugFromRequest(req){
   try {
     const url = new URL(req.url, getRequestBaseUrl(req));
     const match = url.pathname.match(/\/(?:api\/)?go\/(.+)$/);
-    return match ? decodeURIComponent(match[1]) : '';
+    if (match) return decodeURIComponent(match[1]);
+    if (isShortDomainHost(req)) return url.pathname.replace(/^\/+|\/+$/g, '');
+    return '';
   } catch {
     return '';
   }
@@ -49,6 +57,14 @@ module.exports = async (req, res) => {
   if (!link) {
     res.statusCode = 404;
     res.setHeader('Cache-Control', 'no-store');
+    res.end('Not Found');
+    return;
+  }
+
+  if (link.disabled) {
+    res.statusCode = 404;
+    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('X-Robots-Tag', 'noindex');
     res.end('Not Found');
     return;
   }

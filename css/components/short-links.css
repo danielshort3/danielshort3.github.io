@@ -1,12 +1,14 @@
 @layer components {
-  .shortlinks-access-details{
+  .shortlinks-access-details,
+  .shortlinks-panel{
     border-radius:16px;
     border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
     background:color-mix(in srgb,var(--surface) 92%, #02060c 8%);
     overflow:hidden;
   }
 
-  .shortlinks-access-summary{
+  .shortlinks-access-summary,
+  .shortlinks-panel-summary{
     list-style:none;
     cursor:pointer;
     display:flex;
@@ -19,7 +21,13 @@
   .shortlinks-access-summary::-webkit-details-marker{
     display:none;
   }
+  .shortlinks-panel-summary::-webkit-details-marker{
+    display:none;
+  }
   .shortlinks-access-summary h2{
+    margin:0;
+  }
+  .shortlinks-panel-summary h2{
     margin:0;
   }
   .shortlinks-access-meta{
@@ -41,6 +49,21 @@
     content:'-';
   }
   .shortlinks-access-body{
+    padding:18px 18px 22px;
+  }
+
+  .shortlinks-panel-summary::after{
+    content:'+';
+    margin-left:auto;
+    opacity:.7;
+  }
+  .shortlinks-panel[open] .shortlinks-panel-summary{
+    border-bottom:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+  }
+  .shortlinks-panel[open] .shortlinks-panel-summary::after{
+    content:'-';
+  }
+  .shortlinks-panel-body{
     padding:18px 18px 22px;
   }
 
@@ -122,6 +145,19 @@
     display:grid;
     gap:12px;
     min-width:0;
+  }
+
+  .shortlinks-item-disabled{
+    opacity:.72;
+  }
+  .shortlinks-item-disabled .shortlinks-slug{
+    text-decoration:line-through;
+  }
+
+  .shortlinks-pill-disabled{
+    border-color:color-mix(in srgb,var(--danger) 34%, transparent);
+    background:color-mix(in srgb,var(--danger) 12%, var(--surface) 88%);
+    color:color-mix(in srgb,#ffffff 92%, var(--danger) 8%);
   }
 
   .shortlinks-item-head{
@@ -209,6 +245,23 @@
     background:color-mix(in srgb,var(--danger) 18%, transparent);
     border-color:color-mix(in srgb,var(--danger) 60%, transparent);
     color:color-mix(in srgb,#ffffff 92%, var(--bg) 8%);
+  }
+
+  .shortlinks-toggle{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    padding:2px 0;
+    font-weight:600;
+    color:var(--text-light);
+  }
+  .shortlinks-toggle span{
+    flex:1 1 auto;
+  }
+  .shortlinks-toggle input{
+    flex:0 0 auto;
+    margin:0;
   }
 
   @media (max-width: 560px){
