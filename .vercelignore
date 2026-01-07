@@ -1,0 +1,35 @@
+# Keep Vercel CLI deployments small by ignoring local-only build outputs and large
+# folders that are already excluded from git.
+
+# Dependencies
+node_modules/
+
+# Local env files
+.env
+.env.local
+.env.*.local
+.env*.local
+
+# Local Vercel CLI state
+.vercel/
+
+# Build output (Vercel runs the build)
+/dist/
+/public/
+
+# Local-only artifacts / large folders
+/go/
+/.short-links-generated
+/Slot-Machine-v4/
+/Project Submission/
+/Handwriting-Rating/
+/Nonogram-Solver/
+/Handwritten-Digit-Generator/
+/Covid-Analysis/
+/Baby-Names/
+/tips_data_geocoded.csv
+
+# Local AWS build artifacts
+aws/covid-outbreak-drivers/output/
+aws/target-empty-package/output/
+aws/handwriting-rating/models/

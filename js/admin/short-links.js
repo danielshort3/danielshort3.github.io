@@ -4,15 +4,23 @@
 
   const STORAGE_KEY = 'shortlinks_admin_token';
   const DEFAULT_BASE_PATH = 'go';
+  const DEFAULT_PUBLIC_ORIGIN = 'https://dshort.me';
 
   const authForm = document.querySelector('[data-shortlinks="auth"]');
   const editorForm = document.querySelector('[data-shortlinks="editor"]');
   const listEl = document.querySelector('[data-shortlinks="list"]');
   if (!authForm || !editorForm || !listEl) return;
 
+  const accessDetails = document.querySelector('[data-shortlinks="access-details"]');
+  const accessMetaEl = document.querySelector('[data-shortlinks="access-meta"]');
+  const filterInput = document.querySelector('[data-shortlinks="filter"]');
+  const countEl = document.querySelector('[data-shortlinks="count"]');
+  const listStatusEl = document.querySelector('[data-shortlinks="list-status"]');
+
   const tokenInput = authForm.querySelector('[data-shortlinks="token"]');
   const refreshButton = authForm.querySelector('[data-shortlinks="refresh"]');
   const healthButton = authForm.querySelector('[data-shortlinks="health"]');
+  const forgetButton = authForm.querySelector('[data-shortlinks="forget-token"]');
   const statusEl = authForm.querySelector('[data-shortlinks="status"]');
   const healthStatusEl = authForm.querySelector('[data-shortlinks="health-status"]');
 
@@ -23,6 +31,7 @@
   const editorStatusEl = editorForm.querySelector('[data-shortlinks="editor-status"]');
 
   let basePath = DEFAULT_BASE_PATH;
+  let allLinks = [];
 
   function setStatus(el, msg, tone){
     if (!el) return;
@@ -31,19 +40,88 @@
     else delete el.dataset.tone;
   }
 
-  function getSavedToken(){
+  function getStorage(preferLocal){
+    const candidate = preferLocal ? window.localStorage : window.sessionStorage;
     try {
-      return sessionStorage.getItem(STORAGE_KEY) || '';
+      if (!candidate) return null;
+      const key = '__shortlinks_test__';
+      candidate.setItem(key, '1');
+      candidate.removeItem(key);
+      return candidate;
     } catch {
-      return '';
+      return null;
     }
   }
 
+  const storage = getStorage(true) || getStorage(false);
+  let memoryToken = '';
+
+  function getSavedToken(){
+    if (storage) return storage.getItem(STORAGE_KEY) || '';
+    return memoryToken;
+  }
+
   function saveToken(token){
+    const value = String(token || '').trim();
+    if (storage) {
+      if (!value) storage.removeItem(STORAGE_KEY);
+      else storage.setItem(STORAGE_KEY, value);
+      return;
+    }
+    memoryToken = value;
+  }
+
+  function updateAccessMeta(){
+    if (!accessMetaEl) return;
+    accessMetaEl.textContent = getSavedToken() ? 'Token stored' : 'Token required';
+  }
+
+  function setCount(shown, total){
+    if (!countEl) return;
+    if (!total) {
+      countEl.textContent = '';
+      return;
+    }
+    const label = total === 1 ? 'link' : 'links';
+    if (shown === total) {
+      countEl.textContent = `${total} ${label}`;
+      return;
+    }
+    countEl.textContent = `Showing ${shown} of ${total} ${label}`;
+  }
+
+  function getFilterQuery(){
+    if (!filterInput) return '';
+    return String(filterInput.value || '').trim().toLowerCase();
+  }
+
+  function getFilteredLinks(){
+    const query = getFilterQuery();
+    if (!query) return allLinks.slice();
+    return allLinks.filter(link => {
+      const slug = String(link.slug || '').toLowerCase();
+      const destination = String(link.destination || '').toLowerCase();
+      return slug.includes(query) || destination.includes(query);
+    });
+  }
+
+  function formatAbsoluteUrl(input){
+    const raw = typeof input === 'string' ? input.trim() : '';
+    if (!raw) return '';
     try {
-      if (!token) sessionStorage.removeItem(STORAGE_KEY);
-      else sessionStorage.setItem(STORAGE_KEY, token);
-    } catch {}
+      return new URL(raw, window.location.origin).toString();
+    } catch {
+      return raw;
+    }
+  }
+
+  function flashButtonText(button, text){
+    if (!button) return;
+    const original = button.textContent;
+    button.textContent = text;
+    window.setTimeout(() => {
+      if (button.textContent === text) button.textContent = original;
+    }, 1200);
   }
 
   async function api(path, options = {}){
@@ -79,6 +157,15 @@
 
   function formatHealthPayload(payload){
     if (!payload || typeof payload !== 'object') return '';
+    const debugBits = [];
+    const aws = payload.aws || {};
+    if (aws.accessKeyIdSource) debugBits.push(`Creds: ${aws.accessKeyIdSource}.`);
+    if (aws.secretFingerprint) debugBits.push(`Secret fp: ${aws.secretFingerprint}.`);
+    if (aws.sessionTokenConfigured) {
+      debugBits.push(`Session token: ${aws.sessionTokenUsed ? 'used' : 'ignored'}.`);
+    }
+    const debug = debugBits.length ? ` ${debugBits.join(' ')}` : '';
+
     if (payload.ok === true) {
       const keyId = payload.aws && payload.aws.accessKeyId ? payload.aws.accessKeyId : '';
       const table = payload.table && payload.table.name ? payload.table.name : '';
@@ -91,7 +178,7 @@
         billing ? `Billing: ${billing}.` : '',
         keyId ? `Access key: ${keyId}.` : ''
       ].filter(Boolean);
-      return bits.join(' ');
+      return bits.join(' ') + debug;
     }
 
     const details = payload.details || {};
@@ -99,7 +186,7 @@
     const message = details.message ? String(details.message) : '';
     const base = payload.error ? String(payload.error) : 'Backend check failed';
     const extra = [name, message].filter(Boolean).join(': ');
-    return extra ? `${base} (${extra})` : base;
+    return (extra ? `${base} (${extra})` : base) + debug;
   }
 
   function healthHints(payload){
@@ -111,8 +198,11 @@
     if (payload.aws && payload.aws.secretTrimmed) {
       return 'Your AWS secret appears to have leading/trailing whitespace. Re-save it in Vercel (or redeploy after trimming).';
     }
+    if (payload.aws && payload.aws.sessionTokenIgnored) {
+      return 'AWS_SESSION_TOKEN is set, but your access key looks like a long-term key (AKIA). Remove AWS_SESSION_TOKEN in Vercel, or set SHORTLINKS_AWS_ACCESS_KEY_ID/SHORTLINKS_AWS_SECRET_ACCESS_KEY (preferred) and leave the session token unset.';
+    }
     if (name === 'UnrecognizedClientException' || /security token.*invalid/i.test(message)) {
-      return 'AWS rejected the key pair. Re-copy AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY from the same CSV row, remove quotes/whitespace, and redeploy.';
+      return 'AWS rejected the key pair. Re-copy the access key + secret from the same CSV row (no quotes/whitespace) and redeploy. If you have duplicate AWS_* vars in Vercel, set SHORTLINKS_AWS_ACCESS_KEY_ID/SHORTLINKS_AWS_SECRET_ACCESS_KEY instead.';
     }
     if (name === 'AccessDeniedException') {
       return 'AWS credentials are valid but lack DynamoDB permissions for this table.';
@@ -127,9 +217,50 @@
     while (listEl.firstChild) listEl.removeChild(listEl.firstChild);
   }
 
-  function buildShortUrl(slug){
+  function normalizeOrigin(origin){
+    const raw = typeof origin === 'string' ? origin.trim() : '';
+    if (!raw) return '';
+    try {
+      const url = new URL(raw);
+      return `${url.protocol}//${url.host}`;
+    } catch {
+      return raw.replace(/\/+$/g, '');
+    }
+  }
+
+  function isDevHost(hostname){
+    const host = String(hostname || '').toLowerCase();
+    return host === 'localhost' || host === '127.0.0.1';
+  }
+
+  function isShortDomainHost(hostname){
+    const host = String(hostname || '').toLowerCase();
+    return host === 'dshort.me' || host === 'www.dshort.me';
+  }
+
+  function getPublicOrigin(){
+    if (isDevHost(window.location.hostname) || isShortDomainHost(window.location.hostname)) {
+      return normalizeOrigin(window.location.origin) || window.location.origin;
+    }
+    return normalizeOrigin(DEFAULT_PUBLIC_ORIGIN) || window.location.origin;
+  }
+
+  function getPublicBasePath(){
+    if (isDevHost(window.location.hostname)) return basePath;
+    return '';
+  }
+
+  function buildPublicPath(slug){
     const clean = String(slug || '').replace(/^\/+|\/+$/g, '');
-    return `${window.location.origin}/${basePath}/${clean}`;
+    if (!clean) return '';
+    const prefix = String(getPublicBasePath() || '').replace(/^\/+|\/+$/g, '');
+    return prefix ? `/${prefix}/${clean}` : `/${clean}`;
+  }
+
+  function buildShortUrl(slug){
+    const origin = getPublicOrigin();
+    const path = buildPublicPath(slug);
+    return path ? `${origin}${path}` : origin;
   }
 
   function normalizeSlugInput(value){
@@ -140,25 +271,32 @@
     clearList();
     if (!Array.isArray(links) || links.length === 0) {
       const empty = document.createElement('p');
-      empty.textContent = 'No short links yet.';
+      const query = getFilterQuery();
+      empty.className = 'shortlinks-empty';
+      empty.textContent = query ? `No matches for "${query}".` : 'No short links yet.';
       listEl.appendChild(empty);
       return;
     }
 
     links.forEach(link => {
+      const shortUrl = buildShortUrl(link.slug);
+      const destinationUrl = formatAbsoluteUrl(link.destination);
+
       const card = document.createElement('article');
-      card.className = 'tool-card';
+      card.className = 'shortlinks-item';
 
       const head = document.createElement('div');
-      head.className = 'tool-top';
+      head.className = 'shortlinks-item-head';
 
-      const main = document.createElement('div');
+      const titleWrap = document.createElement('div');
+      titleWrap.className = 'shortlinks-item-title';
 
-      const title = document.createElement('h3');
-      title.textContent = `/${basePath}/${link.slug}`;
+      const slugCode = document.createElement('code');
+      slugCode.className = 'shortlinks-slug';
+      slugCode.textContent = buildPublicPath(link.slug);
 
       const meta = document.createElement('div');
-      meta.className = 'tool-meta';
+      meta.className = 'shortlinks-item-meta';
 
       const statusPill = document.createElement('span');
       statusPill.className = 'tool-pill';
@@ -170,43 +308,33 @@
 
       meta.appendChild(statusPill);
       meta.appendChild(clicksPill);
-      main.appendChild(title);
-      main.appendChild(meta);
-      head.appendChild(main);
-      card.appendChild(head);
-
-      const destLine = document.createElement('p');
-      const destAnchor = document.createElement('a');
-      destAnchor.href = link.destination;
-      destAnchor.target = '_blank';
-      destAnchor.rel = 'noopener noreferrer';
-      destAnchor.textContent = link.destination;
-      destLine.appendChild(destAnchor);
-      card.appendChild(destLine);
+      titleWrap.appendChild(slugCode);
+      titleWrap.appendChild(meta);
 
       const actions = document.createElement('div');
-      actions.className = 'contact-form-alt';
-
-      const openShort = document.createElement('a');
-      openShort.className = 'btn-ghost';
-      openShort.href = `/${basePath}/${link.slug}`;
-      openShort.target = '_blank';
-      openShort.rel = 'noopener noreferrer';
-      openShort.textContent = 'Open';
+      actions.className = 'shortlinks-actions';
 
       const copyButton = document.createElement('button');
       copyButton.type = 'button';
       copyButton.className = 'btn-ghost';
-      copyButton.textContent = 'Copy';
+      copyButton.textContent = 'Copy short URL';
       copyButton.addEventListener('click', async () => {
-        const shortUrl = buildShortUrl(link.slug);
         try {
           await navigator.clipboard.writeText(shortUrl);
-          setStatus(statusEl, `Copied: ${shortUrl}`, 'success');
+          flashButtonText(copyButton, 'Copied');
+          setStatus(listStatusEl, `Copied: ${shortUrl}`, 'success');
         } catch {
-          setStatus(statusEl, 'Copy failed (clipboard permission blocked).', 'error');
+          flashButtonText(copyButton, 'Copy failed');
+          setStatus(listStatusEl, 'Copy failed (clipboard permission blocked).', 'error');
         }
       });
+
+      const openShort = document.createElement('a');
+      openShort.className = 'btn-secondary';
+      openShort.href = shortUrl;
+      openShort.target = '_blank';
+      openShort.rel = 'noopener noreferrer';
+      openShort.textContent = 'Open';
 
       const editButton = document.createElement('button');
       editButton.type = 'button';
@@ -222,41 +350,89 @@
 
       const deleteButton = document.createElement('button');
       deleteButton.type = 'button';
-      deleteButton.className = 'btn-secondary';
+      deleteButton.className = 'btn-secondary shortlinks-danger';
       deleteButton.textContent = 'Delete';
       deleteButton.addEventListener('click', async () => {
-        const ok = window.confirm(`Delete /${basePath}/${link.slug}?`);
+        const ok = window.confirm(`Delete ${buildPublicPath(link.slug)}?`);
         if (!ok) return;
         try {
           await api(`/api/short-links/${encodeURIComponent(link.slug)}`, { method: 'DELETE' });
-          setStatus(statusEl, `Deleted ${link.slug}`, 'success');
+          setStatus(listStatusEl, `Deleted ${link.slug}`, 'success');
           await refreshLinks();
         } catch (err) {
-          setStatus(statusEl, err.message, 'error');
+          setStatus(listStatusEl, err.message, 'error');
         }
       });
 
-      actions.appendChild(openShort);
       actions.appendChild(copyButton);
+      actions.appendChild(openShort);
       actions.appendChild(editButton);
       actions.appendChild(deleteButton);
-      card.appendChild(actions);
+
+      head.appendChild(titleWrap);
+      head.appendChild(actions);
+
+      const linksWrap = document.createElement('div');
+      linksWrap.className = 'shortlinks-item-links';
+
+      const shortRow = document.createElement('div');
+      shortRow.className = 'shortlinks-link-row';
+      const shortLabel = document.createElement('span');
+      shortLabel.className = 'shortlinks-link-label';
+      shortLabel.textContent = 'Short';
+      const shortAnchor = document.createElement('a');
+      shortAnchor.className = 'shortlinks-link-value';
+      shortAnchor.href = shortUrl;
+      shortAnchor.target = '_blank';
+      shortAnchor.rel = 'noopener noreferrer';
+      shortAnchor.textContent = shortUrl;
+      shortRow.appendChild(shortLabel);
+      shortRow.appendChild(shortAnchor);
+
+      const destRow = document.createElement('div');
+      destRow.className = 'shortlinks-link-row';
+      const destLabel = document.createElement('span');
+      destLabel.className = 'shortlinks-link-label';
+      destLabel.textContent = 'To';
+      const destAnchor = document.createElement('a');
+      destAnchor.className = 'shortlinks-link-value';
+      destAnchor.href = destinationUrl;
+      destAnchor.target = '_blank';
+      destAnchor.rel = 'noopener noreferrer';
+      destAnchor.textContent = destinationUrl;
+      destRow.appendChild(destLabel);
+      destRow.appendChild(destAnchor);
+
+      linksWrap.appendChild(shortRow);
+      linksWrap.appendChild(destRow);
+
+      card.appendChild(head);
+      card.appendChild(linksWrap);
 
       listEl.appendChild(card);
     });
   }
 
+  function applyFilterAndRender(){
+    const filtered = getFilteredLinks();
+    renderLinks(filtered);
+    setCount(filtered.length, allLinks.length);
+  }
+
   async function refreshLinks(){
-    setStatus(statusEl, 'Loading…');
+    setStatus(listStatusEl, 'Loading…');
     setStatus(healthStatusEl, '');
     try {
       const data = await api('/api/short-links', { method: 'GET' });
       basePath = typeof data.basePath === 'string' && data.basePath.trim() ? data.basePath.trim() : DEFAULT_BASE_PATH;
-      renderLinks(data.links || []);
-      setStatus(statusEl, `Loaded ${Array.isArray(data.links) ? data.links.length : 0} link(s).`, 'success');
+      allLinks = Array.isArray(data.links) ? data.links : [];
+      applyFilterAndRender();
+      setStatus(listStatusEl, `Loaded ${allLinks.length} link(s).`, 'success');
     } catch (err) {
+      allLinks = [];
       clearList();
-      setStatus(statusEl, err.message, 'error');
+      setCount(0, 0);
+      setStatus(listStatusEl, err.message, 'error');
     }
   }
 
@@ -288,23 +464,51 @@
     event.preventDefault();
     const token = tokenInput.value.trim();
     if (!token) {
-      saveToken('');
-      setStatus(statusEl, 'Token cleared.', 'success');
-      clearList();
+      if (getSavedToken()) {
+        setStatus(statusEl, 'Token already stored. Paste a token to replace, or click "Forget token".', 'success');
+      } else {
+        setStatus(statusEl, 'Paste your admin token to unlock this dashboard.', 'error');
+      }
       return;
     }
     saveToken(token);
+    updateAccessMeta();
+    tokenInput.value = '';
     setStatus(statusEl, 'Token saved. Loading links…');
+    if (accessDetails) accessDetails.open = false;
     await refreshLinks();
   });
 
   refreshButton.addEventListener('click', () => {
+    if (!getSavedToken()) {
+      setStatus(statusEl, 'Admin token required.', 'error');
+      setStatus(listStatusEl, 'Admin token required.', 'error');
+      return;
+    }
     refreshLinks();
   });
 
   if (healthButton) {
     healthButton.addEventListener('click', () => {
+      if (!getSavedToken()) {
+        setStatus(healthStatusEl, 'Admin token required.', 'error');
+        return;
+      }
       refreshHealth();
+    });
+  }
+
+  if (forgetButton) {
+    forgetButton.addEventListener('click', () => {
+      saveToken('');
+      updateAccessMeta();
+      tokenInput.value = '';
+      clearList();
+      setStatus(statusEl, 'Token forgotten on this device.', 'success');
+      setStatus(healthStatusEl, '');
+      setStatus(listStatusEl, '');
+      setCount(0, 0);
+      if (accessDetails) accessDetails.open = true;
     });
   }
 
@@ -333,14 +537,22 @@
         method: 'POST',
         body: JSON.stringify({ slug, destination, permanent })
       });
-      setStatus(editorStatusEl, `Saved /${basePath}/${slug}`, 'success');
+      setStatus(editorStatusEl, `Saved ${buildPublicPath(slug)}`, 'success');
       await refreshLinks();
     } catch (err) {
       setStatus(editorStatusEl, err.message, 'error');
     }
   });
 
+  updateAccessMeta();
   if (getSavedToken()) {
-    setStatus(statusEl, 'Token found in sessionStorage. Click "Refresh list" to load.', 'success');
+    setStatus(statusEl, 'Token loaded from this browser. Loading links…', 'success');
+    refreshLinks();
+  }
+
+  if (filterInput) {
+    filterInput.addEventListener('input', () => {
+      applyFilterAndRender();
+    });
   }
 })();

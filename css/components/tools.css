@@ -56,7 +56,7 @@
     outline:none;
   }
 
-  .tool-card a{
+  .tool-card > a{
     color:inherit;
     text-decoration:none;
     display:grid;

@@ -2,6 +2,16 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
+    {
+      "source": "/:slug((?!(?:api|go|dist|css|js|img|documents|favicon\\.ico|robots\\.txt|sitemap\\.xml|404\\.html)$)[^/]+)",
+      "has": [{ "type": "host", "value": "dshort.me" }],
+      "destination": "/api/go/:slug"
+    },
+    {
+      "source": "/:slug((?!(?:api|go|dist|css|js|img|documents|favicon\\.ico|robots\\.txt|sitemap\\.xml|404\\.html)$)[^/]+)",
+      "has": [{ "type": "host", "value": "www.dshort.me" }],
+      "destination": "/api/go/:slug"
+    },
     { "source": "/go/:slug*", "destination": "/api/go/:slug*" },
     { "source": "/portfolio/:project", "destination": "/pages/portfolio/:project" },
     { "source": "/portfolio/:project.html", "destination": "/pages/portfolio/:project" },
