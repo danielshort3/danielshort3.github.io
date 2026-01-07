@@ -6,7 +6,7 @@
 'use strict';
 
 const { DynamoDBClient, DescribeTableCommand } = require('@aws-sdk/client-dynamodb');
-const { getRequiredEnv } = require('../_lib/short-links-store');
+const { getAwsCredentialsFromEnv, getRequiredEnv } = require('../_lib/short-links-store');
 const { getAdminToken, isAdminRequest, sendJson } = require('../_lib/short-links');
 
 function maskAccessKeyId(value){
@@ -17,12 +17,25 @@ function maskAccessKeyId(value){
 }
 
 function getCredentialHints(){
-  const accessKeyId = process.env.AWS_ACCESS_KEY_ID ? String(process.env.AWS_ACCESS_KEY_ID).trim() : '';
-  const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY ? String(process.env.AWS_SECRET_ACCESS_KEY).trim() : '';
+  const accessKeyIdRaw = process.env.AWS_ACCESS_KEY_ID ? String(process.env.AWS_ACCESS_KEY_ID) : '';
+  const secretAccessKeyRaw = process.env.AWS_SECRET_ACCESS_KEY ? String(process.env.AWS_SECRET_ACCESS_KEY) : '';
+  const sessionTokenRaw = process.env.AWS_SESSION_TOKEN ? String(process.env.AWS_SESSION_TOKEN) : '';
+
+  const accessKeyId = accessKeyIdRaw.trim();
+  const secretAccessKey = secretAccessKeyRaw.trim();
+  const sessionToken = sessionTokenRaw.trim();
+
   return {
     accessKeyId: maskAccessKeyId(accessKeyId),
     accessKeyConfigured: !!accessKeyId,
-    secretConfigured: !!secretAccessKey
+    secretConfigured: !!secretAccessKey,
+    sessionTokenConfigured: !!sessionToken,
+    accessKeyTrimmed: accessKeyIdRaw !== accessKeyId,
+    secretTrimmed: secretAccessKeyRaw !== secretAccessKey,
+    sessionTokenTrimmed: sessionTokenRaw !== sessionToken,
+    accessKeyLength: accessKeyIdRaw.length,
+    secretLength: secretAccessKeyRaw.length,
+    sessionTokenLength: sessionTokenRaw.length
   };
 }
 
@@ -53,7 +66,8 @@ module.exports = async (req, res) => {
   }
 
   const creds = getCredentialHints();
-  const client = new DynamoDBClient({ region: env.region });
+  const credentials = getAwsCredentialsFromEnv();
+  const client = new DynamoDBClient({ region: env.region, credentials: credentials || undefined });
 
   try {
     const result = await client.send(new DescribeTableCommand({ TableName: env.tableName }));
@@ -88,4 +102,3 @@ module.exports = async (req, res) => {
     });
   }
 };
-
