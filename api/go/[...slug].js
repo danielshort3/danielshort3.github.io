@@ -66,7 +66,10 @@ module.exports = async (req, res) => {
   try {
     const reqUrl = new URL(req.url, base);
     const destUrl = new URL(destination, base);
-    reqUrl.searchParams.forEach((value, key) => destUrl.searchParams.append(key, value));
+    reqUrl.searchParams.forEach((value, key) => {
+      if (key === 'slug' || key === '...slug' || key === 'first' || key === 'rest' || key.startsWith('...')) return;
+      destUrl.searchParams.append(key, value);
+    });
     finalUrl = destUrl.toString();
   } catch {
     finalUrl = destination;

@@ -4,7 +4,9 @@
   Env vars required:
   - SHORTLINKS_DDB_TABLE
   - AWS_REGION (or AWS_DEFAULT_REGION)
-  - AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY (or any AWS SDK credential provider chain)
+  - Prefer SHORTLINKS_AWS_ACCESS_KEY_ID / SHORTLINKS_AWS_SECRET_ACCESS_KEY to avoid conflicts
+  - Falls back to AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY (or any AWS SDK credential provider chain)
+  - Optional (temporary creds only): SHORTLINKS_AWS_SESSION_TOKEN / AWS_SESSION_TOKEN
 */
 'use strict';
 
@@ -17,20 +19,71 @@ const {
   UpdateCommand
 } = require('@aws-sdk/lib-dynamodb');
 
+function pickEnv(keys){
+  for (const key of keys) {
+    if (!key) continue;
+    if (typeof process.env[key] === 'undefined') continue;
+    const raw = String(process.env[key]);
+    if (!raw.trim()) continue;
+    return { key, raw };
+  }
+  return { key: '', raw: '' };
+}
+
 function getAwsCredentialsFromEnv(){
-  const accessKeyIdRaw = process.env.AWS_ACCESS_KEY_ID ? String(process.env.AWS_ACCESS_KEY_ID) : '';
-  const secretAccessKeyRaw = process.env.AWS_SECRET_ACCESS_KEY ? String(process.env.AWS_SECRET_ACCESS_KEY) : '';
-  const sessionTokenRaw = process.env.AWS_SESSION_TOKEN ? String(process.env.AWS_SESSION_TOKEN) : '';
+  const accessKeyIdEnv = pickEnv(['SHORTLINKS_AWS_ACCESS_KEY_ID', 'AWS_ACCESS_KEY_ID']);
+  const secretAccessKeyEnv = pickEnv(['SHORTLINKS_AWS_SECRET_ACCESS_KEY', 'AWS_SECRET_ACCESS_KEY']);
+  const sessionTokenEnv = pickEnv(['SHORTLINKS_AWS_SESSION_TOKEN', 'AWS_SESSION_TOKEN']);
+
+  const accessKeyId = accessKeyIdEnv.raw.trim();
+  const secretAccessKey = secretAccessKeyEnv.raw.trim();
+  const sessionToken = sessionTokenEnv.raw.trim();
+
+  if (!accessKeyId || !secretAccessKey) return null;
+
+  const creds = { accessKeyId, secretAccessKey };
+  if (sessionToken && accessKeyId.startsWith('ASIA')) creds.sessionToken = sessionToken;
+  return creds;
+}
+
+function getAwsCredentialEnvInfo(){
+  const crypto = require('crypto');
+
+  const accessKeyIdEnv = pickEnv(['SHORTLINKS_AWS_ACCESS_KEY_ID', 'AWS_ACCESS_KEY_ID']);
+  const secretAccessKeyEnv = pickEnv(['SHORTLINKS_AWS_SECRET_ACCESS_KEY', 'AWS_SECRET_ACCESS_KEY']);
+  const sessionTokenEnv = pickEnv(['SHORTLINKS_AWS_SESSION_TOKEN', 'AWS_SESSION_TOKEN']);
+
+  const accessKeyIdRaw = accessKeyIdEnv.raw;
+  const secretAccessKeyRaw = secretAccessKeyEnv.raw;
+  const sessionTokenRaw = sessionTokenEnv.raw;
 
   const accessKeyId = accessKeyIdRaw.trim();
   const secretAccessKey = secretAccessKeyRaw.trim();
   const sessionToken = sessionTokenRaw.trim();
 
-  if (!accessKeyId || !secretAccessKey) return null;
+  const sessionTokenUsed = !!(sessionToken && accessKeyId && accessKeyId.startsWith('ASIA'));
+  const secretFingerprint = secretAccessKey
+    ? crypto.createHash('sha256').update(secretAccessKey, 'utf8').digest('hex').slice(0, 12)
+    : '';
 
-  const creds = { accessKeyId, secretAccessKey };
-  if (sessionToken) creds.sessionToken = sessionToken;
-  return creds;
+  return {
+    accessKeyId,
+    accessKeyIdSource: accessKeyIdEnv.key,
+    secretSource: secretAccessKeyEnv.key,
+    sessionTokenSource: sessionTokenEnv.key,
+    accessKeyConfigured: !!accessKeyId,
+    secretConfigured: !!secretAccessKey,
+    sessionTokenConfigured: !!sessionToken,
+    sessionTokenUsed,
+    sessionTokenIgnored: !!sessionToken && !sessionTokenUsed,
+    accessKeyTrimmed: accessKeyIdRaw !== accessKeyId,
+    secretTrimmed: secretAccessKeyRaw !== secretAccessKey,
+    sessionTokenTrimmed: sessionTokenRaw !== sessionToken,
+    accessKeyLength: accessKeyIdRaw.length,
+    secretLength: secretAccessKeyRaw.length,
+    sessionTokenLength: sessionTokenRaw.length,
+    secretFingerprint
+  };
 }
 
 function getRequiredEnv(){
@@ -143,6 +196,7 @@ async function listLinks(){
 
 module.exports = {
   getAwsCredentialsFromEnv,
+  getAwsCredentialEnvInfo,
   getRequiredEnv,
   getLink,
   upsertLink,

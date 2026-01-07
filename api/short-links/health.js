@@ -6,7 +6,7 @@
 'use strict';
 
 const { DynamoDBClient, DescribeTableCommand } = require('@aws-sdk/client-dynamodb');
-const { getAwsCredentialsFromEnv, getRequiredEnv } = require('../_lib/short-links-store');
+const { getAwsCredentialsFromEnv, getAwsCredentialEnvInfo, getRequiredEnv } = require('../_lib/short-links-store');
 const { getAdminToken, isAdminRequest, sendJson } = require('../_lib/short-links');
 
 function maskAccessKeyId(value){
@@ -14,29 +14,6 @@ function maskAccessKeyId(value){
   if (!raw) return '';
   if (raw.length <= 8) return `${raw.slice(0, 2)}…${raw.slice(-2)}`;
   return `${raw.slice(0, 4)}…${raw.slice(-4)}`;
-}
-
-function getCredentialHints(){
-  const accessKeyIdRaw = process.env.AWS_ACCESS_KEY_ID ? String(process.env.AWS_ACCESS_KEY_ID) : '';
-  const secretAccessKeyRaw = process.env.AWS_SECRET_ACCESS_KEY ? String(process.env.AWS_SECRET_ACCESS_KEY) : '';
-  const sessionTokenRaw = process.env.AWS_SESSION_TOKEN ? String(process.env.AWS_SESSION_TOKEN) : '';
-
-  const accessKeyId = accessKeyIdRaw.trim();
-  const secretAccessKey = secretAccessKeyRaw.trim();
-  const sessionToken = sessionTokenRaw.trim();
-
-  return {
-    accessKeyId: maskAccessKeyId(accessKeyId),
-    accessKeyConfigured: !!accessKeyId,
-    secretConfigured: !!secretAccessKey,
-    sessionTokenConfigured: !!sessionToken,
-    accessKeyTrimmed: accessKeyIdRaw !== accessKeyId,
-    secretTrimmed: secretAccessKeyRaw !== secretAccessKey,
-    sessionTokenTrimmed: sessionTokenRaw !== sessionToken,
-    accessKeyLength: accessKeyIdRaw.length,
-    secretLength: secretAccessKeyRaw.length,
-    sessionTokenLength: sessionTokenRaw.length
-  };
 }
 
 module.exports = async (req, res) => {
@@ -65,7 +42,25 @@ module.exports = async (req, res) => {
     return;
   }
 
-  const creds = getCredentialHints();
+  const envInfo = getAwsCredentialEnvInfo();
+  const creds = {
+    accessKeyId: maskAccessKeyId(envInfo.accessKeyId),
+    accessKeyIdSource: envInfo.accessKeyIdSource,
+    secretSource: envInfo.secretSource,
+    sessionTokenSource: envInfo.sessionTokenSource,
+    accessKeyConfigured: envInfo.accessKeyConfigured,
+    secretConfigured: envInfo.secretConfigured,
+    sessionTokenConfigured: envInfo.sessionTokenConfigured,
+    sessionTokenUsed: envInfo.sessionTokenUsed,
+    sessionTokenIgnored: envInfo.sessionTokenIgnored,
+    accessKeyTrimmed: envInfo.accessKeyTrimmed,
+    secretTrimmed: envInfo.secretTrimmed,
+    sessionTokenTrimmed: envInfo.sessionTokenTrimmed,
+    accessKeyLength: envInfo.accessKeyLength,
+    secretLength: envInfo.secretLength,
+    sessionTokenLength: envInfo.sessionTokenLength,
+    secretFingerprint: envInfo.secretFingerprint
+  };
   const credentials = getAwsCredentialsFromEnv();
   const client = new DynamoDBClient({ region: env.region, credentials: credentials || undefined });
 

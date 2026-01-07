@@ -63,7 +63,7 @@ This repo includes a small, Bitly-style redirect service intended for a single t
 - **Redirects:** `https://<your-domain>/go/<slug>` returns a `301` or `302` to the stored destination.
 - **Dashboard:** `pages/short-links.html` (enter your admin token to list/create/update/delete links).
 - **Admin auth:** set `SHORTLINKS_ADMIN_TOKEN` in your Vercel environment (do not commit it).
-- **Storage:** AWS DynamoDB (set `SHORTLINKS_DDB_TABLE`, `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`).
+- **Storage:** AWS DynamoDB (set `SHORTLINKS_DDB_TABLE`, `AWS_REGION`, and either `SHORTLINKS_AWS_ACCESS_KEY_ID`/`SHORTLINKS_AWS_SECRET_ACCESS_KEY` (preferred) or `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`).
 
 Generate an admin token locally:
 
