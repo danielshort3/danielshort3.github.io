@@ -43,6 +43,7 @@ module.exports = async (req, res) => {
         slug: normalizeSlug(item.slug),
         destination: typeof item.destination === 'string' ? item.destination : '',
         permanent: !!item.permanent,
+        disabled: !!item.disabled,
         createdAt: typeof item.createdAt === 'string' ? item.createdAt : '',
         updatedAt: typeof item.updatedAt === 'string' ? item.updatedAt : '',
         clicks: Number.isFinite(Number(item.clicks)) ? Number(item.clicks) : 0
@@ -96,6 +97,7 @@ module.exports = async (req, res) => {
         slug,
         destination,
         permanent,
+        disabled: record ? !!record.disabled : false,
         createdAt: record && record.createdAt ? record.createdAt : now,
         updatedAt: now,
         clicks: record && Number.isFinite(Number(record.clicks)) ? Number(record.clicks) : 0

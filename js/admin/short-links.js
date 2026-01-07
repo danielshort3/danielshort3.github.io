@@ -284,6 +284,7 @@
 
       const card = document.createElement('article');
       card.className = 'shortlinks-item';
+      if (link.disabled) card.classList.add('shortlinks-item-disabled');
 
       const head = document.createElement('div');
       head.className = 'shortlinks-item-head';
@@ -307,6 +308,12 @@
       clicksPill.textContent = `${Number(link.clicks) || 0} clicks`;
 
       meta.appendChild(statusPill);
+      if (link.disabled) {
+        const disabledPill = document.createElement('span');
+        disabledPill.className = 'tool-pill shortlinks-pill-disabled';
+        disabledPill.textContent = 'Disabled';
+        meta.appendChild(disabledPill);
+      }
       meta.appendChild(clicksPill);
       titleWrap.appendChild(slugCode);
       titleWrap.appendChild(meta);
@@ -345,7 +352,29 @@
         destinationInput.value = link.destination;
         permanentInput.checked = !!link.permanent;
         slugInput.focus();
-        setStatus(editorStatusEl, `Editing ${link.slug}`, 'success');
+        setStatus(editorStatusEl, `Editing ${link.slug}${link.disabled ? ' (disabled)' : ''}`, 'success');
+      });
+
+      const toggleButton = document.createElement('button');
+      toggleButton.type = 'button';
+      toggleButton.className = 'btn-secondary';
+      toggleButton.textContent = link.disabled ? 'Enable' : 'Disable';
+      toggleButton.addEventListener('click', async () => {
+        const nextDisabled = !link.disabled;
+        if (nextDisabled) {
+          const ok = window.confirm(`Disable ${buildPublicPath(link.slug)}?`);
+          if (!ok) return;
+        }
+        try {
+          await api(`/api/short-links/${encodeURIComponent(link.slug)}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ disabled: nextDisabled })
+          });
+          setStatus(listStatusEl, `${nextDisabled ? 'Disabled' : 'Enabled'} ${link.slug}`, 'success');
+          await refreshLinks();
+        } catch (err) {
+          setStatus(listStatusEl, err.message, 'error');
+        }
       });
 
       const deleteButton = document.createElement('button');
@@ -367,6 +396,7 @@
       actions.appendChild(copyButton);
       actions.appendChild(openShort);
       actions.appendChild(editButton);
+      actions.appendChild(toggleButton);
       actions.appendChild(deleteButton);
 
       head.appendChild(titleWrap);
