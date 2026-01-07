@@ -17,6 +17,22 @@ const {
   UpdateCommand
 } = require('@aws-sdk/lib-dynamodb');
 
+function getAwsCredentialsFromEnv(){
+  const accessKeyIdRaw = process.env.AWS_ACCESS_KEY_ID ? String(process.env.AWS_ACCESS_KEY_ID) : '';
+  const secretAccessKeyRaw = process.env.AWS_SECRET_ACCESS_KEY ? String(process.env.AWS_SECRET_ACCESS_KEY) : '';
+  const sessionTokenRaw = process.env.AWS_SESSION_TOKEN ? String(process.env.AWS_SESSION_TOKEN) : '';
+
+  const accessKeyId = accessKeyIdRaw.trim();
+  const secretAccessKey = secretAccessKeyRaw.trim();
+  const sessionToken = sessionTokenRaw.trim();
+
+  if (!accessKeyId || !secretAccessKey) return null;
+
+  const creds = { accessKeyId, secretAccessKey };
+  if (sessionToken) creds.sessionToken = sessionToken;
+  return creds;
+}
+
 function getRequiredEnv(){
   const tableName = process.env.SHORTLINKS_DDB_TABLE ? String(process.env.SHORTLINKS_DDB_TABLE).trim() : '';
   const region =
@@ -42,10 +58,11 @@ let cachedKey = '';
 
 function getDocClient(){
   const { region } = getRequiredEnv();
-  const key = region;
+  const creds = getAwsCredentialsFromEnv();
+  const key = `${region}:${creds ? creds.accessKeyId : 'default'}`;
   if (cachedDocClient && cachedKey === key) return cachedDocClient;
 
-  const client = new DynamoDBClient({ region });
+  const client = new DynamoDBClient({ region, credentials: creds || undefined });
   cachedDocClient = DynamoDBDocumentClient.from(client, {
     marshallOptions: { removeUndefinedValues: true }
   });
@@ -125,6 +142,7 @@ async function listLinks(){
 }
 
 module.exports = {
+  getAwsCredentialsFromEnv,
   getRequiredEnv,
   getLink,
   upsertLink,

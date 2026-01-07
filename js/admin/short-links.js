@@ -12,7 +12,9 @@
 
   const tokenInput = authForm.querySelector('[data-shortlinks="token"]');
   const refreshButton = authForm.querySelector('[data-shortlinks="refresh"]');
+  const healthButton = authForm.querySelector('[data-shortlinks="health"]');
   const statusEl = authForm.querySelector('[data-shortlinks="status"]');
+  const healthStatusEl = authForm.querySelector('[data-shortlinks="health-status"]');
 
   const slugInput = editorForm.querySelector('[data-shortlinks="slug"]');
   const destinationInput = editorForm.querySelector('[data-shortlinks="destination"]');
@@ -62,6 +64,63 @@
       throw err;
     }
     return data;
+  }
+
+  async function apiInspect(path){
+    const token = getSavedToken();
+    const headers = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+
+    const resp = await fetch(path, { method: 'GET', headers });
+    const isJson = (resp.headers.get('content-type') || '').includes('application/json');
+    const data = isJson ? await resp.json().catch(() => null) : null;
+    return { status: resp.status, data };
+  }
+
+  function formatHealthPayload(payload){
+    if (!payload || typeof payload !== 'object') return '';
+    if (payload.ok === true) {
+      const keyId = payload.aws && payload.aws.accessKeyId ? payload.aws.accessKeyId : '';
+      const table = payload.table && payload.table.name ? payload.table.name : '';
+      const region = payload.aws && payload.aws.region ? payload.aws.region : '';
+      const status = payload.table && payload.table.status ? payload.table.status : '';
+      const billing = payload.table && payload.table.billingMode ? payload.table.billingMode : '';
+      const bits = [
+        `Backend OK${table ? `: ${table}` : ''}${status ? ` (${status})` : ''}.`,
+        region ? `Region: ${region}.` : '',
+        billing ? `Billing: ${billing}.` : '',
+        keyId ? `Access key: ${keyId}.` : ''
+      ].filter(Boolean);
+      return bits.join(' ');
+    }
+
+    const details = payload.details || {};
+    const name = details.name ? String(details.name) : '';
+    const message = details.message ? String(details.message) : '';
+    const base = payload.error ? String(payload.error) : 'Backend check failed';
+    const extra = [name, message].filter(Boolean).join(': ');
+    return extra ? `${base} (${extra})` : base;
+  }
+
+  function healthHints(payload){
+    if (!payload || typeof payload !== 'object') return '';
+    const details = payload.details || {};
+    const message = details.message ? String(details.message) : '';
+    const name = details.name ? String(details.name) : '';
+
+    if (payload.aws && payload.aws.secretTrimmed) {
+      return 'Your AWS secret appears to have leading/trailing whitespace. Re-save it in Vercel (or redeploy after trimming).';
+    }
+    if (name === 'UnrecognizedClientException' || /security token.*invalid/i.test(message)) {
+      return 'AWS rejected the key pair. Re-copy AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY from the same CSV row, remove quotes/whitespace, and redeploy.';
+    }
+    if (name === 'AccessDeniedException') {
+      return 'AWS credentials are valid but lack DynamoDB permissions for this table.';
+    }
+    if (name === 'ResourceNotFoundException') {
+      return 'Table not found. Double-check AWS_REGION and SHORTLINKS_DDB_TABLE.';
+    }
+    return '';
   }
 
   function clearList(){
@@ -189,6 +248,7 @@
 
   async function refreshLinks(){
     setStatus(statusEl, 'Loading…');
+    setStatus(healthStatusEl, '');
     try {
       const data = await api('/api/short-links', { method: 'GET' });
       basePath = typeof data.basePath === 'string' && data.basePath.trim() ? data.basePath.trim() : DEFAULT_BASE_PATH;
@@ -197,6 +257,23 @@
     } catch (err) {
       clearList();
       setStatus(statusEl, err.message, 'error');
+    }
+  }
+
+  async function refreshHealth(){
+    setStatus(healthStatusEl, 'Checking backend…');
+    try {
+      const result = await apiInspect('/api/short-links/health');
+      const payload = result.data || {};
+      const msg = formatHealthPayload(payload) || `Backend check failed (${result.status})`;
+      if (payload.ok === true) {
+        setStatus(healthStatusEl, msg, 'success');
+        return;
+      }
+      const hint = healthHints(payload);
+      setStatus(healthStatusEl, hint ? `${msg} ${hint}` : msg, 'error');
+    } catch (err) {
+      setStatus(healthStatusEl, err.message || 'Backend check failed.', 'error');
     }
   }
 
@@ -224,6 +301,12 @@
   refreshButton.addEventListener('click', () => {
     refreshLinks();
   });
+
+  if (healthButton) {
+    healthButton.addEventListener('click', () => {
+      refreshHealth();
+    });
+  }
 
   clearButton.addEventListener('click', () => {
     clearEditor();
@@ -261,4 +344,3 @@
     setStatus(statusEl, 'Token found in sessionStorage. Click "Refresh list" to load.', 'success');
   }
 })();
-
