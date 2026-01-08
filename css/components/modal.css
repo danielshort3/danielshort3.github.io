@@ -386,6 +386,7 @@
   }
   .contact-form-status:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
   .contact-form-status[data-tone='success']{ color:var(--success); }
+  .contact-form-status[data-tone='warning']{ color:var(--warning); }
   .contact-form-status[data-tone='error']{ color:var(--danger); }
   .contact-form-alt{ display:flex; gap:12px; }
   .contact-form-alt[hidden]{ display:none; }
