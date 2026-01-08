@@ -83,6 +83,9 @@
                 <label for="shortlinks-destination">Destination</label>
                 <input id="shortlinks-destination" type="text" inputmode="url" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="https://example.com" data-shortlinks="destination">
                 <p class="contact-form-note">Must start with <code>/</code> or <code>http(s)://</code>.</p>
+                <div class="shortlinks-inline-actions">
+                  <button type="button" class="btn-ghost" data-shortlinks="destination-picker-open">Browse site pages</button>
+                </div>
               </div>
               <div class="form-field">
                 <label class="shortlinks-toggle">
@@ -121,6 +124,41 @@
         </details>
       </div>
     </section>
+
+    <div class="modal shortlinks-modal" id="shortlinks-destination-modal" data-shortlinks="destination-modal" aria-hidden="true">
+      <div class="modal-content modal-wide" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="shortlinks-destination-title">
+        <button type="button" class="modal-close" aria-label="Close dialog" data-shortlinks="destination-modal-close">&times;</button>
+        <div class="modal-title-strip">
+          <h3 class="modal-title" id="shortlinks-destination-title">Pick a destination</h3>
+          <p class="modal-subtitle">Select an internal page on <code>danielshort.me</code>. The value is saved as a full URL so it works from <code>dshort.me</code>.</p>
+        </div>
+        <div class="modal-body stacked shortlinks-picker">
+          <label class="shortlinks-picker-search">
+            <span class="shortlinks-picker-search-label">Search</span>
+            <input type="search" autocomplete="off" spellcheck="false" placeholder="Search pages…" data-shortlinks="destination-search">
+          </label>
+          <div class="shortlinks-picker-results" data-shortlinks="destination-results" aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal shortlinks-modal" id="shortlinks-clicks-modal" data-shortlinks="clicks-modal" aria-hidden="true">
+      <div class="modal-content modal-wide" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="shortlinks-clicks-title">
+        <button type="button" class="modal-close" aria-label="Close dialog" data-shortlinks="clicks-modal-close">&times;</button>
+        <div class="modal-title-strip">
+          <h3 class="modal-title" id="shortlinks-clicks-title">Click history</h3>
+          <p class="modal-subtitle">Recent clicks for <code data-shortlinks="clicks-slug"></code>.</p>
+        </div>
+        <div class="modal-body stacked shortlinks-clicks">
+          <div class="contact-form-status" data-shortlinks="clicks-status" role="status" aria-live="polite"></div>
+          <div class="shortlinks-clicks-toolbar">
+            <button type="button" class="btn-secondary" data-shortlinks="clicks-refresh">Refresh</button>
+            <p class="shortlinks-clicks-meta" data-shortlinks="clicks-meta" aria-live="polite"></p>
+          </div>
+          <div class="shortlinks-clicks-list" data-shortlinks="clicks-list" aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
   </main>
 
   <footer>

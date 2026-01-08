@@ -30,6 +30,54 @@
   const clearButton = editorForm.querySelector('[data-shortlinks="clear"]');
   const editorStatusEl = editorForm.querySelector('[data-shortlinks="editor-status"]');
 
+  const destinationPickerOpen = editorForm.querySelector('[data-shortlinks="destination-picker-open"]');
+  const destinationModal = document.querySelector('[data-shortlinks="destination-modal"]');
+  const destinationModalClose = destinationModal
+    ? destinationModal.querySelector('[data-shortlinks="destination-modal-close"]')
+    : null;
+  const destinationSearch = destinationModal
+    ? destinationModal.querySelector('[data-shortlinks="destination-search"]')
+    : null;
+  const destinationResults = destinationModal
+    ? destinationModal.querySelector('[data-shortlinks="destination-results"]')
+    : null;
+
+  const clicksModal = document.querySelector('[data-shortlinks="clicks-modal"]');
+  const clicksModalClose = clicksModal
+    ? clicksModal.querySelector('[data-shortlinks="clicks-modal-close"]')
+    : null;
+  const clicksSlugEl = clicksModal
+    ? clicksModal.querySelector('[data-shortlinks="clicks-slug"]')
+    : null;
+  const clicksStatusEl = clicksModal
+    ? clicksModal.querySelector('[data-shortlinks="clicks-status"]')
+    : null;
+  const clicksListEl = clicksModal
+    ? clicksModal.querySelector('[data-shortlinks="clicks-list"]')
+    : null;
+  const clicksMetaEl = clicksModal
+    ? clicksModal.querySelector('[data-shortlinks="clicks-meta"]')
+    : null;
+  const clicksRefreshButton = clicksModal
+    ? clicksModal.querySelector('[data-shortlinks="clicks-refresh"]')
+    : null;
+
+  const DESTINATIONS_MANIFEST_PATH = 'dist/shortlinks-destinations.json';
+  const CLICK_HISTORY_LIMIT = 250;
+
+  const FALLBACK_DESTINATIONS = [
+    { path: '/', label: 'Home', group: 'Pages' },
+    { path: '/portfolio', label: 'Portfolio', group: 'Portfolio' },
+    { path: '/resume', label: 'Resume', group: 'Pages' },
+    { path: '/contact', label: 'Contact', group: 'Pages' },
+    { path: '/tools', label: 'Tools', group: 'Tools' }
+  ];
+
+  let destinationsManifest = null;
+  let destinationModalPrevFocus = null;
+  let clicksModalPrevFocus = null;
+  let activeClicksSlug = '';
+
   let basePath = DEFAULT_BASE_PATH;
   let allLinks = [];
 
@@ -105,6 +153,43 @@
     });
   }
 
+  function isDevHost(hostname){
+    const host = String(hostname || '').toLowerCase();
+    return host === 'localhost' || host === '127.0.0.1';
+  }
+
+  function isProdHost(hostname){
+    const host = String(hostname || '').toLowerCase();
+    return host === 'danielshort.me' || host === 'www.danielshort.me';
+  }
+
+  function getCanonicalSiteOrigin(){
+    const origin = destinationsManifest && destinationsManifest.origin ? String(destinationsManifest.origin) : '';
+    if (isDevHost(window.location.hostname) || window.location.hostname.endsWith('.vercel.app')) {
+      return window.location.origin;
+    }
+    if (isProdHost(window.location.hostname)) {
+      return origin || 'https://danielshort.me';
+    }
+    return origin || window.location.origin;
+  }
+
+  function joinOriginAndPath(origin, pathname){
+    const base = String(origin || '').replace(/\/+$/g, '');
+    const path = String(pathname || '');
+    if (!base) return path;
+    if (!path) return base;
+    if (path.startsWith('/')) return `${base}${path}`;
+    return `${base}/${path}`;
+  }
+
+  function normalizeDestinationForSave(value){
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    if (raw.startsWith('/')) return joinOriginAndPath(getCanonicalSiteOrigin(), raw);
+    return raw;
+  }
+
   function formatAbsoluteUrl(input){
     const raw = typeof input === 'string' ? input.trim() : '';
     if (!raw) return '';
@@ -115,6 +200,327 @@
     }
   }
 
+  function syncModalOpenState(){
+    if (!document || !document.body) return;
+    if (!document.querySelector('.modal.active')) {
+      document.body.classList.remove('modal-open');
+    }
+  }
+
+  function closeDestinationPicker(){
+    if (!destinationModal) return;
+    destinationModal.classList.remove('active');
+    destinationModal.setAttribute('aria-hidden', 'true');
+    syncModalOpenState();
+    if (destinationSearch) destinationSearch.value = '';
+    if (destinationResults) destinationResults.replaceChildren();
+    if (destinationModalPrevFocus && document.contains(destinationModalPrevFocus)) {
+      destinationModalPrevFocus.focus();
+    }
+    destinationModalPrevFocus = null;
+  }
+
+  async function loadDestinationsManifest(){
+    if (destinationsManifest) return destinationsManifest;
+    const fallback = { origin: 'https://danielshort.me', pages: FALLBACK_DESTINATIONS };
+    try {
+      const resp = await fetch(DESTINATIONS_MANIFEST_PATH, { method: 'GET', cache: 'no-store' });
+      if (!resp.ok) throw new Error(`Manifest request failed (${resp.status})`);
+      const data = await resp.json().catch(() => null);
+      if (!data || typeof data !== 'object' || !Array.isArray(data.pages)) throw new Error('Invalid manifest');
+      destinationsManifest = data;
+      return destinationsManifest;
+    } catch {
+      destinationsManifest = fallback;
+      return destinationsManifest;
+    }
+  }
+
+  function getDestinationQuery(){
+    if (!destinationSearch) return '';
+    return String(destinationSearch.value || '').trim().toLowerCase();
+  }
+
+  function getFilteredDestinations(){
+    const manifest = destinationsManifest;
+    if (!manifest || !Array.isArray(manifest.pages)) return [];
+    const query = getDestinationQuery();
+    const pages = manifest.pages.filter(item => item && typeof item.path === 'string' && typeof item.label === 'string');
+    if (!query) return pages;
+    return pages.filter(item => {
+      const hay = `${item.label} ${item.path}`.toLowerCase();
+      return hay.includes(query);
+    });
+  }
+
+  function buildSuggestedSlugFromPath(pathname){
+    const clean = String(pathname || '').replace(/^\/+|\/+$/g, '');
+    if (!clean) return '';
+    const last = clean.split('/').filter(Boolean).slice(-1)[0] || '';
+    return last.toLowerCase();
+  }
+
+  function renderDestinations(){
+    if (!destinationResults) return;
+    destinationResults.replaceChildren();
+
+    const pages = getFilteredDestinations();
+    const query = getDestinationQuery();
+    if (!pages.length) {
+      const empty = document.createElement('p');
+      empty.className = 'shortlinks-picker-empty';
+      empty.textContent = query ? `No matches for "${query}".` : 'No destinations found.';
+      destinationResults.appendChild(empty);
+      return;
+    }
+
+    const groupOrder = ['Pages', 'Tools', 'Portfolio', 'Demos'];
+    const grouped = new Map();
+    pages.forEach(item => {
+      const group = item.group && groupOrder.includes(item.group) ? item.group : 'Pages';
+      if (!grouped.has(group)) grouped.set(group, []);
+      grouped.get(group).push(item);
+    });
+
+    groupOrder.forEach(group => {
+      const items = grouped.get(group);
+      if (!items || !items.length) return;
+
+      const section = document.createElement('section');
+      section.className = 'shortlinks-picker-group';
+
+      const title = document.createElement('h4');
+      title.className = 'shortlinks-picker-group-title';
+      title.textContent = group;
+      section.appendChild(title);
+
+      const list = document.createElement('div');
+      list.className = 'shortlinks-picker-group-list';
+
+      items.forEach(item => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'shortlinks-picker-item';
+
+        const label = document.createElement('span');
+        label.className = 'shortlinks-picker-item-label';
+        label.textContent = item.label || item.path;
+
+        const pathCode = document.createElement('code');
+        pathCode.className = 'shortlinks-picker-item-path';
+        pathCode.textContent = item.path;
+
+        button.appendChild(label);
+        button.appendChild(pathCode);
+
+        button.addEventListener('click', () => {
+          const origin = getCanonicalSiteOrigin();
+          const absolute = joinOriginAndPath(origin, item.path);
+          destinationInput.value = absolute;
+
+          if (!String(slugInput.value || '').trim()) {
+            slugInput.value = buildSuggestedSlugFromPath(item.path);
+          }
+
+          setStatus(editorStatusEl, `Selected ${item.path}`, 'success');
+          closeDestinationPicker();
+          destinationInput.focus();
+        });
+
+        list.appendChild(button);
+      });
+
+      section.appendChild(list);
+      destinationResults.appendChild(section);
+    });
+  }
+
+  async function openDestinationPicker(){
+    if (!destinationModal) return;
+    destinationModalPrevFocus = document.activeElement;
+    destinationModal.classList.add('active');
+    destinationModal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
+
+    await loadDestinationsManifest();
+    renderDestinations();
+
+    if (destinationSearch) {
+      destinationSearch.focus({ preventScroll: true });
+    }
+  }
+
+  function closeClicksModal(){
+    if (!clicksModal) return;
+    clicksModal.classList.remove('active');
+    clicksModal.setAttribute('aria-hidden', 'true');
+    syncModalOpenState();
+    if (clicksSlugEl) clicksSlugEl.textContent = '';
+    if (clicksListEl) clicksListEl.replaceChildren();
+    if (clicksMetaEl) clicksMetaEl.textContent = '';
+    setStatus(clicksStatusEl, '');
+    activeClicksSlug = '';
+    if (clicksModalPrevFocus && document.contains(clicksModalPrevFocus)) {
+      clicksModalPrevFocus.focus();
+    }
+    clicksModalPrevFocus = null;
+  }
+
+  function formatTimestamp(value){
+    const raw = typeof value === 'string' ? value : '';
+    if (!raw) return '';
+    const dt = new Date(raw);
+    if (!Number.isFinite(dt.getTime())) return raw;
+    return dt.toLocaleString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  }
+
+  function renderClickHistory(items){
+    if (!clicksListEl) return;
+    clicksListEl.replaceChildren();
+
+    if (!Array.isArray(items) || items.length === 0) {
+      const empty = document.createElement('p');
+      empty.className = 'shortlinks-clicks-empty';
+      empty.textContent = 'No click events found (history starts after click logging was enabled).';
+      clicksListEl.appendChild(empty);
+      return;
+    }
+
+    items.forEach(item => {
+      const card = document.createElement('article');
+      card.className = 'shortlinks-click';
+
+      const top = document.createElement('div');
+      top.className = 'shortlinks-click-top';
+
+      const when = document.createElement('time');
+      const clickedAt = typeof item.clickedAt === 'string' ? item.clickedAt : '';
+      when.className = 'shortlinks-click-when';
+      if (clickedAt) when.dateTime = clickedAt;
+      when.textContent = formatTimestamp(clickedAt) || clickedAt || 'Unknown time';
+
+      const pills = document.createElement('div');
+      pills.className = 'shortlinks-click-pills';
+
+      const statusCode = Number.isFinite(Number(item.statusCode)) ? Number(item.statusCode) : 0;
+      if (statusCode) {
+        const statusPill = document.createElement('span');
+        statusPill.className = 'tool-pill';
+        statusPill.textContent = String(statusCode);
+        pills.appendChild(statusPill);
+      }
+
+      const host = typeof item.host === 'string' ? item.host : '';
+      if (host) {
+        const hostPill = document.createElement('span');
+        hostPill.className = 'tool-pill shortlinks-click-pill-muted';
+        hostPill.textContent = host;
+        pills.appendChild(hostPill);
+      }
+
+      const geoParts = [item.city, item.region, item.country]
+        .filter(part => typeof part === 'string' && part.trim())
+        .map(part => String(part).trim());
+      if (geoParts.length) {
+        const geoPill = document.createElement('span');
+        geoPill.className = 'tool-pill shortlinks-click-pill-muted';
+        geoPill.textContent = geoParts.join(', ');
+        pills.appendChild(geoPill);
+      }
+
+      top.appendChild(when);
+      top.appendChild(pills);
+
+      const rows = document.createElement('div');
+      rows.className = 'shortlinks-click-rows';
+
+      function addRow(label, value, url){
+        if (!value) return;
+        const row = document.createElement('div');
+        row.className = 'shortlinks-click-row';
+
+        const labelEl = document.createElement('span');
+        labelEl.className = 'shortlinks-click-label';
+        labelEl.textContent = label;
+
+        let valueEl;
+        if (url) {
+          const anchor = document.createElement('a');
+          anchor.className = 'shortlinks-click-value';
+          anchor.href = url;
+          anchor.target = '_blank';
+          anchor.rel = 'noopener noreferrer';
+          anchor.textContent = value;
+          valueEl = anchor;
+        } else {
+          const text = document.createElement('span');
+          text.className = 'shortlinks-click-value';
+          text.textContent = value;
+          valueEl = text;
+        }
+
+        row.appendChild(labelEl);
+        row.appendChild(valueEl);
+        rows.appendChild(row);
+      }
+
+      const destination = typeof item.destination === 'string' ? item.destination : '';
+      addRow('To', destination, destination);
+
+      const referer = typeof item.referer === 'string' ? item.referer : '';
+      addRow('From', referer, referer);
+
+      const userAgent = typeof item.userAgent === 'string' ? item.userAgent : '';
+      addRow('UA', userAgent);
+
+      card.appendChild(top);
+      card.appendChild(rows);
+
+      clicksListEl.appendChild(card);
+    });
+  }
+
+  async function refreshClickHistory(slug){
+    if (!slug) return;
+    if (!clicksModal) return;
+    setStatus(clicksStatusEl, 'Loading click history…');
+    if (clicksMetaEl) clicksMetaEl.textContent = '';
+
+    try {
+      const data = await api(`/api/short-links/clicks/${encodeURIComponent(slug)}?limit=${CLICK_HISTORY_LIMIT}`, { method: 'GET' });
+      const events = Array.isArray(data.clicks) ? data.clicks : [];
+      renderClickHistory(events);
+      const countLabel = events.length === 1 ? 'event' : 'events';
+      if (clicksMetaEl) clicksMetaEl.textContent = `Showing ${events.length} ${countLabel}.`;
+      setStatus(clicksStatusEl, events.length ? '' : 'No events yet.', events.length ? 'success' : 'success');
+    } catch (err) {
+      if (clicksListEl) clicksListEl.replaceChildren();
+      setStatus(clicksStatusEl, err.message, 'error');
+    }
+  }
+
+  async function openClicksModal(slug){
+    if (!clicksModal) return;
+    const cleanSlug = normalizeSlugInput(slug);
+    if (!cleanSlug) return;
+    clicksModalPrevFocus = document.activeElement;
+    activeClicksSlug = cleanSlug;
+    if (clicksSlugEl) clicksSlugEl.textContent = buildPublicPath(cleanSlug) || cleanSlug;
+
+    clicksModal.classList.add('active');
+    clicksModal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
+
+    await refreshClickHistory(cleanSlug);
+  }
+
   function flashButtonText(button, text){
     if (!button) return;
     const original = button.textContent;
@@ -122,6 +528,57 @@
     window.setTimeout(() => {
       if (button.textContent === text) button.textContent = original;
     }, 1200);
+  }
+
+  async function testRedirect(slug, button){
+    const clean = normalizeSlugInput(slug);
+    if (!clean) return;
+
+    const target = `/api/go/${encodeURIComponent(clean)}`;
+    const label = buildPublicPath(clean) || clean;
+    const start = Date.now();
+
+    const originalText = button && typeof button.textContent === 'string' ? button.textContent : '';
+    const flashText = (text) => {
+      if (!button) return;
+      button.textContent = text;
+      window.setTimeout(() => {
+        if (!button) return;
+        if (button.textContent === text) button.textContent = originalText;
+      }, 1200);
+    };
+
+    if (button) {
+      button.disabled = true;
+      button.textContent = 'Testing…';
+    }
+    setStatus(listStatusEl, `Testing ${label}…`);
+
+    try {
+      const resp = await fetch(target, { method: 'HEAD', redirect: 'manual', cache: 'no-store' });
+      const ms = Date.now() - start;
+      const location = resp.headers.get('location') || '';
+      const code = resp.status;
+
+      if (code >= 300 && code < 400 && location) {
+        const displayLoc = location.length > 200 ? `${location.slice(0, 197)}…` : location;
+        setStatus(listStatusEl, `OK: ${code} → ${displayLoc} (${ms}ms)`, 'success');
+        flashText('OK');
+        return;
+      }
+
+      const detail = code ? `(${code})` : '';
+      setStatus(listStatusEl, `Test failed ${detail}.`, 'error');
+      flashText('Failed');
+    } catch (err) {
+      setStatus(listStatusEl, err && err.message ? err.message : 'Test failed.', 'error');
+      flashText('Failed');
+    } finally {
+      if (button) {
+        button.disabled = false;
+        if (button.textContent === 'Testing…' && originalText) button.textContent = originalText;
+      }
+    }
   }
 
   async function api(path, options = {}){
@@ -166,20 +623,35 @@
     }
     const debug = debugBits.length ? ` ${debugBits.join(' ')}` : '';
 
-    if (payload.ok === true) {
-      const keyId = payload.aws && payload.aws.accessKeyId ? payload.aws.accessKeyId : '';
-      const table = payload.table && payload.table.name ? payload.table.name : '';
-      const region = payload.aws && payload.aws.region ? payload.aws.region : '';
-      const status = payload.table && payload.table.status ? payload.table.status : '';
-      const billing = payload.table && payload.table.billingMode ? payload.table.billingMode : '';
-      const bits = [
-        `Backend OK${table ? `: ${table}` : ''}${status ? ` (${status})` : ''}.`,
-        region ? `Region: ${region}.` : '',
-        billing ? `Billing: ${billing}.` : '',
-        keyId ? `Access key: ${keyId}.` : ''
-      ].filter(Boolean);
-      return bits.join(' ') + debug;
-    }
+	    if (payload.ok === true) {
+	      const keyId = payload.aws && payload.aws.accessKeyId ? payload.aws.accessKeyId : '';
+	      const table = payload.table && payload.table.name ? payload.table.name : '';
+	      const region = payload.aws && payload.aws.region ? payload.aws.region : '';
+	      const status = payload.table && payload.table.status ? payload.table.status : '';
+	      const billing = payload.table && payload.table.billingMode ? payload.table.billingMode : '';
+	      const clicks = payload.clicks || {};
+	      const bits = [
+	        `Backend OK${table ? `: ${table}` : ''}${status ? ` (${status})` : ''}.`,
+	        region ? `Region: ${region}.` : '',
+	        billing ? `Billing: ${billing}.` : '',
+	        keyId ? `Access key: ${keyId}.` : ''
+	      ].filter(Boolean);
+	      if (clicks && clicks.configured) {
+	        const clicksName = clicks.table && clicks.table.name ? clicks.table.name : '';
+	        const clicksStatus = clicks.table && clicks.table.status ? clicks.table.status : '';
+	        bits.push(`Click log${clicksName ? `: ${clicksName}` : ''}${clicksStatus ? ` (${clicksStatus})` : ''}.`);
+	        if (clicks.error && (clicks.error.name || clicks.error.message)) {
+	          const errName = clicks.error.name ? String(clicks.error.name) : '';
+	          const errMsg = clicks.error.message ? String(clicks.error.message) : '';
+	          const compact = [errName, errMsg].filter(Boolean).join(': ');
+	          const clipped = compact.length > 140 ? `${compact.slice(0, 137)}…` : compact;
+	          if (clipped) bits.push(`Click log error: ${clipped}.`);
+	        }
+	      } else {
+	        bits.push('Click log: not configured.');
+	      }
+	      return bits.join(' ') + debug;
+	    }
 
     const details = payload.details || {};
     const name = details.name ? String(details.name) : '';
@@ -226,11 +698,6 @@
     } catch {
       return raw.replace(/\/+$/g, '');
     }
-  }
-
-  function isDevHost(hostname){
-    const host = String(hostname || '').toLowerCase();
-    return host === 'localhost' || host === '127.0.0.1';
   }
 
   function isShortDomainHost(hostname){
@@ -303,9 +770,13 @@
       statusPill.className = 'tool-pill';
       statusPill.textContent = link.permanent ? '301' : '302';
 
-      const clicksPill = document.createElement('span');
-      clicksPill.className = 'tool-pill';
+      const clicksPill = document.createElement('button');
+      clicksPill.type = 'button';
+      clicksPill.className = 'tool-pill shortlinks-pill-button';
       clicksPill.textContent = `${Number(link.clicks) || 0} clicks`;
+      clicksPill.addEventListener('click', () => {
+        openClicksModal(link.slug);
+      });
 
       meta.appendChild(statusPill);
       if (link.disabled) {
@@ -342,6 +813,14 @@
       openShort.target = '_blank';
       openShort.rel = 'noopener noreferrer';
       openShort.textContent = 'Open';
+
+      const testButton = document.createElement('button');
+      testButton.type = 'button';
+      testButton.className = 'btn-secondary';
+      testButton.textContent = 'Test';
+      testButton.addEventListener('click', () => {
+        testRedirect(link.slug, testButton);
+      });
 
       const editButton = document.createElement('button');
       editButton.type = 'button';
@@ -395,6 +874,7 @@
 
       actions.appendChild(copyButton);
       actions.appendChild(openShort);
+      actions.appendChild(testButton);
       actions.appendChild(editButton);
       actions.appendChild(toggleButton);
       actions.appendChild(deleteButton);
@@ -546,10 +1026,67 @@
     clearEditor();
   });
 
+  if (destinationPickerOpen && destinationModal) {
+    destinationPickerOpen.addEventListener('click', () => {
+      openDestinationPicker();
+    });
+  }
+
+  if (destinationModalClose) {
+    destinationModalClose.addEventListener('click', () => {
+      closeDestinationPicker();
+    });
+  }
+
+  if (destinationModal) {
+    destinationModal.addEventListener('click', (event) => {
+      if (event.target === destinationModal) closeDestinationPicker();
+    });
+  }
+
+  if (destinationSearch) {
+    destinationSearch.addEventListener('input', () => {
+      renderDestinations();
+    });
+  }
+
+  if (clicksModalClose) {
+    clicksModalClose.addEventListener('click', () => {
+      closeClicksModal();
+    });
+  }
+
+  if (clicksRefreshButton) {
+    clicksRefreshButton.addEventListener('click', () => {
+      if (!activeClicksSlug) {
+        setStatus(clicksStatusEl, 'No link selected.', 'error');
+        return;
+      }
+      refreshClickHistory(activeClicksSlug);
+    });
+  }
+
+  if (clicksModal) {
+    clicksModal.addEventListener('click', (event) => {
+      if (event.target === clicksModal) closeClicksModal();
+    });
+  }
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    if (destinationModal && destinationModal.classList.contains('active')) {
+      closeDestinationPicker();
+      return;
+    }
+    if (clicksModal && clicksModal.classList.contains('active')) {
+      closeClicksModal();
+    }
+  });
+
   editorForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     const slug = normalizeSlugInput(slugInput.value);
-    const destination = String(destinationInput.value || '').trim();
+    const destination = normalizeDestinationForSave(destinationInput.value);
     const permanent = !!permanentInput.checked;
 
     if (!slug) {

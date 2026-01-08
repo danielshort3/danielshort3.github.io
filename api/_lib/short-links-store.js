@@ -7,6 +7,9 @@
   - Prefer SHORTLINKS_AWS_ACCESS_KEY_ID / SHORTLINKS_AWS_SECRET_ACCESS_KEY to avoid conflicts
   - Falls back to AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY (or any AWS SDK credential provider chain)
   - Optional (temporary creds only): SHORTLINKS_AWS_SESSION_TOKEN / AWS_SESSION_TOKEN
+
+  Optional click log table:
+  - SHORTLINKS_DDB_CLICKS_TABLE
 */
 'use strict';
 
@@ -15,6 +18,8 @@ const {
   DynamoDBDocumentClient,
   DeleteCommand,
   GetCommand,
+  PutCommand,
+  QueryCommand,
   ScanCommand,
   UpdateCommand
 } = require('@aws-sdk/lib-dynamodb');
@@ -104,6 +109,19 @@ function getRequiredEnv(){
   }
 
   return { tableName, region };
+}
+
+function getClicksTableName(){
+  return process.env.SHORTLINKS_DDB_CLICKS_TABLE ? String(process.env.SHORTLINKS_DDB_CLICKS_TABLE).trim() : '';
+}
+
+function sanitizeValue(value, maxLen){
+  const raw = typeof value === 'string' ? value : '';
+  if (!raw) return '';
+  const cleaned = raw.replace(/\s+/g, ' ').trim();
+  if (!cleaned) return '';
+  if (cleaned.length <= maxLen) return cleaned;
+  return cleaned.slice(0, maxLen);
 }
 
 let cachedDocClient = null;
@@ -213,6 +231,60 @@ async function listLinks(){
   return items;
 }
 
+async function recordClick(event){
+  const clicksTableName = getClicksTableName();
+  if (!clicksTableName) return;
+  const client = getDocClient();
+
+  const slug = typeof event.slug === 'string' ? event.slug : '';
+  const clickId = typeof event.clickId === 'string' ? event.clickId : '';
+  const clickedAt = typeof event.clickedAt === 'string' ? event.clickedAt : '';
+  if (!slug || !clickId || !clickedAt) return;
+
+  const item = {
+    slug,
+    clickId,
+    clickedAt,
+    destination: sanitizeValue(event.destination, 2048),
+    statusCode: Number.isFinite(Number(event.statusCode)) ? Number(event.statusCode) : undefined,
+    host: sanitizeValue(event.host, 255),
+    referer: sanitizeValue(event.referer, 2048),
+    userAgent: sanitizeValue(event.userAgent, 768),
+    country: sanitizeValue(event.country, 64),
+    region: sanitizeValue(event.region, 128),
+    city: sanitizeValue(event.city, 128)
+  };
+
+  const ttlDays = 90;
+  item.expiresAt = Math.floor((Date.now() + ttlDays * 24 * 60 * 60 * 1000) / 1000);
+
+  await client.send(new PutCommand({
+    TableName: clicksTableName,
+    Item: item
+  }));
+}
+
+async function listClicks({ slug, limit }){
+  const clicksTableName = getClicksTableName();
+  if (!clicksTableName) {
+    const err = new Error('SHORTLINKS_DDB_CLICKS_TABLE is not configured');
+    err.code = 'DDB_CLICKS_ENV_MISSING';
+    throw err;
+  }
+  const client = getDocClient();
+  const safeLimit = Number.isFinite(Number(limit)) ? Math.max(1, Math.min(500, Number(limit))) : 100;
+
+  const result = await client.send(new QueryCommand({
+    TableName: clicksTableName,
+    KeyConditionExpression: 'slug = :slug',
+    ExpressionAttributeValues: { ':slug': slug },
+    ScanIndexForward: false,
+    Limit: safeLimit
+  }));
+
+  return result && Array.isArray(result.Items) ? result.Items : [];
+}
+
 module.exports = {
   getAwsCredentialsFromEnv,
   getAwsCredentialEnvInfo,
@@ -222,5 +294,7 @@ module.exports = {
   setLinkDisabled,
   deleteLink,
   incrementClicks,
-  listLinks
+  listLinks,
+  recordClick,
+  listClicks
 };

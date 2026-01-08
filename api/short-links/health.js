@@ -67,6 +67,24 @@ module.exports = async (req, res) => {
   try {
     const result = await client.send(new DescribeTableCommand({ TableName: env.tableName }));
     const table = result && result.Table ? result.Table : null;
+    const clicksTableName = process.env.SHORTLINKS_DDB_CLICKS_TABLE
+      ? String(process.env.SHORTLINKS_DDB_CLICKS_TABLE).trim()
+      : '';
+
+    let clicksTable = null;
+    let clicksError = null;
+    if (clicksTableName) {
+      try {
+        const clicksResult = await client.send(new DescribeTableCommand({ TableName: clicksTableName }));
+        clicksTable = clicksResult && clicksResult.Table ? clicksResult.Table : null;
+      } catch (err) {
+        clicksError = {
+          name: err && err.name ? err.name : '',
+          code: err && err.code ? err.code : '',
+          message: err && err.message ? err.message : ''
+        };
+      }
+    }
 
     sendJson(res, 200, {
       ok: true,
@@ -78,6 +96,15 @@ module.exports = async (req, res) => {
         name: table && table.TableName ? table.TableName : env.tableName,
         status: table && table.TableStatus ? table.TableStatus : '',
         billingMode: table && table.BillingModeSummary ? table.BillingModeSummary.BillingMode : ''
+      },
+      clicks: {
+        configured: !!clicksTableName,
+        table: clicksTableName ? {
+          name: clicksTable && clicksTable.TableName ? clicksTable.TableName : clicksTableName,
+          status: clicksTable && clicksTable.TableStatus ? clicksTable.TableStatus : '',
+          billingMode: clicksTable && clicksTable.BillingModeSummary ? clicksTable.BillingModeSummary.BillingMode : ''
+        } : null,
+        error: clicksError
       }
     });
   } catch (err) {
