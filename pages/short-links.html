@@ -81,19 +81,17 @@
               </div>
               <div class="form-field">
                 <label for="shortlinks-destination">Destination</label>
-                <input id="shortlinks-destination" type="text" inputmode="url" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="https://example.com" data-shortlinks="destination">
-                <p class="contact-form-note">Must start with <code>/</code> or <code>http(s)://</code>.</p>
-                <div class="shortlinks-inline-actions">
+                <div class="shortlinks-destination-row">
+                  <input id="shortlinks-destination" type="text" inputmode="url" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="https://example.com" data-shortlinks="destination">
                   <button type="button" class="btn-ghost" data-shortlinks="destination-picker-open">Browse site pages</button>
                 </div>
+                <p class="contact-form-note">Must start with <code>/</code> or <code>http(s)://</code>.</p>
               </div>
-              <div class="form-field">
-                <label class="shortlinks-toggle">
+              <div class="form-actions shortlinks-editor-actions">
+                <label class="shortlinks-toggle shortlinks-toggle-compact">
                   <span>Permanent redirect (301)</span>
                   <input id="shortlinks-permanent" type="checkbox" data-shortlinks="permanent">
                 </label>
-              </div>
-              <div class="form-actions">
                 <button type="submit" class="btn-primary"><span class="btn-label">Save link</span></button>
                 <button type="button" class="btn-secondary" data-shortlinks="clear">Reset form</button>
               </div>
