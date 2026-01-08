@@ -4,7 +4,7 @@
 
   const STORAGE_KEY = 'shortlinks_admin_token';
   const DEFAULT_BASE_PATH = 'go';
-  const DEFAULT_PUBLIC_ORIGIN = 'https://dshort.me';
+  const DEFAULT_PUBLIC_ORIGIN = 'https://danielshort.me';
 
   const authForm = document.querySelector('[data-shortlinks="auth"]');
   const editorForm = document.querySelector('[data-shortlinks="editor"]');
@@ -713,8 +713,8 @@
   }
 
   function getPublicBasePath(){
-    if (isDevHost(window.location.hostname)) return basePath;
-    return '';
+    if (isShortDomainHost(window.location.hostname)) return '';
+    return basePath;
   }
 
   function buildPublicPath(slug){

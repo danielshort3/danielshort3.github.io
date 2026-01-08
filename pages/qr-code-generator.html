@@ -217,6 +217,39 @@
                     <input id="qrtool-logo-padding" type="range" min="6" max="22" value="12" step="1" disabled>
                   </div>
                 </div>
+
+                <div class="qrtool-two-col">
+                  <div class="qrtool-control">
+                    <label class="qrtool-label" for="qrtool-logo-shape">Logo shape</label>
+                    <select id="qrtool-logo-shape" class="qrtool-select" disabled>
+                      <option value="rounded" selected>Rounded square</option>
+                      <option value="square">Square</option>
+                      <option value="circle">Circle</option>
+                    </select>
+                  </div>
+                  <div class="qrtool-control">
+                    <label class="qrtool-label" for="qrtool-logo-plate-style">Plate</label>
+                    <select id="qrtool-logo-plate-style" class="qrtool-select" disabled>
+                      <option value="auto" selected>Auto (match background)</option>
+                      <option value="white">White</option>
+                      <option value="custom">Custom</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="qrtool-two-col">
+                  <div class="qrtool-control">
+                    <label class="qrtool-label" for="qrtool-logo-plate-color">Plate color</label>
+                    <div class="qrtool-color-row">
+                      <input id="qrtool-logo-plate-color" class="qrtool-color" type="color" value="#ffffff" aria-label="Logo plate color" disabled>
+                      <span id="qrtool-logo-plate-color-label" class="qrtool-chip">#FFFFFF</span>
+                    </div>
+                  </div>
+                  <label class="qrtool-check">
+                    <input id="qrtool-logo-outline" type="checkbox" checked disabled>
+                    Subtle outline
+                  </label>
+                </div>
               </div>
 
               <div class="qrtool-fieldset" role="group" aria-label="Export options">

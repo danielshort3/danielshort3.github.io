@@ -2,36 +2,6 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    {
-      "source": "/:slug((?!(?:api|go|dist|css|js|img|documents|favicon\\.ico|robots\\.txt|sitemap\\.xml|404\\.html)(?:/|$))[^/]+)",
-      "has": [{ "type": "host", "value": "dshort.me" }],
-      "destination": "/api/go/:slug?slug=:slug"
-    },
-    {
-      "source": "/:slug((?!(?:api|go|dist|css|js|img|documents|favicon\\.ico|robots\\.txt|sitemap\\.xml|404\\.html)(?:/|$))[^/]+)",
-      "has": [{ "type": "host", "value": "www.dshort.me" }],
-      "destination": "/api/go/:slug?slug=:slug"
-    },
-    {
-      "source": "/go",
-      "has": [{ "type": "host", "value": "dshort.me" }],
-      "destination": "/api/short-domain"
-    },
-    {
-      "source": "/go",
-      "has": [{ "type": "host", "value": "www.dshort.me" }],
-      "destination": "/api/short-domain"
-    },
-    {
-      "source": "/:first((?!(?:api|go)(?:/|$))[^/]+)/:rest*",
-      "has": [{ "type": "host", "value": "dshort.me" }],
-      "destination": "/api/short-domain"
-    },
-    {
-      "source": "/:first((?!(?:api|go)(?:/|$))[^/]+)/:rest*",
-      "has": [{ "type": "host", "value": "www.dshort.me" }],
-      "destination": "/api/short-domain"
-    },
     { "source": "/go/:slug*", "destination": "/api/go/:slug*" },
     { "source": "/portfolio/:project", "destination": "/pages/portfolio/:project" },
     { "source": "/portfolio/:project.html", "destination": "/pages/portfolio/:project" },
@@ -117,8 +87,10 @@
     { "source": "/slot-machine-demo.html", "destination": "/demos/slot-machine-demo" }
   ],
   "redirects": [
-    { "source": "/", "has": [{ "type": "host", "value": "dshort.me" }], "destination": "https://www.danielshort.me", "permanent": false },
-    { "source": "/", "has": [{ "type": "host", "value": "www.dshort.me" }], "destination": "https://www.danielshort.me", "permanent": false },
+    { "source": "/", "has": [{ "type": "host", "value": "dshort.me" }], "destination": "https://danielshort.me", "permanent": true },
+    { "source": "/", "has": [{ "type": "host", "value": "www.dshort.me" }], "destination": "https://danielshort.me", "permanent": true },
+    { "source": "/:path*", "has": [{ "type": "host", "value": "dshort.me" }], "destination": "https://danielshort.me/dshort?path=:path*", "permanent": false },
+    { "source": "/:path*", "has": [{ "type": "host", "value": "www.dshort.me" }], "destination": "https://danielshort.me/dshort?path=:path*", "permanent": false },
     { "source": "/projects", "destination": "/portfolio", "permanent": true },
     { "source": "/projects/(.*)", "destination": "/portfolio", "permanent": true }
   ],
