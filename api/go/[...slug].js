@@ -70,6 +70,15 @@ module.exports = async (req, res) => {
     return;
   }
 
+  const expiresAt = Number.isFinite(Number(link.expiresAt)) ? Number(link.expiresAt) : 0;
+  if (expiresAt && Math.floor(Date.now() / 1000) >= expiresAt) {
+    res.statusCode = 404;
+    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('X-Robots-Tag', 'noindex');
+    res.end('Not Found');
+    return;
+  }
+
   const destination = typeof link.destination === 'string' ? String(link.destination).trim() : '';
   if (!destination) {
     res.statusCode = 404;

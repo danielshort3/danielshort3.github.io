@@ -43,6 +43,7 @@ module.exports = async (req, res) => {
         slug: normalizeSlug(item.slug),
         destination: typeof item.destination === 'string' ? item.destination : '',
         permanent: !!item.permanent,
+        expiresAt: Number.isFinite(Number(item.expiresAt)) ? Number(item.expiresAt) : 0,
         disabled: !!item.disabled,
         createdAt: typeof item.createdAt === 'string' ? item.createdAt : '',
         updatedAt: typeof item.updatedAt === 'string' ? item.updatedAt : '',
@@ -67,6 +68,8 @@ module.exports = async (req, res) => {
     const slug = normalizeSlug(body.slug);
     const destination = normalizeDestination(body.destination);
     const permanent = !!body.permanent;
+    const hasExpiresAt = !!(body && Object.prototype.hasOwnProperty.call(body, 'expiresAt'));
+    let expiresAt = 0;
 
     if (!slug) {
       sendJson(res, 400, { ok: false, error: 'Invalid slug (use letters/numbers/-/_ and / for nesting)' });
@@ -77,11 +80,35 @@ module.exports = async (req, res) => {
       return;
     }
 
+    if (hasExpiresAt) {
+      const numericExpiresAt = Number(body.expiresAt);
+      if (!Number.isFinite(numericExpiresAt) || numericExpiresAt < 0) {
+        sendJson(res, 400, { ok: false, error: 'Invalid expiresAt (expected a Unix timestamp in seconds)' });
+        return;
+      }
+      expiresAt = Math.floor(numericExpiresAt);
+      const nowSeconds = Math.floor(Date.now() / 1000);
+      if (expiresAt && expiresAt <= nowSeconds) {
+        sendJson(res, 400, { ok: false, error: 'Invalid expiresAt (must be in the future)' });
+        return;
+      }
+      if (permanent && expiresAt) {
+        sendJson(res, 400, { ok: false, error: 'Permanent links cannot have expiresAt' });
+        return;
+      }
+    }
+
     const now = new Date().toISOString();
 
     let record;
     try {
-      record = await upsertLink({ slug, destination, permanent, updatedAt: now });
+      record = await upsertLink({
+        slug,
+        destination,
+        permanent,
+        expiresAt: hasExpiresAt ? expiresAt : undefined,
+        updatedAt: now
+      });
     } catch (err) {
       if (err.code === 'DDB_ENV_MISSING') {
         sendJson(res, 503, { ok: false, error: err.message });
@@ -97,6 +124,7 @@ module.exports = async (req, res) => {
         slug,
         destination,
         permanent,
+        expiresAt: record && Number.isFinite(Number(record.expiresAt)) ? Number(record.expiresAt) : 0,
         disabled: record ? !!record.disabled : false,
         createdAt: record && record.createdAt ? record.createdAt : now,
         updatedAt: now,
