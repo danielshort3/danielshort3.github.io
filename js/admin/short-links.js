@@ -534,9 +534,16 @@
     const clean = normalizeSlugInput(slug);
     if (!clean) return;
 
-    const target = `/api/go/${encodeURIComponent(clean)}`;
     const label = buildPublicPath(clean) || clean;
     const start = Date.now();
+    let popup = null;
+
+    try {
+      popup = window.open('about:blank', '_blank');
+      if (popup) popup.opener = null;
+    } catch {
+      popup = null;
+    }
 
     const originalText = button && typeof button.textContent === 'string' ? button.textContent : '';
     const flashText = (text) => {
@@ -555,22 +562,52 @@
     setStatus(listStatusEl, `Testing ${label}…`);
 
     try {
-      const resp = await fetch(target, { method: 'HEAD', redirect: 'manual', cache: 'no-store' });
+      const data = await api(`/api/short-links/test/${encodeURIComponent(clean)}`, { method: 'GET' });
       const ms = Date.now() - start;
-      const location = resp.headers.get('location') || '';
-      const code = resp.status;
 
-      if (code >= 300 && code < 400 && location) {
-        const displayLoc = location.length > 200 ? `${location.slice(0, 197)}…` : location;
-        setStatus(listStatusEl, `OK: ${code} → ${displayLoc} (${ms}ms)`, 'success');
-        flashText('OK');
-        return;
+      const redirect = data && typeof data.redirect === 'object' ? data.redirect : null;
+      const destination = redirect && typeof redirect.destination === 'string' ? redirect.destination : '';
+      const code = redirect && Number.isFinite(Number(redirect.statusCode)) ? Number(redirect.statusCode) : 0;
+
+      const check = data && typeof data.check === 'object' ? data.check : null;
+      const checkOk = check && check.ok === true;
+      const checkStatus = check && Number.isFinite(Number(check.status)) ? Number(check.status) : 0;
+      const checkMethod = check && typeof check.method === 'string' ? check.method : '';
+      const checkMs = check && Number.isFinite(Number(check.ms)) ? Number(check.ms) : 0;
+      const checkUrl = check && typeof check.url === 'string' ? check.url : '';
+      const checkError = check && typeof check.error === 'string' ? check.error : '';
+
+      const displayDest = destination.length > 200 ? `${destination.slice(0, 197)}…` : destination;
+      const redirectLine = code && destination ? `${code} → ${displayDest}` : (destination || 'Redirect configured');
+      let detail = `Redirect OK: ${redirectLine} (${ms}ms)`;
+
+      if (checkMethod) {
+        if (checkOk) {
+          const finalLabel = checkUrl ? (checkUrl.length > 200 ? `${checkUrl.slice(0, 197)}…` : checkUrl) : '';
+          const finalBit = finalLabel ? ` → ${finalLabel}` : '';
+          detail += ` • Destination ${checkMethod} ${checkStatus}${finalBit} (${checkMs || ms}ms)`;
+        } else {
+          const errorLabel = checkError || (checkStatus ? `Status ${checkStatus}` : 'Unreachable');
+          detail += ` • Destination check failed (${errorLabel})`;
+        }
       }
 
-      const detail = code ? `(${code})` : '';
-      setStatus(listStatusEl, `Test failed ${detail}.`, 'error');
-      flashText('Failed');
+      const tone = check && check.ok === false ? 'warning' : 'success';
+      setStatus(listStatusEl, detail, tone);
+      flashText(check && check.ok === false ? 'Warn' : 'OK');
+
+      const openTarget = checkUrl || destination;
+      if (openTarget) {
+        if (popup && !popup.closed) {
+          popup.location.href = openTarget;
+        } else {
+          window.open(openTarget, '_blank', 'noopener,noreferrer');
+        }
+      } else if (popup && !popup.closed) {
+        popup.close();
+      }
     } catch (err) {
+      if (popup && !popup.closed) popup.close();
       setStatus(listStatusEl, err && err.message ? err.message : 'Test failed.', 'error');
       flashText('Failed');
     } finally {
