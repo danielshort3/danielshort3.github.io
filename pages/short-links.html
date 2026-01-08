@@ -88,11 +88,8 @@
                 <p class="contact-form-note">Must start with <code>/</code> or <code>http(s)://</code>.</p>
               </div>
               <div class="form-actions shortlinks-editor-actions">
-                <label class="shortlinks-toggle shortlinks-toggle-compact">
-                  <span>Permanent redirect (301)</span>
-                  <input id="shortlinks-permanent" type="checkbox" data-shortlinks="permanent">
-                </label>
-                <button type="submit" class="btn-primary"><span class="btn-label">Save link</span></button>
+                <button type="button" class="btn-primary" data-shortlinks="get-permanent"><span class="btn-label">Get permanent link</span></button>
+                <button type="button" class="btn-secondary" data-shortlinks="get-temporary">Get temporary link</button>
                 <button type="button" class="btn-secondary" data-shortlinks="clear">Reset form</button>
               </div>
               <div class="contact-form-status" data-shortlinks="editor-status" role="status" aria-live="polite"></div>
@@ -154,6 +151,38 @@
             <p class="shortlinks-clicks-meta" data-shortlinks="clicks-meta" aria-live="polite"></p>
           </div>
           <div class="shortlinks-clicks-list" data-shortlinks="clicks-list" aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal shortlinks-modal" id="shortlinks-temporary-modal" data-shortlinks="temporary-modal" aria-hidden="true">
+      <div class="modal-content" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="shortlinks-temporary-title">
+        <button type="button" class="modal-close" aria-label="Close dialog" data-shortlinks="temporary-modal-close">&times;</button>
+        <div class="modal-title-strip">
+          <h3 class="modal-title" id="shortlinks-temporary-title">Temporary link</h3>
+          <p class="modal-subtitle">Choose how long this short link stays active. After it expires, it will return <strong>Not Found</strong>.</p>
+        </div>
+        <div class="modal-body stacked">
+          <form class="contact-form" data-shortlinks="temporary-form">
+            <div class="form-field">
+              <label for="shortlinks-temporary-value">Active for</label>
+              <div class="shortlinks-temporary-row">
+                <input id="shortlinks-temporary-value" type="number" min="1" step="1" value="7" inputmode="numeric" autocomplete="off" data-shortlinks="temporary-value">
+                <select id="shortlinks-temporary-unit" data-shortlinks="temporary-unit">
+                  <option value="minutes">Minutes</option>
+                  <option value="hours">Hours</option>
+                  <option value="days" selected>Days</option>
+                  <option value="weeks">Weeks</option>
+                </select>
+              </div>
+              <p class="contact-form-note">Tip: use temporary links for time-sensitive shares and campaign testing.</p>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn-primary"><span class="btn-label">Create temporary link</span></button>
+              <button type="button" class="btn-secondary" data-shortlinks="temporary-cancel">Cancel</button>
+            </div>
+            <div class="contact-form-status" data-shortlinks="temporary-status" role="status" aria-live="polite"></div>
+          </form>
         </div>
       </div>
     </div>

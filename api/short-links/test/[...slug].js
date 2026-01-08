@@ -176,6 +176,12 @@ module.exports = async (req, res) => {
     return;
   }
 
+  const expiresAt = Number.isFinite(Number(link.expiresAt)) ? Number(link.expiresAt) : 0;
+  if (expiresAt && Math.floor(Date.now() / 1000) >= expiresAt) {
+    sendJson(res, 404, { ok: false, error: 'Not Found' });
+    return;
+  }
+
   const base = getRequestBaseUrl(req);
   const destination = resolveDestination(link.destination, base);
   if (!destination) {
@@ -196,4 +202,3 @@ module.exports = async (req, res) => {
     check
   });
 };
-

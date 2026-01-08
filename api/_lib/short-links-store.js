@@ -151,23 +151,44 @@ async function getLink(slug){
   return result && result.Item ? result.Item : null;
 }
 
-async function upsertLink({ slug, destination, permanent, updatedAt }){
+async function upsertLink({ slug, destination, permanent, expiresAt, updatedAt }){
   const { tableName } = getRequiredEnv();
   const client = getDocClient();
+  const setExpressions = [
+    'destination = :destination',
+    'permanent = :permanent',
+    'updatedAt = :updatedAt',
+    'disabled = if_not_exists(disabled, :disabled)',
+    'createdAt = if_not_exists(createdAt, :createdAt)',
+    'clicks = if_not_exists(clicks, :zero)'
+  ];
+
+  const removeExpressions = [];
+  const values = {
+    ':destination': destination,
+    ':permanent': !!permanent,
+    ':updatedAt': updatedAt,
+    ':disabled': false,
+    ':createdAt': updatedAt,
+    ':zero': 0
+  };
+
+  if (typeof expiresAt !== 'undefined') {
+    const numericExpiresAt = Number(expiresAt);
+    if (Number.isFinite(numericExpiresAt) && numericExpiresAt > 0) {
+      setExpressions.push('expiresAt = :expiresAt');
+      values[':expiresAt'] = Math.floor(numericExpiresAt);
+    } else {
+      removeExpressions.push('expiresAt');
+    }
+  }
+
+  const updateExpression = `SET ${setExpressions.join(', ')}${removeExpressions.length ? ` REMOVE ${removeExpressions.join(', ')}` : ''}`;
   const result = await client.send(new UpdateCommand({
     TableName: tableName,
     Key: { slug },
-    UpdateExpression: 'SET destination = :destination, permanent = :permanent, updatedAt = :updatedAt, ' +
-      'disabled = if_not_exists(disabled, :disabled), createdAt = if_not_exists(createdAt, :createdAt), ' +
-      'clicks = if_not_exists(clicks, :zero)',
-    ExpressionAttributeValues: {
-      ':destination': destination,
-      ':permanent': !!permanent,
-      ':updatedAt': updatedAt,
-      ':disabled': false,
-      ':createdAt': updatedAt,
-      ':zero': 0
-    },
+    UpdateExpression: updateExpression,
+    ExpressionAttributeValues: values,
     ReturnValues: 'ALL_NEW'
   }));
   return result && result.Attributes ? result.Attributes : null;

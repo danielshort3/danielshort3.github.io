@@ -4,7 +4,7 @@
 
   const STORAGE_KEY = 'shortlinks_admin_token';
   const DEFAULT_BASE_PATH = 'go';
-  const DEFAULT_PUBLIC_ORIGIN = 'https://danielshort.me';
+  const DEFAULT_PUBLIC_ORIGIN = 'https://dshort.me';
 
   const authForm = document.querySelector('[data-shortlinks="auth"]');
   const editorForm = document.querySelector('[data-shortlinks="editor"]');
@@ -26,7 +26,8 @@
 
   const slugInput = editorForm.querySelector('[data-shortlinks="slug"]');
   const destinationInput = editorForm.querySelector('[data-shortlinks="destination"]');
-  const permanentInput = editorForm.querySelector('[data-shortlinks="permanent"]');
+  const getPermanentButton = editorForm.querySelector('[data-shortlinks="get-permanent"]');
+  const getTemporaryButton = editorForm.querySelector('[data-shortlinks="get-temporary"]');
   const clearButton = editorForm.querySelector('[data-shortlinks="clear"]');
   const editorStatusEl = editorForm.querySelector('[data-shortlinks="editor-status"]');
 
@@ -62,6 +63,26 @@
     ? clicksModal.querySelector('[data-shortlinks="clicks-refresh"]')
     : null;
 
+  const temporaryModal = document.querySelector('[data-shortlinks="temporary-modal"]');
+  const temporaryModalClose = temporaryModal
+    ? temporaryModal.querySelector('[data-shortlinks="temporary-modal-close"]')
+    : null;
+  const temporaryForm = temporaryModal
+    ? temporaryModal.querySelector('[data-shortlinks="temporary-form"]')
+    : null;
+  const temporaryValueInput = temporaryModal
+    ? temporaryModal.querySelector('[data-shortlinks="temporary-value"]')
+    : null;
+  const temporaryUnitSelect = temporaryModal
+    ? temporaryModal.querySelector('[data-shortlinks="temporary-unit"]')
+    : null;
+  const temporaryCancel = temporaryModal
+    ? temporaryModal.querySelector('[data-shortlinks="temporary-cancel"]')
+    : null;
+  const temporaryStatusEl = temporaryModal
+    ? temporaryModal.querySelector('[data-shortlinks="temporary-status"]')
+    : null;
+
   const DESTINATIONS_MANIFEST_PATH = 'dist/shortlinks-destinations.json';
   const CLICK_HISTORY_LIMIT = 250;
 
@@ -76,7 +97,9 @@
   let destinationsManifest = null;
   let destinationModalPrevFocus = null;
   let clicksModalPrevFocus = null;
+  let temporaryModalPrevFocus = null;
   let activeClicksSlug = '';
+  let pendingTemporaryPayload = null;
 
   let basePath = DEFAULT_BASE_PATH;
   let allLinks = [];
@@ -158,6 +181,11 @@
     return host === 'localhost' || host === '127.0.0.1';
   }
 
+  function isPreviewHost(hostname){
+    const host = String(hostname || '').toLowerCase();
+    return isDevHost(host) || host.endsWith('.vercel.app');
+  }
+
   function isProdHost(hostname){
     const host = String(hostname || '').toLowerCase();
     return host === 'danielshort.me' || host === 'www.danielshort.me';
@@ -165,7 +193,7 @@
 
   function getCanonicalSiteOrigin(){
     const origin = destinationsManifest && destinationsManifest.origin ? String(destinationsManifest.origin) : '';
-    if (isDevHost(window.location.hostname) || window.location.hostname.endsWith('.vercel.app')) {
+    if (isPreviewHost(window.location.hostname)) {
       return window.location.origin;
     }
     if (isProdHost(window.location.hostname)) {
@@ -364,6 +392,33 @@
       clicksModalPrevFocus.focus();
     }
     clicksModalPrevFocus = null;
+  }
+
+  function closeTemporaryModal(){
+    if (!temporaryModal) return;
+    temporaryModal.classList.remove('active');
+    temporaryModal.setAttribute('aria-hidden', 'true');
+    syncModalOpenState();
+    pendingTemporaryPayload = null;
+    setStatus(temporaryStatusEl, '');
+    if (temporaryModalPrevFocus && document.contains(temporaryModalPrevFocus)) {
+      temporaryModalPrevFocus.focus();
+    }
+    temporaryModalPrevFocus = null;
+  }
+
+  function openTemporaryModal(payload){
+    if (!temporaryModal) return;
+    pendingTemporaryPayload = payload || null;
+    temporaryModalPrevFocus = document.activeElement;
+    temporaryModal.classList.add('active');
+    temporaryModal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
+    setStatus(temporaryStatusEl, '');
+    if (temporaryValueInput) {
+      temporaryValueInput.focus({ preventScroll: true });
+      try { temporaryValueInput.select(); } catch {}
+    }
   }
 
   function formatTimestamp(value){
@@ -743,15 +798,15 @@
   }
 
   function getPublicOrigin(){
-    if (isDevHost(window.location.hostname) || isShortDomainHost(window.location.hostname)) {
+    if (isPreviewHost(window.location.hostname) || isShortDomainHost(window.location.hostname)) {
       return normalizeOrigin(window.location.origin) || window.location.origin;
     }
     return normalizeOrigin(DEFAULT_PUBLIC_ORIGIN) || window.location.origin;
   }
 
   function getPublicBasePath(){
-    if (isShortDomainHost(window.location.hostname)) return '';
-    return basePath;
+    if (isPreviewHost(window.location.hostname)) return basePath;
+    return '';
   }
 
   function buildPublicPath(slug){
@@ -771,6 +826,20 @@
     return String(value || '').trim().replace(/^\/+|\/+$/g, '').toLowerCase();
   }
 
+  function formatCountdown(ms){
+    const seconds = Math.max(0, Math.floor(Number(ms) / 1000));
+    if (!Number.isFinite(seconds)) return '';
+    if (seconds < 60) return 'under 1m';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 48) return `${hours}h`;
+    const days = Math.floor(hours / 24);
+    if (days < 14) return `${days}d`;
+    const weeks = Math.floor(days / 7);
+    return `${weeks}w`;
+  }
+
   function renderLinks(links){
     clearList();
     if (!Array.isArray(links) || links.length === 0) {
@@ -785,10 +854,14 @@
     links.forEach(link => {
       const shortUrl = buildShortUrl(link.slug);
       const destinationUrl = formatAbsoluteUrl(link.destination);
+      const expiresAt = Number.isFinite(Number(link.expiresAt)) ? Number(link.expiresAt) : 0;
+      const expiresMs = expiresAt ? expiresAt * 1000 - Date.now() : 0;
+      const isExpired = expiresAt && expiresMs <= 0;
 
       const card = document.createElement('article');
       card.className = 'shortlinks-item';
       if (link.disabled) card.classList.add('shortlinks-item-disabled');
+      if (isExpired) card.classList.add('shortlinks-item-expired');
 
       const head = document.createElement('div');
       head.className = 'shortlinks-item-head';
@@ -806,6 +879,15 @@
       const statusPill = document.createElement('span');
       statusPill.className = 'tool-pill';
       statusPill.textContent = link.permanent ? '301' : '302';
+      meta.appendChild(statusPill);
+
+      if (expiresAt) {
+        const expiresPill = document.createElement('span');
+        expiresPill.className = `tool-pill ${isExpired ? 'shortlinks-pill-expired' : 'shortlinks-pill-expiry'}`;
+        expiresPill.textContent = isExpired ? 'Expired' : `Expires in ${formatCountdown(expiresMs)}`;
+        expiresPill.title = `Expires ${new Date(expiresAt * 1000).toLocaleString()}`;
+        meta.appendChild(expiresPill);
+      }
 
       const clicksPill = document.createElement('button');
       clicksPill.type = 'button';
@@ -815,7 +897,6 @@
         openClicksModal(link.slug);
       });
 
-      meta.appendChild(statusPill);
       if (link.disabled) {
         const disabledPill = document.createElement('span');
         disabledPill.className = 'tool-pill shortlinks-pill-disabled';
@@ -866,9 +947,10 @@
       editButton.addEventListener('click', () => {
         slugInput.value = link.slug;
         destinationInput.value = link.destination;
-        permanentInput.checked = !!link.permanent;
         slugInput.focus();
-        setStatus(editorStatusEl, `Editing ${link.slug}${link.disabled ? ' (disabled)' : ''}`, 'success');
+        const expiresAt = Number.isFinite(Number(link.expiresAt)) ? Number(link.expiresAt) : 0;
+        const expiresLabel = expiresAt ? ` (expires ${new Date(expiresAt * 1000).toLocaleString()})` : '';
+        setStatus(editorStatusEl, `Editing ${buildPublicPath(link.slug)}${link.disabled ? ' (disabled)' : ''}${expiresLabel}`, 'success');
       });
 
       const toggleButton = document.createElement('button');
@@ -1000,10 +1082,75 @@
     }
   }
 
+  function getEditorPayload(){
+    const slug = normalizeSlugInput(slugInput.value);
+    const destination = normalizeDestinationForSave(destinationInput.value);
+
+    if (!slug) {
+      setStatus(editorStatusEl, 'Slug is required.', 'error');
+      return null;
+    }
+    if (!destination) {
+      setStatus(editorStatusEl, 'Destination is required.', 'error');
+      return null;
+    }
+
+    return { slug, destination };
+  }
+
+  function setEditorBusy(isBusy){
+    const busy = !!isBusy;
+    const controls = [
+      getPermanentButton,
+      getTemporaryButton,
+      clearButton,
+      destinationPickerOpen
+    ];
+    controls.forEach(control => {
+      if (!control) return;
+      control.disabled = busy;
+    });
+  }
+
+  async function createOrUpdateLink({ slug, destination, permanent, expiresAt, statusEl }){
+    const targetStatus = statusEl || editorStatusEl;
+    if (!getSavedToken()) {
+      setStatus(targetStatus, 'Admin token required.', 'error');
+      return null;
+    }
+
+    setEditorBusy(true);
+    setStatus(targetStatus, permanent ? 'Creating permanent link…' : 'Creating temporary link…');
+    try {
+      const body = { slug, destination, permanent: !!permanent };
+      if (typeof expiresAt !== 'undefined') body.expiresAt = expiresAt;
+      await api('/api/short-links', {
+        method: 'POST',
+        body: JSON.stringify(body)
+      });
+
+      const shortUrl = buildShortUrl(slug);
+      let copied = false;
+      try {
+        await navigator.clipboard.writeText(shortUrl);
+        copied = true;
+      } catch {}
+
+      const label = permanent ? 'Permanent link' : 'Temporary link';
+      setStatus(editorStatusEl, `${label}: ${shortUrl}${copied ? ' (copied)' : ''}`, 'success');
+      await refreshLinks();
+      return shortUrl;
+    } catch (err) {
+      setStatus(targetStatus, err.message, 'error');
+      return null;
+    } finally {
+      setEditorBusy(false);
+    }
+  }
+
   function clearEditor(){
     slugInput.value = '';
     destinationInput.value = '';
-    permanentInput.checked = false;
     setStatus(editorStatusEl, '');
   }
 
@@ -1109,8 +1256,30 @@
     });
   }
 
+  if (temporaryModalClose) {
+    temporaryModalClose.addEventListener('click', () => {
+      closeTemporaryModal();
+    });
+  }
+
+  if (temporaryCancel) {
+    temporaryCancel.addEventListener('click', () => {
+      closeTemporaryModal();
+    });
+  }
+
+  if (temporaryModal) {
+    temporaryModal.addEventListener('click', (event) => {
+      if (event.target === temporaryModal) closeTemporaryModal();
+    });
+  }
+
   document.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') return;
+    if (temporaryModal && temporaryModal.classList.contains('active')) {
+      closeTemporaryModal();
+      return;
+    }
     if (destinationModal && destinationModal.classList.contains('active')) {
       closeDestinationPicker();
       return;
@@ -1120,33 +1289,123 @@
     }
   });
 
-  editorForm.addEventListener('submit', async (event) => {
+  function requireToken(target){
+    if (getSavedToken()) return true;
+    setStatus(target || editorStatusEl, 'Admin token required.', 'error');
+    if (accessDetails) accessDetails.open = true;
+    return false;
+  }
+
+  async function handleGetPermanent(){
+    if (!requireToken(editorStatusEl)) return;
+    const payload = getEditorPayload();
+    if (!payload) return;
+    await createOrUpdateLink(Object.assign({}, payload, { permanent: true, expiresAt: 0 }));
+  }
+
+  function handleGetTemporary(){
+    if (!requireToken(editorStatusEl)) return;
+    const payload = getEditorPayload();
+    if (!payload) return;
+    openTemporaryModal(payload);
+  }
+
+  function unitToSeconds(unit){
+    switch (String(unit || '').toLowerCase()) {
+      case 'minutes':
+        return 60;
+      case 'hours':
+        return 60 * 60;
+      case 'days':
+        return 60 * 60 * 24;
+      case 'weeks':
+        return 60 * 60 * 24 * 7;
+      default:
+        return 0;
+    }
+  }
+
+  function setTemporaryBusy(isBusy){
+    const busy = !!isBusy;
+    const controls = [
+      temporaryValueInput,
+      temporaryUnitSelect,
+      temporaryCancel,
+      temporaryModalClose
+    ];
+    if (temporaryForm) {
+      const submitButton = temporaryForm.querySelector('button[type="submit"]');
+      if (submitButton) controls.push(submitButton);
+    }
+    controls.forEach(control => {
+      if (!control) return;
+      control.disabled = busy;
+    });
+  }
+
+  async function submitTemporary(event){
     event.preventDefault();
-    const slug = normalizeSlugInput(slugInput.value);
-    const destination = normalizeDestinationForSave(destinationInput.value);
-    const permanent = !!permanentInput.checked;
-
-    if (!slug) {
-      setStatus(editorStatusEl, 'Slug is required.', 'error');
-      return;
-    }
-    if (!destination) {
-      setStatus(editorStatusEl, 'Destination is required.', 'error');
+    if (!requireToken(temporaryStatusEl)) return;
+    if (!pendingTemporaryPayload) {
+      setStatus(temporaryStatusEl, 'Missing link details. Close this dialog and try again.', 'error');
       return;
     }
 
-    setStatus(editorStatusEl, 'Saving…');
+    const rawValue = temporaryValueInput ? Number(temporaryValueInput.value) : NaN;
+    const value = Number.isFinite(rawValue) ? Math.floor(rawValue) : NaN;
+    if (!Number.isFinite(value) || value <= 0) {
+      setStatus(temporaryStatusEl, 'Enter a duration greater than 0.', 'error');
+      return;
+    }
+
+    const unit = temporaryUnitSelect ? String(temporaryUnitSelect.value) : '';
+    const unitSeconds = unitToSeconds(unit);
+    if (!unitSeconds) {
+      setStatus(temporaryStatusEl, 'Select a valid duration unit.', 'error');
+      return;
+    }
+
+    const seconds = value * unitSeconds;
+    const maxSeconds = 60 * 60 * 24 * 366;
+    if (!Number.isFinite(seconds) || seconds > maxSeconds) {
+      setStatus(temporaryStatusEl, 'Duration too long (max 1 year).', 'error');
+      return;
+    }
+
+    const expiresAt = Math.floor(Date.now() / 1000) + seconds;
+    setTemporaryBusy(true);
     try {
-      await api('/api/short-links', {
-        method: 'POST',
-        body: JSON.stringify({ slug, destination, permanent })
-      });
-      setStatus(editorStatusEl, `Saved ${buildPublicPath(slug)}`, 'success');
-      await refreshLinks();
-    } catch (err) {
-      setStatus(editorStatusEl, err.message, 'error');
+      const shortUrl = await createOrUpdateLink(Object.assign({}, pendingTemporaryPayload, {
+        permanent: false,
+        expiresAt,
+        statusEl: temporaryStatusEl
+      }));
+      if (shortUrl) closeTemporaryModal();
+    } finally {
+      setTemporaryBusy(false);
     }
+  }
+
+  if (getPermanentButton) {
+    getPermanentButton.addEventListener('click', () => {
+      void handleGetPermanent();
+    });
+  }
+
+  if (getTemporaryButton) {
+    getTemporaryButton.addEventListener('click', () => {
+      handleGetTemporary();
+    });
+  }
+
+  editorForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    void handleGetPermanent();
   });
+
+  if (temporaryForm) {
+    temporaryForm.addEventListener('submit', submitTemporary);
+  }
 
   updateAccessMeta();
   if (getSavedToken()) {
