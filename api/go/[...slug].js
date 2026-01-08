@@ -4,7 +4,8 @@
 */
 'use strict';
 
-const { getLink, incrementClicks } = require('../_lib/short-links-store');
+const crypto = require('crypto');
+const { getLink, incrementClicks, recordClick } = require('../_lib/short-links-store');
 const { normalizeSlug, getRequestBaseUrl } = require('../_lib/short-links');
 
 function isShortDomainHost(req){
@@ -91,9 +92,48 @@ module.exports = async (req, res) => {
     finalUrl = destination;
   }
 
-  try {
-    await incrementClicks(slug);
-  } catch {}
+  if (req.method === 'GET') {
+    const now = new Date();
+    const clickId = `${now.toISOString()}#${crypto.randomBytes(4).toString('hex')}`;
+    const hostHeader = req.headers && req.headers.host ? String(req.headers.host) : '';
+    const referer = (req.headers && (req.headers.referer || req.headers.referrer))
+      ? String(req.headers.referer || req.headers.referrer)
+      : '';
+    const userAgent = (req.headers && req.headers['user-agent']) ? String(req.headers['user-agent']) : '';
+    const country = (req.headers && req.headers['x-vercel-ip-country']) ? String(req.headers['x-vercel-ip-country']) : '';
+    const region = (req.headers && req.headers['x-vercel-ip-country-region']) ? String(req.headers['x-vercel-ip-country-region']) : '';
+    const city = (req.headers && req.headers['x-vercel-ip-city']) ? String(req.headers['x-vercel-ip-city']) : '';
+
+    const clickEvent = {
+      slug,
+      clickId,
+      clickedAt: now.toISOString(),
+      destination: finalUrl,
+      statusCode: link.permanent ? 301 : 302,
+      host: hostHeader.split(':')[0].trim(),
+      referer,
+      userAgent,
+      country,
+      region,
+      city
+    };
+
+    try {
+      const results = await Promise.allSettled([
+        incrementClicks(slug),
+        recordClick(clickEvent)
+      ]);
+      const clickResult = results[1];
+      if (clickResult && clickResult.status === 'rejected') {
+        const reason = clickResult.reason || {};
+        console.warn('Shortlinks click log failed', {
+          slug,
+          name: reason.name || '',
+          message: reason.message || ''
+        });
+      }
+    } catch {}
+  }
 
   res.statusCode = link.permanent ? 301 : 302;
   res.setHeader('Location', finalUrl);
