@@ -35,6 +35,11 @@
   const logoSizeValue = $('#qrtool-logo-size-value');
   const logoPaddingInput = $('#qrtool-logo-padding');
   const logoPaddingValue = $('#qrtool-logo-padding-value');
+  const logoShapeSelect = $('#qrtool-logo-shape');
+  const logoPlateStyleSelect = $('#qrtool-logo-plate-style');
+  const logoPlateColorInput = $('#qrtool-logo-plate-color');
+  const logoPlateColorLabel = $('#qrtool-logo-plate-color-label');
+  const logoOutlineInput = $('#qrtool-logo-outline');
 
   const filenameInput = $('#qrtool-filename');
   const pngSizeSelect = $('#qrtool-png-size');
@@ -64,6 +69,10 @@
     logoDataUrl: null,
     logoSizePct: 20,
     logoPaddingPct: 12,
+    logoShape: 'rounded',
+    logoPlateStyle: 'auto',
+    logoPlateColor: '#FFFFFF',
+    logoOutline: true,
   });
 
   const TEMPLATES = Object.freeze({
@@ -155,6 +164,17 @@
   };
 
   const rgbToCss = ({ r, g, b }) => `rgb(${r} ${g} ${b})`;
+
+  const rgbToHex = ({ r, g, b }) => `#${[r, g, b]
+    .map((v) => clamp(Math.round(v), 0, 255).toString(16).padStart(2, '0'))
+    .join('')
+    .toUpperCase()}`;
+
+  const mixRgb = (a, b, t) => ({
+    r: Math.round(a.r + (b.r - a.r) * t),
+    g: Math.round(a.g + (b.g - a.g) * t),
+    b: Math.round(a.b + (b.b - a.b) * t),
+  });
 
   const srgbToLinear = (c) => {
     const v = c / 255;
@@ -248,6 +268,32 @@
     targetCtx.closePath();
   };
 
+  const pointInRoundedRect = (x, y, rectX, rectY, rectW, rectH, r) => {
+    if (x < rectX || x > rectX + rectW || y < rectY || y > rectY + rectH) return false;
+    const radius = clamp(r, 0, Math.min(rectW, rectH) / 2);
+    if (!radius) return true;
+
+    const innerX0 = rectX + radius;
+    const innerX1 = rectX + rectW - radius;
+    const innerY0 = rectY + radius;
+    const innerY1 = rectY + rectH - radius;
+
+    if (x >= innerX0 && x <= innerX1) return true;
+    if (y >= innerY0 && y <= innerY1) return true;
+
+    const cx = x < innerX0 ? innerX0 : innerX1;
+    const cy = y < innerY0 ? innerY0 : innerY1;
+    const dx = x - cx;
+    const dy = y - cy;
+    return dx * dx + dy * dy <= radius * radius;
+  };
+
+  const pointInCircle = (x, y, cx, cy, r) => {
+    const dx = x - cx;
+    const dy = y - cy;
+    return dx * dx + dy * dy <= r * r;
+  };
+
   const drawFinderPattern = (targetCtx, x, y, moduleSize, cornerStyle, fgCss, bgCss) => {
     const outer = moduleSize * 7;
     const mid = moduleSize * 5;
@@ -322,6 +368,57 @@
 
     const drawBackground = transparent ? '#FFFFFF' : bgCss;
 
+    const logoShape = options.logoShape || 'rounded';
+    const logoOutline = options.logoOutline !== false;
+    const logoPlateStyle = options.logoPlateStyle || 'auto';
+    const logoPlateHex = (() => {
+      const base = transparent ? '#FFFFFF' : options.bg;
+      if (logoPlateStyle === 'white') return '#FFFFFF';
+      if (logoPlateStyle === 'custom' && options.logoPlateColor) return options.logoPlateColor;
+      return base;
+    })();
+    const logoPlateRgb = hexToRgb(logoPlateHex);
+    const logoPlateCss = rgbToCss(logoPlateRgb);
+    const logoOutlineCss = rgbToCss(mixRgb(logoPlateRgb, fgRgb, 0.18));
+
+    let logoBox = null;
+    let inLogoCutout = null;
+    if (options.logoImage) {
+      const { sizeModules, paddingModules } = computeLogoBox(moduleCount, options.logoSizePct, options.logoPaddingPct);
+      const plateModules = sizeModules + paddingModules * 2;
+      const logoStart = Math.floor((moduleCount - plateModules) / 2);
+      const plateRadiusModules = logoShape === 'circle' ? plateModules / 2 : (logoShape === 'rounded' ? 2.1 : 0);
+      const cutoutBleed = 0.6;
+      const cutoutX = logoStart - cutoutBleed;
+      const cutoutY = logoStart - cutoutBleed;
+      const cutoutSize = plateModules + cutoutBleed * 2;
+      const cutoutRadius = plateRadiusModules + cutoutBleed;
+      const center = logoStart + plateModules / 2;
+
+      inLogoCutout = (row, col) => {
+        const cx = col + 0.5;
+        const cy = row + 0.5;
+        if (logoShape === 'circle') return pointInCircle(cx, cy, center, center, cutoutRadius);
+        return pointInRoundedRect(cx, cy, cutoutX, cutoutY, cutoutSize, cutoutSize, cutoutRadius);
+      };
+
+      const plateX = qrOrigin + logoStart * moduleSize;
+      const plateY = qrOrigin + logoStart * moduleSize;
+      const plateSize = plateModules * moduleSize;
+      const plateRadiusPx = logoShape === 'circle'
+        ? plateSize / 2
+        : (logoShape === 'rounded' ? moduleSize * 2.1 : 0);
+
+      logoBox = {
+        sizeModules,
+        paddingModules,
+        plateX,
+        plateY,
+        plateSize,
+        plateRadiusPx,
+      };
+    }
+
     targetCtx.imageSmoothingEnabled = false;
 
     const drawSquareModules = () => {
@@ -333,7 +430,10 @@
         let runStart = -1;
         for (let col = 0; col <= moduleCount; col++) {
           const idx = row * moduleCount + col;
-          const isDark = col < moduleCount && darkModules[idx] === 1 && !isFinderArea(row, col, moduleCount);
+          const isDark = col < moduleCount
+            && darkModules[idx] === 1
+            && !isFinderArea(row, col, moduleCount)
+            && !(inLogoCutout && inLogoCutout(row, col));
           if (isDark) {
             if (runStart === -1) runStart = col;
             continue;
@@ -364,6 +464,7 @@
       for (let row = 0; row < moduleCount; row++) {
         for (let col = 0; col < moduleCount; col++) {
           if (isFinderArea(row, col, moduleCount)) continue;
+          if (inLogoCutout && inLogoCutout(row, col)) continue;
           const idx = row * moduleCount + col;
           if (darkModules[idx] !== 1) continue;
           const x = qrOrigin + col * moduleSize;
@@ -392,19 +493,34 @@
       drawFinderPattern(targetCtx, x, y, moduleSize, options.cornerStyle, fgCss, drawBackground);
     });
 
-    if (options.logoImage) {
-      const { sizeModules, paddingModules } = computeLogoBox(moduleCount, options.logoSizePct, options.logoPaddingPct);
-      const logoPlateModules = sizeModules + paddingModules * 2;
-      const logoStart = Math.floor((moduleCount - logoPlateModules) / 2);
-      const plateX = qrOrigin + logoStart * moduleSize;
-      const plateY = qrOrigin + logoStart * moduleSize;
-      const plateSize = logoPlateModules * moduleSize;
+    if (options.logoImage && logoBox) {
+      const { sizeModules, paddingModules, plateX, plateY, plateSize, plateRadiusPx } = logoBox;
+      const borderPx = clamp(moduleSize * 0.65, 2, plateSize * 0.08);
 
-      const plateRadius = moduleSize * 2.1;
-      targetCtx.fillStyle = drawBackground;
-      targetCtx.beginPath();
-      pathRoundedRect(targetCtx, plateX, plateY, plateSize, plateSize, plateRadius);
-      targetCtx.fill();
+      const paintPlate = (fillCss, insetPx) => {
+        const x = plateX + insetPx;
+        const y = plateY + insetPx;
+        const size = plateSize - insetPx * 2;
+        if (size <= 0) return;
+        targetCtx.fillStyle = fillCss;
+        targetCtx.beginPath();
+        if (logoShape === 'circle') {
+          const cx = x + size / 2;
+          const cy = y + size / 2;
+          targetCtx.arc(cx, cy, size / 2, 0, Math.PI * 2);
+        } else {
+          const r = clamp(plateRadiusPx - insetPx, 0, size / 2);
+          pathRoundedRect(targetCtx, x, y, size, size, r);
+        }
+        targetCtx.fill();
+      };
+
+      if (logoOutline && borderPx > 0) {
+        paintPlate(logoOutlineCss, 0);
+        paintPlate(logoPlateCss, borderPx);
+      } else {
+        paintPlate(logoPlateCss, 0);
+      }
 
       const logoSizePx = sizeModules * moduleSize;
       const logoX = plateX + paddingModules * moduleSize;
@@ -470,7 +586,18 @@
     const bg = normalizeHex(options.bg);
     const transparent = !!options.transparent;
     const bgFill = transparent ? 'none' : bg;
-    const plateBg = transparent ? '#FFFFFF' : bg;
+    const finderBg = transparent ? '#FFFFFF' : bg;
+
+    const logoShape = options.logoShape || 'rounded';
+    const logoOutline = options.logoOutline !== false;
+    const logoPlateStyle = options.logoPlateStyle || 'auto';
+    const logoPlateBg = (() => {
+      const base = finderBg;
+      if (logoPlateStyle === 'white') return '#FFFFFF';
+      if (logoPlateStyle === 'custom' && options.logoPlateColor) return normalizeHex(options.logoPlateColor);
+      return base;
+    })();
+    const logoOutlineBg = rgbToHex(mixRgb(hexToRgb(logoPlateBg), hexToRgb(fg), 0.18));
 
     const parts = [];
     parts.push('<?xml version="1.0" encoding="UTF-8"?>');
@@ -546,7 +673,7 @@
 
     finderPositions.forEach(({ x, y }) => {
       parts.push(`<path d="${svgRoundedRect(x, y, 7, 7, outerR)}" fill="${fg}"/>`);
-      parts.push(`<path d="${svgRoundedRect(x + 1, y + 1, 5, 5, midR)}" fill="${plateBg}"/>`);
+      parts.push(`<path d="${svgRoundedRect(x + 1, y + 1, 5, 5, midR)}" fill="${finderBg}"/>`);
       parts.push(`<path d="${svgRoundedRect(x + 2, y + 2, 3, 3, innerR)}" fill="${fg}"/>`);
     });
 
@@ -554,8 +681,32 @@
       const { sizeModules, paddingModules } = computeLogoBox(moduleCount, options.logoSizePct, options.logoPaddingPct);
       const plateModules = sizeModules + paddingModules * 2;
       const start = quiet + Math.floor((moduleCount - plateModules) / 2);
-      const plateR = 2.1;
-      parts.push(`<path d="${svgRoundedRect(start, start, plateModules, plateModules, plateR)}" fill="${plateBg}"/>`);
+      const borderModules = clamp(0.65, 0.35, plateModules * 0.08);
+      const outerR = logoShape === 'circle' ? plateModules / 2 : (logoShape === 'rounded' ? 2.1 : 0);
+
+      if (logoOutline && borderModules > 0) {
+        if (logoShape === 'circle') {
+          const cx = start + plateModules / 2;
+          parts.push(`<circle cx="${cx}" cy="${cx}" r="${(plateModules / 2).toFixed(4)}" fill="${logoOutlineBg}"/>`);
+          const innerR = plateModules / 2 - borderModules;
+          if (innerR > 0) {
+            parts.push(`<circle cx="${cx}" cy="${cx}" r="${innerR.toFixed(4)}" fill="${logoPlateBg}"/>`);
+          }
+        } else {
+          parts.push(`<path d="${svgRoundedRect(start, start, plateModules, plateModules, outerR)}" fill="${logoOutlineBg}"/>`);
+          const innerSize = plateModules - borderModules * 2;
+          if (innerSize > 0) {
+            const innerR = clamp(outerR - borderModules, 0, innerSize / 2);
+            const innerStart = start + borderModules;
+            parts.push(`<path d="${svgRoundedRect(innerStart, innerStart, innerSize, innerSize, innerR)}" fill="${logoPlateBg}"/>`);
+          }
+        }
+      } else if (logoShape === 'circle') {
+        const cx = start + plateModules / 2;
+        parts.push(`<circle cx="${cx}" cy="${cx}" r="${(plateModules / 2).toFixed(4)}" fill="${logoPlateBg}"/>`);
+      } else {
+        parts.push(`<path d="${svgRoundedRect(start, start, plateModules, plateModules, outerR)}" fill="${logoPlateBg}"/>`);
+      }
 
       const logoX = start + paddingModules;
       const logoSize = sizeModules;
@@ -648,11 +799,27 @@
     const pagePt = clamp(pdfSizePt, 72 * 0.5, 72 * 20);
     const cell = pagePt / totalModules;
 
-    const fg = pdfColor(options.fg);
-    const bg = pdfColor(options.bg);
+    const fgHex = normalizeHex(options.fg);
+    const bgHex = normalizeHex(options.bg);
+    const fg = pdfColor(fgHex);
+    const bg = pdfColor(bgHex);
     const transparent = !!options.transparent;
-    const plateBgHex = transparent ? '#FFFFFF' : options.bg;
-    const plateBg = pdfColor(plateBgHex);
+
+    const finderBgHex = transparent ? '#FFFFFF' : bgHex;
+    const finderBg = pdfColor(finderBgHex);
+
+    const logoShape = options.logoShape || 'rounded';
+    const logoOutline = options.logoOutline !== false;
+    const logoPlateStyle = options.logoPlateStyle || 'auto';
+    const logoPlateBgHex = (() => {
+      const base = finderBgHex;
+      if (logoPlateStyle === 'white') return '#FFFFFF';
+      if (logoPlateStyle === 'custom' && options.logoPlateColor) return normalizeHex(options.logoPlateColor);
+      return base;
+    })();
+    const logoPlateBg = pdfColor(logoPlateBgHex);
+    const logoOutlineBgHex = rgbToHex(mixRgb(hexToRgb(logoPlateBgHex), hexToRgb(fgHex), 0.18));
+    const logoOutlineBg = pdfColor(logoOutlineBgHex);
 
     const resources = [];
     let imgObj = null;
@@ -666,7 +833,7 @@
       tmp.height = 512;
       const tctx = tmp.getContext('2d');
       if (tctx) {
-        tctx.fillStyle = normalizeHex(plateBgHex);
+        tctx.fillStyle = normalizeHex(logoPlateBgHex);
         tctx.fillRect(0, 0, tmp.width, tmp.height);
         tctx.imageSmoothingEnabled = true;
         tctx.imageSmoothingQuality = 'high';
@@ -773,7 +940,7 @@
       content.push(pdfRoundedRectPath(x, y, outerSize, outerSize, outerR));
       content.push('f');
 
-      content.push(`${plateBg.r} ${plateBg.g} ${plateBg.b} rg`);
+      content.push(`${finderBg.r} ${finderBg.g} ${finderBg.b} rg`);
       content.push(pdfRoundedRectPath(x + cell, y + cell, midSize, midSize, midR));
       content.push('f');
 
@@ -789,11 +956,38 @@
       const x = moduleToPdfX(start);
       const y = moduleToPdfY(start + plateModules - 1);
       const plateSize = plateModules * cell;
-      const plateRadius = cell * 2.1;
+      const borderPt = clamp(cell * 0.65, cell * 0.35, plateSize * 0.08);
 
-      content.push(`${plateBg.r} ${plateBg.g} ${plateBg.b} rg`);
-      content.push(pdfRoundedRectPath(x, y, plateSize, plateSize, plateRadius));
-      content.push('f');
+      const paintPlate = (plateColor, insetPt, paintShape) => {
+        const inset = insetPt || 0;
+        const size = plateSize - inset * 2;
+        if (size <= 0) return;
+        content.push(`${plateColor.r} ${plateColor.g} ${plateColor.b} rg`);
+        paintShape(x + inset, y + inset, size);
+        content.push('f');
+      };
+
+      if (logoShape === 'circle') {
+        const cx = x + plateSize / 2;
+        const cy = y + plateSize / 2;
+        if (logoOutline && borderPt > 0) {
+          paintPlate(logoOutlineBg, 0, (_x, _y, size) => content.push(pdfCirclePath(cx, cy, size / 2)));
+          paintPlate(logoPlateBg, borderPt, (_x, _y, size) => content.push(pdfCirclePath(cx, cy, size / 2)));
+        } else {
+          paintPlate(logoPlateBg, 0, (_x, _y, size) => content.push(pdfCirclePath(cx, cy, size / 2)));
+        }
+      } else {
+        const outerR = logoShape === 'rounded' ? cell * 2.1 : 0;
+        if (logoOutline && borderPt > 0) {
+          paintPlate(logoOutlineBg, 0, (_x, _y, size) => content.push(pdfRoundedRectPath(_x, _y, size, size, outerR)));
+          paintPlate(logoPlateBg, borderPt, (_x, _y, size) => {
+            const innerR = clamp(outerR - borderPt, 0, size / 2);
+            content.push(pdfRoundedRectPath(_x, _y, size, size, innerR));
+          });
+        } else {
+          paintPlate(logoPlateBg, 0, (_x, _y, size) => content.push(pdfRoundedRectPath(_x, _y, size, size, outerR)));
+        }
+      }
 
       if (imgBytes && imgBytes.length) {
         const logoX = moduleToPdfX(start + paddingModules);
@@ -903,6 +1097,12 @@
     logoPaddingInput.value = String(state.logoPaddingPct);
     logoPaddingValue.textContent = `${state.logoPaddingPct}%`;
 
+    logoShapeSelect.value = state.logoShape;
+    logoPlateStyleSelect.value = state.logoPlateStyle;
+    logoPlateColorInput.value = state.logoPlateColor.toLowerCase();
+    logoPlateColorLabel.textContent = normalizeHex(state.logoPlateColor);
+    logoOutlineInput.checked = state.logoOutline;
+
     if (state.logoDataUrl && state.logoImage && logoPreview) {
       logoPreview.src = state.logoDataUrl;
       logoPreviewWrap?.classList.remove('hide');
@@ -910,12 +1110,20 @@
       logoRemoveBtn.disabled = false;
       logoSizeInput.disabled = false;
       logoPaddingInput.disabled = false;
+      logoShapeSelect.disabled = false;
+      logoPlateStyleSelect.disabled = false;
+      logoOutlineInput.disabled = false;
+      logoPlateColorInput.disabled = state.logoPlateStyle !== 'custom';
     } else {
       logoPreviewWrap?.classList.add('hide');
       logoPreviewWrap?.setAttribute('aria-hidden', 'true');
       logoRemoveBtn.disabled = true;
       logoSizeInput.disabled = true;
       logoPaddingInput.disabled = true;
+      logoShapeSelect.disabled = true;
+      logoPlateStyleSelect.disabled = true;
+      logoPlateColorInput.disabled = true;
+      logoOutlineInput.disabled = true;
     }
   };
 
@@ -1003,6 +1211,10 @@
       logoDataUrl: state.logoDataUrl,
       logoSizePct: state.logoSizePct,
       logoPaddingPct: state.logoPaddingPct,
+      logoShape: state.logoShape,
+      logoPlateStyle: state.logoPlateStyle,
+      logoPlateColor: state.logoPlateColor,
+      logoOutline: state.logoOutline,
     });
 
     downloadPngBtn.disabled = false;
@@ -1052,6 +1264,18 @@
     logoSizeValue.textContent = `${state.logoSizePct}%`;
     state.logoPaddingPct = clamp(toInt(logoPaddingInput.value, DEFAULTS.logoPaddingPct), 6, 22);
     logoPaddingValue.textContent = `${state.logoPaddingPct}%`;
+
+    const shape = logoShapeSelect.value;
+    state.logoShape = ['rounded', 'square', 'circle'].includes(shape) ? shape : DEFAULTS.logoShape;
+
+    const plateStyle = logoPlateStyleSelect.value;
+    state.logoPlateStyle = ['auto', 'white', 'custom'].includes(plateStyle) ? plateStyle : DEFAULTS.logoPlateStyle;
+
+    state.logoPlateColor = normalizeHex(logoPlateColorInput.value);
+    logoPlateColorLabel.textContent = normalizeHex(state.logoPlateColor);
+    state.logoOutline = !!logoOutlineInput.checked;
+
+    logoPlateColorInput.disabled = !state.logoImage || state.logoPlateStyle !== 'custom';
   };
 
   const clearLogo = () => {
@@ -1099,6 +1323,10 @@
     transparentInput,
     logoSizeInput,
     logoPaddingInput,
+    logoShapeSelect,
+    logoPlateStyleSelect,
+    logoPlateColorInput,
+    logoOutlineInput,
   ].forEach((el) => {
     el.addEventListener('input', () => {
       readStateFromControls();
@@ -1157,6 +1385,10 @@
       logoDataUrl: state.logoDataUrl,
       logoSizePct: state.logoSizePct,
       logoPaddingPct: state.logoPaddingPct,
+      logoShape: state.logoShape,
+      logoPlateStyle: state.logoPlateStyle,
+      logoPlateColor: state.logoPlateColor,
+      logoOutline: state.logoOutline,
     });
     outCanvas.toBlob((blob) => {
       if (!blob) return;
@@ -1179,6 +1411,10 @@
       logoImage: state.logoImage,
       logoSizePct: state.logoSizePct,
       logoPaddingPct: state.logoPaddingPct,
+      logoShape: state.logoShape,
+      logoPlateStyle: state.logoPlateStyle,
+      logoPlateColor: state.logoPlateColor,
+      logoOutline: state.logoOutline,
     }, size);
     downloadBlob(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }), `${fileNameSafe(filenameInput.value)}.svg`);
   });
@@ -1199,6 +1435,10 @@
       logoDataUrl: state.logoDataUrl,
       logoSizePct: state.logoSizePct,
       logoPaddingPct: state.logoPaddingPct,
+      logoShape: state.logoShape,
+      logoPlateStyle: state.logoPlateStyle,
+      logoPlateColor: state.logoPlateColor,
+      logoOutline: state.logoOutline,
     }, pt);
     downloadBlob(new Blob([pdfBytes], { type: 'application/pdf' }), `${fileNameSafe(filenameInput.value)}.pdf`);
   });
