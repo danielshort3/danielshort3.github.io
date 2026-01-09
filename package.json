@@ -12,7 +12,7 @@
     "build:models": "npm run build:pizza-tips-model",
     "build:projects": "node build/generate-project-pages.js",
     "build:shortlinks-destinations": "node build/generate-shortlinks-destinations.js",
-    "build": "npm run build:css && npm run build:utm-batch-builder && npm run build:models && npm run build:projects && npm run build:shortlinks-destinations && node build/copy-to-public.js"
+    "build": "node build/build-site.js"
   },
   "engines": {
     "node": ">=18"
