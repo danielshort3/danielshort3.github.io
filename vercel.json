@@ -52,6 +52,9 @@
     { "source": "/tools/nbsp-cleaner","destination": "/pages/nbsp-cleaner" },
     { "source": "/tools/nbsp-cleaner.html","destination": "/pages/nbsp-cleaner" },
 
+    { "source": "/tools/utm-batch-builder","destination": "/pages/utm-batch-builder" },
+    { "source": "/tools/utm-batch-builder.html","destination": "/pages/utm-batch-builder" },
+
     { "source": "/games/stellar-dogfight", "destination": "/demos/stellar-dogfight-demo" },
     { "source": "/games/stellar-dogfight.html", "destination": "/demos/stellar-dogfight-demo" },
     { "source": "/games/slot-machine", "destination": "/demos/slot-machine-demo" },

@@ -2,6 +2,7 @@
 const fs = require('fs');
 const vm = require('vm');
 const runSlotDemoTests = require('./tests/slot-machine-demo.test.js');
+const runUtmBatchBuilderTests = require('./tests/utm-batch-builder.test.js');
 
 // Assert helper
 let assertCount = 0;
@@ -88,18 +89,19 @@ try {
     checkFileContains('pages/ocean-wave-simulation.html', '<title>Ocean Wave Simulation | Daniel Short');
     checkFileContains('pages/qr-code-generator.html', '<title>QR Code Generator | Daniel Short');
     checkFileContains('pages/image-optimizer.html', '<title>Image Optimizer | Daniel Short');
+    checkFileContains('pages/utm-batch-builder.html', '<title>UTM Batch Builder | Daniel Short');
     ['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html'].forEach(f => {
       checkFileContains(f, 'js/common/common.js');
       checkFileContains(f, 'class="skip-link"');
       checkFileContains(f, '<main id="main">');
     });
-    ['pages/tools.html','pages/games.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/screen-recorder.html','pages/job-application-tracker.html','pages/short-links.html'].forEach(f => {
+    ['pages/tools.html','pages/games.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/screen-recorder.html','pages/job-application-tracker.html','pages/short-links.html','pages/utm-batch-builder.html'].forEach(f => {
       checkFileContains(f, 'js/common/common.js');
       checkFileContains(f, 'class="skip-link"');
       checkFileContains(f, '<main id="main">');
       checkFileContains(f, 'noindex, nofollow');
     });
-    ['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/tools.html','pages/games.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','404.html'].forEach(f => {
+    ['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/tools.html','pages/games.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/utm-batch-builder.html','404.html'].forEach(f => {
       checkFileContains(f, 'og:image');
     });
     assert(fs.existsSync('robots.txt'), 'robots.txt missing');
@@ -121,7 +123,7 @@ try {
     const commonCode = fs.readFileSync('js/common/common.js', 'utf8');
     assert(commonCode.includes('js/portfolio/projects-data.js'), 'common.js missing portfolio lazy loader');
 
-    const htmlFiles = ['index.html','contact.html','resume.html','resume-pdf.html','privacy.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','pages/resume-pdf.html','pages/privacy.html','pages/short-links.html'];
+    const htmlFiles = ['index.html','contact.html','resume.html','resume-pdf.html','privacy.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','pages/resume-pdf.html','pages/privacy.html','pages/short-links.html','pages/utm-batch-builder.html'];
     htmlFiles.forEach(file => {
       const content = fs.readFileSync(file, 'utf8');
       assert(!content.includes('js/analytics/ga4-events.js'), `${file} should load analytics helpers on demand`);
@@ -574,6 +576,10 @@ try {
 
   section('Slot machine demo', () => {
     runSlotDemoTests({ assert, checkFileContains });
+  });
+
+  section('UTM Batch Builder core', () => {
+    runUtmBatchBuilderTests({ assert });
   });
 
   console.log(`\nAll tests passed. Total checks: ${assertCount}`);
