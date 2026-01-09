@@ -28,6 +28,57 @@
     padding:clamp(2.8rem,6vh,3.6rem) 0;
   }
 
+  .tools-nav{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    margin-bottom:clamp(1.6rem,4vw,2.2rem);
+  }
+  .tools-nav-link{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:10px 14px;
+    border-radius:999px;
+    border:1px solid color-mix(in srgb,var(--primary) 20%, transparent);
+    background:color-mix(in srgb,var(--surface) 90%, #000 10%);
+    color:color-mix(in srgb,var(--text-light) 92%, #ffffff 8%);
+    font-weight:600;
+    font-size:.95rem;
+    letter-spacing:.01em;
+    text-decoration:none;
+    transition:transform .2s ease, background .2s ease, border-color .2s ease;
+  }
+  .tools-nav-link:hover{
+    transform:translateY(-1px);
+    background:color-mix(in srgb,var(--primary) 14%, transparent);
+    border-color:color-mix(in srgb,var(--primary) 40%, transparent);
+  }
+
+  .tools-category{
+    scroll-margin-top:calc(var(--nav-height,72px) + 18px);
+  }
+  .tools-category + .tools-category{
+    margin-top:clamp(2rem,6vh,2.8rem);
+    padding-top:clamp(1.8rem,5vh,2.4rem);
+    border-top:1px solid color-mix(in srgb,var(--primary) 14%, transparent);
+  }
+  .tools-category-head{
+    display:grid;
+    gap:10px;
+    margin-bottom:16px;
+    max-width:74ch;
+  }
+  .tools-category-head .section-title{
+    margin:0;
+  }
+  .tools-category-head p{
+    margin:0;
+    color:var(--text-muted);
+    font-size:1.02rem;
+    line-height:1.7;
+  }
+
   .tools-grid{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
@@ -49,7 +100,7 @@
     transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
   }
   .tool-card:hover,
-  .tool-card:focus-visible{
+  .tool-card:focus-within{
     transform:translateY(-2px);
     box-shadow:0 20px 42px rgba(0,0,0,.35);
     border-color:color-mix(in srgb,var(--primary) 36%, transparent);
@@ -137,5 +188,20 @@
     color:color-mix(in srgb,var(--text-light) 92%, #ffffff 8%);
     font-size:.9rem;
     letter-spacing:.01em;
+  }
+  .tool-pill-local{
+    background:color-mix(in srgb,var(--success) 12%, var(--surface) 88%);
+    border-color:color-mix(in srgb,var(--success) 45%, transparent);
+    color:color-mix(in srgb,var(--text-light) 92%, var(--success) 8%);
+  }
+  .tool-pill-cloud{
+    background:color-mix(in srgb,var(--warning) 12%, var(--surface) 88%);
+    border-color:color-mix(in srgb,var(--warning) 45%, transparent);
+    color:color-mix(in srgb,var(--text-light) 92%, var(--warning) 8%);
+  }
+  .tool-pill-admin{
+    background:color-mix(in srgb,var(--danger) 12%, var(--surface) 88%);
+    border-color:color-mix(in srgb,var(--danger) 45%, transparent);
+    color:color-mix(in srgb,var(--text-light) 92%, var(--danger) 8%);
   }
 }
