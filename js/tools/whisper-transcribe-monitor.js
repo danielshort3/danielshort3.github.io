@@ -4,7 +4,11 @@
   const DEFAULT_ENDPOINT = 'https://coxbbervgzwhm5tu53dutxwfca0vxdkg.lambda-url.us-east-2.on.aws/';
   const STORAGE_ENDPOINT = 'tool.whisperTranscribe.endpoint';
   const STORAGE_LIMIT = 'tool.whisperTranscribe.concurrencyLimit';
+  const STORAGE_WARMUP_AT = 'tool.whisperTranscribe.lastWarmupAt';
+  const STORAGE_WARMUP_BASE = 'tool.whisperTranscribe.lastWarmupBase';
   const DEFAULT_MAX_BYTES = 5 * 1024 * 1024;
+  const WARMUP_MIN_INTERVAL_MS = 10 * 60 * 1000;
+  const WARMUP_AUDIO_MS = 250;
 
   const $id = (id) => document.getElementById(id);
   const endpointEl = $id('whispermon-endpoint');
@@ -12,6 +16,7 @@
   const checkBtn = $id('whispermon-check');
   const saveBtn = $id('whispermon-save');
   const endpointStatusEl = $id('whispermon-endpoint-status');
+  const healthPillEl = $id('whispermon-health-pill');
   const fileEl = $id('whispermon-file');
   const audioMetaEl = $id('whispermon-audio-meta');
 
@@ -36,9 +41,15 @@
   const meterMetaEl = $id('whispermon-meter-meta');
   const meterRpsFillEl = $id('whispermon-meter-rps-fill');
   const meterRpsMetaEl = $id('whispermon-meter-rps-meta');
+  const transcriptEl = $id('whispermon-transcript');
+  const copyTranscriptBtn = $id('whispermon-copy-transcript');
+  const transcriptStatusEl = $id('whispermon-transcript-status');
   const logEl = $id('whispermon-log');
 
   if (!endpointEl || !limitEl || !runnerForm || !fileEl) return;
+
+  let serverReady = false;
+  let serverReadyBase = '';
 
   const serverLimits = {
     maxBytes: DEFAULT_MAX_BYTES,
@@ -86,6 +97,37 @@
     el.dataset.tone = tone || '';
   };
 
+  const setHealth = (state, label) => {
+    if (!healthPillEl) return;
+    healthPillEl.dataset.state = state || '';
+    healthPillEl.textContent = label || '';
+  };
+
+  const setServerReadyState = (ready, base) => {
+    serverReady = Boolean(ready);
+    serverReadyBase = serverReady ? (base || serverReadyBase) : '';
+    if (startBtn && !startBtn.classList.contains('is-busy')) {
+      startBtn.disabled = !serverReady;
+    }
+  };
+
+  const readyMessageFromOk = (message) => {
+    const raw = String(message || '').trim();
+    if (!raw) return 'Ready.';
+    return raw.replace(/^OK\b/, 'Ready');
+  };
+
+  const setTranscript = (text) => {
+    const value = (text || '').trim();
+    if (transcriptEl) transcriptEl.value = value;
+    if (copyTranscriptBtn) copyTranscriptBtn.disabled = !value;
+  };
+
+  const clearTranscript = () => {
+    setTranscript('');
+    setStatus(transcriptStatusEl, '', '');
+  };
+
   const clampInt = (value, min, max, fallback) => {
     const parsed = Number.parseInt(String(value || ''), 10);
     if (Number.isNaN(parsed)) return fallback;
@@ -102,6 +144,12 @@
     const num = Number(value);
     if (!Number.isFinite(num)) return '—';
     return num.toFixed(digits).replace(/\.00$/, '');
+  };
+
+  const parseTimestamp = (value) => {
+    const parsed = Number.parseInt(String(value || ''), 10);
+    if (!Number.isFinite(parsed) || parsed <= 0) return null;
+    return parsed;
   };
 
   const percentile = (arr, pct) => {
@@ -148,7 +196,8 @@
     const limit = clampInt(limitEl.value, 1, 200, 10);
     safeSet(STORAGE_ENDPOINT, endpoint);
     safeSet(STORAGE_LIMIT, String(limit));
-    setStatus(endpointStatusEl, 'Saved.', 'success');
+    const needsWarm = !serverReady || !serverReadyBase || endpoint !== serverReadyBase;
+    setStatus(endpointStatusEl, needsWarm ? 'Saved. Check status.' : 'Saved.', needsWarm ? 'warning' : 'success');
   };
 
   let audioState = {
@@ -163,6 +212,7 @@
     if (!file) {
       audioState = { filename: '', mime: 'application/octet-stream', bytes: 0, file: null };
       if (audioMetaEl) audioMetaEl.textContent = 'No media loaded.';
+      clearTranscript();
       return;
     }
     const filename = String(file.name || '').trim() || 'audio.wav';
@@ -173,6 +223,7 @@
       audioMetaEl.textContent = 'Loading media…';
       audioMetaEl.dataset.tone = '';
     }
+    clearTranscript();
 
     try {
       audioState = { filename, mime, bytes, file };
@@ -200,19 +251,36 @@
     }
   };
 
+  const onEndpointInput = () => {
+    const base = normalizeBase(endpointEl.value || '');
+    if (base && base === serverReadyBase) return;
+    setServerReadyState(false, '');
+    if (!base) {
+      setHealth('err', 'No endpoint');
+      setStatus(endpointStatusEl, 'No endpoint configured.', 'error');
+      return;
+    }
+    setHealth('warming', 'Warming AWS');
+    setStatus(endpointStatusEl, 'Endpoint updated — check status.', 'warning');
+  };
+
   const checkStatus = async () => {
-    setStatus(endpointStatusEl, 'Checking…', '');
+    setServerReadyState(false, '');
+    setHealth('warming', 'Warming AWS');
+    setStatus(endpointStatusEl, 'Checking endpoint…', '');
     const base = normalizeBase(endpointEl.value || DEFAULT_ENDPOINT);
     if (!base) {
-      setStatus(endpointStatusEl, 'Enter a Function URL.', 'error');
-      return;
+      setHealth('err', 'No endpoint');
+      setStatus(endpointStatusEl, 'No endpoint configured.', 'error');
+      return { ok: false, base };
     }
     try {
       const res = await requestJson(base, { method: 'GET' });
       if (!res.ok) {
         const msg = res.data?.error || res.data?.message || res.text || `${res.status} ${res.statusText}`;
-        setStatus(endpointStatusEl, `Error: ${msg}`, 'error');
-        return;
+        setHealth('err', 'Unavailable');
+        setStatus(endpointStatusEl, 'Unable to reach AWS Lambda.', 'error');
+        return { ok: false, base, error: msg };
       }
       const model = res.data?.model || res.data?.model_id || res.data?.modelId || 'unknown';
       const maxSec = res.data?.max_audio_seconds ?? res.data?.maxAudioSeconds;
@@ -226,9 +294,115 @@
       const parts = [`OK`, model].filter(Boolean);
       if (detail) parts.push(detail);
       if (bytesDetail) parts.push(bytesDetail);
-      setStatus(endpointStatusEl, parts.join(' • '), 'success');
+      const message = parts.join(' • ');
+      setStatus(endpointStatusEl, message, 'success');
+      return {
+        ok: true,
+        base,
+        message,
+        model,
+        maxSec: Number.isFinite(Number(maxSec)) ? Number(maxSec) : null,
+        maxBytes: Number.isFinite(Number(maxBytes)) ? Number(maxBytes) : null
+      };
     } catch (err) {
-      setStatus(endpointStatusEl, `Error: ${err?.message || 'Request failed.'}`, 'error');
+      setHealth('err', 'Unavailable');
+      setStatus(endpointStatusEl, 'Unable to reach AWS Lambda.', 'error');
+      return { ok: false, base, error: err?.message || 'Request failed.' };
+    }
+  };
+
+  const createSilentWavBlob = (durationMs) => {
+    const sampleRate = 16000;
+    const channels = 1;
+    const bitsPerSample = 16;
+    const bytesPerSample = bitsPerSample / 8;
+    const ms = Math.max(1, Number(durationMs) || 1);
+    const samples = Math.max(1, Math.round(sampleRate * (ms / 1000)));
+    const dataBytes = samples * channels * bytesPerSample;
+    const buffer = new ArrayBuffer(44 + dataBytes);
+    const view = new DataView(buffer);
+
+    const writeAscii = (offset, value) => {
+      for (let i = 0; i < value.length; i += 1) {
+        view.setUint8(offset + i, value.charCodeAt(i) & 0xff);
+      }
+    };
+
+    writeAscii(0, 'RIFF');
+    view.setUint32(4, 36 + dataBytes, true);
+    writeAscii(8, 'WAVE');
+    writeAscii(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, channels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * channels * bytesPerSample, true);
+    view.setUint16(32, channels * bytesPerSample, true);
+    view.setUint16(34, bitsPerSample, true);
+    writeAscii(36, 'data');
+    view.setUint32(40, dataBytes, true);
+
+    return new Blob([buffer], { type: 'audio/wav' });
+  };
+
+  const shouldWarmUp = (base) => {
+    const last = parseTimestamp(safeGet(STORAGE_WARMUP_AT));
+    const lastBase = normalizeBase(safeGet(STORAGE_WARMUP_BASE));
+    if (!last || !lastBase || !base || lastBase !== base) return true;
+    return Date.now() - last >= WARMUP_MIN_INTERVAL_MS;
+  };
+
+  const warmUpServer = async (base, okMessage) => {
+    if (!base) return;
+    if (runState && !runState.stopRequested) return;
+
+    const prefix = okMessage ? `${okMessage} • ` : '';
+    if (!shouldWarmUp(base)) {
+      setHealth('ok', 'Ready');
+      setStatus(endpointStatusEl, readyMessageFromOk(okMessage), 'success');
+      setServerReadyState(true, base);
+      return;
+    }
+
+    setServerReadyState(false, '');
+    setHealth('warming', 'Warming AWS');
+    setStatus(endpointStatusEl, `${prefix}Warming up…`, 'warning');
+
+    const url = joinUrl(base, '/transcribe');
+    const body = createSilentWavBlob(WARMUP_AUDIO_MS);
+    const started = performance.now();
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'audio/wav' },
+        body
+      });
+      const duration = performance.now() - started;
+      if (res.ok) {
+        safeSet(STORAGE_WARMUP_AT, String(Date.now()));
+        safeSet(STORAGE_WARMUP_BASE, base);
+        setHealth('ok', 'Ready');
+        setStatus(endpointStatusEl, `${readyMessageFromOk(okMessage)} • warmed ${formatMs(duration)}`, 'success');
+        setServerReadyState(true, base);
+        return;
+      }
+
+      const text = await res.text();
+      let message = '';
+      if (text) {
+        try {
+          const parsed = JSON.parse(text);
+          message = parsed?.error || parsed?.message || '';
+        } catch {
+          message = '';
+        }
+      }
+      const suffix = message ? ` • ${message}` : '';
+      setHealth('err', 'Unavailable');
+      setStatus(endpointStatusEl, `${prefix}Warm-up failed${suffix}`, 'warning');
+    } catch {
+      setHealth('err', 'Unavailable');
+      setStatus(endpointStatusEl, `${prefix}Warm-up error`, 'warning');
     }
   };
 
@@ -259,8 +433,9 @@
     setStatus(runStatusEl, '', '');
     if (startBtn) startBtn.classList.remove('is-busy');
     if (stopBtn) stopBtn.disabled = true;
-    if (startBtn) startBtn.disabled = false;
+    if (startBtn) startBtn.disabled = !serverReady;
     clearLog();
+    clearTranscript();
     scheduleRender();
   };
 
@@ -322,6 +497,13 @@
     const base = normalizeBase(endpointEl.value || DEFAULT_ENDPOINT);
     if (!base) {
       setStatus(runStatusEl, 'Enter a Function URL.', 'error');
+      return;
+    }
+    if (!serverReady || !serverReadyBase || base !== serverReadyBase) {
+      const message = (serverReadyBase && base !== serverReadyBase)
+        ? 'Endpoint updated — check status first.'
+        : 'Server warming up...';
+      setStatus(runStatusEl, message, 'warning');
       return;
     }
     if (!audioState.file) {
@@ -390,7 +572,7 @@
       const summary = `Done • success ${runState.success}, throttles ${runState.throttles}, errors ${runState.errors}`;
       setStatus(runStatusEl, summary, runState.errors ? 'warning' : 'success');
       if (startBtn) startBtn.classList.remove('is-busy');
-      if (startBtn) startBtn.disabled = false;
+      if (startBtn) startBtn.disabled = !serverReady;
       if (stopBtn) stopBtn.disabled = true;
     };
 
@@ -414,6 +596,22 @@
         if (res.status === 200) {
           runState.success += 1;
           runState.successDurations.push(duration);
+          if (text) {
+            try {
+              const parsed = JSON.parse(text);
+              const transcript = parsed?.transcript;
+              if (typeof transcript === 'string') {
+                setTranscript(transcript);
+                setStatus(
+                  transcriptStatusEl,
+                  transcript.trim() ? 'Transcript updated.' : 'Transcript returned empty.',
+                  transcript.trim() ? 'success' : 'warning'
+                );
+              }
+            } catch {
+              // Ignore non-JSON payloads.
+            }
+          }
           pushLog(`#${idx + 1} 200 ${formatMs(duration)}`, 'success');
         } else if (res.status === 429) {
           runState.throttles += 1;
@@ -471,7 +669,7 @@
     runState.aborters.clear();
     if (stopBtn) stopBtn.disabled = true;
     if (startBtn) startBtn.classList.remove('is-busy');
-    if (startBtn) startBtn.disabled = false;
+    if (startBtn) startBtn.disabled = !serverReady;
     scheduleRender();
   };
 
@@ -484,13 +682,39 @@
     startRun({ total, parallel, path });
   };
 
+  const checkAndWarm = async () => {
+    const status = await checkStatus();
+    if (status && status.ok) await warmUpServer(status.base, status.message);
+  };
+
   loadSavedConfig();
   render();
+  setServerReadyState(false, '');
 
+  if (endpointEl) endpointEl.addEventListener('input', onEndpointInput);
   if (fileEl) fileEl.addEventListener('change', onAudioChange);
-  if (checkBtn) checkBtn.addEventListener('click', checkStatus);
+  if (checkBtn) checkBtn.addEventListener('click', checkAndWarm);
   if (saveBtn) saveBtn.addEventListener('click', saveConfig);
   if (runnerForm) runnerForm.addEventListener('submit', onSubmit);
   if (stopBtn) stopBtn.addEventListener('click', stopRun);
   if (resetBtn) resetBtn.addEventListener('click', resetStats);
+  if (copyTranscriptBtn) {
+    copyTranscriptBtn.addEventListener('click', async () => {
+      const text = (transcriptEl?.value || '').trim();
+      if (!text) {
+        setStatus(transcriptStatusEl, 'Nothing to copy yet.', 'warning');
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(text);
+        setStatus(transcriptStatusEl, 'Transcript copied.', 'success');
+      } catch {
+        setStatus(transcriptStatusEl, 'Copy failed. Please copy manually.', 'error');
+      }
+    });
+  }
+
+  window.setTimeout(async () => {
+    await checkAndWarm();
+  }, 0);
 })();

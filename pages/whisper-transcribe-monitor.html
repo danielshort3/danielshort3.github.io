@@ -52,6 +52,9 @@
       <div class="wrapper whispermon-grid">
         <article class="whispermon-card">
           <h2>Endpoint</h2>
+          <div class="health-row whispermon-health-row" role="status" aria-live="polite">
+            <span id="whispermon-health-pill" class="health-pill" data-state="warming">Warming up</span>
+          </div>
           <form class="contact-form" novalidate>
             <div class="form-field">
               <label for="whispermon-endpoint">Lambda Function URL</label>
@@ -67,7 +70,7 @@
               <button type="button" class="btn-secondary" id="whispermon-check">Check status</button>
               <button type="button" class="btn-ghost" id="whispermon-save">Save</button>
             </div>
-            <div class="contact-form-status" id="whispermon-endpoint-status" role="status" aria-live="polite"></div>
+            <div class="contact-form-status whispermon-status-meta" id="whispermon-endpoint-status" role="status" aria-live="polite">Checking endpoint…</div>
           </form>
         </article>
 
@@ -163,6 +166,18 @@
             <div class="whispermon-meter-fill" id="whispermon-meter-rps-fill"></div>
           </div>
           <p class="whispermon-meter-meta" id="whispermon-meter-rps-meta">—</p>
+
+          <div class="contact-form whispermon-output" aria-label="Latest transcript output">
+            <div class="form-field">
+              <label for="whispermon-transcript">Latest transcript (sample)</label>
+              <textarea id="whispermon-transcript" readonly placeholder="Start a test to see a transcript sample."></textarea>
+              <p class="contact-form-note">Shows the most recent successful transcript to keep the request log lightweight.</p>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn-secondary" id="whispermon-copy-transcript" disabled>Copy transcript</button>
+            </div>
+            <div class="contact-form-status" id="whispermon-transcript-status" role="status" aria-live="polite"></div>
+          </div>
 
           <details class="whispermon-log-details" open>
             <summary class="whispermon-log-summary">Request log</summary>

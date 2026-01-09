@@ -33,6 +33,59 @@
     letter-spacing:.01em;
   }
 
+  body[data-page="whisper-transcribe-monitor"] .whispermon-health-row{
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    margin:0 0 14px;
+  }
+
+  body[data-page="whisper-transcribe-monitor"] .health-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 12px;
+    border-radius:999px;
+    border:1px solid var(--surface-accent);
+    background:color-mix(in srgb,var(--surface) 92%, #02060c 8%);
+    font-size:.7rem;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--text-muted);
+  }
+
+  body[data-page="whisper-transcribe-monitor"] .health-pill::before{
+    content:"";
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:currentColor;
+  }
+
+  body[data-page="whisper-transcribe-monitor"] .health-pill[data-state="ok"]{
+    color:var(--success);
+    border-color:color-mix(in srgb,var(--success) 55%, var(--surface-accent) 45%);
+  }
+
+  body[data-page="whisper-transcribe-monitor"] .health-pill[data-state="err"]{
+    color:var(--danger);
+    border-color:color-mix(in srgb,var(--danger) 55%, var(--surface-accent) 45%);
+  }
+
+  body[data-page="whisper-transcribe-monitor"] .health-pill[data-state="warming"]{
+    color:var(--warning);
+    border-color:color-mix(in srgb,var(--warning) 55%, var(--surface-accent) 45%);
+  }
+
+  body[data-page="whisper-transcribe-monitor"] .whispermon-status-meta,
+  body[data-page="whisper-transcribe-monitor"] .whispermon-status-meta[data-tone="success"],
+  body[data-page="whisper-transcribe-monitor"] .whispermon-status-meta[data-tone="warning"],
+  body[data-page="whisper-transcribe-monitor"] .whispermon-status-meta[data-tone="error"]{
+    color:var(--text-muted);
+    font-size:.85rem;
+    line-height:1.5;
+  }
+
   .whispermon-controls{
     display:grid;
     gap:12px;
@@ -149,6 +202,16 @@
     margin:10px 0 14px;
     color:var(--text-muted);
     font-size:.92rem;
+  }
+
+  .whispermon-output{
+    margin-top:16px;
+    padding-top:16px;
+    border-top:1px solid color-mix(in srgb,var(--primary) 16%, transparent);
+  }
+
+  .whispermon-output textarea{
+    min-height:140px;
   }
 
   .whispermon-log-details{
