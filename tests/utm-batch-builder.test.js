@@ -116,5 +116,44 @@ module.exports = function runUtmBatchBuilderTests({ assert }) {
     assert(rows[1].finalUrl.includes('utm_source=google'), 'blank override should fall back to default');
     assert(rows[1].finalUrl.includes('utm_campaign=sale_b'), 'campaign should map from CSV');
   }
-};
 
+  // Groups mode: zip within groups, Cartesian across groups
+  {
+    const config = {
+      mode: core.COMBINATION_MODE.GROUPS,
+      overrideExisting: true,
+      normalization: { lowercase: true, spaces: 'underscore', stripSpecial: false, slugify: false },
+      excludeRulesText: '',
+      csvText: '',
+      relationshipGroups: [
+        { id: 'g1', name: 'Source + Medium', keys: ['utm_source', 'utm_medium'] },
+      ],
+      baseUrl: makeField({ mode: 'list', list: 'https://a.example\nhttps://b.example' }),
+      utm: {
+        source: makeField({ mode: 'list', list: 'google\nmeta' }),
+        medium: makeField({ mode: 'list', list: 'cpc\ndisplay' }),
+        campaign: makeField({ mode: 'list', list: 'sale\nclearance' }),
+        content: makeField(),
+        term: makeField(),
+      },
+      customParams: [],
+    };
+
+    const { errors, resolved } = core.resolveAndValidateConfig(config);
+    assert(errors.length === 0 && resolved, 'groups config should validate');
+    assert(core.estimateTotalRows(resolved) === 8, 'groups estimate should be cartesian across groups');
+
+    const rows = Array.from(core.generateRows(resolved));
+    assert(rows.length === 8, 'groups mode should generate expected row count');
+
+    const hasInvalidPair = rows.some((row) => {
+      const params = row?.params || {};
+      const source = params.utm_source;
+      const medium = params.utm_medium;
+      if (source === 'google') return medium !== 'cpc';
+      if (source === 'meta') return medium !== 'display';
+      return true;
+    });
+    assert(!hasInvalidPair, 'groups mode should keep utm_source and utm_medium paired by row');
+  }
+};
