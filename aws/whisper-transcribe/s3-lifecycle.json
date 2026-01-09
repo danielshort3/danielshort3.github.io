@@ -1,0 +1,10 @@
+{
+  "Rules": [
+    {
+      "ID": "expire-whisper-uploads",
+      "Status": "Enabled",
+      "Filter": { "Prefix": "whisper-uploads/" },
+      "Expiration": { "Days": 1 }
+    }
+  ]
+}

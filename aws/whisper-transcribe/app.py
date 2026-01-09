@@ -2,6 +2,8 @@ import base64
 import io
 import json
 import os
+import re
+import secrets
 import subprocess
 import time
 import wave
@@ -12,7 +14,10 @@ import numpy as np
 MODEL_ID = os.getenv("MODEL_ID", "openai/whisper-tiny.en")
 TARGET_SAMPLE_RATE = int(os.getenv("TARGET_SAMPLE_RATE", "16000"))
 MAX_AUDIO_SECONDS = float(os.getenv("MAX_AUDIO_SECONDS", "30"))
-MAX_AUDIO_BYTES = int(os.getenv("MAX_AUDIO_BYTES", str(5 * 1024 * 1024)))
+DEFAULT_MAX_DIRECT_BYTES = 5 * 1024 * 1024
+MAX_AUDIO_BYTES = int(os.getenv("MAX_AUDIO_BYTES", str(DEFAULT_MAX_DIRECT_BYTES)))
+MAX_DIRECT_UPLOAD_BYTES = int(os.getenv("MAX_DIRECT_UPLOAD_BYTES", str(MAX_AUDIO_BYTES)))
+MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(MAX_DIRECT_UPLOAD_BYTES)))
 NUM_BEAMS = int(os.getenv("NUM_BEAMS", "1"))
 MAX_NEW_TOKENS = int(os.getenv("MAX_NEW_TOKENS", "256"))
 
@@ -22,6 +27,11 @@ RESPONSE_HEADERS = {
 
 _MODEL = None
 _PROCESSOR = None
+
+UPLOAD_BUCKET = (os.getenv("UPLOAD_BUCKET") or "").strip()
+UPLOAD_PREFIX = (os.getenv("UPLOAD_PREFIX") or "whisper-uploads/").strip()
+UPLOAD_URL_TTL_SEC = int(os.getenv("UPLOAD_URL_TTL_SEC", "300"))
+DELETE_UPLOAD_AFTER_TRANSCRIBE = os.getenv("DELETE_UPLOAD_AFTER_TRANSCRIBE", "true").strip().lower() in ("1", "true", "yes")
 
 FFMPEG_BIN = os.getenv("FFMPEG_BIN", "ffmpeg")
 FFPROBE_BIN = os.getenv("FFPROBE_BIN", "ffprobe")
@@ -164,8 +174,8 @@ def decode_audio_b64(payload):
     raw = base64.b64decode(b64)
   except Exception:
     return None, "Invalid base64 audio payload."
-  if len(raw) > MAX_AUDIO_BYTES:
-    return None, f"Audio payload exceeds {MAX_AUDIO_BYTES} bytes."
+  if len(raw) > MAX_DIRECT_UPLOAD_BYTES:
+    return None, f"Audio payload exceeds {MAX_DIRECT_UPLOAD_BYTES} bytes."
   return raw, None
 
 
@@ -199,6 +209,101 @@ def probe_duration_seconds(path):
     return float(out)
   except Exception:
     return None
+
+
+def sanitize_filename(value):
+  raw = str(value or "").strip()
+  if not raw:
+    return "media"
+  raw = raw.replace("\\", "/").split("/")[-1]
+  raw = re.sub(r"[^a-zA-Z0-9._-]+", "_", raw).strip("._")
+  raw = raw[:80] if len(raw) > 80 else raw
+  return raw or "media"
+
+
+def ensure_prefix(prefix):
+  raw = str(prefix or "").strip()
+  if not raw:
+    return "whisper-uploads/"
+  return raw if raw.endswith("/") else f"{raw}/"
+
+
+def get_s3_client():
+  import boto3
+  return boto3.client("s3")
+
+
+def presign_upload_post(filename, content_type, bytes_len):
+  if not UPLOAD_BUCKET:
+    raise ValueError("Uploads are not enabled.")
+  if bytes_len <= 0:
+    raise ValueError("Missing file bytes.")
+  if bytes_len > MAX_UPLOAD_BYTES:
+    raise ValueError(f"File exceeds {MAX_UPLOAD_BYTES} bytes.")
+
+  prefix = ensure_prefix(UPLOAD_PREFIX)
+  token = secrets.token_hex(16)
+  safe_name = sanitize_filename(filename)
+  key = f"{prefix}{int(time.time())}-{token}-{safe_name}"
+
+  fields = {
+    "Content-Type": content_type or "application/octet-stream",
+    "success_action_status": "201"
+  }
+  conditions = [
+    ["content-length-range", 1, int(MAX_UPLOAD_BYTES)],
+    {"key": key},
+    {"success_action_status": "201"},
+    {"Content-Type": fields["Content-Type"]}
+  ]
+
+  s3 = get_s3_client()
+  post = s3.generate_presigned_post(
+    Bucket=UPLOAD_BUCKET,
+    Key=key,
+    Fields=fields,
+    Conditions=conditions,
+    ExpiresIn=max(60, int(UPLOAD_URL_TTL_SEC))
+  )
+  return {
+    "upload_url": post.get("url"),
+    "fields": post.get("fields") or {},
+    "key": key,
+    "expires_in": max(60, int(UPLOAD_URL_TTL_SEC))
+  }
+
+
+def download_s3_object(bucket, key, dest_path):
+  s3 = get_s3_client()
+  head = s3.head_object(Bucket=bucket, Key=key)
+  size = int(head.get("ContentLength") or 0)
+  if size <= 0:
+    raise ValueError("Empty upload.")
+  if size > MAX_UPLOAD_BYTES:
+    raise ValueError(f"File exceeds {MAX_UPLOAD_BYTES} bytes.")
+  content_type = str(head.get("ContentType") or "").strip().lower()
+
+  obj = s3.get_object(Bucket=bucket, Key=key)
+  body = obj.get("Body")
+  written = 0
+  with open(dest_path, "wb") as fp:
+    while True:
+      chunk = body.read(1024 * 1024)
+      if not chunk:
+        break
+      fp.write(chunk)
+      written += len(chunk)
+      if written > MAX_UPLOAD_BYTES:
+        raise ValueError(f"File exceeds {MAX_UPLOAD_BYTES} bytes.")
+  return content_type or "application/octet-stream", written
+
+
+def delete_s3_object(bucket, key):
+  try:
+    s3 = get_s3_client()
+    s3.delete_object(Bucket=bucket, Key=key)
+  except Exception:
+    return
 
 
 def ffmpeg_to_wav_16k_mono(input_bytes, mime_type):
@@ -265,6 +370,68 @@ def ffmpeg_to_wav_16k_mono(input_bytes, mime_type):
         os.remove(input_path)
     except Exception:
       pass
+    try:
+      if os.path.exists(output_path):
+        os.remove(output_path)
+    except Exception:
+      pass
+
+
+def ffmpeg_file_to_wav_16k_mono(input_path):
+  token = str(time.time_ns())
+  output_path = f"/tmp/whisper-output-{token}.wav"
+  try:
+    duration = probe_duration_seconds(input_path)
+    if duration is not None and duration > MAX_AUDIO_SECONDS:
+      raise ValueError(f"Audio duration exceeds {MAX_AUDIO_SECONDS} seconds.")
+
+    cmd = [
+      FFMPEG_BIN,
+      "-hide_banner",
+      "-nostdin",
+      "-loglevel",
+      "error"
+    ]
+    if MAX_AUDIO_SECONDS > 0:
+      cmd.extend(["-t", str(MAX_AUDIO_SECONDS)])
+    cmd.extend(
+      [
+        "-i",
+        input_path,
+        "-map",
+        "0:a:0",
+        "-ac",
+        "1",
+        "-ar",
+        str(TARGET_SAMPLE_RATE),
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "wav",
+        "-y",
+        output_path
+      ]
+    )
+
+    try:
+      subprocess.run(
+        cmd,
+        capture_output=True,
+        check=True,
+        timeout=max(1, int(FFMPEG_TIMEOUT_SEC))
+      )
+    except subprocess.CalledProcessError as exc:
+      stderr = exc.stderr.decode("utf-8", errors="ignore") if exc.stderr else ""
+      message = (stderr or "").strip() or "Unsupported media format."
+      if "matches no streams" in message or "does not contain any stream" in message:
+        raise ValueError("No audio track found in media file.")
+      raise ValueError(message.splitlines()[-1] if "\n" in message else message)
+    except FileNotFoundError:
+      raise RuntimeError("ffmpeg not available in runtime environment.")
+
+    with open(output_path, "rb") as fp:
+      return fp.read()
+  finally:
     try:
       if os.path.exists(output_path):
         os.remove(output_path)
@@ -347,11 +514,86 @@ def handler(event, context):
       "model_loaded": _MODEL is not None,
       "target_sample_rate": TARGET_SAMPLE_RATE,
       "max_audio_seconds": MAX_AUDIO_SECONDS,
-      "max_audio_bytes": MAX_AUDIO_BYTES
+      "max_audio_bytes": MAX_DIRECT_UPLOAD_BYTES,
+      "max_direct_upload_bytes": MAX_DIRECT_UPLOAD_BYTES,
+      "max_upload_bytes": MAX_UPLOAD_BYTES,
+      "uploads_enabled": bool(UPLOAD_BUCKET)
     })
 
   if method != "POST":
     return json_response(405, {"error": "Method not allowed."})
+
+  if path == "/presign":
+    payload = parse_body(event)
+    if not isinstance(payload, dict):
+      return json_response(400, {"error": "Invalid JSON payload."})
+    filename = payload.get("filename") or payload.get("name") or "media"
+    content_type = parse_content_type(payload.get("content_type") or payload.get("contentType") or "application/octet-stream")
+    bytes_len = payload.get("bytes") or payload.get("size") or 0
+    try:
+      bytes_len = int(bytes_len)
+    except Exception:
+      bytes_len = 0
+    try:
+      post = presign_upload_post(filename, content_type, bytes_len)
+      return json_response(200, post)
+    except ValueError as exc:
+      message = str(exc) or "Invalid request."
+      status = 413 if "exceeds" in message else 400
+      return json_response(status, {"error": message})
+    except Exception:
+      return json_response(500, {"error": "Server error"})
+
+  if path == "/transcribe-s3":
+    if not UPLOAD_BUCKET:
+      return json_response(400, {"error": "Uploads are not enabled."})
+    payload = parse_body(event)
+    if not isinstance(payload, dict):
+      return json_response(400, {"error": "Invalid JSON payload."})
+    key = str(payload.get("key") or "").strip()
+    prefix = ensure_prefix(UPLOAD_PREFIX)
+    if not key or not key.startswith(prefix):
+      return json_response(400, {"error": "Invalid upload key."})
+
+    token = str(time.time_ns())
+    input_path = f"/tmp/whisper-s3-{token}"
+    try:
+      mime_type, _ = download_s3_object(UPLOAD_BUCKET, key, input_path)
+      wav_bytes = ffmpeg_file_to_wav_16k_mono(input_path)
+      audio, sample_rate, duration_seconds = wav_to_float32_mono_16k(wav_bytes)
+      transcript = transcribe(audio, sample_rate)
+      duration_ms = int((time.time() - start) * 1000)
+      return json_response(200, {
+        "transcript": transcript,
+        "model": MODEL_ID,
+        "language": "en",
+        "audio_seconds": round(float(duration_seconds), 4),
+        "duration_ms": duration_ms,
+        "input_mime_type": mime_type,
+        "converted_to_wav": True
+      })
+    except ValueError as exc:
+      message = str(exc)
+      if message.startswith("Audio duration exceeds"):
+        return json_response(413, {"error": message})
+      if message.startswith("No audio track found") or message.startswith("Unsupported audio format"):
+        return json_response(415, {"error": message})
+      if "exceeds" in message:
+        return json_response(413, {"error": message})
+      return json_response(400, {"error": message or "Invalid request"})
+    except RuntimeError as exc:
+      return json_response(500, {"error": str(exc) or "Server error"})
+    except Exception as exc:
+      print("Transcribe error", exc)
+      return json_response(500, {"error": "Server error"})
+    finally:
+      try:
+        if os.path.exists(input_path):
+          os.remove(input_path)
+      except Exception:
+        pass
+      if DELETE_UPLOAD_AFTER_TRANSCRIBE:
+        delete_s3_object(UPLOAD_BUCKET, key)
 
   if path not in ("/", "/transcribe"):
     return json_response(404, {"error": "Not found."})
@@ -378,8 +620,8 @@ def handler(event, context):
     raw = decode_body_bytes(event)
     if not raw:
       return json_response(400, {"error": "Missing request body."})
-    if len(raw) > MAX_AUDIO_BYTES:
-      return json_response(413, {"error": f"Audio payload exceeds {MAX_AUDIO_BYTES} bytes."})
+    if len(raw) > MAX_DIRECT_UPLOAD_BYTES:
+      return json_response(413, {"error": f"Audio payload exceeds {MAX_DIRECT_UPLOAD_BYTES} bytes."})
     mime_type = mime_type or "application/octet-stream"
 
   converted = False
