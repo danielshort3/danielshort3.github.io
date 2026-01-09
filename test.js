@@ -434,7 +434,25 @@ try {
 
     const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
     assert(pkg.scripts && pkg.scripts['build:projects'], 'package.json missing build:projects script');
-    assert(pkg.scripts.build && pkg.scripts.build.includes('build:projects'), 'package.json build script should run build:projects');
+    assert(pkg.scripts && pkg.scripts.build, 'package.json missing build script');
+
+    const buildScript = String(pkg.scripts.build || '');
+    const usesLegacyChain = buildScript.includes('build:projects');
+    const usesBuildRunner = /build\/build-site\.js/.test(buildScript);
+    assert(usesLegacyChain || usesBuildRunner,
+      'package.json build script should run build:projects or use build/build-site.js');
+
+    if (usesBuildRunner) {
+      assert(fs.existsSync('build/build-site.js'), 'build-site.js missing');
+      const buildRunner = fs.readFileSync('build/build-site.js', 'utf8');
+      assert(buildRunner.includes('generate-project-pages.js'), 'build-site.js should generate project pages');
+      assert(buildRunner.includes('copy-to-public.js'), 'build-site.js should prepare public/ output');
+    }
+
+    assert(!buildScript.includes('build:models') &&
+           !buildScript.includes('build:pizza-tips-model') &&
+           !buildScript.includes('tips_data_geocoded'),
+           'package.json build script should not rebuild pizza tips model');
 
     const vercel = fs.readFileSync('vercel.json','utf8');
     assert(vercel.includes('Content-Security-Policy'), 'vercel.json missing CSP');
