@@ -9,7 +9,8 @@
     body[data-page="background-remover"],
     body[data-page="image-optimizer"],
     body[data-page="ocean-wave-simulation"],
-    body[data-page="qr-code-generator"]
+    body[data-page="qr-code-generator"],
+    body[data-page="utm-batch-builder"]
   ){
     --tool-accent:var(--primary);
     --tool-accent-strong:color-mix(in srgb,var(--primary) 68%, #0A1A1F 32%);
@@ -33,7 +34,8 @@
     .oxford-top-panel,
     .nbsp-hero,
     .ocean-wave-hero,
-    .qrtool-hero
+    .qrtool-hero,
+    .utmtool-hero
   ){
     position:relative;
     overflow:hidden;
@@ -57,7 +59,8 @@
     .oxford-top-panel,
     .nbsp-hero,
     .ocean-wave-hero,
-    .qrtool-hero
+    .qrtool-hero,
+    .utmtool-hero
   ) .wrapper{
     max-width:var(--container-max);
     display:grid;
@@ -73,7 +76,8 @@
     .oxford-top-lead,
     .nbsp-lead,
     .ocean-wave-lead,
-    .qrtool-lead
+    .qrtool-lead,
+    .utmtool-lead
   ){
     margin:0;
     max-width:64ch;
@@ -90,7 +94,8 @@
     .oxford-steps,
     .nbsp-steps,
     .ocean-wave-steps,
-    .qrtool-steps
+    .qrtool-steps,
+    .utmtool-steps
   ){
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
@@ -105,7 +110,8 @@
     .oxford-step,
     .nbsp-step,
     .ocean-wave-step,
-    .qrtool-step
+    .qrtool-step,
+    .utmtool-step
   ){
     display:flex;
     align-items:flex-start;
@@ -127,7 +133,8 @@
     .oxford-step-number,
     .nbsp-step-number,
     .ocean-wave-step-number,
-    .qrtool-step-number
+    .qrtool-step-number,
+    .utmtool-step-number
   ){
     width:36px;
     height:36px;
@@ -151,7 +158,8 @@
     .oxford-step,
     .nbsp-step,
     .ocean-wave-step,
-    .qrtool-step
+    .qrtool-step,
+    .utmtool-step
   ) h3{
     margin:0 0 4px;
     font-size:1.02rem;
@@ -166,7 +174,8 @@
     .oxford-step,
     .nbsp-step,
     .ocean-wave-step,
-    .qrtool-step
+    .qrtool-step,
+    .utmtool-step
   ) p{
     margin:0;
     color:var(--text-muted);
@@ -183,7 +192,8 @@
     .oxford-section,
     .nbsp-section,
     .ocean-wave-section,
-    .qrtool-section
+    .qrtool-section,
+    .utmtool-section
   ){
     padding:clamp(2.8rem,6vh,3.8rem) 0;
   }

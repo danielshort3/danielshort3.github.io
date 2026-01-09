@@ -7,11 +7,12 @@
     "test": "node test.js",
     "build:icons": "python3 build/resize_logo.py",
     "build:css": "node build/build-css.js",
+    "build:utm-batch-builder": "node build/build-utm-batch-builder.js",
     "build:pizza-tips-model": "node build/build-pizza-tips-model.js",
     "build:models": "npm run build:pizza-tips-model",
     "build:projects": "node build/generate-project-pages.js",
     "build:shortlinks-destinations": "node build/generate-shortlinks-destinations.js",
-    "build": "npm run build:css && npm run build:models && npm run build:projects && npm run build:shortlinks-destinations && node build/copy-to-public.js"
+    "build": "npm run build:css && npm run build:utm-batch-builder && npm run build:models && npm run build:projects && npm run build:shortlinks-destinations && node build/copy-to-public.js"
   },
   "engines": {
     "node": ">=18"
@@ -19,5 +20,10 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.962.0",
     "@aws-sdk/lib-dynamodb": "^3.962.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.27.2",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
   }
 }
