@@ -54,6 +54,8 @@
 
     { "source": "/tools/utm-batch-builder","destination": "/pages/utm-batch-builder" },
     { "source": "/tools/utm-batch-builder.html","destination": "/pages/utm-batch-builder" },
+    { "source": "/tools/whisper-transcribe-monitor","destination": "/pages/whisper-transcribe-monitor" },
+    { "source": "/tools/whisper-transcribe-monitor.html","destination": "/pages/whisper-transcribe-monitor" },
 
     { "source": "/games/stellar-dogfight", "destination": "/demos/stellar-dogfight-demo" },
     { "source": "/games/stellar-dogfight.html", "destination": "/demos/stellar-dogfight-demo" },

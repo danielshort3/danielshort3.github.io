@@ -50,335 +50,414 @@
 
     <section class="surface-band tools-section">
       <div class="wrapper">
-        <div class="tools-grid">
-          <article class="tool-card">
-            <a href="tools/short-links">
+        <nav class="tools-nav" aria-label="Tool categories">
+          <a class="tools-nav-link" href="#tools-writing">Writing &amp; Text</a>
+          <a class="tools-nav-link" href="#tools-marketing">Marketing</a>
+          <a class="tools-nav-link" href="#tools-media">Images &amp; Video</a>
+          <a class="tools-nav-link" href="#tools-cloud">Cloud-backed</a>
+          <a class="tools-nav-link" href="#tools-experiments">Experiments</a>
+        </nav>
+
+        <section class="tools-category" id="tools-writing" aria-labelledby="tools-writing-title">
+          <header class="tools-category-head">
+            <h2 class="section-title" id="tools-writing-title">Writing &amp; Text</h2>
+            <p>In-browser helpers for editing, cleanup, and quick analysis.</p>
+          </header>
+          <div class="tools-grid">
+            <article class="tool-card">
+              <a href="tools/text-compare">
+                <div class="tool-top">
+                  <span class="tool-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" role="presentation">
+                      <rect x="4" y="5" width="7" height="14" rx="2" class="icon-fill" opacity=".12"></rect>
+                      <rect x="13" y="5" width="7" height="14" rx="2" class="icon-fill" opacity=".12"></rect>
+                      <rect x="4" y="5" width="7" height="14" rx="2"></rect>
+                      <rect x="13" y="5" width="7" height="14" rx="2"></rect>
+                      <path d="M7 9h2M7 12h3M7 15h1.5"></path>
+                      <path d="M16 10v4"></path>
+                      <path d="M14 12h4"></path>
+                    </svg>
+                  </span>
+                  <div>
+                    <h3>Text Compare</h3>
+                    <div class="tool-meta">
+                      <span class="tool-pill tool-pill-local">Local</span>
+                      <span class="tool-pill">Text</span>
+                      <span class="tool-pill">Diff</span>
+                    </div>
+                  </div>
+                </div>
+                <p>Compare two drafts and see insertions, deletions, and replacements highlighted inline.</p>
+              </a>
+            </article>
+
+            <article class="tool-card">
+              <a href="tools/nbsp-cleaner">
+                <div class="tool-top">
+                  <span class="tool-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" role="presentation">
+                      <rect x="4" y="6" width="16" height="12" rx="2" class="icon-fill" opacity=".12"></rect>
+                      <rect x="4" y="6" width="16" height="12" rx="2"></rect>
+                      <path d="M7 10h10M7 14h4"></path>
+                    </svg>
+                  </span>
+                  <div>
+                    <h3>Non-breaking Space Cleaner</h3>
+                    <div class="tool-meta">
+                      <span class="tool-pill tool-pill-local">Local</span>
+                      <span class="tool-pill">Text</span>
+                      <span class="tool-pill">Spacing</span>
+                    </div>
+                  </div>
+                </div>
+                <p>Detects hard spaces (NBSP, narrow NBSP, etc.) and replaces them with regular spaces after confirming counts.</p>
+              </a>
+            </article>
+
+            <article class="tool-card">
+              <a href="tools/oxford-comma-checker">
+                <div class="tool-top">
+                  <span class="tool-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" role="presentation">
+                      <rect x="4" y="4" width="16" height="16" rx="3" class="icon-fill" opacity=".12"></rect>
+                      <rect x="4" y="4" width="16" height="16" rx="3"></rect>
+                      <path d="M8 8h7M8 12h5M8 16h4"></path>
+                      <circle cx="16.5" cy="15.5" r="1.5"></circle>
+                      <path d="M16 17l-1 2"></path>
+                    </svg>
+                  </span>
+                  <div>
+                    <h3>Oxford Comma Checker</h3>
+                    <div class="tool-meta">
+                      <span class="tool-pill tool-pill-local">Local</span>
+                      <span class="tool-pill">Text</span>
+                      <span class="tool-pill">Grammar</span>
+                    </div>
+                  </div>
+                </div>
+                <p>Scan drafts for possible missing Oxford commas in serial lists and review quick fixes.</p>
+              </a>
+            </article>
+
+            <article class="tool-card">
+              <a href="tools/point-of-view-checker">
+                <div class="tool-top">
+                  <span class="tool-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" role="presentation">
+                      <path d="M12 5c5 0 9 7 9 7s-4 7-9 7-9-7-9-7 4-7 9-7z" class="icon-fill" opacity=".12"></path>
+                      <path d="M12 5c5 0 9 7 9 7s-4 7-9 7-9-7-9-7 4-7 9-7z"></path>
+                      <path d="M12 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"></path>
+                    </svg>
+                  </span>
+                  <div>
+                    <h3>Point of View Checker</h3>
+                    <div class="tool-meta">
+                      <span class="tool-pill tool-pill-local">Local</span>
+                      <span class="tool-pill">Text</span>
+                      <span class="tool-pill">Pronouns</span>
+                    </div>
+                  </div>
+                </div>
+                <p>Scan text for first-person, second-person, and third-person pronouns to spot mixed POV.</p>
+              </a>
+            </article>
+
+            <article class="tool-card">
+              <a href="tools/word-frequency">
+                <div class="tool-top">
+                  <span class="tool-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" role="presentation">
+                      <path d="M5 4h14v16H5z" class="icon-fill" opacity=".12"></path>
+                      <path d="M5 4h14v16H5z"></path>
+                      <path d="M8 8h8M8 12h5M8 16h7"></path>
+                    </svg>
+                  </span>
+                  <div>
+                    <h3>Word Frequency Analyzer</h3>
+                    <div class="tool-meta">
+                      <span class="tool-pill tool-pill-local">Local</span>
+                      <span class="tool-pill">Text</span>
+                      <span class="tool-pill">Stopwords</span>
+                    </div>
+                  </div>
+                </div>
+                <p>Paste text, strip stopwords, and see the most frequent words calculated entirely in-browser.</p>
+              </a>
+            </article>
+          </div>
+        </section>
+
+        <section class="tools-category" id="tools-marketing" aria-labelledby="tools-marketing-title">
+          <header class="tools-category-head">
+            <h2 class="section-title" id="tools-marketing-title">Marketing</h2>
+            <p>Fast, consistent link-building and shareable assets.</p>
+          </header>
+          <div class="tools-grid">
+            <article class="tool-card">
+              <a href="tools/utm-batch-builder">
+                <div class="tool-top">
+                  <span class="tool-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" role="presentation">
+                      <path d="M6 7h12v10H6z" class="icon-fill" opacity=".12"></path>
+                      <path d="M6 7h12v10H6z"></path>
+                      <path d="M8 10h8M8 13h6"></path>
+                      <path d="M18 9l2 3-2 3"></path>
+                    </svg>
+                  </span>
+                  <div>
+                    <h3>UTM Batch Builder</h3>
+                    <div class="tool-meta">
+                      <span class="tool-pill tool-pill-local">Local</span>
+                      <span class="tool-pill">UTM</span>
+                      <span class="tool-pill">CSV</span>
+                    </div>
+                  </div>
+                </div>
+                <p>Generate large batches of UTM URLs with normalization helpers, combination modes, per-link copy, and CSV export.</p>
+              </a>
+            </article>
+
+            <article class="tool-card">
+              <a href="tools/qr-code-generator">
+                <div class="tool-top">
+                  <span class="tool-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" role="presentation">
+                      <rect x="4" y="4" width="16" height="16" rx="3" class="icon-fill" opacity=".12"></rect>
+                      <rect x="4" y="4" width="16" height="16" rx="3"></rect>
+                      <path d="M8 8h3v3H8z"></path>
+                      <path d="M13 8h3v3h-3z"></path>
+                      <path d="M8 13h3v3H8z"></path>
+                      <path d="M13 13h1.5M16 13v3M13 16h3"></path>
+                    </svg>
+                  </span>
+                  <div>
+                    <h3>QR Code Generator</h3>
+                    <div class="tool-meta">
+                      <span class="tool-pill tool-pill-local">Local</span>
+                      <span class="tool-pill">Logo</span>
+                      <span class="tool-pill">Export</span>
+                    </div>
+                  </div>
+                </div>
+                <p>Create business-grade QR codes with templates, logo embedding, customization controls, and high-resolution exports.</p>
+              </a>
+            </article>
+          </div>
+        </section>
+
+        <section class="tools-category" id="tools-media" aria-labelledby="tools-media-title">
+          <header class="tools-category-head">
+            <h2 class="section-title" id="tools-media-title">Images &amp; Video</h2>
+            <p>Local image processing utilities and lightweight media capture.</p>
+          </header>
+          <div class="tools-grid">
+            <article class="tool-card">
+              <a href="tools/image-optimizer">
+                <div class="tool-top">
+                  <span class="tool-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" role="presentation">
+                      <rect x="4" y="4" width="16" height="16" rx="3" class="icon-fill" opacity=".12"></rect>
+                      <rect x="4" y="4" width="16" height="16" rx="3"></rect>
+                      <path d="M8 15l2.2-2.2 2.2 2.2 3.6-3.6L19 12.4"></path>
+                      <path d="M12 7v6"></path>
+                      <path d="m9.6 10.6 2.4 2.4 2.4-2.4"></path>
+                    </svg>
+                  </span>
+                  <div>
+                    <h3>Image Optimizer</h3>
+                    <div class="tool-meta">
+                      <span class="tool-pill tool-pill-local">Local</span>
+                      <span class="tool-pill">Resize</span>
+                      <span class="tool-pill">WebP/AVIF</span>
+                    </div>
+                  </div>
+                </div>
+                <p>Batch resize, compress, and convert images (PNG/JPEG/WebP/AVIF) locally with optional responsive widths and “download all”.</p>
+              </a>
+            </article>
+
+            <article class="tool-card">
+              <a href="tools/background-remover">
+                <div class="tool-top">
+                  <span class="tool-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" role="presentation">
+                      <rect x="4" y="4" width="16" height="16" rx="3" class="icon-fill" opacity=".12"></rect>
+                      <rect x="4" y="4" width="16" height="16" rx="3"></rect>
+                      <path d="M8 12h8M12 8v8"></path>
+                    </svg>
+                  </span>
+                  <div>
+                    <h3>Background Remover</h3>
+                    <div class="tool-meta">
+                      <span class="tool-pill tool-pill-local">Local</span>
+                      <span class="tool-pill">Images</span>
+                      <span class="tool-pill">Transparency</span>
+                    </div>
+                  </div>
+                </div>
+                <p>Pick a background color, set tolerance, and export a transparent PNG processed locally.</p>
+              </a>
+            </article>
+
+            <article class="tool-card">
+              <a href="tools/screen-recorder">
+                <div class="tool-top">
+                  <span class="tool-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" role="presentation">
+                      <rect x="3" y="4" width="18" height="12" rx="2" class="icon-fill" opacity=".12"></rect>
+                      <rect x="3" y="4" width="18" height="12" rx="2"></rect>
+                      <path d="M9 20h6"></path>
+                      <path d="M10 16v4M14 16v4"></path>
+                      <circle cx="16.5" cy="9" r="2"></circle>
+                    </svg>
+                  </span>
+                  <div>
+                    <h3>Screen Recorder</h3>
+                    <div class="tool-meta">
+                      <span class="tool-pill tool-pill-local">Local</span>
+                      <span class="tool-pill">Video</span>
+                      <span class="tool-pill">Capture</span>
+                    </div>
+                  </div>
+                </div>
+                <p>Record your screen and download the clip in browser-supported formats with optional system audio.</p>
+              </a>
+            </article>
+          </div>
+        </section>
+
+        <section class="tools-category" id="tools-cloud" aria-labelledby="tools-cloud-title">
+          <header class="tools-category-head">
+            <h2 class="section-title" id="tools-cloud-title">Cloud-backed</h2>
+            <p>Tools that rely on an account, API, or server-side compute.</p>
+          </header>
+          <div class="tools-grid">
+            <article class="tool-card">
+              <a href="tools/job-application-tracker">
+                <div class="tool-top">
+                  <span class="tool-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" role="presentation">
+                      <rect x="6" y="4" width="12" height="16" rx="2" class="icon-fill" opacity=".12"></rect>
+                      <rect x="6" y="4" width="12" height="16" rx="2"></rect>
+                      <path d="M9 8h6M9 12h6M9 16h4"></path>
+                      <path d="M9 4h6"></path>
+                    </svg>
+                  </span>
+                  <div>
+                    <h3>Job Application Tracker</h3>
+                    <div class="tool-meta">
+                      <span class="tool-pill tool-pill-cloud">Cloud</span>
+                      <span class="tool-pill">Career</span>
+                      <span class="tool-pill">Tracker</span>
+                    </div>
+                  </div>
+                </div>
+                <p>Log applications and review interview momentum with KPI cards, trend lines, and calendar heatmaps.</p>
+              </a>
+            </article>
+
+            <article class="tool-card">
+              <a href="tools/whisper-transcribe-monitor">
+                <div class="tool-top">
+                  <span class="tool-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" role="presentation">
+                      <rect x="4" y="6" width="16" height="12" rx="3" class="icon-fill" opacity=".12"></rect>
+                      <rect x="4" y="6" width="16" height="12" rx="3"></rect>
+                      <path d="M8 11v2"></path>
+                      <path d="M12 10v4"></path>
+                      <path d="M16 11v2"></path>
+                      <path d="M10 18h4"></path>
+                    </svg>
+                  </span>
+                  <div>
+                    <h3>Whisper Capacity Monitor</h3>
+                    <div class="tool-meta">
+                      <span class="tool-pill tool-pill-cloud">Cloud</span>
+                      <span class="tool-pill">AWS</span>
+                      <span class="tool-pill">Load test</span>
+                    </div>
+                  </div>
+                </div>
+                <p>Upload a WAV file, run a load test against the Whisper transcription endpoint, and visualize throttling + headroom in real time.</p>
+              </a>
+            </article>
+
+            <article class="tool-card">
+              <a href="tools/short-links">
+                <div class="tool-top">
+                  <span class="tool-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" role="presentation">
+                      <circle cx="12" cy="12" r="9" class="icon-fill" opacity=".12"></circle>
+                      <path d="M10.5 13.5l-1 1a3 3 0 0 1-4.2 0 3 3 0 0 1 0-4.2l1-1"></path>
+                      <path d="M13.5 10.5l1-1a3 3 0 0 1 4.2 0 3 3 0 0 1 0 4.2l-1 1"></path>
+                      <path d="M9 12h6"></path>
+                    </svg>
+                  </span>
+                  <div>
+                    <h3>Short Links (Admin)</h3>
+                    <div class="tool-meta">
+                      <span class="tool-pill tool-pill-cloud">Cloud</span>
+                      <span class="tool-pill tool-pill-admin">Admin</span>
+                      <span class="tool-pill">Redirects</span>
+                    </div>
+                  </div>
+                </div>
+                <p>Create and manage private <code>/go/&lt;slug&gt;</code> redirect links with click counts (requires admin token).</p>
+              </a>
+            </article>
+          </div>
+        </section>
+
+        <section class="tools-category" id="tools-experiments" aria-labelledby="tools-experiments-title">
+          <header class="tools-category-head">
+            <h2 class="section-title" id="tools-experiments-title">Experiments</h2>
+            <p>Small creative projects and just-for-fun utilities.</p>
+          </header>
+          <div class="tools-grid">
+            <article class="tool-card">
+              <a href="tools/ocean-wave-simulation">
+                <div class="tool-top">
+                  <span class="tool-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" role="presentation">
+                      <rect x="4" y="4" width="16" height="16" rx="3" class="icon-fill" opacity=".12"></rect>
+                      <rect x="4" y="4" width="16" height="16" rx="3"></rect>
+                      <path d="M6 11c1.6-1.6 3.8-1.6 5.4 0s3.8 1.6 5.4 0"></path>
+                      <path d="M6 15c1.6-1.6 3.8-1.6 5.4 0s3.8 1.6 5.4 0"></path>
+                    </svg>
+                  </span>
+                  <div>
+                    <h3>Ocean Wave Simulation</h3>
+                    <div class="tool-meta">
+                      <span class="tool-pill tool-pill-local">Local</span>
+                      <span class="tool-pill">Canvas</span>
+                      <span class="tool-pill">Relaxing</span>
+                    </div>
+                  </div>
+                </div>
+                <p>A calming, real-time ocean surface renderer with adjustable wind speed, wave height, and sun lighting that runs locally.</p>
+              </a>
+            </article>
+
+            <article class="tool-card">
               <div class="tool-top">
                 <span class="tool-icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24" role="presentation">
                     <circle cx="12" cy="12" r="9" class="icon-fill" opacity=".12"></circle>
-                    <path d="M10.5 13.5l-1 1a3 3 0 0 1-4.2 0 3 3 0 0 1 0-4.2l1-1"></path>
-                    <path d="M13.5 10.5l1-1a3 3 0 0 1 4.2 0 3 3 0 0 1 0 4.2l-1 1"></path>
-                    <path d="M9 12h6"></path>
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M9 12h6M12 9v6"></path>
                   </svg>
                 </span>
                 <div>
-                  <h3>Short Links (Admin)</h3>
+                  <h3>More tools soon</h3>
                   <div class="tool-meta">
-                    <span class="tool-pill">Admin</span>
-                    <span class="tool-pill">Redirects</span>
+                    <span class="tool-pill">Coming soon</span>
                   </div>
                 </div>
               </div>
-              <p>Create and manage private <code>/go/&lt;slug&gt;</code> redirect links with click counts (requires admin token).</p>
-            </a>
-          </article>
-
-          <article class="tool-card">
-            <a href="tools/utm-batch-builder">
-              <div class="tool-top">
-                <span class="tool-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" role="presentation">
-                    <path d="M6 7h12v10H6z" class="icon-fill" opacity=".12"></path>
-                    <path d="M6 7h12v10H6z"></path>
-                    <path d="M8 10h8M8 13h6"></path>
-                    <path d="M18 9l2 3-2 3"></path>
-                  </svg>
-                </span>
-                <div>
-                  <h3>UTM Batch Builder</h3>
-                  <div class="tool-meta">
-                    <span class="tool-pill">Marketing</span>
-                    <span class="tool-pill">UTM</span>
-                    <span class="tool-pill">CSV</span>
-                  </div>
-                </div>
-              </div>
-              <p>Generate large batches of UTM URLs with normalization helpers, combination modes, per-link copy, and CSV export.</p>
-            </a>
-          </article>
-
-          <article class="tool-card">
-            <a href="tools/word-frequency">
-              <div class="tool-top">
-                <span class="tool-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" role="presentation">
-                    <path d="M5 4h14v16H5z" class="icon-fill" opacity=".12"></path>
-                    <path d="M5 4h14v16H5z"></path>
-                    <path d="M8 8h8M8 12h5M8 16h7"></path>
-                  </svg>
-                </span>
-                <div>
-                  <h3>Word Frequency Analyzer</h3>
-                  <div class="tool-meta">
-                    <span class="tool-pill">Text</span>
-                    <span class="tool-pill">Stopwords</span>
-                  </div>
-                </div>
-              </div>
-              <p>Paste text, strip stopwords, and see the most frequent words calculated entirely in-browser.</p>
-            </a>
-          </article>
-
-          <article class="tool-card">
-            <a href="tools/text-compare">
-              <div class="tool-top">
-                <span class="tool-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" role="presentation">
-                    <rect x="4" y="5" width="7" height="14" rx="2" class="icon-fill" opacity=".12"></rect>
-                    <rect x="13" y="5" width="7" height="14" rx="2" class="icon-fill" opacity=".12"></rect>
-                    <rect x="4" y="5" width="7" height="14" rx="2"></rect>
-                    <rect x="13" y="5" width="7" height="14" rx="2"></rect>
-                    <path d="M7 9h2M7 12h3M7 15h1.5"></path>
-                    <path d="M16 10v4"></path>
-                    <path d="M14 12h4"></path>
-                  </svg>
-                </span>
-                <div>
-                  <h3>Text Compare</h3>
-                  <div class="tool-meta">
-                    <span class="tool-pill">Text</span>
-                    <span class="tool-pill">Diff</span>
-                  </div>
-                </div>
-              </div>
-              <p>Compare two drafts and see insertions, deletions, and replacements highlighted inline.</p>
-            </a>
-          </article>
-
-          <article class="tool-card">
-            <a href="tools/point-of-view-checker">
-              <div class="tool-top">
-                <span class="tool-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" role="presentation">
-                    <path d="M12 5c5 0 9 7 9 7s-4 7-9 7-9-7-9-7 4-7 9-7z" class="icon-fill" opacity=".12"></path>
-                    <path d="M12 5c5 0 9 7 9 7s-4 7-9 7-9-7-9-7 4-7 9-7z"></path>
-                    <path d="M12 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"></path>
-                  </svg>
-                </span>
-                <div>
-                  <h3>Point of View Checker</h3>
-                  <div class="tool-meta">
-                    <span class="tool-pill">Text</span>
-                    <span class="tool-pill">Pronouns</span>
-                  </div>
-                </div>
-              </div>
-              <p>Scan text for first-person, second-person, and third-person pronouns to spot mixed POV.</p>
-            </a>
-          </article>
-
-          <article class="tool-card">
-            <a href="tools/oxford-comma-checker">
-              <div class="tool-top">
-                <span class="tool-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" role="presentation">
-                    <rect x="4" y="4" width="16" height="16" rx="3" class="icon-fill" opacity=".12"></rect>
-                    <rect x="4" y="4" width="16" height="16" rx="3"></rect>
-                    <path d="M8 8h7M8 12h5M8 16h4"></path>
-                    <circle cx="16.5" cy="15.5" r="1.5"></circle>
-                    <path d="M16 17l-1 2"></path>
-                  </svg>
-                </span>
-                <div>
-                  <h3>Oxford Comma Checker</h3>
-                  <div class="tool-meta">
-                    <span class="tool-pill">Text</span>
-                    <span class="tool-pill">Grammar</span>
-                  </div>
-                </div>
-              </div>
-              <p>Scan drafts for possible missing Oxford commas in serial lists and review quick fixes.</p>
-            </a>
-          </article>
-
-          <article class="tool-card">
-            <a href="tools/background-remover">
-              <div class="tool-top">
-                <span class="tool-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" role="presentation">
-                    <rect x="4" y="4" width="16" height="16" rx="3" class="icon-fill" opacity=".12"></rect>
-                    <rect x="4" y="4" width="16" height="16" rx="3"></rect>
-                    <path d="M8 12h8M12 8v8"></path>
-                  </svg>
-                </span>
-                <div>
-                  <h3>Background Remover</h3>
-                  <div class="tool-meta">
-                    <span class="tool-pill">Images</span>
-                    <span class="tool-pill">Transparency</span>
-                  </div>
-                </div>
-              </div>
-              <p>Pick a background color, set tolerance, and export a transparent PNG processed locally.</p>
-            </a>
-          </article>
-
-          <article class="tool-card">
-            <a href="tools/image-optimizer">
-              <div class="tool-top">
-                <span class="tool-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" role="presentation">
-                    <rect x="4" y="4" width="16" height="16" rx="3" class="icon-fill" opacity=".12"></rect>
-                    <rect x="4" y="4" width="16" height="16" rx="3"></rect>
-                    <path d="M8 15l2.2-2.2 2.2 2.2 3.6-3.6L19 12.4"></path>
-                    <path d="M12 7v6"></path>
-                    <path d="m9.6 10.6 2.4 2.4 2.4-2.4"></path>
-                  </svg>
-                </span>
-                <div>
-                  <h3>Image Optimizer</h3>
-                  <div class="tool-meta">
-                    <span class="tool-pill">Images</span>
-                    <span class="tool-pill">Resize</span>
-                    <span class="tool-pill">WebP/AVIF</span>
-                  </div>
-                </div>
-              </div>
-              <p>Batch resize, compress, and convert images (PNG/JPEG/WebP/AVIF) locally with optional responsive widths and “download all”.</p>
-            </a>
-          </article>
-
-          <article class="tool-card">
-            <a href="tools/qr-code-generator">
-              <div class="tool-top">
-                <span class="tool-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" role="presentation">
-                    <rect x="4" y="4" width="16" height="16" rx="3" class="icon-fill" opacity=".12"></rect>
-                    <rect x="4" y="4" width="16" height="16" rx="3"></rect>
-                    <path d="M8 8h3v3H8z"></path>
-                    <path d="M13 8h3v3h-3z"></path>
-                    <path d="M8 13h3v3H8z"></path>
-                    <path d="M13 13h1.5M16 13v3M13 16h3"></path>
-                  </svg>
-                </span>
-                <div>
-                  <h3>QR Code Generator</h3>
-                  <div class="tool-meta">
-                    <span class="tool-pill">Marketing</span>
-                    <span class="tool-pill">Logo</span>
-                    <span class="tool-pill">Export</span>
-                  </div>
-                </div>
-              </div>
-              <p>Create business-grade QR codes with templates, logo embedding, customization controls, and high-resolution exports.</p>
-            </a>
-          </article>
-
-          <article class="tool-card">
-            <a href="tools/screen-recorder">
-              <div class="tool-top">
-                <span class="tool-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" role="presentation">
-                    <rect x="3" y="4" width="18" height="12" rx="2" class="icon-fill" opacity=".12"></rect>
-                    <rect x="3" y="4" width="18" height="12" rx="2"></rect>
-                    <path d="M9 20h6"></path>
-                    <path d="M10 16v4M14 16v4"></path>
-                    <circle cx="16.5" cy="9" r="2"></circle>
-                  </svg>
-                </span>
-                <div>
-                  <h3>Screen Recorder</h3>
-                  <div class="tool-meta">
-                    <span class="tool-pill">Video</span>
-                    <span class="tool-pill">Capture</span>
-                    <span class="tool-pill">Local</span>
-                  </div>
-                </div>
-              </div>
-              <p>Record your screen and download the clip in browser-supported formats with optional system audio.</p>
-            </a>
-          </article>
-
-          <article class="tool-card">
-            <a href="tools/job-application-tracker">
-              <div class="tool-top">
-                <span class="tool-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" role="presentation">
-                    <rect x="6" y="4" width="12" height="16" rx="2" class="icon-fill" opacity=".12"></rect>
-                    <rect x="6" y="4" width="12" height="16" rx="2"></rect>
-                    <path d="M9 8h6M9 12h6M9 16h4"></path>
-                    <path d="M9 4h6"></path>
-                  </svg>
-                </span>
-                <div>
-                  <h3>Job Application Tracker</h3>
-                  <div class="tool-meta">
-                    <span class="tool-pill">Career</span>
-                    <span class="tool-pill">Dashboard</span>
-                    <span class="tool-pill">Tracker</span>
-                  </div>
-                </div>
-              </div>
-              <p>Log applications and review interview momentum with KPI cards, trend lines, and calendar heatmaps.</p>
-            </a>
-          </article>
-
-          <article class="tool-card">
-            <a href="tools/nbsp-cleaner">
-              <div class="tool-top">
-                <span class="tool-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" role="presentation">
-                    <rect x="4" y="6" width="16" height="12" rx="2" class="icon-fill" opacity=".12"></rect>
-                    <rect x="4" y="6" width="16" height="12" rx="2"></rect>
-                    <path d="M7 10h10M7 14h4"></path>
-                  </svg>
-                </span>
-                <div>
-                  <h3>Non-breaking Space Cleaner</h3>
-                  <div class="tool-meta">
-                    <span class="tool-pill">Text</span>
-                    <span class="tool-pill">Spacing</span>
-                  </div>
-                </div>
-              </div>
-              <p>Detects hard spaces (NBSP, narrow NBSP, etc.) and replaces them with regular spaces after confirming counts.</p>
-            </a>
-          </article>
-
-          <article class="tool-card">
-            <a href="tools/ocean-wave-simulation">
-              <div class="tool-top">
-                <span class="tool-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" role="presentation">
-                    <rect x="4" y="4" width="16" height="16" rx="3" class="icon-fill" opacity=".12"></rect>
-                    <rect x="4" y="4" width="16" height="16" rx="3"></rect>
-                    <path d="M6 11c1.6-1.6 3.8-1.6 5.4 0s3.8 1.6 5.4 0"></path>
-                    <path d="M6 15c1.6-1.6 3.8-1.6 5.4 0s3.8 1.6 5.4 0"></path>
-                  </svg>
-                </span>
-                <div>
-                  <h3>Ocean Wave Simulation</h3>
-                  <div class="tool-meta">
-                    <span class="tool-pill">Canvas</span>
-                    <span class="tool-pill">Lighting</span>
-                    <span class="tool-pill">Relaxing</span>
-                  </div>
-                </div>
-              </div>
-              <p>A calming, real-time ocean surface renderer with adjustable wind speed, wave height, and sun lighting that runs locally.</p>
-            </a>
-          </article>
-
-          <article class="tool-card">
-            <div class="tool-top">
-              <span class="tool-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" role="presentation">
-                  <circle cx="12" cy="12" r="9" class="icon-fill" opacity=".12"></circle>
-                  <circle cx="12" cy="12" r="9"></circle>
-                  <path d="M9 12h6M12 9v6"></path>
-                </svg>
-              </span>
-              <div>
-                <h3>More tools soon</h3>
-                <div class="tool-meta">
-                  <span class="tool-pill">Coming soon</span>
-                </div>
-              </div>
-            </div>
-            <p>Additional browser-based utilities will be added here as they launch.</p>
-          </article>
-        </div>
+              <p>Additional browser-based utilities will be added here as they launch.</p>
+            </article>
+          </div>
+        </section>
       </div>
     </section>
   </main>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <base href="/">
+  <title>Whisper Capacity Monitor | Daniel Short</title>
+  <link rel="canonical" href="https://danielshort.me/tools/whisper-transcribe-monitor">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Run load tests against the Whisper transcription endpoint and visualize concurrency headroom, throttling, and throughput.">
+  <meta property="og:title" content="Whisper Capacity Monitor | Daniel Short">
+  <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
+  <meta property="og:description" content="Load test the AWS Lambda Whisper endpoint and visualize headroom + throttling as requests run.">
+  <meta property="og:url" content="https://danielshort.me/tools/whisper-transcribe-monitor">
+  <meta property="og:image" content="https://danielshort.me/img/hero/head.jpg">
+  <meta property="og:image:alt" content="Portrait photo of Daniel Short">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@danielshort3">
+  <meta name="theme-color" content="#0D1117">
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
+  <script>
+    try {
+      if (document.documentElement.classList) {
+        document.documentElement.classList.remove("no-js");
+      } else {
+        document.documentElement.className = (document.documentElement.className || "").replace(/\bno-js\b/, "").trim();
+      }
+    } catch (_) {}
+  </script>
+</head>
+<body data-page="whisper-transcribe-monitor" class="whisper-transcribe-monitor-page">
+  <a href="#main" class="skip-link">Skip to main content</a>
+  <header id="combined-header-nav"></header>
+
+  <main id="main">
+    <section class="tools-hero">
+      <div class="wrapper">
+        <p class="hero-eyebrow">Whisper transcription load testing - visualize concurrency headroom and throttling.</p>
+        <h1>Whisper Capacity Monitor</h1>
+        <p>Upload a small WAV file, run a configurable load test, and watch concurrency usage, throttles, and throughput update live. Audio is sent to AWS Lambda for transcription.</p>
+      </div>
+    </section>
+
+    <section class="surface-band tools-section whispermon-section">
+      <div class="wrapper whispermon-grid">
+        <article class="whispermon-card">
+          <h2>Endpoint</h2>
+          <form class="contact-form" novalidate>
+            <div class="form-field">
+              <label for="whispermon-endpoint">Lambda Function URL</label>
+              <input id="whispermon-endpoint" type="url" inputmode="url" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="https://...lambda-url...">
+              <p class="contact-form-note">Saved in <code>localStorage</code> on this device.</p>
+            </div>
+            <div class="form-field">
+              <label for="whispermon-limit">Concurrency limit</label>
+              <input id="whispermon-limit" type="number" inputmode="numeric" min="1" max="200" value="10">
+              <p class="contact-form-note">This is the AWS account concurrency cap you want to test against (defaults to 10).</p>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn-secondary" id="whispermon-check">Check status</button>
+              <button type="button" class="btn-ghost" id="whispermon-save">Save</button>
+            </div>
+            <div class="contact-form-status" id="whispermon-endpoint-status" role="status" aria-live="polite"></div>
+          </form>
+        </article>
+
+        <article class="whispermon-card">
+          <h2>Audio</h2>
+          <form class="contact-form" novalidate>
+            <div class="form-field">
+              <label for="whispermon-file">WAV file</label>
+              <input id="whispermon-file" type="file" accept=".wav,audio/wav,audio/x-wav">
+              <p class="contact-form-note">Tip: keep it short (≤ 30s). Do not upload sensitive audio.</p>
+            </div>
+            <div class="whispermon-audio-meta" id="whispermon-audio-meta" aria-live="polite">No audio loaded.</div>
+          </form>
+        </article>
+
+        <article class="whispermon-card whispermon-card-wide">
+          <h2>Load test</h2>
+          <form id="whispermon-runner" class="contact-form" novalidate>
+            <div class="whispermon-controls">
+              <div class="form-field">
+                <label for="whispermon-total">Total requests</label>
+                <input id="whispermon-total" type="number" inputmode="numeric" min="1" max="500" value="12">
+              </div>
+              <div class="form-field">
+                <label for="whispermon-parallel">Parallel requests</label>
+                <input id="whispermon-parallel" type="number" inputmode="numeric" min="1" max="50" value="12">
+              </div>
+              <div class="form-field">
+                <label for="whispermon-path">Path</label>
+                <select id="whispermon-path">
+                  <option value="/" selected>/</option>
+                  <option value="/transcribe">/transcribe</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-actions whispermon-actions">
+              <button type="submit" class="btn-primary" id="whispermon-start">
+                <span class="btn-spinner" aria-hidden="true"></span>
+                <span class="btn-label">Start test</span>
+              </button>
+              <button type="button" class="btn-secondary" id="whispermon-stop" disabled>Stop</button>
+              <button type="button" class="btn-ghost" id="whispermon-reset">Reset</button>
+            </div>
+            <div class="contact-form-status" id="whispermon-run-status" role="status" aria-live="polite"></div>
+          </form>
+        </article>
+
+        <article class="whispermon-card whispermon-card-wide">
+          <h2>Live stats</h2>
+          <div class="whispermon-stats">
+            <div class="whispermon-stat">
+              <div class="whispermon-stat-label">In flight</div>
+              <div class="whispermon-stat-value" id="whispermon-inflight">0</div>
+            </div>
+            <div class="whispermon-stat">
+              <div class="whispermon-stat-label">Headroom</div>
+              <div class="whispermon-stat-value" id="whispermon-headroom">0</div>
+            </div>
+            <div class="whispermon-stat">
+              <div class="whispermon-stat-label">Success</div>
+              <div class="whispermon-stat-value" id="whispermon-success">0</div>
+            </div>
+            <div class="whispermon-stat">
+              <div class="whispermon-stat-label">Throttles (429)</div>
+              <div class="whispermon-stat-value" id="whispermon-throttles">0</div>
+            </div>
+            <div class="whispermon-stat">
+              <div class="whispermon-stat-label">Errors</div>
+              <div class="whispermon-stat-value" id="whispermon-errors">0</div>
+            </div>
+            <div class="whispermon-stat">
+              <div class="whispermon-stat-label">p95 latency</div>
+              <div class="whispermon-stat-value" id="whispermon-p95">—</div>
+            </div>
+            <div class="whispermon-stat">
+              <div class="whispermon-stat-label">Observed req/s</div>
+              <div class="whispermon-stat-value" id="whispermon-rps">—</div>
+            </div>
+            <div class="whispermon-stat">
+              <div class="whispermon-stat-label">Est. capacity req/s</div>
+              <div class="whispermon-stat-value" id="whispermon-capacity">—</div>
+            </div>
+          </div>
+
+          <p class="whispermon-meter-label">Concurrency utilization</p>
+          <div class="whispermon-meter" aria-label="Concurrency usage">
+            <div class="whispermon-meter-fill" id="whispermon-meter-fill"></div>
+          </div>
+          <p class="whispermon-meter-meta" id="whispermon-meter-meta">0 / 10</p>
+
+          <p class="whispermon-meter-label">Estimated throughput utilization (req/s)</p>
+          <div class="whispermon-meter whispermon-meter-secondary" aria-label="Throughput usage">
+            <div class="whispermon-meter-fill" id="whispermon-meter-rps-fill"></div>
+          </div>
+          <p class="whispermon-meter-meta" id="whispermon-meter-rps-meta">—</p>
+
+          <details class="whispermon-log-details" open>
+            <summary class="whispermon-log-summary">Request log</summary>
+            <div class="whispermon-log" id="whispermon-log" aria-live="polite"></div>
+          </details>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <nav class="privacy-links" aria-label="Privacy shortcuts">
+      <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
+      <a href="#" class="pcz-link" onclick="window.Privacy && window.Privacy.open('doNotSell'); return false;">Do Not Sell/Share My Personal Information</a>
+    </nav>
+  </footer>
+
+  <script defer src="js/tools/whisper-transcribe-monitor.js"></script>
+  <script defer src="js/common/common.js"></script>
+  <script defer src="js/navigation/navigation.js"></script>
+  <script defer src="js/animations/animations.js"></script>
+  <script src="js/privacy/config.js"></script>
+  <script defer src="js/privacy/consent_manager.js"></script>
+</body>
+</html>

@@ -1,0 +1,233 @@
+/* Whisper Capacity Monitor tool styles */
+@layer components {
+  .whispermon-grid{
+    display:grid;
+    gap:clamp(16px,3vw,22px);
+    align-items:start;
+  }
+
+  @media (min-width: 900px){
+    .whispermon-grid{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+
+    .whispermon-card-wide{
+      grid-column:1 / -1;
+    }
+  }
+
+  .whispermon-card{
+    border-radius:16px;
+    border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
+    background:linear-gradient(150deg,
+      color-mix(in srgb,var(--surface) 94%, #040910 6%) 0%,
+      color-mix(in srgb,var(--surface) 82%, #040910 18%) 100%);
+    box-shadow:0 16px 32px rgba(0,0,0,.28);
+    padding:clamp(1.1rem,2vw,1.4rem);
+    min-width:0;
+  }
+
+  .whispermon-card h2{
+    margin:0 0 12px;
+    font-size:1.2rem;
+    letter-spacing:.01em;
+  }
+
+  .whispermon-controls{
+    display:grid;
+    gap:12px;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    align-items:end;
+  }
+
+  .whispermon-actions .btn-primary,
+  .whispermon-actions .btn-secondary,
+  .whispermon-actions .btn-ghost{
+    flex:0 0 auto;
+  }
+
+  .whispermon-audio-meta{
+    margin-top:12px;
+    padding:12px 14px;
+    border-radius:12px;
+    border:1px solid color-mix(in srgb,var(--text-light) 12%, transparent);
+    background:color-mix(in srgb,var(--surface) 90%, #02060c 10%);
+    color:var(--text-muted);
+    font-size:.95rem;
+    min-width:0;
+    overflow-wrap:anywhere;
+    word-break:break-word;
+  }
+
+  .whispermon-audio-meta[data-tone="success"]{
+    border-color:color-mix(in srgb,var(--success) 40%, transparent);
+    background:color-mix(in srgb,var(--success) 10%, color-mix(in srgb,var(--surface) 92%, #02060c 8%));
+    color:color-mix(in srgb,var(--text-light) 86%, var(--success) 14%);
+  }
+
+  .whispermon-audio-meta[data-tone="error"]{
+    border-color:color-mix(in srgb,var(--danger) 40%, transparent);
+    background:color-mix(in srgb,var(--danger) 10%, color-mix(in srgb,var(--surface) 92%, #02060c 8%));
+    color:color-mix(in srgb,var(--text-light) 86%, var(--danger) 14%);
+  }
+
+  .whispermon-stats{
+    display:grid;
+    gap:12px;
+    grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    margin-bottom:16px;
+  }
+
+  .whispermon-stat{
+    border-radius:14px;
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    background:color-mix(in srgb,var(--surface) 92%, #02060c 8%);
+    padding:12px 12px 10px;
+    box-shadow:0 12px 24px rgba(0,0,0,.22);
+    min-width:0;
+  }
+
+  .whispermon-stat-label{
+    font-size:.78rem;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--text-muted);
+    margin-bottom:6px;
+    line-height:1.2;
+  }
+
+  .whispermon-stat-value{
+    font-weight:800;
+    font-size:1.2rem;
+    color:color-mix(in srgb,var(--text-light) 92%, #000 8%);
+    line-height:1.1;
+    overflow-wrap:anywhere;
+    word-break:break-word;
+  }
+
+  .whispermon-meter-label{
+    margin:0 0 8px;
+    color:var(--text-muted);
+    font-size:.92rem;
+    font-weight:600;
+    letter-spacing:.01em;
+  }
+
+  .whispermon-meter{
+    width:100%;
+    height:14px;
+    border-radius:999px;
+    border:1px solid color-mix(in srgb,var(--primary) 20%, transparent);
+    background:color-mix(in srgb,var(--surface) 92%, #000 8%);
+    overflow:hidden;
+    box-shadow:0 12px 22px rgba(0,0,0,.22);
+  }
+
+  .whispermon-meter-fill{
+    height:100%;
+    width:0%;
+    border-radius:999px;
+    background:linear-gradient(90deg,
+      color-mix(in srgb,var(--primary) 86%, #ffffff 14%) 0%,
+      color-mix(in srgb,var(--primary) 56%, #071219 44%) 100%);
+    transition:width .12s ease;
+  }
+
+  .whispermon-meter-fill[data-tone="warning"]{
+    background:linear-gradient(90deg,
+      color-mix(in srgb,var(--warning) 80%, #ffffff 20%) 0%,
+      color-mix(in srgb,var(--warning) 55%, #3a2600 45%) 100%);
+  }
+
+  .whispermon-meter-fill[data-tone="danger"]{
+    background:linear-gradient(90deg,
+      color-mix(in srgb,var(--danger) 80%, #ffffff 20%) 0%,
+      color-mix(in srgb,var(--danger) 55%, #2a0505 45%) 100%);
+  }
+
+  .whispermon-meter-meta{
+    margin:10px 0 14px;
+    color:var(--text-muted);
+    font-size:.92rem;
+  }
+
+  .whispermon-log-details{
+    margin-top:18px;
+    border-radius:16px;
+    border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
+    background:color-mix(in srgb,var(--surface) 92%, #02060c 8%);
+    overflow:hidden;
+  }
+
+  .whispermon-log-summary{
+    list-style:none;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:12px 14px;
+    font-weight:600;
+    color:var(--text-light);
+  }
+  .whispermon-log-summary::-webkit-details-marker{ display:none; }
+  .whispermon-log-summary::marker{ content:""; }
+  .whispermon-log-summary::after{
+    content:"+";
+    margin-left:auto;
+    opacity:.7;
+  }
+
+  .whispermon-log-details[open] .whispermon-log-summary{
+    border-bottom:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+  }
+
+  .whispermon-log-details[open] .whispermon-log-summary::after{
+    content:"-";
+  }
+
+  .whispermon-log{
+    max-height:340px;
+    overflow:auto;
+    padding:12px 14px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    scrollbar-gutter:stable;
+  }
+
+  .whispermon-log-row{
+    padding:8px 10px;
+    border-radius:12px;
+    border:1px solid color-mix(in srgb,var(--text-light) 10%, transparent);
+    background:color-mix(in srgb,var(--surface) 92%, #000 8%);
+    color:var(--text-muted);
+    font-size:.9rem;
+    line-height:1.45;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+    min-width:0;
+    overflow-wrap:anywhere;
+    word-break:break-word;
+  }
+
+  .whispermon-log-row[data-tone="success"]{
+    border-color:color-mix(in srgb,var(--success) 36%, transparent);
+    background:color-mix(in srgb,var(--success) 10%, color-mix(in srgb,var(--surface) 94%, #000 6%));
+    color:color-mix(in srgb,var(--text-light) 86%, var(--success) 14%);
+  }
+
+  .whispermon-log-row[data-tone="warning"]{
+    border-color:color-mix(in srgb,var(--warning) 36%, transparent);
+    background:color-mix(in srgb,var(--warning) 10%, color-mix(in srgb,var(--surface) 94%, #000 6%));
+    color:color-mix(in srgb,var(--text-light) 86%, var(--warning) 14%);
+  }
+
+  .whispermon-log-row[data-tone="error"]{
+    border-color:color-mix(in srgb,var(--danger) 36%, transparent);
+    background:color-mix(in srgb,var(--danger) 10%, color-mix(in srgb,var(--surface) 94%, #000 6%));
+    color:color-mix(in srgb,var(--text-light) 86%, var(--danger) 14%);
+  }
+
+  .whispermon-log-row[data-tone="muted"]{
+    opacity:.85;
+  }
+}
