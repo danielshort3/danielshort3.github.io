@@ -4,7 +4,7 @@ import { createRoot } from "react-dom/client";
 const core = require("./core");
 
 type InputMode = "single" | "list" | "csvColumn";
-type CombinationMode = "cartesian" | "zip" | "templateRows";
+type CombinationMode = "cartesian" | "zip" | "templateRows" | "groups";
 type SpacesMode = "underscore" | "dash" | "none";
 
 type FieldInputState = {
@@ -27,6 +27,12 @@ type CustomParamState = {
   value: FieldInputState;
 };
 
+type RelationshipGroupState = {
+  id: string;
+  name: string;
+  keys: string[];
+};
+
 type AppConfigState = {
   mode: CombinationMode;
   overrideExisting: boolean;
@@ -35,6 +41,7 @@ type AppConfigState = {
   csvText: string;
   previewLimit: number;
   maxRows: number;
+  relationshipGroups: RelationshipGroupState[];
   baseUrl: FieldInputState;
   utm: {
     source: FieldInputState;
@@ -95,6 +102,7 @@ const defaultConfig = (): AppConfigState => ({
   csvText: "",
   previewLimit: 10,
   maxRows: 50000,
+  relationshipGroups: [],
   baseUrl: makeField({
     mode: "list",
     single: "",
@@ -364,8 +372,8 @@ const FieldEditor = ({
       )}
 
       {help ? <p className="utmtool-help">{help}</p> : null}
-      {combinationMode === "zip" && field.mode === "list" ? (
-        <p className="utmtool-help">In Zip mode, blank lines keep row alignment.</p>
+      {(combinationMode === "zip" || combinationMode === "groups") && field.mode === "list" ? (
+        <p className="utmtool-help">In row-aligned modes, blank lines keep row alignment.</p>
       ) : null}
     </div>
   );
@@ -473,6 +481,355 @@ const VirtualizedTable = ({
   );
 };
 
+const AccordionSection = ({
+  title,
+  subtitle,
+  defaultOpen = true,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) => {
+  return (
+    <details className="utmtool-accordion" open={defaultOpen}>
+      <summary className="utmtool-accordion-summary">
+        <div className="utmtool-accordion-text">
+          <div className="utmtool-accordion-title">{title}</div>
+          {subtitle ? <div className="utmtool-accordion-subtitle">{subtitle}</div> : null}
+        </div>
+        <span className="utmtool-accordion-chevron" aria-hidden="true"></span>
+      </summary>
+      <div className="utmtool-accordion-body">{children}</div>
+    </details>
+  );
+};
+
+const MODE_HELP: Record<CombinationMode, { label: string; description: string }> = {
+  cartesian: {
+    label: "A) Full Cartesian",
+    description: "All combinations of every list value across fields.",
+  },
+  zip: {
+    label: "B) Zip by Row",
+    description: "Row-aligned lists (line 1 with line 1, etc.).",
+  },
+  templateRows: {
+    label: "C) Template + Rows",
+    description: "Defaults + per-row overrides (blank override falls back to default).",
+  },
+  groups: {
+    label: "D) Grouped (Relationships)",
+    description: "Zip within groups, Cartesian across groups (drag & drop).",
+  },
+};
+
+const ModePicker = ({
+  value,
+  onChange,
+}: {
+  value: CombinationMode;
+  onChange: (next: CombinationMode) => void;
+}) => {
+  const modes: CombinationMode[] = ["cartesian", "zip", "templateRows", "groups"];
+  return (
+    <fieldset className="utmtool-mode-picker">
+      <legend className="utmtool-mode-legend">Combination mode</legend>
+      <div className="utmtool-mode-grid">
+        {modes.map((mode) => (
+          <label
+            key={mode}
+            className={`utmtool-mode-card${value === mode ? " is-selected" : ""}`}
+          >
+            <input
+              type="radio"
+              name="utmtool-mode"
+              value={mode}
+              checked={value === mode}
+              onChange={() => onChange(mode)}
+            />
+            <div className="utmtool-mode-title">{MODE_HELP[mode].label}</div>
+            <div className="utmtool-mode-desc">{MODE_HELP[mode].description}</div>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  );
+};
+
+const RelationshipBuilder = ({
+  keys,
+  keyInputs,
+  requiredKeys,
+  csvRowCount,
+  csvColumns,
+  groups,
+  onChangeGroups,
+}: {
+  keys: string[];
+  keyInputs: Record<string, FieldInputState | undefined>;
+  requiredKeys: Set<string>;
+  csvRowCount: number;
+  csvColumns: CsvColumnOption[];
+  groups: RelationshipGroupState[];
+  onChangeGroups: (next: RelationshipGroupState[]) => void;
+}) => {
+  const availableKeys = useMemo(() => keys.filter(Boolean), [keys]);
+
+  const sanitizeGroups = useCallback((next: RelationshipGroupState[]) => {
+    const allowed = new Set(availableKeys);
+    const seen = new Set<string>();
+    return (next || []).map((g) => {
+      const deduped: string[] = [];
+      (g.keys || []).forEach((k) => {
+        const key = String(k || "").trim();
+        if (!key) return;
+        if (!allowed.has(key)) return;
+        if (seen.has(key)) return;
+        seen.add(key);
+        deduped.push(key);
+      });
+      return { ...g, keys: deduped };
+    });
+  }, [availableKeys]);
+
+  const normalizedGroups = useMemo(() => sanitizeGroups(groups || []), [groups, sanitizeGroups]);
+
+  const assigned = useMemo(() => {
+    const set = new Set<string>();
+    normalizedGroups.forEach((g) => (g.keys || []).forEach((k) => set.add(k)));
+    return set;
+  }, [normalizedGroups]);
+
+  const independentKeys = useMemo(() => availableKeys.filter((k) => !assigned.has(k)), [availableKeys, assigned]);
+
+  const getKeyLabel = (key: string) => (key === "base_url" ? "Base URL" : key);
+
+  const parseList = (text: string) => core.parseMultilinePreserveEmpty(text || "");
+
+  const getKeyStats = (key: string) => {
+    const field = keyInputs[key];
+    if (!field) return { length: 0, nonEmpty: 0, missing: requiredKeys.has(key) };
+    if (field.mode === "csvColumn") {
+      const len = csvRowCount;
+      return { length: len, nonEmpty: len, missing: requiredKeys.has(key) && len === 0 };
+    }
+    if (field.mode === "list") {
+      const rows = parseList(field.list);
+      const nonEmpty = rows.filter((v: string) => String(v || "").trim() !== "").length;
+      const missing = requiredKeys.has(key) && nonEmpty === 0;
+      return { length: rows.length, nonEmpty, missing };
+    }
+    const value = String(field.single || "").trim();
+    const missing = requiredKeys.has(key) && !value;
+    return { length: 1, nonEmpty: value ? 1 : 0, missing };
+  };
+
+  const moveKeyToGroup = (key: string, groupId: string | null) => {
+    const next = normalizedGroups.map((g) => ({ ...g, keys: (g.keys || []).filter((k) => k !== key) }));
+    if (groupId) {
+      const idx = next.findIndex((g) => g.id === groupId);
+      if (idx >= 0) next[idx] = { ...next[idx], keys: (next[idx].keys || []).concat(key) };
+    }
+    onChangeGroups(sanitizeGroups(next));
+  };
+
+  const addGroup = () => {
+    const name = `Zip group ${normalizedGroups.length + 1}`;
+    onChangeGroups(sanitizeGroups(normalizedGroups.concat({ id: makeId(), name, keys: [] })));
+  };
+
+  const removeGroup = (groupId: string) => {
+    onChangeGroups(sanitizeGroups(normalizedGroups.filter((g) => g.id !== groupId)));
+  };
+
+  const renameGroup = (groupId: string, name: string) => {
+    onChangeGroups(sanitizeGroups(normalizedGroups.map((g) => (g.id === groupId ? { ...g, name } : g))));
+  };
+
+  const moveGroup = (groupId: string, dir: -1 | 1) => {
+    const idx = normalizedGroups.findIndex((g) => g.id === groupId);
+    if (idx < 0) return;
+    const nextIdx = idx + dir;
+    if (nextIdx < 0 || nextIdx >= normalizedGroups.length) return;
+    const next = normalizedGroups.slice();
+    const temp = next[idx];
+    next[idx] = next[nextIdx];
+    next[nextIdx] = temp;
+    onChangeGroups(sanitizeGroups(next));
+  };
+
+  const onDragStartKey = (key: string) => (e: React.DragEvent) => {
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", key);
+  };
+
+  const onDropToIndependent = (e: React.DragEvent) => {
+    e.preventDefault();
+    const key = String(e.dataTransfer.getData("text/plain") || "").trim();
+    if (!key) return;
+    moveKeyToGroup(key, null);
+  };
+
+  const onDropToGroup = (groupId: string) => (e: React.DragEvent) => {
+    e.preventDefault();
+    const key = String(e.dataTransfer.getData("text/plain") || "").trim();
+    if (!key) return;
+    moveKeyToGroup(key, groupId);
+  };
+
+  const allowDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  return (
+    <div className="utmtool-rel">
+      <p className="utmtool-help">
+        Drag fields into a zip group to lock them together by row. Zip groups combine with everything else via Full Cartesian.
+      </p>
+
+      <div className="utmtool-rel-block">
+        <h4>Independent fields</h4>
+        <div
+          className="utmtool-rel-dropzone"
+          onDragOver={allowDrop}
+          onDrop={onDropToIndependent}
+        >
+          {independentKeys.length ? (
+            <div className="utmtool-pill-row">
+              {independentKeys.map((key) => {
+                const stats = getKeyStats(key);
+                return (
+                  <div
+                    key={key}
+                    className={`utmtool-pill${stats.missing ? " is-missing" : ""}`}
+                    draggable
+                    onDragStart={onDragStartKey(key)}
+                    title={stats.missing ? "Missing required values" : undefined}
+                  >
+                    <span className="utmtool-pill-text">{getKeyLabel(key)}</span>
+                    <span className="utmtool-pill-badge">{stats.length}</span>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="utmtool-help">All fields are currently assigned to zip groups.</p>
+          )}
+        </div>
+      </div>
+
+      <div className="utmtool-rel-block">
+        <div className="utmtool-rel-groups-head">
+          <h4>Zip groups (row-aligned)</h4>
+          <button type="button" className="btn-secondary" onClick={addGroup}>
+            Add zip group
+          </button>
+        </div>
+
+        {normalizedGroups.length ? (
+          <div className="utmtool-rel-groups">
+            {normalizedGroups.map((group) => (
+              <div key={group.id} className="utmtool-rel-group">
+                <div className="utmtool-rel-group-head">
+                  <input
+                    className="utmtool-input"
+                    type="text"
+                    value={group.name}
+                    onChange={(e) => renameGroup(group.id, e.target.value)}
+                    aria-label="Group name"
+                  />
+                  <div className="utmtool-rel-group-actions">
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => moveGroup(group.id, -1)}
+                      disabled={normalizedGroups[0]?.id === group.id}
+                    >
+                      Up
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => moveGroup(group.id, 1)}
+                      disabled={normalizedGroups[normalizedGroups.length - 1]?.id === group.id}
+                    >
+                      Down
+                    </button>
+                    <button type="button" className="btn-secondary" onClick={() => removeGroup(group.id)}>
+                      Remove
+                    </button>
+                  </div>
+                </div>
+
+                <div className="utmtool-rel-group-add">
+                  <label className="utmtool-label" htmlFor={`utmtool-rel-add-${group.id}`}>Add field</label>
+                  <select
+                    id={`utmtool-rel-add-${group.id}`}
+                    className="utmtool-select"
+                    value=""
+                    onChange={(e) => {
+                      const key = String(e.target.value || "").trim();
+                      if (!key) return;
+                      moveKeyToGroup(key, group.id);
+                    }}
+                  >
+                    <option value="">Choose…</option>
+                    {independentKeys.map((key) => (
+                      <option key={key} value={key}>
+                        {getKeyLabel(key)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div
+                  className="utmtool-rel-dropzone"
+                  onDragOver={allowDrop}
+                  onDrop={onDropToGroup(group.id)}
+                >
+                  {group.keys.length ? (
+                    <div className="utmtool-pill-row">
+                      {group.keys.map((key) => {
+                        const stats = getKeyStats(key);
+                        return (
+                          <div
+                            key={key}
+                            className={`utmtool-pill${stats.missing ? " is-missing" : ""}`}
+                            draggable
+                            onDragStart={onDragStartKey(key)}
+                            title="Drag back to Independent to remove"
+                          >
+                            <span className="utmtool-pill-text">{getKeyLabel(key)}</span>
+                            <span className="utmtool-pill-badge">{stats.length}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="utmtool-help">Drop fields here to zip them by row.</p>
+                  )}
+                </div>
+
+                <p className="utmtool-help">
+                  Tip: fields in a zip group should have matching row counts (or be single values).
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="utmtool-help">No zip groups yet. Add one to define row-level relationships.</p>
+        )}
+      </div>
+
+      {csvColumns.length === 0 ? (
+        <p className="utmtool-help">CSV column mapping is available after you upload a CSV in “Data sources”.</p>
+      ) : null}
+    </div>
+  );
+};
+
 const App = () => {
   const [config, setConfig] = useState<AppConfigState>(defaultConfig);
   const [campaignBuilder, setCampaignBuilder] = useState<CampaignBuilderState>(defaultCampaignBuilder);
@@ -505,6 +862,49 @@ const App = () => {
     return { columns, rowCount: Math.max(0, parsed.length - 1), hasCsv: true };
   }, [config.csvText]);
 
+  const relationshipRequiredKeys = useMemo(() => new Set([
+    "base_url",
+    "utm_source",
+    "utm_medium",
+    "utm_campaign",
+  ]), []);
+
+  const relationshipKeys = useMemo(() => {
+    const keys: string[] = [
+      "base_url",
+      "utm_source",
+      "utm_medium",
+      "utm_campaign",
+      "utm_content",
+      "utm_term",
+    ];
+    (config.customParams || []).forEach((p) => {
+      const key = String(p?.key || "").trim();
+      if (!key) return;
+      if (!core.isValidParamKey(key)) return;
+      if (!keys.includes(key)) keys.push(key);
+    });
+    return keys;
+  }, [config.customParams]);
+
+  const relationshipKeyInputs = useMemo(() => {
+    const map: Record<string, FieldInputState | undefined> = {
+      base_url: config.baseUrl,
+      utm_source: config.utm.source,
+      utm_medium: config.utm.medium,
+      utm_campaign: config.utm.campaign,
+      utm_content: config.utm.content,
+      utm_term: config.utm.term,
+    };
+    (config.customParams || []).forEach((p) => {
+      const key = String(p?.key || "").trim();
+      if (!key) return;
+      if (!core.isValidParamKey(key)) return;
+      map[key] = p.value;
+    });
+    return map;
+  }, [config.baseUrl, config.customParams, config.utm]);
+
   const showToast = (message: string) => {
     setToast(message);
     window.clearTimeout((showToast as any)._t);
@@ -518,6 +918,7 @@ const App = () => {
       normalization: config.normalization,
       excludeRulesText: config.excludeRulesText,
       csvText: config.csvText,
+      relationshipGroups: config.relationshipGroups,
       baseUrl: config.baseUrl,
       utm: config.utm,
       customParams: config.customParams.map((p) => ({ key: p.key, value: p.value })),
@@ -806,6 +1207,61 @@ const App = () => {
     }
   }, []);
 
+  const customKeyByIdRef = useRef<Record<string, string>>({});
+  useEffect(() => {
+    const prev = customKeyByIdRef.current;
+    const renames: Array<{ from: string; to: string }> = [];
+    const next: Record<string, string> = {};
+
+    (config.customParams || []).forEach((p) => {
+      const id = String(p?.id || "");
+      const to = String(p?.key || "").trim();
+      const from = prev[id] || "";
+      next[id] = to;
+      if (from && to && from !== to) renames.push({ from, to });
+    });
+
+    customKeyByIdRef.current = next;
+    if (!renames.length) return;
+
+    setConfig((prevConfig) => {
+      const updated = (prevConfig.relationshipGroups || []).map((g) => ({
+        ...g,
+        keys: (g.keys || []).map((k) => {
+          const rename = renames.find((r) => r.from === k);
+          return rename ? rename.to : k;
+        }),
+      }));
+      return { ...prevConfig, relationshipGroups: updated };
+    });
+  }, [config.customParams]);
+
+  useEffect(() => {
+    setConfig((prevConfig) => {
+      if (!prevConfig.relationshipGroups?.length) return prevConfig;
+      const allowed = new Set(relationshipKeys);
+      const used = new Set<string>();
+      let changed = false;
+
+      const nextGroups = prevConfig.relationshipGroups.map((g) => {
+        const keys: string[] = [];
+        (g.keys || []).forEach((raw) => {
+          const key = String(raw || "").trim();
+          if (!key) { changed = true; return; }
+          if (!allowed.has(key)) { changed = true; return; }
+          if (used.has(key)) { changed = true; return; }
+          used.add(key);
+          keys.push(key);
+        });
+        if (keys.length !== (g.keys || []).length) changed = true;
+        return { ...g, keys };
+      });
+
+      if (!changed) return prevConfig;
+      return { ...prevConfig, relationshipGroups: nextGroups };
+    });
+  }, [relationshipKeys]);
+
   // Persist last config (without CSV contents).
   useEffect(() => {
     const handle = window.setTimeout(() => {
@@ -865,10 +1321,12 @@ const App = () => {
     <div className="utmtool-app" data-testid="utmtool-app">
       {toast ? <div className="utmtool-toast" role="status">{toast}</div> : null}
 
-      <div className="utmtool-grid">
-        <section className="utmtool-panel">
-          <h2>Inputs</h2>
-
+      <div className="utmtool-layout">
+        <AccordionSection
+          title="1) Data sources"
+          subtitle="Landing pages + optional CSV mapping."
+          defaultOpen
+        >
           <div className="utmtool-card">
             <h3>Base URLs</h3>
             <FieldEditor
@@ -884,7 +1342,37 @@ const App = () => {
           </div>
 
           <div className="utmtool-card">
-            <h3>UTM Fields</h3>
+            <h3>CSV (optional)</h3>
+            <div className="utmtool-row">
+              <input
+                type="file"
+                accept=".csv,text/csv"
+                onChange={(e) => handleCsvUpload(e.target.files?.[0] || null)}
+              />
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => setConfig((prev) => ({ ...prev, csvText: "" }))}
+                disabled={!config.csvText}
+              >
+                Clear CSV
+              </button>
+            </div>
+            <p className="utmtool-help">
+              {csvMeta.hasCsv
+                ? `Loaded CSV with ${csvMeta.rowCount.toLocaleString("en-US")} rows and ${csvMeta.columns.length} columns.`
+                : "Upload a CSV to map Base URL / UTM fields / custom params from columns."}
+            </p>
+          </div>
+        </AccordionSection>
+
+        <AccordionSection
+          title="2) UTM parameters"
+          subtitle="Required UTMs first, optional UTMs tucked away."
+          defaultOpen
+        >
+          <div className="utmtool-card">
+            <h3>Required</h3>
             <FieldEditor
               label="utm_source"
               required
@@ -912,27 +1400,39 @@ const App = () => {
               combinationMode={config.mode}
               placeholder="spring_sale"
             />
-            <FieldEditor
-              label="utm_content"
-              field={config.utm.content}
-              onChange={(next) => setConfig((prev) => ({ ...prev, utm: { ...prev.utm, content: next } }))}
-              csvColumns={csvMeta.columns}
-              combinationMode={config.mode}
-              placeholder="creative_a"
-            />
-            <FieldEditor
-              label="utm_term"
-              field={config.utm.term}
-              onChange={(next) => setConfig((prev) => ({ ...prev, utm: { ...prev.utm, term: next } }))}
-              csvColumns={csvMeta.columns}
-              combinationMode={config.mode}
-              placeholder="keyword_here"
-            />
-          </div>
 
+            <details className="utmtool-inline-details">
+              <summary className="utmtool-inline-summary">Optional UTMs</summary>
+              <div className="utmtool-inline-body">
+                <FieldEditor
+                  label="utm_content"
+                  field={config.utm.content}
+                  onChange={(next) => setConfig((prev) => ({ ...prev, utm: { ...prev.utm, content: next } }))}
+                  csvColumns={csvMeta.columns}
+                  combinationMode={config.mode}
+                  placeholder="creative_a"
+                />
+                <FieldEditor
+                  label="utm_term"
+                  field={config.utm.term}
+                  onChange={(next) => setConfig((prev) => ({ ...prev, utm: { ...prev.utm, term: next } }))}
+                  csvColumns={csvMeta.columns}
+                  combinationMode={config.mode}
+                  placeholder="keyword_here"
+                />
+              </div>
+            </details>
+          </div>
+        </AccordionSection>
+
+        <AccordionSection
+          title="3) Custom parameters"
+          subtitle="Optional extra query params (audience, creative, placement, flight, etc.)."
+          defaultOpen={config.customParams.length > 0}
+        >
           <div className="utmtool-card">
             <div className="utmtool-card-head">
-              <h3>Custom Parameters</h3>
+              <h3>Custom parameters</h3>
               <button type="button" className="btn-secondary" onClick={addCustomParam}>
                 Add param
               </button>
@@ -970,7 +1470,13 @@ const App = () => {
               <p className="utmtool-help">Add any extra parameters you need (e.g., audience, creative, placement).</p>
             )}
           </div>
+        </AccordionSection>
 
+        <AccordionSection
+          title="4) Naming helpers"
+          subtitle="Build campaign names from tokens, then plug into utm_campaign."
+          defaultOpen={false}
+        >
           <div className="utmtool-card">
             <h3>Campaign Name Builder</h3>
             <div className="utmtool-campaign-row">
@@ -1005,7 +1511,7 @@ const App = () => {
                     field={campaignBuilder.tokens[token] || makeField({ mode: "list" })}
                     onChange={(next) => setCampaignBuilder((prev) => ({ ...prev, tokens: { ...prev.tokens, [token]: next } }))}
                     csvColumns={csvMeta.columns}
-                    combinationMode={config.mode === "templateRows" ? "cartesian" : "cartesian"}
+                    combinationMode="cartesian"
                     placeholder={token}
                   />
                 ))}
@@ -1033,26 +1539,19 @@ const App = () => {
               </p>
             ) : null}
           </div>
-        </section>
+        </AccordionSection>
 
-        <section className="utmtool-panel">
-          <h2>Generate</h2>
-
+        <AccordionSection
+          title="5) Rules & relationships"
+          subtitle="Choose how lists combine, plus formatting and exclusions."
+          defaultOpen
+        >
           <div className="utmtool-card">
-            <h3>Combination Controls</h3>
-            <div className="utmtool-row">
-              <label className="utmtool-label" htmlFor="utmtool-mode">Mode</label>
-              <select
-                id="utmtool-mode"
-                className="utmtool-select"
-                value={config.mode}
-                onChange={(e) => setConfig((prev) => ({ ...prev, mode: e.target.value as CombinationMode }))}
-              >
-                <option value="cartesian">A: Full Cartesian</option>
-                <option value="zip">B: Zip by Row</option>
-                <option value="templateRows">C: Template + Rows</option>
-              </select>
-            </div>
+            <h3>Combination mode</h3>
+            <ModePicker
+              value={config.mode}
+              onChange={(next) => setConfig((prev) => ({ ...prev, mode: next }))}
+            />
 
             <div className="utmtool-row utmtool-row-inline">
               <label className="utmtool-check">
@@ -1065,84 +1564,91 @@ const App = () => {
               </label>
             </div>
 
-            <div className="utmtool-subsection">
-              <h4>Normalization</h4>
-              <div className="utmtool-row utmtool-row-inline">
-                <label className="utmtool-check">
-                  <input
-                    type="checkbox"
-                    checked={config.normalization.lowercase}
-                    onChange={(e) => setConfig((prev) => ({ ...prev, normalization: { ...prev.normalization, lowercase: e.target.checked } }))}
-                  />
-                  Lowercase
-                </label>
-                <label className="utmtool-check">
-                  <input
-                    type="checkbox"
-                    checked={config.normalization.stripSpecial}
-                    onChange={(e) => setConfig((prev) => ({ ...prev, normalization: { ...prev.normalization, stripSpecial: e.target.checked } }))}
-                    disabled={config.normalization.slugify}
-                  />
-                  Strip special characters
-                </label>
-                <label className="utmtool-check">
-                  <input
-                    type="checkbox"
-                    checked={config.normalization.slugify}
-                    onChange={(e) => setConfig((prev) => ({ ...prev, normalization: { ...prev.normalization, slugify: e.target.checked } }))}
-                  />
-                  Slugify (strict)
-                </label>
-              </div>
-              <div className="utmtool-row">
-                <label className="utmtool-label" htmlFor="utmtool-spaces">Spaces</label>
-                <select
-                  id="utmtool-spaces"
-                  className="utmtool-select"
-                  value={config.normalization.spaces}
-                  onChange={(e) => setConfig((prev) => ({ ...prev, normalization: { ...prev.normalization, spaces: e.target.value as SpacesMode } }))}
-                >
-                  <option value="underscore">Replace with underscores</option>
-                  <option value="dash">Replace with dashes</option>
-                  <option value="none">Keep spaces</option>
-                </select>
-              </div>
-            </div>
+            <details className="utmtool-inline-details">
+              <summary className="utmtool-inline-summary">Formatting + exclusions</summary>
+              <div className="utmtool-inline-body">
+                <div className="utmtool-subsection">
+                  <h4>Normalization</h4>
+                  <div className="utmtool-row utmtool-row-inline">
+                    <label className="utmtool-check">
+                      <input
+                        type="checkbox"
+                        checked={config.normalization.lowercase}
+                        onChange={(e) => setConfig((prev) => ({ ...prev, normalization: { ...prev.normalization, lowercase: e.target.checked } }))}
+                      />
+                      Lowercase
+                    </label>
+                    <label className="utmtool-check">
+                      <input
+                        type="checkbox"
+                        checked={config.normalization.stripSpecial}
+                        onChange={(e) => setConfig((prev) => ({ ...prev, normalization: { ...prev.normalization, stripSpecial: e.target.checked } }))}
+                        disabled={config.normalization.slugify}
+                      />
+                      Strip special characters
+                    </label>
+                    <label className="utmtool-check">
+                      <input
+                        type="checkbox"
+                        checked={config.normalization.slugify}
+                        onChange={(e) => setConfig((prev) => ({ ...prev, normalization: { ...prev.normalization, slugify: e.target.checked } }))}
+                      />
+                      Slugify (strict)
+                    </label>
+                  </div>
+                  <div className="utmtool-row">
+                    <label className="utmtool-label" htmlFor="utmtool-spaces">Spaces</label>
+                    <select
+                      id="utmtool-spaces"
+                      className="utmtool-select"
+                      value={config.normalization.spaces}
+                      onChange={(e) => setConfig((prev) => ({ ...prev, normalization: { ...prev.normalization, spaces: e.target.value as SpacesMode } }))}
+                    >
+                      <option value="underscore">Replace with underscores</option>
+                      <option value="dash">Replace with dashes</option>
+                      <option value="none">Keep spaces</option>
+                    </select>
+                  </div>
+                </div>
 
-            <div className="utmtool-subsection">
-              <h4>Exclude Rules</h4>
-              <textarea
-                className="utmtool-textarea"
-                rows={4}
-                value={config.excludeRulesText}
-                placeholder={"utm_medium=display & utm_source=google_search\nplacement=feed & creative=video"}
-                onChange={(e) => setConfig((prev) => ({ ...prev, excludeRulesText: e.target.value }))}
-              />
-              <p className="utmtool-help">One rule per line. All pairs must match to exclude a row.</p>
-            </div>
+                <div className="utmtool-subsection">
+                  <h4>Exclude rules</h4>
+                  <textarea
+                    className="utmtool-textarea"
+                    rows={4}
+                    value={config.excludeRulesText}
+                    placeholder={"utm_medium=display & utm_source=google_search\nplacement=feed & creative=video"}
+                    onChange={(e) => setConfig((prev) => ({ ...prev, excludeRulesText: e.target.value }))}
+                  />
+                  <p className="utmtool-help">One rule per line. All pairs must match to exclude a row.</p>
+                </div>
+              </div>
+            </details>
           </div>
 
-          <div className="utmtool-card">
-            <h3>CSV</h3>
-            <div className="utmtool-row">
-              <input
-                type="file"
-                accept=".csv,text/csv"
-                onChange={(e) => handleCsvUpload(e.target.files?.[0] || null)}
+          {config.mode === "groups" ? (
+            <div className="utmtool-card">
+              <h3>Relationships</h3>
+              <RelationshipBuilder
+                keys={relationshipKeys}
+                keyInputs={relationshipKeyInputs}
+                requiredKeys={relationshipRequiredKeys}
+                csvRowCount={csvMeta.rowCount}
+                csvColumns={csvMeta.columns}
+                groups={config.relationshipGroups}
+                onChangeGroups={(next) => setConfig((prev) => ({ ...prev, relationshipGroups: next }))}
               />
-              <button type="button" className="btn-secondary" onClick={() => setConfig((prev) => ({ ...prev, csvText: "" }))} disabled={!config.csvText}>
-                Clear CSV
-              </button>
             </div>
-            <p className="utmtool-help">
-              {csvMeta.hasCsv
-                ? `Loaded CSV with ${csvMeta.rowCount.toLocaleString("en-US")} rows and ${csvMeta.columns.length} columns.`
-                : "Optional: upload a CSV to map fields to columns."}
-            </p>
-          </div>
+          ) : null}
+        </AccordionSection>
 
+        <AccordionSection
+          title="6) Generate & results"
+          subtitle="Preview first, then generate + export."
+          defaultOpen
+        >
           <div className="utmtool-card">
-            <h3>Actions</h3>
+            <h3>Generate</h3>
             <div className="utmtool-actions-row">
               <button type="button" className="btn-primary" onClick={() => runGeneration("preview")} disabled={status === "generating"}>
                 Preview ({Math.max(1, Math.floor(config.previewLimit || 10))})
@@ -1211,14 +1717,16 @@ const App = () => {
           </div>
 
           <div className="utmtool-card">
-            <h3>Results</h3>
-            <div className="utmtool-actions-row">
-              <button type="button" className="btn-secondary" onClick={copyAll} disabled={!rows.length}>
-                Copy all
-              </button>
-              <button type="button" className="btn-secondary" onClick={exportCsv} disabled={!rows.length}>
-                Export CSV
-              </button>
+            <div className="utmtool-card-head">
+              <h3>Results</h3>
+              <div className="utmtool-actions-row utmtool-actions-row-tight">
+                <button type="button" className="btn-secondary" onClick={copyAll} disabled={!rows.length}>
+                  Copy all
+                </button>
+                <button type="button" className="btn-secondary" onClick={exportCsv} disabled={!rows.length}>
+                  Export CSV
+                </button>
+              </div>
             </div>
 
             <div className="utmtool-row">
@@ -1244,9 +1752,15 @@ const App = () => {
               <p className="utmtool-help">Generate to see results here.</p>
             )}
           </div>
+        </AccordionSection>
 
+        <AccordionSection
+          title="Saved presets"
+          subtitle="Save/load configurations in your browser."
+          defaultOpen={false}
+        >
           <div className="utmtool-card">
-            <h3>Saved Presets</h3>
+            <h3>Presets</h3>
             <div className="utmtool-row">
               <input
                 className="utmtool-input"
@@ -1279,7 +1793,7 @@ const App = () => {
               <p className="utmtool-help">Saved locally in your browser (localStorage).</p>
             )}
           </div>
-        </section>
+        </AccordionSection>
       </div>
     </div>
   );
