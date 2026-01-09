@@ -2,6 +2,7 @@ import base64
 import io
 import json
 import os
+import subprocess
 import time
 import wave
 
@@ -21,6 +22,10 @@ RESPONSE_HEADERS = {
 
 _MODEL = None
 _PROCESSOR = None
+
+FFMPEG_BIN = os.getenv("FFMPEG_BIN", "ffmpeg")
+FFPROBE_BIN = os.getenv("FFPROBE_BIN", "ffprobe")
+FFMPEG_TIMEOUT_SEC = float(os.getenv("FFMPEG_TIMEOUT_SEC", "20"))
 
 
 def json_response(status_code, payload):
@@ -56,6 +61,46 @@ def parse_body(event):
   if isinstance(body, dict):
     return body
   return {}
+
+
+def header_value(event, name):
+  headers = event.get("headers") if event else None
+  if not isinstance(headers, dict):
+    return ""
+  needle = (name or "").strip().lower()
+  if not needle:
+    return ""
+  for key, value in headers.items():
+    if str(key or "").strip().lower() == needle:
+      return "" if value is None else str(value)
+  return ""
+
+
+def decode_body_bytes(event):
+  if not event:
+    return b""
+  body = event.get("body")
+  if body is None:
+    return b""
+  if event.get("isBase64Encoded"):
+    try:
+      return base64.b64decode(body)
+    except Exception:
+      return b""
+  if isinstance(body, (bytes, bytearray)):
+    return bytes(body)
+  if isinstance(body, str):
+    return body.encode("utf-8")
+  return b""
+
+
+def parse_content_type(value):
+  if not value:
+    return ""
+  raw = str(value).strip()
+  if not raw:
+    return ""
+  return raw.split(";", 1)[0].strip().lower()
 
 
 def load_whisper():
@@ -105,6 +150,10 @@ def decode_audio_b64(payload):
     payload.get("audio_b64")
     or payload.get("audioB64")
     or payload.get("audio")
+    or payload.get("media_b64")
+    or payload.get("mediaB64")
+    or payload.get("file_b64")
+    or payload.get("fileB64")
     or payload.get("b64")
     or payload.get("data")
   )
@@ -118,6 +167,109 @@ def decode_audio_b64(payload):
   if len(raw) > MAX_AUDIO_BYTES:
     return None, f"Audio payload exceeds {MAX_AUDIO_BYTES} bytes."
   return raw, None
+
+
+def probe_duration_seconds(path):
+  if MAX_AUDIO_SECONDS <= 0:
+    return None
+  try:
+    res = subprocess.run(
+      [
+        FFPROBE_BIN,
+        "-v",
+        "error",
+        "-show_entries",
+        "format=duration",
+        "-of",
+        "default=nw=1:nk=1",
+        path
+      ],
+      capture_output=True,
+      text=True,
+      check=True,
+      timeout=max(1, int(FFMPEG_TIMEOUT_SEC))
+    )
+  except Exception:
+    return None
+
+  out = (res.stdout or "").strip()
+  if not out or out == "N/A":
+    return None
+  try:
+    return float(out)
+  except Exception:
+    return None
+
+
+def ffmpeg_to_wav_16k_mono(input_bytes, mime_type):
+  token = str(time.time_ns())
+  input_path = f"/tmp/whisper-input-{token}"
+  output_path = f"/tmp/whisper-output-{token}.wav"
+  try:
+    with open(input_path, "wb") as fp:
+      fp.write(input_bytes)
+
+    duration = probe_duration_seconds(input_path)
+    if duration is not None and duration > MAX_AUDIO_SECONDS:
+      raise ValueError(f"Audio duration exceeds {MAX_AUDIO_SECONDS} seconds.")
+
+    cmd = [
+      FFMPEG_BIN,
+      "-hide_banner",
+      "-nostdin",
+      "-loglevel",
+      "error"
+    ]
+    if MAX_AUDIO_SECONDS > 0:
+      cmd.extend(["-t", str(MAX_AUDIO_SECONDS)])
+    cmd.extend(
+      [
+        "-i",
+        input_path,
+        "-map",
+        "0:a:0",
+        "-ac",
+        "1",
+        "-ar",
+        str(TARGET_SAMPLE_RATE),
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "wav",
+        "-y",
+        output_path
+      ]
+    )
+
+    try:
+      subprocess.run(
+        cmd,
+        capture_output=True,
+        check=True,
+        timeout=max(1, int(FFMPEG_TIMEOUT_SEC))
+      )
+    except subprocess.CalledProcessError as exc:
+      stderr = exc.stderr.decode("utf-8", errors="ignore") if exc.stderr else ""
+      message = (stderr or "").strip() or "Unsupported media format."
+      if "matches no streams" in message or "does not contain any stream" in message:
+        raise ValueError("No audio track found in media file.")
+      raise ValueError(message.splitlines()[-1] if "\n" in message else message)
+    except FileNotFoundError:
+      raise RuntimeError("ffmpeg not available in runtime environment.")
+
+    with open(output_path, "rb") as fp:
+      return fp.read()
+  finally:
+    try:
+      if os.path.exists(input_path):
+        os.remove(input_path)
+    except Exception:
+      pass
+    try:
+      if os.path.exists(output_path):
+        os.remove(output_path)
+    except Exception:
+      pass
 
 
 def wav_to_float32_mono_16k(wav_bytes):
@@ -183,6 +335,7 @@ def handler(event, context):
   )
   path = event.get("rawPath") or event.get("path") or "/"
   path = path.rstrip("/") or "/"
+  content_type = parse_content_type(header_value(event, "content-type"))
 
   if method == "OPTIONS":
     return {"statusCode": 204}
@@ -193,7 +346,8 @@ def handler(event, context):
       "model": MODEL_ID,
       "model_loaded": _MODEL is not None,
       "target_sample_rate": TARGET_SAMPLE_RATE,
-      "max_audio_seconds": MAX_AUDIO_SECONDS
+      "max_audio_seconds": MAX_AUDIO_SECONDS,
+      "max_audio_bytes": MAX_AUDIO_BYTES
     })
 
   if method != "POST":
@@ -202,26 +356,63 @@ def handler(event, context):
   if path not in ("/", "/transcribe"):
     return json_response(404, {"error": "Not found."})
 
-  payload = parse_body(event)
-  if not isinstance(payload, dict):
-    return json_response(400, {"error": "Invalid JSON payload."})
+  raw = None
+  mime_type = content_type or "application/octet-stream"
+  is_json = content_type == "application/json" or content_type.endswith("+json")
+  if is_json:
+    payload = parse_body(event)
+    if not isinstance(payload, dict):
+      return json_response(400, {"error": "Invalid JSON payload."})
+    raw, error = decode_audio_b64(payload)
+    if error:
+      status = 413 if "exceeds" in error else 400
+      return json_response(status, {"error": error})
+    mime_type = parse_content_type(
+      payload.get("mime_type")
+      or payload.get("mimeType")
+      or payload.get("content_type")
+      or payload.get("contentType")
+      or mime_type
+    ) or "application/octet-stream"
+  else:
+    raw = decode_body_bytes(event)
+    if not raw:
+      return json_response(400, {"error": "Missing request body."})
+    if len(raw) > MAX_AUDIO_BYTES:
+      return json_response(413, {"error": f"Audio payload exceeds {MAX_AUDIO_BYTES} bytes."})
+    mime_type = mime_type or "application/octet-stream"
 
-  raw, error = decode_audio_b64(payload)
-  if error:
-    status = 413 if "exceeds" in error else 400
-    return json_response(status, {"error": error})
-
+  converted = False
   try:
-    audio, sample_rate, duration_seconds = wav_to_float32_mono_16k(raw)
+    probably_wav = (
+      mime_type in ("audio/wav", "audio/x-wav", "audio/wave", "audio/vnd.wave")
+      or raw[:4] == b"RIFF"
+    )
+    if probably_wav:
+      audio, sample_rate, duration_seconds = wav_to_float32_mono_16k(raw)
+    else:
+      raise ValueError("Non-WAV input.")
   except ValueError as exc:
     message = str(exc)
     if message.startswith("Audio duration exceeds"):
       return json_response(413, {"error": message})
-    if message.startswith("Unsupported audio format"):
+    try:
+      wav_bytes = ffmpeg_to_wav_16k_mono(raw, mime_type)
+      converted = True
+      audio, sample_rate, duration_seconds = wav_to_float32_mono_16k(wav_bytes)
+    except ValueError as exc2:
+      message = str(exc2)
+      if message.startswith("Audio duration exceeds"):
+        return json_response(413, {"error": message})
+      if message.startswith("No audio track found") or message.startswith("Unsupported audio format"):
+        return json_response(415, {"error": message})
       return json_response(415, {"error": message})
-    return json_response(400, {"error": message})
+    except RuntimeError as exc2:
+      return json_response(500, {"error": str(exc2) or "Server error"})
+  except RuntimeError as exc:
+    return json_response(500, {"error": str(exc) or "Server error"})
   except Exception:
-    return json_response(400, {"error": "Invalid WAV audio payload."})
+    return json_response(400, {"error": "Invalid audio payload."})
 
   try:
     transcript = transcribe(audio, sample_rate)
@@ -231,7 +422,9 @@ def handler(event, context):
       "model": MODEL_ID,
       "language": "en",
       "audio_seconds": round(float(duration_seconds), 4),
-      "duration_ms": duration_ms
+      "duration_ms": duration_ms,
+      "input_mime_type": mime_type,
+      "converted_to_wav": converted
     })
   except Exception as exc:
     print("Transcribe error", exc)
