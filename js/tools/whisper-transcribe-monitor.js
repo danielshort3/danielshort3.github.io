@@ -1,60 +1,56 @@
 (() => {
   'use strict';
 
-  const DEFAULT_ENDPOINT = 'https://coxbbervgzwhm5tu53dutxwfca0vxdkg.lambda-url.us-east-2.on.aws/';
-  const STORAGE_ENDPOINT = 'tool.whisperTranscribe.endpoint';
-  const STORAGE_LIMIT = 'tool.whisperTranscribe.concurrencyLimit';
+  const ENDPOINT_BASE = 'https://coxbbervgzwhm5tu53dutxwfca0vxdkg.lambda-url.us-east-2.on.aws/';
+
   const STORAGE_WARMUP_AT = 'tool.whisperTranscribe.lastWarmupAt';
   const STORAGE_WARMUP_BASE = 'tool.whisperTranscribe.lastWarmupBase';
-  const DEFAULT_MAX_BYTES = 5 * 1024 * 1024;
+
   const WARMUP_MIN_INTERVAL_MS = 10 * 60 * 1000;
   const WARMUP_AUDIO_MS = 250;
 
   const $id = (id) => document.getElementById(id);
-  const endpointEl = $id('whispermon-endpoint');
-  const limitEl = $id('whispermon-limit');
-  const checkBtn = $id('whispermon-check');
-  const saveBtn = $id('whispermon-save');
-  const endpointStatusEl = $id('whispermon-endpoint-status');
+
   const healthPillEl = $id('whispermon-health-pill');
+  const endpointStatusEl = $id('whispermon-endpoint-status');
+  const checkBtn = $id('whispermon-check');
+
+  const formEl = $id('whispermon-form');
   const fileEl = $id('whispermon-file');
   const audioMetaEl = $id('whispermon-audio-meta');
-
-  const runnerForm = $id('whispermon-runner');
-  const totalEl = $id('whispermon-total');
-  const parallelEl = $id('whispermon-parallel');
-  const pathEl = $id('whispermon-path');
   const startBtn = $id('whispermon-start');
-  const stopBtn = $id('whispermon-stop');
+  const cancelBtn = $id('whispermon-cancel');
   const resetBtn = $id('whispermon-reset');
   const runStatusEl = $id('whispermon-run-status');
 
-  const inflightEl = $id('whispermon-inflight');
-  const headroomEl = $id('whispermon-headroom');
-  const successEl = $id('whispermon-success');
-  const throttlesEl = $id('whispermon-throttles');
-  const errorsEl = $id('whispermon-errors');
-  const p95El = $id('whispermon-p95');
-  const rpsEl = $id('whispermon-rps');
-  const capacityEl = $id('whispermon-capacity');
-  const meterFillEl = $id('whispermon-meter-fill');
-  const meterMetaEl = $id('whispermon-meter-meta');
-  const meterRpsFillEl = $id('whispermon-meter-rps-fill');
-  const meterRpsMetaEl = $id('whispermon-meter-rps-meta');
+  const progressWrapEl = $id('whispermon-upload-progress-wrap');
+  const progressLabelEl = $id('whispermon-upload-progress-label');
+  const progressBarEl = $id('whispermon-upload-progress');
+
   const transcriptEl = $id('whispermon-transcript');
   const copyTranscriptBtn = $id('whispermon-copy-transcript');
   const transcriptStatusEl = $id('whispermon-transcript-status');
-  const logEl = $id('whispermon-log');
 
-  if (!endpointEl || !limitEl || !runnerForm || !fileEl) return;
+  if (!formEl || !fileEl || !startBtn) return;
 
   let serverReady = false;
-  let serverReadyBase = '';
-
-  const serverLimits = {
-    maxBytes: DEFAULT_MAX_BYTES,
-    maxSeconds: null
+  let serverInfo = {
+    model: 'unknown',
+    modelLoaded: false,
+    maxAudioSeconds: null,
+    maxUploadBytes: null,
+    maxDirectBytes: null,
+    uploadsEnabled: false
   };
+
+  let audioState = {
+    filename: '',
+    mime: 'application/octet-stream',
+    bytes: 0,
+    file: null
+  };
+
+  let activeRequest = null;
 
   const safeGet = (key) => {
     if (!key) return null;
@@ -74,21 +70,25 @@
     }
   };
 
+  const parseTimestamp = (value) => {
+    const parsed = Number.parseInt(String(value || ''), 10);
+    if (!Number.isFinite(parsed) || parsed <= 0) return null;
+    return parsed;
+  };
+
   const normalizeBase = (url) => {
-    if (!url) return '';
-    const raw = String(url).trim();
+    const raw = String(url || '').trim();
     if (!raw) return '';
     return raw.endsWith('/') ? raw : `${raw}/`;
   };
 
   const joinUrl = (base, path = '') => {
-    const left = String(base || '').trim();
+    const left = normalizeBase(base);
     const right = String(path || '').trim();
     if (!left) return right;
     if (!right) return left;
-    if (left.endsWith('/') && right.startsWith('/')) return left + right.slice(1);
-    if (!left.endsWith('/') && !right.startsWith('/')) return `${left}/${right}`;
-    return left + right;
+    if (right.startsWith('/')) return `${left}${right.slice(1)}`;
+    return `${left}${right}`;
   };
 
   const setStatus = (el, message, tone) => {
@@ -103,20 +103,6 @@
     healthPillEl.textContent = label || '';
   };
 
-  const setServerReadyState = (ready, base) => {
-    serverReady = Boolean(ready);
-    serverReadyBase = serverReady ? (base || serverReadyBase) : '';
-    if (startBtn && !startBtn.classList.contains('is-busy')) {
-      startBtn.disabled = !serverReady;
-    }
-  };
-
-  const readyMessageFromOk = (message) => {
-    const raw = String(message || '').trim();
-    if (!raw) return 'Ready.';
-    return raw.replace(/^OK\b/, 'Ready');
-  };
-
   const setTranscript = (text) => {
     const value = (text || '').trim();
     if (transcriptEl) transcriptEl.value = value;
@@ -128,187 +114,18 @@
     setStatus(transcriptStatusEl, '', '');
   };
 
-  const clampInt = (value, min, max, fallback) => {
-    const parsed = Number.parseInt(String(value || ''), 10);
-    if (Number.isNaN(parsed)) return fallback;
-    return Math.min(max, Math.max(min, parsed));
-  };
-
-  const formatMs = (ms) => {
-    if (!Number.isFinite(ms) || ms < 0) return '—';
-    if (ms < 1000) return `${Math.round(ms)} ms`;
-    return `${(ms / 1000).toFixed(2)} s`;
-  };
-
   const formatNumber = (value, digits = 2) => {
     const num = Number(value);
     if (!Number.isFinite(num)) return '—';
     return num.toFixed(digits).replace(/\.00$/, '');
   };
 
-  const parseTimestamp = (value) => {
-    const parsed = Number.parseInt(String(value || ''), 10);
-    if (!Number.isFinite(parsed) || parsed <= 0) return null;
-    return parsed;
-  };
-
-  const percentile = (arr, pct) => {
-    const list = Array.isArray(arr) ? arr.filter(n => Number.isFinite(n)).slice() : [];
-    if (!list.length) return null;
-    list.sort((a, b) => a - b);
-    const p = Math.min(100, Math.max(0, pct));
-    const idx = Math.floor((p / 100) * (list.length - 1));
-    return list[idx];
-  };
-
-  const requestJson = async (url, options = {}) => {
-    const res = await fetch(url, options);
-    const text = await res.text();
-    let data = null;
-    if (text) {
-      try {
-        data = JSON.parse(text);
-      } catch {
-        data = null;
-      }
-    }
-    return {
-      ok: res.ok,
-      status: res.status,
-      statusText: res.statusText,
-      data,
-      text
-    };
-  };
-
-  const loadSavedConfig = () => {
-    const storedEndpoint = safeGet(STORAGE_ENDPOINT);
-    const storedLimit = safeGet(STORAGE_LIMIT);
-    endpointEl.value = storedEndpoint || DEFAULT_ENDPOINT;
-    if (storedLimit) {
-      const num = clampInt(storedLimit, 1, 200, 10);
-      limitEl.value = String(num);
-    }
-  };
-
-  const saveConfig = () => {
-    const endpoint = normalizeBase(endpointEl.value || DEFAULT_ENDPOINT);
-    const limit = clampInt(limitEl.value, 1, 200, 10);
-    safeSet(STORAGE_ENDPOINT, endpoint);
-    safeSet(STORAGE_LIMIT, String(limit));
-    const needsWarm = !serverReady || !serverReadyBase || endpoint !== serverReadyBase;
-    setStatus(endpointStatusEl, needsWarm ? 'Saved. Check status.' : 'Saved.', needsWarm ? 'warning' : 'success');
-  };
-
-  let audioState = {
-    filename: '',
-    mime: 'application/octet-stream',
-    bytes: 0,
-    file: null
-  };
-
-  const onAudioChange = async () => {
-    const file = fileEl.files && fileEl.files[0];
-    if (!file) {
-      audioState = { filename: '', mime: 'application/octet-stream', bytes: 0, file: null };
-      if (audioMetaEl) audioMetaEl.textContent = 'No media loaded.';
-      clearTranscript();
-      return;
-    }
-    const filename = String(file.name || '').trim() || 'audio.wav';
-    const mime = String(file.type || 'application/octet-stream').trim() || 'application/octet-stream';
-    const bytes = Number(file.size) || 0;
-
-    if (audioMetaEl) {
-      audioMetaEl.textContent = 'Loading media…';
-      audioMetaEl.dataset.tone = '';
-    }
-    clearTranscript();
-
-    try {
-      audioState = { filename, mime, bytes, file };
-      if (audioMetaEl) {
-        const sizeLabel = bytes >= 1024 * 1024
-          ? `${formatNumber(bytes / (1024 * 1024), 2)} MB`
-          : `${formatNumber(bytes / 1024, 1)} KB`;
-        const typeLabel = mime && mime !== 'application/octet-stream' ? mime : 'unknown type';
-        const limitBytes = serverLimits.maxBytes || DEFAULT_MAX_BYTES;
-        const tooLarge = limitBytes > 0 && bytes > limitBytes;
-        const limitLabel = limitBytes >= 1024 * 1024
-          ? `${formatNumber(limitBytes / (1024 * 1024), 2)} MB`
-          : `${formatNumber(limitBytes / 1024, 1)} KB`;
-        audioMetaEl.textContent = tooLarge
-          ? `${filename} • ${sizeLabel} • ${typeLabel} • exceeds ${limitLabel} limit`
-          : `${filename} • ${sizeLabel} • ${typeLabel}`;
-        audioMetaEl.dataset.tone = tooLarge ? 'error' : 'success';
-      }
-    } catch (err) {
-      audioState = { filename, mime, bytes, file: null };
-      if (audioMetaEl) {
-        audioMetaEl.textContent = `Error: ${err?.message || 'Unable to read file.'}`;
-        audioMetaEl.dataset.tone = 'error';
-      }
-    }
-  };
-
-  const onEndpointInput = () => {
-    const base = normalizeBase(endpointEl.value || '');
-    if (base && base === serverReadyBase) return;
-    setServerReadyState(false, '');
-    if (!base) {
-      setHealth('err', 'No endpoint');
-      setStatus(endpointStatusEl, 'No endpoint configured.', 'error');
-      return;
-    }
-    setHealth('warming', 'Warming AWS');
-    setStatus(endpointStatusEl, 'Endpoint updated — check status.', 'warning');
-  };
-
-  const checkStatus = async () => {
-    setServerReadyState(false, '');
-    setHealth('warming', 'Warming AWS');
-    setStatus(endpointStatusEl, 'Checking endpoint…', '');
-    const base = normalizeBase(endpointEl.value || DEFAULT_ENDPOINT);
-    if (!base) {
-      setHealth('err', 'No endpoint');
-      setStatus(endpointStatusEl, 'No endpoint configured.', 'error');
-      return { ok: false, base };
-    }
-    try {
-      const res = await requestJson(base, { method: 'GET' });
-      if (!res.ok) {
-        const msg = res.data?.error || res.data?.message || res.text || `${res.status} ${res.statusText}`;
-        setHealth('err', 'Unavailable');
-        setStatus(endpointStatusEl, 'Unable to reach AWS Lambda.', 'error');
-        return { ok: false, base, error: msg };
-      }
-      const model = res.data?.model || res.data?.model_id || res.data?.modelId || 'unknown';
-      const maxSec = res.data?.max_audio_seconds ?? res.data?.maxAudioSeconds;
-      const maxBytes = res.data?.max_audio_bytes ?? res.data?.maxAudioBytes;
-      const detail = Number.isFinite(Number(maxSec)) ? `max ${maxSec}s` : '';
-      if (Number.isFinite(Number(maxSec))) serverLimits.maxSeconds = Number(maxSec);
-      if (Number.isFinite(Number(maxBytes))) serverLimits.maxBytes = Number(maxBytes);
-      const bytesDetail = Number.isFinite(Number(maxBytes))
-        ? `max ${formatNumber(Number(maxBytes) / (1024 * 1024), 2)}MB`
-        : '';
-      const parts = [`OK`, model].filter(Boolean);
-      if (detail) parts.push(detail);
-      if (bytesDetail) parts.push(bytesDetail);
-      const message = parts.join(' • ');
-      setStatus(endpointStatusEl, message, 'success');
-      return {
-        ok: true,
-        base,
-        message,
-        model,
-        maxSec: Number.isFinite(Number(maxSec)) ? Number(maxSec) : null,
-        maxBytes: Number.isFinite(Number(maxBytes)) ? Number(maxBytes) : null
-      };
-    } catch (err) {
-      setHealth('err', 'Unavailable');
-      setStatus(endpointStatusEl, 'Unable to reach AWS Lambda.', 'error');
-      return { ok: false, base, error: err?.message || 'Request failed.' };
-    }
+  const formatBytes = (bytes) => {
+    const value = Number(bytes);
+    if (!Number.isFinite(value) || value <= 0) return '—';
+    const mb = value / (1024 * 1024);
+    if (mb >= 1) return `${formatNumber(mb, 2)} MB`;
+    return `${formatNumber(value / 1024, 1)} KB`;
   };
 
   const createSilentWavBlob = (durationMs) => {
@@ -345,359 +162,486 @@
     return new Blob([buffer], { type: 'audio/wav' });
   };
 
-  const shouldWarmUp = (base) => {
-    const last = parseTimestamp(safeGet(STORAGE_WARMUP_AT));
-    const lastBase = normalizeBase(safeGet(STORAGE_WARMUP_BASE));
-    if (!last || !lastBase || !base || lastBase !== base) return true;
-    return Date.now() - last >= WARMUP_MIN_INTERVAL_MS;
+  const setBusy = (busy) => {
+    const isBusy = Boolean(busy);
+    if (startBtn) {
+      if (isBusy) startBtn.classList.add('is-busy');
+      else startBtn.classList.remove('is-busy');
+      startBtn.disabled = isBusy || !serverReady;
+    }
+    if (cancelBtn) cancelBtn.disabled = !isBusy;
+    if (resetBtn) resetBtn.disabled = isBusy;
+    if (fileEl) fileEl.disabled = isBusy;
+    if (checkBtn) checkBtn.disabled = isBusy;
   };
 
-  const warmUpServer = async (base, okMessage) => {
-    if (!base) return;
-    if (runState && !runState.stopRequested) return;
-
-    const prefix = okMessage ? `${okMessage} • ` : '';
-    if (!shouldWarmUp(base)) {
-      setHealth('ok', 'Ready');
-      setStatus(endpointStatusEl, readyMessageFromOk(okMessage), 'success');
-      setServerReadyState(true, base);
+  const setUploadProgress = ({ state, ratio, label }) => {
+    if (!progressWrapEl || !progressBarEl) return;
+    const nextState = state || 'hidden';
+    progressWrapEl.dataset.state = nextState;
+    if (nextState === 'hidden') {
+      progressBarEl.value = 0;
+      if (progressLabelEl) progressLabelEl.textContent = 'Upload progress';
       return;
     }
 
-    setServerReadyState(false, '');
-    setHealth('warming', 'Warming AWS');
-    setStatus(endpointStatusEl, `${prefix}Warming up…`, 'warning');
+    const safeRatio = Math.min(1, Math.max(0, Number(ratio) || 0));
+    progressBarEl.value = safeRatio;
+    if (progressLabelEl) progressLabelEl.textContent = label || 'Upload progress';
+  };
 
-    const url = joinUrl(base, '/transcribe');
+  const abortActive = () => {
+    if (!activeRequest) return;
+    const { xhr, controller } = activeRequest;
+    try {
+      if (xhr && xhr.readyState !== 4) xhr.abort();
+    } catch {
+      // Ignore.
+    }
+    try {
+      if (controller) controller.abort();
+    } catch {
+      // Ignore.
+    }
+    activeRequest = null;
+  };
+
+  const requestJson = async (url, options = {}) => {
+    const res = await fetch(url, options);
+    const text = await res.text();
+    let data = null;
+    if (text) {
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = null;
+      }
+    }
+    return {
+      ok: res.ok,
+      status: res.status,
+      statusText: res.statusText,
+      data,
+      text
+    };
+  };
+
+  const shouldWarmUp = ({ base, modelLoaded }) => {
+    const last = parseTimestamp(safeGet(STORAGE_WARMUP_AT));
+    const lastBase = normalizeBase(safeGet(STORAGE_WARMUP_BASE));
+    if (!base) return true;
+    if (!modelLoaded) return true;
+    if (!last || !lastBase || lastBase !== base) return true;
+    return Date.now() - last >= WARMUP_MIN_INTERVAL_MS;
+  };
+
+  const setServerReadyState = (ready) => {
+    serverReady = Boolean(ready);
+    if (startBtn && !startBtn.classList.contains('is-busy')) {
+      startBtn.disabled = !serverReady;
+    }
+  };
+
+  const updateAudioMeta = () => {
+    if (!audioMetaEl) return;
+    if (!audioState.file) {
+      audioMetaEl.textContent = 'No media loaded.';
+      audioMetaEl.dataset.tone = '';
+      return;
+    }
+
+    const limitBytes = serverInfo.maxUploadBytes;
+    const tooLarge = Number.isFinite(Number(limitBytes)) && limitBytes > 0 && audioState.bytes > limitBytes;
+    const limitLabel = Number.isFinite(Number(limitBytes)) && limitBytes > 0 ? formatBytes(limitBytes) : '—';
+    const typeLabel = audioState.mime && audioState.mime !== 'application/octet-stream' ? audioState.mime : 'unknown type';
+    const base = `${audioState.filename} • ${formatBytes(audioState.bytes)} • ${typeLabel}`;
+    audioMetaEl.textContent = tooLarge ? `${base} • exceeds ${limitLabel} limit` : base;
+    audioMetaEl.dataset.tone = tooLarge ? 'error' : 'success';
+  };
+
+  const onAudioChange = () => {
+    const file = fileEl.files && fileEl.files[0];
+    if (!file) {
+      audioState = { filename: '', mime: 'application/octet-stream', bytes: 0, file: null };
+      clearTranscript();
+      updateAudioMeta();
+      return;
+    }
+    audioState = {
+      filename: String(file.name || '').trim() || 'media',
+      mime: String(file.type || 'application/octet-stream').trim() || 'application/octet-stream',
+      bytes: Number(file.size) || 0,
+      file
+    };
+    clearTranscript();
+    updateAudioMeta();
+  };
+
+  const checkStatus = async () => {
+    setServerReadyState(false);
+    setHealth('warming', 'Warming AWS');
+    setStatus(endpointStatusEl, 'Checking endpoint…', '');
+
+    const base = normalizeBase(ENDPOINT_BASE);
+    if (!base) {
+      setHealth('err', 'No endpoint');
+      setStatus(endpointStatusEl, 'No endpoint configured.', 'error');
+      return { ok: false, base };
+    }
+
+    try {
+      const res = await requestJson(base, { method: 'GET' });
+      if (!res.ok) {
+        setHealth('err', 'Unavailable');
+        setStatus(endpointStatusEl, 'Unable to reach AWS Lambda.', 'error');
+        return { ok: false, base, error: res.text || `${res.status} ${res.statusText}` };
+      }
+
+      const model = res.data?.model || res.data?.model_id || res.data?.modelId || 'unknown';
+      const modelLoaded = Boolean(res.data?.model_loaded ?? res.data?.modelLoaded);
+      const maxSec = res.data?.max_audio_seconds ?? res.data?.maxAudioSeconds;
+      const maxBytes = res.data?.max_audio_bytes ?? res.data?.maxAudioBytes;
+
+      const maxUploadBytes = res.data?.max_upload_bytes ?? res.data?.maxUploadBytes ?? maxBytes;
+      const maxDirectBytes = res.data?.max_direct_upload_bytes ?? res.data?.maxDirectUploadBytes ?? maxBytes;
+      const uploadsEnabled = Boolean(res.data?.uploads_enabled ?? res.data?.uploadsEnabled);
+
+      serverInfo = {
+        model,
+        modelLoaded,
+        maxAudioSeconds: Number.isFinite(Number(maxSec)) ? Number(maxSec) : null,
+        maxUploadBytes: Number.isFinite(Number(maxUploadBytes)) ? Number(maxUploadBytes) : null,
+        maxDirectBytes: Number.isFinite(Number(maxDirectBytes)) ? Number(maxDirectBytes) : null,
+        uploadsEnabled
+      };
+
+      const parts = ['OK', model].filter(Boolean);
+      if (serverInfo.maxAudioSeconds) parts.push(`max ${serverInfo.maxAudioSeconds}s`);
+      if (serverInfo.maxUploadBytes) parts.push(`max ${formatBytes(serverInfo.maxUploadBytes)}`);
+      if (!modelLoaded) parts.push('cold');
+      setStatus(endpointStatusEl, parts.join(' • '), 'success');
+      updateAudioMeta();
+
+      return {
+        ok: true,
+        base,
+        modelLoaded
+      };
+    } catch (err) {
+      setHealth('err', 'Unavailable');
+      setStatus(endpointStatusEl, 'Unable to reach AWS Lambda.', 'error');
+      return { ok: false, base: ENDPOINT_BASE, error: err?.message || 'Request failed.' };
+    }
+  };
+
+  const warmUpServer = async ({ base, modelLoaded }) => {
+    const normalized = normalizeBase(base);
+    if (!normalized) return;
+    if (!shouldWarmUp({ base: normalized, modelLoaded })) {
+      setHealth('ok', 'Ready');
+      setStatus(endpointStatusEl, 'Ready.', 'success');
+      setServerReadyState(true);
+      return;
+    }
+
+    setServerReadyState(false);
+    setHealth('warming', 'Warming AWS');
+    setStatus(endpointStatusEl, 'Warming up…', 'warning');
+
+    const url = joinUrl(normalized, '/transcribe');
     const body = createSilentWavBlob(WARMUP_AUDIO_MS);
-    const started = performance.now();
     try {
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'audio/wav' },
         body
       });
-      const duration = performance.now() - started;
-      if (res.ok) {
-        safeSet(STORAGE_WARMUP_AT, String(Date.now()));
-        safeSet(STORAGE_WARMUP_BASE, base);
-        setHealth('ok', 'Ready');
-        setStatus(endpointStatusEl, `${readyMessageFromOk(okMessage)} • warmed ${formatMs(duration)}`, 'success');
-        setServerReadyState(true, base);
-        return;
-      }
+      if (!res.ok) throw new Error('Warm-up failed.');
 
-      const text = await res.text();
-      let message = '';
-      if (text) {
-        try {
-          const parsed = JSON.parse(text);
-          message = parsed?.error || parsed?.message || '';
-        } catch {
-          message = '';
-        }
-      }
-      const suffix = message ? ` • ${message}` : '';
-      setHealth('err', 'Unavailable');
-      setStatus(endpointStatusEl, `${prefix}Warm-up failed${suffix}`, 'warning');
+      safeSet(STORAGE_WARMUP_AT, String(Date.now()));
+      safeSet(STORAGE_WARMUP_BASE, normalized);
+      setHealth('ok', 'Ready');
+      setStatus(endpointStatusEl, 'Ready.', 'success');
+      setServerReadyState(true);
     } catch {
       setHealth('err', 'Unavailable');
-      setStatus(endpointStatusEl, `${prefix}Warm-up error`, 'warning');
+      setStatus(endpointStatusEl, 'Warm-up failed.', 'error');
+      setServerReadyState(false);
     }
   };
 
-  let runState = null;
-  let pendingRender = false;
-
-  const clearLog = () => {
-    if (!logEl) return;
-    logEl.innerHTML = '';
+  const checkAndWarm = async () => {
+    const status = await checkStatus();
+    if (status && status.ok) await warmUpServer(status);
   };
 
-  const pushLog = (line, tone) => {
-    if (!logEl) return;
-    const row = document.createElement('div');
-    row.className = 'whispermon-log-row';
-    row.dataset.tone = tone || '';
-    row.textContent = line;
-    logEl.prepend(row);
+  const extractPresign = (data) => {
+    if (!data || typeof data !== 'object') return null;
+    const url = data.upload_url || data.uploadUrl || data.url;
+    const fields = data.fields;
+    const key = data.key || data.object_key || data.objectKey;
+    if (!url || !fields || !key) return null;
+    return { url, fields, key };
+  };
 
-    const rows = logEl.querySelectorAll('.whispermon-log-row');
-    if (rows.length > 80) {
-      for (let i = 80; i < rows.length; i += 1) rows[i].remove();
+  const presignUpload = async (file) => {
+    const controller = new AbortController();
+    activeRequest = { xhr: null, controller };
+    try {
+      const payload = {
+        filename: String(file?.name || '').trim() || 'media',
+        content_type: String(file?.type || 'application/octet-stream').trim() || 'application/octet-stream',
+        bytes: Number(file?.size) || 0
+      };
+      const res = await requestJson(joinUrl(ENDPOINT_BASE, '/presign'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      });
+      if (!res.ok) return { ok: false, error: res.data?.error || res.text || 'Presign failed.' };
+      const presign = extractPresign(res.data);
+      if (!presign) return { ok: false, error: 'Invalid presign response.' };
+      return { ok: true, ...presign };
+    } catch (err) {
+      if (err && err.name === 'AbortError') return { ok: false, aborted: true };
+      return { ok: false, error: err?.message || 'Presign failed.' };
+    } finally {
+      if (activeRequest?.controller === controller) activeRequest = null;
     }
   };
 
-  const resetStats = () => {
-    runState = null;
-    setStatus(runStatusEl, '', '');
-    if (startBtn) startBtn.classList.remove('is-busy');
-    if (stopBtn) stopBtn.disabled = true;
-    if (startBtn) startBtn.disabled = !serverReady;
-    clearLog();
-    clearTranscript();
-    scheduleRender();
+  const uploadViaPresignedPost = ({ url, fields, file }) => new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    activeRequest = { xhr, controller: null };
+    xhr.open('POST', url, true);
+    xhr.responseType = 'text';
+
+    xhr.upload.onprogress = (evt) => {
+      if (!evt || !evt.lengthComputable) return;
+      const ratio = evt.total > 0 ? (evt.loaded / evt.total) : 0;
+      setUploadProgress({
+        state: 'uploading',
+        ratio,
+        label: `Uploading ${formatBytes(evt.loaded)} / ${formatBytes(evt.total)}`
+      });
+    };
+
+    xhr.onload = () => {
+      activeRequest = null;
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve();
+        return;
+      }
+      reject(new Error(`Upload failed (${xhr.status}).`));
+    };
+
+    xhr.onerror = () => {
+      activeRequest = null;
+      reject(new Error('Upload failed.'));
+    };
+
+    xhr.onabort = () => {
+      activeRequest = null;
+      reject(new Error('Upload canceled.'));
+    };
+
+    const form = new FormData();
+    const entries = Object.entries(fields || {});
+    for (let i = 0; i < entries.length; i += 1) {
+      const [key, value] = entries[i];
+      if (value === undefined || value === null) continue;
+      form.append(key, String(value));
+    }
+    form.append('file', file, file.name || 'media');
+    xhr.send(form);
+  });
+
+  const uploadDirectToLambda = (file) => new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    activeRequest = { xhr, controller: null };
+    xhr.open('POST', joinUrl(ENDPOINT_BASE, '/transcribe'), true);
+    xhr.responseType = 'text';
+
+    const contentType = String(file?.type || 'application/octet-stream').trim() || 'application/octet-stream';
+    try {
+      xhr.setRequestHeader('Content-Type', contentType);
+    } catch {
+      // Ignore header failures.
+    }
+
+    xhr.upload.onprogress = (evt) => {
+      if (!evt || !evt.lengthComputable) return;
+      const ratio = evt.total > 0 ? (evt.loaded / evt.total) : 0;
+      setUploadProgress({
+        state: 'uploading',
+        ratio,
+        label: `Uploading ${formatBytes(evt.loaded)} / ${formatBytes(evt.total)}`
+      });
+    };
+
+    xhr.onload = () => {
+      activeRequest = null;
+      const text = xhr.responseText || '';
+      let data = null;
+      if (text) {
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = null;
+        }
+      }
+      resolve({ ok: xhr.status >= 200 && xhr.status < 300, status: xhr.status, data, text });
+    };
+
+    xhr.onerror = () => {
+      activeRequest = null;
+      reject(new Error('Upload failed.'));
+    };
+
+    xhr.onabort = () => {
+      activeRequest = null;
+      reject(new Error('Upload canceled.'));
+    };
+
+    xhr.send(file);
+  });
+
+  const transcribeS3Key = async (key) => {
+    const controller = new AbortController();
+    activeRequest = { xhr: null, controller };
+    try {
+      const res = await requestJson(joinUrl(ENDPOINT_BASE, '/transcribe-s3'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key }),
+        signal: controller.signal
+      });
+      if (!res.ok) {
+        const message = res.data?.error || res.data?.message || res.text || 'Transcription failed.';
+        return { ok: false, status: res.status, error: message };
+      }
+      return { ok: true, status: res.status, data: res.data };
+    } catch (err) {
+      if (err && err.name === 'AbortError') return { ok: false, aborted: true };
+      return { ok: false, error: err?.message || 'Transcription failed.' };
+    } finally {
+      if (activeRequest?.controller === controller) activeRequest = null;
+    }
   };
 
-  const scheduleRender = () => {
-    if (pendingRender) return;
-    pendingRender = true;
-    window.requestAnimationFrame(() => {
-      pendingRender = false;
-      render();
-    });
-  };
-
-  const render = () => {
-    const limit = clampInt(limitEl?.value, 1, 200, 10);
-    const inflight = runState ? runState.inflight : 0;
-    const headroom = Math.max(0, limit - inflight);
-
-    if (inflightEl) inflightEl.textContent = String(inflight);
-    if (headroomEl) headroomEl.textContent = String(headroom);
-    if (successEl) successEl.textContent = String(runState ? runState.success : 0);
-    if (throttlesEl) throttlesEl.textContent = String(runState ? runState.throttles : 0);
-    if (errorsEl) errorsEl.textContent = String(runState ? runState.errors : 0);
-
-    const now = performance.now();
-    const elapsedSec = runState ? Math.max(0, (now - runState.startedAt) / 1000) : 0;
-    const completed = runState ? runState.completed : 0;
-    const rps = elapsedSec > 0 ? (completed / elapsedSec) : null;
-    if (rpsEl) rpsEl.textContent = rps === null ? '—' : formatNumber(rps, 2);
-
-    const p95 = runState ? percentile(runState.successDurations, 95) : null;
-    if (p95El) p95El.textContent = p95 ? formatMs(p95) : '—';
-
-    const capacity = p95 ? (limit / (p95 / 1000)) : null;
-    if (capacityEl) capacityEl.textContent = capacity === null ? '—' : formatNumber(capacity, 2);
-
-    const ratio = limit > 0 ? Math.min(1, inflight / limit) : 0;
-    if (meterFillEl) meterFillEl.style.width = `${Math.round(ratio * 100)}%`;
-    if (meterFillEl) {
-      if (ratio >= 0.9) meterFillEl.dataset.tone = 'danger';
-      else if (ratio >= 0.7) meterFillEl.dataset.tone = 'warning';
-      else meterFillEl.dataset.tone = '';
-    }
-    if (meterMetaEl) meterMetaEl.textContent = `${inflight} / ${limit}`;
-
-    const rpsRatio = (capacity !== null && rps !== null && capacity > 0) ? Math.min(1, rps / capacity) : 0;
-    if (meterRpsFillEl) meterRpsFillEl.style.width = `${Math.round(rpsRatio * 100)}%`;
-    if (meterRpsFillEl) {
-      if (rpsRatio >= 0.9) meterRpsFillEl.dataset.tone = 'danger';
-      else if (rpsRatio >= 0.7) meterRpsFillEl.dataset.tone = 'warning';
-      else meterRpsFillEl.dataset.tone = '';
-    }
-    if (meterRpsMetaEl) {
-      if (capacity === null || rps === null || capacity <= 0) meterRpsMetaEl.textContent = '—';
-      else meterRpsMetaEl.textContent = `${formatNumber(rps, 2)} / ${formatNumber(capacity, 2)} req/s`;
-    }
-  };
-
-  const startRun = async ({ total, parallel, path }) => {
-    const base = normalizeBase(endpointEl.value || DEFAULT_ENDPOINT);
-    if (!base) {
-      setStatus(runStatusEl, 'Enter a Function URL.', 'error');
-      return;
-    }
-    if (!serverReady || !serverReadyBase || base !== serverReadyBase) {
-      const message = (serverReadyBase && base !== serverReadyBase)
-        ? 'Endpoint updated — check status first.'
-        : 'Server warming up...';
-      setStatus(runStatusEl, message, 'warning');
+  const transcribeSelectedFile = async () => {
+    if (!serverReady) {
+      setStatus(runStatusEl, 'Server warming up...', 'warning');
       return;
     }
     if (!audioState.file) {
       setStatus(runStatusEl, 'Choose an audio or video file first.', 'error');
       return;
     }
-    const limitBytes = serverLimits.maxBytes || DEFAULT_MAX_BYTES;
-    if (limitBytes > 0 && audioState.bytes > limitBytes) {
-      const label = limitBytes >= 1024 * 1024
-        ? `${formatNumber(limitBytes / (1024 * 1024), 2)} MB`
-        : `${formatNumber(limitBytes / 1024, 1)} KB`;
-      setStatus(runStatusEl, `File exceeds endpoint limit (${label}).`, 'error');
+
+    const maxBytes = serverInfo.maxUploadBytes;
+    if (Number.isFinite(Number(maxBytes)) && maxBytes > 0 && audioState.bytes > maxBytes) {
+      setStatus(runStatusEl, `File exceeds upload limit (${formatBytes(maxBytes)}).`, 'error');
       return;
     }
 
-    const limit = clampInt(limitEl.value, 1, 200, 10);
-    const totalRequests = clampInt(total, 1, 500, 12);
-    const parallelRequests = clampInt(parallel, 1, 50, 12);
-    const safeParallel = Math.max(1, parallelRequests);
-    const url = joinUrl(base, path || '/');
+    clearTranscript();
+    abortActive();
+    setBusy(true);
+    setUploadProgress({ state: 'uploading', ratio: 0, label: 'Starting upload…' });
+    setStatus(runStatusEl, 'Preparing upload…', '');
 
-    saveConfig();
+    const file = audioState.file;
+    const base = normalizeBase(ENDPOINT_BASE);
+    const canUseUploads = Boolean(serverInfo.uploadsEnabled);
+    const shouldUseUploads = canUseUploads && (
+      !serverInfo.maxDirectBytes
+      || !Number.isFinite(Number(serverInfo.maxDirectBytes))
+      || audioState.bytes > serverInfo.maxDirectBytes
+    );
 
-    runState = {
-      startedAt: performance.now(),
-      url,
-      total: totalRequests,
-      parallel: safeParallel,
-      limit,
-      nextIndex: 0,
-      inflight: 0,
-      completed: 0,
-      success: 0,
-      throttles: 0,
-      errors: 0,
-      canceled: 0,
-      successDurations: [],
-      aborters: new Set(),
-      stopRequested: false
-    };
+    try {
+      if (shouldUseUploads) {
+        const presign = await presignUpload(file);
+        if (!presign.ok) {
+          if (presign.aborted) throw new Error('Canceled.');
+          throw new Error(presign.error || 'Upload setup failed.');
+        }
 
-    clearLog();
-    setStatus(runStatusEl, 'Running…', '');
-    if (startBtn) startBtn.classList.add('is-busy');
-    if (startBtn) startBtn.disabled = true;
-    if (stopBtn) stopBtn.disabled = false;
+        setStatus(runStatusEl, 'Uploading…', '');
+        await uploadViaPresignedPost({ url: presign.url, fields: presign.fields, file });
+        setUploadProgress({ state: 'uploading', ratio: 1, label: 'Upload complete.' });
+        setStatus(runStatusEl, 'Transcribing…', '');
 
-    const bodyPayload = audioState.file;
-    const contentType = audioState.mime || 'application/octet-stream';
+        const result = await transcribeS3Key(presign.key);
+        if (!result.ok) {
+          if (result.aborted) throw new Error('Canceled.');
+          throw new Error(result.error || 'Transcription failed.');
+        }
 
-    const pump = async () => {
-      if (!runState || runState.stopRequested) return;
-      while (runState.inflight < runState.parallel && runState.nextIndex < runState.total && !runState.stopRequested) {
-        const idx = runState.nextIndex;
-        runState.nextIndex += 1;
-        runState.inflight += 1;
-        scheduleRender();
-        runRequest(idx, url, bodyPayload, contentType);
+        const transcript = result.data?.transcript;
+        if (typeof transcript === 'string') {
+          setTranscript(transcript);
+          setStatus(transcriptStatusEl, transcript.trim() ? 'Transcript ready.' : 'Transcript returned empty.', transcript.trim() ? 'success' : 'warning');
+        }
+        setStatus(runStatusEl, 'Done.', 'success');
+        return;
       }
-    };
 
-    const finishIfDone = () => {
-      if (!runState) return;
-      const done = runState.completed + runState.canceled >= runState.total;
-      if (!done) return;
-      const summary = `Done • success ${runState.success}, throttles ${runState.throttles}, errors ${runState.errors}`;
-      setStatus(runStatusEl, summary, runState.errors ? 'warning' : 'success');
-      if (startBtn) startBtn.classList.remove('is-busy');
-      if (startBtn) startBtn.disabled = !serverReady;
-      if (stopBtn) stopBtn.disabled = true;
-    };
-
-    const runRequest = async (idx, requestUrl, body, type) => {
-      const controller = new AbortController();
-      runState.aborters.add(controller);
-      const started = performance.now();
-      try {
-        const res = await fetch(requestUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': type || 'application/octet-stream' },
-          body,
-          signal: controller.signal
-        });
-        const text = await res.text();
-        const duration = performance.now() - started;
-        runState.completed += 1;
-        runState.inflight = Math.max(0, runState.inflight - 1);
-        runState.aborters.delete(controller);
-
-        if (res.status === 200) {
-          runState.success += 1;
-          runState.successDurations.push(duration);
-          if (text) {
-            try {
-              const parsed = JSON.parse(text);
-              const transcript = parsed?.transcript;
-              if (typeof transcript === 'string') {
-                setTranscript(transcript);
-                setStatus(
-                  transcriptStatusEl,
-                  transcript.trim() ? 'Transcript updated.' : 'Transcript returned empty.',
-                  transcript.trim() ? 'success' : 'warning'
-                );
-              }
-            } catch {
-              // Ignore non-JSON payloads.
-            }
-          }
-          pushLog(`#${idx + 1} 200 ${formatMs(duration)}`, 'success');
-        } else if (res.status === 429) {
-          runState.throttles += 1;
-          pushLog(`#${idx + 1} 429 ${formatMs(duration)}`, 'warning');
-        } else {
-          runState.errors += 1;
-          let message = '';
-          if (text) {
-            try {
-              const parsed = JSON.parse(text);
-              message = parsed?.error || parsed?.message || '';
-            } catch {
-              message = '';
-            }
-          }
-          const suffix = message ? ` • ${message}` : '';
-          pushLog(`#${idx + 1} ${res.status} ${formatMs(duration)}${suffix}`, 'error');
-        }
-        scheduleRender();
-        if (runState.stopRequested) finishIfDone();
-        else {
-          finishIfDone();
-          pump();
-        }
-      } catch (err) {
-        const duration = performance.now() - started;
-        runState.inflight = Math.max(0, runState.inflight - 1);
-        runState.aborters.delete(controller);
-
-        if (err && err.name === 'AbortError') {
-          runState.canceled += 1;
-          pushLog(`#${idx + 1} canceled ${formatMs(duration)}`, 'muted');
-        } else {
-          runState.completed += 1;
-          runState.errors += 1;
-          pushLog(`#${idx + 1} error ${formatMs(duration)}`, 'error');
-        }
-        scheduleRender();
-        if (runState.stopRequested) finishIfDone();
-        else {
-          finishIfDone();
-          pump();
-        }
+      setStatus(runStatusEl, 'Uploading…', '');
+      const direct = await uploadDirectToLambda(file);
+      setUploadProgress({ state: 'uploading', ratio: 1, label: 'Upload complete.' });
+      if (!direct.ok) {
+        const message = direct.data?.error || direct.data?.message || direct.text || `Request failed (${direct.status}).`;
+        throw new Error(message);
       }
-    };
 
-    await pump();
+      const transcript = direct.data?.transcript;
+      if (typeof transcript === 'string') {
+        setTranscript(transcript);
+        setStatus(transcriptStatusEl, transcript.trim() ? 'Transcript ready.' : 'Transcript returned empty.', transcript.trim() ? 'success' : 'warning');
+      }
+      setStatus(runStatusEl, 'Done.', 'success');
+    } catch (err) {
+      const message = err?.message || 'Request failed.';
+      const tone = message === 'Canceled.' ? 'warning' : 'error';
+      setStatus(runStatusEl, message, tone);
+    } finally {
+      setBusy(false);
+      setUploadProgress({ state: 'hidden' });
+    }
   };
 
-  const stopRun = () => {
-    if (!runState) return;
-    runState.stopRequested = true;
-    setStatus(runStatusEl, 'Stopping…', 'warning');
-    runState.aborters.forEach((controller) => controller.abort());
-    runState.aborters.clear();
-    if (stopBtn) stopBtn.disabled = true;
-    if (startBtn) startBtn.classList.remove('is-busy');
-    if (startBtn) startBtn.disabled = !serverReady;
-    scheduleRender();
+  const resetForm = () => {
+    abortActive();
+    setBusy(false);
+    setServerReadyState(serverReady);
+    if (fileEl) fileEl.value = '';
+    audioState = { filename: '', mime: 'application/octet-stream', bytes: 0, file: null };
+    setStatus(runStatusEl, '', '');
+    setUploadProgress({ state: 'hidden' });
+    clearTranscript();
+    updateAudioMeta();
   };
 
-  const onSubmit = (e) => {
-    e.preventDefault();
-    if (runState && !runState.stopRequested) return;
-    const total = clampInt(totalEl?.value, 1, 500, 12);
-    const parallel = clampInt(parallelEl?.value, 1, 50, 12);
-    const path = String(pathEl?.value || '/').trim() || '/';
-    startRun({ total, parallel, path });
-  };
-
-  const checkAndWarm = async () => {
-    const status = await checkStatus();
-    if (status && status.ok) await warmUpServer(status.base, status.message);
-  };
-
-  loadSavedConfig();
-  render();
-  setServerReadyState(false, '');
-
-  if (endpointEl) endpointEl.addEventListener('input', onEndpointInput);
   if (fileEl) fileEl.addEventListener('change', onAudioChange);
   if (checkBtn) checkBtn.addEventListener('click', checkAndWarm);
-  if (saveBtn) saveBtn.addEventListener('click', saveConfig);
-  if (runnerForm) runnerForm.addEventListener('submit', onSubmit);
-  if (stopBtn) stopBtn.addEventListener('click', stopRun);
-  if (resetBtn) resetBtn.addEventListener('click', resetStats);
+  if (formEl) {
+    formEl.addEventListener('submit', (e) => {
+      e.preventDefault();
+      transcribeSelectedFile();
+    });
+  }
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', () => {
+      abortActive();
+      setStatus(runStatusEl, 'Canceled.', 'warning');
+      setBusy(false);
+      setUploadProgress({ state: 'hidden' });
+    });
+  }
+  if (resetBtn) resetBtn.addEventListener('click', resetForm);
   if (copyTranscriptBtn) {
     copyTranscriptBtn.addEventListener('click', async () => {
       const text = (transcriptEl?.value || '').trim();
@@ -714,7 +658,12 @@
     });
   }
 
-  window.setTimeout(async () => {
-    await checkAndWarm();
+  setBusy(false);
+  setServerReadyState(false);
+  updateAudioMeta();
+
+  window.setTimeout(() => {
+    checkAndWarm();
   }, 0);
 })();
+

@@ -46,7 +46,42 @@ aws lambda create-function \
 
 aws lambda update-function-configuration \
   --function-name whisper-transcribe \
-  --environment "Variables={MODEL_ID=openai/whisper-tiny.en,TARGET_SAMPLE_RATE=16000,MAX_AUDIO_SECONDS=30,MAX_AUDIO_BYTES=5242880,NUM_BEAMS=1,MAX_NEW_TOKENS=256}"
+  --environment "Variables={MODEL_ID=openai/whisper-tiny.en,TARGET_SAMPLE_RATE=16000,MAX_AUDIO_SECONDS=30,MAX_AUDIO_BYTES=5242880,MAX_DIRECT_UPLOAD_BYTES=5242880,MAX_UPLOAD_BYTES=52428800,UPLOAD_BUCKET=danielshort-whisper-transcribe-uploads-886623862678-us-east-2,UPLOAD_PREFIX=whisper-uploads/,UPLOAD_URL_TTL_SEC=300,DELETE_UPLOAD_AFTER_TRANSCRIBE=true,NUM_BEAMS=1,MAX_NEW_TOKENS=256}"
+```
+
+## Optional: enable larger uploads via S3
+
+Function URLs have strict request payload limits. To support larger uploads (audio/video), the Lambda can issue a presigned S3 POST upload and then transcribe from S3.
+
+### Create bucket + CORS + lifecycle
+
+```bash
+BUCKET="danielshort-whisper-transcribe-uploads-886623862678-us-east-2"
+aws s3api create-bucket \
+  --bucket "$BUCKET" \
+  --region us-east-2 \
+  --create-bucket-configuration LocationConstraint=us-east-2
+
+aws s3api put-public-access-block \
+  --bucket "$BUCKET" \
+  --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
+
+aws s3api put-bucket-cors \
+  --bucket "$BUCKET" \
+  --cors-configuration file://aws/whisper-transcribe/s3-cors.json
+
+aws s3api put-bucket-lifecycle-configuration \
+  --bucket "$BUCKET" \
+  --lifecycle-configuration file://aws/whisper-transcribe/s3-lifecycle.json
+```
+
+### Allow Lambda role to use the bucket
+
+```bash
+aws iam put-role-policy \
+  --role-name whisperTranscribeLambdaRole \
+  --policy-name whisperTranscribeUploads \
+  --policy-document file://aws/whisper-transcribe/s3-iam-policy.json
 ```
 
 ## Function URL
@@ -95,4 +130,8 @@ curl -X POST \
 Notes:
 - Audio/video inputs are converted to 16kHz mono WAV (PCM) via `ffmpeg` before transcription.
 - The handler accepts `/` and `/transcribe`.
-- Limits are enforced with `MAX_AUDIO_SECONDS` and `MAX_AUDIO_BYTES` (defaults: 30 seconds, 5 MB).
+- Optional S3 upload flow:
+  - `POST /presign` (JSON) → returns `{ upload_url, fields, key }`
+  - browser uploads to S3
+  - `POST /transcribe-s3` (JSON `{ key }`) → returns transcript
+- Limits are enforced with `MAX_AUDIO_SECONDS`, `MAX_DIRECT_UPLOAD_BYTES`, and `MAX_UPLOAD_BYTES`.
