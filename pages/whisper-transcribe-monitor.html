@@ -72,14 +72,14 @@
         </article>
 
         <article class="whispermon-card">
-          <h2>Audio</h2>
+          <h2>Media</h2>
           <form class="contact-form" novalidate>
             <div class="form-field">
-              <label for="whispermon-file">WAV file</label>
-              <input id="whispermon-file" type="file" accept=".wav,audio/wav,audio/x-wav">
-              <p class="contact-form-note">Tip: keep it short (≤ 30s). Do not upload sensitive audio.</p>
+              <label for="whispermon-file">Audio or video file</label>
+              <input id="whispermon-file" type="file" accept="audio/*,video/*">
+              <p class="contact-form-note">Tip: keep it short (≤ 30s) and small (≤ 5 MB). Video files are converted to audio before transcription. Do not upload sensitive media.</p>
             </div>
-            <div class="whispermon-audio-meta" id="whispermon-audio-meta" aria-live="polite">No audio loaded.</div>
+            <div class="whispermon-audio-meta" id="whispermon-audio-meta" aria-live="polite">No media loaded.</div>
           </form>
         </article>
 

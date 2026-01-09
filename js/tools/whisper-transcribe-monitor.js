@@ -4,6 +4,7 @@
   const DEFAULT_ENDPOINT = 'https://coxbbervgzwhm5tu53dutxwfca0vxdkg.lambda-url.us-east-2.on.aws/';
   const STORAGE_ENDPOINT = 'tool.whisperTranscribe.endpoint';
   const STORAGE_LIMIT = 'tool.whisperTranscribe.concurrencyLimit';
+  const DEFAULT_MAX_BYTES = 5 * 1024 * 1024;
 
   const $id = (id) => document.getElementById(id);
   const endpointEl = $id('whispermon-endpoint');
@@ -38,6 +39,11 @@
   const logEl = $id('whispermon-log');
 
   if (!endpointEl || !limitEl || !runnerForm || !fileEl) return;
+
+  const serverLimits = {
+    maxBytes: DEFAULT_MAX_BYTES,
+    maxSeconds: null
+  };
 
   const safeGet = (key) => {
     if (!key) return null;
@@ -147,56 +153,46 @@
 
   let audioState = {
     filename: '',
-    mime: 'audio/wav',
+    mime: 'application/octet-stream',
     bytes: 0,
-    b64: ''
+    file: null
   };
-
-  const fileToBase64 = (file) => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result;
-      if (typeof result !== 'string') {
-        reject(new Error('Unable to read file.'));
-        return;
-      }
-      const parts = result.split(',', 2);
-      const b64 = parts.length === 2 ? parts[1] : '';
-      if (!b64) {
-        reject(new Error('Unable to read file.'));
-        return;
-      }
-      resolve(b64);
-    };
-    reader.onerror = () => reject(new Error('Unable to read file.'));
-    reader.readAsDataURL(file);
-  });
 
   const onAudioChange = async () => {
     const file = fileEl.files && fileEl.files[0];
     if (!file) {
-      audioState = { filename: '', mime: 'audio/wav', bytes: 0, b64: '' };
-      if (audioMetaEl) audioMetaEl.textContent = 'No audio loaded.';
+      audioState = { filename: '', mime: 'application/octet-stream', bytes: 0, file: null };
+      if (audioMetaEl) audioMetaEl.textContent = 'No media loaded.';
       return;
     }
     const filename = String(file.name || '').trim() || 'audio.wav';
-    const mime = String(file.type || 'audio/wav').trim() || 'audio/wav';
+    const mime = String(file.type || 'application/octet-stream').trim() || 'application/octet-stream';
     const bytes = Number(file.size) || 0;
 
     if (audioMetaEl) {
-      audioMetaEl.textContent = 'Loading audio…';
+      audioMetaEl.textContent = 'Loading media…';
       audioMetaEl.dataset.tone = '';
     }
 
     try {
-      const b64 = await fileToBase64(file);
-      audioState = { filename, mime, bytes, b64 };
+      audioState = { filename, mime, bytes, file };
       if (audioMetaEl) {
-        audioMetaEl.textContent = `${filename} • ${formatNumber(bytes / 1024, 1)} KB`;
-        audioMetaEl.dataset.tone = 'success';
+        const sizeLabel = bytes >= 1024 * 1024
+          ? `${formatNumber(bytes / (1024 * 1024), 2)} MB`
+          : `${formatNumber(bytes / 1024, 1)} KB`;
+        const typeLabel = mime && mime !== 'application/octet-stream' ? mime : 'unknown type';
+        const limitBytes = serverLimits.maxBytes || DEFAULT_MAX_BYTES;
+        const tooLarge = limitBytes > 0 && bytes > limitBytes;
+        const limitLabel = limitBytes >= 1024 * 1024
+          ? `${formatNumber(limitBytes / (1024 * 1024), 2)} MB`
+          : `${formatNumber(limitBytes / 1024, 1)} KB`;
+        audioMetaEl.textContent = tooLarge
+          ? `${filename} • ${sizeLabel} • ${typeLabel} • exceeds ${limitLabel} limit`
+          : `${filename} • ${sizeLabel} • ${typeLabel}`;
+        audioMetaEl.dataset.tone = tooLarge ? 'error' : 'success';
       }
     } catch (err) {
-      audioState = { filename, mime, bytes, b64: '' };
+      audioState = { filename, mime, bytes, file: null };
       if (audioMetaEl) {
         audioMetaEl.textContent = `Error: ${err?.message || 'Unable to read file.'}`;
         audioMetaEl.dataset.tone = 'error';
@@ -220,8 +216,17 @@
       }
       const model = res.data?.model || res.data?.model_id || res.data?.modelId || 'unknown';
       const maxSec = res.data?.max_audio_seconds ?? res.data?.maxAudioSeconds;
+      const maxBytes = res.data?.max_audio_bytes ?? res.data?.maxAudioBytes;
       const detail = Number.isFinite(Number(maxSec)) ? `max ${maxSec}s` : '';
-      setStatus(endpointStatusEl, `OK • ${model}${detail ? ` • ${detail}` : ''}`, 'success');
+      if (Number.isFinite(Number(maxSec))) serverLimits.maxSeconds = Number(maxSec);
+      if (Number.isFinite(Number(maxBytes))) serverLimits.maxBytes = Number(maxBytes);
+      const bytesDetail = Number.isFinite(Number(maxBytes))
+        ? `max ${formatNumber(Number(maxBytes) / (1024 * 1024), 2)}MB`
+        : '';
+      const parts = [`OK`, model].filter(Boolean);
+      if (detail) parts.push(detail);
+      if (bytesDetail) parts.push(bytesDetail);
+      setStatus(endpointStatusEl, parts.join(' • '), 'success');
     } catch (err) {
       setStatus(endpointStatusEl, `Error: ${err?.message || 'Request failed.'}`, 'error');
     }
@@ -319,8 +324,16 @@
       setStatus(runStatusEl, 'Enter a Function URL.', 'error');
       return;
     }
-    if (!audioState.b64) {
-      setStatus(runStatusEl, 'Choose a WAV file first.', 'error');
+    if (!audioState.file) {
+      setStatus(runStatusEl, 'Choose an audio or video file first.', 'error');
+      return;
+    }
+    const limitBytes = serverLimits.maxBytes || DEFAULT_MAX_BYTES;
+    if (limitBytes > 0 && audioState.bytes > limitBytes) {
+      const label = limitBytes >= 1024 * 1024
+        ? `${formatNumber(limitBytes / (1024 * 1024), 2)} MB`
+        : `${formatNumber(limitBytes / 1024, 1)} KB`;
+      setStatus(runStatusEl, `File exceeds endpoint limit (${label}).`, 'error');
       return;
     }
 
@@ -356,10 +369,8 @@
     if (startBtn) startBtn.disabled = true;
     if (stopBtn) stopBtn.disabled = false;
 
-    const payload = JSON.stringify({
-      audio_b64: audioState.b64,
-      mime_type: audioState.mime
-    });
+    const bodyPayload = audioState.file;
+    const contentType = audioState.mime || 'application/octet-stream';
 
     const pump = async () => {
       if (!runState || runState.stopRequested) return;
@@ -368,7 +379,7 @@
         runState.nextIndex += 1;
         runState.inflight += 1;
         scheduleRender();
-        runRequest(idx, url, payload);
+        runRequest(idx, url, bodyPayload, contentType);
       }
     };
 
@@ -383,14 +394,14 @@
       if (stopBtn) stopBtn.disabled = true;
     };
 
-    const runRequest = async (idx, requestUrl, body) => {
+    const runRequest = async (idx, requestUrl, body, type) => {
       const controller = new AbortController();
       runState.aborters.add(controller);
       const started = performance.now();
       try {
         const res = await fetch(requestUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': type || 'application/octet-stream' },
           body,
           signal: controller.signal
         });

@@ -73,12 +73,26 @@ https://coxbbervgzwhm5tu53dutxwfca0vxdkg.lambda-url.us-east-2.on.aws/
 
 After creating the Function URL, add it to `vercel.json` `connect-src` if the site is served with that CSP.
 
-## Request format (WAV only)
+## Request format (audio/video)
 
-Send a JSON payload with base64-encoded WAV audio:
+### Option A: Raw media upload (recommended)
 
-```json
-{ "audio_b64": "<base64 wav>", "mime_type": "audio/wav" }
+POST the file bytes directly and set `Content-Type` to the file's MIME type (examples: `audio/mpeg`, `audio/wav`, `video/mp4`).
+
+```bash
+curl -X POST \
+  -H "Content-Type: audio/mpeg" \
+  --data-binary @sample.mp3 \
+  "https://coxbbervgzwhm5tu53dutxwfca0vxdkg.lambda-url.us-east-2.on.aws/transcribe"
 ```
 
-The handler accepts `/` and `/transcribe`.
+### Option B: JSON base64 payload (compat)
+
+```json
+{ "audio_b64": "<base64 media>", "mime_type": "audio/mpeg" }
+```
+
+Notes:
+- Audio/video inputs are converted to 16kHz mono WAV (PCM) via `ffmpeg` before transcription.
+- The handler accepts `/` and `/transcribe`.
+- Limits are enforced with `MAX_AUDIO_SECONDS` and `MAX_AUDIO_BYTES` (defaults: 30 seconds, 5 MB).
