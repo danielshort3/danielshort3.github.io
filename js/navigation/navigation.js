@@ -8,6 +8,8 @@
   const $$ = (s, c=document) => [...c.querySelectorAll(s)];
   const NAV_HEIGHT_FALLBACK = 72;
   let cachedNavHeight = null;
+  let navHeightRaf = null;
+  let navResizeObserver = null;
 
   const measureNavHeight = () => {
     const nav = document.querySelector('.nav');
@@ -84,6 +86,7 @@
     injectNav();
     injectFooter();
     setNavHeight();
+    setupNavHeightObservers();
     window.addEventListener('load', setNavHeight);
     window.addEventListener('resize', setNavHeight);
     window.addEventListener('orientationchange', setNavHeight);
@@ -97,6 +100,38 @@
     emitNavHeightChange(next);
     updateNavDropdownOffset();
     clampDropdownsToViewport();
+  }
+  function scheduleNavHeightUpdate(){
+    if (navHeightRaf !== null) return;
+    const requestFrame = window.requestAnimationFrame || ((fn) => window.setTimeout(fn, 16));
+    navHeightRaf = requestFrame(() => {
+      navHeightRaf = null;
+      setNavHeight();
+    });
+  }
+  function setupNavHeightObservers(){
+    const nav = document.querySelector('.nav');
+    if (!nav) return;
+
+    if (navResizeObserver) {
+      try { navResizeObserver.disconnect(); } catch {}
+      navResizeObserver = null;
+    }
+
+    if (typeof ResizeObserver === 'function') {
+      navResizeObserver = new ResizeObserver(() => {
+        scheduleNavHeightUpdate();
+      });
+      navResizeObserver.observe(nav);
+    }
+
+    if (document.fonts && document.fonts.ready && typeof document.fonts.ready.then === 'function') {
+      document.fonts.ready
+        .then(() => {
+          scheduleNavHeightUpdate();
+        })
+        .catch(() => {});
+    }
   }
   function setupNavPreviewVideos(root){
     if (!root) return;
