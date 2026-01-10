@@ -73,236 +73,257 @@
   <main id="main">
     <section class="surface-band qrtool-section">
       <div class="wrapper">
-        <form id="qrtool-form" class="qrtool-form" novalidate>
-          <div class="qrtool-card qrtool-generate-card">
-            <h2>Generate</h2>
-            <div class="qrtool-field">
-              <label class="qrtool-label" for="qrtool-data">URL</label>
-              <input id="qrtool-data" class="qrtool-input" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://example.com/campaign">
-              <div class="qrtool-actions">
-                <button type="button" id="qrtool-example" class="btn-ghost">Use example</button>
-                <button type="button" id="qrtool-clear" class="btn-ghost">Clear</button>
-              </div>
-              <p class="qrtool-help">Generated locally in your browser, with no uploads and no tracking.</p>
-            </div>
-          </div>
-
+        <div class="qrtool-workspace">
           <div class="qrtool-card qrtool-preview-card" aria-live="polite">
             <div class="qrtool-preview-header">
-              <h2>Preview</h2>
+              <div>
+                <h2>Preview</h2>
+                <p id="qrtool-meta" class="qrtool-meta">Enter a URL to generate a QR code.</p>
+              </div>
               <span id="qrtool-quality" class="qrtool-quality" hidden></span>
             </div>
 
-            <div class="qrtool-preview-body">
-              <div id="qrtool-stage" class="qrtool-stage">
-                <canvas id="qrtool-canvas" aria-label="QR code preview">Your browser does not support the HTML canvas element.</canvas>
-                <div id="qrtool-empty" class="qrtool-empty" aria-hidden="true">Paste a URL to begin.</div>
-              </div>
+            <div id="qrtool-stage" class="qrtool-stage">
+              <canvas id="qrtool-canvas" aria-label="QR code preview">Your browser does not support the HTML canvas element.</canvas>
+              <div id="qrtool-empty" class="qrtool-empty" aria-hidden="true">Paste a URL to begin.</div>
+            </div>
 
-              <div class="qrtool-preview-info">
-                <p id="qrtool-meta" class="qrtool-meta">Enter a URL to generate a QR code.</p>
-                <p id="qrtool-warning" class="qrtool-warning" hidden></p>
-                <p class="qrtool-hint">Tip: for logo QR codes, choose higher error correction and keep strong contrast.</p>
-              </div>
+            <div class="qrtool-preview-info">
+              <p id="qrtool-warning" class="qrtool-warning" hidden></p>
+              <p class="qrtool-hint">Tip: for logo QR codes, choose higher error correction and keep strong contrast.</p>
             </div>
           </div>
 
-          <div class="qrtool-card qrtool-templates-card">
-            <div class="qrtool-field-header">
-              <h2>Templates</h2>
-              <p class="qrtool-help">Start with a pre-designed business style.</p>
-            </div>
-            <div class="qrtool-template-grid" role="list" aria-label="QR templates">
-              <button type="button" class="qrtool-template" data-template="minimal-light">
-                <span class="qrtool-template-swatch" style="--qr-fg:#0B0F14;--qr-bg:#FFFFFF"></span>
-                <span class="qrtool-template-name">Minimal Light</span>
-              </button>
-              <button type="button" class="qrtool-template" data-template="modern-navy">
-                <span class="qrtool-template-swatch" style="--qr-fg:#0B2D4A;--qr-bg:#F5F7FA"></span>
-                <span class="qrtool-template-name">Modern Navy</span>
-              </button>
-              <button type="button" class="qrtool-template" data-template="rounded-teal">
-                <span class="qrtool-template-swatch" style="--qr-fg:#0F6D77;--qr-bg:#FFFFFF"></span>
-                <span class="qrtool-template-name">Rounded Teal</span>
-              </button>
-              <button type="button" class="qrtool-template" data-template="bold-black">
-                <span class="qrtool-template-swatch" style="--qr-fg:#000000;--qr-bg:#FFFFFF"></span>
-                <span class="qrtool-template-name">Bold Black</span>
-              </button>
-              <button type="button" class="qrtool-template" data-template="high-contrast">
-                <span class="qrtool-template-swatch" style="--qr-fg:#000000;--qr-bg:#FFFFFF"></span>
-                <span class="qrtool-template-name">High Contrast</span>
-              </button>
-              <button type="button" class="qrtool-template" data-template="dark-premium">
-                <span class="qrtool-template-swatch" style="--qr-fg:#EAF2FF;--qr-bg:#0D1117"></span>
-                <span class="qrtool-template-name">Dark Premium</span>
-              </button>
-            </div>
-          </div>
-
-          <div class="qrtool-card qrtool-customize-card" role="group" aria-label="Customization controls">
-            <div class="qrtool-field-header">
-              <h2>Customize</h2>
-              <p class="qrtool-help">Adjust dots, corners, colors, margins, and error correction.</p>
+          <div class="qrtool-card qrtool-controls-card">
+            <div class="qrtool-controls-head">
+              <h2>Controls</h2>
+              <p class="qrtool-help">Work through each tab to style your QR code, embed a logo, and export high-quality files.</p>
             </div>
 
-            <div class="qrtool-two-col">
-              <div class="qrtool-control">
-                <label class="qrtool-label" for="qrtool-dot-style">Dot style</label>
-                <select id="qrtool-dot-style" class="qrtool-select">
-                  <option value="square" selected>Square</option>
-                  <option value="rounded">Rounded</option>
-                  <option value="dots">Dots</option>
-                </select>
-              </div>
-              <div class="qrtool-control">
-                <label class="qrtool-label" for="qrtool-corner-style">Corner style</label>
-                <select id="qrtool-corner-style" class="qrtool-select">
-                  <option value="square" selected>Square</option>
-                  <option value="rounded">Rounded</option>
-                  <option value="extra-rounded">Extra rounded</option>
-                </select>
-              </div>
-              <div class="qrtool-control">
-                <label class="qrtool-label" for="qrtool-ecc">Error correction</label>
-                <select id="qrtool-ecc" class="qrtool-select">
-                  <option value="L">L (7%)</option>
-                  <option value="M" selected>M (15%)</option>
-                  <option value="Q">Q (25%)</option>
-                  <option value="H">H (30%)</option>
-                </select>
-              </div>
-              <div class="qrtool-control">
-                <label class="qrtool-label" for="qrtool-margin">Quiet zone <span id="qrtool-margin-value" class="qrtool-value">4</span></label>
-                <input id="qrtool-margin" type="range" min="2" max="10" value="4" step="1">
-              </div>
+            <div class="qrtool-tablist" role="tablist" aria-label="QR code generator sections">
+              <button id="qrtool-tab-generate" class="qrtool-tab" type="button" role="tab" aria-selected="true" aria-controls="qrtool-panel-generate" data-qrtool-tab="generate">Generate</button>
+              <button id="qrtool-tab-templates" class="qrtool-tab" type="button" role="tab" aria-selected="false" aria-controls="qrtool-panel-templates" data-qrtool-tab="templates" tabindex="-1">Templates</button>
+              <button id="qrtool-tab-customize" class="qrtool-tab" type="button" role="tab" aria-selected="false" aria-controls="qrtool-panel-customize" data-qrtool-tab="customize" tabindex="-1">Customize</button>
+              <button id="qrtool-tab-logo" class="qrtool-tab" type="button" role="tab" aria-selected="false" aria-controls="qrtool-panel-logo" data-qrtool-tab="logo" tabindex="-1">Logo</button>
+              <button id="qrtool-tab-export" class="qrtool-tab" type="button" role="tab" aria-selected="false" aria-controls="qrtool-panel-export" data-qrtool-tab="export" tabindex="-1">Export</button>
             </div>
 
-            <div class="qrtool-two-col">
-              <div class="qrtool-control">
-                <label class="qrtool-label" for="qrtool-fg">Foreground</label>
-                <div class="qrtool-color-row">
-                  <input id="qrtool-fg" class="qrtool-color" type="color" value="#0b0f14" aria-label="Foreground color">
-                  <span id="qrtool-fg-label" class="qrtool-chip">#0B0F14</span>
+            <div class="qrtool-panel-wrap" data-qrtool-panel-wrap>
+              <form id="qrtool-form" class="qrtool-form" novalidate>
+                <div id="qrtool-panel-generate" class="qrtool-panel" role="tabpanel" aria-labelledby="qrtool-tab-generate" data-qrtool-panel="generate">
+                  <div class="qrtool-field-header">
+                    <h3>Generate</h3>
+                    <p class="qrtool-help">Paste any URL (or text). Generated locally in your browser with no uploads and no tracking.</p>
+                  </div>
+                  <div class="qrtool-field">
+                    <label class="qrtool-label" for="qrtool-data">URL</label>
+                    <input id="qrtool-data" class="qrtool-input" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://example.com/campaign">
+                    <div class="qrtool-actions">
+                      <button type="button" id="qrtool-example" class="btn-ghost">Use example</button>
+                      <button type="button" id="qrtool-clear" class="btn-ghost">Clear</button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div class="qrtool-control">
-                <label class="qrtool-label" for="qrtool-bg">Background</label>
-                <div class="qrtool-color-row">
-                  <input id="qrtool-bg" class="qrtool-color" type="color" value="#ffffff" aria-label="Background color">
-                  <span id="qrtool-bg-label" class="qrtool-chip">#FFFFFF</span>
+
+                <div id="qrtool-panel-templates" class="qrtool-panel" role="tabpanel" aria-labelledby="qrtool-tab-templates" data-qrtool-panel="templates" hidden>
+                  <div class="qrtool-field-header">
+                    <h3>Templates</h3>
+                    <p class="qrtool-help">Start with a pre-designed business style.</p>
+                  </div>
+                  <div class="qrtool-template-grid" role="list" aria-label="QR templates">
+                    <button type="button" class="qrtool-template" data-template="minimal-light">
+                      <span class="qrtool-template-swatch" style="--qr-fg:#0B0F14;--qr-bg:#FFFFFF"></span>
+                      <span class="qrtool-template-name">Minimal Light</span>
+                    </button>
+                    <button type="button" class="qrtool-template" data-template="modern-navy">
+                      <span class="qrtool-template-swatch" style="--qr-fg:#0B2D4A;--qr-bg:#F5F7FA"></span>
+                      <span class="qrtool-template-name">Modern Navy</span>
+                    </button>
+                    <button type="button" class="qrtool-template" data-template="rounded-teal">
+                      <span class="qrtool-template-swatch" style="--qr-fg:#0F6D77;--qr-bg:#FFFFFF"></span>
+                      <span class="qrtool-template-name">Rounded Teal</span>
+                    </button>
+                    <button type="button" class="qrtool-template" data-template="bold-black">
+                      <span class="qrtool-template-swatch" style="--qr-fg:#000000;--qr-bg:#FFFFFF"></span>
+                      <span class="qrtool-template-name">Bold Black</span>
+                    </button>
+                    <button type="button" class="qrtool-template" data-template="high-contrast">
+                      <span class="qrtool-template-swatch" style="--qr-fg:#000000;--qr-bg:#FFFFFF"></span>
+                      <span class="qrtool-template-name">High Contrast</span>
+                    </button>
+                    <button type="button" class="qrtool-template" data-template="dark-premium">
+                      <span class="qrtool-template-swatch" style="--qr-fg:#EAF2FF;--qr-bg:#0D1117"></span>
+                      <span class="qrtool-template-name">Dark Premium</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            <label class="qrtool-check">
-              <input id="qrtool-transparent" type="checkbox">
-              Transparent background (PNG/SVG)
-            </label>
-          </div>
+                <div id="qrtool-panel-customize" class="qrtool-panel" role="tabpanel" aria-labelledby="qrtool-tab-customize" data-qrtool-panel="customize" hidden>
+                  <div class="qrtool-field-header">
+                    <h3>Customize</h3>
+                    <p class="qrtool-help">Adjust dots, corners, colors, margins, and error correction.</p>
+                  </div>
 
-          <div class="qrtool-card qrtool-logo-card" role="group" aria-label="Logo controls">
-            <div class="qrtool-field-header">
-              <h2>Logo</h2>
-              <p class="qrtool-help">Center a logo on a clean plate to maintain scan reliability.</p>
-            </div>
+                  <div class="qrtool-two-col">
+                    <div class="qrtool-control">
+                      <label class="qrtool-label" for="qrtool-dot-style">Dot style</label>
+                      <select id="qrtool-dot-style" class="qrtool-select">
+                        <option value="square" selected>Square</option>
+                        <option value="rounded">Rounded</option>
+                        <option value="dots">Dots</option>
+                      </select>
+                    </div>
+                    <div class="qrtool-control">
+                      <label class="qrtool-label" for="qrtool-corner-style">Corner style</label>
+                      <select id="qrtool-corner-style" class="qrtool-select">
+                        <option value="square" selected>Square</option>
+                        <option value="rounded">Rounded</option>
+                        <option value="extra-rounded">Extra rounded</option>
+                      </select>
+                    </div>
+                    <div class="qrtool-control">
+                      <label class="qrtool-label" for="qrtool-ecc">Error correction</label>
+                      <select id="qrtool-ecc" class="qrtool-select">
+                        <option value="L">L (7%)</option>
+                        <option value="M" selected>M (15%)</option>
+                        <option value="Q">Q (25%)</option>
+                        <option value="H">H (30%)</option>
+                      </select>
+                    </div>
+                    <div class="qrtool-control">
+                      <label class="qrtool-label" for="qrtool-margin">Quiet zone <span id="qrtool-margin-value" class="qrtool-value">4</span></label>
+                      <input id="qrtool-margin" type="range" min="2" max="10" value="4" step="1">
+                    </div>
+                  </div>
 
-            <div class="qrtool-logo-row">
-              <input id="qrtool-logo" class="qrtool-file" type="file" accept="image/png, image/jpeg, image/jpg, image/svg+xml">
-              <button id="qrtool-logo-remove" type="button" class="btn-ghost" disabled>Remove</button>
-            </div>
-            <div id="qrtool-logo-preview-wrap" class="qrtool-logo-preview-wrap hide" aria-hidden="true">
-              <img id="qrtool-logo-preview" class="qrtool-logo-preview" alt="Logo preview">
-              <p class="qrtool-help">Logo is centered with a clean background plate for scan reliability.</p>
-            </div>
-            <div class="qrtool-two-col">
-              <div class="qrtool-control">
-                <label class="qrtool-label" for="qrtool-logo-size">Logo size <span id="qrtool-logo-size-value" class="qrtool-value">20%</span></label>
-                <input id="qrtool-logo-size" type="range" min="10" max="30" value="20" step="1" disabled>
-              </div>
-              <div class="qrtool-control">
-                <label class="qrtool-label" for="qrtool-logo-padding">Padding <span id="qrtool-logo-padding-value" class="qrtool-value">12%</span></label>
-                <input id="qrtool-logo-padding" type="range" min="6" max="22" value="12" step="1" disabled>
-              </div>
-            </div>
+                  <div class="qrtool-two-col">
+                    <div class="qrtool-control">
+                      <label class="qrtool-label" for="qrtool-fg">Foreground</label>
+                      <div class="qrtool-color-row">
+                        <input id="qrtool-fg" class="qrtool-color" type="color" value="#0b0f14" aria-label="Foreground color">
+                        <span id="qrtool-fg-label" class="qrtool-chip">#0B0F14</span>
+                      </div>
+                    </div>
+                    <div class="qrtool-control">
+                      <label class="qrtool-label" for="qrtool-bg">Background</label>
+                      <div class="qrtool-color-row">
+                        <input id="qrtool-bg" class="qrtool-color" type="color" value="#ffffff" aria-label="Background color">
+                        <span id="qrtool-bg-label" class="qrtool-chip">#FFFFFF</span>
+                      </div>
+                    </div>
+                  </div>
 
-            <div class="qrtool-two-col">
-              <div class="qrtool-control">
-                <label class="qrtool-label" for="qrtool-logo-shape">Logo shape</label>
-                <select id="qrtool-logo-shape" class="qrtool-select" disabled>
-                  <option value="rounded" selected>Rounded square</option>
-                  <option value="square">Square</option>
-                  <option value="circle">Circle</option>
-                </select>
-              </div>
-              <div class="qrtool-control">
-                <label class="qrtool-label" for="qrtool-logo-plate-style">Plate</label>
-                <select id="qrtool-logo-plate-style" class="qrtool-select" disabled>
-                  <option value="auto" selected>Auto (match background)</option>
-                  <option value="white">White</option>
-                  <option value="custom">Custom</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="qrtool-two-col">
-              <div class="qrtool-control">
-                <label class="qrtool-label" for="qrtool-logo-plate-color">Plate color</label>
-                <div class="qrtool-color-row">
-                  <input id="qrtool-logo-plate-color" class="qrtool-color" type="color" value="#ffffff" aria-label="Logo plate color" disabled>
-                  <span id="qrtool-logo-plate-color-label" class="qrtool-chip">#FFFFFF</span>
+                  <label class="qrtool-check">
+                    <input id="qrtool-transparent" type="checkbox">
+                    Transparent background (PNG/SVG)
+                  </label>
                 </div>
-              </div>
-              <label class="qrtool-check">
-                <input id="qrtool-logo-outline" type="checkbox" checked disabled>
-                Subtle outline
-              </label>
-            </div>
-          </div>
 
-          <div class="qrtool-card qrtool-export-card" role="group" aria-label="Export options">
-            <div class="qrtool-field-header">
-              <h2>Export</h2>
-              <p class="qrtool-help">Download high-resolution PNG, scalable SVG, or a print-ready PDF.</p>
-            </div>
+                <div id="qrtool-panel-logo" class="qrtool-panel" role="tabpanel" aria-labelledby="qrtool-tab-logo" data-qrtool-panel="logo" hidden>
+                  <div class="qrtool-field-header">
+                    <h3>Logo</h3>
+                    <p class="qrtool-help">Center a logo on a clean plate to maintain scan reliability.</p>
+                  </div>
 
-            <div class="qrtool-two-col">
-              <div class="qrtool-control">
-                <label class="qrtool-label" for="qrtool-filename">File name</label>
-                <input id="qrtool-filename" class="qrtool-input" type="text" value="qr-code" autocomplete="off">
-              </div>
-              <div class="qrtool-control">
-                <label class="qrtool-label" for="qrtool-png-size">PNG size</label>
-                <select id="qrtool-png-size" class="qrtool-select">
-                  <option value="512">512 px</option>
-                  <option value="1024" selected>1024 px</option>
-                  <option value="2048">2048 px</option>
-                  <option value="4096">4096 px</option>
-                </select>
-              </div>
-            </div>
+                  <div class="qrtool-logo-row">
+                    <input id="qrtool-logo" class="qrtool-file" type="file" accept="image/png, image/jpeg, image/jpg, image/svg+xml">
+                    <button id="qrtool-logo-remove" type="button" class="btn-ghost" disabled>Remove</button>
+                  </div>
+                  <div id="qrtool-logo-preview-wrap" class="qrtool-logo-preview-wrap hide" aria-hidden="true">
+                    <img id="qrtool-logo-preview" class="qrtool-logo-preview" alt="Logo preview">
+                    <p class="qrtool-help">Logo is centered with a clean background plate for scan reliability.</p>
+                  </div>
+                  <div class="qrtool-two-col">
+                    <div class="qrtool-control">
+                      <label class="qrtool-label" for="qrtool-logo-size">Logo size <span id="qrtool-logo-size-value" class="qrtool-value">20%</span></label>
+                      <input id="qrtool-logo-size" type="range" min="10" max="30" value="20" step="1" disabled>
+                    </div>
+                    <div class="qrtool-control">
+                      <label class="qrtool-label" for="qrtool-logo-padding">Padding <span id="qrtool-logo-padding-value" class="qrtool-value">12%</span></label>
+                      <input id="qrtool-logo-padding" type="range" min="6" max="22" value="12" step="1" disabled>
+                    </div>
+                  </div>
 
-            <div class="qrtool-two-col">
-              <div class="qrtool-control">
-                <label class="qrtool-label" for="qrtool-pdf-size">PDF size</label>
-                <div class="qrtool-input-row">
-                  <input id="qrtool-pdf-size" class="qrtool-input qrtool-input-compact" type="number" inputmode="decimal" min="0.5" max="20" step="0.1" value="2">
-                  <select id="qrtool-pdf-unit" class="qrtool-select qrtool-select-compact" aria-label="PDF unit">
-                    <option value="in" selected>in</option>
-                    <option value="mm">mm</option>
-                  </select>
+                  <div class="qrtool-two-col">
+                    <div class="qrtool-control">
+                      <label class="qrtool-label" for="qrtool-logo-shape">Logo shape</label>
+                      <select id="qrtool-logo-shape" class="qrtool-select" disabled>
+                        <option value="rounded" selected>Rounded square</option>
+                        <option value="square">Square</option>
+                        <option value="circle">Circle</option>
+                      </select>
+                    </div>
+                    <div class="qrtool-control">
+                      <label class="qrtool-label" for="qrtool-logo-plate-style">Plate</label>
+                      <select id="qrtool-logo-plate-style" class="qrtool-select" disabled>
+                        <option value="auto" selected>Auto (match background)</option>
+                        <option value="white">White</option>
+                        <option value="custom">Custom</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="qrtool-two-col">
+                    <div class="qrtool-control">
+                      <label class="qrtool-label" for="qrtool-logo-plate-color">Plate color</label>
+                      <div class="qrtool-color-row">
+                        <input id="qrtool-logo-plate-color" class="qrtool-color" type="color" value="#ffffff" aria-label="Logo plate color" disabled>
+                        <span id="qrtool-logo-plate-color-label" class="qrtool-chip">#FFFFFF</span>
+                      </div>
+                    </div>
+                    <label class="qrtool-check">
+                      <input id="qrtool-logo-outline" type="checkbox" checked disabled>
+                      Subtle outline
+                    </label>
+                  </div>
                 </div>
-                <p class="qrtool-help">Creates a square, print-ready PDF with the QR code centered.</p>
-              </div>
-            </div>
 
-            <div class="qrtool-export-actions">
-              <button type="button" id="qrtool-download-png" class="btn-primary" disabled>Download PNG</button>
-              <button type="button" id="qrtool-download-svg" class="btn-secondary" disabled>Download SVG</button>
-              <button type="button" id="qrtool-download-pdf" class="btn-secondary" disabled>Download PDF</button>
+                <div id="qrtool-panel-export" class="qrtool-panel" role="tabpanel" aria-labelledby="qrtool-tab-export" data-qrtool-panel="export" hidden>
+                  <div class="qrtool-field-header">
+                    <h3>Export</h3>
+                    <p class="qrtool-help">Download high-resolution PNG, scalable SVG, or a print-ready PDF.</p>
+                  </div>
+
+                  <div class="qrtool-two-col">
+                    <div class="qrtool-control">
+                      <label class="qrtool-label" for="qrtool-filename">File name</label>
+                      <input id="qrtool-filename" class="qrtool-input" type="text" value="qr-code" autocomplete="off">
+                    </div>
+                    <div class="qrtool-control">
+                      <label class="qrtool-label" for="qrtool-png-size">PNG size</label>
+                      <select id="qrtool-png-size" class="qrtool-select">
+                        <option value="512">512 px</option>
+                        <option value="1024" selected>1024 px</option>
+                        <option value="2048">2048 px</option>
+                        <option value="4096">4096 px</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="qrtool-two-col">
+                    <div class="qrtool-control">
+                      <label class="qrtool-label" for="qrtool-pdf-size">PDF size</label>
+                      <div class="qrtool-input-row">
+                        <input id="qrtool-pdf-size" class="qrtool-input qrtool-input-compact" type="number" inputmode="decimal" min="0.5" max="20" step="0.1" value="2">
+                        <select id="qrtool-pdf-unit" class="qrtool-select qrtool-select-compact" aria-label="PDF unit">
+                          <option value="in" selected>in</option>
+                          <option value="mm">mm</option>
+                        </select>
+                      </div>
+                      <p class="qrtool-help">Creates a square, print-ready PDF with the QR code centered.</p>
+                    </div>
+                  </div>
+
+                  <div class="qrtool-export-actions">
+                    <button type="button" id="qrtool-download-png" class="btn-primary" disabled>Download PNG</button>
+                    <button type="button" id="qrtool-download-svg" class="btn-secondary" disabled>Download SVG</button>
+                    <button type="button" id="qrtool-download-pdf" class="btn-secondary" disabled>Download PDF</button>
+                  </div>
+                </div>
+              </form>
             </div>
           </div>
-        </form>
+        </div>
       </div>
     </section>
   </main>

@@ -57,6 +57,12 @@
   const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
   if (!ctx) return;
 
+  const tabs = {
+    buttons: Array.from(document.querySelectorAll('[data-qrtool-tab]')),
+    panels: Array.from(document.querySelectorAll('[data-qrtool-panel]')),
+    panelWrap: document.querySelector('[data-qrtool-panel-wrap]'),
+  };
+
   const DEFAULTS = Object.freeze({
     data: '',
     dotStyle: 'square',
@@ -220,6 +226,57 @@
     a.click();
     a.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+  };
+
+  const activateTab = (name, shouldFocus = false) => {
+    if (!tabs.buttons.length || !tabs.panels.length) return;
+    const safeName = tabs.buttons.some(button => button.dataset.qrtoolTab === name)
+      ? name
+      : tabs.buttons[0].dataset.qrtoolTab;
+    tabs.buttons.forEach((button) => {
+      const selected = button.dataset.qrtoolTab === safeName;
+      button.setAttribute('aria-selected', selected ? 'true' : 'false');
+      button.tabIndex = selected ? 0 : -1;
+    });
+    tabs.panels.forEach((panel) => {
+      panel.hidden = panel.dataset.qrtoolPanel !== safeName;
+    });
+    if (tabs.panelWrap) tabs.panelWrap.scrollTop = 0;
+    if (shouldFocus) {
+      const activeButton = tabs.buttons.find(button => button.dataset.qrtoolTab === safeName);
+      if (activeButton) activeButton.focus();
+    }
+  };
+
+  const initTabs = () => {
+    if (!tabs.buttons.length || !tabs.panels.length) return;
+    const defaultTab = tabs.buttons.find(button => button.getAttribute('aria-selected') === 'true')?.dataset.qrtoolTab
+      || tabs.buttons[0].dataset.qrtoolTab;
+    const hash = window.location && window.location.hash
+      ? window.location.hash.replace('#', '')
+      : '';
+    const initial = tabs.buttons.some(button => button.dataset.qrtoolTab === hash) ? hash : defaultTab;
+    activateTab(initial);
+    tabs.buttons.forEach((button, index) => {
+      button.addEventListener('click', () => activateTab(button.dataset.qrtoolTab, true));
+      button.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowRight') {
+          event.preventDefault();
+          const next = (index + 1) % tabs.buttons.length;
+          activateTab(tabs.buttons[next].dataset.qrtoolTab, true);
+        } else if (event.key === 'ArrowLeft') {
+          event.preventDefault();
+          const prev = (index - 1 + tabs.buttons.length) % tabs.buttons.length;
+          activateTab(tabs.buttons[prev].dataset.qrtoolTab, true);
+        } else if (event.key === 'Home') {
+          event.preventDefault();
+          activateTab(tabs.buttons[0].dataset.qrtoolTab, true);
+        } else if (event.key === 'End') {
+          event.preventDefault();
+          activateTab(tabs.buttons[tabs.buttons.length - 1].dataset.qrtoolTab, true);
+        }
+      });
+    });
   };
 
   const setWarning = (text) => {
@@ -1443,6 +1500,11 @@
     downloadBlob(new Blob([pdfBytes], { type: 'application/pdf' }), `${fileNameSafe(filenameInput.value)}.pdf`);
   });
 
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+  });
+
+  initTabs();
   readStateFromControls();
   updateControlsFromState();
   scheduleRender();
