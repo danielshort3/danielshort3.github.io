@@ -1,27 +1,25 @@
 /* Tools landing styles */
 @layer components {
   .tools-hero{
-    padding:clamp(3.4rem,7vh,4.8rem) 0;
-    background:linear-gradient(140deg,
-      color-mix(in srgb,var(--surface) 92%, #040910 8%) 0%,
-      color-mix(in srgb,var(--surface) 80%, #040910 20%) 100%);
+    position:relative;
+    padding:clamp(1.1rem,3vh,1.6rem) 0;
+    background:linear-gradient(160deg,
+      color-mix(in srgb,var(--surface) 90%, #070e15 10%) 0%,
+      color-mix(in srgb,var(--surface) 78%, #050b12 22%) 100%);
     border-bottom:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
-    box-shadow:0 22px 48px rgba(0,0,0,.32);
+    box-shadow:0 18px 38px rgba(0,0,0,.32);
   }
   .tools-hero .wrapper{
-    max-width:min(1080px, calc(var(--container-max) + 80px));
-    display:grid;
-    gap:clamp(1.2rem,2.4vw,1.8rem);
+    max-width:var(--container-max);
+    display:flex;
+    align-items:center;
   }
-  .tools-hero h1{
+
+  .tools-hero .hero-eyebrow{
     margin:0;
-  }
-  .tools-hero p{
-    margin:0;
-    max-width:70ch;
-    color:var(--text-muted);
-    font-size:1.05rem;
-    line-height:1.7;
+    opacity:1;
+    transform:none;
+    animation:none;
   }
 
   .tools-section{
