@@ -513,7 +513,36 @@
   };
 
   const initAccountBar = ({ toolId, root, toolActionsEnabled, onOpenAccount } = {}) => {
-    const barEl = $('[data-tools-account="bar"]');
+    const barEl = (() => {
+      const existing = $('[data-tools-account="bar"]');
+      if (!existing) return null;
+      const inDock = existing.closest('[data-tools-account="dock"]');
+      if (inDock) return existing;
+
+      const headerHost = document.querySelector('#combined-header-nav');
+      const main = document.querySelector('main') || document.querySelector('#main');
+      let dock = document.querySelector('[data-tools-account="dock"]');
+      if (!dock) {
+        dock = document.createElement('div');
+        dock.className = 'tools-account-dock';
+        dock.setAttribute('data-tools-account', 'dock');
+        dock.innerHTML = '<div class="wrapper tools-account-dock-inner" data-tools-account="dock-inner"></div>';
+        if (headerHost && headerHost.insertAdjacentElement) {
+          headerHost.insertAdjacentElement('afterend', dock);
+        } else if (main && main.parentNode) {
+          main.parentNode.insertBefore(dock, main);
+        } else {
+          document.body.insertBefore(dock, document.body.firstChild);
+        }
+      }
+
+      const dockInner = dock.querySelector('[data-tools-account="dock-inner"]');
+      if (dockInner) {
+        dockInner.appendChild(existing);
+      }
+
+      return existing;
+    })();
     if (!barEl) return { barEl: null, setStatus: () => {} };
 
     let sessionId = '';
