@@ -8,6 +8,33 @@
   const exampleBtn = $('#qrtool-example');
   const clearBtn = $('#qrtool-clear');
 
+  const destinationPickerOpen = document.querySelector('[data-qrtool="destination-picker-open"]');
+  const destinationModal = document.querySelector('[data-qrtool="destination-modal"]');
+  const destinationModalClose = destinationModal
+    ? destinationModal.querySelector('[data-qrtool="destination-modal-close"]')
+    : null;
+  const destinationSearch = destinationModal
+    ? destinationModal.querySelector('[data-qrtool="destination-search"]')
+    : null;
+  const destinationResults = destinationModal
+    ? destinationModal.querySelector('[data-qrtool="destination-results"]')
+    : null;
+
+  const shortlinksPickerOpen = document.querySelector('[data-qrtool="shortlinks-picker-open"]');
+  const shortlinksModal = document.querySelector('[data-qrtool="shortlinks-modal"]');
+  const shortlinksModalClose = shortlinksModal
+    ? shortlinksModal.querySelector('[data-qrtool="shortlinks-modal-close"]')
+    : null;
+  const shortlinksSearch = shortlinksModal
+    ? shortlinksModal.querySelector('[data-qrtool="shortlinks-search"]')
+    : null;
+  const shortlinksResults = shortlinksModal
+    ? shortlinksModal.querySelector('[data-qrtool="shortlinks-results"]')
+    : null;
+  const shortlinksStatusEl = shortlinksModal
+    ? shortlinksModal.querySelector('[data-qrtool="shortlinks-status"]')
+    : null;
+
   const canvas = $('#qrtool-canvas');
   const stage = $('#qrtool-stage');
   const emptyOverlay = $('#qrtool-empty');
@@ -39,12 +66,14 @@
   const logoPlateStyleSelect = $('#qrtool-logo-plate-style');
   const logoPlateColorInput = $('#qrtool-logo-plate-color');
   const logoPlateColorLabel = $('#qrtool-logo-plate-color-label');
-  const logoOutlineInput = $('#qrtool-logo-outline');
+  const logoBorderStyleSelect = $('#qrtool-logo-border-style');
+  const logoBorderSizeInput = $('#qrtool-logo-border-size');
+  const logoBorderSizeValue = $('#qrtool-logo-border-size-value');
+  const logoBorderColorInput = $('#qrtool-logo-border-color');
+  const logoBorderColorLabel = $('#qrtool-logo-border-color-label');
 
   const filenameInput = $('#qrtool-filename');
-  const pngSizeSelect = $('#qrtool-png-size');
-  const pdfSizeInput = $('#qrtool-pdf-size');
-  const pdfUnitSelect = $('#qrtool-pdf-unit');
+  const imageSizeSelect = $('#qrtool-image-size');
 
   const downloadPngBtn = $('#qrtool-download-png');
   const downloadSvgBtn = $('#qrtool-download-svg');
@@ -78,7 +107,9 @@
     logoShape: 'rounded',
     logoPlateStyle: 'auto',
     logoPlateColor: '#FFFFFF',
-    logoOutline: true,
+    logoBorderStyle: 'auto',
+    logoBorderPct: 5,
+    logoBorderColor: '#0B0F14',
   });
 
   const TEMPLATES = Object.freeze({
@@ -143,10 +174,6 @@
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
   const toInt = (value, fallback) => {
     const parsed = parseInt(value, 10);
-    return Number.isFinite(parsed) ? parsed : fallback;
-  };
-  const toFloat = (value, fallback) => {
-    const parsed = parseFloat(value);
     return Number.isFinite(parsed) ? parsed : fallback;
   };
 
@@ -226,6 +253,371 @@
     a.click();
     a.remove();
     window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+  };
+
+  const setStatus = (el, msg, tone) => {
+    if (!el) return;
+    el.textContent = msg || '';
+    if (tone) el.dataset.tone = tone;
+    else delete el.dataset.tone;
+  };
+
+  const DESTINATIONS_MANIFEST_PATH = 'dist/shortlinks-destinations.json';
+  const FALLBACK_DESTINATIONS = [
+    { path: '/', label: 'Home', group: 'Pages' },
+    { path: '/portfolio', label: 'Portfolio', group: 'Portfolio' },
+    { path: '/resume', label: 'Resume', group: 'Pages' },
+    { path: '/contact', label: 'Contact', group: 'Pages' },
+    { path: '/tools', label: 'Tools', group: 'Tools' },
+  ];
+
+  let destinationsManifest = null;
+  let destinationModalPrevFocus = null;
+
+  const SHORTLINKS_TOKEN_STORAGE_KEY = 'shortlinks_admin_token';
+  const SHORTLINKS_API_PATH = '/api/short-links';
+
+  let shortlinksManifest = null;
+  let shortlinksModalPrevFocus = null;
+
+  const getStorage = (preferLocal) => {
+    const candidate = preferLocal ? window.localStorage : window.sessionStorage;
+    try {
+      if (!candidate) return null;
+      const key = '__qrtool_storage_test__';
+      candidate.setItem(key, '1');
+      candidate.removeItem(key);
+      return candidate;
+    } catch {
+      return null;
+    }
+  };
+
+  const storage = getStorage(true) || getStorage(false);
+
+  const getSavedShortlinksToken = () => {
+    if (!storage) return '';
+    return String(storage.getItem(SHORTLINKS_TOKEN_STORAGE_KEY) || '').trim();
+  };
+
+  const updateShortlinksPickerVisibility = () => {
+    if (!shortlinksPickerOpen) return;
+    shortlinksPickerOpen.hidden = !getSavedShortlinksToken();
+  };
+
+  const getCanonicalSiteOrigin = () => {
+    const origin = destinationsManifest && destinationsManifest.origin ? String(destinationsManifest.origin) : '';
+    return origin || 'https://danielshort.me';
+  };
+
+  const joinOriginAndPath = (origin, pathname) => {
+    const base = String(origin || '').replace(/\/+$/g, '');
+    const path = String(pathname || '');
+    if (!base) return path;
+    if (!path) return base;
+    if (path.startsWith('/')) return `${base}${path}`;
+    return `${base}/${path}`;
+  };
+
+  const applyDataValue = (value) => {
+    if (!dataInput) return;
+    dataInput.value = value;
+    let dispatched = false;
+    try {
+      dataInput.dispatchEvent(new Event('input', { bubbles: true }));
+      dispatched = true;
+    } catch {}
+    try { dataInput.dispatchEvent(new Event('change', { bubbles: true })); } catch {}
+    if (!dispatched) {
+      readStateFromControls();
+      scheduleRender();
+    }
+  };
+
+  const syncModalOpenState = () => {
+    if (!document || !document.body) return;
+    if (!document.querySelector('.modal.active')) {
+      document.body.classList.remove('modal-open');
+    }
+  };
+
+  const closeDestinationPicker = () => {
+    if (!destinationModal) return;
+    destinationModal.classList.remove('active');
+    destinationModal.setAttribute('aria-hidden', 'true');
+    syncModalOpenState();
+    if (destinationSearch) destinationSearch.value = '';
+    if (destinationResults) destinationResults.replaceChildren();
+    if (destinationModalPrevFocus && document.contains(destinationModalPrevFocus)) {
+      destinationModalPrevFocus.focus();
+    }
+    destinationModalPrevFocus = null;
+  };
+
+  const loadDestinationsManifest = async () => {
+    if (destinationsManifest) return destinationsManifest;
+    const fallback = { origin: 'https://danielshort.me', pages: FALLBACK_DESTINATIONS };
+    try {
+      const resp = await fetch(DESTINATIONS_MANIFEST_PATH, { method: 'GET', cache: 'no-store' });
+      if (!resp.ok) throw new Error(`Manifest request failed (${resp.status})`);
+      const data = await resp.json().catch(() => null);
+      if (!data || typeof data !== 'object' || !Array.isArray(data.pages)) throw new Error('Invalid manifest');
+      destinationsManifest = data;
+      return destinationsManifest;
+    } catch {
+      destinationsManifest = fallback;
+      return destinationsManifest;
+    }
+  };
+
+  const getDestinationQuery = () => {
+    if (!destinationSearch) return '';
+    return String(destinationSearch.value || '').trim().toLowerCase();
+  };
+
+  const getFilteredDestinations = () => {
+    const manifest = destinationsManifest;
+    if (!manifest || !Array.isArray(manifest.pages)) return [];
+    const query = getDestinationQuery();
+    const pages = manifest.pages.filter(item => item && typeof item.path === 'string' && typeof item.label === 'string');
+    if (!query) return pages;
+    return pages.filter(item => {
+      const hay = `${item.label} ${item.path}`.toLowerCase();
+      return hay.includes(query);
+    });
+  };
+
+  const renderDestinations = () => {
+    if (!destinationResults) return;
+    destinationResults.replaceChildren();
+
+    const pages = getFilteredDestinations();
+    const query = getDestinationQuery();
+    if (!pages.length) {
+      const empty = document.createElement('p');
+      empty.className = 'shortlinks-picker-empty';
+      empty.textContent = query ? `No matches for "${query}".` : 'No destinations found.';
+      destinationResults.appendChild(empty);
+      return;
+    }
+
+    const groupOrder = ['Pages', 'Tools', 'Portfolio', 'Demos'];
+    const grouped = new Map();
+    pages.forEach(item => {
+      const group = item.group && groupOrder.includes(item.group) ? item.group : 'Pages';
+      if (!grouped.has(group)) grouped.set(group, []);
+      grouped.get(group).push(item);
+    });
+
+    groupOrder.forEach(group => {
+      const items = grouped.get(group);
+      if (!items || !items.length) return;
+
+      const section = document.createElement('section');
+      section.className = 'shortlinks-picker-group';
+
+      const title = document.createElement('h4');
+      title.className = 'shortlinks-picker-group-title';
+      title.textContent = group;
+      section.appendChild(title);
+
+      const list = document.createElement('div');
+      list.className = 'shortlinks-picker-group-list';
+
+      items.forEach(item => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'shortlinks-picker-item';
+
+        const label = document.createElement('span');
+        label.className = 'shortlinks-picker-item-label';
+        label.textContent = item.label || item.path;
+
+        const pathCode = document.createElement('code');
+        pathCode.className = 'shortlinks-picker-item-path';
+        pathCode.textContent = item.path;
+
+        button.appendChild(label);
+        button.appendChild(pathCode);
+
+        button.addEventListener('click', () => {
+          const origin = getCanonicalSiteOrigin();
+          applyDataValue(joinOriginAndPath(origin, item.path));
+          closeDestinationPicker();
+          dataInput.focus();
+          dataInput.setSelectionRange(dataInput.value.length, dataInput.value.length);
+        });
+
+        list.appendChild(button);
+      });
+
+      section.appendChild(list);
+      destinationResults.appendChild(section);
+    });
+  };
+
+  const openDestinationPicker = async () => {
+    if (!destinationModal) return;
+    destinationModalPrevFocus = document.activeElement;
+    destinationModal.classList.add('active');
+    destinationModal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
+
+    await loadDestinationsManifest();
+    renderDestinations();
+
+    if (destinationSearch) destinationSearch.focus({ preventScroll: true });
+  };
+
+  const closeShortlinksPicker = () => {
+    if (!shortlinksModal) return;
+    shortlinksModal.classList.remove('active');
+    shortlinksModal.setAttribute('aria-hidden', 'true');
+    syncModalOpenState();
+    if (shortlinksSearch) shortlinksSearch.value = '';
+    if (shortlinksResults) shortlinksResults.replaceChildren();
+    setStatus(shortlinksStatusEl, '');
+    if (shortlinksModalPrevFocus && document.contains(shortlinksModalPrevFocus)) {
+      shortlinksModalPrevFocus.focus();
+    }
+    shortlinksModalPrevFocus = null;
+  };
+
+  const loadShortlinksManifest = async () => {
+    if (shortlinksManifest) return shortlinksManifest;
+    const token = getSavedShortlinksToken();
+    if (!token) {
+      const err = new Error('Short Links admin token not found. Open the Short Links tool and save your token first.');
+      err.code = 'TOKEN_MISSING';
+      throw err;
+    }
+
+    const headers = { Authorization: `Bearer ${token}` };
+    const resp = await fetch(SHORTLINKS_API_PATH, { method: 'GET', headers, cache: 'no-store' });
+    const isJson = (resp.headers.get('content-type') || '').includes('application/json');
+    const data = isJson ? await resp.json().catch(() => null) : null;
+    if (!resp.ok || !data || data.ok !== true) {
+      const errMsg = (data && data.error) ? data.error : `Request failed (${resp.status})`;
+      const err = new Error(errMsg);
+      err.status = resp.status;
+      throw err;
+    }
+    shortlinksManifest = data;
+    return shortlinksManifest;
+  };
+
+  const getShortlinksQuery = () => {
+    if (!shortlinksSearch) return '';
+    return String(shortlinksSearch.value || '').trim().toLowerCase();
+  };
+
+  const getActiveShortlinks = (links) => {
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    return (Array.isArray(links) ? links : [])
+      .filter(link => link && typeof link.slug === 'string' && link.slug.trim())
+      .filter(link => !link.disabled)
+      .filter(link => {
+        const expiresAt = Number.isFinite(Number(link.expiresAt)) ? Number(link.expiresAt) : 0;
+        return !expiresAt || expiresAt > nowSeconds;
+      });
+  };
+
+  const renderShortlinks = () => {
+    if (!shortlinksResults) return;
+    shortlinksResults.replaceChildren();
+
+    const manifest = shortlinksManifest;
+    const hasManifest = !!(manifest && Array.isArray(manifest.links));
+    const links = manifest && Array.isArray(manifest.links) ? manifest.links : [];
+    const basePathRaw = manifest && typeof manifest.basePath === 'string' ? manifest.basePath : 'go';
+    const basePath = String(basePathRaw || 'go').replace(/^\/+|\/+$/g, '') || 'go';
+
+    const query = getShortlinksQuery();
+    const active = getActiveShortlinks(links);
+    const filtered = query
+      ? active.filter(link => `${link.slug} ${link.destination || ''}`.toLowerCase().includes(query))
+      : active;
+
+    if (!filtered.length) {
+      const empty = document.createElement('p');
+      empty.className = 'shortlinks-picker-empty';
+      empty.textContent = query ? `No matches for "${query}".` : 'No active short links found.';
+      shortlinksResults.appendChild(empty);
+      if (hasManifest) setStatus(shortlinksStatusEl, '');
+      return;
+    }
+
+    const section = document.createElement('section');
+    section.className = 'shortlinks-picker-group';
+
+    const title = document.createElement('h4');
+    title.className = 'shortlinks-picker-group-title';
+    title.textContent = 'Short Links';
+    section.appendChild(title);
+
+    const list = document.createElement('div');
+    list.className = 'shortlinks-picker-group-list';
+
+    filtered
+      .slice()
+      .sort((a, b) => String(a.slug || '').localeCompare(String(b.slug || '')))
+      .forEach(link => {
+        const slug = String(link.slug || '').trim();
+        if (!slug) return;
+
+        const path = `/${basePath}/${slug}`;
+        const destination = typeof link.destination === 'string' ? link.destination.trim() : '';
+
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'shortlinks-picker-item';
+        if (destination) button.title = destination;
+
+        const label = document.createElement('span');
+        label.className = 'shortlinks-picker-item-label';
+        label.textContent = slug;
+
+        const pathCode = document.createElement('code');
+        pathCode.className = 'shortlinks-picker-item-path';
+        pathCode.textContent = path;
+
+        button.appendChild(label);
+        button.appendChild(pathCode);
+
+        button.addEventListener('click', () => {
+          const origin = getCanonicalSiteOrigin();
+          applyDataValue(joinOriginAndPath(origin, path));
+          closeShortlinksPicker();
+          dataInput.focus();
+          dataInput.setSelectionRange(dataInput.value.length, dataInput.value.length);
+        });
+
+        list.appendChild(button);
+      });
+
+    section.appendChild(list);
+    shortlinksResults.appendChild(section);
+    setStatus(shortlinksStatusEl, `Showing ${filtered.length} active short links.`, '');
+  };
+
+  const openShortlinksPicker = async () => {
+    if (!shortlinksModal) return;
+    shortlinksModalPrevFocus = document.activeElement;
+    shortlinksModal.classList.add('active');
+    shortlinksModal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
+
+    setStatus(shortlinksStatusEl, 'Loading short links…');
+    if (shortlinksResults) shortlinksResults.replaceChildren();
+
+    try {
+      await loadShortlinksManifest();
+      renderShortlinks();
+    } catch (err) {
+      setStatus(shortlinksStatusEl, err && err.message ? err.message : 'Unable to load short links.', 'error');
+    }
+
+    if (shortlinksSearch) shortlinksSearch.focus({ preventScroll: true });
   };
 
   const activateTab = (name, shouldFocus = false) => {
@@ -426,7 +818,10 @@
     const drawBackground = transparent ? '#FFFFFF' : bgCss;
 
     const logoShape = options.logoShape || 'rounded';
-    const logoOutline = options.logoOutline !== false;
+    const logoBorderStyle = ['auto', 'custom', 'none'].includes(options.logoBorderStyle)
+      ? options.logoBorderStyle
+      : DEFAULTS.logoBorderStyle;
+    const logoBorderPct = clamp(toInt(options.logoBorderPct, DEFAULTS.logoBorderPct), 0, 12);
     const logoPlateStyle = options.logoPlateStyle || 'auto';
     const logoPlateHex = (() => {
       const base = transparent ? '#FFFFFF' : options.bg;
@@ -436,7 +831,10 @@
     })();
     const logoPlateRgb = hexToRgb(logoPlateHex);
     const logoPlateCss = rgbToCss(logoPlateRgb);
-    const logoOutlineCss = rgbToCss(mixRgb(logoPlateRgb, fgRgb, 0.18));
+    const autoBorderCss = rgbToCss(mixRgb(logoPlateRgb, fgRgb, 0.18));
+    const logoBorderHex = normalizeHex(options.logoBorderColor);
+    const customBorderCss = rgbToCss(hexToRgb(logoBorderHex));
+    const logoBorderCss = logoBorderStyle === 'custom' ? customBorderCss : autoBorderCss;
 
     let logoBox = null;
     let inLogoCutout = null;
@@ -552,7 +950,8 @@
 
     if (options.logoImage && logoBox) {
       const { sizeModules, paddingModules, plateX, plateY, plateSize, plateRadiusPx } = logoBox;
-      const borderPx = clamp(moduleSize * 0.65, 2, plateSize * 0.08);
+      const borderPx = clamp((plateSize * logoBorderPct) / 100, 0, plateSize / 2);
+      const hasBorder = logoBorderStyle !== 'none' && borderPx > 0;
 
       const paintPlate = (fillCss, insetPx) => {
         const x = plateX + insetPx;
@@ -572,8 +971,8 @@
         targetCtx.fill();
       };
 
-      if (logoOutline && borderPx > 0) {
-        paintPlate(logoOutlineCss, 0);
+      if (hasBorder) {
+        paintPlate(logoBorderCss, 0);
         paintPlate(logoPlateCss, borderPx);
       } else {
         paintPlate(logoPlateCss, 0);
@@ -646,7 +1045,10 @@
     const finderBg = transparent ? '#FFFFFF' : bg;
 
     const logoShape = options.logoShape || 'rounded';
-    const logoOutline = options.logoOutline !== false;
+    const logoBorderStyle = ['auto', 'custom', 'none'].includes(options.logoBorderStyle)
+      ? options.logoBorderStyle
+      : DEFAULTS.logoBorderStyle;
+    const logoBorderPct = clamp(toInt(options.logoBorderPct, DEFAULTS.logoBorderPct), 0, 12);
     const logoPlateStyle = options.logoPlateStyle || 'auto';
     const logoPlateBg = (() => {
       const base = finderBg;
@@ -654,7 +1056,9 @@
       if (logoPlateStyle === 'custom' && options.logoPlateColor) return normalizeHex(options.logoPlateColor);
       return base;
     })();
-    const logoOutlineBg = rgbToHex(mixRgb(hexToRgb(logoPlateBg), hexToRgb(fg), 0.18));
+    const autoBorderBg = rgbToHex(mixRgb(hexToRgb(logoPlateBg), hexToRgb(fg), 0.18));
+    const customBorderBg = normalizeHex(options.logoBorderColor);
+    const logoBorderBg = logoBorderStyle === 'custom' ? customBorderBg : autoBorderBg;
 
     const parts = [];
     parts.push('<?xml version="1.0" encoding="UTF-8"?>');
@@ -671,6 +1075,27 @@
 
     const isFinderModule = (r, c) => isFinderArea(r, c, moduleCount);
 
+    let inLogoCutout = null;
+    if (options.logoDataUrl) {
+      const { sizeModules, paddingModules } = computeLogoBox(moduleCount, options.logoSizePct, options.logoPaddingPct);
+      const plateModules = sizeModules + paddingModules * 2;
+      const logoStart = Math.floor((moduleCount - plateModules) / 2);
+      const plateRadiusModules = logoShape === 'circle' ? plateModules / 2 : (logoShape === 'rounded' ? 2.1 : 0);
+      const cutoutBleed = 0.6;
+      const cutoutX = logoStart - cutoutBleed;
+      const cutoutY = logoStart - cutoutBleed;
+      const cutoutSize = plateModules + cutoutBleed * 2;
+      const cutoutRadius = plateRadiusModules + cutoutBleed;
+      const center = logoStart + plateModules / 2;
+
+      inLogoCutout = (row, col) => {
+        const cx = col + 0.5;
+        const cy = row + 0.5;
+        if (logoShape === 'circle') return pointInCircle(cx, cy, center, center, cutoutRadius);
+        return pointInRoundedRect(cx, cy, cutoutX, cutoutY, cutoutSize, cutoutSize, cutoutRadius);
+      };
+    }
+
     const dotStyle = options.dotStyle;
     if (dotStyle === 'square') {
       const path = [];
@@ -678,7 +1103,10 @@
         let runStart = -1;
         for (let col = 0; col <= moduleCount; col++) {
           const idx = row * moduleCount + col;
-          const draw = col < moduleCount && darkModules[idx] === 1 && !isFinderModule(row, col);
+          const draw = col < moduleCount
+            && darkModules[idx] === 1
+            && !isFinderModule(row, col)
+            && !(inLogoCutout && inLogoCutout(row, col));
           if (draw) {
             if (runStart === -1) runStart = col;
             continue;
@@ -699,6 +1127,7 @@
       for (let row = 0; row < moduleCount; row++) {
         for (let col = 0; col < moduleCount; col++) {
           if (isFinderModule(row, col)) continue;
+          if (inLogoCutout && inLogoCutout(row, col)) continue;
           const idx = row * moduleCount + col;
           if (darkModules[idx] !== 1) continue;
           const cx = quiet + col + 0.5;
@@ -713,6 +1142,7 @@
       for (let row = 0; row < moduleCount; row++) {
         for (let col = 0; col < moduleCount; col++) {
           if (isFinderModule(row, col)) continue;
+          if (inLogoCutout && inLogoCutout(row, col)) continue;
           const idx = row * moduleCount + col;
           if (darkModules[idx] !== 1) continue;
           rects.push(`<rect x="${quiet + col}" y="${quiet + row}" width="1" height="1" rx="${rr}" ry="${rr}"/>`);
@@ -738,19 +1168,20 @@
       const { sizeModules, paddingModules } = computeLogoBox(moduleCount, options.logoSizePct, options.logoPaddingPct);
       const plateModules = sizeModules + paddingModules * 2;
       const start = quiet + Math.floor((moduleCount - plateModules) / 2);
-      const borderModules = clamp(0.65, 0.35, plateModules * 0.08);
+      const borderModules = clamp((plateModules * logoBorderPct) / 100, 0, plateModules / 2);
       const outerR = logoShape === 'circle' ? plateModules / 2 : (logoShape === 'rounded' ? 2.1 : 0);
+      const hasBorder = logoBorderStyle !== 'none' && borderModules > 0;
 
-      if (logoOutline && borderModules > 0) {
+      if (hasBorder) {
         if (logoShape === 'circle') {
           const cx = start + plateModules / 2;
-          parts.push(`<circle cx="${cx}" cy="${cx}" r="${(plateModules / 2).toFixed(4)}" fill="${logoOutlineBg}"/>`);
+          parts.push(`<circle cx="${cx}" cy="${cx}" r="${(plateModules / 2).toFixed(4)}" fill="${logoBorderBg}"/>`);
           const innerR = plateModules / 2 - borderModules;
           if (innerR > 0) {
             parts.push(`<circle cx="${cx}" cy="${cx}" r="${innerR.toFixed(4)}" fill="${logoPlateBg}"/>`);
           }
         } else {
-          parts.push(`<path d="${svgRoundedRect(start, start, plateModules, plateModules, outerR)}" fill="${logoOutlineBg}"/>`);
+          parts.push(`<path d="${svgRoundedRect(start, start, plateModules, plateModules, outerR)}" fill="${logoBorderBg}"/>`);
           const innerSize = plateModules - borderModules * 2;
           if (innerSize > 0) {
             const innerR = clamp(outerR - borderModules, 0, innerSize / 2);
@@ -849,11 +1280,11 @@
     return out;
   };
 
-  const buildPdf = (qrData, options, pdfSizePt) => {
+  const buildPdf = (qrData, options, exportPx) => {
     const { darkModules, moduleCount } = qrData;
     const quiet = clamp(options.marginModules, 2, 10);
     const totalModules = moduleCount + quiet * 2;
-    const pagePt = clamp(pdfSizePt, 72 * 0.5, 72 * 20);
+    const pagePt = clamp(exportPx, 128, 8192);
     const cell = pagePt / totalModules;
 
     const fgHex = normalizeHex(options.fg);
@@ -866,7 +1297,10 @@
     const finderBg = pdfColor(finderBgHex);
 
     const logoShape = options.logoShape || 'rounded';
-    const logoOutline = options.logoOutline !== false;
+    const logoBorderStyle = ['auto', 'custom', 'none'].includes(options.logoBorderStyle)
+      ? options.logoBorderStyle
+      : DEFAULTS.logoBorderStyle;
+    const logoBorderPct = clamp(toInt(options.logoBorderPct, DEFAULTS.logoBorderPct), 0, 12);
     const logoPlateStyle = options.logoPlateStyle || 'auto';
     const logoPlateBgHex = (() => {
       const base = finderBgHex;
@@ -875,8 +1309,10 @@
       return base;
     })();
     const logoPlateBg = pdfColor(logoPlateBgHex);
-    const logoOutlineBgHex = rgbToHex(mixRgb(hexToRgb(logoPlateBgHex), hexToRgb(fgHex), 0.18));
-    const logoOutlineBg = pdfColor(logoOutlineBgHex);
+    const autoBorderBgHex = rgbToHex(mixRgb(hexToRgb(logoPlateBgHex), hexToRgb(fgHex), 0.18));
+    const customBorderBgHex = normalizeHex(options.logoBorderColor);
+    const logoBorderBgHex = logoBorderStyle === 'custom' ? customBorderBgHex : autoBorderBgHex;
+    const logoBorderBg = pdfColor(logoBorderBgHex);
 
     const resources = [];
     let imgObj = null;
@@ -925,6 +1361,27 @@
 
     const isFinderModule = (r, c) => isFinderArea(r, c, moduleCount);
 
+    let inLogoCutout = null;
+    if (options.logoImage) {
+      const { sizeModules, paddingModules } = computeLogoBox(moduleCount, options.logoSizePct, options.logoPaddingPct);
+      const plateModules = sizeModules + paddingModules * 2;
+      const logoStart = Math.floor((moduleCount - plateModules) / 2);
+      const plateRadiusModules = logoShape === 'circle' ? plateModules / 2 : (logoShape === 'rounded' ? 2.1 : 0);
+      const cutoutBleed = 0.6;
+      const cutoutX = logoStart - cutoutBleed;
+      const cutoutY = logoStart - cutoutBleed;
+      const cutoutSize = plateModules + cutoutBleed * 2;
+      const cutoutRadius = plateRadiusModules + cutoutBleed;
+      const center = logoStart + plateModules / 2;
+
+      inLogoCutout = (row, col) => {
+        const cx = col + 0.5;
+        const cy = row + 0.5;
+        if (logoShape === 'circle') return pointInCircle(cx, cy, center, center, cutoutRadius);
+        return pointInRoundedRect(cx, cy, cutoutX, cutoutY, cutoutSize, cutoutSize, cutoutRadius);
+      };
+    }
+
     const moduleToPdfX = (col) => (col + quiet) * cell;
     const moduleToPdfY = (row) => pagePt - (row + quiet + 1) * cell;
 
@@ -934,7 +1391,10 @@
         let runStart = -1;
         for (let col = 0; col <= moduleCount; col++) {
           const idx = row * moduleCount + col;
-          const draw = col < moduleCount && darkModules[idx] === 1 && !isFinderModule(row, col);
+          const draw = col < moduleCount
+            && darkModules[idx] === 1
+            && !isFinderModule(row, col)
+            && !(inLogoCutout && inLogoCutout(row, col));
           if (draw) {
             if (runStart === -1) runStart = col;
             continue;
@@ -955,6 +1415,7 @@
       for (let row = 0; row < moduleCount; row++) {
         for (let col = 0; col < moduleCount; col++) {
           if (isFinderModule(row, col)) continue;
+          if (inLogoCutout && inLogoCutout(row, col)) continue;
           const idx = row * moduleCount + col;
           if (darkModules[idx] !== 1) continue;
           const cx = moduleToPdfX(col) + cell / 2;
@@ -968,6 +1429,7 @@
       for (let row = 0; row < moduleCount; row++) {
         for (let col = 0; col < moduleCount; col++) {
           if (isFinderModule(row, col)) continue;
+          if (inLogoCutout && inLogoCutout(row, col)) continue;
           const idx = row * moduleCount + col;
           if (darkModules[idx] !== 1) continue;
           const x = moduleToPdfX(col);
@@ -1013,7 +1475,8 @@
       const x = moduleToPdfX(start);
       const y = moduleToPdfY(start + plateModules - 1);
       const plateSize = plateModules * cell;
-      const borderPt = clamp(cell * 0.65, cell * 0.35, plateSize * 0.08);
+      const borderPt = clamp((plateSize * logoBorderPct) / 100, 0, plateSize / 2);
+      const hasBorder = logoBorderStyle !== 'none' && borderPt > 0;
 
       const paintPlate = (plateColor, insetPt, paintShape) => {
         const inset = insetPt || 0;
@@ -1027,16 +1490,16 @@
       if (logoShape === 'circle') {
         const cx = x + plateSize / 2;
         const cy = y + plateSize / 2;
-        if (logoOutline && borderPt > 0) {
-          paintPlate(logoOutlineBg, 0, (_x, _y, size) => content.push(pdfCirclePath(cx, cy, size / 2)));
+        if (hasBorder) {
+          paintPlate(logoBorderBg, 0, (_x, _y, size) => content.push(pdfCirclePath(cx, cy, size / 2)));
           paintPlate(logoPlateBg, borderPt, (_x, _y, size) => content.push(pdfCirclePath(cx, cy, size / 2)));
         } else {
           paintPlate(logoPlateBg, 0, (_x, _y, size) => content.push(pdfCirclePath(cx, cy, size / 2)));
         }
       } else {
         const outerR = logoShape === 'rounded' ? cell * 2.1 : 0;
-        if (logoOutline && borderPt > 0) {
-          paintPlate(logoOutlineBg, 0, (_x, _y, size) => content.push(pdfRoundedRectPath(_x, _y, size, size, outerR)));
+        if (hasBorder) {
+          paintPlate(logoBorderBg, 0, (_x, _y, size) => content.push(pdfRoundedRectPath(_x, _y, size, size, outerR)));
           paintPlate(logoPlateBg, borderPt, (_x, _y, size) => {
             const innerR = clamp(outerR - borderPt, 0, size / 2);
             content.push(pdfRoundedRectPath(_x, _y, size, size, innerR));
@@ -1158,7 +1621,20 @@
     logoPlateStyleSelect.value = state.logoPlateStyle;
     logoPlateColorInput.value = state.logoPlateColor.toLowerCase();
     logoPlateColorLabel.textContent = normalizeHex(state.logoPlateColor);
-    logoOutlineInput.checked = state.logoOutline;
+    logoBorderStyleSelect.value = state.logoBorderStyle;
+    logoBorderSizeInput.value = String(state.logoBorderPct);
+    logoBorderSizeValue.textContent = `${state.logoBorderPct}%`;
+
+    const plateBase = state.transparent ? '#FFFFFF' : state.bg;
+    const plateHex = (() => {
+      if (state.logoPlateStyle === 'white') return '#FFFFFF';
+      if (state.logoPlateStyle === 'custom') return state.logoPlateColor;
+      return plateBase;
+    })();
+    const autoBorderHex = rgbToHex(mixRgb(hexToRgb(plateHex), hexToRgb(state.fg), 0.18));
+    const displayBorderHex = state.logoBorderStyle === 'custom' ? state.logoBorderColor : autoBorderHex;
+    logoBorderColorInput.value = displayBorderHex.toLowerCase();
+    logoBorderColorLabel.textContent = normalizeHex(displayBorderHex);
 
     if (state.logoDataUrl && state.logoImage && logoPreview) {
       logoPreview.src = state.logoDataUrl;
@@ -1169,8 +1645,10 @@
       logoPaddingInput.disabled = false;
       logoShapeSelect.disabled = false;
       logoPlateStyleSelect.disabled = false;
-      logoOutlineInput.disabled = false;
       logoPlateColorInput.disabled = state.logoPlateStyle !== 'custom';
+      logoBorderStyleSelect.disabled = false;
+      logoBorderSizeInput.disabled = state.logoBorderStyle === 'none';
+      logoBorderColorInput.disabled = state.logoBorderStyle !== 'custom';
     } else {
       logoPreviewWrap?.classList.add('hide');
       logoPreviewWrap?.setAttribute('aria-hidden', 'true');
@@ -1180,7 +1658,9 @@
       logoShapeSelect.disabled = true;
       logoPlateStyleSelect.disabled = true;
       logoPlateColorInput.disabled = true;
-      logoOutlineInput.disabled = true;
+      logoBorderStyleSelect.disabled = true;
+      logoBorderSizeInput.disabled = true;
+      logoBorderColorInput.disabled = true;
     }
   };
 
@@ -1271,7 +1751,9 @@
       logoShape: state.logoShape,
       logoPlateStyle: state.logoPlateStyle,
       logoPlateColor: state.logoPlateColor,
-      logoOutline: state.logoOutline,
+      logoBorderStyle: state.logoBorderStyle,
+      logoBorderPct: state.logoBorderPct,
+      logoBorderColor: state.logoBorderColor,
     });
 
     downloadPngBtn.disabled = false;
@@ -1330,9 +1812,42 @@
 
     state.logoPlateColor = normalizeHex(logoPlateColorInput.value);
     logoPlateColorLabel.textContent = normalizeHex(state.logoPlateColor);
-    state.logoOutline = !!logoOutlineInput.checked;
+
+    const prevBorderStyle = state.logoBorderStyle;
+    const borderStyle = logoBorderStyleSelect.value;
+    state.logoBorderStyle = ['auto', 'custom', 'none'].includes(borderStyle) ? borderStyle : DEFAULTS.logoBorderStyle;
+    state.logoBorderPct = clamp(toInt(logoBorderSizeInput.value, DEFAULTS.logoBorderPct), 0, 12);
+    logoBorderSizeValue.textContent = `${state.logoBorderPct}%`;
+
+    const plateBase = state.transparent ? '#FFFFFF' : state.bg;
+    const plateHex = (() => {
+      if (state.logoPlateStyle === 'white') return '#FFFFFF';
+      if (state.logoPlateStyle === 'custom') return state.logoPlateColor;
+      return plateBase;
+    })();
+    const autoBorderHex = rgbToHex(mixRgb(hexToRgb(plateHex), hexToRgb(state.fg), 0.18));
+
+    if (prevBorderStyle === 'custom' && state.logoBorderStyle !== 'custom') {
+      state.logoBorderColor = normalizeHex(logoBorderColorInput.value);
+    }
+
+    if (state.logoBorderStyle === 'custom') {
+      if (prevBorderStyle === 'custom') {
+        state.logoBorderColor = normalizeHex(logoBorderColorInput.value);
+      } else if (state.logoBorderColor === DEFAULTS.logoBorderColor) {
+        state.logoBorderColor = autoBorderHex;
+      }
+      logoBorderColorInput.value = state.logoBorderColor.toLowerCase();
+      logoBorderColorLabel.textContent = normalizeHex(state.logoBorderColor);
+    } else {
+      logoBorderColorInput.value = autoBorderHex.toLowerCase();
+      logoBorderColorLabel.textContent = normalizeHex(autoBorderHex);
+    }
 
     logoPlateColorInput.disabled = !state.logoImage || state.logoPlateStyle !== 'custom';
+    logoBorderStyleSelect.disabled = !state.logoImage;
+    logoBorderSizeInput.disabled = !state.logoImage || state.logoBorderStyle === 'none';
+    logoBorderColorInput.disabled = !state.logoImage || state.logoBorderStyle !== 'custom';
   };
 
   const clearLogo = () => {
@@ -1383,7 +1898,9 @@
     logoShapeSelect,
     logoPlateStyleSelect,
     logoPlateColorInput,
-    logoOutlineInput,
+    logoBorderStyleSelect,
+    logoBorderSizeInput,
+    logoBorderColorInput,
   ].forEach((el) => {
     el.addEventListener('input', () => {
       readStateFromControls();
@@ -1410,6 +1927,74 @@
     dataInput.focus();
   });
 
+  if (destinationPickerOpen && destinationModal) {
+    destinationPickerOpen.addEventListener('click', () => {
+      openDestinationPicker();
+    });
+  }
+
+  if (destinationModalClose) {
+    destinationModalClose.addEventListener('click', () => {
+      closeDestinationPicker();
+    });
+  }
+
+  if (destinationModal) {
+    destinationModal.addEventListener('click', (event) => {
+      if (event.target === destinationModal) closeDestinationPicker();
+    });
+  }
+
+  if (destinationSearch) {
+    destinationSearch.addEventListener('input', () => {
+      renderDestinations();
+    });
+  }
+
+  if (shortlinksPickerOpen && shortlinksModal) {
+    shortlinksPickerOpen.addEventListener('click', () => {
+      openShortlinksPicker();
+    });
+  }
+
+  if (shortlinksModalClose) {
+    shortlinksModalClose.addEventListener('click', () => {
+      closeShortlinksPicker();
+    });
+  }
+
+  if (shortlinksModal) {
+    shortlinksModal.addEventListener('click', (event) => {
+      if (event.target === shortlinksModal) closeShortlinksPicker();
+    });
+  }
+
+  if (shortlinksSearch) {
+    shortlinksSearch.addEventListener('input', () => {
+      renderShortlinks();
+    });
+  }
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    if (shortlinksModal && shortlinksModal.classList.contains('active')) {
+      closeShortlinksPicker();
+      return;
+    }
+    if (destinationModal && destinationModal.classList.contains('active')) {
+      closeDestinationPicker();
+    }
+  });
+
+  window.addEventListener('storage', (event) => {
+    if (!event || event.storageArea !== window.localStorage) return;
+    if (event.key !== SHORTLINKS_TOKEN_STORAGE_KEY) return;
+    shortlinksManifest = null;
+    updateShortlinksPickerVisibility();
+  });
+
+  updateShortlinksPickerVisibility();
+
   logoInput.addEventListener('change', () => {
     const file = logoInput.files && logoInput.files[0];
     loadLogoFromFile(file);
@@ -1427,7 +2012,7 @@
 
   downloadPngBtn.addEventListener('click', async () => {
     if (!state.darkModules) return;
-    const size = clamp(toInt(pngSizeSelect.value, 1024), 128, 8192);
+    const size = clamp(toInt(imageSizeSelect.value, 1024), 128, 8192);
     const outCanvas = document.createElement('canvas');
     outCanvas.width = size;
     outCanvas.height = size;
@@ -1445,7 +2030,9 @@
       logoShape: state.logoShape,
       logoPlateStyle: state.logoPlateStyle,
       logoPlateColor: state.logoPlateColor,
-      logoOutline: state.logoOutline,
+      logoBorderStyle: state.logoBorderStyle,
+      logoBorderPct: state.logoBorderPct,
+      logoBorderColor: state.logoBorderColor,
     });
     outCanvas.toBlob((blob) => {
       if (!blob) return;
@@ -1456,7 +2043,7 @@
 
   downloadSvgBtn.addEventListener('click', () => {
     if (!state.darkModules) return;
-    const size = clamp(toInt(pngSizeSelect.value, 1024), 128, 8192);
+    const size = clamp(toInt(imageSizeSelect.value, 1024), 128, 8192);
     const svg = buildSvg({ moduleCount: state.moduleCount, darkModules: state.darkModules }, {
       dotStyle: state.dotStyle,
       cornerStyle: state.cornerStyle,
@@ -1471,16 +2058,16 @@
       logoShape: state.logoShape,
       logoPlateStyle: state.logoPlateStyle,
       logoPlateColor: state.logoPlateColor,
-      logoOutline: state.logoOutline,
+      logoBorderStyle: state.logoBorderStyle,
+      logoBorderPct: state.logoBorderPct,
+      logoBorderColor: state.logoBorderColor,
     }, size);
     downloadBlob(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }), `${fileNameSafe(filenameInput.value)}.svg`);
   });
 
   downloadPdfBtn.addEventListener('click', () => {
     if (!state.darkModules) return;
-    const sizeVal = clamp(toFloat(pdfSizeInput.value, 2), 0.5, 20);
-    const unit = pdfUnitSelect.value === 'mm' ? 'mm' : 'in';
-    const pt = unit === 'mm' ? (sizeVal * 72) / 25.4 : sizeVal * 72;
+    const size = clamp(toInt(imageSizeSelect.value, 1024), 128, 8192);
     const pdfBytes = buildPdf({ moduleCount: state.moduleCount, darkModules: state.darkModules }, {
       dotStyle: state.dotStyle,
       cornerStyle: state.cornerStyle,
@@ -1495,8 +2082,10 @@
       logoShape: state.logoShape,
       logoPlateStyle: state.logoPlateStyle,
       logoPlateColor: state.logoPlateColor,
-      logoOutline: state.logoOutline,
-    }, pt);
+      logoBorderStyle: state.logoBorderStyle,
+      logoBorderPct: state.logoBorderPct,
+      logoBorderColor: state.logoBorderColor,
+    }, size);
     downloadBlob(new Blob([pdfBytes], { type: 'application/pdf' }), `${fileNameSafe(filenameInput.value)}.pdf`);
   });
 

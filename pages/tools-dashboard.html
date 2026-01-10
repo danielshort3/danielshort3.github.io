@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <base href="/">
-  <title>UTM Batch Builder | Daniel Short</title>
-  <link rel="canonical" href="https://danielshort.me/tools/utm-batch-builder">
+  <title>Tools Dashboard | Daniel Short</title>
+  <link rel="canonical" href="https://danielshort.me/tools/dashboard">
   <meta name="robots" content="noindex, nofollow">
-  <meta name="description" content="Generate large batches of UTM URLs with CSV mapping, naming helpers, and fast export. Runs locally in your browser.">
-  <meta property="og:title" content="UTM Batch Builder | Daniel Short">
+  <meta name="description" content="Sign in once and manage your saved tool sessions across danielshort.me/tools.">
+  <meta property="og:title" content="Tools Dashboard | Daniel Short">
   <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
-  <meta property="og:description" content="Build consistent UTM links at scale with CSV mapping, normalization helpers, and exports — all local, privacy-first.">
-  <meta property="og:url" content="https://danielshort.me/tools/utm-batch-builder">
+  <meta property="og:description" content="Sign in once and manage your saved tool sessions across danielshort.me/tools.">
+  <meta property="og:url" content="https://danielshort.me/tools/dashboard">
   <meta property="og:image" content="https://danielshort.me/img/hero/head.jpg">
   <meta property="og:image:alt" content="Portrait photo of Daniel Short">
   <meta property="og:type" content="website">
@@ -35,47 +35,47 @@
     } catch (_) {}
   </script>
 </head>
-<body data-page="utm-batch-builder" class="utmtool-page">
+<body data-page="tools-dashboard" class="tools-dashboard-page">
   <a href="#main" class="skip-link">Skip to main content</a>
   <header id="combined-header-nav"></header>
 
-  <section class="utmtool-hero">
-    <div class="wrapper">
-      <p class="hero-eyebrow">UTM Batch Builder - Generate consistent UTM links at scale.</p>
-      <h1>UTM Batch Builder</h1>
-      <p class="utmtool-lead">Generate large batches of fully-formed UTM URLs from structured inputs, including CSV column mapping, combination modes, naming normalization, one-click copy, and CSV export. Everything runs locally in your browser.</p>
-      <div class="tools-account-bar" data-tools-account="bar"></div>
-      <div class="utmtool-steps">
-        <div class="utmtool-step">
-          <span class="utmtool-step-number">1</span>
-          <div>
-            <h3>Enter inputs</h3>
-            <p>Paste landing pages and UTM values (or map fields from a CSV).</p>
-          </div>
-        </div>
-        <div class="utmtool-step">
-          <span class="utmtool-step-number">2</span>
-          <div>
-            <h3>Choose combinations</h3>
-            <p>Full Cartesian, Zip by Row, or Template + Rows with overrides.</p>
-          </div>
-        </div>
-        <div class="utmtool-step">
-          <span class="utmtool-step-number">3</span>
-          <div>
-            <h3>Export quickly</h3>
-            <p>Review a preview, then copy or export a CSV ready for trafficking.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <main id="main">
-    <section class="surface-band utmtool-section">
+    <section class="tools-hero tools-dashboard-hero">
       <div class="wrapper">
-        <div class="utmtool-shell">
-          <div id="utm-batch-builder-root"></div>
+        <p class="hero-eyebrow">Tools Dashboard - Save and revisit tool sessions.</p>
+        <h1>Tools Dashboard</h1>
+        <p>Sign in once to save in-progress work, reopen past sessions, and track activity across tools.</p>
+        <div class="tools-account-bar" data-tools-account="bar"></div>
+      </div>
+    </section>
+
+    <section class="surface-band tools-dashboard-section">
+      <div class="wrapper">
+        <p class="tools-dashboard-status" data-tools-dashboard="status" role="status" aria-live="polite"></p>
+        <div class="tools-dashboard-grid">
+          <section class="tools-dashboard-card" aria-labelledby="tools-dashboard-tools">
+            <header class="tools-dashboard-card-head">
+              <h2 id="tools-dashboard-tools">Tools used</h2>
+              <p class="tools-dashboard-subtitle">A quick index of tools you have opened while signed in.</p>
+            </header>
+            <div class="tools-dashboard-list" data-tools-dashboard="tools"></div>
+          </section>
+
+          <section class="tools-dashboard-card" aria-labelledby="tools-dashboard-sessions">
+            <header class="tools-dashboard-card-head">
+              <h2 id="tools-dashboard-sessions">Recent sessions</h2>
+              <p class="tools-dashboard-subtitle">Reopen past sessions or pick up where you left off.</p>
+            </header>
+            <div class="tools-dashboard-list" data-tools-dashboard="sessions"></div>
+          </section>
+
+          <section class="tools-dashboard-card" aria-labelledby="tools-dashboard-activity">
+            <header class="tools-dashboard-card-head">
+              <h2 id="tools-dashboard-activity">Recent activity</h2>
+              <p class="tools-dashboard-subtitle">Timestamped events across your tool usage.</p>
+            </header>
+            <div class="tools-dashboard-list" data-tools-dashboard="activity"></div>
+          </section>
         </div>
       </div>
     </section>
@@ -88,7 +88,6 @@
     </nav>
   </footer>
 
-  <script defer src="dist/utm-batch-builder.js"></script>
   <script defer src="js/accounts/tools-config.js"></script>
   <script defer src="js/accounts/tools-auth.js"></script>
   <script defer src="js/accounts/tools-state.js"></script>
@@ -100,3 +99,4 @@
   <script defer src="js/privacy/consent_manager.js"></script>
 </body>
 </html>
+

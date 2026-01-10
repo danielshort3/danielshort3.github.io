@@ -44,6 +44,7 @@
       <p class="hero-eyebrow">QR Code Generator - Design and export branded QR codes.</p>
       <h1>QR Code Generator</h1>
       <p class="qrtool-lead">Create sharp, balanced QR codes suitable for brochures, signage, presentations, and websites. Choose a template, fine-tune styling, embed a logo, and export in high-quality formats. Everything runs locally.</p>
+      <div class="tools-account-bar" data-tools-account="bar"></div>
       <div class="qrtool-steps">
         <div class="qrtool-step">
           <span class="qrtool-step-number">1</span>
@@ -63,7 +64,7 @@
           <span class="qrtool-step-number">3</span>
           <div>
             <h3>Export cleanly</h3>
-            <p>Download high-resolution PNG, scalable SVG, or a print-ready PDF.</p>
+            <p>Download high-resolution PNG, scalable SVG, or a matching PDF.</p>
           </div>
         </div>
       </div>
@@ -119,6 +120,8 @@
                     <label class="qrtool-label" for="qrtool-data">URL</label>
                     <input id="qrtool-data" class="qrtool-input" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://example.com/campaign">
                     <div class="qrtool-actions">
+                      <button type="button" class="btn-ghost" data-qrtool="destination-picker-open">Browse site pages</button>
+                      <button type="button" class="btn-ghost" data-qrtool="shortlinks-picker-open" hidden>Browse short links</button>
                       <button type="button" id="qrtool-example" class="btn-ghost">Use example</button>
                       <button type="button" id="qrtool-clear" class="btn-ghost">Clear</button>
                     </div>
@@ -271,17 +274,35 @@
                         <span id="qrtool-logo-plate-color-label" class="qrtool-chip">#FFFFFF</span>
                       </div>
                     </div>
-                    <label class="qrtool-check">
-                      <input id="qrtool-logo-outline" type="checkbox" checked disabled>
-                      Subtle outline
-                    </label>
+                    <div class="qrtool-control">
+                      <label class="qrtool-label" for="qrtool-logo-border-style">Border</label>
+                      <select id="qrtool-logo-border-style" class="qrtool-select" disabled>
+                        <option value="auto" selected>Auto (subtle)</option>
+                        <option value="custom">Custom</option>
+                        <option value="none">None</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="qrtool-two-col">
+                    <div class="qrtool-control">
+                      <label class="qrtool-label" for="qrtool-logo-border-size">Border thickness <span id="qrtool-logo-border-size-value" class="qrtool-value">5%</span></label>
+                      <input id="qrtool-logo-border-size" type="range" min="0" max="12" value="5" step="1" disabled>
+                    </div>
+                    <div class="qrtool-control">
+                      <label class="qrtool-label" for="qrtool-logo-border-color">Border color</label>
+                      <div class="qrtool-color-row">
+                        <input id="qrtool-logo-border-color" class="qrtool-color" type="color" value="#0b0f14" aria-label="Logo border color" disabled>
+                        <span id="qrtool-logo-border-color-label" class="qrtool-chip">#0B0F14</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
                 <div id="qrtool-panel-export" class="qrtool-panel" role="tabpanel" aria-labelledby="qrtool-tab-export" data-qrtool-panel="export" hidden>
                   <div class="qrtool-field-header">
                     <h3>Export</h3>
-                    <p class="qrtool-help">Download high-resolution PNG, scalable SVG, or a print-ready PDF.</p>
+                    <p class="qrtool-help">Download high-resolution PNG, scalable SVG, or a matching PDF.</p>
                   </div>
 
                   <div class="qrtool-two-col">
@@ -290,27 +311,13 @@
                       <input id="qrtool-filename" class="qrtool-input" type="text" value="qr-code" autocomplete="off">
                     </div>
                     <div class="qrtool-control">
-                      <label class="qrtool-label" for="qrtool-png-size">PNG size</label>
-                      <select id="qrtool-png-size" class="qrtool-select">
+                      <label class="qrtool-label" for="qrtool-image-size">Image size</label>
+                      <select id="qrtool-image-size" class="qrtool-select">
                         <option value="512">512 px</option>
                         <option value="1024" selected>1024 px</option>
                         <option value="2048">2048 px</option>
                         <option value="4096">4096 px</option>
                       </select>
-                    </div>
-                  </div>
-
-                  <div class="qrtool-two-col">
-                    <div class="qrtool-control">
-                      <label class="qrtool-label" for="qrtool-pdf-size">PDF size</label>
-                      <div class="qrtool-input-row">
-                        <input id="qrtool-pdf-size" class="qrtool-input qrtool-input-compact" type="number" inputmode="decimal" min="0.5" max="20" step="0.1" value="2">
-                        <select id="qrtool-pdf-unit" class="qrtool-select qrtool-select-compact" aria-label="PDF unit">
-                          <option value="in" selected>in</option>
-                          <option value="mm">mm</option>
-                        </select>
-                      </div>
-                      <p class="qrtool-help">Creates a square, print-ready PDF with the QR code centered.</p>
                     </div>
                   </div>
 
@@ -326,6 +333,41 @@
         </div>
       </div>
     </section>
+
+    <div class="modal" id="qrtool-destination-modal" data-qrtool="destination-modal" aria-hidden="true">
+      <div class="modal-content modal-wide" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="qrtool-destination-title">
+        <button type="button" class="modal-close" aria-label="Close dialog" data-qrtool="destination-modal-close">&times;</button>
+        <div class="modal-title-strip">
+          <h3 class="modal-title" id="qrtool-destination-title">Pick a website page</h3>
+          <p class="modal-subtitle">Select an internal page on <code>danielshort.me</code>. The URL is set as a full link so it works from any origin.</p>
+        </div>
+        <div class="modal-body stacked shortlinks-picker">
+          <label class="shortlinks-picker-search">
+            <span class="shortlinks-picker-search-label">Search</span>
+            <input type="search" autocomplete="off" spellcheck="false" placeholder="Search pages…" data-qrtool="destination-search">
+          </label>
+          <div class="shortlinks-picker-results" data-qrtool="destination-results" aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="qrtool-shortlinks-modal" data-qrtool="shortlinks-modal" aria-hidden="true">
+      <div class="modal-content modal-wide" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="qrtool-shortlinks-title">
+        <button type="button" class="modal-close" aria-label="Close dialog" data-qrtool="shortlinks-modal-close">&times;</button>
+        <div class="modal-title-strip">
+          <h3 class="modal-title" id="qrtool-shortlinks-title">Pick a short link</h3>
+          <p class="modal-subtitle">Select a saved short link from the admin dashboard. Requires the Short Links admin token to be saved on this device.</p>
+        </div>
+        <div class="modal-body stacked shortlinks-picker">
+          <div class="contact-form-status" data-qrtool="shortlinks-status" role="status" aria-live="polite"></div>
+          <label class="shortlinks-picker-search">
+            <span class="shortlinks-picker-search-label">Search</span>
+            <input type="search" autocomplete="off" spellcheck="false" placeholder="Search short links…" data-qrtool="shortlinks-search">
+          </label>
+          <div class="shortlinks-picker-results" data-qrtool="shortlinks-results" aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
   </main>
 
   <footer>
@@ -337,6 +379,10 @@
 
   <script defer src="js/tools/qr-core.js"></script>
   <script defer src="js/tools/qr-code-generator.js"></script>
+  <script defer src="js/accounts/tools-config.js"></script>
+  <script defer src="js/accounts/tools-auth.js"></script>
+  <script defer src="js/accounts/tools-state.js"></script>
+  <script defer src="js/accounts/tools-account-ui.js"></script>
   <script defer src="js/common/common.js"></script>
   <script defer src="js/navigation/navigation.js"></script>
   <script defer src="js/animations/animations.js"></script>
