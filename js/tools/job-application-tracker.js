@@ -6828,6 +6828,34 @@
 
 	  const initAuth = async () => {
 	    updateConfigStatus();
+
+	    let redirectHandled = false;
+	    if (window.ToolsAuth && typeof window.ToolsAuth.handleRedirect === 'function') {
+	      try {
+	        const result = await window.ToolsAuth.handleRedirect();
+	        redirectHandled = !!result?.handled;
+	        if (redirectHandled) {
+	          const returnTab = sessionStorage.getItem(RETURN_TAB_KEY) || '';
+	          sessionStorage.removeItem(RETURN_TAB_KEY);
+	          if (returnTab && tabs.buttons.some(button => button.dataset.jobtrackTab === returnTab)) {
+	            activateTab(returnTab);
+	          }
+	        }
+	      } catch (err) {
+	        console.error('Tools auth redirect failed', err);
+	        redirectHandled = false;
+	      }
+	    }
+
+	    if (!redirectHandled) {
+	      try {
+	        await handleAuthRedirect();
+	      } catch (err) {
+	        console.error('Auth redirect failed', err);
+	        setAuthMessage(err?.message || 'Sign-in failed.', 'error');
+	      }
+	    }
+
 	    const storedRaw = loadAuth();
 	    const stored = normalizeAuth(storedRaw);
 	    if (authIsValid(stored)) {
@@ -6837,12 +6865,7 @@
 	      clearAuth();
 	      setAuthMessage('Your session ended. Please sign in again.', 'info');
 	    }
-	    try {
-	      await handleAuthRedirect();
-	    } catch (err) {
-	      console.error('Auth redirect failed', err);
-	      setAuthMessage(err?.message || 'Sign-in failed.', 'error');
-	    }
+
 	    updateAuthUI();
 	    if (els.signIn) {
 	      els.signIn.addEventListener('click', async () => {
@@ -6854,6 +6877,19 @@
 	        try {
 	          sessionStorage.setItem(RETURN_TAB_KEY, returnTab || 'account');
 	        } catch {}
+
+	        if (window.ToolsAuth && typeof window.ToolsAuth.signIn === 'function') {
+	          try {
+	            setAuthMessage('Redirecting to sign-in...', 'info');
+	            updateAuthUI();
+	            await window.ToolsAuth.signIn({ returnTo: `${window.location.pathname}${window.location.search}${window.location.hash}` });
+	          } catch (err) {
+	            console.error('Sign-in failed', err);
+	            setAuthMessage(err?.message || 'Unable to start sign-in.', 'error');
+	            updateAuthUI();
+	          }
+	          return;
+	        }
 
 	        if (!config.cognitoDomain || !config.cognitoClientId || !config.cognitoRedirect) {
 	          setAuthMessage('Cognito settings are missing.', 'error');
@@ -6874,6 +6910,9 @@
 	    }
 	    if (els.signOut) {
 	      els.signOut.addEventListener('click', () => {
+	        if (window.ToolsAuth && typeof window.ToolsAuth.signOut === 'function') {
+	          window.ToolsAuth.signOut();
+	        }
 	        clearAuth();
 	        setAuthMessage('Signed out. Sign in to continue.', 'info');
 	        clearEntryEditMode('Sign in to save entries.', 'info');
@@ -6889,8 +6928,25 @@
 	        updateAuthUI();
 	        refreshDashboard();
 	        refreshEntries();
+	        try {
+	          document.dispatchEvent(new CustomEvent('tools:auth-changed'));
+	        } catch {}
 	      });
 	    }
+	    document.addEventListener('tools:auth-changed', () => {
+	      const storedRaw = loadAuth();
+	      const stored = normalizeAuth(storedRaw);
+	      if (authIsValid(stored)) {
+	        state.auth = stored;
+	        saveAuth(stored);
+	        clearAuthMessage();
+	      } else {
+	        clearAuth();
+	        setAuthMessage('Signed out. Sign in to continue.', 'info');
+	      }
+	      updateAuthUI();
+	      startAuthWatcher();
+	    });
 	    startAuthWatcher();
 	  };
 

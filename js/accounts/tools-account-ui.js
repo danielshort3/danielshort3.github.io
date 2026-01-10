@@ -192,7 +192,7 @@
     fields: serializeToolFields(root)
   });
 
-  const renderAccountBar = ({ barEl, toolId, sessionId, statusText } = {}) => {
+  const renderAccountBar = ({ barEl, toolId, sessionId, statusText, toolActionsEnabled } = {}) => {
     if (!barEl) return;
     const auth = window.ToolsAuth.getAuth();
     const authed = window.ToolsAuth.authIsValid(auth);
@@ -204,26 +204,315 @@
     const toolInfo = toolId ? getToolInfo(toolId) : null;
 
     const dashboardLink = `<a class="btn-secondary" href="tools/dashboard">Dashboard</a>`;
+    const accountButton = `<button type="button" class="btn-secondary" data-tools-action="open-account">Account</button>`;
     const signInButton = `<button type="button" class="btn-primary" data-tools-action="sign-in">Sign in</button>`;
     const signOutButton = `<button type="button" class="btn-ghost" data-tools-action="sign-out">Sign out</button>`;
-    const saveButton = toolId ? `<button type="button" class="btn-secondary" data-tools-action="save-session">Save session</button>` : '';
-    const newButton = toolId ? `<button type="button" class="btn-ghost" data-tools-action="new-session">New session</button>` : '';
+    const allowToolActions = !!(toolId && toolActionsEnabled !== false);
+    const saveButton = allowToolActions ? `<button type="button" class="btn-secondary" data-tools-action="save-session">Save session</button>` : '';
+    const newButton = allowToolActions ? `<button type="button" class="btn-ghost" data-tools-action="new-session">New session</button>` : '';
 
-    const sessionLine = toolId
+    const sessionLine = allowToolActions
       ? `<span class="tools-account-status">${escapeHtml(toolInfo?.name || toolId)}${sessionId ? ` · Session ${escapeHtml(sessionId.slice(0, 10))}…` : ''}${statusText ? ` · ${escapeHtml(statusText)}` : ''}</span>`
       : (statusText ? `<span class="tools-account-status">${escapeHtml(statusText)}</span>` : '');
 
     barEl.innerHTML = `
       <span class="${pillClass}" aria-label="${escapeHtml(label)}">${escapeHtml(label)}</span>
+      ${accountButton}
       ${authed ? dashboardLink : ''}
-      ${toolId && authed ? saveButton : ''}
-      ${toolId && authed ? newButton : ''}
+      ${allowToolActions && authed ? saveButton : ''}
+      ${allowToolActions && authed ? newButton : ''}
       ${authed ? signOutButton : signInButton}
       ${sessionLine}
     `.trim();
   };
 
-  const initAccountBar = ({ toolId, root }) => {
+  const initAccountModal = () => {
+    const modalEl = document.createElement('div');
+    modalEl.className = 'modal tools-account-modal';
+    modalEl.id = 'tools-account-modal';
+    modalEl.setAttribute('data-tools-account', 'modal');
+    modalEl.setAttribute('aria-hidden', 'true');
+    modalEl.innerHTML = `
+      <div class="modal-content modal-wide" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="tools-account-modal-title">
+        <button type="button" class="modal-close" aria-label="Close dialog" data-tools-account-action="close">&times;</button>
+        <div class="modal-title-strip">
+          <h3 class="modal-title" id="tools-account-modal-title">Account</h3>
+          <p class="modal-subtitle" data-tools-account="modal-subtitle">View your signed-in history and saved sessions across tools.</p>
+        </div>
+        <div class="modal-body stacked">
+          <div class="tools-account-modal-actions" data-tools-account="modal-actions"></div>
+          <div class="tools-account-modal-status" data-tools-account="modal-status" role="status" aria-live="polite"></div>
+          <div class="tools-dashboard-grid tools-account-modal-grid" data-tools-account="modal-grid"></div>
+        </div>
+      </div>
+    `.trim();
+    document.body.appendChild(modalEl);
+
+    const contentEl = modalEl.querySelector('.modal-content');
+    const actionsEl = modalEl.querySelector('[data-tools-account="modal-actions"]');
+    const statusEl = modalEl.querySelector('[data-tools-account="modal-status"]');
+    const gridEl = modalEl.querySelector('[data-tools-account="modal-grid"]');
+
+    let handlers = {
+      signIn: () => {},
+      signOut: () => {},
+    };
+
+    const setStatus = (message) => {
+      if (!statusEl) return;
+      statusEl.textContent = String(message || '').trim();
+    };
+
+    const renderSignedOut = () => {
+      if (actionsEl) {
+        actionsEl.innerHTML = `
+          <button type="button" class="btn-primary" data-tools-account-action="sign-in">Sign in</button>
+          <a class="btn-secondary" href="tools/dashboard">Open dashboard</a>
+        `.trim();
+      }
+      if (gridEl) {
+        gridEl.innerHTML = `
+          <section class="tools-dashboard-card" aria-labelledby="tools-account-modal-signed-out">
+            <header class="tools-dashboard-card-head">
+              <h2 id="tools-account-modal-signed-out">Sign in to view your history</h2>
+              <p class="tools-dashboard-subtitle">Once signed in, your sessions and tool activity appear here and on the dashboard.</p>
+            </header>
+            <p class="tools-dashboard-empty">You can still use most tools without signing in; history and saved sessions require an account.</p>
+          </section>
+        `.trim();
+      }
+    };
+
+    const renderLoading = ({ user }) => {
+      if (!actionsEl) return;
+      actionsEl.innerHTML = `
+        <button type="button" class="btn-secondary" data-tools-account-action="refresh">Refresh</button>
+        <a class="btn-secondary" href="tools/dashboard">Open dashboard</a>
+        <button type="button" class="btn-ghost" data-tools-account-action="sign-out">Sign out</button>
+      `.trim();
+
+      if (gridEl) {
+        const email = escapeHtml(user?.email || '');
+        gridEl.innerHTML = `
+          <section class="tools-dashboard-card" aria-labelledby="tools-account-modal-account">
+            <header class="tools-dashboard-card-head">
+              <h2 id="tools-account-modal-account">Account</h2>
+              <p class="tools-dashboard-subtitle">${email ? `Signed in as ${email}.` : 'Signed in.'}</p>
+            </header>
+            <p class="tools-dashboard-empty">Loading history…</p>
+          </section>
+        `.trim();
+      }
+    };
+
+    const renderDashboardData = ({ user, data }) => {
+      const email = escapeHtml(user?.email || '');
+      const name = escapeHtml(user?.name || '');
+      const sub = escapeHtml(user?.sub || '');
+
+      const tools = Array.isArray(data?.tools) ? data.tools : [];
+      const recentSessions = Array.isArray(data?.recentSessions) ? data.recentSessions : [];
+      const recentActivity = Array.isArray(data?.recentActivity) ? data.recentActivity : [];
+
+      const toolsMarkup = (() => {
+        if (!tools.length) return '<p class="tools-dashboard-empty">No signed-in tool activity yet.</p>';
+        return tools.slice(0, 12).map((entry) => {
+          const toolId = String(entry?.toolId || '').trim();
+          const meta = entry?.meta || {};
+          const info = getToolInfo(toolId);
+          const lastUsed = meta?.lastUsedAt ? formatTime(meta.lastUsedAt) : '';
+          const sessionCount = Number(meta?.sessionCount) || 0;
+          const activityCount = Number(meta?.activityCount) || 0;
+          return `
+            <div class="tools-dashboard-item">
+              <div>
+                <p class="tools-dashboard-item-title"><a href="${escapeHtml(info.href)}">${escapeHtml(info.name)}</a></p>
+                <p class="tools-dashboard-item-meta">${lastUsed ? `Last used ${escapeHtml(lastUsed)} · ` : ''}${sessionCount} sessions · ${activityCount} events</p>
+              </div>
+              <div class="tools-dashboard-item-actions">
+                <a class="btn-secondary" href="${escapeHtml(info.href)}">Open</a>
+              </div>
+            </div>
+          `.trim();
+        }).join('');
+      })();
+
+      const sessionsMarkup = (() => {
+        if (!recentSessions.length) return '<p class="tools-dashboard-empty">No saved sessions yet.</p>';
+        return recentSessions.slice(0, 10).map((session) => {
+          const toolId = String(session?.toolId || '').trim();
+          const sessionId = String(session?.sessionId || '').trim();
+          const info = getToolInfo(toolId);
+          const updated = session?.updatedAt ? formatTime(session.updatedAt) : '';
+          const summary = String(session?.outputSummary || '').trim();
+          const href = `${info.href}?session=${encodeURIComponent(sessionId)}`;
+          return `
+            <div class="tools-dashboard-item">
+              <div>
+                <p class="tools-dashboard-item-title"><a href="${escapeHtml(href)}">${escapeHtml(info.name)}</a></p>
+                <p class="tools-dashboard-item-meta">${updated ? `Updated ${escapeHtml(updated)} · ` : ''}${summary ? escapeHtml(summary) : `Session ${escapeHtml(sessionId.slice(0, 10))}…`}</p>
+              </div>
+              <div class="tools-dashboard-item-actions">
+                <a class="btn-secondary" href="${escapeHtml(href)}">Reopen</a>
+              </div>
+            </div>
+          `.trim();
+        }).join('');
+      })();
+
+      const activityMarkup = (() => {
+        if (!recentActivity.length) return '<p class="tools-dashboard-empty">No activity yet.</p>';
+        return recentActivity.slice(0, 16).map((event) => {
+          const toolId = String(event?.toolId || '').trim();
+          const info = getToolInfo(toolId);
+          const ts = event?.ts ? formatTime(event.ts) : '';
+          const type = String(event?.type || '').trim();
+          const summary = String(event?.summary || '').trim();
+          return `
+            <div class="tools-dashboard-item">
+              <div>
+                <p class="tools-dashboard-item-title">${escapeHtml(info.name)}${type ? ` · ${escapeHtml(type)}` : ''}</p>
+                <p class="tools-dashboard-item-meta">${ts ? `${escapeHtml(ts)} · ` : ''}${summary ? escapeHtml(summary) : ''}</p>
+              </div>
+              <div class="tools-dashboard-item-actions">
+                <a class="btn-secondary" href="tools/dashboard">View</a>
+              </div>
+            </div>
+          `.trim();
+        }).join('');
+      })();
+
+      if (actionsEl) {
+        actionsEl.innerHTML = `
+          <button type="button" class="btn-secondary" data-tools-account-action="refresh">Refresh</button>
+          <a class="btn-secondary" href="tools/dashboard">Open dashboard</a>
+          <button type="button" class="btn-ghost" data-tools-account-action="sign-out">Sign out</button>
+        `.trim();
+      }
+
+      if (gridEl) {
+        gridEl.innerHTML = `
+          <section class="tools-dashboard-card" aria-labelledby="tools-account-modal-account">
+            <header class="tools-dashboard-card-head">
+              <h2 id="tools-account-modal-account">Account</h2>
+              <p class="tools-dashboard-subtitle">Your tools history is private to this signed-in account.</p>
+            </header>
+            <dl class="tools-account-modal-meta">
+              ${email ? `<div class="tools-account-modal-meta-row"><dt>Email</dt><dd>${email}</dd></div>` : ''}
+              ${name ? `<div class="tools-account-modal-meta-row"><dt>Name</dt><dd>${name}</dd></div>` : ''}
+              ${sub ? `<div class="tools-account-modal-meta-row"><dt>User ID</dt><dd><code>${sub}</code></dd></div>` : ''}
+            </dl>
+          </section>
+          <section class="tools-dashboard-card" aria-labelledby="tools-account-modal-tools">
+            <header class="tools-dashboard-card-head">
+              <h2 id="tools-account-modal-tools">Tools used</h2>
+              <p class="tools-dashboard-subtitle">Tools you have opened while signed in.</p>
+            </header>
+            <div class="tools-dashboard-list">${toolsMarkup}</div>
+          </section>
+          <section class="tools-dashboard-card" aria-labelledby="tools-account-modal-sessions">
+            <header class="tools-dashboard-card-head">
+              <h2 id="tools-account-modal-sessions">Recent sessions</h2>
+              <p class="tools-dashboard-subtitle">Pick up where you left off.</p>
+            </header>
+            <div class="tools-dashboard-list">${sessionsMarkup}</div>
+          </section>
+          <section class="tools-dashboard-card" aria-labelledby="tools-account-modal-activity">
+            <header class="tools-dashboard-card-head">
+              <h2 id="tools-account-modal-activity">Recent activity</h2>
+              <p class="tools-dashboard-subtitle">Timestamped events across tools.</p>
+            </header>
+            <div class="tools-dashboard-list">${activityMarkup}</div>
+          </section>
+        `.trim();
+      }
+    };
+
+    const refresh = async () => {
+      if (!window.ToolsAuth || !window.ToolsAuth.getAuth || !window.ToolsAuth.authIsValid) {
+        setStatus('Account system is unavailable on this page.');
+        renderSignedOut();
+        return;
+      }
+
+      const auth = window.ToolsAuth.getAuth();
+      const authed = window.ToolsAuth.authIsValid(auth);
+      if (!authed) {
+        setStatus('');
+        renderSignedOut();
+        return;
+      }
+
+      const user = window.ToolsAuth.getUser(auth);
+      setStatus('');
+      renderLoading({ user });
+
+      if (!window.ToolsState || !window.ToolsState.getDashboard) {
+        setStatus('Dashboard API is unavailable on this page.');
+        return;
+      }
+
+      setStatus('Loading history...');
+      let data;
+      try {
+        data = await window.ToolsState.getDashboard();
+      } catch (err) {
+        setStatus(err?.message || 'Unable to load history.');
+        return;
+      }
+      setStatus('');
+      renderDashboardData({ user, data });
+    };
+
+    const open = () => {
+      modalEl.classList.add('active');
+      modalEl.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('modal-open');
+      try {
+        contentEl?.focus();
+      } catch {}
+      refresh().catch(() => {});
+    };
+
+    const close = () => {
+      modalEl.classList.remove('active');
+      modalEl.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('modal-open');
+      setStatus('');
+    };
+
+    modalEl.addEventListener('click', (event) => {
+      if (event.target === modalEl) close();
+      const actionEl = event.target.closest('[data-tools-account-action]');
+      if (!actionEl) return;
+      const action = String(actionEl.dataset.toolsAccountAction || '').trim();
+      if (action === 'close') {
+        close();
+      } else if (action === 'refresh') {
+        refresh().catch(() => {});
+      } else if (action === 'sign-in') {
+        handlers.signIn();
+      } else if (action === 'sign-out') {
+        handlers.signOut();
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      if (modalEl.classList.contains('active')) close();
+    });
+
+    return {
+      open,
+      close,
+      refresh,
+      setHandlers: (nextHandlers = {}) => {
+        handlers = { ...handlers, ...nextHandlers };
+      }
+    };
+  };
+
+  const initAccountBar = ({ toolId, root, toolActionsEnabled, onOpenAccount } = {}) => {
     const barEl = $('[data-tools-account="bar"]');
     if (!barEl) return { barEl: null, setStatus: () => {} };
 
@@ -233,10 +522,10 @@
     const setStatus = (nextStatus, nextSessionId) => {
       if (typeof nextSessionId === 'string') sessionId = nextSessionId;
       statusText = String(nextStatus || '').trim();
-      renderAccountBar({ barEl, toolId, sessionId, statusText });
+      renderAccountBar({ barEl, toolId, sessionId, statusText, toolActionsEnabled });
     };
 
-    renderAccountBar({ barEl, toolId, sessionId, statusText });
+    renderAccountBar({ barEl, toolId, sessionId, statusText, toolActionsEnabled });
 
     barEl.addEventListener('click', (event) => {
       const button = event.target.closest('[data-tools-action]');
@@ -248,13 +537,25 @@
       } else if (action === 'sign-out') {
         window.ToolsAuth.signOut();
         setStatus('Signed out.');
+        try {
+          document.dispatchEvent(new CustomEvent('tools:auth-changed', { detail: { source: 'tools-account-ui' } }));
+        } catch {}
       } else if (action === 'new-session') {
         setActiveSessionId(toolId, '');
         setSessionParam('');
         setStatus('New session (not saved yet).', '');
       } else if (action === 'save-session') {
         document.dispatchEvent(new CustomEvent('tools:save-session', { detail: { toolId } }));
+      } else if (action === 'open-account') {
+        if (typeof onOpenAccount === 'function') onOpenAccount();
       }
+    });
+
+    document.addEventListener('tools:auth-changed', (event) => {
+      const source = String(event?.detail?.source || '').trim();
+      if (source && source.startsWith('tools-account')) return;
+      statusText = '';
+      renderAccountBar({ barEl, toolId, sessionId, statusText, toolActionsEnabled });
     });
 
     return { barEl, setStatus };
@@ -526,14 +827,38 @@
     const toolId = page && page !== 'tools' ? page : '';
     const root = document.getElementById('main');
 
-    const { setStatus } = initAccountBar({ toolId: page === 'tools-dashboard' ? '' : toolId, root });
+    const autosaveMode = String(document.body?.dataset?.toolsAutosave || '').trim().toLowerCase();
+    const toolActionsEnabled = autosaveMode !== 'false' && autosaveMode !== 'off' && autosaveMode !== '0';
+
+    const accountModal = initAccountModal();
+    const { setStatus } = initAccountBar({
+      toolId: page === 'tools-dashboard' ? '' : toolId,
+      root,
+      toolActionsEnabled,
+      onOpenAccount: accountModal.open
+    });
+
+    accountModal.setHandlers({
+      signIn: () => {
+        window.ToolsAuth.signIn({ returnTo: `${window.location.pathname}${window.location.search}${window.location.hash}` })
+          .catch((err) => setStatus(err?.message || 'Unable to start sign-in.'));
+      },
+      signOut: () => {
+        window.ToolsAuth.signOut();
+        setStatus('Signed out.');
+        accountModal.refresh().catch(() => {});
+        try {
+          document.dispatchEvent(new CustomEvent('tools:auth-changed', { detail: { source: 'tools-account-ui' } }));
+        } catch {}
+      }
+    });
 
     if (page === 'tools-dashboard') {
       initDashboard({ setStatus }).catch(() => {});
       return;
     }
 
-    if (toolId && root) {
+    if (toolId && root && toolActionsEnabled) {
       initToolAutoSave({ toolId, root, setStatus });
     }
   });

@@ -35,13 +35,14 @@
     } catch (_) {}
   </script>
 </head>
-<body data-page="job-application-tracker" class="jobtrack-page" data-api-base="https://fhp2is6v8h.execute-api.us-east-2.amazonaws.com/prod" data-cognito-domain="job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com" data-cognito-client-id="78oo663obb0t28u63u9bqn00o9" data-cognito-redirect="https://danielshort.me/tools/job-application-tracker" data-cognito-scopes="openid email profile" data-max-attachment-bytes="10485760" data-max-attachment-count="12">
+<body data-page="job-application-tracker" class="jobtrack-page" data-api-base="https://fhp2is6v8h.execute-api.us-east-2.amazonaws.com/prod" data-cognito-domain="job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com" data-cognito-client-id="78oo663obb0t28u63u9bqn00o9" data-cognito-redirect="https://danielshort.me/tools/job-application-tracker" data-cognito-scopes="openid email profile" data-max-attachment-bytes="10485760" data-max-attachment-count="12" data-tools-autosave="false">
   <a href="#main" class="skip-link">Skip to main content</a>
   <header id="combined-header-nav"></header>
 
   <section class="jobtrack-hero">
     <div class="wrapper">
       <p class="hero-eyebrow">Job Application Tracker</p>
+      <div class="tools-account-bar" data-tools-account="bar"></div>
     </div>
   </section>
 
@@ -944,6 +945,10 @@
     </nav>
   </footer>
 
+  <script defer src="js/accounts/tools-config.js"></script>
+  <script defer src="js/accounts/tools-auth.js"></script>
+  <script defer src="js/accounts/tools-state.js"></script>
+  <script defer src="js/accounts/tools-account-ui.js"></script>
   <script defer src="js/vendor/chartjs/chart.umd.min.js"></script>
   <script defer src="js/tools/job-application-tracker.js"></script>
   <script defer src="js/common/common.js"></script>
