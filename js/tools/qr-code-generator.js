@@ -72,8 +72,30 @@
   const logoBorderColorInput = $('#qrtool-logo-border-color');
   const logoBorderColorLabel = $('#qrtool-logo-border-color-label');
 
+  const centerModeSelect = $('#qrtool-center-mode');
+  const centerImageWrap = document.querySelector('[data-qrtool-center="image"]');
+  const centerTextWrap = document.querySelector('[data-qrtool-center="text"]');
+  const centerTextInput = $('#qrtool-center-text');
+  const centerTextClearBtn = document.querySelector('[data-qrtool="center-text-clear"]');
+  const centerTextWeightSelect = $('#qrtool-center-text-weight');
+  const centerTextColorStyleSelect = $('#qrtool-center-text-color-style');
+  const centerTextColorInput = $('#qrtool-center-text-color');
+  const centerTextColorLabel = $('#qrtool-center-text-color-label');
+
   const filenameInput = $('#qrtool-filename');
   const imageSizeSelect = $('#qrtool-image-size');
+
+  const captionEnabledInput = $('#qrtool-caption-enabled');
+  const captionTextInput = $('#qrtool-caption-text');
+  const captionSizeInput = $('#qrtool-caption-size');
+  const captionSizeValue = $('#qrtool-caption-size-value');
+  const captionAlignSelect = $('#qrtool-caption-align');
+  const captionColorStyleSelect = $('#qrtool-caption-color-style');
+  const captionBgStyleSelect = $('#qrtool-caption-bg-style');
+  const captionColorInput = $('#qrtool-caption-color');
+  const captionColorLabel = $('#qrtool-caption-color-label');
+  const captionBgColorInput = $('#qrtool-caption-bg-color');
+  const captionBgColorLabel = $('#qrtool-caption-bg-color-label');
 
   const downloadPngBtn = $('#qrtool-download-png');
   const downloadSvgBtn = $('#qrtool-download-svg');
@@ -101,6 +123,7 @@
     fg: '#0B0F14',
     bg: '#FFFFFF',
     transparent: false,
+    centerMode: 'image',
     logoDataUrl: null,
     logoSizePct: 20,
     logoPaddingPct: 12,
@@ -110,6 +133,18 @@
     logoBorderStyle: 'auto',
     logoBorderPct: 5,
     logoBorderColor: '#0B0F14',
+    centerText: '',
+    centerTextWeight: '700',
+    centerTextColorStyle: 'auto',
+    centerTextColor: '#0B0F14',
+    captionEnabled: false,
+    captionText: '',
+    captionSizePct: 5,
+    captionAlign: 'center',
+    captionColorStyle: 'auto',
+    captionColor: '#0B0F14',
+    captionBgStyle: 'auto',
+    captionBgColor: '#FFFFFF',
   });
 
   const TEMPLATES = Object.freeze({
@@ -780,6 +815,181 @@
     return { sizeModules: sizeAligned, paddingModules, boxModules };
   };
 
+  const FONT_STACK = "'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+  const CENTER_TEXT_LINE_HEIGHT = 1.12;
+  const CAPTION_TEXT_LINE_HEIGHT = 1.22;
+  const CAPTION_MAX_LINES = 3;
+  const CENTER_TEXT_MAX_LINES = 3;
+
+  let measureCtx = null;
+  const getMeasureCtx = () => {
+    if (measureCtx) return measureCtx;
+    try {
+      const c = document.createElement('canvas');
+      measureCtx = c.getContext('2d');
+      return measureCtx;
+    } catch {
+      return null;
+    }
+  };
+
+  const normalizeFontWeight = (value, fallback) => {
+    const v = String(value || '').trim();
+    if (['500', '600', '700'].includes(v)) return v;
+    return fallback || '600';
+  };
+
+  const splitLines = (value, maxLines) => {
+    const raw = String(value || '').replace(/\r/g, '');
+    const lines = raw
+      .split('\n')
+      .map(line => line.trim())
+      .filter(Boolean);
+    if (!lines.length) return [];
+    if (Number.isFinite(Number(maxLines)) && maxLines > 0) return lines.slice(0, maxLines);
+    return lines;
+  };
+
+  const wrapText = (ctx, text, maxWidthPx, { weight, fontPx, maxLines } = {}) => {
+    const clean = String(text || '').replace(/\r/g, '').trim();
+    if (!clean) return [];
+
+    const paragraphs = clean.split('\n').map(p => p.trim()).filter(Boolean);
+    const lines = [];
+    const safeMax = Number.isFinite(Number(maxLines)) && maxLines > 0 ? Math.floor(maxLines) : 0;
+    const maxWidth = Math.max(1, maxWidthPx || 1);
+
+    const setFont = () => {
+      if (!ctx) return;
+      const w = normalizeFontWeight(weight, '600');
+      const size = Math.max(8, Number.isFinite(Number(fontPx)) ? Number(fontPx) : 14);
+      ctx.font = `${w} ${size}px ${FONT_STACK}`;
+    };
+
+    setFont();
+
+    const pushLine = (line) => {
+      if (!line) return;
+      lines.push(line);
+      if (safeMax && lines.length >= safeMax) return true;
+      return false;
+    };
+
+    const measure = (candidate) => {
+      if (!ctx) return String(candidate || '').length * 8;
+      return ctx.measureText(candidate).width;
+    };
+
+    for (const paragraph of paragraphs) {
+      const words = paragraph.split(/\s+/g).filter(Boolean);
+      let current = '';
+      for (const word of words) {
+        const next = current ? `${current} ${word}` : word;
+        if (!current) {
+          current = word;
+          continue;
+        }
+        if (measure(next) <= maxWidth) {
+          current = next;
+          continue;
+        }
+        if (pushLine(current)) return lines;
+        current = word;
+      }
+      if (current) {
+        if (pushLine(current)) return lines;
+      }
+    }
+
+    return lines;
+  };
+
+  const fitTextInBox = (lines, maxWidthPx, maxHeightPx, { weight, lineHeightFactor } = {}) => {
+    const ctx = getMeasureCtx();
+    const safeLines = Array.isArray(lines) ? lines.filter(Boolean).slice(0, CENTER_TEXT_MAX_LINES) : [];
+    if (!safeLines.length) return null;
+
+    const maxWidth = Math.max(1, maxWidthPx || 1);
+    const maxHeight = Math.max(1, maxHeightPx || 1);
+    const lh = Number.isFinite(Number(lineHeightFactor)) ? Number(lineHeightFactor) : CENTER_TEXT_LINE_HEIGHT;
+
+    let fontPx = Math.max(10, Math.floor(maxHeight / (safeLines.length * lh)));
+    fontPx = Math.min(fontPx, Math.floor(maxHeight));
+
+    const measureAt = (size) => {
+      if (!ctx) return safeLines.map(line => String(line).length * size * 0.6);
+      ctx.font = `${normalizeFontWeight(weight, '700')} ${size}px ${FONT_STACK}`;
+      return safeLines.map(line => ctx.measureText(line).width);
+    };
+
+    let widths = measureAt(fontPx);
+    let widest = Math.max(...widths, 1);
+    if (widest > maxWidth) {
+      fontPx = Math.floor(fontPx * (maxWidth / widest));
+      widths = measureAt(fontPx);
+      widest = Math.max(...widths, 1);
+    }
+
+    const totalHeight = safeLines.length * fontPx * lh;
+    if (totalHeight > maxHeight) {
+      fontPx = Math.floor(fontPx * (maxHeight / totalHeight));
+    }
+
+    fontPx = clamp(fontPx, 8, Math.floor(maxHeight));
+    return {
+      lines: safeLines,
+      fontPx,
+      lineHeightPx: fontPx * lh,
+      maxWidthPx: widest,
+    };
+  };
+
+  const buildCaptionLayout = (sizePx, options) => {
+    const enabled = !!(options && options.captionEnabled);
+    const text = options && typeof options.captionText === 'string' ? options.captionText : '';
+    if (!enabled || !String(text || '').trim()) return { enabled: false, bandPx: 0 };
+
+    const fontPct = clamp(toInt(options.captionSizePct, DEFAULTS.captionSizePct), 3, 10);
+    let fontPx = clamp(Math.round((sizePx * fontPct) / 100), 10, Math.floor(sizePx / 6));
+    const ctx = getMeasureCtx();
+    const weight = normalizeFontWeight(options.captionWeight, '600');
+
+    const layoutForSize = (candidatePx) => {
+      const padX = Math.round(candidatePx * 0.9);
+      const padY = Math.round(candidatePx * 0.75);
+      const maxWidth = Math.max(1, sizePx - padX * 2);
+      const lines = wrapText(ctx, text, maxWidth, { weight, fontPx: candidatePx, maxLines: CAPTION_MAX_LINES });
+      const lineHeight = candidatePx * CAPTION_TEXT_LINE_HEIGHT;
+      const band = Math.round(lines.length * lineHeight + padY * 2);
+      return {
+        enabled: lines.length > 0,
+        lines,
+        fontPx: candidatePx,
+        lineHeightPx: lineHeight,
+        padX,
+        padY,
+        bandPx: band,
+      };
+    };
+
+    let layout = layoutForSize(fontPx);
+    const maxBand = Math.floor(sizePx * 0.38);
+    if (layout.bandPx > maxBand && layout.bandPx > 0) {
+      const scale = maxBand / layout.bandPx;
+      fontPx = clamp(Math.floor(fontPx * scale), 8, fontPx);
+      layout = layoutForSize(fontPx);
+      if (layout.bandPx > maxBand && layout.bandPx > 0) {
+        layout.bandPx = maxBand;
+      }
+    }
+
+    if (layout.bandPx >= sizePx) {
+      layout.bandPx = Math.max(0, sizePx - 32);
+    }
+
+    return layout;
+  };
+
   const renderQrToCanvas = (targetCanvas, qrData, options) => {
     const { darkModules, moduleCount } = qrData;
     const stageRect = stage.getBoundingClientRect();
@@ -795,12 +1005,21 @@
     const targetCtx = targetCanvas.getContext('2d', { alpha: true, desynchronized: true });
     if (!targetCtx) return;
 
+    const captionLayout = buildCaptionLayout(sizePx, options);
+    const captionBandPx = captionLayout.enabled ? clamp(toInt(captionLayout.bandPx, 0), 0, sizePx) : 0;
+    const qrRegionPx = Math.max(1, sizePx - captionBandPx);
+    const regionOffsetX = captionBandPx ? Math.floor((sizePx - qrRegionPx) / 2) : 0;
+    const regionOffsetY = 0;
+
     const quiet = clamp(options.marginModules, 2, 10);
     const totalModules = moduleCount + quiet * 2;
-    const moduleSize = Math.max(1, Math.floor(sizePx / totalModules));
+    const moduleSize = Math.max(1, Math.floor(qrRegionPx / totalModules));
     const codeSize = moduleSize * totalModules;
-    const offset = Math.floor((sizePx - codeSize) / 2);
-    const qrOrigin = offset + quiet * moduleSize;
+    const regionOffsetInner = Math.floor((qrRegionPx - codeSize) / 2);
+    const offsetX = regionOffsetX + regionOffsetInner;
+    const offsetY = regionOffsetY + regionOffsetInner;
+    const qrOriginX = offsetX + quiet * moduleSize;
+    const qrOriginY = offsetY + quiet * moduleSize;
 
     const fgRgb = hexToRgb(options.fg);
     const bgRgb = hexToRgb(options.bg);
@@ -816,6 +1035,13 @@
     }
 
     const drawBackground = transparent ? '#FFFFFF' : bgCss;
+
+    const centerMode = ['image', 'text', 'none'].includes(options.centerMode) ? options.centerMode : DEFAULTS.centerMode;
+    const centerTextRaw = typeof options.centerText === 'string' ? options.centerText : '';
+    const centerText = String(centerTextRaw || '').trim();
+    const hasCenterImage = centerMode === 'image' && !!options.logoImage;
+    const hasCenterText = centerMode === 'text' && !!centerText;
+    const hasCenterContent = hasCenterImage || hasCenterText;
 
     const logoShape = options.logoShape || 'rounded';
     const logoBorderStyle = ['auto', 'custom', 'none'].includes(options.logoBorderStyle)
@@ -838,7 +1064,7 @@
 
     let logoBox = null;
     let inLogoCutout = null;
-    if (options.logoImage) {
+    if (hasCenterContent) {
       const { sizeModules, paddingModules } = computeLogoBox(moduleCount, options.logoSizePct, options.logoPaddingPct);
       const plateModules = sizeModules + paddingModules * 2;
       const logoStart = Math.floor((moduleCount - plateModules) / 2);
@@ -857,8 +1083,8 @@
         return pointInRoundedRect(cx, cy, cutoutX, cutoutY, cutoutSize, cutoutSize, cutoutRadius);
       };
 
-      const plateX = qrOrigin + logoStart * moduleSize;
-      const plateY = qrOrigin + logoStart * moduleSize;
+      const plateX = qrOriginX + logoStart * moduleSize;
+      const plateY = qrOriginY + logoStart * moduleSize;
       const plateSize = plateModules * moduleSize;
       const plateRadiusPx = logoShape === 'circle'
         ? plateSize / 2
@@ -895,8 +1121,8 @@
           }
           if (runStart !== -1) {
             const runLen = col - runStart;
-            const x = qrOrigin + runStart * moduleSize;
-            const y = qrOrigin + row * moduleSize;
+            const x = qrOriginX + runStart * moduleSize;
+            const y = qrOriginY + row * moduleSize;
             targetCtx.fillRect(x, y, runLen * moduleSize, moduleSize);
             runStart = -1;
           }
@@ -922,8 +1148,8 @@
           if (inLogoCutout && inLogoCutout(row, col)) continue;
           const idx = row * moduleCount + col;
           if (darkModules[idx] !== 1) continue;
-          const x = qrOrigin + col * moduleSize;
-          const y = qrOrigin + row * moduleSize;
+          const x = qrOriginX + col * moduleSize;
+          const y = qrOriginY + row * moduleSize;
           if (style === 'dots') {
             targetCtx.moveTo(x + moduleSize / 2 + dotRadius, y + moduleSize / 2);
             targetCtx.arc(x + moduleSize / 2, y + moduleSize / 2, dotRadius, 0, Math.PI * 2);
@@ -943,12 +1169,12 @@
       { col: 0, row: moduleCount - 7 },
     ];
     finders.forEach(({ col, row }) => {
-      const x = qrOrigin + col * moduleSize;
-      const y = qrOrigin + row * moduleSize;
+      const x = qrOriginX + col * moduleSize;
+      const y = qrOriginY + row * moduleSize;
       drawFinderPattern(targetCtx, x, y, moduleSize, options.cornerStyle, fgCss, drawBackground);
     });
 
-    if (options.logoImage && logoBox) {
+    if (hasCenterContent && logoBox) {
       const { sizeModules, paddingModules, plateX, plateY, plateSize, plateRadiusPx } = logoBox;
       const borderPx = clamp((plateSize * logoBorderPct) / 100, 0, plateSize / 2);
       const hasBorder = logoBorderStyle !== 'none' && borderPx > 0;
@@ -982,16 +1208,73 @@
       const logoX = plateX + paddingModules * moduleSize;
       const logoY = plateY + paddingModules * moduleSize;
 
-      targetCtx.imageSmoothingEnabled = true;
-      targetCtx.imageSmoothingQuality = 'high';
+      if (hasCenterImage) {
+        targetCtx.imageSmoothingEnabled = true;
+        targetCtx.imageSmoothingQuality = 'high';
 
-      const img = options.logoImage;
-      const scale = Math.min(logoSizePx / img.naturalWidth, logoSizePx / img.naturalHeight);
-      const drawW = img.naturalWidth * scale;
-      const drawH = img.naturalHeight * scale;
-      const dx = logoX + (logoSizePx - drawW) / 2;
-      const dy = logoY + (logoSizePx - drawH) / 2;
-      targetCtx.drawImage(img, dx, dy, drawW, drawH);
+        const img = options.logoImage;
+        const scale = Math.min(logoSizePx / img.naturalWidth, logoSizePx / img.naturalHeight);
+        const drawW = img.naturalWidth * scale;
+        const drawH = img.naturalHeight * scale;
+        const dx = logoX + (logoSizePx - drawW) / 2;
+        const dy = logoY + (logoSizePx - drawH) / 2;
+        targetCtx.drawImage(img, dx, dy, drawW, drawH);
+      } else if (hasCenterText) {
+        const lines = splitLines(centerText, CENTER_TEXT_MAX_LINES);
+        const layout = fitTextInBox(lines, logoSizePx * 0.94, logoSizePx * 0.94, {
+          weight: options.centerTextWeight || DEFAULTS.centerTextWeight,
+          lineHeightFactor: CENTER_TEXT_LINE_HEIGHT,
+        });
+        if (layout) {
+          const textWeight = normalizeFontWeight(options.centerTextWeight, DEFAULTS.centerTextWeight);
+          const textColorStyle = String(options.centerTextColorStyle || DEFAULTS.centerTextColorStyle);
+          const textHex = textColorStyle === 'custom' ? normalizeHex(options.centerTextColor) : options.fg;
+          const textCss = rgbToCss(hexToRgb(textHex));
+          targetCtx.fillStyle = textCss;
+          targetCtx.textAlign = 'center';
+          targetCtx.textBaseline = 'middle';
+          targetCtx.font = `${textWeight} ${layout.fontPx}px ${FONT_STACK}`;
+
+          const cx = logoX + logoSizePx / 2;
+          const cy = logoY + logoSizePx / 2;
+          const first = cy - ((layout.lines.length - 1) * layout.lineHeightPx) / 2;
+          layout.lines.forEach((line, idx) => {
+            targetCtx.fillText(line, cx, first + idx * layout.lineHeightPx);
+          });
+        }
+      }
+    }
+
+    if (captionLayout.enabled && captionBandPx > 0 && Array.isArray(captionLayout.lines) && captionLayout.lines.length) {
+      const bgStyle = String(options.captionBgStyle || DEFAULTS.captionBgStyle);
+      const bgHex = (() => {
+        if (bgStyle === 'none') return '';
+        if (bgStyle === 'white') return '#FFFFFF';
+        if (bgStyle === 'custom') return normalizeHex(options.captionBgColor);
+        if (transparent) return '#FFFFFF';
+        return options.bg;
+      })();
+      if (bgHex) {
+        targetCtx.fillStyle = rgbToCss(hexToRgb(bgHex));
+        targetCtx.fillRect(0, sizePx - captionBandPx, sizePx, captionBandPx);
+      }
+
+      const textStyle = String(options.captionColorStyle || DEFAULTS.captionColorStyle);
+      const textHex = textStyle === 'custom' ? normalizeHex(options.captionColor) : options.fg;
+      targetCtx.fillStyle = rgbToCss(hexToRgb(textHex));
+      targetCtx.textBaseline = 'middle';
+      const align = String(options.captionAlign || DEFAULTS.captionAlign);
+      const padX = clamp(toInt(captionLayout.padX, 0), 0, Math.floor(sizePx / 2));
+      const x = align === 'left' ? padX : (align === 'right' ? sizePx - padX : sizePx / 2);
+      targetCtx.textAlign = align === 'left' ? 'left' : (align === 'right' ? 'right' : 'center');
+      targetCtx.font = `${normalizeFontWeight(options.captionWeight, '600')} ${captionLayout.fontPx}px ${FONT_STACK}`;
+
+      const bandY = sizePx - captionBandPx;
+      const centerY = bandY + captionBandPx / 2;
+      const first = centerY - ((captionLayout.lines.length - 1) * captionLayout.lineHeightPx) / 2;
+      captionLayout.lines.forEach((line, idx) => {
+        targetCtx.fillText(line, x, first + idx * captionLayout.lineHeightPx);
+      });
     }
   };
 
@@ -1044,6 +1327,19 @@
     const bgFill = transparent ? 'none' : bg;
     const finderBg = transparent ? '#FFFFFF' : bg;
 
+    const captionLayout = buildCaptionLayout(sizePx, options);
+    const captionBandPx = captionLayout.enabled ? clamp(toInt(captionLayout.bandPx, 0), 0, sizePx) : 0;
+    const captionBandModules = captionBandPx ? (captionBandPx / sizePx) * totalModules : 0;
+    const qrScale = captionBandModules ? clamp((totalModules - captionBandModules) / totalModules, 0.4, 1) : 1;
+    const qrTranslateX = captionBandModules ? captionBandModules / 2 : 0;
+    const modulePxScaled = (sizePx * qrScale) / totalModules;
+
+    const centerMode = ['image', 'text', 'none'].includes(options.centerMode) ? options.centerMode : DEFAULTS.centerMode;
+    const centerText = typeof options.centerText === 'string' ? options.centerText.trim() : '';
+    const hasCenterImage = centerMode === 'image' && !!options.logoDataUrl;
+    const hasCenterText = centerMode === 'text' && !!centerText;
+    const hasCenterContent = hasCenterImage || hasCenterText;
+
     const logoShape = options.logoShape || 'rounded';
     const logoBorderStyle = ['auto', 'custom', 'none'].includes(options.logoBorderStyle)
       ? options.logoBorderStyle
@@ -1066,6 +1362,7 @@
       `<svg xmlns="http://www.w3.org/2000/svg" width="${sizePx}" height="${sizePx}" viewBox="0 0 ${totalModules} ${totalModules}" role="img" aria-label="QR code">`
     );
     parts.push(`<rect width="100%" height="100%" fill="${bgFill}"/>`);
+    parts.push(`<g transform="translate(${qrTranslateX.toFixed(4)} 0) scale(${qrScale.toFixed(6)})">`);
 
     const finderPositions = [
       { x: quiet, y: quiet },
@@ -1076,7 +1373,7 @@
     const isFinderModule = (r, c) => isFinderArea(r, c, moduleCount);
 
     let inLogoCutout = null;
-    if (options.logoDataUrl) {
+    if (hasCenterContent) {
       const { sizeModules, paddingModules } = computeLogoBox(moduleCount, options.logoSizePct, options.logoPaddingPct);
       const plateModules = sizeModules + paddingModules * 2;
       const logoStart = Math.floor((moduleCount - plateModules) / 2);
@@ -1164,7 +1461,7 @@
       parts.push(`<path d="${svgRoundedRect(x + 2, y + 2, 3, 3, innerR)}" fill="${fg}"/>`);
     });
 
-    if (options.logoDataUrl) {
+    if (hasCenterContent) {
       const { sizeModules, paddingModules } = computeLogoBox(moduleCount, options.logoSizePct, options.logoPaddingPct);
       const plateModules = sizeModules + paddingModules * 2;
       const start = quiet + Math.floor((moduleCount - plateModules) / 2);
@@ -1196,11 +1493,75 @@
         parts.push(`<path d="${svgRoundedRect(start, start, plateModules, plateModules, outerR)}" fill="${logoPlateBg}"/>`);
       }
 
-      const logoX = start + paddingModules;
-      const logoSize = sizeModules;
-      const href = svgEsc(options.logoDataUrl);
+      const contentX = start + paddingModules;
+      const contentY = start + paddingModules;
+      const contentSize = sizeModules;
+
+      if (hasCenterImage) {
+        const href = svgEsc(options.logoDataUrl);
+        parts.push(
+          `<image href="${href}" x="${contentX}" y="${contentY}" width="${contentSize}" height="${contentSize}" preserveAspectRatio="xMidYMid meet"/>`
+        );
+      } else if (hasCenterText) {
+        const lines = splitLines(centerText, CENTER_TEXT_MAX_LINES);
+        const contentPx = contentSize * modulePxScaled;
+        const layout = fitTextInBox(lines, contentPx * 0.94, contentPx * 0.94, {
+          weight: options.centerTextWeight || DEFAULTS.centerTextWeight,
+          lineHeightFactor: CENTER_TEXT_LINE_HEIGHT,
+        });
+        if (layout) {
+          const textWeight = normalizeFontWeight(options.centerTextWeight, DEFAULTS.centerTextWeight);
+          const textColorStyle = String(options.centerTextColorStyle || DEFAULTS.centerTextColorStyle);
+          const textHex = textColorStyle === 'custom' ? normalizeHex(options.centerTextColor) : fg;
+          const fontUnits = layout.fontPx / modulePxScaled;
+          const lineUnits = layout.lineHeightPx / modulePxScaled;
+          const cx = contentX + contentSize / 2;
+          const cy = contentY + contentSize / 2;
+          const firstY = cy - ((layout.lines.length - 1) * lineUnits) / 2;
+          const tspans = layout.lines
+            .map((line, idx) => `<tspan x="${cx.toFixed(4)}" y="${(firstY + idx * lineUnits).toFixed(4)}">${svgEsc(line)}</tspan>`)
+            .join('');
+          parts.push(
+            `<text font-family="${svgEsc(FONT_STACK)}" font-weight="${textWeight}" font-size="${fontUnits.toFixed(4)}" fill="${textHex}" text-anchor="middle" dominant-baseline="middle">${tspans}</text>`
+          );
+        }
+      }
+    }
+
+    parts.push('</g>');
+
+    if (captionLayout.enabled && captionBandModules > 0 && Array.isArray(captionLayout.lines) && captionLayout.lines.length) {
+      const bandY = totalModules - captionBandModules;
+      const bgStyle = String(options.captionBgStyle || DEFAULTS.captionBgStyle);
+      const bgHex = (() => {
+        if (bgStyle === 'none') return '';
+        if (bgStyle === 'white') return '#FFFFFF';
+        if (bgStyle === 'custom') return normalizeHex(options.captionBgColor);
+        if (transparent) return '#FFFFFF';
+        return bg;
+      })();
+
+      if (bgHex) {
+        parts.push(`<rect x="0" y="${bandY.toFixed(4)}" width="${totalModules}" height="${captionBandModules.toFixed(4)}" fill="${bgHex}"/>`);
+      }
+
+      const align = String(options.captionAlign || DEFAULTS.captionAlign);
+      const textAnchor = align === 'left' ? 'start' : (align === 'right' ? 'end' : 'middle');
+      const padUnits = (captionLayout.padX * totalModules) / sizePx;
+      const x = align === 'left'
+        ? padUnits
+        : (align === 'right' ? totalModules - padUnits : totalModules / 2);
+      const fontUnits = (captionLayout.fontPx * totalModules) / sizePx;
+      const lineUnits = (captionLayout.lineHeightPx * totalModules) / sizePx;
+      const centerY = bandY + captionBandModules / 2;
+      const firstY = centerY - ((captionLayout.lines.length - 1) * lineUnits) / 2;
+      const textStyle = String(options.captionColorStyle || DEFAULTS.captionColorStyle);
+      const textHex = textStyle === 'custom' ? normalizeHex(options.captionColor) : fg;
+      const tspans = captionLayout.lines
+        .map((line, idx) => `<tspan x="${x.toFixed(4)}" y="${(firstY + idx * lineUnits).toFixed(4)}">${svgEsc(line)}</tspan>`)
+        .join('');
       parts.push(
-        `<image href="${href}" x="${logoX}" y="${logoX}" width="${logoSize}" height="${logoSize}" preserveAspectRatio="xMidYMid meet"/>`
+        `<text font-family="${svgEsc(FONT_STACK)}" font-weight="600" font-size="${fontUnits.toFixed(4)}" fill="${textHex}" text-anchor="${textAnchor}" dominant-baseline="middle">${tspans}</text>`
       );
     }
 
@@ -1280,12 +1641,31 @@
     return out;
   };
 
+  const pdfEscapeString = (value) => String(value || '')
+    .replace(/\\/g, '\\\\')
+    .replace(/\(/g, '\\(')
+    .replace(/\)/g, '\\)')
+    .replace(/[\u0000-\u001F\u007F]/g, ' ');
+
+  const pdfApproxTextWidth = (text, fontPt, weight) => {
+    const str = String(text || '');
+    const size = Number.isFinite(Number(fontPt)) ? Number(fontPt) : 12;
+    const w = normalizeFontWeight(weight, '600');
+    const factor = w === '700' ? 0.58 : (w === '600' ? 0.56 : 0.54);
+    return str.length * size * factor;
+  };
+
   const buildPdf = (qrData, options, exportPx) => {
     const { darkModules, moduleCount } = qrData;
     const quiet = clamp(options.marginModules, 2, 10);
     const totalModules = moduleCount + quiet * 2;
     const pagePt = clamp(exportPx, 128, 8192);
-    const cell = pagePt / totalModules;
+    const captionLayout = buildCaptionLayout(pagePt, options);
+    const captionBandPt = captionLayout.enabled ? clamp(toInt(captionLayout.bandPx, 0), 0, pagePt) : 0;
+    const qrRegionPt = Math.max(1, pagePt - captionBandPt);
+    const cell = qrRegionPt / totalModules;
+    const qrOffsetX = captionBandPt ? captionBandPt / 2 : 0;
+    const qrOffsetY = captionBandPt;
 
     const fgHex = normalizeHex(options.fg);
     const bgHex = normalizeHex(options.bg);
@@ -1295,6 +1675,12 @@
 
     const finderBgHex = transparent ? '#FFFFFF' : bgHex;
     const finderBg = pdfColor(finderBgHex);
+
+    const centerMode = ['image', 'text', 'none'].includes(options.centerMode) ? options.centerMode : DEFAULTS.centerMode;
+    const centerText = typeof options.centerText === 'string' ? options.centerText.trim() : '';
+    const hasCenterImage = centerMode === 'image' && !!options.logoImage;
+    const hasCenterText = centerMode === 'text' && !!centerText;
+    const hasCenterContent = hasCenterImage || hasCenterText;
 
     const logoShape = options.logoShape || 'rounded';
     const logoBorderStyle = ['auto', 'custom', 'none'].includes(options.logoBorderStyle)
@@ -1320,7 +1706,12 @@
     let imgHeight = 0;
     let imgBytes = null;
 
-    if (options.logoImage) {
+    const needsFonts = hasCenterText || (captionLayout.enabled && Array.isArray(captionLayout.lines) && captionLayout.lines.length > 0);
+    if (needsFonts) {
+      resources.push('/Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> /F2 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >> >>');
+    }
+
+    if (hasCenterImage) {
       const tmp = document.createElement('canvas');
       tmp.width = 512;
       tmp.height = 512;
@@ -1362,7 +1753,7 @@
     const isFinderModule = (r, c) => isFinderArea(r, c, moduleCount);
 
     let inLogoCutout = null;
-    if (options.logoImage) {
+    if (hasCenterContent) {
       const { sizeModules, paddingModules } = computeLogoBox(moduleCount, options.logoSizePct, options.logoPaddingPct);
       const plateModules = sizeModules + paddingModules * 2;
       const logoStart = Math.floor((moduleCount - plateModules) / 2);
@@ -1382,8 +1773,8 @@
       };
     }
 
-    const moduleToPdfX = (col) => (col + quiet) * cell;
-    const moduleToPdfY = (row) => pagePt - (row + quiet + 1) * cell;
+    const moduleToPdfX = (col) => qrOffsetX + (col + quiet) * cell;
+    const moduleToPdfY = (row) => qrOffsetY + (qrRegionPt - (row + quiet + 1) * cell);
 
     const dotStyle = options.dotStyle;
     if (dotStyle === 'square') {
@@ -1468,7 +1859,7 @@
       content.push('f');
     });
 
-    if (options.logoImage) {
+    if (hasCenterContent) {
       const { sizeModules, paddingModules } = computeLogoBox(moduleCount, options.logoSizePct, options.logoPaddingPct);
       const plateModules = sizeModules + paddingModules * 2;
       const start = Math.floor((moduleCount - plateModules) / 2);
@@ -1509,7 +1900,7 @@
         }
       }
 
-      if (imgBytes && imgBytes.length) {
+      if (hasCenterImage && imgBytes && imgBytes.length) {
         const logoX = moduleToPdfX(start + paddingModules);
         const logoY = moduleToPdfY(start + paddingModules + sizeModules - 1);
         const logoSize = sizeModules * cell;
@@ -1519,7 +1910,85 @@
         content.push(`${logoSize.toFixed(3)} 0 0 ${logoSize.toFixed(3)} ${logoX.toFixed(3)} ${logoY.toFixed(3)} cm`);
         content.push(`/${imgObj} Do`);
         content.push('Q');
+      } else if (hasCenterText) {
+        const logoX = moduleToPdfX(start + paddingModules);
+        const logoY = moduleToPdfY(start + paddingModules + sizeModules - 1);
+        const logoSize = sizeModules * cell;
+
+        const lines = splitLines(centerText, CENTER_TEXT_MAX_LINES);
+        const layout = fitTextInBox(lines, logoSize * 0.94, logoSize * 0.94, {
+          weight: options.centerTextWeight || DEFAULTS.centerTextWeight,
+          lineHeightFactor: CENTER_TEXT_LINE_HEIGHT,
+        });
+        if (layout) {
+          const weight = normalizeFontWeight(options.centerTextWeight, DEFAULTS.centerTextWeight);
+          const fontRef = weight === '500' ? 'F1' : 'F2';
+          const textColorStyle = String(options.centerTextColorStyle || DEFAULTS.centerTextColorStyle);
+          const textHex = textColorStyle === 'custom' ? normalizeHex(options.centerTextColor) : fgHex;
+          const text = pdfColor(textHex);
+          content.push(`${text.r} ${text.g} ${text.b} rg`);
+
+          const cx = logoX + logoSize / 2;
+          const cy = logoY + logoSize / 2;
+          const firstMid = cy - ((layout.lines.length - 1) * layout.lineHeightPx) / 2;
+          const baselineAdjust = layout.fontPx * 0.35;
+
+          layout.lines.forEach((line, idx) => {
+            const midY = firstMid + idx * layout.lineHeightPx;
+            const baselineY = midY - baselineAdjust;
+            const textWidth = pdfApproxTextWidth(line, layout.fontPx, weight);
+            const tx = cx - textWidth / 2;
+            content.push('BT');
+            content.push(`/${fontRef} ${layout.fontPx.toFixed(2)} Tf`);
+            content.push(`1 0 0 1 ${tx.toFixed(3)} ${baselineY.toFixed(3)} Tm`);
+            content.push(`(${pdfEscapeString(line)}) Tj`);
+            content.push('ET');
+          });
+        }
       }
+    }
+
+    if (captionLayout.enabled && captionBandPt > 0 && Array.isArray(captionLayout.lines) && captionLayout.lines.length) {
+      const bgStyle = String(options.captionBgStyle || DEFAULTS.captionBgStyle);
+      const bandBgHex = (() => {
+        if (bgStyle === 'none') return '';
+        if (bgStyle === 'white') return '#FFFFFF';
+        if (bgStyle === 'custom') return normalizeHex(options.captionBgColor);
+        if (transparent) return '#FFFFFF';
+        return bgHex;
+      })();
+
+      if (bandBgHex) {
+        const bandBg = pdfColor(bandBgHex);
+        content.push(`${bandBg.r} ${bandBg.g} ${bandBg.b} rg`);
+        content.push(`0 0 ${pagePt.toFixed(3)} ${captionBandPt.toFixed(3)} re f`);
+      }
+
+      const textStyle = String(options.captionColorStyle || DEFAULTS.captionColorStyle);
+      const captionHex = textStyle === 'custom' ? normalizeHex(options.captionColor) : fgHex;
+      const captionColor = pdfColor(captionHex);
+      content.push(`${captionColor.r} ${captionColor.g} ${captionColor.b} rg`);
+
+      const align = String(options.captionAlign || DEFAULTS.captionAlign);
+      const padX = clamp(toInt(captionLayout.padX, 0), 0, Math.floor(pagePt / 2));
+      const cx = pagePt / 2;
+      const baselineAdjust = captionLayout.fontPx * 0.35;
+      const firstMid = captionBandPt / 2 - ((captionLayout.lines.length - 1) * captionLayout.lineHeightPx) / 2;
+
+      captionLayout.lines.forEach((line, idx) => {
+        const midY = firstMid + idx * captionLayout.lineHeightPx;
+        const baselineY = midY - baselineAdjust;
+        const textWidth = pdfApproxTextWidth(line, captionLayout.fontPx, '600');
+        const tx = align === 'left'
+          ? padX
+          : (align === 'right' ? pagePt - padX - textWidth : cx - textWidth / 2);
+
+        content.push('BT');
+        content.push(`/F2 ${captionLayout.fontPx.toFixed(2)} Tf`);
+        content.push(`1 0 0 1 ${tx.toFixed(3)} ${baselineY.toFixed(3)} Tm`);
+        content.push(`(${pdfEscapeString(line)}) Tj`);
+        content.push('ET');
+      });
     }
 
     content.push('Q');
@@ -1612,6 +2081,17 @@
     bgLabel.textContent = normalizeHex(state.bg);
     transparentInput.checked = state.transparent;
 
+    if (centerModeSelect) centerModeSelect.value = state.centerMode;
+    if (centerImageWrap) centerImageWrap.hidden = state.centerMode !== 'image';
+    if (centerTextWrap) centerTextWrap.hidden = state.centerMode !== 'text';
+
+    if (centerTextInput) centerTextInput.value = state.centerText;
+    if (centerTextClearBtn) centerTextClearBtn.disabled = !String(state.centerText || '').trim();
+    if (centerTextWeightSelect) centerTextWeightSelect.value = state.centerTextWeight;
+    if (centerTextColorStyleSelect) centerTextColorStyleSelect.value = state.centerTextColorStyle;
+    if (centerTextColorInput) centerTextColorInput.value = state.centerTextColor.toLowerCase();
+    if (centerTextColorLabel) centerTextColorLabel.textContent = normalizeHex(state.centerTextColor);
+
     logoSizeInput.value = String(state.logoSizePct);
     logoSizeValue.textContent = `${state.logoSizePct}%`;
     logoPaddingInput.value = String(state.logoPaddingPct);
@@ -1636,32 +2116,69 @@
     logoBorderColorInput.value = displayBorderHex.toLowerCase();
     logoBorderColorLabel.textContent = normalizeHex(displayBorderHex);
 
-    if (state.logoDataUrl && state.logoImage && logoPreview) {
+    const centerHasText = state.centerMode === 'text' && !!String(state.centerText || '').trim();
+    const centerHasImage = state.centerMode === 'image' && !!state.logoDataUrl && !!state.logoImage;
+    const centerActive = centerHasText || centerHasImage;
+
+    if (centerModeSelect) centerModeSelect.disabled = false;
+
+    if (state.centerMode === 'text') {
+      if (centerTextWeightSelect) centerTextWeightSelect.disabled = false;
+      if (centerTextColorStyleSelect) centerTextColorStyleSelect.disabled = false;
+      if (centerTextColorInput) centerTextColorInput.disabled = state.centerTextColorStyle !== 'custom';
+    } else {
+      if (centerTextWeightSelect) centerTextWeightSelect.disabled = true;
+      if (centerTextColorStyleSelect) centerTextColorStyleSelect.disabled = true;
+      if (centerTextColorInput) centerTextColorInput.disabled = true;
+    }
+
+    if (state.centerMode === 'image' && state.logoDataUrl && state.logoImage && logoPreview) {
       logoPreview.src = state.logoDataUrl;
       logoPreviewWrap?.classList.remove('hide');
       logoPreviewWrap?.setAttribute('aria-hidden', 'false');
       logoRemoveBtn.disabled = false;
-      logoSizeInput.disabled = false;
-      logoPaddingInput.disabled = false;
-      logoShapeSelect.disabled = false;
-      logoPlateStyleSelect.disabled = false;
-      logoPlateColorInput.disabled = state.logoPlateStyle !== 'custom';
-      logoBorderStyleSelect.disabled = false;
-      logoBorderSizeInput.disabled = state.logoBorderStyle === 'none';
-      logoBorderColorInput.disabled = state.logoBorderStyle !== 'custom';
+      logoSizeInput.disabled = !centerActive;
+      logoPaddingInput.disabled = !centerActive;
+      logoShapeSelect.disabled = !centerActive;
+      logoPlateStyleSelect.disabled = !centerActive;
+      logoPlateColorInput.disabled = !centerActive || state.logoPlateStyle !== 'custom';
+      logoBorderStyleSelect.disabled = !centerActive;
+      logoBorderSizeInput.disabled = !centerActive || state.logoBorderStyle === 'none';
+      logoBorderColorInput.disabled = !centerActive || state.logoBorderStyle !== 'custom';
     } else {
       logoPreviewWrap?.classList.add('hide');
       logoPreviewWrap?.setAttribute('aria-hidden', 'true');
       logoRemoveBtn.disabled = true;
-      logoSizeInput.disabled = true;
-      logoPaddingInput.disabled = true;
-      logoShapeSelect.disabled = true;
-      logoPlateStyleSelect.disabled = true;
-      logoPlateColorInput.disabled = true;
-      logoBorderStyleSelect.disabled = true;
-      logoBorderSizeInput.disabled = true;
-      logoBorderColorInput.disabled = true;
+      logoSizeInput.disabled = !centerActive;
+      logoPaddingInput.disabled = !centerActive;
+      logoShapeSelect.disabled = !centerActive;
+      logoPlateStyleSelect.disabled = !centerActive;
+      logoPlateColorInput.disabled = !centerActive || state.logoPlateStyle !== 'custom';
+      logoBorderStyleSelect.disabled = !centerActive;
+      logoBorderSizeInput.disabled = !centerActive || state.logoBorderStyle === 'none';
+      logoBorderColorInput.disabled = !centerActive || state.logoBorderStyle !== 'custom';
     }
+
+    if (captionEnabledInput) captionEnabledInput.checked = !!state.captionEnabled;
+    if (captionTextInput) captionTextInput.value = state.captionText;
+    if (captionSizeInput) captionSizeInput.value = String(state.captionSizePct);
+    if (captionSizeValue) captionSizeValue.textContent = `${state.captionSizePct}%`;
+    if (captionAlignSelect) captionAlignSelect.value = state.captionAlign;
+    if (captionColorStyleSelect) captionColorStyleSelect.value = state.captionColorStyle;
+    if (captionBgStyleSelect) captionBgStyleSelect.value = state.captionBgStyle;
+    if (captionColorInput) captionColorInput.value = state.captionColor.toLowerCase();
+    if (captionColorLabel) captionColorLabel.textContent = normalizeHex(state.captionColor);
+    if (captionBgColorInput) captionBgColorInput.value = state.captionBgColor.toLowerCase();
+    if (captionBgColorLabel) captionBgColorLabel.textContent = normalizeHex(state.captionBgColor);
+
+    const captionEnabled = !!state.captionEnabled;
+    if (captionTextInput) captionTextInput.disabled = !captionEnabled;
+    if (captionSizeInput) captionSizeInput.disabled = !captionEnabled;
+    if (captionAlignSelect) captionAlignSelect.disabled = !captionEnabled;
+    if (captionColorStyleSelect) captionColorStyleSelect.disabled = !captionEnabled;
+    if (captionBgStyleSelect) captionBgStyleSelect.disabled = !captionEnabled;
+    if (captionColorInput) captionColorInput.disabled = !captionEnabled || state.captionColorStyle !== 'custom';
+    if (captionBgColorInput) captionBgColorInput.disabled = !captionEnabled || state.captionBgStyle !== 'custom';
   };
 
   const render = () => {
@@ -1725,12 +2242,15 @@
     if (!contrastOk) warnings.push(`Low contrast (≈${ratio.toFixed(1)}:1) can reduce scan reliability.`);
     if (state.transparent) warnings.push('Transparent backgrounds are best for digital; use a solid background for print.');
 
-    if (state.logoImage) {
+    const centerHasText = state.centerMode === 'text' && !!String(state.centerText || '').trim();
+    const centerHasImage = state.centerMode === 'image' && !!state.logoImage;
+
+    if (centerHasImage || centerHasText) {
       const { boxModules } = computeLogoBox(moduleCount, state.logoSizePct, state.logoPaddingPct);
       const cover = (boxModules * boxModules) / (moduleCount * moduleCount);
       const coverPct = Math.round(cover * 100);
-      if (state.ecc !== 'H' && coverPct >= 12) warnings.push(`Logo coverage is ~${coverPct}%. Consider ECC H for best reliability.`);
-      if (coverPct >= 18) warnings.push(`Logo coverage is ~${coverPct}%. Reduce logo size for safer scanning.`);
+      if (state.ecc !== 'H' && coverPct >= 12) warnings.push(`Center coverage is ~${coverPct}%. Consider ECC H for best reliability.`);
+      if (coverPct >= 18) warnings.push(`Center coverage is ~${coverPct}%. Reduce center size for safer scanning.`);
     }
 
     setWarning(warnings[0] || '');
@@ -1744,6 +2264,7 @@
       fg: state.fg,
       bg: state.bg,
       transparent: state.transparent,
+      centerMode: state.centerMode,
       logoImage: state.logoImage,
       logoDataUrl: state.logoDataUrl,
       logoSizePct: state.logoSizePct,
@@ -1754,6 +2275,18 @@
       logoBorderStyle: state.logoBorderStyle,
       logoBorderPct: state.logoBorderPct,
       logoBorderColor: state.logoBorderColor,
+      centerText: state.centerText,
+      centerTextWeight: state.centerTextWeight,
+      centerTextColorStyle: state.centerTextColorStyle,
+      centerTextColor: state.centerTextColor,
+      captionEnabled: state.captionEnabled,
+      captionText: state.captionText,
+      captionSizePct: state.captionSizePct,
+      captionAlign: state.captionAlign,
+      captionColorStyle: state.captionColorStyle,
+      captionColor: state.captionColor,
+      captionBgStyle: state.captionBgStyle,
+      captionBgColor: state.captionBgColor,
     });
 
     downloadPngBtn.disabled = false;
@@ -1799,6 +2332,31 @@
     fgLabel.textContent = normalizeHex(state.fg);
     bgLabel.textContent = normalizeHex(state.bg);
 
+    const centerMode = centerModeSelect ? centerModeSelect.value : state.centerMode;
+    state.centerMode = ['image', 'text', 'none'].includes(centerMode) ? centerMode : DEFAULTS.centerMode;
+    state.centerText = centerTextInput ? String(centerTextInput.value || '') : '';
+    state.centerTextWeight = normalizeFontWeight(centerTextWeightSelect ? centerTextWeightSelect.value : state.centerTextWeight, DEFAULTS.centerTextWeight);
+    state.centerTextColorStyle = centerTextColorStyleSelect && ['auto', 'custom'].includes(centerTextColorStyleSelect.value)
+      ? centerTextColorStyleSelect.value
+      : DEFAULTS.centerTextColorStyle;
+    state.centerTextColor = normalizeHex(centerTextColorInput ? centerTextColorInput.value : state.centerTextColor);
+    if (centerTextColorLabel) centerTextColorLabel.textContent = normalizeHex(state.centerTextColor);
+
+    state.captionEnabled = !!(captionEnabledInput && captionEnabledInput.checked);
+    state.captionText = captionTextInput ? String(captionTextInput.value || '') : '';
+    state.captionSizePct = clamp(toInt(captionSizeInput ? captionSizeInput.value : state.captionSizePct, DEFAULTS.captionSizePct), 3, 10);
+    if (captionSizeValue) captionSizeValue.textContent = `${state.captionSizePct}%`;
+    const captionAlign = captionAlignSelect ? captionAlignSelect.value : state.captionAlign;
+    state.captionAlign = ['left', 'center', 'right'].includes(captionAlign) ? captionAlign : DEFAULTS.captionAlign;
+    const captionColorStyle = captionColorStyleSelect ? captionColorStyleSelect.value : state.captionColorStyle;
+    state.captionColorStyle = ['auto', 'custom'].includes(captionColorStyle) ? captionColorStyle : DEFAULTS.captionColorStyle;
+    const captionBgStyle = captionBgStyleSelect ? captionBgStyleSelect.value : state.captionBgStyle;
+    state.captionBgStyle = ['auto', 'white', 'custom', 'none'].includes(captionBgStyle) ? captionBgStyle : DEFAULTS.captionBgStyle;
+    state.captionColor = normalizeHex(captionColorInput ? captionColorInput.value : state.captionColor);
+    if (captionColorLabel) captionColorLabel.textContent = normalizeHex(state.captionColor);
+    state.captionBgColor = normalizeHex(captionBgColorInput ? captionBgColorInput.value : state.captionBgColor);
+    if (captionBgColorLabel) captionBgColorLabel.textContent = normalizeHex(state.captionBgColor);
+
     state.logoSizePct = clamp(toInt(logoSizeInput.value, DEFAULTS.logoSizePct), 10, 30);
     logoSizeValue.textContent = `${state.logoSizePct}%`;
     state.logoPaddingPct = clamp(toInt(logoPaddingInput.value, DEFAULTS.logoPaddingPct), 6, 22);
@@ -1843,11 +2401,6 @@
       logoBorderColorInput.value = autoBorderHex.toLowerCase();
       logoBorderColorLabel.textContent = normalizeHex(autoBorderHex);
     }
-
-    logoPlateColorInput.disabled = !state.logoImage || state.logoPlateStyle !== 'custom';
-    logoBorderStyleSelect.disabled = !state.logoImage;
-    logoBorderSizeInput.disabled = !state.logoImage || state.logoBorderStyle === 'none';
-    logoBorderColorInput.disabled = !state.logoImage || state.logoBorderStyle !== 'custom';
   };
 
   const clearLogo = () => {
@@ -1882,6 +2435,7 @@
 
   dataInput.addEventListener('input', () => {
     readStateFromControls();
+    updateControlsFromState();
     scheduleRender();
   });
 
@@ -1893,6 +2447,7 @@
     fgInput,
     bgInput,
     transparentInput,
+    centerModeSelect,
     logoSizeInput,
     logoPaddingInput,
     logoShapeSelect,
@@ -1901,13 +2456,27 @@
     logoBorderStyleSelect,
     logoBorderSizeInput,
     logoBorderColorInput,
-  ].forEach((el) => {
+    centerTextInput,
+    centerTextWeightSelect,
+    centerTextColorStyleSelect,
+    centerTextColorInput,
+    captionEnabledInput,
+    captionTextInput,
+    captionSizeInput,
+    captionAlignSelect,
+    captionColorStyleSelect,
+    captionBgStyleSelect,
+    captionColorInput,
+    captionBgColorInput,
+  ].filter(Boolean).forEach((el) => {
     el.addEventListener('input', () => {
       readStateFromControls();
+      updateControlsFromState();
       scheduleRender();
     });
     el.addEventListener('change', () => {
       readStateFromControls();
+      updateControlsFromState();
       scheduleRender();
     });
   });
@@ -1915,6 +2484,7 @@
   exampleBtn.addEventListener('click', () => {
     dataInput.value = 'https://example.com/campaign?utm_source=brochure&utm_medium=qr';
     readStateFromControls();
+    updateControlsFromState();
     scheduleRender();
     dataInput.focus();
     dataInput.setSelectionRange(dataInput.value.length, dataInput.value.length);
@@ -1923,9 +2493,20 @@
   clearBtn.addEventListener('click', () => {
     dataInput.value = '';
     readStateFromControls();
+    updateControlsFromState();
     scheduleRender();
     dataInput.focus();
   });
+
+  if (centerTextClearBtn && centerTextInput) {
+    centerTextClearBtn.addEventListener('click', () => {
+      centerTextInput.value = '';
+      readStateFromControls();
+      updateControlsFromState();
+      scheduleRender();
+      centerTextInput.focus();
+    });
+  }
 
   if (destinationPickerOpen && destinationModal) {
     destinationPickerOpen.addEventListener('click', () => {
@@ -2023,6 +2604,7 @@
       fg: state.fg,
       bg: state.bg,
       transparent: state.transparent,
+      centerMode: state.centerMode,
       logoImage: state.logoImage,
       logoDataUrl: state.logoDataUrl,
       logoSizePct: state.logoSizePct,
@@ -2033,6 +2615,18 @@
       logoBorderStyle: state.logoBorderStyle,
       logoBorderPct: state.logoBorderPct,
       logoBorderColor: state.logoBorderColor,
+      centerText: state.centerText,
+      centerTextWeight: state.centerTextWeight,
+      centerTextColorStyle: state.centerTextColorStyle,
+      centerTextColor: state.centerTextColor,
+      captionEnabled: state.captionEnabled,
+      captionText: state.captionText,
+      captionSizePct: state.captionSizePct,
+      captionAlign: state.captionAlign,
+      captionColorStyle: state.captionColorStyle,
+      captionColor: state.captionColor,
+      captionBgStyle: state.captionBgStyle,
+      captionBgColor: state.captionBgColor,
     });
     outCanvas.toBlob((blob) => {
       if (!blob) return;
@@ -2051,6 +2645,7 @@
       fg: state.fg,
       bg: state.bg,
       transparent: state.transparent,
+      centerMode: state.centerMode,
       logoDataUrl: state.logoDataUrl,
       logoImage: state.logoImage,
       logoSizePct: state.logoSizePct,
@@ -2061,6 +2656,18 @@
       logoBorderStyle: state.logoBorderStyle,
       logoBorderPct: state.logoBorderPct,
       logoBorderColor: state.logoBorderColor,
+      centerText: state.centerText,
+      centerTextWeight: state.centerTextWeight,
+      centerTextColorStyle: state.centerTextColorStyle,
+      centerTextColor: state.centerTextColor,
+      captionEnabled: state.captionEnabled,
+      captionText: state.captionText,
+      captionSizePct: state.captionSizePct,
+      captionAlign: state.captionAlign,
+      captionColorStyle: state.captionColorStyle,
+      captionColor: state.captionColor,
+      captionBgStyle: state.captionBgStyle,
+      captionBgColor: state.captionBgColor,
     }, size);
     downloadBlob(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }), `${fileNameSafe(filenameInput.value)}.svg`);
   });
@@ -2075,6 +2682,7 @@
       fg: state.fg,
       bg: state.bg,
       transparent: false,
+      centerMode: state.centerMode,
       logoImage: state.logoImage,
       logoDataUrl: state.logoDataUrl,
       logoSizePct: state.logoSizePct,
@@ -2085,6 +2693,18 @@
       logoBorderStyle: state.logoBorderStyle,
       logoBorderPct: state.logoBorderPct,
       logoBorderColor: state.logoBorderColor,
+      centerText: state.centerText,
+      centerTextWeight: state.centerTextWeight,
+      centerTextColorStyle: state.centerTextColorStyle,
+      centerTextColor: state.centerTextColor,
+      captionEnabled: state.captionEnabled,
+      captionText: state.captionText,
+      captionSizePct: state.captionSizePct,
+      captionAlign: state.captionAlign,
+      captionColorStyle: state.captionColorStyle,
+      captionColor: state.captionColor,
+      captionBgStyle: state.captionBgStyle,
+      captionBgColor: state.captionBgColor,
     }, size);
     downloadBlob(new Blob([pdfBytes], { type: 'application/pdf' }), `${fileNameSafe(filenameInput.value)}.pdf`);
   });

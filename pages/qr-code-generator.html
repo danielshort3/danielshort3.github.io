@@ -225,20 +225,72 @@
                 <div id="qrtool-panel-logo" class="qrtool-panel" role="tabpanel" aria-labelledby="qrtool-tab-logo" data-qrtool-panel="logo" hidden>
                   <div class="qrtool-field-header">
                     <h3>Logo</h3>
-                    <p class="qrtool-help">Center a logo on a clean plate to maintain scan reliability.</p>
+                    <p class="qrtool-help">Add a centered logo or text on a clean plate to maintain scan reliability.</p>
                   </div>
 
-                  <div class="qrtool-logo-row">
-                    <input id="qrtool-logo" class="qrtool-file" type="file" accept="image/png, image/jpeg, image/jpg, image/svg+xml">
-                    <button id="qrtool-logo-remove" type="button" class="btn-ghost" disabled>Remove</button>
-                  </div>
-                  <div id="qrtool-logo-preview-wrap" class="qrtool-logo-preview-wrap hide" aria-hidden="true">
-                    <img id="qrtool-logo-preview" class="qrtool-logo-preview" alt="Logo preview">
-                    <p class="qrtool-help">Logo is centered with a clean background plate for scan reliability.</p>
-                  </div>
                   <div class="qrtool-two-col">
                     <div class="qrtool-control">
-                      <label class="qrtool-label" for="qrtool-logo-size">Logo size <span id="qrtool-logo-size-value" class="qrtool-value">20%</span></label>
+                      <label class="qrtool-label" for="qrtool-center-mode">Center content</label>
+                      <select id="qrtool-center-mode" class="qrtool-select">
+                        <option value="image" selected>Logo image</option>
+                        <option value="text">Text</option>
+                        <option value="none">None</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div data-qrtool-center="image">
+                    <div class="qrtool-logo-row">
+                      <input id="qrtool-logo" class="qrtool-file" type="file" accept="image/png, image/jpeg, image/jpg, image/svg+xml">
+                      <button id="qrtool-logo-remove" type="button" class="btn-ghost" disabled>Remove</button>
+                    </div>
+                    <div id="qrtool-logo-preview-wrap" class="qrtool-logo-preview-wrap hide" aria-hidden="true">
+                      <img id="qrtool-logo-preview" class="qrtool-logo-preview" alt="Logo preview">
+                      <p class="qrtool-help">Logo is centered with a clean background plate for scan reliability.</p>
+                    </div>
+                  </div>
+
+                  <div data-qrtool-center="text" hidden>
+                    <div class="qrtool-field">
+                      <label class="qrtool-label" for="qrtool-center-text">Center text</label>
+                      <textarea id="qrtool-center-text" class="qrtool-input" rows="2" maxlength="40" autocomplete="off" spellcheck="false" placeholder="SCAN&#10;ME"></textarea>
+                      <div class="qrtool-actions">
+                        <button type="button" class="btn-ghost" data-qrtool="center-text-clear" disabled>Clear text</button>
+                      </div>
+                    </div>
+
+                    <div class="qrtool-two-col">
+                      <div class="qrtool-control">
+                        <label class="qrtool-label" for="qrtool-center-text-weight">Weight</label>
+                        <select id="qrtool-center-text-weight" class="qrtool-select" disabled>
+                          <option value="700" selected>Bold</option>
+                          <option value="600">Semibold</option>
+                          <option value="500">Medium</option>
+                        </select>
+                      </div>
+                      <div class="qrtool-control">
+                        <label class="qrtool-label" for="qrtool-center-text-color-style">Text color</label>
+                        <select id="qrtool-center-text-color-style" class="qrtool-select" disabled>
+                          <option value="auto" selected>Auto (use foreground)</option>
+                          <option value="custom">Custom</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="qrtool-two-col">
+                      <div class="qrtool-control">
+                        <label class="qrtool-label" for="qrtool-center-text-color">Text color</label>
+                        <div class="qrtool-color-row">
+                          <input id="qrtool-center-text-color" class="qrtool-color" type="color" value="#0b0f14" aria-label="Center text color" disabled>
+                          <span id="qrtool-center-text-color-label" class="qrtool-chip">#0B0F14</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="qrtool-two-col">
+                    <div class="qrtool-control">
+                      <label class="qrtool-label" for="qrtool-logo-size">Center size <span id="qrtool-logo-size-value" class="qrtool-value">20%</span></label>
                       <input id="qrtool-logo-size" type="range" min="10" max="30" value="20" step="1" disabled>
                     </div>
                     <div class="qrtool-control">
@@ -318,6 +370,69 @@
                         <option value="2048">2048 px</option>
                         <option value="4096">4096 px</option>
                       </select>
+                    </div>
+                  </div>
+
+                  <div class="qrtool-field">
+                    <label class="qrtool-check">
+                      <input id="qrtool-caption-enabled" type="checkbox">
+                      Add a caption band below the QR code (all exports)
+                    </label>
+
+                    <div class="qrtool-control">
+                      <label class="qrtool-label" for="qrtool-caption-text">Caption text</label>
+                      <textarea id="qrtool-caption-text" class="qrtool-input" rows="2" maxlength="120" autocomplete="off" spellcheck="false" placeholder="example.com" disabled></textarea>
+                    </div>
+
+                    <div class="qrtool-two-col">
+                      <div class="qrtool-control">
+                        <label class="qrtool-label" for="qrtool-caption-size">Caption size <span id="qrtool-caption-size-value" class="qrtool-value">5%</span></label>
+                        <input id="qrtool-caption-size" type="range" min="3" max="10" value="5" step="1" disabled>
+                      </div>
+                      <div class="qrtool-control">
+                        <label class="qrtool-label" for="qrtool-caption-align">Alignment</label>
+                        <select id="qrtool-caption-align" class="qrtool-select" disabled>
+                          <option value="center" selected>Center</option>
+                          <option value="left">Left</option>
+                          <option value="right">Right</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="qrtool-two-col">
+                      <div class="qrtool-control">
+                        <label class="qrtool-label" for="qrtool-caption-color-style">Text color</label>
+                        <select id="qrtool-caption-color-style" class="qrtool-select" disabled>
+                          <option value="auto" selected>Auto (use foreground)</option>
+                          <option value="custom">Custom</option>
+                        </select>
+                      </div>
+                      <div class="qrtool-control">
+                        <label class="qrtool-label" for="qrtool-caption-bg-style">Background</label>
+                        <select id="qrtool-caption-bg-style" class="qrtool-select" disabled>
+                          <option value="auto" selected>Auto (match background)</option>
+                          <option value="white">White</option>
+                          <option value="custom">Custom</option>
+                          <option value="none">None (transparent)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="qrtool-two-col">
+                      <div class="qrtool-control">
+                        <label class="qrtool-label" for="qrtool-caption-color">Text color</label>
+                        <div class="qrtool-color-row">
+                          <input id="qrtool-caption-color" class="qrtool-color" type="color" value="#0b0f14" aria-label="Caption text color" disabled>
+                          <span id="qrtool-caption-color-label" class="qrtool-chip">#0B0F14</span>
+                        </div>
+                      </div>
+                      <div class="qrtool-control">
+                        <label class="qrtool-label" for="qrtool-caption-bg-color">Background color</label>
+                        <div class="qrtool-color-row">
+                          <input id="qrtool-caption-bg-color" class="qrtool-color" type="color" value="#ffffff" aria-label="Caption background color" disabled>
+                          <span id="qrtool-caption-bg-color-label" class="qrtool-chip">#FFFFFF</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
