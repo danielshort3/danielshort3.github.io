@@ -185,12 +185,40 @@
     });
   };
 
-  const buildSnapshot = ({ toolId, root }) => ({
-    version: 1,
-    toolId,
-    capturedAt: Date.now(),
-    fields: serializeToolFields(root)
-  });
+  const buildSnapshot = ({ toolId, root, output }) => {
+    const snapshot = {
+      version: 2,
+      toolId,
+      capturedAt: Date.now(),
+      fields: serializeToolFields(root)
+    };
+    if (typeof output !== 'undefined') snapshot.output = output;
+    return snapshot;
+  };
+
+  const captureToolPayload = ({ toolId, root, sessionId, snapshot }) => {
+    const payload = { outputSummary: '', output: undefined };
+    if (!toolId || !root) return payload;
+    try {
+      const detail = {
+        toolId,
+        root,
+        sessionId: sessionId || '',
+        snapshot,
+        payload
+      };
+      root.dispatchEvent(new CustomEvent('tools:session-capture', { detail, bubbles: true }));
+    } catch {}
+    return payload;
+  };
+
+  const notifySessionApplied = ({ toolId, root, sessionId, snapshot }) => {
+    if (!toolId || !root) return;
+    try {
+      const detail = { toolId, root, sessionId: sessionId || '', snapshot };
+      root.dispatchEvent(new CustomEvent('tools:session-applied', { detail, bubbles: true }));
+    } catch {}
+  };
 
   const renderAccountBar = ({ barEl, toolId, sessionId, statusText, toolActionsEnabled } = {}) => {
     if (!barEl) return;
@@ -226,7 +254,7 @@
     `.trim();
   };
 
-  const initAccountModal = () => {
+  const initAccountModal = ({ onViewSession } = {}) => {
     const modalEl = document.createElement('div');
     modalEl.className = 'modal tools-account-modal';
     modalEl.id = 'tools-account-modal';
@@ -347,13 +375,14 @@
           const summary = String(session?.outputSummary || '').trim();
           const href = `${info.href}?session=${encodeURIComponent(sessionId)}`;
           return `
-            <div class="tools-dashboard-item">
+            <div class="tools-dashboard-item" data-session-tool="${escapeHtml(toolId)}" data-session-id="${escapeHtml(sessionId)}">
               <div>
                 <p class="tools-dashboard-item-title"><a href="${escapeHtml(href)}">${escapeHtml(info.name)}</a></p>
                 <p class="tools-dashboard-item-meta">${updated ? `Updated ${escapeHtml(updated)} · ` : ''}${summary ? escapeHtml(summary) : `Session ${escapeHtml(sessionId.slice(0, 10))}…`}</p>
               </div>
               <div class="tools-dashboard-item-actions">
                 <a class="btn-secondary" href="${escapeHtml(href)}">Reopen</a>
+                <button type="button" class="btn-secondary" data-tools-action="view-session">View</button>
               </div>
             </div>
           `.trim();
@@ -484,16 +513,30 @@
     modalEl.addEventListener('click', (event) => {
       if (event.target === modalEl) close();
       const actionEl = event.target.closest('[data-tools-account-action]');
-      if (!actionEl) return;
-      const action = String(actionEl.dataset.toolsAccountAction || '').trim();
-      if (action === 'close') {
+      if (actionEl) {
+        const action = String(actionEl.dataset.toolsAccountAction || '').trim();
+        if (action === 'close') {
+          close();
+        } else if (action === 'refresh') {
+          refresh().catch(() => {});
+        } else if (action === 'sign-in') {
+          handlers.signIn();
+        } else if (action === 'sign-out') {
+          handlers.signOut();
+        }
+        return;
+      }
+
+      const toolActionEl = event.target.closest('[data-tools-action]');
+      if (!toolActionEl) return;
+      const action = String(toolActionEl.dataset.toolsAction || '').trim();
+      if (action === 'view-session') {
+        const row = toolActionEl.closest('[data-session-tool][data-session-id]');
+        const toolId = String(row?.dataset?.sessionTool || '').trim();
+        const sessionId = String(row?.dataset?.sessionId || '').trim();
+        if (!toolId || !sessionId) return;
         close();
-      } else if (action === 'refresh') {
-        refresh().catch(() => {});
-      } else if (action === 'sign-in') {
-        handlers.signIn();
-      } else if (action === 'sign-out') {
-        handlers.signOut();
+        if (typeof onViewSession === 'function') onViewSession({ toolId, sessionId });
       }
     });
 
@@ -510,6 +553,377 @@
         handlers = { ...handlers, ...nextHandlers };
       }
     };
+  };
+
+  const initSessionModal = () => {
+    const modalEl = document.createElement('div');
+    modalEl.className = 'modal tools-session-modal';
+    modalEl.id = 'tools-session-modal';
+    modalEl.setAttribute('data-tools-session', 'modal');
+    modalEl.setAttribute('aria-hidden', 'true');
+    modalEl.innerHTML = `
+      <div class="modal-content modal-wide" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="tools-session-modal-title">
+        <button type="button" class="modal-close" aria-label="Close dialog" data-tools-session-action="close">&times;</button>
+        <div class="modal-title-strip">
+          <h3 class="modal-title" id="tools-session-modal-title">Session</h3>
+          <p class="modal-subtitle" data-tools-session="subtitle"></p>
+        </div>
+        <div class="modal-body stacked">
+          <div class="tools-session-modal-actions" data-tools-session="actions"></div>
+          <div class="tools-session-modal-status" data-tools-session="status" role="status" aria-live="polite"></div>
+          <div class="tools-session-modal-content" data-tools-session="content"></div>
+        </div>
+      </div>
+    `.trim();
+    document.body.appendChild(modalEl);
+
+    const contentEl = modalEl.querySelector('.modal-content');
+    const subtitleEl = modalEl.querySelector('[data-tools-session="subtitle"]');
+    const actionsEl = modalEl.querySelector('[data-tools-session="actions"]');
+    const statusEl = modalEl.querySelector('[data-tools-session="status"]');
+    const bodyEl = modalEl.querySelector('[data-tools-session="content"]');
+
+    let currentToolId = '';
+    let currentSessionId = '';
+
+    const setStatus = (message) => {
+      if (!statusEl) return;
+      statusEl.textContent = String(message || '').trim();
+    };
+
+    const normalizeHexColor = (value) => {
+      const s = String(value || '').trim();
+      if (/^#[0-9a-f]{6}$/i.test(s)) return s.toUpperCase();
+      return '';
+    };
+
+    const clampText = (value, maxChars) => {
+      const text = String(value || '');
+      if (text.length <= maxChars) return { text, truncated: false, total: text.length };
+      return { text: text.slice(0, maxChars), truncated: true, total: text.length };
+    };
+
+    const sanitizePreviewHtml = (rawHtml) => {
+      const allowTags = new Set(['br', 'p', 'div', 'span', 'ins', 'del', 'pre', 'code', 'strong', 'em']);
+      let template;
+      try {
+        template = document.createElement('template');
+        template.innerHTML = String(rawHtml || '');
+      } catch {
+        return '';
+      }
+
+      const sanitizeNode = (node) => {
+        const children = [...(node?.childNodes || [])];
+        children.forEach((child) => {
+          if (!child) return;
+          if (child.nodeType === Node.COMMENT_NODE) {
+            child.remove();
+            return;
+          }
+          if (child.nodeType !== Node.ELEMENT_NODE) return;
+
+          const tag = String(child.tagName || '').toLowerCase();
+          if (!allowTags.has(tag)) {
+            const text = document.createTextNode(child.textContent || '');
+            child.replaceWith(text);
+            return;
+          }
+
+          [...child.attributes].forEach((attr) => {
+            const name = String(attr?.name || '').toLowerCase();
+            if (name === 'class') {
+              const safeClasses = String(child.className || '')
+                .split(/\s+/)
+                .filter(Boolean)
+                .filter(cls => /^[a-z0-9_-]+$/i.test(cls));
+              child.className = safeClasses.join(' ');
+              return;
+            }
+            child.removeAttribute(name);
+          });
+
+          sanitizeNode(child);
+        });
+      };
+
+      try {
+        sanitizeNode(template.content);
+        const wrapper = document.createElement('div');
+        wrapper.appendChild(template.content);
+        return wrapper.innerHTML;
+      } catch {
+        return '';
+      }
+    };
+
+    const renderOutputPreview = ({ toolId, fields, output, outputSummary }) => {
+      if (typeof output === 'string') {
+        const { text, truncated, total } = clampText(output, 120_000);
+        return `
+          <pre class="tools-session-pre">${escapeHtml(text)}</pre>
+          ${truncated ? `<p class="tools-session-truncate-note">Preview truncated (${total.toLocaleString('en-US')} characters).</p>` : ''}
+        `.trim();
+      }
+
+      if (!output || typeof output !== 'object' || Array.isArray(output)) {
+        if (!output) {
+          return `<p class="tools-dashboard-empty">${outputSummary ? escapeHtml(outputSummary) : 'No output saved for this session yet.'}</p>`;
+        }
+        try {
+          const json = JSON.stringify(output, null, 2);
+          const { text, truncated, total } = clampText(json, 120_000);
+          return `
+            <pre class="tools-session-pre">${escapeHtml(text)}</pre>
+            ${truncated ? `<p class="tools-session-truncate-note">Preview truncated (${total.toLocaleString('en-US')} characters).</p>` : ''}
+          `.trim();
+        } catch {
+          return `<p class="tools-dashboard-empty">${outputSummary ? escapeHtml(outputSummary) : 'Unable to preview output.'}</p>`;
+        }
+      }
+
+      const kind = String(output.kind || '').trim();
+      const summary = String(output.summary || outputSummary || '').trim();
+      const title = summary ? `<p class="tools-session-output-summary">${escapeHtml(summary)}</p>` : '';
+
+      if (kind === 'html') {
+        const html = sanitizePreviewHtml(output.html || '');
+        const styleVars = (() => {
+          if (toolId !== 'text-compare') return '';
+          const mapping = {
+            '--textcompare-ins-bg': 'textcompare-ins-bg',
+            '--textcompare-ins-text': 'textcompare-ins-text',
+            '--textcompare-del-bg': 'textcompare-del-bg',
+            '--textcompare-del-text': 'textcompare-del-text',
+            '--textcompare-del-strike': 'textcompare-del-strike'
+          };
+          const parts = [];
+          Object.entries(mapping).forEach(([cssVar, fieldKey]) => {
+            const value = normalizeHexColor(fields?.[fieldKey]?.value);
+            if (!value) return;
+            parts.push(`${cssVar}:${value}`);
+          });
+          return parts.length ? ` style="${parts.join(';')}"` : '';
+        })();
+        const classes = toolId === 'text-compare' ? 'tools-session-output textcompare-output' : 'tools-session-output';
+        return `
+          ${title}
+          <div class="${classes}"${styleVars}>${html || '<p class="tools-dashboard-empty">No preview available.</p>'}</div>
+        `.trim();
+      }
+
+      if (kind === 'text') {
+        const { text, truncated, total } = clampText(output.text || '', 120_000);
+        return `
+          ${title}
+          <pre class="tools-session-pre">${escapeHtml(text)}</pre>
+          ${truncated ? `<p class="tools-session-truncate-note">Preview truncated (${total.toLocaleString('en-US')} characters).</p>` : ''}
+        `.trim();
+      }
+
+      try {
+        const json = JSON.stringify(output, null, 2);
+        const { text, truncated, total } = clampText(json, 120_000);
+        return `
+          ${title}
+          <pre class="tools-session-pre">${escapeHtml(text)}</pre>
+          ${truncated ? `<p class="tools-session-truncate-note">Preview truncated (${total.toLocaleString('en-US')} characters).</p>` : ''}
+        `.trim();
+      } catch {
+        return `<p class="tools-dashboard-empty">Unable to preview output.</p>`;
+      }
+    };
+
+    const renderFields = (fields) => {
+      const entries = fields && typeof fields === 'object' ? Object.entries(fields) : [];
+      if (!entries.length) return '<p class="tools-dashboard-empty">No inputs saved for this session yet.</p>';
+
+      const safeEntries = entries
+        .filter(([key]) => Boolean(String(key || '').trim()))
+        .sort(([a], [b]) => String(a).localeCompare(String(b)));
+
+      return `
+        <div class="tools-session-fields">
+          ${safeEntries.map(([key, payload]) => {
+            const kind = String(payload?.kind || 'value');
+            const label = escapeHtml(key);
+
+            if (kind === 'checkbox') {
+              const checked = payload?.checked ? 'Checked' : 'Unchecked';
+              const value = String(payload?.value || '').trim();
+              return `
+                <details class="tools-session-field">
+                  <summary>${label}</summary>
+                  <p class="tools-session-field-meta">${escapeHtml(kind)} · ${escapeHtml(checked)}${value ? ` · value ${escapeHtml(value)}` : ''}</p>
+                </details>
+              `.trim();
+            }
+
+            if (kind === 'radio') {
+              const value = String(payload?.value || '');
+              const { text, truncated, total } = clampText(value, 80_000);
+              return `
+                <details class="tools-session-field">
+                  <summary>${label}</summary>
+                  <p class="tools-session-field-meta">${escapeHtml(kind)}</p>
+                  <pre class="tools-session-pre">${escapeHtml(text)}</pre>
+                  ${truncated ? `<p class="tools-session-truncate-note">Value truncated (${total.toLocaleString('en-US')} characters).</p>` : ''}
+                </details>
+              `.trim();
+            }
+
+            if (kind === 'multi') {
+              const values = Array.isArray(payload?.values) ? payload.values.map(v => String(v)) : [];
+              const joined = values.join(', ');
+              const { text, truncated, total } = clampText(joined, 80_000);
+              return `
+                <details class="tools-session-field">
+                  <summary>${label}</summary>
+                  <p class="tools-session-field-meta">${escapeHtml(kind)}</p>
+                  <pre class="tools-session-pre">${escapeHtml(text)}</pre>
+                  ${truncated ? `<p class="tools-session-truncate-note">Value truncated (${total.toLocaleString('en-US')} characters).</p>` : ''}
+                </details>
+              `.trim();
+            }
+
+            const value = String(payload?.value || '');
+            const { text, truncated, total } = clampText(value, 80_000);
+            return `
+              <details class="tools-session-field">
+                <summary>${label}</summary>
+                <p class="tools-session-field-meta">${escapeHtml(kind)}</p>
+                <pre class="tools-session-pre">${escapeHtml(text)}</pre>
+                ${truncated ? `<p class="tools-session-truncate-note">Value truncated (${total.toLocaleString('en-US')} characters).</p>` : ''}
+              </details>
+            `.trim();
+          }).join('')}
+        </div>
+      `.trim();
+    };
+
+    const renderSession = (record) => {
+      const toolId = String(record?.toolId || '').trim();
+      const sessionId = String(record?.sessionId || '').trim();
+      const info = getToolInfo(toolId);
+      const updated = record?.updatedAt ? formatTime(record.updatedAt) : '';
+      const created = record?.createdAt ? formatTime(record.createdAt) : '';
+      const outputSummary = String(record?.outputSummary || '').trim();
+      const snapshot = record?.snapshot && typeof record.snapshot === 'object' ? record.snapshot : {};
+      const fields = snapshot.fields && typeof snapshot.fields === 'object' ? snapshot.fields : {};
+      const output = typeof snapshot.output === 'undefined' ? null : snapshot.output;
+
+      const reopenHref = `${info.href}?session=${encodeURIComponent(sessionId)}`;
+
+      if (subtitleEl) {
+        subtitleEl.textContent = `${info.name}${updated ? ` · Updated ${updated}` : ''}${created && !updated ? ` · Created ${created}` : ''}`;
+      }
+
+      if (actionsEl) {
+        actionsEl.innerHTML = `
+          <a class="btn-secondary" href="${escapeHtml(reopenHref)}">Reopen</a>
+          <button type="button" class="btn-ghost" data-tools-session-action="delete">Delete</button>
+        `.trim();
+      }
+
+      if (bodyEl) {
+        bodyEl.innerHTML = `
+          <div class="tools-session-grid">
+            <section class="tools-dashboard-card" aria-labelledby="tools-session-output-title">
+              <header class="tools-dashboard-card-head">
+                <h2 id="tools-session-output-title">Output</h2>
+                <p class="tools-dashboard-subtitle">${outputSummary ? escapeHtml(outputSummary) : 'Saved output summary (if available).'}</p>
+              </header>
+              ${renderOutputPreview({ toolId, fields, output, outputSummary })}
+            </section>
+            <section class="tools-dashboard-card" aria-labelledby="tools-session-inputs-title">
+              <header class="tools-dashboard-card-head">
+                <h2 id="tools-session-inputs-title">Inputs</h2>
+                <p class="tools-dashboard-subtitle">Captured form fields for this session.</p>
+              </header>
+              ${renderFields(fields)}
+            </section>
+          </div>
+        `.trim();
+      }
+    };
+
+    const open = async ({ toolId, sessionId }) => {
+      const auth = window.ToolsAuth?.getAuth ? window.ToolsAuth.getAuth() : null;
+      const authed = window.ToolsAuth?.authIsValid ? window.ToolsAuth.authIsValid(auth) : false;
+      if (!authed) {
+        setStatus('Sign in to view saved session details.');
+        return;
+      }
+
+      currentToolId = String(toolId || '').trim();
+      currentSessionId = String(sessionId || '').trim();
+      if (!currentToolId || !currentSessionId) return;
+
+      modalEl.classList.add('active');
+      modalEl.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('modal-open');
+      try {
+        contentEl?.focus();
+      } catch {}
+
+      setStatus('Loading session...');
+      if (subtitleEl) subtitleEl.textContent = '';
+      if (actionsEl) actionsEl.innerHTML = '';
+      if (bodyEl) bodyEl.innerHTML = '';
+
+      let data;
+      try {
+        data = await window.ToolsState.getSession({ toolId: currentToolId, sessionId: currentSessionId });
+      } catch (err) {
+        setStatus(err?.message || 'Unable to load session.');
+        return;
+      }
+
+      setStatus('');
+      renderSession(data?.session);
+    };
+
+    const close = () => {
+      modalEl.classList.remove('active');
+      modalEl.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('modal-open');
+      setStatus('');
+      if (subtitleEl) subtitleEl.textContent = '';
+      if (actionsEl) actionsEl.innerHTML = '';
+      if (bodyEl) bodyEl.innerHTML = '';
+      currentToolId = '';
+      currentSessionId = '';
+    };
+
+    modalEl.addEventListener('click', async (event) => {
+      if (event.target === modalEl) close();
+      const actionEl = event.target.closest('[data-tools-session-action]');
+      if (!actionEl) return;
+      const action = String(actionEl.dataset.toolsSessionAction || '').trim();
+      if (action === 'close') {
+        close();
+        return;
+      }
+      if (action === 'delete') {
+        if (!currentToolId || !currentSessionId) return;
+        const ok = window.confirm('Delete this saved session? This cannot be undone.');
+        if (!ok) return;
+        try {
+          await window.ToolsState.deleteSession({ toolId: currentToolId, sessionId: currentSessionId });
+          document.querySelectorAll(`[data-session-tool="${CSS.escape(currentToolId)}"][data-session-id="${CSS.escape(currentSessionId)}"]`).forEach((el) => el.remove());
+          close();
+        } catch (err) {
+          setStatus(err?.message || 'Unable to delete session.');
+        }
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      if (modalEl.classList.contains('active')) close();
+    });
+
+    return { open, close };
   };
 
   const initAccountBar = ({ toolId, root, toolActionsEnabled, onOpenAccount } = {}) => {
@@ -593,7 +1007,7 @@
     return { barEl, setStatus };
   };
 
-  const initDashboard = async ({ setStatus }) => {
+  const initDashboard = async ({ setStatus, onViewSession } = {}) => {
     const statusEl = $('[data-tools-dashboard="status"]');
     const toolsEl = $('[data-tools-dashboard="tools"]');
     const sessionsEl = $('[data-tools-dashboard="sessions"]');
@@ -676,6 +1090,7 @@
               </div>
               <div class="tools-dashboard-item-actions">
                 <a class="btn-secondary" href="${escapeHtml(href)}">Reopen</a>
+                <button type="button" class="btn-secondary" data-tools-action="view-session">View</button>
                 <button type="button" class="btn-ghost" data-tools-action="delete-session">Delete</button>
               </div>
             </div>
@@ -712,6 +1127,17 @@
 
     if (sessionsEl) {
       sessionsEl.addEventListener('click', async (event) => {
+        const viewButton = event.target.closest('[data-tools-action="view-session"]');
+        if (viewButton) {
+          const row = viewButton.closest('[data-session-tool][data-session-id]');
+          if (!row) return;
+          const toolId = String(row.dataset.sessionTool || '').trim();
+          const sessionId = String(row.dataset.sessionId || '').trim();
+          if (!toolId || !sessionId) return;
+          if (typeof onViewSession === 'function') onViewSession({ toolId, sessionId });
+          return;
+        }
+
         const button = event.target.closest('[data-tools-action="delete-session"]');
         if (!button) return;
         const row = button.closest('[data-session-tool][data-session-id]');
@@ -743,6 +1169,7 @@
     let sessionId = sessionIdFromUrl || (authed ? getActiveSessionId(toolId) : '') || '';
     let dirty = false;
     let saveInFlight = false;
+    let isApplying = false;
 
     const updateStatus = (message) => {
       if (setStatus) setStatus(message, sessionId);
@@ -763,7 +1190,10 @@
         const data = await window.ToolsState.getSession({ toolId, sessionId });
         const snapshot = data?.session?.snapshot;
         if (snapshot && typeof snapshot === 'object') {
+          isApplying = true;
           applyToolFields(root, snapshot.fields || {});
+          isApplying = false;
+          notifySessionApplied({ toolId, root, sessionId, snapshot });
           updateStatus('Session loaded.');
           setTimeout(() => updateStatus(''), 1500);
           try {
@@ -783,8 +1213,17 @@
       updateStatus('Saving...');
 
       const snapshot = buildSnapshot({ toolId, root });
+      const captured = captureToolPayload({ toolId, root, sessionId, snapshot });
+      const outputSummary = String(captured?.outputSummary || '').trim();
+      if (typeof captured?.output !== 'undefined') snapshot.output = captured.output;
       try {
-        const res = await window.ToolsState.saveSession({ toolId, sessionId: sessionId || undefined, snapshot, keepalive: !!keepalive });
+        const res = await window.ToolsState.saveSession({
+          toolId,
+          sessionId: sessionId || undefined,
+          snapshot,
+          outputSummary: outputSummary || undefined,
+          keepalive: !!keepalive
+        });
         const nextSessionId = res?.session?.sessionId ? String(res.session.sessionId) : sessionId;
         if (nextSessionId && nextSessionId !== sessionId) {
           sessionId = nextSessionId;
@@ -809,10 +1248,17 @@
       saveSession().catch(() => {});
     });
 
+    document.addEventListener('tools:session-dirty', (event) => {
+      if (event?.detail?.toolId && event.detail.toolId !== toolId) return;
+      dirty = true;
+    });
+
     root.addEventListener('input', () => {
+      if (isApplying) return;
       dirty = true;
     });
     root.addEventListener('change', () => {
+      if (isApplying) return;
       dirty = true;
     });
 
@@ -862,7 +1308,8 @@
     const autosaveMode = String(document.body?.dataset?.toolsAutosave || '').trim().toLowerCase();
     const toolActionsEnabled = autosaveMode !== 'false' && autosaveMode !== 'off' && autosaveMode !== '0';
 
-    const accountModal = initAccountModal();
+    const sessionModal = initSessionModal();
+    const accountModal = initAccountModal({ onViewSession: sessionModal.open });
     const { setStatus } = initAccountBar({
       toolId: page === 'tools-dashboard' ? '' : toolId,
       root,
@@ -886,7 +1333,7 @@
     });
 
     if (page === 'tools-dashboard') {
-      initDashboard({ setStatus }).catch(() => {});
+      initDashboard({ setStatus, onViewSession: sessionModal.open }).catch(() => {});
       return;
     }
 

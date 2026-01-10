@@ -193,4 +193,116 @@
     overflow-wrap:anywhere;
     text-align:right;
   }
+
+  .tools-session-modal-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    justify-content:center;
+  }
+
+  .tools-session-modal-status{
+    min-height:1.2em;
+    margin:0;
+    color:var(--text-muted);
+    font-size:.95rem;
+    line-height:1.6;
+    text-align:center;
+  }
+
+  .tools-session-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
+    gap:clamp(16px,3vw,22px);
+    align-items:start;
+  }
+
+  .tools-session-output-summary{
+    margin:0 0 12px;
+    color:var(--text-muted);
+    font-size:.95rem;
+    line-height:1.6;
+  }
+
+  .tools-session-output:not(.textcompare-output){
+    padding:14px 14px;
+    border-radius:14px;
+    border:1px solid color-mix(in srgb,var(--primary) 14%, transparent);
+    background:color-mix(in srgb,var(--surface) 92%, #000 8%);
+    overflow:auto;
+    max-height:min(520px, 60vh);
+  }
+
+  .tools-session-fields{
+    display:grid;
+    gap:10px;
+  }
+
+  .tools-session-field{
+    border-radius:14px;
+    border:1px solid color-mix(in srgb,var(--primary) 14%, transparent);
+    background:color-mix(in srgb,var(--surface) 92%, #000 8%);
+    padding:10px 12px;
+  }
+
+  .tools-session-field > summary{
+    cursor:pointer;
+    list-style:none;
+    font-family:'Poppins';
+    font-weight:600;
+    letter-spacing:.01em;
+    color:color-mix(in srgb,var(--text-light) 92%, #ffffff 8%);
+  }
+
+  .tools-session-field > summary::-webkit-details-marker{
+    display:none;
+  }
+
+  .tools-session-field > summary::before{
+    content:"▸";
+    display:inline-block;
+    width:1em;
+    margin-right:6px;
+    color:color-mix(in srgb,var(--primary) 78%, #ffffff 22%);
+    transition:transform .2s ease;
+  }
+
+  .tools-session-field[open] > summary::before{
+    transform:rotate(90deg);
+  }
+
+  .tools-session-field-meta{
+    margin:8px 0 10px;
+    color:var(--text-muted);
+    font-size:.9rem;
+    line-height:1.5;
+  }
+
+  .tools-session-pre{
+    margin:0;
+    padding:12px 12px;
+    border-radius:12px;
+    border:1px solid color-mix(in srgb,var(--primary) 14%, transparent);
+    background:color-mix(in srgb,var(--surface) 96%, #02070d 4%);
+    color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
+    white-space:pre-wrap;
+    overflow-wrap:anywhere;
+    max-height:min(480px, 55vh);
+    overflow:auto;
+    font-size:.93rem;
+    line-height:1.6;
+  }
+
+  .tools-session-truncate-note{
+    margin:10px 0 0;
+    color:var(--text-muted);
+    font-size:.9rem;
+    line-height:1.5;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .tools-session-field > summary::before{
+      transition:none !important;
+    }
+  }
 }

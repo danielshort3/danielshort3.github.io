@@ -25,6 +25,7 @@
 
   if (!form || !originalEl || !revisedEl || !outputEl || !summaryEl) return;
 
+  const TOOL_ID = 'text-compare';
   const MAX_CHARS = 600_000;
   const MAX_TOKENS = 200_000;
   const MAX_TRACE_CELLS = 16_000_000;
@@ -38,6 +39,12 @@
   };
   let lastRuns = null;
   let lastRevisedText = '';
+
+  const markSessionDirty = () => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:session-dirty', { detail: { toolId: TOOL_ID } }));
+    } catch {}
+  };
 
   const escapeHtml = (s) => String(s || '')
     .replace(/&/g, '&amp;')
@@ -668,6 +675,7 @@
 
   const runCompare = () => {
     setCopyStatus('');
+    markSessionDirty();
     const originalInput = originalEl.value || '';
     const revisedInput = revisedEl.value || '';
     const originalHasUser = Boolean(originalInput.trim());
@@ -680,6 +688,7 @@
       setEmpty('Paste text in both boxes, then click Compare.');
       lastRuns = null;
       lastRevisedText = '';
+      markSessionDirty();
       return;
     }
 
@@ -688,6 +697,7 @@
       setEmpty('Waiting for input.');
       lastRuns = null;
       lastRevisedText = '';
+      markSessionDirty();
       return;
     }
 
@@ -696,6 +706,7 @@
       setEmpty('Input too large.');
       lastRuns = null;
       lastRevisedText = '';
+      markSessionDirty();
       return;
     }
 
@@ -710,6 +721,7 @@
         setEmpty('Input too large.');
         lastRuns = null;
         lastRevisedText = '';
+        markSessionDirty();
         return;
       }
 
@@ -744,6 +756,7 @@
 
       if (!insertedWords && !deletedWords) {
         summaryEl.textContent = 'No differences found.';
+        markSessionDirty();
         return;
       }
       const parts = [];
@@ -751,6 +764,7 @@
       if (deletedWords) parts.push(`${deletedWords.toLocaleString('en-US')} deleted words`);
       if (replacements) parts.push(`${replacements.toLocaleString('en-US')} replacements`);
       summaryEl.textContent = `Changes: ${parts.join(' · ')}.`;
+      markSessionDirty();
     });
   };
 
@@ -779,6 +793,7 @@
     lastRuns = null;
     lastRevisedText = '';
     setCopyStatus('');
+    markSessionDirty();
     originalEl.focus();
   });
 
@@ -790,4 +805,56 @@
   });
 
   copyBtn?.addEventListener('click', copyFormatted);
+  const MAX_SAVED_OUTPUT_HTML_CHARS = 120_000;
+  const MAX_SAVED_OUTPUT_TEXT_CHARS = 120_000;
+
+  const clampText = (value, maxChars) => {
+    const text = String(value || '');
+    if (text.length <= maxChars) return { text, truncated: false };
+    return { text: text.slice(0, maxChars), truncated: true };
+  };
+
+  document.addEventListener('tools:session-capture', (event) => {
+    const detail = event?.detail;
+    if (detail?.toolId !== TOOL_ID) return;
+    const payload = detail?.payload;
+    if (!payload || typeof payload !== 'object') return;
+
+    const summary = String(summaryEl?.textContent || '').trim();
+    payload.outputSummary = summary;
+
+    const html = String(outputEl?.innerHTML || '').trim();
+    if (html && html.length <= MAX_SAVED_OUTPUT_HTML_CHARS) {
+      payload.output = { kind: 'html', html, summary };
+      return;
+    }
+
+    const content = String(outputEl?.textContent || '').trim();
+    const { text, truncated } = clampText(content, MAX_SAVED_OUTPUT_TEXT_CHARS);
+    payload.output = { kind: 'text', text, summary, truncated };
+  });
+
+  document.addEventListener('tools:session-applied', (event) => {
+    const detail = event?.detail;
+    if (detail?.toolId !== TOOL_ID) return;
+    const snapshot = detail?.snapshot;
+    const output = snapshot?.output;
+    if (!output || typeof output !== 'object') return;
+
+    const summary = String(output.summary || '').trim();
+    if (summary) summaryEl.textContent = summary;
+
+    const kind = String(output.kind || '').trim();
+    if (kind === 'html') {
+      outputEl.innerHTML = String(output.html || '').trim() || '<p class="textcompare-empty">No output.</p>';
+      return;
+    }
+
+    if (kind === 'text') {
+      const raw = String(output.text || '').trim();
+      outputEl.innerHTML = raw
+        ? `<pre>${escapeHtml(raw)}</pre>`
+        : '<p class="textcompare-empty">No output.</p>';
+    }
+  });
 })();
