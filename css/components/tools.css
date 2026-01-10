@@ -3,7 +3,7 @@
   .tools-hero{
     position:relative;
     overflow:hidden;
-    padding:clamp(1.1rem,3vh,1.6rem) 0;
+    padding:clamp(1.2rem,3.2vh,1.9rem) 0 clamp(1.5rem,4vh,2.3rem);
     background:
       radial-gradient(900px circle at 8% 12%, color-mix(in srgb,var(--primary) 28%, transparent), transparent 60%),
       radial-gradient(800px circle at 92% 0%, color-mix(in srgb,var(--primary) 22%, #ffffff 8%), transparent 55%),
@@ -17,6 +17,7 @@
     max-width:var(--container-max);
     display:flex;
     align-items:center;
+    min-width:0;
   }
 
   .tools-hero .hero-eyebrow{
