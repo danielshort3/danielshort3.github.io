@@ -7,17 +7,21 @@ import secrets
 import subprocess
 import time
 import wave
+from urllib.parse import parse_qs
 
 import audioop
 import numpy as np
 
 MODEL_ID = os.getenv("MODEL_ID", "openai/whisper-tiny.en")
 TARGET_SAMPLE_RATE = int(os.getenv("TARGET_SAMPLE_RATE", "16000"))
-MAX_AUDIO_SECONDS = float(os.getenv("MAX_AUDIO_SECONDS", "30"))
+MAX_AUDIO_SECONDS = float(os.getenv("MAX_AUDIO_SECONDS", "0"))
 DEFAULT_MAX_DIRECT_BYTES = 5 * 1024 * 1024
 MAX_AUDIO_BYTES = int(os.getenv("MAX_AUDIO_BYTES", str(DEFAULT_MAX_DIRECT_BYTES)))
 MAX_DIRECT_UPLOAD_BYTES = int(os.getenv("MAX_DIRECT_UPLOAD_BYTES", str(MAX_AUDIO_BYTES)))
 MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(MAX_DIRECT_UPLOAD_BYTES)))
+MAX_PART_MINUTES = int(os.getenv("MAX_PART_MINUTES", "30"))
+DEFAULT_PART_MINUTES = int(os.getenv("DEFAULT_PART_MINUTES", str(min(30, MAX_PART_MINUTES))))
+PROMPT_MAX_TOKENS = int(os.getenv("PROMPT_MAX_TOKENS", "224"))
 NUM_BEAMS = int(os.getenv("NUM_BEAMS", "1"))
 MAX_NEW_TOKENS = int(os.getenv("MAX_NEW_TOKENS", "256"))
 
@@ -86,6 +90,37 @@ def header_value(event, name):
   return ""
 
 
+def query_value(event, name):
+  needle = (name or "").strip().lower()
+  if not needle:
+    return ""
+
+  params = event.get("queryStringParameters") if event else None
+  if isinstance(params, dict):
+    for key, value in params.items():
+      if str(key or "").strip().lower() == needle:
+        return "" if value is None else str(value)
+
+  raw = event.get("rawQueryString") if event else None
+  if isinstance(raw, str) and raw.strip():
+    try:
+      parsed = parse_qs(raw, keep_blank_values=True)
+      for key, values in parsed.items():
+        if str(key or "").strip().lower() == needle and values:
+          return "" if values[0] is None else str(values[0])
+    except Exception:
+      return ""
+  return ""
+
+
+def clamp_int(value, min_value, max_value, fallback):
+  try:
+    parsed = int(value)
+  except Exception:
+    return fallback
+  return max(min_value, min(max_value, parsed))
+
+
 def decode_body_bytes(event):
   if not event:
     return b""
@@ -118,8 +153,15 @@ def load_whisper():
   if _MODEL is not None and _PROCESSOR is not None:
     return _MODEL, _PROCESSOR
 
+  import warnings
   import torch
   from transformers import WhisperForConditionalGeneration, WhisperProcessor
+  try:
+    from transformers.utils import logging as transformers_logging
+    transformers_logging.set_verbosity_error()
+  except Exception:
+    pass
+  warnings.filterwarnings("ignore", message="`resume_download` is deprecated", category=FutureWarning)
 
   torch.set_grad_enabled(False)
   torch.set_num_threads(1)
@@ -477,20 +519,124 @@ def wav_to_float32_mono_16k(wav_bytes):
   return audio, sample_rate, duration_seconds
 
 
-def transcribe(audio, sample_rate):
+def build_prompt_ids(processor, text):
+  raw = (text or "").strip()
+  if not raw:
+    return None
+  try:
+    ids = processor.tokenizer(raw, add_special_tokens=False).input_ids
+  except Exception:
+    return None
+  if not ids:
+    return None
+  ids = ids[-max(1, int(PROMPT_MAX_TOKENS)):]
+  import torch
+  return torch.tensor(ids, dtype=torch.long)
+
+
+def transcribe_long_form(audio, sample_rate, part_minutes):
   import torch
 
   model, processor = load_whisper()
-  inputs = processor(audio, sampling_rate=sample_rate, return_tensors="pt")
-  forced_decoder_ids = processor.get_decoder_prompt_ids(language="en", task="transcribe")
-  predicted_ids = model.generate(
-    inputs.input_features,
-    forced_decoder_ids=forced_decoder_ids,
-    num_beams=max(1, NUM_BEAMS),
-    max_new_tokens=max(1, MAX_NEW_TOKENS)
-  )
-  text = processor.batch_decode(predicted_ids, skip_special_tokens=True)[0]
-  return (text or "").strip()
+  try:
+    short_samples = int(getattr(processor.feature_extractor, "n_samples"))
+  except Exception:
+    short_samples = int(sample_rate * 30)
+  minutes = clamp_int(part_minutes, 1, max(1, int(MAX_PART_MINUTES)), int(DEFAULT_PART_MINUTES))
+  part_seconds = max(60, minutes * 60)
+  part_samples = max(1, int(part_seconds * sample_rate))
+  try:
+    max_target_positions = int(getattr(model.config, "max_target_positions"))
+  except Exception:
+    max_target_positions = 448
+  safe_prompt_limit = max(0, max_target_positions - max(1, int(MAX_NEW_TOKENS)) - 1)
+
+  prompt_ids = None
+  parts = []
+  full_text_pieces = []
+  total_samples = len(audio) if audio is not None else 0
+  offset = 0
+  index = 0
+
+  while offset < total_samples:
+    end = min(total_samples, offset + part_samples)
+    chunk = audio[offset:end]
+    is_short = len(chunk) <= short_samples
+    feats = processor.feature_extractor(
+      chunk,
+      sampling_rate=sample_rate,
+      return_tensors="pt",
+      truncation=bool(is_short),
+      padding=("max_length" if is_short else "longest"),
+      return_attention_mask=True
+    )
+
+    kwargs = {
+      "attention_mask": feats.attention_mask,
+      "return_timestamps": True,
+      "return_segments": True,
+      "condition_on_prev_tokens": True,
+      "return_dict_in_generate": True,
+      "num_beams": max(1, NUM_BEAMS),
+      "max_new_tokens": max(1, MAX_NEW_TOKENS)
+    }
+    if prompt_ids is not None:
+      if safe_prompt_limit > 0 and len(prompt_ids) > safe_prompt_limit:
+        kwargs["prompt_ids"] = prompt_ids[-safe_prompt_limit:]
+      else:
+        kwargs["prompt_ids"] = prompt_ids
+
+    with torch.no_grad():
+      out = model.generate(feats.input_features, **kwargs)
+
+    segs = out.get("segments") if isinstance(out, dict) else None
+    seg_list = segs[0] if isinstance(segs, list) and segs else None
+    chunk_text = ""
+
+    if isinstance(seg_list, list) and seg_list:
+      chunk_text_pieces = []
+      for seg in seg_list:
+        ids = seg.get("tokens")
+        if ids is None:
+          result = seg.get("result")
+          if isinstance(result, dict):
+            ids = result.get("sequences")
+          else:
+            ids = result
+        if ids is None:
+          continue
+        try:
+          text = processor.tokenizer.decode(ids, skip_special_tokens=True)
+        except Exception:
+          text = ""
+        if text:
+          chunk_text_pieces.append(text)
+      chunk_text = ("".join(chunk_text_pieces)).strip()
+    else:
+      sequences = out.get("sequences") if isinstance(out, dict) else out
+      if isinstance(sequences, torch.Tensor) and sequences.dim() == 1:
+        sequences = sequences.unsqueeze(0)
+      try:
+        texts = processor.tokenizer.batch_decode(sequences, skip_special_tokens=True)
+      except Exception:
+        texts = []
+      chunk_text = (texts[0] if texts else "").strip()
+    part_start_sec = float(offset) / float(sample_rate)
+    part_end_sec = float(end) / float(sample_rate)
+    parts.append({
+      "index": index + 1,
+      "start_sec": round(part_start_sec, 4),
+      "end_sec": round(part_end_sec, 4),
+      "transcript": chunk_text
+    })
+    full_text_pieces.append(chunk_text)
+
+    prompt_ids = build_prompt_ids(processor, chunk_text)
+    offset = end
+    index += 1
+
+  full_text = "\n\n".join([p for p in full_text_pieces if p]).strip()
+  return full_text, parts, part_seconds
 
 
 def handler(event, context):
@@ -514,6 +660,8 @@ def handler(event, context):
       "model_loaded": _MODEL is not None,
       "target_sample_rate": TARGET_SAMPLE_RATE,
       "max_audio_seconds": MAX_AUDIO_SECONDS,
+      "max_part_minutes": MAX_PART_MINUTES,
+      "default_part_minutes": DEFAULT_PART_MINUTES,
       "max_audio_bytes": MAX_DIRECT_UPLOAD_BYTES,
       "max_direct_upload_bytes": MAX_DIRECT_UPLOAD_BYTES,
       "max_upload_bytes": MAX_UPLOAD_BYTES,
@@ -558,13 +706,16 @@ def handler(event, context):
     token = str(time.time_ns())
     input_path = f"/tmp/whisper-s3-{token}"
     try:
+      part_minutes = query_value(event, "part_minutes") or query_value(event, "partMinutes") or DEFAULT_PART_MINUTES
       mime_type, _ = download_s3_object(UPLOAD_BUCKET, key, input_path)
       wav_bytes = ffmpeg_file_to_wav_16k_mono(input_path)
       audio, sample_rate, duration_seconds = wav_to_float32_mono_16k(wav_bytes)
-      transcript = transcribe(audio, sample_rate)
+      transcript, parts, part_seconds = transcribe_long_form(audio, sample_rate, part_minutes)
       duration_ms = int((time.time() - start) * 1000)
       return json_response(200, {
         "transcript": transcript,
+        "parts": parts,
+        "part_seconds": part_seconds,
         "model": MODEL_ID,
         "language": "en",
         "audio_seconds": round(float(duration_seconds), 4),
@@ -657,10 +808,13 @@ def handler(event, context):
     return json_response(400, {"error": "Invalid audio payload."})
 
   try:
-    transcript = transcribe(audio, sample_rate)
+    part_minutes = query_value(event, "part_minutes") or query_value(event, "partMinutes") or DEFAULT_PART_MINUTES
+    transcript, parts, part_seconds = transcribe_long_form(audio, sample_rate, part_minutes)
     duration_ms = int((time.time() - start) * 1000)
     return json_response(200, {
       "transcript": transcript,
+      "parts": parts,
+      "part_seconds": part_seconds,
       "model": MODEL_ID,
       "language": "en",
       "audio_seconds": round(float(duration_seconds), 4),

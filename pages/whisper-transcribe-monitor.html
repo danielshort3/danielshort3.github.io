@@ -50,26 +50,61 @@
 
     <section class="surface-band tools-section whispermon-section">
       <div class="wrapper whispermon-grid">
-        <article class="whispermon-card">
-          <h2>Status</h2>
-          <div class="health-row whispermon-health-row" role="status" aria-live="polite">
-            <span id="whispermon-health-pill" class="health-pill" data-state="warming">Warming AWS</span>
-          </div>
-          <p class="contact-form-status whispermon-status-meta" id="whispermon-endpoint-status" role="status" aria-live="polite">Checking endpoint…</p>
-          <div class="form-actions">
-            <button type="button" class="btn-secondary" id="whispermon-check">Check status</button>
-          </div>
-        </article>
-
         <article class="whispermon-card whispermon-card-wide">
           <h2>Transcribe</h2>
+          <div class="whispermon-status-bar" aria-label="AWS status">
+            <div class="health-row whispermon-health-row" role="status" aria-live="polite">
+              <span id="whispermon-health-pill" class="health-pill" data-state="warming">Warming up</span>
+              <span class="whispermon-status-meta" id="whispermon-endpoint-status">Connecting to AWS Lambda…</span>
+            </div>
+            <div class="whispermon-status-actions">
+              <button type="button" class="btn-secondary" id="whispermon-check">Check status</button>
+            </div>
+          </div>
+          <div class="whispermon-stats" aria-label="Endpoint limits">
+            <div class="whispermon-stat">
+              <div class="whispermon-stat-label">Model</div>
+              <div class="whispermon-stat-value" id="whispermon-stat-model">—</div>
+            </div>
+            <div class="whispermon-stat">
+              <div class="whispermon-stat-label">Direct limit</div>
+              <div class="whispermon-stat-value" id="whispermon-stat-direct-limit">—</div>
+            </div>
+            <div class="whispermon-stat">
+              <div class="whispermon-stat-label">Upload limit</div>
+              <div class="whispermon-stat-value" id="whispermon-stat-upload-limit">—</div>
+            </div>
+            <div class="whispermon-stat">
+              <div class="whispermon-stat-label">Max part length</div>
+              <div class="whispermon-stat-value" id="whispermon-stat-part-max">—</div>
+            </div>
+          </div>
           <form id="whispermon-form" class="contact-form" novalidate>
             <div class="form-field">
               <label for="whispermon-file">Audio or video file</label>
               <input id="whispermon-file" type="file" accept="audio/*,video/*">
-              <p class="contact-form-note">Tip: keep it short. Video files are converted to audio before transcription. Do not upload sensitive media.</p>
+              <p class="contact-form-note">Direct uploads are limited to ~5 MB. Larger uploads use a presigned S3 upload. Video files are converted to audio before transcription. Do not upload sensitive media.</p>
             </div>
             <div class="whispermon-audio-meta" id="whispermon-audio-meta" aria-live="polite">No media loaded.</div>
+            <div class="whispermon-meter-block" aria-label="Direct request size capacity">
+              <p class="whispermon-meter-label">Direct request size</p>
+              <div class="whispermon-meter" role="presentation">
+                <div class="whispermon-meter-fill" id="whispermon-direct-meter-fill"></div>
+              </div>
+              <p class="whispermon-meter-meta" id="whispermon-direct-meter-meta">Select a file to compare against the direct request limit.</p>
+            </div>
+            <div class="whispermon-meter-block" aria-label="Upload size capacity">
+              <p class="whispermon-meter-label">Total upload size</p>
+              <div class="whispermon-meter" role="presentation">
+                <div class="whispermon-meter-fill" id="whispermon-upload-meter-fill"></div>
+              </div>
+              <p class="whispermon-meter-meta" id="whispermon-upload-meter-meta">Select a file to compare against the upload limit.</p>
+            </div>
+            <div class="form-field">
+              <label for="whispermon-part-minutes">Part length (minutes)</label>
+              <input id="whispermon-part-minutes" type="range" min="5" max="30" value="30">
+              <p class="contact-form-note" id="whispermon-part-minutes-meta">Splits long media into 30-minute parts for transcription.</p>
+            </div>
             <div class="whispermon-upload-progress" id="whispermon-upload-progress-wrap" data-state="hidden">
               <span class="whispermon-upload-progress-label" id="whispermon-upload-progress-label">Upload progress</span>
               <progress class="whispermon-upload-progress-bar" id="whispermon-upload-progress" value="0" max="1">0%</progress>
