@@ -41,12 +41,13 @@ aws lambda create-function \
   --package-type Image \
   --code ImageUri=886623862678.dkr.ecr.us-east-2.amazonaws.com/whisper-transcribe:latest \
   --role arn:aws:iam::886623862678:role/whisperTranscribeLambdaRole \
-  --memory-size 2048 \
-  --timeout 120
+  --memory-size 3008 \
+  --timeout 900
 
 aws lambda update-function-configuration \
   --function-name whisper-transcribe \
-  --environment "Variables={MODEL_ID=openai/whisper-tiny.en,TARGET_SAMPLE_RATE=16000,MAX_AUDIO_SECONDS=30,MAX_AUDIO_BYTES=5242880,MAX_DIRECT_UPLOAD_BYTES=5242880,MAX_UPLOAD_BYTES=52428800,UPLOAD_BUCKET=danielshort-whisper-transcribe-uploads-886623862678-us-east-2,UPLOAD_PREFIX=whisper-uploads/,UPLOAD_URL_TTL_SEC=300,DELETE_UPLOAD_AFTER_TRANSCRIBE=true,NUM_BEAMS=1,MAX_NEW_TOKENS=256}"
+  --ephemeral-storage Size=1024 \
+  --environment "Variables={MODEL_ID=openai/whisper-tiny.en,TARGET_SAMPLE_RATE=16000,MAX_AUDIO_SECONDS=0,MAX_AUDIO_BYTES=5242880,MAX_DIRECT_UPLOAD_BYTES=5242880,MAX_UPLOAD_BYTES=104857600,UPLOAD_BUCKET=danielshort-whisper-transcribe-uploads-886623862678-us-east-2,UPLOAD_PREFIX=whisper-uploads/,UPLOAD_URL_TTL_SEC=300,DELETE_UPLOAD_AFTER_TRANSCRIBE=true,MAX_PART_MINUTES=30,DEFAULT_PART_MINUTES=30,PROMPT_MAX_TOKENS=224,FFMPEG_TIMEOUT_SEC=300,NUM_BEAMS=1,MAX_NEW_TOKENS=256}"
 ```
 
 ## Optional: enable larger uploads via S3
@@ -118,7 +119,7 @@ POST the file bytes directly and set `Content-Type` to the file's MIME type (exa
 curl -X POST \
   -H "Content-Type: audio/mpeg" \
   --data-binary @sample.mp3 \
-  "https://coxbbervgzwhm5tu53dutxwfca0vxdkg.lambda-url.us-east-2.on.aws/transcribe"
+  "https://coxbbervgzwhm5tu53dutxwfca0vxdkg.lambda-url.us-east-2.on.aws/transcribe?part_minutes=30"
 ```
 
 ### Option B: JSON base64 payload (compat)
@@ -130,8 +131,13 @@ curl -X POST \
 Notes:
 - Audio/video inputs are converted to 16kHz mono WAV (PCM) via `ffmpeg` before transcription.
 - The handler accepts `/` and `/transcribe`.
+- Long media can be split into parts with `part_minutes` (1..`MAX_PART_MINUTES`, default `DEFAULT_PART_MINUTES`).
+- Responses include:
+  - `transcript`: combined transcript
+  - `parts`: per-part transcripts with `{ index, start_sec, end_sec, transcript }`
+  - `part_seconds`: the part length used (seconds)
 - Optional S3 upload flow:
   - `POST /presign` (JSON) → returns `{ upload_url, fields, key }`
   - browser uploads to S3
-  - `POST /transcribe-s3` (JSON `{ key }`) → returns transcript
-- Limits are enforced with `MAX_AUDIO_SECONDS`, `MAX_DIRECT_UPLOAD_BYTES`, and `MAX_UPLOAD_BYTES`.
+  - `POST /transcribe-s3?part_minutes=30` (JSON `{ key }`) → returns transcript
+- Duration limits are disabled by default (`MAX_AUDIO_SECONDS=0`). Size limits are enforced with `MAX_DIRECT_UPLOAD_BYTES` and `MAX_UPLOAD_BYTES` (100 MB in the config above).

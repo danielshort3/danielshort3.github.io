@@ -15,6 +15,11 @@
   const endpointStatusEl = $id('whispermon-endpoint-status');
   const checkBtn = $id('whispermon-check');
 
+  const statModelEl = $id('whispermon-stat-model');
+  const statDirectLimitEl = $id('whispermon-stat-direct-limit');
+  const statUploadLimitEl = $id('whispermon-stat-upload-limit');
+  const statPartMaxEl = $id('whispermon-stat-part-max');
+
   const formEl = $id('whispermon-form');
   const fileEl = $id('whispermon-file');
   const audioMetaEl = $id('whispermon-audio-meta');
@@ -27,11 +32,21 @@
   const progressLabelEl = $id('whispermon-upload-progress-label');
   const progressBarEl = $id('whispermon-upload-progress');
 
+  const partMinutesEl = $id('whispermon-part-minutes');
+  const partMinutesMetaEl = $id('whispermon-part-minutes-meta');
+
+  const directMeterFillEl = $id('whispermon-direct-meter-fill');
+  const directMeterMetaEl = $id('whispermon-direct-meter-meta');
+  const uploadMeterFillEl = $id('whispermon-upload-meter-fill');
+  const uploadMeterMetaEl = $id('whispermon-upload-meter-meta');
+
   const transcriptEl = $id('whispermon-transcript');
   const copyTranscriptBtn = $id('whispermon-copy-transcript');
   const transcriptStatusEl = $id('whispermon-transcript-status');
 
   if (!formEl || !fileEl || !startBtn) return;
+
+  const STORAGE_PART_MINUTES = 'tool.whisperTranscribe.partMinutes';
 
   let serverReady = false;
   let serverInfo = {
@@ -40,17 +55,21 @@
     maxAudioSeconds: null,
     maxUploadBytes: null,
     maxDirectBytes: null,
-    uploadsEnabled: false
+    uploadsEnabled: false,
+    maxPartMinutes: 30,
+    defaultPartMinutes: 30
   };
 
   let audioState = {
     filename: '',
     mime: 'application/octet-stream',
     bytes: 0,
-    file: null
+    file: null,
+    durationSeconds: null
   };
 
   let activeRequest = null;
+  let durationProbeSeq = 0;
 
   const safeGet = (key) => {
     if (!key) return null;
@@ -120,12 +139,23 @@
     return num.toFixed(digits).replace(/\.00$/, '');
   };
 
+  const clampInt = (value, min, max, fallback) => {
+    const parsed = Number.parseInt(String(value || ''), 10);
+    if (Number.isNaN(parsed)) return fallback;
+    return Math.min(max, Math.max(min, parsed));
+  };
+
   const formatBytes = (bytes) => {
     const value = Number(bytes);
     if (!Number.isFinite(value) || value <= 0) return '—';
     const mb = value / (1024 * 1024);
     if (mb >= 1) return `${formatNumber(mb, 2)} MB`;
     return `${formatNumber(value / 1024, 1)} KB`;
+  };
+
+  const setStat = (el, value) => {
+    if (!el) return;
+    el.textContent = (value || '').trim() || '—';
   };
 
   const createSilentWavBlob = (durationMs) => {
@@ -160,6 +190,21 @@
     view.setUint32(40, dataBytes, true);
 
     return new Blob([buffer], { type: 'audio/wav' });
+  };
+
+  const currentPartMinutes = () => {
+    const max = clampInt(serverInfo.maxPartMinutes, 1, 60, 30);
+    const defaultMinutes = clampInt(serverInfo.defaultPartMinutes, 1, max, 30);
+    const minMinutes = 5;
+    const sliderMin = Math.min(minMinutes, max);
+    return clampInt(partMinutesEl?.value, sliderMin, max, defaultMinutes);
+  };
+
+  const updatePartMinutesMeta = () => {
+    const minutes = currentPartMinutes();
+    if (partMinutesMetaEl) {
+      partMinutesMetaEl.textContent = `Splits long media into ${minutes}-minute parts for transcription.`;
+    }
   };
 
   const setBusy = (busy) => {
@@ -242,11 +287,83 @@
     }
   };
 
+  const setMeter = ({ fillEl, metaEl, ratio, tone, meta }) => {
+    const safeRatio = Math.min(1, Math.max(0, Number(ratio) || 0));
+    if (fillEl) {
+      fillEl.style.width = `${safeRatio * 100}%`;
+      if (tone) fillEl.dataset.tone = tone;
+      else delete fillEl.dataset.tone;
+    }
+    if (metaEl) metaEl.textContent = meta || '';
+  };
+
+  const probeMediaDuration = async (file) => {
+    if (!file || !window.URL || typeof window.URL.createObjectURL !== 'function') return null;
+    durationProbeSeq += 1;
+    const seq = durationProbeSeq;
+    const src = window.URL.createObjectURL(file);
+    const tag = String(file.type || '').toLowerCase().startsWith('video') ? 'video' : 'audio';
+    const el = document.createElement(tag);
+    el.preload = 'metadata';
+    el.muted = true;
+    el.playsInline = true;
+
+    return await new Promise((resolve) => {
+      const cleanup = () => {
+        try {
+          el.removeAttribute('src');
+          el.load();
+        } catch {
+          // Ignore.
+        }
+        try {
+          window.URL.revokeObjectURL(src);
+        } catch {
+          // Ignore.
+        }
+      };
+
+      const finish = (value) => {
+        cleanup();
+        if (seq !== durationProbeSeq) return resolve(null);
+        const num = Number(value);
+        if (!Number.isFinite(num) || num <= 0) return resolve(null);
+        return resolve(num);
+      };
+
+      el.onloadedmetadata = () => finish(el.duration);
+      el.onerror = () => finish(null);
+      el.src = src;
+    });
+  };
+
+  const estimateParts = () => {
+    const duration = Number(audioState.durationSeconds);
+    if (!Number.isFinite(duration) || duration <= 0) return null;
+    const partSec = currentPartMinutes() * 60;
+    if (!Number.isFinite(partSec) || partSec <= 0) return null;
+    return Math.max(1, Math.ceil(duration / partSec));
+  };
+
   const updateAudioMeta = () => {
     if (!audioMetaEl) return;
     if (!audioState.file) {
       audioMetaEl.textContent = 'No media loaded.';
       audioMetaEl.dataset.tone = '';
+      setMeter({
+        fillEl: directMeterFillEl,
+        metaEl: directMeterMetaEl,
+        ratio: 0,
+        tone: '',
+        meta: 'Select a file to compare against the direct request limit.'
+      });
+      setMeter({
+        fillEl: uploadMeterFillEl,
+        metaEl: uploadMeterMetaEl,
+        ratio: 0,
+        tone: '',
+        meta: 'Select a file to compare against the upload limit.'
+      });
       return;
     }
 
@@ -254,15 +371,61 @@
     const tooLarge = Number.isFinite(Number(limitBytes)) && limitBytes > 0 && audioState.bytes > limitBytes;
     const limitLabel = Number.isFinite(Number(limitBytes)) && limitBytes > 0 ? formatBytes(limitBytes) : '—';
     const typeLabel = audioState.mime && audioState.mime !== 'application/octet-stream' ? audioState.mime : 'unknown type';
-    const base = `${audioState.filename} • ${formatBytes(audioState.bytes)} • ${typeLabel}`;
+    const durationLabel = Number.isFinite(Number(audioState.durationSeconds)) ? formatClock(audioState.durationSeconds) : '';
+    const partCount = estimateParts();
+    const minutes = currentPartMinutes();
+    const partCountLabel = Number.isFinite(Number(partCount)) ? `${partCount} part${partCount === 1 ? '' : 's'} @ ${minutes}m` : '';
+    const extra = [durationLabel, partCountLabel].filter(Boolean);
+    const base = `${audioState.filename} • ${formatBytes(audioState.bytes)} • ${typeLabel}${extra.length ? ` • ${extra.join(' • ')}` : ''}`;
     audioMetaEl.textContent = tooLarge ? `${base} • exceeds ${limitLabel} limit` : base;
     audioMetaEl.dataset.tone = tooLarge ? 'error' : 'success';
+
+    const directLimit = serverInfo.maxDirectBytes;
+    const hasDirectLimit = Number.isFinite(Number(directLimit)) && Number(directLimit) > 0;
+    const directRatio = hasDirectLimit ? (audioState.bytes / Number(directLimit)) : 0;
+    const directTooLarge = hasDirectLimit && audioState.bytes > Number(directLimit);
+    const uploadsEnabled = Boolean(serverInfo.uploadsEnabled);
+    const directTone = directTooLarge ? (uploadsEnabled ? 'warning' : 'danger') : '';
+    const directRemaining = hasDirectLimit ? (Number(directLimit) - audioState.bytes) : 0;
+    const directOver = hasDirectLimit ? (audioState.bytes - Number(directLimit)) : 0;
+    const directRemainingLabel = directRemaining > 0 ? `${formatBytes(directRemaining)} remaining` : '';
+    const directOverLabel = directOver > 0 ? `${formatBytes(directOver)} over` : '';
+    const directMeta = hasDirectLimit
+      ? `${formatBytes(audioState.bytes)} / ${formatBytes(directLimit)}${directTooLarge ? (uploadsEnabled ? ` (${directOverLabel}, will use S3 upload)` : ` (${directOverLabel})`) : (directRemainingLabel ? ` (${directRemainingLabel})` : '')}`
+      : 'Direct limit unavailable.';
+    setMeter({
+      fillEl: directMeterFillEl,
+      metaEl: directMeterMetaEl,
+      ratio: directRatio,
+      tone: directTone,
+      meta: directMeta
+    });
+
+    const uploadLimit = serverInfo.maxUploadBytes;
+    const hasUploadLimit = Number.isFinite(Number(uploadLimit)) && Number(uploadLimit) > 0;
+    const uploadRatio = hasUploadLimit ? (audioState.bytes / Number(uploadLimit)) : 0;
+    const uploadTooLarge = hasUploadLimit && audioState.bytes > Number(uploadLimit);
+    const uploadTone = uploadTooLarge ? 'danger' : (uploadRatio >= 0.9 ? 'warning' : '');
+    const uploadRemaining = hasUploadLimit ? (Number(uploadLimit) - audioState.bytes) : 0;
+    const uploadOver = hasUploadLimit ? (audioState.bytes - Number(uploadLimit)) : 0;
+    const uploadRemainingLabel = uploadRemaining > 0 ? `${formatBytes(uploadRemaining)} remaining` : '';
+    const uploadOverLabel = uploadOver > 0 ? `${formatBytes(uploadOver)} over` : '';
+    const uploadMeta = hasUploadLimit
+      ? `${formatBytes(audioState.bytes)} / ${formatBytes(uploadLimit)}${uploadTooLarge ? ` (${uploadOverLabel})` : (uploadRemainingLabel ? ` (${uploadRemainingLabel})` : '')}`
+      : 'Upload limit unavailable.';
+    setMeter({
+      fillEl: uploadMeterFillEl,
+      metaEl: uploadMeterMetaEl,
+      ratio: uploadRatio,
+      tone: uploadTone,
+      meta: uploadMeta
+    });
   };
 
   const onAudioChange = () => {
     const file = fileEl.files && fileEl.files[0];
     if (!file) {
-      audioState = { filename: '', mime: 'application/octet-stream', bytes: 0, file: null };
+      audioState = { filename: '', mime: 'application/octet-stream', bytes: 0, file: null, durationSeconds: null };
       clearTranscript();
       updateAudioMeta();
       return;
@@ -271,16 +434,22 @@
       filename: String(file.name || '').trim() || 'media',
       mime: String(file.type || 'application/octet-stream').trim() || 'application/octet-stream',
       bytes: Number(file.size) || 0,
-      file
+      file,
+      durationSeconds: null
     };
     clearTranscript();
     updateAudioMeta();
+    probeMediaDuration(file).then((duration) => {
+      if (audioState.file !== file) return;
+      audioState.durationSeconds = duration;
+      updateAudioMeta();
+    });
   };
 
   const checkStatus = async () => {
     setServerReadyState(false);
-    setHealth('warming', 'Warming AWS');
-    setStatus(endpointStatusEl, 'Checking endpoint…', '');
+    setHealth('warming', 'Warming up');
+    setStatus(endpointStatusEl, 'Connecting to AWS Lambda…', '');
 
     const base = normalizeBase(ENDPOINT_BASE);
     if (!base) {
@@ -305,6 +474,8 @@
       const maxUploadBytes = res.data?.max_upload_bytes ?? res.data?.maxUploadBytes ?? maxBytes;
       const maxDirectBytes = res.data?.max_direct_upload_bytes ?? res.data?.maxDirectUploadBytes ?? maxBytes;
       const uploadsEnabled = Boolean(res.data?.uploads_enabled ?? res.data?.uploadsEnabled);
+      const maxPartMinutes = res.data?.max_part_minutes ?? res.data?.maxPartMinutes;
+      const defaultPartMinutes = res.data?.default_part_minutes ?? res.data?.defaultPartMinutes;
 
       serverInfo = {
         model,
@@ -312,8 +483,15 @@
         maxAudioSeconds: Number.isFinite(Number(maxSec)) ? Number(maxSec) : null,
         maxUploadBytes: Number.isFinite(Number(maxUploadBytes)) ? Number(maxUploadBytes) : null,
         maxDirectBytes: Number.isFinite(Number(maxDirectBytes)) ? Number(maxDirectBytes) : null,
-        uploadsEnabled
+        uploadsEnabled,
+        maxPartMinutes: Number.isFinite(Number(maxPartMinutes)) ? Number(maxPartMinutes) : 30,
+        defaultPartMinutes: Number.isFinite(Number(defaultPartMinutes)) ? Number(defaultPartMinutes) : 30
       };
+
+      setStat(statModelEl, serverInfo.model);
+      setStat(statDirectLimitEl, serverInfo.maxDirectBytes ? formatBytes(serverInfo.maxDirectBytes) : '');
+      setStat(statUploadLimitEl, serverInfo.maxUploadBytes ? formatBytes(serverInfo.maxUploadBytes) : '');
+      setStat(statPartMaxEl, `${clampInt(serverInfo.maxPartMinutes, 1, 60, 30)} min`);
 
       const parts = ['OK', model].filter(Boolean);
       if (serverInfo.maxAudioSeconds) parts.push(`max ${serverInfo.maxAudioSeconds}s`);
@@ -321,6 +499,18 @@
       if (!modelLoaded) parts.push('cold');
       setStatus(endpointStatusEl, parts.join(' • '), 'success');
       updateAudioMeta();
+      if (partMinutesEl) {
+        const maxMinutes = clampInt(serverInfo.maxPartMinutes, 1, 60, 30);
+        const defaultMinutes = clampInt(serverInfo.defaultPartMinutes, 1, maxMinutes, 30);
+        const stored = safeGet(STORAGE_PART_MINUTES);
+        const minMinutes = 5;
+        const sliderMin = Math.min(minMinutes, maxMinutes);
+        partMinutesEl.min = String(sliderMin);
+        partMinutesEl.max = String(maxMinutes);
+        const nextValue = clampInt(partMinutesEl.value || stored, sliderMin, maxMinutes, defaultMinutes);
+        partMinutesEl.value = String(nextValue);
+      }
+      updatePartMinutesMeta();
 
       return {
         ok: true,
@@ -345,7 +535,7 @@
     }
 
     setServerReadyState(false);
-    setHealth('warming', 'Warming AWS');
+    setHealth('warming', 'Warming up');
     setStatus(endpointStatusEl, 'Warming up…', 'warning');
 
     const url = joinUrl(normalized, '/transcribe');
@@ -460,7 +650,10 @@
   const uploadDirectToLambda = (file) => new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     activeRequest = { xhr, controller: null };
-    xhr.open('POST', joinUrl(ENDPOINT_BASE, '/transcribe'), true);
+    const minutes = currentPartMinutes();
+    const url = new URL(joinUrl(ENDPOINT_BASE, '/transcribe'));
+    url.searchParams.set('part_minutes', String(minutes));
+    xhr.open('POST', url.toString(), true);
     xhr.responseType = 'text';
 
     const contentType = String(file?.type || 'application/octet-stream').trim() || 'application/octet-stream';
@@ -507,11 +700,13 @@
     xhr.send(file);
   });
 
-  const transcribeS3Key = async (key) => {
+  const transcribeS3Key = async ({ key, partMinutes }) => {
     const controller = new AbortController();
     activeRequest = { xhr: null, controller };
     try {
-      const res = await requestJson(joinUrl(ENDPOINT_BASE, '/transcribe-s3'), {
+      const url = new URL(joinUrl(ENDPOINT_BASE, '/transcribe-s3'));
+      url.searchParams.set('part_minutes', String(partMinutes));
+      const res = await requestJson(url.toString(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ key }),
@@ -527,6 +722,53 @@
       return { ok: false, error: err?.message || 'Transcription failed.' };
     } finally {
       if (activeRequest?.controller === controller) activeRequest = null;
+    }
+  };
+
+  const formatClock = (totalSeconds) => {
+    const seconds = Math.max(0, Math.floor(Number(totalSeconds) || 0));
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    const pad = (value) => String(value).padStart(2, '0');
+    if (hours > 0) return `${hours}:${pad(minutes)}:${pad(secs)}`;
+    return `${pad(minutes)}:${pad(secs)}`;
+  };
+
+  const formatParts = (parts) => {
+    const list = Array.isArray(parts) ? parts : [];
+    const blocks = [];
+    for (let i = 0; i < list.length; i += 1) {
+      const part = list[i] || {};
+      const idx = Number.isFinite(Number(part.index)) ? Number(part.index) : (i + 1);
+      const startSec = Number(part.start_sec ?? part.startSec) || 0;
+      const endSec = Number(part.end_sec ?? part.endSec) || 0;
+      const transcript = String(part.transcript || '').trim();
+      const header = `Part ${idx} (${formatClock(startSec)}–${formatClock(endSec)})`;
+      blocks.push(`${header}\n${transcript}`.trim());
+    }
+    return blocks.filter(Boolean).join('\n\n');
+  };
+
+  const applyTranscriptResponse = (data) => {
+    const parts = data?.parts;
+    if (Array.isArray(parts) && parts.length) {
+      const formatted = formatParts(parts);
+      if (formatted) setTranscript(formatted);
+      const label = parts.length === 1 ? 'Transcript ready.' : `Transcript ready (${parts.length} parts).`;
+      setStatus(transcriptStatusEl, label, formatted ? 'success' : 'warning');
+      if (formatted && transcriptEl && typeof transcriptEl.scrollIntoView === 'function') {
+        transcriptEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      return;
+    }
+    const transcript = data?.transcript;
+    if (typeof transcript === 'string') {
+      setTranscript(transcript);
+      setStatus(transcriptStatusEl, transcript.trim() ? 'Transcript ready.' : 'Transcript returned empty.', transcript.trim() ? 'success' : 'warning');
+      if (transcript.trim() && transcriptEl && typeof transcriptEl.scrollIntoView === 'function') {
+        transcriptEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }
   };
 
@@ -549,6 +791,8 @@
     clearTranscript();
     abortActive();
     setBusy(true);
+    const minutes = currentPartMinutes();
+    safeSet(STORAGE_PART_MINUTES, String(minutes));
     setUploadProgress({ state: 'uploading', ratio: 0, label: 'Starting upload…' });
     setStatus(runStatusEl, 'Preparing upload…', '');
 
@@ -574,17 +818,12 @@
         setUploadProgress({ state: 'uploading', ratio: 1, label: 'Upload complete.' });
         setStatus(runStatusEl, 'Transcribing…', '');
 
-        const result = await transcribeS3Key(presign.key);
+        const result = await transcribeS3Key({ key: presign.key, partMinutes: minutes });
         if (!result.ok) {
           if (result.aborted) throw new Error('Canceled.');
           throw new Error(result.error || 'Transcription failed.');
         }
-
-        const transcript = result.data?.transcript;
-        if (typeof transcript === 'string') {
-          setTranscript(transcript);
-          setStatus(transcriptStatusEl, transcript.trim() ? 'Transcript ready.' : 'Transcript returned empty.', transcript.trim() ? 'success' : 'warning');
-        }
+        applyTranscriptResponse(result.data);
         setStatus(runStatusEl, 'Done.', 'success');
         return;
       }
@@ -596,12 +835,7 @@
         const message = direct.data?.error || direct.data?.message || direct.text || `Request failed (${direct.status}).`;
         throw new Error(message);
       }
-
-      const transcript = direct.data?.transcript;
-      if (typeof transcript === 'string') {
-        setTranscript(transcript);
-        setStatus(transcriptStatusEl, transcript.trim() ? 'Transcript ready.' : 'Transcript returned empty.', transcript.trim() ? 'success' : 'warning');
-      }
+      applyTranscriptResponse(direct.data);
       setStatus(runStatusEl, 'Done.', 'success');
     } catch (err) {
       const message = err?.message || 'Request failed.';
@@ -618,7 +852,7 @@
     setBusy(false);
     setServerReadyState(serverReady);
     if (fileEl) fileEl.value = '';
-    audioState = { filename: '', mime: 'application/octet-stream', bytes: 0, file: null };
+    audioState = { filename: '', mime: 'application/octet-stream', bytes: 0, file: null, durationSeconds: null };
     setStatus(runStatusEl, '', '');
     setUploadProgress({ state: 'hidden' });
     clearTranscript();
@@ -627,6 +861,13 @@
 
   if (fileEl) fileEl.addEventListener('change', onAudioChange);
   if (checkBtn) checkBtn.addEventListener('click', checkAndWarm);
+  if (partMinutesEl) {
+    partMinutesEl.addEventListener('input', () => {
+      updatePartMinutesMeta();
+      safeSet(STORAGE_PART_MINUTES, String(currentPartMinutes()));
+      updateAudioMeta();
+    });
+  }
   if (formEl) {
     formEl.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -661,9 +902,9 @@
   setBusy(false);
   setServerReadyState(false);
   updateAudioMeta();
+  updatePartMinutesMeta();
 
   window.setTimeout(() => {
     checkAndWarm();
   }, 0);
 })();
-
