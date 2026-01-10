@@ -1,4 +1,10 @@
 @layer components {
+  .tools-account-dock{
+    position:relative;
+    z-index:2;
+    padding:clamp(14px,3vh,18px) 0 0;
+  }
+
   .tools-account-bar{
     display:flex;
     flex-wrap:wrap;
