@@ -527,7 +527,10 @@
         dock.className = 'tools-account-dock';
         dock.setAttribute('data-tools-account', 'dock');
         dock.innerHTML = '<div class="wrapper tools-account-dock-inner" data-tools-account="dock-inner"></div>';
-        if (headerHost && headerHost.insertAdjacentElement) {
+        const hero = document.querySelector('.tools-hero');
+        if (hero && hero.insertAdjacentElement) {
+          hero.insertAdjacentElement('afterend', dock);
+        } else if (headerHost && headerHost.insertAdjacentElement) {
           headerHost.insertAdjacentElement('afterend', dock);
         } else if (main && main.parentNode) {
           main.parentNode.insertBefore(dock, main);

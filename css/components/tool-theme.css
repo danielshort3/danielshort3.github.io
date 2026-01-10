@@ -19,12 +19,6 @@
     --tool-surface-strong:color-mix(in srgb,var(--surface) 78%, #050b12 22%);
   }
 
-  body[data-page="text-compare"] .hero-eyebrow{
-    opacity:0;
-    transform:translateY(32px);
-    animation:heroFade 1s .3s forwards;
-  }
-
   :is(
     .bgtool-hero,
     .imgopt-hero,
