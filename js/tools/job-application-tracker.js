@@ -4,11 +4,35 @@
   if (!main) return;
 
   const configSource = document.body || main;
+  const getDefaultRedirect = () => {
+    try {
+      const origin = (window.location && window.location.origin && window.location.origin !== 'null')
+        ? String(window.location.origin)
+        : '';
+      const path = (window.location && window.location.pathname) ? String(window.location.pathname) : '';
+      if (!origin || !path) return '';
+      return `${origin}${path}`;
+    } catch {
+      return '';
+    }
+  };
+  const normalizeRedirect = (value) => {
+    const raw = (value || '').toString().trim();
+    const fallback = getDefaultRedirect();
+    if (!raw) return fallback;
+    try {
+      const url = new URL(raw, window.location.origin);
+      if (url.origin !== window.location.origin) return fallback;
+      return url.toString();
+    } catch {
+      return fallback;
+    }
+  };
   const config = {
     apiBase: (configSource.dataset.apiBase || '').trim(),
     cognitoDomain: (configSource.dataset.cognitoDomain || '').trim(),
     cognitoClientId: (configSource.dataset.cognitoClientId || '').trim(),
-    cognitoRedirect: (configSource.dataset.cognitoRedirect || '').trim(),
+    cognitoRedirect: normalizeRedirect(configSource.dataset.cognitoRedirect),
     cognitoScopes: (configSource.dataset.cognitoScopes || 'openid email profile').trim(),
     maxAttachmentBytes: parseInt(configSource.dataset.maxAttachmentBytes || '10485760', 10) || 10485760,
     maxAttachmentCount: parseInt(configSource.dataset.maxAttachmentCount || '12', 10) || 12
@@ -191,6 +215,7 @@
   };
 
 		  const STORAGE_KEY = 'jobTrackerAuth';
+		  const SHARED_STORAGE_KEY = 'toolsAuth';
 		  const STATE_KEY = 'jobTrackerAuthState';
 		  const VERIFIER_KEY = 'jobTrackerCodeVerifier';
 		  const RETURN_TAB_KEY = 'jobTrackerReturnTab';
@@ -1055,7 +1080,7 @@
 
   const loadAuth = () => {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(SHARED_STORAGE_KEY);
       if (!raw) return null;
       const parsed = JSON.parse(raw);
       if (!parsed || !parsed.idToken) return null;
@@ -1068,12 +1093,14 @@
   const saveAuth = (auth) => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(auth));
+      localStorage.setItem(SHARED_STORAGE_KEY, JSON.stringify(auth));
     } catch {}
   };
 
   const clearAuth = () => {
     try {
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(SHARED_STORAGE_KEY);
     } catch {}
     state.auth = null;
   };

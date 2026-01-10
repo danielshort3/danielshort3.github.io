@@ -19,10 +19,10 @@ Parameters:
     Default: job-tracker-auth
   CallbackUrls:
     Type: CommaDelimitedList
-    Default: "https://danielshort.me/tools/job-application-tracker"
+    Default: "https://danielshort.me/tools/job-application-tracker,https://danielshort.me/tools/dashboard"
   LogoutUrls:
     Type: CommaDelimitedList
-    Default: "https://danielshort.me/tools/job-application-tracker"
+    Default: "https://danielshort.me/tools/job-application-tracker,https://danielshort.me/tools/dashboard"
 
 Resources:
   ApplicationsTable:
