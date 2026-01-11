@@ -57,29 +57,21 @@
     <section class="surface-band tools-dashboard-section">
       <div class="wrapper">
         <p class="tools-dashboard-status" data-tools-dashboard="status" role="status" aria-live="polite"></p>
-        <div class="tools-dashboard-grid">
-          <section class="tools-dashboard-card" aria-labelledby="tools-dashboard-tools">
+        <div class="tools-dashboard-grid is-stacked">
+          <section class="tools-dashboard-card" aria-labelledby="tools-dashboard-account">
             <header class="tools-dashboard-card-head">
-              <h2 id="tools-dashboard-tools">Tools used</h2>
-              <p class="tools-dashboard-subtitle">A quick index of tools you have opened while signed in.</p>
+              <h2 id="tools-dashboard-account">Account</h2>
+              <p class="tools-dashboard-subtitle">Your tools history is private to this signed-in account.</p>
             </header>
-            <div class="tools-dashboard-list" data-tools-dashboard="tools"></div>
+            <div data-tools-dashboard="account"></div>
           </section>
 
           <section class="tools-dashboard-card" aria-labelledby="tools-dashboard-sessions">
             <header class="tools-dashboard-card-head">
               <h2 id="tools-dashboard-sessions">Recent sessions</h2>
-              <p class="tools-dashboard-subtitle">Reopen past sessions or pick up where you left off.</p>
+              <p class="tools-dashboard-subtitle">Your saved inputs and outputs across tools.</p>
             </header>
             <div class="tools-dashboard-list" data-tools-dashboard="sessions"></div>
-          </section>
-
-          <section class="tools-dashboard-card" aria-labelledby="tools-dashboard-activity">
-            <header class="tools-dashboard-card-head">
-              <h2 id="tools-dashboard-activity">Recent activity</h2>
-              <p class="tools-dashboard-subtitle">Timestamped events across your tool usage.</p>
-            </header>
-            <div class="tools-dashboard-list" data-tools-dashboard="activity"></div>
           </section>
         </div>
       </div>

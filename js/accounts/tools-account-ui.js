@@ -439,7 +439,7 @@
         <div class="modal-body stacked">
           <div class="tools-account-modal-actions" data-tools-account="modal-actions"></div>
           <div class="tools-account-modal-status" data-tools-account="modal-status" role="status" aria-live="polite"></div>
-          <div class="tools-dashboard-grid tools-account-modal-grid" data-tools-account="modal-grid"></div>
+          <div class="tools-dashboard-grid is-stacked tools-account-modal-grid" data-tools-account="modal-grid"></div>
         </div>
       </div>
     `.trim();
@@ -507,32 +507,7 @@
       const name = escapeHtml(user?.name || '');
       const sub = escapeHtml(user?.sub || '');
 
-      const tools = Array.isArray(data?.tools) ? data.tools : [];
       const recentSessions = Array.isArray(data?.recentSessions) ? data.recentSessions : [];
-      const recentActivity = Array.isArray(data?.recentActivity) ? data.recentActivity : [];
-
-      const toolsMarkup = (() => {
-        if (!tools.length) return '<p class="tools-dashboard-empty">No signed-in tool activity yet.</p>';
-        return tools.map((entry) => {
-          const toolId = String(entry?.toolId || '').trim();
-          const meta = entry?.meta || {};
-          const info = getToolInfo(toolId);
-          const lastUsed = meta?.lastUsedAt ? formatTime(meta.lastUsedAt) : '';
-          const sessionCount = Number(meta?.sessionCount) || 0;
-          const activityCount = Number(meta?.activityCount) || 0;
-          return `
-            <div class="tools-dashboard-item">
-              <div>
-                <p class="tools-dashboard-item-title"><a href="${escapeHtml(info.href)}">${escapeHtml(info.name)}</a></p>
-                <p class="tools-dashboard-item-meta">${lastUsed ? `Last used ${escapeHtml(lastUsed)} · ` : ''}${sessionCount} sessions · ${activityCount} events</p>
-              </div>
-              <div class="tools-dashboard-item-actions">
-                <a class="btn-secondary" href="${escapeHtml(info.href)}">Open</a>
-              </div>
-            </div>
-          `.trim();
-        }).join('');
-      })();
 
       const sessionsMarkup = (() => {
         if (!recentSessions.length) return '<p class="tools-dashboard-empty">No saved sessions yet.</p>';
@@ -552,28 +527,6 @@
               <div class="tools-dashboard-item-actions">
                 <a class="btn-secondary" href="${escapeHtml(href)}">Reopen</a>
                 <button type="button" class="btn-secondary" data-tools-action="view-session">View</button>
-              </div>
-            </div>
-          `.trim();
-        }).join('');
-      })();
-
-      const activityMarkup = (() => {
-        if (!recentActivity.length) return '<p class="tools-dashboard-empty">No activity yet.</p>';
-        return recentActivity.map((event) => {
-          const toolId = String(event?.toolId || '').trim();
-          const info = getToolInfo(toolId);
-          const ts = event?.ts ? formatTime(event.ts) : '';
-          const type = String(event?.type || '').trim();
-          const summary = String(event?.summary || '').trim();
-          return `
-            <div class="tools-dashboard-item">
-              <div>
-                <p class="tools-dashboard-item-title">${escapeHtml(info.name)}${type ? ` · ${escapeHtml(type)}` : ''}</p>
-                <p class="tools-dashboard-item-meta">${ts ? `${escapeHtml(ts)} · ` : ''}${summary ? escapeHtml(summary) : ''}</p>
-              </div>
-              <div class="tools-dashboard-item-actions">
-                <a class="btn-secondary" href="tools/dashboard">View</a>
               </div>
             </div>
           `.trim();
@@ -601,26 +554,12 @@
               ${sub ? `<div class="tools-account-modal-meta-row"><dt>User ID</dt><dd><code>${sub}</code></dd></div>` : ''}
             </dl>
           </section>
-          <section class="tools-dashboard-card" aria-labelledby="tools-account-modal-tools">
-            <header class="tools-dashboard-card-head">
-              <h2 id="tools-account-modal-tools">Tools used</h2>
-              <p class="tools-dashboard-subtitle">Tools you have opened while signed in.</p>
-            </header>
-            <div class="tools-dashboard-list">${toolsMarkup}</div>
-          </section>
           <section class="tools-dashboard-card" aria-labelledby="tools-account-modal-sessions">
             <header class="tools-dashboard-card-head">
               <h2 id="tools-account-modal-sessions">Recent sessions</h2>
-              <p class="tools-dashboard-subtitle">Pick up where you left off.</p>
+              <p class="tools-dashboard-subtitle">Your saved inputs and outputs across tools.</p>
             </header>
             <div class="tools-dashboard-list">${sessionsMarkup}</div>
-          </section>
-          <section class="tools-dashboard-card" aria-labelledby="tools-account-modal-activity">
-            <header class="tools-dashboard-card-head">
-              <h2 id="tools-account-modal-activity">Recent activity</h2>
-              <p class="tools-dashboard-subtitle">Timestamped events across tools.</p>
-            </header>
-            <div class="tools-dashboard-list">${activityMarkup}</div>
           </section>
         `.trim();
       }
@@ -1299,9 +1238,8 @@
 
   const initDashboard = async ({ setStatus, onViewSession } = {}) => {
     const statusEl = $('[data-tools-dashboard="status"]');
-    const toolsEl = $('[data-tools-dashboard="tools"]');
+    const accountEl = $('[data-tools-dashboard="account"]');
     const sessionsEl = $('[data-tools-dashboard="sessions"]');
-    const activityEl = $('[data-tools-dashboard="activity"]');
 
     const setDashboardStatus = (message) => {
       if (statusEl) statusEl.textContent = message || '';
@@ -1309,15 +1247,14 @@
     };
 
     const clearLists = () => {
-      if (toolsEl) toolsEl.innerHTML = '';
+      if (accountEl) accountEl.innerHTML = '';
       if (sessionsEl) sessionsEl.innerHTML = '';
-      if (activityEl) activityEl.innerHTML = '';
     };
 
     const auth = window.ToolsAuth.getAuth();
     if (!window.ToolsAuth.authIsValid(auth)) {
       clearLists();
-      setDashboardStatus('Sign in to see your saved sessions and activity.');
+      setDashboardStatus('Sign in to see your saved sessions.');
       return;
     }
 
@@ -1333,31 +1270,18 @@
 
     setDashboardStatus('');
 
-    const tools = Array.isArray(data?.tools) ? data.tools : [];
-    if (toolsEl) {
-      if (!tools.length) {
-        toolsEl.innerHTML = '<p class="tools-dashboard-empty">No signed-in tool activity yet.</p>';
-      } else {
-        toolsEl.innerHTML = tools.map((entry) => {
-          const toolId = String(entry?.toolId || '').trim();
-          const meta = entry?.meta || {};
-          const info = getToolInfo(toolId);
-          const lastUsed = meta?.lastUsedAt ? formatTime(meta.lastUsedAt) : '';
-          const sessionCount = Number(meta?.sessionCount) || 0;
-          const activityCount = Number(meta?.activityCount) || 0;
-          return `
-            <div class="tools-dashboard-item">
-              <div>
-                <p class="tools-dashboard-item-title"><a href="${escapeHtml(info.href)}">${escapeHtml(info.name)}</a></p>
-                <p class="tools-dashboard-item-meta">${lastUsed ? `Last used ${escapeHtml(lastUsed)} · ` : ''}${sessionCount} sessions · ${activityCount} events</p>
-              </div>
-              <div class="tools-dashboard-item-actions">
-                <a class="btn-secondary" href="${escapeHtml(info.href)}">Open</a>
-              </div>
-            </div>
-          `.trim();
-        }).join('');
-      }
+    const user = window.ToolsAuth.getUser(auth);
+    if (accountEl) {
+      const email = escapeHtml(user?.email || '');
+      const name = escapeHtml(user?.name || '');
+      const sub = escapeHtml(user?.sub || '');
+      accountEl.innerHTML = `
+        <dl class="tools-account-modal-meta">
+          ${email ? `<div class="tools-account-modal-meta-row"><dt>Email</dt><dd>${email}</dd></div>` : ''}
+          ${name ? `<div class="tools-account-modal-meta-row"><dt>Name</dt><dd>${name}</dd></div>` : ''}
+          ${sub ? `<div class="tools-account-modal-meta-row"><dt>User ID</dt><dd><code>${sub}</code></dd></div>` : ''}
+        </dl>
+      `.trim();
     }
 
     const sessions = Array.isArray(data?.recentSessions) ? data.recentSessions : [];
@@ -1382,32 +1306,6 @@
                 <a class="btn-secondary" href="${escapeHtml(href)}">Reopen</a>
                 <button type="button" class="btn-secondary" data-tools-action="view-session">View</button>
                 <button type="button" class="btn-ghost" data-tools-action="delete-session">Delete</button>
-              </div>
-            </div>
-          `.trim();
-        }).join('');
-      }
-    }
-
-    const events = Array.isArray(data?.recentActivity) ? data.recentActivity : [];
-    if (activityEl) {
-      if (!events.length) {
-        activityEl.innerHTML = '<p class="tools-dashboard-empty">No activity yet.</p>';
-      } else {
-        activityEl.innerHTML = events.map((event) => {
-          const toolId = String(event?.toolId || '').trim();
-          const info = getToolInfo(toolId);
-          const ts = event?.ts ? formatTime(event.ts) : '';
-          const type = String(event?.type || '').trim();
-          const summary = String(event?.summary || '').trim();
-          return `
-            <div class="tools-dashboard-item">
-              <div>
-                <p class="tools-dashboard-item-title">${escapeHtml(info.name)}${type ? ` · ${escapeHtml(type)}` : ''}</p>
-                <p class="tools-dashboard-item-meta">${ts ? `${escapeHtml(ts)} · ` : ''}${summary ? escapeHtml(summary) : ''}</p>
-              </div>
-              <div class="tools-dashboard-item-actions">
-                <a class="btn-secondary" href="${escapeHtml(info.href)}">Open</a>
               </div>
             </div>
           `.trim();
