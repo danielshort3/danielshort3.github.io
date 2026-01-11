@@ -9,6 +9,10 @@ const PREFIX = 'tools';
 const MAX_SNAPSHOT_BYTES = 300_000;
 const MAX_SUMMARY_CHARS = 2_000;
 const MAX_ACTIVITY_EVENTS = 1_000;
+const MAX_TITLE_CHARS = 120;
+const MAX_NOTE_CHARS = 800;
+const MAX_TAGS = 12;
+const MAX_TAG_CHARS = 24;
 
 function userToolsKey(sub){
   return `${PREFIX}:user:${sub}:tools`;
@@ -57,6 +61,41 @@ function normalizeSummary(value){
   return summary.length > MAX_SUMMARY_CHARS ? summary.slice(0, MAX_SUMMARY_CHARS) : summary;
 }
 
+function normalizeTitle(value){
+  const title = String(value || '').trim();
+  if (!title) return '';
+  return title.length > MAX_TITLE_CHARS ? title.slice(0, MAX_TITLE_CHARS).trimEnd() : title;
+}
+
+function normalizeNote(value){
+  const note = String(value || '').trim();
+  if (!note) return '';
+  return note.length > MAX_NOTE_CHARS ? note.slice(0, MAX_NOTE_CHARS).trimEnd() : note;
+}
+
+function normalizeTags(value){
+  const raw = Array.isArray(value)
+    ? value.map(v => String(v || '').trim())
+    : String(value || '')
+      .split(/[,\n]/g)
+      .map(v => String(v || '').trim());
+
+  const seen = new Set();
+  const tags = [];
+  raw.forEach((tag) => {
+    const cleaned = tag.replace(/\s+/g, ' ').trim();
+    if (!cleaned) return;
+    const clipped = cleaned.length > MAX_TAG_CHARS ? cleaned.slice(0, MAX_TAG_CHARS).trimEnd() : cleaned;
+    const key = clipped.toLowerCase();
+    if (!key) return;
+    if (seen.has(key)) return;
+    seen.add(key);
+    tags.push(clipped);
+  });
+
+  return tags.slice(0, MAX_TAGS);
+}
+
 function ensureSnapshotOk(snapshot){
   const raw = JSON.stringify(snapshot || {});
   if (byteLength(raw) > MAX_SNAPSHOT_BYTES) {
@@ -93,11 +132,19 @@ async function saveSession({ sub, toolId, sessionId, snapshot, outputSummary }){
   const now = Date.now();
   const existingKey = sessionId ? sessionKey(sub, toolId, sessionId) : '';
   let createdAt = now;
+  let title = '';
+  let note = '';
+  let tags = [];
+  let pinned = false;
   if (existingKey) {
     try {
       const raw = await kvGet(existingKey);
       const existing = raw ? JSON.parse(raw) : null;
       if (existing?.createdAt) createdAt = Number(existing.createdAt) || createdAt;
+      title = normalizeTitle(existing?.title);
+      note = normalizeNote(existing?.note);
+      tags = normalizeTags(existing?.tags);
+      pinned = Boolean(existing?.pinned);
     } catch {}
   }
 
@@ -108,6 +155,10 @@ async function saveSession({ sub, toolId, sessionId, snapshot, outputSummary }){
     createdAt,
     updatedAt: now,
     outputSummary: normalizeSummary(outputSummary),
+    title: title || undefined,
+    note: note || undefined,
+    tags: tags.length ? tags : undefined,
+    pinned,
     snapshot: snapshot || {}
   };
 
@@ -123,6 +174,33 @@ async function saveSession({ sub, toolId, sessionId, snapshot, outputSummary }){
   await upsertToolMeta(sub, toolId, { sessionCount });
 
   return record;
+}
+
+async function updateSessionMeta({ sub, toolId, sessionId, title, note, tags, pinned }){
+  const key = sessionKey(sub, toolId, sessionId);
+  let record;
+  try {
+    const raw = await kvGet(key);
+    record = raw ? JSON.parse(raw) : null;
+  } catch {
+    record = null;
+  }
+  if (!record) return null;
+
+  const next = {
+    ...record,
+    title: (typeof title !== 'undefined') ? normalizeTitle(title) : normalizeTitle(record.title),
+    note: (typeof note !== 'undefined') ? normalizeNote(note) : normalizeNote(record.note),
+    tags: (typeof tags !== 'undefined') ? normalizeTags(tags) : normalizeTags(record.tags),
+    pinned: (typeof pinned !== 'undefined') ? Boolean(pinned) : Boolean(record.pinned)
+  };
+
+  if (!next.title) delete next.title;
+  if (!next.note) delete next.note;
+  if (!Array.isArray(next.tags) || !next.tags.length) delete next.tags;
+
+  await kvSet(key, JSON.stringify(next));
+  return next;
 }
 
 async function listSessions({ sub, toolId, limit }){
@@ -256,6 +334,7 @@ module.exports = {
   toolSessionsKey,
   sessionKey,
   saveSession,
+  updateSessionMeta,
   listSessions,
   getSession,
   deleteSession,

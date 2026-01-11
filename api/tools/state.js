@@ -4,6 +4,7 @@
   - GET /api/tools/state?tool=<toolId>&limit=25
   - GET /api/tools/state?tool=<toolId>&session=<sessionId>
   - POST /api/tools/state { toolId, sessionId?, snapshot, outputSummary? }
+  - PATCH /api/tools/state { toolId, sessionId, title?, note?, tags?, pinned? }
   - DELETE /api/tools/state?tool=<toolId>&session=<sessionId>
 */
 'use strict';
@@ -22,6 +23,7 @@ const {
   saveSession,
   listSessions,
   getSession,
+  updateSessionMeta,
   deleteSession,
   listRecentSessions
 } = require('../_lib/tools-store');
@@ -141,6 +143,61 @@ module.exports = async (req, res) => {
     }
   }
 
+  if (req.method === 'PATCH') {
+    let body;
+    try {
+      body = await readJson(req);
+    } catch {
+      sendJson(res, 400, { ok: false, error: 'Invalid JSON body' });
+      return;
+    }
+
+    const toolId = normalizeToolId(body?.toolId || body?.tool);
+    const sessionId = normalizeSessionId(body?.sessionId || body?.session);
+
+    if (!toolId) {
+      sendJson(res, 400, { ok: false, error: 'Invalid toolId' });
+      return;
+    }
+    if (!sessionId) {
+      sendJson(res, 400, { ok: false, error: 'Invalid sessionId' });
+      return;
+    }
+
+    const hasAnyUpdate = ['title', 'note', 'tags', 'pinned'].some((key) => Object.prototype.hasOwnProperty.call(body || {}, key));
+    if (!hasAnyUpdate) {
+      sendJson(res, 400, { ok: false, error: 'No session updates provided' });
+      return;
+    }
+
+    try {
+      const record = await updateSessionMeta({
+        sub,
+        toolId,
+        sessionId,
+        title: body?.title,
+        note: body?.note,
+        tags: body?.tags,
+        pinned: body?.pinned
+      });
+
+      if (!record) {
+        sendJson(res, 404, { ok: false, error: 'Session not found' });
+        return;
+      }
+
+      sendJson(res, 200, { ok: true, session: record });
+      return;
+    } catch (err) {
+      if (err.code === 'KV_ENV_MISSING' || err.code === 'DDB_ENV_MISSING') {
+        sendJson(res, 503, { ok: false, error: err.message });
+        return;
+      }
+      sendJson(res, 502, { ok: false, error: 'Storage backend unavailable' });
+      return;
+    }
+  }
+
   if (req.method === 'DELETE') {
     const toolId = normalizeToolId(pickQuery(req.query?.tool || req.query?.toolId));
     const sessionId = normalizeSessionId(pickQuery(req.query?.session || req.query?.sessionId));
@@ -169,6 +226,6 @@ module.exports = async (req, res) => {
   }
 
   res.statusCode = 405;
-  res.setHeader('Allow', 'GET, POST, DELETE');
+  res.setHeader('Allow', 'GET, POST, PATCH, DELETE');
   sendJson(res, 405, { ok: false, error: 'Method Not Allowed' });
 };

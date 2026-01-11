@@ -71,6 +71,59 @@
     return `${sentence.slice(0, maxChars).trimEnd()}…`;
   };
 
+  const formatIsoDateTime = (ts) => {
+    const numeric = Number(ts) || 0;
+    if (!numeric) return '';
+    try {
+      return new Date(numeric).toISOString();
+    } catch {
+      return '';
+    }
+  };
+
+  const downloadTextFile = ({ filename, text, mime = 'text/plain;charset=utf-8' } = {}) => {
+    const safeName = String(filename || 'download.txt').trim() || 'download.txt';
+    const data = String(text ?? '');
+    let blob;
+    try {
+      blob = new Blob([data], { type: mime });
+    } catch {
+      return;
+    }
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = safeName;
+    link.rel = 'noopener';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  const toCsvCell = (value) => {
+    const raw = String(value ?? '');
+    const needsQuotes = /[",\n\r]/.test(raw);
+    const escaped = raw.replace(/"/g, '""');
+    return needsQuotes ? `"${escaped}"` : escaped;
+  };
+
+  const parseTagsInput = (value) => {
+    const raw = Array.isArray(value) ? value : String(value || '').split(/[,\n]/g);
+    const tags = [];
+    const seen = new Set();
+    raw.forEach((tag) => {
+      const cleaned = cleanText(tag);
+      if (!cleaned) return;
+      const key = cleaned.toLowerCase();
+      if (seen.has(key)) return;
+      seen.add(key);
+      tags.push(cleaned);
+    });
+    return tags;
+  };
+
   const ensureToolsHero = ({ pageId }) => {
     const id = cleanText(pageId);
     if (!id) return;
@@ -423,6 +476,562 @@
     `.trim();
   };
 
+  const initSessionsPanel = ({
+    hostEl,
+    sessions,
+    totalSessions,
+    lastSyncAt,
+    onViewSession,
+    onStatus
+  } = {}) => {
+    if (!hostEl) return { destroy: () => {}, setSessions: () => {} };
+
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const addListener = (target, type, handler, options = {}) => {
+      if (!target?.addEventListener) return;
+      const opts = { ...options };
+      if (controller?.signal) opts.signal = controller.signal;
+      target.addEventListener(type, handler, opts);
+    };
+
+    const state = {
+      query: '',
+      tool: 'all',
+      sort: 'recent',
+      pinnedFirst: true,
+      selecting: false,
+      selected: new Set(),
+      from: '',
+      to: '',
+      busy: false
+    };
+    const panelId = `sessions_${Math.random().toString(36).slice(2, 10)}`;
+
+    const normalizeSession = (session) => {
+      const toolId = String(session?.toolId || '').trim();
+      const sessionId = String(session?.sessionId || '').trim();
+      return {
+        toolId,
+        sessionId,
+        createdAt: Number(session?.createdAt) || 0,
+        updatedAt: Number(session?.updatedAt) || 0,
+        outputSummary: String(session?.outputSummary || '').trim(),
+        title: String(session?.title || '').trim(),
+        note: String(session?.note || '').trim(),
+        tags: Array.isArray(session?.tags) ? session.tags.map(v => String(v || '').trim()).filter(Boolean) : [],
+        pinned: Boolean(session?.pinned)
+      };
+    };
+
+    let sessionsState = Array.isArray(sessions) ? sessions.map(normalizeSession).filter(s => s.toolId && s.sessionId) : [];
+    let totalSessionsState = Number(totalSessions) || sessionsState.length;
+    let lastSyncState = Number(lastSyncAt) || Date.now();
+
+    const buildToolOptions = () => {
+      const used = new Set(sessionsState.map(s => s.toolId).filter(Boolean));
+      const known = Object.entries(TOOL_CATALOG)
+        .filter(([toolId]) => used.has(toolId))
+        .map(([toolId, info]) => ({ toolId, name: info.name }));
+
+      const unknown = [...used]
+        .filter(toolId => !TOOL_CATALOG[toolId])
+        .map(toolId => ({ toolId, name: getToolInfo(toolId).name }));
+
+      return [...known, ...unknown].sort((a, b) => a.name.localeCompare(b.name));
+    };
+
+    const getSessionKey = (session) => `${session.toolId}:${session.sessionId}`;
+
+    const matchesQuery = (session, query) => {
+      const q = cleanText(query).toLowerCase();
+      if (!q) return true;
+      const info = getToolInfo(session.toolId);
+      const haystack = [
+        info.name,
+        session.toolId,
+        session.sessionId,
+        session.title,
+        session.outputSummary,
+        session.note,
+        ...(session.tags || [])
+      ].join(' ').toLowerCase();
+      return haystack.includes(q);
+    };
+
+    const inDateRange = (session) => {
+      if (!state.from && !state.to) return true;
+      const ts = Number(session.updatedAt) || Number(session.createdAt) || 0;
+      if (!ts) return false;
+      const dayStart = (dateString) => {
+        if (!dateString) return 0;
+        const [y, m, d] = dateString.split('-').map(v => Number(v));
+        if (!y || !m || !d) return 0;
+        return new Date(y, m - 1, d).getTime();
+      };
+      const start = dayStart(state.from);
+      const end = (() => {
+        const base = dayStart(state.to);
+        if (!base) return 0;
+        return base + 24 * 60 * 60 * 1000 - 1;
+      })();
+      if (start && ts < start) return false;
+      if (end && ts > end) return false;
+      return true;
+    };
+
+    const sortSessions = (items) => {
+      const toolName = (toolId) => getToolInfo(toolId).name;
+      const displayTitle = (s) => s.title || toolName(s.toolId);
+
+      const baseSort = (a, b) => {
+        if (state.sort === 'oldest') return (a.updatedAt || a.createdAt || 0) - (b.updatedAt || b.createdAt || 0);
+        if (state.sort === 'tool') {
+          const byTool = toolName(a.toolId).localeCompare(toolName(b.toolId));
+          if (byTool) return byTool;
+        }
+        if (state.sort === 'title') {
+          const byTitle = displayTitle(a).localeCompare(displayTitle(b));
+          if (byTitle) return byTitle;
+        }
+        return (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0);
+      };
+
+      return [...items].sort((a, b) => {
+        if (state.pinnedFirst && a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+        return baseSort(a, b);
+      });
+    };
+
+    const renderTags = (tags) => {
+      const safe = Array.isArray(tags) ? tags.filter(Boolean) : [];
+      if (!safe.length) return '';
+      const shown = safe.slice(0, 4);
+      const extra = safe.length - shown.length;
+      const chips = shown.map(tag => `<span class="tools-session-tag">${escapeHtml(tag)}</span>`).join('');
+      const more = extra > 0 ? `<span class="tools-session-tag is-more">+${extra}</span>` : '';
+      return `<p class="tools-session-tags">${chips}${more}</p>`;
+    };
+
+    const renderRow = (session) => {
+      const info = getToolInfo(session.toolId);
+      const updated = session.updatedAt ? formatTime(session.updatedAt) : '';
+      const summary = session.outputSummary || cleanText(session.note);
+      const displayTitle = session.title || info.name;
+      const showTool = session.title && displayTitle !== info.name;
+
+      const metaParts = [];
+      if (showTool) metaParts.push(info.name);
+      if (updated) metaParts.push(`Updated ${updated}`);
+      if (summary) metaParts.push(summary);
+      if (!metaParts.length) metaParts.push(`Session ${session.sessionId.slice(0, 10)}…`);
+
+      const href = `${info.href}?session=${encodeURIComponent(session.sessionId)}`;
+      const selected = state.selected.has(getSessionKey(session));
+      const selectingClass = state.selecting ? 'is-selecting' : '';
+
+      return `
+        <div class="tools-dashboard-item ${selectingClass}" data-session-tool="${escapeHtml(session.toolId)}" data-session-id="${escapeHtml(session.sessionId)}">
+          <div class="tools-dashboard-item-main">
+            <div class="tools-session-item-head">
+              <label class="tools-session-select">
+                <span class="visually-hidden">Select session</span>
+                <input type="checkbox" data-tools-sessions-action="select-session" ${selected ? 'checked' : ''}>
+              </label>
+              <button type="button" class="tools-session-pin" data-tools-sessions-action="toggle-pin" aria-pressed="${session.pinned ? 'true' : 'false'}" aria-label="${session.pinned ? 'Unpin session' : 'Pin session'}">${session.pinned ? '★' : '☆'}</button>
+              <p class="tools-dashboard-item-title"><a href="${escapeHtml(href)}">${escapeHtml(displayTitle)}</a></p>
+            </div>
+            <p class="tools-dashboard-item-meta">${escapeHtml(metaParts.join(' · '))}</p>
+            ${renderTags(session.tags)}
+          </div>
+          <div class="tools-dashboard-item-actions">
+            <a class="btn-secondary" href="${escapeHtml(href)}">Reopen</a>
+            <button type="button" class="btn-secondary" data-tools-sessions-action="view-session">View</button>
+            <button type="button" class="btn-ghost" data-tools-sessions-action="delete-session">Delete</button>
+          </div>
+        </div>
+      `.trim();
+    };
+
+    hostEl.innerHTML = `
+      <div class="tools-sessions-panel" data-tools-sessions="panel">
+        <div class="tools-sessions-controls" data-tools-sessions="controls"></div>
+        <div class="tools-sessions-bulk" data-tools-sessions="bulk" hidden>
+          <p class="tools-sessions-bulk-summary" data-tools-sessions="bulk-summary"></p>
+          <div class="tools-sessions-bulk-actions">
+            <button type="button" class="btn-ghost" data-tools-sessions-action="clear-selection">Clear</button>
+            <button type="button" class="btn-secondary" data-tools-sessions-action="export-csv">Export CSV</button>
+            <button type="button" class="btn-secondary" data-tools-sessions-action="export-json">Export JSON</button>
+            <button type="button" class="btn-ghost" data-tools-sessions-action="bulk-delete">Delete</button>
+          </div>
+        </div>
+        <p class="tools-sessions-summary" data-tools-sessions="summary"></p>
+        <div class="tools-dashboard-list" data-tools-sessions="list"></div>
+      </div>
+    `.trim();
+
+    const panelEl = $('[data-tools-sessions="panel"]', hostEl);
+    const controlsEl = $('[data-tools-sessions="controls"]', hostEl);
+    const bulkEl = $('[data-tools-sessions="bulk"]', hostEl);
+    const bulkSummaryEl = $('[data-tools-sessions="bulk-summary"]', hostEl);
+    const summaryEl = $('[data-tools-sessions="summary"]', hostEl);
+    const listEl = $('[data-tools-sessions="list"]', hostEl);
+
+    const updateBulk = () => {
+      const count = state.selected.size;
+      if (!bulkEl || !bulkSummaryEl) return;
+      if (!state.selecting) {
+        bulkEl.hidden = true;
+        bulkSummaryEl.textContent = '';
+        return;
+      }
+      bulkEl.hidden = false;
+      bulkSummaryEl.textContent = count ? `${count} selected` : 'Select sessions to export or delete.';
+    };
+
+    const renderControls = () => {
+      if (!controlsEl) return;
+      const toolOptions = buildToolOptions();
+      controlsEl.innerHTML = `
+        <label class="tools-sessions-control">
+          <span class="tools-sessions-label">Search</span>
+          <input type="search" class="tools-sessions-input" placeholder="Search sessions" value="${escapeHtml(state.query)}" data-tools-sessions-control="query">
+        </label>
+        <label class="tools-sessions-control">
+          <span class="tools-sessions-label">Tool</span>
+          <select class="tools-sessions-input" data-tools-sessions-control="tool">
+            <option value="all"${state.tool === 'all' ? ' selected' : ''}>All tools</option>
+            ${toolOptions.map(opt => `<option value="${escapeHtml(opt.toolId)}"${state.tool === opt.toolId ? ' selected' : ''}>${escapeHtml(opt.name)}</option>`).join('')}
+          </select>
+        </label>
+        <label class="tools-sessions-control">
+          <span class="tools-sessions-label">Sort</span>
+          <select class="tools-sessions-input" data-tools-sessions-control="sort">
+            <option value="recent"${state.sort === 'recent' ? ' selected' : ''}>Most recent</option>
+            <option value="oldest"${state.sort === 'oldest' ? ' selected' : ''}>Oldest</option>
+            <option value="tool"${state.sort === 'tool' ? ' selected' : ''}>Tool name</option>
+            <option value="title"${state.sort === 'title' ? ' selected' : ''}>Title</option>
+          </select>
+        </label>
+        <label class="tools-sessions-toggle">
+          <input type="checkbox" data-tools-sessions-control="pinned-first"${state.pinnedFirst ? ' checked' : ''}>
+          Pinned first
+        </label>
+        <details class="tools-sessions-more">
+          <summary>More filters</summary>
+          <div class="tools-sessions-more-grid">
+            <label class="tools-sessions-control">
+              <span class="tools-sessions-label">From</span>
+              <input type="date" class="tools-sessions-input" value="${escapeHtml(state.from)}" data-tools-sessions-control="from">
+            </label>
+            <label class="tools-sessions-control">
+              <span class="tools-sessions-label">To</span>
+              <input type="date" class="tools-sessions-input" value="${escapeHtml(state.to)}" data-tools-sessions-control="to">
+            </label>
+          </div>
+        </details>
+        <div class="tools-sessions-buttons">
+          <button type="button" class="btn-secondary" data-tools-sessions-action="toggle-select">${state.selecting ? 'Done' : 'Select'}</button>
+          <button type="button" class="btn-ghost" data-tools-sessions-action="clear-filters">Clear</button>
+        </div>
+      `.trim();
+    };
+
+    const renderList = () => {
+      if (!listEl || !summaryEl) return;
+      if (!sessionsState.length) {
+        summaryEl.textContent = 'No saved sessions yet.';
+        listEl.innerHTML = '<p class="tools-dashboard-empty">No saved sessions yet.</p>';
+        return;
+      }
+      const filtered = sessionsState
+        .filter(s => s.toolId && s.sessionId)
+        .filter(s => (state.tool === 'all' ? true : s.toolId === state.tool))
+        .filter(s => matchesQuery(s, state.query))
+        .filter(s => inDateRange(s));
+
+      const sorted = sortSessions(filtered);
+
+      const shownCount = sorted.length;
+      const total = Math.max(totalSessionsState, sessionsState.length);
+      const synced = formatTime(lastSyncState);
+      summaryEl.textContent = total
+        ? `Showing ${shownCount} of ${total} saved sessions${synced ? ` · Last sync ${synced}` : ''}.`
+        : `Showing ${shownCount} saved sessions.`;
+
+      if (!shownCount) {
+        listEl.innerHTML = '<p class="tools-dashboard-empty">No sessions match your filters.</p>';
+        return;
+      }
+      listEl.innerHTML = sorted.map(renderRow).join('');
+    };
+
+    const renderAll = () => {
+      renderControls();
+      updateBulk();
+      renderList();
+      if (panelEl) panelEl.classList.toggle('is-selecting', state.selecting);
+    };
+
+    const setBusy = (busy, message) => {
+      state.busy = !!busy;
+      if (typeof onStatus === 'function') onStatus(message || '');
+    };
+
+    renderAll();
+
+    addListener(hostEl, 'input', (event) => {
+      const control = event.target.closest('[data-tools-sessions-control]');
+      if (!control) return;
+      const key = String(control.dataset.toolsSessionsControl || '').trim();
+      if (key === 'query') {
+        state.query = String(control.value || '');
+        renderList();
+      }
+    });
+
+    addListener(hostEl, 'change', (event) => {
+      const control = event.target.closest('[data-tools-sessions-control]');
+      if (!control) return;
+      const key = String(control.dataset.toolsSessionsControl || '').trim();
+      if (key === 'tool') state.tool = String(control.value || 'all');
+      if (key === 'sort') state.sort = String(control.value || 'recent');
+      if (key === 'pinned-first') state.pinnedFirst = !!control.checked;
+      if (key === 'from') state.from = String(control.value || '');
+      if (key === 'to') state.to = String(control.value || '');
+      renderList();
+    });
+
+    addListener(hostEl, 'click', async (event) => {
+      const actionEl = event.target.closest('[data-tools-sessions-action]');
+      if (!actionEl) return;
+      const action = String(actionEl.dataset.toolsSessionsAction || '').trim();
+      if (state.busy && ['bulk-delete', 'export-json'].includes(action)) return;
+
+      const row = actionEl.closest('[data-session-tool][data-session-id]');
+      const toolId = row ? String(row.dataset.sessionTool || '').trim() : '';
+      const sessionId = row ? String(row.dataset.sessionId || '').trim() : '';
+
+      if (action === 'view-session') {
+        if (!toolId || !sessionId) return;
+        if (typeof onViewSession === 'function') onViewSession({ toolId, sessionId });
+        return;
+      }
+
+      if (action === 'delete-session') {
+        if (!toolId || !sessionId) return;
+        const ok = window.confirm('Delete this saved session? This cannot be undone.');
+        if (!ok) return;
+        try {
+          await window.ToolsState.deleteSession({ toolId, sessionId });
+          sessionsState = sessionsState.filter(s => !(s.toolId === toolId && s.sessionId === sessionId));
+          state.selected.delete(`${toolId}:${sessionId}`);
+          totalSessionsState = Math.max(0, totalSessionsState - 1);
+          renderAll();
+          try {
+            document.dispatchEvent(new CustomEvent('tools:session-deleted', { detail: { source: panelId, toolId, sessionId } }));
+          } catch {}
+        } catch (err) {
+          if (typeof onStatus === 'function') onStatus(err?.message || 'Unable to delete session.');
+        }
+        return;
+      }
+
+      if (action === 'toggle-pin') {
+        if (!toolId || !sessionId) return;
+        const idx = sessionsState.findIndex(s => s.toolId === toolId && s.sessionId === sessionId);
+        if (idx < 0) return;
+        const nextPinned = !sessionsState[idx].pinned;
+        try {
+          const res = await window.ToolsState.updateSessionMeta({ toolId, sessionId, pinned: nextPinned });
+          const updated = normalizeSession(res?.session || { ...sessionsState[idx], pinned: nextPinned });
+          sessionsState[idx] = { ...sessionsState[idx], ...updated };
+          renderList();
+          try {
+            document.dispatchEvent(new CustomEvent('tools:session-meta-updated', { detail: { source: panelId, toolId, sessionId, meta: updated } }));
+          } catch {}
+        } catch (err) {
+          if (typeof onStatus === 'function') onStatus(err?.message || 'Unable to update session.');
+        }
+        return;
+      }
+
+      if (action === 'toggle-select') {
+        state.selecting = !state.selecting;
+        if (!state.selecting) state.selected.clear();
+        renderAll();
+        return;
+      }
+
+      if (action === 'clear-selection') {
+        state.selected.clear();
+        renderAll();
+        return;
+      }
+
+      if (action === 'clear-filters') {
+        state.query = '';
+        state.tool = 'all';
+        state.sort = 'recent';
+        state.pinnedFirst = true;
+        state.from = '';
+        state.to = '';
+        renderAll();
+        return;
+      }
+
+      if (action === 'select-session') {
+        return;
+      }
+
+      if (action === 'export-csv') {
+        const selected = [...state.selected];
+        if (!selected.length) return;
+        const rows = selected.map((key) => {
+          const [toolId, sessionId] = key.split(':');
+          const session = sessionsState.find(s => s.toolId === toolId && s.sessionId === sessionId);
+          if (!session) return null;
+          const info = getToolInfo(toolId);
+          return {
+            toolId,
+            toolName: info.name,
+            sessionId,
+            title: session.title,
+            pinned: session.pinned ? 'true' : 'false',
+            tags: (session.tags || []).join(', '),
+            updatedAt: formatIsoDateTime(session.updatedAt),
+            createdAt: formatIsoDateTime(session.createdAt),
+            outputSummary: session.outputSummary,
+            note: session.note
+          };
+        }).filter(Boolean);
+
+        const header = ['toolId', 'toolName', 'sessionId', 'title', 'pinned', 'tags', 'updatedAt', 'createdAt', 'outputSummary', 'note'];
+        const csv = [
+          header.map(toCsvCell).join(','),
+          ...rows.map(row => header.map(key => toCsvCell(row[key] || '')).join(','))
+        ].join('\n');
+        downloadTextFile({ filename: 'tools-sessions.csv', text: csv, mime: 'text/csv;charset=utf-8' });
+        return;
+      }
+
+      if (action === 'export-json') {
+        const selected = [...state.selected];
+        if (!selected.length) return;
+        const ok = selected.length > 10
+          ? window.confirm(`Export ${selected.length} sessions with full inputs/outputs? This may take a moment.`)
+          : true;
+        if (!ok) return;
+
+        setBusy(true, 'Exporting sessions...');
+        try {
+          const sessionsOut = [];
+          for (const key of selected) {
+            const [toolId, sessionId] = key.split(':');
+            if (!toolId || !sessionId) continue;
+            try {
+              const res = await window.ToolsState.getSession({ toolId, sessionId });
+              if (res?.session) sessionsOut.push(res.session);
+            } catch {}
+          }
+          downloadTextFile({
+            filename: 'tools-sessions.json',
+            text: JSON.stringify({ exportedAt: Date.now(), sessions: sessionsOut }, null, 2),
+            mime: 'application/json;charset=utf-8'
+          });
+        } finally {
+          setBusy(false, '');
+        }
+        return;
+      }
+
+      if (action === 'bulk-delete') {
+        const selected = [...state.selected];
+        if (!selected.length) return;
+        const ok = window.confirm(`Delete ${selected.length} saved sessions? This cannot be undone.`);
+        if (!ok) return;
+
+        setBusy(true, 'Deleting sessions...');
+        try {
+          for (const key of selected) {
+            const [toolId, sessionId] = key.split(':');
+            if (!toolId || !sessionId) continue;
+            try {
+              await window.ToolsState.deleteSession({ toolId, sessionId });
+              sessionsState = sessionsState.filter(s => !(s.toolId === toolId && s.sessionId === sessionId));
+              totalSessionsState = Math.max(0, totalSessionsState - 1);
+              try {
+                document.dispatchEvent(new CustomEvent('tools:session-deleted', { detail: { source: panelId, toolId, sessionId } }));
+              } catch {}
+            } catch {}
+          }
+          state.selected.clear();
+          state.selecting = false;
+          renderAll();
+        } finally {
+          setBusy(false, '');
+        }
+      }
+    });
+
+    addListener(hostEl, 'change', (event) => {
+      const checkbox = event.target.closest('[data-tools-sessions-action="select-session"]');
+      if (!checkbox) return;
+      const row = checkbox.closest('[data-session-tool][data-session-id]');
+      if (!row) return;
+      const toolId = String(row.dataset.sessionTool || '').trim();
+      const sessionId = String(row.dataset.sessionId || '').trim();
+      if (!toolId || !sessionId) return;
+      const key = `${toolId}:${sessionId}`;
+      if (checkbox.checked) {
+        state.selected.add(key);
+      } else {
+        state.selected.delete(key);
+      }
+      updateBulk();
+    });
+
+    addListener(document, 'tools:session-meta-updated', (event) => {
+      if (String(event?.detail?.source || '').trim() === panelId) return;
+      const toolId = String(event?.detail?.toolId || '').trim();
+      const sessionId = String(event?.detail?.sessionId || '').trim();
+      if (!toolId || !sessionId) return;
+      const idx = sessionsState.findIndex(s => s.toolId === toolId && s.sessionId === sessionId);
+      if (idx < 0) return;
+      const meta = normalizeSession(event?.detail?.meta || {});
+      sessionsState[idx] = { ...sessionsState[idx], ...meta };
+      renderAll();
+    });
+
+    addListener(document, 'tools:session-deleted', (event) => {
+      if (String(event?.detail?.source || '').trim() === panelId) return;
+      const toolId = String(event?.detail?.toolId || '').trim();
+      const sessionId = String(event?.detail?.sessionId || '').trim();
+      if (!toolId || !sessionId) return;
+      const before = sessionsState.length;
+      sessionsState = sessionsState.filter(s => !(s.toolId === toolId && s.sessionId === sessionId));
+      if (sessionsState.length === before) return;
+      state.selected.delete(`${toolId}:${sessionId}`);
+      totalSessionsState = Math.max(0, totalSessionsState - 1);
+      renderAll();
+    });
+
+    return {
+      destroy: () => {
+        if (controller) {
+          try { controller.abort(); } catch {}
+        }
+      },
+      setSessions: ({ sessions: nextSessions, totalSessions: nextTotal, lastSyncAt: nextLastSync } = {}) => {
+        sessionsState = Array.isArray(nextSessions) ? nextSessions.map(normalizeSession).filter(s => s.toolId && s.sessionId) : [];
+        totalSessionsState = Number(nextTotal) || sessionsState.length;
+        lastSyncState = Number(nextLastSync) || Date.now();
+        state.selected.clear();
+        state.selecting = false;
+        renderAll();
+      }
+    };
+  };
+
   const initAccountModal = ({ onViewSession } = {}) => {
     const modalEl = document.createElement('div');
     modalEl.className = 'modal tools-account-modal';
@@ -454,6 +1063,7 @@
       signIn: () => {},
       signOut: () => {},
     };
+    let sessionsPanel = null;
 
     const setStatus = (message) => {
       if (!statusEl) return;
@@ -461,6 +1071,10 @@
     };
 
     const renderSignedOut = () => {
+      if (sessionsPanel) {
+        sessionsPanel.destroy();
+        sessionsPanel = null;
+      }
       if (actionsEl) {
         actionsEl.innerHTML = `
           <button type="button" class="btn-primary" data-tools-account-action="sign-in">Sign in</button>
@@ -481,6 +1095,10 @@
     };
 
     const renderLoading = ({ user }) => {
+      if (sessionsPanel) {
+        sessionsPanel.destroy();
+        sessionsPanel = null;
+      }
       if (!actionsEl) return;
       actionsEl.innerHTML = `
         <button type="button" class="btn-secondary" data-tools-account-action="refresh">Refresh</button>
@@ -503,35 +1121,15 @@
     };
 
     const renderDashboardData = ({ user, data }) => {
+      if (sessionsPanel) {
+        sessionsPanel.destroy();
+        sessionsPanel = null;
+      }
       const email = escapeHtml(user?.email || '');
       const name = escapeHtml(user?.name || '');
       const sub = escapeHtml(user?.sub || '');
 
       const recentSessions = Array.isArray(data?.recentSessions) ? data.recentSessions : [];
-
-      const sessionsMarkup = (() => {
-        if (!recentSessions.length) return '<p class="tools-dashboard-empty">No saved sessions yet.</p>';
-        return recentSessions.map((session) => {
-          const toolId = String(session?.toolId || '').trim();
-          const sessionId = String(session?.sessionId || '').trim();
-          const info = getToolInfo(toolId);
-          const updated = session?.updatedAt ? formatTime(session.updatedAt) : '';
-          const summary = String(session?.outputSummary || '').trim();
-          const href = `${info.href}?session=${encodeURIComponent(sessionId)}`;
-          return `
-            <div class="tools-dashboard-item" data-session-tool="${escapeHtml(toolId)}" data-session-id="${escapeHtml(sessionId)}">
-              <div>
-                <p class="tools-dashboard-item-title"><a href="${escapeHtml(href)}">${escapeHtml(info.name)}</a></p>
-                <p class="tools-dashboard-item-meta">${updated ? `Updated ${escapeHtml(updated)} · ` : ''}${summary ? escapeHtml(summary) : `Session ${escapeHtml(sessionId.slice(0, 10))}…`}</p>
-              </div>
-              <div class="tools-dashboard-item-actions">
-                <a class="btn-secondary" href="${escapeHtml(href)}">Reopen</a>
-                <button type="button" class="btn-secondary" data-tools-action="view-session">View</button>
-              </div>
-            </div>
-          `.trim();
-        }).join('');
-      })();
 
       if (actionsEl) {
         actionsEl.innerHTML = `
@@ -559,9 +1157,23 @@
               <h2 id="tools-account-modal-sessions">Recent sessions</h2>
               <p class="tools-dashboard-subtitle">Your saved inputs and outputs across tools.</p>
             </header>
-            <div class="tools-dashboard-list">${sessionsMarkup}</div>
+            <div data-tools-account="sessions-panel"></div>
           </section>
         `.trim();
+
+        const tools = Array.isArray(data?.tools) ? data.tools : [];
+        const totalSessions = tools.reduce((sum, entry) => sum + (Number(entry?.meta?.sessionCount) || 0), 0);
+        const panelHost = gridEl.querySelector('[data-tools-account="sessions-panel"]');
+        if (panelHost) {
+          sessionsPanel = initSessionsPanel({
+            hostEl: panelHost,
+            sessions: recentSessions,
+            totalSessions,
+            lastSyncAt: Date.now(),
+            onViewSession,
+            onStatus: setStatus
+          });
+        }
       }
     };
 
@@ -693,6 +1305,7 @@
 
     let currentToolId = '';
     let currentSessionId = '';
+    let currentMeta = { title: '', note: '', tags: [], pinned: false };
 
     const setStatus = (message) => {
       if (!statusEl) return;
@@ -970,6 +1583,10 @@
       const updated = record?.updatedAt ? formatTime(record.updatedAt) : '';
       const created = record?.createdAt ? formatTime(record.createdAt) : '';
       const outputSummary = String(record?.outputSummary || '').trim();
+      const title = String(record?.title || '').trim();
+      const note = String(record?.note || '').trim();
+      const tags = Array.isArray(record?.tags) ? record.tags.map(v => String(v || '').trim()).filter(Boolean) : [];
+      const pinned = Boolean(record?.pinned);
       const snapshot = record?.snapshot && typeof record.snapshot === 'object' ? record.snapshot : {};
       const fields = snapshot.fields && typeof snapshot.fields === 'object' ? snapshot.fields : {};
       const fieldMeta = snapshot.fieldMeta && typeof snapshot.fieldMeta === 'object' ? snapshot.fieldMeta : {};
@@ -1015,6 +1632,8 @@
         subtitleEl.textContent = `${info.name}${updated ? ` · Updated ${updated}` : ''}${created && !updated ? ` · Created ${created}` : ''}`;
       }
 
+      currentMeta = { title, note, tags, pinned };
+
       if (actionsEl) {
         actionsEl.innerHTML = `
           <a class="btn-secondary" href="${escapeHtml(reopenHref)}">Reopen</a>
@@ -1050,6 +1669,31 @@
               `.trim() : ''}
             </section>
           </div>
+          <details class="tools-session-details">
+            <summary>Session details</summary>
+            <div class="tools-session-details-form">
+              <label class="tools-session-details-field">
+                <span class="tools-session-details-label">Title</span>
+                <input type="text" class="tools-sessions-input" value="${escapeHtml(title)}" data-tools-session-field="title" placeholder="Optional session title">
+              </label>
+              <label class="tools-session-details-field">
+                <span class="tools-session-details-label">Tags</span>
+                <input type="text" class="tools-sessions-input" value="${escapeHtml(tags.join(', '))}" data-tools-session-field="tags" placeholder="Comma-separated tags">
+              </label>
+              <label class="tools-session-details-field">
+                <span class="tools-session-details-label">Note</span>
+                <textarea class="tools-sessions-input tools-session-details-note" rows="3" data-tools-session-field="note" placeholder="Optional note">${escapeHtml(note)}</textarea>
+              </label>
+              <label class="tools-sessions-toggle tools-session-details-pin">
+                <input type="checkbox" data-tools-session-field="pinned"${pinned ? ' checked' : ''}>
+                Pin this session
+              </label>
+              <div class="tools-session-details-actions">
+                <button type="button" class="btn-secondary" data-tools-session-action="reset-meta">Reset</button>
+                <button type="button" class="btn-primary" data-tools-session-action="save-meta">Save details</button>
+              </div>
+            </div>
+          </details>
         `.trim();
       }
     };
@@ -1111,6 +1755,59 @@
         close();
         return;
       }
+      if (action === 'reset-meta') {
+        const titleEl = modalEl.querySelector('[data-tools-session-field="title"]');
+        const tagsEl = modalEl.querySelector('[data-tools-session-field="tags"]');
+        const noteEl = modalEl.querySelector('[data-tools-session-field="note"]');
+        const pinnedEl = modalEl.querySelector('[data-tools-session-field="pinned"]');
+        if (titleEl) titleEl.value = currentMeta.title || '';
+        if (tagsEl) tagsEl.value = (currentMeta.tags || []).join(', ');
+        if (noteEl) noteEl.value = currentMeta.note || '';
+        if (pinnedEl) pinnedEl.checked = !!currentMeta.pinned;
+        setStatus('');
+        return;
+      }
+      if (action === 'save-meta') {
+        if (!currentToolId || !currentSessionId) return;
+        if (!window.ToolsState?.updateSessionMeta) {
+          setStatus('Session update API is unavailable.');
+          return;
+        }
+
+        const titleEl = modalEl.querySelector('[data-tools-session-field="title"]');
+        const tagsEl = modalEl.querySelector('[data-tools-session-field="tags"]');
+        const noteEl = modalEl.querySelector('[data-tools-session-field="note"]');
+        const pinnedEl = modalEl.querySelector('[data-tools-session-field="pinned"]');
+
+        const title = titleEl ? String(titleEl.value || '') : '';
+        const tags = tagsEl ? parseTagsInput(tagsEl.value || '') : [];
+        const note = noteEl ? String(noteEl.value || '') : '';
+        const pinned = pinnedEl ? !!pinnedEl.checked : false;
+
+        setStatus('Saving session details...');
+        try {
+          const res = await window.ToolsState.updateSessionMeta({ toolId: currentToolId, sessionId: currentSessionId, title, note, tags, pinned });
+          const meta = res?.session || {};
+          currentMeta = {
+            title: String(meta.title || '').trim(),
+            note: String(meta.note || '').trim(),
+            tags: Array.isArray(meta.tags) ? meta.tags.map(v => String(v || '').trim()).filter(Boolean) : [],
+            pinned: Boolean(meta.pinned)
+          };
+          if (titleEl) titleEl.value = currentMeta.title;
+          if (tagsEl) tagsEl.value = currentMeta.tags.join(', ');
+          if (noteEl) noteEl.value = currentMeta.note;
+          if (pinnedEl) pinnedEl.checked = !!currentMeta.pinned;
+          setStatus('Saved.');
+          setTimeout(() => setStatus(''), 1200);
+          try {
+            document.dispatchEvent(new CustomEvent('tools:session-meta-updated', { detail: { toolId: currentToolId, sessionId: currentSessionId, meta } }));
+          } catch {}
+        } catch (err) {
+          setStatus(err?.message || 'Unable to save session details.');
+        }
+        return;
+      }
       if (action === 'delete') {
         if (!currentToolId || !currentSessionId) return;
         const ok = window.confirm('Delete this saved session? This cannot be undone.');
@@ -1118,6 +1815,9 @@
         try {
           await window.ToolsState.deleteSession({ toolId: currentToolId, sessionId: currentSessionId });
           document.querySelectorAll(`[data-session-tool="${CSS.escape(currentToolId)}"][data-session-id="${CSS.escape(currentSessionId)}"]`).forEach((el) => el.remove());
+          try {
+            document.dispatchEvent(new CustomEvent('tools:session-deleted', { detail: { toolId: currentToolId, sessionId: currentSessionId } }));
+          } catch {}
           close();
         } catch (err) {
           setStatus(err?.message || 'Unable to delete session.');
@@ -1240,6 +1940,7 @@
     const statusEl = $('[data-tools-dashboard="status"]');
     const accountEl = $('[data-tools-dashboard="account"]');
     const sessionsEl = $('[data-tools-dashboard="sessions"]');
+    let sessionsPanel = null;
 
     const setDashboardStatus = (message) => {
       if (statusEl) statusEl.textContent = message || '';
@@ -1249,7 +1950,18 @@
     const clearLists = () => {
       if (accountEl) accountEl.innerHTML = '';
       if (sessionsEl) sessionsEl.innerHTML = '';
+      if (sessionsPanel) {
+        sessionsPanel.destroy();
+        sessionsPanel = null;
+      }
     };
+
+    document.addEventListener('tools:auth-changed', () => {
+      const auth = window.ToolsAuth.getAuth();
+      if (window.ToolsAuth.authIsValid(auth)) return;
+      clearLists();
+      setDashboardStatus('Signed out.');
+    });
 
     const auth = window.ToolsAuth.getAuth();
     if (!window.ToolsAuth.authIsValid(auth)) {
@@ -1286,65 +1998,15 @@
 
     const sessions = Array.isArray(data?.recentSessions) ? data.recentSessions : [];
     if (sessionsEl) {
-      if (!sessions.length) {
-        sessionsEl.innerHTML = '<p class="tools-dashboard-empty">No saved sessions yet.</p>';
-      } else {
-        sessionsEl.innerHTML = sessions.map((session) => {
-          const toolId = String(session?.toolId || '').trim();
-          const sessionId = String(session?.sessionId || '').trim();
-          const info = getToolInfo(toolId);
-          const updated = session?.updatedAt ? formatTime(session.updatedAt) : '';
-          const summary = String(session?.outputSummary || '').trim();
-          const href = `${info.href}?session=${encodeURIComponent(sessionId)}`;
-          return `
-            <div class="tools-dashboard-item" data-session-tool="${escapeHtml(toolId)}" data-session-id="${escapeHtml(sessionId)}">
-              <div>
-                <p class="tools-dashboard-item-title"><a href="${escapeHtml(href)}">${escapeHtml(info.name)}</a></p>
-                <p class="tools-dashboard-item-meta">${updated ? `Updated ${escapeHtml(updated)} · ` : ''}${summary ? escapeHtml(summary) : `Session ${escapeHtml(sessionId.slice(0, 10))}…`}</p>
-              </div>
-              <div class="tools-dashboard-item-actions">
-                <a class="btn-secondary" href="${escapeHtml(href)}">Reopen</a>
-                <button type="button" class="btn-secondary" data-tools-action="view-session">View</button>
-                <button type="button" class="btn-ghost" data-tools-action="delete-session">Delete</button>
-              </div>
-            </div>
-          `.trim();
-        }).join('');
-      }
-    }
-
-    if (sessionsEl) {
-      sessionsEl.addEventListener('click', async (event) => {
-        const viewButton = event.target.closest('[data-tools-action="view-session"]');
-        if (viewButton) {
-          const row = viewButton.closest('[data-session-tool][data-session-id]');
-          if (!row) return;
-          const toolId = String(row.dataset.sessionTool || '').trim();
-          const sessionId = String(row.dataset.sessionId || '').trim();
-          if (!toolId || !sessionId) return;
-          if (typeof onViewSession === 'function') onViewSession({ toolId, sessionId });
-          return;
-        }
-
-        const button = event.target.closest('[data-tools-action="delete-session"]');
-        if (!button) return;
-        const row = button.closest('[data-session-tool][data-session-id]');
-        if (!row) return;
-        const toolId = String(row.dataset.sessionTool || '').trim();
-        const sessionId = String(row.dataset.sessionId || '').trim();
-        if (!toolId || !sessionId) return;
-
-        const ok = window.confirm('Delete this saved session? This cannot be undone.');
-        if (!ok) return;
-
-        try {
-          await window.ToolsState.deleteSession({ toolId, sessionId });
-          row.remove();
-          setDashboardStatus('Session deleted.');
-          setTimeout(() => setDashboardStatus(''), 1600);
-        } catch (err) {
-          setDashboardStatus(err?.message || 'Unable to delete session.');
-        }
+      const tools = Array.isArray(data?.tools) ? data.tools : [];
+      const totalSessions = tools.reduce((sum, entry) => sum + (Number(entry?.meta?.sessionCount) || 0), 0);
+      sessionsPanel = initSessionsPanel({
+        hostEl: sessionsEl,
+        sessions,
+        totalSessions,
+        lastSyncAt: Date.now(),
+        onViewSession,
+        onStatus: setDashboardStatus
       });
     }
   };

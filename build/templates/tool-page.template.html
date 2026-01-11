@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <base href="/">
-  <title>Tools Dashboard | Daniel Short</title>
-  <link rel="canonical" href="https://danielshort.me/tools/dashboard">
+  <title>__TOOL_TITLE__ | Daniel Short</title>
+  <link rel="canonical" href="https://danielshort.me/tools/__TOOL_ID__">
   <meta name="robots" content="noindex, nofollow">
-  <meta name="description" content="Sign in once and manage your saved tool sessions across danielshort.me/tools.">
-  <meta property="og:title" content="Tools Dashboard | Daniel Short">
+  <meta name="description" content="__TOOL_DESCRIPTION__">
+  <meta property="og:title" content="__TOOL_TITLE__ | Daniel Short">
   <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
-  <meta property="og:description" content="Sign in once and manage your saved tool sessions across danielshort.me/tools.">
-  <meta property="og:url" content="https://danielshort.me/tools/dashboard">
+  <meta property="og:description" content="__TOOL_OG_DESCRIPTION__">
+  <meta property="og:url" content="https://danielshort.me/tools/__TOOL_ID__">
   <meta property="og:image" content="https://danielshort.me/img/hero/head.jpg">
   <meta property="og:image:alt" content="Portrait photo of Daniel Short">
   <meta property="og:type" content="website">
@@ -35,14 +35,14 @@
     } catch (_) {}
   </script>
 </head>
-<body data-page="tools-dashboard" class="tools-dashboard-page">
+<body data-page="__TOOL_ID__" class="tools-tool-page" data-tools-title="__TOOL_TITLE__" data-tools-eyebrow="__TOOL_EYEBROW__">
   <a href="#main" class="skip-link">Skip to main content</a>
   <header id="combined-header-nav"></header>
 
   <section class="tools-hero">
     <div class="wrapper">
-      <p class="hero-eyebrow">Tools Dashboard - Save and revisit tool sessions.</p>
-      <h1 class="visually-hidden">Tools Dashboard</h1>
+      <p class="hero-eyebrow">__TOOL_EYEBROW__</p>
+      <h1 class="visually-hidden">__TOOL_TITLE__</h1>
     </div>
   </section>
 
@@ -53,26 +53,14 @@
   </div>
 
   <main id="main">
-
-    <section class="surface-band tools-dashboard-section">
+    <section class="surface-band tools-section">
       <div class="wrapper">
-        <p class="tools-dashboard-status" data-tools-dashboard="status" role="status" aria-live="polite"></p>
-        <div class="tools-dashboard-grid is-stacked">
-          <section class="tools-dashboard-card" aria-labelledby="tools-dashboard-account">
-            <header class="tools-dashboard-card-head">
-              <h2 id="tools-dashboard-account">Account</h2>
-              <p class="tools-dashboard-subtitle">Your tools history is private to this signed-in account.</p>
-            </header>
-            <div data-tools-dashboard="account"></div>
-          </section>
-
-          <section class="tools-dashboard-card" aria-labelledby="tools-dashboard-sessions">
-            <header class="tools-dashboard-card-head">
-              <h2 id="tools-dashboard-sessions">Recent sessions</h2>
-              <p class="tools-dashboard-subtitle">Your saved inputs and outputs across tools.</p>
-            </header>
-            <div data-tools-dashboard="sessions"></div>
-          </section>
+        <div class="tools-card">
+          <h2>__TOOL_TITLE__</h2>
+          <p class="tools-subtitle">__TOOL_DESCRIPTION__</p>
+          <div class="tools-body">
+            <p>Replace this section with your tool UI.</p>
+          </div>
         </div>
       </div>
     </section>
@@ -85,6 +73,7 @@
     </nav>
   </footer>
 
+  <script defer src="js/tools/__TOOL_ID__.js"></script>
   <script defer src="js/accounts/tools-config.js"></script>
   <script defer src="js/accounts/tools-auth.js"></script>
   <script defer src="js/accounts/tools-state.js"></script>
@@ -96,3 +85,4 @@
   <script defer src="js/privacy/consent_manager.js"></script>
 </body>
 </html>
+
