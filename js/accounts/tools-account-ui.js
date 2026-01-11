@@ -462,9 +462,17 @@
     const saveButton = allowToolActions ? `<button type="button" class="btn-secondary" data-tools-action="save-session">Save session</button>` : '';
     const newButton = allowToolActions ? `<button type="button" class="btn-ghost" data-tools-action="new-session">New session</button>` : '';
 
-    const sessionLine = allowToolActions
-      ? `<span class="tools-account-status">${escapeHtml(toolInfo?.name || toolId)}${sessionId ? ` · Session ${escapeHtml(sessionId.slice(0, 10))}…` : ''}${statusText ? ` · ${escapeHtml(statusText)}` : ''}</span>`
-      : (statusText ? `<span class="tools-account-status">${escapeHtml(statusText)}</span>` : '');
+    const statusParts = [];
+    if (toolId) {
+      statusParts.push(`<a class="tools-account-tools-link" href="tools">← Tools</a>`);
+      statusParts.push(escapeHtml(toolInfo?.name || toolId));
+    }
+    if (sessionId) statusParts.push(`Session ${escapeHtml(sessionId.slice(0, 10))}…`);
+    if (statusText) statusParts.push(escapeHtml(statusText));
+
+    const sessionLine = statusParts.length
+      ? `<span class="tools-account-status">${statusParts.join(' · ')}</span>`
+      : '';
 
     barEl.innerHTML = `
       <span class="${pillClass}" aria-label="${escapeHtml(label)}">${escapeHtml(label)}</span>

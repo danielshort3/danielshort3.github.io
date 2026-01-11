@@ -230,6 +230,10 @@
               <span class="nav-dropdown-title">View all projects</span>
               <span class="nav-dropdown-subtitle">Browse the complete portfolio</span>
             </a>
+            <a href="tools" class="nav-dropdown-link nav-dropdown-all" role="button">
+              <span class="nav-dropdown-title">Tools</span>
+              <span class="nav-dropdown-subtitle">Browse all tools</span>
+            </a>
           </div>
         </div>
       </div>
@@ -404,6 +408,9 @@
       const matchesSection = (() => {
         if (targetNoHtml === '/portfolio') {
           return [currentPath, altCurrentPath].some(p => p === '/portfolio' || p === '/portfolio.html' || p.startsWith('/portfolio/'));
+        }
+        if (targetNoHtml === '/tools') {
+          return [currentPath, altCurrentPath].some(p => p === '/tools' || p === '/tools.html' || p.startsWith('/tools/'));
         }
         return false;
       })();
