@@ -181,6 +181,9 @@
   .nav-dropdown-footer .nav-dropdown-link{
     margin-top:0;
   }
+  .nav-dropdown-footer .nav-dropdown-link + .nav-dropdown-link{
+    margin-top:6px;
+  }
   .nav-dropdown-link{
     display:flex;
     flex-direction:column;
