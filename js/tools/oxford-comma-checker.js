@@ -19,6 +19,15 @@
 
   if (!form || !input || !summary || !counts || !output) return;
 
+  const TOOL_ID = 'oxford-comma-checker';
+  const MAX_SAVED_OUTPUT_HTML_CHARS = 120_000;
+
+  const markSessionDirty = () => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:session-dirty', { detail: { toolId: TOOL_ID } }));
+    } catch {}
+  };
+
   const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const escapeHtml = (value) => value
     .replace(/&/g, '&amp;')
@@ -245,6 +254,7 @@
       absentColorInput.value = defaultColors.absent;
     }
     applyColorVars();
+    markSessionDirty();
   });
   clearBtn?.addEventListener('click', () => {
     input.value = '';
@@ -257,6 +267,46 @@
       empty.textContent = 'Waiting for input.';
     }
     output.innerHTML = '<p class="oxford-empty">Paste text and click Check.</p>';
+    markSessionDirty();
     input.focus();
+  });
+
+  const clampText = (value, maxChars) => {
+    const text = String(value || '');
+    if (text.length <= maxChars) return { text, truncated: false };
+    return { text: text.slice(0, maxChars), truncated: true };
+  };
+
+  const captureSummary = () => String(summary?.textContent || '').replace(/\s+/g, ' ').trim();
+
+  document.addEventListener('tools:session-capture', (event) => {
+    const detail = event?.detail;
+    if (detail?.toolId !== TOOL_ID) return;
+    const payload = detail?.payload;
+    if (!payload || typeof payload !== 'object') return;
+
+    const outSummary = captureSummary();
+    payload.outputSummary = outSummary;
+    payload.inputs = { Text: input.value || '' };
+
+    const html = String(output?.innerHTML || '').trim();
+    if (html && html.length <= MAX_SAVED_OUTPUT_HTML_CHARS) {
+      payload.output = { kind: 'html', html, summary: outSummary };
+      return;
+    }
+
+    const rawText = String(output?.textContent || '').trim();
+    const { text, truncated } = clampText(rawText, 120_000);
+    if (text) payload.output = { kind: 'text', text, summary: outSummary, truncated };
+  });
+
+  document.addEventListener('tools:session-applied', (event) => {
+    const detail = event?.detail;
+    if (detail?.toolId !== TOOL_ID) return;
+    requestAnimationFrame(() => {
+      try {
+        runAnalysis();
+      } catch {}
+    });
   });
 })();

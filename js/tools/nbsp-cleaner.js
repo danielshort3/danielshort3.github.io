@@ -15,6 +15,14 @@
 
   if (!form || !input || !output || !summary || !countsList || !preview) return;
 
+  const TOOL_ID = 'nbsp-cleaner';
+
+  const markSessionDirty = () => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:session-dirty', { detail: { toolId: TOOL_ID } }));
+    } catch {}
+  };
+
   const HARD_SPACES = [
     { char: '\u00A0', label: 'Non-breaking space', code: 'U+00A0' },
     { char: '\u202F', label: 'Narrow no-break space', code: 'U+202F' },
@@ -161,6 +169,7 @@
     summary.textContent = 'Paste text and run the cleaner to see findings.';
     setCopyStatus('');
     preview.innerHTML = '<span class="nbsp-status">Preview will appear after you paste text.</span>';
+    markSessionDirty();
     input.focus();
   });
 
@@ -175,5 +184,15 @@
     } catch {
       setCopyStatus('Copy failed. Please copy manually.', 'error');
     }
+  });
+
+  document.addEventListener('tools:session-capture', (event) => {
+    const detail = event?.detail;
+    if (detail?.toolId !== TOOL_ID) return;
+    const payload = detail?.payload;
+    if (!payload || typeof payload !== 'object') return;
+
+    payload.outputSummary = String(summary?.textContent || '').replace(/\s+/g, ' ').trim();
+    payload.inputs = { Input: input.value || '' };
   });
 })();

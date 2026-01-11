@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 
 const core = require("./core");
@@ -74,6 +74,100 @@ type WorkerResponse =
 
 const STORAGE_PRESETS_KEY = "utm-batch-builder.presets.v1";
 const STORAGE_LAST_KEY = "utm-batch-builder.last.v1";
+
+const TOOLS_TOOL_ID = "utm-batch-builder";
+const TOOLS_MAX_SAVED_CSV_CHARS = 80_000;
+const TOOLS_MAX_SAVED_OUTPUT_ROWS = 60;
+const TOOLS_MAX_OUTPUT_PREVIEW_CHARS = 40_000;
+
+const clampText = (value: unknown, maxChars: number) => {
+  const text = String(value ?? "");
+  if (text.length <= maxChars) return { text, truncated: false, total: text.length };
+  return { text: text.slice(0, maxChars), truncated: true, total: text.length };
+};
+
+const summarizeFieldInput = (field: FieldInputState, csvColumns: CsvColumnOption[]) => {
+  const mode = field?.mode || "single";
+  if (mode === "csvColumn") {
+    const idx = typeof field.csvColumnIndex === "number" ? field.csvColumnIndex : null;
+    const col = idx === null ? null : csvColumns.find((c) => c.index === idx);
+    return col ? `CSV: ${col.label}` : "CSV column";
+  }
+  if (mode === "list") {
+    const lines = String(field.list || "")
+      .split(/\r?\n/)
+      .map((s) => String(s || "").trim())
+      .filter(Boolean);
+    if (!lines.length) return "List (empty)";
+    const first = lines[0];
+    const suffix = lines.length > 1 ? ` (+${lines.length - 1} more)` : "";
+    return `List: ${first}${suffix}`;
+  }
+  const single = String(field.single || "").trim();
+  return single || "(blank)";
+};
+
+const mergeFieldInput = (raw: any, fallback: FieldInputState) => {
+  if (!raw || typeof raw !== "object") return fallback;
+  return {
+    ...fallback,
+    ...raw,
+    mode: (raw.mode as InputMode) || fallback.mode,
+    single: typeof raw.single === "string" ? raw.single : fallback.single,
+    list: typeof raw.list === "string" ? raw.list : fallback.list,
+    csvColumnIndex: typeof raw.csvColumnIndex === "number" || raw.csvColumnIndex === null ? raw.csvColumnIndex : fallback.csvColumnIndex,
+  };
+};
+
+const mergeConfig = (raw: any): AppConfigState => {
+  const base = defaultConfig();
+  if (!raw || typeof raw !== "object") return base;
+  const normalization = raw.normalization && typeof raw.normalization === "object" ? raw.normalization : {};
+  const utm = raw.utm && typeof raw.utm === "object" ? raw.utm : {};
+  const customParams = Array.isArray(raw.customParams) ? raw.customParams : [];
+  const relationshipGroups = Array.isArray(raw.relationshipGroups) ? raw.relationshipGroups : [];
+
+  return {
+    ...base,
+    ...raw,
+    normalization: { ...base.normalization, ...normalization },
+    excludeRulesText: typeof raw.excludeRulesText === "string" ? raw.excludeRulesText : base.excludeRulesText,
+    csvText: typeof raw.csvText === "string" ? raw.csvText : base.csvText,
+    baseUrl: mergeFieldInput(raw.baseUrl, base.baseUrl),
+    utm: {
+      source: mergeFieldInput(utm.source, base.utm.source),
+      medium: mergeFieldInput(utm.medium, base.utm.medium),
+      campaign: mergeFieldInput(utm.campaign, base.utm.campaign),
+      content: mergeFieldInput(utm.content, base.utm.content),
+      term: mergeFieldInput(utm.term, base.utm.term),
+    },
+    customParams: customParams.map((p: any) => ({
+      id: String(p?.id || makeId()),
+      key: typeof p?.key === "string" ? p.key : "",
+      value: mergeFieldInput(p?.value, makeField()),
+    })),
+    relationshipGroups: relationshipGroups.map((g: any) => ({
+      id: String(g?.id || makeId()),
+      name: typeof g?.name === "string" ? g.name : "",
+      keys: Array.isArray(g?.keys) ? g.keys.map((k: any) => String(k || "")).filter(Boolean) : [],
+    })),
+  };
+};
+
+const mergeCampaignBuilder = (raw: any): CampaignBuilderState => {
+  const base = defaultCampaignBuilder();
+  if (!raw || typeof raw !== "object") return base;
+  const tokens = raw.tokens && typeof raw.tokens === "object" ? raw.tokens : {};
+  return {
+    ...base,
+    ...raw,
+    template: typeof raw.template === "string" ? raw.template : base.template,
+    mode: raw.mode === "zip" ? "zip" : "cartesian",
+    tokens,
+    generated: Array.isArray(raw.generated) ? raw.generated.map((t: any) => String(t ?? "")) : base.generated,
+    lastError: raw.lastError ? String(raw.lastError) : null,
+  };
+};
 
 const makeId = () => {
   const c = (globalThis as any).crypto;
@@ -1011,6 +1105,12 @@ const App = () => {
   const workerRef = useRef<Worker | null>(null);
   const activeRequestId = useRef<string | null>(null);
 
+  const markSessionDirty = useCallback(() => {
+    try {
+      document.dispatchEvent(new CustomEvent("tools:session-dirty", { detail: { toolId: TOOLS_TOOL_ID } }));
+    } catch (_) {}
+  }, []);
+
   const [status, setStatus] = useState<"idle" | "generating" | "done" | "error" | "cancelled">("idle");
   const [errors, setErrors] = useState<string[]>([]);
   const [warnings, setWarnings] = useState<string[]>([]);
@@ -1033,6 +1133,153 @@ const App = () => {
     });
     return { columns, rowCount: Math.max(0, parsed.length - 1), hasCsv: true };
   }, [config.csvText]);
+
+  const latestRef = useRef({
+    config,
+    campaignBuilder,
+    status,
+    errors,
+    warnings,
+    estimatedTotal,
+    generatedCount,
+    paramKeys,
+    rows,
+    csvMeta
+  });
+
+  useEffect(() => {
+    latestRef.current = {
+      config,
+      campaignBuilder,
+      status,
+      errors,
+      warnings,
+      estimatedTotal,
+      generatedCount,
+      paramKeys,
+      rows,
+      csvMeta
+    };
+  }, [campaignBuilder, config, csvMeta, errors, estimatedTotal, generatedCount, paramKeys, rows, status, warnings]);
+
+  useLayoutEffect(() => {
+    const safeArray = (value: any) => Array.isArray(value) ? value : [];
+    const safeStringArray = (value: any) => safeArray(value).map((v: any) => String(v ?? "")).filter(Boolean);
+    const safeStatus = (value: any) => {
+      const s = String(value || "").trim();
+      if (s === "generating" || s === "done" || s === "error" || s === "cancelled") return s as any;
+      return "idle" as const;
+    };
+
+    const onCapture = (event: any) => {
+      const detail = event?.detail;
+      if (!detail || detail.toolId !== TOOLS_TOOL_ID) return;
+      const payload = detail.payload;
+      if (!payload || typeof payload !== "object") return;
+
+      const current = latestRef.current;
+      const cfg = current.config;
+      const columns = current.csvMeta?.columns || [];
+
+      payload.inputs = {
+        Mode: cfg.mode,
+        "Base URL": summarizeFieldInput(cfg.baseUrl, columns),
+        utm_source: summarizeFieldInput(cfg.utm.source, columns),
+        utm_medium: summarizeFieldInput(cfg.utm.medium, columns),
+        utm_campaign: summarizeFieldInput(cfg.utm.campaign, columns),
+        ...(current.csvMeta?.hasCsv ? { "CSV rows": String(current.csvMeta.rowCount || 0) } : { "CSV rows": "0" }),
+      };
+
+      const outputSummary = (() => {
+        if (current.status === "done") return `Generated ${Number(current.generatedCount || 0).toLocaleString("en-US")} URLs`;
+        if (current.status === "generating") {
+          const total = Number(current.estimatedTotal || 0);
+          const done = Number(current.generatedCount || 0);
+          return total ? `Generating ${done.toLocaleString("en-US")} / ${total.toLocaleString("en-US")}` : `Generating ${done.toLocaleString("en-US")}…`;
+        }
+        if (current.status === "cancelled") return `Cancelled at ${Number(current.generatedCount || 0).toLocaleString("en-US")}`;
+        if (current.status === "error") return current.errors && current.errors.length ? `Error: ${String(current.errors[0])}` : "Error";
+        return "No output yet";
+      })();
+
+      payload.outputSummary = outputSummary;
+
+      const previewUrls = safeArray(current.rows)
+        .slice(0, TOOLS_MAX_SAVED_OUTPUT_ROWS)
+        .map((row: any) => String(row?.finalUrl ?? "").trim())
+        .filter(Boolean);
+
+      const previewText = previewUrls.length
+        ? previewUrls.join("\n")
+        : (current.errors && current.errors.length ? String(current.errors.join("\n")) : "");
+
+      const { text: clippedPreview, truncated, total } = clampText(previewText, TOOLS_MAX_OUTPUT_PREVIEW_CHARS);
+      const previewNote = truncated ? `\n\n…preview truncated (${total.toLocaleString("en-US")} chars)` : "";
+      const outputText = (clippedPreview || outputSummary) + previewNote;
+
+      const { text: csvText, truncated: csvTruncated, total: csvTotal } = clampText(cfg.csvText || "", TOOLS_MAX_SAVED_CSV_CHARS);
+      const results = {
+        status: current.status,
+        errors: safeStringArray(current.errors),
+        warnings: safeStringArray(current.warnings),
+        estimatedTotal: Number(current.estimatedTotal || 0),
+        generatedCount: Number(current.generatedCount || 0),
+        paramKeys: safeStringArray(current.paramKeys),
+        rows: safeArray(current.rows).slice(0, TOOLS_MAX_SAVED_OUTPUT_ROWS),
+      };
+
+      payload.output = {
+        kind: "text",
+        summary: outputSummary,
+        text: outputText,
+        meta: {
+          config: { ...cfg, csvText },
+          csvTruncated,
+          csvTotal,
+          campaignBuilder: current.campaignBuilder,
+          results,
+        },
+      };
+    };
+
+    const onApplied = (event: any) => {
+      const detail = event?.detail;
+      if (!detail || detail.toolId !== TOOLS_TOOL_ID) return;
+      const snapshot = detail.snapshot || {};
+      const output = snapshot.output;
+      if (!output || typeof output !== "object" || Array.isArray(output)) return;
+      const meta = (output as any).meta;
+      if (!meta || typeof meta !== "object") return;
+
+      if (meta.config) {
+        setConfig(mergeConfig(meta.config));
+      }
+      if (meta.campaignBuilder) {
+        setCampaignBuilder(mergeCampaignBuilder(meta.campaignBuilder));
+      }
+
+      if (meta.results && typeof meta.results === "object") {
+        const r = meta.results;
+        setStatus(safeStatus(r.status));
+        setErrors(safeStringArray(r.errors));
+        setWarnings(safeStringArray(r.warnings));
+        setEstimatedTotal(Number(r.estimatedTotal || 0));
+        setGeneratedCount(Number(r.generatedCount || 0));
+        setParamKeys(safeStringArray(r.paramKeys));
+        setRows(safeArray(r.rows));
+        setFilterQuery("");
+      }
+
+      activeRequestId.current = null;
+    };
+
+    document.addEventListener("tools:session-capture", onCapture);
+    document.addEventListener("tools:session-applied", onApplied);
+    return () => {
+      document.removeEventListener("tools:session-capture", onCapture);
+      document.removeEventListener("tools:session-applied", onApplied);
+    };
+  }, [markSessionDirty]);
 
   const relationshipRequiredKeys = useMemo(() => new Set([
     "base_url",
@@ -1138,12 +1385,14 @@ const App = () => {
       if (msg.type === "done") {
         setGeneratedCount(msg.generatedCount || 0);
         setStatus("done");
+        markSessionDirty();
         return;
       }
 
       if (msg.type === "cancelled") {
         setGeneratedCount(msg.generatedCount || 0);
         setStatus("cancelled");
+        markSessionDirty();
         return;
       }
 
@@ -1151,10 +1400,11 @@ const App = () => {
         setWarnings(msg.warnings || []);
         setErrors(msg.errors || ["Generation failed."]);
         setStatus("error");
+        markSessionDirty();
       }
     });
     return worker;
-  }, []);
+  }, [markSessionDirty]);
 
   const cancelGeneration = useCallback(() => {
     if (!activeRequestId.current) return;
@@ -1163,9 +1413,11 @@ const App = () => {
     worker.postMessage({ type: "cancel", requestId: id });
     activeRequestId.current = null;
     setStatus("cancelled");
-  }, [startWorker]);
+    markSessionDirty();
+  }, [markSessionDirty, startWorker]);
 
   const runGeneration = useCallback(async (kind: "preview" | "full") => {
+    markSessionDirty();
     const limit = kind === "preview"
       ? Math.max(1, Math.floor(config.previewLimit || 10))
       : Math.max(1, Math.floor(config.maxRows || 50000));
@@ -1183,6 +1435,7 @@ const App = () => {
       setErrors(check.errors || ["Invalid configuration."]);
       setWarnings(check.warnings || []);
       setStatus("error");
+      markSessionDirty();
       return;
     }
 
@@ -1194,7 +1447,7 @@ const App = () => {
     activeRequestId.current = requestId;
     const worker = startWorker();
     worker.postMessage({ type: "generate", requestId, config: check.req, limit, chunkSize: 500 });
-  }, [config.maxRows, config.previewLimit, preflight, startWorker]);
+  }, [config.maxRows, config.previewLimit, markSessionDirty, preflight, startWorker]);
 
   const handleCsvUpload = async (file: File | null) => {
     if (!file) return;
@@ -1325,6 +1578,7 @@ const App = () => {
     }));
     if (preset.campaignBuilder) setCampaignBuilder(preset.campaignBuilder);
     showToast(`Loaded "${name}".`);
+    markSessionDirty();
   };
 
   const deletePreset = (name: string) => {
@@ -1342,6 +1596,7 @@ const App = () => {
     const tokenList = extractTemplateTokens(campaignBuilder.template);
     if (!tokenList.length) {
       setCampaignBuilder((prev) => ({ ...prev, generated: [], lastError: "Template has no {tokens}." }));
+      markSessionDirty();
       return;
     }
 
@@ -1408,8 +1663,10 @@ const App = () => {
         generated,
         lastError: null,
       }));
+      markSessionDirty();
     } catch (err: any) {
       setCampaignBuilder((prev) => ({ ...prev, generated: [], lastError: err?.message || String(err) }));
+      markSessionDirty();
     }
   };
 
@@ -1430,6 +1687,7 @@ const App = () => {
       },
     }));
     showToast("utm_campaign updated.");
+    markSessionDirty();
   };
 
   // Load presets + last config on mount.

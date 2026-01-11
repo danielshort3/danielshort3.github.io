@@ -61,6 +61,15 @@
 
   if (!el.startCapture || !el.video || !el.startRecord) return;
 
+  const TOOL_ID = 'screen-recorder';
+  const MAX_SAVED_OUTPUT_LINES = 120;
+
+  const markSessionDirty = () => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:session-dirty', { detail: { toolId: TOOL_ID } }));
+    } catch {}
+  };
+
   const supportsCapture = Boolean(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
   const supportsRecorder = typeof window.MediaRecorder !== 'undefined';
   const supportsMicrophone = Boolean(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
@@ -250,6 +259,7 @@
       input.type = 'checkbox';
       input.name = 'screenrec-format';
       input.value = opt.mimeType;
+      input.id = `screenrec-format-${String(opt.mimeType || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'auto'}`;
       if (opt.mimeType === 'auto') {
         input.dataset.auto = 'true';
       }
@@ -333,6 +343,7 @@
       input.type = 'checkbox';
       input.name = 'screenrec-image-format';
       input.value = opt.mimeType;
+      input.id = `screenrec-image-format-${String(opt.mimeType || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'image'}`;
       input.dataset.supported = opt.supported ? 'true' : 'false';
       input.disabled = !opt.supported;
 
@@ -567,6 +578,7 @@
         el.downloadItems.appendChild(li);
       });
     }
+    markSessionDirty();
   };
 
   const clearDownload = () => {
@@ -590,6 +602,7 @@
     if (el.downloadItems) {
       el.downloadItems.innerHTML = '';
     }
+    markSessionDirty();
   };
 
   const setDownloadPending = (message) => {
@@ -1237,6 +1250,7 @@
     state.cropResizeStart = null;
     updateCropOverlay();
     updateButtons();
+    markSessionDirty();
   };
 
   const updateCropPresetUI = () => {
@@ -1317,6 +1331,7 @@
     if (state.cropRegion) {
       applyCropAspectRatio();
     }
+    markSessionDirty();
   };
 
   const stopAudioMeter = () => {
@@ -1793,6 +1808,7 @@
     clearDownload();
     resetTimer();
     updatePlaceholder();
+    markSessionDirty();
   };
 
   const setLivePreview = () => {
@@ -1840,6 +1856,7 @@
     if (skipDownloads) return;
     setDownloads(downloadFiles);
     setStatus(statusMessage || 'Clip ready to download. Stop capture when you are done.', 'ready');
+    markSessionDirty();
   };
 
   const startCapture = async () => {
@@ -2489,9 +2506,11 @@
     }
     if (state.cropSelecting || state.cropRegion) {
       clearCrop();
+      markSessionDirty();
       return;
     }
     beginCropSelection();
+    markSessionDirty();
   };
 
   const handleCropPointerDown = (event) => {
@@ -2797,6 +2816,87 @@
     el.video?.addEventListener('emptied', updatePlaceholder);
     navigator.mediaDevices?.addEventListener('devicechange', updateMicDevices);
   };
+
+  document.addEventListener('tools:session-capture', (event) => {
+    const detail = event?.detail;
+    if (!detail || detail.toolId !== TOOL_ID) return;
+
+    const payload = detail.payload;
+    if (!payload || typeof payload !== 'object') return;
+
+    const formats = getSelectedMimeTypes()
+      .map((mime) => formatLabelFromMime(mime))
+      .filter(Boolean);
+    const images = getSelectedImageMimeTypes()
+      .map((mime) => formatLabelFromMime(mime))
+      .filter(Boolean);
+
+    const fps = getSelectedFps();
+    const fpsLabel = fps ? `${fps} fps` : 'Auto';
+    const qualityKey = String(el.qualitySelect?.value || 'auto');
+    const qualityLabel = QUALITY_PRESETS[qualityKey]?.label || 'Auto';
+    const scaleLabel = `${Math.round(getResolutionScale() * 100)}%`;
+
+    const systemAudio = Boolean(el.audioToggle?.checked);
+    const systemAudioLevel = el.audioLevel ? `${Math.round(Number(el.audioLevel.value) || 100)}%` : '';
+    const mic = Boolean(el.micToggle?.checked);
+    const micLevel = el.micLevel ? `${Math.round(Number(el.micLevel.value) || 100)}%` : '';
+    const micDevice = String(el.micSelect?.selectedOptions?.[0]?.textContent || '').trim();
+
+    payload.inputs = {
+      Formats: formats.length ? formats.join(', ') : 'Auto',
+      'First-frame images': images.length ? images.join(', ') : 'None',
+      FPS: fpsLabel,
+      Quality: qualityLabel,
+      Scale: scaleLabel,
+      'System audio': systemAudio ? `On${systemAudioLevel ? ` (${systemAudioLevel})` : ''}` : 'Off',
+      Microphone: mic ? `On${micLevel ? ` (${micLevel})` : ''}${micDevice ? ` · ${micDevice}` : ''}` : 'Off',
+      Crop: state.cropAspectLabel || 'Free'
+    };
+
+    const outputSummary = (() => {
+      if (state.recordedBlob) {
+        const durationMs = (state.recordedDuration || 0) * 1000;
+        const durationLabel = durationMs ? formatDuration(durationMs) : '';
+        const sizeLabel = formatBytes(state.recordedBlob.size || 0);
+        const typeLabel = formatLabelFromMime(state.recordedMimeType || state.recordedBlob.type || '');
+        const parts = [
+          durationLabel ? `Recorded ${durationLabel}` : 'Recorded clip',
+          typeLabel,
+          sizeLabel
+        ].filter(Boolean);
+        if (state.downloadFiles.length > 1) parts.push(`${state.downloadFiles.length} formats`);
+        return parts.join(' · ');
+      }
+      if (state.recording) return state.paused ? 'Recording paused' : 'Recording…';
+      if (state.captureActive) return 'Capture ready';
+      return 'No clip yet';
+    })();
+
+    payload.outputSummary = outputSummary;
+
+    const lines = [];
+    if (state.downloadFiles.length) {
+      lines.push(`Downloads (${state.downloadFiles.length}):`);
+      const items = state.downloadFiles
+        .slice()
+        .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+      items.slice(0, MAX_SAVED_OUTPUT_LINES).forEach((file) => {
+        lines.push(`${file.name} · ${formatLabelFromMime(file.mimeType)} · ${formatBytes(file.blob?.size || 0)}`);
+      });
+      if (items.length > MAX_SAVED_OUTPUT_LINES) {
+        lines.push(`…and ${items.length - MAX_SAVED_OUTPUT_LINES} more`);
+      }
+    } else {
+      lines.push(outputSummary);
+    }
+
+    payload.output = {
+      kind: 'text',
+      summary: outputSummary,
+      text: lines.join('\n')
+    };
+  });
 
   init();
 })();

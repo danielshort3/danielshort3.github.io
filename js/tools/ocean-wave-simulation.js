@@ -23,6 +23,14 @@
     return;
   }
 
+  const TOOL_ID = 'ocean-wave-simulation';
+
+  const markSessionDirty = () => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:session-dirty', { detail: { toolId: TOOL_ID } }));
+    } catch {}
+  };
+
   const TAU = Math.PI * 2;
   const G = 9.81;
   const DEG = Math.PI / 180;
@@ -477,6 +485,7 @@
     draggingPointerId = null;
     stage.classList.remove('ocean-wave-dragging');
     if (stage.hasPointerCapture && stage.hasPointerCapture(event.pointerId)) stage.releasePointerCapture(event.pointerId);
+    markSessionDirty();
   };
 
   stage.addEventListener('pointerup', endDrag);
@@ -484,6 +493,7 @@
   stage.addEventListener('lostpointercapture', () => {
     draggingPointerId = null;
     stage.classList.remove('ocean-wave-dragging');
+    markSessionDirty();
   });
 
   const renderFrame = (t) => {
@@ -865,6 +875,7 @@
 
   toggleBtn.addEventListener('click', () => {
     setPaused(!state.paused);
+    markSessionDirty();
   });
 
   resetBtn.addEventListener('click', () => {
@@ -878,6 +889,7 @@
     cameraDirty = false;
     rebuildCameraRays();
     renderFrame(simTimeSec);
+    markSessionDirty();
   });
 
   const onResize = debounce(() => {
@@ -888,6 +900,82 @@
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) stop();
     else if (!state.paused) start();
+  });
+
+  document.addEventListener('tools:session-capture', (event) => {
+    const detail = event?.detail;
+    if (!detail || detail.toolId !== TOOL_ID) return;
+
+    const payload = detail.payload;
+    if (!payload || typeof payload !== 'object') return;
+
+    const degYaw = Math.round((camera.yaw / DEG) % 360);
+    const degPitch = Math.round(camera.pitch / DEG);
+    const wind = clamp(state.wind, 0, 20);
+    const waveHeight = clamp(state.waveHeight, 0, MAX_WAVE_HEIGHT);
+    const sunElevation = clamp(state.sunElevationDeg, 5, 75);
+
+    payload.inputs = {
+      Wind: `${fmt(wind, 1)} m/s`,
+      'Wave height': `${fmt(waveHeight, 2)}×`,
+      'Sun elevation': `${Math.round(sunElevation)}°`,
+      Paused: state.paused ? 'Yes' : 'No',
+      'Camera yaw': `${degYaw}°`,
+      'Camera pitch': `${degPitch}°`
+    };
+
+    const statusBits = [payload.inputs.Wind, payload.inputs['Wave height'], payload.inputs['Sun elevation']];
+    if (state.paused) statusBits.push('Paused');
+    payload.outputSummary = statusBits.filter(Boolean).join(' · ');
+
+    const buildPreview = () => {
+      try {
+        const srcW = canvas.width;
+        const srcH = canvas.height;
+        if (!srcW || !srcH) return '';
+        const maxDim = 320;
+        const scale = Math.min(1, maxDim / Math.max(srcW, srcH));
+        const w = Math.max(1, Math.round(srcW * scale));
+        const h = Math.max(1, Math.round(srcH * scale));
+        const temp = document.createElement('canvas');
+        temp.width = w;
+        temp.height = h;
+        const tctx = temp.getContext('2d', { alpha: false });
+        if (!tctx) return '';
+        tctx.drawImage(canvas, 0, 0, w, h);
+        return temp.toDataURL('image/png');
+      } catch {
+        return '';
+      }
+    };
+
+    const dataUrl = buildPreview();
+    if (!dataUrl) return;
+
+    payload.output = {
+      kind: 'image',
+      summary: payload.outputSummary,
+      dataUrl
+    };
+  });
+
+  document.addEventListener('tools:session-applied', (event) => {
+    const detail = event?.detail;
+    if (!detail || detail.toolId !== TOOL_ID) return;
+    const snapshot = detail.snapshot;
+    const saved = snapshot?.inputs && typeof snapshot.inputs === 'object' ? snapshot.inputs : null;
+    if (!saved) return;
+
+    const paused = String(saved.Paused || '').toLowerCase();
+    if (paused === 'yes' || paused === 'true') setPaused(true);
+    if (paused === 'no' || paused === 'false') setPaused(false);
+
+    const yawMatch = String(saved['Camera yaw'] || '').match(/-?\d+/);
+    const pitchMatch = String(saved['Camera pitch'] || '').match(/-?\d+/);
+    if (yawMatch) camera.yaw = wrapAngle(Number(yawMatch[0]) * DEG);
+    if (pitchMatch) camera.pitch = clamp(Number(pitchMatch[0]) * DEG, camera.minPitch, camera.maxPitch);
+    rebuildCameraRays();
+    renderFrame(simTimeSec);
   });
 
   buildNoise();

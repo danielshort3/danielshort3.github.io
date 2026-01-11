@@ -11,6 +11,8 @@
 
   if (!form || !textInput || !topInput || !resultsList || !summaryEl) return;
 
+  const TOOL_ID = 'word-frequency';
+
   const STOPWORDS = new Set([
     'a','about','above','after','again','against','all','am','an','and','any','are','aren\'t','as','at','be','because','been','before','being','below','between','both','but','by',
     'can','cannot','can\'t','could','couldn\'t','did','didn\'t','do','does','doesn\'t','doing','don\'t','down','during','each','few','for','from','further','had','hadn\'t','has','hasn\'t',
@@ -122,6 +124,53 @@
       emptyEl.textContent = 'Paste text to get started.';
     }
     summaryEl.textContent = 'Waiting for input.';
+    markSessionDirty();
     textInput.focus();
+  });
+
+  const markSessionDirty = () => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:session-dirty', { detail: { toolId: TOOL_ID } }));
+    } catch {}
+  };
+
+  const captureSummary = () => String(summaryEl?.textContent || '').replace(/\s+/g, ' ').trim();
+
+  const captureOutputText = () => {
+    const rows = Array.from(resultsList.querySelectorAll('.wordfreq-row'));
+    if (!rows.length) return '';
+    return rows.slice(0, 200).map((row) => {
+      const word = String(row.querySelector('.wordfreq-word')?.textContent || '').trim();
+      const count = String(row.querySelector('.wordfreq-count')?.textContent || '').trim();
+      if (!word) return '';
+      return count ? `${word} ${count}` : word;
+    }).filter(Boolean).join('\n');
+  };
+
+  document.addEventListener('tools:session-capture', (event) => {
+    const detail = event?.detail;
+    if (detail?.toolId !== TOOL_ID) return;
+    const payload = detail?.payload;
+    if (!payload || typeof payload !== 'object') return;
+
+    const summary = captureSummary();
+    payload.outputSummary = summary;
+    payload.inputs = {
+      Text: textInput.value || '',
+      'Top results': String(topInput.value || '').trim()
+    };
+
+    const outputText = captureOutputText();
+    if (outputText) payload.output = { kind: 'text', text: outputText, summary };
+  });
+
+  document.addEventListener('tools:session-applied', (event) => {
+    const detail = event?.detail;
+    if (detail?.toolId !== TOOL_ID) return;
+    requestAnimationFrame(() => {
+      try {
+        runAnalysis();
+      } catch {}
+    });
   });
 })();

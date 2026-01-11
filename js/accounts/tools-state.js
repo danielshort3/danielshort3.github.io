@@ -47,8 +47,16 @@
     return readJson(res);
   };
 
-  const getDashboard = async () => {
-    const res = await window.ToolsAuth.fetchWithAuth(API.dashboard, { method: 'GET' });
+  const getDashboardUrl = (params) => {
+    const search = new URLSearchParams();
+    if (params?.sessionsLimit) search.set('sessionsLimit', String(params.sessionsLimit));
+    if (params?.activityLimit) search.set('activityLimit', String(params.activityLimit));
+    const query = search.toString();
+    return query ? `${API.dashboard}?${query}` : API.dashboard;
+  };
+
+  const getDashboard = async ({ sessionsLimit, activityLimit } = {}) => {
+    const res = await window.ToolsAuth.fetchWithAuth(getDashboardUrl({ sessionsLimit, activityLimit }), { method: 'GET' });
     return readJson(res);
   };
 
