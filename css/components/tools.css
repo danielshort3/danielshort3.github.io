@@ -27,6 +27,12 @@
     animation:none;
   }
 
+  @media (max-width: 640px){
+    .tools-hero{
+      padding:clamp(1.6rem,5vh,2.2rem) 0 clamp(1.8rem,5.6vh,2.6rem);
+    }
+  }
+
   .tools-section{
     padding:clamp(2.8rem,6vh,3.6rem) 0;
   }
