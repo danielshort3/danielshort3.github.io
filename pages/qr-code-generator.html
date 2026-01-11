@@ -152,31 +152,31 @@
                     <div class="qrtool-control">
                       <label class="qrtool-label" for="qrtool-dot-style">Dot style</label>
                       <select id="qrtool-dot-style" class="qrtool-select">
-                        <option value="square" selected>Square</option>
+                        <option value="square">Square</option>
                         <option value="rounded">Rounded</option>
-                        <option value="dots">Dots</option>
+                        <option value="dots" selected>Dots</option>
                       </select>
                     </div>
                     <div class="qrtool-control">
                       <label class="qrtool-label" for="qrtool-corner-style">Corner style</label>
                       <select id="qrtool-corner-style" class="qrtool-select">
-                        <option value="square" selected>Square</option>
+                        <option value="square">Square</option>
                         <option value="rounded">Rounded</option>
-                        <option value="extra-rounded">Extra rounded</option>
+                        <option value="extra-rounded" selected>Extra rounded</option>
                       </select>
                     </div>
                     <div class="qrtool-control">
                       <label class="qrtool-label" for="qrtool-ecc">Error correction</label>
                       <select id="qrtool-ecc" class="qrtool-select">
                         <option value="L">L (7%)</option>
-                        <option value="M" selected>M (15%)</option>
+                        <option value="M">M (15%)</option>
                         <option value="Q">Q (25%)</option>
-                        <option value="H">H (30%)</option>
+                        <option value="H" selected>H (30%)</option>
                       </select>
                     </div>
                     <div class="qrtool-control">
-                      <label class="qrtool-label" for="qrtool-margin">Quiet zone <span id="qrtool-margin-value" class="qrtool-value">4</span></label>
-                      <input id="qrtool-margin" type="range" min="2" max="10" value="4" step="1">
+                      <label class="qrtool-label" for="qrtool-margin">Quiet zone <span id="qrtool-margin-value" class="qrtool-value">2</span></label>
+                      <input id="qrtool-margin" type="range" min="2" max="10" value="2" step="1">
                     </div>
                   </div>
 
@@ -184,15 +184,15 @@
                     <div class="qrtool-control">
                       <label class="qrtool-label" for="qrtool-fg">Foreground</label>
                       <div class="qrtool-color-row">
-                        <input id="qrtool-fg" class="qrtool-color" type="color" value="#0b0f14" aria-label="Foreground color">
-                        <span id="qrtool-fg-label" class="qrtool-chip">#0B0F14</span>
+                        <input id="qrtool-fg" class="qrtool-color" type="color" value="#3095aa" aria-label="Foreground color">
+                        <span id="qrtool-fg-label" class="qrtool-chip">#3095AA</span>
                       </div>
                     </div>
                     <div class="qrtool-control">
                       <label class="qrtool-label" for="qrtool-bg">Background</label>
                       <div class="qrtool-color-row">
-                        <input id="qrtool-bg" class="qrtool-color" type="color" value="#ffffff" aria-label="Background color">
-                        <span id="qrtool-bg-label" class="qrtool-chip">#FFFFFF</span>
+                        <input id="qrtool-bg" class="qrtool-color" type="color" value="#131b22" aria-label="Background color">
+                        <span id="qrtool-bg-label" class="qrtool-chip">#131B22</span>
                       </div>
                     </div>
                   </div>
@@ -271,12 +271,12 @@
 
                   <div class="qrtool-two-col">
                     <div class="qrtool-control">
-                      <label class="qrtool-label" for="qrtool-logo-size">Center size <span id="qrtool-logo-size-value" class="qrtool-value">20%</span></label>
-                      <input id="qrtool-logo-size" type="range" min="10" max="30" value="20" step="1" disabled>
+                      <label class="qrtool-label" for="qrtool-logo-size">Center size <span id="qrtool-logo-size-value" class="qrtool-value">30%</span></label>
+                      <input id="qrtool-logo-size" type="range" min="10" max="30" value="30" step="1" disabled>
                     </div>
                     <div class="qrtool-control">
-                      <label class="qrtool-label" for="qrtool-logo-padding">Padding <span id="qrtool-logo-padding-value" class="qrtool-value">12%</span></label>
-                      <input id="qrtool-logo-padding" type="range" min="6" max="22" value="12" step="1" disabled>
+                      <label class="qrtool-label" for="qrtool-logo-padding">Padding <span id="qrtool-logo-padding-value" class="qrtool-value">6%</span></label>
+                      <input id="qrtool-logo-padding" type="range" min="6" max="22" value="6" step="1" disabled>
                     </div>
                   </div>
 
@@ -284,9 +284,9 @@
                     <div class="qrtool-control">
                       <label class="qrtool-label" for="qrtool-logo-shape">Logo shape</label>
                       <select id="qrtool-logo-shape" class="qrtool-select" disabled>
-                        <option value="rounded" selected>Rounded square</option>
+                        <option value="rounded">Rounded square</option>
                         <option value="square">Square</option>
-                        <option value="circle">Circle</option>
+                        <option value="circle" selected>Circle</option>
                       </select>
                     </div>
                     <div class="qrtool-control">
@@ -310,9 +310,9 @@
                     <div class="qrtool-control">
                       <label class="qrtool-label" for="qrtool-logo-border-style">Border</label>
                       <select id="qrtool-logo-border-style" class="qrtool-select" disabled>
-                        <option value="auto" selected>Auto (subtle)</option>
+                        <option value="auto">Auto (subtle)</option>
                         <option value="custom">Custom</option>
-                        <option value="none">None</option>
+                        <option value="none" selected>None</option>
                       </select>
                     </div>
                   </div>

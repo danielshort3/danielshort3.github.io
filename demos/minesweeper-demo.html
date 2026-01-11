@@ -788,7 +788,6 @@
       solving = true;
       stopAnimation();
       solveBtn.disabled = true;
-      setStatus('Solving...');
       resetStats();
       solutionVisible = false;
       revealSnapshot = null;
@@ -810,7 +809,6 @@
           ? `Solved in ${current.step_count} moves`
           : (current.hit_mine ? `Mine triggered on move ${current.step_count}` : `Stopped after ${current.step_count} moves`);
         showPerformanceToast(resultMessage);
-        setStatus('Solve complete. Generate a new puzzle to try again.');
         notifyResize();
       };
 

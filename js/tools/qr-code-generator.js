@@ -130,35 +130,35 @@
 
   const DEFAULTS = Object.freeze({
     data: '',
-    dotStyle: 'square',
-    cornerStyle: 'square',
-    ecc: 'M',
-    marginModules: 4,
-    fg: '#0B0F14',
-    bg: '#FFFFFF',
+    dotStyle: 'dots',
+    cornerStyle: 'extra-rounded',
+    ecc: 'H',
+    marginModules: 2,
+    fg: '#3095AA',
+    bg: '#131B22',
     transparent: false,
     centerMode: 'image',
-    logoDataUrl: null,
-    logoSizePct: 20,
-    logoPaddingPct: 12,
-    logoShape: 'rounded',
+    logoDataUrl: 'img/ui/logo.png',
+    logoSizePct: 30,
+    logoPaddingPct: 6,
+    logoShape: 'circle',
     logoPlateStyle: 'auto',
     logoPlateColor: '#FFFFFF',
-    logoBorderStyle: 'auto',
+    logoBorderStyle: 'none',
     logoBorderPct: 5,
-    logoBorderColor: '#0B0F14',
+    logoBorderColor: '#3095AA',
     centerText: '',
     centerTextWeight: '700',
     centerTextColorStyle: 'auto',
-    centerTextColor: '#0B0F14',
+    centerTextColor: '#3095AA',
     captionEnabled: false,
     captionText: '',
     captionSizePct: 5,
     captionAlign: 'center',
     captionColorStyle: 'auto',
-    captionColor: '#0B0F14',
+    captionColor: '#3095AA',
     captionBgStyle: 'auto',
-    captionBgColor: '#FFFFFF',
+    captionBgColor: '#131B22',
   });
 
   const TEMPLATES = Object.freeze({
@@ -794,38 +794,6 @@
         event.preventDefault();
       }
     });
-
-    if (typeof window.EyeDropper === 'function') {
-      const row = chipEl.closest('.qrtool-color-row');
-      if (!row) return;
-      if (row.querySelector('[data-qrtool-dropper]')) return;
-
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'btn-ghost qrtool-dropper';
-      button.textContent = 'Dropper';
-      button.setAttribute('data-qrtool-dropper', 'true');
-      button.title = 'Pick a color from the screen';
-      button.setAttribute('aria-label', label ? `Pick ${label} from the screen` : 'Pick color from the screen');
-
-      button.addEventListener('click', async () => {
-        if (typeof enable === 'function') enable();
-        if (input.disabled) {
-          setWarning(`${label || 'Color'} is locked. Choose “Custom” to edit.`);
-          window.setTimeout(() => setWarning(''), 2400);
-          return;
-        }
-        try {
-          const picker = new window.EyeDropper();
-          const result = await picker.open();
-          const hex = normalizeHex(result?.sRGBHex || '');
-          input.value = hex.toLowerCase();
-          dispatchValueEvents(input);
-        } catch {}
-      });
-
-      row.appendChild(button);
-    }
   };
 
   const isFinderArea = (row, col, size) => {
@@ -1096,28 +1064,33 @@
     const targetRect = targetCanvas === canvas ? stageRect : { width: targetCanvas.width, height: targetCanvas.height };
     const dpr = targetCanvas === canvas ? Math.min(2, window.devicePixelRatio || 1) : 1;
 
-    const sizePx = Math.max(240, Math.round(Math.min(targetRect.width, targetRect.height) * dpr));
-    if (targetCanvas.width !== sizePx || targetCanvas.height !== sizePx) {
-      targetCanvas.width = sizePx;
-      targetCanvas.height = sizePx;
-    }
-
     const targetCtx = targetCanvas.getContext('2d', { alpha: true, desynchronized: true });
     if (!targetCtx) return;
 
-    const captionLayout = buildCaptionLayout(sizePx, options);
-    const captionBandPx = captionLayout.enabled ? clamp(toInt(captionLayout.bandPx, 0), 0, sizePx) : 0;
-    const qrRegionPx = Math.max(1, sizePx - captionBandPx);
-    const regionOffsetX = captionBandPx ? Math.floor((sizePx - qrRegionPx) / 2) : 0;
-    const regionOffsetY = 0;
+    const qrSizePx = Math.max(240, Math.round(Math.min(targetRect.width, targetRect.height) * dpr));
+    const captionLayout = buildCaptionLayout(qrSizePx, options);
+    const captionBandPx = captionLayout.enabled ? clamp(toInt(captionLayout.bandPx, 0), 0, qrSizePx) : 0;
+    const totalHeightPx = qrSizePx + captionBandPx;
+
+    if (targetCanvas.width !== qrSizePx || targetCanvas.height !== totalHeightPx) {
+      targetCanvas.width = qrSizePx;
+      targetCanvas.height = totalHeightPx;
+    }
+
+    if (targetCanvas === canvas && stage) {
+      const ratio = captionBandPx ? qrSizePx / totalHeightPx : 1;
+      stage.style.setProperty('--qrtool-stage-ratio', ratio.toFixed(4));
+    }
+
+    const qrRegionPx = qrSizePx;
 
     const quiet = clamp(options.marginModules, 2, 10);
     const totalModules = moduleCount + quiet * 2;
     const moduleSize = Math.max(1, Math.floor(qrRegionPx / totalModules));
     const codeSize = moduleSize * totalModules;
     const regionOffsetInner = Math.floor((qrRegionPx - codeSize) / 2);
-    const offsetX = regionOffsetX + regionOffsetInner;
-    const offsetY = regionOffsetY + regionOffsetInner;
+    const offsetX = regionOffsetInner;
+    const offsetY = regionOffsetInner;
     const qrOriginX = offsetX + quiet * moduleSize;
     const qrOriginY = offsetY + quiet * moduleSize;
 
@@ -1128,10 +1101,10 @@
     const transparent = !!options.transparent;
 
     targetCtx.setTransform(1, 0, 0, 1, 0, 0);
-    targetCtx.clearRect(0, 0, sizePx, sizePx);
+    targetCtx.clearRect(0, 0, qrSizePx, totalHeightPx);
     if (!transparent) {
       targetCtx.fillStyle = bgCss;
-      targetCtx.fillRect(0, 0, sizePx, sizePx);
+      targetCtx.fillRect(0, 0, qrSizePx, totalHeightPx);
     }
 
     const drawBackground = transparent ? '#FFFFFF' : bgCss;
@@ -1356,7 +1329,7 @@
       })();
       if (bgHex) {
         targetCtx.fillStyle = rgbToCss(hexToRgb(bgHex));
-        targetCtx.fillRect(0, sizePx - captionBandPx, sizePx, captionBandPx);
+        targetCtx.fillRect(0, qrSizePx, qrSizePx, captionBandPx);
       }
 
       const textStyle = String(options.captionColorStyle || DEFAULTS.captionColorStyle);
@@ -1364,12 +1337,12 @@
       targetCtx.fillStyle = rgbToCss(hexToRgb(textHex));
       targetCtx.textBaseline = 'middle';
       const align = String(options.captionAlign || DEFAULTS.captionAlign);
-      const padX = clamp(toInt(captionLayout.padX, 0), 0, Math.floor(sizePx / 2));
-      const x = align === 'left' ? padX : (align === 'right' ? sizePx - padX : sizePx / 2);
+      const padX = clamp(toInt(captionLayout.padX, 0), 0, Math.floor(qrSizePx / 2));
+      const x = align === 'left' ? padX : (align === 'right' ? qrSizePx - padX : qrSizePx / 2);
       targetCtx.textAlign = align === 'left' ? 'left' : (align === 'right' ? 'right' : 'center');
       targetCtx.font = `${normalizeFontWeight(options.captionWeight, '600')} ${captionLayout.fontPx}px ${FONT_STACK}`;
 
-      const bandY = sizePx - captionBandPx;
+      const bandY = qrSizePx;
       const centerY = bandY + captionBandPx / 2;
       const first = centerY - ((captionLayout.lines.length - 1) * captionLayout.lineHeightPx) / 2;
       captionLayout.lines.forEach((line, idx) => {
@@ -1430,9 +1403,9 @@
     const captionLayout = buildCaptionLayout(sizePx, options);
     const captionBandPx = captionLayout.enabled ? clamp(toInt(captionLayout.bandPx, 0), 0, sizePx) : 0;
     const captionBandModules = captionBandPx ? (captionBandPx / sizePx) * totalModules : 0;
-    const qrScale = captionBandModules ? clamp((totalModules - captionBandModules) / totalModules, 0.4, 1) : 1;
-    const qrTranslateX = captionBandModules ? captionBandModules / 2 : 0;
-    const modulePxScaled = (sizePx * qrScale) / totalModules;
+    const modulePx = sizePx / totalModules;
+    const heightPx = sizePx + captionBandPx;
+    const viewHeightModules = captionBandModules ? (totalModules + captionBandModules) : totalModules;
 
     const centerMode = ['image', 'text', 'none'].includes(options.centerMode) ? options.centerMode : DEFAULTS.centerMode;
     const centerText = typeof options.centerText === 'string' ? options.centerText.trim() : '';
@@ -1459,10 +1432,10 @@
     const parts = [];
     parts.push('<?xml version="1.0" encoding="UTF-8"?>');
     parts.push(
-      `<svg xmlns="http://www.w3.org/2000/svg" width="${sizePx}" height="${sizePx}" viewBox="0 0 ${totalModules} ${totalModules}" role="img" aria-label="QR code">`
+      `<svg xmlns="http://www.w3.org/2000/svg" width="${sizePx}" height="${heightPx}" viewBox="0 0 ${totalModules} ${viewHeightModules.toFixed(4)}" role="img" aria-label="QR code">`
     );
     parts.push(`<rect width="100%" height="100%" fill="${bgFill}"/>`);
-    parts.push(`<g transform="translate(${qrTranslateX.toFixed(4)} 0) scale(${qrScale.toFixed(6)})">`);
+    parts.push('<g>');
 
     const finderPositions = [
       { x: quiet, y: quiet },
@@ -1604,7 +1577,7 @@
         );
       } else if (hasCenterText) {
         const lines = splitLines(centerText, CENTER_TEXT_MAX_LINES);
-        const contentPx = contentSize * modulePxScaled;
+        const contentPx = contentSize * modulePx;
         const layout = fitTextInBox(lines, contentPx * 0.94, contentPx * 0.94, {
           weight: options.centerTextWeight || DEFAULTS.centerTextWeight,
           lineHeightFactor: CENTER_TEXT_LINE_HEIGHT,
@@ -1613,8 +1586,8 @@
           const textWeight = normalizeFontWeight(options.centerTextWeight, DEFAULTS.centerTextWeight);
           const textColorStyle = String(options.centerTextColorStyle || DEFAULTS.centerTextColorStyle);
           const textHex = textColorStyle === 'custom' ? normalizeHex(options.centerTextColor) : fg;
-          const fontUnits = layout.fontPx / modulePxScaled;
-          const lineUnits = layout.lineHeightPx / modulePxScaled;
+          const fontUnits = layout.fontPx / modulePx;
+          const lineUnits = layout.lineHeightPx / modulePx;
           const cx = contentX + contentSize / 2;
           const cy = contentY + contentSize / 2;
           const firstY = cy - ((layout.lines.length - 1) * lineUnits) / 2;
@@ -1631,7 +1604,7 @@
     parts.push('</g>');
 
     if (captionLayout.enabled && captionBandModules > 0 && Array.isArray(captionLayout.lines) && captionLayout.lines.length) {
-      const bandY = totalModules - captionBandModules;
+      const bandY = totalModules;
       const bgStyle = String(options.captionBgStyle || DEFAULTS.captionBgStyle);
       const bgHex = (() => {
         if (bgStyle === 'none') return '';
@@ -1759,12 +1732,14 @@
     const { darkModules, moduleCount } = qrData;
     const quiet = clamp(options.marginModules, 2, 10);
     const totalModules = moduleCount + quiet * 2;
-    const pagePt = clamp(exportPx, 128, 8192);
-    const captionLayout = buildCaptionLayout(pagePt, options);
-    const captionBandPt = captionLayout.enabled ? clamp(toInt(captionLayout.bandPx, 0), 0, pagePt) : 0;
-    const qrRegionPt = Math.max(1, pagePt - captionBandPt);
+    const qrPt = clamp(exportPx, 128, 8192);
+    const captionLayout = buildCaptionLayout(qrPt, options);
+    const captionBandPt = captionLayout.enabled ? clamp(toInt(captionLayout.bandPx, 0), 0, qrPt) : 0;
+    const pageWidthPt = qrPt;
+    const pageHeightPt = qrPt + captionBandPt;
+    const qrRegionPt = qrPt;
     const cell = qrRegionPt / totalModules;
-    const qrOffsetX = captionBandPt ? captionBandPt / 2 : 0;
+    const qrOffsetX = 0;
     const qrOffsetY = captionBandPt;
 
     const fgHex = normalizeHex(options.fg);
@@ -1839,7 +1814,7 @@
     content.push('1 0 0 1 0 0 cm');
     if (!transparent) {
       content.push(`${bg.r} ${bg.g} ${bg.b} rg`);
-      content.push(`0 0 ${pagePt.toFixed(3)} ${pagePt.toFixed(3)} re f`);
+      content.push(`0 0 ${pageWidthPt.toFixed(3)} ${pageHeightPt.toFixed(3)} re f`);
     }
 
     content.push(`${fg.r} ${fg.g} ${fg.b} rg`);
@@ -2061,7 +2036,7 @@
       if (bandBgHex) {
         const bandBg = pdfColor(bandBgHex);
         content.push(`${bandBg.r} ${bandBg.g} ${bandBg.b} rg`);
-        content.push(`0 0 ${pagePt.toFixed(3)} ${captionBandPt.toFixed(3)} re f`);
+        content.push(`0 0 ${pageWidthPt.toFixed(3)} ${captionBandPt.toFixed(3)} re f`);
       }
 
       const textStyle = String(options.captionColorStyle || DEFAULTS.captionColorStyle);
@@ -2070,8 +2045,8 @@
       content.push(`${captionColor.r} ${captionColor.g} ${captionColor.b} rg`);
 
       const align = String(options.captionAlign || DEFAULTS.captionAlign);
-      const padX = clamp(toInt(captionLayout.padX, 0), 0, Math.floor(pagePt / 2));
-      const cx = pagePt / 2;
+      const padX = clamp(toInt(captionLayout.padX, 0), 0, Math.floor(pageWidthPt / 2));
+      const cx = pageWidthPt / 2;
       const baselineAdjust = captionLayout.fontPx * 0.35;
       const firstMid = captionBandPt / 2 - ((captionLayout.lines.length - 1) * captionLayout.lineHeightPx) / 2;
 
@@ -2081,7 +2056,7 @@
         const textWidth = pdfApproxTextWidth(line, captionLayout.fontPx, '600');
         const tx = align === 'left'
           ? padX
-          : (align === 'right' ? pagePt - padX - textWidth : cx - textWidth / 2);
+          : (align === 'right' ? pageWidthPt - padX - textWidth : cx - textWidth / 2);
 
         content.push('BT');
         content.push(`/F2 ${captionLayout.fontPx.toFixed(2)} Tf`);
@@ -2130,7 +2105,7 @@
 
     startObj(3);
     const resourceDict = resources.length ? `<< ${resources.join(' ')} >>` : '<< >>';
-    pushStr(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pagePt.toFixed(3)} ${pagePt.toFixed(3)}] /Resources ${resourceDict} /Contents 4 0 R >>\n`);
+    pushStr(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidthPt.toFixed(3)} ${pageHeightPt.toFixed(3)}] /Resources ${resourceDict} /Contents 4 0 R >>\n`);
     endObj();
 
     startObj(4);
@@ -2358,6 +2333,9 @@
   const render = () => {
     const data = (state.data || '').trim();
     if (!data) {
+      try {
+        stage?.style?.setProperty('--qrtool-stage-ratio', '1');
+      } catch {}
       emptyOverlay?.classList.remove('hide');
       metaEl.textContent = 'Enter a URL to generate a QR code.';
       setQuality('');
@@ -2584,6 +2562,49 @@
     if (logoInput) logoInput.value = '';
     updateControlsFromState();
     markSessionDirty();
+  };
+
+  const blobToDataUrl = (blob) => new Promise((resolve, reject) => {
+    if (!blob) {
+      reject(new Error('No blob'));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(new Error('Failed to read blob.'));
+    reader.readAsDataURL(blob);
+  });
+
+  const loadLogoFromUrl = async (url, { markDirty = false } = {}) => {
+    const src = String(url || '').trim();
+    if (!src) return;
+
+    try {
+      let dataUrl = src;
+      if (!src.startsWith('data:')) {
+        const resp = await fetch(src, { method: 'GET', cache: 'force-cache' });
+        if (!resp.ok) throw new Error(`Logo request failed (${resp.status})`);
+        const blob = await resp.blob();
+        dataUrl = await blobToDataUrl(blob);
+      }
+
+      const img = new Image();
+      img.onload = () => {
+        state.logoDataUrl = dataUrl;
+        state.logoImage = img;
+        if (state.ecc !== 'H') state.ecc = 'H';
+        updateControlsFromState();
+        scheduleRender();
+        if (markDirty) markSessionDirty();
+      };
+      img.onerror = () => {
+        clearLogo();
+        setWarning('Logo could not be loaded. Try a different file.');
+      };
+      img.src = dataUrl;
+    } catch (err) {
+      setWarning(err?.message || 'Logo could not be loaded.');
+    }
   };
 
   const loadLogoFromFile = (file) => {
@@ -2888,6 +2909,9 @@
   initTabs();
   readStateFromControls();
   updateControlsFromState();
+  if (state.centerMode === 'image' && !state.logoImage && state.logoDataUrl) {
+    loadLogoFromUrl(state.logoDataUrl, { markDirty: false }).catch(() => {});
+  }
   scheduleRender();
 
   const captureSummary = () => {
