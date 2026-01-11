@@ -113,6 +113,12 @@
     } catch {}
   };
 
+  const dispatchValueEvents = (el) => {
+    if (!el) return;
+    try { el.dispatchEvent(new Event('input', { bubbles: true })); } catch {}
+    try { el.dispatchEvent(new Event('change', { bubbles: true })); } catch {}
+  };
+
   const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
   if (!ctx) return;
 
@@ -734,6 +740,92 @@
     }
     qualityEl.hidden = false;
     qualityEl.textContent = text;
+  };
+
+  const tryOpenNativeColorPicker = (input) => {
+    if (!input || input.disabled) return false;
+    try {
+      if (typeof input.showPicker === 'function') {
+        input.showPicker();
+        return true;
+      }
+    } catch {}
+    return false;
+  };
+
+  const openColorPicker = (input) => {
+    if (!input || input.disabled) return false;
+    if (tryOpenNativeColorPicker(input)) return true;
+    try {
+      input.click();
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const initColorControl = ({ input, chipEl, label, enable } = {}) => {
+    if (!input || !chipEl) return;
+
+    const open = () => {
+      if (typeof enable === 'function') enable();
+      if (!input.disabled) {
+        openColorPicker(input);
+        return;
+      }
+      setWarning(`${label || 'Color'} is locked. Choose “Custom” to edit.`);
+      window.setTimeout(() => setWarning(''), 2400);
+    };
+
+    chipEl.setAttribute('role', 'button');
+    chipEl.tabIndex = 0;
+    chipEl.title = 'Click to choose a color';
+
+    chipEl.addEventListener('click', open);
+    chipEl.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      open();
+    });
+
+    input.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0) return;
+      if (tryOpenNativeColorPicker(input)) {
+        event.preventDefault();
+      }
+    });
+
+    if (typeof window.EyeDropper === 'function') {
+      const row = chipEl.closest('.qrtool-color-row');
+      if (!row) return;
+      if (row.querySelector('[data-qrtool-dropper]')) return;
+
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'btn-ghost qrtool-dropper';
+      button.textContent = 'Dropper';
+      button.setAttribute('data-qrtool-dropper', 'true');
+      button.title = 'Pick a color from the screen';
+      button.setAttribute('aria-label', label ? `Pick ${label} from the screen` : 'Pick color from the screen');
+
+      button.addEventListener('click', async () => {
+        if (typeof enable === 'function') enable();
+        if (input.disabled) {
+          setWarning(`${label || 'Color'} is locked. Choose “Custom” to edit.`);
+          window.setTimeout(() => setWarning(''), 2400);
+          return;
+        }
+        try {
+          const picker = new window.EyeDropper();
+          const result = await picker.open();
+          const hex = normalizeHex(result?.sRGBHex || '');
+          input.value = hex.toLowerCase();
+          dispatchValueEvents(input);
+        } catch {}
+      });
+
+      row.appendChild(button);
+    }
   };
 
   const isFinderArea = (row, col, size) => {
@@ -2126,7 +2218,7 @@
 
     const centerHasText = state.centerMode === 'text' && !!String(state.centerText || '').trim();
     const centerHasImage = state.centerMode === 'image' && !!state.logoDataUrl && !!state.logoImage;
-    const centerActive = centerHasText || centerHasImage;
+    const imageMode = state.centerMode === 'image';
 
     if (centerModeSelect) centerModeSelect.disabled = false;
 
@@ -2140,31 +2232,31 @@
       if (centerTextColorInput) centerTextColorInput.disabled = true;
     }
 
-    if (state.centerMode === 'image' && state.logoDataUrl && state.logoImage && logoPreview) {
+    if (imageMode && state.logoDataUrl && state.logoImage && logoPreview) {
       logoPreview.src = state.logoDataUrl;
       logoPreviewWrap?.classList.remove('hide');
       logoPreviewWrap?.setAttribute('aria-hidden', 'false');
       logoRemoveBtn.disabled = false;
-      logoSizeInput.disabled = !centerActive;
-      logoPaddingInput.disabled = !centerActive;
-      logoShapeSelect.disabled = !centerActive;
-      logoPlateStyleSelect.disabled = !centerActive;
-      logoPlateColorInput.disabled = !centerActive || state.logoPlateStyle !== 'custom';
-      logoBorderStyleSelect.disabled = !centerActive;
-      logoBorderSizeInput.disabled = !centerActive || state.logoBorderStyle === 'none';
-      logoBorderColorInput.disabled = !centerActive || state.logoBorderStyle !== 'custom';
+      logoSizeInput.disabled = !imageMode;
+      logoPaddingInput.disabled = !imageMode;
+      logoShapeSelect.disabled = !imageMode;
+      logoPlateStyleSelect.disabled = !imageMode;
+      logoPlateColorInput.disabled = !imageMode || state.logoPlateStyle !== 'custom';
+      logoBorderStyleSelect.disabled = !imageMode;
+      logoBorderSizeInput.disabled = !imageMode || state.logoBorderStyle === 'none';
+      logoBorderColorInput.disabled = !imageMode || state.logoBorderStyle !== 'custom';
     } else {
       logoPreviewWrap?.classList.add('hide');
       logoPreviewWrap?.setAttribute('aria-hidden', 'true');
       logoRemoveBtn.disabled = true;
-      logoSizeInput.disabled = !centerActive;
-      logoPaddingInput.disabled = !centerActive;
-      logoShapeSelect.disabled = !centerActive;
-      logoPlateStyleSelect.disabled = !centerActive;
-      logoPlateColorInput.disabled = !centerActive || state.logoPlateStyle !== 'custom';
-      logoBorderStyleSelect.disabled = !centerActive;
-      logoBorderSizeInput.disabled = !centerActive || state.logoBorderStyle === 'none';
-      logoBorderColorInput.disabled = !centerActive || state.logoBorderStyle !== 'custom';
+      logoSizeInput.disabled = !imageMode;
+      logoPaddingInput.disabled = !imageMode;
+      logoShapeSelect.disabled = !imageMode;
+      logoPlateStyleSelect.disabled = !imageMode;
+      logoPlateColorInput.disabled = !imageMode || state.logoPlateStyle !== 'custom';
+      logoBorderStyleSelect.disabled = !imageMode;
+      logoBorderSizeInput.disabled = !imageMode || state.logoBorderStyle === 'none';
+      logoBorderColorInput.disabled = !imageMode || state.logoBorderStyle !== 'custom';
     }
 
     if (captionEnabledInput) captionEnabledInput.checked = !!state.captionEnabled;
@@ -2188,6 +2280,80 @@
     if (captionColorInput) captionColorInput.disabled = !captionEnabled || state.captionColorStyle !== 'custom';
     if (captionBgColorInput) captionBgColorInput.disabled = !captionEnabled || state.captionBgStyle !== 'custom';
   };
+
+  initColorControl({
+    input: fgInput,
+    chipEl: fgLabel,
+    label: 'Foreground color',
+  });
+  initColorControl({
+    input: bgInput,
+    chipEl: bgLabel,
+    label: 'Background color',
+  });
+  initColorControl({
+    input: centerTextColorInput,
+    chipEl: centerTextColorLabel,
+    label: 'Center text color',
+    enable: () => {
+      if (!centerTextColorStyleSelect) return;
+      if (centerTextColorStyleSelect.value === 'custom') return;
+      centerTextColorStyleSelect.value = 'custom';
+      dispatchValueEvents(centerTextColorStyleSelect);
+    }
+  });
+  initColorControl({
+    input: logoPlateColorInput,
+    chipEl: logoPlateColorLabel,
+    label: 'Logo plate color',
+    enable: () => {
+      if (!logoPlateStyleSelect) return;
+      if (logoPlateStyleSelect.value === 'custom') return;
+      logoPlateStyleSelect.value = 'custom';
+      dispatchValueEvents(logoPlateStyleSelect);
+    }
+  });
+  initColorControl({
+    input: logoBorderColorInput,
+    chipEl: logoBorderColorLabel,
+    label: 'Logo border color',
+    enable: () => {
+      if (!logoBorderStyleSelect) return;
+      if (logoBorderStyleSelect.value === 'custom') return;
+      logoBorderStyleSelect.value = 'custom';
+      dispatchValueEvents(logoBorderStyleSelect);
+    }
+  });
+  initColorControl({
+    input: captionColorInput,
+    chipEl: captionColorLabel,
+    label: 'Caption text color',
+    enable: () => {
+      if (captionEnabledInput && !captionEnabledInput.checked) {
+        captionEnabledInput.checked = true;
+        dispatchValueEvents(captionEnabledInput);
+      }
+      if (!captionColorStyleSelect) return;
+      if (captionColorStyleSelect.value === 'custom') return;
+      captionColorStyleSelect.value = 'custom';
+      dispatchValueEvents(captionColorStyleSelect);
+    }
+  });
+  initColorControl({
+    input: captionBgColorInput,
+    chipEl: captionBgColorLabel,
+    label: 'Caption background color',
+    enable: () => {
+      if (captionEnabledInput && !captionEnabledInput.checked) {
+        captionEnabledInput.checked = true;
+        dispatchValueEvents(captionEnabledInput);
+      }
+      if (!captionBgStyleSelect) return;
+      if (captionBgStyleSelect.value === 'custom') return;
+      captionBgStyleSelect.value = 'custom';
+      dispatchValueEvents(captionBgStyleSelect);
+    }
+  });
 
   const render = () => {
     const data = (state.data || '').trim();

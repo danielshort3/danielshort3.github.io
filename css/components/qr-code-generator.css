@@ -435,6 +435,18 @@
     border:1px solid color-mix(in srgb,var(--primary) 24%, transparent);
     background:color-mix(in srgb,var(--surface) 95%, #03080f 5%);
     font-size:.95rem;
+    cursor:pointer;
+    font:inherit;
+    color:inherit;
+  }
+  .qrtool-chip:focus-visible{
+    outline:2px solid color-mix(in srgb,var(--primary) 70%, #ffffff 30%);
+    outline-offset:2px;
+  }
+
+  .qrtool-dropper{
+    padding:10px 14px;
+    border-radius:12px;
   }
 
   .qrtool-form input[type="range"]{

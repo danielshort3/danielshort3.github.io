@@ -453,7 +453,9 @@
     const pillClass = authed ? 'tools-account-pill is-authed' : 'tools-account-pill';
     const toolInfo = toolId ? getToolInfo(toolId) : null;
 
-    const accountButton = `<button type="button" class="btn-secondary" data-tools-action="open-account">Account</button>`;
+    const accountButton = authed
+      ? `<button type="button" class="btn-secondary" data-tools-action="open-account">Account</button>`
+      : '';
     const signInButton = `<button type="button" class="btn-primary" data-tools-action="sign-in">Sign in</button>`;
     const signOutButton = `<button type="button" class="btn-ghost" data-tools-action="sign-out">Sign out</button>`;
     const allowToolActions = !!(toolId && toolActionsEnabled !== false);
