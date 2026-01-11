@@ -85,6 +85,15 @@
     return readJson(res);
   };
 
+  const updateSessionMeta = async ({ toolId, sessionId, title, note, tags, pinned } = {}) => {
+    const res = await window.ToolsAuth.fetchWithAuth(API.state, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ toolId, sessionId, title, note, tags, pinned })
+    });
+    return readJson(res);
+  };
+
   const listSessions = async ({ toolId, limit } = {}) => {
     const res = await window.ToolsAuth.fetchWithAuth(getToolStateUrl({ toolId, limit }), { method: 'GET' });
     return readJson(res);
@@ -106,6 +115,7 @@
     logActivity,
     listActivity,
     saveSession,
+    updateSessionMeta,
     listSessions,
     getSession,
     deleteSession

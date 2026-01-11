@@ -23,6 +23,10 @@ const PREFIX = 'USER';
 const MAX_TS = 9999999999999;
 const MAX_SNAPSHOT_BYTES = 300_000;
 const MAX_SUMMARY_CHARS = 2_000;
+const MAX_TITLE_CHARS = 120;
+const MAX_NOTE_CHARS = 800;
+const MAX_TAGS = 12;
+const MAX_TAG_CHARS = 24;
 
 function pickEnv(keys){
   for (const key of keys) {
@@ -106,6 +110,41 @@ function normalizeSummary(value){
   return summary.length > MAX_SUMMARY_CHARS ? summary.slice(0, MAX_SUMMARY_CHARS) : summary;
 }
 
+function normalizeTitle(value){
+  const title = String(value || '').trim();
+  if (!title) return '';
+  return title.length > MAX_TITLE_CHARS ? title.slice(0, MAX_TITLE_CHARS).trimEnd() : title;
+}
+
+function normalizeNote(value){
+  const note = String(value || '').trim();
+  if (!note) return '';
+  return note.length > MAX_NOTE_CHARS ? note.slice(0, MAX_NOTE_CHARS).trimEnd() : note;
+}
+
+function normalizeTags(value){
+  const raw = Array.isArray(value)
+    ? value.map(v => String(v || '').trim())
+    : String(value || '')
+      .split(/[,\n]/g)
+      .map(v => String(v || '').trim());
+
+  const seen = new Set();
+  const tags = [];
+  raw.forEach((tag) => {
+    const cleaned = tag.replace(/\s+/g, ' ').trim();
+    if (!cleaned) return;
+    const clipped = cleaned.length > MAX_TAG_CHARS ? cleaned.slice(0, MAX_TAG_CHARS).trimEnd() : cleaned;
+    const key = clipped.toLowerCase();
+    if (!key) return;
+    if (seen.has(key)) return;
+    seen.add(key);
+    tags.push(clipped);
+  });
+
+  return tags.slice(0, MAX_TAGS);
+}
+
 function ensureSnapshotOk(snapshot){
   const raw = JSON.stringify(snapshot || {});
   if (byteLength(raw) > MAX_SNAPSHOT_BYTES) {
@@ -185,7 +224,11 @@ function toSessionMeta(item){
     sessionId,
     createdAt: Number(item.createdAt) || 0,
     updatedAt: Number(item.updatedAt) || 0,
-    outputSummary: String(item.outputSummary || '').trim()
+    outputSummary: String(item.outputSummary || '').trim(),
+    title: String(item.title || '').trim(),
+    note: String(item.note || '').trim(),
+    tags: Array.isArray(item.tags) ? item.tags.map(v => String(v || '').trim()).filter(Boolean) : [],
+    pinned: Boolean(item.pinned)
   };
 }
 
@@ -204,6 +247,10 @@ async function getSession({ sub, toolId, sessionId }){
     createdAt: Number(item.createdAt) || 0,
     updatedAt: Number(item.updatedAt) || 0,
     outputSummary: String(item.outputSummary || '').trim(),
+    title: String(item.title || '').trim(),
+    note: String(item.note || '').trim(),
+    tags: Array.isArray(item.tags) ? item.tags.map(v => String(v || '').trim()).filter(Boolean) : [],
+    pinned: Boolean(item.pinned),
     snapshot: item.snapshot && typeof item.snapshot === 'object' ? item.snapshot : {}
   };
 }
@@ -229,6 +276,11 @@ async function saveSession({ sub, toolId, sessionId, snapshot, outputSummary }){
   const priorToolIndexSk = String(existing?.toolIndexSk || '').trim();
   const priorUserIndexSk = String(existing?.userIndexSk || '').trim();
 
+  const title = normalizeTitle(existing?.title);
+  const note = normalizeNote(existing?.note);
+  const tags = normalizeTags(existing?.tags);
+  const pinned = Boolean(existing?.pinned);
+
   const revTsKey = reverseTimestampKey(now);
   const nextToolIndexSk = skToolSessionIndex(revTsKey, nextSessionId);
   const nextUserIndexSk = skUserSessionIndex(revTsKey, toolId, nextSessionId);
@@ -244,6 +296,10 @@ async function saveSession({ sub, toolId, sessionId, snapshot, outputSummary }){
     createdAt,
     updatedAt: now,
     outputSummary: summary,
+    title: title || undefined,
+    note: note || undefined,
+    tags: tags.length ? tags : undefined,
+    pinned,
     snapshot: snapshot || {},
     toolIndexSk: nextToolIndexSk,
     userIndexSk: nextUserIndexSk
@@ -257,7 +313,11 @@ async function saveSession({ sub, toolId, sessionId, snapshot, outputSummary }){
     sessionId: nextSessionId,
     createdAt,
     updatedAt: now,
-    outputSummary: summary
+    outputSummary: summary,
+    title: title || undefined,
+    note: note || undefined,
+    tags: tags.length ? tags : undefined,
+    pinned
   };
 
   const userIndexItem = {
@@ -268,7 +328,11 @@ async function saveSession({ sub, toolId, sessionId, snapshot, outputSummary }){
     sessionId: nextSessionId,
     createdAt,
     updatedAt: now,
-    outputSummary: summary
+    outputSummary: summary,
+    title: title || undefined,
+    note: note || undefined,
+    tags: tags.length ? tags : undefined,
+    pinned
   };
 
   const isNewSession = !existing;
@@ -385,6 +449,127 @@ async function deleteSession({ sub, toolId, sessionId }){
   } catch {}
 
   return true;
+}
+
+async function updateSessionMeta({ sub, toolId, sessionId, title, note, tags, pinned }){
+  const { tableName } = getRequiredEnv();
+  const client = getDocClient();
+
+  const result = await client.send(new GetCommand({
+    TableName: tableName,
+    Key: { pk: pkTool(sub, toolId), sk: skSession(sessionId) }
+  }));
+  const record = result && result.Item ? result.Item : null;
+  if (!record) return null;
+
+  const nextTitle = (typeof title !== 'undefined') ? normalizeTitle(title) : normalizeTitle(record.title);
+  const nextNote = (typeof note !== 'undefined') ? normalizeNote(note) : normalizeNote(record.note);
+  const nextTags = (typeof tags !== 'undefined') ? normalizeTags(tags) : normalizeTags(record.tags);
+  const nextPinned = (typeof pinned !== 'undefined') ? Boolean(pinned) : Boolean(record.pinned);
+
+  const toolIndexSk = String(record.toolIndexSk || '').trim() || skToolSessionIndex(reverseTimestampKey(record.updatedAt), sessionId);
+  const userIndexSk = String(record.userIndexSk || '').trim() || skUserSessionIndex(reverseTimestampKey(record.updatedAt), toolId, sessionId);
+
+  const setParts = ['#pinned = :pinned'];
+  const removeParts = [];
+  const names = {
+    '#title': 'title',
+    '#note': 'note',
+    '#tags': 'tags',
+    '#pinned': 'pinned'
+  };
+  const values = {
+    ':pinned': nextPinned
+  };
+
+  if (nextTitle) {
+    setParts.push('#title = :title');
+    values[':title'] = nextTitle;
+  } else {
+    removeParts.push('#title');
+  }
+
+  if (nextNote) {
+    setParts.push('#note = :note');
+    values[':note'] = nextNote;
+  } else {
+    removeParts.push('#note');
+  }
+
+  if (nextTags.length) {
+    setParts.push('#tags = :tags');
+    values[':tags'] = nextTags;
+  } else {
+    removeParts.push('#tags');
+  }
+
+  const expressionParts = [];
+  if (setParts.length) expressionParts.push(`SET ${setParts.join(', ')}`);
+  if (removeParts.length) expressionParts.push(`REMOVE ${removeParts.join(', ')}`);
+
+  const updateExpression = expressionParts.join(' ');
+
+  await client.send(new UpdateCommand({
+    TableName: tableName,
+    Key: { pk: pkTool(sub, toolId), sk: skSession(sessionId) },
+    ConditionExpression: 'attribute_exists(sessionId)',
+    UpdateExpression: updateExpression,
+    ExpressionAttributeNames: names,
+    ExpressionAttributeValues: values
+  }));
+
+  const createdAt = Number(record.createdAt) || 0;
+  const updatedAt = Number(record.updatedAt) || 0;
+  const outputSummary = String(record.outputSummary || '').trim();
+
+  const toolIndexItem = {
+    pk: pkToolSessions(sub, toolId),
+    sk: toolIndexSk,
+    entityType: 'session_index',
+    toolId,
+    sessionId,
+    createdAt,
+    updatedAt,
+    outputSummary,
+    title: nextTitle || undefined,
+    note: nextNote || undefined,
+    tags: nextTags.length ? nextTags : undefined,
+    pinned: nextPinned
+  };
+
+  const userIndexItem = {
+    pk: pkUserSessions(sub),
+    sk: userIndexSk,
+    entityType: 'session_index',
+    toolId,
+    sessionId,
+    createdAt,
+    updatedAt,
+    outputSummary,
+    title: nextTitle || undefined,
+    note: nextNote || undefined,
+    tags: nextTags.length ? nextTags : undefined,
+    pinned: nextPinned
+  };
+
+  await client.send(new TransactWriteCommand({
+    TransactItems: [
+      { Put: { TableName: tableName, Item: toolIndexItem } },
+      { Put: { TableName: tableName, Item: userIndexItem } }
+    ]
+  }));
+
+  return {
+    toolId,
+    sessionId,
+    createdAt,
+    updatedAt,
+    outputSummary,
+    title: nextTitle,
+    note: nextNote,
+    tags: nextTags,
+    pinned: nextPinned
+  };
 }
 
 async function listSessions({ sub, toolId, limit }){
@@ -568,6 +753,7 @@ module.exports = {
   listSessions,
   getSession,
   deleteSession,
+  updateSessionMeta,
   logActivity,
   listActivity,
   listUserTools,

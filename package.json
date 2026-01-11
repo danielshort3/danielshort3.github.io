@@ -12,6 +12,7 @@
     "build:models": "npm run build:pizza-tips-model",
     "build:projects": "node build/generate-project-pages.js",
     "build:shortlinks-destinations": "node build/generate-shortlinks-destinations.js",
+    "scaffold": "node build/scaffold.js",
     "build": "node build/build-site.js"
   },
   "engines": {
