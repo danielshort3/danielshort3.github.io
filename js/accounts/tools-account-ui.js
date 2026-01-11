@@ -142,6 +142,72 @@
     return fields;
   };
 
+  const classifyToolFields = (root) => {
+    const meta = { inputs: [], outputs: [], settings: [] };
+    if (!root) return meta;
+
+    const elements = [...root.querySelectorAll('input, textarea, select')];
+    const seenRadioNames = new Set();
+
+    const pushUnique = (arr, value) => {
+      if (!value) return;
+      if (arr.includes(value)) return;
+      arr.push(value);
+    };
+
+    elements.forEach((el) => {
+      if (!el || el.disabled) return;
+      const tag = String(el.tagName || '').toLowerCase();
+      const type = tag === 'input' ? String(el.type || '').toLowerCase() : '';
+
+      if (tag === 'input') {
+        if (['file', 'password', 'button', 'submit', 'reset', 'image', 'hidden'].includes(type)) return;
+      }
+
+      const key = (type === 'radio')
+        ? String(el.name || '').trim()
+        : String(el.id || el.name || '').trim();
+      if (!key) return;
+
+      if (type === 'radio') {
+        if (seenRadioNames.has(key)) return;
+        seenRadioNames.add(key);
+        pushUnique(meta.settings, key);
+        return;
+      }
+
+      if (tag === 'select') {
+        pushUnique(meta.settings, key);
+        return;
+      }
+
+      if (type === 'checkbox') {
+        pushUnique(meta.settings, key);
+        return;
+      }
+
+      const readOnly = Boolean(el.readOnly || el.hasAttribute('readonly'));
+      if (readOnly) {
+        pushUnique(meta.outputs, key);
+        return;
+      }
+
+      if (tag === 'textarea') {
+        pushUnique(meta.inputs, key);
+        return;
+      }
+
+      if (tag === 'input' && ['text', 'search', 'url', 'email', 'tel'].includes(type)) {
+        pushUnique(meta.inputs, key);
+        return;
+      }
+
+      pushUnique(meta.settings, key);
+    });
+
+    return meta;
+  };
+
   const applyToolFields = (root, fields) => {
     if (!root || !fields || typeof fields !== 'object') return;
     Object.entries(fields).forEach(([key, payload]) => {
@@ -185,19 +251,21 @@
     });
   };
 
-  const buildSnapshot = ({ toolId, root, output }) => {
+  const buildSnapshot = ({ toolId, root, output, inputs }) => {
     const snapshot = {
-      version: 2,
+      version: 3,
       toolId,
       capturedAt: Date.now(),
-      fields: serializeToolFields(root)
+      fields: serializeToolFields(root),
+      fieldMeta: classifyToolFields(root)
     };
+    if (inputs && typeof inputs === 'object') snapshot.inputs = inputs;
     if (typeof output !== 'undefined') snapshot.output = output;
     return snapshot;
   };
 
   const captureToolPayload = ({ toolId, root, sessionId, snapshot }) => {
-    const payload = { outputSummary: '', output: undefined };
+    const payload = { outputSummary: '', output: undefined, inputs: undefined };
     if (!toolId || !root) return payload;
     try {
       const detail = {
@@ -344,7 +412,7 @@
 
       const toolsMarkup = (() => {
         if (!tools.length) return '<p class="tools-dashboard-empty">No signed-in tool activity yet.</p>';
-        return tools.slice(0, 12).map((entry) => {
+        return tools.map((entry) => {
           const toolId = String(entry?.toolId || '').trim();
           const meta = entry?.meta || {};
           const info = getToolInfo(toolId);
@@ -367,7 +435,7 @@
 
       const sessionsMarkup = (() => {
         if (!recentSessions.length) return '<p class="tools-dashboard-empty">No saved sessions yet.</p>';
-        return recentSessions.slice(0, 10).map((session) => {
+        return recentSessions.map((session) => {
           const toolId = String(session?.toolId || '').trim();
           const sessionId = String(session?.sessionId || '').trim();
           const info = getToolInfo(toolId);
@@ -391,7 +459,7 @@
 
       const activityMarkup = (() => {
         if (!recentActivity.length) return '<p class="tools-dashboard-empty">No activity yet.</p>';
-        return recentActivity.slice(0, 16).map((event) => {
+        return recentActivity.map((event) => {
           const toolId = String(event?.toolId || '').trim();
           const info = getToolInfo(toolId);
           const ts = event?.ts ? formatTime(event.ts) : '';
@@ -484,7 +552,7 @@
       setStatus('Loading history...');
       let data;
       try {
-        data = await window.ToolsState.getDashboard();
+        data = await window.ToolsState.getDashboard({ sessionsLimit: 50, activityLimit: 200 });
       } catch (err) {
         setStatus(err?.message || 'Unable to load history.');
         return;
@@ -712,6 +780,18 @@
         `.trim();
       }
 
+      if (kind === 'image') {
+        const src = String(output.dataUrl || '').trim();
+        if (!src) return `<p class="tools-dashboard-empty">No preview available.</p>`;
+        const alt = outputSummary ? `Saved output preview (${outputSummary})` : 'Saved output preview';
+        return `
+          ${title}
+          <div class="tools-session-output">
+            <img class="tools-session-image" src="${escapeHtml(src)}" alt="${escapeHtml(alt)}" loading="lazy">
+          </div>
+        `.trim();
+      }
+
       if (kind === 'text') {
         const { text, truncated, total } = clampText(output.text || '', 120_000);
         return `
@@ -732,6 +812,26 @@
       } catch {
         return `<p class="tools-dashboard-empty">Unable to preview output.</p>`;
       }
+    };
+
+    const renderKeyValueEntries = (entries, emptyMessage) => {
+      const safeEntries = Array.isArray(entries) ? entries.filter(Boolean) : [];
+      if (!safeEntries.length) return `<p class="tools-dashboard-empty">${escapeHtml(emptyMessage || 'No inputs saved for this session yet.')}</p>`;
+      return `
+        <div class="tools-session-fields">
+          ${safeEntries.map((entry) => {
+            const label = escapeHtml(entry.label || '');
+            const { text, truncated, total } = clampText(entry.value || '', 80_000);
+            return `
+              <details class="tools-session-field">
+                <summary>${label}</summary>
+                <pre class="tools-session-pre">${escapeHtml(text)}</pre>
+                ${truncated ? `<p class="tools-session-truncate-note">Value truncated (${total.toLocaleString('en-US')} characters).</p>` : ''}
+              </details>
+            `.trim();
+          }).join('')}
+        </div>
+      `.trim();
     };
 
     const renderFields = (fields) => {
@@ -801,6 +901,28 @@
       `.trim();
     };
 
+    const fieldToText = (payload) => {
+      if (!payload || typeof payload !== 'object') return '';
+      const kind = String(payload.kind || '');
+      if (kind === 'checkbox') return payload.checked ? 'Checked' : 'Unchecked';
+      if (kind === 'radio') return String(payload.value || '');
+      if (kind === 'multi') return Array.isArray(payload.values) ? payload.values.map(v => String(v)).join(', ') : '';
+      if (kind === 'value') return String(payload.value || '');
+      return '';
+    };
+
+    const pickFieldSubset = (fields, keys) => {
+      const subset = {};
+      if (!fields || typeof fields !== 'object') return subset;
+      if (!Array.isArray(keys) || !keys.length) return subset;
+      keys.forEach((key) => {
+        if (!key) return;
+        if (!fields[key]) return;
+        subset[key] = fields[key];
+      });
+      return subset;
+    };
+
     const renderSession = (record) => {
       const toolId = String(record?.toolId || '').trim();
       const sessionId = String(record?.sessionId || '').trim();
@@ -810,7 +932,42 @@
       const outputSummary = String(record?.outputSummary || '').trim();
       const snapshot = record?.snapshot && typeof record.snapshot === 'object' ? record.snapshot : {};
       const fields = snapshot.fields && typeof snapshot.fields === 'object' ? snapshot.fields : {};
-      const output = typeof snapshot.output === 'undefined' ? null : snapshot.output;
+      const fieldMeta = snapshot.fieldMeta && typeof snapshot.fieldMeta === 'object' ? snapshot.fieldMeta : {};
+      const inputKeys = Array.isArray(fieldMeta.inputs) ? fieldMeta.inputs.map(k => String(k || '').trim()).filter(Boolean) : [];
+      const outputKeys = Array.isArray(fieldMeta.outputs) ? fieldMeta.outputs.map(k => String(k || '').trim()).filter(Boolean) : [];
+      const settingKeys = Array.isArray(fieldMeta.settings) ? fieldMeta.settings.map(k => String(k || '').trim()).filter(Boolean) : [];
+
+      let output = typeof snapshot.output === 'undefined' ? null : snapshot.output;
+      if ((output === null || typeof output === 'undefined') && outputKeys.length) {
+        if (outputKeys.length === 1) {
+          output = { kind: 'text', text: fieldToText(fields[outputKeys[0]]), summary: outputSummary };
+        } else {
+          const data = {};
+          outputKeys.forEach((key) => {
+            data[key] = fieldToText(fields[key]);
+          });
+          try {
+            output = { kind: 'text', text: JSON.stringify(data, null, 2), summary: outputSummary };
+          } catch {
+            output = { kind: 'text', text: '', summary: outputSummary };
+          }
+        }
+      }
+
+      const savedInputs = snapshot.inputs && typeof snapshot.inputs === 'object' ? snapshot.inputs : null;
+      const inputEntries = (() => {
+        if (savedInputs) {
+          return Object.entries(savedInputs)
+            .map(([label, value]) => ({ label: String(label || '').trim(), value: String(value ?? '') }))
+            .filter((entry) => Boolean(entry.label));
+        }
+
+        if (inputKeys.length) {
+          return inputKeys.map((key) => ({ label: key, value: fieldToText(fields[key]) }));
+        }
+
+        return [];
+      })();
 
       const reopenHref = `${info.href}?session=${encodeURIComponent(sessionId)}`;
 
@@ -826,6 +983,10 @@
       }
 
       if (bodyEl) {
+        const advancedFields = Object.keys(pickFieldSubset(fields, settingKeys)).length
+          ? renderFields(pickFieldSubset(fields, settingKeys))
+          : '';
+
         bodyEl.innerHTML = `
           <div class="tools-session-grid">
             <section class="tools-dashboard-card" aria-labelledby="tools-session-output-title">
@@ -838,9 +999,15 @@
             <section class="tools-dashboard-card" aria-labelledby="tools-session-inputs-title">
               <header class="tools-dashboard-card-head">
                 <h2 id="tools-session-inputs-title">Inputs</h2>
-                <p class="tools-dashboard-subtitle">Captured form fields for this session.</p>
+                <p class="tools-dashboard-subtitle">Key inputs for this session.</p>
               </header>
-              ${renderFields(fields)}
+              ${renderKeyValueEntries(inputEntries, 'No inputs saved for this session yet.')}
+              ${advancedFields ? `
+                <details class="tools-session-advanced">
+                  <summary>Advanced settings</summary>
+                  ${advancedFields}
+                </details>
+              `.trim() : ''}
             </section>
           </div>
         `.trim();
@@ -1034,7 +1201,7 @@
     setDashboardStatus('Loading dashboard...');
     let data;
     try {
-      data = await window.ToolsState.getDashboard();
+      data = await window.ToolsState.getDashboard({ sessionsLimit: 50, activityLimit: 200 });
     } catch (err) {
       clearLists();
       setDashboardStatus(err?.message || 'Unable to load dashboard.');
@@ -1104,7 +1271,7 @@
       if (!events.length) {
         activityEl.innerHTML = '<p class="tools-dashboard-empty">No activity yet.</p>';
       } else {
-        activityEl.innerHTML = events.slice(0, 50).map((event) => {
+        activityEl.innerHTML = events.map((event) => {
           const toolId = String(event?.toolId || '').trim();
           const info = getToolInfo(toolId);
           const ts = event?.ts ? formatTime(event.ts) : '';
@@ -1216,6 +1383,7 @@
       const captured = captureToolPayload({ toolId, root, sessionId, snapshot });
       const outputSummary = String(captured?.outputSummary || '').trim();
       if (typeof captured?.output !== 'undefined') snapshot.output = captured.output;
+      if (captured?.inputs && typeof captured.inputs === 'object') snapshot.inputs = captured.inputs;
       try {
         const res = await window.ToolsState.saveSession({
           toolId,
@@ -1261,6 +1429,10 @@
       if (isApplying) return;
       dirty = true;
     });
+    root.addEventListener('submit', () => {
+      if (isApplying) return;
+      dirty = true;
+    });
 
     setActiveSessionId(toolId, sessionId);
     updateStatus('');
@@ -1281,8 +1453,6 @@
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'hidden') flush();
     });
-
-    window.ToolsState.logActivity({ toolId, type: 'tool_open', summary: 'Opened tool' }).catch(() => {});
 
     return () => {
       window.clearInterval(timer);
@@ -1335,6 +1505,11 @@
     if (page === 'tools-dashboard') {
       initDashboard({ setStatus, onViewSession: sessionModal.open }).catch(() => {});
       return;
+    }
+
+    const auth = window.ToolsAuth.getAuth();
+    if (toolId && window.ToolsAuth.authIsValid(auth)) {
+      window.ToolsState.logActivity({ toolId, type: 'tool_open', summary: 'Opened tool' }).catch(() => {});
     }
 
     if (toolId && root && toolActionsEnabled) {

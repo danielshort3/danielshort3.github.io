@@ -46,6 +46,14 @@
 
   if (!formEl || !fileEl || !startBtn) return;
 
+  const TOOL_ID = 'whisper-transcribe-monitor';
+
+  const markSessionDirty = () => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:session-dirty', { detail: { toolId: TOOL_ID } }));
+    } catch {}
+  };
+
   const STORAGE_PART_MINUTES = 'tool.whisperTranscribe.partMinutes';
 
   let serverReady = false;
@@ -126,6 +134,7 @@
     const value = (text || '').trim();
     if (transcriptEl) transcriptEl.value = value;
     if (copyTranscriptBtn) copyTranscriptBtn.disabled = !value;
+    markSessionDirty();
   };
 
   const clearTranscript = () => {
@@ -907,4 +916,28 @@
   window.setTimeout(() => {
     checkAndWarm();
   }, 0);
+
+  document.addEventListener('tools:session-capture', (event) => {
+    const detail = event?.detail;
+    if (detail?.toolId !== TOOL_ID) return;
+    const payload = detail?.payload;
+    if (!payload || typeof payload !== 'object') return;
+
+    const fileLabel = audioState?.filename
+      ? `${audioState.filename}${audioState.bytes ? ` (${formatBytes(audioState.bytes)})` : ''}`
+      : 'No file selected';
+    const durationLabel = Number.isFinite(audioState?.durationSeconds)
+      ? `${formatNumber(audioState.durationSeconds, 1)} sec`
+      : '';
+    const minutes = currentPartMinutes();
+
+    payload.inputs = {
+      File: fileLabel,
+      ...(durationLabel ? { Duration: durationLabel } : {}),
+      'Part length': `${minutes} min`
+    };
+
+    const transcript = String(transcriptEl?.value || '').trim();
+    payload.outputSummary = transcript ? `Transcript (${transcript.length.toLocaleString('en-US')} chars)` : 'No transcript yet.';
+  });
 })();

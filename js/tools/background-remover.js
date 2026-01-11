@@ -18,6 +18,14 @@
 
   if (!form || !fileInput || !colorInput || !toleranceInput || !canvas) return;
 
+  const TOOL_ID = 'background-remover';
+
+  const markSessionDirty = () => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:session-dirty', { detail: { toolId: TOOL_ID } }));
+    } catch {}
+  };
+
   const ctx = canvas.getContext('2d');
   let imageBitmap = null;
   let originalImageData = null;
@@ -146,6 +154,7 @@
     processedImageData = null;
     originalImageData = null;
     showingOriginal = false;
+    markSessionDirty();
   };
 
   const handleFileChange = async () => {
@@ -189,6 +198,7 @@
     setColorLabel(hex);
     status.textContent = `Sampled ${hex} from the image.`;
     applyRemoval();
+    markSessionDirty();
   };
 
   form.addEventListener('submit', (event) => {
@@ -263,8 +273,69 @@
     drawCurrent();
     toggleBtn.textContent = showingOriginal ? 'Show transparent preview' : 'Show original';
     status.textContent = showingOriginal ? 'Viewing original image.' : 'Viewing transparent preview.';
+    markSessionDirty();
   });
 
   updateToleranceLabel();
   setColorLabel(colorInput.value);
+
+  const captureSummary = () => {
+    const parts = [
+      String(status?.textContent || '').trim(),
+      String(removedLabel?.textContent || '').trim(),
+      String(dimLabel?.textContent || '').trim(),
+    ].filter(Boolean);
+    return parts.join(' · ');
+  };
+
+  const buildPreviewDataUrl = (maxDim = 420) => {
+    try {
+      const srcW = canvas.width || 0;
+      const srcH = canvas.height || 0;
+      if (!srcW || !srcH) return null;
+      const scale = Math.min(1, maxDim / Math.max(srcW, srcH));
+      const w = Math.max(1, Math.round(srcW * scale));
+      const h = Math.max(1, Math.round(srcH * scale));
+      const preview = document.createElement('canvas');
+      preview.width = w;
+      preview.height = h;
+      const pctx = preview.getContext('2d', { alpha: true });
+      if (!pctx) return null;
+      pctx.drawImage(canvas, 0, 0, w, h);
+      const dataUrl = preview.toDataURL('image/png');
+      if (!dataUrl.startsWith('data:image/png')) return null;
+      return { dataUrl, width: w, height: h };
+    } catch {
+      return null;
+    }
+  };
+
+  document.addEventListener('tools:session-capture', (event) => {
+    const detail = event?.detail;
+    if (detail?.toolId !== TOOL_ID) return;
+    const payload = detail?.payload;
+    if (!payload || typeof payload !== 'object') return;
+
+    const file = fileInput.files?.[0];
+    payload.inputs = {
+      File: file?.name || 'No file selected',
+      Color: String(colorInput.value || '').trim(),
+      Tolerance: String(toleranceInput.value || '').trim()
+    };
+
+    const summary = captureSummary();
+    payload.outputSummary = summary || 'Background removed';
+
+    const preview = buildPreviewDataUrl(420);
+    if (preview?.dataUrl) {
+      payload.output = {
+        kind: 'image',
+        mime: 'image/png',
+        dataUrl: preview.dataUrl,
+        width: preview.width,
+        height: preview.height,
+        summary
+      };
+    }
+  });
 })();

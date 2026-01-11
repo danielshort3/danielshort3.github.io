@@ -105,6 +105,14 @@
 
   if (!form || !dataInput || !canvas || !stage) return;
 
+  const TOOL_ID = 'qr-code-generator';
+
+  const markSessionDirty = () => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:session-dirty', { detail: { toolId: TOOL_ID } }));
+    } catch {}
+  };
+
   const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
   if (!ctx) return;
 
@@ -2307,6 +2315,7 @@
     state.transparent = preset.transparent;
     updateControlsFromState();
     scheduleRender();
+    markSessionDirty();
   };
 
   templateButtons.forEach((btn) => {
@@ -2408,6 +2417,7 @@
     state.logoImage = null;
     if (logoInput) logoInput.value = '';
     updateControlsFromState();
+    markSessionDirty();
   };
 
   const loadLogoFromFile = (file) => {
@@ -2423,6 +2433,7 @@
         updateControlsFromState();
         readStateFromControls();
         scheduleRender();
+        markSessionDirty();
       };
       img.onerror = () => {
         clearLogo();
@@ -2482,19 +2493,13 @@
   });
 
   exampleBtn.addEventListener('click', () => {
-    dataInput.value = 'https://example.com/campaign?utm_source=brochure&utm_medium=qr';
-    readStateFromControls();
-    updateControlsFromState();
-    scheduleRender();
+    applyDataValue('https://example.com/campaign?utm_source=brochure&utm_medium=qr');
     dataInput.focus();
     dataInput.setSelectionRange(dataInput.value.length, dataInput.value.length);
   });
 
   clearBtn.addEventListener('click', () => {
-    dataInput.value = '';
-    readStateFromControls();
-    updateControlsFromState();
-    scheduleRender();
+    applyDataValue('');
     dataInput.focus();
   });
 
@@ -2504,6 +2509,7 @@
       readStateFromControls();
       updateControlsFromState();
       scheduleRender();
+      markSessionDirty();
       centerTextInput.focus();
     });
   }
@@ -2717,4 +2723,61 @@
   readStateFromControls();
   updateControlsFromState();
   scheduleRender();
+
+  const captureSummary = () => {
+    const meta = String(metaEl?.textContent || '').trim();
+    const quality = String(qualityEl?.textContent || '').trim();
+    const parts = [meta, quality].filter(Boolean);
+    return parts.join(' · ');
+  };
+
+  const buildPreviewDataUrl = (maxDim = 420) => {
+    try {
+      const srcW = canvas.width || 0;
+      const srcH = canvas.height || 0;
+      if (!srcW || !srcH) return null;
+      const scale = Math.min(1, maxDim / Math.max(srcW, srcH));
+      const w = Math.max(1, Math.round(srcW * scale));
+      const h = Math.max(1, Math.round(srcH * scale));
+      const preview = document.createElement('canvas');
+      preview.width = w;
+      preview.height = h;
+      const pctx = preview.getContext('2d', { alpha: true });
+      if (!pctx) return null;
+      pctx.drawImage(canvas, 0, 0, w, h);
+      const dataUrl = preview.toDataURL('image/png');
+      if (!dataUrl.startsWith('data:image/png')) return null;
+      return { dataUrl, width: w, height: h };
+    } catch {
+      return null;
+    }
+  };
+
+  document.addEventListener('tools:session-capture', (event) => {
+    const detail = event?.detail;
+    if (detail?.toolId !== TOOL_ID) return;
+    const payload = detail?.payload;
+    if (!payload || typeof payload !== 'object') return;
+
+    const summary = captureSummary();
+    payload.outputSummary = summary || 'QR code';
+
+    const data = String(dataInput.value || '').trim();
+    payload.inputs = {
+      Data: data,
+      ...(captionEnabledInput?.checked ? { Caption: String(captionTextInput?.value || '').trim() } : {}),
+    };
+
+    const preview = buildPreviewDataUrl(420);
+    if (preview?.dataUrl) {
+      payload.output = {
+        kind: 'image',
+        mime: 'image/png',
+        dataUrl: preview.dataUrl,
+        width: preview.width,
+        height: preview.height,
+        summary
+      };
+    }
+  });
 })();

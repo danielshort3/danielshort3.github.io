@@ -43,6 +43,15 @@
 
   if (!fileInput || !dropzone || !fileList || !form || !formatSelect || !resultsEl) return;
 
+  const TOOL_ID = 'image-optimizer';
+  const MAX_SAVED_OUTPUT_LINES = 120;
+
+  const markSessionDirty = () => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:session-dirty', { detail: { toolId: TOOL_ID } }));
+    } catch {}
+  };
+
   const state = {
     items: [],
     outputs: [],
@@ -219,6 +228,7 @@
     state.outputs = [];
     if (resultsEl) resultsEl.innerHTML = '';
     if (downloadAllBtn) downloadAllBtn.disabled = true;
+    markSessionDirty();
   };
 
   const clearAll = () => {
@@ -233,6 +243,7 @@
     revokeOutputs();
     setStatus('Add images, choose settings, then click Optimize.');
     fileInput.value = '';
+    markSessionDirty();
   };
 
   const updateSummary = () => {
@@ -632,6 +643,7 @@
 
     resultsEl.appendChild(frag);
     if (downloadAllBtn) downloadAllBtn.disabled = false;
+    markSessionDirty();
   };
 
   const processAll = async () => {
@@ -857,5 +869,78 @@
       e.stopPropagation();
       fileInput.click();
     });
+  });
+
+  document.addEventListener('tools:session-capture', (event) => {
+    const detail = event?.detail;
+    if (!detail || detail.toolId !== TOOL_ID) return;
+
+    const payload = detail.payload;
+    if (!payload || typeof payload !== 'object') return;
+
+    const safeNames = state.items
+      .map((it) => String(it?.file?.name || '').trim())
+      .filter(Boolean);
+    const namePreview = safeNames.slice(0, 6).join(', ');
+    const nameSuffix = safeNames.length > 6 ? ` …+${safeNames.length - 6}` : '';
+    const imagesLabel = safeNames.length
+      ? `${safeNames.length} file${safeNames.length === 1 ? '' : 's'} (${namePreview}${nameSuffix})`
+      : 'No files selected';
+
+    const formatLabel = (() => {
+      const value = String(formatSelect?.value || '').trim();
+      if (!value || value === 'keep') return 'Keep original';
+      return labelForMime(value);
+    })();
+
+    const mode = String(resizeMode?.value || 'none').trim() || 'none';
+    const resizeLabel = (() => {
+      if (responsiveInput?.checked) {
+        const widths = String(responsiveWidthsInput?.value || '').trim();
+        return widths ? `Responsive widths (${widths})` : 'Responsive widths';
+      }
+      if (mode === 'none') return 'None';
+      if (mode === 'scale') return `Scale ${scaleInput?.value || ''}%`;
+      const parts = [];
+      if (widthInput?.value) parts.push(`W ${widthInput.value}px`);
+      if (heightInput?.value) parts.push(`H ${heightInput.value}px`);
+      return parts.length ? parts.join(' · ') : 'Resize';
+    })();
+
+    const quality = qualityInput?.value ? `Q ${qualityInput.value}` : '';
+
+    payload.inputs = {
+      Images: imagesLabel,
+      Format: formatLabel,
+      Resize: resizeLabel,
+      ...(quality ? { Quality: quality } : {})
+    };
+
+    const totalBytes = state.outputs.reduce((sum, out) => sum + (out?.blob?.size || 0), 0);
+    const outputSummary = state.outputs.length
+      ? `${state.outputs.length} output${state.outputs.length === 1 ? '' : 's'} · ${formatBytes(totalBytes)}`
+      : safeNames.length
+        ? `${safeNames.length} image${safeNames.length === 1 ? '' : 's'} selected`
+        : 'No outputs yet';
+
+    payload.outputSummary = outputSummary;
+
+    if (!state.outputs.length) return;
+
+    const rows = state.outputs
+      .slice()
+      .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')))
+      .map((out) => `${out.name} · ${labelForMime(out.mime)} · ${out.width} × ${out.height} · ${formatBytes(out.blob.size)}`);
+
+    const clipped = rows.slice(0, MAX_SAVED_OUTPUT_LINES);
+    if (rows.length > MAX_SAVED_OUTPUT_LINES) {
+      clipped.push(`…and ${rows.length - MAX_SAVED_OUTPUT_LINES} more`);
+    }
+
+    payload.output = {
+      kind: 'text',
+      summary: outputSummary,
+      text: clipped.join('\n')
+    };
   });
 })();

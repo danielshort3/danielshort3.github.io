@@ -32,6 +32,15 @@
   if (!secondBadge || !secondCount || !secondList) return;
   if (!thirdBadge || !thirdCount || !thirdList) return;
 
+  const TOOL_ID = 'point-of-view-checker';
+  const MAX_SAVED_OUTPUT_HTML_CHARS = 120_000;
+
+  const markSessionDirty = () => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:session-dirty', { detail: { toolId: TOOL_ID } }));
+    } catch {}
+  };
+
   const COLOR_STORAGE_KEY = 'povcheck-highlight-colors';
 
   const normalizeHexColor = (value, fallback) => {
@@ -445,6 +454,7 @@
   clearBtn?.addEventListener('click', () => {
     textInput.value = '';
     resetUI();
+    markSessionDirty();
     textInput.focus();
   });
 
@@ -465,8 +475,48 @@
     if (thirdColorInput) thirdColorInput.value = defaults.third;
     applyHighlightColors(defaults);
     clearStoredHighlightColors();
+    markSessionDirty();
   });
 
   syncHighlightControls();
   resetUI();
+
+  const clampText = (value, maxChars) => {
+    const text = String(value || '');
+    if (text.length <= maxChars) return { text, truncated: false };
+    return { text: text.slice(0, maxChars), truncated: true };
+  };
+
+  const captureSummary = () => String(summaryEl?.textContent || '').replace(/\s+/g, ' ').trim();
+
+  document.addEventListener('tools:session-capture', (event) => {
+    const detail = event?.detail;
+    if (detail?.toolId !== TOOL_ID) return;
+    const payload = detail?.payload;
+    if (!payload || typeof payload !== 'object') return;
+
+    const summary = captureSummary();
+    payload.outputSummary = summary;
+    payload.inputs = { Text: textInput.value || '' };
+
+    const html = String(outputEl?.innerHTML || '').trim();
+    if (html && html.length <= MAX_SAVED_OUTPUT_HTML_CHARS) {
+      payload.output = { kind: 'html', html, summary };
+      return;
+    }
+
+    const rawText = String(outputEl?.textContent || '').trim();
+    const { text, truncated } = clampText(rawText, 120_000);
+    if (text) payload.output = { kind: 'text', text, summary, truncated };
+  });
+
+  document.addEventListener('tools:session-applied', (event) => {
+    const detail = event?.detail;
+    if (detail?.toolId !== TOOL_ID) return;
+    requestAnimationFrame(() => {
+      try {
+        runAnalysis();
+      } catch {}
+    });
+  });
 })();

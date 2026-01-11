@@ -85,6 +85,14 @@
 
   const DESTINATIONS_MANIFEST_PATH = 'dist/shortlinks-destinations.json';
   const CLICK_HISTORY_LIMIT = 250;
+  const TOOL_ID = 'short-links';
+  const MAX_SAVED_LINK_LINES = 120;
+
+  const markSessionDirty = () => {
+    try {
+      document.dispatchEvent(new CustomEvent('tools:session-dirty', { detail: { toolId: TOOL_ID } }));
+    } catch {}
+  };
 
   const FALLBACK_DESTINATIONS = [
     { path: '/', label: 'Home', group: 'Pages' },
@@ -1057,11 +1065,13 @@
       allLinks = Array.isArray(data.links) ? data.links : [];
       applyFilterAndRender();
       setStatus(listStatusEl, `Loaded ${allLinks.length} link(s).`, 'success');
+      markSessionDirty();
     } catch (err) {
       allLinks = [];
       clearList();
       setCount(0, 0);
       setStatus(listStatusEl, err.message, 'error');
+      markSessionDirty();
     }
   }
 
@@ -1138,10 +1148,12 @@
 
       const label = permanent ? 'Permanent link' : 'Temporary link';
       setStatus(editorStatusEl, `${label}: ${shortUrl}${copied ? ' (copied)' : ''}`, 'success');
+      markSessionDirty();
       await refreshLinks();
       return shortUrl;
     } catch (err) {
       setStatus(targetStatus, err.message, 'error');
+      markSessionDirty();
       return null;
     } finally {
       setEditorBusy(false);
@@ -1152,6 +1164,7 @@
     slugInput.value = '';
     destinationInput.value = '';
     setStatus(editorStatusEl, '');
+    markSessionDirty();
   }
 
   authForm.addEventListener('submit', async (event) => {
@@ -1418,4 +1431,55 @@
       applyFilterAndRender();
     });
   }
+
+  document.addEventListener('tools:session-capture', (event) => {
+    const detail = event?.detail;
+    if (!detail || detail.toolId !== TOOL_ID) return;
+
+    const payload = detail.payload;
+    if (!payload || typeof payload !== 'object') return;
+
+    const slug = normalizeSlugInput(slugInput?.value);
+    const destination = normalizeDestinationForSave(destinationInput?.value);
+    const shortUrl = slug ? buildShortUrl(slug) : '';
+
+    const outputSummary = (() => {
+      if (slug) return `Editing ${buildPublicPath(slug)}`;
+      if (allLinks.length) return `${allLinks.length} saved link${allLinks.length === 1 ? '' : 's'}`;
+      return 'Short links';
+    })();
+
+    payload.inputs = {
+      ...(slug ? { Slug: slug } : {}),
+      ...(destination ? { Destination: destination } : {})
+    };
+
+    payload.outputSummary = outputSummary;
+
+    const lines = [];
+    if (shortUrl) lines.push(`Short URL: ${shortUrl}`);
+    if (destination) lines.push(`Destination: ${destination}`);
+
+    if (allLinks.length) {
+      if (lines.length) lines.push('');
+      lines.push(`Saved links (${allLinks.length}):`);
+      allLinks.slice(0, MAX_SAVED_LINK_LINES).forEach((link) => {
+        const linkSlug = normalizeSlugInput(link?.slug);
+        if (!linkSlug) return;
+        const dest = String(link?.destination || '').trim();
+        lines.push(`${buildPublicPath(linkSlug)} → ${dest}`);
+      });
+      if (allLinks.length > MAX_SAVED_LINK_LINES) {
+        lines.push(`…and ${allLinks.length - MAX_SAVED_LINK_LINES} more`);
+      }
+    }
+
+    if (!lines.length) return;
+
+    payload.output = {
+      kind: 'text',
+      summary: outputSummary,
+      text: lines.join('\n')
+    };
+  });
 })();
