@@ -453,7 +453,6 @@
     const pillClass = authed ? 'tools-account-pill is-authed' : 'tools-account-pill';
     const toolInfo = toolId ? getToolInfo(toolId) : null;
 
-    const dashboardLink = `<a class="btn-secondary" href="tools/dashboard">Dashboard</a>`;
     const accountButton = `<button type="button" class="btn-secondary" data-tools-action="open-account">Account</button>`;
     const signInButton = `<button type="button" class="btn-primary" data-tools-action="sign-in">Sign in</button>`;
     const signOutButton = `<button type="button" class="btn-ghost" data-tools-action="sign-out">Sign out</button>`;
@@ -468,7 +467,6 @@
     barEl.innerHTML = `
       <span class="${pillClass}" aria-label="${escapeHtml(label)}">${escapeHtml(label)}</span>
       ${accountButton}
-      ${authed ? dashboardLink : ''}
       ${allowToolActions && authed ? saveButton : ''}
       ${allowToolActions && authed ? newButton : ''}
       ${authed ? signOutButton : signInButton}
@@ -1078,7 +1076,6 @@
       if (actionsEl) {
         actionsEl.innerHTML = `
           <button type="button" class="btn-primary" data-tools-account-action="sign-in">Sign in</button>
-          <a class="btn-secondary" href="tools/dashboard">Open dashboard</a>
         `.trim();
       }
       if (gridEl) {
@@ -1086,7 +1083,7 @@
           <section class="tools-dashboard-card" aria-labelledby="tools-account-modal-signed-out">
             <header class="tools-dashboard-card-head">
               <h2 id="tools-account-modal-signed-out">Sign in to view your history</h2>
-              <p class="tools-dashboard-subtitle">Once signed in, your sessions and tool activity appear here and on the dashboard.</p>
+              <p class="tools-dashboard-subtitle">Once signed in, your sessions and tool activity appear here.</p>
             </header>
             <p class="tools-dashboard-empty">You can still use most tools without signing in; history and saved sessions require an account.</p>
           </section>
@@ -1102,7 +1099,6 @@
       if (!actionsEl) return;
       actionsEl.innerHTML = `
         <button type="button" class="btn-secondary" data-tools-account-action="refresh">Refresh</button>
-        <a class="btn-secondary" href="tools/dashboard">Open dashboard</a>
         <button type="button" class="btn-ghost" data-tools-account-action="sign-out">Sign out</button>
       `.trim();
 
@@ -1134,7 +1130,6 @@
       if (actionsEl) {
         actionsEl.innerHTML = `
           <button type="button" class="btn-secondary" data-tools-account-action="refresh">Refresh</button>
-          <a class="btn-secondary" href="tools/dashboard">Open dashboard</a>
           <button type="button" class="btn-ghost" data-tools-account-action="sign-out">Sign out</button>
         `.trim();
       }
