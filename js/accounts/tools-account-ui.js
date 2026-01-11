@@ -5,7 +5,7 @@
   const AUTO_SAVE_MS = 20 * 1000;
 
   const TOOL_CATALOG = {
-    'word-frequency': { name: 'Word Frequency Analyzer', href: '/tools/word-frequency' },
+    'word-frequency': { name: 'Stopword-Free Word Frequency', href: '/tools/word-frequency' },
     'text-compare': { name: 'Text Compare', href: '/tools/text-compare' },
     'point-of-view-checker': { name: 'Point of View Checker', href: '/tools/point-of-view-checker' },
     'oxford-comma-checker': { name: 'Oxford Comma Checker', href: '/tools/oxford-comma-checker' },
@@ -45,6 +45,107 @@
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+
+  const cleanText = (value) => String(value || '').replace(/\s+/g, ' ').trim();
+
+  const getDocTitlePrefix = () => {
+    const title = cleanText(document.title);
+    if (!title) return '';
+    const sep = ' | ';
+    const idx = title.indexOf(sep);
+    if (idx < 0) return title;
+    return cleanText(title.slice(0, idx));
+  };
+
+  const getMetaDescription = () => {
+    const el = document.querySelector('meta[name="description"]');
+    return cleanText(el?.getAttribute?.('content'));
+  };
+
+  const firstSentence = (text, maxChars = 140) => {
+    const s = cleanText(text);
+    if (!s) return '';
+    const m = s.match(/^(.+?[.!?])(\s|$)/);
+    const sentence = m ? cleanText(m[1]) : s;
+    if (sentence.length <= maxChars) return sentence;
+    return `${sentence.slice(0, maxChars).trimEnd()}…`;
+  };
+
+  const ensureToolsHero = ({ pageId }) => {
+    const id = cleanText(pageId);
+    if (!id) return;
+
+    const body = document.body;
+    const datasetTitle = cleanText(body?.dataset?.toolsTitle);
+    const datasetEyebrow = cleanText(body?.dataset?.toolsEyebrow);
+
+    const hero = (() => {
+      const existing = document.querySelector('.tools-hero');
+      if (existing) return existing;
+
+      const section = document.createElement('section');
+      section.className = 'tools-hero';
+      section.innerHTML = '<div class="wrapper"></div>';
+
+      const headerHost = document.querySelector('#combined-header-nav');
+      if (headerHost && headerHost.insertAdjacentElement) {
+        headerHost.insertAdjacentElement('afterend', section);
+        return section;
+      }
+
+      const skip = document.querySelector('.skip-link');
+      if (skip && skip.insertAdjacentElement) {
+        skip.insertAdjacentElement('afterend', section);
+        return section;
+      }
+
+      document.body.insertBefore(section, document.body.firstChild);
+      return section;
+    })();
+
+    const wrapper = (() => {
+      const existing = hero.querySelector('.wrapper');
+      if (existing) return existing;
+      const created = document.createElement('div');
+      created.className = 'wrapper';
+      while (hero.firstChild) created.appendChild(hero.firstChild);
+      hero.appendChild(created);
+      return created;
+    })();
+
+    const titleText = datasetTitle
+      || cleanText(wrapper.querySelector('h1')?.textContent)
+      || cleanText(wrapper.querySelector('h1.visually-hidden')?.textContent)
+      || cleanText(getDocTitlePrefix())
+      || cleanText(getToolInfo(id)?.name)
+      || id;
+
+    const eyebrowText = datasetEyebrow
+      || cleanText(wrapper.querySelector('.hero-eyebrow')?.textContent)
+      || (() => {
+        const description = firstSentence(getMetaDescription());
+        if (!description) return titleText;
+        if (description.toLowerCase().startsWith(titleText.toLowerCase())) return description;
+        return `${titleText} - ${description}`;
+      })();
+
+    let eyebrowEl = wrapper.querySelector('.hero-eyebrow');
+    if (!eyebrowEl) {
+      eyebrowEl = document.createElement('p');
+      eyebrowEl.className = 'hero-eyebrow';
+      wrapper.insertBefore(eyebrowEl, wrapper.firstChild);
+    }
+    if (!cleanText(eyebrowEl.textContent)) eyebrowEl.textContent = eyebrowText;
+
+    let titleEl = wrapper.querySelector('h1.visually-hidden') || wrapper.querySelector('h1');
+    if (!titleEl) {
+      titleEl = document.createElement('h1');
+      titleEl.className = 'visually-hidden';
+      wrapper.appendChild(titleEl);
+    }
+    if (!titleEl.classList.contains('visually-hidden')) titleEl.classList.add('visually-hidden');
+    if (!cleanText(titleEl.textContent)) titleEl.textContent = titleText;
+  };
 
   const getSessionParam = () => {
     try {
@@ -1095,10 +1196,28 @@
 
   const initAccountBar = ({ toolId, root, toolActionsEnabled, onOpenAccount } = {}) => {
     const barEl = (() => {
-      const existing = $('[data-tools-account="bar"]');
-      if (!existing) return null;
-      const inDock = existing.closest('[data-tools-account="dock"]');
-      if (inDock) return existing;
+      let existing = $('[data-tools-account="bar"]');
+      if (!existing) {
+        existing = document.createElement('div');
+        existing.className = 'tools-account-bar';
+        existing.setAttribute('data-tools-account', 'bar');
+      }
+      if (!existing.classList.contains('tools-account-bar')) {
+        existing.classList.add('tools-account-bar');
+      }
+
+      const dockHost = existing.closest('[data-tools-account="dock"]');
+      if (dockHost) {
+        let dockInner = dockHost.querySelector('[data-tools-account="dock-inner"]');
+        if (!dockInner) {
+          dockInner = document.createElement('div');
+          dockInner.className = 'wrapper tools-account-dock-inner';
+          dockInner.setAttribute('data-tools-account', 'dock-inner');
+          dockHost.appendChild(dockInner);
+        }
+        if (!dockInner.contains(existing)) dockInner.appendChild(existing);
+        return existing;
+      }
 
       const headerHost = document.querySelector('#combined-header-nav');
       const main = document.querySelector('main') || document.querySelector('#main');
@@ -1120,10 +1239,14 @@
         }
       }
 
-      const dockInner = dock.querySelector('[data-tools-account="dock-inner"]');
-      if (dockInner) {
-        dockInner.appendChild(existing);
+      let dockInner = dock.querySelector('[data-tools-account="dock-inner"]');
+      if (!dockInner) {
+        dockInner = document.createElement('div');
+        dockInner.className = 'wrapper tools-account-dock-inner';
+        dockInner.setAttribute('data-tools-account', 'dock-inner');
+        dock.appendChild(dockInner);
       }
+      dockInner.appendChild(existing);
 
       return existing;
     })();
@@ -1501,6 +1624,8 @@
         } catch {}
       }
     });
+
+    ensureToolsHero({ pageId: page });
 
     if (page === 'tools-dashboard') {
       initDashboard({ setStatus, onViewSession: sessionModal.open }).catch(() => {});
