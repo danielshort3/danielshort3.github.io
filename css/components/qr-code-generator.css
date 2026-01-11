@@ -196,13 +196,13 @@
   .qrtool-stage{
     position:relative;
     width:100%;
-    max-width:min(520px, 52vh);
+    max-width:min(520px, calc(52vh * var(--qrtool-stage-ratio, 1)));
     justify-self:center;
     border-radius:16px;
     border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
     overflow:hidden;
     box-shadow:0 16px 32px rgba(0,0,0,.28);
-    aspect-ratio:1 / 1;
+    aspect-ratio:var(--qrtool-stage-ratio, 1 / 1);
     background:linear-gradient(180deg,
       color-mix(in srgb,var(--surface) 94%, #02070d 6%) 0%,
       color-mix(in srgb,var(--surface) 86%, #02070d 14%) 100%);
@@ -442,11 +442,6 @@
   .qrtool-chip:focus-visible{
     outline:2px solid color-mix(in srgb,var(--primary) 70%, #ffffff 30%);
     outline-offset:2px;
-  }
-
-  .qrtool-dropper{
-    padding:10px 14px;
-    border-radius:12px;
   }
 
   .qrtool-form input[type="range"]{
