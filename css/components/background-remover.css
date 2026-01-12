@@ -89,17 +89,65 @@
   }
 
   .bgtool-card h2{
-    margin:0 0 6px;
+    margin:0;
+  }
+  .bgtool-head{
+    display:grid;
+    gap:6px;
   }
   .bgtool-subtitle{
-    margin:0 0 10px;
+    margin:0;
     color:var(--text-muted);
     font-size:1rem;
+    line-height:1.6;
   }
 
   .bgtool-form{
     display:grid;
     gap:12px;
+  }
+  .bgtool-control{
+    display:grid;
+    gap:8px;
+  }
+  .bgtool-select{
+    width:100%;
+    padding:12px 14px;
+    border-radius:12px;
+    border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
+    background:color-mix(in srgb,var(--surface) 92%, #02070d 8%);
+    color:inherit;
+    font:inherit;
+  }
+  .bgtool-select:focus{
+    outline:2px solid color-mix(in srgb,var(--primary) 34%, transparent);
+    outline-offset:2px;
+  }
+  .bgtool-fieldset{
+    margin:0;
+    padding:14px;
+    border-radius:16px;
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    background:color-mix(in srgb,var(--surface) 96%, #000 4%);
+    display:grid;
+    gap:10px;
+  }
+  .bgtool-fieldset legend{
+    padding:0 8px;
+    font-family:'Poppins';
+    font-weight:600;
+    color:color-mix(in srgb,var(--text) 90%, #ffffff 10%);
+  }
+  .bgtool-two-col{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:12px;
+  }
+  @media (min-width: 720px){
+    .bgtool-two-col{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      align-items:start;
+    }
   }
   .bgtool-label{
     display:flex;
@@ -107,6 +155,12 @@
     align-items:center;
     font-weight:600;
     font-family:'Poppins';
+  }
+  .bgtool-value{
+    margin-left:6px;
+    color:var(--text-muted);
+    font-weight:500;
+    font-size:.95rem;
   }
   .bgtool-file{
     display:grid;
@@ -118,6 +172,212 @@
     opacity:0;
     position:absolute;
     pointer-events:none;
+  }
+
+  .bgtool-help-text{
+    margin:0;
+    color:var(--text-muted);
+    font-size:.95rem;
+    line-height:1.6;
+  }
+
+  .bgtool-option{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    color:var(--text-muted);
+    line-height:1.55;
+    font-size:.95rem;
+  }
+  .bgtool-option input{
+    margin-top:2px;
+  }
+
+  .bgtool-color-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+
+  .bgtool-dropzone{
+    border-radius:18px;
+    border:1px dashed color-mix(in srgb,var(--primary) 28%, transparent);
+    background:color-mix(in srgb,var(--surface) 92%, #02070d 8%);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+    cursor:pointer;
+    transition:border-color .2s ease, box-shadow .2s ease, background .2s ease, transform .2s ease;
+  }
+  .bgtool-dropzone:hover{
+    border-color:color-mix(in srgb,var(--primary) 42%, transparent);
+    transform:translateY(-1px);
+  }
+  .bgtool-dropzone.drag-hover{
+    border-color:color-mix(in srgb,var(--primary) 58%, transparent);
+    box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 22%, transparent);
+    background:color-mix(in srgb,var(--surface) 96%, #02070d 4%);
+  }
+  .bgtool-drop-inner{
+    display:flex;
+    gap:14px;
+    align-items:center;
+    justify-content:space-between;
+    padding:18px;
+    flex-wrap:wrap;
+  }
+  .bgtool-drop-icon{
+    width:44px;
+    height:44px;
+    border-radius:16px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid color-mix(in srgb,var(--primary) 24%, transparent);
+    background:color-mix(in srgb,var(--surface) 92%, #000 8%);
+    flex:0 0 auto;
+  }
+  .bgtool-drop-icon svg{
+    width:24px;
+    height:24px;
+    stroke:currentColor;
+    fill:none;
+    stroke-width:2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    color:color-mix(in srgb,var(--primary) 76%, #ffffff 24%);
+  }
+  .bgtool-drop-copy{
+    flex:1 1 260px;
+    min-width:220px;
+  }
+  .bgtool-drop-title{
+    margin:0;
+    font-family:'Poppins';
+    font-weight:600;
+    letter-spacing:.01em;
+  }
+  .bgtool-drop-hint{
+    margin:4px 0 0;
+    color:var(--text-muted);
+    font-size:.95rem;
+  }
+
+  .bgtool-guidance{
+    display:grid;
+    gap:10px;
+    padding:14px;
+    border-radius:16px;
+    border:1px solid color-mix(in srgb,var(--primary) 14%, transparent);
+    background:color-mix(in srgb,var(--surface) 96%, #000 4%);
+  }
+  .bgtool-guidance-title{
+    margin:0;
+    font-size:1rem;
+    letter-spacing:.01em;
+  }
+  .bgtool-guidance-list{
+    margin:0;
+    padding-left:18px;
+    color:var(--text-muted);
+    line-height:1.6;
+  }
+  .bgtool-help summary{
+    cursor:pointer;
+    font-weight:600;
+    color:color-mix(in srgb,var(--primary) 78%, #ffffff 22%);
+  }
+  .bgtool-help p{
+    margin:8px 0 0;
+    color:var(--text-muted);
+    line-height:1.6;
+  }
+
+  .bgtool-summary{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:center;
+  }
+  .bgtool-summary-chip{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:10px 12px;
+    border-radius:12px;
+    border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
+    background:color-mix(in srgb,var(--surface) 95%, #03080f 5%);
+    font-size:.95rem;
+    color:var(--text-muted);
+  }
+
+  .bgtool-filelist{
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:grid;
+    gap:10px;
+  }
+  .bgtool-item{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    padding:12px 14px;
+    border-radius:14px;
+    border:1px solid color-mix(in srgb,var(--primary) 14%, transparent);
+    background:color-mix(in srgb,var(--surface) 94%, #02070d 6%);
+  }
+  .bgtool-item.is-error{
+    border-color:color-mix(in srgb,#ff6b6b 40%, transparent);
+    background:color-mix(in srgb,var(--surface) 92%, #210707 8%);
+  }
+  .bgtool-item-main{
+    min-width:0;
+  }
+  .bgtool-item-title{
+    font-family:'Poppins';
+    font-weight:600;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .bgtool-item-meta{
+    margin-top:2px;
+    color:var(--text-muted);
+    font-size:.92rem;
+  }
+  .bgtool-item-message{
+    margin:6px 0 0;
+    color:var(--text-muted);
+    font-size:.92rem;
+    line-height:1.55;
+  }
+  .bgtool-item-actions{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    align-items:flex-end;
+    flex:0 0 auto;
+  }
+
+  .bgtool-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 10px;
+    border-radius:999px;
+    border:1px solid color-mix(in srgb,var(--primary) 24%, transparent);
+    background:color-mix(in srgb,var(--surface) 92%, #000 8%);
+    font-size:.85rem;
+    color:var(--text-muted);
+    white-space:nowrap;
+  }
+  .bgtool-pill.bgtool-pill-ok{
+    border-color:color-mix(in srgb,#2ecc71 36%, transparent);
+    color:color-mix(in srgb,#2ecc71 70%, var(--text) 30%);
+  }
+  .bgtool-pill.bgtool-pill-error{
+    border-color:color-mix(in srgb,#ff6b6b 40%, transparent);
+    color:color-mix(in srgb,#ff6b6b 76%, var(--text) 24%);
   }
 
   .bgtool-controls{
@@ -230,36 +490,173 @@
     color:var(--text-light);
   }
 
-  .bgtool-actions-bar{
+  .bgtool-progress{
+    display:grid;
+    gap:8px;
+  }
+  .bgtool-progress-bar{
+    height:10px;
+    border-radius:999px;
+    border:1px solid color-mix(in srgb,var(--primary) 16%, transparent);
+    background:color-mix(in srgb,var(--surface) 92%, #000 8%);
+    overflow:hidden;
+  }
+  .bgtool-progress-fill{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg,
+      color-mix(in srgb,var(--primary) 82%, #ffffff 18%) 0%,
+      color-mix(in srgb,var(--primary) 62%, #071219 38%) 100%);
+    transition:width .18s ease;
+  }
+
+  .bgtool-preview-head{
     display:flex;
+    align-items:flex-start;
     justify-content:space-between;
-    align-items:center;
     gap:12px;
     flex-wrap:wrap;
   }
-  .bgtool-actions-left{
+  .bgtool-status{
+    margin:6px 0 0;
+    color:var(--text-muted);
+    font-size:.98rem;
+    line-height:1.6;
+    max-width:70ch;
+  }
+  .bgtool-preview-actions{
     display:flex;
+    flex-wrap:wrap;
     gap:10px;
     align-items:center;
   }
-  .bgtool-actions-right{
+  .bgtool-preview-actions .is-active{
+    border-color:color-mix(in srgb,var(--primary) 46%, transparent);
+    color:color-mix(in srgb,var(--primary) 76%, #ffffff 24%);
+  }
+
+  .bgtool-refine-bar{
     display:flex;
-    gap:10px;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+    padding:12px 14px;
+    border-radius:16px;
+    border:1px solid color-mix(in srgb,var(--primary) 14%, transparent);
+    background:color-mix(in srgb,var(--surface) 96%, #000 4%);
+  }
+  .bgtool-refine-left{
+    display:flex;
+    gap:12px;
     align-items:center;
     flex-wrap:wrap;
   }
-  .bgtool-actions-bar .btn-icon{
-    width:46px;
-    height:46px;
-    border-radius:12px;
+  .bgtool-refine-right{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    flex-wrap:wrap;
   }
-  .bgtool-actions-bar .btn-icon svg{
-    width:24px;
-    height:24px;
-    stroke:currentColor;
-    fill:none;
-    stroke-width:2;
-    stroke-linecap:round;
-    stroke-linejoin:round;
+  .bgtool-refine-title{
+    font-family:'Poppins';
+    font-weight:600;
+  }
+
+  .bgtool-results-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .bgtool-results-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:center;
+  }
+  .bgtool-results{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:14px;
+  }
+  @media (min-width: 980px){
+    .bgtool-results{
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+    }
+  }
+  .bgtool-result{
+    border-radius:18px;
+    border:1px solid color-mix(in srgb,var(--primary) 16%, transparent);
+    background:color-mix(in srgb,var(--surface) 94%, #02070d 6%);
+    box-shadow:0 14px 28px rgba(0,0,0,.25);
+    overflow:hidden;
+    cursor:pointer;
+    transition:transform .15s ease, border-color .15s ease;
+    display:grid;
+    grid-template-columns:1fr;
+  }
+  .bgtool-result:hover{
+    transform:translateY(-1px);
+    border-color:color-mix(in srgb,var(--primary) 34%, transparent);
+  }
+  .bgtool-result.is-selected{
+    border-color:color-mix(in srgb,var(--primary) 56%, transparent);
+    box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 18%, transparent), 0 14px 28px rgba(0,0,0,.25);
+  }
+  .bgtool-result-thumb{
+    width:100%;
+    height:auto;
+    display:block;
+    background:transparent;
+  }
+  .bgtool-result-thumb-empty{
+    aspect-ratio: 16 / 10;
+    background:color-mix(in srgb,var(--surface) 90%, #02070d 10%);
+  }
+  .bgtool-result-body{
+    padding:14px 14px 16px;
+    display:grid;
+    gap:10px;
+  }
+  .bgtool-result-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .bgtool-result-title{
+    margin:0;
+    font-size:1rem;
+    font-family:'Poppins';
+    font-weight:600;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    max-width:36ch;
+  }
+  .bgtool-result-meta{
+    margin-top:4px;
+    color:var(--text-muted);
+    font-size:.92rem;
+  }
+  .bgtool-result-message{
+    margin:0;
+    color:var(--text-muted);
+    font-size:.92rem;
+    line-height:1.55;
+  }
+  .bgtool-approve{
+    margin-top:4px;
+  }
+  .bgtool-empty{
+    margin:0;
+    color:var(--text-muted);
+  }
+  .bgtool-footnote{
+    margin:0;
+    color:var(--text-muted);
+    font-size:.95rem;
   }
 }
