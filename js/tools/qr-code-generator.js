@@ -790,9 +790,10 @@
 
     input.addEventListener('pointerdown', (event) => {
       if (event.button !== 0) return;
-      if (tryOpenNativeColorPicker(input)) {
-        event.preventDefault();
-      }
+      if (typeof enable === 'function') enable();
+    });
+    input.addEventListener('click', () => {
+      if (typeof enable === 'function') enable();
     });
   };
 
@@ -2200,7 +2201,7 @@
     if (state.centerMode === 'text') {
       if (centerTextWeightSelect) centerTextWeightSelect.disabled = false;
       if (centerTextColorStyleSelect) centerTextColorStyleSelect.disabled = false;
-      if (centerTextColorInput) centerTextColorInput.disabled = state.centerTextColorStyle !== 'custom';
+      if (centerTextColorInput) centerTextColorInput.disabled = false;
     } else {
       if (centerTextWeightSelect) centerTextWeightSelect.disabled = true;
       if (centerTextColorStyleSelect) centerTextColorStyleSelect.disabled = true;
@@ -2216,10 +2217,10 @@
       logoPaddingInput.disabled = !imageMode;
       logoShapeSelect.disabled = !imageMode;
       logoPlateStyleSelect.disabled = !imageMode;
-      logoPlateColorInput.disabled = !imageMode || state.logoPlateStyle !== 'custom';
+      logoPlateColorInput.disabled = !imageMode;
       logoBorderStyleSelect.disabled = !imageMode;
       logoBorderSizeInput.disabled = !imageMode || state.logoBorderStyle === 'none';
-      logoBorderColorInput.disabled = !imageMode || state.logoBorderStyle !== 'custom';
+      logoBorderColorInput.disabled = !imageMode;
     } else {
       logoPreviewWrap?.classList.add('hide');
       logoPreviewWrap?.setAttribute('aria-hidden', 'true');
@@ -2228,10 +2229,10 @@
       logoPaddingInput.disabled = !imageMode;
       logoShapeSelect.disabled = !imageMode;
       logoPlateStyleSelect.disabled = !imageMode;
-      logoPlateColorInput.disabled = !imageMode || state.logoPlateStyle !== 'custom';
+      logoPlateColorInput.disabled = !imageMode;
       logoBorderStyleSelect.disabled = !imageMode;
       logoBorderSizeInput.disabled = !imageMode || state.logoBorderStyle === 'none';
-      logoBorderColorInput.disabled = !imageMode || state.logoBorderStyle !== 'custom';
+      logoBorderColorInput.disabled = !imageMode;
     }
 
     if (captionEnabledInput) captionEnabledInput.checked = !!state.captionEnabled;
@@ -2252,8 +2253,8 @@
     if (captionAlignSelect) captionAlignSelect.disabled = !captionEnabled;
     if (captionColorStyleSelect) captionColorStyleSelect.disabled = !captionEnabled;
     if (captionBgStyleSelect) captionBgStyleSelect.disabled = !captionEnabled;
-    if (captionColorInput) captionColorInput.disabled = !captionEnabled || state.captionColorStyle !== 'custom';
-    if (captionBgColorInput) captionBgColorInput.disabled = !captionEnabled || state.captionBgStyle !== 'custom';
+    if (captionColorInput) captionColorInput.disabled = false;
+    if (captionBgColorInput) captionBgColorInput.disabled = false;
   };
 
   initColorControl({
