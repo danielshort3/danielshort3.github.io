@@ -136,6 +136,22 @@
     return `${val.toFixed(val >= 10 ? 0 : 1)} ${unit}`;
   };
 
+  const getErrorMessage = (err) => {
+    if (!err) return '';
+    if (typeof err === 'string') return err;
+    if (err instanceof Error) return err.message || '';
+    return String(err?.message || err || '');
+  };
+
+  const formatAiInitHint = (message) => {
+    const msg = String(message || '');
+    const looksLikeCsp = /content security policy/i.test(msg) || /violates the following content security policy/i.test(msg);
+    const looksLikeBlobImport = /failed to fetch dynamically imported module/i.test(msg) && /blob:/i.test(msg);
+    const looksLikeBackend = /no available backend found/i.test(msg);
+    if (!(looksLikeCsp || looksLikeBlobImport || looksLikeBackend)) return '';
+    return 'AI init blocked (likely CSP). Ensure `script-src blob:` + `worker-src blob:` + `wasm-unsafe-eval` are allowed, then hard-refresh. You can also switch to Solid color (legacy).';
+  };
+
   const normalizeHex = (hex) => {
     const value = String(hex || '').trim();
     if (!value) return '#000000';
@@ -819,7 +835,6 @@
 
     const maskBlob = await canvasToBlob(mask, 'image/png');
     job.baseMaskBlob = maskBlob;
-    job.baseMaskBlob = maskBlob;
     job.maskBlob = maskBlob;
     job.maskUrl = URL.createObjectURL(maskBlob);
 
@@ -880,9 +895,13 @@
       },
     };
 
-    const maskBlob = await lib.segmentForeground(imageData, config);
+    let maskBlob;
+    try {
+      maskBlob = await lib.segmentForeground(imageData, config);
+    } finally {
+      if (currentRunId === state.runId) hideProgress();
+    }
     if (currentRunId !== state.runId) return;
-    hideProgress();
 
     if (!(maskBlob instanceof Blob)) {
       throw new Error('AI model did not return a mask blob.');
@@ -956,7 +975,10 @@
       job.status = 'ready';
     } catch (err) {
       job.status = 'error';
-      job.message = err?.message || 'Unable to process that file.';
+      const raw = getErrorMessage(err) || 'Unable to process that file.';
+      const aiHint = formatAiInitHint(raw);
+      job.message = aiHint ? `${aiHint} (${raw})` : raw;
+      hideProgress();
     } finally {
       if (bitmap && typeof bitmap.close === 'function') bitmap.close();
     }
