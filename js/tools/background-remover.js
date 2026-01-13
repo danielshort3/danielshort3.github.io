@@ -149,7 +149,7 @@
     const looksLikeBlobImport = /failed to fetch dynamically imported module/i.test(msg) && /blob:/i.test(msg);
     const looksLikeBackend = /no available backend found/i.test(msg);
     if (!(looksLikeCsp || looksLikeBlobImport || looksLikeBackend)) return '';
-    return 'AI init blocked (likely CSP). Ensure `script-src blob:` + `worker-src blob:` + `wasm-unsafe-eval` are allowed, then hard-refresh. You can also switch to Solid color (legacy).';
+    return "AI init blocked (likely CSP). Ensure `script-src blob:` + `worker-src blob:` + `'unsafe-eval'` + `'wasm-unsafe-eval'` are allowed, then hard-refresh. You can also switch to Solid color (legacy).";
   };
 
   const normalizeHex = (hex) => {
