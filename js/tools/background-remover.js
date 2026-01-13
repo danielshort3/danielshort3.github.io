@@ -873,6 +873,11 @@
     drawContain(workCtx, bitmap, processing.width, processing.height);
 
     const imageData = workCtx.getImageData(0, 0, processing.width, processing.height);
+    // @imgly/background-removal expects a Blob / ArrayBuffer (or URL) and will convert it internally to an ndarray.
+    // Passing ImageData directly breaks because it lacks `.shape`/`.data`.
+    const rgbaBlob = new Blob([imageData.data], {
+      type: `image/x-rgba8;width=${processing.width};height=${processing.height}`,
+    });
 
     const lib = await loadBgRemoval();
     const device = String(deviceSelect?.value || 'cpu') === 'gpu' ? 'gpu' : 'cpu';
@@ -897,7 +902,7 @@
 
     let maskBlob;
     try {
-      maskBlob = await lib.segmentForeground(imageData, config);
+      maskBlob = await lib.segmentForeground(rgbaBlob, config);
     } finally {
       if (currentRunId === state.runId) hideProgress();
     }
