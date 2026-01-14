@@ -2,6 +2,10 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
+    { "source": "/go/:slug*", "has": [{ "type": "host", "value": "dshort.me" }], "destination": "/api/go/:slug*" },
+    { "source": "/go/:slug*", "has": [{ "type": "host", "value": "www.dshort.me" }], "destination": "/api/go/:slug*" },
+    { "source": "/:slug*", "has": [{ "type": "host", "value": "dshort.me" }], "destination": "/api/go/:slug*" },
+    { "source": "/:slug*", "has": [{ "type": "host", "value": "www.dshort.me" }], "destination": "/api/go/:slug*" },
     { "source": "/go/:slug*", "destination": "/api/go/:slug*" },
     { "source": "/portfolio/:project", "destination": "/pages/portfolio/:project" },
     { "source": "/portfolio/:project.html", "destination": "/pages/portfolio/:project" },
@@ -45,8 +49,6 @@
     { "source": "/tools/screen-recorder.html","destination": "/pages/screen-recorder" },
     { "source": "/tools/job-application-tracker","destination": "/pages/job-application-tracker" },
     { "source": "/tools/job-application-tracker.html","destination": "/pages/job-application-tracker" },
-    { "source": "/tools/ocean-wave-simulation","destination": "/pages/ocean-wave-simulation" },
-    { "source": "/tools/ocean-wave-simulation.html","destination": "/pages/ocean-wave-simulation" },
     { "source": "/tools",             "destination": "/pages/tools" },
     { "source": "/tools.html",        "destination": "/pages/tools" },
     { "source": "/nbsp-cleaner",      "destination": "/pages/nbsp-cleaner" },
@@ -63,6 +65,8 @@
     { "source": "/games/stellar-dogfight.html", "destination": "/demos/stellar-dogfight-demo" },
     { "source": "/games/slot-machine", "destination": "/demos/slot-machine-demo" },
     { "source": "/games/slot-machine.html", "destination": "/demos/slot-machine-demo" },
+    { "source": "/games/ocean-wave-simulation", "destination": "/pages/ocean-wave-simulation" },
+    { "source": "/games/ocean-wave-simulation.html", "destination": "/pages/ocean-wave-simulation" },
     { "source": "/games",             "destination": "/pages/games" },
     { "source": "/games.html",        "destination": "/pages/games" },
 
@@ -96,8 +100,8 @@
   "redirects": [
     { "source": "/", "has": [{ "type": "host", "value": "dshort.me" }], "destination": "https://danielshort.me", "permanent": true },
     { "source": "/", "has": [{ "type": "host", "value": "www.dshort.me" }], "destination": "https://danielshort.me", "permanent": true },
-    { "source": "/:path*", "has": [{ "type": "host", "value": "dshort.me" }], "destination": "https://danielshort.me/dshort?path=:path*", "permanent": false },
-    { "source": "/:path*", "has": [{ "type": "host", "value": "www.dshort.me" }], "destination": "https://danielshort.me/dshort?path=:path*", "permanent": false },
+    { "source": "/tools/ocean-wave-simulation", "destination": "/games/ocean-wave-simulation", "permanent": true },
+    { "source": "/tools/ocean-wave-simulation.html", "destination": "/games/ocean-wave-simulation", "permanent": true },
     { "source": "/projects", "destination": "/portfolio", "permanent": true },
     { "source": "/projects/(.*)", "destination": "/portfolio", "permanent": true }
   ],

@@ -11,7 +11,6 @@
     'oxford-comma-checker': { name: 'Oxford Comma Checker', href: '/tools/oxford-comma-checker' },
     'background-remover': { name: 'Background Remover', href: '/tools/background-remover' },
     'nbsp-cleaner': { name: 'Non-breaking Space Cleaner', href: '/tools/nbsp-cleaner' },
-    'ocean-wave-simulation': { name: 'Ocean Wave Simulation', href: '/tools/ocean-wave-simulation' },
     'qr-code-generator': { name: 'QR Code Generator', href: '/tools/qr-code-generator' },
     'image-optimizer': { name: 'Image Optimizer', href: '/tools/image-optimizer' },
     'screen-recorder': { name: 'Screen Recorder', href: '/tools/screen-recorder' },

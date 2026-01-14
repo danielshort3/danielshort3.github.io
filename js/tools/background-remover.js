@@ -100,11 +100,6 @@
     bgColor: '#ffffff',
   };
 
-  const runtimeCaps = {
-    webgpuUnavailable: false,
-    webgpuUnavailableReason: '',
-  };
-
   const active = {
     job: null,
     // Processing-size sources used for preview and brush edits.
@@ -148,11 +143,6 @@
     return String(err?.message || err || '');
   };
 
-  const looksLikeWebGpuFailure = (message) => {
-    const msg = String(message || '');
-    return /\[webgpu\]/i.test(msg) || /\bwebgpu\b/i.test(msg) || /\bjsep\b/i.test(msg);
-  };
-
   const formatAiInitHint = (message) => {
     const msg = String(message || '');
     const looksLikeCsp = /content security policy/i.test(msg) || /violates the following content security policy/i.test(msg);
@@ -162,9 +152,7 @@
       return "AI init blocked (likely CSP). Ensure `script-src blob:` + `worker-src blob:` + `'unsafe-eval'` + `'wasm-unsafe-eval'` are allowed, then hard-refresh. You can also switch to Solid color (legacy).";
     }
     if (looksLikeBackend) {
-      return looksLikeWebGpuFailure(msg)
-        ? 'WebGPU backend is unavailable in this browser/build. Switch Device to CPU, then run again. You can also switch to Solid color (legacy).'
-        : 'AI backend is unavailable. Try switching Device to CPU, hard-refreshing, or use Solid color (legacy).';
+      return 'AI backend is unavailable. Try hard-refreshing, or use Solid color (legacy).';
     }
     return '';
   };
@@ -903,8 +891,7 @@
     });
 
     const lib = await loadBgRemoval();
-    const requestedDevice = String(deviceSelect?.value || 'cpu') === 'gpu' ? 'gpu' : 'cpu';
-    const device = (requestedDevice === 'gpu' && !runtimeCaps.webgpuUnavailable) ? 'gpu' : 'cpu';
+    const device = 'cpu';
     const model = String(methodSelect?.value || 'ai-best') === 'ai-fast' ? 'isnet_quint8' : 'isnet_fp16';
 
     const config = {
@@ -925,29 +912,8 @@
     };
 
     let maskBlob;
-    let usedDevice = device;
     try {
       maskBlob = await lib.segmentForeground(rgbaBlob, config);
-    } catch (err) {
-      const raw = getErrorMessage(err);
-      if (device === 'gpu' && looksLikeWebGpuFailure(raw)) {
-        runtimeCaps.webgpuUnavailable = true;
-        runtimeCaps.webgpuUnavailableReason = raw;
-        usedDevice = 'cpu';
-        config.device = 'cpu';
-        if (deviceSelect) deviceSelect.value = 'cpu';
-        if (currentRunId === state.runId) {
-          showProgress('WebGPU unavailable — retrying on CPU…', 0);
-        }
-        try {
-          maskBlob = await lib.segmentForeground(rgbaBlob, config);
-        } catch (cpuErr) {
-          const cpuMsg = getErrorMessage(cpuErr);
-          throw new Error(`WebGPU failed (${raw}). CPU retry also failed (${cpuMsg}).`);
-        }
-      } else {
-        throw err;
-      }
     } finally {
       if (currentRunId === state.runId) hideProgress();
     }
@@ -983,11 +949,7 @@
     job.cutoutBlob = cutoutBlob;
     job.cutoutUrl = URL.createObjectURL(cutoutBlob);
 
-    job.message = (requestedDevice === 'gpu' && usedDevice === 'cpu')
-      ? `WebGPU unavailable. AI processed at ${processing.maxDim}px (CPU).`
-      : usedDevice === 'gpu'
-        ? `AI processed at ${processing.maxDim}px (GPU).`
-        : `AI processed at ${processing.maxDim}px (CPU).`;
+    job.message = `AI processed at ${processing.maxDim}px (CPU).`;
   };
 
   const processJob = async (job, currentRunId) => {
@@ -1344,10 +1306,6 @@
     if (active.job) reprocessSelected().catch(() => {});
   });
   deviceSelect?.addEventListener('change', () => {
-    if (String(deviceSelect.value || 'cpu') === 'gpu' && runtimeCaps.webgpuUnavailable) {
-      deviceSelect.value = 'cpu';
-      setStatus('WebGPU is unavailable in this browser/build. Switched to CPU.');
-    }
     markSessionDirty();
     if (active.job && String(methodSelect?.value || '').startsWith('ai-')) reprocessSelected().catch(() => {});
   });

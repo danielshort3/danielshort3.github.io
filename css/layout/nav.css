@@ -586,6 +586,7 @@
     #nav-dropdown-portfolio{
       width:min(460px, 74vw);
       max-width:500px;
+      --nav-dropdown-max:780px;
     }
     #nav-dropdown-contributions{ width:min(640px, 78vw); }
     #nav-dropdown-resume{ width:min(340px, 64vw); }

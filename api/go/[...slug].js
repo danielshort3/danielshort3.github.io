@@ -14,6 +14,35 @@ function isShortDomainHost(req){
   return host === 'dshort.me' || host === 'www.dshort.me';
 }
 
+function getRequestHost(req){
+  const hostHeader = req.headers && req.headers.host ? String(req.headers.host) : '';
+  return hostHeader.split(':')[0].trim();
+}
+
+function buildUnavailableRedirect(req, slug){
+  const host = getRequestHost(req) || 'dshort.me';
+  const params = new URLSearchParams();
+  params.set('from', host);
+  if (slug) params.set('path', slug);
+  return `https://danielshort.me/dshort?${params.toString()}`;
+}
+
+function sendUnavailable(res, req, slug){
+  if (req.method !== 'GET') {
+    res.statusCode = 404;
+    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('X-Robots-Tag', 'noindex');
+    res.end('Not Found');
+    return;
+  }
+
+  res.statusCode = 302;
+  res.setHeader('Location', buildUnavailableRedirect(req, slug));
+  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('X-Robots-Tag', 'noindex');
+  res.end();
+}
+
 function getSlugFromRequest(req){
   const querySlug = req.query && req.query.slug;
   if (Array.isArray(querySlug)) return querySlug.join('/');
@@ -56,6 +85,11 @@ module.exports = async (req, res) => {
   }
 
   if (!link) {
+    if (isShortDomainHost(req)) {
+      sendUnavailable(res, req, slug);
+      return;
+    }
+
     res.statusCode = 404;
     res.setHeader('Cache-Control', 'no-store');
     res.end('Not Found');
@@ -63,6 +97,11 @@ module.exports = async (req, res) => {
   }
 
   if (link.disabled) {
+    if (isShortDomainHost(req)) {
+      sendUnavailable(res, req, slug);
+      return;
+    }
+
     res.statusCode = 404;
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('X-Robots-Tag', 'noindex');
@@ -72,6 +111,11 @@ module.exports = async (req, res) => {
 
   const expiresAt = Number.isFinite(Number(link.expiresAt)) ? Number(link.expiresAt) : 0;
   if (expiresAt && Math.floor(Date.now() / 1000) >= expiresAt) {
+    if (isShortDomainHost(req)) {
+      sendUnavailable(res, req, slug);
+      return;
+    }
+
     res.statusCode = 404;
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('X-Robots-Tag', 'noindex');
@@ -81,6 +125,11 @@ module.exports = async (req, res) => {
 
   const destination = typeof link.destination === 'string' ? String(link.destination).trim() : '';
   if (!destination) {
+    if (isShortDomainHost(req)) {
+      sendUnavailable(res, req, slug);
+      return;
+    }
+
     res.statusCode = 404;
     res.setHeader('Cache-Control', 'no-store');
     res.end('Not Found');
