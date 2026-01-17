@@ -287,13 +287,8 @@
   .resume-role-brand{
     display:grid;
     gap:4px;
-  }
-  .resume-role-meta{
-    display:flex;
-    align-items:center;
-    justify-content:flex-end;
-    gap:12px;
-    flex-wrap:wrap;
+    flex:1 1 340px;
+    min-width:min(420px, 100%);
   }
   .resume-role-logo-shell{
     height:48px;
@@ -328,8 +323,7 @@
     margin:0;
     font-size:.95rem;
     color:var(--text-muted);
-    text-align:right;
-    white-space:nowrap;
+    text-align:left;
   }
   .resume-role-list{
     margin:12px 0 0 18px;
@@ -471,13 +465,11 @@
       flex-direction:column;
       align-items:flex-start;
     }
-    .resume-role-meta{
-      width:100%;
-      justify-content:flex-start;
-    }
     .resume-role-dates{
       text-align:left;
-      white-space:normal;
+    }
+    .resume-role-logo-shell{
+      align-self:center;
     }
     .resume-education-item{
       flex-direction:column;
