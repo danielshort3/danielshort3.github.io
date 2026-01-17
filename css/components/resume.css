@@ -187,13 +187,32 @@
     padding-top:0;
     border-top:none;
   }
-  .resume-block-title{
-    margin:0 0 12px;
-    font-family:'Poppins';
-    font-size:1.15rem;
-    letter-spacing:.01em;
-    color:var(--text-light);
-  }
+	  .resume-block-title{
+	    margin:0 0 12px;
+	    font-family:'Poppins';
+	    font-size:1.15rem;
+	    letter-spacing:.01em;
+	    color:var(--text-light);
+	  }
+	  .resume-projects-wide{
+	    grid-column:1 / -1;
+	  }
+	  .resume-wide-category{
+	    display:flex;
+	    align-items:center;
+	    gap:14px;
+	    justify-content:center;
+	  }
+	  .resume-wide-category::before,
+	  .resume-wide-category::after{
+	    content:"";
+	    flex:1;
+	    height:1px;
+	    background:color-mix(in srgb,var(--text-light) 10%, transparent);
+	  }
+	  .resume-wide-category span{
+	    white-space:nowrap;
+	  }
 
   .resume-subhead{
     margin:16px 0 10px;
