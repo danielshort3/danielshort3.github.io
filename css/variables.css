@@ -64,8 +64,8 @@
 
     /* logo tiles */
     --logo-tile-bg: linear-gradient(145deg,
-      color-mix(in srgb,var(--text-light) 94%, var(--surface) 6%) 0%,
-      color-mix(in srgb,var(--text-light) 82%, var(--surface) 18%) 100%);
+      color-mix(in srgb,var(--surface) 35%, var(--text-light) 65%) 0%,
+      color-mix(in srgb,var(--surface) 50%, var(--text-light) 50%) 100%);
     --logo-tile-bg-company: var(--logo-tile-bg);
     --logo-tile-bg-cert: var(--logo-tile-bg);
     --logo-tile-bg-education: var(--logo-tile-bg);
