@@ -61,6 +61,11 @@
     /* Controls the visual height of project card media (img/gif/video). */
     /* Use a wider ratio but tall enough to avoid crowding. */
     --project-card-aspect: 1 / 1; /* square project cards */
+
+    /* logo tiles */
+    --logo-tile-bg-base: color-mix(in srgb,var(--surface) 38%, var(--text-light) 62%);
+    --logo-tile-bg-company: color-mix(in srgb,var(--logo-tile-bg-base) 88%, var(--primary) 12%);
+    --logo-tile-bg-cert: var(--logo-tile-bg-base);
+    --logo-tile-bg-education: color-mix(in srgb,var(--logo-tile-bg-base) 88%, var(--warning) 12%);
   }
 }
-

@@ -39,7 +39,7 @@
 	    min-width:86px;
 	    padding:0 18px;
 	    border-radius:18px;
-	    background:color-mix(in srgb,var(--surface) 45%, var(--text-light) 55%);
+	    background:var(--logo-tile-bg-company);
 	    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
 	    display:inline-flex;
 	    align-items:center;

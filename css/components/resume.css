@@ -254,7 +254,7 @@
 	    padding:6px;
 	    border-radius:12px;
 	    object-fit:contain;
-	    background:color-mix(in srgb,var(--surface) 45%, var(--text-light) 55%);
+	    background:var(--logo-tile-bg-cert);
 	    border:1px solid color-mix(in srgb,var(--primary) 10%, transparent);
 	  }
   .resume-cert-title{
@@ -298,7 +298,7 @@
 		    min-width:56px;
 		    padding:0 12px;
 		    border-radius:16px;
-		    background:color-mix(in srgb,var(--surface) 45%, var(--text-light) 55%);
+		    background:var(--logo-tile-bg-company);
 		    border:1px solid color-mix(in srgb,var(--primary) 12%, transparent);
 		    display:inline-flex;
 		    align-items:center;
@@ -364,7 +364,7 @@
 	    padding:6px;
 	    border-radius:12px;
 	    object-fit:contain;
-	    background:color-mix(in srgb,var(--surface) 45%, var(--text-light) 55%);
+	    background:var(--logo-tile-bg-education);
 	    border:1px solid color-mix(in srgb,var(--primary) 10%, transparent);
 	    flex-shrink:0;
 	  }
