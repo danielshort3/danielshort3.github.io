@@ -131,10 +131,12 @@ try {
     });
     assert(fs.existsSync('robots.txt'), 'robots.txt missing');
     assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
+    assert(fs.existsSync('sitemap.xsl'), 'sitemap.xsl missing');
     const robots = fs.readFileSync('robots.txt','utf8');
     assert(/User-agent:\s*\*/.test(robots), 'robots.txt missing user-agent');
     assert(/Sitemap:\s*https?:\/\//.test(robots), 'robots.txt missing sitemap URL');
     const sitemap = fs.readFileSync('sitemap.xml','utf8');
+    assert(/xml-stylesheet\s+type="text\/xsl"\s+href="\/sitemap\.xsl"/.test(sitemap), 'sitemap.xml missing xml-stylesheet reference');
     assert(/<urlset/.test(sitemap) && /<loc>https:\/\/.+<\/loc>/.test(sitemap), 'sitemap.xml structure invalid');
   });
 
