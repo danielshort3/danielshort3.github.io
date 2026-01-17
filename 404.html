@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <base href="/">
   <title>Daniel Short - Page Not Found</title>
   <link rel="canonical" href="https://danielshort.me/404.html">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="The page you requested could not be found.">
   <meta property="og:title" content="Daniel Short - Page Not Found">
   <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
   <meta property="og:description" content="The page you requested could not be found.">
@@ -32,13 +35,26 @@
     <div class="wrapper">
       <h1>404 – Page Not Found</h1>
       <p>Sorry, the page you were looking for doesn&rsquo;t exist.</p>
-      <p><a href="index.html">Return to home page</a></p>
+      <div class="cta-group">
+        <a class="btn-primary" href="/">Home</a>
+        <a class="btn-secondary" href="portfolio">Portfolio</a>
+        <a class="btn-secondary" href="tools">Tools</a>
+        <a class="btn-secondary" href="resume">Resume</a>
+        <a class="btn-secondary" href="contact">Contact</a>
+      </div>
+      <form class="portfolio-search" action="portfolio" method="get" role="search">
+        <label class="portfolio-search-label" for="missing-page-search">Search projects</label>
+        <div class="portfolio-search-row">
+          <input id="missing-page-search" class="portfolio-search-input" type="search" name="q" autocomplete="off" spellcheck="false" placeholder="Try: SQL, Tableau, embeddings, ETL…">
+          <button class="btn-secondary portfolio-search-clear" type="submit">Search</button>
+        </div>
+      </form>
     </div>
   </main>
   <footer>
     <nav class="privacy-links" aria-label="Privacy shortcuts">
       <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
-      <a href="privacy.html#prefs-title" class="pcz-link" data-consent-open="true">
+      <a href="privacy#prefs-title" class="pcz-link" data-consent-open="true">
         Do Not Sell/Share My Personal Information
       </a>
     </nav>

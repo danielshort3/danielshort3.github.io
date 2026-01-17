@@ -31,7 +31,7 @@
 
   const STYLE_ID = 'pcz-consent-styles';
   const CSS_VERSION = 'v2';
-  const PREFERENCES_URL = 'privacy.html#prefs-title';
+  const PREFERENCES_URL = 'privacy#prefs-title';
 
   function loadStyles() {
     if (document.getElementById(STYLE_ID) || document.querySelector('link[href$="privacy.css"]')) return;
@@ -426,7 +426,7 @@
         '<div class="pcz-copy">' +
           '<p class="pcz-kicker">Privacy</p>' +
           '<h3 class="pcz-title">' + localeStrings.bannerTitle + '</h3>' +
-          '<p class="pcz-body">' + localeStrings.bannerDesc + ' <a class="pcz-link" href="privacy.html">' + localeStrings.privacyPolicy + '</a></p>' +
+          '<p class="pcz-body">' + localeStrings.bannerDesc + ' <a class="pcz-link" href="privacy">' + localeStrings.privacyPolicy + '</a></p>' +
         '</div>' +
         '<div class="pcz-actions">' +
           '<button id="pcz-accept" class="pcz-btn pcz-primary">' + localeStrings.acceptAll + '</button>' +

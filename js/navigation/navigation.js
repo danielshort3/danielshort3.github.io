@@ -195,14 +195,14 @@
             </video>
           </span>`
         : `<span class="nav-project-thumb" style="background-image:url('${thumb}');" aria-hidden="true"></span>`;
-      return `<a href="portfolio.html?project=${project.id}" class="nav-project-card" data-project-id="${project.id}" role="listitem">
-                <span class="nav-project-rank">#${index}</span>
-                ${media}
-                <span class="nav-project-meta">
-                  <span class="nav-dropdown-title">${project.title}</span>
-                  <span class="nav-dropdown-subtitle">${project.subtitle}</span>
-                </span>
-              </a>`;
+      return `<a href="portfolio?project=${project.id}" class="nav-project-card" data-project-id="${project.id}" role="listitem">
+	                <span class="nav-project-rank">#${index}</span>
+	                ${media}
+	                <span class="nav-project-meta">
+	                  <span class="nav-dropdown-title">${project.title}</span>
+	                  <span class="nav-dropdown-subtitle">${project.subtitle}</span>
+	                </span>
+	              </a>`;
     };
     const renderHighlightCard = (item) => `
       <a href="${item.href}" class="nav-highlight-card" role="listitem"${item.external ? ' target="_blank" rel="noopener noreferrer"' : ''}>
@@ -226,10 +226,10 @@
             ${portfolioHighlights.map((p, i) => renderProjectCard(p, i + 1)).join('')}
           </div>
           <div class="nav-dropdown-footer nav-dropdown-footer-inline">
-            <a href="portfolio.html?view=all#filters" class="nav-dropdown-link nav-dropdown-all" role="button">
-              <span class="nav-dropdown-title">View all projects</span>
-              <span class="nav-dropdown-subtitle">Browse the complete portfolio</span>
-            </a>
+	            <a href="portfolio?view=all#filters" class="nav-dropdown-link nav-dropdown-all" role="button">
+	              <span class="nav-dropdown-title">View all projects</span>
+	              <span class="nav-dropdown-subtitle">Browse the complete portfolio</span>
+	            </a>
             <a href="tools" class="nav-dropdown-link nav-dropdown-all" role="button">
               <span class="nav-dropdown-title">Tools</span>
               <span class="nav-dropdown-subtitle">Browse all tools</span>
@@ -263,10 +263,10 @@
           <div class="nav-dropdown-header" aria-hidden="true">Browse categories</div>
           <div class="nav-dropdown-list" role="list">
             ${contributionSections.map(
-              c => `<a href="contributions.html#${c.id}" class="nav-dropdown-link" role="listitem">
-                    <span class="nav-dropdown-title">${c.title}</span>
-                    <span class="nav-dropdown-subtitle">${c.subtitle}</span>
-                  </a>`
+	              c => `<a href="contributions#${c.id}" class="nav-dropdown-link" role="listitem">
+	                    <span class="nav-dropdown-title">${c.title}</span>
+	                    <span class="nav-dropdown-subtitle">${c.subtitle}</span>
+	                  </a>`
             ).join('')}
           </div>
         </div>
@@ -282,11 +282,11 @@
     const resumeMenu = `
       <div class="nav-dropdown-header" aria-hidden="true">Resume shortcuts</div>
       <div class="nav-dropdown-list" role="list">
-        <a href="resume.html" class="nav-dropdown-link" role="listitem">
+        <a href="resume" class="nav-dropdown-link" role="listitem">
           <span class="nav-dropdown-title">View Digital Resume</span>
           <span class="nav-dropdown-subtitle">Open the digital resume page</span>
         </a>
-        <a href="resume-pdf.html" class="nav-dropdown-link" role="listitem">
+        <a href="resume-pdf" class="nav-dropdown-link" role="listitem">
           <span class="nav-dropdown-title">Preview PDF</span>
           <span class="nav-dropdown-subtitle">Open the PDF resume page</span>
         </a>
@@ -297,7 +297,7 @@
       </div>
     `;
     const contactOptions = [
-      { title: 'Message through website', subtitle: 'Send a message via website', href: 'contact.html#contact-modal', recommended: true, modalLink: true },
+      { title: 'Message through website', subtitle: 'Send a message via website', href: 'contact#contact-modal', recommended: true, modalLink: true },
       { title: 'Email', subtitle: 'daniel@danielshort.me', href: 'mailto:daniel@danielshort.me' },
       { title: 'LinkedIn', subtitle: 'linkedin.com/in/danielshort3', href: 'https://www.linkedin.com/in/danielshort3/', external: true },
       { title: 'GitHub', subtitle: 'github.com/danielshort3', href: 'https://github.com/danielshort3', external: true }
@@ -334,10 +334,10 @@
 	    host.innerHTML=`
 	      <nav class="nav ${animate?'animate-entry':''}" aria-label="Primary">
         <div class="wrapper nav-wrapper">
-          <a href="index.html" class="brand" aria-label="Home">
-            <img src="img/ui/logo-64.png" srcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" sizes="64px" alt="DS logo" class="brand-logo" decoding="async" loading="eager" width="64" height="64">
-            <span class="brand-name">
-              <span class="brand-title">Daniel Short</span>
+	          <a href="/" class="brand" aria-label="Home">
+	            <img src="img/ui/logo-64.png" srcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" sizes="64px" alt="DS logo" class="brand-logo" decoding="async" loading="eager" width="64" height="64">
+	            <span class="brand-name">
+	              <span class="brand-title">Daniel Short</span>
               <span class="brand-divider" aria-hidden="true"></span>
               <span class="brand-tagline">
                 <span class="brand-tagline-chunk">Data Science</span>
@@ -349,30 +349,30 @@
             <span class="bar"></span><span class="bar"></span><span class="bar"></span>
           </button>
 	          <div id="primary-menu" class="nav-row" data-collapsible role="navigation">
-	            <a href="index.html" class="nav-link">Home</a>
-	            <div class="nav-item nav-item-portfolio">
-	              <a href="portfolio.html" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="${dropdownIds.portfolio}">
-	                Portfolio
-	                <span class="nav-link-caret" aria-hidden="true"></span>
-	              </a>
+		            <a href="/" class="nav-link">Home</a>
+		            <div class="nav-item nav-item-portfolio">
+		              <a href="portfolio" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="${dropdownIds.portfolio}">
+		                Portfolio
+		                <span class="nav-link-caret" aria-hidden="true"></span>
+		              </a>
 	              <div class="nav-dropdown" id="${dropdownIds.portfolio}" aria-label="Highlighted projects">
 	                ${portfolioMenu}
 	              </div>
-	            </div>
-	            <div class="nav-item nav-item-resume">
-	              <a href="resume.html" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="${dropdownIds.resume}">
-	                Resume
-	                <span class="nav-link-caret" aria-hidden="true"></span>
-	              </a>
+		            </div>
+		            <div class="nav-item nav-item-resume">
+		              <a href="resume" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="${dropdownIds.resume}">
+		                Resume
+		                <span class="nav-link-caret" aria-hidden="true"></span>
+		              </a>
               <div class="nav-dropdown" id="${dropdownIds.resume}" aria-label="Resume download">
                 ${resumeMenu}
               </div>
-            </div>
-            <div class="nav-item nav-item-contact">
-              <a href="contact.html" class="nav-link nav-link-cta nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="${dropdownIds.contact}">
-                Contact
-                <span class="nav-link-caret" aria-hidden="true"></span>
-              </a>
+	            </div>
+	            <div class="nav-item nav-item-contact">
+	              <a href="contact" class="nav-link nav-link-cta nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="${dropdownIds.contact}">
+	                Contact
+	                <span class="nav-link-caret" aria-hidden="true"></span>
+	              </a>
               <div class="nav-dropdown nav-dropdown-contact" id="${dropdownIds.contact}" aria-label="Contact options">
                 ${contactMenu}
               </div>
@@ -576,7 +576,7 @@
     const year = new Date().getFullYear();
     f.innerHTML=`
       <div class="social">
-        <a class="btn-icon btn-icon-featured" href="contact.html#contact-modal" data-contact-modal-link="true" aria-label="Send a message">
+        <a class="btn-icon btn-icon-featured" href="contact#contact-modal" data-contact-modal-link="true" aria-label="Send a message">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
             <path d="M7 9h10"></path>
@@ -600,7 +600,7 @@
           <span class="icon icon-github" aria-hidden="true"></span>
         </a>
       </div>
-      <p>© ${year} Daniel Short. All rights reserved. <a href="privacy.html">Privacy Policy</a></p>`;
+      <p>© ${year} Daniel Short. All rights reserved. <a href="privacy">Privacy Policy</a></p>`;
   
     // dev-only reset button removed per request
   }

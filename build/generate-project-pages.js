@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
   Generate SEO-friendly, shareable project pages under /portfolio/<id>.
-  - Keeps existing /portfolio.html?project=<id> deep links working.
+  - Keeps existing /portfolio?project=<id> deep links working.
   - Outputs static HTML pages in ./pages/portfolio/<id>.html
   - Updates ./sitemap.xml to include project URLs.
   No external deps.
@@ -15,6 +15,23 @@ const dataFile = path.join(root, 'js', 'portfolio', 'projects-data.js');
 const outDir = path.join(root, 'pages', 'portfolio');
 const sitemapPath = path.join(root, 'sitemap.xml');
 const SITE_ORIGIN = 'https://danielshort.me';
+const toolsIndexPath = path.join(root, 'pages', 'tools.html');
+
+function loadToolUrls() {
+  const urls = new Set();
+  try {
+    if (!fs.existsSync(toolsIndexPath)) return [];
+    const html = fs.readFileSync(toolsIndexPath, 'utf8');
+    const re = /href="tools\/([^"#?]+)"/g;
+    let match;
+    while ((match = re.exec(html))) {
+      const slug = String(match[1] || '').trim();
+      if (!slug) continue;
+      urls.add(`${SITE_ORIGIN}/tools/${slug}`);
+    }
+  } catch (_) {}
+  return [...urls].sort();
+}
 
 function isPublishedProject(project) {
   return project && project.published !== false;
@@ -349,8 +366,8 @@ ${tableauPreconnect}
         <h1>${escapeHtml(title)}</h1>
         ${subtitle ? `<p class="project-subtitle">${escapeHtml(subtitle)}</p>` : ''}
         <div class="cta-group project-cta">
-          <a class="btn-primary hero-cta" href="portfolio.html?project=${escapeHtml(encodeURIComponent(id))}">Open interactive view</a>
-          <a class="btn-secondary hero-cta" href="portfolio.html">View all projects</a>
+          <a class="btn-primary hero-cta" href="portfolio?project=${escapeHtml(encodeURIComponent(id))}">Open interactive view</a>
+          <a class="btn-secondary hero-cta" href="portfolio">View all projects</a>
         </div>
         ${safeTagPills}
       </div>
@@ -370,12 +387,12 @@ ${tableauPreconnect}
     </section>
   </main>
 
-  <footer>
-    <nav class="privacy-links" aria-label="Privacy shortcuts">
-      <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
-      <a href="privacy.html#prefs-title" class="pcz-link" data-consent-open="true">Do Not Sell/Share My Personal Information</a>
-    </nav>
-  </footer>
+	  <footer>
+	    <nav class="privacy-links" aria-label="Privacy shortcuts">
+	      <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
+	      <a href="privacy#prefs-title" class="pcz-link" data-consent-open="true">Do Not Sell/Share My Personal Information</a>
+	    </nav>
+	  </footer>
 
   <script defer src="js/common/common.js"></script>
   <script defer src="js/navigation/navigation.js"></script>
@@ -414,11 +431,14 @@ function writeProjectPages(projects) {
 function writeSitemap(projects) {
   const baseUrls = [
     `${SITE_ORIGIN}/`,
-    `${SITE_ORIGIN}/portfolio.html`,
-    `${SITE_ORIGIN}/contributions.html`,
-    `${SITE_ORIGIN}/contact.html`,
-    `${SITE_ORIGIN}/resume.html`,
-    `${SITE_ORIGIN}/privacy.html`
+    `${SITE_ORIGIN}/portfolio`,
+    `${SITE_ORIGIN}/contributions`,
+    `${SITE_ORIGIN}/contact`,
+    `${SITE_ORIGIN}/resume`,
+    `${SITE_ORIGIN}/resume-pdf`,
+    `${SITE_ORIGIN}/privacy`,
+    `${SITE_ORIGIN}/tools`,
+    `${SITE_ORIGIN}/tools/dashboard`
   ];
 
   const projectUrls = projects
@@ -426,7 +446,8 @@ function writeSitemap(projects) {
     .filter(Boolean)
     .map((id) => `${SITE_ORIGIN}/portfolio/${encodeURIComponent(id)}`);
 
-  const all = [...baseUrls, ...projectUrls];
+  const toolUrls = loadToolUrls();
+  const all = [...baseUrls, ...toolUrls, ...projectUrls];
   const xml = [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
