@@ -9,6 +9,7 @@
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
+const childProcess = require('child_process');
 
 const root = path.resolve(__dirname, '..');
 const dataFile = path.join(root, 'js', 'portfolio', 'projects-data.js');
@@ -31,6 +32,70 @@ function loadToolUrls() {
     }
   } catch (_) {}
   return [...urls].sort();
+}
+
+function formatLastmod(dateLike) {
+  if (!dateLike) return null;
+  if (typeof dateLike === 'string') {
+    const s = dateLike.trim();
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+    const asDate = new Date(s);
+    if (!Number.isNaN(asDate.getTime())) return asDate.toISOString().slice(0, 10);
+    return null;
+  }
+  if (dateLike instanceof Date && !Number.isNaN(dateLike.getTime())) {
+    return dateLike.toISOString().slice(0, 10);
+  }
+  return null;
+}
+
+function getGitLastmod(relPath) {
+  if (!relPath) return null;
+  try {
+    const iso = childProcess.execFileSync(
+      'git',
+      ['log', '-1', '--format=%cI', '--', relPath],
+      { cwd: root, stdio: ['ignore', 'pipe', 'ignore'] }
+    ).toString().trim();
+    return formatLastmod(iso);
+  } catch (_) {
+    return null;
+  }
+}
+
+function getFsLastmod(relPath) {
+  if (!relPath) return null;
+  try {
+    const abs = path.isAbsolute(relPath) ? relPath : path.join(root, relPath);
+    const stat = fs.statSync(abs);
+    return formatLastmod(stat.mtime);
+  } catch (_) {
+    return null;
+  }
+}
+
+function resolveLastmod(relPath) {
+  return getGitLastmod(relPath) || getFsLastmod(relPath) || formatLastmod(new Date());
+}
+
+function toSitemapUrlEntry(options) {
+  const loc = String(options?.loc || '').trim();
+  if (!loc) return '';
+  const lastmod = resolveLastmod(options?.sourceFile);
+  const changefreq = String(options?.changefreq || '').trim();
+  const priority = Number(options?.priority);
+
+  const lines = [
+    '  <url>',
+    `    <loc>${loc}</loc>`
+  ];
+  if (lastmod) lines.push(`    <lastmod>${lastmod}</lastmod>`);
+  if (changefreq) lines.push(`    <changefreq>${changefreq}</changefreq>`);
+  if (Number.isFinite(priority) && priority >= 0 && priority <= 1) {
+    lines.push(`    <priority>${priority.toFixed(1)}</priority>`);
+  }
+  lines.push('  </url>');
+  return lines.join('\n');
 }
 
 function isPublishedProject(project) {
@@ -429,29 +494,42 @@ function writeProjectPages(projects) {
 }
 
 function writeSitemap(projects) {
-  const baseUrls = [
-    `${SITE_ORIGIN}/`,
-    `${SITE_ORIGIN}/portfolio`,
-    `${SITE_ORIGIN}/contributions`,
-    `${SITE_ORIGIN}/contact`,
-    `${SITE_ORIGIN}/resume`,
-    `${SITE_ORIGIN}/resume-pdf`,
-    `${SITE_ORIGIN}/privacy`,
-    `${SITE_ORIGIN}/tools`,
-    `${SITE_ORIGIN}/tools/dashboard`
+  const baseEntries = [
+    { loc: `${SITE_ORIGIN}/`, sourceFile: 'index.html', changefreq: 'weekly', priority: 1.0 },
+    { loc: `${SITE_ORIGIN}/portfolio`, sourceFile: 'pages/portfolio.html', changefreq: 'weekly', priority: 0.9 },
+    { loc: `${SITE_ORIGIN}/resume`, sourceFile: 'pages/resume.html', changefreq: 'monthly', priority: 0.9 },
+    { loc: `${SITE_ORIGIN}/contact`, sourceFile: 'pages/contact.html', changefreq: 'yearly', priority: 0.7 },
+    { loc: `${SITE_ORIGIN}/tools`, sourceFile: 'pages/tools.html', changefreq: 'weekly', priority: 0.7 },
+    { loc: `${SITE_ORIGIN}/contributions`, sourceFile: 'pages/contributions.html', changefreq: 'monthly', priority: 0.6 },
+    { loc: `${SITE_ORIGIN}/resume-pdf`, sourceFile: 'pages/resume-pdf.html', changefreq: 'yearly', priority: 0.5 },
+    { loc: `${SITE_ORIGIN}/privacy`, sourceFile: 'pages/privacy.html', changefreq: 'yearly', priority: 0.2 },
+    { loc: `${SITE_ORIGIN}/tools/dashboard`, sourceFile: 'pages/tools-dashboard.html', changefreq: 'monthly', priority: 0.3 }
   ];
 
-  const projectUrls = projects
+  const toolEntries = loadToolUrls().map((loc) => {
+    const slug = String(loc).replace(`${SITE_ORIGIN}/tools/`, '').replace(/^\/+/, '');
+    return { loc, sourceFile: `pages/${slug}.html`, changefreq: 'monthly', priority: 0.6 };
+  });
+
+  const projectEntries = projects
     .map((p) => String(p.id || '').trim())
     .filter(Boolean)
-    .map((id) => `${SITE_ORIGIN}/portfolio/${encodeURIComponent(id)}`);
+    .map((id) => ({
+      loc: `${SITE_ORIGIN}/portfolio/${encodeURIComponent(id)}`,
+      sourceFile: `pages/portfolio/${id}.html`,
+      changefreq: 'monthly',
+      priority: 0.6
+    }));
 
-  const toolUrls = loadToolUrls();
-  const all = [...baseUrls, ...toolUrls, ...projectUrls];
   const xml = [
     '<?xml version="1.0" encoding="UTF-8"?>',
+    '<?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-    ...all.map((loc) => `  <url><loc>${loc}</loc></url>`),
+    ...baseEntries.map(toSitemapUrlEntry).filter(Boolean),
+    '',
+    ...toolEntries.map(toSitemapUrlEntry).filter(Boolean),
+    '',
+    ...projectEntries.map(toSitemapUrlEntry).filter(Boolean),
     '</urlset>',
     ''
   ].join('\n');
