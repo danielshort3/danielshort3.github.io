@@ -291,6 +291,11 @@
 	    gap:12px;
 	    align-items:flex-start;
 	    min-width:0;
+	    text-decoration:none;
+	    color:inherit;
+	  }
+	  a.resume-role-brand:hover .resume-role-logo-shell{
+	    border-color:color-mix(in srgb,var(--primary) 32%, transparent);
 	  }
 	  .resume-role-brand > div{
 	    min-width:0;
@@ -344,16 +349,23 @@
     display:grid;
     gap:12px;
   }
-  .resume-education-item{
-    display:flex;
-    flex-wrap:wrap;
-    justify-content:space-between;
-    gap:10px 16px;
-    padding:14px 16px;
-    border-radius:12px;
-    border:1px solid color-mix(in srgb,var(--text-light) 10%, transparent);
-    background:transparent;
-  }
+	  .resume-education-item{
+	    display:flex;
+	    flex-wrap:wrap;
+	    justify-content:space-between;
+	    gap:10px 16px;
+	    padding:14px 16px;
+	    border-radius:12px;
+	    border:1px solid color-mix(in srgb,var(--text-light) 10%, transparent);
+	    background:transparent;
+	    text-decoration:none;
+	    color:inherit;
+	    transition:transform .15s ease, border-color .15s ease;
+	  }
+	  a.resume-education-item:hover{
+	    transform:translateY(-1px);
+	    border-color:color-mix(in srgb,var(--primary) 32%, transparent);
+	  }
   .resume-education-row{
     display:flex;
     gap:10px;
@@ -376,11 +388,15 @@
     color:var(--text-light);
     font-size:1rem;
   }
-  .resume-education-meta{
-    margin:4px 0 0;
-    color:var(--text-muted);
-    font-size:.95rem;
-  }
+	  .resume-education-meta{
+	    margin:4px 0 0;
+	    color:var(--text-muted);
+	    font-size:.95rem;
+	  }
+	  .resume-education-item > .resume-education-meta{
+	    margin-left:auto;
+	    text-align:right;
+	  }
 
   .resume-projects-grid{
     list-style:none;
