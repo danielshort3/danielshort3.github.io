@@ -278,22 +278,22 @@
     border-top:1px solid color-mix(in srgb,var(--text-light) 10%, transparent);
   }
   .resume-role-header{
-    display:flex;
-    flex-wrap:wrap;
-    justify-content:space-between;
-    gap:10px 16px;
-    align-items:flex-start;
+    display:grid;
+    grid-template-columns:minmax(0, 1fr) auto;
+    column-gap:16px;
+    row-gap:10px;
+    align-items:center;
   }
   .resume-role-brand{
     display:grid;
     gap:4px;
-    flex:1 1 340px;
-    min-width:min(420px, 100%);
+    min-width:0;
   }
   .resume-role-logo-shell{
-    height:48px;
-    min-width:48px;
-    padding:0 12px;
+    justify-self:end;
+    height:62px;
+    min-width:62px;
+    padding:0 14px;
     border-radius:14px;
     background:color-mix(in srgb,var(--surface) 85%, #0d1622 15%);
     border:1px solid color-mix(in srgb,var(--primary) 12%, transparent);
@@ -305,8 +305,8 @@
   .resume-role-logo-shell img{
     width:auto;
     height:auto;
-    max-height:30px;
-    max-width:160px;
+    max-height:44px;
+    max-width:220px;
     display:block;
   }
   .resume-role-title{
@@ -462,14 +462,14 @@
   }
   @media (max-width: 720px){
     .resume-role-header{
-      flex-direction:column;
-      align-items:flex-start;
+      grid-template-columns:1fr;
+      align-items:start;
     }
     .resume-role-dates{
       text-align:left;
     }
     .resume-role-logo-shell{
-      align-self:center;
+      justify-self:center;
     }
     .resume-education-item{
       flex-direction:column;
