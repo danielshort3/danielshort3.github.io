@@ -79,28 +79,30 @@
     align-items:center;
   }
 
-  .resume-contact-grid{
-    margin-top:16px;
-    display:grid;
-    grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
-    gap:10px;
-  }
-  .resume-contact-item{
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-    padding:8px 12px;
-    border-radius:14px;
-    border:1px solid color-mix(in srgb,var(--text-light) 10%, transparent);
-    background:transparent;
-    color:color-mix(in srgb,var(--text-light) 88%, #ffffff 12%);
+	  .resume-contact-grid{
+	    margin-top:16px;
+	    display:grid;
+	    grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+	    gap:12px;
+	  }
+	  .resume-contact-item{
+	    display:inline-flex;
+	    align-items:center;
+	    gap:8px;
+	    box-sizing:border-box;
+	    padding:8px 12px;
+	    border-radius:14px;
+	    border:1px solid color-mix(in srgb,var(--text-light) 10%, transparent);
+	    background:transparent;
+	    color:color-mix(in srgb,var(--text-light) 88%, #ffffff 12%);
     font-size:.92rem;
     letter-spacing:.01em;
     line-height:1.3;
-    width:100%;
-    justify-content:flex-start;
-    overflow-wrap:anywhere;
-  }
+	    width:100%;
+	    justify-content:flex-start;
+	    min-width:0;
+	    overflow-wrap:anywhere;
+	  }
   a.resume-contact-item{
     text-decoration:none;
     transition:transform .15s ease, border-color .15s ease, background-color .15s ease;
