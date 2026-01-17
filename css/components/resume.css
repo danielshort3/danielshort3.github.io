@@ -278,16 +278,24 @@
     border-top:1px solid color-mix(in srgb,var(--text-light) 10%, transparent);
   }
   .resume-role-header{
-    display:flex;
-    flex-wrap:wrap;
-    justify-content:space-between;
-    gap:8px 16px;
+    display:grid;
+    grid-template-columns:1fr auto;
+    grid-template-areas:
+      "logo logo"
+      "brand dates";
+    row-gap:10px;
+    column-gap:16px;
     align-items:baseline;
   }
-  .resume-role-brand{
+  .resume-role-logo{
+    grid-area:logo;
     display:flex;
-    gap:12px;
-    align-items:center;
+    justify-content:center;
+  }
+  .resume-role-brand{
+    grid-area:brand;
+    display:grid;
+    gap:4px;
   }
   .resume-company-logo{
     box-sizing:border-box;
@@ -314,9 +322,12 @@
     font-size:1rem;
   }
   .resume-role-dates{
+    grid-area:dates;
+    justify-self:end;
     margin:0;
     font-size:.95rem;
     color:var(--text-muted);
+    text-align:right;
   }
   .resume-role-list{
     margin:12px 0 0 18px;
@@ -455,8 +466,16 @@
   }
   @media (max-width: 720px){
     .resume-role-header{
-      flex-direction:column;
-      align-items:flex-start;
+      grid-template-columns:1fr;
+      grid-template-areas:
+        "logo"
+        "brand"
+        "dates";
+      align-items:start;
+    }
+    .resume-role-dates{
+      justify-self:start;
+      text-align:left;
     }
     .resume-education-item{
       flex-direction:column;
