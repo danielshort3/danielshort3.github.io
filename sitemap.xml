@@ -1,11 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://danielshort.me/</loc></url>
-  <url><loc>https://danielshort.me/portfolio.html</loc></url>
-  <url><loc>https://danielshort.me/contributions.html</loc></url>
-  <url><loc>https://danielshort.me/contact.html</loc></url>
-  <url><loc>https://danielshort.me/resume.html</loc></url>
-  <url><loc>https://danielshort.me/privacy.html</loc></url>
+  <url><loc>https://danielshort.me/portfolio</loc></url>
+  <url><loc>https://danielshort.me/contributions</loc></url>
+  <url><loc>https://danielshort.me/contact</loc></url>
+  <url><loc>https://danielshort.me/resume</loc></url>
+  <url><loc>https://danielshort.me/resume-pdf</loc></url>
+  <url><loc>https://danielshort.me/privacy</loc></url>
+  <url><loc>https://danielshort.me/tools</loc></url>
+  <url><loc>https://danielshort.me/tools/dashboard</loc></url>
+  <url><loc>https://danielshort.me/tools/background-remover</loc></url>
+  <url><loc>https://danielshort.me/tools/image-optimizer</loc></url>
+  <url><loc>https://danielshort.me/tools/job-application-tracker</loc></url>
+  <url><loc>https://danielshort.me/tools/nbsp-cleaner</loc></url>
+  <url><loc>https://danielshort.me/tools/oxford-comma-checker</loc></url>
+  <url><loc>https://danielshort.me/tools/point-of-view-checker</loc></url>
+  <url><loc>https://danielshort.me/tools/qr-code-generator</loc></url>
+  <url><loc>https://danielshort.me/tools/screen-recorder</loc></url>
+  <url><loc>https://danielshort.me/tools/short-links</loc></url>
+  <url><loc>https://danielshort.me/tools/text-compare</loc></url>
+  <url><loc>https://danielshort.me/tools/utm-batch-builder</loc></url>
+  <url><loc>https://danielshort.me/tools/whisper-transcribe-monitor</loc></url>
+  <url><loc>https://danielshort.me/tools/word-frequency</loc></url>
   <url><loc>https://danielshort.me/portfolio/smartSentence</loc></url>
   <url><loc>https://danielshort.me/portfolio/chatbotLora</loc></url>
   <url><loc>https://danielshort.me/portfolio/shapeClassifier</loc></url>

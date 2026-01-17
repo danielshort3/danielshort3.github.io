@@ -97,11 +97,34 @@ try {
       checkFileContains(f, 'class="skip-link"');
       checkFileContains(f, '<main id="main">');
     });
-    ['pages/tools.html','pages/tools-dashboard.html','pages/games.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/screen-recorder.html','pages/job-application-tracker.html','pages/short-links.html','pages/utm-batch-builder.html','pages/whisper-transcribe-monitor.html'].forEach(f => {
+    const toolPages = [
+      'pages/tools.html',
+      'pages/tools-dashboard.html',
+      'pages/word-frequency.html',
+      'pages/text-compare.html',
+      'pages/point-of-view-checker.html',
+      'pages/oxford-comma-checker.html',
+      'pages/background-remover.html',
+      'pages/nbsp-cleaner.html',
+      'pages/qr-code-generator.html',
+      'pages/image-optimizer.html',
+      'pages/screen-recorder.html',
+      'pages/job-application-tracker.html',
+      'pages/short-links.html',
+      'pages/utm-batch-builder.html',
+      'pages/whisper-transcribe-monitor.html'
+    ];
+    ['pages/games.html','pages/ocean-wave-simulation.html', ...toolPages].forEach(f => {
       checkFileContains(f, 'js/common/common.js');
       checkFileContains(f, 'class="skip-link"');
       checkFileContains(f, '<main id="main">');
+    });
+    ['pages/games.html','pages/ocean-wave-simulation.html','404.html','dshort.html'].forEach(f => {
       checkFileContains(f, 'noindex, nofollow');
+    });
+    toolPages.forEach(f => {
+      const content = fs.readFileSync(f, 'utf8');
+      assert(!content.includes('noindex, nofollow'), `${f} should be indexable`);
     });
     ['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/tools.html','pages/games.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/utm-batch-builder.html','404.html'].forEach(f => {
       checkFileContains(f, 'og:image');
@@ -237,7 +260,7 @@ try {
       checkFileContains(file, '<base href="/">');
       checkFileContains(file, 'data-page="project"');
       checkFileContains(file, '<meta property="og:type" content="article">');
-      checkFileContains(file, `href="portfolio.html?project=${encodeURIComponent(id)}`);
+      checkFileContains(file, `href="portfolio?project=${encodeURIComponent(id)}`);
       checkFileContains(file, `<link rel="canonical" href="https://danielshort.me/portfolio/${id}">`);
       checkFileContains(file, `<meta property="og:url" content="https://danielshort.me/portfolio/${id}">`);
       assert(sitemap.includes(`https://danielshort.me/portfolio/${id}`), `sitemap.xml missing project url: ${id}`);
@@ -548,9 +571,10 @@ try {
 
   section('404 rewrites and portfolio page sections', () => {
     checkFileContains('404.html', 'js/common/404-redirect.js');
-    checkFileContains('js/common/404-redirect.js', 'portfolio.html?project=');
+    checkFileContains('js/common/404-redirect.js', 'portfolio?project=');
     checkFileContains('pages/portfolio.html', 'id="portfolio-carousel"');
     checkFileContains('pages/portfolio.html', 'id="filter-menu"');
+    checkFileContains('pages/portfolio.html', 'id="portfolio-search"');
     checkFileContains('pages/portfolio.html', 'id="projects"');
     checkFileContains('pages/portfolio.html', 'id="modals"');
     checkFileContains('pages/portfolio.html', 'id="see-more"');

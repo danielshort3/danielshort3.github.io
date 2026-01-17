@@ -157,6 +157,21 @@
     <div class="wrapper portfolio-filters-head">
       <h2 class="section-title" id="all-projects-title">All Projects</h2>
       <nav id="filter-menu" class="filter-menu" aria-label="Project filters">
+        <section class="filter-panel portfolio-search-panel" role="search" aria-labelledby="filter-search-title">
+          <header class="filter-panel-head">
+            <p class="filter-panel-eyebrow">Search</p>
+            <h3 id="filter-search-title">Keyword search</h3>
+            <p class="filter-panel-copy">Filter projects by title, tools, concepts, and write-ups.</p>
+          </header>
+          <form class="portfolio-search" action="portfolio" method="get" role="search">
+            <label class="portfolio-search-label" for="portfolio-search">Search projects</label>
+            <div class="portfolio-search-row">
+              <input id="portfolio-search" class="portfolio-search-input" type="search" name="q" autocomplete="off" spellcheck="false" placeholder="Try: SQL, Tableau, embeddings, ETL…">
+              <button class="btn-secondary portfolio-search-clear" type="button" data-portfolio-search-clear disabled>Clear</button>
+            </div>
+            <p class="portfolio-search-meta" data-portfolio-search-meta aria-live="polite"></p>
+          </form>
+        </section>
         <section class="filter-panel" role="group" aria-labelledby="filter-focus-title">
           <header class="filter-panel-head">
             <p class="filter-panel-eyebrow">Filter by focus</p>
@@ -282,7 +297,7 @@
   <footer>
     <nav class="privacy-links" aria-label="Privacy shortcuts">
       <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
-      <a href="privacy.html#prefs-title" class="pcz-link" data-consent-open="true">
+      <a href="privacy#prefs-title" class="pcz-link" data-consent-open="true">
         Do Not Sell/Share My Personal Information
       </a>
     </nav>
