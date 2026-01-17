@@ -246,17 +246,17 @@
     transform:translateY(-1px);
     border-color:color-mix(in srgb,var(--primary) 32%, transparent);
   }
-  .resume-cert img{
-    grid-row:1 / span 2;
-    box-sizing:border-box;
-    width:40px;
-    height:40px;
-    padding:6px;
-    border-radius:12px;
-    object-fit:contain;
-    background:color-mix(in srgb,var(--surface) 85%, #0d1622 15%);
-    border:1px solid color-mix(in srgb,var(--primary) 10%, transparent);
-  }
+	  .resume-cert img{
+	    grid-row:1 / span 2;
+	    box-sizing:border-box;
+	    width:40px;
+	    height:40px;
+	    padding:6px;
+	    border-radius:12px;
+	    object-fit:contain;
+	    background:color-mix(in srgb,var(--surface) 45%, var(--text-light) 55%);
+	    border:1px solid color-mix(in srgb,var(--primary) 10%, transparent);
+	  }
   .resume-cert-title{
     font-weight:700;
     color:var(--text-light);
@@ -293,22 +293,19 @@
 	  .resume-role-brand > div{
 	    min-width:0;
 	  }
-	  .resume-role-logo-shell{
-	    height:56px;
-	    min-width:56px;
-	    padding:0 12px;
-	    border-radius:16px;
-	    background:radial-gradient(circle at 50% 45%,
-	      color-mix(in srgb,var(--surface) 48%, #ffffff 52%) 0%,
-	      color-mix(in srgb,var(--surface) 68%, #ffffff 32%) 58%,
-	      color-mix(in srgb,var(--surface) 86%, #ffffff 14%) 100%);
-	    border:1px solid color-mix(in srgb,var(--primary) 12%, transparent);
-	    display:inline-flex;
-	    align-items:center;
-	    justify-content:center;
-	    box-sizing:border-box;
-	    flex-shrink:0;
-	  }
+		  .resume-role-logo-shell{
+		    height:56px;
+		    min-width:56px;
+		    padding:0 12px;
+		    border-radius:16px;
+		    background:color-mix(in srgb,var(--surface) 45%, var(--text-light) 55%);
+		    border:1px solid color-mix(in srgb,var(--primary) 12%, transparent);
+		    display:inline-flex;
+		    align-items:center;
+		    justify-content:center;
+		    box-sizing:border-box;
+		    flex-shrink:0;
+		  }
 	  .resume-role-logo-shell img{
 	    width:auto;
 	    height:auto;
@@ -360,17 +357,17 @@
     gap:10px;
     align-items:flex-start;
   }
-  .resume-school-logo{
-    box-sizing:border-box;
-    width:40px;
-    height:40px;
-    padding:6px;
-    border-radius:12px;
-    object-fit:contain;
-    background:color-mix(in srgb,var(--surface) 85%, #0d1622 15%);
-    border:1px solid color-mix(in srgb,var(--primary) 10%, transparent);
-    flex-shrink:0;
-  }
+	  .resume-school-logo{
+	    box-sizing:border-box;
+	    width:40px;
+	    height:40px;
+	    padding:6px;
+	    border-radius:12px;
+	    object-fit:contain;
+	    background:color-mix(in srgb,var(--surface) 45%, var(--text-light) 55%);
+	    border:1px solid color-mix(in srgb,var(--primary) 10%, transparent);
+	    flex-shrink:0;
+	  }
   .resume-education-title{
     margin:0;
     font-weight:600;

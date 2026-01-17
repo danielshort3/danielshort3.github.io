@@ -39,10 +39,7 @@
 	    min-width:86px;
 	    padding:0 18px;
 	    border-radius:18px;
-	    background:radial-gradient(circle at 50% 45%,
-	      color-mix(in srgb,var(--surface) 48%, #ffffff 52%) 0%,
-	      color-mix(in srgb,var(--surface) 68%, #ffffff 32%) 58%,
-	      color-mix(in srgb,var(--surface) 86%, #ffffff 14%) 100%);
+	    background:color-mix(in srgb,var(--surface) 45%, var(--text-light) 55%);
 	    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
 	    display:inline-flex;
 	    align-items:center;
