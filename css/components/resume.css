@@ -82,8 +82,18 @@
 	  .resume-contact-grid{
 	    margin-top:16px;
 	    display:grid;
-	    grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+	    grid-template-columns:repeat(3, minmax(0, 1fr));
 	    gap:12px;
+	  }
+	  @media (max-width: 840px){
+	    .resume-contact-grid{
+	      grid-template-columns:repeat(2, minmax(0, 1fr));
+	    }
+	  }
+	  @media (max-width: 520px){
+	    .resume-contact-grid{
+	      grid-template-columns:1fr;
+	    }
 	  }
 	  .resume-contact-item{
 	    display:inline-flex;
@@ -161,19 +171,20 @@
     line-height:1.4;
   }
 
-  .resume-body{
-    margin-top:22px;
-    display:grid;
-    grid-template-columns:minmax(0, 340px) minmax(0, 1fr);
-    gap:26px;
-    align-items:start;
-  }
+	  .resume-body{
+	    margin-top:22px;
+	    display:grid;
+	    grid-template-columns:minmax(0, 340px) minmax(0, 1fr);
+	    gap:26px;
+	    align-items:stretch;
+	  }
 
-  .resume-side,
-  .resume-main{
-    display:grid;
-    gap:18px;
-  }
+	  .resume-side,
+	  .resume-main{
+	    display:grid;
+	    gap:18px;
+	    align-content:start;
+	  }
   .resume-main{
     padding-left:22px;
     border-left:1px solid color-mix(in srgb,var(--text-light) 10%, transparent);
