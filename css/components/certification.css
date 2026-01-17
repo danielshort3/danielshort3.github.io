@@ -144,7 +144,7 @@
 	    width:52px;
 	    height:52px;
 	    border-radius:14px;
-	    background:color-mix(in srgb,var(--surface) 45%, var(--text-light) 55%);
+	    background:var(--logo-tile-bg-cert);
 	    padding:10px;
 	    object-fit:contain;
 	    box-shadow:0 8px 20px rgba(0,0,0,.3);
