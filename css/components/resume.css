@@ -278,38 +278,41 @@
     border-top:1px solid color-mix(in srgb,var(--text-light) 10%, transparent);
   }
   .resume-role-header{
-    display:grid;
-    grid-template-columns:1fr auto;
-    grid-template-areas:
-      "logo logo"
-      "brand dates";
-    row-gap:10px;
-    column-gap:16px;
-    align-items:baseline;
-  }
-  .resume-role-logo{
-    grid-area:logo;
     display:flex;
-    justify-content:center;
+    flex-wrap:wrap;
+    justify-content:space-between;
+    gap:10px 16px;
+    align-items:flex-start;
   }
   .resume-role-brand{
-    grid-area:brand;
     display:grid;
     gap:4px;
   }
-  .resume-company-logo{
-    box-sizing:border-box;
-    width:64px;
-    height:64px;
-    padding:10px;
-    border-radius:18px;
-    object-fit:contain;
+  .resume-role-meta{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .resume-role-logo-shell{
+    height:48px;
+    min-width:48px;
+    padding:0 12px;
+    border-radius:14px;
     background:color-mix(in srgb,var(--surface) 85%, #0d1622 15%);
     border:1px solid color-mix(in srgb,var(--primary) 12%, transparent);
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    box-sizing:border-box;
   }
-  .resume-company-logo.resume-company-logo-wide{
-    width:220px;
-    padding-inline:16px;
+  .resume-role-logo-shell img{
+    width:auto;
+    height:auto;
+    max-height:30px;
+    max-width:160px;
+    display:block;
   }
   .resume-role-title{
     margin:0;
@@ -322,12 +325,11 @@
     font-size:1rem;
   }
   .resume-role-dates{
-    grid-area:dates;
-    justify-self:end;
     margin:0;
     font-size:.95rem;
     color:var(--text-muted);
     text-align:right;
+    white-space:nowrap;
   }
   .resume-role-list{
     margin:12px 0 0 18px;
@@ -466,16 +468,16 @@
   }
   @media (max-width: 720px){
     .resume-role-header{
-      grid-template-columns:1fr;
-      grid-template-areas:
-        "logo"
-        "brand"
-        "dates";
-      align-items:start;
+      flex-direction:column;
+      align-items:flex-start;
+    }
+    .resume-role-meta{
+      width:100%;
+      justify-content:flex-start;
     }
     .resume-role-dates{
-      justify-self:start;
       text-align:left;
+      white-space:normal;
     }
     .resume-education-item{
       flex-direction:column;
