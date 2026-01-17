@@ -154,6 +154,15 @@
     outline-offset: 2px;
   }
 
+  .portfolio-see-more{
+    text-align:center;
+    margin-top:20px;
+  }
+
+  .portfolio-filters-head{
+    text-align:center;
+  }
+
   /* Filter controls */
   .filter-menu{
     display:grid;

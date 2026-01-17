@@ -23,15 +23,7 @@
   <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
   <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
-  <script>
-    try {
-      if (document.documentElement.classList) {
-        document.documentElement.classList.remove("no-js");
-      } else {
-        document.documentElement.className = (document.documentElement.className || "").replace(/\bno-js\b/, "").trim();
-      }
-    } catch (_) {}
-  </script>
+  <script src="js/common/no-js.js"></script>
   <meta name="description" content="Get in touch with Daniel Short – data scientist (analytics, automation, and ML).">
   <meta property="og:image:alt" content="Portrait photo of Daniel Short">
 </head>
@@ -48,7 +40,7 @@
           <button id="contact-form-toggle" class="btn-primary hero-cta">Send a Message</button>
         </div>
     </div>
-      <a class="chevron-hint scroll-indicator" href="#contact-options">
+      <a class="chevron-hint scroll-indicator" href="#contact-options" data-smooth-scroll="true">
         <span class="chevron-label">Scroll for ways to connect</span>
         <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 16.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 14.08l5.3-5.29a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29z"/></svg>
       </a>
@@ -138,7 +130,7 @@
   <footer>
     <nav class="privacy-links" aria-label="Privacy shortcuts">
       <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
-      <a href="#" class="pcz-link" onclick="window.Privacy && window.Privacy.open('doNotSell'); return false;">
+      <a href="privacy.html#prefs-title" class="pcz-link" data-consent-open="true">
         Do Not Sell/Share My Personal Information
       </a>
     </nav>

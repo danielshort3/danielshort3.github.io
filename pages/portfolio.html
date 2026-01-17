@@ -32,15 +32,7 @@
         content="Portfolio of data science, analytics, ML, and visualization projects by Daniel Short.">
   <meta property="og:image:alt" content="Portrait photo of Daniel Short">
   <link rel="preconnect" href="https://public.tableau.com" crossorigin>
-  <script>
-    try {
-      if (document.documentElement.classList) {
-        document.documentElement.classList.remove('no-js');
-      } else {
-        document.documentElement.className = (document.documentElement.className || '').replace(/\bno-js\b/, '').trim();
-      }
-    } catch (_) {}
-  </script>
+  <script src="js/common/no-js.js"></script>
 
 </head>
 
@@ -57,7 +49,7 @@
       <h1>Project Portfolio</h1>
       <p class="hero-tagline">Start with the top five. Then use the filters to narrow it down. Each project covers the problem, what I did, and what changed.</p>
     </div>
-      <a class="chevron-hint scroll-indicator" href="#portfolio-carousel-section">
+      <a class="chevron-hint scroll-indicator" href="#portfolio-carousel-section" data-smooth-scroll="true">
         <span class="chevron-label">Scroll for top projects</span>
         <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 16.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 14.08l5.3-5.29a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29z"/></svg>
       </a>
@@ -70,65 +62,85 @@
       <div id="portfolio-carousel" aria-label="Project Browser">
         <div class="carousel-track">
           <!-- Static slides for crawlers / no-JS -->
-	          <a
-	            class="project-card carousel-card ripple-in"
-	            href="portfolio/shapeClassifier">
-	            <div class="overlay"></div>
-	            <div class="project-text">
-	              <div class="project-title">Shape Classifier Demo</div>
-	              <div class="project-subtitle">Handwritten Shape Recognition</div>
-	            </div>
-	            <img src="img/projects/shapeClassifier.png" alt="Preview of the Shape Classifier demo interface" width="1280" height="720" loading="lazy" decoding="async">
-	          </a>
-
-	          <a
-	            class="project-card carousel-card ripple-in"
-	            href="portfolio/chatbotLora">
-	            <div class="overlay"></div>
-	            <div class="project-text">
-	              <div class="project-title">Chatbot (LoRA + RAG)</div>
-	              <div class="project-subtitle">RAG Chatbot Fine-Tuned with LoRA</div>
-	            </div>
-	            <img src="img/projects/chatbotLora.png" alt="Screenshot of the Visit Grand Junction chatbot interface" width="1280" height="720" loading="lazy" decoding="async">
-	          </a>
-
-	          <a
-	            class="project-card carousel-card ripple-in"
-	            href="portfolio/sheetMusicUpscale">
-	            <div class="overlay"></div>
-	            <div class="project-text">
-	              <div class="project-title">Sheet Music Watermark Removal &amp; Upscale</div>
-	              <div class="project-subtitle">UNet &amp; VDSR Pipeline</div>
-	            </div>
-	            <img src="img/projects/sheetMusicUpscale.png" alt="Example of cleaned sheet music after processing" width="1604" height="1230" loading="lazy" decoding="async">
-	          </a>
-
-	          <a
-	            class="project-card carousel-card ripple-in"
-	            href="portfolio/digitGenerator">
-	            <div class="overlay"></div>
-	            <div class="project-text">
-	              <div class="project-title">Synthetic Digit Generator</div>
-	              <div class="project-subtitle">Variational Autoencoder</div>
-	            </div>
-	            <img src="img/projects/digitGenerator.png" alt="Grid of handwritten digits produced by the VAE model" width="400" height="400" loading="lazy" decoding="async">
-	          </a>
-
-	          <a
-	            class="project-card carousel-card ripple-in"
-	            href="portfolio/nonogram">
-	            <div class="overlay"></div>
-	            <div class="project-text">
-	              <div class="project-title">Nonogram Solver</div>
-	              <div class="project-subtitle">Reinforcement Learning (RL)</div>
+          <a
+            class="project-card carousel-card ripple-in"
+            href="portfolio/shapeClassifier">
+            <div class="overlay"></div>
+            <div class="project-text">
+              <div class="project-title">Shape Classifier Demo</div>
+              <div class="project-subtitle">Handwritten Shape Recognition</div>
             </div>
-            <img src="img/projects/nonogram.png" alt="Visualization of the reinforcement learning Nonogram solver" width="1080" height="1080" loading="lazy" decoding="async">
+            <picture>
+              <source srcset="img/projects/shapeClassifier-640.avif 640w, img/projects/shapeClassifier.avif 926w" type="image/avif">
+              <source srcset="img/projects/shapeClassifier-640.webp 640w, img/projects/shapeClassifier.webp 926w" type="image/webp">
+              <img src="img/projects/shapeClassifier.png" alt="Preview of the Shape Classifier demo interface" width="926" height="926" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 768px) 80vw, 340px">
+            </picture>
+          </a>
+
+          <a
+            class="project-card carousel-card ripple-in"
+            href="portfolio/retailStore">
+            <div class="overlay"></div>
+            <div class="project-text">
+              <div class="project-title">Store-Level Loss &amp; Sales ETL</div>
+              <div class="project-subtitle">SQL ETL + Anomaly Detection</div>
+            </div>
+            <picture>
+              <source srcset="img/projects/retailStore-640.avif 640w, img/projects/retailStore-960.avif 960w, img/projects/retailStore.avif 1410w" type="image/avif">
+              <source srcset="img/projects/retailStore-640.webp 640w, img/projects/retailStore-960.webp 960w, img/projects/retailStore.webp 1410w" type="image/webp">
+              <img src="img/projects/retailStore.png" alt="Preview of store-level loss and sales analysis" width="1410" height="1410" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 768px) 80vw, 340px">
+            </picture>
+          </a>
+
+          <a
+            class="project-card carousel-card ripple-in"
+            href="portfolio/sheetMusicUpscale">
+            <div class="overlay"></div>
+            <div class="project-text">
+              <div class="project-title">Sheet Music Watermark Removal &amp; Upscale</div>
+              <div class="project-subtitle">UNet &amp; VDSR Pipeline</div>
+            </div>
+            <picture>
+              <source srcset="img/projects/sheetMusicUpscale-640.avif 640w, img/projects/sheetMusicUpscale-960.avif 960w, img/projects/sheetMusicUpscale.avif 1604w" type="image/avif">
+              <source srcset="img/projects/sheetMusicUpscale-640.webp 640w, img/projects/sheetMusicUpscale-960.webp 960w, img/projects/sheetMusicUpscale.webp 1604w" type="image/webp">
+              <img src="img/projects/sheetMusicUpscale.png" alt="Example of cleaned sheet music after processing" width="1604" height="1230" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 768px) 80vw, 340px">
+            </picture>
+          </a>
+
+          <a
+            class="project-card carousel-card ripple-in"
+            href="portfolio/digitGenerator">
+            <div class="overlay"></div>
+            <div class="project-text">
+              <div class="project-title">Synthetic Digit Generator</div>
+              <div class="project-subtitle">Variational Autoencoder</div>
+            </div>
+            <picture>
+              <source srcset="img/projects/digitGenerator-640.avif 640w, img/projects/digitGenerator-960.avif 960w, img/projects/digitGenerator.avif 1470w" type="image/avif">
+              <source srcset="img/projects/digitGenerator-640.webp 640w, img/projects/digitGenerator-960.webp 960w, img/projects/digitGenerator.webp 1470w" type="image/webp">
+              <img src="img/projects/digitGenerator.png" alt="Grid of handwritten digits produced by the VAE model" width="1470" height="1470" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 768px) 80vw, 340px">
+            </picture>
+          </a>
+
+          <a
+            class="project-card carousel-card ripple-in"
+            href="portfolio/nonogram">
+            <div class="overlay"></div>
+            <div class="project-text">
+              <div class="project-title">Nonogram Solver</div>
+              <div class="project-subtitle">Reinforcement Learning (RL)</div>
+            </div>
+            <picture>
+              <source srcset="img/projects/nonogram-640.avif 640w, img/projects/nonogram-960.avif 960w, img/projects/nonogram.avif 1228w" type="image/avif">
+              <source srcset="img/projects/nonogram-640.webp 640w, img/projects/nonogram-960.webp 960w, img/projects/nonogram.webp 1228w" type="image/webp">
+              <img src="img/projects/nonogram.png" alt="Visualization of the reinforcement learning Nonogram solver" width="1228" height="1228" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 768px) 80vw, 340px">
+            </picture>
           </a>
         </div>
         <div class="carousel-dots" role="tablist"></div>
       </div>
-      <div style="text-align:center;margin-top:20px;">
-        <button id="see-more" class="btn-primary">See More</button>
+      <div class="portfolio-see-more">
+        <button id="see-more" class="btn-primary" type="button" aria-expanded="false" aria-controls="filters projects carousel-gap">See More</button>
       </div>
     </div>
   </section>
@@ -141,8 +153,8 @@
   </section>
 
   <!-- filter buttons -->
-  <section class="reveal interest-pad hide" id="filters" role="region" aria-labelledby="all-projects-title">
-    <div class="wrapper" style="text-align:center">
+  <section class="reveal interest-pad hide" id="filters" role="region" aria-labelledby="all-projects-title" aria-hidden="true">
+    <div class="wrapper portfolio-filters-head">
       <h2 class="section-title" id="all-projects-title">All Projects</h2>
       <nav id="filter-menu" class="filter-menu" aria-label="Project filters">
         <section class="filter-panel" role="group" aria-labelledby="filter-focus-title">
@@ -181,7 +193,7 @@
   </section>
 
   <!-- dynamic grid + modals -->
-	  <section id="projects" class="grid reveal hide" role="region" aria-labelledby="all-projects-title">
+		  <section id="projects" class="grid reveal hide" role="region" aria-labelledby="all-projects-title" aria-hidden="true">
 	    <!-- Pre-rendered feature cards for no-JS & bots. Keep in sync with FEATURED_IDS. -->
 	    <a
 	      class="project-card ripple-in"
@@ -192,19 +204,27 @@
 	        <div class="project-title">Shape Classifier Demo</div>
 	        <div class="project-subtitle">Handwritten Shape Recognition</div>
 	      </div>
-	      <img src="img/projects/shapeClassifier.png" alt="Preview of the Shape Classifier demo interface" width="1280" height="720" loading="lazy" decoding="async">
+	      <picture>
+	        <source srcset="img/projects/shapeClassifier-640.avif 640w, img/projects/shapeClassifier.avif 926w" type="image/avif">
+	        <source srcset="img/projects/shapeClassifier-640.webp 640w, img/projects/shapeClassifier.webp 926w" type="image/webp">
+	        <img src="img/projects/shapeClassifier.png" alt="Preview of the Shape Classifier demo interface" width="926" height="926" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
+	      </picture>
 	    </a>
 
 	    <a
 	      class="project-card ripple-in"
-	      href="portfolio/chatbotLora"
-	      aria-label="Chatbot (LoRA + RAG) – Tourism Q&amp;A bot that cites sources.">
+	      href="portfolio/retailStore"
+	      aria-label="Store-Level Loss &amp; Sales ETL – SQL ETL pipeline with anomaly detection.">
 	      <div class="overlay"></div>
 	      <div class="project-text">
-	        <div class="project-title">Chatbot (LoRA + RAG)</div>
-	        <div class="project-subtitle">RAG Chatbot Fine-Tuned with LoRA</div>
+	        <div class="project-title">Store-Level Loss &amp; Sales ETL</div>
+	        <div class="project-subtitle">SQL ETL + Anomaly Detection</div>
 	      </div>
-	      <img src="img/projects/chatbotLora.png" alt="Screenshot of the Visit Grand Junction chatbot interface" width="1280" height="720" loading="lazy" decoding="async">
+	      <picture>
+	        <source srcset="img/projects/retailStore-640.avif 640w, img/projects/retailStore-960.avif 960w, img/projects/retailStore.avif 1410w" type="image/avif">
+	        <source srcset="img/projects/retailStore-640.webp 640w, img/projects/retailStore-960.webp 960w, img/projects/retailStore.webp 1410w" type="image/webp">
+	        <img src="img/projects/retailStore.png" alt="Preview of store-level loss and sales analysis" width="1410" height="1410" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
+	      </picture>
 	    </a>
 
 	    <a
@@ -216,7 +236,11 @@
 	        <div class="project-title">Sheet Music Watermark Removal &amp; Upscale</div>
 	        <div class="project-subtitle">UNet &amp; VDSR Pipeline</div>
 	      </div>
-	      <img src="img/projects/sheetMusicUpscale.png" alt="Example of cleaned sheet music after processing" width="1604" height="1230" loading="lazy" decoding="async">
+	      <picture>
+	        <source srcset="img/projects/sheetMusicUpscale-640.avif 640w, img/projects/sheetMusicUpscale-960.avif 960w, img/projects/sheetMusicUpscale.avif 1604w" type="image/avif">
+	        <source srcset="img/projects/sheetMusicUpscale-640.webp 640w, img/projects/sheetMusicUpscale-960.webp 960w, img/projects/sheetMusicUpscale.webp 1604w" type="image/webp">
+	        <img src="img/projects/sheetMusicUpscale.png" alt="Example of cleaned sheet music after processing" width="1604" height="1230" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
+	      </picture>
 	    </a>
 
 	    <a
@@ -228,11 +252,14 @@
 	        <div class="project-title">Synthetic Digit Generator</div>
 	        <div class="project-subtitle">Variational Autoencoder</div>
 	      </div>
-	      <img src="img/projects/digitGenerator.png" alt="Grid of handwritten digits produced by the VAE model" width="400" height="400" loading="lazy" decoding="async">
+	      <picture>
+	        <source srcset="img/projects/digitGenerator-640.avif 640w, img/projects/digitGenerator-960.avif 960w, img/projects/digitGenerator.avif 1470w" type="image/avif">
+	        <source srcset="img/projects/digitGenerator-640.webp 640w, img/projects/digitGenerator-960.webp 960w, img/projects/digitGenerator.webp 1470w" type="image/webp">
+	        <img src="img/projects/digitGenerator.png" alt="Grid of handwritten digits produced by the VAE model" width="1470" height="1470" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
+	      </picture>
 	    </a>
 
 	    <a
-	      id="nonogram"
 	      class="project-card ripple-in"
 	      href="portfolio/nonogram"
 	      aria-label="Nonogram Solver – RL agent that solves 5×5 puzzles (94% on held-out boards).">
@@ -240,9 +267,13 @@
 	      <div class="project-text">
 	        <div class="project-title">Nonogram Solver</div>
 	        <div class="project-subtitle">Reinforcement Learning (RL)</div>
-      </div>
-      <img src="img/projects/nonogram.png" alt="Visualization of the reinforcement learning Nonogram solver" width="1080" height="1080" loading="lazy" decoding="async">
-    </a>
+	      </div>
+	      <picture>
+	        <source srcset="img/projects/nonogram-640.avif 640w, img/projects/nonogram-960.avif 960w, img/projects/nonogram.avif 1228w" type="image/avif">
+	        <source srcset="img/projects/nonogram-640.webp 640w, img/projects/nonogram-960.webp 960w, img/projects/nonogram.webp 1228w" type="image/webp">
+	        <img src="img/projects/nonogram.png" alt="Visualization of the reinforcement learning Nonogram solver" width="1228" height="1228" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
+	      </picture>
+	    </a>
   </section>
   <div id="modals"></div>
 
@@ -251,7 +282,7 @@
   <footer>
     <nav class="privacy-links" aria-label="Privacy shortcuts">
       <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
-      <a href="#" class="pcz-link" onclick="window.Privacy && window.Privacy.open('doNotSell'); return false;">
+      <a href="privacy.html#prefs-title" class="pcz-link" data-consent-open="true">
         Do Not Sell/Share My Personal Information
       </a>
     </nav>

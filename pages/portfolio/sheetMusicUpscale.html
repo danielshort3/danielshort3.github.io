@@ -29,15 +29,7 @@
 
 
   <!-- Local fonts with legacy reference retained for tooling: https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap -->
-  <script>
-    try {
-      if (document.documentElement.classList) {
-        document.documentElement.classList.remove('no-js');
-      } else {
-        document.documentElement.className = (document.documentElement.className || '').replace(/\bno-js\b/, '').trim();
-      }
-    } catch (_) {}
-  </script>
+  <script src="js/common/no-js.js"></script>
   <script type="application/ld+json">
     {"@context":"https://schema.org","@type":"CreativeWork","name":"Sheet Music Watermark Removal & Upscale","description":"UNet & VDSR Pipeline: I needed clean, readable sheet music. Most of what I could find was low-res and watermarked.","url":"https://danielshort.me/portfolio/sheetMusicUpscale","image":"https://danielshort.me/img/projects/sheetMusicUpscale.png"}
   </script>
@@ -67,8 +59,9 @@
     <section class="project-body">
       <div class="wrapper">
         <picture class="project-media">
-        <source srcset="img/projects/sheetMusicUpscale.webp" type="image/webp">
-        <img src="img/projects/sheetMusicUpscale.png" alt="Preview image for Sheet Music Watermark Removal &amp; Upscale" loading="lazy" decoding="async" width="1604" height="1230">
+        <source srcset="img/projects/sheetMusicUpscale-640.avif 640w, img/projects/sheetMusicUpscale-960.avif 960w, img/projects/sheetMusicUpscale.avif 1604w" type="image/avif">
+        <source srcset="img/projects/sheetMusicUpscale-640.webp 640w, img/projects/sheetMusicUpscale-960.webp 960w, img/projects/sheetMusicUpscale.webp 1604w" type="image/webp">
+        <img src="img/projects/sheetMusicUpscale.png" alt="Preview image for Sheet Music Watermark Removal &amp; Upscale" loading="eager" decoding="async" width="1604" height="1230" sizes="(max-width: 960px) 92vw, 840px" fetchpriority="high">
       </picture>
         <section class="project-section">
       <h2 class="section-title">Context</h2>
@@ -148,7 +141,7 @@
   <footer>
     <nav class="privacy-links" aria-label="Privacy shortcuts">
       <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
-      <a href="#" class="pcz-link" onclick="window.Privacy && window.Privacy.open('doNotSell'); return false;">Do Not Sell/Share My Personal Information</a>
+      <a href="privacy.html#prefs-title" class="pcz-link" data-consent-open="true">Do Not Sell/Share My Personal Information</a>
     </nav>
   </footer>
 

@@ -134,6 +134,31 @@ try {
     assert(consentCode.includes('ga4-helper'), 'consent manager should inject analytics helper script');
   });
 
+  section('Root/pages drift guard', () => {
+    [
+      ['contact.html', 'pages/contact.html'],
+      ['resume.html', 'pages/resume.html'],
+      ['resume-pdf.html', 'pages/resume-pdf.html'],
+      ['privacy.html', 'pages/privacy.html']
+    ].forEach(([rootFile, pageFile]) => {
+      assert(fs.existsSync(rootFile), `${rootFile} missing`);
+      assert(fs.existsSync(pageFile), `${pageFile} missing`);
+      const rootHtml = fs.readFileSync(rootFile, 'utf8');
+      const pageHtml = fs.readFileSync(pageFile, 'utf8');
+      assert(rootHtml === pageHtml, `${rootFile} differs from ${pageFile}; run node build/sync-root-pages.js`);
+    });
+  });
+
+  section('Portfolio featured no-JS cards stay in sync', () => {
+    const pdata = evalScript('js/portfolio/projects-data.js');
+    const featured = Array.isArray(pdata.window.FEATURED_IDS) ? pdata.window.FEATURED_IDS : [];
+    assert(featured.length, 'FEATURED_IDS missing or empty');
+    const html = fs.readFileSync('pages/portfolio.html', 'utf8');
+    featured.forEach((id) => {
+      assert(html.includes(`href="portfolio/${id}"`), `pages/portfolio.html missing featured href for ${id}`);
+    });
+  });
+
   section('Job tracker UI additions', () => {
     checkFileContains('pages/job-application-tracker.html', 'data-jobtrack-tab="account"');
     checkFileContains('pages/job-application-tracker.html', 'data-jobtrack-tab="entries"');
@@ -522,7 +547,8 @@ try {
   });
 
   section('404 rewrites and portfolio page sections', () => {
-    checkFileContains('404.html', 'portfolio.html?project=');
+    checkFileContains('404.html', 'js/common/404-redirect.js');
+    checkFileContains('js/common/404-redirect.js', 'portfolio.html?project=');
     checkFileContains('pages/portfolio.html', 'id="portfolio-carousel"');
     checkFileContains('pages/portfolio.html', 'id="filter-menu"');
     checkFileContains('pages/portfolio.html', 'id="projects"');

@@ -132,6 +132,7 @@
   window.addEventListener('pageshow', resetScrollLocks);
   document.addEventListener('DOMContentLoaded', () => {
     resetScrollLocks();
+    initSmoothScrollLinks();
     if (isPage('portfolio')) {
       ensurePortfolioScripts().then(() => {
         run(window.buildPortfolioCarousel);
@@ -141,7 +142,6 @@
     }
     if (isPage('home')) {
       initSkillPopups();
-      initSmoothScrollLinks();
       initJumpPanelSpy();
     }
   });
@@ -358,7 +358,6 @@
   }
 
   function initSmoothScrollLinks(){
-    if (!isPage('home')) return;
     const links = $$('a[data-smooth-scroll="true"]');
     if (!links.length) return;
 

@@ -31,10 +31,60 @@ const getImageSizeAttr = (p = {}) => {
   return '';
 };
 
+const buildResponsiveSrcset = (base, ext, width) => {
+  const fullW = Number(width);
+  if (!Number.isFinite(fullW) || fullW <= 0) return `${base}.${ext}`;
+  const parts = [];
+  if (fullW > 640) parts.push(`${base}-640.${ext} 640w`);
+  if (fullW > 960) parts.push(`${base}-960.${ext} 960w`);
+  parts.push(`${base}.${ext} ${fullW}w`);
+  return parts.join(', ');
+};
+
+const buildResponsivePicture = (src, alt, options = {}) => {
+  if (!src) return '';
+  const match = String(src).match(/\.(png|jpe?g)$/i);
+  if (!match) {
+    const sizeAttr = options.sizeAttr || '';
+    const fetch = options.fetchpriority ? ` fetchpriority="${options.fetchpriority}"` : '';
+    const sizes = options.sizes ? ` sizes="${options.sizes}"` : '';
+    const loading = options.loading ? ` loading="${options.loading}"` : '';
+    const decoding = options.decoding ? ` decoding="${options.decoding}"` : '';
+    const draggable = options.draggable != null ? ` draggable="${options.draggable ? 'true' : 'false'}"` : '';
+    return `<img src="${src}" alt="${alt || ''}"${loading}${decoding}${draggable}${sizeAttr}${sizes}${fetch}>`;
+  }
+
+  const base = src.replace(/\.(png|jpe?g)$/i, '');
+  const width = Number(options.width);
+  const height = Number(options.height);
+  const sizeAttr = options.sizeAttr || (Number.isFinite(width) && Number.isFinite(height) ? ` width="${width}" height="${height}"` : '');
+  const fetch = options.fetchpriority ? ` fetchpriority="${options.fetchpriority}"` : '';
+  const sizes = options.sizes ? ` sizes="${options.sizes}"` : '';
+  const loading = options.loading ? ` loading="${options.loading}"` : '';
+  const decoding = options.decoding ? ` decoding="${options.decoding}"` : '';
+  const draggable = options.draggable != null ? ` draggable="${options.draggable ? 'true' : 'false'}"` : '';
+
+  const avifSrcset = buildResponsiveSrcset(base, 'avif', width);
+  const webpSrcset = buildResponsiveSrcset(base, 'webp', width);
+  return `<picture>
+    <source srcset="${avifSrcset}" type="image/avif">
+    <source srcset="${webpSrcset}" type="image/webp">
+    <img src="${src}" alt="${alt || ''}"${loading}${decoding}${draggable}${sizeAttr}${sizes}${fetch}>
+  </picture>`;
+};
+
 const projectMedia = window.projectMedia || ((p = {}) => {
   if (!p.image) return '';
   const sizeAttr = getImageSizeAttr(p);
-  return `<img src="${p.image}" alt="${p.title || ''}" loading="lazy" decoding="async" draggable="false"${sizeAttr}>`;
+  return buildResponsivePicture(p.image, p.title || '', {
+    width: p.imageWidth,
+    height: p.imageHeight,
+    sizeAttr,
+    loading: 'lazy',
+    decoding: 'async',
+    draggable: false,
+    sizes: '(max-width: 640px) 92vw, 340px'
+  });
 });
 
 const setupPreviewVideo = (card, options = {}) => {
@@ -168,6 +218,7 @@ function buildPortfolioCarousel() {
 
   track.innerHTML = "";
   dots.innerHTML  = "";
+  dots.setAttribute('aria-label', 'Select a featured project');
 
   projects.forEach((p, i) => {
     /* slide */
@@ -179,6 +230,7 @@ function buildPortfolioCarousel() {
       card.href = `portfolio/${p.id}`;
     }
     card.className = "project-card carousel-card";
+    card.id = `portfolio-carousel-slide-${i}`;
     card.setAttribute("aria-label", usesModals ? `View details of ${p.title}` : `Read case study: ${p.title}`);
     const media = (() => {
       const hasVideo = !!(p.videoWebm || p.videoMp4);
@@ -186,18 +238,16 @@ function buildPortfolioCarousel() {
       const img = (() => {
         if (!hasImage) return '';
         const src = p.image || '';
-        const lower = src.toLowerCase();
-        const webp = lower.endsWith('.png') ? src.replace(/\.png$/i, '.webp')
-                   : lower.endsWith('.jpg') ? src.replace(/\.jpg$/i, '.webp')
-                   : lower.endsWith('.jpeg') ? src.replace(/\.jpeg$/i, '.webp')
-                   : null;
-        if (webp) {
-          return `<picture>
-            <source srcset="${webp}" type="image/webp">
-            <img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false"${sizeAttr} fetchpriority="${i===0 ? 'high' : 'auto'}">
-          </picture>`;
-        }
-        return `<img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false"${sizeAttr} fetchpriority="${i===0 ? 'high' : 'auto'}">`;
+        return buildResponsivePicture(src, p.title || '', {
+          width: p.imageWidth,
+          height: p.imageHeight,
+          sizeAttr,
+          loading: 'lazy',
+          decoding: 'async',
+          draggable: false,
+          sizes: '(max-width: 768px) 80vw, 340px',
+          fetchpriority: i === 0 ? 'high' : 'auto'
+        });
       })();
       if (!hasVideo) return img;
       const mp4  = p.videoMp4  ? `<source data-src="${p.videoMp4}" type="video/mp4">`   : '';
@@ -245,6 +295,7 @@ function buildPortfolioCarousel() {
     dot.className = "carousel-dot";
     dot.type  = "button";
     dot.setAttribute("aria-label", `Show ${p.title}`);
+    dot.setAttribute("aria-controls", card.id);
     dot.addEventListener("click", () => { goTo(i); });
     dots.appendChild(dot);
   });
@@ -269,6 +320,11 @@ function buildPortfolioCarousel() {
       const isActive = i === current;
       card.classList.toggle("active", isActive);
       card.classList.toggle("is-animated-preview", isActive);
+      if (isActive) {
+        card.setAttribute('aria-current', 'true');
+      } else {
+        card.removeAttribute('aria-current');
+      }
       if (card._previewVideoStop) {
         if (prefersReduced || !isActive) {
           card._previewVideoStop();
@@ -408,8 +464,13 @@ function initSeeMore(){
   };
   btn.addEventListener("click", () => {
     const expanded = btn.dataset.expanded === "true";
-    btn.dataset.expanded = expanded ? "false" : "true";
-    btn.textContent = expanded ? "See More" : "See Less";
+    const nextExpanded = !expanded;
+    btn.dataset.expanded = nextExpanded ? "true" : "false";
+    btn.textContent = nextExpanded ? "See Less" : "See More";
+    btn.setAttribute('aria-expanded', nextExpanded ? 'true' : 'false');
+    filters.setAttribute('aria-hidden', nextExpanded ? 'false' : 'true');
+    grid.setAttribute('aria-hidden', nextExpanded ? 'false' : 'true');
+    if (gap) gap.setAttribute('aria-hidden', nextExpanded ? 'false' : 'true');
 
     if (mobile.matches) {
       filters.classList.toggle("hide", expanded);
@@ -463,7 +524,8 @@ function initSeeMore(){
         grid.style.paddingBottom = "";
         filters.style.paddingTop = "";
         filters.style.paddingBottom = "";
-      carousel?.scrollIntoView({ behavior: "smooth" });
+      const behavior = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+      carousel?.scrollIntoView({ behavior });
       }, 450); // height transition duration
     } else {
       // expand grid, filters, and gap smoothly

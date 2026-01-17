@@ -31,91 +31,7 @@
 
     <!-- Local fonts -->
 
-    <script>
-      try {
-        if (document.documentElement.classList) {
-          document.documentElement.classList.remove("no-js");
-        } else {
-          document.documentElement.className = (document.documentElement.className || "").replace(/\bno-js\b/, "").trim();
-        }
-      } catch (_) {}
-    </script>
-
-    <!-- Page-scoped styles to center and tastefully frame the content (no hero, no hidden content) -->
-    <style>
-        /* Center the content similar to the 404 page, but keep everything visible */
-        .policy-page main {
-            min-height: calc(var(--vh, 100vh) - var(--nav-height, 72px));
-            padding-top: var(--nav-height, 72px);
-            display: grid;
-            align-content: center; /* vertical centering */
-            justify-items: center; /* horizontal centering for the block */
-            margin: 0;
-            padding-inline: 24px;  /* symmetric side spacing on small screens */
-        }
-
-        .policy-card {
-            width: min(840px, 100%);
-            box-sizing: border-box; /* include border + padding in width to avoid overflow */
-            background: var(--surface);
-            border: 2px solid var(--primary);
-            border-radius: 14px;
-            box-shadow: 0 10px 24px rgba(44,169,188,.18);
-            padding: clamp(18px, 4vw, 32px);
-            /* Center cards horizontally and add vertical spacing */
-            margin: 0 auto 1.5rem;
-        }
-
-        .policy-card h1 {
-            margin-top: 0;
-            text-align: center;
-        }
-
-        .policy-lead {
-            text-align: center;
-            color: var(--text-muted);
-            max-width: 60ch;
-            margin: 8px auto 16px;
-        }
-
-        .policy-section {
-            margin-top: 20px;
-        }
-
-        .policy-section h2 {
-            margin-top: 0.2em;
-        }
-
-        .policy-list {
-            padding-left: 20px;
-        }
-
-        .policy-meta {
-            margin-top: 16px;
-            font-size: .95rem;
-            color: var(--text-muted);
-        }
-        #privacy-preferences-form { margin-top: 1.25rem; }
-        .pref-grid { display: grid; gap: 12px; }
-        .pref-option { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 8px; border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; background: rgba(255,255,255,0.02); }
-        .pref-toggle { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 16px; width: 100%; border: 2px solid var(--primary); border-radius: 10px; background: transparent; color: inherit; font: inherit; cursor: pointer; transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease; }
-        .pref-toggle[aria-pressed="true"] { background: var(--primary); color: var(--on-primary); }
-        .pref-toggle[disabled] { cursor: not-allowed; opacity: 0.85; }
-        .pref-label { font-weight: 600; text-align: left; }
-        .pref-state { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
-        .pref-toggle[aria-pressed="true"] .pref-state { color: inherit; }
-        .pref-toggle:not([aria-pressed="true"]) .pref-state { color: var(--text-muted); }
-        .pref-info { border: none; background: var(--surface-elevated, rgba(255,255,255,0.08)); color: inherit; width: 36px; height: 36px; border-radius: 50%; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: background-color 0.2s ease, color 0.2s ease; }
-        .pref-info:hover, .pref-info:focus { background: var(--primary); color: var(--on-primary); outline: none; }
-        .pref-description { margin: 0; margin-top: 8px; font-size: 0.9rem; color: var(--text-muted); grid-column: 1 / -1; }
-        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-        #save-privacy-preferences { margin-top: 1rem; padding: 0.75rem 1.25rem; border: none; border-radius: 8px; background-color: var(--primary); color: var(--on-primary); cursor: pointer; font-weight: 600; width: 100%; }
-        #save-privacy-preferences:hover { background-color: var(--primary-dark, #2ca9bc); }
-        @media (min-width: 680px) {
-            .pref-option { grid-template-columns: minmax(0, 1fr) auto; }
-            #save-privacy-preferences { width: auto; }
-        }
-    </style>
+    <script src="js/common/no-js.js"></script>
 </head>
 
 <body class="surface-band policy-page">
@@ -176,7 +92,7 @@
                         </button>
                         <button type="button" class="pref-info" aria-expanded="false" aria-controls="pref-desc-necessary">
                             <span aria-hidden="true">?</span>
-                            <span class="sr-only">Read what Strictly necessary cookies do</span>
+                            <span class="visually-hidden">Read what Strictly necessary cookies do</span>
                         </button>
                         <p id="pref-desc-necessary" class="pref-description" hidden>These cookies are required for the site to run: navigation, basic interactions, and honoring your privacy choices. They cannot be disabled.</p>
                     </div>
@@ -187,7 +103,7 @@
                         </button>
                         <button type="button" class="pref-info" aria-expanded="false" aria-controls="pref-desc-analytics">
                             <span aria-hidden="true">?</span>
-                            <span class="sr-only">Read what Analytics cookies do</span>
+                            <span class="visually-hidden">Read what Analytics cookies do</span>
                         </button>
                         <p id="pref-desc-analytics" class="pref-description" hidden>Analytics cookies help me understand which pages are viewed most often and how visitors move around the site so I can improve the experience.</p>
                     </div>
@@ -198,7 +114,7 @@
                         </button>
                         <button type="button" class="pref-info" aria-expanded="false" aria-controls="pref-desc-functional">
                             <span aria-hidden="true">?</span>
-                            <span class="sr-only">Read what Functional cookies do</span>
+                            <span class="visually-hidden">Read what Functional cookies do</span>
                         </button>
                         <p id="pref-desc-functional" class="pref-description" hidden>Functional cookies remember your settings (like language or filters) so features feel more tailored to you.</p>
                     </div>
@@ -209,7 +125,7 @@
                         </button>
                         <button type="button" class="pref-info" aria-expanded="false" aria-controls="pref-desc-advertising">
                             <span aria-hidden="true">?</span>
-                            <span class="sr-only">Read what Advertising cookies do</span>
+                            <span class="visually-hidden">Read what Advertising cookies do</span>
                         </button>
                         <p id="pref-desc-advertising" class="pref-description" hidden>Advertising cookies make it possible to personalize or measure marketing efforts. They are only used if you opt in.</p>
                     </div>
@@ -223,99 +139,15 @@
     <footer>
         <nav class="privacy-links" aria-label="Privacy shortcuts">
             <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
-            <a href="#" class="pcz-link" onclick="window.Privacy && window.Privacy.open('doNotSell'); return false;">
-                Do Not Sell/Share My Personal Information
-            </a>
+            <a href="privacy.html#prefs-title" class="pcz-link" data-consent-open="true">Do Not Sell/Share My Personal Information</a>
         </nav>
     </footer>
-    <style>
-      /* Ensure footer links wrap and don’t cause horizontal overflow */
-      .privacy-links { display: grid; gap: 8px; justify-content: center; margin: 16px auto; padding-inline: 16px; }
-      .privacy-links .pcz-link { overflow-wrap: anywhere; }
-    </style>
 
     <!-- Site scripts -->
     <script defer src="js/common/common.js"></script>
     <script defer src="js/navigation/navigation.js"></script>
     <script src="js/privacy/config.js"></script>
     <script defer src="js/privacy/consent_manager.js"></script>
-    <!-- Script to synchronise and save user preferences -->
-    <script>
-    (function() {
-        var TOGGLE_SELECTOR = '.pref-toggle[data-pref]';
-
-        function updateToggleUI(button, value) {
-            var locked = button.dataset.locked === 'true';
-            var pressed = locked ? true : !!value;
-            button.setAttribute('aria-pressed', pressed ? 'true' : 'false');
-            var stateEl = button.querySelector('.pref-state');
-            if (stateEl) stateEl.textContent = pressed ? 'On' : 'Off';
-        }
-
-        function getCurrentPrefs() {
-            var prefs = { analytics: false, functional: false, advertising: false };
-            document.querySelectorAll(TOGGLE_SELECTOR).forEach(function(button) {
-                var pref = button.dataset.pref;
-                if (!pref || pref === 'necessary') return;
-                prefs[pref] = button.getAttribute('aria-pressed') === 'true';
-            });
-            return prefs;
-        }
-
-        function syncForm() {
-            if (!window.consentAPI || typeof window.consentAPI.get !== 'function') { setTimeout(syncForm, 120); return; }
-            var prefs = window.consentAPI.get() || {};
-            document.querySelectorAll(TOGGLE_SELECTOR).forEach(function(button) {
-                var pref = button.dataset.pref;
-                var value = pref === 'necessary' ? true : !!prefs[pref];
-                updateToggleUI(button, value);
-            });
-        }
-
-        function bindToggleEvents() {
-            document.querySelectorAll(TOGGLE_SELECTOR).forEach(function(button) {
-                button.addEventListener('click', function() {
-                    if (button.disabled || button.dataset.locked === 'true') return;
-                    var current = button.getAttribute('aria-pressed') === 'true';
-                    updateToggleUI(button, !current);
-                });
-            });
-        }
-
-        function bindInfoButtons() {
-            document.querySelectorAll('.pref-info').forEach(function(button) {
-                button.addEventListener('click', function() {
-                    var expanded = button.getAttribute('aria-expanded') === 'true';
-                    var targetId = button.getAttribute('aria-controls');
-                    var target = targetId ? document.getElementById(targetId) : null;
-                    button.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-                    if (!target) return;
-                    if (expanded) {
-                        target.hidden = true;
-                    } else {
-                        target.hidden = false;
-                    }
-                });
-            });
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            bindToggleEvents();
-            bindInfoButtons();
-            syncForm();
-
-            var saveBtn = document.getElementById('save-privacy-preferences');
-            if (saveBtn) {
-                saveBtn.addEventListener('click', function() {
-                    if (!window.consentAPI || typeof window.consentAPI.set !== 'function') return;
-                    var newPrefs = getCurrentPrefs();
-                    window.consentAPI.set(newPrefs);
-                    var statusEl = document.getElementById('privacy-preferences-status');
-                    if (statusEl) statusEl.textContent = 'Your preferences have been saved.';
-                });
-            }
-        });
-    })();
-    </script>
+    <script defer src="js/privacy/privacy-preferences.js"></script>
 </body>
 </html>

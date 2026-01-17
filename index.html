@@ -27,15 +27,7 @@
   <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
   <!-- Local fonts with legacy reference retained for tooling: https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap -->
-  <script>
-    try {
-      if (document.documentElement.classList) {
-        document.documentElement.classList.remove("no-js");
-      } else {
-        document.documentElement.className = (document.documentElement.className || "").replace(/\bno-js\b/, "").trim();
-      }
-    } catch (_) {}
-  </script>
+  <script src="js/common/no-js.js"></script>
   <meta property="og:image:alt" content="Portrait photo of Daniel Short">
   <meta name="description" content="Daniel Short – data scientist working across analytics, automation, and machine learning in Python/SQL.">
   <link rel="prefetch" href="portfolio.html" as="document">
@@ -155,15 +147,16 @@
 	              <div class="project-title">Shape Classifier</div>
 	              <div class="project-subtitle">Handwritten Shape Recognition</div>
 	            </div>
-            <video class="gif-video" muted playsinline loop preload="none" aria-label="Shape Classifier preview" draggable="false" poster="img/projects/shapeClassifier.png">
-              <source data-src="img/projects/shapeClassifier.webm" type="video/webm">
-              <source data-src="img/projects/shapeClassifier.mp4" type="video/mp4">
-            </video>
-	            <picture>
-	              <source srcset="img/projects/shapeClassifier.webp" type="image/webp">
-	              <img src="img/projects/shapeClassifier.png" alt="Preview of the Shape Classifier demo interface" width="1280" height="720" loading="lazy" decoding="async">
-	            </picture>
-	          </a>
+		            <video class="gif-video" muted playsinline loop preload="none" aria-label="Shape Classifier preview" draggable="false" poster="img/projects/shapeClassifier.png">
+		              <source data-src="img/projects/shapeClassifier.webm" type="video/webm">
+		              <source data-src="img/projects/shapeClassifier.mp4" type="video/mp4">
+		            </video>
+		            <picture>
+		              <source srcset="img/projects/shapeClassifier-640.avif 640w, img/projects/shapeClassifier.avif 926w" type="image/avif">
+		              <source srcset="img/projects/shapeClassifier-640.webp 640w, img/projects/shapeClassifier.webp 926w" type="image/webp">
+		              <img src="img/projects/shapeClassifier.png" alt="Preview of the Shape Classifier demo interface" width="926" height="926" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
+		            </picture>
+		          </a>
 
 		          <a
 		            class="project-card ripple-in project-examples-card is-animated-preview"
@@ -177,15 +170,16 @@
 		              <div class="project-title">Store-Level Loss &amp; Sales ETL</div>
 		              <div class="project-subtitle">SQL ETL + Anomaly Detection</div>
 		            </div>
-            <video class="gif-video" muted playsinline loop preload="none" aria-label="Store-level loss and sales preview" draggable="false" poster="img/projects/retailStore.png">
-              <source data-src="img/projects/retailStore.webm" type="video/webm">
-              <source data-src="img/projects/retailStore.mp4" type="video/mp4">
-            </video>
-		            <picture>
-		              <source srcset="img/projects/retailStore.webp" type="image/webp">
-		              <img src="img/projects/retailStore.png" alt="Preview of store-level loss and sales analysis dashboard" width="1410" height="1410" loading="lazy" decoding="async">
-		            </picture>
-		          </a>
+	            <video class="gif-video" muted playsinline loop preload="none" aria-label="Store-level loss and sales preview" draggable="false" poster="img/projects/retailStore.png">
+	              <source data-src="img/projects/retailStore.webm" type="video/webm">
+	              <source data-src="img/projects/retailStore.mp4" type="video/mp4">
+	            </video>
+			            <picture>
+			              <source srcset="img/projects/retailStore-640.avif 640w, img/projects/retailStore-960.avif 960w, img/projects/retailStore.avif 1410w" type="image/avif">
+			              <source srcset="img/projects/retailStore-640.webp 640w, img/projects/retailStore-960.webp 960w, img/projects/retailStore.webp 1410w" type="image/webp">
+			              <img src="img/projects/retailStore.png" alt="Preview of store-level loss and sales analysis dashboard" width="1410" height="1410" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
+			            </picture>
+			          </a>
 
           <a
             class="project-card ripple-in project-examples-card"
@@ -199,15 +193,16 @@
               <div class="project-title">Sheet Music Watermark Removal &amp; Upscale</div>
               <div class="project-subtitle">UNet &amp; VDSR Pipeline</div>
             </div>
-            <video class="gif-video" muted playsinline loop preload="none" aria-label="Sheet music restoration preview" draggable="false" poster="img/projects/sheetMusicUpscale.png">
-              <source data-src="img/projects/sheetMusicUpscale.webm" type="video/webm">
-              <source data-src="img/projects/sheetMusicUpscale.mp4" type="video/mp4">
-            </video>
-            <picture>
-              <source srcset="img/projects/sheetMusicUpscale.webp" type="image/webp">
-              <img src="img/projects/sheetMusicUpscale.png" alt="Example of cleaned sheet music after processing" width="1604" height="1230" loading="lazy" decoding="async">
-            </picture>
-          </a>
+	            <video class="gif-video" muted playsinline loop preload="none" aria-label="Sheet music restoration preview" draggable="false" poster="img/projects/sheetMusicUpscale.png">
+	              <source data-src="img/projects/sheetMusicUpscale.webm" type="video/webm">
+	              <source data-src="img/projects/sheetMusicUpscale.mp4" type="video/mp4">
+	            </video>
+	            <picture>
+	              <source srcset="img/projects/sheetMusicUpscale-640.avif 640w, img/projects/sheetMusicUpscale-960.avif 960w, img/projects/sheetMusicUpscale.avif 1604w" type="image/avif">
+	              <source srcset="img/projects/sheetMusicUpscale-640.webp 640w, img/projects/sheetMusicUpscale-960.webp 960w, img/projects/sheetMusicUpscale.webp 1604w" type="image/webp">
+	              <img src="img/projects/sheetMusicUpscale.png" alt="Example of cleaned sheet music after processing" width="1604" height="1230" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
+	            </picture>
+	          </a>
         </div>
 
         <div class="project-examples-actions">
@@ -560,7 +555,7 @@
   <footer>
     <nav class="privacy-links" aria-label="Privacy shortcuts">
       <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
-      <a href="#" class="pcz-link" onclick="window.Privacy && window.Privacy.open('doNotSell'); return false;">
+      <a href="privacy.html#prefs-title" class="pcz-link" data-consent-open="true">
         Do Not Sell/Share My Personal Information
       </a>
     </nav>
