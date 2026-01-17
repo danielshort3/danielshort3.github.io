@@ -87,6 +87,53 @@
     return '';
   }
 
+  function getImageSizeAttr(p = {}) {
+    const width = Number(p.imageWidth);
+    const height = Number(p.imageHeight);
+    if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
+      return ` width="${width}" height="${height}"`;
+    }
+    return '';
+  }
+
+  function buildResponsiveSrcset(base, ext, width) {
+    const fullW = Number(width);
+    if (!Number.isFinite(fullW) || fullW <= 0) return `${base}.${ext}`;
+    const parts = [];
+    if (fullW > 640) parts.push(`${base}-640.${ext} 640w`);
+    if (fullW > 960) parts.push(`${base}-960.${ext} 960w`);
+    parts.push(`${base}.${ext} ${fullW}w`);
+    return parts.join(', ');
+  }
+
+  function buildResponsivePicture(src, alt, options = {}) {
+    if (!src) return '';
+    const match = String(src).match(/\.(png|jpe?g)$/i);
+
+    const width = Number(options.width);
+    const height = Number(options.height);
+    const sizeAttr = options.sizeAttr || (Number.isFinite(width) && Number.isFinite(height) ? ` width="${width}" height="${height}"` : '');
+    const sizes = options.sizes ? ` sizes="${options.sizes}"` : '';
+    const loading = options.loading ? ` loading="${options.loading}"` : '';
+    const decoding = options.decoding ? ` decoding="${options.decoding}"` : '';
+    const draggable = options.draggable != null ? ` draggable="${options.draggable ? 'true' : 'false'}"` : '';
+    const fetch = options.fetchpriority ? ` fetchpriority="${options.fetchpriority}"` : '';
+    const cls = options.className ? ` class="${options.className}"` : '';
+
+    if (!match) {
+      return `<img${cls} src="${src}" alt="${alt || ''}"${loading}${decoding}${draggable}${sizeAttr}${sizes}${fetch}>`;
+    }
+
+    const base = src.replace(/\.(png|jpe?g)$/i, '');
+    const avifSrcset = buildResponsiveSrcset(base, 'avif', width);
+    const webpSrcset = buildResponsiveSrcset(base, 'webp', width);
+    return `<picture${cls}>
+      <source srcset="${avifSrcset}" type="image/avif">
+      <source srcset="${webpSrcset}" type="image/webp">
+      <img src="${src}" alt="${alt || ''}"${loading}${decoding}${draggable}${sizeAttr}${sizes}${fetch}>
+    </picture>`;
+  }
+
   function computeTableauSrc(base) {
     if (!base) return '';
     const isPhone = window.matchMedia && window.matchMedia('(max-width:768px)').matches;
@@ -169,7 +216,16 @@
           ${image ? `<img src="${image}" alt="${label}">` : ''}
         </video>`;
     } else if (image) {
-      html = `<img src="${image}" alt="${label}" loading="lazy">`;
+      const dims = getMediaDimensions(sourceEl);
+      html = buildResponsivePicture(image, label, {
+        width: dims && dims.width,
+        height: dims && dims.height,
+        sizeAttr: dims && dims.width && dims.height ? ` width="${dims.width}" height="${dims.height}"` : '',
+        loading: 'eager',
+        decoding: 'async',
+        draggable: false,
+        sizes: '100vw'
+      });
     } else {
       return;
     }
@@ -336,21 +392,24 @@
     const hasImage = !!p.image;
     const mode = options.mode || 'hover';
     const videoOnly = p.videoOnly || !hasImage;
+    const sizes = options.sizes || '(max-width: 640px) 92vw, 340px';
+    const loading = options.loading || 'lazy';
+    const decoding = options.decoding || 'async';
+    const fetchpriority = options.fetchpriority;
     const img = (() => {
       if (!hasImage) return '';
       const src = p.image || '';
-      const lower = src.toLowerCase();
-      const webp = lower.endsWith('.png') ? src.replace(/\.png$/i, '.webp')
-                 : lower.endsWith('.jpg') ? src.replace(/\.jpg$/i, '.webp')
-                 : lower.endsWith('.jpeg') ? src.replace(/\.jpeg$/i, '.webp')
-                 : null;
-      if (webp) {
-        return `<picture>
-        <source srcset="${webp}" type="image/webp">
-        <img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false">
-      </picture>`;
-      }
-      return `<img src="${src}" alt="${p.title}" loading="lazy" decoding="async" draggable="false">`;
+      const sizeAttr = getImageSizeAttr(p);
+      return buildResponsivePicture(src, p.title || '', {
+        width: p.imageWidth,
+        height: p.imageHeight,
+        sizeAttr,
+        loading,
+        decoding,
+        draggable: false,
+        sizes,
+        fetchpriority
+      });
     })();
 
     if (!hasVideo) return img;
@@ -549,7 +608,7 @@
             </span>
             <span class="sr-only">Open full view</span>
           </button>
-          ${projectMedia(p, { mode: 'auto' })}
+          ${projectMedia(p, { mode: 'auto', sizes: '(max-width: 960px) 92vw, 840px' })}
         </div>`;
       }
       const base = p.embed.base || p.embed.url;

@@ -23,17 +23,9 @@
   <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
   <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
+  <script src="js/common/no-js.js"></script>
   <meta name="description" content="Get in touch with Daniel Short – data scientist (analytics, automation, and ML).">
   <meta property="og:image:alt" content="Portrait photo of Daniel Short">
-  <script>
-    try {
-      if (document.documentElement.classList) {
-        document.documentElement.classList.remove('no-js');
-      } else {
-        document.documentElement.className = (document.documentElement.className || '').replace(/\bno-js\b/, '').trim();
-      }
-    } catch {}
-  </script>
 </head>
 <body data-page="contact" class="contact-page">
   <a href="#main" class="skip-link">Skip to main content</a>
@@ -43,15 +35,12 @@
   <section class="hero alt-band">
     <div class="wrapper">
       <h1>Let's Connect</h1>
-	      <p class="hero-tagline">Hiring for a data scientist (analytics, experimentation, or ML)?<br>Send a message and I’ll reply shortly.</p>
+      <p class="hero-tagline">Hiring for a data scientist (analytics, experimentation, or ML)?<br>Send a message and I’ll reply shortly.</p>
         <div class="cta-group">
           <button id="contact-form-toggle" class="btn-primary hero-cta">Send a Message</button>
         </div>
-        <noscript>
-          <p class="hero-noscript-hint">The full contact form is shown below since JavaScript is disabled.</p>
-        </noscript>
     </div>
-      <a class="chevron-hint scroll-indicator" href="#contact-options">
+      <a class="chevron-hint scroll-indicator" href="#contact-options" data-smooth-scroll="true">
         <span class="chevron-label">Scroll for ways to connect</span>
         <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 16.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 14.08l5.3-5.29a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29z"/></svg>
       </a>
@@ -61,9 +50,7 @@
   <div id="contact-modal" class="modal">
     <div class="modal-content" role="dialog" aria-modal="true" tabindex="0" aria-labelledby="contact-modal-title">
       <button class="modal-close" aria-label="Close dialog">&times;</button>
-      <div class="modal-title-strip">
-        <h3 class="modal-title" id="contact-modal-title">Send a Message</h3>
-      </div>
+      <div class="modal-title-strip"><h3 class="modal-title" id="contact-modal-title">Send a Message</h3></div>
       <div class="modal-body">
         <form id="contact-form" class="contact-form" method="post" action="https://muee4eg6ze.execute-api.us-east-2.amazonaws.com/prod/contact" data-endpoint="https://muee4eg6ze.execute-api.us-east-2.amazonaws.com/prod/contact" novalidate>
           <div class="form-field">
@@ -112,21 +99,10 @@
   <section id="contact-options" class="surface-band reveal">
     <div class="wrapper">
       <div class="contact-options-heading">
-        <h2 class="section-title">Contact Me</h2>
-        <p class="section-subtitle">Whether you prefer email, social, or a direct note, I’ll respond quickly.</p>
+        <h2 class="section-title">Contact Options</h2>
+        <p class="section-subtitle">Email is fastest. LinkedIn is great for recruiters and introductions.</p>
       </div>
-    </div>
-    <div class="wrapper contact-grid contact-big">
-      <a href="#contact-modal" class="contact-card contact-card-recommended" data-contact-modal-link="true">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-          <path d="M7 9h10"></path>
-          <path d="M7 13h6"></path>
-        </svg>
-        <span>Send a Message</span>
-        <small>I’ll reply as soon as I can.</small>
-        <span class="contact-card-badge" aria-hidden="true">Recommended</span>
-      </a>
+      <div class="contact-grid contact-big">
       <a href="mailto:daniel@danielshort.me" class="contact-card">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <rect x="3" y="5" width="18" height="14" rx="2"></rect>
@@ -147,13 +123,14 @@
         <span>GitHub</span><small>@danielshort3</small>
       </a>
       </div>
+    </div>
     </section>
 
   </main>
   <footer>
     <nav class="privacy-links" aria-label="Privacy shortcuts">
       <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
-      <a href="#" class="pcz-link" onclick="window.Privacy && window.Privacy.open('doNotSell'); return false;">
+      <a href="privacy.html#prefs-title" class="pcz-link" data-consent-open="true">
         Do Not Sell/Share My Personal Information
       </a>
     </nav>

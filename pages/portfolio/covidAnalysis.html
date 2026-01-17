@@ -29,15 +29,7 @@
 
 
   <!-- Local fonts with legacy reference retained for tooling: https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap -->
-  <script>
-    try {
-      if (document.documentElement.classList) {
-        document.documentElement.classList.remove('no-js');
-      } else {
-        document.documentElement.className = (document.documentElement.className || '').replace(/\bno-js\b/, '').trim();
-      }
-    } catch (_) {}
-  </script>
+  <script src="js/common/no-js.js"></script>
   <script type="application/ld+json">
     {"@context":"https://schema.org","@type":"CreativeWork","name":"COVID-19 Outbreak Drivers","description":"Python XGBoost & SHAP: I built an early-warning model to flag states at risk of crossing 90% ICU utilization in the next 7 days.","url":"https://danielshort.me/portfolio/covidAnalysis","image":"https://danielshort.me/img/projects/covidAnalysis.png"}
   </script>
@@ -156,7 +148,7 @@
   <footer>
     <nav class="privacy-links" aria-label="Privacy shortcuts">
       <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
-      <a href="#" class="pcz-link" onclick="window.Privacy && window.Privacy.open('doNotSell'); return false;">Do Not Sell/Share My Personal Information</a>
+      <a href="privacy.html#prefs-title" class="pcz-link" data-consent-open="true">Do Not Sell/Share My Personal Information</a>
     </nav>
   </footer>
 

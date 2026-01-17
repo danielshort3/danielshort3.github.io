@@ -25,15 +25,7 @@
   <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
   <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
-  <script>
-    try {
-      if (document.documentElement.classList) {
-        document.documentElement.classList.remove("no-js");
-      } else {
-        document.documentElement.className = (document.documentElement.className || "").replace(/\bno-js\b/, "").trim();
-      }
-    } catch (_) {}
-  </script>
+  <script src="js/common/no-js.js"></script>
 </head>
 <body data-page="job-application-tracker" class="jobtrack-page" data-api-base="https://fhp2is6v8h.execute-api.us-east-2.amazonaws.com/prod" data-cognito-domain="job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com" data-cognito-client-id="78oo663obb0t28u63u9bqn00o9" data-cognito-redirect="https://danielshort.me/tools/job-application-tracker" data-cognito-scopes="openid email profile" data-max-attachment-bytes="10485760" data-max-attachment-count="12" data-tools-autosave="false">
   <a href="#main" class="skip-link">Skip to main content</a>
@@ -947,7 +939,7 @@
   <footer>
     <nav class="privacy-links" aria-label="Privacy shortcuts">
       <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
-      <a href="#" class="pcz-link" onclick="window.Privacy && window.Privacy.open('doNotSell'); return false;">Do Not Sell/Share My Personal Information</a>
+      <a href="privacy.html#prefs-title" class="pcz-link" data-consent-open="true">Do Not Sell/Share My Personal Information</a>
     </nav>
   </footer>
 

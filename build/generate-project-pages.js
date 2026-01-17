@@ -104,13 +104,20 @@ function fileExists(relPath) {
   return fs.existsSync(path.join(root, relPath));
 }
 
-function inferWebp(project) {
-  const img = String(project.image ?? '');
-  const extWebp = img.replace(/\.(png|jpe?g)$/i, '.webp');
-  if (extWebp !== img && fileExists(extWebp)) return extWebp;
-  const byId = `img/projects/${project.id}.webp`;
-  if (fileExists(byId)) return byId;
-  return '';
+function buildResponsiveSrcset(base, ext, width) {
+  const fullW = Number(width);
+  if (!Number.isFinite(fullW) || fullW <= 0) {
+    const candidate = `${base}.${ext}`;
+    return fileExists(candidate) ? candidate : '';
+  }
+  const parts = [];
+  const w640 = `${base}-640.${ext}`;
+  if (fullW > 640 && fileExists(w640)) parts.push(`${w640} 640w`);
+  const w960 = `${base}-960.${ext}`;
+  if (fullW > 960 && fileExists(w960)) parts.push(`${w960} 960w`);
+  const full = `${base}.${ext}`;
+  if (fileExists(full)) parts.push(`${full} ${fullW}w`);
+  return parts.join(', ');
 }
 
 function loadProjects() {
@@ -133,7 +140,6 @@ function renderProjectPage(project) {
   const canonicalUrl = `${SITE_ORIGIN}${canonicalPath}`;
   const ogImage = toAbsoluteUrl(project.image || 'img/hero/head.jpg');
   const ogImageAlt = normalizeWhitespace(project.imageAlt || `Preview image for ${title}`);
-  const preloadWebp = inferWebp(project);
 
   const tools = Array.isArray(project.tools) ? project.tools : [];
   const concepts = Array.isArray(project.concepts) ? project.concepts : [];
@@ -243,20 +249,29 @@ function renderProjectPage(project) {
   const renderImageMedia = () => {
     const img = String(project.image || '').trim();
     if (!img) return '';
-    const webp = preloadWebp;
     const alt = escapeHtml(ogImageAlt);
     const width = Number(project.imageWidth);
     const height = Number(project.imageHeight);
     const sizeAttr = Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0
       ? ` width="${width}" height="${height}"`
       : '';
-    if (webp) {
+    const match = img.match(/\.(png|jpe?g)$/i);
+    if (!match) {
+      return `<img class="project-media" src="${escapeHtml(img)}" alt="${alt}" loading="eager" decoding="async"${sizeAttr} fetchpriority="high">`;
+    }
+
+    const base = img.replace(/\.(png|jpe?g)$/i, '');
+    const avif = buildResponsiveSrcset(base, 'avif', width);
+    const webp = buildResponsiveSrcset(base, 'webp', width);
+    const sizes = ' sizes="(max-width: 960px) 92vw, 840px"';
+    if (avif || webp) {
       return `<picture class="project-media">
-        <source srcset="${escapeHtml(webp)}" type="image/webp">
-        <img src="${escapeHtml(img)}" alt="${alt}" loading="lazy" decoding="async"${sizeAttr}>
+        ${avif ? `<source srcset="${escapeHtml(avif)}" type="image/avif">` : ''}
+        ${webp ? `<source srcset="${escapeHtml(webp)}" type="image/webp">` : ''}
+        <img src="${escapeHtml(img)}" alt="${alt}" loading="eager" decoding="async"${sizeAttr}${sizes} fetchpriority="high">
       </picture>`;
     }
-    return `<img class="project-media" src="${escapeHtml(img)}" alt="${alt}" loading="lazy" decoding="async"${sizeAttr}>`;
+    return `<img class="project-media" src="${escapeHtml(img)}" alt="${alt}" loading="eager" decoding="async"${sizeAttr} fetchpriority="high">`;
   };
 
   const renderEmbeddedMedia = () => {
@@ -318,15 +333,7 @@ function renderProjectPage(project) {
 ${tableauPreconnect}
 
   <!-- Local fonts with legacy reference retained for tooling: https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap -->
-  <script>
-    try {
-      if (document.documentElement.classList) {
-        document.documentElement.classList.remove('no-js');
-      } else {
-        document.documentElement.className = (document.documentElement.className || '').replace(/\\bno-js\\b/, '').trim();
-      }
-    } catch (_) {}
-  </script>
+  <script src="js/common/no-js.js"></script>
   <script type="application/ld+json">
     ${ldJson}
   </script>
@@ -366,7 +373,7 @@ ${tableauPreconnect}
   <footer>
     <nav class="privacy-links" aria-label="Privacy shortcuts">
       <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
-      <a href="#" class="pcz-link" onclick="window.Privacy && window.Privacy.open('doNotSell'); return false;">Do Not Sell/Share My Personal Information</a>
+      <a href="privacy.html#prefs-title" class="pcz-link" data-consent-open="true">Do Not Sell/Share My Personal Information</a>
     </nav>
   </footer>
 
