@@ -58,25 +58,26 @@
         privacyPolicy: 'Privacy Policy',
         close: 'Close banner and accept all cookies',
         modalTitle: 'Manage Your Privacy Settings',
+        modalLead: 'Adjust your preferences below and click “Save preferences” to apply the changes. Necessary cookies are always enabled.',
         savePrefs: 'Save preferences',
         cancel: 'Cancel',
         closePrefs: 'Close',
         categories: {
           necessary: {
             label: 'Strictly necessary',
-            description: 'These cookies are required for basic website functions such as navigation and access to secure areas. You cannot turn them off.'
+            description: 'These cookies are required for the site to run: navigation, basic interactions, and honoring your privacy choices. They cannot be disabled.'
           },
           analytics: {
             label: 'Analytics',
-            description: 'Analytics cookies help us understand how visitors interact with our website and improve performance.'
+            description: 'Analytics cookies help me understand which pages are viewed most often and how visitors move around the site so I can improve the experience.'
           },
           functional: {
             label: 'Functional',
-            description: 'Functional cookies allow the website to remember your choices and provide enhanced, more personal features.'
+            description: 'Functional cookies remember your settings (like language or filters) so features feel more tailored to you.'
           },
           advertising: {
             label: 'Advertising',
-            description: 'Advertising cookies are used to deliver relevant ads and to measure the effectiveness of marketing campaigns.'
+            description: 'Advertising cookies make it possible to personalize or measure marketing efforts. They are only used if you opt in.'
           }
         },
         doNotSell: 'Do Not Sell/Share My Personal Information',
@@ -91,6 +92,7 @@
         privacyPolicy: 'Política de privacidad',
         close: 'Cerrar y aceptar todas las cookies',
         modalTitle: 'Preferencias de privacidad',
+        modalLead: 'Ajusta tus preferencias y pulsa “Guardar preferencias” para aplicar los cambios. Las cookies necesarias siempre están activadas.',
         savePrefs: 'Guardar preferencias',
         cancel: 'Cancelar',
         closePrefs: 'Cerrar',
@@ -437,23 +439,31 @@
     overlay.setAttribute('aria-modal', 'true');
     overlay.setAttribute('aria-label', localeStrings.modalTitle);
     const panel = document.createElement('div');
-    panel.className = 'pcz-panel';
+    panel.className = 'pcz-panel policy-card';
     panel.setAttribute('tabindex', '-1');
     let categoriesHTML = '';
     ['necessary','analytics','functional','advertising'].forEach(function (key) {
       const cat = localeStrings.categories[key];
+      const descId = 'pcz-pref-desc-' + key;
       const isDisabled = key === 'necessary';
       const checked = initialState[key] || isDisabled;
+      const isOn = checked ? 'true' : 'false';
+      const stateLabel = checked ? 'On' : 'Off';
       categoriesHTML +=
-        '<fieldset>' +
-          '<legend>' + cat.label + '</legend>' +
-          '<label>' +
-            '<input type="checkbox" id="toggle-' + key + '" name="' + key + '" ' + (checked ? 'checked' : '') + ' ' + (isDisabled ? 'disabled aria-disabled="true"' : '') + '/>' +
-            '<span class="pcz-helper">' + cat.description + '</span>' +
-          '</label>' +
-        '</fieldset>';
+        '<div class="pref-option" data-pref="' + key + '" role="listitem">' +
+          '<button type="button" class="pref-toggle" data-pref="' + key + '" aria-pressed="' + isOn + '"' + (isDisabled ? ' data-locked="true" disabled' : '') + '>' +
+            '<span class="pref-label">' + cat.label + '</span>' +
+            '<span class="pref-state" aria-hidden="true">' + stateLabel + '</span>' +
+          '</button>' +
+          '<button type="button" class="pref-info" aria-expanded="false" aria-controls="' + descId + '">' +
+            '<span aria-hidden="true">?</span>' +
+            '<span class="visually-hidden">Read what ' + cat.label + ' cookies do</span>' +
+          '</button>' +
+          '<p id="' + descId + '" class="pref-description" hidden>' + cat.description + '</p>' +
+        '</div>';
     });
-    const gpcNotice = hasGPC() ? '<p class="pcz-helper">' + localeStrings.gpcHonoured + '</p>' : '';
+    const lead = localeStrings.modalLead ? '<p class="policy-lead">' + localeStrings.modalLead + '</p>' : '';
+    const gpcNotice = hasGPC() ? '<p class="policy-lead pcz-gpc-notice">' + localeStrings.gpcHonoured + '</p>' : '';
     panel.innerHTML =
       '<div class="pcz-panel-head">' +
         '<h2>' + localeStrings.modalTitle + '</h2>' +
@@ -461,12 +471,10 @@
           '<span aria-hidden="true">&times;</span>' +
         '</button>' +
       '</div>' +
+      lead +
       gpcNotice +
-      '<form id="pcz-form">' + categoriesHTML + '</form>' +
-      '<div class="pcz-actions">' +
-        '<button type="button" id="pcz-cancel" class="pcz-btn pcz-secondary">' + localeStrings.cancel + '</button>' +
-        '<button type="button" id="pcz-save" class="pcz-btn pcz-primary">' + localeStrings.savePrefs + '</button>' +
-      '</div>';
+      '<div class="pref-grid" role="list">' + categoriesHTML + '</div>' +
+      '<button type="button" id="pcz-save" class="pcz-save-preferences">' + localeStrings.savePrefs + '</button>';
     overlay.appendChild(panel);
     return overlay;
   }
@@ -593,21 +601,38 @@
         showBanner(localeStrings);
       }
     });
-    modal.querySelector('#pcz-cancel').addEventListener('click', function () {
-      closePreferences(modal);
-      if (blocking) {
-        showBanner(localeStrings);
-      }
+
+    modal.querySelectorAll('.pref-toggle[data-pref]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        if (button.disabled || button.dataset.locked === 'true') return;
+        const current = button.getAttribute('aria-pressed') === 'true';
+        button.setAttribute('aria-pressed', current ? 'false' : 'true');
+        const stateEl = button.querySelector('.pref-state');
+        if (stateEl) stateEl.textContent = current ? 'Off' : 'On';
+      });
     });
+    modal.querySelectorAll('.pref-info[aria-controls]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        const expanded = button.getAttribute('aria-expanded') === 'true';
+        const targetId = button.getAttribute('aria-controls');
+        const target = targetId ? document.getElementById(targetId) : null;
+        button.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+        if (target) target.hidden = expanded;
+      });
+    });
+
     modal.querySelector('#pcz-save').addEventListener('click', function () {
-      const form = modal.querySelector('#pcz-form');
-      const formData = new FormData(form);
       const newState = {
         necessary: true,
-        analytics: formData.has('analytics'),
-        functional: formData.has('functional'),
-        advertising: formData.has('advertising')
+        analytics: false,
+        functional: false,
+        advertising: false
       };
+      modal.querySelectorAll('.pref-toggle[data-pref]').forEach(function (button) {
+        const key = String(button.dataset.pref || '').trim();
+        if (!key || key === 'necessary') return;
+        newState[key] = button.getAttribute('aria-pressed') === 'true';
+      });
       if (hasGPC()) newState.advertising = false;
       saveConsent(newState);
       applyConsent(newState);
