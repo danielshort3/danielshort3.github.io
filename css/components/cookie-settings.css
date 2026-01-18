@@ -1,0 +1,44 @@
+@layer components {
+  .cookie-settings{
+    position:fixed;
+    left:calc(var(--space-20) + env(safe-area-inset-left));
+    bottom:calc(var(--space-20) + env(safe-area-inset-bottom));
+    z-index:2600;
+    display:inline-flex;
+    align-items:center;
+  }
+
+  .cookie-settings__item{
+    position:relative;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .cookie-settings__label{
+    position:absolute;
+    left:50%;
+    bottom:calc(100% + 10px);
+    font-family:'Poppins';
+    font-size:12px;
+    letter-spacing:.02em;
+    color:color-mix(in srgb, var(--text-light) 92%, #ffffff 8%);
+    background:color-mix(in srgb, var(--surface) 88%, #000000 12%);
+    border:1px solid var(--border-subtle);
+    padding:6px 10px;
+    border-radius:999px;
+    box-shadow:var(--shadow-sm);
+    opacity:0;
+    transform:translateX(-50%) translateY(6px);
+    pointer-events:none;
+    transition:opacity .18s ease, transform .18s ease;
+    white-space:nowrap;
+    z-index:1;
+  }
+
+  .cookie-settings__item:hover .cookie-settings__label,
+  .cookie-settings__item:focus-within .cookie-settings__label{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+  }
+}
