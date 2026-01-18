@@ -1,0 +1,182 @@
+@layer components {
+  .sitemap-page .sitemap-panel{
+    max-width:980px;
+    margin-inline:auto;
+  }
+
+  .sitemap-card{
+    border-radius:22px;
+    padding:clamp(18px, 3vw, 26px);
+    background:color-mix(in srgb,var(--surface) 90%, #000 10%);
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    box-shadow:0 22px 48px rgba(0,0,0,.28);
+  }
+
+  .sitemap-filter{
+    display:flex;
+    gap:10px;
+    align-items:stretch;
+  }
+
+  .sitemap-filter-input{
+    flex:1;
+    min-height:48px;
+    padding:12px 14px;
+    border-radius:16px;
+    border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
+    background:color-mix(in srgb,var(--surface) 82%, #020509 18%);
+    color:color-mix(in srgb,var(--text-light) 94%, #ffffff 6%);
+    font-size:1rem;
+  }
+  .sitemap-filter-input::placeholder{
+    color:color-mix(in srgb,var(--text-muted) 78%, #ffffff 22%);
+  }
+  .sitemap-filter-input:focus{
+    outline:none;
+    border-color:color-mix(in srgb,var(--primary) 44%, transparent);
+    box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 18%, transparent);
+  }
+
+  .sitemap-meta{
+    margin-top:12px;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    color:color-mix(in srgb,var(--text-muted) 86%, #ffffff 14%);
+  }
+  .sitemap-meta p{
+    margin:0;
+  }
+  .sitemap-links a{
+    color:color-mix(in srgb,var(--text-light) 92%, #ffffff 8%);
+    text-decoration:none;
+  }
+  .sitemap-links a:hover,
+  .sitemap-links a:focus-visible{
+    outline:none;
+    text-decoration:underline;
+    text-decoration-thickness:2px;
+    text-underline-offset:4px;
+  }
+
+  .sitemap-status{
+    margin:14px 0 0;
+    min-height:1.2em;
+    color:color-mix(in srgb,var(--text-muted) 86%, #ffffff 14%);
+  }
+
+  .sitemap-sections{
+    margin-top:16px;
+    display:grid;
+    gap:18px;
+  }
+
+  .sitemap-section{
+    border-radius:20px;
+    overflow:hidden;
+    border:1px solid color-mix(in srgb,var(--primary) 14%, transparent);
+    background:color-mix(in srgb,var(--surface) 94%, #000 6%);
+  }
+
+  .sitemap-section-head{
+    padding:14px 16px;
+    border-bottom:1px solid color-mix(in srgb,var(--primary) 14%, transparent);
+    background:linear-gradient(180deg, color-mix(in srgb,var(--surface) 80%, #000 20%), transparent);
+  }
+
+  .sitemap-section-title-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+
+  .sitemap-section-title{
+    margin:0;
+    font-size:1.1rem;
+    letter-spacing:.01em;
+    color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
+  }
+
+  .sitemap-section-count{
+    flex:0 0 auto;
+    display:inline-flex;
+    align-items:center;
+    padding:4px 10px;
+    border-radius:999px;
+    border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
+    background:color-mix(in srgb,var(--surface) 78%, #000 22%);
+    font-size:.82rem;
+    color:color-mix(in srgb,var(--text-muted) 84%, #ffffff 16%);
+  }
+
+  .sitemap-section-subtitle{
+    margin:8px 0 0;
+    color:color-mix(in srgb,var(--text-muted) 86%, #ffffff 14%);
+  }
+
+  .sitemap-items{
+    display:grid;
+  }
+
+  .sitemap-item{
+    display:block;
+    padding:14px 16px;
+    text-decoration:none;
+    color:inherit;
+    border-top:1px solid color-mix(in srgb,var(--primary) 12%, transparent);
+    transition:background .15s ease, border-color .15s ease, transform .15s ease;
+  }
+  .sitemap-item:first-child{
+    border-top:none;
+  }
+  .sitemap-item:hover{
+    background:color-mix(in srgb,var(--surface) 88%, #000 12%);
+    border-top-color:color-mix(in srgb,var(--primary) 18%, transparent);
+    transform:translateY(-1px);
+  }
+
+  .sitemap-item-title{
+    font-weight:650;
+    letter-spacing:.01em;
+    color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
+    line-height:1.2;
+  }
+
+  .sitemap-item-url{
+    margin-top:8px;
+    font-size:.92rem;
+    color:color-mix(in srgb,var(--text-muted) 84%, #ffffff 16%);
+  }
+
+  .sitemap-item-desc{
+    margin-top:10px;
+    color:color-mix(in srgb,var(--text-muted) 92%, #ffffff 8%);
+  }
+
+  .sitemap-item-meta{
+    margin-top:10px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    font-size:.9rem;
+    color:color-mix(in srgb,var(--text-muted) 86%, #ffffff 14%);
+  }
+
+  .sitemap-loading,
+  .sitemap-empty{
+    padding:16px;
+    border-radius:18px;
+    border:1px solid color-mix(in srgb,var(--primary) 14%, transparent);
+    background:color-mix(in srgb,var(--surface) 94%, #000 6%);
+    color:color-mix(in srgb,var(--text-muted) 92%, #ffffff 8%);
+  }
+
+  @media (max-width: 768px){
+    .sitemap-filter{ flex-direction:column; }
+    .sitemap-meta{ flex-direction:column; align-items:flex-start; }
+  }
+}
+

@@ -398,7 +398,7 @@
             if (totalEl) totalEl.textContent = String(rows.length);
 
             function update() {
-              var q = (input && input.value ? input.value : '').trim().toLowerCase();
+              var q = (input ? input.value : '').trim().toLowerCase();
               var shown = 0;
 
               rows.forEach(function(row) {

@@ -679,87 +679,6 @@ function buildPortfolio() {
   });
   const params = new URLSearchParams(window.location.search);
 
-  const searchInput = document.getElementById('portfolio-search');
-  const searchClear = menu.querySelector('[data-portfolio-search-clear]');
-  const searchMeta = menu.querySelector('[data-portfolio-search-meta]');
-  let searchRaw = '';
-  let searchTokens = [];
-
-  const normalizeSearch = (value) => {
-    return String(value || '')
-      .normalize('NFKD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase();
-  };
-  const tokenizeSearch = (value) => {
-    const normalized = normalizeSearch(value).replace(/[^a-z0-9]+/g, ' ').trim();
-    return normalized ? normalized.split(/\s+/).filter(Boolean) : [];
-  };
-  const buildSearchText = (project) => {
-    if (!project) return '';
-    const parts = [
-      project.id,
-      project.title,
-      project.subtitle,
-      project.problem,
-      project.notes,
-      ...(Array.isArray(project.tools) ? project.tools : []),
-      ...(Array.isArray(project.concepts) ? project.concepts : []),
-      ...(Array.isArray(project.actions) ? project.actions : []),
-      ...(Array.isArray(project.results) ? project.results : []),
-      ...(Array.isArray(project.role) ? project.role : [project.role]),
-      ...(Array.isArray(project.caseStudy)
-        ? project.caseStudy.reduce((acc, sec) => {
-            if (!sec || typeof sec !== 'object') return acc;
-            acc.push(sec.title, sec.lead);
-            if (Array.isArray(sec.paragraphs)) acc.push(...sec.paragraphs);
-            if (Array.isArray(sec.bullets)) acc.push(...sec.bullets);
-            return acc;
-          }, [])
-        : [])
-    ];
-    return normalizeSearch(parts.filter(Boolean).join(' '));
-  };
-  const searchTextById = new Map(
-    projects.map((project) => [String(project.id || ''), buildSearchText(project)])
-  );
-  const matchesSearch = (project) => {
-    if (!searchTokens.length) return true;
-    const text = searchTextById.get(String(project?.id || '')) || '';
-    return searchTokens.every((token) => text.includes(token));
-  };
-  const setSearch = (value, options = {}) => {
-    const nextRaw = String(value || '').trim();
-    const nextTokens = tokenizeSearch(nextRaw);
-    const hasChanged = nextRaw !== searchRaw || nextTokens.join('|') !== searchTokens.join('|');
-    searchRaw = nextRaw;
-    searchTokens = nextTokens;
-
-    if (searchInput && options.syncInput !== false) {
-      searchInput.value = nextRaw;
-    }
-    if (searchClear) {
-      searchClear.disabled = !nextRaw;
-    }
-    if (searchMeta && !nextRaw) {
-      searchMeta.textContent = '';
-    }
-
-    if (options.updateUrl !== false) {
-      try {
-        const nextParams = new URLSearchParams(location.search || '');
-        if (nextRaw) nextParams.set('q', nextRaw);
-        else nextParams.delete('q');
-        const nextSearch = nextParams.toString();
-        const nextUrl = `${location.pathname}${nextSearch ? `?${nextSearch}` : ''}${location.hash || ''}`;
-        if (history && history.replaceState) history.replaceState(null, '', nextUrl);
-      } catch {}
-    }
-
-    return hasChanged;
-  };
-  setSearch(params.get('q') || '', { updateUrl: false, syncInput: true });
-
   const valueAccessors = {
     concept: (project) => Array.isArray(project.concepts) ? project.concepts : [],
     tools: (project) => Array.isArray(project.tools) ? project.tools : []
@@ -773,7 +692,6 @@ function buildPortfolio() {
   };
   const matchesState = (project, overrides = {}) => {
     const state = { ...groupState, ...overrides };
-    if (!matchesSearch(project)) return false;
     return filterGroupKeys.every((group) => {
       const selected = state[group] || 'all';
       if (selected === 'all') return true;
@@ -972,13 +890,7 @@ function buildPortfolio() {
 	          const summary = filterGroupKeys
 	            .map(group => `${FILTER_GROUP_LABELS[group] || group}: ${groupState[group] || 'all'}`)
 	            .join('; ');
-	          const searchSummary = searchRaw ? `Search: "${searchRaw}"` : 'Search: all';
-	          srStatus().textContent = `Showing ${visibleCount} projects. ${summary}; ${searchSummary}`;
-	          if (searchMeta) {
-	            searchMeta.textContent = searchRaw
-	              ? (visibleCount ? `${visibleCount} matches for “${searchRaw}”.` : `No matches for “${searchRaw}”.`)
-	              : '';
-	          }
+	          srStatus().textContent = `Showing ${visibleCount} projects. ${summary}`;
 	        } catch {}
 	      };
 
@@ -1020,36 +932,6 @@ function buildPortfolio() {
 
   // Apply any preselected filters immediately on load
   runFilter();
-
-  if (searchInput && !searchInput._portfolioSearchBound) {
-    searchInput._portfolioSearchBound = true;
-    const onSearchInput = () => {
-      const changed = setSearch(searchInput.value, { updateUrl: true, syncInput: false });
-      if (!changed) return;
-      refreshFilterLabels();
-      runFilter();
-    };
-    searchInput.addEventListener('input', onSearchInput);
-    searchInput.addEventListener('search', onSearchInput);
-    searchInput.addEventListener('keydown', (ev) => {
-      if (ev.key !== 'Escape') return;
-      if (!searchInput.value) return;
-      ev.preventDefault();
-      setSearch('', { updateUrl: true, syncInput: true });
-      refreshFilterLabels();
-      runFilter();
-    });
-  }
-  if (searchClear && !searchClear._portfolioSearchBound) {
-    searchClear._portfolioSearchBound = true;
-    searchClear.addEventListener('click', () => {
-      if (!searchRaw) return;
-      setSearch('', { updateUrl: true, syncInput: true });
-      refreshFilterLabels();
-      runFilter();
-      try { searchInput && searchInput.focus(); } catch {}
-    });
-  }
 
   /* ➎ Open modal based on URL (hash, clean path, or query) --------- */
   const getProjectIdFromURL = () => {
