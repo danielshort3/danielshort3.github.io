@@ -30,8 +30,7 @@
   } catch (err) {}
 
   const STYLE_ID = 'pcz-consent-styles';
-  const CSS_VERSION = 'v2';
-  const PREFERENCES_URL = 'privacy#prefs-title';
+  const CSS_VERSION = 'v3';
 
   function loadStyles() {
     if (document.getElementById(STYLE_ID) || document.querySelector('link[href$="privacy.css"]')) return;
@@ -40,17 +39,6 @@
     link.rel = 'stylesheet';
     link.href = 'css/privacy.css' + (CSS_VERSION ? ('?v=' + CSS_VERSION) : '');
     document.head.appendChild(link);
-  }
-
-  function goToPreferencePage() {
-    try {
-      document.body.classList.remove('consent-blocked');
-    } catch (err) {}
-    try {
-      window.location.assign(PREFERENCES_URL);
-    } catch (err) {
-      window.location.href = PREFERENCES_URL;
-    }
   }
 
   /**
@@ -69,9 +57,10 @@
         managePrefs: 'Manage settings',
         privacyPolicy: 'Privacy Policy',
         close: 'Close banner and accept all cookies',
-        modalTitle: 'Privacy preferences',
+        modalTitle: 'Manage Your Privacy Settings',
         savePrefs: 'Save preferences',
         cancel: 'Cancel',
+        closePrefs: 'Close',
         categories: {
           necessary: {
             label: 'Strictly necessary',
@@ -104,6 +93,7 @@
         modalTitle: 'Preferencias de privacidad',
         savePrefs: 'Guardar preferencias',
         cancel: 'Cancelar',
+        closePrefs: 'Cerrar',
         categories: {
           necessary: {
             label: 'Estrictamente necesarias',
@@ -426,7 +416,7 @@
         '<div class="pcz-copy">' +
           '<p class="pcz-kicker">Privacy</p>' +
           '<h3 class="pcz-title">' + localeStrings.bannerTitle + '</h3>' +
-          '<p class="pcz-body">' + localeStrings.bannerDesc + ' <a class="pcz-link" href="privacy">' + localeStrings.privacyPolicy + '</a></p>' +
+          '<p class="pcz-body">' + localeStrings.bannerDesc + '</p>' +
         '</div>' +
         '<div class="pcz-actions">' +
           '<button id="pcz-accept" class="pcz-btn pcz-primary">' + localeStrings.acceptAll + '</button>' +
@@ -465,7 +455,12 @@
     });
     const gpcNotice = hasGPC() ? '<p class="pcz-helper">' + localeStrings.gpcHonoured + '</p>' : '';
     panel.innerHTML =
-      '<h2>' + localeStrings.modalTitle + '</h2>' +
+      '<div class="pcz-panel-head">' +
+        '<h2>' + localeStrings.modalTitle + '</h2>' +
+        '<button type="button" class="pcz-panel-close" id="pcz-close-modal" aria-label="' + localeStrings.closePrefs + '">' +
+          '<span aria-hidden="true">&times;</span>' +
+        '</button>' +
+      '</div>' +
       gpcNotice +
       '<form id="pcz-form">' + categoriesHTML + '</form>' +
       '<div class="pcz-actions">' +
@@ -547,7 +542,7 @@
     manageBtn.addEventListener('click', function (event) {
       event.preventDefault();
       dismissBanner();
-      goToPreferencePage();
+      openPreferences(localeStrings, initialState, true);
     });
   }
 
@@ -555,11 +550,23 @@
    * Show the preferences modal and handle focus and save logic.
    */
   function openPreferences(localeStrings, currentState, blocking) {
+    if (document.getElementById('pcz-modal')) return;
+    if (blocking) {
+      try { document.body.classList.add('consent-blocked'); } catch (err) {}
+    }
     const modal = createModal(localeStrings, currentState);
     document.body.appendChild(modal);
+    setTimeout(() => modal.classList.add('pcz-visible'), 16);
     const focusable = modal.querySelectorAll('input, button');
     const firstFocusable = focusable[0];
     const lastFocusable = focusable[focusable.length - 1];
+    modal.addEventListener('click', function (event) {
+      if (event.target !== modal) return;
+      closePreferences(modal);
+      if (blocking) {
+        showBanner(localeStrings);
+      }
+    });
     modal.addEventListener('keydown', function (e) {
       if (e.key === 'Tab') {
         if (e.shiftKey) {
@@ -578,6 +585,12 @@
         if (blocking) {
           showBanner(localeStrings);
         }
+      }
+    });
+    modal.querySelector('#pcz-close-modal').addEventListener('click', function () {
+      closePreferences(modal);
+      if (blocking) {
+        showBanner(localeStrings);
       }
     });
     modal.querySelector('#pcz-cancel').addEventListener('click', function () {
@@ -608,7 +621,16 @@
    * Remove the preferences modal from the DOM.
    */
   function closePreferences(modal) {
-    modal.remove();
+    if (!modal || modal.dataset.state === 'closing') return;
+    modal.dataset.state = 'closing';
+    modal.classList.remove('pcz-visible');
+    modal.classList.add('pcz-exit');
+    const cleanup = () => {
+      try { modal.remove(); } catch (err) {}
+    };
+    modal.addEventListener('transitionend', cleanup, { once: true });
+    modal.addEventListener('animationend', cleanup, { once: true });
+    setTimeout(cleanup, 450);
   }
 
   /**
@@ -638,7 +660,9 @@
         link.dataset.prefNavBound = 'true';
         link.addEventListener('click', function (event) {
           event.preventDefault();
-          goToPreferencePage();
+          const saved = loadConsent();
+          const currentState = saved && saved.categories ? saved.categories : getDefaultState();
+          openPreferences(localeStrings, currentState, false);
         });
       });
     }
@@ -670,7 +694,12 @@
   // Expose a simple public API
   window.consentAPI = {
     open: function () {
-      goToPreferencePage();
+      loadStyles();
+      const locale = getLocale();
+      const localeStrings = CONFIG.languages[locale];
+      const saved = loadConsent();
+      const currentState = saved && saved.categories ? saved.categories : getDefaultState();
+      openPreferences(localeStrings, currentState, false);
     },
     get: function () {
       const saved = loadConsent();

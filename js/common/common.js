@@ -889,7 +889,7 @@
     host.innerHTML = `
       <div class="cookie-settings__item">
         <span class="cookie-settings__label" aria-hidden="true">Cookie settings</span>
-        <button id="privacy-settings-link" type="button" class="cookie-settings__toggle btn-icon btn-icon-featured" aria-label="Cookie settings">
+        <button id="privacy-settings-link" type="button" class="cookie-settings__toggle btn-icon btn-icon-featured" aria-label="Cookie settings" aria-haspopup="dialog">
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <circle cx="12" cy="12" r="8"></circle>
             <circle cx="9" cy="10" r="1"></circle>
