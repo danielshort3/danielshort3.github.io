@@ -929,6 +929,14 @@
     }
   });
 
+  const setProjectEmbedIframeHeight = (ifr, height) => {
+    if (!ifr) return;
+    if (!Number.isFinite(height) || height <= 0) return;
+    const next = `${Math.floor(height)}px`;
+    if (ifr.style.height === next) return;
+    ifr.style.height = next;
+  };
+
   const resizeProjectEmbedIframe = (ifr) => {
     if (!ifr) return;
     try {
@@ -943,23 +951,60 @@
         docEl ? docEl.scrollHeight : 0,
         docEl ? docEl.offsetHeight : 0
       );
-      if (height > 0) {
-        ifr.style.height = `${height}px`;
+      setProjectEmbedIframeHeight(ifr, height);
+    } catch {}
+  };
+
+  const observeProjectEmbedIframe = (ifr) => {
+    if (!ifr) return;
+    if (typeof ResizeObserver !== 'function') return;
+
+    try {
+      if (ifr._projectEmbedResizeObserver) {
+        ifr._projectEmbedResizeObserver.disconnect();
       }
     } catch {}
+    ifr._projectEmbedResizeObserver = null;
+
+    let doc = null;
+    try {
+      doc = ifr.contentDocument || ifr.contentWindow?.document;
+    } catch {}
+    if (!doc) return;
+
+    const body = doc.body;
+    const docEl = doc.documentElement;
+    if (!body && !docEl) return;
+
+    const scheduleResize = () => {
+      if (ifr._projectEmbedResizeScheduled) return;
+      ifr._projectEmbedResizeScheduled = true;
+      requestAnimationFrame(() => {
+        ifr._projectEmbedResizeScheduled = false;
+        resizeProjectEmbedIframe(ifr);
+      });
+    };
+
+    const ro = new ResizeObserver(scheduleResize);
+    try { if (docEl) ro.observe(docEl); } catch {}
+    try { if (body) ro.observe(body); } catch {}
+    ifr._projectEmbedResizeObserver = ro;
+    scheduleResize();
   };
 
   const bindProjectEmbedResize = () => {
     document.querySelectorAll('.project-embed-frame').forEach((ifr) => {
       if (ifr._resizeBound) return;
-      const src = ifr.getAttribute('src') || ifr.dataset.src || '';
-      if (!/(pizza-tips-demo|retail-loss-sales-demo|minesweeper-demo)/i.test(src)) return;
       ifr._resizeBound = true;
       ifr.addEventListener('load', () => {
         resizeProjectEmbedIframe(ifr);
         setTimeout(() => resizeProjectEmbedIframe(ifr), 50);
         setTimeout(() => resizeProjectEmbedIframe(ifr), 350);
+        setTimeout(() => resizeProjectEmbedIframe(ifr), 1000);
+        observeProjectEmbedIframe(ifr);
       });
+      resizeProjectEmbedIframe(ifr);
+      observeProjectEmbedIframe(ifr);
     });
   };
 

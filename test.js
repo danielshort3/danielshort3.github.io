@@ -265,7 +265,7 @@ try {
       checkFileContains(file, '<base href="/">');
       checkFileContains(file, 'data-page="project"');
       checkFileContains(file, '<meta property="og:type" content="article">');
-      checkFileContains(file, `href="portfolio?project=${encodeURIComponent(id)}`);
+      checkFileContains(file, 'href="portfolio">Back to Portfolio');
       checkFileContains(file, `<link rel="canonical" href="https://danielshort.me/portfolio/${id}">`);
       checkFileContains(file, `<meta property="og:url" content="https://danielshort.me/portfolio/${id}">`);
       assert(sitemap.includes(`https://danielshort.me/portfolio/${id}`), `sitemap.xml missing project url: ${id}`);
