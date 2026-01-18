@@ -172,7 +172,7 @@
     const keywordHtml = (entry.keywords || []).length
       ? `<div class="search-keywords" aria-label="Keywords">${(entry.keywords || [])
           .slice(0, 10)
-          .map((k) => `<span class="search-keyword">${escapeHtml(k)}</span>`)
+          .map((k) => `<span class="search-keyword">${highlight(k, tokens)}</span>`)
           .join('')}</div>`
       : '';
 

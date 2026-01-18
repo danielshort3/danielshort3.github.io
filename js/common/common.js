@@ -872,6 +872,37 @@
     });
   }
 
+  function initCookieSettingsButton(){
+    if (!document || !document.body || typeof document.createElement !== 'function') return;
+    try {
+      if (window.self !== window.top) return;
+    } catch {
+      return;
+    }
+    if (document.getElementById('privacy-settings-link')) return;
+    if (document.querySelector('[data-cookie-settings]')) return;
+
+    const host = document.createElement('div');
+    if (!host || typeof host.setAttribute !== 'function') return;
+    host.className = 'cookie-settings';
+    host.setAttribute('data-cookie-settings', 'true');
+    host.innerHTML = `
+      <div class="cookie-settings__item">
+        <span class="cookie-settings__label" aria-hidden="true">Cookie settings</span>
+        <button id="privacy-settings-link" type="button" class="cookie-settings__toggle btn-icon btn-icon-featured" aria-label="Cookie settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="8"></circle>
+            <circle cx="9" cy="10" r="1"></circle>
+            <circle cx="15" cy="10" r="1"></circle>
+            <circle cx="13.5" cy="15" r="1"></circle>
+          </svg>
+        </button>
+      </div>
+    `;
+    document.body.appendChild(host);
+  }
+
+  initCookieSettingsButton();
   initSpeedDial();
 
   // ---- Global modal close handlers (X button and backdrop) ----
