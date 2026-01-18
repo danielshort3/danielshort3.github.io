@@ -14,7 +14,7 @@ window.PrivacyConfig = {
   ui: {
     position: "bottom",
     showRejectAll: true,
-    persistLinkSelector: "#privacy-settings-link"
+    persistLinkSelector: "#privacy-settings-link, #privacy-settings-link-footer"
   },
   consentMode: { default: "denied" },
   tcf: { enabled: true },
