@@ -149,7 +149,7 @@ function buildPortfolioCarousel() {
   const dots  = container.querySelector(".carousel-dots");
   if (!track || !dots) return;
   const isPortfolioPage = document.body && document.body.dataset.page === 'portfolio';
-  const usesModals = isPortfolioPage;
+  const usesModals = false;
   const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const isTypingTarget = (node) => {
     if (!node) return false;
@@ -227,7 +227,7 @@ function buildPortfolioCarousel() {
     if (usesModals) {
       card.type = "button";
     } else {
-      card.href = `portfolio/${p.id}`;
+      card.href = `portfolio/${encodeURIComponent(p.id)}`;
     }
     card.className = "project-card carousel-card";
     card.id = `portfolio-carousel-slide-${i}`;
@@ -764,19 +764,18 @@ function buildPortfolio() {
   projects.forEach((p, i) => {
     /* card */
     const mediaMarkup = projectMedia(p);
-    const card = el("button", "project-card", `
+    const card = el("a", "project-card", `
       <div class="overlay"></div>
       <div class="project-text">
         <div class="project-title">${p.title}</div>
         <div class="project-subtitle">${p.subtitle}</div>
       </div>
       ${mediaMarkup}`);
-    card.type = "button";
-    card.setAttribute("aria-label", `View details of ${p.title}`);
+    card.href = `portfolio/${encodeURIComponent(p.id)}`;
+    card.setAttribute("aria-label", `Read case study: ${p.title}`);
     card.dataset.index = i;
     card.dataset.tools = (Array.isArray(p.tools) ? p.tools : []).join('|');
     card.dataset.concepts = (Array.isArray(p.concepts) ? p.concepts : []).join('|');
-    card.addEventListener("click", () => openModal(p.id));
     setupCardPreview(card);
     grid.appendChild(card);
 
