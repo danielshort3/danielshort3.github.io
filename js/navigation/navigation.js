@@ -1,6 +1,6 @@
 /* ===================================================================
    File: navigation.js
-   Purpose: Injects header navigation and footer components
+   Purpose: Injects header navigation and handles nav layout
 =================================================================== */
 (() => {
   'use strict';
@@ -84,7 +84,6 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     injectNav();
-    injectFooter();
     setNavHeight();
     setupNavHeightObservers();
     window.addEventListener('load', setNavHeight);
@@ -568,40 +567,5 @@
       prefersHover.addListener(onMediaChange);
     }
     updateNavDropdownOffset();
-  }
-  function injectFooter(){
-    const f = $('footer');
-    if(!f) return;
-    f.classList.add('footer');
-    const year = new Date().getFullYear();
-    f.innerHTML=`
-      <div class="social">
-        <a class="btn-icon btn-icon-featured" href="contact#contact-modal" data-contact-modal-link="true" aria-label="Send a message">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-            <path d="M7 9h10"></path>
-            <path d="M7 13h6"></path>
-          </svg>
-        </a>
-        <a class="btn-icon" href="mailto:daniel@danielshort.me" aria-label="Email">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <rect x="3" y="5" width="18" height="14" rx="2"></rect>
-            <path d="M3 7l9 6 9-6"></path>
-          </svg>
-        </a>
-        <a class="btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-          <svg class="brand-fill" viewBox="0 0 24 24" aria-hidden="true">
-            <circle cx="4" cy="4" r="2"></circle>
-            <rect x="2" y="9" width="4" height="12" rx="1"></rect>
-            <path d="M10 9h3.8v2.1h.1C14.8 9.7 16.1 9 17.9 9c3 0 5.1 1.9 5.1 5.9V21h-4v-5.9c0-1.7-.7-2.9-2.6-2.9s-2.7 1.4-2.7 3V21H10z"></path>
-          </svg>
-        </a>
-        <a class="btn-icon" href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
-          <span class="icon icon-github" aria-hidden="true"></span>
-        </a>
-      </div>
-      <p>© ${year} Daniel Short. All rights reserved. <a href="privacy">Privacy Policy</a></p>`;
-  
-    // dev-only reset button removed per request
   }
 })();
