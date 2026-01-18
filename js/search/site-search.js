@@ -13,7 +13,6 @@
   const SITE_ORIGIN = 'https://danielshort.me';
   const INDEX_URL = 'dist/search-index.json';
   const MAX_RESULTS = 50;
-  const CATEGORY_ORDER = ['Tools', 'Portfolio', 'Pages'];
 
   const escapeHtml = (value) => String(value ?? '')
     .replace(/&/g, '&amp;')
@@ -46,6 +45,11 @@
       out = out.replace(re, '<mark class="search-highlight">$1</mark>');
     });
     return out;
+  };
+
+  const categoryLabel = (value) => {
+    const raw = String(value || '').trim();
+    return raw || 'Pages';
   };
 
   const toAbsoluteUrl = (relativeOrAbsolute) => {
@@ -114,37 +118,11 @@
     return score;
   };
 
-  const slugify = (value) => String(value || '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .trim();
-
-  const normalizeCategory = (value) => {
-    const raw = String(value || '').trim();
-    return raw || 'Pages';
-  };
-
-  const groupByCategory = (entries) => {
-    const groups = new Map();
-    entries.forEach((entry) => {
-      const category = normalizeCategory(entry && entry.category);
-      if (!groups.has(category)) groups.set(category, []);
-      groups.get(category).push(entry);
-    });
-
-    const ordered = [
-      ...CATEGORY_ORDER.filter((c) => groups.has(c)),
-      ...[...groups.keys()].filter((c) => !CATEGORY_ORDER.includes(c)).sort((a, b) => a.localeCompare(b))
-    ];
-
-    return ordered.map((category) => ({ category, entries: groups.get(category) || [] }));
-  };
-
   const renderEntry = (entry, tokens) => {
     const url = String(entry.url || '').trim();
     const title = String(entry.title || '').trim();
     const desc = String(entry.description || '').trim();
+    const badge = categoryLabel(entry.category);
 
     const keywordHtml = (entry.keywords || []).length
       ? `<div class="search-keywords" aria-label="Keywords">${(entry.keywords || [])
@@ -154,14 +132,15 @@
       : '';
 
     return `
-      <article class="search-result">
+      <a class="search-result" href="${escapeHtml(url)}">
         <div class="search-result-head">
-          <a class="search-result-title" href="${escapeHtml(url)}">${highlight(title, tokens)}</a>
+          <span class="search-result-title">${highlight(title, tokens)}</span>
+          <span class="search-badge">${escapeHtml(badge)}</span>
         </div>
         <div class="search-result-url">${escapeHtml(toDisplayUrl(url))}</div>
         ${desc ? `<p class="search-result-desc">${highlight(desc, tokens)}</p>` : ''}
         ${keywordHtml}
-      </article>
+      </a>
     `;
   };
 
@@ -173,7 +152,7 @@
     }
 
     if (!entries.length) {
-      status.textContent = 'No results found.';
+      status.textContent = `No results found for “${query}”.`;
       results.innerHTML = `
         <div class="search-result" role="note">
           <div class="search-result-head">
@@ -186,32 +165,14 @@
       return;
     }
 
-    const groups = groupByCategory(entries);
-    const countByCategory = groups.map((g) => `${g.category}: ${g.entries.length}`).join(' · ');
     const shown = entries.length;
     const isTruncated = Number.isFinite(totalMatches) && totalMatches > shown;
 
     status.textContent = isTruncated
-      ? `Showing ${shown} of ${totalMatches} matches for “${query}”. ${countByCategory}`
-      : `${shown} result${shown === 1 ? '' : 's'} for “${query}”. ${countByCategory}`;
+      ? `Showing ${shown} of ${totalMatches} results for “${query}”.`
+      : `${shown} result${shown === 1 ? '' : 's'} for “${query}”.`;
 
-    results.innerHTML = groups
-      .filter((g) => g.entries.length)
-      .map((group) => {
-        const id = `search-cat-${slugify(group.category) || 'other'}`;
-        return `
-          <section class="search-category" aria-labelledby="${escapeHtml(id)}">
-            <div class="search-category-head">
-              <h2 class="search-category-title" id="${escapeHtml(id)}">${escapeHtml(group.category)}</h2>
-              <span class="search-category-count" aria-label="${escapeHtml(group.category)} results">${group.entries.length}</span>
-            </div>
-            <div class="search-category-list">
-              ${group.entries.map((entry) => renderEntry(entry, tokens)).join('')}
-            </div>
-          </section>
-        `;
-      })
-      .join('');
+    results.innerHTML = entries.map((entry) => renderEntry(entry, tokens)).join('');
   };
 
   const setQueryInUrl = (query) => {
