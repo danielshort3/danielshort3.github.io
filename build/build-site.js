@@ -169,11 +169,15 @@ function main() {
     if (destinationsStat) destinationsDetailParts.push(`${formatBytes(destinationsStat.size)}`);
     logStep('shortlinks', shortlinksStep.durationMs, destinationsDetailParts.join(' '));
 
-    // 5) Keep root HTML copies in sync with /pages
+    // 5) Shared footer (build-time injected)
+    const footerStep = runNodeScript(path.join('build', 'inject-footer.js'), { verbose });
+    logStep('footer', footerStep.durationMs);
+
+    // 6) Keep root HTML copies in sync with /pages
     const syncStep = runNodeScript(path.join('build', 'sync-root-pages.js'), { verbose });
     logStep('sync-root-pages', syncStep.durationMs);
 
-    // 6) Public output (deployable mirror)
+    // 7) Public output (deployable mirror)
     const publicStep = runNodeScript(path.join('build', 'copy-to-public.js'), { verbose });
     const publicDir = path.join(root, 'public');
     const publicFiles = countFilesRecursive(publicDir);

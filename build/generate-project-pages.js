@@ -10,6 +10,7 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 const childProcess = require('child_process');
+const crypto = require('crypto');
 
 const root = path.resolve(__dirname, '..');
 const dataFile = path.join(root, 'js', 'portfolio', 'projects-data.js');
@@ -17,6 +18,17 @@ const outDir = path.join(root, 'pages', 'portfolio');
 const sitemapPath = path.join(root, 'sitemap.xml');
 const SITE_ORIGIN = 'https://danielshort.me';
 const toolsIndexPath = path.join(root, 'pages', 'tools.html');
+
+function computeContentHash(relPath) {
+  if (!relPath) return null;
+  try {
+    const abs = path.isAbsolute(relPath) ? relPath : path.join(root, relPath);
+    const buf = fs.readFileSync(abs);
+    return crypto.createHash('sha256').update(buf).digest('hex');
+  } catch (_) {
+    return null;
+  }
+}
 
 function loadToolUrls() {
   const urls = new Set();
@@ -78,11 +90,67 @@ function resolveLastmod(relPath) {
   return getGitLastmod(relPath) || getFsLastmod(relPath) || formatLastmod(new Date());
 }
 
-function toSitemapUrlEntry(options) {
+function loadPreviousSitemapEntries() {
+  const entries = new Map();
+  try {
+    if (!fs.existsSync(sitemapPath)) return entries;
+    const xml = fs.readFileSync(sitemapPath, 'utf8');
+    const urlRe = /<url>[\s\S]*?<\/url>/g;
+    let match;
+    while ((match = urlRe.exec(xml))) {
+      const block = match[0];
+      const locMatch = block.match(/<loc>([^<]+)<\/loc>/);
+      if (!locMatch) continue;
+      const loc = String(locMatch[1] || '').trim();
+      if (!loc) continue;
+
+      const lastmodMatch = block.match(/<lastmod>([^<]+)<\/lastmod>/);
+      const lastmod = formatLastmod(lastmodMatch && lastmodMatch[1]);
+
+      const hashMatch = block.match(/ds:hash=([0-9a-f]{8,})/i);
+      const hash = hashMatch ? String(hashMatch[1] || '').trim().toLowerCase() : null;
+
+      entries.set(loc, { lastmod, hash });
+    }
+  } catch (_) {}
+  return entries;
+}
+
+function resolveSitemapMeta(options, previousEntries) {
+  const loc = String(options?.loc || '').trim();
+  const sourceFile = options?.sourceFile;
+  const previous = previousEntries && loc ? previousEntries.get(loc) : null;
+  const previousLastmod = previous && previous.lastmod ? formatLastmod(previous.lastmod) : null;
+  const previousHash = previous && previous.hash ? String(previous.hash).trim().toLowerCase() : null;
+  const currentHash = computeContentHash(sourceFile);
+
+  if (currentHash && previousHash && currentHash === previousHash && previousLastmod) {
+    return { lastmod: previousLastmod, hash: currentHash };
+  }
+
+  const changed = currentHash && previousHash && currentHash !== previousHash;
+
+  const gitLastmod = getGitLastmod(sourceFile);
+  if (gitLastmod) return { lastmod: gitLastmod, hash: currentHash };
+
+  if (!changed && previousLastmod) {
+    return { lastmod: previousLastmod, hash: currentHash };
+  }
+
+  const fsLastmod = getFsLastmod(sourceFile);
+  if (fsLastmod) {
+    return { lastmod: fsLastmod, hash: currentHash };
+  }
+
+  return { lastmod: formatLastmod(new Date()), hash: currentHash };
+}
+
+function toSitemapUrlEntry(options, previousEntries) {
   const loc = String(options?.loc || '').trim();
   if (!loc) return '';
-  const lastmod = resolveLastmod(options?.sourceFile);
-  const changefreq = String(options?.changefreq || '').trim();
+  const meta = resolveSitemapMeta({ loc, sourceFile: options?.sourceFile }, previousEntries);
+  const lastmod = meta && meta.lastmod ? meta.lastmod : null;
+  const hash = meta && meta.hash ? meta.hash : null;
   const priority = Number(options?.priority);
 
   const lines = [
@@ -90,7 +158,7 @@ function toSitemapUrlEntry(options) {
     `    <loc>${loc}</loc>`
   ];
   if (lastmod) lines.push(`    <lastmod>${lastmod}</lastmod>`);
-  if (changefreq) lines.push(`    <changefreq>${changefreq}</changefreq>`);
+  if (hash) lines.push(`    <!-- ds:hash=${hash} -->`);
   if (Number.isFinite(priority) && priority >= 0 && priority <= 1) {
     lines.push(`    <priority>${priority.toFixed(1)}</priority>`);
   }
@@ -456,6 +524,7 @@ ${tableauPreconnect}
 	    <nav class="privacy-links" aria-label="Privacy shortcuts">
 	      <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
 	      <a href="privacy#prefs-title" class="pcz-link" data-consent-open="true">Do Not Sell/Share My Personal Information</a>
+	      <a href="sitemap.xml" class="pcz-link">Sitemap</a>
 	    </nav>
 	  </footer>
 
@@ -494,21 +563,22 @@ function writeProjectPages(projects) {
 }
 
 function writeSitemap(projects) {
+  const previousEntries = loadPreviousSitemapEntries();
   const baseEntries = [
-    { loc: `${SITE_ORIGIN}/`, sourceFile: 'index.html', changefreq: 'weekly', priority: 1.0 },
-    { loc: `${SITE_ORIGIN}/portfolio`, sourceFile: 'pages/portfolio.html', changefreq: 'weekly', priority: 0.9 },
-    { loc: `${SITE_ORIGIN}/resume`, sourceFile: 'pages/resume.html', changefreq: 'monthly', priority: 0.9 },
-    { loc: `${SITE_ORIGIN}/contact`, sourceFile: 'pages/contact.html', changefreq: 'yearly', priority: 0.7 },
-    { loc: `${SITE_ORIGIN}/tools`, sourceFile: 'pages/tools.html', changefreq: 'weekly', priority: 0.7 },
-    { loc: `${SITE_ORIGIN}/contributions`, sourceFile: 'pages/contributions.html', changefreq: 'monthly', priority: 0.6 },
-    { loc: `${SITE_ORIGIN}/resume-pdf`, sourceFile: 'pages/resume-pdf.html', changefreq: 'yearly', priority: 0.5 },
-    { loc: `${SITE_ORIGIN}/privacy`, sourceFile: 'pages/privacy.html', changefreq: 'yearly', priority: 0.2 },
-    { loc: `${SITE_ORIGIN}/tools/dashboard`, sourceFile: 'pages/tools-dashboard.html', changefreq: 'monthly', priority: 0.3 }
+    { loc: `${SITE_ORIGIN}/`, sourceFile: 'index.html', priority: 1.0 },
+    { loc: `${SITE_ORIGIN}/portfolio`, sourceFile: 'pages/portfolio.html', priority: 0.9 },
+    { loc: `${SITE_ORIGIN}/resume`, sourceFile: 'pages/resume.html', priority: 0.9 },
+    { loc: `${SITE_ORIGIN}/contact`, sourceFile: 'pages/contact.html', priority: 0.7 },
+    { loc: `${SITE_ORIGIN}/tools`, sourceFile: 'pages/tools.html', priority: 0.7 },
+    { loc: `${SITE_ORIGIN}/contributions`, sourceFile: 'pages/contributions.html', priority: 0.6 },
+    { loc: `${SITE_ORIGIN}/resume-pdf`, sourceFile: 'pages/resume-pdf.html', priority: 0.5 },
+    { loc: `${SITE_ORIGIN}/privacy`, sourceFile: 'pages/privacy.html', priority: 0.2 },
+    { loc: `${SITE_ORIGIN}/tools/dashboard`, sourceFile: 'pages/tools-dashboard.html', priority: 0.3 }
   ];
 
   const toolEntries = loadToolUrls().map((loc) => {
     const slug = String(loc).replace(`${SITE_ORIGIN}/tools/`, '').replace(/^\/+/, '');
-    return { loc, sourceFile: `pages/${slug}.html`, changefreq: 'monthly', priority: 0.6 };
+    return { loc, sourceFile: `pages/${slug}.html`, priority: 0.6 };
   });
 
   const projectEntries = projects
@@ -517,7 +587,6 @@ function writeSitemap(projects) {
     .map((id) => ({
       loc: `${SITE_ORIGIN}/portfolio/${encodeURIComponent(id)}`,
       sourceFile: `pages/portfolio/${id}.html`,
-      changefreq: 'monthly',
       priority: 0.6
     }));
 
@@ -525,11 +594,11 @@ function writeSitemap(projects) {
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-    ...baseEntries.map(toSitemapUrlEntry).filter(Boolean),
+    ...baseEntries.map((entry) => toSitemapUrlEntry(entry, previousEntries)).filter(Boolean),
     '',
-    ...toolEntries.map(toSitemapUrlEntry).filter(Boolean),
+    ...toolEntries.map((entry) => toSitemapUrlEntry(entry, previousEntries)).filter(Boolean),
     '',
-    ...projectEntries.map(toSitemapUrlEntry).filter(Boolean),
+    ...projectEntries.map((entry) => toSitemapUrlEntry(entry, previousEntries)).filter(Boolean),
     '</urlset>',
     ''
   ].join('\n');
