@@ -386,7 +386,7 @@
           </div>
         </main>
 
-        <script>
+        <script><![CDATA[
           (function() {
             var input = document.getElementById('sitemap-filter');
             var clear = document.getElementById('sitemap-clear');
@@ -442,7 +442,7 @@
 
             update();
           })();
-        </script>
+        ]]></script>
       </body>
     </html>
   </xsl:template>
