@@ -1,4 +1,26 @@
 @layer components {
+  .search-page .search-hero .wrapper{
+    justify-content:center;
+  }
+  .search-page .search-hero-inner{
+    width:100%;
+    max-width:980px;
+    display:grid;
+    gap:10px;
+    text-align:center;
+  }
+  .search-page .search-hero-inner h1{
+    margin:0;
+    font-size:clamp(2.1rem, 3.6vw, 2.7rem);
+    line-height:1.2;
+  }
+  .search-page .search-hero-tagline{
+    margin:0;
+    color:color-mix(in srgb,var(--text-muted) 92%, #ffffff 8%);
+    max-width:60ch;
+    margin-inline:auto;
+  }
+
   .search-page .search-panel{
     max-width:980px;
     margin-inline:auto;

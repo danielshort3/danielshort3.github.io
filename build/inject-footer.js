@@ -87,15 +87,24 @@ function indentBlock(block, indent) {
     .join('\n');
 }
 
+function normalizeIndent(indent) {
+  const raw = String(indent || '');
+  if (!raw) return '';
+
+  // Guard against runaway whitespace bloat if a file already contains an
+  // abnormally long indent prefix (historically caused multi-megabyte HTML).
+  if (raw.length > 24) return '  ';
+
+  return raw;
+}
+
 function replaceFooter(html, footerHtml) {
-  const footerRe = /<footer\b[^>]*>[\s\S]*?<\/footer>/i;
+  // Include the leading indent so we don't duplicate it on each build run.
+  const footerRe = /^([\t ]*)<footer\b[^>]*>[\s\S]*?<\/footer>/im;
   const match = footerRe.exec(html);
   if (!match) return { html, changed: false };
 
-  const startIndex = match.index;
-  const lineStart = html.lastIndexOf('\n', startIndex) + 1;
-  const indent = html.slice(lineStart, startIndex).match(/^[\t ]*/)?.[0] || '';
-
+  const indent = normalizeIndent(match[1]);
   const replacement = indentBlock(footerHtml, indent);
   const next = html.replace(footerRe, replacement);
   return { html: next, changed: next !== html };
