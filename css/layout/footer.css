@@ -13,6 +13,7 @@
 
   .footer-links{
     display:flex;
+    flex-wrap:wrap;
     gap:12px;
     justify-content:center;
     align-items:center;
@@ -29,6 +30,8 @@
     text-decoration:none;
     font-family:'Poppins';
     font-weight:500;
+    cursor:pointer;
+    appearance:none;
     transition:transform .2s ease, box-shadow .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
   }
   .footer-link-btn:hover{
