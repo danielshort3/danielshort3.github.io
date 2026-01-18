@@ -138,6 +138,7 @@ try {
     const sitemap = fs.readFileSync('sitemap.xml','utf8');
     assert(/xml-stylesheet\s+type="text\/xsl"\s+href="\/sitemap\.xsl"/.test(sitemap), 'sitemap.xml missing xml-stylesheet reference');
     assert(/<urlset/.test(sitemap) && /<loc>https:\/\/.+<\/loc>/.test(sitemap), 'sitemap.xml structure invalid');
+    assert(!/ds:hash=/.test(sitemap), 'sitemap.xml should not contain build metadata');
   });
 
   section('Lazy loading and analytics defers', () => {
@@ -314,14 +315,14 @@ try {
   });
 
   section('Navigation markup and branding', () => {
-    checkFileContains('js/navigation/navigation.js', 'div id="primary-menu" class="nav-row"');
-    const navJs = fs.readFileSync('js/navigation/navigation.js', 'utf8');
-    assert(navJs.includes('class="brand-logo"'), 'nav markup missing brand-logo');
-    assert(navJs.includes('class="brand-name"'), 'nav markup missing brand-name');
-    assert(navJs.includes('class="brand-title"'), 'nav markup missing brand-title');
-    assert(navJs.includes('class="brand-divider"'), 'nav markup missing brand-divider');
-    assert(navJs.includes('class="brand-tagline"'), 'nav markup missing brand-tagline');
-    assert(navJs.includes('class="brand-tagline-chunk">Data Science'), 'nav markup missing tagline chunk for Data Science');
+    checkFileContains('build/templates/header.partial.html', 'div id="primary-menu" class="nav-row"');
+    const headerTemplate = fs.readFileSync('build/templates/header.partial.html', 'utf8');
+    assert(headerTemplate.includes('class="brand-logo"'), 'nav markup missing brand-logo');
+    assert(headerTemplate.includes('class="brand-name"'), 'nav markup missing brand-name');
+    assert(headerTemplate.includes('class="brand-title"'), 'nav markup missing brand-title');
+    assert(headerTemplate.includes('class="brand-divider"'), 'nav markup missing brand-divider');
+    assert(headerTemplate.includes('class="brand-tagline"'), 'nav markup missing brand-tagline');
+    assert(headerTemplate.includes('class="brand-tagline-chunk">Data Science'), 'nav markup missing tagline chunk for Data Science');
   });
 
   section('Navigation CSS and mobile layout', () => {
@@ -399,8 +400,10 @@ try {
     checkFileContains('index.html', 'family=Poppins');
 
     const navCode = fs.readFileSync('js/navigation/navigation.js', 'utf8');
+    const headerTemplate = fs.readFileSync('build/templates/header.partial.html', 'utf8');
+    assert(headerTemplate.includes('aria-controls="primary-menu"'), 'header missing aria-controls="primary-menu"');
+    assert(headerTemplate.includes('id="primary-menu"'), 'header missing primary-menu');
     assert(navCode.includes("classList.toggle('menu-open'"), 'burger toggle missing body.menu-open');
-    assert(navCode.includes('aria-controls="primary-menu"'), 'burger missing aria-controls');
     assert(navCode.includes('aria-expanded'), 'burger missing aria-expanded');
     assert(navCode.includes('aria-current'), 'active nav link missing aria-current');
     assert(navCode.includes('getBoundingClientRect'), 'setNavHeight missing measurement');

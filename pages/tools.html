@@ -12,10 +12,16 @@
   <meta property="og:description" content="Local, privacy-first tools from Daniel Short.">
   <meta property="og:url" content="https://danielshort.me/tools">
   <meta property="og:image" content="https://danielshort.me/img/hero/head.jpg">
+  <meta property="og:image:width" content="558">
+  <meta property="og:image:height" content="558">
   <meta property="og:image:alt" content="Portrait photo of Daniel Short">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@danielshort3">
+  <meta name="twitter:title" content="Tools | Daniel Short">
+  <meta name="twitter:description" content="Local, privacy-first tools from Daniel Short.">
+  <meta name="twitter:image" content="https://danielshort.me/img/hero/head.jpg">
+  <meta name="twitter:image:alt" content="Portrait photo of Daniel Short">
   <meta name="theme-color" content="#0D1117">
   <link rel="stylesheet" href="dist/styles.css">
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -28,7 +34,168 @@
 </head>
 <body data-page="tools">
   <a href="#main" class="skip-link">Skip to main content</a>
-  <header id="combined-header-nav"></header>
+                                <header id="combined-header-nav">
+                  <nav class="nav" aria-label="Primary">
+                    <div class="wrapper nav-wrapper">
+                      <a href="/" class="brand" aria-label="Home">
+                        <img src="img/ui/logo-64.png" srcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" sizes="64px" alt="DS logo" class="brand-logo" decoding="async" loading="eager" width="64" height="64">
+                        <span class="brand-name">
+                          <span class="brand-title">Daniel Short</span>
+                          <span class="brand-divider" aria-hidden="true"></span>
+                          <span class="brand-tagline">
+                            <span class="brand-tagline-chunk">Data Science</span>
+                            <span class="brand-tagline-chunk">&amp; Analytics</span>
+                          </span>
+                        </span>
+                      </a>
+                      <button id="nav-toggle" class="burger" aria-label="Toggle navigation" aria-expanded="false" aria-controls="primary-menu">
+                        <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+                      </button>
+                      <div id="primary-menu" class="nav-row" data-collapsible role="navigation">
+                        <a href="/" class="nav-link">Home</a>
+                        <div class="nav-item nav-item-portfolio">
+                          <a href="portfolio" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-portfolio">
+                            Portfolio
+                            <span class="nav-link-caret" aria-hidden="true"></span>
+                          </a>
+                          <div class="nav-dropdown" id="nav-dropdown-portfolio" aria-label="Highlighted projects">
+                            <div class="nav-dropdown-inner nav-dropdown-inner-portfolio">
+                              <div class="nav-dropdown-column nav-dropdown-column-list nav-portfolio-stack">
+                                <div class="nav-dropdown-header" aria-hidden="true">Top 5 Projects</div>
+                                <div class="nav-project-grid nav-project-stack" role="list">
+                                  <a href="portfolio?project=shapeClassifier" class="nav-project-card" data-project-id="shapeClassifier" role="listitem">
+                                    <span class="nav-project-rank">#1</span>
+                                    <span class="nav-project-thumb" style="background-image:url('/img/projects/shapeClassifier.webp');" aria-hidden="true">
+                                      <video class="nav-project-thumb-media" muted playsinline loop preload="none" poster="/img/projects/shapeClassifier.webp">
+                                        <source data-src="/img/projects/shapeClassifier.webm" type="video/webm">
+                                        <source data-src="/img/projects/shapeClassifier.mp4" type="video/mp4">
+                                      </video>
+                                    </span>
+                                    <span class="nav-project-meta">
+                                      <span class="nav-dropdown-title">Shape Classifier</span>
+                                      <span class="nav-dropdown-subtitle">Handwritten shape recognition</span>
+                                    </span>
+                                  </a>
+                                  <a href="portfolio?project=retailStore" class="nav-project-card" data-project-id="retailStore" role="listitem">
+                                    <span class="nav-project-rank">#2</span>
+                                    <span class="nav-project-thumb" style="background-image:url('/img/projects/retailStore.webp');" aria-hidden="true"></span>
+                                    <span class="nav-project-meta">
+                                      <span class="nav-dropdown-title">Store-Level Loss &amp; Sales ETL</span>
+                                      <span class="nav-dropdown-subtitle">SQL ETL + anomaly detection</span>
+                                    </span>
+                                  </a>
+                                  <a href="portfolio?project=sheetMusicUpscale" class="nav-project-card" data-project-id="sheetMusicUpscale" role="listitem">
+                                    <span class="nav-project-rank">#3</span>
+                                    <span class="nav-project-thumb" style="background-image:url('/img/projects/sheetMusicUpscale.webp');" aria-hidden="true">
+                                      <video class="nav-project-thumb-media" muted playsinline loop preload="none" poster="/img/projects/sheetMusicUpscale.webp">
+                                        <source data-src="/img/projects/sheetMusicUpscale.webm" type="video/webm">
+                                        <source data-src="/img/projects/sheetMusicUpscale.mp4" type="video/mp4">
+                                      </video>
+                                    </span>
+                                    <span class="nav-project-meta">
+                                      <span class="nav-dropdown-title">Sheet Music Watermark Removal &amp; Upscale</span>
+                                      <span class="nav-dropdown-subtitle">UNet watermark removal + VDSR</span>
+                                    </span>
+                                  </a>
+                                  <a href="portfolio?project=digitGenerator" class="nav-project-card" data-project-id="digitGenerator" role="listitem">
+                                    <span class="nav-project-rank">#4</span>
+                                    <span class="nav-project-thumb" style="background-image:url('/img/projects/digitGenerator.webp');" aria-hidden="true">
+                                      <video class="nav-project-thumb-media" muted playsinline loop preload="none" poster="/img/projects/digitGenerator.webp">
+                                        <source data-src="/img/projects/digitGenerator.webm" type="video/webm">
+                                        <source data-src="/img/projects/digitGenerator.mp4" type="video/mp4">
+                                      </video>
+                                    </span>
+                                    <span class="nav-project-meta">
+                                      <span class="nav-dropdown-title">Synthetic Digit Generator</span>
+                                      <span class="nav-dropdown-subtitle">Variational autoencoder (VAE)</span>
+                                    </span>
+                                  </a>
+                                  <a href="portfolio?project=nonogram" class="nav-project-card" data-project-id="nonogram" role="listitem">
+                                    <span class="nav-project-rank">#5</span>
+                                    <span class="nav-project-thumb" style="background-image:url('/img/projects/nonogram.webp');" aria-hidden="true">
+                                      <video class="nav-project-thumb-media" muted playsinline loop preload="none" poster="/img/projects/nonogram.webp">
+                                        <source data-src="/img/projects/nonogram.webm" type="video/webm">
+                                        <source data-src="/img/projects/nonogram.mp4" type="video/mp4">
+                                      </video>
+                                    </span>
+                                    <span class="nav-project-meta">
+                                      <span class="nav-dropdown-title">Nonogram Solver</span>
+                                      <span class="nav-dropdown-subtitle">94% accuracy reinforcement learning</span>
+                                    </span>
+                                  </a>
+                                </div>
+                                <div class="nav-dropdown-footer nav-dropdown-footer-inline">
+                                  <a href="portfolio?view=all#filters" class="nav-dropdown-link nav-dropdown-all" role="button">
+                                    <span class="nav-dropdown-title">View all projects</span>
+                                    <span class="nav-dropdown-subtitle">Browse the complete portfolio</span>
+                                  </a>
+                                  <a href="tools" class="nav-dropdown-link nav-dropdown-all" role="button">
+                                    <span class="nav-dropdown-title">Tools</span>
+                                    <span class="nav-dropdown-subtitle">Browse all tools</span>
+                                  </a>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="nav-item nav-item-resume">
+                          <a href="resume" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-resume">
+                            Resume
+                            <span class="nav-link-caret" aria-hidden="true"></span>
+                          </a>
+                          <div class="nav-dropdown" id="nav-dropdown-resume" aria-label="Resume download">
+                            <div class="nav-dropdown-header" aria-hidden="true">Resume shortcuts</div>
+                            <div class="nav-dropdown-list" role="list">
+                              <a href="resume" class="nav-dropdown-link" role="listitem">
+                                <span class="nav-dropdown-title">View Digital Resume</span>
+                                <span class="nav-dropdown-subtitle">Open the digital resume page</span>
+                              </a>
+                              <a href="resume-pdf" class="nav-dropdown-link" role="listitem">
+                                <span class="nav-dropdown-title">Preview PDF</span>
+                                <span class="nav-dropdown-subtitle">Open the PDF resume page</span>
+                              </a>
+                              <a href="documents/Resume.pdf" class="nav-dropdown-link" role="listitem" download>
+                                <span class="nav-dropdown-title">Download Resume</span>
+                                <span class="nav-dropdown-subtitle">Save the latest PDF copy</span>
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="nav-item nav-item-contact">
+                          <a href="contact" class="nav-link nav-link-cta nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-contact">
+                            Contact
+                            <span class="nav-link-caret" aria-hidden="true"></span>
+                          </a>
+                          <div class="nav-dropdown nav-dropdown-contact" id="nav-dropdown-contact" aria-label="Contact options">
+                            <div class="nav-dropdown-inner nav-dropdown-inner-contact">
+                              <div class="nav-dropdown-column nav-dropdown-column-list">
+                                <div class="nav-dropdown-header" aria-hidden="true">Get in touch</div>
+                                <div class="nav-dropdown-list" role="list">
+                                  <a href="contact#contact-modal" class="nav-dropdown-link nav-dropdown-link-recommended" role="listitem" data-contact-modal-link="true">
+                                    <span class="nav-dropdown-title">Message through website<span class="nav-dropdown-badge" aria-hidden="true">Recommended</span></span>
+                                    <span class="nav-dropdown-subtitle">Send a message via website</span>
+                                  </a>
+                                  <a href="mailto:daniel@danielshort.me" class="nav-dropdown-link" role="listitem">
+                                    <span class="nav-dropdown-title">Email</span>
+                                    <span class="nav-dropdown-subtitle">daniel@danielshort.me</span>
+                                  </a>
+                                  <a href="https://www.linkedin.com/in/danielshort3/" class="nav-dropdown-link" role="listitem" target="_blank" rel="noopener noreferrer">
+                                    <span class="nav-dropdown-title">LinkedIn</span>
+                                    <span class="nav-dropdown-subtitle">linkedin.com/in/danielshort3</span>
+                                  </a>
+                                  <a href="https://github.com/danielshort3" class="nav-dropdown-link" role="listitem" target="_blank" rel="noopener noreferrer">
+                                    <span class="nav-dropdown-title">GitHub</span>
+                                    <span class="nav-dropdown-subtitle">github.com/danielshort3</span>
+                                  </a>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </nav>
+                </header>
 
   <section class="tools-hero">
     <div class="wrapper">
@@ -427,41 +594,41 @@
     </section>
   </main>
 
-	  	  	  	  <footer class="footer">
-	  	    <div class="social">
-	  	      <a class="btn-icon btn-icon-featured" href="contact#contact-modal" data-contact-modal-link="true" aria-label="Send a message">
-	  	        <svg viewBox="0 0 24 24" aria-hidden="true">
-	  	          <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-	  	          <path d="M7 9h10"></path>
-	  	          <path d="M7 13h6"></path>
-	  	        </svg>
-	  	      </a>
-	  	      <a class="btn-icon" href="mailto:daniel@danielshort.me" aria-label="Email">
-	  	        <svg viewBox="0 0 24 24" aria-hidden="true">
-	  	          <rect x="3" y="5" width="18" height="14" rx="2"></rect>
-	  	          <path d="M3 7l9 6 9-6"></path>
-	  	        </svg>
-	  	      </a>
-	  	      <a class="btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-	  	        <svg class="brand-fill" viewBox="0 0 24 24" aria-hidden="true">
-	  	          <circle cx="4" cy="4" r="2"></circle>
-	  	          <rect x="2" y="9" width="4" height="12" rx="1"></rect>
-	  	          <path d="M10 9h3.8v2.1h.1C14.8 9.7 16.1 9 17.9 9c3 0 5.1 1.9 5.1 5.9V21h-4v-5.9c0-1.7-.7-2.9-2.6-2.9s-2.7 1.4-2.7 3V21H10z"></path>
-	  	        </svg>
-	  	      </a>
-	  	      <a class="btn-icon" href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
-	  	        <span class="icon icon-github" aria-hidden="true"></span>
-	  	      </a>
-	  	    </div>
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  <footer class="footer">
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	    <div class="social">
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	      <a class="btn-icon btn-icon-featured" href="contact#contact-modal" data-contact-modal-link="true" aria-label="Send a message">
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	        <svg viewBox="0 0 24 24" aria-hidden="true">
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	          <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	          <path d="M7 9h10"></path>
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	          <path d="M7 13h6"></path>
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	        </svg>
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	      </a>
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	      <a class="btn-icon" href="mailto:daniel@danielshort.me" aria-label="Email">
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	        <svg viewBox="0 0 24 24" aria-hidden="true">
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	          <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	          <path d="M3 7l9 6 9-6"></path>
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	        </svg>
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	      </a>
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	      <a class="btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	        <svg class="brand-fill" viewBox="0 0 24 24" aria-hidden="true">
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	          <circle cx="4" cy="4" r="2"></circle>
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	          <rect x="2" y="9" width="4" height="12" rx="1"></rect>
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	          <path d="M10 9h3.8v2.1h.1C14.8 9.7 16.1 9 17.9 9c3 0 5.1 1.9 5.1 5.9V21h-4v-5.9c0-1.7-.7-2.9-2.6-2.9s-2.7 1.4-2.7 3V21H10z"></path>
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	        </svg>
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	      </a>
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	      <a class="btn-icon" href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	        <span class="icon icon-github" aria-hidden="true"></span>
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	      </a>
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	    </div>
 
-	  	    <p>© 2026 Daniel Short. All rights reserved. <a href="privacy">Privacy Policy</a></p>
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	    <p>© 2026 Daniel Short. All rights reserved. <a href="privacy">Privacy Policy</a></p>
 
-	  	    <nav class="privacy-links" aria-label="Privacy shortcuts">
-	  	      <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
-	  	      <a href="privacy#prefs-title" class="pcz-link" data-consent-open="true">Do Not Sell/Share My Personal Information</a>
-	  	      <a href="sitemap.xml" class="pcz-link">Sitemap</a>
-	  	    </nav>
-	  	  </footer>
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	    <nav class="privacy-links" aria-label="Privacy shortcuts">
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	      <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	      <a href="privacy#prefs-title" class="pcz-link" data-consent-open="true">Do Not Sell/Share My Personal Information</a>
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	      <a href="sitemap.xml" class="pcz-link">Sitemap</a>
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	    </nav>
+	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  	  </footer>
 
   <script defer src="js/accounts/tools-config.js"></script>
   <script defer src="js/accounts/tools-auth.js"></script>

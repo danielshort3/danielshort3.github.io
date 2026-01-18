@@ -16,6 +16,7 @@ const root = path.resolve(__dirname, '..');
 const dataFile = path.join(root, 'js', 'portfolio', 'projects-data.js');
 const outDir = path.join(root, 'pages', 'portfolio');
 const sitemapPath = path.join(root, 'sitemap.xml');
+const sitemapCachePath = path.join(root, 'sitemap-cache.json');
 const SITE_ORIGIN = 'https://danielshort.me';
 const toolsIndexPath = path.join(root, 'pages', 'tools.html');
 
@@ -90,30 +91,38 @@ function resolveLastmod(relPath) {
   return getGitLastmod(relPath) || getFsLastmod(relPath) || formatLastmod(new Date());
 }
 
-function loadPreviousSitemapEntries() {
+function loadSitemapCache() {
   const entries = new Map();
   try {
-    if (!fs.existsSync(sitemapPath)) return entries;
-    const xml = fs.readFileSync(sitemapPath, 'utf8');
-    const urlRe = /<url>[\s\S]*?<\/url>/g;
-    let match;
-    while ((match = urlRe.exec(xml))) {
-      const block = match[0];
-      const locMatch = block.match(/<loc>([^<]+)<\/loc>/);
-      if (!locMatch) continue;
-      const loc = String(locMatch[1] || '').trim();
-      if (!loc) continue;
-
-      const lastmodMatch = block.match(/<lastmod>([^<]+)<\/lastmod>/);
-      const lastmod = formatLastmod(lastmodMatch && lastmodMatch[1]);
-
-      const hashMatch = block.match(/ds:hash=([0-9a-f]{8,})/i);
-      const hash = hashMatch ? String(hashMatch[1] || '').trim().toLowerCase() : null;
-
-      entries.set(loc, { lastmod, hash });
-    }
+    if (!fs.existsSync(sitemapCachePath)) return entries;
+    const raw = fs.readFileSync(sitemapCachePath, 'utf8');
+    const parsed = JSON.parse(raw);
+    const record = parsed && typeof parsed === 'object' ? parsed.entries : null;
+    if (!record || typeof record !== 'object') return entries;
+    Object.entries(record).forEach(([loc, meta]) => {
+      const safeLoc = String(loc || '').trim();
+      if (!safeLoc) return;
+      const lastmod = formatLastmod(meta && meta.lastmod);
+      const hash = meta && typeof meta.hash === 'string' ? String(meta.hash).trim().toLowerCase() : null;
+      entries.set(safeLoc, { lastmod, hash });
+    });
   } catch (_) {}
   return entries;
+}
+
+function writeSitemapCache(entries) {
+  try {
+    const record = {};
+    [...entries.entries()]
+      .sort((a, b) => String(a[0]).localeCompare(String(b[0])))
+      .forEach(([loc, meta]) => {
+        if (!loc) return;
+        const lastmod = formatLastmod(meta && meta.lastmod);
+        const hash = meta && typeof meta.hash === 'string' ? String(meta.hash).trim().toLowerCase() : null;
+        record[loc] = { ...(lastmod ? { lastmod } : {}), ...(hash ? { hash } : {}) };
+      });
+    fs.writeFileSync(sitemapCachePath, JSON.stringify({ entries: record }, null, 2) + '\n', 'utf8');
+  } catch (_) {}
 }
 
 function resolveSitemapMeta(options, previousEntries) {
@@ -145,7 +154,7 @@ function resolveSitemapMeta(options, previousEntries) {
   return { lastmod: formatLastmod(new Date()), hash: currentHash };
 }
 
-function toSitemapUrlEntry(options, previousEntries) {
+function toSitemapUrlEntry(options, previousEntries, nextEntries) {
   const loc = String(options?.loc || '').trim();
   if (!loc) return '';
   const meta = resolveSitemapMeta({ loc, sourceFile: options?.sourceFile }, previousEntries);
@@ -153,12 +162,15 @@ function toSitemapUrlEntry(options, previousEntries) {
   const hash = meta && meta.hash ? meta.hash : null;
   const priority = Number(options?.priority);
 
+  if (nextEntries && typeof nextEntries.set === 'function') {
+    nextEntries.set(loc, { lastmod, hash });
+  }
+
   const lines = [
     '  <url>',
     `    <loc>${loc}</loc>`
   ];
   if (lastmod) lines.push(`    <lastmod>${lastmod}</lastmod>`);
-  if (hash) lines.push(`    <!-- ds:hash=${hash} -->`);
   if (Number.isFinite(priority) && priority >= 0 && priority <= 1) {
     lines.push(`    <priority>${priority.toFixed(1)}</priority>`);
   }
@@ -563,7 +575,8 @@ function writeProjectPages(projects) {
 }
 
 function writeSitemap(projects) {
-  const previousEntries = loadPreviousSitemapEntries();
+  const previousEntries = loadSitemapCache();
+  const nextEntries = new Map();
   const baseEntries = [
     { loc: `${SITE_ORIGIN}/`, sourceFile: 'index.html', priority: 1.0 },
     { loc: `${SITE_ORIGIN}/portfolio`, sourceFile: 'pages/portfolio.html', priority: 0.9 },
@@ -594,15 +607,16 @@ function writeSitemap(projects) {
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-    ...baseEntries.map((entry) => toSitemapUrlEntry(entry, previousEntries)).filter(Boolean),
+    ...baseEntries.map((entry) => toSitemapUrlEntry(entry, previousEntries, nextEntries)).filter(Boolean),
     '',
-    ...toolEntries.map((entry) => toSitemapUrlEntry(entry, previousEntries)).filter(Boolean),
+    ...toolEntries.map((entry) => toSitemapUrlEntry(entry, previousEntries, nextEntries)).filter(Boolean),
     '',
-    ...projectEntries.map((entry) => toSitemapUrlEntry(entry, previousEntries)).filter(Boolean),
+    ...projectEntries.map((entry) => toSitemapUrlEntry(entry, previousEntries, nextEntries)).filter(Boolean),
     '</urlset>',
     ''
   ].join('\n');
   fs.writeFileSync(sitemapPath, xml, 'utf8');
+  writeSitemapCache(nextEntries);
 }
 
 function main() {

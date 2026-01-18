@@ -4,231 +4,193 @@
   <url>
     <loc>https://danielshort.me/</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=520d4d374584b2a68ea949218e5ff8e37c5cf7a480f6231abd09829111a8864d -->
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://danielshort.me/portfolio</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=b3e62de25da283571da19b6589cb853d660dc5c9459fc90d61603e37853d4125 -->
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://danielshort.me/resume</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=7ac39606c5e3470eaa3d0f774eff9c3a14acd71dadb191fab9d60f6adaf2a556 -->
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://danielshort.me/contact</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=f7f62dcadb5f49d4b16caa65d1fdb9da3a07a8e2a4cd11a6dab4c0bc3babde96 -->
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://danielshort.me/tools</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=961f494785f06b0e165ffd5a62afa07f6d89d6cbff5f20746885307f27012755 -->
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://danielshort.me/contributions</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=2df37c9dbb5d183ffe0aaba836678e5e8561e16c61eff63230c24594e098581d -->
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://danielshort.me/resume-pdf</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=202e28d7b6a7dc1dc915db08b7825fd8aefafb3f6e7230abe09e6cb4a9e0be72 -->
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://danielshort.me/privacy</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=ba4d20029a354d75fe4fa683b65b36d9264a19568af04699725bcfca3399e0f7 -->
     <priority>0.2</priority>
   </url>
   <url>
     <loc>https://danielshort.me/tools/dashboard</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=756a2478e50238dd61ca5c6774acecb416249b02551d3edba3244705c5b46272 -->
     <priority>0.3</priority>
   </url>
 
   <url>
     <loc>https://danielshort.me/tools/background-remover</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=06f129c727ab9185159b87adce89989595cfba8fdee5a71c492f40c62704dea4 -->
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://danielshort.me/tools/image-optimizer</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=1fe58c7739395c42a330b39bba191743fcf51600f4e92648f9decba66f5797f9 -->
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://danielshort.me/tools/job-application-tracker</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=db32e160d6e60c4d07162fdd097c034ca6ebdfbee1c17639f81e93f68351d72d -->
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://danielshort.me/tools/nbsp-cleaner</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=a43fe27c0f2f6810dd844d9ea7c23da708089579769e1b45f6c1107a429e7bfc -->
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://danielshort.me/tools/oxford-comma-checker</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=701bc47031e4351597c1b1d96881b8997f247daafe91ba019450119e78cfb1e1 -->
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://danielshort.me/tools/point-of-view-checker</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=61eb20c6872e994ed5e3ec20720bb973de5a044f29c358187d4e8157d11dedb9 -->
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://danielshort.me/tools/qr-code-generator</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=ff9e8827e70a6dd9e6e1b4c7345bf5078ef27f08e78af1eb6f85741ce09932fc -->
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://danielshort.me/tools/screen-recorder</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=d1de3efbc33506163a620fe2a8266418fd7bd57accb0752bc2b46d310e2e760f -->
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://danielshort.me/tools/short-links</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=796702f4da259455c6a23adacbf0acc9e02cd3c2e4f735a1d30589172dbe02cc -->
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://danielshort.me/tools/text-compare</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=31f19192aa47515e6ed79c2e637c5aa13337e240c15fd1a6f200f446b31c060a -->
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://danielshort.me/tools/utm-batch-builder</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=655826af85ebd85b6fb2ea56105b342de88f4c6bfc73ec5b7baadb2fe798faa1 -->
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://danielshort.me/tools/whisper-transcribe-monitor</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=477faff20c83f6800ae121d197904b886d3333f59b3848ee58b777d20bb494cb -->
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://danielshort.me/tools/word-frequency</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=8442c36fba66368294feb7060eff7dd9cbf36204df17e8a7a1d1aa19946af908 -->
     <priority>0.6</priority>
   </url>
 
   <url>
     <loc>https://danielshort.me/portfolio/smartSentence</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=4a32394c1796273fcf9e29970888c5ef20f33ff133e89b655c6eb8a0b94f03c1 -->
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://danielshort.me/portfolio/chatbotLora</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=db44a0334a8217966a730683d5bd4bb6b69faf05b8cd0c4bb1a0872d42d0cfd1 -->
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://danielshort.me/portfolio/shapeClassifier</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=42bf610d1b2e708b20a982be6f8109724d7a130073dc4d904693604b1dfa5df8 -->
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://danielshort.me/portfolio/ufoDashboard</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=82d218b8026d84820b76d462513160b4c900625fcf4431a92229eaa2115d1c14 -->
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://danielshort.me/portfolio/covidAnalysis</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=d53c6bd112e2ffe9fae7558ac0dc02a660d61aa6c4623837cc022e58d568db4a -->
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://danielshort.me/portfolio/targetEmptyPackage</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=aef6bd46e5bff1daea63da5516b22eb1dae85032bfa5d133c7bbec6f17b2c3a4 -->
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://danielshort.me/portfolio/handwritingRating</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=f04613f4e60247b56bb6fcc0076d1db090657e3e26b34e4a8621e94d2e36e93a -->
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://danielshort.me/portfolio/digitGenerator</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=4d8a5f27f4da4bb920e5ad2f5da3f7ab31ef5960ede753d6a890286ac277a5fd -->
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://danielshort.me/portfolio/sheetMusicUpscale</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=ed4846a2b2c1ee9c0a37a262ae31832872238c9a1c0f78928cbb26b9da25f720 -->
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://danielshort.me/portfolio/deliveryTip</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=76a5718c919152a17e40accc9faeda3a78348a33d326eac6db00be91e5677cec -->
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://danielshort.me/portfolio/retailStore</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=c88e020ce07c4bd5febe2f92436d811e821e623e2efaf80382e028bc30c08b3f -->
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://danielshort.me/portfolio/pizza</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=01b92e9db1a420f3ad726602866e5ff35047b20d697bca6ee3e26faeddda1b44 -->
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://danielshort.me/portfolio/babynames</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=7c807ac08ee2389afcc4451ce90c0329e7678cdeb109b795d5e4dd71bfd691e1 -->
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://danielshort.me/portfolio/pizzaDashboard</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=4512b0d5af949f5afaef3d54e1018eb8c964fade894c67ccfe6e14115cef62a1 -->
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://danielshort.me/portfolio/nonogram</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=1033e1775f409a6d42f48e311474720a53f890ad37339bb82c5fee38e1160cbf -->
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://danielshort.me/portfolio/website</loc>
     <lastmod>2026-01-17</lastmod>
-    <!-- ds:hash=be81b8bcd84d6f6955ca43ec6372c9a7fe90cec4675ce3bef5c86df0160ce8ff -->
     <priority>0.6</priority>
   </url>
 </urlset>
