@@ -509,14 +509,13 @@ ${tableauPreconnect}
       <div class="wrapper">
         <p class="hero-eyebrow">Portfolio Project</p>
         <h1>${escapeHtml(title)}</h1>
-	        ${subtitle ? `<p class="project-subtitle">${escapeHtml(subtitle)}</p>` : ''}
-	        <div class="cta-group project-cta">
-	          <a class="btn-primary hero-cta" href="portfolio?project=${escapeHtml(encodeURIComponent(id))}">Pop-up View</a>
-	          <a class="btn-secondary hero-cta" href="portfolio">View all projects</a>
-	        </div>
-	        ${safeTagPills}
-	      </div>
-    </section>
+        ${subtitle ? `<p class="project-subtitle">${escapeHtml(subtitle)}</p>` : ''}
+        <div class="cta-group project-cta">
+          <a class="btn-primary hero-cta" href="portfolio">Back to Portfolio</a>
+        </div>
+        ${safeTagPills}
+		      </div>
+	    </section>
 
     <section class="project-body">
       <div class="wrapper">
