@@ -1,6 +1,6 @@
 /* ===================================================================
    File: navigation.js
-   Purpose: Injects header navigation and handles nav layout
+   Purpose: Enhances header navigation and handles nav layout
 =================================================================== */
 (() => {
   'use strict';
@@ -83,7 +83,7 @@
   };
 
   document.addEventListener('DOMContentLoaded', () => {
-    injectNav();
+    initNav();
     setNavHeight();
     setupNavHeightObservers();
     window.addEventListener('load', setNavHeight);
@@ -132,6 +132,7 @@
         .catch(() => {});
     }
   }
+
   function setupNavPreviewVideos(root){
     if (!root) return;
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -168,235 +169,40 @@
       card.addEventListener('focusout', pauseVideo);
     });
   }
-  function injectNav(){
+
+  function initNav(){
     const host = $('#combined-header-nav');
-    if(!host) return;
+    if (!host) return;
+
+    const nav = host.querySelector('.nav');
+    if (!nav) return;
+
     const animate = !sessionStorage.getItem('navEntryPlayed');
-    sessionStorage.setItem('navEntryPlayed','yes');
-    const projectAsset = (id, ext = 'webp') => `/img/projects/${id}.${ext}`;
-    const getProjectVideo = (project) => {
-      const hasVideo = Boolean(project && (project.videoWebm || project.videoMp4 || project.hasVideo));
-      if (!hasVideo) return { hasVideo: false };
-      return {
-        hasVideo: true,
-        webm: project.videoWebm || projectAsset(project.id, 'webm'),
-        mp4: project.videoMp4 || projectAsset(project.id, 'mp4')
-      };
-    };
-    const renderProjectCard = (project, index) => {
-      const thumb = projectAsset(project.id, 'webp');
-      const video = getProjectVideo(project);
-      const media = video.hasVideo
-        ? `<span class="nav-project-thumb" style="background-image:url('${thumb}');" aria-hidden="true">
-            <video class="nav-project-thumb-media" muted playsinline loop preload="none" poster="${thumb}">
-              ${video.webm ? `<source data-src="${video.webm}" type="video/webm">` : ''}
-              ${video.mp4 ? `<source data-src="${video.mp4}" type="video/mp4">` : ''}
-            </video>
-          </span>`
-        : `<span class="nav-project-thumb" style="background-image:url('${thumb}');" aria-hidden="true"></span>`;
-      return `<a href="portfolio?project=${project.id}" class="nav-project-card" data-project-id="${project.id}" role="listitem">
-	                <span class="nav-project-rank">#${index}</span>
-	                ${media}
-	                <span class="nav-project-meta">
-	                  <span class="nav-dropdown-title">${project.title}</span>
-	                  <span class="nav-dropdown-subtitle">${project.subtitle}</span>
-	                </span>
-	              </a>`;
-    };
-    const renderHighlightCard = (item) => `
-      <a href="${item.href}" class="nav-highlight-card" role="listitem"${item.external ? ' target="_blank" rel="noopener noreferrer"' : ''}>
-        <span class="nav-highlight-label">${item.label}</span>
-        <span class="nav-dropdown-title">${item.title}</span>
-        <span class="nav-dropdown-subtitle">${item.subtitle}</span>
-      </a>
-    `;
-    const portfolioHighlights = [
-      { id: 'shapeClassifier',  title: 'Shape Classifier',                    subtitle: 'Handwritten shape recognition', hasVideo: true },
-      { id: 'retailStore',      title: 'Store-Level Loss & Sales ETL',         subtitle: 'SQL ETL + anomaly detection' },
-      { id: 'sheetMusicUpscale',title: 'Sheet Music Watermark Removal & Upscale', subtitle: 'UNet watermark removal + VDSR', hasVideo: true },
-      { id: 'digitGenerator',   title: 'Synthetic Digit Generator',  subtitle: 'Variational autoencoder (VAE)', hasVideo: true },
-      { id: 'nonogram',         title: 'Nonogram Solver',            subtitle: '94% accuracy reinforcement learning', hasVideo: true }
-    ];
-    const portfolioMenu = `
-      <div class="nav-dropdown-inner nav-dropdown-inner-portfolio">
-        <div class="nav-dropdown-column nav-dropdown-column-list nav-portfolio-stack">
-          <div class="nav-dropdown-header" aria-hidden="true">Top 5 Projects</div>
-          <div class="nav-project-grid nav-project-stack" role="list">
-            ${portfolioHighlights.map((p, i) => renderProjectCard(p, i + 1)).join('')}
-          </div>
-          <div class="nav-dropdown-footer nav-dropdown-footer-inline">
-	            <a href="portfolio?view=all#filters" class="nav-dropdown-link nav-dropdown-all" role="button">
-	              <span class="nav-dropdown-title">View all projects</span>
-	              <span class="nav-dropdown-subtitle">Browse the complete portfolio</span>
-	            </a>
-            <a href="tools" class="nav-dropdown-link nav-dropdown-all" role="button">
-              <span class="nav-dropdown-title">Tools</span>
-              <span class="nav-dropdown-subtitle">Browse all tools</span>
-            </a>
-          </div>
-        </div>
-      </div>
-    `;
-    const contributionSections = [
-      { id: 'public-contributions', title: 'Public Reports', subtitle: 'Economic outlooks & city budgets' },
-      { id: 'council-briefings',   title: 'Council Briefings', subtitle: 'Bi-weekly council intelligence' },
-      { id: 'enewsletters',        title: 'Stakeholder eNews', subtitle: 'Industry pacing & KPI updates' }
-    ];
-    const latestStakeholder = {
-      label:'Latest Stakeholder',
-      title:'Stakeholder eNewsletter · November 2025',
-      subtitle:'Fresh pacing & KPI insights',
-      href:'https://us4.campaign-archive.com/?e=18b7bff0b8&u=d69163b71ce34ec42d130a6a4&id=1370d609e9',
-      external:true
-    };
-    const latestCouncil = {
-      label:'Latest Council Briefing',
-      title:'Council Briefing · Nov 24, 2025',
-      subtitle:'Newest council intel drop',
-      href:'https://ccbrief.my.canva.site/city-council-briefing-nov-24-2025',
-      external:true
-    };
-    const contributionsMenu = `
-      <div class="nav-dropdown-inner">
-        <div class="nav-dropdown-column nav-dropdown-column-list">
-          <div class="nav-dropdown-header" aria-hidden="true">Browse categories</div>
-          <div class="nav-dropdown-list" role="list">
-            ${contributionSections.map(
-	              c => `<a href="contributions#${c.id}" class="nav-dropdown-link" role="listitem">
-	                    <span class="nav-dropdown-title">${c.title}</span>
-	                    <span class="nav-dropdown-subtitle">${c.subtitle}</span>
-	                  </a>`
-            ).join('')}
-          </div>
-        </div>
-        <div class="nav-dropdown-column nav-dropdown-column-actions nav-dropdown-column-highlights">
-          <div class="nav-dropdown-header">Latest releases</div>
-          <div class="nav-dropdown-actions" role="list">
-            ${renderHighlightCard(latestStakeholder)}
-            ${renderHighlightCard(latestCouncil)}
-          </div>
-        </div>
-      </div>
-    `;
-    const resumeMenu = `
-      <div class="nav-dropdown-header" aria-hidden="true">Resume shortcuts</div>
-      <div class="nav-dropdown-list" role="list">
-        <a href="resume" class="nav-dropdown-link" role="listitem">
-          <span class="nav-dropdown-title">View Digital Resume</span>
-          <span class="nav-dropdown-subtitle">Open the digital resume page</span>
-        </a>
-        <a href="resume-pdf" class="nav-dropdown-link" role="listitem">
-          <span class="nav-dropdown-title">Preview PDF</span>
-          <span class="nav-dropdown-subtitle">Open the PDF resume page</span>
-        </a>
-        <a href="documents/Resume.pdf" class="nav-dropdown-link" role="listitem" download>
-          <span class="nav-dropdown-title">Download Resume</span>
-          <span class="nav-dropdown-subtitle">Save the latest PDF copy</span>
-        </a>
-      </div>
-    `;
-    const contactOptions = [
-      { title: 'Message through website', subtitle: 'Send a message via website', href: 'contact#contact-modal', recommended: true, modalLink: true },
-      { title: 'Email', subtitle: 'daniel@danielshort.me', href: 'mailto:daniel@danielshort.me' },
-      { title: 'LinkedIn', subtitle: 'linkedin.com/in/danielshort3', href: 'https://www.linkedin.com/in/danielshort3/', external: true },
-      { title: 'GitHub', subtitle: 'github.com/danielshort3', href: 'https://github.com/danielshort3', external: true }
-    ];
-    const contactMenu = `
-      <div class="nav-dropdown-inner nav-dropdown-inner-contact">
-        <div class="nav-dropdown-column nav-dropdown-column-list">
-          <div class="nav-dropdown-header" aria-hidden="true">Get in touch</div>
-          <div class="nav-dropdown-list" role="list">
-            ${contactOptions.map((option) => {
-              const attrParts = [];
-              if(option.external){
-                attrParts.push('target="_blank"', 'rel="noopener noreferrer"');
-              }
-              if(option.modalLink){
-                attrParts.push('data-contact-modal-link="true"');
-              }
-              const attrs = attrParts.length ? ` ${attrParts.join(' ')}` : '';
-              const badge = option.recommended ? '<span class="nav-dropdown-badge" aria-hidden="true">Recommended</span>' : '';
-              return `<a href="${option.href}" class="nav-dropdown-link${option.recommended ? ' nav-dropdown-link-recommended' : ''}" role="listitem"${attrs}>
-                        <span class="nav-dropdown-title">${option.title}${badge}</span>
-                        <span class="nav-dropdown-subtitle">${option.subtitle}</span>
-                      </a>`;
-            }).join('')}
-          </div>
-        </div>
-      </div>
-    `;
-	    const dropdownIds = {
-	      portfolio: 'nav-dropdown-portfolio',
-	      resume: 'nav-dropdown-resume',
-	      contact: 'nav-dropdown-contact'
-	    };
-	    host.innerHTML=`
-	      <nav class="nav ${animate?'animate-entry':''}" aria-label="Primary">
-        <div class="wrapper nav-wrapper">
-	          <a href="/" class="brand" aria-label="Home">
-	            <img src="img/ui/logo-64.png" srcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" sizes="64px" alt="DS logo" class="brand-logo" decoding="async" loading="eager" width="64" height="64">
-	            <span class="brand-name">
-	              <span class="brand-title">Daniel Short</span>
-              <span class="brand-divider" aria-hidden="true"></span>
-              <span class="brand-tagline">
-                <span class="brand-tagline-chunk">Data Science</span>
-                <span class="brand-tagline-chunk">&amp; Analytics</span>
-              </span>
-            </span>
-          </a>
-          <button id="nav-toggle" class="burger" aria-label="Toggle navigation" aria-expanded="false" aria-controls="primary-menu">
-            <span class="bar"></span><span class="bar"></span><span class="bar"></span>
-          </button>
-	          <div id="primary-menu" class="nav-row" data-collapsible role="navigation">
-		            <a href="/" class="nav-link">Home</a>
-		            <div class="nav-item nav-item-portfolio">
-		              <a href="portfolio" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="${dropdownIds.portfolio}">
-		                Portfolio
-		                <span class="nav-link-caret" aria-hidden="true"></span>
-		              </a>
-	              <div class="nav-dropdown" id="${dropdownIds.portfolio}" aria-label="Highlighted projects">
-	                ${portfolioMenu}
-	              </div>
-		            </div>
-		            <div class="nav-item nav-item-resume">
-		              <a href="resume" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="${dropdownIds.resume}">
-		                Resume
-		                <span class="nav-link-caret" aria-hidden="true"></span>
-		              </a>
-              <div class="nav-dropdown" id="${dropdownIds.resume}" aria-label="Resume download">
-                ${resumeMenu}
-              </div>
-	            </div>
-	            <div class="nav-item nav-item-contact">
-	              <a href="contact" class="nav-link nav-link-cta nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="${dropdownIds.contact}">
-	                Contact
-	                <span class="nav-link-caret" aria-hidden="true"></span>
-	              </a>
-              <div class="nav-dropdown nav-dropdown-contact" id="${dropdownIds.contact}" aria-label="Contact options">
-                ${contactMenu}
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav>`;
+    sessionStorage.setItem('navEntryPlayed', 'yes');
+    if (animate) nav.classList.add('animate-entry');
+
     setupNavPreviewVideos(host);
-    const normalizePath = (path) => {
-      if (!path) return '/';
+
+    const normalizePath = (value) => {
+      if (!value) return '/';
+      let next = value;
       try {
-        path = new URL(path, location.href).pathname;
+        next = new URL(next, location.href).pathname;
       } catch {
-        if (!path.startsWith('/')) path = `/${path}`;
+        if (!next.startsWith('/')) next = `/${next}`;
       }
-      path = path.replace(/\/index\.html$/i, '/');
-      path = path.replace(/\/+$/, '');
-      if (!path) path = '/';
-      return path;
+      next = next.replace(/\/index\.html$/i, '/');
+      next = next.replace(/\/+$/, '');
+      if (!next) next = '/';
+      return next;
     };
+
     const currentPath = normalizePath(location.pathname);
     const altCurrentPath = currentPath.startsWith('/pages/')
       ? normalizePath(currentPath.replace(/^\/pages/, '') || '/')
       : currentPath;
-    $$('.nav-link').forEach((link) => {
+
+    $$('.nav-link', host).forEach((link) => {
       const href = link.getAttribute('href');
       if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
       let targetPath = normalizePath(href);
@@ -422,11 +228,13 @@
         link.removeAttribute('aria-current');
       }
     });
+
     const burger = host.querySelector('#nav-toggle');
     const menu   = host.querySelector('#primary-menu');
     setupDropdown(host.querySelector('.nav-item-portfolio'));
     setupDropdown(host.querySelector('.nav-item-resume'));
     setupDropdown(host.querySelector('.nav-item-contact'));
+
     const hoverMatcher = window.matchMedia('(hover: hover) and (pointer: fine)');
     if (hoverMatcher.matches) {
       host.querySelectorAll('.nav-item').forEach((item) => {
@@ -446,7 +254,7 @@
           return;
         }
         if (e.key !== 'Tab') return;
-        const focusables = menu.querySelectorAll('a,button,[tabindex]:not([tabindex="-1"])');
+        const focusables = menu.querySelectorAll('a,button,[tabindex]:not([tabindex=\"-1\"])');
         if (!focusables.length) return;
         const first = focusables[0];
         const last  = focusables[focusables.length - 1];
@@ -502,6 +310,7 @@
       });
     }
   }
+
   const closeActiveDropdowns = (excludeItem, options = {}) => {
     const { forceBlur = false } = options;
     const activeEl = document.activeElement;
