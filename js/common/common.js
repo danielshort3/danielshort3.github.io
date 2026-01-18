@@ -289,10 +289,10 @@
     });
   }
 
-  function initSkillPopups(){
-    if (!isPage('home')) return;
-    const buttons = $$('.skill-link, [data-project-modal="true"]');
-    if (!buttons.length) return;
+	  function initSkillPopups(){
+	    if (!isPage('home')) return;
+	    const buttons = $$('[data-project-modal="true"]');
+	    if (!buttons.length) return;
 
     const safePreload = () => {
       const promise = preparePortfolioModals();

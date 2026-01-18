@@ -4,8 +4,9 @@
 /*
   Generate a lightweight, dependency-free site search index.
 
-  - Reads canonical URLs from sitemap.xml
-  - Extracts title/description/keywords from local HTML pages
+  - Scans root HTML + pages/** for indexable pages
+  - Uses canonical URLs when present (preferred)
+  - Extracts title/description/keywords (+ short main content excerpt)
   - Writes dist/search-index.json (copied to public/ during build)
 */
 
@@ -13,7 +14,6 @@ const fs = require('fs');
 const path = require('path');
 
 const root = path.resolve(__dirname, '..');
-const sitemapPath = path.join(root, 'sitemap.xml');
 const toolsIndexPath = path.join(root, 'pages', 'tools.html');
 const outPath = path.join(root, 'dist', 'search-index.json');
 const SITE_ORIGIN = 'https://danielshort.me';
@@ -50,6 +50,50 @@ function decodeHtml(value) {
     });
 }
 
+function walkHtmlFiles(dirRelPath) {
+  const start = path.join(root, dirRelPath);
+  if (!fs.existsSync(start)) return [];
+  const htmlFiles = [];
+  const stack = [start];
+  while (stack.length) {
+    const current = stack.pop();
+    let entries;
+    try {
+      entries = fs.readdirSync(current, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    entries.forEach((entry) => {
+      const full = path.join(current, entry.name);
+      if (entry.isDirectory()) {
+        stack.push(full);
+        return;
+      }
+      if (entry.isFile() && entry.name.endsWith('.html')) {
+        htmlFiles.push(full);
+      }
+    });
+  }
+  return htmlFiles.sort();
+}
+
+function listRootHtmlFiles() {
+  let entries;
+  try {
+    entries = fs.readdirSync(root, { withFileTypes: true });
+  } catch {
+    return [];
+  }
+  return entries
+    .filter((entry) => entry.isFile() && entry.name.endsWith('.html'))
+    .map((entry) => path.join(root, entry.name))
+    .sort();
+}
+
+function relFromRoot(absPath) {
+  return path.relative(root, absPath).replace(/\\/g, '/');
+}
+
 function stripSiteSuffix(title) {
   const t = String(title || '').trim();
   if (!t) return '';
@@ -82,6 +126,21 @@ function extractMeta(html, attr, key) {
 function extractDescription(html) {
   const d = extractMeta(html, 'name', 'description') || extractMeta(html, 'property', 'og:description');
   return String(d || '').trim();
+}
+
+function extractCanonical(html) {
+  const match = /<link\s+[^>]*rel="canonical"[^>]*href="([^"]+)"[^>]*>/i.exec(String(html || ''));
+  return decodeHtml(match ? match[1] : '').trim();
+}
+
+function extractRobots(html) {
+  const match = /<meta\s+[^>]*name="robots"[^>]*content="([^"]+)"[^>]*>/i.exec(String(html || ''));
+  return decodeHtml(match ? match[1] : '').trim();
+}
+
+function isNoindex(html) {
+  const robots = extractRobots(html).toLowerCase();
+  return robots.includes('noindex');
 }
 
 function extractProjectTags(html) {
@@ -123,26 +182,46 @@ function loadToolKeywords() {
   return map;
 }
 
-function extractSitemapUrls(xml) {
-  const urls = new Set();
-  const re = /<loc>([^<]+)<\/loc>/g;
-  let match;
-  while ((match = re.exec(String(xml || '')))) {
-    const loc = String(match[1] || '').trim();
-    if (!loc) continue;
-    if (!loc.startsWith(SITE_ORIGIN)) continue;
-    urls.add(loc);
-  }
-  return [...urls].sort();
+function normalizeUrlPath(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  if (raw === '/') return '/';
+  return raw.replace(/\/+$/, '');
 }
 
-function toPath(loc) {
-  const raw = String(loc || '').trim();
+function toPathFromCanonical(canonical) {
+  const raw = String(canonical || '').trim();
   if (!raw) return '';
-  const stripped = raw.replace(SITE_ORIGIN, '') || '/';
-  const withSlash = stripped.startsWith('/') ? stripped : `/${stripped}`;
-  return withSlash === '' ? '/' : withSlash;
+  try {
+    const url = new URL(raw, SITE_ORIGIN);
+    if (url.origin !== SITE_ORIGIN) return '';
+    return normalizeUrlPath(url.pathname || '/');
+  } catch {
+    return '';
+  }
 }
+
+	function toPathFromRelFile(relPath, toolKeywords) {
+	  const safe = String(relPath || '').replace(/\\/g, '/');
+	  if (safe === 'index.html') return '/';
+	  if (safe.startsWith('pages/portfolio/') && safe.endsWith('.html')) {
+	    const id = safe.replace(/^pages\/portfolio\//, '').replace(/\.html$/, '');
+	    return id ? `/portfolio/${encodeURIComponent(id)}` : '';
+	  }
+	  if (safe.startsWith('pages/') && safe.endsWith('.html')) {
+	    const slug = safe.replace(/^pages\//, '').replace(/\.html$/, '');
+	    if (!slug) return '';
+	    if (toolKeywords && typeof toolKeywords.has === 'function' && toolKeywords.has(slug)) {
+	      return `/tools/${slug}`;
+	    }
+	    return `/${slug}`;
+	  }
+	  if (safe.endsWith('.html') && !safe.includes('/')) {
+	    const slug = safe.replace(/\.html$/, '');
+	    return slug ? `/${slug}` : '';
+	  }
+	  return '';
+	}
 
 function categoryForPath(urlPath) {
   if (urlPath === '/portfolio' || urlPath.startsWith('/portfolio/')) return 'Portfolio';
@@ -150,45 +229,57 @@ function categoryForPath(urlPath) {
   return 'Pages';
 }
 
-function sourceFileForPath(urlPath) {
-  if (urlPath === '/') return 'index.html';
-  if (urlPath === '/portfolio') return 'pages/portfolio.html';
-  if (urlPath.startsWith('/portfolio/')) {
-    const id = urlPath.replace(/^\/portfolio\//, '');
-    return `pages/portfolio/${id}.html`;
-  }
-  if (urlPath === '/tools') return 'pages/tools.html';
-  if (urlPath === '/tools/dashboard') return 'pages/tools-dashboard.html';
-  if (urlPath.startsWith('/tools/')) {
-    const slug = urlPath.replace(/^\/tools\//, '');
-    return `pages/${slug}.html`;
-  }
-  const slug = urlPath.replace(/^\/+/, '');
-  return `pages/${slug}.html`;
+function stripIndexNoise(html) {
+  let out = String(html || '');
+  out = out.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ');
+  out = out.replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ');
+  return out;
+}
+
+function extractIndexableText(html) {
+  const stripped = stripIndexNoise(html);
+  const mainMatch = /<main\b[^>]*>([\s\S]*?)<\/main>/i.exec(stripped);
+  let region = mainMatch ? mainMatch[1] : stripped;
+  region = region.replace(/<header\b[^>]*>[\s\S]*?<\/header>/gi, ' ');
+  region = region.replace(/<nav\b[^>]*>[\s\S]*?<\/nav>/gi, ' ');
+  region = region.replace(/<footer\b[^>]*>[\s\S]*?<\/footer>/gi, ' ');
+  region = region.replace(/<[^>]+>/g, ' ');
+  const text = decodeHtml(region).replace(/\s+/g, ' ').trim();
+  if (!text) return '';
+  const maxChars = 2200;
+  if (text.length <= maxChars) return text;
+  return text.slice(0, maxChars).replace(/\s+\S*$/, '') + '…';
 }
 
 function main() {
-  if (!fs.existsSync(sitemapPath)) {
-    process.stderr.write('[search-index] Missing sitemap.xml; run build first.\n');
-    process.exit(1);
-  }
-
-  const sitemapXml = fs.readFileSync(sitemapPath, 'utf8');
-  const locs = extractSitemapUrls(sitemapXml);
   const toolKeywords = loadToolKeywords();
 
-  const pages = [];
-  locs.forEach((loc) => {
-    const urlPath = toPath(loc);
-    const sourceFile = sourceFileForPath(urlPath);
-    if (!exists(sourceFile)) return;
+  const candidates = [
+    ...listRootHtmlFiles(),
+    ...walkHtmlFiles('pages')
+  ];
+
+  const byUrl = new Map();
+
+  candidates.forEach((absPath) => {
+    const relPath = relFromRoot(absPath);
+    if (!relPath) return;
+    if (relPath === 'public' || relPath.startsWith('public/')) return;
+    if (relPath === 'node_modules' || relPath.startsWith('node_modules/')) return;
+    if (!relPath.endsWith('.html')) return;
 
     let html;
-    try { html = read(sourceFile); } catch { return; }
+    try { html = read(relPath); } catch { return; }
+    if (isNoindex(html)) return;
+
+	    const canonical = extractCanonical(html);
+	    const urlPath = toPathFromCanonical(canonical) || toPathFromRelFile(relPath, toolKeywords);
+	    if (!urlPath || !urlPath.startsWith('/')) return;
 
     const category = categoryForPath(urlPath);
     const title = stripOwnerPrefix(extractTitle(html) || urlPath, urlPath) || urlPath;
     const description = extractDescription(html);
+    const content = extractIndexableText(html);
 
     let keywords = [];
     if (category === 'Portfolio' && urlPath.startsWith('/portfolio/')) {
@@ -204,10 +295,22 @@ function main() {
       title,
       ...(description ? { description } : {}),
       category,
-      ...(keywords.length ? { keywords } : {})
+      ...(keywords.length ? { keywords } : {}),
+      ...(content ? { content } : {})
     };
-    pages.push(entry);
+
+    const prev = byUrl.get(urlPath);
+    if (!prev) {
+      byUrl.set(urlPath, entry);
+      return;
+    }
+
+    const prevScore = (prev.description ? prev.description.length : 0) + (prev.content ? prev.content.length : 0);
+    const nextScore = (entry.description ? entry.description.length : 0) + (entry.content ? entry.content.length : 0);
+    if (nextScore > prevScore) byUrl.set(urlPath, entry);
   });
+
+  const pages = [...byUrl.values()];
 
   pages.sort((a, b) => {
     const cat = String(a.category).localeCompare(String(b.category));
