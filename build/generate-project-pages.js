@@ -133,14 +133,14 @@ function resolveSitemapMeta(options, previousEntries) {
   const previousHash = previous && previous.hash ? String(previous.hash).trim().toLowerCase() : null;
   const currentHash = computeContentHash(sourceFile);
 
+  const gitLastmod = getGitLastmod(sourceFile);
+  if (gitLastmod) return { lastmod: gitLastmod, hash: currentHash };
+
   if (currentHash && previousHash && currentHash === previousHash && previousLastmod) {
     return { lastmod: previousLastmod, hash: currentHash };
   }
 
   const changed = currentHash && previousHash && currentHash !== previousHash;
-
-  const gitLastmod = getGitLastmod(sourceFile);
-  if (gitLastmod) return { lastmod: gitLastmod, hash: currentHash };
 
   if (!changed && previousLastmod) {
     return { lastmod: previousLastmod, hash: currentHash };
@@ -151,7 +151,7 @@ function resolveSitemapMeta(options, previousEntries) {
     return { lastmod: fsLastmod, hash: currentHash };
   }
 
-  return { lastmod: formatLastmod(new Date()), hash: currentHash };
+  return { lastmod: previousLastmod, hash: currentHash };
 }
 
 function toSitemapUrlEntry(options, previousEntries, nextEntries) {
@@ -168,7 +168,7 @@ function toSitemapUrlEntry(options, previousEntries, nextEntries) {
 
   const lines = [
     '  <url>',
-    `    <loc>${loc}</loc>`
+    `    <loc>${loc.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</loc>`
   ];
   if (lastmod) lines.push(`    <lastmod>${lastmod}</lastmod>`);
   if (Number.isFinite(priority) && priority >= 0 && priority <= 1) {
@@ -586,6 +586,7 @@ function writeSitemap(projects) {
     { loc: `${SITE_ORIGIN}/contributions`, sourceFile: 'pages/contributions.html', priority: 0.6 },
     { loc: `${SITE_ORIGIN}/resume-pdf`, sourceFile: 'pages/resume-pdf.html', priority: 0.5 },
     { loc: `${SITE_ORIGIN}/privacy`, sourceFile: 'pages/privacy.html', priority: 0.2 },
+    { loc: `${SITE_ORIGIN}/sitemap`, sourceFile: 'pages/sitemap.html', priority: 0.2 },
     { loc: `${SITE_ORIGIN}/tools/dashboard`, sourceFile: 'pages/tools-dashboard.html', priority: 0.3 }
   ];
 
@@ -605,7 +606,6 @@ function writeSitemap(projects) {
 
   const xml = [
     '<?xml version="1.0" encoding="UTF-8"?>',
-    '<?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     ...baseEntries.map((entry) => toSitemapUrlEntry(entry, previousEntries, nextEntries)).filter(Boolean),
     '',

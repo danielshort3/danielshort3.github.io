@@ -158,7 +158,14 @@ function main() {
       : 0;
     logStep('projects', projectsStep.durationMs, `pages/portfolio (${projectPages} pages), sitemap.xml`);
 
-    // 4) Shortlinks destinations manifest (site HTML + vercel.json -> dist/)
+    // 4) Search index (sitemap.xml + pages -> dist/)
+    const searchIndexStep = runNodeScript(path.join('build', 'generate-search-index.js'), { verbose });
+    const searchIndexPath = path.join(root, 'dist', 'search-index.json');
+    const searchIndexStat = safeStat(searchIndexPath);
+    const searchIndexDetail = searchIndexStat ? `dist/search-index.json (${formatBytes(searchIndexStat.size)})` : 'dist/search-index.json';
+    logStep('search-index', searchIndexStep.durationMs, searchIndexDetail);
+
+    // 5) Shortlinks destinations manifest (site HTML + vercel.json -> dist/)
     const shortlinksStep = runNodeScript(path.join('build', 'generate-shortlinks-destinations.js'), { verbose });
     const destinationsPath = path.join(root, 'dist', 'shortlinks-destinations.json');
     const destinations = readJson(destinationsPath);
@@ -169,23 +176,23 @@ function main() {
     if (destinationsStat) destinationsDetailParts.push(`${formatBytes(destinationsStat.size)}`);
     logStep('shortlinks', shortlinksStep.durationMs, destinationsDetailParts.join(' '));
 
-    // 5) Shared header/nav (build-time injected)
+    // 6) Shared header/nav (build-time injected)
     const headerStep = runNodeScript(path.join('build', 'inject-header.js'), { verbose });
     logStep('header', headerStep.durationMs);
 
-    // 6) Shared footer (build-time injected)
+    // 7) Shared footer (build-time injected)
     const footerStep = runNodeScript(path.join('build', 'inject-footer.js'), { verbose });
     logStep('footer', footerStep.durationMs);
 
-    // 7) Shared head metadata (build-time injected)
+    // 8) Shared head metadata (build-time injected)
     const metaStep = runNodeScript(path.join('build', 'inject-head-metadata.js'), { verbose });
     logStep('head-metadata', metaStep.durationMs);
 
-    // 8) Keep root HTML copies in sync with /pages
+    // 9) Keep root HTML copies in sync with /pages
     const syncStep = runNodeScript(path.join('build', 'sync-root-pages.js'), { verbose });
     logStep('sync-root-pages', syncStep.durationMs);
 
-    // 9) Public output (deployable mirror)
+    // 10) Public output (deployable mirror)
     const publicStep = runNodeScript(path.join('build', 'copy-to-public.js'), { verbose });
     const publicDir = path.join(root, 'public');
     const publicFiles = countFilesRecursive(publicDir);

@@ -47,12 +47,74 @@
   }
   .nav-row{
     display:grid;
-    grid-template-columns:repeat(5, minmax(0, 1fr));
+    grid-template-columns:repeat(4, minmax(0, 1fr)) minmax(180px, 1.7fr);
     align-items:stretch;
     gap:clamp(8px, 1.4vw, 18px);
     margin-left:auto;
     flex:1 1 480px;
-    max-width:min(640px, 80vw);
+    max-width:min(760px, 86vw);
+  }
+  .nav-search{
+    display:flex;
+    align-items:center;
+    width:100%;
+  }
+  .nav-search-field{
+    position:relative;
+    width:100%;
+  }
+  .nav-search-input{
+    width:100%;
+    min-height:44px;
+    padding:10px 44px 10px 14px;
+    box-sizing:border-box;
+    border-radius:999px;
+    border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
+    background:color-mix(in srgb,var(--surface) 36%, transparent);
+    color:color-mix(in srgb,var(--text-light) 92%, #ffffff 8%);
+    font-size:clamp(.78rem, 1.05vw, .92rem);
+    letter-spacing:.01em;
+  }
+  .nav-search-input::placeholder{
+    color:color-mix(in srgb,var(--text-light) 64%, transparent);
+  }
+  .nav-search-input:focus{
+    outline:none;
+    border-color:color-mix(in srgb,var(--primary) 42%, transparent);
+    box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 18%, transparent);
+  }
+  .nav-search-button{
+    position:absolute;
+    top:50%;
+    right:6px;
+    transform:translateY(-50%);
+    width:34px;
+    height:34px;
+    padding:0;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:999px;
+    border:1px solid color-mix(in srgb,var(--primary) 26%, transparent);
+    background:color-mix(in srgb,var(--surface) 72%, #000000 28%);
+    color:color-mix(in srgb,var(--text-light) 86%, #ffffff 14%);
+    cursor:pointer;
+    transition:background .2s ease, border-color .2s ease;
+  }
+  .nav-search-button:hover,
+  .nav-search-button:focus-visible{
+    outline:none;
+    border-color:color-mix(in srgb,var(--primary) 44%, transparent);
+    background:color-mix(in srgb,var(--surface) 88%, #000000 12%);
+  }
+  .nav-search-button svg{
+    width:16px;
+    height:16px;
+    stroke:currentColor;
+    fill:none;
+    stroke-width:2;
+    stroke-linecap:round;
+    stroke-linejoin:round;
   }
   .nav-link{
     position:relative;

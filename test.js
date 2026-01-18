@@ -85,6 +85,7 @@ try {
     checkFileContains('pages/tools.html', '<title>Tools | Daniel Short');
     checkFileContains('pages/tools-dashboard.html', '<title>Tools Dashboard | Daniel Short');
     checkFileContains('pages/games.html', '<title>Games | Daniel Short');
+    checkFileContains('pages/sitemap.html', '<title>Sitemap | Daniel Short');
     checkFileContains('pages/point-of-view-checker.html', '<title>Point of View Checker | Daniel Short');
     checkFileContains('pages/oxford-comma-checker.html', '<title>Oxford Comma Checker | Daniel Short');
     checkFileContains('pages/ocean-wave-simulation.html', '<title>Ocean Wave Simulation | Daniel Short');
@@ -92,7 +93,7 @@ try {
     checkFileContains('pages/image-optimizer.html', '<title>Image Optimizer | Daniel Short');
     checkFileContains('pages/utm-batch-builder.html', '<title>UTM Batch Builder | Daniel Short');
     checkFileContains('pages/whisper-transcribe-monitor.html', '<title>Whisper Capacity Monitor | Daniel Short');
-    ['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html'].forEach(f => {
+    ['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/sitemap.html'].forEach(f => {
       checkFileContains(f, 'js/common/common.js');
       checkFileContains(f, 'class="skip-link"');
       checkFileContains(f, '<main id="main">');
@@ -136,7 +137,7 @@ try {
     assert(/User-agent:\s*\*/.test(robots), 'robots.txt missing user-agent');
     assert(/Sitemap:\s*https?:\/\//.test(robots), 'robots.txt missing sitemap URL');
     const sitemap = fs.readFileSync('sitemap.xml','utf8');
-    assert(/xml-stylesheet\s+type="text\/xsl"\s+href="\/sitemap\.xsl"/.test(sitemap), 'sitemap.xml missing xml-stylesheet reference');
+    assert(!/xml-stylesheet/i.test(sitemap), 'sitemap.xml should not include xml-stylesheet');
     assert(/<urlset/.test(sitemap) && /<loc>https:\/\/.+<\/loc>/.test(sitemap), 'sitemap.xml structure invalid');
     assert(!/ds:hash=/.test(sitemap), 'sitemap.xml should not contain build metadata');
   });
@@ -165,7 +166,8 @@ try {
       ['contact.html', 'pages/contact.html'],
       ['resume.html', 'pages/resume.html'],
       ['resume-pdf.html', 'pages/resume-pdf.html'],
-      ['privacy.html', 'pages/privacy.html']
+      ['privacy.html', 'pages/privacy.html'],
+      ['sitemap.html', 'pages/sitemap.html']
     ].forEach(([rootFile, pageFile]) => {
       assert(fs.existsSync(rootFile), `${rootFile} missing`);
       assert(fs.existsSync(pageFile), `${pageFile} missing`);
@@ -323,6 +325,9 @@ try {
     assert(headerTemplate.includes('class="brand-divider"'), 'nav markup missing brand-divider');
     assert(headerTemplate.includes('class="brand-tagline"'), 'nav markup missing brand-tagline');
     assert(headerTemplate.includes('class="brand-tagline-chunk">Data Science'), 'nav markup missing tagline chunk for Data Science');
+    assert(headerTemplate.includes('class="nav-search"'), 'nav markup missing header search');
+    assert(headerTemplate.includes('action="search"'), 'header search missing action="search"');
+    assert(headerTemplate.includes('name="q"'), 'header search missing query param name="q"');
   });
 
   section('Navigation CSS and mobile layout', () => {
@@ -381,7 +386,7 @@ try {
       .map(p => p.id);
     const projectPages = projectIds.map(id => `pages/portfolio/${id}.html`);
     const toolPages = ['pages/tools.html','pages/tools-dashboard.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html','pages/whisper-transcribe-monitor.html'];
-    ['index.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','pages/privacy.html','404.html', ...toolPages, ...projectPages].forEach(f => {
+    ['index.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','pages/privacy.html','pages/search.html','404.html', ...toolPages, ...projectPages].forEach(f => {
       checkFileContains(f, '<header id="combined-header-nav">');
       checkFileContains(f, '<main id="main"');
       checkFileContains(f, 'class="skip-link"');
@@ -535,6 +540,21 @@ try {
     const hasToolsDashboard = rewrites.some(r => r.source === '/tools/dashboard' && r.destination === '/pages/tools-dashboard');
     const hasToolsDashboardHtml = rewrites.some(r => r.source === '/tools/dashboard.html' && r.destination === '/pages/tools-dashboard');
     assert(hasToolsDashboard && hasToolsDashboardHtml, 'tools dashboard rewrites missing');
+    const hasSearch = rewrites.some(r => r.source === '/search' && r.destination === '/pages/search');
+    const hasSearchHtml = rewrites.some(r => r.source === '/search.html' && r.destination === '/pages/search');
+    assert(hasSearch && hasSearchHtml, 'search rewrites missing');
+    const hasSitemap = rewrites.some(r => r.source === '/sitemap' && r.destination === '/pages/sitemap');
+    const hasSitemapHtml = rewrites.some(r => r.source === '/sitemap.html' && r.destination === '/pages/sitemap');
+    assert(hasSitemap && hasSitemapHtml, 'sitemap rewrites missing');
+  });
+
+  section('Search index', () => {
+    assert(fs.existsSync('dist/search-index.json'), 'dist/search-index.json missing');
+    const raw = fs.readFileSync('dist/search-index.json', 'utf8');
+    let parsed;
+    try { parsed = JSON.parse(raw); } catch {}
+    assert(parsed && Array.isArray(parsed.pages), 'search index should contain pages array');
+    assert(parsed.pages.length >= 10, 'search index has too few entries');
   });
 
   section('Chatbot demo startup timer', () => {
@@ -579,7 +599,6 @@ try {
     checkFileContains('js/common/404-redirect.js', 'portfolio?project=');
     checkFileContains('pages/portfolio.html', 'id="portfolio-carousel"');
     checkFileContains('pages/portfolio.html', 'id="filter-menu"');
-    checkFileContains('pages/portfolio.html', 'id="portfolio-search"');
     checkFileContains('pages/portfolio.html', 'id="projects"');
     checkFileContains('pages/portfolio.html', 'id="modals"');
     checkFileContains('pages/portfolio.html', 'id="see-more"');
@@ -587,7 +606,7 @@ try {
 
   section('Base hrefs and redirect sanity', () => {
     ['pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html','pages/resume.html','pages/resume-pdf.html',
-     'pages/tools.html','pages/tools-dashboard.html','pages/games.html','pages/short-links.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html',
+     'pages/tools.html','pages/tools-dashboard.html','pages/search.html','pages/sitemap.html','pages/games.html','pages/short-links.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html',
      'demos/chatbot-demo.html','demos/shape-demo.html','demos/sentence-demo.html','demos/slot-machine-demo.html','demos/stellar-dogfight-demo.html']
       .forEach(f => checkFileContains(f, '<base href="/">'));
 
