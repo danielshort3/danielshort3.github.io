@@ -233,15 +233,15 @@
 		      </div>
 	    </section>
 
-    <section class="project-body">
-      <div class="wrapper">
-        <picture class="project-media">
+	    <section class="project-body">
+	      <div class="wrapper">
+	        <picture class="project-media">
         <source srcset="img/projects/deliveryTip-640.avif 640w, img/projects/deliveryTip.avif 960w" type="image/avif">
         <source srcset="img/projects/deliveryTip-640.webp 640w, img/projects/deliveryTip.webp 960w" type="image/webp">
         <img src="img/projects/deliveryTip.png" alt="Preview image for Delivery Tip" loading="eager" decoding="async" width="960" height="794" sizes="(max-width: 960px) 92vw, 840px" fetchpriority="high">
       </picture>
-        <div id="project-details" class="project-details-anchor"></div>
-        <section class="project-star" aria-label="STAR summary">
+	        <div id="project-details" class="project-details-anchor"></div>
+	        <section class="project-star" aria-label="STAR summary">
       <h2 class="section-title">STAR Summary</h2>
       <dl class="project-star-grid">
         <div class="project-star-row">
@@ -273,94 +273,17 @@
         </div>
       </dl>
     </section>
-        <section class="project-section" id="links">
+	        <section class="project-section" id="links">
       <h2 class="section-title">Links</h2>
       <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="documents/Project_11.pdf"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDF</span></a>
         <a class="project-link" role="listitem" href="documents/Project_11.xlsx"><img class="project-link-icon" src="img/icons/excel-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Excel</span></a>
       </div>
     </section>
-        <details class="project-deepdive">
-      <summary class="project-deepdive-summary">
-        <span class="project-deepdive-title">Deep dive</span>
-        <span class="project-deepdive-meta">Context, approach, decisions, and notes</span>
-      </summary>
-      <div class="project-deepdive-body">
-        <nav class="project-toc" aria-label="On this page">
-      <div class="project-toc-header">
-        <span class="project-toc-title">On this page</span>
-        <a class="project-toc-top" href="#project-details" data-smooth-scroll="true">Back to summary</a>
-      </div>
-      <div class="project-toc-links" role="list">
-        <a class="project-toc-link" role="listitem" href="#context" data-smooth-scroll="true">Context</a>
-        <a class="project-toc-link" role="listitem" href="#approach" data-smooth-scroll="true">Approach</a>
-        <a class="project-toc-link" role="listitem" href="#impact" data-smooth-scroll="true">Impact</a>
-        <a class="project-toc-link" role="listitem" href="#case-study-Dataset-and-Cleaning" data-smooth-scroll="true">Dataset and Cleaning</a>
-        <a class="project-toc-link" role="listitem" href="#case-study-Geo-Analytics-Dashboard" data-smooth-scroll="true">Geo-Analytics Dashboard</a>
-        <a class="project-toc-link" role="listitem" href="#case-study-Key-Findings" data-smooth-scroll="true">Key Findings</a>
-        <a class="project-toc-link" role="listitem" href="#case-study-What-I-d-Improve" data-smooth-scroll="true">What I&#39;d Improve</a>
-      </div>
-    </nav>
-        <section class="project-section" id="context">
-      <h2 class="section-title">Context</h2>
-      <p class="project-lead">I wanted to know which shifts and neighborhoods lead to better tips.</p>
-    </section>
-        
-        <section class="project-section" id="approach">
-      <h2 class="section-title">Approach</h2>
-      <ul class="project-list">
-        <li>Built a geospatial heat map and pivot filters from 1,251 deliveries.</li>
-        <li>Compared tips by daypart, zone, and order size.</li>
-      </ul>
-    </section>
-        <section class="project-section" id="impact">
-      <h2 class="section-title">Impact</h2>
-      <ul class="project-list">
-        <li>Mid-week shifts tended to have higher tips per delivery, while Friday evenings tended to have higher tips per hour.</li>
-        <li>Neighborhood and housing type differences explained a lot of the variation in this dataset.</li>
-        <li>Used the dashboard to make better shift and zone choices over time.</li>
-      </ul>
-    </section>
-        <section class="project-section" id="case-study-Dataset-and-Cleaning">
-      <h2 class="section-title">Dataset and Cleaning</h2>
-      <p class="project-lead">I analyzed delivery tickets and built an Excel workflow that drivers can keep updating.</p>
-      <ul class="project-list">
-        <li>Normalized timestamps and derived delivery time (minutes) and tip percentage.</li>
-        <li>Standardized location fields (city and neighborhood) for mapping and rollups.</li>
-        <li>Used Power Query so refresh doesn&#39;t require manual cleanup.</li>
-      </ul>
-    </section>
-<section class="project-section" id="case-study-Geo-Analytics-Dashboard">
-      <h2 class="section-title">Geo-Analytics Dashboard</h2>
-      <ul class="project-list">
-        <li>Built a tip heatmap by neighborhood to spot strong zones.</li>
-        <li>Added pivot filters for housing type, gated communities, city, and order size.</li>
-        <li>Added weekday and shift-level summaries for scheduling.</li>
-      </ul>
-    </section>
-<section class="project-section" id="case-study-Key-Findings">
-      <h2 class="section-title">Key Findings</h2>
-      <ul class="project-list">
-        <li>Mid-week shifts tended to have higher tips per delivery, while Friday evenings tended to have higher tips per hour.</li>
-        <li>Tips varied a lot by housing type and neighborhood, which helped with zone choices.</li>
-        <li>Tracked baseline stats (average tip and delivery time) to measure changes over time.</li>
-      </ul>
-    </section>
-<section class="project-section" id="case-study-What-I-d-Improve">
-      <h2 class="section-title">What I&#39;d Improve</h2>
-      <ul class="project-list">
-        <li>Add distance and drive-time estimates to separate &#39;better zones&#39; from &#39;shorter routes&#39;.</li>
-        <li>Control for order size to avoid confusing high tips with high bills.</li>
-        <li>Turn insights into a simple &#39;where to go next&#39; recommendation view for live shifts.</li>
-      </ul>
-    </section>
-
-        
-      </div>
-    </details>
-      </div>
-    </section>
-  </main>
+	        
+	      </div>
+	    </section>
+	  </main>
 
 	  <footer class="footer footer-classic">
 	    <div class="wrapper footer-inner">

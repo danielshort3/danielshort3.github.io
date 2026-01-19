@@ -233,16 +233,16 @@
 		      </div>
 	    </section>
 
-    <section class="project-body">
-      <div class="wrapper">
-        <section class="project-demo-shell" data-demo-tabs="true" aria-label="Demo">
+	    <section class="project-body">
+	      <div class="wrapper">
+	        <section class="project-demo-shell" data-demo-tabs="true" aria-label="Demo">
       <div class="project-demo-tabs" role="tablist" aria-label="Demo tabs">
         <button class="project-demo-tab is-active" type="button" role="tab" id="project-demo-babynames-tab-instructions" aria-controls="project-demo-babynames-panel-instructions" aria-selected="true">How to use</button>
         <button class="project-demo-tab" type="button" role="tab" id="project-demo-babynames-tab-demo" aria-controls="project-demo-babynames-panel-demo" aria-selected="false" tabindex="-1">Demo</button>
       </div>
 
       <div class="project-demo-panels">
-        <section class="project-demo-panel is-active" role="tabpanel" id="project-demo-babynames-panel-instructions" aria-labelledby="project-demo-babynames-tab-instructions">
+        <section class="project-demo-panel is-active" data-demo-panel="instructions" role="tabpanel" id="project-demo-babynames-panel-instructions" aria-labelledby="project-demo-babynames-tab-instructions">
           <div class="project-demo-panel-inner">
             <p class="project-demo-lead">Explore rated names and similarity-based recommendations.</p>
             <ul class="project-demo-list">
@@ -257,7 +257,7 @@
           </div>
         </section>
 
-        <section class="project-demo-panel" role="tabpanel" id="project-demo-babynames-panel-demo" aria-labelledby="project-demo-babynames-tab-demo" hidden>
+        <section class="project-demo-panel" data-demo-panel="demo" role="tabpanel" id="project-demo-babynames-panel-demo" aria-labelledby="project-demo-babynames-tab-demo" hidden>
           <div class="project-demo-panel-inner">
             <div class="project-media project-embed project-embed-iframe">
         <iframe class="project-embed-frame" data-src="baby-names-demo.html" title="Baby Name Predictor interactive demo" loading="lazy" allowfullscreen></iframe>
@@ -266,8 +266,8 @@
         </section>
       </div>
     </section>
-        <div id="project-details" class="project-details-anchor"></div>
-        <section class="project-star" aria-label="STAR summary">
+	        <div id="project-details" class="project-details-anchor"></div>
+	        <section class="project-star" aria-label="STAR summary">
       <h2 class="section-title">STAR Summary</h2>
       <dl class="project-star-grid">
         <div class="project-star-row">
@@ -299,7 +299,7 @@
         </div>
       </dl>
     </section>
-        <section class="project-section" id="links">
+	        <section class="project-section" id="links">
       <h2 class="section-title">Links</h2>
       <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://danielshort.me/baby-names-demo" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
@@ -309,100 +309,13 @@
         <a class="project-link" role="listitem" href="https://www.ssa.gov/oact/babynames/" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">SSA Baby Names Data</span></a>
       </div>
     </section>
-        <details class="project-deepdive">
-      <summary class="project-deepdive-summary">
-        <span class="project-deepdive-title">Deep dive</span>
-        <span class="project-deepdive-meta">Context, approach, decisions, and notes</span>
-      </summary>
-      <div class="project-deepdive-body">
-        <nav class="project-toc" aria-label="On this page">
-      <div class="project-toc-header">
-        <span class="project-toc-title">On this page</span>
-        <a class="project-toc-top" href="#project-details" data-smooth-scroll="true">Back to summary</a>
-      </div>
-      <div class="project-toc-links" role="list">
-        <a class="project-toc-link" role="listitem" href="#context" data-smooth-scroll="true">Context</a>
-        <a class="project-toc-link" role="listitem" href="#approach" data-smooth-scroll="true">Approach</a>
-        <a class="project-toc-link" role="listitem" href="#impact" data-smooth-scroll="true">Impact</a>
-        <a class="project-toc-link" role="listitem" href="#case-study-Data-and-Labeling" data-smooth-scroll="true">Data and Labeling</a>
-        <a class="project-toc-link" role="listitem" href="#case-study-Feature-Engineering" data-smooth-scroll="true">Feature Engineering</a>
-        <a class="project-toc-link" role="listitem" href="#case-study-Modeling-Strategy" data-smooth-scroll="true">Modeling Strategy</a>
-        <a class="project-toc-link" role="listitem" href="#case-study-Recommendation-Workflow" data-smooth-scroll="true">Recommendation Workflow</a>
-        <a class="project-toc-link" role="listitem" href="#case-study-What-I-d-Improve" data-smooth-scroll="true">What I&#39;d Improve</a>
-        <a class="project-toc-link" role="listitem" href="#notes" data-smooth-scroll="true">Notes</a>
-      </div>
-    </nav>
-        <section class="project-section" id="context">
-      <h2 class="section-title">Context</h2>
-      <p class="project-lead">My wife asked me to suggest baby names. I wanted something that learns her taste instead of guessing.</p>
-    </section>
-        
-        <section class="project-section" id="approach">
-      <h2 class="section-title">Approach</h2>
-      <ul class="project-list">
-        <li>Aggregated SSA baby-name records (1880–present) and engineered trend features.</li>
-        <li>Built a simple &#39;quiz&#39; script to collect like/dislike labels.</li>
-        <li>Trained several models and averaged their scores to produce recommendations.</li>
-      </ul>
-    </section>
-        <section class="project-section" id="impact">
-      <h2 class="section-title">Impact</h2>
-      <ul class="project-list">
-        <li>Generated personalized top 50 name lists for boys and girls.</li>
-        <li>Helped us narrow the list when naming our child.</li>
-      </ul>
-    </section>
-        <section class="project-section" id="case-study-Data-and-Labeling">
-      <h2 class="section-title">Data and Labeling</h2>
-      <p class="project-lead">I combined Social Security Administration name data with preference labels to build a personalized recommender.</p>
-      <ul class="project-list">
-        <li>Aggregated SSA baby-name records (1880–present) and added recency/trend features so it doesn’t just recommend the most common names.</li>
-        <li>Focused on Colorado to keep suggestions closer to what my wife actually hears day to day.</li>
-        <li>Collected labels through quick quizzes so the model learns her taste over time.</li>
-      </ul>
-    </section>
-<section class="project-section" id="case-study-Feature-Engineering">
-      <h2 class="section-title">Feature Engineering</h2>
-      <ul class="project-list">
-        <li>Name shape features: length, vowel/consonant mix, syllable count, start/end vowel flags, and entropy.</li>
-        <li>Popularity features: total count, peak year, and recent-count features to capture saturation and momentum.</li>
-        <li>A rough origin signal via `langdetect` as a lightweight proxy.</li>
-      </ul>
-    </section>
-<section class="project-section" id="case-study-Modeling-Strategy">
-      <h2 class="section-title">Modeling Strategy</h2>
-      <ul class="project-list">
-        <li>Trained multiple models (Random Forest, XGBoost, SVM, KNN, plus a deep learning baseline) with randomized hyperparameter search.</li>
-        <li>Optimized for weighted F1 to handle class imbalance in &#39;liked&#39; vs. &#39;not liked&#39; labels.</li>
-        <li>Averaged predictions across models to reduce quirks from any single model.</li>
-      </ul>
-    </section>
-<section class="project-section" id="case-study-Recommendation-Workflow">
-      <h2 class="section-title">Recommendation Workflow</h2>
-      <ul class="project-list">
-        <li>Generated a ranked Top 50 list for boys and girls and exported results for easy review.</li>
-        <li>Designed the loop so new feedback becomes new training data.</li>
-        <li>Kept it explainable by surfacing which features correlated with higher predicted preference.</li>
-      </ul>
-    </section>
-<section class="project-section" id="case-study-What-I-d-Improve">
-      <h2 class="section-title">What I&#39;d Improve</h2>
-      <ul class="project-list">
-        <li>Collect more labels and add calibration so probabilities map to real acceptance rates.</li>
-        <li>Use name embeddings (character-level or phonetic) instead of hand-crafted features alone.</li>
-        <li>Add diversity constraints so recommendations aren’t overly similar to each other.</li>
-      </ul>
-    </section>
-
-        <section class="project-section" id="notes">
+	        <section class="project-section" id="notes">
       <h2 class="section-title">Notes</h2>
       <p class="project-lead">The quiz collects only non-sensitive preferences; no personal data is stored.</p>
     </section>
-      </div>
-    </details>
-      </div>
-    </section>
-  </main>
+	      </div>
+	    </section>
+	  </main>
 
 	  <footer class="footer footer-classic">
 	    <div class="wrapper footer-inner">

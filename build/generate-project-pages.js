@@ -540,22 +540,6 @@ function renderProjectPage(project) {
       </dl>
     </section>`;
 
-  const deepDive = `<details class="project-deepdive">
-      <summary class="project-deepdive-summary">
-        <span class="project-deepdive-title">Deep dive</span>
-        <span class="project-deepdive-meta">Context, approach, decisions, and notes</span>
-      </summary>
-      <div class="project-deepdive-body">
-        ${detailsToc}
-        ${safeOverview}
-        ${safeRole}
-        ${safeActions}
-        ${safeResults}
-        ${safeCaseStudy}
-        ${safeNotes}
-      </div>
-    </details>`;
-
   const renderImageMedia = () => {
     const img = String(project.image || '').trim();
     if (!img) return '';
@@ -654,7 +638,7 @@ function renderProjectPage(project) {
       </div>
 
       <div class="project-demo-panels">
-        <section class="project-demo-panel is-active" role="tabpanel" id="${escapeHtml(panelInstructionsId)}" aria-labelledby="${escapeHtml(tabInstructionsId)}">
+        <section class="project-demo-panel is-active" data-demo-panel="instructions" role="tabpanel" id="${escapeHtml(panelInstructionsId)}" aria-labelledby="${escapeHtml(tabInstructionsId)}">
           <div class="project-demo-panel-inner">
             ${safeLead}
             ${safeBullets}
@@ -664,7 +648,7 @@ function renderProjectPage(project) {
           </div>
         </section>
 
-        <section class="project-demo-panel" role="tabpanel" id="${escapeHtml(panelDemoId)}" aria-labelledby="${escapeHtml(tabDemoId)}" hidden>
+        <section class="project-demo-panel" data-demo-panel="demo" role="tabpanel" id="${escapeHtml(panelDemoId)}" aria-labelledby="${escapeHtml(tabDemoId)}" hidden>
           <div class="project-demo-panel-inner">
             ${renderEmbeddedMedia({ lazy: true })}
           </div>
@@ -736,16 +720,16 @@ ${tableauPreconnect}
 		      </div>
 	    </section>
 
-    <section class="project-body">
-      <div class="wrapper">
-        ${demoTabs || media}
-        ${detailsAnchor}
-        ${starSummary}
-        ${safeResources}
-        ${deepDive}
-      </div>
-    </section>
-  </main>
+	    <section class="project-body">
+	      <div class="wrapper">
+	        ${demoTabs || media}
+	        ${detailsAnchor}
+	        ${starSummary}
+	        ${safeResources}
+	        ${safeNotes}
+	      </div>
+	    </section>
+	  </main>
 
 	  <footer>
 	    <nav class="privacy-links" aria-label="Privacy shortcuts">

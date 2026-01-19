@@ -51,6 +51,8 @@
 
   .project-demo-shell{
     position:relative;
+    display:flex;
+    flex-direction:column;
     margin:0 0 28px;
     border-radius:18px;
     border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
@@ -99,10 +101,20 @@
     border-color:color-mix(in srgb,var(--primary) 45%, transparent);
   }
 
+  .project-demo-panels{
+    flex:1 1 auto;
+    display:flex;
+    min-height:0;
+  }
   .project-demo-panel{
+    flex:1 1 auto;
+    display:flex;
+    min-height:0;
     padding:0;
   }
   .project-demo-panel-inner{
+    flex:1 1 auto;
+    min-height:0;
     display:flex;
     flex-direction:column;
     gap:14px;
@@ -123,9 +135,20 @@
     max-width:90ch;
   }
   .project-demo-actions{
-    margin-top:auto;
+    margin-top:16px;
     display:flex;
     justify-content:center;
+  }
+  .project-demo-panel[data-demo-panel="instructions"] .project-demo-panel-inner{
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+  }
+  .project-demo-panel[data-demo-panel="instructions"] :is(.project-demo-lead, .project-demo-list){
+    width:min(90ch, 100%);
+  }
+  .project-demo-panel[data-demo-panel="instructions"] .project-demo-list{
+    text-align:left;
   }
   .project-demo-panel .project-media{
     margin:0;
@@ -235,55 +258,6 @@
     padding-left:20px;
     display:grid;
     gap:10px;
-  }
-
-  .project-deepdive{
-    margin-top:18px;
-    border-radius:18px;
-    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
-    background:color-mix(in srgb,var(--surface) 92%, #000 8%);
-    box-shadow:0 14px 30px rgba(0,0,0,.22);
-    overflow:hidden;
-  }
-  .project-deepdive-summary{
-    list-style:none;
-    cursor:pointer;
-    padding:14px 16px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
-    border-bottom:1px solid color-mix(in srgb,var(--primary) 14%, transparent);
-    background:linear-gradient(0deg,
-      color-mix(in srgb,var(--surface) 92%, #000 8%),
-      color-mix(in srgb,var(--surface) 86%, #000 14%));
-  }
-  .project-deepdive-summary::-webkit-details-marker{
-    display:none;
-  }
-  .project-deepdive-title{
-    font-weight:900;
-    letter-spacing:.02em;
-    color:var(--text-light);
-  }
-  .project-deepdive-meta{
-    color:var(--text-muted);
-    font-weight:700;
-    font-size:.92rem;
-  }
-  .project-deepdive[open] .project-deepdive-summary{
-    border-bottom-color:color-mix(in srgb,var(--primary) 18%, transparent);
-  }
-  .project-deepdive-body{
-    padding:clamp(1rem,2.2vw,1.4rem);
-  }
-  .project-deepdive-body .project-toc{
-    margin:0 0 18px;
-    box-shadow:none;
-    background:color-mix(in srgb,var(--surface) 94%, #000 6%);
-  }
-  .project-deepdive-body .project-section{
-    margin-top:16px;
   }
   .project-toc{
     margin:0 0 22px;
@@ -457,10 +431,6 @@
     .project-star-row{
       grid-template-columns:1fr;
       gap:10px;
-    }
-    .project-deepdive-summary{
-      flex-direction:column;
-      align-items:flex-start;
     }
   }
 }

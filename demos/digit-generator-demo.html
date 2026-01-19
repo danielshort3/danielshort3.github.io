@@ -100,38 +100,69 @@
       max-width: 60ch;
     }
 
-    .grid-controls {
+    .grid-heading {
+      width: 100%;
+      display: grid;
+      gap: 6px;
+      justify-items: center;
+      text-align: center;
+    }
+
+    .grid-heading-eyebrow {
+      font-size: .72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+    }
+
+    .grid-heading-main {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .grid-heading-key {
+      font-size: .9rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      letter-spacing: .02em;
+    }
+
+    .grid-number-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 42px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid color-mix(in srgb, var(--primary) 45%, var(--surface-accent));
+      background: color-mix(in srgb, var(--primary) 18%, var(--surface) 82%);
+      color: var(--text);
+      font-weight: 800;
+      font-size: 1.05rem;
+      box-shadow: var(--shadow-1);
+    }
+
+    .grid-actions {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px 12px;
+      gap: 10px;
       align-items: center;
       justify-content: center;
       width: 100%;
     }
 
-    .grid-controls .mini-btn {
-      padding: 6px 10px;
-      font-size: .8rem;
-      border-radius: 8px;
-    }
-
-    .grid-controls label {
-      display: grid;
-      gap: 4px;
-      font-size: .75rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .grid-controls select {
-      min-width: 120px;
-      padding: 6px 8px;
-      border-radius: 8px;
+    .grid-actions select {
+      min-width: 140px;
+      padding: 10px 12px;
+      border-radius: 12px;
       border: 1px solid var(--surface-accent);
       background: var(--surface);
       color: var(--text);
-      font-size: .85rem;
+      font-size: .95rem;
+      font-weight: 600;
     }
 
     .settings-panel {
@@ -440,23 +471,14 @@
         gap: 10px;
       }
 
-      .grid-controls {
+      .grid-actions {
         flex-direction: column;
         align-items: stretch;
       }
 
-      .grid-controls select {
+      .grid-actions select {
         min-width: 0;
         width: 100%;
-      }
-
-      .grid-controls label {
-        font-size: .7rem;
-      }
-
-      .grid-controls select,
-      .grid-controls .mini-btn {
-        font-size: .8rem;
       }
 
       .latent-row {
@@ -537,26 +559,33 @@
 
     <div class="content">
       <div class="grid-shell">
-        <div class="grid-controls">
-          <label class="cluster-control">
-            Number
-            <select id="cluster-select">
+        <div class="grid-heading" aria-label="Generation target">
+          <div class="grid-heading-eyebrow">Generated grid</div>
+          <div class="grid-heading-main">
+            <span class="grid-heading-key">Number</span>
+            <span id="grid-number-pill" class="grid-number-pill">4</span>
+          </div>
+        </div>
+        <div class="grid" id="grid" aria-live="polite"></div>
+        <div class="grid-actions">
+          <button id="refresh-seed-btn" class="btn-primary" type="button">Generate</button>
+          <div class="grid-actions-select">
+            <label class="visually-hidden" for="cluster-select">Number</label>
+            <select id="cluster-select" aria-label="Number to generate">
               <option value="auto">Auto</option>
               <option value="0">0</option>
               <option value="1">1</option>
               <option value="2">2</option>
               <option value="3">3</option>
               <option value="4" selected>4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
-                <option value="9">9</option>
-              </select>
-            </label>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+            </select>
+          </div>
         </div>
-        <div class="grid" id="grid" aria-live="polite"></div>
-        <button id="refresh-seed-btn" class="btn-primary" type="button">Generate</button>
       </div>
 
       <aside class="panel" aria-live="polite">
@@ -610,6 +639,7 @@
     const seedInput = document.getElementById('seed-input');
     const gridSelect = document.getElementById('grid-select');
     const clusterSelect = document.getElementById('cluster-select');
+    const gridNumberPill = document.getElementById('grid-number-pill');
     const dimSelect = document.getElementById('dim-select');
     const valueSlider = document.getElementById('value-slider');
     const valueLabel = document.getElementById('value-label');
@@ -659,6 +689,12 @@
       controls.forEach(control => {
         if (control) control.disabled = !enabled;
       });
+    }
+
+    function syncGridNumberLabel() {
+      if (!gridNumberPill || !clusterSelect) return;
+      const value = String(clusterSelect.value || '').trim();
+      gridNumberPill.textContent = value === 'auto' ? 'Auto' : value;
     }
 
     function setValueLabel(value) {
@@ -923,6 +959,7 @@
       fetchGrid();
     });
     clusterSelect.addEventListener('change', () => {
+      syncGridNumberLabel();
       fetchGrid();
     });
     seedInput.addEventListener('change', () => {
@@ -937,6 +974,7 @@
     syncRange(valueSlider.value);
     setGridSize(gridSize);
     gridSelect.value = String(gridSize);
+    syncGridNumberLabel();
     ensureSeed(true);
     setControlsEnabled(false);
     warmUpServer();
