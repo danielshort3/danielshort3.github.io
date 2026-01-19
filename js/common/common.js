@@ -144,6 +144,9 @@
       initSkillPopups();
       initJumpPanelSpy();
     }
+    if (isPage('project')) {
+      initProjectDemoTabs();
+    }
   });
   trackContactOrigin();
 
@@ -480,6 +483,99 @@
         try {
           history.pushState(null, '', href);
         } catch {}
+      });
+    });
+  }
+
+  function initProjectDemoTabs() {
+    const shells = $$('[data-demo-tabs="true"]');
+    if (!shells.length) return;
+
+    shells.forEach((shell) => {
+      const tabs = $$('[role="tab"]', shell);
+      const panels = $$('[role="tabpanel"]', shell);
+      if (tabs.length < 2 || panels.length < 2) return;
+
+      const panelById = new Map(
+        panels
+          .map((panel) => [panel.id, panel])
+          .filter(([id]) => Boolean(id))
+      );
+
+      const getPanelForTab = (tab) => {
+        if (!tab) return null;
+        const panelId = tab.getAttribute('aria-controls');
+        if (!panelId) return null;
+        return panelById.get(panelId) || document.getElementById(panelId);
+      };
+
+      const loadPanelIframes = (panel) => {
+        if (!panel) return;
+        $$('iframe[data-src]', panel).forEach((iframe) => {
+          if (!iframe || iframe.getAttribute('src')) return;
+          const dataSrc = iframe.getAttribute('data-src');
+          if (!dataSrc) return;
+          iframe.setAttribute('src', dataSrc);
+          iframe.removeAttribute('data-src');
+        });
+      };
+
+      const setActiveTab = (nextTab, { focus = false } = {}) => {
+        if (!nextTab) return;
+        const nextPanel = getPanelForTab(nextTab);
+        if (!nextPanel) return;
+
+        tabs.forEach((tab) => {
+          const active = tab === nextTab;
+          tab.classList.toggle('is-active', active);
+          tab.setAttribute('aria-selected', String(active));
+          if (active) {
+            tab.removeAttribute('tabindex');
+          } else {
+            tab.setAttribute('tabindex', '-1');
+          }
+        });
+
+        panels.forEach((panel) => {
+          const active = panel === nextPanel;
+          panel.classList.toggle('is-active', active);
+          if (active) {
+            panel.removeAttribute('hidden');
+          } else {
+            panel.setAttribute('hidden', '');
+          }
+        });
+
+        loadPanelIframes(nextPanel);
+        if (focus) nextTab.focus();
+      };
+
+      tabs.forEach((tab) => {
+        on(tab, 'click', () => setActiveTab(tab));
+        on(tab, 'keydown', (event) => {
+          const key = event?.key;
+          if (!key) return;
+          if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(key)) return;
+          event.preventDefault();
+          const currentIndex = tabs.indexOf(tab);
+          if (currentIndex === -1) return;
+          const lastIndex = tabs.length - 1;
+          const nextIndex = (() => {
+            if (key === 'Home') return 0;
+            if (key === 'End') return lastIndex;
+            if (key === 'ArrowLeft') return currentIndex === 0 ? lastIndex : currentIndex - 1;
+            return currentIndex === lastIndex ? 0 : currentIndex + 1;
+          })();
+          const nextTab = tabs[nextIndex];
+          setActiveTab(nextTab, { focus: true });
+        });
+      });
+
+      on(shell, 'click', (event) => {
+        const trigger = event.target.closest('[data-demo-tabs-open="demo"]');
+        if (!trigger) return;
+        const demoTab = tabs.find((tab) => tab.textContent.trim().toLowerCase() === 'demo') || tabs[1];
+        setActiveTab(demoTab, { focus: true });
       });
     });
   }

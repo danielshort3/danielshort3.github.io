@@ -217,6 +217,7 @@
             height: 10px;
             border-radius: 999px;
             display: inline-block;
+            box-sizing: border-box;
             border: 1px solid var(--surface-accent);
             box-shadow: var(--shadow-1);
         }
@@ -227,14 +228,23 @@
             }
 
             .svc-dot.amber {
-                background: #f6c026;
-                border-color: #f6c026;
+                background: transparent;
+                border: 2px solid #f6c026;
+                border-right-color: transparent;
+                animation: modal-spin .9s linear infinite;
             }
 
             .svc-dot.gray {
                 background: #9aa0a6;
                 border-color: #9aa0a6;
             }
+
+        @media (prefers-reduced-motion: reduce) {
+            .svc-dot.amber {
+                animation: none;
+                border-right-color: #f6c026;
+            }
+        }
 
         .svc-meta {
             color: var(--text-muted);

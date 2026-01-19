@@ -237,28 +237,78 @@
 
     <section class="project-body">
       <div class="wrapper">
-        <div class="project-media project-embed project-embed-iframe">
-        <iframe class="project-embed-frame" src="/digit-generator-demo" title="Synthetic Digit Generator interactive demo" loading="lazy" allowfullscreen></iframe>
+        <section class="project-demo-shell" data-demo-tabs="true" aria-label="Demo">
+      <div class="project-demo-tabs" role="tablist" aria-label="Demo tabs">
+        <button class="project-demo-tab is-active" type="button" role="tab" id="project-demo-digitGenerator-tab-instructions" aria-controls="project-demo-digitGenerator-panel-instructions" aria-selected="true">How to use</button>
+        <button class="project-demo-tab" type="button" role="tab" id="project-demo-digitGenerator-tab-demo" aria-controls="project-demo-digitGenerator-panel-demo" aria-selected="false" tabindex="-1">Demo</button>
       </div>
-        <section class="project-section">
+
+      <div class="project-demo-panels">
+        <section class="project-demo-panel is-active" role="tabpanel" id="project-demo-digitGenerator-panel-instructions" aria-labelledby="project-demo-digitGenerator-tab-instructions">
+          <div class="project-demo-panel-inner">
+            <p class="project-demo-lead">Generate a grid of synthetic digits and explore how the output morphs.</p>
+            <ul class="project-demo-list">
+        <li>Choose a “Number” (or Auto) to sample from.</li>
+        <li>Click “Generate” to refresh the grid.</li>
+        <li>Open “Extra settings” to adjust seed, dim, grid density, and distortion level.</li>
+        <li>Generate again to compare how settings change the outputs.</li>
+      </ul>
+            <div class="project-demo-actions">
+              <button class="btn-primary" type="button" data-demo-tabs-open="demo">Open demo</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="project-demo-panel" role="tabpanel" id="project-demo-digitGenerator-panel-demo" aria-labelledby="project-demo-digitGenerator-tab-demo" hidden>
+          <div class="project-demo-panel-inner">
+            <div class="project-media project-embed project-embed-iframe">
+        <iframe class="project-embed-frame" data-src="/digit-generator-demo" title="Synthetic Digit Generator interactive demo" loading="lazy" allowfullscreen></iframe>
+      </div>
+          </div>
+        </section>
+      </div>
+
+      <a class="chevron-hint scroll-indicator project-demo-chevron" href="#project-details" data-smooth-scroll="true">
+        <span class="chevron-label">Scroll for project details</span>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 16.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 14.08l5.3-5.29a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29z"/></svg>
+      </a>
+    </section>
+        <div id="project-details" class="project-details-anchor"></div>
+        <nav class="project-toc" aria-label="On this page">
+      <div class="project-toc-header">
+        <span class="project-toc-title">On this page</span>
+        <a class="project-toc-top" href="#main" data-smooth-scroll="true">Back to top</a>
+      </div>
+      <div class="project-toc-links" role="list">
+        <a class="project-toc-link" role="listitem" href="#context" data-smooth-scroll="true">Context</a>
+        <a class="project-toc-link" role="listitem" href="#approach" data-smooth-scroll="true">Approach</a>
+        <a class="project-toc-link" role="listitem" href="#impact" data-smooth-scroll="true">Impact</a>
+        <a class="project-toc-link" role="listitem" href="#case-study-Model-Architecture-VAE" data-smooth-scroll="true">Model Architecture (VAE)</a>
+        <a class="project-toc-link" role="listitem" href="#case-study-Training-and-Sampling" data-smooth-scroll="true">Training and Sampling</a>
+        <a class="project-toc-link" role="listitem" href="#case-study-Latent-Space-Analysis" data-smooth-scroll="true">Latent Space Analysis</a>
+        <a class="project-toc-link" role="listitem" href="#case-study-What-I-d-Improve" data-smooth-scroll="true">What I&#39;d Improve</a>
+        <a class="project-toc-link" role="listitem" href="#links" data-smooth-scroll="true">Links</a>
+      </div>
+    </nav>
+        <section class="project-section" id="context">
       <h2 class="section-title">Context</h2>
       <p class="project-lead">I wanted to generate new handwritten digits, not just recognize them.</p>
     </section>
         
-        <section class="project-section">
+        <section class="project-section" id="approach">
       <h2 class="section-title">Approach</h2>
       <ul class="project-list">
         <li>Trained a Variational Autoencoder (VAE) on MNIST (60,000 training digits) with a 20-dim latent space for up to 100 epochs.</li>
       </ul>
     </section>
-        <section class="project-section">
+        <section class="project-section" id="impact">
       <h2 class="section-title">Impact</h2>
       <ul class="project-list">
         <li>Generated new digits by sampling the learned latent space.</li>
         <li>Saved the trained model so generation is a quick inference step.</li>
       </ul>
     </section>
-        <section class="project-section">
+        <section class="project-section" id="case-study-Model-Architecture-VAE">
       <h2 class="section-title">Model Architecture (VAE)</h2>
       <p class="project-lead">I trained a VAE to learn a compact latent space for handwritten digits and generate new samples from it.</p>
       <ul class="project-list">
@@ -267,7 +317,7 @@
         <li>Decoder: transposed convolutions that reconstruct an image from a latent vector.</li>
       </ul>
     </section>
-<section class="project-section">
+<section class="project-section" id="case-study-Training-and-Sampling">
       <h2 class="section-title">Training and Sampling</h2>
       <ul class="project-list">
         <li>Trained on MNIST for up to 100 epochs with a 20-dim latent space and balanced reconstruction loss vs. KL divergence.</li>
@@ -275,7 +325,7 @@
         <li>Saved the model so generation doesn&#39;t require retraining.</li>
       </ul>
     </section>
-<section class="project-section">
+<section class="project-section" id="case-study-Latent-Space-Analysis">
       <h2 class="section-title">Latent Space Analysis</h2>
       <ul class="project-list">
         <li>Used PCA, t-SNE, and UMAP to visualize how digits cluster in latent space.</li>
@@ -283,7 +333,7 @@
         <li>Checked reconstruction error to see which digits are hardest to model.</li>
       </ul>
     </section>
-<section class="project-section">
+<section class="project-section" id="case-study-What-I-d-Improve">
       <h2 class="section-title">What I&#39;d Improve</h2>
       <ul class="project-list">
         <li>Build a conditional VAE so I can generate a specific digit on demand.</li>
@@ -292,7 +342,7 @@
       </ul>
     </section>
 
-        <section class="project-section">
+        <section class="project-section" id="links">
       <h2 class="section-title">Links</h2>
       <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://github.com/danielshort3/Handwritten-Digit-Generator" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>

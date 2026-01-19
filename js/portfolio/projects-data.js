@@ -35,6 +35,15 @@ window.PROJECTS = [
       type: "iframe",
       url: "sentence-demo.html"
     },
+    demoInstructions: {
+      lead: "Search a fixed corpus (Alice in Wonderland) by meaning, not exact wording.",
+      bullets: [
+        "Type a query (a phrase or full sentence).",
+        "Adjust “Top results” to control how many matches are returned.",
+        "Click “Find Sentences” and review the ranked results.",
+        "If the status shows “Warming up”, wait a moment and try again."
+      ]
+    },
     problem: "I wanted a fast way to find sentences that match a question, even when the wording is different.",
     actions: [
       "Cleaned the text of Alice in Wonderland, split it into sentences, and precomputed embeddings.",
@@ -100,6 +109,15 @@ window.PROJECTS = [
     embed: {
       type: "iframe",
       url: "chatbot-demo.html"
+    },
+    demoInstructions: {
+      lead: "Ask a question and get an answer grounded in the site content (with citations).",
+      bullets: [
+        "Click a quick prompt, or type your own question in the chat box.",
+        "Press Enter or click “Send” to submit.",
+        "Use the citations in the response to jump to the referenced pages.",
+        "If the service is warming up after idle time, wait for status to turn ready and try again."
+      ]
     },
     role: [
       "Built the prototype from crawl to deployment, including the web demo."
@@ -172,6 +190,15 @@ window.PROJECTS = [
       type: "iframe",
       url: "shape-demo.html"
     },
+    demoInstructions: {
+      lead: "Draw one of the supported shapes and let the model classify it.",
+      bullets: [
+        "Draw on the canvas (circle, triangle, square, hexagon, or octagon).",
+        "Click “Classify” to submit the drawing.",
+        "Use the eraser button (or press C) to clear and try again.",
+        "Review the confidence bar and per-shape scores on the right."
+      ]
+    },
     problem: "I wanted a model that can tell what shape someone drew.",
     actions: [
       "Used Google's QuickDraw sketches and built train/validation splits.",
@@ -238,6 +265,15 @@ window.PROJECTS = [
     embed : {
       type : "tableau",
       base : "https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013"
+    },
+    demoInstructions : {
+      lead: "Use the interactive Tableau dashboard to explore sightings by place, time, and shape.",
+      bullets: [
+        "Hover charts/maps for tooltips and quick readouts.",
+        "Click marks (states/cities/shapes) to filter and cross-highlight views.",
+        "Use Tableau controls to refine the slice you’re looking at.",
+        "Scroll to compare time-of-day and seasonality patterns across views."
+      ]
     },
     problem : "I wanted to see patterns in UFO sighting reports across the U.S.",
     actions : [
@@ -306,6 +342,15 @@ window.PROJECTS = [
     embed: {
       type: "iframe",
       url: "covid-outbreak-demo.html"
+    },
+    demoInstructions: {
+      lead: "Explore how ICU breach risk changes over time, and what’s driving it.",
+      bullets: [
+        "Wait for the status pill to show the demo is ready (cold starts can take a moment).",
+        "Drag the date slider to move through time.",
+        "Hover or click a state to see its risk score, top drivers, and recent trend.",
+        "Use the hotspots list to quickly jump to the highest-risk locations."
+      ]
     },
     problem : "Using 2020–2023 HHS hospital-capacity data, I built an early-warning model to flag states at risk of crossing 90% ICU utilization in the next 7 days.",
     actions : [
@@ -390,6 +435,15 @@ window.PROJECTS = [
       type: "iframe",
       url: "target-empty-package-demo.html"
     },
+    demoInstructions: {
+      lead: "Explore shrink trends and hotspots with filters and breakdown tabs.",
+      bullets: [
+        "Wait for the dashboard to finish warming up and load data.",
+        "Switch between “Retail Value” and “Incident Count” depending on what you want to compare.",
+        "Apply filters (location, condition, department, associate, date range) to narrow the view.",
+        "Use “Reset filters” to quickly return to the full dataset."
+      ]
+    },
     role: [
       "Built the Excel dashboard workflow (cleanup, drill-downs, and reporting)."
     ],
@@ -466,6 +520,15 @@ window.PROJECTS = [
       type: "iframe",
       url: "handwriting-rating-demo.html"
     },
+    demoInstructions: {
+      lead: "Draw a digit (0–9) or load a sample, then score how legible it is.",
+      bullets: [
+        "Pick a sample from “Daniel’s Handwritten Numbers”, or draw a digit on the canvas.",
+        "Click “Rate digit” to submit.",
+        "Use the eraser to clear the canvas and try another digit.",
+        "Review the predicted digit, confidence, and legibility score breakdown."
+      ]
+    },
     problem : "My wife says my handwriting is hard to read. I wanted an objective score.",
     actions : [
       "Built three digit-recognition models (simple baseline → CNN).",
@@ -534,6 +597,15 @@ window.PROJECTS = [
     embed: {
       type: "iframe",
       url: "/digit-generator-demo"
+    },
+    demoInstructions: {
+      lead: "Generate a grid of synthetic digits and explore how the output morphs.",
+      bullets: [
+        "Choose a “Number” (or Auto) to sample from.",
+        "Click “Generate” to refresh the grid.",
+        "Open “Extra settings” to adjust seed, dim, grid density, and distortion level.",
+        "Generate again to compare how settings change the outputs."
+      ]
     },
     problem : "I wanted to generate new handwritten digits, not just recognize them.",
     actions : [
@@ -732,6 +804,15 @@ window.PROJECTS = [
       type: "iframe",
       url: "retail-loss-sales-demo.html"
     },
+    demoInstructions: {
+      lead: "Compare store-level incident signals against sales metrics using tabs and filters.",
+      bullets: [
+        "Pick a region to filter incidents and trends.",
+        "Switch sales metrics (Total, Online, Drive-up) to change the sales view.",
+        "Switch incident metrics (Count vs. Proven $) to change the incident view.",
+        "Use “Reset view” to return to the default slice."
+      ]
+    },
     role: [
       "Led the analysis: SQL modeling/ETL, anomaly detection, and reporting."
     ],
@@ -805,6 +886,15 @@ window.PROJECTS = [
       type: "iframe",
       url: "pizza-tips-demo.html"
     },
+    demoInstructions: {
+      lead: "Adjust inputs and estimate a tip using the regression model.",
+      bullets: [
+        "Use the delivery slider to load an example ticket (or enter values directly).",
+        "Edit order cost and other inputs (housing, time, weather) to test scenarios.",
+        "Click “Estimate Tip” to see the prediction.",
+        "Use “Reset” to return to defaults."
+      ]
+    },
     problem : "Tips varied a lot by neighborhood and housing type. I wanted to see what actually drives them.",
     actions : [
       "Merged 1,251 delivery tickets with NOAA weather, then cleaned the data in Power Query.",
@@ -873,6 +963,15 @@ window.PROJECTS = [
     embed: {
       type: "iframe",
       url: "baby-names-demo.html"
+    },
+    demoInstructions: {
+      lead: "Explore rated names and similarity-based recommendations.",
+      bullets: [
+        "Choose Girls, Boys, or All at the top to change the dataset slice.",
+        "In “Ratings Snapshot”, click a rating bar to see the names at that score.",
+        "In “Name Explorer”, switch between Recommendations and Rated Names.",
+        "Use search + sort to find names quickly."
+      ]
     },
     notes: "The quiz collects only non-sensitive preferences; no personal data is stored.",
     problem : "My wife asked me to suggest baby names. I wanted something that learns her taste instead of guessing.",
@@ -949,6 +1048,15 @@ window.PROJECTS = [
       type : "tableau",
       base : "https://public.tableau.com/views/Pizza_Delivery/PizzaDeliveryDashboard"
     },
+    demoInstructions : {
+      lead: "Use the Tableau dashboard to compare delivery zones, tips, and timing.",
+      bullets: [
+        "Hover charts/maps to see exact values for the current filter state.",
+        "Click marks to cross-filter other views and isolate a zone or time period.",
+        "Use Tableau filters to narrow by date, city/zone, and other dimensions.",
+        "Scroll to review distributions and the forecast section."
+      ]
+    },
     role: [
       "Built the dataset and Tableau dashboard (data shaping, KPIs, and forecasting)."
     ],
@@ -1019,6 +1127,15 @@ window.PROJECTS = [
       type: "iframe",
       url: "nonogram-demo.html"
     },
+    demoInstructions: {
+      lead: "Generate a new Nonogram puzzle, then watch the agent solve it step-by-step.",
+      bullets: [
+        "Click “New Puzzle” to generate a board.",
+        "Once it’s ready, the button switches to “Solve With AI”. Click it to start solving.",
+        "Use “Solution” to reveal the full answer key if you want to compare.",
+        "If AWS is warming up, wait for the status to turn ready and try again."
+      ]
+    },
     problem : "I wanted to see if an RL agent could learn to solve Nonogram puzzles.",
     actions : [
       "Generated large batches of 5×5 puzzles and trained a hybrid CNN + Transformer policy network to solve them.",
@@ -1081,6 +1198,15 @@ window.PROJECTS = [
     embed: {
       type: "iframe",
       url: "minesweeper-demo.html"
+    },
+    demoInstructions: {
+      lead: "Generate a Minesweeper board, then watch the agent solve it move-by-move.",
+      bullets: [
+        "Click “New Puzzle” to generate a board.",
+        "Once it’s ready, the button switches to “Solve With AI”. Click it to run the solver.",
+        "Use “Solution” to reveal the mine layout if you want to compare.",
+        "If the backend is warming up, give it a moment and try again."
+      ]
     },
     problem : "I wanted to train an RL agent to play Minesweeper and ship it as a web demo.",
     actions : [

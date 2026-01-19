@@ -236,17 +236,35 @@
     <section class="project-body">
       <div class="wrapper">
         <div class="project-media project-video">
-      <video class="project-video-frame" controls playsinline preload="metadata" poster="img/projects/sheetMusicUpscale.png" aria-label="Sheet Music Watermark Removal &amp; Upscale video">
+      <video class="project-video-frame" controls autoplay muted loop playsinline preload="metadata" poster="img/projects/sheetMusicUpscale.png" aria-label="Sheet Music Watermark Removal &amp; Upscale video">
         <source src="img/projects/sheetMusicUpscale.webm" type="video/webm">
           <source src="img/projects/sheetMusicUpscale.mp4" type="video/mp4">
       </video>
     </div>
-        <section class="project-section">
+        
+        <nav class="project-toc" aria-label="On this page">
+      <div class="project-toc-header">
+        <span class="project-toc-title">On this page</span>
+        <a class="project-toc-top" href="#main" data-smooth-scroll="true">Back to top</a>
+      </div>
+      <div class="project-toc-links" role="list">
+        <a class="project-toc-link" role="listitem" href="#context" data-smooth-scroll="true">Context</a>
+        <a class="project-toc-link" role="listitem" href="#approach" data-smooth-scroll="true">Approach</a>
+        <a class="project-toc-link" role="listitem" href="#impact" data-smooth-scroll="true">Impact</a>
+        <a class="project-toc-link" role="listitem" href="#case-study-End-to-End-Pipeline" data-smooth-scroll="true">End-to-End Pipeline</a>
+        <a class="project-toc-link" role="listitem" href="#case-study-Modeling-Choices" data-smooth-scroll="true">Modeling Choices</a>
+        <a class="project-toc-link" role="listitem" href="#case-study-GUI-and-Automation" data-smooth-scroll="true">GUI and Automation</a>
+        <a class="project-toc-link" role="listitem" href="#case-study-Performance-and-Reliability" data-smooth-scroll="true">Performance and Reliability</a>
+        <a class="project-toc-link" role="listitem" href="#case-study-What-I-d-Improve" data-smooth-scroll="true">What I&#39;d Improve</a>
+        <a class="project-toc-link" role="listitem" href="#links" data-smooth-scroll="true">Links</a>
+      </div>
+    </nav>
+        <section class="project-section" id="context">
       <h2 class="section-title">Context</h2>
       <p class="project-lead">I needed clean, readable sheet music. Most of what I could find was low-res and watermarked.</p>
     </section>
         
-        <section class="project-section">
+        <section class="project-section" id="approach">
       <h2 class="section-title">Approach</h2>
       <ul class="project-list">
         <li>Trained a UNet model on paired page images for watermark removal.</li>
@@ -254,13 +272,13 @@
         <li>Wrapped it in a simple GUI so I could run the full pipeline.</li>
       </ul>
     </section>
-        <section class="project-section">
+        <section class="project-section" id="impact">
       <h2 class="section-title">Impact</h2>
       <ul class="project-list">
         <li>Typical runs produce cleaner, more readable output in seconds per page (hardware- and batch-dependent).</li>
       </ul>
     </section>
-        <section class="project-section">
+        <section class="project-section" id="case-study-End-to-End-Pipeline">
       <h2 class="section-title">End-to-End Pipeline</h2>
       <p class="project-lead">One workflow: pull pages, clean them up, upscale them, and rebuild the PDF.</p>
       <ul class="project-list">
@@ -270,7 +288,7 @@
         <li>Output: cleaned images compiled into a PDF.</li>
       </ul>
     </section>
-<section class="project-section">
+<section class="project-section" id="case-study-Modeling-Choices">
       <h2 class="section-title">Modeling Choices</h2>
       <ul class="project-list">
         <li>UNet handles local watermark artifacts while preserving staff lines and note heads.</li>
@@ -278,7 +296,7 @@
         <li>Saved model weights so the pipeline runs without retraining.</li>
       </ul>
     </section>
-<section class="project-section">
+<section class="project-section" id="case-study-GUI-and-Automation">
       <h2 class="section-title">GUI and Automation</h2>
       <ul class="project-list">
         <li>Built a PyQt5 GUI to scrape, process, and compile pages without running a notebook.</li>
@@ -286,7 +304,7 @@
         <li>Designed it for repeat use: new songs in, clean PDFs out.</li>
       </ul>
     </section>
-<section class="project-section">
+<section class="project-section" id="case-study-Performance-and-Reliability">
       <h2 class="section-title">Performance and Reliability</h2>
       <ul class="project-list">
         <li>Kept it fast enough for real use (seconds per page on a modern machine; varies by hardware and page size).</li>
@@ -294,7 +312,7 @@
         <li>Kept steps modular so either model can be swapped or improved later.</li>
       </ul>
     </section>
-<section class="project-section">
+<section class="project-section" id="case-study-What-I-d-Improve">
       <h2 class="section-title">What I&#39;d Improve</h2>
       <ul class="project-list">
         <li>Add tiled inference for very large pages and better memory usage.</li>
@@ -303,7 +321,7 @@
       </ul>
     </section>
 
-        <section class="project-section">
+        <section class="project-section" id="links">
       <h2 class="section-title">Links</h2>
       <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://github.com/danielshort3/Watermark-Remover" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>

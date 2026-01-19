@@ -236,34 +236,85 @@
 
     <section class="project-body">
       <div class="wrapper">
-        <div class="project-media project-embed project-embed-tableau">
-        <iframe class="project-embed-frame" src="https://public.tableau.com/views/Pizza_Delivery/PizzaDeliveryDashboard?:showVizHome=no&amp;:embed=y" title="Pizza Delivery Dashboard interactive dashboard" loading="lazy" allowfullscreen></iframe>
+        <section class="project-demo-shell" data-demo-tabs="true" aria-label="Demo">
+      <div class="project-demo-tabs" role="tablist" aria-label="Demo tabs">
+        <button class="project-demo-tab is-active" type="button" role="tab" id="project-demo-pizzaDashboard-tab-instructions" aria-controls="project-demo-pizzaDashboard-panel-instructions" aria-selected="true">How to use</button>
+        <button class="project-demo-tab" type="button" role="tab" id="project-demo-pizzaDashboard-tab-demo" aria-controls="project-demo-pizzaDashboard-panel-demo" aria-selected="false" tabindex="-1">Demo</button>
       </div>
-        <section class="project-section">
+
+      <div class="project-demo-panels">
+        <section class="project-demo-panel is-active" role="tabpanel" id="project-demo-pizzaDashboard-panel-instructions" aria-labelledby="project-demo-pizzaDashboard-tab-instructions">
+          <div class="project-demo-panel-inner">
+            <p class="project-demo-lead">Use the Tableau dashboard to compare delivery zones, tips, and timing.</p>
+            <ul class="project-demo-list">
+        <li>Hover charts/maps to see exact values for the current filter state.</li>
+        <li>Click marks to cross-filter other views and isolate a zone or time period.</li>
+        <li>Use Tableau filters to narrow by date, city/zone, and other dimensions.</li>
+        <li>Scroll to review distributions and the forecast section.</li>
+      </ul>
+            <div class="project-demo-actions">
+              <button class="btn-primary" type="button" data-demo-tabs-open="demo">Open demo</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="project-demo-panel" role="tabpanel" id="project-demo-pizzaDashboard-panel-demo" aria-labelledby="project-demo-pizzaDashboard-tab-demo" hidden>
+          <div class="project-demo-panel-inner">
+            <div class="project-media project-embed project-embed-tableau">
+        <iframe class="project-embed-frame" data-src="https://public.tableau.com/views/Pizza_Delivery/PizzaDeliveryDashboard?:showVizHome=no&amp;:embed=y" title="Pizza Delivery Dashboard interactive dashboard" loading="lazy" allowfullscreen></iframe>
+      </div>
+          </div>
+        </section>
+      </div>
+
+      <a class="chevron-hint scroll-indicator project-demo-chevron" href="#project-details" data-smooth-scroll="true">
+        <span class="chevron-label">Scroll for project details</span>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 16.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 14.08l5.3-5.29a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29z"/></svg>
+      </a>
+    </section>
+        <div id="project-details" class="project-details-anchor"></div>
+        <nav class="project-toc" aria-label="On this page">
+      <div class="project-toc-header">
+        <span class="project-toc-title">On this page</span>
+        <a class="project-toc-top" href="#main" data-smooth-scroll="true">Back to top</a>
+      </div>
+      <div class="project-toc-links" role="list">
+        <a class="project-toc-link" role="listitem" href="#context" data-smooth-scroll="true">Context</a>
+        <a class="project-toc-link" role="listitem" href="#role" data-smooth-scroll="true">Role</a>
+        <a class="project-toc-link" role="listitem" href="#approach" data-smooth-scroll="true">Approach</a>
+        <a class="project-toc-link" role="listitem" href="#impact" data-smooth-scroll="true">Impact</a>
+        <a class="project-toc-link" role="listitem" href="#case-study-Data-Shaping-for-Tableau" data-smooth-scroll="true">Data Shaping for Tableau</a>
+        <a class="project-toc-link" role="listitem" href="#case-study-Dashboard-UX" data-smooth-scroll="true">Dashboard UX</a>
+        <a class="project-toc-link" role="listitem" href="#case-study-Forecasting" data-smooth-scroll="true">Forecasting</a>
+        <a class="project-toc-link" role="listitem" href="#case-study-What-I-d-Improve" data-smooth-scroll="true">What I&#39;d Improve</a>
+        <a class="project-toc-link" role="listitem" href="#links" data-smooth-scroll="true">Links</a>
+      </div>
+    </nav>
+        <section class="project-section" id="context">
       <h2 class="section-title">Context</h2>
       <p class="project-lead">I wanted one dashboard to track earnings, compare delivery zones, and forecast tips.</p>
     </section>
-        <section class="project-section">
+        <section class="project-section" id="role">
       <h2 class="section-title">Role</h2>
       <ul class="project-list">
         <li>Built the dataset and Tableau dashboard (data shaping, KPIs, and forecasting).</li>
       </ul>
     </section>
-        <section class="project-section">
+        <section class="project-section" id="approach">
       <h2 class="section-title">Approach</h2>
       <ul class="project-list">
         <li>Reshaped ~12,000 rows for Tableau and built maps, histograms, and a 12-month forecast with date/zone filters.</li>
         <li>Set it up so I can compare zones quickly during a shift.</li>
       </ul>
     </section>
-        <section class="project-section">
+        <section class="project-section" id="impact">
       <h2 class="section-title">Impact</h2>
       <ul class="project-list">
         <li>Used it to compare zones and plan shifts based on tips and delivery time.</li>
         <li>Helped identify opportunities to improve tips and reduce downtime between deliveries.</li>
       </ul>
     </section>
-        <section class="project-section">
+        <section class="project-section" id="case-study-Data-Shaping-for-Tableau">
       <h2 class="section-title">Data Shaping for Tableau</h2>
       <p class="project-lead">I built a Tableau-ready dataset so the dashboard stays fast and the filters work cleanly.</p>
       <ul class="project-list">
@@ -272,7 +323,7 @@
         <li>Kept the layout simple enough to use mid-shift.</li>
       </ul>
     </section>
-<section class="project-section">
+<section class="project-section" id="case-study-Dashboard-UX">
       <h2 class="section-title">Dashboard UX</h2>
       <ul class="project-list">
         <li>Maps to compare zones by average tip, tip %, and delivery time.</li>
@@ -280,7 +331,7 @@
         <li>Breakdowns by housing type and city to explain why zones differ.</li>
       </ul>
     </section>
-<section class="project-section">
+<section class="project-section" id="case-study-Forecasting">
       <h2 class="section-title">Forecasting</h2>
       <ul class="project-list">
         <li>Added a 12-month tip forecast to see seasonal changes.</li>
@@ -288,7 +339,7 @@
         <li>Made it easy to compare &#39;tip per delivery&#39; vs. &#39;tip per hour&#39;.</li>
       </ul>
     </section>
-<section class="project-section">
+<section class="project-section" id="case-study-What-I-d-Improve">
       <h2 class="section-title">What I&#39;d Improve</h2>
       <ul class="project-list">
         <li>Add distance/drive-time estimates to better model tips per hour in real conditions.</li>
@@ -297,7 +348,7 @@
       </ul>
     </section>
 
-        <section class="project-section">
+        <section class="project-section" id="links">
       <h2 class="section-title">Links</h2>
       <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://public.tableau.com/views/Pizza_Delivery/PizzaDeliveryDashboard?:language=en-US&amp;:display_count=n&amp;:origin=viz_share_link" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/tableau-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Interactive Dashboard</span></a>
