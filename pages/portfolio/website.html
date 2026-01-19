@@ -69,7 +69,7 @@
                 <div class="nav-dropdown-column nav-dropdown-column-list nav-portfolio-stack">
                   <div class="nav-dropdown-header" aria-hidden="true">Top 5 Projects</div>
                   <div class="nav-project-grid nav-project-stack" role="list">
-                    <a href="portfolio/shapeClassifier" class="nav-project-card" data-project-id="shapeClassifier" role="listitem">
+                    <a href="portfolio/shapeClassifier" class="nav-project-card" data-project-id="shapeClassifier" role="listitem" target="_blank" rel="noopener noreferrer">
                       <span class="nav-project-rank">#1</span>
                       <span class="nav-project-thumb" style="background-image:url('/img/projects/shapeClassifier.webp');" aria-hidden="true">
                         <video class="nav-project-thumb-media" muted playsinline loop preload="none" poster="/img/projects/shapeClassifier.webp">
@@ -82,7 +82,7 @@
                         <span class="nav-dropdown-subtitle">Handwritten shape recognition</span>
                       </span>
                     </a>
-                    <a href="portfolio/retailStore" class="nav-project-card" data-project-id="retailStore" role="listitem">
+                    <a href="portfolio/retailStore" class="nav-project-card" data-project-id="retailStore" role="listitem" target="_blank" rel="noopener noreferrer">
                       <span class="nav-project-rank">#2</span>
                       <span class="nav-project-thumb" style="background-image:url('/img/projects/retailStore.webp');" aria-hidden="true"></span>
                       <span class="nav-project-meta">
@@ -90,7 +90,7 @@
                         <span class="nav-dropdown-subtitle">SQL ETL + anomaly detection</span>
                       </span>
                     </a>
-                    <a href="portfolio/sheetMusicUpscale" class="nav-project-card" data-project-id="sheetMusicUpscale" role="listitem">
+                    <a href="portfolio/sheetMusicUpscale" class="nav-project-card" data-project-id="sheetMusicUpscale" role="listitem" target="_blank" rel="noopener noreferrer">
                       <span class="nav-project-rank">#3</span>
                       <span class="nav-project-thumb" style="background-image:url('/img/projects/sheetMusicUpscale.webp');" aria-hidden="true">
                         <video class="nav-project-thumb-media" muted playsinline loop preload="none" poster="/img/projects/sheetMusicUpscale.webp">
@@ -103,7 +103,7 @@
                         <span class="nav-dropdown-subtitle">UNet watermark removal + VDSR</span>
                       </span>
                     </a>
-                    <a href="portfolio/digitGenerator" class="nav-project-card" data-project-id="digitGenerator" role="listitem">
+                    <a href="portfolio/digitGenerator" class="nav-project-card" data-project-id="digitGenerator" role="listitem" target="_blank" rel="noopener noreferrer">
                       <span class="nav-project-rank">#4</span>
                       <span class="nav-project-thumb" style="background-image:url('/img/projects/digitGenerator.webp');" aria-hidden="true">
                         <video class="nav-project-thumb-media" muted playsinline loop preload="none" poster="/img/projects/digitGenerator.webp">
@@ -116,7 +116,7 @@
                         <span class="nav-dropdown-subtitle">Variational autoencoder (VAE)</span>
                       </span>
                     </a>
-                    <a href="portfolio/nonogram" class="nav-project-card" data-project-id="nonogram" role="listitem">
+                    <a href="portfolio/nonogram" class="nav-project-card" data-project-id="nonogram" role="listitem" target="_blank" rel="noopener noreferrer">
                       <span class="nav-project-rank">#5</span>
                       <span class="nav-project-thumb" style="background-image:url('/img/projects/nonogram.webp');" aria-hidden="true">
                         <video class="nav-project-thumb-media" muted playsinline loop preload="none" poster="/img/projects/nonogram.webp">
@@ -237,11 +237,12 @@
 
     <section class="project-body">
       <div class="wrapper">
-        <picture class="project-media">
-        <source srcset="img/projects/website-640.avif 640w, img/projects/website-960.avif 960w, img/projects/website.avif 1464w" type="image/avif">
-        <source srcset="img/projects/website-640.webp 640w, img/projects/website-960.webp 960w, img/projects/website.webp 1464w" type="image/webp">
-        <img src="img/projects/website.png" alt="Preview image for danielshort.me" loading="eager" decoding="async" width="1464" height="1464" sizes="(max-width: 960px) 92vw, 840px" fetchpriority="high">
-      </picture>
+        <div class="project-media project-video">
+      <video class="project-video-frame" controls playsinline preload="metadata" poster="img/projects/website.png" aria-label="danielshort.me video">
+        <source src="img/projects/website.webm" type="video/webm">
+          <source src="img/projects/website.mp4" type="video/mp4">
+      </video>
+    </div>
         <section class="project-section">
       <h2 class="section-title">Context</h2>
       <p class="project-lead">I needed a fast site to show my work, especially on mobile.</p>

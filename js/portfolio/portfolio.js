@@ -228,6 +228,8 @@ function buildPortfolioCarousel() {
       card.type = "button";
     } else {
       card.href = `portfolio/${encodeURIComponent(p.id)}`;
+      card.target = "_blank";
+      card.rel = "noopener noreferrer";
     }
     card.className = "project-card carousel-card";
     card.id = `portfolio-carousel-slide-${i}`;
@@ -772,6 +774,8 @@ function buildPortfolio() {
       </div>
       ${mediaMarkup}`);
     card.href = `portfolio/${encodeURIComponent(p.id)}`;
+    card.target = "_blank";
+    card.rel = "noopener noreferrer";
     card.setAttribute("aria-label", `Read case study: ${p.title}`);
     card.dataset.index = i;
     card.dataset.tools = (Array.isArray(p.tools) ? p.tools : []).join('|');
