@@ -546,6 +546,20 @@ try {
     const hasSitemap = rewrites.some(r => r.source === '/sitemap' && r.destination === '/pages/sitemap');
     const hasSitemapHtml = rewrites.some(r => r.source === '/sitemap.html' && r.destination === '/pages/sitemap');
     assert(hasSitemap && hasSitemapHtml, 'sitemap rewrites missing');
+
+    const hasDshortTwoSeg = rewrites.some(r =>
+      r.source === '/:first/:rest' &&
+      r.destination === '/api/go/:first%2F:rest' &&
+      Array.isArray(r.has) &&
+      r.has.some(h => h && h.type === 'host' && h.value === 'dshort.me')
+    );
+    assert(hasDshortTwoSeg, 'dshort.me missing 2-segment shortlink rewrite');
+
+    const hasGoTwoSeg = rewrites.some(r =>
+      r.source === '/go/:first/:rest' &&
+      r.destination === '/api/go/:first%2F:rest'
+    );
+    assert(hasGoTwoSeg, 'missing 2-segment /go shortlink rewrite');
   });
 
   section('Search index', () => {
