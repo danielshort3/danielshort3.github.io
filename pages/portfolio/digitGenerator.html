@@ -14,6 +14,9 @@
   <meta property="og:url" content="https://danielshort.me/portfolio/digitGenerator">
   <meta property="og:image" content="https://danielshort.me/img/projects/digitGenerator.png">
   <meta property="og:image:alt" content="Preview image for Synthetic Digit Generator">
+  <meta property="og:image:width" content="1470">
+  <meta property="og:image:height" content="1470">
+
   <meta property="og:type" content="article">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@danielshort3">
@@ -35,7 +38,7 @@
   <!-- Local fonts with legacy reference retained for tooling: https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap -->
   <script src="js/common/no-js.js"></script>
   <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"CreativeWork","name":"Synthetic Digit Generator","description":"Variational Autoencoder: I wanted to generate new handwritten digits, not just recognize them.","url":"https://danielshort.me/portfolio/digitGenerator","image":"https://danielshort.me/img/projects/digitGenerator.png"}
+    {"@context":"https://schema.org","@graph":[{"@type":"CreativeWork","name":"Synthetic Digit Generator","description":"Variational Autoencoder: I wanted to generate new handwritten digits, not just recognize them.","url":"https://danielshort.me/portfolio/digitGenerator","image":"https://danielshort.me/img/projects/digitGenerator.png"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://danielshort.me/"},{"@type":"ListItem","position":2,"name":"Portfolio","item":"https://danielshort.me/portfolio"},{"@type":"ListItem","position":3,"name":"Synthetic Digit Generator","item":"https://danielshort.me/portfolio/digitGenerator"}]}]}
   </script>
 </head>
 <body data-page="project" class="project-page">
@@ -235,9 +238,9 @@
 		      </div>
 	    </section>
 
-	    <section class="project-body">
-	      <div class="wrapper">
-	        <section class="project-demo-shell" data-demo-tabs="true" aria-label="Demo">
+		    <section class="project-body">
+		      <div class="wrapper">
+		        <section class="project-demo-shell" data-demo-tabs="true" aria-label="Demo">
       <div class="project-demo-tabs" role="tablist" aria-label="Demo tabs">
         <button class="project-demo-tab is-active" type="button" role="tab" id="project-demo-digitGenerator-tab-instructions" aria-controls="project-demo-digitGenerator-panel-instructions" aria-selected="true">How to use</button>
         <button class="project-demo-tab" type="button" role="tab" id="project-demo-digitGenerator-tab-demo" aria-controls="project-demo-digitGenerator-panel-demo" aria-selected="false" tabindex="-1">Demo</button>
@@ -255,6 +258,7 @@
       </ul>
             <div class="project-demo-actions">
               <button class="btn-primary" type="button" data-demo-tabs-open="demo">Open demo</button>
+              <a class="btn-secondary" href="/digit-generator-demo" target="_blank" rel="noopener noreferrer">Open demo in new tab</a>
             </div>
           </div>
         </section>
@@ -268,8 +272,7 @@
         </section>
       </div>
     </section>
-	        <div id="project-details" class="project-details-anchor"></div>
-	        <section class="project-star" aria-label="STAR summary">
+		        <section class="project-star" aria-label="STAR summary">
       <h2 class="section-title">STAR Summary</h2>
       <dl class="project-star-grid">
         <div class="project-star-row">
@@ -299,7 +302,7 @@
         </div>
       </dl>
     </section>
-	        <section class="project-section" id="links">
+		        <section class="project-section" id="links">
       <h2 class="section-title">Links</h2>
       <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://github.com/danielshort3/Handwritten-Digit-Generator" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
@@ -308,10 +311,83 @@
         <a class="project-link" role="listitem" href="documents/Project_9.ipynb"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook</span></a>
       </div>
     </section>
-	        
-	      </div>
-	    </section>
-	  </main>
+		        
+		        <section class="project-section project-recommendations" aria-label="More projects">
+      <h2 class="section-title">More Projects</h2>
+      <div class="project-recommendations-nav" role="list">
+        <a class="project-card ripple-in project-recommendation-card" role="listitem" href="portfolio/handwritingRating" aria-label="Previous project: Handwriting Legibility Scoring">
+      <div class="project-metric">Previous</div>
+      <div class="overlay"></div>
+      <div class="project-text">
+        <div class="project-title">Handwriting Legibility Scoring</div>
+        <div class="project-subtitle">PyTorch CNN Fine-Tuning</div>
+      </div>
+      <picture>
+      <source srcset="img/projects/handwritingRating-640.avif 640w, img/projects/handwritingRating-960.avif 960w, img/projects/handwritingRating.avif 1138w" type="image/avif">
+      <source srcset="img/projects/handwritingRating-640.webp 640w, img/projects/handwritingRating-960.webp 960w, img/projects/handwritingRating.webp 1138w" type="image/webp">
+      <img src="img/projects/handwritingRating.png" alt="Handwriting Legibility Scoring" loading="lazy" decoding="async" width="1138" height="1138" sizes="(max-width: 960px) 92vw, 320px">
+    </picture>
+    </a>
+        <a class="project-card ripple-in project-recommendation-card" role="listitem" href="portfolio/sheetMusicUpscale" aria-label="Next project: Sheet Music Watermark Removal &amp; Upscale">
+      <div class="project-metric">Next</div>
+      <div class="overlay"></div>
+      <div class="project-text">
+        <div class="project-title">Sheet Music Watermark Removal &amp; Upscale</div>
+        <div class="project-subtitle">UNet &amp; VDSR Pipeline</div>
+      </div>
+      <picture>
+      <source srcset="img/projects/sheetMusicUpscale-640.avif 640w, img/projects/sheetMusicUpscale-960.avif 960w, img/projects/sheetMusicUpscale.avif 1604w" type="image/avif">
+      <source srcset="img/projects/sheetMusicUpscale-640.webp 640w, img/projects/sheetMusicUpscale-960.webp 960w, img/projects/sheetMusicUpscale.webp 1604w" type="image/webp">
+      <img src="img/projects/sheetMusicUpscale.png" alt="Sheet Music Watermark Removal &amp; Upscale" loading="lazy" decoding="async" width="1604" height="1230" sizes="(max-width: 960px) 92vw, 320px">
+    </picture>
+    </a>
+      </div>
+      <h3 class="project-recommendations-subtitle">Related projects</h3>
+      <div class="project-recommendations-grid" role="list">
+        <a class="project-card ripple-in project-recommendation-card" role="listitem" href="portfolio/smartSentence" aria-label="View project: Smart Sentence Retriever">
+      
+      <div class="overlay"></div>
+      <div class="project-text">
+        <div class="project-title">Smart Sentence Retriever</div>
+        <div class="project-subtitle">NLP Embeddings &amp; Serverless Retrieval</div>
+      </div>
+      <picture>
+      <source srcset="img/projects/smartSentence-640.avif 640w, img/projects/smartSentence.avif 952w" type="image/avif">
+      <source srcset="img/projects/smartSentence-640.webp 640w, img/projects/smartSentence.webp 952w" type="image/webp">
+      <img src="img/projects/smartSentence.png" alt="Smart Sentence Retriever" loading="lazy" decoding="async" width="952" height="952" sizes="(max-width: 960px) 92vw, 320px">
+    </picture>
+    </a>
+        <a class="project-card ripple-in project-recommendation-card" role="listitem" href="portfolio/chatbotLora" aria-label="View project: Chatbot (LoRA + RAG)">
+      
+      <div class="overlay"></div>
+      <div class="project-text">
+        <div class="project-title">Chatbot (LoRA + RAG)</div>
+        <div class="project-subtitle">RAG Chatbot Fine-Tuned with LoRA</div>
+      </div>
+      <picture>
+      <source srcset="img/projects/chatbotLora-640.avif 640w, img/projects/chatbotLora-960.avif 960w, img/projects/chatbotLora.avif 1280w" type="image/avif">
+      <source srcset="img/projects/chatbotLora-640.webp 640w, img/projects/chatbotLora-960.webp 960w, img/projects/chatbotLora.webp 1280w" type="image/webp">
+      <img src="img/projects/chatbotLora.png" alt="Chatbot (LoRA + RAG)" loading="lazy" decoding="async" width="1280" height="720" sizes="(max-width: 960px) 92vw, 320px">
+    </picture>
+    </a>
+        <a class="project-card ripple-in project-recommendation-card" role="listitem" href="portfolio/shapeClassifier" aria-label="View project: Shape Classifier Demo">
+      
+      <div class="overlay"></div>
+      <div class="project-text">
+        <div class="project-title">Shape Classifier Demo</div>
+        <div class="project-subtitle">Handwritten Shape Recognition</div>
+      </div>
+      <picture>
+      <source srcset="img/projects/shapeClassifier-640.avif 640w, img/projects/shapeClassifier.avif 926w" type="image/avif">
+      <source srcset="img/projects/shapeClassifier-640.webp 640w, img/projects/shapeClassifier.webp 926w" type="image/webp">
+      <img src="img/projects/shapeClassifier.png" alt="Shape Classifier Demo" loading="lazy" decoding="async" width="926" height="926" sizes="(max-width: 960px) 92vw, 320px">
+    </picture>
+    </a>
+      </div>
+    </section>
+		      </div>
+		    </section>
+		  </main>
 
 	  <footer class="footer footer-classic">
 	    <div class="wrapper footer-inner">
