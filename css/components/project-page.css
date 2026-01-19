@@ -108,9 +108,12 @@
   }
   .project-demo-panel{
     flex:1 1 auto;
-    display:flex;
     min-height:0;
     padding:0;
+    display:none;
+  }
+  .project-demo-panel.is-active{
+    display:flex;
   }
   .project-demo-panel-inner{
     flex:1 1 auto;
