@@ -274,10 +274,58 @@
       </a>
     </section>
         <div id="project-details" class="project-details-anchor"></div>
+        <section class="project-star" aria-label="STAR summary">
+      <h2 class="section-title">STAR Summary</h2>
+      <dl class="project-star-grid">
+        <div class="project-star-row">
+          <dt class="project-star-label">Situation</dt>
+          <dd class="project-star-value">We didn&#39;t have a single view of security incidents, theft hotspots, and boycott-driven sales swings.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Task</dt>
+          <dd class="project-star-value">Led the analysis: SQL modeling/ETL, anomaly detection, and reporting.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Action</dt>
+          <dd class="project-star-value">
+            <ul class="project-star-list">
+              <li>Joined incident, sales, and HR tables in SQL and automated KPIs with views and stored procedures.</li>
+              <li>Built Python dashboards to compare theft vs. sales by format, state, and time.</li>
+              <li>Used anomaly detection to flag outlier stores and associates.</li>
+            </ul>
+          </dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Result</dt>
+          <dd class="project-star-value">
+            <ul class="project-star-list">
+              <li>Found a cluster of outlier stores with incident rates several times higher than typical peers.</li>
+              <li>Flagged regions and stores with substantially higher estimated loss rates (figures anonymized).</li>
+              <li>Measured year-over-year sales changes around boycott periods (exact figures anonymized).</li>
+            </ul>
+          </dd>
+        </div>
+      </dl>
+    </section>
+        <section class="project-section" id="links">
+      <h2 class="section-title">Links</h2>
+      <div class="project-links" role="list">
+        <a class="project-link" role="listitem" href="https://github.com/danielshort3/target-packaging-analysis-mssql" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
+        <a class="project-link" role="listitem" href="documents/Project_12.pdf"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDF</span></a>
+        <a class="project-link" role="listitem" href="documents/Project_12.ipynb"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook</span></a>
+        <a class="project-link" role="listitem" href="https://danielshort.me/retail-loss-sales-demo.html" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
+      </div>
+    </section>
+        <details class="project-deepdive">
+      <summary class="project-deepdive-summary">
+        <span class="project-deepdive-title">Deep dive</span>
+        <span class="project-deepdive-meta">Context, approach, decisions, and notes</span>
+      </summary>
+      <div class="project-deepdive-body">
         <nav class="project-toc" aria-label="On this page">
       <div class="project-toc-header">
         <span class="project-toc-title">On this page</span>
-        <a class="project-toc-top" href="#main" data-smooth-scroll="true">Back to top</a>
+        <a class="project-toc-top" href="#project-details" data-smooth-scroll="true">Back to summary</a>
       </div>
       <div class="project-toc-links" role="list">
         <a class="project-toc-link" role="listitem" href="#context" data-smooth-scroll="true">Context</a>
@@ -288,7 +336,6 @@
         <a class="project-toc-link" role="listitem" href="#case-study-Analysis-Workflow" data-smooth-scroll="true">Analysis Workflow</a>
         <a class="project-toc-link" role="listitem" href="#case-study-Anomaly-Detection" data-smooth-scroll="true">Anomaly Detection</a>
         <a class="project-toc-link" role="listitem" href="#case-study-What-I-d-Improve" data-smooth-scroll="true">What I&#39;d Improve</a>
-        <a class="project-toc-link" role="listitem" href="#links" data-smooth-scroll="true">Links</a>
         <a class="project-toc-link" role="listitem" href="#notes" data-smooth-scroll="true">Notes</a>
       </div>
     </nav>
@@ -353,19 +400,12 @@
       </ul>
     </section>
 
-        <section class="project-section" id="links">
-      <h2 class="section-title">Links</h2>
-      <div class="project-links" role="list">
-        <a class="project-link" role="listitem" href="https://github.com/danielshort3/target-packaging-analysis-mssql" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
-        <a class="project-link" role="listitem" href="documents/Project_12.pdf"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDF</span></a>
-        <a class="project-link" role="listitem" href="documents/Project_12.ipynb"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook</span></a>
-        <a class="project-link" role="listitem" href="https://danielshort.me/retail-loss-sales-demo.html" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
-      </div>
-    </section>
         <section class="project-section" id="notes">
       <h2 class="section-title">Notes</h2>
       <p class="project-lead">Store, state, and employee identifiers are anonymized in the case study.</p>
     </section>
+      </div>
+    </details>
       </div>
     </section>
   </main>

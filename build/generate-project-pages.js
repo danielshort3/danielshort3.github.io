@@ -409,18 +409,18 @@ function renderProjectPage(project) {
   const safeCaseStudy = caseStudy.html;
 
   const sectionIdLinks = hasResources ? reserveSectionId('links') : null;
-  if (sectionIdLinks) pushTocItem(sectionIdLinks, 'Links');
   const sectionIdNotes = hasNotes ? reserveSectionId('notes') : null;
   if (sectionIdNotes) pushTocItem(sectionIdNotes, 'Notes');
 
-  const detailsToc = tocItems.length > 1
+  const deepDiveTocItems = tocItems.filter((item) => item && item.id && item.id !== sectionIdLinks);
+  const detailsToc = deepDiveTocItems.length > 1
     ? `<nav class="project-toc" aria-label="On this page">
       <div class="project-toc-header">
         <span class="project-toc-title">On this page</span>
-        <a class="project-toc-top" href="#main" data-smooth-scroll="true">Back to top</a>
+        <a class="project-toc-top" href="#project-details" data-smooth-scroll="true">Back to summary</a>
       </div>
       <div class="project-toc-links" role="list">
-        ${tocItems.map((item) => (
+        ${deepDiveTocItems.map((item) => (
           `<a class="project-toc-link" role="listitem" href="#${escapeHtml(item.id)}" data-smooth-scroll="true">${escapeHtml(item.label)}</a>`
         )).join('\n        ')}
       </div>
@@ -495,6 +495,66 @@ function renderProjectPage(project) {
       <p class="project-lead">${escapeHtml(notes)}</p>
     </section>`
     : '';
+
+  const ensureSentence = (value) => {
+    const s = normalizeWhitespace(value);
+    if (!s) return '';
+    return /[.!?]$/.test(s) ? s : `${s}.`;
+  };
+  const starSituation = ensureSentence(safeProblem);
+  const starTask = (() => {
+    if (Array.isArray(role) && role.length) return ensureSentence(role[0]);
+    if (typeof role === 'string') return ensureSentence(role);
+    return 'Owned the end-to-end build, from implementation through the final deliverable.';
+  })();
+  const starActions = actions.slice(0, 3).map((a) => normalizeWhitespace(a)).filter(Boolean);
+  const starResults = results.slice(0, 3).map((r) => normalizeWhitespace(r)).filter(Boolean);
+
+  const starSummary = `<section class="project-star" aria-label="STAR summary">
+      <h2 class="section-title">STAR Summary</h2>
+      <dl class="project-star-grid">
+        <div class="project-star-row">
+          <dt class="project-star-label">Situation</dt>
+          <dd class="project-star-value">${escapeHtml(starSituation || safeProblem)}</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Task</dt>
+          <dd class="project-star-value">${escapeHtml(starTask)}</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Action</dt>
+          <dd class="project-star-value">
+            <ul class="project-star-list">
+              ${starActions.map((item) => `<li>${escapeHtml(item)}</li>`).join('\n              ')}
+            </ul>
+          </dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Result</dt>
+          <dd class="project-star-value">
+            <ul class="project-star-list">
+              ${starResults.map((item) => `<li>${escapeHtml(item)}</li>`).join('\n              ')}
+            </ul>
+          </dd>
+        </div>
+      </dl>
+    </section>`;
+
+  const deepDive = `<details class="project-deepdive">
+      <summary class="project-deepdive-summary">
+        <span class="project-deepdive-title">Deep dive</span>
+        <span class="project-deepdive-meta">Context, approach, decisions, and notes</span>
+      </summary>
+      <div class="project-deepdive-body">
+        ${detailsToc}
+        ${safeOverview}
+        ${safeRole}
+        ${safeActions}
+        ${safeResults}
+        ${safeCaseStudy}
+        ${safeNotes}
+      </div>
+    </details>`;
 
   const renderImageMedia = () => {
     const img = String(project.image || '').trim();
@@ -626,7 +686,7 @@ function renderProjectPage(project) {
   })();
 
   const demoTabs = embed ? renderDemoTabs() : '';
-  const detailsAnchor = embed ? '<div id="project-details" class="project-details-anchor"></div>' : '';
+  const detailsAnchor = '<div id="project-details" class="project-details-anchor"></div>';
 
   return `<!DOCTYPE html>
 <html lang="en" class="no-js">
@@ -685,14 +745,9 @@ ${tableauPreconnect}
       <div class="wrapper">
         ${demoTabs || media}
         ${detailsAnchor}
-        ${detailsToc}
-        ${safeOverview}
-        ${safeRole}
-        ${safeActions}
-        ${safeResults}
-        ${safeCaseStudy}
+        ${starSummary}
         ${safeResources}
-        ${safeNotes}
+        ${deepDive}
       </div>
     </section>
   </main>
