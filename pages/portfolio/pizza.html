@@ -234,16 +234,16 @@
 		      </div>
 	    </section>
 
-    <section class="project-body">
-      <div class="wrapper">
-        <section class="project-demo-shell" data-demo-tabs="true" aria-label="Demo">
+	    <section class="project-body">
+	      <div class="wrapper">
+	        <section class="project-demo-shell" data-demo-tabs="true" aria-label="Demo">
       <div class="project-demo-tabs" role="tablist" aria-label="Demo tabs">
         <button class="project-demo-tab is-active" type="button" role="tab" id="project-demo-pizza-tab-instructions" aria-controls="project-demo-pizza-panel-instructions" aria-selected="true">How to use</button>
         <button class="project-demo-tab" type="button" role="tab" id="project-demo-pizza-tab-demo" aria-controls="project-demo-pizza-panel-demo" aria-selected="false" tabindex="-1">Demo</button>
       </div>
 
       <div class="project-demo-panels">
-        <section class="project-demo-panel is-active" role="tabpanel" id="project-demo-pizza-panel-instructions" aria-labelledby="project-demo-pizza-tab-instructions">
+        <section class="project-demo-panel is-active" data-demo-panel="instructions" role="tabpanel" id="project-demo-pizza-panel-instructions" aria-labelledby="project-demo-pizza-tab-instructions">
           <div class="project-demo-panel-inner">
             <p class="project-demo-lead">Adjust inputs and estimate a tip using the regression model.</p>
             <ul class="project-demo-list">
@@ -258,7 +258,7 @@
           </div>
         </section>
 
-        <section class="project-demo-panel" role="tabpanel" id="project-demo-pizza-panel-demo" aria-labelledby="project-demo-pizza-tab-demo" hidden>
+        <section class="project-demo-panel" data-demo-panel="demo" role="tabpanel" id="project-demo-pizza-panel-demo" aria-labelledby="project-demo-pizza-tab-demo" hidden>
           <div class="project-demo-panel-inner">
             <div class="project-media project-embed project-embed-iframe">
         <iframe class="project-embed-frame" data-src="pizza-tips-demo.html" title="Pizza Tips Regression Modeling interactive demo" loading="lazy" allowfullscreen></iframe>
@@ -267,8 +267,8 @@
         </section>
       </div>
     </section>
-        <div id="project-details" class="project-details-anchor"></div>
-        <section class="project-star" aria-label="STAR summary">
+	        <div id="project-details" class="project-details-anchor"></div>
+	        <section class="project-star" aria-label="STAR summary">
       <h2 class="section-title">STAR Summary</h2>
       <dl class="project-star-grid">
         <div class="project-star-row">
@@ -300,7 +300,7 @@
         </div>
       </dl>
     </section>
-        <section class="project-section" id="links">
+	        <section class="project-section" id="links">
       <h2 class="section-title">Links</h2>
       <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://danielshort.me/pizza-tips-demo" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
@@ -308,87 +308,10 @@
         <a class="project-link" role="listitem" href="documents/Project_1.xlsx"><img class="project-link-icon" src="img/icons/excel-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Excel</span></a>
       </div>
     </section>
-        <details class="project-deepdive">
-      <summary class="project-deepdive-summary">
-        <span class="project-deepdive-title">Deep dive</span>
-        <span class="project-deepdive-meta">Context, approach, decisions, and notes</span>
-      </summary>
-      <div class="project-deepdive-body">
-        <nav class="project-toc" aria-label="On this page">
-      <div class="project-toc-header">
-        <span class="project-toc-title">On this page</span>
-        <a class="project-toc-top" href="#project-details" data-smooth-scroll="true">Back to summary</a>
-      </div>
-      <div class="project-toc-links" role="list">
-        <a class="project-toc-link" role="listitem" href="#context" data-smooth-scroll="true">Context</a>
-        <a class="project-toc-link" role="listitem" href="#approach" data-smooth-scroll="true">Approach</a>
-        <a class="project-toc-link" role="listitem" href="#impact" data-smooth-scroll="true">Impact</a>
-        <a class="project-toc-link" role="listitem" href="#case-study-Data-Integration" data-smooth-scroll="true">Data Integration</a>
-        <a class="project-toc-link" role="listitem" href="#case-study-Exploratory-Analysis" data-smooth-scroll="true">Exploratory Analysis</a>
-        <a class="project-toc-link" role="listitem" href="#case-study-Regression-and-Hypothesis-Tests" data-smooth-scroll="true">Regression and Hypothesis Tests</a>
-        <a class="project-toc-link" role="listitem" href="#case-study-What-I-d-Improve" data-smooth-scroll="true">What I&#39;d Improve</a>
-      </div>
-    </nav>
-        <section class="project-section" id="context">
-      <h2 class="section-title">Context</h2>
-      <p class="project-lead">Tips varied a lot by neighborhood and housing type. I wanted to see what actually drives them.</p>
-    </section>
-        
-        <section class="project-section" id="approach">
-      <h2 class="section-title">Approach</h2>
-      <ul class="project-list">
-        <li>Merged 1,251 delivery tickets with NOAA weather, then cleaned the data in Power Query.</li>
-        <li>Ran a multiple regression in Excel: Tip = f(cost, delivery time, rain, max/min temperature).</li>
-      </ul>
-    </section>
-        <section class="project-section" id="impact">
-      <h2 class="section-title">Impact</h2>
-      <ul class="project-list">
-        <li>Order cost was the strongest predictor of tip size in the regression.</li>
-        <li>Housing type (apartment vs. house) showed a statistically significant difference in this sample.</li>
-        <li>Weather and delivery time didn’t show a meaningful effect on tip size.</li>
-      </ul>
-    </section>
-        <section class="project-section" id="case-study-Data-Integration">
-      <h2 class="section-title">Data Integration</h2>
-      <p class="project-lead">I merged delivery tickets with NOAA weather to test common ideas about what drives tipping.</p>
-      <ul class="project-list">
-        <li>Combined 1,251 deliveries with daily weather features (rain, max/min temperature, wind).</li>
-        <li>Cleaned the dataset in Power Query and derived tip percentage and delivery time (minutes).</li>
-        <li>Separated housing types (apartment vs. house) to test neighborhood effects.</li>
-      </ul>
-    </section>
-<section class="project-section" id="case-study-Exploratory-Analysis">
-      <h2 class="section-title">Exploratory Analysis</h2>
-      <ul class="project-list">
-        <li>Found a strong positive relationship between order cost and tip amount.</li>
-        <li>Rainfall had only a mild relationship with delivery duration in this dataset.</li>
-        <li>Order volume showed clear seasonality (higher in summer/early fall).</li>
-      </ul>
-    </section>
-<section class="project-section" id="case-study-Regression-and-Hypothesis-Tests">
-      <h2 class="section-title">Regression and Hypothesis Tests</h2>
-      <ul class="project-list">
-        <li>Ran a multiple regression: Tip = f(cost, delivery time, rain, max/min temperature).</li>
-        <li>Result: order cost was the main driver of tip size in the regression.</li>
-        <li>Validated housing differences with a two-sample t-test (apartment vs. house).</li>
-      </ul>
-    </section>
-<section class="project-section" id="case-study-What-I-d-Improve">
-      <h2 class="section-title">What I&#39;d Improve</h2>
-      <ul class="project-list">
-        <li>Add distance, time-of-day, and driver controls to reduce omitted-variable bias.</li>
-        <li>Model tip percentage and tip amount separately to avoid conflating larger orders with generosity.</li>
-        <li>Use mixed-effects models to capture repeated customers or neighborhood-level variance.</li>
-      </ul>
-    </section>
-
-        
-      </div>
-    </details>
-      </div>
-    </section>
-  </main>
+	        
+	      </div>
+	    </section>
+	  </main>
 
 	  <footer class="footer footer-classic">
 	    <div class="wrapper footer-inner">
