@@ -107,7 +107,6 @@
     flex-direction:column;
     gap:14px;
     padding:clamp(1rem,2.6vw,1.6rem);
-    padding-bottom:clamp(4.9rem, 11vh, 5.8rem);
   }
   .project-demo-lead{
     margin:0;
@@ -138,12 +137,6 @@
   }
   .project-demo-shell .project-embed-tableau .project-embed-frame{
     height:clamp(520px, 74vh, 960px);
-  }
-  .project-demo-chevron{
-    position:absolute;
-    left:50%;
-    bottom:16px;
-    transform:translate(-50%,0);
   }
   .project-media{
     width:100%;
