@@ -126,7 +126,7 @@
                       </span>
                       <span class="nav-project-meta">
                         <span class="nav-dropdown-title">Nonogram Solver</span>
-                        <span class="nav-dropdown-subtitle">94% accuracy reinforcement learning</span>
+                        <span class="nav-dropdown-subtitle">Reinforcement learning puzzle solver</span>
                       </span>
                     </a>
                   </div>
@@ -255,7 +255,7 @@
       <h2 class="section-title">Approach</h2>
       <ul class="project-list">
         <li>Crawled Visit Grand Junction pages and built a FAISS retrieval index.</li>
-        <li>Generated a fine-tuning dataset with GPT-OSS 20B (via Ollama).</li>
+        <li>Generated a fine-tuning dataset by prompting an open-source LLM locally (via Ollama) to create Q&amp;A pairs from the corpus.</li>
         <li>Fine-tuned Mistral 7B with LoRA on the Q&amp;A set and deployed it to AWS SageMaker.</li>
         <li>Added Lambda endpoints so the website can talk to the model.</li>
       </ul>
@@ -263,7 +263,7 @@
         <section class="project-section">
       <h2 class="section-title">Impact</h2>
       <ul class="project-list">
-        <li>The demo answers with citations, but it needs a warm-up after idle time (about 10 minutes).</li>
+        <li>The demo answers with citations; the first request after downtime can be slower due to cold-starting the backend.</li>
       </ul>
     </section>
         <section class="project-section">
@@ -278,7 +278,7 @@
 <section class="project-section">
       <h2 class="section-title">Dataset Generation</h2>
       <ul class="project-list">
-        <li>Used GPT-OSS 20B (Ollama) to turn crawled content into Q&amp;A pairs.</li>
+        <li>Used an open-source LLM via Ollama to turn crawled content into Q&amp;A pairs.</li>
         <li>Automated crawl → index → dataset → fine-tune so runs are repeatable.</li>
         <li>Kept it Docker-friendly so I could run locally and deploy the same artifacts.</li>
       </ul>
@@ -288,7 +288,7 @@
       <ul class="project-list">
         <li>Merged the LoRA adapter into a 4-bit model and served it with FastAPI.</li>
         <li>Hosted it behind AWS (SageMaker + Lambda) so the browser only calls an API.</li>
-        <li>Added a status check and a warm-up message to handle cold starts.</li>
+        <li>Added status checks and user-facing messaging to handle cold starts after idle time.</li>
       </ul>
     </section>
 <section class="project-section">

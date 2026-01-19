@@ -126,7 +126,7 @@
                       </span>
                       <span class="nav-project-meta">
                         <span class="nav-dropdown-title">Nonogram Solver</span>
-                        <span class="nav-dropdown-subtitle">94% accuracy reinforcement learning</span>
+                        <span class="nav-dropdown-subtitle">Reinforcement learning puzzle solver</span>
                       </span>
                     </a>
                   </div>
@@ -254,8 +254,8 @@
         <section class="project-section">
       <h2 class="section-title">Impact</h2>
       <ul class="project-list">
-        <li>Order cost explains ~38% of tip variance (about +$1.10 tip per +$10 bill).</li>
-        <li>Apartment customers tipped ~28% less than house residents (p &lt; 0.001).</li>
+        <li>Order cost was the strongest predictor of tip size in the regression.</li>
+        <li>Housing type (apartment vs. house) showed a statistically significant difference in this sample.</li>
         <li>Weather and delivery time didn’t show a meaningful effect on tip size.</li>
       </ul>
     </section>
@@ -271,17 +271,17 @@
 <section class="project-section">
       <h2 class="section-title">Exploratory Analysis</h2>
       <ul class="project-list">
-        <li>Found a strong positive correlation (0.62) between order cost and tip amount.</li>
-        <li>Rainfall had only a mild relationship with delivery duration (correlation 0.14).</li>
-        <li>Order counts more than doubled in summer/early fall (clear seasonality).</li>
+        <li>Found a strong positive relationship between order cost and tip amount.</li>
+        <li>Rainfall had only a mild relationship with delivery duration in this dataset.</li>
+        <li>Order volume showed clear seasonality (higher in summer/early fall).</li>
       </ul>
     </section>
 <section class="project-section">
       <h2 class="section-title">Regression and Hypothesis Tests</h2>
       <ul class="project-list">
         <li>Ran a multiple regression: Tip = f(cost, delivery time, rain, max/min temperature).</li>
-        <li>Result: order cost was the main driver, explaining ~38% of tip variance (≈ +$1.10 tip per +$10 bill).</li>
-        <li>Validated housing differences with a two-sample t-test: apartment customers tipped ~28% less (p &lt; 0.001).</li>
+        <li>Result: order cost was the main driver of tip size in the regression.</li>
+        <li>Validated housing differences with a two-sample t-test (apartment vs. house).</li>
       </ul>
     </section>
 <section class="project-section">

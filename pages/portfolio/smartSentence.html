@@ -126,7 +126,7 @@
                       </span>
                       <span class="nav-project-meta">
                         <span class="nav-dropdown-title">Nonogram Solver</span>
-                        <span class="nav-dropdown-subtitle">94% accuracy reinforcement learning</span>
+                        <span class="nav-dropdown-subtitle">Reinforcement learning puzzle solver</span>
                       </span>
                     </a>
                   </div>
@@ -250,16 +250,15 @@
       <h2 class="section-title">Approach</h2>
       <ul class="project-list">
         <li>Cleaned the text of Alice in Wonderland, split it into sentences, and precomputed embeddings.</li>
-        <li>Tested 6+ embedding models on 800 sentences (k=2–6) and tracked both quality (silhouette score) and model size.</li>
-        <li>Deployed the best-quality model behind an AWS Lambda API (with CORS) that returns the top-k matches.</li>
+        <li>Experimented with several embedding models on a small sample (~800 sentences) and compared clustering quality using silhouette score as a quick heuristic.</li>
+        <li>Deployed a selected model behind an AWS Lambda API (with CORS) that returns the top-k semantic matches.</li>
       </ul>
     </section>
         <section class="project-section">
       <h2 class="section-title">Impact</h2>
       <ul class="project-list">
-        <li>Best silhouette score: 0.313 with Snowflake Arctic Embed L v2.0 (k=2).</li>
-        <li>Best score per million parameters: 0.0116 with Jina Embeddings v3 (k=6).</li>
-        <li>Deployed Arctic Embed L v2.0; the demo calls a Lambda endpoint to rank sentences by meaning.</li>
+        <li>Selected an embedding model that clustered the corpus cleanly on the test set (dataset- and k-dependent).</li>
+        <li>Shipped a serverless demo: embed query → cosine-similarity ranking over cached sentence embeddings.</li>
       </ul>
     </section>
         <section class="project-section">
@@ -274,8 +273,8 @@
 <section class="project-section">
       <h2 class="section-title">Model Selection</h2>
       <ul class="project-list">
-        <li>Compared several embedding models using silhouette score.</li>
-        <li>Tracked silhouette score per million parameters to keep size and cost in mind.</li>
+        <li>Compared several embedding models using silhouette score as a rough clustering heuristic.</li>
+        <li>Considered model size and deployment cost alongside clustering quality.</li>
         <li>Kept the setup fixed (same corpus, same sample, same k range) so results are comparable.</li>
       </ul>
     </section>
@@ -303,6 +302,7 @@
         <a class="project-link" role="listitem" href="documents/Project_13.pdf"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDF</span></a>
         <a class="project-link" role="listitem" href="documents/Project_13.ipynb"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook</span></a>
         <a class="project-link" role="listitem" href="https://danielshort.me/sentence-demo.html" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
+        <a class="project-link" role="listitem" href="https://www.gutenberg.org/ebooks/11" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Corpus (Project Gutenberg)</span></a>
       </div>
     </section>
         

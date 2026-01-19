@@ -126,7 +126,7 @@
                       </span>
                       <span class="nav-project-meta">
                         <span class="nav-dropdown-title">Nonogram Solver</span>
-                        <span class="nav-dropdown-subtitle">94% accuracy reinforcement learning</span>
+                        <span class="nav-dropdown-subtitle">Reinforcement learning puzzle solver</span>
                       </span>
                     </a>
                   </div>
@@ -248,15 +248,15 @@
         <section class="project-section">
       <h2 class="section-title">Approach</h2>
       <ul class="project-list">
-        <li>Trained a UNet model on 20,000+ paired pages for watermark removal.</li>
-        <li>Upscaled 612×792 scans to 1700×2200 with Very Deep Super-Resolution (VDSR).</li>
+        <li>Trained a UNet model on paired page images for watermark removal.</li>
+        <li>Upscaled low-resolution scans (e.g., ~612×792) to print-friendly resolution (e.g., ~1700×2200) with Very Deep Super-Resolution (VDSR).</li>
         <li>Wrapped it in a simple GUI so I could run the full pipeline.</li>
       </ul>
     </section>
         <section class="project-section">
       <h2 class="section-title">Impact</h2>
       <ul class="project-list">
-        <li>Typical runs produce clean, readable output in under 10 seconds.</li>
+        <li>Typical runs produce cleaner, more readable output in seconds per page (hardware- and batch-dependent).</li>
       </ul>
     </section>
         <section class="project-section">
@@ -288,7 +288,7 @@
 <section class="project-section">
       <h2 class="section-title">Performance and Reliability</h2>
       <ul class="project-list">
-        <li>Kept it fast enough for real use (often under 10 seconds).</li>
+        <li>Kept it fast enough for real use (seconds per page on a modern machine; varies by hardware and page size).</li>
         <li>Added sensible defaults and a simple flow so it runs without tuning.</li>
         <li>Kept steps modular so either model can be swapped or improved later.</li>
       </ul>

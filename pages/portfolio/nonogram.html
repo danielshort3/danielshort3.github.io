@@ -126,7 +126,7 @@
                       </span>
                       <span class="nav-project-meta">
                         <span class="nav-dropdown-title">Nonogram Solver</span>
-                        <span class="nav-dropdown-subtitle">94% accuracy reinforcement learning</span>
+                        <span class="nav-dropdown-subtitle">Reinforcement learning puzzle solver</span>
                       </span>
                     </a>
                   </div>
@@ -248,14 +248,14 @@
         <section class="project-section">
       <h2 class="section-title">Approach</h2>
       <ul class="project-list">
-        <li>Trained a hybrid CNN + Transformer policy network on 25M+ generated 5×5 puzzles.</li>
+        <li>Generated large batches of 5×5 puzzles and trained a hybrid CNN + Transformer policy network to solve them.</li>
         <li>Shaped rewards around unique guesses, row/column completions, and full-board solves to guide exploration.</li>
       </ul>
     </section>
         <section class="project-section">
       <h2 class="section-title">Impact</h2>
       <ul class="project-list">
-        <li>Reached 94% accuracy on unseen 5×5 boards.</li>
+        <li>Achieved strong solve rates on held-out 5×5 boards (see GitHub for evaluation details).</li>
       </ul>
     </section>
         <section class="project-section">
@@ -278,7 +278,7 @@
 <section class="project-section">
       <h2 class="section-title">Training</h2>
       <ul class="project-list">
-        <li>Trained with policy gradients at scale (25M+ puzzles; large batched episodes).</li>
+        <li>Trained with policy gradients at scale (millions of generated puzzles; large batched episodes).</li>
         <li>Used reward shaping around unique guesses, row/column completions, and full-board solves.</li>
         <li>Tracked learning curves and saved checkpoints to compare policy improvements over time.</li>
       </ul>
