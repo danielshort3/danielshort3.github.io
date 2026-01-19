@@ -3,8 +3,10 @@
   'use strict';
 
   const STORAGE_KEY = 'shortlinks_admin_token';
+  const VIEW_STORAGE_KEY = 'shortlinks_view_mode';
   const DEFAULT_BASE_PATH = 'go';
   const DEFAULT_PUBLIC_ORIGIN = 'https://dshort.me';
+  const DEFAULT_VIEW_MODE = 'rows';
 
   const authForm = document.querySelector('[data-shortlinks="auth"]');
   const editorForm = document.querySelector('[data-shortlinks="editor"]');
@@ -20,6 +22,7 @@
   const accessDetails = document.querySelector('[data-shortlinks="access-details"]');
   const accessMetaEl = document.querySelector('[data-shortlinks="access-meta"]');
   const filterInput = document.querySelector('[data-shortlinks="filter"]');
+  const viewSelect = document.querySelector('[data-shortlinks="view"]');
   const countEl = document.querySelector('[data-shortlinks="count"]');
   const listStatusEl = document.querySelector('[data-shortlinks="list-status"]');
 
@@ -143,6 +146,29 @@
 
   const storage = getStorage(true) || getStorage(false);
   let memoryToken = '';
+  let viewMode = DEFAULT_VIEW_MODE;
+
+  function normalizeViewMode(value){
+    const raw = String(value || '').trim().toLowerCase();
+    if (raw === 'cards') return 'cards';
+    if (raw === 'rows') return 'rows';
+    return DEFAULT_VIEW_MODE;
+  }
+
+  function getSavedViewMode(){
+    if (storage) return normalizeViewMode(storage.getItem(VIEW_STORAGE_KEY));
+    return normalizeViewMode(viewMode);
+  }
+
+  function saveViewMode(mode){
+    const value = normalizeViewMode(mode);
+    viewMode = value;
+    if (viewSelect) viewSelect.value = value;
+    if (storage) storage.setItem(VIEW_STORAGE_KEY, value);
+  }
+
+  viewMode = getSavedViewMode();
+  if (viewSelect) viewSelect.value = viewMode;
 
   function getSavedToken(){
     if (storage) return storage.getItem(STORAGE_KEY) || '';
@@ -508,6 +534,19 @@
       openShort.textContent = 'Open';
       if (!openShort.href) openShort.setAttribute('aria-disabled', 'true');
 
+      const testButton = document.createElement('button');
+      testButton.type = 'button';
+      testButton.className = 'btn-secondary';
+      testButton.textContent = 'Test';
+      testButton.disabled = !hasLink;
+      testButton.addEventListener('click', () => {
+        if (!hasLink) {
+          setStatus(projectsStatusEl, 'Create the short link first.', 'error');
+          return;
+        }
+        testRedirect(expectedSlug, testButton, projectsStatusEl);
+      });
+
       const editButton = document.createElement('button');
       editButton.type = 'button';
       editButton.className = 'btn-secondary';
@@ -521,6 +560,7 @@
 
       actions.appendChild(copyButton);
       actions.appendChild(openShort);
+      actions.appendChild(testButton);
       actions.appendChild(editButton);
 
       if (!hasLink) {
@@ -972,11 +1012,12 @@
     }, 1200);
   }
 
-  async function testRedirect(slug, button){
+  async function testRedirect(slug, button, statusTarget){
     const clean = normalizeSlugInput(slug);
     if (!clean) return;
 
     const label = buildPublicPath(clean) || clean;
+    const statusEl = statusTarget || listStatusEl;
     const start = Date.now();
     let popup = null;
 
@@ -1001,7 +1042,7 @@
       button.disabled = true;
       button.textContent = 'Testing…';
     }
-    setStatus(listStatusEl, `Testing ${label}…`);
+    setStatus(statusEl, `Testing ${label}…`);
 
     try {
       const data = await api(`/api/short-links/test/${encodeURIComponent(clean)}`, { method: 'GET' });
@@ -1035,7 +1076,7 @@
       }
 
       const tone = check && check.ok === false ? 'warning' : 'success';
-      setStatus(listStatusEl, detail, tone);
+      setStatus(statusEl, detail, tone);
       flashText(check && check.ok === false ? 'Warn' : 'OK');
 
       const openTarget = checkUrl || destination;
@@ -1050,7 +1091,7 @@
       }
     } catch (err) {
       if (popup && !popup.closed) popup.close();
-      setStatus(listStatusEl, err && err.message ? err.message : 'Test failed.', 'error');
+      setStatus(statusEl, err && err.message ? err.message : 'Test failed.', 'error');
       flashText('Failed');
     } finally {
       if (button) {
@@ -1227,8 +1268,227 @@
     return `${weeks}w`;
   }
 
+  function renderLinksTable(links){
+    clearList();
+    listEl.classList.add('shortlinks-list-table');
+
+    if (!Array.isArray(links) || links.length === 0) {
+      const empty = document.createElement('p');
+      const query = getFilterQuery();
+      empty.className = 'shortlinks-empty';
+      empty.textContent = query ? `No matches for "${query}".` : 'No short links yet.';
+      listEl.appendChild(empty);
+      return;
+    }
+
+    const wrap = document.createElement('div');
+    wrap.className = 'shortlinks-table-wrap';
+
+    const table = document.createElement('table');
+    table.className = 'shortlinks-table';
+
+    const thead = document.createElement('thead');
+    const headRow = document.createElement('tr');
+    [
+      { key: 'slug', label: 'Slug' },
+      { key: 'destination', label: 'Destination' },
+      { key: 'clicks', label: 'Clicks' },
+      { key: 'actions', label: 'Actions' }
+    ].forEach(col => {
+      const th = document.createElement('th');
+      th.scope = 'col';
+      th.textContent = col.label;
+      headRow.appendChild(th);
+    });
+    thead.appendChild(headRow);
+
+    const tbody = document.createElement('tbody');
+
+    links.forEach(link => {
+      const shortUrl = buildShortUrl(link.slug);
+      const destinationUrl = formatAbsoluteUrl(link.destination);
+      const expiresAt = Number.isFinite(Number(link.expiresAt)) ? Number(link.expiresAt) : 0;
+      const expiresMs = expiresAt ? expiresAt * 1000 - Date.now() : 0;
+      const isExpired = expiresAt && expiresMs <= 0;
+
+      const row = document.createElement('tr');
+      row.className = 'shortlinks-row';
+      if (link.disabled) row.classList.add('shortlinks-row-disabled');
+      if (isExpired) row.classList.add('shortlinks-row-expired');
+
+      const slugCell = document.createElement('td');
+      const slugAnchor = document.createElement('a');
+      slugAnchor.className = 'shortlinks-table-slug';
+      slugAnchor.href = shortUrl;
+      slugAnchor.target = '_blank';
+      slugAnchor.rel = 'noopener noreferrer';
+      slugAnchor.title = shortUrl;
+
+      const slugCode = document.createElement('code');
+      slugCode.className = 'shortlinks-table-slug-code';
+      slugCode.textContent = buildPublicPath(link.slug);
+
+      slugAnchor.appendChild(slugCode);
+      slugCell.appendChild(slugAnchor);
+
+      const meta = document.createElement('div');
+      meta.className = 'shortlinks-table-meta';
+
+      const statusPill = document.createElement('span');
+      statusPill.className = 'tool-pill';
+      statusPill.textContent = link.permanent ? '301' : '302';
+      meta.appendChild(statusPill);
+
+      if (expiresAt) {
+        const expiresPill = document.createElement('span');
+        expiresPill.className = `tool-pill ${isExpired ? 'shortlinks-pill-expired' : 'shortlinks-pill-expiry'}`;
+        expiresPill.textContent = isExpired ? 'Expired' : `Expires in ${formatCountdown(expiresMs)}`;
+        expiresPill.title = `Expires ${new Date(expiresAt * 1000).toLocaleString()}`;
+        meta.appendChild(expiresPill);
+      }
+
+      if (link.disabled) {
+        const disabledPill = document.createElement('span');
+        disabledPill.className = 'tool-pill shortlinks-pill-disabled';
+        disabledPill.textContent = 'Disabled';
+        meta.appendChild(disabledPill);
+      }
+
+      slugCell.appendChild(meta);
+      row.appendChild(slugCell);
+
+      const destCell = document.createElement('td');
+      const destAnchor = document.createElement('a');
+      destAnchor.className = 'shortlinks-table-destination';
+      destAnchor.href = destinationUrl;
+      destAnchor.target = '_blank';
+      destAnchor.rel = 'noopener noreferrer';
+      destAnchor.title = destinationUrl;
+      destAnchor.textContent = destinationUrl;
+      destCell.appendChild(destAnchor);
+      row.appendChild(destCell);
+
+      const clicksCell = document.createElement('td');
+      clicksCell.className = 'shortlinks-table-cell-clicks';
+      const clicksPill = document.createElement('button');
+      clicksPill.type = 'button';
+      clicksPill.className = 'tool-pill shortlinks-pill-button';
+      clicksPill.textContent = `${Number(link.clicks) || 0} clicks`;
+      clicksPill.addEventListener('click', () => {
+        openClicksModal(link.slug);
+      });
+      clicksCell.appendChild(clicksPill);
+      row.appendChild(clicksCell);
+
+      const actionsCell = document.createElement('td');
+      actionsCell.className = 'shortlinks-table-cell-actions';
+
+      const actions = document.createElement('div');
+      actions.className = 'shortlinks-table-actions';
+
+      const copyButton = document.createElement('button');
+      copyButton.type = 'button';
+      copyButton.className = 'btn-ghost';
+      copyButton.textContent = 'Copy';
+      copyButton.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(shortUrl);
+          flashButtonText(copyButton, 'Copied');
+          setStatus(listStatusEl, `Copied: ${shortUrl}`, 'success');
+        } catch {
+          flashButtonText(copyButton, 'Copy failed');
+          setStatus(listStatusEl, 'Copy failed (clipboard permission blocked).', 'error');
+        }
+      });
+
+      const openShort = document.createElement('a');
+      openShort.className = 'btn-secondary';
+      openShort.href = shortUrl;
+      openShort.target = '_blank';
+      openShort.rel = 'noopener noreferrer';
+      openShort.textContent = 'Open';
+
+      const testButton = document.createElement('button');
+      testButton.type = 'button';
+      testButton.className = 'btn-secondary';
+      testButton.textContent = 'Test';
+      testButton.addEventListener('click', () => {
+        testRedirect(link.slug, testButton);
+      });
+
+      const editButton = document.createElement('button');
+      editButton.type = 'button';
+      editButton.className = 'btn-secondary';
+      editButton.textContent = 'Edit';
+      editButton.addEventListener('click', () => {
+        slugInput.value = link.slug;
+        destinationInput.value = link.destination;
+        slugInput.focus();
+        const expiresAt = Number.isFinite(Number(link.expiresAt)) ? Number(link.expiresAt) : 0;
+        const expiresLabel = expiresAt ? ` (expires ${new Date(expiresAt * 1000).toLocaleString()})` : '';
+        setStatus(editorStatusEl, `Editing ${buildPublicPath(link.slug)}${link.disabled ? ' (disabled)' : ''}${expiresLabel}`, 'success');
+      });
+
+      const toggleButton = document.createElement('button');
+      toggleButton.type = 'button';
+      toggleButton.className = 'btn-secondary';
+      toggleButton.textContent = link.disabled ? 'Enable' : 'Disable';
+      toggleButton.addEventListener('click', async () => {
+        const nextDisabled = !link.disabled;
+        if (nextDisabled) {
+          const ok = window.confirm(`Disable ${buildPublicPath(link.slug)}?`);
+          if (!ok) return;
+        }
+        try {
+          await api(`/api/short-links/${encodeURIComponent(link.slug)}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ disabled: nextDisabled })
+          });
+          setStatus(listStatusEl, `${nextDisabled ? 'Disabled' : 'Enabled'} ${link.slug}`, 'success');
+          await refreshLinks();
+        } catch (err) {
+          setStatus(listStatusEl, err.message, 'error');
+        }
+      });
+
+      const deleteButton = document.createElement('button');
+      deleteButton.type = 'button';
+      deleteButton.className = 'btn-secondary shortlinks-danger';
+      deleteButton.textContent = 'Delete';
+      deleteButton.addEventListener('click', async () => {
+        const ok = window.confirm(`Delete ${buildPublicPath(link.slug)}?`);
+        if (!ok) return;
+        try {
+          await api(`/api/short-links/${encodeURIComponent(link.slug)}`, { method: 'DELETE' });
+          setStatus(listStatusEl, `Deleted ${link.slug}`, 'success');
+          await refreshLinks();
+        } catch (err) {
+          setStatus(listStatusEl, err.message, 'error');
+        }
+      });
+
+      actions.appendChild(copyButton);
+      actions.appendChild(openShort);
+      actions.appendChild(testButton);
+      actions.appendChild(editButton);
+      actions.appendChild(toggleButton);
+      actions.appendChild(deleteButton);
+
+      actionsCell.appendChild(actions);
+      row.appendChild(actionsCell);
+
+      tbody.appendChild(row);
+    });
+
+    table.appendChild(thead);
+    table.appendChild(tbody);
+    wrap.appendChild(table);
+    listEl.appendChild(wrap);
+  }
+
   function renderLinks(links){
     clearList();
+    listEl.classList.remove('shortlinks-list-table');
     if (!Array.isArray(links) || links.length === 0) {
       const empty = document.createElement('p');
       const query = getFilterQuery();
@@ -1431,7 +1691,11 @@
 
   function applyFilterAndRender(){
     const filtered = getFilteredLinks();
-    renderLinks(filtered);
+    if (viewMode === 'cards') {
+      renderLinks(filtered);
+    } else {
+      renderLinksTable(filtered);
+    }
     setCount(filtered.length, allLinks.length);
   }
 
@@ -1824,6 +2088,13 @@
 
   if (filterInput) {
     filterInput.addEventListener('input', () => {
+      applyFilterAndRender();
+    });
+  }
+
+  if (viewSelect) {
+    viewSelect.addEventListener('change', () => {
+      saveViewMode(viewSelect.value);
       applyFilterAndRender();
     });
   }
