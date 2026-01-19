@@ -6,11 +6,11 @@
   <base href="/">
   <title>COVID-19 Outbreak Drivers | Daniel Short</title>
   <link rel="canonical" href="https://danielshort.me/portfolio/covidAnalysis">
-  <meta name="description" content="Python XGBoost &amp; SHAP: I built an early-warning model to flag states at risk of crossing 90% ICU utilization in the next 7 days.">
+  <meta name="description" content="Python XGBoost &amp; SHAP: Using 2020–2023 HHS hospital-capacity data, I built an early-warning model to flag states at risk of crossing 90% ICU utilization in…">
 
   <meta property="og:title" content="COVID-19 Outbreak Drivers | Daniel Short">
   <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
-  <meta property="og:description" content="Python XGBoost &amp; SHAP: I built an early-warning model to flag states at risk of crossing 90% ICU utilization in the next 7 days.">
+  <meta property="og:description" content="Python XGBoost &amp; SHAP: Using 2020–2023 HHS hospital-capacity data, I built an early-warning model to flag states at risk of crossing 90% ICU utilization in…">
   <meta property="og:url" content="https://danielshort.me/portfolio/covidAnalysis">
   <meta property="og:image" content="https://danielshort.me/img/projects/covidAnalysis.png">
   <meta property="og:image:alt" content="Preview image for COVID-19 Outbreak Drivers">
@@ -19,7 +19,7 @@
   <meta name="twitter:site" content="@danielshort3">
 
   <meta name="twitter:title" content="COVID-19 Outbreak Drivers | Daniel Short">
-  <meta name="twitter:description" content="Python XGBoost &amp; SHAP: I built an early-warning model to flag states at risk of crossing 90% ICU utilization in the next 7 days.">
+  <meta name="twitter:description" content="Python XGBoost &amp; SHAP: Using 2020–2023 HHS hospital-capacity data, I built an early-warning model to flag states at risk of crossing 90% ICU utilization in…">
   <meta name="twitter:image" content="https://danielshort.me/img/projects/covidAnalysis.png">
   <meta name="twitter:image:alt" content="Preview image for COVID-19 Outbreak Drivers">
   <meta name="theme-color" content="#0D1117">
@@ -35,7 +35,7 @@
   <!-- Local fonts with legacy reference retained for tooling: https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap -->
   <script src="js/common/no-js.js"></script>
   <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"CreativeWork","name":"COVID-19 Outbreak Drivers","description":"Python XGBoost & SHAP: I built an early-warning model to flag states at risk of crossing 90% ICU utilization in the next 7 days.","url":"https://danielshort.me/portfolio/covidAnalysis","image":"https://danielshort.me/img/projects/covidAnalysis.png"}
+    {"@context":"https://schema.org","@type":"CreativeWork","name":"COVID-19 Outbreak Drivers","description":"Python XGBoost & SHAP: Using 2020–2023 HHS hospital-capacity data, I built an early-warning model to flag states at risk of crossing 90% ICU utilization in…","url":"https://danielshort.me/portfolio/covidAnalysis","image":"https://danielshort.me/img/projects/covidAnalysis.png"}
   </script>
 </head>
 <body data-page="project" class="project-page">
@@ -126,7 +126,7 @@
                       </span>
                       <span class="nav-project-meta">
                         <span class="nav-dropdown-title">Nonogram Solver</span>
-                        <span class="nav-dropdown-subtitle">94% accuracy reinforcement learning</span>
+                        <span class="nav-dropdown-subtitle">Reinforcement learning puzzle solver</span>
                       </span>
                     </a>
                   </div>
@@ -240,7 +240,7 @@
       </div>
         <section class="project-section">
       <h2 class="section-title">Context</h2>
-      <p class="project-lead">I built an early-warning model to flag states at risk of crossing 90% ICU utilization in the next 7 days.</p>
+      <p class="project-lead">Using 2020–2023 HHS hospital-capacity data, I built an early-warning model to flag states at risk of crossing 90% ICU utilization in the next 7 days.</p>
     </section>
         
         <section class="project-section">
@@ -255,7 +255,7 @@
       <ul class="project-list">
         <li>Used SHAP to highlight the top drivers and embedded an interactive plot in the report.</li>
         <li>Top driver was the share of ICU beds occupied by COVID patients.</li>
-        <li>In the final snapshot, Utah had the highest predicted risk (6.1%).</li>
+        <li>Exported daily, per-state risk scores (probability of breaching 90% ICU utilization within 7 days).</li>
       </ul>
     </section>
         <section class="project-section">
@@ -279,7 +279,7 @@
       <h2 class="section-title">Modeling and Evaluation</h2>
       <ul class="project-list">
         <li>Trained an XGBoost classifier with a time-based train/test split and class-imbalance handling.</li>
-        <li>Measured ranking quality with AUROC (0.606) and PR-AUC (0.060).</li>
+        <li>Measured ranking quality with AUROC/PR-AUC and tuned for class imbalance.</li>
         <li>Used the model as a risk scorer (probability output) rather than a hard yes/no classifier.</li>
       </ul>
     </section>
@@ -295,7 +295,7 @@
       <h2 class="section-title">Operational Output</h2>
       <ul class="project-list">
         <li>Exported a per-state, per-day CSV of 7-day breach probabilities for monitoring and reporting.</li>
-        <li>Most likely breach location in the final snapshot: UT on 2023-06-11 with a 7-day breach probability of 6.1%.</li>
+        <li>Reviewed the highest-risk states per snapshot and tracked how rankings changed over time.</li>
         <li>Designed the workflow to be rerun as new days arrive.</li>
       </ul>
     </section>
@@ -315,6 +315,7 @@
         <a class="project-link" role="listitem" href="https://danielshort.me/covid-outbreak-demo" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
         <a class="project-link" role="listitem" href="documents/Project_6.pdf"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDF</span></a>
         <a class="project-link" role="listitem" href="documents/Project_6.ipynb"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook</span></a>
+        <a class="project-link" role="listitem" href="https://healthdata.gov/Hospital/COVID-19-Reported-Patient-Impact-and-Hospital-Capa/anag-cw7u" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">HHS Dataset</span></a>
       </div>
     </section>
         

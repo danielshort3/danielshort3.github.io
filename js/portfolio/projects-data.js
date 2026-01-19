@@ -28,7 +28,8 @@ window.PROJECTS = [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Smart-Sentence-Finder", label: "GitHub" },
       { icon: "img/icons/pdf-icon.png", url: "documents/Project_13.pdf", label: "PDF" },
       { icon: "img/icons/jupyter-icon.png", url: "documents/Project_13.ipynb", label: "Notebook" },
-      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/sentence-demo.html", label: "Live Demo" }
+      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/sentence-demo.html", label: "Live Demo" },
+      { icon: "img/icons/website-icon.png", url: "https://www.gutenberg.org/ebooks/11", label: "Corpus (Project Gutenberg)" }
     ],
     embed: {
       type: "iframe",
@@ -37,13 +38,12 @@ window.PROJECTS = [
     problem: "I wanted a fast way to find sentences that match a question, even when the wording is different.",
     actions: [
       "Cleaned the text of Alice in Wonderland, split it into sentences, and precomputed embeddings.",
-      "Tested 6+ embedding models on 800 sentences (k=2–6) and tracked both quality (silhouette score) and model size.",
-      "Deployed the best-quality model behind an AWS Lambda API (with CORS) that returns the top-k matches."
+      "Experimented with several embedding models on a small sample (~800 sentences) and compared clustering quality using silhouette score as a quick heuristic.",
+      "Deployed a selected model behind an AWS Lambda API (with CORS) that returns the top-k semantic matches."
     ],
     results: [
-      "Best silhouette score: 0.313 with Snowflake Arctic Embed L v2.0 (k=2).",
-      "Best score per million parameters: 0.0116 with Jina Embeddings v3 (k=6).",
-      "Deployed Arctic Embed L v2.0; the demo calls a Lambda endpoint to rank sentences by meaning."
+      "Selected an embedding model that clustered the corpus cleanly on the test set (dataset- and k-dependent).",
+      "Shipped a serverless demo: embed query → cosine-similarity ranking over cached sentence embeddings."
     ],
     caseStudy: [
       {
@@ -58,8 +58,8 @@ window.PROJECTS = [
       {
         title: "Model Selection",
         bullets: [
-          "Compared several embedding models using silhouette score.",
-          "Tracked silhouette score per million parameters to keep size and cost in mind.",
+          "Compared several embedding models using silhouette score as a rough clustering heuristic.",
+          "Considered model size and deployment cost alongside clustering quality.",
           "Kept the setup fixed (same corpus, same sample, same k range) so results are comparable."
         ]
       },
@@ -108,12 +108,12 @@ window.PROJECTS = [
     problem: "Off-the-shelf chatbots didn't sound like Visit Grand Junction, and they rarely pointed people to our pages.",
     actions: [
       "Crawled Visit Grand Junction pages and built a FAISS retrieval index.",
-      "Generated a fine-tuning dataset with GPT-OSS 20B (via Ollama).",
+      "Generated a fine-tuning dataset by prompting an open-source LLM locally (via Ollama) to create Q&A pairs from the corpus.",
       "Fine-tuned Mistral 7B with LoRA on the Q&A set and deployed it to AWS SageMaker.",
       "Added Lambda endpoints so the website can talk to the model."
     ],
     results: [
-      "The demo answers with citations, but it needs a warm-up after idle time (about 10 minutes)."
+      "The demo answers with citations; the first request after downtime can be slower due to cold-starting the backend."
     ],
     caseStudy: [
       {
@@ -128,7 +128,7 @@ window.PROJECTS = [
       {
         title: "Dataset Generation",
         bullets: [
-          "Used GPT-OSS 20B (Ollama) to turn crawled content into Q&A pairs.",
+          "Used an open-source LLM via Ollama to turn crawled content into Q&A pairs.",
           "Automated crawl → index → dataset → fine-tune so runs are repeatable.",
           "Kept it Docker-friendly so I could run locally and deploy the same artifacts."
         ]
@@ -138,7 +138,7 @@ window.PROJECTS = [
         bullets: [
           "Merged the LoRA adapter into a 4-bit model and served it with FastAPI.",
           "Hosted it behind AWS (SageMaker + Lambda) so the browser only calls an API.",
-          "Added a status check and a warm-up message to handle cold starts."
+          "Added status checks and user-facing messaging to handle cold starts after idle time."
         ]
       },
       {
@@ -165,6 +165,7 @@ window.PROJECTS = [
     concepts: ["Machine Learning"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Shape-Analyzer", label: "GitHub" },
+      { icon: "img/icons/website-icon.png", url: "https://github.com/googlecreativelab/quickdraw-dataset", label: "Quick, Draw! Dataset" },
       { icon: "img/icons/website-icon.png", url: "https://danielshort.me/shape-demo.html", label: "Live Demo" }
     ],
     embed: {
@@ -178,8 +179,8 @@ window.PROJECTS = [
       "Deployed a CPU-only AWS Lambda endpoint so the browser can request predictions."
     ],
     results: [
-      "About 90% accuracy on five shapes: circle, triangle, square, hexagon, and octagon.",
-      "After warm-up (~10 seconds), predictions return in under a second."
+      "High accuracy on a five-shape subset (results vary by split and drawing style): circle, triangle, square, hexagon, and octagon.",
+      "Predictions return quickly once the Lambda container is warm; cold starts can take longer."
     ],
     caseStudy: [
       {
@@ -227,24 +228,25 @@ window.PROJECTS = [
     imageHeight: 1116,
     tools: ["Tableau"],
     concepts: ["Visualization", "Analytics"],
-    resources: [
-      { icon: "img/icons/tableau-icon.png",
-        url  : "https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013?:language=en-US&:display_count=n&:origin=viz_share_link",
-        label:"Interactive Dashboard"
-      }
-    ],
+	    resources: [
+	      { icon: "img/icons/tableau-icon.png",
+	        url  : "https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013?:language=en-US&:display_count=n&:origin=viz_share_link",
+	        label:"Interactive Dashboard"
+	      },
+	      { icon: "img/icons/website-icon.png", url: "https://nuforc.org/databank/", label: "NUFORC Database" }
+	    ],
     embed : {
       type : "tableau",
       base : "https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013"
     },
     problem : "I wanted to see patterns in UFO sighting reports across the U.S.",
     actions : [
-      "Cleaned and standardized a UFO sightings dataset.",
+      "Cleaned and standardized a public UFO sightings dataset.",
       "Built a Tableau dashboard with maps and time-based charts."
     ],
     results : [
-      "Most reports happen just after sunset (earlier in winter, later in summer).",
-      "California has the most reports, while central states have fewer."
+      "In this dataset, reports are most common in the evening/night hours (and shift seasonally with daylight).",
+      "California has the most reports in the dataset, while many central states have fewer."
     ],
     caseStudy : [
       {
@@ -267,7 +269,7 @@ window.PROJECTS = [
       {
         title: "Insights and Interpretation",
         bullets: [
-          "Reports cluster around dusk and nighttime.",
+          "Reports cluster in the evening/night hours in this dataset.",
           "The peak hour shifts with daylight (later in summer, earlier in winter).",
           "California stands out in volume; central regions are lower."
         ]
@@ -298,13 +300,14 @@ window.PROJECTS = [
       { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Covid-Analysis", label: "GitHub" },
       { icon: "img/icons/website-icon.png", url: "https://danielshort.me/covid-outbreak-demo",    label: "Live Demo" },
       { icon: "img/icons/pdf-icon.png",     url: "documents/Project_6.pdf",                        label: "PDF"    },
-      { icon: "img/icons/jupyter-icon.png", url: "documents/Project_6.ipynb",                      label: "Notebook"}
+      { icon: "img/icons/jupyter-icon.png", url: "documents/Project_6.ipynb",                      label: "Notebook"},
+      { icon: "img/icons/website-icon.png", url: "https://healthdata.gov/Hospital/COVID-19-Reported-Patient-Impact-and-Hospital-Capa/anag-cw7u", label: "HHS Dataset" }
     ],
     embed: {
       type: "iframe",
       url: "covid-outbreak-demo.html"
     },
-    problem : "I built an early-warning model to flag states at risk of crossing 90% ICU utilization in the next 7 days.",
+    problem : "Using 2020–2023 HHS hospital-capacity data, I built an early-warning model to flag states at risk of crossing 90% ICU utilization in the next 7 days.",
     actions : [
       "Cleaned and enriched 50k+ rows from the HHS hospital-capacity time series; added rolling stats, trends, and 1/3/7/14-day lag features.",
       "Trained an XGBoost classifier with class-imbalance weighting and a strict time-based train/test split.",
@@ -312,7 +315,7 @@ window.PROJECTS = [
     results : [
       "Used SHAP to highlight the top drivers and embedded an interactive plot in the report.",
       "Top driver was the share of ICU beds occupied by COVID patients.",
-      "In the final snapshot, Utah had the highest predicted risk (6.1%)."
+      "Exported daily, per-state risk scores (probability of breaching 90% ICU utilization within 7 days)."
     ],
     caseStudy : [
       {
@@ -336,7 +339,7 @@ window.PROJECTS = [
         title: "Modeling and Evaluation",
         bullets: [
           "Trained an XGBoost classifier with a time-based train/test split and class-imbalance handling.",
-          "Measured ranking quality with AUROC (0.606) and PR-AUC (0.060).",
+          "Measured ranking quality with AUROC/PR-AUC and tuned for class imbalance.",
           "Used the model as a risk scorer (probability output) rather than a hard yes/no classifier."
         ]
       },
@@ -352,7 +355,7 @@ window.PROJECTS = [
         title: "Operational Output",
         bullets: [
           "Exported a per-state, per-day CSV of 7-day breach probabilities for monitoring and reporting.",
-          "Most likely breach location in the final snapshot: UT on 2023-06-11 with a 7-day breach probability of 6.1%.",
+          "Reviewed the highest-risk states per snapshot and tracked how rankings changed over time.",
           "Designed the workflow to be rerun as new days arrive."
         ]
       },
@@ -391,25 +394,24 @@ window.PROJECTS = [
       "Built the Excel dashboard workflow (cleanup, drill-downs, and reporting)."
     ],
     notes: "Employee and location identifiers are anonymized in the write-up.",
-    problem : "Empty-package theft was rising fast. Recovered retail value was 5× higher in Q2 2023 than Q1 2021, and leaders needed one view of where it was happening.",
+    problem : "Empty-package theft was rising, and leaders needed one view of trends and hotspots across locations and departments.",
     actions : [
-      "Consolidated 5,900+ loss-prevention records (2021–2023).",
+      "Consolidated thousands of loss-prevention records (2021–2023).",
       "Cleaned the data and anonymized employee IDs, DPCI codes, dates, locations, and retail values.",
       "Built an interactive Excel dashboard with drill-downs by associate, department, and recovery location.",
       "Summarized the findings in a short report."
     ],
     results : [
       "Two recovery locations (anonymized) stood out as hotspots.",
-      "Shrink doubled in under 12 months at one hotspot, with the second doubling in a single quarter.",
-      "Three departments (anonymized) drove most recoveries; the top department jumped ~4× in two quarters.",
-      "Three associates (anonymized) accounted for ~47% of recovered value."
+      "A small number of departments and associates drove a disproportionate share of recoveries (anonymized).",
+      "Quarterly trend views made it easy to spot rapid growth periods worth investigating."
     ],
     caseStudy : [
       {
         title: "Data Cleanup and Governance",
         lead: "I turned messy loss-prevention logs into a usable dashboard while keeping people and locations anonymous.",
         bullets: [
-          "Consolidated 5,900+ records (2021–2023) and standardized dates, locations, departments, and retail values.",
+          "Consolidated thousands of records (2021–2023) and standardized dates, locations, departments, and retail values.",
           "Anonymized employee and store identifiers so the write-up is shareable.",
           "Added quarter fields so trends are easy to track over time."
         ]
@@ -425,9 +427,9 @@ window.PROJECTS = [
       {
         title: "Key Findings",
         bullets: [
-          "Recovered retail value increased five-fold from Q1 2021 to Q2 2023.",
-          "Two recovery locations were hotspots; one doubled in <12 months and another doubled in a single quarter.",
-          "A small set of associates and departments drove a disproportionate share of recovered value (~47% from three associates)."
+          "Recovered value rose significantly over time, with growth concentrated in a small number of hotspots.",
+          "Certain departments and time periods showed unusually rapid increases, prompting targeted follow-up.",
+          "A small set of associates and departments drove a disproportionate share of recoveries (anonymized)."
         ]
       },
       {
@@ -457,7 +459,8 @@ window.PROJECTS = [
       { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Handwriting-Rating", label: "GitHub" },
       { icon: "img/icons/website-icon.png", url: "https://danielshort.me/handwriting-rating-demo.html", label: "Live Demo" },
       { icon: "img/icons/pdf-icon.png",     url: "documents/Project_8.pdf",                            label: "PDF"    },
-      { icon: "img/icons/jupyter-icon.png", url: "documents/Project_8.ipynb",                          label: "Notebook"}
+      { icon: "img/icons/jupyter-icon.png", url: "documents/Project_8.ipynb",                          label: "Notebook"},
+      { icon: "img/icons/website-icon.png", url: "http://yann.lecun.com/exdb/mnist/",                  label: "MNIST Dataset" }
     ],
     embed: {
       type: "iframe",
@@ -470,8 +473,8 @@ window.PROJECTS = [
       "Deployed it behind a serverless scoring API for the live demo."
     ],
     results : [
-      "The best model reached 99.1% accuracy on MNIST.",
-      "My digits scored 72.5% legible; 0, 3, 5, and 8 were the toughest.",
+      "The best model reached ~99% test accuracy on MNIST (see notebook).",
+      "On a small personal handwriting set, accuracy was ~75.6% (not a benchmark; see notebook).",
       "My wife was right."
     ],
     caseStudy : [
@@ -496,7 +499,7 @@ window.PROJECTS = [
         title: "Custom Handwriting Evaluation",
         bullets: [
           "Built a loader so new images can be preprocessed and scored consistently.",
-          "Computed overall legibility (72.5%) and found my hardest digits (0, 3, 5, and 8).",
+          "Scored a small personal handwriting set (~75.6% accuracy) and used the confusion matrix to see which digits were most ambiguous.",
           "Used the breakdown to make it actionable (which digits to practice)."
         ]
       },
@@ -534,7 +537,7 @@ window.PROJECTS = [
     },
     problem : "I wanted to generate new handwritten digits, not just recognize them.",
     actions : [
-      "Trained a Variational Autoencoder (VAE) on MNIST (60,000 handwritten digits)."
+      "Trained a Variational Autoencoder (VAE) on MNIST (60,000 training digits) with a 20-dim latent space for up to 100 epochs."
     ],
     results : [
       "Generated new digits by sampling the learned latent space.",
@@ -553,7 +556,7 @@ window.PROJECTS = [
       {
         title: "Training and Sampling",
         bullets: [
-          "Trained on MNIST and balanced reconstruction loss vs. KL divergence.",
+          "Trained on MNIST for up to 100 epochs with a 20-dim latent space and balanced reconstruction loss vs. KL divergence.",
           "Validated by comparing original vs. reconstructed digits and sampling random latent vectors.",
           "Saved the model so generation doesn't require retraining."
         ]
@@ -595,12 +598,12 @@ window.PROJECTS = [
     ],
     problem : "I needed clean, readable sheet music. Most of what I could find was low-res and watermarked.",
     actions : [
-      "Trained a UNet model on 20,000+ paired pages for watermark removal.",
-      "Upscaled 612×792 scans to 1700×2200 with Very Deep Super-Resolution (VDSR).", 
+      "Trained a UNet model on paired page images for watermark removal.",
+      "Upscaled low-resolution scans (e.g., ~612×792) to print-friendly resolution (e.g., ~1700×2200) with Very Deep Super-Resolution (VDSR).",
       "Wrapped it in a simple GUI so I could run the full pipeline."
     ],
     results : [
-      "Typical runs produce clean, readable output in under 10 seconds.",
+      "Typical runs produce cleaner, more readable output in seconds per page (hardware- and batch-dependent)."
     ],
     caseStudy : [
       {
@@ -632,7 +635,7 @@ window.PROJECTS = [
       {
         title: "Performance and Reliability",
         bullets: [
-          "Kept it fast enough for real use (often under 10 seconds).",
+          "Kept it fast enough for real use (seconds per page on a modern machine; varies by hardware and page size).",
           "Added sensible defaults and a simple flow so it runs without tuning.",
           "Kept steps modular so either model can be swapped or improved later."
         ]
@@ -667,9 +670,9 @@ window.PROJECTS = [
       "Compared tips by daypart, zone, and order size."
     ],
     results : [
-      "Wednesday had the highest average tip per delivery ($8.07).",
-      "Friday had the best tips per hour ($10.34/hour).",
-      "Using the changes, I increased my weekly earnings by about 12%."
+      "Mid-week shifts tended to have higher tips per delivery, while Friday evenings tended to have higher tips per hour.",
+      "Neighborhood and housing type differences explained a lot of the variation in this dataset.",
+      "Used the dashboard to make better shift and zone choices over time."
     ],
     caseStudy : [
       {
@@ -692,7 +695,7 @@ window.PROJECTS = [
       {
         title: "Key Findings",
         bullets: [
-          "Wednesday had the highest average tip per delivery ($8.07); Friday had the best tips per hour ($10.34/hour).",
+          "Mid-week shifts tended to have higher tips per delivery, while Friday evenings tended to have higher tips per hour.",
           "Tips varied a lot by housing type and neighborhood, which helped with zone choices.",
           "Tracked baseline stats (average tip and delivery time) to measure changes over time."
         ]
@@ -740,10 +743,10 @@ window.PROJECTS = [
       "Used anomaly detection to flag outlier stores and associates."
     ],
     results : [
-      "Found a cluster of outlier stores averaging 14 incidents per store (about 4–5× peers).",
-      "Flagged high-theft regions (up to about $991 per store per day).",
-      "Quantified year-over-year boycott drops: –28.7% (May ’23), –11.6% (Jun ’23), –60.2% (Jul ’23).",
-      "Flagged a small set of high-risk associates (anonymized); one outlier averaged $249 per item on two items."
+      "Found a cluster of outlier stores with incident rates several times higher than typical peers.",
+      "Flagged regions and stores with substantially higher estimated loss rates (figures anonymized).",
+      "Measured year-over-year sales changes around boycott periods (exact figures anonymized).",
+      "Flagged a small set of high-risk associates and patterns using anomaly detection (identifiers anonymized)."
     ],
     caseStudy : [
       {
@@ -808,8 +811,8 @@ window.PROJECTS = [
       "Ran a multiple regression in Excel: Tip = f(cost, delivery time, rain, max/min temperature)."
     ],
     results : [
-      "Order cost explains ~38% of tip variance (about +$1.10 tip per +$10 bill).",
-      "Apartment customers tipped ~28% less than house residents (p < 0.001).",
+      "Order cost was the strongest predictor of tip size in the regression.",
+      "Housing type (apartment vs. house) showed a statistically significant difference in this sample.",
       "Weather and delivery time didn’t show a meaningful effect on tip size."
     ],
     caseStudy : [
@@ -825,17 +828,17 @@ window.PROJECTS = [
       {
         title: "Exploratory Analysis",
         bullets: [
-          "Found a strong positive correlation (0.62) between order cost and tip amount.",
-          "Rainfall had only a mild relationship with delivery duration (correlation 0.14).",
-          "Order counts more than doubled in summer/early fall (clear seasonality)."
+          "Found a strong positive relationship between order cost and tip amount.",
+          "Rainfall had only a mild relationship with delivery duration in this dataset.",
+          "Order volume showed clear seasonality (higher in summer/early fall)."
         ]
       },
       {
         title: "Regression and Hypothesis Tests",
         bullets: [
           "Ran a multiple regression: Tip = f(cost, delivery time, rain, max/min temperature).",
-          "Result: order cost was the main driver, explaining ~38% of tip variance (≈ +$1.10 tip per +$10 bill).",
-          "Validated housing differences with a two-sample t-test: apartment customers tipped ~28% less (p < 0.001)."
+          "Result: order cost was the main driver of tip size in the regression.",
+          "Validated housing differences with a two-sample t-test (apartment vs. house)."
         ]
       },
       {
@@ -864,15 +867,17 @@ window.PROJECTS = [
       { icon: "img/icons/website-icon.png", url: "https://danielshort.me/baby-names-demo", label: "Live Demo" },
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Baby-Names", label: "GitHub" },
       { icon: "img/icons/pdf-icon.png",    url: "documents/Project_2.pdf",                    label: "PDFs"  },
-      { icon: "img/icons/jupyter-icon.png",url: "documents/Project_2.ipynb",                  label: "Notebook"}
+      { icon: "img/icons/jupyter-icon.png",url: "documents/Project_2.ipynb",                  label: "Notebook"},
+      { icon: "img/icons/website-icon.png", url: "https://www.ssa.gov/oact/babynames/",       label: "SSA Baby Names Data" }
     ],
     embed: {
       type: "iframe",
       url: "baby-names-demo.html"
     },
+    notes: "The quiz collects only non-sensitive preferences; no personal data is stored.",
     problem : "My wife asked me to suggest baby names. I wanted something that learns her taste instead of guessing.",
     actions : [
-      "Aggregated and cleaned 140+ years of SSA records and engineered trend features.",
+      "Aggregated SSA baby-name records (1880–present) and engineered trend features.",
       "Built a simple 'quiz' script to collect like/dislike labels.",
       "Trained several models and averaged their scores to produce recommendations."
     ],
@@ -885,7 +890,7 @@ window.PROJECTS = [
         title: "Data and Labeling",
         lead: "I combined Social Security Administration name data with preference labels to build a personalized recommender.",
         bullets: [
-          "Aggregated 140+ years of SSA records and added recency/trend features so it doesn’t just recommend the most common names.",
+          "Aggregated SSA baby-name records (1880–present) and added recency/trend features so it doesn’t just recommend the most common names.",
           "Focused on Colorado to keep suggestions closer to what my wife actually hears day to day.",
           "Collected labels through quick quizzes so the model learns her taste over time."
         ]
@@ -954,7 +959,7 @@ window.PROJECTS = [
     ],
     results : [
       "Used it to compare zones and plan shifts based on tips and delivery time.",
-      "Improved tip revenue per delivery by more than 10%."
+      "Helped identify opportunities to improve tips and reduce downtime between deliveries."
     ],
     caseStudy : [
       {
@@ -1016,11 +1021,11 @@ window.PROJECTS = [
     },
     problem : "I wanted to see if an RL agent could learn to solve Nonogram puzzles.",
     actions : [
-      "Trained a hybrid CNN + Transformer policy network on 25M+ generated 5×5 puzzles.",
+      "Generated large batches of 5×5 puzzles and trained a hybrid CNN + Transformer policy network to solve them.",
       "Shaped rewards around unique guesses, row/column completions, and full-board solves to guide exploration."
     ],
     results : [
-      "Reached 94% accuracy on unseen 5×5 boards."
+      "Achieved strong solve rates on held-out 5×5 boards (see GitHub for evaluation details)."
     ],
     caseStudy : [
       {
@@ -1043,7 +1048,7 @@ window.PROJECTS = [
       {
         title: "Training",
         bullets: [
-          "Trained with policy gradients at scale (25M+ puzzles; large batched episodes).",
+          "Trained with policy gradients at scale (millions of generated puzzles; large batched episodes).",
           "Used reward shaping around unique guesses, row/column completions, and full-board solves.",
           "Tracked learning curves and saved checkpoints to compare policy improvements over time."
         ]
@@ -1145,8 +1150,8 @@ window.PROJECTS = [
       "Added Google Analytics 4, structured data, and lazy loading for heavy assets."
     ],
     results: [
-      "First Contentful Paint: 1.2s (mobile).",
-      "This site helped me share my work during my job search."
+      "Optimized for fast, mobile-friendly pages with a hashed CSS bundle, lazy-loaded media, and minimal JavaScript.",
+      "Makes projects easy to share with clean URLs, social previews, and a searchable portfolio."
     ],
     caseStudy: [
       {
