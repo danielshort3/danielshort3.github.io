@@ -933,18 +933,27 @@ function buildPortfolio() {
   runFilter();
 
   /* ➎ Open modal based on URL (hash, clean path, or query) --------- */
-  const getProjectIdFromURL = () => {
-    // 1) query param: ?project=id (preferred)
+  const getProjectIdFromQuery = () => {
     try {
-      const qs = (location.search || '').replace(/^\?/, '');
-      if (qs) {
-        const pairs = qs.split('&');
-        for (const kv of pairs) {
-          const [k, v] = kv.split('=');
-          if (decodeURIComponent(k) === 'project' && v) return decodeURIComponent(v);
+      const params = new URLSearchParams(window.location.search || '');
+      const id = params.get('project');
+      return id ? String(id).trim() : null;
+    } catch {
+      try {
+        const qs = (location.search || '').replace(/^\?/, '');
+        if (qs) {
+          const pairs = qs.split('&');
+          for (const kv of pairs) {
+            const [k, v] = kv.split('=');
+            if (decodeURIComponent(k) === 'project' && v) return decodeURIComponent(v);
+          }
         }
-      }
-    } catch {}
+      } catch {}
+    }
+    return null;
+  };
+
+  const getProjectIdFromURL = () => {
     // 2) hash fragment: #id (legacy)
     if (location.hash && location.hash.length > 1) return decodeURIComponent(location.hash.slice(1));
     // 3) clean path: /portfolio/<id> (back-compat: normalize to ?project=)
@@ -956,6 +965,20 @@ function buildPortfolio() {
   };
 
   const openFromURL = () => {
+    // Canonicalize legacy deep links like /portfolio?project=<id> to the full page /portfolio/<id>.
+    const queryId = getProjectIdFromQuery();
+    if (queryId) {
+      try {
+        const base = portfolioBasePath();
+        const prefix = base ? base.replace(/\/(?:pages\/)?portfolio(?:\.html)?$/, '') : '';
+        const canonical = `${prefix}/portfolio/${encodeURIComponent(queryId)}`.replace(/\/{2,}/g, '/');
+        location.replace(canonical);
+      } catch {
+        location.replace(`/portfolio/${encodeURIComponent(queryId)}`);
+      }
+      return;
+    }
+
     let id = getProjectIdFromURL();
     // If path was a clean slug, normalize URL to ?project=
     try {

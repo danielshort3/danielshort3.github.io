@@ -596,7 +596,7 @@ try {
 
   section('404 rewrites and portfolio page sections', () => {
     checkFileContains('404.html', 'js/common/404-redirect.js');
-    checkFileContains('js/common/404-redirect.js', 'portfolio?project=');
+    checkFileContains('js/common/404-redirect.js', '/portfolio/${encodeURIComponent(project)}');
     checkFileContains('pages/portfolio.html', 'id="portfolio-carousel"');
     checkFileContains('pages/portfolio.html', 'id="filter-menu"');
     checkFileContains('pages/portfolio.html', 'id="projects"');
