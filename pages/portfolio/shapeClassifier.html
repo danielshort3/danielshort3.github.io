@@ -14,6 +14,9 @@
   <meta property="og:url" content="https://danielshort.me/portfolio/shapeClassifier">
   <meta property="og:image" content="https://danielshort.me/img/projects/shapeClassifier.png">
   <meta property="og:image:alt" content="Preview image for Shape Classifier Demo">
+  <meta property="og:image:width" content="926">
+  <meta property="og:image:height" content="926">
+
   <meta property="og:type" content="article">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@danielshort3">
@@ -35,7 +38,7 @@
   <!-- Local fonts with legacy reference retained for tooling: https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap -->
   <script src="js/common/no-js.js"></script>
   <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"CreativeWork","name":"Shape Classifier Demo","description":"Handwritten Shape Recognition: I wanted a model that can tell what shape someone drew.","url":"https://danielshort.me/portfolio/shapeClassifier","image":"https://danielshort.me/img/projects/shapeClassifier.png"}
+    {"@context":"https://schema.org","@graph":[{"@type":"CreativeWork","name":"Shape Classifier Demo","description":"Handwritten Shape Recognition: I wanted a model that can tell what shape someone drew.","url":"https://danielshort.me/portfolio/shapeClassifier","image":"https://danielshort.me/img/projects/shapeClassifier.png"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://danielshort.me/"},{"@type":"ListItem","position":2,"name":"Portfolio","item":"https://danielshort.me/portfolio"},{"@type":"ListItem","position":3,"name":"Shape Classifier Demo","item":"https://danielshort.me/portfolio/shapeClassifier"}]}]}
   </script>
 </head>
 <body data-page="project" class="project-page">
@@ -235,9 +238,9 @@
 		      </div>
 	    </section>
 
-	    <section class="project-body">
-	      <div class="wrapper">
-	        <section class="project-demo-shell" data-demo-tabs="true" aria-label="Demo">
+		    <section class="project-body">
+		      <div class="wrapper">
+		        <section class="project-demo-shell" data-demo-tabs="true" aria-label="Demo">
       <div class="project-demo-tabs" role="tablist" aria-label="Demo tabs">
         <button class="project-demo-tab is-active" type="button" role="tab" id="project-demo-shapeClassifier-tab-instructions" aria-controls="project-demo-shapeClassifier-panel-instructions" aria-selected="true">How to use</button>
         <button class="project-demo-tab" type="button" role="tab" id="project-demo-shapeClassifier-tab-demo" aria-controls="project-demo-shapeClassifier-panel-demo" aria-selected="false" tabindex="-1">Demo</button>
@@ -255,6 +258,7 @@
       </ul>
             <div class="project-demo-actions">
               <button class="btn-primary" type="button" data-demo-tabs-open="demo">Open demo</button>
+              <a class="btn-secondary" href="shape-demo.html" target="_blank" rel="noopener noreferrer">Open demo in new tab</a>
             </div>
           </div>
         </section>
@@ -268,8 +272,7 @@
         </section>
       </div>
     </section>
-	        <div id="project-details" class="project-details-anchor"></div>
-	        <section class="project-star" aria-label="STAR summary">
+		        <section class="project-star" aria-label="STAR summary">
       <h2 class="section-title">STAR Summary</h2>
       <dl class="project-star-grid">
         <div class="project-star-row">
@@ -301,7 +304,7 @@
         </div>
       </dl>
     </section>
-	        <section class="project-section" id="links">
+		        <section class="project-section" id="links">
       <h2 class="section-title">Links</h2>
       <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://github.com/danielshort3/Shape-Analyzer" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
@@ -309,10 +312,83 @@
         <a class="project-link" role="listitem" href="https://danielshort.me/shape-demo.html" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
       </div>
     </section>
-	        
-	      </div>
-	    </section>
-	  </main>
+		        
+		        <section class="project-section project-recommendations" aria-label="More projects">
+      <h2 class="section-title">More Projects</h2>
+      <div class="project-recommendations-nav" role="list">
+        <a class="project-card ripple-in project-recommendation-card" role="listitem" href="portfolio/chatbotLora" aria-label="Previous project: Chatbot (LoRA + RAG)">
+      <div class="project-metric">Previous</div>
+      <div class="overlay"></div>
+      <div class="project-text">
+        <div class="project-title">Chatbot (LoRA + RAG)</div>
+        <div class="project-subtitle">RAG Chatbot Fine-Tuned with LoRA</div>
+      </div>
+      <picture>
+      <source srcset="img/projects/chatbotLora-640.avif 640w, img/projects/chatbotLora-960.avif 960w, img/projects/chatbotLora.avif 1280w" type="image/avif">
+      <source srcset="img/projects/chatbotLora-640.webp 640w, img/projects/chatbotLora-960.webp 960w, img/projects/chatbotLora.webp 1280w" type="image/webp">
+      <img src="img/projects/chatbotLora.png" alt="Chatbot (LoRA + RAG)" loading="lazy" decoding="async" width="1280" height="720" sizes="(max-width: 960px) 92vw, 320px">
+    </picture>
+    </a>
+        <a class="project-card ripple-in project-recommendation-card" role="listitem" href="portfolio/ufoDashboard" aria-label="Next project: UFO Sightings Dashboard">
+      <div class="project-metric">Next</div>
+      <div class="overlay"></div>
+      <div class="project-text">
+        <div class="project-title">UFO Sightings Dashboard</div>
+        <div class="project-subtitle">Tableau Geospatial Analytics</div>
+      </div>
+      <picture>
+      <source srcset="img/projects/ufoDashboard-640.avif 640w, img/projects/ufoDashboard-960.avif 960w, img/projects/ufoDashboard.avif 2008w" type="image/avif">
+      <source srcset="img/projects/ufoDashboard-640.webp 640w, img/projects/ufoDashboard-960.webp 960w, img/projects/ufoDashboard.webp 2008w" type="image/webp">
+      <img src="img/projects/ufoDashboard.png" alt="UFO Sightings Dashboard" loading="lazy" decoding="async" width="2008" height="1116" sizes="(max-width: 960px) 92vw, 320px">
+    </picture>
+    </a>
+      </div>
+      <h3 class="project-recommendations-subtitle">Related projects</h3>
+      <div class="project-recommendations-grid" role="list">
+        <a class="project-card ripple-in project-recommendation-card" role="listitem" href="portfolio/handwritingRating" aria-label="View project: Handwriting Legibility Scoring">
+      
+      <div class="overlay"></div>
+      <div class="project-text">
+        <div class="project-title">Handwriting Legibility Scoring</div>
+        <div class="project-subtitle">PyTorch CNN Fine-Tuning</div>
+      </div>
+      <picture>
+      <source srcset="img/projects/handwritingRating-640.avif 640w, img/projects/handwritingRating-960.avif 960w, img/projects/handwritingRating.avif 1138w" type="image/avif">
+      <source srcset="img/projects/handwritingRating-640.webp 640w, img/projects/handwritingRating-960.webp 960w, img/projects/handwritingRating.webp 1138w" type="image/webp">
+      <img src="img/projects/handwritingRating.png" alt="Handwriting Legibility Scoring" loading="lazy" decoding="async" width="1138" height="1138" sizes="(max-width: 960px) 92vw, 320px">
+    </picture>
+    </a>
+        <a class="project-card ripple-in project-recommendation-card" role="listitem" href="portfolio/nonogram" aria-label="View project: Nonogram Solver">
+      
+      <div class="overlay"></div>
+      <div class="project-text">
+        <div class="project-title">Nonogram Solver</div>
+        <div class="project-subtitle">Reinforcement Learning (RL)</div>
+      </div>
+      <picture>
+      <source srcset="img/projects/nonogram-640.avif 640w, img/projects/nonogram-960.avif 960w, img/projects/nonogram.avif 1228w" type="image/avif">
+      <source srcset="img/projects/nonogram-640.webp 640w, img/projects/nonogram-960.webp 960w, img/projects/nonogram.webp 1228w" type="image/webp">
+      <img src="img/projects/nonogram.png" alt="Nonogram Solver" loading="lazy" decoding="async" width="1228" height="1228" sizes="(max-width: 960px) 92vw, 320px">
+    </picture>
+    </a>
+        <a class="project-card ripple-in project-recommendation-card" role="listitem" href="portfolio/smartSentence" aria-label="View project: Smart Sentence Retriever">
+      
+      <div class="overlay"></div>
+      <div class="project-text">
+        <div class="project-title">Smart Sentence Retriever</div>
+        <div class="project-subtitle">NLP Embeddings &amp; Serverless Retrieval</div>
+      </div>
+      <picture>
+      <source srcset="img/projects/smartSentence-640.avif 640w, img/projects/smartSentence.avif 952w" type="image/avif">
+      <source srcset="img/projects/smartSentence-640.webp 640w, img/projects/smartSentence.webp 952w" type="image/webp">
+      <img src="img/projects/smartSentence.png" alt="Smart Sentence Retriever" loading="lazy" decoding="async" width="952" height="952" sizes="(max-width: 960px) 92vw, 320px">
+    </picture>
+    </a>
+      </div>
+    </section>
+		      </div>
+		    </section>
+		  </main>
 
 	  <footer class="footer footer-classic">
 	    <div class="wrapper footer-inner">

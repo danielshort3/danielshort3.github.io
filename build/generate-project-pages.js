@@ -214,59 +214,6 @@ function toDomIdSafe(value) {
     .replace(/^-+|-+$/g, '') || 'project';
 }
 
-function renderCaseStudySections(sections, options = {}) {
-  if (!Array.isArray(sections) || sections.length === 0) return { html: '', toc: [] };
-  const usedIds = options && options.usedIds instanceof Set ? options.usedIds : new Set();
-  const prefix = normalizeWhitespace(options?.prefix || '');
-  const toc = [];
-
-  const reserveId = (base) => {
-    const safeBase = toDomIdSafe(base);
-    let candidate = safeBase;
-    let suffix = 2;
-    while (usedIds.has(candidate)) {
-      candidate = `${safeBase}-${suffix++}`;
-    }
-    usedIds.add(candidate);
-    return candidate;
-  };
-
-  const blocks = sections
-    .map((sec) => {
-      if (!sec || typeof sec !== 'object') return '';
-      const title = normalizeWhitespace(sec.title);
-      if (!title) return '';
-
-      const sectionId = reserveId(prefix ? `${prefix}-${title}` : title);
-      toc.push({ id: sectionId, label: title });
-
-      const lead = normalizeWhitespace(sec.lead || '');
-      const paragraphs = normalizeTextArray(sec.paragraphs);
-      const bullets = normalizeTextArray(sec.bullets);
-
-      const parts = [];
-      if (lead) {
-        parts.push(`<p class="project-lead">${escapeHtml(lead)}</p>`);
-      }
-      paragraphs.forEach((p) => {
-        parts.push(`<p class="project-lead">${escapeHtml(p)}</p>`);
-      });
-      if (bullets.length) {
-        parts.push(`<ul class="project-list">
-        ${bullets.map((b) => `<li>${escapeHtml(b)}</li>`).join('\n        ')}
-      </ul>`);
-      }
-
-      const body = parts.length ? `\n      ${parts.join('\n      ')}\n    ` : '';
-      return `<section class="project-section" id="${escapeHtml(sectionId)}">
-      <h2 class="section-title">${escapeHtml(title)}</h2>${body}</section>`;
-    })
-    .filter(Boolean)
-    .join('\n');
-
-  return { html: blocks ? `${blocks}\n` : '', toc };
-}
-
 function toMetaDescription(project) {
   const pieces = [
     project.subtitle,
@@ -318,7 +265,188 @@ function loadProjects() {
   return projects;
 }
 
-function renderProjectPage(project) {
+function getProjectId(project) {
+  return String(project && project.id ? project.id : '').trim();
+}
+
+function getProjectTagSet(project) {
+  const tools = Array.isArray(project?.tools) ? project.tools : [];
+  const concepts = Array.isArray(project?.concepts) ? project.concepts : [];
+  const tags = [...tools, ...concepts]
+    .map((t) => normalizeWhitespace(t).toLowerCase())
+    .filter(Boolean);
+  return new Set(tags);
+}
+
+function renderProjectCardMedia(project, options = {}) {
+  const img = String(project && project.image ? project.image : '').trim();
+  if (!img) return '';
+
+  const title = normalizeWhitespace(project?.title || '');
+  const alt = normalizeWhitespace(project?.imageAlt || title);
+  const width = Number(project?.imageWidth);
+  const height = Number(project?.imageHeight);
+  const sizeAttr = Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0
+    ? ` width="${width}" height="${height}"`
+    : '';
+
+  const loading = normalizeWhitespace(options.loading || 'lazy');
+  const sizes = normalizeWhitespace(options.sizes || '(max-width: 640px) 92vw, 340px');
+  const loadingAttr = loading ? ` loading="${escapeHtml(loading)}"` : '';
+  const sizesAttr = sizes ? ` sizes="${escapeHtml(sizes)}"` : '';
+
+  const match = img.match(/\.(png|jpe?g)$/i);
+  if (!match) {
+    return `<img src="${escapeHtml(img)}" alt="${escapeHtml(alt)}"${loadingAttr} decoding="async"${sizeAttr}${sizesAttr}>`;
+  }
+
+  const base = img.replace(/\.(png|jpe?g)$/i, '');
+  const avif = buildResponsiveSrcset(base, 'avif', width);
+  const webp = buildResponsiveSrcset(base, 'webp', width);
+
+  if (avif || webp) {
+    return `<picture>
+      ${avif ? `<source srcset="${escapeHtml(avif)}" type="image/avif">` : ''}
+      ${webp ? `<source srcset="${escapeHtml(webp)}" type="image/webp">` : ''}
+      <img src="${escapeHtml(img)}" alt="${escapeHtml(alt)}"${loadingAttr} decoding="async"${sizeAttr}${sizesAttr}>
+    </picture>`;
+  }
+
+  return `<img src="${escapeHtml(img)}" alt="${escapeHtml(alt)}"${loadingAttr} decoding="async"${sizeAttr}${sizesAttr}>`;
+}
+
+function renderProjectRecommendationCard(project, options = {}) {
+  const id = getProjectId(project);
+  if (!id) return '';
+
+  const title = normalizeWhitespace(project?.title || id);
+  const subtitle = normalizeWhitespace(project?.subtitle || '');
+  const badge = normalizeWhitespace(options.badge || '');
+  const href = `portfolio/${encodeURIComponent(id)}`;
+
+  const label = normalizeWhitespace(
+    options.ariaLabel || (badge ? `${badge} project: ${title}` : `View project: ${title}`)
+  );
+
+  const badgeMarkup = badge ? `<div class="project-metric">${escapeHtml(badge)}</div>` : '';
+  const media = renderProjectCardMedia(project, { loading: 'lazy', sizes: '(max-width: 960px) 92vw, 320px' });
+  const safeSubtitle = subtitle ? `<div class="project-subtitle">${escapeHtml(subtitle)}</div>` : '';
+
+  return `<a class="project-card ripple-in project-recommendation-card" role="listitem" href="${escapeHtml(href)}" aria-label="${escapeHtml(label)}">
+      ${badgeMarkup}
+      <div class="overlay"></div>
+      <div class="project-text">
+        <div class="project-title">${escapeHtml(title)}</div>
+        ${safeSubtitle}
+      </div>
+      ${media}
+    </a>`;
+}
+
+function selectRelatedProjects(projects, currentIndex, desiredCount, excludedIds) {
+  if (!Array.isArray(projects) || projects.length === 0) return [];
+  const desired = Number.isFinite(desiredCount) ? Math.max(0, Math.floor(desiredCount)) : 0;
+  if (desired <= 0) return [];
+
+  const current = projects[currentIndex];
+  const currentId = getProjectId(current);
+  if (!current || !currentId) return [];
+
+  const excluded = excludedIds instanceof Set ? excludedIds : new Set();
+  excluded.add(currentId);
+
+  const currentTags = getProjectTagSet(current);
+  const scored = projects
+    .map((candidate, index) => {
+      const candidateId = getProjectId(candidate);
+      if (!candidate || !candidateId) return null;
+      if (index === currentIndex) return null;
+      if (excluded.has(candidateId)) return null;
+      const tags = getProjectTagSet(candidate);
+      let score = 0;
+      currentTags.forEach((tag) => {
+        if (tags.has(tag)) score += 1;
+      });
+      if (score <= 0) return null;
+      return { project: candidate, index, score };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.score - a.score || a.index - b.index);
+
+  const selected = [];
+  scored.forEach((item) => {
+    if (selected.length >= desired) return;
+    const candidateId = getProjectId(item.project);
+    if (!candidateId || excluded.has(candidateId)) return;
+    selected.push(item.project);
+    excluded.add(candidateId);
+  });
+
+  for (let offset = 1; selected.length < desired; offset++) {
+    const before = currentIndex - offset;
+    const after = currentIndex + offset;
+    const indexes = [before, after].filter((i) => i >= 0 && i < projects.length);
+    if (indexes.length === 0) break;
+    indexes.forEach((idx) => {
+      if (selected.length >= desired) return;
+      const candidate = projects[idx];
+      const candidateId = getProjectId(candidate);
+      if (!candidate || !candidateId) return;
+      if (excluded.has(candidateId)) return;
+      selected.push(candidate);
+      excluded.add(candidateId);
+    });
+  }
+
+  return selected.slice(0, desired);
+}
+
+function renderProjectRecommendationsSection(projects, currentIndex) {
+  if (!Array.isArray(projects) || projects.length < 2) return '';
+  const current = projects[currentIndex];
+  const currentId = getProjectId(current);
+  if (!current || !currentId) return '';
+
+  const excluded = new Set([currentId]);
+  const previous = currentIndex > 0 ? projects[currentIndex - 1] : null;
+  const next = currentIndex < projects.length - 1 ? projects[currentIndex + 1] : null;
+
+  const navCards = [];
+  if (previous) {
+    excluded.add(getProjectId(previous));
+    navCards.push(renderProjectRecommendationCard(previous, { badge: 'Previous' }));
+  }
+  if (next) {
+    excluded.add(getProjectId(next));
+    navCards.push(renderProjectRecommendationCard(next, { badge: 'Next' }));
+  }
+
+  const related = selectRelatedProjects(projects, currentIndex, 3, excluded);
+  const relatedCards = related.map((p) => renderProjectRecommendationCard(p)).filter(Boolean);
+
+  if (!navCards.length && !relatedCards.length) return '';
+
+  const navMarkup = navCards.length
+    ? `<div class="project-recommendations-nav" role="list">
+        ${navCards.join('\n        ')}
+      </div>`
+    : '';
+
+  const relatedMarkup = relatedCards.length
+    ? `<h3 class="project-recommendations-subtitle">Related projects</h3>
+      <div class="project-recommendations-grid" role="list">
+        ${relatedCards.join('\n        ')}
+      </div>`
+    : '';
+
+  return `<section class="project-section project-recommendations" aria-label="More projects">
+      <h2 class="section-title">More Projects</h2>
+      ${navMarkup}
+      ${relatedMarkup}
+    </section>`;
+}
+
+function renderProjectPage(project, options = {}) {
   const id = String(project.id || '').trim();
   const title = normalizeWhitespace(project.title || id);
   const subtitle = normalizeWhitespace(project.subtitle || '');
@@ -348,15 +476,29 @@ function renderProjectPage(project) {
     ? '  <link rel="preconnect" href="https://public.tableau.com" crossorigin>\n'
     : '';
 
+  const ogImageWidth = Number(project.imageWidth);
+  const ogImageHeight = Number(project.imageHeight);
+  const ogImageDimensionsMeta = Number.isFinite(ogImageWidth) && Number.isFinite(ogImageHeight) && ogImageWidth > 0 && ogImageHeight > 0
+    ? `  <meta property="og:image:width" content="${escapeHtml(ogImageWidth)}">\n  <meta property="og:image:height" content="${escapeHtml(ogImageHeight)}">\n`
+    : '';
+
   const projectLd = {
-    '@context': 'https://schema.org',
     '@type': 'CreativeWork',
     name: title,
     description,
     url: canonicalUrl,
     image: ogImage
   };
-  const ldJson = JSON.stringify(projectLd).replace(/</g, '\\u003c');
+  const breadcrumbsLd = {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_ORIGIN}/` },
+      { '@type': 'ListItem', position: 2, name: 'Portfolio', item: `${SITE_ORIGIN}/portfolio` },
+      { '@type': 'ListItem', position: 3, name: title, item: canonicalUrl }
+    ]
+  };
+  const ldJson = JSON.stringify({ '@context': 'https://schema.org', '@graph': [projectLd, breadcrumbsLd] })
+    .replace(/</g, '\\u003c');
 
   const safeTagPills = tags.length
     ? `<div class="project-tags" role="list">
@@ -366,69 +508,11 @@ function renderProjectPage(project) {
 
   const safeProblem = normalizeWhitespace(project.problem || '');
 
-  const hasRole = (() => {
-    if (!role) return false;
-    if (Array.isArray(role)) return role.map((r) => normalizeWhitespace(r)).filter(Boolean).length > 0;
-    return Boolean(normalizeWhitespace(role));
-  })();
-  const hasActions = actions.length > 0;
-  const hasResults = results.length > 0;
   const hasResources = resources.length > 0;
   const hasNotes = Boolean(notes);
 
-  const usedSectionIds = new Set();
-  const tocItems = [];
-  const reserveSectionId = (base) => {
-    const safeBase = toDomIdSafe(base);
-    let candidate = safeBase;
-    let suffix = 2;
-    while (usedSectionIds.has(candidate)) {
-      candidate = `${safeBase}-${suffix++}`;
-    }
-    usedSectionIds.add(candidate);
-    return candidate;
-  };
-  const pushTocItem = (idValue, labelValue) => {
-    const safeId = String(idValue || '').trim();
-    const safeLabel = normalizeWhitespace(labelValue || '');
-    if (!safeId || !safeLabel) return;
-    tocItems.push({ id: safeId, label: safeLabel });
-  };
-
-  const sectionIdContext = safeProblem ? reserveSectionId('context') : null;
-  if (sectionIdContext) pushTocItem(sectionIdContext, 'Context');
-  const sectionIdRole = hasRole ? reserveSectionId('role') : null;
-  if (sectionIdRole) pushTocItem(sectionIdRole, 'Role');
-  const sectionIdApproach = hasActions ? reserveSectionId('approach') : null;
-  if (sectionIdApproach) pushTocItem(sectionIdApproach, 'Approach');
-  const sectionIdImpact = hasResults ? reserveSectionId('impact') : null;
-  if (sectionIdImpact) pushTocItem(sectionIdImpact, 'Impact');
-
-  const caseStudy = renderCaseStudySections(project.caseStudy, { usedIds: usedSectionIds, prefix: 'case-study' });
-  caseStudy.toc.forEach((item) => pushTocItem(item.id, item.label));
-  const safeCaseStudy = caseStudy.html;
-
-  const sectionIdLinks = hasResources ? reserveSectionId('links') : null;
-  const sectionIdNotes = hasNotes ? reserveSectionId('notes') : null;
-  if (sectionIdNotes) pushTocItem(sectionIdNotes, 'Notes');
-
-  const deepDiveTocItems = tocItems.filter((item) => item && item.id && item.id !== sectionIdLinks);
-  const detailsToc = deepDiveTocItems.length > 1
-    ? `<nav class="project-toc" aria-label="On this page">
-      <div class="project-toc-header">
-        <span class="project-toc-title">On this page</span>
-        <a class="project-toc-top" href="#project-details" data-smooth-scroll="true">Back to summary</a>
-      </div>
-      <div class="project-toc-links" role="list">
-        ${deepDiveTocItems.map((item) => (
-          `<a class="project-toc-link" role="listitem" href="#${escapeHtml(item.id)}" data-smooth-scroll="true">${escapeHtml(item.label)}</a>`
-        )).join('\n        ')}
-      </div>
-    </nav>`
-    : '';
-
   const safeResources = hasResources
-    ? `<section class="project-section" id="${escapeHtml(sectionIdLinks)}">
+    ? `<section class="project-section" id="links">
       <h2 class="section-title">Links</h2>
       <div class="project-links" role="list">
         ${resources.map((r) => {
@@ -446,54 +530,17 @@ function renderProjectPage(project) {
     </section>`
     : '';
 
-  const safeRole = (() => {
-    if (!hasRole) return '';
-    if (Array.isArray(role) && role.length) {
-      return `<section class="project-section" id="${escapeHtml(sectionIdRole)}">
-      <h2 class="section-title">Role</h2>
-      <ul class="project-list">
-        ${role.map((item) => `<li>${escapeHtml(normalizeWhitespace(item))}</li>`).join('\n        ')}
-      </ul>
-    </section>`;
-    }
-    const text = normalizeWhitespace(role);
-    if (!text) return '';
-    return `<section class="project-section" id="${escapeHtml(sectionIdRole)}">
-      <h2 class="section-title">Role</h2>
-      <p class="project-lead">${escapeHtml(text)}</p>
-    </section>`;
-  })();
-
-  const safeActions = hasActions
-    ? `<section class="project-section" id="${escapeHtml(sectionIdApproach)}">
-      <h2 class="section-title">Approach</h2>
-      <ul class="project-list">
-        ${actions.map((a) => `<li>${escapeHtml(normalizeWhitespace(a))}</li>`).join('\n        ')}
-      </ul>
-    </section>`
-    : '';
-
-  const safeResults = hasResults
-    ? `<section class="project-section" id="${escapeHtml(sectionIdImpact)}">
-      <h2 class="section-title">Impact</h2>
-      <ul class="project-list">
-        ${results.map((r) => `<li>${escapeHtml(normalizeWhitespace(r))}</li>`).join('\n        ')}
-      </ul>
-    </section>`
-    : '';
-
-  const safeOverview = safeProblem
-    ? `<section class="project-section" id="${escapeHtml(sectionIdContext)}">
-      <h2 class="section-title">Context</h2>
-      <p class="project-lead">${escapeHtml(safeProblem)}</p>
-    </section>`
-    : '';
-
   const safeNotes = hasNotes
-    ? `<section class="project-section" id="${escapeHtml(sectionIdNotes)}">
+    ? `<section class="project-section" id="notes">
       <h2 class="section-title">Notes</h2>
       <p class="project-lead">${escapeHtml(notes)}</p>
     </section>`
+    : '';
+
+  const allProjects = Array.isArray(options.projects) ? options.projects : null;
+  const projectIndex = Number.isInteger(options.index) ? options.index : -1;
+  const recommendations = allProjects && projectIndex >= 0
+    ? renderProjectRecommendationsSection(allProjects, projectIndex)
     : '';
 
   const ensureSentence = (value) => {
@@ -631,6 +678,21 @@ function renderProjectPage(project) {
       </ul>`
       : '';
 
+    const demoOpenHref = (() => {
+      const type = String(embed.type || '').trim();
+      if (type === 'iframe') return String(embed.url || '').trim();
+      if (type === 'tableau') {
+        const base = String(embed.base || '').trim();
+        if (!base) return '';
+        const joiner = base.includes('?') ? '&' : '?';
+        return `${base}${joiner}:showVizHome=no&:embed=y`;
+      }
+      return '';
+    })();
+    const openInNewTab = demoOpenHref
+      ? `<a class="btn-secondary" href="${escapeHtml(demoOpenHref)}" target="_blank" rel="noopener noreferrer">Open demo in new tab</a>`
+      : '';
+
     return `<section class="project-demo-shell" data-demo-tabs="true" aria-label="Demo">
       <div class="project-demo-tabs" role="tablist" aria-label="Demo tabs">
         <button class="project-demo-tab is-active" type="button" role="tab" id="${escapeHtml(tabInstructionsId)}" aria-controls="${escapeHtml(panelInstructionsId)}" aria-selected="true">How to use</button>
@@ -644,6 +706,7 @@ function renderProjectPage(project) {
             ${safeBullets}
             <div class="project-demo-actions">
               <button class="btn-primary" type="button" data-demo-tabs-open="demo">Open demo</button>
+              ${openInNewTab}
             </div>
           </div>
         </section>
@@ -665,7 +728,6 @@ function renderProjectPage(project) {
   })();
 
   const demoTabs = embed ? renderDemoTabs() : '';
-  const detailsAnchor = '<div id="project-details" class="project-details-anchor"></div>';
 
   return `<!DOCTYPE html>
 <html lang="en" class="no-js">
@@ -683,6 +745,7 @@ function renderProjectPage(project) {
   <meta property="og:url" content="${escapeHtml(canonicalUrl)}">
   <meta property="og:image" content="${escapeHtml(ogImage)}">
   <meta property="og:image:alt" content="${escapeHtml(ogImageAlt)}">
+${ogImageDimensionsMeta}
   <meta property="og:type" content="article">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@danielshort3">
@@ -720,16 +783,16 @@ ${tableauPreconnect}
 		      </div>
 	    </section>
 
-	    <section class="project-body">
-	      <div class="wrapper">
-	        ${demoTabs || media}
-	        ${detailsAnchor}
-	        ${starSummary}
-	        ${safeResources}
-	        ${safeNotes}
-	      </div>
-	    </section>
-	  </main>
+		    <section class="project-body">
+		      <div class="wrapper">
+		        ${demoTabs || media}
+		        ${starSummary}
+		        ${safeResources}
+		        ${safeNotes}
+		        ${recommendations}
+		      </div>
+		    </section>
+		  </main>
 
 	  <footer>
 	    <nav class="privacy-links" aria-label="Privacy shortcuts">
@@ -765,11 +828,11 @@ function writeProjectPages(projects) {
     });
   } catch (_) {}
 
-  projects.forEach((project) => {
+  projects.forEach((project, index) => {
     const id = String(project.id || '').trim();
     if (!id) throw new Error('Project missing id');
     const outPath = path.join(outDir, `${id}.html`);
-    fs.writeFileSync(outPath, renderProjectPage(project), 'utf8');
+    fs.writeFileSync(outPath, renderProjectPage(project, { projects, index }), 'utf8');
   });
 }
 
