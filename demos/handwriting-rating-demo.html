@@ -316,10 +316,11 @@
 
     .canvas-layout {
       display: grid;
-      grid-template-columns: minmax(0, 360px) minmax(84px, 120px);
+      grid-template-columns: 1fr;
       gap: 10px;
       align-items: stretch;
       justify-content: center;
+      justify-items: center;
     }
 
     .canvas-area {
@@ -327,7 +328,39 @@
       width: min(100%, 360px);
       aspect-ratio: 1 / 1;
       align-self: start;
-      justify-self: start;
+      justify-self: center;
+    }
+
+    .sample-select-row {
+      display: grid;
+      justify-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .sample-select-label {
+      font-weight: 600;
+      font-size: .85rem;
+      text-align: center;
+    }
+
+    .sample-select {
+      width: min(260px, 100%);
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--surface-accent);
+      background: var(--surface);
+      color: var(--text);
+      font-size: .95rem;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .sample-select:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
     }
 
     canvas {
@@ -539,19 +572,21 @@
       color: var(--primary);
     }
 
-    .confidence-track {
+    .confidence {
       height: 10px;
       border-radius: 999px;
-      background: var(--surface-2);
-      border: 1px solid var(--surface-accent);
-      overflow: hidden;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      width: 0%;
+      transition: width .25s ease;
     }
 
-    .confidence-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, var(--primary), var(--secondary));
-      transition: width .25s ease;
+    .confidence-track {
+      width: 100%;
+      height: 10px;
+      background: var(--surface);
+      border: 1px solid var(--surface-accent);
+      border-radius: 999px;
+      overflow: hidden;
     }
 
     .confidence-pct {
@@ -572,95 +607,10 @@
       color: var(--primary);
     }
 
-    .sample-panel {
-      display: grid;
-      grid-template-rows: auto auto 1fr auto;
-      gap: 6px;
-      padding: 8px 6px;
-      border-left: 1px solid var(--surface-accent);
-      background: transparent;
-      box-shadow: none;
-      border-radius: 0;
-      min-height: 0;
-      align-self: stretch;
-    }
-
-    .sample-title {
-      font-weight: 600;
-      font-size: .8rem;
-      text-align: center;
-      line-height: 1.2;
-    }
-
-    .sample-hint {
-      color: var(--text-muted);
-      font-size: .7rem;
-      line-height: 1.2;
-      text-align: center;
-    }
-
-    .sample-panel .hint {
-      font-size: .7rem;
-      line-height: 1.2;
-      text-align: center;
-    }
-
-    .sample-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      grid-template-rows: repeat(10, 1fr);
-      gap: 4px;
-      min-height: 0;
-    }
-
-    .sample-btn {
-      border: 1px solid var(--surface-accent);
-      background: var(--surface-2);
-      color: var(--text);
-      border-radius: 6px;
-      padding: 0;
-      font-weight: 600;
-      cursor: pointer;
-      min-height: 24px;
-      height: 100%;
-      touch-action: manipulation;
-      font-size: .85rem;
-    }
-
-    .sample-btn.active {
-      border-color: var(--primary);
-      color: var(--primary);
-      box-shadow: var(--shadow-1);
-    }
-
     @media (max-width: 520px) {
       .canvas-layout {
-        grid-template-columns: minmax(0, 1fr) minmax(70px, 92px);
+        grid-template-columns: 1fr;
         gap: 8px;
-      }
-
-      .sample-panel {
-        border-left: 1px solid var(--surface-accent);
-        border-top: none;
-        padding: 6px 4px;
-      }
-
-      .sample-title {
-        font-size: .72rem;
-      }
-
-      .sample-hint,
-      .sample-panel .hint {
-        font-size: .65rem;
-      }
-
-      .sample-grid {
-        gap: 3px;
-      }
-
-      .sample-btn {
-        min-height: 20px;
-        font-size: .8rem;
       }
 
       .canvas-toast {
@@ -675,21 +625,6 @@
       .canvas-layout {
         grid-template-columns: 1fr;
         grid-template-rows: auto auto;
-      }
-      .sample-panel {
-        order: -1;
-        border-left: none;
-        border-top: none;
-        border-bottom: 1px solid var(--surface-accent);
-        padding: 6px 6px 10px;
-        width: 100%;
-        grid-template-rows: auto auto auto auto;
-        align-self: stretch;
-      }
-      .sample-grid {
-        grid-template-columns: repeat(5, minmax(0, 1fr));
-        grid-template-rows: repeat(2, minmax(24px, 1fr));
-        gap: 6px;
       }
       .canvas-area {
         width: 100%;
@@ -820,38 +755,38 @@
     <div id="status" role="status" aria-live="polite"></div>
 
     <div class="content">
-      <section>
-        <div id="pad-wrapper" class="canvas-frame">
-          <div class="canvas-layout">
-            <div class="canvas-area">
-              <canvas id="pad" width="256" height="256" aria-label="Drawing canvas"></canvas>
-              <button id="erase" class="icon-btn" type="button" aria-label="Erase (clear canvas)">
-                <i class="fa-solid fa-eraser"></i>
+	      <section>
+	        <div id="pad-wrapper" class="canvas-frame">
+	          <div class="sample-select-row" aria-label="Daniel's Handwritten Numbers">
+	            <label class="sample-select-label" for="sample-select">Daniel's Handwritten Numbers</label>
+	            <select id="sample-select" class="sample-select">
+	              <option value="" selected>Select a number…</option>
+	              <option value="0">0</option>
+	              <option value="1">1</option>
+	              <option value="2">2</option>
+	              <option value="3">3</option>
+	              <option value="4">4</option>
+	              <option value="5">5</option>
+	              <option value="6">6</option>
+	              <option value="7">7</option>
+	              <option value="8">8</option>
+	              <option value="9">9</option>
+	            </select>
+	            <div id="sample-status" class="hint">No sample loaded.</div>
+	          </div>
+	          <div class="canvas-layout">
+	            <div class="canvas-area">
+	              <canvas id="pad" width="256" height="256" aria-label="Drawing canvas"></canvas>
+	              <button id="erase" class="icon-btn" type="button" aria-label="Erase (clear canvas)">
+	                <i class="fa-solid fa-eraser"></i>
               </button>
               <div id="canvas-toast" class="canvas-toast" role="status" aria-live="polite" aria-atomic="true">
                 <span class="toast-guess"></span>
                 <span class="toast-score"></span>
               </div>
             </div>
-            <div class="sample-panel" aria-label="Daniel's handwritten numbers">
-              <div class="sample-title">Daniel's handwritten numbers</div>
-              <div class="sample-hint">Click to load a sample.</div>
-              <div class="sample-grid" role="list">
-                <button class="sample-btn" type="button" data-sample-digit="0" aria-pressed="false" aria-label="Load sample digit 0">0</button>
-                <button class="sample-btn" type="button" data-sample-digit="1" aria-pressed="false" aria-label="Load sample digit 1">1</button>
-                <button class="sample-btn" type="button" data-sample-digit="2" aria-pressed="false" aria-label="Load sample digit 2">2</button>
-                <button class="sample-btn" type="button" data-sample-digit="3" aria-pressed="false" aria-label="Load sample digit 3">3</button>
-                <button class="sample-btn" type="button" data-sample-digit="4" aria-pressed="false" aria-label="Load sample digit 4">4</button>
-                <button class="sample-btn" type="button" data-sample-digit="5" aria-pressed="false" aria-label="Load sample digit 5">5</button>
-                <button class="sample-btn" type="button" data-sample-digit="6" aria-pressed="false" aria-label="Load sample digit 6">6</button>
-                <button class="sample-btn" type="button" data-sample-digit="7" aria-pressed="false" aria-label="Load sample digit 7">7</button>
-                <button class="sample-btn" type="button" data-sample-digit="8" aria-pressed="false" aria-label="Load sample digit 8">8</button>
-                <button class="sample-btn" type="button" data-sample-digit="9" aria-pressed="false" aria-label="Load sample digit 9">9</button>
-              </div>
-              <div id="sample-status" class="hint">No sample loaded.</div>
-            </div>
-          </div>
-        </div>
+	          </div>
+	        </div>
 
         <div class="toolbar" style="margin-top:8px;">
           <button id="rate" class="btn-primary" type="button">
@@ -861,18 +796,23 @@
 
       </section>
 
-      <section class="panel" aria-live="polite">
-        <div class="result-badge" id="result-badge" aria-label="Prediction">
-          <i class="fa-solid fa-pen-nib"></i>
-          <span id="result-digit">Prediction: --</span>
-          <span id="result-divider" class="result-divider" aria-hidden="true">•</span>
-          <span id="result-actual" class="result-actual">Actual: --</span>
-        </div>
+	      <section class="panel" aria-live="polite">
+	        <div class="result-badge" id="result-badge" aria-label="Prediction">
+	          <i class="fa-solid fa-pen-nib"></i>
+	          <span id="result-digit">Prediction: --</span>
+	          <span id="result-divider" class="result-divider" aria-hidden="true">•</span>
+	          <span id="result-actual" class="result-actual">Actual: --</span>
+	        </div>
 
-        <div class="score-card">
-          <div class="score-head">
-            <span class="score-label">Legibility score</span>
-            <span id="legibility-value" class="score-value">--</span>
+	        <div class="confidence-track" aria-label="Confidence">
+	          <div id="confidence-bar" class="confidence" style="width:0%"></div>
+	        </div>
+	        <div id="confidence-text" class="hint">Confidence: –</div>
+
+	        <div class="score-card">
+	          <div class="score-head">
+	            <span class="score-label">Legibility score</span>
+	            <span id="legibility-value" class="score-value">--</span>
           </div>
           <div class="score-track">
             <div id="legibility-bar" class="score-bar" style="width:0%"></div>
@@ -996,12 +936,14 @@
     const resultDigit = document.getElementById('result-digit');
     const resultActual = document.getElementById('result-actual');
     const resultDivider = document.getElementById('result-divider');
+    const confidenceBar = document.getElementById('confidence-bar');
+    const confidenceText = document.getElementById('confidence-text');
     const legibilityValue = document.getElementById('legibility-value');
     const legibilityBar = document.getElementById('legibility-bar');
     const confidenceSummary = document.getElementById('confidence-summary');
     const confidenceList = document.getElementById('confidence-list');
     const sampleStatus = document.getElementById('sample-status');
-    const sampleButtons = Array.from(document.querySelectorAll('.sample-btn'));
+    const sampleSelect = document.getElementById('sample-select');
 
     let bg = getComputedStyle(document.documentElement).getPropertyValue('--canvas-dark').trim() || '#000';
     const fg = '#fff';
@@ -1072,8 +1014,8 @@
       if (currentActualDigit !== null) {
         resetCanvas();
         currentActualDigit = null;
-        setActiveSampleButton(null);
-        sampleStatus.textContent = 'No sample loaded.';
+        setActiveSampleDigit(null);
+        if (sampleStatus) sampleStatus.textContent = 'No sample loaded.';
         setPredictionUI('Draw a digit to begin', null, null, null, null);
       }
       drawing = true;
@@ -1157,12 +1099,9 @@
       return null;
     }
 
-    function setActiveSampleButton(digit) {
-      sampleButtons.forEach(btn => {
-        const isActive = btn.dataset.sampleDigit === String(digit);
-        btn.classList.toggle('active', isActive);
-        btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-      });
+    function setActiveSampleDigit(digit) {
+      if (!sampleSelect) return;
+      sampleSelect.value = (digit === null || digit === undefined) ? '' : String(digit);
     }
 
     function loadImage(src) {
@@ -1201,12 +1140,20 @@
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         ctx.restore();
         hasDrawn = true;
-        setActiveSampleButton(digit);
+        setActiveSampleDigit(digit);
         sampleStatus.textContent = `Loaded sample ${digit}. Click "Rate digit" to score.`;
         setPredictionUI(null, null, null, null, currentActualDigit);
       } catch (err) {
         sampleStatus.textContent = err?.message || 'Sample failed to load.';
       }
+    }
+
+    function updateConfidenceUI(sorted) {
+      if (!confidenceBar || !confidenceText) return;
+      const top = sorted && sorted.length ? sorted[0] : null;
+      const pct = top ? toPercent(top.value) : null;
+      confidenceBar.style.width = pct !== null ? `${Math.round(pct)}%` : '0%';
+      confidenceText.textContent = pct !== null ? `Confidence: ${Math.round(pct)}%` : 'Confidence: –';
     }
 
     function toPercent(value) {
@@ -1280,7 +1227,7 @@
         const track = document.createElement('div');
         track.className = 'confidence-track';
         const fill = document.createElement('div');
-        fill.className = 'confidence-fill';
+        fill.className = 'confidence';
         fill.style.width = `${Math.round(item.pct)}%`;
         track.appendChild(fill);
 
@@ -1346,6 +1293,7 @@
       }
 
       renderConfidenceList(sorted, actualDigit);
+      updateConfidenceUI(sorted);
 
       updateLegibility(legibilityValueSource);
       return stats;
@@ -1479,19 +1427,25 @@
     }
 
     rateBtn.addEventListener('click', scoreDigit);
-    sampleButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const digit = btn.dataset.sampleDigit;
-        if (digit === undefined) return;
+    if (sampleSelect) {
+      sampleSelect.addEventListener('change', () => {
+        const digit = String(sampleSelect.value || '').trim();
+        if (!digit) {
+          resetCanvas();
+          currentActualDigit = null;
+          setPredictionUI('Draw a digit to begin', null, null, null, currentActualDigit);
+          if (sampleStatus) sampleStatus.textContent = 'No sample loaded.';
+          return;
+        }
         loadSampleDigit(digit);
       });
-    });
+    }
 
     eraseBtn.addEventListener('click', () => {
       resetCanvas();
       currentActualDigit = null;
       setPredictionUI('Draw a digit to begin', null, null, null, currentActualDigit);
-      setActiveSampleButton(null);
+      setActiveSampleDigit(null);
       sampleStatus.textContent = 'No sample loaded.';
     });
 

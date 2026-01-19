@@ -56,4 +56,21 @@ html.no-js .reveal{
   .docs-grid     { content-visibility: auto; contain-intrinsic-size: 600px; }
   .featured-track, .cert-track { content-visibility: auto; contain-intrinsic-size: 220px; }
 
+  /* Demo: show a spinner while AWS is warming up */
+  .health-pill[data-state="warming"]::after{
+    content:"";
+    width:10px;
+    height:10px;
+    border-radius:50%;
+    border:2px solid currentColor;
+    border-right-color:transparent;
+    animation:modal-spin .9s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .health-pill[data-state="warming"]::after{
+      animation:none;
+    }
+  }
+
 }

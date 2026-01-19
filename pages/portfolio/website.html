@@ -238,31 +238,49 @@
     <section class="project-body">
       <div class="wrapper">
         <div class="project-media project-video">
-      <video class="project-video-frame" controls playsinline preload="metadata" poster="img/projects/website.png" aria-label="danielshort.me video">
+      <video class="project-video-frame" controls autoplay muted loop playsinline preload="metadata" poster="img/projects/website.png" aria-label="danielshort.me video">
         <source src="img/projects/website.webm" type="video/webm">
           <source src="img/projects/website.mp4" type="video/mp4">
       </video>
     </div>
-        <section class="project-section">
+        
+        <nav class="project-toc" aria-label="On this page">
+      <div class="project-toc-header">
+        <span class="project-toc-title">On this page</span>
+        <a class="project-toc-top" href="#main" data-smooth-scroll="true">Back to top</a>
+      </div>
+      <div class="project-toc-links" role="list">
+        <a class="project-toc-link" role="listitem" href="#context" data-smooth-scroll="true">Context</a>
+        <a class="project-toc-link" role="listitem" href="#approach" data-smooth-scroll="true">Approach</a>
+        <a class="project-toc-link" role="listitem" href="#impact" data-smooth-scroll="true">Impact</a>
+        <a class="project-toc-link" role="listitem" href="#case-study-Goals" data-smooth-scroll="true">Goals</a>
+        <a class="project-toc-link" role="listitem" href="#case-study-Architecture" data-smooth-scroll="true">Architecture</a>
+        <a class="project-toc-link" role="listitem" href="#case-study-SEO-and-Sharing" data-smooth-scroll="true">SEO and Sharing</a>
+        <a class="project-toc-link" role="listitem" href="#case-study-Build-and-Deployment" data-smooth-scroll="true">Build and Deployment</a>
+        <a class="project-toc-link" role="listitem" href="#case-study-What-I-d-Improve" data-smooth-scroll="true">What I&#39;d Improve</a>
+        <a class="project-toc-link" role="listitem" href="#links" data-smooth-scroll="true">Links</a>
+      </div>
+    </nav>
+        <section class="project-section" id="context">
       <h2 class="section-title">Context</h2>
       <p class="project-lead">I needed a fast site to show my work, especially on mobile.</p>
     </section>
         
-        <section class="project-section">
+        <section class="project-section" id="approach">
       <h2 class="section-title">Approach</h2>
       <ul class="project-list">
         <li>Built a static site and rendered portfolio projects from a single data file.</li>
         <li>Added Google Analytics 4, structured data, and lazy loading for heavy assets.</li>
       </ul>
     </section>
-        <section class="project-section">
+        <section class="project-section" id="impact">
       <h2 class="section-title">Impact</h2>
       <ul class="project-list">
         <li>Optimized for fast, mobile-friendly pages with a hashed CSS bundle, lazy-loaded media, and minimal JavaScript.</li>
         <li>Makes projects easy to share with clean URLs, social previews, and a searchable portfolio.</li>
       </ul>
     </section>
-        <section class="project-section">
+        <section class="project-section" id="case-study-Goals">
       <h2 class="section-title">Goals</h2>
       <p class="project-lead">I built this site to be fast, easy to use, and easy to update as I add projects.</p>
       <ul class="project-list">
@@ -271,7 +289,7 @@
         <li>Maintainability: one project data file + build scripts to generate pages.</li>
       </ul>
     </section>
-<section class="project-section">
+<section class="project-section" id="case-study-Architecture">
       <h2 class="section-title">Architecture</h2>
       <ul class="project-list">
         <li>Static HTML pages with shared JS for navigation, lazy loading, and UI behavior.</li>
@@ -279,7 +297,7 @@
         <li>Progressive enhancement: the portfolio page still works without JS via pre-rendered cards.</li>
       </ul>
     </section>
-<section class="project-section">
+<section class="project-section" id="case-study-SEO-and-Sharing">
       <h2 class="section-title">SEO and Sharing</h2>
       <ul class="project-list">
         <li>Generated `/portfolio/&lt;id&gt;` pages for each project (canonical URLs, Open Graph metadata, JSON-LD).</li>
@@ -287,7 +305,7 @@
         <li>Configured Vercel rewrites so clean URLs map to generated pages under `pages/`.</li>
       </ul>
     </section>
-<section class="project-section">
+<section class="project-section" id="case-study-Build-and-Deployment">
       <h2 class="section-title">Build and Deployment</h2>
       <ul class="project-list">
         <li>CSS is bundled into a hashed file for caching while still allowing quick invalidation.</li>
@@ -295,7 +313,7 @@
         <li>Lightweight tests enforce markup contracts and ensure pages exist for every project ID.</li>
       </ul>
     </section>
-<section class="project-section">
+<section class="project-section" id="case-study-What-I-d-Improve">
       <h2 class="section-title">What I&#39;d Improve</h2>
       <ul class="project-list">
         <li>Add richer case studies (diagrams, metrics, and lessons learned) for the top projects.</li>
@@ -304,7 +322,7 @@
       </ul>
     </section>
 
-        <section class="project-section">
+        <section class="project-section" id="links">
       <h2 class="section-title">Links</h2>
       <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://github.com/danielshort3/danielshort3.github.io" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>

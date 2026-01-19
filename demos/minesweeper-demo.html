@@ -463,14 +463,13 @@
             <span class="toast-score">--</span>
           </div>
         </div>
-        <div class="board-actions">
-          <button id="new-btn" class="btn-primary" type="button" disabled>New Puzzle</button>
-          <button id="solve-btn" class="btn-primary" type="button" disabled>Solve With AI</button>
-          <button id="solution-btn" class="solution-trigger" type="button" disabled>
-            <span class="solution-label">Solution</span>
-            <span class="solution-icon" aria-hidden="true">?</span>
-          </button>
-        </div>
+	        <div class="board-actions">
+	          <button id="action-btn" class="btn-primary" type="button" disabled>New Puzzle</button>
+	          <button id="solution-btn" class="solution-trigger" type="button" disabled>
+	            <span class="solution-label">Solution</span>
+	            <span class="solution-icon" aria-hidden="true">?</span>
+	          </button>
+	        </div>
       </div>
 
       <aside class="panel" aria-live="polite">
@@ -497,15 +496,14 @@
     const candidates = () => listCandidates(endpointConfig);
     const postToEndpoint = (base, payload) => postWithFallback(base, ['', 'solve', 'predict'], payload);
 
-    const gridEl = document.getElementById('grid');
-    const statusEl = document.getElementById('status');
-    const healthPill = document.getElementById('health-pill');
-    const logEl = document.getElementById('log');
-    const newBtn = document.getElementById('new-btn');
-    const solveBtn = document.getElementById('solve-btn');
-    const solutionBtn = document.getElementById('solution-btn');
-    const performanceToast = document.getElementById('performance-toast');
-    const toastScore = performanceToast?.querySelector('.toast-score');
+	    const gridEl = document.getElementById('grid');
+	    const statusEl = document.getElementById('status');
+	    const healthPill = document.getElementById('health-pill');
+	    const logEl = document.getElementById('log');
+	    const actionBtn = document.getElementById('action-btn');
+	    const solutionBtn = document.getElementById('solution-btn');
+	    const performanceToast = document.getElementById('performance-toast');
+	    const toastScore = performanceToast?.querySelector('.toast-score');
 
     const statModel = document.getElementById('stat-model');
     const statSuccess = document.getElementById('stat-success');
@@ -522,8 +520,9 @@
     let initialLoadTriggered = false;
     let toastTimer = null;
     let lastActionCell = null;
-    let stepHighlightTimer = null;
-    let hitCell = null;
+	    let stepHighlightTimer = null;
+	    let hitCell = null;
+	    let actionMode = 'new';
 
     const notifyResize = (() => {
       if (window.self === window.top) return () => {};
@@ -543,17 +542,23 @@
       statusEl.textContent = text;
     }
 
-    function setHealth(state, text) {
-      if (!healthPill) return;
-      healthPill.dataset.state = state;
-      healthPill.textContent = text;
-    }
+	    function setHealth(state, text) {
+	      if (!healthPill) return;
+	      healthPill.dataset.state = state;
+	      healthPill.textContent = text;
+	    }
 
-    function setControlsEnabled(enabled) {
-      newBtn.disabled = !enabled;
-      solveBtn.disabled = !enabled;
-      solutionBtn.disabled = !enabled;
-    }
+	    function setActionMode(nextMode) {
+	      actionMode = nextMode === 'solve' ? 'solve' : 'new';
+	      if (!actionBtn) return;
+	      actionBtn.textContent = actionMode === 'solve' ? 'Solve With AI' : 'New Puzzle';
+	      actionBtn.dataset.mode = actionMode;
+	    }
+
+	    function setControlsEnabled(enabled) {
+	      actionBtn.disabled = !enabled;
+	      if (!enabled) solutionBtn.disabled = true;
+	    }
 
     function resetStats() {
       statMoves.textContent = '-';
@@ -781,29 +786,33 @@
       }, 2600);
     }
 
-    function runSolve() {
-      if (!current || solving) return;
-      const steps = current.steps || [];
-      if (!steps.length) return;
-      solving = true;
-      stopAnimation();
-      solveBtn.disabled = true;
-      resetStats();
-      solutionVisible = false;
-      revealSnapshot = null;
-      renderBoard(current.grid);
+	    function runSolve() {
+	      if (!current || solving) return;
+	      const steps = current.steps || [];
+	      if (!steps.length) return;
+	      solving = true;
+	      stopAnimation();
+	      if (actionBtn) {
+	        actionBtn.disabled = true;
+	        actionBtn.textContent = 'Solving...';
+	      }
+	      resetStats();
+	      solutionVisible = false;
+	      revealSnapshot = null;
+	      renderBoard(current.grid);
 
       const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       let idx = 0;
 
-      const finish = () => {
-        solving = false;
-        solveBtn.disabled = false;
-        statMoves.textContent = `${current.step_count} moves`;
-        updateOutcome();
-        solutionVisible = true;
-        revealSnapshot = null;
-        revealFlags();
+	      const finish = () => {
+	        solving = false;
+	        setActionMode('new');
+	        if (actionBtn) actionBtn.disabled = false;
+	        statMoves.textContent = `${current.step_count} moves`;
+	        updateOutcome();
+	        solutionVisible = true;
+	        revealSnapshot = null;
+	        revealFlags();
         solutionBtn.disabled = true;
         let resultMessage = current.success
           ? `Solved in ${current.step_count} moves`
@@ -864,18 +873,21 @@
       if (lastErr) console.error(lastErr);
     }
 
-    async function loadPuzzle() {
-      if (!serverReady) {
-        setStatus('Server warming up...');
-        return;
-      }
-      stopAnimation();
-      solving = false;
-      solveBtn.disabled = true;
-      solutionBtn.disabled = true;
-      solutionVisible = false;
-      revealSnapshot = null;
-      hitCell = null;
+	    async function loadPuzzle() {
+	      if (!serverReady) {
+	        setStatus('Server warming up...');
+	        return;
+	      }
+	      stopAnimation();
+	      solving = false;
+	      if (actionBtn) {
+	        actionBtn.disabled = true;
+	        actionBtn.textContent = 'Generating...';
+	      }
+	      solutionBtn.disabled = true;
+	      solutionVisible = false;
+	      revealSnapshot = null;
+	      hitCell = null;
       setStatus('Generating puzzle...');
       resetStats();
 
@@ -896,21 +908,26 @@
         }
         if (!data) throw new Error('No endpoint available');
 
-        current = data;
-        renderBoard(data.grid);
-        statMoves.textContent = `${data.step_count} moves`;
-        setModelStats(data.model);
-        setStatus('Puzzle ready. Press Solve With AI to watch the agent.');
-        solveBtn.disabled = false;
-        solutionBtn.disabled = false;
-        updateOutcome();
-        notifyResize();
-      } catch (err) {
-        setStatus('Failed to load puzzle.');
-        solveBtn.disabled = true;
-        solutionBtn.disabled = true;
-      }
-    }
+	        current = data;
+	        renderBoard(data.grid);
+	        statMoves.textContent = `${data.step_count} moves`;
+	        setModelStats(data.model);
+	        setStatus('Puzzle ready. Press Solve With AI to watch the agent.');
+	        setActionMode('solve');
+	        if (actionBtn) actionBtn.disabled = false;
+	        solutionBtn.disabled = false;
+	        updateOutcome();
+	        notifyResize();
+	      } catch (err) {
+	        setStatus('Failed to load puzzle.');
+	        setActionMode('new');
+	        if (actionBtn) {
+	          actionBtn.disabled = false;
+	          actionBtn.textContent = 'New Puzzle';
+	        }
+	        solutionBtn.disabled = true;
+	      }
+	    }
 
     function setSolutionVisible(nextVisible) {
       if (!current) return false;
@@ -932,14 +949,21 @@
       setSolutionVisible(show);
     }
 
-    newBtn.addEventListener('click', loadPuzzle);
-    solveBtn.addEventListener('click', runSolve);
-    solutionBtn.addEventListener('mouseenter', () => previewSolution(true));
-    solutionBtn.addEventListener('mouseleave', () => previewSolution(false));
-    solutionBtn.addEventListener('focus', () => previewSolution(true));
-    solutionBtn.addEventListener('blur', () => previewSolution(false));
+	    if (actionBtn) {
+	      actionBtn.addEventListener('click', () => {
+	        if (!current || actionMode === 'new') {
+	          loadPuzzle();
+	          return;
+	        }
+	        runSolve();
+	      });
+	    }
+	    solutionBtn.addEventListener('mouseenter', () => previewSolution(true));
+	    solutionBtn.addEventListener('mouseleave', () => previewSolution(false));
+	    solutionBtn.addEventListener('focus', () => previewSolution(true));
+	    solutionBtn.addEventListener('blur', () => previewSolution(false));
 
-    warmUpServer();
-  </script>
+	    warmUpServer();
+	  </script>
 </body>
 </html>

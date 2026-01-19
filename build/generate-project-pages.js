@@ -207,13 +207,38 @@ function normalizeTextArray(value) {
   return [];
 }
 
-function renderCaseStudySections(sections) {
-  if (!Array.isArray(sections) || sections.length === 0) return '';
+function toDomIdSafe(value) {
+  return String(value ?? '')
+    .trim()
+    .replace(/[^a-z0-9_-]+/gi, '-')
+    .replace(/^-+|-+$/g, '') || 'project';
+}
+
+function renderCaseStudySections(sections, options = {}) {
+  if (!Array.isArray(sections) || sections.length === 0) return { html: '', toc: [] };
+  const usedIds = options && options.usedIds instanceof Set ? options.usedIds : new Set();
+  const prefix = normalizeWhitespace(options?.prefix || '');
+  const toc = [];
+
+  const reserveId = (base) => {
+    const safeBase = toDomIdSafe(base);
+    let candidate = safeBase;
+    let suffix = 2;
+    while (usedIds.has(candidate)) {
+      candidate = `${safeBase}-${suffix++}`;
+    }
+    usedIds.add(candidate);
+    return candidate;
+  };
+
   const blocks = sections
     .map((sec) => {
       if (!sec || typeof sec !== 'object') return '';
       const title = normalizeWhitespace(sec.title);
       if (!title) return '';
+
+      const sectionId = reserveId(prefix ? `${prefix}-${title}` : title);
+      toc.push({ id: sectionId, label: title });
 
       const lead = normalizeWhitespace(sec.lead || '');
       const paragraphs = normalizeTextArray(sec.paragraphs);
@@ -233,13 +258,13 @@ function renderCaseStudySections(sections) {
       }
 
       const body = parts.length ? `\n      ${parts.join('\n      ')}\n    ` : '';
-      return `<section class="project-section">
+      return `<section class="project-section" id="${escapeHtml(sectionId)}">
       <h2 class="section-title">${escapeHtml(title)}</h2>${body}</section>`;
     })
     .filter(Boolean)
     .join('\n');
 
-  return blocks ? `${blocks}\n` : '';
+  return { html: blocks ? `${blocks}\n` : '', toc };
 }
 
 function toMetaDescription(project) {
@@ -316,6 +341,9 @@ function renderProjectPage(project) {
     .filter(Boolean);
 
   const embed = project && typeof project.embed === 'object' ? project.embed : null;
+  const demoInstructions = project && typeof project.demoInstructions === 'object'
+    ? project.demoInstructions
+    : null;
   const tableauPreconnect = embed && String(embed.type || '').trim() === 'tableau'
     ? '  <link rel="preconnect" href="https://public.tableau.com" crossorigin>\n'
     : '';
@@ -336,8 +364,71 @@ function renderProjectPage(project) {
     </div>`
     : '';
 
-  const safeResources = resources.length
-    ? `<section class="project-section">
+  const safeProblem = normalizeWhitespace(project.problem || '');
+
+  const hasRole = (() => {
+    if (!role) return false;
+    if (Array.isArray(role)) return role.map((r) => normalizeWhitespace(r)).filter(Boolean).length > 0;
+    return Boolean(normalizeWhitespace(role));
+  })();
+  const hasActions = actions.length > 0;
+  const hasResults = results.length > 0;
+  const hasResources = resources.length > 0;
+  const hasNotes = Boolean(notes);
+
+  const usedSectionIds = new Set();
+  const tocItems = [];
+  const reserveSectionId = (base) => {
+    const safeBase = toDomIdSafe(base);
+    let candidate = safeBase;
+    let suffix = 2;
+    while (usedSectionIds.has(candidate)) {
+      candidate = `${safeBase}-${suffix++}`;
+    }
+    usedSectionIds.add(candidate);
+    return candidate;
+  };
+  const pushTocItem = (idValue, labelValue) => {
+    const safeId = String(idValue || '').trim();
+    const safeLabel = normalizeWhitespace(labelValue || '');
+    if (!safeId || !safeLabel) return;
+    tocItems.push({ id: safeId, label: safeLabel });
+  };
+
+  const sectionIdContext = safeProblem ? reserveSectionId('context') : null;
+  if (sectionIdContext) pushTocItem(sectionIdContext, 'Context');
+  const sectionIdRole = hasRole ? reserveSectionId('role') : null;
+  if (sectionIdRole) pushTocItem(sectionIdRole, 'Role');
+  const sectionIdApproach = hasActions ? reserveSectionId('approach') : null;
+  if (sectionIdApproach) pushTocItem(sectionIdApproach, 'Approach');
+  const sectionIdImpact = hasResults ? reserveSectionId('impact') : null;
+  if (sectionIdImpact) pushTocItem(sectionIdImpact, 'Impact');
+
+  const caseStudy = renderCaseStudySections(project.caseStudy, { usedIds: usedSectionIds, prefix: 'case-study' });
+  caseStudy.toc.forEach((item) => pushTocItem(item.id, item.label));
+  const safeCaseStudy = caseStudy.html;
+
+  const sectionIdLinks = hasResources ? reserveSectionId('links') : null;
+  if (sectionIdLinks) pushTocItem(sectionIdLinks, 'Links');
+  const sectionIdNotes = hasNotes ? reserveSectionId('notes') : null;
+  if (sectionIdNotes) pushTocItem(sectionIdNotes, 'Notes');
+
+  const detailsToc = tocItems.length > 1
+    ? `<nav class="project-toc" aria-label="On this page">
+      <div class="project-toc-header">
+        <span class="project-toc-title">On this page</span>
+        <a class="project-toc-top" href="#main" data-smooth-scroll="true">Back to top</a>
+      </div>
+      <div class="project-toc-links" role="list">
+        ${tocItems.map((item) => (
+          `<a class="project-toc-link" role="listitem" href="#${escapeHtml(item.id)}" data-smooth-scroll="true">${escapeHtml(item.label)}</a>`
+        )).join('\n        ')}
+      </div>
+    </nav>`
+    : '';
+
+  const safeResources = hasResources
+    ? `<section class="project-section" id="${escapeHtml(sectionIdLinks)}">
       <h2 class="section-title">Links</h2>
       <div class="project-links" role="list">
         ${resources.map((r) => {
@@ -356,9 +447,9 @@ function renderProjectPage(project) {
     : '';
 
   const safeRole = (() => {
-    if (!role) return '';
+    if (!hasRole) return '';
     if (Array.isArray(role) && role.length) {
-      return `<section class="project-section">
+      return `<section class="project-section" id="${escapeHtml(sectionIdRole)}">
       <h2 class="section-title">Role</h2>
       <ul class="project-list">
         ${role.map((item) => `<li>${escapeHtml(normalizeWhitespace(item))}</li>`).join('\n        ')}
@@ -367,14 +458,14 @@ function renderProjectPage(project) {
     }
     const text = normalizeWhitespace(role);
     if (!text) return '';
-    return `<section class="project-section">
+    return `<section class="project-section" id="${escapeHtml(sectionIdRole)}">
       <h2 class="section-title">Role</h2>
       <p class="project-lead">${escapeHtml(text)}</p>
     </section>`;
   })();
 
-  const safeActions = actions.length
-    ? `<section class="project-section">
+  const safeActions = hasActions
+    ? `<section class="project-section" id="${escapeHtml(sectionIdApproach)}">
       <h2 class="section-title">Approach</h2>
       <ul class="project-list">
         ${actions.map((a) => `<li>${escapeHtml(normalizeWhitespace(a))}</li>`).join('\n        ')}
@@ -382,8 +473,8 @@ function renderProjectPage(project) {
     </section>`
     : '';
 
-  const safeResults = results.length
-    ? `<section class="project-section">
+  const safeResults = hasResults
+    ? `<section class="project-section" id="${escapeHtml(sectionIdImpact)}">
       <h2 class="section-title">Impact</h2>
       <ul class="project-list">
         ${results.map((r) => `<li>${escapeHtml(normalizeWhitespace(r))}</li>`).join('\n        ')}
@@ -391,22 +482,19 @@ function renderProjectPage(project) {
     </section>`
     : '';
 
-  const safeProblem = normalizeWhitespace(project.problem || '');
   const safeOverview = safeProblem
-    ? `<section class="project-section">
+    ? `<section class="project-section" id="${escapeHtml(sectionIdContext)}">
       <h2 class="section-title">Context</h2>
       <p class="project-lead">${escapeHtml(safeProblem)}</p>
     </section>`
     : '';
 
-  const safeNotes = notes
-    ? `<section class="project-section">
+  const safeNotes = hasNotes
+    ? `<section class="project-section" id="${escapeHtml(sectionIdNotes)}">
       <h2 class="section-title">Notes</h2>
       <p class="project-lead">${escapeHtml(notes)}</p>
     </section>`
     : '';
-
-  const safeCaseStudy = renderCaseStudySections(project.caseStudy);
 
   const renderImageMedia = () => {
     const img = String(project.image || '').trim();
@@ -450,20 +538,22 @@ function renderProjectPage(project) {
     const label = escapeHtml(`${title} video`);
 
     return `<div class="project-media project-video">
-      <video class="project-video-frame" controls playsinline preload="metadata"${posterAttr} aria-label="${label}">
+      <video class="project-video-frame" controls autoplay muted loop playsinline preload="metadata"${posterAttr} aria-label="${label}">
         ${sources}
       </video>
     </div>`;
   };
 
-  const renderEmbeddedMedia = () => {
+  const renderEmbeddedMedia = (options = {}) => {
     if (!embed) return '';
+    const lazy = options && options.lazy === true;
     const type = String(embed.type || '').trim();
     if (type === 'iframe') {
       const src = String(embed.url || '').trim();
       if (!src) return '';
+      const srcAttr = lazy ? ` data-src="${escapeHtml(src)}"` : ` src="${escapeHtml(src)}"`;
       return `<div class="project-media project-embed project-embed-iframe">
-        <iframe class="project-embed-frame" src="${escapeHtml(src)}" title="${escapeHtml(title)} interactive demo" loading="lazy" allowfullscreen></iframe>
+        <iframe class="project-embed-frame"${srcAttr} title="${escapeHtml(title)} interactive demo" loading="lazy" allowfullscreen></iframe>
       </div>`;
     }
     if (type === 'tableau') {
@@ -471,20 +561,72 @@ function renderProjectPage(project) {
       if (!base) return '';
       const joiner = base.includes('?') ? '&' : '?';
       const src = `${base}${joiner}:showVizHome=no&:embed=y`;
+      const srcAttr = lazy ? ` data-src="${escapeHtml(src)}"` : ` src="${escapeHtml(src)}"`;
       return `<div class="project-media project-embed project-embed-tableau">
-        <iframe class="project-embed-frame" src="${escapeHtml(src)}" title="${escapeHtml(title)} interactive dashboard" loading="lazy" allowfullscreen></iframe>
+        <iframe class="project-embed-frame"${srcAttr} title="${escapeHtml(title)} interactive dashboard" loading="lazy" allowfullscreen></iframe>
       </div>`;
     }
     return '';
   };
 
+  const renderDemoTabs = () => {
+    if (!embed) return '';
+    const safeId = toDomIdSafe(id);
+    const baseId = `project-demo-${safeId}`;
+    const tabInstructionsId = `${baseId}-tab-instructions`;
+    const tabDemoId = `${baseId}-tab-demo`;
+    const panelInstructionsId = `${baseId}-panel-instructions`;
+    const panelDemoId = `${baseId}-panel-demo`;
+
+    const lead = normalizeWhitespace(demoInstructions?.lead || '');
+    const bullets = normalizeTextArray(demoInstructions?.bullets);
+    const safeLead = lead ? `<p class="project-demo-lead">${escapeHtml(lead)}</p>` : '';
+    const safeBullets = bullets.length
+      ? `<ul class="project-demo-list">
+        ${bullets.map((b) => `<li>${escapeHtml(b)}</li>`).join('\n        ')}
+      </ul>`
+      : '';
+
+    return `<section class="project-demo-shell" data-demo-tabs="true" aria-label="Demo">
+      <div class="project-demo-tabs" role="tablist" aria-label="Demo tabs">
+        <button class="project-demo-tab is-active" type="button" role="tab" id="${escapeHtml(tabInstructionsId)}" aria-controls="${escapeHtml(panelInstructionsId)}" aria-selected="true">How to use</button>
+        <button class="project-demo-tab" type="button" role="tab" id="${escapeHtml(tabDemoId)}" aria-controls="${escapeHtml(panelDemoId)}" aria-selected="false" tabindex="-1">Demo</button>
+      </div>
+
+      <div class="project-demo-panels">
+        <section class="project-demo-panel is-active" role="tabpanel" id="${escapeHtml(panelInstructionsId)}" aria-labelledby="${escapeHtml(tabInstructionsId)}">
+          <div class="project-demo-panel-inner">
+            ${safeLead}
+            ${safeBullets}
+            <div class="project-demo-actions">
+              <button class="btn-primary" type="button" data-demo-tabs-open="demo">Open demo</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="project-demo-panel" role="tabpanel" id="${escapeHtml(panelDemoId)}" aria-labelledby="${escapeHtml(tabDemoId)}" hidden>
+          <div class="project-demo-panel-inner">
+            ${renderEmbeddedMedia({ lazy: true })}
+          </div>
+        </section>
+      </div>
+
+      <a class="chevron-hint scroll-indicator project-demo-chevron" href="#project-details" data-smooth-scroll="true">
+        <span class="chevron-label">Scroll for project details</span>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 16.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 14.08l5.3-5.29a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29z"/></svg>
+      </a>
+    </section>`;
+  };
+
   const media = (() => {
-    const embedded = renderEmbeddedMedia();
-    if (embedded) return embedded;
+    if (embed) return '';
     const video = renderVideoMedia();
     if (video) return video;
     return renderImageMedia();
   })();
+
+  const demoTabs = embed ? renderDemoTabs() : '';
+  const detailsAnchor = embed ? '<div id="project-details" class="project-details-anchor"></div>' : '';
 
   return `<!DOCTYPE html>
 <html lang="en" class="no-js">
@@ -541,7 +683,9 @@ ${tableauPreconnect}
 
     <section class="project-body">
       <div class="wrapper">
-        ${media}
+        ${demoTabs || media}
+        ${detailsAnchor}
+        ${detailsToc}
         ${safeOverview}
         ${safeRole}
         ${safeActions}
