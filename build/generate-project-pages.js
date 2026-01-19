@@ -434,8 +434,8 @@ function renderRelatedProjectsSection(projects, currentIndex) {
     .filter(Boolean)
     .join('\n        ');
 
-  return `<section class="project-section project-related" aria-label="Relevant projects">
-      <h2 class="section-title">Relevant Projects</h2>
+  return `<section class="project-section project-related" aria-label="Other projects">
+      <h2 class="section-title">Other Projects</h2>
       <div class="project-related-grid" role="list">
         ${cards}
       </div>
@@ -694,7 +694,7 @@ function renderProjectPage(project, options = {}) {
 
     return `<section class="project-demo-shell" data-demo-tabs="true" aria-label="Demo">
       <div class="project-demo-tabs" role="tablist" aria-label="Demo tabs">
-        <button class="project-demo-tab is-active" type="button" role="tab" id="${escapeHtml(tabInstructionsId)}" aria-controls="${escapeHtml(panelInstructionsId)}" aria-selected="true">How to use</button>
+        <button class="project-demo-tab is-active" type="button" role="tab" id="${escapeHtml(tabInstructionsId)}" aria-controls="${escapeHtml(panelInstructionsId)}" aria-selected="true">How to Use Demo</button>
         <button class="project-demo-tab" type="button" role="tab" id="${escapeHtml(tabDemoId)}" aria-controls="${escapeHtml(panelDemoId)}" aria-selected="false" tabindex="-1">Demo</button>
       </div>
 

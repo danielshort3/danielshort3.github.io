@@ -190,8 +190,8 @@
     position:absolute;
     left:14px;
     right:14px;
-    bottom:7px;
-    height:3px;
+    bottom:4px;
+    height:2px;
     border-radius:999px;
     background:linear-gradient(90deg,
       color-mix(in srgb,var(--primary) 86%, #ffffff 14%) 0%,
@@ -458,14 +458,6 @@
   }
   .project-link-label{
     line-height:1.1;
-  }
-  .project-links .project-link:nth-child(-n+2){
-    border-color:color-mix(in srgb,var(--primary) 55%, transparent);
-    background:linear-gradient(180deg,
-      color-mix(in srgb,var(--primary) 18%, var(--surface) 82%),
-      color-mix(in srgb,var(--surface) 90%, #000 10%));
-    box-shadow:0 14px 28px rgba(0,0,0,.26);
-    font-weight:700;
   }
   .project-link:hover,
   .project-link:focus-visible{
