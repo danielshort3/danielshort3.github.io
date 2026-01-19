@@ -436,6 +436,26 @@ function renderProjectPage(project) {
     return `<img class="project-media" src="${escapeHtml(img)}" alt="${alt}" loading="eager" decoding="async"${sizeAttr} fetchpriority="high">`;
   };
 
+  const renderVideoMedia = () => {
+    const webm = String(project.videoWebm || '').trim();
+    const mp4 = String(project.videoMp4 || '').trim();
+    if (!webm && !mp4) return '';
+
+    const poster = String(project.image || '').trim();
+    const posterAttr = poster ? ` poster="${escapeHtml(poster)}"` : '';
+    const sources = [
+      webm ? `<source src="${escapeHtml(webm)}" type="video/webm">` : '',
+      mp4 ? `<source src="${escapeHtml(mp4)}" type="video/mp4">` : ''
+    ].filter(Boolean).join('\n          ');
+    const label = escapeHtml(`${title} video`);
+
+    return `<div class="project-media project-video">
+      <video class="project-video-frame" controls playsinline preload="metadata"${posterAttr} aria-label="${label}">
+        ${sources}
+      </video>
+    </div>`;
+  };
+
   const renderEmbeddedMedia = () => {
     if (!embed) return '';
     const type = String(embed.type || '').trim();
@@ -461,6 +481,8 @@ function renderProjectPage(project) {
   const media = (() => {
     const embedded = renderEmbeddedMedia();
     if (embedded) return embedded;
+    const video = renderVideoMedia();
+    if (video) return video;
     return renderImageMedia();
   })();
 
