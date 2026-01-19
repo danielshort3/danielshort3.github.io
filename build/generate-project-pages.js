@@ -670,11 +670,6 @@ function renderProjectPage(project) {
           </div>
         </section>
       </div>
-
-      <a class="chevron-hint scroll-indicator project-demo-chevron" href="#project-details" data-smooth-scroll="true">
-        <span class="chevron-label">Scroll for project details</span>
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 16.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 14.08l5.3-5.29a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29z"/></svg>
-      </a>
     </section>`;
   };
 
