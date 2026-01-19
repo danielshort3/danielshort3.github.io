@@ -7,6 +7,8 @@
     { "source": "/:slug*", "has": [{ "type": "host", "value": "dshort.me" }], "destination": "/api/go/:slug*" },
     { "source": "/:slug*", "has": [{ "type": "host", "value": "www.dshort.me" }], "destination": "/api/go/:slug*" },
     { "source": "/go/:slug*", "destination": "/api/go/:slug*" },
+    { "source": "/portfolio", "has": [{ "type": "query", "key": "project" }], "destination": "/api/portfolio-redirect" },
+    { "source": "/portfolio.html", "has": [{ "type": "query", "key": "project" }], "destination": "/api/portfolio-redirect" },
     { "source": "/portfolio/:project", "destination": "/pages/portfolio/:project" },
     { "source": "/portfolio/:project.html", "destination": "/pages/portfolio/:project" },
     { "source": "/portfolio",         "destination": "/pages/portfolio" },
