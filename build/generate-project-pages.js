@@ -307,8 +307,139 @@ function renderProjectPager(projects, currentIndex) {
     <div class="wrapper">
       ${prevMarkup}
       ${nextMarkup}
-    </div>
-  </nav>`;
+	    </div>
+	  </nav>`;
+}
+
+function getProjectTagSet(project) {
+  const tools = Array.isArray(project?.tools) ? project.tools : [];
+  const concepts = Array.isArray(project?.concepts) ? project.concepts : [];
+  const tags = [...tools, ...concepts]
+    .map((t) => normalizeWhitespace(t).toLowerCase())
+    .filter(Boolean);
+  return new Set(tags);
+}
+
+function renderRelatedProjectMedia(project) {
+  const img = String(project?.image || '').trim();
+  if (!img) return '';
+
+  const title = normalizeWhitespace(project?.title || '');
+  const alt = normalizeWhitespace(project?.imageAlt || title);
+  const width = Number(project?.imageWidth);
+  const height = Number(project?.imageHeight);
+  const sizeAttr = Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0
+    ? ` width="${width}" height="${height}"`
+    : '';
+
+  const match = img.match(/\.(png|jpe?g)$/i);
+  if (!match) {
+    return `<img src="${escapeHtml(img)}" alt="${escapeHtml(alt)}" loading="lazy" decoding="async"${sizeAttr} sizes="(max-width: 960px) 92vw, 320px">`;
+  }
+
+  const base = img.replace(/\.(png|jpe?g)$/i, '');
+  const avif = buildResponsiveSrcset(base, 'avif', width);
+  const webp = buildResponsiveSrcset(base, 'webp', width);
+
+  if (avif || webp) {
+    return `<picture>
+      ${avif ? `<source srcset="${escapeHtml(avif)}" type="image/avif">` : ''}
+      ${webp ? `<source srcset="${escapeHtml(webp)}" type="image/webp">` : ''}
+      <img src="${escapeHtml(img)}" alt="${escapeHtml(alt)}" loading="lazy" decoding="async"${sizeAttr} sizes="(max-width: 960px) 92vw, 320px">
+    </picture>`;
+  }
+
+  return `<img src="${escapeHtml(img)}" alt="${escapeHtml(alt)}" loading="lazy" decoding="async"${sizeAttr} sizes="(max-width: 960px) 92vw, 320px">`;
+}
+
+function selectRelatedProjects(projects, currentIndex, desiredCount) {
+  if (!Array.isArray(projects) || projects.length === 0) return [];
+  const desired = Number.isFinite(desiredCount) ? Math.max(0, Math.floor(desiredCount)) : 0;
+  if (desired <= 0) return [];
+
+  const current = projects[currentIndex];
+  const currentId = String(current?.id || '').trim();
+  if (!current || !currentId) return [];
+
+  const currentTags = getProjectTagSet(current);
+  const scored = projects
+    .map((candidate, index) => {
+      const id = String(candidate?.id || '').trim();
+      if (!candidate || !id) return null;
+      if (index === currentIndex) return null;
+      const tags = getProjectTagSet(candidate);
+      let score = 0;
+      currentTags.forEach((tag) => {
+        if (tags.has(tag)) score += 1;
+      });
+      if (score <= 0) return null;
+      return { project: candidate, index, score };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.score - a.score || a.index - b.index);
+
+  const selected = [];
+  const usedIds = new Set([currentId]);
+
+  scored.forEach((item) => {
+    if (selected.length >= desired) return;
+    const id = String(item.project?.id || '').trim();
+    if (!id || usedIds.has(id)) return;
+    selected.push(item.project);
+    usedIds.add(id);
+  });
+
+  for (let offset = 1; selected.length < desired; offset++) {
+    const before = currentIndex - offset;
+    const after = currentIndex + offset;
+    const indexes = [before, after].filter((i) => i >= 0 && i < projects.length);
+    if (indexes.length === 0) break;
+    indexes.forEach((idx) => {
+      if (selected.length >= desired) return;
+      const candidate = projects[idx];
+      const id = String(candidate?.id || '').trim();
+      if (!candidate || !id) return;
+      if (usedIds.has(id)) return;
+      selected.push(candidate);
+      usedIds.add(id);
+    });
+  }
+
+  return selected.slice(0, desired);
+}
+
+function renderRelatedProjectsSection(projects, currentIndex) {
+  const related = selectRelatedProjects(projects, currentIndex, 3);
+  if (!related.length) return '';
+
+  const cards = related
+    .map((p) => {
+      const id = String(p?.id || '').trim();
+      if (!id) return '';
+      const title = normalizeWhitespace(p?.title || id);
+      const subtitle = normalizeWhitespace(p?.subtitle || '');
+      const href = `portfolio/${encodeURIComponent(id)}`;
+      const label = `Open project: ${title}`;
+      const safeSubtitle = subtitle ? `<div class="project-subtitle">${escapeHtml(subtitle)}</div>` : '';
+
+      return `<a class="project-card project-related-card" role="listitem" href="${escapeHtml(href)}" aria-label="${escapeHtml(label)}">
+        <div class="overlay"></div>
+        <div class="project-text">
+          <div class="project-title">${escapeHtml(title)}</div>
+          ${safeSubtitle}
+        </div>
+        ${renderRelatedProjectMedia(p)}
+      </a>`;
+    })
+    .filter(Boolean)
+    .join('\n        ');
+
+  return `<section class="project-section project-related" aria-label="Relevant projects">
+      <h2 class="section-title">Relevant Projects</h2>
+      <div class="project-related-grid" role="list">
+        ${cards}
+      </div>
+    </section>`;
 }
 
 function renderProjectPage(project, options = {}) {
@@ -406,6 +537,9 @@ function renderProjectPage(project, options = {}) {
   const projectIndex = Number.isInteger(options.index) ? options.index : -1;
   const projectPager = allProjects && projectIndex >= 0
     ? renderProjectPager(allProjects, projectIndex)
+    : '';
+  const relatedProjects = allProjects && projectIndex >= 0
+    ? renderRelatedProjectsSection(allProjects, projectIndex)
     : '';
 
   const ensureSentence = (value) => {
@@ -652,9 +786,10 @@ ${tableauPreconnect}
 			    <section class="project-body">
 			      <div class="wrapper">
 			        ${demoTabs || media}
-			        ${starSummary}
 			        ${safeResources}
+			        ${starSummary}
 			        ${safeNotes}
+			        ${relatedProjects}
 			      </div>
 			    </section>
 			  </main>
