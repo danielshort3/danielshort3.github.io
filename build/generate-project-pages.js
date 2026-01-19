@@ -265,185 +265,50 @@ function loadProjects() {
   return projects;
 }
 
-function getProjectId(project) {
-  return String(project && project.id ? project.id : '').trim();
-}
-
-function getProjectTagSet(project) {
-  const tools = Array.isArray(project?.tools) ? project.tools : [];
-  const concepts = Array.isArray(project?.concepts) ? project.concepts : [];
-  const tags = [...tools, ...concepts]
-    .map((t) => normalizeWhitespace(t).toLowerCase())
-    .filter(Boolean);
-  return new Set(tags);
-}
-
-function renderProjectCardMedia(project, options = {}) {
-  const img = String(project && project.image ? project.image : '').trim();
-  if (!img) return '';
-
-  const title = normalizeWhitespace(project?.title || '');
-  const alt = normalizeWhitespace(project?.imageAlt || title);
-  const width = Number(project?.imageWidth);
-  const height = Number(project?.imageHeight);
-  const sizeAttr = Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0
-    ? ` width="${width}" height="${height}"`
-    : '';
-
-  const loading = normalizeWhitespace(options.loading || 'lazy');
-  const sizes = normalizeWhitespace(options.sizes || '(max-width: 640px) 92vw, 340px');
-  const loadingAttr = loading ? ` loading="${escapeHtml(loading)}"` : '';
-  const sizesAttr = sizes ? ` sizes="${escapeHtml(sizes)}"` : '';
-
-  const match = img.match(/\.(png|jpe?g)$/i);
-  if (!match) {
-    return `<img src="${escapeHtml(img)}" alt="${escapeHtml(alt)}"${loadingAttr} decoding="async"${sizeAttr}${sizesAttr}>`;
-  }
-
-  const base = img.replace(/\.(png|jpe?g)$/i, '');
-  const avif = buildResponsiveSrcset(base, 'avif', width);
-  const webp = buildResponsiveSrcset(base, 'webp', width);
-
-  if (avif || webp) {
-    return `<picture>
-      ${avif ? `<source srcset="${escapeHtml(avif)}" type="image/avif">` : ''}
-      ${webp ? `<source srcset="${escapeHtml(webp)}" type="image/webp">` : ''}
-      <img src="${escapeHtml(img)}" alt="${escapeHtml(alt)}"${loadingAttr} decoding="async"${sizeAttr}${sizesAttr}>
-    </picture>`;
-  }
-
-  return `<img src="${escapeHtml(img)}" alt="${escapeHtml(alt)}"${loadingAttr} decoding="async"${sizeAttr}${sizesAttr}>`;
-}
-
-function renderProjectRecommendationCard(project, options = {}) {
-  const id = getProjectId(project);
-  if (!id) return '';
-
-  const title = normalizeWhitespace(project?.title || id);
-  const subtitle = normalizeWhitespace(project?.subtitle || '');
-  const badge = normalizeWhitespace(options.badge || '');
-  const href = `portfolio/${encodeURIComponent(id)}`;
-
-  const label = normalizeWhitespace(
-    options.ariaLabel || (badge ? `${badge} project: ${title}` : `View project: ${title}`)
-  );
-
-  const badgeMarkup = badge ? `<div class="project-metric">${escapeHtml(badge)}</div>` : '';
-  const media = renderProjectCardMedia(project, { loading: 'lazy', sizes: '(max-width: 960px) 92vw, 320px' });
-  const safeSubtitle = subtitle ? `<div class="project-subtitle">${escapeHtml(subtitle)}</div>` : '';
-
-  return `<a class="project-card ripple-in project-recommendation-card" role="listitem" href="${escapeHtml(href)}" aria-label="${escapeHtml(label)}">
-      ${badgeMarkup}
-      <div class="overlay"></div>
-      <div class="project-text">
-        <div class="project-title">${escapeHtml(title)}</div>
-        ${safeSubtitle}
-      </div>
-      ${media}
-    </a>`;
-}
-
-function selectRelatedProjects(projects, currentIndex, desiredCount, excludedIds) {
-  if (!Array.isArray(projects) || projects.length === 0) return [];
-  const desired = Number.isFinite(desiredCount) ? Math.max(0, Math.floor(desiredCount)) : 0;
-  if (desired <= 0) return [];
-
-  const current = projects[currentIndex];
-  const currentId = getProjectId(current);
-  if (!current || !currentId) return [];
-
-  const excluded = excludedIds instanceof Set ? excludedIds : new Set();
-  excluded.add(currentId);
-
-  const currentTags = getProjectTagSet(current);
-  const scored = projects
-    .map((candidate, index) => {
-      const candidateId = getProjectId(candidate);
-      if (!candidate || !candidateId) return null;
-      if (index === currentIndex) return null;
-      if (excluded.has(candidateId)) return null;
-      const tags = getProjectTagSet(candidate);
-      let score = 0;
-      currentTags.forEach((tag) => {
-        if (tags.has(tag)) score += 1;
-      });
-      if (score <= 0) return null;
-      return { project: candidate, index, score };
-    })
-    .filter(Boolean)
-    .sort((a, b) => b.score - a.score || a.index - b.index);
-
-  const selected = [];
-  scored.forEach((item) => {
-    if (selected.length >= desired) return;
-    const candidateId = getProjectId(item.project);
-    if (!candidateId || excluded.has(candidateId)) return;
-    selected.push(item.project);
-    excluded.add(candidateId);
-  });
-
-  for (let offset = 1; selected.length < desired; offset++) {
-    const before = currentIndex - offset;
-    const after = currentIndex + offset;
-    const indexes = [before, after].filter((i) => i >= 0 && i < projects.length);
-    if (indexes.length === 0) break;
-    indexes.forEach((idx) => {
-      if (selected.length >= desired) return;
-      const candidate = projects[idx];
-      const candidateId = getProjectId(candidate);
-      if (!candidate || !candidateId) return;
-      if (excluded.has(candidateId)) return;
-      selected.push(candidate);
-      excluded.add(candidateId);
-    });
-  }
-
-  return selected.slice(0, desired);
-}
-
-function renderProjectRecommendationsSection(projects, currentIndex) {
+function renderProjectPager(projects, currentIndex) {
   if (!Array.isArray(projects) || projects.length < 2) return '';
-  const current = projects[currentIndex];
-  const currentId = getProjectId(current);
-  if (!current || !currentId) return '';
+  if (!Number.isInteger(currentIndex) || currentIndex < 0 || currentIndex >= projects.length) return '';
 
-  const excluded = new Set([currentId]);
   const previous = currentIndex > 0 ? projects[currentIndex - 1] : null;
   const next = currentIndex < projects.length - 1 ? projects[currentIndex + 1] : null;
+  if (!previous && !next) return '';
 
-  const navCards = [];
-  if (previous) {
-    excluded.add(getProjectId(previous));
-    navCards.push(renderProjectRecommendationCard(previous, { badge: 'Previous' }));
-  }
-  if (next) {
-    excluded.add(getProjectId(next));
-    navCards.push(renderProjectRecommendationCard(next, { badge: 'Next' }));
-  }
+  const renderLink = (project, direction) => {
+    const id = String(project?.id || '').trim();
+    if (!id) return '';
+    const title = normalizeWhitespace(project?.title || id);
+    const href = `portfolio/${encodeURIComponent(id)}`;
+    const label = direction === 'prev' ? 'Previous' : 'Next';
+    const ariaLabel = `${label} project: ${title}`;
 
-  const related = selectRelatedProjects(projects, currentIndex, 3, excluded);
-  const relatedCards = related.map((p) => renderProjectRecommendationCard(p)).filter(Boolean);
+    if (direction === 'prev') {
+      return `<a class="project-pager-link project-pager-prev" href="${escapeHtml(href)}" aria-label="${escapeHtml(ariaLabel)}">
+        <span class="project-pager-arrow" aria-hidden="true">←</span>
+        <span class="project-pager-text">
+          <span class="project-pager-label">${label}</span>
+          <span class="project-pager-title">${escapeHtml(title)}</span>
+        </span>
+      </a>`;
+    }
 
-  if (!navCards.length && !relatedCards.length) return '';
+    return `<a class="project-pager-link project-pager-next" href="${escapeHtml(href)}" aria-label="${escapeHtml(ariaLabel)}">
+        <span class="project-pager-text">
+          <span class="project-pager-label">${label}</span>
+          <span class="project-pager-title">${escapeHtml(title)}</span>
+        </span>
+        <span class="project-pager-arrow" aria-hidden="true">→</span>
+      </a>`;
+  };
 
-  const navMarkup = navCards.length
-    ? `<div class="project-recommendations-nav" role="list">
-        ${navCards.join('\n        ')}
-      </div>`
-    : '';
+  const prevMarkup = previous ? renderLink(previous, 'prev') : '<span class="project-pager-spacer" aria-hidden="true"></span>';
+  const nextMarkup = next ? renderLink(next, 'next') : '<span class="project-pager-spacer" aria-hidden="true"></span>';
 
-  const relatedMarkup = relatedCards.length
-    ? `<h3 class="project-recommendations-subtitle">Related projects</h3>
-      <div class="project-recommendations-grid" role="list">
-        ${relatedCards.join('\n        ')}
-      </div>`
-    : '';
-
-  return `<section class="project-section project-recommendations" aria-label="More projects">
-      <h2 class="section-title">More Projects</h2>
-      ${navMarkup}
-      ${relatedMarkup}
-    </section>`;
+  return `<nav class="project-pager" aria-label="Project navigation">
+    <div class="wrapper">
+      ${prevMarkup}
+      ${nextMarkup}
+    </div>
+  </nav>`;
 }
 
 function renderProjectPage(project, options = {}) {
@@ -539,8 +404,8 @@ function renderProjectPage(project, options = {}) {
 
   const allProjects = Array.isArray(options.projects) ? options.projects : null;
   const projectIndex = Number.isInteger(options.index) ? options.index : -1;
-  const recommendations = allProjects && projectIndex >= 0
-    ? renderProjectRecommendationsSection(allProjects, projectIndex)
+  const projectPager = allProjects && projectIndex >= 0
+    ? renderProjectPager(allProjects, projectIndex)
     : '';
 
   const ensureSentence = (value) => {
@@ -769,6 +634,7 @@ ${tableauPreconnect}
 <body data-page="project" class="project-page">
   <a href="#main" class="skip-link">Skip to main content</a>
   <header id="combined-header-nav"></header>
+  ${projectPager}
 
   <main id="main">
     <section class="project-hero">
@@ -783,16 +649,15 @@ ${tableauPreconnect}
 		      </div>
 	    </section>
 
-		    <section class="project-body">
-		      <div class="wrapper">
-		        ${demoTabs || media}
-		        ${starSummary}
-		        ${safeResources}
-		        ${safeNotes}
-		        ${recommendations}
-		      </div>
-		    </section>
-		  </main>
+			    <section class="project-body">
+			      <div class="wrapper">
+			        ${demoTabs || media}
+			        ${starSummary}
+			        ${safeResources}
+			        ${safeNotes}
+			      </div>
+			    </section>
+			  </main>
 
 	  <footer>
 	    <nav class="privacy-links" aria-label="Privacy shortcuts">
