@@ -272,10 +272,58 @@
       </a>
     </section>
         <div id="project-details" class="project-details-anchor"></div>
+        <section class="project-star" aria-label="STAR summary">
+      <h2 class="section-title">STAR Summary</h2>
+      <dl class="project-star-grid">
+        <div class="project-star-row">
+          <dt class="project-star-label">Situation</dt>
+          <dd class="project-star-value">Using 2020–2023 HHS hospital-capacity data, I built an early-warning model to flag states at risk of crossing 90% ICU utilization in the next 7 days.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Task</dt>
+          <dd class="project-star-value">Owned the end-to-end build, from implementation through the final deliverable.</dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Action</dt>
+          <dd class="project-star-value">
+            <ul class="project-star-list">
+              <li>Cleaned and enriched 50k+ rows from the HHS hospital-capacity time series; added rolling stats, trends, and 1/3/7/14-day lag features.</li>
+              <li>Trained an XGBoost classifier with class-imbalance weighting and a strict time-based train/test split.</li>
+            </ul>
+          </dd>
+        </div>
+        <div class="project-star-row">
+          <dt class="project-star-label">Result</dt>
+          <dd class="project-star-value">
+            <ul class="project-star-list">
+              <li>Used SHAP to highlight the top drivers and embedded an interactive plot in the report.</li>
+              <li>Top driver was the share of ICU beds occupied by COVID patients.</li>
+              <li>Exported daily, per-state risk scores (probability of breaching 90% ICU utilization within 7 days).</li>
+            </ul>
+          </dd>
+        </div>
+      </dl>
+    </section>
+        <section class="project-section" id="links">
+      <h2 class="section-title">Links</h2>
+      <div class="project-links" role="list">
+        <a class="project-link" role="listitem" href="https://github.com/danielshort3/Covid-Analysis" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
+        <a class="project-link" role="listitem" href="https://danielshort.me/covid-outbreak-demo" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
+        <a class="project-link" role="listitem" href="documents/Project_6.pdf"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDF</span></a>
+        <a class="project-link" role="listitem" href="documents/Project_6.ipynb"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook</span></a>
+        <a class="project-link" role="listitem" href="https://healthdata.gov/Hospital/COVID-19-Reported-Patient-Impact-and-Hospital-Capa/anag-cw7u" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">HHS Dataset</span></a>
+      </div>
+    </section>
+        <details class="project-deepdive">
+      <summary class="project-deepdive-summary">
+        <span class="project-deepdive-title">Deep dive</span>
+        <span class="project-deepdive-meta">Context, approach, decisions, and notes</span>
+      </summary>
+      <div class="project-deepdive-body">
         <nav class="project-toc" aria-label="On this page">
       <div class="project-toc-header">
         <span class="project-toc-title">On this page</span>
-        <a class="project-toc-top" href="#main" data-smooth-scroll="true">Back to top</a>
+        <a class="project-toc-top" href="#project-details" data-smooth-scroll="true">Back to summary</a>
       </div>
       <div class="project-toc-links" role="list">
         <a class="project-toc-link" role="listitem" href="#context" data-smooth-scroll="true">Context</a>
@@ -287,7 +335,6 @@
         <a class="project-toc-link" role="listitem" href="#case-study-Explainability-SHAP" data-smooth-scroll="true">Explainability (SHAP)</a>
         <a class="project-toc-link" role="listitem" href="#case-study-Operational-Output" data-smooth-scroll="true">Operational Output</a>
         <a class="project-toc-link" role="listitem" href="#case-study-What-I-d-Improve" data-smooth-scroll="true">What I&#39;d Improve</a>
-        <a class="project-toc-link" role="listitem" href="#links" data-smooth-scroll="true">Links</a>
       </div>
     </nav>
         <section class="project-section" id="context">
@@ -360,17 +407,9 @@
       </ul>
     </section>
 
-        <section class="project-section" id="links">
-      <h2 class="section-title">Links</h2>
-      <div class="project-links" role="list">
-        <a class="project-link" role="listitem" href="https://github.com/danielshort3/Covid-Analysis" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
-        <a class="project-link" role="listitem" href="https://danielshort.me/covid-outbreak-demo" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
-        <a class="project-link" role="listitem" href="documents/Project_6.pdf"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDF</span></a>
-        <a class="project-link" role="listitem" href="documents/Project_6.ipynb"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook</span></a>
-        <a class="project-link" role="listitem" href="https://healthdata.gov/Hospital/COVID-19-Reported-Patient-Impact-and-Hospital-Capa/anag-cw7u" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">HHS Dataset</span></a>
-      </div>
-    </section>
         
+      </div>
+    </details>
       </div>
     </section>
   </main>

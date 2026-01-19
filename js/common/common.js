@@ -146,6 +146,7 @@
     }
     if (isPage('project')) {
       initProjectDemoTabs();
+      initProjectDeepDive();
     }
   });
   trackContactOrigin();
@@ -374,6 +375,18 @@
 
     const smoothScrollToTarget = (target, options = {}) => {
       if (!target) return;
+
+      const openAncestorDetails = (node) => {
+        let current = node;
+        while (current && current.closest) {
+          const details = current.closest('details');
+          if (!details) break;
+          if (!details.open) details.open = true;
+          current = details.parentElement;
+        }
+      };
+      openAncestorDetails(target);
+
       const startTop = window.scrollY || window.pageYOffset || 0;
       const navOffset = typeof window.getNavOffset === 'function' ? window.getNavOffset() : 0;
       let marginTop = 0;
@@ -485,6 +498,32 @@
         } catch {}
       });
     });
+  }
+
+  function initProjectDeepDive() {
+    const deepDive = document.querySelector('details.project-deepdive');
+    if (!deepDive) return;
+
+    const openForHash = () => {
+      const rawHash = (window.location && window.location.hash) ? window.location.hash.trim() : '';
+      if (!rawHash || rawHash === '#') return;
+      const id = rawHash.slice(1);
+      if (!id) return;
+      const target = document.getElementById(id);
+      if (!target) return;
+      if (!deepDive.contains(target)) return;
+      if (!deepDive.open) deepDive.open = true;
+      requestAnimationFrame(() => {
+        try {
+          target.scrollIntoView({ block: 'start', behavior: 'auto' });
+        } catch {
+          target.scrollIntoView(true);
+        }
+      });
+    };
+
+    openForHash();
+    window.addEventListener('hashchange', openForHash);
   }
 
   function initProjectDemoTabs() {
