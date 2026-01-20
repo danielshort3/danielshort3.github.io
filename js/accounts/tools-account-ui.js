@@ -17,6 +17,7 @@
     'job-application-tracker': { name: 'Job Application Tracker', href: '/tools/job-application-tracker' },
     'short-links': { name: 'Short Links', href: '/tools/short-links' },
     'utm-batch-builder': { name: 'UTM Batch Builder', href: '/tools/utm-batch-builder' },
+    'ga4-utm-performance': { name: 'GA4 UTM Performance', href: '/tools/ga4-utm-performance' },
     'whisper-transcribe-monitor': { name: 'Whisper Capacity Monitor', href: '/tools/whisper-transcribe-monitor' }
   };
 

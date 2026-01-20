@@ -57,6 +57,11 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://danielshort.me/tools/ga4-utm-performance</loc>
+    <lastmod>2026-01-20</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://danielshort.me/tools/image-optimizer</loc>
     <lastmod>2026-01-18</lastmod>
     <priority>0.6</priority>

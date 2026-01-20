@@ -93,6 +93,7 @@ try {
     checkFileContains('pages/image-optimizer.html', '<title>Image Optimizer | Daniel Short');
     checkFileContains('pages/utm-batch-builder.html', '<title>UTM Batch Builder | Daniel Short');
     checkFileContains('pages/whisper-transcribe-monitor.html', '<title>Whisper Capacity Monitor | Daniel Short');
+    checkFileContains('pages/ga4-utm-performance.html', '<title>GA4 UTM Performance | Daniel Short');
     ['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/sitemap.html'].forEach(f => {
       checkFileContains(f, 'js/common/common.js');
       checkFileContains(f, 'class="skip-link"');
@@ -113,6 +114,7 @@ try {
       'pages/job-application-tracker.html',
       'pages/short-links.html',
       'pages/utm-batch-builder.html',
+      'pages/ga4-utm-performance.html',
       'pages/whisper-transcribe-monitor.html'
     ];
     ['pages/games.html','pages/ocean-wave-simulation.html', ...toolPages].forEach(f => {
@@ -385,7 +387,7 @@ try {
       .filter(p => p && p.published !== false)
       .map(p => p.id);
     const projectPages = projectIds.map(id => `pages/portfolio/${id}.html`);
-    const toolPages = ['pages/tools.html','pages/tools-dashboard.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html','pages/whisper-transcribe-monitor.html'];
+    const toolPages = ['pages/tools.html','pages/tools-dashboard.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html','pages/whisper-transcribe-monitor.html','pages/ga4-utm-performance.html'];
     ['index.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','pages/privacy.html','pages/search.html','404.html', ...toolPages, ...projectPages].forEach(f => {
       checkFileContains(f, '<header id="combined-header-nav">');
       checkFileContains(f, '<main id="main"');
@@ -540,6 +542,9 @@ try {
     const hasToolsDashboard = rewrites.some(r => r.source === '/tools/dashboard' && r.destination === '/pages/tools-dashboard');
     const hasToolsDashboardHtml = rewrites.some(r => r.source === '/tools/dashboard.html' && r.destination === '/pages/tools-dashboard');
     assert(hasToolsDashboard && hasToolsDashboardHtml, 'tools dashboard rewrites missing');
+    const hasGa4UtmTool = rewrites.some(r => r.source === '/tools/ga4-utm-performance' && r.destination === '/pages/ga4-utm-performance');
+    const hasGa4UtmToolHtml = rewrites.some(r => r.source === '/tools/ga4-utm-performance.html' && r.destination === '/pages/ga4-utm-performance');
+    assert(hasGa4UtmTool && hasGa4UtmToolHtml, 'GA4 UTM tool rewrites missing');
     const hasSearch = rewrites.some(r => r.source === '/search' && r.destination === '/pages/search');
     const hasSearchHtml = rewrites.some(r => r.source === '/search.html' && r.destination === '/pages/search');
     assert(hasSearch && hasSearchHtml, 'search rewrites missing');
@@ -620,7 +625,7 @@ try {
 
   section('Base hrefs and redirect sanity', () => {
     ['pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html','pages/resume.html','pages/resume-pdf.html',
-     'pages/tools.html','pages/tools-dashboard.html','pages/search.html','pages/sitemap.html','pages/games.html','pages/short-links.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html',
+     'pages/tools.html','pages/tools-dashboard.html','pages/search.html','pages/sitemap.html','pages/games.html','pages/short-links.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html','pages/ga4-utm-performance.html',
      'demos/chatbot-demo.html','demos/shape-demo.html','demos/sentence-demo.html','demos/slot-machine-demo.html','demos/stellar-dogfight-demo.html']
       .forEach(f => checkFileContains(f, '<base href="/">'));
 

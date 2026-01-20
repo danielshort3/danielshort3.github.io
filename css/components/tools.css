@@ -213,4 +213,18 @@
     border-color:color-mix(in srgb,var(--danger) 45%, transparent);
     color:color-mix(in srgb,var(--text-light) 92%, var(--danger) 8%);
   }
+
+  .tool-pill-button{
+    cursor:pointer;
+    appearance:none;
+    font:inherit;
+  }
+  .tool-pill-button:hover{
+    border-color:color-mix(in srgb,var(--primary) 52%, transparent);
+    background:color-mix(in srgb,var(--surface) 82%, #0a1220 18%);
+  }
+  .tool-pill-button:focus-visible{
+    outline:2px solid var(--focus);
+    outline-offset:2px;
+  }
 }

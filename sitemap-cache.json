@@ -98,7 +98,7 @@
     },
     "https://danielshort.me/tools": {
       "lastmod": "2026-01-18",
-      "hash": "0f9e39c148fc36e78f1215260ef6e06f08b95ed9ca8d4753d4e84addf29c7f0f"
+      "hash": "768e70f7966b332c5dcbfd606f657157d805bed06f2b3a3a394fec6f6b12f128"
     },
     "https://danielshort.me/tools/background-remover": {
       "lastmod": "2026-01-18",
@@ -107,6 +107,10 @@
     "https://danielshort.me/tools/dashboard": {
       "lastmod": "2026-01-18",
       "hash": "9c01e72c023ac903bb6b3713af55e23ad166c3353e56a9cb1c70fc71e2b355af"
+    },
+    "https://danielshort.me/tools/ga4-utm-performance": {
+      "lastmod": "2026-01-20",
+      "hash": "d41a3450122b7cbc2c009b482578c5cc1b043f697b8145fd1abf9132b9fc61cf"
     },
     "https://danielshort.me/tools/image-optimizer": {
       "lastmod": "2026-01-18",

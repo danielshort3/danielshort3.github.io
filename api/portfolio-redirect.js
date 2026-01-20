@@ -28,9 +28,16 @@ module.exports = (req, res) => {
     return;
   }
 
+  let passthroughQuery = '';
+  try {
+    const url = new URL(req.url, 'http://local');
+    url.searchParams.delete('project');
+    const qs = url.searchParams.toString();
+    if (qs) passthroughQuery = `?${qs}`;
+  } catch {}
+
   res.statusCode = 308;
-  res.setHeader('Location', `/portfolio/${encodeURIComponent(project)}`);
+  res.setHeader('Location', `/portfolio/${encodeURIComponent(project)}${passthroughQuery}`);
   res.setHeader('Cache-Control', 'public, max-age=600');
   res.end();
 };
-

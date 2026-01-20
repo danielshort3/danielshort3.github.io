@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <base href="/">
+  <title>GA4 UTM Performance | Daniel Short</title>
+  <link rel="canonical" href="https://danielshort.me/tools/ga4-utm-performance">
+  <meta name="description" content="Query GA4 traffic by UTM parameters and export a report. Requires an admin token.">
+  <meta property="og:title" content="GA4 UTM Performance | Daniel Short">
+  <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
+  <meta property="og:description" content="Private GA4 reporting tool to summarize UTM-coded traffic and export CSV results.">
+  <meta property="og:url" content="https://danielshort.me/tools/ga4-utm-performance">
+  <meta property="og:image" content="https://danielshort.me/img/hero/head.jpg">
+  <meta property="og:image:width" content="558">
+  <meta property="og:image:height" content="558">
+  <meta property="og:image:alt" content="Portrait photo of Daniel Short">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@danielshort3">
+  <meta name="twitter:title" content="GA4 UTM Performance | Daniel Short">
+  <meta name="twitter:description" content="Private GA4 reporting tool to summarize UTM-coded traffic and export CSV results.">
+  <meta name="twitter:image" content="https://danielshort.me/img/hero/head.jpg">
+  <meta name="twitter:image:alt" content="Portrait photo of Daniel Short">
+  <meta name="theme-color" content="#0D1117">
+  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
+  <script src="js/common/no-js.js"></script>
+  <script type="application/ld+json" id="tool-jsonld">
+    {"@context":"https://schema.org","@type":"WebApplication","name":"GA4 UTM Performance","description":"Query GA4 traffic by UTM parameters and export a report. Requires an admin token.","url":"https://danielshort.me/tools/ga4-utm-performance","image":"https://danielshort.me/img/hero/head.jpg","applicationCategory":"UtilitiesApplication","operatingSystem":"Any","isAccessibleForFree":true,"creator":{"@type":"Person","name":"Daniel Short","url":"https://danielshort.me/"}}
+  </script>
+</head>
+<body data-page="ga4-utm-performance" class="tools-tool-page" data-tools-title="GA4 UTM Performance" data-tools-eyebrow="GA4 UTM Performance - Private UTM reporting via the GA4 Data API.">
+  <a href="#main" class="skip-link">Skip to main content</a>
+  <header id="combined-header-nav">
+    <nav class="nav" aria-label="Primary">
+      <div class="wrapper nav-wrapper">
+        <a href="/" class="brand" aria-label="Home">
+          <img src="img/ui/logo-64.png" srcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" sizes="64px" alt="DS logo" class="brand-logo" decoding="async" loading="eager" width="64" height="64">
+          <span class="brand-name">
+            <span class="brand-title">Daniel Short</span>
+            <span class="brand-divider" aria-hidden="true"></span>
+            <span class="brand-tagline">
+              <span class="brand-tagline-chunk">Data Science</span>
+              <span class="brand-tagline-chunk">&amp; Analytics</span>
+            </span>
+          </span>
+        </a>
+        <button id="nav-toggle" class="burger" aria-label="Toggle navigation" aria-expanded="false" aria-controls="primary-menu">
+          <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+        </button>
+        <div id="primary-menu" class="nav-row" data-collapsible role="navigation">
+          <a href="/" class="nav-link">Home</a>
+          <div class="nav-item nav-item-portfolio">
+            <a href="portfolio" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-portfolio">
+              Portfolio
+              <span class="nav-link-caret" aria-hidden="true"></span>
+            </a>
+            <div class="nav-dropdown" id="nav-dropdown-portfolio" aria-label="Highlighted projects">
+              <div class="nav-dropdown-inner nav-dropdown-inner-portfolio">
+                <div class="nav-dropdown-column nav-dropdown-column-list nav-portfolio-stack">
+                  <div class="nav-dropdown-header" aria-hidden="true">Top 5 Projects</div>
+                  <div class="nav-project-grid nav-project-stack" role="list">
+                    <a href="portfolio/shapeClassifier" class="nav-project-card" data-project-id="shapeClassifier" role="listitem" target="_blank" rel="noopener noreferrer">
+                      <span class="nav-project-rank">#1</span>
+                      <span class="nav-project-thumb" style="background-image:url('/img/projects/shapeClassifier.webp');" aria-hidden="true">
+                        <video class="nav-project-thumb-media" muted playsinline loop preload="none" poster="/img/projects/shapeClassifier.webp">
+                          <source data-src="/img/projects/shapeClassifier.webm" type="video/webm">
+                          <source data-src="/img/projects/shapeClassifier.mp4" type="video/mp4">
+                        </video>
+                      </span>
+                      <span class="nav-project-meta">
+                        <span class="nav-dropdown-title">Shape Classifier</span>
+                        <span class="nav-dropdown-subtitle">Handwritten shape recognition</span>
+                      </span>
+                    </a>
+                    <a href="portfolio/retailStore" class="nav-project-card" data-project-id="retailStore" role="listitem" target="_blank" rel="noopener noreferrer">
+                      <span class="nav-project-rank">#2</span>
+                      <span class="nav-project-thumb" style="background-image:url('/img/projects/retailStore.webp');" aria-hidden="true"></span>
+                      <span class="nav-project-meta">
+                        <span class="nav-dropdown-title">Store-Level Loss &amp; Sales ETL</span>
+                        <span class="nav-dropdown-subtitle">SQL ETL + anomaly detection</span>
+                      </span>
+                    </a>
+                    <a href="portfolio/sheetMusicUpscale" class="nav-project-card" data-project-id="sheetMusicUpscale" role="listitem" target="_blank" rel="noopener noreferrer">
+                      <span class="nav-project-rank">#3</span>
+                      <span class="nav-project-thumb" style="background-image:url('/img/projects/sheetMusicUpscale.webp');" aria-hidden="true">
+                        <video class="nav-project-thumb-media" muted playsinline loop preload="none" poster="/img/projects/sheetMusicUpscale.webp">
+                          <source data-src="/img/projects/sheetMusicUpscale.webm" type="video/webm">
+                          <source data-src="/img/projects/sheetMusicUpscale.mp4" type="video/mp4">
+                        </video>
+                      </span>
+                      <span class="nav-project-meta">
+                        <span class="nav-dropdown-title">Sheet Music Watermark Removal &amp; Upscale</span>
+                        <span class="nav-dropdown-subtitle">UNet watermark removal + VDSR</span>
+                      </span>
+                    </a>
+                    <a href="portfolio/digitGenerator" class="nav-project-card" data-project-id="digitGenerator" role="listitem" target="_blank" rel="noopener noreferrer">
+                      <span class="nav-project-rank">#4</span>
+                      <span class="nav-project-thumb" style="background-image:url('/img/projects/digitGenerator.webp');" aria-hidden="true">
+                        <video class="nav-project-thumb-media" muted playsinline loop preload="none" poster="/img/projects/digitGenerator.webp">
+                          <source data-src="/img/projects/digitGenerator.webm" type="video/webm">
+                          <source data-src="/img/projects/digitGenerator.mp4" type="video/mp4">
+                        </video>
+                      </span>
+                      <span class="nav-project-meta">
+                        <span class="nav-dropdown-title">Synthetic Digit Generator</span>
+                        <span class="nav-dropdown-subtitle">Variational autoencoder (VAE)</span>
+                      </span>
+                    </a>
+                    <a href="portfolio/nonogram" class="nav-project-card" data-project-id="nonogram" role="listitem" target="_blank" rel="noopener noreferrer">
+                      <span class="nav-project-rank">#5</span>
+                      <span class="nav-project-thumb" style="background-image:url('/img/projects/nonogram.webp');" aria-hidden="true">
+                        <video class="nav-project-thumb-media" muted playsinline loop preload="none" poster="/img/projects/nonogram.webp">
+                          <source data-src="/img/projects/nonogram.webm" type="video/webm">
+                          <source data-src="/img/projects/nonogram.mp4" type="video/mp4">
+                        </video>
+                      </span>
+                      <span class="nav-project-meta">
+                        <span class="nav-dropdown-title">Nonogram Solver</span>
+                        <span class="nav-dropdown-subtitle">Reinforcement learning puzzle solver</span>
+                      </span>
+                    </a>
+                  </div>
+                  <div class="nav-dropdown-footer nav-dropdown-footer-inline">
+                    <a href="portfolio?view=all#filters" class="nav-dropdown-link nav-dropdown-all" role="button">
+                      <span class="nav-dropdown-title">View all projects</span>
+                      <span class="nav-dropdown-subtitle">Browse the complete portfolio</span>
+                    </a>
+                    <a href="tools" class="nav-dropdown-link nav-dropdown-all" role="button">
+                      <span class="nav-dropdown-title">Tools</span>
+                      <span class="nav-dropdown-subtitle">Browse all tools</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="nav-item nav-item-resume">
+            <a href="resume" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-resume">
+              Resume
+              <span class="nav-link-caret" aria-hidden="true"></span>
+            </a>
+            <div class="nav-dropdown" id="nav-dropdown-resume" aria-label="Resume download">
+              <div class="nav-dropdown-header" aria-hidden="true">Resume shortcuts</div>
+              <div class="nav-dropdown-list" role="list">
+                <a href="resume" class="nav-dropdown-link" role="listitem">
+                  <span class="nav-dropdown-title">View Digital Resume</span>
+                  <span class="nav-dropdown-subtitle">Open the digital resume page</span>
+                </a>
+                <a href="resume-pdf" class="nav-dropdown-link" role="listitem">
+                  <span class="nav-dropdown-title">Preview PDF</span>
+                  <span class="nav-dropdown-subtitle">Open the PDF resume page</span>
+                </a>
+                <a href="documents/Resume.pdf" class="nav-dropdown-link" role="listitem" download>
+                  <span class="nav-dropdown-title">Download Resume</span>
+                  <span class="nav-dropdown-subtitle">Save the latest PDF copy</span>
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="nav-item nav-item-contact">
+            <a href="contact" class="nav-link nav-link-cta nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-contact">
+              Contact
+              <span class="nav-link-caret" aria-hidden="true"></span>
+            </a>
+            <div class="nav-dropdown nav-dropdown-contact" id="nav-dropdown-contact" aria-label="Contact options">
+              <div class="nav-dropdown-inner nav-dropdown-inner-contact">
+                <div class="nav-dropdown-column nav-dropdown-column-list">
+                  <div class="nav-dropdown-header" aria-hidden="true">Get in touch</div>
+                  <div class="nav-dropdown-list" role="list">
+                    <a href="contact#contact-modal" class="nav-dropdown-link nav-dropdown-link-recommended" role="listitem" data-contact-modal-link="true">
+                      <span class="nav-dropdown-title">Message through website<span class="nav-dropdown-badge" aria-hidden="true">Recommended</span></span>
+                      <span class="nav-dropdown-subtitle">Send a message via website</span>
+                    </a>
+                    <a href="mailto:daniel@danielshort.me" class="nav-dropdown-link" role="listitem">
+                      <span class="nav-dropdown-title">Email</span>
+                      <span class="nav-dropdown-subtitle">daniel@danielshort.me</span>
+                    </a>
+                    <a href="https://www.linkedin.com/in/danielshort3/" class="nav-dropdown-link" role="listitem" target="_blank" rel="noopener noreferrer">
+                      <span class="nav-dropdown-title">LinkedIn</span>
+                      <span class="nav-dropdown-subtitle">linkedin.com/in/danielshort3</span>
+                    </a>
+                    <a href="https://github.com/danielshort3" class="nav-dropdown-link" role="listitem" target="_blank" rel="noopener noreferrer">
+                      <span class="nav-dropdown-title">GitHub</span>
+                      <span class="nav-dropdown-subtitle">github.com/danielshort3</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <form class="nav-search" action="search" method="get" role="search">
+            <label class="visually-hidden" for="nav-search-q">Search site</label>
+            <div class="nav-search-field">
+              <input id="nav-search-q" class="nav-search-input" type="search" name="q" placeholder="Search…">
+              <button class="nav-search-button" type="submit">
+                <span class="visually-hidden">Search</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7"></circle>
+                  <path d="M20 20l-3.5-3.5"></path>
+                </svg>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <section class="tools-hero">
+    <div class="wrapper">
+      <p class="hero-eyebrow">GA4 UTM Performance - Private UTM reporting via the GA4 Data API.</p>
+      <h1 class="visually-hidden">GA4 UTM Performance</h1>
+    </div>
+  </section>
+
+  <div class="tools-account-dock" data-tools-account="dock">
+    <div class="wrapper tools-account-dock-inner" data-tools-account="dock-inner">
+      <div class="tools-account-bar" data-tools-account="bar"></div>
+    </div>
+  </div>
+
+  <main id="main">
+    <section class="surface-band tools-section">
+      <div class="wrapper">
+        <div class="tools-body">
+          <h2>GA4 UTM Performance</h2>
+          <p class="tools-subtitle">Query GA4 by UTM parameters (via <code>pageLocation</code>) and export results. Requires an admin token.</p>
+
+          <details id="ga4-access-details" open>
+            <summary>Access</summary>
+            <form id="ga4-auth-form" autocomplete="off">
+              <label for="ga4-admin-token">Admin token</label>
+              <input id="ga4-admin-token" type="password" autocomplete="off" placeholder="Paste GA4 admin token">
+              <div class="tools-actions">
+                <button type="submit" class="btn-primary">Save token</button>
+                <button type="button" class="btn-secondary" id="ga4-forget-token">Forget token</button>
+                <span id="ga4-access-meta" aria-live="polite"></span>
+              </div>
+              <p class="tools-helper">Server requirements: <code>GA4_ADMIN_TOKEN</code>, <code>GA4_SERVICE_ACCOUNT_JSON_B64</code>, and (optionally) <code>GA4_PROPERTY_ID</code>.</p>
+            </form>
+          </details>
+
+          <form id="ga4-report-form">
+            <fieldset>
+              <legend>Report</legend>
+              <div class="tools-grid">
+                <div>
+                  <label for="ga4-property-id">GA4 property ID</label>
+                  <input id="ga4-property-id" inputmode="numeric" autocomplete="off" placeholder="e.g. 408110790">
+                </div>
+                <div>
+                  <label for="ga4-start">Start date</label>
+                  <input id="ga4-start" type="date" required>
+                </div>
+                <div>
+                  <label for="ga4-end">End date</label>
+                  <input id="ga4-end" type="date" required>
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend>UTM filters (optional)</legend>
+              <div class="tools-grid">
+                <div>
+                  <label for="ga4-utm-match">Match type</label>
+                  <select id="ga4-utm-match">
+                    <option value="exact" selected>Exact</option>
+                    <option value="contains">Contains</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="ga4-utm-source">utm_source</label>
+                  <input id="ga4-utm-source" autocomplete="off" placeholder="e.g. newsletter">
+                </div>
+                <div>
+                  <label for="ga4-utm-medium">utm_medium</label>
+                  <input id="ga4-utm-medium" autocomplete="off" placeholder="e.g. email">
+                </div>
+                <div>
+                  <label for="ga4-utm-campaign">utm_campaign</label>
+                  <input id="ga4-utm-campaign" autocomplete="off" placeholder="e.g. spring-launch">
+                </div>
+                <div>
+                  <label for="ga4-utm-content">utm_content</label>
+                  <input id="ga4-utm-content" autocomplete="off" placeholder="optional">
+                </div>
+                <div>
+                  <label for="ga4-utm-term">utm_term</label>
+                  <input id="ga4-utm-term" autocomplete="off" placeholder="optional">
+                </div>
+                <div>
+                  <label for="ga4-utm-id">utm_id</label>
+                  <input id="ga4-utm-id" autocomplete="off" placeholder="optional">
+                </div>
+              </div>
+              <label>
+                <input id="ga4-catch-all" type="checkbox" checked>
+                Catch all UTM traffic (<code>utm_</code> anywhere in URL)
+              </label>
+            </fieldset>
+
+            <fieldset>
+              <legend>Group by</legend>
+              <div class="tools-actions">
+                <label><input type="checkbox" name="ga4-group" value="utm_source" checked> utm_source</label>
+                <label><input type="checkbox" name="ga4-group" value="utm_medium" checked> utm_medium</label>
+                <label><input type="checkbox" name="ga4-group" value="utm_campaign" checked> utm_campaign</label>
+                <label><input type="checkbox" name="ga4-group" value="utm_content"> utm_content</label>
+                <label><input type="checkbox" name="ga4-group" value="utm_term"> utm_term</label>
+                <label><input type="checkbox" name="ga4-group" value="utm_id"> utm_id</label>
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend>Display</legend>
+              <div class="tools-grid">
+                <div>
+                  <label for="ga4-view-mode">View</label>
+                  <select id="ga4-view-mode">
+                    <option value="grouped" selected>Grouped (UTM pivot)</option>
+                    <option value="raw">Raw URLs</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="ga4-sort-field">Sort field</label>
+                  <select id="ga4-sort-field"></select>
+                </div>
+                <div>
+                  <label for="ga4-sort-dir">Sort direction</label>
+                  <select id="ga4-sort-dir">
+                    <option value="desc" selected>Desc</option>
+                    <option value="asc">Asc</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="ga4-local-filter">Filter results</label>
+                  <input id="ga4-local-filter" type="search" autocomplete="off" placeholder="optional (client-side)">
+                </div>
+              </div>
+            </fieldset>
+
+            <div class="tools-actions">
+              <button type="submit" class="btn-primary" id="ga4-run">Run report</button>
+              <button type="button" class="btn-secondary" id="ga4-download-csv" disabled>Download grouped CSV</button>
+              <button type="button" class="btn-secondary" id="ga4-download-raw-csv" disabled>Download raw CSV</button>
+            </div>
+          </form>
+
+          <p id="ga4-status" role="status" aria-live="polite"></p>
+          <div id="ga4-summary"></div>
+          <div id="ga4-output"></div>
+          <div id="ga4-drilldown"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer footer-classic">
+    <div class="wrapper footer-inner">
+      <nav class="footer-nav" aria-label="Footer">
+        <section class="footer-col" aria-labelledby="footer-explore">
+          <h2 class="footer-col-title" id="footer-explore">Explore</h2>
+          <a href="/" class="footer-link">Home</a>
+          <a href="search" class="footer-link">Search</a>
+          <a href="tools" class="footer-link">Tools</a>
+          <a href="portfolio" class="footer-link">Portfolio</a>
+        </section>
+
+        <section class="footer-col" aria-labelledby="footer-work">
+          <h2 class="footer-col-title" id="footer-work">Work</h2>
+          <a href="resume" class="footer-link">Resume</a>
+          <a href="contributions" class="footer-link">Contributions</a>
+          <a href="contact" class="footer-link">Contact</a>
+        </section>
+
+        <section class="footer-col" aria-labelledby="footer-connect">
+          <h2 class="footer-col-title" id="footer-connect">Connect</h2>
+          <a href="https://www.linkedin.com/in/danielshort3/" class="footer-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+          <a href="https://github.com/danielshort3" class="footer-link" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <a href="mailto:daniel@danielshort.me" class="footer-link">Email</a>
+        </section>
+
+        <section class="footer-col" aria-labelledby="footer-site">
+          <h2 class="footer-col-title" id="footer-site">Site</h2>
+          <a href="sitemap.xml" class="footer-link">Sitemap</a>
+          <button id="privacy-settings-link-footer" type="button" class="footer-link" aria-haspopup="dialog">Cookie settings</button>
+          <a href="#main" class="footer-link" data-smooth-scroll="true">Back to top</a>
+        </section>
+      </nav>
+
+      <p class="footer-meta">© 2026 Daniel Short. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script defer src="js/tools/ga4-utm-performance.js"></script>
+  <script defer src="js/accounts/tools-config.js"></script>
+  <script defer src="js/accounts/tools-auth.js"></script>
+  <script defer src="js/accounts/tools-state.js"></script>
+  <script defer src="js/accounts/tools-account-ui.js"></script>
+  <script defer src="js/common/common.js"></script>
+  <script defer src="js/navigation/navigation.js"></script>
+  <script defer src="js/animations/animations.js"></script>
+  <script src="js/privacy/config.js"></script>
+  <script defer src="js/privacy/consent_manager.js"></script>
+</body>
+</html>
