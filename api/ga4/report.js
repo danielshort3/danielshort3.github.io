@@ -3,6 +3,29 @@
 const { sendJson, readJson, getBearerToken, clampLimit } = require('../_lib/tools-api');
 const { runReport } = require('../_lib/ga4-data-api');
 
+const UTM_FIELDS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'utm_id'];
+const UTM_DIMENSIONS = {
+  utm_source: 'sessionSource',
+  utm_medium: 'sessionMedium',
+  utm_campaign: 'sessionCampaignName',
+  utm_content: 'sessionManualAdContent',
+  utm_term: 'sessionManualTerm',
+  utm_id: 'sessionCampaignId'
+};
+
+const INSIGHTS_BREAKDOWNS = new Set([
+  'country',
+  'region',
+  'city',
+  'language',
+  'deviceCategory',
+  'browser',
+  'operatingSystem',
+  'platform',
+  'userAgeBracket',
+  'userGender'
+]);
+
 function normalizeAdminToken(value) {
   return String(value || '').trim();
 }
@@ -26,6 +49,15 @@ function normalizeUtmValue(value) {
   if (!raw) return '';
   if (raw.length > 200) return raw.slice(0, 200);
   return raw;
+}
+
+function normalizeKind(value) {
+  const raw = String(value || '').trim().toLowerCase();
+  if (!raw) return 'utm-urls';
+  if (raw === 'utm' || raw === 'utmurls' || raw === 'utm_urls' || raw === 'utm-urls') return 'utm-urls';
+  if (raw === 'insights' || raw === 'explore') return 'insights';
+  if (raw === 'ping' || raw === 'check') return 'ping';
+  return '';
 }
 
 function escapeRegex(value) {
@@ -105,6 +137,59 @@ function buildPageLocationFilter(filters) {
   return { andGroup: { expressions } };
 }
 
+function normalizeMatchMode(value) {
+  const raw = String(value || '').trim().toLowerCase();
+  return raw === 'contains' ? 'contains' : 'exact';
+}
+
+function normalizeInsightsBreakdown(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  return INSIGHTS_BREAKDOWNS.has(raw) ? raw : '';
+}
+
+function normalizeUtmGroupFields(value) {
+  if (!Array.isArray(value)) return [];
+  const cleaned = value
+    .map((field) => String(field || '').trim())
+    .filter((field) => UTM_FIELDS.includes(field));
+  return Array.from(new Set(cleaned));
+}
+
+function buildTrafficSourceFilter(filters) {
+  const f = filters && typeof filters === 'object' ? filters : {};
+  const expressions = [];
+
+  const matchMode = normalizeMatchMode(f.match);
+  const ga4MatchType = matchMode === 'contains' ? 'CONTAINS' : 'EXACT';
+
+  const add = (fieldName, value) => {
+    const v = normalizeUtmValue(value);
+    if (!v) return;
+    expressions.push({
+      filter: {
+        fieldName,
+        stringFilter: {
+          matchType: ga4MatchType,
+          value: v,
+          caseSensitive: false
+        }
+      }
+    });
+  };
+
+  add('sessionSource', f.utm_source);
+  add('sessionMedium', f.utm_medium);
+  add('sessionCampaignName', f.utm_campaign);
+  add('sessionManualAdContent', f.utm_content);
+  add('sessionManualTerm', f.utm_term);
+  add('sessionCampaignId', f.utm_id);
+
+  if (!expressions.length) return null;
+  if (expressions.length === 1) return expressions[0];
+  return { andGroup: { expressions } };
+}
+
 function loadServiceAccount() {
   const b64 = String(process.env.GA4_SERVICE_ACCOUNT_JSON_B64 || '').trim();
   if (b64) {
@@ -128,6 +213,25 @@ function coerceMetricValue(value) {
   const n = Number(raw);
   if (!Number.isFinite(n)) return 0;
   return n;
+}
+
+function flattenRows(rawRows, dimensionNames, metricNames) {
+  const rows = Array.isArray(rawRows) ? rawRows : [];
+  const dims = Array.isArray(dimensionNames) ? dimensionNames : [];
+  const metrics = Array.isArray(metricNames) ? metricNames : [];
+
+  return rows
+    .map((row) => {
+      const out = {};
+      dims.forEach((name, idx) => {
+        out[name] = String(row?.dimensionValues?.[idx]?.value || '').trim();
+      });
+      metrics.forEach((name, idx) => {
+        out[name] = coerceMetricValue(row?.metricValues?.[idx]?.value);
+      });
+      return out;
+    })
+    .filter((row) => row && typeof row === 'object');
 }
 
 module.exports = async (req, res) => {
@@ -158,21 +262,17 @@ module.exports = async (req, res) => {
     return;
   }
 
+  const kind = normalizeKind(body?.kind);
+  if (!kind) {
+    sendJson(res, 400, { ok: false, error: 'Invalid report kind.' });
+    return;
+  }
+
   const propertyId = normalizePropertyId(body?.propertyId || process.env.GA4_PROPERTY_ID);
   if (!propertyId) {
     sendJson(res, 400, { ok: false, error: 'Missing GA4 propertyId.' });
     return;
   }
-
-  const startDate = normalizeIsoDate(body?.startDate);
-  const endDate = normalizeIsoDate(body?.endDate);
-  if (!startDate || !endDate) {
-    sendJson(res, 400, { ok: false, error: 'Missing startDate/endDate (expected YYYY-MM-DD).' });
-    return;
-  }
-
-  const pageSize = clampLimit(body?.pageSize, 5000, 10000);
-  const maxRows = clampLimit(body?.maxRows, 25000, 50000);
 
   let serviceAccount;
   try {
@@ -182,66 +282,171 @@ module.exports = async (req, res) => {
     return;
   }
 
-  const dimensionFilter = buildPageLocationFilter(body?.filters);
-  const reportBase = {
-    dateRanges: [{ startDate, endDate }],
-    dimensions: [{ name: 'pageLocation' }],
-    metrics: [{ name: 'sessions' }, { name: 'totalUsers' }, { name: 'eventCount' }],
-    limit: pageSize,
-    offset: 0
-  };
-  if (dimensionFilter) reportBase.dimensionFilter = dimensionFilter;
+  const startDateInput = normalizeIsoDate(body?.startDate);
+  const endDateInput = normalizeIsoDate(body?.endDate);
 
-  let first;
-  try {
-    first = await runReport(serviceAccount, propertyId, reportBase);
-  } catch (err) {
-    sendJson(res, 502, { ok: false, error: err.message });
+  const getDateRange = () => {
+    if (startDateInput && endDateInput) return { startDate: startDateInput, endDate: endDateInput };
+    if (kind !== 'ping') return null;
+
+    const now = new Date();
+    const end = now;
+    const start = new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000);
+    const pad = (n) => String(n).padStart(2, '0');
+    const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    return { startDate: iso(start), endDate: iso(end) };
+  };
+
+  const dateRange = getDateRange();
+  if (!dateRange) {
+    sendJson(res, 400, { ok: false, error: 'Missing startDate/endDate (expected YYYY-MM-DD).' });
     return;
   }
 
-  const rowCount = Number(first?.rowCount) || 0;
-  const rawRows = Array.isArray(first?.rows) ? first.rows.slice() : [];
+  const { startDate, endDate } = dateRange;
 
-  let offset = rawRows.length;
-  while (rowCount && offset < rowCount && rawRows.length < maxRows) {
-    let page;
+  if (kind === 'utm-urls') {
+    const pageSize = clampLimit(body?.pageSize, 5000, 10000);
+    const maxRows = clampLimit(body?.maxRows, 25000, 50000);
+
+    const dimensionFilter = buildPageLocationFilter(body?.filters);
+    const dimensionNames = ['pageLocation'];
+    const metricNames = ['sessions', 'totalUsers', 'eventCount'];
+    const reportBase = {
+      dateRanges: [{ startDate, endDate }],
+      dimensions: dimensionNames.map((name) => ({ name })),
+      metrics: metricNames.map((name) => ({ name })),
+      limit: pageSize,
+      offset: 0
+    };
+    if (dimensionFilter) reportBase.dimensionFilter = dimensionFilter;
+
+    let first;
     try {
-      page = await runReport(serviceAccount, propertyId, { ...reportBase, offset });
+      first = await runReport(serviceAccount, propertyId, reportBase);
     } catch (err) {
       sendJson(res, 502, { ok: false, error: err.message });
       return;
     }
 
-    const pageRows = Array.isArray(page?.rows) ? page.rows : [];
-    if (!pageRows.length) break;
-    rawRows.push(...pageRows);
-    offset += pageRows.length;
-    if (pageRows.length < pageSize) break;
+    const rowCount = Number(first?.rowCount) || 0;
+    const rawRows = Array.isArray(first?.rows) ? first.rows.slice() : [];
+
+    let offset = rawRows.length;
+    while (rowCount && offset < rowCount && rawRows.length < maxRows) {
+      let page;
+      try {
+        page = await runReport(serviceAccount, propertyId, { ...reportBase, offset });
+      } catch (err) {
+        sendJson(res, 502, { ok: false, error: err.message });
+        return;
+      }
+
+      const pageRows = Array.isArray(page?.rows) ? page.rows : [];
+      if (!pageRows.length) break;
+      rawRows.push(...pageRows);
+      offset += pageRows.length;
+      if (pageRows.length < pageSize) break;
+    }
+
+    const rows = flattenRows(rawRows.slice(0, maxRows), dimensionNames, metricNames)
+      .filter((row) => String(row.pageLocation || '').trim());
+
+    sendJson(res, 200, {
+      ok: true,
+      kind,
+      propertyId,
+      startDate,
+      endDate,
+      dimensionNames,
+      metricNames,
+      rowCount,
+      returnedRows: rows.length,
+      truncated: rowCount ? rows.length < rowCount : rawRows.length >= maxRows,
+      rows
+    });
+    return;
   }
 
-  const rows = rawRows
-    .slice(0, maxRows)
-    .map((row) => {
-      const pageLocation = String(row?.dimensionValues?.[0]?.value || '').trim();
-      if (!pageLocation) return null;
-      return {
-        pageLocation,
-        sessions: coerceMetricValue(row?.metricValues?.[0]?.value),
-        totalUsers: coerceMetricValue(row?.metricValues?.[1]?.value),
-        eventCount: coerceMetricValue(row?.metricValues?.[2]?.value)
-      };
-    })
-    .filter(Boolean);
+  if (kind === 'insights' || kind === 'ping') {
+    const includeUtm = kind === 'ping' ? false : body?.includeUtm !== false;
+    const breakdown = kind === 'ping' ? 'country' : normalizeInsightsBreakdown(body?.breakdown);
+    const requestedFields = normalizeUtmGroupFields(body?.groupFields);
+    const defaultFields = ['utm_source', 'utm_medium', 'utm_campaign'];
+    const utmFields = requestedFields.length ? requestedFields : defaultFields;
 
-  sendJson(res, 200, {
-    ok: true,
-    propertyId,
-    startDate,
-    endDate,
-    rowCount,
-    returnedRows: rows.length,
-    truncated: rowCount ? rows.length < rowCount : rawRows.length >= maxRows,
-    rows
-  });
+    const dimensions = [];
+    if (includeUtm) {
+      utmFields.forEach((field) => {
+        const dim = UTM_DIMENSIONS[field];
+        if (dim && !dimensions.includes(dim)) dimensions.push(dim);
+      });
+    }
+    if (breakdown && !dimensions.includes(breakdown)) dimensions.push(breakdown);
+
+    if (!dimensions.length) {
+      sendJson(res, 400, { ok: false, error: 'Select a breakdown and/or include UTM dimensions.' });
+      return;
+    }
+
+    const metricNames = [
+      'sessions',
+      'totalUsers',
+      'newUsers',
+      'engagedSessions',
+      'engagementRate',
+      'bounceRate',
+      'eventCount'
+    ];
+
+    const maxRows = kind === 'ping' ? 1 : clampLimit(body?.maxRows, 200, 10000);
+    const orderByFieldRaw = String(body?.orderBy || 'sessions').trim();
+    const allowedOrderBys = new Set(['sessions', 'totalUsers', 'newUsers', 'engagedSessions', 'eventCount']);
+    const orderByField = allowedOrderBys.has(orderByFieldRaw) ? orderByFieldRaw : 'sessions';
+    const orderDir = String(body?.orderDir || 'desc').trim().toLowerCase() === 'asc' ? 'asc' : 'desc';
+
+    const dimensionFilter = kind === 'ping' ? null : buildTrafficSourceFilter(body?.filters);
+
+    const reportBody = {
+      dateRanges: [{ startDate, endDate }],
+      dimensions: dimensions.map((name) => ({ name })),
+      metrics: metricNames.map((name) => ({ name })),
+      limit: maxRows,
+      orderBys: [
+        {
+          metric: { metricName: orderByField },
+          desc: orderDir !== 'asc'
+        }
+      ]
+    };
+    if (dimensionFilter) reportBody.dimensionFilter = dimensionFilter;
+
+    let report;
+    try {
+      report = await runReport(serviceAccount, propertyId, reportBody);
+    } catch (err) {
+      sendJson(res, 502, { ok: false, error: err.message });
+      return;
+    }
+
+    const rowCount = Number(report?.rowCount) || 0;
+    const rows = flattenRows(report?.rows, dimensions, metricNames);
+
+    sendJson(res, 200, {
+      ok: true,
+      kind,
+      propertyId,
+      startDate,
+      endDate,
+      dimensionNames: dimensions,
+      metricNames,
+      rowCount,
+      returnedRows: rows.length,
+      truncated: rowCount ? rows.length < rowCount : false,
+      rows
+    });
+    return;
+  }
+
+  sendJson(res, 400, { ok: false, error: 'Unsupported report kind.' });
 };
