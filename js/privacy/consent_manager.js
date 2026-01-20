@@ -51,7 +51,7 @@
     languages: {
       en: {
         bannerTitle: 'I value your privacy.',
-        bannerDesc: "I use cookies and similar technologies to improve your experience, understand site traffic, and measure performance.",
+        bannerDesc: "I use cookies and similar technologies to improve your experience, understand site traffic, and measure performance. If you continue using the site or close this banner, I’ll treat that as acceptance of all cookies; you can change this anytime in Manage settings.",
         acceptAll: 'Allow all cookies',
         rejectAll: 'Allow essential only',
         managePrefs: 'Manage settings',
@@ -85,7 +85,7 @@
       },
       es: {
         bannerTitle: 'Valoro tu privacidad',
-        bannerDesc: 'Utilizo cookies y tecnologías similares para mejorar tu experiencia, entender el tráfico del sitio y medir el rendimiento. Al cerrar este aviso o elegir Permitir todas aceptas las cookies; puedes cambiar tu decisión en Administrar ajustes.',
+        bannerDesc: 'Utilizo cookies y tecnologías similares para mejorar tu experiencia, entender el tráfico del sitio y medir el rendimiento. Al continuar navegando, cerrar este aviso o elegir Permitir todas aceptas las cookies; puedes cambiar tu decisión en Administrar ajustes.',
         acceptAll: 'Permitir todas las cookies',
         rejectAll: 'Permitir solo las esenciales',
         managePrefs: 'Administrar ajustes',
@@ -410,7 +410,6 @@
     const banner = document.createElement('div');
     banner.id = 'pcz-banner';
     banner.setAttribute('role', 'dialog');
-    banner.setAttribute('aria-modal', 'true');
     banner.setAttribute('aria-label', localeStrings.bannerTitle);
     banner.innerHTML =
       '<button id="pcz-close" type="button" class="pcz-close" aria-label="' + localeStrings.close + '"><span aria-hidden="true">&times;</span></button>' +
@@ -488,20 +487,29 @@
     const initialState = saved ? saved.categories : getDefaultState();
     const banner = createBanner(localeStrings);
     document.body.appendChild(banner);
-    try {
-      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-    } catch (err) {
-      try { window.scrollTo(0, 0); } catch (e) {}
-    }
     setTimeout(() => banner.classList.add('pcz-visible'), 16);
-    // Block page interaction until a choice is made
-    document.body.classList.add('consent-blocked');
+    // Banner is non-blocking; ensure the page isn't stuck in a blocked state.
+    try { document.body.classList.remove('consent-blocked'); } catch (err) {}
+
     const closeBtn = banner.querySelector('#pcz-close');
     const acceptBtn = banner.querySelector('#pcz-accept');
     const rejectBtn = banner.querySelector('#pcz-reject');
     const manageBtn = banner.querySelector('#pcz-manage');
+
+    let cleanedUp = false;
+    const cleanupAutoAccept = () => {
+      if (cleanedUp) return;
+      cleanedUp = true;
+      try { document.removeEventListener('pointerdown', handleIgnoreInteraction, true); } catch {}
+      try { document.removeEventListener('keydown', handleIgnoreInteraction, true); } catch {}
+      try { window.removeEventListener('scroll', handleIgnoreInteraction, true); } catch {}
+      try { window.removeEventListener('wheel', handleIgnoreInteraction, true); } catch {}
+      try { window.removeEventListener('touchstart', handleIgnoreInteraction, true); } catch {}
+    };
+
     const dismissBanner = () => {
       if (!banner || banner.dataset.state === 'closing') return;
+      cleanupAutoAccept();
       banner.dataset.state = 'closing';
       banner.classList.remove('pcz-visible');
       banner.classList.add('pcz-exit');
@@ -511,19 +519,22 @@
       banner.addEventListener('transitionend', cleanup, { once: true });
       banner.addEventListener('animationend', cleanup, { once: true });
       setTimeout(cleanup, 450);
-      document.body.classList.remove('consent-blocked');
+      try { document.body.classList.remove('consent-blocked'); } catch (err) {}
     };
-    // Focus trap within the banner while blocking is active
-    const focusables = banner.querySelectorAll('a,button,[tabindex]:not([tabindex="-1"])');
-    const first = focusables[0];
-    const last  = focusables[focusables.length - 1];
-    banner.addEventListener('keydown', function(e){
-      if (e.key !== 'Tab') return;
-      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-    });
-    // Set initial focus to the privacy‑preserving choice
-    (rejectBtn || acceptBtn || manageBtn).focus();
+
+    // If the banner is ignored and the visitor continues using the page,
+    // treat that as implied consent ("continue browsing" = accept).
+    function handleIgnoreInteraction(event) {
+      if (loadConsent()) {
+        dismissBanner();
+        return;
+      }
+      const target = event && event.target ? event.target : null;
+      if (target && banner.contains(target)) return;
+      if (document.getElementById('pcz-modal')) return;
+      acceptAll();
+    }
+
     function acceptAll() {
       const newState = {
         necessary: true,
@@ -535,6 +546,12 @@
       applyConsent(newState);
       dismissBanner();
     }
+    try { document.addEventListener('pointerdown', handleIgnoreInteraction, true); } catch {}
+    try { document.addEventListener('keydown', handleIgnoreInteraction, true); } catch {}
+    try { window.addEventListener('scroll', handleIgnoreInteraction, { passive: true, capture: true }); } catch {}
+    try { window.addEventListener('wheel', handleIgnoreInteraction, { passive: true, capture: true }); } catch {}
+    try { window.addEventListener('touchstart', handleIgnoreInteraction, { passive: true, capture: true }); } catch {}
+
     acceptBtn.addEventListener('click', acceptAll);
     if (closeBtn) {
       closeBtn.addEventListener('click', acceptAll);

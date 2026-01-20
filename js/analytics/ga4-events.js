@@ -9,17 +9,7 @@
   window.dataLayer = window.dataLayer || [];
   window.gtag = window.gtag || function(){ (window.dataLayer = window.dataLayer || []).push(arguments); };
 
-  // Set conservative Consent Mode defaults as early as possible
-  try {
-    window.gtag('consent', 'default', {
-      'ad_storage': 'denied',
-      'analytics_storage': 'denied',
-      'ad_user_data': 'denied',
-      'ad_personalization': 'denied',
-      // Short wait window so GA respects updates promptly
-      'wait_for_update': 500
-    });
-  } catch {}
+  // Consent Mode defaults/updates are managed by js/privacy/consent_manager.js.
 
   // Load GA library only when allowed
   function loadGA4(id) {
@@ -53,11 +43,18 @@
     document.head.appendChild(s);
   }
 
+  function getGa4Id() {
+    const cfg = window.PrivacyConfig;
+    const id = cfg && cfg.vendors && cfg.vendors.ga4 && cfg.vendors.ga4.id;
+    return typeof id === 'string' ? id.trim() : '';
+  }
+
   // Init when analytics consent is granted (now or later)
   function tryInitFromConsent(detail) {
     const state = detail && detail.categories ? detail.categories : detail;
     const ok = !!(state && state.analytics);
-    if (ok) loadGA4('G-0VL37MQ62P');
+    const id = getGa4Id() || 'G-0VL37MQ62P';
+    if (ok && id) loadGA4(id);
   }
 
   // If consent manager already ran:
