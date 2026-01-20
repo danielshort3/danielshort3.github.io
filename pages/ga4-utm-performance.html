@@ -227,138 +227,268 @@
   </div>
 
   <main id="main">
-    <section class="surface-band tools-section">
+    <section class="surface-band tools-section reveal">
       <div class="wrapper">
-        <div class="tools-body">
-          <h2>GA4 UTM Performance</h2>
-          <p class="tools-subtitle">Query GA4 by UTM parameters (via <code>pageLocation</code>) and export results. Requires an admin token.</p>
-
-          <details id="ga4-access-details" open>
-            <summary>Access</summary>
-            <form id="ga4-auth-form" autocomplete="off">
-              <label for="ga4-admin-token">Admin token</label>
-              <input id="ga4-admin-token" type="password" autocomplete="off" placeholder="Paste GA4 admin token">
-              <div class="tools-actions">
-                <button type="submit" class="btn-primary">Save token</button>
-                <button type="button" class="btn-secondary" id="ga4-forget-token">Forget token</button>
-                <span id="ga4-access-meta" aria-live="polite"></span>
+        <details class="shortlinks-access-details" data-ga4="access-details" open>
+          <summary class="shortlinks-access-summary">
+            <h2 class="section-title">Access</h2>
+            <span class="shortlinks-access-meta" data-ga4="access-meta"></span>
+          </summary>
+          <div class="shortlinks-access-body">
+            <form class="contact-form" data-ga4="auth" autocomplete="off">
+              <div class="form-field">
+                <label for="ga4-admin-token">Admin token</label>
+                <input id="ga4-admin-token" type="password" inputmode="text" autocomplete="current-password" data-ga4="token">
+                <p class="contact-form-note">Stored in <code>localStorage</code> on this device.</p>
               </div>
-              <p class="tools-helper">Server requirements: <code>GA4_ADMIN_TOKEN</code>, <code>GA4_SERVICE_ACCOUNT_JSON_B64</code>, and (optionally) <code>GA4_PROPERTY_ID</code>.</p>
-            </form>
-          </details>
 
-          <form id="ga4-report-form">
-            <fieldset>
-              <legend>Report</legend>
               <div class="tools-grid">
-                <div>
+                <div class="form-field">
+                  <label for="ga4-profile-select">Property profile</label>
+                  <select id="ga4-profile-select" data-ga4="profile-select">
+                    <option value="">Custom</option>
+                  </select>
+                  <p class="contact-form-note">Store multiple GA4 properties and switch quickly.</p>
+                </div>
+
+                <div class="form-field">
+                  <label for="ga4-profile-label">Profile label</label>
+                  <input id="ga4-profile-label" type="text" autocomplete="off" placeholder="e.g. danielshort.me" data-ga4="profile-label">
+                </div>
+
+                <div class="form-field">
                   <label for="ga4-property-id">GA4 property ID</label>
-                  <input id="ga4-property-id" inputmode="numeric" autocomplete="off" placeholder="e.g. 408110790">
-                </div>
-                <div>
-                  <label for="ga4-start">Start date</label>
-                  <input id="ga4-start" type="date" required>
-                </div>
-                <div>
-                  <label for="ga4-end">End date</label>
-                  <input id="ga4-end" type="date" required>
+                  <input id="ga4-property-id" inputmode="numeric" autocomplete="off" placeholder="e.g. 408110790" data-ga4="property-id">
                 </div>
               </div>
-            </fieldset>
 
-            <fieldset>
-              <legend>UTM filters (optional)</legend>
+              <div class="form-actions">
+                <button type="submit" class="btn-primary"><span class="btn-label">Save token</span></button>
+                <button type="button" class="btn-secondary" data-ga4="forget-token">Forget token</button>
+                <button type="button" class="btn-secondary" data-ga4="save-profile">Save profile</button>
+                <button type="button" class="btn-secondary" data-ga4="delete-profile">Delete profile</button>
+                <button type="button" class="btn-secondary" data-ga4="check-access">Check access</button>
+              </div>
+
+              <div class="contact-form-status" data-ga4="access-status" role="status" aria-live="polite"></div>
+              <p class="contact-form-note">Server env: <code>GA4_ADMIN_TOKEN</code>, <code>GA4_SERVICE_ACCOUNT_JSON_B64</code>, and (optionally) <code>GA4_PROPERTY_ID</code>.</p>
+            </form>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section class="surface-band tools-section reveal">
+      <div class="wrapper">
+        <details class="shortlinks-panel" open data-ga4="scope-details">
+          <summary class="shortlinks-panel-summary">
+            <h2 class="section-title">Scope</h2>
+          </summary>
+          <div class="shortlinks-panel-body">
+            <form class="contact-form" data-ga4="scope-form" autocomplete="off">
               <div class="tools-grid">
-                <div>
+                <div class="form-field">
+                  <label for="ga4-start">Start date</label>
+                  <input id="ga4-start" type="date" required data-ga4="start">
+                </div>
+                <div class="form-field">
+                  <label for="ga4-end">End date</label>
+                  <input id="ga4-end" type="date" required data-ga4="end">
+                </div>
+              </div>
+              <p class="contact-form-note">Tip: GA4 can take time to attribute new campaigns. If you’re not seeing results, try a wider date range.</p>
+            </form>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section class="surface-band tools-section reveal">
+      <div class="wrapper">
+        <details class="shortlinks-panel" open data-ga4="filters-details">
+          <summary class="shortlinks-panel-summary">
+            <h2 class="section-title">Filters</h2>
+          </summary>
+          <div class="shortlinks-panel-body">
+            <form class="contact-form" data-ga4="filters-form" autocomplete="off">
+              <div class="tools-grid">
+                <div class="form-field">
                   <label for="ga4-utm-match">Match type</label>
-                  <select id="ga4-utm-match">
+                  <select id="ga4-utm-match" data-ga4="utm-match">
                     <option value="exact" selected>Exact</option>
                     <option value="contains">Contains</option>
                   </select>
                 </div>
-                <div>
+                <div class="form-field">
                   <label for="ga4-utm-source">utm_source</label>
-                  <input id="ga4-utm-source" autocomplete="off" placeholder="e.g. newsletter">
+                  <input id="ga4-utm-source" autocomplete="off" placeholder="e.g. newsletter" data-ga4="utm-source">
                 </div>
-                <div>
+                <div class="form-field">
                   <label for="ga4-utm-medium">utm_medium</label>
-                  <input id="ga4-utm-medium" autocomplete="off" placeholder="e.g. email">
+                  <input id="ga4-utm-medium" autocomplete="off" placeholder="e.g. email" data-ga4="utm-medium">
                 </div>
-                <div>
+                <div class="form-field">
                   <label for="ga4-utm-campaign">utm_campaign</label>
-                  <input id="ga4-utm-campaign" autocomplete="off" placeholder="e.g. spring-launch">
+                  <input id="ga4-utm-campaign" autocomplete="off" placeholder="e.g. spring-launch" data-ga4="utm-campaign">
                 </div>
-                <div>
+                <div class="form-field">
                   <label for="ga4-utm-content">utm_content</label>
-                  <input id="ga4-utm-content" autocomplete="off" placeholder="optional">
+                  <input id="ga4-utm-content" autocomplete="off" placeholder="optional" data-ga4="utm-content">
                 </div>
-                <div>
+                <div class="form-field">
                   <label for="ga4-utm-term">utm_term</label>
-                  <input id="ga4-utm-term" autocomplete="off" placeholder="optional">
+                  <input id="ga4-utm-term" autocomplete="off" placeholder="optional" data-ga4="utm-term">
                 </div>
-                <div>
+                <div class="form-field">
                   <label for="ga4-utm-id">utm_id</label>
-                  <input id="ga4-utm-id" autocomplete="off" placeholder="optional">
+                  <input id="ga4-utm-id" autocomplete="off" placeholder="optional" data-ga4="utm-id">
                 </div>
               </div>
-              <label>
-                <input id="ga4-catch-all" type="checkbox" checked>
-                Catch all UTM traffic (<code>utm_</code> anywhere in URL)
-              </label>
-            </fieldset>
 
-            <fieldset>
-              <legend>Group by</legend>
-              <div class="tools-actions">
-                <label><input type="checkbox" name="ga4-group" value="utm_source" checked> utm_source</label>
-                <label><input type="checkbox" name="ga4-group" value="utm_medium" checked> utm_medium</label>
-                <label><input type="checkbox" name="ga4-group" value="utm_campaign" checked> utm_campaign</label>
-                <label><input type="checkbox" name="ga4-group" value="utm_content"> utm_content</label>
-                <label><input type="checkbox" name="ga4-group" value="utm_term"> utm_term</label>
-                <label><input type="checkbox" name="ga4-group" value="utm_id"> utm_id</label>
+              <div class="form-field">
+                <label>
+                  <input id="ga4-catch-all" type="checkbox" checked data-ga4="catch-all">
+                  Catch all UTM traffic (<code>utm_</code> anywhere in URL)
+                </label>
+                <p class="contact-form-note">Applies to the URL report (filters <code>pageLocation</code>). Insights use GA4 session traffic-source dimensions.</p>
               </div>
-            </fieldset>
+            </form>
+          </div>
+        </details>
+      </div>
+    </section>
 
-            <fieldset>
-              <legend>Display</legend>
+    <section class="surface-band tools-section reveal">
+      <div class="wrapper">
+        <details class="shortlinks-panel" open data-ga4="utm-details">
+          <summary class="shortlinks-panel-summary">
+            <h2 class="section-title">UTM URL Report</h2>
+          </summary>
+          <div class="shortlinks-panel-body">
+            <form class="contact-form" data-ga4="utm-form" autocomplete="off">
+              <div class="form-field">
+                <label>Group by</label>
+                <div class="tools-actions" data-ga4="group-fields">
+                  <label><input type="checkbox" name="ga4-group" value="utm_source" checked> utm_source</label>
+                  <label><input type="checkbox" name="ga4-group" value="utm_medium" checked> utm_medium</label>
+                  <label><input type="checkbox" name="ga4-group" value="utm_campaign" checked> utm_campaign</label>
+                  <label><input type="checkbox" name="ga4-group" value="utm_content"> utm_content</label>
+                  <label><input type="checkbox" name="ga4-group" value="utm_term"> utm_term</label>
+                  <label><input type="checkbox" name="ga4-group" value="utm_id"> utm_id</label>
+                </div>
+                <p class="contact-form-note">Groups are created client-side by parsing <code>pageLocation</code>.</p>
+              </div>
+
               <div class="tools-grid">
-                <div>
+                <div class="form-field">
                   <label for="ga4-view-mode">View</label>
-                  <select id="ga4-view-mode">
+                  <select id="ga4-view-mode" data-ga4="view-mode">
                     <option value="grouped" selected>Grouped (UTM pivot)</option>
                     <option value="raw">Raw URLs</option>
                   </select>
                 </div>
-                <div>
+                <div class="form-field">
                   <label for="ga4-sort-field">Sort field</label>
-                  <select id="ga4-sort-field"></select>
+                  <select id="ga4-sort-field" data-ga4="sort-field"></select>
                 </div>
-                <div>
+                <div class="form-field">
                   <label for="ga4-sort-dir">Sort direction</label>
-                  <select id="ga4-sort-dir">
+                  <select id="ga4-sort-dir" data-ga4="sort-dir">
                     <option value="desc" selected>Desc</option>
                     <option value="asc">Asc</option>
                   </select>
                 </div>
-                <div>
+                <div class="form-field">
                   <label for="ga4-local-filter">Filter results</label>
-                  <input id="ga4-local-filter" type="search" autocomplete="off" placeholder="optional (client-side)">
+                  <input id="ga4-local-filter" type="search" autocomplete="off" placeholder="optional (client-side)" data-ga4="local-filter">
                 </div>
               </div>
-            </fieldset>
 
-            <div class="tools-actions">
-              <button type="submit" class="btn-primary" id="ga4-run">Run report</button>
-              <button type="button" class="btn-secondary" id="ga4-download-csv" disabled>Download grouped CSV</button>
-              <button type="button" class="btn-secondary" id="ga4-download-raw-csv" disabled>Download raw CSV</button>
-            </div>
-          </form>
+              <div class="form-actions">
+                <button type="submit" class="btn-primary" data-ga4="run"><span class="btn-label">Run report</span></button>
+                <button type="button" class="btn-secondary" data-ga4="download-grouped" disabled>Download grouped CSV</button>
+                <button type="button" class="btn-secondary" data-ga4="download-raw" disabled>Download raw CSV</button>
+              </div>
+            </form>
 
-          <p id="ga4-status" role="status" aria-live="polite"></p>
-          <div id="ga4-summary"></div>
-          <div id="ga4-output"></div>
-          <div id="ga4-drilldown"></div>
-        </div>
+            <div class="contact-form-status" data-ga4="utm-status" role="status" aria-live="polite"></div>
+            <div data-ga4="utm-summary"></div>
+            <div data-ga4="utm-output"></div>
+            <div data-ga4="utm-drilldown"></div>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section class="surface-band tools-section reveal">
+      <div class="wrapper">
+        <details class="shortlinks-panel" open data-ga4="insights-details">
+          <summary class="shortlinks-panel-summary">
+            <h2 class="section-title">Insights</h2>
+          </summary>
+          <div class="shortlinks-panel-body">
+            <form class="contact-form" data-ga4="insights-form" autocomplete="off">
+              <div class="tools-grid">
+                <div class="form-field">
+                  <label for="ga4-insights-breakdown">Breakdown</label>
+                  <select id="ga4-insights-breakdown" data-ga4="insights-breakdown">
+                    <option value="" selected>None (UTM only)</option>
+                    <option value="country">Country</option>
+                    <option value="region">Region</option>
+                    <option value="city">City</option>
+                    <option value="language">Language</option>
+                    <option value="deviceCategory">Device category</option>
+                    <option value="browser">Browser</option>
+                    <option value="operatingSystem">Operating system</option>
+                    <option value="platform">Platform</option>
+                    <option value="userAgeBracket">Age bracket</option>
+                    <option value="userGender">Gender</option>
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label for="ga4-insights-max-rows">Max rows</label>
+                  <input id="ga4-insights-max-rows" type="number" min="10" max="10000" step="10" value="200" inputmode="numeric" data-ga4="insights-max-rows">
+                </div>
+                <div class="form-field">
+                  <label for="ga4-insights-order-by">Order by</label>
+                  <select id="ga4-insights-order-by" data-ga4="insights-order-by">
+                    <option value="sessions" selected>Sessions</option>
+                    <option value="totalUsers">Users</option>
+                    <option value="eventCount">Events</option>
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label for="ga4-insights-dir">Direction</label>
+                  <select id="ga4-insights-dir" data-ga4="insights-dir">
+                    <option value="desc" selected>Desc</option>
+                    <option value="asc">Asc</option>
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label for="ga4-insights-filter">Filter results</label>
+                  <input id="ga4-insights-filter" type="search" autocomplete="off" placeholder="optional (client-side)" data-ga4="insights-filter">
+                </div>
+              </div>
+
+              <div class="form-field">
+                <label>
+                  <input id="ga4-insights-include-utm" type="checkbox" checked data-ga4="insights-include-utm">
+                  Include UTM dimensions (source/medium/campaign)
+                </label>
+                <p class="contact-form-note">Insights use GA4 session traffic-source dimensions (e.g., <code>sessionSource</code>, <code>sessionMedium</code>, <code>sessionCampaignName</code>).</p>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn-primary" data-ga4="insights-run"><span class="btn-label">Run insights</span></button>
+                <button type="button" class="btn-secondary" data-ga4="insights-download" disabled>Download CSV</button>
+              </div>
+            </form>
+
+            <div class="contact-form-status" data-ga4="insights-status" role="status" aria-live="polite"></div>
+            <div data-ga4="insights-summary"></div>
+            <div data-ga4="insights-output"></div>
+          </div>
+        </details>
       </div>
     </section>
   </main>
