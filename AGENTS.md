@@ -32,7 +32,7 @@ All tools share the same Cognito login + per-tool session storage:
 - Frontend auth/config: `js/accounts/tools-config.js`, `js/accounts/tools-auth.js`
 - Frontend storage API wrapper: `js/accounts/tools-state.js`
 - Shared UI shell (hero + account bar + modals): `js/accounts/tools-account-ui.js`
-- Backend endpoints: `api/tools/me.js`, `api/tools/state.js`, `api/tools/dashboard.js`, `api/tools/activity.js`
+- Backend endpoints: routed via `api/tools/[...slug].js` (handlers in `api/_lib/tools-endpoints/`)
 
 Tool integration requirements:
 - Tool pages should include `.skip-link`, `<main id="main">`, the `.tools-hero` section, and the `[data-tools-account="dock"]` container (see existing tools or the templates).
@@ -43,7 +43,7 @@ Tool integration requirements:
 
 Session metadata:
 - Users can now set session `title`, `tags`, `note`, and `pinned` via the Session modal.
-- Backend support is `PATCH /api/tools/state` (see `api/tools/state.js` and `js/accounts/tools-state.js`).
+- Backend support is `PATCH /api/tools/state` (see `api/_lib/tools-endpoints/state.js` and `js/accounts/tools-state.js`).
 
 ## Build, Test, and Development Commands
 Run `npm run build:css` to compose all `css/styles.css` imports into the hashed bundle. `npm run build:icons` regenerates favicons from `img/ui/logo.png`. `npm run build` runs the CSS build and copies site assets into `public/`. Lightweight project checks live in `npm test`. After any build, open `public/index.html` (or the root files) in a browser or serve `public/` through any static server for validation.

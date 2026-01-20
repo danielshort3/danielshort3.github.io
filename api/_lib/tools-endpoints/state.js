@@ -16,8 +16,8 @@ const {
   normalizeToolId,
   normalizeSessionId,
   clampLimit
-} = require('../_lib/tools-api');
-const { verifyCognitoIdToken } = require('../_lib/cognito-jwt');
+} = require('../tools-api');
+const { verifyCognitoIdToken } = require('../cognito-jwt');
 const {
   MAX_SNAPSHOT_BYTES,
   saveSession,
@@ -26,7 +26,7 @@ const {
   updateSessionMeta,
   deleteSession,
   listRecentSessions
-} = require('../_lib/tools-store');
+} = require('../tools-store');
 
 const pickQuery = (value) => Array.isArray(value) ? value[0] : value;
 
@@ -229,3 +229,4 @@ module.exports = async (req, res) => {
   res.setHeader('Allow', 'GET, POST, PATCH, DELETE');
   sendJson(res, 405, { ok: false, error: 'Method Not Allowed' });
 };
+

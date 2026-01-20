@@ -3,9 +3,9 @@
 */
 'use strict';
 
-const { sendJson, getBearerToken, clampLimit } = require('../_lib/tools-api');
-const { verifyCognitoIdToken } = require('../_lib/cognito-jwt');
-const { listUserTools, getToolMeta, listRecentSessions, listActivity } = require('../_lib/tools-store');
+const { sendJson, getBearerToken, clampLimit } = require('../tools-api');
+const { verifyCognitoIdToken } = require('../cognito-jwt');
+const { listUserTools, getToolMeta, listRecentSessions, listActivity } = require('../tools-store');
 
 const pickQuery = (value) => Array.isArray(value) ? value[0] : value;
 
@@ -73,3 +73,4 @@ module.exports = async (req, res) => {
     sendJson(res, 502, { ok: false, error: 'Storage backend unavailable' });
   }
 };
+
