@@ -3,8 +3,8 @@
 */
 'use strict';
 
-const { sendJson, getBearerToken } = require('../_lib/tools-api');
-const { verifyCognitoIdToken } = require('../_lib/cognito-jwt');
+const { sendJson, getBearerToken } = require('../tools-api');
+const { verifyCognitoIdToken } = require('../cognito-jwt');
 
 module.exports = async (req, res) => {
   if (req.method !== 'GET') {
