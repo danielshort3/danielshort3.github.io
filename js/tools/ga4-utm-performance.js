@@ -116,6 +116,7 @@
   const exploreStatusEl = $('[data-ga4="explore-status"]', main);
   const exploreSummaryEl = $('[data-ga4="explore-summary"]', main);
   const exploreOutputEl = $('[data-ga4="explore-output"]', main);
+  const exploreDrilldownEl = $('[data-ga4="explore-drilldown"]', main);
 
   if (!accessForm || !tokenInput || !forgetTokenBtn || !checkAccessBtn) return;
   if (!profileSelect || !profileLabelInput || !propertyIdInput || !saveProfileBtn || !deleteProfileBtn) return;
@@ -125,7 +126,7 @@
   if (!exploreForm || !explorePresetEl || !exploreDimensionsWrap || !exploreMetricsWrap) return;
   if (!exploreCustomDimensionsEl || !exploreCustomMetricsEl || !exploreMaxRowsEl || !exploreOrderByEl) return;
   if (!exploreDirEl || !exploreFilterEl || !exploreRunBtn || !exploreDownloadBtn) return;
-  if (!exploreStatusEl || !exploreSummaryEl || !exploreOutputEl) return;
+  if (!exploreStatusEl || !exploreSummaryEl || !exploreOutputEl || !exploreDrilldownEl) return;
   if (!matchTypeEl || !catchAllEl) return;
   if (!utmSourceEl || !utmMediumEl || !utmCampaignEl || !utmContentEl || !utmTermEl || !utmIdEl) return;
 
@@ -144,6 +145,9 @@
   let lastUtm = null;
   let lastExplore = null;
   let lastQuota = null;
+  let exploreHistory = [];
+  let exploreDrill = null;
+  let exploreRoot = null;
   let drilldownGroup = null;
   let utmBusy = false;
   let exploreBusy = false;
@@ -706,7 +710,7 @@
       utmOutputEl.appendChild(meta);
     }
 
-    const headers = [...groupFields, ...URL_METRIC_FIELDS, 'rows', 'details'];
+    const headers = [...groupFields, ...URL_METRIC_FIELDS, 'rows', 'actions'];
     const wrap = makeStyledTable(headers, sorted.slice(0, MAX_GROUP_RENDER_ROWS), (tr, group) => {
       groupFields.forEach((field) => {
         const td = document.createElement('td');
@@ -724,18 +728,49 @@
       tdRows.textContent = formatNumber(numberOrZero(group?.rows));
       tr.appendChild(tdRows);
 
-      const tdDetails = document.createElement('td');
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'tool-pill tool-pill-button';
-      btn.textContent = 'Details';
-      btn.addEventListener('click', () => {
+      const tdActions = document.createElement('td');
+      const actions = document.createElement('div');
+      actions.className = 'tools-actions';
+
+      const detailsBtn = document.createElement('button');
+      detailsBtn.type = 'button';
+      detailsBtn.className = 'tool-pill tool-pill-button';
+      detailsBtn.textContent = 'Details';
+      detailsBtn.addEventListener('click', () => {
         drilldownGroup = group;
         renderDrilldown(lastUtm);
         markSessionDirty();
       });
-      tdDetails.appendChild(btn);
-      tr.appendChild(tdDetails);
+      actions.appendChild(detailsBtn);
+
+      const exploreBtn = document.createElement('button');
+      exploreBtn.type = 'button';
+      exploreBtn.className = 'tool-pill tool-pill-button';
+      exploreBtn.textContent = 'Explore';
+      exploreBtn.addEventListener('click', () => {
+        matchTypeEl.value = 'exact';
+        utmSourceEl.value = String(group?.utm_source || '').trim();
+        utmMediumEl.value = String(group?.utm_medium || '').trim();
+        utmCampaignEl.value = String(group?.utm_campaign || '').trim();
+        utmContentEl.value = String(group?.utm_content || '').trim();
+        utmTermEl.value = String(group?.utm_term || '').trim();
+        utmIdEl.value = String(group?.utm_id || '').trim();
+
+        explorePresetEl.value = 'utm-country';
+        applyExplorePreset('utm-country');
+        syncExploreOrderByOptions();
+
+        const exploreDetails = $('[data-ga4="explore-details"]', main);
+        if (exploreDetails) exploreDetails.open = true;
+        try { exploreDetails?.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {}
+
+        runExploreReport();
+        markSessionDirty();
+      });
+      actions.appendChild(exploreBtn);
+
+      tdActions.appendChild(actions);
+      tr.appendChild(tdActions);
     });
 
     utmOutputEl.appendChild(wrap);
@@ -899,6 +934,7 @@
     exploreBusy = !!busy;
     exploreRunBtn.disabled = exploreBusy;
     exploreDownloadBtn.disabled = exploreBusy || !(lastExplore && Array.isArray(lastExplore.rows) && lastExplore.rows.length);
+    renderExploreDrilldown();
   };
 
   const fetchGa4Report = async (payload) => {
@@ -1205,8 +1241,218 @@
     exploreSummaryEl.appendChild(pills);
   };
 
+  const DRILLDOWN_PREFERRED_DIMENSIONS = [
+    'country',
+    'region',
+    'city',
+    'language',
+    'deviceCategory',
+    'browser',
+    'operatingSystem',
+    'platform',
+    'landingPagePlusQueryString',
+    'pageLocation',
+    'eventName',
+    'userAgeBracket',
+    'userGender'
+  ];
+
+  const getExploreDimensionOptions = () => {
+    const base = $$('input[type="checkbox"]', exploreDimensionsWrap)
+      .map((el) => normalizeGa4FieldName(el?.value))
+      .filter(Boolean);
+    const extra = readCustomList(exploreCustomDimensionsEl.value, 'dimension', { throwOnInvalid: false });
+    return uniq([...base, ...extra]);
+  };
+
+  const chooseDrilldownDimension = (fixedSet) => {
+    const fixed = fixedSet instanceof Set ? fixedSet : new Set();
+    const candidates = getExploreDimensionOptions().filter((name) => !fixed.has(name));
+    const seen = new Set();
+    const preferred = DRILLDOWN_PREFERRED_DIMENSIONS.filter((name) => candidates.includes(name));
+    const remaining = candidates
+      .filter((name) => !preferred.includes(name))
+      .slice()
+      .sort((a, b) => getDimensionLabel(a).localeCompare(getDimensionLabel(b)));
+    const ordered = [...preferred, ...remaining].filter((name) => {
+      if (!name || seen.has(name)) return false;
+      seen.add(name);
+      return true;
+    });
+    return ordered[0] || '';
+  };
+
+  const buildSegmentFiltersFromRow = (dimensionNames, row) => {
+    const dims = Array.isArray(dimensionNames) ? dimensionNames : [];
+    const filters = [];
+    dims.forEach((dim) => {
+      const fieldName = normalizeGa4FieldName(dim);
+      if (!fieldName) return;
+      const value = String(row?.[fieldName] || '').trim();
+      if (!value) return;
+      filters.push({ fieldName, match: 'exact', value: value.slice(0, 200) });
+    });
+    return filters;
+  };
+
+  const mergeSegmentFilters = (base, next) => {
+    const out = [];
+    const map = new Map();
+    (Array.isArray(base) ? base : []).forEach((filter) => {
+      const fieldName = normalizeGa4FieldName(filter?.fieldName);
+      const value = String(filter?.value || '').trim();
+      if (!fieldName || !value) return;
+      map.set(fieldName, { fieldName, match: 'exact', value: value.slice(0, 200) });
+    });
+    (Array.isArray(next) ? next : []).forEach((filter) => {
+      const fieldName = normalizeGa4FieldName(filter?.fieldName);
+      const value = String(filter?.value || '').trim();
+      if (!fieldName || !value) return;
+      map.set(fieldName, { fieldName, match: 'exact', value: value.slice(0, 200) });
+    });
+    map.forEach((value) => out.push(value));
+    return out;
+  };
+
+  const renderExploreDrilldown = () => {
+    exploreDrilldownEl.replaceChildren();
+    if (!exploreDrill || !Array.isArray(exploreDrill.segmentFilters) || !exploreDrill.segmentFilters.length) return;
+
+    const fixed = new Set(exploreDrill.segmentFilters.map((f) => normalizeGa4FieldName(f?.fieldName)).filter(Boolean));
+    const selected = normalizeGa4FieldName(exploreDrill.breakdown);
+    const fallback = chooseDrilldownDimension(fixed);
+    exploreDrill.breakdown = selected && !fixed.has(selected) ? selected : fallback;
+
+    const header = document.createElement('div');
+    header.className = 'tools-actions';
+
+    const segmentPreview = exploreDrill.segmentFilters.slice(0, 6);
+    segmentPreview.forEach((filter) => {
+      const fieldName = normalizeGa4FieldName(filter?.fieldName);
+      const value = String(filter?.value || '').trim();
+      if (!fieldName || !value) return;
+      const pill = document.createElement('span');
+      pill.className = 'tool-pill';
+      pill.textContent = `${getDimensionLabel(fieldName)}: ${value}`;
+      header.appendChild(pill);
+    });
+    if (exploreDrill.segmentFilters.length > segmentPreview.length) {
+      const pill = document.createElement('span');
+      pill.className = 'tool-pill';
+      pill.textContent = `+${exploreDrill.segmentFilters.length - segmentPreview.length} more`;
+      header.appendChild(pill);
+    }
+
+    const depth = exploreHistory.length;
+    if (depth) {
+      const pill = document.createElement('span');
+      pill.className = 'tool-pill';
+      pill.textContent = `Depth: ${depth}`;
+      header.appendChild(pill);
+    }
+
+    if (exploreHistory.length) {
+      const backBtn = document.createElement('button');
+      backBtn.type = 'button';
+      backBtn.className = 'btn-ghost';
+      backBtn.textContent = 'Back';
+      backBtn.addEventListener('click', () => {
+        if (!exploreHistory.length) return;
+        const prev = exploreHistory.pop();
+        if (prev && prev.explore) {
+          lastExplore = prev.explore;
+          renderExploreTable(lastExplore);
+          exploreDownloadBtn.disabled = exploreBusy || !(lastExplore.rows && lastExplore.rows.length);
+          setStatus(exploreStatusEl, 'Showing previous explore results.', 'success');
+          markSessionDirty();
+        }
+      });
+      header.appendChild(backBtn);
+    }
+
+    const exitBtn = document.createElement('button');
+    exitBtn.type = 'button';
+    exitBtn.className = 'btn-ghost';
+    exitBtn.textContent = 'Exit drilldown';
+    exitBtn.addEventListener('click', () => {
+      if (exploreRoot) lastExplore = exploreRoot;
+      exploreRoot = null;
+      exploreHistory = [];
+      exploreDrill = null;
+      renderExploreTable(lastExplore);
+      exploreDownloadBtn.disabled = exploreBusy || !(lastExplore && Array.isArray(lastExplore.rows) && lastExplore.rows.length);
+      setStatus(exploreStatusEl, 'Exited drilldown.', 'success');
+      markSessionDirty();
+    });
+    header.appendChild(exitBtn);
+
+    exploreDrilldownEl.appendChild(header);
+
+    const controls = document.createElement('div');
+    controls.className = 'tools-grid';
+
+    const breakField = document.createElement('div');
+    breakField.className = 'form-field';
+    const breakLabel = document.createElement('label');
+    breakLabel.setAttribute('for', 'ga4-explore-drill-breakdown');
+    breakLabel.textContent = 'Break down by';
+    const breakSelect = document.createElement('select');
+    breakSelect.id = 'ga4-explore-drill-breakdown';
+
+    const options = getExploreDimensionOptions().filter((name) => name && !fixed.has(name));
+    const preferred = DRILLDOWN_PREFERRED_DIMENSIONS.filter((name) => options.includes(name));
+    const remaining = options
+      .filter((name) => !preferred.includes(name))
+      .slice()
+      .sort((a, b) => getDimensionLabel(a).localeCompare(getDimensionLabel(b)));
+    const ordered = uniq([...preferred, ...remaining]);
+
+    ordered.forEach((name) => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = getDimensionLabel(name);
+      breakSelect.appendChild(opt);
+    });
+    if (ordered.length) {
+      breakSelect.value = exploreDrill.breakdown || ordered[0] || '';
+    }
+
+    breakSelect.addEventListener('change', () => {
+      exploreDrill.breakdown = normalizeGa4FieldName(breakSelect.value);
+      markSessionDirty();
+    });
+
+    breakField.appendChild(breakLabel);
+    breakField.appendChild(breakSelect);
+    controls.appendChild(breakField);
+
+    const runField = document.createElement('div');
+    runField.className = 'form-field';
+    const runLabel = document.createElement('label');
+    runLabel.textContent = 'Drilldown';
+    const runBtn = document.createElement('button');
+    runBtn.type = 'button';
+    runBtn.className = 'btn-secondary';
+    runBtn.textContent = 'Run drilldown';
+    runBtn.disabled = exploreBusy || !exploreDrill.breakdown;
+    runBtn.addEventListener('click', () => {
+      runExploreDrilldown();
+    });
+    runField.appendChild(runLabel);
+    runField.appendChild(runBtn);
+    controls.appendChild(runField);
+
+    exploreDrilldownEl.appendChild(controls);
+
+    const note = document.createElement('p');
+    note.className = 'contact-form-note';
+    note.textContent = 'Drilldown re-runs an Explore query with exact-match filters from the selected row.';
+    exploreDrilldownEl.appendChild(note);
+  };
+
   const renderExploreTable = (data) => {
     exploreOutputEl.replaceChildren();
+    renderExploreDrilldown();
     if (!data || typeof data !== 'object') return;
 
     const dimensionNames = Array.isArray(data.dimensionNames) ? data.dimensionNames : [];
@@ -1238,7 +1484,9 @@
       exploreOutputEl.appendChild(note);
     }
 
+    const canDrill = dimensionNames.length > 0;
     const displayHeaders = [...dimensionNames.map(getDimensionLabel), ...metricNames.map(getMetricLabel)];
+    if (canDrill) displayHeaders.push('Drill');
     const wrap = makeStyledTable(displayHeaders, rowsToRender, (tr, row) => {
       dimensionNames.forEach((dim) => {
         const td = document.createElement('td');
@@ -1250,8 +1498,146 @@
         td.textContent = formatMetricValue(metric, row?.[metric]);
         tr.appendChild(td);
       });
+      if (canDrill) {
+        const td = document.createElement('td');
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'tool-pill tool-pill-button';
+        btn.textContent = 'Drill';
+        btn.addEventListener('click', () => {
+          const rowFilters = buildSegmentFiltersFromRow(dimensionNames, row);
+          if (!rowFilters.length) {
+            setStatus(exploreStatusEl, 'No segment values found for this row.', 'error');
+            return;
+          }
+
+          const shouldMerge = !!(exploreDrill && exploreHistory.length);
+          if (!shouldMerge) {
+            exploreHistory = [];
+            exploreRoot = lastExplore;
+            exploreDrill = { segmentFilters: rowFilters, breakdown: '' };
+          } else {
+            exploreDrill.segmentFilters = mergeSegmentFilters(exploreDrill.segmentFilters, rowFilters);
+          }
+
+          const fixed = new Set(exploreDrill.segmentFilters.map((f) => normalizeGa4FieldName(f?.fieldName)).filter(Boolean));
+          exploreDrill.breakdown = chooseDrilldownDimension(fixed);
+          renderExploreDrilldown();
+          setStatus(exploreStatusEl, 'Drilldown ready. Pick a breakdown and run.', 'success');
+          try { exploreDrilldownEl.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {}
+          markSessionDirty();
+        });
+        td.appendChild(btn);
+        tr.appendChild(td);
+      }
     });
     exploreOutputEl.appendChild(wrap);
+  };
+
+  const runExploreDrilldown = async () => {
+    if (!exploreDrill || !Array.isArray(exploreDrill.segmentFilters) || !exploreDrill.segmentFilters.length) {
+      setStatus(exploreStatusEl, 'Select a row to drill into first.', 'error');
+      return;
+    }
+
+    const propertyId = getPropertyId();
+    if (!propertyId) {
+      setStatus(exploreStatusEl, 'GA4 property ID required.', 'error');
+      return;
+    }
+    if (!startEl.value || !endEl.value) {
+      setStatus(exploreStatusEl, 'Start/end dates required.', 'error');
+      return;
+    }
+
+    const breakdown = normalizeGa4FieldName(exploreDrill.breakdown);
+    if (!breakdown) {
+      setStatus(exploreStatusEl, 'Choose a drilldown dimension.', 'error');
+      return;
+    }
+
+    let metrics;
+    try {
+      metrics = getExploreMetrics();
+    } catch (err) {
+      setStatus(exploreStatusEl, err.message || 'Select at least 1 metric.', 'error');
+      return;
+    }
+
+    const maxRows = Math.max(10, Math.min(10000, Math.floor(numberOrZero(exploreMaxRowsEl.value) || 200)));
+    const orderBy = String(exploreOrderByEl.value || '').trim() || metrics[0] || '';
+    const orderDir = normalizeSortDir(exploreDirEl.value);
+
+    const dimensionFilters = exploreDrill.segmentFilters
+      .map((filter) => {
+        const fieldName = normalizeGa4FieldName(filter?.fieldName);
+        const value = String(filter?.value || '').trim();
+        if (!fieldName || !value) return null;
+        if (fieldName === breakdown) return null;
+        return { fieldName, match: 'exact', value: value.slice(0, 200) };
+      })
+      .filter(Boolean);
+
+    setExploreBusy(true);
+    setStatus(exploreStatusEl, 'Fetching GA4 drilldown…');
+
+    let pushed = false;
+    if (!exploreRoot && lastExplore) exploreRoot = lastExplore;
+    if (lastExplore) {
+      exploreHistory.push({ explore: lastExplore });
+      pushed = true;
+      if (exploreHistory.length > 25) exploreHistory.shift();
+    }
+
+    try {
+      const data = await fetchGa4Report({
+        kind: 'explore',
+        propertyId,
+        startDate: String(startEl.value || '').trim(),
+        endDate: String(endEl.value || '').trim(),
+        dimensions: [breakdown],
+        metrics,
+        maxRows,
+        orderBy,
+        orderDir,
+        filters: buildUtmFiltersPayload(),
+        dimensionFilters
+      });
+      renderQuota(data.quota);
+
+      lastExplore = {
+        kind: 'explore',
+        propertyId: String(data.propertyId || propertyId).trim(),
+        startDate: String(data.startDate || startEl.value || '').trim(),
+        endDate: String(data.endDate || endEl.value || '').trim(),
+        dimensions: [breakdown],
+        metrics,
+        maxRows,
+        orderBy,
+        orderDir,
+        filters: buildUtmFiltersPayload(),
+        dimensionFilters,
+        dimensionNames: Array.isArray(data.dimensionNames) ? data.dimensionNames : [breakdown],
+        metricNames: Array.isArray(data.metricNames) ? data.metricNames : metrics,
+        rowCount: numberOrZero(data.rowCount),
+        returnedRows: numberOrZero(data.returnedRows),
+        truncated: !!data.truncated,
+        rows: Array.isArray(data.rows) ? data.rows : []
+      };
+
+      renderExploreTable(lastExplore);
+      exploreDownloadBtn.disabled = exploreBusy || !(lastExplore.rows && lastExplore.rows.length);
+
+      const trunc = lastExplore.truncated ? ' (truncated)' : '';
+      setStatus(exploreStatusEl, `Done. ${formatNumber(lastExplore.returnedRows || lastExplore.rows.length)} row(s)${trunc}.`, 'success');
+      markSessionDirty();
+    } catch (err) {
+      if (pushed) exploreHistory.pop();
+      setStatus(exploreStatusEl, err.message || 'Failed to fetch drilldown.', 'error');
+      markSessionDirty();
+    } finally {
+      setExploreBusy(false);
+    }
   };
 
   const runExploreReport = async () => {
@@ -1283,6 +1669,11 @@
       setStatus(exploreStatusEl, 'Select at least 1 metric.', 'error');
       return;
     }
+
+    exploreHistory = [];
+    exploreDrill = null;
+    exploreRoot = null;
+    renderExploreDrilldown();
 
     setExploreBusy(true);
     setStatus(exploreStatusEl, 'Fetching GA4 explore report…');
@@ -1723,6 +2114,10 @@
     } else {
       lastExplore = null;
     }
+
+    exploreHistory = [];
+    exploreDrill = null;
+    exploreRoot = null;
 
     drilldownGroup = null;
     renderUtmAll();
