@@ -59,6 +59,47 @@ function normalizeGa4FieldName(value) {
   return raw;
 }
 
+function normalizeDimensionFilters(value, maxItems = 15) {
+  if (!value) return [];
+  const list = Array.isArray(value) ? value : (value && typeof value === 'object' ? [value] : []);
+  const cleaned = [];
+  const seen = new Set();
+  const invalid = [];
+
+  for (const entry of list) {
+    if (!entry || typeof entry !== 'object') continue;
+
+    const rawFieldName = String(entry.fieldName || '').trim();
+    const fieldName = normalizeGa4FieldName(rawFieldName);
+    const rawValue = normalizeUtmValue(entry.value);
+    if (rawFieldName && !fieldName) {
+      invalid.push(rawFieldName);
+      continue;
+    }
+    if (!fieldName || !rawValue) continue;
+
+    const match = normalizeMatchMode(entry.match || entry.matchType);
+    const key = `${fieldName}|${match}|${rawValue}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    cleaned.push({ fieldName, match, value: rawValue });
+  }
+
+  if (invalid.length) {
+    const err = new Error(`Invalid dimension filter field name(s): ${invalid.slice(0, 3).join(', ')}`);
+    err.code = 'GA4_INVALID_FILTER_FIELDS';
+    throw err;
+  }
+
+  if (cleaned.length > maxItems) {
+    const err = new Error(`Too many dimension filters (max ${maxItems}).`);
+    err.code = 'GA4_TOO_MANY_FILTERS';
+    throw err;
+  }
+
+  return cleaned;
+}
+
 function coerceFieldList(value) {
   if (Array.isArray(value)) return value;
   if (typeof value === 'string') {
@@ -228,6 +269,45 @@ function buildTrafficSourceFilter(filters) {
   add('sessionManualTerm', f.utm_term);
   add('sessionCampaignId', f.utm_id);
 
+  if (!expressions.length) return null;
+  if (expressions.length === 1) return expressions[0];
+  return { andGroup: { expressions } };
+}
+
+function buildDimensionFiltersExpression(filters) {
+  const list = Array.isArray(filters) ? filters : [];
+  const expressions = [];
+
+  list.forEach((entry) => {
+    if (!entry || typeof entry !== 'object') return;
+    const fieldName = normalizeGa4FieldName(entry.fieldName);
+    const rawValue = normalizeUtmValue(entry.value);
+    if (!fieldName || !rawValue) return;
+
+    const matchMode = normalizeMatchMode(entry.match || entry.matchType);
+    const ga4MatchType = matchMode === 'contains' ? 'CONTAINS' : 'EXACT';
+    expressions.push({
+      filter: {
+        fieldName,
+        stringFilter: {
+          matchType: ga4MatchType,
+          value: rawValue,
+          caseSensitive: false
+        }
+      }
+    });
+  });
+
+  if (!expressions.length) return null;
+  if (expressions.length === 1) return expressions[0];
+  return { andGroup: { expressions } };
+}
+
+function mergeDimensionFilters(...filters) {
+  const expressions = [];
+  filters.forEach((filter) => {
+    if (filter && typeof filter === 'object') expressions.push(filter);
+  });
   if (!expressions.length) return null;
   if (expressions.length === 1) return expressions[0];
   return { andGroup: { expressions } };
@@ -417,9 +497,11 @@ module.exports = async (req, res) => {
   if (kind === 'explore') {
     let dimensions;
     let metrics;
+    let dimensionFilters;
     try {
       dimensions = normalizeFieldList(body?.dimensions, 'dimension', 9);
       metrics = normalizeFieldList(body?.metrics, 'metric', 10);
+      dimensionFilters = normalizeDimensionFilters(body?.dimensionFilters);
     } catch (err) {
       sendJson(res, 400, { ok: false, error: err.message || 'Invalid explore configuration.' });
       return;
@@ -434,7 +516,9 @@ module.exports = async (req, res) => {
     const orderDir = String(body?.orderDir || 'desc').trim().toLowerCase() === 'asc' ? 'asc' : 'desc';
     const orderBy = normalizeGa4FieldName(body?.orderBy);
 
-    const dimensionFilter = buildTrafficSourceFilter(body?.filters);
+    const trafficSourceFilter = buildTrafficSourceFilter(body?.filters);
+    const customDimensionFilter = buildDimensionFiltersExpression(dimensionFilters);
+    const dimensionFilter = mergeDimensionFilters(trafficSourceFilter, customDimensionFilter);
 
     const reportBody = {
       dateRanges: [{ startDate, endDate }],
