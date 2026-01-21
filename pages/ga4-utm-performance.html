@@ -271,6 +271,7 @@
               </div>
 
               <div class="contact-form-status" data-ga4="access-status" role="status" aria-live="polite"></div>
+              <div class="tools-actions" data-ga4="quota" aria-live="polite"></div>
               <p class="contact-form-note">Server env: <code>GA4_ADMIN_TOKEN</code>, <code>GA4_SERVICE_ACCOUNT_JSON_B64</code>, and (optionally) <code>GA4_PROPERTY_ID</code>.</p>
             </form>
           </div>
@@ -422,71 +423,109 @@
 
     <section class="surface-band tools-section reveal">
       <div class="wrapper">
-        <details class="shortlinks-panel" open data-ga4="insights-details">
+        <details class="shortlinks-panel" open data-ga4="explore-details">
           <summary class="shortlinks-panel-summary">
-            <h2 class="section-title">Insights</h2>
+            <h2 class="section-title">Explore</h2>
           </summary>
           <div class="shortlinks-panel-body">
-            <form class="contact-form" data-ga4="insights-form" autocomplete="off">
+            <form class="contact-form" data-ga4="explore-form" autocomplete="off">
               <div class="tools-grid">
                 <div class="form-field">
-                  <label for="ga4-insights-breakdown">Breakdown</label>
-                  <select id="ga4-insights-breakdown" data-ga4="insights-breakdown">
-                    <option value="" selected>None (UTM only)</option>
-                    <option value="country">Country</option>
-                    <option value="region">Region</option>
-                    <option value="city">City</option>
-                    <option value="language">Language</option>
-                    <option value="deviceCategory">Device category</option>
-                    <option value="browser">Browser</option>
-                    <option value="operatingSystem">Operating system</option>
-                    <option value="platform">Platform</option>
-                    <option value="userAgeBracket">Age bracket</option>
-                    <option value="userGender">Gender</option>
+                  <label for="ga4-explore-preset">Preset</label>
+                  <select id="ga4-explore-preset" data-ga4="explore-preset">
+                    <option value="custom" selected>Custom</option>
+                    <option value="utm">UTM performance</option>
+                    <option value="utm-country">UTM + Country</option>
+                    <option value="utm-device">UTM + Device</option>
+                    <option value="utm-demographics">UTM + Demographics</option>
                   </select>
                 </div>
                 <div class="form-field">
-                  <label for="ga4-insights-max-rows">Max rows</label>
-                  <input id="ga4-insights-max-rows" type="number" min="10" max="10000" step="10" value="200" inputmode="numeric" data-ga4="insights-max-rows">
+                  <label for="ga4-explore-max-rows">Max rows</label>
+                  <input id="ga4-explore-max-rows" type="number" min="10" max="10000" step="10" value="200" inputmode="numeric" data-ga4="explore-max-rows">
                 </div>
                 <div class="form-field">
-                  <label for="ga4-insights-order-by">Order by</label>
-                  <select id="ga4-insights-order-by" data-ga4="insights-order-by">
-                    <option value="sessions" selected>Sessions</option>
-                    <option value="totalUsers">Users</option>
-                    <option value="eventCount">Events</option>
-                  </select>
+                  <label for="ga4-explore-order-by">Order by</label>
+                  <select id="ga4-explore-order-by" data-ga4="explore-order-by"></select>
                 </div>
                 <div class="form-field">
-                  <label for="ga4-insights-dir">Direction</label>
-                  <select id="ga4-insights-dir" data-ga4="insights-dir">
+                  <label for="ga4-explore-dir">Direction</label>
+                  <select id="ga4-explore-dir" data-ga4="explore-dir">
                     <option value="desc" selected>Desc</option>
                     <option value="asc">Asc</option>
                   </select>
                 </div>
                 <div class="form-field">
-                  <label for="ga4-insights-filter">Filter results</label>
-                  <input id="ga4-insights-filter" type="search" autocomplete="off" placeholder="optional (client-side)" data-ga4="insights-filter">
+                  <label for="ga4-explore-filter">Filter results</label>
+                  <input id="ga4-explore-filter" type="search" autocomplete="off" placeholder="optional (client-side)" data-ga4="explore-filter">
                 </div>
               </div>
 
               <div class="form-field">
-                <label>
-                  <input id="ga4-insights-include-utm" type="checkbox" checked data-ga4="insights-include-utm">
-                  Include UTM dimensions (source/medium/campaign)
-                </label>
-                <p class="contact-form-note">Insights use GA4 session traffic-source dimensions (e.g., <code>sessionSource</code>, <code>sessionMedium</code>, <code>sessionCampaignName</code>).</p>
+                <label>Dimensions (max 9)</label>
+                <div class="tools-actions" data-ga4="explore-dimensions">
+                  <label><input type="checkbox" value="sessionSource" checked> utm_source</label>
+                  <label><input type="checkbox" value="sessionMedium" checked> utm_medium</label>
+                  <label><input type="checkbox" value="sessionCampaignName" checked> utm_campaign</label>
+                  <label><input type="checkbox" value="sessionManualAdContent"> utm_content</label>
+                  <label><input type="checkbox" value="sessionManualTerm"> utm_term</label>
+                  <label><input type="checkbox" value="sessionCampaignId"> utm_id</label>
+                  <label><input type="checkbox" value="country"> Country</label>
+                  <label><input type="checkbox" value="region"> Region</label>
+                  <label><input type="checkbox" value="city"> City</label>
+                  <label><input type="checkbox" value="language"> Language</label>
+                  <label><input type="checkbox" value="deviceCategory"> Device category</label>
+                  <label><input type="checkbox" value="browser"> Browser</label>
+                  <label><input type="checkbox" value="operatingSystem"> Operating system</label>
+                  <label><input type="checkbox" value="platform"> Platform</label>
+                  <label><input type="checkbox" value="userAgeBracket"> Age bracket</label>
+                  <label><input type="checkbox" value="userGender"> Gender</label>
+                  <label><input type="checkbox" value="pageLocation"> Page URL</label>
+                  <label><input type="checkbox" value="landingPagePlusQueryString"> Landing page</label>
+                  <label><input type="checkbox" value="eventName"> Event name</label>
+                </div>
+                <p class="contact-form-note">These are GA4 Data API dimension names (examples: <code>country</code>, <code>deviceCategory</code>, <code>sessionSource</code>).</p>
+              </div>
+
+              <div class="form-field">
+                <label>Metrics (max 10)</label>
+                <div class="tools-actions" data-ga4="explore-metrics">
+                  <label><input type="checkbox" value="sessions" checked> Sessions</label>
+                  <label><input type="checkbox" value="totalUsers" checked> Users</label>
+                  <label><input type="checkbox" value="newUsers"> New users</label>
+                  <label><input type="checkbox" value="engagedSessions"> Engaged sessions</label>
+                  <label><input type="checkbox" value="engagementRate" checked> Engagement rate</label>
+                  <label><input type="checkbox" value="bounceRate" checked> Bounce rate</label>
+                  <label><input type="checkbox" value="eventCount" checked> Events</label>
+                  <label><input type="checkbox" value="screenPageViews"> Page views</label>
+                  <label><input type="checkbox" value="conversions"> Conversions</label>
+                  <label><input type="checkbox" value="totalRevenue"> Revenue</label>
+                  <label><input type="checkbox" value="userEngagementDuration"> Engagement duration</label>
+                  <label><input type="checkbox" value="averageSessionDuration"> Avg session duration</label>
+                </div>
+                <p class="contact-form-note">Tip: choose fewer metrics if GA4 rejects a combination.</p>
+              </div>
+
+              <div class="tools-grid">
+                <div class="form-field">
+                  <label for="ga4-explore-custom-dimensions">Add dimensions (optional)</label>
+                  <input id="ga4-explore-custom-dimensions" type="text" autocomplete="off" placeholder="Comma-separated (e.g. pagePathPlusQueryString,eventName)" data-ga4="explore-custom-dimensions">
+                </div>
+                <div class="form-field">
+                  <label for="ga4-explore-custom-metrics">Add metrics (optional)</label>
+                  <input id="ga4-explore-custom-metrics" type="text" autocomplete="off" placeholder="Comma-separated (e.g. activeUsers,screenPageViews)" data-ga4="explore-custom-metrics">
+                </div>
               </div>
 
               <div class="form-actions">
-                <button type="submit" class="btn-primary" data-ga4="insights-run"><span class="btn-label">Run insights</span></button>
-                <button type="button" class="btn-secondary" data-ga4="insights-download" disabled>Download CSV</button>
+                <button type="submit" class="btn-primary" data-ga4="explore-run"><span class="btn-label">Run explore</span></button>
+                <button type="button" class="btn-secondary" data-ga4="explore-download" disabled>Download CSV</button>
               </div>
             </form>
 
-            <div class="contact-form-status" data-ga4="insights-status" role="status" aria-live="polite"></div>
-            <div data-ga4="insights-summary"></div>
-            <div data-ga4="insights-output"></div>
+            <div class="contact-form-status" data-ga4="explore-status" role="status" aria-live="polite"></div>
+            <div data-ga4="explore-summary"></div>
+            <div data-ga4="explore-output"></div>
           </div>
         </details>
       </div>
