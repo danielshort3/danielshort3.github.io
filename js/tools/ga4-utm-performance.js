@@ -33,17 +33,26 @@
     operatingSystem: 'Operating system',
     platform: 'Platform',
     userAgeBracket: 'Age bracket',
-    userGender: 'Gender'
+    userGender: 'Gender',
+    pageLocation: 'Page URL',
+    landingPagePlusQueryString: 'Landing page',
+    eventName: 'Event name'
   };
 
   const METRIC_LABELS = {
     sessions: 'Sessions',
     totalUsers: 'Users',
+    activeUsers: 'Active users',
     newUsers: 'New users',
     engagedSessions: 'Engaged sessions',
     engagementRate: 'Engagement rate',
     bounceRate: 'Bounce rate',
-    eventCount: 'Events'
+    eventCount: 'Events',
+    screenPageViews: 'Page views',
+    conversions: 'Conversions',
+    totalRevenue: 'Revenue',
+    userEngagementDuration: 'Engagement duration',
+    averageSessionDuration: 'Avg session duration'
   };
 
   const $ = (sel, root = document) => root.querySelector(sel);
@@ -63,6 +72,7 @@
   const deleteProfileBtn = $('[data-ga4="delete-profile"]', main);
   const accessMetaEl = $('[data-ga4="access-meta"]', main);
   const accessStatusEl = $('[data-ga4="access-status"]', main);
+  const quotaEl = $('[data-ga4="quota"]', main);
 
   const scopeForm = $('[data-ga4="scope-form"]', main);
   const startEl = $('[data-ga4="start"]', main);
@@ -91,27 +101,31 @@
   const utmOutputEl = $('[data-ga4="utm-output"]', main);
   const utmDrilldownEl = $('[data-ga4="utm-drilldown"]', main);
 
-  const insightsForm = $('[data-ga4="insights-form"]', main);
-  const insightsBreakdownEl = $('[data-ga4="insights-breakdown"]', main);
-  const insightsMaxRowsEl = $('[data-ga4="insights-max-rows"]', main);
-  const insightsOrderByEl = $('[data-ga4="insights-order-by"]', main);
-  const insightsDirEl = $('[data-ga4="insights-dir"]', main);
-  const insightsFilterEl = $('[data-ga4="insights-filter"]', main);
-  const insightsIncludeUtmEl = $('[data-ga4="insights-include-utm"]', main);
-  const insightsRunBtn = $('[data-ga4="insights-run"]', main);
-  const insightsDownloadBtn = $('[data-ga4="insights-download"]', main);
-  const insightsStatusEl = $('[data-ga4="insights-status"]', main);
-  const insightsSummaryEl = $('[data-ga4="insights-summary"]', main);
-  const insightsOutputEl = $('[data-ga4="insights-output"]', main);
+  const exploreForm = $('[data-ga4="explore-form"]', main);
+  const explorePresetEl = $('[data-ga4="explore-preset"]', main);
+  const exploreDimensionsWrap = $('[data-ga4="explore-dimensions"]', main);
+  const exploreMetricsWrap = $('[data-ga4="explore-metrics"]', main);
+  const exploreCustomDimensionsEl = $('[data-ga4="explore-custom-dimensions"]', main);
+  const exploreCustomMetricsEl = $('[data-ga4="explore-custom-metrics"]', main);
+  const exploreMaxRowsEl = $('[data-ga4="explore-max-rows"]', main);
+  const exploreOrderByEl = $('[data-ga4="explore-order-by"]', main);
+  const exploreDirEl = $('[data-ga4="explore-dir"]', main);
+  const exploreFilterEl = $('[data-ga4="explore-filter"]', main);
+  const exploreRunBtn = $('[data-ga4="explore-run"]', main);
+  const exploreDownloadBtn = $('[data-ga4="explore-download"]', main);
+  const exploreStatusEl = $('[data-ga4="explore-status"]', main);
+  const exploreSummaryEl = $('[data-ga4="explore-summary"]', main);
+  const exploreOutputEl = $('[data-ga4="explore-output"]', main);
 
   if (!accessForm || !tokenInput || !forgetTokenBtn || !checkAccessBtn) return;
   if (!profileSelect || !profileLabelInput || !propertyIdInput || !saveProfileBtn || !deleteProfileBtn) return;
   if (!startEl || !endEl || !utmForm || !runBtn || !downloadGroupedBtn || !downloadRawBtn) return;
   if (!viewModeEl || !sortFieldEl || !sortDirEl || !localFilterEl) return;
   if (!utmStatusEl || !utmSummaryEl || !utmOutputEl || !utmDrilldownEl) return;
-  if (!insightsForm || !insightsBreakdownEl || !insightsMaxRowsEl || !insightsOrderByEl || !insightsDirEl) return;
-  if (!insightsFilterEl || !insightsIncludeUtmEl || !insightsRunBtn || !insightsDownloadBtn) return;
-  if (!insightsStatusEl || !insightsSummaryEl || !insightsOutputEl) return;
+  if (!exploreForm || !explorePresetEl || !exploreDimensionsWrap || !exploreMetricsWrap) return;
+  if (!exploreCustomDimensionsEl || !exploreCustomMetricsEl || !exploreMaxRowsEl || !exploreOrderByEl) return;
+  if (!exploreDirEl || !exploreFilterEl || !exploreRunBtn || !exploreDownloadBtn) return;
+  if (!exploreStatusEl || !exploreSummaryEl || !exploreOutputEl) return;
   if (!matchTypeEl || !catchAllEl) return;
   if (!utmSourceEl || !utmMediumEl || !utmCampaignEl || !utmContentEl || !utmTermEl || !utmIdEl) return;
 
@@ -128,10 +142,11 @@
 
   let memoryToken = '';
   let lastUtm = null;
-  let lastInsights = null;
+  let lastExplore = null;
+  let lastQuota = null;
   let drilldownGroup = null;
   let utmBusy = false;
-  let insightsBusy = false;
+  let exploreBusy = false;
 
   const getSavedToken = () => {
     if (storage) return storage.getItem(TOKEN_STORAGE_KEY) || '';
@@ -232,6 +247,55 @@
   const updateAccessMeta = () => {
     if (!accessMetaEl) return;
     accessMetaEl.textContent = getSavedToken() ? 'Token stored' : 'Token required';
+  };
+
+  const coerceInt = (value) => {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return null;
+    return Math.floor(n);
+  };
+
+  const normalizeQuotaBucket = (bucket) => {
+    if (!bucket || typeof bucket !== 'object') return null;
+    const consumed = coerceInt(bucket.consumed);
+    const remaining = coerceInt(bucket.remaining);
+    if (consumed === null && remaining === null) return null;
+    return { consumed, remaining };
+  };
+
+  const formatQuotaBucket = (label, bucket) => {
+    if (!bucket) return '';
+    const consumed = bucket.consumed;
+    const remaining = bucket.remaining;
+    if (consumed !== null && remaining !== null) {
+      const total = consumed + remaining;
+      return `${label}: ${formatNumber(consumed)}/${formatNumber(total)} (${formatNumber(remaining)} left)`;
+    }
+    if (remaining !== null) return `${label}: ${formatNumber(remaining)} left`;
+    if (consumed !== null) return `${label}: ${formatNumber(consumed)} used`;
+    return '';
+  };
+
+  const renderQuota = (quota) => {
+    lastQuota = quota && typeof quota === 'object' ? quota : null;
+    if (!quotaEl) return;
+    quotaEl.replaceChildren();
+    if (!lastQuota) return;
+
+    const hour = normalizeQuotaBucket(lastQuota.tokensPerHour);
+    const day = normalizeQuotaBucket(lastQuota.tokensPerDay);
+    const parts = [
+      formatQuotaBucket('Tokens/hr', hour),
+      formatQuotaBucket('Tokens/day', day)
+    ].filter(Boolean);
+    if (!parts.length) return;
+
+    parts.forEach((text) => {
+      const pill = document.createElement('span');
+      pill.className = 'tool-pill';
+      pill.textContent = text;
+      quotaEl.appendChild(pill);
+    });
   };
 
   const loadProfiles = () => {
@@ -831,10 +895,10 @@
     downloadRawBtn.disabled = utmBusy || !(lastUtm && Array.isArray(lastUtm.parsedRows) && lastUtm.parsedRows.length);
   };
 
-  const setInsightsBusy = (busy) => {
-    insightsBusy = !!busy;
-    insightsRunBtn.disabled = insightsBusy;
-    insightsDownloadBtn.disabled = insightsBusy || !(lastInsights && Array.isArray(lastInsights.rows) && lastInsights.rows.length);
+  const setExploreBusy = (busy) => {
+    exploreBusy = !!busy;
+    exploreRunBtn.disabled = exploreBusy;
+    exploreDownloadBtn.disabled = exploreBusy || !(lastExplore && Array.isArray(lastExplore.rows) && lastExplore.rows.length);
   };
 
   const fetchGa4Report = async (payload) => {
@@ -895,6 +959,7 @@
         endDate: String(endEl.value || '').trim(),
         filters: buildUtmFiltersPayload()
       });
+      renderQuota(data.quota);
 
       const rows = Array.isArray(data.rows) ? data.rows : [];
       const parsedRows = buildParsedUrlRows(rows);
@@ -937,9 +1002,126 @@
     }
   };
 
-  const getInsightsFilterQuery = () => String(insightsFilterEl.value || '').trim().toLowerCase();
+  const normalizeGa4FieldName = (value) => {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    if (raw.length > 80) return '';
+    if (!/^[A-Za-z][A-Za-z0-9_]*(?::[A-Za-z0-9_]+)?$/.test(raw)) return '';
+    return raw;
+  };
 
-  const applyInsightsFilter = (rows, dimensionNames, metricNames, query) => {
+  const splitListInput = (value) => String(value || '').split(/[,\n]/).map((part) => part.trim()).filter(Boolean);
+
+  const readCustomList = (raw, kindLabel, { throwOnInvalid = true } = {}) => {
+    const parts = splitListInput(raw);
+    const invalid = [];
+    const valid = [];
+    parts.forEach((part) => {
+      const normalized = normalizeGa4FieldName(part);
+      if (!normalized) invalid.push(part);
+      else valid.push(normalized);
+    });
+    if (invalid.length && throwOnInvalid) {
+      const sample = invalid.slice(0, 3).join(', ');
+      throw new Error(`Invalid ${kindLabel} name(s): ${sample}`);
+    }
+    return valid;
+  };
+
+  const readCheckedValues = (wrap) => {
+    return $$('input[type="checkbox"]', wrap)
+      .filter((el) => el && el.checked)
+      .map((el) => normalizeGa4FieldName(el.value))
+      .filter(Boolean);
+  };
+
+  const uniq = (list) => Array.from(new Set((Array.isArray(list) ? list : []).filter(Boolean)));
+
+  const getExploreDimensions = ({ enforceLimit = true } = {}) => {
+    const base = readCheckedValues(exploreDimensionsWrap);
+    const extra = readCustomList(exploreCustomDimensionsEl.value, 'dimension', { throwOnInvalid: enforceLimit });
+    const merged = uniq([...base, ...extra]);
+    if (enforceLimit && merged.length > 9) throw new Error('Too many dimensions selected (max 9).');
+    return merged;
+  };
+
+  const getExploreMetrics = ({ enforceLimit = true } = {}) => {
+    const base = readCheckedValues(exploreMetricsWrap);
+    const extra = readCustomList(exploreCustomMetricsEl.value, 'metric', { throwOnInvalid: enforceLimit });
+    const merged = uniq([...base, ...extra]);
+    if (enforceLimit && !merged.length) throw new Error('Select at least 1 metric.');
+    if (enforceLimit && merged.length > 10) throw new Error('Too many metrics selected (max 10).');
+    return merged;
+  };
+
+  const setExploreCheckboxes = (wrap, values) => {
+    const set = new Set(Array.isArray(values) ? values : []);
+    $$('input[type="checkbox"]', wrap).forEach((el) => {
+      const name = normalizeGa4FieldName(el?.value);
+      el.checked = !!name && set.has(name);
+    });
+  };
+
+  const PRESETS = {
+    custom: null,
+    utm: {
+      dimensions: ['sessionSource', 'sessionMedium', 'sessionCampaignName'],
+      metrics: ['sessions', 'totalUsers', 'newUsers', 'engagedSessions', 'engagementRate', 'bounceRate', 'eventCount']
+    },
+    'utm-country': {
+      dimensions: ['sessionSource', 'sessionMedium', 'sessionCampaignName', 'country'],
+      metrics: ['sessions', 'totalUsers', 'newUsers', 'engagedSessions', 'engagementRate', 'bounceRate', 'eventCount']
+    },
+    'utm-device': {
+      dimensions: ['sessionSource', 'sessionMedium', 'sessionCampaignName', 'deviceCategory'],
+      metrics: ['sessions', 'totalUsers', 'newUsers', 'engagedSessions', 'engagementRate', 'bounceRate', 'eventCount']
+    },
+    'utm-demographics': {
+      dimensions: ['sessionSource', 'sessionMedium', 'sessionCampaignName', 'userAgeBracket', 'userGender'],
+      metrics: ['sessions', 'totalUsers', 'newUsers', 'engagedSessions', 'engagementRate', 'bounceRate', 'eventCount']
+    }
+  };
+
+  const applyExplorePreset = (presetId) => {
+    const key = String(presetId || '').trim();
+    const preset = PRESETS[key];
+    if (!preset) return;
+    setExploreCheckboxes(exploreDimensionsWrap, preset.dimensions);
+    setExploreCheckboxes(exploreMetricsWrap, preset.metrics);
+    exploreCustomDimensionsEl.value = '';
+    exploreCustomMetricsEl.value = '';
+  };
+
+  const syncExploreOrderByOptions = () => {
+    const metrics = getExploreMetrics({ enforceLimit: false });
+    const dimensions = getExploreDimensions({ enforceLimit: false });
+    const options = [
+      ...metrics.map((name) => ({ type: 'metric', value: name })),
+      ...dimensions.map((name) => ({ type: 'dimension', value: name }))
+    ];
+
+    const current = String(exploreOrderByEl.value || '').trim();
+    const allowed = new Set(options.map((opt) => opt.value));
+
+    exploreOrderByEl.replaceChildren();
+    options.forEach((opt) => {
+      const option = document.createElement('option');
+      option.value = opt.value;
+      option.textContent = opt.type === 'metric' ? getMetricLabel(opt.value) : getDimensionLabel(opt.value);
+      exploreOrderByEl.appendChild(option);
+    });
+
+    if (current && allowed.has(current)) {
+      exploreOrderByEl.value = current;
+      return;
+    }
+
+    exploreOrderByEl.value = metrics[0] || dimensions[0] || '';
+  };
+
+  const getExploreFilterQuery = () => String(exploreFilterEl.value || '').trim().toLowerCase();
+
+  const applyExploreFilter = (rows, dimensionNames, metricNames, query) => {
     const q = String(query || '').trim().toLowerCase();
     if (!q) return Array.isArray(rows) ? rows.slice() : [];
 
@@ -965,8 +1147,8 @@
   const getDimensionLabel = (name) => DIMENSION_LABELS[String(name || '').trim()] || String(name || '').trim();
   const getMetricLabel = (name) => METRIC_LABELS[String(name || '').trim()] || String(name || '').trim();
 
-  const renderInsightsSummary = (data, filteredRows) => {
-    insightsSummaryEl.replaceChildren();
+  const renderExploreSummary = (data, filteredRows) => {
+    exploreSummaryEl.replaceChildren();
     if (!data || typeof data !== 'object') return;
 
     const rows = Array.isArray(filteredRows) ? filteredRows : (Array.isArray(data.rows) ? data.rows : []);
@@ -977,15 +1159,19 @@
       if (RATE_METRICS.has(metric)) return;
       totals[metric] = 0;
     });
+
+    const hasSessions = metricNames.includes('sessions');
     let sessionsForRate = 0;
     let engagementRateWeighted = 0;
     let bounceRateWeighted = 0;
 
     rows.forEach((row) => {
       const sessions = numberOrZero(row.sessions);
-      sessionsForRate += sessions;
-      engagementRateWeighted += sessions * numberOrZero(row.engagementRate);
-      bounceRateWeighted += sessions * numberOrZero(row.bounceRate);
+      if (hasSessions) {
+        sessionsForRate += sessions;
+        engagementRateWeighted += sessions * numberOrZero(row.engagementRate);
+        bounceRateWeighted += sessions * numberOrZero(row.bounceRate);
+      }
 
       Object.keys(totals).forEach((metric) => {
         totals[metric] += numberOrZero(row[metric]);
@@ -1004,38 +1190,39 @@
 
     pills.appendChild(makePill('Rows', formatNumber(rows.length)));
 
-    if (Object.prototype.hasOwnProperty.call(totals, 'sessions')) pills.appendChild(makePill('Sessions', formatNumber(totals.sessions)));
-    if (Object.prototype.hasOwnProperty.call(totals, 'totalUsers')) pills.appendChild(makePill('Users', formatNumber(totals.totalUsers)));
-    if (Object.prototype.hasOwnProperty.call(totals, 'newUsers')) pills.appendChild(makePill('New users', formatNumber(totals.newUsers)));
-    if (Object.prototype.hasOwnProperty.call(totals, 'engagedSessions')) pills.appendChild(makePill('Engaged sessions', formatNumber(totals.engagedSessions)));
-    if (Object.prototype.hasOwnProperty.call(totals, 'eventCount')) pills.appendChild(makePill('Events', formatNumber(totals.eventCount)));
+    Object.keys(totals).forEach((metric) => {
+      const label = getMetricLabel(metric);
+      pills.appendChild(makePill(label, formatMetricValue(metric, totals[metric])));
+    });
 
-    if (sessionsForRate > 0) {
-      pills.appendChild(makePill('Engagement rate', formatPercent(engagementRateWeighted / sessionsForRate)));
-      pills.appendChild(makePill('Bounce rate', formatPercent(bounceRateWeighted / sessionsForRate)));
+    if (hasSessions && sessionsForRate > 0 && metricNames.includes('engagementRate')) {
+      pills.appendChild(makePill(getMetricLabel('engagementRate'), formatPercent(engagementRateWeighted / sessionsForRate)));
+    }
+    if (hasSessions && sessionsForRate > 0 && metricNames.includes('bounceRate')) {
+      pills.appendChild(makePill(getMetricLabel('bounceRate'), formatPercent(bounceRateWeighted / sessionsForRate)));
     }
 
-    insightsSummaryEl.appendChild(pills);
+    exploreSummaryEl.appendChild(pills);
   };
 
-  const renderInsightsTable = (data) => {
-    insightsOutputEl.replaceChildren();
+  const renderExploreTable = (data) => {
+    exploreOutputEl.replaceChildren();
     if (!data || typeof data !== 'object') return;
 
     const dimensionNames = Array.isArray(data.dimensionNames) ? data.dimensionNames : [];
     const metricNames = Array.isArray(data.metricNames) ? data.metricNames : [];
     const rawRows = Array.isArray(data.rows) ? data.rows : [];
-    const query = getInsightsFilterQuery();
+    const query = getExploreFilterQuery();
 
-    const filtered = applyInsightsFilter(rawRows, dimensionNames, metricNames, query);
+    const filtered = applyExploreFilter(rawRows, dimensionNames, metricNames, query);
     const rowsToRender = filtered.slice(0, MAX_INSIGHTS_RENDER_ROWS);
 
-    renderInsightsSummary(data, filtered);
+    renderExploreSummary(data, filtered);
 
     if (!filtered.length) {
       const p = document.createElement('p');
       p.textContent = 'No matching rows.';
-      insightsOutputEl.appendChild(p);
+      exploreOutputEl.appendChild(p);
       return;
     }
 
@@ -1043,12 +1230,12 @@
       const note = document.createElement('p');
       note.className = 'contact-form-note';
       note.textContent = `Showing first ${formatNumber(MAX_INSIGHTS_RENDER_ROWS)} of ${formatNumber(filtered.length)} rows. Export for full list.`;
-      insightsOutputEl.appendChild(note);
+      exploreOutputEl.appendChild(note);
     } else if (query) {
       const note = document.createElement('p');
       note.className = 'contact-form-note';
       note.textContent = `Showing ${formatNumber(filtered.length)} row(s) after client-side filter.`;
-      insightsOutputEl.appendChild(note);
+      exploreOutputEl.appendChild(note);
     }
 
     const displayHeaders = [...dimensionNames.map(getDimensionLabel), ...metricNames.map(getMetricLabel)];
@@ -1064,84 +1251,90 @@
         tr.appendChild(td);
       });
     });
-    insightsOutputEl.appendChild(wrap);
+    exploreOutputEl.appendChild(wrap);
   };
 
-  const runInsightsReport = async () => {
+  const runExploreReport = async () => {
     const propertyId = getPropertyId();
     if (!propertyId) {
-      setStatus(insightsStatusEl, 'GA4 property ID required.', 'error');
+      setStatus(exploreStatusEl, 'GA4 property ID required.', 'error');
       return;
     }
     if (!startEl.value || !endEl.value) {
-      setStatus(insightsStatusEl, 'Start/end dates required.', 'error');
+      setStatus(exploreStatusEl, 'Start/end dates required.', 'error');
       return;
     }
 
-    const breakdown = String(insightsBreakdownEl.value || '').trim();
-    const includeUtm = !!insightsIncludeUtmEl.checked;
-    if (!includeUtm && !breakdown) {
-      setStatus(insightsStatusEl, 'Select a breakdown and/or include UTM dimensions.', 'error');
-      return;
-    }
-
-    const maxRows = Math.max(10, Math.min(10000, Math.floor(numberOrZero(insightsMaxRowsEl.value) || 200)));
-    const orderBy = String(insightsOrderByEl.value || 'sessions').trim();
-    const orderDir = normalizeSortDir(insightsDirEl.value);
-
-    setInsightsBusy(true);
-    setStatus(insightsStatusEl, 'Fetching GA4 insights…');
+    let dimensions;
+    let metrics;
     try {
-      const groupFields = getGroupFields();
+      dimensions = getExploreDimensions();
+      metrics = getExploreMetrics();
+    } catch (err) {
+      setStatus(exploreStatusEl, err.message || 'Invalid explore configuration.', 'error');
+      return;
+    }
+
+    const maxRows = Math.max(10, Math.min(10000, Math.floor(numberOrZero(exploreMaxRowsEl.value) || 200)));
+    const orderBy = String(exploreOrderByEl.value || '').trim() || metrics[0] || '';
+    const orderDir = normalizeSortDir(exploreDirEl.value);
+
+    if (!metrics.length) {
+      setStatus(exploreStatusEl, 'Select at least 1 metric.', 'error');
+      return;
+    }
+
+    setExploreBusy(true);
+    setStatus(exploreStatusEl, 'Fetching GA4 explore report…');
+    try {
       const data = await fetchGa4Report({
-        kind: 'insights',
+        kind: 'explore',
         propertyId,
         startDate: String(startEl.value || '').trim(),
         endDate: String(endEl.value || '').trim(),
-        includeUtm,
-        breakdown,
+        dimensions,
+        metrics,
         maxRows,
         orderBy,
         orderDir,
-        groupFields,
         filters: buildUtmFiltersPayload()
       });
+      renderQuota(data.quota);
 
-      lastInsights = {
-        kind: 'insights',
+      lastExplore = {
+        kind: 'explore',
         propertyId: String(data.propertyId || propertyId).trim(),
         startDate: String(data.startDate || startEl.value || '').trim(),
         endDate: String(data.endDate || endEl.value || '').trim(),
-        includeUtm,
-        breakdown,
-        groupFields,
+        dimensions,
+        metrics,
         maxRows,
         orderBy,
         orderDir,
         filters: buildUtmFiltersPayload(),
-        dimensionNames: Array.isArray(data.dimensionNames) ? data.dimensionNames : [],
-        metricNames: Array.isArray(data.metricNames) ? data.metricNames : [],
+        dimensionNames: Array.isArray(data.dimensionNames) ? data.dimensionNames : dimensions,
+        metricNames: Array.isArray(data.metricNames) ? data.metricNames : metrics,
         rowCount: numberOrZero(data.rowCount),
         returnedRows: numberOrZero(data.returnedRows),
         truncated: !!data.truncated,
         rows: Array.isArray(data.rows) ? data.rows : []
       };
 
-      renderInsightsTable(lastInsights);
-      insightsDownloadBtn.disabled = insightsBusy || !(lastInsights.rows && lastInsights.rows.length);
+      renderExploreTable(lastExplore);
+      exploreDownloadBtn.disabled = exploreBusy || !(lastExplore.rows && lastExplore.rows.length);
 
-      const trunc = lastInsights.truncated ? ' (truncated)' : '';
-      setStatus(insightsStatusEl, `Done. ${formatNumber(lastInsights.returnedRows || lastInsights.rows.length)} row(s)${trunc}.`, 'success');
+      const trunc = lastExplore.truncated ? ' (truncated)' : '';
+      setStatus(exploreStatusEl, `Done. ${formatNumber(lastExplore.returnedRows || lastExplore.rows.length)} row(s)${trunc}.`, 'success');
       markSessionDirty();
     } catch (err) {
-      lastInsights = null;
-      insightsSummaryEl.replaceChildren();
-      insightsOutputEl.replaceChildren();
-      insightsDownloadBtn.disabled = true;
-      setStatus(insightsStatusEl, err.message || 'Failed to fetch insights.', 'error');
+      lastExplore = null;
+      exploreSummaryEl.replaceChildren();
+      exploreOutputEl.replaceChildren();
+      exploreDownloadBtn.disabled = true;
+      setStatus(exploreStatusEl, err.message || 'Failed to fetch explore report.', 'error');
       markSessionDirty();
     } finally {
-      setInsightsBusy(false);
+      setExploreBusy(false);
     }
   };
 
@@ -1160,6 +1353,7 @@
         startDate: String(startEl.value || '').trim(),
         endDate: String(endEl.value || '').trim()
       });
+      renderQuota(data.quota);
       const rows = Array.isArray(data.rows) ? data.rows : [];
       setStatus(accessStatusEl, rows.length ? 'Access OK. GA4 report returned data.' : 'Access OK. No rows returned for the selected range.', 'success');
     } catch (err) {
@@ -1187,6 +1381,7 @@
     updateAccessMeta();
     tokenInput.value = '';
     setStatus(accessStatusEl, 'Token forgotten on this device.', 'success');
+    renderQuota(null);
     markSessionDirty();
   });
 
@@ -1345,33 +1540,62 @@
     downloadCsv(rows, headers, `ga4-utm-raw_${startEl.value || 'start'}_${endEl.value || 'end'}.csv`);
   });
 
-  insightsForm.addEventListener('submit', (event) => {
+  exploreForm.addEventListener('submit', (event) => {
     event.preventDefault();
-    runInsightsReport();
+    runExploreReport();
   });
 
-  let insightsFilterTimer = 0;
-  insightsFilterEl.addEventListener('input', () => {
-    try { window.clearTimeout(insightsFilterTimer); } catch {}
-    insightsFilterTimer = window.setTimeout(() => {
-      renderInsightsTable(lastInsights);
+  explorePresetEl.addEventListener('change', () => {
+    if (String(explorePresetEl.value || '') !== 'custom') {
+      applyExplorePreset(explorePresetEl.value);
+    }
+    syncExploreOrderByOptions();
+    markSessionDirty();
+  });
+
+  const onExploreConfigChange = () => {
+    syncExploreOrderByOptions();
+    markSessionDirty();
+  };
+
+  $$('input[type="checkbox"]', exploreDimensionsWrap).forEach((el) => {
+    el.addEventListener('change', onExploreConfigChange);
+  });
+  $$('input[type="checkbox"]', exploreMetricsWrap).forEach((el) => {
+    el.addEventListener('change', onExploreConfigChange);
+  });
+
+  let exploreFieldsTimer = 0;
+  const onExploreFieldInput = () => {
+    try { window.clearTimeout(exploreFieldsTimer); } catch {}
+    exploreFieldsTimer = window.setTimeout(() => {
+      syncExploreOrderByOptions();
+      markSessionDirty();
+    }, 140);
+  };
+  exploreCustomDimensionsEl.addEventListener('input', onExploreFieldInput);
+  exploreCustomMetricsEl.addEventListener('input', onExploreFieldInput);
+
+  exploreMaxRowsEl.addEventListener('input', markSessionDirty);
+  exploreOrderByEl.addEventListener('change', markSessionDirty);
+  exploreDirEl.addEventListener('change', markSessionDirty);
+
+  let exploreFilterTimer = 0;
+  exploreFilterEl.addEventListener('input', () => {
+    try { window.clearTimeout(exploreFilterTimer); } catch {}
+    exploreFilterTimer = window.setTimeout(() => {
+      renderExploreTable(lastExplore);
       markSessionDirty();
     }, 120);
   });
 
-  insightsBreakdownEl.addEventListener('change', markSessionDirty);
-  insightsMaxRowsEl.addEventListener('input', markSessionDirty);
-  insightsOrderByEl.addEventListener('change', markSessionDirty);
-  insightsDirEl.addEventListener('change', markSessionDirty);
-  insightsIncludeUtmEl.addEventListener('change', markSessionDirty);
+  exploreDownloadBtn.addEventListener('click', () => {
+    if (!lastExplore || !Array.isArray(lastExplore.rows) || !lastExplore.rows.length) return;
 
-  insightsDownloadBtn.addEventListener('click', () => {
-    if (!lastInsights || !Array.isArray(lastInsights.rows) || !lastInsights.rows.length) return;
-
-    const dimensionNames = Array.isArray(lastInsights.dimensionNames) ? lastInsights.dimensionNames : [];
-    const metricNames = Array.isArray(lastInsights.metricNames) ? lastInsights.metricNames : [];
-    const query = getInsightsFilterQuery();
-    const filtered = applyInsightsFilter(lastInsights.rows, dimensionNames, metricNames, query);
+    const dimensionNames = Array.isArray(lastExplore.dimensionNames) ? lastExplore.dimensionNames : [];
+    const metricNames = Array.isArray(lastExplore.metricNames) ? lastExplore.metricNames : [];
+    const query = getExploreFilterQuery();
+    const filtered = applyExploreFilter(lastExplore.rows, dimensionNames, metricNames, query);
 
     const headers = [...dimensionNames, ...metricNames];
     const rows = filtered.map((row) => {
@@ -1381,7 +1605,7 @@
       return out;
     });
 
-    downloadCsv(rows, headers, `ga4-insights_${startEl.value || 'start'}_${endEl.value || 'end'}.csv`);
+    downloadCsv(rows, headers, `ga4-explore_${startEl.value || 'start'}_${endEl.value || 'end'}.csv`);
   });
 
   const buildAccessSummary = () => {
@@ -1398,8 +1622,8 @@
     if (!payload || typeof payload !== 'object') return;
 
     const utmSummary = String(utmStatusEl.textContent || '').trim();
-    const insightsSummary = String(insightsStatusEl.textContent || '').trim();
-    const summary = [utmSummary, insightsSummary].filter(Boolean).join(' | ').trim();
+    const exploreSummary = String(exploreStatusEl.textContent || '').trim();
+    const summary = [utmSummary, exploreSummary].filter(Boolean).join(' | ').trim();
     payload.outputSummary = summary;
 
     const groupFields = getGroupFields();
@@ -1418,11 +1642,15 @@
       'UTM view': normalizeViewMode(viewModeEl.value),
       'UTM sort': `${String(sortFieldEl.value || '').trim()} (${String(sortDirEl.value || '').trim()})`,
       'UTM filter': String(localFilterEl.value || '').trim(),
-      'Insights include UTMs': insightsIncludeUtmEl.checked ? 'Yes' : 'No',
-      'Insights breakdown': String(insightsBreakdownEl.value || '').trim(),
-      'Insights max rows': String(insightsMaxRowsEl.value || '').trim(),
-      'Insights order by': `${String(insightsOrderByEl.value || '').trim()} (${String(insightsDirEl.value || '').trim()})`,
-      'Insights filter': String(insightsFilterEl.value || '').trim()
+      'Explore preset': String(explorePresetEl.value || '').trim(),
+      'Explore dimensions': getExploreDimensions({ enforceLimit: false }).join(', '),
+      'Explore metrics': getExploreMetrics({ enforceLimit: false }).join(', '),
+      'Explore custom dimensions': String(exploreCustomDimensionsEl.value || '').trim(),
+      'Explore custom metrics': String(exploreCustomMetricsEl.value || '').trim(),
+      'Explore max rows': String(exploreMaxRowsEl.value || '').trim(),
+      'Explore order by': String(exploreOrderByEl.value || '').trim(),
+      'Explore dir': String(exploreDirEl.value || '').trim(),
+      'Explore filter': String(exploreFilterEl.value || '').trim()
     };
 
     payload.output = {
@@ -1441,16 +1669,14 @@
         groups: Array.isArray(lastUtm.groups) ? lastUtm.groups.slice(0, 200) : [],
         rawRows: Array.isArray(lastUtm.parsedRows) ? lastUtm.parsedRows.slice(0, 120) : []
       } : null,
-      insights: lastInsights ? {
-        summary: insightsSummary,
-        propertyId: lastInsights.propertyId || '',
-        startDate: lastInsights.startDate || '',
-        endDate: lastInsights.endDate || '',
-        includeUtm: !!lastInsights.includeUtm,
-        breakdown: lastInsights.breakdown || '',
-        dimensionNames: Array.isArray(lastInsights.dimensionNames) ? lastInsights.dimensionNames : [],
-        metricNames: Array.isArray(lastInsights.metricNames) ? lastInsights.metricNames : [],
-        rows: Array.isArray(lastInsights.rows) ? lastInsights.rows.slice(0, 250) : []
+      explore: lastExplore ? {
+        summary: exploreSummary,
+        propertyId: lastExplore.propertyId || '',
+        startDate: lastExplore.startDate || '',
+        endDate: lastExplore.endDate || '',
+        dimensionNames: Array.isArray(lastExplore.dimensionNames) ? lastExplore.dimensionNames : [],
+        metricNames: Array.isArray(lastExplore.metricNames) ? lastExplore.metricNames : [],
+        rows: Array.isArray(lastExplore.rows) ? lastExplore.rows.slice(0, 250) : []
       } : null
     };
   });
@@ -1483,31 +1709,28 @@
       lastUtm = null;
     }
 
-    const insights = output?.insights;
-    if (insights && typeof insights === 'object') {
-      lastInsights = {
-        kind: 'insights',
-        propertyId: String(insights.propertyId || '').trim(),
-        startDate: String(insights.startDate || '').trim(),
-        endDate: String(insights.endDate || '').trim(),
-        includeUtm: !!insights.includeUtm,
-        breakdown: String(insights.breakdown || '').trim(),
-        dimensionNames: Array.isArray(insights.dimensionNames) ? insights.dimensionNames : [],
-        metricNames: Array.isArray(insights.metricNames) ? insights.metricNames : [],
-        rows: Array.isArray(insights.rows) ? insights.rows : []
+    const explore = output?.explore;
+    if (explore && typeof explore === 'object') {
+      lastExplore = {
+        kind: 'explore',
+        propertyId: String(explore.propertyId || '').trim(),
+        startDate: String(explore.startDate || '').trim(),
+        endDate: String(explore.endDate || '').trim(),
+        dimensionNames: Array.isArray(explore.dimensionNames) ? explore.dimensionNames : [],
+        metricNames: Array.isArray(explore.metricNames) ? explore.metricNames : [],
+        rows: Array.isArray(explore.rows) ? explore.rows : []
       };
     } else {
-      lastInsights = null;
+      lastExplore = null;
     }
 
     drilldownGroup = null;
     renderUtmAll();
-    renderInsightsTable(lastInsights);
+    syncExploreOrderByOptions();
+    renderExploreTable(lastExplore);
 
-    const summary = String(output.summary || '').trim();
-    if (summary) {
-      setStatus(utmStatusEl, summary);
-    }
+    if (utm && typeof utm.summary === 'string') setStatus(utmStatusEl, utm.summary);
+    if (explore && typeof explore.summary === 'string') setStatus(exploreStatusEl, explore.summary);
   });
 
   initDefaultDates();
@@ -1515,5 +1738,6 @@
   syncProfileInputs();
   updateAccessMeta();
   renderUtmAll();
-  renderInsightsTable(lastInsights);
+  syncExploreOrderByOptions();
+  renderExploreTable(lastExplore);
 })();

@@ -51,11 +51,54 @@ function normalizeUtmValue(value) {
   return raw;
 }
 
+function normalizeGa4FieldName(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  if (raw.length > 80) return '';
+  if (!/^[A-Za-z][A-Za-z0-9_]*(?::[A-Za-z0-9_]+)?$/.test(raw)) return '';
+  return raw;
+}
+
+function coerceFieldList(value) {
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') {
+    return value.split(/[,\n]/).map((part) => part.trim()).filter(Boolean);
+  }
+  return [];
+}
+
+function normalizeFieldList(value, label, maxItems) {
+  const list = [];
+  const invalid = [];
+  coerceFieldList(value).forEach((item) => {
+    const normalized = normalizeGa4FieldName(item);
+    if (!normalized) {
+      const raw = String(item || '').trim();
+      if (raw) invalid.push(raw);
+      return;
+    }
+    if (!list.includes(normalized)) list.push(normalized);
+  });
+
+  if (invalid.length) {
+    const err = new Error(`Invalid ${label} name(s): ${invalid.slice(0, 3).join(', ')}`);
+    err.code = 'GA4_INVALID_FIELDS';
+    throw err;
+  }
+  if (maxItems && list.length > maxItems) {
+    const err = new Error(`Too many ${label}s selected (max ${maxItems}).`);
+    err.code = 'GA4_TOO_MANY_FIELDS';
+    throw err;
+  }
+  return list;
+}
+
 function normalizeKind(value) {
   const raw = String(value || '').trim().toLowerCase();
   if (!raw) return 'utm-urls';
   if (raw === 'utm' || raw === 'utmurls' || raw === 'utm_urls' || raw === 'utm-urls') return 'utm-urls';
-  if (raw === 'insights' || raw === 'explore') return 'insights';
+  if (raw === 'insights') return 'insights';
+  if (raw === 'explore') return 'explore';
   if (raw === 'ping' || raw === 'check') return 'ping';
   return '';
 }
@@ -331,6 +374,7 @@ module.exports = async (req, res) => {
 
     const rowCount = Number(first?.rowCount) || 0;
     const rawRows = Array.isArray(first?.rows) ? first.rows.slice() : [];
+    let quota = first && typeof first.propertyQuota === 'object' ? first.propertyQuota : null;
 
     let offset = rawRows.length;
     while (rowCount && offset < rowCount && rawRows.length < maxRows) {
@@ -347,6 +391,7 @@ module.exports = async (req, res) => {
       rawRows.push(...pageRows);
       offset += pageRows.length;
       if (pageRows.length < pageSize) break;
+      if (page && typeof page.propertyQuota === 'object') quota = page.propertyQuota;
     }
 
     const rows = flattenRows(rawRows.slice(0, maxRows), dimensionNames, metricNames)
@@ -363,6 +408,78 @@ module.exports = async (req, res) => {
       rowCount,
       returnedRows: rows.length,
       truncated: rowCount ? rows.length < rowCount : rawRows.length >= maxRows,
+      quota,
+      rows
+    });
+    return;
+  }
+
+  if (kind === 'explore') {
+    let dimensions;
+    let metrics;
+    try {
+      dimensions = normalizeFieldList(body?.dimensions, 'dimension', 9);
+      metrics = normalizeFieldList(body?.metrics, 'metric', 10);
+    } catch (err) {
+      sendJson(res, 400, { ok: false, error: err.message || 'Invalid explore configuration.' });
+      return;
+    }
+
+    if (!metrics.length) {
+      sendJson(res, 400, { ok: false, error: 'Select at least 1 metric.' });
+      return;
+    }
+
+    const maxRows = clampLimit(body?.maxRows, 200, 10000);
+    const orderDir = String(body?.orderDir || 'desc').trim().toLowerCase() === 'asc' ? 'asc' : 'desc';
+    const orderBy = normalizeGa4FieldName(body?.orderBy);
+
+    const dimensionFilter = buildTrafficSourceFilter(body?.filters);
+
+    const reportBody = {
+      dateRanges: [{ startDate, endDate }],
+      metrics: metrics.map((name) => ({ name })),
+      limit: maxRows
+    };
+    if (dimensions.length) reportBody.dimensions = dimensions.map((name) => ({ name }));
+    if (dimensionFilter) reportBody.dimensionFilter = dimensionFilter;
+
+    if (orderBy) {
+      if (metrics.includes(orderBy)) {
+        reportBody.orderBys = [{ metric: { metricName: orderBy }, desc: orderDir !== 'asc' }];
+      } else if (dimensions.includes(orderBy)) {
+        reportBody.orderBys = [{ dimension: { dimensionName: orderBy }, desc: orderDir !== 'asc' }];
+      }
+    }
+
+    if (!reportBody.orderBys) {
+      reportBody.orderBys = [{ metric: { metricName: metrics[0] }, desc: orderDir !== 'asc' }];
+    }
+
+    let report;
+    try {
+      report = await runReport(serviceAccount, propertyId, reportBody);
+    } catch (err) {
+      sendJson(res, 502, { ok: false, error: err.message });
+      return;
+    }
+
+    const rowCount = Number(report?.rowCount) || 0;
+    const rows = flattenRows(report?.rows, dimensions, metrics);
+    const quota = report && typeof report.propertyQuota === 'object' ? report.propertyQuota : null;
+
+    sendJson(res, 200, {
+      ok: true,
+      kind,
+      propertyId,
+      startDate,
+      endDate,
+      dimensionNames: dimensions,
+      metricNames: metrics,
+      rowCount,
+      returnedRows: rows.length,
+      truncated: rowCount ? rows.length < rowCount : false,
+      quota,
       rows
     });
     return;
@@ -431,6 +548,7 @@ module.exports = async (req, res) => {
 
     const rowCount = Number(report?.rowCount) || 0;
     const rows = flattenRows(report?.rows, dimensions, metricNames);
+    const quota = report && typeof report.propertyQuota === 'object' ? report.propertyQuota : null;
 
     sendJson(res, 200, {
       ok: true,
@@ -443,6 +561,7 @@ module.exports = async (req, res) => {
       rowCount,
       returnedRows: rows.length,
       truncated: rowCount ? rows.length < rowCount : false,
+      quota,
       rows
     });
     return;
