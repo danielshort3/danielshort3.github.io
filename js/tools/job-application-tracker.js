@@ -1032,6 +1032,544 @@
     return `https://${trimmed}`;
   };
 
+  const UTM_RESUME_TEMPLATE_PATH = 'documents/Resume.docx';
+  const UTM_BASE_DOMAIN = 'https://danielshort.me';
+
+  const escapeXmlAttribute = (value) => {
+    return (value ?? '')
+      .toString()
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/'/g, '&apos;');
+  };
+
+  const unescapeXmlAttribute = (value) => {
+    return (value ?? '')
+      .toString()
+      .replace(/&quot;/g, '"')
+      .replace(/&apos;/g, '\'')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&amp;/g, '&');
+  };
+
+  const slugifyUtmValue = (value, maxLen = 70) => {
+    const raw = (value ?? '').toString().trim();
+    if (!raw) return '';
+    const expanded = raw.replace(/([a-z0-9])([A-Z])/g, '$1 $2');
+    const normalized = expanded
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/&/g, ' and ')
+      .replace(/@/g, ' at ')
+      .toLowerCase();
+    const cleaned = normalized
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/(^-|-$)/g, '');
+    if (!cleaned) return '';
+    const trimmed = cleaned.length > maxLen ? cleaned.slice(0, maxLen).replace(/-+$/g, '') : cleaned;
+    return trimmed;
+  };
+
+  const isDanielShortDomain = (hostname) => {
+    const raw = (hostname || '').toString().trim().toLowerCase();
+    if (!raw) return false;
+    return raw === 'danielshort.me' || raw === 'www.danielshort.me';
+  };
+
+  const normalizeInternalWebsiteUrl = (href) => {
+    try {
+      const url = new URL(href);
+      const host = url.hostname.toLowerCase();
+      if (!isDanielShortDomain(host)) return url;
+      url.protocol = 'https:';
+      url.hostname = 'danielshort.me';
+
+      const pathLower = url.pathname.toLowerCase();
+      if (pathLower === '/projects.html' || pathLower === '/projects') {
+        url.pathname = '/portfolio';
+      }
+
+      if (url.pathname.toLowerCase() === '/portfolio') {
+        const project = url.searchParams.get('project');
+        if (project) {
+          const cleaned = project.toString().trim();
+          if (cleaned) {
+            url.pathname = `/portfolio/${cleaned}`;
+          }
+          url.searchParams.delete('project');
+        }
+      }
+
+      if (url.pathname.toLowerCase().endsWith('.html')) {
+        const stripped = url.pathname.replace(/\.html$/i, '');
+        if (stripped) url.pathname = stripped;
+      }
+
+      return url;
+    } catch {
+      return null;
+    }
+  };
+
+  const inferUtmContent = (url) => {
+    if (!url) return 'resume_link';
+    const path = (url.pathname || '').replace(/\/+$/g, '') || '/';
+    if (path === '/') return 'header_home';
+    if (path === '/portfolio') return 'header_portfolio';
+    if (path === '/resume') return 'header_resume';
+    if (path === '/resume-pdf') return 'header_resume_pdf';
+    if (path === '/contact') return 'header_contact';
+    const projectMatch = path.match(/^\/portfolio\/([^/]+)$/i);
+    if (projectMatch) {
+      const projectId = slugifyUtmValue(projectMatch[1], 60) || projectMatch[1];
+      return `project_${projectId}`;
+    }
+    const label = slugifyUtmValue(path.replace(/^\//, '').replace(/\//g, '-'), 60);
+    return label ? `link_${label}` : 'resume_link';
+  };
+
+  const buildUtmBaseFromEntry = (entry, options = {}) => {
+    const company = slugifyUtmValue(entry?.company, 60);
+    const title = slugifyUtmValue(entry?.title, 60);
+    const medium = slugifyUtmValue(options.medium || 'resume_docx', 40) || 'resume_docx';
+
+    const base = {
+      utm_source: company,
+      utm_medium: medium,
+      utm_campaign: title
+    };
+
+    if (options.includeJobBoard) {
+      const term = slugifyUtmValue(entry?.source, 60);
+      if (term) base.utm_term = term;
+    }
+
+    if (options.includeApplicationId) {
+      const rawId = (entry?.applicationId || '').toString().trim();
+      const cleaned = rawId.replace(/[^a-z0-9]/gi, '');
+      if (cleaned) base.utm_id = cleaned.slice(0, 24);
+    }
+
+    return base;
+  };
+
+  const buildUtmUrl = (href, utmBase, content) => {
+    const url = normalizeInternalWebsiteUrl(href) || (() => {
+      try {
+        return new URL(href, UTM_BASE_DOMAIN);
+      } catch {
+        return null;
+      }
+    })();
+    if (!url) return '';
+
+    const base = utmBase && typeof utmBase === 'object' ? utmBase : {};
+    Object.entries(base).forEach(([key, value]) => {
+      if (!key.startsWith('utm_')) return;
+      const v = (value ?? '').toString().trim();
+      if (v) url.searchParams.set(key, v);
+      else url.searchParams.delete(key);
+    });
+
+    const contentValue = (content ?? '').toString().trim();
+    if (contentValue) url.searchParams.set('utm_content', contentValue);
+    else url.searchParams.delete('utm_content');
+
+    return url.toString();
+  };
+
+  const copyTextToClipboard = async (text) => {
+    const value = (text ?? '').toString();
+    if (!value) return false;
+    try {
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        await navigator.clipboard.writeText(value);
+        return true;
+      }
+    } catch {}
+    try {
+      const el = document.createElement('textarea');
+      el.value = value;
+      el.setAttribute('readonly', '');
+      el.style.position = 'fixed';
+      el.style.top = '-9999px';
+      el.style.left = '-9999px';
+      document.body.appendChild(el);
+      el.select();
+      const ok = document.execCommand('copy');
+      el.remove();
+      return ok;
+    } catch {
+      return false;
+    }
+  };
+
+  const downloadBinaryFile = (bytes, filename, mimeType) => {
+    const blob = new Blob([bytes], { type: mimeType || 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename || 'download';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  const updateDocxRelationshipTargets = (relsXml, transformTarget) => {
+    const xml = (relsXml ?? '').toString();
+    if (!xml) return xml;
+
+    return xml.replace(/<Relationship\b[^>]*\/\s*>/gi, (tag) => {
+      if (!/\bType="http:\/\/schemas\.openxmlformats\.org\/officeDocument\/2006\/relationships\/hyperlink"/i.test(tag)) {
+        return tag;
+      }
+      const match = tag.match(/\bTarget="([^"]*)"/i);
+      if (!match) return tag;
+      const originalTarget = unescapeXmlAttribute(match[1]);
+      const nextTarget = transformTarget(originalTarget);
+      if (!nextTarget || nextTarget === originalTarget) return tag;
+      return tag.replace(/\bTarget="[^"]*"/i, `Target="${escapeXmlAttribute(nextTarget)}"`);
+    });
+  };
+
+  const generateUtmResumeDocx = async (entry, options, statusEl) => {
+    const company = slugifyUtmValue(entry?.company, 60);
+    const title = slugifyUtmValue(entry?.title, 60);
+    if (!company || !title) {
+      throw new Error('Company + job title are required to generate UTMs.');
+    }
+    const api = window.fflate;
+    if (!api || typeof api.unzipSync !== 'function' || typeof api.zipSync !== 'function') {
+      throw new Error('Zip library missing (fflate).');
+    }
+    if (statusEl) setStatus(statusEl, 'Downloading resume template...', 'info');
+    const res = await fetch(UTM_RESUME_TEMPLATE_PATH, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`Unable to fetch ${UTM_RESUME_TEMPLATE_PATH} (${res.status}).`);
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    if (statusEl) setStatus(statusEl, 'Building UTM resume...', 'info');
+
+    const files = api.unzipSync(bytes);
+    const relsPath = 'word/_rels/document.xml.rels';
+    const relsBytes = files[relsPath];
+    if (!relsBytes) throw new Error('Resume template is missing relationship metadata.');
+
+    const decoder = new TextDecoder('utf-8');
+    const encoder = new TextEncoder();
+    const relsXml = decoder.decode(relsBytes);
+
+    const utmBase = buildUtmBaseFromEntry(entry, options);
+    const updated = updateDocxRelationshipTargets(relsXml, (target) => {
+      const url = normalizeInternalWebsiteUrl(target);
+      if (!url) return target;
+      if (!isDanielShortDomain(url.hostname)) return target;
+      const content = inferUtmContent(url);
+      return buildUtmUrl(url.toString(), utmBase, content);
+    });
+
+    files[relsPath] = encoder.encode(updated);
+    const zipped = api.zipSync(files, { level: 0 });
+    const filename = `${company}_${title}_resume.docx`;
+    downloadBinaryFile(zipped, filename, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    return filename;
+  };
+
+  const getPortfolioProjectsForUtm = () => {
+    const projects = Array.isArray(window.PROJECTS) ? window.PROJECTS : [];
+    return projects
+      .map((project) => ({
+        id: (project?.id || '').toString().trim(),
+        title: (project?.title || project?.id || '').toString().trim()
+      }))
+      .filter((project) => project.id && project.title)
+      .sort((a, b) => a.title.localeCompare(b.title));
+  };
+
+  const buildUtmLinksSection = (entry) => {
+    const company = (entry?.company || '').toString().trim();
+    const title = (entry?.title || '').toString().trim();
+
+    const wrap = document.createElement('div');
+    wrap.className = 'jobtrack-modal-attachments';
+
+    const head = document.createElement('div');
+    head.className = 'jobtrack-modal-attachments-head';
+    const heading = document.createElement('p');
+    heading.className = 'jobtrack-modal-attachments-title';
+    heading.textContent = 'UTM resume links';
+    head.appendChild(heading);
+
+    const downloadBtn = document.createElement('button');
+    downloadBtn.type = 'button';
+    downloadBtn.className = 'btn-ghost jobtrack-modal-attachment-btn';
+    downloadBtn.textContent = 'Download UTM resume (DOCX)';
+    if (!company || !title) {
+      downloadBtn.disabled = true;
+      downloadBtn.setAttribute('aria-disabled', 'true');
+      downloadBtn.title = 'Add a company and job title to enable this download.';
+    }
+    downloadBtn.addEventListener('click', async () => {
+      try {
+        await generateUtmResumeDocx(entry, {
+          medium: mediumSelect.value,
+          includeJobBoard: includeJobBoardInput.checked,
+          includeApplicationId: includeApplicationIdInput.checked
+        }, els.detailModalStatus);
+        setStatus(els.detailModalStatus, 'Downloaded UTM resume.', 'success');
+      } catch (err) {
+        setStatus(els.detailModalStatus, err?.message || 'Unable to generate UTM resume.', 'error');
+      }
+    });
+    head.appendChild(downloadBtn);
+
+    wrap.appendChild(head);
+
+    const note = document.createElement('p');
+    note.className = 'jobtrack-help';
+    note.textContent = 'Generates job-specific UTM links using company + job title. Use the project links below to update your resume bullets if needed.';
+    wrap.appendChild(note);
+
+    const fields = document.createElement('div');
+    fields.className = 'jobtrack-modal-status-fields';
+
+    const mediumField = document.createElement('div');
+    mediumField.className = 'jobtrack-field';
+    const mediumLabel = document.createElement('label');
+    mediumLabel.className = 'jobtrack-label';
+    mediumLabel.textContent = 'UTM medium';
+    const mediumSelect = document.createElement('select');
+    mediumSelect.className = 'jobtrack-select';
+    [
+      { value: 'resume_docx', label: 'resume_docx' },
+      { value: 'resume_pdf', label: 'resume_pdf' },
+      { value: 'resume_site', label: 'resume_site' },
+      { value: 'cover_letter', label: 'cover_letter' }
+    ].forEach((opt) => {
+      const option = document.createElement('option');
+      option.value = opt.value;
+      option.textContent = opt.label;
+      mediumSelect.appendChild(option);
+    });
+    mediumSelect.value = 'resume_docx';
+    mediumField.appendChild(mediumLabel);
+    mediumField.appendChild(mediumSelect);
+    fields.appendChild(mediumField);
+
+    const togglesField = document.createElement('div');
+    togglesField.className = 'jobtrack-field';
+    const togglesLabel = document.createElement('p');
+    togglesLabel.className = 'jobtrack-label';
+    togglesLabel.textContent = 'Optional fields';
+    togglesField.appendChild(togglesLabel);
+
+    const includeJobBoard = document.createElement('label');
+    includeJobBoard.className = 'jobtrack-checkbox';
+    const includeJobBoardInput = document.createElement('input');
+    includeJobBoardInput.type = 'checkbox';
+    includeJobBoardInput.className = 'jobtrack-checkbox-input';
+    includeJobBoardInput.checked = false;
+    includeJobBoard.appendChild(includeJobBoardInput);
+    includeJobBoard.appendChild(document.createTextNode(' Include job board as utm_term'));
+    togglesField.appendChild(includeJobBoard);
+
+    const includeApplicationId = document.createElement('label');
+    includeApplicationId.className = 'jobtrack-checkbox';
+    const includeApplicationIdInput = document.createElement('input');
+    includeApplicationIdInput.type = 'checkbox';
+    includeApplicationIdInput.className = 'jobtrack-checkbox-input';
+    includeApplicationIdInput.checked = false;
+    includeApplicationId.appendChild(includeApplicationIdInput);
+    includeApplicationId.appendChild(document.createTextNode(' Include applicationId as utm_id'));
+    togglesField.appendChild(includeApplicationId);
+
+    fields.appendChild(togglesField);
+    wrap.appendChild(fields);
+
+    const preview = document.createElement('p');
+    preview.className = 'jobtrack-help';
+    wrap.appendChild(preview);
+
+    const coreTitle = document.createElement('p');
+    coreTitle.className = 'jobtrack-modal-attachments-title';
+    coreTitle.textContent = 'Core links';
+    wrap.appendChild(coreTitle);
+
+    const coreList = document.createElement('ul');
+    coreList.className = 'jobtrack-modal-attachment-list';
+    wrap.appendChild(coreList);
+
+    const projectsHead = document.createElement('div');
+    projectsHead.className = 'jobtrack-modal-attachments-head';
+    const projectsTitle = document.createElement('p');
+    projectsTitle.className = 'jobtrack-modal-attachments-title';
+    projectsTitle.textContent = 'Project links';
+    projectsHead.appendChild(projectsTitle);
+    wrap.appendChild(projectsHead);
+
+    const projectFilterField = document.createElement('div');
+    projectFilterField.className = 'jobtrack-field';
+    const projectFilterLabel = document.createElement('label');
+    projectFilterLabel.className = 'jobtrack-label';
+    projectFilterLabel.textContent = 'Filter projects';
+    const projectFilterInput = document.createElement('input');
+    projectFilterInput.className = 'jobtrack-input';
+    projectFilterInput.type = 'search';
+    projectFilterInput.placeholder = 'Type to filter...';
+    projectFilterField.appendChild(projectFilterLabel);
+    projectFilterField.appendChild(projectFilterInput);
+    wrap.appendChild(projectFilterField);
+
+    const projectsList = document.createElement('ul');
+    projectsList.className = 'jobtrack-modal-attachment-list';
+    wrap.appendChild(projectsList);
+
+    const projectsNote = document.createElement('p');
+    projectsNote.className = 'jobtrack-help';
+    wrap.appendChild(projectsNote);
+
+    const renderLists = () => {
+      const hasBasics = Boolean(company && title);
+      const medium = mediumSelect.value;
+      const base = buildUtmBaseFromEntry(entry, {
+        medium,
+        includeJobBoard: includeJobBoardInput.checked,
+        includeApplicationId: includeApplicationIdInput.checked
+      });
+      const summaryParts = [];
+      if (base.utm_source) summaryParts.push(`utm_source=${base.utm_source}`);
+      if (base.utm_campaign) summaryParts.push(`utm_campaign=${base.utm_campaign}`);
+      if (base.utm_medium) summaryParts.push(`utm_medium=${base.utm_medium}`);
+      if (base.utm_term) summaryParts.push(`utm_term=${base.utm_term}`);
+      if (base.utm_id) summaryParts.push(`utm_id=${base.utm_id}`);
+      preview.textContent = hasBasics
+        ? summaryParts.join(' · ')
+        : 'Add a company and job title to generate UTMs.';
+
+      coreList.innerHTML = '';
+      const coreLinks = [
+        { label: 'Home', href: `${UTM_BASE_DOMAIN}/`, content: 'header_home' },
+        { label: 'Portfolio', href: `${UTM_BASE_DOMAIN}/portfolio`, content: 'header_portfolio' },
+        { label: 'Resume (PDF)', href: `${UTM_BASE_DOMAIN}/resume-pdf`, content: 'header_resume_pdf' },
+        { label: 'Contact', href: `${UTM_BASE_DOMAIN}/contact`, content: 'header_contact' }
+      ];
+      coreLinks.forEach((item) => {
+        const utmUrl = hasBasics ? buildUtmUrl(item.href, base, item.content) : item.href;
+        const row = document.createElement('li');
+        row.className = 'jobtrack-modal-attachment';
+
+        const info = document.createElement('div');
+        info.className = 'jobtrack-modal-attachment-info';
+        const name = document.createElement('div');
+        name.className = 'jobtrack-modal-attachment-name';
+        name.textContent = item.label;
+        info.appendChild(name);
+
+        const meta = document.createElement('div');
+        meta.className = 'jobtrack-modal-attachment-meta';
+        const contentTag = document.createElement('span');
+        contentTag.textContent = `utm_content: ${item.content}`;
+        meta.appendChild(contentTag);
+        info.appendChild(meta);
+
+        const link = document.createElement('a');
+        link.className = 'jobtrack-prospect-link';
+        link.href = utmUrl;
+        link.target = '_blank';
+        link.rel = 'noopener';
+        link.textContent = 'Open';
+        info.appendChild(link);
+
+        const copyBtn = document.createElement('button');
+        copyBtn.type = 'button';
+        copyBtn.className = 'btn-ghost jobtrack-modal-attachment-btn';
+        copyBtn.textContent = 'Copy';
+        copyBtn.addEventListener('click', async () => {
+          const ok = await copyTextToClipboard(utmUrl);
+          setStatus(els.detailModalStatus, ok ? 'Copied link.' : 'Copy failed.', ok ? 'success' : 'error');
+        });
+
+        row.appendChild(info);
+        row.appendChild(copyBtn);
+        coreList.appendChild(row);
+      });
+
+      const query = (projectFilterInput.value || '').toString().trim().toLowerCase();
+      const allProjects = getPortfolioProjectsForUtm();
+      const filtered = query
+        ? allProjects.filter((project) => project.title.toLowerCase().includes(query) || project.id.toLowerCase().includes(query))
+        : allProjects;
+      projectsList.innerHTML = '';
+      projectsNote.textContent = '';
+      filtered.slice(0, 80).forEach((project) => {
+        const href = `${UTM_BASE_DOMAIN}/portfolio/${project.id}`;
+        const slug = slugifyUtmValue(project.id, 60) || project.id;
+        const content = `project_${slug}`;
+        const utmUrl = hasBasics ? buildUtmUrl(href, base, content) : href;
+
+        const row = document.createElement('li');
+        row.className = 'jobtrack-modal-attachment';
+
+        const info = document.createElement('div');
+        info.className = 'jobtrack-modal-attachment-info';
+        const name = document.createElement('div');
+        name.className = 'jobtrack-modal-attachment-name';
+        name.textContent = project.title;
+        info.appendChild(name);
+
+        const meta = document.createElement('div');
+        meta.className = 'jobtrack-modal-attachment-meta';
+        const idTag = document.createElement('span');
+        idTag.textContent = project.id;
+        meta.appendChild(idTag);
+        const contentTag = document.createElement('span');
+        contentTag.textContent = `utm_content: ${content}`;
+        meta.appendChild(contentTag);
+        info.appendChild(meta);
+
+        const link = document.createElement('a');
+        link.className = 'jobtrack-prospect-link';
+        link.href = utmUrl;
+        link.target = '_blank';
+        link.rel = 'noopener';
+        link.textContent = 'Open';
+        info.appendChild(link);
+
+        const copyBtn = document.createElement('button');
+        copyBtn.type = 'button';
+        copyBtn.className = 'btn-ghost jobtrack-modal-attachment-btn';
+        copyBtn.textContent = 'Copy';
+        copyBtn.addEventListener('click', async () => {
+          const ok = await copyTextToClipboard(utmUrl);
+          setStatus(els.detailModalStatus, ok ? 'Copied link.' : 'Copy failed.', ok ? 'success' : 'error');
+        });
+
+        row.appendChild(info);
+        row.appendChild(copyBtn);
+        projectsList.appendChild(row);
+      });
+
+      if (filtered.length > 80) {
+        projectsNote.textContent = `Showing 80 of ${filtered.length} projects. Narrow the filter to find more.`;
+      }
+    };
+
+    mediumSelect.addEventListener('change', renderLists);
+    includeJobBoardInput.addEventListener('change', renderLists);
+    includeApplicationIdInput.addEventListener('change', renderLists);
+    projectFilterInput.addEventListener('input', () => {
+      window.clearTimeout(projectFilterInput._timer);
+      projectFilterInput._timer = window.setTimeout(renderLists, 120);
+    });
+
+    renderLists();
+
+    return wrap;
+  };
+
   const readFileText = (file) => {
     if (file && typeof file.text === 'function') return file.text();
     return new Promise((resolve, reject) => {
@@ -1867,6 +2405,11 @@
 
     if (actionsWrap.childNodes.length) {
       els.detailModalBody.appendChild(actionsWrap);
+    }
+
+    const utmLinksWrap = buildUtmLinksSection(entry);
+    if (utmLinksWrap) {
+      els.detailModalBody.appendChild(utmLinksWrap);
     }
 
     const attachments = Array.isArray(entry.attachments) ? entry.attachments : [];
