@@ -227,7 +227,19 @@
   </div>
 
   <main id="main">
-    <section class="surface-band tools-section reveal">
+    <div class="ga4-tabs" data-ga4="tabs">
+      <div class="wrapper">
+        <div class="ga4-tablist" role="tablist" aria-label="GA4 UTM Performance sections">
+          <button type="button" class="ga4-tab" role="tab" id="ga4-tab-access" aria-selected="true" aria-controls="ga4-panel-access" data-ga4-tab="access">Access</button>
+          <button type="button" class="ga4-tab" role="tab" id="ga4-tab-scope" aria-selected="false" aria-controls="ga4-panel-scope" tabindex="-1" data-ga4-tab="scope">Scope</button>
+          <button type="button" class="ga4-tab" role="tab" id="ga4-tab-filters" aria-selected="false" aria-controls="ga4-panel-filters" tabindex="-1" data-ga4-tab="filters">Filters</button>
+          <button type="button" class="ga4-tab" role="tab" id="ga4-tab-utm" aria-selected="false" aria-controls="ga4-panel-utm" tabindex="-1" data-ga4-tab="utm">UTM URLs</button>
+          <button type="button" class="ga4-tab" role="tab" id="ga4-tab-explore" aria-selected="false" aria-controls="ga4-panel-explore" tabindex="-1" data-ga4-tab="explore">Explore</button>
+        </div>
+      </div>
+    </div>
+
+    <section id="ga4-panel-access" class="surface-band tools-section reveal" role="tabpanel" aria-labelledby="ga4-tab-access" data-ga4-panel="access">
       <div class="wrapper">
         <details class="shortlinks-access-details" data-ga4="access-details" open>
           <summary class="shortlinks-access-summary">
@@ -279,7 +291,7 @@
       </div>
     </section>
 
-    <section class="surface-band tools-section reveal">
+    <section id="ga4-panel-scope" class="surface-band tools-section reveal" role="tabpanel" aria-labelledby="ga4-tab-scope" data-ga4-panel="scope">
       <div class="wrapper">
         <details class="shortlinks-panel" open data-ga4="scope-details">
           <summary class="shortlinks-panel-summary">
@@ -304,7 +316,7 @@
       </div>
     </section>
 
-    <section class="surface-band tools-section reveal">
+    <section id="ga4-panel-filters" class="surface-band tools-section reveal" role="tabpanel" aria-labelledby="ga4-tab-filters" data-ga4-panel="filters">
       <div class="wrapper">
         <details class="shortlinks-panel" open data-ga4="filters-details">
           <summary class="shortlinks-panel-summary">
@@ -359,7 +371,7 @@
       </div>
     </section>
 
-    <section class="surface-band tools-section reveal">
+    <section id="ga4-panel-utm" class="surface-band tools-section reveal" role="tabpanel" aria-labelledby="ga4-tab-utm" data-ga4-panel="utm">
       <div class="wrapper">
         <details class="shortlinks-panel" open data-ga4="utm-details">
           <summary class="shortlinks-panel-summary">
@@ -369,7 +381,7 @@
             <form class="contact-form" data-ga4="utm-form" autocomplete="off">
               <div class="form-field">
                 <label>Group by</label>
-                <div class="tools-actions" data-ga4="group-fields">
+                <div class="ga4-checklist" data-ga4="group-fields">
                   <label><input type="checkbox" name="ga4-group" value="utm_source" checked> utm_source</label>
                   <label><input type="checkbox" name="ga4-group" value="utm_medium" checked> utm_medium</label>
                   <label><input type="checkbox" name="ga4-group" value="utm_campaign" checked> utm_campaign</label>
@@ -421,7 +433,7 @@
       </div>
     </section>
 
-    <section class="surface-band tools-section reveal">
+    <section id="ga4-panel-explore" class="surface-band tools-section reveal" role="tabpanel" aria-labelledby="ga4-tab-explore" data-ga4-panel="explore">
       <div class="wrapper">
         <details class="shortlinks-panel" open data-ga4="explore-details">
           <summary class="shortlinks-panel-summary">
@@ -463,7 +475,7 @@
 
               <div class="form-field">
                 <label>Dimensions (max 9)</label>
-                <div class="tools-actions" data-ga4="explore-dimensions">
+                <div class="ga4-checklist" data-ga4="explore-dimensions">
                   <label><input type="checkbox" value="sessionSource" checked> utm_source</label>
                   <label><input type="checkbox" value="sessionMedium" checked> utm_medium</label>
                   <label><input type="checkbox" value="sessionCampaignName" checked> utm_campaign</label>
@@ -489,7 +501,7 @@
 
               <div class="form-field">
                 <label>Metrics (max 10)</label>
-                <div class="tools-actions" data-ga4="explore-metrics">
+                <div class="ga4-checklist" data-ga4="explore-metrics">
                   <label><input type="checkbox" value="sessions" checked> Sessions</label>
                   <label><input type="checkbox" value="totalUsers" checked> Users</label>
                   <label><input type="checkbox" value="newUsers"> New users</label>
