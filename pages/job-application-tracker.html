@@ -35,7 +35,7 @@
     {"@context":"https://schema.org","@type":"WebApplication","name":"Job Application Tracker","description":"Track your job applications with private dashboards, KPI cards, and interview momentum charts.","url":"https://danielshort.me/tools/job-application-tracker","image":"https://danielshort.me/img/hero/head.jpg","applicationCategory":"UtilitiesApplication","operatingSystem":"Any","isAccessibleForFree":true,"creator":{"@type":"Person","name":"Daniel Short","url":"https://danielshort.me/"}}
   </script>
 </head>
-<body data-page="job-application-tracker" class="jobtrack-page" data-api-base="https://fhp2is6v8h.execute-api.us-east-2.amazonaws.com/prod" data-cognito-domain="job-tracker-auth-886623862678.auth.us-east-2.amazoncognito.com" data-cognito-client-id="78oo663obb0t28u63u9bqn00o9" data-cognito-redirect="https://danielshort.me/tools/job-application-tracker" data-cognito-scopes="openid email profile" data-max-attachment-bytes="10485760" data-max-attachment-count="12" data-tools-autosave="false">
+<body data-page="job-application-tracker" class="jobtrack-page" data-api-base="https://fhp2is6v8h.execute-api.us-east-2.amazonaws.com/prod" data-max-attachment-bytes="10485760" data-max-attachment-count="12" data-tools-autosave="false">
   <a href="#main" class="skip-link">Skip to main content</a>
   <header id="combined-header-nav">
     <nav class="nav" aria-label="Primary">
@@ -234,9 +234,6 @@
 	            <div>
 	              <h2>Job Application Tracker</h2>
 	              <p class="jobtrack-tool-lead">Track applications by stage, dates, and follow-ups. Each section below is labeled so you can jump straight in.</p>
-	            </div>
-	            <div class="jobtrack-panel-actions">
-	              <button type="button" class="btn-secondary" data-jobtrack="sign-out">Sign out</button>
 	            </div>
 	          </div>
 	        </div>
@@ -1089,32 +1086,6 @@
 	      </div>
 	      <div class="modal-body jobtrack-modal-body" data-jobtrack="detail-modal-body"></div>
 	      <p class="jobtrack-form-status jobtrack-modal-status" data-jobtrack="detail-modal-status" role="status" aria-live="polite"></p>
-	    </div>
-	  </div>
-
-	  <div id="jobtrack-auth-modal" class="modal" data-jobtrack="auth-modal" hidden>
-	    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="jobtrack-auth-modal-title" tabindex="-1">
-	      <div class="modal-title-strip">
-	        <h3 class="modal-title" id="jobtrack-auth-modal-title">Sign in required</h3>
-	        <p class="modal-subtitle">Sign in with your Cognito account to load your private dashboards and application history.</p>
-	      </div>
-	      <div class="modal-body stacked">
-	        <div class="jobtrack-auth-actions">
-	          <button type="button" class="btn-primary" data-jobtrack="sign-in">Sign in</button>
-	        </div>
-	        <div class="jobtrack-auth-status" data-jobtrack="auth-status" role="status" aria-live="polite">Sign in to continue.</div>
-	        <div class="jobtrack-auth-meta">
-	          <div>
-	            <span class="jobtrack-meta-label">API</span>
-	            <span class="jobtrack-meta-value" data-jobtrack="api-status">Not configured</span>
-	          </div>
-	          <div>
-	            <span class="jobtrack-meta-label">User pool</span>
-	            <span class="jobtrack-meta-value" data-jobtrack="cognito-status">Not configured</span>
-	          </div>
-	        </div>
-	        <p class="jobtrack-note">Tokens are stored locally in your browser. You must sign in again if you log out or your session expires.</p>
-	      </div>
 	    </div>
 	  </div>
 
