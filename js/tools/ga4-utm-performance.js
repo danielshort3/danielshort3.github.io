@@ -61,6 +61,113 @@
   const main = document.getElementById('main');
   if (!main) return;
 
+  let setActiveTab = () => {};
+
+  const initTabs = () => {
+    const buttons = $$('[data-ga4-tab]', main);
+    const panels = $$('[data-ga4-panel]', main);
+    if (!buttons.length || !panels.length) return;
+
+    const order = buttons
+      .map((btn) => String(btn?.dataset?.ga4Tab || '').trim())
+      .filter(Boolean);
+    const allowed = new Set(order);
+
+    const normalizeTabId = (value) => {
+      const id = String(value || '').trim();
+      if (!id) return '';
+      return allowed.has(id) ? id : '';
+    };
+
+    const getTabFromHash = () => {
+      const raw = String(window.location.hash || '').replace(/^#/, '');
+      return normalizeTabId(raw);
+    };
+
+    const renderTabs = (tabId) => {
+      buttons.forEach((btn) => {
+        const id = normalizeTabId(btn?.dataset?.ga4Tab);
+        const isActive = id && id === tabId;
+        btn.classList.toggle('is-active', isActive);
+        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        btn.tabIndex = isActive ? 0 : -1;
+      });
+
+      panels.forEach((panel) => {
+        const id = normalizeTabId(panel?.dataset?.ga4Panel);
+        const isActive = id && id === tabId;
+        panel.hidden = !isActive;
+      });
+    };
+
+    setActiveTab = (nextTabId, { focus = false, updateHash = true } = {}) => {
+      const id = normalizeTabId(nextTabId) || order[0] || '';
+      if (!id) return;
+
+      renderTabs(id);
+
+      if (updateHash) {
+        try {
+          const next = `#${id}`;
+          if (window.location.hash !== next) {
+            window.history.replaceState(null, '', next);
+          }
+        } catch {}
+      }
+
+      if (focus) {
+        const btn = buttons.find((b) => normalizeTabId(b?.dataset?.ga4Tab) === id);
+        try { btn?.focus({ preventScroll: true }); } catch {}
+      }
+    };
+
+    const onTabClick = (event) => {
+      const btn = event.target.closest('[data-ga4-tab]');
+      const id = normalizeTabId(btn?.dataset?.ga4Tab);
+      if (!id) return;
+      event.preventDefault();
+      setActiveTab(id, { focus: true, updateHash: true });
+    };
+
+    const onTabKeyDown = (event) => {
+      const currentBtn = event.target.closest('[data-ga4-tab]');
+      const currentId = normalizeTabId(currentBtn?.dataset?.ga4Tab);
+      if (!currentId) return;
+
+      const idx = order.indexOf(currentId);
+      if (idx < 0) return;
+
+      const key = event.key;
+      let nextIdx = -1;
+
+      if (key === 'ArrowRight') nextIdx = (idx + 1) % order.length;
+      else if (key === 'ArrowLeft') nextIdx = (idx - 1 + order.length) % order.length;
+      else if (key === 'Home') nextIdx = 0;
+      else if (key === 'End') nextIdx = order.length - 1;
+      else return;
+
+      event.preventDefault();
+      const nextId = order[nextIdx];
+      setActiveTab(nextId, { focus: true, updateHash: true });
+    };
+
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', onTabClick);
+      btn.addEventListener('keydown', onTabKeyDown);
+    });
+
+    window.addEventListener('hashchange', () => {
+      const id = getTabFromHash();
+      if (!id) return;
+      setActiveTab(id, { focus: false, updateHash: false });
+    });
+
+    const initial = getTabFromHash() || order[0] || '';
+    renderTabs(initial);
+  };
+
+  initTabs();
+
   const accessForm = $('[data-ga4="auth"]', main);
   const tokenInput = $('[data-ga4="token"]', main);
   const forgetTokenBtn = $('[data-ga4="forget-token"]', main);
@@ -760,6 +867,7 @@
         applyExplorePreset('utm-country');
         syncExploreOrderByOptions();
 
+        setActiveTab('explore', { focus: false, updateHash: true });
         const exploreDetails = $('[data-ga4="explore-details"]', main);
         if (exploreDetails) exploreDetails.open = true;
         try { exploreDetails?.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch {}

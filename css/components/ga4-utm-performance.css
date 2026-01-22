@@ -1,0 +1,103 @@
+@layer components {
+  html.no-js body[data-page="ga4-utm-performance"] .ga4-tabs{
+    display:none;
+  }
+
+  body[data-page="ga4-utm-performance"] .tools-section{
+    padding:clamp(1.8rem,4.5vh,2.4rem) 0;
+  }
+
+  body[data-page="ga4-utm-performance"] .tools-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:center;
+  }
+
+  body[data-page="ga4-utm-performance"] .ga4-tabs{
+    position:sticky;
+    top:calc(var(--nav-height,72px) + 10px);
+    z-index:6;
+    padding:10px 0;
+    background:linear-gradient(
+      180deg,
+      color-mix(in srgb,var(--bg) 70%, transparent) 0%,
+      color-mix(in srgb,var(--bg) 92%, transparent) 65%,
+      transparent 100%
+    );
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid color-mix(in srgb,var(--primary) 12%, transparent);
+  }
+
+  body[data-page="ga4-utm-performance"] .ga4-tablist{
+    display:flex;
+    gap:10px;
+    overflow-x:auto;
+    padding:4px 2px;
+    scrollbar-width:none;
+  }
+
+  body[data-page="ga4-utm-performance"] .ga4-tablist::-webkit-scrollbar{
+    display:none;
+  }
+
+  body[data-page="ga4-utm-performance"] .ga4-tab{
+    flex:0 0 auto;
+    appearance:none;
+    border:1px solid color-mix(in srgb,var(--primary) 20%, transparent);
+    background:color-mix(in srgb,var(--surface) 92%, #000 8%);
+    color:color-mix(in srgb,var(--text-light) 92%, #ffffff 8%);
+    border-radius:999px;
+    padding:8px 12px;
+    font:inherit;
+    font-weight:600;
+    letter-spacing:.01em;
+    cursor:pointer;
+    transition:transform .2s ease, background .2s ease, border-color .2s ease;
+    white-space:nowrap;
+  }
+
+  body[data-page="ga4-utm-performance"] .ga4-tab:hover{
+    transform:translateY(-1px);
+    background:color-mix(in srgb,var(--primary) 12%, var(--surface) 88%);
+    border-color:color-mix(in srgb,var(--primary) 42%, transparent);
+  }
+
+  body[data-page="ga4-utm-performance"] .ga4-tab.is-active{
+    background:color-mix(in srgb,var(--primary) 18%, var(--surface) 82%);
+    border-color:color-mix(in srgb,var(--primary) 60%, transparent);
+  }
+
+  body[data-page="ga4-utm-performance"] .ga4-tab:focus-visible{
+    outline:2px solid var(--focus);
+    outline-offset:2px;
+  }
+
+  body[data-page="ga4-utm-performance"] .ga4-checklist{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+    gap:10px 14px;
+  }
+
+  body[data-page="ga4-utm-performance"] .ga4-checklist label{
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    padding:8px 10px;
+    border-radius:14px;
+    border:1px solid color-mix(in srgb,var(--primary) 14%, transparent);
+    background:color-mix(in srgb,var(--surface) 92%, #000 8%);
+    color:var(--text-light);
+    font-weight:500;
+    line-height:1.3;
+  }
+
+  body[data-page="ga4-utm-performance"] .ga4-checklist label:hover{
+    border-color:color-mix(in srgb,var(--primary) 36%, transparent);
+  }
+
+  body[data-page="ga4-utm-performance"] .ga4-checklist input[type="checkbox"]{
+    margin-top:2px;
+    flex-shrink:0;
+  }
+}
