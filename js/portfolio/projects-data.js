@@ -52,7 +52,7 @@ window.PROJECTS = [
     ],
     results: [
       "Selected an embedding model that clustered the corpus cleanly on the test set (dataset- and k-dependent).",
-      "Shipped a serverless demo: embed query → cosine-similarity ranking over cached sentence embeddings."
+      "Shipped a serverless demo: embed the query, then rank cached sentence embeddings by cosine similarity."
     ],
     caseStudy: [
       {
@@ -136,7 +136,7 @@ window.PROJECTS = [
     caseStudy: [
       {
         title: "System Design",
-        lead: "Pipeline: crawl → index → generate training data → LoRA fine-tune → deploy behind an API the site can call.",
+        lead: "Pipeline: crawl, index, generate training data, LoRA fine-tune, then deploy behind an API the site can call.",
         bullets: [
           "Ingestion: crawl pages and store cleaned text chunks.",
           "Retrieval: use FAISS so answers can cite the right source passages.",
@@ -147,7 +147,7 @@ window.PROJECTS = [
         title: "Dataset Generation",
         bullets: [
           "Used an open-source LLM via Ollama to turn crawled content into Q&A pairs.",
-          "Automated crawl → index → dataset → fine-tune so runs are repeatable.",
+          "Automated crawling, indexing, dataset generation, and fine-tuning so runs are repeatable.",
           "Kept it Docker-friendly so I could run locally and deploy the same artifacts."
         ]
       },
@@ -352,7 +352,7 @@ window.PROJECTS = [
         "Use the hotspots list to quickly jump to the highest-risk locations."
       ]
     },
-    problem : "Using 2020–2023 HHS hospital-capacity data, I built an early-warning model to flag states at risk of crossing 90% ICU utilization in the next 7 days.",
+    problem : "Using 2020-2023 HHS hospital-capacity data, I built an early-warning model to flag states at risk of crossing 90% ICU utilization in the next 7 days.",
     actions : [
       "Cleaned and enriched 50k+ rows from the HHS hospital-capacity time series; added rolling stats, trends, and 1/3/7/14-day lag features.",
       "Trained an XGBoost classifier with class-imbalance weighting and a strict time-based train/test split.",
@@ -367,7 +367,7 @@ window.PROJECTS = [
         title: "Problem Framing",
         lead: "Goal: estimate the probability a state will breach 90% ICU utilization within the next 7 days.",
         bullets: [
-          "Target label: max(adult ICU bed utilization) over the next 7 days ≥ 0.90.",
+          "Target label: max(adult ICU bed utilization) over the next 7 days is at least 0.90.",
           "Breaches are rare, so I focused on ranking and precision/recall tradeoffs.",
           "Output is a risk score meant to support decisions, not a perfect forecast."
         ]
@@ -375,7 +375,7 @@ window.PROJECTS = [
       {
         title: "Data and Feature Engineering",
         bullets: [
-          "Started with the HHS hospital-capacity time series (state × day) and handled missing data with forward-fills and pruning.",
+          "Started with the HHS hospital-capacity time series (state-by-day) and handled missing data with forward-fills and pruning.",
           "Added rolling-window features and lag features (1/3/7/14 days) to capture trend and momentum.",
           "Built ratio features like ICU beds with COVID (%) to normalize across states."
         ]
@@ -450,7 +450,7 @@ window.PROJECTS = [
     notes: "Employee and location identifiers are anonymized in the write-up.",
     problem : "Empty-package theft was rising, and leaders needed one view of trends and hotspots across locations and departments.",
     actions : [
-      "Consolidated thousands of loss-prevention records (2021–2023).",
+      "Consolidated thousands of loss-prevention records (2021-2023).",
       "Cleaned the data and anonymized employee IDs, DPCI codes, dates, locations, and retail values.",
       "Built an interactive Excel dashboard with drill-downs by associate, department, and recovery location.",
       "Summarized the findings in a short report."
@@ -465,7 +465,7 @@ window.PROJECTS = [
         title: "Data Cleanup and Governance",
         lead: "I turned messy loss-prevention logs into a usable dashboard while keeping people and locations anonymous.",
         bullets: [
-          "Consolidated thousands of records (2021–2023) and standardized dates, locations, departments, and retail values.",
+          "Consolidated thousands of records (2021-2023) and standardized dates, locations, departments, and retail values.",
           "Anonymized employee and store identifiers so the write-up is shareable.",
           "Added quarter fields so trends are easy to track over time."
         ]
@@ -521,7 +521,7 @@ window.PROJECTS = [
       url: "handwriting-rating-demo.html"
     },
     demoInstructions: {
-      lead: "Draw a digit (0–9) or load a sample, then score how legible it is.",
+      lead: "Draw a digit (0-9) or load a sample, then score how legible it is.",
       bullets: [
         "Pick a sample from “Daniel’s Handwritten Numbers”, or draw a digit on the canvas.",
         "Click “Rate digit” to submit.",
@@ -531,7 +531,7 @@ window.PROJECTS = [
     },
     problem : "My wife says my handwriting is hard to read. I wanted an objective score.",
     actions : [
-      "Built three digit-recognition models (simple baseline → CNN).",
+      "Built three digit-recognition models, moving from a simple baseline to a CNN.",
       "Trained on MNIST (60,000 digits) and selected the best model.",
       "Deployed it behind a serverless scoring API for the live demo."
     ],
@@ -671,7 +671,7 @@ window.PROJECTS = [
     problem : "I needed clean, readable sheet music. Most of what I could find was low-res and watermarked.",
     actions : [
       "Trained a UNet model on paired page images for watermark removal.",
-      "Upscaled low-resolution scans (e.g., ~612×792) to print-friendly resolution (e.g., ~1700×2200) with Very Deep Super-Resolution (VDSR).",
+      "Upscaled low-resolution scans (e.g., ~612x792) to print-friendly resolution (e.g., ~1700x2200) with Very Deep Super-Resolution (VDSR).",
       "Wrapped it in a simple GUI so I could run the full pipeline."
     ],
     results : [
@@ -976,7 +976,7 @@ window.PROJECTS = [
     notes: "The quiz collects only non-sensitive preferences; no personal data is stored.",
     problem : "My wife asked me to suggest baby names. I wanted something that learns her taste instead of guessing.",
     actions : [
-      "Aggregated SSA baby-name records (1880–present) and engineered trend features.",
+      "Aggregated SSA baby-name records (1880-present) and engineered trend features.",
       "Built a simple 'quiz' script to collect like/dislike labels.",
       "Trained several models and averaged their scores to produce recommendations."
     ],
@@ -989,7 +989,7 @@ window.PROJECTS = [
         title: "Data and Labeling",
         lead: "I combined Social Security Administration name data with preference labels to build a personalized recommender.",
         bullets: [
-          "Aggregated SSA baby-name records (1880–present) and added recency/trend features so it doesn’t just recommend the most common names.",
+          "Aggregated SSA baby-name records (1880-present) and added recency/trend features so it doesn’t just recommend the most common names.",
           "Focused on Colorado to keep suggestions closer to what my wife actually hears day to day.",
           "Collected labels through quick quizzes so the model learns her taste over time."
         ]
@@ -1138,18 +1138,18 @@ window.PROJECTS = [
     },
     problem : "I wanted to see if an RL agent could learn to solve Nonogram puzzles.",
     actions : [
-      "Generated large batches of 5×5 puzzles and trained a hybrid CNN + Transformer policy network to solve them.",
+      "Generated large batches of 5x5 puzzles and trained a hybrid CNN + Transformer policy network to solve them.",
       "Shaped rewards around unique guesses, row/column completions, and full-board solves to guide exploration."
     ],
     results : [
-      "Achieved strong solve rates on held-out 5×5 boards (see GitHub for evaluation details)."
+      "Achieved strong solve rates on held-out 5x5 boards (see GitHub for evaluation details)."
     ],
     caseStudy : [
       {
         title: "Environment Design",
         lead: "I built a reinforcement learning environment for Nonograms: puzzle generation, clue computation, and reward shaping.",
         bullets: [
-          "Generated large batches of unique 5×5 puzzles and computed row/column clues automatically.",
+          "Generated large batches of unique 5x5 puzzles and computed row/column clues automatically.",
           "Represented state as board + clue embeddings so the agent can act on constraints.",
           "Rewarded progress (row/column completions) and penalized repeated guesses."
         ]
@@ -1173,7 +1173,7 @@ window.PROJECTS = [
       {
         title: "What I'd Improve",
         bullets: [
-          "Scale beyond 5×5 with curriculum learning (5×5 → 10×10) and stronger value baselines.",
+          "Scale beyond 5x5 with curriculum learning (5x5 to 10x10) and stronger value baselines.",
           "Add search (like MCTS) on top of the learned policy for harder puzzles.",
           "Evaluate on benchmark Nonogram sets and compare against classical solvers."
         ]
@@ -1210,7 +1210,7 @@ window.PROJECTS = [
     },
     problem : "I wanted to train an RL agent to play Minesweeper and ship it as a web demo.",
     actions : [
-      "Built a Minesweeper environment that generates boards on demand (5×5 to 10×10), with safe first-click logic and 10–20% mines.",
+      "Built a Minesweeper environment that generates boards on demand (5x5 to 10x10), with safe first-click logic and 10-20% mines.",
       "Trained 12 variants across DQN, Double DQN, and Dueling DQN with different CNN heads and replay buffers.",
       "Deployed the best model behind an AWS Lambda container endpoint for interactive inference."
     ],
@@ -1223,7 +1223,7 @@ window.PROJECTS = [
         title: "Environment & Data Generation",
         lead: "The training data is created on the fly, so every episode is a fresh Minesweeper board.",
         bullets: [
-          "Generated random boards (10–20% mine density) with a protected 3×3 first click.",
+          "Generated random boards (10-20% mine density) with a protected 3x3 first click.",
           "Normalized cell values between -0.25 and 1 to keep inputs stable.",
           "Used a debug mode to validate board rules and training inputs."
         ]
