@@ -704,9 +704,18 @@
         createButton.className = 'btn-primary';
         createButton.textContent = 'Create';
         createButton.addEventListener('click', async () => {
-          await ensureProjectLinks({ only: [project], silent: false });
+          await ensureProjectLinks({ only: [project], includeMismatched: true, silent: false });
         });
         actions.appendChild(createButton);
+      } else if (!destMatches) {
+        const fixButton = document.createElement('button');
+        fixButton.type = 'button';
+        fixButton.className = 'btn-primary';
+        fixButton.textContent = 'Fix destination';
+        fixButton.addEventListener('click', async () => {
+          await ensureProjectLinks({ only: [project], includeMismatched: true, silent: false });
+        });
+        actions.appendChild(fixButton);
       }
 
       head.appendChild(titleWrap);
@@ -775,6 +784,7 @@
     if (ensuringProjectLinks) return;
     const silent = options && options.silent === true;
     const only = options && Array.isArray(options.only) ? options.only : null;
+    const includeMismatched = options && options.includeMismatched === true;
 
     if (!requireToken(projectsStatusEl)) return;
     ensuringProjectLinks = true;
@@ -801,18 +811,34 @@
         const slug = normalizeSlugInput(project.slug);
         return slug && !linkMap.has(slug);
       });
+      const mismatched = includeMismatched
+        ? targets.filter((project) => {
+          const slug = normalizeSlugInput(project.slug);
+          if (!slug) return false;
+          const existing = linkMap.get(slug);
+          if (!existing || typeof existing.destination !== 'string') return false;
+          const expectedDestination = normalizeDestinationForCompare(project.destination);
+          const currentDestination = normalizeDestinationForCompare(existing.destination);
+          return expectedDestination && currentDestination !== expectedDestination;
+        })
+        : [];
 
-      if (!missing.length) {
-        if (!silent) setStatus(projectsStatusEl, 'All project links already exist.', 'success');
+      if (!missing.length && !mismatched.length) {
+        if (!silent) setStatus(projectsStatusEl, 'All selected project links are already in sync.', 'success');
         return;
       }
 
       if (!silent) {
-        const count = missing.length;
-        setStatus(projectsStatusEl, `Creating ${count} project link${count === 1 ? '' : 's'}…`);
+        const totalCreates = missing.length;
+        const totalFixes = mismatched.length;
+        const bits = [];
+        if (totalCreates) bits.push(`${totalCreates} missing`);
+        if (totalFixes) bits.push(`${totalFixes} mismatched`);
+        setStatus(projectsStatusEl, `Syncing project links (${bits.join(', ')})…`);
       }
 
       let createdCount = 0;
+      let fixedCount = 0;
       const errors = [];
 
       for (const project of missing) {
@@ -833,17 +859,41 @@
         }
       }
 
-      if (createdCount) {
+      for (const project of mismatched) {
+        const slug = normalizeSlugInput(project.slug);
+        const destination = normalizeDestinationForSave(project.destination);
+        if (!slug || !destination) continue;
+        try {
+          const data = await api('/api/short-links', {
+            method: 'POST',
+            body: JSON.stringify({ slug, destination, permanent: true, expiresAt: 0 })
+          });
+          if (data && data.link) {
+            upsertLinkInMemory(data.link);
+            fixedCount += 1;
+          }
+        } catch (err) {
+          errors.push(`${slug}: ${err.message}`);
+        }
+      }
+
+      if (createdCount || fixedCount) {
         applyFilterAndRender();
         renderProjectLinks();
         markSessionDirty();
       }
 
       if (!silent) {
-        const total = missing.length;
-        const msg = createdCount === total
-          ? `Created ${createdCount} project link${createdCount === 1 ? '' : 's'}.`
-          : `Created ${createdCount} of ${total} project links.`;
+        const totalCreates = missing.length;
+        const totalFixes = mismatched.length;
+        const expectedTotal = totalCreates + totalFixes;
+        const appliedTotal = createdCount + fixedCount;
+        const detail = [];
+        if (totalCreates) detail.push(`${createdCount}/${totalCreates} created`);
+        if (totalFixes) detail.push(`${fixedCount}/${totalFixes} fixed`);
+        const msg = appliedTotal === expectedTotal
+          ? `Project links synced (${detail.join(', ')}).`
+          : `Project links synced (${detail.join(', ')}). Updated ${appliedTotal} of ${expectedTotal}.`;
         setStatus(projectsStatusEl, errors.length ? `${msg} ${errors[0]}` : msg, errors.length ? 'warning' : 'success');
       }
     } finally {
@@ -1994,7 +2044,7 @@
 
   if (projectsEnsureButton) {
     projectsEnsureButton.addEventListener('click', () => {
-      void ensureProjectLinks({ silent: false });
+      void ensureProjectLinks({ includeMismatched: true, silent: false });
     });
   }
 
