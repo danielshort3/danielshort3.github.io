@@ -5,9 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <base href="/">
   <title>Short Links (Admin) | Daniel Short</title>
+  <link rel="canonical" href="https://www.danielshort.me/short-links">
+  <meta name="robots" content="noindex, nofollow">
   <meta name="description" content="Private dashboard for managing short redirect links.">
+  <meta property="og:title" content="Short Links (Admin) | Daniel Short">
+  <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
+  <meta property="og:description" content="Private dashboard for managing short redirect links.">
+  <meta property="og:url" content="https://www.danielshort.me/short-links">
+  <meta property="og:image" content="https://www.danielshort.me/img/hero/head.jpg">
+  <meta property="og:image:width" content="558">
+  <meta property="og:image:height" content="558">
+  <meta property="og:image:alt" content="Portrait photo of Daniel Short">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@danielshort3">
+  <meta name="twitter:image:alt" content="Portrait photo of Daniel Short">
   <meta name="theme-color" content="#0D1117">
   <link rel="stylesheet" href="dist/styles.css">
+  <link rel="stylesheet" href="dist/styles-tools.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
@@ -15,8 +30,10 @@
   <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
   <script src="js/common/no-js.js"></script>
-
-  <meta name="twitter:description" content="Private dashboard for managing short redirect links."></head>
+  <meta name="twitter:title" content="Short Links (Admin) | Daniel Short">
+  <meta name="twitter:description" content="Private dashboard for managing short redirect links.">
+  <meta name="twitter:image" content="https://www.danielshort.me/img/hero/head.jpg">
+</head>
 <body data-page="short-links">
   <a href="#main" class="skip-link">Skip to main content</a>
   <header id="combined-header-nav">
@@ -210,21 +227,46 @@
 
   <main id="main">
 
-    <section class="surface-band tools-section reveal">
+    <section class="surface-band tools-section reveal shortlinks-quickstart-section">
       <div class="wrapper">
-        <details class="shortlinks-access-details" data-shortlinks="access-details">
-          <summary class="shortlinks-access-summary">
-            <h2 class="section-title">Access</h2>
+        <div class="shortlinks-quickstart" aria-labelledby="shortlinks-quickstart-title">
+          <p class="shortlinks-kicker">Workflow</p>
+          <h2 id="shortlinks-quickstart-title" class="section-title">Manage short links in 4 steps</h2>
+          <ol class="shortlinks-quickstart-list">
+            <li><strong>Access:</strong> Save your admin token and verify backend health.</li>
+            <li><strong>Create:</strong> Add permanent or temporary links in one form.</li>
+            <li><strong>Sync projects:</strong> Ensure every portfolio page has a short link.</li>
+            <li><strong>Operate:</strong> Filter, test, copy, disable, or delete links.</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="surface-band tools-section reveal shortlinks-summary-section">
+      <div class="wrapper">
+        <div class="shortlinks-snapshot" data-shortlinks="summary" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section class="surface-band tools-section reveal shortlinks-panel-section">
+      <div class="wrapper">
+        <details class="shortlinks-access-details shortlinks-card" data-shortlinks="access-details">
+          <summary class="shortlinks-access-summary shortlinks-card-summary">
+            <div class="shortlinks-section-heading">
+              <span class="shortlinks-step">Step 1</span>
+              <h2 class="section-title">Access</h2>
+            </div>
             <span class="shortlinks-access-meta" data-shortlinks="access-meta"></span>
           </summary>
-          <div class="shortlinks-access-body">
-            <form class="contact-form" data-shortlinks="auth">
+          <div class="shortlinks-access-body shortlinks-card-body">
+            <p class="shortlinks-panel-lead">Store a token on this device, refresh links, and run backend health checks.</p>
+            <form class="contact-form shortlinks-form" data-shortlinks="auth">
               <div class="form-field">
                 <label for="shortlinks-token">Admin token</label>
                 <input id="shortlinks-token" type="password" inputmode="text" autocomplete="current-password" data-shortlinks="token">
                 <p class="contact-form-note">Stored in <code>localStorage</code> on this device.</p>
               </div>
-              <div class="form-actions">
+              <div class="form-actions shortlinks-action-row">
                 <button type="submit" class="btn-primary"><span class="btn-label">Save token</span></button>
                 <button type="button" class="btn-secondary" data-shortlinks="forget-token">Forget token</button>
                 <button type="button" class="btn-secondary" data-shortlinks="refresh">Refresh list</button>
@@ -238,14 +280,18 @@
       </div>
     </section>
 
-    <section class="surface-band tools-section reveal">
+    <section class="surface-band tools-section reveal shortlinks-panel-section">
       <div class="wrapper">
-        <details class="shortlinks-panel" open data-shortlinks="editor-details">
-          <summary class="shortlinks-panel-summary">
-            <h2 class="section-title">Create / Update</h2>
+        <details class="shortlinks-panel shortlinks-card" open data-shortlinks="editor-details">
+          <summary class="shortlinks-panel-summary shortlinks-card-summary">
+            <div class="shortlinks-section-heading">
+              <span class="shortlinks-step">Step 2</span>
+              <h2 class="section-title">Create / Update</h2>
+            </div>
           </summary>
-          <div class="shortlinks-panel-body">
-            <form class="contact-form" data-shortlinks="editor">
+          <div class="shortlinks-panel-body shortlinks-card-body">
+            <p class="shortlinks-panel-lead">Create redirects quickly, including expiration-based temporary links for campaigns and testing.</p>
+            <form class="contact-form shortlinks-form" data-shortlinks="editor">
               <div class="form-field">
                 <label for="shortlinks-slug">Slug</label>
                 <input id="shortlinks-slug" type="text" inputmode="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="github" data-shortlinks="slug">
@@ -259,7 +305,7 @@
                 </div>
                 <p class="contact-form-note">Must start with <code>/</code> or <code>http(s)://</code>.</p>
               </div>
-              <div class="form-actions shortlinks-editor-actions">
+              <div class="form-actions shortlinks-action-row shortlinks-action-row-sticky shortlinks-editor-actions">
                 <button type="button" class="btn-primary" data-shortlinks="get-permanent"><span class="btn-label">Get permanent link</span></button>
                 <button type="button" class="btn-secondary" data-shortlinks="get-temporary">Get temporary link</button>
                 <button type="button" class="btn-secondary" data-shortlinks="clear">Reset form</button>
@@ -271,36 +317,50 @@
       </div>
     </section>
 
-    <section class="surface-band tools-section reveal">
+    <section class="surface-band tools-section reveal shortlinks-panel-section">
       <div class="wrapper">
-        <details class="shortlinks-panel" open data-shortlinks="projects-details">
-          <summary class="shortlinks-panel-summary">
-            <h2 class="section-title">Projects</h2>
+        <details class="shortlinks-panel shortlinks-card" open data-shortlinks="projects-details">
+          <summary class="shortlinks-panel-summary shortlinks-card-summary">
+            <div class="shortlinks-section-heading">
+              <span class="shortlinks-step">Step 3</span>
+              <h2 class="section-title">Projects</h2>
+            </div>
           </summary>
-          <div class="shortlinks-panel-body">
+          <div class="shortlinks-panel-body shortlinks-card-body">
             <p class="shortlinks-projects-note">Automatically keeps a permanent short link for each published portfolio project.</p>
+            <div class="shortlinks-output-head">
+              <h3 class="shortlinks-output-title">Portfolio mapping</h3>
+              <p class="shortlinks-output-meta shortlinks-count" data-shortlinks="projects-meta" aria-live="polite"></p>
+            </div>
             <div class="shortlinks-projects-toolbar">
               <div class="shortlinks-projects-actions">
                 <button type="button" class="btn-secondary" data-shortlinks="projects-refresh">Refresh</button>
                 <button type="button" class="btn-secondary" data-shortlinks="projects-ensure">Ensure missing links</button>
               </div>
-              <p class="shortlinks-count" data-shortlinks="projects-meta" aria-live="polite"></p>
             </div>
             <div class="contact-form-status" data-shortlinks="projects-status" role="status" aria-live="polite"></div>
-            <div class="shortlinks-list" data-shortlinks="projects-list" aria-live="polite"></div>
+            <div class="shortlinks-list shortlinks-results" data-shortlinks="projects-list" aria-live="polite"></div>
           </div>
         </details>
       </div>
     </section>
 
-    <section class="surface-band tools-section reveal">
+    <section class="surface-band tools-section reveal shortlinks-panel-section">
       <div class="wrapper">
-        <details class="shortlinks-panel" open data-shortlinks="links-details">
-          <summary class="shortlinks-panel-summary">
-            <h2 class="section-title">Links</h2>
+        <details class="shortlinks-panel shortlinks-card" open data-shortlinks="links-details">
+          <summary class="shortlinks-panel-summary shortlinks-card-summary">
+            <div class="shortlinks-section-heading">
+              <span class="shortlinks-step">Step 4</span>
+              <h2 class="section-title">Links</h2>
+            </div>
           </summary>
-          <div class="shortlinks-panel-body">
-            <div class="shortlinks-toolbar">
+          <div class="shortlinks-panel-body shortlinks-card-body">
+            <p class="shortlinks-panel-lead">Filter and manage all links in one place, then test redirects or inspect click history.</p>
+            <div class="shortlinks-output-head">
+              <h3 class="shortlinks-output-title">All links</h3>
+              <p class="shortlinks-output-meta shortlinks-count" data-shortlinks="count" aria-live="polite"></p>
+            </div>
+            <div class="shortlinks-toolbar shortlinks-toolbar-main">
               <label class="shortlinks-filter">
                 <span class="shortlinks-filter-label">Filter</span>
                 <input type="search" autocomplete="off" spellcheck="false" placeholder="Search slugs & destinations…" data-shortlinks="filter">
@@ -312,10 +372,9 @@
                   <option value="cards">Cards</option>
                 </select>
               </label>
-              <p class="shortlinks-count" data-shortlinks="count" aria-live="polite"></p>
             </div>
             <div class="contact-form-status" data-shortlinks="list-status" role="status" aria-live="polite"></div>
-            <div class="shortlinks-list" data-shortlinks="list" aria-live="polite"></div>
+            <div class="shortlinks-list shortlinks-results" data-shortlinks="list" aria-live="polite"></div>
           </div>
         </details>
       </div>

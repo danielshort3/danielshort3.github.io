@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <base href="/">
   <title>GA4 UTM Performance | Daniel Short</title>
-  <link rel="canonical" href="https://danielshort.me/tools/ga4-utm-performance">
+  <link rel="canonical" href="https://www.danielshort.me/tools/ga4-utm-performance">
   <meta name="description" content="Query GA4 traffic by UTM parameters and export a report. Requires an admin token.">
   <meta property="og:title" content="GA4 UTM Performance | Daniel Short">
   <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
   <meta property="og:description" content="Private GA4 reporting tool to summarize UTM-coded traffic and export CSV results.">
-  <meta property="og:url" content="https://danielshort.me/tools/ga4-utm-performance">
-  <meta property="og:image" content="https://danielshort.me/img/hero/head.jpg">
+  <meta property="og:url" content="https://www.danielshort.me/tools/ga4-utm-performance">
+  <meta property="og:image" content="https://www.danielshort.me/img/hero/head.jpg">
   <meta property="og:image:width" content="558">
   <meta property="og:image:height" content="558">
   <meta property="og:image:alt" content="Portrait photo of Daniel Short">
@@ -20,10 +20,11 @@
   <meta name="twitter:site" content="@danielshort3">
   <meta name="twitter:title" content="GA4 UTM Performance | Daniel Short">
   <meta name="twitter:description" content="Private GA4 reporting tool to summarize UTM-coded traffic and export CSV results.">
-  <meta name="twitter:image" content="https://danielshort.me/img/hero/head.jpg">
+  <meta name="twitter:image" content="https://www.danielshort.me/img/hero/head.jpg">
   <meta name="twitter:image:alt" content="Portrait photo of Daniel Short">
   <meta name="theme-color" content="#0D1117">
   <link rel="stylesheet" href="dist/styles.css">
+  <link rel="stylesheet" href="dist/styles-tools.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
@@ -32,7 +33,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
   <script src="js/common/no-js.js"></script>
   <script type="application/ld+json" id="tool-jsonld">
-    {"@context":"https://schema.org","@type":"WebApplication","name":"GA4 UTM Performance","description":"Query GA4 traffic by UTM parameters and export a report. Requires an admin token.","url":"https://danielshort.me/tools/ga4-utm-performance","image":"https://danielshort.me/img/hero/head.jpg","applicationCategory":"UtilitiesApplication","operatingSystem":"Any","isAccessibleForFree":true,"creator":{"@type":"Person","name":"Daniel Short","url":"https://danielshort.me/"}}
+    {"@context":"https://schema.org","@type":"WebApplication","name":"GA4 UTM Performance","description":"Query GA4 traffic by UTM parameters and export a report. Requires an admin token.","url":"https://www.danielshort.me/tools/ga4-utm-performance","image":"https://www.danielshort.me/img/hero/head.jpg","applicationCategory":"UtilitiesApplication","operatingSystem":"Any","isAccessibleForFree":true,"creator":{"@type":"Person","name":"Daniel Short","url":"https://www.danielshort.me/"}}
   </script>
 </head>
 <body data-page="ga4-utm-performance" class="tools-tool-page" data-tools-title="GA4 UTM Performance" data-tools-eyebrow="GA4 UTM Performance - Private UTM reporting via the GA4 Data API.">
@@ -239,22 +240,40 @@
       </div>
     </div>
 
-    <section id="ga4-panel-access" class="surface-band tools-section reveal" role="tabpanel" aria-labelledby="ga4-tab-access" data-ga4-panel="access">
+    <section class="surface-band tools-section reveal ga4-quickstart-section">
       <div class="wrapper">
-        <details class="shortlinks-access-details" data-ga4="access-details" open>
-          <summary class="shortlinks-access-summary">
-            <h2 class="section-title">Access</h2>
+        <div class="ga4-quickstart" aria-labelledby="ga4-quickstart-title">
+          <p class="ga4-kicker">Workflow</p>
+          <h2 id="ga4-quickstart-title" class="section-title">Run reports in 3 steps</h2>
+          <ol class="ga4-quickstart-list">
+            <li><strong>Access:</strong> Save your admin token and choose a property profile.</li>
+            <li><strong>Scope + Filters:</strong> Set a date range and optional UTM constraints.</li>
+            <li><strong>Run:</strong> Generate UTM URL or Explore reports, then export CSV.</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section id="ga4-panel-access" class="surface-band tools-section reveal ga4-panel-section" role="tabpanel" aria-labelledby="ga4-tab-access" data-ga4-panel="access">
+      <div class="wrapper">
+        <details class="shortlinks-access-details ga4-panel-card" data-ga4="access-details" open>
+          <summary class="shortlinks-access-summary ga4-panel-summary">
+            <div class="ga4-panel-heading">
+              <span class="ga4-step">Step 1</span>
+              <h2 class="section-title">Access</h2>
+            </div>
             <span class="shortlinks-access-meta" data-ga4="access-meta"></span>
           </summary>
-          <div class="shortlinks-access-body">
-            <form class="contact-form" data-ga4="auth" autocomplete="off">
+          <div class="shortlinks-access-body ga4-panel-body">
+            <p class="ga4-panel-lead">Store an admin token on this device and save GA4 properties as reusable profiles.</p>
+            <form class="contact-form ga4-form" data-ga4="auth" autocomplete="off">
               <div class="form-field">
                 <label for="ga4-admin-token">Admin token</label>
                 <input id="ga4-admin-token" type="password" inputmode="text" autocomplete="current-password" data-ga4="token">
                 <p class="contact-form-note">Stored in <code>localStorage</code> on this device.</p>
               </div>
 
-              <div class="tools-grid">
+              <div class="tools-grid ga4-grid">
                 <div class="form-field">
                   <label for="ga4-profile-select">Property profile</label>
                   <select id="ga4-profile-select" data-ga4="profile-select">
@@ -274,7 +293,7 @@
                 </div>
               </div>
 
-              <div class="form-actions">
+              <div class="form-actions ga4-action-row">
                 <button type="submit" class="btn-primary"><span class="btn-label">Save token</span></button>
                 <button type="button" class="btn-secondary" data-ga4="forget-token">Forget token</button>
                 <button type="button" class="btn-secondary" data-ga4="save-profile">Save profile</button>
@@ -283,7 +302,7 @@
               </div>
 
               <div class="contact-form-status" data-ga4="access-status" role="status" aria-live="polite"></div>
-              <div class="tools-actions" data-ga4="quota" aria-live="polite"></div>
+              <div class="tools-actions ga4-quota-row" data-ga4="quota" aria-live="polite"></div>
               <p class="contact-form-note">Server env: <code>GA4_ADMIN_TOKEN</code>, <code>GA4_SERVICE_ACCOUNT_JSON_B64</code>, and (optionally) <code>GA4_PROPERTY_ID</code>.</p>
             </form>
           </div>
@@ -291,15 +310,19 @@
       </div>
     </section>
 
-    <section id="ga4-panel-scope" class="surface-band tools-section reveal" role="tabpanel" aria-labelledby="ga4-tab-scope" data-ga4-panel="scope">
+    <section id="ga4-panel-scope" class="surface-band tools-section reveal ga4-panel-section" role="tabpanel" aria-labelledby="ga4-tab-scope" data-ga4-panel="scope">
       <div class="wrapper">
-        <details class="shortlinks-panel" open data-ga4="scope-details">
-          <summary class="shortlinks-panel-summary">
-            <h2 class="section-title">Scope</h2>
+        <details class="shortlinks-panel ga4-panel-card" open data-ga4="scope-details">
+          <summary class="shortlinks-panel-summary ga4-panel-summary">
+            <div class="ga4-panel-heading">
+              <span class="ga4-step">Step 2</span>
+              <h2 class="section-title">Scope</h2>
+            </div>
           </summary>
-          <div class="shortlinks-panel-body">
-            <form class="contact-form" data-ga4="scope-form" autocomplete="off">
-              <div class="tools-grid">
+          <div class="shortlinks-panel-body ga4-panel-body">
+            <p class="ga4-panel-lead">Choose a report window. Wider ranges help when campaign attribution is delayed.</p>
+            <form class="contact-form ga4-form" data-ga4="scope-form" autocomplete="off">
+              <div class="tools-grid ga4-grid">
                 <div class="form-field">
                   <label for="ga4-start">Start date</label>
                   <input id="ga4-start" type="date" required data-ga4="start">
@@ -316,15 +339,19 @@
       </div>
     </section>
 
-    <section id="ga4-panel-filters" class="surface-band tools-section reveal" role="tabpanel" aria-labelledby="ga4-tab-filters" data-ga4-panel="filters">
+    <section id="ga4-panel-filters" class="surface-band tools-section reveal ga4-panel-section" role="tabpanel" aria-labelledby="ga4-tab-filters" data-ga4-panel="filters">
       <div class="wrapper">
-        <details class="shortlinks-panel" open data-ga4="filters-details">
-          <summary class="shortlinks-panel-summary">
-            <h2 class="section-title">Filters</h2>
+        <details class="shortlinks-panel ga4-panel-card" open data-ga4="filters-details">
+          <summary class="shortlinks-panel-summary ga4-panel-summary">
+            <div class="ga4-panel-heading">
+              <span class="ga4-step">Step 3</span>
+              <h2 class="section-title">Filters</h2>
+            </div>
           </summary>
-          <div class="shortlinks-panel-body">
-            <form class="contact-form" data-ga4="filters-form" autocomplete="off">
-              <div class="tools-grid">
+          <div class="shortlinks-panel-body ga4-panel-body">
+            <p class="ga4-panel-lead">Filter by specific UTM values or keep broad matching to inspect all tagged traffic.</p>
+            <form class="contact-form ga4-form" data-ga4="filters-form" autocomplete="off">
+              <div class="tools-grid ga4-grid">
                 <div class="form-field">
                   <label for="ga4-utm-match">Match type</label>
                   <select id="ga4-utm-match" data-ga4="utm-match">
@@ -358,8 +385,8 @@
                 </div>
               </div>
 
-              <div class="form-field">
-                <label>
+              <div class="form-field ga4-toggle-field">
+                <label class="ga4-toggle-row">
                   <input id="ga4-catch-all" type="checkbox" checked data-ga4="catch-all">
                   Catch all UTM traffic (<code>utm_</code> anywhere in URL)
                 </label>
@@ -371,14 +398,18 @@
       </div>
     </section>
 
-    <section id="ga4-panel-utm" class="surface-band tools-section reveal" role="tabpanel" aria-labelledby="ga4-tab-utm" data-ga4-panel="utm">
+    <section id="ga4-panel-utm" class="surface-band tools-section reveal ga4-panel-section" role="tabpanel" aria-labelledby="ga4-tab-utm" data-ga4-panel="utm">
       <div class="wrapper">
-        <details class="shortlinks-panel" open data-ga4="utm-details">
-          <summary class="shortlinks-panel-summary">
-            <h2 class="section-title">UTM URL Report</h2>
+        <details class="shortlinks-panel ga4-panel-card" open data-ga4="utm-details">
+          <summary class="shortlinks-panel-summary ga4-panel-summary">
+            <div class="ga4-panel-heading">
+              <span class="ga4-step">Step 4</span>
+              <h2 class="section-title">UTM URL Report</h2>
+            </div>
           </summary>
-          <div class="shortlinks-panel-body">
-            <form class="contact-form" data-ga4="utm-form" autocomplete="off">
+          <div class="shortlinks-panel-body ga4-panel-body">
+            <p class="ga4-panel-lead">Parse URL-level traffic into UTM groups, then pivot, filter, and drill into specific combinations.</p>
+            <form class="contact-form ga4-form" data-ga4="utm-form" autocomplete="off">
               <div class="form-field">
                 <label>Group by</label>
                 <div class="ga4-checklist" data-ga4="group-fields">
@@ -392,7 +423,7 @@
                 <p class="contact-form-note">Groups are created client-side by parsing <code>pageLocation</code>.</p>
               </div>
 
-              <div class="tools-grid">
+              <div class="tools-grid ga4-grid">
                 <div class="form-field">
                   <label for="ga4-view-mode">View</label>
                   <select id="ga4-view-mode" data-ga4="view-mode">
@@ -417,7 +448,7 @@
                 </div>
               </div>
 
-              <div class="form-actions">
+              <div class="form-actions ga4-action-row ga4-action-row-sticky">
                 <button type="submit" class="btn-primary" data-ga4="run"><span class="btn-label">Run report</span></button>
                 <button type="button" class="btn-secondary" data-ga4="download-grouped" disabled>Download grouped CSV</button>
                 <button type="button" class="btn-secondary" data-ga4="download-raw" disabled>Download raw CSV</button>
@@ -425,23 +456,27 @@
             </form>
 
             <div class="contact-form-status" data-ga4="utm-status" role="status" aria-live="polite"></div>
-            <div data-ga4="utm-summary"></div>
-            <div data-ga4="utm-output"></div>
-            <div data-ga4="utm-drilldown"></div>
+            <div class="ga4-output-region ga4-summary-region" data-ga4="utm-summary"></div>
+            <div class="ga4-output-region ga4-results-region" data-ga4="utm-output"></div>
+            <div class="ga4-output-region ga4-drill-region" data-ga4="utm-drilldown"></div>
           </div>
         </details>
       </div>
     </section>
 
-    <section id="ga4-panel-explore" class="surface-band tools-section reveal" role="tabpanel" aria-labelledby="ga4-tab-explore" data-ga4-panel="explore">
+    <section id="ga4-panel-explore" class="surface-band tools-section reveal ga4-panel-section" role="tabpanel" aria-labelledby="ga4-tab-explore" data-ga4-panel="explore">
       <div class="wrapper">
-        <details class="shortlinks-panel" open data-ga4="explore-details">
-          <summary class="shortlinks-panel-summary">
-            <h2 class="section-title">Explore</h2>
+        <details class="shortlinks-panel ga4-panel-card" open data-ga4="explore-details">
+          <summary class="shortlinks-panel-summary ga4-panel-summary">
+            <div class="ga4-panel-heading">
+              <span class="ga4-step">Step 5</span>
+              <h2 class="section-title">Explore</h2>
+            </div>
           </summary>
-          <div class="shortlinks-panel-body">
-            <form class="contact-form" data-ga4="explore-form" autocomplete="off">
-              <div class="tools-grid">
+          <div class="shortlinks-panel-body ga4-panel-body">
+            <p class="ga4-panel-lead">Run custom GA4 dimension/metric cuts, then segment rows into guided drilldown views.</p>
+            <form class="contact-form ga4-form" data-ga4="explore-form" autocomplete="off">
+              <div class="tools-grid ga4-grid">
                 <div class="form-field">
                   <label for="ga4-explore-preset">Preset</label>
                   <select id="ga4-explore-preset" data-ga4="explore-preset">
@@ -527,7 +562,7 @@
                 <p class="contact-form-note">Tip: choose fewer metrics if GA4 rejects a combination.</p>
               </div>
 
-              <div class="tools-grid">
+              <div class="tools-grid ga4-grid">
                 <div class="form-field">
                   <label for="ga4-explore-custom-dimensions">Add dimensions (optional)</label>
                   <input id="ga4-explore-custom-dimensions" type="text" autocomplete="off" placeholder="Comma-separated (e.g. pagePathPlusQueryString,eventName)" data-ga4="explore-custom-dimensions">
@@ -538,16 +573,16 @@
                 </div>
               </div>
 
-              <div class="form-actions">
+              <div class="form-actions ga4-action-row ga4-action-row-sticky">
                 <button type="submit" class="btn-primary" data-ga4="explore-run"><span class="btn-label">Run explore</span></button>
                 <button type="button" class="btn-secondary" data-ga4="explore-download" disabled>Download CSV</button>
               </div>
             </form>
 
             <div class="contact-form-status" data-ga4="explore-status" role="status" aria-live="polite"></div>
-            <div data-ga4="explore-summary"></div>
-            <div data-ga4="explore-drilldown"></div>
-            <div data-ga4="explore-output"></div>
+            <div class="ga4-output-region ga4-summary-region" data-ga4="explore-summary"></div>
+            <div class="ga4-output-region ga4-drill-region" data-ga4="explore-drilldown"></div>
+            <div class="ga4-output-region ga4-results-region" data-ga4="explore-output"></div>
           </div>
         </details>
       </div>

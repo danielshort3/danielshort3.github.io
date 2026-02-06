@@ -313,6 +313,68 @@
     };
   };
 
+  const normalizeStringList = (value) => {
+    if (Array.isArray(value)) {
+      return value
+        .map((entry) => String(entry || '').trim().toLowerCase())
+        .filter(Boolean);
+    }
+
+    const raw = String(value || '').trim();
+    if (!raw) return [];
+
+    if (raw.startsWith('[') && raw.endsWith(']')) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          return parsed
+            .map((entry) => String(entry || '').trim().toLowerCase())
+            .filter(Boolean);
+        }
+      } catch {}
+    }
+
+    return raw
+      .split(/[\s,]+/g)
+      .map((entry) => entry.trim().toLowerCase())
+      .filter(Boolean);
+  };
+
+  const getClaimGroups = (auth) => {
+    const claims = getAuthClaims(auth);
+    const groups = claims['cognito:groups'] || claims.groups || claims.group;
+    return normalizeStringList(groups);
+  };
+
+  const getConfiguredAdminGroups = () => {
+    const config = window.TOOLS_AUTH_CONFIG || {};
+    const configured = normalizeStringList(config.adminGroups);
+    if (configured.length) return configured;
+    return ['admin', 'admins'];
+  };
+
+  const getConfiguredAdminEmails = () => {
+    const config = window.TOOLS_AUTH_CONFIG || {};
+    return normalizeStringList(config.adminEmails);
+  };
+
+  const isAdmin = (authInput) => {
+    const auth = normalizeAuth(authInput || loadAuth());
+    if (!authIsValid(auth)) return false;
+
+    const adminGroups = new Set(getConfiguredAdminGroups());
+    const claimGroups = getClaimGroups(auth);
+    if (claimGroups.some((group) => adminGroups.has(group))) return true;
+
+    const adminEmails = new Set(getConfiguredAdminEmails());
+    if (adminEmails.size) {
+      const email = String(getUser(auth).email || '').trim().toLowerCase();
+      if (email && adminEmails.has(email)) return true;
+    }
+
+    return false;
+  };
+
   const getAuth = () => loadAuth();
 
   const ensureFreshAuth = async () => {
@@ -345,6 +407,7 @@
     getAuth,
     getUser,
     authIsValid,
+    isAdmin,
     signIn,
     signOut: clearAllAuth,
     handleRedirect,

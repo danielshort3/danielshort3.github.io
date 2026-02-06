@@ -161,7 +161,7 @@ function buildManifest(){
 
   return {
     generatedAt: new Date().toISOString(),
-    origin: 'https://danielshort.me',
+    origin: 'https://www.danielshort.me',
     pages
   };
 }

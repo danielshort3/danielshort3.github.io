@@ -356,7 +356,7 @@
 
   const getCanonicalSiteOrigin = () => {
     const origin = destinationsManifest && destinationsManifest.origin ? String(destinationsManifest.origin) : '';
-    return origin || 'https://danielshort.me';
+    return origin || 'https://www.danielshort.me';
   };
 
   const joinOriginAndPath = (origin, pathname) => {
@@ -405,7 +405,7 @@
 
   const loadDestinationsManifest = async () => {
     if (destinationsManifest) return destinationsManifest;
-    const fallback = { origin: 'https://danielshort.me', pages: FALLBACK_DESTINATIONS };
+    const fallback = { origin: 'https://www.danielshort.me', pages: FALLBACK_DESTINATIONS };
     try {
       const resp = await fetch(DESTINATIONS_MANIFEST_PATH, { method: 'GET', cache: 'no-store' });
       if (!resp.ok) throw new Error(`Manifest request failed (${resp.status})`);

@@ -16,7 +16,7 @@ const path = require('path');
 const root = path.resolve(__dirname, '..');
 const toolsIndexPath = path.join(root, 'pages', 'tools.html');
 const outPath = path.join(root, 'dist', 'search-index.json');
-const SITE_ORIGIN = 'https://danielshort.me';
+const SITE_ORIGIN = 'https://www.danielshort.me';
 
 function read(relPath) {
   return fs.readFileSync(path.join(root, relPath), 'utf8');

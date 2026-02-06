@@ -44,6 +44,20 @@
   });
   const CONTACT_CONTEXT_KEY = 'contactOrigin';
   const MAX_CONTEXT_AGE_MS = 15 * 60 * 1000;
+  const currentPathname = () => {
+    try {
+      return String((window.location && window.location.pathname) || '').trim();
+    } catch {
+      return '';
+    }
+  };
+  const trackContactEvent = (name, params = {}) => {
+    try {
+      if (typeof window.gaEvent === 'function') {
+        window.gaEvent(name, params);
+      }
+    } catch {}
+  };
 
   const clearStoredContext = () => {
     try { sessionStorage.removeItem(CONTACT_CONTEXT_KEY); } catch {}
@@ -219,6 +233,7 @@
 
   function open(){ if(!modal || !content) return;
     prepareForm();
+    trackContactEvent('contact_modal_open', { page_path: currentPathname() });
     prevFocus = document.activeElement;
     modal.classList.add('active');
     document.body.classList.add('modal-open');
@@ -228,6 +243,7 @@
   }
   function close(){ if(!modal || !content) return;
     modal.classList.remove('active');
+    trackContactEvent('contact_modal_close', { page_path: currentPathname() });
     syncModalOpenState();
     content.removeEventListener('keydown', trap);
     if (prevFocus && document.contains(prevFocus)) {
@@ -288,10 +304,15 @@
       if (!window.fetch || sending || !endpoint) return;
       const firstInvalid = validateForm();
       if (firstInvalid) {
+        trackContactEvent('contact_form_validation_error', {
+          page_path: currentPathname(),
+          field_id: String(firstInvalid.id || '')
+        });
         setStatus('', 'info');
         firstInvalid.focus({ preventScroll: true });
         return;
       }
+      trackContactEvent('contact_form_submit', { page_path: currentPathname() });
       sending = true;
       form.setAttribute('aria-busy', 'true');
       setStatus('Sending message…', 'info', { focus: true });
@@ -315,9 +336,14 @@
         }
         clearInputs();
         setStatus('');
+        trackContactEvent('contact_form_success', { page_path: currentPathname() });
         toggleSuccess(true);
       } catch (err) {
         console.error('Contact form submit failed', err);
+        trackContactEvent('contact_form_error', {
+          page_path: currentPathname(),
+          reason: String((err && err.message) || 'unknown').slice(0, 120)
+        });
         setStatus(err?.message || 'Something went wrong. Please email me directly.', 'error', { focus: true });
       } finally {
         sending = false;

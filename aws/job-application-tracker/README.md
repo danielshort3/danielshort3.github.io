@@ -41,10 +41,10 @@ aws cloudformation deploy \
   --parameter-overrides \
     LambdaCodeBucket=YOUR_BUCKET \
     LambdaCodeKey=job-application-tracker/job-application-tracker.zip \
-    AllowedOrigins="https://danielshort.me,https://www.danielshort.me" \
+    AllowedOrigins="https://www.danielshort.me,https://www.danielshort.me" \
     CognitoDomainPrefix=job-tracker-auth \
-    CallbackUrls="https://danielshort.me/tools/job-application-tracker" \
-    LogoutUrls="https://danielshort.me/tools/job-application-tracker"
+    CallbackUrls="https://www.danielshort.me/tools/job-application-tracker" \
+    LogoutUrls="https://www.danielshort.me/tools/job-application-tracker"
 ```
 
 5) Update `pages/job-application-tracker.html` with:

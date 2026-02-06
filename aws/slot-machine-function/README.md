@@ -20,7 +20,7 @@ USERS_TABLE=slot-machine-users
 HISTORY_TABLE=slot-machine-spin-history
 STARTING_CREDITS=1000
 MAX_BET=100
-ALLOWED_ORIGINS=https://danielshort.dev,https://www.danielshort.dev,https://danielshort3.github.io,https://danielshort3-github-io.vercel.app,https://danielshort.me,https://www.danielshort.me
+ALLOWED_ORIGINS=https://danielshort.dev,https://www.danielshort.dev,https://danielshort3.github.io,https://danielshort3-github-io.vercel.app,https://www.danielshort.me,https://www.danielshort.me
 SESSION_TTL_MINUTES=4320
 PASSWORD_SALT_ROUNDS=12
 ```

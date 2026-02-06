@@ -10,7 +10,7 @@
 
   if (!headerForm || !headerInput || !results || !status) return;
 
-  const SITE_ORIGIN = 'https://danielshort.me';
+  const SITE_ORIGIN = 'https://www.danielshort.me';
   const INDEX_URL = 'dist/search-index.json';
   const MAX_RESULTS = 50;
 

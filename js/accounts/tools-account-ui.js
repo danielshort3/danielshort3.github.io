@@ -124,6 +124,51 @@
     return tags;
   };
 
+  const getToolsVisibilityContext = () => {
+    const authApi = window.ToolsAuth || {};
+    const auth = typeof authApi.getAuth === 'function' ? authApi.getAuth() : null;
+    const authed = typeof authApi.authIsValid === 'function' ? authApi.authIsValid(auth) : false;
+    const admin = authed && typeof authApi.isAdmin === 'function' ? authApi.isAdmin(auth) : false;
+    return { authed: !!authed, admin: !!admin };
+  };
+
+  const isToolVisibleForContext = (visibilityRule, context) => {
+    const rule = cleanText(visibilityRule).toLowerCase();
+    if (!rule || rule === 'public') return true;
+    if (rule === 'authed' || rule === 'authenticated' || rule === 'logged-in') return !!context.authed;
+    if (rule === 'admin' || rule === 'admins') return !!context.admin;
+    return true;
+  };
+
+  const applyToolsCatalogVisibility = () => {
+    const page = cleanText(document.body?.dataset?.page);
+    if (page !== 'tools') return;
+
+    const context = getToolsVisibilityContext();
+    const cards = [...document.querySelectorAll('[data-tools-visibility]')];
+
+    cards.forEach((card) => {
+      const visibilityRule = card?.dataset?.toolsVisibility || '';
+      const visible = isToolVisibleForContext(visibilityRule, context);
+      if (visible) {
+        card.removeAttribute('hidden');
+        card.removeAttribute('aria-hidden');
+      } else {
+        card.setAttribute('hidden', '');
+        card.setAttribute('aria-hidden', 'true');
+      }
+    });
+
+    const categories = [...document.querySelectorAll('.tools-category')];
+    categories.forEach((category) => {
+      const toolCards = [...category.querySelectorAll('.tool-card')];
+      if (!toolCards.length) return;
+      const hasVisibleCards = toolCards.some(card => !card.hasAttribute('hidden'));
+      if (hasVisibleCards) category.removeAttribute('hidden');
+      else category.setAttribute('hidden', '');
+    });
+  };
+
   const ensureToolsHero = ({ pageId }) => {
     const id = cleanText(pageId);
     if (!id) return;
@@ -2189,6 +2234,9 @@
         } catch {}
       }
     });
+
+    applyToolsCatalogVisibility();
+    document.addEventListener('tools:auth-changed', applyToolsCatalogVisibility);
 
     ensureToolsHero({ pageId: page });
 
