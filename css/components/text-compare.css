@@ -117,6 +117,45 @@
     font-family:'Poppins';
   }
 
+  .textcompare-field-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px 12px;
+    flex-wrap:wrap;
+  }
+
+  .textcompare-field-actions{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+  }
+
+  .textcompare-field-btn{
+    min-height:34px;
+    padding:6px 12px;
+    border-radius:10px;
+    font-size:.9rem;
+  }
+
+  .textcompare-field-btn:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+  }
+
+  .textcompare-field-status{
+    margin:0;
+    min-height:1.2em;
+    color:var(--text-muted);
+    font-size:.9rem;
+    line-height:1.4;
+  }
+  .textcompare-field-status[data-tone="success"]{color:var(--success);}
+  .textcompare-field-status[data-tone="error"]{color:var(--danger);}
+  .textcompare-field-status[data-tone="info"]{color:color-mix(in srgb,var(--primary) 74%, #ffffff 26%);}
+
   .textcompare-textarea{
     box-sizing:border-box;
     width:100%;
@@ -306,6 +345,16 @@
     text-decoration-thickness:2px;
   }
 
+  .textcompare-output .diff-move{
+    box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--primary) 48%, #ffffff 52%);
+  }
+  .textcompare-output [data-move-role="from"]{
+    border-style:dashed;
+  }
+  .textcompare-output [data-move-role="to"]{
+    border-style:dotted;
+  }
+
   .textcompare-output .diff-char-ins{
     background:color-mix(in srgb,var(--textcompare-ins-bg) 82%, #fff 18%);
     border-radius:6px;
@@ -323,6 +372,13 @@
     }
     .textcompare-controls{
       align-items:flex-start;
+    }
+    .textcompare-field-head{
+      align-items:flex-start;
+    }
+    .textcompare-field-actions{
+      width:100%;
+      justify-content:flex-start;
     }
   }
 
