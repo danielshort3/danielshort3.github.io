@@ -1421,7 +1421,7 @@
     }
 
     if (!original.trim() && !revised.trim()) {
-      summaryEl.textContent = 'Paste text above and click Compare.';
+      summaryEl.textContent = 'Click Compare to run the built-in example, or paste your own drafts.';
       setEmpty('Waiting for input.');
       lastRuns = null;
       lastRevisedText = '';
@@ -1525,7 +1525,7 @@
   clearBtn?.addEventListener('click', () => {
     originalEl.value = '';
     revisedEl.value = '';
-    summaryEl.textContent = 'Paste text above and click Compare.';
+    summaryEl.textContent = 'Click Compare to run the built-in example, or paste your own drafts.';
     setEmpty('Waiting for input.');
     lastRuns = null;
     lastRevisedText = '';
