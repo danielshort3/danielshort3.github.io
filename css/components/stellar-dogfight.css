@@ -22,6 +22,13 @@
       --font-display: "Fredoka", "Nunito", sans-serif;
       --font-body: "Nunito", "Fredoka", sans-serif;
       --page-pad: clamp(16px, 3vw, 28px);
+      --viewport-height: 100vh;
+    }
+
+    @supports (height: 100dvh) {
+      :root {
+        --viewport-height: 100dvh;
+      }
     }
 
     * {
@@ -30,7 +37,7 @@
 
     body {
       margin: 0;
-      min-height: 100vh;
+      min-height: var(--viewport-height);
       font-family: var(--font-body);
       color: var(--text);
       background:
@@ -73,14 +80,14 @@
       margin: 0 auto;
       display: grid;
       gap: clamp(18px, 3vw, 26px);
-      min-height: calc(100vh - (var(--page-pad) * 2));
+      min-height: calc(var(--viewport-height) - (var(--page-pad) * 2));
     }
 
     body.is-playing .mission-shell {
       width: 100%;
       max-width: none;
-      height: 100vh;
-      min-height: 100vh;
+      height: var(--viewport-height);
+      min-height: var(--viewport-height);
       gap: 0;
       grid-template-rows: minmax(0, 1fr);
     }
@@ -1238,6 +1245,10 @@
       pointer-events: none;
     }
 
+    .arena-status-icons:empty {
+      display: none;
+    }
+
     .status-chip {
       display: inline-flex;
       align-items: center;
@@ -1288,6 +1299,10 @@
       gap: 6px;
       pointer-events: none;
       z-index: 3;
+    }
+
+    .perf-overlay[hidden] {
+      display: none;
     }
 
     .perf-overlay.is-compact {
@@ -2109,12 +2124,12 @@
 
     @media (min-width: 980px) {
       body {
-        height: 100vh;
-        overflow: hidden;
+        min-height: var(--viewport-height);
+        overflow-y: auto;
       }
 
       .mission-shell {
-        height: calc(100vh - (var(--page-pad) * 2));
+        min-height: calc(var(--viewport-height) - (var(--page-pad) * 2));
         grid-template-rows: auto minmax(0, 1fr);
       }
 
@@ -2140,6 +2155,56 @@
         height: 100%;
         min-height: 0;
         aspect-ratio: auto;
+      }
+    }
+
+    @media (max-height: 760px) {
+      .arena-controls {
+        right: 10px;
+        top: 10px;
+      }
+
+      .arena-hud {
+        left: 10px;
+        bottom: 10px;
+        gap: 6px;
+      }
+
+      .arena-objective {
+        left: 10px;
+        bottom: 48px;
+        min-width: 170px;
+        max-width: min(58vw, 320px);
+        padding: 6px 8px;
+      }
+
+      .arena-vitals {
+        min-width: 188px;
+        padding: 8px 10px;
+        gap: 4px;
+      }
+
+      .arena-minimap {
+        right: 10px;
+        bottom: 10px;
+        width: 124px;
+        height: 124px;
+        padding: 6px;
+      }
+
+      .arena-status-icons {
+        right: 10px;
+        top: 46px;
+        max-width: calc(100% - 20px);
+      }
+
+      .perf-overlay {
+        left: 10px;
+        top: 96px;
+      }
+
+      .perf-overlay--detail {
+        top: 176px;
       }
     }
 
