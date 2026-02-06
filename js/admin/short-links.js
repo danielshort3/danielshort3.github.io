@@ -23,6 +23,9 @@
   const accessMetaEl = document.querySelector('[data-shortlinks="access-meta"]');
   const filterInput = document.querySelector('[data-shortlinks="filter"]');
   const viewSelect = document.querySelector('[data-shortlinks="view"]');
+  const exportModeSelect = document.querySelector('[data-shortlinks="export-mode"]');
+  const exportClickLimitInput = document.querySelector('[data-shortlinks="export-click-limit"]');
+  const exportButton = document.querySelector('[data-shortlinks="export"]');
   const countEl = document.querySelector('[data-shortlinks="count"]');
   const listStatusEl = document.querySelector('[data-shortlinks="list-status"]');
   const summaryEl = document.querySelector('[data-shortlinks="summary"]');
@@ -98,6 +101,10 @@
   const TOOL_ID = 'short-links';
   const MAX_SAVED_LINK_LINES = 120;
   const PROJECT_SLUG_PREFIX = 'p';
+  const EXPORT_MODE_REDIRECTS_ONLY = 'redirects-only';
+  const EXPORT_MODE_WITH_CLICKS = 'with-clicks';
+  const EXPORT_DEFAULT_CLICK_LIMIT = 100;
+  const EXPORT_MAX_CLICK_LIMIT = 500;
 
   const markSessionDirty = () => {
     try {
@@ -226,6 +233,226 @@
     const n = Number(value);
     if (!Number.isFinite(n)) return '0';
     return Math.max(0, Math.floor(n)).toLocaleString('en-US');
+  }
+
+  function toCsvCell(value){
+    const raw = String(value ?? '');
+    const escaped = raw.replace(/"/g, '""');
+    if (/[",\n\r]/.test(escaped)) return `"${escaped}"`;
+    return escaped;
+  }
+
+  function getExportTimestamp(){
+    try {
+      return new Date().toISOString().replace(/[:.]/g, '-');
+    } catch {
+      return String(Date.now());
+    }
+  }
+
+  function downloadTextFile({ filename, text, mime }){
+    let blob;
+    try {
+      blob = new Blob([String(text ?? '')], { type: String(mime || 'text/plain;charset=utf-8') });
+    } catch {
+      return false;
+    }
+
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.download = String(filename || 'download.txt');
+    link.rel = 'noopener';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    return true;
+  }
+
+  function normalizeExportClickLimit(value){
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return EXPORT_DEFAULT_CLICK_LIMIT;
+    return Math.max(1, Math.min(EXPORT_MAX_CLICK_LIMIT, Math.floor(numeric)));
+  }
+
+  function setExportBusy(isBusy){
+    const busy = !!isBusy;
+    [exportModeSelect, exportClickLimitInput, exportButton].forEach((control) => {
+      if (!control) return;
+      control.disabled = busy;
+    });
+  }
+
+  function syncExportControls(){
+    const mode = exportModeSelect ? String(exportModeSelect.value || '').trim() : EXPORT_MODE_REDIRECTS_ONLY;
+    const clicksEnabled = mode === EXPORT_MODE_WITH_CLICKS;
+    if (exportClickLimitInput) {
+      exportClickLimitInput.disabled = !clicksEnabled;
+    }
+  }
+
+  function getSortedLinksForExport(){
+    return allLinks
+      .slice()
+      .sort((a, b) => normalizeSlugInput(a?.slug).localeCompare(normalizeSlugInput(b?.slug)));
+  }
+
+  function serializeLinkForExport(link){
+    const slug = normalizeSlugInput(link?.slug);
+    const destination = formatAbsoluteUrl(link?.destination || '');
+    const permanent = !!link?.permanent;
+    const statusCode = permanent ? 301 : 302;
+    const expiresAt = Number.isFinite(Number(link?.expiresAt)) ? Number(link.expiresAt) : 0;
+    return {
+      slug,
+      shortPath: slug ? buildPublicPath(slug) : '',
+      shortUrl: slug ? buildShortUrl(slug) : '',
+      destination,
+      statusCode,
+      permanent,
+      disabled: !!link?.disabled,
+      expiresAt,
+      clicks: Number.isFinite(Number(link?.clicks)) ? Number(link.clicks) : 0,
+      createdAt: typeof link?.createdAt === 'string' ? link.createdAt : '',
+      updatedAt: typeof link?.updatedAt === 'string' ? link.updatedAt : ''
+    };
+  }
+
+  function buildRedirectsCsv(links){
+    const headers = [
+      'slug',
+      'short_path',
+      'short_url',
+      'destination',
+      'status_code',
+      'permanent',
+      'disabled',
+      'expires_at_unix',
+      'clicks',
+      'created_at',
+      'updated_at'
+    ];
+
+    const rows = links.map((link) => {
+      const item = serializeLinkForExport(link);
+      return [
+        item.slug,
+        item.shortPath,
+        item.shortUrl,
+        item.destination,
+        item.statusCode,
+        item.permanent ? 'true' : 'false',
+        item.disabled ? 'true' : 'false',
+        item.expiresAt || '',
+        item.clicks,
+        item.createdAt,
+        item.updatedAt
+      ].map(toCsvCell).join(',');
+    });
+
+    return `${headers.map(toCsvCell).join(',')}\n${rows.join('\n')}`;
+  }
+
+  async function fetchClickHistoryForExport(slug, limit){
+    if (!slug) return [];
+    const safeLimit = normalizeExportClickLimit(limit);
+    const data = await api(`/api/short-links/clicks/${encodeURIComponent(slug)}?limit=${safeLimit}`, { method: 'GET' });
+    return Array.isArray(data?.clicks) ? data.clicks : [];
+  }
+
+  async function exportRedirectsOnly(links){
+    const csv = buildRedirectsCsv(links);
+    const filename = `short-links-redirects-${getExportTimestamp()}.csv`;
+    const ok = downloadTextFile({ filename, text: csv, mime: 'text/csv;charset=utf-8' });
+    if (!ok) {
+      setStatus(listStatusEl, 'Unable to export file on this browser.', 'error');
+      return;
+    }
+    setStatus(listStatusEl, `Exported ${links.length} redirect${links.length === 1 ? '' : 's'} to ${filename}.`, 'success');
+  }
+
+  async function exportLinksWithClickHistory(links){
+    const clickLimit = normalizeExportClickLimit(exportClickLimitInput?.value);
+    if (exportClickLimitInput) exportClickLimitInput.value = String(clickLimit);
+
+    const exportLinks = [];
+    const errors = [];
+    let totalClicks = 0;
+
+    for (let index = 0; index < links.length; index += 1) {
+      const raw = links[index];
+      const item = serializeLinkForExport(raw);
+      const progress = `${index + 1}/${links.length}`;
+      const label = item.shortPath || item.slug || 'link';
+      setStatus(listStatusEl, `Exporting click history ${progress} (${label})…`);
+      try {
+        const clicks = await fetchClickHistoryForExport(item.slug, clickLimit);
+        item.clickEvents = clicks;
+        totalClicks += clicks.length;
+      } catch (err) {
+        item.clickEvents = [];
+        item.clicksError = err?.message || 'Unable to fetch click history.';
+        errors.push(`${item.slug || label}: ${item.clicksError}`);
+      }
+      exportLinks.push(item);
+    }
+
+    const payload = {
+      generatedAt: new Date().toISOString(),
+      exportMode: EXPORT_MODE_WITH_CLICKS,
+      clickHistoryLimitPerLink: clickLimit,
+      totals: {
+        links: exportLinks.length,
+        clickEvents: totalClicks,
+        clickFetchErrors: errors.length
+      },
+      links: exportLinks
+    };
+
+    const filename = `short-links-with-clicks-${getExportTimestamp()}.json`;
+    const ok = downloadTextFile({
+      filename,
+      text: JSON.stringify(payload, null, 2),
+      mime: 'application/json;charset=utf-8'
+    });
+    if (!ok) {
+      setStatus(listStatusEl, 'Unable to export file on this browser.', 'error');
+      return;
+    }
+
+    if (errors.length) {
+      setStatus(
+        listStatusEl,
+        `Exported ${exportLinks.length} links with ${totalClicks} click events. ${errors.length} link(s) had click history errors.`,
+        'warning'
+      );
+      return;
+    }
+
+    setStatus(listStatusEl, `Exported ${exportLinks.length} links with ${totalClicks} click events to ${filename}.`, 'success');
+  }
+
+  async function handleExport(){
+    if (!requireToken(listStatusEl)) return;
+    const links = getSortedLinksForExport();
+    if (!links.length) {
+      setStatus(listStatusEl, 'No links to export.', 'warning');
+      return;
+    }
+
+    const mode = exportModeSelect ? String(exportModeSelect.value || '').trim() : EXPORT_MODE_REDIRECTS_ONLY;
+    setExportBusy(true);
+    try {
+      if (mode === EXPORT_MODE_WITH_CLICKS) {
+        await exportLinksWithClickHistory(links);
+      } else {
+        await exportRedirectsOnly(links);
+      }
+    } finally {
+      setExportBusy(false);
+      syncExportControls();
+    }
   }
 
   function isLinkExpired(link){
@@ -2277,6 +2504,7 @@
   }
 
   updateAccessMeta();
+  syncExportControls();
   void refreshProjectsSection();
   if (getSavedToken()) {
     setStatus(statusEl, 'Token loaded from this browser. Loading links…', 'success');
@@ -2293,6 +2521,18 @@
     viewSelect.addEventListener('change', () => {
       saveViewMode(viewSelect.value);
       applyFilterAndRender();
+    });
+  }
+
+  if (exportModeSelect) {
+    exportModeSelect.addEventListener('change', () => {
+      syncExportControls();
+    });
+  }
+
+  if (exportButton) {
+    exportButton.addEventListener('click', () => {
+      void handleExport();
     });
   }
 

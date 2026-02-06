@@ -365,13 +365,27 @@
                 <span class="shortlinks-filter-label">Filter</span>
                 <input type="search" autocomplete="off" spellcheck="false" placeholder="Search slugs & destinations…" data-shortlinks="filter">
               </label>
-              <label class="shortlinks-view">
-                <span class="shortlinks-view-label">View</span>
-                <select data-shortlinks="view">
-                  <option value="rows" selected>Rows</option>
-                  <option value="cards">Cards</option>
-                </select>
-              </label>
+              <div class="shortlinks-toolbar-actions">
+                <label class="shortlinks-view">
+                  <span class="shortlinks-view-label">View</span>
+                  <select data-shortlinks="view">
+                    <option value="rows" selected>Rows</option>
+                    <option value="cards">Cards</option>
+                  </select>
+                </label>
+                <label class="shortlinks-view">
+                  <span class="shortlinks-view-label">Export</span>
+                  <select data-shortlinks="export-mode">
+                    <option value="redirects-only" selected>Redirects only (CSV)</option>
+                    <option value="with-clicks">Redirects + click events (JSON)</option>
+                  </select>
+                </label>
+                <label class="shortlinks-view">
+                  <span class="shortlinks-view-label">Clicks / link</span>
+                  <input type="number" min="1" max="500" step="1" value="100" inputmode="numeric" data-shortlinks="export-click-limit">
+                </label>
+                <button type="button" class="btn-secondary" data-shortlinks="export">Export</button>
+              </div>
             </div>
             <div class="contact-form-status" data-shortlinks="list-status" role="status" aria-live="polite"></div>
             <div class="shortlinks-list shortlinks-results" data-shortlinks="list" aria-live="polite"></div>
