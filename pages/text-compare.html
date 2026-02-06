@@ -240,12 +240,28 @@
           </div>
           <form id="textcompare-form" class="textcompare-form" novalidate>
             <div class="textcompare-grid">
-              <div class="textcompare-field">
-                <label class="textcompare-label" for="textcompare-original">Original</label>
+              <div class="textcompare-field" data-field="original">
+                <div class="textcompare-field-head">
+                  <label class="textcompare-label" for="textcompare-original">Original</label>
+                  <div class="textcompare-field-actions">
+                    <button type="button" id="textcompare-original-paste" class="btn-ghost textcompare-field-btn">Paste</button>
+                    <button type="button" id="textcompare-original-import" class="btn-ghost textcompare-field-btn">Import</button>
+                    <input id="textcompare-original-file" class="visually-hidden" type="file" accept=".txt,.md,.markdown,.csv,.tsv,.json,.xml,.html,.htm,.rtf,.doc,.docx,.pdf" aria-label="Import original text file">
+                  </div>
+                </div>
+                <p id="textcompare-original-status" class="textcompare-field-status" aria-live="polite"></p>
                 <textarea id="textcompare-original" class="textcompare-textarea" name="original" placeholder="Retail analytics should be easy to act on.&#10;&#10;This report summarizes Q3 sales trends and flags anomalies.&#10;Please review and share feedback." spellcheck="false"></textarea>
               </div>
-              <div class="textcompare-field">
-                <label class="textcompare-label" for="textcompare-revised">Revised</label>
+              <div class="textcompare-field" data-field="revised">
+                <div class="textcompare-field-head">
+                  <label class="textcompare-label" for="textcompare-revised">Revised</label>
+                  <div class="textcompare-field-actions">
+                    <button type="button" id="textcompare-revised-paste" class="btn-ghost textcompare-field-btn">Paste</button>
+                    <button type="button" id="textcompare-revised-import" class="btn-ghost textcompare-field-btn">Import</button>
+                    <input id="textcompare-revised-file" class="visually-hidden" type="file" accept=".txt,.md,.markdown,.csv,.tsv,.json,.xml,.html,.htm,.rtf,.doc,.docx,.pdf" aria-label="Import revised text file">
+                  </div>
+                </div>
+                <p id="textcompare-revised-status" class="textcompare-field-status" aria-live="polite"></p>
                 <textarea id="textcompare-revised" class="textcompare-textarea" name="revised" placeholder="Retail analytics should be actionable.&#10;&#10;This report summarizes weekly sales trends and flags unusual spikes.&#10;Please review and share your feedback." spellcheck="false"></textarea>
               </div>
             </div>
@@ -255,7 +271,7 @@
                 <button type="button" id="textcompare-swap" class="btn-secondary">Swap</button>
                 <button type="button" id="textcompare-clear" class="btn-ghost">Clear</button>
               </div>
-              <p class="textcompare-note">Processing happens locally in your browser, with no uploads and no tracking.</p>
+              <p class="textcompare-note">Processing happens locally in your browser, with no uploads and no tracking. Comparison tuning is automatic.</p>
             </div>
           </form>
         </div>
@@ -300,36 +316,6 @@
               </div>
             </div>
             <p class="textcompare-format-hint">Tip: paste into Word using “Keep Source Formatting” to preserve highlights and strikethroughs.</p>
-          </details>
-          <details class="textcompare-format-details">
-            <summary>Comparison tuning</summary>
-            <div class="textcompare-format-grid" role="group" aria-label="Comparison tuning options">
-              <div class="textcompare-format-field">
-                <label class="textcompare-format-label" for="textcompare-merge-words">Merge min words</label>
-                <input id="textcompare-merge-words" class="textcompare-number" type="number" min="0" max="200" step="1" value="8" inputmode="numeric">
-              </div>
-              <div class="textcompare-format-field">
-                <label class="textcompare-format-label" for="textcompare-merge-chars">Merge min characters</label>
-                <input id="textcompare-merge-chars" class="textcompare-number" type="number" min="0" max="500" step="1" value="40" inputmode="numeric">
-              </div>
-              <div class="textcompare-format-field">
-                <label class="textcompare-format-label" for="textcompare-merge-runs">Merge min runs</label>
-                <input id="textcompare-merge-runs" class="textcompare-number" type="number" min="1" max="200" step="1" value="4" inputmode="numeric">
-              </div>
-              <div class="textcompare-format-field">
-                <label class="textcompare-format-label" for="textcompare-soft-words">Soft equal max words</label>
-                <input id="textcompare-soft-words" class="textcompare-number" type="number" min="0" max="12" step="1" value="2" inputmode="numeric">
-              </div>
-              <div class="textcompare-format-field">
-                <label class="textcompare-format-label" for="textcompare-soft-word-length">Soft equal max word length</label>
-                <input id="textcompare-soft-word-length" class="textcompare-number" type="number" min="0" max="12" step="1" value="2" inputmode="numeric">
-              </div>
-              <div class="textcompare-format-field">
-                <label class="textcompare-format-label" for="textcompare-common-min">Common word repeats</label>
-                <input id="textcompare-common-min" class="textcompare-number" type="number" min="1" max="20" step="1" value="2" inputmode="numeric">
-              </div>
-            </div>
-            <p class="textcompare-format-hint">Higher merge thresholds keep more text unchanged; lower soft-equal values avoid merging across preserved phrases.</p>
           </details>
           <div id="textcompare-output" class="textcompare-output" role="region" aria-label="Inline comparison output">
             <p class="textcompare-empty">Waiting for input.</p>
@@ -376,6 +362,8 @@
     </div>
   </footer>
 
+  <script defer src="js/vendor/fflate/fflate.min.js"></script>
+  <script defer src="js/vendor/pdfjs/pdf.min.js"></script>
   <script defer src="js/tools/text-compare.js"></script>
   <script defer src="js/accounts/tools-config.js"></script>
   <script defer src="js/accounts/tools-auth.js"></script>
