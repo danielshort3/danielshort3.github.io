@@ -37,6 +37,38 @@
     return getEnemies ? getEnemies() : [];
   }
 
+  function spawnBlackHoleAt(x, y, options = {}) {
+    const { spawnBlackHole } = getHelpers();
+    if (spawnBlackHole) {
+      spawnBlackHole(x, y, options);
+    }
+  }
+
+  function damageEnemyTarget(enemy, amount, options = {}) {
+    const { damageEnemy } = getHelpers();
+    if (damageEnemy) {
+      return damageEnemy(enemy, amount, options);
+    }
+    if (!enemy || amount <= 0) return false;
+    enemy.health = Math.max(0, enemy.health - amount);
+    return enemy.health <= 0;
+  }
+
+  function damageEnemiesInRadius(origin, radius, amount, options = {}) {
+    const enemies = listEnemies();
+    let hits = 0;
+    enemies.forEach((enemy) => {
+      if (distanceBetween(origin, enemy) <= radius + (enemy.radius || 0)) {
+        if (options.slowDuration) {
+          enemy.slowTimer = Math.max(enemy.slowTimer || 0, options.slowDuration);
+        }
+        damageEnemyTarget(enemy, amount, options);
+        hits += 1;
+      }
+    });
+    return hits;
+  }
+
   function safeRandInt(min, max) {
     const { randInt } = getHelpers();
     if (randInt) {
@@ -122,6 +154,107 @@
       onEnd: (ship, state) => {
         state.enemyAccuracyMod = 1;
       }
+    },
+    singularity: {
+      id: "singularity",
+      name: "Singularity Drive",
+      desc: "Opens a gravity well ahead and boosts maneuverability.",
+      cooldown: 22,
+      duration: 5.5,
+      onStart: (ship) => {
+        const distance = 150;
+        const holeX = ship.x + Math.cos(ship.angle) * distance;
+        const holeY = ship.y + Math.sin(ship.angle) * distance;
+        spawnBlackHoleAt(holeX, holeY, {
+          radius: 170,
+          duration: 3.2,
+          force: 430,
+          damage: 22
+        });
+        ship.invulnerable = Math.max(ship.invulnerable || 0, 0.65);
+        ship.speedBoostMultiplier = Math.max(ship.speedBoostMultiplier || 1, 1.22);
+        ship.speedBoostTimer = Math.max(ship.speedBoostTimer || 0, 5.5);
+        emitPulse(holeX, holeY, "#9aa7ff", 200);
+        log("Singularity drive engaged.");
+      },
+      onEnd: () => {}
+    },
+    adrenaline: {
+      id: "adrenaline",
+      name: "Adrenaline Link",
+      desc: "Massive short-term damage and speed surge.",
+      cooldown: 18,
+      duration: 7,
+      onStart: (ship) => {
+        ship.damageBoostMultiplier = Math.max(ship.damageBoostMultiplier || 1, 1.5);
+        ship.damageBoostTimer = Math.max(ship.damageBoostTimer || 0, 7);
+        ship.speedBoostMultiplier = Math.max(ship.speedBoostMultiplier || 1, 1.28);
+        ship.speedBoostTimer = Math.max(ship.speedBoostTimer || 0, 7);
+        ship.energy = Math.min(ship.maxEnergy, ship.energy + ship.maxEnergy * 0.25);
+        emitPulse(ship.x, ship.y, "#ffd166", 150);
+        log("Adrenaline link online.");
+      },
+      onEnd: () => {}
+    },
+    overmind: {
+      id: "overmind",
+      name: "Overmind Network",
+      desc: "Temporarily deploys an enhanced drone wing and aura field.",
+      cooldown: 24,
+      duration: 8,
+      onStart: (ship) => {
+        ship._overmindSnapshot = {
+          helperCount: ship.helperCount || 0,
+          helperDamageRatio: ship.helperDamageRatio || 0,
+          helperFireRate: ship.helperFireRate || 0,
+          helperRange: ship.helperRange || 0,
+          auraRadius: ship.auraRadius || 0,
+          auraDamage: ship.auraDamage || 0
+        };
+        ship.helperCount = Math.max(ship.helperCount || 0, 3);
+        ship.helperDamageRatio = Math.max(ship.helperDamageRatio || 0, 0.48);
+        ship.helperFireRate = Math.max(ship.helperFireRate || 0, 2);
+        ship.helperRange = Math.max(ship.helperRange || 0, 520);
+        ship.auraRadius = Math.max(ship.auraRadius || 0, 110);
+        ship.auraDamage = Math.max(ship.auraDamage || 0, 20);
+        emitPulse(ship.x, ship.y, "#7cf2b4", 160);
+        log("Overmind network synchronized.");
+      },
+      onEnd: (ship) => {
+        if (!ship._overmindSnapshot) return;
+        ship.helperCount = ship._overmindSnapshot.helperCount;
+        ship.helperDamageRatio = ship._overmindSnapshot.helperDamageRatio;
+        ship.helperFireRate = ship._overmindSnapshot.helperFireRate;
+        ship.helperRange = ship._overmindSnapshot.helperRange;
+        ship.auraRadius = ship._overmindSnapshot.auraRadius;
+        ship.auraDamage = ship._overmindSnapshot.auraDamage;
+        ship._overmindSnapshot = null;
+      }
+    },
+    starbreaker: {
+      id: "starbreaker",
+      name: "Starbreaker",
+      desc: "Emit a crushing pulse and harden defenses briefly.",
+      cooldown: 26,
+      duration: 3.5,
+      onStart: (ship) => {
+        const beforeReduction = ship.damageReduction || 0;
+        ship.damageReduction = Math.min(0.75, beforeReduction + 0.22);
+        ship._starbreakerBonus = ship.damageReduction - beforeReduction;
+        ship.invulnerable = Math.max(ship.invulnerable || 0, 1.1);
+        const hits = damageEnemiesInRadius(ship, 190, 56, { slowDuration: 1.3 });
+        emitPulse(ship.x, ship.y, "#ff9f6b", 220);
+        if (hits > 0) {
+          log(`Starbreaker pulse hit ${hits} hostiles.`);
+        } else {
+          log("Starbreaker pulse discharged.");
+        }
+      },
+      onEnd: (ship) => {
+        if (!ship._starbreakerBonus) return;
+        ship.damageReduction = Math.max(0, (ship.damageReduction || 0) - ship._starbreakerBonus);
+        ship._starbreakerBonus = 0;
+      }
     }
   };
 
@@ -160,7 +293,7 @@
       mods: { add: { maxShield: 40, maxHealth: 20 }, mult: { maxSpeed: 0.9 } },
       abilityId: "barrier",
       signatureWeapon: "plasma",
-      nextIds: ["titan", "specter"]
+      nextIds: ["titan", "sentinel", "nexus"]
     },
     {
       id: "striker",
@@ -172,7 +305,7 @@
       mods: { mult: { damage: 1.12, fireRate: 1.08, maxShield: 0.9 } },
       abilityId: "overdrive",
       signatureWeapon: "scatter",
-      nextIds: ["tempest", "specter"]
+      nextIds: ["tempest", "helios", "valkyrie"]
     },
     {
       id: "rift",
@@ -184,7 +317,7 @@
       mods: { mult: { maxSpeed: 1.2, accel: 1.2, maxHealth: 0.9 } },
       abilityId: "blink",
       signatureWeapon: "rail",
-      nextIds: ["specter", "tempest"]
+      nextIds: ["specter", "nexus", "valkyrie"]
     },
     {
       id: "corsair",
@@ -196,7 +329,7 @@
       mods: { add: { critChance: 0.12 }, mult: { maxSpeed: 1.06, maxEnergy: 0.9 } },
       abilityId: "cloak",
       signatureWeapon: "volley",
-      nextIds: ["specter", "tempest"]
+      nextIds: ["specter", "helios", "nexus"]
     },
     {
       id: "specter",
@@ -233,6 +366,54 @@
       abilityId: "overdrive",
       signatureWeapon: "repeater",
       nextIds: []
+    },
+    {
+      id: "nexus",
+      name: "Nexus",
+      tier: 3,
+      desc: "Control cruiser that bends fights with singularity tech.",
+      passive: "+60 energy, +15% weapon damage, +12% turn rate.",
+      unlock: { rank: 6, credits: 560, blueprints: 3, faction: { id: "nova", rep: 20 } },
+      mods: { add: { maxEnergy: 60 }, mult: { damage: 1.15, turnRate: 1.12 } },
+      abilityId: "singularity",
+      signatureWeapon: "voidlance",
+      nextIds: []
+    },
+    {
+      id: "helios",
+      name: "Helios",
+      tier: 3,
+      desc: "Hyper-aggressive striker tuned for burst windows.",
+      passive: "+14% damage, +16% fire rate, -12% shield.",
+      unlock: { rank: 6, credits: 540, faction: { id: "vortex", rep: 18 } },
+      mods: { mult: { damage: 1.14, fireRate: 1.16, maxShield: 0.88 } },
+      abilityId: "adrenaline",
+      signatureWeapon: "sunflare",
+      nextIds: []
+    },
+    {
+      id: "sentinel",
+      name: "Sentinel",
+      tier: 3,
+      desc: "Autonomous defense carrier with permanent wing support.",
+      passive: "+1 helper drone, +70 shield, -8% speed.",
+      unlock: { rank: 6, credits: 600, blueprints: 3, faction: { id: "aegis", rep: 18 } },
+      mods: { add: { helperCount: 1, maxShield: 70 }, mult: { maxSpeed: 0.92 } },
+      abilityId: "overmind",
+      signatureWeapon: "swarm",
+      nextIds: []
+    },
+    {
+      id: "valkyrie",
+      name: "Valkyrie",
+      tier: 3,
+      desc: "Frontline breaker that detonates packs with shock strikes.",
+      passive: "+50 hull, +12% damage, +10% speed.",
+      unlock: { rank: 6, credits: 620, blueprints: 4, faction: { id: "aegis", rep: 22 } },
+      mods: { add: { maxHealth: 50 }, mult: { damage: 1.12, maxSpeed: 1.1 } },
+      abilityId: "starbreaker",
+      signatureWeapon: "tempest-arc",
+      nextIds: []
     }
   ];
 
@@ -244,7 +425,7 @@
       desc: "Starter cannon with steady output.",
       tags: ["Starter", "Reliable"],
       unlock: { rank: 1 },
-      stats: { damage: 9, fireRate: 3.6, energyCost: 18, bulletSpeed: 500, projectiles: 1, spread: 0.16 }
+      stats: { damage: 10, fireRate: 3.8, energyCost: 16, bulletSpeed: 500, projectiles: 1, spread: 0.16 }
     },
     {
       id: "pulse",
@@ -253,7 +434,7 @@
       desc: "Reliable bolts with steady energy costs.",
       tags: ["Balanced", "Energy"],
       unlock: { rank: 1 },
-      stats: { damage: 12, fireRate: 4, energyCost: 16, bulletSpeed: 520, projectiles: 1, spread: 0.14 },
+      stats: { damage: 12, fireRate: 4.1, energyCost: 15, bulletSpeed: 520, projectiles: 1, spread: 0.14 },
       upgrades: [
         { tier: "common", name: "Phase Capacitors I", cost: 120, desc: "+4 damage.", apply: (stats) => { stats.damage += 4; } },
         { tier: "uncommon", name: "Phase Capacitors II", cost: 180, desc: "+4 damage.", apply: (stats) => { stats.damage += 4; } },
@@ -279,7 +460,7 @@
       desc: "Rapid-fire pulses for sustained pressure.",
       tags: ["Rapid", "Sustain"],
       unlock: { rank: 1, credits: 80 },
-      stats: { damage: 7, fireRate: 6.2, energyCost: 12, bulletSpeed: 520, projectiles: 1, spread: 0.12 },
+      stats: { damage: 8, fireRate: 6, energyCost: 11, bulletSpeed: 520, projectiles: 1, spread: 0.12 },
       upgrades: [
         { tier: "common", name: "Servo Feed I", cost: 110, desc: "+18% fire rate.", apply: (stats) => { stats.fireRate *= 1.18; } },
         { tier: "uncommon", name: "Servo Feed II", cost: 170, desc: "+18% fire rate.", apply: (stats) => { stats.fireRate *= 1.18; } },
@@ -331,7 +512,7 @@
       desc: "Wide cone for close-range pressure.",
       tags: ["Spread", "Close"],
       unlock: { rank: 2, credits: 140 },
-      stats: { damage: 7, fireRate: 3.2, energyCost: 20, bulletSpeed: 460, projectiles: 4, spread: 0.3 },
+      stats: { damage: 7, fireRate: 3.2, energyCost: 19, bulletSpeed: 460, projectiles: 4, spread: 0.3 },
       upgrades: [
         { tier: "common", name: "Choke Ring I", cost: 130, desc: "-spread, +10% bullet speed.", apply: (stats) => { stats.spread = Math.max(0.18, stats.spread - 0.08); stats.bulletSpeed *= 1.1; } },
         { tier: "uncommon", name: "Choke Ring II", cost: 190, desc: "-spread.", apply: (stats) => { stats.spread = Math.max(0.14, stats.spread - 0.06); } },
@@ -497,6 +678,306 @@
           }
         }
       ]
+    },
+    {
+      id: "tempest-arc",
+      tier: "epic",
+      name: "Tempest Arc",
+      desc: "Twin-stream arcs that excel in chain pressure.",
+      tags: ["Arc", "Sustain", "Control"],
+      unlock: { rank: 5, credits: 320, faction: { id: "vortex", rep: 14 } },
+      stats: {
+        damage: 14,
+        fireRate: 4.8,
+        energyCost: 17,
+        bulletSpeed: 560,
+        projectiles: 2,
+        spread: 0.18,
+        arcDamage: 0.32,
+        arcRadius: 130,
+        arcChains: 1,
+        slowChance: 0.14,
+        slowDuration: 1.2
+      },
+      upgrades: [
+        {
+          tier: "uncommon",
+          name: "Arc Prism I",
+          cost: 210,
+          desc: "+20% arc radius and +10% bullet speed.",
+          apply: (stats) => {
+            stats.arcRadius *= 1.2;
+            stats.bulletSpeed *= 1.1;
+          }
+        },
+        {
+          tier: "rare",
+          name: "Arc Prism II",
+          cost: 290,
+          desc: "+1 arc chain and +20% arc damage.",
+          apply: (stats) => {
+            stats.arcChains = (stats.arcChains || 0) + 1;
+            stats.arcDamage *= 1.2;
+          }
+        },
+        {
+          tier: "rare",
+          name: "Storm Flux",
+          cost: 360,
+          desc: "+18% fire rate and -15% energy cost.",
+          apply: (stats) => {
+            stats.fireRate *= 1.18;
+            stats.energyCost *= 0.85;
+          }
+        },
+        {
+          tier: "epic",
+          name: "Convergence Grid",
+          cost: 440,
+          desc: "+0.2 slow chance and +0.4s slow duration.",
+          apply: (stats) => {
+            stats.slowChance = (stats.slowChance || 0) + 0.2;
+            stats.slowDuration = Math.max(stats.slowDuration || 0, 1.6);
+          }
+        },
+        {
+          tier: "legendary",
+          name: "Catastorm Engine",
+          cost: 560,
+          desc: "Every 4th volley fires +2 arcs with +55% damage.",
+          apply: (stats) => {
+            stats.barrageEvery = 4;
+            stats.barrageProjectiles = Math.max(stats.barrageProjectiles || 0, 2);
+            stats.barrageBonusDamage = Math.max(stats.barrageBonusDamage || 1, 1.55);
+            stats.arcChains = Math.max(stats.arcChains || 0, 2);
+          }
+        }
+      ]
+    },
+    {
+      id: "voidlance",
+      tier: "legendary",
+      name: "Void Lance",
+      desc: "Piercing gravitic spikes that spawn micro singularities.",
+      tags: ["Gravity", "Pierce", "Burst"],
+      unlock: { rank: 6, credits: 420, faction: { id: "nova", rep: 20 } },
+      stats: {
+        damage: 34,
+        fireRate: 1.35,
+        energyCost: 31,
+        bulletSpeed: 720,
+        projectiles: 1,
+        spread: 0.04,
+        pierce: 1,
+        blackHoleChance: 0.16,
+        blackHoleRadius: 120,
+        blackHoleDuration: 1.8,
+        blackHoleForce: 420,
+        blackHoleDamage: 16
+      },
+      upgrades: [
+        {
+          tier: "rare",
+          name: "Singularity Rails I",
+          cost: 280,
+          desc: "+18% bullet speed and +1 pierce.",
+          apply: (stats) => {
+            stats.bulletSpeed *= 1.18;
+            stats.pierce = (stats.pierce || 0) + 1;
+          }
+        },
+        {
+          tier: "epic",
+          name: "Singularity Rails II",
+          cost: 360,
+          desc: "+22% damage and -10% energy cost.",
+          apply: (stats) => {
+            stats.damage *= 1.22;
+            stats.energyCost *= 0.9;
+          }
+        },
+        {
+          tier: "epic",
+          name: "Event Compression",
+          cost: 430,
+          desc: "+35% gravity pull and +25% singularity damage.",
+          apply: (stats) => {
+            stats.blackHoleForce *= 1.35;
+            stats.blackHoleDamage *= 1.25;
+          }
+        },
+        {
+          tier: "legendary",
+          name: "Dark Matter Lens",
+          cost: 520,
+          desc: "+12% singularity chance and +40% duration.",
+          apply: (stats) => {
+            stats.blackHoleChance = Math.min(0.55, (stats.blackHoleChance || 0) + 0.12);
+            stats.blackHoleDuration *= 1.4;
+          }
+        },
+        {
+          tier: "legendary",
+          name: "Rift Barrage",
+          cost: 620,
+          desc: "Every 3rd shot overcharges with +100% damage.",
+          apply: (stats) => {
+            stats.barrageEvery = 3;
+            stats.barrageBonusDamage = Math.max(stats.barrageBonusDamage || 1, 2);
+            stats.barragePierce = Math.max(stats.barragePierce || 0, 2);
+          }
+        }
+      ]
+    },
+    {
+      id: "swarm",
+      tier: "epic",
+      name: "Swarm Matrix",
+      desc: "Weaponized command uplink that empowers escort drones.",
+      tags: ["Support", "Drone", "Sustain"],
+      unlock: { rank: 5, credits: 340, faction: { id: "aegis", rep: 14 } },
+      stats: {
+        damage: 9,
+        fireRate: 4.6,
+        energyCost: 14,
+        bulletSpeed: 540,
+        projectiles: 1,
+        spread: 0.14,
+        helperCount: 1,
+        helperDamageRatio: 0.3,
+        helperFireRate: 1.4,
+        helperRange: 350
+      },
+      upgrades: [
+        {
+          tier: "uncommon",
+          name: "Winglink I",
+          cost: 200,
+          desc: "+1 helper drone and +10% fire rate.",
+          apply: (stats) => {
+            stats.helperCount = (stats.helperCount || 0) + 1;
+            stats.fireRate *= 1.1;
+          }
+        },
+        {
+          tier: "rare",
+          name: "Winglink II",
+          cost: 280,
+          desc: "+0.18 helper damage ratio and +60 range.",
+          apply: (stats) => {
+            stats.helperDamageRatio = (stats.helperDamageRatio || 0.3) + 0.18;
+            stats.helperRange = (stats.helperRange || 320) + 60;
+          }
+        },
+        {
+          tier: "rare",
+          name: "Relay Capacitors",
+          cost: 350,
+          desc: "-18% energy cost and +18% energy regen.",
+          apply: (stats) => {
+            stats.energyCost *= 0.82;
+            stats.energyRegen = (stats.energyRegen || 0) + 6;
+          }
+        },
+        {
+          tier: "epic",
+          name: "Escort Protocol",
+          cost: 430,
+          desc: "+1 helper, +0.14 helper damage, +0.4 helper fire rate.",
+          apply: (stats) => {
+            stats.helperCount = (stats.helperCount || 0) + 1;
+            stats.helperDamageRatio = (stats.helperDamageRatio || 0.3) + 0.14;
+            stats.helperFireRate = (stats.helperFireRate || 1.2) + 0.4;
+          }
+        },
+        {
+          tier: "legendary",
+          name: "Command Singularity",
+          cost: 560,
+          desc: "Helper shots gain 1 pierce and arc capability.",
+          apply: (stats) => {
+            stats.helperDamageRatio = (stats.helperDamageRatio || 0.3) + 0.16;
+            stats.arcDamage = Math.max(stats.arcDamage || 0, 0.3);
+            stats.arcRadius = Math.max(stats.arcRadius || 0, 120);
+            stats.arcChains = Math.max(stats.arcChains || 0, 1);
+          }
+        }
+      ]
+    },
+    {
+      id: "sunflare",
+      tier: "legendary",
+      name: "Sunflare Prism",
+      desc: "Radiant tri-burst cannon with echoing detonations.",
+      tags: ["Splash", "Echo", "Burst"],
+      unlock: { rank: 6, credits: 410, faction: { id: "vortex", rep: 18 } },
+      stats: {
+        damage: 16,
+        fireRate: 3,
+        energyCost: 22,
+        bulletSpeed: 510,
+        projectiles: 3,
+        spread: 0.2,
+        splashRadius: 24,
+        splashDamage: 0.72,
+        echoChance: 0.18,
+        echoDamage: 0.46
+      },
+      upgrades: [
+        {
+          tier: "rare",
+          name: "Prism Lattice I",
+          cost: 260,
+          desc: "+22% splash radius and +15% projectile speed.",
+          apply: (stats) => {
+            stats.splashRadius *= 1.22;
+            stats.bulletSpeed *= 1.15;
+          }
+        },
+        {
+          tier: "epic",
+          name: "Prism Lattice II",
+          cost: 340,
+          desc: "+1 projectile and -0.04 spread.",
+          apply: (stats) => {
+            stats.projectiles += 1;
+            stats.spread = Math.max(0.1, stats.spread - 0.04);
+          }
+        },
+        {
+          tier: "epic",
+          name: "Radiant Coil",
+          cost: 430,
+          desc: "+25% damage and +25% splash damage.",
+          apply: (stats) => {
+            stats.damage *= 1.25;
+            stats.splashDamage = Math.max(stats.splashDamage || 0.6, 0.78) * 1.25;
+          }
+        },
+        {
+          tier: "legendary",
+          name: "Solar Echo",
+          cost: 520,
+          desc: "+20% echo chance and +20% echo damage.",
+          apply: (stats) => {
+            stats.echoChance = Math.min(0.65, (stats.echoChance || 0) + 0.2);
+            stats.echoDamage = (stats.echoDamage || 0.5) * 1.2;
+          }
+        },
+        {
+          tier: "legendary",
+          name: "Corona Barrage",
+          cost: 620,
+          desc: "Every 4th volley gains +3 projectiles and +70% damage.",
+          apply: (stats) => {
+            stats.barrageEvery = 4;
+            stats.barrageProjectiles = Math.max(stats.barrageProjectiles || 0, 3);
+            stats.barrageBonusDamage = Math.max(stats.barrageBonusDamage || 1, 1.7);
+            stats.barrageSplashRadius = Math.max(stats.barrageSplashRadius || 0, 56);
+            stats.barrageSplashDamage = Math.max(stats.barrageSplashDamage || 0.7, 0.9);
+          }
+        }
+      ]
     }
   ];
 
@@ -568,6 +1049,102 @@
         emitPulse(ship.x, ship.y, "#6ee7b7", 120);
         log("Repair burst triggered.");
       }
+    },
+    {
+      id: "gravity-well",
+      tier: "legendary",
+      name: "Gravity Well",
+      desc: "Deploys a crushing singularity at your aim vector.",
+      cooldown: 24,
+      unlock: { rank: 5, credits: 260, faction: { id: "nova", rep: 16 } },
+      activate: (ship) => {
+        const distance = 180;
+        const target = {
+          x: ship.x + Math.cos(ship.angle) * distance,
+          y: ship.y + Math.sin(ship.angle) * distance
+        };
+        spawnBlackHoleAt(target.x, target.y, {
+          radius: 180,
+          duration: 2.8,
+          force: 460,
+          damage: 20
+        });
+        const hits = damageEnemiesInRadius(target, 130, 28, { slowDuration: 1.4 });
+        emitPulse(target.x, target.y, "#9aa7ff", 220);
+        if (hits > 0) {
+          log(`Gravity well collapsed ${hits} hostiles.`);
+        } else {
+          log("Gravity well deployed.");
+        }
+      }
+    },
+    {
+      id: "overclock-injector",
+      tier: "rare",
+      name: "Overclock Injector",
+      desc: "Injects a burst of power for speed, damage, and energy.",
+      cooldown: 22,
+      unlock: { rank: 3, credits: 190 },
+      activate: (ship) => {
+        ship.damageBoostMultiplier = Math.max(ship.damageBoostMultiplier || 1, 1.45);
+        ship.damageBoostTimer = Math.max(ship.damageBoostTimer || 0, 6);
+        ship.speedBoostMultiplier = Math.max(ship.speedBoostMultiplier || 1, 1.2);
+        ship.speedBoostTimer = Math.max(ship.speedBoostTimer || 0, 6);
+        ship.energy = Math.min(ship.maxEnergy, ship.energy + ship.maxEnergy * 0.35);
+        emitPulse(ship.x, ship.y, "#ffd166", 130);
+        log("Overclock injector fired.");
+      }
+    },
+    {
+      id: "shock-prism",
+      tier: "epic",
+      name: "Shock Prism",
+      desc: "Discharges a wide prism wave that damages and slows enemies.",
+      cooldown: 19,
+      unlock: { rank: 4, credits: 230, faction: { id: "vortex", rep: 10 } },
+      activate: (ship) => {
+        const hits = damageEnemiesInRadius(ship, 210, 34, { slowDuration: 2.2 });
+        emitPulse(ship.x, ship.y, "#57e0ff", 230);
+        if (hits > 0) {
+          log(`Shock prism struck ${hits} hostiles.`);
+        } else {
+          log("Shock prism discharged.");
+        }
+      }
+    },
+    {
+      id: "drone-command",
+      tier: "epic",
+      name: "Drone Command",
+      desc: "Temporarily overclocks escort drones into an assault wing.",
+      cooldown: 26,
+      unlock: { rank: 5, credits: 260, faction: { id: "aegis", rep: 14 } },
+      activate: (ship) => {
+        if (!ship._droneCommandSnapshot) {
+          ship._droneCommandSnapshot = {
+            helperCount: ship.helperCount || 0,
+            helperDamageRatio: ship.helperDamageRatio || 0,
+            helperFireRate: ship.helperFireRate || 0,
+            helperRange: ship.helperRange || 0
+          };
+        }
+        ship.helperCount = Math.max(ship.helperCount || 0, 3);
+        ship.helperDamageRatio = Math.max(ship.helperDamageRatio || 0, 0.52);
+        ship.helperFireRate = Math.max(ship.helperFireRate || 0, 2.1);
+        ship.helperRange = Math.max(ship.helperRange || 0, 520);
+        emitPulse(ship.x, ship.y, "#7cf2b4", 150);
+        log("Drone command uplink active.");
+        if (typeof window !== "undefined" && typeof window.setTimeout === "function") {
+          window.setTimeout(() => {
+            if (!ship._droneCommandSnapshot) return;
+            ship.helperCount = ship._droneCommandSnapshot.helperCount;
+            ship.helperDamageRatio = ship._droneCommandSnapshot.helperDamageRatio;
+            ship.helperFireRate = ship._droneCommandSnapshot.helperFireRate;
+            ship.helperRange = ship._droneCommandSnapshot.helperRange;
+            ship._droneCommandSnapshot = null;
+          }, 8000);
+        }
+      }
     }
   ];
 
@@ -582,10 +1159,10 @@
   const PART_SLOTS = ["barrel", "core", "targeting", "thruster"];
 
   const PART_TEMPLATES = {
-    barrel: { name: "Barrel", stats: { damage: [2, 6], bulletSpeed: [20, 60] } },
-    core: { name: "Core", stats: { fireRate: [0.3, 0.9], energyCost: [-2, -0.5] } },
-    targeting: { name: "Targeting", stats: { critChance: [0.02, 0.06], spread: [-0.05, -0.02] } },
-    thruster: { name: "Thruster", stats: { maxSpeed: [8, 22], accel: [18, 50] } }
+    barrel: { name: "Barrel", stats: { damage: [2, 6], bulletSpeed: [20, 60], pierce: [0, 1], splashRadius: [0, 10] } },
+    core: { name: "Core", stats: { fireRate: [0.3, 0.9], energyCost: [-2, -0.5], arcDamage: [0.04, 0.12], echoChance: [0.03, 0.08] } },
+    targeting: { name: "Targeting", stats: { critChance: [0.02, 0.06], spread: [-0.05, -0.02], slowChance: [0.05, 0.15], arcRadius: [10, 40] } },
+    thruster: { name: "Thruster", stats: { maxSpeed: [8, 22], accel: [18, 50], boostMultiplier: [0.04, 0.12], boostCost: [-2, -0.6] } }
   };
 
   const FACTIONS = [
@@ -1118,6 +1695,184 @@
       apply: (stats) => {
         stats.turnRate += 0.35;
         stats.accel += 8;
+      }
+    }
+  ];
+
+  const PREMIUM_SHOP_ITEMS = [
+    {
+      id: "omega-command",
+      kind: "one-time",
+      tier: "legendary",
+      name: "Omega Command Core",
+      desc: "Unlock a command-grade support wing and heavy barrage package.",
+      impact: "+2 drones, +2 projectiles, +35% fire rate, +18% damage.",
+      cost: 45,
+      apply: (stats) => {
+        stats.helperCount = Math.max(stats.helperCount || 0, 2);
+        stats.helperDamageRatio = Math.max(stats.helperDamageRatio || 0, 0.5);
+        stats.helperFireRate = Math.max(stats.helperFireRate || 0, 2.2);
+        stats.helperRange = Math.max(stats.helperRange || 0, 520);
+        stats.projectiles += 2;
+        stats.fireRate *= 1.35;
+        stats.damage *= 1.18;
+      }
+    },
+    {
+      id: "aegis-overlord",
+      kind: "one-time",
+      tier: "legendary",
+      name: "Aegis Overlord Matrix",
+      desc: "Install a fortress-grade defensive suite with automatic pulse countermeasures.",
+      impact: "+220 shield, +80 hull, +14 shield regen, +20% damage reduction.",
+      cost: 42,
+      apply: (stats) => {
+        stats.maxShield += 220;
+        stats.maxHealth += 80;
+        stats.shieldRegen += 14;
+        stats.damageReduction = Math.min(0.75, (stats.damageReduction || 0) + 0.2);
+        stats.aegisCooldown = Math.max(stats.aegisCooldown || 0, 12);
+        stats.aegisShieldRestore = Math.max(stats.aegisShieldRestore || 0, 0.95);
+        stats.aegisPulseRadius = Math.max(stats.aegisPulseRadius || 0, 220);
+        stats.aegisPulseDamage = Math.max(stats.aegisPulseDamage || 0, 82);
+        stats.aegisPulseSlow = Math.max(stats.aegisPulseSlow || 0, 1.8);
+      }
+    },
+    {
+      id: "void-reactor",
+      kind: "one-time",
+      tier: "legendary",
+      name: "Void Reactor Prime",
+      desc: "Retrofit the ship with a singularity-compatible reactor core.",
+      impact: "+200 energy, +40 regen, -40% energy cost, unlock black-hole rounds.",
+      cost: 48,
+      apply: (stats) => {
+        stats.maxEnergy += 200;
+        stats.energyRegen += 40;
+        stats.energyCost = Math.max(4, stats.energyCost * 0.6);
+        stats.blackHoleChance = Math.max(stats.blackHoleChance || 0, 0.25);
+        stats.blackHoleRadius = Math.max(stats.blackHoleRadius || 0, 130);
+        stats.blackHoleDuration = Math.max(stats.blackHoleDuration || 0, 1.9);
+        stats.blackHoleForce = Math.max(stats.blackHoleForce || 0, 420);
+        stats.blackHoleDamage = Math.max(stats.blackHoleDamage || 0, 22);
+      }
+    },
+    {
+      id: "founders-charter",
+      kind: "one-time",
+      tier: "legendary",
+      name: "Founder's Charter",
+      desc: "Authorize a permanent command stipend and elite combat package.",
+      impact: "+120% credits, +120% XP, +25% crit chance, +0.5 crit multiplier.",
+      cost: 40,
+      apply: (stats) => {
+        stats.salvageBonus = Math.min(2, (stats.salvageBonus || 0) + 1.2);
+        stats.xpBonus = Math.min(2, (stats.xpBonus || 0) + 1.2);
+        stats.critChance = Math.min(0.75, stats.critChance + 0.25);
+        stats.critMultiplier += 0.5;
+      }
+    },
+    {
+      id: "omega-warheads",
+      kind: "scalable",
+      tier: "epic",
+      name: "Omega Warheads",
+      desc: "Scale raw weapon output per level.",
+      impact: "Per level: +18% damage, +8% fire rate.",
+      baseCost: 6,
+      costScale: 1.6,
+      maxLevel: 10,
+      apply: (stats, level) => {
+        stats.damage *= Math.pow(1.18, level);
+        stats.fireRate *= Math.pow(1.08, level);
+      }
+    },
+    {
+      id: "slipstream-lattice",
+      kind: "scalable",
+      tier: "epic",
+      name: "Slipstream Lattice",
+      desc: "Scale mobility systems for aggressive maneuvering.",
+      impact: "Per level: +14% max speed, +15% accel, +0.2 turn rate.",
+      baseCost: 5,
+      costScale: 1.55,
+      maxLevel: 8,
+      apply: (stats, level) => {
+        stats.maxSpeed *= Math.pow(1.14, level);
+        stats.accel *= Math.pow(1.15, level);
+        stats.turnRate += level * 0.2;
+      }
+    },
+    {
+      id: "quantum-capacitors",
+      kind: "scalable",
+      tier: "epic",
+      name: "Quantum Capacitors",
+      desc: "Scale energy economy and sustain.",
+      impact: "Per level: +60 energy, +12 regen, -4% energy cost.",
+      baseCost: 5,
+      costScale: 1.5,
+      maxLevel: 8,
+      apply: (stats, level) => {
+        stats.maxEnergy += level * 60;
+        stats.energyRegen += level * 12;
+        stats.energyCost = Math.max(3, stats.energyCost * Math.pow(0.96, level));
+      }
+    },
+    {
+      id: "fortress-plating",
+      kind: "scalable",
+      tier: "epic",
+      name: "Fortress Plating",
+      desc: "Scale hull and shield resilience.",
+      impact: "Per level: +50 hull, +80 shield, +2.2 shield regen, +2% DR.",
+      baseCost: 5,
+      costScale: 1.55,
+      maxLevel: 8,
+      apply: (stats, level) => {
+        stats.maxHealth += level * 50;
+        stats.maxShield += level * 80;
+        stats.shieldRegen += level * 2.2;
+        stats.damageReduction = Math.min(0.8, (stats.damageReduction || 0) + level * 0.02);
+      }
+    },
+    {
+      id: "predator-protocol",
+      kind: "scalable",
+      tier: "epic",
+      name: "Predator Protocol",
+      desc: "Scale critical pressure and kill recovery.",
+      impact: "Per level: +4% crit chance, +0.16 crit mult, +2 energy on kill.",
+      baseCost: 6,
+      costScale: 1.6,
+      maxLevel: 7,
+      apply: (stats, level) => {
+        stats.critChance = Math.min(0.95, stats.critChance + level * 0.04);
+        stats.critMultiplier += level * 0.16;
+        stats.energyOnKill += level * 2;
+      }
+    },
+    {
+      id: "singularity-array",
+      kind: "scalable",
+      tier: "legendary",
+      name: "Singularity Array",
+      desc: "Scale advanced control effects and chained damage.",
+      impact: "Per level: more black holes, arc chains, and echo volleys.",
+      baseCost: 8,
+      costScale: 1.65,
+      maxLevel: 6,
+      apply: (stats, level) => {
+        stats.blackHoleChance = Math.min(0.95, (stats.blackHoleChance || 0) + level * 0.08);
+        stats.blackHoleRadius = Math.max(stats.blackHoleRadius || 0, 100 + level * 14);
+        stats.blackHoleDuration = Math.max(stats.blackHoleDuration || 0, 1.4 + level * 0.12);
+        stats.blackHoleForce = Math.max(stats.blackHoleForce || 0, 320 + level * 32);
+        stats.blackHoleDamage = Math.max(stats.blackHoleDamage || 0, 12 + level * 5);
+        stats.arcDamage = Math.max(stats.arcDamage || 0, 0.16 + level * 0.08);
+        stats.arcChains = Math.max(stats.arcChains || 0, 1 + Math.floor(level / 2));
+        stats.arcRadius = Math.max(stats.arcRadius || 0, 110 + level * 24);
+        stats.echoChance = Math.max(stats.echoChance || 0, 0.06 + level * 0.05);
+        stats.echoDamage = Math.max(stats.echoDamage || 0, 0.28 + level * 0.07);
       }
     }
   ];
@@ -2107,7 +2862,7 @@
       turnRate: 2.4,
       fireRate: 0.55,
       bulletSpeed: 640,
-      damage: 18,
+      damage: 16,
       radius: 11,
       credits: 32,
       score: 130,
@@ -2126,7 +2881,7 @@
       turnRate: 2.1,
       fireRate: 0.6,
       bulletSpeed: 260,
-      damage: 15,
+      damage: 14,
       radius: 17,
       credits: 32,
       score: 140,
@@ -2172,7 +2927,7 @@
       turnRate: 1.6,
       fireRate: 0.45,
       bulletSpeed: 240,
-      damage: 22,
+      damage: 20,
       radius: 24,
       credits: 54,
       score: 210,
@@ -2220,7 +2975,7 @@
     turnRate: 1.4,
     fireRate: 0.9,
     bulletSpeed: 320,
-    damage: 20,
+    damage: 18,
     radius: 26,
     credits: 220,
     score: 620,
@@ -2246,6 +3001,7 @@
     HANGAR_UPGRADES,
     FRONTIER_STARTERS,
     FRONTIER_UPGRADES,
+    PREMIUM_SHOP_ITEMS,
     FIELD_UPGRADES,
     ENEMY_TYPES,
     ACE_TYPE,

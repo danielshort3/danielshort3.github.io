@@ -690,6 +690,160 @@ try {
       'modal copy-link should prefer /portfolio/<id> canonical URLs');
   });
 
+  section('Stellar dogfight demo', () => {
+    const demoHtml = fs.readFileSync('demos/stellar-dogfight-demo.html', 'utf8');
+    assert(demoHtml.includes('<link rel="stylesheet" href="css/components/stellar-dogfight.css" />'),
+      'stellar dogfight demo should load component CSS');
+    assert(demoHtml.includes('<script src="js/demos/stellar-dogfight-data.js"></script>'),
+      'stellar dogfight demo should load data script');
+    assert(demoHtml.includes('<script src="js/demos/stellar-dogfight-audio.js"></script>'),
+      'stellar dogfight demo should load audio script');
+    assert(demoHtml.includes('<script src="js/demos/stellar-dogfight-demo.js"></script>'),
+      'stellar dogfight demo should load runtime script');
+    assert(demoHtml.includes('data-setting="audio"'),
+      'stellar dogfight demo should expose audio settings');
+    assert(demoHtml.includes('data-setting="hud-layout"'),
+      'stellar dogfight demo should expose HUD layout settings');
+    assert(demoHtml.includes('data-setting="hud-scale"'),
+      'stellar dogfight demo should expose HUD scale settings');
+    assert(demoHtml.includes('data-action="help"'),
+      'stellar dogfight demo should expose help action');
+    assert(demoHtml.includes('data-action="preset-save"') && demoHtml.includes('data-action="preset-load"'),
+      'stellar dogfight demo should expose loadout preset actions');
+    assert(demoHtml.includes('data-action="tutorial"') && demoHtml.includes('data-action="glossary"'),
+      'stellar dogfight demo should expose tutorial and glossary actions');
+    assert(demoHtml.includes('data-action="replay-last-loadout"'),
+      'stellar dogfight demo should expose replay-last-loadout action');
+    assert(demoHtml.includes('data-tab-target="premium"') && demoHtml.includes('data-tab-panel="premium"'),
+      'stellar dogfight demo should expose premium tab panel');
+    assert(demoHtml.includes('data-role="premium-shop"'),
+      'stellar dogfight demo should expose premium shop container');
+    assert(demoHtml.includes('data-role="run-analytics"'),
+      'stellar dogfight demo should expose run analytics container');
+    assert(demoHtml.includes('data-stat="premium-currency"') && demoHtml.includes('data-stat="premium-currency-total"'),
+      'stellar dogfight demo should expose premium currency stats');
+    assert(demoHtml.includes('data-stat="threat-tier"') && demoHtml.includes('data-stat="objective"'),
+      'stellar dogfight demo should expose threat/objective stats');
+    assert(demoHtml.includes('data-stat="dps"') && demoHtml.includes('data-stat="ehp"') && demoHtml.includes('data-stat="energy-sustain"'),
+      'stellar dogfight demo should expose derived combat stats');
+    assert(demoHtml.includes('data-stat="weekly-mutator"') && demoHtml.includes('data-stat="challenge-seed"'),
+      'stellar dogfight demo should expose weekly mutator and challenge seed stats');
+    assert(demoHtml.includes('data-setting="palette"'),
+      'stellar dogfight demo should expose palette settings');
+    assert(demoHtml.includes('data-option="controller"'),
+      'stellar dogfight demo should expose controller input mode');
+    assert(!demoHtml.includes('const STORAGE_KEY = "stellarDogfightProgress";'),
+      'stellar dogfight runtime should not be inline in HTML');
+
+    const demoCss = fs.readFileSync('css/components/stellar-dogfight.css', 'utf8');
+    assert(demoCss.includes('.mission-shell') && demoCss.includes('.arena-frame'),
+      'stellar dogfight CSS component appears incomplete');
+    assert(demoCss.includes('body.is-hud-compact') && demoCss.includes('body.is-hud-scale-lg'),
+      'stellar dogfight CSS should include HUD presentation variants');
+    assert(demoCss.includes('.premium-card'),
+      'stellar dogfight CSS should include premium card presentation');
+
+    const runtimeJs = fs.readFileSync('js/demos/stellar-dogfight-demo.js', 'utf8');
+    assert(runtimeJs.includes('const DEFERRED_UI_FLUSH_MS = 220;'),
+      'stellar dogfight runtime missing deferred UI flush constant');
+    assert(runtimeJs.includes('const DEFERRED_SAVE_FLUSH_MS = 180;'),
+      'stellar dogfight runtime missing deferred save flush constant');
+    assert(runtimeJs.includes('function queueProgressSave() {'),
+      'stellar dogfight runtime missing queued save helper');
+    assert(runtimeJs.includes('function flushDeferredState(force = false) {'),
+      'stellar dogfight runtime missing deferred state flush helper');
+    assert(/function updateHud\(\)\s*{\s*flushDeferredState\(\);/.test(runtimeJs),
+      'stellar dogfight HUD should flush deferred state before HUD updates');
+    assert(runtimeJs.includes('const dpr = Math.max(1, state.renderScale || window.devicePixelRatio || 1);'),
+      'stellar dogfight minimap should use renderScale-aware DPR');
+    assert(runtimeJs.includes('function getKeybindConflicts(targetAction, key) {'),
+      'stellar dogfight runtime missing keybind conflict guard');
+    assert(runtimeJs.includes('function saveLoadoutPreset(slot) {') && runtimeJs.includes('function loadLoadoutPreset(slot) {'),
+      'stellar dogfight runtime should support loadout presets');
+    assert(runtimeJs.includes('function syncHudPresentation() {'),
+      'stellar dogfight runtime should support HUD presentation settings');
+    assert(runtimeJs.includes('document.body.classList.toggle("is-hud-compact"'),
+      'stellar dogfight runtime should apply HUD compact class');
+    assert(runtimeJs.includes('enabled: (progress.settings.audio || "on") !== "off"'),
+      'stellar dogfight runtime should initialize audio from settings');
+    assert(runtimeJs.includes('state.runEndedByAbort = true;'),
+      'stellar dogfight runtime missing aborted run flag');
+    assert(runtimeJs.includes('function drawThreatIndicators() {'),
+      'stellar dogfight runtime missing off-screen threat indicators');
+    assert(runtimeJs.includes('function drawEnemyThreatHalo(enemy) {'),
+      'stellar dogfight runtime missing elite/boss visual telegraphs');
+    assert(runtimeJs.includes('const BALANCE_TUNING = {'),
+      'stellar dogfight runtime missing balance tuning constants');
+    assert(runtimeJs.includes('const DROP_PITY_THRESHOLDS = {'),
+      'stellar dogfight runtime missing drop pity thresholds');
+    assert(runtimeJs.includes('const PREMIUM_CURRENCY_LABEL = "Astralite";'),
+      'stellar dogfight runtime missing premium currency label');
+    assert(runtimeJs.includes('const PREMIUM_DROP_RUN_CAP = 4;'),
+      'stellar dogfight runtime missing premium drop cap');
+    assert(runtimeJs.includes('function renderPremiumShop() {') && runtimeJs.includes('function buyPremiumItem(itemId) {'),
+      'stellar dogfight runtime missing premium shop handlers');
+    assert(runtimeJs.includes('state.runPremiumDrops < PREMIUM_DROP_RUN_CAP'),
+      'stellar dogfight runtime missing capped premium drop logic');
+    assert(runtimeJs.includes('progress.premiumCurrency += premiumAmount;'),
+      'stellar dogfight runtime missing premium currency drops');
+    assert(runtimeJs.includes('function updateRunRecords(summary) {'),
+      'stellar dogfight runtime missing run-record tracking');
+    assert(runtimeJs.includes('function startTutorial() {') && runtimeJs.includes('function openGlossary() {'),
+      'stellar dogfight runtime should include tutorial/glossary handlers');
+    assert(runtimeJs.includes('function replayLastLoadout() {'),
+      'stellar dogfight runtime should include replay-last-loadout handler');
+    assert(runtimeJs.includes('function renderRunAnalytics() {'),
+      'stellar dogfight runtime should include run analytics renderer');
+    assert(runtimeJs.includes('function renderStatusIcons() {'),
+      'stellar dogfight runtime should include status icon rendering');
+    assert(runtimeJs.includes('setOverlay("choice-event");'),
+      'stellar dogfight runtime should include milestone choice overlay flow');
+    assert(runtimeJs.includes('data-overlay-action="restart"'),
+      'stellar dogfight runtime missing gameover restart action');
+
+    const trainingStart = runtimeJs.indexOf('function startTraining() {');
+    const trainingEnd = runtimeJs.indexOf('function resetMission() {');
+    assert(trainingStart >= 0 && trainingEnd > trainingStart,
+      'stellar dogfight startTraining function not found');
+    const trainingBlock = runtimeJs.slice(trainingStart, trainingEnd);
+    const trainingPlayerCreate = trainingBlock.indexOf('player = createPlayer();');
+    const trainingLoadoutAssign = trainingBlock.indexOf('state.runLoadout = { ship: player.ship?.name || "Unknown", weapon: player.weapon?.name || "Unknown" };');
+    assert(trainingPlayerCreate >= 0 && trainingLoadoutAssign > trainingPlayerCreate,
+      'stellar dogfight training loadout should be assigned after player creation');
+
+    const abortStart = runtimeJs.indexOf('function triggerAbortRewards() {');
+    const abortEnd = runtimeJs.indexOf('function renderLootBursts() {');
+    assert(abortStart >= 0 && abortEnd > abortStart,
+      'stellar dogfight triggerAbortRewards function not found');
+    const abortBlock = runtimeJs.slice(abortStart, abortEnd);
+    assert(abortBlock.includes('endRun("abort");'),
+      'stellar dogfight abort flow should end run as abort');
+    assert(abortBlock.includes('state.lossRewards = null;'),
+      'stellar dogfight abort flow should not grant loss rewards');
+    assert(!abortBlock.includes('applyLossRewards'),
+      'stellar dogfight abort flow should never apply loss rewards');
+    assert(!abortBlock.includes('buildLossRewards'),
+      'stellar dogfight abort flow should never build loss rewards');
+
+    const audioJs = fs.readFileSync('js/demos/stellar-dogfight-audio.js', 'utf8');
+    assert(audioJs.includes('function createAudioController(options = {}) {'),
+      'stellar dogfight audio controller missing createAudioController');
+    assert(audioJs.includes('window.STELLAR_DOGFIGHT_AUDIO = {'),
+      'stellar dogfight audio module missing global export');
+
+    const dataEnv = evalScript('js/demos/stellar-dogfight-data.js');
+    const db = dataEnv.window.STELLAR_DOGFIGHT_DB || {};
+    const premiumItems = db.PREMIUM_SHOP_ITEMS;
+    assert(Array.isArray(premiumItems) && premiumItems.length >= 8,
+      'stellar dogfight data should export premium shop inventory');
+    assert(premiumItems.some((item) => item && item.kind === 'one-time'),
+      'stellar dogfight premium shop should include one-time unlocks');
+    assert(premiumItems.some((item) => item && item.kind === 'scalable' && item.maxLevel > 1),
+      'stellar dogfight premium shop should include scalable upgrades');
+    assert(premiumItems.every((item) => item && item.id && typeof item.apply === 'function'),
+      'stellar dogfight premium shop items must define id and apply');
+  });
+
   section('Slot machine demo', () => {
     runSlotDemoTests({ assert, checkFileContains });
   });
