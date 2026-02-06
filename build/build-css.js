@@ -10,9 +10,11 @@ const crypto = require('crypto');
 
 const root = path.resolve(__dirname, '..');
 const cssDir = path.join(root, 'css');
-const entry = path.join(cssDir, 'styles.css');
 const outDir = path.join(root, 'dist');
-const legacyFile = path.join(outDir, 'styles.css');
+const entries = [
+  { entry: path.join(cssDir, 'styles.css'), baseName: 'styles', manifestKey: 'file' },
+  { entry: path.join(cssDir, 'styles-tools.css'), baseName: 'styles-tools', manifestKey: 'toolsFile' }
+];
 
 function inline(file, seen = new Set()){
   const css = fs.readFileSync(file, 'utf8');
@@ -46,26 +48,41 @@ function minify(css){
 }
 
 function writeManifest(manifestPath, fileName){
-  const data = { file: fileName };
+  const data = { ...fileName };
   fs.writeFileSync(manifestPath, JSON.stringify(data, null, 2), 'utf8');
 }
 
+function buildBundle({ entry: entryPath, baseName }){
+  const legacyPath = path.join(outDir, `${baseName}.css`);
+  const bundled = inline(entryPath);
+  const minified = minify(bundled);
+  const hash = crypto.createHash('sha256').update(minified).digest('hex').slice(0, 8);
+  const hashedName = `${baseName}.${hash}.css`;
+  const hashedPath = path.join(outDir, hashedName);
+
+  fs.writeFileSync(hashedPath, minified, 'utf8');
+  fs.writeFileSync(legacyPath, minified, 'utf8');
+
+  return hashedName;
+}
+
 fs.mkdirSync(outDir, { recursive: true });
-const hashedCssPattern = /^styles\.[0-9a-f]{8}\.css$/i;
 fs.readdirSync(outDir).forEach(file => {
-  if (hashedCssPattern.test(file)) {
+  const shouldRemove = entries.some(({ baseName }) => {
+    const pattern = new RegExp(`^${baseName.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}\\.[0-9a-f]{8}\\.css$`, 'i');
+    return pattern.test(file);
+  });
+  if (shouldRemove) {
     fs.rmSync(path.join(outDir, file), { force: true });
   }
 });
-const bundled = inline(entry);
-const minified = minify(bundled);
-const hash = crypto.createHash('sha256').update(minified).digest('hex').slice(0, 8);
-const hashedName = `styles.${hash}.css`;
-const hashedPath = path.join(outDir, hashedName);
 const manifest = path.join(outDir, 'styles-manifest.json');
+const outputs = {};
 
-fs.writeFileSync(hashedPath, minified, 'utf8');
-fs.writeFileSync(legacyFile, minified, 'utf8');
-writeManifest(manifest, hashedName);
+entries.forEach((entryConfig) => {
+  const hashedName = buildBundle(entryConfig);
+  outputs[entryConfig.manifestKey] = hashedName;
+  console.log(`Bundled CSS written to dist/${hashedName}`);
+});
 
-console.log(`Bundled CSS written to dist/${hashedName}`);
+writeManifest(manifest, outputs);

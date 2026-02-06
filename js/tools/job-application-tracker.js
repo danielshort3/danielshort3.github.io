@@ -994,7 +994,7 @@
   };
 
   const UTM_RESUME_TEMPLATE_PATH = 'documents/Resume.docx';
-  const UTM_BASE_DOMAIN = 'https://danielshort.me';
+  const UTM_BASE_DOMAIN = 'https://www.danielshort.me';
 
   const escapeXmlAttribute = (value) => {
     return (value ?? '')

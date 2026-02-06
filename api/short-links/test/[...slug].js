@@ -58,7 +58,7 @@ async function fetchWithTimeout(url, options, timeoutMs){
 async function checkDestination(url){
   const timeoutMs = 5000;
   const headers = {
-    'user-agent': 'Mozilla/5.0 (compatible; DanielShortShortlinksTest/1.0; +https://danielshort.me)',
+    'user-agent': 'Mozilla/5.0 (compatible; DanielShortShortlinksTest/1.0; +https://www.danielshort.me)',
     'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
   };
 

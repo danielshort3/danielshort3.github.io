@@ -111,8 +111,9 @@
     { "source": "/slot-machine-demo.html", "destination": "/demos/slot-machine-demo" }
   ],
   "redirects": [
-    { "source": "/", "has": [{ "type": "host", "value": "dshort.me" }], "destination": "https://danielshort.me", "permanent": true },
-    { "source": "/", "has": [{ "type": "host", "value": "www.dshort.me" }], "destination": "https://danielshort.me", "permanent": true },
+    { "source": "/:path*", "has": [{ "type": "host", "value": "danielshort.me" }], "destination": "https://www.danielshort.me/:path*", "permanent": true },
+    { "source": "/", "has": [{ "type": "host", "value": "dshort.me" }], "destination": "https://www.danielshort.me", "permanent": true },
+    { "source": "/", "has": [{ "type": "host", "value": "www.dshort.me" }], "destination": "https://www.danielshort.me", "permanent": true },
     { "source": "/tools/ocean-wave-simulation", "destination": "/games/ocean-wave-simulation", "permanent": true },
     { "source": "/tools/ocean-wave-simulation.html", "destination": "/games/ocean-wave-simulation", "permanent": true },
     { "source": "/projects", "destination": "/portfolio", "permanent": true },
@@ -123,6 +124,42 @@
       "source": "/pages/(.*)",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex" }
+      ]
+    },
+    {
+      "source": "/short-links",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/short-links.html",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/tools/short-links",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/tools/short-links.html",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/tools/dashboard",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/tools/dashboard.html",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]
     },
     {
@@ -166,15 +203,15 @@
       ]
     },
     {
-      "source": "/dist/styles\\.[0-9a-f]{8}\\.css",
+      "source": "/dist/styles(.*).css",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     },
     {
-      "source": "/dist/styles.css",
+      "source": "/dist/styles-tools(.*).css",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     }
   ]

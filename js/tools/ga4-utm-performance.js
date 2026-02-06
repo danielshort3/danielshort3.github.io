@@ -743,38 +743,127 @@
     });
   };
 
+  const makeOutputHeading = (title, meta = '') => {
+    const head = document.createElement('div');
+    head.className = 'ga4-output-head';
+
+    const h = document.createElement('h3');
+    h.className = 'ga4-output-title';
+    h.textContent = String(title || '');
+    head.appendChild(h);
+
+    const metaText = String(meta || '').trim();
+    if (metaText) {
+      const metaEl = document.createElement('p');
+      metaEl.className = 'ga4-output-meta';
+      metaEl.textContent = metaText;
+      head.appendChild(metaEl);
+    }
+
+    return head;
+  };
+
+  const makeOutputNote = (text) => {
+    const p = document.createElement('p');
+    p.className = 'ga4-output-note';
+    p.textContent = String(text || '');
+    return p;
+  };
+
+  const makeEmptyState = (title, detail = '') => {
+    const wrap = document.createElement('div');
+    wrap.className = 'ga4-empty-state';
+
+    const heading = document.createElement('p');
+    heading.className = 'ga4-empty-title';
+    heading.textContent = String(title || 'No data to show.');
+    wrap.appendChild(heading);
+
+    const detailText = String(detail || '').trim();
+    if (detailText) {
+      const body = document.createElement('p');
+      body.className = 'ga4-empty-detail';
+      body.textContent = detailText;
+      wrap.appendChild(body);
+    }
+
+    return wrap;
+  };
+
+  const makeSummaryGrid = (items) => {
+    const grid = document.createElement('div');
+    grid.className = 'ga4-summary-grid';
+
+    (Array.isArray(items) ? items : []).forEach((item) => {
+      const label = String(item?.label || '').trim();
+      const value = String(item?.value ?? '').trim();
+      if (!label || !value) return;
+
+      const card = document.createElement('article');
+      card.className = 'ga4-summary-card';
+
+      const cardLabel = document.createElement('p');
+      cardLabel.className = 'ga4-summary-label';
+      cardLabel.textContent = label;
+      card.appendChild(cardLabel);
+
+      const cardValue = document.createElement('p');
+      cardValue.className = 'ga4-summary-value';
+      cardValue.textContent = value;
+      card.appendChild(cardValue);
+
+      const note = String(item?.note || '').trim();
+      if (note) {
+        const cardNote = document.createElement('p');
+        cardNote.className = 'ga4-summary-note';
+        cardNote.textContent = note;
+        card.appendChild(cardNote);
+      }
+
+      grid.appendChild(card);
+    });
+
+    return grid;
+  };
+
   const renderUrlSummary = (data) => {
     utmSummaryEl.replaceChildren();
     if (!data || typeof data !== 'object') return;
 
     const totals = data.totals || sumUrlMetrics(data.parsedRows);
-    const pills = document.createElement('div');
-    pills.className = 'tools-actions';
+    const range = data.startDate && data.endDate ? `${data.startDate} to ${data.endDate}` : '';
 
-    const makePill = (label, value) => {
-      const span = document.createElement('span');
-      span.className = 'tool-pill';
-      span.textContent = `${label}: ${value}`;
-      return span;
-    };
+    const block = document.createElement('section');
+    block.className = 'ga4-summary-block';
+    block.appendChild(makeOutputHeading('UTM Snapshot', range));
+    block.appendChild(makeSummaryGrid([
+      { label: 'URLs', value: formatNumber(totals.rows || 0), note: 'Parsed URL rows' },
+      { label: 'Sessions', value: formatNumber(totals.sessions || 0) },
+      { label: 'Users', value: formatNumber(totals.totalUsers || 0) },
+      { label: 'Events', value: formatNumber(totals.eventCount || 0) },
+      Array.isArray(data.groups) ? { label: 'Groups', value: formatNumber(data.groups.length || 0), note: 'Grouped combinations' } : null
+    ]));
 
-    pills.appendChild(makePill('URLs', formatNumber(totals.rows || 0)));
-    pills.appendChild(makePill('Sessions', formatNumber(totals.sessions || 0)));
-    pills.appendChild(makePill('Users', formatNumber(totals.totalUsers || 0)));
-    pills.appendChild(makePill('Events', formatNumber(totals.eventCount || 0)));
-    if (Array.isArray(data.groups)) {
-      pills.appendChild(makePill('Groups', formatNumber(data.groups.length || 0)));
-    }
-
-    utmSummaryEl.appendChild(pills);
+    utmSummaryEl.appendChild(block);
   };
 
-  const makeStyledTable = (headers, rows, cellBuilder) => {
+  const makeStyledTable = (headers, rows, cellBuilder, { caption = '' } = {}) => {
+    const shell = document.createElement('div');
+    shell.className = 'ga4-table-shell';
+
     const wrap = document.createElement('div');
-    wrap.className = 'shortlinks-table-wrap';
+    wrap.className = 'shortlinks-table-wrap ga4-table-wrap';
 
     const table = document.createElement('table');
-    table.className = 'shortlinks-table';
+    table.className = 'shortlinks-table ga4-table';
+
+    const captionText = String(caption || '').trim();
+    if (captionText) {
+      const cap = document.createElement('caption');
+      cap.className = 'ga4-table-caption';
+      cap.textContent = captionText;
+      table.appendChild(cap);
+    }
 
     const thead = document.createElement('thead');
     const headRow = document.createElement('tr');
@@ -796,7 +885,8 @@
     table.appendChild(tbody);
 
     wrap.appendChild(table);
-    return wrap;
+    shell.appendChild(wrap);
+    return shell;
   };
 
   const renderGroupedView = (data) => {
@@ -808,25 +898,23 @@
 
     const filtered = applyLocalFilterGrouped(groups, groupFields, query);
     const sorted = sortList(filtered, 'grouped');
+    const headingMeta = query
+      ? `${formatNumber(sorted.length)} matching group(s)`
+      : `${formatNumber(sorted.length)} group(s)`;
+    utmOutputEl.appendChild(makeOutputHeading('Grouped UTM Results', headingMeta));
 
     if (!sorted.length) {
-      const p = document.createElement('p');
-      p.textContent = 'No matching groups.';
-      utmOutputEl.appendChild(p);
+      utmOutputEl.appendChild(makeEmptyState('No matching groups.', 'Try broadening UTM filters, date range, or client-side search.'));
       return;
     }
 
-    const meta = document.createElement('p');
-    meta.className = 'contact-form-note';
     if (sorted.length > MAX_GROUP_RENDER_ROWS) {
-      meta.textContent = `Showing first ${formatNumber(MAX_GROUP_RENDER_ROWS)} of ${formatNumber(sorted.length)} groups.`;
-      utmOutputEl.appendChild(meta);
+      utmOutputEl.appendChild(makeOutputNote(`Showing first ${formatNumber(MAX_GROUP_RENDER_ROWS)} of ${formatNumber(sorted.length)} groups.`));
     } else if (query) {
-      meta.textContent = `Showing ${formatNumber(sorted.length)} group(s) after client-side filter.`;
-      utmOutputEl.appendChild(meta);
+      utmOutputEl.appendChild(makeOutputNote(`Showing ${formatNumber(sorted.length)} group(s) after client-side filter.`));
     }
 
-    const headers = [...groupFields, ...URL_METRIC_FIELDS, 'rows', 'actions'];
+    const headers = [...groupFields, getMetricLabel('sessions'), getMetricLabel('totalUsers'), getMetricLabel('eventCount'), 'URLs', 'Actions'];
     const wrap = makeStyledTable(headers, sorted.slice(0, MAX_GROUP_RENDER_ROWS), (tr, group) => {
       groupFields.forEach((field) => {
         const td = document.createElement('td');
@@ -846,7 +934,7 @@
 
       const tdActions = document.createElement('td');
       const actions = document.createElement('div');
-      actions.className = 'tools-actions';
+      actions.className = 'tools-actions ga4-row-actions';
 
       const detailsBtn = document.createElement('button');
       detailsBtn.type = 'button';
@@ -888,7 +976,7 @@
 
       tdActions.appendChild(actions);
       tr.appendChild(tdActions);
-    });
+    }, { caption: 'UTM grouped pivot table' });
 
     utmOutputEl.appendChild(wrap);
   };
@@ -900,35 +988,39 @@
     const rows = Array.isArray(data?.parsedRows) ? data.parsedRows : [];
     const filtered = applyLocalFilterRaw(rows, query);
     const sorted = sortList(filtered, 'raw');
+    const headingMeta = query
+      ? `${formatNumber(sorted.length)} matching URL(s)`
+      : `${formatNumber(sorted.length)} URL(s)`;
+    utmOutputEl.appendChild(makeOutputHeading('Raw URL Results', headingMeta));
 
     if (!sorted.length) {
-      const p = document.createElement('p');
-      p.textContent = 'No matching URLs.';
-      utmOutputEl.appendChild(p);
+      utmOutputEl.appendChild(makeEmptyState('No matching URLs.', 'Widen the date range or disable strict UTM matching.'));
       return;
     }
 
-    const meta = document.createElement('p');
-    meta.className = 'contact-form-note';
     if (sorted.length > MAX_RAW_RENDER_ROWS) {
-      meta.textContent = `Showing first ${formatNumber(MAX_RAW_RENDER_ROWS)} of ${formatNumber(sorted.length)} URLs.`;
-      utmOutputEl.appendChild(meta);
+      utmOutputEl.appendChild(makeOutputNote(`Showing first ${formatNumber(MAX_RAW_RENDER_ROWS)} of ${formatNumber(sorted.length)} URLs.`));
     } else if (query) {
-      meta.textContent = `Showing ${formatNumber(sorted.length)} URL(s) after client-side filter.`;
-      utmOutputEl.appendChild(meta);
+      utmOutputEl.appendChild(makeOutputNote(`Showing ${formatNumber(sorted.length)} URL(s) after client-side filter.`));
     }
 
-    const headers = ['pathname', ...UTM_FIELDS, ...URL_METRIC_FIELDS, 'pageLocation'];
-    const wrap = makeStyledTable(headers, sorted.slice(0, MAX_RAW_RENDER_ROWS), (tr, row) => {
-      headers.forEach((header) => {
+    const columns = [
+      { key: 'pathname', label: 'Path' },
+      ...UTM_FIELDS.map((field) => ({ key: field, label: field })),
+      ...URL_METRIC_FIELDS.map((field) => ({ key: field, label: getMetricLabel(field) })),
+      { key: 'pageLocation', label: 'URL' }
+    ];
+
+    const wrap = makeStyledTable(columns.map((col) => col.label), sorted.slice(0, MAX_RAW_RENDER_ROWS), (tr, row) => {
+      columns.forEach((col) => {
         const td = document.createElement('td');
-        if (URL_METRIC_FIELDS.includes(header)) td.textContent = formatNumber(numberOrZero(row?.[header]));
-        else if (header === 'pathname') td.textContent = row?.pathname || '';
-        else if (UTM_FIELDS.includes(header)) td.textContent = formatCellText(row?.[header]);
+        if (URL_METRIC_FIELDS.includes(col.key)) td.textContent = formatNumber(numberOrZero(row?.[col.key]));
+        else if (col.key === 'pathname') td.textContent = row?.pathname || '';
+        else if (UTM_FIELDS.includes(col.key)) td.textContent = formatCellText(row?.[col.key]);
         else td.textContent = String(row?.pageLocation || '');
         tr.appendChild(td);
       });
-    });
+    }, { caption: 'Raw URLs with parsed UTM parameters' });
     utmOutputEl.appendChild(wrap);
   };
 
@@ -940,22 +1032,21 @@
     const groupFields = Array.isArray(data.groupFields) ? data.groupFields : getGroupFields();
     const matches = data.parsedRows.filter((row) => groupFields.every((field) => String(row?.[field] || '') === String(drilldownGroup?.[field] || '')));
 
-    const header = document.createElement('div');
-    header.className = 'tools-actions';
-
     const label = groupFields
       .map((field) => `${field}=${formatCellText(drilldownGroup?.[field])}`)
       .join(' · ');
-    const title = document.createElement('span');
-    title.className = 'tool-pill';
-    title.textContent = label || 'Drilldown';
-    header.appendChild(title);
+    utmDrilldownEl.appendChild(makeOutputHeading('Group Drilldown', label || 'Selected UTM values'));
 
     const totals = sumUrlMetrics(matches);
-    header.appendChild(Object.assign(document.createElement('span'), { className: 'tool-pill', textContent: `URLs: ${formatNumber(totals.rows)}` }));
-    header.appendChild(Object.assign(document.createElement('span'), { className: 'tool-pill', textContent: `Sessions: ${formatNumber(totals.sessions)}` }));
-    header.appendChild(Object.assign(document.createElement('span'), { className: 'tool-pill', textContent: `Users: ${formatNumber(totals.totalUsers)}` }));
+    utmDrilldownEl.appendChild(makeSummaryGrid([
+      { label: 'URLs', value: formatNumber(totals.rows) },
+      { label: 'Sessions', value: formatNumber(totals.sessions) },
+      { label: 'Users', value: formatNumber(totals.totalUsers) },
+      { label: 'Events', value: formatNumber(totals.eventCount) }
+    ]));
 
+    const header = document.createElement('div');
+    header.className = 'ga4-drill-toolbar';
     const closeBtn = document.createElement('button');
     closeBtn.type = 'button';
     closeBtn.className = 'btn-ghost';
@@ -967,17 +1058,11 @@
     });
     header.appendChild(closeBtn);
 
-    utmDrilldownEl.appendChild(header);
-
     if (!matches.length) {
-      const p = document.createElement('p');
-      p.textContent = 'No matching URLs for this group.';
-      utmDrilldownEl.appendChild(p);
+      utmDrilldownEl.appendChild(header);
+      utmDrilldownEl.appendChild(makeEmptyState('No matching URLs for this group.', 'Select a different grouped row or switch to Raw URL view.'));
       return;
     }
-
-    const toolbar = document.createElement('div');
-    toolbar.className = 'tools-actions';
 
     const exportBtn = document.createElement('button');
     exportBtn.type = 'button';
@@ -992,27 +1077,24 @@
       });
       downloadCsv(rows, headers, `ga4-utm-drilldown_${startEl.value || 'start'}_${endEl.value || 'end'}.csv`);
     });
-    toolbar.appendChild(exportBtn);
+    header.appendChild(exportBtn);
 
-    utmDrilldownEl.appendChild(toolbar);
+    utmDrilldownEl.appendChild(header);
 
-    const headers = ['pathname', ...URL_METRIC_FIELDS, 'pageLocation'];
+    const headers = ['Path', getMetricLabel('sessions'), getMetricLabel('totalUsers'), getMetricLabel('eventCount'), 'URL'];
     const sortedMatches = matches.slice().sort((a, b) => numberOrZero(b.sessions) - numberOrZero(a.sessions));
     const wrap = makeStyledTable(headers, sortedMatches.slice(0, MAX_DRILLDOWN_RENDER_ROWS), (tr, row) => {
-      headers.forEach((header) => {
+      ['pathname', 'sessions', 'totalUsers', 'eventCount', 'pageLocation'].forEach((field) => {
         const td = document.createElement('td');
-        if (URL_METRIC_FIELDS.includes(header)) td.textContent = formatNumber(numberOrZero(row?.[header]));
-        else td.textContent = String(row?.[header] || '');
+        if (URL_METRIC_FIELDS.includes(field)) td.textContent = formatNumber(numberOrZero(row?.[field]));
+        else td.textContent = String(row?.[field] || '');
         tr.appendChild(td);
       });
-    });
+    }, { caption: 'URL drilldown for selected UTM group' });
     utmDrilldownEl.appendChild(wrap);
 
     if (sortedMatches.length > MAX_DRILLDOWN_RENDER_ROWS) {
-      const note = document.createElement('p');
-      note.className = 'contact-form-note';
-      note.textContent = `Showing first ${formatNumber(MAX_DRILLDOWN_RENDER_ROWS)} of ${formatNumber(sortedMatches.length)} URLs. Export for full list.`;
-      utmDrilldownEl.appendChild(note);
+      utmDrilldownEl.appendChild(makeOutputNote(`Showing first ${formatNumber(MAX_DRILLDOWN_RENDER_ROWS)} of ${formatNumber(sortedMatches.length)} URLs. Export for full list.`));
     }
   };
 
@@ -1331,31 +1413,24 @@
       });
     });
 
-    const pills = document.createElement('div');
-    pills.className = 'tools-actions';
-
-    const makePill = (label, value) => {
-      const span = document.createElement('span');
-      span.className = 'tool-pill';
-      span.textContent = `${label}: ${value}`;
-      return span;
-    };
-
-    pills.appendChild(makePill('Rows', formatNumber(rows.length)));
-
+    const cards = [{ label: 'Rows', value: formatNumber(rows.length), note: 'Filtered rows in view' }];
     Object.keys(totals).forEach((metric) => {
-      const label = getMetricLabel(metric);
-      pills.appendChild(makePill(label, formatMetricValue(metric, totals[metric])));
+      cards.push({ label: getMetricLabel(metric), value: formatMetricValue(metric, totals[metric]) });
     });
 
     if (hasSessions && sessionsForRate > 0 && metricNames.includes('engagementRate')) {
-      pills.appendChild(makePill(getMetricLabel('engagementRate'), formatPercent(engagementRateWeighted / sessionsForRate)));
+      cards.push({ label: getMetricLabel('engagementRate'), value: formatPercent(engagementRateWeighted / sessionsForRate), note: 'Weighted average' });
     }
     if (hasSessions && sessionsForRate > 0 && metricNames.includes('bounceRate')) {
-      pills.appendChild(makePill(getMetricLabel('bounceRate'), formatPercent(bounceRateWeighted / sessionsForRate)));
+      cards.push({ label: getMetricLabel('bounceRate'), value: formatPercent(bounceRateWeighted / sessionsForRate), note: 'Weighted average' });
     }
 
-    exploreSummaryEl.appendChild(pills);
+    const range = data.startDate && data.endDate ? `${data.startDate} to ${data.endDate}` : '';
+    const block = document.createElement('section');
+    block.className = 'ga4-summary-block';
+    block.appendChild(makeOutputHeading('Explore Snapshot', range));
+    block.appendChild(makeSummaryGrid(cards));
+    exploreSummaryEl.appendChild(block);
   };
 
   const DRILLDOWN_PREFERRED_DIMENSIONS = [
@@ -1440,8 +1515,10 @@
     const fallback = chooseDrilldownDimension(fixed);
     exploreDrill.breakdown = selected && !fixed.has(selected) ? selected : fallback;
 
-    const header = document.createElement('div');
-    header.className = 'tools-actions';
+    exploreDrilldownEl.appendChild(makeOutputHeading('Explore Drilldown', `${formatNumber(exploreDrill.segmentFilters.length)} active segment filter(s)`));
+
+    const segmentWrap = document.createElement('div');
+    segmentWrap.className = 'ga4-drill-segments';
 
     const segmentPreview = exploreDrill.segmentFilters.slice(0, 6);
     segmentPreview.forEach((filter) => {
@@ -1451,15 +1528,18 @@
       const pill = document.createElement('span');
       pill.className = 'tool-pill';
       pill.textContent = `${getDimensionLabel(fieldName)}: ${value}`;
-      header.appendChild(pill);
+      segmentWrap.appendChild(pill);
     });
     if (exploreDrill.segmentFilters.length > segmentPreview.length) {
       const pill = document.createElement('span');
       pill.className = 'tool-pill';
       pill.textContent = `+${exploreDrill.segmentFilters.length - segmentPreview.length} more`;
-      header.appendChild(pill);
+      segmentWrap.appendChild(pill);
     }
+    exploreDrilldownEl.appendChild(segmentWrap);
 
+    const header = document.createElement('div');
+    header.className = 'ga4-drill-toolbar';
     const depth = exploreHistory.length;
     if (depth) {
       const pill = document.createElement('span');
@@ -1506,10 +1586,10 @@
     exploreDrilldownEl.appendChild(header);
 
     const controls = document.createElement('div');
-    controls.className = 'tools-grid';
+    controls.className = 'tools-grid ga4-drill-controls';
 
     const breakField = document.createElement('div');
-    breakField.className = 'form-field';
+    breakField.className = 'form-field ga4-drill-field';
     const breakLabel = document.createElement('label');
     breakLabel.setAttribute('for', 'ga4-explore-drill-breakdown');
     breakLabel.textContent = 'Break down by';
@@ -1544,7 +1624,7 @@
     controls.appendChild(breakField);
 
     const runField = document.createElement('div');
-    runField.className = 'form-field';
+    runField.className = 'form-field ga4-drill-field';
     const runLabel = document.createElement('label');
     runLabel.textContent = 'Drilldown';
     const runBtn = document.createElement('button');
@@ -1562,7 +1642,7 @@
     exploreDrilldownEl.appendChild(controls);
 
     const note = document.createElement('p');
-    note.className = 'contact-form-note';
+    note.className = 'ga4-output-note';
     note.textContent = 'Drilldown re-runs an Explore query with exact-match filters from the selected row.';
     exploreDrilldownEl.appendChild(note);
   };
@@ -1581,24 +1661,20 @@
     const rowsToRender = filtered.slice(0, MAX_INSIGHTS_RENDER_ROWS);
 
     renderExploreSummary(data, filtered);
+    const headingMeta = query
+      ? `${formatNumber(filtered.length)} matching row(s)`
+      : `${formatNumber(filtered.length)} row(s)`;
+    exploreOutputEl.appendChild(makeOutputHeading('Explore Results', headingMeta));
 
     if (!filtered.length) {
-      const p = document.createElement('p');
-      p.textContent = 'No matching rows.';
-      exploreOutputEl.appendChild(p);
+      exploreOutputEl.appendChild(makeEmptyState('No matching rows.', 'Adjust filters, dimensions, or metrics and run again.'));
       return;
     }
 
     if (filtered.length > MAX_INSIGHTS_RENDER_ROWS) {
-      const note = document.createElement('p');
-      note.className = 'contact-form-note';
-      note.textContent = `Showing first ${formatNumber(MAX_INSIGHTS_RENDER_ROWS)} of ${formatNumber(filtered.length)} rows. Export for full list.`;
-      exploreOutputEl.appendChild(note);
+      exploreOutputEl.appendChild(makeOutputNote(`Showing first ${formatNumber(MAX_INSIGHTS_RENDER_ROWS)} of ${formatNumber(filtered.length)} rows. Export for full list.`));
     } else if (query) {
-      const note = document.createElement('p');
-      note.className = 'contact-form-note';
-      note.textContent = `Showing ${formatNumber(filtered.length)} row(s) after client-side filter.`;
-      exploreOutputEl.appendChild(note);
+      exploreOutputEl.appendChild(makeOutputNote(`Showing ${formatNumber(filtered.length)} row(s) after client-side filter.`));
     }
 
     const canDrill = dimensionNames.length > 0;
@@ -1619,7 +1695,7 @@
         const td = document.createElement('td');
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'tool-pill tool-pill-button';
+        btn.className = 'tool-pill tool-pill-button ga4-drill-pill';
         btn.textContent = 'Drill';
         btn.addEventListener('click', () => {
           const rowFilters = buildSegmentFiltersFromRow(dimensionNames, row);
@@ -1647,7 +1723,7 @@
         td.appendChild(btn);
         tr.appendChild(td);
       }
-    });
+    }, { caption: 'Explore rows for selected dimensions and metrics' });
     exploreOutputEl.appendChild(wrap);
   };
 

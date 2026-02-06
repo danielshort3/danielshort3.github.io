@@ -4,11 +4,10 @@
     "https://www.danielshort.dev",
     "https://danielshort3.github.io",
     "https://danielshort3-github-io.vercel.app",
-    "https://danielshort.me",
-    "https://www.danielshort.me"
+    "https://www.danielshort.me",
+    "https://danielshort.me"
   ],
   "AllowMethods": ["GET", "POST"],
   "AllowHeaders": ["content-type"],
   "MaxAge": 86400
 }
-

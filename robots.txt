@@ -1,4 +1,4 @@
 User-agent: *
 Disallow: /pages/
 Allow: /
-Sitemap: https://danielshort.me/sitemap.xml
+Sitemap: https://www.danielshort.me/sitemap.xml

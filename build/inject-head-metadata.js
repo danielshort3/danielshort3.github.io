@@ -17,10 +17,11 @@ const path = require('path');
 
 const root = path.resolve(__dirname, '..');
 
-const SHARED_OG_IMAGE = 'https://danielshort.me/img/hero/head.jpg';
+const SHARED_OG_IMAGE = 'https://www.danielshort.me/img/hero/head.jpg';
 const SHARED_OG_IMAGE_WIDTH = '558';
 const SHARED_OG_IMAGE_HEIGHT = '558';
 const SHARED_OG_IMAGE_ALT = 'Portrait photo of Daniel Short';
+const SITE_ORIGIN = 'https://www.danielshort.me';
 
 function read(relPath) {
   return fs.readFileSync(path.join(root, relPath), 'utf8');
@@ -188,6 +189,43 @@ function ensureSharedOgImageDimensions(headInner) {
   return injectAfterMetaLine(headInner, 'og:image', lines);
 }
 
+function toPathname(urlValue) {
+  const raw = String(urlValue || '').trim();
+  if (!raw) return '';
+  try {
+    const url = new URL(raw, SITE_ORIGIN);
+    if (url.origin !== SITE_ORIGIN) return '';
+    return String(url.pathname || '').replace(/\/+$/, '') || '/';
+  } catch {
+    return '';
+  }
+}
+
+function needsToolsStyles(pathname) {
+  return pathname === '/tools'
+    || pathname.startsWith('/tools/')
+    || pathname === '/short-links'
+    || pathname === '/games/ocean-wave-simulation';
+}
+
+function ensureToolsStylesheet(headInner) {
+  const canonical = getCanonicalHref(headInner);
+  const pathname = toPathname(canonical);
+  if (!needsToolsStyles(pathname)) return headInner;
+  if (hasTag(headInner, /<link\b[^>]*\bhref="dist\/styles-tools\.css"[^>]*>/i)) return headInner;
+
+  const stylesLink = /(^([ \t]*)<link\s+[^>]*href="dist\/styles\.css"[^>]*>\s*$)/mi.exec(headInner);
+  if (stylesLink) {
+    const indent = stylesLink[2] || '  ';
+    const insert = `\n${indent}<link rel="stylesheet" href="dist/styles-tools.css">`;
+    return headInner.slice(0, stylesLink.index + stylesLink[1].length)
+      + insert
+      + headInner.slice(stylesLink.index + stylesLink[1].length);
+  }
+
+  return `${headInner.trimEnd()}\n  <link rel="stylesheet" href="dist/styles-tools.css">\n`;
+}
+
 function dedupeMeta(headInner, attr, value) {
   const escapedValue = String(value || '').replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
   const escapedAttr = String(attr || '').replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
@@ -213,8 +251,8 @@ function escapeTitleSuffix(title) {
 
 function ensureToolJsonLd(headInner) {
   const canonical = getCanonicalHref(headInner);
-  if (!canonical || !canonical.startsWith('https://danielshort.me/tools/')) return headInner;
-  if (canonical === 'https://danielshort.me/tools') return headInner;
+  if (!canonical || !canonical.startsWith(`${SITE_ORIGIN}/tools/`)) return headInner;
+  if (canonical === `${SITE_ORIGIN}/tools`) return headInner;
 
   const title = escapeTitleSuffix(getMetaContent(headInner, { property: 'og:title' }) || getTitleText(headInner));
   const description = getMetaContent(headInner, { name: 'description' }) || getMetaContent(headInner, { property: 'og:description' });
@@ -235,7 +273,7 @@ function ensureToolJsonLd(headInner) {
     creator: {
       '@type': 'Person',
       name: 'Daniel Short',
-      url: 'https://danielshort.me/'
+      url: `${SITE_ORIGIN}/`
     }
   };
 
@@ -270,6 +308,7 @@ function processHtml(html) {
   inner = dedupeMeta(inner, 'name', 'twitter:image:alt');
   inner = ensureSharedOgImageDimensions(inner);
   inner = ensureTwitterMeta(inner);
+  inner = ensureToolsStylesheet(inner);
   inner = ensureToolJsonLd(inner);
   inner = dedupeMeta(inner, 'property', 'og:image:width');
   inner = dedupeMeta(inner, 'property', 'og:image:height');

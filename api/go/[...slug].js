@@ -24,7 +24,7 @@ function buildUnavailableRedirect(req, slug){
   const params = new URLSearchParams();
   params.set('from', host);
   if (slug) params.set('path', slug);
-  return `https://danielshort.me/dshort?${params.toString()}`;
+  return `https://www.danielshort.me/dshort?${params.toString()}`;
 }
 
 function sendUnavailable(res, req, slug){

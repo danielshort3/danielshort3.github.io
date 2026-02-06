@@ -1,204 +1,199 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://danielshort.me/</loc>
+    <loc>https://www.danielshort.me/</loc>
     <lastmod>2026-01-18</lastmod>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/portfolio</loc>
+    <loc>https://www.danielshort.me/portfolio</loc>
     <lastmod>2026-01-18</lastmod>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/resume</loc>
+    <loc>https://www.danielshort.me/resume</loc>
     <lastmod>2026-01-18</lastmod>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/contact</loc>
+    <loc>https://www.danielshort.me/contact</loc>
     <lastmod>2026-01-18</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/tools</loc>
+    <loc>https://www.danielshort.me/tools</loc>
     <lastmod>2026-01-19</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/contributions</loc>
+    <loc>https://www.danielshort.me/contributions</loc>
     <lastmod>2026-01-18</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/resume-pdf</loc>
+    <loc>https://www.danielshort.me/resume-pdf</loc>
     <lastmod>2026-01-18</lastmod>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/privacy</loc>
+    <loc>https://www.danielshort.me/privacy</loc>
     <lastmod>2026-01-18</lastmod>
     <priority>0.2</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/sitemap</loc>
+    <loc>https://www.danielshort.me/sitemap</loc>
     <lastmod>2026-01-18</lastmod>
     <priority>0.2</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/tools/dashboard</loc>
+    <loc>https://www.danielshort.me/tools/dashboard</loc>
     <lastmod>2026-01-18</lastmod>
     <priority>0.3</priority>
   </url>
 
   <url>
-    <loc>https://danielshort.me/tools/background-remover</loc>
+    <loc>https://www.danielshort.me/tools/background-remover</loc>
     <lastmod>2026-01-18</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/tools/ga4-utm-performance</loc>
+    <loc>https://www.danielshort.me/tools/ga4-utm-performance</loc>
     <lastmod>2026-01-21</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/tools/image-optimizer</loc>
+    <loc>https://www.danielshort.me/tools/image-optimizer</loc>
     <lastmod>2026-01-18</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/tools/job-application-tracker</loc>
+    <loc>https://www.danielshort.me/tools/job-application-tracker</loc>
     <lastmod>2026-01-21</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/tools/nbsp-cleaner</loc>
+    <loc>https://www.danielshort.me/tools/nbsp-cleaner</loc>
     <lastmod>2026-01-18</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/tools/oxford-comma-checker</loc>
+    <loc>https://www.danielshort.me/tools/oxford-comma-checker</loc>
     <lastmod>2026-01-18</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/tools/point-of-view-checker</loc>
+    <loc>https://www.danielshort.me/tools/point-of-view-checker</loc>
     <lastmod>2026-01-18</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/tools/qr-code-generator</loc>
+    <loc>https://www.danielshort.me/tools/qr-code-generator</loc>
     <lastmod>2026-01-18</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/tools/screen-recorder</loc>
+    <loc>https://www.danielshort.me/tools/screen-recorder</loc>
     <lastmod>2026-01-18</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/tools/short-links</loc>
+    <loc>https://www.danielshort.me/tools/short-links</loc>
     <lastmod>2026-01-19</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/tools/text-compare</loc>
+    <loc>https://www.danielshort.me/tools/text-compare</loc>
     <lastmod>2026-01-18</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/tools/utm-batch-builder</loc>
+    <loc>https://www.danielshort.me/tools/utm-batch-builder</loc>
     <lastmod>2026-01-18</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/tools/whisper-transcribe-monitor</loc>
-    <lastmod>2026-01-18</lastmod>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://danielshort.me/tools/word-frequency</loc>
+    <loc>https://www.danielshort.me/tools/word-frequency</loc>
     <lastmod>2026-01-18</lastmod>
     <priority>0.6</priority>
   </url>
 
   <url>
-    <loc>https://danielshort.me/portfolio/smartSentence</loc>
+    <loc>https://www.danielshort.me/portfolio/smartSentence</loc>
     <lastmod>2026-01-23</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/portfolio/chatbotLora</loc>
+    <loc>https://www.danielshort.me/portfolio/chatbotLora</loc>
     <lastmod>2026-01-19</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/portfolio/shapeClassifier</loc>
+    <loc>https://www.danielshort.me/portfolio/shapeClassifier</loc>
     <lastmod>2026-01-19</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/portfolio/ufoDashboard</loc>
+    <loc>https://www.danielshort.me/portfolio/ufoDashboard</loc>
     <lastmod>2026-01-19</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/portfolio/covidAnalysis</loc>
+    <loc>https://www.danielshort.me/portfolio/covidAnalysis</loc>
     <lastmod>2026-01-23</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/portfolio/targetEmptyPackage</loc>
+    <loc>https://www.danielshort.me/portfolio/targetEmptyPackage</loc>
     <lastmod>2026-01-23</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/portfolio/handwritingRating</loc>
+    <loc>https://www.danielshort.me/portfolio/handwritingRating</loc>
     <lastmod>2026-01-23</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/portfolio/digitGenerator</loc>
+    <loc>https://www.danielshort.me/portfolio/digitGenerator</loc>
     <lastmod>2026-01-19</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/portfolio/sheetMusicUpscale</loc>
+    <loc>https://www.danielshort.me/portfolio/sheetMusicUpscale</loc>
     <lastmod>2026-01-23</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/portfolio/deliveryTip</loc>
+    <loc>https://www.danielshort.me/portfolio/deliveryTip</loc>
     <lastmod>2026-01-19</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/portfolio/retailStore</loc>
+    <loc>https://www.danielshort.me/portfolio/retailStore</loc>
     <lastmod>2026-01-19</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/portfolio/pizza</loc>
+    <loc>https://www.danielshort.me/portfolio/pizza</loc>
     <lastmod>2026-01-19</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/portfolio/babynames</loc>
+    <loc>https://www.danielshort.me/portfolio/babynames</loc>
     <lastmod>2026-01-23</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/portfolio/pizzaDashboard</loc>
+    <loc>https://www.danielshort.me/portfolio/pizzaDashboard</loc>
     <lastmod>2026-01-19</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/portfolio/nonogram</loc>
+    <loc>https://www.danielshort.me/portfolio/nonogram</loc>
     <lastmod>2026-01-23</lastmod>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://danielshort.me/portfolio/website</loc>
+    <loc>https://www.danielshort.me/portfolio/website</loc>
     <lastmod>2026-01-19</lastmod>
     <priority>0.6</priority>
   </url>

@@ -28,7 +28,7 @@ window.PROJECTS = [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Smart-Sentence-Finder", label: "GitHub" },
       { icon: "img/icons/pdf-icon.png", url: "documents/Project_13.pdf", label: "PDF" },
       { icon: "img/icons/jupyter-icon.png", url: "documents/Project_13.ipynb", label: "Notebook" },
-      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/sentence-demo.html", label: "Live Demo" },
+      { icon: "img/icons/website-icon.png", url: "https://www.danielshort.me/sentence-demo.html", label: "Live Demo" },
       { icon: "img/icons/website-icon.png", url: "https://www.gutenberg.org/ebooks/11", label: "Corpus (Project Gutenberg)" }
     ],
     embed: {
@@ -104,7 +104,7 @@ window.PROJECTS = [
     concepts: ["Machine Learning", "Automation"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Chatbot-LoRA-RAG", label: "GitHub" },
-      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/chatbot-demo.html", label: "Live Demo" }
+      { icon: "img/icons/website-icon.png", url: "https://www.danielshort.me/chatbot-demo.html", label: "Live Demo" }
     ],
     embed: {
       type: "iframe",
@@ -184,7 +184,7 @@ window.PROJECTS = [
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Shape-Analyzer", label: "GitHub" },
       { icon: "img/icons/website-icon.png", url: "https://github.com/googlecreativelab/quickdraw-dataset", label: "Quick, Draw! Dataset" },
-      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/shape-demo.html", label: "Live Demo" }
+      { icon: "img/icons/website-icon.png", url: "https://www.danielshort.me/shape-demo.html", label: "Live Demo" }
     ],
     embed: {
       type: "iframe",
@@ -334,7 +334,7 @@ window.PROJECTS = [
     concepts: ["Analytics"],
     resources: [
       { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Covid-Analysis", label: "GitHub" },
-      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/covid-outbreak-demo",    label: "Live Demo" },
+      { icon: "img/icons/website-icon.png", url: "https://www.danielshort.me/covid-outbreak-demo",    label: "Live Demo" },
       { icon: "img/icons/pdf-icon.png",     url: "documents/Project_6.pdf",                        label: "PDF"    },
       { icon: "img/icons/jupyter-icon.png", url: "documents/Project_6.ipynb",                      label: "Notebook"},
       { icon: "img/icons/website-icon.png", url: "https://healthdata.gov/Hospital/COVID-19-Reported-Patient-Impact-and-Hospital-Capa/anag-cw7u", label: "HHS Dataset" }
@@ -429,7 +429,7 @@ window.PROJECTS = [
     resources: [
       { icon: "img/icons/pdf-icon.png",   url: "documents/Project_7.pdf",  label: "PDF"   },
       { icon: "img/icons/excel-icon.png", url: "documents/Project_7.xlsx", label: "Excel" },
-      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/target-empty-package-demo.html", label: "Live Demo" }
+      { icon: "img/icons/website-icon.png", url: "https://www.danielshort.me/target-empty-package-demo.html", label: "Live Demo" }
     ],
     embed: {
       type: "iframe",
@@ -511,7 +511,7 @@ window.PROJECTS = [
     concepts: ["Machine Learning"],
     resources: [
       { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Handwriting-Rating", label: "GitHub" },
-      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/handwriting-rating-demo.html", label: "Live Demo" },
+      { icon: "img/icons/website-icon.png", url: "https://www.danielshort.me/handwriting-rating-demo.html", label: "Live Demo" },
       { icon: "img/icons/pdf-icon.png",     url: "documents/Project_8.pdf",                            label: "PDF"    },
       { icon: "img/icons/jupyter-icon.png", url: "documents/Project_8.ipynb",                          label: "Notebook"},
       { icon: "img/icons/website-icon.png", url: "http://yann.lecun.com/exdb/mnist/",                  label: "MNIST Dataset" }
@@ -590,7 +590,7 @@ window.PROJECTS = [
     concepts: ["Machine Learning"],
     resources: [
       { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Handwritten-Digit-Generator", label: "GitHub" },
-      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/digit-generator-demo", label: "Live Demo" },
+      { icon: "img/icons/website-icon.png", url: "https://www.danielshort.me/digit-generator-demo", label: "Live Demo" },
       { icon: "img/icons/pdf-icon.png",     url: "documents/Project_9.pdf",                                   label: "PDF"    },
       { icon: "img/icons/jupyter-icon.png", url: "documents/Project_9.ipynb",                                 label: "Notebook"}
     ],
@@ -798,7 +798,7 @@ window.PROJECTS = [
 	      { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/target-packaging-analysis-mssql", label: "GitHub" },
       { icon: "img/icons/pdf-icon.png",    url: "documents/Project_12.pdf",                                        label: "PDF"    },
       { icon: "img/icons/jupyter-icon.png",url: "documents/Project_12.ipynb",                                      label: "Notebook"},
-      { icon: "img/icons/website-icon.png",url: "https://danielshort.me/retail-loss-sales-demo.html",              label: "Live Demo" }
+      { icon: "img/icons/website-icon.png",url: "https://www.danielshort.me/retail-loss-sales-demo.html",              label: "Live Demo" }
     ],
     embed: {
       type: "iframe",
@@ -878,7 +878,7 @@ window.PROJECTS = [
     tools: ["Excel", "Statistics", "AWS"],
     concepts: ["Analytics"],
     resources: [
-      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/pizza-tips-demo", label: "Live Demo" },
+      { icon: "img/icons/website-icon.png", url: "https://www.danielshort.me/pizza-tips-demo", label: "Live Demo" },
       { icon: "img/icons/pdf-icon.png",   url: "documents/Project_1.pdf",  label: "PDF"   },
       { icon: "img/icons/excel-icon.png", url: "documents/Project_1.xlsx", label: "Excel" }
     ],
@@ -954,7 +954,7 @@ window.PROJECTS = [
     tools: ["Python", "scikit-learn"],
     concepts: ["Machine Learning"],
     resources: [
-      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/baby-names-demo", label: "Live Demo" },
+      { icon: "img/icons/website-icon.png", url: "https://www.danielshort.me/baby-names-demo", label: "Live Demo" },
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Baby-Names", label: "GitHub" },
       { icon: "img/icons/pdf-icon.png",    url: "documents/Project_2.pdf",                    label: "PDFs"  },
       { icon: "img/icons/jupyter-icon.png",url: "documents/Project_2.ipynb",                  label: "Notebook"},
@@ -1119,7 +1119,7 @@ window.PROJECTS = [
     concepts: ["Machine Learning"],
     resources: [
       { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Nonogram-Solver", label: "GitHub" },
-      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/nonogram-demo.html", label: "Live Demo" },
+      { icon: "img/icons/website-icon.png", url: "https://www.danielshort.me/nonogram-demo.html", label: "Live Demo" },
       { icon: "img/icons/pdf-icon.png",     url: "documents/Project_4.pdf",                  label: "PDF"    },
       { icon: "img/icons/jupyter-icon.png", url: "documents/Project_4.ipynb",                label: "Notebook"}
     ],
@@ -1192,7 +1192,7 @@ window.PROJECTS = [
     tools: ["Python", "PyTorch", "AWS", "Docker"],
     concepts: ["Machine Learning", "Automation"],
     resources: [
-      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/minesweeper-demo.html", label: "Live Demo" },
+      { icon: "img/icons/website-icon.png", url: "https://www.danielshort.me/minesweeper-demo.html", label: "Live Demo" },
       { icon: "img/icons/pdf-icon.png", url: "documents/Minesweeper_Reinforcement_Learning_Web_Application.pdf", label: "PDF" }
     ],
     embed: {
@@ -1268,7 +1268,7 @@ window.PROJECTS = [
     concepts: ["Product", "Visualization"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/danielshort3.github.io", label: "GitHub" },
-      { icon: "img/icons/website-icon.png", url: "https://danielshort.me/", label: "Live Site" }
+      { icon: "img/icons/website-icon.png", url: "https://www.danielshort.me/", label: "Live Site" }
     ],
     problem: "I needed a fast site to show my work, especially on mobile.",
     actions: [

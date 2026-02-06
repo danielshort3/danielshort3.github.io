@@ -17,7 +17,7 @@ const dataFile = path.join(root, 'js', 'portfolio', 'projects-data.js');
 const outDir = path.join(root, 'pages', 'portfolio');
 const sitemapPath = path.join(root, 'sitemap.xml');
 const sitemapCachePath = path.join(root, 'sitemap-cache.json');
-const SITE_ORIGIN = 'https://danielshort.me';
+const SITE_ORIGIN = 'https://www.danielshort.me';
 const toolsIndexPath = path.join(root, 'pages', 'tools.html');
 
 function computeContentHash(relPath) {

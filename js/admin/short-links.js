@@ -25,6 +25,7 @@
   const viewSelect = document.querySelector('[data-shortlinks="view"]');
   const countEl = document.querySelector('[data-shortlinks="count"]');
   const listStatusEl = document.querySelector('[data-shortlinks="list-status"]');
+  const summaryEl = document.querySelector('[data-shortlinks="summary"]');
 
   const tokenInput = authForm.querySelector('[data-shortlinks="token"]');
   const refreshButton = authForm.querySelector('[data-shortlinks="refresh"]');
@@ -123,6 +124,8 @@
 
   let basePath = DEFAULT_BASE_PATH;
   let allLinks = [];
+  let visibleLinksCount = 0;
+  let projectHealth = { total: 0, missing: 0, mismatched: 0 };
 
   function setStatus(el, msg, tone){
     if (!el) return;
@@ -193,7 +196,7 @@
   function setCount(shown, total){
     if (!countEl) return;
     if (!total) {
-      countEl.textContent = '';
+      countEl.textContent = '0 links';
       return;
     }
     const label = total === 1 ? 'link' : 'links';
@@ -219,6 +222,136 @@
     });
   }
 
+  function formatCount(value){
+    const n = Number(value);
+    if (!Number.isFinite(n)) return '0';
+    return Math.max(0, Math.floor(n)).toLocaleString('en-US');
+  }
+
+  function isLinkExpired(link){
+    const expiresAt = Number.isFinite(Number(link && link.expiresAt)) ? Number(link.expiresAt) : 0;
+    if (!expiresAt) return false;
+    return expiresAt * 1000 <= Date.now();
+  }
+
+  function makeSnapshotCard({ label, value, note, tone }){
+    const card = document.createElement('article');
+    card.className = 'shortlinks-snapshot-card';
+    const toneClass = String(tone || '').trim();
+    if (toneClass) card.classList.add(`is-${toneClass}`);
+
+    const cardLabel = document.createElement('p');
+    cardLabel.className = 'shortlinks-snapshot-label';
+    cardLabel.textContent = String(label || '');
+    card.appendChild(cardLabel);
+
+    const cardValue = document.createElement('p');
+    cardValue.className = 'shortlinks-snapshot-value';
+    cardValue.textContent = String(value || '');
+    card.appendChild(cardValue);
+
+    const cardNote = document.createElement('p');
+    cardNote.className = 'shortlinks-snapshot-note';
+    cardNote.textContent = String(note || '');
+    card.appendChild(cardNote);
+
+    return card;
+  }
+
+  function renderDashboardSummary(){
+    if (!summaryEl) return;
+    summaryEl.replaceChildren();
+
+    const links = Array.isArray(allLinks) ? allLinks : [];
+    const totalLinks = links.length;
+    const permanentLinks = links.reduce((count, link) => count + (link && link.permanent ? 1 : 0), 0);
+    const temporaryLinks = Math.max(0, totalLinks - permanentLinks);
+    const activeLinks = links.reduce((count, link) => {
+      if (!link || link.disabled || isLinkExpired(link)) return count;
+      return count + 1;
+    }, 0);
+    const expiringSoon = links.reduce((count, link) => {
+      const expiresAt = Number.isFinite(Number(link && link.expiresAt)) ? Number(link.expiresAt) : 0;
+      if (!expiresAt) return count;
+      const ms = expiresAt * 1000 - Date.now();
+      if (ms > 0 && ms <= 7 * 24 * 60 * 60 * 1000) return count + 1;
+      return count;
+    }, 0);
+
+    const totalProjects = Number.isFinite(Number(projectHealth.total)) ? Number(projectHealth.total) : 0;
+    const missingProjects = Number.isFinite(Number(projectHealth.missing)) ? Number(projectHealth.missing) : 0;
+    const mismatchedProjects = Number.isFinite(Number(projectHealth.mismatched)) ? Number(projectHealth.mismatched) : 0;
+    const syncedProjects = Math.max(0, totalProjects - missingProjects - mismatchedProjects);
+
+    const query = getFilterQuery();
+
+    const frame = document.createElement('section');
+    frame.className = 'shortlinks-snapshot-frame';
+
+    const head = document.createElement('div');
+    head.className = 'shortlinks-output-head';
+
+    const title = document.createElement('h2');
+    title.className = 'shortlinks-output-title';
+    title.textContent = 'Dashboard Snapshot';
+    head.appendChild(title);
+
+    const meta = document.createElement('p');
+    meta.className = 'shortlinks-output-meta';
+    meta.textContent = query
+      ? `Filter active: "${query}"`
+      : 'Live status across links and portfolio mappings';
+    head.appendChild(meta);
+
+    frame.appendChild(head);
+
+    const grid = document.createElement('div');
+    grid.className = 'shortlinks-snapshot-grid';
+
+    grid.appendChild(makeSnapshotCard({
+      label: 'Saved links',
+      value: formatCount(totalLinks),
+      note: query ? `${formatCount(visibleLinksCount)} visible in current filter` : 'All stored slugs'
+    }));
+
+    grid.appendChild(makeSnapshotCard({
+      label: 'Active',
+      value: formatCount(activeLinks),
+      note: expiringSoon ? `${formatCount(expiringSoon)} expiring within 7 days` : 'Not disabled or expired',
+      tone: expiringSoon ? 'warning' : ''
+    }));
+
+    grid.appendChild(makeSnapshotCard({
+      label: 'Temporary',
+      value: formatCount(temporaryLinks),
+      note: `${formatCount(permanentLinks)} permanent redirects`,
+      tone: temporaryLinks ? 'info' : ''
+    }));
+
+    if (totalProjects > 0) {
+      const issues = missingProjects + mismatchedProjects;
+      const noteBits = [];
+      if (missingProjects) noteBits.push(`${formatCount(missingProjects)} missing`);
+      if (mismatchedProjects) noteBits.push(`${formatCount(mismatchedProjects)} mismatched`);
+      const note = noteBits.length ? noteBits.join(' · ') : 'All project links are in sync';
+      grid.appendChild(makeSnapshotCard({
+        label: 'Projects synced',
+        value: `${formatCount(syncedProjects)} / ${formatCount(totalProjects)}`,
+        note,
+        tone: issues ? 'warning' : 'success'
+      }));
+    } else {
+      grid.appendChild(makeSnapshotCard({
+        label: 'Projects',
+        value: '0',
+        note: 'Portfolio mapping loads after destinations resolve'
+      }));
+    }
+
+    frame.appendChild(grid);
+    summaryEl.appendChild(frame);
+  }
+
   function isDevHost(hostname){
     const host = String(hostname || '').toLowerCase();
     return host === 'localhost' || host === '127.0.0.1';
@@ -240,7 +373,7 @@
       return window.location.origin;
     }
     if (isProdHost(window.location.hostname)) {
-      return origin || 'https://danielshort.me';
+      return origin || 'https://www.danielshort.me';
     }
     return origin || window.location.origin;
   }
@@ -293,7 +426,7 @@
 
   async function loadDestinationsManifest(){
     if (destinationsManifest) return destinationsManifest;
-    const fallback = { origin: 'https://danielshort.me', pages: FALLBACK_DESTINATIONS };
+    const fallback = { origin: 'https://www.danielshort.me', pages: FALLBACK_DESTINATIONS };
     try {
       const resp = await fetch(DESTINATIONS_MANIFEST_PATH, { method: 'GET', cache: 'no-store' });
       if (!resp.ok) throw new Error(`Manifest request failed (${resp.status})`);
@@ -414,11 +547,13 @@
     projectsListEl.replaceChildren();
 
     if (!Array.isArray(projectCatalog) || projectCatalog.length === 0) {
+      projectHealth = { total: 0, missing: 0, mismatched: 0 };
       setProjectsMeta('');
       const empty = document.createElement('p');
-      empty.className = 'shortlinks-empty';
+      empty.className = 'shortlinks-empty shortlinks-empty-state';
       empty.textContent = destinationsManifest ? 'No portfolio projects found.' : 'Loading projects…';
       projectsListEl.appendChild(empty);
+      renderDashboardSummary();
       return;
     }
 
@@ -619,7 +754,9 @@
     const bits = [`${total} project${total === 1 ? '' : 's'}`];
     if (missing) bits.push(`${missing} missing`);
     if (mismatched) bits.push(`${mismatched} mismatch${mismatched === 1 ? '' : 'es'}`);
+    projectHealth = { total, missing, mismatched };
     setProjectsMeta(bits.join(' • '));
+    renderDashboardSummary();
   }
 
   async function refreshProjectsSection({ ensureMissing } = {}){
@@ -1275,17 +1412,22 @@
     if (!Array.isArray(links) || links.length === 0) {
       const empty = document.createElement('p');
       const query = getFilterQuery();
-      empty.className = 'shortlinks-empty';
+      empty.className = 'shortlinks-empty shortlinks-empty-state';
       empty.textContent = query ? `No matches for "${query}".` : 'No short links yet.';
       listEl.appendChild(empty);
       return;
     }
 
     const wrap = document.createElement('div');
-    wrap.className = 'shortlinks-table-wrap';
+    wrap.className = 'shortlinks-table-wrap shortlinks-table-wrap-main';
 
     const table = document.createElement('table');
-    table.className = 'shortlinks-table';
+    table.className = 'shortlinks-table shortlinks-table-main';
+
+    const caption = document.createElement('caption');
+    caption.className = 'shortlinks-table-caption';
+    caption.textContent = 'Short links list';
+    table.appendChild(caption);
 
     const thead = document.createElement('thead');
     const headRow = document.createElement('tr');
@@ -1384,7 +1526,7 @@
       actionsCell.className = 'shortlinks-table-cell-actions';
 
       const actions = document.createElement('div');
-      actions.className = 'shortlinks-table-actions';
+      actions.className = 'shortlinks-table-actions shortlinks-inline-actions';
 
       const copyButton = document.createElement('button');
       copyButton.type = 'button';
@@ -1492,7 +1634,7 @@
     if (!Array.isArray(links) || links.length === 0) {
       const empty = document.createElement('p');
       const query = getFilterQuery();
-      empty.className = 'shortlinks-empty';
+      empty.className = 'shortlinks-empty shortlinks-empty-state';
       empty.textContent = query ? `No matches for "${query}".` : 'No short links yet.';
       listEl.appendChild(empty);
       return;
@@ -1555,7 +1697,7 @@
       titleWrap.appendChild(meta);
 
       const actions = document.createElement('div');
-      actions.className = 'shortlinks-actions';
+      actions.className = 'shortlinks-actions shortlinks-inline-actions';
 
       const copyButton = document.createElement('button');
       copyButton.type = 'button';
@@ -1696,7 +1838,9 @@
     } else {
       renderLinksTable(filtered);
     }
+    visibleLinksCount = filtered.length;
     setCount(filtered.length, allLinks.length);
+    renderDashboardSummary();
   }
 
   async function refreshLinks(){
@@ -1713,8 +1857,10 @@
     } catch (err) {
       allLinks = [];
       clearList();
+      visibleLinksCount = 0;
       setCount(0, 0);
       setStatus(listStatusEl, err.message, 'error');
+      renderDashboardSummary();
       markSessionDirty();
     }
   }
@@ -1869,6 +2015,7 @@
       tokenInput.value = '';
       allLinks = [];
       clearList();
+      visibleLinksCount = 0;
       setStatus(statusEl, 'Token forgotten on this device.', 'success');
       setStatus(healthStatusEl, '');
       setStatus(listStatusEl, '');

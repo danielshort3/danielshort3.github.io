@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <base href="/">
   <title>Tools | Daniel Short</title>
-  <link rel="canonical" href="https://danielshort.me/tools">
+  <link rel="canonical" href="https://www.danielshort.me/tools">
   <meta name="description" content="Local, privacy-first tools from Daniel Short.">
   <meta property="og:title" content="Tools | Daniel Short">
   <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
   <meta property="og:description" content="Local, privacy-first tools from Daniel Short.">
-  <meta property="og:url" content="https://danielshort.me/tools">
-  <meta property="og:image" content="https://danielshort.me/img/hero/head.jpg">
+  <meta property="og:url" content="https://www.danielshort.me/tools">
+  <meta property="og:image" content="https://www.danielshort.me/img/hero/head.jpg">
   <meta property="og:image:width" content="558">
   <meta property="og:image:height" content="558">
   <meta property="og:image:alt" content="Portrait photo of Daniel Short">
@@ -20,10 +20,11 @@
   <meta name="twitter:site" content="@danielshort3">
   <meta name="twitter:title" content="Tools | Daniel Short">
   <meta name="twitter:description" content="Local, privacy-first tools from Daniel Short.">
-  <meta name="twitter:image" content="https://danielshort.me/img/hero/head.jpg">
+  <meta name="twitter:image" content="https://www.danielshort.me/img/hero/head.jpg">
   <meta name="twitter:image:alt" content="Portrait photo of Daniel Short">
   <meta name="theme-color" content="#0D1117">
   <link rel="stylesheet" href="dist/styles.css">
+  <link rel="stylesheet" href="dist/styles-tools.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
@@ -495,13 +496,13 @@
           </div>
         </section>
 
-        <section class="tools-category" id="tools-cloud" aria-labelledby="tools-cloud-title">
+        <section class="tools-category" id="tools-cloud" aria-labelledby="tools-cloud-title" hidden>
           <header class="tools-category-head">
             <h2 class="section-title" id="tools-cloud-title">Cloud-backed</h2>
             <p>Tools that rely on an account, API, or server-side compute.</p>
           </header>
           <div class="tools-grid">
-            <article class="tool-card">
+            <article class="tool-card" data-tools-visibility="authed" hidden>
               <a href="tools/job-application-tracker">
                 <div class="tool-top">
                   <span class="tool-icon" aria-hidden="true">
@@ -525,33 +526,7 @@
               </a>
             </article>
 
-            <article class="tool-card">
-              <a href="tools/whisper-transcribe-monitor">
-                <div class="tool-top">
-                  <span class="tool-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" role="presentation">
-                      <rect x="4" y="6" width="16" height="12" rx="3" class="icon-fill" opacity=".12"></rect>
-                      <rect x="4" y="6" width="16" height="12" rx="3"></rect>
-                      <path d="M8 11v2"></path>
-                      <path d="M12 10v4"></path>
-                      <path d="M16 11v2"></path>
-                      <path d="M10 18h4"></path>
-                    </svg>
-                  </span>
-                  <div>
-                    <h3>Whisper Capacity Monitor</h3>
-                    <div class="tool-meta">
-                      <span class="tool-pill tool-pill-cloud">Cloud</span>
-                      <span class="tool-pill">AWS</span>
-                      <span class="tool-pill">Transcribe</span>
-                    </div>
-                  </div>
-                </div>
-                <p>Upload an audio or video file to transcribe with an AWS Lambda Whisper Tiny (English) endpoint.</p>
-              </a>
-            </article>
-
-            <article class="tool-card">
+            <article class="tool-card" data-tools-visibility="admin" hidden>
               <a href="tools/short-links">
                 <div class="tool-top">
                   <span class="tool-icon" aria-hidden="true">
@@ -575,7 +550,7 @@
               </a>
             </article>
 
-            <article class="tool-card">
+            <article class="tool-card" data-tools-visibility="admin" hidden>
               <a href="tools/ga4-utm-performance">
                 <div class="tool-top">
                   <span class="tool-icon" aria-hidden="true">

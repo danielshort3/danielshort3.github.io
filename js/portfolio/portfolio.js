@@ -185,8 +185,8 @@ function buildPortfolioCarousel() {
         "@type":"CreativeWork",
         "name": p.title,
         "description": p.subtitle,
-        "url": `https://danielshort.me/portfolio/${p.id}`,
-        "image": `https://danielshort.me/${p.image}`
+        "url": `https://www.danielshort.me/portfolio/${p.id}`,
+        "image": `https://www.danielshort.me/${p.image}`
       }
     }))
   };
@@ -204,8 +204,8 @@ function buildPortfolioCarousel() {
         "@type": "CreativeWork",
         "name": p.title,
         "description": p.subtitle,
-        "url": `https://danielshort.me/portfolio/${p.id}`,
-        "image": `https://danielshort.me/${p.image}`
+        "url": `https://www.danielshort.me/portfolio/${p.id}`,
+        "image": `https://www.danielshort.me/${p.image}`
       }));
       const graphId = "portfolio-carousel-graph";
       const s2 = document.getElementById(graphId) || document.createElement('script');

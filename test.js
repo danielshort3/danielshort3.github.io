@@ -117,15 +117,16 @@ try {
       'pages/ga4-utm-performance.html',
       'pages/whisper-transcribe-monitor.html'
     ];
+    const privateToolPages = ['pages/tools-dashboard.html', 'pages/short-links.html'];
     ['pages/games.html','pages/ocean-wave-simulation.html', ...toolPages].forEach(f => {
       checkFileContains(f, 'js/common/common.js');
       checkFileContains(f, 'class="skip-link"');
       checkFileContains(f, '<main id="main">');
     });
-    ['pages/games.html','pages/ocean-wave-simulation.html','404.html','dshort.html'].forEach(f => {
+    ['pages/games.html','pages/ocean-wave-simulation.html','404.html','dshort.html', ...privateToolPages].forEach(f => {
       checkFileContains(f, 'noindex, nofollow');
     });
-    toolPages.forEach(f => {
+    toolPages.filter(f => !privateToolPages.includes(f)).forEach(f => {
       const content = fs.readFileSync(f, 'utf8');
       assert(!content.includes('noindex, nofollow'), `${f} should be indexable`);
     });
@@ -268,9 +269,9 @@ try {
       checkFileContains(file, 'data-page="project"');
       checkFileContains(file, '<meta property="og:type" content="article">');
       checkFileContains(file, 'href="portfolio">Back to Portfolio');
-      checkFileContains(file, `<link rel="canonical" href="https://danielshort.me/portfolio/${id}">`);
-      checkFileContains(file, `<meta property="og:url" content="https://danielshort.me/portfolio/${id}">`);
-      assert(sitemap.includes(`https://danielshort.me/portfolio/${id}`), `sitemap.xml missing project url: ${id}`);
+      checkFileContains(file, `<link rel="canonical" href="https://www.danielshort.me/portfolio/${id}">`);
+      checkFileContains(file, `<meta property="og:url" content="https://www.danielshort.me/portfolio/${id}">`);
+      assert(sitemap.includes(`https://www.danielshort.me/portfolio/${id}`), `sitemap.xml missing project url: ${id}`);
     });
   });
 
@@ -379,9 +380,13 @@ try {
     assert(fs.existsSync(cssManifestPath), 'dist/styles-manifest.json missing');
     const cssManifest = JSON.parse(fs.readFileSync(cssManifestPath, 'utf8'));
     assert(cssManifest.file && /^styles\.[0-9a-f]{8}\.css$/.test(cssManifest.file), 'CSS manifest entry invalid');
+    assert(cssManifest.toolsFile && /^styles-tools\.[0-9a-f]{8}\.css$/.test(cssManifest.toolsFile), 'Tools CSS manifest entry invalid');
     hashedCss = cssManifest.file;
+    const hashedToolsCss = cssManifest.toolsFile;
     assert(fs.existsSync(`dist/${hashedCss}`), `dist/${hashedCss} missing`);
+    assert(fs.existsSync(`dist/${hashedToolsCss}`), `dist/${hashedToolsCss} missing`);
     assert(fs.existsSync('dist/styles.css'), 'dist/styles.css missing');
+    assert(fs.existsSync('dist/styles-tools.css'), 'dist/styles-tools.css missing');
 
     const projectIds = evalScript('js/portfolio/projects-data.js').window.PROJECTS
       .filter(p => p && p.published !== false)
@@ -398,6 +403,13 @@ try {
       assert(
         html.includes(`dist/${hashedCss}`) || html.includes('dist/styles.css'),
         `${f} missing stylesheet reference`
+      );
+    });
+    toolPages.forEach((f) => {
+      const html = fs.readFileSync(f, 'utf8');
+      assert(
+        html.includes(`dist/${hashedToolsCss}`) || html.includes('dist/styles-tools.css'),
+        `${f} missing tools stylesheet reference`
       );
     });
   });
@@ -565,6 +577,20 @@ try {
       r.destination === '/api/go/:first%2F:rest'
     );
     assert(hasGoTwoSeg, 'missing 2-segment /go shortlink rewrite');
+
+    const headers = (vercelObj && vercelObj.headers) || [];
+    const hasNoindexShortLinks = headers.some(h =>
+      h && h.source === '/short-links' &&
+      Array.isArray(h.headers) &&
+      h.headers.some(x => x && x.key === 'X-Robots-Tag' && /noindex/i.test(String(x.value || '')))
+    );
+    const hasNoindexToolsDashboard = headers.some(h =>
+      h && h.source === '/tools/dashboard' &&
+      Array.isArray(h.headers) &&
+      h.headers.some(x => x && x.key === 'X-Robots-Tag' && /noindex/i.test(String(x.value || '')))
+    );
+    assert(hasNoindexShortLinks, 'short-links noindex header missing');
+    assert(hasNoindexToolsDashboard, 'tools dashboard noindex header missing');
   });
 
   section('Search index', () => {

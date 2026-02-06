@@ -80,7 +80,7 @@ This repo includes an optional account layer for tools under `/tools`:
 
 Required configuration:
 
-- Update your Cognito app client **Allowed callback URLs** to include `https://danielshort.me/tools/dashboard`.
+- Update your Cognito app client **Allowed callback URLs** to include `https://www.danielshort.me/tools/dashboard`.
 - Set `TOOLS_COGNITO_ISSUER` + `TOOLS_COGNITO_CLIENT_ID` in your Vercel environment (used for server-side JWT verification).
 - Create a DynamoDB table with partition key `pk` (string) and sort key `sk` (string), and set `TOOLS_DDB_TABLE` + AWS creds for session/activity storage.
 
