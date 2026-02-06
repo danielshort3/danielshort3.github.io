@@ -232,9 +232,17 @@
       <div class="wrapper">
         <div class="wordfreq-card wordfreq-input-card">
           <h2>Paste your text</h2>
-          <p class="wordfreq-subtitle">Stopwords are removed automatically. Large blocks of text are supported.</p>
+          <p class="wordfreq-subtitle">Use automatic defaults, or tune tokenization, stopwords, and phrase scoring when you need deeper analysis.</p>
           <form id="wordfreq-form" class="wordfreq-form" novalidate>
-            <label class="wordfreq-label" for="wordfreq-text">Text to analyze</label>
+            <div class="wordfreq-input-head">
+              <label class="wordfreq-label" for="wordfreq-text">Text to analyze</label>
+              <div class="wordfreq-field-actions">
+                <button type="button" id="wordfreq-paste" class="btn-ghost wordfreq-field-btn">Paste</button>
+                <button type="button" id="wordfreq-import" class="btn-ghost wordfreq-field-btn">Import</button>
+                <input id="wordfreq-file" class="visually-hidden" type="file" accept=".txt,.md,.markdown,.csv,.tsv,.json,.xml,.html,.htm,.rtf,.doc,.docx,.pdf" aria-label="Import text file">
+              </div>
+            </div>
+            <p id="wordfreq-input-status" class="wordfreq-input-status" aria-live="polite"></p>
             <textarea id="wordfreq-text" class="wordfreq-textarea" name="text" placeholder="Paste or type any paragraph, transcript, or document..." required></textarea>
             <div class="wordfreq-controls">
               <div class="wordfreq-number">
@@ -249,6 +257,64 @@
                 <button type="button" id="wordfreq-clear" class="btn-ghost">Clear</button>
               </div>
             </div>
+            <details class="wordfreq-settings">
+              <summary>Analysis settings</summary>
+              <div class="wordfreq-settings-grid" role="group" aria-label="Analysis settings">
+                <div class="wordfreq-setting">
+                  <label class="wordfreq-label" for="wordfreq-stopwords">Stopwords</label>
+                  <select id="wordfreq-stopwords" class="wordfreq-select">
+                    <option value="english-basic" selected>English (basic)</option>
+                    <option value="english-aggressive">English (aggressive)</option>
+                    <option value="none">None</option>
+                  </select>
+                </div>
+                <div class="wordfreq-setting">
+                  <label class="wordfreq-label" for="wordfreq-ngram">Analyze</label>
+                  <select id="wordfreq-ngram" class="wordfreq-select">
+                    <option value="1" selected>Single words</option>
+                    <option value="2">Two-word phrases</option>
+                    <option value="3">Three-word phrases</option>
+                  </select>
+                </div>
+                <div class="wordfreq-setting">
+                  <label class="wordfreq-label" for="wordfreq-score">Score by</label>
+                  <select id="wordfreq-score" class="wordfreq-select">
+                    <option value="count" selected>Raw frequency</option>
+                    <option value="per1000">Per 1,000 words</option>
+                    <option value="share">Share (%)</option>
+                    <option value="pmi">Association (PMI)</option>
+                  </select>
+                </div>
+                <div class="wordfreq-setting">
+                  <label class="wordfreq-label" for="wordfreq-sort">Sort</label>
+                  <select id="wordfreq-sort" class="wordfreq-select">
+                    <option value="score-desc" selected>Highest score</option>
+                    <option value="alpha-asc">Alphabetical (A-Z)</option>
+                  </select>
+                </div>
+                <div class="wordfreq-setting">
+                  <label class="wordfreq-label" for="wordfreq-minlen">Minimum token length</label>
+                  <div class="wordfreq-input-row">
+                    <input id="wordfreq-minlen" type="number" name="minlen" inputmode="numeric" pattern="[0-9]*" min="1" max="12" value="2" aria-label="Minimum token length">
+                    <span class="wordfreq-input-addon">chars</span>
+                  </div>
+                </div>
+                <div class="wordfreq-setting wordfreq-setting-checks">
+                  <label class="wordfreq-check"><input id="wordfreq-stem" type="checkbox" checked> Normalize word variants (light stemming)</label>
+                  <label class="wordfreq-check"><input id="wordfreq-fold" type="checkbox" checked> Fold accents/diacritics</label>
+                  <label class="wordfreq-check"><input id="wordfreq-numbers" type="checkbox"> Include numeric tokens</label>
+                </div>
+                <div class="wordfreq-setting">
+                  <label class="wordfreq-label" for="wordfreq-include">Always keep terms</label>
+                  <input id="wordfreq-include" class="wordfreq-text" type="text" placeholder="kpi, llm, genai">
+                </div>
+                <div class="wordfreq-setting">
+                  <label class="wordfreq-label" for="wordfreq-exclude">Always ignore terms</label>
+                  <input id="wordfreq-exclude" class="wordfreq-text" type="text" placeholder="company, project">
+                </div>
+              </div>
+              <p class="wordfreq-settings-note">PMI is most useful for phrase mode and can elevate rare but strongly associated n-grams.</p>
+            </details>
             <p class="wordfreq-note">Processing happens locally in your browser, with no uploads and no tracking.</p>
           </form>
         </div>
@@ -259,12 +325,25 @@
       <div class="wrapper">
         <div class="wordfreq-card wordfreq-results-card" aria-live="polite">
           <div class="wordfreq-results-header">
-            <h2>Top words</h2>
-            <p id="wordfreq-summary" class="wordfreq-summary">Paste text and submit to see the most common words.</p>
+            <div class="wordfreq-results-title">
+              <h2>Top terms</h2>
+              <p id="wordfreq-summary" class="wordfreq-summary">Paste text and submit to see the most common words.</p>
+            </div>
+            <div class="wordfreq-results-actions">
+              <button type="button" id="wordfreq-copy" class="btn-secondary">Copy results</button>
+              <button type="button" id="wordfreq-export-csv" class="btn-ghost">Export CSV</button>
+              <button type="button" id="wordfreq-export-json" class="btn-ghost">Export JSON</button>
+              <span id="wordfreq-copy-status" class="wordfreq-copy-status" aria-live="polite"></span>
+            </div>
           </div>
           <p id="wordfreq-empty" class="wordfreq-empty">Waiting for input.</p>
           <ol id="wordfreq-results" class="wordfreq-results" aria-label="Most frequent words"></ol>
-          <p class="wordfreq-footnote">Stopwords are removed using a standard English list; counts are case-insensitive.</p>
+          <section id="wordfreq-occurrence-panel" class="wordfreq-occurrence-panel" aria-live="polite" hidden>
+            <h3>Occurrences</h3>
+            <p id="wordfreq-occurrence-summary" class="wordfreq-occurrence-summary">Select a term to inspect where it appears in your source text.</p>
+            <ol id="wordfreq-occurrence-list" class="wordfreq-occurrence-list"></ol>
+          </section>
+          <p class="wordfreq-footnote">Tokenization is Unicode-aware, stopwords are configurable, and phrase scoring supports raw frequency, per-1k, share, and PMI association.</p>
         </div>
       </div>
     </section>
@@ -307,6 +386,8 @@
     </div>
   </footer>
 
+  <script defer src="js/vendor/fflate/fflate.min.js"></script>
+  <script defer src="js/vendor/pdfjs/pdf.min.js"></script>
   <script defer src="js/tools/word-frequency.js"></script>
   <script defer src="js/accounts/tools-config.js"></script>
   <script defer src="js/accounts/tools-auth.js"></script>
