@@ -246,6 +246,14 @@
             </div>
 
             <div class="qrtool-preview-info">
+              <p id="qrtool-verify" class="qrtool-verify" hidden></p>
+              <div id="qrtool-warnings" class="qrtool-warnings" hidden>
+                <ul id="qrtool-warning-list" class="qrtool-warning-list"></ul>
+                <div class="qrtool-warning-actions">
+                  <button id="qrtool-autofix" type="button" class="btn-ghost">Fix for reliability</button>
+                  <p id="qrtool-fix-status" class="qrtool-help" aria-live="polite"></p>
+                </div>
+              </div>
               <p id="qrtool-warning" class="qrtool-warning" hidden></p>
               <p class="qrtool-hint">Tip: for logo QR codes, choose higher error correction and keep strong contrast.</p>
             </div>
@@ -255,13 +263,17 @@
             <div class="qrtool-controls-head">
               <h2>Controls</h2>
               <p class="qrtool-help">Work through each tab to style your QR code, embed a logo, and export high-quality files.</p>
+              <div class="qrtool-mode-switch" role="group" aria-label="Controls mode">
+                <button id="qrtool-mode-basic" class="qrtool-mode-btn" type="button" data-qrtool-mode-btn="basic" aria-pressed="true">Basic</button>
+                <button id="qrtool-mode-advanced" class="qrtool-mode-btn" type="button" data-qrtool-mode-btn="advanced" aria-pressed="false">Advanced</button>
+              </div>
             </div>
 
             <div class="qrtool-tablist" role="tablist" aria-label="QR code generator sections">
               <button id="qrtool-tab-generate" class="qrtool-tab" type="button" role="tab" aria-selected="true" aria-controls="qrtool-panel-generate" data-qrtool-tab="generate">Generate</button>
               <button id="qrtool-tab-templates" class="qrtool-tab" type="button" role="tab" aria-selected="false" aria-controls="qrtool-panel-templates" data-qrtool-tab="templates" tabindex="-1">Templates</button>
-              <button id="qrtool-tab-customize" class="qrtool-tab" type="button" role="tab" aria-selected="false" aria-controls="qrtool-panel-customize" data-qrtool-tab="customize" tabindex="-1">Customize</button>
-              <button id="qrtool-tab-logo" class="qrtool-tab" type="button" role="tab" aria-selected="false" aria-controls="qrtool-panel-logo" data-qrtool-tab="logo" tabindex="-1">Logo</button>
+              <button id="qrtool-tab-customize" class="qrtool-tab" type="button" role="tab" aria-selected="false" aria-controls="qrtool-panel-customize" data-qrtool-tab="customize" data-qrtool-tab-mode="advanced" tabindex="-1">Customize</button>
+              <button id="qrtool-tab-logo" class="qrtool-tab" type="button" role="tab" aria-selected="false" aria-controls="qrtool-panel-logo" data-qrtool-tab="logo" data-qrtool-tab-mode="advanced" tabindex="-1">Logo</button>
               <button id="qrtool-tab-export" class="qrtool-tab" type="button" role="tab" aria-selected="false" aria-controls="qrtool-panel-export" data-qrtool-tab="export" tabindex="-1">Export</button>
             </div>
 
@@ -270,16 +282,130 @@
                 <div id="qrtool-panel-generate" class="qrtool-panel" role="tabpanel" aria-labelledby="qrtool-tab-generate" data-qrtool-panel="generate">
                   <div class="qrtool-field-header">
                     <h3>Generate</h3>
-                    <p class="qrtool-help">Paste any URL (or text). Generated locally in your browser with no uploads and no tracking.</p>
+                    <p class="qrtool-help">Choose a payload type and the tool will build a scanner-ready payload automatically.</p>
                   </div>
                   <div class="qrtool-field">
-                    <label class="qrtool-label" for="qrtool-data">URL</label>
-                    <input id="qrtool-data" class="qrtool-input" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://example.com/campaign">
+                    <label class="qrtool-label" for="qrtool-payload-mode">Payload type</label>
+                    <select id="qrtool-payload-mode" class="qrtool-select">
+                      <option value="url" selected>URL</option>
+                      <option value="text">Text</option>
+                      <option value="wifi">Wi-Fi</option>
+                      <option value="vcard">vCard</option>
+                    </select>
+                  </div>
+                  <div class="qrtool-field">
+                    <div data-qrtool-payload-pane="url">
+                      <label class="qrtool-label" for="qrtool-data">Destination URL</label>
+                      <input id="qrtool-data" class="qrtool-input" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://example.com/campaign">
+                      <p class="qrtool-help qrtool-help-compact">Best for website links, campaign pages, and redirects.</p>
+                      <div class="qrtool-actions">
+                        <button type="button" class="btn-ghost" data-qrtool="destination-picker-open">Browse site pages</button>
+                        <button type="button" class="btn-ghost" data-qrtool="shortlinks-picker-open" hidden>Browse short links</button>
+                        <button type="button" id="qrtool-example" class="btn-ghost">Use example</button>
+                        <button type="button" id="qrtool-clear" class="btn-ghost">Clear</button>
+                      </div>
+                    </div>
+                    <div data-qrtool-payload-pane="text" hidden>
+                      <label class="qrtool-label" for="qrtool-payload-text">Plain text</label>
+                      <textarea id="qrtool-payload-text" class="qrtool-input" rows="4" autocomplete="off" spellcheck="true" placeholder="Paste notes, instructions, or any text to encode"></textarea>
+                      <p class="qrtool-help qrtool-help-compact">Useful for Wi-Fi instructions, serial numbers, notes, and non-link content.</p>
+                    </div>
+                    <div data-qrtool-payload-pane="wifi" class="qrtool-payload-pane-card" hidden>
+                      <p class="qrtool-pane-intro">Create a one-scan Wi-Fi join QR for phones and laptops.</p>
+                      <div class="qrtool-two-col">
+                        <div class="qrtool-control">
+                          <label class="qrtool-label" for="qrtool-wifi-ssid">Wi-Fi network name (SSID)</label>
+                          <input id="qrtool-wifi-ssid" class="qrtool-input" type="text" autocomplete="off" spellcheck="false" placeholder="Office Guest Wi-Fi">
+                        </div>
+                        <div class="qrtool-control">
+                          <label class="qrtool-label" for="qrtool-wifi-auth">Security type</label>
+                          <select id="qrtool-wifi-auth" class="qrtool-select">
+                            <option value="WPA" selected>WPA/WPA2/WPA3</option>
+                            <option value="WEP">WEP</option>
+                            <option value="nopass">Open network</option>
+                          </select>
+                          <p class="qrtool-help qrtool-help-compact">Choose Open network only when the network has no password.</p>
+                        </div>
+                      </div>
+                      <div class="qrtool-two-col">
+                        <div class="qrtool-control">
+                          <label class="qrtool-label" for="qrtool-wifi-password">Network password</label>
+                          <input id="qrtool-wifi-password" class="qrtool-input" type="password" autocomplete="new-password" spellcheck="false" placeholder="Enter Wi-Fi password">
+                          <p class="qrtool-help qrtool-help-compact">Ignored when security type is Open network.</p>
+                        </div>
+                        <label class="qrtool-check qrtool-check-inline">
+                          <input id="qrtool-wifi-hidden" type="checkbox">
+                          Network is hidden (SSID broadcast disabled)
+                        </label>
+                      </div>
+                    </div>
+                    <div data-qrtool-payload-pane="vcard" class="qrtool-payload-pane-card" hidden>
+                      <p class="qrtool-pane-intro">Build a contact card QR for networking, events, and business cards.</p>
+                      <section class="qrtool-pane-group" aria-label="Contact identity">
+                        <h4 class="qrtool-pane-title">Identity</h4>
+                        <div class="qrtool-two-col">
+                          <div class="qrtool-control">
+                            <label class="qrtool-label" for="qrtool-vcard-first">Given name</label>
+                            <input id="qrtool-vcard-first" class="qrtool-input" type="text" autocomplete="given-name" spellcheck="false" placeholder="Daniel">
+                          </div>
+                          <div class="qrtool-control">
+                            <label class="qrtool-label" for="qrtool-vcard-last">Family name</label>
+                            <input id="qrtool-vcard-last" class="qrtool-input" type="text" autocomplete="family-name" spellcheck="false" placeholder="Short">
+                          </div>
+                        </div>
+                      </section>
+                      <section class="qrtool-pane-group" aria-label="Contact work">
+                        <h4 class="qrtool-pane-title">Work</h4>
+                        <div class="qrtool-two-col">
+                          <div class="qrtool-control">
+                            <label class="qrtool-label" for="qrtool-vcard-org">Organization</label>
+                            <input id="qrtool-vcard-org" class="qrtool-input" type="text" autocomplete="organization" spellcheck="false" placeholder="Daniel Short Analytics">
+                          </div>
+                          <div class="qrtool-control">
+                            <label class="qrtool-label" for="qrtool-vcard-title">Job title</label>
+                            <input id="qrtool-vcard-title" class="qrtool-input" type="text" autocomplete="organization-title" spellcheck="false" placeholder="Data Scientist">
+                          </div>
+                        </div>
+                        <div class="qrtool-two-col">
+                          <div class="qrtool-control">
+                            <label class="qrtool-label" for="qrtool-vcard-phone">Phone number</label>
+                            <input id="qrtool-vcard-phone" class="qrtool-input" type="tel" autocomplete="tel" spellcheck="false" placeholder="+1 555 123 4567">
+                          </div>
+                          <div class="qrtool-control">
+                            <label class="qrtool-label" for="qrtool-vcard-email">Email address</label>
+                            <input id="qrtool-vcard-email" class="qrtool-input" type="email" autocomplete="email" spellcheck="false" placeholder="daniel@danielshort.me">
+                          </div>
+                        </div>
+                      </section>
+                      <section class="qrtool-pane-group" aria-label="Contact links and notes">
+                        <h4 class="qrtool-pane-title">Links and notes</h4>
+                        <div class="qrtool-two-col">
+                          <div class="qrtool-control">
+                            <label class="qrtool-label" for="qrtool-vcard-website">Website</label>
+                            <input id="qrtool-vcard-website" class="qrtool-input" type="url" inputmode="url" autocomplete="url" spellcheck="false" placeholder="https://www.danielshort.me">
+                          </div>
+                          <div class="qrtool-control">
+                            <label class="qrtool-label" for="qrtool-vcard-address">Address</label>
+                            <input id="qrtool-vcard-address" class="qrtool-input" type="text" autocomplete="street-address" spellcheck="false" placeholder="123 Main St, San Diego, CA 92101">
+                          </div>
+                        </div>
+                        <div class="qrtool-control">
+                          <label class="qrtool-label" for="qrtool-vcard-note">Note</label>
+                          <textarea id="qrtool-vcard-note" class="qrtool-input" rows="3" autocomplete="off" spellcheck="true" placeholder="Optional context or preferred contact details"></textarea>
+                          <p class="qrtool-help qrtool-help-compact">Leave any field blank to omit it from the generated vCard.</p>
+                        </div>
+                      </section>
+                    </div>
+                  </div>
+                  <label class="qrtool-check qrtool-check-inline">
+                    <input id="qrtool-basic-logo-enabled" type="checkbox" checked>
+                    Include centered logo
+                  </label>
+                  <div class="qrtool-field">
+                    <label class="qrtool-label" for="qrtool-payload-preview">Encoded payload (read-only)</label>
+                    <textarea id="qrtool-payload-preview" class="qrtool-input" rows="4" readonly></textarea>
                     <div class="qrtool-actions">
-                      <button type="button" class="btn-ghost" data-qrtool="destination-picker-open">Browse site pages</button>
-                      <button type="button" class="btn-ghost" data-qrtool="shortlinks-picker-open" hidden>Browse short links</button>
-                      <button type="button" id="qrtool-example" class="btn-ghost">Use example</button>
-                      <button type="button" id="qrtool-clear" class="btn-ghost">Clear</button>
+                      <button type="button" id="qrtool-payload-copy" class="btn-ghost">Copy payload</button>
                     </div>
                   </div>
                 </div>
@@ -528,8 +654,18 @@
                       </select>
                     </div>
                   </div>
+                  <div class="qrtool-control">
+                    <label class="qrtool-label" for="qrtool-export-preset">Export preset</label>
+                    <select id="qrtool-export-preset" class="qrtool-select">
+                      <option value="sticker">Sticker (512 px)</option>
+                      <option value="web" selected>Web (1024 px)</option>
+                      <option value="print">Print (2048 px)</option>
+                      <option value="poster">Poster (4096 px)</option>
+                      <option value="custom">Custom size</option>
+                    </select>
+                  </div>
 
-                  <div class="qrtool-field">
+                  <div class="qrtool-field" data-qrtool-mode-section="advanced">
                     <label class="qrtool-check">
                       <input id="qrtool-caption-enabled" type="checkbox">
                       Add a caption band below the QR code (all exports)
@@ -596,6 +732,45 @@
                     <button type="button" id="qrtool-download-png" class="btn-primary" disabled>Download PNG</button>
                     <button type="button" id="qrtool-download-svg" class="btn-secondary" disabled>Download SVG</button>
                     <button type="button" id="qrtool-download-pdf" class="btn-secondary" disabled>Download PDF</button>
+                    <button type="button" id="qrtool-copy-png" class="btn-secondary" disabled>Copy PNG</button>
+                    <button type="button" id="qrtool-copy-svg" class="btn-secondary" disabled>Copy SVG</button>
+                    <button type="button" id="qrtool-download-all" class="btn-secondary" disabled>Download All (ZIP)</button>
+                  </div>
+                  <p id="qrtool-export-status" class="qrtool-help" role="status" aria-live="polite"></p>
+
+                  <div class="qrtool-field" data-qrtool-mode-section="advanced">
+                    <div class="qrtool-field-header">
+                      <h3>Config Presets</h3>
+                      <p class="qrtool-help">Save reusable brand styles, share settings with URL parameters, or import/export full config JSON.</p>
+                    </div>
+                    <div class="qrtool-two-col">
+                      <div class="qrtool-control">
+                        <label class="qrtool-label" for="qrtool-config-name">Preset name</label>
+                        <input id="qrtool-config-name" class="qrtool-input" type="text" autocomplete="off" spellcheck="false" placeholder="Brand default">
+                      </div>
+                      <div class="qrtool-control qrtool-config-save-wrap">
+                        <button type="button" id="qrtool-config-save" class="btn-secondary">Save preset</button>
+                      </div>
+                    </div>
+                    <div class="qrtool-two-col">
+                      <div class="qrtool-control">
+                        <label class="qrtool-label" for="qrtool-config-list">Saved presets</label>
+                        <select id="qrtool-config-list" class="qrtool-select">
+                          <option value="">No presets saved</option>
+                        </select>
+                      </div>
+                      <div class="qrtool-control qrtool-config-actions-inline">
+                        <button type="button" id="qrtool-config-apply" class="btn-secondary">Apply preset</button>
+                        <button type="button" id="qrtool-config-delete" class="btn-ghost">Delete preset</button>
+                      </div>
+                    </div>
+                    <div class="qrtool-actions">
+                      <button type="button" id="qrtool-config-export" class="btn-ghost">Export config JSON</button>
+                      <button type="button" id="qrtool-config-import" class="btn-ghost">Import config JSON</button>
+                      <button type="button" id="qrtool-config-share" class="btn-ghost">Copy share link</button>
+                      <input id="qrtool-config-import-file" type="file" accept="application/json,.json" hidden>
+                    </div>
+                    <p id="qrtool-config-status" class="qrtool-help" role="status" aria-live="polite"></p>
                   </div>
                 </div>
               </form>
@@ -679,6 +854,7 @@
   </footer>
 
   <script defer src="js/tools/qr-core.js"></script>
+  <script defer src="js/tools/qr-code-generator-utils.js"></script>
   <script defer src="js/tools/qr-code-generator.js"></script>
   <script defer src="js/accounts/tools-config.js"></script>
   <script defer src="js/accounts/tools-auth.js"></script>
