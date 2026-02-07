@@ -232,18 +232,85 @@
       <div class="wrapper">
         <div class="povcheck-card povcheck-input-card">
           <h2>Analyze text</h2>
-          <p class="povcheck-subtitle">Counts common English personal pronouns. Use the toggle to include or ignore neutral third-person.</p>
+          <p class="povcheck-subtitle">Run a local POV scan with automatic defaults, then open advanced controls only when you need tighter editorial filters.</p>
           <form id="povcheck-form" class="povcheck-form" novalidate>
-            <label class="povcheck-label" for="povcheck-text">Text to analyze</label>
+            <div class="povcheck-input-head">
+              <label class="povcheck-label" for="povcheck-text">Text to analyze</label>
+              <div class="povcheck-field-actions">
+                <button type="button" id="povcheck-paste" class="btn-ghost povcheck-field-btn">Paste</button>
+                <button type="button" id="povcheck-import" class="btn-ghost povcheck-field-btn">Import</button>
+                <input id="povcheck-file" class="visually-hidden" type="file" accept=".txt,.md,.markdown,.csv,.tsv,.json,.xml,.html,.htm,.rtf,.doc,.docx,.pdf" aria-label="Import text file">
+              </div>
+            </div>
+            <p id="povcheck-input-status" class="povcheck-input-status" aria-live="polite"></p>
             <textarea id="povcheck-text" class="povcheck-textarea" name="text" placeholder="I was sure I'd finish my draft today, but I'm revising it now. I've tracked what changed, and I'll share my notes, because we've learned what works for our audience. We're focusing on clarity, and we shared it among ourselves to keep us aligned; we'll adjust if needed, but we know the results are ours to own. It helped me clarify the structure, and the final decision is mine, so I remind myself to stay consistent.&#10;&#10;You said you're ready, and you'll decide what you want next. If you'd like, you've got options: share your outline, keep yours private, or ask yourselves what matters most. Before you publish, remind yourself why you're writing; y'all can compare your versions and see what your readers prefer.&#10;&#10;He told him he'd review the numbers, and he'll update his summary when he's done. She thinks she'll adjust her tone; the style is hers, and she reminds herself to stay consistent.&#10;&#10;They said they're shipping tomorrow, and they've already reminded themselves to proofread. They'd rather wait, but they'll ship anyway. Their editor thanked them for their work, and the final copy is theirs; sometimes they remind themself to cut filler. Visit Grand Junction shared their latest itinerary, and Visit Grand Junction's team said it's ready.&#10;&#10;It isn't perfect, but it's readable, and it keeps its promise. If it fails, it corrects itself." required></textarea>
-            <label class="povcheck-label" for="povcheck-third-references">Third-person references (optional)</label>
-            <textarea id="povcheck-third-references" class="povcheck-textarea povcheck-textarea-compact" name="thirdReferences" placeholder="Visit Grand Junction&#10;Acme Corporation&#10;The marketing team"></textarea>
-            <p class="povcheck-help">One phrase per line. Matches include possessives (e.g., "Visit Grand Junction's").</p>
-            <div class="povcheck-controls">
-              <label class="povcheck-option">
-                <input id="povcheck-include-it" type="checkbox" checked>
-                <span>Include neutral third-person (it/its/itself).</span>
+            <fieldset class="povcheck-mode-switch" role="radiogroup" aria-label="Analysis mode">
+              <legend class="visually-hidden">Analysis mode</legend>
+              <label class="povcheck-mode-option" for="povcheck-mode-basic">
+                <input id="povcheck-mode-basic" type="radio" name="povcheck-mode" value="basic" checked>
+                <span>Basic</span>
               </label>
+              <label class="povcheck-mode-option" for="povcheck-mode-advanced">
+                <input id="povcheck-mode-advanced" type="radio" name="povcheck-mode" value="advanced">
+                <span>Advanced</span>
+              </label>
+            </fieldset>
+            <p class="povcheck-help">Basic mode uses automatic defaults. Advanced mode adds quoted-text filtering, metadata exclusion, ignore terms, and custom third-person references.</p>
+
+            <section id="povcheck-advanced-panel" class="povcheck-advanced" hidden>
+              <div class="povcheck-advanced-grid" role="group" aria-label="Advanced POV settings">
+                <label class="povcheck-option">
+                  <input id="povcheck-include-it" type="checkbox" checked>
+                  <span>Include neutral third-person (it/its/itself).</span>
+                </label>
+                <label class="povcheck-option">
+                  <input id="povcheck-ignore-quoted" type="checkbox">
+                  <span>Ignore quoted text blocks when counting POV.</span>
+                </label>
+                <label class="povcheck-option">
+                  <input id="povcheck-ignore-metadata" type="checkbox">
+                  <span>Ignore heading and metadata-like lines.</span>
+                </label>
+
+                <div class="povcheck-setting">
+                  <label class="povcheck-label" for="povcheck-ignore-terms">Ignore terms (optional)</label>
+                  <textarea id="povcheck-ignore-terms" class="povcheck-textarea povcheck-textarea-compact" name="ignoreTerms" placeholder="you&#10;our team&#10;visit grand junction"></textarea>
+                  <p class="povcheck-help povcheck-help-tight">One term or phrase per line. Matches are case-insensitive.</p>
+                </div>
+
+                <div class="povcheck-setting">
+                  <label class="povcheck-label" for="povcheck-third-references">Third-person references (optional)</label>
+                  <textarea id="povcheck-third-references" class="povcheck-textarea povcheck-textarea-compact" name="thirdReferences" placeholder="Visit Grand Junction&#10;Acme Corporation&#10;The marketing team"></textarea>
+                  <p class="povcheck-help povcheck-help-tight">One phrase per line. Matches include possessives (for example, "Visit Grand Junction's").</p>
+                </div>
+              </div>
+            </section>
+
+            <details class="povcheck-details povcheck-presets">
+              <summary>Saved presets and shareable settings</summary>
+              <div class="povcheck-preset-grid" role="group" aria-label="Preset controls">
+                <div class="povcheck-setting">
+                  <label class="povcheck-label" for="povcheck-preset-name">Preset name</label>
+                  <input id="povcheck-preset-name" class="povcheck-text" type="text" maxlength="80" placeholder="Editorial review defaults">
+                </div>
+                <div class="povcheck-setting">
+                  <label class="povcheck-label" for="povcheck-preset-select">Saved presets</label>
+                  <select id="povcheck-preset-select" class="povcheck-select" aria-label="Saved presets"></select>
+                </div>
+                <div class="povcheck-preset-actions">
+                  <button type="button" id="povcheck-preset-save" class="btn-secondary">Save</button>
+                  <button type="button" id="povcheck-preset-load" class="btn-ghost">Load</button>
+                  <button type="button" id="povcheck-preset-delete" class="btn-ghost">Delete</button>
+                  <button type="button" id="povcheck-share-config" class="btn-ghost">Copy share link</button>
+                  <button type="button" id="povcheck-preset-export" class="btn-ghost">Export presets</button>
+                  <button type="button" id="povcheck-preset-import" class="btn-ghost">Import presets</button>
+                  <input id="povcheck-presets-file" class="visually-hidden" type="file" accept=".json" aria-label="Import presets JSON">
+                </div>
+              </div>
+              <p id="povcheck-preset-status" class="povcheck-results-status" aria-live="polite"></p>
+            </details>
+
+            <div class="povcheck-controls">
               <div class="povcheck-actions">
                 <button type="submit" class="btn-primary">Check</button>
                 <button type="button" id="povcheck-clear" class="btn-ghost">Clear</button>
@@ -298,6 +365,14 @@
             </div>
           </div>
 
+          <div class="povcheck-results-actions">
+            <button type="button" id="povcheck-copy-results" class="btn-ghost">Copy results</button>
+            <button type="button" id="povcheck-export-csv" class="btn-ghost">Export CSV</button>
+            <button type="button" id="povcheck-export-json" class="btn-ghost">Export JSON</button>
+            <button type="button" id="povcheck-copy-html" class="btn-ghost">Copy highlighted HTML</button>
+            <p id="povcheck-results-status" class="povcheck-results-status" aria-live="polite"></p>
+          </div>
+
           <details class="povcheck-details povcheck-color-details">
             <summary>Highlight colors</summary>
             <div class="povcheck-color-grid" role="group" aria-label="Highlight color options">
@@ -318,6 +393,16 @@
               <button type="button" id="povcheck-reset-colors" class="btn-ghost">Reset colors</button>
             </div>
           </details>
+
+          <section class="povcheck-drift" aria-labelledby="povcheck-drift-title">
+            <div class="povcheck-drift-header">
+              <h3 id="povcheck-drift-title">POV drift by sentence</h3>
+              <p id="povcheck-drift-summary" class="povcheck-help">Run a check to inspect sentence-level point-of-view shifts.</p>
+            </div>
+            <ol id="povcheck-drift-list" class="povcheck-drift-list">
+              <li class="povcheck-token-empty">Run a check to inspect sentence-level point-of-view shifts.</li>
+            </ol>
+          </section>
 
           <div class="povcheck-output-header">
             <h3>Highlighted text</h3>
@@ -392,6 +477,8 @@
     </div>
   </footer>
 
+  <script defer src="js/vendor/fflate/fflate.min.js"></script>
+  <script defer src="js/vendor/pdfjs/pdf.min.js"></script>
   <script defer src="js/tools/point-of-view-checker.js"></script>
   <script defer src="js/accounts/tools-config.js"></script>
   <script defer src="js/accounts/tools-auth.js"></script>
