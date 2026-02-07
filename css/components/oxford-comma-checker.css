@@ -100,6 +100,39 @@
     font-weight:600;
     font-family:'Poppins';
   }
+  .oxford-input-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px 12px;
+    flex-wrap:wrap;
+  }
+  .oxford-field-actions{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .oxford-field-btn{
+    min-height:34px;
+    padding:6px 12px;
+    border-radius:10px;
+    font-size:.9rem;
+  }
+  .oxford-field-btn:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+  }
+  .oxford-input-status{
+    margin:0;
+    min-height:1.2em;
+    color:var(--text-muted);
+    font-size:.9rem;
+    line-height:1.4;
+  }
+  .oxford-input-status[data-tone="success"]{color:var(--success);}
+  .oxford-input-status[data-tone="error"]{color:var(--danger);}
+  .oxford-input-status[data-tone="info"]{color:color-mix(in srgb,var(--primary) 74%, #ffffff 26%);}
   .oxford-textarea{
     box-sizing:border-box;
     width:100%;
@@ -408,5 +441,15 @@
     margin:0;
     color:var(--text-muted);
     font-size:.9rem;
+  }
+
+  @media (max-width: 860px){
+    .oxford-input-head{
+      align-items:flex-start;
+    }
+    .oxford-field-actions{
+      width:100%;
+      justify-content:flex-start;
+    }
   }
 }
