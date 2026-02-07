@@ -378,6 +378,11 @@
     break-inside:avoid;
     margin-bottom:12px;
   }
+  .wordfreq-row.is-selected{
+    border-color:color-mix(in srgb,var(--primary) 42%, transparent);
+    background:color-mix(in srgb,var(--primary) 14%, #02070d 86%);
+    box-shadow:0 12px 26px rgba(0,0,0,.24);
+  }
 
   .wordfreq-meta{
     display:grid;
@@ -497,6 +502,73 @@
     color:#041019;
     border-radius:4px;
     padding:0 2px;
+  }
+
+  .wordfreq-fulltext-panel{
+    border-radius:14px;
+    border:1px solid color-mix(in srgb,var(--primary) 16%, transparent);
+    background:color-mix(in srgb,var(--surface) 94%, #02070d 6%);
+    padding:12px 14px;
+    display:grid;
+    gap:10px;
+  }
+
+  .wordfreq-fulltext-panel h3{
+    margin:0;
+    font-size:1rem;
+  }
+
+  .wordfreq-fulltext-summary{
+    margin:0;
+    color:var(--text-muted);
+    font-size:.94rem;
+  }
+
+  .wordfreq-fulltext{
+    margin:0;
+    border-radius:12px;
+    border:1px solid color-mix(in srgb,var(--primary) 14%, transparent);
+    background:color-mix(in srgb,var(--surface) 96%, #03080f 4%);
+    padding:12px 14px;
+    max-height:360px;
+    overflow:auto;
+    white-space:pre-wrap;
+    word-break:break-word;
+    line-height:1.7;
+    color:var(--text-muted);
+    scrollbar-gutter:stable;
+  }
+
+  .wordfreq-fulltext-token{
+    border:none;
+    background:transparent;
+    color:inherit;
+    font:inherit;
+    line-height:inherit;
+    padding:0 1px;
+    margin:0;
+    border-radius:4px;
+    cursor:pointer;
+    text-align:left;
+    transition:background .18s ease, color .18s ease, box-shadow .18s ease;
+  }
+
+  .wordfreq-fulltext-token:hover,
+  .wordfreq-fulltext-token:focus-visible{
+    background:color-mix(in srgb,var(--primary) 18%, transparent);
+    color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
+    outline:none;
+  }
+
+  .wordfreq-fulltext-token.is-hit{
+    background:color-mix(in srgb,var(--primary) 58%, #ffffff 42%);
+    color:#041019;
+  }
+
+  .wordfreq-fulltext-token.is-selected{
+    background:color-mix(in srgb,var(--primary) 74%, #ffffff 26%);
+    color:#041019;
+    box-shadow:0 0 0 1px color-mix(in srgb,var(--primary) 72%, #ffffff 28%);
   }
 
   .wordfreq-footnote{
