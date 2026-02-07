@@ -102,6 +102,15 @@
     excludeTerms: String(excludeInput.value || '')
   };
 
+  const DEFAULT_SUMMARY = 'Click Analyze to run the built-in example, or paste your own text.';
+  const DEFAULT_EMPTY = 'Click Analyze to run the built-in example.';
+
+  const getAnalysisSourceText = () => {
+    const userText = normalizeWhitespace(textInput.value || '');
+    if (userText.trim()) return userText;
+    return normalizeWhitespace(textInput.placeholder || '');
+  };
+
   const formatNumber = (n) => Number(n || 0).toLocaleString('en-US');
 
   const clampInt = (value, min, max, fallback) => {
@@ -903,12 +912,13 @@
     topInput.value = String(settings.top);
     minLengthInput.value = String(settings.minLength);
 
-    const analysis = analyzeInput(textInput.value, settings);
+    const analysisSource = getAnalysisSourceText();
+    const analysis = analyzeInput(analysisSource, settings);
 
     if (!analysis.sourceTokenCount) {
       lastAnalysis = null;
       selectedTermKey = '';
-      renderEmpty('Paste text and submit to see the most common words.', 'Waiting for input.');
+      renderEmpty(DEFAULT_SUMMARY, DEFAULT_EMPTY);
       markSessionDirty();
       return;
     }
@@ -1097,7 +1107,7 @@
     selectedTermKey = '';
     lastAnalysis = null;
     hideOccurrences();
-    renderEmpty('Paste text and submit to see the most common words.', 'Paste text to get started.');
+    renderEmpty(DEFAULT_SUMMARY, DEFAULT_EMPTY);
     markSessionDirty();
     textInput.focus();
   });
@@ -1145,18 +1155,18 @@
   [stopwordsSelect, ngramSelect, scoreSelect, sortSelect, stemInput, foldInput, numbersInput].forEach((el) => {
     el?.addEventListener('change', () => {
       markSessionDirty();
-      if (!textInput.value.trim()) return;
+      if (!getAnalysisSourceText().trim()) return;
       runAnalysis();
     });
   });
 
   topInput.addEventListener('change', () => {
-    if (!textInput.value.trim()) return;
+    if (!getAnalysisSourceText().trim()) return;
     runAnalysis();
   });
 
   minLengthInput.addEventListener('change', () => {
-    if (!textInput.value.trim()) return;
+    if (!getAnalysisSourceText().trim()) return;
     runAnalysis();
   });
 
@@ -1205,5 +1215,5 @@
     });
   });
 
-  renderEmpty('Paste text and submit to see the most common words.', 'Waiting for input.');
+  renderEmpty(DEFAULT_SUMMARY, DEFAULT_EMPTY);
 })();
