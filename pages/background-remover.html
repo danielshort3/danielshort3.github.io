@@ -335,6 +335,35 @@
                   <label class="bgtool-label" for="bgtool-feather">Feather <span id="bgtool-feather-value" class="bgtool-value">0 px</span></label>
                   <input id="bgtool-feather" type="range" min="0" max="12" value="0" step="1">
                 </div>
+                <label class="bgtool-option">
+                  <input id="bgtool-silhouette-enabled" type="checkbox" checked>
+                  Add silhouette ring from original background color
+                </label>
+                <div class="bgtool-range">
+                  <label class="bgtool-label" for="bgtool-silhouette-width">Silhouette width <span id="bgtool-silhouette-width-value" class="bgtool-value">6 px</span></label>
+                  <input id="bgtool-silhouette-width" type="range" min="0" max="24" value="6" step="1">
+                </div>
+                <div class="bgtool-range">
+                  <label class="bgtool-label" for="bgtool-silhouette-sample">Color sample distance <span id="bgtool-silhouette-sample-value" class="bgtool-value">14 px</span></label>
+                  <input id="bgtool-silhouette-sample" type="range" min="1" max="40" value="14" step="1">
+                </div>
+                <div class="bgtool-two-col">
+                  <div class="bgtool-control">
+                    <label class="bgtool-label" for="bgtool-silhouette-color-mode">Silhouette color</label>
+                    <select id="bgtool-silhouette-color-mode" class="bgtool-select">
+                      <option value="auto" selected>Auto-sample from background</option>
+                      <option value="manual">Manual color</option>
+                    </select>
+                  </div>
+                  <div class="bgtool-control" id="bgtool-silhouette-color-wrap" hidden>
+                    <label class="bgtool-label" for="bgtool-silhouette-color">Manual color</label>
+                    <div class="bgtool-color-row">
+                      <input id="bgtool-silhouette-color" class="bgtool-color" type="color" value="#ffffff" aria-label="Silhouette color">
+                      <span id="bgtool-silhouette-color-label" class="bgtool-chip">#FFFFFF</span>
+                    </div>
+                  </div>
+                </div>
+                <p class="bgtool-help-text">The silhouette ring sits behind the cutout edge to hide leftover fringe and keep a clean contour.</p>
               </fieldset>
 
               <fieldset class="bgtool-fieldset" id="bgtool-output-settings">

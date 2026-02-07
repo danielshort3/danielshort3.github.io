@@ -37,6 +37,15 @@
   const thresholdValue = $('#bgtool-threshold-value');
   const featherInput = $('#bgtool-feather');
   const featherValue = $('#bgtool-feather-value');
+  const silhouetteEnabledInput = $('#bgtool-silhouette-enabled');
+  const silhouetteWidthInput = $('#bgtool-silhouette-width');
+  const silhouetteWidthValue = $('#bgtool-silhouette-width-value');
+  const silhouetteSampleInput = $('#bgtool-silhouette-sample');
+  const silhouetteSampleValue = $('#bgtool-silhouette-sample-value');
+  const silhouetteColorModeSelect = $('#bgtool-silhouette-color-mode');
+  const silhouetteColorWrap = $('#bgtool-silhouette-color-wrap');
+  const silhouetteColorInput = $('#bgtool-silhouette-color');
+  const silhouetteColorLabel = $('#bgtool-silhouette-color-label');
 
   const formatSelect = $('#bgtool-format');
   const bgWrap = $('#bgtool-bg-wrap');
@@ -96,6 +105,11 @@
     maskType: 'alpha',
     thresholdPct: 50,
     featherPx: 0,
+    silhouetteEnabled: true,
+    silhouetteWidthPx: 6,
+    silhouetteSamplePx: 14,
+    silhouetteColorMode: 'auto',
+    silhouetteColor: '#FFFFFF',
     outputFormat: 'image/png',
     bgColor: '#ffffff',
   };
@@ -112,6 +126,7 @@
     dirtyMask: false,
     drawing: false,
     rafPending: false,
+    sampledBgCache: null,
   };
 
   active.sourceCtx = active.sourceCanvas.getContext('2d', { alpha: false });
@@ -169,6 +184,13 @@
     const cleaned = String(hex || '').replace('#', '').trim();
     const num = parseInt(cleaned || '000000', 16);
     return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+  };
+
+  const rgbToHex = (r, g, b) => {
+    const rr = clamp(Math.round(Number(r) || 0), 0, 255).toString(16).padStart(2, '0');
+    const gg = clamp(Math.round(Number(g) || 0), 0, 255).toString(16).padStart(2, '0');
+    const bb = clamp(Math.round(Number(b) || 0), 0, 255).toString(16).padStart(2, '0');
+    return `#${rr}${gg}${bb}`.toUpperCase();
   };
 
   const fileNameBase = (name) => String(name || 'image').replace(/\.[a-z0-9]+$/i, '');
@@ -270,6 +292,9 @@
     if (thresholdWrap) thresholdWrap.hidden = maskType !== 'binary';
     if (thresholdValue) thresholdValue.textContent = `${state.thresholdPct}%`;
     if (featherValue) featherValue.textContent = `${state.featherPx} px`;
+    if (silhouetteWidthValue) silhouetteWidthValue.textContent = `${state.silhouetteWidthPx} px`;
+    if (silhouetteSampleValue) silhouetteSampleValue.textContent = `${state.silhouetteSamplePx} px`;
+    if (silhouetteColorLabel) silhouetteColorLabel.textContent = state.silhouetteColor;
   };
 
   const updateOutputControls = () => {
@@ -278,6 +303,17 @@
     const needsBg = fmt === 'image/jpeg' || fmt === 'image/webp-solid';
     if (bgWrap) bgWrap.hidden = !needsBg;
     markSessionDirty();
+  };
+
+  const updateSilhouetteControls = () => {
+    if (silhouetteEnabledInput) silhouetteEnabledInput.checked = !!state.silhouetteEnabled;
+    const enabled = !!state.silhouetteEnabled;
+    if (silhouetteWidthInput) silhouetteWidthInput.disabled = !enabled;
+    if (silhouetteSampleInput) silhouetteSampleInput.disabled = !enabled;
+    if (silhouetteColorModeSelect) silhouetteColorModeSelect.disabled = !enabled;
+    const manual = enabled && state.silhouetteColorMode === 'manual';
+    if (silhouetteColorWrap) silhouetteColorWrap.hidden = !manual;
+    if (silhouetteColorInput) silhouetteColorInput.disabled = !manual;
   };
 
   const updateRefineControls = () => {
@@ -464,6 +500,183 @@
     return active.derivedMaskCanvas;
   };
 
+  const rgbToCss = ({ r, g, b }) => `rgb(${clamp(r, 0, 255)}, ${clamp(g, 0, 255)}, ${clamp(b, 0, 255)})`;
+
+  const createSilhouetteRingCanvas = (maskCanvas, widthPx) => {
+    const w = maskCanvas?.width || 0;
+    const h = maskCanvas?.height || 0;
+    const width = clamp(Number(widthPx) || 0, 0, 64);
+    if (!w || !h || width < 0.35) return null;
+
+    const ring = document.createElement('canvas');
+    ring.width = w;
+    ring.height = h;
+    const ctx = ring.getContext('2d', { alpha: true, willReadFrequently: true });
+    if (!ctx) return null;
+
+    // Build an outside-only contour band by blurring the matte, then removing the subject area.
+    const blurPx = clamp((width * 0.9) + 0.6, 0.6, 64);
+    ctx.clearRect(0, 0, w, h);
+    ctx.filter = `blur(${blurPx}px)`;
+    ctx.drawImage(maskCanvas, 0, 0, w, h);
+    ctx.filter = 'none';
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.drawImage(maskCanvas, 0, 0, w, h);
+    ctx.globalCompositeOperation = 'source-over';
+
+    return ring;
+  };
+
+  const weightedMedianFromHistogram = (hist, totalWeight) => {
+    if (!hist || !hist.length || totalWeight <= 0) return 255;
+    const target = totalWeight * 0.5;
+    let acc = 0;
+    for (let i = 0; i < hist.length; i++) {
+      acc += hist[i];
+      if (acc >= target) return i;
+    }
+    return 255;
+  };
+
+  const sampleBorderColor = (srcData, w, h) => {
+    const hr = new Float64Array(256);
+    const hg = new Float64Array(256);
+    const hb = new Float64Array(256);
+    let totalWeight = 0;
+
+    const samplePixel = (x, y, weight) => {
+      const idx = ((y * w) + x) * 4;
+      const r = srcData[idx];
+      const g = srcData[idx + 1];
+      const b = srcData[idx + 2];
+      hr[r] += weight;
+      hg[g] += weight;
+      hb[b] += weight;
+      totalWeight += weight;
+    };
+
+    const step = Math.max(1, Math.round(Math.max(w, h) / 256));
+    for (let x = 0; x < w; x += step) {
+      samplePixel(x, 0, 1);
+      samplePixel(x, h - 1, 1);
+    }
+    for (let y = 0; y < h; y += step) {
+      samplePixel(0, y, 1);
+      samplePixel(w - 1, y, 1);
+    }
+
+    return {
+      r: weightedMedianFromHistogram(hr, totalWeight),
+      g: weightedMedianFromHistogram(hg, totalWeight),
+      b: weightedMedianFromHistogram(hb, totalWeight),
+    };
+  };
+
+  const sampleBackgroundColorAroundMask = (sourceCtx, maskCanvas, samplePx) => {
+    const w = maskCanvas?.width || 0;
+    const h = maskCanvas?.height || 0;
+    if (!sourceCtx || !w || !h) return { r: 255, g: 255, b: 255 };
+
+    const src = sourceCtx.getImageData(0, 0, w, h);
+    const srcData = src.data;
+    const sampleRing = createSilhouetteRingCanvas(maskCanvas, samplePx);
+    if (!sampleRing) return sampleBorderColor(srcData, w, h);
+
+    const ringCtx = sampleRing.getContext('2d', { alpha: true, willReadFrequently: true });
+    if (!ringCtx) return sampleBorderColor(srcData, w, h);
+    const ringData = ringCtx.getImageData(0, 0, w, h).data;
+
+    const hr = new Float64Array(256);
+    const hg = new Float64Array(256);
+    const hb = new Float64Array(256);
+    let totalWeight = 0;
+
+    for (let i = 0; i < ringData.length; i += 4) {
+      const weight = ringData[i + 3];
+      if (weight < 8) continue;
+      hr[srcData[i]] += weight;
+      hg[srcData[i + 1]] += weight;
+      hb[srcData[i + 2]] += weight;
+      totalWeight += weight;
+    }
+
+    if (totalWeight < 2048) {
+      return sampleBorderColor(srcData, w, h);
+    }
+
+    return {
+      r: weightedMedianFromHistogram(hr, totalWeight),
+      g: weightedMedianFromHistogram(hg, totalWeight),
+      b: weightedMedianFromHistogram(hb, totalWeight),
+    };
+  };
+
+  const resolveSilhouetteColorForActive = (job, samplePx, maskCanvas) => {
+    if (state.silhouetteColorMode === 'manual') {
+      return hexToRgb(state.silhouetteColor);
+    }
+    const mask = maskCanvas || active.maskCanvas;
+    if (!job || !active.sourceCtx || !mask?.width || !mask?.height) {
+      return { r: 255, g: 255, b: 255 };
+    }
+    const normalizedSamplePx = clamp(Number(samplePx) || 1, 1, 64);
+    const key = [
+      job.id,
+      `${mask.width}x${mask.height}`,
+      normalizedSamplePx.toFixed(2),
+      state.maskType,
+      state.thresholdPct,
+      state.featherPx,
+    ].join('|');
+    if (active.sampledBgCache && active.sampledBgCache.key === key) {
+      return active.sampledBgCache.rgb;
+    }
+    const rgb = sampleBackgroundColorAroundMask(active.sourceCtx, mask, normalizedSamplePx);
+    active.sampledBgCache = { key, rgb };
+    return rgb;
+  };
+
+  const analyzeMaskBlobQuality = async (maskBlob, width, height) => {
+    const bitmap = await createImageBitmap(maskBlob);
+    const scan = document.createElement('canvas');
+    scan.width = width;
+    scan.height = height;
+    const sctx = scan.getContext('2d', { alpha: true, willReadFrequently: true });
+    if (!sctx) {
+      if (bitmap && typeof bitmap.close === 'function') bitmap.close();
+      return { coverage: 0.5, softRatio: 0.05 };
+    }
+
+    sctx.clearRect(0, 0, width, height);
+    sctx.drawImage(bitmap, 0, 0, width, height);
+    if (bitmap && typeof bitmap.close === 'function') bitmap.close();
+
+    const data = sctx.getImageData(0, 0, width, height).data;
+    const sampleStride = (width * height) > 6_000_000 ? 2 : 1;
+    const jump = 4 * sampleStride;
+    let samples = 0;
+    let kept = 0;
+    let soft = 0;
+
+    for (let i = 0; i < data.length; i += jump) {
+      const a = data[i + 3];
+      samples++;
+      if (a > 8) kept++;
+      if (a > 8 && a < 245) soft++;
+    }
+
+    const coverage = kept / Math.max(1, samples);
+    const softRatio = soft / Math.max(1, kept);
+    return { coverage, softRatio };
+  };
+
+  const maskLooksSuspicious = ({ coverage, softRatio }) => {
+    if (!Number.isFinite(coverage) || !Number.isFinite(softRatio)) return true;
+    if (coverage < 0.003 || coverage > 0.995) return true;
+    if (coverage > 0.97 && softRatio < 0.001) return true;
+    return false;
+  };
+
   const renderActivePreview = () => {
     if (!active.job || active.job.status !== 'ready') {
       previewCtx.clearRect(0, 0, canvas.width, canvas.height);
@@ -517,12 +730,38 @@
       return;
     }
 
+    const previewSilhouetteWidth = state.silhouetteWidthPx / exportScale;
+    const previewSilhouetteSample = state.silhouetteSamplePx / exportScale;
+    const silhouetteOn = !!state.silhouetteEnabled && previewSilhouetteWidth > 0;
+    const silhouetteRgb = silhouetteOn ? resolveSilhouetteColorForActive(job, previewSilhouetteSample, maskForPreview) : null;
+
     // Cutout view: apply the (possibly edited) mask to the processing-size source.
     previewCtx.drawImage(active.sourceCanvas, 0, 0);
     previewCtx.globalCompositeOperation = 'destination-in';
     previewCtx.drawImage(maskForPreview, 0, 0);
+    if (silhouetteOn && silhouetteRgb) {
+      const ring = createSilhouetteRingCanvas(maskForPreview, previewSilhouetteWidth);
+      if (ring) {
+        const ringCtx = ring.getContext('2d', { alpha: true });
+        if (ringCtx) {
+          ringCtx.globalCompositeOperation = 'source-in';
+          ringCtx.fillStyle = rgbToCss(silhouetteRgb);
+          ringCtx.fillRect(0, 0, ring.width, ring.height);
+          ringCtx.globalCompositeOperation = 'source-over';
+          previewCtx.globalCompositeOperation = 'destination-over';
+          previewCtx.drawImage(ring, 0, 0);
+        }
+      }
+    }
     previewCtx.globalCompositeOperation = 'source-over';
-    if (maskLabel) maskLabel.textContent = `Mask: ${state.maskType === 'binary' ? 'binary' : 'alpha matte'} · Feather ${state.featherPx}px`;
+    if (maskLabel) {
+      const maskPart = `Mask: ${state.maskType === 'binary' ? 'binary' : 'alpha matte'} · Feather ${state.featherPx}px`;
+      if (silhouetteOn && silhouetteRgb) {
+        maskLabel.textContent = `${maskPart} · Silhouette ${rgbToHex(silhouetteRgb.r, silhouetteRgb.g, silhouetteRgb.b)} (${state.silhouetteWidthPx}px)`;
+      } else {
+        maskLabel.textContent = maskPart;
+      }
+    }
 
     updateRefineControls();
     updateActionButtons();
@@ -564,6 +803,7 @@
     } catch {}
 
     active.dirtyMask = false;
+    active.sampledBgCache = null;
     markSessionDirty();
   };
 
@@ -571,6 +811,7 @@
     active.job = job;
     active.dirtyMask = false;
     active.drawing = false;
+    active.sampledBgCache = null;
 
     if (!job || job.status !== 'ready') {
       schedulePreviewRender();
@@ -679,22 +920,53 @@
     cutoutCtx.drawImage(exportMaskCanvas, 0, 0);
     cutoutCtx.globalCompositeOperation = 'source-over';
 
-    // Optional solid background fill (for JPEG / solid WebP).
-    if (bgFillCss) {
-      const outCanvas = document.createElement('canvas');
-      outCanvas.width = w;
-      outCanvas.height = h;
-      const outCtx = outCanvas.getContext('2d', { alpha: true });
-      if (!outCtx) throw new Error('Unable to create export canvas.');
-      outCtx.fillStyle = bgFillCss;
-      outCtx.fillRect(0, 0, w, h);
-      outCtx.drawImage(cutoutCanvas, 0, 0);
+    const silhouetteOn = !!state.silhouetteEnabled && state.silhouetteWidthPx > 0;
+
+    // Fast path: transparent cutout with no silhouette layer.
+    if (!bgFillCss && !silhouetteOn) {
       if (bitmap && typeof bitmap.close === 'function') bitmap.close();
-      return outCanvas;
+      return cutoutCanvas;
     }
 
+    const outCanvas = document.createElement('canvas');
+    outCanvas.width = w;
+    outCanvas.height = h;
+    const outCtx = outCanvas.getContext('2d', { alpha: true });
+    if (!outCtx) throw new Error('Unable to create export canvas.');
+
+    if (bgFillCss) {
+      outCtx.fillStyle = bgFillCss;
+      outCtx.fillRect(0, 0, w, h);
+    }
+
+    if (silhouetteOn) {
+      const exportSilhouetteWidth = state.silhouetteWidthPx / maskScale;
+      const exportSilhouetteSample = state.silhouetteSamplePx / maskScale;
+      const maskForSilhouette = deriveMaskCanvas(active.maskCanvas, {
+        targetW: job.processing.width,
+        targetH: job.processing.height,
+        maskType: state.maskType,
+        thresholdPct: state.thresholdPct,
+        featherPx: state.featherPx,
+        blurScale: 1 / maskScale,
+      });
+      const ring = createSilhouetteRingCanvas(maskForSilhouette, exportSilhouetteWidth);
+      if (ring) {
+        const ringRgb = resolveSilhouetteColorForActive(job, exportSilhouetteSample, maskForSilhouette);
+        const ringCtx = ring.getContext('2d', { alpha: true });
+        if (ringCtx) {
+          ringCtx.globalCompositeOperation = 'source-in';
+          ringCtx.fillStyle = rgbToCss(ringRgb);
+          ringCtx.fillRect(0, 0, ring.width, ring.height);
+          ringCtx.globalCompositeOperation = 'source-over';
+          outCtx.drawImage(ring, 0, 0, w, h);
+        }
+      }
+    }
+
+    outCtx.drawImage(cutoutCanvas, 0, 0);
     if (bitmap && typeof bitmap.close === 'function') bitmap.close();
-    return cutoutCanvas;
+    return outCanvas;
   };
 
   const ensureUtif = async () => {
@@ -892,11 +1164,11 @@
 
     const lib = await loadBgRemoval();
     const device = 'cpu';
-    const model = String(methodSelect?.value || 'ai-best') === 'ai-fast' ? 'isnet_quint8' : 'isnet_fp16';
+    const requestedMethod = String(methodSelect?.value || 'ai-best');
+    const requestedModel = requestedMethod === 'ai-fast' ? 'isnet_quint8' : 'isnet_fp16';
 
     const config = {
       device,
-      model,
       // Default publicPath uses staticimgly.com; make it explicit so it's easy to override/host later.
       publicPath: 'https://staticimgly.com/@imgly/background-removal-data/${PACKAGE_VERSION}/dist/',
       output: { format: 'image/png', quality: 0.92 },
@@ -911,18 +1183,41 @@
       },
     };
 
-    let maskBlob;
-    try {
-      maskBlob = await lib.segmentForeground(rgbaBlob, config);
-    } finally {
-      if (currentRunId === state.runId) hideProgress();
-    }
+    const runSegmentation = async (modelName) => {
+      let result;
+      try {
+        result = await lib.segmentForeground(rgbaBlob, { ...config, model: modelName });
+      } finally {
+        if (currentRunId === state.runId) hideProgress();
+      }
+      if (!(result instanceof Blob)) {
+        throw new Error('AI model did not return a mask blob.');
+      }
+      return result;
+    };
+
+    let modelUsed = requestedModel;
+    let maskBlob = await runSegmentation(modelUsed);
     if (currentRunId !== state.runId) return;
 
-    if (!(maskBlob instanceof Blob)) {
-      throw new Error('AI model did not return a mask blob.');
+    let qualityStats = await analyzeMaskBlobQuality(maskBlob, processing.width, processing.height);
+    let qualityNote = '';
+
+    if (maskLooksSuspicious(qualityStats) && modelUsed === 'isnet_quint8') {
+      setStatus(`Low-confidence mask for ${job.name}. Retrying with best model…`);
+      modelUsed = 'isnet_fp16';
+      maskBlob = await runSegmentation(modelUsed);
+      if (currentRunId !== state.runId) return;
+      qualityStats = await analyzeMaskBlobQuality(maskBlob, processing.width, processing.height);
+      qualityNote = ' Auto-retried with best model.';
     }
 
+    if (maskLooksSuspicious(qualityStats)) {
+      qualityNote += ' Edges may need manual refine.';
+    }
+
+    if (job.maskBlob && job.maskUrl) URL.revokeObjectURL(job.maskUrl);
+    job.baseMaskBlob = maskBlob;
     job.maskBlob = maskBlob;
     job.maskUrl = URL.createObjectURL(maskBlob);
 
@@ -949,7 +1244,8 @@
     job.cutoutBlob = cutoutBlob;
     job.cutoutUrl = URL.createObjectURL(cutoutBlob);
 
-    job.message = `AI processed at ${processing.maxDim}px (CPU).`;
+    const modelLabel = modelUsed === 'isnet_quint8' ? 'fast' : 'best';
+    job.message = `AI processed at ${processing.maxDim}px (CPU, ${modelLabel} model).${qualityNote}`;
   };
 
   const processJob = async (job, currentRunId) => {
@@ -1062,6 +1358,7 @@
     state.activeJobId = null;
     active.job = null;
     active.dirtyMask = false;
+    active.sampledBgCache = null;
     active.sourceCanvas.width = 1;
     active.sourceCanvas.height = 1;
     active.maskCanvas.width = 1;
@@ -1119,6 +1416,13 @@
   const updateLegacyLabels = () => {
     if (colorLabel) colorLabel.textContent = normalizeHex(colorInput?.value || '#ffffff');
     if (toleranceValue) toleranceValue.textContent = String(toInt(toleranceInput?.value, 24));
+  };
+
+  const updateSilhouetteLabels = () => {
+    state.silhouetteColor = normalizeHex(silhouetteColorInput?.value || state.silhouetteColor);
+    if (silhouetteColorLabel) silhouetteColorLabel.textContent = state.silhouetteColor;
+    if (silhouetteWidthValue) silhouetteWidthValue.textContent = `${state.silhouetteWidthPx} px`;
+    if (silhouetteSampleValue) silhouetteSampleValue.textContent = `${state.silhouetteSamplePx} px`;
   };
 
   const applyBrush = (x, y) => {
@@ -1194,6 +1498,7 @@
     active.job.cutoutBlob = null;
     active.job.maskUrl = '';
     active.job.cutoutUrl = '';
+    active.sampledBgCache = null;
     renderFileList();
     renderResults();
     updateActionButtons();
@@ -1208,6 +1513,7 @@
     active.maskCtx.drawImage(maskBitmap, 0, 0, active.maskCanvas.width, active.maskCanvas.height);
     if (maskBitmap && typeof maskBitmap.close === 'function') maskBitmap.close();
     active.dirtyMask = true;
+    active.sampledBgCache = null;
     schedulePreviewRender();
     markSessionDirty();
   };
@@ -1335,6 +1641,37 @@
     schedulePreviewRender();
     markSessionDirty();
   });
+  silhouetteEnabledInput?.addEventListener('change', () => {
+    state.silhouetteEnabled = !!silhouetteEnabledInput.checked;
+    updateSilhouetteControls();
+    schedulePreviewRender();
+    markSessionDirty();
+  });
+  silhouetteWidthInput?.addEventListener('input', () => {
+    state.silhouetteWidthPx = clamp(toInt(silhouetteWidthInput.value, 6), 0, 48);
+    updateMaskControls();
+    schedulePreviewRender();
+    markSessionDirty();
+  });
+  silhouetteSampleInput?.addEventListener('input', () => {
+    state.silhouetteSamplePx = clamp(toInt(silhouetteSampleInput.value, 14), 1, 64);
+    active.sampledBgCache = null;
+    updateMaskControls();
+    schedulePreviewRender();
+    markSessionDirty();
+  });
+  silhouetteColorModeSelect?.addEventListener('change', () => {
+    state.silhouetteColorMode = String(silhouetteColorModeSelect.value || 'auto') === 'manual' ? 'manual' : 'auto';
+    active.sampledBgCache = null;
+    updateSilhouetteControls();
+    schedulePreviewRender();
+    markSessionDirty();
+  });
+  silhouetteColorInput?.addEventListener('input', () => {
+    updateSilhouetteLabels();
+    schedulePreviewRender();
+    markSessionDirty();
+  });
 
   formatSelect?.addEventListener('change', updateOutputControls);
   bgInput?.addEventListener('input', () => {
@@ -1417,6 +1754,9 @@
       'Mask type': state.maskType,
       Threshold: `${state.thresholdPct}%`,
       Feather: `${state.featherPx}px`,
+      Silhouette: state.silhouetteEnabled
+        ? `${state.silhouetteWidthPx}px · ${state.silhouetteColorMode === 'manual' ? `manual ${state.silhouetteColor}` : `auto sample ${state.silhouetteSamplePx}px`}`
+        : 'off',
       Format: String(formatSelect?.value || '').trim(),
     };
 
@@ -1455,10 +1795,18 @@
   });
 
   // Initial UI state.
+  state.silhouetteEnabled = silhouetteEnabledInput ? !!silhouetteEnabledInput.checked : state.silhouetteEnabled;
+  state.silhouetteWidthPx = clamp(toInt(silhouetteWidthInput?.value, state.silhouetteWidthPx), 0, 48);
+  state.silhouetteSamplePx = clamp(toInt(silhouetteSampleInput?.value, state.silhouetteSamplePx), 1, 64);
+  state.silhouetteColorMode = String(silhouetteColorModeSelect?.value || state.silhouetteColorMode) === 'manual' ? 'manual' : 'auto';
+  state.silhouetteColor = normalizeHex(silhouetteColorInput?.value || state.silhouetteColor);
+
   showOverlay('Click or drop photos to start');
   updateSummary();
   updateMethodVisibility();
   updateLegacyLabels();
+  updateSilhouetteLabels();
+  updateSilhouetteControls();
   updateBgLabel();
   updateMaskControls();
   updateOutputControls();
