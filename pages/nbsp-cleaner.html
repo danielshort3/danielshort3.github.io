@@ -234,7 +234,15 @@
           <h2>Paste text to clean</h2>
           <p class="nbsp-subtitle">We’ll show you what we found, then give you the cleaned text.</p>
           <form id="nbsp-form" class="nbsp-form" novalidate>
-            <label class="nbsp-label" for="nbsp-input">Text with potential hard spaces</label>
+            <div class="nbsp-input-head">
+              <label class="nbsp-label" for="nbsp-input">Text with potential hard spaces</label>
+              <div class="nbsp-field-actions">
+                <button type="button" id="nbsp-paste" class="btn-ghost nbsp-field-btn">Paste</button>
+                <button type="button" id="nbsp-import" class="btn-ghost nbsp-field-btn">Import</button>
+                <input id="nbsp-file" class="visually-hidden" type="file" accept=".txt,.md,.markdown,.csv,.tsv,.json,.xml,.html,.htm,.rtf,.doc,.docx,.pdf" aria-label="Import text file">
+              </div>
+            </div>
+            <p id="nbsp-input-status" class="nbsp-input-status" aria-live="polite"></p>
             <textarea id="nbsp-input" class="nbsp-textarea" name="text" placeholder="Paste AI output or any text that may contain non-breaking spaces..." required></textarea>
             <div class="nbsp-options">
               <label class="nbsp-option">
@@ -316,6 +324,8 @@
     </div>
   </footer>
 
+  <script defer src="js/vendor/fflate/fflate.min.js"></script>
+  <script defer src="js/vendor/pdfjs/pdf.min.js"></script>
   <script defer src="js/tools/nbsp-cleaner.js"></script>
   <script defer src="js/accounts/tools-config.js"></script>
   <script defer src="js/accounts/tools-auth.js"></script>

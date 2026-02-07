@@ -234,7 +234,15 @@
           <h2>Analyze text</h2>
           <p class="oxford-subtitle">Tally Oxford comma usage in serial lists. Review the context to confirm.</p>
           <form class="oxford-form" data-oxford-form novalidate>
-            <label class="oxford-label" for="oxford-text">Text to scan</label>
+            <div class="oxford-input-head">
+              <label class="oxford-label" for="oxford-text">Text to scan</label>
+              <div class="oxford-field-actions">
+                <button type="button" id="oxford-paste" class="btn-ghost oxford-field-btn">Paste</button>
+                <button type="button" id="oxford-import" class="btn-ghost oxford-field-btn">Import</button>
+                <input id="oxford-file" class="visually-hidden" type="file" accept=".txt,.md,.markdown,.csv,.tsv,.json,.xml,.html,.htm,.rtf,.doc,.docx,.pdf" aria-label="Import text file">
+              </div>
+            </div>
+            <p id="oxford-input-status" class="oxford-input-status" aria-live="polite"></p>
             <textarea id="oxford-text" class="oxford-textarea" data-oxford-input name="text" placeholder="We packed apples, bananas and cherries for the picnic.&#10;The review covers pricing, positioning, and messaging.&#10;She thanked her friends, her mentors and her family." required></textarea>
             <fieldset class="oxford-fieldset">
               <legend class="oxford-label">Conjunctions to scan</legend>
@@ -349,6 +357,8 @@
     </div>
   </footer>
 
+  <script defer src="js/vendor/fflate/fflate.min.js"></script>
+  <script defer src="js/vendor/pdfjs/pdf.min.js"></script>
   <script defer src="js/tools/oxford-comma-checker.js"></script>
   <script defer src="js/accounts/tools-config.js"></script>
   <script defer src="js/accounts/tools-auth.js"></script>
