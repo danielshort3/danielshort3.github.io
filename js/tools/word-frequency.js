@@ -17,6 +17,9 @@
   const occurrencePanel = $('#wordfreq-occurrence-panel');
   const occurrenceSummaryEl = $('#wordfreq-occurrence-summary');
   const occurrenceListEl = $('#wordfreq-occurrence-list');
+  const fullTextPanel = $('#wordfreq-fulltext-panel');
+  const fullTextSummaryEl = $('#wordfreq-fulltext-summary');
+  const fullTextEl = $('#wordfreq-fulltext');
 
   const pasteBtn = $('#wordfreq-paste');
   const importBtn = $('#wordfreq-import');
@@ -46,6 +49,7 @@
   const MAX_IMPORT_BYTES = 24 * 1024 * 1024;
   const MAX_OCCURRENCE_SNIPPETS = 12;
   const MAX_STORED_HITS_PER_TERM = 600;
+  const MAX_FULLTEXT_PREVIEW_CHARS = 180_000;
   const PDF_WORKER_PATH = '/js/vendor/pdfjs/pdf.worker.min.js';
 
   const STOPWORDS_BASIC = new Set([
@@ -124,6 +128,8 @@
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+
+  const escapeAttr = (value) => escapeHtml(value).replace(/'/g, '&#39;');
 
   const normalizeWhitespace = (text) => String(text || '')
     .replace(/\u0000/g, '')
@@ -343,12 +349,32 @@
     const custom = buildCustomSets(settings);
 
     const normalizedTokens = [];
+    const sourceTokenViews = [];
+    const fullTokenRecords = new Map();
     let removedStopwords = 0;
     let removedExcluded = 0;
 
     sourceTokens.forEach((token) => {
       const normalized = normalizeToken(token.raw, settings);
+      sourceTokenViews.push({
+        ...token,
+        normalized
+      });
+
       if (!normalized) return;
+
+      let fullRecord = fullTokenRecords.get(normalized);
+      if (!fullRecord) {
+        fullRecord = {
+          count: 0,
+          forms: new Map(),
+          hits: []
+        };
+        fullTokenRecords.set(normalized, fullRecord);
+      }
+      fullRecord.count += 1;
+      fullRecord.forms.set(token.raw, (fullRecord.forms.get(token.raw) || 0) + 1);
+      fullRecord.hits.push({ start: token.start, end: token.end });
 
       const excluded = custom.tokenExclude.has(normalized);
       if (excluded) {
@@ -366,6 +392,16 @@
       normalizedTokens.push({
         ...token,
         normalized
+      });
+    });
+
+    const fullTokenMap = new Map();
+    fullTokenRecords.forEach((record, key) => {
+      fullTokenMap.set(key, {
+        key,
+        display: bestDisplayForm(record.forms, key),
+        count: record.count,
+        hits: record.hits
       });
     });
 
@@ -481,6 +517,9 @@
 
     return {
       text: sourceText,
+      textPreview: sourceText.length > MAX_FULLTEXT_PREVIEW_CHARS
+        ? `${sourceText.slice(0, MAX_FULLTEXT_PREVIEW_CHARS)}\n\n[Preview truncated for performance.]`
+        : sourceText,
       settings,
       sourceTokenCount: sourceTokens.length,
       analyzedTokenCount: normalizedTokens.length,
@@ -491,6 +530,9 @@
       usesPmiFallback,
       entries,
       topEntries,
+      sourceTokenViews,
+      fullTokenMap,
+      entryMap: new Map(entries.map((entry) => [entry.key, entry])),
       occurrenceMap: new Map(entries.map((entry) => [entry.key, entry.occurrences]))
     };
   };
@@ -507,8 +549,8 @@
     resultsList.innerHTML = '';
     emptyEl.hidden = false;
     emptyEl.textContent = reason;
-    if (occurrencePanel) occurrencePanel.hidden = true;
-    if (occurrenceListEl) occurrenceListEl.innerHTML = '';
+    hideOccurrences();
+    hideFullText();
   };
 
   const buildSummaryText = (analysis) => {
@@ -613,20 +655,57 @@
     }
   };
 
-  const renderOccurrences = (analysis, termKey, termLabel) => {
+  const hideFullText = () => {
+    if (fullTextPanel) fullTextPanel.hidden = true;
+    if (fullTextEl) fullTextEl.innerHTML = '';
+    if (fullTextSummaryEl) {
+      fullTextSummaryEl.textContent = 'Select a term from results (or click a word below) to highlight it throughout the source text.';
+    }
+  };
+
+  const resolveSelectedTerm = (analysis, termKey, preferredLabel) => {
+    if (!analysis) return null;
+    const key = String(termKey || '').trim();
+    if (!key) return null;
+
+    const entry = analysis.entryMap?.get(key) || null;
+    const fullToken = analysis.fullTokenMap?.get(key) || null;
+
+    if (!entry && !fullToken) return null;
+
+    const label = preferredLabel || entry?.display || fullToken?.display || key;
+    const useFullTokenHits = !key.includes(' ') && fullToken;
+    const hits = useFullTokenHits ? fullToken.hits : (entry?.occurrences || fullToken?.hits || []);
+    const total = useFullTokenHits ? fullToken.count : (entry?.count || fullToken?.count || hits.length);
+
+    return {
+      key,
+      label,
+      hits,
+      total
+    };
+  };
+
+  const renderOccurrences = (analysis, selectedTerm) => {
     if (!occurrencePanel || !occurrenceListEl || !occurrenceSummaryEl || !analysis) return;
 
-    const hits = analysis.occurrenceMap.get(termKey) || [];
+    if (!selectedTerm) {
+      hideOccurrences();
+      return;
+    }
+
+    const hits = selectedTerm.hits || [];
+    const total = Number(selectedTerm.total || hits.length);
     if (!hits.length) {
       occurrencePanel.hidden = false;
-      occurrenceSummaryEl.textContent = `No occurrences found for “${termLabel}”.`;
+      occurrenceSummaryEl.textContent = `No occurrences found for “${selectedTerm.label}”.`;
       occurrenceListEl.innerHTML = '';
       return;
     }
 
     occurrencePanel.hidden = false;
     const visibleHits = hits.slice(0, MAX_OCCURRENCE_SNIPPETS);
-    occurrenceSummaryEl.textContent = `Showing ${visibleHits.length} of ${formatNumber(hits.length)} matches for “${termLabel}”.`;
+    occurrenceSummaryEl.textContent = `Showing ${visibleHits.length} of ${formatNumber(total)} matches for “${selectedTerm.label}”.`;
 
     occurrenceListEl.innerHTML = '';
     visibleHits.forEach((hit) => {
@@ -634,6 +713,73 @@
       item.innerHTML = buildOccurrenceSnippet(analysis.text, hit.start, hit.end, 72);
       occurrenceListEl.appendChild(item);
     });
+  };
+
+  const buildFullTextHtml = (analysis, selectedTerm) => {
+    const sourceText = String(analysis?.textPreview || '');
+    const sourceTokens = Array.isArray(analysis?.sourceTokenViews) ? analysis.sourceTokenViews : [];
+    if (!sourceText) return '';
+    if (!sourceTokens.length) return escapeHtml(sourceText);
+
+    const hasSelection = Boolean(selectedTerm?.key);
+    const selectedKey = String(selectedTerm?.key || '');
+    const ranges = (selectedTerm?.hits || []).slice().sort((a, b) => a.start - b.start || a.end - b.end);
+
+    let html = '';
+    let cursor = 0;
+    let rangeIndex = 0;
+
+    for (let i = 0; i < sourceTokens.length; i += 1) {
+      const token = sourceTokens[i];
+      if (token.start >= sourceText.length) break;
+      const safeStart = Math.max(0, Math.min(token.start, sourceText.length));
+      const safeEnd = Math.max(safeStart, Math.min(token.end, sourceText.length));
+
+      html += escapeHtml(sourceText.slice(cursor, safeStart));
+
+      while (rangeIndex < ranges.length && ranges[rangeIndex].end <= safeStart) {
+        rangeIndex += 1;
+      }
+      const inSelectedRange = hasSelection &&
+        rangeIndex < ranges.length &&
+        ranges[rangeIndex].start < safeEnd &&
+        ranges[rangeIndex].end > safeStart;
+
+      const tokenText = sourceText.slice(safeStart, safeEnd);
+      if (!token.normalized) {
+        html += escapeHtml(tokenText);
+      } else {
+        const classes = ['wordfreq-fulltext-token'];
+        if (inSelectedRange) classes.push('is-hit');
+        if (selectedKey && token.normalized === selectedKey) classes.push('is-selected');
+
+        html += `<button type="button" class="${classes.join(' ')}" data-term-key="${escapeAttr(token.normalized)}" data-term-label="${escapeAttr(tokenText)}">${escapeHtml(tokenText)}</button>`;
+      }
+
+      cursor = safeEnd;
+    }
+
+    html += escapeHtml(sourceText.slice(cursor));
+    return html;
+  };
+
+  const renderFullText = (analysis, selectedTerm) => {
+    if (!fullTextPanel || !fullTextEl || !fullTextSummaryEl || !analysis) return;
+
+    fullTextPanel.hidden = false;
+    fullTextEl.innerHTML = buildFullTextHtml(analysis, selectedTerm);
+
+    if (analysis.textPreview !== analysis.text) {
+      fullTextSummaryEl.textContent = 'Showing an interactive preview of the source text. Click any word below to highlight it throughout the preview.';
+      return;
+    }
+
+    if (!selectedTerm) {
+      fullTextSummaryEl.textContent = 'Click a term in results or click any word below to highlight it throughout the source text.';
+      return;
+    }
+
+    fullTextSummaryEl.textContent = `Highlighted ${formatNumber(selectedTerm.total)} matches for “${selectedTerm.label}”. Click any other word below to switch focus.`;
   };
 
   const renderResults = (analysis, selectedKey) => {
@@ -904,6 +1050,7 @@
 
   let lastAnalysis = null;
   let selectedTermKey = '';
+  let selectedTermLabel = '';
 
   const runAnalysis = () => {
     setCopyStatus('', '');
@@ -918,6 +1065,7 @@
     if (!analysis.sourceTokenCount) {
       lastAnalysis = null;
       selectedTermKey = '';
+      selectedTermLabel = '';
       renderEmpty(DEFAULT_SUMMARY, DEFAULT_EMPTY);
       markSessionDirty();
       return;
@@ -926,6 +1074,7 @@
     if (!analysis.topEntries.length) {
       lastAnalysis = null;
       selectedTermKey = '';
+      selectedTermLabel = '';
       const reason = analysis.analyzedTokenCount
         ? 'No terms available after filtering and settings.'
         : 'No analyzable words remained after filtering.';
@@ -942,15 +1091,18 @@
       .replace(/(\d[\d,]* source tokens)/, '<strong>$1</strong>');
 
     emptyEl.hidden = true;
-    renderResults(analysis, selectedTermKey);
-
-    if (selectedTermKey && analysis.occurrenceMap.has(selectedTermKey)) {
-      const selected = analysis.entries.find((entry) => entry.key === selectedTermKey);
-      renderOccurrences(analysis, selectedTermKey, selected?.display || selectedTermKey);
-    } else {
+    const selectedTerm = resolveSelectedTerm(analysis, selectedTermKey, selectedTermLabel);
+    if (!selectedTerm) {
       selectedTermKey = '';
-      hideOccurrences();
+      selectedTermLabel = '';
+    } else {
+      selectedTermKey = selectedTerm.key;
+      selectedTermLabel = selectedTerm.label;
     }
+
+    renderResults(analysis, selectedTermKey);
+    renderOccurrences(analysis, selectedTerm);
+    renderFullText(analysis, selectedTerm);
 
     markSessionDirty();
   };
@@ -1105,8 +1257,10 @@
     setCopyStatus('', '');
     setInputStatus('', '');
     selectedTermKey = '';
+    selectedTermLabel = '';
     lastAnalysis = null;
     hideOccurrences();
+    hideFullText();
     renderEmpty(DEFAULT_SUMMARY, DEFAULT_EMPTY);
     markSessionDirty();
     textInput.focus();
@@ -1140,8 +1294,30 @@
     if (!termKey) return;
 
     selectedTermKey = termKey;
+    selectedTermLabel = termLabel || termKey;
+    const selectedTerm = resolveSelectedTerm(lastAnalysis, selectedTermKey, selectedTermLabel);
     renderResults(lastAnalysis, selectedTermKey);
-    renderOccurrences(lastAnalysis, termKey, termLabel || termKey);
+    renderOccurrences(lastAnalysis, selectedTerm);
+    renderFullText(lastAnalysis, selectedTerm);
+  });
+
+  fullTextEl?.addEventListener('click', (event) => {
+    const btn = event.target instanceof Element ? event.target.closest('.wordfreq-fulltext-token[data-term-key]') : null;
+    if (!btn || !lastAnalysis) return;
+
+    const termKey = String(btn.getAttribute('data-term-key') || '').trim();
+    if (!termKey) return;
+
+    const termLabel = String(btn.getAttribute('data-term-label') || termKey).trim();
+    selectedTermKey = termKey;
+    selectedTermLabel = termLabel || termKey;
+
+    const selectedTerm = resolveSelectedTerm(lastAnalysis, selectedTermKey, selectedTermLabel);
+    if (!selectedTerm) return;
+
+    renderResults(lastAnalysis, selectedTerm.key);
+    renderOccurrences(lastAnalysis, selectedTerm);
+    renderFullText(lastAnalysis, selectedTerm);
   });
 
   const markDirtyFromControl = () => {
