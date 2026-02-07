@@ -3,6 +3,7 @@ const fs = require('fs');
 const vm = require('vm');
 const runSlotDemoTests = require('./tests/slot-machine-demo.test.js');
 const runUtmBatchBuilderTests = require('./tests/utm-batch-builder.test.js');
+const runQrCodeGeneratorUtilsTests = require('./tests/qr-code-generator-utils.test.js');
 
 // Assert helper
 let assertCount = 0;
@@ -227,6 +228,23 @@ try {
     checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="time-in-stage-list"');
   });
 
+  section('QR generator enhanced workflow contracts', () => {
+    checkFileContains('pages/qr-code-generator.html', 'id="qrtool-mode-basic"');
+    checkFileContains('pages/qr-code-generator.html', 'id="qrtool-mode-advanced"');
+    checkFileContains('pages/qr-code-generator.html', 'id="qrtool-payload-mode"');
+    checkFileContains('pages/qr-code-generator.html', 'data-qrtool-payload-pane="wifi"');
+    checkFileContains('pages/qr-code-generator.html', 'data-qrtool-payload-pane="vcard"');
+    checkFileContains('pages/qr-code-generator.html', 'id="qrtool-warning-list"');
+    checkFileContains('pages/qr-code-generator.html', 'id="qrtool-autofix"');
+    checkFileContains('pages/qr-code-generator.html', 'id="qrtool-verify"');
+    checkFileContains('pages/qr-code-generator.html', 'id="qrtool-copy-png"');
+    checkFileContains('pages/qr-code-generator.html', 'id="qrtool-copy-svg"');
+    checkFileContains('pages/qr-code-generator.html', 'id="qrtool-download-all"');
+    checkFileContains('pages/qr-code-generator.html', 'id="qrtool-config-save"');
+    checkFileContains('pages/qr-code-generator.html', 'id="qrtool-config-share"');
+    checkFileContains('pages/qr-code-generator.html', 'js/tools/qr-code-generator-utils.js');
+  });
+
   section('Data contracts', () => {
     let env = evalScript('js/portfolio/projects-data.js');
     assert(Array.isArray(env.window.PROJECTS) && env.window.PROJECTS.length > 0,
@@ -251,6 +269,10 @@ try {
       assert(section.heading && section.items && Array.isArray(section.items), 'bad contributions section');
       section.items.forEach(it => assert(it.title && it.link, 'bad contribution item'));
     });
+  });
+
+  section('QR generator utility tests', () => {
+    runQrCodeGeneratorUtilsTests({ assert });
   });
 
   section('Project pages and sitemap entries', () => {

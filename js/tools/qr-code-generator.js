@@ -40,13 +40,40 @@
   const emptyOverlay = $('#qrtool-empty');
   const metaEl = $('#qrtool-meta');
   const qualityEl = $('#qrtool-quality');
+  const verifyEl = $('#qrtool-verify');
+  const warningsRootEl = $('#qrtool-warnings');
+  const warningListEl = $('#qrtool-warning-list');
+  const autofixBtn = $('#qrtool-autofix');
+  const fixStatusEl = $('#qrtool-fix-status');
   const warningEl = $('#qrtool-warning');
+
+  const modeButtons = Array.from(document.querySelectorAll('[data-qrtool-mode-btn]'));
 
   const dotStyleSelect = $('#qrtool-dot-style');
   const cornerStyleSelect = $('#qrtool-corner-style');
   const eccSelect = $('#qrtool-ecc');
   const marginInput = $('#qrtool-margin');
   const marginValue = $('#qrtool-margin-value');
+
+  const payloadModeSelect = $('#qrtool-payload-mode');
+  const payloadPaneEls = Array.from(document.querySelectorAll('[data-qrtool-payload-pane]'));
+  const payloadTextInput = $('#qrtool-payload-text');
+  const wifiSsidInput = $('#qrtool-wifi-ssid');
+  const wifiAuthSelect = $('#qrtool-wifi-auth');
+  const wifiPasswordInput = $('#qrtool-wifi-password');
+  const wifiHiddenInput = $('#qrtool-wifi-hidden');
+  const vcardFirstInput = $('#qrtool-vcard-first');
+  const vcardLastInput = $('#qrtool-vcard-last');
+  const vcardOrgInput = $('#qrtool-vcard-org');
+  const vcardTitleInput = $('#qrtool-vcard-title');
+  const vcardPhoneInput = $('#qrtool-vcard-phone');
+  const vcardEmailInput = $('#qrtool-vcard-email');
+  const vcardWebsiteInput = $('#qrtool-vcard-website');
+  const vcardAddressInput = $('#qrtool-vcard-address');
+  const vcardNoteInput = $('#qrtool-vcard-note');
+  const payloadPreviewInput = $('#qrtool-payload-preview');
+  const payloadCopyBtn = $('#qrtool-payload-copy');
+  const basicLogoToggleInput = $('#qrtool-basic-logo-enabled');
 
   const fgInput = $('#qrtool-fg');
   const bgInput = $('#qrtool-bg');
@@ -84,6 +111,7 @@
 
   const filenameInput = $('#qrtool-filename');
   const imageSizeSelect = $('#qrtool-image-size');
+  const exportPresetSelect = $('#qrtool-export-preset');
 
   const captionEnabledInput = $('#qrtool-caption-enabled');
   const captionTextInput = $('#qrtool-caption-text');
@@ -100,12 +128,102 @@
   const downloadPngBtn = $('#qrtool-download-png');
   const downloadSvgBtn = $('#qrtool-download-svg');
   const downloadPdfBtn = $('#qrtool-download-pdf');
+  const copyPngBtn = $('#qrtool-copy-png');
+  const copySvgBtn = $('#qrtool-copy-svg');
+  const downloadAllBtn = $('#qrtool-download-all');
+  const exportStatusEl = $('#qrtool-export-status');
+
+  const configNameInput = $('#qrtool-config-name');
+  const configListSelect = $('#qrtool-config-list');
+  const configSaveBtn = $('#qrtool-config-save');
+  const configApplyBtn = $('#qrtool-config-apply');
+  const configDeleteBtn = $('#qrtool-config-delete');
+  const configExportBtn = $('#qrtool-config-export');
+  const configImportBtn = $('#qrtool-config-import');
+  const configShareBtn = $('#qrtool-config-share');
+  const configImportFileInput = $('#qrtool-config-import-file');
+  const configStatusEl = $('#qrtool-config-status');
 
   const templateButtons = Array.from(document.querySelectorAll('.qrtool-template'));
 
   if (!form || !dataInput || !canvas || !stage) return;
 
   const TOOL_ID = 'qr-code-generator';
+  const QrUtils = window.QrToolUtils || {};
+  const encodeConfigToken = typeof QrUtils.encodeConfig === 'function'
+    ? QrUtils.encodeConfig
+    : (value) => {
+      try {
+        return btoa(unescape(encodeURIComponent(JSON.stringify(value || {}))))
+          .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+      } catch {
+        return '';
+      }
+    };
+  const decodeConfigToken = typeof QrUtils.decodeConfig === 'function'
+    ? QrUtils.decodeConfig
+    : (token) => {
+      try {
+        const safe = String(token || '');
+        if (!safe) return null;
+        const b64 = safe.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(safe.length / 4) * 4, '=');
+        return JSON.parse(decodeURIComponent(escape(atob(b64))));
+      } catch {
+        return null;
+      }
+    };
+  const buildWifiPayload = typeof QrUtils.buildWifiPayload === 'function'
+    ? QrUtils.buildWifiPayload
+    : ({ ssid, password, auth, hidden } = {}) => {
+      const esc = (v) => String(v || '')
+        .replace(/\\/g, '\\\\')
+        .replace(/;/g, '\\;')
+        .replace(/,/g, '\\,')
+        .replace(/:/g, '\\:');
+      const safeSsid = esc(ssid);
+      if (!safeSsid) return '';
+      const modeRaw = String(auth || 'WPA').trim().toUpperCase();
+      const mode = ['WPA', 'WEP', 'NOPASS'].includes(modeRaw) ? modeRaw : 'WPA';
+      const open = mode === 'NOPASS';
+      const parts = [`WIFI:T:${open ? 'nopass' : mode};S:${safeSsid};`];
+      if (!open && password) parts.push(`P:${esc(password)};`);
+      if (hidden) parts.push('H:true;');
+      parts.push(';');
+      return parts.join('');
+    };
+  const buildVcardPayload = typeof QrUtils.buildVcardPayload === 'function'
+    ? QrUtils.buildVcardPayload
+    : ({ firstName, lastName, org, title, phone, email, website, address, note } = {}) => {
+      const esc = (v) => String(v || '')
+        .replace(/\\/g, '\\\\')
+        .replace(/\n/g, '\\n')
+        .replace(/;/g, '\\;')
+        .replace(/,/g, '\\,');
+      const fn = [String(firstName || '').trim(), String(lastName || '').trim()].filter(Boolean).join(' ');
+      const lines = ['BEGIN:VCARD', 'VERSION:3.0', `N:${esc(lastName)};${esc(firstName)};;;`];
+      if (fn) lines.push(`FN:${esc(fn)}`);
+      if (org) lines.push(`ORG:${esc(org)}`);
+      if (title) lines.push(`TITLE:${esc(title)}`);
+      if (phone) lines.push(`TEL;TYPE=CELL:${esc(phone)}`);
+      if (email) lines.push(`EMAIL;TYPE=INTERNET:${esc(email)}`);
+      if (website) lines.push(`URL:${esc(website)}`);
+      if (address) lines.push(`ADR;TYPE=WORK:;;${esc(address)};;;;`);
+      if (note) lines.push(`NOTE:${esc(note)}`);
+      lines.push('END:VCARD');
+      return lines.join('\n');
+    };
+  const buildZipBytes = typeof QrUtils.buildZip === 'function'
+    ? QrUtils.buildZip
+    : null;
+
+  const QR_PRESETS_STORAGE_KEY = 'qrtool_presets_v1';
+  const QR_LAST_CONFIG_STORAGE_KEY = 'qrtool_last_config_v1';
+  const EXPORT_SIZE_BY_PRESET = Object.freeze({
+    sticker: 512,
+    web: 1024,
+    print: 2048,
+    poster: 4096
+  });
 
   const markSessionDirty = () => {
     try {
@@ -129,6 +247,22 @@
   };
 
   const DEFAULTS = Object.freeze({
+    uiMode: 'basic',
+    payloadMode: 'url',
+    payloadText: '',
+    wifiSsid: '',
+    wifiAuth: 'WPA',
+    wifiPassword: '',
+    wifiHidden: false,
+    vcardFirst: '',
+    vcardLast: '',
+    vcardOrg: '',
+    vcardTitle: '',
+    vcardPhone: '',
+    vcardEmail: '',
+    vcardWebsite: '',
+    vcardAddress: '',
+    vcardNote: '',
     data: '',
     dotStyle: 'dots',
     cornerStyle: 'extra-rounded',
@@ -218,6 +352,8 @@
     qr: null,
     moduleCount: 0,
     darkModules: null,
+    warnings: [],
+    verification: { tone: '', text: '' },
   };
 
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
@@ -311,6 +447,12 @@
     else delete el.dataset.tone;
   };
 
+  const setInlineStatus = (el, msg, tone) => {
+    setStatus(el, msg, tone);
+    if (!el) return;
+    el.hidden = !msg;
+  };
+
   const DESTINATIONS_MANIFEST_PATH = 'dist/shortlinks-destinations.json';
   const FALLBACK_DESTINATIONS = [
     { path: '/', label: 'Home', group: 'Pages' },
@@ -368,8 +510,54 @@
     return `${base}/${path}`;
   };
 
-  const applyDataValue = (value) => {
+  const getPayloadMode = () => {
+    const mode = payloadModeSelect ? String(payloadModeSelect.value || '').trim().toLowerCase() : DEFAULTS.payloadMode;
+    return ['url', 'text', 'wifi', 'vcard'].includes(mode) ? mode : DEFAULTS.payloadMode;
+  };
+
+  const setPayloadMode = (mode, { dispatch = false } = {}) => {
+    if (!payloadModeSelect) return;
+    const safe = ['url', 'text', 'wifi', 'vcard'].includes(String(mode || '').toLowerCase())
+      ? String(mode).toLowerCase()
+      : DEFAULTS.payloadMode;
+    if (payloadModeSelect.value !== safe) payloadModeSelect.value = safe;
+    payloadPaneEls.forEach((pane) => {
+      const paneMode = String(pane.dataset.qrtoolPayloadPane || '').trim().toLowerCase();
+      pane.hidden = paneMode !== safe;
+    });
+    if (dispatch) dispatchValueEvents(payloadModeSelect);
+  };
+
+  const getPayloadFromControls = () => {
+    const mode = getPayloadMode();
+    if (mode === 'text') return String(payloadTextInput?.value || '');
+    if (mode === 'wifi') {
+      return buildWifiPayload({
+        ssid: wifiSsidInput?.value || '',
+        password: wifiPasswordInput?.value || '',
+        auth: wifiAuthSelect?.value || 'WPA',
+        hidden: !!wifiHiddenInput?.checked,
+      });
+    }
+    if (mode === 'vcard') {
+      return buildVcardPayload({
+        firstName: vcardFirstInput?.value || '',
+        lastName: vcardLastInput?.value || '',
+        org: vcardOrgInput?.value || '',
+        title: vcardTitleInput?.value || '',
+        phone: vcardPhoneInput?.value || '',
+        email: vcardEmailInput?.value || '',
+        website: vcardWebsiteInput?.value || '',
+        address: vcardAddressInput?.value || '',
+        note: vcardNoteInput?.value || '',
+      });
+    }
+    return String(dataInput?.value || '');
+  };
+
+  const applyDataValue = (value, { forceUrlMode = true } = {}) => {
     if (!dataInput) return;
+    if (forceUrlMode) setPayloadMode('url');
     dataInput.value = value;
     let dispatched = false;
     try {
@@ -669,13 +857,17 @@
     if (shortlinksSearch) shortlinksSearch.focus({ preventScroll: true });
   };
 
+  const getVisibleTabButtons = () => tabs.buttons.filter(button => !button.hidden);
+
   const activateTab = (name, shouldFocus = false) => {
     if (!tabs.buttons.length || !tabs.panels.length) return;
-    const safeName = tabs.buttons.some(button => button.dataset.qrtoolTab === name)
+    const visibleButtons = getVisibleTabButtons();
+    if (!visibleButtons.length) return;
+    const safeName = visibleButtons.some(button => button.dataset.qrtoolTab === name)
       ? name
-      : tabs.buttons[0].dataset.qrtoolTab;
+      : visibleButtons[0].dataset.qrtoolTab;
     tabs.buttons.forEach((button) => {
-      const selected = button.dataset.qrtoolTab === safeName;
+      const selected = !button.hidden && button.dataset.qrtoolTab === safeName;
       button.setAttribute('aria-selected', selected ? 'true' : 'false');
       button.tabIndex = selected ? 0 : -1;
     });
@@ -684,51 +876,106 @@
     });
     if (tabs.panelWrap) tabs.panelWrap.scrollTop = 0;
     if (shouldFocus) {
-      const activeButton = tabs.buttons.find(button => button.dataset.qrtoolTab === safeName);
+      const activeButton = visibleButtons.find(button => button.dataset.qrtoolTab === safeName);
       if (activeButton) activeButton.focus();
     }
   };
 
   const initTabs = () => {
     if (!tabs.buttons.length || !tabs.panels.length) return;
-    const defaultTab = tabs.buttons.find(button => button.getAttribute('aria-selected') === 'true')?.dataset.qrtoolTab
-      || tabs.buttons[0].dataset.qrtoolTab;
+    const visibleButtons = getVisibleTabButtons();
+    if (!visibleButtons.length) return;
+    const defaultTab = visibleButtons.find(button => button.getAttribute('aria-selected') === 'true')?.dataset.qrtoolTab
+      || visibleButtons[0].dataset.qrtoolTab;
     const hash = window.location && window.location.hash
       ? window.location.hash.replace('#', '')
       : '';
-    const initial = tabs.buttons.some(button => button.dataset.qrtoolTab === hash) ? hash : defaultTab;
+    const initial = visibleButtons.some(button => button.dataset.qrtoolTab === hash) ? hash : defaultTab;
     activateTab(initial);
-    tabs.buttons.forEach((button, index) => {
+    tabs.buttons.forEach((button) => {
       button.addEventListener('click', () => activateTab(button.dataset.qrtoolTab, true));
       button.addEventListener('keydown', (event) => {
+        const activeTabs = getVisibleTabButtons();
+        const currentIndex = activeTabs.findIndex(tab => tab === button);
+        if (currentIndex === -1 || !activeTabs.length) return;
         if (event.key === 'ArrowRight') {
           event.preventDefault();
-          const next = (index + 1) % tabs.buttons.length;
-          activateTab(tabs.buttons[next].dataset.qrtoolTab, true);
+          const next = (currentIndex + 1) % activeTabs.length;
+          activateTab(activeTabs[next].dataset.qrtoolTab, true);
         } else if (event.key === 'ArrowLeft') {
           event.preventDefault();
-          const prev = (index - 1 + tabs.buttons.length) % tabs.buttons.length;
-          activateTab(tabs.buttons[prev].dataset.qrtoolTab, true);
+          const prev = (currentIndex - 1 + activeTabs.length) % activeTabs.length;
+          activateTab(activeTabs[prev].dataset.qrtoolTab, true);
         } else if (event.key === 'Home') {
           event.preventDefault();
-          activateTab(tabs.buttons[0].dataset.qrtoolTab, true);
+          activateTab(activeTabs[0].dataset.qrtoolTab, true);
         } else if (event.key === 'End') {
           event.preventDefault();
-          activateTab(tabs.buttons[tabs.buttons.length - 1].dataset.qrtoolTab, true);
+          activateTab(activeTabs[activeTabs.length - 1].dataset.qrtoolTab, true);
         }
       });
     });
   };
 
-  const setWarning = (text) => {
-    if (!warningEl) return;
+  const setUiMode = (mode, { markDirty: shouldMarkDirty = false } = {}) => {
+    const safeMode = mode === 'advanced' ? 'advanced' : 'basic';
+    state.uiMode = safeMode;
+    if (document?.body) document.body.dataset.qrtoolUiMode = safeMode;
+    modeButtons.forEach((button) => {
+      const selected = button.dataset.qrtoolModeBtn === safeMode;
+      button.setAttribute('aria-pressed', selected ? 'true' : 'false');
+    });
+    tabs.buttons.forEach((button) => {
+      const required = button.dataset.qrtoolTabMode || 'all';
+      button.hidden = safeMode === 'basic' && required === 'advanced';
+    });
+
+    const activeButton = tabs.buttons.find((button) => button.getAttribute('aria-selected') === 'true' && !button.hidden);
+    if (!activeButton && getVisibleTabButtons().length) {
+      activateTab(getVisibleTabButtons()[0].dataset.qrtoolTab);
+    }
+    if (shouldMarkDirty) markSessionDirty();
+  };
+
+  const setVerification = (text, tone = '') => {
+    state.verification = { text: text || '', tone: tone || '' };
+    if (!verifyEl) return;
     if (!text) {
-      warningEl.hidden = true;
-      warningEl.textContent = '';
+      verifyEl.hidden = true;
+      verifyEl.textContent = '';
+      delete verifyEl.dataset.tone;
       return;
     }
-    warningEl.hidden = false;
-    warningEl.textContent = text;
+    verifyEl.hidden = false;
+    verifyEl.textContent = text;
+    if (tone) verifyEl.dataset.tone = tone;
+    else delete verifyEl.dataset.tone;
+  };
+
+  const setWarnings = (warnings) => {
+    const items = Array.isArray(warnings) ? warnings.filter(Boolean) : [];
+    state.warnings = items;
+    if (warningsRootEl) warningsRootEl.hidden = items.length === 0;
+    if (warningListEl) {
+      warningListEl.replaceChildren();
+      items.forEach((item) => {
+        const li = document.createElement('li');
+        li.className = 'qrtool-warning-item';
+        li.dataset.level = item.level || 'info';
+        li.textContent = String(item.text || '');
+        warningListEl.appendChild(li);
+      });
+    }
+    if (warningEl) {
+      const first = items[0];
+      warningEl.hidden = !first;
+      warningEl.textContent = first ? String(first.text || '') : '';
+    }
+  };
+
+  const setWarning = (text) => {
+    const msg = String(text || '').trim();
+    setWarnings(msg ? [{ level: 'info', text: msg }] : []);
   };
 
   const setQuality = (text) => {
@@ -773,8 +1020,8 @@
         openColorPicker(input);
         return;
       }
-      setWarning(`${label || 'Color'} is locked. Choose “Custom” to edit.`);
-      window.setTimeout(() => setWarning(''), 2400);
+      setInlineStatus(fixStatusEl, `${label || 'Color'} is locked. Choose "Custom" to edit.`, 'warning');
+      window.setTimeout(() => setInlineStatus(fixStatusEl, ''), 2400);
     };
 
     chipEl.setAttribute('role', 'button');
@@ -2145,6 +2392,34 @@
   };
 
   const updateControlsFromState = () => {
+    setUiMode(state.uiMode || DEFAULTS.uiMode);
+    setPayloadMode(state.payloadMode || DEFAULTS.payloadMode);
+    if (payloadTextInput) payloadTextInput.value = state.payloadText || '';
+    if (wifiSsidInput) wifiSsidInput.value = state.wifiSsid || '';
+    if (wifiAuthSelect) {
+      const auth = String(state.wifiAuth || DEFAULTS.wifiAuth);
+      wifiAuthSelect.value = auth.toLowerCase() === 'nopass' ? 'nopass' : auth.toUpperCase();
+    }
+    if (wifiPasswordInput) wifiPasswordInput.value = state.wifiPassword || '';
+    if (wifiHiddenInput) wifiHiddenInput.checked = !!state.wifiHidden;
+    if (vcardFirstInput) vcardFirstInput.value = state.vcardFirst || '';
+    if (vcardLastInput) vcardLastInput.value = state.vcardLast || '';
+    if (vcardOrgInput) vcardOrgInput.value = state.vcardOrg || '';
+    if (vcardTitleInput) vcardTitleInput.value = state.vcardTitle || '';
+    if (vcardPhoneInput) vcardPhoneInput.value = state.vcardPhone || '';
+    if (vcardEmailInput) vcardEmailInput.value = state.vcardEmail || '';
+    if (vcardWebsiteInput) vcardWebsiteInput.value = state.vcardWebsite || '';
+    if (vcardAddressInput) vcardAddressInput.value = state.vcardAddress || '';
+    if (vcardNoteInput) vcardNoteInput.value = state.vcardNote || '';
+    if (payloadPreviewInput) payloadPreviewInput.value = state.data || '';
+    if (basicLogoToggleInput) basicLogoToggleInput.checked = state.centerMode === 'image';
+
+    if (wifiPasswordInput) {
+      const isOpenNetwork = String(state.wifiAuth || '').toLowerCase() === 'nopass';
+      wifiPasswordInput.disabled = isOpenNetwork;
+      wifiPasswordInput.placeholder = isOpenNetwork ? 'Not required for open networks' : 'Enter Wi-Fi password';
+    }
+
     dotStyleSelect.value = state.dotStyle;
     cornerStyleSelect.value = state.cornerStyle;
     eccSelect.value = state.ecc;
@@ -2255,6 +2530,15 @@
     if (captionBgStyleSelect) captionBgStyleSelect.disabled = !captionEnabled;
     if (captionColorInput) captionColorInput.disabled = false;
     if (captionBgColorInput) captionBgColorInput.disabled = false;
+
+    if (imageSizeSelect) {
+      const sizeNum = toInt(imageSizeSelect.value, 1024);
+      const presetMatch = Object.entries(EXPORT_SIZE_BY_PRESET)
+        .find(([, size]) => size === sizeNum)?.[0] || 'custom';
+      if (exportPresetSelect && exportPresetSelect.value !== presetMatch) {
+        exportPresetSelect.value = presetMatch;
+      }
+    }
   };
 
   initColorControl({
@@ -2331,6 +2615,194 @@
     }
   });
 
+  const getRenderOptions = ({ forceSolidBackground = false } = {}) => ({
+    dotStyle: state.dotStyle,
+    cornerStyle: state.cornerStyle,
+    ecc: state.ecc,
+    marginModules: state.marginModules,
+    fg: state.fg,
+    bg: state.bg,
+    transparent: forceSolidBackground ? false : state.transparent,
+    centerMode: state.centerMode,
+    logoImage: state.logoImage,
+    logoDataUrl: state.logoDataUrl,
+    logoSizePct: state.logoSizePct,
+    logoPaddingPct: state.logoPaddingPct,
+    logoShape: state.logoShape,
+    logoPlateStyle: state.logoPlateStyle,
+    logoPlateColor: state.logoPlateColor,
+    logoBorderStyle: state.logoBorderStyle,
+    logoBorderPct: state.logoBorderPct,
+    logoBorderColor: state.logoBorderColor,
+    centerText: state.centerText,
+    centerTextWeight: state.centerTextWeight,
+    centerTextColorStyle: state.centerTextColorStyle,
+    centerTextColor: state.centerTextColor,
+    captionEnabled: state.captionEnabled,
+    captionText: state.captionText,
+    captionSizePct: state.captionSizePct,
+    captionAlign: state.captionAlign,
+    captionColorStyle: state.captionColorStyle,
+    captionColor: state.captionColor,
+    captionBgStyle: state.captionBgStyle,
+    captionBgColor: state.captionBgColor,
+  });
+
+  const analyzeReliability = (moduleCount) => {
+    const warnings = [];
+    const fgRgb = hexToRgb(state.fg);
+    const bgRgb = hexToRgb(state.transparent ? '#FFFFFF' : state.bg);
+    const ratio = contrastRatio(fgRgb, bgRgb);
+
+    if (ratio < 3) {
+      warnings.push({ level: 'high', text: `Very low contrast (≈${ratio.toFixed(1)}:1). Scanners may fail.` });
+    } else if (ratio < 4.5) {
+      warnings.push({ level: 'medium', text: `Low contrast (≈${ratio.toFixed(1)}:1). Improve contrast for reliability.` });
+    }
+    if (state.transparent) {
+      warnings.push({ level: 'info', text: 'Transparent backgrounds are best for digital overlays. Use a solid background for print.' });
+    }
+    if (state.marginModules < 4) {
+      warnings.push({ level: 'medium', text: `Quiet zone is ${state.marginModules}. Use at least 4 for safer scanning.` });
+    }
+
+    const centerHasText = state.centerMode === 'text' && !!String(state.centerText || '').trim();
+    const centerHasImage = state.centerMode === 'image' && !!state.logoImage;
+    let centerCoveragePct = 0;
+    if (centerHasImage || centerHasText) {
+      const { boxModules } = computeLogoBox(moduleCount, state.logoSizePct, state.logoPaddingPct);
+      const cover = (boxModules * boxModules) / (moduleCount * moduleCount);
+      centerCoveragePct = Math.round(cover * 100);
+      if (state.ecc !== 'H' && centerCoveragePct >= 12) {
+        warnings.push({ level: 'medium', text: `Center coverage is ~${centerCoveragePct}%. Use ECC H to protect hidden modules.` });
+      }
+      if (centerCoveragePct >= 18) {
+        warnings.push({ level: 'high', text: `Center coverage is ~${centerCoveragePct}%. Reduce center size for safer scanning.` });
+      } else if (centerCoveragePct >= 14) {
+        warnings.push({ level: 'medium', text: `Center coverage is ~${centerCoveragePct}%. Consider reducing center size.` });
+      }
+    }
+
+    if (moduleCount >= 69) {
+      warnings.push({ level: 'info', text: `Dense QR (${moduleCount}×${moduleCount}) may need larger print size for reliable scans.` });
+    }
+
+    const worst = warnings.some(item => item.level === 'high')
+      ? 'high'
+      : (warnings.some(item => item.level === 'medium') ? 'medium' : (warnings.length ? 'info' : 'ok'));
+    return {
+      warnings,
+      worst,
+      contrastRatio: ratio,
+      centerCoveragePct,
+    };
+  };
+
+  const qualityFromAnalysis = (analysis) => {
+    if (!analysis || analysis.worst === 'ok') return 'Business-ready';
+    if (analysis.worst === 'high') return 'High scan risk';
+    if (analysis.worst === 'medium') return 'Needs tuning';
+    return 'Review settings';
+  };
+
+  const applyReliabilityFixes = () => {
+    if (!state.moduleCount) return;
+    const changes = [];
+    const analysis = analyzeReliability(state.moduleCount);
+
+    if (state.transparent) {
+      state.transparent = false;
+      changes.push('Set background to solid');
+    }
+    if (state.marginModules < 4) {
+      state.marginModules = 4;
+      changes.push('Set quiet zone to 4');
+    }
+    if (state.ecc !== 'H') {
+      state.ecc = 'H';
+      changes.push('Set ECC to H');
+    }
+    if (analysis.contrastRatio < 4.5) {
+      const bgLum = relativeLuminance(hexToRgb(state.bg));
+      state.fg = bgLum > 0.5 ? '#000000' : '#FFFFFF';
+      if (contrastRatio(hexToRgb(state.fg), hexToRgb(state.bg)) < 4.5) {
+        state.bg = state.fg === '#000000' ? '#FFFFFF' : '#000000';
+      }
+      changes.push('Adjusted foreground/background contrast');
+    }
+    if (analysis.centerCoveragePct >= 14 && (state.centerMode === 'image' || state.centerMode === 'text')) {
+      const nextSize = Math.min(state.logoSizePct, 22);
+      const nextPadding = Math.max(state.logoPaddingPct, 8);
+      if (nextSize !== state.logoSizePct) {
+        state.logoSizePct = nextSize;
+        changes.push(`Reduced center size to ${nextSize}%`);
+      }
+      if (nextPadding !== state.logoPaddingPct) {
+        state.logoPaddingPct = nextPadding;
+        changes.push(`Increased center padding to ${nextPadding}%`);
+      }
+    }
+
+    if (!changes.length) {
+      setInlineStatus(fixStatusEl, 'No reliability fixes were needed.');
+      return;
+    }
+
+    updateControlsFromState();
+    scheduleRender();
+    markSessionDirty();
+    setInlineStatus(fixStatusEl, `Applied ${changes.length} fix${changes.length === 1 ? '' : 'es'}: ${changes.join(', ')}.`, 'success');
+  };
+
+  let verifyRunSeq = 0;
+  const runScanVerification = async () => {
+    const payload = String(state.data || '').trim();
+    if (!payload || !state.darkModules) {
+      setVerification('');
+      return;
+    }
+    if (!('BarcodeDetector' in window)) {
+      setVerification('Scan verification unavailable in this browser.', 'warn');
+      return;
+    }
+
+    const thisRun = ++verifyRunSeq;
+    setVerification('Verifying scan…', '');
+    try {
+      const size = 720;
+      const probe = document.createElement('canvas');
+      probe.width = size;
+      probe.height = size;
+      const pctx = probe.getContext('2d', { alpha: false });
+      if (!pctx) throw new Error('verification-canvas');
+      pctx.fillStyle = '#FFFFFF';
+      pctx.fillRect(0, 0, size, size);
+      const sourceSize = Math.min(canvas.width || 0, canvas.height || 0);
+      if (!sourceSize) throw new Error('verification-source');
+      pctx.drawImage(canvas, 0, 0, sourceSize, sourceSize, 0, 0, size, size);
+
+      const detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+      const results = await detector.detect(probe);
+      if (thisRun !== verifyRunSeq) return;
+      if (!Array.isArray(results) || !results.length) {
+        setVerification('Could not verify scan in-browser. Test with a phone camera before publishing.', 'warn');
+        return;
+      }
+      const raw = String(results[0]?.rawValue || '').trim();
+      if (raw === payload) {
+        setVerification('Verified by in-browser scan detector.', 'ok');
+      } else {
+        setVerification('Scanner detected a payload mismatch. Review styling/settings before export.', 'error');
+      }
+    } catch {
+      if (thisRun !== verifyRunSeq) return;
+      setVerification('Could not verify scan in-browser. Test with a phone camera before publishing.', 'warn');
+    }
+  };
+  const scheduleScanVerification = debounce(() => {
+    runScanVerification();
+  }, 220);
+
   const render = () => {
     const data = (state.data || '').trim();
     if (!data) {
@@ -2338,12 +2810,18 @@
         stage?.style?.setProperty('--qrtool-stage-ratio', '1');
       } catch {}
       emptyOverlay?.classList.remove('hide');
-      metaEl.textContent = 'Enter a URL to generate a QR code.';
+      metaEl.textContent = 'Enter data to generate a QR code.';
       setQuality('');
-      setWarning('');
+      setWarnings([]);
+      setVerification('');
+      setInlineStatus(fixStatusEl, '');
       downloadPngBtn.disabled = true;
       downloadSvgBtn.disabled = true;
       downloadPdfBtn.disabled = true;
+      if (copyPngBtn) copyPngBtn.disabled = true;
+      if (copySvgBtn) copySvgBtn.disabled = true;
+      if (downloadAllBtn) downloadAllBtn.disabled = true;
+      if (autofixBtn) autofixBtn.disabled = true;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       return;
     }
@@ -2365,14 +2843,20 @@
         ? 'QR encoder failed to load.'
         : 'That URL is too long for a QR code at the selected settings.';
       setQuality(isMissing ? 'Unavailable' : 'Too long');
-      setWarning(
-        isMissing
-          ? 'Refresh the page. If the issue persists, your browser may be blocking required scripts.'
-          : 'Try shortening the URL or lowering the error correction level.'
-      );
+      setWarnings([{
+        level: 'high',
+        text: isMissing
+          ? 'QR encoder failed to load. Refresh the page and retry.'
+          : 'Payload is too long for current settings. Shorten the payload or reduce complexity.',
+      }]);
+      setVerification('');
       downloadPngBtn.disabled = true;
       downloadSvgBtn.disabled = true;
       downloadPdfBtn.disabled = true;
+      if (copyPngBtn) copyPngBtn.disabled = true;
+      if (copySvgBtn) copySvgBtn.disabled = true;
+      if (downloadAllBtn) downloadAllBtn.disabled = true;
+      if (autofixBtn) autofixBtn.disabled = false;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       return;
     }
@@ -2386,65 +2870,22 @@
     const version = qrInstance.typeNumber;
     metaEl.textContent = `Version ${version} • ${moduleCount}×${moduleCount} modules • ECC ${state.ecc} • Quiet zone ${state.marginModules}`;
 
-    const fgRgb = hexToRgb(state.fg);
-    const bgRgb = hexToRgb(state.transparent ? '#FFFFFF' : state.bg);
-    const ratio = contrastRatio(fgRgb, bgRgb);
-    const contrastOk = ratio >= 4.5;
+    const analysis = analyzeReliability(moduleCount);
+    setWarnings(analysis.warnings);
+    setQuality(qualityFromAnalysis(analysis));
+    if (autofixBtn) autofixBtn.disabled = analysis.warnings.length === 0;
 
-    const warnings = [];
-    if (!contrastOk) warnings.push(`Low contrast (≈${ratio.toFixed(1)}:1) can reduce scan reliability.`);
-    if (state.transparent) warnings.push('Transparent backgrounds are best for digital; use a solid background for print.');
-
-    const centerHasText = state.centerMode === 'text' && !!String(state.centerText || '').trim();
-    const centerHasImage = state.centerMode === 'image' && !!state.logoImage;
-
-    if (centerHasImage || centerHasText) {
-      const { boxModules } = computeLogoBox(moduleCount, state.logoSizePct, state.logoPaddingPct);
-      const cover = (boxModules * boxModules) / (moduleCount * moduleCount);
-      const coverPct = Math.round(cover * 100);
-      if (state.ecc !== 'H' && coverPct >= 12) warnings.push(`Center coverage is ~${coverPct}%. Consider ECC H for best reliability.`);
-      if (coverPct >= 18) warnings.push(`Center coverage is ~${coverPct}%. Reduce center size for safer scanning.`);
-    }
-
-    setWarning(warnings[0] || '');
-    setQuality(contrastOk ? 'Business-ready' : 'Check contrast');
-
-    renderQrToCanvas(canvas, { moduleCount, darkModules }, {
-      dotStyle: state.dotStyle,
-      cornerStyle: state.cornerStyle,
-      ecc: state.ecc,
-      marginModules: state.marginModules,
-      fg: state.fg,
-      bg: state.bg,
-      transparent: state.transparent,
-      centerMode: state.centerMode,
-      logoImage: state.logoImage,
-      logoDataUrl: state.logoDataUrl,
-      logoSizePct: state.logoSizePct,
-      logoPaddingPct: state.logoPaddingPct,
-      logoShape: state.logoShape,
-      logoPlateStyle: state.logoPlateStyle,
-      logoPlateColor: state.logoPlateColor,
-      logoBorderStyle: state.logoBorderStyle,
-      logoBorderPct: state.logoBorderPct,
-      logoBorderColor: state.logoBorderColor,
-      centerText: state.centerText,
-      centerTextWeight: state.centerTextWeight,
-      centerTextColorStyle: state.centerTextColorStyle,
-      centerTextColor: state.centerTextColor,
-      captionEnabled: state.captionEnabled,
-      captionText: state.captionText,
-      captionSizePct: state.captionSizePct,
-      captionAlign: state.captionAlign,
-      captionColorStyle: state.captionColorStyle,
-      captionColor: state.captionColor,
-      captionBgStyle: state.captionBgStyle,
-      captionBgColor: state.captionBgColor,
-    });
+    renderQrToCanvas(canvas, { moduleCount, darkModules }, getRenderOptions());
 
     downloadPngBtn.disabled = false;
     downloadSvgBtn.disabled = false;
     downloadPdfBtn.disabled = false;
+    if (copyPngBtn) copyPngBtn.disabled = false;
+    if (copySvgBtn) copySvgBtn.disabled = false;
+    if (downloadAllBtn) downloadAllBtn.disabled = false;
+    scheduleScanVerification();
+    schedulePersistLastConfig();
+    scheduleSyncShareUrl();
   };
 
   const scheduleRender = debounce(render, 140);
@@ -2473,7 +2914,28 @@
   });
 
   const readStateFromControls = () => {
-    state.data = dataInput.value;
+    state.uiMode = modeButtons.some(button => button.dataset.qrtoolModeBtn === 'advanced' && button.getAttribute('aria-pressed') === 'true')
+      ? 'advanced'
+      : 'basic';
+
+    state.payloadMode = getPayloadMode();
+    state.payloadText = String(payloadTextInput?.value || '');
+    state.wifiSsid = String(wifiSsidInput?.value || '');
+    state.wifiAuth = String(wifiAuthSelect?.value || DEFAULTS.wifiAuth).toUpperCase();
+    state.wifiPassword = String(wifiPasswordInput?.value || '');
+    state.wifiHidden = !!wifiHiddenInput?.checked;
+    state.vcardFirst = String(vcardFirstInput?.value || '');
+    state.vcardLast = String(vcardLastInput?.value || '');
+    state.vcardOrg = String(vcardOrgInput?.value || '');
+    state.vcardTitle = String(vcardTitleInput?.value || '');
+    state.vcardPhone = String(vcardPhoneInput?.value || '');
+    state.vcardEmail = String(vcardEmailInput?.value || '');
+    state.vcardWebsite = String(vcardWebsiteInput?.value || '');
+    state.vcardAddress = String(vcardAddressInput?.value || '');
+    state.vcardNote = String(vcardNoteInput?.value || '');
+    state.data = getPayloadFromControls();
+    if (payloadPreviewInput) payloadPreviewInput.value = state.data;
+
     state.dotStyle = dotStyleSelect.value;
     state.cornerStyle = cornerStyleSelect.value;
     state.ecc = eccSelect.value;
@@ -2488,6 +2950,11 @@
 
     const centerMode = centerModeSelect ? centerModeSelect.value : state.centerMode;
     state.centerMode = ['image', 'text', 'none'].includes(centerMode) ? centerMode : DEFAULTS.centerMode;
+    if (basicLogoToggleInput && state.uiMode === 'basic') {
+      const wantsLogo = !!basicLogoToggleInput.checked;
+      if (wantsLogo && state.centerMode === 'none') state.centerMode = 'image';
+      if (!wantsLogo) state.centerMode = 'none';
+    }
     state.centerText = centerTextInput ? String(centerTextInput.value || '') : '';
     state.centerTextWeight = normalizeFontWeight(centerTextWeightSelect ? centerTextWeightSelect.value : state.centerTextWeight, DEFAULTS.centerTextWeight);
     state.centerTextColorStyle = centerTextColorStyleSelect && ['auto', 'custom'].includes(centerTextColorStyleSelect.value)
@@ -2562,6 +3029,8 @@
     state.logoImage = null;
     if (logoInput) logoInput.value = '';
     updateControlsFromState();
+    schedulePersistLastConfig();
+    scheduleSyncShareUrl();
     markSessionDirty();
   };
 
@@ -2596,6 +3065,8 @@
         if (state.ecc !== 'H') state.ecc = 'H';
         updateControlsFromState();
         scheduleRender();
+        schedulePersistLastConfig();
+        scheduleSyncShareUrl();
         if (markDirty) markSessionDirty();
       };
       img.onerror = () => {
@@ -2621,6 +3092,8 @@
         updateControlsFromState();
         readStateFromControls();
         scheduleRender();
+        schedulePersistLastConfig();
+        scheduleSyncShareUrl();
         markSessionDirty();
       };
       img.onerror = () => {
@@ -2632,13 +3105,335 @@
     reader.readAsDataURL(file);
   };
 
-  dataInput.addEventListener('input', () => {
+  const buildConfigSnapshot = ({ forShare = false } = {}) => {
+    const snapshot = {
+      uiMode: state.uiMode,
+      payloadMode: state.payloadMode,
+      payloadText: state.payloadText,
+      wifiSsid: state.wifiSsid,
+      wifiAuth: state.wifiAuth,
+      wifiPassword: state.wifiPassword,
+      wifiHidden: state.wifiHidden,
+      vcardFirst: state.vcardFirst,
+      vcardLast: state.vcardLast,
+      vcardOrg: state.vcardOrg,
+      vcardTitle: state.vcardTitle,
+      vcardPhone: state.vcardPhone,
+      vcardEmail: state.vcardEmail,
+      vcardWebsite: state.vcardWebsite,
+      vcardAddress: state.vcardAddress,
+      vcardNote: state.vcardNote,
+      data: state.data,
+      dotStyle: state.dotStyle,
+      cornerStyle: state.cornerStyle,
+      ecc: state.ecc,
+      marginModules: state.marginModules,
+      fg: state.fg,
+      bg: state.bg,
+      transparent: state.transparent,
+      centerMode: state.centerMode,
+      logoSizePct: state.logoSizePct,
+      logoPaddingPct: state.logoPaddingPct,
+      logoShape: state.logoShape,
+      logoPlateStyle: state.logoPlateStyle,
+      logoPlateColor: state.logoPlateColor,
+      logoBorderStyle: state.logoBorderStyle,
+      logoBorderPct: state.logoBorderPct,
+      logoBorderColor: state.logoBorderColor,
+      centerText: state.centerText,
+      centerTextWeight: state.centerTextWeight,
+      centerTextColorStyle: state.centerTextColorStyle,
+      centerTextColor: state.centerTextColor,
+      captionEnabled: state.captionEnabled,
+      captionText: state.captionText,
+      captionSizePct: state.captionSizePct,
+      captionAlign: state.captionAlign,
+      captionColorStyle: state.captionColorStyle,
+      captionColor: state.captionColor,
+      captionBgStyle: state.captionBgStyle,
+      captionBgColor: state.captionBgColor,
+      filename: filenameInput ? String(filenameInput.value || '') : 'qr-code',
+      imageSize: imageSizeSelect ? String(imageSizeSelect.value || '1024') : '1024',
+      exportPreset: exportPresetSelect ? String(exportPresetSelect.value || 'web') : 'web',
+    };
+
+    const logoUrl = String(state.logoDataUrl || '').trim();
+    if (logoUrl && (!forShare || (logoUrl.length <= 260 && !logoUrl.startsWith('data:')))) {
+      snapshot.logoDataUrl = logoUrl;
+    }
+    if (forShare && snapshot.payloadMode === 'wifi') {
+      delete snapshot.wifiPassword;
+    }
+    return snapshot;
+  };
+
+  const applyConfigSnapshot = (input, { markDirty = false, skipShareSync = false } = {}) => {
+    const config = input && typeof input === 'object' ? input : null;
+    if (!config) return false;
+
+    if (typeof config.uiMode === 'string') state.uiMode = config.uiMode === 'advanced' ? 'advanced' : 'basic';
+    if (typeof config.payloadMode === 'string') state.payloadMode = ['url', 'text', 'wifi', 'vcard'].includes(config.payloadMode) ? config.payloadMode : state.payloadMode;
+    if (typeof config.payloadText === 'string') state.payloadText = config.payloadText;
+    if (typeof config.wifiSsid === 'string') state.wifiSsid = config.wifiSsid;
+    if (typeof config.wifiAuth === 'string') state.wifiAuth = ['WPA', 'WEP', 'NOPASS', 'nopass'].includes(config.wifiAuth) ? String(config.wifiAuth).toUpperCase() : state.wifiAuth;
+    if (typeof config.wifiPassword === 'string') state.wifiPassword = config.wifiPassword;
+    if (typeof config.wifiHidden === 'boolean') state.wifiHidden = config.wifiHidden;
+    if (typeof config.vcardFirst === 'string') state.vcardFirst = config.vcardFirst;
+    if (typeof config.vcardLast === 'string') state.vcardLast = config.vcardLast;
+    if (typeof config.vcardOrg === 'string') state.vcardOrg = config.vcardOrg;
+    if (typeof config.vcardTitle === 'string') state.vcardTitle = config.vcardTitle;
+    if (typeof config.vcardPhone === 'string') state.vcardPhone = config.vcardPhone;
+    if (typeof config.vcardEmail === 'string') state.vcardEmail = config.vcardEmail;
+    if (typeof config.vcardWebsite === 'string') state.vcardWebsite = config.vcardWebsite;
+    if (typeof config.vcardAddress === 'string') state.vcardAddress = config.vcardAddress;
+    if (typeof config.vcardNote === 'string') state.vcardNote = config.vcardNote;
+    if (typeof config.data === 'string' && state.payloadMode === 'url') state.data = config.data;
+
+    if (typeof config.dotStyle === 'string') state.dotStyle = config.dotStyle;
+    if (typeof config.cornerStyle === 'string') state.cornerStyle = config.cornerStyle;
+    if (typeof config.ecc === 'string') state.ecc = config.ecc;
+    if (Number.isFinite(Number(config.marginModules))) state.marginModules = clamp(toInt(config.marginModules, state.marginModules), 2, 10);
+    if (typeof config.fg === 'string') state.fg = normalizeHex(config.fg);
+    if (typeof config.bg === 'string') state.bg = normalizeHex(config.bg);
+    if (typeof config.transparent === 'boolean') state.transparent = config.transparent;
+    if (typeof config.centerMode === 'string') state.centerMode = ['image', 'text', 'none'].includes(config.centerMode) ? config.centerMode : state.centerMode;
+    if (Number.isFinite(Number(config.logoSizePct))) state.logoSizePct = clamp(toInt(config.logoSizePct, state.logoSizePct), 10, 30);
+    if (Number.isFinite(Number(config.logoPaddingPct))) state.logoPaddingPct = clamp(toInt(config.logoPaddingPct, state.logoPaddingPct), 6, 22);
+    if (typeof config.logoShape === 'string') state.logoShape = ['rounded', 'square', 'circle'].includes(config.logoShape) ? config.logoShape : state.logoShape;
+    if (typeof config.logoPlateStyle === 'string') state.logoPlateStyle = ['auto', 'white', 'custom'].includes(config.logoPlateStyle) ? config.logoPlateStyle : state.logoPlateStyle;
+    if (typeof config.logoPlateColor === 'string') state.logoPlateColor = normalizeHex(config.logoPlateColor);
+    if (typeof config.logoBorderStyle === 'string') state.logoBorderStyle = ['auto', 'custom', 'none'].includes(config.logoBorderStyle) ? config.logoBorderStyle : state.logoBorderStyle;
+    if (Number.isFinite(Number(config.logoBorderPct))) state.logoBorderPct = clamp(toInt(config.logoBorderPct, state.logoBorderPct), 0, 12);
+    if (typeof config.logoBorderColor === 'string') state.logoBorderColor = normalizeHex(config.logoBorderColor);
+    if (typeof config.centerText === 'string') state.centerText = config.centerText;
+    if (typeof config.centerTextWeight === 'string') state.centerTextWeight = normalizeFontWeight(config.centerTextWeight, state.centerTextWeight);
+    if (typeof config.centerTextColorStyle === 'string') state.centerTextColorStyle = ['auto', 'custom'].includes(config.centerTextColorStyle) ? config.centerTextColorStyle : state.centerTextColorStyle;
+    if (typeof config.centerTextColor === 'string') state.centerTextColor = normalizeHex(config.centerTextColor);
+    if (typeof config.captionEnabled === 'boolean') state.captionEnabled = config.captionEnabled;
+    if (typeof config.captionText === 'string') state.captionText = config.captionText;
+    if (Number.isFinite(Number(config.captionSizePct))) state.captionSizePct = clamp(toInt(config.captionSizePct, state.captionSizePct), 3, 10);
+    if (typeof config.captionAlign === 'string') state.captionAlign = ['left', 'center', 'right'].includes(config.captionAlign) ? config.captionAlign : state.captionAlign;
+    if (typeof config.captionColorStyle === 'string') state.captionColorStyle = ['auto', 'custom'].includes(config.captionColorStyle) ? config.captionColorStyle : state.captionColorStyle;
+    if (typeof config.captionColor === 'string') state.captionColor = normalizeHex(config.captionColor);
+    if (typeof config.captionBgStyle === 'string') state.captionBgStyle = ['auto', 'white', 'custom', 'none'].includes(config.captionBgStyle) ? config.captionBgStyle : state.captionBgStyle;
+    if (typeof config.captionBgColor === 'string') state.captionBgColor = normalizeHex(config.captionBgColor);
+    if (typeof config.filename === 'string' && filenameInput) filenameInput.value = config.filename;
+    if (typeof config.imageSize === 'string' && imageSizeSelect) imageSizeSelect.value = config.imageSize;
+    if (typeof config.exportPreset === 'string' && exportPresetSelect) exportPresetSelect.value = config.exportPreset;
+
+    const incomingLogo = typeof config.logoDataUrl === 'string' ? config.logoDataUrl.trim() : '';
+    if (incomingLogo) {
+      state.logoDataUrl = incomingLogo;
+      state.logoImage = null;
+    }
+
+    if (payloadModeSelect) payloadModeSelect.value = state.payloadMode;
+    if (dataInput && state.payloadMode === 'url') dataInput.value = state.data || '';
+    updateControlsFromState();
+    readStateFromControls();
+    if (state.centerMode === 'image' && !state.logoImage && state.logoDataUrl) {
+      loadLogoFromUrl(state.logoDataUrl, { markDirty: false }).catch(() => {});
+    }
+    scheduleRender();
+    if (!skipShareSync) syncShareUrl();
+    if (markDirty) markSessionDirty();
+    return true;
+  };
+
+  const loadStoredPresets = () => {
+    if (!storage) return [];
+    try {
+      const raw = storage.getItem(QR_PRESETS_STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(parsed)) return [];
+      return parsed.filter(item => item && typeof item.name === 'string' && item.config && typeof item.config === 'object');
+    } catch {
+      return [];
+    }
+  };
+
+  const persistPresets = (presets) => {
+    if (!storage) return;
+    try {
+      storage.setItem(QR_PRESETS_STORAGE_KEY, JSON.stringify(presets || []));
+    } catch {}
+  };
+
+  let configPresets = loadStoredPresets();
+
+  const renderPresetOptions = () => {
+    if (!configListSelect) return;
+    configListSelect.replaceChildren();
+    if (!configPresets.length) {
+      const option = document.createElement('option');
+      option.value = '';
+      option.textContent = 'No presets saved';
+      configListSelect.appendChild(option);
+      configListSelect.disabled = true;
+      if (configApplyBtn) configApplyBtn.disabled = true;
+      if (configDeleteBtn) configDeleteBtn.disabled = true;
+      return;
+    }
+    configListSelect.disabled = false;
+    configPresets.forEach((preset, index) => {
+      const option = document.createElement('option');
+      option.value = String(index);
+      option.textContent = preset.name;
+      configListSelect.appendChild(option);
+    });
+    if (configApplyBtn) configApplyBtn.disabled = false;
+    if (configDeleteBtn) configDeleteBtn.disabled = false;
+  };
+
+  const persistLastConfig = () => {
+    if (!storage) return;
+    try {
+      storage.setItem(QR_LAST_CONFIG_STORAGE_KEY, JSON.stringify(buildConfigSnapshot()));
+    } catch {}
+  };
+  const schedulePersistLastConfig = debounce(persistLastConfig, 220);
+
+  const syncShareUrl = () => {
+    if (!window?.history?.replaceState) return;
+    try {
+      const token = encodeConfigToken(buildConfigSnapshot({ forShare: true }));
+      if (!token || token.length > 1800) return;
+      const url = new URL(window.location.href);
+      url.searchParams.set('cfg', token);
+      window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+    } catch {}
+  };
+  const scheduleSyncShareUrl = debounce(syncShareUrl, 260);
+
+  const restoreInitialConfig = () => {
+    let applied = false;
+    try {
+      const params = new URLSearchParams(window.location.search || '');
+      const token = params.get('cfg');
+      if (token) {
+        const decoded = decodeConfigToken(token);
+        if (decoded) applied = applyConfigSnapshot(decoded, { markDirty: false, skipShareSync: true });
+      }
+    } catch {}
+    if (applied || !storage) return;
+    try {
+      const raw = storage.getItem(QR_LAST_CONFIG_STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      applyConfigSnapshot(parsed, { markDirty: false, skipShareSync: true });
+    } catch {}
+  };
+
+  const canvasToBlob = (sourceCanvas, type) => new Promise((resolve) => {
+    sourceCanvas.toBlob((blob) => resolve(blob || null), type || 'image/png');
+  });
+
+  const buildExportArtifacts = async (size) => {
+    if (!state.darkModules) return null;
+    const safeSize = clamp(toInt(size, 1024), 128, 8192);
+    const outCanvas = document.createElement('canvas');
+    outCanvas.width = safeSize;
+    outCanvas.height = safeSize;
+    renderQrToCanvas(outCanvas, { moduleCount: state.moduleCount, darkModules: state.darkModules }, getRenderOptions());
+    const pngBlob = await canvasToBlob(outCanvas, 'image/png');
+    if (!pngBlob) return null;
+    const svg = buildSvg({ moduleCount: state.moduleCount, darkModules: state.darkModules }, getRenderOptions(), safeSize);
+    const pdfBytes = buildPdf({ moduleCount: state.moduleCount, darkModules: state.darkModules }, getRenderOptions({ forceSolidBackground: true }), safeSize);
+    return {
+      size: safeSize,
+      pngBlob,
+      svg,
+      pdfBytes,
+    };
+  };
+
+  const handleControlMutation = () => {
+    setInlineStatus(fixStatusEl, '');
     readStateFromControls();
     updateControlsFromState();
     scheduleRender();
+    schedulePersistLastConfig();
+    scheduleSyncShareUrl();
+  };
+
+  dataInput.addEventListener('input', () => {
+    handleControlMutation();
   });
 
+  if (payloadModeSelect) {
+    payloadModeSelect.addEventListener('change', () => {
+      setPayloadMode(getPayloadMode());
+      handleControlMutation();
+      if (payloadModeSelect.value === 'url') dataInput?.focus();
+      if (payloadModeSelect.value === 'text') payloadTextInput?.focus();
+      if (payloadModeSelect.value === 'wifi') wifiSsidInput?.focus();
+      if (payloadModeSelect.value === 'vcard') vcardFirstInput?.focus();
+    });
+  }
+
+  modeButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const mode = button.dataset.qrtoolModeBtn === 'advanced' ? 'advanced' : 'basic';
+      setUiMode(mode, { markDirty: true });
+      handleControlMutation();
+    });
+  });
+
+  if (autofixBtn) {
+    autofixBtn.addEventListener('click', () => {
+      applyReliabilityFixes();
+    });
+  }
+
+  if (payloadCopyBtn) {
+    payloadCopyBtn.addEventListener('click', async () => {
+      const payload = String(payloadPreviewInput?.value || '');
+      if (!payload.trim()) return;
+      try {
+        await navigator.clipboard.writeText(payload);
+        setInlineStatus(exportStatusEl, 'Payload copied to clipboard.', 'success');
+      } catch {
+        setInlineStatus(exportStatusEl, 'Clipboard unavailable. Copy from the payload box manually.', 'warning');
+      }
+    });
+  }
+
+  if (exportPresetSelect && imageSizeSelect) {
+    exportPresetSelect.addEventListener('change', () => {
+      const preset = exportPresetSelect.value;
+      const presetSize = EXPORT_SIZE_BY_PRESET[preset];
+      if (presetSize) imageSizeSelect.value = String(presetSize);
+      handleControlMutation();
+    });
+    imageSizeSelect.addEventListener('change', () => {
+      const size = toInt(imageSizeSelect.value, 1024);
+      const preset = Object.entries(EXPORT_SIZE_BY_PRESET).find(([, value]) => value === size)?.[0] || 'custom';
+      exportPresetSelect.value = preset;
+      handleControlMutation();
+    });
+  }
+
+  if (basicLogoToggleInput) {
+    basicLogoToggleInput.addEventListener('change', () => {
+      handleControlMutation();
+    });
+  }
+
   [
+    payloadTextInput,
+    wifiSsidInput,
+    wifiAuthSelect,
+    wifiPasswordInput,
+    wifiHiddenInput,
+    vcardFirstInput,
+    vcardLastInput,
+    vcardOrgInput,
+    vcardTitleInput,
+    vcardPhoneInput,
+    vcardEmailInput,
+    vcardWebsiteInput,
+    vcardAddressInput,
+    vcardNoteInput,
     dotStyleSelect,
     cornerStyleSelect,
     eccSelect,
@@ -2669,14 +3464,10 @@
     captionBgColorInput,
   ].filter(Boolean).forEach((el) => {
     el.addEventListener('input', () => {
-      readStateFromControls();
-      updateControlsFromState();
-      scheduleRender();
+      handleControlMutation();
     });
     el.addEventListener('change', () => {
-      readStateFromControls();
-      updateControlsFromState();
-      scheduleRender();
+      handleControlMutation();
     });
   });
 
@@ -2687,8 +3478,26 @@
   });
 
   clearBtn.addEventListener('click', () => {
-    applyDataValue('');
-    dataInput.focus();
+    const mode = getPayloadMode();
+    if (mode === 'url') {
+      applyDataValue('', { forceUrlMode: false });
+      dataInput.focus();
+      return;
+    }
+    if (mode === 'text' && payloadTextInput) payloadTextInput.value = '';
+    if (mode === 'wifi') {
+      if (wifiSsidInput) wifiSsidInput.value = '';
+      if (wifiPasswordInput) wifiPasswordInput.value = '';
+      if (wifiHiddenInput) wifiHiddenInput.checked = false;
+    }
+    if (mode === 'vcard') {
+      [vcardFirstInput, vcardLastInput, vcardOrgInput, vcardTitleInput, vcardPhoneInput, vcardEmailInput, vcardWebsiteInput, vcardAddressInput, vcardNoteInput]
+        .filter(Boolean)
+        .forEach((input) => {
+          input.value = '';
+        });
+    }
+    handleControlMutation();
   });
 
   if (centerTextClearBtn && centerTextInput) {
@@ -2763,12 +3572,116 @@
 
   window.addEventListener('storage', (event) => {
     if (!event || event.storageArea !== window.localStorage) return;
-    if (event.key !== SHORTLINKS_TOKEN_STORAGE_KEY) return;
-    shortlinksManifest = null;
-    updateShortlinksPickerVisibility();
+    if (event.key === SHORTLINKS_TOKEN_STORAGE_KEY) {
+      shortlinksManifest = null;
+      updateShortlinksPickerVisibility();
+      return;
+    }
+    if (event.key === QR_PRESETS_STORAGE_KEY) {
+      configPresets = loadStoredPresets();
+      renderPresetOptions();
+    }
   });
 
   updateShortlinksPickerVisibility();
+
+  renderPresetOptions();
+
+  if (configSaveBtn) {
+    configSaveBtn.addEventListener('click', () => {
+      const name = String(configNameInput?.value || '').trim();
+      if (!name) {
+        setInlineStatus(configStatusEl, 'Enter a preset name first.', 'warning');
+        return;
+      }
+      const snapshot = buildConfigSnapshot();
+      const existingIdx = configPresets.findIndex(item => item.name.toLowerCase() === name.toLowerCase());
+      const entry = { name, config: snapshot, savedAt: Date.now() };
+      if (existingIdx >= 0) configPresets[existingIdx] = entry;
+      else configPresets.unshift(entry);
+      persistPresets(configPresets);
+      renderPresetOptions();
+      if (configListSelect) configListSelect.value = String(existingIdx >= 0 ? existingIdx : 0);
+      setInlineStatus(configStatusEl, `Preset "${name}" saved.`, 'success');
+    });
+  }
+
+  if (configApplyBtn) {
+    configApplyBtn.addEventListener('click', () => {
+      const idx = toInt(configListSelect?.value, -1);
+      if (idx < 0 || idx >= configPresets.length) {
+        setInlineStatus(configStatusEl, 'Choose a preset to apply.', 'warning');
+        return;
+      }
+      const ok = applyConfigSnapshot(configPresets[idx].config, { markDirty: true });
+      setInlineStatus(configStatusEl, ok ? `Applied preset "${configPresets[idx].name}".` : 'Preset could not be applied.', ok ? 'success' : 'error');
+    });
+  }
+
+  if (configDeleteBtn) {
+    configDeleteBtn.addEventListener('click', () => {
+      const idx = toInt(configListSelect?.value, -1);
+      if (idx < 0 || idx >= configPresets.length) {
+        setInlineStatus(configStatusEl, 'Choose a preset to delete.', 'warning');
+        return;
+      }
+      const removed = configPresets.splice(idx, 1)[0];
+      persistPresets(configPresets);
+      renderPresetOptions();
+      setInlineStatus(configStatusEl, `Deleted preset "${removed?.name || 'preset'}".`, 'success');
+    });
+  }
+
+  if (configExportBtn) {
+    configExportBtn.addEventListener('click', () => {
+      const json = JSON.stringify(buildConfigSnapshot(), null, 2);
+      downloadBlob(new Blob([json], { type: 'application/json;charset=utf-8' }), `${fileNameSafe(filenameInput.value || 'qr-code')}-config.json`);
+      setInlineStatus(configStatusEl, 'Exported config JSON.', 'success');
+    });
+  }
+
+  if (configImportBtn && configImportFileInput) {
+    configImportBtn.addEventListener('click', () => {
+      configImportFileInput.value = '';
+      configImportFileInput.click();
+    });
+    configImportFileInput.addEventListener('change', async () => {
+      const file = configImportFileInput.files && configImportFileInput.files[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        const ok = applyConfigSnapshot(parsed, { markDirty: true });
+        setInlineStatus(configStatusEl, ok ? `Imported "${file.name}".` : 'Config import failed.', ok ? 'success' : 'error');
+      } catch {
+        setInlineStatus(configStatusEl, 'Invalid config JSON file.', 'error');
+      }
+    });
+  }
+
+  if (configShareBtn) {
+    configShareBtn.addEventListener('click', async () => {
+      const token = encodeConfigToken(buildConfigSnapshot({ forShare: true }));
+      if (!token) {
+        setInlineStatus(configStatusEl, 'Could not generate share token.', 'error');
+        return;
+      }
+      if (token.length > 1800) {
+        setInlineStatus(configStatusEl, 'Config is too large for URL sharing. Export JSON instead.', 'warning');
+        return;
+      }
+      const url = new URL(window.location.href);
+      url.searchParams.set('cfg', token);
+      const shareUrl = url.toString();
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        setInlineStatus(configStatusEl, 'Share link copied to clipboard.', 'success');
+      } catch {
+        setInlineStatus(configStatusEl, shareUrl, 'warning');
+      }
+      scheduleSyncShareUrl();
+    });
+  }
 
   logoInput.addEventListener('change', () => {
     const file = logoInput.files && logoInput.files[0];
@@ -2785,130 +3698,116 @@
     render();
   }, 160));
 
+  const getSelectedExportSize = () => clamp(toInt(imageSizeSelect?.value, 1024), 128, 8192);
+
   downloadPngBtn.addEventListener('click', async () => {
     if (!state.darkModules) return;
-    const size = clamp(toInt(imageSizeSelect.value, 1024), 128, 8192);
-    const outCanvas = document.createElement('canvas');
-    outCanvas.width = size;
-    outCanvas.height = size;
-    renderQrToCanvas(outCanvas, { moduleCount: state.moduleCount, darkModules: state.darkModules }, {
-      dotStyle: state.dotStyle,
-      cornerStyle: state.cornerStyle,
-      marginModules: state.marginModules,
-      fg: state.fg,
-      bg: state.bg,
-      transparent: state.transparent,
-      centerMode: state.centerMode,
-      logoImage: state.logoImage,
-      logoDataUrl: state.logoDataUrl,
-      logoSizePct: state.logoSizePct,
-      logoPaddingPct: state.logoPaddingPct,
-      logoShape: state.logoShape,
-      logoPlateStyle: state.logoPlateStyle,
-      logoPlateColor: state.logoPlateColor,
-      logoBorderStyle: state.logoBorderStyle,
-      logoBorderPct: state.logoBorderPct,
-      logoBorderColor: state.logoBorderColor,
-      centerText: state.centerText,
-      centerTextWeight: state.centerTextWeight,
-      centerTextColorStyle: state.centerTextColorStyle,
-      centerTextColor: state.centerTextColor,
-      captionEnabled: state.captionEnabled,
-      captionText: state.captionText,
-      captionSizePct: state.captionSizePct,
-      captionAlign: state.captionAlign,
-      captionColorStyle: state.captionColorStyle,
-      captionColor: state.captionColor,
-      captionBgStyle: state.captionBgStyle,
-      captionBgColor: state.captionBgColor,
+    const artifacts = await buildExportArtifacts(getSelectedExportSize());
+    if (!artifacts) {
+      setInlineStatus(exportStatusEl, 'Could not create PNG export.', 'error');
+      return;
+    }
+    downloadBlob(artifacts.pngBlob, `${fileNameSafe(filenameInput.value)}.png`);
+    setInlineStatus(exportStatusEl, `PNG downloaded (${artifacts.size}px).`, 'success');
+  });
+
+  downloadSvgBtn.addEventListener('click', async () => {
+    if (!state.darkModules) return;
+    const artifacts = await buildExportArtifacts(getSelectedExportSize());
+    if (!artifacts) {
+      setInlineStatus(exportStatusEl, 'Could not create SVG export.', 'error');
+      return;
+    }
+    downloadBlob(new Blob([artifacts.svg], { type: 'image/svg+xml;charset=utf-8' }), `${fileNameSafe(filenameInput.value)}.svg`);
+    setInlineStatus(exportStatusEl, 'SVG downloaded.', 'success');
+  });
+
+  downloadPdfBtn.addEventListener('click', async () => {
+    if (!state.darkModules) return;
+    const artifacts = await buildExportArtifacts(getSelectedExportSize());
+    if (!artifacts) {
+      setInlineStatus(exportStatusEl, 'Could not create PDF export.', 'error');
+      return;
+    }
+    downloadBlob(new Blob([artifacts.pdfBytes], { type: 'application/pdf' }), `${fileNameSafe(filenameInput.value)}.pdf`);
+    setInlineStatus(exportStatusEl, 'PDF downloaded.', 'success');
+  });
+
+  if (copyPngBtn) {
+    copyPngBtn.addEventListener('click', async () => {
+      if (!state.darkModules) return;
+      const artifacts = await buildExportArtifacts(getSelectedExportSize());
+      if (!artifacts) {
+        setInlineStatus(exportStatusEl, 'Could not create PNG copy.', 'error');
+        return;
+      }
+      if (!navigator.clipboard || typeof window.ClipboardItem !== 'function') {
+        downloadBlob(artifacts.pngBlob, `${fileNameSafe(filenameInput.value)}.png`);
+        setInlineStatus(exportStatusEl, 'Clipboard API unavailable. Downloaded PNG instead.', 'warning');
+        return;
+      }
+      try {
+        await navigator.clipboard.write([new window.ClipboardItem({ 'image/png': artifacts.pngBlob })]);
+        setInlineStatus(exportStatusEl, 'PNG copied to clipboard.', 'success');
+      } catch {
+        setInlineStatus(exportStatusEl, 'Copy failed in this browser. Use Download PNG.', 'error');
+      }
     });
-    outCanvas.toBlob((blob) => {
-      if (!blob) return;
-      const filename = `${fileNameSafe(filenameInput.value)}.png`;
-      downloadBlob(blob, filename);
-    }, 'image/png');
-  });
+  }
 
-  downloadSvgBtn.addEventListener('click', () => {
-    if (!state.darkModules) return;
-    const size = clamp(toInt(imageSizeSelect.value, 1024), 128, 8192);
-    const svg = buildSvg({ moduleCount: state.moduleCount, darkModules: state.darkModules }, {
-      dotStyle: state.dotStyle,
-      cornerStyle: state.cornerStyle,
-      marginModules: state.marginModules,
-      fg: state.fg,
-      bg: state.bg,
-      transparent: state.transparent,
-      centerMode: state.centerMode,
-      logoDataUrl: state.logoDataUrl,
-      logoImage: state.logoImage,
-      logoSizePct: state.logoSizePct,
-      logoPaddingPct: state.logoPaddingPct,
-      logoShape: state.logoShape,
-      logoPlateStyle: state.logoPlateStyle,
-      logoPlateColor: state.logoPlateColor,
-      logoBorderStyle: state.logoBorderStyle,
-      logoBorderPct: state.logoBorderPct,
-      logoBorderColor: state.logoBorderColor,
-      centerText: state.centerText,
-      centerTextWeight: state.centerTextWeight,
-      centerTextColorStyle: state.centerTextColorStyle,
-      centerTextColor: state.centerTextColor,
-      captionEnabled: state.captionEnabled,
-      captionText: state.captionText,
-      captionSizePct: state.captionSizePct,
-      captionAlign: state.captionAlign,
-      captionColorStyle: state.captionColorStyle,
-      captionColor: state.captionColor,
-      captionBgStyle: state.captionBgStyle,
-      captionBgColor: state.captionBgColor,
-    }, size);
-    downloadBlob(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }), `${fileNameSafe(filenameInput.value)}.svg`);
-  });
+  if (copySvgBtn) {
+    copySvgBtn.addEventListener('click', async () => {
+      if (!state.darkModules) return;
+      const artifacts = await buildExportArtifacts(getSelectedExportSize());
+      if (!artifacts) {
+        setInlineStatus(exportStatusEl, 'Could not create SVG copy.', 'error');
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(artifacts.svg);
+        setInlineStatus(exportStatusEl, 'SVG markup copied to clipboard.', 'success');
+      } catch {
+        setInlineStatus(exportStatusEl, 'Clipboard unavailable for SVG markup.', 'error');
+      }
+    });
+  }
 
-  downloadPdfBtn.addEventListener('click', () => {
-    if (!state.darkModules) return;
-    const size = clamp(toInt(imageSizeSelect.value, 1024), 128, 8192);
-    const pdfBytes = buildPdf({ moduleCount: state.moduleCount, darkModules: state.darkModules }, {
-      dotStyle: state.dotStyle,
-      cornerStyle: state.cornerStyle,
-      marginModules: state.marginModules,
-      fg: state.fg,
-      bg: state.bg,
-      transparent: false,
-      centerMode: state.centerMode,
-      logoImage: state.logoImage,
-      logoDataUrl: state.logoDataUrl,
-      logoSizePct: state.logoSizePct,
-      logoPaddingPct: state.logoPaddingPct,
-      logoShape: state.logoShape,
-      logoPlateStyle: state.logoPlateStyle,
-      logoPlateColor: state.logoPlateColor,
-      logoBorderStyle: state.logoBorderStyle,
-      logoBorderPct: state.logoBorderPct,
-      logoBorderColor: state.logoBorderColor,
-      centerText: state.centerText,
-      centerTextWeight: state.centerTextWeight,
-      centerTextColorStyle: state.centerTextColorStyle,
-      centerTextColor: state.centerTextColor,
-      captionEnabled: state.captionEnabled,
-      captionText: state.captionText,
-      captionSizePct: state.captionSizePct,
-      captionAlign: state.captionAlign,
-      captionColorStyle: state.captionColorStyle,
-      captionColor: state.captionColor,
-      captionBgStyle: state.captionBgStyle,
-      captionBgColor: state.captionBgColor,
-    }, size);
-    downloadBlob(new Blob([pdfBytes], { type: 'application/pdf' }), `${fileNameSafe(filenameInput.value)}.pdf`);
-  });
+  if (downloadAllBtn) {
+    downloadAllBtn.addEventListener('click', async () => {
+      if (!state.darkModules) return;
+      const artifacts = await buildExportArtifacts(getSelectedExportSize());
+      if (!artifacts) {
+        setInlineStatus(exportStatusEl, 'Could not generate export package.', 'error');
+        return;
+      }
+      const base = fileNameSafe(filenameInput.value);
+      if (!buildZipBytes) {
+        downloadBlob(artifacts.pngBlob, `${base}.png`);
+        downloadBlob(new Blob([artifacts.svg], { type: 'image/svg+xml;charset=utf-8' }), `${base}.svg`);
+        downloadBlob(new Blob([artifacts.pdfBytes], { type: 'application/pdf' }), `${base}.pdf`);
+        setInlineStatus(exportStatusEl, 'ZIP unavailable in this build. Downloaded all files separately.', 'warning');
+        return;
+      }
+      const pngBytes = new Uint8Array(await artifacts.pngBlob.arrayBuffer());
+      const zipBytes = buildZipBytes([
+        { name: `${base}.png`, data: pngBytes },
+        { name: `${base}.svg`, data: artifacts.svg },
+        { name: `${base}.pdf`, data: artifacts.pdfBytes },
+      ]);
+      downloadBlob(new Blob([zipBytes], { type: 'application/zip' }), `${base}-exports.zip`);
+      setInlineStatus(exportStatusEl, 'ZIP downloaded with PNG, SVG, and PDF.', 'success');
+    });
+  }
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
   });
 
   initTabs();
+  setUiMode(DEFAULTS.uiMode);
+  setPayloadMode(DEFAULTS.payloadMode);
   readStateFromControls();
+  restoreInitialConfig();
   updateControlsFromState();
   if (state.centerMode === 'image' && !state.logoImage && state.logoDataUrl) {
     loadLogoFromUrl(state.logoDataUrl, { markDirty: false }).catch(() => {});
@@ -2953,8 +3852,9 @@
     const summary = captureSummary();
     payload.outputSummary = summary || 'QR code';
 
-    const data = String(dataInput.value || '').trim();
+    const data = String(state.data || '').trim();
     payload.inputs = {
+      'Payload type': String(state.payloadMode || 'url').toUpperCase(),
       Data: data,
       ...(captionEnabledInput?.checked ? { Caption: String(captionTextInput?.value || '').trim() } : {}),
     };
