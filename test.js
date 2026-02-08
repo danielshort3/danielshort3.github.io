@@ -121,7 +121,12 @@ try {
       'pages/ga4-utm-performance.html',
       'pages/whisper-transcribe-monitor.html'
     ];
-    const privateToolPages = ['pages/tools-dashboard.html', 'pages/short-links.html'];
+    const privateToolPages = [
+      'pages/tools-dashboard.html',
+      'pages/short-links.html',
+      'pages/ga4-utm-performance.html',
+      'pages/whisper-transcribe-monitor.html'
+    ];
     ['pages/games.html','pages/ocean-wave-simulation.html', ...toolPages].forEach(f => {
       checkFileContains(f, 'js/common/common.js');
       checkFileContains(f, 'class="skip-link"');
@@ -678,8 +683,20 @@ try {
       Array.isArray(h.headers) &&
       h.headers.some(x => x && x.key === 'X-Robots-Tag' && /noindex/i.test(String(x.value || '')))
     );
+    const hasNoindexGa4Tool = headers.some(h =>
+      h && h.source === '/tools/ga4-utm-performance' &&
+      Array.isArray(h.headers) &&
+      h.headers.some(x => x && x.key === 'X-Robots-Tag' && /noindex/i.test(String(x.value || '')))
+    );
+    const hasNoindexWhisperTool = headers.some(h =>
+      h && h.source === '/tools/whisper-transcribe-monitor' &&
+      Array.isArray(h.headers) &&
+      h.headers.some(x => x && x.key === 'X-Robots-Tag' && /noindex/i.test(String(x.value || '')))
+    );
     assert(hasNoindexShortLinks, 'short-links noindex header missing');
     assert(hasNoindexToolsDashboard, 'tools dashboard noindex header missing');
+    assert(hasNoindexGa4Tool, 'GA4 tool noindex header missing');
+    assert(hasNoindexWhisperTool, 'Whisper tool noindex header missing');
   });
 
   section('Search index', () => {
@@ -689,6 +706,9 @@ try {
     try { parsed = JSON.parse(raw); } catch {}
     assert(parsed && Array.isArray(parsed.pages), 'search index should contain pages array');
     assert(parsed.pages.length >= 10, 'search index has too few entries');
+    const urls = new Set(parsed.pages.map((entry) => String(entry && entry.url || '').trim()));
+    assert(!urls.has('/tools/ga4-utm-performance'), 'search index should exclude noindex GA4 tool');
+    assert(!urls.has('/tools/whisper-transcribe-monitor'), 'search index should exclude noindex Whisper tool');
   });
 
   section('GA4 report race guards', () => {

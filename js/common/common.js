@@ -12,6 +12,32 @@
   const CONTACT_CONTEXT_KEY = 'contactOrigin';
   const CONTACT_MODAL_ID = 'contact-modal';
   const CONTACT_MODAL_SCRIPT = 'js/forms/contact.js';
+  const initClientErrorTelemetry = () => {
+    if (typeof window === 'undefined' || window.__clientErrorTelemetryInit) return;
+    window.__clientErrorTelemetryInit = true;
+
+    const sendErrorEvent = (kind, details) => {
+      try {
+        if (typeof window.gaEvent !== 'function') return;
+        window.gaEvent('client_error', {
+          kind: String(kind || 'unknown').slice(0, 32),
+          page_path: String((window.location && window.location.pathname) || '').slice(0, 120),
+          message: String(details || '').slice(0, 160)
+        });
+      } catch {}
+    };
+
+    window.addEventListener('error', (event) => {
+      const message = event && (event.message || (event.error && event.error.message)) || 'error';
+      sendErrorEvent('error', message);
+    });
+
+    window.addEventListener('unhandledrejection', (event) => {
+      const reason = event && event.reason;
+      const message = reason && reason.message ? reason.message : String(reason || 'unhandledrejection');
+      sendErrorEvent('unhandledrejection', message);
+    });
+  };
   const CONTACT_MODAL_MARKUP = `
     <div id="contact-modal" class="modal">
       <div class="modal-content" role="dialog" aria-modal="true" tabindex="0" aria-labelledby="contact-modal-title">
@@ -131,6 +157,7 @@
 
   window.addEventListener('pageshow', resetScrollLocks);
   document.addEventListener('DOMContentLoaded', () => {
+    initClientErrorTelemetry();
     resetScrollLocks();
     initSmoothScrollLinks();
     if (isPage('portfolio')) {

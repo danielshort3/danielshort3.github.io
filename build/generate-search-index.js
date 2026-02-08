@@ -225,6 +225,7 @@ function categoryForPath(urlPath) {
 
 function stripIndexNoise(html) {
   let out = String(html || '');
+  out = out.replace(/<article\b[^>]*\bdata-tools-visibility="admin"[^>]*>[\s\S]*?<\/article>/gi, ' ');
   out = out.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, ' ');
   out = out.replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ' ');
   return out;

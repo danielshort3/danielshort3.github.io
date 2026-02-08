@@ -1,7 +1,12 @@
 (() => {
   'use strict';
 
-  const ENDPOINT_BASE = 'https://coxbbervgzwhm5tu53dutxwfca0vxdkg.lambda-url.us-east-2.on.aws/';
+  const ENDPOINT_BASE_DEFAULT = 'https://coxbbervgzwhm5tu53dutxwfca0vxdkg.lambda-url.us-east-2.on.aws/';
+  const ENDPOINT_BASE = (() => {
+    const configured = String((document.body && document.body.dataset && document.body.dataset.whisperEndpointBase) || '').trim();
+    const base = configured || ENDPOINT_BASE_DEFAULT;
+    return base.endsWith('/') ? base : `${base}/`;
+  })();
 
   const STORAGE_WARMUP_AT = 'tool.whisperTranscribe.lastWarmupAt';
   const STORAGE_WARMUP_BASE = 'tool.whisperTranscribe.lastWarmupBase';

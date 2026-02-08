@@ -4995,6 +4995,10 @@
       actionsCell.textContent = '—';
     }
     row.appendChild(actionsCell);
+
+    row.querySelectorAll('.jobtrack-table-cell').forEach((cell) => {
+      if (!cell.getAttribute('role')) cell.setAttribute('role', 'cell');
+    });
     return row;
   };
 
@@ -5709,6 +5713,14 @@
 
   const initEntryList = () => {
     initEntryView();
+    let filterInputTimer = null;
+    const scheduleFilterApply = () => {
+      if (filterInputTimer) window.clearTimeout(filterInputTimer);
+      filterInputTimer = window.setTimeout(() => {
+        filterInputTimer = null;
+        applyEntryFilters();
+      }, 180);
+    };
     if (els.savedViewSelect) {
       els.savedViewSelect.addEventListener('change', () => {
         const viewId = els.savedViewSelect.value || '';
@@ -5738,7 +5750,7 @@
       els.bulkStatusApply.addEventListener('click', () => applyBulkStatus());
     }
     if (els.entryFilterQuery) {
-      els.entryFilterQuery.addEventListener('input', () => applyEntryFilters());
+      els.entryFilterQuery.addEventListener('input', () => scheduleFilterApply());
     }
     if (els.entryFilterGroup) {
       els.entryFilterGroup.addEventListener('change', () => applyEntryFilters());
@@ -5759,7 +5771,7 @@
       els.entryFilterLocation.addEventListener('change', () => applyEntryFilters());
     }
     if (els.entryFilterTags) {
-      els.entryFilterTags.addEventListener('input', () => applyEntryFilters());
+      els.entryFilterTags.addEventListener('input', () => scheduleFilterApply());
     }
     if (els.entryFilterStart) {
       els.entryFilterStart.addEventListener('change', () => applyEntryFilters());
