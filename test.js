@@ -95,6 +95,9 @@ try {
     checkFileContains('pages/utm-batch-builder.html', '<title>UTM Batch Builder | Daniel Short');
     checkFileContains('pages/whisper-transcribe-monitor.html', '<title>Whisper Capacity Monitor | Daniel Short');
     checkFileContains('pages/ga4-utm-performance.html', '<title>GA4 UTM Performance | Daniel Short');
+    checkFileContains('probability-engine.html', '<title>Probability Engine | Daniel Short</title>');
+    checkFileContains('probability-engine.html', '<link rel="canonical" href="https://www.danielshort.me/games/probability-engine">');
+    checkFileContains('probability-engine.html', '<meta name="description"');
     ['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/sitemap.html'].forEach(f => {
       checkFileContains(f, 'js/common/common.js');
       checkFileContains(f, 'class="skip-link"');
@@ -127,10 +130,19 @@ try {
     ['pages/games.html','pages/ocean-wave-simulation.html','404.html','dshort.html', ...privateToolPages].forEach(f => {
       checkFileContains(f, 'noindex, nofollow');
     });
+    ['404.html', 'pages/privacy.html'].forEach((f) => {
+      const html = fs.readFileSync(f, 'utf8');
+      const skipIndex = html.indexOf('class="skip-link"');
+      const headerIndex = html.indexOf('<header id="combined-header-nav">');
+      assert(skipIndex >= 0 && headerIndex >= 0, `${f} missing skip-link or shared header`);
+      assert(skipIndex < headerIndex, `${f} skip-link should appear before shared header`);
+    });
     toolPages.filter(f => !privateToolPages.includes(f)).forEach(f => {
       const content = fs.readFileSync(f, 'utf8');
       assert(!content.includes('noindex, nofollow'), `${f} should be indexable`);
     });
+    assert(!fs.readFileSync('pages/tools-dashboard.html', 'utf8').includes('id="tool-jsonld"'),
+      'tools dashboard should not include WebApplication JSON-LD');
     ['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/tools.html','pages/games.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/utm-batch-builder.html','404.html'].forEach(f => {
       checkFileContains(f, 'og:image');
     });
@@ -192,6 +204,8 @@ try {
   });
 
   section('Job tracker UI additions', () => {
+    const trackerHtml = fs.readFileSync('pages/job-application-tracker.html', 'utf8');
+    const trackerJs = fs.readFileSync('js/tools/job-application-tracker.js', 'utf8');
     checkFileContains('pages/job-application-tracker.html', 'data-jobtrack-tab="account"');
     checkFileContains('pages/job-application-tracker.html', 'data-jobtrack-tab="entries"');
     checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="entry-form"');
@@ -226,6 +240,14 @@ try {
     checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="entry-filter-tags"');
     checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="funnel-list"');
     checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="time-in-stage-list"');
+    assert(!trackerHtml.includes('js/vendor/chartjs/chart.umd.min.js'), 'job tracker should lazy-load Chart.js');
+    assert(!trackerHtml.includes('js/vendor/fflate/fflate.min.js'), 'job tracker should lazy-load fflate');
+    assert(trackerJs.includes('const CHART_JS_SRC = \'/js/vendor/chartjs/chart.umd.min.js\';'),
+      'job tracker missing lazy Chart.js source constant');
+    assert(trackerJs.includes('const FFLATE_SRC = \'/js/vendor/fflate/fflate.min.js\';'),
+      'job tracker missing lazy fflate source constant');
+    assert(trackerJs.includes('await ensureFflate();'), 'job tracker should load fflate on demand');
+    assert(trackerJs.includes('ensureChartJs()'), 'job tracker should load Chart.js on demand');
   });
 
   section('QR generator enhanced workflow contracts', () => {
@@ -295,6 +317,50 @@ try {
       checkFileContains(file, `<meta property="og:url" content="https://www.danielshort.me/portfolio/${id}">`);
       assert(sitemap.includes(`https://www.danielshort.me/portfolio/${id}`), `sitemap.xml missing project url: ${id}`);
     });
+
+    const toolsHtml = fs.readFileSync('pages/tools.html', 'utf8');
+    const adminToolPaths = toolsHtml
+      .split('<article class="tool-card"')
+      .slice(1)
+      .filter((card) => /data-tools-visibility="admin"/i.test(card))
+      .map((card) => {
+        const match = /<a\s+[^>]*href="tools\/([^"#?]+)"/i.exec(card);
+        return match ? `/tools/${String(match[1] || '').trim()}` : '';
+      })
+      .filter(Boolean);
+
+    adminToolPaths.forEach((toolPath) => {
+      assert(!sitemap.includes(`https://www.danielshort.me${toolPath}`), `sitemap.xml should exclude admin tool URL: ${toolPath}`);
+    });
+
+    const normalizePath = (raw) => {
+      const source = String(raw || '').trim();
+      if (!source) return '';
+      let next = source.split('#')[0].split('?')[0];
+      if (!next.startsWith('/')) next = `/${next}`;
+      next = next.replace(/\/+$/, '') || '/';
+      if (next !== '/' && next.endsWith('.html')) next = next.slice(0, -5) || '/';
+      return next;
+    };
+
+    const vercel = JSON.parse(fs.readFileSync('vercel.json', 'utf8'));
+    const noindexPathSet = new Set();
+    (vercel.headers || []).forEach((rule) => {
+      const source = String(rule && rule.source ? rule.source : '').trim();
+      if (!source || /[:*()]/.test(source)) return;
+      const hasNoindex = Array.isArray(rule.headers) && rule.headers.some((entry) => {
+        const key = String(entry && entry.key ? entry.key : '').toLowerCase();
+        const value = String(entry && entry.value ? entry.value : '').toLowerCase();
+        return key === 'x-robots-tag' && value.includes('noindex');
+      });
+      if (!hasNoindex) return;
+      const normalized = normalizePath(source);
+      if (normalized) noindexPathSet.add(normalized);
+    });
+
+    noindexPathSet.forEach((pathName) => {
+      assert(!sitemap.includes(`https://www.danielshort.me${pathName}`), `sitemap.xml should exclude noindex URL: ${pathName}`);
+    });
   });
 
   section('Analytics helpers and events', () => {
@@ -353,6 +419,7 @@ try {
     assert(headerTemplate.includes('class="nav-search"'), 'nav markup missing header search');
     assert(headerTemplate.includes('action="search"'), 'header search missing action="search"');
     assert(headerTemplate.includes('name="q"'), 'header search missing query param name="q"');
+    assert(!headerTemplate.includes('role="button"'), 'header nav links should not be forced to role="button"');
   });
 
   section('Navigation CSS and mobile layout', () => {
@@ -622,6 +689,19 @@ try {
     try { parsed = JSON.parse(raw); } catch {}
     assert(parsed && Array.isArray(parsed.pages), 'search index should contain pages array');
     assert(parsed.pages.length >= 10, 'search index has too few entries');
+  });
+
+  section('GA4 report race guards', () => {
+    const ga4Tool = fs.readFileSync('js/tools/ga4-utm-performance.js', 'utf8');
+    assert(ga4Tool.includes('let utmRequestSeq = 0;'), 'GA4 tool missing UTM request sequencing guard');
+    assert(ga4Tool.includes('let exploreRequestSeq = 0;'), 'GA4 tool missing Explore request sequencing guard');
+    assert(ga4Tool.includes('let accessRequestSeq = 0;'), 'GA4 tool missing access request sequencing guard');
+    assert(ga4Tool.includes('if (utmBusy) return;'), 'GA4 tool should guard overlapping UTM requests');
+    assert(ga4Tool.includes('if (exploreBusy) return;'), 'GA4 tool should guard overlapping Explore requests');
+    assert(ga4Tool.includes('if (accessBusy) return;'), 'GA4 tool should guard overlapping access checks');
+    assert(ga4Tool.includes('requestId !== utmRequestSeq'), 'GA4 tool should ignore stale UTM responses');
+    assert(ga4Tool.includes('requestId !== exploreRequestSeq'), 'GA4 tool should ignore stale Explore responses');
+    assert(ga4Tool.includes('requestId !== accessRequestSeq'), 'GA4 tool should ignore stale access responses');
   });
 
   section('Chatbot demo startup timer', () => {

@@ -267,6 +267,10 @@
   let drilldownGroup = null;
   let utmBusy = false;
   let exploreBusy = false;
+  let accessBusy = false;
+  let utmRequestSeq = 0;
+  let exploreRequestSeq = 0;
+  let accessRequestSeq = 0;
 
   const getSavedToken = () => {
     if (storage) return storage.getItem(TOKEN_STORAGE_KEY) || '';
@@ -1136,6 +1140,11 @@
     renderExploreDrilldown();
   };
 
+  const setAccessBusy = (busy) => {
+    accessBusy = !!busy;
+    checkAccessBtn.disabled = accessBusy;
+  };
+
   const fetchGa4Report = async (payload) => {
     const token = getSavedToken();
     if (!token) throw new Error('Admin token required.');
@@ -1174,6 +1183,7 @@
   });
 
   const runUtmReport = async () => {
+    if (utmBusy) return;
     const propertyId = getPropertyId();
     if (!propertyId) {
       setStatus(utmStatusEl, 'GA4 property ID required.', 'error');
@@ -1184,6 +1194,7 @@
       return;
     }
 
+    const requestId = ++utmRequestSeq;
     setUtmBusy(true);
     setStatus(utmStatusEl, 'Fetching GA4 data…');
     try {
@@ -1194,6 +1205,7 @@
         endDate: String(endEl.value || '').trim(),
         filters: buildUtmFiltersPayload()
       });
+      if (requestId !== utmRequestSeq) return;
       renderQuota(data.quota);
 
       const rows = Array.isArray(data.rows) ? data.rows : [];
@@ -1225,6 +1237,7 @@
       setStatus(utmStatusEl, `Done. ${formatNumber(urlsLabel)} URL(s), ${formatNumber(groupsLabel)} group(s)${truncatedNote}.`, 'success');
       markSessionDirty();
     } catch (err) {
+      if (requestId !== utmRequestSeq) return;
       lastUtm = null;
       drilldownGroup = null;
       utmSummaryEl.replaceChildren();
@@ -1233,7 +1246,7 @@
       setStatus(utmStatusEl, err.message || 'Failed to fetch report.', 'error');
       markSessionDirty();
     } finally {
-      setUtmBusy(false);
+      if (requestId === utmRequestSeq) setUtmBusy(false);
     }
   };
 
@@ -1728,6 +1741,7 @@
   };
 
   const runExploreDrilldown = async () => {
+    if (exploreBusy) return;
     if (!exploreDrill || !Array.isArray(exploreDrill.segmentFilters) || !exploreDrill.segmentFilters.length) {
       setStatus(exploreStatusEl, 'Select a row to drill into first.', 'error');
       return;
@@ -1771,6 +1785,7 @@
       })
       .filter(Boolean);
 
+    const requestId = ++exploreRequestSeq;
     setExploreBusy(true);
     setStatus(exploreStatusEl, 'Fetching GA4 drilldown…');
 
@@ -1796,6 +1811,7 @@
         filters: buildUtmFiltersPayload(),
         dimensionFilters
       });
+      if (requestId !== exploreRequestSeq) return;
       renderQuota(data.quota);
 
       lastExplore = {
@@ -1825,15 +1841,17 @@
       setStatus(exploreStatusEl, `Done. ${formatNumber(lastExplore.returnedRows || lastExplore.rows.length)} row(s)${trunc}.`, 'success');
       markSessionDirty();
     } catch (err) {
+      if (requestId !== exploreRequestSeq) return;
       if (pushed) exploreHistory.pop();
       setStatus(exploreStatusEl, err.message || 'Failed to fetch drilldown.', 'error');
       markSessionDirty();
     } finally {
-      setExploreBusy(false);
+      if (requestId === exploreRequestSeq) setExploreBusy(false);
     }
   };
 
   const runExploreReport = async () => {
+    if (exploreBusy) return;
     const propertyId = getPropertyId();
     if (!propertyId) {
       setStatus(exploreStatusEl, 'GA4 property ID required.', 'error');
@@ -1868,6 +1886,7 @@
     exploreRoot = null;
     renderExploreDrilldown();
 
+    const requestId = ++exploreRequestSeq;
     setExploreBusy(true);
     setStatus(exploreStatusEl, 'Fetching GA4 explore report…');
     try {
@@ -1883,6 +1902,7 @@
         orderDir,
         filters: buildUtmFiltersPayload()
       });
+      if (requestId !== exploreRequestSeq) return;
       renderQuota(data.quota);
 
       lastExplore = {
@@ -1911,6 +1931,7 @@
       setStatus(exploreStatusEl, `Done. ${formatNumber(lastExplore.returnedRows || lastExplore.rows.length)} row(s)${trunc}.`, 'success');
       markSessionDirty();
     } catch (err) {
+      if (requestId !== exploreRequestSeq) return;
       lastExplore = null;
       exploreSummaryEl.replaceChildren();
       exploreOutputEl.replaceChildren();
@@ -1918,17 +1939,20 @@
       setStatus(exploreStatusEl, err.message || 'Failed to fetch explore report.', 'error');
       markSessionDirty();
     } finally {
-      setExploreBusy(false);
+      if (requestId === exploreRequestSeq) setExploreBusy(false);
     }
   };
 
   const checkAccess = async () => {
+    if (accessBusy) return;
     const propertyId = getPropertyId();
     if (!propertyId) {
       setStatus(accessStatusEl, 'GA4 property ID required.', 'error');
       return;
     }
 
+    const requestId = ++accessRequestSeq;
+    setAccessBusy(true);
     setStatus(accessStatusEl, 'Checking access…');
     try {
       const data = await fetchGa4Report({
@@ -1937,11 +1961,15 @@
         startDate: String(startEl.value || '').trim(),
         endDate: String(endEl.value || '').trim()
       });
+      if (requestId !== accessRequestSeq) return;
       renderQuota(data.quota);
       const rows = Array.isArray(data.rows) ? data.rows : [];
       setStatus(accessStatusEl, rows.length ? 'Access OK. GA4 report returned data.' : 'Access OK. No rows returned for the selected range.', 'success');
     } catch (err) {
+      if (requestId !== accessRequestSeq) return;
       setStatus(accessStatusEl, err.message || 'Access check failed.', 'error');
+    } finally {
+      if (requestId === accessRequestSeq) setAccessBusy(false);
     }
   };
 

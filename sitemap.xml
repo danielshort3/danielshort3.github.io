@@ -45,19 +45,9 @@
     <lastmod>2026-02-06</lastmod>
     <priority>0.2</priority>
   </url>
-  <url>
-    <loc>https://www.danielshort.me/tools/dashboard</loc>
-    <lastmod>2026-02-06</lastmod>
-    <priority>0.3</priority>
-  </url>
 
   <url>
     <loc>https://www.danielshort.me/tools/background-remover</loc>
-    <lastmod>2026-02-06</lastmod>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.danielshort.me/tools/ga4-utm-performance</loc>
     <lastmod>2026-02-06</lastmod>
     <priority>0.6</priority>
   </url>
@@ -93,11 +83,6 @@
   </url>
   <url>
     <loc>https://www.danielshort.me/tools/screen-recorder</loc>
-    <lastmod>2026-02-06</lastmod>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.danielshort.me/tools/short-links</loc>
     <lastmod>2026-02-06</lastmod>
     <priority>0.6</priority>
   </url>

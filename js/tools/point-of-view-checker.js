@@ -69,6 +69,9 @@
   const MAX_SAVED_OUTPUT_HTML_CHARS = 120_000;
   const MAX_DRIFT_ROWS = 220;
   const PDF_WORKER_PATH = '/js/vendor/pdfjs/pdf.worker.min.js';
+  const PDFJS_SRC = '/js/vendor/pdfjs/pdf.min.js';
+  const FFLATE_SRC = '/js/vendor/fflate/fflate.min.js';
+  const vendorScriptPromises = new Map();
 
   const COLOR_STORAGE_KEY = 'povcheck-highlight-colors';
   const PRESET_STORAGE_KEY = 'povcheck-presets-v1';
@@ -1354,11 +1357,71 @@
     return utf16.length > latin.length ? utf16 : latin;
   };
 
-  const parseDocxFile = async (file) => {
+  const loadVendorScript = (src) => {
+    const safeSrc = String(src || '').trim();
+    if (!safeSrc) return Promise.reject(new Error('Vendor script source is missing.'));
+    if (vendorScriptPromises.has(safeSrc)) return vendorScriptPromises.get(safeSrc);
+
+    const existing = document.querySelector(`script[src="${safeSrc}"]`);
+    if (existing && existing.dataset.vendorLoaded === 'true') {
+      return Promise.resolve();
+    }
+
+    const pending = new Promise((resolve, reject) => {
+      const script = existing || document.createElement('script');
+
+      const finish = (error) => {
+        script.removeEventListener('load', onLoad);
+        script.removeEventListener('error', onError);
+        if (error) {
+          vendorScriptPromises.delete(safeSrc);
+          reject(error);
+          return;
+        }
+        script.dataset.vendorLoaded = 'true';
+        resolve();
+      };
+      const onLoad = () => finish();
+      const onError = () => finish(new Error(`Unable to load ${safeSrc}.`));
+
+      script.addEventListener('load', onLoad);
+      script.addEventListener('error', onError);
+
+      if (!existing) {
+        script.src = safeSrc;
+        script.async = true;
+        document.head.appendChild(script);
+      }
+    });
+
+    vendorScriptPromises.set(safeSrc, pending);
+    return pending;
+  };
+
+  const ensureFflate = async () => {
     const api = window.fflate;
-    if (!api || typeof api.unzipSync !== 'function') {
+    if (api && typeof api.unzipSync === 'function') return api;
+    await loadVendorScript(FFLATE_SRC);
+    const loaded = window.fflate;
+    if (!loaded || typeof loaded.unzipSync !== 'function') {
       throw new Error('DOCX import is unavailable: zip parser failed to load.');
     }
+    return loaded;
+  };
+
+  const ensurePdfjs = async () => {
+    const api = window.pdfjsLib;
+    if (api && typeof api.getDocument === 'function') return api;
+    await loadVendorScript(PDFJS_SRC);
+    const loaded = window.pdfjsLib;
+    if (!loaded || typeof loaded.getDocument !== 'function') {
+      throw new Error('PDF import is unavailable: parser failed to load.');
+    }
+    return loaded;
+  };
+
+  const parseDocxFile = async (file) => {
+    const api = await ensureFflate();
 
     const bytes = new Uint8Array(await file.arrayBuffer());
     const files = api.unzipSync(bytes);
@@ -1386,10 +1449,7 @@
   };
 
   const parsePdfFile = async (file) => {
-    const pdfjs = window.pdfjsLib;
-    if (!pdfjs || typeof pdfjs.getDocument !== 'function') {
-      throw new Error('PDF import is unavailable: parser failed to load.');
-    }
+    const pdfjs = await ensurePdfjs();
     if (pdfjs.GlobalWorkerOptions && !pdfjs.GlobalWorkerOptions.workerSrc) {
       pdfjs.GlobalWorkerOptions.workerSrc = PDF_WORKER_PATH;
     }

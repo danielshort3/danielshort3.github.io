@@ -3,20 +3,30 @@
   try {
     const path = String(location.pathname || '');
     const params = new URLSearchParams(location.search || '');
-    const project = params.get('project');
+    const normalizeProject = (value) => String(value || '').trim().replace(/^\/+|\/+$/g, '');
+    const project = normalizeProject(params.get('project'));
+
     if (project) {
       params.delete('project');
       const rest = params.toString();
       location.replace(`/portfolio/${encodeURIComponent(project)}${rest ? `?${rest}` : ''}${location.hash || ''}`);
       return;
     }
-    const match = path.match(/(?:^|\/)portfolio\/([A-Za-z0-9_-]+)\/?$/);
-    if (match && match[1]) {
-      location.replace(`/pages/portfolio/${encodeURIComponent(match[1])}.html${location.search || ''}${location.hash || ''}`);
+
+    const projectHtmlMatch = path.match(/^\/portfolio\/([A-Za-z0-9_-]+)\.html\/?$/i);
+    if (projectHtmlMatch && projectHtmlMatch[1]) {
+      location.replace(`/portfolio/${encodeURIComponent(projectHtmlMatch[1])}${location.search || ''}${location.hash || ''}`);
       return;
     }
-    if (/^\/?portfolio\/?$/.test(path)) {
-      location.replace(`/pages/portfolio.html${location.search || ''}${location.hash || ''}`);
+
+    const projectPageMatch = path.match(/^\/pages\/portfolio\/([A-Za-z0-9_-]+)(?:\.html)?\/?$/i);
+    if (projectPageMatch && projectPageMatch[1]) {
+      location.replace(`/portfolio/${encodeURIComponent(projectPageMatch[1])}${location.search || ''}${location.hash || ''}`);
+      return;
+    }
+
+    if (/^\/portfolio\.html\/?$/i.test(path) || /^\/pages\/portfolio(?:\.html)?\/?$/i.test(path)) {
+      location.replace(`/portfolio${location.search || ''}${location.hash || ''}`);
     }
   } catch (_) {}
 })();
