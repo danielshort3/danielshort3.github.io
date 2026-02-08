@@ -2317,10 +2317,58 @@ const App = () => {
   );
 };
 
+type AppErrorBoundaryState = {
+  hasError: boolean;
+  message: string;
+};
+
+class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, AppErrorBoundaryState> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, message: "" };
+  }
+
+  static getDerivedStateFromError(error: unknown): AppErrorBoundaryState {
+    const message = error instanceof Error ? error.message : "Unexpected error";
+    return { hasError: true, message };
+  }
+
+  componentDidCatch(error: unknown, info: React.ErrorInfo): void {
+    console.error("UTM Batch Builder render failed", error, info);
+  }
+
+  handleRetry = (): void => {
+    this.setState({ hasError: false, message: "" });
+  };
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <section className="utmtool-error-panel" role="alert" aria-live="assertive">
+          <h2>Tool Error</h2>
+          <p>The builder failed to render. Retry to continue.</p>
+          <p className="utmtool-static-note">{this.state.message}</p>
+          <div>
+            <button type="button" className="btn-secondary" onClick={this.handleRetry}>
+              Try again
+            </button>
+          </div>
+        </section>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 const mount = () => {
   const rootEl = document.getElementById("utm-batch-builder-root");
   if (!rootEl) return;
-  createRoot(rootEl).render(<App />);
+  createRoot(rootEl).render(
+    <AppErrorBoundary>
+      <App />
+    </AppErrorBoundary>
+  );
 };
 
 if (document.readyState === "loading") {

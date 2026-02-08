@@ -14,6 +14,45 @@
     position:relative;
   }
 
+  .utmtool-static-overview{
+    border-radius:16px;
+    border:1px solid color-mix(in srgb,var(--tool-accent) 18%, transparent);
+    background:color-mix(in srgb,var(--tool-surface) 92%, #000 8%);
+    padding:16px;
+    color:var(--text-light);
+  }
+
+  .utmtool-static-overview h2{
+    margin:0 0 10px;
+    font-size:1.08rem;
+  }
+
+  .utmtool-static-overview p{
+    margin:0;
+    color:var(--text-muted);
+    line-height:1.55;
+  }
+
+  .utmtool-static-overview ul{
+    margin:12px 0;
+    padding-left:20px;
+    display:grid;
+    gap:6px;
+  }
+
+  .utmtool-static-note{
+    font-size:.92rem;
+  }
+
+  .utmtool-error-panel{
+    border-radius:16px;
+    border:1px solid color-mix(in srgb,var(--tool-accent) 28%, transparent);
+    background:color-mix(in srgb,var(--tool-surface) 90%, #000 10%);
+    padding:16px;
+    display:grid;
+    gap:10px;
+  }
+
   .utmtool-toast{
     position:sticky;
     top:12px;
