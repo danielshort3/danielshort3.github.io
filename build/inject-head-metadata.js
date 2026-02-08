@@ -14,6 +14,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { normalizePathname, loadNoindexPathnamesFromVercel } = require('./lib/seo-routing');
 
 const root = path.resolve(__dirname, '..');
 
@@ -22,6 +23,26 @@ const SHARED_OG_IMAGE_WIDTH = '558';
 const SHARED_OG_IMAGE_HEIGHT = '558';
 const SHARED_OG_IMAGE_ALT = 'Portrait photo of Daniel Short';
 const SITE_ORIGIN = 'https://www.danielshort.me';
+const noindexPathnames = loadNoindexPathnamesFromVercel(root);
+
+const ROUTE_COMPONENT_STYLES = Object.freeze({
+  '/short-links': ['css/components/short-links.css'],
+  '/tools/short-links': ['css/components/short-links.css'],
+  '/games/ocean-wave-simulation': ['css/components/ocean-wave-simulation.css'],
+  '/tools/word-frequency': ['css/components/word-frequency.css'],
+  '/tools/text-compare': ['css/components/text-compare.css'],
+  '/tools/point-of-view-checker': ['css/components/point-of-view-checker.css'],
+  '/tools/oxford-comma-checker': ['css/components/oxford-comma-checker.css'],
+  '/tools/nbsp-cleaner': ['css/components/nbsp-cleaner.css'],
+  '/tools/background-remover': ['css/components/background-remover.css'],
+  '/tools/image-optimizer': ['css/components/image-optimizer.css'],
+  '/tools/qr-code-generator': ['css/components/qr-code-generator.css'],
+  '/tools/screen-recorder': ['css/components/screen-recorder.css'],
+  '/tools/job-application-tracker': ['css/components/job-application-tracker.css'],
+  '/tools/utm-batch-builder': ['css/components/utm-batch-builder.css'],
+  '/tools/whisper-transcribe-monitor': ['css/components/whisper-transcribe-monitor.css'],
+  '/tools/ga4-utm-performance': ['css/components/ga4-utm-performance.css']
+});
 
 function read(relPath) {
   return fs.readFileSync(path.join(root, relPath), 'utf8');
@@ -195,7 +216,7 @@ function toPathname(urlValue) {
   try {
     const url = new URL(raw, SITE_ORIGIN);
     if (url.origin !== SITE_ORIGIN) return '';
-    return String(url.pathname || '').replace(/\/+$/, '') || '/';
+    return normalizePathname(url.pathname || '/');
   } catch {
     return '';
   }
@@ -208,22 +229,46 @@ function needsToolsStyles(pathname) {
     || pathname === '/games/ocean-wave-simulation';
 }
 
+function ensureStylesheetLink(headInner, href, preferredAfterHrefs = []) {
+  const safeHref = String(href || '').trim();
+  if (!safeHref) return headInner;
+  const escapedHref = safeHref.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+  if (hasTag(headInner, new RegExp(`<link\\b[^>]*\\bhref="${escapedHref}"[^>]*>`, 'i'))) return headInner;
+
+  for (const afterHref of preferredAfterHrefs) {
+    const safeAfter = String(afterHref || '').trim();
+    if (!safeAfter) continue;
+    const escapedAfter = safeAfter.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+    const re = new RegExp(`(^([ \\t]*)<link\\s+[^>]*href="${escapedAfter}"[^>]*>\\s*$)`, 'mi');
+    const match = re.exec(headInner);
+    if (!match) continue;
+    const indent = match[2] || '  ';
+    const insert = `\n${indent}<link rel="stylesheet" href="${safeHref}">`;
+    return headInner.slice(0, match.index + match[1].length)
+      + insert
+      + headInner.slice(match.index + match[1].length);
+  }
+
+  return `${headInner.trimEnd()}\n  <link rel="stylesheet" href="${safeHref}">\n`;
+}
+
 function ensureToolsStylesheet(headInner) {
   const canonical = getCanonicalHref(headInner);
   const pathname = toPathname(canonical);
   if (!needsToolsStyles(pathname)) return headInner;
-  if (hasTag(headInner, /<link\b[^>]*\bhref="dist\/styles-tools\.css"[^>]*>/i)) return headInner;
+  return ensureStylesheetLink(headInner, 'dist/styles-tools.css', ['dist/styles.css']);
+}
 
-  const stylesLink = /(^([ \t]*)<link\s+[^>]*href="dist\/styles\.css"[^>]*>\s*$)/mi.exec(headInner);
-  if (stylesLink) {
-    const indent = stylesLink[2] || '  ';
-    const insert = `\n${indent}<link rel="stylesheet" href="dist/styles-tools.css">`;
-    return headInner.slice(0, stylesLink.index + stylesLink[1].length)
-      + insert
-      + headInner.slice(stylesLink.index + stylesLink[1].length);
-  }
+function ensureRouteComponentStylesheet(headInner) {
+  const canonical = getCanonicalHref(headInner);
+  const pathname = toPathname(canonical);
+  const hrefs = ROUTE_COMPONENT_STYLES[pathname];
+  if (!Array.isArray(hrefs) || !hrefs.length) return headInner;
 
-  return `${headInner.trimEnd()}\n  <link rel="stylesheet" href="dist/styles-tools.css">\n`;
+  return hrefs.reduce(
+    (nextHead, href) => ensureStylesheetLink(nextHead, href, ['dist/styles-tools.css', 'dist/styles.css']),
+    headInner
+  );
 }
 
 function dedupeMeta(headInner, attr, value) {
@@ -249,16 +294,29 @@ function escapeTitleSuffix(title) {
   return String(title || '').replace(/\s*\|\s*Daniel Short\s*$/i, '').trim();
 }
 
+function stripToolJsonLd(headInner) {
+  return String(headInner || '').replace(/\n?[ \t]*<script\b[^>]*\bid="tool-jsonld"[^>]*>[\s\S]*?<\/script>/i, '');
+}
+
+function hasNoindexRobotsMeta(headInner) {
+  return /<meta\b[^>]*\bname="robots"[^>]*\bcontent="[^"]*noindex[^"]*"[^>]*>/i.test(String(headInner || ''));
+}
+
 function ensureToolJsonLd(headInner) {
-  const canonical = getCanonicalHref(headInner);
-  if (!canonical || !canonical.startsWith(`${SITE_ORIGIN}/tools/`)) return headInner;
-  if (canonical === `${SITE_ORIGIN}/tools`) return headInner;
+  const withoutExisting = stripToolJsonLd(headInner);
+  if (hasNoindexRobotsMeta(withoutExisting)) return withoutExisting;
 
-  const title = escapeTitleSuffix(getMetaContent(headInner, { property: 'og:title' }) || getTitleText(headInner));
-  const description = getMetaContent(headInner, { name: 'description' }) || getMetaContent(headInner, { property: 'og:description' });
-  if (!title || !description) return headInner;
+  const canonical = getCanonicalHref(withoutExisting);
+  if (!canonical || !canonical.startsWith(`${SITE_ORIGIN}/tools/`)) return withoutExisting;
+  if (canonical === `${SITE_ORIGIN}/tools`) return withoutExisting;
+  const pathname = toPathname(canonical);
+  if (pathname && noindexPathnames.has(pathname)) return withoutExisting;
 
-  const image = getMetaContent(headInner, { property: 'og:image' }) || SHARED_OG_IMAGE;
+  const title = escapeTitleSuffix(getMetaContent(withoutExisting, { property: 'og:title' }) || getTitleText(withoutExisting));
+  const description = getMetaContent(withoutExisting, { name: 'description' }) || getMetaContent(withoutExisting, { property: 'og:description' });
+  if (!title || !description) return withoutExisting;
+
+  const image = getMetaContent(withoutExisting, { property: 'og:image' }) || SHARED_OG_IMAGE;
 
   const json = {
     '@context': 'https://schema.org',
@@ -279,11 +337,6 @@ function ensureToolJsonLd(headInner) {
 
   const serialized = JSON.stringify(json);
 
-  const existingRe = /(^[ \t]*<script\b[^>]*\bid="tool-jsonld"[^>]*>)[\s\S]*?(<\/script>\s*$)/mi;
-  if (existingRe.test(headInner)) {
-    return headInner.replace(existingRe, (full, open, close) => `${open}\n    ${serialized}\n  ${close.trimStart()}`);
-  }
-
   const indent = '  ';
   const block = [
     `${indent}<script type="application/ld+json" id="tool-jsonld">`,
@@ -291,7 +344,7 @@ function ensureToolJsonLd(headInner) {
     `${indent}</script>`
   ].join('\n');
 
-  return headInner.trimEnd() + '\n' + block + '\n';
+  return withoutExisting.trimEnd() + '\n' + block + '\n';
 }
 
 function processHtml(html) {
@@ -309,6 +362,7 @@ function processHtml(html) {
   inner = ensureSharedOgImageDimensions(inner);
   inner = ensureTwitterMeta(inner);
   inner = ensureToolsStylesheet(inner);
+  inner = ensureRouteComponentStylesheet(inner);
   inner = ensureToolJsonLd(inner);
   inner = dedupeMeta(inner, 'property', 'og:image:width');
   inner = dedupeMeta(inner, 'property', 'og:image:height');

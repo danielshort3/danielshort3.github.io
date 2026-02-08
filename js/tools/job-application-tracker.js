@@ -9,6 +9,9 @@
     maxAttachmentBytes: parseInt(configSource.dataset.maxAttachmentBytes || '10485760', 10) || 10485760,
     maxAttachmentCount: parseInt(configSource.dataset.maxAttachmentCount || '12', 10) || 12
   };
+  const CHART_JS_SRC = '/js/vendor/chartjs/chart.umd.min.js';
+  const FFLATE_SRC = '/js/vendor/fflate/fflate.min.js';
+  const vendorScriptPromises = new Map();
 
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -1181,6 +1184,65 @@
     URL.revokeObjectURL(url);
   };
 
+  const loadVendorScript = (src) => {
+    const safeSrc = String(src || '').trim();
+    if (!safeSrc) return Promise.reject(new Error('Vendor script source is missing.'));
+    if (vendorScriptPromises.has(safeSrc)) return vendorScriptPromises.get(safeSrc);
+
+    const existing = document.querySelector(`script[src="${safeSrc}"]`);
+    if (existing && existing.dataset.vendorLoaded === 'true') {
+      return Promise.resolve();
+    }
+
+    const pending = new Promise((resolve, reject) => {
+      const script = existing || document.createElement('script');
+
+      const finish = (error) => {
+        script.removeEventListener('load', onLoad);
+        script.removeEventListener('error', onError);
+        if (error) {
+          vendorScriptPromises.delete(safeSrc);
+          reject(error);
+          return;
+        }
+        script.dataset.vendorLoaded = 'true';
+        resolve();
+      };
+      const onLoad = () => finish();
+      const onError = () => finish(new Error(`Unable to load ${safeSrc}.`));
+
+      script.addEventListener('load', onLoad);
+      script.addEventListener('error', onError);
+
+      if (!existing) {
+        script.src = safeSrc;
+        script.async = true;
+        document.head.appendChild(script);
+      }
+    });
+
+    vendorScriptPromises.set(safeSrc, pending);
+    return pending;
+  };
+
+  const ensureChartJs = async () => {
+    if (window.Chart) return window.Chart;
+    await loadVendorScript(CHART_JS_SRC);
+    if (!window.Chart) throw new Error('Chart library missing (Chart.js).');
+    return window.Chart;
+  };
+
+  const ensureFflate = async () => {
+    const api = window.fflate;
+    if (api && typeof api.unzipSync === 'function' && typeof api.zipSync === 'function') return api;
+    await loadVendorScript(FFLATE_SRC);
+    const next = window.fflate;
+    if (!next || typeof next.unzipSync !== 'function' || typeof next.zipSync !== 'function') {
+      throw new Error('Zip library missing (fflate).');
+    }
+    return next;
+  };
+
   const updateDocxRelationshipTargets = (relsXml, transformTarget) => {
     const xml = (relsXml ?? '').toString();
     if (!xml) return xml;
@@ -1204,10 +1266,7 @@
     if (!company || !title) {
       throw new Error('Company + job title are required to generate UTMs.');
     }
-    const api = window.fflate;
-    if (!api || typeof api.unzipSync !== 'function' || typeof api.zipSync !== 'function') {
-      throw new Error('Zip library missing (fflate).');
-    }
+    const api = await ensureFflate();
     if (statusEl) setStatus(statusEl, 'Downloading resume template...', 'info');
     const res = await fetch(UTM_RESUME_TEMPLATE_PATH, { cache: 'no-store' });
     if (!res.ok) throw new Error(`Unable to fetch ${UTM_RESUME_TEMPLATE_PATH} (${res.status}).`);
@@ -4468,7 +4527,8 @@
     clearDashboardDetail();
     try {
       const query = buildQuery(range);
-      const [summary, timeline, statuses, calendar, applications, funnel, timeInStage] = await Promise.all([
+      const [, summary, timeline, statuses, calendar, applications, funnel, timeInStage] = await Promise.all([
+        ensureChartJs(),
         requestJson(`/api/analytics/summary?${query}`),
         requestJson(`/api/analytics/applications-over-time?${query}`),
         requestJson(`/api/analytics/status-breakdown?${query}`),

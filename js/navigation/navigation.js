@@ -140,26 +140,76 @@
     if (reduce || !finePointer) return;
     root.querySelectorAll('.nav-project-card').forEach((card) => {
       if (card._previewVideoBound) return;
-      const vid = card.querySelector('video.nav-project-thumb-media');
-      if (!vid) return;
-      const sources = [...vid.querySelectorAll('source[data-src]')];
+      const thumb = card.querySelector('.nav-project-thumb');
+      if (!thumb) return;
+
+      const previewPoster = String(thumb.dataset.previewPoster || '').trim();
+      const previewWebm = String(thumb.dataset.previewWebm || '').trim();
+      const previewMp4 = String(thumb.dataset.previewMp4 || '').trim();
+      const previewSources = [];
+      if (previewWebm) previewSources.push({ src: previewWebm, type: 'video/webm' });
+      if (previewMp4) previewSources.push({ src: previewMp4, type: 'video/mp4' });
+
+      let vid = thumb.querySelector('video.nav-project-thumb-media') || null;
+      if (!vid && !previewSources.length) return;
+
+      const ensureVideoElement = () => {
+        if (!vid || !vid.isConnected) {
+          vid = document.createElement('video');
+          vid.className = 'nav-project-thumb-media';
+          vid.muted = true;
+          vid.playsInline = true;
+          vid.loop = true;
+          vid.preload = 'none';
+          vid.setAttribute('muted', '');
+          vid.setAttribute('playsinline', '');
+          if (previewPoster) {
+            vid.setAttribute('poster', previewPoster);
+          }
+          previewSources.forEach((entry) => {
+            const source = document.createElement('source');
+            source.dataset.src = entry.src;
+            source.type = entry.type;
+            vid.appendChild(source);
+          });
+          thumb.appendChild(vid);
+          return vid;
+        }
+
+        if (previewPoster && !vid.getAttribute('poster')) {
+          vid.setAttribute('poster', previewPoster);
+        }
+        if (!vid.querySelector('source[data-src]') && previewSources.length) {
+          previewSources.forEach((entry) => {
+            const source = document.createElement('source');
+            source.dataset.src = entry.src;
+            source.type = entry.type;
+            vid.appendChild(source);
+          });
+        }
+        return vid;
+      };
+
       const loadSources = () => {
-        if (vid.dataset.loaded === 'true') return;
+        const media = ensureVideoElement();
+        if (media.dataset.loaded === 'true') return media;
+        const sources = [...media.querySelectorAll('source[data-src]')];
         sources.forEach((source) => {
           if (!source.src && source.dataset.src) {
             source.src = source.dataset.src;
           }
         });
-        vid.dataset.loaded = 'true';
-        try { vid.load(); } catch {}
+        media.dataset.loaded = 'true';
+        try { media.load(); } catch {}
+        return media;
       };
       const playVideo = () => {
-        loadSources();
+        const media = loadSources();
         card.classList.add('is-video-active');
-        try { vid.play && vid.play().catch(() => {}); } catch {}
+        try { media.play && media.play().catch(() => {}); } catch {}
       };
       const pauseVideo = () => {
-        try { vid.pause && vid.pause(); } catch {}
+        try { vid?.pause && vid.pause(); } catch {}
         card.classList.remove('is-video-active');
       };
       card._previewVideoBound = true;

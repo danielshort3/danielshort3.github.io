@@ -12,6 +12,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { normalizePathname, loadNoindexPathnamesFromVercel } = require('./lib/seo-routing');
 
 const root = path.resolve(__dirname, '..');
 const toolsIndexPath = path.join(root, 'pages', 'tools.html');
@@ -182,20 +183,13 @@ function loadToolKeywords() {
   return map;
 }
 
-function normalizeUrlPath(value) {
-  const raw = String(value || '').trim();
-  if (!raw) return '';
-  if (raw === '/') return '/';
-  return raw.replace(/\/+$/, '');
-}
-
 function toPathFromCanonical(canonical) {
   const raw = String(canonical || '').trim();
   if (!raw) return '';
   try {
     const url = new URL(raw, SITE_ORIGIN);
     if (url.origin !== SITE_ORIGIN) return '';
-    return normalizeUrlPath(url.pathname || '/');
+    return normalizePathname(url.pathname || '/');
   } catch {
     return '';
   }
@@ -253,6 +247,7 @@ function extractIndexableText(html) {
 
 function main() {
   const toolKeywords = loadToolKeywords();
+  const noindexPathnames = loadNoindexPathnamesFromVercel(root);
 
   const candidates = [
     ...listRootHtmlFiles(),
@@ -272,9 +267,10 @@ function main() {
     try { html = read(relPath); } catch { return; }
     if (isNoindex(html)) return;
 
-	    const canonical = extractCanonical(html);
-	    const urlPath = toPathFromCanonical(canonical) || toPathFromRelFile(relPath, toolKeywords);
-	    if (!urlPath || !urlPath.startsWith('/')) return;
+		    const canonical = extractCanonical(html);
+		    const urlPath = toPathFromCanonical(canonical) || toPathFromRelFile(relPath, toolKeywords);
+		    if (!urlPath || !urlPath.startsWith('/')) return;
+        if (noindexPathnames.has(normalizePathname(urlPath))) return;
 
     const category = categoryForPath(urlPath);
     const title = stripOwnerPrefix(extractTitle(html) || urlPath, urlPath) || urlPath;

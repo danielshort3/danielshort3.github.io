@@ -48,6 +48,13 @@
 
   const cleanText = (value) => String(value || '').replace(/\s+/g, ' ').trim();
 
+  const logAsyncError = (scope, err) => {
+    const label = String(scope || '').trim() || 'async';
+    try {
+      console.warn(`[tools-account-ui] ${label}`, err);
+    } catch {}
+  };
+
   const getDocTitlePrefix = () => {
     const title = cleanText(document.title);
     if (!title) return '';
@@ -1270,7 +1277,7 @@
       try {
         contentEl?.focus();
       } catch {}
-      refresh().catch(() => {});
+      refresh().catch((err) => logAsyncError('account-modal:refresh-open', err));
     };
 
     const close = () => {
@@ -1288,7 +1295,7 @@
         if (action === 'close') {
           close();
         } else if (action === 'refresh') {
-          refresh().catch(() => {});
+          refresh().catch((err) => logAsyncError('account-modal:refresh-action', err));
         } else if (action === 'sign-in') {
           handlers.signIn();
         } else if (action === 'sign-out') {
@@ -2146,7 +2153,7 @@
 
     document.addEventListener('tools:save-session', (event) => {
       if (event?.detail?.toolId && event.detail.toolId !== toolId) return;
-      saveSession().catch(() => {});
+      saveSession().catch((err) => logAsyncError('tools:save-session', err));
     });
 
     document.addEventListener('tools:session-dirty', (event) => {
@@ -2170,16 +2177,16 @@
     setActiveSessionId(toolId, sessionId);
     updateStatus('');
 
-    applySession().catch(() => {});
+    applySession().catch((err) => logAsyncError('tool-autosave:apply', err));
 
     const tick = () => {
-      if (dirty) saveSession().catch(() => {});
+      if (dirty) saveSession().catch((err) => logAsyncError('tool-autosave:tick-save', err));
     };
     const timer = window.setInterval(tick, AUTO_SAVE_MS);
 
     const flush = () => {
       if (!dirty) return;
-      saveSession({ keepalive: true }).catch(() => {});
+      saveSession({ keepalive: true }).catch((err) => logAsyncError('tool-autosave:flush-save', err));
     };
 
     window.addEventListener('beforeunload', flush);
@@ -2228,7 +2235,7 @@
       signOut: () => {
         window.ToolsAuth.signOut();
         setStatus('Signed out.');
-        accountModal.refresh().catch(() => {});
+        accountModal.refresh().catch((err) => logAsyncError('account-modal:refresh-after-signout', err));
         try {
           document.dispatchEvent(new CustomEvent('tools:auth-changed', { detail: { source: 'tools-account-ui' } }));
         } catch {}
@@ -2241,13 +2248,13 @@
     ensureToolsHero({ pageId: page });
 
     if (page === 'tools-dashboard') {
-      initDashboard({ setStatus, onViewSession: sessionModal.open }).catch(() => {});
+      initDashboard({ setStatus, onViewSession: sessionModal.open }).catch((err) => logAsyncError('dashboard:init', err));
       return;
     }
 
     const auth = window.ToolsAuth.getAuth();
     if (toolId && window.ToolsAuth.authIsValid(auth)) {
-      window.ToolsState.logActivity({ toolId, type: 'tool_open', summary: 'Opened tool' }).catch(() => {});
+      window.ToolsState.logActivity({ toolId, type: 'tool_open', summary: 'Opened tool' }).catch((err) => logAsyncError('activity:tool_open', err));
     }
 
     if (toolId && root && toolActionsEnabled) {

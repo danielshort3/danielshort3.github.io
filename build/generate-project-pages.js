@@ -11,6 +11,7 @@ const path = require('path');
 const vm = require('vm');
 const childProcess = require('child_process');
 const crypto = require('crypto');
+const { normalizePathname, loadNoindexPathnamesFromVercel } = require('./lib/seo-routing');
 
 const root = path.resolve(__dirname, '..');
 const dataFile = path.join(root, 'js', 'portfolio', 'projects-data.js');
@@ -19,6 +20,47 @@ const sitemapPath = path.join(root, 'sitemap.xml');
 const sitemapCachePath = path.join(root, 'sitemap-cache.json');
 const SITE_ORIGIN = 'https://www.danielshort.me';
 const toolsIndexPath = path.join(root, 'pages', 'tools.html');
+
+const noindexMetaCache = new Map();
+
+function toLocPathname(loc) {
+  const raw = String(loc || '').trim();
+  if (!raw) return '';
+  try {
+    const url = new URL(raw);
+    if (url.origin !== SITE_ORIGIN) return '';
+    return normalizePathname(url.pathname || '/');
+  } catch (_) {
+    return '';
+  }
+}
+
+function hasNoindexMeta(relPath) {
+  const safeRelPath = String(relPath || '').trim();
+  if (!safeRelPath) return false;
+  if (noindexMetaCache.has(safeRelPath)) return noindexMetaCache.get(safeRelPath);
+
+  let hasNoindex = false;
+  try {
+    const html = fs.readFileSync(path.join(root, safeRelPath), 'utf8');
+    hasNoindex = /<meta\s+[^>]*\bname="robots"[^>]*\bcontent="[^"]*noindex[^"]*"[^>]*>/i.test(html);
+  } catch (_) {
+    hasNoindex = false;
+  }
+  noindexMetaCache.set(safeRelPath, hasNoindex);
+  return hasNoindex;
+}
+
+function shouldSkipSitemapEntry(options, noindexPathnames) {
+  const locPathname = toLocPathname(options && options.loc);
+  if (locPathname && noindexPathnames && noindexPathnames.has(locPathname)) {
+    return true;
+  }
+
+  const sourceFile = String(options && options.sourceFile ? options.sourceFile : '').trim();
+  if (sourceFile && hasNoindexMeta(sourceFile)) return true;
+  return false;
+}
 
 function computeContentHash(relPath) {
   if (!relPath) return null;
@@ -36,13 +78,20 @@ function loadToolUrls() {
   try {
     if (!fs.existsSync(toolsIndexPath)) return [];
     const html = fs.readFileSync(toolsIndexPath, 'utf8');
-    const re = /href="tools\/([^"#?]+)"/g;
-    let match;
-    while ((match = re.exec(html))) {
-      const slug = String(match[1] || '').trim();
-      if (!slug) continue;
+    const cards = String(html).split('<article class="tool-card"').slice(1);
+    cards.forEach((rawCard) => {
+      const card = `<article class="tool-card"${rawCard}`;
+      const visibilityMatch = /data-tools-visibility="([^"]+)"/i.exec(card);
+      const visibility = String(visibilityMatch ? visibilityMatch[1] : '').trim().toLowerCase();
+      if (visibility === 'admin') return;
+
+      const hrefMatch = /<a\s+[^>]*href="tools\/([^"#?]+)"/i.exec(card);
+      if (!hrefMatch) return;
+
+      const slug = String(hrefMatch[1] || '').trim();
+      if (!slug) return;
       urls.add(`${SITE_ORIGIN}/tools/${slug}`);
-    }
+    });
   } catch (_) {}
   return [...urls].sort();
 }
@@ -154,9 +203,10 @@ function resolveSitemapMeta(options, previousEntries) {
   return { lastmod: previousLastmod, hash: currentHash };
 }
 
-function toSitemapUrlEntry(options, previousEntries, nextEntries) {
+function toSitemapUrlEntry(options, previousEntries, nextEntries, noindexPathnames) {
   const loc = String(options?.loc || '').trim();
   if (!loc) return '';
+  if (shouldSkipSitemapEntry(options, noindexPathnames)) return '';
   const meta = resolveSitemapMeta({ loc, sourceFile: options?.sourceFile }, previousEntries);
   const lastmod = meta && meta.lastmod ? meta.lastmod : null;
   const hash = meta && meta.hash ? meta.hash : null;
@@ -839,6 +889,7 @@ function writeProjectPages(projects) {
 function writeSitemap(projects) {
   const previousEntries = loadSitemapCache();
   const nextEntries = new Map();
+  const noindexPathnames = loadNoindexPathnamesFromVercel(root);
   const baseEntries = [
     { loc: `${SITE_ORIGIN}/`, sourceFile: 'index.html', priority: 1.0 },
     { loc: `${SITE_ORIGIN}/portfolio`, sourceFile: 'pages/portfolio.html', priority: 0.9 },
@@ -848,8 +899,7 @@ function writeSitemap(projects) {
     { loc: `${SITE_ORIGIN}/contributions`, sourceFile: 'pages/contributions.html', priority: 0.6 },
     { loc: `${SITE_ORIGIN}/resume-pdf`, sourceFile: 'pages/resume-pdf.html', priority: 0.5 },
     { loc: `${SITE_ORIGIN}/privacy`, sourceFile: 'pages/privacy.html', priority: 0.2 },
-    { loc: `${SITE_ORIGIN}/sitemap`, sourceFile: 'pages/sitemap.html', priority: 0.2 },
-    { loc: `${SITE_ORIGIN}/tools/dashboard`, sourceFile: 'pages/tools-dashboard.html', priority: 0.3 }
+    { loc: `${SITE_ORIGIN}/sitemap`, sourceFile: 'pages/sitemap.html', priority: 0.2 }
   ];
 
   const toolEntries = loadToolUrls().map((loc) => {
@@ -869,11 +919,11 @@ function writeSitemap(projects) {
   const xml = [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-    ...baseEntries.map((entry) => toSitemapUrlEntry(entry, previousEntries, nextEntries)).filter(Boolean),
+    ...baseEntries.map((entry) => toSitemapUrlEntry(entry, previousEntries, nextEntries, noindexPathnames)).filter(Boolean),
     '',
-    ...toolEntries.map((entry) => toSitemapUrlEntry(entry, previousEntries, nextEntries)).filter(Boolean),
+    ...toolEntries.map((entry) => toSitemapUrlEntry(entry, previousEntries, nextEntries, noindexPathnames)).filter(Boolean),
     '',
-    ...projectEntries.map((entry) => toSitemapUrlEntry(entry, previousEntries, nextEntries)).filter(Boolean),
+    ...projectEntries.map((entry) => toSitemapUrlEntry(entry, previousEntries, nextEntries, noindexPathnames)).filter(Boolean),
     '</urlset>',
     ''
   ].join('\n');

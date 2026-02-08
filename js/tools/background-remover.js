@@ -83,6 +83,13 @@
     } catch {}
   };
 
+  const logAsyncError = (scope, err) => {
+    const label = String(scope || '').trim() || 'async';
+    try {
+      console.warn(`[background-remover] ${label}`, err);
+    } catch {}
+  };
+
   const LIMITS = Object.freeze({
     maxFiles: 20,
     // We allow large images, but handle oversize uploads gracefully.
@@ -1347,7 +1354,7 @@
     updateActionButtons();
 
     if (state.jobs.length) hideOverlay();
-    processQueue().catch(() => {});
+    processQueue().catch((err) => logAsyncError('addFiles:processQueue', err));
   };
 
   const clearAll = async () => {
@@ -1502,7 +1509,7 @@
     renderFileList();
     renderResults();
     updateActionButtons();
-    processQueue().catch(() => {});
+    processQueue().catch((err) => logAsyncError('reprocessSelected:processQueue', err));
   };
 
   const clearEdits = async () => {
@@ -1577,7 +1584,7 @@
       if (id) {
         selectJob(id)
           .then(() => reprocessSelected())
-          .catch(() => {});
+          .catch((err) => logAsyncError('results:rerun', err));
       }
       return;
     }
@@ -1598,7 +1605,7 @@
     if (!card) return;
     const id = card.dataset.bgtoolSelect;
     if (!id) return;
-    selectJob(id).catch(() => {});
+    selectJob(id).catch((err) => logAsyncError('results:selectJob', err));
   });
 
   downloadSelectedBtn?.addEventListener('click', downloadSelected);
@@ -1609,15 +1616,17 @@
   methodSelect?.addEventListener('change', () => {
     updateMethodVisibility();
     // Changing method affects mask generation, so prompt users by re-queueing the selected job if desired.
-    if (active.job) reprocessSelected().catch(() => {});
+    if (active.job) reprocessSelected().catch((err) => logAsyncError('settings:method-change', err));
   });
   deviceSelect?.addEventListener('change', () => {
     markSessionDirty();
-    if (active.job && String(methodSelect?.value || '').startsWith('ai-')) reprocessSelected().catch(() => {});
+    if (active.job && String(methodSelect?.value || '').startsWith('ai-')) {
+      reprocessSelected().catch((err) => logAsyncError('settings:device-change', err));
+    }
   });
   processingSelect?.addEventListener('change', () => {
     markSessionDirty();
-    if (active.job) reprocessSelected().catch(() => {});
+    if (active.job) reprocessSelected().catch((err) => logAsyncError('settings:processing-change', err));
   });
 
   $$('input[name="bgtool-mask-type"]').forEach((input) => {
