@@ -26,9 +26,8 @@
     width: auto;
     height: auto;
     padding: 8px 12px;
-    background: #fdfbf7;
-    color: #17120d;
-    border: 1px solid color-mix(in srgb, var(--border-subtle, #211b14) 45%, transparent);
+    background: #fff;
+    color: #000;
     z-index: 1000;
   }
 
