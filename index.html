@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Daniel Short - Data Scientist</title>
   <link rel="canonical" href="https://www.danielshort.me/">
-  <meta name="description" content="Daniel Short – data scientist working across analytics, automation, and machine learning in Python/SQL.">
-  <meta name="theme-color" content="#0f172a">
-
   <meta property="og:title" content="Daniel Short - Data Scientist">
   <meta property="og:site_name" content="Daniel Short – Data Scientist">
   <meta property="og:description" content="Daniel Short – data scientist working across analytics, automation, and machine learning in Python/SQL.">
@@ -17,20 +14,18 @@
   <meta property="og:image:height" content="558">
   <meta property="og:image:alt" content="Portrait photo of Daniel Short">
   <meta property="og:type" content="website">
-
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@danielshort3">
+
   <meta name="twitter:title" content="Daniel Short - Data Scientist">
   <meta name="twitter:description" content="Daniel Short – data scientist working across analytics, automation, and machine learning in Python/SQL.">
   <meta name="twitter:image" content="https://www.danielshort.me/img/hero/head.jpg">
   <meta name="twitter:image:alt" content="Portrait photo of Daniel Short">
-
+  <meta name="theme-color" content="#0D1117">
   <link rel="preload" href="img/hero/head.jpg" as="image">
-  <link rel="preload" href="img/projects/shapeClassifier.webp" as="image">
   <link rel="preload" href="css/fonts/Inter-Latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="css/fonts/Poppins-500-Latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="css/fonts/Poppins-600-Latin.woff2" as="font" type="font/woff2" crossorigin>
-
   <link rel="stylesheet" href="dist/styles.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
@@ -38,11 +33,10 @@
   <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
   <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
-
   <!-- Local fonts with legacy reference retained for tooling: https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@500;600&display=swap -->
   <script src="js/common/no-js.js"></script>
-  <link rel="prefetch" href="portfolio" as="document">
-
+  <meta name="description" content="Daniel Short – data scientist working across analytics, automation, and machine learning in Python/SQL.">
+	  <link rel="prefetch" href="portfolio" as="document">
   <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -56,9 +50,8 @@
     }
   </script>
 </head>
-<body class="mission-control-home" data-page="home">
+<body data-page="home">
   <a href="#main" class="skip-link">Skip to main content</a>
-
   <header id="combined-header-nav">
     <nav class="nav" aria-label="Primary">
       <div class="wrapper nav-wrapper">
@@ -216,126 +209,443 @@
   </header>
 
   <main id="main">
-    <section class="mission-control" aria-labelledby="mission-control-title">
-      <div class="wrapper mission-control-shell">
-        <header class="mission-heading">
-          <p class="mission-eyebrow">Mission Control</p>
-          <h1 id="mission-control-title">Data science and analytics, made actionable.</h1>
-          <p>A living dashboard for selected machine learning, automation, and analytics work. Explore outcomes first, then drill into each case study.</p>
-        </header>
+    <!-- Hero -->
+    <section class="hero">
+      <div class="wrapper">
+        <img class="hero-avatar" src="img/hero/head.jpg" alt="Portrait of Daniel Short" width="168" height="168" decoding="async" fetchpriority="high">
+        <p class="hero-eyebrow">Data Scientist</p>
+        <h1>Data science and analytics,<br>made actionable</h1>
 
-        <div class="mission-grid" role="list" aria-label="Mission control dashboard">
-          <article class="mission-card mission-card-profile" role="listitem">
-            <img class="mission-avatar" src="img/hero/head.jpg" alt="Portrait of Daniel Short" width="168" height="168" decoding="async" fetchpriority="high">
-            <div>
-              <p class="mission-card-kicker">Profile</p>
-              <p class="mission-profile-name">Daniel Short</p>
-              <p class="mission-profile-role">Data Scientist</p>
-              <p class="mission-profile-copy">I build robust Python and SQL systems that convert messy operational data into decisions teams can trust.</p>
-              <div class="mission-status" aria-label="Core stack">
-                <span>Python</span>
-                <span>SQL</span>
-                <span>Tableau</span>
-                <span>ML Ops</span>
-              </div>
+        <p class="hero-tagline">
+          I’m <strong>Daniel Short</strong>, a data scientist working across analytics, automation, and machine learning. I build reliable systems in <strong>Python</strong> and <strong>SQL</strong> so stakeholders can act with confidence.
+        </p>
+
+	        <p class="hero-status">
+	          Python · SQL · Tableau · Machine Learning
+	        </p>
+
+	        <div class="cta-group">
+		          <a href="resume" class="btn-primary hero-cta">Resume</a>
+	        </div>
+
+	      </div>
+	      <a class="chevron-hint scroll-indicator" href="#project-examples" data-smooth-scroll="true">
+	        <span class="chevron-label">Scroll for Project Examples</span>
+	        <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 16.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 14.08l5.3-5.29a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29z"/></svg>
+	      </a>
+	    </section>
+
+    <nav class="jump-panel" id="jump-panel" aria-label="Jump to section">
+      <a class="jump-panel-link" href="#project-examples" data-smooth-scroll="true">
+        <span class="jump-panel-dot" aria-hidden="true"></span>
+        <span class="jump-panel-text">Projects</span>
+      </a>
+      <a class="jump-panel-link" href="#work-experience" data-smooth-scroll="true">
+        <span class="jump-panel-dot" aria-hidden="true"></span>
+        <span class="jump-panel-text">Experience</span>
+      </a>
+      <a class="jump-panel-link" href="#about-me" data-smooth-scroll="true">
+        <span class="jump-panel-dot" aria-hidden="true"></span>
+        <span class="jump-panel-text">Skills</span>
+      </a>
+      <a class="jump-panel-link" href="#certifications" data-smooth-scroll="true">
+        <span class="jump-panel-dot" aria-hidden="true"></span>
+        <span class="jump-panel-text">Certifications</span>
+      </a>
+      <a class="jump-panel-link" href="#cta" data-smooth-scroll="true">
+        <span class="jump-panel-dot" aria-hidden="true"></span>
+        <span class="jump-panel-text">Contact</span>
+      </a>
+      <button type="button" class="jump-panel-action jump-panel-hide" data-jump-hide aria-controls="jump-panel" aria-label="Hide jump menu">
+        <span class="jump-panel-action-icon" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14"></path>
+            <path d="m13 5 7 7-7 7"></path>
+          </svg>
+        </span>
+      </button>
+    </nav>
+    <button type="button" class="jump-panel-reveal" data-jump-show aria-controls="jump-panel" aria-expanded="true" aria-hidden="true" aria-label="Show jump menu" tabindex="-1">
+      <span class="jump-panel-reveal-icon" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 12H5"></path>
+          <path d="m11 19-7-7 7-7"></path>
+        </svg>
+      </span>
+    </button>
+
+	    <section id="project-examples" class="project-examples-band surface-band no-reveal" role="region" aria-labelledby="project-examples-title">
+	      <div class="wrapper">
+		        <div class="project-examples-head">
+		          <h2 id="project-examples-title">Project Examples</h2>
+	          <p class="project-examples-subtitle">A quick look at a few projects: machine learning demos, analytics ETL, and computer vision.</p>
+	        </div>
+
+        <div class="project-examples-grid" role="list" aria-label="Project Examples">
+		          <a
+		            class="project-card ripple-in project-examples-card"
+		            role="listitem"
+		            href="portfolio/shapeClassifier"
+		            target="_blank"
+		            rel="noopener noreferrer"
+		            aria-label="View Shape Classifier case study">
+	            <div class="overlay"></div>
+	            <div class="project-text">
+	              <div class="project-title">Shape Classifier</div>
+	              <div class="project-subtitle">Handwritten Shape Recognition</div>
+	            </div>
+		            <video class="gif-video" muted playsinline loop preload="none" aria-label="Shape Classifier preview" draggable="false" poster="img/projects/shapeClassifier.png">
+		              <source data-src="img/projects/shapeClassifier.webm" type="video/webm">
+		              <source data-src="img/projects/shapeClassifier.mp4" type="video/mp4">
+		            </video>
+		            <picture>
+		              <source srcset="img/projects/shapeClassifier-640.avif 640w, img/projects/shapeClassifier.avif 926w" type="image/avif">
+		              <source srcset="img/projects/shapeClassifier-640.webp 640w, img/projects/shapeClassifier.webp 926w" type="image/webp">
+		              <img src="img/projects/shapeClassifier.png" alt="Preview of the Shape Classifier demo interface" width="926" height="926" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
+		            </picture>
+		          </a>
+
+			          <a
+			            class="project-card ripple-in project-examples-card is-animated-preview"
+			            role="listitem"
+			            href="portfolio/retailStore"
+			            target="_blank"
+			            rel="noopener noreferrer"
+			            aria-label="View Store-Level Loss &amp; Sales ETL case study">
+		            <div class="overlay"></div>
+		            <div class="project-text">
+		              <div class="project-title">Store-Level Loss &amp; Sales ETL</div>
+		              <div class="project-subtitle">SQL ETL + Anomaly Detection</div>
+		            </div>
+	            <video class="gif-video" muted playsinline loop preload="none" aria-label="Store-level loss and sales preview" draggable="false" poster="img/projects/retailStore.png">
+	              <source data-src="img/projects/retailStore.webm" type="video/webm">
+	              <source data-src="img/projects/retailStore.mp4" type="video/mp4">
+	            </video>
+			            <picture>
+			              <source srcset="img/projects/retailStore-640.avif 640w, img/projects/retailStore-960.avif 960w, img/projects/retailStore.avif 1410w" type="image/avif">
+			              <source srcset="img/projects/retailStore-640.webp 640w, img/projects/retailStore-960.webp 960w, img/projects/retailStore.webp 1410w" type="image/webp">
+			              <img src="img/projects/retailStore.png" alt="Preview of store-level loss and sales analysis dashboard" width="1410" height="1410" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
+			            </picture>
+			          </a>
+
+	          <a
+	            class="project-card ripple-in project-examples-card"
+	            role="listitem"
+	            href="portfolio/sheetMusicUpscale"
+	            target="_blank"
+	            rel="noopener noreferrer"
+	            aria-label="View Sheet Music Watermark Removal &amp; Upscale case study">
+            <div class="overlay"></div>
+            <div class="project-text">
+              <div class="project-title">Sheet Music Watermark Removal &amp; Upscale</div>
+              <div class="project-subtitle">UNet &amp; VDSR Pipeline</div>
             </div>
-            <img class="mission-watermark" src="img/ui/logo-192.png" alt="" width="96" height="96" decoding="async" loading="lazy">
-          </article>
-
-          <a
-            class="mission-card mission-card-featured mission-project-card"
-            role="listitem"
-            href="portfolio/shapeClassifier"
-            target="_blank"
-            rel="noopener noreferrer"
-            data-project-card
-            data-project-skills="python,machine-learning,computer-vision"
-            aria-label="View Shape Classifier case study"
-          >
-            <video class="mission-featured-media" muted playsinline loop autoplay preload="metadata" poster="img/projects/shapeClassifier.png" aria-hidden="true">
-              <source src="img/projects/shapeClassifier.webm" type="video/webm">
-              <source src="img/projects/shapeClassifier.mp4" type="video/mp4">
-            </video>
-            <span class="mission-featured-overlay" aria-hidden="true"></span>
-            <span class="mission-featured-copy">
-              <span class="mission-card-kicker">Featured Project</span>
-              <h2>Shape Classifier</h2>
-              <p>98% accuracy on handwritten shape recognition.</p>
-            </span>
-          </a>
-
-          <article class="mission-card mission-card-metrics" role="listitem" aria-label="Impact metrics">
-            <div>
-              <p class="mission-card-kicker">Impact</p>
-              <p class="mission-metric-value">750%</p>
-              <p class="mission-metric-label">Traffic lift from NLP-driven link repair.</p>
-            </div>
-            <ul class="mission-mini-metrics">
-              <li>565% jump in page views</li>
-              <li>122% growth in sessions</li>
-              <li>99% faster reporting turnaround</li>
-            </ul>
-          </article>
-
-          <section class="mission-card mission-card-stack" role="listitem" aria-label="Technology stack">
-            <p class="mission-card-kicker">Stack List</p>
-            <h2>Tools I ship with</h2>
-            <ul class="mission-stack-list">
-              <li><button type="button" class="mission-stack-pill" data-stack-skill="python">Python</button></li>
-              <li><button type="button" class="mission-stack-pill" data-stack-skill="sql">SQL</button></li>
-              <li><button type="button" class="mission-stack-pill" data-stack-skill="tableau">Tableau</button></li>
-              <li><button type="button" class="mission-stack-pill" data-stack-skill="machine-learning">Machine Learning</button></li>
-              <li><button type="button" class="mission-stack-pill" data-stack-skill="nlp">NLP</button></li>
-            </ul>
-          </section>
-
-          <a
-            class="mission-card mission-card-project mission-project-card mission-card-retail"
-            role="listitem"
-            href="portfolio/retailStore"
-            target="_blank"
-            rel="noopener noreferrer"
-            data-project-card
-            data-project-skills="sql,python,etl"
-            aria-label="View Store-Level Loss and Sales ETL case study"
-          >
-            <p class="mission-card-kicker">Project Signal</p>
-            <h2>Store-Level Loss &amp; Sales ETL</h2>
-            <p>SQL ETL and anomaly detection surfaced outlier stores and regions for targeted intervention.</p>
-          </a>
-
-          <a
-            class="mission-card mission-card-project mission-project-card"
-            role="listitem"
-            href="portfolio/smartSentence"
-            target="_blank"
-            rel="noopener noreferrer"
-            data-project-card
-            data-project-skills="python,nlp,machine-learning"
-            aria-label="View Smart Sentence NLP case study"
-          >
-            <p class="mission-card-kicker">Project Signal</p>
-            <h2>NLP Quality Automation</h2>
-            <p>Automated language quality checks and scoring pipelines to reduce manual QA bottlenecks.</p>
-          </a>
-
-          <a class="mission-card mission-card-cv" role="listitem" href="documents/Resume.pdf" download aria-label="Download resume PDF">
-            <p class="mission-card-kicker">Resume</p>
-            <h2>CV</h2>
-            <p class="mission-action-label">Single-click PDF download.</p>
-          </a>
-
-          <a class="mission-card mission-card-contact" role="listitem" href="#contact-modal" data-contact-modal-link="true" aria-label="Open contact modal">
-            <p class="mission-card-kicker">Open Line</p>
-            <h2>Hire Me</h2>
-            <p class="mission-action-label">Available for data science, analytics, and ML-focused roles.</p>
-          </a>
+	            <video class="gif-video" muted playsinline loop preload="none" aria-label="Sheet music restoration preview" draggable="false" poster="img/projects/sheetMusicUpscale.png">
+	              <source data-src="img/projects/sheetMusicUpscale.webm" type="video/webm">
+	              <source data-src="img/projects/sheetMusicUpscale.mp4" type="video/mp4">
+	            </video>
+	            <picture>
+	              <source srcset="img/projects/sheetMusicUpscale-640.avif 640w, img/projects/sheetMusicUpscale-960.avif 960w, img/projects/sheetMusicUpscale.avif 1604w" type="image/avif">
+	              <source srcset="img/projects/sheetMusicUpscale-640.webp 640w, img/projects/sheetMusicUpscale-960.webp 960w, img/projects/sheetMusicUpscale.webp 1604w" type="image/webp">
+	              <img src="img/projects/sheetMusicUpscale.png" alt="Example of cleaned sheet music after processing" width="1604" height="1230" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
+	            </picture>
+	          </a>
         </div>
 
-        <p class="mission-footer-note">Hover a stack item to trace related project signals.</p>
+        <div class="project-examples-actions">
+          <a href="portfolio?view=all#filters" class="btn-secondary project-examples-cta">View all projects</a>
+        </div>
       </div>
     </section>
 
+	    <div id="certifications-modal" class="modal">
+	      <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="cert-modal-title" tabindex="0">
+	        <button class="modal-close" aria-label="Close dialog">&times;</button>
+	        <div class="modal-title-strip">
+          <h3 class="modal-title" id="cert-modal-title">Certifications &amp; Degrees</h3>
+          <p class="modal-subtitle">A single view of formal education and industry credentials.</p>
+        </div>
+        <div class="modal-body cert-modal-body">
+          <div class="cert-modal-grid">
+            <article class="cert-card">
+              <div class="cert-card-header">
+                <img src="img/cert_logos/purdue_global-48.png" srcset="img/cert_logos/purdue_global.png 2x" alt="Purdue Global University logo" class="cert-card-logo" width="52" height="52">
+                <div>
+                  <p class="cert-card-label">Degree</p>
+                  <h4>B.S. – Data Analytics</h4>
+                  <p class="cert-card-meta">Purdue Global University</p>
+                </div>
+              </div>
+              <p class="cert-card-note">Curriculum spanned programming in Python, R, and Java alongside advanced statistics, AI/machine learning coursework, and exposure to big-data stacks such as Hadoop and Spark.</p>
+              <div class="cert-card-actions">
+                <a class="btn-secondary" href="https://www.credential.net/0f4df6f1-112e-4e4e-8cb1-b97e7ecd3a3b" target="_blank" rel="noopener noreferrer">View credential</a>
+              </div>
+            </article>
+            <article class="cert-card">
+              <div class="cert-card-header">
+                <img src="img/cert_logos/eastern-48.png" srcset="img/cert_logos/eastern.png 2x" alt="Eastern University logo" class="cert-card-logo" width="52" height="52">
+                <div>
+                  <p class="cert-card-label">Degree</p>
+                  <h4>M.S. – Data Science</h4>
+                  <p class="cert-card-meta">Eastern University</p>
+                </div>
+              </div>
+              <p class="cert-card-note">Degree covering Python, R, SQL, and statistical modeling with electives in data manipulation, visualization, machine learning, and an applied capstone project.</p>
+              <div class="cert-card-actions">
+                <p class="cert-card-note subtle">No public credential available; verification provided upon request.</p>
+              </div>
+            </article>
+            <article class="cert-card">
+              <div class="cert-card-header">
+                <img src="img/cert_logos/ibm-48.png" srcset="img/cert_logos/ibm.png 2x" alt="IBM logo" class="cert-card-logo" width="52" height="52">
+                <div>
+                  <p class="cert-card-label">Certification</p>
+                  <h4>IBM Data Analyst Professional Certificate</h4>
+                  <p class="cert-card-meta">IBM / Coursera</p>
+                </div>
+              </div>
+              <p class="cert-card-note">Built Excel, SQL, Python, and Cognos workflows inside Jupyter Notebooks, culminating in a capstone that applies the toolkit to a real-world analytics scenario.</p>
+              <div class="cert-card-actions">
+                <a class="btn-secondary" href="https://www.coursera.org/account/accomplishments/specialization/certificate/CYUMPN7ZQRDA" target="_blank" rel="noopener noreferrer">View credential</a>
+              </div>
+            </article>
+            <article class="cert-card">
+              <div class="cert-card-header">
+                <img src="img/cert_logos/ibm-48.png" srcset="img/cert_logos/ibm.png 2x" alt="IBM logo" class="cert-card-logo" width="52" height="52">
+                <div>
+                  <p class="cert-card-label">Certification</p>
+                  <h4>IBM Machine Learning Professional Certificate</h4>
+                  <p class="cert-card-meta">IBM / Coursera</p>
+                </div>
+              </div>
+              <p class="cert-card-note">Covered supervised, unsupervised, deep, and reinforcement learning with dedicated regression, classification, and clustering courses using scikit-learn, TensorFlow, Keras, and a final capstone.</p>
+              <div class="cert-card-actions">
+                <a class="btn-secondary" href="https://www.coursera.org/account/accomplishments/specialization/certificate/7262X6HH5NF2" target="_blank" rel="noopener noreferrer">View credential</a>
+              </div>
+            </article>
+            <article class="cert-card">
+              <div class="cert-card-header">
+                <img src="img/cert_logos/google-48.png" srcset="img/cert_logos/google.png 2x" alt="Google logo" class="cert-card-logo" width="52" height="52">
+                <div>
+                  <p class="cert-card-label">Certification</p>
+                  <h4>Google Data Analytics Professional Certificate</h4>
+                  <p class="cert-card-meta">Google / Coursera</p>
+                </div>
+              </div>
+              <p class="cert-card-note">Completed data cleaning and preparation pipelines, built Tableau dashboards, and delivered an end-to-end R/SQL case study focused on stakeholder-ready storytelling.</p>
+              <div class="cert-card-actions">
+                <a class="btn-secondary" href="https://www.coursera.org/account/accomplishments/specialization/certificate/N6MNKYE4MKEP" target="_blank" rel="noopener noreferrer">View credential</a>
+              </div>
+            </article>
+            <article class="cert-card">
+              <div class="cert-card-header">
+                <img src="img/cert_logos/google-48.png" srcset="img/cert_logos/google.png 2x" alt="Google logo" class="cert-card-logo" width="52" height="52">
+                <div>
+                  <p class="cert-card-label">Certification</p>
+                  <h4>Google Advanced Data Analytics Professional Certificate</h4>
+                  <p class="cert-card-meta">Google / Coursera</p>
+                </div>
+              </div>
+              <p class="cert-card-note">Worked through seven Jupyter Notebook-based courses using Python and Tableau to practice regression, statistics, machine learning, and experimental design before a culminating capstone.</p>
+              <div class="cert-card-actions">
+                <a class="btn-secondary" href="https://www.coursera.org/account/accomplishments/specialization/certificate/K47AGB33F8VS" target="_blank" rel="noopener noreferrer">View credential</a>
+              </div>
+            </article>
+            <article class="cert-card">
+              <div class="cert-card-header">
+                <img src="img/cert_logos/google-48.png" srcset="img/cert_logos/google.png 2x" alt="Google logo" class="cert-card-logo" width="52" height="52">
+                <div>
+                  <p class="cert-card-label">Certification</p>
+                  <h4>Google Analytics Certification</h4>
+                  <p class="cert-card-meta">Google Skillshop</p>
+                </div>
+              </div>
+              <p class="cert-card-note">Validated proficiency in GA4 implementation, conversion tracking, event modeling, and insight generation using the latest Analytics interface.</p>
+              <div class="cert-card-actions">
+                <a class="btn-secondary" href="https://skillshop.credential.net/2b2a612a-fbe8-4bbd-b882-0536b2f1d96a" target="_blank" rel="noopener noreferrer">View credential</a>
+              </div>
+            </article>
+          </div>
+	        </div>
+	      </div>
+	    </div>
+
+	    <!-- Work experience -->
+	    <section id="work-experience" class="surface-band reveal work-band" role="region" aria-labelledby="work-experience-title">
+	      <div class="wrapper">
+	        <div class="work-head">
+	          <h2 id="work-experience-title" class="section-title">Work Experience</h2>
+	          <p class="work-subtitle">Recent roles with measurable impact across retail analytics, data quality, and destination management.</p>
+	        </div>
+
+	        <div class="work-grid" role="list" aria-label="Work experience">
+	          <article class="work-card" role="listitem">
+	            <a class="work-logo-shell work-logo-link" href="https://www.target.com/" target="_blank" rel="noopener noreferrer" aria-label="Target website">
+	              <img src="img/company_logos/target.png" alt="" width="5400" height="5400" loading="lazy" decoding="async">
+	            </a>
+	            <h3 class="work-company">Target</h3>
+	            <p class="work-timeframe">June 2022 – November 2023</p>
+	            <p class="work-role">Asset Protection Data Analyst</p>
+	            <ul class="work-highlights">
+	              <li>Designed enterprise dashboards adopted company-wide, surfacing trends that raised theft reports 57.6%.</li>
+	              <li>Analytics-driven initiatives increased theft prevention by 180% and reduced inventory loss by 24%.</li>
+	              <li>Presented technical information to non-technical audiences, translating analytics into operational action.</li>
+	            </ul>
+	          </article>
+
+		          <article class="work-card" role="listitem">
+		            <a class="work-logo-shell work-logo-link" href="https://www.randallreilly.com/" target="_blank" rel="noopener noreferrer" aria-label="Randall Reilly website">
+		              <img src="img/company_logos/randall-reilly.png" alt="" width="200" height="200" loading="lazy" decoding="async">
+		            </a>
+		            <h3 class="work-company">Randall Reilly</h3>
+	            <p class="work-timeframe">November 2023 – January 2024</p>
+	            <p class="work-role">AI Data Quality Analyst</p>
+	            <ul class="work-highlights">
+	              <li>Re-platformed R workflows to a one-click Python app, trimming processing time 95%.</li>
+	              <li>Built decision-tree models that expanded serial-number tracking by 10x+ while flagging anomalies with 98% precision.</li>
+	              <li>Developed an autoencoder model using PyTorch, improving data quality through error detection.</li>
+	            </ul>
+	          </article>
+
+		          <article class="work-card" role="listitem">
+		            <a class="work-logo-shell work-logo-link" href="https://www.visitgrandjunction.com/" target="_blank" rel="noopener noreferrer" aria-label="Visit Grand Junction website">
+		              <img src="img/company_logos/visit-grand-junction.png" alt="" width="284" height="225" loading="lazy" decoding="async">
+		            </a>
+		            <h3 class="work-company">Visit Grand Junction</h3>
+	            <p class="work-timeframe">February 2024 – Present</p>
+	            <p class="work-role">Business Analyst</p>
+	            <ul class="work-highlights">
+	              <li>Automate weekly reporting in Python, cutting turnaround time by 99%, saving 200+ hours per year.</li>
+	              <li>Deploy an NLP link-repair model that lifted site traffic 750% and engagement 56%.</li>
+	              <li>Drive a 565% jump in page-views and 122% more sessions by embedding ML insights in campaigns.</li>
+	            </ul>
+	          </article>
+	        </div>
+	      </div>
+	    </section>
+
+	    <!-- Skills with Proven Projects -->
+	    <section id="about-me" class="surface-band reveal interest-pad">
+	      <div class="wrapper">
+	        <h2 class="section-title">Skills in Practice</h2>
+
+        <div class="grid-container">
+
+	          <!-- Python Programming ▸ Nonogram Solver -->
+		          <a class="icon-info grid-item skill-link" href="portfolio/nonogram" target="_blank" rel="noopener noreferrer" aria-label="View Nonogram Solver case study">
+	            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+	              <path d="M8 17l-5-5 5-5"/>
+	              <path d="M16 7l5 5-5 5"/>
+	              <path d="M13 5l-2 14"/>
+		            </svg>
+		            <p>Programming<small class="skill-link-btn">(Python)</small></p>
+		            <small class="skill-link-btn">Trained a reinforcement learning agent to solve 5×5 puzzles.</small>
+		          </a>
+
+	          <!-- Tableau Data-Viz ▸ Pizza Delivery Dashboard -->
+	          <a class="icon-info grid-item skill-link" href="portfolio/pizzaDashboard" target="_blank" rel="noopener noreferrer" aria-label="View Pizza Delivery Dashboard case study">
+	            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+	              <path d="M3 3v18h18"/>
+	              <path d="M7 15l4-4 3 3 5-7"/>
+	            </svg>
+	            <p>Data Visualization<small class="skill-link-btn">(Tableau)</small></p>
+	            <small class="skill-link-btn">Cut delivery decision time from 5 min to 1 min with a live KPI dashboard.</small>
+	          </a>
+
+	          <!-- SQL / ETL ▸ Retail Store Analysis -->
+		          <a class="icon-info grid-item skill-link" href="portfolio/retailStore" target="_blank" rel="noopener noreferrer" aria-label="View Store-Level Loss &amp; Sales ETL case study">
+	            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+	              <ellipse cx="12" cy="5" rx="8" ry="3"/>
+	              <path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/>
+	              <path d="M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/>
+		            </svg>
+		            <p>SQL &amp; ETL<small class="skill-link-btn">(MSSQL, Python)</small></p>
+		            <small class="skill-link-btn">Flagged outlier stores and regions using anomaly detection (anonymized).</small>
+		          </a>
+
+	          <!-- Data Wrangling ▸ COVID Analysis -->
+		          <a class="icon-info grid-item skill-link" href="portfolio/covidAnalysis" target="_blank" rel="noopener noreferrer" aria-label="View COVID-19 outbreak analysis case study">
+	            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+	              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+	              <path d="M14 2v6h6"/>
+	              <path d="M8 13h8"/>
+	              <path d="M8 17h5"/>
+		            </svg>
+		            <p>Data Wrangling<small class="skill-link-btn">(Pandas)</small></p>
+		            <small class="skill-link-btn">Built an early-warning ICU risk model and explained drivers with SHAP.</small>
+		          </a>
+
+	          <!-- Machine Learning ▸ Handwriting Rating -->
+		          <a class="icon-info grid-item skill-link" href="portfolio/handwritingRating" target="_blank" rel="noopener noreferrer" aria-label="View Handwriting Rating case study">
+	            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+	              <circle cx="12" cy="12" r="3"/>
+	              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.1a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.1a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.1a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c0 .66.26 1.3.73 1.77.47.47 1.11.73 1.77.73h.1a2 2 0 1 1 0 4h-.1a1.65 1.65 0 0 0-1.51 1z"/>
+		            </svg>
+		            <p>Machine Learning<small class="skill-link-btn">(PyTorch)</small></p>
+		            <small class="skill-link-btn">Deployed a CNN that reads digits with ~99% accuracy and scored my handwriting on a personal sample.</small>
+		          </a>
+
+	          <!-- Excel Automation ▸ Pizza Tip Analysis -->
+		          <a class="icon-info grid-item skill-link" href="portfolio/pizza" target="_blank" rel="noopener noreferrer" aria-label="View Pizza Tip Analysis case study">
+	            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+	              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+	              <path d="M14 2v6h6"/>
+	              <path d="M8 13l8 0"/>
+	              <path d="M10 17l-2 0"/>
+		            </svg>
+		            <p>Regression Analysis<small class="skill-link-btn">(Excel)</small></p>
+		            <small class="skill-link-btn">Found apartment deliveries tended to tip less; order cost was the strongest predictor.</small>
+		          </a>
+
+        </div>
+      </div>
+    </section>
+
+
+
+	    <!-- Certifications marquee -->
+	    <section id="certifications" class="cert-band surface-band no-reveal" role="region" aria-labelledby="certifications-title">
+	      <div class="cert-band-inner">
+	        <div class="cert-head">
+	          <h2 id="certifications-title" class="section-title">Certifications &amp; Degrees</h2>
+	          <p class="cert-subtitle">Credentials and formal education supporting analytics and machine learning work.</p>
+	        </div>
+
+	        <div class="cert-track">
+	        <a class="cert" href="https://www.credential.net/0f4df6f1-112e-4e4e-8cb1-b97e7ecd3a3b" target="_blank" rel="noopener noreferrer">
+          <img src="img/cert_logos/purdue_global-24.png" srcset="img/cert_logos/purdue_global-48.png 2x" alt="Purdue University logo" loading="lazy" width="24" height="24"><span>Bachelor of Science – Data Analytics</span></a>
+	        <span class="cert">
+          <img src="img/cert_logos/eastern-24.png" srcset="img/cert_logos/eastern-48.png 2x" alt="Eastern University logo" loading="lazy" width="24" height="24"><span>Master of Science – Data Science</span></span>
+        <a class="cert" href="https://www.coursera.org/account/accomplishments/specialization/certificate/CYUMPN7ZQRDA" target="_blank" rel="noopener noreferrer">
+          <img src="img/cert_logos/ibm-24.png" srcset="img/cert_logos/ibm-48.png 2x" alt="IBM logo" loading="lazy" width="24" height="24"><span>IBM Data Analyst Certification</span></a>
+        <a class="cert" href="https://www.coursera.org/account/accomplishments/specialization/certificate/7262X6HH5NF2" target="_blank" rel="noopener noreferrer">
+          <img src="img/cert_logos/ibm-24.png" srcset="img/cert_logos/ibm-48.png 2x" alt="IBM logo" loading="lazy" width="24" height="24"><span>IBM Machine Learning Certification</span></a>
+        <a class="cert" href="https://www.coursera.org/account/accomplishments/specialization/certificate/N6MNKYE4MKEP" target="_blank" rel="noopener noreferrer">
+          <img src="img/cert_logos/google-24.png" srcset="img/cert_logos/google-48.png 2x" alt="Google logo" loading="lazy" width="24" height="24"><span>Google Data Analytics Certification</span></a>
+	        <a class="cert" href="https://www.coursera.org/account/accomplishments/specialization/certificate/K47AGB33F8VS" target="_blank" rel="noopener noreferrer">
+	          <img src="img/cert_logos/google-24.png" srcset="img/cert_logos/google-48.png 2x" alt="Google logo" loading="lazy" width="24" height="24"><span>Google Advanced Data Analytics Certification</span></a>
+	        </div>
+		        <button class="btn-secondary cert-modal-trigger" type="button" data-cert-modal-open>View All</button>
+	      </div>
+		    </section>
+
+
+    <!-- Call‑to‑Action -->
+    <section id="cta" class="surface-band reveal">
+      <div class="wrapper">
+        <div id="cta-link" role="group" aria-label="Contact call to action">
+          <h2 class="section-title">Open to Data Science related roles</h2>
+          <p>
+            I’m open to full-time data science related roles across analytics and machine learning, plus selective freelance work. If you’d like to discuss an opportunity, send a quick note.
+          </p>
+          <div>
+            <a href="#contact-modal" class="btn-primary" data-contact-modal-link="true">Send a Message</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact modal -->
     <div id="contact-modal" class="modal">
       <div class="modal-content" role="dialog" aria-modal="true" tabindex="0" aria-labelledby="contact-modal-title">
         <button class="modal-close" aria-label="Close dialog">&times;</button>
@@ -376,7 +686,7 @@
           <div class="contact-form-success" id="contact-success" hidden tabindex="-1" role="status" aria-live="polite">
             <span class="success-icon" aria-hidden="true"></span>
             <h4>Message sent</h4>
-            <p>Thanks for reaching out. I received your note and will reply shortly. If it&rsquo;s urgent, feel free to send a direct email as well.</p>
+            <p>Thanks for reaching out. I received your note and will reply shortly. If it’s urgent, feel free to send a direct email as well.</p>
             <div class="form-actions">
               <button type="button" class="btn-primary" data-contact-new>Start another message</button>
               <a href="mailto:daniel@danielshort.me" class="btn-secondary">Email me directly</a>
@@ -385,11 +695,9 @@
         </div>
       </div>
     </div>
-  </main>
 
-  <div class="mission-cursor" aria-hidden="true">
-    <span class="mission-cursor-label">View Analysis</span>
-  </div>
+
+  </main>
 
   <footer class="footer footer-classic">
     <div class="wrapper footer-inner">
@@ -427,9 +735,7 @@
       <p class="footer-meta">© 2026 Daniel Short. All rights reserved.</p>
     </div>
   </footer>
-
   <script defer src="js/common/certifications-modal.js"></script>
-  <script defer src="js/home/mission-control.js"></script>
   <script defer src="js/common/common.js"></script>
   <script defer src="js/navigation/navigation.js"></script>
   <script defer src="js/animations/animations.js"></script>
