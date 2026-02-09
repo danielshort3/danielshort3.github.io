@@ -15,7 +15,6 @@
     initScrollProgress();
     initHeroParallax();
     initProjectPreviewVideos();
-    initMagneticPhysics();
   });
   function initReveal(){
     const io = new IntersectionObserver((ents,o)=>{
@@ -144,85 +143,6 @@
     } else {
       cards.forEach((card) => card._previewAutoplayStart && card._previewAutoplayStart());
     }
-  }
-
-  function initMagneticPhysics(){
-    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const fine = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
-    if (reduce || !fine) return;
-
-    const page = document.body?.dataset?.page || '';
-    const pageSelectors = {
-      home: '[data-magnetic], .hero-cta, .project-examples-cta, #cta-link .btn-primary',
-      portfolio: '[data-magnetic], #portfolio-carousel .carousel-dot, #see-more',
-      project: '[data-magnetic], .project-cta .btn-primary, .project-cta .btn-secondary, .project-demo-tab, .project-pager-link'
-    };
-    const selector = pageSelectors[page] || '[data-magnetic]';
-    const nodes = [...document.querySelectorAll(selector)];
-    if (!nodes.length) return;
-
-    nodes.forEach((el) => {
-      if (!el || el.dataset.magneticBound === 'true') return;
-      el.dataset.magneticBound = 'true';
-
-      let raf = 0;
-      let x = 0;
-      let y = 0;
-      let vx = 0;
-      let vy = 0;
-      let tx = 0;
-      let ty = 0;
-      const stiffness = 0.2;
-      const damping = 0.72;
-      const maxOffset = 12;
-
-      const render = () => {
-        const dx = tx - x;
-        const dy = ty - y;
-        vx = (vx + dx * stiffness) * damping;
-        vy = (vy + dy * stiffness) * damping;
-        x += vx;
-        y += vy;
-        el.style.translate = `${x.toFixed(2)}px ${y.toFixed(2)}px`;
-        const settling = Math.abs(dx) < 0.06 && Math.abs(dy) < 0.06
-          && Math.abs(vx) < 0.06 && Math.abs(vy) < 0.06;
-        if (settling) {
-          x = 0;
-          y = 0;
-          vx = 0;
-          vy = 0;
-          el.style.translate = '';
-          raf = 0;
-          return;
-        }
-        raf = requestAnimationFrame(render);
-      };
-
-      const start = () => {
-        if (raf) return;
-        raf = requestAnimationFrame(render);
-      };
-
-      const onMove = (e) => {
-        const rect = el.getBoundingClientRect();
-        if (!rect.width || !rect.height) return;
-        const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-        const ny = ((e.clientY - rect.top) / rect.height) * 2 - 1;
-        tx = Math.max(-1, Math.min(1, nx)) * maxOffset;
-        ty = Math.max(-1, Math.min(1, ny)) * maxOffset;
-        start();
-      };
-
-      const onLeave = () => {
-        tx = 0;
-        ty = 0;
-        start();
-      };
-
-      el.addEventListener('mousemove', onMove);
-      el.addEventListener('mouseleave', onLeave);
-      el.addEventListener('blur', onLeave);
-    });
   }
 
   // Subtle ambient light following the mouse inside the hero
