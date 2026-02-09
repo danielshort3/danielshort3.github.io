@@ -746,6 +746,33 @@ function buildPortfolio() {
     setupPreviewVideo(card);
   };
 
+  const PROJECT_BENTO_PRIORITIES = Object.freeze({
+    shapeClassifier: 'hero',
+    retailStore: 'hero',
+    sheetMusicUpscale: 'major',
+    digitGenerator: 'major',
+    nonogram: 'major',
+    smartSentence: 'major',
+    chatbotLora: 'major',
+    ufoDashboard: 'compact',
+    covidAnalysis: 'compact',
+    babynames: 'compact',
+    pizzaDashboard: 'compact'
+  });
+  const BENTO_PRIORITY_SET = new Set(['hero', 'major', 'standard', 'compact']);
+  const normalizeBentoPriority = (value) => {
+    const next = String(value || '').trim().toLowerCase();
+    return BENTO_PRIORITY_SET.has(next) ? next : '';
+  };
+  const resolveProjectBentoPriority = (project = {}) => {
+    const id = project && project.id ? String(project.id) : '';
+    const mapped = normalizeBentoPriority(PROJECT_BENTO_PRIORITIES[id]);
+    if (mapped) return mapped;
+    const featuredIds = Array.isArray(window.FEATURED_IDS) ? window.FEATURED_IDS : [];
+    if (id && featuredIds.includes(id)) return 'major';
+    return 'standard';
+  };
+
   (() => {
     const updateIframes = () => {
       document.querySelectorAll(".modal-embed iframe[data-base]")
@@ -780,6 +807,9 @@ function buildPortfolio() {
     card.dataset.index = i;
     card.dataset.tools = (Array.isArray(p.tools) ? p.tools : []).join('|');
     card.dataset.concepts = (Array.isArray(p.concepts) ? p.concepts : []).join('|');
+    const bentoPriority = resolveProjectBentoPriority(p);
+    card.classList.add(`bento-priority-${bentoPriority}`);
+    card.dataset.bentoPriority = bentoPriority;
     setupCardPreview(card);
     grid.appendChild(card);
 
