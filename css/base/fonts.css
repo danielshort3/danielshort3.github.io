@@ -1,5 +1,45 @@
 @layer base {
   @font-face {
+    font-family: 'JetBrains Mono';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: local('JetBrains Mono'), local('JetBrainsMono-Regular'), url("../css/fonts/JetBrainsMono-Latin.woff2") format('woff2');
+  }
+
+  @font-face {
+    font-family: 'JetBrains Mono';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: local('JetBrains Mono Medium'), local('JetBrainsMono-Medium'), url("../css/fonts/JetBrainsMono-Latin.woff2") format('woff2');
+  }
+
+  @font-face {
+    font-family: 'Fraunces';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: local('Fraunces Medium'), local('Fraunces'), url("../css/fonts/Fraunces-Latin.woff2") format('woff2');
+  }
+
+  @font-face {
+    font-family: 'Fraunces';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: local('Fraunces SemiBold'), local('Fraunces'), url("../css/fonts/Fraunces-Latin.woff2") format('woff2');
+  }
+
+  @font-face {
+    font-family: 'Fraunces';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: local('Fraunces Bold'), local('Fraunces'), url("../css/fonts/Fraunces-Latin.woff2") format('woff2');
+  }
+
+  @font-face {
     font-family: 'Inter';
     font-style: normal;
     font-weight: 400;
