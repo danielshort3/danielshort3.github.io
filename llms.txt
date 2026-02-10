@@ -1,0 +1,43 @@
+# Daniel Short - Data Scientist
+
+## Summary
+- Domain focus: NLP, Computer Vision, ETL pipelines, and applied automation.
+- Positioning: Outcome-focused data scientist delivering production systems, not prototype-only analyses.
+
+## Measured Outcomes
+- 500% KPI gains delivered on production initiatives.
+- 200+ hours/year saved via workflow automation.
+- 750% traffic lift on analytics-informed growth efforts.
+- 24% reduction in retail loss through ETL + operational routing.
+
+## Experience
+- Visit Grand Junction
+  - Built analytics-informed content/campaign workflows and reporting pipelines.
+- Target
+  - Built retail operations ETL/anomaly workflows tied to shrink and margin outcomes.
+
+## Projects
+- [retail-loss-etl]
+  - Situation: fragmented loss signals delayed intervention.
+  - Task: unify events into actionable operations data products.
+  - Action: built ETL + alerting pipeline with centralized exception queue.
+  - Result: 24% loss reduction.
+
+- [edge-ai-handwriting-recognition]
+  - Situation: server-dependent demo had cold starts.
+  - Task: move inference local for speed/reliability.
+  - Action: browser inference path with onnxruntime-web.
+  - Result: sub-10ms target architecture and client-side execution.
+
+- [computer-vision-document-restoration]
+  - Situation: degraded/watermarked notation reduced usability.
+  - Task: restore legibility while keeping musical structure.
+  - Action: generative CV framing with before/after quality validation.
+  - Result: cleaner reconstructed documents for downstream extraction.
+
+## Canonical URLs
+- Portfolio: https://danielshort.me/
+- Projects: https://danielshort.me/projects
+- Contact: https://danielshort.me/contact.html
+- Resume: https://danielshort.me/resume.html
+- GitHub: https://github.com/danielshort3

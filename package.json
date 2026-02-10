@@ -13,18 +13,31 @@
     "build:projects": "node build/generate-project-pages.js",
     "build:shortlinks-destinations": "node build/generate-shortlinks-destinations.js",
     "scaffold": "node build/scaffold.js",
-    "build": "node build/build-site.js"
+    "build": "node build/build-site.js",
+    "dev": "astro dev",
+    "preview": "astro preview",
+    "astro": "astro",
+    "build:astro": "astro build"
   },
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.962.0",
-    "@aws-sdk/lib-dynamodb": "^3.962.0"
+    "@aws-sdk/lib-dynamodb": "^3.962.0",
+    "onnxruntime-web": "^1.24.1",
+    "react-compare-slider": "^3.1.0",
+    "react-sketch-canvas": "^6.2.0"
   },
   "devDependencies": {
+    "@astrojs/react": "^4.4.2",
+    "@astrojs/sitemap": "^3.7.0",
+    "astro": "^5.17.1",
+    "autoprefixer": "^10.4.24",
     "esbuild": "^0.27.2",
+    "postcss": "^8.5.6",
     "react": "^19.2.3",
-    "react-dom": "^19.2.3"
+    "react-dom": "^19.2.3",
+    "tailwindcss": "^3.4.19"
   }
 }

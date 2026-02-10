@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0f172a;
+  --text: #e2e8f0;
+  --accent: #00bcd4;
+  --gradient-start: #004d40;
+  --gradient-end: #00bcd4;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: Inter, 'Geist Sans', system-ui, sans-serif;
+  background: radial-gradient(circle at top, rgba(0, 188, 212, 0.2), transparent 45%), var(--bg);
+  color: var(--text);
+}
+
+a {
+  color: inherit;
+}
+
+.surface-card {
+  @apply rounded-2xl border border-cyan-300/20 bg-slate-900/70 p-6 shadow-lg backdrop-blur;
+}
+
+.accent-button {
+  @apply inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold text-slate-900 transition;
+  background: linear-gradient(120deg, var(--gradient-start), var(--gradient-end));
+}
+
+.accent-button:hover {
+  filter: brightness(1.12);
+}
+
+.metric-badge {
+  @apply rounded-lg border border-cyan-300/25 bg-cyan-950/30 px-3 py-2 text-sm;
+}
