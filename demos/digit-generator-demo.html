@@ -132,6 +132,7 @@
     }
 
     .grid-number-pill {
+      appearance: none;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -143,7 +144,24 @@
       color: var(--text);
       font-weight: 800;
       font-size: 1.05rem;
+      font-family: inherit;
       box-shadow: var(--shadow-1);
+      cursor: pointer;
+      transition: border-color 120ms ease, transform 120ms ease, box-shadow 120ms ease;
+    }
+
+    .grid-number-pill:hover {
+      border-color: color-mix(in srgb, var(--primary) 72%, var(--surface-accent));
+      box-shadow: var(--shadow-2);
+    }
+
+    .grid-number-pill:active {
+      transform: translateY(1px);
+    }
+
+    .grid-number-pill:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
     }
 
     .grid-actions {
@@ -564,10 +582,9 @@
           <div class="grid-heading-eyebrow">Generated grid</div>
           <div class="grid-heading-main">
             <span class="grid-heading-key">Number</span>
-            <span id="grid-number-pill" class="grid-number-pill">4</span>
+            <button id="grid-number-pill" class="grid-number-pill" type="button" title="Jump to Generate button">4</button>
           </div>
         </div>
-        <div class="grid" id="grid" aria-live="polite"></div>
         <div class="grid-actions">
           <button id="refresh-seed-btn" class="btn-primary" type="button">Generate</button>
           <div class="grid-actions-select">
@@ -587,6 +604,7 @@
             </select>
           </div>
         </div>
+        <div class="grid" id="grid" aria-live="polite"></div>
       </div>
 
       <aside class="panel" aria-live="polite">
@@ -969,6 +987,15 @@
     refreshSeedBtn.addEventListener('click', () => {
       ensureSeed(true);
       fetchGrid();
+    });
+    gridNumberPill?.addEventListener('click', () => {
+      if (!refreshSeedBtn) return;
+      refreshSeedBtn.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+      try {
+        refreshSeedBtn.focus({ preventScroll: true });
+      } catch {
+        refreshSeedBtn.focus();
+      }
     });
 
     buildDimOptions(latentDim);

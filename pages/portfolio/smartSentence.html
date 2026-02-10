@@ -200,7 +200,13 @@
   </header>
   <nav class="project-pager" aria-label="Project navigation">
     <div class="wrapper">
-      <span class="project-pager-spacer" aria-hidden="true"></span>
+      <a class="project-pager-link project-pager-prev" href="portfolio/website" aria-label="Previous project: danielshort.me">
+        <span class="project-pager-arrow" aria-hidden="true">←</span>
+        <span class="project-pager-text">
+          <span class="project-pager-label">Previous</span>
+          <span class="project-pager-title">danielshort.me</span>
+        </span>
+      </a>
       <a class="project-pager-link project-pager-next" href="portfolio/chatbotLora" aria-label="Next project: Chatbot (LoRA + RAG)">
         <span class="project-pager-text">
           <span class="project-pager-label">Next</span>
@@ -267,12 +273,22 @@
     </section>
 			        <section class="project-section" id="links">
       <h2 class="section-title">Links</h2>
-      <div class="project-links" role="list">
+      <div class="project-links-groups">
+        <div class="project-links-group">
+        <h3 class="project-links-group-title">Project Links</h3>
+        <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://github.com/danielshort3/Smart-Sentence-Finder" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/github-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">GitHub</span></a>
         <a class="project-link" role="listitem" href="documents/Project_13.pdf"><img class="project-link-icon" src="img/icons/pdf-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">PDF</span></a>
         <a class="project-link" role="listitem" href="documents/Project_13.ipynb"><img class="project-link-icon" src="img/icons/jupyter-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Notebook</span></a>
         <a class="project-link" role="listitem" href="https://www.danielshort.me/sentence-demo.html" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Live Demo</span></a>
+      </div>
+      </div>
+        <div class="project-links-group">
+        <h3 class="project-links-group-title">Data Links</h3>
+        <div class="project-links" role="list">
         <a class="project-link" role="listitem" href="https://www.gutenberg.org/ebooks/11" target="_blank" rel="noopener noreferrer"><img class="project-link-icon" src="img/icons/website-icon.png" alt="" aria-hidden="true" loading="lazy" decoding="async" width="20" height="20"><span class="project-link-label">Corpus (Project Gutenberg)</span></a>
+      </div>
+      </div>
       </div>
     </section>
 			        <section class="project-star" aria-label="STAR summary">

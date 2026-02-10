@@ -29,7 +29,7 @@ window.PROJECTS = [
       { icon: "img/icons/pdf-icon.png", url: "documents/Project_13.pdf", label: "PDF" },
       { icon: "img/icons/jupyter-icon.png", url: "documents/Project_13.ipynb", label: "Notebook" },
       { icon: "img/icons/website-icon.png", url: "https://www.danielshort.me/sentence-demo.html", label: "Live Demo" },
-      { icon: "img/icons/website-icon.png", url: "https://www.gutenberg.org/ebooks/11", label: "Corpus (Project Gutenberg)" }
+      { icon: "img/icons/website-icon.png", url: "https://www.gutenberg.org/ebooks/11", label: "Corpus (Project Gutenberg)", type: "data" }
     ],
     embed: {
       type: "iframe",
@@ -183,7 +183,7 @@ window.PROJECTS = [
     concepts: ["Machine Learning"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Shape-Analyzer", label: "GitHub" },
-      { icon: "img/icons/website-icon.png", url: "https://github.com/googlecreativelab/quickdraw-dataset", label: "Quick, Draw! Dataset" },
+      { icon: "img/icons/website-icon.png", url: "https://github.com/googlecreativelab/quickdraw-dataset", label: "Quick, Draw! Dataset", type: "data" },
       { icon: "img/icons/website-icon.png", url: "https://www.danielshort.me/shape-demo.html", label: "Live Demo" }
     ],
     embed: {
@@ -260,7 +260,7 @@ window.PROJECTS = [
 	        url  : "https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013?:language=en-US&:display_count=n&:origin=viz_share_link",
 	        label:"Interactive Dashboard"
 	      },
-	      { icon: "img/icons/website-icon.png", url: "https://nuforc.org/databank/", label: "NUFORC Database" }
+	      { icon: "img/icons/website-icon.png", url: "https://nuforc.org/databank/", label: "NUFORC Database", type: "data" }
 	    ],
     embed : {
       type : "tableau",
@@ -337,7 +337,7 @@ window.PROJECTS = [
       { icon: "img/icons/website-icon.png", url: "https://www.danielshort.me/covid-outbreak-demo",    label: "Live Demo" },
       { icon: "img/icons/pdf-icon.png",     url: "documents/Project_6.pdf",                        label: "PDF"    },
       { icon: "img/icons/jupyter-icon.png", url: "documents/Project_6.ipynb",                      label: "Notebook"},
-      { icon: "img/icons/website-icon.png", url: "https://healthdata.gov/Hospital/COVID-19-Reported-Patient-Impact-and-Hospital-Capa/anag-cw7u", label: "HHS Dataset" }
+      { icon: "img/icons/website-icon.png", url: "https://healthdata.gov/Hospital/COVID-19-Reported-Patient-Impact-and-Hospital-Capa/anag-cw7u", label: "HHS Dataset", type: "data" }
     ],
     embed: {
       type: "iframe",
@@ -514,7 +514,7 @@ window.PROJECTS = [
       { icon: "img/icons/website-icon.png", url: "https://www.danielshort.me/handwriting-rating-demo.html", label: "Live Demo" },
       { icon: "img/icons/pdf-icon.png",     url: "documents/Project_8.pdf",                            label: "PDF"    },
       { icon: "img/icons/jupyter-icon.png", url: "documents/Project_8.ipynb",                          label: "Notebook"},
-      { icon: "img/icons/website-icon.png", url: "http://yann.lecun.com/exdb/mnist/",                  label: "MNIST Dataset" }
+      { icon: "img/icons/website-icon.png", url: "https://www.tensorflow.org/datasets/catalog/mnist",  label: "MNIST Dataset", type: "data" }
     ],
     embed: {
       type: "iframe",
@@ -958,7 +958,7 @@ window.PROJECTS = [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Baby-Names", label: "GitHub" },
       { icon: "img/icons/pdf-icon.png",    url: "documents/Project_2.pdf",                    label: "PDFs"  },
       { icon: "img/icons/jupyter-icon.png",url: "documents/Project_2.ipynb",                  label: "Notebook"},
-      { icon: "img/icons/website-icon.png", url: "https://www.ssa.gov/oact/babynames/",       label: "SSA Baby Names Data" }
+      { icon: "img/icons/website-icon.png", url: "https://www.ssa.gov/oact/babynames/",       label: "SSA Baby Names Data", type: "data" }
     ],
     embed: {
       type: "iframe",
