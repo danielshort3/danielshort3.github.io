@@ -1,5 +1,16 @@
 /* Portfolio project detail pages */
 @layer components {
+  @keyframes projectHeroFloatIn{
+    from{
+      opacity:0;
+      transform:translateY(24px);
+    }
+    to{
+      opacity:1;
+      transform:none;
+    }
+  }
+
   .project-hero{
     padding:clamp(3.1rem,6.5vh,4.4rem) 0;
     background:linear-gradient(140deg,
@@ -13,6 +24,15 @@
     display:grid;
     gap:clamp(1.05rem,2.1vw,1.55rem);
   }
+  .project-hero .wrapper > :is(.hero-eyebrow,h1,.project-subtitle,.project-cta,.project-tags){
+    opacity:0;
+    animation:projectHeroFloatIn .75s cubic-bezier(.2,.7,.3,1) forwards;
+  }
+  .project-hero .wrapper > .hero-eyebrow{animation-delay:.08s;}
+  .project-hero .wrapper > h1{animation-delay:.16s;}
+  .project-hero .wrapper > .project-subtitle{animation-delay:.24s;}
+  .project-hero .wrapper > .project-cta{animation-delay:.32s;}
+  .project-hero .wrapper > .project-tags{animation-delay:.4s;}
   .project-hero h1{
     margin:0;
     font-weight:600;
@@ -532,6 +552,14 @@
     .project-pager-title{display:none;}
     .project-related-grid{
       grid-template-columns:1fr;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .project-hero .wrapper > :is(.hero-eyebrow,h1,.project-subtitle,.project-cta,.project-tags){
+      animation:none !important;
+      opacity:1 !important;
+      transform:none !important;
     }
   }
 }
