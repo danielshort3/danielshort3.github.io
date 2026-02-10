@@ -1,0 +1,38 @@
+# Daniel Short - Agentic Portfolio Facts
+
+## Identity
+- Name: Daniel Short
+- Role: Data Scientist
+- Site: https://www.danielshort.me
+
+## Core Skills
+- NLP: production text pipelines, model-driven automation, insight extraction
+- Computer Vision: restoration workflows, handwriting/shape recognition, image preprocessing
+- ETL/Data Engineering: incremental pipelines, anomaly surfacing, business-facing reporting systems
+
+## Business Impact Metrics
+- 500% KPI gains delivered through data productization and analytics strategy
+- 200+ hours/year saved by automation replacing manual reporting workflows
+- 750% traffic lift achieved in prior growth analytics engagement
+- 24% retail loss reduction via ETL + risk triage implementation
+
+## Experience Highlights
+- Visit Grand Junction: analytics, reporting, and growth-focused measurement
+- Target: operational analytics and automation-oriented data workflows
+
+## Flagship Projects
+- Retail Loss ETL
+  - Outcome: 24% reduction in loss
+  - Method: integrated POS/inventory/incident ETL + anomaly triage
+- Edge AI Handwriting Recognition
+  - Outcome: sub-10ms target latency
+  - Method: client-side inference architecture with ONNX runtime patterns
+- Computer Vision Document Restoration
+  - Outcome: improved legibility and publish-ready outputs
+  - Method: generative restoration pipeline for watermark/noise cleanup
+
+## Contact Routes
+- Resume: /resume
+- Projects: /projects
+- Contact: /contact
+- GitHub: https://github.com/danielshort3

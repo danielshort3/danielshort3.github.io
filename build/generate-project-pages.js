@@ -927,7 +927,9 @@ function writeSitemap(projects) {
   const nextEntries = new Map();
   const noindexPathnames = loadNoindexPathnamesFromVercel(root);
   const baseEntries = [
-    { loc: `${SITE_ORIGIN}/`, sourceFile: 'index.html', priority: 1.0 },
+    { loc: `${SITE_ORIGIN}/`, sourceFile: 'pages/agentic-home.html', priority: 1.0 },
+    { loc: `${SITE_ORIGIN}/about`, sourceFile: 'pages/about.html', priority: 0.8 },
+    { loc: `${SITE_ORIGIN}/projects`, sourceFile: 'pages/projects.html', priority: 0.9 },
     { loc: `${SITE_ORIGIN}/portfolio`, sourceFile: 'pages/portfolio.html', priority: 0.9 },
     { loc: `${SITE_ORIGIN}/resume`, sourceFile: 'pages/resume.html', priority: 0.9 },
     { loc: `${SITE_ORIGIN}/contact`, sourceFile: 'pages/contact.html', priority: 0.7 },
