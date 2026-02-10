@@ -131,6 +131,7 @@
     }
 
     .health-pill {
+      appearance: none;
       display: inline-flex;
       align-items: center;
       gap: 6px;
@@ -139,9 +140,12 @@
       border: 1px solid var(--surface-accent);
       background: var(--surface-2);
       font-size: .7rem;
+      font-family: inherit;
       letter-spacing: .12em;
       text-transform: uppercase;
       color: var(--text-muted);
+      cursor: pointer;
+      transition: border-color .2s ease, color .2s ease, background-color .2s ease;
     }
 
     .health-pill::before {
@@ -165,6 +169,15 @@
     .health-pill[data-state="warming"] {
       color: var(--warning, #f3b550);
       border-color: color-mix(in srgb, var(--warning, #f3b550) 55%, var(--surface-accent) 45%);
+    }
+
+    .health-pill:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    .health-pill:disabled {
+      cursor: progress;
     }
 
     #status {
@@ -750,7 +763,7 @@
     </header>
 
     <div class="health-row" role="status" aria-live="polite">
-      <span id="health-pill" class="health-pill" data-state="warming">Warming up</span>
+      <button id="health-pill" class="health-pill" data-state="warming" type="button" title="Click to reconnect AWS">Warming up</button>
     </div>
 
     <div id="status" role="status" aria-live="polite"></div>
@@ -955,6 +968,7 @@
     let currentActualDigit = null;
     let serverReady = false;
     let scoring = false;
+    let warming = false;
     let toastTimer = null;
 
     function fitCanvasToDisplaySize() {
@@ -1317,51 +1331,61 @@
       if (!healthPill) return;
       healthPill.dataset.state = state;
       healthPill.textContent = text;
+      healthPill.disabled = state === 'warming';
+      const hint = state === 'warming'
+        ? 'Checking AWS connection'
+        : 'Click to reconnect AWS';
+      healthPill.title = hint;
+      healthPill.setAttribute('aria-label', `${text}. ${hint}.`);
     }
 
     function updateRateState() {
-      rateBtn.disabled = !serverReady || scoring;
+      rateBtn.disabled = !serverReady || scoring || warming;
     }
 
-    async function warmUpServer() {
-      setHealth('warming', 'Warming AWS');
+    async function warmUpServer({ manual = false } = {}) {
+      if (warming) return;
+      warming = true;
+      setHealth('warming', manual ? 'Reconnecting' : 'Warming AWS');
+      updateRateState();
       const bases = candidates();
       if (!bases.length) {
         setHealth('err', 'No endpoint');
         serverReady = false;
-        updateRateState();
         return;
       }
       const warmPayload = {
         b64: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII='
       };
       let lastErr = null;
-      for (const base of bases) {
-        try {
-          await postToEndpoint(base, warmPayload);
-          rememberEndpoint(base, STORAGE_KEY);
-          serverReady = true;
-          setHealth('ok', 'Ready');
-          updateRateState();
-          return;
-        } catch (err) {
-          lastErr = err;
+      try {
+        for (const base of bases) {
+          try {
+            await postToEndpoint(base, warmPayload);
+            rememberEndpoint(base, STORAGE_KEY);
+            serverReady = true;
+            setHealth('ok', 'Ready');
+            return;
+          } catch (err) {
+            lastErr = err;
+          }
+          try {
+            await getJson(normalizeBase(base));
+            rememberEndpoint(base, STORAGE_KEY);
+            serverReady = true;
+            setHealth('ok', 'Ready');
+            return;
+          } catch (err) {
+            lastErr = err;
+          }
         }
-        try {
-          await getJson(normalizeBase(base));
-          rememberEndpoint(base, STORAGE_KEY);
-          serverReady = true;
-          setHealth('ok', 'Ready');
-          updateRateState();
-          return;
-        } catch (err) {
-          lastErr = err;
-        }
+        serverReady = false;
+        setHealth('err', 'Unavailable');
+        if (lastErr) console.error(lastErr);
+      } finally {
+        warming = false;
+        updateRateState();
       }
-      serverReady = false;
-      setHealth('err', 'Unavailable');
-      updateRateState();
-      if (lastErr) console.error(lastErr);
     }
 
     async function scoreDigit() {
@@ -1448,6 +1472,14 @@
       setPredictionUI('Draw a digit to begin', null, null, null, currentActualDigit);
       setActiveSampleDigit(null);
       sampleStatus.textContent = 'No sample loaded.';
+    });
+
+    healthPill?.addEventListener('click', () => {
+      if (scoring) {
+        sampleStatus.textContent = 'Please wait for the current score to finish.';
+        return;
+      }
+      warmUpServer({ manual: true });
     });
 
     setPredictionUI('Draw a digit to begin', null, null, null, currentActualDigit);

@@ -257,6 +257,19 @@ function normalizeTextArray(value) {
   return [];
 }
 
+function isDataResource(resource) {
+  if (!resource || typeof resource !== 'object') return false;
+  const explicitType = normalizeWhitespace(resource.type || '').toLowerCase();
+  if (explicitType === 'data' || explicitType === 'dataset') return true;
+  if (explicitType === 'project' || explicitType === 'general') return false;
+
+  const label = normalizeWhitespace(resource.label || '');
+  const url = String(resource.url || '').trim();
+  const haystack = `${label} ${url}`.toLowerCase();
+  const keywords = ['dataset', 'database', 'data source', 'datasource', 'corpus'];
+  return keywords.some((keyword) => haystack.includes(keyword));
+}
+
 function toDomIdSafe(value) {
   return String(value ?? '')
     .trim()
@@ -319,9 +332,9 @@ function renderProjectPager(projects, currentIndex) {
   if (!Array.isArray(projects) || projects.length < 2) return '';
   if (!Number.isInteger(currentIndex) || currentIndex < 0 || currentIndex >= projects.length) return '';
 
-  const previous = currentIndex > 0 ? projects[currentIndex - 1] : null;
-  const next = currentIndex < projects.length - 1 ? projects[currentIndex + 1] : null;
-  if (!previous && !next) return '';
+  const total = projects.length;
+  const previous = projects[(currentIndex - 1 + total) % total];
+  const next = projects[(currentIndex + 1) % total];
 
   const renderLink = (project, direction) => {
     const id = String(project?.id || '').trim();
@@ -350,8 +363,8 @@ function renderProjectPager(projects, currentIndex) {
       </a>`;
   };
 
-  const prevMarkup = previous ? renderLink(previous, 'prev') : '<span class="project-pager-spacer" aria-hidden="true"></span>';
-  const nextMarkup = next ? renderLink(next, 'next') : '<span class="project-pager-spacer" aria-hidden="true"></span>';
+  const prevMarkup = renderLink(previous, 'prev');
+  const nextMarkup = renderLink(next, 'next');
 
   return `<nav class="project-pager" aria-label="Project navigation">
     <div class="wrapper">
@@ -557,11 +570,8 @@ function renderProjectPage(project, options = {}) {
   const hasResources = resources.length > 0;
   const hasNotes = Boolean(notes);
 
-  const safeResources = hasResources
-    ? `<section class="project-section" id="links">
-      <h2 class="section-title">Links</h2>
-      <div class="project-links" role="list">
-        ${resources.map((r) => {
+  const renderResourceCards = (list) => `<div class="project-links" role="list">
+        ${list.map((r) => {
           const href = String(r.url || '').trim();
           const label = normalizeWhitespace(r.label || href);
           const icon = String(r.icon || '').trim();
@@ -572,8 +582,34 @@ function renderProjectPage(project, options = {}) {
             : '';
           return `<a class="project-link" role="listitem" href="${escapeHtml(href)}"${attrs}>${iconMarkup}<span class="project-link-label">${escapeHtml(label)}</span></a>`;
         }).join('\n        ')}
+      </div>`;
+
+  const safeResources = hasResources
+    ? (() => {
+      const dataResources = resources.filter(isDataResource);
+      const projectResources = resources.filter((resource) => !isDataResource(resource));
+
+      const groups = [];
+      if (projectResources.length) {
+        groups.push(`<div class="project-links-group">
+        <h3 class="project-links-group-title">Project Links</h3>
+        ${renderResourceCards(projectResources)}
+      </div>`);
+      }
+      if (dataResources.length) {
+        groups.push(`<div class="project-links-group">
+        <h3 class="project-links-group-title">Data Links</h3>
+        ${renderResourceCards(dataResources)}
+      </div>`);
+      }
+
+      return `<section class="project-section" id="links">
+      <h2 class="section-title">Links</h2>
+      <div class="project-links-groups">
+        ${groups.join('\n        ')}
       </div>
-    </section>`
+    </section>`;
+    })()
     : '';
 
   const safeNotes = hasNotes
