@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --bg: #0f172a;
+  --text: #e2e8f0;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  background-color: var(--bg);
+  color: var(--text);
+  background-image:
+    radial-gradient(circle at 16% 12%, rgba(0, 188, 212, 0.16), transparent 36%),
+    radial-gradient(circle at 82% 4%, rgba(0, 77, 64, 0.3), transparent 42%),
+    linear-gradient(180deg, #0f172a 0%, #101c36 100%);
+}
+
+a {
+  color: inherit;
+}
+
+@layer components {
+  .bento-card {
+    @apply rounded-3xl border border-cyan-200/15 bg-deep-surface/80 p-6 shadow-bento backdrop-blur-md;
+  }
+
+  .action-button {
+    @apply inline-flex items-center justify-center rounded-full border border-cyan-200/20 bg-action-gradient px-5 py-2.5 text-sm font-semibold text-slate-100 transition-transform duration-200 hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300;
+  }
+}

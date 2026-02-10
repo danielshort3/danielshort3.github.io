@@ -1,0 +1,160 @@
+---
+import "../styles/global.css";
+import CommandPalette from "../components/CommandPalette";
+
+const projectNarratives = [
+  {
+    title: "Retail Loss ETL",
+    metric: "24% reduction in loss",
+    summary:
+      "Built a production ETL pipeline across POS, inventory, and incident feeds to surface shrink risk daily. The automation layer removed fragmented spreadsheet workflows and drove measurable operational intervention.",
+    details: [
+      "Situation/Task: Loss reporting was delayed and disconnected across stores.",
+      "Action: Implemented incremental ingestion, entity resolution, and anomaly triage rules.",
+      "Result/Metric: 24% loss reduction with over 200 analyst hours saved per year."
+    ],
+    placeholder: "Interactive SVG pipeline diagram placeholder"
+  },
+  {
+    title: "Edge AI Handwriting Recognition",
+    metric: "Sub-10ms latency",
+    summary:
+      "Re-architected the shape classifier into a browser-native Edge AI workflow using ONNX runtime patterns for client-side inference. The design removes server dependency and supports instant feedback directly in-session.",
+    details: [
+      "Situation/Task: Traditional inference path depended on backend round-trips.",
+      "Action: Prepared client-side tensor flow from sketch strokes to ONNX inputs.",
+      "Result/Metric: Sub-10ms target latency with private, local inference execution."
+    ],
+    placeholder: "Dummy ONNX model hook until export and quantization are finalized"
+  },
+  {
+    title: "Computer Vision Document Restoration",
+    metric: "Generative restoration pipeline",
+    summary:
+      "Renamed from the sheet music project to emphasize a generative computer vision approach that reconstructs degraded notation and artifact-heavy scans. The workflow prioritizes readability recovery for archival and publishing use cases.",
+    details: [
+      "Situation/Task: Scanned pages contained watermarks, noise, and faded symbols.",
+      "Action: Composed preprocessing + generative reconstruction stages for cleanup.",
+      "Result/Metric: Higher legibility and edit-ready output for downstream workflows."
+    ],
+    placeholder: "Before/after slider target: Watermarked vs. Clean output"
+  }
+];
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Daniel Short | Data Science Made Actionable</title>
+    <meta
+      name="description"
+      content="Agentic portfolio for Daniel Short highlighting KPI impact, automation outcomes, and edge AI delivery."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="font-sans text-deep-text antialiased">
+    <a
+      href="#main"
+      class="absolute left-3 top-3 -translate-y-24 rounded-md border border-cyan-200/30 bg-slate-950/95 px-3 py-2 text-sm text-deep-text focus:translate-y-0"
+    >
+      Skip to main content
+    </a>
+
+    <CommandPalette client:load />
+
+    <header class="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-6 md:px-8">
+      <a href="/" class="text-sm font-semibold tracking-[0.16em] text-cyan-300">
+        DANIELSHORT.ME
+      </a>
+      <nav class="hidden items-center gap-6 text-sm text-deep-muted md:flex">
+        <a class="transition hover:text-cyan-200" href="/about">About</a>
+        <a class="transition hover:text-cyan-200" href="/projects">Projects</a>
+        <a class="transition hover:text-cyan-200" href="/resume">Resume</a>
+        <a class="transition hover:text-cyan-200" href="/contact">Contact</a>
+      </nav>
+    </header>
+
+    <main id="main" class="mx-auto w-full max-w-7xl px-4 pb-20 md:px-8">
+      <section class="grid auto-rows-[minmax(150px,auto)] gap-4 md:grid-cols-6">
+        <article class="bento-card md:col-span-4 md:row-span-2">
+          <p class="text-xs uppercase tracking-[0.18em] text-cyan-300/90">Agentic Portfolio 2026</p>
+          <h1 class="mt-4 max-w-3xl text-3xl font-bold leading-tight text-slate-100 md:text-5xl">
+            Data Science Made Actionable
+          </h1>
+          <p class="mt-4 max-w-2xl text-base text-deep-muted md:text-lg">
+            500% KPI Gains &amp; Automation. I build NLP, computer vision, and ETL systems that
+            move from notebook ideas to measurable business outcomes.
+          </p>
+          <div class="mt-7 flex flex-wrap gap-3">
+            <a class="action-button" href="/resume">Resume</a>
+            <a
+              class="inline-flex items-center justify-center rounded-full border border-cyan-300/30 px-5 py-2.5 text-sm font-semibold text-cyan-100 transition hover:border-cyan-300/70"
+              href="#projects"
+            >
+              Explore Projects
+            </a>
+          </div>
+        </article>
+
+        <article class="bento-card md:col-span-2">
+          <p class="text-xs uppercase tracking-[0.14em] text-cyan-300/80">Business Impact</p>
+          <p class="mt-4 text-4xl font-bold text-slate-50">500%</p>
+          <p class="mt-2 text-sm text-deep-muted">KPI growth delivered through data productization.</p>
+        </article>
+
+        <article class="bento-card md:col-span-2">
+          <p class="text-xs uppercase tracking-[0.14em] text-cyan-300/80">Automation Savings</p>
+          <p class="mt-4 text-4xl font-bold text-slate-50">200+ hrs/yr</p>
+          <p class="mt-2 text-sm text-deep-muted">
+            Time reclaimed by replacing manual reporting with event-driven workflows.
+          </p>
+        </article>
+
+        <article class="bento-card md:col-span-2">
+          <p class="text-xs uppercase tracking-[0.14em] text-cyan-300/80">Focus Areas</p>
+          <div class="mt-4 flex flex-wrap gap-2 text-xs">
+            <span class="rounded-full border border-cyan-300/25 px-3 py-1">NLP</span>
+            <span class="rounded-full border border-cyan-300/25 px-3 py-1">Computer Vision</span>
+            <span class="rounded-full border border-cyan-300/25 px-3 py-1">ETL Pipelines</span>
+            <span class="rounded-full border border-cyan-300/25 px-3 py-1">Edge AI</span>
+          </div>
+        </article>
+      </section>
+
+      <section id="projects" class="mt-10">
+        <div class="mb-4 flex items-center justify-between">
+          <h2 class="text-2xl font-semibold text-slate-100 md:text-3xl">Flagship Projects</h2>
+          <a class="text-sm text-cyan-300 transition hover:text-cyan-200" href="/projects">View all</a>
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-3">
+          {
+            projectNarratives.map((project) => (
+              <article class="bento-card h-full">
+                <p class="text-xs uppercase tracking-[0.14em] text-cyan-300/85">{project.metric}</p>
+                <h3 class="mt-2 text-xl font-semibold text-slate-50">{project.title}</h3>
+                <p class="mt-3 text-sm leading-6 text-deep-muted">{project.summary}</p>
+
+                <ul class="mt-4 space-y-2 text-sm text-slate-200/95">
+                  {project.details.map((detail) => (
+                    <li class="rounded-lg border border-cyan-200/10 bg-slate-950/25 px-3 py-2">{detail}</li>
+                  ))}
+                </ul>
+
+                <p class="mt-4 rounded-xl border border-cyan-200/10 bg-cyan-950/20 px-3 py-2 text-xs text-cyan-100/90">
+                  {project.placeholder}
+                </p>
+              </article>
+            ))
+          }
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
