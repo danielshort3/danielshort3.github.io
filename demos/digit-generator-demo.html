@@ -643,13 +643,26 @@
     const DEFAULT_FN_URL = "https://w7jbsr55oggohong42ii6wo3jq0bvkvq.lambda-url.us-east-2.on.aws/";
     const STORAGE_KEY = "demo.endpoint.digit";
     const LEGACY_KEYS = ["digit_fn_url"];
-    const { listCandidates, postWithFallback, rememberEndpoint, getJson, normalizeBase } = window.DemoAws;
+    const {
+      listCandidates,
+      postWithFallback,
+      rememberEndpoint,
+      getJson,
+      normalizeBase,
+      retryRequest
+    } = window.DemoAws;
     const GRID_SIZES = [4, 6, 8];
     const compactLayout = !!(window.matchMedia && window.matchMedia('(max-width: 520px), (max-height: 700px)').matches);
     const endpointConfig = {
       defaultUrl: DEFAULT_FN_URL,
       storageKey: STORAGE_KEY,
       legacyKeys: LEGACY_KEYS
+    };
+    const WARM_RETRY_OPTIONS = {
+      retries: 2,
+      baseDelayMs: 700,
+      factor: 2,
+      maxDelayMs: 3000
     };
     const candidates = () => listCandidates(endpointConfig);
     const postToEndpoint = (base, payload) => postWithFallback(base, ['', 'generate', 'sample'], payload);
@@ -863,7 +876,7 @@
       let lastErr = null;
       for (const base of endpoints) {
         try {
-          await postToEndpoint(base, warmPayload);
+          await retryRequest(() => postToEndpoint(base, warmPayload), WARM_RETRY_OPTIONS);
           rememberEndpoint(base, STORAGE_KEY);
           serverReady = true;
           setHealth('ok', 'Ready');
@@ -875,7 +888,7 @@
           lastErr = err;
         }
         try {
-          await getJson(normalizeBase(base));
+          await retryRequest(() => getJson(normalizeBase(base)), WARM_RETRY_OPTIONS);
           rememberEndpoint(base, STORAGE_KEY);
           serverReady = true;
           setHealth('ok', 'Ready');

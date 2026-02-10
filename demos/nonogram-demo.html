@@ -558,11 +558,24 @@
     const DEFAULT_FN_URL = "https://gw676aqgd4lpcoxngfvnfki5ce0urcfg.lambda-url.us-east-2.on.aws/";
     const STORAGE_KEY = "demo.endpoint.nonogram";
     const LEGACY_KEYS = ["nonogram_fn_url"];
-    const { listCandidates, postWithFallback, rememberEndpoint, getJson, normalizeBase } = window.DemoAws;
+    const {
+      listCandidates,
+      postWithFallback,
+      rememberEndpoint,
+      getJson,
+      normalizeBase,
+      retryRequest
+    } = window.DemoAws;
     const endpointConfig = {
       defaultUrl: DEFAULT_FN_URL,
       storageKey: STORAGE_KEY,
       legacyKeys: LEGACY_KEYS
+    };
+    const WARM_RETRY_OPTIONS = {
+      retries: 2,
+      baseDelayMs: 700,
+      factor: 2,
+      maxDelayMs: 3000
     };
     const candidates = () => listCandidates(endpointConfig);
     const postToEndpoint = (base, payload) => postWithFallback(base, ['', 'solve', 'predict'], payload);
@@ -773,7 +786,7 @@
       let lastErr = null;
       for (const base of endpoints) {
         try {
-          await postToEndpoint(base, {});
+          await retryRequest(() => postToEndpoint(base, {}), WARM_RETRY_OPTIONS);
           rememberEndpoint(base, STORAGE_KEY);
           serverReady = true;
           setHealth('ok', 'Ready');
@@ -789,7 +802,7 @@
           lastErr = err;
         }
         try {
-          await getJson(normalizeBase(base));
+          await retryRequest(() => getJson(normalizeBase(base)), WARM_RETRY_OPTIONS);
           rememberEndpoint(base, STORAGE_KEY);
           serverReady = true;
           setHealth('ok', 'Ready');

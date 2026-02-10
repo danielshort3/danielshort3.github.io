@@ -13,6 +13,13 @@
 
   const WARMUP_MIN_INTERVAL_MS = 10 * 60 * 1000;
   const WARMUP_AUDIO_MS = 250;
+  const WARM_RETRY_OPTIONS = {
+    retries: 2,
+    baseDelayMs: 700,
+    factor: 2,
+    maxDelayMs: 3000
+  };
+  const RETRYABLE_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504]);
 
   const $id = (id) => document.getElementById(id);
 
@@ -285,6 +292,56 @@
     };
   };
 
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  const isRetryableError = (err) => {
+    if (!err) return false;
+    if (typeof err.status === 'number') return RETRYABLE_STATUSES.has(err.status);
+    if (err.name === 'AbortError') return true;
+    const message = String(err.message || '').toLowerCase();
+    return (
+      message.includes('failed to fetch') ||
+      message.includes('networkerror') ||
+      message.includes('load failed') ||
+      message.includes('timed out') ||
+      message.includes('timeout')
+    );
+  };
+
+  const retryRequest = async (operation, options = {}) => {
+    const retries = Number.isFinite(options.retries) ? Math.max(0, options.retries) : 2;
+    const baseDelayMs = Number.isFinite(options.baseDelayMs) ? Math.max(0, options.baseDelayMs) : 600;
+    const factor = Number.isFinite(options.factor) && options.factor > 1 ? options.factor : 2;
+    const maxDelayMs = Number.isFinite(options.maxDelayMs)
+      ? Math.max(0, options.maxDelayMs)
+      : 2500;
+    const shouldRetry = typeof options.shouldRetry === 'function'
+      ? options.shouldRetry
+      : isRetryableError;
+
+    let attempt = 0;
+    let delayMs = baseDelayMs;
+    let lastErr = null;
+
+    while (attempt <= retries) {
+      try {
+        return await operation(attempt);
+      } catch (err) {
+        lastErr = err;
+        if (attempt >= retries || !shouldRetry(err, attempt)) {
+          throw err;
+        }
+        if (delayMs > 0) {
+          await sleep(delayMs);
+        }
+        delayMs = Math.min(Math.max(delayMs * factor, 1), maxDelayMs);
+        attempt += 1;
+      }
+    }
+
+    throw lastErr || new Error('Request failed');
+  };
+
   const shouldWarmUp = ({ base, modelLoaded }) => {
     const last = parseTimestamp(safeGet(STORAGE_WARMUP_AT));
     const lastBase = normalizeBase(safeGet(STORAGE_WARMUP_BASE));
@@ -473,7 +530,15 @@
     }
 
     try {
-      const res = await requestJson(base, { method: 'GET' });
+      const res = await retryRequest(async () => {
+        const next = await requestJson(base, { method: 'GET' });
+        if (!next.ok && RETRYABLE_STATUSES.has(next.status)) {
+          const err = new Error(next.text || `${next.status} ${next.statusText}`);
+          err.status = next.status;
+          throw err;
+        }
+        return next;
+      }, WARM_RETRY_OPTIONS);
       if (!res.ok) {
         setHealth('err', 'Unavailable');
         setStatus(endpointStatusEl, 'Unable to reach AWS Lambda.', 'error');
@@ -555,12 +620,19 @@
     const url = joinUrl(normalized, '/transcribe');
     const body = createSilentWavBlob(WARMUP_AUDIO_MS);
     try {
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'audio/wav' },
-        body
-      });
-      if (!res.ok) throw new Error('Warm-up failed.');
+      await retryRequest(async () => {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'audio/wav' },
+          body
+        });
+        if (!res.ok) {
+          const err = new Error('Warm-up failed.');
+          err.status = res.status;
+          throw err;
+        }
+        return res;
+      }, WARM_RETRY_OPTIONS);
 
       safeSet(STORAGE_WARMUP_AT, String(Date.now()));
       safeSet(STORAGE_WARMUP_BASE, normalized);

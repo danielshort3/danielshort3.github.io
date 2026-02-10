@@ -3151,8 +3151,14 @@
       }
       const DEFAULT_API_BASE = root.dataset.apiBase;
       const STORAGE_KEY = 'demo.endpoint.slot';
-      const { resolveEndpoint } = window.DemoAws;
+      const { resolveEndpoint, retryRequest } = window.DemoAws;
       const endpointConfig = { defaultUrl: DEFAULT_API_BASE, storageKey: STORAGE_KEY };
+      const WARM_RETRY_OPTIONS = {
+        retries: 2,
+        baseDelayMs: 700,
+        factor: 2,
+        maxDelayMs: 3000
+      };
       const API_BASE = resolveEndpoint(endpointConfig).replace(/\/$/, '');
       const DEFAULT_MAX_BET = Number(root.dataset.maxBet) || 100;
       const MACHINE_CONFIG_URL = root.dataset.machineConfig || '';
@@ -8282,21 +8288,26 @@
         const storedPlayer = getStored(storageKeys.player);
         if (storedPlayer) payload.playerId = storedPlayer;
         try {
-          const res = await fetch(`${API_BASE}/session`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-          let data = {};
-          try {
-            data = await res.json();
-          } catch {
-            data = {};
-          }
-          if (!res.ok) {
-            const message = data.error || data.message || 'Unable to reach AWS.';
-            throw new Error(message);
-          }
+          const data = await retryRequest(async () => {
+            const res = await fetch(`${API_BASE}/session`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+            let parsed = {};
+            try {
+              parsed = await res.json();
+            } catch {
+              parsed = {};
+            }
+            if (!res.ok) {
+              const message = parsed.error || parsed.message || 'Unable to reach AWS.';
+              const err = new Error(message);
+              err.status = res.status;
+              throw err;
+            }
+            return parsed;
+          }, WARM_RETRY_OPTIONS);
           if (data.playerId && !state.auth.token) {
             storeGuestPlayer(data.playerId);
             state.playerId = data.playerId;

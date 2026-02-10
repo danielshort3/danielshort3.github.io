@@ -749,11 +749,22 @@
         const DEFAULT_FN_URL = "https://zcosyfxhs3sntpwzo3qayki2he0kdxkw.lambda-url.us-east-2.on.aws/"; // Lambda Function URL
         const STORAGE_KEY = "demo.endpoint.shape";
         const LEGACY_KEYS = ["shape_fn_url"];
-        const { listCandidates, postWithFallback, rememberEndpoint } = window.DemoAws;
+        const {
+            listCandidates,
+            postWithFallback,
+            rememberEndpoint,
+            retryRequest
+        } = window.DemoAws;
         const endpointConfig = {
           defaultUrl: DEFAULT_FN_URL,
           storageKey: STORAGE_KEY,
           legacyKeys: LEGACY_KEYS
+        };
+        const WARM_RETRY_OPTIONS = {
+            retries: 2,
+            baseDelayMs: 700,
+            factor: 2,
+            maxDelayMs: 3000
         };
         const candidates = () => listCandidates(endpointConfig);
         const postToEndpoint = (urlBase, payload) => postWithFallback(urlBase, ['predict', 'classify', ''], payload);
@@ -1188,7 +1199,7 @@
             let lastErr = null;
             for (const base of bases) {
                 try {
-                    await postToEndpoint(base, warmPayload);
+                    await retryRequest(() => postToEndpoint(base, warmPayload), WARM_RETRY_OPTIONS);
                     rememberEndpoint(base, STORAGE_KEY);
                     serverReady = true;
                     setHealth('ok', 'Ready');

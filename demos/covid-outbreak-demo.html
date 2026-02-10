@@ -747,7 +747,7 @@
     const DEFAULT_API_URL = "https://lv4inwnj6yyo3kfdajpk2v5eda0hrtao.lambda-url.us-east-2.on.aws/";
     const STORAGE_KEY = "demo.endpoint.covid";
     const LEGACY_KEYS = ["covid_outbreak_api"];
-    const { resolveEndpoint, getJson, joinUrl } = window.DemoAws;
+    const { resolveEndpoint, getJson, joinUrl, retryRequest } = window.DemoAws;
 
     const notifyResize = (() => {
       const CHANNEL = "covid-outbreak-demo-resize";
@@ -912,6 +912,12 @@
       storageKey: STORAGE_KEY,
       legacyKeys: LEGACY_KEYS
     };
+    const WARM_RETRY_OPTIONS = {
+      retries: 2,
+      baseDelayMs: 700,
+      factor: 2,
+      maxDelayMs: 3000
+    };
 
     function setConnection(state, text) {
       DOM.connectionPill.dataset.state = state;
@@ -929,7 +935,10 @@
     }
 
     async function fetchJson(path) {
-      return getJson(joinUrl(appState.endpoint, path));
+      return retryRequest(
+        () => getJson(joinUrl(appState.endpoint, path)),
+        WARM_RETRY_OPTIONS
+      );
     }
 
     function formatPercent(value) {

@@ -741,8 +741,14 @@
   <script type="module">
     const DEFAULT_API_URL = "https://e7axe2ymmx2kadovfvvji23wkq0xmybn.lambda-url.us-east-2.on.aws/";
     const STORAGE_KEY = "demo.endpoint.targetEmptyPackage";
-    const { resolveEndpoint, joinUrl, getJson } = window.DemoAws;
+    const { resolveEndpoint, joinUrl, getJson, retryRequest } = window.DemoAws;
     const endpointConfig = { defaultUrl: DEFAULT_API_URL, storageKey: STORAGE_KEY };
+    const WARM_RETRY_OPTIONS = {
+      retries: 2,
+      baseDelayMs: 700,
+      factor: 2,
+      maxDelayMs: 3000
+    };
     const API_URL = resolveEndpoint(endpointConfig);
     const state = {
       rows: [],
@@ -1237,7 +1243,10 @@
       }
       setStatus("warming", "Connecting", "Fetching demo data...");
       try {
-        const data = await getJson(joinUrl(API_URL, "data"), { cache: "no-store" });
+        const data = await retryRequest(
+          () => getJson(joinUrl(API_URL, "data"), { cache: "no-store" }),
+          WARM_RETRY_OPTIONS
+        );
         state.rows = (data.rows || []).map((row) => ({
           ...row,
           value: Number(row.value) || 0,
