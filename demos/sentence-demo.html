@@ -323,8 +323,14 @@
     const DEFAULT_URL = "https://7aa3jt3tzkinheprc5ds52bihq0itutx.lambda-url.us-east-2.on.aws/";
     const DEFAULT_QUERY = "She wonders about things.";
     const STORAGE_KEY = "demo.endpoint.sentence";
-    const { resolveEndpoint, getJson, postJson, joinUrl } = window.DemoAws;
+    const { resolveEndpoint, getJson, postJson, joinUrl, retryRequest } = window.DemoAws;
     const endpointConfig = { defaultUrl: DEFAULT_URL, storageKey: STORAGE_KEY };
+    const WARM_RETRY_OPTIONS = {
+      retries: 2,
+      baseDelayMs: 700,
+      factor: 2,
+      maxDelayMs: 3000
+    };
     let serverReady = false;
     let submitBtn = null;
 
@@ -372,7 +378,7 @@
       serverReady = false;
       if (submitBtn) submitBtn.disabled = true;
       try {
-        await getJson(url);
+        await retryRequest(() => getJson(url), WARM_RETRY_OPTIONS);
         serverReady = true;
         if ($status) {
           $status.dataset.state = 'ok';

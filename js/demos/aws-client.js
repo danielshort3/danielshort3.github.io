@@ -88,6 +88,58 @@
     if (storageKey && base) safeSet(storageKey, base);
   };
 
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  const RETRYABLE_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504]);
+
+  const isRetryableError = (err) => {
+    if (!err) return false;
+    if (typeof err.status === 'number') return RETRYABLE_STATUSES.has(err.status);
+    if (err.name === 'AbortError') return true;
+    const message = String(err.message || '').toLowerCase();
+    return (
+      message.includes('failed to fetch') ||
+      message.includes('networkerror') ||
+      message.includes('load failed') ||
+      message.includes('timed out') ||
+      message.includes('timeout')
+    );
+  };
+
+  const retryRequest = async (operation, options = {}) => {
+    const retries = Number.isFinite(options.retries) ? Math.max(0, options.retries) : 2;
+    const baseDelayMs = Number.isFinite(options.baseDelayMs) ? Math.max(0, options.baseDelayMs) : 600;
+    const factor = Number.isFinite(options.factor) && options.factor > 1 ? options.factor : 2;
+    const maxDelayMs = Number.isFinite(options.maxDelayMs)
+      ? Math.max(0, options.maxDelayMs)
+      : 2500;
+    const shouldRetry = typeof options.shouldRetry === 'function'
+      ? options.shouldRetry
+      : isRetryableError;
+
+    let attempt = 0;
+    let delayMs = baseDelayMs;
+    let lastErr = null;
+
+    while (attempt <= retries) {
+      try {
+        return await operation(attempt);
+      } catch (err) {
+        lastErr = err;
+        if (attempt >= retries || !shouldRetry(err, attempt)) {
+          throw err;
+        }
+        if (delayMs > 0) {
+          await sleep(delayMs);
+        }
+        delayMs = Math.min(Math.max(delayMs * factor, 1), maxDelayMs);
+        attempt += 1;
+      }
+    }
+
+    throw lastErr || new Error('Request failed');
+  };
+
   const requestJson = async (url, options = {}) => {
     const res = await fetch(url, options);
     const text = await res.text();
@@ -157,6 +209,8 @@
     listCandidates,
     resolveEndpoint,
     rememberEndpoint,
+    isRetryableError,
+    retryRequest,
     requestJson,
     getJson,
     postJson,

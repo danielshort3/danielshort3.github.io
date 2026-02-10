@@ -575,7 +575,13 @@
   <script type="module">
     const DEFAULT_FN_URL = 'https://2d6lrg4ozy564xymwi2epjbqty0nvhje.lambda-url.us-east-2.on.aws/';
     const STORAGE_KEY = "demo.endpoint.pizza";
-    const { resolveEndpoint, listCandidates, postWithFallback, rememberEndpoint } = window.DemoAws;
+    const {
+      resolveEndpoint,
+      listCandidates,
+      postWithFallback,
+      rememberEndpoint,
+      retryRequest
+    } = window.DemoAws;
     const META = window.PizzaTipsMeta || {};
     const MAP_BOUNDS = META.bounds
       ? {
@@ -621,6 +627,12 @@
     };
 
     const endpointConfig = { defaultUrl: DEFAULT_FN_URL, storageKey: STORAGE_KEY };
+    const WARM_RETRY_OPTIONS = {
+      retries: 2,
+      baseDelayMs: 700,
+      factor: 2,
+      maxDelayMs: 3000
+    };
     const candidates = () => listCandidates(endpointConfig);
     const API_URL = resolveEndpoint(endpointConfig);
     const statusEl = document.getElementById('api-status');
@@ -951,7 +963,7 @@
       let lastErr = null;
       for (const base of endpoints) {
         try {
-          await postToEndpoint(base, payload);
+          await retryRequest(() => postToEndpoint(base, payload), WARM_RETRY_OPTIONS);
           rememberEndpoint(base, STORAGE_KEY);
           setServerReady(true);
           setStatus('ok', 'Ready');

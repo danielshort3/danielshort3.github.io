@@ -489,10 +489,23 @@
     const TARGET_GRID = 9;
     const TARGET_MINES = 10;
     const STORAGE_KEY = "demo.endpoint.minesweeper";
-    const { listCandidates, postWithFallback, rememberEndpoint, getJson, normalizeBase } = window.DemoAws;
+    const {
+      listCandidates,
+      postWithFallback,
+      rememberEndpoint,
+      getJson,
+      normalizeBase,
+      retryRequest
+    } = window.DemoAws;
     const endpointConfig = {
       defaultUrl: DEFAULT_FN_URL,
       storageKey: STORAGE_KEY
+    };
+    const WARM_RETRY_OPTIONS = {
+      retries: 2,
+      baseDelayMs: 700,
+      factor: 2,
+      maxDelayMs: 3000
     };
     const candidates = () => listCandidates(endpointConfig);
     const postToEndpoint = (base, payload) => postWithFallback(base, ['', 'solve', 'predict'], payload);
@@ -852,7 +865,7 @@
       let lastErr = null;
       for (const base of endpoints) {
         try {
-          await getJson(normalizeBase(base));
+          await retryRequest(() => getJson(normalizeBase(base)), WARM_RETRY_OPTIONS);
           rememberEndpoint(base, STORAGE_KEY);
           serverReady = true;
           setHealth('ok', 'Ready');

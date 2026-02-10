@@ -916,10 +916,18 @@
     <script>
         const DEFAULT_API_URL = 'https://ovodkr9oad.execute-api.us-east-2.amazonaws.com/prod';
         const STORAGE_KEY = 'demo.endpoint.chatbot';
-        const { resolveEndpoint, getJson } = window.DemoAws;
+        const { resolveEndpoint, getJson, retryRequest } = window.DemoAws;
         const endpointConfig = { defaultUrl: DEFAULT_API_URL, storageKey: STORAGE_KEY };
         const API_URL = resolveEndpoint(endpointConfig).replace(/\/$/, '');
         const STATUS_URL = `${API_URL}/status`;
+        // Keep chatbot warmup semantics driven by START_TIMEOUT_SEC/GRACE_SEC.
+        // This only retries transient status endpoint failures.
+        const STATUS_RETRY_OPTIONS = {
+            retries: 2,
+            baseDelayMs: 700,
+            factor: 2,
+            maxDelayMs: 3000
+        };
         const DEMO_DISABLED = false; // Toggle to true to temporarily disable the AWS-backed demo
         const DEMO_DISABLED_REASON = 'This demo is temporarily disabled due to technical issues with AWS.';
 
@@ -1284,7 +1292,10 @@
         }
         async function fetchStatusInfo() {
             try {
-                const payload = await getJson(STATUS_URL, { cache: 'no-store' });
+                const payload = await retryRequest(
+                    () => getJson(STATUS_URL, { cache: 'no-store' }),
+                    STATUS_RETRY_OPTIONS
+                );
                 updateQueueIndicators(payload);
                 const online = isOnlinePayload(payload);
                 const warmSeconds = secondsFromEta(payload?.eta?.to_warm_seconds);

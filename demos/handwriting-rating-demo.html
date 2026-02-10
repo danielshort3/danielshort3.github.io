@@ -855,7 +855,8 @@
       getJson,
       postWithFallback,
       rememberEndpoint,
-      normalizeBase
+      normalizeBase,
+      retryRequest
     } = window.DemoAws;
     const endpointConfig = {
       defaultUrl: DEFAULT_FN_URL,
@@ -863,6 +864,12 @@
       legacyKeys: LEGACY_KEYS
     };
     const candidates = () => listCandidates(endpointConfig).filter(Boolean);
+    const WARM_RETRY_OPTIONS = {
+      retries: 2,
+      baseDelayMs: 700,
+      factor: 2,
+      maxDelayMs: 3000
+    };
 
     const postToEndpoint = (urlBase, payload) => {
       const base = normalizeBase(urlBase);
@@ -1361,7 +1368,7 @@
       try {
         for (const base of bases) {
           try {
-            await postToEndpoint(base, warmPayload);
+            await retryRequest(() => postToEndpoint(base, warmPayload), WARM_RETRY_OPTIONS);
             rememberEndpoint(base, STORAGE_KEY);
             serverReady = true;
             setHealth('ok', 'Ready');
@@ -1370,7 +1377,7 @@
             lastErr = err;
           }
           try {
-            await getJson(normalizeBase(base));
+            await retryRequest(() => getJson(normalizeBase(base)), WARM_RETRY_OPTIONS);
             rememberEndpoint(base, STORAGE_KEY);
             serverReady = true;
             setHealth('ok', 'Ready');

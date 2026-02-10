@@ -655,7 +655,13 @@
   <script type="module">
     const DEFAULT_API_URL = "https://oafstar74okqvfqaxayeici3ry0yikkx.lambda-url.us-east-2.on.aws/";
     const STORAGE_KEY = "demo.endpoint.retailLossSales";
-    const { resolveEndpoint, joinUrl, getJson } = window.DemoAws;
+    const { resolveEndpoint, joinUrl, getJson, retryRequest } = window.DemoAws;
+    const WARM_RETRY_OPTIONS = {
+      retries: 2,
+      baseDelayMs: 700,
+      factor: 2,
+      maxDelayMs: 3000
+    };
     const API_URL = resolveEndpoint({ defaultUrl: DEFAULT_API_URL, storageKey: STORAGE_KEY });
 
     const state = {
@@ -1236,7 +1242,10 @@
       }
       setStatus("warming", "Connecting", "Fetching AWS data...");
       try {
-        const data = await getJson(joinUrl(API_URL, "data"), { cache: "no-store" });
+        const data = await retryRequest(
+          () => getJson(joinUrl(API_URL, "data"), { cache: "no-store" }),
+          WARM_RETRY_OPTIONS
+        );
         state.data = data;
         setStatus("ok", "Ready", "Anonymized data loaded");
         updateDateRangePill();
