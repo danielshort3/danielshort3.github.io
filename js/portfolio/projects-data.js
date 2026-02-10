@@ -973,7 +973,6 @@ window.PROJECTS = [
         "Use search + sort to find names quickly."
       ]
     },
-    notes: "The quiz collects only non-sensitive preferences; no personal data is stored.",
     problem : "My wife asked me to suggest baby names. I wanted something that learns her taste instead of guessing.",
     actions : [
       "Aggregated SSA baby-name records (1880-present) and engineered trend features.",

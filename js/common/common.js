@@ -1064,10 +1064,13 @@
     }
   });
 
+  const PROJECT_EMBED_HEIGHT_BUFFER_PX = 2;
+
   const setProjectEmbedIframeHeight = (ifr, height) => {
     if (!ifr) return;
     if (!Number.isFinite(height) || height <= 0) return;
-    const next = `${Math.floor(height)}px`;
+    // Round up with a small buffer to avoid 1-2px inner scrollbars from sub-pixel layout.
+    const next = `${Math.ceil(height + PROJECT_EMBED_HEIGHT_BUFFER_PX)}px`;
     if (ifr.style.height === next) return;
     ifr.style.height = next;
   };
@@ -1131,6 +1134,8 @@
     document.querySelectorAll('.project-embed-frame').forEach((ifr) => {
       if (ifr._resizeBound) return;
       ifr._resizeBound = true;
+      ifr.setAttribute('scrolling', 'no');
+      ifr.style.overflow = 'hidden';
       ifr.addEventListener('load', () => {
         resizeProjectEmbedIframe(ifr);
         setTimeout(() => resizeProjectEmbedIframe(ifr), 50);
@@ -1153,7 +1158,7 @@
     for (const ifr of ifrs) {
       if (ifr.contentWindow === event.source) {
         const h = typeof data.height === 'number' && isFinite(data.height)
-          ? Math.max(0, Math.floor(data.height))
+          ? Math.max(0, Math.ceil(data.height + PROJECT_EMBED_HEIGHT_BUFFER_PX))
           : null;
         if (h) {
           ifr.style.height = `${h}px`;
