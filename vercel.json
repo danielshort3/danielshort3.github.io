@@ -12,11 +12,6 @@
     { "source": "/:slug", "has": [{ "type": "host", "value": "www.dshort.me" }], "destination": "/api/go/:slug" },
     { "source": "/go/:first/:rest", "destination": "/api/go/:first%2F:rest" },
     { "source": "/go/:slug", "destination": "/api/go/:slug" },
-    { "source": "/", "destination": "/pages/agentic-home" },
-    { "source": "/about", "destination": "/pages/about" },
-    { "source": "/about.html", "destination": "/pages/about" },
-    { "source": "/projects", "destination": "/pages/projects" },
-    { "source": "/projects.html", "destination": "/pages/projects" },
     { "source": "/portfolio", "has": [{ "type": "query", "key": "project" }], "destination": "/api/portfolio-redirect" },
     { "source": "/portfolio.html", "has": [{ "type": "query", "key": "project" }], "destination": "/api/portfolio-redirect" },
     { "source": "/portfolio/:project", "destination": "/pages/portfolio/:project" },
@@ -128,7 +123,8 @@
     { "source": "/:slug.html", "destination": "/:slug", "permanent": true },
     { "source": "/tools/ocean-wave-simulation", "destination": "/games/ocean-wave-simulation", "permanent": true },
     { "source": "/tools/ocean-wave-simulation.html", "destination": "/games/ocean-wave-simulation", "permanent": true },
-    { "source": "/projects/(.*)", "destination": "/projects", "permanent": true }
+    { "source": "/projects", "destination": "/portfolio", "permanent": true },
+    { "source": "/projects/(.*)", "destination": "/portfolio", "permanent": true }
   ],
   "headers": [
     {

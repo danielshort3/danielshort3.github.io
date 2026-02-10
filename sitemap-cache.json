@@ -1,12 +1,8 @@
 {
   "entries": {
     "https://www.danielshort.me/": {
-      "lastmod": "2026-02-10",
-      "hash": "bc0c10622dcb1b907f1004cffc5142e7c03bf23ba38e603e90fd95e5fbaad699"
-    },
-    "https://www.danielshort.me/about": {
-      "lastmod": "2026-02-10",
-      "hash": "de0020e02ff463c1d6c3cd74aafb83f4896d38e361bdede74e8348b6e5b7437e"
+      "lastmod": "2026-02-08",
+      "hash": "d61f881a5172b307686cb9c301a74c4127778ba1acb9c450d125efc1501bba1f"
     },
     "https://www.danielshort.me/contact": {
       "lastmod": "2026-02-08",
@@ -87,10 +83,6 @@
     "https://www.danielshort.me/privacy": {
       "lastmod": "2026-02-08",
       "hash": "4523691914ed95594cee4ab4f90b68a1bc58b26a26840396f49d3bc4f7ecdba0"
-    },
-    "https://www.danielshort.me/projects": {
-      "lastmod": "2026-02-10",
-      "hash": "6544b1c6f15542e334b73ac1a39579ca3f86aa910415aeb6d835707f6f820b6e"
     },
     "https://www.danielshort.me/resume": {
       "lastmod": "2026-02-08",
