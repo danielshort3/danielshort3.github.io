@@ -122,7 +122,9 @@
     { "source": "/games/:game.html", "destination": "/games/:game", "permanent": true },
     { "source": "/:slug.html", "destination": "/:slug", "permanent": true },
     { "source": "/tools/ocean-wave-simulation", "destination": "/games/ocean-wave-simulation", "permanent": true },
-    { "source": "/tools/ocean-wave-simulation.html", "destination": "/games/ocean-wave-simulation", "permanent": true }
+    { "source": "/tools/ocean-wave-simulation.html", "destination": "/games/ocean-wave-simulation", "permanent": true },
+    { "source": "/projects", "destination": "/portfolio", "permanent": true },
+    { "source": "/projects/(.*)", "destination": "/portfolio", "permanent": true }
   ],
   "headers": [
     {
