@@ -923,10 +923,10 @@
         // Keep chatbot warmup semantics driven by START_TIMEOUT_SEC/GRACE_SEC.
         // This only retries transient status endpoint failures.
         const STATUS_RETRY_OPTIONS = {
-            retries: 2,
-            baseDelayMs: 700,
-            factor: 2,
-            maxDelayMs: 3000
+            retries: 12,
+            baseDelayMs: 1000,
+            factor: 1.8,
+            maxDelayMs: 10000
         };
         const DEMO_DISABLED = false; // Toggle to true to temporarily disable the AWS-backed demo
         const DEMO_DISABLED_REASON = 'This demo is temporarily disabled due to technical issues with AWS.';

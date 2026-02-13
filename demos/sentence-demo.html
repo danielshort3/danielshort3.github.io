@@ -326,10 +326,10 @@
     const { resolveEndpoint, getJson, postJson, joinUrl, retryRequest } = window.DemoAws;
     const endpointConfig = { defaultUrl: DEFAULT_URL, storageKey: STORAGE_KEY };
     const WARM_RETRY_OPTIONS = {
-      retries: 2,
-      baseDelayMs: 700,
-      factor: 2,
-      maxDelayMs: 3000
+      retries: 12,
+      baseDelayMs: 1000,
+      factor: 1.8,
+      maxDelayMs: 10000
     };
     let serverReady = false;
     let submitBtn = null;
