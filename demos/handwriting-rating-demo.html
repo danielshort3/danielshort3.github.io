@@ -865,10 +865,10 @@
     };
     const candidates = () => listCandidates(endpointConfig).filter(Boolean);
     const WARM_RETRY_OPTIONS = {
-      retries: 2,
-      baseDelayMs: 700,
-      factor: 2,
-      maxDelayMs: 3000
+      retries: 12,
+      baseDelayMs: 1000,
+      factor: 1.8,
+      maxDelayMs: 10000
     };
 
     const postToEndpoint = (urlBase, payload) => {
