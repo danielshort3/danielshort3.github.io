@@ -4,13 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <base href="/">
-  <title>Stopword-Free Word Frequency | Daniel Short</title>
-  <link rel="canonical" href="https://www.danielshort.me/tools/word-frequency">
-  <meta name="description" content="Paste long-form text, strip out stopwords, and view the most frequent words processed locally in your browser.">
-  <meta property="og:title" content="Stopword-Free Word Frequency | Daniel Short">
+  <title>Text Analysis Suite | Daniel Short</title>
+  <link rel="canonical" href="https://www.danielshort.me/tools/text-analysis-suite">
+  <meta name="description" content="Run multiple local text checks at once, including word frequency, POV mix, Oxford comma signals, and hard-space detection.">
+  <meta property="og:title" content="Text Analysis Suite | Daniel Short">
   <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
-  <meta property="og:description" content="Remove stopwords and surface the top words from any pasted text without sending data anywhere.">
-  <meta property="og:url" content="https://www.danielshort.me/tools/word-frequency">
+  <meta property="og:description" content="Run multiple local text checks at once, including word frequency, POV mix, Oxford comma signals, and hard-space detection.">
+  <meta property="og:url" content="https://www.danielshort.me/tools/text-analysis-suite">
   <meta property="og:image" content="https://www.danielshort.me/img/hero/head.jpg">
   <meta property="og:image:width" content="558">
   <meta property="og:image:height" content="558">
@@ -18,14 +18,14 @@
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@danielshort3">
-  <meta name="twitter:title" content="Stopword-Free Word Frequency | Daniel Short">
-  <meta name="twitter:description" content="Remove stopwords and surface the top words from any pasted text without sending data anywhere.">
+  <meta name="twitter:title" content="Text Analysis Suite | Daniel Short">
+  <meta name="twitter:description" content="Run multiple local text checks at once, including word frequency, POV mix, Oxford comma signals, and hard-space detection.">
   <meta name="twitter:image" content="https://www.danielshort.me/img/hero/head.jpg">
   <meta name="twitter:image:alt" content="Portrait photo of Daniel Short">
   <meta name="theme-color" content="#0D1117">
   <link rel="stylesheet" href="dist/styles.css">
   <link rel="stylesheet" href="dist/styles-tools.css">
-  <link rel="stylesheet" href="css/components/word-frequency.css">
+  <link rel="stylesheet" href="css/components/text-analysis-suite.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
@@ -34,10 +34,10 @@
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
   <script src="js/common/no-js.js"></script>
   <script type="application/ld+json" id="tool-jsonld">
-    {"@context":"https://schema.org","@type":"WebApplication","name":"Stopword-Free Word Frequency","description":"Paste long-form text, strip out stopwords, and view the most frequent words processed locally in your browser.","url":"https://www.danielshort.me/tools/word-frequency","image":"https://www.danielshort.me/img/hero/head.jpg","applicationCategory":"UtilitiesApplication","operatingSystem":"Any","isAccessibleForFree":true,"creator":{"@type":"Person","name":"Daniel Short","url":"https://www.danielshort.me/"}}
+    {"@context":"https://schema.org","@type":"WebApplication","name":"Text Analysis Suite","description":"Run multiple local text checks at once, including word frequency, POV mix, Oxford comma signals, and hard-space detection.","url":"https://www.danielshort.me/tools/text-analysis-suite","image":"https://www.danielshort.me/img/hero/head.jpg","applicationCategory":"UtilitiesApplication","operatingSystem":"Any","isAccessibleForFree":true,"creator":{"@type":"Person","name":"Daniel Short","url":"https://www.danielshort.me/"}}
   </script>
 </head>
-<body data-page="word-frequency" class="word-frequency-page">
+<body data-page="text-analysis-suite" class="textsuite-page" data-tools-title="Text Analysis Suite" data-tools-eyebrow="Text Analysis Suite - Run selected writing checks on one text block.">
   <a href="#main" class="skip-link">Skip to main content</a>
   <header id="combined-header-nav">
     <nav class="nav" aria-label="Primary">
@@ -197,8 +197,8 @@
 
   <section class="tools-hero">
     <div class="wrapper">
-      <p class="hero-eyebrow">Stopword-Free Word Frequency - Surface frequent terms after removing stopwords.</p>
-      <h1 class="visually-hidden">Stopword-Free Word Frequency</h1>
+      <p class="hero-eyebrow">Text Analysis Suite - Run selected writing checks on one text block.</p>
+      <h1 class="visually-hidden">Text Analysis Suite</h1>
     </div>
   </section>
 
@@ -209,135 +209,74 @@
   </div>
 
   <main id="main">
-    <section id="analyzer" class="surface-band wordfreq-section">
+    <section class="surface-band textsuite-section">
       <div class="wrapper">
-        <div class="wordfreq-card wordfreq-input-card">
-          <h2>Paste your text</h2>
-          <p class="wordfreq-subtitle">Use automatic defaults, or tune tokenization, stopwords, and phrase scoring when you need deeper analysis.</p>
-          <form id="wordfreq-form" class="wordfreq-form" novalidate>
-            <div class="wordfreq-input-head">
-              <label class="wordfreq-label" for="wordfreq-text">Text to analyze</label>
-              <div class="wordfreq-field-actions">
-                <button type="button" id="wordfreq-paste" class="btn-ghost wordfreq-field-btn">Paste</button>
-                <button type="button" id="wordfreq-import" class="btn-ghost wordfreq-field-btn">Import</button>
-                <input id="wordfreq-file" class="visually-hidden" type="file" accept=".txt,.md,.markdown,.csv,.tsv,.json,.xml,.html,.htm,.rtf,.doc,.docx,.pdf" aria-label="Import text file">
+        <div class="textsuite-card textsuite-input-card">
+          <h2>Analyze once, run selected checks</h2>
+          <p class="textsuite-subtitle">Choose the text tools you want to run, then review each section in one report.</p>
+          <form id="textsuite-form" class="textsuite-form" novalidate>
+            <div class="textsuite-input-head">
+              <label class="textsuite-label" for="textsuite-text">Text to analyze</label>
+              <button type="button" id="textsuite-paste" class="btn-ghost textsuite-paste">Paste</button>
+            </div>
+            <p id="textsuite-status" class="textsuite-status" aria-live="polite"></p>
+            <textarea id="textsuite-text" class="textsuite-textarea" name="text" placeholder="Our product release notes mention latency reduction three times, customer success handoff twice, and onboarding once. We, you, and they all wrote updates, but some lines miss Oxford commas like strategy, execution and adoption. This sentence has a hard space between these words: team&nbsp;update."></textarea>
+
+            <fieldset class="textsuite-modules">
+              <legend>Enable tools</legend>
+              <label class="textsuite-check"><input id="textsuite-enable-frequency" type="checkbox" checked> Word frequency (non-stopwords)</label>
+              <label class="textsuite-check"><input id="textsuite-enable-pov" type="checkbox" checked> Point of view mix</label>
+              <label class="textsuite-check"><input id="textsuite-enable-oxford" type="checkbox" checked> Oxford comma signals</label>
+              <label class="textsuite-check"><input id="textsuite-enable-nbsp" type="checkbox" checked> Hard-space / NBSP scan</label>
+            </fieldset>
+
+            <div class="textsuite-options">
+              <label class="textsuite-label" for="textsuite-top">Top frequency terms</label>
+              <div class="textsuite-input-row">
+                <input id="textsuite-top" type="number" min="5" max="60" value="15" inputmode="numeric" pattern="[0-9]*">
+                <span class="textsuite-addon">terms</span>
               </div>
             </div>
-            <p id="wordfreq-input-status" class="wordfreq-input-status" aria-live="polite"></p>
-            <textarea id="wordfreq-text" class="wordfreq-textarea" name="text" placeholder="Product analytics should be easy to act on, easy to audit, and easy to repeat.&#10;&#10;Q1 onboarding summary: activation improved from 41% to 57%, then to 59% in week 5. Activation, activation, activation appears in every meeting note because activation is the leading indicator for retention.&#10;&#10;Retention review notes repeat the same phrase across teams: customer success handoff, customer success handoff, customer success handoff. The support handoff playbook reduced reopen rate, and support handoff quality improved after template updates.&#10;&#10;Incident digest: latency increased on Monday, latency increased on Tuesday, latency dropped on Wednesday, and latency latency latency remained the top complaint keyword. Error 500 appeared 87 times, error 404 appeared 213 times, and timeout appeared 64 times.&#10;&#10;Payment log excerpt: refund, refunds, refunded, refunding, refund-policy, and refund-policy-update were tagged by different squads. The finance channel also repeated chargeback, chargeback, chargeback to highlight card-network disputes.&#10;&#10;Naming edge cases appear intentionally: email, e-mail, Email, EMAIL, and email-based; login, log-in, and logged-in; followup and follow-up; co-operate and cooperate.&#10;&#10;Language and normalization edge cases: cafe, café, CAFÉ, naive, naïve, resume, résumé, expose, exposé. The fold-diacritics setting should help group many of these forms.&#10;&#10;Token filters edge cases: KPI, kpi, KPIs, LLM, llm, GenAI, genai, A/B, A-B, and model-v2. Numeric tokens also appear here: 2024, 2025, 2025, 12, 24, 48, and 1000.&#10;&#10;Root cause notes include repeated bigrams and trigrams: root cause, root cause, root cause analysis, root cause analysis, owner assignment, owner assignment, owner assignment.&#10;&#10;Roadmap draft repeats outcome language on purpose: ship faster, ship safer, ship clearer, ship faster, ship safer. Measure weekly, measure monthly, measure quarterly, and measure again after release.&#10;&#10;Final paragraph for long-form testing: this sample includes repeated words, repeated phrases, punctuation-heavy terms, mixed case, hyphenated forms, apostrophes in team's notes and user's feedback, plus enough length to stress ranking, sorting, filtering, and export behavior in realistic conditions." required></textarea>
-            <div class="wordfreq-controls">
-              <div class="wordfreq-number">
-                <label class="wordfreq-label" for="wordfreq-top">Show top words</label>
-                <div class="wordfreq-input-row">
-                  <input id="wordfreq-top" type="number" name="top" inputmode="numeric" pattern="[0-9]*" min="1" max="200" value="15" aria-label="Number of words to return">
-                  <span class="wordfreq-input-addon">words</span>
-                </div>
-              </div>
-              <div class="wordfreq-actions">
-                <button type="submit" class="btn-primary">Analyze</button>
-                <button type="button" id="wordfreq-clear" class="btn-ghost">Clear</button>
-              </div>
+
+            <div class="textsuite-actions">
+              <button type="submit" class="btn-primary">Analyze selected tools</button>
+              <button type="button" id="textsuite-clear" class="btn-ghost">Clear</button>
             </div>
-            <details class="wordfreq-settings">
-              <summary>Analysis settings</summary>
-              <div class="wordfreq-settings-grid" role="group" aria-label="Analysis settings">
-                <div class="wordfreq-setting">
-                  <label class="wordfreq-label" for="wordfreq-stopwords">Stopwords</label>
-                  <select id="wordfreq-stopwords" class="wordfreq-select">
-                    <option value="english-basic" selected>English (basic)</option>
-                    <option value="english-aggressive">English (aggressive)</option>
-                    <option value="none">None</option>
-                  </select>
-                </div>
-                <div class="wordfreq-setting">
-                  <label class="wordfreq-label" for="wordfreq-ngram">Analyze</label>
-                  <select id="wordfreq-ngram" class="wordfreq-select">
-                    <option value="1" selected>Single words</option>
-                    <option value="2">Two-word phrases</option>
-                    <option value="3">Three-word phrases</option>
-                  </select>
-                </div>
-                <div class="wordfreq-setting">
-                  <label class="wordfreq-label" for="wordfreq-score">Score by</label>
-                  <select id="wordfreq-score" class="wordfreq-select">
-                    <option value="count" selected>Raw frequency</option>
-                    <option value="per1000">Per 1,000 words</option>
-                    <option value="share">Share (%)</option>
-                    <option value="pmi">Association (PMI)</option>
-                  </select>
-                </div>
-                <div class="wordfreq-setting">
-                  <label class="wordfreq-label" for="wordfreq-sort">Sort</label>
-                  <select id="wordfreq-sort" class="wordfreq-select">
-                    <option value="score-desc" selected>Highest score</option>
-                    <option value="alpha-asc">Alphabetical (A-Z)</option>
-                  </select>
-                </div>
-                <div class="wordfreq-setting">
-                  <label class="wordfreq-label" for="wordfreq-minlen">Minimum token length</label>
-                  <div class="wordfreq-input-row">
-                    <input id="wordfreq-minlen" type="number" name="minlen" inputmode="numeric" pattern="[0-9]*" min="1" max="12" value="2" aria-label="Minimum token length">
-                    <span class="wordfreq-input-addon">chars</span>
-                  </div>
-                </div>
-                <div class="wordfreq-setting">
-                  <label class="wordfreq-label" for="wordfreq-highlight-threshold">Repeat highlight threshold</label>
-                  <div class="wordfreq-input-row">
-                    <input id="wordfreq-highlight-threshold" type="number" name="highlight-threshold" inputmode="numeric" pattern="[0-9]*" min="2" max="50" value="2" aria-label="Minimum repeats for full-text color highlighting">
-                    <span class="wordfreq-input-addon">min repeats</span>
-                  </div>
-                </div>
-                <div class="wordfreq-setting wordfreq-setting-checks">
-                  <label class="wordfreq-check"><input id="wordfreq-stem" type="checkbox" checked> Normalize word variants (light stemming)</label>
-                  <label class="wordfreq-check"><input id="wordfreq-fold" type="checkbox" checked> Fold accents/diacritics</label>
-                  <label class="wordfreq-check"><input id="wordfreq-numbers" type="checkbox"> Include numeric tokens</label>
-                </div>
-                <div class="wordfreq-setting">
-                  <label class="wordfreq-label" for="wordfreq-include">Always keep terms</label>
-                  <input id="wordfreq-include" class="wordfreq-text" type="text" placeholder="kpi, llm, genai">
-                </div>
-                <div class="wordfreq-setting">
-                  <label class="wordfreq-label" for="wordfreq-exclude">Always ignore terms</label>
-                  <input id="wordfreq-exclude" class="wordfreq-text" type="text" placeholder="company, project">
-                </div>
-              </div>
-              <p class="wordfreq-settings-note">PMI is most useful for phrase mode and can elevate rare but strongly associated n-grams.</p>
-            </details>
-            <p class="wordfreq-note">Processing happens locally in your browser, with no uploads and no tracking.</p>
+            <p class="textsuite-note">Everything runs locally in your browser. No text is uploaded.</p>
           </form>
         </div>
       </div>
     </section>
 
-    <section class="surface-band wordfreq-section">
+    <section class="surface-band textsuite-section">
       <div class="wrapper">
-        <div class="wordfreq-card wordfreq-results-card" aria-live="polite">
-          <div class="wordfreq-results-header">
-            <div class="wordfreq-results-title">
-              <h2>Top terms</h2>
-              <p id="wordfreq-summary" class="wordfreq-summary">Click Analyze to run the built-in example, or paste your own text.</p>
-            </div>
-            <div class="wordfreq-results-actions">
-              <button type="button" id="wordfreq-copy" class="btn-secondary">Copy results</button>
-              <button type="button" id="wordfreq-export-csv" class="btn-ghost">Export CSV</button>
-              <button type="button" id="wordfreq-export-json" class="btn-ghost">Export JSON</button>
-              <span id="wordfreq-copy-status" class="wordfreq-copy-status" aria-live="polite"></span>
-            </div>
-          </div>
-          <p id="wordfreq-empty" class="wordfreq-empty">Click Analyze to run the built-in example.</p>
-          <ol id="wordfreq-results" class="wordfreq-results" aria-label="Most frequent words"></ol>
-          <section id="wordfreq-occurrence-panel" class="wordfreq-occurrence-panel" aria-live="polite" hidden>
-            <h3>Occurrences</h3>
-            <p id="wordfreq-occurrence-summary" class="wordfreq-occurrence-summary">Select a term to inspect where it appears in your source text.</p>
-            <ol id="wordfreq-occurrence-list" class="wordfreq-occurrence-list"></ol>
+        <div class="textsuite-card textsuite-results-card" aria-live="polite">
+          <h2>Combined report</h2>
+          <p id="textsuite-summary" class="textsuite-summary">Choose at least one tool and click Analyze selected tools.</p>
+
+          <section id="textsuite-frequency-panel" class="textsuite-panel" hidden>
+            <h3>Word frequency (non-stopwords)</h3>
+            <p id="textsuite-frequency-summary" class="textsuite-panel-summary"></p>
+            <ol id="textsuite-frequency-list" class="textsuite-frequency-list"></ol>
           </section>
-          <section id="wordfreq-fulltext-panel" class="wordfreq-fulltext-panel" aria-live="polite" hidden>
-            <h3>Full text highlight</h3>
-            <p id="wordfreq-fulltext-summary" class="wordfreq-fulltext-summary">Select a term from results (or click a word below) to highlight it throughout the source text.</p>
-            <p id="wordfreq-repeat-summary" class="wordfreq-repeat-summary">Words that appear at least 2 times share the same color in this preview.</p>
-            <div id="wordfreq-fulltext" class="wordfreq-fulltext" role="region" aria-label="Source text with interactive term highlighting"></div>
+
+          <section id="textsuite-pov-panel" class="textsuite-panel" hidden>
+            <h3>Point of view mix</h3>
+            <p id="textsuite-pov-summary" class="textsuite-panel-summary"></p>
+            <ul id="textsuite-pov-list" class="textsuite-inline-list"></ul>
           </section>
-          <p class="wordfreq-footnote">Tokenization is Unicode-aware, stopwords are configurable, and phrase scoring supports raw frequency, per-1k, share, and PMI association.</p>
+
+          <section id="textsuite-oxford-panel" class="textsuite-panel" hidden>
+            <h3>Oxford comma signals</h3>
+            <p id="textsuite-oxford-summary" class="textsuite-panel-summary"></p>
+            <ul id="textsuite-oxford-list" class="textsuite-snippet-list"></ul>
+          </section>
+
+          <section id="textsuite-nbsp-panel" class="textsuite-panel" hidden>
+            <h3>Hard-space scan</h3>
+            <p id="textsuite-nbsp-summary" class="textsuite-panel-summary"></p>
+            <ul id="textsuite-nbsp-list" class="textsuite-inline-list"></ul>
+          </section>
         </div>
       </div>
     </section>
@@ -379,7 +318,8 @@
       <p class="footer-meta">© 2026 Daniel Short. All rights reserved.</p>
     </div>
   </footer>
-  <script defer src="js/tools/word-frequency.js"></script>
+
+  <script defer src="js/tools/text-analysis-suite.js"></script>
   <script defer src="js/accounts/tools-config.js"></script>
   <script defer src="js/accounts/tools-auth.js"></script>
   <script defer src="js/accounts/tools-state.js"></script>

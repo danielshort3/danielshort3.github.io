@@ -524,6 +524,13 @@
     font-size:.94rem;
   }
 
+  .wordfreq-repeat-summary{
+    margin:0;
+    color:var(--text-muted);
+    font-size:.9rem;
+    line-height:1.45;
+  }
+
   .wordfreq-fulltext{
     margin:0;
     border-radius:12px;
@@ -560,14 +567,17 @@
     outline:none;
   }
 
+  .wordfreq-fulltext-token.is-threshold-hit{
+    background:var(--wordfreq-repeat-bg, color-mix(in srgb,var(--primary) 34%, #ffffff 66%));
+    color:var(--wordfreq-repeat-fg, #041019);
+  }
+
   .wordfreq-fulltext-token.is-hit{
     background:color-mix(in srgb,var(--primary) 58%, #ffffff 42%);
     color:#041019;
   }
 
   .wordfreq-fulltext-token.is-selected{
-    background:color-mix(in srgb,var(--primary) 74%, #ffffff 26%);
-    color:#041019;
     box-shadow:0 0 0 1px color-mix(in srgb,var(--primary) 72%, #ffffff 28%);
   }
 

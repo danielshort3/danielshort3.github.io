@@ -59,6 +59,67 @@ function copyDir(src, dest){
   }
 }
 
+function isSafeDistArtifactName(name) {
+  const value = String(name || '').trim();
+  if (!value) return false;
+  if (value.includes('/') || value.includes('\\')) return false;
+  if (value.includes('..')) return false;
+  return true;
+}
+
+function collectDistArtifacts(manifest) {
+  const artifacts = new Set([
+    'styles.css',
+    'styles-tools.css',
+    'styles-manifest.json',
+    'utm-batch-builder.js',
+    'utm-batch-builder.worker.js',
+    'search-index.json',
+    'shortlinks-destinations.json'
+  ]);
+
+  if (manifest && typeof manifest.file === 'string') {
+    artifacts.add(manifest.file);
+  }
+  if (manifest && typeof manifest.toolsFile === 'string') {
+    artifacts.add(manifest.toolsFile);
+  }
+
+  return [...artifacts]
+    .map((name) => String(name || '').trim())
+    .filter(isSafeDistArtifactName)
+    .sort();
+}
+
+function copyDistArtifacts(manifest) {
+  const sourceDir = path.join(root, 'dist');
+  const destinationDir = path.join(outDir, 'dist');
+  fs.mkdirSync(destinationDir, { recursive: true });
+
+  const artifacts = collectDistArtifacts(manifest);
+  let copied = 0;
+  let missing = 0;
+
+  artifacts.forEach((name) => {
+    const src = path.join(sourceDir, name);
+    let stat;
+    try {
+      stat = fs.statSync(src);
+    } catch {
+      missing += 1;
+      return;
+    }
+    if (!stat.isFile()) {
+      missing += 1;
+      return;
+    }
+    copyFile(src, path.join(destinationDir, name));
+    copied += 1;
+  });
+
+  log(`Copied ${copied} dist artifact(s)${missing ? `; ${missing} missing.` : '.'}`);
+}
+
 function listRootHtmlFiles(base){
   return fs.readdirSync(base)
     .filter(f => f.endsWith('.html'))
@@ -203,6 +264,7 @@ function rewriteCssLinksInHtml(html, cssHrefs) {
 
 function copyStatic(){
   ensureCleanDir(outDir);
+  const manifest = readJson(cssManifestPath);
 
   // Copy all root-level HTML files
   const htmlFiles = listRootHtmlFiles(root);
@@ -218,13 +280,14 @@ function copyStatic(){
     if (fs.existsSync(src)) copyFile(src, path.join(outDir, name));
   });
 
-  // Copy asset and content directories used by the site
-  const dirs = ['img', 'js', 'css', 'dist', 'pages', 'demos', 'slot-config'];
+  // Copy asset and content directories used by the site.
+  // Dist artifacts are handled separately via an explicit whitelist.
+  const dirs = ['img', 'js', 'css', 'pages', 'demos', 'slot-config'];
   dirs.forEach(d => copyDir(path.join(root, d), path.join(outDir, d)));
   copyReferencedDocuments();
+  copyDistArtifacts(manifest);
 
   // Rewrite public HTML to reference the hashed CSS bundle (better caching).
-  const manifest = readJson(cssManifestPath);
   const cssHrefs = {
     base: manifest && typeof manifest.file === 'string' ? manifest.file : null,
     tools: manifest && typeof manifest.toolsFile === 'string' ? manifest.toolsFile : null
