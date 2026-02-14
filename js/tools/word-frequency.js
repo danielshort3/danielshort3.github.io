@@ -19,7 +19,6 @@
   const occurrenceListEl = $('#wordfreq-occurrence-list');
   const fullTextPanel = $('#wordfreq-fulltext-panel');
   const fullTextSummaryEl = $('#wordfreq-fulltext-summary');
-  const repeatSummaryEl = $('#wordfreq-repeat-summary');
   const fullTextEl = $('#wordfreq-fulltext');
 
   const pasteBtn = $('#wordfreq-paste');
@@ -32,7 +31,6 @@
   const scoreSelect = $('#wordfreq-score');
   const sortSelect = $('#wordfreq-sort');
   const minLengthInput = $('#wordfreq-minlen');
-  const highlightThresholdInput = $('#wordfreq-highlight-threshold');
   const stemInput = $('#wordfreq-stem');
   const foldInput = $('#wordfreq-fold');
   const numbersInput = $('#wordfreq-numbers');
@@ -42,7 +40,7 @@
   if (
     !form || !textInput || !topInput || !resultsList || !summaryEl || !emptyEl ||
     !stopwordsSelect || !ngramSelect || !scoreSelect || !sortSelect || !minLengthInput ||
-    !highlightThresholdInput || !stemInput || !foldInput || !numbersInput || !includeInput || !excludeInput
+    !stemInput || !foldInput || !numbersInput || !includeInput || !excludeInput
   ) {
     return;
   }
@@ -56,20 +54,6 @@
   const PDFJS_SRC = '/js/vendor/pdfjs/pdf.min.js';
   const FFLATE_SRC = '/js/vendor/fflate/fflate.min.js';
   const vendorScriptPromises = new Map();
-  const THRESHOLD_COLOR_PALETTE = [
-    { bg: '#FFE09A', fg: '#382100' },
-    { bg: '#D5F7A8', fg: '#113100' },
-    { bg: '#A8F1E7', fg: '#00312B' },
-    { bg: '#B9E6FF', fg: '#002741' },
-    { bg: '#D3D4FF', fg: '#1E1B55' },
-    { bg: '#E7C8FF', fg: '#32124D' },
-    { bg: '#FFC7E3', fg: '#4A1232' },
-    { bg: '#FFCBB0', fg: '#4A1D00' },
-    { bg: '#EAECC1', fg: '#2E3200' },
-    { bg: '#C7F4CE', fg: '#123015' },
-    { bg: '#C3EDFF', fg: '#042D40' },
-    { bg: '#FAD2B7', fg: '#4A2205' }
-  ];
 
   const STOPWORDS_BASIC = new Set([
     'a','about','above','after','again','against','all','am','an','and','any','are','aren\'t','as','at','be','because','been','before','being','below','between','both','but','by',
@@ -118,7 +102,6 @@
     score: String(scoreSelect.value || 'count'),
     sort: String(sortSelect.value || 'score-desc'),
     minLength: String(minLengthInput.value || '2'),
-    highlightThreshold: String(highlightThresholdInput.value || '2'),
     stem: Boolean(stemInput.checked),
     fold: Boolean(foldInput.checked),
     includeNumbers: Boolean(numbersInput.checked),
@@ -128,7 +111,6 @@
 
   const DEFAULT_SUMMARY = 'Click Analyze to run the built-in example, or paste your own text.';
   const DEFAULT_EMPTY = 'Click Analyze to run the built-in example.';
-  const DEFAULT_REPEAT_SUMMARY = 'Words that appear at least 2 times share the same color in this preview.';
 
   const getAnalysisSourceText = () => {
     const userText = normalizeWhitespace(textInput.value || '');
@@ -309,7 +291,6 @@
   const getSettings = () => ({
     top: clampInt(topInput.value, 1, 200, clampInt(defaults.top, 1, 200, 15)),
     minLength: clampInt(minLengthInput.value, 1, 12, clampInt(defaults.minLength, 1, 12, 2)),
-    highlightThreshold: clampInt(highlightThresholdInput.value, 2, 50, clampInt(defaults.highlightThreshold, 2, 50, 2)),
     stopwordMode: String(stopwordsSelect.value || defaults.stopwords),
     ngramSize: clampInt(ngramSelect.value, 1, 3, clampInt(defaults.ngram, 1, 3, 1)),
     scoreMode: String(scoreSelect.value || defaults.score),
@@ -559,53 +540,6 @@
     };
   };
 
-  const hashTerm = (term) => {
-    const source = String(term || '');
-    let hash = 0;
-    for (let i = 0; i < source.length; i += 1) {
-      hash = ((hash << 5) - hash + source.charCodeAt(i)) >>> 0;
-    }
-    return hash;
-  };
-
-  const getThresholdColor = (term) => {
-    if (!THRESHOLD_COLOR_PALETTE.length) {
-      return { bg: '#D9EAF7', fg: '#052236' };
-    }
-    return THRESHOLD_COLOR_PALETTE[hashTerm(term) % THRESHOLD_COLOR_PALETTE.length];
-  };
-
-  const buildThresholdHighlightState = (analysis) => {
-    const threshold = clampInt(analysis?.settings?.highlightThreshold, 2, 50, 2);
-    const state = {
-      threshold,
-      disabled: false,
-      disabledReason: '',
-      map: new Map()
-    };
-
-    if (!analysis) return state;
-
-    if (analysis.settings.ngramSize !== 1) {
-      state.disabled = true;
-      state.disabledReason = 'Repeat colors are available in single-word mode.';
-      return state;
-    }
-
-    analysis.entries.forEach((entry) => {
-      if (entry.key.includes(' ')) return;
-      if (entry.count < threshold) return;
-      const color = getThresholdColor(entry.key);
-      state.map.set(entry.key, {
-        count: entry.count,
-        bg: color.bg,
-        fg: color.fg
-      });
-    });
-
-    return state;
-  };
-
   const scoreToWidth = (score, minScore, maxScore) => {
     if (!Number.isFinite(score)) return 8;
     if (!Number.isFinite(minScore) || !Number.isFinite(maxScore) || minScore === maxScore) return 100;
@@ -730,9 +664,6 @@
     if (fullTextSummaryEl) {
       fullTextSummaryEl.textContent = 'Select a term from results (or click a word below) to highlight it throughout the source text.';
     }
-    if (repeatSummaryEl) {
-      repeatSummaryEl.textContent = DEFAULT_REPEAT_SUMMARY;
-    }
   };
 
   const resolveSelectedTerm = (analysis, termKey, preferredLabel) => {
@@ -787,7 +718,7 @@
     });
   };
 
-  const buildFullTextHtml = (analysis, selectedTerm, thresholdState) => {
+  const buildFullTextHtml = (analysis, selectedTerm) => {
     const sourceText = String(analysis?.textPreview || '');
     const sourceTokens = Array.isArray(analysis?.sourceTokenViews) ? analysis.sourceTokenViews : [];
     if (!sourceText) return '';
@@ -822,19 +753,10 @@
         html += escapeHtml(tokenText);
       } else {
         const classes = ['wordfreq-fulltext-token'];
-        const thresholdHit = thresholdState?.map?.get(token.normalized) || null;
         if (inSelectedRange) classes.push('is-hit');
-        if (thresholdHit) classes.push('is-threshold-hit');
         if (selectedKey && token.normalized === selectedKey) classes.push('is-selected');
 
-        const styleParts = [];
-        if (thresholdHit) {
-          styleParts.push(`--wordfreq-repeat-bg:${thresholdHit.bg}`);
-          styleParts.push(`--wordfreq-repeat-fg:${thresholdHit.fg}`);
-        }
-        const styleAttr = styleParts.length ? ` style="${escapeAttr(styleParts.join(';'))}"` : '';
-
-        html += `<button type="button" class="${classes.join(' ')}" data-term-key="${escapeAttr(token.normalized)}" data-term-label="${escapeAttr(tokenText)}"${styleAttr}>${escapeHtml(tokenText)}</button>`;
+        html += `<button type="button" class="${classes.join(' ')}" data-term-key="${escapeAttr(token.normalized)}" data-term-label="${escapeAttr(tokenText)}">${escapeHtml(tokenText)}</button>`;
       }
 
       cursor = safeEnd;
@@ -847,20 +769,8 @@
   const renderFullText = (analysis, selectedTerm) => {
     if (!fullTextPanel || !fullTextEl || !fullTextSummaryEl || !analysis) return;
 
-    const thresholdState = buildThresholdHighlightState(analysis);
-
     fullTextPanel.hidden = false;
-    fullTextEl.innerHTML = buildFullTextHtml(analysis, selectedTerm, thresholdState);
-
-    if (repeatSummaryEl) {
-      if (thresholdState.disabled) {
-        repeatSummaryEl.textContent = `${thresholdState.disabledReason} Switch back to single words to color repeated terms.`;
-      } else if (!thresholdState.map.size) {
-        repeatSummaryEl.textContent = `No non-stopwords reached the repeat threshold of ${thresholdState.threshold}.`;
-      } else {
-        repeatSummaryEl.textContent = `Coloring ${formatNumber(thresholdState.map.size)} repeated non-stopwords at threshold ${thresholdState.threshold}. Same words share the same color.`;
-      }
-    }
+    fullTextEl.innerHTML = buildFullTextHtml(analysis, selectedTerm);
 
     if (analysis.textPreview !== analysis.text) {
       fullTextSummaryEl.textContent = 'Showing an interactive preview of the source text. Click any word below to highlight it throughout the preview.';
@@ -1189,7 +1099,6 @@
     scoreSelect.value = defaults.score;
     sortSelect.value = defaults.sort;
     minLengthInput.value = defaults.minLength;
-    highlightThresholdInput.value = defaults.highlightThreshold;
     stemInput.checked = defaults.stem;
     foldInput.checked = defaults.fold;
     numbersInput.checked = defaults.includeNumbers;
@@ -1209,7 +1118,6 @@
     const settings = getSettings();
     topInput.value = String(settings.top);
     minLengthInput.value = String(settings.minLength);
-    highlightThresholdInput.value = String(settings.highlightThreshold);
 
     const analysisSource = getAnalysisSourceText();
     const analysis = analyzeInput(analysisSource, settings);
@@ -1307,7 +1215,6 @@
       settings: {
         top: lastAnalysis.settings.top,
         minLength: lastAnalysis.settings.minLength,
-        highlightThreshold: lastAnalysis.settings.highlightThreshold,
         stopwords: lastAnalysis.settings.stopwordMode,
         ngramSize: lastAnalysis.settings.ngramSize,
         scoreMode: lastAnalysis.settings.scoreMode,
@@ -1477,7 +1384,7 @@
     markSessionDirty();
   };
 
-  [textInput, topInput, minLengthInput, highlightThresholdInput, includeInput, excludeInput].forEach((el) => {
+  [textInput, topInput, minLengthInput, includeInput, excludeInput].forEach((el) => {
     el?.addEventListener('input', markDirtyFromControl);
   });
 
@@ -1495,11 +1402,6 @@
   });
 
   minLengthInput.addEventListener('change', () => {
-    if (!getAnalysisSourceText().trim()) return;
-    runAnalysis();
-  });
-
-  highlightThresholdInput.addEventListener('change', () => {
     if (!getAnalysisSourceText().trim()) return;
     runAnalysis();
   });
@@ -1522,7 +1424,6 @@
       'Score mode': settings.scoreMode,
       'Sort mode': settings.sortMode,
       'Min token length': String(settings.minLength),
-      'Repeat highlight threshold': String(settings.highlightThreshold),
       'Use stemming': settings.useStemming ? 'Yes' : 'No',
       'Fold diacritics': settings.foldDiacritics ? 'Yes' : 'No',
       'Include numbers': settings.includeNumbers ? 'Yes' : 'No',

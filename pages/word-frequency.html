@@ -280,13 +280,6 @@
                     <span class="wordfreq-input-addon">chars</span>
                   </div>
                 </div>
-                <div class="wordfreq-setting">
-                  <label class="wordfreq-label" for="wordfreq-highlight-threshold">Repeat highlight threshold</label>
-                  <div class="wordfreq-input-row">
-                    <input id="wordfreq-highlight-threshold" type="number" name="highlight-threshold" inputmode="numeric" pattern="[0-9]*" min="2" max="50" value="2" aria-label="Minimum repeats for full-text color highlighting">
-                    <span class="wordfreq-input-addon">min repeats</span>
-                  </div>
-                </div>
                 <div class="wordfreq-setting wordfreq-setting-checks">
                   <label class="wordfreq-check"><input id="wordfreq-stem" type="checkbox" checked> Normalize word variants (light stemming)</label>
                   <label class="wordfreq-check"><input id="wordfreq-fold" type="checkbox" checked> Fold accents/diacritics</label>
@@ -334,7 +327,6 @@
           <section id="wordfreq-fulltext-panel" class="wordfreq-fulltext-panel" aria-live="polite" hidden>
             <h3>Full text highlight</h3>
             <p id="wordfreq-fulltext-summary" class="wordfreq-fulltext-summary">Select a term from results (or click a word below) to highlight it throughout the source text.</p>
-            <p id="wordfreq-repeat-summary" class="wordfreq-repeat-summary">Words that appear at least 2 times share the same color in this preview.</p>
             <div id="wordfreq-fulltext" class="wordfreq-fulltext" role="region" aria-label="Source text with interactive term highlighting"></div>
           </section>
           <p class="wordfreq-footnote">Tokenization is Unicode-aware, stopwords are configurable, and phrase scoring supports raw frequency, per-1k, share, and PMI association.</p>

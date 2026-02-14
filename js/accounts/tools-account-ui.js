@@ -5,7 +5,6 @@
   const AUTO_SAVE_MS = 20 * 1000;
 
   const TOOL_CATALOG = {
-    'text-analysis-suite': { name: 'Text Analysis Suite', href: '/tools/text-analysis-suite' },
     'word-frequency': { name: 'Stopword-Free Word Frequency', href: '/tools/word-frequency' },
     'text-compare': { name: 'Text Compare', href: '/tools/text-compare' },
     'point-of-view-checker': { name: 'Point of View Checker', href: '/tools/point-of-view-checker' },
