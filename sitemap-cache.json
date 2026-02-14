@@ -97,8 +97,8 @@
       "hash": "30cccf6b247f8957ec7eaa22a09f43bb4a08b0de2c4eacb4617621a533e2eabf"
     },
     "https://www.danielshort.me/tools": {
-      "lastmod": "2026-02-08",
-      "hash": "08d53c623afb930ba44473c3234ebdd24e204fdec1ef9c09067344f739233412"
+      "lastmod": "2026-02-13",
+      "hash": "4094f186a72034820e7bd39325a03df19c8739a461a6ad600f70e427a349475f"
     },
     "https://www.danielshort.me/tools/background-remover": {
       "lastmod": "2026-02-08",
@@ -132,10 +132,6 @@
       "lastmod": "2026-02-08",
       "hash": "372125f2676e644365bcfcf839758ce3a248db01be59053d91d570a1ceff5a3c"
     },
-    "https://www.danielshort.me/tools/text-analysis-suite": {
-      "lastmod": "2026-02-13",
-      "hash": "820d70e4a7885ca47a5e82f4063a1cc96b9a5f94f2d72a83f25ee32e2f8716db"
-    },
     "https://www.danielshort.me/tools/text-compare": {
       "lastmod": "2026-02-08",
       "hash": "514123766d126668f97175b6b45c37bbe9f50abd5c7190d77489c4af45764d39"
@@ -145,8 +141,8 @@
       "hash": "ccaaa5889d2ee8ad08b81b72f73436aade39dd49a378ae70f1c8452a67c4275a"
     },
     "https://www.danielshort.me/tools/word-frequency": {
-      "lastmod": "2026-02-08",
-      "hash": "cc481de857170142b4280ebc64b7986ade555803b19d9fa25dc9c32879dade9b"
+      "lastmod": "2026-02-13",
+      "hash": "29cc9ee104922486ef34034ee056787ff2285470ea8c86d707975a3cd685c579"
     }
   }
 }
