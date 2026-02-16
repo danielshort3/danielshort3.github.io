@@ -3,22 +3,23 @@
 @layer tokens {
   :root{
     /* palette */
-    --bg:#090f16;
-    --surface:#141b25;
-    --surface-light:color-mix(in srgb,var(--surface) 86%, #ffffff 14%);
-    --surface-accent:color-mix(in srgb,var(--surface) 92%, #ffffff 8%);
+    --bg:#0D1117;
+    --surface:#161B22;
+    --surface-light:color-mix(in srgb,var(--surface) 85%,#fff 15%);
+    --surface-accent:color-mix(in srgb,var(--surface) 92%,#fff 8%);
     --primary:#2396AD;
-    --secondary:#2ED3FF;
-    --text-light:#f3f8ff;
-    --text-muted:#aab8c7;   /* WCAG-passing grey */
+    /* unify accents: use teal for secondary too */
+    --secondary: var(--primary);
+    --text-light:#F1F4F8;
+    --text-muted:#BFC8D3;   /* WCAG-passing grey */
 
     /* links & focus */
     --link: color-mix(in srgb, var(--primary) 85%, #fff 15%);
-    --link-hover: color-mix(in srgb, var(--secondary) 85%, #fff 15%);
-    --focus: color-mix(in srgb, var(--secondary) 70%, #fff 30%);
+    --link-hover: color-mix(in srgb, var(--primary) 65%, #fff 35%);
+    --focus: color-mix(in srgb, var(--primary) 70%, #fff 30%);
 
     /* borders */
-    --border-subtle:#253243;
+    --border-subtle:#21262D;
 
     /* semantic states (optional) */
     --success:#38B37E;  /* approvals, good states */
