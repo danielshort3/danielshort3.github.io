@@ -206,7 +206,6 @@
   .nav{
     --nav-block-padding: clamp(12px,3vw,18px);
     --nav-inline-padding: clamp(20px,6vw,28px);
-    --nav-mobile-dropdown-max: calc(100vh - var(--nav-height,72px) - clamp(32px,12vh,96px));
     --nav-mobile-gap:10px;
     --nav-mobile-row-padding:14px;
     --nav-mobile-link-padding:12px 14px;
@@ -219,43 +218,46 @@
 
   /* ---------- drawer ---------- */
   .nav-row{
-    position:absolute;
-    top:calc(100% - var(--nav-border-width));
-    left:50%;
-    right:auto;
-    width:min(420px, calc(min(100vw, 100%) - 24px));
-    max-width:calc(min(100vw, 100%) - 24px);
+    position:fixed;
+    top:var(--nav-height, 72px);
+    left:0;
+    right:0;
+    bottom:0;
+    width:100%;
+    max-width:none;
+    margin-inline:0;
     box-sizing:border-box;
     display:flex;
     flex-direction:column;
     align-items:stretch;
     gap:var(--nav-mobile-gap);
     padding:var(--nav-mobile-row-padding);
+    padding-bottom:max(var(--nav-mobile-row-padding), env(safe-area-inset-bottom, 0px));
     border-radius:0 0 20px 20px;
     border:1px solid color-mix(in srgb,var(--primary) 22%, var(--surface) 78%);
     border-top:none;
     background:var(--surface);
     box-shadow:0 24px 48px rgba(0,0,0,.45);
-    transform:translateX(-50%);
     opacity:0;
     pointer-events:none;
-    max-height:0;
-    overflow:hidden;
+    overflow-y:hidden;
+    overflow-x:hidden;
+    -ms-overflow-style: none;
     -webkit-clip-path:inset(0 0 100% 0);
             clip-path:inset(0 0 100% 0);
+    transform:translateY(-100%);
     transition:
-      max-height .28s ease,
+      transform .28s ease,
       -webkit-clip-path .28s ease,
       clip-path .28s ease,
       opacity .2s ease;
   }
   .nav-row.open{
     opacity:1;
-    max-height:var(--nav-mobile-dropdown-max, calc(100vh - var(--nav-height,72px) - 48px));
     pointer-events:auto;
+    transform:translateY(0);
     -webkit-clip-path:inset(0 0 0 0);
             clip-path:inset(0 0 0 0);
-    overflow:hidden;
   }
   /* Hide scrollbars; menu remains fully visible without an internal scrollbar */
   .nav-row,
@@ -612,6 +614,8 @@ body.menu-open{
 body{
   /* keeps every page below the sticky/fixed header */
   padding-top:var(--nav-height,72px);
+  overscroll-behavior:none;
+  overscroll-behavior-y:none;
 }
 
 /* ─── GLOBAL FADE + BLUR LAYER (matches modal) ───────────── */
