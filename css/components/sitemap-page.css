@@ -130,9 +130,8 @@
   .sitemap-sections{
     margin-top:18px;
     display:grid;
-    gap:20px;
-    grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
-    align-items:start;
+    gap:18px;
+    grid-template-columns:1fr;
   }
 
   .sitemap-section{
@@ -175,35 +174,39 @@
   }
 
   .sitemap-items{
-    margin:10px 0 0 1rem;
+    margin:12px 0 0;
     padding:0;
-    list-style:disc;
+    list-style:none;
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+    gap:10px 12px;
   }
 
   .sitemap-item{
-    margin:8px 0;
+    margin:0;
     color:color-mix(in srgb,var(--text-light) 93%, #ffffff 7%);
   }
 
   .sitemap-item-title{
+    display:block;
+    padding:10px 12px;
+    border:1px solid color-mix(in srgb,var(--primary) 15%, transparent);
+    border-radius:10px;
+    background:color-mix(in srgb,var(--surface) 92%, #000 8%);
     font-weight:620;
     color:color-mix(in srgb,var(--text-light) 97%, #ffffff 3%);
     text-decoration:none;
     line-height:1.25;
+    transition:border-color .15s ease, background .15s ease;
   }
   .sitemap-item-title:hover,
   .sitemap-item-title:focus-visible{
     outline:none;
+    border-color:color-mix(in srgb,var(--primary) 36%, transparent);
+    background:color-mix(in srgb,var(--surface) 86%, #000 14%);
     text-decoration:underline;
     text-underline-offset:3px;
     text-decoration-thickness:2px;
-  }
-
-  .sitemap-item-url{
-    margin-top:3px;
-    font-size:.86rem;
-    color:color-mix(in srgb,var(--text-muted) 82%, #ffffff 18%);
-    overflow-wrap:anywhere;
   }
 
   .sitemap-loading,
@@ -219,7 +222,6 @@
     .sitemap-filter{ flex-direction:column; }
     .sitemap-meta{ flex-direction:column; align-items:flex-start; }
     .sitemap-section-title-row{ flex-direction:column; align-items:flex-start; gap:4px; }
-    .sitemap-items{ margin-left:1rem; }
-    .sitemap-sections{ grid-template-columns:1fr; }
+    .sitemap-items{ grid-template-columns:1fr; }
   }
 }

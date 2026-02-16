@@ -85,11 +85,6 @@
     link.textContent = entry.title || entry.url;
     item.appendChild(link);
 
-    const url = document.createElement('div');
-    url.className = 'sitemap-item-url';
-    url.textContent = entry.url;
-    item.appendChild(url);
-
     const keywords = Array.isArray(entry.keywords) ? entry.keywords : [];
     const searchText = [
       entry.title,
