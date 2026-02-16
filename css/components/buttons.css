@@ -15,11 +15,11 @@
     border-radius: 999px;
     cursor: pointer;
     transition:
-      transform .2s ease,
-      box-shadow .2s ease,
-      background .2s ease,
-      color .2s ease,
-      border-color .2s ease;
+      transform var(--motion-base) var(--easing-standard),
+      box-shadow var(--motion-base) var(--easing-standard),
+      background var(--motion-fast) var(--easing-standard),
+      color var(--motion-fast) var(--easing-standard),
+      border-color var(--motion-fast) var(--easing-standard);
     position: relative;
     overflow: hidden;
   }
@@ -28,12 +28,12 @@
     padding: 14px 30px;
     background: linear-gradient(
       135deg,
-      color-mix(in srgb, var(--primary) 92%, #ffffff 8%) 0%,
-      color-mix(in srgb, var(--primary) 68%, #0A1A1F 32%) 100%
+      color-mix(in srgb, var(--accent-1) 92%, #ffffff 8%) 0%,
+      color-mix(in srgb, var(--accent-3) 68%, #0A1A1F 32%) 100%
     );
-    color: color-mix(in srgb, #ffffff 94%, var(--bg) 6%);
-    border: 1px solid color-mix(in srgb, var(--primary) 65%, transparent);
-    box-shadow: 0 12px 28px rgba(0, 0, 0, .28);
+    color: var(--interactive-text);
+    border: 1px solid var(--interactive-border-hover);
+    box-shadow: var(--interactive-shadow-rest);
   }
 
   .btn-primary::after {
@@ -42,12 +42,12 @@
     inset: 0;
     background: linear-gradient(140deg, rgba(255,255,255,.25), rgba(255,255,255,0));
     opacity: 0;
-    transition: opacity .2s ease;
+    transition: opacity var(--motion-fast) var(--easing-standard);
   }
 
   .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 16px 32px rgba(0, 0, 0, .32);
+    transform: translateY(var(--hover-lift-strong));
+    box-shadow: var(--interactive-shadow-hover);
   }
 
   .btn-primary:hover::after { opacity: 1; }
@@ -64,17 +64,17 @@
 
   .btn-secondary {
     padding: 14px 30px;
-    border: 1px solid color-mix(in srgb, var(--primary) 38%, transparent);
-    color: color-mix(in srgb, var(--text-light) 90%, #ffffff 10%);
-    background: color-mix(in srgb, var(--surface) 88%, #000000 12%);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, .22);
+    border: 1px solid var(--interactive-border);
+    color: var(--interactive-text);
+    background: var(--interactive-bg);
+    box-shadow: var(--interactive-shadow-rest);
   }
 
   .btn-secondary:hover {
-    transform: translateY(-2px);
-    background: color-mix(in srgb, var(--primary) 22%, transparent);
-    border-color: color-mix(in srgb, var(--primary) 55%, transparent);
-    color: color-mix(in srgb, #ffffff 92%, var(--bg) 8%);
+    transform: translateY(var(--hover-lift));
+    background: var(--interactive-bg-hover);
+    border-color: var(--interactive-border-hover);
+    color: var(--text-1);
   }
   .btn-secondary:disabled{
     background:color-mix(in srgb,var(--surface) 85%, #0f141d 15%);
@@ -88,17 +88,17 @@
 
   .btn-ghost {
     padding: 12px 22px;
-    border: 1px dashed color-mix(in srgb, var(--text-light) 40%, transparent);
-    color: color-mix(in srgb, var(--text-light) 80%, #ffffff 20%);
+    border: 1px dashed var(--interactive-border);
+    color: var(--interactive-text);
     background: transparent;
     box-shadow: none;
   }
 
   .btn-ghost:hover {
     border-style: solid;
-    border-color: color-mix(in srgb, var(--primary) 45%, transparent);
-    color: color-mix(in srgb, #ffffff 92%, var(--bg) 8%);
-    background: color-mix(in srgb, var(--primary) 18%, transparent);
+    border-color: var(--interactive-border-hover);
+    color: var(--text-1);
+    background: var(--interactive-bg-hover);
   }
   .btn-ghost:disabled{
     border-color:color-mix(in srgb,var(--text-light) 20%, transparent);
@@ -113,15 +113,15 @@
   .btn-icon {
     width: 44px;
     height: 44px;
-    border: 1px solid color-mix(in srgb, var(--primary) 45%, transparent);
-    color: color-mix(in srgb, var(--primary) 80%, #ffffff 20%);
-    background: color-mix(in srgb, var(--surface) 85%, #000000 15%);
+    border: 1px solid var(--interactive-border);
+    color: var(--accent-2);
+    background: var(--interactive-bg);
     transition:
-      transform .2s ease,
-      box-shadow .2s ease,
-      background .2s ease,
-      color .2s ease,
-      border-color .2s ease;
+      transform var(--motion-base) var(--easing-standard),
+      box-shadow var(--motion-base) var(--easing-standard),
+      background var(--motion-fast) var(--easing-standard),
+      color var(--motion-fast) var(--easing-standard),
+      border-color var(--motion-fast) var(--easing-standard);
   }
 
   .btn-icon i { font-size: 22px; color: currentColor; }
@@ -151,11 +151,11 @@
   }
 
   .btn-icon:hover {
-    background: color-mix(in srgb, var(--primary) 22%, transparent);
-    color: color-mix(in srgb, #ffffff 90%, var(--bg) 10%);
-    border-color: color-mix(in srgb, var(--primary) 55%, transparent);
-    transform: translateY(-2px);
-    box-shadow: 0 12px 26px rgba(0, 0, 0, .25);
+    background: var(--interactive-bg-hover);
+    color: var(--text-1);
+    border-color: var(--interactive-border-hover);
+    transform: translateY(var(--hover-lift));
+    box-shadow: var(--interactive-shadow-hover);
   }
 
   .btn-icon.btn-icon-featured {
@@ -163,12 +163,12 @@
     height: 50px;
     background: linear-gradient(
       135deg,
-      color-mix(in srgb, var(--primary) 88%, #ffffff 12%) 0%,
-      color-mix(in srgb, var(--primary) 65%, #071219 35%) 100%
+      color-mix(in srgb, var(--accent-1) 88%, #ffffff 12%) 0%,
+      color-mix(in srgb, var(--accent-3) 65%, #071219 35%) 100%
     );
-    color: color-mix(in srgb, #ffffff 94%, var(--bg) 6%);
-    border-color: color-mix(in srgb, var(--primary) 55%, transparent);
-    box-shadow: 0 16px 32px rgba(0, 0, 0, .32);
+    color: var(--interactive-text);
+    border-color: var(--interactive-border-hover);
+    box-shadow: var(--interactive-shadow-hover);
   }
   .btn-icon.btn-icon-featured svg {
     stroke-width: 1.6;
@@ -176,13 +176,13 @@
   .btn-icon.btn-icon-featured:hover {
     background: linear-gradient(
       135deg,
-      color-mix(in srgb, var(--primary) 94%, #ffffff 6%) 0%,
-      color-mix(in srgb, var(--primary) 72%, #030b12 28%) 100%
+      color-mix(in srgb, var(--accent-1) 94%, #ffffff 6%) 0%,
+      color-mix(in srgb, var(--accent-3) 72%, #030b12 28%) 100%
     );
-    color: color-mix(in srgb, #ffffff 96%, var(--bg) 4%);
-    border-color: color-mix(in srgb, var(--primary) 68%, transparent);
-    transform: translateY(-3px) scale(1.03);
-    box-shadow: 0 24px 46px rgba(0, 0, 0, .4);
+    color: var(--text-1);
+    border-color: var(--interactive-border-hover);
+    transform: translateY(var(--hover-lift-strong)) scale(var(--hover-scale));
+    box-shadow: var(--interactive-shadow-strong);
   }
 
   .btn-icon:hover i,
@@ -192,7 +192,7 @@
   .btn-secondary:focus-visible,
   .btn-ghost:focus-visible,
   .btn-icon:focus-visible {
-    outline: 3px solid color-mix(in srgb, var(--primary) 60%, #ffffff 40%);
+    outline: var(--focus-ring);
     outline-offset: 3px;
   }
 }

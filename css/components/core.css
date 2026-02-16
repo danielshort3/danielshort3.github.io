@@ -14,24 +14,24 @@
   }
   .icon-info{
     position:relative;
-    background:color-mix(in srgb,var(--surface) 88%, #000 12%);
-    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    background:var(--interactive-bg);
+    border:1px solid var(--interactive-border);
     border-radius:20px;
     padding:28px 28px 26px;
     text-align:left;
-    color:var(--text-light);
+    color:var(--interactive-text);
     display:flex;
     flex-direction:column;
     gap:12px;
     align-items:flex-start;
     opacity:0;
     transform:translateY(18px);
-    transition:opacity .45s cubic-bezier(.22,.61,.36,1),
-               transform .45s cubic-bezier(.22,.61,.36,1),
-               box-shadow .35s ease,
-               border-color .3s ease,
-               background .3s ease;
-    box-shadow:0 18px 38px rgba(0,0,0,.28);
+    transition:opacity .45s var(--easing-standard),
+               transform var(--motion-base) var(--easing-standard),
+               box-shadow var(--motion-base) var(--easing-standard),
+               border-color var(--motion-fast) var(--easing-standard),
+               background var(--motion-fast) var(--easing-standard);
+    box-shadow:var(--interactive-shadow-rest);
   }
   .icon-info::before{
     content:"";
@@ -40,14 +40,14 @@
     height:3px;
     border-radius:999px;
     background:linear-gradient(90deg,
-      color-mix(in srgb,var(--primary) 78%, #ffffff 22%) 0%,
-      color-mix(in srgb,var(--primary) 58%, #0A1A1F 42%) 100%);
+      color-mix(in srgb,var(--accent-1) 78%, #ffffff 22%) 0%,
+      color-mix(in srgb,var(--accent-3) 58%, #0A1A1F 42%) 100%);
     opacity:.75;
     pointer-events:none;
   }
   .icon-info svg{
     width:32px;height:32px;
-    color:color-mix(in srgb,var(--primary) 82%, #ffffff 18%);
+    color:color-mix(in srgb,var(--accent-1) 82%, #ffffff 18%);
     shape-rendering:geometricPrecision;
   }
   .icon-info p{
@@ -58,14 +58,14 @@
     letter-spacing:.02em;
   }
   .icon-info small{
-    color:color-mix(in srgb,var(--text-muted) 90%, #ffffff 10%);
+    color:var(--text-2);
     line-height:1.6;
   }
   .icon-info:hover{
-    transform:translateY(-6px);
-    box-shadow:0 22px 48px rgba(0,0,0,.3);
-    border-color:color-mix(in srgb,var(--primary) 30%, transparent);
-    background:color-mix(in srgb,var(--surface) 82%, #000 18%);
+    transform:translateY(var(--hover-lift));
+    box-shadow:var(--interactive-shadow-hover);
+    border-color:var(--interactive-border-hover);
+    background:var(--interactive-bg-hover);
   }
   @keyframes focusIn{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:none;}}
   #about-me.reveal.active .icon-info{animation:focusIn .45s forwards}
