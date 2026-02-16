@@ -679,7 +679,7 @@
     }
 
     const quality = getQuality();
-    const flattenHex = (flattenColor?.value || '#0d1117').toLowerCase();
+    const flattenHex = (flattenColor?.value || '#090f16').toLowerCase();
 
     const makeUnique = makeUniqueNamer();
 
