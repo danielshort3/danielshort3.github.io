@@ -1,0 +1,217 @@
+@layer overrides {
+  /* Phase 1: shared interaction behavior */
+  :is(
+    .btn-primary,
+    .btn-secondary,
+    .btn-ghost,
+    .btn-icon,
+    .skill-link,
+    .icon-info,
+    .project-card,
+    .featured-card,
+    .game-card,
+    .tool-card,
+    .contact-card,
+    .doc-card,
+    .nav-link.nav-link-cta,
+    .nav-dropdown-link,
+    .nav-dropdown-card,
+    .nav-prefilter-link,
+    .nav-highlight-card,
+    .nav-project-card,
+    .project-pager-link,
+    .project-demo-tab,
+    .jump-panel-link,
+    .jump-panel-action,
+    .jump-panel-reveal,
+    .footer.footer-classic .footer-link,
+    .resume-cert a,
+    .resume-contact-item
+  ) {
+    transition:
+      transform var(--motion-base) var(--easing-standard),
+      box-shadow var(--motion-base) var(--easing-standard),
+      border-color var(--motion-fast) var(--easing-standard),
+      background var(--motion-fast) var(--easing-standard),
+      color var(--motion-fast) var(--easing-standard);
+  }
+
+  :is(
+    .btn-secondary,
+    .btn-ghost,
+    .btn-icon,
+    .skill-link,
+    .icon-info,
+    .project-card,
+    .featured-card,
+    .game-card,
+    .tool-card,
+    .contact-card,
+    .doc-card,
+    .nav-dropdown-link,
+    .nav-dropdown-card,
+    .nav-prefilter-link,
+    .nav-highlight-card,
+    .nav-project-card,
+    .project-pager-link,
+    .project-demo-tab,
+    .jump-panel-link,
+    .jump-panel-action,
+    .jump-panel-reveal
+  ) {
+    border-color: var(--interactive-border);
+    color: var(--interactive-text);
+  }
+
+  :is(
+    .btn-primary,
+    .btn-secondary,
+    .btn-ghost,
+    .btn-icon,
+    .skill-link,
+    .icon-info,
+    .project-card,
+    .featured-card,
+    .game-card,
+    .tool-card,
+    .contact-card,
+    .doc-card,
+    .nav-link,
+    .nav-dropdown-link,
+    .nav-dropdown-card,
+    .nav-prefilter-link,
+    .nav-highlight-card,
+    .nav-project-card,
+    .project-pager-link,
+    .project-demo-tab,
+    .jump-panel-link,
+    .jump-panel-action,
+    .jump-panel-reveal,
+    .footer.footer-classic .footer-link,
+    .resume-cert a,
+    .resume-contact-item
+  ):focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: 3px;
+  }
+
+  @media (hover:hover) and (pointer:fine) {
+    :is(
+      .btn-secondary,
+      .btn-ghost,
+      .btn-icon,
+      .skill-link,
+      .icon-info,
+      .project-card,
+      .featured-card,
+      .game-card,
+      .tool-card,
+      .contact-card,
+      .doc-card,
+      .nav-dropdown-link,
+      .nav-dropdown-card,
+      .nav-prefilter-link,
+      .nav-highlight-card,
+      .nav-project-card,
+      .project-pager-link,
+      .project-demo-tab,
+      .jump-panel-link,
+      .jump-panel-action,
+      .jump-panel-reveal
+    ):hover {
+      transform: translateY(var(--hover-lift));
+      box-shadow: var(--interactive-shadow-hover);
+      border-color: var(--interactive-border-hover);
+      color: var(--text-1);
+    }
+
+    :is(
+      .btn-primary,
+      .nav-link.nav-link-cta,
+      .btn-icon.btn-icon-featured
+    ):hover {
+      transform: translateY(var(--hover-lift-strong));
+      box-shadow: var(--interactive-shadow-strong);
+    }
+  }
+
+  @media (hover:none), (pointer:coarse) {
+    :is(
+      .btn-primary,
+      .btn-secondary,
+      .btn-ghost,
+      .btn-icon,
+      .skill-link,
+      .icon-info,
+      .project-card,
+      .featured-card,
+      .game-card,
+      .tool-card,
+      .contact-card,
+      .doc-card,
+      .nav-link.nav-link-cta,
+      .nav-dropdown-link,
+      .nav-dropdown-card,
+      .nav-prefilter-link,
+      .nav-highlight-card,
+      .nav-project-card,
+      .jump-panel-link,
+      .jump-panel-action,
+      .jump-panel-reveal
+    ) {
+      transform: none !important;
+    }
+  }
+
+  /* Phase 2: semantic color normalization for shared surfaces */
+  :is(
+    .btn-secondary,
+    .btn-ghost,
+    .btn-icon,
+    .skill-link,
+    .icon-info,
+    .project-card,
+    .featured-card,
+    .game-card,
+    .tool-card,
+    .contact-card,
+    .doc-card,
+    .nav-dropdown-link,
+    .nav-dropdown-card,
+    .nav-prefilter-link,
+    .nav-highlight-card,
+    .nav-project-card,
+    .jump-panel-link,
+    .jump-panel-action,
+    .jump-panel-reveal
+  ) {
+    background: var(--interactive-bg);
+  }
+
+  :is(
+    .btn-secondary:hover,
+    .btn-ghost:hover,
+    .btn-icon:hover,
+    .skill-link:hover,
+    .icon-info:hover,
+    .nav-dropdown-link:hover,
+    .nav-dropdown-card:hover,
+    .nav-prefilter-link:hover,
+    .nav-highlight-card:hover,
+    .nav-project-card:hover
+  ) {
+    background: var(--interactive-bg-hover);
+  }
+
+  .footer.footer-classic .footer-col-title {
+    color: var(--text-3);
+  }
+
+  .footer.footer-classic .footer-link {
+    color: var(--text-2);
+  }
+
+  .footer.footer-classic .footer-link:hover {
+    color: var(--text-1);
+  }
+}

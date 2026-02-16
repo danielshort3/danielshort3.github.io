@@ -474,32 +474,33 @@
 /* Skill-link buttons --------------------------------------------------*/
 .skill-link{
   position:relative;
-  transition:transform .25s, box-shadow .25s;
-  border:2px solid transparent;
-}
-.skill-link:hover,
-.skill-link:focus-visible{
-  transform:translateY(-4px) scale(1.03);
-  box-shadow:0 8px 22px color-mix(in srgb, var(--primary) 35%, transparent);
-  border-color:var(--primary);
+  border:2px solid var(--interactive-border);
+  transition:
+    transform var(--motion-base) var(--easing-standard),
+    box-shadow var(--motion-base) var(--easing-standard),
+    border-color var(--motion-fast) var(--easing-standard),
+    background var(--motion-fast) var(--easing-standard),
+    color var(--motion-fast) var(--easing-standard);
+  background:var(--interactive-bg);
 }
 .skill-link small{
   display:block;
   margin-top:6px;
-  color:var(--text-muted);
+  color:var(--text-2);
 }
-.skill-link:hover small{ color:var(--text-light); }
 
-/* ── Skill tiles behave like buttons ───────────────────────────── */
-.skill-link{
-  border:2px solid var(--primary);
-  transition:transform .25s, box-shadow .25s;
-}
-.skill-link:hover,
-.skill-link:focus-visible{
-  transform:translateY(-4px) scale(1.03);
-  box-shadow:0 10px 26px color-mix(in srgb, var(--primary) 35%, transparent);
-  cursor:pointer;
+@media (hover:hover) and (pointer:fine){
+  .skill-link:hover,
+  .skill-link:focus-visible{
+    transform:translateY(var(--hover-lift));
+    box-shadow:var(--interactive-shadow-hover);
+    border-color:var(--interactive-border-hover);
+    cursor:pointer;
+  }
+  .skill-link:hover small,
+  .skill-link:focus-visible small{
+    color:var(--text-1);
+  }
 }
 
 /* ── DOWNLOAD ICON CARDS : HIGH-CONTRAST & ON-BRAND ──────────────── */

@@ -20,6 +20,20 @@
 
     /* borders */
     --border-subtle:#21262D;
+    --border-1: var(--border-subtle);
+    --border-2: color-mix(in srgb, var(--primary) 24%, transparent);
+    --border-3: color-mix(in srgb, var(--primary) 42%, transparent);
+
+    /* semantic color system */
+    --surface-1: var(--surface);
+    --surface-2: color-mix(in srgb, var(--surface) 90%, #000 10%);
+    --surface-3: color-mix(in srgb, var(--surface) 82%, #000 18%);
+    --text-1: var(--text-light);
+    --text-2: var(--text-muted);
+    --text-3: color-mix(in srgb, var(--text-muted) 70%, #ffffff 30%);
+    --accent-1: var(--primary);
+    --accent-2: color-mix(in srgb, var(--primary) 72%, #ffffff 28%);
+    --accent-3: color-mix(in srgb, var(--primary) 42%, #0A1A1F 58%);
 
     /* semantic states (optional) */
     --success:#38B37E;  /* approvals, good states */
@@ -50,6 +64,24 @@
     --shadow-sm:0 2px 6px rgba(0,0,0,.25);
     --shadow-md:0 6px 18px rgba(0,0,0,.35);
     --shadow-lg:0 12px 32px rgba(0,0,0,.6);
+
+    /* interaction system (phase 1) */
+    --motion-fast:160ms;
+    --motion-base:220ms;
+    --motion-slow:320ms;
+    --easing-standard:cubic-bezier(.22,.61,.36,1);
+    --hover-lift:-2px;
+    --hover-lift-strong:-4px;
+    --hover-scale:1.02;
+    --interactive-shadow-rest:0 10px 24px rgba(0,0,0,.24);
+    --interactive-shadow-hover:0 16px 34px rgba(0,0,0,.32);
+    --interactive-shadow-strong:0 24px 46px rgba(0,0,0,.4);
+    --interactive-border:var(--border-2);
+    --interactive-border-hover:var(--border-3);
+    --interactive-bg:color-mix(in srgb, var(--surface-2) 88%, #000 12%);
+    --interactive-bg-hover:color-mix(in srgb, var(--accent-1) 18%, var(--surface-2) 82%);
+    --interactive-text:color-mix(in srgb, var(--text-1) 92%, #ffffff 8%);
+    --focus-ring:3px solid color-mix(in srgb, var(--accent-1) 62%, #ffffff 38%);
 
     /* breakpoints (for documentation) */
     --bp-sm:480px; --bp-md:768px; --bp-lg:1024px; --bp-xl:1280px;
