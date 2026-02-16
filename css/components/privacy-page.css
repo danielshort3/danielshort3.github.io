@@ -1,6 +1,6 @@
 @layer components {
   .policy-page main{
-    min-height:calc(var(--vh, 100vh) - var(--nav-height, 72px));
+    min-height:calc(100svh - var(--nav-height, 72px));
     padding-top:var(--nav-height, 72px);
     display:grid;
     align-content:center;
@@ -169,4 +169,3 @@
     }
   }
 }
-

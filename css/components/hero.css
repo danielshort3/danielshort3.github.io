@@ -2,7 +2,7 @@
    ─────────────────────────────────────────────────────────── */
 @layer components {
   .hero{
-    min-height:calc(var(--vh,100svh) - var(--nav-height,72px));
+    min-height:calc(100svh - var(--nav-height,72px));
     margin:0 0 clamp(1.5rem,4vh,3rem);
     padding:clamp(4.2rem,8vh,6.4rem) 0 clamp(4rem,8vh,5.4rem);
     display:flex;

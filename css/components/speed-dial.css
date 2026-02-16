@@ -130,6 +130,13 @@
     transform: rotate(-8deg);
   }
 
+  @media (hover:none) and (pointer:coarse) {
+    .speed-dial {
+      bottom: calc(var(--space-20) + env(safe-area-inset-bottom) + 22px);
+      bottom: calc(var(--space-20) + env(safe-area-inset-bottom) + clamp(16px, 4svh, 30px));
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .speed-dial__actions,
     .speed-dial__label,
