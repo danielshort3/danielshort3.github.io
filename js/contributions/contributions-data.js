@@ -17,6 +17,10 @@ window.contributions = [
         link :'https://www.gjcity.org/DocumentCenter/View/14655',
         pdf  :'documents/GJ_2025_Budget.pdf' 
       },
+      { title:'Visit Grand Junction Annual Accomplishments · 2025',
+        role :'Contributions: Data aggregation and analysis',
+        link :'https://assets.simpleviewinc.com/simpleview/image/upload/v1/clients/grandjunctionco/Summary_of_Significant_2025_Accomplishments_Projects_and_Outreach_cb3f6245-90cd-4cfb-a398-e425d2238d1b.pdf' 
+      },
       { title:'Visit Grand Junction Annual Accomplishments · 2024',
         role :'Contributions: Data aggregation and analysis',
         link :'https://visitgj.com/4hcADGt',
@@ -30,6 +34,22 @@ window.contributions = [
     heading: 'Council Briefings',
     desc   : 'Briefings for Grand Junction City Council. I contributed actionable data insights and visualizations used by decision makers.',
     items  : [
+      { title:'January 26, 2026 City Briefing',
+        role :'Contributions: Visit Grand Junction section',
+        link :'https://ccbrief.my.canva.site/city-updates-january-26-2026' 
+      },
+      { title:'January 12, 2026 City Briefing',
+        role :'Contributions: Visit Grand Junction section',
+        link :'https://ccbrief.my.canva.site/city-updates-january-12-2026' 
+      },
+      { title:'December 22, 2025 Council Briefing',
+        role :'Contributions: Visit Grand Junction section',
+        link :'https://ccbrief.my.canva.site/city-council-briefing-dec-22-2025' 
+      },
+      { title:'December 8, 2025 Council Briefing',
+        role :'Contributions: Visit Grand Junction section',
+        link :'https://ccbrief.my.canva.site/city-council-briefing-dec-8-2025' 
+      },
       { title:'November 24, 2025 Council Briefing',
         role :'Contributions: Visit Grand Junction section',
         link :'https://ccbrief.my.canva.site/city-council-briefing-nov-24-2025' 
@@ -49,6 +69,22 @@ window.contributions = [
       { title:'September 22, 2025 Council Briefing',
         role :'Contributions: Visit Grand Junction section',
         link :'https://ccbrief.my.canva.site/city-council-briefing-sept-22-2025' 
+      },
+      { title:'September 5, 2025 Council Briefing',
+        role :'Contributions: Visit Grand Junction section',
+        link :'https://ccbrief.my.canva.site/city-council-briefing-sept-5-2025' 
+      },
+      { title:'August 26, 2025 Council Briefing',
+        role :'Contributions: Visit Grand Junction section',
+        link :'https://ccbrief.my.canva.site/city-council-briefing-aug-22-2025' 
+      },
+      { title:'August 8, 2025 Council Briefing',
+        role :'Contributions: Visit Grand Junction section',
+        link :'https://ccbrief.my.canva.site/city-council-briefing-aug-8-2025' 
+      },
+      { title:'July 22, 2025 Council Briefing',
+        role :'Contributions: Visit Grand Junction section',
+        link :'https://ccbrief.my.canva.site/city-council-briefing-july22-2025' 
       },
       { title:'June 6, 2025 Council Briefing',
         role :'Contributions: Visit Grand Junction section',
