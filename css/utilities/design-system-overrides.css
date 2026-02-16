@@ -148,4 +148,42 @@
   ) {
     background: var(--interactive-bg-hover);
   }
+
+  /* Keep floating CTA controls in the featured blue style */
+  :is(
+    .cookie-settings__toggle.btn-icon-featured,
+    .speed-dial__toggle.btn-icon-featured,
+    .speed-dial .speed-dial__action--direct.btn-icon
+  ) {
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--accent-1, var(--primary)) 88%, #ffffff 12%) 0%,
+      color-mix(in srgb, var(--accent-3, var(--primary)) 65%, #071219 35%) 100%
+    );
+    color: color-mix(in srgb, #ffffff 94%, var(--bg) 6%);
+    border-color: color-mix(in srgb, var(--accent-1, var(--primary)) 55%, transparent);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, .32);
+  }
+
+  @media (hover:hover) and (pointer:fine) {
+    :is(
+      .cookie-settings__toggle.btn-icon-featured,
+      .speed-dial__toggle.btn-icon-featured,
+      .speed-dial .speed-dial__action--direct.btn-icon
+    ):hover,
+    :is(
+      .cookie-settings__toggle.btn-icon-featured,
+      .speed-dial__toggle.btn-icon-featured,
+      .speed-dial .speed-dial__action--direct.btn-icon
+    ):focus-visible {
+      background: linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--accent-1, var(--primary)) 94%, #ffffff 6%) 0%,
+        color-mix(in srgb, var(--accent-3, var(--primary)) 72%, #030b12 28%) 100%
+      );
+      color: color-mix(in srgb, #ffffff 96%, var(--bg) 4%);
+      border-color: color-mix(in srgb, var(--accent-1, var(--primary)) 68%, transparent);
+      box-shadow: 0 24px 46px rgba(0, 0, 0, .4);
+    }
+  }
 }
