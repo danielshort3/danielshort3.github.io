@@ -117,7 +117,7 @@
       head.appendChild(sub);
     }
 
-    const items = document.createElement('div');
+    const items = document.createElement('ul');
     items.className = 'sitemap-items';
     items.dataset.sitemapItems = category;
 
@@ -127,27 +127,26 @@
   }
 
   function createItem(entry) {
-    const link = document.createElement('a');
-    link.className = 'sitemap-item';
-    link.href = entry.url;
-    link.dataset.url = entry.url;
+    const item = document.createElement('li');
+    item.className = 'sitemap-item';
+    item.dataset.url = entry.url;
 
-    const title = document.createElement('div');
-    title.className = 'sitemap-item-title';
-    title.textContent = entry.title || entry.url;
+    const link = document.createElement('a');
+    link.className = 'sitemap-item-title';
+    link.href = entry.url;
+    link.textContent = entry.title || entry.url;
+    item.appendChild(link);
 
     const url = document.createElement('div');
     url.className = 'sitemap-item-url';
     url.textContent = entry.url;
-
-    link.appendChild(title);
-    link.appendChild(url);
+    item.appendChild(url);
 
     if (entry.description) {
       const desc = document.createElement('div');
       desc.className = 'sitemap-item-desc';
       desc.textContent = entry.description;
-      link.appendChild(desc);
+      item.appendChild(desc);
     }
 
     const meta = document.createElement('div');
@@ -158,7 +157,7 @@
     updated.textContent = `Updated: ${formatLastmod(entry.lastmod)}`;
     meta.appendChild(updated);
 
-    link.appendChild(meta);
+    item.appendChild(meta);
 
     const keywords = Array.isArray(entry.keywords) ? entry.keywords : [];
     const searchText = [
@@ -171,8 +170,8 @@
       .map((v) => normalizeText(v))
       .filter(Boolean)
       .join(' ');
-    link.dataset.searchText = searchText;
-    return link;
+    item.dataset.searchText = searchText;
+    return item;
   }
 
   async function fetchText(url) {
