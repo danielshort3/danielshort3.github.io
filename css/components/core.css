@@ -106,8 +106,14 @@
   }
 
   @media (max-width: 768px) {
+    #about-me .grid-container{
+      justify-items:center;
+    }
     #about-me .grid-container .icon-info{
-      width:100%;
+      width:min(100%, 480px);
+      max-width:100%;
+      box-sizing:border-box;
+      margin-inline:auto;
     }
   }
 
