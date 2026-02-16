@@ -1,41 +1,39 @@
 @layer components {
   .sitemap-page .sitemap-panel{
-    max-width:1040px;
+    max-width:940px;
     margin-inline:auto;
   }
 
   .sitemap-card{
-    border-radius:24px;
-    padding:clamp(18px, 2.8vw, 30px);
-    background:
-      radial-gradient(1200px 360px at 100% 0%, color-mix(in srgb,var(--primary) 14%, transparent), transparent 42%),
-      color-mix(in srgb,var(--surface) 93%, #000 7%);
+    border-radius:16px;
+    padding:clamp(16px, 2.4vw, 24px);
+    background:color-mix(in srgb,var(--surface) 95%, #000 5%);
     border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
-    box-shadow:0 24px 48px rgba(0,0,0,.28);
+    box-shadow:0 16px 36px rgba(0,0,0,.2);
   }
 
   .sitemap-intro{
-    margin-bottom:16px;
-    padding-bottom:16px;
+    margin-bottom:14px;
+    padding-bottom:14px;
     border-bottom:1px solid color-mix(in srgb,var(--primary) 14%, transparent);
   }
 
   .sitemap-kicker{
     margin:0;
-    font-size:.78rem;
-    letter-spacing:.12em;
+    font-size:.76rem;
+    letter-spacing:.1em;
     text-transform:uppercase;
-    color:color-mix(in srgb,var(--text-muted) 82%, #ffffff 18%);
+    color:color-mix(in srgb,var(--text-muted) 88%, #ffffff 12%);
   }
 
   .sitemap-lead{
     margin:8px 0 0;
     line-height:1.5;
-    color:color-mix(in srgb,var(--text-light) 92%, #ffffff 8%);
+    color:color-mix(in srgb,var(--text-light) 94%, #ffffff 6%);
   }
 
   .sitemap-chip-row{
-    margin-top:12px;
+    margin-top:10px;
     display:flex;
     flex-wrap:wrap;
     gap:8px;
@@ -44,15 +42,14 @@
   .sitemap-chip{
     display:inline-flex;
     align-items:center;
-    gap:8px;
-    min-height:32px;
-    padding:0 12px;
+    min-height:30px;
+    padding:0 11px;
     border-radius:999px;
-    border:1px solid color-mix(in srgb,var(--primary) 28%, transparent);
-    background:color-mix(in srgb,var(--surface) 84%, #000 16%);
-    color:color-mix(in srgb,var(--text-light) 94%, #ffffff 6%);
+    border:1px solid color-mix(in srgb,var(--primary) 24%, transparent);
+    background:color-mix(in srgb,var(--surface) 90%, #000 10%);
+    color:color-mix(in srgb,var(--text-light) 92%, #ffffff 8%);
     text-decoration:none;
-    font-size:.9rem;
+    font-size:.88rem;
     transition:border-color .15s ease, background .15s ease;
   }
 
@@ -65,19 +62,19 @@
 
   .sitemap-filter{
     display:flex;
-    gap:12px;
+    gap:10px;
     align-items:stretch;
   }
 
   .sitemap-filter-input{
     flex:1;
-    min-height:48px;
-    padding:12px 16px;
-    border-radius:16px;
+    min-height:44px;
+    padding:11px 14px;
+    border-radius:12px;
     border:1px solid color-mix(in srgb,var(--primary) 26%, transparent);
-    background:color-mix(in srgb,var(--surface) 86%, #000 14%);
+    background:color-mix(in srgb,var(--surface) 92%, #000 8%);
     color:color-mix(in srgb,var(--text-light) 95%, #ffffff 5%);
-    font-size:1rem;
+    font-size:.98rem;
   }
   .sitemap-filter-input::placeholder{
     color:color-mix(in srgb,var(--text-muted) 78%, #ffffff 22%);
@@ -89,10 +86,10 @@
   }
 
   .sitemap-meta{
-    margin-top:14px;
+    margin-top:12px;
     display:flex;
     flex-wrap:wrap;
-    align-items:center;
+    align-items:baseline;
     justify-content:space-between;
     gap:12px;
     color:color-mix(in srgb,var(--text-muted) 86%, #ffffff 14%);
@@ -111,126 +108,110 @@
   }
 
   .sitemap-status{
-    margin:12px 0 0;
+    margin:10px 0 0;
     min-height:1.2em;
     color:color-mix(in srgb,var(--text-muted) 86%, #ffffff 14%);
+    font-size:.92rem;
   }
 
   .sitemap-sections{
     margin-top:18px;
     display:grid;
-    gap:16px;
+    gap:20px;
   }
 
   .sitemap-section{
-    border-radius:18px;
-    overflow:hidden;
-    border:1px solid color-mix(in srgb,var(--primary) 16%, transparent);
-    background:color-mix(in srgb,var(--surface) 95%, #000 5%);
+    padding-bottom:2px;
   }
 
   .sitemap-section-head{
-    padding:14px 18px;
-    border-bottom:1px solid color-mix(in srgb,var(--primary) 14%, transparent);
-    background:linear-gradient(180deg, color-mix(in srgb,var(--surface) 83%, #000 17%), transparent);
+    padding-bottom:8px;
+    border-bottom:1px solid color-mix(in srgb,var(--primary) 16%, transparent);
   }
 
   .sitemap-section-title-row{
     display:flex;
-    align-items:center;
+    align-items:baseline;
     justify-content:space-between;
-    gap:12px;
+    gap:10px;
   }
 
   .sitemap-section-title{
     margin:0;
-    font-size:1.1rem;
-    letter-spacing:.015em;
-    color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
+    font-size:1.14rem;
+    letter-spacing:.01em;
+    color:color-mix(in srgb,var(--text-light) 95%, #ffffff 5%);
   }
 
   .sitemap-section-count{
     flex:0 0 auto;
-    display:inline-flex;
-    align-items:center;
-    padding:4px 10px;
-    border-radius:999px;
-    border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
-    background:color-mix(in srgb,var(--surface) 78%, #000 22%);
-    font-size:.82rem;
-    color:color-mix(in srgb,var(--text-muted) 84%, #ffffff 16%);
+    font-size:.9rem;
+    color:color-mix(in srgb,var(--text-muted) 86%, #ffffff 14%);
   }
 
   .sitemap-section-subtitle{
-    margin:8px 0 0;
+    margin:6px 0 0;
+    font-size:.94rem;
     color:color-mix(in srgb,var(--text-muted) 86%, #ffffff 14%);
   }
 
   .sitemap-items{
-    display:grid;
+    margin:10px 0 0 1.15rem;
+    padding:0;
+    list-style:disc;
   }
 
   .sitemap-item{
-    display:block;
-    padding:14px 18px;
-    text-decoration:none;
-    color:inherit;
-    border-top:1px solid color-mix(in srgb,var(--primary) 12%, transparent);
-    transition:background .15s ease, border-color .15s ease, transform .15s ease;
-  }
-  .sitemap-item:first-child{
-    border-top:none;
-  }
-  .sitemap-item:hover{
-    background:color-mix(in srgb,var(--surface) 88%, #000 12%);
-    border-top-color:color-mix(in srgb,var(--primary) 18%, transparent);
-    transform:translateY(-1px);
-  }
-  .sitemap-item:focus-visible{
-    outline:none;
-    background:color-mix(in srgb,var(--surface) 84%, #000 16%);
-    box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--primary) 42%, transparent);
+    margin:10px 0;
+    color:color-mix(in srgb,var(--text-light) 93%, #ffffff 7%);
   }
 
   .sitemap-item-title{
-    font-weight:650;
-    letter-spacing:.01em;
-    color:color-mix(in srgb,var(--text-light) 96%, #ffffff 4%);
-    line-height:1.2;
+    font-weight:620;
+    color:color-mix(in srgb,var(--text-light) 97%, #ffffff 3%);
+    text-decoration:none;
+    line-height:1.25;
+  }
+  .sitemap-item-title:hover,
+  .sitemap-item-title:focus-visible{
+    outline:none;
+    text-decoration:underline;
+    text-underline-offset:3px;
+    text-decoration-thickness:2px;
   }
 
   .sitemap-item-url{
-    margin-top:8px;
-    font-size:.92rem;
-    color:color-mix(in srgb,var(--text-muted) 84%, #ffffff 16%);
+    margin-top:3px;
+    font-size:.86rem;
+    color:color-mix(in srgb,var(--text-muted) 82%, #ffffff 18%);
+    overflow-wrap:anywhere;
   }
 
   .sitemap-item-desc{
-    margin-top:10px;
-    color:color-mix(in srgb,var(--text-muted) 92%, #ffffff 8%);
+    margin-top:5px;
+    font-size:.93rem;
+    color:color-mix(in srgb,var(--text-muted) 90%, #ffffff 10%);
   }
 
   .sitemap-item-meta{
-    margin-top:10px;
-    display:flex;
-    flex-wrap:wrap;
-    gap:10px;
-    font-size:.9rem;
+    margin-top:3px;
+    font-size:.85rem;
     color:color-mix(in srgb,var(--text-muted) 86%, #ffffff 14%);
   }
 
   .sitemap-loading,
   .sitemap-empty{
-    padding:16px;
-    border-radius:18px;
+    padding:14px;
+    border-radius:12px;
     border:1px solid color-mix(in srgb,var(--primary) 14%, transparent);
-    background:color-mix(in srgb,var(--surface) 94%, #000 6%);
+    background:color-mix(in srgb,var(--surface) 96%, #000 4%);
     color:color-mix(in srgb,var(--text-muted) 92%, #ffffff 8%);
   }
 
   @media (max-width: 768px){
     .sitemap-filter{ flex-direction:column; }
     .sitemap-meta{ flex-direction:column; align-items:flex-start; }
-    .sitemap-chip-row{ gap:10px; }
+    .sitemap-section-title-row{ flex-direction:column; align-items:flex-start; gap:4px; }
+    .sitemap-items{ margin-left:1rem; }
   }
 }
