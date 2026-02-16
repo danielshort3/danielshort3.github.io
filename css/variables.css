@@ -8,7 +8,7 @@
     --surface-light:color-mix(in srgb,var(--surface) 86%, #ffffff 14%);
     --surface-accent:color-mix(in srgb,var(--surface) 92%, #ffffff 8%);
     --primary:#2396AD;
-    --secondary:#2ED3FF;
+    --secondary:var(--primary);
     --text-light:#f3f8ff;
     --text-muted:#aab8c7;   /* WCAG-passing grey */
 
