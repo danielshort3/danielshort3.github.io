@@ -37,6 +37,24 @@
     }
   }
 
+  function formatGeneratedAt(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '—';
+    const date = new Date(raw);
+    if (Number.isNaN(date.getTime())) return raw;
+    try {
+      return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+        hour: 'numeric',
+        minute: '2-digit'
+      }).format(date);
+    } catch (_) {
+      return raw;
+    }
+  }
+
   function readText(node) {
     if (!node) return '';
     return String(node.textContent || '').trim();
@@ -259,6 +277,7 @@
     const statusEl = $('#sitemap-status');
     const shownEl = document.querySelector('[data-sitemap-shown]');
     const totalEl = document.querySelector('[data-sitemap-total]');
+    const generatedEl = document.querySelector('[data-sitemap-generated]');
 
     sectionsEl.innerHTML = '';
 
@@ -277,8 +296,11 @@
       fallback.innerHTML = 'Could not load the sitemap data. You can still view the <a href="/sitemap.xml">XML sitemap</a>.';
       sectionsEl.appendChild(fallback);
       if (statusEl) statusEl.textContent = '';
+      if (generatedEl) generatedEl.textContent = '—';
       return;
     }
+
+    if (generatedEl) generatedEl.textContent = formatGeneratedAt(data.generatedAt);
 
     const categoryOrder = [
       { name: 'Pages', subtitle: 'Core pages across the site.' },
@@ -383,4 +405,3 @@
     main();
   }
 })();
-
