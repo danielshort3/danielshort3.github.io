@@ -201,6 +201,17 @@
     <section class="surface-band reveal">
       <div class="wrapper sitemap-panel">
         <div class="sitemap-card">
+          <div class="sitemap-intro">
+            <p class="sitemap-kicker">Human-Readable Sitemap</p>
+            <p class="sitemap-lead">
+              Browse every indexable page by section. Crawlers should continue to use the XML sitemap.
+            </p>
+            <div class="sitemap-chip-row">
+              <a href="sitemap.xml" class="sitemap-chip">XML sitemap</a>
+              <a href="robots.txt" class="sitemap-chip">robots.txt</a>
+            </div>
+          </div>
+
           <form class="sitemap-filter" role="search" aria-label="Filter sitemap">
             <label class="visually-hidden" for="sitemap-filter-input">Filter sitemap</label>
             <input id="sitemap-filter-input" class="sitemap-filter-input" type="search" autocomplete="off" spellcheck="false" placeholder="Filter by keyword or URL…">
@@ -209,12 +220,10 @@
 
           <div class="sitemap-meta">
             <p class="sitemap-counts">
-              Showing <span data-sitemap-shown>0</span> of <span data-sitemap-total>0</span>
+              Showing <strong data-sitemap-shown>0</strong> of <span data-sitemap-total>0</span> pages
             </p>
-            <p class="sitemap-links">
-              <a href="sitemap.xml">XML sitemap</a>
-              <span aria-hidden="true">·</span>
-              <a href="robots.txt">robots.txt</a>
+            <p class="sitemap-generated">
+              Last generated: <span data-sitemap-generated>—</span>
             </p>
           </div>
 
@@ -247,7 +256,6 @@
         <section class="footer-col" aria-labelledby="footer-work">
           <h2 class="footer-col-title" id="footer-work">Work</h2>
           <a href="resume" class="footer-link">Resume</a>
-          <a href="contributions" class="footer-link">Contributions</a>
           <a href="contact" class="footer-link">Contact</a>
         </section>
 
@@ -260,7 +268,7 @@
 
         <section class="footer-col" aria-labelledby="footer-site">
           <h2 class="footer-col-title" id="footer-site">Site</h2>
-          <a href="sitemap.xml" class="footer-link">Sitemap</a>
+          <a href="sitemap" class="footer-link">Sitemap</a>
           <button id="privacy-settings-link-footer" type="button" class="footer-link" aria-haspopup="dialog">Cookie settings</button>
           <a href="#main" class="footer-link" data-smooth-scroll="true">Back to top</a>
         </section>

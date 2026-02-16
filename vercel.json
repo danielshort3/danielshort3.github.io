@@ -134,6 +134,18 @@
       ]
     },
     {
+      "source": "/contributions",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, follow" }
+      ]
+    },
+    {
+      "source": "/contributions.html",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, follow" }
+      ]
+    },
+    {
       "source": "/short-links",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" }

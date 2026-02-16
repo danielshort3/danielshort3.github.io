@@ -880,11 +880,11 @@ ${tableauPreconnect}
 			    </section>
 			  </main>
 
-	  <footer>
+  <footer>
 	    <nav class="privacy-links" aria-label="Privacy shortcuts">
 	      <button id="privacy-settings-link" type="button" class="pcz-link">Privacy settings</button>
 	      <a href="privacy#prefs-title" class="pcz-link" data-consent-open="true">Do Not Sell/Share My Personal Information</a>
-	      <a href="sitemap.xml" class="pcz-link">Sitemap</a>
+	      <a href="sitemap" class="pcz-link">Sitemap</a>
 	    </nav>
 	  </footer>
 
@@ -932,7 +932,6 @@ function writeSitemap(projects) {
     { loc: `${SITE_ORIGIN}/resume`, sourceFile: 'pages/resume.html', priority: 0.9 },
     { loc: `${SITE_ORIGIN}/contact`, sourceFile: 'pages/contact.html', priority: 0.7 },
     { loc: `${SITE_ORIGIN}/tools`, sourceFile: 'pages/tools.html', priority: 0.7 },
-    { loc: `${SITE_ORIGIN}/contributions`, sourceFile: 'pages/contributions.html', priority: 0.6 },
     { loc: `${SITE_ORIGIN}/resume-pdf`, sourceFile: 'pages/resume-pdf.html', priority: 0.5 },
     { loc: `${SITE_ORIGIN}/privacy`, sourceFile: 'pages/privacy.html', priority: 0.2 },
     { loc: `${SITE_ORIGIN}/sitemap`, sourceFile: 'pages/sitemap.html', priority: 0.2 }
