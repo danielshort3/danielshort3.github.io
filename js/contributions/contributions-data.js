@@ -170,6 +170,14 @@ window.contributions = [
     heading:'Visit Grand Junction eNewsletters',
     desc   :'Tourism industry e-newsletters featuring my analytics, pacing reports, and lodging performance insights sent to stakeholders.',
     items  : [
+      { title:'Stakeholder eNewsletter · January 2026',
+        role :'Contributions: Industry Data Report',
+        link :'https://us4.campaign-archive.com/?u=d69163b71ce34ec42d130a6a4&id=55cca83f35' 
+      },
+      { title:'Stakeholder eNewsletter · December 2025',
+        role :'Contributions: Industry Data Report',
+        link :'https://us4.campaign-archive.com/?u=d69163b71ce34ec42d130a6a4&id=6d60d2d641' 
+      },
       { title:'Stakeholder eNewsletter · November 2025',
         role :'Contributions: Industry Data Report',
         link :'https://us4.campaign-archive.com/?e=18b7bff0b8&u=d69163b71ce34ec42d130a6a4&id=1370d609e9' 
@@ -182,6 +190,22 @@ window.contributions = [
         role :'Contributions: Industry Data Report',
         link :'https://us4.campaign-archive.com/?e=18b7bff0b8&u=d69163b71ce34ec42d130a6a4&id=d94612ebc7' 
       },
+      { title:'Stakeholder eNewsletter · August 2025',
+        role :'Contributions: Industry Data Report',
+        link :'https://us4.campaign-archive.com/?u=d69163b71ce34ec42d130a6a4&id=318d9586ef' 
+      },
+      { title:'Stakeholder eNewsletter · July 2025',
+        role :'Contributions: Industry Data Report',
+        link :'https://us4.campaign-archive.com/?u=d69163b71ce34ec42d130a6a4&id=153fb2f4e6' 
+      },
+      { title:'Stakeholder eNewsletter · June 2025',
+        role :'Contributions: Industry Data Report',
+        link :'https://us4.campaign-archive.com/?u=d69163b71ce34ec42d130a6a4&id=1b07497f1f' 
+      },
+      { title:'Stakeholder eNewsletter · May 2025',
+        role :'Contributions: Industry Data Report',
+        link :'https://us4.campaign-archive.com/?u=d69163b71ce34ec42d130a6a4&id=dda44cca08' 
+      },
       { title:'Stakeholder eNewsletter · April 2025',
         role :'Contributions: Industry Data Report, Elizabeth\'s GJ Communiqué, Lodging Cannibalization Part 2',
         link :'https://us4.campaign-archive.com/?e=18b7bff0b8&u=d69163b71ce34ec42d130a6a4&id=16d85d0a8e' 
@@ -192,7 +216,7 @@ window.contributions = [
       },
       { title:'Stakeholder eNewsletter · February 2025',
         role :'Contributions: Industry Data Report',
-        link :'https://us4.campaign-archive.com/?e=ab674ce95e&u=d69163b71ce34ec42d130a6a4&id=1590378e4c' 
+        link :'https://us4.campaign-archive.com/?u=d69163b71ce34ec42d130a6a4&id=4f734674ad' 
       },
       { title:'Stakeholder eNewsletter · January 2025',
         role :'Contributions: Lodging Tax Revenue Report',
@@ -212,7 +236,7 @@ window.contributions = [
       },
       { title:'Stakeholder eNewsletter · September 2024',
         role :'Contributions: Lodging Tax Revenue Report',
-        link :'https://us4.campaign-archive.com/?e=f5ce3bd589&u=d69163b71ce34ec42d130a6a4&id=f9eec9e21f' 
+        link :'https://us4.campaign-archive.com/?u=d69163b71ce34ec42d130a6a4&id=0c28e7cfde' 
       },
       { title:'Stakeholder eNewsletter · August 2024',
         role :'Contributions: Lodging Tax Revenue Report, Elizabeth\'s GJ Communiqué, Grand Junction Hotel Performance Update',
@@ -224,7 +248,7 @@ window.contributions = [
       },
       { title:'Stakeholder eNewsletter · June 2024',
         role :'Contributions: Lodging Tax Revenue Report, Elizabeth\'s GJ Communiqué',
-        link :'https://us4.campaign-archive.com/?u=d69163b71ce34ec42d130a6a4&id=71c73cdd2b' 
+        link :'https://us4.campaign-archive.com/?u=d69163b71ce34ec42d130a6a4&id=ff0d65acfa' 
       },
       { title:'Stakeholder eNewsletter · May 2024',
         role :'Contributions: Lodging Tax Revenue Report',
@@ -233,6 +257,18 @@ window.contributions = [
       { title:'Stakeholder eNewsletter · April 2024',
         role :'Contributions: Lodging Tax Revenue Report',
         link :'https://us4.campaign-archive.com/?e=f5ce3bd589&u=d69163b71ce34ec42d130a6a4&id=cd0cc7edcd' 
+      },
+      { title:'Stakeholder eNewsletter · March 2024',
+        role :'Contributions: Lodging Tax Revenue Report',
+        link :'https://us4.campaign-archive.com/?u=d69163b71ce34ec42d130a6a4&id=72b7d7a32e' 
+      },
+      { title:'Stakeholder eNewsletter · February 2024',
+        role :'Contributions: Lodging Tax Revenue Report',
+        link :'https://us4.campaign-archive.com/?u=d69163b71ce34ec42d130a6a4&id=0d1a37f0b1' 
+      },
+      { title:'Stakeholder eNewsletter · January 2024',
+        role :'Contributions: Lodging Tax Revenue Report',
+        link :'https://us4.campaign-archive.com/?u=d69163b71ce34ec42d130a6a4&id=14b7db2341' 
       }
     ]
   }

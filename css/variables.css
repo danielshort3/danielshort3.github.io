@@ -3,42 +3,43 @@
 @layer tokens {
   :root{
     /* palette */
-    --bg:#0D1117;
-    --surface:#161B22;
-    --surface-light:color-mix(in srgb,var(--surface) 85%,#fff 15%);
-    --surface-accent:color-mix(in srgb,var(--surface) 92%,#fff 8%);
-    --primary:#2396AD;
-    /* unify accents: use teal for secondary too */
-    --secondary: var(--primary);
-    --text-light:#F1F4F8;
-    --text-muted:#BFC8D3;   /* WCAG-passing grey */
+    --bg:#F6FAFC;
+    --surface:#FFFFFF;
+    --surface-light:#EEF3F7;
+    --surface-accent:#E5EDF4;
+    --primary:#2296A3;
+    --secondary:var(--primary);
+    --primary-bright:#2CB5C7;
+    --text-light:#13232F;
+    --text-muted:#5F7484;   /* WCAG-passing muted slate */
 
     /* links & focus */
-    --link: color-mix(in srgb, var(--primary) 85%, #fff 15%);
-    --link-hover: color-mix(in srgb, var(--primary) 65%, #fff 35%);
-    --focus: color-mix(in srgb, var(--primary) 70%, #fff 30%);
+    --link:#1E8AA6;
+    --link-hover:#176F85;
+    --focus:#6CC7D3;
 
     /* borders */
-    --border-subtle:#21262D;
+    --border-subtle:#D5E1E9;
     --border-1: var(--border-subtle);
     --border-2: color-mix(in srgb, var(--primary) 24%, transparent);
     --border-3: color-mix(in srgb, var(--primary) 42%, transparent);
 
     /* semantic color system */
     --surface-1: var(--surface);
-    --surface-2: color-mix(in srgb, var(--surface) 90%, #000 10%);
-    --surface-3: color-mix(in srgb, var(--surface) 82%, #000 18%);
+    --surface-2: color-mix(in srgb, var(--surface) 80%, var(--surface-light) 20%);
+    --surface-3: color-mix(in srgb, var(--surface) 55%, var(--surface-light) 45%);
     --text-1: var(--text-light);
     --text-2: var(--text-muted);
     --text-3: color-mix(in srgb, var(--text-muted) 70%, #ffffff 30%);
     --accent-1: var(--primary);
     --accent-2: color-mix(in srgb, var(--primary) 72%, #ffffff 28%);
-    --accent-3: color-mix(in srgb, var(--primary) 42%, #0A1A1F 58%);
+    --accent-3: color-mix(in srgb, var(--primary) 62%, #123540 38%);
 
     /* semantic states (optional) */
-    --success:#38B37E;  /* approvals, good states */
-    --warning:#E0A328;  /* caution, non-blocking */
-    --danger:#E05757;   /* errors, destructive */
+    --success:#2E9D73;  /* approvals, good states */
+    --warning:#C98B1E;  /* caution, non-blocking */
+    --danger:#CF5252;   /* errors, destructive */
+    --accent-warm:#F2B366; /* sparse highlight color */
 
     /* sizing */
     --nav-height:72px;      /* default, JS may overwrite */
@@ -61,9 +62,9 @@
     --radius-12:12px; --radius-14:14px; --radius-16:16px;
 
     /* shadows */
-    --shadow-sm:0 2px 6px rgba(0,0,0,.25);
-    --shadow-md:0 6px 18px rgba(0,0,0,.35);
-    --shadow-lg:0 12px 32px rgba(0,0,0,.6);
+    --shadow-sm:0 2px 6px rgba(16,35,51,.08);
+    --shadow-md:0 8px 20px rgba(16,35,51,.12);
+    --shadow-lg:0 18px 40px rgba(16,35,51,.16);
 
     /* interaction system (phase 1) */
     --motion-fast:160ms;
@@ -73,15 +74,15 @@
     --hover-lift:-2px;
     --hover-lift-strong:-4px;
     --hover-scale:1.02;
-    --interactive-shadow-rest:0 10px 24px rgba(0,0,0,.24);
-    --interactive-shadow-hover:0 16px 34px rgba(0,0,0,.32);
-    --interactive-shadow-strong:0 24px 46px rgba(0,0,0,.4);
+    --interactive-shadow-rest:0 8px 20px rgba(15,35,49,.10);
+    --interactive-shadow-hover:0 14px 28px rgba(15,35,49,.15);
+    --interactive-shadow-strong:0 22px 42px rgba(15,35,49,.20);
     --interactive-border:var(--border-2);
     --interactive-border-hover:var(--border-3);
-    --interactive-bg:color-mix(in srgb, var(--surface-2) 88%, #000 12%);
-    --interactive-bg-hover:color-mix(in srgb, var(--accent-1) 18%, var(--surface-2) 82%);
-    --interactive-text:color-mix(in srgb, var(--text-1) 92%, #ffffff 8%);
-    --focus-ring:3px solid color-mix(in srgb, var(--accent-1) 62%, #ffffff 38%);
+    --interactive-bg:color-mix(in srgb, var(--surface) 76%, var(--surface-light) 24%);
+    --interactive-bg-hover:color-mix(in srgb, var(--accent-1) 14%, var(--surface) 86%);
+    --interactive-text:color-mix(in srgb, var(--text-1) 96%, #000000 4%);
+    --focus-ring:3px solid color-mix(in srgb, var(--focus) 70%, #ffffff 30%);
 
     /* breakpoints (for documentation) */
     --bp-sm:480px; --bp-md:768px; --bp-lg:1024px; --bp-xl:1280px;
@@ -96,9 +97,9 @@
 
     /* logo tiles */
     --logo-tile-bg: linear-gradient(145deg,
-      color-mix(in srgb,var(--surface) 35%, var(--text-light) 65%) 0%,
-      color-mix(in srgb,var(--surface) 50%, var(--text-light) 50%) 100%);
-    --logo-tile-bg-blue: color-mix(in srgb,var(--surface) 85%, #0d1622 15%);
+      color-mix(in srgb,var(--surface) 78%, var(--surface-light) 22%) 0%,
+      color-mix(in srgb,var(--surface) 60%, var(--surface-accent) 40%) 100%);
+    --logo-tile-bg-blue: color-mix(in srgb,var(--surface) 76%, var(--primary) 24%);
     --logo-tile-bg-company: var(--logo-tile-bg);
     --logo-tile-bg-cert: var(--logo-tile-bg-blue);
     --logo-tile-bg-education: var(--logo-tile-bg-blue);
