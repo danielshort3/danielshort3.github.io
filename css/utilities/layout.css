@@ -207,10 +207,14 @@
     --nav-block-padding: clamp(12px,3vw,18px);
     --nav-inline-padding: clamp(20px,6vw,28px);
     --nav-mobile-dropdown-max: calc(100vh - var(--nav-height,72px) - clamp(32px,12vh,96px));
+    --nav-mobile-gap:10px;
+    --nav-mobile-row-padding:14px;
+    --nav-mobile-link-padding:12px 14px;
+    --nav-mobile-search-padding:12px 46px 12px 16px;
   }
   .nav .wrapper{
     padding:var(--nav-block-padding) var(--nav-inline-padding);
-    gap:16px;
+    gap:var(--nav-mobile-gap);
   }
 
   /* ---------- drawer ---------- */
@@ -219,13 +223,14 @@
     top:calc(100% - var(--nav-border-width));
     left:50%;
     right:auto;
-    width:min(420px, calc(100vw - 32px));
+    width:min(420px, calc(min(100vw, 100%) - 24px));
+    max-width:calc(min(100vw, 100%) - 24px);
     box-sizing:border-box;
     display:flex;
     flex-direction:column;
     align-items:stretch;
-    gap:12px;
-    padding:16px;
+    gap:var(--nav-mobile-gap);
+    padding:var(--nav-mobile-row-padding);
     border-radius:0 0 20px 20px;
     border:1px solid color-mix(in srgb,var(--primary) 22%, var(--surface) 78%);
     border-top:none;
@@ -269,14 +274,14 @@
     width:100%;
     justify-content:center;
     text-align:center;
-    gap:8px;
-    padding:14px 18px;
+    gap:6px;
+    padding:var(--nav-mobile-link-padding);
     box-sizing:border-box;
-    border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
+    border:1px solid color-mix(in srgb,var(--primary) 20%, transparent);
     border-radius:14px;
-    font-size:1.02rem;
+    font-size:1rem;
     letter-spacing:.01em;
-    background:color-mix(in srgb,var(--surface) 86%, #020509 14%);
+    background:color-mix(in srgb,var(--surface) 88%, #020509 12%);
     box-shadow:0 16px 32px rgba(0,0,0,.28);
     transition:
       color .25s ease,
@@ -298,9 +303,9 @@
   }
   .nav-row .nav-link + .nav-link{margin-top:4px;}
   .nav-row .nav-link.nav-link-cta{
-    margin-top:10px;
+    margin-top:8px;
     justify-content:center;
-    padding:14px 18px;
+    padding:var(--nav-mobile-link-padding);
     border-radius:999px;
     border:none;
     background:linear-gradient(135deg,
@@ -317,12 +322,12 @@
   .nav-search-input{
     width:100%;
     box-sizing:border-box;
-    padding:14px 52px 14px 18px;
+    padding:var(--nav-mobile-search-padding);
     border-radius:14px;
-    border:1px solid color-mix(in srgb,var(--primary) 22%, transparent);
+    border:1px solid color-mix(in srgb,var(--primary) 20%, transparent);
     background:color-mix(in srgb,var(--surface) 86%, #020509 14%);
     box-shadow:0 16px 32px rgba(0,0,0,.28);
-    font-size:1.02rem;
+    font-size:1rem;
   }
   .nav-search-button{
     right:10px;
@@ -536,10 +541,15 @@
 
 /* ───── NAV ─────────────────────────────────────────────── */
 .nav{
-  position:fixed;inset:0 auto auto 0;          /* stay at very top */
-  width:100%;z-index:1001;                      /* above dim-layer */
+  position:fixed;
+  inset:0 0 auto 0;                             /* stay at very top */
+  width:100%;
+  max-width:100%;
+  box-sizing:border-box;
+  z-index:1001;                                  /* above dim-layer */
   background:var(--surface);                    /* ☑ solid colour */
   border-bottom:1px solid var(--border-subtle); /* subtle divider */
+  overflow-x:hidden;
   /* ✂ remove the old rgba() bg + backdrop-filter lines */
 }
 
