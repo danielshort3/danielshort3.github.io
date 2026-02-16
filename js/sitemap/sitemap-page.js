@@ -3,7 +3,6 @@
 
   const SITEMAP_XML_PATH = '/sitemap.xml';
   const SEARCH_INDEX_PATH = '/dist/search-index.json';
-  const SITEMAP_NS = 'http://www.sitemaps.org/schemas/sitemap/0.9';
 
   function $(selector) {
     return document.querySelector(selector);
@@ -15,26 +14,6 @@
 
   function tokenize(query) {
     return normalizeText(query).split(/\s+/).filter(Boolean);
-  }
-
-  function parseLastmod(value) {
-    const raw = String(value || '').trim();
-    if (!raw) return null;
-    const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
-    if (!m) return null;
-    const date = new Date(`${m[1]}-${m[2]}-${m[3]}T00:00:00Z`);
-    if (Number.isNaN(date.getTime())) return null;
-    return date;
-  }
-
-  function formatLastmod(value) {
-    const date = parseLastmod(value);
-    if (!date) return '—';
-    try {
-      return new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'short', day: '2-digit' }).format(date);
-    } catch (_) {
-      return String(value || '').trim() || '—';
-    }
   }
 
   function formatGeneratedAt(value) {
@@ -53,37 +32,6 @@
     } catch (_) {
       return raw;
     }
-  }
-
-  function readText(node) {
-    if (!node) return '';
-    return String(node.textContent || '').trim();
-  }
-
-  function toPathname(loc) {
-    const raw = String(loc || '').trim();
-    if (!raw) return '';
-    try {
-      return new URL(raw).pathname || '';
-    } catch (_) {
-      return raw.startsWith('/') ? raw : '';
-    }
-  }
-
-  function readSitemapLastmods(xmlDoc) {
-    const out = new Map();
-    if (!xmlDoc) return out;
-    const urls = Array.from(xmlDoc.getElementsByTagNameNS(SITEMAP_NS, 'url'));
-    urls.forEach((urlEl) => {
-      const locEl = urlEl.getElementsByTagNameNS(SITEMAP_NS, 'loc')[0];
-      const lastmodEl = urlEl.getElementsByTagNameNS(SITEMAP_NS, 'lastmod')[0];
-      const loc = readText(locEl);
-      if (!loc) return;
-      const path = toPathname(loc);
-      if (!path) return;
-      out.set(path, readText(lastmodEl));
-    });
-    return out;
   }
 
   function createSection(category, subtitle) {
@@ -142,23 +90,6 @@
     url.textContent = entry.url;
     item.appendChild(url);
 
-    if (entry.description) {
-      const desc = document.createElement('div');
-      desc.className = 'sitemap-item-desc';
-      desc.textContent = entry.description;
-      item.appendChild(desc);
-    }
-
-    const meta = document.createElement('div');
-    meta.className = 'sitemap-item-meta';
-
-    const updated = document.createElement('span');
-    updated.className = 'sitemap-item-updated';
-    updated.textContent = `Updated: ${formatLastmod(entry.lastmod)}`;
-    meta.appendChild(updated);
-
-    item.appendChild(meta);
-
     const keywords = Array.isArray(entry.keywords) ? entry.keywords : [];
     const searchText = [
       entry.title,
@@ -197,7 +128,6 @@
     const parseError = xmlDoc.getElementsByTagName('parsererror')[0];
     if (parseError) throw new Error('Could not parse sitemap.xml');
 
-    const lastmods = readSitemapLastmods(xmlDoc);
     const pages = indexJson && Array.isArray(indexJson.pages) ? indexJson.pages : [];
 
     const seen = new Set();
@@ -212,8 +142,7 @@
           title: String(page.title || '').trim(),
           description: String(page.description || '').trim(),
           category: String(page.category || '').trim() || 'Pages',
-          keywords: Array.isArray(page.keywords) ? page.keywords : [],
-          lastmod: lastmods.get(url) || ''
+          keywords: Array.isArray(page.keywords) ? page.keywords : []
         };
       })
       .filter(Boolean);

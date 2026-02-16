@@ -4,6 +4,19 @@
     margin-inline:auto;
   }
 
+  .sitemap-page-head{
+    margin:0 0 14px;
+  }
+
+  .sitemap-page-head h1{
+    margin:0;
+  }
+
+  .sitemap-page-subtitle{
+    margin:8px 0 0;
+    color:color-mix(in srgb,var(--text-muted) 88%, #ffffff 12%);
+  }
+
   .sitemap-card{
     border-radius:16px;
     padding:clamp(16px, 2.4vw, 24px);
@@ -118,14 +131,20 @@
     margin-top:18px;
     display:grid;
     gap:20px;
+    grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
+    align-items:start;
   }
 
   .sitemap-section{
-    padding-bottom:2px;
+    border:1px solid color-mix(in srgb,var(--primary) 16%, transparent);
+    border-radius:14px;
+    background:color-mix(in srgb,var(--surface) 96%, #000 4%);
+    padding:14px 14px 10px;
+    min-height:100%;
   }
 
   .sitemap-section-head{
-    padding-bottom:8px;
+    padding-bottom:10px;
     border-bottom:1px solid color-mix(in srgb,var(--primary) 16%, transparent);
   }
 
@@ -156,13 +175,13 @@
   }
 
   .sitemap-items{
-    margin:10px 0 0 1.15rem;
+    margin:10px 0 0 1rem;
     padding:0;
     list-style:disc;
   }
 
   .sitemap-item{
-    margin:10px 0;
+    margin:8px 0;
     color:color-mix(in srgb,var(--text-light) 93%, #ffffff 7%);
   }
 
@@ -187,18 +206,6 @@
     overflow-wrap:anywhere;
   }
 
-  .sitemap-item-desc{
-    margin-top:5px;
-    font-size:.93rem;
-    color:color-mix(in srgb,var(--text-muted) 90%, #ffffff 10%);
-  }
-
-  .sitemap-item-meta{
-    margin-top:3px;
-    font-size:.85rem;
-    color:color-mix(in srgb,var(--text-muted) 86%, #ffffff 14%);
-  }
-
   .sitemap-loading,
   .sitemap-empty{
     padding:14px;
@@ -213,5 +220,6 @@
     .sitemap-meta{ flex-direction:column; align-items:flex-start; }
     .sitemap-section-title-row{ flex-direction:column; align-items:flex-start; gap:4px; }
     .sitemap-items{ margin-left:1rem; }
+    .sitemap-sections{ grid-template-columns:1fr; }
   }
 }

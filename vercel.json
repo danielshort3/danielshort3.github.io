@@ -32,6 +32,8 @@
     { "source": "/search.html",       "destination": "/pages/search" },
     { "source": "/sitemap",           "destination": "/pages/sitemap" },
     { "source": "/sitemap.html",      "destination": "/pages/sitemap" },
+    { "source": "/sitemap-pretty",    "destination": "/pages/sitemap-pretty" },
+    { "source": "/sitemap-pretty.html","destination": "/pages/sitemap-pretty" },
     { "source": "/word-frequency",    "destination": "/pages/word-frequency" },
     { "source": "/word-frequency.html","destination": "/pages/word-frequency" },
     { "source": "/tools/word-frequency","destination": "/pages/word-frequency" },
@@ -141,6 +143,18 @@
     },
     {
       "source": "/contributions.html",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, follow" }
+      ]
+    },
+    {
+      "source": "/sitemap-pretty",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, follow" }
+      ]
+    },
+    {
+      "source": "/sitemap-pretty.html",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, follow" }
       ]
