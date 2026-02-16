@@ -41,4 +41,11 @@
     opacity:1;
     transform:translateX(-50%) translateY(0);
   }
+
+  @media (hover:none) and (pointer:coarse) {
+    .cookie-settings{
+      bottom: calc(var(--space-20) + env(safe-area-inset-bottom) + 22px);
+      bottom: calc(var(--space-20) + env(safe-area-inset-bottom) + clamp(16px, 4svh, 30px));
+    }
+  }
 }
