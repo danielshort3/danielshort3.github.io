@@ -23,7 +23,7 @@ window.contributions = [
       },
       { title:'Visit Grand Junction Annual Accomplishments · 2024',
         role :'Contributions: Data aggregation and analysis',
-        link :'https://visitgj.com/4hcADGt',
+        link :'https://assets.simpleviewinc.com/simpleview/image/upload/v1/clients/grandjunctionco/Summary_of_Significant_2024_Accomplishments_Projects_and_Outreach_a9cb184f-00d9-41da-b017-f82459876f00.pdf',
         pdf  :'documents/VGJ_2024_Accomplishments.pdf' 
       }
     ]
