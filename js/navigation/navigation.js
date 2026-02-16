@@ -11,6 +11,7 @@
   let navHeightRaf = null;
   let navResizeObserver = null;
   let navViewportWidth = Math.round(document.documentElement?.clientWidth || window.innerWidth || 0);
+  let navHeightForce = false;
 
   const measureNavHeight = () => {
     const nav = document.querySelector('.nav');
@@ -73,6 +74,11 @@
     }
   };
 
+  const isAtPageTop = () => {
+    const top = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+    return top <= 1;
+  };
+
   window.getNavOffset = () => {
     if (typeof window.__navHeight === 'number' && window.__navHeight > 0) {
       return window.__navHeight;
@@ -88,21 +94,27 @@
     setNavHeight();
     setupNavHeightObservers();
     window.addEventListener('load', () => {
-      scheduleNavHeightUpdate();
+      scheduleNavHeightUpdate({ force: true });
     });
     window.addEventListener('resize', handleNavViewportResize);
     window.addEventListener('orientationchange', () => {
       navViewportWidth = Math.round(document.documentElement?.clientWidth || window.innerWidth || 0);
-      scheduleNavHeightUpdate();
+      scheduleNavHeightUpdate({ force: true });
     });
+    window.addEventListener('scroll', handleNavViewportScroll, { passive: true });
   });
   function handleNavViewportResize(){
     const nextWidth = Math.round(document.documentElement?.clientWidth || window.innerWidth || 0);
     if (!nextWidth || nextWidth === navViewportWidth) return;
     navViewportWidth = nextWidth;
-    scheduleNavHeightUpdate();
+    scheduleNavHeightUpdate({ force: true });
   }
-  function setNavHeight(){
+  function handleNavViewportScroll(){
+    if (!isAtPageTop()) return;
+    scheduleNavHeightUpdate({ force: true });
+  }
+  function setNavHeight({ force = false } = {}){
+    if (!force && !isAtPageTop()) return;
     const next = measureNavHeight();
     if (!Number.isFinite(next) || next <= 0) return;
     if (cachedNavHeight !== null && Math.abs(next - cachedNavHeight) < 2) return;
@@ -112,12 +124,15 @@
     updateNavDropdownOffset();
     clampDropdownsToViewport();
   }
-  function scheduleNavHeightUpdate(){
+  function scheduleNavHeightUpdate({ force = false } = {}){
+    if (force) navHeightForce = true;
     if (navHeightRaf !== null) return;
     const requestFrame = window.requestAnimationFrame || ((fn) => window.setTimeout(fn, 16));
     navHeightRaf = requestFrame(() => {
       navHeightRaf = null;
-      setNavHeight();
+      const shouldForce = navHeightForce;
+      navHeightForce = false;
+      setNavHeight({ force: shouldForce });
     });
   }
   function setupNavHeightObservers(){
@@ -334,14 +349,7 @@
           document.removeEventListener('pointerdown', handleOutsidePointer, true);
           outsideCloseAttached = false;
         }
-        if (prevFocus) {
-          try {
-            prevFocus.focus({ preventScroll: true });
-          } catch {
-            prevFocus.focus();
-          }
-          prevFocus = null;
-        }
+        if (prevFocus) { prevFocus.focus(); prevFocus = null; }
       };
 
       const handleOutsidePointer = (event) => {
@@ -353,7 +361,9 @@
 
       const openMenu = () => {
         if (menu.classList.contains('open')) return;
-        menu.style.removeProperty('top');
+        const headerBar = burger.closest('.nav') || host;
+        const headerBottom = headerBar.getBoundingClientRect().bottom;
+        menu.style.top = `${headerBottom}px`;
         menu.classList.add('open');
         burger.setAttribute('aria-expanded', 'true');
         syncBodyMenuState(true);
@@ -365,13 +375,7 @@
         }
         // Focus first nav link for keyboard users
         const firstLink = menu.querySelector('.nav-link');
-        if (firstLink) {
-          try {
-            firstLink.focus({ preventScroll: true });
-          } catch {
-            firstLink.focus();
-          }
-        }
+        firstLink && firstLink.focus();
       };
 
       burger.addEventListener('click', () => {
