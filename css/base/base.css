@@ -5,10 +5,13 @@
 @layer base {
   html,body{
     height:100%;margin:0;padding:0;
+    width:100%;
     font-family:'Inter',sans-serif;
     background:var(--bg);color:var(--text-light);
     line-height:1.6;-webkit-font-smoothing:antialiased;
     color-scheme: dark light; /* better native form controls on mobile */
+    overflow-x:hidden;
+    overscroll-behavior:none;
   }
 
   body{
@@ -36,4 +39,3 @@
     .reveal { opacity: 1 !important; transform: none !important; }
   }
 }
-
