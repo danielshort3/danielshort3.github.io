@@ -255,11 +255,9 @@
     pointer-events:auto;
     -webkit-clip-path:inset(0 0 0 0);
             clip-path:inset(0 0 0 0);
-    overflow-y:auto;
-    overflow-x:hidden;
-    -webkit-overflow-scrolling:touch;
+    overflow:hidden;
   }
-  /* Hide scrollbars while keeping touch scrolling available */
+  /* Hide scrollbars; menu remains fully visible without an internal scrollbar */
   .nav-row,
   .nav-row.open{
     scrollbar-width:none;
