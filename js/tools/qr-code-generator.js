@@ -341,7 +341,7 @@
       cornerStyle: 'rounded',
       ecc: 'H',
       fg: '#EAF2FF',
-      bg: '#0D1117',
+      bg: '#090f16',
       transparent: false,
     },
   });
