@@ -10,15 +10,13 @@
   let cachedNavHeight = null;
   let navHeightRaf = null;
   let navResizeObserver = null;
-  let navViewportWidth = Math.round(document.documentElement?.clientWidth || window.innerWidth || 0);
-  let navHeightForce = false;
 
   const measureNavHeight = () => {
     const nav = document.querySelector('.nav');
     if (!nav) return NAV_HEIGHT_FALLBACK;
     const rect = nav.getBoundingClientRect();
     const height = rect.height || nav.offsetHeight || NAV_HEIGHT_FALLBACK;
-    return Math.max(Math.round(height), NAV_HEIGHT_FALLBACK);
+    return Math.max(height, NAV_HEIGHT_FALLBACK);
   };
 
   const setCssNavHeight = (value) => {
@@ -74,11 +72,6 @@
     }
   };
 
-  const isAtPageTop = () => {
-    const top = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
-    return top <= 1;
-  };
-
   window.getNavOffset = () => {
     if (typeof window.__navHeight === 'number' && window.__navHeight > 0) {
       return window.__navHeight;
@@ -93,46 +86,26 @@
     initNav();
     setNavHeight();
     setupNavHeightObservers();
-    window.addEventListener('load', () => {
-      scheduleNavHeightUpdate({ force: true });
-    });
-    window.addEventListener('resize', handleNavViewportResize);
-    window.addEventListener('orientationchange', () => {
-      navViewportWidth = Math.round(document.documentElement?.clientWidth || window.innerWidth || 0);
-      scheduleNavHeightUpdate({ force: true });
-    });
-    window.addEventListener('scroll', handleNavViewportScroll, { passive: true });
+    window.addEventListener('load', setNavHeight);
+    window.addEventListener('resize', setNavHeight);
+    window.addEventListener('orientationchange', setNavHeight);
   });
-  function handleNavViewportResize(){
-    const nextWidth = Math.round(document.documentElement?.clientWidth || window.innerWidth || 0);
-    if (!nextWidth || nextWidth === navViewportWidth) return;
-    navViewportWidth = nextWidth;
-    scheduleNavHeightUpdate({ force: true });
-  }
-  function handleNavViewportScroll(){
-    if (!isAtPageTop()) return;
-    scheduleNavHeightUpdate({ force: true });
-  }
-  function setNavHeight({ force = false } = {}){
-    if (!force && !isAtPageTop()) return;
+  function setNavHeight(){
     const next = measureNavHeight();
     if (!Number.isFinite(next) || next <= 0) return;
-    if (cachedNavHeight !== null && Math.abs(next - cachedNavHeight) < 2) return;
+    if (cachedNavHeight !== null && Math.abs(next - cachedNavHeight) < 0.5) return;
     cachedNavHeight = next;
     setCssNavHeight(next);
     emitNavHeightChange(next);
     updateNavDropdownOffset();
     clampDropdownsToViewport();
   }
-  function scheduleNavHeightUpdate({ force = false } = {}){
-    if (force) navHeightForce = true;
+  function scheduleNavHeightUpdate(){
     if (navHeightRaf !== null) return;
     const requestFrame = window.requestAnimationFrame || ((fn) => window.setTimeout(fn, 16));
     navHeightRaf = requestFrame(() => {
       navHeightRaf = null;
-      const shouldForce = navHeightForce;
-      navHeightForce = false;
-      setNavHeight({ force: shouldForce });
+      setNavHeight();
     });
   }
   function setupNavHeightObservers(){
