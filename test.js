@@ -93,6 +93,7 @@ try {
     checkFileContains('pages/qr-code-generator.html', '<title>QR Code Generator | Daniel Short');
     checkFileContains('pages/image-optimizer.html', '<title>Image Optimizer | Daniel Short');
     checkFileContains('pages/utm-batch-builder.html', '<title>UTM Batch Builder | Daniel Short');
+    checkFileContains('pages/button-css-lab.html', '<title>Button CSS Lab | Daniel Short');
     checkFileContains('pages/whisper-transcribe-monitor.html', '<title>Whisper Capacity Monitor | Daniel Short');
     checkFileContains('pages/ga4-utm-performance.html', '<title>GA4 UTM Performance | Daniel Short');
     checkFileContains('probability-engine.html', '<title>Probability Engine | Daniel Short</title>');
@@ -108,6 +109,7 @@ try {
       'pages/tools-dashboard.html',
       'pages/word-frequency.html',
       'pages/text-compare.html',
+      'pages/button-css-lab.html',
       'pages/point-of-view-checker.html',
       'pages/oxford-comma-checker.html',
       'pages/background-remover.html',
@@ -486,7 +488,7 @@ try {
       .filter(p => p && p.published !== false)
       .map(p => p.id);
     const projectPages = projectIds.map(id => `pages/portfolio/${id}.html`);
-    const toolPages = ['pages/tools.html','pages/tools-dashboard.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html','pages/whisper-transcribe-monitor.html','pages/ga4-utm-performance.html'];
+    const toolPages = ['pages/tools.html','pages/tools-dashboard.html','pages/word-frequency.html','pages/text-compare.html','pages/button-css-lab.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html','pages/whisper-transcribe-monitor.html','pages/ga4-utm-performance.html'];
     ['index.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','pages/privacy.html','pages/search.html','404.html', ...toolPages, ...projectPages].forEach(f => {
       checkFileContains(f, '<header id="combined-header-nav">');
       checkFileContains(f, '<main id="main"');
@@ -773,7 +775,7 @@ try {
 
   section('Base hrefs and redirect sanity', () => {
     ['pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html','pages/resume.html','pages/resume-pdf.html',
-     'pages/tools.html','pages/tools-dashboard.html','pages/search.html','pages/sitemap.html','pages/games.html','pages/short-links.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html','pages/ga4-utm-performance.html',
+     'pages/tools.html','pages/tools-dashboard.html','pages/search.html','pages/sitemap.html','pages/games.html','pages/short-links.html','pages/word-frequency.html','pages/text-compare.html','pages/button-css-lab.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html','pages/ga4-utm-performance.html',
      'demos/chatbot-demo.html','demos/shape-demo.html','demos/sentence-demo.html','demos/slot-machine-demo.html','demos/stellar-dogfight-demo.html']
       .forEach(f => checkFileContains(f, '<base href="/">'));
 

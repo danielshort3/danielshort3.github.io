@@ -1,0 +1,236 @@
+@layer components {
+  .buttonlab-section {
+    padding: clamp(2.8rem, 6vh, 3.8rem) 0;
+  }
+
+  .buttonlab-card {
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 18px;
+    border: 1px solid color-mix(in srgb, var(--primary) 22%, transparent);
+    background: linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--surface) 94%, #050b12 6%) 0%,
+      color-mix(in srgb, var(--surface) 84%, #050b12 16%) 100%
+    );
+    padding: clamp(1.4rem, 2.4vw, 1.9rem);
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.3);
+  }
+
+  .buttonlab-card h2,
+  .buttonlab-card h3 {
+    margin: 0;
+  }
+
+  .buttonlab-subtitle {
+    margin: 8px 0 0;
+    color: var(--text-muted);
+  }
+
+  .buttonlab-form {
+    margin-top: 16px;
+    display: grid;
+    gap: 16px;
+  }
+
+  .buttonlab-top-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+
+  .buttonlab-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
+  .buttonlab-field {
+    display: grid;
+    gap: 8px;
+    align-content: start;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid color-mix(in srgb, var(--primary) 16%, transparent);
+    background: color-mix(in srgb, var(--surface) 95%, #02070d 5%);
+  }
+
+  .buttonlab-custom-field {
+    gap: 10px;
+  }
+
+  .buttonlab-label {
+    font-family: 'Poppins';
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 0.01em;
+  }
+
+  .buttonlab-input,
+  .buttonlab-select,
+  .buttonlab-textarea,
+  .buttonlab-export {
+    box-sizing: border-box;
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
+    background: color-mix(in srgb, var(--surface) 93%, #02070d 7%);
+    color: color-mix(in srgb, var(--text-light) 96%, #ffffff 4%);
+    font: inherit;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .buttonlab-input,
+  .buttonlab-select {
+    height: 38px;
+    padding: 0 10px;
+  }
+
+  .buttonlab-color {
+    padding: 4px;
+  }
+
+  .buttonlab-textarea,
+  .buttonlab-export {
+    min-height: 120px;
+    padding: 10px 12px;
+    resize: vertical;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.93rem;
+    line-height: 1.5;
+  }
+
+  .buttonlab-export {
+    min-height: 220px;
+  }
+
+  .buttonlab-input:focus,
+  .buttonlab-select:focus,
+  .buttonlab-textarea:focus,
+  .buttonlab-export:focus {
+    outline: none;
+    border-color: color-mix(in srgb, var(--primary) 48%, transparent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 26%, transparent);
+  }
+
+  .buttonlab-inline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .buttonlab-inline .buttonlab-select {
+    flex: 1 1 180px;
+    min-width: 0;
+  }
+
+  .buttonlab-inline .btn-secondary,
+  .buttonlab-inline .btn-ghost {
+    min-height: 36px;
+  }
+
+  .buttonlab-status {
+    margin: 0;
+    min-height: 1.3em;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+
+  .buttonlab-status code {
+    font-family: 'Consolas', 'Monaco', monospace;
+  }
+
+  .buttonlab-status[data-tone='success'] {
+    color: var(--success);
+  }
+
+  .buttonlab-status[data-tone='warn'] {
+    color: color-mix(in srgb, var(--warning) 76%, #ffffff 24%);
+  }
+
+  .buttonlab-status[data-tone='error'] {
+    color: var(--danger);
+  }
+
+  .buttonlab-preview-card {
+    display: grid;
+    gap: 16px;
+  }
+
+  .buttonlab-preview-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .buttonlab-summary {
+    margin: 8px 0 0;
+    color: var(--text-muted);
+  }
+
+  .buttonlab-preview-stage {
+    min-height: 180px;
+    border-radius: 16px;
+    border: 1px dashed color-mix(in srgb, var(--primary) 28%, transparent);
+    background:
+      radial-gradient(circle at 20% 18%, rgba(37, 99, 235, 0.16), transparent 44%),
+      radial-gradient(circle at 78% 84%, rgba(16, 185, 129, 0.14), transparent 46%),
+      color-mix(in srgb, var(--surface) 92%, #02070d 8%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+
+  .buttonlab-preview-button {
+    min-width: 160px;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .buttonlab-export-block {
+    display: grid;
+    gap: 10px;
+  }
+
+  .buttonlab-export-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .buttonlab-export-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 760px) {
+    .buttonlab-card {
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .buttonlab-grid,
+    .buttonlab-top-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .buttonlab-preview-stage {
+      min-height: 150px;
+      padding: 16px;
+    }
+
+    .buttonlab-preview-button {
+      width: 100%;
+      white-space: normal;
+    }
+  }
+}

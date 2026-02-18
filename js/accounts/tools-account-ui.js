@@ -7,6 +7,7 @@
   const TOOL_CATALOG = {
     'word-frequency': { name: 'Stopword-Free Word Frequency', href: '/tools/word-frequency' },
     'text-compare': { name: 'Text Compare', href: '/tools/text-compare' },
+    'button-css-lab': { name: 'Button CSS Lab', href: '/tools/button-css-lab' },
     'point-of-view-checker': { name: 'Point of View Checker', href: '/tools/point-of-view-checker' },
     'oxford-comma-checker': { name: 'Oxford Comma Checker', href: '/tools/oxford-comma-checker' },
     'background-remover': { name: 'Background Remover', href: '/tools/background-remover' },

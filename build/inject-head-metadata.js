@@ -31,6 +31,7 @@ const ROUTE_COMPONENT_STYLES = Object.freeze({
   '/games/ocean-wave-simulation': ['css/components/ocean-wave-simulation.css'],
   '/tools/word-frequency': ['css/components/word-frequency.css'],
   '/tools/text-compare': ['css/components/text-compare.css'],
+  '/tools/button-css-lab': ['css/components/button-css-lab.css'],
   '/tools/point-of-view-checker': ['css/components/point-of-view-checker.css'],
   '/tools/oxford-comma-checker': ['css/components/oxford-comma-checker.css'],
   '/tools/nbsp-cleaner': ['css/components/nbsp-cleaner.css'],
