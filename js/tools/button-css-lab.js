@@ -6,7 +6,8 @@
   const PREVIEW_STATE_STYLE_ID = 'buttonlab-preview-state-style';
 
   const BASE_PRESET = {
-    background: '#2563eb',
+    backgroundColor: '#2563eb',
+    backgroundAlpha: 1,
     textColor: '#ffffff',
     borderColor: '#1d4ed8',
     borderWidth: 1,
@@ -22,7 +23,13 @@
     minWidth: 160,
     textTransform: 'none',
     justifyContent: 'center',
-    shadow: '0 10px 22px rgba(37, 99, 235, 0.28)',
+    shadowX: 0,
+    shadowY: 10,
+    shadowBlur: 22,
+    shadowSpread: 0,
+    shadowColor: '#2563eb',
+    shadowAlpha: 0.28,
+    shadowInset: false,
     opacity: 1,
     transform: '',
     cursor: 'pointer',
@@ -30,10 +37,17 @@
     transitionMs: 180,
     transitionEasing: 'ease',
     includeHover: true,
-    hoverBackground: '#1d4ed8',
+    hoverBackgroundColor: '#1d4ed8',
+    hoverBackgroundAlpha: 1,
     hoverTextColor: '#ffffff',
     hoverBorderColor: '#1e40af',
-    hoverShadow: '0 12px 26px rgba(29, 78, 216, 0.34)',
+    hoverShadowX: 0,
+    hoverShadowY: 12,
+    hoverShadowBlur: 26,
+    hoverShadowSpread: 0,
+    hoverShadowColor: '#1d4ed8',
+    hoverShadowAlpha: 0.34,
+    hoverShadowInset: false,
     hoverLift: 1,
     includeActive: true,
     activeLift: 1,
@@ -48,7 +62,7 @@
     },
     'pill-pop': {
       ...BASE_PRESET,
-      background: '#0f172a',
+      backgroundColor: '#0f172a',
       borderColor: '#0f172a',
       radius: 999,
       fontSize: 15,
@@ -56,32 +70,46 @@
       paddingY: 11,
       paddingX: 22,
       letterSpacing: 0.2,
-      shadow: '0 8px 18px rgba(15, 23, 42, 0.32)',
-      hoverBackground: '#1e293b',
+      shadowY: 8,
+      shadowBlur: 18,
+      shadowColor: '#0f172a',
+      shadowAlpha: 0.32,
+      hoverBackgroundColor: '#1e293b',
       hoverBorderColor: '#1e293b',
-      hoverShadow: '0 10px 20px rgba(15, 23, 42, 0.38)',
+      hoverShadowY: 10,
+      hoverShadowBlur: 20,
+      hoverShadowColor: '#0f172a',
+      hoverShadowAlpha: 0.38,
       transitionMs: 160,
       focusRingColor: '#94a3b8'
     },
     'outline-clean': {
       ...BASE_PRESET,
-      background: 'transparent',
+      backgroundColor: '#f8fafc',
+      backgroundAlpha: 0,
       textColor: '#0f172a',
       borderColor: '#334155',
       borderWidth: 2,
       radius: 10,
       fontWeight: '600',
-      shadow: 'none',
-      hoverBackground: '#f8fafc',
+      shadowY: 0,
+      shadowBlur: 0,
+      shadowSpread: 0,
+      shadowAlpha: 0,
+      hoverBackgroundColor: '#f8fafc',
+      hoverBackgroundAlpha: 1,
       hoverTextColor: '#0f172a',
       hoverBorderColor: '#0f172a',
-      hoverShadow: '0 8px 18px rgba(15, 23, 42, 0.16)',
+      hoverShadowY: 8,
+      hoverShadowBlur: 18,
+      hoverShadowColor: '#0f172a',
+      hoverShadowAlpha: 0.16,
       transitionMs: 200,
       focusRingColor: '#64748b'
     },
     'dark-solid': {
       ...BASE_PRESET,
-      background: '#111827',
+      backgroundColor: '#111827',
       textColor: '#f9fafb',
       borderColor: '#0f172a',
       radius: 8,
@@ -90,25 +118,37 @@
       paddingY: 10,
       paddingX: 18,
       letterSpacing: 0.25,
-      shadow: '0 6px 14px rgba(17, 24, 39, 0.34)',
-      hoverBackground: '#1f2937',
+      shadowY: 6,
+      shadowBlur: 14,
+      shadowColor: '#111827',
+      shadowAlpha: 0.34,
+      hoverBackgroundColor: '#1f2937',
       hoverBorderColor: '#1f2937',
-      hoverShadow: '0 9px 18px rgba(17, 24, 39, 0.38)',
+      hoverShadowY: 9,
+      hoverShadowBlur: 18,
+      hoverShadowColor: '#111827',
+      hoverShadowAlpha: 0.38,
       transitionMs: 180,
       focusRingColor: '#9ca3af'
     },
     'sunset-gradient': {
       ...BASE_PRESET,
-      background: 'linear-gradient(135deg, #f97316 0%, #ec4899 100%)',
+      backgroundColor: '#f97316',
       borderColor: '#fb7185',
       radius: 14,
       fontWeight: '600',
       paddingX: 22,
       letterSpacing: 0.2,
-      shadow: '0 12px 26px rgba(236, 72, 153, 0.3)',
-      hoverBackground: 'linear-gradient(135deg, #ea580c 0%, #db2777 100%)',
+      shadowY: 12,
+      shadowBlur: 26,
+      shadowColor: '#ec4899',
+      shadowAlpha: 0.3,
+      hoverBackgroundColor: '#ea580c',
       hoverBorderColor: '#f43f5e',
-      hoverShadow: '0 14px 28px rgba(219, 39, 119, 0.34)',
+      hoverShadowY: 14,
+      hoverShadowBlur: 28,
+      hoverShadowColor: '#db2777',
+      hoverShadowAlpha: 0.34,
       hoverLift: 1.5,
       activeLift: 1.2,
       transitionMs: 220,
@@ -130,6 +170,7 @@
     className: getEl('buttonlab-class'),
 
     background: getEl('buttonlab-background'),
+    backgroundAlpha: getEl('buttonlab-background-alpha'),
     textColor: getEl('buttonlab-text-color'),
     borderColor: getEl('buttonlab-border-color'),
     borderWidth: getEl('buttonlab-border-width'),
@@ -145,15 +186,32 @@
     minWidth: getEl('buttonlab-min-width'),
     textTransform: getEl('buttonlab-text-transform'),
     justifyContent: getEl('buttonlab-justify-content'),
-    shadow: getEl('buttonlab-shadow'),
+
+    shadowX: getEl('buttonlab-shadow-x'),
+    shadowY: getEl('buttonlab-shadow-y'),
+    shadowBlur: getEl('buttonlab-shadow-blur'),
+    shadowSpread: getEl('buttonlab-shadow-spread'),
+    shadowColor: getEl('buttonlab-shadow-color'),
+    shadowAlpha: getEl('buttonlab-shadow-alpha'),
+    shadowInset: getEl('buttonlab-shadow-inset'),
+
     opacity: getEl('buttonlab-opacity'),
     transform: getEl('buttonlab-transform'),
 
     includeHover: getEl('buttonlab-include-hover'),
     hoverBackground: getEl('buttonlab-hover-background'),
+    hoverBackgroundAlpha: getEl('buttonlab-hover-background-alpha'),
     hoverTextColor: getEl('buttonlab-hover-text-color'),
     hoverBorderColor: getEl('buttonlab-hover-border-color'),
-    hoverShadow: getEl('buttonlab-hover-shadow'),
+
+    hoverShadowX: getEl('buttonlab-hover-shadow-x'),
+    hoverShadowY: getEl('buttonlab-hover-shadow-y'),
+    hoverShadowBlur: getEl('buttonlab-hover-shadow-blur'),
+    hoverShadowSpread: getEl('buttonlab-hover-shadow-spread'),
+    hoverShadowColor: getEl('buttonlab-hover-shadow-color'),
+    hoverShadowAlpha: getEl('buttonlab-hover-shadow-alpha'),
+    hoverShadowInset: getEl('buttonlab-hover-shadow-inset'),
+
     hoverLift: getEl('buttonlab-hover-lift'),
 
     includeActive: getEl('buttonlab-include-active'),
@@ -181,13 +239,17 @@
 
   const requiredEls = [
     'form', 'preset', 'applyPresetBtn', 'resetDefaultsBtn', 'label', 'className',
-    'background', 'textColor', 'borderColor', 'borderWidth', 'borderStyle', 'radius', 'fontSize',
-    'fontWeight', 'fontFamily', 'lineHeight', 'paddingY', 'paddingX', 'letterSpacing', 'minWidth',
-    'textTransform', 'justifyContent', 'shadow', 'opacity', 'transform', 'includeHover',
-    'hoverBackground', 'hoverTextColor', 'hoverBorderColor', 'hoverShadow', 'hoverLift',
+    'background', 'backgroundAlpha', 'textColor', 'borderColor', 'borderWidth', 'borderStyle',
+    'radius', 'fontSize', 'fontWeight', 'fontFamily', 'lineHeight', 'paddingY', 'paddingX',
+    'letterSpacing', 'minWidth', 'textTransform', 'justifyContent', 'shadowX', 'shadowY',
+    'shadowBlur', 'shadowSpread', 'shadowColor', 'shadowAlpha', 'shadowInset', 'opacity', 'transform',
+    'includeHover', 'hoverBackground', 'hoverBackgroundAlpha', 'hoverTextColor', 'hoverBorderColor',
+    'hoverShadowX', 'hoverShadowY', 'hoverShadowBlur', 'hoverShadowSpread', 'hoverShadowColor',
+    'hoverShadowAlpha', 'hoverShadowInset', 'hoverLift',
     'includeActive', 'activeLift', 'includeFocus', 'focusRingColor', 'focusRingWidth',
-    'cursor', 'transitionProperty', 'transitionMs', 'transitionEasing', 'customCss', 'customStatus',
-    'previewButton', 'summary', 'exportOutput', 'exportStatus', 'copyCssBtn', 'downloadCssBtn'
+    'cursor', 'transitionProperty', 'transitionMs', 'transitionEasing',
+    'customCss', 'customStatus', 'previewButton', 'summary', 'exportOutput', 'exportStatus',
+    'copyCssBtn', 'downloadCssBtn'
   ];
 
   if (!requiredEls.every((key) => Boolean(els[key]))) return;
@@ -229,6 +291,43 @@
     if (!cleaned) return fallback;
     if (!/^[A-Za-z_]/.test(cleaned)) return `btn-${cleaned}`;
     return cleaned;
+  };
+
+  const normalizeHexColor = (value, fallback = '#000000') => {
+    const read = (input) => {
+      const raw = String(input || '').trim();
+      const match = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(raw);
+      if (!match) return '';
+      const body = match[1].length === 3
+        ? match[1].split('').map((ch) => ch + ch).join('')
+        : match[1];
+      return `#${body.toLowerCase()}`;
+    };
+
+    return read(value) || read(fallback) || '#000000';
+  };
+
+  const hexToRgb = (hexValue) => {
+    const hex = normalizeHexColor(hexValue, '#000000').slice(1);
+    return {
+      r: Number.parseInt(hex.slice(0, 2), 16),
+      g: Number.parseInt(hex.slice(2, 4), 16),
+      b: Number.parseInt(hex.slice(4, 6), 16)
+    };
+  };
+
+  const rgbaFromHex = (hexValue, alphaValue) => {
+    const { r, g, b } = hexToRgb(hexValue);
+    const alpha = clampNumber(alphaValue, 0, 1, 1);
+    return `rgba(${r}, ${g}, ${b}, ${formatDecimal(alpha)})`;
+  };
+
+  const buildBoxShadowValue = ({ x, y, blur, spread, color, alpha, inset }) => {
+    const normalizedAlpha = clampNumber(alpha, 0, 1, 0);
+    if (normalizedAlpha <= 0) return 'none';
+
+    const prefix = inset ? 'inset ' : '';
+    return `${prefix}${formatDecimal(x)}px ${formatDecimal(y)}px ${formatDecimal(blur)}px ${formatDecimal(spread)}px ${rgbaFromHex(color, normalizedAlpha)}`;
   };
 
   const parseCustomDeclarations = (raw) => {
@@ -313,9 +412,10 @@
       label: toStringValue(els.label.value, 'Click me'),
       className: sanitizeClassName(els.className.value),
 
-      background: toStringValue(els.background.value, defaults.background),
-      textColor: toStringValue(els.textColor.value, defaults.textColor),
-      borderColor: toStringValue(els.borderColor.value, defaults.borderColor),
+      backgroundColor: normalizeHexColor(els.background.value, defaults.backgroundColor),
+      backgroundAlpha: clampNumber(els.backgroundAlpha.value, 0, 1, defaults.backgroundAlpha),
+      textColor: normalizeHexColor(els.textColor.value, defaults.textColor),
+      borderColor: normalizeHexColor(els.borderColor.value, defaults.borderColor),
       borderWidth: clampNumber(els.borderWidth.value, 0, 12, defaults.borderWidth),
       borderStyle: toStringValue(els.borderStyle.value, defaults.borderStyle),
       radius: clampNumber(els.radius.value, 0, 80, defaults.radius),
@@ -331,22 +431,38 @@
       textTransform: toStringValue(els.textTransform.value, defaults.textTransform),
       justifyContent: toStringValue(els.justifyContent.value, defaults.justifyContent),
 
-      shadow: toStringValue(els.shadow.value, defaults.shadow),
+      shadowX: clampNumber(els.shadowX.value, -80, 80, defaults.shadowX),
+      shadowY: clampNumber(els.shadowY.value, -80, 80, defaults.shadowY),
+      shadowBlur: clampNumber(els.shadowBlur.value, 0, 160, defaults.shadowBlur),
+      shadowSpread: clampNumber(els.shadowSpread.value, -80, 80, defaults.shadowSpread),
+      shadowColor: normalizeHexColor(els.shadowColor.value, defaults.shadowColor),
+      shadowAlpha: clampNumber(els.shadowAlpha.value, 0, 1, defaults.shadowAlpha),
+      shadowInset: Boolean(els.shadowInset.checked),
+
       opacity: clampNumber(els.opacity.value, 0, 1, defaults.opacity),
       transform: String(els.transform.value || '').trim(),
 
       includeHover: Boolean(els.includeHover.checked),
-      hoverBackground: toStringValue(els.hoverBackground.value, defaults.hoverBackground),
-      hoverTextColor: toStringValue(els.hoverTextColor.value, defaults.hoverTextColor),
-      hoverBorderColor: toStringValue(els.hoverBorderColor.value, defaults.hoverBorderColor),
-      hoverShadow: toStringValue(els.hoverShadow.value, defaults.hoverShadow),
+      hoverBackgroundColor: normalizeHexColor(els.hoverBackground.value, defaults.hoverBackgroundColor),
+      hoverBackgroundAlpha: clampNumber(els.hoverBackgroundAlpha.value, 0, 1, defaults.hoverBackgroundAlpha),
+      hoverTextColor: normalizeHexColor(els.hoverTextColor.value, defaults.hoverTextColor),
+      hoverBorderColor: normalizeHexColor(els.hoverBorderColor.value, defaults.hoverBorderColor),
+
+      hoverShadowX: clampNumber(els.hoverShadowX.value, -80, 80, defaults.hoverShadowX),
+      hoverShadowY: clampNumber(els.hoverShadowY.value, -80, 80, defaults.hoverShadowY),
+      hoverShadowBlur: clampNumber(els.hoverShadowBlur.value, 0, 160, defaults.hoverShadowBlur),
+      hoverShadowSpread: clampNumber(els.hoverShadowSpread.value, -80, 80, defaults.hoverShadowSpread),
+      hoverShadowColor: normalizeHexColor(els.hoverShadowColor.value, defaults.hoverShadowColor),
+      hoverShadowAlpha: clampNumber(els.hoverShadowAlpha.value, 0, 1, defaults.hoverShadowAlpha),
+      hoverShadowInset: Boolean(els.hoverShadowInset.checked),
+
       hoverLift: clampNumber(els.hoverLift.value, -20, 20, defaults.hoverLift),
 
       includeActive: Boolean(els.includeActive.checked),
       activeLift: clampNumber(els.activeLift.value, -20, 20, defaults.activeLift),
 
       includeFocus: Boolean(els.includeFocus.checked),
-      focusRingColor: toStringValue(els.focusRingColor.value, defaults.focusRingColor),
+      focusRingColor: normalizeHexColor(els.focusRingColor.value, defaults.focusRingColor),
       focusRingWidth: clampNumber(els.focusRingWidth.value, 0, 16, defaults.focusRingWidth),
 
       cursor: toStringValue(els.cursor.value, defaults.cursor),
@@ -361,9 +477,10 @@
   const syncInputsFromPreset = (presetId) => {
     const preset = PRESETS[presetId] || getDefaultPreset();
 
-    els.background.value = preset.background;
-    els.textColor.value = preset.textColor;
-    els.borderColor.value = preset.borderColor;
+    els.background.value = normalizeHexColor(preset.backgroundColor, BASE_PRESET.backgroundColor);
+    els.backgroundAlpha.value = String(preset.backgroundAlpha);
+    els.textColor.value = normalizeHexColor(preset.textColor, BASE_PRESET.textColor);
+    els.borderColor.value = normalizeHexColor(preset.borderColor, BASE_PRESET.borderColor);
     els.borderWidth.value = String(preset.borderWidth);
     els.borderStyle.value = String(preset.borderStyle);
     els.radius.value = String(preset.radius);
@@ -379,22 +496,38 @@
     els.textTransform.value = String(preset.textTransform);
     els.justifyContent.value = String(preset.justifyContent);
 
-    els.shadow.value = preset.shadow;
+    els.shadowX.value = String(preset.shadowX);
+    els.shadowY.value = String(preset.shadowY);
+    els.shadowBlur.value = String(preset.shadowBlur);
+    els.shadowSpread.value = String(preset.shadowSpread);
+    els.shadowColor.value = normalizeHexColor(preset.shadowColor, BASE_PRESET.shadowColor);
+    els.shadowAlpha.value = String(preset.shadowAlpha);
+    els.shadowInset.checked = Boolean(preset.shadowInset);
+
     els.opacity.value = String(preset.opacity);
     els.transform.value = preset.transform || '';
 
     els.includeHover.checked = Boolean(preset.includeHover);
-    els.hoverBackground.value = preset.hoverBackground;
-    els.hoverTextColor.value = preset.hoverTextColor;
-    els.hoverBorderColor.value = preset.hoverBorderColor;
-    els.hoverShadow.value = preset.hoverShadow;
+    els.hoverBackground.value = normalizeHexColor(preset.hoverBackgroundColor, BASE_PRESET.hoverBackgroundColor);
+    els.hoverBackgroundAlpha.value = String(preset.hoverBackgroundAlpha);
+    els.hoverTextColor.value = normalizeHexColor(preset.hoverTextColor, BASE_PRESET.hoverTextColor);
+    els.hoverBorderColor.value = normalizeHexColor(preset.hoverBorderColor, BASE_PRESET.hoverBorderColor);
+
+    els.hoverShadowX.value = String(preset.hoverShadowX);
+    els.hoverShadowY.value = String(preset.hoverShadowY);
+    els.hoverShadowBlur.value = String(preset.hoverShadowBlur);
+    els.hoverShadowSpread.value = String(preset.hoverShadowSpread);
+    els.hoverShadowColor.value = normalizeHexColor(preset.hoverShadowColor, BASE_PRESET.hoverShadowColor);
+    els.hoverShadowAlpha.value = String(preset.hoverShadowAlpha);
+    els.hoverShadowInset.checked = Boolean(preset.hoverShadowInset);
+
     els.hoverLift.value = String(preset.hoverLift);
 
     els.includeActive.checked = Boolean(preset.includeActive);
     els.activeLift.value = String(preset.activeLift);
 
     els.includeFocus.checked = Boolean(preset.includeFocus);
-    els.focusRingColor.value = preset.focusRingColor;
+    els.focusRingColor.value = normalizeHexColor(preset.focusRingColor, BASE_PRESET.focusRingColor);
     els.focusRingWidth.value = String(preset.focusRingWidth);
 
     els.cursor.value = String(preset.cursor);
@@ -426,12 +559,20 @@
       ['text-transform', state.textTransform],
       ['padding', `${formatDecimal(state.paddingY)}px ${formatDecimal(state.paddingX)}px`],
       ['color', state.textColor],
-      ['background', state.background],
+      ['background-color', rgbaFromHex(state.backgroundColor, state.backgroundAlpha)],
       ['border-width', `${formatDecimal(state.borderWidth)}px`],
       ['border-style', state.borderStyle],
       ['border-color', state.borderColor],
       ['border-radius', `${formatDecimal(state.radius)}px`],
-      ['box-shadow', state.shadow],
+      ['box-shadow', buildBoxShadowValue({
+        x: state.shadowX,
+        y: state.shadowY,
+        blur: state.shadowBlur,
+        spread: state.shadowSpread,
+        color: state.shadowColor,
+        alpha: state.shadowAlpha,
+        inset: state.shadowInset
+      })],
       ['opacity', formatDecimal(state.opacity)],
       ['cursor', state.cursor],
       ['transition', buildTransitionValue(state)]
@@ -449,10 +590,18 @@
     if (!state.includeHover) return [];
 
     const declarations = [
-      ['background', state.hoverBackground],
+      ['background-color', rgbaFromHex(state.hoverBackgroundColor, state.hoverBackgroundAlpha)],
       ['color', state.hoverTextColor],
       ['border-color', state.hoverBorderColor],
-      ['box-shadow', state.hoverShadow]
+      ['box-shadow', buildBoxShadowValue({
+        x: state.hoverShadowX,
+        y: state.hoverShadowY,
+        blur: state.hoverShadowBlur,
+        spread: state.hoverShadowSpread,
+        color: state.hoverShadowColor,
+        alpha: state.hoverShadowAlpha,
+        inset: state.hoverShadowInset
+      })]
     ];
 
     if (Math.abs(state.hoverLift) > 0.0001) {
@@ -658,9 +807,8 @@
   };
 
   const getToolInputs = () => {
-    const state = readStateFromInputs();
     return {
-      ...state
+      ...readStateFromInputs()
     };
   };
 
