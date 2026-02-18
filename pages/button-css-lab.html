@@ -213,7 +213,7 @@
       <div class="wrapper">
         <div class="buttonlab-card buttonlab-controls-card">
           <h2>Build your button</h2>
-          <p class="buttonlab-subtitle">Start from a preset, adjust defaults with the controls, then add your own CSS declarations.</p>
+          <p class="buttonlab-subtitle">Pick a preset, adjust the look, and copy ready-to-use CSS. The preview updates instantly as you type.</p>
 
           <form id="buttonlab-form" class="buttonlab-form" novalidate>
             <div class="buttonlab-top-grid" role="group" aria-label="Button setup">
@@ -245,26 +245,38 @@
 
               <div class="buttonlab-field" data-level="common">
                 <label class="buttonlab-label" for="buttonlab-class">
-                  <span>Export class name</span>
+                  <span>CSS class name</span>
                   <span class="buttonlab-level-pill is-common">Common</span>
                 </label>
                 <input id="buttonlab-class" class="buttonlab-input" type="text" name="exportClass" value="my-button" maxlength="60" autocomplete="off" spellcheck="false">
+                <p class="buttonlab-field-note">Used in your export as <code>.my-button</code>.</p>
               </div>
             </div>
 
-            <p class="buttonlab-beginner-tip">New to CSS? Start with Quick Essentials (open by default). Each change updates the preview instantly.</p>
+            <p class="buttonlab-beginner-tip">New to CSS? Start with Step 1. The green fields are the most commonly edited.</p>
             <div class="buttonlab-level-legend" role="list" aria-label="Field priority legend">
               <span class="buttonlab-level-pill is-most" role="listitem">Most edited</span>
               <span class="buttonlab-level-pill is-common" role="listitem">Common</span>
               <span class="buttonlab-level-pill is-advanced" role="listitem">Advanced</span>
             </div>
 
+            <div class="buttonlab-guide" role="note" aria-label="Quick start guide">
+              <p class="buttonlab-guide-title">Quick start (about 60 seconds)</p>
+              <ol class="buttonlab-guide-list">
+                <li>Pick a preset and click <strong>Apply preset</strong>.</li>
+                <li>Open <strong>Step 1</strong> and set color, corner roundness, and text size.</li>
+                <li>Open <strong>Step 4</strong> if you want hover, pressed, or focus behavior.</li>
+                <li>Copy the result from <strong>Export CSS</strong>.</li>
+              </ol>
+            </div>
+
             <details class="buttonlab-group" open>
               <summary>
-                <span class="buttonlab-group-title">Quick Essentials</span>
-                <span class="buttonlab-group-meta">Start here first</span>
+                <span class="buttonlab-group-title">Step 1: Core Look</span>
+                <span class="buttonlab-group-meta">Main appearance controls</span>
               </summary>
-              <div class="buttonlab-grid buttonlab-group-grid" role="group" aria-label="Quick essentials">
+              <div class="buttonlab-grid buttonlab-group-grid" role="group" aria-label="Core look controls">
+                <p class="buttonlab-hint">If you only edit this step, you will still get a polished button.</p>
                 <div class="buttonlab-field" data-level="most">
                   <label class="buttonlab-label" for="buttonlab-background">
                     <span>Background color</span>
@@ -275,7 +287,7 @@
 
                 <div class="buttonlab-field" data-level="common">
                   <label class="buttonlab-label" for="buttonlab-background-alpha">
-                    <span>Background alpha</span>
+                    <span>Background transparency (0-1)</span>
                     <span class="buttonlab-level-pill is-common">Common</span>
                   </label>
                   <input id="buttonlab-background-alpha" class="buttonlab-input" type="number" name="backgroundAlpha" value="1" min="0" max="1" step="0.05" inputmode="decimal">
@@ -299,7 +311,7 @@
 
                 <div class="buttonlab-field" data-level="common">
                   <label class="buttonlab-label" for="buttonlab-border-width">
-                    <span>Border width (px)</span>
+                    <span>Border thickness (px)</span>
                     <span class="buttonlab-level-pill is-common">Common</span>
                   </label>
                   <input id="buttonlab-border-width" class="buttonlab-input" type="number" name="borderWidth" value="1" min="0" max="12" step="0.1" inputmode="decimal">
@@ -307,7 +319,7 @@
 
                 <div class="buttonlab-field" data-level="most">
                   <label class="buttonlab-label" for="buttonlab-radius">
-                    <span>Border radius (px)</span>
+                    <span>Corner roundness (px)</span>
                     <span class="buttonlab-level-pill is-most">Most edited</span>
                   </label>
                   <input id="buttonlab-radius" class="buttonlab-input" type="number" name="radius" value="12" min="0" max="80" inputmode="decimal">
@@ -315,7 +327,7 @@
 
                 <div class="buttonlab-field" data-level="most">
                   <label class="buttonlab-label" for="buttonlab-font-size">
-                    <span>Font size (px)</span>
+                    <span>Text size (px)</span>
                     <span class="buttonlab-level-pill is-most">Most edited</span>
                   </label>
                   <input id="buttonlab-font-size" class="buttonlab-input" type="number" name="fontSize" value="16" min="10" max="42" inputmode="decimal">
@@ -323,7 +335,7 @@
 
                 <div class="buttonlab-field" data-level="common">
                   <label class="buttonlab-label" for="buttonlab-font-weight">
-                    <span>Font weight</span>
+                    <span>Text thickness</span>
                     <span class="buttonlab-level-pill is-common">Common</span>
                   </label>
                   <select id="buttonlab-font-weight" class="buttonlab-select" name="fontWeight">
@@ -337,7 +349,7 @@
 
                 <div class="buttonlab-field" data-level="most">
                   <label class="buttonlab-label" for="buttonlab-padding-y">
-                    <span>Padding Y (px)</span>
+                    <span>Top and bottom spacing (px)</span>
                     <span class="buttonlab-level-pill is-most">Most edited</span>
                   </label>
                   <input id="buttonlab-padding-y" class="buttonlab-input" type="number" name="paddingY" value="12" min="0" max="48" inputmode="decimal">
@@ -345,7 +357,7 @@
 
                 <div class="buttonlab-field" data-level="most">
                   <label class="buttonlab-label" for="buttonlab-padding-x">
-                    <span>Padding X (px)</span>
+                    <span>Left and right spacing (px)</span>
                     <span class="buttonlab-level-pill is-most">Most edited</span>
                   </label>
                   <input id="buttonlab-padding-x" class="buttonlab-input" type="number" name="paddingX" value="20" min="0" max="80" inputmode="decimal">
@@ -353,12 +365,13 @@
               </div>
             </details>
 
-            <details class="buttonlab-group">
+            <details class="buttonlab-group" open>
               <summary>
-                <span class="buttonlab-group-title">Typography &amp; Layout</span>
-                <span class="buttonlab-group-meta">Text styling and alignment</span>
+                <span class="buttonlab-group-title">Step 2: Text and Spacing</span>
+                <span class="buttonlab-group-meta">Optional typography controls</span>
               </summary>
-              <div class="buttonlab-grid buttonlab-group-grid" role="group" aria-label="Typography and layout">
+              <div class="buttonlab-grid buttonlab-group-grid" role="group" aria-label="Text and spacing controls">
+                <p class="buttonlab-hint">Use this step when you want more precision for typography and alignment.</p>
                 <div class="buttonlab-field" data-level="common">
                   <label class="buttonlab-label" for="buttonlab-font-family">
                     <span>Font family</span>
@@ -369,7 +382,7 @@
 
                 <div class="buttonlab-field" data-level="common">
                   <label class="buttonlab-label" for="buttonlab-line-height">
-                    <span>Line height</span>
+                    <span>Text line height</span>
                     <span class="buttonlab-level-pill is-common">Common</span>
                   </label>
                   <input id="buttonlab-line-height" class="buttonlab-input" type="number" name="lineHeight" value="1.2" min="0.8" max="3" step="0.05" inputmode="decimal">
@@ -385,7 +398,7 @@
 
                 <div class="buttonlab-field" data-level="common">
                   <label class="buttonlab-label" for="buttonlab-text-transform">
-                    <span>Text transform</span>
+                    <span>Upper/lowercase style</span>
                     <span class="buttonlab-level-pill is-common">Common</span>
                   </label>
                   <select id="buttonlab-text-transform" class="buttonlab-select" name="textTransform">
@@ -398,7 +411,7 @@
 
                 <div class="buttonlab-field" data-level="common">
                   <label class="buttonlab-label" for="buttonlab-min-width">
-                    <span>Minimum width (px)</span>
+                    <span>Minimum button width (px)</span>
                     <span class="buttonlab-level-pill is-common">Common</span>
                   </label>
                   <input id="buttonlab-min-width" class="buttonlab-input" type="number" name="minWidth" value="160" min="0" max="480" step="1" inputmode="decimal">
@@ -406,7 +419,7 @@
 
                 <div class="buttonlab-field" data-level="advanced">
                   <label class="buttonlab-label" for="buttonlab-justify-content">
-                    <span>Content alignment</span>
+                    <span>Text alignment</span>
                     <span class="buttonlab-level-pill is-advanced">Advanced</span>
                   </label>
                   <select id="buttonlab-justify-content" class="buttonlab-select" name="justifyContent">
@@ -421,10 +434,11 @@
 
             <details class="buttonlab-group">
               <summary>
-                <span class="buttonlab-group-title">Depth &amp; Polish</span>
-                <span class="buttonlab-group-meta">Border, shadow, transparency</span>
+                <span class="buttonlab-group-title">Step 3: Shadow and Finishing</span>
+                <span class="buttonlab-group-meta">Depth, style, and transparency</span>
               </summary>
-              <div class="buttonlab-grid buttonlab-group-grid" role="group" aria-label="Depth and polish">
+              <div class="buttonlab-grid buttonlab-group-grid" role="group" aria-label="Shadow and finishing controls">
+                <p class="buttonlab-hint">The biggest shadow changes are color, transparency, and softness.</p>
                 <div class="buttonlab-field" data-level="common">
                   <label class="buttonlab-label" for="buttonlab-border-style">
                     <span>Border style</span>
@@ -441,7 +455,7 @@
 
                 <div class="buttonlab-field" data-level="common">
                   <label class="buttonlab-label" for="buttonlab-shadow-x">
-                    <span>Shadow X (px)</span>
+                    <span>Shadow left/right (px)</span>
                     <span class="buttonlab-level-pill is-common">Common</span>
                   </label>
                   <input id="buttonlab-shadow-x" class="buttonlab-input" type="number" name="shadowX" value="0" min="-80" max="80" step="0.1" inputmode="decimal">
@@ -449,7 +463,7 @@
 
                 <div class="buttonlab-field" data-level="common">
                   <label class="buttonlab-label" for="buttonlab-shadow-y">
-                    <span>Shadow Y (px)</span>
+                    <span>Shadow up/down (px)</span>
                     <span class="buttonlab-level-pill is-common">Common</span>
                   </label>
                   <input id="buttonlab-shadow-y" class="buttonlab-input" type="number" name="shadowY" value="10" min="-80" max="80" step="0.1" inputmode="decimal">
@@ -457,7 +471,7 @@
 
                 <div class="buttonlab-field" data-level="common">
                   <label class="buttonlab-label" for="buttonlab-shadow-blur">
-                    <span>Shadow blur (px)</span>
+                    <span>Shadow softness (px)</span>
                     <span class="buttonlab-level-pill is-common">Common</span>
                   </label>
                   <input id="buttonlab-shadow-blur" class="buttonlab-input" type="number" name="shadowBlur" value="22" min="0" max="160" step="0.1" inputmode="decimal">
@@ -481,7 +495,7 @@
 
                 <div class="buttonlab-field" data-level="common">
                   <label class="buttonlab-label" for="buttonlab-shadow-alpha">
-                    <span>Shadow alpha</span>
+                    <span>Shadow transparency (0-1)</span>
                     <span class="buttonlab-level-pill is-common">Common</span>
                   </label>
                   <input id="buttonlab-shadow-alpha" class="buttonlab-input" type="number" name="shadowAlpha" value="0.28" min="0" max="1" step="0.05" inputmode="decimal">
@@ -489,18 +503,18 @@
 
                 <label class="buttonlab-field buttonlab-check-field" data-level="advanced">
                   <span class="buttonlab-label">
-                    <span>Inset shadow</span>
+                    <span>Shadow inside button</span>
                     <span class="buttonlab-level-pill is-advanced">Advanced</span>
                   </span>
                   <span class="buttonlab-check-line">
                     <input id="buttonlab-shadow-inset" type="checkbox" name="shadowInset">
-                    <span>Render shadow inside the button</span>
+                    <span>Place the shadow inside instead of outside</span>
                   </span>
-                </div>
+                </label>
 
                 <div class="buttonlab-field" data-level="advanced">
                   <label class="buttonlab-label" for="buttonlab-opacity">
-                    <span>Opacity</span>
+                    <span>Overall transparency (0-1)</span>
                     <span class="buttonlab-level-pill is-advanced">Advanced</span>
                   </label>
                   <input id="buttonlab-opacity" class="buttonlab-input" type="number" name="opacity" value="1" min="0" max="1" step="0.05" inputmode="decimal">
@@ -508,7 +522,7 @@
 
                 <div class="buttonlab-field" data-level="advanced">
                   <label class="buttonlab-label" for="buttonlab-transform">
-                    <span>Transform</span>
+                    <span>Extra movement/effects</span>
                     <span class="buttonlab-level-pill is-advanced">Advanced</span>
                   </label>
                   <input id="buttonlab-transform" class="buttonlab-input" type="text" name="transform" value="" placeholder="scale(1.02) rotate(-1deg)" spellcheck="false">
@@ -518,18 +532,19 @@
 
             <details class="buttonlab-group">
               <summary>
-                <span class="buttonlab-group-title">Interaction States</span>
-                <span class="buttonlab-group-meta">Hover, active, focus, motion</span>
+                <span class="buttonlab-group-title">Step 4: Hover, Press, and Focus</span>
+                <span class="buttonlab-group-meta">How the button reacts to interaction</span>
               </summary>
-              <div class="buttonlab-grid buttonlab-group-grid" role="group" aria-label="Interaction states">
+              <div class="buttonlab-grid buttonlab-group-grid" role="group" aria-label="Interaction controls">
+                <p class="buttonlab-hint">Leave defaults on if you are unsure. They improve usability and accessibility.</p>
                 <label class="buttonlab-field buttonlab-check-field" data-level="common">
                   <span class="buttonlab-label">
-                    <span>Enable hover styles</span>
+                    <span>Enable hover style</span>
                     <span class="buttonlab-level-pill is-common">Common</span>
                   </span>
                   <span class="buttonlab-check-line">
                     <input id="buttonlab-include-hover" type="checkbox" name="includeHover" checked>
-                    <span>Use separate styles on hover</span>
+                    <span>Turn this on to customize hover fields below</span>
                   </span>
                 </label>
 
@@ -543,7 +558,7 @@
 
                 <div class="buttonlab-field" data-level="common" data-state-controls="hover">
                   <label class="buttonlab-label" for="buttonlab-hover-background-alpha">
-                    <span>Hover background alpha</span>
+                    <span>Hover background transparency (0-1)</span>
                     <span class="buttonlab-level-pill is-common">Common</span>
                   </label>
                   <input id="buttonlab-hover-background-alpha" class="buttonlab-input" type="number" name="hoverBackgroundAlpha" value="1" min="0" max="1" step="0.05" inputmode="decimal">
@@ -567,7 +582,7 @@
 
                 <div class="buttonlab-field" data-level="advanced" data-state-controls="hover">
                   <label class="buttonlab-label" for="buttonlab-hover-shadow-x">
-                    <span>Hover shadow X (px)</span>
+                    <span>Hover shadow left/right (px)</span>
                     <span class="buttonlab-level-pill is-advanced">Advanced</span>
                   </label>
                   <input id="buttonlab-hover-shadow-x" class="buttonlab-input" type="number" name="hoverShadowX" value="0" min="-80" max="80" step="0.1" inputmode="decimal">
@@ -575,7 +590,7 @@
 
                 <div class="buttonlab-field" data-level="advanced" data-state-controls="hover">
                   <label class="buttonlab-label" for="buttonlab-hover-shadow-y">
-                    <span>Hover shadow Y (px)</span>
+                    <span>Hover shadow up/down (px)</span>
                     <span class="buttonlab-level-pill is-advanced">Advanced</span>
                   </label>
                   <input id="buttonlab-hover-shadow-y" class="buttonlab-input" type="number" name="hoverShadowY" value="12" min="-80" max="80" step="0.1" inputmode="decimal">
@@ -583,7 +598,7 @@
 
                 <div class="buttonlab-field" data-level="advanced" data-state-controls="hover">
                   <label class="buttonlab-label" for="buttonlab-hover-shadow-blur">
-                    <span>Hover shadow blur (px)</span>
+                    <span>Hover shadow softness (px)</span>
                     <span class="buttonlab-level-pill is-advanced">Advanced</span>
                   </label>
                   <input id="buttonlab-hover-shadow-blur" class="buttonlab-input" type="number" name="hoverShadowBlur" value="26" min="0" max="160" step="0.1" inputmode="decimal">
@@ -607,7 +622,7 @@
 
                 <div class="buttonlab-field" data-level="advanced" data-state-controls="hover">
                   <label class="buttonlab-label" for="buttonlab-hover-shadow-alpha">
-                    <span>Hover shadow alpha</span>
+                    <span>Hover shadow transparency (0-1)</span>
                     <span class="buttonlab-level-pill is-advanced">Advanced</span>
                   </label>
                   <input id="buttonlab-hover-shadow-alpha" class="buttonlab-input" type="number" name="hoverShadowAlpha" value="0.34" min="0" max="1" step="0.05" inputmode="decimal">
@@ -615,18 +630,18 @@
 
                 <label class="buttonlab-field buttonlab-check-field" data-level="advanced" data-state-controls="hover">
                   <span class="buttonlab-label">
-                    <span>Hover inset shadow</span>
+                    <span>Hover shadow inside button</span>
                     <span class="buttonlab-level-pill is-advanced">Advanced</span>
                   </span>
                   <span class="buttonlab-check-line">
                     <input id="buttonlab-hover-shadow-inset" type="checkbox" name="hoverShadowInset">
-                    <span>Render hover shadow inside the button</span>
+                    <span>Place hover shadow inside instead of outside</span>
                   </span>
                 </div>
 
                 <div class="buttonlab-field" data-level="common" data-state-controls="hover">
                   <label class="buttonlab-label" for="buttonlab-hover-lift">
-                    <span>Hover lift (px)</span>
+                    <span>Hover raise amount (px)</span>
                     <span class="buttonlab-level-pill is-common">Common</span>
                   </label>
                   <input id="buttonlab-hover-lift" class="buttonlab-input" type="number" name="hoverLift" value="1" min="-20" max="20" step="0.1" inputmode="decimal">
@@ -634,18 +649,18 @@
 
                 <label class="buttonlab-field buttonlab-check-field" data-level="common">
                   <span class="buttonlab-label">
-                    <span>Enable active styles</span>
+                    <span>Enable pressed style</span>
                     <span class="buttonlab-level-pill is-common">Common</span>
                   </span>
                   <span class="buttonlab-check-line">
                     <input id="buttonlab-include-active" type="checkbox" name="includeActive" checked>
-                    <span>Pressing the button adds an active state</span>
+                    <span>Turn this on to customize pressed behavior</span>
                   </span>
                 </label>
 
                 <div class="buttonlab-field" data-level="common" data-state-controls="active">
                   <label class="buttonlab-label" for="buttonlab-active-lift">
-                    <span>Active shift (px)</span>
+                    <span>Pressed shift amount (px)</span>
                     <span class="buttonlab-level-pill is-common">Common</span>
                   </label>
                   <input id="buttonlab-active-lift" class="buttonlab-input" type="number" name="activeLift" value="1" min="-20" max="20" step="0.1" inputmode="decimal">
@@ -653,12 +668,12 @@
 
                 <label class="buttonlab-field buttonlab-check-field" data-level="common">
                   <span class="buttonlab-label">
-                    <span>Enable focus ring</span>
+                    <span>Show keyboard focus ring</span>
                     <span class="buttonlab-level-pill is-common">Common</span>
                   </span>
                   <span class="buttonlab-check-line">
                     <input id="buttonlab-include-focus" type="checkbox" name="includeFocus" checked>
-                    <span>Useful for keyboard accessibility</span>
+                    <span>Recommended for accessibility</span>
                   </span>
                 </label>
 
@@ -672,7 +687,7 @@
 
                 <div class="buttonlab-field" data-level="common" data-state-controls="focus">
                   <label class="buttonlab-label" for="buttonlab-focus-ring-width">
-                    <span>Focus ring width (px)</span>
+                    <span>Focus ring thickness (px)</span>
                     <span class="buttonlab-level-pill is-common">Common</span>
                   </label>
                   <input id="buttonlab-focus-ring-width" class="buttonlab-input" type="number" name="focusRingWidth" value="3" min="0" max="16" step="0.5" inputmode="decimal">
@@ -693,20 +708,20 @@
 
                 <div class="buttonlab-field" data-level="common">
                   <label class="buttonlab-label" for="buttonlab-transition-property">
-                    <span>Transition property</span>
+                    <span>What should animate</span>
                     <span class="buttonlab-level-pill is-common">Common</span>
                   </label>
                   <select id="buttonlab-transition-property" class="buttonlab-select" name="transitionProperty">
-                    <option value="all" selected>All properties</option>
+                    <option value="all" selected>Everything</option>
                     <option value="background-color, color, border-color">Colors only</option>
                     <option value="transform, box-shadow">Movement + shadow</option>
-                    <option value="none">No transition</option>
+                    <option value="none">No animation</option>
                   </select>
                 </div>
 
                 <div class="buttonlab-field" data-level="common">
                   <label class="buttonlab-label" for="buttonlab-transition">
-                    <span>Transition (ms)</span>
+                    <span>Animation speed (ms)</span>
                     <span class="buttonlab-level-pill is-common">Common</span>
                   </label>
                   <input id="buttonlab-transition" class="buttonlab-input" type="number" name="transitionMs" value="180" min="0" max="2000" step="10" inputmode="numeric">
@@ -714,7 +729,7 @@
 
                 <div class="buttonlab-field" data-level="common">
                   <label class="buttonlab-label" for="buttonlab-transition-easing">
-                    <span>Transition easing</span>
+                    <span>Animation feel</span>
                     <span class="buttonlab-level-pill is-common">Common</span>
                   </label>
                   <select id="buttonlab-transition-easing" class="buttonlab-select" name="transitionEasing">
@@ -730,17 +745,17 @@
 
             <details class="buttonlab-group">
               <summary>
-                <span class="buttonlab-group-title">Advanced Custom CSS</span>
-                <span class="buttonlab-group-meta">Manual declarations</span>
+                <span class="buttonlab-group-title">Step 5: Advanced CSS (Optional)</span>
+                <span class="buttonlab-group-meta">For extra rules not listed above</span>
               </summary>
               <div class="buttonlab-grid buttonlab-group-grid" role="group" aria-label="Advanced custom CSS">
                 <div class="buttonlab-field buttonlab-custom-field" data-level="advanced">
                   <label class="buttonlab-label" for="buttonlab-custom-css">
-                    <span>Custom CSS declarations</span>
+                    <span>Additional CSS lines</span>
                     <span class="buttonlab-level-pill is-advanced">Advanced</span>
                   </label>
                   <textarea id="buttonlab-custom-css" class="buttonlab-textarea" name="customCss" rows="6" placeholder="transform: translateY(-1px);&#10;filter: saturate(1.05);" spellcheck="false"></textarea>
-                  <p id="buttonlab-custom-status" class="buttonlab-status" aria-live="polite">Add declarations like <code>transform: translateY(-1px);</code>. Property-value pairs are applied in order.</p>
+                  <p id="buttonlab-custom-status" class="buttonlab-status" aria-live="polite">Optional: add extra CSS lines like <code>transform: translateY(-1px);</code>.</p>
                 </div>
               </div>
             </details>

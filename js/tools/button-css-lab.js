@@ -377,12 +377,12 @@
 
   const setCustomStatus = (invalidCount) => {
     if (!invalidCount) {
-      els.customStatus.textContent = 'Add declarations like transform: translateY(-1px); Property-value pairs are applied in order.';
+      els.customStatus.textContent = 'Optional: add extra CSS lines like transform: translateY(-1px);';
       els.customStatus.dataset.tone = '';
       return;
     }
 
-    els.customStatus.textContent = `${invalidCount} custom line${invalidCount === 1 ? '' : 's'} skipped. Use "property: value;" format.`;
+    els.customStatus.textContent = `${invalidCount} line${invalidCount === 1 ? '' : 's'} skipped. Use "property: value;" format.`;
     els.customStatus.dataset.tone = 'warn';
   };
 

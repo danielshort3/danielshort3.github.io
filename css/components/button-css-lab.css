@@ -98,6 +98,50 @@
     line-height: 1.55;
   }
 
+  .buttonlab-guide {
+    border: 1px solid color-mix(in srgb, var(--primary) 26%, transparent);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--surface) 93%, #061222 7%);
+    padding: 12px 14px;
+  }
+
+  .buttonlab-guide-title {
+    margin: 0;
+    font-family: 'Poppins';
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: color-mix(in srgb, var(--text-light) 92%, #ffffff 8%);
+  }
+
+  .buttonlab-guide-list {
+    margin: 8px 0 0;
+    padding-left: 18px;
+    display: grid;
+    gap: 5px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+
+  .buttonlab-hint {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.89rem;
+    line-height: 1.4;
+  }
+
+  .buttonlab-field-note {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    line-height: 1.35;
+  }
+
+  .buttonlab-field-note code {
+    font-family: 'Consolas', 'Monaco', monospace;
+  }
+
   .buttonlab-level-legend {
     display: flex;
     align-items: center;
