@@ -25,12 +25,13 @@
   .buttonlab-subtitle {
     margin: 8px 0 0;
     color: var(--text-muted);
+    max-width: 70ch;
   }
 
   .buttonlab-form {
     margin-top: 16px;
     display: grid;
-    gap: 16px;
+    gap: 14px;
   }
 
   .buttonlab-top-grid {
@@ -52,17 +53,149 @@
     padding: 12px;
     border-radius: 12px;
     border: 1px solid color-mix(in srgb, var(--primary) 16%, transparent);
+    border-left-width: 4px;
     background: color-mix(in srgb, var(--surface) 95%, #02070d 5%);
   }
 
-  .buttonlab-custom-field {
+  .buttonlab-field[data-level='most'] {
+    border-left-color: #22c55e;
+  }
+
+  .buttonlab-field[data-level='common'] {
+    border-left-color: #38bdf8;
+  }
+
+  .buttonlab-field[data-level='advanced'] {
+    border-left-color: #f59e0b;
+  }
+
+  .buttonlab-field.is-disabled {
+    opacity: 0.58;
+    filter: saturate(0.7);
+  }
+
+  .buttonlab-check-field {
+    grid-column: span 2;
+    min-height: 100%;
+  }
+
+  .buttonlab-check-line {
+    display: flex;
+    align-items: center;
     gap: 10px;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+
+  .buttonlab-check-line input {
+    accent-color: var(--primary);
+  }
+
+  .buttonlab-beginner-tip {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.55;
+  }
+
+  .buttonlab-level-legend {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .buttonlab-level-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 9px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+
+  .buttonlab-level-pill.is-most {
+    color: #dcfce7;
+    border-color: rgba(34, 197, 94, 0.5);
+    background: rgba(34, 197, 94, 0.22);
+  }
+
+  .buttonlab-level-pill.is-common {
+    color: #dbeafe;
+    border-color: rgba(56, 189, 248, 0.5);
+    background: rgba(56, 189, 248, 0.2);
+  }
+
+  .buttonlab-level-pill.is-advanced {
+    color: #fef3c7;
+    border-color: rgba(245, 158, 11, 0.5);
+    background: rgba(245, 158, 11, 0.2);
+  }
+
+  .buttonlab-group {
+    border: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--surface) 95%, #03080f 5%);
+    padding: 10px 12px 12px;
+  }
+
+  .buttonlab-group > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    list-style: none;
+    cursor: pointer;
+    font-family: 'Poppins';
+    font-weight: 600;
+    color: color-mix(in srgb, var(--text-light) 95%, #fff 5%);
+  }
+
+  .buttonlab-group > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .buttonlab-group > summary::before {
+    content: '▸';
+    margin-right: 8px;
+    color: color-mix(in srgb, var(--primary) 78%, #fff 22%);
+    transition: transform 0.2s ease;
+  }
+
+  .buttonlab-group[open] > summary::before {
+    transform: rotate(90deg);
+  }
+
+  .buttonlab-group-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .buttonlab-group-meta {
+    margin-left: auto;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .buttonlab-group-grid {
+    margin-top: 12px;
   }
 
   .buttonlab-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
     font-family: 'Poppins';
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: 0.93rem;
     letter-spacing: 0.01em;
   }
 
@@ -101,7 +234,7 @@
   }
 
   .buttonlab-export {
-    min-height: 220px;
+    min-height: 260px;
   }
 
   .buttonlab-input:focus,
@@ -212,6 +345,12 @@
     flex-wrap: wrap;
   }
 
+  @media (max-width: 980px) {
+    .buttonlab-check-field {
+      grid-column: span 1;
+    }
+  }
+
   @media (max-width: 760px) {
     .buttonlab-card {
       border-radius: 14px;
@@ -231,6 +370,20 @@
     .buttonlab-preview-button {
       width: 100%;
       white-space: normal;
+    }
+
+    .buttonlab-group > summary {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .buttonlab-group-meta {
+      margin-left: 0;
+    }
+
+    .buttonlab-label {
+      align-items: flex-start;
+      flex-direction: column;
     }
   }
 }
