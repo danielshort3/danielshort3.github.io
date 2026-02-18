@@ -252,7 +252,100 @@
     'copyCssBtn', 'downloadCssBtn'
   ];
 
-  if (!requiredEls.every((key) => Boolean(els[key]))) return;
+  const createFallbackControl = ({ value = '', checked = false } = {}) => ({
+    value: String(value),
+    checked: Boolean(checked),
+    disabled: false,
+    textContent: '',
+    dataset: {},
+    style: {
+      cssText: '',
+      setProperty() {}
+    },
+    options: [],
+    addEventListener() {},
+    removeEventListener() {},
+    focus() {}
+  });
+
+  const criticalEls = ['form', 'previewButton', 'summary', 'exportOutput'];
+  if (!criticalEls.every((key) => Boolean(els[key]))) return;
+
+  const fallbackValues = {
+    preset: DEFAULT_PRESET_ID,
+    label: 'Click me',
+    className: 'my-button',
+    background: BASE_PRESET.backgroundColor,
+    backgroundAlpha: BASE_PRESET.backgroundAlpha,
+    textColor: BASE_PRESET.textColor,
+    borderColor: BASE_PRESET.borderColor,
+    borderWidth: BASE_PRESET.borderWidth,
+    borderStyle: BASE_PRESET.borderStyle,
+    radius: BASE_PRESET.radius,
+    fontSize: BASE_PRESET.fontSize,
+    fontWeight: BASE_PRESET.fontWeight,
+    fontFamily: BASE_PRESET.fontFamily,
+    lineHeight: BASE_PRESET.lineHeight,
+    paddingY: BASE_PRESET.paddingY,
+    paddingX: BASE_PRESET.paddingX,
+    letterSpacing: BASE_PRESET.letterSpacing,
+    minWidth: BASE_PRESET.minWidth,
+    textTransform: BASE_PRESET.textTransform,
+    justifyContent: BASE_PRESET.justifyContent,
+    shadowX: BASE_PRESET.shadowX,
+    shadowY: BASE_PRESET.shadowY,
+    shadowBlur: BASE_PRESET.shadowBlur,
+    shadowSpread: BASE_PRESET.shadowSpread,
+    shadowColor: BASE_PRESET.shadowColor,
+    shadowAlpha: BASE_PRESET.shadowAlpha,
+    opacity: BASE_PRESET.opacity,
+    transform: BASE_PRESET.transform,
+    hoverBackground: BASE_PRESET.hoverBackgroundColor,
+    hoverBackgroundAlpha: BASE_PRESET.hoverBackgroundAlpha,
+    hoverTextColor: BASE_PRESET.hoverTextColor,
+    hoverBorderColor: BASE_PRESET.hoverBorderColor,
+    hoverShadowX: BASE_PRESET.hoverShadowX,
+    hoverShadowY: BASE_PRESET.hoverShadowY,
+    hoverShadowBlur: BASE_PRESET.hoverShadowBlur,
+    hoverShadowSpread: BASE_PRESET.hoverShadowSpread,
+    hoverShadowColor: BASE_PRESET.hoverShadowColor,
+    hoverShadowAlpha: BASE_PRESET.hoverShadowAlpha,
+    hoverLift: BASE_PRESET.hoverLift,
+    activeLift: BASE_PRESET.activeLift,
+    focusRingColor: BASE_PRESET.focusRingColor,
+    focusRingWidth: BASE_PRESET.focusRingWidth,
+    cursor: BASE_PRESET.cursor,
+    transitionProperty: BASE_PRESET.transitionProperty,
+    transitionMs: BASE_PRESET.transitionMs,
+    transitionEasing: BASE_PRESET.transitionEasing,
+    customCss: '',
+    exportOutput: '',
+    exportStatus: '',
+    customStatus: ''
+  };
+
+  const fallbackChecked = {
+    shadowInset: BASE_PRESET.shadowInset,
+    includeHover: BASE_PRESET.includeHover,
+    hoverShadowInset: BASE_PRESET.hoverShadowInset,
+    includeActive: BASE_PRESET.includeActive,
+    includeFocus: BASE_PRESET.includeFocus
+  };
+
+  requiredEls.forEach((key) => {
+    if (els[key]) return;
+    els[key] = createFallbackControl({
+      value: Object.prototype.hasOwnProperty.call(fallbackValues, key) ? fallbackValues[key] : '',
+      checked: Object.prototype.hasOwnProperty.call(fallbackChecked, key) ? fallbackChecked[key] : false
+    });
+
+    if (key === 'preset') {
+      els[key].options = Object.keys(PRESETS).map((value) => ({
+        value,
+        textContent: value
+      }));
+    }
+  });
 
   let applyingSession = false;
 
@@ -670,16 +763,12 @@
     return el;
   };
 
-  const applyDeclarationsToPreview = (declarations) => {
-    els.previewButton.style.cssText = '';
-    declarations.forEach(([property, value]) => {
-      els.previewButton.style.setProperty(property, value);
-    });
-  };
-
-  const updatePreviewStateStyles = ({ hoverDeclarations, activeDeclarations, focusDeclarations }) => {
+  const updatePreviewStateStyles = ({ baseDeclarations, customDeclarations, hoverDeclarations, activeDeclarations, focusDeclarations }) => {
     const styleEl = ensurePreviewStateStyleEl();
     const blocks = [];
+
+    const baseBlock = toCssBlock('#buttonlab-preview-button', [...baseDeclarations, ...customDeclarations]);
+    if (baseBlock) blocks.push(baseBlock);
 
     const hoverBlock = toCssBlock('#buttonlab-preview-button:hover', hoverDeclarations);
     if (hoverBlock) blocks.push(hoverBlock);
@@ -740,8 +829,10 @@
     els.previewButton.textContent = rendered.state.label;
     els.summary.textContent = rendered.summary;
 
-    applyDeclarationsToPreview([...rendered.baseDeclarations, ...rendered.customDeclarations]);
+    els.previewButton.style.cssText = '';
     updatePreviewStateStyles({
+      baseDeclarations: rendered.baseDeclarations,
+      customDeclarations: rendered.customDeclarations,
       hoverDeclarations: rendered.hoverDeclarations,
       activeDeclarations: rendered.activeDeclarations,
       focusDeclarations: rendered.focusDeclarations
