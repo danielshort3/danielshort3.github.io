@@ -94,11 +94,15 @@
     },
     "https://www.danielshort.me/tools": {
       "lastmod": "2026-02-16",
-      "hash": "889e5a2d2e833cbc495b1e9c576eb746cfb141757a2e6190cd17b14b4db65904"
+      "hash": "76638e5aa708c97e74a6d531e75986a28077a099d6d4a41a00494ef9df0613bd"
     },
     "https://www.danielshort.me/tools/background-remover": {
       "lastmod": "2026-02-16",
       "hash": "5bfcef46e527aeedffc2692b77293588b2f25e152929a4dd4cdc534a861491d9"
+    },
+    "https://www.danielshort.me/tools/button-css-lab": {
+      "lastmod": "2026-02-18",
+      "hash": "d77ece43ad43b8deeef3fdfc4685e4bfe48f468355a7d5472618b3c3d5d11e93"
     },
     "https://www.danielshort.me/tools/image-optimizer": {
       "lastmod": "2026-02-16",
