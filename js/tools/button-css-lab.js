@@ -230,6 +230,9 @@
     customStatus: getEl('buttonlab-custom-status'),
 
     previewButton: getEl('buttonlab-preview-button'),
+    previewDock: getEl('buttonlab-preview-dock'),
+    previewDockButton: getEl('buttonlab-preview-button-dock'),
+    previewDockSummary: getEl('buttonlab-summary-dock'),
     summary: getEl('buttonlab-summary'),
     exportOutput: getEl('buttonlab-export'),
     exportStatus: getEl('buttonlab-export-status'),
@@ -321,7 +324,8 @@
     customCss: '',
     exportOutput: '',
     exportStatus: '',
-    customStatus: ''
+    customStatus: '',
+    previewDockSummary: ''
   };
 
   const fallbackChecked = {
@@ -767,19 +771,56 @@
     const styleEl = ensurePreviewStateStyleEl();
     const blocks = [];
 
-    const baseBlock = toCssBlock('#buttonlab-preview-button', [...baseDeclarations, ...customDeclarations]);
+    const previewSelectors = ['#buttonlab-preview-button'];
+    if (els.previewDockButton && typeof els.previewDockButton === 'object') {
+      previewSelectors.push('#buttonlab-preview-button-dock');
+    }
+
+    const selectorList = (suffix = '') => previewSelectors.map((selector) => `${selector}${suffix}`).join(', ');
+
+    const baseBlock = toCssBlock(selectorList(), [...baseDeclarations, ...customDeclarations]);
     if (baseBlock) blocks.push(baseBlock);
 
-    const hoverBlock = toCssBlock('#buttonlab-preview-button:hover', hoverDeclarations);
+    const hoverBlock = toCssBlock(selectorList(':hover'), hoverDeclarations);
     if (hoverBlock) blocks.push(hoverBlock);
 
-    const activeBlock = toCssBlock('#buttonlab-preview-button:active', activeDeclarations);
+    const activeBlock = toCssBlock(selectorList(':active'), activeDeclarations);
     if (activeBlock) blocks.push(activeBlock);
 
-    const focusBlock = toCssBlock('#buttonlab-preview-button:focus-visible', focusDeclarations);
+    const focusBlock = toCssBlock(selectorList(':focus-visible'), focusDeclarations);
     if (focusBlock) blocks.push(focusBlock);
 
     styleEl.textContent = blocks.join('\n\n');
+  };
+
+  const setPreviewDockVisible = (visible) => {
+    if (!els.previewDock || !els.previewDock.classList) return;
+    els.previewDock.classList.toggle('is-visible', Boolean(visible));
+  };
+
+  const initPreviewDockVisibility = () => {
+    if (!els.previewDock) return;
+
+    const section = document.querySelector('.buttonlab-section');
+    if (!section) {
+      setPreviewDockVisible(true);
+      return;
+    }
+
+    if (!('IntersectionObserver' in window)) {
+      setPreviewDockVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      const entry = entries?.[0];
+      setPreviewDockVisible(Boolean(entry && entry.isIntersecting));
+    }, {
+      threshold: 0.03
+    });
+
+    setPreviewDockVisible(true);
+    observer.observe(section);
   };
 
   const getRenderedState = () => {
@@ -827,7 +868,9 @@
     els.className.value = rendered.state.className;
     els.label.value = rendered.state.label;
     els.previewButton.textContent = rendered.state.label;
+    if (els.previewDockButton) els.previewDockButton.textContent = rendered.state.label;
     els.summary.textContent = rendered.summary;
+    if (els.previewDockSummary) els.previewDockSummary.textContent = rendered.summary;
 
     els.previewButton.style.cssText = '';
     updatePreviewStateStyles({
@@ -993,4 +1036,5 @@
   applyPresetSelection({ presetId: DEFAULT_PRESET_ID, dirty: false });
   setExportStatus('');
   bindEvents();
+  initPreviewDockVisibility();
 })();
