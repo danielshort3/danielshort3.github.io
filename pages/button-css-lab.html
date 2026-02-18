@@ -267,10 +267,18 @@
               <div class="buttonlab-grid buttonlab-group-grid" role="group" aria-label="Quick essentials">
                 <div class="buttonlab-field" data-level="most">
                   <label class="buttonlab-label" for="buttonlab-background">
-                    <span>Background</span>
+                    <span>Background color</span>
                     <span class="buttonlab-level-pill is-most">Most edited</span>
                   </label>
-                  <input id="buttonlab-background" class="buttonlab-input" type="text" name="background" value="#2563eb" spellcheck="false">
+                  <input id="buttonlab-background" class="buttonlab-input buttonlab-color" type="color" name="backgroundColor" value="#2563eb">
+                </div>
+
+                <div class="buttonlab-field" data-level="common">
+                  <label class="buttonlab-label" for="buttonlab-background-alpha">
+                    <span>Background alpha</span>
+                    <span class="buttonlab-level-pill is-common">Common</span>
+                  </label>
+                  <input id="buttonlab-background-alpha" class="buttonlab-input" type="number" name="backgroundAlpha" value="1" min="0" max="1" step="0.05" inputmode="decimal">
                 </div>
 
                 <div class="buttonlab-field" data-level="most">
@@ -432,11 +440,62 @@
                 </div>
 
                 <div class="buttonlab-field" data-level="common">
-                  <label class="buttonlab-label" for="buttonlab-shadow">
-                    <span>Box shadow</span>
+                  <label class="buttonlab-label" for="buttonlab-shadow-x">
+                    <span>Shadow X (px)</span>
                     <span class="buttonlab-level-pill is-common">Common</span>
                   </label>
-                  <input id="buttonlab-shadow" class="buttonlab-input" type="text" name="shadow" value="0 10px 22px rgba(37, 99, 235, 0.28)" spellcheck="false">
+                  <input id="buttonlab-shadow-x" class="buttonlab-input" type="number" name="shadowX" value="0" min="-80" max="80" step="0.1" inputmode="decimal">
+                </div>
+
+                <div class="buttonlab-field" data-level="common">
+                  <label class="buttonlab-label" for="buttonlab-shadow-y">
+                    <span>Shadow Y (px)</span>
+                    <span class="buttonlab-level-pill is-common">Common</span>
+                  </label>
+                  <input id="buttonlab-shadow-y" class="buttonlab-input" type="number" name="shadowY" value="10" min="-80" max="80" step="0.1" inputmode="decimal">
+                </div>
+
+                <div class="buttonlab-field" data-level="common">
+                  <label class="buttonlab-label" for="buttonlab-shadow-blur">
+                    <span>Shadow blur (px)</span>
+                    <span class="buttonlab-level-pill is-common">Common</span>
+                  </label>
+                  <input id="buttonlab-shadow-blur" class="buttonlab-input" type="number" name="shadowBlur" value="22" min="0" max="160" step="0.1" inputmode="decimal">
+                </div>
+
+                <div class="buttonlab-field" data-level="advanced">
+                  <label class="buttonlab-label" for="buttonlab-shadow-spread">
+                    <span>Shadow spread (px)</span>
+                    <span class="buttonlab-level-pill is-advanced">Advanced</span>
+                  </label>
+                  <input id="buttonlab-shadow-spread" class="buttonlab-input" type="number" name="shadowSpread" value="0" min="-80" max="80" step="0.1" inputmode="decimal">
+                </div>
+
+                <div class="buttonlab-field" data-level="common">
+                  <label class="buttonlab-label" for="buttonlab-shadow-color">
+                    <span>Shadow color</span>
+                    <span class="buttonlab-level-pill is-common">Common</span>
+                  </label>
+                  <input id="buttonlab-shadow-color" class="buttonlab-input buttonlab-color" type="color" name="shadowColor" value="#2563eb">
+                </div>
+
+                <div class="buttonlab-field" data-level="common">
+                  <label class="buttonlab-label" for="buttonlab-shadow-alpha">
+                    <span>Shadow alpha</span>
+                    <span class="buttonlab-level-pill is-common">Common</span>
+                  </label>
+                  <input id="buttonlab-shadow-alpha" class="buttonlab-input" type="number" name="shadowAlpha" value="0.28" min="0" max="1" step="0.05" inputmode="decimal">
+                </div>
+
+                <label class="buttonlab-field buttonlab-check-field" data-level="advanced">
+                  <span class="buttonlab-label">
+                    <span>Inset shadow</span>
+                    <span class="buttonlab-level-pill is-advanced">Advanced</span>
+                  </span>
+                  <span class="buttonlab-check-line">
+                    <input id="buttonlab-shadow-inset" type="checkbox" name="shadowInset">
+                    <span>Render shadow inside the button</span>
+                  </span>
                 </div>
 
                 <div class="buttonlab-field" data-level="advanced">
@@ -476,10 +535,18 @@
 
                 <div class="buttonlab-field" data-level="common" data-state-controls="hover">
                   <label class="buttonlab-label" for="buttonlab-hover-background">
-                    <span>Hover background</span>
+                    <span>Hover background color</span>
                     <span class="buttonlab-level-pill is-common">Common</span>
                   </label>
-                  <input id="buttonlab-hover-background" class="buttonlab-input" type="text" name="hoverBackground" value="#1d4ed8" spellcheck="false">
+                  <input id="buttonlab-hover-background" class="buttonlab-input buttonlab-color" type="color" name="hoverBackgroundColor" value="#1d4ed8">
+                </div>
+
+                <div class="buttonlab-field" data-level="common" data-state-controls="hover">
+                  <label class="buttonlab-label" for="buttonlab-hover-background-alpha">
+                    <span>Hover background alpha</span>
+                    <span class="buttonlab-level-pill is-common">Common</span>
+                  </label>
+                  <input id="buttonlab-hover-background-alpha" class="buttonlab-input" type="number" name="hoverBackgroundAlpha" value="1" min="0" max="1" step="0.05" inputmode="decimal">
                 </div>
 
                 <div class="buttonlab-field" data-level="common" data-state-controls="hover">
@@ -499,11 +566,62 @@
                 </div>
 
                 <div class="buttonlab-field" data-level="advanced" data-state-controls="hover">
-                  <label class="buttonlab-label" for="buttonlab-hover-shadow">
-                    <span>Hover shadow</span>
+                  <label class="buttonlab-label" for="buttonlab-hover-shadow-x">
+                    <span>Hover shadow X (px)</span>
                     <span class="buttonlab-level-pill is-advanced">Advanced</span>
                   </label>
-                  <input id="buttonlab-hover-shadow" class="buttonlab-input" type="text" name="hoverShadow" value="0 12px 26px rgba(29, 78, 216, 0.34)" spellcheck="false">
+                  <input id="buttonlab-hover-shadow-x" class="buttonlab-input" type="number" name="hoverShadowX" value="0" min="-80" max="80" step="0.1" inputmode="decimal">
+                </div>
+
+                <div class="buttonlab-field" data-level="advanced" data-state-controls="hover">
+                  <label class="buttonlab-label" for="buttonlab-hover-shadow-y">
+                    <span>Hover shadow Y (px)</span>
+                    <span class="buttonlab-level-pill is-advanced">Advanced</span>
+                  </label>
+                  <input id="buttonlab-hover-shadow-y" class="buttonlab-input" type="number" name="hoverShadowY" value="12" min="-80" max="80" step="0.1" inputmode="decimal">
+                </div>
+
+                <div class="buttonlab-field" data-level="advanced" data-state-controls="hover">
+                  <label class="buttonlab-label" for="buttonlab-hover-shadow-blur">
+                    <span>Hover shadow blur (px)</span>
+                    <span class="buttonlab-level-pill is-advanced">Advanced</span>
+                  </label>
+                  <input id="buttonlab-hover-shadow-blur" class="buttonlab-input" type="number" name="hoverShadowBlur" value="26" min="0" max="160" step="0.1" inputmode="decimal">
+                </div>
+
+                <div class="buttonlab-field" data-level="advanced" data-state-controls="hover">
+                  <label class="buttonlab-label" for="buttonlab-hover-shadow-spread">
+                    <span>Hover shadow spread (px)</span>
+                    <span class="buttonlab-level-pill is-advanced">Advanced</span>
+                  </label>
+                  <input id="buttonlab-hover-shadow-spread" class="buttonlab-input" type="number" name="hoverShadowSpread" value="0" min="-80" max="80" step="0.1" inputmode="decimal">
+                </div>
+
+                <div class="buttonlab-field" data-level="advanced" data-state-controls="hover">
+                  <label class="buttonlab-label" for="buttonlab-hover-shadow-color">
+                    <span>Hover shadow color</span>
+                    <span class="buttonlab-level-pill is-advanced">Advanced</span>
+                  </label>
+                  <input id="buttonlab-hover-shadow-color" class="buttonlab-input buttonlab-color" type="color" name="hoverShadowColor" value="#1d4ed8">
+                </div>
+
+                <div class="buttonlab-field" data-level="advanced" data-state-controls="hover">
+                  <label class="buttonlab-label" for="buttonlab-hover-shadow-alpha">
+                    <span>Hover shadow alpha</span>
+                    <span class="buttonlab-level-pill is-advanced">Advanced</span>
+                  </label>
+                  <input id="buttonlab-hover-shadow-alpha" class="buttonlab-input" type="number" name="hoverShadowAlpha" value="0.34" min="0" max="1" step="0.05" inputmode="decimal">
+                </div>
+
+                <label class="buttonlab-field buttonlab-check-field" data-level="advanced" data-state-controls="hover">
+                  <span class="buttonlab-label">
+                    <span>Hover inset shadow</span>
+                    <span class="buttonlab-level-pill is-advanced">Advanced</span>
+                  </span>
+                  <span class="buttonlab-check-line">
+                    <input id="buttonlab-hover-shadow-inset" type="checkbox" name="hoverShadowInset">
+                    <span>Render hover shadow inside the button</span>
+                  </span>
                 </div>
 
                 <div class="buttonlab-field" data-level="common" data-state-controls="hover">
