@@ -40,8 +40,6 @@
     { "source": "/tools/word-frequency.html","destination": "/pages/word-frequency" },
     { "source": "/tools/text-compare","destination": "/pages/text-compare" },
     { "source": "/tools/text-compare.html","destination": "/pages/text-compare" },
-    { "source": "/tools/button-css-lab","destination": "/pages/button-css-lab" },
-    { "source": "/tools/button-css-lab.html","destination": "/pages/button-css-lab" },
     { "source": "/tools/short-links","destination": "/pages/short-links" },
     { "source": "/tools/short-links.html","destination": "/pages/short-links" },
     { "source": "/short-links","destination": "/pages/short-links" },
