@@ -80,6 +80,8 @@
     { "source": "/games/stellar-dogfight.html", "destination": "/demos/stellar-dogfight-demo" },
     { "source": "/games/slot-machine", "destination": "/demos/slot-machine-demo" },
     { "source": "/games/slot-machine.html", "destination": "/demos/slot-machine-demo" },
+    { "source": "/games/roulette", "destination": "/demos/roulette-double-zero-demo" },
+    { "source": "/games/roulette.html", "destination": "/demos/roulette-double-zero-demo" },
     { "source": "/games/probability-engine", "destination": "/probability-engine" },
     { "source": "/games/probability-engine.html", "destination": "/probability-engine" },
     { "source": "/games/ocean-wave-simulation", "destination": "/pages/ocean-wave-simulation" },

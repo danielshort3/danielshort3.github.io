@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <base href="/">
+  <title>Double-Zero Roulette | Daniel Short</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#072113" />
+  <link rel="stylesheet" href="dist/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600;700&display=swap" />
+  <link rel="stylesheet" href="css/components/roulette-double-zero.css" />
+</head>
+<body class="roulette00-page">
+  <a class="skip-link" href="#roulette-main">Skip to roulette table</a>
+
+  <main id="roulette-main" class="roulette00-shell">
+    <header class="roulette00-header">
+      <div>
+        <p class="roulette00-eyebrow">Classic American layout</p>
+        <h1>Double-Zero Roulette</h1>
+        <p class="roulette00-lead">Place chips directly on the table, spin the wheel, and track hot numbers over the last 200 outcomes.</p>
+      </div>
+      <div class="roulette00-header-metrics" aria-live="polite">
+        <div>
+          <span>Bankroll</span>
+          <strong id="roulette-bankroll">$2,000</strong>
+        </div>
+        <div>
+          <span>Total on table</span>
+          <strong id="roulette-total-bet">$0</strong>
+        </div>
+        <div>
+          <span>Recorded spins</span>
+          <strong id="roulette-spin-count">0</strong>
+        </div>
+      </div>
+    </header>
+
+    <section class="roulette00-grid" aria-label="Roulette game area">
+      <article class="roulette00-card roulette00-wheel-card" aria-label="Roulette wheel">
+        <h2>Wheel</h2>
+        <p class="roulette00-card-note">Ball runs opposite wheel rotation and settles into the winning pocket.</p>
+
+        <div class="roulette00-wheel-wrap" aria-hidden="true">
+          <div class="roulette00-wheel-pointer"></div>
+          <div id="roulette-wheel" class="roulette00-wheel">
+            <div id="roulette-wheel-surface" class="roulette00-wheel-surface"></div>
+            <div id="roulette-wheel-labels" class="roulette00-wheel-labels"></div>
+            <div class="roulette00-wheel-center"></div>
+          </div>
+          <div id="roulette-ball" class="roulette00-ball"></div>
+        </div>
+
+        <div class="roulette00-wheel-controls">
+          <button id="roulette-spin" class="roulette00-spin-btn" type="button">Spin wheel</button>
+          <div class="roulette00-last-pocket">
+            <span>Winning pocket</span>
+            <strong id="roulette-last-pocket" class="roulette00-pocket-pill">--</strong>
+          </div>
+        </div>
+
+        <p id="roulette-spin-status" class="roulette00-spin-status" aria-live="polite">Choose a chip, place bets, then spin.</p>
+      </article>
+
+      <article class="roulette00-card roulette00-table-card" aria-label="Roulette betting table">
+        <h2>Table</h2>
+        <p class="roulette00-card-note">Left-click adds one selected chip. Right-click (or Shift+click) removes one selected chip.</p>
+
+        <div class="roulette00-toolbar">
+          <fieldset class="roulette00-chip-tray" aria-label="Chip values">
+            <legend>Chip value</legend>
+            <button type="button" class="roulette00-chip is-selected" data-chip="1">$1</button>
+            <button type="button" class="roulette00-chip" data-chip="5">$5</button>
+            <button type="button" class="roulette00-chip" data-chip="25">$25</button>
+            <button type="button" class="roulette00-chip" data-chip="100">$100</button>
+          </fieldset>
+
+          <div class="roulette00-actions" aria-label="Bet controls">
+            <button id="roulette-undo" type="button" class="roulette00-action">Undo</button>
+            <button id="roulette-clear" type="button" class="roulette00-action">Clear bets</button>
+            <button id="roulette-rebet" type="button" class="roulette00-action">Rebet</button>
+          </div>
+        </div>
+
+        <div class="roulette00-session-actions" aria-label="Session controls">
+          <button id="roulette-save-session" type="button" class="roulette00-action">Save session</button>
+          <button id="roulette-load-session" type="button" class="roulette00-action">Load session</button>
+          <button id="roulette-reset-session" type="button" class="roulette00-action">Reset session</button>
+        </div>
+
+        <div class="roulette00-layout" aria-label="American double-zero layout">
+          <div id="roulette-top-zone" class="roulette00-top-zone"></div>
+          <div id="roulette-number-grid" class="roulette00-number-grid"></div>
+          <div id="roulette-column-row" class="roulette00-column-row"></div>
+          <div id="roulette-dozen-row" class="roulette00-dozen-row"></div>
+          <div id="roulette-outside-row" class="roulette00-outside-row"></div>
+        </div>
+
+        <section class="roulette00-linebets" aria-label="Inside line bets">
+          <div class="roulette00-linebets-head">
+            <h3>Inside line bets</h3>
+            <div class="roulette00-line-tabs" role="tablist" aria-label="Line bet type">
+              <button type="button" class="roulette00-line-tab is-active" data-line-type="split" role="tab" aria-selected="true">Split</button>
+              <button type="button" class="roulette00-line-tab" data-line-type="street" role="tab" aria-selected="false">Street</button>
+              <button type="button" class="roulette00-line-tab" data-line-type="corner" role="tab" aria-selected="false">Corner</button>
+              <button type="button" class="roulette00-line-tab" data-line-type="sixline" role="tab" aria-selected="false">Six-line</button>
+            </div>
+          </div>
+          <p class="roulette00-card-note roulette00-linebets-note">Add full inside combinations directly: split, street, corner, and six-line bets.</p>
+          <div id="roulette-linebet-list" class="roulette00-linebet-list" aria-live="polite"></div>
+        </section>
+      </article>
+
+      <aside class="roulette00-card roulette00-analytics-card" aria-label="Roulette analytics">
+        <h2>Hot numbers</h2>
+        <p id="roulette-history-meta" class="roulette00-card-note">Tracking 0 of 200 spins.</p>
+        <ol id="roulette-hot-list" class="roulette00-hot-list"></ol>
+
+        <h3>Recent results</h3>
+        <div id="roulette-recent-list" class="roulette00-recent-list" aria-live="polite"></div>
+
+        <h3>Modeled rules</h3>
+        <ul class="roulette00-rules">
+          <li>38 pockets (0, 00, and 1-36).</li>
+          <li>Standard American payouts (35:1 straight, 2:1 dozens/columns, 1:1 even-money).</li>
+          <li>Includes first five basket (0-00-1-2-3) at 6:1.</li>
+          <li>House edge shown for context: 5.26% on most bets, 7.89% on first five.</li>
+        </ul>
+      </aside>
+    </section>
+  </main>
+
+  <script defer src="js/demos/roulette-double-zero-demo.js"></script>
+</body>
+</html>
