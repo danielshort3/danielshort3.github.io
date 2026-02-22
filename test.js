@@ -86,6 +86,7 @@ try {
     checkFileContains('pages/tools.html', '<title>Tools | Daniel Short');
     checkFileContains('pages/tools-dashboard.html', '<title>Tools Dashboard | Daniel Short');
     checkFileContains('pages/games.html', '<title>Games | Daniel Short');
+    checkFileContains('pages/games.html', 'href="games/roulette"');
     checkFileContains('pages/sitemap.html', '<title>Sitemap | Daniel Short');
     checkFileContains('pages/point-of-view-checker.html', '<title>Point of View Checker | Daniel Short');
     checkFileContains('pages/oxford-comma-checker.html', '<title>Oxford Comma Checker | Daniel Short');
@@ -641,10 +642,14 @@ try {
     const hasGameSlot = rewrites.some(r => r.source === '/games/slot-machine' && r.destination === '/demos/slot-machine-demo');
     const hasGameDogfight = rewrites.some(r => r.source === '/games/stellar-dogfight' && r.destination === '/demos/stellar-dogfight-demo');
     const hasGameDogfightHtml = rewrites.some(r => r.source === '/games/stellar-dogfight.html' && r.destination === '/demos/stellar-dogfight-demo');
+    const hasGameRoulette = rewrites.some(r => r.source === '/games/roulette' && r.destination === '/demos/roulette-double-zero-demo');
+    const hasGameRouletteHtml = rewrites.some(r => r.source === '/games/roulette.html' && r.destination === '/demos/roulette-double-zero-demo');
     assert(hasGames, 'games landing rewrite missing');
     assert(hasGameSlot, 'slot machine games rewrite missing');
     assert(hasGameDogfight, 'stellar dogfight games rewrite missing');
     assert(hasGameDogfightHtml, 'stellar dogfight html rewrite missing');
+    assert(hasGameRoulette, 'roulette games rewrite missing');
+    assert(hasGameRouletteHtml, 'roulette html rewrite missing');
     const hasToolsDashboard = rewrites.some(r => r.source === '/tools/dashboard' && r.destination === '/pages/tools-dashboard');
     const hasToolsDashboardHtml = rewrites.some(r => r.source === '/tools/dashboard.html' && r.destination === '/pages/tools-dashboard');
     assert(hasToolsDashboard && hasToolsDashboardHtml, 'tools dashboard rewrites missing');
@@ -994,6 +999,29 @@ try {
 
   section('Slot machine demo', () => {
     runSlotDemoTests({ assert, checkFileContains });
+  });
+
+  section('Roulette demo', () => {
+    checkFileContains('demos/roulette-double-zero-demo.html', '<title>Double-Zero Roulette | Daniel Short</title>');
+    checkFileContains('demos/roulette-double-zero-demo.html', 'id="roulette-spin"');
+    checkFileContains('demos/roulette-double-zero-demo.html', 'id="roulette-number-grid"');
+    checkFileContains('demos/roulette-double-zero-demo.html', 'id="roulette-hot-list"');
+    checkFileContains('demos/roulette-double-zero-demo.html', 'id="roulette-linebet-list"');
+    checkFileContains('demos/roulette-double-zero-demo.html', 'data-line-type="split"');
+    checkFileContains('demos/roulette-double-zero-demo.html', 'id="roulette-save-session"');
+    checkFileContains('demos/roulette-double-zero-demo.html', 'id="roulette-load-session"');
+    checkFileContains('demos/roulette-double-zero-demo.html', 'id="roulette-reset-session"');
+    checkFileContains('demos/roulette-double-zero-demo.html', 'js/demos/roulette-double-zero-demo.js');
+    const rouletteJs = fs.readFileSync('js/demos/roulette-double-zero-demo.js', 'utf8');
+    assert(rouletteJs.includes('const WHEEL_ORDER = ['), 'roulette demo missing wheel order constant');
+    assert(rouletteJs.includes('const MAX_HISTORY = 200;'), 'roulette demo should track 200-spin history');
+    assert(rouletteJs.includes('const STORAGE_KEY = "roulette-double-zero-session-v1";'), 'roulette demo missing local storage key');
+    assert(rouletteJs.includes('const LINE_BET_TYPES = ["split", "street", "corner", "sixline"];'), 'roulette demo missing full line bet types');
+    assert(rouletteJs.includes('window.localStorage.setItem(STORAGE_KEY'), 'roulette demo should save session to local storage');
+    assert(rouletteJs.includes('window.localStorage.getItem(STORAGE_KEY)'), 'roulette demo should load session from local storage');
+    assert(rouletteJs.includes('lineType: LINE_BET_TYPES[0]'), 'roulette demo should initialize a default line-bet tab');
+    assert(rouletteJs.includes('id: "basket-first-four"'), 'roulette demo missing first four basket bet');
+    assert(rouletteJs.includes('id: "basket-first-five"'), 'roulette demo missing first five basket bet');
   });
 
   section('UTM Batch Builder core', () => {
