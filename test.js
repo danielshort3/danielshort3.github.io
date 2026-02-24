@@ -1006,21 +1006,17 @@ try {
     checkFileContains('demos/roulette-double-zero-demo.html', 'id="roulette-spin"');
     checkFileContains('demos/roulette-double-zero-demo.html', 'id="roulette-number-grid"');
     checkFileContains('demos/roulette-double-zero-demo.html', 'id="roulette-hot-list"');
-    checkFileContains('demos/roulette-double-zero-demo.html', 'id="roulette-linebet-list"');
-    checkFileContains('demos/roulette-double-zero-demo.html', 'data-line-type="split"');
-    checkFileContains('demos/roulette-double-zero-demo.html', 'id="roulette-save-session"');
-    checkFileContains('demos/roulette-double-zero-demo.html', 'id="roulette-load-session"');
-    checkFileContains('demos/roulette-double-zero-demo.html', 'id="roulette-reset-session"');
     checkFileContains('demos/roulette-double-zero-demo.html', 'js/demos/roulette-double-zero-demo.js');
     const rouletteJs = fs.readFileSync('js/demos/roulette-double-zero-demo.js', 'utf8');
     assert(rouletteJs.includes('const WHEEL_ORDER = ['), 'roulette demo missing wheel order constant');
     assert(rouletteJs.includes('const MAX_HISTORY = 200;'), 'roulette demo should track 200-spin history');
     assert(rouletteJs.includes('const STORAGE_KEY = "roulette-double-zero-session-v1";'), 'roulette demo missing local storage key');
-    assert(rouletteJs.includes('const LINE_BET_TYPES = ["split", "street", "corner", "sixline"];'), 'roulette demo missing full line bet types');
     assert(rouletteJs.includes('window.localStorage.setItem(STORAGE_KEY'), 'roulette demo should save session to local storage');
     assert(rouletteJs.includes('window.localStorage.getItem(STORAGE_KEY)'), 'roulette demo should load session from local storage');
-    assert(rouletteJs.includes('lineType: LINE_BET_TYPES[0]'), 'roulette demo should initialize a default line-bet tab');
-    assert(rouletteJs.includes('id: "basket-first-four"'), 'roulette demo missing first four basket bet');
+    assert(rouletteJs.includes('const CHIP_VALUES = [1, 5, 25, 100];'), 'roulette demo should expose chip values');
+    assert(rouletteJs.includes('function computeSpinTargets(winningPocket) {'), 'roulette demo missing spin target resolver');
+    assert(rouletteJs.includes('finalBallMod = normalizeDeg(pocketLocalAngle + finalWheelMod);'),
+      'roulette demo ball should land based on wheel + pocket angle');
     assert(rouletteJs.includes('id: "basket-first-five"'), 'roulette demo missing first five basket bet');
   });
 

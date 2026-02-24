@@ -83,8 +83,23 @@ body.roulette00-page {
 .roulette00-grid {
   display: grid;
   gap: 14px;
-  grid-template-columns: minmax(300px, 1.04fr) minmax(460px, 1.74fr) minmax(280px, 0.92fr);
+  grid-template-columns: minmax(620px, 1.9fr) minmax(280px, 1fr);
+  grid-template-areas:
+    "table wheel"
+    "table analytics";
   align-items: start;
+}
+
+.roulette00-table-card {
+  grid-area: table;
+}
+
+.roulette00-wheel-card {
+  grid-area: wheel;
+}
+
+.roulette00-analytics-card {
+  grid-area: analytics;
 }
 
 .roulette00-card {
@@ -120,7 +135,7 @@ body.roulette00-page {
 }
 
 .roulette00-wheel-wrap {
-  --wheel-size: clamp(286px, 28vw, 414px);
+  --wheel-size: clamp(220px, 20vw, 320px);
   position: relative;
   width: var(--wheel-size);
   aspect-ratio: 1 / 1;
@@ -178,10 +193,15 @@ body.roulette00-page {
   left: 50%;
   top: 50%;
   transform-origin: center center;
-  font-size: clamp(0.56rem, 1vw, 0.66rem);
+  min-width: 20px;
+  padding: 1px 0;
+  text-align: center;
+  line-height: 1;
+  font-size: clamp(0.55rem, 0.9vw, 0.64rem);
   font-weight: 700;
-  letter-spacing: 0.01em;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75);
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 .roulette00-wheel-label.is-red {
@@ -761,11 +781,11 @@ body.roulette00-page {
 
 @media (max-width: 1270px) {
   .roulette00-grid {
-    grid-template-columns: minmax(320px, 1.08fr) minmax(380px, 1.4fr);
-  }
-
-  .roulette00-analytics-card {
-    grid-column: 1 / -1;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "table"
+      "wheel"
+      "analytics";
   }
 }
 
@@ -783,11 +803,11 @@ body.roulette00-page {
   }
 
   .roulette00-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .roulette00-wheel-wrap {
-    --wheel-size: min(86vw, 410px);
+    --wheel-size: min(84vw, 320px);
   }
 
   .roulette00-top-zone {
@@ -798,9 +818,6 @@ body.roulette00-page {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .roulette00-linebet-grid {
-    max-height: 220px;
-  }
 }
 
 @media (max-width: 640px) {
@@ -814,20 +831,6 @@ body.roulette00-page {
 
   .roulette00-chip {
     flex: 1 1 calc(50% - 6px);
-  }
-
-  .roulette00-session-actions {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .roulette00-line-tab {
-    flex: 1 1 calc(50% - 3px);
-    text-align: center;
-  }
-
-  .roulette00-linebet-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .roulette00-hot-item {
