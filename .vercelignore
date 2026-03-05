@@ -14,7 +14,6 @@ node_modules/
 .vercel/
 
 # Build output (Vercel runs the build)
-/dist/
 /public/
 
 # Local-only artifacts / large folders
@@ -33,3 +32,4 @@ node_modules/
 aws/covid-outbreak-drivers/output/
 aws/target-empty-package/output/
 aws/handwriting-rating/models/
+

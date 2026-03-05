@@ -9,6 +9,7 @@ Welcome to the GitHub repository for my personal portfolio website. This site sh
 - [Features](#features)
 - [Technologies Used](#technologies-used)
 - [Setup and Installation](#setup-and-installation)
+- [Local Development](#local-development)
 - [Usage](#usage)
 - [File Structure](#file-structure)
 
@@ -42,6 +43,32 @@ Welcome to the GitHub repository for my personal portfolio website. This site sh
     ```
 3. **Open the Project**:
     - Open `index.html` in your preferred web browser to view the homepage.
+
+## Local Development
+
+Run one command to build, serve, and continuously rebuild the full site locally (including `vercel.json` rewrites and `/api` routes):
+
+```bash
+npm run dev
+```
+
+What `npm run dev` does:
+
+- Runs a full `build/build-site.js` pass first.
+- Watches key source folders/files and reruns that build whenever you change code/content.
+- Starts a local Vercel dev server at `http://localhost:3000` so clean URLs, rewrites, redirects, headers, and serverless functions can be validated before deploy.
+
+Use a different port:
+
+```bash
+npm run dev -- --port 4173
+```
+
+Optional (faster startup after first run):
+
+```bash
+npm i -D vercel
+```
 
 ## Usage
 
@@ -116,3 +143,4 @@ Required configuration:
 ## Shape Classifier Demo
 
 The interactive demo calls an AWS Lambda function for real-time predictions. Ensure your Lambda code includes CORS headers so the browser can access it. See [documents/lambda-cors.md](documents/lambda-cors.md) for a minimal example.
+
