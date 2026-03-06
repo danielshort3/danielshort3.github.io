@@ -25,25 +25,41 @@ const SHARED_OG_IMAGE_ALT = 'Portrait photo of Daniel Short';
 const SITE_ORIGIN = 'https://www.danielshort.me';
 const noindexPathnames = loadNoindexPathnamesFromVercel(root);
 
-const ROUTE_COMPONENT_STYLES = Object.freeze({
-  '/short-links': ['css/components/short-links.css'],
-  '/tools/short-links': ['css/components/short-links.css'],
-  '/games/ocean-wave-simulation': ['css/components/ocean-wave-simulation.css'],
-  '/tools/word-frequency': ['css/components/word-frequency.css'],
-  '/tools/text-compare': ['css/components/text-compare.css'],
-  '/tools/point-of-view-checker': ['css/components/point-of-view-checker.css'],
-  '/tools/oxford-comma-checker': ['css/components/oxford-comma-checker.css'],
-  '/tools/nbsp-cleaner': ['css/components/nbsp-cleaner.css'],
-  '/tools/background-remover': ['css/components/background-remover.css'],
-  '/tools/image-optimizer': ['css/components/image-optimizer.css'],
-  '/tools/qr-code-generator': ['css/components/qr-code-generator.css'],
-  '/tools/screen-recorder': ['css/components/screen-recorder.css'],
-  '/tools/job-application-tracker': ['css/components/job-application-tracker.css'],
-  '/tools/utm-batch-builder': ['css/components/utm-batch-builder.css'],
-  '/tools/whisper-transcribe-monitor': ['css/components/whisper-transcribe-monitor.css'],
-  '/tools/ga4-utm-performance': ['css/components/ga4-utm-performance.css']
-});
+const ROUTE_COMPONENT_STYLES_PATH = path.join(root, 'build', 'route-component-styles.json');
+const ROUTE_COMPONENT_STYLES = Object.freeze(loadRouteComponentStyles());
 
+function loadRouteComponentStyles() {
+  let raw;
+  try {
+    raw = fs.readFileSync(ROUTE_COMPONENT_STYLES_PATH, 'utf8');
+  } catch {
+    return {};
+  }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return {};
+  }
+
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    return {};
+  }
+
+  const normalized = {};
+  Object.entries(parsed).forEach(([pathname, hrefs]) => {
+    if (typeof pathname !== 'string' || !pathname.startsWith('/')) return;
+    if (!Array.isArray(hrefs)) return;
+    const validHrefs = hrefs
+      .map((href) => String(href || '').trim())
+      .filter(Boolean);
+    if (!validHrefs.length) return;
+    normalized[pathname] = validHrefs;
+  });
+
+  return normalized;
+}
 function read(relPath) {
   return fs.readFileSync(path.join(root, relPath), 'utf8');
 }

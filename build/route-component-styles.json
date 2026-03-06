@@ -1,0 +1,50 @@
+{
+  "/short-links": [
+    "css/components/short-links.css"
+  ],
+  "/tools/short-links": [
+    "css/components/short-links.css"
+  ],
+  "/games/ocean-wave-simulation": [
+    "css/components/ocean-wave-simulation.css"
+  ],
+  "/tools/word-frequency": [
+    "css/components/word-frequency.css"
+  ],
+  "/tools/text-compare": [
+    "css/components/text-compare.css"
+  ],
+  "/tools/point-of-view-checker": [
+    "css/components/point-of-view-checker.css"
+  ],
+  "/tools/oxford-comma-checker": [
+    "css/components/oxford-comma-checker.css"
+  ],
+  "/tools/nbsp-cleaner": [
+    "css/components/nbsp-cleaner.css"
+  ],
+  "/tools/background-remover": [
+    "css/components/background-remover.css"
+  ],
+  "/tools/image-optimizer": [
+    "css/components/image-optimizer.css"
+  ],
+  "/tools/qr-code-generator": [
+    "css/components/qr-code-generator.css"
+  ],
+  "/tools/screen-recorder": [
+    "css/components/screen-recorder.css"
+  ],
+  "/tools/job-application-tracker": [
+    "css/components/job-application-tracker.css"
+  ],
+  "/tools/utm-batch-builder": [
+    "css/components/utm-batch-builder.css"
+  ],
+  "/tools/whisper-transcribe-monitor": [
+    "css/components/whisper-transcribe-monitor.css"
+  ],
+  "/tools/ga4-utm-performance": [
+    "css/components/ga4-utm-performance.css"
+  ]
+}
