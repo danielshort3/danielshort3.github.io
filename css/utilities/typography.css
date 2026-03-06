@@ -26,4 +26,23 @@
   .hero-kpis .hero-kpi-link:visited {
     text-decoration: none;
   }
+
+  .surface-band{
+    padding:clamp(2.8rem,6vh,3.8rem) 0;
+  }
+
+  .section-title{
+    margin:0;
+    font-size:clamp(1.85rem,3vw,2.35rem);
+    line-height:1.25;
+    letter-spacing:.02em;
+  }
+
+  .section-subtitle{
+    margin:10px 0 0;
+    max-width:72ch;
+    color:var(--text-muted);
+    font-size:1.02rem;
+    line-height:1.7;
+  }
 }

@@ -19,6 +19,38 @@ function checkFileContains(file, text) {
   assert(content.includes(text), `${file} missing expected text: ${text}`);
 }
 
+function readFile(file) {
+  assert(fs.existsSync(file), `${file} does not exist`);
+  return fs.readFileSync(file, 'utf8');
+}
+
+function extractTitle(file, html) {
+  const titleMatch = html.match(/<title>([^<]+)<\/title>/i);
+  assert(titleMatch, `${file} missing <title> tag`);
+  return String(titleMatch[1] || '').trim();
+}
+
+function assertBodyShellContract(file, html) {
+  const bodyMatch = html.match(/<body\b([^>]*)>/i);
+  assert(bodyMatch, `${file} missing <body> tag`);
+  const bodyAttrs = String(bodyMatch[1] || '');
+  assert(/\bdata-page="[^"]+"/.test(bodyAttrs), `${file} body missing data-page attribute`);
+  assert(/\bclass="[^"]*\bsite-page\b[^"]*"/.test(bodyAttrs), `${file} body missing site-page class`);
+  checkFileContains(file, 'class="skip-link"');
+  assert(/<main[^>]*\bid="main"[^>]*>/i.test(html), `${file} missing <main id="main">`);
+}
+
+function assertHeroVariantClasses(file, html) {
+  const heroSections = Array.from(html.matchAll(/<section[^>]*class="([^"]*\bhero\b[^"]*)"/gi));
+  heroSections.forEach((match) => {
+    const classNames = String(match[1] || '').trim();
+    assert(
+      /\bhero--(?:default|tools|games)\b/.test(classNames),
+      `${file} hero section missing variant class: ${classNames}`
+    );
+  });
+}
+
 function section(name, fn) {
   console.log(`\n• ${name}`);
   const before = assertCount;
@@ -82,28 +114,52 @@ try {
 
   section('Page shells and required meta', () => {
     checkFileContains('index.html', 'made actionable');
-    checkFileContains('pages/contact.html', '<title>Daniel Short - Contact');
-    checkFileContains('pages/tools.html', '<title>Tools | Daniel Short');
-    checkFileContains('pages/tools-dashboard.html', '<title>Tools Dashboard | Daniel Short');
-    checkFileContains('pages/games.html', '<title>Games | Daniel Short');
+
+    const expectedTitles = {
+      'index.html': 'Daniel Short | Data Science Made Actionable',
+      'pages/contact.html': 'Contact | Daniel Short',
+      'pages/tools.html': 'Tools | Daniel Short',
+      'pages/tools-dashboard.html': 'Tools Dashboard | Daniel Short',
+      'pages/games.html': 'Games | Daniel Short',
+      'pages/sitemap.html': 'Sitemap | Daniel Short',
+      'pages/point-of-view-checker.html': 'Point of View Checker | Daniel Short',
+      'pages/oxford-comma-checker.html': 'Oxford Comma Checker | Daniel Short',
+      'pages/ocean-wave-simulation.html': 'Ocean Wave Simulation | Daniel Short',
+      'pages/qr-code-generator.html': 'QR Code Generator | Daniel Short',
+      'pages/image-optimizer.html': 'Image Optimizer | Daniel Short',
+      'pages/utm-batch-builder.html': 'UTM Batch Builder | Daniel Short',
+      'pages/whisper-transcribe-monitor.html': 'Whisper Capacity Monitor | Daniel Short',
+      'pages/ga4-utm-performance.html': 'GA4 UTM Performance | Daniel Short',
+      'probability-engine.html': 'Probability Engine | Daniel Short'
+    };
+    Object.entries(expectedTitles).forEach(([file, title]) => {
+      checkFileContains(file, `<title>${title}</title>`);
+    });
+
+    const titleConventionPages = [
+      ...Object.keys(expectedTitles),
+      '404.html',
+      'dshort.html',
+      'pages/portfolio.html',
+      'pages/contributions.html',
+      'pages/privacy.html'
+    ];
+    titleConventionPages.forEach((file) => {
+      const html = readFile(file);
+      const title = extractTitle(file, html);
+      assert(title.includes(' | '), `${file} title should use pipe separator`);
+      assert(!title.includes(' - '), `${file} title should not use dash separator`);
+      if (file === 'index.html') {
+        assert(/^Daniel Short \| .+/.test(title), 'index.html title should start with Daniel Short |');
+      } else {
+        assert(/\| Daniel Short$/.test(title), `${file} title should end with | Daniel Short`);
+      }
+    });
+
     checkFileContains('pages/games.html', 'href="games/roulette"');
-    checkFileContains('pages/sitemap.html', '<title>Sitemap | Daniel Short');
-    checkFileContains('pages/point-of-view-checker.html', '<title>Point of View Checker | Daniel Short');
-    checkFileContains('pages/oxford-comma-checker.html', '<title>Oxford Comma Checker | Daniel Short');
-    checkFileContains('pages/ocean-wave-simulation.html', '<title>Ocean Wave Simulation | Daniel Short');
-    checkFileContains('pages/qr-code-generator.html', '<title>QR Code Generator | Daniel Short');
-    checkFileContains('pages/image-optimizer.html', '<title>Image Optimizer | Daniel Short');
-    checkFileContains('pages/utm-batch-builder.html', '<title>UTM Batch Builder | Daniel Short');
-    checkFileContains('pages/whisper-transcribe-monitor.html', '<title>Whisper Capacity Monitor | Daniel Short');
-    checkFileContains('pages/ga4-utm-performance.html', '<title>GA4 UTM Performance | Daniel Short');
-    checkFileContains('probability-engine.html', '<title>Probability Engine | Daniel Short</title>');
     checkFileContains('probability-engine.html', '<link rel="canonical" href="https://www.danielshort.me/games/probability-engine">');
     checkFileContains('probability-engine.html', '<meta name="description"');
-    ['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/sitemap.html'].forEach(f => {
-      checkFileContains(f, 'js/common/common.js');
-      checkFileContains(f, 'class="skip-link"');
-      checkFileContains(f, '<main id="main">');
-    });
+
     const toolPages = [
       'pages/tools.html',
       'pages/tools-dashboard.html',
@@ -128,37 +184,70 @@ try {
       'pages/ga4-utm-performance.html',
       'pages/whisper-transcribe-monitor.html'
     ];
-    ['pages/games.html','pages/ocean-wave-simulation.html', ...toolPages].forEach(f => {
-      checkFileContains(f, 'js/common/common.js');
-      checkFileContains(f, 'class="skip-link"');
-      checkFileContains(f, '<main id="main">');
+
+    const shellPages = [
+      'index.html',
+      'pages/contact.html',
+      'pages/portfolio.html',
+      'pages/contributions.html',
+      'pages/sitemap.html',
+      'pages/games.html',
+      'pages/ocean-wave-simulation.html',
+      'pages/privacy.html',
+      '404.html',
+      'dshort.html',
+      'probability-engine.html',
+      ...toolPages
+    ];
+    shellPages.forEach((file) => {
+      const html = readFile(file);
+      assertBodyShellContract(file, html);
+      assertHeroVariantClasses(file, html);
     });
-    ['pages/games.html','pages/ocean-wave-simulation.html','404.html','dshort.html', ...privateToolPages].forEach(f => {
+
+    ['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/sitemap.html'].forEach((f) => {
+      checkFileContains(f, 'js/common/common.js');
+    });
+    ['pages/games.html','pages/ocean-wave-simulation.html', ...toolPages].forEach((f) => {
+      checkFileContains(f, 'js/common/common.js');
+    });
+
+    ['pages/games.html','pages/ocean-wave-simulation.html','404.html','dshort.html', ...privateToolPages].forEach((f) => {
       checkFileContains(f, 'noindex, nofollow');
     });
+
     ['404.html', 'pages/privacy.html'].forEach((f) => {
-      const html = fs.readFileSync(f, 'utf8');
+      const html = readFile(f);
       const skipIndex = html.indexOf('class="skip-link"');
       const headerIndex = html.indexOf('<header id="combined-header-nav">');
       assert(skipIndex >= 0 && headerIndex >= 0, `${f} missing skip-link or shared header`);
       assert(skipIndex < headerIndex, `${f} skip-link should appear before shared header`);
     });
-    toolPages.filter(f => !privateToolPages.includes(f)).forEach(f => {
-      const content = fs.readFileSync(f, 'utf8');
+
+    toolPages.filter((f) => !privateToolPages.includes(f)).forEach((f) => {
+      const content = readFile(f);
       assert(!content.includes('noindex, nofollow'), `${f} should be indexable`);
     });
-    assert(!fs.readFileSync('pages/tools-dashboard.html', 'utf8').includes('id="tool-jsonld"'),
+
+    assert(!readFile('pages/tools-dashboard.html').includes('id="tool-jsonld"'),
       'tools dashboard should not include WebApplication JSON-LD');
-    ['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/tools.html','pages/games.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/utm-batch-builder.html','404.html'].forEach(f => {
+
+    ['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/tools.html','pages/games.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/utm-batch-builder.html','404.html'].forEach((f) => {
       checkFileContains(f, 'og:image');
     });
+
+    assert(fs.existsSync('build/route-component-styles.json'), 'route component styles manifest missing');
+    const injectHeadMetadataCode = readFile('build/inject-head-metadata.js');
+    assert(injectHeadMetadataCode.includes('route-component-styles.json'),
+      'inject-head-metadata.js should load the route component styles manifest');
+
     assert(fs.existsSync('robots.txt'), 'robots.txt missing');
     assert(fs.existsSync('sitemap.xml'), 'sitemap.xml missing');
     assert(fs.existsSync('sitemap.xsl'), 'sitemap.xsl missing');
-    const robots = fs.readFileSync('robots.txt','utf8');
+    const robots = readFile('robots.txt');
     assert(/User-agent:\s*\*/.test(robots), 'robots.txt missing user-agent');
     assert(/Sitemap:\s*https?:\/\//.test(robots), 'robots.txt missing sitemap URL');
-    const sitemap = fs.readFileSync('sitemap.xml','utf8');
+    const sitemap = readFile('sitemap.xml');
     assert(!/xml-stylesheet/i.test(sitemap), 'sitemap.xml should not include xml-stylesheet');
     assert(/<urlset/.test(sitemap) && /<loc>https:\/\/.+<\/loc>/.test(sitemap), 'sitemap.xml structure invalid');
     assert(!/ds:hash=/.test(sitemap), 'sitemap.xml should not contain build metadata');
