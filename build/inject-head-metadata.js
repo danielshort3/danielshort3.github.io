@@ -24,9 +24,53 @@ const SHARED_OG_IMAGE_HEIGHT = '558';
 const SHARED_OG_IMAGE_ALT = 'Portrait photo of Daniel Short';
 const SITE_ORIGIN = 'https://www.danielshort.me';
 const noindexPathnames = loadNoindexPathnamesFromVercel(root);
+const CSS_MANIFEST_PATH = path.join(root, 'dist', 'styles-manifest.json');
+const CSS_MANIFEST = Object.freeze(loadCssManifest());
+const BASE_STYLESHEET_FALLBACK = 'dist/styles.css';
+const TOOLS_STYLESHEET_FALLBACK = 'dist/styles-tools.css';
+const BASE_STYLESHEET_HREF = resolveManagedStylesheetHref(BASE_STYLESHEET_FALLBACK, CSS_MANIFEST.file);
+const TOOLS_STYLESHEET_HREF = resolveManagedStylesheetHref(TOOLS_STYLESHEET_FALLBACK, CSS_MANIFEST.toolsFile);
 
 const ROUTE_COMPONENT_STYLES_PATH = path.join(root, 'build', 'route-component-styles.json');
 const ROUTE_COMPONENT_STYLES = Object.freeze(loadRouteComponentStyles());
+
+function loadCssManifest() {
+  let raw;
+  try {
+    raw = fs.readFileSync(CSS_MANIFEST_PATH, 'utf8');
+  } catch {
+    return {};
+  }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return {};
+  }
+
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    return {};
+  }
+
+  return parsed;
+}
+
+function resolveManagedStylesheetHref(fallbackHref, manifestFile) {
+  const relPath = String(manifestFile || '').trim();
+  if (!relPath) return fallbackHref;
+  return `dist/${relPath.replace(/^dist\//i, '')}`;
+}
+
+function stylesheetCandidates(...hrefs) {
+  const seen = new Set();
+  return hrefs.filter((href) => {
+    const value = String(href || '').trim();
+    if (!value || seen.has(value)) return false;
+    seen.add(value);
+    return true;
+  });
+}
 
 function loadRouteComponentStyles() {
   let raw;
@@ -268,11 +312,21 @@ function ensureStylesheetLink(headInner, href, preferredAfterHrefs = []) {
   return `${headInner.trimEnd()}\n  <link rel="stylesheet" href="${safeHref}">\n`;
 }
 
+function replaceManagedStylesheetLinks(headInner) {
+  return String(headInner || '')
+    .replace(/href="dist\/styles(?:\.[0-9a-f]{8})?\.css"/gi, `href="${BASE_STYLESHEET_HREF}"`)
+    .replace(/href="dist\/styles-tools(?:\.[0-9a-f]{8})?\.css"/gi, `href="${TOOLS_STYLESHEET_HREF}"`);
+}
+
 function ensureToolsStylesheet(headInner) {
   const canonical = getCanonicalHref(headInner);
   const pathname = toPathname(canonical);
   if (!needsToolsStyles(pathname)) return headInner;
-  return ensureStylesheetLink(headInner, 'dist/styles-tools.css', ['dist/styles.css']);
+  return ensureStylesheetLink(
+    headInner,
+    TOOLS_STYLESHEET_HREF,
+    stylesheetCandidates(BASE_STYLESHEET_HREF, BASE_STYLESHEET_FALLBACK)
+  );
 }
 
 function ensureRouteComponentStylesheet(headInner) {
@@ -282,7 +336,16 @@ function ensureRouteComponentStylesheet(headInner) {
   if (!Array.isArray(hrefs) || !hrefs.length) return headInner;
 
   return hrefs.reduce(
-    (nextHead, href) => ensureStylesheetLink(nextHead, href, ['dist/styles-tools.css', 'dist/styles.css']),
+    (nextHead, href) => ensureStylesheetLink(
+      nextHead,
+      href,
+      stylesheetCandidates(
+        TOOLS_STYLESHEET_HREF,
+        TOOLS_STYLESHEET_FALLBACK,
+        BASE_STYLESHEET_HREF,
+        BASE_STYLESHEET_FALLBACK
+      )
+    ),
     headInner
   );
 }
@@ -368,6 +431,7 @@ function processHtml(html) {
   if (!head) return { html, changed: false };
 
   let inner = head.inner;
+  inner = replaceManagedStylesheetLinks(inner);
   inner = dedupeMeta(inner, 'property', 'og:image:width');
   inner = dedupeMeta(inner, 'property', 'og:image:height');
   inner = dedupeMeta(inner, 'property', 'og:image:alt');

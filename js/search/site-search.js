@@ -5,10 +5,14 @@
 
   const headerForm = $('.nav-search');
   const headerInput = $('.nav-search-input');
+  const pageForm = $('#search-page-form');
+  const pageInput = $('#search-page-q');
   const results = $('#search-results');
   const status = $('#search-status');
+  const activeForm = pageForm || headerForm;
+  const activeInput = pageInput || headerInput;
 
-  if (!headerForm || !headerInput || !results || !status) return;
+  if (!activeForm || !activeInput || !results || !status) return;
 
   const SITE_ORIGIN = 'https://www.danielshort.me';
   const INDEX_URL = 'dist/search-index.json';
@@ -220,6 +224,13 @@
     results.innerHTML = entries.map((entry) => renderEntry(entry, tokens)).join('');
   };
 
+  const syncInputs = (value, source) => {
+    [headerInput, pageInput].forEach((input) => {
+      if (!input || input === source) return;
+      input.value = value;
+    });
+  };
+
   const setQueryInUrl = (query) => {
     const url = new URL(location.href);
     if (query) url.searchParams.set('q', query);
@@ -235,7 +246,8 @@
 
   const runSearch = async (query) => {
     const trimmed = String(query || '').trim();
-    headerInput.value = trimmed;
+    activeInput.value = trimmed;
+    syncInputs(trimmed, activeInput);
     setQueryInUrl(trimmed);
 
     const tokens = tokenize(trimmed);
@@ -259,26 +271,42 @@
   };
 
   const initialQuery = new URLSearchParams(location.search).get('q') || '';
-  headerInput.value = initialQuery;
+  syncInputs(initialQuery);
+  activeInput.value = initialQuery;
 
-  headerForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    runSearch(headerInput.value);
-  });
+  const bindForm = (form, input) => {
+    if (!form || !input || form.dataset.searchBound === 'yes') return;
+    form.dataset.searchBound = 'yes';
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      runSearch(input.value);
+    });
+  };
 
-  headerInput.addEventListener('input', () => {
-    scheduleUpdate(() => runSearch(headerInput.value));
-  });
+  const bindInput = (input) => {
+    if (!input || input.dataset.searchBound === 'yes') return;
+    input.dataset.searchBound = 'yes';
+    input.addEventListener('input', () => {
+      syncInputs(input.value, input);
+      scheduleUpdate(() => runSearch(input.value));
+    });
 
-  headerInput.addEventListener('keydown', (e) => {
-    if (e.key !== 'Escape') return;
-    if (!headerInput.value) return;
-    e.preventDefault();
-    headerInput.value = '';
-    runSearch('');
-    try { headerInput.blur(); } catch (_) {}
-  });
+    input.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      if (!input.value) return;
+      e.preventDefault();
+      input.value = '';
+      syncInputs('', input);
+      runSearch('');
+      try { input.blur(); } catch (_) {}
+    });
+  };
+
+  bindForm(headerForm, headerInput);
+  bindForm(pageForm, pageInput);
+  bindInput(headerInput);
+  bindInput(pageInput);
 
   // Initial run
-  runSearch(headerInput.value);
+  runSearch(activeInput.value);
 })();

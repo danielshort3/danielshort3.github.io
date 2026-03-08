@@ -257,6 +257,7 @@ try {
     const homeHtml = fs.readFileSync('index.html', 'utf8');
     assert(!homeHtml.includes('js/portfolio/modal-helpers.js'), 'index.html should lazy load portfolio modal helpers');
     assert(!homeHtml.includes('js/portfolio/projects-data.js'), 'index.html should lazy load portfolio data');
+    assert(!homeHtml.includes('js/forms/contact.js'), 'index.html should lazy load contact form script');
     const portfolioHtml = fs.readFileSync('pages/portfolio.html', 'utf8');
     assert(!portfolioHtml.includes('js/portfolio/modal-helpers.js'), 'pages/portfolio.html should defer portfolio modal helpers');
     assert(!portfolioHtml.includes('js/portfolio/portfolio.js'), 'pages/portfolio.html should rely on lazy loader');
@@ -887,6 +888,17 @@ try {
     checkFileContains('resume-pdf.html', 'documents/Resume.pdf');
     checkFileContains('pages/resume-pdf.html', 'documents/Resume.pdf');
     checkFileContains('contact.html', 'id="contact-form"');
+    checkFileContains('pages/contact.html', 'action="/api/contact"');
+    checkFileContains('index.html', 'action="/api/contact"');
+    assert(fs.existsSync('api/contact.js'), 'api/contact.js missing');
+  });
+
+  section('Search page form contract', () => {
+    const html = fs.readFileSync('pages/search.html', 'utf8');
+    assert(html.includes('id="search-page-form"'), 'pages/search.html missing in-page search form');
+    assert(html.includes('id="search-page-q"'), 'pages/search.html missing in-page search input');
+    assert(html.includes('id="search-results"'), 'pages/search.html missing search results container');
+    assert(html.includes('id="search-status"'), 'pages/search.html missing search status region');
   });
 
   section('Privacy CMP', () => {
