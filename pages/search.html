@@ -24,7 +24,7 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/hero/head.jpg">
   <meta name="twitter:image:alt" content="Portrait photo of Daniel Short">
   <meta name="theme-color" content="#0D1117">
-  <link rel="stylesheet" href="dist/styles.css">
+  <link rel="stylesheet" href="dist/styles.39a10105.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
@@ -198,14 +198,33 @@
           <p class="hero-eyebrow">Site Search</p>
           <h1>Search</h1>
           <p class="search-hero-tagline">Search tools, portfolio projects, and pages.</p>
-          <p id="search-status" class="search-status" aria-live="polite"></p>
         </div>
       </div>
     </section>
 
     <section class="surface-band reveal">
       <div class="wrapper search-panel">
-        <div id="search-results" class="search-results" aria-live="polite"></div>
+        <div class="search-card">
+          <form id="search-page-form" class="search-form" action="search" method="get" role="search">
+            <label class="visually-hidden" for="search-page-q">Search site</label>
+            <div class="search-field">
+              <input
+                id="search-page-q"
+                class="search-input"
+                type="search"
+                name="q"
+                placeholder="Search tools, projects, and pages"
+                autocomplete="off"
+              >
+              <div class="search-actions">
+                <button class="btn-primary" type="submit">Search</button>
+              </div>
+            </div>
+          </form>
+          <p class="search-hint">Try a tool name, project title, or a topic like "SQL", "OCR", or "Tableau".</p>
+          <p id="search-status" class="search-status" aria-live="polite"></p>
+          <div id="search-results" class="search-results" aria-live="polite"></div>
+        </div>
       </div>
     </section>
   </main>

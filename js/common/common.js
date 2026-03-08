@@ -9,6 +9,7 @@
   const on = (n,e,f,o)=>n&&n.addEventListener(e,f,o);
   const run = fn=>typeof fn==='function'&&fn();
   const isPage = (...names)=>names.includes(document.body.dataset.page);
+  const CONTACT_API_ENDPOINT = '/api/contact';
   const CONTACT_CONTEXT_KEY = 'contactOrigin';
   const CONTACT_MODAL_ID = 'contact-modal';
   const CONTACT_MODAL_SCRIPT = 'js/forms/contact.js';
@@ -46,7 +47,7 @@
           <h3 class="modal-title" id="contact-modal-title">Send a Message</h3>
         </div>
         <div class="modal-body">
-          <form id="contact-form" class="contact-form" method="post" action="https://muee4eg6ze.execute-api.us-east-2.amazonaws.com/prod/contact" data-endpoint="https://muee4eg6ze.execute-api.us-east-2.amazonaws.com/prod/contact" novalidate>
+          <form id="contact-form" class="contact-form" method="post" action="${CONTACT_API_ENDPOINT}" data-endpoint="${CONTACT_API_ENDPOINT}" novalidate>
             <div class="form-field">
               <label for="contact-name">Name <span class="field-required" id="contact-name-required" hidden>- Required</span></label>
               <input id="contact-name" name="name" type="text" autocomplete="name" required maxlength="200" placeholder="Jane Doe" aria-describedby="contact-name-required">
@@ -160,6 +161,9 @@
     initClientErrorTelemetry();
     resetScrollLocks();
     initSmoothScrollLinks();
+    if ((window.location && window.location.hash) === `#${CONTACT_MODAL_ID}`) {
+      requestContactModal();
+    }
     if (isPage('portfolio')) {
       ensurePortfolioScripts().then(() => {
         run(window.buildPortfolioCarousel);
