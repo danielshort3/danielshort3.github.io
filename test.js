@@ -948,6 +948,22 @@ try {
       'stellar dogfight demo should expose HUD layout settings');
     assert(demoHtml.includes('data-setting="hud-scale"'),
       'stellar dogfight demo should expose HUD scale settings');
+    assert(demoHtml.includes('data-setting="target-assist"'),
+      'stellar dogfight demo should expose target assist settings');
+    assert(demoHtml.includes('data-setting="camera-mode"'),
+      'stellar dogfight demo should expose camera mode settings');
+    assert(demoHtml.includes('class="mission-pill-row"') && demoHtml.includes('class="action-cluster"'),
+      'stellar dogfight demo should group highlights and actions for cleaner hierarchy');
+    assert(demoHtml.includes('class="panel-subsection panel-disclosure"'),
+      'stellar dogfight demo should collapse advanced sidebar sections to reduce clutter');
+    assert(demoHtml.includes('class="hud-pill-group hud-pill-group-primary"') && demoHtml.includes('class="hud-pill-group hud-pill-group-meta"'),
+      'stellar dogfight demo should separate primary combat HUD data from secondary meta data');
+    assert(demoHtml.includes('data-role="command-overview"') && demoHtml.includes('data-role="command-roadmap"'),
+      'stellar dogfight demo should expose command overview and roadmap surfaces');
+    assert(demoHtml.includes('data-role="progress-overview"') && demoHtml.includes('data-role="settings-guidance"'),
+      'stellar dogfight demo should expose progress and settings guidance surfaces');
+    assert(demoHtml.includes('data-panel-feature="premium"') && demoHtml.includes('data-settings-tier="2"'),
+      'stellar dogfight demo should mark advanced panels and settings for progressive unlocking');
     assert(demoHtml.includes('data-action="help"'),
       'stellar dogfight demo should expose help action');
     assert(demoHtml.includes('data-action="preset-save"') && demoHtml.includes('data-action="preset-load"'),
@@ -984,6 +1000,16 @@ try {
       'stellar dogfight CSS should include HUD presentation variants');
     assert(demoCss.includes('.premium-card'),
       'stellar dogfight CSS should include premium card presentation');
+    assert(demoCss.includes('.mission-pill-row') && demoCss.includes('.action-cluster'),
+      'stellar dogfight CSS should style the streamlined header layout');
+    assert(demoCss.includes('.panel-disclosure'),
+      'stellar dogfight CSS should style disclosure sections for progressive disclosure');
+    assert(demoCss.includes('.hud-pill-group-meta') && demoCss.includes('body.is-hud-focused'),
+      'stellar dogfight CSS should support contextual combat HUD decluttering');
+    assert(demoCss.includes('.tab-badge') && demoCss.includes('.debrief-grid'),
+      'stellar dogfight CSS should style new-tab badges and post-run debrief cards');
+    assert(demoCss.includes('.progress-step[data-state="new"]'),
+      'stellar dogfight CSS should style newly unlocked roadmap states');
 
     const runtimeJs = fs.readFileSync('js/demos/stellar-dogfight-demo.js', 'utf8');
     assert(runtimeJs.includes('const DEFERRED_UI_FLUSH_MS = 220;'),
@@ -1014,6 +1040,22 @@ try {
       'stellar dogfight runtime missing off-screen threat indicators');
     assert(runtimeJs.includes('function drawEnemyThreatHalo(enemy) {'),
       'stellar dogfight runtime missing elite/boss visual telegraphs');
+    assert(runtimeJs.includes('function getPredictedInterceptPoint(origin, target, projectileSpeed) {'),
+      'stellar dogfight runtime should predict intercept points for lead assistance');
+    assert(runtimeJs.includes('function updateTargetAssist() {') && runtimeJs.includes('function getPlayerShotAngle() {'),
+      'stellar dogfight runtime should include target assist and aim magnetism helpers');
+    assert(runtimeJs.includes('function drawEnemyAttackTelegraph(enemy) {'),
+      'stellar dogfight runtime should telegraph dangerous enemy fire windows');
+    assert(runtimeJs.includes('progress.settings.cameraMode || "dynamic"'),
+      'stellar dogfight runtime should support dynamic camera settings');
+    assert(runtimeJs.includes('function isHudCombatFocusActive(now = performance.now()) {') && runtimeJs.includes('function syncContextualHudState(now = performance.now()) {'),
+      'stellar dogfight runtime should drive contextual HUD focus states during combat');
+    assert(runtimeJs.includes('const WAVE_ROLE_PROFILES = [') && runtimeJs.includes('function getWaveRoleProfile(globalWave, objectiveId, isHardWave, isBossWave) {'),
+      'stellar dogfight runtime should build waves around role-based composition profiles');
+    assert(runtimeJs.includes('const BOSS_PHASES = [') && runtimeJs.includes('function applyBossPhase(enemy, phaseIndex, options = {}) {') && runtimeJs.includes('function updateBossBehavior(enemy, delta) {'),
+      'stellar dogfight runtime should support multi-phase boss behavior');
+    assert(runtimeJs.includes('const braking = isActionActive("brake") || input.padBrake;') && runtimeJs.includes('state.brakeTurnBoost') && runtimeJs.includes('state.brakeSpeedClamp'),
+      'stellar dogfight runtime should apply air brake handling to player flight');
     assert(runtimeJs.includes('const BALANCE_TUNING = {'),
       'stellar dogfight runtime missing balance tuning constants');
     assert(runtimeJs.includes('const DROP_PITY_THRESHOLDS = {'),
@@ -1036,6 +1078,10 @@ try {
       'stellar dogfight runtime should include replay-last-loadout handler');
     assert(runtimeJs.includes('function renderRunAnalytics() {'),
       'stellar dogfight runtime should include run analytics renderer');
+    assert(runtimeJs.includes('function captureRunUnlockBaseline() {') && runtimeJs.includes('function buildRunDebrief(summary, telemetry, reason) {'),
+      'stellar dogfight runtime should capture unlock baselines and build post-run debriefs');
+    assert(runtimeJs.includes('function updateTabBadges() {') && runtimeJs.includes('function markPanelSeen(target) {'),
+      'stellar dogfight runtime should track first-visit UI badges');
     assert(runtimeJs.includes('function renderStatusIcons() {'),
       'stellar dogfight runtime should include status icon rendering');
     assert(runtimeJs.includes('setOverlay("choice-event");'),

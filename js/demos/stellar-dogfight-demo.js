@@ -11,6 +11,9 @@
       const HUD_UPDATE_INTERVAL_MS = 50;
       const DEFERRED_UI_FLUSH_MS = 220;
       const DEFERRED_SAVE_FLUSH_MS = 180;
+      const HUD_META_REVEAL_MS = 2200;
+      const HUD_RECENT_DAMAGE_MS = 2600;
+      const HUD_HOSTILE_BULLET_RANGE = 320;
       const PREMIUM_CURRENCY_LABEL = "Astralite";
       const PREMIUM_DROP_RUN_CAP = 4;
       const DROP_PITY_THRESHOLDS = {
@@ -33,11 +36,123 @@
       };
       const PREMIUM_DROP_PITY_THRESHOLD = 4;
       const MILESTONE_WAVES = [3, 6, 9];
+      const KILL_CHAIN_WINDOW_MS = 4800;
+      const CLEAN_STREAK_MS = 9000;
+      const CLOSE_KILL_DISTANCE = 170;
+      const FAST_CLEAR_PAR_SEC = {
+        eliminate: 24,
+        survive: 18,
+        "elite-hunt": 28
+      };
+      const PRIORITY_KILL_ROLES = new Set(["support", "artillery", "siege", "command"]);
       const THREAT_TIERS = [
         { id: "normal", label: "Normal", minWave: 1, enemyScale: 1, fireRate: 1, eliteBonus: 0 },
         { id: "veteran", label: "Veteran", minWave: 5, enemyScale: 1.08, fireRate: 1.05, eliteBonus: 0.06 },
         { id: "elite", label: "Elite", minWave: 10, enemyScale: 1.16, fireRate: 1.11, eliteBonus: 0.12 },
         { id: "mythic", label: "Mythic", minWave: 16, enemyScale: 1.25, fireRate: 1.17, eliteBonus: 0.18 }
+      ];
+      const ENEMY_ROLE_MAP = {
+        scout: "screen",
+        fighter: "line",
+        interceptor: "interceptor",
+        skirmisher: "interceptor",
+        disruptor: "support",
+        sniper: "artillery",
+        bomber: "siege",
+        rusher: "brawler",
+        bulwark: "support",
+        ace: "interceptor",
+        dreadnought: "command"
+      };
+      const WAVE_ROLE_PROFILES = [
+        {
+          id: "vanguard-screen",
+          label: "Vanguard Screen",
+          roles: { screen: 1.45, line: 1.2, interceptor: 1.08, support: 0.82, artillery: 0.7, siege: 0.78, brawler: 0.88 },
+          guarantees: ["line"],
+          minWave: 1
+        },
+        {
+          id: "hunter-pack",
+          label: "Hunter Pack",
+          roles: { interceptor: 1.6, screen: 1.12, brawler: 1.2, line: 0.9, support: 0.8, artillery: 0.78, siege: 0.8 },
+          guarantees: ["interceptor"],
+          minWave: 2
+        },
+        {
+          id: "siege-line",
+          label: "Siege Line",
+          roles: { artillery: 1.55, siege: 1.3, line: 1.1, support: 0.92, interceptor: 0.76, screen: 0.74, brawler: 0.78 },
+          guarantees: ["artillery"],
+          minWave: 4
+        },
+        {
+          id: "command-bastion",
+          label: "Command Bastion",
+          roles: { support: 1.58, line: 1.18, artillery: 1.04, siege: 0.9, interceptor: 0.76, screen: 0.78, brawler: 0.82 },
+          guarantees: ["support"],
+          minWave: 5
+        },
+        {
+          id: "breakthrough",
+          label: "Breakthrough Wing",
+          roles: { brawler: 1.46, interceptor: 1.18, line: 1.02, support: 0.9, screen: 0.82, artillery: 0.74, siege: 0.84 },
+          guarantees: ["brawler"],
+          minWave: 4
+        }
+      ];
+      const BOSS_PHASES = [
+        {
+          name: "Siege Screen",
+          fireRateMult: 1,
+          damageMult: 1,
+          speedMult: 1,
+          broadsideCooldown: 7.4,
+          broadsideCount: 5,
+          broadsideAngle: 0.18,
+          broadsideDamageMult: 1.25,
+          escortIds: ["fighter", "interceptor"],
+          escortCount: 2,
+          escortCooldown: 10.5,
+          shockwaveCooldown: 0,
+          shockwaveRadius: 0,
+          shockwaveDamage: 0,
+          shockwaveSlow: 0
+        },
+        {
+          name: "Lance Net",
+          fireRateMult: 1.12,
+          damageMult: 1.08,
+          speedMult: 1.06,
+          broadsideCooldown: 6.2,
+          broadsideCount: 7,
+          broadsideAngle: 0.2,
+          broadsideDamageMult: 1.32,
+          escortIds: ["bulwark", "interceptor", "sniper"],
+          escortCount: 3,
+          escortCooldown: 9.5,
+          shockwaveCooldown: 11.5,
+          shockwaveRadius: 210,
+          shockwaveDamage: 20,
+          shockwaveSlow: 1.3
+        },
+        {
+          name: "Overrun Core",
+          fireRateMult: 1.22,
+          damageMult: 1.16,
+          speedMult: 1.1,
+          broadsideCooldown: 5.1,
+          broadsideCount: 9,
+          broadsideAngle: 0.24,
+          broadsideDamageMult: 1.45,
+          escortIds: ["bomber", "bulwark", "interceptor", "sniper"],
+          escortCount: 4,
+          escortCooldown: 8.4,
+          shockwaveCooldown: 9.4,
+          shockwaveRadius: 240,
+          shockwaveDamage: 26,
+          shockwaveSlow: 1.8
+        }
       ];
       const BUILD_PATHS = [
         {
@@ -161,7 +276,7 @@
       const TUTORIAL_STEPS = [
         {
           title: "Core Flight",
-          text: "Use WASD to move, mouse to aim, and Space or mouse press to fire. Boost to dodge pressure and reposition."
+          text: "Use WASD to move, mouse to aim, and Space or mouse press to fire. Hold Air Brake to bleed speed and pivot faster, and watch bracketed enemies for the lead pip."
         },
         {
           title: "Energy Discipline",
@@ -169,7 +284,7 @@
         },
         {
           title: "Wave Objectives",
-          text: "Each wave can require elimination, survival, or elite hunts. Watch the objective strip and finish it clean."
+          text: "Each wave can require elimination, survival, or elite hunts. Watch the objective strip, enemy telegraphs, and the camera look-ahead to stay ahead of pressure."
         },
         {
           title: "Build Identity",
@@ -417,6 +532,13 @@
         overlay: document.querySelector("[data-role='overlay']"),
         overlayContent: document.querySelector("[data-role='overlay-content']"),
         tips: document.querySelector("[data-role='tips']"),
+        launchGuidance: document.querySelector("[data-role='launch-guidance']"),
+        commandOverview: document.querySelector("[data-role='command-overview']"),
+        commandRoadmap: document.querySelector("[data-role='command-roadmap']"),
+        progressOverview: document.querySelector("[data-role='progress-overview']"),
+        progressRoadmap: document.querySelector("[data-role='progress-roadmap']"),
+        systemsFocus: document.querySelector("[data-role='systems-focus']"),
+        settingsGuidance: document.querySelector("[data-role='settings-guidance']"),
         log: document.querySelector("[data-role='log']"),
         activeUpgrades: document.querySelector("[data-role='active-upgrades']"),
         hangar: document.querySelector("[data-role='hangar']"),
@@ -442,7 +564,8 @@
         perfLogBtn: document.querySelector("[data-role='perf-log-btn']"),
         perfLogStatus: document.querySelector("[data-role='perf-log-status']"),
         statusIcons: document.querySelector("[data-role='status-icons']"),
-        runAnalytics: document.querySelector("[data-role='run-analytics']")
+        runAnalytics: document.querySelector("[data-role='run-analytics']"),
+        hudMeta: document.querySelector("[data-role='hud-meta']")
       };
       const settingsPanel = document.querySelector("[data-tab-panel='settings']");
       const settingsHome = settingsPanel ? settingsPanel.parentElement : null;
@@ -521,6 +644,7 @@
         firing: false,
         padFiring: false,
         boost: false,
+        padBrake: false,
         aimAngle: 0,
         aimSource: "mouse",
         aimMode: "hybrid",
@@ -546,7 +670,8 @@
         secondary: "Secondary",
         dock: "Upgrade Dock",
         pause: "Pause",
-        help: "Help Overlay"
+        help: "Help Overlay",
+        brake: "Air Brake"
       };
 
       const state = {
@@ -583,6 +708,7 @@
         inventorySelectionId: null,
         onboardingTimer: 0,
         onboardingSave: 0,
+        coachingTimer: 0,
         difficulty: "normal",
         enemyAccuracyMod: 1,
         decoy: null,
@@ -590,7 +716,12 @@
         blackHoles: [],
         skillSlots: [],
         lastHudUpdate: 0,
+        lastHudMetaRevealAt: 0,
+        lastHudScore: null,
+        lastHudCredits: null,
+        lastHudTier: null,
         activeUpgradeKey: "",
+        lastPlayerDamageAt: 0,
         lastHullHitAt: 0,
         upgradeStacks: {},
         upgradeOptions: [],
@@ -598,7 +729,10 @@
         worldWidth: WORLD_WIDTH,
         worldHeight: WORLD_HEIGHT,
         renderScale: 1,
+        frameDelta: 1 / 60,
         camera: { x: 0, y: 0 },
+        cameraTarget: { x: 0, y: 0 },
+        cameraReady: false,
         fieldDropTimer: 0,
         frontier: null,
         lossRewards: null,
@@ -615,11 +749,29 @@
         tutorialStep: 0,
         tutorialComplete: false,
         overlayReturnMode: null,
+        waveProfile: "",
+        runTipsSeen: {},
+        lastRunTelemetry: null,
+        lastRunSummary: null,
+        lastRunReason: "",
+        runDebrief: null,
+        runUnlockBaseline: null,
+        bonusScore: 0,
+        bestKillChain: 0,
+        priorityKills: 0,
+        closeKills: 0,
+        fastClears: 0,
+        cleanFlights: 0,
+        cleanStreakSince: 0,
+        lowHealthWarningAt: 0,
+        killChain: 0,
+        killChainAt: 0,
         weekly: null,
         challengeSeed: "",
         controllerConnected: false,
         controllerPrevButtons: [],
-        telemetryRun: null
+        telemetryRun: null,
+        targetAssist: null
       };
 
       const BASE_PLAYER = {
@@ -690,6 +842,9 @@
         missileDamage: 0,
         missileCount: 0,
         missileSpeed: 0,
+        brakeDrag: 6.4,
+        brakeTurnBoost: 1.75,
+        brakeSpeedClamp: 0.62,
         aegisCooldown: 0,
         aegisReadyAt: 0,
         aegisShieldRestore: 0,
@@ -913,6 +1068,81 @@
         return routeId.split("-").map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ");
       }
 
+      function getEnemyRoleId(typeOrId) {
+        const id = typeof typeOrId === "string" ? typeOrId : typeOrId?.id;
+        return ENEMY_ROLE_MAP[id] || "line";
+      }
+
+      function getWaveRoleProfile(globalWave, objectiveId, isHardWave, isBossWave) {
+        if (isBossWave) {
+          return {
+            id: "capital-phalanx",
+            label: "Capital Phalanx",
+            roles: { command: 1.8, support: 1.45, line: 1.18, artillery: 1.06, interceptor: 0.84, screen: 0.78, siege: 0.96, brawler: 0.82 },
+            guarantees: globalWave >= 5 ? ["support", "artillery"] : ["line"]
+          };
+        }
+        if (objectiveId === "elite-hunt") {
+          return WAVE_ROLE_PROFILES.find((profile) => profile.id === "hunter-pack") || WAVE_ROLE_PROFILES[0];
+        }
+        if (objectiveId === "survive") {
+          return WAVE_ROLE_PROFILES.find((profile) => profile.id === "command-bastion")
+            || WAVE_ROLE_PROFILES[WAVE_ROLE_PROFILES.length - 1];
+        }
+        if (isHardWave) {
+          return WAVE_ROLE_PROFILES.find((profile) => profile.id === "breakthrough")
+            || WAVE_ROLE_PROFILES[WAVE_ROLE_PROFILES.length - 1];
+        }
+        const available = WAVE_ROLE_PROFILES.filter((profile) => globalWave >= (profile.minWave || 1));
+        const pool = available.length ? available : WAVE_ROLE_PROFILES;
+        return pool[(Math.max(1, globalWave) - 1) % pool.length];
+      }
+
+      function getWaveRoleWeightedPool(availableTypes, profile) {
+        return availableTypes.map((type) => {
+          const role = getEnemyRoleId(type);
+          const roleWeight = profile?.roles?.[role] || 0.84;
+          return {
+            type,
+            role,
+            weight: Math.max(0.05, (type.weight || 1) * roleWeight)
+          };
+        }).filter((entry) => entry.weight > 0);
+      }
+
+      function getGuaranteedWaveTypes(profile, availableTypes) {
+        const guaranteed = [];
+        const used = new Set();
+        (profile?.guarantees || []).forEach((role) => {
+          const candidates = availableTypes.filter((type) => (
+            getEnemyRoleId(type) === role
+            && !used.has(type.id)
+          ));
+          if (!candidates.length) return;
+          const type = pickWeighted(candidates, candidates.map((entry) => entry.weight || 1));
+          guaranteed.push(type);
+          used.add(type.id);
+        });
+        return guaranteed;
+      }
+
+      function buildWaveSpawnRoster(availableTypes, spawnCount, profile) {
+        const pool = Array.isArray(availableTypes) ? availableTypes.filter(Boolean) : [];
+        if (!pool.length || spawnCount <= 0) return [];
+        const weightedPool = getWaveRoleWeightedPool(pool, profile);
+        const selectionPool = weightedPool.length
+          ? weightedPool.map((entry) => entry.type)
+          : pool;
+        const weights = weightedPool.length
+          ? weightedPool.map((entry) => entry.weight)
+          : selectionPool.map((entry) => entry.weight || 1);
+        const roster = getGuaranteedWaveTypes(profile, selectionPool).slice(0, spawnCount);
+        while (roster.length < spawnCount) {
+          roster.push(pickWeighted(selectionPool, weights));
+        }
+        return roster;
+      }
+
       function createWaveObjective(globalWave) {
         if (state.training) {
           return {
@@ -980,10 +1210,22 @@
           damageTaken: 0,
           kills: 0,
           eliteKills: 0,
+          bonusScore: 0,
+          bestKillChain: 0,
+          priorityKills: 0,
+          closeKills: 0,
+          fastClears: 0,
+          cleanFlightMilestones: 0,
           abilityUses: 0,
           secondaryUses: 0,
           objectiveCompletions: 0,
-          hazardTicks: 0
+          hazardTicks: 0,
+          boostSeconds: 0,
+          boostBursts: 0,
+          brakeSeconds: 0,
+          brakeUses: 0,
+          lowHullSeconds: 0,
+          criticalHullEvents: 0
         };
         pushTelemetryEvent("run_start", {
           mode: state.telemetryRun.mode,
@@ -1026,6 +1268,361 @@
         state.telemetryRun = null;
         pushTelemetryEvent("run_end", telemetry);
         return telemetry;
+      }
+
+      function resetCleanFlightStreak(now = performance.now()) {
+        state.cleanStreakSince = now;
+      }
+
+      function getCleanFlightMilestone(now = performance.now()) {
+        if (!state.cleanStreakSince) return 0;
+        return Math.max(0, Math.floor((now - state.cleanStreakSince) / CLEAN_STREAK_MS));
+      }
+
+      function getActiveKillChain(now = performance.now()) {
+        if (!state.killChainAt || now - state.killChainAt > KILL_CHAIN_WINDOW_MS) {
+          return 0;
+        }
+        return Math.max(0, state.killChain || 0);
+      }
+
+      function updateCombatMomentum(now = performance.now()) {
+        if (state.killChain && now - state.killChainAt > KILL_CHAIN_WINDOW_MS) {
+          state.killChain = 0;
+        }
+      }
+
+      function awardCombatScoreBonus(amount, label, options = {}) {
+        const bonus = Math.max(0, Math.round(amount || 0));
+        if (!bonus || !label) return 0;
+        state.score += bonus;
+        state.bonusScore = Math.max(0, (state.bonusScore || 0) + bonus);
+        if (state.telemetryRun) {
+          state.telemetryRun.bonusScore = Math.max(0, (state.telemetryRun.bonusScore || 0) + bonus);
+        }
+        spawnLootBursts(
+          options.x ?? player?.x ?? state.worldWidth * 0.5,
+          options.y ?? player?.y ?? state.worldHeight * 0.5,
+          [{ label: `${label} +${bonus}`, tier: options.tier || "rare" }]
+        );
+        noteHudMetaReveal(options.now || performance.now());
+        return bonus;
+      }
+
+      function awardKillScoreBonuses(enemy, now = performance.now()) {
+        if (!enemy) return 0;
+        const chainActive = state.killChainAt && now - state.killChainAt <= KILL_CHAIN_WINDOW_MS;
+        state.killChain = chainActive ? Math.max(1, (state.killChain || 0) + 1) : 1;
+        state.killChainAt = now;
+        state.bestKillChain = Math.max(state.bestKillChain || 0, state.killChain);
+        if (state.telemetryRun) {
+          state.telemetryRun.bestKillChain = Math.max(state.telemetryRun.bestKillChain || 0, state.killChain);
+        }
+
+        const scoreDrops = [];
+        let totalBonus = 0;
+        const pushBonus = (amount, label, tier) => {
+          const bonus = Math.max(0, Math.round(amount || 0));
+          if (!bonus) return;
+          totalBonus += bonus;
+          scoreDrops.push({ label: `${label} +${bonus}`, tier: tier || "rare" });
+        };
+
+        if (state.killChain >= 2) {
+          const chainBonus = 10 + state.killChain * 8 + Math.max(0, state.killChain - 4) * 4;
+          pushBonus(
+            chainBonus,
+            `Chain x${state.killChain}`,
+            state.killChain >= 5 ? "legendary" : state.killChain >= 3 ? "epic" : "rare"
+          );
+        }
+
+        const role = enemy.role || ENEMY_ROLE_MAP[enemy.id] || "line";
+        const priorityKill = isPriorityEnemy(enemy) || PRIORITY_KILL_ROLES.has(role);
+        if (priorityKill) {
+          state.priorityKills += 1;
+          if (state.telemetryRun) {
+            state.telemetryRun.priorityKills = (state.telemetryRun.priorityKills || 0) + 1;
+          }
+          pushBonus(
+            isPriorityEnemy(enemy) ? 32 : 24,
+            enemy.id === "dreadnought" ? "Capital kill" : "Priority",
+            isPriorityEnemy(enemy) ? "legendary" : "epic"
+          );
+        }
+
+        if (player && distanceBetween(player, enemy) <= CLOSE_KILL_DISTANCE) {
+          state.closeKills += 1;
+          if (state.telemetryRun) {
+            state.telemetryRun.closeKills = (state.telemetryRun.closeKills || 0) + 1;
+          }
+          pushBonus(priorityKill ? 26 : 18, "Close pass", priorityKill ? "epic" : "uncommon");
+        }
+
+        const cleanMilestone = getCleanFlightMilestone(now);
+        if (cleanMilestone > (state.cleanFlights || 0)) {
+          state.cleanFlights = cleanMilestone;
+          if (state.telemetryRun) {
+            state.telemetryRun.cleanFlightMilestones = Math.max(
+              state.telemetryRun.cleanFlightMilestones || 0,
+              cleanMilestone
+            );
+          }
+          pushBonus(28 + cleanMilestone * 10, "Clean flight", cleanMilestone >= 2 ? "epic" : "rare");
+        }
+
+        if (enemy.exposedTimer > 0.15) {
+          pushBonus(24, "Punish window", "epic");
+        }
+
+        if (!totalBonus) return 0;
+        state.score += totalBonus;
+        state.bonusScore = Math.max(0, (state.bonusScore || 0) + totalBonus);
+        if (state.telemetryRun) {
+          state.telemetryRun.bonusScore = Math.max(0, (state.telemetryRun.bonusScore || 0) + totalBonus);
+        }
+        spawnLootBursts(enemy.x, enemy.y, scoreDrops.slice(0, 3));
+        noteHudMetaReveal(now);
+        return totalBonus;
+      }
+
+      function awardWaveTempoBonus(now = performance.now()) {
+        if (!state.waveStart || !state.waveObjective) return 0;
+        const objectiveId = state.waveObjective.id || "eliminate";
+        const basePar = FAST_CLEAR_PAR_SEC[objectiveId] || FAST_CLEAR_PAR_SEC.eliminate;
+        const globalWave = Math.max(1, getGlobalWave(state.wave || 1));
+        const par = basePar + Math.max(0, globalWave - 1) * 1.35;
+        const waveDurationSec = Math.max(1, (now - state.waveStart) / 1000);
+        const margin = par - waveDurationSec;
+        if (margin < 4) return 0;
+        state.fastClears += 1;
+        if (state.telemetryRun) {
+          state.telemetryRun.fastClears = (state.telemetryRun.fastClears || 0) + 1;
+        }
+        const bonus = 18 + margin * 6;
+        return awardCombatScoreBonus(bonus, "Fast clear", {
+          x: player?.x ?? state.worldWidth * 0.5,
+          y: player?.y ?? state.worldHeight * 0.5,
+          tier: margin >= 10 ? "epic" : "uncommon",
+          now
+        });
+      }
+
+      function maybeShowAdaptiveCoaching(delta) {
+        if ((state.mode !== "flight" && state.mode !== "training") || !player || !state.telemetryRun) return;
+        state.coachingTimer += delta;
+        if (state.coachingTimer < 6.5) return;
+        state.coachingTimer = 0;
+
+        const telemetry = state.telemetryRun;
+        const now = performance.now();
+        const elapsed = state.runStart ? now - state.runStart : 0;
+        const accuracy = telemetry.shotsFired > 0 ? telemetry.shotsHit / telemetry.shotsFired : 1;
+        const priorityTargetsVisible = enemies.some((enemy) => (
+          PRIORITY_KILL_ROLES.has(enemy.role || ENEMY_ROLE_MAP[enemy.id] || "line")
+        ));
+        const bossExposed = enemies.some((enemy) => enemy.id === "dreadnought" && enemy.exposedTimer > 0.45);
+
+        if (!state.runTipsSeen.exposedBoss && bossExposed) {
+          state.runTipsSeen.exposedBoss = true;
+          showTip(null, "Boss opening", "The dreadnought is exposed after its special. Stay close enough to punish before the window closes.", {
+            kind: "info",
+            repeatable: true,
+            duration: 6200
+          });
+          return;
+        }
+
+        if (!state.runTipsSeen.accuracy && telemetry.shotsFired >= 18 && accuracy < 0.34) {
+          state.runTipsSeen.accuracy = true;
+          showTip(null, "Accuracy tip", "Tap Air Brake, let the lead pip settle, then fire. You're overswinging targets.", {
+            kind: "info",
+            repeatable: true,
+            duration: 6200
+          });
+          return;
+        }
+
+        if (!state.runTipsSeen.hazards && telemetry.hazardTicks >= 6) {
+          state.runTipsSeen.hazards = true;
+          showTip(null, "Hazard pressure", "Red hazard rings are draining tempo. Break wide around them or boost all the way through.", {
+            kind: "info",
+            repeatable: true,
+            duration: 6200
+          });
+          return;
+        }
+
+        if (!state.runTipsSeen.boost && elapsed >= 28000 && telemetry.damageTaken >= 80 && telemetry.boostSeconds < 1.5) {
+          state.runTipsSeen.boost = true;
+          showTip(null, "Boost out sooner", "Use boost to break crossfire and reset spacing before hull gets chewed up.", {
+            kind: "info",
+            repeatable: true,
+            duration: 6200
+          });
+          return;
+        }
+
+        if (!state.runTipsSeen.lowHull && telemetry.lowHullSeconds >= 5.5) {
+          state.runTipsSeen.lowHull = true;
+          showTip(null, "Disengage on low hull", "Once hull drops into the red, leave the pocket immediately and rebuild the fight.", {
+            kind: "info",
+            repeatable: true,
+            duration: 6200
+          });
+          return;
+        }
+
+        if (!state.runTipsSeen.secondary && isFeatureUnlocked("secondary") && telemetry.secondaryUses === 0 && elapsed >= 40000 && enemies.length >= 3) {
+          state.runTipsSeen.secondary = true;
+          showTip(null, "Spend your secondary", "You're holding a full secondary. Dump it into clustered ships or a priority target and keep the wave lighter.", {
+            kind: "info",
+            repeatable: true,
+            duration: 6200
+          });
+          return;
+        }
+
+        if (!state.runTipsSeen.priority && priorityTargetsVisible && (telemetry.priorityKills || 0) === 0 && getGlobalWave(state.wave || 1) >= 4) {
+          state.runTipsSeen.priority = true;
+          showTip(null, "Target order", "Delete support and artillery first. Letting them live makes every other ship harder to manage.", {
+            kind: "info",
+            repeatable: true,
+            duration: 6200
+          });
+        }
+      }
+
+      function getRunCoachingRecommendations(summary, telemetry) {
+        if (!summary || !telemetry) return [];
+        const notes = [];
+        const accuracy = Number.isFinite(telemetry.accuracy) ? telemetry.accuracy : 0;
+        if (telemetry.shotsFired >= 18 && accuracy < 0.34) {
+          const brakeClause = (telemetry.brakeUses || 0) < 4
+            ? " Feather Air Brake before firing and trust the lead pip instead of dragging the reticle through targets."
+            : " Trust the lead pip instead of dragging the reticle through targets.";
+          notes.push(`Accuracy ran low.${brakeClause}`);
+        }
+        if ((telemetry.priorityKills || 0) === 0 && (summary.globalWave || summary.wave || 1) >= 4) {
+          notes.push("Priority targets stayed up too long. Delete support, artillery, and command ships first to flatten the wave.");
+        }
+        if (telemetry.hazardTicks >= 8) {
+          notes.push("Hazards cost too much hull. Break wide around red zones or boost clean through instead of drifting inside them.");
+        }
+        if ((summary.durationSec || 0) >= 30 && (telemetry.boostSeconds || 0) < 1.5) {
+          notes.push("Boost barely got used. Spend it to break crossfire, chase isolated targets, or reset after overcommitting.");
+        }
+        if ((telemetry.lowHullSeconds || 0) >= 6 || (telemetry.criticalHullEvents || 0) >= 2) {
+          notes.push("You stayed in danger too long on low hull. Disengage the moment hull drops below roughly one third.");
+        }
+        if (isFeatureUnlocked("secondary") && telemetry.secondaryUses === 0) {
+          notes.push("Secondary went unused. Spend it earlier on clustered enemies or a dangerous elite instead of saving it for a perfect shot.");
+        } else if (isFeatureUnlocked("ability") && telemetry.abilityUses === 0) {
+          notes.push("Ship ability stayed unused. Spend it proactively when the wave spikes or your shields start to crack.");
+        }
+        if ((telemetry.bestKillChain || 0) < 3 && (summary.globalWave || summary.wave || 1) >= 3) {
+          notes.push("Chain bonus stayed low. Stay aggressive between kills to keep pressure off the field and lift score faster.");
+        }
+        return notes.slice(0, 3);
+      }
+
+      function getFeatureMilestone(feature) {
+        return getProgressMilestones().find((item) => item.id === feature) || null;
+      }
+
+      function getFeatureFollowupCopy(feature) {
+        const followups = {
+          upgrades: "Open Boosts and plan your first field-upgrade path before launching again.",
+          ability: "Open Ship and get used to weaving the new ability into your next pressure spike.",
+          secondary: "Open Ship and start spending the new secondary early instead of holding it too long.",
+          hangar: "Open Boosts and spend any tech points before your next sortie.",
+          armory: "Open Gear and compare your strongest weapon and attachments before relaunching.",
+          shipyard: "Visit Ships and compare the newly available hulls before committing to the next run.",
+          contracts: "Visit Tasks and pin a bonus objective before the next launch.",
+          premium: `Visit Premium and decide whether to spend your ${PREMIUM_CURRENCY_LABEL} now or save it.`,
+          salvage: "Open Gear and check Salvage Cache if you have keys ready."
+        };
+        return followups[feature] || "Review the new system before the next sortie.";
+      }
+
+      function getDebriefNextAction(summary, telemetry, unlockedFeatures, reason) {
+        if (unlockedFeatures.length) {
+          return getFeatureFollowupCopy(unlockedFeatures[0]);
+        }
+        const accuracy = Number.isFinite(telemetry?.accuracy) ? telemetry.accuracy : 0;
+        if ((telemetry?.shotsFired || 0) >= 18 && accuracy < 0.34 && (telemetry?.brakeUses || 0) < 4) {
+          return "Run Practice and tap Air Brake before firing at fast targets.";
+        }
+        if ((summary?.durationSec || 0) >= 30 && (telemetry?.boostSeconds || 0) < 1.5) {
+          return "Use boost as a disengage tool earlier, not only as a chase tool.";
+        }
+        if ((telemetry?.lowHullSeconds || 0) >= 6 || (telemetry?.criticalHullEvents || 0) >= 2) {
+          return "Disengage the moment hull drops into the red instead of trading more damage.";
+        }
+        if (isFeatureUnlocked("secondary") && (telemetry?.secondaryUses || 0) === 0) {
+          return "Spend your secondary earlier on clustered ships or dangerous elites.";
+        }
+        if (isFeatureUnlocked("ability") && (telemetry?.abilityUses || 0) === 0) {
+          return "Use your ship ability on the first serious pressure spike instead of holding it.";
+        }
+        if (reason === "victory") {
+          return `Launch Level ${Math.max(progress.campaignLevel || 1, (summary?.level || 1) + 1)} when ready, or refit first.`;
+        }
+        if (reason === "abort") {
+          return "Refit in the hangar, then relaunch once your route and loadout are set.";
+        }
+        return "Open Progress, review the roadmap, and launch another run.";
+      }
+
+      function buildRunDebrief(summary, telemetry, reason) {
+        const unlockedFeatures = getRunUnlockedFeatures();
+        const recommendations = summary && telemetry ? getRunCoachingRecommendations(summary, telemetry) : [];
+        const unlockedLabels = unlockedFeatures
+          .map((feature) => getFeatureMilestone(feature))
+          .filter(Boolean)
+          .map((item) => item.label);
+        const summaryLine = unlockedLabels.length
+          ? `Unlocked during this run: ${unlockedLabels.join(", ")}.`
+          : reason === "victory"
+            ? "Run complete. The next level is ready when you are."
+            : reason === "abort"
+              ? "Sortie ended early. Refit before your next launch."
+              : "Sortie logged. Use the notes below to tighten the next run.";
+        return {
+          summary: summaryLine,
+          unlockedFeatures,
+          unlockedLabels,
+          recommendations,
+          nextAction: getDebriefNextAction(summary, telemetry, unlockedFeatures, reason || "unknown")
+        };
+      }
+
+      function renderRunDebriefSection() {
+        const debrief = state.runDebrief;
+        if (!debrief) return "";
+        const unlockedChips = debrief.unlockedLabels.length
+          ? debrief.unlockedLabels.map((label) => `<span class="chip" data-tier="epic">${label}</span>`).join("")
+          : "<span class=\"select-meta\">No new systems unlocked this run.</span>";
+        const coachingList = debrief.recommendations.length
+          ? `<ul class="overlay-list debrief-list">${debrief.recommendations.map((note) => `<li>${note}</li>`).join("")}</ul>`
+          : "<p class=\"select-meta\">No major issues detected. Keep pressing deeper waves.</p>";
+        return `
+          <div class="debrief-grid">
+            <div class="debrief-card">
+              <span class="focus-label">What Changed</span>
+              <strong>${debrief.summary}</strong>
+              <div class="chip-list">${unlockedChips}</div>
+            </div>
+            <div class="debrief-card">
+              <span class="focus-label">Coaching</span>
+              ${coachingList}
+            </div>
+            <div class="debrief-card">
+              <span class="focus-label">Next Step</span>
+              <strong>${debrief.nextAction}</strong>
+            </div>
+          </div>
+        `;
       }
 
       function getDerivedCombatMetrics(statsObj) {
@@ -1112,6 +1709,7 @@
         renderArmory();
         renderContracts();
         renderSettings();
+        renderProgressiveUi();
         renderHistory();
         renderRunAnalytics();
         setOverlay("start");
@@ -1475,6 +2073,8 @@
             progress.settings.inventoryFilter = option;
           } else if (setting === "input-mode") {
             progress.settings.inputMode = option;
+          } else if (setting === "target-assist") {
+            progress.settings.targetAssist = option;
           } else if (setting === "particles") {
             progress.settings.particles = option;
           } else if (setting === "hit-flash") {
@@ -1483,6 +2083,9 @@
             progress.settings.hudLayout = option;
           } else if (setting === "hud-scale") {
             progress.settings.hudScale = option;
+          } else if (setting === "camera-mode") {
+            progress.settings.cameraMode = option;
+            state.cameraReady = false;
           } else if (setting === "audio") {
             progress.settings.audio = option;
           } else if (setting === "palette") {
@@ -1629,10 +2232,15 @@
           const defaultTarget = group.dataset.tabDefault || buttons[0].dataset.tabTarget;
           const missionGrid = document.querySelector(".mission-grid");
           const missionShell = document.querySelector(".mission-shell");
+          const getVisibleButtons = () => buttons.filter((button) => !button.hidden);
 
-          const activate = (target, focusButton) => {
+          const activate = (requestedTarget, focusButton, shouldMarkSeen = false) => {
+            const visibleButtons = getVisibleButtons();
+            const resolvedTarget = visibleButtons.some((button) => button.dataset.tabTarget === requestedTarget)
+              ? requestedTarget
+              : (visibleButtons[0]?.dataset.tabTarget || buttons[0].dataset.tabTarget);
             buttons.forEach((button) => {
-              const isActive = button.dataset.tabTarget === target;
+              const isActive = !button.hidden && button.dataset.tabTarget === resolvedTarget;
               button.classList.toggle("is-active", isActive);
               button.setAttribute("aria-selected", isActive ? "true" : "false");
               button.tabIndex = isActive ? 0 : -1;
@@ -1642,13 +2250,13 @@
             });
 
             panels.forEach((panel) => {
-              const isActive = panel.dataset.tabPanel === target;
+              const isActive = !panel.hidden && panel.dataset.tabPanel === resolvedTarget;
               panel.classList.toggle("is-active", isActive);
               panel.hidden = !isActive;
             });
 
             if (group.dataset.tabGroup === "sidebar") {
-              const isWide = target !== "systems" && target !== "upgrades";
+              const isWide = resolvedTarget !== "systems" && resolvedTarget !== "upgrades";
               if (missionGrid) {
                 missionGrid.classList.toggle("is-wide", isWide);
               }
@@ -1656,33 +2264,38 @@
                 missionShell.classList.toggle("is-wide", isWide);
               }
             }
+
+            if (shouldMarkSeen) {
+              markPanelSeen(resolvedTarget);
+            }
           };
 
-          activate(defaultTarget, false);
+          activate(defaultTarget, false, false);
 
           group.addEventListener("click", (event) => {
             const button = event.target.closest("[data-tab-target]");
             if (!button || !group.contains(button)) return;
-            activate(button.dataset.tabTarget, true);
+            activate(button.dataset.tabTarget, true, true);
           });
 
           group.addEventListener("keydown", (event) => {
-            const currentIndex = buttons.findIndex((button) => button.classList.contains("is-active"));
+            const visibleButtons = getVisibleButtons();
+            const currentIndex = visibleButtons.findIndex((button) => button.classList.contains("is-active"));
             if (currentIndex === -1) return;
             let nextIndex = currentIndex;
             if (event.key === "ArrowRight" || event.key === "ArrowDown") {
-              nextIndex = (currentIndex + 1) % buttons.length;
+              nextIndex = (currentIndex + 1) % visibleButtons.length;
             } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
-              nextIndex = (currentIndex - 1 + buttons.length) % buttons.length;
+              nextIndex = (currentIndex - 1 + visibleButtons.length) % visibleButtons.length;
             } else if (event.key === "Home") {
               nextIndex = 0;
             } else if (event.key === "End") {
-              nextIndex = buttons.length - 1;
+              nextIndex = visibleButtons.length - 1;
             } else {
               return;
             }
             event.preventDefault();
-            activate(buttons[nextIndex].dataset.tabTarget, true);
+            activate(visibleButtons[nextIndex].dataset.tabTarget, true, true);
           });
         });
       }
@@ -1707,6 +2320,7 @@
         const playing = isPlayingMode(state.mode);
         document.body.classList.toggle("is-playing", playing);
         document.body.classList.toggle("is-hangar", !playing);
+        syncContextualHudState();
         resizeCanvas();
         resizeMinimap();
       }
@@ -1833,10 +2447,15 @@
             armory: false,
             shipyard: false,
             contracts: false,
+            premium: false,
             salvage: false
           },
           onboarding: {
             flightSeconds: 0
+          },
+          uiSeen: {
+            tabs: {},
+            features: {}
           },
           tipsSeen: {},
           selectedShip: "vanguard",
@@ -1872,10 +2491,12 @@
             difficulty: "normal",
             gameMode: "arcade",
             inputMode: "hybrid",
+            targetAssist: "on",
             particles: "medium",
             hitFlash: true,
             hudLayout: "standard",
             hudScale: "md",
+            cameraMode: "dynamic",
             audio: "on",
             palette: "default",
             armorySection: "inventory",
@@ -1902,7 +2523,8 @@
             secondary: "q",
             dock: "u",
             pause: "p",
-            help: "h"
+            help: "h",
+            brake: "x"
           },
           loadoutPresets: {
             a: null,
@@ -2025,6 +2647,18 @@
             onboarding: {
               ...fallback.onboarding,
               ...(stored.onboarding || {})
+            },
+            uiSeen: {
+              ...fallback.uiSeen,
+              ...(stored.uiSeen || {}),
+              tabs: {
+                ...fallback.uiSeen.tabs,
+                ...((stored.uiSeen && stored.uiSeen.tabs) || {})
+              },
+              features: {
+                ...fallback.uiSeen.features,
+                ...((stored.uiSeen && stored.uiSeen.features) || {})
+              }
             },
             tipsSeen: {
               ...fallback.tipsSeen,
@@ -2160,6 +2794,7 @@
           renderShipyard();
           renderPremiumShop();
           renderArmory();
+          renderProgressiveUi();
           state.sidebarDirty = false;
           state.lastSidebarRender = now;
         }
@@ -2333,12 +2968,16 @@
         } else {
           input.aimSource = "mouse";
         }
+        if ((progress.settings.targetAssist || "on") === "off") {
+          state.targetAssist = null;
+        }
         syncHudPresentation();
         updateParticleSettings();
         resizeCanvas();
         resizeMinimap();
         applyAudioFromProgress();
         updatePerformanceOverlayVisibility();
+        syncContextualHudState();
       }
 
       function syncHudPresentation() {
@@ -2349,6 +2988,39 @@
         document.body.classList.toggle("is-hud-scale-sm", scale === "sm");
         document.body.classList.toggle("is-hud-scale-lg", scale === "lg");
         document.body.classList.toggle("is-colorblind", palette === "colorblind");
+      }
+
+      function noteHudMetaReveal(now = performance.now()) {
+        state.lastHudMetaRevealAt = now;
+      }
+
+      function isHudCombatFocusActive(now = performance.now()) {
+        if (!player) return false;
+        if (settingsOpen || state.overlayMode) return false;
+        if (state.mode !== "flight" && state.mode !== "training") return false;
+        const hostileBulletNearby = bullets.some((bullet) => (
+          bullet
+          && bullet.owner === "enemy"
+          && distanceBetween(bullet, player) <= HUD_HOSTILE_BULLET_RANGE
+        ));
+        const lowHull = clamp(player.health / player.maxHealth, 0, 1) <= 0.45;
+        const lowShield = player.maxShield > 0
+          ? clamp(player.shield / player.maxShield, 0, 1) <= 0.25
+          : false;
+        const recentDamage = now - state.lastHullHitAt < HUD_RECENT_DAMAGE_MS;
+        return enemies.length > 0
+          || hostileBulletNearby
+          || recentDamage
+          || lowHull
+          || lowShield
+          || (state.hazards && state.hazards.length > 0);
+      }
+
+      function syncContextualHudState(now = performance.now()) {
+        const focused = isHudCombatFocusActive(now);
+        const metaRevealed = !focused || now - state.lastHudMetaRevealAt < HUD_META_REVEAL_MS;
+        document.body.classList.toggle("is-hud-focused", focused);
+        document.body.classList.toggle("is-hud-meta-revealed", metaRevealed);
       }
 
       function isFeatureUnlocked(feature) {
@@ -2364,6 +3036,7 @@
           armory: "Reach Rank 3 to open.",
           shipyard: "Reach Rank 4 or find a blueprint.",
           contracts: "Reach Wave 3 to open.",
+          premium: "Reach Wave 5, Rank 4, or earn Astralite to open.",
           salvage: "Find a salvage key to open."
         };
         return hints[feature] || "Unlocks later.";
@@ -2401,6 +3074,10 @@
             title: "Tasks unlocked!",
             message: "Grab a task for bonus loot."
           },
+          premium: {
+            title: "Premium shop online!",
+            message: "Spend Astralite on permanent upgrades."
+          },
           salvage: {
             title: "Caches unlocked!",
             message: "Open salvage in Gear."
@@ -2417,6 +3094,477 @@
           info: "💡"
         };
         return icons[kind] || icons.info;
+      }
+
+      function ensureUiSeenState() {
+        progress.uiSeen = progress.uiSeen || {};
+        progress.uiSeen.tabs = progress.uiSeen.tabs || {};
+        progress.uiSeen.features = progress.uiSeen.features || {};
+      }
+
+      function getFeaturePanelTarget(feature) {
+        const map = {
+          upgrades: "upgrades",
+          hangar: "upgrades",
+          ability: "systems",
+          secondary: "systems",
+          armory: "armory",
+          salvage: "armory",
+          shipyard: "shipyard",
+          contracts: "contracts",
+          premium: "premium"
+        };
+        return map[feature] || "progress";
+      }
+
+      function getPanelDisplayLabel(target) {
+        const labels = {
+          systems: "Ship",
+          upgrades: "Boosts",
+          armory: "Gear",
+          shipyard: "Ships",
+          contracts: "Tasks",
+          premium: "Premium",
+          progress: "Progress",
+          settings: "Options"
+        };
+        return labels[target] || "Progress";
+      }
+
+      function isFeatureBadgeNew(feature) {
+        ensureUiSeenState();
+        return isFeatureUnlocked(feature) && !progress.uiSeen.features[feature];
+      }
+
+      function getNewFeaturesForTarget(target) {
+        return getProgressMilestones().filter((item) => item.unlocked && isFeatureBadgeNew(item.id)
+          && getFeaturePanelTarget(item.id) === target);
+      }
+
+      function markFeatureSeen(feature, options = {}) {
+        if (!feature || !isFeatureUnlocked(feature)) return false;
+        ensureUiSeenState();
+        if (progress.uiSeen.features[feature]) return false;
+        progress.uiSeen.features[feature] = true;
+        if (options.save !== false) {
+          saveProgress();
+        }
+        return true;
+      }
+
+      function markPanelSeen(target) {
+        if (!target) return;
+        ensureUiSeenState();
+        let changed = false;
+        if (!progress.uiSeen.tabs[target]) {
+          progress.uiSeen.tabs[target] = true;
+          changed = true;
+        }
+        getProgressMilestones().forEach((item) => {
+          if (!item.unlocked) return;
+          if (getFeaturePanelTarget(item.id) !== target) return;
+          if (markFeatureSeen(item.id, { save: false })) {
+            changed = true;
+          }
+        });
+        if (changed) {
+          saveProgress();
+          renderProgressiveUi();
+        }
+      }
+
+      function getNewlyUnlockedMilestones() {
+        return getProgressMilestones().filter((item) => item.unlocked && isFeatureBadgeNew(item.id));
+      }
+
+      function captureRunUnlockBaseline() {
+        state.runUnlockBaseline = {
+          ...(progress.featureUnlocks || {})
+        };
+      }
+
+      function getRunUnlockedFeatures() {
+        const baseline = state.runUnlockBaseline || {};
+        return Object.keys(progress.featureUnlocks || {}).filter((feature) => (
+          progress.featureUnlocks[feature] && !baseline[feature]
+        ));
+      }
+
+      function getUiTierLevel() {
+        const activeWave = isCampaignMode()
+          ? getGlobalWave(state.wave || 1)
+          : (state.wave || 1);
+        const waveProgress = Math.max(progress.bestWave || 1, activeWave);
+        if (isFeatureUnlocked("armory") || isFeatureUnlocked("shipyard") || isFeatureUnlocked("contracts")
+          || progress.rank >= 3 || waveProgress >= 4) {
+          return 2;
+        }
+        if (isFeatureUnlocked("upgrades") || isFeatureUnlocked("ability") || progress.rank >= 2 || waveProgress >= 2) {
+          return 1;
+        }
+        return 0;
+      }
+
+      function getUiPhaseSummary() {
+        const tier = getUiTierLevel();
+        const next = getNextLockedMilestone();
+        if (tier <= 0) {
+          return {
+            title: "Cadet Flight",
+            description: "Only the essential controls and ship reads are exposed while you learn the combat loop.",
+            recommendation: next
+              ? `Focus on surviving cleanly. ${next.label} is the first extra system to unlock.`
+              : "Focus on surviving cleanly."
+          };
+        }
+        if (tier === 1) {
+          return {
+            title: "Field Systems",
+            description: "Boost picks and active combat tools are now online, but the management layer still stays compact.",
+            recommendation: next
+              ? `Start shaping a build around what feels weak. ${next.label} is the next layer.`
+              : "Start shaping a build around what feels weak."
+          };
+        }
+        return {
+          title: "Command Deck",
+          description: "Loadout management, tuning, and progression systems are open. The UI now prioritizes comparison and optimization.",
+          recommendation: next
+            ? `Push deeper runs to unlock ${next.label.toLowerCase()}.`
+            : "All core systems are online. Push deeper runs for optimization and score."
+        };
+      }
+
+      function getProgressMilestones() {
+        return [
+          {
+            id: "upgrades",
+            label: "Wave Boosts",
+            desc: "Pick one boost after each cleared wave.",
+            hint: getFeatureHint("upgrades"),
+            unlocked: isFeatureUnlocked("upgrades")
+          },
+          {
+            id: "ability",
+            label: "Ship Ability",
+            desc: "Your ship ability is now part of the combat loop.",
+            hint: getFeatureHint("ability"),
+            unlocked: isFeatureUnlocked("ability")
+          },
+          {
+            id: "secondary",
+            label: "Secondary System",
+            desc: "Secondary fire opens up more combat options and cooldown management.",
+            hint: getFeatureHint("secondary"),
+            unlocked: isFeatureUnlocked("secondary")
+          },
+          {
+            id: "hangar",
+            label: "Hangar Boosts",
+            desc: "Permanent hangar upgrades let you shape a long-term build.",
+            hint: getFeatureHint("hangar"),
+            unlocked: isFeatureUnlocked("hangar")
+          },
+          {
+            id: "armory",
+            label: "Gear Locker",
+            desc: "Weapons, attachments, and secondaries can now be compared and equipped.",
+            hint: getFeatureHint("armory"),
+            unlocked: isFeatureUnlocked("armory")
+          },
+          {
+            id: "shipyard",
+            label: "Shipyard",
+            desc: "New hulls unlock and expand your build identity.",
+            hint: getFeatureHint("shipyard"),
+            unlocked: isFeatureUnlocked("shipyard")
+          },
+          {
+            id: "contracts",
+            label: "Tasks Board",
+            desc: "Optional objectives and faction reputation are now active.",
+            hint: getFeatureHint("contracts"),
+            unlocked: isFeatureUnlocked("contracts")
+          },
+          {
+            id: "premium",
+            label: "Premium Shop",
+            desc: "Astralite can now be spent on permanent account upgrades.",
+            hint: getFeatureHint("premium"),
+            unlocked: isFeatureUnlocked("premium")
+          },
+          {
+            id: "salvage",
+            label: "Salvage Cache",
+            desc: "Keys can now be spent on salvage openings and rare gear rolls.",
+            hint: getFeatureHint("salvage"),
+            unlocked: isFeatureUnlocked("salvage")
+          }
+        ];
+      }
+
+      function getNextLockedMilestone() {
+        return getProgressMilestones().find((item) => !item.unlocked) || null;
+      }
+
+      function renderRoadmapHtml(items, nextId) {
+        if (!items.length) {
+          return `
+            <div class="progress-step" data-state="done">
+              <span class="progress-step-eyebrow">Online</span>
+              <strong class="progress-step-title">All core systems online</strong>
+              <span class="progress-step-meta">The interface is fully expanded. Focus on optimization, score, and deeper runs.</span>
+            </div>
+          `;
+        }
+        return items.map((item) => {
+          const stateLabel = item.unlocked
+            ? (isFeatureBadgeNew(item.id) ? "new" : "done")
+            : item.id === nextId ? "next" : "locked";
+          const eyebrow = stateLabel === "new"
+            ? "New"
+            : stateLabel === "done"
+              ? "Online"
+              : stateLabel === "next"
+                ? "Next"
+                : "Later";
+          const copy = item.unlocked
+            ? `${item.desc}${stateLabel === "new" ? ` Visit ${getPanelDisplayLabel(getFeaturePanelTarget(item.id))} to review it.` : ""}`
+            : item.hint;
+          return `
+            <article class="progress-step" data-state="${stateLabel}">
+              <span class="progress-step-eyebrow">${eyebrow}</span>
+              <strong class="progress-step-title">${item.label}</strong>
+              <span class="progress-step-meta">${copy}</span>
+            </article>
+          `;
+        }).join("");
+      }
+
+      function renderCommandOverview() {
+        if (!dom.commandOverview || !dom.launchGuidance) return;
+        const phase = getUiPhaseSummary();
+        const milestones = getProgressMilestones();
+        const next = milestones.find((item) => !item.unlocked) || null;
+        const newUnlocked = getNewlyUnlockedMilestones();
+        const systemsOnline = milestones.filter((item) => item.unlocked).length;
+        const bestWave = Math.max(1, progress.bestWave || 1);
+        const debriefCard = state.runDebrief
+          ? `
+            <div class="command-stat">
+              <span>Last Debrief</span>
+              <strong>${state.runDebrief.nextAction}</strong>
+              <small>${state.runDebrief.recommendations[0] || state.runDebrief.summary}</small>
+            </div>
+          `
+          : "";
+        dom.commandOverview.innerHTML = `
+          <div class="command-stat">
+            <span>Current Phase</span>
+            <strong>${phase.title}</strong>
+            <small>${phase.description}</small>
+          </div>
+          <div class="command-stat">
+            <span>${newUnlocked.length ? "New System" : "Next Unlock"}</span>
+            <strong>${newUnlocked.length ? newUnlocked[0].label : (next ? next.label : "All core systems online")}</strong>
+            <small>${newUnlocked.length
+              ? `Visit ${getPanelDisplayLabel(getFeaturePanelTarget(newUnlocked[0].id))} to use it.`
+              : (next ? next.hint : "You have unlocked the full hangar and progression shell.")}</small>
+          </div>
+          <div class="command-stat">
+            <span>Progress</span>
+            <strong>Rank ${progress.rank} · Best Wave ${bestWave}</strong>
+            <small>${systemsOnline}/${milestones.length} systems online.</small>
+          </div>
+          ${debriefCard}
+        `;
+        if (newUnlocked.length) {
+          const newest = newUnlocked[0];
+          dom.launchGuidance.textContent = `${newest.label} just came online. Visit ${getPanelDisplayLabel(getFeaturePanelTarget(newest.id))} before your next sortie.`;
+          return;
+        }
+        if (state.runDebrief) {
+          dom.launchGuidance.textContent = state.runDebrief.nextAction;
+          return;
+        }
+        dom.launchGuidance.textContent = next
+          ? `${phase.recommendation} Next: ${next.label}. ${next.hint}`
+          : `${phase.recommendation} All major systems are already online.`;
+      }
+
+      function renderSystemsFocus() {
+        if (!dom.systemsFocus) return;
+        const tier = getUiTierLevel();
+        const next = getNextLockedMilestone();
+        const newUnlocked = getNewlyUnlockedMilestones();
+        let title = "Stay alive and read the field.";
+        let body = next
+          ? `${next.label} is the next layer to unlock. ${next.hint}`
+          : "All core ship systems are online. Focus on stronger routes, cleaner clears, and higher ranks.";
+        if (newUnlocked.length) {
+          title = `${newUnlocked[0].label} is ready to use.`;
+          body = `Open ${getPanelDisplayLabel(getFeaturePanelTarget(newUnlocked[0].id))} and work it into the next sortie before launching.`;
+        }
+        if (tier === 1) {
+          title = "Pick boosts that solve your weakest stat.";
+        } else if (tier >= 2) {
+          title = "Tune the loadout between sorties.";
+        }
+        if (newUnlocked.length) {
+          title = `${newUnlocked[0].label} is ready to use.`;
+        } else if (state.runDebrief) {
+          body = state.runDebrief.nextAction;
+        }
+        dom.systemsFocus.innerHTML = `
+          <div class="focus-card">
+            <span class="focus-label">Current Focus</span>
+            <strong class="focus-title">${title}</strong>
+            <span>${body}</span>
+          </div>
+        `;
+      }
+
+      function renderProgressOverview() {
+        if (!dom.progressOverview || !dom.progressRoadmap) return;
+        const milestones = getProgressMilestones();
+        const next = milestones.find((item) => !item.unlocked) || null;
+        const newUnlocked = getNewlyUnlockedMilestones();
+        const phase = getUiPhaseSummary();
+        const systemsOnline = milestones.filter((item) => item.unlocked).length;
+        const bestWave = Math.max(1, progress.bestWave || 1);
+        dom.progressOverview.innerHTML = `
+          <div class="progress-highlight">
+            <span class="progress-highlight-label">Current Track</span>
+            <strong>${phase.title}</strong>
+            <p>${phase.description}</p>
+            <div class="select-pills">
+              <span class="select-pill">Rank ${progress.rank}</span>
+              <span class="select-pill">Best Wave ${bestWave}</span>
+              <span class="select-pill">${systemsOnline}/${milestones.length} systems online</span>
+              <span class="select-pill">${newUnlocked.length ? `New: ${newUnlocked[0].label}` : (next ? `Next: ${next.label}` : "All systems online")}</span>
+            </div>
+          </div>
+        `;
+        dom.progressRoadmap.innerHTML = renderRoadmapHtml(milestones, next ? next.id : "");
+      }
+
+      function renderSettingsGuidance() {
+        if (!dom.settingsGuidance) return;
+        const tier = getUiTierLevel();
+        let title = "Starter options only";
+        let body = "Only the essentials are surfaced at first: run type, difficulty, input, assist, and basic comfort settings.";
+        let pills = ["Difficulty", "Input", "Assist", "Audio"];
+        if (tier === 1) {
+          title = "Field tuning unlocked";
+          body = "Camera, HUD layout, particles, and tutorial support are online now that the combat loop is established.";
+          pills = ["Camera", "HUD Layout", "Particles", "Tutorial"];
+        } else if (tier >= 2) {
+          title = "Full tuning online";
+          body = "Presets, keybinds, HUD sizing, palette, performance controls, and account actions are all available.";
+          pills = ["Presets", "Keybinds", "HUD Scale", "Performance"];
+        }
+        dom.settingsGuidance.innerHTML = `
+          <div class="settings-guidance-card">
+            <span class="focus-label">Settings Scope</span>
+            <strong>${title}</strong>
+            <p>${body}</p>
+            <div class="select-pills">
+              ${pills.map((pill) => `<span class="select-pill">${pill}</span>`).join("")}
+            </div>
+          </div>
+        `;
+      }
+
+      function syncUtilityActions() {
+        const hasReplay = !!sanitizeLoadoutPreset(progress.lastLoadout || null);
+        document.querySelectorAll(".utility-cluster [data-action='replay-last-loadout']").forEach((button) => {
+          button.hidden = !hasReplay;
+          button.disabled = !hasReplay;
+        });
+        const showGlossary = getUiTierLevel() >= 1;
+        document.querySelectorAll(".utility-cluster [data-action='glossary']").forEach((button) => {
+          button.hidden = !showGlossary;
+        });
+      }
+
+      function updateTabBadges() {
+        const buttons = Array.from(document.querySelectorAll("[data-tab-group='sidebar'] [data-tab-target]"));
+        buttons.forEach((button) => {
+          const label = button.dataset.baseLabel || button.textContent.trim();
+          button.dataset.baseLabel = label;
+          const newFeatures = getNewFeaturesForTarget(button.dataset.tabTarget);
+          button.innerHTML = newFeatures.length
+            ? `<span class="tab-btn-label">${label}</span><span class="tab-badge">New</span>`
+            : `<span class="tab-btn-label">${label}</span>`;
+        });
+      }
+
+      function isPanelFeatureVisible(feature) {
+        return !feature || feature === "always" || isFeatureUnlocked(feature);
+      }
+
+      function syncSidebarPanels() {
+        const buttons = Array.from(document.querySelectorAll("[data-tab-group='sidebar'] [data-tab-target]"));
+        const panels = Array.from(document.querySelectorAll("[data-tab-panel]"));
+        buttons.forEach((button) => {
+          const visible = isPanelFeatureVisible(button.dataset.panelFeature);
+          button.hidden = !visible;
+          if (!visible) {
+            button.classList.remove("is-active");
+            button.setAttribute("aria-selected", "false");
+            button.tabIndex = -1;
+          }
+        });
+        panels.forEach((panel) => {
+          const visible = isPanelFeatureVisible(panel.dataset.panelFeature);
+          if (!visible) {
+            panel.hidden = true;
+            panel.classList.remove("is-active");
+          }
+        });
+        const activeTarget = getActiveTabTarget();
+        const activeButton = buttons.find((button) => button.dataset.tabTarget === activeTarget);
+        if (activeButton && activeButton.hidden) {
+          const fallback = buttons.find((button) => !button.hidden);
+          if (fallback) {
+            selectTab(fallback.dataset.tabTarget);
+          }
+        }
+      }
+
+      function syncSettingsVisibility() {
+        const tier = getUiTierLevel();
+        document.querySelectorAll("[data-settings-tier]").forEach((element) => {
+          const requiredTier = parseInt(element.dataset.settingsTier || "0", 10);
+          element.hidden = tier < requiredTier;
+        });
+      }
+
+      function syncHudMetaVisibility() {
+        if (!dom.hudMeta) return;
+        const showMeta = isFeatureUnlocked("upgrades") || progress.rank >= 2 || (progress.bestWave || 1) >= 2;
+        dom.hudMeta.hidden = !showMeta;
+      }
+
+      function renderProgressiveUi() {
+        const milestones = getProgressMilestones();
+        const next = milestones.find((item) => !item.unlocked) || null;
+        renderCommandOverview();
+        renderSystemsFocus();
+        renderProgressOverview();
+        renderSettingsGuidance();
+        syncUtilityActions();
+        syncSidebarPanels();
+        updateTabBadges();
+        syncSettingsVisibility();
+        syncHudMetaVisibility();
+        if (dom.commandRoadmap) {
+          const nextIndex = milestones.findIndex((item) => !item.unlocked);
+          let start = nextIndex === -1 ? Math.max(0, milestones.length - 3) : Math.max(0, nextIndex - 1);
+          let end = Math.min(milestones.length, start + 3);
+          start = Math.max(0, end - 3);
+          dom.commandRoadmap.innerHTML = renderRoadmapHtml(milestones.slice(start, end), next ? next.id : "");
+        }
       }
 
       function showTip(id, title, message, options = {}) {
@@ -2470,6 +3618,7 @@
         renderArmory();
         renderContracts();
         renderSettings();
+        renderProgressiveUi();
         return true;
       }
 
@@ -2502,6 +3651,10 @@
         }
         if (!isFeatureUnlocked("contracts") && (progress.bestWave >= 3 || progress.runHistory.length > 0)) {
           unlockFeature("contracts");
+        }
+        if (!isFeatureUnlocked("premium")
+          && (progress.bestWave >= 5 || progress.rank >= 4 || (progress.premiumCurrency || 0) > 0)) {
+          unlockFeature("premium");
         }
         if (isFeatureUnlocked("armory") && !isFeatureUnlocked("salvage")
           && ((progress.salvageKeys || 0) >= 1 || progress.totalKills >= 12)) {
@@ -2924,6 +4077,7 @@
           shieldCooldown: 0,
           fireCooldown: 0,
           hitFlash: 0,
+          braking: false,
           abilityTimer: 0,
           abilityCooldown: 0,
           secondaryCooldown: 0,
@@ -2959,6 +4113,7 @@
       function setupWorld() {
         state.worldWidth = WORLD_WIDTH;
         state.worldHeight = WORLD_HEIGHT;
+        state.cameraReady = false;
         obstacles = generateObstacles();
         updateStarfield();
         updateCamera();
@@ -3095,12 +4250,78 @@
         };
       }
 
-      function updateCamera() {
-        if (!player) return;
+      function clampPointDistance(origin, target, maxDistance) {
+        if (!origin || !target || !Number.isFinite(maxDistance) || maxDistance <= 0) {
+          return target || origin;
+        }
+        const dx = target.x - origin.x;
+        const dy = target.y - origin.y;
+        const distance = Math.hypot(dx, dy);
+        if (!distance || distance <= maxDistance) {
+          return {
+            x: target.x,
+            y: target.y
+          };
+        }
+        const ratio = maxDistance / distance;
+        return {
+          x: origin.x + dx * ratio,
+          y: origin.y + dy * ratio
+        };
+      }
+
+      function getDynamicCameraFocusPoint() {
+        if (!player) return null;
+        const assist = getActiveTargetAssist();
+        const aimAnchor = assist
+          ? clampPointDistance(player, { x: assist.leadX, y: assist.leadY }, 260)
+          : clampPointDistance(player, getAimTarget(), 240);
+        const driftAnchor = {
+          x: clamp(player.x + player.vx * 0.18, 0, state.worldWidth),
+          y: clamp(player.y + player.vy * 0.18, 0, state.worldHeight)
+        };
+        const assistWeight = assist ? assist.lockStrength * 0.08 : 0;
+        const playerWeight = 0.58;
+        const aimWeight = 0.28 + assistWeight;
+        const driftWeight = 0.14;
+        const total = playerWeight + aimWeight + driftWeight;
+        return {
+          x: (player.x * playerWeight + aimAnchor.x * aimWeight + driftAnchor.x * driftWeight) / total,
+          y: (player.y * playerWeight + aimAnchor.y * aimWeight + driftAnchor.y * driftWeight) / total
+        };
+      }
+
+      function updateCamera(delta = 1 / 60) {
+        if (!player) {
+          state.cameraReady = false;
+          return;
+        }
         const maxX = Math.max(0, state.worldWidth - state.width);
         const maxY = Math.max(0, state.worldHeight - state.height);
-        state.camera.x = clamp(player.x - state.width * 0.5, 0, maxX);
-        state.camera.y = clamp(player.y - state.height * 0.5, 0, maxY);
+        const cameraMode = progress.settings.cameraMode || "dynamic";
+        const focus = cameraMode === "dynamic" && (state.mode === "flight" || state.mode === "training")
+          ? getDynamicCameraFocusPoint()
+          : player;
+        const desiredX = clamp((focus?.x || player.x) - state.width * 0.5, 0, maxX);
+        const desiredY = clamp((focus?.y || player.y) - state.height * 0.5, 0, maxY);
+        state.cameraTarget.x = desiredX;
+        state.cameraTarget.y = desiredY;
+        if (!state.cameraReady || cameraMode !== "dynamic" || (state.mode !== "flight" && state.mode !== "training")) {
+          state.camera.x = desiredX;
+          state.camera.y = desiredY;
+          state.cameraReady = true;
+          return;
+        }
+        const snapDistance = Math.max(state.width, state.height) * 0.9;
+        const cameraDistance = Math.hypot(state.camera.x - desiredX, state.camera.y - desiredY);
+        if (cameraDistance > snapDistance) {
+          state.camera.x = desiredX;
+          state.camera.y = desiredY;
+          return;
+        }
+        const smoothing = 1 - Math.exp(-Math.max(0.001, delta) * 7.2);
+        state.camera.x += (desiredX - state.camera.x) * smoothing;
+        state.camera.y += (desiredY - state.camera.y) * smoothing;
       }
 
       function screenToWorld(x, y) {
@@ -3168,7 +4389,19 @@
         const helpKey = formatKeybind(progress.keybinds.help || "h");
         const abilityKey = formatKeybind(progress.keybinds.ability);
         const secondaryKey = formatKeybind(progress.keybinds.secondary);
-        showTip("quick-run-hint", "Flight controls", `Ability ${abilityKey}, secondary ${secondaryKey}, help ${helpKey}.`, {
+        const brakeKey = formatKeybind(progress.keybinds.brake || "x");
+        const parts = [];
+        if (isFeatureUnlocked("ability")) {
+          parts.push(`Ability ${abilityKey}`);
+        }
+        if (isFeatureUnlocked("secondary")) {
+          parts.push(`secondary ${secondaryKey}`);
+        }
+        if (getUiTierLevel() >= 1) {
+          parts.push(`air brake ${brakeKey}`);
+        }
+        parts.push(`help ${helpKey}`);
+        showTip("quick-run-hint", "Flight controls", `${parts.join(", ")}.`, {
           kind: "info",
           duration: 6500
         });
@@ -3182,6 +4415,7 @@
         input.firing = false;
         input.padFiring = false;
         input.boost = false;
+        input.padBrake = false;
         checkProgressionUnlocks();
         enemies = [];
         bullets = [];
@@ -3222,12 +4456,22 @@
         state.runEndedByAbort = false;
         state.runHighlights = [];
         state.runPremiumDrops = 0;
+        state.runDebrief = null;
+        state.lastRunSummary = null;
         state.telemetryRun = null;
+        state.lastRunTelemetry = null;
+        state.lastRunReason = "";
+        state.targetAssist = null;
         state.controllerPrevButtons = [];
+        state.lastPlayerDamageAt = performance.now();
+        state.killChain = 0;
+        state.killChainAt = 0;
+        state.waveProfile = "";
         state.lastContractRender = 0;
         state.contracts = rollContracts();
         state.runStart = performance.now();
         state.waveStart = performance.now();
+        captureRunUnlockBaseline();
         setupWorld();
         if (isFrontierMode()) {
           initFrontierRun();
@@ -3264,6 +4508,7 @@
         input.firing = false;
         input.padFiring = false;
         input.boost = false;
+        input.padBrake = false;
         checkProgressionUnlocks();
         state.frontier = null;
         enemies = [];
@@ -3306,12 +4551,22 @@
         state.runEndedByAbort = false;
         state.runHighlights = [];
         state.runPremiumDrops = 0;
+        state.runDebrief = null;
+        state.lastRunSummary = null;
         state.telemetryRun = null;
+        state.lastRunTelemetry = null;
+        state.lastRunReason = "";
+        state.targetAssist = null;
         state.controllerPrevButtons = [];
+        state.lastPlayerDamageAt = performance.now();
+        state.killChain = 0;
+        state.killChainAt = 0;
+        state.waveProfile = "";
         state.contracts = [];
         state.runStart = performance.now();
         state.waveStart = performance.now();
         state.lastContractRender = 0;
+        captureRunUnlockBaseline();
         setupWorld();
         player = createPlayer();
         state.runLoadout = { ship: player.ship?.name || "Unknown", weapon: player.weapon?.name || "Unknown" };
@@ -3383,12 +4638,17 @@
         state.runPremiumDrops = 0;
         state.telemetryRun = null;
         state.controllerPrevButtons = [];
+        state.lastPlayerDamageAt = 0;
+        state.killChain = 0;
+        state.killChainAt = 0;
+        state.waveProfile = "";
         state.lastContractRender = 0;
         state.frontier = null;
         input.keys.clear();
         input.firing = false;
         input.padFiring = false;
         input.boost = false;
+        input.padBrake = false;
         setupWorld();
         player = createPlayer();
         setOverlay("start");
@@ -3397,6 +4657,7 @@
         renderPremiumShop();
         renderArmory();
         renderHistory();
+        renderProgressiveUi();
         logEvent("Run reset. Hangar ready.");
       }
 
@@ -3712,38 +4973,35 @@
           return true;
         });
         const selectionPool = availableTypes.length ? availableTypes : ENEMY_TYPES;
-        const weights = selectionPool.map((type) => type.weight || 1);
+        const waveProfile = getWaveRoleProfile(globalWave, state.waveObjective?.id, isHardWave, isBossWave);
+        state.waveProfile = waveProfile?.label || "";
+        const spawnRoster = buildWaveSpawnRoster(selectionPool, spawnCount, waveProfile);
         const forceEliteRate = Math.max(0, threatTier.eliteBonus || 0);
-        for (let i = 0; i < spawnCount; i += 1) {
-          const type = pickWeighted(selectionPool, weights);
+        for (let i = 0; i < spawnRoster.length; i += 1) {
+          const type = spawnRoster[i];
           const enemy = createEnemy(type, enemyScale, difficulty);
-          enemy.threatTier = threatTier.id;
-          enemy.baseDamage *= mutatorWave.enemyDamage;
-          enemy.maxShield *= mutatorWave.enemyShieldScale;
-          enemy.shield = enemy.maxShield;
-          enemy.maxHealth *= mutatorWave.enemyHealthScale;
-          enemy.health = enemy.maxHealth;
-          enemy.baseFireRate *= (mutatorWave.enemyFireRate * (threatTier.fireRate || 1));
-          if (!enemy.elite && type.id !== "dreadnought" && Math.random() < forceEliteRate) {
-            applyEliteMod(enemy);
-          }
-          if (threatTier.id === "mythic") {
-            enemy.dashCooldown = rand(3.4, 5.4);
-            enemy.dashTimer = rand(1, enemy.dashCooldown);
-            enemy.dashStrength = 1.8;
-          }
+          applyWaveEnemyModifiers(enemy, type, mutatorWave, threatTier, {
+            allowForceElite: true,
+            forceEliteRate
+          });
           enemies.push(enemy);
         }
         if (isHardWave && !isBossWave) {
-          enemies.push(createEnemy(ACE_TYPE, enemyScale + 0.25, difficulty, true));
+          const ace = createEnemy(ACE_TYPE, enemyScale + 0.25, difficulty, true);
+          applyWaveEnemyModifiers(ace, ACE_TYPE, mutatorWave, threatTier);
+          enemies.push(ace);
           logEvent("Hard wave incoming. Enemy ace spotted.");
         }
         if (isBossWave) {
-          enemies.push(createEnemy(BOSS_TYPE, enemyScale + 0.5, difficulty, true));
+          const boss = createEnemy(BOSS_TYPE, enemyScale + 0.5, difficulty, true);
+          applyWaveEnemyModifiers(boss, BOSS_TYPE, mutatorWave, threatTier);
+          enemies.push(boss);
           logEvent("Boss wave: capital dreadnought detected.");
         }
         if (!isBossWave && globalWave >= 6 && (isHardWave || Math.random() < 0.22)) {
-          enemies.push(createMiniBoss(enemyScale, difficulty, threatTier));
+          const miniboss = createMiniBoss(enemyScale, difficulty, threatTier);
+          applyWaveEnemyModifiers(miniboss, { id: miniboss.id }, mutatorWave, threatTier);
+          enemies.push(miniboss);
           logEvent("Miniboss contact: command-class hostile entering combat.");
         }
         spawnWaveHazards(globalWave, threatTier, mutatorWave);
@@ -3862,11 +5120,14 @@
           baseTurnRate,
           fireCooldown: rand(0.2, 0.6),
           color: type.color,
+          role: type.role || ENEMY_ROLE_MAP[type.id] || "line",
           credits: type.credits,
           score: type.score,
           hitFlash: 0,
           slowTimer: 0,
           slowFactor: 1,
+          damageTakenMult: 1,
+          exposedTimer: 0,
           preferredRange,
           strafeBias,
           pattern: type.pattern || (type.spreadCount ? "spread" : "single"),
@@ -3897,13 +5158,258 @@
           navTimer: 0,
           navCooldown: 0,
           stuckTimer: 0,
-          lastTargetDist: null
+          lastTargetDist: null,
+          specialAttack: null
         };
         const eliteChance = forceElite ? 1 : (scale > 1.1 && Math.random() < 0.18);
         if (eliteChance && type.id !== "dreadnought") {
           applyEliteMod(enemy);
         }
         return enemy;
+      }
+
+      function applyWaveEnemyModifiers(enemy, type, mutatorWave, threatTier, options = {}) {
+        if (!enemy) return enemy;
+        const enemyId = type?.id || enemy.id;
+        enemy.threatTier = threatTier.id;
+        enemy.baseDamage *= mutatorWave.enemyDamage;
+        enemy.maxShield *= mutatorWave.enemyShieldScale;
+        enemy.shield = enemy.maxShield;
+        enemy.maxHealth *= mutatorWave.enemyHealthScale;
+        enemy.health = enemy.maxHealth;
+        enemy.baseFireRate *= (mutatorWave.enemyFireRate * (threatTier.fireRate || 1));
+        if (options.allowForceElite && !enemy.elite && enemyId !== "dreadnought" && Math.random() < (options.forceEliteRate || 0)) {
+          applyEliteMod(enemy);
+        }
+        if (threatTier.id === "mythic") {
+          enemy.dashCooldown = rand(3.4, 5.4);
+          enemy.dashTimer = rand(1, enemy.dashCooldown);
+          enemy.dashStrength = 1.8;
+        }
+        if (enemyId === "dreadnought") {
+          initializeBossEnemy(enemy);
+        }
+        return enemy;
+      }
+
+      function initializeBossEnemy(enemy) {
+        if (!enemy || enemy.phaseThresholds) return enemy;
+        enemy.baseFireRateBase = enemy.baseFireRate;
+        enemy.baseDamageBase = enemy.baseDamage;
+        enemy.baseSpeedBase = enemy.baseSpeed;
+        enemy.baseBulletSpeedBase = enemy.baseBulletSpeed;
+        enemy.preferredRange = Math.max(enemy.preferredRange || 0, 320);
+        enemy.phaseThresholds = [0.72, 0.38];
+        enemy.phaseIndex = 0;
+        enemy.phaseName = BOSS_PHASES[0].name;
+        enemy.phaseLockTimer = 0;
+        enemy.commandSummonTimer = 5.5;
+        enemy.commandSummonCooldown = BOSS_PHASES[0].escortCooldown;
+        enemy.broadsideTimer = 4.2;
+        enemy.broadsideCooldown = BOSS_PHASES[0].broadsideCooldown;
+        enemy.shockwaveTimer = 0;
+        enemy.shockwaveCooldown = 0;
+        enemy.shockwaveRadius = 0;
+        enemy.shockwaveDamage = 0;
+        enemy.shockwaveSlow = 0;
+        enemy.phaseEscortIds = BOSS_PHASES[0].escortIds.slice();
+        enemy.phaseEscortCount = BOSS_PHASES[0].escortCount;
+        enemy.phaseBroadsideCount = BOSS_PHASES[0].broadsideCount;
+        enemy.phaseBroadsideAngle = BOSS_PHASES[0].broadsideAngle;
+        enemy.phaseBroadsideDamageMult = BOSS_PHASES[0].broadsideDamageMult;
+        applyBossPhase(enemy, 0, { initial: true });
+        return enemy;
+      }
+
+      function applyBossPhase(enemy, phaseIndex, options = {}) {
+        if (!enemy) return;
+        const safeIndex = clamp(phaseIndex, 0, BOSS_PHASES.length - 1);
+        const phase = BOSS_PHASES[safeIndex];
+        enemy.phaseIndex = safeIndex;
+        enemy.phaseName = phase.name;
+        enemy.baseFireRate = enemy.baseFireRateBase * phase.fireRateMult;
+        enemy.baseDamage = enemy.baseDamageBase * phase.damageMult;
+        enemy.baseSpeed = enemy.baseSpeedBase * phase.speedMult;
+        enemy.baseBulletSpeed = enemy.baseBulletSpeedBase;
+        enemy.commandSummonCooldown = phase.escortCooldown;
+        enemy.phaseEscortIds = phase.escortIds.slice();
+        enemy.phaseEscortCount = phase.escortCount;
+        enemy.broadsideCooldown = phase.broadsideCooldown;
+        enemy.phaseBroadsideCount = phase.broadsideCount;
+        enemy.phaseBroadsideAngle = phase.broadsideAngle;
+        enemy.phaseBroadsideDamageMult = phase.broadsideDamageMult;
+        enemy.shockwaveCooldown = phase.shockwaveCooldown;
+        enemy.shockwaveRadius = phase.shockwaveRadius;
+        enemy.shockwaveDamage = phase.shockwaveDamage;
+        enemy.shockwaveSlow = phase.shockwaveSlow;
+        if (options.initial) return;
+        enemy.phaseLockTimer = 1.35;
+        enemy.invulnerable = Math.max(enemy.invulnerable || 0, 0.9);
+        enemy.specialAttack = null;
+        enemy.commandSummonTimer = enemy.commandSummonCooldown;
+        enemy.broadsideTimer = Math.min(enemy.broadsideCooldown, 2.6);
+        enemy.shockwaveTimer = enemy.shockwaveCooldown > 0 ? Math.min(enemy.shockwaveCooldown, 3.2) : 0;
+        spawnPulse(enemy.x, enemy.y, "#f6c65f", 240);
+        summonBossEscorts(enemy, phase.escortCount, phase.escortIds);
+        logEvent(`Dreadnought phase shift: ${phase.name}.`);
+      }
+
+      function summonBossEscorts(enemy, count, escortIds = []) {
+        if (!enemy || !count || enemies.length >= 36) return;
+        const difficulty = getDifficultySettings();
+        const threatTier = getThreatTierMeta(state.threatTier);
+        const mutatorWave = getMutatorWaveConfig(getGlobalWave(state.wave || 1));
+        const scale = 1.05 + getGlobalWave(state.wave || 1) * 0.05 + (enemy.phaseIndex || 0) * 0.08;
+        const escortPool = escortIds
+          .map((id) => ENEMY_TYPES.find((item) => item.id === id))
+          .filter(Boolean);
+        const available = escortPool.length ? escortPool : ENEMY_TYPES;
+        const weights = available.map((item) => item.weight || 1);
+        for (let i = 0; i < count && enemies.length < 36; i += 1) {
+          const type = pickWeighted(available, weights);
+          const escort = createEnemy(type, scale, difficulty, enemy.phaseIndex >= 2 && type.id !== "bulwark");
+          escort.x = clamp(enemy.x + rand(-120, 120), escort.radius + 24, state.worldWidth - escort.radius - 24);
+          escort.y = clamp(enemy.y + rand(-120, 120), escort.radius + 24, state.worldHeight - escort.radius - 24);
+          applyWaveEnemyModifiers(escort, type, mutatorWave, threatTier);
+          enemies.push(escort);
+        }
+        spawnPulse(enemy.x, enemy.y, "#b98cff", 160);
+      }
+
+      function startBossSpecialAttack(enemy, config) {
+        if (!enemy || !player || enemy.specialAttack) return;
+        const duration = config.duration || 1;
+        if (config.type === "shockwave") {
+          enemy.specialAttack = {
+            type: "shockwave",
+            timer: duration,
+            duration,
+            radius: config.radius || 0,
+            damage: config.damage || 0,
+            slow: config.slow || 0,
+            color: config.color || "#ff9f6b"
+          };
+          return;
+        }
+        const projectileSpeed = enemy.baseBulletSpeed * (config.bulletSpeedMultiplier || 1);
+        const intercept = getPredictedInterceptPoint(enemy, player, projectileSpeed) || { x: player.x, y: player.y };
+        enemy.specialAttack = {
+          type: "broadside",
+          timer: duration,
+          duration,
+          aimX: intercept.x,
+          aimY: intercept.y,
+          aimAngle: Math.atan2(intercept.y - enemy.y, intercept.x - enemy.x),
+          distance: distanceBetween(enemy, player),
+          spreadCount: config.spreadCount || 5,
+          spreadAngle: config.spreadAngle || 0.18,
+          damageMultiplier: config.damageMultiplier || 1.2,
+          bulletSpeedMultiplier: config.bulletSpeedMultiplier || 1.08,
+          bulletRadius: config.bulletRadius || 5,
+          bulletLife: config.bulletLife || 2.2,
+          color: config.color || "#f6c65f"
+        };
+      }
+
+      function setEnemyExposure(enemy, duration, damageMultiplier = 1.28) {
+        if (!enemy || duration <= 0) return;
+        enemy.exposedTimer = Math.max(enemy.exposedTimer || 0, duration);
+        enemy.damageTakenMult = Math.max(enemy.damageTakenMult || 1, damageMultiplier);
+        enemy.hitFlash = Math.max(enemy.hitFlash || 0, 0.12);
+        spawnPulse(enemy.x, enemy.y, "#44d2c2", enemy.radius + 30);
+      }
+
+      function triggerBossShockwave(enemy, attack) {
+        if (!enemy || !attack) return;
+        spawnPulse(enemy.x, enemy.y, attack.color || "#ff9f6b", attack.radius || 180);
+        if (!player) return;
+        if (distanceBetween(enemy, player) > (attack.radius || 0) + player.radius) return;
+        applyDamage(player, attack.damage || 0, { owner: "enemy" });
+        if (attack.slow > 0) {
+          player.slowTimer = Math.max(player.slowTimer || 0, attack.slow);
+        }
+        const pushAngle = Math.atan2(player.y - enemy.y, player.x - enemy.x);
+        player.vx += Math.cos(pushAngle) * 140;
+        player.vy += Math.sin(pushAngle) * 140;
+      }
+
+      function resolveBossSpecialAttack(enemy, attack) {
+        if (!enemy || !attack) return;
+        if (attack.type === "shockwave") {
+          triggerBossShockwave(enemy, attack);
+        } else {
+          fireEnemy(enemy, attack.aimAngle, {
+            spreadCount: attack.spreadCount,
+            spreadAngle: attack.spreadAngle,
+            damageMultiplier: attack.damageMultiplier,
+            bulletSpeed: enemy.baseBulletSpeed * (attack.bulletSpeedMultiplier || 1),
+            bulletRadius: attack.bulletRadius,
+            bulletLife: attack.bulletLife,
+            bulletTint: attack.color,
+            jitter: 0.03
+          });
+          spawnPulse(enemy.x, enemy.y, attack.color || "#f6c65f", 180);
+          enemy.fireCooldown = Math.max(enemy.fireCooldown, 0.75);
+        }
+        setEnemyExposure(enemy, attack.type === "shockwave" ? 2.8 : 2.2, attack.type === "shockwave" ? 1.34 : 1.28);
+      }
+
+      function updateBossBehavior(enemy, delta) {
+        if (!enemy || enemy.id !== "dreadnought" || !player) return;
+        initializeBossEnemy(enemy);
+        const healthRatio = enemy.maxHealth > 0 ? enemy.health / enemy.maxHealth : 1;
+        while (enemy.phaseIndex < enemy.phaseThresholds.length && healthRatio <= enemy.phaseThresholds[enemy.phaseIndex]) {
+          applyBossPhase(enemy, enemy.phaseIndex + 1);
+        }
+        if (enemy.phaseLockTimer > 0) {
+          enemy.phaseLockTimer = Math.max(0, enemy.phaseLockTimer - delta);
+        }
+        enemy.commandSummonTimer = Math.max(0, (enemy.commandSummonTimer || 0) - delta);
+        enemy.broadsideTimer = Math.max(0, (enemy.broadsideTimer || 0) - delta);
+        if (enemy.shockwaveCooldown > 0) {
+          enemy.shockwaveTimer = Math.max(0, (enemy.shockwaveTimer || 0) - delta);
+        }
+        if (enemy.specialAttack) {
+          enemy.specialAttack.timer = Math.max(0, enemy.specialAttack.timer - delta);
+          if (enemy.specialAttack.timer <= 0) {
+            resolveBossSpecialAttack(enemy, enemy.specialAttack);
+            enemy.specialAttack = null;
+          }
+          return;
+        }
+        if (enemy.phaseLockTimer > 0) return;
+        if (enemy.commandSummonTimer <= 0 && enemies.length < 34) {
+          summonBossEscorts(enemy, enemy.phaseEscortCount, enemy.phaseEscortIds);
+          enemy.commandSummonTimer = enemy.commandSummonCooldown;
+          return;
+        }
+        const playerDistance = distanceBetween(enemy, player);
+        if (enemy.shockwaveCooldown > 0 && enemy.shockwaveTimer <= 0 && playerDistance <= enemy.shockwaveRadius + 120) {
+          startBossSpecialAttack(enemy, {
+            type: "shockwave",
+            duration: 1.05,
+            radius: enemy.shockwaveRadius,
+            damage: enemy.shockwaveDamage,
+            slow: enemy.shockwaveSlow,
+            color: "#ff9f6b"
+          });
+          enemy.shockwaveTimer = enemy.shockwaveCooldown;
+          return;
+        }
+        if (enemy.broadsideTimer <= 0 && playerDistance <= 780) {
+          startBossSpecialAttack(enemy, {
+            type: "broadside",
+            duration: 1.15,
+            spreadCount: enemy.phaseBroadsideCount,
+            spreadAngle: enemy.phaseBroadsideAngle,
+            damageMultiplier: enemy.phaseBroadsideDamageMult,
+            bulletSpeedMultiplier: 1.1 + enemy.phaseIndex * 0.05,
+            bulletRadius: 5,
+            bulletLife: 2.2,
+            color: "#f6c65f"
+          });
+          enemy.broadsideTimer = enemy.broadsideCooldown;
+        }
       }
 
       function applyEliteMod(enemy) {
@@ -3978,6 +5484,7 @@
       }
 
       function update(delta) {
+        state.frameDelta = delta;
         updateStars(delta);
         updateParticles(delta);
         updatePulses(delta);
@@ -3987,7 +5494,7 @@
         if (state.mode !== "flight" && state.mode !== "training") {
           return;
         }
-        updateCamera();
+        updateCamera(delta);
         updatePointerWorld();
         pollGamepadInput(delta);
         updatePlayer(delta);
@@ -4002,6 +5509,9 @@
         updateMines(delta);
         updateContracts(delta);
         handleCollisions();
+        updateTargetAssist();
+        updateCombatMomentum(performance.now());
+        maybeShowAdaptiveCoaching(delta);
         updateWaveObjective(delta);
         if (isFrontierMode()) {
           updateFrontierSpawner(delta);
@@ -4037,6 +5547,7 @@
           input.padAimX = 0;
           input.padAimY = 0;
           input.padFiring = false;
+          input.padBrake = false;
           return;
         }
         input.padMoveX = Math.abs(pad.axes[0] || 0) > 0.15 ? (pad.axes[0] || 0) : 0;
@@ -4049,6 +5560,7 @@
         };
         const firePressed = readButton(7) || readButton(5);
         const boostPressed = readButton(0);
+        const brakePressed = readButton(4);
         const abilityPressed = readButton(1);
         const secondaryPressed = readButton(2);
         const dockPressed = readButton(3);
@@ -4074,6 +5586,7 @@
         state.controllerPrevButtons = [false, abilityPressed, secondaryPressed, dockPressed, false, firePressed, false, firePressed, helpPressed, pausePressed];
         input.padFiring = firePressed;
         input.boost = boostPressed;
+        input.padBrake = brakePressed;
         if (input.padAimX || input.padAimY) {
           input.aimAngle = Math.atan2(input.padAimY, input.padAimX);
           input.aimSource = "keyboard";
@@ -4227,6 +5740,9 @@
           player.slowTimer = Math.max(0, player.slowTimer - delta);
         }
         player.slowFactor = player.slowTimer > 0 ? 0.7 : 1;
+        const wasCriticalHull = !!player.isCriticalHull;
+        const wasBraking = !!player.braking;
+        const wasBoosting = !!player.boosting;
         const keyboardAim = getKeyboardAimVector();
         if (keyboardAim.active) {
           input.aimAngle = Math.atan2(keyboardAim.y, keyboardAim.x);
@@ -4235,7 +5751,19 @@
           input.aimAngle = Math.atan2(input.pointer.y - player.y, input.pointer.x - player.x);
           input.aimSource = "mouse";
         }
-        const turnRate = (player.turnRate || 0) * (player.slowFactor || 1);
+        const braking = isActionActive("brake") || input.padBrake;
+        player.braking = braking;
+        if (state.telemetryRun) {
+          if (braking) {
+            state.telemetryRun.brakeSeconds += delta;
+          }
+          if (braking && !wasBraking) {
+            state.telemetryRun.brakeUses += 1;
+          }
+        }
+        const turnRate = (player.turnRate || 0)
+          * (player.slowFactor || 1)
+          * (braking ? state.brakeTurnBoost : 1);
         player.angle = rotateTowards(player.angle, input.aimAngle, turnRate * delta);
         input.pointer.moved = false;
 
@@ -4275,6 +5803,16 @@
         const padX = input.padMoveX || 0;
         const padY = input.padMoveY || 0;
         const boosting = (isActionActive("boost") || input.boost) && player.energy > player.boostCost * delta;
+        player.boosting = boosting;
+
+        if (state.telemetryRun) {
+          if (boosting) {
+            state.telemetryRun.boostSeconds += delta;
+          }
+          if (boosting && !wasBoosting) {
+            state.telemetryRun.boostBursts += 1;
+          }
+        }
 
         if (boosting) {
           player.energy = Math.max(0, player.energy - player.boostCost * delta);
@@ -4317,16 +5855,32 @@
         player.vx += ax * delta;
         player.vy += ay * delta;
 
-        const damping = Math.max(0, 1 - player.damping * delta);
+        const damping = Math.max(0, 1 - (player.damping + (braking ? state.brakeDrag : 0)) * delta);
         player.vx *= damping;
         player.vy *= damping;
 
-        const speedLimit = player.maxSpeed * (boosting ? player.boostMultiplier : 1) * (playerMod.speed || 1) * slowFactor * speedBoost;
+        const speedLimit = player.maxSpeed
+          * (boosting ? player.boostMultiplier : 1)
+          * (playerMod.speed || 1)
+          * slowFactor
+          * speedBoost
+          * (braking ? state.brakeSpeedClamp : 1);
         const speed = Math.hypot(player.vx, player.vy);
         if (speed > speedLimit) {
           const ratio = speedLimit / speed;
           player.vx *= ratio;
           player.vy *= ratio;
+        }
+
+        const hullRatio = player.maxHealth > 0 ? player.health / player.maxHealth : 1;
+        player.isCriticalHull = hullRatio <= 0.35;
+        if (state.telemetryRun) {
+          if (player.isCriticalHull) {
+            state.telemetryRun.lowHullSeconds += delta;
+          }
+          if (player.isCriticalHull && !wasCriticalHull) {
+            state.telemetryRun.criticalHullEvents += 1;
+          }
         }
 
         player.x += player.vx * delta;
@@ -4516,6 +6070,149 @@
         return best;
       }
 
+      function getPredictedInterceptPoint(origin, target, projectileSpeed) {
+        if (!origin || !target || !Number.isFinite(projectileSpeed) || projectileSpeed <= 0) {
+          return null;
+        }
+        const relX = target.x - origin.x;
+        const relY = target.y - origin.y;
+        const targetVx = target.vx || 0;
+        const targetVy = target.vy || 0;
+        const speedSq = projectileSpeed * projectileSpeed;
+        const velocitySq = targetVx * targetVx + targetVy * targetVy;
+        const a = velocitySq - speedSq;
+        const b = 2 * (relX * targetVx + relY * targetVy);
+        const c = relX * relX + relY * relY;
+        let time = 0;
+        if (Math.abs(a) < 0.0001) {
+          if (Math.abs(b) > 0.0001) {
+            time = -c / b;
+          }
+        } else {
+          const discriminant = b * b - 4 * a * c;
+          if (discriminant >= 0) {
+            const root = Math.sqrt(discriminant);
+            const t1 = (-b - root) / (2 * a);
+            const t2 = (-b + root) / (2 * a);
+            const times = [t1, t2].filter((value) => Number.isFinite(value) && value > 0);
+            if (times.length) {
+              time = Math.min(...times);
+            }
+          }
+        }
+        if (!Number.isFinite(time) || time <= 0) {
+          const distance = Math.sqrt(c);
+          time = clamp(distance / projectileSpeed, 0.05, 0.75);
+        } else {
+          time = Math.min(1.1, time);
+        }
+        return {
+          x: target.x + targetVx * time,
+          y: target.y + targetVy * time,
+          time
+        };
+      }
+
+      function resolveTargetAssist(previousTarget = null) {
+        if (!player || !enemies.length || (progress.settings.targetAssist || "on") === "off") {
+          return null;
+        }
+        if (state.mode !== "flight" && state.mode !== "training") {
+          return null;
+        }
+        const aimTarget = getAimTarget();
+        const inputMode = progress.settings.inputMode || "hybrid";
+        const mouseAiming = inputMode === "hybrid" && input.pointer.active;
+        const acquireRadius = mouseAiming ? 130 : 170;
+        const stickyRadius = acquireRadius + 56;
+        const maxAngle = mouseAiming ? 0.48 : 0.64;
+        const maxDistance = mouseAiming ? 940 : 780;
+        let best = null;
+        let bestScore = Infinity;
+        enemies.forEach((enemy) => {
+          const distance = distanceBetween(player, enemy);
+          if (distance > maxDistance) return;
+          const aimDistance = Math.hypot(enemy.x - aimTarget.x, enemy.y - aimTarget.y);
+          const angleToEnemy = Math.atan2(enemy.y - player.y, enemy.x - player.x);
+          const angleDiff = Math.abs(normalizeAngle(angleToEnemy - player.angle));
+          const sticky = previousTarget && enemy === previousTarget;
+          const allowedAimDistance = sticky ? stickyRadius : acquireRadius;
+          if (aimDistance > allowedAimDistance && angleDiff > maxAngle) return;
+          const threatBonus = isPriorityEnemy(enemy) ? 82 : (enemy.baseDamage >= 14 ? 28 : 0);
+          const stickyBonus = sticky ? 72 : 0;
+          const score = aimDistance + angleDiff * 190 + distance * 0.03 - threatBonus - stickyBonus;
+          if (score < bestScore) {
+            bestScore = score;
+            best = {
+              enemy,
+              distance,
+              aimDistance,
+              angleDiff
+            };
+          }
+        });
+        if (!best) {
+          return null;
+        }
+        const intercept = getPredictedInterceptPoint(player, best.enemy, player.bulletSpeed);
+        if (!intercept) {
+          return null;
+        }
+        const radius = best.enemy === previousTarget ? stickyRadius : acquireRadius;
+        const distanceFactor = clamp(1 - best.aimDistance / (radius + 40), 0, 1);
+        const angleFactor = clamp(1 - best.angleDiff / Math.max(0.18, maxAngle), 0, 1);
+        const threatFactor = isPriorityEnemy(best.enemy) ? 0.14 : 0;
+        const lockStrength = clamp(distanceFactor * 0.65 + angleFactor * 0.35 + threatFactor, 0, 1);
+        if (lockStrength <= 0.04) {
+          return null;
+        }
+        return {
+          enemy: best.enemy,
+          leadX: intercept.x,
+          leadY: intercept.y,
+          angle: Math.atan2(intercept.y - player.y, intercept.x - player.x),
+          distance: best.distance,
+          aimDistance: best.aimDistance,
+          lockStrength
+        };
+      }
+
+      function updateTargetAssist() {
+        const previousTarget = state.targetAssist && enemies.includes(state.targetAssist.enemy)
+          ? state.targetAssist.enemy
+          : null;
+        state.targetAssist = resolveTargetAssist(previousTarget);
+      }
+
+      function getActiveTargetAssist() {
+        if (!state.targetAssist || (progress.settings.targetAssist || "on") === "off") {
+          return null;
+        }
+        if (state.mode !== "flight" && state.mode !== "training") {
+          return null;
+        }
+        if (!state.targetAssist.enemy || !enemies.includes(state.targetAssist.enemy)) {
+          return null;
+        }
+        return state.targetAssist;
+      }
+
+      function getPlayerShotAngle() {
+        if (!player) return 0;
+        const previousTarget = state.targetAssist && state.targetAssist.enemy ? state.targetAssist.enemy : null;
+        const assist = resolveTargetAssist(previousTarget);
+        if (!assist) {
+          return player.angle;
+        }
+        state.targetAssist = assist;
+        const inputMode = progress.settings.inputMode || "hybrid";
+        const mouseAiming = inputMode === "hybrid" && input.pointer.active;
+        const maxAssistAngle = mouseAiming ? 0.07 : 0.13;
+        const assistPull = mouseAiming ? 0.42 : 0.72;
+        const angleDelta = normalizeAngle(assist.angle - player.angle);
+        return normalizeAngle(player.angle + clamp(angleDelta * assistPull * assist.lockStrength, -maxAssistAngle, maxAssistAngle));
+      }
+
       function activateAbility() {
         if (!player || !player.ability) return;
         if (state.mode !== "flight" && state.mode !== "training") return;
@@ -4562,6 +6259,12 @@
           }
           if (enemy.invulnerable > 0) {
             enemy.invulnerable = Math.max(0, enemy.invulnerable - delta);
+          }
+          if (enemy.exposedTimer > 0) {
+            enemy.exposedTimer = Math.max(0, (enemy.exposedTimer || 0) - delta);
+            if (enemy.exposedTimer <= 0) {
+              enemy.damageTakenMult = 1;
+            }
           }
           if (enemy.slowTimer > 0) {
             enemy.slowTimer = Math.max(0, enemy.slowTimer - delta);
@@ -4617,10 +6320,11 @@
           const targetX = target.x + (target.vx || 0) * leadTime;
           const targetY = target.y + (target.vy || 0) * leadTime;
           const aimAngle = Math.atan2(targetY - enemy.y, targetX - enemy.x);
-          const turnRate = (enemy.baseTurnRate || 0) * enemy.slowFactor;
+          const exposureSlow = enemy.exposedTimer > 0 ? 0.82 : 1;
+          const turnRate = (enemy.baseTurnRate || 0) * enemy.slowFactor * exposureSlow;
           enemy.angle = rotateTowards(enemy.angle, aimAngle, turnRate * delta);
 
-          const accel = enemy.baseAccel * (state.sectorMod?.enemy?.accel || 1) * enemy.slowFactor;
+          const accel = enemy.baseAccel * (state.sectorMod?.enemy?.accel || 1) * enemy.slowFactor * exposureSlow;
           let ax = 0;
           let ay = 0;
           const moveTarget = getEnemyNavigationTarget(enemy, target, delta, distance);
@@ -4659,7 +6363,7 @@
           enemy.vx *= damping;
           enemy.vy *= damping;
 
-          const maxSpeed = enemy.baseSpeed * (state.sectorMod?.enemy?.speed || 1) * enemy.slowFactor;
+          const maxSpeed = enemy.baseSpeed * (state.sectorMod?.enemy?.speed || 1) * enemy.slowFactor * exposureSlow;
           const speed = Math.hypot(enemy.vx, enemy.vy);
           if (speed > maxSpeed) {
             const ratio = maxSpeed / speed;
@@ -5480,7 +7184,8 @@
           : softCap + Math.floor((rawBonusProjectiles - softCap) * BALANCE_TUNING.barrageBonusSoftScale);
         const count = Math.max(1, player.projectiles + bonusProjectiles);
         const spread = (count > 1 ? player.spread : 0) * (playerMod.spreadMult || 1);
-        const baseAngle = player.angle - spread * (count - 1) * 0.5;
+        const shotAngle = getPlayerShotAngle();
+        const baseAngle = shotAngle - spread * (count - 1) * 0.5;
         const rawBarrageMultiplier = isBarrage ? (player.barrageBonusDamage || 1) : 1;
         const barrageMultiplier = 1 + (rawBarrageMultiplier - 1) * BALANCE_TUNING.barrageDamageSoftScale;
         const damageMultiplier = player.damageBoostTimer > 0 ? (player.damageBoostMultiplier || 1) : 1;
@@ -5554,8 +7259,8 @@
         }
         if (player.blackHoleChance > 0 && Math.random() < player.blackHoleChance) {
           const distance = 120 + (player.blackHoleRadius || 0) * 0.35;
-          const holeX = clamp(player.x + Math.cos(player.angle) * distance, 0, state.worldWidth);
-          const holeY = clamp(player.y + Math.sin(player.angle) * distance, 0, state.worldHeight);
+          const holeX = clamp(player.x + Math.cos(shotAngle) * distance, 0, state.worldWidth);
+          const holeY = clamp(player.y + Math.sin(shotAngle) * distance, 0, state.worldHeight);
           spawnBlackHole(holeX, holeY, {
             radius: player.blackHoleRadius || 120,
             duration: player.blackHoleDuration || 1.6,
@@ -5835,6 +7540,9 @@
           secondaryUses: Math.round(safeTelemetry.secondaryUses || 0),
           objectiveCompletions: Math.round(safeTelemetry.objectiveCompletions || 0),
           hazardTicks: Math.round(safeTelemetry.hazardTicks || 0),
+          boostSeconds: Math.round(safeTelemetry.boostSeconds || 0),
+          brakeUses: Math.round(safeTelemetry.brakeUses || 0),
+          lowHullSeconds: Math.round(safeTelemetry.lowHullSeconds || 0),
           mutator: state.weekly?.mutator?.label || "None",
           seed: state.challengeSeed || "",
           threatTier: formatThreatTierLabel(state.threatTier),
@@ -6160,6 +7868,8 @@
         progress.campaignLevel = Math.max(progress.campaignLevel || 1, completedLevel + 1);
         saveProgress();
         endRun("victory");
+        state.runDebrief = buildRunDebrief(state.lastRunSummary || summary, state.lastRunTelemetry, "victory");
+        renderProgressiveUi();
         setMode("victory");
         setOverlay("victory");
         playAudioCue("victory");
@@ -6176,6 +7886,9 @@
         }
         const summary = getRunSummary();
         const telemetry = finalizeRunTelemetry(summary);
+        state.lastRunSummary = summary;
+        state.lastRunTelemetry = telemetry;
+        state.lastRunReason = reason || "unknown";
         if (state.training) {
           state.runHighlights = [];
           return;
@@ -6236,6 +7949,8 @@
         } else {
           state.lossRewards = null;
         }
+        state.runDebrief = buildRunDebrief(state.lastRunSummary || getRunSummary(), state.lastRunTelemetry, state.training ? "training" : "wrecked");
+        renderProgressiveUi();
         spawnExplosion(player.x, player.y, "#ffffff", 26);
         setOverlay("gameover");
         playAudioCue("gameover");
@@ -6251,6 +7966,8 @@
         }
         endRun("abort");
         state.lossRewards = null;
+        state.runDebrief = buildRunDebrief(state.lastRunSummary || getRunSummary(), state.lastRunTelemetry, "abort");
+        renderProgressiveUi();
         setOverlay("gameover");
         logEvent("Run aborted. Returning to hangar.");
       }
@@ -6513,7 +8230,6 @@
         ctx.fillStyle = backgroundGradient || "#05090f";
         ctx.fillRect(0, 0, state.width, state.height);
 
-        updateCamera();
         const bounds = getViewportBounds();
         ctx.save();
         ctx.translate(-state.camera.x, -state.camera.y);
@@ -6555,6 +8271,9 @@
         ctx.globalAlpha = 1;
 
         renderBlackHoles();
+        enemies.forEach((enemy) => {
+          drawEnemyAttackTelegraph(enemy);
+        });
 
         if (player) {
           drawAura();
@@ -6621,6 +8340,76 @@
         return "#b98cff";
       }
 
+      function getEnemyAttackTelegraph(enemy) {
+        if (!enemy || !player) return null;
+        if (enemy.burstRemaining > 0) return null;
+        const dangerous = isPriorityEnemy(enemy)
+          || enemy.bulletSlowPlayer
+          || enemy.baseDamage >= 14
+          || enemy.pattern === "spread"
+          || enemy.baseBulletSpeed >= 520;
+        if (!dangerous) return null;
+        const fireRate = enemy.baseFireRate * (state.sectorMod?.enemy?.fireRate || 1);
+        const cadence = fireRate > 0 ? 1 / fireRate : 1;
+        const baseWindow = enemy.baseBulletSpeed >= 520
+          ? 0.8
+          : enemy.pattern === "spread"
+            ? 0.62
+            : 0.42;
+        const window = clamp(baseWindow, 0.28, Math.max(0.28, cadence * 0.7));
+        if (enemy.fireCooldown > window) return null;
+        const bulletSpeed = enemy.baseBulletSpeed * (state.sectorMod?.enemy?.bulletSpeed || 1);
+        const intercept = getPredictedInterceptPoint(enemy, player, bulletSpeed);
+        if (!intercept) return null;
+        const distance = distanceBetween(enemy, player);
+        if (distance > 700) return null;
+        return {
+          progress: clamp(1 - enemy.fireCooldown / window, 0, 1),
+          aimX: intercept.x,
+          aimY: intercept.y,
+          aimAngle: Math.atan2(intercept.y - enemy.y, intercept.x - enemy.x),
+          distance,
+          spreadCount: enemy.spreadCount || 1,
+          spreadAngle: Number.isFinite(enemy.spreadAngle) ? enemy.spreadAngle : 0,
+          color: enemy.bulletTint || (enemy.baseBulletSpeed >= 520 ? "#b98cff" : "#ff9f6b")
+        };
+      }
+
+      function drawEnemyAttackTelegraph(enemy) {
+        const telegraph = getEnemyAttackTelegraph(enemy);
+        if (!telegraph) return;
+        const lineLength = Math.min(telegraph.distance, 250 + telegraph.progress * 80);
+        const color = telegraph.color;
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 1.4 + telegraph.progress * 1.2;
+        ctx.globalAlpha = 0.16 + telegraph.progress * 0.34;
+        ctx.setLineDash([7, 6]);
+        if (telegraph.spreadCount > 1) {
+          const spread = telegraph.spreadAngle || 0.18;
+          const startAngle = telegraph.aimAngle - spread * (telegraph.spreadCount - 1) * 0.5;
+          const endAngle = telegraph.aimAngle + spread * (telegraph.spreadCount - 1) * 0.5;
+          [startAngle, telegraph.aimAngle, endAngle].forEach((angle) => {
+            ctx.beginPath();
+            ctx.moveTo(enemy.x, enemy.y);
+            ctx.lineTo(enemy.x + Math.cos(angle) * lineLength, enemy.y + Math.sin(angle) * lineLength);
+            ctx.stroke();
+          });
+        } else {
+          ctx.beginPath();
+          ctx.moveTo(enemy.x, enemy.y);
+          ctx.lineTo(enemy.x + Math.cos(telegraph.aimAngle) * lineLength, enemy.y + Math.sin(telegraph.aimAngle) * lineLength);
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+        ctx.globalAlpha = 0.22 + telegraph.progress * 0.32;
+        ctx.beginPath();
+        ctx.arc(telegraph.aimX, telegraph.aimY, 10 + telegraph.progress * 6, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
       function drawEnemyThreatHalo(enemy) {
         if (!isPriorityEnemy(enemy)) return;
         const now = performance.now();
@@ -6645,6 +8434,16 @@
           ctx.setLineDash([4, 3]);
           ctx.beginPath();
           ctx.arc(enemy.x, enemy.y, radius + 16, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+        if (enemy.shieldPulseCooldown > 0 && enemy.shieldPulseRadius > 0 && enemy.shieldPulseTimer <= 0.8) {
+          ctx.globalAlpha = 0.36;
+          ctx.strokeStyle = enemy.shieldPulseColor || "#7ca8ff";
+          ctx.lineWidth = 2;
+          ctx.setLineDash([6, 5]);
+          ctx.beginPath();
+          ctx.arc(enemy.x, enemy.y, enemy.shieldPulseRadius, 0, Math.PI * 2);
           ctx.stroke();
           ctx.setLineDash([]);
         }
@@ -6821,16 +8620,71 @@
         ctx.restore();
       }
 
+      function drawTargetAssistOverlay(assist) {
+        if (!assist || !assist.enemy) return;
+        const enemy = assist.enemy;
+        const ringRadius = enemy.radius + 10 + assist.lockStrength * 6;
+        const corner = 6 + assist.lockStrength * 3;
+        ctx.save();
+        ctx.strokeStyle = `rgba(255, 209, 102, ${0.52 + assist.lockStrength * 0.3})`;
+        ctx.fillStyle = "rgba(255, 209, 102, 0.9)";
+        ctx.lineWidth = 1.6 + assist.lockStrength * 0.8;
+        [
+          [-1, -1],
+          [1, -1],
+          [-1, 1],
+          [1, 1]
+        ].forEach(([sx, sy]) => {
+          const baseX = enemy.x + sx * ringRadius;
+          const baseY = enemy.y + sy * ringRadius;
+          ctx.beginPath();
+          ctx.moveTo(baseX, baseY + sy * corner);
+          ctx.lineTo(baseX, baseY);
+          ctx.lineTo(baseX + sx * corner, baseY);
+          ctx.stroke();
+        });
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(enemy.x, enemy.y);
+        ctx.lineTo(assist.leadX, assist.leadY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.arc(assist.leadX, assist.leadY, 6 + assist.lockStrength * 4, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = 0.95;
+        ctx.beginPath();
+        ctx.arc(assist.leadX, assist.leadY, 1.8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
       function drawCrosshair() {
         const target = getAimTarget();
+        const assist = getActiveTargetAssist();
         const aimX = target.x;
         const aimY = target.y;
         ctx.save();
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = assist
+          ? `rgba(255, 209, 102, ${0.42 + assist.lockStrength * 0.38})`
+          : "rgba(255, 255, 255, 0.35)";
+        ctx.lineWidth = assist ? 1.5 : 1;
         ctx.beginPath();
-        ctx.arc(aimX, aimY, 10, 0, Math.PI * 2);
+        ctx.arc(aimX, aimY, assist ? 12 : 10, 0, Math.PI * 2);
         ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(aimX - 16, aimY);
+        ctx.lineTo(aimX - 9, aimY);
+        ctx.moveTo(aimX + 9, aimY);
+        ctx.lineTo(aimX + 16, aimY);
+        ctx.moveTo(aimX, aimY - 16);
+        ctx.lineTo(aimX, aimY - 9);
+        ctx.moveTo(aimX, aimY + 9);
+        ctx.lineTo(aimX, aimY + 16);
+        ctx.stroke();
+        if (assist) {
+          drawTargetAssistOverlay(assist);
+        }
         ctx.restore();
       }
 
@@ -6871,8 +8725,15 @@
 
         stats.wave.textContent = getWaveDisplay(state.wave);
         stats.enemyCount.textContent = enemies.length;
-        stats.score.textContent = Math.round(state.score).toLocaleString();
-        stats.credits.textContent = Math.round(state.credits).toLocaleString();
+        const roundedScore = Math.round(state.score);
+        const roundedCredits = Math.round(state.credits);
+        stats.score.textContent = roundedScore.toLocaleString();
+        stats.credits.textContent = roundedCredits.toLocaleString();
+        if (roundedScore !== state.lastHudScore || roundedCredits !== state.lastHudCredits) {
+          state.lastHudScore = roundedScore;
+          state.lastHudCredits = roundedCredits;
+          noteHudMetaReveal(now);
+        }
         const threatLabel = formatThreatTierLabel(state.threatTier);
         if (stats.threatTier) {
           stats.threatTier.textContent = threatLabel;
@@ -6900,9 +8761,16 @@
         }
         if (dom.tierPill && stats.tier) {
           const showTier = isFrontierMode() && state.frontier && state.frontier.active;
+          const tierValue = showTier ? (state.frontier.tier || 1) : null;
           dom.tierPill.hidden = !showTier;
           if (showTier) {
-            stats.tier.textContent = state.frontier.tier || 1;
+            stats.tier.textContent = tierValue;
+          }
+          if (tierValue !== state.lastHudTier) {
+            state.lastHudTier = tierValue;
+            if (tierValue !== null) {
+              noteHudMetaReveal(now);
+            }
           }
         }
 
@@ -6987,51 +8855,64 @@
           stats.secondaryStatus.textContent = secondaryReady ? "Ready" : `CD ${Math.ceil(player.secondaryCooldown)}s`;
         }
 
+        syncHudMetaVisibility();
         renderStatusIcons();
         renderActiveUpgrades();
+        syncContextualHudState(now);
       }
 
       function renderStatusIcons() {
         if (!dom.statusIcons || !player) return;
         const chips = [];
+        const focused = isHudCombatFocusActive(performance.now());
         if (player.abilityTimer > 0) {
-          chips.push({ kind: "buff", label: `Ability ${Math.ceil(player.abilityTimer)}s` });
+          chips.push({ kind: "buff", label: `Ability ${Math.ceil(player.abilityTimer)}s`, priority: 2 });
         }
         if (player.damageBoostTimer > 0) {
-          chips.push({ kind: "buff", label: `Damage x${(player.damageBoostMultiplier || 1).toFixed(1)}` });
+          chips.push({
+            kind: "buff",
+            label: `Damage x${(player.damageBoostMultiplier || 1).toFixed(1)}`,
+            priority: 3
+          });
         }
         if (player.speedBoostTimer > 0) {
-          chips.push({ kind: "buff", label: `Boost x${(player.speedBoostMultiplier || 1).toFixed(1)}` });
+          chips.push({
+            kind: "buff",
+            label: `Boost x${(player.speedBoostMultiplier || 1).toFixed(1)}`,
+            priority: 3
+          });
         }
         if (state.routeBonus && state.routeBonus.wavesRemaining > 0) {
           chips.push({
             kind: "buff",
-            label: `${formatRouteBonusLabel(state.routeBonus.id)} (${state.routeBonus.wavesRemaining})`
+            label: `${formatRouteBonusLabel(state.routeBonus.id)} (${state.routeBonus.wavesRemaining})`,
+            priority: 4
           });
         }
         if (player.slowTimer > 0) {
-          chips.push({ kind: "debuff", label: "Slowed" });
+          chips.push({ kind: "debuff", label: "Slowed", priority: 0 });
         }
         if (state.hazards && state.hazards.length > 0) {
-          chips.push({ kind: "debuff", label: `Hazards ${state.hazards.length}` });
-        }
-        if (state.waveObjective) {
-          const objectiveLabel = state.waveObjective.complete
-            ? "Objective complete"
-            : `${state.waveObjective.label}: ${state.waveObjective.progressLabel || ""}`;
-          chips.push({ kind: "objective", label: objectiveLabel.trim() });
+          chips.push({ kind: "debuff", label: `Hazards ${state.hazards.length}`, priority: 0 });
         }
         const mutator = state.weekly?.mutator;
         if (mutator && mutator.id && mutator.id !== "none") {
-          chips.push({ kind: "system", label: mutator.label });
+          chips.push({ kind: "system", label: mutator.label, priority: 4 });
         }
-        if (progress.settings.inputMode === "controller") {
+        if (progress.settings.inputMode === "controller" && !state.controllerConnected) {
           chips.push({
             kind: "system",
-            label: state.controllerConnected ? "Pad connected" : "No controller"
+            label: "Controller offline",
+            priority: 1
           });
         }
-        const display = chips.slice(0, 5);
+        chips.sort((a, b) => (a.priority || 0) - (b.priority || 0));
+        const visibleLimit = focused ? 3 : 5;
+        const hiddenCount = Math.max(0, chips.length - visibleLimit);
+        const display = chips.slice(0, visibleLimit);
+        if (hiddenCount > 0) {
+          display.push({ kind: "summary", label: `+${hiddenCount} more` });
+        }
         dom.statusIcons.innerHTML = display.map((chip) => `
           <span class="status-chip" data-kind="${chip.kind}">${chip.label}</span>
         `).join("");
@@ -8188,6 +10069,10 @@
 
       function renderPremiumShop() {
         if (!dom.premiumShop) return;
+        if (!isFeatureUnlocked("premium")) {
+          dom.premiumShop.innerHTML = renderLockedCard("Premium shop locked", getFeatureHint("premium"));
+          return;
+        }
         const items = Array.isArray(PREMIUM_SHOP_ITEMS) ? PREMIUM_SHOP_ITEMS : [];
         if (!items.length) {
           dom.premiumShop.innerHTML = "<span class=\"select-meta\">Premium shop inventory unavailable.</span>";
@@ -8541,23 +10426,27 @@
         const modeGroup = document.querySelector("[data-setting='game-mode']");
         const difficultyGroup = document.querySelector("[data-setting='difficulty']");
         const inputGroup = document.querySelector("[data-setting='input-mode']");
+        const targetAssistGroup = document.querySelector("[data-setting='target-assist']");
         const particleGroup = document.querySelector("[data-setting='particles']");
         const hitFlashGroup = document.querySelector("[data-setting='hit-flash']");
         const hudLayoutGroup = document.querySelector("[data-setting='hud-layout']");
         const hudScaleGroup = document.querySelector("[data-setting='hud-scale']");
+        const cameraModeGroup = document.querySelector("[data-setting='camera-mode']");
         const audioGroup = document.querySelector("[data-setting='audio']");
         const paletteGroup = document.querySelector("[data-setting='palette']");
         const perfModeGroup = document.querySelector("[data-setting='perf-mode']");
         const renderScaleGroup = document.querySelector("[data-setting='render-scale']");
-        [modeGroup, difficultyGroup, inputGroup, particleGroup, hitFlashGroup, hudLayoutGroup, hudScaleGroup, audioGroup, paletteGroup, perfModeGroup, renderScaleGroup].forEach((group) => {
+        [modeGroup, difficultyGroup, inputGroup, targetAssistGroup, particleGroup, hitFlashGroup, hudLayoutGroup, hudScaleGroup, cameraModeGroup, audioGroup, paletteGroup, perfModeGroup, renderScaleGroup].forEach((group) => {
           if (!group) return;
           const setting = group.dataset.setting;
           const value = setting === "game-mode" ? progress.settings.gameMode
             : setting === "difficulty" ? progress.settings.difficulty
             : setting === "input-mode" ? progress.settings.inputMode
+            : setting === "target-assist" ? (progress.settings.targetAssist || "on")
             : setting === "particles" ? progress.settings.particles
             : setting === "hud-layout" ? (progress.settings.hudLayout || "standard")
             : setting === "hud-scale" ? (progress.settings.hudScale || "md")
+            : setting === "camera-mode" ? (progress.settings.cameraMode || "dynamic")
             : setting === "audio" ? (progress.settings.audio || "on")
             : setting === "palette" ? (progress.settings.palette || "default")
             : setting === "perf-mode" ? getPerfMode()
@@ -8568,6 +10457,7 @@
           });
         });
 
+        syncSettingsVisibility();
         renderKeybinds();
         renderPerformanceOverlays(performance.now(), true);
         updatePerfLogUi();
@@ -8630,6 +10520,7 @@
           const dealt = Number.isFinite(entry.damageDealt) ? Math.round(entry.damageDealt).toLocaleString() : "0";
           const taken = Number.isFinite(entry.damageTaken) ? Math.round(entry.damageTaken).toLocaleString() : "0";
           const accuracyPct = Number.isFinite(entry.accuracy) ? `${Math.round(entry.accuracy * 100)}%` : "0%";
+          const mobility = `Boost ${entry.boostSeconds || 0}s • Brake ${entry.brakeUses || 0} • Low hull ${entry.lowHullSeconds || 0}s`;
           const systems = [
             entry.threatTier ? `Threat ${entry.threatTier}` : "",
             entry.mutator ? entry.mutator : "",
@@ -8640,6 +10531,7 @@
               <strong>${entry.ship || "Unknown"} / ${entry.weapon || "Unknown"}</strong>
               <span>${entry.waveDisplay || "Wave 1"} • ${entry.kills || 0} kills • Score ${score} • ${entry.mode || "Arcade"}</span>
               <span>ACC ${accuracyPct} • DMG ${dealt}/${taken} • A${entry.abilityUses || 0} S${entry.secondaryUses || 0} O${entry.objectiveCompletions || 0}</span>
+              <span>${mobility}</span>
               <span class="muted">${systems}${systems ? " • " : ""}${timestamp}</span>
             </div>
           `;
@@ -9055,37 +10947,56 @@
           const secondaryKey = formatKeybind(progress.keybinds.secondary);
           const dockKey = formatKeybind(progress.keybinds.dock);
           const helpKey = formatKeybind(progress.keybinds.help || "h");
+          const brakeKey = formatKeybind(progress.keybinds.brake || "x");
           const level = Math.max(1, progress.campaignLevel || 1);
           const modeLabel = isFrontierMode() ? "Frontier patrol" : `Level ${level}`;
           const modeCopy = isFrontierMode()
             ? "Survive as long as you can. Dock mid-run to boost."
             : `Clear ${LEVEL_WAVES} waves. Boss on wave ${LEVEL_WAVES}.`;
-          const modeTip = isFrontierMode()
-            ? `<li>Dock: ${dockKey} for quick boosts.</li>`
-            : `<li>Beat wave ${LEVEL_WAVES} to unlock the next level.</li>`;
+          const phase = getUiPhaseSummary();
+          const next = getNextLockedMilestone();
           const aimKeys = [
             progress.keybinds.aimUp,
             progress.keybinds.aimLeft,
             progress.keybinds.aimDown,
             progress.keybinds.aimRight
           ].map(formatKeybind).join("/");
+          const controlLines = [
+            `Move: WASD. Aim: mouse or ${aimKeys}.`,
+            `Shoot: ${fireKey}. Boost: ${boostKey}.`,
+            `Pause: P or Esc. Help: ${helpKey}.`
+          ];
+          if (isFeatureUnlocked("ability")) {
+            controlLines.splice(2, 0, `Ability: ${abilityKey}.`);
+          }
+          if (isFeatureUnlocked("secondary")) {
+            controlLines.splice(Math.min(controlLines.length, 3), 0, `Secondary: ${secondaryKey}.`);
+          }
+          if (getUiTierLevel() >= 1) {
+            controlLines.push(`Air Brake: ${brakeKey} for quick turns and target snaps.`);
+          }
+          if (isFrontierMode()) {
+            controlLines.push(`Dock: ${dockKey} for quick boosts.`);
+          } else {
+            controlLines.push(`Beat wave ${LEVEL_WAVES} to unlock the next level.`);
+          }
+          if (next) {
+            controlLines.push(`Next unlock: ${next.label}. ${next.hint}`);
+          }
+          controlLines.push("Practice runs teach the ship without loot pressure.");
           dom.overlayContent.innerHTML = `
             <div class="overlay-header">
               <p class="eyebrow">Ready to fly</p>
               <h3>${modeLabel}</h3>
-              <p>${modeCopy}</p>
+              <p>${modeCopy} ${phase.recommendation}</p>
             </div>
             <ul class="overlay-list">
-              <li>Move: WASD. Aim: mouse or ${aimKeys}.</li>
-              <li>Shoot: ${fireKey}. Boost: ${boostKey}.</li>
-              <li>Ability: ${abilityKey}. Secondary: ${secondaryKey}.</li>
-              <li>Pause: P or Esc.</li>
-              <li>Help: ${helpKey} opens quick controls.</li>
-              ${modeTip}
-              <li>Practice = no loot.</li>
+              ${controlLines.map((line) => `<li>${line}</li>`).join("")}
             </ul>
             <div class="overlay-actions">
-              <button class="btn primary" data-overlay-action="launch">Play</button>
+              <button class="btn primary" data-overlay-action="launch">Play Campaign</button>
+              <button class="btn ghost" data-action="training">Practice First</button>
+              <button class="btn ghost" data-action="tutorial">Tutorial</button>
             </div>
           `;
         }
@@ -9110,6 +11021,25 @@
           const secondaryKey = formatKeybind(progress.keybinds.secondary);
           const dockKey = formatKeybind(progress.keybinds.dock);
           const helpKey = formatKeybind(progress.keybinds.help || "h");
+          const brakeKey = formatKeybind(progress.keybinds.brake || "x");
+          const helpLines = [
+            "Move with WASD and aim with mouse or arrow keys.",
+            `Shoot ${fireKey}. Boost ${boostKey}.`
+          ];
+          if (isFeatureUnlocked("ability")) {
+            helpLines.push(`Use ability with ${abilityKey}.`);
+          }
+          if (isFeatureUnlocked("secondary")) {
+            helpLines.push(`Use secondary with ${secondaryKey}.`);
+          }
+          if (getUiTierLevel() >= 1) {
+            helpLines.push(`Air Brake ${brakeKey}. Dynamic Camera can be simplified in Options.`);
+            helpLines.push("Bracketed enemies show a predictive lead pip when target assist is on.");
+          }
+          if (isFrontierMode()) {
+            helpLines.push(`Frontier dock: ${dockKey}.`);
+          }
+          helpLines.push(`Press ${helpKey} again to close help.`);
           dom.overlayContent.innerHTML = `
             <div class="overlay-header">
               <p class="eyebrow">Quick guide</p>
@@ -9117,10 +11047,7 @@
               <p>Use this panel as a fast in-run reminder.</p>
             </div>
             <ul class="overlay-list">
-              <li>Move with WASD and aim with mouse or arrow keys.</li>
-              <li>Shoot ${fireKey}. Boost ${boostKey}. Ability ${abilityKey}.</li>
-              <li>Secondary ${secondaryKey}. Frontier dock ${dockKey}.</li>
-              <li>Press ${helpKey} again to close help.</li>
+              ${helpLines.map((line) => `<li>${line}</li>`).join("")}
             </ul>
             <div class="overlay-actions">
               <button class="btn primary" data-overlay-action="resume">Resume</button>
@@ -9399,6 +11326,7 @@
           const performanceTier = lossRewards ? lossRewards.tier : "common";
           const performanceLabel = formatTierLabel(performanceTier);
           const levelChip = isCampaignMode() ? `<span class="chip">Level ${summary.level}</span>` : "";
+          const debriefSection = renderRunDebriefSection();
           const highlightSection = state.runHighlights && state.runHighlights.length
             ? `
               <div class="chip-list">
@@ -9453,6 +11381,7 @@
             </div>
             ${highlightSection}
             ${rewardSection}
+            ${debriefSection}
             <div class="overlay-actions">
               <button class="btn ghost" data-overlay-action="restart">Play again</button>
               <button class="btn primary" data-overlay-action="reset">Return to hangar</button>
@@ -9466,6 +11395,7 @@
           const nextLevel = Math.max(progress.campaignLevel || level + 1, level + 1);
           const rewardTier = result ? result.tier : "common";
           const rewardLabel = formatTierLabel(rewardTier);
+          const debriefSection = renderRunDebriefSection();
           const highlightSection = state.runHighlights && state.runHighlights.length
             ? `
               <div class="chip-list">
@@ -9516,6 +11446,7 @@
                 ${rewardCards}
               </div>
             </div>
+            ${debriefSection}
             <div class="overlay-actions">
               <button class="btn primary" data-overlay-action="next-level">Launch Level ${nextLevel}</button>
               <button class="btn ghost" data-overlay-action="reset">Return to hangar</button>
