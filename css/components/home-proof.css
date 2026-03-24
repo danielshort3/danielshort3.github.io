@@ -1,0 +1,144 @@
+@layer components {
+  .home-proof-band {
+    padding: clamp(2.2rem, 5vw, 3.2rem) 0 clamp(2.6rem, 5vw, 3.6rem);
+    background:
+      radial-gradient(900px circle at 12% 0%, color-mix(in srgb, var(--primary) 10%, transparent), transparent 60%),
+      linear-gradient(180deg,
+        color-mix(in srgb, var(--surface) 98%, #02060b 2%) 0%,
+        color-mix(in srgb, var(--surface) 93%, #030811 7%) 100%);
+    border-bottom: 1px solid color-mix(in srgb, var(--primary) 14%, transparent);
+  }
+
+  .home-proof-head {
+    text-align: center;
+    max-width: min(760px, 92vw);
+    margin: 0 auto 26px;
+  }
+
+  .home-proof-eyebrow {
+    margin: 0 0 12px;
+    text-transform: uppercase;
+    letter-spacing: .24em;
+    font-size: .72rem;
+    color: color-mix(in srgb, var(--primary) 72%, #ffffff 28%);
+  }
+
+  .home-proof-head p {
+    margin: 10px auto 0;
+    max-width: 68ch;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  .home-proof-kpis {
+    list-style: none;
+    padding: 0;
+    margin-top: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(1rem, 2vw, 1.4rem);
+    max-width: 860px;
+    margin-inline: auto;
+  }
+
+  .home-proof-item {
+    min-width: 0;
+    margin: 0;
+  }
+
+  .home-proof-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(12px, 1.4vw, 18px);
+    min-height: 190px;
+    height: 100%;
+    padding: 0;
+    border-radius: 22px;
+    background: linear-gradient(155deg,
+      color-mix(in srgb, var(--surface) 92%, #02070f 8%) 0%,
+      color-mix(in srgb, var(--surface) 80%, #050913 20%) 100%);
+    border: 1px solid color-mix(in srgb, var(--primary) 28%, transparent);
+    box-shadow: 0 18px 44px rgba(5, 8, 20, .35);
+    color: inherit;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .home-proof-card::before {
+    content: "";
+    position: absolute;
+    inset: 1px;
+    border-radius: inherit;
+    background: radial-gradient(120% 120% at 12% 0%,
+      color-mix(in srgb, var(--primary) 32%, transparent) 0%,
+      transparent 55%);
+    opacity: .5;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .home-proof-card > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .home-proof-value {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    flex-wrap: wrap;
+    column-gap: 8px;
+    row-gap: 4px;
+    min-height: auto;
+    font-family: "Poppins", sans-serif;
+    font-size: clamp(1.6rem, 3.2vw, 2.2rem);
+    font-weight: 600;
+    color: color-mix(in srgb, var(--text-light) 95%, #fff 5%);
+    text-align: center;
+    line-height: 1.15;
+    letter-spacing: .02em;
+  }
+
+  .home-proof-label {
+    display: block;
+    margin-top: 6px;
+    max-width: 32ch;
+    margin-inline: auto;
+    font-size: .92rem;
+    color: color-mix(in srgb, var(--text-muted) 86%, #fff 14%);
+    line-height: 1.65;
+    letter-spacing: .025em;
+    text-align: center;
+  }
+
+  @media (max-width: 640px) {
+    .home-proof-band {
+      padding: 2rem 0 2.8rem;
+    }
+
+    .home-proof-head {
+      margin-bottom: 20px;
+    }
+
+    .home-proof-kpis {
+      grid-template-columns: 1fr;
+    }
+
+    .home-proof-card {
+      min-height: 0;
+      padding: 0;
+    }
+
+    .home-proof-value {
+      font-size: clamp(1.32rem, 5vw, 1.95rem);
+    }
+
+    .home-proof-label {
+      font-size: clamp(.88rem, 3.8vw, 1rem);
+    }
+  }
+}

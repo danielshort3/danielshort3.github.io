@@ -1,0 +1,239 @@
+@layer components {
+  .hero-bullet-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: min(960px, 100%);
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .hero-bullet-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 18px 18px 18px 16px;
+    border-radius: 18px;
+    border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
+    background: color-mix(in srgb, var(--surface) 88%, #02060c 12%);
+    box-shadow: 0 18px 36px rgba(0, 0, 0, .22);
+    text-align: left;
+    color: var(--text-light);
+  }
+
+  .hero-bullet-list li::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    margin-top: .45rem;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: var(--primary);
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--primary) 22%, transparent);
+  }
+
+  .transfer-band {
+    padding: clamp(2.4rem, 5vw, 3.4rem) 0;
+    background:
+      radial-gradient(1000px circle at 10% 0%, color-mix(in srgb, var(--primary) 14%, transparent), transparent 58%),
+      linear-gradient(150deg,
+        color-mix(in srgb, var(--surface) 95%, #030811 5%) 0%,
+        color-mix(in srgb, var(--surface) 88%, #030811 12%) 100%);
+    border-block: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
+  }
+
+  .transfer-head,
+  .destination-section-head {
+    text-align: center;
+    max-width: min(760px, 92vw);
+    margin: 0 auto 28px;
+  }
+
+  .transfer-head h2,
+  .destination-section-head h2 {
+    margin: 0 0 10px;
+    font-size: clamp(1.7rem, 2.8vw, 2.3rem);
+  }
+
+  .transfer-head p,
+  .destination-section-head p {
+    margin: 0;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  .transfer-map {
+    max-width: 980px;
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: 24px;
+    border: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
+    background: color-mix(in srgb, var(--surface) 96%, #02050a 4%);
+    box-shadow: 0 28px 60px rgba(0, 0, 0, .22);
+  }
+
+  .transfer-map-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .transfer-map-cell {
+    padding: 18px 22px;
+    border-top: 1px solid color-mix(in srgb, var(--border-subtle) 82%, transparent);
+  }
+
+  .transfer-map-row:first-child .transfer-map-cell {
+    border-top: 0;
+  }
+
+  .transfer-map-head .transfer-map-cell {
+    background: color-mix(in srgb, var(--primary) 14%, var(--surface) 86%);
+    color: color-mix(in srgb, var(--primary) 76%, #ffffff 24%);
+    font-size: .82rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .transfer-map-row:not(.transfer-map-head) .transfer-map-cell:first-child {
+    font-weight: 600;
+    color: var(--text-light);
+  }
+
+  .transfer-map-row:not(.transfer-map-head) .transfer-map-cell:last-child {
+    color: var(--text-muted);
+  }
+
+  .destination-grid,
+  .destination-output-grid,
+  .destination-link-grid,
+  .who-i-work-with-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+  }
+
+  .destination-card,
+  .destination-output-card,
+  .destination-link-card,
+  .who-i-work-with-card {
+    padding: 24px;
+    border-radius: 22px;
+    border: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
+    background: color-mix(in srgb, var(--surface) 96%, #05070b 4%);
+    box-shadow: 0 18px 36px rgba(0, 0, 0, .18);
+  }
+
+  .destination-card h3,
+  .destination-output-card h3,
+  .destination-link-card h3,
+  .who-i-work-with-card h3 {
+    margin: 0 0 10px;
+    font-size: 1.08rem;
+  }
+
+  .destination-card p,
+  .destination-output-card p,
+  .destination-link-card p,
+  .who-i-work-with-card p {
+    margin: 0;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  .destination-metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px;
+  }
+
+  .destination-metric-pill {
+    padding: 15px 16px;
+    border-radius: 16px;
+    border: 1px solid color-mix(in srgb, var(--primary) 22%, transparent);
+    background: color-mix(in srgb, var(--surface) 92%, #01050a 8%);
+    font-weight: 600;
+    text-align: center;
+    color: color-mix(in srgb, var(--text-light) 92%, #ffffff 8%);
+  }
+
+  .destination-proof-grid {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+  }
+
+  .destination-proof-link,
+  .destination-link-card {
+    color: inherit;
+    text-decoration: none;
+    transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+  }
+
+  .destination-proof-link {
+    display: block;
+    padding: 18px 20px;
+    border-radius: 18px;
+    border: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
+    background: color-mix(in srgb, var(--surface) 96%, #02060c 4%);
+  }
+
+  .destination-proof-link strong,
+  .destination-link-card strong {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-light);
+    font-family: "Poppins";
+    font-size: 1rem;
+  }
+
+  .destination-proof-link span,
+  .destination-link-card span {
+    color: var(--text-muted);
+    line-height: 1.65;
+  }
+
+  .destination-proof-link:hover,
+  .destination-proof-link:focus-visible,
+  .destination-link-card:hover,
+  .destination-link-card:focus-visible {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--primary) 44%, transparent);
+    box-shadow: 0 16px 32px color-mix(in srgb, var(--primary) 18%, transparent);
+  }
+
+  .destination-page .hero-tagline {
+    max-width: 58ch;
+  }
+
+  .destination-page .cta-group {
+    opacity: 1;
+    animation: none;
+  }
+
+  .destination-section + .destination-section {
+    margin-top: 0;
+  }
+
+  .who-i-work-with-grid {
+    margin-top: 22px;
+  }
+
+  @media (max-width: 900px) {
+    .hero-bullet-list {
+      grid-template-columns: 1fr;
+    }
+
+    .transfer-map-cell {
+      padding: 14px 16px;
+      font-size: .95rem;
+    }
+
+    .transfer-map-head .transfer-map-cell {
+      font-size: .74rem;
+      letter-spacing: .14em;
+    }
+  }
+}

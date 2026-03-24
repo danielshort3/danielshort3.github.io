@@ -20,10 +20,10 @@
     { "source": "/portfolio/:project.html", "destination": "/pages/portfolio/:project" },
     { "source": "/portfolio",         "destination": "/pages/portfolio" },
     { "source": "/portfolio.html",    "destination": "/pages/portfolio" },
+    { "source": "/destination-analytics", "destination": "/pages/destination-analytics" },
+    { "source": "/destination-analytics.html", "destination": "/pages/destination-analytics" },
     { "source": "/contact",           "destination": "/pages/contact" },
     { "source": "/contact.html",      "destination": "/pages/contact" },
-    { "source": "/contributions",     "destination": "/pages/contributions" },
-    { "source": "/contributions.html","destination": "/pages/contributions" },
     { "source": "/privacy",           "destination": "/pages/privacy" },
     { "source": "/privacy.html",      "destination": "/pages/privacy" },
     { "source": "/resume",            "destination": "/pages/resume" },
@@ -130,25 +130,17 @@
     { "source": "/tools/ocean-wave-simulation", "destination": "/games/ocean-wave-simulation", "permanent": true },
     { "source": "/tools/ocean-wave-simulation.html", "destination": "/games/ocean-wave-simulation", "permanent": true },
     { "source": "/projects", "destination": "/portfolio", "permanent": true },
-    { "source": "/projects/(.*)", "destination": "/portfolio", "permanent": true }
+    { "source": "/projects/(.*)", "destination": "/portfolio", "permanent": true },
+    { "source": "/contributions", "destination": "/destination-analytics", "permanent": true },
+    { "source": "/contributions.html", "destination": "/destination-analytics", "permanent": true },
+    { "source": "/pages/contributions", "destination": "/destination-analytics", "permanent": true },
+    { "source": "/pages/contributions.html", "destination": "/destination-analytics", "permanent": true }
   ],
   "headers": [
     {
       "source": "/pages/(.*)",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex" }
-      ]
-    },
-    {
-      "source": "/contributions",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, follow" }
-      ]
-    },
-    {
-      "source": "/contributions.html",
-      "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, follow" }
       ]
     },
     {
