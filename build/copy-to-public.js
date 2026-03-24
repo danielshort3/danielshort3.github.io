@@ -262,6 +262,19 @@ function rewriteCssLinksInHtml(html, cssHrefs) {
   return next;
 }
 
+function pruneRetiredPublicArtifacts() {
+  const retiredTargets = [
+    path.join(outDir, 'pages', 'contributions.html'),
+    path.join(outDir, 'js', 'contributions')
+  ];
+
+  retiredTargets.forEach((target) => {
+    try {
+      fs.rmSync(target, { recursive: true, force: true });
+    } catch {}
+  });
+}
+
 function copyStatic(){
   ensureCleanDir(outDir);
   const manifest = readJson(cssManifestPath);
@@ -286,6 +299,7 @@ function copyStatic(){
   dirs.forEach(d => copyDir(path.join(root, d), path.join(outDir, d)));
   copyReferencedDocuments();
   copyDistArtifacts(manifest);
+  pruneRetiredPublicArtifacts();
 
   // Rewrite public HTML to reference the hashed CSS bundle (better caching).
   const cssHrefs = {

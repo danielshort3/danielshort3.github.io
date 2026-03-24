@@ -113,10 +113,11 @@ try {
   let hashedCss;
 
   section('Page shells and required meta', () => {
-    checkFileContains('index.html', 'made actionable');
+    checkFileContains('index.html', 'Made Actionable');
 
     const expectedTitles = {
-      'index.html': 'Daniel Short | Data Science Made Actionable',
+      'index.html': 'Daniel Short | Tourism &amp; Destination Analytics Made Actionable',
+      'pages/destination-analytics.html': 'Destination Analytics | Daniel Short',
       'pages/contact.html': 'Contact | Daniel Short',
       'pages/tools.html': 'Tools | Daniel Short',
       'pages/tools-dashboard.html': 'Tools Dashboard | Daniel Short',
@@ -187,6 +188,7 @@ try {
 
     const shellPages = [
       'index.html',
+      'pages/destination-analytics.html',
       'pages/contact.html',
       'pages/portfolio.html',
       'pages/contributions.html',
@@ -205,7 +207,7 @@ try {
       assertHeroVariantClasses(file, html);
     });
 
-    ['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/sitemap.html'].forEach((f) => {
+    ['index.html','pages/destination-analytics.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/sitemap.html'].forEach((f) => {
       checkFileContains(f, 'js/common/common.js');
     });
     ['pages/games.html','pages/ocean-wave-simulation.html', ...toolPages].forEach((f) => {
@@ -232,7 +234,7 @@ try {
     assert(!readFile('pages/tools-dashboard.html').includes('id="tool-jsonld"'),
       'tools dashboard should not include WebApplication JSON-LD');
 
-    ['index.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/tools.html','pages/games.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/utm-batch-builder.html','404.html'].forEach((f) => {
+    ['index.html','pages/destination-analytics.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/tools.html','pages/games.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/utm-batch-builder.html','404.html'].forEach((f) => {
       checkFileContains(f, 'og:image');
     });
 
@@ -264,7 +266,7 @@ try {
     const commonCode = fs.readFileSync('js/common/common.js', 'utf8');
     assert(commonCode.includes('js/portfolio/projects-data.js'), 'common.js missing portfolio lazy loader');
 
-    const htmlFiles = ['index.html','contact.html','resume.html','resume-pdf.html','privacy.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','pages/resume-pdf.html','pages/privacy.html','pages/short-links.html','pages/utm-batch-builder.html'];
+    const htmlFiles = ['index.html','contact.html','resume.html','resume-pdf.html','privacy.html','pages/destination-analytics.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','pages/resume-pdf.html','pages/privacy.html','pages/short-links.html','pages/utm-batch-builder.html'];
     htmlFiles.forEach(file => {
       const content = fs.readFileSync(file, 'utf8');
       assert(!content.includes('js/analytics/ga4-events.js'), `${file} should load analytics helpers on demand`);
@@ -511,7 +513,8 @@ try {
     assert(headerTemplate.includes('class="brand-title"'), 'nav markup missing brand-title');
     assert(headerTemplate.includes('class="brand-divider"'), 'nav markup missing brand-divider');
     assert(headerTemplate.includes('class="brand-tagline"'), 'nav markup missing brand-tagline');
-    assert(headerTemplate.includes('class="brand-tagline-chunk">Data Science'), 'nav markup missing tagline chunk for Data Science');
+    assert(headerTemplate.includes('class="brand-tagline-chunk">Destination Analytics'), 'nav markup missing tagline chunk for Destination Analytics');
+    assert(headerTemplate.includes('class="brand-tagline-chunk">&amp; Data Science'), 'nav markup missing tagline chunk for Data Science');
     assert(headerTemplate.includes('class="nav-search"'), 'nav markup missing header search');
     assert(headerTemplate.includes('action="search"'), 'header search missing action="search"');
     assert(headerTemplate.includes('name="q"'), 'header search missing query param name="q"');
@@ -578,7 +581,7 @@ try {
       .map(p => p.id);
     const projectPages = projectIds.map(id => `pages/portfolio/${id}.html`);
     const toolPages = ['pages/tools.html','pages/tools-dashboard.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html','pages/whisper-transcribe-monitor.html','pages/ga4-utm-performance.html'];
-    ['index.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','pages/privacy.html','pages/search.html','404.html', ...toolPages, ...projectPages].forEach(f => {
+    ['index.html','pages/destination-analytics.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','pages/privacy.html','pages/search.html','404.html', ...toolPages, ...projectPages].forEach(f => {
       checkFileContains(f, '<header id="combined-header-nav">');
       checkFileContains(f, '<main id="main"');
       checkFileContains(f, 'class="skip-link"');
@@ -867,12 +870,12 @@ try {
   });
 
   section('Base hrefs and redirect sanity', () => {
-    ['pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html','pages/resume.html','pages/resume-pdf.html',
+    ['pages/destination-analytics.html','pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html','pages/resume.html','pages/resume-pdf.html',
      'pages/tools.html','pages/tools-dashboard.html','pages/search.html','pages/sitemap.html','pages/games.html','pages/short-links.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html','pages/ga4-utm-performance.html',
      'demos/chatbot-demo.html','demos/shape-demo.html','demos/sentence-demo.html','demos/slot-machine-demo.html','demos/stellar-dogfight-demo.html']
       .forEach(f => checkFileContains(f, '<base href="/">'));
 
-    ['pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html','pages/resume.html','pages/resume-pdf.html']
+    ['pages/destination-analytics.html','pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html','pages/resume.html','pages/resume-pdf.html']
       .forEach(f => {
         const html = fs.readFileSync(f,'utf8');
         if (/http-equiv\s*=\s*"refresh"/i.test(html)) throw new Error(f+': should not use meta refresh');
