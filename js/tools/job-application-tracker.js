@@ -653,7 +653,7 @@
       '- In the body, highlights 1-2 achievements from my resume and, when helpful, relevant portfolio projects from danielshort.me that illustrate how my skills match the key requirements of the job description. Quantify results where possible and explain context, actions, and outcomes. Include no more than one pizza-related project.',
       '- Discusses how the company\'s mission resonates with me and how my experience aligns with its goals.',
       '- Maintains a professional yet conversational tone; avoids cliches and overly formal language; keeps the letter under three or four concise paragraphs.',
-      '- Concludes by summarizing why I am a strong fit, expressing appreciation for the opportunity, and inviting further discussion. Use a professional sign-off (e.g., "Sincerely").',
+      '- Concludes by summarizing why I am a strong fit, expressing appreciation for the opportunity, and inviting further discussion. When it fits naturally, include a brief mention that they can view more of my work on my portfolio at danielshort.me. Use a professional sign-off (e.g., "Sincerely").',
       '',
       `Ensure the cover letter sounds authentic and reflects my unique voice, demonstrating that you have genuinely researched ${company}. Remove any generic or robotic phrasing. If any details in the resume are unclear, ask clarifying questions. Please write the cover letter now.`
     ].join('\n');
