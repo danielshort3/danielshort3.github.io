@@ -20,6 +20,8 @@
     { "source": "/portfolio/:project.html", "destination": "/pages/portfolio/:project" },
     { "source": "/portfolio",         "destination": "/pages/portfolio" },
     { "source": "/portfolio.html",    "destination": "/pages/portfolio" },
+    { "source": "/tourism", "destination": "/pages/tourism" },
+    { "source": "/tourism.html", "destination": "/pages/tourism" },
     { "source": "/destination-analytics", "destination": "/pages/destination-analytics" },
     { "source": "/destination-analytics.html", "destination": "/pages/destination-analytics" },
     { "source": "/contact",           "destination": "/pages/contact" },
@@ -141,6 +143,18 @@
       "source": "/pages/(.*)",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex" }
+      ]
+    },
+    {
+      "source": "/tourism",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/tourism.html",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]
     },
     {

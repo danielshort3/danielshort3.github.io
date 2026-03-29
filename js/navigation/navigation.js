@@ -227,8 +227,22 @@
     const nav = host.querySelector('.nav');
     if (!nav) return;
 
-    const animate = !sessionStorage.getItem('navEntryPlayed');
-    sessionStorage.setItem('navEntryPlayed', 'yes');
+    const ENTRY_HOME_KEY = 'entryHome';
+    const readSession = (key) => {
+      try {
+        return window.sessionStorage.getItem(key);
+      } catch {
+        return null;
+      }
+    };
+    const writeSession = (key, value) => {
+      try {
+        window.sessionStorage.setItem(key, value);
+      } catch {}
+    };
+
+    const animate = !readSession('navEntryPlayed');
+    writeSession('navEntryPlayed', 'yes');
     if (animate) nav.classList.add('animate-entry');
 
     setupNavPreviewVideos(host);
@@ -251,6 +265,26 @@
     const altCurrentPath = currentPath.startsWith('/pages/')
       ? normalizePath(currentPath.replace(/^\/pages/, '') || '/')
       : currentPath;
+    const currentPathVariants = [...new Set(
+      [currentPath, altCurrentPath].flatMap((path) => {
+        const variants = [path];
+        if (path.endsWith('.html')) {
+          variants.push(normalizePath(path.replace(/\.html$/i, '') || '/'));
+        }
+        return variants;
+      })
+    )];
+    const inferEntryHome = () => currentPathVariants.includes('/tourism') ? '/tourism' : '/';
+
+    let entryHome = readSession(ENTRY_HOME_KEY);
+    if (entryHome !== '/' && entryHome !== '/tourism') {
+      entryHome = inferEntryHome();
+      writeSession(ENTRY_HOME_KEY, entryHome);
+    }
+
+    $$('[data-entry-home-link="true"]', host).forEach((link) => {
+      link.setAttribute('href', entryHome);
+    });
 
     $$('.nav-link', host).forEach((link) => {
       const href = link.getAttribute('href');

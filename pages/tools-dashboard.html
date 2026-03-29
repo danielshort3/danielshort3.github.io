@@ -39,22 +39,22 @@
   <header id="combined-header-nav">
     <nav class="nav" aria-label="Primary">
       <div class="wrapper nav-wrapper">
-        <a href="/" class="brand" aria-label="Home">
+        <a href="/" class="brand" aria-label="Home" data-entry-home-link="true">
           <img src="img/ui/logo-64.png" srcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" sizes="64px" alt="DS logo" class="brand-logo" decoding="async" loading="eager" width="64" height="64">
-          <span class="brand-name">
-            <span class="brand-title">Daniel Short</span>
-            <span class="brand-divider" aria-hidden="true"></span>
-            <span class="brand-tagline">
-              <span class="brand-tagline-chunk">Destination Analytics</span>
-              <span class="brand-tagline-chunk">&amp; Data Science</span>
+            <span class="brand-name">
+              <span class="brand-title">Daniel Short</span>
+              <span class="brand-divider" aria-hidden="true"></span>
+              <span class="brand-tagline">
+                <span class="brand-tagline-chunk">Data Science</span>
+                <span class="brand-tagline-chunk">&amp; Analytics</span>
+              </span>
             </span>
-          </span>
-        </a>
+          </a>
         <button id="nav-toggle" class="burger" aria-label="Toggle navigation" aria-expanded="false" aria-controls="primary-menu">
           <span class="bar"></span><span class="bar"></span><span class="bar"></span>
         </button>
         <div id="primary-menu" class="nav-row" data-collapsible role="navigation">
-          <a href="/" class="nav-link">Home</a>
+          <a href="/" class="nav-link" data-entry-home-link="true">Home</a>
           <div class="nav-item nav-item-portfolio">
             <a href="portfolio" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-portfolio">
               Portfolio
@@ -65,16 +65,8 @@
                 <div class="nav-dropdown-column nav-dropdown-column-list nav-portfolio-stack">
                   <div class="nav-dropdown-header" aria-hidden="true">Top 5 Projects</div>
                   <div class="nav-project-grid nav-project-stack" role="list">
-                    <a href="portfolio/chatbotLora" class="nav-project-card" data-project-id="chatbotLora" role="listitem" target="_blank" rel="noopener noreferrer">
-                      <span class="nav-project-rank">#1</span>
-                      <span class="nav-project-thumb" style="background-image:url('/img/projects/chatbotLora.webp');" aria-hidden="true" data-preview-poster="/img/projects/chatbotLora.webp" data-preview-webm="/img/projects/chatbotLora.webm" data-preview-mp4="/img/projects/chatbotLora.mp4"></span>
-                      <span class="nav-project-meta">
-                        <span class="nav-dropdown-title">Chatbot (LoRA + RAG)</span>
-                        <span class="nav-dropdown-subtitle">Visit Grand Junction knowledge retrieval</span>
-                      </span>
-                    </a>
                     <a href="portfolio/pizzaDashboard" class="nav-project-card" data-project-id="pizzaDashboard" role="listitem" target="_blank" rel="noopener noreferrer">
-                      <span class="nav-project-rank">#2</span>
+                      <span class="nav-project-rank">#1</span>
                       <span class="nav-project-thumb" style="background-image:url('/img/projects/pizzaDashboard.webp');" aria-hidden="true"></span>
                       <span class="nav-project-meta">
                         <span class="nav-dropdown-title">Pizza Delivery Dashboard</span>
@@ -82,7 +74,7 @@
                       </span>
                     </a>
                     <a href="portfolio/retailStore" class="nav-project-card" data-project-id="retailStore" role="listitem" target="_blank" rel="noopener noreferrer">
-                      <span class="nav-project-rank">#3</span>
+                      <span class="nav-project-rank">#2</span>
                       <span class="nav-project-thumb" style="background-image:url('/img/projects/retailStore.webp');" aria-hidden="true"></span>
                       <span class="nav-project-meta">
                         <span class="nav-dropdown-title">Store-Level Loss &amp; Sales ETL</span>
@@ -90,11 +82,19 @@
                       </span>
                     </a>
                     <a href="portfolio/targetEmptyPackage" class="nav-project-card" data-project-id="targetEmptyPackage" role="listitem" target="_blank" rel="noopener noreferrer">
-                      <span class="nav-project-rank">#4</span>
+                      <span class="nav-project-rank">#3</span>
                       <span class="nav-project-thumb" style="background-image:url('/img/projects/targetEmptyPackage.webp');" aria-hidden="true" data-preview-poster="/img/projects/targetEmptyPackage.webp" data-preview-webm="/img/projects/targetEmptyPackage.webm" data-preview-mp4="/img/projects/targetEmptyPackage.mp4"></span>
                       <span class="nav-project-meta">
                         <span class="nav-dropdown-title">Empty-Package Shrink Dashboard</span>
                         <span class="nav-dropdown-subtitle">Excel BI and trend monitoring</span>
+                      </span>
+                    </a>
+                    <a href="portfolio/chatbotLora" class="nav-project-card" data-project-id="chatbotLora" role="listitem" target="_blank" rel="noopener noreferrer">
+                      <span class="nav-project-rank">#4</span>
+                      <span class="nav-project-thumb" style="background-image:url('/img/projects/chatbotLora.webp');" aria-hidden="true" data-preview-poster="/img/projects/chatbotLora.webp" data-preview-webm="/img/projects/chatbotLora.webm" data-preview-mp4="/img/projects/chatbotLora.mp4"></span>
+                      <span class="nav-project-meta">
+                        <span class="nav-dropdown-title">Chatbot (LoRA + RAG)</span>
+                        <span class="nav-dropdown-subtitle">Visit Grand Junction knowledge retrieval</span>
                       </span>
                     </a>
                     <a href="portfolio/shapeClassifier" class="nav-project-card" data-project-id="shapeClassifier" role="listitem" target="_blank" rel="noopener noreferrer">

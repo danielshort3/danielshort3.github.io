@@ -116,9 +116,11 @@ try {
     checkFileContains('index.html', 'Made Actionable');
 
     const expectedTitles = {
-      'index.html': 'Daniel Short | Tourism &amp; Destination Analytics Made Actionable',
+      'index.html': 'Daniel Short | Data Analytics Made Actionable',
       'pages/destination-analytics.html': 'Destination Analytics | Daniel Short',
       'pages/contact.html': 'Contact | Daniel Short',
+      'pages/resume.html': 'Digital Resume | Daniel Short',
+      'pages/tourism.html': 'Tourism &amp; Destination Analytics | Daniel Short',
       'pages/tools.html': 'Tools | Daniel Short',
       'pages/tools-dashboard.html': 'Tools Dashboard | Daniel Short',
       'pages/games.html': 'Games | Daniel Short',
@@ -143,6 +145,7 @@ try {
       'dshort.html',
       'pages/portfolio.html',
       'pages/contributions.html',
+      'pages/tourism.html',
       'pages/privacy.html'
     ];
     titleConventionPages.forEach((file) => {
@@ -189,6 +192,7 @@ try {
     const shellPages = [
       'index.html',
       'pages/destination-analytics.html',
+      'pages/tourism.html',
       'pages/contact.html',
       'pages/portfolio.html',
       'pages/contributions.html',
@@ -207,14 +211,14 @@ try {
       assertHeroVariantClasses(file, html);
     });
 
-    ['index.html','pages/destination-analytics.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/sitemap.html'].forEach((f) => {
+    ['index.html','pages/destination-analytics.html','pages/tourism.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/sitemap.html'].forEach((f) => {
       checkFileContains(f, 'js/common/common.js');
     });
     ['pages/games.html','pages/ocean-wave-simulation.html', ...toolPages].forEach((f) => {
       checkFileContains(f, 'js/common/common.js');
     });
 
-    ['pages/games.html','pages/ocean-wave-simulation.html','404.html','dshort.html', ...privateToolPages].forEach((f) => {
+    ['pages/tourism.html','pages/games.html','pages/ocean-wave-simulation.html','404.html','dshort.html', ...privateToolPages].forEach((f) => {
       checkFileContains(f, 'noindex, nofollow');
     });
 
@@ -234,7 +238,7 @@ try {
     assert(!readFile('pages/tools-dashboard.html').includes('id="tool-jsonld"'),
       'tools dashboard should not include WebApplication JSON-LD');
 
-    ['index.html','pages/destination-analytics.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/tools.html','pages/games.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/utm-batch-builder.html','404.html'].forEach((f) => {
+    ['index.html','pages/destination-analytics.html','pages/tourism.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/tools.html','pages/games.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/utm-batch-builder.html','404.html'].forEach((f) => {
       checkFileContains(f, 'og:image');
     });
 
@@ -266,7 +270,7 @@ try {
     const commonCode = fs.readFileSync('js/common/common.js', 'utf8');
     assert(commonCode.includes('js/portfolio/projects-data.js'), 'common.js missing portfolio lazy loader');
 
-    const htmlFiles = ['index.html','contact.html','resume.html','resume-pdf.html','privacy.html','pages/destination-analytics.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','pages/resume-pdf.html','pages/privacy.html','pages/short-links.html','pages/utm-batch-builder.html'];
+    const htmlFiles = ['index.html','contact.html','resume.html','resume-pdf.html','privacy.html','pages/destination-analytics.html','pages/tourism.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','pages/resume-pdf.html','pages/privacy.html','pages/short-links.html','pages/utm-batch-builder.html'];
     htmlFiles.forEach(file => {
       const content = fs.readFileSync(file, 'utf8');
       assert(!content.includes('js/analytics/ga4-events.js'), `${file} should load analytics helpers on demand`);
@@ -508,13 +512,17 @@ try {
   section('Navigation markup and branding', () => {
     checkFileContains('build/templates/header.partial.html', 'div id="primary-menu" class="nav-row"');
     const headerTemplate = fs.readFileSync('build/templates/header.partial.html', 'utf8');
+    const footerTemplate = fs.readFileSync('build/templates/footer.partial.html', 'utf8');
     assert(headerTemplate.includes('class="brand-logo"'), 'nav markup missing brand-logo');
     assert(headerTemplate.includes('class="brand-name"'), 'nav markup missing brand-name');
     assert(headerTemplate.includes('class="brand-title"'), 'nav markup missing brand-title');
     assert(headerTemplate.includes('class="brand-divider"'), 'nav markup missing brand-divider');
     assert(headerTemplate.includes('class="brand-tagline"'), 'nav markup missing brand-tagline');
-    assert(headerTemplate.includes('class="brand-tagline-chunk">Destination Analytics'), 'nav markup missing tagline chunk for Destination Analytics');
-    assert(headerTemplate.includes('class="brand-tagline-chunk">&amp; Data Science'), 'nav markup missing tagline chunk for Data Science');
+    assert(headerTemplate.includes('class="brand-tagline-chunk">Data Science'), 'nav markup missing tagline chunk for Data Science');
+    assert(headerTemplate.includes('class="brand-tagline-chunk">&amp; Analytics'), 'nav markup missing tagline chunk for Analytics');
+    const entryHomeMatches = headerTemplate.match(/data-entry-home-link="true"/g) || [];
+    assert(entryHomeMatches.length === 2, 'header should mark exactly two entry-home links');
+    assert(!footerTemplate.includes('data-entry-home-link'), 'footer should not include entry-home markers');
     assert(headerTemplate.includes('class="nav-search"'), 'nav markup missing header search');
     assert(headerTemplate.includes('action="search"'), 'header search missing action="search"');
     assert(headerTemplate.includes('name="q"'), 'header search missing query param name="q"');
@@ -581,7 +589,7 @@ try {
       .map(p => p.id);
     const projectPages = projectIds.map(id => `pages/portfolio/${id}.html`);
     const toolPages = ['pages/tools.html','pages/tools-dashboard.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html','pages/whisper-transcribe-monitor.html','pages/ga4-utm-performance.html'];
-    ['index.html','pages/destination-analytics.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','pages/privacy.html','pages/search.html','404.html', ...toolPages, ...projectPages].forEach(f => {
+    ['index.html','pages/destination-analytics.html','pages/tourism.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','pages/privacy.html','pages/search.html','404.html', ...toolPages, ...projectPages].forEach(f => {
       checkFileContains(f, '<header id="combined-header-nav">');
       checkFileContains(f, '<main id="main"');
       checkFileContains(f, 'class="skip-link"');
@@ -608,6 +616,9 @@ try {
 
     const navCode = fs.readFileSync('js/navigation/navigation.js', 'utf8');
     const headerTemplate = fs.readFileSync('build/templates/header.partial.html', 'utf8');
+    assert(navCode.includes('ENTRY_HOME_KEY'), 'navigation missing entry-home storage key');
+    assert(navCode.includes('[data-entry-home-link="true"]'), 'navigation missing entry-home link selector');
+    assert(navCode.includes("'/tourism'"), 'navigation missing tourism entry-home route');
     assert(headerTemplate.includes('aria-controls="primary-menu"'), 'header missing aria-controls="primary-menu"');
     assert(headerTemplate.includes('id="primary-menu"'), 'header missing primary-menu');
     assert(navCode.includes("classList.toggle('menu-open'"), 'burger toggle missing body.menu-open');
@@ -729,8 +740,11 @@ try {
     const hasPortfolio = rewrites.some(r => r.source === '/portfolio' && r.destination === '/pages/portfolio');
     const hasPortfolioHtml = rewrites.some(r => r.source === '/portfolio.html' && r.destination === '/pages/portfolio');
     const hasProjectRewrite = rewrites.some(r => r.source === '/portfolio/:project' && r.destination === '/pages/portfolio/:project');
+    const hasTourism = rewrites.some(r => r.source === '/tourism' && r.destination === '/pages/tourism');
+    const hasTourismHtml = rewrites.some(r => r.source === '/tourism.html' && r.destination === '/pages/tourism');
     assert(hasPortfolio && hasPortfolioHtml, 'portfolio rewrites missing');
     assert(hasProjectRewrite, 'project rewrite missing (/portfolio/:project)');
+    assert(hasTourism && hasTourismHtml, 'tourism rewrites missing');
     const hasGames = rewrites.some(r => r.source === '/games' && r.destination === '/pages/games');
     const hasGameSlot = rewrites.some(r => r.source === '/games/slot-machine' && r.destination === '/demos/slot-machine-demo');
     const hasGameDogfight = rewrites.some(r => r.source === '/games/stellar-dogfight' && r.destination === '/demos/stellar-dogfight-demo');
@@ -791,10 +805,16 @@ try {
       Array.isArray(h.headers) &&
       h.headers.some(x => x && x.key === 'X-Robots-Tag' && /noindex/i.test(String(x.value || '')))
     );
+    const hasNoindexTourism = headers.some(h =>
+      h && (h.source === '/tourism' || h.source === '/tourism.html') &&
+      Array.isArray(h.headers) &&
+      h.headers.some(x => x && x.key === 'X-Robots-Tag' && /noindex/i.test(String(x.value || '')))
+    );
     assert(hasNoindexShortLinks, 'short-links noindex header missing');
     assert(hasNoindexToolsDashboard, 'tools dashboard noindex header missing');
     assert(hasNoindexGa4Tool, 'GA4 tool noindex header missing');
     assert(hasNoindexWhisperTool, 'Whisper tool noindex header missing');
+    assert(hasNoindexTourism, 'tourism noindex header missing');
   });
 
   section('Search index', () => {
@@ -805,6 +825,7 @@ try {
     assert(parsed && Array.isArray(parsed.pages), 'search index should contain pages array');
     assert(parsed.pages.length >= 10, 'search index has too few entries');
     const urls = new Set(parsed.pages.map((entry) => String(entry && entry.url || '').trim()));
+    assert(!urls.has('/tourism'), 'search index should exclude noindex tourism page');
     assert(!urls.has('/tools/ga4-utm-performance'), 'search index should exclude noindex GA4 tool');
     assert(!urls.has('/tools/whisper-transcribe-monitor'), 'search index should exclude noindex Whisper tool');
   });
@@ -870,12 +891,12 @@ try {
   });
 
   section('Base hrefs and redirect sanity', () => {
-    ['pages/destination-analytics.html','pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html','pages/resume.html','pages/resume-pdf.html',
+    ['pages/destination-analytics.html','pages/tourism.html','pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html','pages/resume.html','pages/resume-pdf.html',
      'pages/tools.html','pages/tools-dashboard.html','pages/search.html','pages/sitemap.html','pages/games.html','pages/short-links.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html','pages/ga4-utm-performance.html',
      'demos/chatbot-demo.html','demos/shape-demo.html','demos/sentence-demo.html','demos/slot-machine-demo.html','demos/stellar-dogfight-demo.html']
       .forEach(f => checkFileContains(f, '<base href="/">'));
 
-    ['pages/destination-analytics.html','pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html','pages/resume.html','pages/resume-pdf.html']
+    ['pages/destination-analytics.html','pages/tourism.html','pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html','pages/resume.html','pages/resume-pdf.html']
       .forEach(f => {
         const html = fs.readFileSync(f,'utf8');
         if (/http-equiv\s*=\s*"refresh"/i.test(html)) throw new Error(f+': should not use meta refresh');

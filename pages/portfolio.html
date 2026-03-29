@@ -8,7 +8,7 @@
   <link rel="canonical" href="https://www.danielshort.me/portfolio">
   <meta property="og:title" content="Portfolio | Daniel Short">
   <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
-  <meta property="og:description" content="Portfolio of destination analytics, marketing reporting, automation, dashboards, and machine learning projects by Daniel Short.">
+  <meta property="og:description" content="Portfolio of dashboards, reporting, analytics, and machine learning projects by Daniel Short.">
   <meta property="og:url" content="https://www.danielshort.me/portfolio">
   <meta property="og:image" content="https://www.danielshort.me/img/hero/head.jpg">
   <meta property="og:image:width" content="558">
@@ -19,7 +19,7 @@
   <meta name="twitter:site" content="@danielshort3">
 
   <meta name="twitter:title" content="Portfolio | Daniel Short">
-  <meta name="twitter:description" content="Portfolio of destination analytics, marketing reporting, automation, dashboards, and machine learning projects by Daniel Short.">
+  <meta name="twitter:description" content="Portfolio of dashboards, reporting, analytics, and machine learning projects by Daniel Short.">
   <meta name="twitter:image" content="https://www.danielshort.me/img/hero/head.jpg">
   <meta name="twitter:image:alt" content="Portrait photo of Daniel Short">
   <!-- styles -->
@@ -36,7 +36,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
 
   <meta name="description"
-        content="Portfolio of destination analytics, marketing reporting, automation, dashboards, and machine learning projects by Daniel Short.">
+        content="Portfolio of dashboards, reporting, analytics, and machine learning projects by Daniel Short.">
   <link rel="preconnect" href="https://public.tableau.com" crossorigin>
   <script src="js/common/no-js.js"></script>
 
@@ -49,22 +49,22 @@
   <header id="combined-header-nav">
     <nav class="nav" aria-label="Primary">
       <div class="wrapper nav-wrapper">
-        <a href="/" class="brand" aria-label="Home">
+        <a href="/" class="brand" aria-label="Home" data-entry-home-link="true">
           <img src="img/ui/logo-64.png" srcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" sizes="64px" alt="DS logo" class="brand-logo" decoding="async" loading="eager" width="64" height="64">
-          <span class="brand-name">
-            <span class="brand-title">Daniel Short</span>
-            <span class="brand-divider" aria-hidden="true"></span>
-            <span class="brand-tagline">
-              <span class="brand-tagline-chunk">Destination Analytics</span>
-              <span class="brand-tagline-chunk">&amp; Data Science</span>
+            <span class="brand-name">
+              <span class="brand-title">Daniel Short</span>
+              <span class="brand-divider" aria-hidden="true"></span>
+              <span class="brand-tagline">
+                <span class="brand-tagline-chunk">Data Science</span>
+                <span class="brand-tagline-chunk">&amp; Analytics</span>
+              </span>
             </span>
-          </span>
-        </a>
+          </a>
         <button id="nav-toggle" class="burger" aria-label="Toggle navigation" aria-expanded="false" aria-controls="primary-menu">
           <span class="bar"></span><span class="bar"></span><span class="bar"></span>
         </button>
         <div id="primary-menu" class="nav-row" data-collapsible role="navigation">
-          <a href="/" class="nav-link">Home</a>
+          <a href="/" class="nav-link" data-entry-home-link="true">Home</a>
           <div class="nav-item nav-item-portfolio">
             <a href="portfolio" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-portfolio">
               Portfolio
@@ -75,16 +75,8 @@
                 <div class="nav-dropdown-column nav-dropdown-column-list nav-portfolio-stack">
                   <div class="nav-dropdown-header" aria-hidden="true">Top 5 Projects</div>
                   <div class="nav-project-grid nav-project-stack" role="list">
-                    <a href="portfolio/chatbotLora" class="nav-project-card" data-project-id="chatbotLora" role="listitem" target="_blank" rel="noopener noreferrer">
-                      <span class="nav-project-rank">#1</span>
-                      <span class="nav-project-thumb" style="background-image:url('/img/projects/chatbotLora.webp');" aria-hidden="true" data-preview-poster="/img/projects/chatbotLora.webp" data-preview-webm="/img/projects/chatbotLora.webm" data-preview-mp4="/img/projects/chatbotLora.mp4"></span>
-                      <span class="nav-project-meta">
-                        <span class="nav-dropdown-title">Chatbot (LoRA + RAG)</span>
-                        <span class="nav-dropdown-subtitle">Visit Grand Junction knowledge retrieval</span>
-                      </span>
-                    </a>
                     <a href="portfolio/pizzaDashboard" class="nav-project-card" data-project-id="pizzaDashboard" role="listitem" target="_blank" rel="noopener noreferrer">
-                      <span class="nav-project-rank">#2</span>
+                      <span class="nav-project-rank">#1</span>
                       <span class="nav-project-thumb" style="background-image:url('/img/projects/pizzaDashboard.webp');" aria-hidden="true"></span>
                       <span class="nav-project-meta">
                         <span class="nav-dropdown-title">Pizza Delivery Dashboard</span>
@@ -92,7 +84,7 @@
                       </span>
                     </a>
                     <a href="portfolio/retailStore" class="nav-project-card" data-project-id="retailStore" role="listitem" target="_blank" rel="noopener noreferrer">
-                      <span class="nav-project-rank">#3</span>
+                      <span class="nav-project-rank">#2</span>
                       <span class="nav-project-thumb" style="background-image:url('/img/projects/retailStore.webp');" aria-hidden="true"></span>
                       <span class="nav-project-meta">
                         <span class="nav-dropdown-title">Store-Level Loss &amp; Sales ETL</span>
@@ -100,11 +92,19 @@
                       </span>
                     </a>
                     <a href="portfolio/targetEmptyPackage" class="nav-project-card" data-project-id="targetEmptyPackage" role="listitem" target="_blank" rel="noopener noreferrer">
-                      <span class="nav-project-rank">#4</span>
+                      <span class="nav-project-rank">#3</span>
                       <span class="nav-project-thumb" style="background-image:url('/img/projects/targetEmptyPackage.webp');" aria-hidden="true" data-preview-poster="/img/projects/targetEmptyPackage.webp" data-preview-webm="/img/projects/targetEmptyPackage.webm" data-preview-mp4="/img/projects/targetEmptyPackage.mp4"></span>
                       <span class="nav-project-meta">
                         <span class="nav-dropdown-title">Empty-Package Shrink Dashboard</span>
                         <span class="nav-dropdown-subtitle">Excel BI and trend monitoring</span>
+                      </span>
+                    </a>
+                    <a href="portfolio/chatbotLora" class="nav-project-card" data-project-id="chatbotLora" role="listitem" target="_blank" rel="noopener noreferrer">
+                      <span class="nav-project-rank">#4</span>
+                      <span class="nav-project-thumb" style="background-image:url('/img/projects/chatbotLora.webp');" aria-hidden="true" data-preview-poster="/img/projects/chatbotLora.webp" data-preview-webm="/img/projects/chatbotLora.webm" data-preview-mp4="/img/projects/chatbotLora.mp4"></span>
+                      <span class="nav-project-meta">
+                        <span class="nav-dropdown-title">Chatbot (LoRA + RAG)</span>
+                        <span class="nav-dropdown-subtitle">Visit Grand Junction knowledge retrieval</span>
                       </span>
                     </a>
                     <a href="portfolio/shapeClassifier" class="nav-project-card" data-project-id="shapeClassifier" role="listitem" target="_blank" rel="noopener noreferrer">
@@ -207,7 +207,7 @@
   <section class="hero hero--default">
     <div class="wrapper">
       <h1>Project Portfolio</h1>
-      <p class="hero-tagline">Start with the tourism and destination analytics work, then use the filters to explore broader reporting, automation, dashboarding, and machine learning projects. Each project focuses on the business problem, the method, and the outcome.</p>
+      <p class="hero-tagline">Start with the top five. Then use the filters to narrow it down. Each project covers the problem, what I did, and what changed.</p>
     </div>
       <a class="chevron-hint scroll-indicator" href="#portfolio-carousel-section" data-smooth-scroll="true">
         <span class="chevron-label">Scroll for top projects</span>
@@ -222,23 +222,6 @@
       <div id="portfolio-carousel" aria-label="Project Browser">
         <div class="carousel-track">
           <!-- Static slides for crawlers / no-JS -->
-          <a
-            class="project-card carousel-card ripple-in"
-            href="portfolio/chatbotLora"
-            target="_blank"
-            rel="noopener noreferrer">
-            <div class="overlay"></div>
-            <div class="project-text">
-              <div class="project-title">Chatbot (LoRA + RAG)</div>
-              <div class="project-subtitle">Visit Grand Junction Knowledge Retrieval</div>
-            </div>
-            <picture>
-              <source srcset="img/projects/chatbotLora-640.avif 640w, img/projects/chatbotLora.avif 1280w" type="image/avif">
-              <source srcset="img/projects/chatbotLora-640.webp 640w, img/projects/chatbotLora.webp 1280w" type="image/webp">
-              <img src="img/projects/chatbotLora.png" alt="Preview of the Visit Grand Junction chatbot interface" width="1280" height="720" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 768px) 80vw, 340px">
-            </picture>
-          </a>
-
           <a
             class="project-card carousel-card ripple-in"
             href="portfolio/pizzaDashboard"
@@ -287,6 +270,23 @@
               <source srcset="img/projects/targetEmptyPackage-640.avif 640w, img/projects/targetEmptyPackage-960.avif 960w, img/projects/targetEmptyPackage.avif 1460w" type="image/avif">
               <source srcset="img/projects/targetEmptyPackage-640.webp 640w, img/projects/targetEmptyPackage-960.webp 960w, img/projects/targetEmptyPackage.webp 1460w" type="image/webp">
               <img src="img/projects/targetEmptyPackage.png" alt="Preview of the empty-package shrink dashboard" width="1460" height="1460" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 768px) 80vw, 340px">
+            </picture>
+          </a>
+
+          <a
+            class="project-card carousel-card ripple-in"
+            href="portfolio/chatbotLora"
+            target="_blank"
+            rel="noopener noreferrer">
+            <div class="overlay"></div>
+            <div class="project-text">
+              <div class="project-title">Chatbot (LoRA + RAG)</div>
+              <div class="project-subtitle">Visit Grand Junction Knowledge Retrieval</div>
+            </div>
+            <picture>
+              <source srcset="img/projects/chatbotLora-640.avif 640w, img/projects/chatbotLora.avif 1280w" type="image/avif">
+              <source srcset="img/projects/chatbotLora-640.webp 640w, img/projects/chatbotLora.webp 1280w" type="image/webp">
+              <img src="img/projects/chatbotLora.png" alt="Preview of the Visit Grand Junction chatbot interface" width="1280" height="720" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 768px) 80vw, 340px">
             </picture>
           </a>
 
@@ -367,24 +367,6 @@
 	    <!-- Pre-rendered feature cards for no-JS & bots. Keep in sync with FEATURED_IDS. -->
 	    <a
 	      class="project-card ripple-in"
-	      href="portfolio/chatbotLora"
-	      target="_blank"
-	      rel="noopener noreferrer"
-	      aria-label="Chatbot (LoRA plus RAG) – Visit Grand Junction knowledge retrieval.">
-	      <div class="overlay"></div>
-	      <div class="project-text">
-	        <div class="project-title">Chatbot (LoRA + RAG)</div>
-	        <div class="project-subtitle">Visit Grand Junction Knowledge Retrieval</div>
-	      </div>
-	      <picture>
-	        <source srcset="img/projects/chatbotLora-640.avif 640w, img/projects/chatbotLora.avif 1280w" type="image/avif">
-	        <source srcset="img/projects/chatbotLora-640.webp 640w, img/projects/chatbotLora.webp 1280w" type="image/webp">
-	        <img src="img/projects/chatbotLora.png" alt="Preview of the Visit Grand Junction chatbot interface" width="1280" height="720" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
-	      </picture>
-	    </a>
-
-	    <a
-	      class="project-card ripple-in"
 	      href="portfolio/pizzaDashboard"
 	      target="_blank"
 	      rel="noopener noreferrer"
@@ -434,6 +416,24 @@
 	        <source srcset="img/projects/targetEmptyPackage-640.avif 640w, img/projects/targetEmptyPackage-960.avif 960w, img/projects/targetEmptyPackage.avif 1460w" type="image/avif">
 	        <source srcset="img/projects/targetEmptyPackage-640.webp 640w, img/projects/targetEmptyPackage-960.webp 960w, img/projects/targetEmptyPackage.webp 1460w" type="image/webp">
 	        <img src="img/projects/targetEmptyPackage.png" alt="Preview of the empty-package shrink dashboard" width="1460" height="1460" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
+	      </picture>
+	    </a>
+
+	    <a
+	      class="project-card ripple-in"
+	      href="portfolio/chatbotLora"
+	      target="_blank"
+	      rel="noopener noreferrer"
+	      aria-label="Chatbot (LoRA plus RAG) – Visit Grand Junction knowledge retrieval.">
+	      <div class="overlay"></div>
+	      <div class="project-text">
+	        <div class="project-title">Chatbot (LoRA + RAG)</div>
+	        <div class="project-subtitle">Visit Grand Junction Knowledge Retrieval</div>
+	      </div>
+	      <picture>
+	        <source srcset="img/projects/chatbotLora-640.avif 640w, img/projects/chatbotLora.avif 1280w" type="image/avif">
+	        <source srcset="img/projects/chatbotLora-640.webp 640w, img/projects/chatbotLora.webp 1280w" type="image/webp">
+	        <img src="img/projects/chatbotLora.png" alt="Preview of the Visit Grand Junction chatbot interface" width="1280" height="720" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
 	      </picture>
 	    </a>
 
