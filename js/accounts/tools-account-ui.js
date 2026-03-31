@@ -2200,7 +2200,10 @@
     };
   };
 
-  document.addEventListener('DOMContentLoaded', async () => {
+  const initToolsAccountUi = async () => {
+    if (window.__toolsAccountUiInit) return;
+    window.__toolsAccountUiInit = true;
+
     let redirectHandled = false;
     try {
       const result = await window.ToolsAuth.handleRedirect();
@@ -2260,5 +2263,15 @@
     if (toolId && root && toolActionsEnabled) {
       initToolAutoSave({ toolId, root, setStatus });
     }
-  });
+  };
+
+  const startToolsAccountUi = () => {
+    initToolsAccountUi().catch((err) => logAsyncError('init', err));
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startToolsAccountUi, { once: true });
+  } else {
+    startToolsAccountUi();
+  }
 })();
