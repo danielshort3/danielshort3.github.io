@@ -94,6 +94,7 @@ function loadRouteComponentStyles() {
   const normalized = {};
   Object.entries(parsed).forEach(([pathname, hrefs]) => {
     if (typeof pathname !== 'string' || !pathname.startsWith('/')) return;
+    if (pathname.endsWith('*') && pathname.length < 2) return;
     if (!Array.isArray(hrefs)) return;
     const validHrefs = hrefs
       .map((href) => String(href || '').trim())
@@ -103,6 +104,26 @@ function loadRouteComponentStyles() {
   });
 
   return normalized;
+}
+
+function getRouteComponentStyles(pathname) {
+  const rawPath = String(pathname || '').trim();
+  if (!rawPath) return [];
+
+  const matches = [];
+  Object.entries(ROUTE_COMPONENT_STYLES).forEach(([pattern, hrefs]) => {
+    if (!Array.isArray(hrefs) || !hrefs.length) return;
+    if (pattern === rawPath) {
+      matches.push(...hrefs);
+      return;
+    }
+    if (!pattern.endsWith('*')) return;
+    const prefix = pattern.slice(0, -1);
+    if (!prefix || !rawPath.startsWith(prefix)) return;
+    matches.push(...hrefs);
+  });
+
+  return [...new Set(matches)];
 }
 function read(relPath) {
   return fs.readFileSync(path.join(root, relPath), 'utf8');
@@ -332,7 +353,7 @@ function ensureToolsStylesheet(headInner) {
 function ensureRouteComponentStylesheet(headInner) {
   const canonical = getCanonicalHref(headInner);
   const pathname = toPathname(canonical);
-  const hrefs = ROUTE_COMPONENT_STYLES[pathname];
+  const hrefs = getRouteComponentStyles(pathname);
   if (!Array.isArray(hrefs) || !hrefs.length) return headInner;
 
   return hrefs.reduce(

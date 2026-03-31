@@ -10,6 +10,7 @@ const path = require('path');
 const root = path.resolve(__dirname, '..');
 const outDir = path.join(root, 'public');
 const cssManifestPath = path.join(root, 'dist', 'styles-manifest.json');
+const jsManifestPath = path.join(root, 'dist', 'scripts-manifest.json');
 const textExtensions = new Set([
   '.css',
   '.html',
@@ -67,22 +68,46 @@ function isSafeDistArtifactName(name) {
   return true;
 }
 
-function collectDistArtifacts(manifest) {
+function collectDistArtifacts(cssManifest, jsManifest) {
   const artifacts = new Set([
     'styles.css',
     'styles-tools.css',
     'styles-manifest.json',
+    'scripts-manifest.json',
     'utm-batch-builder.js',
     'utm-batch-builder.worker.js',
     'search-index.json',
     'shortlinks-destinations.json'
   ]);
 
-  if (manifest && typeof manifest.file === 'string') {
-    artifacts.add(manifest.file);
+  if (cssManifest && typeof cssManifest.file === 'string') {
+    artifacts.add(cssManifest.file);
   }
-  if (manifest && typeof manifest.toolsFile === 'string') {
-    artifacts.add(manifest.toolsFile);
+  if (cssManifest && typeof cssManifest.toolsFile === 'string') {
+    artifacts.add(cssManifest.toolsFile);
+  }
+
+  if (jsManifest && typeof jsManifest === 'object') {
+    Object.values(jsManifest).forEach((value) => {
+      if (typeof value === 'string') artifacts.add(value);
+    });
+  }
+
+  [
+    'site-shell.js',
+    'site-consent.js',
+    'site-home.js',
+    'site-contact.js',
+    'site-search.js',
+    'site-contributions.js',
+    'site-sitemap.js',
+    'site-privacy.js',
+    'site-tools-account.js',
+    'site-tools-landing.js'
+  ].forEach((fileName) => artifacts.add(fileName));
+
+  if (jsManifest && typeof jsManifest.utmBatchBuilder === 'string') {
+    artifacts.add(jsManifest.utmBatchBuilder);
   }
 
   return [...artifacts]
@@ -91,12 +116,12 @@ function collectDistArtifacts(manifest) {
     .sort();
 }
 
-function copyDistArtifacts(manifest) {
+function copyDistArtifacts(cssManifest, jsManifest) {
   const sourceDir = path.join(root, 'dist');
   const destinationDir = path.join(outDir, 'dist');
   fs.mkdirSync(destinationDir, { recursive: true });
 
-  const artifacts = collectDistArtifacts(manifest);
+  const artifacts = collectDistArtifacts(cssManifest, jsManifest);
   let copied = 0;
   let missing = 0;
 
@@ -277,7 +302,8 @@ function pruneRetiredPublicArtifacts() {
 
 function copyStatic(){
   ensureCleanDir(outDir);
-  const manifest = readJson(cssManifestPath);
+  const cssManifest = readJson(cssManifestPath);
+  const jsManifest = readJson(jsManifestPath);
 
   // Copy all root-level HTML files
   const htmlFiles = listRootHtmlFiles(root);
@@ -298,13 +324,13 @@ function copyStatic(){
   const dirs = ['img', 'js', 'css', 'pages', 'demos', 'slot-config'];
   dirs.forEach(d => copyDir(path.join(root, d), path.join(outDir, d)));
   copyReferencedDocuments();
-  copyDistArtifacts(manifest);
+  copyDistArtifacts(cssManifest, jsManifest);
   pruneRetiredPublicArtifacts();
 
   // Rewrite public HTML to reference the hashed CSS bundle (better caching).
   const cssHrefs = {
-    base: manifest && typeof manifest.file === 'string' ? manifest.file : null,
-    tools: manifest && typeof manifest.toolsFile === 'string' ? manifest.toolsFile : null
+    base: cssManifest && typeof cssManifest.file === 'string' ? cssManifest.file : null,
+    tools: cssManifest && typeof cssManifest.toolsFile === 'string' ? cssManifest.toolsFile : null
   };
   if (!cssHrefs.base) {
     log('No CSS manifest found; leaving dist/styles.css references intact.');

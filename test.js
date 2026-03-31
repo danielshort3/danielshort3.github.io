@@ -19,9 +19,20 @@ function checkFileContains(file, text) {
   assert(content.includes(text), `${file} missing expected text: ${text}`);
 }
 
+function checkFileContainsOneOf(file, texts, message) {
+  assert(fs.existsSync(file), `${file} does not exist`);
+  const content = fs.readFileSync(file, 'utf8');
+  assert(texts.some((text) => content.includes(text)), message || `${file} missing expected text`);
+}
+
 function readFile(file) {
   assert(fs.existsSync(file), `${file} does not exist`);
   return fs.readFileSync(file, 'utf8');
+}
+
+function htmlHasManagedBundle(html, baseName) {
+  const escaped = String(baseName || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`dist\\/${escaped}(?:\\.[0-9a-f]{8})?\\.js`, 'i').test(String(html || ''));
 }
 
 function extractTitle(file, html) {
@@ -212,10 +223,10 @@ try {
     });
 
     ['index.html','pages/destination-analytics.html','pages/tourism.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/sitemap.html'].forEach((f) => {
-      checkFileContains(f, 'js/common/common.js');
+      checkFileContainsOneOf(f, ['js/common/common.js', 'dist/site-shell.'], `${f} missing shared shell script reference`);
     });
     ['pages/games.html','pages/ocean-wave-simulation.html', ...toolPages].forEach((f) => {
-      checkFileContains(f, 'js/common/common.js');
+      checkFileContainsOneOf(f, ['js/common/common.js', 'dist/site-shell.'], `${f} missing shared shell script reference`);
     });
 
     ['pages/tourism.html','pages/games.html','pages/ocean-wave-simulation.html','404.html','dshort.html', ...privateToolPages].forEach((f) => {
@@ -277,6 +288,25 @@ try {
     });
     const consentCode = fs.readFileSync('js/privacy/consent_manager.js', 'utf8');
     assert(consentCode.includes('ga4-helper'), 'consent manager should inject analytics helper script');
+  });
+
+  section('Short links dashboard hooks', () => {
+    const html = readFile('pages/short-links.html');
+    [
+      'data-shortlinks="access-card"',
+      'data-shortlinks="auth"',
+      'data-shortlinks="summary"',
+      'data-shortlinks="editor"',
+      'data-shortlinks="editor-meta"',
+      'data-shortlinks="projects-list"',
+      'data-shortlinks="export-mode"',
+      'data-shortlinks="export-click-limit"',
+      'data-shortlinks="export"',
+      'data-shortlinks="list"'
+    ].forEach((snippet) => {
+      assert(html.includes(snippet), `pages/short-links.html missing expected short-links hook: ${snippet}`);
+    });
+    assert(!html.includes('data-shortlinks="view"'), 'pages/short-links.html should not expose the old view switch');
   });
 
   section('Root/pages drift guard', () => {
@@ -557,6 +587,14 @@ try {
 
     const stylesCss = fs.readFileSync('css/styles.css', 'utf8');
     assert(stylesCss.includes('@layer tokens, base, layout, components, utilities, overrides;'), 'styles.css layer order missing');
+    ['components/home-proof.css','components/jump-panel.css','components/work-experience.css','components/contact-card.css','components/search.css','components/project-page.css'].forEach((snippet) => {
+      assert(!stylesCss.includes(snippet), `styles.css should not eagerly import ${snippet}`);
+    });
+
+    const routeStyles = JSON.parse(fs.readFileSync('build/route-component-styles.json', 'utf8'));
+    assert(Array.isArray(routeStyles['/']), 'route styles manifest missing home entry');
+    assert(Array.isArray(routeStyles['/search']), 'route styles manifest missing search entry');
+    assert(Array.isArray(routeStyles['/portfolio/*']), 'route styles manifest missing portfolio wildcard entry');
   });
 
   section('Core scripts load without DOM', () => {
@@ -564,6 +602,7 @@ try {
       'js/common/common.js',
       'js/navigation/navigation.js',
       'js/animations/animations.js',
+      'js/accounts/tools-page-loader.js',
       'js/forms/contact.js',
       'js/portfolio/modal-helpers.js',
       'js/contributions/contributions.js',
@@ -573,16 +612,25 @@ try {
 
   section('CSS bundle manifest and page references', () => {
     const cssManifestPath = 'dist/styles-manifest.json';
+    const scriptsManifestPath = 'dist/scripts-manifest.json';
     assert(fs.existsSync(cssManifestPath), 'dist/styles-manifest.json missing');
+    assert(fs.existsSync(scriptsManifestPath), 'dist/scripts-manifest.json missing');
     const cssManifest = JSON.parse(fs.readFileSync(cssManifestPath, 'utf8'));
+    const scriptsManifest = JSON.parse(fs.readFileSync(scriptsManifestPath, 'utf8'));
     assert(cssManifest.file && /^styles\.[0-9a-f]{8}\.css$/.test(cssManifest.file), 'CSS manifest entry invalid');
     assert(cssManifest.toolsFile && /^styles-tools\.[0-9a-f]{8}\.css$/.test(cssManifest.toolsFile), 'Tools CSS manifest entry invalid');
+    ['shell','consent','home','contact','search','contributions','sitemap','privacy','toolsAccount','toolsLanding'].forEach((key) => {
+      assert(typeof scriptsManifest[key] === 'string' && /^site-[a-z-]+\.[0-9a-f]{8}\.js$/.test(scriptsManifest[key]), `Scripts manifest entry invalid for ${key}`);
+      assert(fs.existsSync(`dist/${scriptsManifest[key]}`), `dist/${scriptsManifest[key]} missing`);
+    });
     hashedCss = cssManifest.file;
     const hashedToolsCss = cssManifest.toolsFile;
     assert(fs.existsSync(`dist/${hashedCss}`), `dist/${hashedCss} missing`);
     assert(fs.existsSync(`dist/${hashedToolsCss}`), `dist/${hashedToolsCss} missing`);
     assert(fs.existsSync('dist/styles.css'), 'dist/styles.css missing');
     assert(fs.existsSync('dist/styles-tools.css'), 'dist/styles-tools.css missing');
+    assert(fs.existsSync('dist/site-shell.js'), 'dist/site-shell.js missing');
+    assert(fs.existsSync('dist/site-tools-account.js'), 'dist/site-tools-account.js missing');
 
     const projectIds = evalScript('js/portfolio/projects-data.js').window.PROJECTS
       .filter(p => p && p.published !== false)
@@ -600,6 +648,14 @@ try {
         html.includes(`dist/${hashedCss}`) || html.includes('dist/styles.css'),
         `${f} missing stylesheet reference`
       );
+      assert(
+        htmlHasManagedBundle(html, 'site-shell') || html.includes('js/common/common.js'),
+        `${f} missing shared JS bundle reference`
+      );
+      assert(
+        htmlHasManagedBundle(html, 'site-consent') || html.includes('js/privacy/config.js'),
+        `${f} missing consent JS bundle reference`
+      );
     });
     toolPages.forEach((f) => {
       const html = fs.readFileSync(f, 'utf8');
@@ -607,6 +663,52 @@ try {
         html.includes(`dist/${hashedToolsCss}`) || html.includes('dist/styles-tools.css'),
         `${f} missing tools stylesheet reference`
       );
+    });
+
+    assert(htmlHasManagedBundle(readFile('index.html'), 'site-home'), 'index.html missing home bundle reference');
+    assert(htmlHasManagedBundle(readFile('pages/contact.html'), 'site-contact'), 'pages/contact.html missing contact bundle reference');
+    assert(htmlHasManagedBundle(readFile('pages/search.html'), 'site-search'), 'pages/search.html missing search bundle reference');
+    assert(htmlHasManagedBundle(readFile('pages/contributions.html'), 'site-contributions'), 'pages/contributions.html missing contributions bundle reference');
+    assert(htmlHasManagedBundle(readFile('pages/sitemap-pretty.html'), 'site-sitemap'), 'pages/sitemap-pretty.html missing sitemap bundle reference');
+    assert(htmlHasManagedBundle(readFile('pages/privacy.html'), 'site-privacy'), 'pages/privacy.html missing privacy bundle reference');
+
+    const toolsIndexHtml = readFile('pages/tools.html');
+    assert(htmlHasManagedBundle(toolsIndexHtml, 'site-tools-landing'), 'pages/tools.html missing tools landing loader bundle');
+    assert(/data-tools-account-src="dist\/site-tools-account(?:\.[0-9a-f]{8})?\.js"/.test(toolsIndexHtml), 'pages/tools.html missing managed tools-account source');
+    ['pages/word-frequency.html','pages/text-compare.html','pages/job-application-tracker.html','pages/tools-dashboard.html'].forEach((file) => {
+      assert(htmlHasManagedBundle(readFile(file), 'site-tools-account'), `${file} missing tools-account bundle`);
+    });
+
+    checkFileContains('index.html', 'css/components/home-proof.css');
+    checkFileContains('pages/search.html', 'css/components/search.css');
+    checkFileContains('pages/contact.html', 'css/components/contact-card.css');
+    checkFileContains('pages/resume.html', 'css/components/resume.css');
+    checkFileContains('pages/portfolio/nonogram.html', 'css/components/project-page.css');
+  });
+
+  section('Internal site links stay in the same tab', () => {
+    const projectIds = evalScript('js/portfolio/projects-data.js').window.PROJECTS
+      .filter(p => p && p.published !== false)
+      .map(p => p.id);
+    const htmlFiles = [
+      'index.html',
+      ...fs.readdirSync('pages').filter((name) => name.endsWith('.html')).map((name) => `pages/${name}`),
+      ...projectIds.map((id) => `pages/portfolio/${id}.html`)
+    ];
+
+    const targetRe = /<a\b[^>]*\bhref="([^"]+)"[^>]*\btarget="_blank"[^>]*>/gi;
+    htmlFiles.forEach((file) => {
+      const html = readFile(file);
+      let match;
+      while ((match = targetRe.exec(html))) {
+        const href = String(match[1] || '').trim();
+        if (!href) continue;
+        if (/^(mailto:|tel:|https?:\/\/(?!www\.danielshort\.me))/i.test(href)) continue;
+        if (/^(?:https:\/\/www\.danielshort\.me\/|\/)?documents\//i.test(href)) continue;
+        if (/^(?:https:\/\/www\.danielshort\.me\/|\/)?(?:demos\/|[^/]*-demo(?:\.html)?)(?:$|[?#])/i.test(href)) continue;
+        if (/^(?:https:\/\/www\.danielshort\.me\/|\/)?games\/(?:stellar-dogfight|slot-machine|roulette|probability-engine)(?:\.html)?(?:$|[?#])/i.test(href)) continue;
+        assert(false, `${file} internal site link should not open in a new tab: ${href}`);
+      }
     });
   });
 
@@ -926,8 +1028,8 @@ try {
   });
 
   section('Privacy CMP', () => {
-    checkFileContains('privacy.html', 'js/privacy/config.js');
-    checkFileContains('privacy.html', 'js/privacy/consent_manager.js');
+    checkFileContainsOneOf('privacy.html', ['js/privacy/config.js', 'dist/site-consent.'], 'privacy.html missing consent loader reference');
+    checkFileContainsOneOf('privacy.html', ['js/privacy/consent_manager.js', 'dist/site-consent.'], 'privacy.html missing consent manager reference');
     const pcfg = evalScript('js/privacy/config.js');
     assert(pcfg.window.PrivacyConfig && pcfg.window.PrivacyConfig.vendors && pcfg.window.PrivacyConfig.vendors.ga4 && pcfg.window.PrivacyConfig.vendors.ga4.id,
            'PrivacyConfig missing GA4 vendor id');

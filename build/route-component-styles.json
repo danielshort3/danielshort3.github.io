@@ -1,4 +1,47 @@
 {
+  "/": [
+    "css/components/home-proof.css",
+    "css/components/jump-panel.css",
+    "css/components/certification.css",
+    "css/components/work-experience.css"
+  ],
+  "/contact": [
+    "css/components/contact-card.css",
+    "css/components/destination-analytics.css"
+  ],
+  "/destination-analytics": [
+    "css/components/destination-analytics.css"
+  ],
+  "/tourism": [
+    "css/components/destination-analytics.css"
+  ],
+  "/search": [
+    "css/components/search.css"
+  ],
+  "/sitemap": [
+    "css/components/sitemap-page.css"
+  ],
+  "/sitemap-pretty": [
+    "css/components/sitemap-page.css"
+  ],
+  "/resume": [
+    "css/components/resume.css"
+  ],
+  "/resume-pdf": [
+    "css/components/resume.css"
+  ],
+  "/privacy": [
+    "css/components/privacy-page.css"
+  ],
+  "/games": [
+    "css/components/games.css"
+  ],
+  "/games/probability-engine": [
+    "css/components/games.css"
+  ],
+  "/portfolio/*": [
+    "css/components/project-page.css"
+  ],
   "/short-links": [
     "css/components/short-links.css"
   ],
@@ -6,6 +49,7 @@
     "css/components/short-links.css"
   ],
   "/games/ocean-wave-simulation": [
+    "css/components/games.css",
     "css/components/ocean-wave-simulation.css"
   ],
   "/tools/word-frequency": [

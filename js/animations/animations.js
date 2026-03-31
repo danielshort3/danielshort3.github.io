@@ -66,7 +66,8 @@
   function initProjectPreviewVideos(){
     if (document.body?.dataset?.page !== 'home') return;
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce) return;
+    const finePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
+    if (reduce || !finePointer) return;
     const cards = [...document.querySelectorAll('.project-examples-card')];
     if (!cards.length) return;
     const setupCard = (card) => {
@@ -122,27 +123,12 @@
         card.classList.remove('is-video-active');
       };
       card._previewAutoplayBound = true;
-      card._previewAutoplayStart = playVideo;
-      card._previewAutoplayStop = pauseVideo;
+      card.addEventListener('pointerenter', playVideo);
+      card.addEventListener('focusin', playVideo);
+      card.addEventListener('pointerleave', pauseVideo);
+      card.addEventListener('focusout', pauseVideo);
     };
     cards.forEach(setupCard);
-
-    if ('IntersectionObserver' in window) {
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          const card = entry.target;
-          if (!card || !card._previewAutoplayStart) return;
-          if (entry.isIntersecting) {
-            card._previewAutoplayStart();
-          } else if (card._previewAutoplayStop) {
-            card._previewAutoplayStop();
-          }
-        });
-      }, { threshold: 0.35 });
-      cards.forEach((card) => observer.observe(card));
-    } else {
-      cards.forEach((card) => card._previewAutoplayStart && card._previewAutoplayStart());
-    }
   }
 
   // Subtle ambient light following the mouse inside the hero
