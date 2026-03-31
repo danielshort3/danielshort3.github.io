@@ -3,10 +3,9 @@
   'use strict';
 
   const STORAGE_KEY = 'shortlinks_admin_token';
-  const VIEW_STORAGE_KEY = 'shortlinks_view_mode';
   const DEFAULT_BASE_PATH = 'go';
   const DEFAULT_PUBLIC_ORIGIN = 'https://dshort.me';
-  const DEFAULT_VIEW_MODE = 'rows';
+  const TABLE_LAYOUT_MEDIA_QUERY = '(min-width: 900px)';
 
   const authForm = document.querySelector('[data-shortlinks="auth"]');
   const editorForm = document.querySelector('[data-shortlinks="editor"]');
@@ -19,10 +18,9 @@
   const projectsRefreshButton = document.querySelector('[data-shortlinks="projects-refresh"]');
   const projectsEnsureButton = document.querySelector('[data-shortlinks="projects-ensure"]');
 
-  const accessDetails = document.querySelector('[data-shortlinks="access-details"]');
+  const accessCard = document.querySelector('[data-shortlinks="access-card"]');
   const accessMetaEl = document.querySelector('[data-shortlinks="access-meta"]');
   const filterInput = document.querySelector('[data-shortlinks="filter"]');
-  const viewSelect = document.querySelector('[data-shortlinks="view"]');
   const exportModeSelect = document.querySelector('[data-shortlinks="export-mode"]');
   const exportClickLimitInput = document.querySelector('[data-shortlinks="export-click-limit"]');
   const exportButton = document.querySelector('[data-shortlinks="export"]');
@@ -43,6 +41,7 @@
   const getTemporaryButton = editorForm.querySelector('[data-shortlinks="get-temporary"]');
   const clearButton = editorForm.querySelector('[data-shortlinks="clear"]');
   const editorStatusEl = editorForm.querySelector('[data-shortlinks="editor-status"]');
+  const editorMetaEl = document.querySelector('[data-shortlinks="editor-meta"]');
 
   const destinationPickerOpen = editorForm.querySelector('[data-shortlinks="destination-picker-open"]');
   const destinationModal = document.querySelector('[data-shortlinks="destination-modal"]');
@@ -128,6 +127,7 @@
   let pendingTemporaryPayload = null;
   let projectCatalog = [];
   let ensuringProjectLinks = false;
+  let accessCardAttentionTimer = 0;
 
   let basePath = DEFAULT_BASE_PATH;
   let allLinks = [];
@@ -139,6 +139,29 @@
     el.textContent = msg || '';
     if (tone) el.dataset.tone = tone;
     else delete el.dataset.tone;
+  }
+
+  function setEditorMeta(message){
+    if (!editorMetaEl) return;
+    editorMetaEl.textContent = String(message || 'New link');
+  }
+
+  function revealAccessCard(options = {}){
+    if (!accessCard) {
+      if (options.focusInput && tokenInput) tokenInput.focus();
+      return;
+    }
+
+    accessCard.classList.add('is-attention');
+    window.clearTimeout(accessCardAttentionTimer);
+    accessCardAttentionTimer = window.setTimeout(() => {
+      accessCard.classList.remove('is-attention');
+    }, 1800);
+
+    if (typeof accessCard.scrollIntoView === 'function') {
+      accessCard.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+    if (options.focusInput && tokenInput) tokenInput.focus();
   }
 
   function getStorage(preferLocal){
@@ -156,29 +179,14 @@
 
   const storage = getStorage(true) || getStorage(false);
   let memoryToken = '';
-  let viewMode = DEFAULT_VIEW_MODE;
+  const tableLayoutQuery = typeof window.matchMedia === 'function'
+    ? window.matchMedia(TABLE_LAYOUT_MEDIA_QUERY)
+    : null;
 
-  function normalizeViewMode(value){
-    const raw = String(value || '').trim().toLowerCase();
-    if (raw === 'cards') return 'cards';
-    if (raw === 'rows') return 'rows';
-    return DEFAULT_VIEW_MODE;
+  function prefersTableLayout(){
+    if (tableLayoutQuery) return !!tableLayoutQuery.matches;
+    return typeof window.innerWidth === 'number' ? window.innerWidth >= 900 : true;
   }
-
-  function getSavedViewMode(){
-    if (storage) return normalizeViewMode(storage.getItem(VIEW_STORAGE_KEY));
-    return normalizeViewMode(viewMode);
-  }
-
-  function saveViewMode(mode){
-    const value = normalizeViewMode(mode);
-    viewMode = value;
-    if (viewSelect) viewSelect.value = value;
-    if (storage) storage.setItem(VIEW_STORAGE_KEY, value);
-  }
-
-  viewMode = getSavedViewMode();
-  if (viewSelect) viewSelect.value = viewMode;
 
   function getSavedToken(){
     if (storage) return storage.getItem(STORAGE_KEY) || '';
@@ -512,44 +520,21 @@
 
     const query = getFilterQuery();
 
-    const frame = document.createElement('section');
-    frame.className = 'shortlinks-snapshot-frame';
-
-    const head = document.createElement('div');
-    head.className = 'shortlinks-output-head';
-
-    const title = document.createElement('h2');
-    title.className = 'shortlinks-output-title';
-    title.textContent = 'Dashboard Snapshot';
-    head.appendChild(title);
-
-    const meta = document.createElement('p');
-    meta.className = 'shortlinks-output-meta';
-    meta.textContent = query
-      ? `Filter active: "${query}"`
-      : 'Live status across links and portfolio mappings';
-    head.appendChild(meta);
-
-    frame.appendChild(head);
-
-    const grid = document.createElement('div');
-    grid.className = 'shortlinks-snapshot-grid';
-
-    grid.appendChild(makeSnapshotCard({
-      label: 'Saved links',
+    summaryEl.appendChild(makeSnapshotCard({
+      label: 'Total links',
       value: formatCount(totalLinks),
-      note: query ? `${formatCount(visibleLinksCount)} visible in current filter` : 'All stored slugs'
+      note: query ? `${formatCount(visibleLinksCount)} visible in search` : 'All saved slugs'
     }));
 
-    grid.appendChild(makeSnapshotCard({
-      label: 'Active',
+    summaryEl.appendChild(makeSnapshotCard({
+      label: 'Active links',
       value: formatCount(activeLinks),
-      note: expiringSoon ? `${formatCount(expiringSoon)} expiring within 7 days` : 'Not disabled or expired',
+      note: expiringSoon ? `${formatCount(expiringSoon)} expiring within 7 days` : 'Live and available now',
       tone: expiringSoon ? 'warning' : ''
     }));
 
-    grid.appendChild(makeSnapshotCard({
-      label: 'Temporary',
+    summaryEl.appendChild(makeSnapshotCard({
+      label: 'Temporary links',
       value: formatCount(temporaryLinks),
       note: `${formatCount(permanentLinks)} permanent redirects`,
       tone: temporaryLinks ? 'info' : ''
@@ -560,23 +545,20 @@
       const noteBits = [];
       if (missingProjects) noteBits.push(`${formatCount(missingProjects)} missing`);
       if (mismatchedProjects) noteBits.push(`${formatCount(mismatchedProjects)} mismatched`);
-      const note = noteBits.length ? noteBits.join(' · ') : 'All project links are in sync';
-      grid.appendChild(makeSnapshotCard({
-        label: 'Projects synced',
+      summaryEl.appendChild(makeSnapshotCard({
+        label: 'Project sync',
         value: `${formatCount(syncedProjects)} / ${formatCount(totalProjects)}`,
-        note,
+        note: noteBits.length ? noteBits.join(' · ') : 'All mapped correctly',
         tone: issues ? 'warning' : 'success'
       }));
-    } else {
-      grid.appendChild(makeSnapshotCard({
-        label: 'Projects',
-        value: '0',
-        note: 'Portfolio mapping loads after destinations resolve'
-      }));
+      return;
     }
 
-    frame.appendChild(grid);
-    summaryEl.appendChild(frame);
+    summaryEl.appendChild(makeSnapshotCard({
+      label: 'Project sync',
+      value: 'Loading',
+      note: 'Waiting for portfolio destinations'
+    }));
   }
 
   function isDevHost(hostname){
@@ -917,6 +899,7 @@
         slugInput.value = expectedSlug;
         destinationInput.value = destinationUrl;
         slugInput.focus();
+        setEditorMeta(`Editing ${buildPublicPath(expectedSlug)}`);
         setStatus(editorStatusEl, `Editing ${buildPublicPath(expectedSlug)}`, 'success');
       });
 
@@ -1845,6 +1828,7 @@
         slugInput.focus();
         const expiresAt = Number.isFinite(Number(link.expiresAt)) ? Number(link.expiresAt) : 0;
         const expiresLabel = expiresAt ? ` (expires ${new Date(expiresAt * 1000).toLocaleString()})` : '';
+        setEditorMeta(`Editing ${buildPublicPath(link.slug)}`);
         setStatus(editorStatusEl, `Editing ${buildPublicPath(link.slug)}${link.disabled ? ' (disabled)' : ''}${expiresLabel}`, 'success');
       });
 
@@ -2016,6 +2000,7 @@
         slugInput.focus();
         const expiresAt = Number.isFinite(Number(link.expiresAt)) ? Number(link.expiresAt) : 0;
         const expiresLabel = expiresAt ? ` (expires ${new Date(expiresAt * 1000).toLocaleString()})` : '';
+        setEditorMeta(`Editing ${buildPublicPath(link.slug)}`);
         setStatus(editorStatusEl, `Editing ${buildPublicPath(link.slug)}${link.disabled ? ' (disabled)' : ''}${expiresLabel}`, 'success');
       });
 
@@ -2110,10 +2095,10 @@
 
   function applyFilterAndRender(){
     const filtered = getFilteredLinks();
-    if (viewMode === 'cards') {
-      renderLinks(filtered);
-    } else {
+    if (prefersTableLayout()) {
       renderLinksTable(filtered);
+    } else {
+      renderLinks(filtered);
     }
     visibleLinksCount = filtered.length;
     setCount(filtered.length, allLinks.length);
@@ -2214,6 +2199,7 @@
       } catch {}
 
       const label = permanent ? 'Permanent link' : 'Temporary link';
+      setEditorMeta(`Saved ${buildPublicPath(slug)}`);
       setStatus(editorStatusEl, `${label}: ${shortUrl}${copied ? ' (copied)' : ''}`, 'success');
       markSessionDirty();
       await refreshLinks();
@@ -2230,6 +2216,7 @@
   function clearEditor(){
     slugInput.value = '';
     destinationInput.value = '';
+    setEditorMeta('New link');
     setStatus(editorStatusEl, '');
     markSessionDirty();
   }
@@ -2249,7 +2236,7 @@
     updateAccessMeta();
     tokenInput.value = '';
     setStatus(statusEl, 'Token saved. Loading links…');
-    if (accessDetails) accessDetails.open = false;
+    if (accessCard) accessCard.classList.remove('is-attention');
     await refreshLinks();
   });
 
@@ -2257,6 +2244,7 @@
     if (!getSavedToken()) {
       setStatus(statusEl, 'Admin token required.', 'error');
       setStatus(listStatusEl, 'Admin token required.', 'error');
+      revealAccessCard({ focusInput: true });
       return;
     }
     refreshLinks();
@@ -2279,6 +2267,7 @@
     healthButton.addEventListener('click', () => {
       if (!getSavedToken()) {
         setStatus(healthStatusEl, 'Admin token required.', 'error');
+        revealAccessCard({ focusInput: true });
         return;
       }
       refreshHealth();
@@ -2297,7 +2286,7 @@
       setStatus(healthStatusEl, '');
       setStatus(listStatusEl, '');
       setCount(0, 0);
-      if (accessDetails) accessDetails.open = true;
+      revealAccessCard({ focusInput: true });
       renderProjectLinks();
     });
   }
@@ -2388,7 +2377,7 @@
   function requireToken(target){
     if (getSavedToken()) return true;
     setStatus(target || editorStatusEl, 'Admin token required.', 'error');
-    if (accessDetails) accessDetails.open = true;
+    revealAccessCard({ focusInput: true });
     return false;
   }
 
@@ -2504,6 +2493,7 @@
   }
 
   updateAccessMeta();
+  setEditorMeta('New link');
   syncExportControls();
   void refreshProjectsSection();
   if (getSavedToken()) {
@@ -2517,11 +2507,15 @@
     });
   }
 
-  if (viewSelect) {
-    viewSelect.addEventListener('change', () => {
-      saveViewMode(viewSelect.value);
+  if (tableLayoutQuery) {
+    const handleTableLayoutChange = () => {
       applyFilterAndRender();
-    });
+    };
+    if (typeof tableLayoutQuery.addEventListener === 'function') {
+      tableLayoutQuery.addEventListener('change', handleTableLayoutChange);
+    } else if (typeof tableLayoutQuery.addListener === 'function') {
+      tableLayoutQuery.addListener(handleTableLayoutChange);
+    }
   }
 
   if (exportModeSelect) {

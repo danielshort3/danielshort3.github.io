@@ -7,6 +7,7 @@
     "test": "node test.js",
     "build:icons": "python3 build/resize_logo.py",
     "build:css": "node build/build-css.js",
+    "build:js": "node build/build-js.js",
     "build:utm-batch-builder": "node build/build-utm-batch-builder.js",
     "build:pizza-tips-model": "node build/build-pizza-tips-model.js",
     "build:models": "npm run build:pizza-tips-model",

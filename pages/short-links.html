@@ -21,7 +21,7 @@
   <meta name="twitter:site" content="@danielshort3">
   <meta name="twitter:image:alt" content="Portrait photo of Daniel Short">
   <meta name="theme-color" content="#0D1117">
-  <link rel="stylesheet" href="dist/styles.39053251.css">
+  <link rel="stylesheet" href="dist/styles.d14c6254.css">
   <link rel="stylesheet" href="dist/styles-tools.563e9bd1.css">
   <link rel="stylesheet" href="css/components/short-links.css">
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -66,7 +66,7 @@
                 <div class="nav-dropdown-column nav-dropdown-column-list nav-portfolio-stack">
                   <div class="nav-dropdown-header" aria-hidden="true">Top 5 Projects</div>
                   <div class="nav-project-grid nav-project-stack" role="list">
-                    <a href="portfolio/pizzaDashboard" class="nav-project-card" data-project-id="pizzaDashboard" role="listitem" target="_blank" rel="noopener noreferrer">
+                    <a href="portfolio/pizzaDashboard" class="nav-project-card" data-project-id="pizzaDashboard" role="listitem">
                       <span class="nav-project-rank">#1</span>
                       <span class="nav-project-thumb" style="background-image:url('/img/projects/pizzaDashboard.webp');" aria-hidden="true"></span>
                       <span class="nav-project-meta">
@@ -74,7 +74,7 @@
                         <span class="nav-dropdown-subtitle">Tableau dashboard and forecasting</span>
                       </span>
                     </a>
-                    <a href="portfolio/retailStore" class="nav-project-card" data-project-id="retailStore" role="listitem" target="_blank" rel="noopener noreferrer">
+                    <a href="portfolio/retailStore" class="nav-project-card" data-project-id="retailStore" role="listitem">
                       <span class="nav-project-rank">#2</span>
                       <span class="nav-project-thumb" style="background-image:url('/img/projects/retailStore.webp');" aria-hidden="true"></span>
                       <span class="nav-project-meta">
@@ -82,7 +82,7 @@
                         <span class="nav-dropdown-subtitle">SQL ETL and anomaly detection</span>
                       </span>
                     </a>
-                    <a href="portfolio/targetEmptyPackage" class="nav-project-card" data-project-id="targetEmptyPackage" role="listitem" target="_blank" rel="noopener noreferrer">
+                    <a href="portfolio/targetEmptyPackage" class="nav-project-card" data-project-id="targetEmptyPackage" role="listitem">
                       <span class="nav-project-rank">#3</span>
                       <span class="nav-project-thumb" style="background-image:url('/img/projects/targetEmptyPackage.webp');" aria-hidden="true" data-preview-poster="/img/projects/targetEmptyPackage.webp" data-preview-webm="/img/projects/targetEmptyPackage.webm" data-preview-mp4="/img/projects/targetEmptyPackage.mp4"></span>
                       <span class="nav-project-meta">
@@ -90,7 +90,7 @@
                         <span class="nav-dropdown-subtitle">Excel BI and trend monitoring</span>
                       </span>
                     </a>
-                    <a href="portfolio/chatbotLora" class="nav-project-card" data-project-id="chatbotLora" role="listitem" target="_blank" rel="noopener noreferrer">
+                    <a href="portfolio/chatbotLora" class="nav-project-card" data-project-id="chatbotLora" role="listitem">
                       <span class="nav-project-rank">#4</span>
                       <span class="nav-project-thumb" style="background-image:url('/img/projects/chatbotLora.webp');" aria-hidden="true" data-preview-poster="/img/projects/chatbotLora.webp" data-preview-webm="/img/projects/chatbotLora.webm" data-preview-mp4="/img/projects/chatbotLora.mp4"></span>
                       <span class="nav-project-meta">
@@ -98,7 +98,7 @@
                         <span class="nav-dropdown-subtitle">Visit Grand Junction knowledge retrieval</span>
                       </span>
                     </a>
-                    <a href="portfolio/shapeClassifier" class="nav-project-card" data-project-id="shapeClassifier" role="listitem" target="_blank" rel="noopener noreferrer">
+                    <a href="portfolio/shapeClassifier" class="nav-project-card" data-project-id="shapeClassifier" role="listitem">
                       <span class="nav-project-rank">#5</span>
                       <span class="nav-project-thumb" style="background-image:url('/img/projects/shapeClassifier.webp');" aria-hidden="true" data-preview-poster="/img/projects/shapeClassifier.webp" data-preview-webm="/img/projects/shapeClassifier.webm" data-preview-mp4="/img/projects/shapeClassifier.mp4"></span>
                       <span class="nav-project-meta">
@@ -194,9 +194,12 @@
   </header>
 
   <section class="hero hero--tools tools-hero">
-    <div class="wrapper">
-      <p class="hero-eyebrow">Short Links - Admin dashboard.</p>
-      <h1 class="visually-hidden">Short Links</h1>
+    <div class="wrapper shortlinks-hero-content">
+      <div class="shortlinks-hero-copy">
+        <p class="hero-eyebrow">Private admin dashboard</p>
+        <h1>Short Links</h1>
+        <p class="shortlinks-hero-lead">Create clean redirects, manage active links, and keep portfolio shortcuts in sync from one focused workspace.</p>
+      </div>
     </div>
   </section>
 
@@ -207,171 +210,140 @@
   </div>
 
   <main id="main">
-
-    <section class="surface-band tools-section reveal shortlinks-quickstart-section">
-      <div class="wrapper">
-        <div class="shortlinks-quickstart" aria-labelledby="shortlinks-quickstart-title">
-          <p class="shortlinks-kicker">Workflow</p>
-          <h2 id="shortlinks-quickstart-title" class="section-title">Manage short links in 4 steps</h2>
-          <ol class="shortlinks-quickstart-list">
-            <li><strong>Access:</strong> Save your admin token and verify backend health.</li>
-            <li><strong>Create:</strong> Add permanent or temporary links in one form.</li>
-            <li><strong>Sync projects:</strong> Ensure every portfolio page has a short link and correct destination.</li>
-            <li><strong>Operate:</strong> Filter, test, copy, disable, or delete links.</li>
-          </ol>
-        </div>
-      </div>
-    </section>
-
-    <section class="surface-band tools-section reveal shortlinks-summary-section">
-      <div class="wrapper">
-        <div class="shortlinks-snapshot" data-shortlinks="summary" aria-live="polite"></div>
-      </div>
-    </section>
-
-    <section class="surface-band tools-section reveal shortlinks-panel-section">
-      <div class="wrapper">
-        <details class="shortlinks-access-details shortlinks-card" data-shortlinks="access-details">
-          <summary class="shortlinks-access-summary shortlinks-card-summary">
-            <div class="shortlinks-section-heading">
-              <span class="shortlinks-step">Step 1</span>
-              <h2 class="section-title">Access</h2>
-            </div>
-            <span class="shortlinks-access-meta" data-shortlinks="access-meta"></span>
-          </summary>
-          <div class="shortlinks-access-body shortlinks-card-body">
-            <p class="shortlinks-panel-lead">Store a token on this device, refresh links, and run backend health checks.</p>
-            <form class="contact-form shortlinks-form" data-shortlinks="auth">
-              <div class="form-field">
-                <label for="shortlinks-token">Admin token</label>
-                <input id="shortlinks-token" type="password" inputmode="text" autocomplete="current-password" data-shortlinks="token">
-                <p class="contact-form-note">Stored in <code>localStorage</code> on this device.</p>
+    <section class="surface-band tools-section reveal shortlinks-dashboard-section">
+      <div class="wrapper shortlinks-dashboard">
+        <div class="shortlinks-dashboard-main">
+          <section class="shortlinks-shell-card shortlinks-create-card" aria-labelledby="shortlinks-create-title">
+            <div class="shortlinks-card-head shortlinks-card-head-create">
+              <div class="shortlinks-card-copy">
+                <p class="shortlinks-kicker">Create link</p>
+                <h2 id="shortlinks-create-title" class="section-title">Shorten and update destinations fast</h2>
+                <p class="shortlinks-panel-lead">Paste a destination, set a memorable slug, and create a ready-to-share redirect without leaving the page.</p>
               </div>
-              <div class="form-actions shortlinks-action-row">
-                <button type="submit" class="btn-primary"><span class="btn-label">Save token</span></button>
-                <button type="button" class="btn-secondary" data-shortlinks="forget-token">Forget token</button>
-                <button type="button" class="btn-secondary" data-shortlinks="refresh">Refresh list</button>
-                <button type="button" class="btn-secondary" data-shortlinks="health">Check backend</button>
-              </div>
-              <div class="contact-form-status" data-shortlinks="status" role="status" aria-live="polite"></div>
-              <div class="contact-form-status" data-shortlinks="health-status" role="status" aria-live="polite"></div>
-            </form>
-          </div>
-        </details>
-      </div>
-    </section>
-
-    <section class="surface-band tools-section reveal shortlinks-panel-section">
-      <div class="wrapper">
-        <details class="shortlinks-panel shortlinks-card" open data-shortlinks="editor-details">
-          <summary class="shortlinks-panel-summary shortlinks-card-summary">
-            <div class="shortlinks-section-heading">
-              <span class="shortlinks-step">Step 2</span>
-              <h2 class="section-title">Create / Update</h2>
+              <p class="shortlinks-editor-meta" data-shortlinks="editor-meta" aria-live="polite">New link</p>
             </div>
-          </summary>
-          <div class="shortlinks-panel-body shortlinks-card-body">
-            <p class="shortlinks-panel-lead">Create redirects quickly, including expiration-based temporary links for campaigns and testing.</p>
             <form class="contact-form shortlinks-form" data-shortlinks="editor">
-              <div class="form-field">
-                <label for="shortlinks-slug">Slug</label>
-                <input id="shortlinks-slug" type="text" inputmode="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="github" data-shortlinks="slug">
-                <p class="contact-form-note">Allowed: <code>a-z</code>, <code>0-9</code>, <code>-</code>, <code>_</code>, and <code>/</code> (for nesting).</p>
-              </div>
-              <div class="form-field">
-                <label for="shortlinks-destination">Destination</label>
-                <div class="shortlinks-destination-row">
-                  <input id="shortlinks-destination" type="text" inputmode="url" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="https://example.com" data-shortlinks="destination">
-                  <button type="button" class="btn-ghost" data-shortlinks="destination-picker-open">Browse site pages</button>
+              <div class="shortlinks-form-grid">
+                <div class="form-field shortlinks-field-main">
+                  <label for="shortlinks-destination">Destination</label>
+                  <div class="shortlinks-destination-row">
+                    <input id="shortlinks-destination" type="text" inputmode="url" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="https://example.com" data-shortlinks="destination">
+                    <button type="button" class="btn-ghost" data-shortlinks="destination-picker-open">Browse site pages</button>
+                  </div>
+                  <p class="contact-form-note">Use a full URL or a site path that starts with <code>/</code>.</p>
                 </div>
-                <p class="contact-form-note">Must start with <code>/</code> or <code>http(s)://</code>.</p>
+                <div class="form-field">
+                  <label for="shortlinks-slug">Custom slug</label>
+                  <input id="shortlinks-slug" type="text" inputmode="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="github" data-shortlinks="slug">
+                  <p class="contact-form-note">Allowed: <code>a-z</code>, <code>0-9</code>, <code>-</code>, <code>_</code>, and <code>/</code>.</p>
+                </div>
               </div>
-              <div class="form-actions shortlinks-action-row shortlinks-action-row-sticky shortlinks-editor-actions">
-                <button type="button" class="btn-primary" data-shortlinks="get-permanent"><span class="btn-label">Get permanent link</span></button>
+              <div class="form-actions shortlinks-action-row shortlinks-editor-actions">
+                <button type="submit" class="btn-primary" data-shortlinks="get-permanent"><span class="btn-label">Get permanent link</span></button>
                 <button type="button" class="btn-secondary" data-shortlinks="get-temporary">Get temporary link</button>
-                <button type="button" class="btn-secondary" data-shortlinks="clear">Reset form</button>
+                <button type="button" class="btn-ghost" data-shortlinks="clear">Reset</button>
               </div>
               <div class="contact-form-status" data-shortlinks="editor-status" role="status" aria-live="polite"></div>
             </form>
-          </div>
-        </details>
-      </div>
-    </section>
+          </section>
 
-    <section class="surface-band tools-section reveal shortlinks-panel-section">
-      <div class="wrapper">
-        <details class="shortlinks-panel shortlinks-card" open data-shortlinks="projects-details">
-          <summary class="shortlinks-panel-summary shortlinks-card-summary">
-            <div class="shortlinks-section-heading">
-              <span class="shortlinks-step">Step 3</span>
-              <h2 class="section-title">Projects</h2>
+          <section class="shortlinks-summary-section" aria-labelledby="shortlinks-summary-title">
+            <div class="shortlinks-summary-head">
+              <h2 id="shortlinks-summary-title" class="shortlinks-output-title">Overview</h2>
+              <p class="shortlinks-output-meta">Live status across redirects and portfolio mappings.</p>
             </div>
-          </summary>
-          <div class="shortlinks-panel-body shortlinks-card-body">
-            <p class="shortlinks-projects-note">Automatically keeps a permanent short link for each published portfolio project.</p>
-            <div class="shortlinks-output-head">
-              <h3 class="shortlinks-output-title">Portfolio mapping</h3>
-              <p class="shortlinks-output-meta shortlinks-count" data-shortlinks="projects-meta" aria-live="polite"></p>
-            </div>
-            <div class="shortlinks-projects-toolbar">
-              <div class="shortlinks-projects-actions">
-                <button type="button" class="btn-secondary" data-shortlinks="projects-refresh">Refresh</button>
-                <button type="button" class="btn-secondary" data-shortlinks="projects-ensure">Sync missing + mismatched</button>
+            <div class="shortlinks-snapshot" data-shortlinks="summary" aria-live="polite"></div>
+          </section>
+
+          <section class="shortlinks-shell-card shortlinks-links-card" aria-labelledby="shortlinks-links-title">
+            <div class="shortlinks-card-head">
+              <div class="shortlinks-card-copy">
+                <p class="shortlinks-kicker">Manage links</p>
+                <h2 id="shortlinks-links-title" class="section-title">All redirects</h2>
               </div>
-            </div>
-            <div class="contact-form-status" data-shortlinks="projects-status" role="status" aria-live="polite"></div>
-            <div class="shortlinks-list shortlinks-results" data-shortlinks="projects-list" aria-live="polite"></div>
-          </div>
-        </details>
-      </div>
-    </section>
-
-    <section class="surface-band tools-section reveal shortlinks-panel-section">
-      <div class="wrapper">
-        <details class="shortlinks-panel shortlinks-card" open data-shortlinks="links-details">
-          <summary class="shortlinks-panel-summary shortlinks-card-summary">
-            <div class="shortlinks-section-heading">
-              <span class="shortlinks-step">Step 4</span>
-              <h2 class="section-title">Links</h2>
-            </div>
-          </summary>
-          <div class="shortlinks-panel-body shortlinks-card-body">
-            <p class="shortlinks-panel-lead">Filter and manage all links in one place, then test redirects or inspect click history.</p>
-            <div class="shortlinks-output-head">
-              <h3 class="shortlinks-output-title">All links</h3>
               <p class="shortlinks-output-meta shortlinks-count" data-shortlinks="count" aria-live="polite"></p>
             </div>
             <div class="shortlinks-toolbar shortlinks-toolbar-main">
               <label class="shortlinks-filter">
-                <span class="shortlinks-filter-label">Filter</span>
-                <input type="search" autocomplete="off" spellcheck="false" placeholder="Search slugs & destinations…" data-shortlinks="filter">
+                <span class="shortlinks-filter-label">Search links</span>
+                <input type="search" autocomplete="off" spellcheck="false" placeholder="Search slugs or destinations" data-shortlinks="filter">
               </label>
-              <div class="shortlinks-toolbar-actions">
-                <label class="shortlinks-view">
-                  <span class="shortlinks-view-label">View</span>
-                  <select data-shortlinks="view">
-                    <option value="rows" selected>Rows</option>
-                    <option value="cards">Cards</option>
-                  </select>
-                </label>
-                <label class="shortlinks-view">
-                  <span class="shortlinks-view-label">Export</span>
-                  <select data-shortlinks="export-mode">
-                    <option value="redirects-only" selected>Redirects only (CSV)</option>
-                    <option value="with-clicks">Redirects + click events (JSON)</option>
-                  </select>
-                </label>
-                <label class="shortlinks-view">
-                  <span class="shortlinks-view-label">Clicks / link</span>
-                  <input type="number" min="1" max="500" step="1" value="100" inputmode="numeric" data-shortlinks="export-click-limit">
-                </label>
-                <button type="button" class="btn-secondary" data-shortlinks="export">Export</button>
-              </div>
             </div>
             <div class="contact-form-status" data-shortlinks="list-status" role="status" aria-live="polite"></div>
             <div class="shortlinks-list shortlinks-results" data-shortlinks="list" aria-live="polite"></div>
-          </div>
-        </details>
+          </section>
+        </div>
+
+        <aside class="shortlinks-dashboard-rail" aria-label="Short links utilities">
+          <section class="shortlinks-shell-card shortlinks-access-card" data-shortlinks="access-card" aria-labelledby="shortlinks-access-title">
+            <div class="shortlinks-card-head shortlinks-card-head-tight">
+              <div class="shortlinks-card-copy">
+                <p class="shortlinks-kicker">Access</p>
+                <h2 id="shortlinks-access-title" class="section-title">Admin token and status</h2>
+              </div>
+              <span class="shortlinks-access-meta" data-shortlinks="access-meta"></span>
+            </div>
+            <p class="shortlinks-panel-lead">Save the admin token on this device, refresh link data, and run a backend health check when needed.</p>
+            <form class="contact-form shortlinks-form" data-shortlinks="auth">
+              <div class="form-field">
+                <label for="shortlinks-token">Admin token</label>
+                <input id="shortlinks-token" type="password" inputmode="text" autocomplete="current-password" data-shortlinks="token">
+                <p class="contact-form-note">Stored locally on this browser only.</p>
+              </div>
+              <div class="form-actions shortlinks-action-row shortlinks-action-row-compact">
+                <button type="submit" class="btn-primary"><span class="btn-label">Save token</span></button>
+                <button type="button" class="btn-secondary" data-shortlinks="refresh">Refresh</button>
+                <button type="button" class="btn-secondary" data-shortlinks="health">Check backend</button>
+                <button type="button" class="btn-ghost" data-shortlinks="forget-token">Forget token</button>
+              </div>
+              <div class="contact-form-status" data-shortlinks="status" role="status" aria-live="polite"></div>
+              <div class="contact-form-status" data-shortlinks="health-status" role="status" aria-live="polite"></div>
+            </form>
+          </section>
+
+          <section class="shortlinks-shell-card shortlinks-projects-card" aria-labelledby="shortlinks-projects-title">
+            <div class="shortlinks-card-head shortlinks-card-head-tight">
+              <div class="shortlinks-card-copy">
+                <p class="shortlinks-kicker">Portfolio sync</p>
+                <h2 id="shortlinks-projects-title" class="section-title">Project mappings</h2>
+              </div>
+              <p class="shortlinks-output-meta shortlinks-count" data-shortlinks="projects-meta" aria-live="polite"></p>
+            </div>
+            <p class="shortlinks-projects-note">Keep published portfolio projects matched with permanent short links and correct destinations.</p>
+            <div class="shortlinks-projects-toolbar">
+              <div class="shortlinks-projects-actions">
+                <button type="button" class="btn-secondary" data-shortlinks="projects-refresh">Refresh</button>
+                <button type="button" class="btn-primary" data-shortlinks="projects-ensure">Sync missing + mismatched</button>
+              </div>
+            </div>
+            <div class="contact-form-status" data-shortlinks="projects-status" role="status" aria-live="polite"></div>
+            <div class="shortlinks-list shortlinks-results" data-shortlinks="projects-list" aria-live="polite"></div>
+          </section>
+
+          <section class="shortlinks-shell-card shortlinks-export-card" aria-labelledby="shortlinks-export-title">
+            <div class="shortlinks-card-head shortlinks-card-head-tight">
+              <div class="shortlinks-card-copy">
+                <p class="shortlinks-kicker">Export</p>
+                <h2 id="shortlinks-export-title" class="section-title">Download link data</h2>
+              </div>
+            </div>
+            <p class="shortlinks-panel-lead">Export redirects only as CSV, or include click history as JSON for deeper analysis.</p>
+            <div class="shortlinks-export-controls">
+              <label class="shortlinks-view">
+                <span class="shortlinks-view-label">Format</span>
+                <select data-shortlinks="export-mode">
+                  <option value="redirects-only" selected>Redirects only (CSV)</option>
+                  <option value="with-clicks">Redirects + click events (JSON)</option>
+                </select>
+              </label>
+              <label class="shortlinks-view">
+                <span class="shortlinks-view-label">Clicks per link</span>
+                <input type="number" min="1" max="500" step="1" value="100" inputmode="numeric" data-shortlinks="export-click-limit">
+              </label>
+              <button type="button" class="btn-secondary shortlinks-export-button" data-shortlinks="export">Export data</button>
+            </div>
+          </section>
+        </aside>
       </div>
     </section>
 
@@ -479,16 +451,9 @@
     </div>
   </footer>
 
-  <script defer src="js/common/common.js"></script>
-  <script defer src="js/navigation/navigation.js"></script>
-  <script defer src="js/animations/animations.js"></script>
+  <script defer src="dist/site-shell.aa30cd70.js"></script>
   <script defer src="js/admin/short-links.js"></script>
-  <script defer src="js/accounts/tools-config.js"></script>
-  <script defer src="js/accounts/tools-auth.js"></script>
-  <script defer src="js/accounts/tools-state.js"></script>
-  <script defer src="js/accounts/tools-account-ui.js"></script>
-  <script src="js/privacy/config.js"></script>
-  <script defer src="js/privacy/consent_manager.js"></script>
+  <script defer src="dist/site-tools-account.b359d149.js"></script>
+  <script defer src="dist/site-consent.33451501.js"></script>
 </body>
 </html>
-
