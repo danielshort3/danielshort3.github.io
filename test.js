@@ -608,6 +608,22 @@ try {
       'js/contributions/contributions.js',
       'js/contributions/carousel.js'
     ].forEach(file => evalScript(file));
+
+    const lateLoadEnv = createEnv();
+    let handleRedirectCalls = 0;
+    lateLoadEnv.document.body.dataset = { page: 'tools' };
+    lateLoadEnv.document.title = 'Tools | Daniel Short';
+    lateLoadEnv.window.ToolsAuth = {
+      handleRedirect: async () => {
+        handleRedirectCalls++;
+        return { redirected: false };
+      }
+    };
+    evalScript('js/accounts/tools-account-ui.js', lateLoadEnv);
+    assert(
+      handleRedirectCalls === 1,
+      'tools-account-ui should self-initialize when loaded after DOMContentLoaded'
+    );
   });
 
   section('CSS bundle manifest and page references', () => {
