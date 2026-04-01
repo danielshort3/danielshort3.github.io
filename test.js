@@ -1051,8 +1051,22 @@ try {
     checkFileContainsOneOf('privacy.html', ['js/privacy/config.js', 'dist/site-consent.'], 'privacy.html missing consent loader reference');
     checkFileContainsOneOf('privacy.html', ['js/privacy/consent_manager.js', 'dist/site-consent.'], 'privacy.html missing consent manager reference');
     const pcfg = evalScript('js/privacy/config.js');
+    const consentCode = readFile('js/privacy/consent_manager.js');
+    const privacyCss = readFile('css/privacy.css');
     assert(pcfg.window.PrivacyConfig && pcfg.window.PrivacyConfig.vendors && pcfg.window.PrivacyConfig.vendors.ga4 && pcfg.window.PrivacyConfig.vendors.ga4.id,
            'PrivacyConfig missing GA4 vendor id');
+    assert(consentCode.includes('pref-status-row'),
+      'consent manager should render a locked necessary status row');
+    assert(consentCode.includes('Required for site operation'),
+      'consent manager should clarify that necessary cookies are required');
+    assert(consentCode.includes('pref-disclosure'),
+      'consent manager should render inline preference disclosures');
+    assert(consentCode.includes("row.classList.toggle('is-expanded'"),
+      'consent manager should toggle expanded preference rows');
+    assert(privacyCss.includes('.pref-option-head'),
+      'privacy.css missing aligned preference row layout');
+    assert(privacyCss.includes('.pref-disclosure'),
+      'privacy.css missing animated preference disclosure styling');
   });
 
   section('Portfolio helpers, URL parsing, and templates', () => {
