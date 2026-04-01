@@ -30,7 +30,7 @@
   } catch (err) {}
 
   const STYLE_ID = 'pcz-consent-styles';
-  const CSS_VERSION = 'v3';
+  const CSS_VERSION = 'v5';
 
   function loadStyles() {
     if (document.getElementById(STYLE_ID) || document.querySelector('link[href$="privacy.css"]')) return;
@@ -62,6 +62,10 @@
         savePrefs: 'Save preferences',
         cancel: 'Cancel',
         closePrefs: 'Close',
+        stateOn: 'On',
+        stateOff: 'Off',
+        stateAlwaysOn: 'Always on',
+        requiredLabel: 'Required for site operation',
         categories: {
           necessary: {
             label: 'Strictly necessary',
@@ -96,6 +100,10 @@
         savePrefs: 'Guardar preferencias',
         cancel: 'Cancelar',
         closePrefs: 'Cerrar',
+        stateOn: 'Sí',
+        stateOff: 'No',
+        stateAlwaysOn: 'Siempre activas',
+        requiredLabel: 'Necesarias para el funcionamiento del sitio',
         categories: {
           necessary: {
             label: 'Estrictamente necesarias',
@@ -441,24 +449,44 @@
     panel.className = 'pcz-panel policy-card';
     panel.setAttribute('tabindex', '-1');
     let categoriesHTML = '';
+    const stateOnLabel = localeStrings.stateOn || 'On';
+    const stateOffLabel = localeStrings.stateOff || 'Off';
+    const stateAlwaysOnLabel = localeStrings.stateAlwaysOn || 'Always on';
+    const requiredLabel = localeStrings.requiredLabel || 'Required for site operation';
     ['necessary','analytics','functional','advertising'].forEach(function (key) {
       const cat = localeStrings.categories[key];
       const descId = 'pcz-pref-desc-' + key;
       const isDisabled = key === 'necessary';
       const checked = initialState[key] || isDisabled;
       const isOn = checked ? 'true' : 'false';
-      const stateLabel = checked ? 'On' : 'Off';
+      const stateLabel = checked ? stateOnLabel : stateOffLabel;
       categoriesHTML +=
-        '<div class="pref-option" data-pref="' + key + '" role="listitem">' +
-          '<button type="button" class="pref-toggle" data-pref="' + key + '" aria-pressed="' + isOn + '"' + (isDisabled ? ' data-locked="true" disabled' : '') + '>' +
-            '<span class="pref-label">' + cat.label + '</span>' +
-            '<span class="pref-state" aria-hidden="true">' + stateLabel + '</span>' +
-          '</button>' +
-          '<button type="button" class="pref-info" aria-expanded="false" aria-controls="' + descId + '">' +
-            '<span aria-hidden="true">?</span>' +
-            '<span class="visually-hidden">Read what ' + cat.label + ' cookies do</span>' +
-          '</button>' +
-          '<p id="' + descId + '" class="pref-description" hidden>' + cat.description + '</p>' +
+        '<div class="pref-option' + (isDisabled ? ' pref-option-locked' : '') + '" data-pref="' + key + '" role="listitem">' +
+          '<div class="pref-option-head">' +
+            (isDisabled
+              ? '<div class="pref-status-row" data-locked="true" aria-disabled="true">' +
+                  '<span class="pref-label-group">' +
+                    '<span class="pref-label">' + cat.label + '</span>' +
+                    '<span class="pref-helper">' + requiredLabel + '</span>' +
+                  '</span>' +
+                  '<span class="pref-state" aria-hidden="true">' + stateAlwaysOnLabel + '</span>' +
+                '</div>'
+              : '<button type="button" class="pref-toggle" data-pref="' + key + '" aria-pressed="' + isOn + '">' +
+                  '<span class="pref-label-group">' +
+                    '<span class="pref-label">' + cat.label + '</span>' +
+                  '</span>' +
+                  '<span class="pref-state" aria-hidden="true">' + stateLabel + '</span>' +
+                '</button>') +
+            '<button type="button" class="pref-info" aria-expanded="false" aria-controls="' + descId + '">' +
+              '<span aria-hidden="true">?</span>' +
+              '<span class="visually-hidden">Read what ' + cat.label + ' cookies do</span>' +
+            '</button>' +
+          '</div>' +
+          '<div id="' + descId + '" class="pref-disclosure" aria-hidden="true">' +
+            '<div class="pref-disclosure-inner">' +
+              '<p class="pref-description">' + cat.description + '</p>' +
+            '</div>' +
+          '</div>' +
         '</div>';
     });
     const lead = localeStrings.modalLead ? '<p class="policy-lead">' + localeStrings.modalLead + '</p>' : '';
@@ -582,6 +610,8 @@
     const modal = createModal(localeStrings, currentState);
     document.body.appendChild(modal);
     setTimeout(() => modal.classList.add('pcz-visible'), 16);
+    const stateOnLabel = localeStrings.stateOn || 'On';
+    const stateOffLabel = localeStrings.stateOff || 'Off';
     const focusable = modal.querySelectorAll('input, button');
     const firstFocusable = focusable[0];
     const lastFocusable = focusable[focusable.length - 1];
@@ -625,7 +655,7 @@
         const current = button.getAttribute('aria-pressed') === 'true';
         button.setAttribute('aria-pressed', current ? 'false' : 'true');
         const stateEl = button.querySelector('.pref-state');
-        if (stateEl) stateEl.textContent = current ? 'Off' : 'On';
+        if (stateEl) stateEl.textContent = current ? stateOffLabel : stateOnLabel;
       });
     });
     modal.querySelectorAll('.pref-info[aria-controls]').forEach(function (button) {
@@ -633,8 +663,11 @@
         const expanded = button.getAttribute('aria-expanded') === 'true';
         const targetId = button.getAttribute('aria-controls');
         const target = targetId ? document.getElementById(targetId) : null;
-        button.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-        if (target) target.hidden = expanded;
+        const row = button.closest('.pref-option');
+        const nextExpanded = !expanded;
+        button.setAttribute('aria-expanded', nextExpanded ? 'true' : 'false');
+        if (row) row.classList.toggle('is-expanded', nextExpanded);
+        if (target) target.setAttribute('aria-hidden', nextExpanded ? 'false' : 'true');
       });
     });
 

@@ -224,7 +224,6 @@
 	  .resume-wide-category span{
 	    white-space:nowrap;
 	  }
-
   .resume-subhead{
     margin:16px 0 10px;
     font-size:.92rem;
@@ -305,15 +304,15 @@
     background:transparent;
   }
   .resume-role + .resume-role{
-    margin-top:18px;
-    padding-top:18px;
+    margin-top:28px;
+    padding-top:28px;
     border-top:1px solid color-mix(in srgb,var(--text-light) 10%, transparent);
   }
 	  .resume-role-header{
 	    display:grid;
 	    grid-template-columns:minmax(0, 1fr) auto;
 	    column-gap:16px;
-	    row-gap:10px;
+	    row-gap:14px;
 	    align-items:start;
 	  }
 	  .resume-role-brand{
@@ -352,25 +351,27 @@
 	  }
   .resume-role-title{
     margin:0;
-    font-size:1.1rem;
+    font-size:1.24rem;
     color:var(--text-light);
   }
   .resume-role-company{
-    margin:4px 0 0;
-    color:var(--text-muted);
-    font-size:1rem;
+    margin:6px 0 0;
+    color:color-mix(in srgb,var(--text-muted) 82%, #ffffff 18%);
+    font-size:1.08rem;
   }
 	  .resume-role-dates{
 	    margin:0;
-	    font-size:.95rem;
+	    font-size:1.04rem;
 	    color:var(--text-muted);
 	    text-align:right;
 	  }
   .resume-role-list{
-    margin:12px 0 0 18px;
+    margin:18px 0 0 22px;
     display:grid;
-    gap:6px;
-    color:color-mix(in srgb,var(--text-muted) 90%, #ffffff 10%);
+    gap:10px;
+    font-size:1.05rem;
+    line-height:1.7;
+    color:color-mix(in srgb,var(--text-muted) 80%, #ffffff 20%);
   }
   .resume-education-list{
     list-style:none;
