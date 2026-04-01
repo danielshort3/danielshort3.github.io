@@ -301,25 +301,6 @@
             </form>
           </section>
 
-          <section class="shortlinks-shell-card shortlinks-projects-card" aria-labelledby="shortlinks-projects-title">
-            <div class="shortlinks-card-head shortlinks-card-head-tight">
-              <div class="shortlinks-card-copy">
-                <p class="shortlinks-kicker">Portfolio sync</p>
-                <h2 id="shortlinks-projects-title" class="section-title">Project mappings</h2>
-              </div>
-              <p class="shortlinks-output-meta shortlinks-count" data-shortlinks="projects-meta" aria-live="polite"></p>
-            </div>
-            <p class="shortlinks-projects-note">Keep published portfolio projects matched with permanent short links and correct destinations.</p>
-            <div class="shortlinks-projects-toolbar">
-              <div class="shortlinks-projects-actions">
-                <button type="button" class="btn-secondary" data-shortlinks="projects-refresh">Refresh</button>
-                <button type="button" class="btn-primary" data-shortlinks="projects-ensure">Sync missing + mismatched</button>
-              </div>
-            </div>
-            <div class="contact-form-status" data-shortlinks="projects-status" role="status" aria-live="polite"></div>
-            <div class="shortlinks-list shortlinks-results" data-shortlinks="projects-list" aria-live="polite"></div>
-          </section>
-
           <section class="shortlinks-shell-card shortlinks-export-card" aria-labelledby="shortlinks-export-title">
             <div class="shortlinks-card-head shortlinks-card-head-tight">
               <div class="shortlinks-card-copy">
@@ -344,6 +325,25 @@
             </div>
           </section>
         </aside>
+
+        <section class="shortlinks-shell-card shortlinks-projects-card shortlinks-projects-card-wide" aria-labelledby="shortlinks-projects-title">
+          <div class="shortlinks-card-head shortlinks-card-head-tight">
+            <div class="shortlinks-card-copy">
+              <p class="shortlinks-kicker">Portfolio sync</p>
+              <h2 id="shortlinks-projects-title" class="section-title">Project mappings</h2>
+            </div>
+            <p class="shortlinks-output-meta shortlinks-count" data-shortlinks="projects-meta" aria-live="polite"></p>
+          </div>
+          <p class="shortlinks-projects-note">Keep published portfolio projects matched with permanent short links and correct destinations without crowding the main links view.</p>
+          <div class="shortlinks-projects-toolbar">
+            <div class="shortlinks-projects-actions">
+              <button type="button" class="btn-secondary" data-shortlinks="projects-refresh">Refresh</button>
+              <button type="button" class="btn-primary" data-shortlinks="projects-ensure">Sync missing + mismatched</button>
+            </div>
+          </div>
+          <div class="contact-form-status" data-shortlinks="projects-status" role="status" aria-live="polite"></div>
+          <div class="shortlinks-list shortlinks-results" data-shortlinks="projects-list" aria-live="polite"></div>
+        </section>
       </div>
     </section>
 

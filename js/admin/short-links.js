@@ -853,60 +853,23 @@
       const actions = document.createElement('div');
       actions.className = 'shortlinks-actions';
 
-      const copyButton = document.createElement('button');
-      copyButton.type = 'button';
-      copyButton.className = 'btn-ghost';
-      copyButton.textContent = 'Copy short URL';
-      copyButton.disabled = !expectedSlug;
-      copyButton.addEventListener('click', async () => {
-        if (!shortUrl) return;
-        try {
-          await navigator.clipboard.writeText(shortUrl);
-          flashButtonText(copyButton, 'Copied');
-          setStatus(projectsStatusEl, `Copied: ${shortUrl}`, 'success');
-        } catch {
-          flashButtonText(copyButton, 'Copy failed');
-          setStatus(projectsStatusEl, 'Copy failed (clipboard permission blocked).', 'error');
-        }
-      });
-
       const openShort = document.createElement('a');
       openShort.className = 'btn-secondary';
       openShort.href = shortUrl || destinationUrl;
       openShort.target = '_blank';
       openShort.rel = 'noopener noreferrer';
-      openShort.textContent = 'Open';
+      openShort.textContent = hasLink ? 'Open' : 'Destination';
       if (!openShort.href) openShort.setAttribute('aria-disabled', 'true');
-
-      const testButton = document.createElement('button');
-      testButton.type = 'button';
-      testButton.className = 'btn-secondary';
-      testButton.textContent = 'Test';
-      testButton.disabled = !hasLink;
-      testButton.addEventListener('click', () => {
-        if (!hasLink) {
-          setStatus(projectsStatusEl, 'Create the short link first.', 'error');
-          return;
-        }
-        testRedirect(expectedSlug, testButton, projectsStatusEl);
-      });
 
       const editButton = document.createElement('button');
       editButton.type = 'button';
       editButton.className = 'btn-secondary';
       editButton.textContent = 'Edit';
       editButton.addEventListener('click', () => {
-        slugInput.value = expectedSlug;
-        destinationInput.value = destinationUrl;
-        slugInput.focus();
-        setEditorMeta(`Editing ${buildPublicPath(expectedSlug)}`);
-        setStatus(editorStatusEl, `Editing ${buildPublicPath(expectedSlug)}`, 'success');
+        openEditorForLink({ slug: expectedSlug, destination: destinationUrl, disabled: !!(link && link.disabled), expiresAt: Number(link && link.expiresAt) || 0 });
       });
-
-      actions.appendChild(copyButton);
-      actions.appendChild(openShort);
-      actions.appendChild(testButton);
       actions.appendChild(editButton);
+      actions.appendChild(openShort);
 
       if (!hasLink) {
         const createButton = document.createElement('button');
@@ -927,6 +890,30 @@
         });
         actions.appendChild(fixButton);
       }
+
+      const projectMenu = buildActionMenu([
+        hasLink ? {
+          label: 'Copy short URL',
+          onSelect: async () => {
+            await copyTextToClipboard({
+              text: shortUrl,
+              statusTarget: projectsStatusEl,
+              successMessage: `Copied: ${shortUrl}`
+            });
+          }
+        } : null,
+        hasLink ? {
+          label: 'Test redirect',
+          onSelect: async () => {
+            const menuButton = actions.querySelector('.shortlinks-menu-trigger');
+            await testRedirect(expectedSlug, menuButton, projectsStatusEl);
+          }
+        } : null
+      ], {
+        label: 'More',
+        ariaLabel: `${project.label || project.id || 'Project'} actions`
+      });
+      if (projectMenu) actions.appendChild(projectMenu);
 
       head.appendChild(titleWrap);
       head.appendChild(actions);
@@ -1665,6 +1652,115 @@
     return `${weeks}w`;
   }
 
+  async function copyTextToClipboard({ text, button, statusTarget, successMessage }){
+    try {
+      await navigator.clipboard.writeText(String(text || ''));
+      flashButtonText(button, 'Copied');
+      setStatus(statusTarget, successMessage || `Copied: ${text}`, 'success');
+      return true;
+    } catch {
+      flashButtonText(button, 'Copy failed');
+      setStatus(statusTarget, 'Copy failed (clipboard permission blocked).', 'error');
+      return false;
+    }
+  }
+
+  function openEditorForLink({ slug, destination, disabled, expiresAt }){
+    slugInput.value = slug || '';
+    destinationInput.value = destination || '';
+    slugInput.focus();
+    const expiresLabel = expiresAt ? ` (expires ${new Date(expiresAt * 1000).toLocaleString()})` : '';
+    setEditorMeta(slug ? `Editing ${buildPublicPath(slug)}` : 'New link');
+    setStatus(
+      editorStatusEl,
+      slug ? `Editing ${buildPublicPath(slug)}${disabled ? ' (disabled)' : ''}${expiresLabel}` : 'Ready to create a new link.',
+      'success'
+    );
+  }
+
+  async function setLinkDisabled(link, nextDisabled, statusTarget){
+    if (!link || !normalizeSlugInput(link.slug)) return;
+    if (nextDisabled) {
+      const ok = window.confirm(`Disable ${buildPublicPath(link.slug)}?`);
+      if (!ok) return;
+    }
+    try {
+      await api(`/api/short-links/${encodeURIComponent(link.slug)}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ disabled: nextDisabled })
+      });
+      setStatus(statusTarget || listStatusEl, `${nextDisabled ? 'Disabled' : 'Enabled'} ${link.slug}`, 'success');
+      await refreshLinks();
+    } catch (err) {
+      setStatus(statusTarget || listStatusEl, err.message, 'error');
+    }
+  }
+
+  async function deleteLinkEntry(link, statusTarget){
+    if (!link || !normalizeSlugInput(link.slug)) return;
+    const ok = window.confirm(`Delete ${buildPublicPath(link.slug)}?`);
+    if (!ok) return;
+    try {
+      await api(`/api/short-links/${encodeURIComponent(link.slug)}`, { method: 'DELETE' });
+      setStatus(statusTarget || listStatusEl, `Deleted ${link.slug}`, 'success');
+      await refreshLinks();
+    } catch (err) {
+      setStatus(statusTarget || listStatusEl, err.message, 'error');
+    }
+  }
+
+  function buildActionMenu(items, options = {}){
+    const entries = Array.isArray(items) ? items.filter(Boolean) : [];
+    if (!entries.length) return null;
+
+    const details = document.createElement('details');
+    details.className = 'shortlinks-menu';
+
+    const summary = document.createElement('summary');
+    summary.className = 'shortlinks-menu-trigger';
+    summary.textContent = options.label || 'More';
+    if (options.ariaLabel) summary.setAttribute('aria-label', options.ariaLabel);
+    details.appendChild(summary);
+
+    const popover = document.createElement('div');
+    popover.className = 'shortlinks-menu-popover';
+
+    entries.forEach((item) => {
+      let control;
+      if (item.href) {
+        control = document.createElement('a');
+        control.href = item.href;
+        control.target = item.target || '_blank';
+        control.rel = item.rel || 'noopener noreferrer';
+        control.addEventListener('click', () => {
+          details.open = false;
+        });
+      } else {
+        control = document.createElement('button');
+        control.type = 'button';
+        control.disabled = !!item.disabled;
+        control.addEventListener('click', async () => {
+          details.open = false;
+          if (typeof item.onSelect === 'function') await item.onSelect();
+        });
+      }
+      control.className = `shortlinks-menu-item${item.danger ? ' shortlinks-menu-item-danger' : ''}`;
+      control.textContent = item.label;
+      if (item.title) control.title = item.title;
+      popover.appendChild(control);
+    });
+
+    details.addEventListener('toggle', () => {
+      if (!details.open) return;
+      document.querySelectorAll('.shortlinks-menu[open]').forEach((menu) => {
+        if (menu !== details) menu.open = false;
+      });
+    });
+
+    details.appendChild(popover);
+    return details;
+  }
+
   function renderLinksTable(links){
     clearList();
     listEl.classList.add('shortlinks-list-table');
@@ -1793,22 +1889,13 @@
       copyButton.className = 'btn-ghost';
       copyButton.textContent = 'Copy';
       copyButton.addEventListener('click', async () => {
-        try {
-          await navigator.clipboard.writeText(shortUrl);
-          flashButtonText(copyButton, 'Copied');
-          setStatus(listStatusEl, `Copied: ${shortUrl}`, 'success');
-        } catch {
-          flashButtonText(copyButton, 'Copy failed');
-          setStatus(listStatusEl, 'Copy failed (clipboard permission blocked).', 'error');
-        }
+        await copyTextToClipboard({
+          text: shortUrl,
+          button: copyButton,
+          statusTarget: listStatusEl,
+          successMessage: `Copied: ${shortUrl}`
+        });
       });
-
-      const openShort = document.createElement('a');
-      openShort.className = 'btn-secondary';
-      openShort.href = shortUrl;
-      openShort.target = '_blank';
-      openShort.rel = 'noopener noreferrer';
-      openShort.textContent = 'Open';
 
       const testButton = document.createElement('button');
       testButton.type = 'button';
@@ -1823,59 +1910,41 @@
       editButton.className = 'btn-secondary';
       editButton.textContent = 'Edit';
       editButton.addEventListener('click', () => {
-        slugInput.value = link.slug;
-        destinationInput.value = link.destination;
-        slugInput.focus();
-        const expiresAt = Number.isFinite(Number(link.expiresAt)) ? Number(link.expiresAt) : 0;
-        const expiresLabel = expiresAt ? ` (expires ${new Date(expiresAt * 1000).toLocaleString()})` : '';
-        setEditorMeta(`Editing ${buildPublicPath(link.slug)}`);
-        setStatus(editorStatusEl, `Editing ${buildPublicPath(link.slug)}${link.disabled ? ' (disabled)' : ''}${expiresLabel}`, 'success');
-      });
-
-      const toggleButton = document.createElement('button');
-      toggleButton.type = 'button';
-      toggleButton.className = 'btn-secondary';
-      toggleButton.textContent = link.disabled ? 'Enable' : 'Disable';
-      toggleButton.addEventListener('click', async () => {
-        const nextDisabled = !link.disabled;
-        if (nextDisabled) {
-          const ok = window.confirm(`Disable ${buildPublicPath(link.slug)}?`);
-          if (!ok) return;
-        }
-        try {
-          await api(`/api/short-links/${encodeURIComponent(link.slug)}`, {
-            method: 'PATCH',
-            body: JSON.stringify({ disabled: nextDisabled })
-          });
-          setStatus(listStatusEl, `${nextDisabled ? 'Disabled' : 'Enabled'} ${link.slug}`, 'success');
-          await refreshLinks();
-        } catch (err) {
-          setStatus(listStatusEl, err.message, 'error');
-        }
-      });
-
-      const deleteButton = document.createElement('button');
-      deleteButton.type = 'button';
-      deleteButton.className = 'btn-secondary shortlinks-danger';
-      deleteButton.textContent = 'Delete';
-      deleteButton.addEventListener('click', async () => {
-        const ok = window.confirm(`Delete ${buildPublicPath(link.slug)}?`);
-        if (!ok) return;
-        try {
-          await api(`/api/short-links/${encodeURIComponent(link.slug)}`, { method: 'DELETE' });
-          setStatus(listStatusEl, `Deleted ${link.slug}`, 'success');
-          await refreshLinks();
-        } catch (err) {
-          setStatus(listStatusEl, err.message, 'error');
-        }
+        openEditorForLink({
+          slug: link.slug,
+          destination: link.destination,
+          disabled: !!link.disabled,
+          expiresAt: Number.isFinite(Number(link.expiresAt)) ? Number(link.expiresAt) : 0
+        });
       });
 
       actions.appendChild(copyButton);
-      actions.appendChild(openShort);
-      actions.appendChild(testButton);
       actions.appendChild(editButton);
-      actions.appendChild(toggleButton);
-      actions.appendChild(deleteButton);
+      const rowMenu = buildActionMenu([
+        {
+          label: 'Test redirect',
+          onSelect: async () => {
+            await testRedirect(link.slug, testButton);
+          }
+        },
+        {
+          label: link.disabled ? 'Enable link' : 'Disable link',
+          onSelect: async () => {
+            await setLinkDisabled(link, !link.disabled, listStatusEl);
+          }
+        },
+        {
+          label: 'Delete link',
+          danger: true,
+          onSelect: async () => {
+            await deleteLinkEntry(link, listStatusEl);
+          }
+        }
+      ], {
+        label: 'More',
+        ariaLabel: `${buildPublicPath(link.slug)} actions`
+      });
+      if (rowMenu) actions.appendChild(rowMenu);
 
       actionsCell.appendChild(actions);
       row.appendChild(actionsCell);
@@ -1963,24 +2032,15 @@
       const copyButton = document.createElement('button');
       copyButton.type = 'button';
       copyButton.className = 'btn-ghost';
-      copyButton.textContent = 'Copy short URL';
+      copyButton.textContent = 'Copy';
       copyButton.addEventListener('click', async () => {
-        try {
-          await navigator.clipboard.writeText(shortUrl);
-          flashButtonText(copyButton, 'Copied');
-          setStatus(listStatusEl, `Copied: ${shortUrl}`, 'success');
-        } catch {
-          flashButtonText(copyButton, 'Copy failed');
-          setStatus(listStatusEl, 'Copy failed (clipboard permission blocked).', 'error');
-        }
+        await copyTextToClipboard({
+          text: shortUrl,
+          button: copyButton,
+          statusTarget: listStatusEl,
+          successMessage: `Copied: ${shortUrl}`
+        });
       });
-
-      const openShort = document.createElement('a');
-      openShort.className = 'btn-secondary';
-      openShort.href = shortUrl;
-      openShort.target = '_blank';
-      openShort.rel = 'noopener noreferrer';
-      openShort.textContent = 'Open';
 
       const testButton = document.createElement('button');
       testButton.type = 'button';
@@ -1995,59 +2055,49 @@
       editButton.className = 'btn-secondary';
       editButton.textContent = 'Edit';
       editButton.addEventListener('click', () => {
-        slugInput.value = link.slug;
-        destinationInput.value = link.destination;
-        slugInput.focus();
-        const expiresAt = Number.isFinite(Number(link.expiresAt)) ? Number(link.expiresAt) : 0;
-        const expiresLabel = expiresAt ? ` (expires ${new Date(expiresAt * 1000).toLocaleString()})` : '';
-        setEditorMeta(`Editing ${buildPublicPath(link.slug)}`);
-        setStatus(editorStatusEl, `Editing ${buildPublicPath(link.slug)}${link.disabled ? ' (disabled)' : ''}${expiresLabel}`, 'success');
-      });
-
-      const toggleButton = document.createElement('button');
-      toggleButton.type = 'button';
-      toggleButton.className = 'btn-secondary';
-      toggleButton.textContent = link.disabled ? 'Enable' : 'Disable';
-      toggleButton.addEventListener('click', async () => {
-        const nextDisabled = !link.disabled;
-        if (nextDisabled) {
-          const ok = window.confirm(`Disable ${buildPublicPath(link.slug)}?`);
-          if (!ok) return;
-        }
-        try {
-          await api(`/api/short-links/${encodeURIComponent(link.slug)}`, {
-            method: 'PATCH',
-            body: JSON.stringify({ disabled: nextDisabled })
-          });
-          setStatus(listStatusEl, `${nextDisabled ? 'Disabled' : 'Enabled'} ${link.slug}`, 'success');
-          await refreshLinks();
-        } catch (err) {
-          setStatus(listStatusEl, err.message, 'error');
-        }
-      });
-
-      const deleteButton = document.createElement('button');
-      deleteButton.type = 'button';
-      deleteButton.className = 'btn-secondary shortlinks-danger';
-      deleteButton.textContent = 'Delete';
-      deleteButton.addEventListener('click', async () => {
-        const ok = window.confirm(`Delete ${buildPublicPath(link.slug)}?`);
-        if (!ok) return;
-        try {
-          await api(`/api/short-links/${encodeURIComponent(link.slug)}`, { method: 'DELETE' });
-          setStatus(listStatusEl, `Deleted ${link.slug}`, 'success');
-          await refreshLinks();
-        } catch (err) {
-          setStatus(listStatusEl, err.message, 'error');
-        }
+        openEditorForLink({
+          slug: link.slug,
+          destination: link.destination,
+          disabled: !!link.disabled,
+          expiresAt: Number.isFinite(Number(link.expiresAt)) ? Number(link.expiresAt) : 0
+        });
       });
 
       actions.appendChild(copyButton);
-      actions.appendChild(openShort);
-      actions.appendChild(testButton);
       actions.appendChild(editButton);
-      actions.appendChild(toggleButton);
-      actions.appendChild(deleteButton);
+      const cardMenu = buildActionMenu([
+        {
+          label: 'Open short link',
+          href: shortUrl
+        },
+        {
+          label: 'Open destination',
+          href: destinationUrl
+        },
+        {
+          label: 'Test redirect',
+          onSelect: async () => {
+            await testRedirect(link.slug, testButton);
+          }
+        },
+        {
+          label: link.disabled ? 'Enable link' : 'Disable link',
+          onSelect: async () => {
+            await setLinkDisabled(link, !link.disabled, listStatusEl);
+          }
+        },
+        {
+          label: 'Delete link',
+          danger: true,
+          onSelect: async () => {
+            await deleteLinkEntry(link, listStatusEl);
+          }
+        }
+      ], {
+        label: 'More',
+        ariaLabel: `${buildPublicPath(link.slug)} actions`
+      });
+      if (cardMenu) actions.appendChild(cardMenu);
 
       head.appendChild(titleWrap);
       head.appendChild(actions);
@@ -2361,6 +2411,9 @@
 
   document.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') return;
+    document.querySelectorAll('.shortlinks-menu[open]').forEach((menu) => {
+      menu.open = false;
+    });
     if (temporaryModal && temporaryModal.classList.contains('active')) {
       closeTemporaryModal();
       return;
@@ -2372,6 +2425,12 @@
     if (clicksModal && clicksModal.classList.contains('active')) {
       closeClicksModal();
     }
+  });
+
+  document.addEventListener('click', (event) => {
+    document.querySelectorAll('.shortlinks-menu[open]').forEach((menu) => {
+      if (!menu.contains(event.target)) menu.open = false;
+    });
   });
 
   function requireToken(target){
