@@ -860,15 +860,6 @@
       openShort.rel = 'noopener noreferrer';
       openShort.textContent = hasLink ? 'Open' : 'Destination';
       if (!openShort.href) openShort.setAttribute('aria-disabled', 'true');
-
-      const editButton = document.createElement('button');
-      editButton.type = 'button';
-      editButton.className = 'btn-secondary';
-      editButton.textContent = 'Edit';
-      editButton.addEventListener('click', () => {
-        openEditorForLink({ slug: expectedSlug, destination: destinationUrl, disabled: !!(link && link.disabled), expiresAt: Number(link && link.expiresAt) || 0 });
-      });
-      actions.appendChild(editButton);
       actions.appendChild(openShort);
 
       if (!hasLink) {
@@ -892,6 +883,12 @@
       }
 
       const projectMenu = buildActionMenu([
+        {
+          label: 'Edit link',
+          onSelect: async () => {
+            openEditorForLink({ slug: expectedSlug, destination: destinationUrl, disabled: !!(link && link.disabled), expiresAt: Number(link && link.expiresAt) || 0 });
+          }
+        },
         hasLink ? {
           label: 'Copy short URL',
           onSelect: async () => {
@@ -1905,22 +1902,27 @@
         testRedirect(link.slug, testButton);
       });
 
-      const editButton = document.createElement('button');
-      editButton.type = 'button';
-      editButton.className = 'btn-secondary';
-      editButton.textContent = 'Edit';
-      editButton.addEventListener('click', () => {
-        openEditorForLink({
-          slug: link.slug,
-          destination: link.destination,
-          disabled: !!link.disabled,
-          expiresAt: Number.isFinite(Number(link.expiresAt)) ? Number(link.expiresAt) : 0
-        });
-      });
-
       actions.appendChild(copyButton);
-      actions.appendChild(editButton);
       const rowMenu = buildActionMenu([
+        {
+          label: 'Edit link',
+          onSelect: async () => {
+            openEditorForLink({
+              slug: link.slug,
+              destination: link.destination,
+              disabled: !!link.disabled,
+              expiresAt: Number.isFinite(Number(link.expiresAt)) ? Number(link.expiresAt) : 0
+            });
+          }
+        },
+        {
+          label: 'Open short link',
+          href: shortUrl
+        },
+        {
+          label: 'Open destination',
+          href: destinationUrl
+        },
         {
           label: 'Test redirect',
           onSelect: async () => {
@@ -2050,22 +2052,19 @@
         testRedirect(link.slug, testButton);
       });
 
-      const editButton = document.createElement('button');
-      editButton.type = 'button';
-      editButton.className = 'btn-secondary';
-      editButton.textContent = 'Edit';
-      editButton.addEventListener('click', () => {
-        openEditorForLink({
-          slug: link.slug,
-          destination: link.destination,
-          disabled: !!link.disabled,
-          expiresAt: Number.isFinite(Number(link.expiresAt)) ? Number(link.expiresAt) : 0
-        });
-      });
-
       actions.appendChild(copyButton);
-      actions.appendChild(editButton);
       const cardMenu = buildActionMenu([
+        {
+          label: 'Edit link',
+          onSelect: async () => {
+            openEditorForLink({
+              slug: link.slug,
+              destination: link.destination,
+              disabled: !!link.disabled,
+              expiresAt: Number.isFinite(Number(link.expiresAt)) ? Number(link.expiresAt) : 0
+            });
+          }
+        },
         {
           label: 'Open short link',
           href: shortUrl

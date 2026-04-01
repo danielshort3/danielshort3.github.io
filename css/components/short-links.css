@@ -46,7 +46,6 @@
 
   .shortlinks-dashboard{
     display:grid;
-    grid-template-columns:minmax(0, 1.7fr) minmax(320px, .96fr);
     gap:clamp(1.1rem,2vw,1.6rem);
     align-items:start;
   }
@@ -54,6 +53,7 @@
   .shortlinks-dashboard-main,
   .shortlinks-dashboard-rail{
     display:grid;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
     gap:clamp(1rem,2vw,1.35rem);
   }
 
@@ -956,10 +956,6 @@
   }
 
   @media (max-width: 1180px){
-    .shortlinks-dashboard{
-      grid-template-columns:1fr;
-    }
-
     .shortlinks-dashboard-rail{
       grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
       align-items:start;
@@ -974,13 +970,17 @@
     .shortlinks-form-grid{
       grid-template-columns:1fr;
     }
-  }
 
-  @media (max-width: 760px){
     .shortlinks-dashboard-rail{
       grid-template-columns:1fr;
     }
 
+    .shortlinks-projects-card-wide .shortlinks-list{
+      grid-template-columns:1fr;
+    }
+  }
+
+  @media (max-width: 760px){
     .shortlinks-item-head,
     .shortlinks-card-head{
       align-items:flex-start;
