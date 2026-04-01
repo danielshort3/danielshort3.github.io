@@ -18,7 +18,11 @@
   const projectsRefreshButton = document.querySelector('[data-shortlinks="projects-refresh"]');
   const projectsEnsureButton = document.querySelector('[data-shortlinks="projects-ensure"]');
 
+  const adminToolsEl = document.querySelector('[data-shortlinks="admin-tools"]');
   const accessCard = document.querySelector('[data-shortlinks="access-card"]');
+  const adminAccessSummaryEl = document.querySelector('[data-shortlinks="admin-access-summary"]');
+  const adminProjectSummaryEl = document.querySelector('[data-shortlinks="admin-project-summary"]');
+  const adminExportSummaryEl = document.querySelector('[data-shortlinks="admin-export-summary"]');
   const accessMetaEl = document.querySelector('[data-shortlinks="access-meta"]');
   const filterInput = document.querySelector('[data-shortlinks="filter"]');
   const exportModeSelect = document.querySelector('[data-shortlinks="export-mode"]');
@@ -141,6 +145,13 @@
     else delete el.dataset.tone;
   }
 
+  function setAdminBadge(el, message, tone){
+    if (!el) return;
+    el.textContent = String(message || '');
+    if (tone) el.dataset.tone = tone;
+    else delete el.dataset.tone;
+  }
+
   function setEditorMeta(message){
     if (!editorMetaEl) return;
     editorMetaEl.textContent = String(message || 'New link');
@@ -150,6 +161,10 @@
     if (!accessCard) {
       if (options.focusInput && tokenInput) tokenInput.focus();
       return;
+    }
+
+    if (adminToolsEl && typeof adminToolsEl.open === 'boolean') {
+      adminToolsEl.open = true;
     }
 
     accessCard.classList.add('is-attention');
@@ -204,8 +219,10 @@
   }
 
   function updateAccessMeta(){
-    if (!accessMetaEl) return;
-    accessMetaEl.textContent = getSavedToken() ? 'Token stored' : 'Token required';
+    if (accessMetaEl) {
+      accessMetaEl.textContent = getSavedToken() ? 'Token stored' : 'Token required';
+    }
+    updateAdminSummary();
   }
 
   function setCount(shown, total){
@@ -298,6 +315,7 @@
     if (exportClickLimitInput) {
       exportClickLimitInput.disabled = !clicksEnabled;
     }
+    updateAdminSummary();
   }
 
   function getSortedLinksForExport(){
@@ -551,14 +569,50 @@
         note: noteBits.length ? noteBits.join(' · ') : 'All mapped correctly',
         tone: issues ? 'warning' : 'success'
       }));
+    } else {
+      summaryEl.appendChild(makeSnapshotCard({
+        label: 'Project sync',
+        value: 'Loading',
+        note: 'Waiting for portfolio destinations'
+      }));
+    }
+
+    updateAdminSummary();
+  }
+
+  function updateAdminSummary(){
+    const hasToken = !!getSavedToken();
+    setAdminBadge(
+      adminAccessSummaryEl,
+      hasToken ? 'Token saved' : 'Token required',
+      hasToken ? 'success' : 'warning'
+    );
+
+    const totalProjects = Number.isFinite(Number(projectHealth.total)) ? Number(projectHealth.total) : 0;
+    const missingProjects = Number.isFinite(Number(projectHealth.missing)) ? Number(projectHealth.missing) : 0;
+    const mismatchedProjects = Number.isFinite(Number(projectHealth.mismatched)) ? Number(projectHealth.mismatched) : 0;
+    const projectIssues = missingProjects + mismatchedProjects;
+
+    if (!totalProjects) {
+      setAdminBadge(adminProjectSummaryEl, 'Project sync loading', '');
+    } else {
+      setAdminBadge(
+        adminProjectSummaryEl,
+        projectIssues
+          ? `${formatCount(projectIssues)} sync issue${projectIssues === 1 ? '' : 's'}`
+          : 'Project sync healthy',
+        projectIssues ? 'warning' : 'success'
+      );
+    }
+
+    const mode = exportModeSelect ? String(exportModeSelect.value || '').trim() : EXPORT_MODE_REDIRECTS_ONLY;
+    if (mode === EXPORT_MODE_WITH_CLICKS) {
+      const clickLimit = normalizeExportClickLimit(exportClickLimitInput?.value);
+      setAdminBadge(adminExportSummaryEl, `JSON export · ${formatCount(clickLimit)} clicks`, 'info');
       return;
     }
 
-    summaryEl.appendChild(makeSnapshotCard({
-      label: 'Project sync',
-      value: 'Loading',
-      note: 'Waiting for portfolio destinations'
-    }));
+    setAdminBadge(adminExportSummaryEl, 'CSV export ready', '');
   }
 
   function isDevHost(hostname){
@@ -2579,6 +2633,12 @@
   if (exportModeSelect) {
     exportModeSelect.addEventListener('change', () => {
       syncExportControls();
+    });
+  }
+
+  if (exportClickLimitInput) {
+    exportClickLimitInput.addEventListener('input', () => {
+      updateAdminSummary();
     });
   }
 
