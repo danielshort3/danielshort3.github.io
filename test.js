@@ -293,7 +293,11 @@ try {
   section('Short links dashboard hooks', () => {
     const html = readFile('pages/short-links.html');
     [
+      'data-shortlinks="admin-tools"',
       'data-shortlinks="access-card"',
+      'data-shortlinks="admin-access-summary"',
+      'data-shortlinks="admin-project-summary"',
+      'data-shortlinks="admin-export-summary"',
       'data-shortlinks="auth"',
       'data-shortlinks="summary"',
       'data-shortlinks="editor"',
