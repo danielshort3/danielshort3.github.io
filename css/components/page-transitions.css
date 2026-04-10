@@ -1,0 +1,112 @@
+@layer components {
+  :root {
+    --page-transition-fallback-duration: 220ms;
+    --page-transition-fallback-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  html.site-is-navigating .nav-dropdown,
+  html.site-is-navigating .nav-row,
+  html.site-is-navigating .burger .bar {
+    transition-duration: 0s !important;
+    animation: none !important;
+  }
+
+  html.site-page-transition-preload #main,
+  html.site-page-transition-preload .footer,
+  html.site-page-transition-out #main,
+  html.site-page-transition-out .footer,
+  html.site-page-transition-in #main,
+  html.site-page-transition-in .footer {
+    pointer-events: none;
+  }
+
+  html.site-page-transition-preload #main,
+  html.site-page-transition-preload .footer,
+  html.site-page-transition-out #main,
+  html.site-page-transition-out .footer,
+  html.site-page-transition-in #main {
+    will-change: opacity, transform;
+  }
+
+  html.site-page-transition-preload #main,
+  html.site-page-transition-preload .footer {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  html.site-page-transition-out #main,
+  html.site-page-transition-out .footer {
+    opacity: 0;
+    transform: translateY(-8px);
+    transition:
+      opacity var(--page-transition-fallback-duration) ease,
+      transform var(--page-transition-fallback-duration) var(--page-transition-fallback-ease);
+  }
+
+  html.site-page-transition-in #main,
+  html.site-page-transition-in .footer {
+    animation: page-transition-main-in var(--page-transition-fallback-duration) var(--page-transition-fallback-ease) both;
+  }
+
+  @keyframes page-transition-fade-out {
+    from {
+      opacity: 1;
+    }
+
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes page-transition-fade-in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes page-transition-main-out {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    to {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+  }
+
+  @keyframes page-transition-main-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      --page-transition-fallback-duration: 120ms;
+    }
+
+    html.site-page-transition-preload #main,
+    html.site-page-transition-preload .footer,
+    html.site-page-transition-out #main,
+    html.site-page-transition-out .footer {
+      transform: none;
+    }
+
+    html.site-page-transition-in #main,
+    html.site-page-transition-in .footer {
+      animation-name: page-transition-fade-in;
+    }
+  }
+}
