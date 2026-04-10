@@ -36,48 +36,60 @@ window.PROJECTS = [
       url: "sentence-demo.html"
     },
     demoInstructions: {
-      lead: "Search a fixed corpus (Alice in Wonderland) by meaning, not exact wording.",
+      lead: "Search a fixed Alice in Wonderland corpus by meaning, not exact wording.",
       bullets: [
         "Type a query (a phrase or full sentence).",
         "Adjust “Top results” to control how many matches are returned.",
-        "Click “Find Sentences” and review the ranked results.",
-        "If the status shows “Warming up”, wait a moment and try again."
+        "Click “Find Sentences” and review the ranked semantic matches.",
+        "If the demo is warming up after idle time, wait for the status to turn ready and try again."
       ]
     },
-    problem: "I wanted a fast way to find sentences that match a question, even when the wording is different.",
+    role: [
+      "Built the retrieval pipeline, Lambda API, and browser demo end to end."
+    ],
+    notes: "The live demo uses a fixed Alice in Wonderland corpus and checks endpoint health before enabling queries because cold starts can happen after idle time.",
+    problem: "I wanted a fast way to retrieve sentences that answer a question even when the wording doesn't match exactly.",
     actions: [
-      "Cleaned the text of Alice in Wonderland, split it into sentences, and precomputed embeddings.",
-      "Experimented with several embedding models on a small sample (~800 sentences) and compared clustering quality using silhouette score as a quick heuristic.",
-      "Deployed a selected model behind an AWS Lambda API (with CORS) that returns the top-k semantic matches."
+      "Cleaned Project Gutenberg text, split it into sentences, and precomputed embeddings for the fixed corpus.",
+      "Compared several embedding models on a sample subset and balanced clustering quality against model size and serverless deployment cost.",
+      "Deployed the selected model behind an AWS Lambda Function URL and built a browser demo that checks `/health` before ranking top-k matches by cosine similarity."
     ],
     results: [
-      "Selected an embedding model that clustered the corpus cleanly on the test set (dataset- and k-dependent).",
-      "Shipped a serverless demo: embed the query, then rank cached sentence embeddings by cosine similarity."
+      "Shipped a working semantic-search demo for Alice in Wonderland that returns ranked sentence matches instead of keyword hits.",
+      "Kept the site embed usable with warm-up status, inline similarity bars, and an open-in-new-tab fallback for a larger view."
     ],
     caseStudy: [
       {
         title: "System Design",
-        lead: "This uses a fixed corpus (Alice in Wonderland): embed each sentence once, then embed each query and rank by cosine similarity.",
+        lead: "This uses a fixed Alice in Wonderland corpus: embed each sentence once, then embed each query and rank by cosine similarity.",
         bullets: [
-          "Offline: clean the text, split into sentences, and store embeddings.",
-          "Online: embed the query, score against the cached matrix, and return the top-k with scores.",
-          "Frontend: a small demo that calls `/health` and `/rank` and shows the top matches."
+          "Offline: clean the text, split it into sentences, and cache the sentence embeddings.",
+          "Online: embed the query, score against the cached matrix, and return the top-k matches with scores.",
+          "Frontend: check `/health` before submit, call `/rank`, and render the ranked results in an embeddable demo."
         ]
       },
       {
         title: "Model Selection",
         bullets: [
-          "Compared several embedding models using silhouette score as a rough clustering heuristic.",
-          "Considered model size and deployment cost alongside clustering quality.",
-          "Kept the setup fixed (same corpus, same sample, same k range) so results are comparable."
+          "Compared several embedding models using silhouette score on a small sample as a rough clustering heuristic.",
+          "Balanced retrieval quality against model size, memory footprint, and cold-start cost.",
+          "Kept the corpus, sample, and k range fixed so the comparisons were consistent."
         ]
       },
       {
         title: "Serverless Deployment",
         bullets: [
           "Built a Lambda container with CPU PyTorch, FastAPI/Mangum, and the precomputed artifacts.",
-          "Used the plain Hugging Face stack (no sentence-transformers) to keep cold starts smaller.",
-          "Exposed a Lambda Function URL with CORS so the website can call it from the browser."
+          "Used the plain Hugging Face stack (no sentence-transformers) to keep the deployment smaller.",
+          "Exposed a Lambda Function URL with CORS plus a lightweight `/health` and `/rank` contract for the site demo."
+        ]
+      },
+      {
+        title: "Demo and Site Integration",
+        bullets: [
+          "Used the shared demo AWS client for endpoint resolution, retry logic, and warm-up polling.",
+          "Kept the embedded iframe responsive by posting resize messages back to the project page.",
+          "Supported both inline demo tabs and a separate-tab fallback from the portfolio page."
         ]
       },
       {
@@ -1326,9 +1338,9 @@ window.PROJECTS = [
 
 // IDs (in order) of projects shown in the top carousel
 window.FEATURED_IDS = [
-  "pizzaDashboard",
   "retailStore",
-  "targetEmptyPackage",
+  "smartSentence",
+  "pizzaDashboard",
   "chatbotLora",
   "shapeClassifier"
 ];

@@ -4,15 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <base href="/">
-  <title>Smart Sentence Finder</title>
+  <title>Smart Sentence Retriever</title>
   <meta name="robots" content="noindex, nofollow">
-  <meta name="description" content="Find the most relevant sentences in Alice in Wonderland for your query using precomputed embeddings and the Snowflake model." />
+  <meta name="description" content="Search a fixed Alice in Wonderland corpus by meaning, not exact wording, using precomputed sentence embeddings." />
   <meta name="theme-color" content="#0D1117" />
   <link rel="icon" href="data:," />
   <link rel="stylesheet" href="dist/styles.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@600&display=swap" rel="stylesheet">
   <style>
     :root {
       --radius: 12px;
@@ -80,9 +77,18 @@
     }
     .health-row {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
-      justify-content: flex-start;
+      justify-content: space-between;
+      gap: 12px;
       padding: 8px 16px 0;
+    }
+    .health-status {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      min-width: 0;
     }
     .health-pill {
       display: inline-flex;
@@ -115,6 +121,32 @@
     .health-pill[data-state="warming"] {
       color: var(--warning, #f3b550);
       border-color: color-mix(in srgb, var(--warning, #f3b550) 65%, var(--border) 35%);
+    }
+    .health-meta {
+      font-size: .82rem;
+      color: var(--muted);
+    }
+    .health-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 126px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-secondary:disabled {
+      opacity: .6;
+      cursor: not-allowed;
     }
     .section {
       padding: 18px;
@@ -267,6 +299,12 @@
       .card-header {
         padding: 14px;
       }
+      .health-row {
+        justify-content: flex-start;
+      }
+      .health-actions {
+        width: 100%;
+      }
       .section {
         padding: 14px;
       }
@@ -288,6 +326,9 @@
       .btn {
         width: 100%;
         min-width: 0;
+      }
+      .btn-secondary {
+        width: 100%;
       }
       .range-head {
         flex-wrap: wrap;
@@ -323,7 +364,7 @@
     const DEFAULT_URL = "https://7aa3jt3tzkinheprc5ds52bihq0itutx.lambda-url.us-east-2.on.aws/";
     const DEFAULT_QUERY = "She wonders about things.";
     const STORAGE_KEY = "demo.endpoint.sentence";
-    const { resolveEndpoint, getJson, postJson, joinUrl, retryRequest } = window.DemoAws;
+    const { resolveEndpoint, getJson, postJson, joinUrl, retryRequest, isRetryableError } = window.DemoAws;
     const endpointConfig = { defaultUrl: DEFAULT_URL, storageKey: STORAGE_KEY };
     const WARM_RETRY_OPTIONS = {
       retries: 12,
@@ -331,8 +372,17 @@
       factor: 1.8,
       maxDelayMs: 10000
     };
+    const QUERY_RETRY_OPTIONS = {
+      retries: 2,
+      baseDelayMs: 500,
+      factor: 2,
+      maxDelayMs: 2000
+    };
     let serverReady = false;
     let submitBtn = null;
+    let healthMeta = null;
+    let healthCheckBtn = null;
+    let healthPromise = null;
 
     const notifyResize = (() => {
       const CHANNEL = 'sentence-demo-resize';
@@ -368,34 +418,60 @@
       return postHeight;
     })();
 
-    async function health() {
-      const url = joinUrl(getEndpoint(), 'health');
-      const $status = document.getElementById('health');
-      if ($status) {
-        $status.dataset.state = 'warming';
-        $status.textContent = 'Warming up';
+    function setHealth(state, label, detail) {
+      const pill = document.getElementById('health');
+      if (pill) {
+        pill.dataset.state = state;
+        pill.textContent = label;
       }
+      if (healthMeta) {
+        healthMeta.textContent = detail || '';
+      }
+      notifyResize();
+    }
+
+    function getErrorText(err) {
+      if (!err) return 'Unknown error.';
+      if (typeof err === 'string') return err;
+      if (err && typeof err === 'object') {
+        const direct = err.message || err.data?.error || err.data?.message;
+        if (direct) return String(direct);
+      }
+      return String(err);
+    }
+
+    function isRecoverableRequestError(err) {
+      if (isRetryableError(err)) return true;
+      return Boolean(err && typeof err.status === 'number' && [408, 425, 429, 500, 502, 503, 504].includes(err.status));
+    }
+
+    async function health() {
+      if (healthPromise) return healthPromise;
+      const url = joinUrl(getEndpoint(), 'health');
       serverReady = false;
       if (submitBtn) submitBtn.disabled = true;
-      try {
-        await retryRequest(() => getJson(url), WARM_RETRY_OPTIONS);
-        serverReady = true;
-        if ($status) {
-          $status.dataset.state = 'ok';
-          $status.textContent = 'Ready';
+      if (healthCheckBtn) healthCheckBtn.disabled = true;
+      setHealth('warming', 'Warming up', 'Checking AWS Lambda status...');
+
+      const run = (async () => {
+        try {
+          await retryRequest(() => getJson(url), WARM_RETRY_OPTIONS);
+          serverReady = true;
+          setHealth('ok', 'Ready', 'AWS Lambda ready.');
+        } catch (e) {
+          serverReady = false;
+          setHealth('err', 'Unavailable', 'Unable to reach AWS Lambda right now.');
+          console.error(e);
+        } finally {
+          if (submitBtn) submitBtn.disabled = !serverReady;
+          if (healthCheckBtn) healthCheckBtn.disabled = false;
         }
-        notifyResize();
-      } catch (e) {
-        serverReady = false;
-        if ($status) {
-          $status.dataset.state = 'err';
-          $status.textContent = 'Unavailable';
-        }
-        console.error(e);
-        notifyResize();
-      } finally {
-        if (submitBtn) submitBtn.disabled = !serverReady;
-      }
+      })();
+
+      healthPromise = run.finally(() => {
+        healthPromise = null;
+      });
+      return healthPromise;
     }
 
     function getEndpoint() {
@@ -406,7 +482,7 @@
       ev.preventDefault();
       const form = ev.currentTarget;
       if (!serverReady) {
-        renderError('Server warming up. Please wait.');
+        renderError('Server warming up. Please wait for the status to turn ready.');
         return;
       }
       const queryInput = form.query;
@@ -425,12 +501,17 @@
       form.submitBtn.textContent = 'Searching…';
       try {
         const url = joinUrl(getEndpoint(), 'rank');
-        const data = await postJson(url, { query, top });
+        const data = await retryRequest(() => postJson(url, { query, top }), QUERY_RETRY_OPTIONS);
         renderResults(data || {});
       } catch (e) {
-        renderError(e);
+        if (isRecoverableRequestError(e)) {
+          serverReady = false;
+          if (submitBtn) submitBtn.disabled = true;
+          setHealth('warming', 'Warming up', 'Server is waking up or temporarily unavailable. Check status and retry.');
+        }
+        renderError(getErrorText(e));
       } finally {
-        form.submitBtn.disabled = false;
+        form.submitBtn.disabled = !serverReady;
         form.submitBtn.textContent = 'Find Sentences';
       }
     }
@@ -501,8 +582,15 @@
     function onLoad() {
       const form = document.getElementById('form');
       submitBtn = form.submitBtn;
+      healthMeta = document.getElementById('health-text');
+      healthCheckBtn = document.getElementById('health-check');
       if (submitBtn) submitBtn.disabled = true;
       form.addEventListener('submit', onSubmit);
+      if (healthCheckBtn) {
+        healthCheckBtn.addEventListener('click', () => {
+          health();
+        });
+      }
       const topRange = document.getElementById('top');
       const topValue = document.getElementById('top-value');
       if (topRange && topValue) {
@@ -518,26 +606,33 @@
     }
     window.addEventListener('DOMContentLoaded', onLoad);
   </script>
-  <meta property="og:title" content="Smart Sentence Finder" />
-  <meta property="og:description" content="Query Alice in Wonderland and get the most similar sentences using embeddings." />
+  <meta property="og:title" content="Smart Sentence Retriever" />
+  <meta property="og:description" content="Search a fixed Alice in Wonderland corpus by meaning, not exact wording, using precomputed sentence embeddings." />
   <meta property="og:type" content="website" />
 </head>
 <body>
   <div class="card" id="demo-card">
     <header class="card-header">
       <div class="header-copy">
-        <h1 class="title">Smart Sentence Finder</h1>
-        <p class="subtitle">Search all of Alice in Wonderland and pull back the most similar sentences.</p>
+        <h1 class="title">Smart Sentence Retriever</h1>
+        <p class="subtitle">Search a fixed Alice in Wonderland corpus by meaning, not exact wording.</p>
       </div>
     </header>
-    <div class="health-row" role="status" aria-live="polite">
-      <span id="health" class="health-pill" data-state="warming">Warming up</span>
+    <div class="health-row" aria-label="AWS status">
+      <div class="health-status" role="status" aria-live="polite">
+        <span id="health" class="health-pill" data-state="warming">Warming up</span>
+        <span id="health-text" class="health-meta">Checking AWS Lambda status...</span>
+      </div>
+      <div class="health-actions">
+        <button id="health-check" class="btn-secondary" type="button">Check status</button>
+      </div>
     </div>
     <div class="section">
       <form id="form">
         <div>
           <label for="query">Your query</label>
           <input id="query" name="query" type="text" placeholder="Example: She wonders about things." data-example-query="She wonders about things." />
+          <div class="small" style="margin-top:8px;">Returns semantic matches from a fixed corpus, not exact keyword hits.</div>
         </div>
         <div class="range-row">
           <div class="range-head">

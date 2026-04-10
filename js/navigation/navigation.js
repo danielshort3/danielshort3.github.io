@@ -6,6 +6,7 @@
   'use strict';
   const $  = (s, c=document) => c.querySelector(s);
   const $$ = (s, c=document) => [...c.querySelectorAll(s)];
+  const NAVIGATION_EVENT = 'site:navigation-start';
   const NAV_HEIGHT_FALLBACK = 72;
   let cachedNavHeight = null;
   let navHeightRaf = null;
@@ -315,6 +316,7 @@
 
     const burger = host.querySelector('#nav-toggle');
     const menu   = host.querySelector('#primary-menu');
+    let closeMenu = () => {};
     setupDropdown(host.querySelector('.nav-item-portfolio'));
     setupDropdown(host.querySelector('.nav-item-resume'));
     setupDropdown(host.querySelector('.nav-item-contact'));
@@ -346,7 +348,7 @@
         else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
       };
 
-      const closeMenu = () => {
+      closeMenu = ({ restoreFocus = true } = {}) => {
         if (!menu.classList.contains('open')) return;
         menu.classList.remove('open');
         burger.setAttribute('aria-expanded', 'false');
@@ -356,7 +358,10 @@
           document.removeEventListener('pointerdown', handleOutsidePointer, true);
           outsideCloseAttached = false;
         }
-        if (prevFocus) { prevFocus.focus(); prevFocus = null; }
+        if (restoreFocus && prevFocus) {
+          prevFocus.focus();
+        }
+        prevFocus = null;
       };
 
       const handleOutsidePointer = (event) => {
@@ -393,6 +398,11 @@
         }
       });
     }
+
+    document.addEventListener(NAVIGATION_EVENT, () => {
+      closeActiveDropdowns(null, { forceBlur: true });
+      closeMenu({ restoreFocus: false });
+    });
   }
 
   const closeActiveDropdowns = (excludeItem, options = {}) => {
