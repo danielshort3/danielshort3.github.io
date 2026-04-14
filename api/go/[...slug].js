@@ -5,7 +5,7 @@
 'use strict';
 
 const crypto = require('crypto');
-const { getLink, incrementClicks, recordClick } = require('../_lib/short-links-store');
+const { getLinkWithLegacyFallback, incrementClicks, recordClick } = require('../_lib/short-links-store');
 const { normalizeSlug, getRequestBaseUrl } = require('../_lib/short-links');
 
 function isShortDomainHost(req){
@@ -76,7 +76,7 @@ module.exports = async (req, res) => {
 
   let link;
   try {
-    link = await getLink(slug);
+    link = await getLinkWithLegacyFallback(slug);
   } catch (err) {
     res.statusCode = err.code === 'DDB_ENV_MISSING' ? 503 : 502;
     res.setHeader('Cache-Control', 'no-store');

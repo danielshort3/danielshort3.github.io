@@ -5,7 +5,7 @@
 */
 'use strict';
 
-const { listClicks } = require('../../_lib/short-links-store');
+const { getLinkWithLegacyFallback, listClicks } = require('../../_lib/short-links-store');
 const {
   getAdminToken,
   isAdminRequest,
@@ -59,10 +59,21 @@ module.exports = async (req, res) => {
   }
 
   const limit = parseLimit(req);
+  let resolvedSlug = slug;
+
+  try {
+    const link = await getLinkWithLegacyFallback(slug);
+    if (link && typeof link.slug === 'string') resolvedSlug = link.slug;
+  } catch (err) {
+    if (err && err.code === 'DDB_ENV_MISSING') {
+      sendJson(res, 503, { ok: false, error: err.message });
+      return;
+    }
+  }
 
   let items = [];
   try {
-    items = await listClicks({ slug, limit });
+    items = await listClicks({ slug: resolvedSlug, limit });
   } catch (err) {
     if (err && err.code === 'DDB_CLICKS_ENV_MISSING') {
       sendJson(res, 503, { ok: false, error: err.message });
@@ -89,5 +100,5 @@ module.exports = async (req, res) => {
     city: typeof item.city === 'string' ? item.city : ''
   }));
 
-  sendJson(res, 200, { ok: true, slug, limit, clicks });
+  sendJson(res, 200, { ok: true, slug: resolvedSlug, limit, clicks });
 };

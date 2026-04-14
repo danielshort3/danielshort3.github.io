@@ -124,14 +124,23 @@ try {
   let hashedCss;
 
   section('Page shells and required meta', () => {
-    checkFileContains('index.html', 'Made Actionable');
+    checkFileContains('index.html', 'Taking you to the default analyst site.');
 
     const expectedTitles = {
-      'index.html': 'Daniel Short | Data Analytics Made Actionable',
+      'index.html': 'Daniel Short | Redirecting to Analytics',
+      'pages/analytics.html': 'Data Analytics | Daniel Short',
+      'pages/data-science.html': 'Data Science | Daniel Short',
       'pages/destination-analytics.html': 'Destination Analytics | Daniel Short',
       'pages/contact.html': 'Contact | Daniel Short',
-      'pages/resume.html': 'Digital Resume | Daniel Short',
-      'pages/tourism.html': 'Tourism &amp; Destination Analytics | Daniel Short',
+      'pages/resume.html': 'Resume Versions | Daniel Short',
+      'pages/resume-pdf.html': 'Resume PDF Versions | Daniel Short',
+      'pages/resume-analytics.html': 'Analytics Resume | Daniel Short',
+      'pages/resume-data-science.html': 'Data Science Resume | Daniel Short',
+      'pages/resume-tourism.html': 'Tourism Resume | Daniel Short',
+      'pages/resume-analytics-pdf.html': 'Analytics Resume PDF | Daniel Short',
+      'pages/resume-data-science-pdf.html': 'Data Science Resume PDF | Daniel Short',
+      'pages/resume-tourism-pdf.html': 'Tourism Resume PDF | Daniel Short',
+      'pages/tourism.html': 'Tourism Analytics | Daniel Short',
       'pages/tools.html': 'Tools | Daniel Short',
       'pages/tools-dashboard.html': 'Tools Dashboard | Daniel Short',
       'pages/games.html': 'Games | Daniel Short',
@@ -156,7 +165,6 @@ try {
       'dshort.html',
       'pages/portfolio.html',
       'pages/contributions.html',
-      'pages/tourism.html',
       'pages/privacy.html'
     ];
     titleConventionPages.forEach((file) => {
@@ -202,11 +210,21 @@ try {
 
     const shellPages = [
       'index.html',
+      'pages/analytics.html',
+      'pages/data-science.html',
       'pages/destination-analytics.html',
       'pages/tourism.html',
       'pages/contact.html',
       'pages/portfolio.html',
       'pages/contributions.html',
+      'pages/resume.html',
+      'pages/resume-pdf.html',
+      'pages/resume-analytics.html',
+      'pages/resume-data-science.html',
+      'pages/resume-tourism.html',
+      'pages/resume-analytics-pdf.html',
+      'pages/resume-data-science-pdf.html',
+      'pages/resume-tourism-pdf.html',
       'pages/sitemap.html',
       'pages/games.html',
       'pages/ocean-wave-simulation.html',
@@ -222,14 +240,14 @@ try {
       assertHeroVariantClasses(file, html);
     });
 
-    ['index.html','pages/destination-analytics.html','pages/tourism.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/sitemap.html'].forEach((f) => {
+    ['pages/analytics.html','pages/data-science.html','pages/destination-analytics.html','pages/tourism.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/resume.html','pages/resume-pdf.html','pages/resume-analytics.html','pages/resume-data-science.html','pages/resume-tourism.html','pages/resume-analytics-pdf.html','pages/resume-data-science-pdf.html','pages/resume-tourism-pdf.html','pages/sitemap.html'].forEach((f) => {
       checkFileContainsOneOf(f, ['js/common/common.js', 'dist/site-shell.'], `${f} missing shared shell script reference`);
     });
     ['pages/games.html','pages/ocean-wave-simulation.html', ...toolPages].forEach((f) => {
       checkFileContainsOneOf(f, ['js/common/common.js', 'dist/site-shell.'], `${f} missing shared shell script reference`);
     });
 
-    ['pages/tourism.html','pages/games.html','pages/ocean-wave-simulation.html','404.html','dshort.html', ...privateToolPages].forEach((f) => {
+    ['pages/resume.html','pages/resume-pdf.html','pages/resume-analytics-pdf.html','pages/resume-data-science-pdf.html','pages/resume-tourism-pdf.html','pages/games.html','pages/ocean-wave-simulation.html','404.html','dshort.html', ...privateToolPages].forEach((f) => {
       checkFileContains(f, 'noindex, nofollow');
     });
 
@@ -249,7 +267,7 @@ try {
     assert(!readFile('pages/tools-dashboard.html').includes('id="tool-jsonld"'),
       'tools dashboard should not include WebApplication JSON-LD');
 
-    ['index.html','pages/destination-analytics.html','pages/tourism.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/tools.html','pages/games.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/utm-batch-builder.html','404.html'].forEach((f) => {
+    ['pages/analytics.html','pages/data-science.html','pages/destination-analytics.html','pages/tourism.html','pages/contact.html','pages/portfolio.html','pages/contributions.html','pages/resume-analytics.html','pages/resume-data-science.html','pages/resume-tourism.html','pages/tools.html','pages/games.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/utm-batch-builder.html','404.html'].forEach((f) => {
       checkFileContains(f, 'og:image');
     });
 
@@ -268,6 +286,7 @@ try {
     assert(!/xml-stylesheet/i.test(sitemap), 'sitemap.xml should not include xml-stylesheet');
     assert(/<urlset/.test(sitemap) && /<loc>https:\/\/.+<\/loc>/.test(sitemap), 'sitemap.xml structure invalid');
     assert(!/ds:hash=/.test(sitemap), 'sitemap.xml should not contain build metadata');
+    assert(!sitemap.includes('<loc>https://www.danielshort.me/</loc>'), 'sitemap.xml should not include redirecting root URL');
   });
 
   section('Lazy loading and analytics defers', () => {
@@ -281,7 +300,7 @@ try {
     const commonCode = fs.readFileSync('js/common/common.js', 'utf8');
     assert(commonCode.includes('js/portfolio/projects-data.js'), 'common.js missing portfolio lazy loader');
 
-    const htmlFiles = ['index.html','contact.html','resume.html','resume-pdf.html','privacy.html','pages/destination-analytics.html','pages/tourism.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','pages/resume-pdf.html','pages/privacy.html','pages/short-links.html','pages/utm-batch-builder.html'];
+    const htmlFiles = ['index.html','contact.html','resume.html','resume-pdf.html','privacy.html','pages/analytics.html','pages/data-science.html','pages/destination-analytics.html','pages/tourism.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','pages/resume-pdf.html','pages/resume-analytics.html','pages/resume-data-science.html','pages/resume-tourism.html','pages/resume-analytics-pdf.html','pages/resume-data-science-pdf.html','pages/resume-tourism-pdf.html','pages/privacy.html','pages/short-links.html','pages/utm-batch-builder.html'];
     htmlFiles.forEach(file => {
       const content = fs.readFileSync(file, 'utf8');
       assert(!content.includes('js/analytics/ga4-events.js'), `${file} should load analytics helpers on demand`);
@@ -300,9 +319,25 @@ try {
       'data-shortlinks="admin-export-summary"',
       'data-shortlinks="auth"',
       'data-shortlinks="summary"',
+      'data-shortlinks="mode-tab"',
+      'data-shortlinks-mode-panel="single"',
       'data-shortlinks="editor"',
+      'data-shortlinks="audience-field"',
+      'data-shortlinks="audience"',
+      'data-shortlinks="slug-mode"',
+      'data-shortlinks="expiration-mode"',
+      'data-shortlinks="expiration-duration-fields"',
+      'data-shortlinks="expiration-duration-value"',
+      'data-shortlinks="expiration-duration-unit"',
+      'data-shortlinks="random-length"',
+      'data-shortlinks="create-link"',
       'data-shortlinks="editor-meta"',
       'data-shortlinks="projects-list"',
+      'data-shortlinks="sets-list"',
+      'data-shortlinks="set-editor"',
+      'data-shortlinks="set-rows"',
+      'data-shortlinks="set-generate"',
+      'data-shortlinks="batch-results"',
       'data-shortlinks="export-mode"',
       'data-shortlinks="export-click-limit"',
       'data-shortlinks="export"',
@@ -311,6 +346,48 @@ try {
       assert(html.includes(snippet), `pages/short-links.html missing expected short-links hook: ${snippet}`);
     });
     assert(!html.includes('data-shortlinks="view"'), 'pages/short-links.html should not expose the old view switch');
+    assert((html.match(/data-cookie-settings="true"/g) || []).length === 1, 'pages/short-links.html should include one cookie settings widget');
+    assert((html.match(/data-speed-dial="true"/g) || []).length === 1, 'pages/short-links.html should include one speed dial');
+  });
+
+  section('Short links helper logic', () => {
+    const helpers = require('./api/_lib/short-links.js');
+    const setHelpers = require('./api/_lib/short-links-sets.js');
+
+    assert(helpers.normalizeSlug('Ab12Cd') === 'Ab12Cd', 'normalizeSlug should preserve case for valid slugs');
+    assert(helpers.normalizeSlug('a/b-C_9') === 'a/b-C_9', 'normalizeSlug should allow nested mixed-case slugs');
+    assert(helpers.normalizeSlug('bad slug') === '', 'normalizeSlug should reject spaces');
+    assert(helpers.normalizeSlugLower('Ab12Cd') === 'ab12cd', 'normalizeSlugLower should lowercase normalized slugs');
+
+    const randomSlug = helpers.generateRandomSlug(6);
+    assert(/^[A-Za-z0-9]{6}$/.test(randomSlug), 'generateRandomSlug should create mixed-case alphanumeric codes');
+    assert(helpers.normalizeRandomLength(3, 6) === 4, 'normalizeRandomLength should clamp to min');
+    assert(helpers.normalizeRandomLength(40, 6) === 12, 'normalizeRandomLength should clamp to max');
+
+    const template = setHelpers.buildSetTemplateRecord({
+      title: ' Data Analyst Resume ',
+      defaultRandomLength: 6,
+      defaultExpirationMode: 'temporary',
+      defaultDurationValue: 14,
+      defaultDurationUnit: 'days',
+      entries: [
+        { label: 'Analytics site', destination: '/analytics', enabled: true },
+        { label: 'LinkedIn', destination: 'https://www.linkedin.com/in/danielshort3/', enabled: true }
+      ]
+    }, null);
+
+    assert(template.title === 'Data Analyst Resume', 'buildSetTemplateRecord should trim titles');
+    assert(Array.isArray(template.entries) && template.entries.length === 2, 'buildSetTemplateRecord should keep valid entries');
+    assert(template.entries[0].destination === '/analytics', 'buildSetTemplateRecord should preserve internal paths for template rows');
+
+    const timing = setHelpers.resolveBatchTiming({
+      expirationMode: 'temporary',
+      durationValue: 2,
+      durationUnit: 'weeks'
+    }, template);
+    assert(timing.ok === true, 'resolveBatchTiming should accept temporary durations');
+    assert(timing.permanent === false, 'resolveBatchTiming should mark temporary batches as non-permanent');
+    assert(timing.durationUnit === 'weeks', 'resolveBatchTiming should preserve supported duration units');
   });
 
   section('Root/pages drift guard', () => {
@@ -376,6 +453,8 @@ try {
     checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="entry-filter-tags"');
     checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="funnel-list"');
     checkFileContains('pages/job-application-tracker.html', 'data-jobtrack="time-in-stage-list"');
+    assert(trackerJs.includes('buildShortlinksSetSection'), 'job tracker should build the short-link set section');
+    assert(trackerJs.includes('SHORTLINKS_SETS_API_PATH'), 'job tracker should include short-links set API integration');
     assert(!trackerHtml.includes('js/vendor/chartjs/chart.umd.min.js'), 'job tracker should lazy-load Chart.js');
     assert(!trackerHtml.includes('js/vendor/fflate/fflate.min.js'), 'job tracker should lazy-load fflate');
     assert(trackerJs.includes('const CHART_JS_SRC = \'/js/vendor/chartjs/chart.umd.min.js\';'),
@@ -453,6 +532,12 @@ try {
       checkFileContains(file, `<meta property="og:url" content="https://www.danielshort.me/portfolio/${id}">`);
       assert(sitemap.includes(`https://www.danielshort.me/portfolio/${id}`), `sitemap.xml missing project url: ${id}`);
     });
+    assert(!ids.includes('destinationReporting'), 'destinationReporting should not be a published project');
+    assert(!fs.existsSync('pages/portfolio/destinationReporting.html'), 'destinationReporting page should be removed');
+    assert(!sitemap.includes('https://www.danielshort.me/portfolio/destinationReporting'), 'sitemap.xml should not include destinationReporting');
+    assert(!readFile('pages/portfolio.html').includes('portfolio/destinationReporting'), 'portfolio.html should not link to destinationReporting');
+    assert(!readFile('pages/resume-analytics.html').includes('portfolio/destinationReporting'), 'resume-analytics should not link to destinationReporting');
+    assert(!readFile('pages/resume-tourism.html').includes('portfolio/destinationReporting'), 'resume-tourism should not link to destinationReporting');
 
     const toolsHtml = fs.readFileSync('pages/tools.html', 'utf8');
     const adminToolPaths = toolsHtml
@@ -552,11 +637,12 @@ try {
     assert(headerTemplate.includes('class="brand-title"'), 'nav markup missing brand-title');
     assert(headerTemplate.includes('class="brand-divider"'), 'nav markup missing brand-divider');
     assert(headerTemplate.includes('class="brand-tagline"'), 'nav markup missing brand-tagline');
-    assert(headerTemplate.includes('class="brand-tagline-chunk">Data Science'), 'nav markup missing tagline chunk for Data Science');
-    assert(headerTemplate.includes('class="brand-tagline-chunk">&amp; Analytics'), 'nav markup missing tagline chunk for Analytics');
+    assert(headerTemplate.includes('data-brand-tagline-primary="true"'), 'nav markup missing primary brand tagline hook');
+    assert(!headerTemplate.includes('nav-item-audience'), 'header should not expose audience switcher');
     const entryHomeMatches = headerTemplate.match(/data-entry-home-link="true"/g) || [];
     assert(entryHomeMatches.length === 2, 'header should mark exactly two entry-home links');
     assert(!footerTemplate.includes('data-entry-home-link'), 'footer should not include entry-home markers');
+    assert(!footerTemplate.includes('data-audience-crosslinks'), 'footer should not include audience cross-links');
     assert(headerTemplate.includes('class="nav-search"'), 'nav markup missing header search');
     assert(headerTemplate.includes('action="search"'), 'header search missing action="search"');
     assert(headerTemplate.includes('name="q"'), 'header search missing query param name="q"');
@@ -597,6 +683,15 @@ try {
 
     const routeStyles = JSON.parse(fs.readFileSync('build/route-component-styles.json', 'utf8'));
     assert(Array.isArray(routeStyles['/']), 'route styles manifest missing home entry');
+    assert(Array.isArray(routeStyles['/analytics']), 'route styles manifest missing analytics entry');
+    assert(Array.isArray(routeStyles['/data-science']), 'route styles manifest missing data-science entry');
+    assert(Array.isArray(routeStyles['/tourism']), 'route styles manifest missing tourism entry');
+    ['css/components/home-proof.css','css/components/jump-panel.css','css/components/certification.css','css/components/work-experience.css','css/components/destination-analytics.css'].forEach((stylePath) => {
+      assert(routeStyles['/analytics'].includes(stylePath), `/analytics route styles missing ${stylePath}`);
+      assert(routeStyles['/data-science'].includes(stylePath), `/data-science route styles missing ${stylePath}`);
+      assert(routeStyles['/tourism'].includes(stylePath), `/tourism route styles missing ${stylePath}`);
+    });
+    assert(Array.isArray(routeStyles['/resume-analytics']), 'route styles manifest missing resume analytics entry');
     assert(Array.isArray(routeStyles['/search']), 'route styles manifest missing search entry');
     assert(Array.isArray(routeStyles['/portfolio/*']), 'route styles manifest missing portfolio wildcard entry');
   });
@@ -657,7 +752,7 @@ try {
       .map(p => p.id);
     const projectPages = projectIds.map(id => `pages/portfolio/${id}.html`);
     const toolPages = ['pages/tools.html','pages/tools-dashboard.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html','pages/whisper-transcribe-monitor.html','pages/ga4-utm-performance.html'];
-    ['index.html','pages/destination-analytics.html','pages/tourism.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','pages/privacy.html','pages/search.html','404.html', ...toolPages, ...projectPages].forEach(f => {
+    ['pages/analytics.html','pages/data-science.html','pages/destination-analytics.html','pages/tourism.html','pages/portfolio.html','pages/contributions.html','pages/contact.html','pages/resume.html','pages/resume-pdf.html','pages/resume-analytics.html','pages/resume-data-science.html','pages/resume-tourism.html','pages/resume-analytics-pdf.html','pages/resume-data-science-pdf.html','pages/resume-tourism-pdf.html','pages/privacy.html','pages/search.html','404.html', ...toolPages, ...projectPages].forEach(f => {
       checkFileContains(f, '<header id="combined-header-nav">');
       checkFileContains(f, '<main id="main"');
       checkFileContains(f, 'class="skip-link"');
@@ -685,7 +780,6 @@ try {
       );
     });
 
-    assert(htmlHasManagedBundle(readFile('index.html'), 'site-home'), 'index.html missing home bundle reference');
     assert(htmlHasManagedBundle(readFile('pages/contact.html'), 'site-contact'), 'pages/contact.html missing contact bundle reference');
     assert(htmlHasManagedBundle(readFile('pages/search.html'), 'site-search'), 'pages/search.html missing search bundle reference');
     assert(htmlHasManagedBundle(readFile('pages/contributions.html'), 'site-contributions'), 'pages/contributions.html missing contributions bundle reference');
@@ -699,11 +793,64 @@ try {
       assert(htmlHasManagedBundle(readFile(file), 'site-tools-account'), `${file} missing tools-account bundle`);
     });
 
-    checkFileContains('index.html', 'css/components/home-proof.css');
+    checkFileContains('index.html', 'http-equiv="refresh"');
     checkFileContains('pages/search.html', 'css/components/search.css');
     checkFileContains('pages/contact.html', 'css/components/contact-card.css');
     checkFileContains('pages/resume.html', 'css/components/resume.css');
+    checkFileContains('pages/analytics.html', 'css/components/destination-analytics.css');
+    checkFileContains('pages/data-science.html', 'css/components/destination-analytics.css');
+    ['pages/analytics.html', 'pages/data-science.html', 'pages/tourism.html'].forEach((file) => {
+      checkFileContains(file, 'css/components/home-proof.css');
+      checkFileContains(file, 'css/components/jump-panel.css');
+      checkFileContains(file, 'css/components/certification.css');
+      checkFileContains(file, 'css/components/work-experience.css');
+    });
+    checkFileContains('pages/resume-analytics.html', 'css/components/resume.css');
     checkFileContains('pages/portfolio/nonogram.html', 'css/components/project-page.css');
+  });
+
+  section('Audience landing page structure', () => {
+    ['pages/analytics.html', 'pages/data-science.html', 'pages/tourism.html'].forEach((file) => {
+      const html = readFile(file);
+      checkFileContains(file, 'home-pattern-page');
+      checkFileContains(file, 'id="selected-outcomes"');
+      checkFileContains(file, 'class="jump-panel"');
+      checkFileContains(file, 'id="project-examples"');
+      checkFileContains(file, 'id="work-experience"');
+      checkFileContains(file, 'id="about-me"');
+      checkFileContains(file, 'id="certifications"');
+      checkFileContains(file, 'id="cta"');
+      checkFileContains(file, 'id="contact-modal"');
+      assert(!html.includes('audience-gateway-hero'), `${file} should not use audience gateway hero`);
+      assert(!html.includes('this version'), `${file} should not mention "this version"`);
+    });
+    assert(!readFile('pages/data-science.html').includes('hero-bullet-list'), 'data-science page should not use hero bullets');
+    assert(!readFile('pages/tourism.html').includes('hero-bullet-list'), 'tourism page should not use hero bullets');
+    checkFileContains('pages/data-science.html', 'Applied Modeling With Measured Impact');
+    checkFileContains('pages/data-science.html', 'home-proof-value">95%<');
+    checkFileContains('pages/data-science.html', 'home-proof-value">10x<');
+    checkFileContains('pages/data-science.html', 'home-proof-value">98%<');
+    checkFileContains('pages/data-science.html', 'home-proof-value">+14.13%<');
+    checkFileContains('pages/analytics.html', 'data-brand-tagline-primary="true">Data Analytics<');
+    checkFileContains('pages/data-science.html', 'data-brand-tagline-primary="true">Data Science<');
+    checkFileContains('pages/tourism.html', 'data-brand-tagline-primary="true">Tourism Analytics<');
+    checkFileContains('pages/resume-analytics.html', 'data-brand-tagline-primary="true">Data Analytics<');
+    checkFileContains('pages/resume-data-science.html', 'data-brand-tagline-primary="true">Data Science<');
+    checkFileContains('pages/resume-tourism.html', 'data-brand-tagline-primary="true">Tourism Analytics<');
+    checkFileContains('pages/data-science.html', 'id="transferability"');
+    checkFileContains('pages/tourism.html', 'id="transferability"');
+    ['pages/analytics.html', 'pages/data-science.html', 'pages/tourism.html'].forEach((file) => {
+      const html = readFile(file);
+      const targetIndex = html.indexOf('<h3 class="work-company">Target</h3>');
+      const randallIndex = html.indexOf('<h3 class="work-company">Randall Reilly</h3>');
+      const visitIndex = html.indexOf('<h3 class="work-company">Visit Grand Junction</h3>');
+      assert(targetIndex >= 0, `${file} missing Target work card`);
+      assert(randallIndex >= 0, `${file} missing Randall Reilly work card`);
+      assert(visitIndex >= 0, `${file} missing Visit Grand Junction work card`);
+      assert(targetIndex < randallIndex && randallIndex < visitIndex,
+        `${file} work cards should be in ascending chronological order`);
+    });
+    assert(!readFile('pages/analytics.html').includes('destinationReporting'), 'analytics page should not feature destinationReporting');
   });
 
   section('Internal site links stay in the same tab', () => {
@@ -733,14 +880,14 @@ try {
   });
 
   section('Fonts and navigation behavior', () => {
-    checkFileContains('index.html', 'fonts.googleapis.com');
-    checkFileContains('index.html', 'family=Poppins');
-
     const navCode = fs.readFileSync('js/navigation/navigation.js', 'utf8');
     const headerTemplate = fs.readFileSync('build/templates/header.partial.html', 'utf8');
     assert(navCode.includes('ENTRY_HOME_KEY'), 'navigation missing entry-home storage key');
     assert(navCode.includes('[data-entry-home-link="true"]'), 'navigation missing entry-home link selector');
-    assert(navCode.includes("'/tourism'"), 'navigation missing tourism entry-home route');
+    assert(navCode.includes('detectAudienceFromPath'), 'navigation missing audience path detection');
+    assert(navCode.includes('[data-portfolio-home-link="true"]'), 'navigation missing portfolio home selector');
+    assert(navCode.includes('[data-resume-home-link="true"]'), 'navigation missing resume home selector');
+    assert(navCode.includes('[data-brand-tagline-primary="true"]'), 'navigation missing primary brand tagline selector');
     assert(headerTemplate.includes('aria-controls="primary-menu"'), 'header missing aria-controls="primary-menu"');
     assert(headerTemplate.includes('id="primary-menu"'), 'header missing primary-menu');
     assert(navCode.includes("classList.toggle('menu-open'"), 'burger toggle missing body.menu-open');
@@ -856,17 +1003,41 @@ try {
     let vercelObj;
     try { vercelObj = JSON.parse(vercel); } catch {}
     const rewrites = (vercelObj && vercelObj.rewrites) || [];
+    const redirects = (vercelObj && vercelObj.redirects) || [];
     assert(rewrites.length > 0, 'vercel.json missing rewrites');
     const badDest = rewrites.filter(r => /\.html$/.test((r.destination||'')));
     assert(badDest.length === 0, 'rewrite destinations must be extensionless to avoid loops');
     const hasPortfolio = rewrites.some(r => r.source === '/portfolio' && r.destination === '/pages/portfolio');
     const hasPortfolioHtml = rewrites.some(r => r.source === '/portfolio.html' && r.destination === '/pages/portfolio');
     const hasProjectRewrite = rewrites.some(r => r.source === '/portfolio/:project' && r.destination === '/pages/portfolio/:project');
+    const hasRootRedirect = redirects.some(r => r.source === '/' && r.destination === '/analytics');
+    const hasIndexRedirect = redirects.some(r => r.source === '/index.html' && r.destination === '/analytics');
+    const hasDshortRootRedirect = redirects.some(r =>
+      r.source === '/' &&
+      Array.isArray(r.has) &&
+      r.has.some(entry => entry && entry.type === 'host' && entry.value === 'dshort.me') &&
+      r.destination === 'https://www.danielshort.me/analytics'
+    );
+    const hasAnalytics = rewrites.some(r => r.source === '/analytics' && r.destination === '/pages/analytics');
+    const hasAnalyticsHtml = rewrites.some(r => r.source === '/analytics.html' && r.destination === '/pages/analytics');
+    const hasDataScience = rewrites.some(r => r.source === '/data-science' && r.destination === '/pages/data-science');
+    const hasDataScienceHtml = rewrites.some(r => r.source === '/data-science.html' && r.destination === '/pages/data-science');
     const hasTourism = rewrites.some(r => r.source === '/tourism' && r.destination === '/pages/tourism');
     const hasTourismHtml = rewrites.some(r => r.source === '/tourism.html' && r.destination === '/pages/tourism');
+    const hasResumeAnalytics = rewrites.some(r => r.source === '/resume-analytics' && r.destination === '/pages/resume-analytics');
+    const hasResumeDataScience = rewrites.some(r => r.source === '/resume-data-science' && r.destination === '/pages/resume-data-science');
+    const hasResumeTourism = rewrites.some(r => r.source === '/resume-tourism' && r.destination === '/pages/resume-tourism');
+    const hasResumeAnalyticsPdf = rewrites.some(r => r.source === '/resume-analytics-pdf' && r.destination === '/pages/resume-analytics-pdf');
     assert(hasPortfolio && hasPortfolioHtml, 'portfolio rewrites missing');
     assert(hasProjectRewrite, 'project rewrite missing (/portfolio/:project)');
+    assert(hasRootRedirect, 'root redirect to /analytics missing');
+    assert(hasIndexRedirect, '/index.html redirect to /analytics missing');
+    assert(hasDshortRootRedirect, 'dshort.me root redirect to analytics missing');
+    assert(hasAnalytics && hasAnalyticsHtml, 'analytics rewrites missing');
+    assert(hasDataScience && hasDataScienceHtml, 'data-science rewrites missing');
     assert(hasTourism && hasTourismHtml, 'tourism rewrites missing');
+    assert(hasResumeAnalytics && hasResumeDataScience && hasResumeTourism, 'resume rewrites missing');
+    assert(hasResumeAnalyticsPdf, 'resume analytics PDF rewrite missing');
     const hasGames = rewrites.some(r => r.source === '/games' && r.destination === '/pages/games');
     const hasGameSlot = rewrites.some(r => r.source === '/games/slot-machine' && r.destination === '/demos/slot-machine-demo');
     const hasGameDogfight = rewrites.some(r => r.source === '/games/stellar-dogfight' && r.destination === '/demos/stellar-dogfight-demo');
@@ -927,8 +1098,23 @@ try {
       Array.isArray(h.headers) &&
       h.headers.some(x => x && x.key === 'X-Robots-Tag' && /noindex/i.test(String(x.value || '')))
     );
-    const hasNoindexTourism = headers.some(h =>
-      h && (h.source === '/tourism' || h.source === '/tourism.html') &&
+    const hasNoindexResumeAnalyticsPdf = headers.some(h =>
+      h && (h.source === '/resume-analytics-pdf' || h.source === '/resume-analytics-pdf.html') &&
+      Array.isArray(h.headers) &&
+      h.headers.some(x => x && x.key === 'X-Robots-Tag' && /noindex/i.test(String(x.value || '')))
+    );
+    const hasNoindexResumeDataSciencePdf = headers.some(h =>
+      h && (h.source === '/resume-data-science-pdf' || h.source === '/resume-data-science-pdf.html') &&
+      Array.isArray(h.headers) &&
+      h.headers.some(x => x && x.key === 'X-Robots-Tag' && /noindex/i.test(String(x.value || '')))
+    );
+    const hasNoindexResumeTourismPdf = headers.some(h =>
+      h && (h.source === '/resume-tourism-pdf' || h.source === '/resume-tourism-pdf.html') &&
+      Array.isArray(h.headers) &&
+      h.headers.some(x => x && x.key === 'X-Robots-Tag' && /noindex/i.test(String(x.value || '')))
+    );
+    const hasNoindexDestinationAnalytics = headers.some(h =>
+      h && (h.source === '/destination-analytics' || h.source === '/destination-analytics.html') &&
       Array.isArray(h.headers) &&
       h.headers.some(x => x && x.key === 'X-Robots-Tag' && /noindex/i.test(String(x.value || '')))
     );
@@ -936,7 +1122,10 @@ try {
     assert(hasNoindexToolsDashboard, 'tools dashboard noindex header missing');
     assert(hasNoindexGa4Tool, 'GA4 tool noindex header missing');
     assert(hasNoindexWhisperTool, 'Whisper tool noindex header missing');
-    assert(hasNoindexTourism, 'tourism noindex header missing');
+    assert(hasNoindexResumeAnalyticsPdf, 'resume analytics PDF noindex header missing');
+    assert(hasNoindexResumeDataSciencePdf, 'resume data science PDF noindex header missing');
+    assert(hasNoindexResumeTourismPdf, 'resume tourism PDF noindex header missing');
+    assert(hasNoindexDestinationAnalytics, 'destination analytics noindex header missing');
   });
 
   section('Search index', () => {
@@ -947,7 +1136,13 @@ try {
     assert(parsed && Array.isArray(parsed.pages), 'search index should contain pages array');
     assert(parsed.pages.length >= 10, 'search index has too few entries');
     const urls = new Set(parsed.pages.map((entry) => String(entry && entry.url || '').trim()));
-    assert(!urls.has('/tourism'), 'search index should exclude noindex tourism page');
+    assert(urls.has('/analytics'), 'search index should include analytics page');
+    assert(urls.has('/data-science'), 'search index should include data-science page');
+    assert(urls.has('/tourism'), 'search index should include tourism page');
+    assert(!urls.has('/'), 'search index should exclude redirecting root URL');
+    assert(!urls.has('/resume-analytics-pdf'), 'search index should exclude analytics PDF preview');
+    assert(!urls.has('/resume-data-science-pdf'), 'search index should exclude data science PDF preview');
+    assert(!urls.has('/resume-tourism-pdf'), 'search index should exclude tourism PDF preview');
     assert(!urls.has('/tools/ga4-utm-performance'), 'search index should exclude noindex GA4 tool');
     assert(!urls.has('/tools/whisper-transcribe-monitor'), 'search index should exclude noindex Whisper tool');
   });
@@ -1006,19 +1201,44 @@ try {
     checkFileContains('404.html', 'js/common/404-redirect.js');
     checkFileContains('js/common/404-redirect.js', '/portfolio/${encodeURIComponent(project)}');
     checkFileContains('pages/portfolio.html', 'id="portfolio-carousel"');
-    checkFileContains('pages/portfolio.html', 'id="filter-menu"');
     checkFileContains('pages/portfolio.html', 'id="projects"');
     checkFileContains('pages/portfolio.html', 'id="modals"');
-    checkFileContains('pages/portfolio.html', 'id="see-more"');
+    checkFileContains('pages/portfolio.html', 'id="filters"');
+    checkFileContains('pages/portfolio.html', 'portfolio-library-section');
+    const portfolioHtml = readFile('pages/portfolio.html');
+    assert(!portfolioHtml.includes('id="filter-menu"'), 'portfolio page should not include filter menu');
+    assert(!portfolioHtml.includes('id="see-more"'), 'portfolio page should not include see-more toggle');
+    assert(!portfolioHtml.includes('Which hiring track?'), 'portfolio page should not include audience filter copy');
+    assert(!portfolioHtml.includes('use the filters'), 'portfolio hero copy should not reference filters');
+
+    const portfolioScript = readFile('js/portfolio/portfolio.js');
+    assert(!portfolioScript.includes('function initSeeMore'), 'portfolio script should not include see-more initializer');
+    assert(!portfolioScript.includes('filter-menu'), 'portfolio script should not depend on filter menu');
+
+    const commonScript = readFile('js/common/common.js');
+    assert(!commonScript.includes('run(window.initSeeMore);'), 'common portfolio init should not run see-more');
+
+    checkFileContains('js/common/audience-config.js', "portfolioAllPath: '/portfolio?audience=analytics'");
+    checkFileContains('js/common/audience-config.js', "portfolioAllPath: '/portfolio?audience=data-science'");
+    checkFileContains('js/common/audience-config.js', "portfolioAllPath: '/portfolio?audience=tourism'");
+    checkFileContains('build/templates/header.partial.html', 'href="portfolio"');
+    checkFileContains('pages/analytics.html', 'href="portfolio?audience=analytics"');
+    checkFileContains('pages/data-science.html', 'href="portfolio?audience=data-science"');
+    checkFileContains('pages/tourism.html', 'href="portfolio?audience=tourism"');
   });
 
   section('Base hrefs and redirect sanity', () => {
-    ['pages/destination-analytics.html','pages/tourism.html','pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html','pages/resume.html','pages/resume-pdf.html',
+    checkFileContains('index.html', 'content="0; url=/analytics"');
+    checkFileContains('index.html', "window.location.replace(target)");
+    checkFileContains('index.html', 'rel="canonical" href="https://www.danielshort.me/analytics"');
+    checkFileContains('index.html', 'name="robots" content="noindex, follow"');
+
+    ['pages/analytics.html','pages/data-science.html','pages/destination-analytics.html','pages/tourism.html','pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html','pages/resume.html','pages/resume-pdf.html','pages/resume-analytics.html','pages/resume-data-science.html','pages/resume-tourism.html','pages/resume-analytics-pdf.html','pages/resume-data-science-pdf.html','pages/resume-tourism-pdf.html',
      'pages/tools.html','pages/tools-dashboard.html','pages/search.html','pages/sitemap.html','pages/games.html','pages/short-links.html','pages/word-frequency.html','pages/text-compare.html','pages/point-of-view-checker.html','pages/oxford-comma-checker.html','pages/background-remover.html','pages/nbsp-cleaner.html','pages/ocean-wave-simulation.html','pages/qr-code-generator.html','pages/image-optimizer.html','pages/job-application-tracker.html','pages/ga4-utm-performance.html',
      'demos/chatbot-demo.html','demos/shape-demo.html','demos/sentence-demo.html','demos/slot-machine-demo.html','demos/stellar-dogfight-demo.html']
       .forEach(f => checkFileContains(f, '<base href="/">'));
 
-    ['pages/destination-analytics.html','pages/tourism.html','pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html','pages/resume.html','pages/resume-pdf.html']
+    ['pages/analytics.html','pages/data-science.html','pages/destination-analytics.html','pages/tourism.html','pages/portfolio.html','pages/contact.html','pages/contributions.html','pages/privacy.html','pages/resume.html','pages/resume-pdf.html','pages/resume-analytics.html','pages/resume-data-science.html','pages/resume-tourism.html','pages/resume-analytics-pdf.html','pages/resume-data-science-pdf.html','pages/resume-tourism-pdf.html']
       .forEach(f => {
         const html = fs.readFileSync(f,'utf8');
         if (/http-equiv\s*=\s*"refresh"/i.test(html)) throw new Error(f+': should not use meta refresh');
@@ -1031,11 +1251,13 @@ try {
     assert(distCss.includes('#smartSentence-modal .modal-body{overflow-x:hidden}'), 'sentence modal missing overflow-x hidden');
 
     checkFileContains('pages/contact.html', 'id="contact-modal"');
-    checkFileContains('resume-pdf.html', 'documents/Resume.pdf');
-    checkFileContains('pages/resume-pdf.html', 'documents/Resume.pdf');
+    checkFileContains('pages/resume-analytics-pdf.html', 'documents/Resume-Analytics.pdf');
+    checkFileContains('pages/resume-data-science-pdf.html', 'documents/Resume-Data-Science.pdf');
+    checkFileContains('pages/resume-tourism-pdf.html', 'documents/Resume-Tourism.pdf');
+    checkFileContains('resume-pdf.html', 'resume-analytics-pdf');
+    checkFileContains('pages/resume-pdf.html', 'resume-analytics-pdf');
     checkFileContains('contact.html', 'id="contact-form"');
     checkFileContains('pages/contact.html', 'action="/api/contact"');
-    checkFileContains('index.html', 'action="/api/contact"');
     assert(fs.existsSync('api/contact.js'), 'api/contact.js missing');
   });
 

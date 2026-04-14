@@ -18,7 +18,6 @@
   const projectsRefreshButton = document.querySelector('[data-shortlinks="projects-refresh"]');
   const projectsEnsureButton = document.querySelector('[data-shortlinks="projects-ensure"]');
 
-  const adminToolsEl = document.querySelector('[data-shortlinks="admin-tools"]');
   const accessCard = document.querySelector('[data-shortlinks="access-card"]');
   const adminAccessSummaryEl = document.querySelector('[data-shortlinks="admin-access-summary"]');
   const adminProjectSummaryEl = document.querySelector('[data-shortlinks="admin-project-summary"]');
@@ -31,6 +30,8 @@
   const countEl = document.querySelector('[data-shortlinks="count"]');
   const listStatusEl = document.querySelector('[data-shortlinks="list-status"]');
   const summaryEl = document.querySelector('[data-shortlinks="summary"]');
+  const modeTabEls = Array.from(document.querySelectorAll('[data-shortlinks="mode-tab"]'));
+  const modePanelEls = Array.from(document.querySelectorAll('[data-shortlinks-mode-panel]'));
 
   const tokenInput = authForm.querySelector('[data-shortlinks="token"]');
   const refreshButton = authForm.querySelector('[data-shortlinks="refresh"]');
@@ -40,12 +41,49 @@
   const healthStatusEl = authForm.querySelector('[data-shortlinks="health-status"]');
 
   const slugInput = editorForm.querySelector('[data-shortlinks="slug"]');
+  const slugModeSelect = editorForm.querySelector('[data-shortlinks="slug-mode"]');
+  const slugFieldEl = editorForm.querySelector('[data-shortlinks="slug-field"]');
+  const randomLengthFieldEl = editorForm.querySelector('[data-shortlinks="random-length-field"]');
+  const randomLengthInput = editorForm.querySelector('[data-shortlinks="random-length"]');
   const destinationInput = editorForm.querySelector('[data-shortlinks="destination"]');
+  const audienceFieldEl = editorForm.querySelector('[data-shortlinks="audience-field"]');
+  const audienceSelect = editorForm.querySelector('[data-shortlinks="audience"]');
+  const expirationModeSelect = editorForm.querySelector('[data-shortlinks="expiration-mode"]');
+  const expirationDurationFields = editorForm.querySelector('[data-shortlinks="expiration-duration-fields"]');
+  const expirationDurationValueInput = editorForm.querySelector('[data-shortlinks="expiration-duration-value"]');
+  const expirationDurationUnitSelect = editorForm.querySelector('[data-shortlinks="expiration-duration-unit"]');
+  const createLinkButton = editorForm.querySelector('[data-shortlinks="create-link"]');
   const getPermanentButton = editorForm.querySelector('[data-shortlinks="get-permanent"]');
   const getTemporaryButton = editorForm.querySelector('[data-shortlinks="get-temporary"]');
   const clearButton = editorForm.querySelector('[data-shortlinks="clear"]');
   const editorStatusEl = editorForm.querySelector('[data-shortlinks="editor-status"]');
   const editorMetaEl = document.querySelector('[data-shortlinks="editor-meta"]');
+
+  const setsFilterInput = document.querySelector('[data-shortlinks="sets-filter"]');
+  const setsRefreshButton = document.querySelector('[data-shortlinks="sets-refresh"]');
+  const setsNewButton = document.querySelector('[data-shortlinks="set-new"]');
+  const setsStatusEl = document.querySelector('[data-shortlinks="sets-status"]');
+  const setsListEl = document.querySelector('[data-shortlinks="sets-list"]');
+  const setEditorForm = document.querySelector('[data-shortlinks="set-editor"]');
+  const setTitleInput = document.querySelector('[data-shortlinks="set-title"]');
+  const setDefaultRandomLengthInput = document.querySelector('[data-shortlinks="set-default-random-length"]');
+  const setDefaultExpirationModeSelect = document.querySelector('[data-shortlinks="set-default-expiration-mode"]');
+  const setDefaultDurationFields = document.querySelector('[data-shortlinks="set-default-duration-fields"]');
+  const setDefaultDurationValueInput = document.querySelector('[data-shortlinks="set-default-duration-value"]');
+  const setDefaultDurationUnitSelect = document.querySelector('[data-shortlinks="set-default-duration-unit"]');
+  const setRowsEl = document.querySelector('[data-shortlinks="set-rows"]');
+  const setAddRowButton = document.querySelector('[data-shortlinks="set-add-row"]');
+  const setDeleteButton = document.querySelector('[data-shortlinks="set-delete"]');
+  const setEditorStatusEl = document.querySelector('[data-shortlinks="set-editor-status"]');
+  const setGenerateForm = document.querySelector('[data-shortlinks="set-generate"]');
+  const batchTitleInput = document.querySelector('[data-shortlinks="batch-title"]');
+  const batchRandomLengthInput = document.querySelector('[data-shortlinks="batch-random-length"]');
+  const batchExpirationModeSelect = document.querySelector('[data-shortlinks="batch-expiration-mode"]');
+  const batchDurationFields = document.querySelector('[data-shortlinks="batch-duration-fields"]');
+  const batchDurationValueInput = document.querySelector('[data-shortlinks="batch-duration-value"]');
+  const batchDurationUnitSelect = document.querySelector('[data-shortlinks="batch-duration-unit"]');
+  const batchStatusEl = document.querySelector('[data-shortlinks="batch-status"]');
+  const batchResultsEl = document.querySelector('[data-shortlinks="batch-results"]');
 
   const destinationPickerOpen = editorForm.querySelector('[data-shortlinks="destination-picker-open"]');
   const destinationModal = document.querySelector('[data-shortlinks="destination-modal"]');
@@ -104,10 +142,49 @@
   const TOOL_ID = 'short-links';
   const MAX_SAVED_LINK_LINES = 120;
   const PROJECT_SLUG_PREFIX = 'p';
+  const DEFAULT_RANDOM_LENGTH = 6;
+  const MIN_RANDOM_LENGTH = 4;
+  const MAX_RANDOM_LENGTH = 12;
+  const DEFAULT_SET_DURATION_VALUE = 7;
+  const DEFAULT_SET_DURATION_UNIT = 'days';
   const EXPORT_MODE_REDIRECTS_ONLY = 'redirects-only';
   const EXPORT_MODE_WITH_CLICKS = 'with-clicks';
   const EXPORT_DEFAULT_CLICK_LIMIT = 100;
   const EXPORT_MAX_CLICK_LIMIT = 500;
+  const FALLBACK_AUDIENCES = {
+    analytics: {
+      key: 'analytics',
+      label: 'Data Analytics',
+      shortLabel: 'Analytics',
+      homePath: '/analytics',
+      portfolioPath: '/portfolio?audience=analytics',
+      resumePath: '/resume-analytics',
+      resumePreviewPath: '/resume-analytics-pdf',
+      resumeDownloadPath: '/documents/Resume-Analytics.pdf'
+    },
+    'data-science': {
+      key: 'data-science',
+      label: 'Data Science',
+      shortLabel: 'Data Science',
+      homePath: '/data-science',
+      portfolioPath: '/portfolio?audience=data-science',
+      resumePath: '/resume-data-science',
+      resumePreviewPath: '/resume-data-science-pdf',
+      resumeDownloadPath: '/documents/Resume-Data-Science.pdf'
+    },
+    tourism: {
+      key: 'tourism',
+      label: 'Tourism Analytics',
+      shortLabel: 'Tourism',
+      homePath: '/tourism',
+      portfolioPath: '/portfolio?audience=tourism',
+      resumePath: '/resume-tourism',
+      resumePreviewPath: '/resume-tourism-pdf',
+      resumeDownloadPath: '/documents/Resume-Tourism.pdf'
+    }
+  };
+  const FALLBACK_AUDIENCE_ORDER = ['analytics', 'data-science', 'tourism'];
+  const FALLBACK_AUDIENCE_DEFAULT = 'analytics';
 
   const markSessionDirty = () => {
     try {
@@ -137,6 +214,9 @@
   let allLinks = [];
   let visibleLinksCount = 0;
   let projectHealth = { total: 0, missing: 0, mismatched: 0 };
+  let allSets = [];
+  let activeSetId = '';
+  let setRowCounter = 0;
 
   function setStatus(el, msg, tone){
     if (!el) return;
@@ -154,17 +234,45 @@
 
   function setEditorMeta(message){
     if (!editorMetaEl) return;
-    editorMetaEl.textContent = String(message || 'New link');
+    editorMetaEl.textContent = String(message || 'New short link');
+  }
+
+  function getModePanel(mode){
+    const target = String(mode || '').trim().toLowerCase();
+    return modePanelEls.find((panel) => String(panel?.dataset?.shortlinksModePanel || '').trim().toLowerCase() === target) || null;
+  }
+
+  function setActiveMode(mode, options = {}){
+    const fallbackMode = modePanelEls[0]
+      ? String(modePanelEls[0].dataset.shortlinksModePanel || 'single')
+      : 'single';
+    const nextMode = getModePanel(mode)
+      ? String(mode || '').trim().toLowerCase()
+      : fallbackMode;
+
+    modeTabEls.forEach((tab) => {
+      const isActive = String(tab?.dataset?.shortlinksMode || '').trim().toLowerCase() === nextMode;
+      tab.classList.toggle('is-active', isActive);
+      tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      tab.tabIndex = isActive ? 0 : -1;
+    });
+
+    modePanelEls.forEach((panel) => {
+      const isActive = String(panel?.dataset?.shortlinksModePanel || '').trim().toLowerCase() === nextMode;
+      panel.classList.toggle('is-active', isActive);
+      panel.hidden = !isActive;
+    });
+
+    if (options.focusTab) {
+      const activeTab = modeTabEls.find((tab) => String(tab?.dataset?.shortlinksMode || '').trim().toLowerCase() === nextMode);
+      if (activeTab && typeof activeTab.focus === 'function') activeTab.focus();
+    }
   }
 
   function revealAccessCard(options = {}){
     if (!accessCard) {
       if (options.focusInput && tokenInput) tokenInput.focus();
       return;
-    }
-
-    if (adminToolsEl && typeof adminToolsEl.open === 'boolean') {
-      adminToolsEl.open = true;
     }
 
     accessCard.classList.add('is-attention');
@@ -321,7 +429,7 @@
   function getSortedLinksForExport(){
     return allLinks
       .slice()
-      .sort((a, b) => normalizeSlugInput(a?.slug).localeCompare(normalizeSlugInput(b?.slug)));
+      .sort((a, b) => normalizeSlugKey(a?.slug).localeCompare(normalizeSlugKey(b?.slug)) || normalizeSlugInput(a?.slug).localeCompare(normalizeSlugInput(b?.slug)));
   }
 
   function serializeLinkForExport(link){
@@ -341,7 +449,16 @@
       expiresAt,
       clicks: Number.isFinite(Number(link?.clicks)) ? Number(link.clicks) : 0,
       createdAt: typeof link?.createdAt === 'string' ? link.createdAt : '',
-      updatedAt: typeof link?.updatedAt === 'string' ? link.updatedAt : ''
+      updatedAt: typeof link?.updatedAt === 'string' ? link.updatedAt : '',
+      label: typeof link?.label === 'string' ? link.label : '',
+      templateId: typeof link?.templateId === 'string' ? link.templateId : '',
+      templateTitle: typeof link?.templateTitle === 'string' ? link.templateTitle : '',
+      batchId: typeof link?.batchId === 'string' ? link.batchId : '',
+      batchTitle: typeof link?.batchTitle === 'string' ? link.batchTitle : '',
+      contextType: typeof link?.contextType === 'string' ? link.contextType : '',
+      contextEntryId: typeof link?.contextEntryId === 'string' ? link.contextEntryId : '',
+      contextCompany: typeof link?.contextCompany === 'string' ? link.contextCompany : '',
+      contextTitle: typeof link?.contextTitle === 'string' ? link.contextTitle : ''
     };
   }
 
@@ -357,7 +474,16 @@
       'expires_at_unix',
       'clicks',
       'created_at',
-      'updated_at'
+      'updated_at',
+      'label',
+      'template_id',
+      'template_title',
+      'batch_id',
+      'batch_title',
+      'context_type',
+      'context_entry_id',
+      'context_company',
+      'context_title'
     ];
 
     const rows = links.map((link) => {
@@ -373,7 +499,16 @@
         item.expiresAt || '',
         item.clicks,
         item.createdAt,
-        item.updatedAt
+        item.updatedAt,
+        item.label,
+        item.templateId,
+        item.templateTitle,
+        item.batchId,
+        item.batchTitle,
+        item.contextType,
+        item.contextEntryId,
+        item.contextCompany,
+        item.contextTitle
       ].map(toCsvCell).join(',');
     });
 
@@ -615,6 +750,298 @@
     setAdminBadge(adminExportSummaryEl, 'CSV export ready', '');
   }
 
+  function getAudienceApi(){
+    return window.SITE_AUDIENCE_CONFIG || null;
+  }
+
+  function getAudienceOrder(){
+    const order = Array.isArray(window.SITE_AUDIENCE_ORDER) && window.SITE_AUDIENCE_ORDER.length
+      ? window.SITE_AUDIENCE_ORDER
+      : FALLBACK_AUDIENCE_ORDER;
+    return order
+      .map((value) => String(value || '').trim().toLowerCase())
+      .filter((value) => value && (FALLBACK_AUDIENCES[value] || (window.SITE_AUDIENCES && window.SITE_AUDIENCES[value])));
+  }
+
+  function normalizeAudienceKey(value){
+    const api = getAudienceApi();
+    if (api && typeof api.normalizeAudience === 'function') {
+      return api.normalizeAudience(value);
+    }
+    const raw = String(value || '').trim().toLowerCase();
+    if (!raw) return FALLBACK_AUDIENCE_DEFAULT;
+    if (raw === 'datascience' || raw === 'data_science') return 'data-science';
+    if (raw === 'tourism-analytics') return 'tourism';
+    return FALLBACK_AUDIENCES[raw] ? raw : FALLBACK_AUDIENCE_DEFAULT;
+  }
+
+  function getAudienceConfig(value){
+    const key = normalizeAudienceKey(value);
+    const api = getAudienceApi();
+    if (api && typeof api.getAudience === 'function') {
+      return api.getAudience(key);
+    }
+    return FALLBACK_AUDIENCES[key] || FALLBACK_AUDIENCES[FALLBACK_AUDIENCE_DEFAULT];
+  }
+
+  function getSelectedAudienceKey(){
+    return normalizeAudienceKey(audienceSelect ? audienceSelect.value : FALLBACK_AUDIENCE_DEFAULT);
+  }
+
+  function normalizeSitePath(pathname){
+    const raw = String(pathname || '').trim();
+    if (!raw) return '/';
+    const normalized = raw.replace(/\/+$/g, '');
+    return normalized || '/';
+  }
+
+  function isManagedSiteHost(hostname){
+    const host = String(hostname || '').trim().toLowerCase();
+    if (!host) return false;
+    return isProdHost(host) || isPreviewHost(host) || isDevHost(host);
+  }
+
+  function parseInternalSiteDestination(value){
+    const raw = String(value || '').trim();
+    if (!raw) return null;
+
+    const base = getCanonicalSiteOrigin() || window.location.origin;
+    try {
+      const url = raw.startsWith('/')
+        ? new URL(raw, base)
+        : new URL(raw);
+      if (!raw.startsWith('/') && !isManagedSiteHost(url.hostname)) return null;
+      return {
+        raw,
+        url,
+        pathname: normalizeSitePath(url.pathname),
+        searchParams: new URLSearchParams(url.search || ''),
+        hash: url.hash || ''
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  function buildAbsoluteSiteUrl(pathname, searchParams, hash){
+    const base = getCanonicalSiteOrigin() || window.location.origin;
+    const url = new URL(String(pathname || '/'), base);
+    const params = searchParams instanceof URLSearchParams
+      ? new URLSearchParams(searchParams)
+      : new URLSearchParams();
+    url.search = params.toString();
+    url.hash = hash || '';
+    return url.toString();
+  }
+
+  function getAudienceConfigPaths(field){
+    return getAudienceOrder()
+      .map((key) => {
+        const config = getAudienceConfig(key);
+        return normalizeSitePath(config && config[field]);
+      })
+      .filter(Boolean);
+  }
+
+  function isAudienceHomePath(pathname){
+    return getAudienceConfigPaths('homePath').includes(normalizeSitePath(pathname));
+  }
+
+  function isAudienceResumePath(pathname){
+    return getAudienceConfigPaths('resumePath').includes(normalizeSitePath(pathname));
+  }
+
+  function isAudienceResumePreviewPath(pathname){
+    return getAudienceConfigPaths('resumePreviewPath').includes(normalizeSitePath(pathname));
+  }
+
+  function isAudienceResumeDownloadPath(pathname){
+    return getAudienceConfigPaths('resumeDownloadPath').includes(normalizeSitePath(pathname));
+  }
+
+  function isPortfolioPath(pathname){
+    const path = normalizeSitePath(pathname);
+    return path === '/portfolio' || path.startsWith('/portfolio/');
+  }
+
+  function isAudienceAwarePath(pathname){
+    const path = normalizeSitePath(pathname);
+    return path === '/'
+      || isAudienceHomePath(path)
+      || path === '/resume'
+      || isAudienceResumePath(path)
+      || path === '/resume-pdf'
+      || isAudienceResumePreviewPath(path)
+      || path === '/documents/Resume.pdf'
+      || isAudienceResumeDownloadPath(path)
+      || isPortfolioPath(path);
+  }
+
+  function shouldShowAudienceFieldForValue(value){
+    const info = parseInternalSiteDestination(value);
+    if (!info) return false;
+    return isAudienceAwarePath(info.pathname);
+  }
+
+  function isPortfolioProjectPath(pathname){
+    const path = normalizeSitePath(pathname);
+    return path.startsWith('/portfolio/') && path !== '/portfolio';
+  }
+
+  function buildDisplayDestination(value, audienceKey){
+    const info = parseInternalSiteDestination(value);
+    if (!info) return normalizeDestinationForSave(value);
+
+    const audience = getAudienceConfig(audienceKey);
+    const path = normalizeSitePath(info.pathname);
+    const params = new URLSearchParams(info.searchParams);
+
+    if (path === '/' || isAudienceHomePath(path)) {
+      return buildAbsoluteSiteUrl(audience.homePath);
+    }
+    if (path === '/resume' || isAudienceResumePath(path)) {
+      return buildAbsoluteSiteUrl(audience.resumePath);
+    }
+    if (path === '/resume-pdf' || isAudienceResumePreviewPath(path)) {
+      return buildAbsoluteSiteUrl(audience.resumePreviewPath);
+    }
+    if (path === '/documents/Resume.pdf' || isAudienceResumeDownloadPath(path)) {
+      return buildAbsoluteSiteUrl(audience.resumeDownloadPath);
+    }
+    if (isPortfolioPath(path)) {
+      params.delete('audience');
+      params.set('audience', audience.key);
+      return buildAbsoluteSiteUrl(path, params, info.hash);
+    }
+
+    return buildAbsoluteSiteUrl(path, params, info.hash);
+  }
+
+  function buildStoredDestination(value, audienceKey){
+    const info = parseInternalSiteDestination(value);
+    if (!info) return normalizeDestinationForSave(value);
+
+    const audience = getAudienceConfig(audienceKey);
+    const path = normalizeSitePath(info.pathname);
+    const params = new URLSearchParams(info.searchParams);
+
+    if (path === '/' || isAudienceHomePath(path)) {
+      return buildAbsoluteSiteUrl(audience.homePath);
+    }
+    if (path === '/resume' || isAudienceResumePath(path)) {
+      return buildAbsoluteSiteUrl(audience.resumePath);
+    }
+    if (path === '/resume-pdf' || isAudienceResumePreviewPath(path)) {
+      return buildAbsoluteSiteUrl(audience.resumePreviewPath);
+    }
+    if (path === '/documents/Resume.pdf' || isAudienceResumeDownloadPath(path)) {
+      return buildAbsoluteSiteUrl(audience.resumeDownloadPath);
+    }
+    if (isPortfolioPath(path)) {
+      params.delete('audience');
+      return buildAbsoluteSiteUrl(path, params, info.hash);
+    }
+
+    return buildAbsoluteSiteUrl(path, params, info.hash);
+  }
+
+  function buildDisplayPath(value, audienceKey){
+    const resolved = buildDisplayDestination(value, audienceKey);
+    const info = parseInternalSiteDestination(resolved);
+    if (!info) return String(value || '').trim();
+    const search = info.url.search || '';
+    const hash = info.url.hash || '';
+    return `${info.pathname}${search}${hash}`;
+  }
+
+  function buildShareShortUrl(slug, destination, audienceKey){
+    const baseShortUrl = buildShortUrl(slug);
+    if (!baseShortUrl) return '';
+
+    const info = parseInternalSiteDestination(destination);
+    if (!info || !isPortfolioPath(info.pathname)) return baseShortUrl;
+
+    try {
+      const url = new URL(baseShortUrl);
+      url.searchParams.set('audience', normalizeAudienceKey(audienceKey));
+      return url.toString();
+    } catch {
+      return baseShortUrl;
+    }
+  }
+
+  function buildBaseSlugFromPath(pathname){
+    const clean = normalizeSitePath(pathname).replace(/^\/+|\/+$/g, '');
+    if (!clean) return 'home';
+    const last = clean.split('/').filter(Boolean).slice(-1)[0] || '';
+    return last.toLowerCase();
+  }
+
+  function buildSuggestedSlugFromPath(pathname, audienceKey){
+    const path = normalizeSitePath(pathname);
+    const audience = getAudienceConfig(audienceKey);
+
+    if (path === '/' || isAudienceHomePath(path)) {
+      return normalizeSlugInput(audience.key);
+    }
+    if (path === '/resume' || isAudienceResumePath(path)) {
+      return normalizeSlugInput(`resume/${audience.key}`);
+    }
+    if (path === '/resume-pdf' || isAudienceResumePreviewPath(path)) {
+      return normalizeSlugInput(`resume/${audience.key}/pdf`);
+    }
+    if (path === '/documents/Resume.pdf' || isAudienceResumeDownloadPath(path)) {
+      return normalizeSlugInput(`resume/${audience.key}/download`);
+    }
+    if (path === '/portfolio') {
+      return 'portfolio';
+    }
+    return buildBaseSlugFromPath(path);
+  }
+
+  function setSuggestedSlug(value){
+    if (!slugInput) return;
+    const suggestion = normalizeSlugInput(value);
+    const current = normalizeSlugKey(slugInput.value);
+    const prior = normalizeSlugKey(slugInput.dataset.autoSuggested || '');
+
+    if (!current || current === prior) {
+      slugInput.value = suggestion;
+    }
+
+    if (suggestion) slugInput.dataset.autoSuggested = suggestion;
+    else delete slugInput.dataset.autoSuggested;
+  }
+
+  function syncAudienceFieldVisibility(){
+    const showAudienceField = shouldShowAudienceFieldForValue(destinationInput?.value);
+    if (audienceFieldEl) audienceFieldEl.hidden = !showAudienceField;
+    if (audienceSelect) audienceSelect.disabled = !showAudienceField;
+    return showAudienceField;
+  }
+
+  function syncEditorAudienceState(options = {}){
+    if (!destinationInput) return;
+    const raw = String(destinationInput.value || '').trim();
+    const showAudienceField = syncAudienceFieldVisibility();
+    if (!raw) return;
+
+    const audienceKey = getSelectedAudienceKey();
+    const nextDestination = buildDisplayDestination(raw, audienceKey);
+    if (nextDestination) {
+      destinationInput.value = nextDestination;
+      const info = parseInternalSiteDestination(nextDestination);
+      if (info) {
+        setSuggestedSlug(buildSuggestedSlugFromPath(info.pathname, audienceKey));
+      }
+    }
+
+    if (options.announce && showAudienceField) {
+      const audience = getAudienceConfig(audienceKey);
+      setStatus(editorStatusEl, `Using ${audience.shortLabel || audience.label || audience.key} destinations where supported.`, 'success');
+    }
+  }
+
   function isDevHost(hostname){
     const host = String(hostname || '').toLowerCase();
     return host === 'localhost' || host === '127.0.0.1';
@@ -712,19 +1139,14 @@
     const manifest = destinationsManifest;
     if (!manifest || !Array.isArray(manifest.pages)) return [];
     const query = getDestinationQuery();
+    const audienceKey = getSelectedAudienceKey();
     const pages = manifest.pages.filter(item => item && typeof item.path === 'string' && typeof item.label === 'string');
     if (!query) return pages;
     return pages.filter(item => {
-      const hay = `${item.label} ${item.path}`.toLowerCase();
+      const displayPath = buildDisplayPath(item.path, audienceKey);
+      const hay = `${item.label} ${item.path} ${displayPath}`.toLowerCase();
       return hay.includes(query);
     });
-  }
-
-  function buildSuggestedSlugFromPath(pathname){
-    const clean = String(pathname || '').replace(/^\/+|\/+$/g, '');
-    if (!clean) return '';
-    const last = clean.split('/').filter(Boolean).slice(-1)[0] || '';
-    return last.toLowerCase();
   }
 
   function setProjectsMeta(text){
@@ -742,7 +1164,7 @@
   }
 
   function buildProjectSlugFromPath(pathname){
-    const suffix = buildSuggestedSlugFromPath(pathname);
+    const suffix = buildBaseSlugFromPath(pathname);
     if (!suffix) return '';
     const prefix = normalizeSlugInput(PROJECT_SLUG_PREFIX);
     return prefix ? `${prefix}/${suffix}` : suffix;
@@ -789,14 +1211,23 @@
       disabled: !!link.disabled,
       createdAt: typeof link.createdAt === 'string' ? link.createdAt : '',
       updatedAt: typeof link.updatedAt === 'string' ? link.updatedAt : '',
-      clicks: Number.isFinite(Number(link.clicks)) ? Number(link.clicks) : 0
+      clicks: Number.isFinite(Number(link.clicks)) ? Number(link.clicks) : 0,
+      label: typeof link.label === 'string' ? link.label : '',
+      templateId: typeof link.templateId === 'string' ? link.templateId : '',
+      templateTitle: typeof link.templateTitle === 'string' ? link.templateTitle : '',
+      batchId: typeof link.batchId === 'string' ? link.batchId : '',
+      batchTitle: typeof link.batchTitle === 'string' ? link.batchTitle : '',
+      contextType: typeof link.contextType === 'string' ? link.contextType : '',
+      contextEntryId: typeof link.contextEntryId === 'string' ? link.contextEntryId : '',
+      contextCompany: typeof link.contextCompany === 'string' ? link.contextCompany : '',
+      contextTitle: typeof link.contextTitle === 'string' ? link.contextTitle : ''
     };
 
-    const idx = allLinks.findIndex(item => normalizeSlugInput(item.slug) === slug);
+    const idx = allLinks.findIndex(item => normalizeSlugKey(item.slug) === normalizeSlugKey(slug));
     if (idx >= 0) allLinks[idx] = Object.assign({}, allLinks[idx], normalized);
     else allLinks.push(normalized);
 
-    allLinks.sort((a, b) => String(a.slug || '').localeCompare(String(b.slug || '')));
+    allLinks.sort((a, b) => normalizeSlugKey(a?.slug).localeCompare(normalizeSlugKey(b?.slug)) || String(a.slug || '').localeCompare(String(b.slug || '')));
   }
 
   function normalizeDestinationForCompare(value){
@@ -822,7 +1253,7 @@
 
     const linkMap = new Map();
     allLinks.forEach(link => {
-      const slug = normalizeSlugInput(link && link.slug);
+      const slug = normalizeSlugKey(link && link.slug);
       if (!slug) return;
       linkMap.set(slug, link);
     });
@@ -832,7 +1263,7 @@
     let mismatched = 0;
 
     projectCatalog.forEach(project => {
-      const expectedSlug = normalizeSlugInput(project.slug);
+      const expectedSlug = normalizeSlugKey(project.slug);
       const expectedDestination = normalizeDestinationForCompare(project.destination);
       const link = expectedSlug ? linkMap.get(expectedSlug) : null;
       const hasLink = !!(link && typeof link.destination === 'string');
@@ -1050,18 +1481,18 @@
 
       const linkMap = new Map();
       allLinks.forEach(link => {
-        const slug = normalizeSlugInput(link && link.slug);
+        const slug = normalizeSlugKey(link && link.slug);
         if (!slug) return;
         linkMap.set(slug, link);
       });
 
       const missing = targets.filter(project => {
-        const slug = normalizeSlugInput(project.slug);
+        const slug = normalizeSlugKey(project.slug);
         return slug && !linkMap.has(slug);
       });
       const mismatched = includeMismatched
         ? targets.filter((project) => {
-          const slug = normalizeSlugInput(project.slug);
+          const slug = normalizeSlugKey(project.slug);
           if (!slug) return false;
           const existing = linkMap.get(slug);
           if (!existing || typeof existing.destination !== 'string') return false;
@@ -1156,6 +1587,7 @@
 
     const pages = getFilteredDestinations();
     const query = getDestinationQuery();
+    const audienceKey = getSelectedAudienceKey();
     if (!pages.length) {
       const empty = document.createElement('p');
       empty.className = 'shortlinks-picker-empty';
@@ -1191,6 +1623,7 @@
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'shortlinks-picker-item';
+        const displayPath = buildDisplayPath(item.path, audienceKey);
 
         const label = document.createElement('span');
         label.className = 'shortlinks-picker-item-label';
@@ -1198,21 +1631,16 @@
 
         const pathCode = document.createElement('code');
         pathCode.className = 'shortlinks-picker-item-path';
-        pathCode.textContent = item.path;
+        pathCode.textContent = displayPath;
 
         button.appendChild(label);
         button.appendChild(pathCode);
 
         button.addEventListener('click', () => {
-          const origin = getCanonicalSiteOrigin();
-          const absolute = joinOriginAndPath(origin, item.path);
+          const absolute = buildDisplayDestination(item.path, audienceKey);
           destinationInput.value = absolute;
-
-          if (!String(slugInput.value || '').trim()) {
-            slugInput.value = buildSuggestedSlugFromPath(item.path);
-          }
-
-          setStatus(editorStatusEl, `Selected ${item.path}`, 'success');
+          syncEditorAudienceState({ announce: false });
+          setStatus(editorStatusEl, `Selected ${displayPath}`, 'success');
           closeDestinationPicker();
           destinationInput.focus();
         });
@@ -1686,7 +2114,80 @@
   }
 
   function normalizeSlugInput(value){
-    return String(value || '').trim().replace(/^\/+|\/+$/g, '').toLowerCase();
+    return String(value || '').trim().replace(/^\/+|\/+$/g, '');
+  }
+
+  function normalizeSlugKey(value){
+    return normalizeSlugInput(value).toLowerCase();
+  }
+
+  function clampRandomLength(value, fallback = DEFAULT_RANDOM_LENGTH){
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return fallback;
+    return Math.max(MIN_RANDOM_LENGTH, Math.min(MAX_RANDOM_LENGTH, Math.floor(numeric)));
+  }
+
+  function normalizeDurationValue(value, fallback = DEFAULT_SET_DURATION_VALUE){
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return fallback;
+    return Math.max(1, Math.min(365, Math.floor(numeric)));
+  }
+
+  function normalizeDurationUnit(value){
+    const raw = String(value || '').trim().toLowerCase();
+    if (raw === 'hours' || raw === 'weeks') return raw;
+    return DEFAULT_SET_DURATION_UNIT;
+  }
+
+  function normalizeExpirationMode(value){
+    return String(value || '').trim().toLowerCase() === 'temporary' ? 'temporary' : 'permanent';
+  }
+
+  function getCreateExpirationMode(){
+    return normalizeExpirationMode(expirationModeSelect?.value);
+  }
+
+  function syncCreateTimingVisibility(){
+    const mode = getCreateExpirationMode();
+    if (expirationDurationFields) expirationDurationFields.hidden = mode !== 'temporary';
+    if (expirationDurationValueInput) expirationDurationValueInput.disabled = mode !== 'temporary';
+    if (expirationDurationUnitSelect) expirationDurationUnitSelect.disabled = mode !== 'temporary';
+  }
+
+  function getCreateExpirationConfig(){
+    const mode = getCreateExpirationMode();
+    if (mode !== 'temporary') {
+      return {
+        permanent: true,
+        expiresAt: 0
+      };
+    }
+
+    const rawValue = Number(expirationDurationValueInput?.value);
+    const durationValue = Number.isFinite(rawValue) ? Math.floor(rawValue) : NaN;
+    if (!Number.isFinite(durationValue) || durationValue <= 0) {
+      setStatus(editorStatusEl, 'Enter a duration greater than 0.', 'error');
+      return null;
+    }
+
+    const durationUnit = String(expirationDurationUnitSelect?.value || '').trim().toLowerCase();
+    const secondsPerUnit = unitToSeconds(durationUnit);
+    if (!secondsPerUnit) {
+      setStatus(editorStatusEl, 'Select a valid duration unit.', 'error');
+      return null;
+    }
+
+    const totalSeconds = durationValue * secondsPerUnit;
+    const maxSeconds = 60 * 60 * 24 * 366;
+    if (!Number.isFinite(totalSeconds) || totalSeconds > maxSeconds) {
+      setStatus(editorStatusEl, 'Duration too long (max 1 year).', 'error');
+      return null;
+    }
+
+    return {
+      permanent: false,
+      expiresAt: Math.floor(Date.now() / 1000) + totalSeconds
+    };
   }
 
   function formatCountdown(ms){
@@ -1717,11 +2218,15 @@
   }
 
   function openEditorForLink({ slug, destination, disabled, expiresAt }){
+    if (slugModeSelect) slugModeSelect.value = 'custom';
     slugInput.value = slug || '';
     destinationInput.value = destination || '';
+    syncSlugModeState();
+    syncEditorAudienceState({ announce: false });
+    setActiveMode('single');
     slugInput.focus();
     const expiresLabel = expiresAt ? ` (expires ${new Date(expiresAt * 1000).toLocaleString()})` : '';
-    setEditorMeta(slug ? `Editing ${buildPublicPath(slug)}` : 'New link');
+    setEditorMeta(slug ? `Editing ${buildPublicPath(slug)}` : 'New short link');
     setStatus(
       editorStatusEl,
       slug ? `Editing ${buildPublicPath(slug)}${disabled ? ' (disabled)' : ''}${expiresLabel}` : 'Ready to create a new link.',
@@ -1903,6 +2408,16 @@
         meta.appendChild(disabledPill);
       }
 
+      if (link.batchTitle || link.templateTitle) {
+        const generatedPill = document.createElement('span');
+        generatedPill.className = 'tool-pill shortlinks-click-pill-muted';
+        generatedPill.textContent = link.batchTitle || link.templateTitle;
+        generatedPill.title = link.contextCompany
+          ? `${link.contextCompany}${link.contextTitle ? ` · ${link.contextTitle}` : ''}`
+          : (link.templateTitle || link.batchTitle || '');
+        meta.appendChild(generatedPill);
+      }
+
       slugCell.appendChild(meta);
       row.appendChild(slugCell);
 
@@ -2078,6 +2593,15 @@
         disabledPill.textContent = 'Disabled';
         meta.appendChild(disabledPill);
       }
+      if (link.batchTitle || link.templateTitle) {
+        const generatedPill = document.createElement('span');
+        generatedPill.className = 'tool-pill shortlinks-click-pill-muted';
+        generatedPill.textContent = link.batchTitle || link.templateTitle;
+        generatedPill.title = link.contextCompany
+          ? `${link.contextCompany}${link.contextTitle ? ` · ${link.contextTitle}` : ''}`
+          : (link.templateTitle || link.batchTitle || '');
+        meta.appendChild(generatedPill);
+      }
       meta.appendChild(clicksPill);
       titleWrap.appendChild(slugCode);
       titleWrap.appendChild(meta);
@@ -2247,11 +2771,35 @@
     }
   }
 
-  function getEditorPayload(){
-    const slug = normalizeSlugInput(slugInput.value);
-    const destination = normalizeDestinationForSave(destinationInput.value);
+  function getSelectedSlugMode(){
+    return slugModeSelect && String(slugModeSelect.value || '').trim().toLowerCase() === 'random'
+      ? 'random'
+      : 'custom';
+  }
 
-    if (!slug) {
+  function syncSlugModeState(){
+    const mode = getSelectedSlugMode();
+    if (slugFieldEl) slugFieldEl.hidden = mode !== 'custom';
+    if (randomLengthFieldEl) randomLengthFieldEl.hidden = mode !== 'random';
+    if (slugInput) slugInput.disabled = mode !== 'custom';
+    if (randomLengthInput) {
+      randomLengthInput.disabled = mode !== 'random';
+      randomLengthInput.value = String(clampRandomLength(randomLengthInput.value));
+    }
+
+    if (!String(editorStatusEl?.dataset?.tone || '').trim()) {
+      setEditorMeta(mode === 'random' ? 'Random short code' : 'New short link');
+    }
+  }
+
+  function getEditorPayload(){
+    const audienceKey = getSelectedAudienceKey();
+    const slugMode = getSelectedSlugMode();
+    const slug = normalizeSlugInput(slugInput.value);
+    const randomLength = clampRandomLength(randomLengthInput?.value, DEFAULT_RANDOM_LENGTH);
+    const destination = buildStoredDestination(destinationInput.value, audienceKey);
+
+    if (slugMode === 'custom' && !slug) {
       setStatus(editorStatusEl, 'Slug is required.', 'error');
       return null;
     }
@@ -2260,16 +2808,24 @@
       return null;
     }
 
-    return { slug, destination };
+    return { slug, slugMode, randomLength, destination, audienceKey };
   }
 
   function setEditorBusy(isBusy){
     const busy = !!isBusy;
     const controls = [
+      createLinkButton,
       getPermanentButton,
       getTemporaryButton,
       clearButton,
-      destinationPickerOpen
+      destinationPickerOpen,
+      audienceSelect,
+      slugModeSelect,
+      slugInput,
+      randomLengthInput,
+      expirationModeSelect,
+      expirationDurationValueInput,
+      expirationDurationUnitSelect
     ];
     controls.forEach(control => {
       if (!control) return;
@@ -2277,7 +2833,7 @@
     });
   }
 
-  async function createOrUpdateLink({ slug, destination, permanent, expiresAt, statusEl }){
+  async function createOrUpdateLink({ slug, slugMode, randomLength, destination, permanent, expiresAt, statusEl, audienceKey }){
     const targetStatus = statusEl || editorStatusEl;
     if (!getSavedToken()) {
       setStatus(targetStatus, 'Admin token required.', 'error');
@@ -2285,16 +2841,29 @@
     }
 
     setEditorBusy(true);
+    const creatingRandom = slugMode === 'random';
     setStatus(targetStatus, permanent ? 'Creating permanent link…' : 'Creating temporary link…');
     try {
-      const body = { slug, destination, permanent: !!permanent };
+      const body = {
+        destination,
+        permanent: !!permanent,
+        slugMode: creatingRandom ? 'random' : 'custom'
+      };
+      if (creatingRandom) body.randomLength = clampRandomLength(randomLength, DEFAULT_RANDOM_LENGTH);
+      else body.slug = slug;
       if (typeof expiresAt !== 'undefined') body.expiresAt = expiresAt;
-      await api('/api/short-links', {
+      const data = await api('/api/short-links', {
         method: 'POST',
         body: JSON.stringify(body)
       });
+      const savedLink = data && data.link ? data.link : { slug, destination };
+      if (savedLink && savedLink.slug) upsertLinkInMemory(savedLink);
 
-      const shortUrl = buildShortUrl(slug);
+      const resolvedSlug = normalizeSlugInput(savedLink?.slug || slug);
+      const resolvedDestination = typeof savedLink?.destination === 'string' && savedLink.destination.trim()
+        ? savedLink.destination
+        : destination;
+      const shortUrl = buildShareShortUrl(resolvedSlug, resolvedDestination, audienceKey);
       let copied = false;
       try {
         await navigator.clipboard.writeText(shortUrl);
@@ -2302,7 +2871,7 @@
       } catch {}
 
       const label = permanent ? 'Permanent link' : 'Temporary link';
-      setEditorMeta(`Saved ${buildPublicPath(slug)}`);
+      setEditorMeta(`Saved ${buildPublicPath(resolvedSlug)}`);
       setStatus(editorStatusEl, `${label}: ${shortUrl}${copied ? ' (copied)' : ''}`, 'success');
       markSessionDirty();
       await refreshLinks();
@@ -2319,9 +2888,528 @@
   function clearEditor(){
     slugInput.value = '';
     destinationInput.value = '';
-    setEditorMeta('New link');
+    if (randomLengthInput) randomLengthInput.value = String(DEFAULT_RANDOM_LENGTH);
+    if (expirationModeSelect) expirationModeSelect.value = 'permanent';
+    if (expirationDurationValueInput) expirationDurationValueInput.value = String(DEFAULT_SET_DURATION_VALUE);
+    if (expirationDurationUnitSelect) expirationDurationUnitSelect.value = DEFAULT_SET_DURATION_UNIT;
+    if (slugModeSelect) slugModeSelect.value = 'custom';
+    if (slugInput) delete slugInput.dataset.autoSuggested;
+    syncSlugModeState();
+    syncCreateTimingVisibility();
+    syncAudienceFieldVisibility();
+    setEditorMeta('New short link');
     setStatus(editorStatusEl, '');
     markSessionDirty();
+  }
+
+  function getSetById(setId){
+    const target = String(setId || '').trim();
+    if (!target) return null;
+    return allSets.find((item) => String(item?.setId || '').trim() === target) || null;
+  }
+
+  function sortSetsInMemory(){
+    allSets.sort((a, b) => String(a?.title || '').localeCompare(String(b?.title || '')));
+  }
+
+  function getFilteredSets(){
+    const query = String(setsFilterInput?.value || '').trim().toLowerCase();
+    if (!query) return allSets.slice();
+    return allSets.filter((item) => String(item?.title || '').toLowerCase().includes(query));
+  }
+
+  function syncSetDefaultTimingVisibility(){
+    const mode = normalizeExpirationMode(setDefaultExpirationModeSelect?.value);
+    if (setDefaultDurationFields) setDefaultDurationFields.hidden = mode !== 'temporary';
+  }
+
+  function syncBatchTimingVisibility(){
+    const mode = normalizeExpirationMode(batchExpirationModeSelect?.value);
+    if (batchDurationFields) batchDurationFields.hidden = mode !== 'temporary';
+  }
+
+  function createSetRow(entry = {}){
+    if (!setRowsEl) return null;
+    setRowCounter += 1;
+    const rowId = String(entry.rowId || `entry-${setRowCounter}`);
+    const labelId = `shortlinks-set-row-label-${setRowCounter}`;
+    const destinationId = `shortlinks-set-row-destination-${setRowCounter}`;
+    const enabledId = `shortlinks-set-row-enabled-${setRowCounter}`;
+
+    const row = document.createElement('article');
+    row.className = 'shortlinks-set-row';
+    row.dataset.setRowId = rowId;
+
+    const fields = document.createElement('div');
+    fields.className = 'shortlinks-inline-grid shortlinks-set-row-grid';
+
+    const labelField = document.createElement('div');
+    labelField.className = 'form-field';
+    const labelLabel = document.createElement('label');
+    labelLabel.setAttribute('for', labelId);
+    labelLabel.textContent = 'Label';
+    const labelInput = document.createElement('input');
+    labelInput.id = labelId;
+    labelInput.type = 'text';
+    labelInput.autocomplete = 'off';
+    labelInput.spellcheck = false;
+    labelInput.placeholder = 'Analytics resume';
+    labelInput.value = String(entry.label || '');
+    labelInput.dataset.setRowField = 'label';
+    labelField.appendChild(labelLabel);
+    labelField.appendChild(labelInput);
+
+    const destinationField = document.createElement('div');
+    destinationField.className = 'form-field';
+    const destinationLabel = document.createElement('label');
+    destinationLabel.setAttribute('for', destinationId);
+    destinationLabel.textContent = 'Destination';
+    const destinationEntry = document.createElement('input');
+    destinationEntry.id = destinationId;
+    destinationEntry.type = 'text';
+    destinationEntry.autocomplete = 'off';
+    destinationEntry.spellcheck = false;
+    destinationEntry.placeholder = 'https://example.com or /analytics';
+    destinationEntry.value = String(entry.destination || '');
+    destinationEntry.dataset.setRowField = 'destination';
+    destinationField.appendChild(destinationLabel);
+    destinationField.appendChild(destinationEntry);
+
+    fields.appendChild(labelField);
+    fields.appendChild(destinationField);
+    row.appendChild(fields);
+
+    const actions = document.createElement('div');
+    actions.className = 'shortlinks-action-row shortlinks-set-row-actions';
+
+    const enabledWrap = document.createElement('label');
+    enabledWrap.className = 'shortlinks-set-row-toggle';
+    const enabledInput = document.createElement('input');
+    enabledInput.id = enabledId;
+    enabledInput.type = 'checkbox';
+    enabledInput.checked = entry.enabled !== false;
+    enabledInput.dataset.setRowField = 'enabled';
+    enabledWrap.appendChild(enabledInput);
+    enabledWrap.appendChild(document.createTextNode(' Include in generated batches'));
+    actions.appendChild(enabledWrap);
+
+    const removeButton = document.createElement('button');
+    removeButton.type = 'button';
+    removeButton.className = 'btn-ghost';
+    removeButton.textContent = 'Remove row';
+    removeButton.addEventListener('click', () => {
+      row.remove();
+      if (!setRowsEl.querySelector('[data-set-row-id]')) {
+        const blank = createSetRow();
+        if (blank) setRowsEl.appendChild(blank);
+      }
+    });
+    actions.appendChild(removeButton);
+
+    row.appendChild(actions);
+    return row;
+  }
+
+  function renderSetRows(entries){
+    if (!setRowsEl) return;
+    setRowsEl.replaceChildren();
+    const items = Array.isArray(entries) && entries.length ? entries : [{}];
+    items.forEach((entry) => {
+      const row = createSetRow(entry);
+      if (row) setRowsEl.appendChild(row);
+    });
+  }
+
+  function collectSetEntries(){
+    if (!setRowsEl) return [];
+    return [...setRowsEl.querySelectorAll('[data-set-row-id]')]
+      .map((row, index) => ({
+        rowId: String(row.dataset.setRowId || `entry-${index + 1}`),
+        label: String(row.querySelector('[data-set-row-field="label"]')?.value || '').trim(),
+        destination: String(row.querySelector('[data-set-row-field="destination"]')?.value || '').trim(),
+        enabled: !!row.querySelector('[data-set-row-field="enabled"]')?.checked
+      }))
+      .filter((entry) => entry.label && entry.destination);
+  }
+
+  function resetSetEditor(options = {}){
+    activeSetId = '';
+    if (setTitleInput) setTitleInput.value = '';
+    if (setDefaultRandomLengthInput) setDefaultRandomLengthInput.value = String(DEFAULT_RANDOM_LENGTH);
+    if (setDefaultExpirationModeSelect) setDefaultExpirationModeSelect.value = 'permanent';
+    if (setDefaultDurationValueInput) setDefaultDurationValueInput.value = String(DEFAULT_SET_DURATION_VALUE);
+    if (setDefaultDurationUnitSelect) setDefaultDurationUnitSelect.value = DEFAULT_SET_DURATION_UNIT;
+    if (batchTitleInput) batchTitleInput.value = '';
+    if (batchRandomLengthInput) batchRandomLengthInput.value = String(DEFAULT_RANDOM_LENGTH);
+    if (batchExpirationModeSelect) batchExpirationModeSelect.value = 'permanent';
+    if (batchDurationValueInput) batchDurationValueInput.value = String(DEFAULT_SET_DURATION_VALUE);
+    if (batchDurationUnitSelect) batchDurationUnitSelect.value = DEFAULT_SET_DURATION_UNIT;
+    if (setDeleteButton) setDeleteButton.disabled = true;
+    renderSetRows([{}]);
+    syncSetDefaultTimingVisibility();
+    syncBatchTimingVisibility();
+    renderSetLibrary();
+    clearBatchResults();
+    setStatus(batchStatusEl, '');
+    if (!options.keepStatus) setStatus(setEditorStatusEl, '');
+  }
+
+  function populateSetEditor(setRecord){
+    const item = setRecord && typeof setRecord === 'object' ? setRecord : null;
+    if (!item) {
+      resetSetEditor();
+      return;
+    }
+    activeSetId = String(item.setId || '').trim();
+    if (setTitleInput) setTitleInput.value = String(item.title || '');
+    if (setDefaultRandomLengthInput) setDefaultRandomLengthInput.value = String(clampRandomLength(item.defaultRandomLength, DEFAULT_RANDOM_LENGTH));
+    if (setDefaultExpirationModeSelect) setDefaultExpirationModeSelect.value = normalizeExpirationMode(item.defaultExpirationMode);
+    if (setDefaultDurationValueInput) setDefaultDurationValueInput.value = String(normalizeDurationValue(item.defaultDurationValue, DEFAULT_SET_DURATION_VALUE));
+    if (setDefaultDurationUnitSelect) setDefaultDurationUnitSelect.value = normalizeDurationUnit(item.defaultDurationUnit);
+    if (batchTitleInput) batchTitleInput.value = String(item.title || '');
+    if (batchRandomLengthInput) batchRandomLengthInput.value = String(clampRandomLength(item.defaultRandomLength, DEFAULT_RANDOM_LENGTH));
+    if (batchExpirationModeSelect) batchExpirationModeSelect.value = normalizeExpirationMode(item.defaultExpirationMode);
+    if (batchDurationValueInput) batchDurationValueInput.value = String(normalizeDurationValue(item.defaultDurationValue, DEFAULT_SET_DURATION_VALUE));
+    if (batchDurationUnitSelect) batchDurationUnitSelect.value = normalizeDurationUnit(item.defaultDurationUnit);
+    if (setDeleteButton) setDeleteButton.disabled = false;
+    renderSetRows(item.entries);
+    syncSetDefaultTimingVisibility();
+    syncBatchTimingVisibility();
+    renderSetLibrary();
+    clearBatchResults();
+    setStatus(batchStatusEl, '');
+    setStatus(setEditorStatusEl, `Editing template "${item.title}".`, 'success');
+  }
+
+  function renderSetLibrary(){
+    if (!setsListEl) return;
+    setsListEl.replaceChildren();
+
+    const sets = getFilteredSets();
+    const query = String(setsFilterInput?.value || '').trim();
+    if (!sets.length) {
+      const empty = document.createElement('p');
+      empty.className = 'shortlinks-empty shortlinks-empty-state';
+      empty.textContent = query ? `No templates match "${query}".` : 'No templates saved yet.';
+      setsListEl.appendChild(empty);
+      return;
+    }
+
+    sets.forEach((item) => {
+      const card = document.createElement('article');
+      card.className = 'shortlinks-item shortlinks-set-item';
+      if (String(item.setId || '') === activeSetId) card.classList.add('shortlinks-set-item-active');
+
+      const head = document.createElement('div');
+      head.className = 'shortlinks-item-head';
+
+      const titleWrap = document.createElement('div');
+      titleWrap.className = 'shortlinks-item-title';
+      const title = document.createElement('p');
+      title.className = 'shortlinks-project-name';
+      title.textContent = item.title || 'Untitled template';
+      titleWrap.appendChild(title);
+
+      const meta = document.createElement('div');
+      meta.className = 'shortlinks-item-meta';
+      const linksPill = document.createElement('span');
+      linksPill.className = 'tool-pill';
+      linksPill.textContent = `${Array.isArray(item.entries) ? item.entries.length : 0} URLs`;
+      meta.appendChild(linksPill);
+
+      const lengthPill = document.createElement('span');
+      lengthPill.className = 'tool-pill shortlinks-click-pill-muted';
+      lengthPill.textContent = `${clampRandomLength(item.defaultRandomLength, DEFAULT_RANDOM_LENGTH)} chars`;
+      meta.appendChild(lengthPill);
+
+      const expiryPill = document.createElement('span');
+      expiryPill.className = 'tool-pill shortlinks-click-pill-muted';
+      expiryPill.textContent = normalizeExpirationMode(item.defaultExpirationMode) === 'temporary'
+        ? `Default ${normalizeDurationValue(item.defaultDurationValue, DEFAULT_SET_DURATION_VALUE)} ${normalizeDurationUnit(item.defaultDurationUnit)}`
+        : 'Permanent';
+      meta.appendChild(expiryPill);
+
+      titleWrap.appendChild(meta);
+
+      const actions = document.createElement('div');
+      actions.className = 'shortlinks-actions shortlinks-inline-actions';
+      const loadButton = document.createElement('button');
+      loadButton.type = 'button';
+      loadButton.className = 'btn-secondary';
+      loadButton.textContent = String(item.setId || '') === activeSetId ? 'Selected' : 'Use';
+      loadButton.disabled = String(item.setId || '') === activeSetId;
+      loadButton.addEventListener('click', () => {
+        populateSetEditor(item);
+      });
+      actions.appendChild(loadButton);
+
+      head.appendChild(titleWrap);
+      head.appendChild(actions);
+      card.appendChild(head);
+
+      const note = document.createElement('p');
+      note.className = 'shortlinks-panel-lead';
+      note.textContent = `Updated ${formatTimestamp(item.updatedAt) || 'recently'}`;
+      card.appendChild(note);
+
+      setsListEl.appendChild(card);
+    });
+  }
+
+  function clearBatchResults(){
+    if (!batchResultsEl) return;
+    batchResultsEl.replaceChildren();
+  }
+
+  function buildBatchCopyText(links){
+    return (Array.isArray(links) ? links : [])
+      .map((link) => {
+        const label = String(link?.label || '').trim();
+        const url = String(link?.shortUrl || '').trim();
+        return label && url ? `${label}: ${url}` : url;
+      })
+      .filter(Boolean)
+      .join('\n');
+  }
+
+  function renderBatchResults(payload){
+    if (!batchResultsEl) return;
+    batchResultsEl.replaceChildren();
+
+    const links = Array.isArray(payload?.links) ? payload.links : [];
+    if (!links.length) return;
+
+    const head = document.createElement('div');
+    head.className = 'shortlinks-card-head shortlinks-card-head-tight';
+
+    const copy = document.createElement('div');
+    copy.className = 'shortlinks-card-copy';
+    const kicker = document.createElement('p');
+    kicker.className = 'shortlinks-kicker';
+    kicker.textContent = 'Generated set';
+    const title = document.createElement('h3');
+    title.className = 'shortlinks-output-title';
+    title.textContent = payload?.batch?.batchTitle || 'Generated links';
+    const subtitle = document.createElement('p');
+    subtitle.className = 'shortlinks-output-meta';
+    subtitle.textContent = payload?.batch?.permanent
+      ? 'Permanent links'
+      : `Expires ${payload?.batch?.expiresAt ? new Date(Number(payload.batch.expiresAt) * 1000).toLocaleString() : ''}`;
+    copy.appendChild(kicker);
+    copy.appendChild(title);
+    copy.appendChild(subtitle);
+
+    const actions = document.createElement('div');
+    actions.className = 'shortlinks-action-row';
+    const copyAllButton = document.createElement('button');
+    copyAllButton.type = 'button';
+    copyAllButton.className = 'btn-secondary';
+    copyAllButton.textContent = 'Copy all';
+    copyAllButton.addEventListener('click', async () => {
+      await copyTextToClipboard({
+        text: buildBatchCopyText(links),
+        button: copyAllButton,
+        statusTarget: batchStatusEl,
+        successMessage: 'Copied all generated short links.'
+      });
+    });
+    actions.appendChild(copyAllButton);
+
+    head.appendChild(copy);
+    head.appendChild(actions);
+    batchResultsEl.appendChild(head);
+
+    const wrap = document.createElement('div');
+    wrap.className = 'shortlinks-table-wrap';
+    const table = document.createElement('table');
+    table.className = 'shortlinks-table';
+
+    const thead = document.createElement('thead');
+    const headRow = document.createElement('tr');
+    ['Label', 'Short URL', 'Destination'].forEach((label) => {
+      const th = document.createElement('th');
+      th.scope = 'col';
+      th.textContent = label;
+      headRow.appendChild(th);
+    });
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    links.forEach((link) => {
+      const row = document.createElement('tr');
+
+      const labelCell = document.createElement('td');
+      labelCell.textContent = String(link?.label || '');
+
+      const shortCell = document.createElement('td');
+      const shortAnchor = document.createElement('a');
+      shortAnchor.className = 'shortlinks-table-destination';
+      shortAnchor.href = String(link?.shortUrl || '');
+      shortAnchor.target = '_blank';
+      shortAnchor.rel = 'noopener noreferrer';
+      shortAnchor.textContent = String(link?.shortUrl || '');
+      shortCell.appendChild(shortAnchor);
+
+      const destinationCell = document.createElement('td');
+      const destinationAnchor = document.createElement('a');
+      destinationAnchor.className = 'shortlinks-table-destination';
+      destinationAnchor.href = String(link?.destination || '');
+      destinationAnchor.target = '_blank';
+      destinationAnchor.rel = 'noopener noreferrer';
+      destinationAnchor.textContent = String(link?.destination || '');
+      destinationCell.appendChild(destinationAnchor);
+
+      row.appendChild(labelCell);
+      row.appendChild(shortCell);
+      row.appendChild(destinationCell);
+      tbody.appendChild(row);
+    });
+
+    table.appendChild(tbody);
+    wrap.appendChild(table);
+    batchResultsEl.appendChild(wrap);
+  }
+
+  async function refreshSets(options = {}){
+    if (!setsListEl) return;
+    const preserveSelection = options.preserveSelection !== false;
+    const preferredSetId = String(options.preferredSetId || '').trim();
+    if (!getSavedToken()) {
+      allSets = [];
+      renderSetLibrary();
+      if (!options.silent) setStatus(setsStatusEl, 'Admin token required.', 'error');
+      resetSetEditor({ keepStatus: true });
+      return;
+    }
+
+    setStatus(setsStatusEl, 'Loading templates…');
+    try {
+      const data = await api('/api/short-links/sets', { method: 'GET' });
+      allSets = Array.isArray(data?.sets) ? data.sets.slice() : [];
+      sortSetsInMemory();
+
+      const nextId = preferredSetId
+        || (preserveSelection && getSetById(activeSetId) ? activeSetId : '')
+        || (allSets[0] && allSets[0].setId ? String(allSets[0].setId) : '');
+
+      renderSetLibrary();
+      if (nextId) {
+        const next = getSetById(nextId);
+        if (next) populateSetEditor(next);
+      } else {
+        resetSetEditor({ keepStatus: true });
+      }
+      setStatus(setsStatusEl, `Loaded ${allSets.length} template(s).`, 'success');
+    } catch (err) {
+      allSets = [];
+      renderSetLibrary();
+      resetSetEditor({ keepStatus: true });
+      setStatus(setsStatusEl, err.message || 'Unable to load templates.', 'error');
+    }
+  }
+
+  function buildSetEditorPayload(){
+    const title = String(setTitleInput?.value || '').trim();
+    const defaultRandomLength = clampRandomLength(setDefaultRandomLengthInput?.value, DEFAULT_RANDOM_LENGTH);
+    const defaultExpirationMode = normalizeExpirationMode(setDefaultExpirationModeSelect?.value);
+    const payload = {
+      title,
+      defaultRandomLength,
+      defaultExpirationMode,
+      defaultDurationValue: normalizeDurationValue(setDefaultDurationValueInput?.value, DEFAULT_SET_DURATION_VALUE),
+      defaultDurationUnit: normalizeDurationUnit(setDefaultDurationUnitSelect?.value),
+      entries: collectSetEntries()
+    };
+    return payload;
+  }
+
+  async function saveSetFromEditor(){
+    if (!requireToken(setEditorStatusEl)) return;
+    if (!setEditorForm) return;
+    const payload = buildSetEditorPayload();
+    if (!payload.title) {
+      setStatus(setEditorStatusEl, 'Template title is required.', 'error');
+      return;
+    }
+    if (!Array.isArray(payload.entries) || payload.entries.length === 0) {
+      setStatus(setEditorStatusEl, 'Add at least one complete URL row before saving.', 'error');
+      return;
+    }
+
+    setStatus(setEditorStatusEl, activeSetId ? 'Saving template…' : 'Creating template…');
+    try {
+      const endpoint = activeSetId
+        ? `/api/short-links/sets/${encodeURIComponent(activeSetId)}`
+        : '/api/short-links/sets';
+      const method = activeSetId ? 'PATCH' : 'POST';
+      const data = await api(endpoint, {
+        method,
+        body: JSON.stringify(payload)
+      });
+      const savedSet = data?.set || null;
+      if (savedSet?.setId) {
+        await refreshSets({ preserveSelection: false, preferredSetId: savedSet.setId, silent: true });
+      } else {
+        await refreshSets({ preserveSelection: true, silent: true });
+      }
+      setStatus(setEditorStatusEl, `Saved template "${savedSet?.title || payload.title}".`, 'success');
+      markSessionDirty();
+    } catch (err) {
+      setStatus(setEditorStatusEl, err.message || 'Unable to save template.', 'error');
+    }
+  }
+
+  async function deleteActiveSet(){
+    if (!requireToken(setEditorStatusEl)) return;
+    if (!activeSetId) {
+      setStatus(setEditorStatusEl, 'Select a template first.', 'error');
+      return;
+    }
+    const current = getSetById(activeSetId);
+    const ok = window.confirm(`Delete template "${current?.title || activeSetId}"?`);
+    if (!ok) return;
+    try {
+      await api(`/api/short-links/sets/${encodeURIComponent(activeSetId)}`, { method: 'DELETE' });
+      const deletedId = activeSetId;
+      resetSetEditor({ keepStatus: true });
+      await refreshSets({ preserveSelection: false, silent: true });
+      setStatus(setEditorStatusEl, `Deleted template "${current?.title || deletedId}".`, 'success');
+      markSessionDirty();
+    } catch (err) {
+      setStatus(setEditorStatusEl, err.message || 'Unable to delete template.', 'error');
+    }
+  }
+
+  async function generateBatchFromEditor(){
+    if (!requireToken(batchStatusEl)) return;
+    if (!activeSetId) {
+      setStatus(batchStatusEl, 'Select a template before generating links.', 'error');
+      return;
+    }
+
+    const payload = {
+      batchTitle: String(batchTitleInput?.value || '').trim(),
+      randomLength: clampRandomLength(batchRandomLengthInput?.value, DEFAULT_RANDOM_LENGTH),
+      expirationMode: normalizeExpirationMode(batchExpirationModeSelect?.value),
+      durationValue: normalizeDurationValue(batchDurationValueInput?.value, DEFAULT_SET_DURATION_VALUE),
+      durationUnit: normalizeDurationUnit(batchDurationUnitSelect?.value)
+    };
+
+    setStatus(batchStatusEl, 'Generating short links...');
+    try {
+      const data = await api(`/api/short-links/sets/${encodeURIComponent(activeSetId)}/generate`, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      renderBatchResults(data);
+      setStatus(batchStatusEl, `Generated ${Array.isArray(data?.links) ? data.links.length : 0} short link(s).`, 'success');
+      await refreshLinks();
+      markSessionDirty();
+    } catch (err) {
+      clearBatchResults();
+      setStatus(batchStatusEl, err.message || 'Unable to generate short links.', 'error');
+    }
   }
 
   authForm.addEventListener('submit', async (event) => {
@@ -2341,16 +3429,18 @@
     setStatus(statusEl, 'Token saved. Loading links…');
     if (accessCard) accessCard.classList.remove('is-attention');
     await refreshLinks();
+    await refreshSets({ preserveSelection: true, silent: true });
   });
 
-  refreshButton.addEventListener('click', () => {
+  refreshButton.addEventListener('click', async () => {
     if (!getSavedToken()) {
       setStatus(statusEl, 'Admin token required.', 'error');
       setStatus(listStatusEl, 'Admin token required.', 'error');
       revealAccessCard({ focusInput: true });
       return;
     }
-    refreshLinks();
+    await refreshLinks();
+    await refreshSets({ preserveSelection: true, silent: true });
   });
 
   if (projectsRefreshButton) {
@@ -2388,9 +3478,13 @@
       setStatus(statusEl, 'Token forgotten on this device.', 'success');
       setStatus(healthStatusEl, '');
       setStatus(listStatusEl, '');
+      setStatus(setsStatusEl, '');
       setCount(0, 0);
       revealAccessCard({ focusInput: true });
       renderProjectLinks();
+      allSets = [];
+      renderSetLibrary();
+      resetSetEditor({ keepStatus: true });
     });
   }
 
@@ -2491,6 +3585,15 @@
     setStatus(target || editorStatusEl, 'Admin token required.', 'error');
     revealAccessCard({ focusInput: true });
     return false;
+  }
+
+  async function handleCreateLink(){
+    if (!requireToken(editorStatusEl)) return;
+    const payload = getEditorPayload();
+    if (!payload) return;
+    const expiration = getCreateExpirationConfig();
+    if (!expiration) return;
+    await createOrUpdateLink(Object.assign({}, payload, expiration));
   }
 
   async function handleGetPermanent(){
@@ -2597,7 +3700,7 @@
 
   editorForm.addEventListener('submit', (event) => {
     event.preventDefault();
-    void handleGetPermanent();
+    void handleCreateLink();
   });
 
   if (temporaryForm) {
@@ -2605,17 +3708,106 @@
   }
 
   updateAccessMeta();
-  setEditorMeta('New link');
+  if (audienceSelect) {
+    audienceSelect.value = getSelectedAudienceKey();
+  }
+  syncSlugModeState();
+  syncCreateTimingVisibility();
+  syncAudienceFieldVisibility();
+  setActiveMode('single');
+  setEditorMeta('New short link');
   syncExportControls();
   void refreshProjectsSection();
+  resetSetEditor({ keepStatus: true });
   if (getSavedToken()) {
     setStatus(statusEl, 'Token loaded from this browser. Loading links…', 'success');
     refreshLinks();
+    refreshSets({ preserveSelection: true, silent: true });
+  }
+
+  if (modeTabEls.length) {
+    const orderedTabs = modeTabEls.slice();
+    const focusModeTabByOffset = (currentTab, offset) => {
+      const currentIndex = orderedTabs.indexOf(currentTab);
+      if (currentIndex === -1) return;
+      const nextIndex = (currentIndex + offset + orderedTabs.length) % orderedTabs.length;
+      const nextTab = orderedTabs[nextIndex];
+      if (!nextTab) return;
+      setActiveMode(nextTab.dataset.shortlinksMode, { focusTab: true });
+    };
+
+    orderedTabs.forEach((tab, index) => {
+      tab.addEventListener('click', () => {
+        setActiveMode(tab.dataset.shortlinksMode);
+      });
+      tab.addEventListener('keydown', (event) => {
+        switch (event.key) {
+          case 'ArrowLeft':
+          case 'ArrowUp':
+            event.preventDefault();
+            focusModeTabByOffset(tab, -1);
+            break;
+          case 'ArrowRight':
+          case 'ArrowDown':
+            event.preventDefault();
+            focusModeTabByOffset(tab, 1);
+            break;
+          case 'Home':
+            event.preventDefault();
+            setActiveMode(orderedTabs[0]?.dataset.shortlinksMode, { focusTab: true });
+            break;
+          case 'End':
+            event.preventDefault();
+            setActiveMode(orderedTabs[orderedTabs.length - 1]?.dataset.shortlinksMode, { focusTab: true });
+            break;
+          case 'Enter':
+          case ' ':
+            event.preventDefault();
+            setActiveMode(tab.dataset.shortlinksMode, { focusTab: true });
+            break;
+          default:
+            break;
+        }
+      });
+    });
   }
 
   if (filterInput) {
     filterInput.addEventListener('input', () => {
       applyFilterAndRender();
+    });
+  }
+
+  if (audienceSelect) {
+    audienceSelect.addEventListener('change', () => {
+      syncEditorAudienceState({ announce: !!String(destinationInput?.value || '').trim() });
+      renderDestinations();
+      markSessionDirty();
+    });
+  }
+
+  if (slugModeSelect) {
+    slugModeSelect.addEventListener('change', () => {
+      syncSlugModeState();
+      markSessionDirty();
+    });
+  }
+
+  if (expirationModeSelect) {
+    expirationModeSelect.addEventListener('change', () => {
+      syncCreateTimingVisibility();
+      markSessionDirty();
+    });
+  }
+
+  if (destinationInput) {
+    destinationInput.addEventListener('input', () => {
+      syncAudienceFieldVisibility();
+      markSessionDirty();
+    });
+    destinationInput.addEventListener('change', () => {
+      syncEditorAudienceState();
+      markSessionDirty();
     });
   }
 
@@ -2648,6 +3840,89 @@
     });
   }
 
+  if (setsFilterInput) {
+    setsFilterInput.addEventListener('input', () => {
+      renderSetLibrary();
+    });
+  }
+
+  if (setsRefreshButton) {
+    setsRefreshButton.addEventListener('click', () => {
+      void refreshSets({ preserveSelection: true });
+    });
+  }
+
+  if (setsNewButton) {
+    setsNewButton.addEventListener('click', () => {
+      resetSetEditor();
+      setStatus(setEditorStatusEl, 'Starting a new template.', 'success');
+      markSessionDirty();
+    });
+  }
+
+  if (setDefaultExpirationModeSelect) {
+    setDefaultExpirationModeSelect.addEventListener('change', () => {
+      syncSetDefaultTimingVisibility();
+      markSessionDirty();
+    });
+  }
+
+  if (batchExpirationModeSelect) {
+    batchExpirationModeSelect.addEventListener('change', () => {
+      syncBatchTimingVisibility();
+      markSessionDirty();
+    });
+  }
+
+  if (setAddRowButton) {
+    setAddRowButton.addEventListener('click', () => {
+      const row = createSetRow();
+      if (row && setRowsEl) setRowsEl.appendChild(row);
+      markSessionDirty();
+    });
+  }
+
+  if (setRowsEl) {
+    setRowsEl.addEventListener('input', () => {
+      markSessionDirty();
+    });
+    setRowsEl.addEventListener('change', () => {
+      markSessionDirty();
+    });
+  }
+
+  if (setEditorForm) {
+    setEditorForm.addEventListener('input', () => {
+      markSessionDirty();
+    });
+    setEditorForm.addEventListener('change', () => {
+      markSessionDirty();
+    });
+    setEditorForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      void saveSetFromEditor();
+    });
+  }
+
+  if (setDeleteButton) {
+    setDeleteButton.addEventListener('click', () => {
+      void deleteActiveSet();
+    });
+  }
+
+  if (setGenerateForm) {
+    setGenerateForm.addEventListener('input', () => {
+      markSessionDirty();
+    });
+    setGenerateForm.addEventListener('change', () => {
+      markSessionDirty();
+    });
+    setGenerateForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      void generateBatchFromEditor();
+    });
+  }
+
   document.addEventListener('tools:session-capture', (event) => {
     const detail = event?.detail;
     if (!detail || detail.toolId !== TOOL_ID) return;
@@ -2655,26 +3930,47 @@
     const payload = detail.payload;
     if (!payload || typeof payload !== 'object') return;
 
+    const audienceKey = getSelectedAudienceKey();
+    const audience = getAudienceConfig(audienceKey);
+    const slugMode = getSelectedSlugMode();
     const slug = normalizeSlugInput(slugInput?.value);
-    const destination = normalizeDestinationForSave(destinationInput?.value);
-    const shortUrl = slug ? buildShortUrl(slug) : '';
+    const displayDestination = buildDisplayDestination(destinationInput?.value, audienceKey);
+    const destination = buildStoredDestination(destinationInput?.value, audienceKey);
+    const showAudienceField = shouldShowAudienceFieldForValue(destinationInput?.value);
+    const expirationMode = getCreateExpirationMode();
+    const expirationSummary = expirationMode === 'temporary'
+      ? `Temporary (${normalizeDurationValue(expirationDurationValueInput?.value, DEFAULT_SET_DURATION_VALUE)} ${String(expirationDurationUnitSelect?.value || DEFAULT_SET_DURATION_UNIT)})`
+      : 'Permanent';
+    const shortUrl = slugMode === 'custom' && slug ? buildShareShortUrl(slug, destination, audienceKey) : '';
+    const activeSet = getSetById(activeSetId);
 
     const outputSummary = (() => {
-      if (slug) return `Editing ${buildPublicPath(slug)}`;
+      if (slugMode === 'custom' && slug) return `Editing ${buildPublicPath(slug)}`;
+      if (activeSet) return `Editing template "${activeSet.title}"`;
       if (allLinks.length) return `${allLinks.length} saved link${allLinks.length === 1 ? '' : 's'}`;
       return 'Short links';
     })();
 
     payload.inputs = {
-      ...(slug ? { Slug: slug } : {}),
-      ...(destination ? { Destination: destination } : {})
+      ...(showAudienceField ? { 'Audience target': audience.shortLabel || audience.label || audience.key } : {}),
+      'Short code type': slugMode === 'random' ? `Random (${clampRandomLength(randomLengthInput?.value)} chars)` : 'Custom',
+      Expiration: expirationSummary,
+      ...(slugMode === 'custom' && slug ? { Slug: slug } : {}),
+      ...(displayDestination ? { Destination: displayDestination } : {})
     };
+    if (activeSet) payload.inputs['Active template'] = activeSet.title || activeSet.setId;
 
     payload.outputSummary = outputSummary;
 
     const lines = [];
     if (shortUrl) lines.push(`Short URL: ${shortUrl}`);
-    if (destination) lines.push(`Destination: ${destination}`);
+    if (displayDestination) lines.push(`Destination: ${displayDestination}`);
+    if (destination && destination !== displayDestination) lines.push(`Stored destination: ${destination}`);
+    if (activeSet) {
+      lines.push('');
+      lines.push(`Active template: ${activeSet.title}`);
+      lines.push(`Template URLs: ${Array.isArray(activeSet.entries) ? activeSet.entries.length : 0}`);
+    }
 
     if (allLinks.length) {
       if (lines.length) lines.push('');

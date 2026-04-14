@@ -46,9 +46,12 @@
 }
 #portfolio-carousel-section{
   margin-top:24px;
-  margin-bottom:24px; /* extra space below the See More button */
+  margin-bottom:24px;
 }
-#portfolio-carousel-section .section-title{ text-align:center; }
+#portfolio-carousel-section .section-title{
+  text-align:center;
+  margin-bottom:20px;
+}
 #portfolio-carousel .carousel-track{display:flex;gap:24px;transition:transform .6s cubic-bezier(.22,.61,.36,1);will-change:transform}
 .carousel-card{
   --carousel-scale:.9;
@@ -704,13 +707,13 @@ body.menu-open::before{opacity:1;}   /* …until the drawer is open      */
    16.  HOME PAGE SECTION BANDS
    Alternating backgrounds after the hero for consistent rhythm
    ─────────────────────────────────────────────────────────── */
-body[data-page="home"]{
+body:is([data-page="home"], .home-pattern-page){
   --home-band-a: var(--surface);
   --home-band-b: var(--surface-accent);
   --home-band-border: 1px solid color-mix(in srgb,var(--primary) 14%, transparent);
 }
 
-body[data-page="home"] main > section:not(.hero){
+body:is([data-page="home"], .home-pattern-page) main > section:not(.hero){
   --home-band-base: var(--home-band-a);
   background:linear-gradient(120deg,
     color-mix(in srgb,var(--home-band-base) 96%, #000 4%) 0%,
@@ -718,7 +721,7 @@ body[data-page="home"] main > section:not(.hero){
   border-block:var(--home-band-border);
 }
 
-body[data-page="home"] main > section:not(.hero):nth-of-type(odd){
+body:is([data-page="home"], .home-pattern-page) main > section:not(.hero):nth-of-type(odd){
   --home-band-base: var(--home-band-b);
 }
 

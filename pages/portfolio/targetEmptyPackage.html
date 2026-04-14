@@ -26,8 +26,9 @@
   <meta name="twitter:image" content="https://www.danielshort.me/img/projects/targetEmptyPackage.png">
   <meta name="twitter:image:alt" content="Preview image for Empty-Package Shrink Dashboard">
   <meta name="theme-color" content="#0D1117">
-  <link rel="stylesheet" href="dist/styles.c562c1b6.css">
+  <link rel="stylesheet" href="dist/styles.1c621b14.css">
   <link rel="stylesheet" href="css/components/project-page.css">
+  <!-- Legacy source reference retained for tooling: css/components/project-page.css -->
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
@@ -47,14 +48,13 @@
   <header id="combined-header-nav">
     <nav class="nav" aria-label="Primary">
       <div class="wrapper nav-wrapper">
-        <a href="/" class="brand" aria-label="Home" data-entry-home-link="true">
-          <img src="img/ui/logo-64.png" srcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" sizes="64px" alt="DS logo" class="brand-logo" decoding="async" loading="eager" width="64" height="64">
+          <a href="/" class="brand" aria-label="Home" data-entry-home-link="true">
+            <img src="img/ui/logo-64.png" srcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" sizes="64px" alt="DS logo" class="brand-logo" decoding="async" loading="eager" width="64" height="64">
             <span class="brand-name">
               <span class="brand-title">Daniel Short</span>
               <span class="brand-divider" aria-hidden="true"></span>
               <span class="brand-tagline">
-                <span class="brand-tagline-chunk">Data Science</span>
-                <span class="brand-tagline-chunk">&amp; Analytics</span>
+                <span class="brand-tagline-chunk" data-brand-tagline-primary="true">Data Analytics</span>
               </span>
             </span>
           </a>
@@ -63,8 +63,8 @@
         </button>
         <div id="primary-menu" class="nav-row" data-collapsible role="navigation">
           <a href="/" class="nav-link" data-entry-home-link="true">Home</a>
-          <div class="nav-item nav-item-portfolio">
-            <a href="portfolio" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-portfolio">
+            <div class="nav-item nav-item-portfolio">
+              <a href="portfolio" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-portfolio" data-portfolio-home-link="true">
               Portfolio
               <span class="nav-link-caret" aria-hidden="true"></span>
             </a>
@@ -113,9 +113,9 @@
                         <span class="nav-dropdown-subtitle">Handwritten shape recognition</span>
                       </span>
                     </a>
-                  </div>
-                  <div class="nav-dropdown-footer nav-dropdown-footer-inline">
-                    <a href="portfolio?view=all#filters" class="nav-dropdown-link nav-dropdown-all">
+                    </div>
+                    <div class="nav-dropdown-footer nav-dropdown-footer-inline">
+                    <a href="portfolio" class="nav-dropdown-link nav-dropdown-all" data-portfolio-default-link="true">
                       <span class="nav-dropdown-title">View all projects</span>
                       <span class="nav-dropdown-subtitle">Browse the complete portfolio</span>
                     </a>
@@ -128,28 +128,28 @@
               </div>
             </div>
           </div>
-          <div class="nav-item nav-item-resume">
-            <a href="resume" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-resume">
+            <div class="nav-item nav-item-resume">
+              <a href="resume" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-resume" data-resume-home-link="true">
               Resume
               <span class="nav-link-caret" aria-hidden="true"></span>
             </a>
             <div class="nav-dropdown" id="nav-dropdown-resume" aria-label="Resume download">
-              <div class="nav-dropdown-header" aria-hidden="true">Resume shortcuts</div>
-              <div class="nav-dropdown-list" role="list">
-                <a href="resume" class="nav-dropdown-link" role="listitem">
-                  <span class="nav-dropdown-title">View Digital Resume</span>
-                  <span class="nav-dropdown-subtitle">Open the digital resume page</span>
-                </a>
-                <a href="resume-pdf" class="nav-dropdown-link" role="listitem">
-                  <span class="nav-dropdown-title">Preview PDF</span>
-                  <span class="nav-dropdown-subtitle">Open the PDF resume page</span>
-                </a>
-                <a href="documents/Resume.pdf" class="nav-dropdown-link" role="listitem" download>
-                  <span class="nav-dropdown-title">Download Resume</span>
-                  <span class="nav-dropdown-subtitle">Save the latest PDF copy</span>
-                </a>
+                <div class="nav-dropdown-header" aria-hidden="true">Resume shortcuts</div>
+                <div class="nav-dropdown-list" role="list">
+                  <a href="resume" class="nav-dropdown-link" role="listitem" data-resume-home-link="true">
+                    <span class="nav-dropdown-title">View Digital Resume</span>
+                    <span class="nav-dropdown-subtitle">Open the digital resume page</span>
+                  </a>
+                  <a href="resume-pdf" class="nav-dropdown-link" role="listitem" data-resume-preview-link="true">
+                    <span class="nav-dropdown-title">Preview PDF</span>
+                    <span class="nav-dropdown-subtitle">Open the PDF resume page</span>
+                  </a>
+                  <a href="documents/Resume.pdf" class="nav-dropdown-link" role="listitem" download data-resume-download-link="true">
+                    <span class="nav-dropdown-title">Download Resume</span>
+                    <span class="nav-dropdown-subtitle">Save the latest PDF copy</span>
+                  </a>
+                </div>
               </div>
-            </div>
           </div>
           <div class="nav-item nav-item-contact">
             <a href="contact" class="nav-link nav-link-cta nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-contact">
@@ -228,8 +228,8 @@
           <a class="btn-primary hero-cta" href="portfolio">Back to Portfolio</a>
         </div>
         <div class="project-tags" role="list">
-      <span class="project-tag" role="listitem">Automation</span>
       <span class="project-tag" role="listitem">Analytics</span>
+      <span class="project-tag" role="listitem">Automation</span>
       <span class="project-tag" role="listitem">Excel</span>
       <span class="project-tag" role="listitem">Time-Series</span>
       <span class="project-tag" role="listitem">AWS</span>
@@ -374,12 +374,12 @@
           <a href="/" class="footer-link">Home</a>
           <a href="search" class="footer-link">Search</a>
           <a href="tools" class="footer-link">Tools</a>
-          <a href="portfolio" class="footer-link">Portfolio</a>
+          <a href="portfolio" class="footer-link" data-portfolio-home-link="true">Portfolio</a>
         </section>
 
         <section class="footer-col" aria-labelledby="footer-work">
           <h2 class="footer-col-title" id="footer-work">Work</h2>
-          <a href="resume" class="footer-link">Resume</a>
+          <a href="resume" class="footer-link" data-resume-home-link="true">Resume</a>
           <a href="contact" class="footer-link">Contact</a>
         </section>
 
@@ -462,8 +462,7 @@
       </svg>
     </button>
   </div>
-
-  <script defer src="dist/site-shell.98277b16.js"></script>
+  <script defer src="dist/site-shell.a5d45d92.js"></script>
   <script defer src="dist/site-consent.c29737aa.js"></script>
 </body>
 </html>

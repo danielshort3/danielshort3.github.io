@@ -1817,6 +1817,11 @@
     display:grid;
     gap:10px;
   }
+  .jobtrack-modal-shortlinks,
+  .jobtrack-modal-shortlinks-results{
+    display:grid;
+    gap:10px;
+  }
   .jobtrack-modal-attachments-head{
     display:flex;
     align-items:center;

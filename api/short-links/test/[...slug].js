@@ -5,7 +5,7 @@
 */
 'use strict';
 
-const { getLink } = require('../../_lib/short-links-store');
+const { getLinkWithLegacyFallback } = require('../../_lib/short-links-store');
 const {
   getAdminToken,
   isAdminRequest,
@@ -161,7 +161,7 @@ module.exports = async (req, res) => {
 
   let link;
   try {
-    link = await getLink(slug);
+    link = await getLinkWithLegacyFallback(slug);
   } catch (err) {
     if (err && err.code === 'DDB_ENV_MISSING') {
       sendJson(res, 503, { ok: false, error: err.message });

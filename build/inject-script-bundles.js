@@ -105,6 +105,37 @@ function isManagedLine(trimmed, baseName) {
   return new RegExp(`^<script\\s+defer\\s+src="dist\\/${baseName}(?:\\.[0-9a-f]{8})?\\.js"(?:\\s+[^>]*)?><\\/script>$`, 'i').test(trimmed);
 }
 
+function insertManagedScript(lines, scriptLine) {
+  const next = Array.isArray(lines) ? lines.slice() : [];
+  const scriptIndex = next.findIndex((line) => /^\s*<script\b/i.test(String(line || '')));
+  if (scriptIndex !== -1) {
+    const indent = lineIndent(next[scriptIndex]);
+    next.splice(scriptIndex, 0, `${indent}${scriptLine}`);
+    return next;
+  }
+
+  const bodyIndex = next.findIndex((line) => /^\s*<\/body>\s*$/i.test(String(line || '')));
+  if (bodyIndex !== -1) {
+    const indent = lineIndent(next[bodyIndex]);
+    next.splice(bodyIndex, 0, `${indent}${scriptLine}`);
+    return next;
+  }
+
+  next.push(scriptLine);
+  return next;
+}
+
+function insertManagedScriptBefore(lines, scriptLine, predicate) {
+  const next = Array.isArray(lines) ? lines.slice() : [];
+  const insertIndex = next.findIndex((line) => predicate(String(line || '').trim()));
+  if (insertIndex !== -1) {
+    const indent = lineIndent(next[insertIndex]);
+    next.splice(insertIndex, 0, `${indent}${scriptLine}`);
+    return next;
+  }
+  return insertManagedScript(next, scriptLine);
+}
+
 function processHtml(html, relPath) {
   const lines = String(html || '').split(/\r?\n/);
   const out = [];
@@ -205,7 +236,44 @@ function processHtml(html, relPath) {
     out.push(line);
   });
 
-  const next = out.join('\n');
+  let normalized = out;
+  const needsShellBundle = /\bclass="[^"]*\bsite-page\b[^"]*"/i.test(html) && /<main\b/i.test(html);
+  if (needsShellBundle && !shellInserted) {
+    normalized = insertManagedScript(normalized, `<script defer src="${managedHrefs.shell}"></script>`);
+  }
+
+  const requiredPageBundles = [];
+  if (relPath === 'pages/contact.html') requiredPageBundles.push(['site-contact', managedHrefs.contact]);
+  if (relPath === 'pages/search.html') requiredPageBundles.push(['site-search', managedHrefs.search]);
+  if (relPath === 'pages/contributions.html') requiredPageBundles.push(['site-contributions', managedHrefs.contributions]);
+  if (relPath === 'pages/sitemap-pretty.html' || relPath === 'pages/sitemap.html') {
+    requiredPageBundles.push(['site-sitemap', managedHrefs.sitemap]);
+  }
+  if (relPath === 'pages/privacy.html') requiredPageBundles.push(['site-privacy', managedHrefs.privacy]);
+
+  requiredPageBundles.forEach(([baseName, href]) => {
+    const hasBundle = normalized.some((line) => isManagedLine(String(line || '').trim(), baseName));
+    if (hasBundle) return;
+    normalized = insertManagedScriptBefore(
+      normalized,
+      `<script defer src="${href}"></script>`,
+      (trimmed) => isManagedLine(trimmed, 'site-consent') || /^<script\s+src="js\/privacy\/config\.js"><\/script>$/i.test(trimmed) || /^<script\s+defer\s+src="js\/privacy\/consent_manager\.js"><\/script>$/i.test(trimmed)
+    );
+  });
+
+  const needsToolsAccountBundle = /data-tools-account="dock"/i.test(html) || /data-tools-account="dock-inner"/i.test(html);
+  if (needsToolsAccountBundle && !toolsInserted) {
+    const toolsScript = relPath === 'pages/tools.html'
+      ? `<script defer src="${managedHrefs.toolsLanding}" data-tools-account-src="${managedHrefs.toolsAccount}"></script>`
+      : `<script defer src="${managedHrefs.toolsAccount}"></script>`;
+    normalized = insertManagedScriptBefore(
+      normalized,
+      toolsScript,
+      (trimmed) => isManagedLine(trimmed, 'site-consent') || /^<script\s+src="js\/privacy\/config\.js"><\/script>$/i.test(trimmed) || /^<script\s+defer\s+src="js\/privacy\/consent_manager\.js"><\/script>$/i.test(trimmed)
+    );
+  }
+
+  const next = normalized.join('\n');
   return { html: next, changed: next !== html };
 }
 

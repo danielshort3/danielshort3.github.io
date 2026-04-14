@@ -1,14 +1,13 @@
 <header id="combined-header-nav">
   <nav class="nav" aria-label="Primary">
     <div class="wrapper nav-wrapper">
-      <a href="/" class="brand" aria-label="Home" data-entry-home-link="true">
-        <img src="img/ui/logo-64.png" srcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" sizes="64px" alt="DS logo" class="brand-logo" decoding="async" loading="eager" width="64" height="64">
+        <a href="/" class="brand" aria-label="Home" data-entry-home-link="true">
+          <img src="img/ui/logo-64.png" srcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" sizes="64px" alt="DS logo" class="brand-logo" decoding="async" loading="eager" width="64" height="64">
           <span class="brand-name">
             <span class="brand-title">Daniel Short</span>
             <span class="brand-divider" aria-hidden="true"></span>
             <span class="brand-tagline">
-              <span class="brand-tagline-chunk">Data Science</span>
-              <span class="brand-tagline-chunk">&amp; Analytics</span>
+              <span class="brand-tagline-chunk" data-brand-tagline-primary="true">Data Analytics</span>
             </span>
           </span>
         </a>
@@ -17,8 +16,8 @@
       </button>
       <div id="primary-menu" class="nav-row" data-collapsible role="navigation">
         <a href="/" class="nav-link" data-entry-home-link="true">Home</a>
-        <div class="nav-item nav-item-portfolio">
-          <a href="portfolio" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-portfolio">
+          <div class="nav-item nav-item-portfolio">
+            <a href="portfolio" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-portfolio" data-portfolio-home-link="true">
             Portfolio
             <span class="nav-link-caret" aria-hidden="true"></span>
           </a>
@@ -67,9 +66,9 @@
                       <span class="nav-dropdown-subtitle">Handwritten shape recognition</span>
                     </span>
                   </a>
-                </div>
-                <div class="nav-dropdown-footer nav-dropdown-footer-inline">
-                  <a href="portfolio?view=all#filters" class="nav-dropdown-link nav-dropdown-all">
+                  </div>
+                  <div class="nav-dropdown-footer nav-dropdown-footer-inline">
+                  <a href="portfolio" class="nav-dropdown-link nav-dropdown-all" data-portfolio-default-link="true">
                     <span class="nav-dropdown-title">View all projects</span>
                     <span class="nav-dropdown-subtitle">Browse the complete portfolio</span>
                   </a>
@@ -82,28 +81,28 @@
             </div>
           </div>
         </div>
-        <div class="nav-item nav-item-resume">
-          <a href="resume" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-resume">
+          <div class="nav-item nav-item-resume">
+            <a href="resume" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-resume" data-resume-home-link="true">
             Resume
             <span class="nav-link-caret" aria-hidden="true"></span>
           </a>
           <div class="nav-dropdown" id="nav-dropdown-resume" aria-label="Resume download">
-            <div class="nav-dropdown-header" aria-hidden="true">Resume shortcuts</div>
-            <div class="nav-dropdown-list" role="list">
-              <a href="resume" class="nav-dropdown-link" role="listitem">
-                <span class="nav-dropdown-title">View Digital Resume</span>
-                <span class="nav-dropdown-subtitle">Open the digital resume page</span>
-              </a>
-              <a href="resume-pdf" class="nav-dropdown-link" role="listitem">
-                <span class="nav-dropdown-title">Preview PDF</span>
-                <span class="nav-dropdown-subtitle">Open the PDF resume page</span>
-              </a>
-              <a href="documents/Resume.pdf" class="nav-dropdown-link" role="listitem" download>
-                <span class="nav-dropdown-title">Download Resume</span>
-                <span class="nav-dropdown-subtitle">Save the latest PDF copy</span>
-              </a>
+              <div class="nav-dropdown-header" aria-hidden="true">Resume shortcuts</div>
+              <div class="nav-dropdown-list" role="list">
+                <a href="resume" class="nav-dropdown-link" role="listitem" data-resume-home-link="true">
+                  <span class="nav-dropdown-title">View Digital Resume</span>
+                  <span class="nav-dropdown-subtitle">Open the digital resume page</span>
+                </a>
+                <a href="resume-pdf" class="nav-dropdown-link" role="listitem" data-resume-preview-link="true">
+                  <span class="nav-dropdown-title">Preview PDF</span>
+                  <span class="nav-dropdown-subtitle">Open the PDF resume page</span>
+                </a>
+                <a href="documents/Resume.pdf" class="nav-dropdown-link" role="listitem" download data-resume-download-link="true">
+                  <span class="nav-dropdown-title">Download Resume</span>
+                  <span class="nav-dropdown-subtitle">Save the latest PDF copy</span>
+                </a>
+              </div>
             </div>
-          </div>
         </div>
         <div class="nav-item nav-item-contact">
           <a href="contact" class="nav-link nav-link-cta nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-contact">

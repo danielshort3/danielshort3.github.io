@@ -6,9 +6,10 @@
   <base href="/">
   <title>Portfolio | Daniel Short</title>
   <link rel="canonical" href="https://www.danielshort.me/portfolio">
+  <meta name="description" content="Portfolio of analytics, reporting, dashboards, machine learning, and tourism intelligence projects by Daniel Short.">
   <meta property="og:title" content="Portfolio | Daniel Short">
-  <meta property="og:site_name" content="Daniel Short – Data Science &amp; Analytics">
-  <meta property="og:description" content="Portfolio of dashboards, reporting, analytics, and machine learning projects by Daniel Short.">
+  <meta property="og:site_name" content="Daniel Short – Analytics, Data Science &amp; Tourism">
+  <meta property="og:description" content="Portfolio of analytics, reporting, dashboards, machine learning, and tourism intelligence projects by Daniel Short.">
   <meta property="og:url" content="https://www.danielshort.me/portfolio">
   <meta property="og:image" content="https://www.danielshort.me/img/hero/head.jpg">
   <meta property="og:image:width" content="558">
@@ -17,46 +18,37 @@
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@danielshort3">
-
   <meta name="twitter:title" content="Portfolio | Daniel Short">
-  <meta name="twitter:description" content="Portfolio of dashboards, reporting, analytics, and machine learning projects by Daniel Short.">
+  <meta name="twitter:description" content="Portfolio of analytics, reporting, dashboards, machine learning, and tourism intelligence projects by Daniel Short.">
   <meta name="twitter:image" content="https://www.danielshort.me/img/hero/head.jpg">
   <meta name="twitter:image:alt" content="Portrait photo of Daniel Short">
-  <!-- styles -->
   <meta name="theme-color" content="#0D1117">
   <link rel="preload" href="css/fonts/Inter-Latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="css/fonts/Poppins-500-Latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="css/fonts/Poppins-600-Latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="dist/styles.c562c1b6.css">
+  <link rel="stylesheet" href="dist/styles.1c621b14.css">
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
   <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
   <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
-
-  <meta name="description"
-        content="Portfolio of dashboards, reporting, analytics, and machine learning projects by Daniel Short.">
   <link rel="preconnect" href="https://public.tableau.com" crossorigin>
+  <script defer src="dist/site-shell.a5d45d92.js"></script>
   <script src="js/common/no-js.js"></script>
-
 </head>
-
 <body data-page="portfolio" class="site-page">
   <a href="#main" class="skip-link">Skip to main content</a>
-
-  <!-- nav is injected by common.js -->
   <header id="combined-header-nav">
     <nav class="nav" aria-label="Primary">
       <div class="wrapper nav-wrapper">
-        <a href="/" class="brand" aria-label="Home" data-entry-home-link="true">
-          <img src="img/ui/logo-64.png" srcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" sizes="64px" alt="DS logo" class="brand-logo" decoding="async" loading="eager" width="64" height="64">
+          <a href="/" class="brand" aria-label="Home" data-entry-home-link="true">
+            <img src="img/ui/logo-64.png" srcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" sizes="64px" alt="DS logo" class="brand-logo" decoding="async" loading="eager" width="64" height="64">
             <span class="brand-name">
               <span class="brand-title">Daniel Short</span>
               <span class="brand-divider" aria-hidden="true"></span>
               <span class="brand-tagline">
-                <span class="brand-tagline-chunk">Data Science</span>
-                <span class="brand-tagline-chunk">&amp; Analytics</span>
+                <span class="brand-tagline-chunk" data-brand-tagline-primary="true">Data Analytics</span>
               </span>
             </span>
           </a>
@@ -65,8 +57,8 @@
         </button>
         <div id="primary-menu" class="nav-row" data-collapsible role="navigation">
           <a href="/" class="nav-link" data-entry-home-link="true">Home</a>
-          <div class="nav-item nav-item-portfolio">
-            <a href="portfolio" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-portfolio">
+            <div class="nav-item nav-item-portfolio">
+              <a href="portfolio" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-portfolio" data-portfolio-home-link="true">
               Portfolio
               <span class="nav-link-caret" aria-hidden="true"></span>
             </a>
@@ -115,9 +107,9 @@
                         <span class="nav-dropdown-subtitle">Handwritten shape recognition</span>
                       </span>
                     </a>
-                  </div>
-                  <div class="nav-dropdown-footer nav-dropdown-footer-inline">
-                    <a href="portfolio?view=all#filters" class="nav-dropdown-link nav-dropdown-all">
+                    </div>
+                    <div class="nav-dropdown-footer nav-dropdown-footer-inline">
+                    <a href="portfolio" class="nav-dropdown-link nav-dropdown-all" data-portfolio-default-link="true">
                       <span class="nav-dropdown-title">View all projects</span>
                       <span class="nav-dropdown-subtitle">Browse the complete portfolio</span>
                     </a>
@@ -130,28 +122,28 @@
               </div>
             </div>
           </div>
-          <div class="nav-item nav-item-resume">
-            <a href="resume" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-resume">
+            <div class="nav-item nav-item-resume">
+              <a href="resume" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-resume" data-resume-home-link="true">
               Resume
               <span class="nav-link-caret" aria-hidden="true"></span>
             </a>
             <div class="nav-dropdown" id="nav-dropdown-resume" aria-label="Resume download">
-              <div class="nav-dropdown-header" aria-hidden="true">Resume shortcuts</div>
-              <div class="nav-dropdown-list" role="list">
-                <a href="resume" class="nav-dropdown-link" role="listitem">
-                  <span class="nav-dropdown-title">View Digital Resume</span>
-                  <span class="nav-dropdown-subtitle">Open the digital resume page</span>
-                </a>
-                <a href="resume-pdf" class="nav-dropdown-link" role="listitem">
-                  <span class="nav-dropdown-title">Preview PDF</span>
-                  <span class="nav-dropdown-subtitle">Open the PDF resume page</span>
-                </a>
-                <a href="documents/Resume.pdf" class="nav-dropdown-link" role="listitem" download>
-                  <span class="nav-dropdown-title">Download Resume</span>
-                  <span class="nav-dropdown-subtitle">Save the latest PDF copy</span>
-                </a>
+                <div class="nav-dropdown-header" aria-hidden="true">Resume shortcuts</div>
+                <div class="nav-dropdown-list" role="list">
+                  <a href="resume" class="nav-dropdown-link" role="listitem" data-resume-home-link="true">
+                    <span class="nav-dropdown-title">View Digital Resume</span>
+                    <span class="nav-dropdown-subtitle">Open the digital resume page</span>
+                  </a>
+                  <a href="resume-pdf" class="nav-dropdown-link" role="listitem" data-resume-preview-link="true">
+                    <span class="nav-dropdown-title">Preview PDF</span>
+                    <span class="nav-dropdown-subtitle">Open the PDF resume page</span>
+                  </a>
+                  <a href="documents/Resume.pdf" class="nav-dropdown-link" role="listitem" download data-resume-download-link="true">
+                    <span class="nav-dropdown-title">Download Resume</span>
+                    <span class="nav-dropdown-subtitle">Save the latest PDF copy</span>
+                  </a>
+                </div>
               </div>
-            </div>
           </div>
           <div class="nav-item nav-item-contact">
             <a href="contact" class="nav-link nav-link-cta nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-contact">
@@ -203,242 +195,176 @@
   </header>
 
   <main id="main">
-  <!-- hero -->
-  <section class="hero hero--default">
-    <div class="wrapper">
-      <h1>Project Portfolio</h1>
-      <p class="hero-tagline">Start with the top five. Then use the filters to narrow it down. Each project covers the problem, what I did, and what changed.</p>
-    </div>
+    <section class="hero hero--default">
+      <div class="wrapper">
+        <p class="hero-eyebrow" id="portfolio-hero-eyebrow">Portfolio</p>
+        <h1 id="portfolio-hero-title">Project Portfolio</h1>
+        <p class="hero-tagline" id="portfolio-hero-tagline">Start with five featured case studies, then browse the rest of the published project library below.</p>
+      </div>
       <a class="chevron-hint scroll-indicator" href="#portfolio-carousel-section" data-smooth-scroll="true">
         <span class="chevron-label">Scroll for top projects</span>
         <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 16.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 14.08l5.3-5.29a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29z"/></svg>
       </a>
-  </section>
+    </section>
 
-  <!-- portfolio carousel -->
-  <section id="portfolio-carousel-section" class="surface-band reveal" role="region" aria-labelledby="top-projects-title">
-    <div class="wrapper">
-      <h2 class="section-title" id="top-projects-title">Top 5 Projects</h2>
-      <div id="portfolio-carousel" aria-label="Project Browser">
-        <div class="carousel-track">
-          <!-- Static slides for crawlers / no-JS -->
-          <a
-            class="project-card carousel-card ripple-in"
-            href="portfolio/pizzaDashboard">
-            <div class="overlay"></div>
-            <div class="project-text">
-              <div class="project-title">Pizza Delivery Dashboard</div>
-              <div class="project-subtitle">Tableau Analytics and Forecasting</div>
-            </div>
-            <picture>
-              <source srcset="img/projects/pizzaDashboard-640.avif 640w, img/projects/pizzaDashboard-960.avif 960w, img/projects/pizzaDashboard.avif 1250w" type="image/avif">
-              <source srcset="img/projects/pizzaDashboard-640.webp 640w, img/projects/pizzaDashboard-960.webp 960w, img/projects/pizzaDashboard.webp 1250w" type="image/webp">
-              <img src="img/projects/pizzaDashboard.png" alt="Preview of the Pizza Delivery Tableau dashboard" width="1250" height="1092" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 768px) 80vw, 340px">
-            </picture>
-          </a>
-
-          <a
-            class="project-card carousel-card ripple-in"
-            href="portfolio/retailStore">
-            <div class="overlay"></div>
-            <div class="project-text">
-              <div class="project-title">Store-Level Loss &amp; Sales ETL</div>
-              <div class="project-subtitle">SQL ETL and Anomaly Detection</div>
-            </div>
-            <picture>
-              <source srcset="img/projects/retailStore-640.avif 640w, img/projects/retailStore-960.avif 960w, img/projects/retailStore.avif 1410w" type="image/avif">
-              <source srcset="img/projects/retailStore-640.webp 640w, img/projects/retailStore-960.webp 960w, img/projects/retailStore.webp 1410w" type="image/webp">
-              <img src="img/projects/retailStore.png" alt="Preview of store-level loss and sales analysis" width="1410" height="1410" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 768px) 80vw, 340px">
-            </picture>
-          </a>
-
-          <a
-            class="project-card carousel-card ripple-in"
-            href="portfolio/targetEmptyPackage">
-            <div class="overlay"></div>
-            <div class="project-text">
-              <div class="project-title">Empty-Package Shrink Dashboard</div>
-              <div class="project-subtitle">Excel BI and Trend Monitoring</div>
-            </div>
-            <picture>
-              <source srcset="img/projects/targetEmptyPackage-640.avif 640w, img/projects/targetEmptyPackage-960.avif 960w, img/projects/targetEmptyPackage.avif 1460w" type="image/avif">
-              <source srcset="img/projects/targetEmptyPackage-640.webp 640w, img/projects/targetEmptyPackage-960.webp 960w, img/projects/targetEmptyPackage.webp 1460w" type="image/webp">
-              <img src="img/projects/targetEmptyPackage.png" alt="Preview of the empty-package shrink dashboard" width="1460" height="1460" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 768px) 80vw, 340px">
-            </picture>
-          </a>
-
-          <a
-            class="project-card carousel-card ripple-in"
-            href="portfolio/chatbotLora">
-            <div class="overlay"></div>
-            <div class="project-text">
-              <div class="project-title">Chatbot (LoRA + RAG)</div>
-              <div class="project-subtitle">Visit Grand Junction Knowledge Retrieval</div>
-            </div>
-            <picture>
-              <source srcset="img/projects/chatbotLora-640.avif 640w, img/projects/chatbotLora.avif 1280w" type="image/avif">
-              <source srcset="img/projects/chatbotLora-640.webp 640w, img/projects/chatbotLora.webp 1280w" type="image/webp">
-              <img src="img/projects/chatbotLora.png" alt="Preview of the Visit Grand Junction chatbot interface" width="1280" height="720" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 768px) 80vw, 340px">
-            </picture>
-          </a>
-
-          <a
-            class="project-card carousel-card ripple-in"
-            href="portfolio/shapeClassifier">
-            <div class="overlay"></div>
-            <div class="project-text">
-              <div class="project-title">Shape Classifier Demo</div>
-              <div class="project-subtitle">Handwritten Shape Recognition</div>
-            </div>
-            <picture>
-              <source srcset="img/projects/shapeClassifier-640.avif 640w, img/projects/shapeClassifier.avif 926w" type="image/avif">
-              <source srcset="img/projects/shapeClassifier-640.webp 640w, img/projects/shapeClassifier.webp 926w" type="image/webp">
-              <img src="img/projects/shapeClassifier.png" alt="Preview of the Shape Classifier demo interface" width="926" height="926" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 768px) 80vw, 340px">
-            </picture>
-          </a>
+    <section id="portfolio-carousel-section" class="surface-band reveal" role="region" aria-labelledby="top-projects-title">
+      <div class="wrapper">
+        <h2 class="section-title" id="top-projects-title">Top 5 Projects</h2>
+        <div id="portfolio-carousel" aria-label="Project Browser">
+          <div class="carousel-track">
+            <a class="project-card carousel-card ripple-in" href="portfolio/retailStore">
+              <div class="overlay"></div>
+              <div class="project-text">
+                <div class="project-title">Store-Level Loss &amp; Sales ETL</div>
+                <div class="project-subtitle">SQL ETL and Anomaly Detection</div>
+              </div>
+              <picture>
+                <source srcset="img/projects/retailStore-640.avif 640w, img/projects/retailStore-960.avif 960w, img/projects/retailStore.avif 1410w" type="image/avif">
+                <source srcset="img/projects/retailStore-640.webp 640w, img/projects/retailStore-960.webp 960w, img/projects/retailStore.webp 1410w" type="image/webp">
+                <img src="img/projects/retailStore.png" alt="Preview of store-level loss and sales analysis" width="1410" height="1410" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 768px) 80vw, 340px">
+              </picture>
+            </a>
+            <a class="project-card carousel-card ripple-in" href="portfolio/targetEmptyPackage">
+              <div class="overlay"></div>
+              <div class="project-text">
+                <div class="project-title">Empty-Package Shrink Dashboard</div>
+                <div class="project-subtitle">Excel Forecasting &amp; BI</div>
+              </div>
+              <img src="img/projects/targetEmptyPackage.png" alt="Preview of empty-package shrink dashboard" width="1460" height="1460" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 768px) 80vw, 340px">
+            </a>
+            <a class="project-card carousel-card ripple-in" href="portfolio/pizzaDashboard">
+              <div class="overlay"></div>
+              <div class="project-text">
+                <div class="project-title">Pizza Delivery Dashboard</div>
+                <div class="project-subtitle">Tableau Analytics &amp; Forecasting</div>
+              </div>
+              <img src="img/projects/pizzaDashboard.png" alt="Preview of the Pizza Delivery Dashboard" width="1250" height="1092" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 768px) 80vw, 340px">
+            </a>
+            <a class="project-card carousel-card ripple-in" href="portfolio/deliveryTip">
+              <div class="overlay"></div>
+              <div class="project-text">
+                <div class="project-title">Delivery Tip</div>
+                <div class="project-subtitle">Excel Geo-Analytics &amp; Optimization</div>
+              </div>
+              <img src="img/projects/deliveryTip.png" alt="Preview of the Delivery Tip project" width="960" height="794" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 768px) 80vw, 340px">
+            </a>
+            <a class="project-card carousel-card ripple-in" href="portfolio/ufoDashboard">
+              <div class="overlay"></div>
+              <div class="project-text">
+                <div class="project-title">UFO Sightings Dashboard</div>
+                <div class="project-subtitle">Tableau Geospatial Analytics</div>
+              </div>
+              <img src="img/projects/ufoDashboard.png" alt="Preview of the UFO Sightings Dashboard" width="2008" height="1116" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 768px) 80vw, 340px">
+            </a>
+          </div>
+          <div class="carousel-dots" role="tablist"></div>
         </div>
-        <div class="carousel-dots" role="tablist"></div>
       </div>
-      <div class="portfolio-see-more">
-        <button id="see-more" class="btn-primary" type="button" aria-expanded="false" aria-controls="filters projects carousel-gap">See More</button>
+    </section>
+
+    <section class="surface-band reveal portfolio-library-section" role="region" aria-labelledby="all-projects-title">
+      <span id="filters" class="portfolio-anchor" aria-hidden="true"></span>
+      <div class="wrapper portfolio-library-head">
+        <div class="contrib-divider" aria-hidden="true"></div>
+        <h2 class="section-title" id="all-projects-title">Other Projects</h2>
+        <p class="portfolio-library-copy" id="portfolio-library-copy">This is the complete list of my other projects beyond the featured five above.</p>
       </div>
-    </div>
-  </section>
 
-  <!-- accent gap -->
-  <section id="carousel-gap" class="reveal hide" aria-hidden="true">
-    <div class="wrapper">
-      <div class="contrib-divider" aria-hidden="true"></div>
-    </div>
-  </section>
-
-  <!-- filter buttons -->
-  <section class="reveal interest-pad hide" id="filters" role="region" aria-labelledby="all-projects-title" aria-hidden="true">
-    <div class="wrapper portfolio-filters-head">
-	      <h2 class="section-title" id="all-projects-title">All Projects</h2>
-	      <nav id="filter-menu" class="filter-menu" aria-label="Project filters">
-	        <section class="filter-panel" role="group" aria-labelledby="filter-focus-title">
-	          <header class="filter-panel-head">
-	            <p class="filter-panel-eyebrow">Filter by focus</p>
-	            <h3 id="filter-focus-title">What type of work?</h3>
-            <p class="filter-panel-copy">Pick the kind of work you want to see.</p>
-          </header>
-          <div class="filter-chip-row">
-            <button data-filter-group="concept" data-filter="all" class="btn-secondary filter-chip-all" aria-pressed="true">All Focuses</button>
-            <button data-filter-group="concept" data-filter="Machine Learning" class="btn-secondary" aria-pressed="false">Machine Learning</button>
-            <button data-filter-group="concept" data-filter="Analytics" class="btn-secondary" aria-pressed="false">Analytics</button>
-            <button data-filter-group="concept" data-filter="Automation" class="btn-secondary" aria-pressed="false">Automation</button>
-            <button data-filter-group="concept" data-filter="Visualization" class="btn-secondary" aria-pressed="false">Visualization</button>
-            <button data-filter-group="concept" data-filter="Product" class="btn-secondary" aria-pressed="false">Product</button>
+      <div id="projects" class="grid reveal portfolio-library-grid" aria-label="Project library">
+        <a class="project-card ripple-in" href="portfolio/smartSentence" aria-label="Smart Sentence Retriever – NLP embeddings and serverless retrieval.">
+          <div class="overlay"></div>
+          <div class="project-text">
+            <div class="project-title">Smart Sentence Retriever</div>
+            <div class="project-subtitle">NLP Embeddings &amp; Serverless Retrieval</div>
           </div>
-        </section>
-        <section class="filter-panel" role="group" aria-labelledby="filter-tools-title">
-          <header class="filter-panel-head">
-            <p class="filter-panel-eyebrow">Filter by tools</p>
-            <h3 id="filter-tools-title">Which tools were used?</h3>
-            <p class="filter-panel-copy">Pick the tools you want to review.</p>
-          </header>
-          <div class="filter-chip-row">
-            <button data-filter-group="tools" data-filter="all" class="btn-secondary filter-chip-all" aria-pressed="true">All Tools</button>
-            <button data-filter-group="tools" data-filter="Python" class="btn-secondary" aria-pressed="false">Python</button>
-            <button data-filter-group="tools" data-filter="SQL" class="btn-secondary" aria-pressed="false">SQL</button>
-            <button data-filter-group="tools" data-filter="Excel" class="btn-secondary" aria-pressed="false">Excel</button>
-            <button data-filter-group="tools" data-filter="Tableau" class="btn-secondary" aria-pressed="false">Tableau</button>
-            <button data-filter-group="tools" data-filter="AWS" class="btn-secondary" aria-pressed="false">AWS</button>
-            <button data-filter-group="tools" data-filter="Docker" class="btn-secondary" aria-pressed="false">Docker</button>
+          <img src="img/projects/smartSentence.png" alt="Preview of the Smart Sentence Retriever interface" width="952" height="952" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
+        </a>
+        <a class="project-card ripple-in" href="portfolio/chatbotLora" aria-label="Chatbot LoRA and RAG – retrieval-augmented chatbot with LoRA fine-tuning.">
+          <div class="overlay"></div>
+          <div class="project-text">
+            <div class="project-title">Chatbot (LoRA + RAG)</div>
+            <div class="project-subtitle">RAG Chatbot Fine-Tuned with LoRA</div>
           </div>
-        </section>
-      </nav>
-    </div>
-  </section>
+          <img src="img/projects/chatbotLora.png" alt="Preview of the chatbot project" width="1280" height="720" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
+        </a>
+        <a class="project-card ripple-in" href="portfolio/shapeClassifier" aria-label="Shape Classifier Demo – handwritten shape recognition.">
+          <div class="overlay"></div>
+          <div class="project-text">
+            <div class="project-title">Shape Classifier Demo</div>
+            <div class="project-subtitle">Handwritten Shape Recognition</div>
+          </div>
+          <img src="img/projects/shapeClassifier.png" alt="Preview of the Shape Classifier demo interface" width="926" height="926" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
+        </a>
+        <a class="project-card ripple-in" href="portfolio/covidAnalysis" aria-label="COVID-19 Outbreak Drivers – Python XGBoost and SHAP analysis.">
+          <div class="overlay"></div>
+          <div class="project-text">
+            <div class="project-title">COVID-19 Outbreak Drivers</div>
+            <div class="project-subtitle">Python XGBoost &amp; SHAP</div>
+          </div>
+          <img src="img/projects/covidAnalysis.png" alt="Preview of the COVID-19 Outbreak Drivers project" width="1446" height="1446" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
+        </a>
+        <a class="project-card ripple-in" href="portfolio/handwritingRating" aria-label="Handwriting Legibility Scoring – PyTorch CNN fine-tuning.">
+          <div class="overlay"></div>
+          <div class="project-text">
+            <div class="project-title">Handwriting Legibility Scoring</div>
+            <div class="project-subtitle">PyTorch CNN Fine-Tuning</div>
+          </div>
+          <img src="img/projects/handwritingRating.png" alt="Preview of the Handwriting Legibility Scoring project" width="1138" height="1138" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
+        </a>
+        <a class="project-card ripple-in" href="portfolio/digitGenerator" aria-label="Synthetic Digit Generator – variational autoencoder.">
+          <div class="overlay"></div>
+          <div class="project-text">
+            <div class="project-title">Synthetic Digit Generator</div>
+            <div class="project-subtitle">Variational Autoencoder</div>
+          </div>
+          <img src="img/projects/digitGenerator.png" alt="Preview of the Synthetic Digit Generator project" width="1470" height="1470" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
+        </a>
+        <a class="project-card ripple-in" href="portfolio/sheetMusicUpscale" aria-label="Sheet Music Watermark Removal and Upscale – UNet and VDSR pipeline.">
+          <div class="overlay"></div>
+          <div class="project-text">
+            <div class="project-title">Sheet Music Watermark Removal &amp; Upscale</div>
+            <div class="project-subtitle">UNet &amp; VDSR Pipeline</div>
+          </div>
+          <img src="img/projects/sheetMusicUpscale.png" alt="Preview of the Sheet Music Watermark Removal and Upscale project" width="1604" height="1230" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
+        </a>
+        <a class="project-card ripple-in" href="portfolio/pizza" aria-label="Pizza Tips Regression Modeling – Excel analytics and regression modeling.">
+          <div class="overlay"></div>
+          <div class="project-text">
+            <div class="project-title">Pizza Tips Regression Modeling</div>
+            <div class="project-subtitle">Excel Analytics &amp; Regression Modeling</div>
+          </div>
+          <img src="img/projects/pizza.png" alt="Preview of the Pizza Tips Regression Modeling project" width="1398" height="1398" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
+        </a>
+        <a class="project-card ripple-in" href="portfolio/babynames" aria-label="Baby Name Predictor – Python machine learning pipeline.">
+          <div class="overlay"></div>
+          <div class="project-text">
+            <div class="project-title">Baby Name Predictor</div>
+            <div class="project-subtitle">Python ML Pipeline</div>
+          </div>
+          <img src="img/projects/babynames.png" alt="Preview of the Baby Name Predictor project" width="1238" height="1238" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
+        </a>
+        <a class="project-card ripple-in" href="portfolio/nonogram" aria-label="Nonogram Solver – reinforcement learning.">
+          <div class="overlay"></div>
+          <div class="project-text">
+            <div class="project-title">Nonogram Solver</div>
+            <div class="project-subtitle">Reinforcement Learning (RL)</div>
+          </div>
+          <img src="img/projects/nonogram.png" alt="Preview of the Nonogram Solver project" width="1228" height="1228" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
+        </a>
+        <a class="project-card ripple-in" href="portfolio/website" aria-label="danielshort.me – responsive portfolio site.">
+          <div class="overlay"></div>
+          <div class="project-text">
+            <div class="project-title">danielshort.me</div>
+            <div class="project-subtitle">Responsive Portfolio Site</div>
+          </div>
+          <img src="img/projects/website.png" alt="Preview of the danielshort.me project" width="1464" height="1464" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
+        </a>
+      </div>
+    </section>
 
-  <!-- dynamic grid + modals -->
-		  <section id="projects" class="grid reveal hide" role="region" aria-labelledby="all-projects-title" aria-hidden="true">
-	    <!-- Pre-rendered feature cards for no-JS & bots. Keep in sync with FEATURED_IDS. -->
-	    <a
-	      class="project-card ripple-in"
-	      href="portfolio/retailStore"
-	      aria-label="Store-Level Loss and Sales ETL – SQL ETL and anomaly detection.">
-	      <div class="overlay"></div>
-	      <div class="project-text">
-	        <div class="project-title">Store-Level Loss &amp; Sales ETL</div>
-	        <div class="project-subtitle">SQL ETL and Anomaly Detection</div>
-	      </div>
-	      <picture>
-	        <source srcset="img/projects/retailStore-640.avif 640w, img/projects/retailStore-960.avif 960w, img/projects/retailStore.avif 1410w" type="image/avif">
-	        <source srcset="img/projects/retailStore-640.webp 640w, img/projects/retailStore-960.webp 960w, img/projects/retailStore.webp 1410w" type="image/webp">
-	        <img src="img/projects/retailStore.png" alt="Preview of store-level loss and sales analysis" width="1410" height="1410" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
-	      </picture>
-	    </a>
-
-	    <a
-	      class="project-card ripple-in"
-	      href="portfolio/smartSentence"
-	      aria-label="Smart Sentence Retriever – NLP embeddings and serverless retrieval.">
-	      <div class="overlay"></div>
-	      <div class="project-text">
-	        <div class="project-title">Smart Sentence Retriever</div>
-	        <div class="project-subtitle">NLP Embeddings &amp; Serverless Retrieval</div>
-	      </div>
-	      <picture>
-	        <source srcset="img/projects/smartSentence-640.avif 640w, img/projects/smartSentence.avif 952w" type="image/avif">
-	        <source srcset="img/projects/smartSentence-640.webp 640w, img/projects/smartSentence.webp 952w" type="image/webp">
-	        <img src="img/projects/smartSentence.png" alt="Preview of the Smart Sentence Retriever interface" width="952" height="952" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
-	      </picture>
-	    </a>
-
-	    <a
-	      class="project-card ripple-in"
-	      href="portfolio/pizzaDashboard"
-	      aria-label="Pizza Delivery Dashboard – Tableau analytics and forecasting.">
-	      <div class="overlay"></div>
-	      <div class="project-text">
-	        <div class="project-title">Pizza Delivery Dashboard</div>
-	        <div class="project-subtitle">Tableau Analytics and Forecasting</div>
-	      </div>
-	      <picture>
-	        <source srcset="img/projects/pizzaDashboard-640.avif 640w, img/projects/pizzaDashboard-960.avif 960w, img/projects/pizzaDashboard.avif 1250w" type="image/avif">
-	        <source srcset="img/projects/pizzaDashboard-640.webp 640w, img/projects/pizzaDashboard-960.webp 960w, img/projects/pizzaDashboard.webp 1250w" type="image/webp">
-	        <img src="img/projects/pizzaDashboard.png" alt="Preview of the Pizza Delivery Tableau dashboard" width="1250" height="1092" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
-	      </picture>
-	    </a>
-
-	    <a
-	      class="project-card ripple-in"
-	      href="portfolio/chatbotLora"
-	      aria-label="Chatbot (LoRA plus RAG) – Visit Grand Junction knowledge retrieval.">
-	      <div class="overlay"></div>
-	      <div class="project-text">
-	        <div class="project-title">Chatbot (LoRA + RAG)</div>
-	        <div class="project-subtitle">Visit Grand Junction Knowledge Retrieval</div>
-	      </div>
-	      <picture>
-	        <source srcset="img/projects/chatbotLora-640.avif 640w, img/projects/chatbotLora.avif 1280w" type="image/avif">
-	        <source srcset="img/projects/chatbotLora-640.webp 640w, img/projects/chatbotLora.webp 1280w" type="image/webp">
-	        <img src="img/projects/chatbotLora.png" alt="Preview of the Visit Grand Junction chatbot interface" width="1280" height="720" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
-	      </picture>
-	    </a>
-
-	    <a
-	      class="project-card ripple-in"
-	      href="portfolio/shapeClassifier"
-	      aria-label="Shape Classifier Demo – Predicts basic shapes from a drawing.">
-	      <div class="overlay"></div>
-	      <div class="project-text">
-	        <div class="project-title">Shape Classifier Demo</div>
-	        <div class="project-subtitle">Handwritten Shape Recognition</div>
-	      </div>
-	      <picture>
-	        <source srcset="img/projects/shapeClassifier-640.avif 640w, img/projects/shapeClassifier.avif 926w" type="image/avif">
-	        <source srcset="img/projects/shapeClassifier-640.webp 640w, img/projects/shapeClassifier.webp 926w" type="image/webp">
-	        <img src="img/projects/shapeClassifier.png" alt="Preview of the Shape Classifier demo interface" width="926" height="926" loading="lazy" decoding="async" draggable="false" sizes="(max-width: 640px) 92vw, 340px">
-	      </picture>
-	    </a>
-  </section>
-  <div id="modals"></div>
-
-  <!-- footer is injected by common.js -->
+    <div id="modals"></div>
   </main>
+
   <footer class="footer footer-classic">
     <div class="wrapper footer-inner">
       <nav class="footer-nav" aria-label="Footer">
@@ -447,12 +373,12 @@
           <a href="/" class="footer-link">Home</a>
           <a href="search" class="footer-link">Search</a>
           <a href="tools" class="footer-link">Tools</a>
-          <a href="portfolio" class="footer-link">Portfolio</a>
+          <a href="portfolio" class="footer-link" data-portfolio-home-link="true">Portfolio</a>
         </section>
 
         <section class="footer-col" aria-labelledby="footer-work">
           <h2 class="footer-col-title" id="footer-work">Work</h2>
-          <a href="resume" class="footer-link">Resume</a>
+          <a href="resume" class="footer-link" data-resume-home-link="true">Resume</a>
           <a href="contact" class="footer-link">Contact</a>
         </section>
 
@@ -535,375 +461,6 @@
       </svg>
     </button>
   </div>
-  <div class="cookie-settings" data-cookie-settings="true">
-    <div class="cookie-settings__item">
-      <span class="cookie-settings__label" aria-hidden="true">Cookie settings</span>
-      <button id="privacy-settings-link" type="button" class="cookie-settings__toggle btn-icon btn-icon-featured" aria-label="Cookie settings" aria-haspopup="dialog">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M21 13a4 4 0 0 1-4-4a4 4 0 0 1-4-4A9 9 0 1 0 21 13z"></path>
-          <circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"></circle>
-          <circle cx="13" cy="13" r="1" fill="currentColor" stroke="none"></circle>
-          <circle cx="9" cy="15.5" r="1" fill="currentColor" stroke="none"></circle>
-        </svg>
-      </button>
-    </div>
-  </div>
-  <div class="speed-dial" data-speed-dial="true">
-    <div class="speed-dial__tray" data-speed-dial-tray>
-      <div class="speed-dial__actions" id="speed-dial-menu" role="menu" aria-label="Contact options" aria-hidden="true" data-speed-dial-menu>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">Direct Message</span>
-          <a class="speed-dial__action btn-icon speed-dial__action--direct" href="#contact-modal" data-contact-modal-link="true" aria-label="Send a direct message" role="menuitem" data-speed-dial-action>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-              <path d="M7 9h10"></path>
-              <path d="M7 13h6"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">Send Email</span>
-          <a class="speed-dial__action btn-icon" href="mailto:daniel@danielshort.me" aria-label="Send Email" role="menuitem" data-speed-dial-action>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="3" y="5" width="18" height="14" rx="2"></rect>
-              <path d="M3 7l9 6 9-6"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">View LinkedIn</span>
-          <a class="speed-dial__action btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" rel="noopener noreferrer" aria-label="View LinkedIn" role="menuitem" data-speed-dial-action>
-            <svg class="brand-fill" viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="4" cy="4" r="2"></circle>
-              <rect x="2" y="9" width="4" height="12" rx="1"></rect>
-              <path d="M10 9h3.8v2.1h.1C14.8 9.7 16.1 9 17.9 9c3 0 5.1 1.9 5.1 5.9V21h-4v-5.9c0-1.7-.7-2.9-2.6-2.9s-2.7 1.4-2.7 3V21H10z"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">View GitHub</span>
-          <a class="speed-dial__action btn-icon" href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer" aria-label="View GitHub" role="menuitem" data-speed-dial-action>
-            <span class="icon icon-github" aria-hidden="true"></span>
-          </a>
-        </div>
-      </div>
-    </div>
-    <button class="speed-dial__toggle btn-icon btn-icon-featured" type="button" aria-expanded="false" aria-haspopup="menu" aria-controls="speed-dial-menu" aria-label="Open contact options" data-speed-dial-toggle>
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-        <path d="M12 8v6"></path>
-        <path d="M9 11h6"></path>
-      </svg>
-    </button>
-  </div>
-  <div class="cookie-settings" data-cookie-settings="true">
-    <div class="cookie-settings__item">
-      <span class="cookie-settings__label" aria-hidden="true">Cookie settings</span>
-      <button id="privacy-settings-link" type="button" class="cookie-settings__toggle btn-icon btn-icon-featured" aria-label="Cookie settings" aria-haspopup="dialog">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M21 13a4 4 0 0 1-4-4a4 4 0 0 1-4-4A9 9 0 1 0 21 13z"></path>
-          <circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"></circle>
-          <circle cx="13" cy="13" r="1" fill="currentColor" stroke="none"></circle>
-          <circle cx="9" cy="15.5" r="1" fill="currentColor" stroke="none"></circle>
-        </svg>
-      </button>
-    </div>
-  </div>
-  <div class="speed-dial" data-speed-dial="true">
-    <div class="speed-dial__tray" data-speed-dial-tray>
-      <div class="speed-dial__actions" id="speed-dial-menu" role="menu" aria-label="Contact options" aria-hidden="true" data-speed-dial-menu>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">Direct Message</span>
-          <a class="speed-dial__action btn-icon speed-dial__action--direct" href="#contact-modal" data-contact-modal-link="true" aria-label="Send a direct message" role="menuitem" data-speed-dial-action>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-              <path d="M7 9h10"></path>
-              <path d="M7 13h6"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">Send Email</span>
-          <a class="speed-dial__action btn-icon" href="mailto:daniel@danielshort.me" aria-label="Send Email" role="menuitem" data-speed-dial-action>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="3" y="5" width="18" height="14" rx="2"></rect>
-              <path d="M3 7l9 6 9-6"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">View LinkedIn</span>
-          <a class="speed-dial__action btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" rel="noopener noreferrer" aria-label="View LinkedIn" role="menuitem" data-speed-dial-action>
-            <svg class="brand-fill" viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="4" cy="4" r="2"></circle>
-              <rect x="2" y="9" width="4" height="12" rx="1"></rect>
-              <path d="M10 9h3.8v2.1h.1C14.8 9.7 16.1 9 17.9 9c3 0 5.1 1.9 5.1 5.9V21h-4v-5.9c0-1.7-.7-2.9-2.6-2.9s-2.7 1.4-2.7 3V21H10z"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">View GitHub</span>
-          <a class="speed-dial__action btn-icon" href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer" aria-label="View GitHub" role="menuitem" data-speed-dial-action>
-            <span class="icon icon-github" aria-hidden="true"></span>
-          </a>
-        </div>
-      </div>
-    </div>
-    <button class="speed-dial__toggle btn-icon btn-icon-featured" type="button" aria-expanded="false" aria-haspopup="menu" aria-controls="speed-dial-menu" aria-label="Open contact options" data-speed-dial-toggle>
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-        <path d="M12 8v6"></path>
-        <path d="M9 11h6"></path>
-      </svg>
-    </button>
-  </div>
-  <div class="cookie-settings" data-cookie-settings="true">
-    <div class="cookie-settings__item">
-      <span class="cookie-settings__label" aria-hidden="true">Cookie settings</span>
-      <button id="privacy-settings-link" type="button" class="cookie-settings__toggle btn-icon btn-icon-featured" aria-label="Cookie settings" aria-haspopup="dialog">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M21 13a4 4 0 0 1-4-4a4 4 0 0 1-4-4A9 9 0 1 0 21 13z"></path>
-          <circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"></circle>
-          <circle cx="13" cy="13" r="1" fill="currentColor" stroke="none"></circle>
-          <circle cx="9" cy="15.5" r="1" fill="currentColor" stroke="none"></circle>
-        </svg>
-      </button>
-    </div>
-  </div>
-  <div class="speed-dial" data-speed-dial="true">
-    <div class="speed-dial__tray" data-speed-dial-tray>
-      <div class="speed-dial__actions" id="speed-dial-menu" role="menu" aria-label="Contact options" aria-hidden="true" data-speed-dial-menu>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">Direct Message</span>
-          <a class="speed-dial__action btn-icon speed-dial__action--direct" href="#contact-modal" data-contact-modal-link="true" aria-label="Send a direct message" role="menuitem" data-speed-dial-action>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-              <path d="M7 9h10"></path>
-              <path d="M7 13h6"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">Send Email</span>
-          <a class="speed-dial__action btn-icon" href="mailto:daniel@danielshort.me" aria-label="Send Email" role="menuitem" data-speed-dial-action>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="3" y="5" width="18" height="14" rx="2"></rect>
-              <path d="M3 7l9 6 9-6"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">View LinkedIn</span>
-          <a class="speed-dial__action btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" rel="noopener noreferrer" aria-label="View LinkedIn" role="menuitem" data-speed-dial-action>
-            <svg class="brand-fill" viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="4" cy="4" r="2"></circle>
-              <rect x="2" y="9" width="4" height="12" rx="1"></rect>
-              <path d="M10 9h3.8v2.1h.1C14.8 9.7 16.1 9 17.9 9c3 0 5.1 1.9 5.1 5.9V21h-4v-5.9c0-1.7-.7-2.9-2.6-2.9s-2.7 1.4-2.7 3V21H10z"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">View GitHub</span>
-          <a class="speed-dial__action btn-icon" href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer" aria-label="View GitHub" role="menuitem" data-speed-dial-action>
-            <span class="icon icon-github" aria-hidden="true"></span>
-          </a>
-        </div>
-      </div>
-    </div>
-    <button class="speed-dial__toggle btn-icon btn-icon-featured" type="button" aria-expanded="false" aria-haspopup="menu" aria-controls="speed-dial-menu" aria-label="Open contact options" data-speed-dial-toggle>
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-        <path d="M12 8v6"></path>
-        <path d="M9 11h6"></path>
-      </svg>
-    </button>
-  </div>
-  <div class="cookie-settings" data-cookie-settings="true">
-    <div class="cookie-settings__item">
-      <span class="cookie-settings__label" aria-hidden="true">Cookie settings</span>
-      <button id="privacy-settings-link" type="button" class="cookie-settings__toggle btn-icon btn-icon-featured" aria-label="Cookie settings" aria-haspopup="dialog">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M21 13a4 4 0 0 1-4-4a4 4 0 0 1-4-4A9 9 0 1 0 21 13z"></path>
-          <circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"></circle>
-          <circle cx="13" cy="13" r="1" fill="currentColor" stroke="none"></circle>
-          <circle cx="9" cy="15.5" r="1" fill="currentColor" stroke="none"></circle>
-        </svg>
-      </button>
-    </div>
-  </div>
-  <div class="speed-dial" data-speed-dial="true">
-    <div class="speed-dial__tray" data-speed-dial-tray>
-      <div class="speed-dial__actions" id="speed-dial-menu" role="menu" aria-label="Contact options" aria-hidden="true" data-speed-dial-menu>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">Direct Message</span>
-          <a class="speed-dial__action btn-icon speed-dial__action--direct" href="#contact-modal" data-contact-modal-link="true" aria-label="Send a direct message" role="menuitem" data-speed-dial-action>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-              <path d="M7 9h10"></path>
-              <path d="M7 13h6"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">Send Email</span>
-          <a class="speed-dial__action btn-icon" href="mailto:daniel@danielshort.me" aria-label="Send Email" role="menuitem" data-speed-dial-action>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="3" y="5" width="18" height="14" rx="2"></rect>
-              <path d="M3 7l9 6 9-6"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">View LinkedIn</span>
-          <a class="speed-dial__action btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" rel="noopener noreferrer" aria-label="View LinkedIn" role="menuitem" data-speed-dial-action>
-            <svg class="brand-fill" viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="4" cy="4" r="2"></circle>
-              <rect x="2" y="9" width="4" height="12" rx="1"></rect>
-              <path d="M10 9h3.8v2.1h.1C14.8 9.7 16.1 9 17.9 9c3 0 5.1 1.9 5.1 5.9V21h-4v-5.9c0-1.7-.7-2.9-2.6-2.9s-2.7 1.4-2.7 3V21H10z"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">View GitHub</span>
-          <a class="speed-dial__action btn-icon" href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer" aria-label="View GitHub" role="menuitem" data-speed-dial-action>
-            <span class="icon icon-github" aria-hidden="true"></span>
-          </a>
-        </div>
-      </div>
-    </div>
-    <button class="speed-dial__toggle btn-icon btn-icon-featured" type="button" aria-expanded="false" aria-haspopup="menu" aria-controls="speed-dial-menu" aria-label="Open contact options" data-speed-dial-toggle>
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-        <path d="M12 8v6"></path>
-        <path d="M9 11h6"></path>
-      </svg>
-    </button>
-  </div>
-  <div class="cookie-settings" data-cookie-settings="true">
-    <div class="cookie-settings__item">
-      <span class="cookie-settings__label" aria-hidden="true">Cookie settings</span>
-      <button id="privacy-settings-link" type="button" class="cookie-settings__toggle btn-icon btn-icon-featured" aria-label="Cookie settings" aria-haspopup="dialog">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M21 13a4 4 0 0 1-4-4a4 4 0 0 1-4-4A9 9 0 1 0 21 13z"></path>
-          <circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"></circle>
-          <circle cx="13" cy="13" r="1" fill="currentColor" stroke="none"></circle>
-          <circle cx="9" cy="15.5" r="1" fill="currentColor" stroke="none"></circle>
-        </svg>
-      </button>
-    </div>
-  </div>
-  <div class="speed-dial" data-speed-dial="true">
-    <div class="speed-dial__tray" data-speed-dial-tray>
-      <div class="speed-dial__actions" id="speed-dial-menu" role="menu" aria-label="Contact options" aria-hidden="true" data-speed-dial-menu>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">Direct Message</span>
-          <a class="speed-dial__action btn-icon speed-dial__action--direct" href="#contact-modal" data-contact-modal-link="true" aria-label="Send a direct message" role="menuitem" data-speed-dial-action>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-              <path d="M7 9h10"></path>
-              <path d="M7 13h6"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">Send Email</span>
-          <a class="speed-dial__action btn-icon" href="mailto:daniel@danielshort.me" aria-label="Send Email" role="menuitem" data-speed-dial-action>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="3" y="5" width="18" height="14" rx="2"></rect>
-              <path d="M3 7l9 6 9-6"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">View LinkedIn</span>
-          <a class="speed-dial__action btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" rel="noopener noreferrer" aria-label="View LinkedIn" role="menuitem" data-speed-dial-action>
-            <svg class="brand-fill" viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="4" cy="4" r="2"></circle>
-              <rect x="2" y="9" width="4" height="12" rx="1"></rect>
-              <path d="M10 9h3.8v2.1h.1C14.8 9.7 16.1 9 17.9 9c3 0 5.1 1.9 5.1 5.9V21h-4v-5.9c0-1.7-.7-2.9-2.6-2.9s-2.7 1.4-2.7 3V21H10z"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">View GitHub</span>
-          <a class="speed-dial__action btn-icon" href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer" aria-label="View GitHub" role="menuitem" data-speed-dial-action>
-            <span class="icon icon-github" aria-hidden="true"></span>
-          </a>
-        </div>
-      </div>
-    </div>
-    <button class="speed-dial__toggle btn-icon btn-icon-featured" type="button" aria-expanded="false" aria-haspopup="menu" aria-controls="speed-dial-menu" aria-label="Open contact options" data-speed-dial-toggle>
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-        <path d="M12 8v6"></path>
-        <path d="M9 11h6"></path>
-      </svg>
-    </button>
-  </div>
-  <div class="cookie-settings" data-cookie-settings="true">
-    <div class="cookie-settings__item">
-      <span class="cookie-settings__label" aria-hidden="true">Cookie settings</span>
-      <button id="privacy-settings-link" type="button" class="cookie-settings__toggle btn-icon btn-icon-featured" aria-label="Cookie settings" aria-haspopup="dialog">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M21 13a4 4 0 0 1-4-4a4 4 0 0 1-4-4A9 9 0 1 0 21 13z"></path>
-          <circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"></circle>
-          <circle cx="13" cy="13" r="1" fill="currentColor" stroke="none"></circle>
-          <circle cx="9" cy="15.5" r="1" fill="currentColor" stroke="none"></circle>
-        </svg>
-      </button>
-    </div>
-  </div>
-  <div class="speed-dial" data-speed-dial="true">
-    <div class="speed-dial__tray" data-speed-dial-tray>
-      <div class="speed-dial__actions" id="speed-dial-menu" role="menu" aria-label="Contact options" aria-hidden="true" data-speed-dial-menu>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">Direct Message</span>
-          <a class="speed-dial__action btn-icon speed-dial__action--direct" href="#contact-modal" data-contact-modal-link="true" aria-label="Send a direct message" role="menuitem" data-speed-dial-action>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-              <path d="M7 9h10"></path>
-              <path d="M7 13h6"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">Send Email</span>
-          <a class="speed-dial__action btn-icon" href="mailto:daniel@danielshort.me" aria-label="Send Email" role="menuitem" data-speed-dial-action>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="3" y="5" width="18" height="14" rx="2"></rect>
-              <path d="M3 7l9 6 9-6"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">View LinkedIn</span>
-          <a class="speed-dial__action btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" rel="noopener noreferrer" aria-label="View LinkedIn" role="menuitem" data-speed-dial-action>
-            <svg class="brand-fill" viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="4" cy="4" r="2"></circle>
-              <rect x="2" y="9" width="4" height="12" rx="1"></rect>
-              <path d="M10 9h3.8v2.1h.1C14.8 9.7 16.1 9 17.9 9c3 0 5.1 1.9 5.1 5.9V21h-4v-5.9c0-1.7-.7-2.9-2.6-2.9s-2.7 1.4-2.7 3V21H10z"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">View GitHub</span>
-          <a class="speed-dial__action btn-icon" href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer" aria-label="View GitHub" role="menuitem" data-speed-dial-action>
-            <span class="icon icon-github" aria-hidden="true"></span>
-          </a>
-        </div>
-      </div>
-    </div>
-    <button class="speed-dial__toggle btn-icon btn-icon-featured" type="button" aria-expanded="false" aria-haspopup="menu" aria-controls="speed-dial-menu" aria-label="Open contact options" data-speed-dial-toggle>
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-        <path d="M12 8v6"></path>
-        <path d="M9 11h6"></path>
-      </svg>
-    </button>
-  </div>
-
-  <!-- scripts -->
-  <script defer src="dist/site-shell.98277b16.js"></script>
   <script defer src="dist/site-consent.c29737aa.js"></script>
 </body>
 </html>

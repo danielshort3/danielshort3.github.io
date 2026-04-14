@@ -228,6 +228,27 @@
     const nav = host.querySelector('.nav');
     if (!nav) return;
 
+    const audienceApi = window.SITE_AUDIENCE_CONFIG || null;
+    const normalizeAudience = audienceApi && typeof audienceApi.normalizeAudience === 'function'
+      ? audienceApi.normalizeAudience
+      : (() => 'analytics');
+    const getAudience = audienceApi && typeof audienceApi.getAudience === 'function'
+      ? audienceApi.getAudience
+      : (() => ({
+          key: 'analytics',
+          homePath: '/analytics',
+          portfolioPath: '/portfolio?audience=analytics',
+          portfolioAllPath: '/portfolio?audience=analytics',
+          resumePath: '/resume-analytics',
+          resumePreviewPath: '/resume-analytics-pdf',
+          resumeDownloadPath: '/documents/Resume-Analytics.pdf',
+          brandNavPrimary: 'Data Analytics'
+        }));
+    const detectAudienceFromPath = audienceApi && typeof audienceApi.detectAudienceFromPath === 'function'
+      ? audienceApi.detectAudienceFromPath
+      : (() => null);
+
+    const AUDIENCE_KEY = 'siteAudience';
     const ENTRY_HOME_KEY = 'entryHome';
     const readSession = (key) => {
       try {
@@ -275,16 +296,63 @@
         return variants;
       })
     )];
-    const inferEntryHome = () => currentPathVariants.includes('/tourism') ? '/tourism' : '/';
+    const queryAudience = (() => {
+      try {
+        const params = new URLSearchParams(window.location.search || '');
+        return params.get('audience');
+      } catch {
+        return null;
+      }
+    })();
+    const bodyAudience = document.body && document.body.dataset
+      ? document.body.dataset.audience
+      : '';
+    const pathAudience = currentPathVariants
+      .map((path) => detectAudienceFromPath(path))
+      .find(Boolean);
+    const storedAudience = readSession(AUDIENCE_KEY);
+    const activeAudience = getAudience(bodyAudience || queryAudience || pathAudience || storedAudience);
+    const activeAudienceKey = normalizeAudience(activeAudience && activeAudience.key);
+    const isRootHome = currentPathVariants.includes('/');
+    const entryHome = isRootHome ? '/' : String(activeAudience.homePath || '/analytics');
 
-    let entryHome = readSession(ENTRY_HOME_KEY);
-    if (entryHome !== '/' && entryHome !== '/tourism') {
-      entryHome = inferEntryHome();
-      writeSession(ENTRY_HOME_KEY, entryHome);
-    }
+    writeSession(AUDIENCE_KEY, activeAudienceKey);
+    writeSession(ENTRY_HOME_KEY, entryHome);
 
     $$('[data-entry-home-link="true"]', host).forEach((link) => {
       link.setAttribute('href', entryHome);
+    });
+    $$('[data-audience-home-link="true"]', host).forEach((link) => {
+      link.setAttribute('href', activeAudience.homePath || '/analytics');
+    });
+    $$('[data-portfolio-home-link="true"]', host).forEach((link) => {
+      link.setAttribute('href', activeAudience.portfolioPath || '/portfolio?audience=analytics');
+    });
+    $$('[data-portfolio-default-link="true"]', host).forEach((link) => {
+      link.setAttribute('href', activeAudience.portfolioAllPath || '/portfolio?audience=analytics');
+    });
+    $$('[data-resume-home-link="true"]', host).forEach((link) => {
+      link.setAttribute('href', activeAudience.resumePath || '/resume-analytics');
+    });
+    $$('[data-resume-preview-link="true"]', host).forEach((link) => {
+      link.setAttribute('href', activeAudience.resumePreviewPath || '/resume-analytics-pdf');
+    });
+    $$('[data-resume-download-link="true"]', host).forEach((link) => {
+      link.setAttribute('href', activeAudience.resumeDownloadPath || '/documents/Resume-Analytics.pdf');
+    });
+    $$('[data-brand-tagline-primary="true"]', host).forEach((node) => {
+      node.textContent = activeAudience.brandNavPrimary || 'Data Analytics';
+    });
+    $$('[data-audience-link]', host).forEach((link) => {
+      const audience = getAudience(link.dataset.audienceLink);
+      link.setAttribute('href', audience.homePath || '/analytics');
+      const isActive = normalizeAudience(audience.key) === activeAudienceKey;
+      link.classList.toggle('is-current', isActive);
+      if (isActive) {
+        link.setAttribute('aria-current', 'page');
+      } else {
+        link.removeAttribute('aria-current');
+      }
     });
 
     $$('.nav-link', host).forEach((link) => {
@@ -317,6 +385,7 @@
     const burger = host.querySelector('#nav-toggle');
     const menu   = host.querySelector('#primary-menu');
     let closeMenu = () => {};
+    setupDropdown(host.querySelector('.nav-item-audience'));
     setupDropdown(host.querySelector('.nav-item-portfolio'));
     setupDropdown(host.querySelector('.nav-item-resume'));
     setupDropdown(host.querySelector('.nav-item-contact'));

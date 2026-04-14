@@ -24,6 +24,7 @@ window.PROJECTS = [
     videoMp4: "img/projects/smartSentence.mp4",
     tools: ["Python", "AWS", "Docker", "NLP"],
     concepts: ["Machine Learning", "Automation"],
+    audiences: ["data-science"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Smart-Sentence-Finder", label: "GitHub" },
       { icon: "img/icons/pdf-icon.png", url: "documents/Project_13.pdf", label: "PDF" },
@@ -114,6 +115,7 @@ window.PROJECTS = [
     videoMp4: "img/projects/chatbotLora.mp4",
     tools: ["Python", "Ollama", "AWS", "Docker"],
     concepts: ["Machine Learning", "Automation"],
+    audiences: ["data-science", "tourism"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Chatbot-LoRA-RAG", label: "GitHub" },
       { icon: "img/icons/website-icon.png", url: "https://www.danielshort.me/chatbot-demo.html", label: "Live Demo" }
@@ -193,6 +195,7 @@ window.PROJECTS = [
     videoMp4: "img/projects/shapeClassifier.mp4",
     tools: ["Python", "PyTorch", "AWS", "Docker"],
     concepts: ["Machine Learning"],
+    audiences: ["data-science"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Shape-Analyzer", label: "GitHub" },
       { icon: "img/icons/website-icon.png", url: "https://github.com/googlecreativelab/quickdraw-dataset", label: "Quick, Draw! Dataset", type: "data" },
@@ -267,6 +270,7 @@ window.PROJECTS = [
     imageHeight: 1116,
     tools: ["Tableau"],
     concepts: ["Visualization", "Analytics"],
+    audiences: ["analytics"],
 	    resources: [
 	      { icon: "img/icons/tableau-icon.png",
 	        url  : "https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013?:language=en-US&:display_count=n&:origin=viz_share_link",
@@ -344,6 +348,7 @@ window.PROJECTS = [
     videoMp4: "img/projects/covidAnalysis.mp4",
     tools: ["Python", "AWS"],
     concepts: ["Analytics"],
+    audiences: ["analytics", "tourism"],
     resources: [
       { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Covid-Analysis", label: "GitHub" },
       { icon: "img/icons/website-icon.png", url: "https://www.danielshort.me/covid-outbreak-demo",    label: "Live Demo" },
@@ -438,6 +443,7 @@ window.PROJECTS = [
     videoMp4: "img/projects/targetEmptyPackage.mp4",
     tools: ["Excel", "Time-Series", "AWS"],
     concepts: ["Automation", "Analytics"],
+    audiences: ["analytics"],
     resources: [
       { icon: "img/icons/pdf-icon.png",   url: "documents/Project_7.pdf",  label: "PDF"   },
       { icon: "img/icons/excel-icon.png", url: "documents/Project_7.xlsx", label: "Excel" },
@@ -521,6 +527,7 @@ window.PROJECTS = [
     videoOnly: true,
     tools: ["Python", "PyTorch", "AWS", "Docker", "CNN"],
     concepts: ["Machine Learning"],
+    audiences: ["data-science"],
     resources: [
       { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Handwriting-Rating", label: "GitHub" },
       { icon: "img/icons/website-icon.png", url: "https://www.danielshort.me/handwriting-rating-demo.html", label: "Live Demo" },
@@ -600,6 +607,7 @@ window.PROJECTS = [
     videoMp4:  "img/projects/digitGenerator.mp4",
     tools: ["Python", "VAE", "AWS", "Docker"],
     concepts: ["Machine Learning"],
+    audiences: ["data-science"],
     resources: [
       { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Handwritten-Digit-Generator", label: "GitHub" },
       { icon: "img/icons/website-icon.png", url: "https://www.danielshort.me/digit-generator-demo", label: "Live Demo" },
@@ -675,6 +683,7 @@ window.PROJECTS = [
     videoMp4:  "img/projects/sheetMusicUpscale.mp4",
     tools: ["Python", "Computer Vision"],
     concepts: ["Machine Learning"],
+    audiences: ["data-science"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Watermark-Remover", label: "GitHub" },
       { icon: "img/icons/pdf-icon.png",    url: "documents/Project_10_pdf.zip",                      label: "PDFs"  },
@@ -744,6 +753,7 @@ window.PROJECTS = [
     imageHeight: 794,
     tools: ["Excel", "Power Query"],
     concepts: ["Analytics"],
+    audiences: ["analytics"],
     resources: [
       { icon: "img/icons/pdf-icon.png",   url: "documents/Project_11.pdf",  label: "PDF"   },
       { icon: "img/icons/excel-icon.png", url: "documents/Project_11.xlsx", label: "Excel" }
@@ -806,6 +816,7 @@ window.PROJECTS = [
 	    videoMp4: "img/projects/retailStore.mp4",
 	    tools: ["SQL", "Python", "AWS"],
 	    concepts: ["Automation", "Analytics"],
+      audiences: ["analytics", "tourism"],
 	    resources: [
 	      { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/target-packaging-analysis-mssql", label: "GitHub" },
       { icon: "img/icons/pdf-icon.png",    url: "documents/Project_12.pdf",                                        label: "PDF"    },
@@ -889,6 +900,7 @@ window.PROJECTS = [
     videoMp4: "img/projects/pizza.mp4",
     tools: ["Excel", "Statistics", "AWS"],
     concepts: ["Analytics"],
+    audiences: ["analytics"],
     resources: [
       { icon: "img/icons/website-icon.png", url: "https://www.danielshort.me/pizza-tips-demo", label: "Live Demo" },
       { icon: "img/icons/pdf-icon.png",   url: "documents/Project_1.pdf",  label: "PDF"   },
@@ -965,6 +977,7 @@ window.PROJECTS = [
     videoMp4: "img/projects/babynames.mp4",
     tools: ["Python", "scikit-learn"],
     concepts: ["Machine Learning"],
+    audiences: ["analytics"],
     resources: [
       { icon: "img/icons/website-icon.png", url: "https://www.danielshort.me/baby-names-demo", label: "Live Demo" },
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/Baby-Names", label: "GitHub" },
@@ -1049,6 +1062,7 @@ window.PROJECTS = [
     imageHeight: 1092,
     tools: ["Tableau"],
     concepts: ["Visualization", "Analytics"],
+    audiences: ["analytics", "tourism"],
     resources: [
       { icon: "img/icons/tableau-icon.png",
         url : "https://public.tableau.com/views/Pizza_Delivery/PizzaDeliveryDashboard?:language=en-US&:display_count=n&:origin=viz_share_link",
@@ -1128,6 +1142,7 @@ window.PROJECTS = [
     videoMp4:  "img/projects/nonogram.mp4",
     tools: ["Python", "PyTorch", "AWS", "Docker"],
     concepts: ["Machine Learning"],
+    audiences: ["data-science"],
     resources: [
       { icon: "img/icons/github-icon.png",  url: "https://github.com/danielshort3/Nonogram-Solver", label: "GitHub" },
       { icon: "img/icons/website-icon.png", url: "https://www.danielshort.me/nonogram-demo.html", label: "Live Demo" },
@@ -1277,6 +1292,7 @@ window.PROJECTS = [
     videoMp4: "img/projects/website.mp4",
     tools: ["HTML", "CSS", "JavaScript"],
     concepts: ["Product", "Visualization"],
+    audiences: ["analytics"],
     resources: [
       { icon: "img/icons/github-icon.png", url: "https://github.com/danielshort3/danielshort3.github.io", label: "GitHub" },
       { icon: "img/icons/website-icon.png", url: "https://www.danielshort.me/", label: "Live Site" }
@@ -1340,7 +1356,7 @@ window.PROJECTS = [
 window.FEATURED_IDS = [
   "retailStore",
   "smartSentence",
-  "pizzaDashboard",
+  "targetEmptyPackage",
   "chatbotLora",
   "shapeClassifier"
 ];

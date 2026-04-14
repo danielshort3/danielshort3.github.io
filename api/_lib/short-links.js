@@ -3,8 +3,17 @@
 */
 'use strict';
 
+const crypto = require('crypto');
+
 const SHORTLINKS_PREFIX = 'shortlinks';
 const SLUG_SET_KEY = `${SHORTLINKS_PREFIX}:slugs`;
+const SET_KEY_PREFIX = '__set__/';
+const BATCH_KEY_PREFIX = '__batch__/';
+const CANONICAL_SITE_ORIGIN = 'https://www.danielshort.me';
+const DEFAULT_RANDOM_LENGTH = 6;
+const MIN_RANDOM_LENGTH = 4;
+const MAX_RANDOM_LENGTH = 12;
+const RANDOM_SLUG_CHARSET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
 function linkKey(slug){
   return `${SHORTLINKS_PREFIX}:link:${slug}`;
@@ -12,6 +21,20 @@ function linkKey(slug){
 
 function clicksKey(slug){
   return `${SHORTLINKS_PREFIX}:clicks:${slug}`;
+}
+
+function buildSetRecordKey(setId){
+  return `${SET_KEY_PREFIX}${setId}`;
+}
+
+function buildBatchRecordKey(batchId){
+  return `${BATCH_KEY_PREFIX}${batchId}`;
+}
+
+function isInternalRecordSlug(slug){
+  const raw = String(slug || '').trim();
+  if (!raw) return false;
+  return raw.startsWith(SET_KEY_PREFIX) || raw.startsWith(BATCH_KEY_PREFIX);
 }
 
 function getAdminToken(){
@@ -61,19 +84,63 @@ function readJson(req){
 function normalizeSlug(slug){
   const raw = String(slug || '').trim();
   const trimmed = raw.replace(/^\/+|\/+$/g, '');
-  const normalized = trimmed.toLowerCase();
-  if (!normalized) return '';
-  if (normalized.length > 128) return '';
-  if (normalized.includes('..')) return '';
-  const ok = /^[a-z0-9][a-z0-9-_]*(?:\/[a-z0-9][a-z0-9-_]*)*$/.test(normalized);
-  return ok ? normalized : '';
+  if (!trimmed) return '';
+  if (trimmed.length > 128) return '';
+  if (trimmed.includes('..')) return '';
+  const ok = /^[A-Za-z0-9][A-Za-z0-9-_]*(?:\/[A-Za-z0-9][A-Za-z0-9-_]*)*$/.test(trimmed);
+  return ok ? trimmed : '';
 }
 
-function normalizeDestination(destination){
+function normalizeSlugLower(slug){
+  const normalized = normalizeSlug(slug);
+  return normalized ? normalized.toLowerCase() : '';
+}
+
+function normalizeSetId(setId){
+  const raw = String(setId || '').trim().toLowerCase();
+  if (!raw) return '';
+  if (raw.length > 64) return '';
+  return /^[a-z0-9][a-z0-9-_]*$/.test(raw) ? raw : '';
+}
+
+function createSetId(){
+  return crypto.randomBytes(8).toString('hex');
+}
+
+function createBatchId(){
+  return crypto.randomBytes(10).toString('hex');
+}
+
+function normalizeRandomLength(value, fallback = DEFAULT_RANDOM_LENGTH){
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return fallback;
+  return Math.max(MIN_RANDOM_LENGTH, Math.min(MAX_RANDOM_LENGTH, Math.floor(numeric)));
+}
+
+function generateRandomSlug(length){
+  const safeLength = normalizeRandomLength(length);
+  let slug = '';
+  for (let i = 0; i < safeLength; i += 1) {
+    const index = crypto.randomInt(0, RANDOM_SLUG_CHARSET.length);
+    slug += RANDOM_SLUG_CHARSET[index];
+  }
+  return slug;
+}
+
+function normalizeDestination(destination, options = {}){
   const raw = String(destination || '').trim();
   if (!raw) return '';
   if (raw.length > 2048) return '';
-  if (raw.startsWith('/')) return raw;
+  if (raw.startsWith('/')) {
+    if (options && options.absolutizeInternalPath) {
+      try {
+        return new URL(raw, CANONICAL_SITE_ORIGIN).toString();
+      } catch {
+        return '';
+      }
+    }
+    return raw;
+  }
   if (/^https?:\/\//i.test(raw)) return raw;
   return '';
 }
@@ -87,14 +154,27 @@ function getRequestBaseUrl(req){
 
 module.exports = {
   SLUG_SET_KEY,
+  SET_KEY_PREFIX,
+  BATCH_KEY_PREFIX,
+  DEFAULT_RANDOM_LENGTH,
+  MIN_RANDOM_LENGTH,
+  MAX_RANDOM_LENGTH,
   linkKey,
   clicksKey,
+  buildSetRecordKey,
+  buildBatchRecordKey,
+  isInternalRecordSlug,
   getAdminToken,
   isAdminRequest,
   sendJson,
   readJson,
   normalizeSlug,
+  normalizeSlugLower,
+  normalizeSetId,
+  createSetId,
+  createBatchId,
+  normalizeRandomLength,
+  generateRandomSlug,
   normalizeDestination,
   getRequestBaseUrl
 };
-

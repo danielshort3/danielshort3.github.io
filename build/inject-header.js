@@ -16,6 +16,16 @@ const path = require('path');
 
 const root = path.resolve(__dirname, '..');
 const headerTemplatePath = path.join(root, 'build', 'templates', 'header.partial.html');
+const audienceApi = require(path.join(root, 'js', 'common', 'audience-config.js'));
+const normalizeAudience = audienceApi && typeof audienceApi.normalizeAudience === 'function'
+  ? audienceApi.normalizeAudience
+  : ((value) => String(value || '').trim().toLowerCase() || 'analytics');
+const getAudience = audienceApi && typeof audienceApi.getAudience === 'function'
+  ? audienceApi.getAudience
+  : (() => ({ brandNavPrimary: 'Data Analytics' }));
+const detectAudienceFromPath = audienceApi && typeof audienceApi.detectAudienceFromPath === 'function'
+  ? audienceApi.detectAudienceFromPath
+  : (() => null);
 
 function read(relPath) {
   return fs.readFileSync(path.join(root, relPath), 'utf8');
@@ -108,6 +118,32 @@ function replaceHeader(html, headerHtml) {
   return { html: next, changed: next !== html };
 }
 
+function relPathToRoute(relPath) {
+  const normalized = String(relPath || '').replace(/\\/g, '/');
+  if (!normalized || normalized === 'index.html') return '/';
+  if (normalized.startsWith('pages/')) {
+    return `/${normalized.slice('pages/'.length).replace(/\.html$/i, '')}`;
+  }
+  return `/${normalized.replace(/\.html$/i, '')}`;
+}
+
+function detectAudienceForFile(html, relPath) {
+  const bodyAudienceMatch = html.match(/\bdata-audience=(["'])([^"']+)\1/i);
+  if (bodyAudienceMatch && bodyAudienceMatch[2]) {
+    return normalizeAudience(bodyAudienceMatch[2]);
+  }
+  return detectAudienceFromPath(relPathToRoute(relPath));
+}
+
+function withAudienceBranding(headerHtml, audienceKey) {
+  const audience = getAudience(audienceKey);
+  const label = String(audience && audience.brandNavPrimary ? audience.brandNavPrimary : 'Data Analytics');
+  return headerHtml.replace(
+    /(<span class="brand-tagline-chunk" data-brand-tagline-primary="true">)([\s\S]*?)(<\/span>)/i,
+    `$1${label}$3`
+  );
+}
+
 function main() {
   const headerHtml = loadHeaderTemplate();
 
@@ -127,7 +163,9 @@ function main() {
 
     if (!exists(relPath)) return;
     const html = read(relPath);
-    const replaced = replaceHeader(html, headerHtml);
+    const audienceKey = detectAudienceForFile(html, relPath);
+    const pageHeaderHtml = withAudienceBranding(headerHtml, audienceKey);
+    const replaced = replaceHeader(html, pageHeaderHtml);
     if (!replaced.changed) {
       skipped += 1;
       return;
