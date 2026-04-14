@@ -4,6 +4,7 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
+    { "source": "/api/short-links/sets", "destination": "/api/short-links/sets/__collection__" },
     { "source": "/go/:first/:rest", "has": [{ "type": "host", "value": "dshort.me" }], "destination": "/api/go/:first%2F:rest" },
     { "source": "/go/:slug", "has": [{ "type": "host", "value": "dshort.me" }], "destination": "/api/go/:slug" },
     { "source": "/:first/:rest", "has": [{ "type": "host", "value": "dshort.me" }], "destination": "/api/go/:first%2F:rest" },

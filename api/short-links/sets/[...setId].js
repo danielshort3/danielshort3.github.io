@@ -7,6 +7,7 @@ const {
   deleteSetTemplate,
   getSetTemplate,
   listLinks,
+  listSetTemplates,
   saveGeneratedBatch,
   saveSetTemplate,
   upsertLink
@@ -34,6 +35,7 @@ const {
 } = require('../../_lib/short-links-sets');
 
 const RANDOM_SLUG_RETRY_LIMIT = 40;
+const COLLECTION_SENTINEL = '__collection__';
 
 function getRouteParts(req){
   const direct = req.query && req.query.setId;
@@ -62,6 +64,12 @@ function buildShortUrl(slug, req){
     }
   } catch {}
   return `https://dshort.me/${slug}`;
+}
+
+function isCollectionRoute(parts){
+  return Array.isArray(parts)
+    && parts.length === 1
+    && String(parts[0] || '').trim().toLowerCase() === COLLECTION_SENTINEL;
 }
 
 function serializeGeneratedLink(record, req){
@@ -98,6 +106,65 @@ module.exports = async (req, res) => {
   }
 
   const parts = getRouteParts(req);
+  if (isCollectionRoute(parts)) {
+    if (req.method === 'GET') {
+      try {
+        const items = await listSetTemplates();
+        sendJson(res, 200, {
+          ok: true,
+          sets: items.map(serializeSetTemplate)
+        });
+        return;
+      } catch (err) {
+        if (err.code === 'DDB_ENV_MISSING') {
+          sendJson(res, 503, { ok: false, error: err.message });
+          return;
+        }
+        sendJson(res, 502, { ok: false, error: 'DynamoDB backend unavailable' });
+        return;
+      }
+    }
+
+    if (req.method === 'POST') {
+      let body;
+      try {
+        body = await readJson(req);
+      } catch {
+        sendJson(res, 400, { ok: false, error: 'Invalid JSON body' });
+        return;
+      }
+
+      const record = buildSetTemplateRecord(body, null);
+      if (!record.title) {
+        sendJson(res, 400, { ok: false, error: 'Template title is required' });
+        return;
+      }
+      if (!Array.isArray(record.entries) || record.entries.length === 0) {
+        sendJson(res, 400, { ok: false, error: 'Add at least one valid URL row before saving the set' });
+        return;
+      }
+
+      try {
+        await saveSetTemplate(record);
+      } catch (err) {
+        if (err.code === 'DDB_ENV_MISSING') {
+          sendJson(res, 503, { ok: false, error: err.message });
+          return;
+        }
+        sendJson(res, 502, { ok: false, error: 'DynamoDB backend unavailable' });
+        return;
+      }
+
+      sendJson(res, 200, { ok: true, set: serializeSetTemplate(record) });
+      return;
+    }
+
+    res.statusCode = 405;
+    res.setHeader('Allow', 'GET, POST');
+    sendJson(res, 405, { ok: false, error: 'Method Not Allowed' });
+    return;
+  }
+
   const isGenerateRoute = parts.length >= 2 && parts[parts.length - 1].toLowerCase() === 'generate';
   const setId = normalizeSetId(isGenerateRoute ? parts.slice(0, -1).join('-') : parts.join('-'));
   if (!setId) {
