@@ -99,13 +99,14 @@ function normalizeIndent(indent) {
 }
 
 function replaceFooter(html, footerHtml) {
-  // Include the leading indent so we don't duplicate it on each build run.
-  const footerRe = /^([\t ]*)<footer\b[^>]*>[\s\S]*?<\/footer>/im;
+  // Replace the footer plus any previously injected shell widgets that sit
+  // between the footer and the closing scripts/body so the step stays idempotent.
+  const footerRe = /^([\t ]*)<footer\b[^>]*>[\s\S]*?(?=^[\t ]*<script\b|^[\t ]*<\/body>)/im;
   const match = footerRe.exec(html);
   if (!match) return { html, changed: false };
 
   const indent = normalizeIndent(match[1]);
-  const replacement = indentBlock(footerHtml, indent);
+  const replacement = `${indentBlock(footerHtml, indent)}\n`;
   const next = html.replace(footerRe, replacement);
   return { html: next, changed: next !== html };
 }

@@ -21,7 +21,7 @@
   <meta name="twitter:site" content="@danielshort3">
   <meta name="twitter:image:alt" content="Portrait photo of Daniel Short">
   <meta name="theme-color" content="#0D1117">
-  <link rel="stylesheet" href="dist/styles.c562c1b6.css">
+  <link rel="stylesheet" href="dist/styles.1c621b14.css">
   <link rel="stylesheet" href="dist/styles-tools.563e9bd1.css">
   <link rel="stylesheet" href="css/components/short-links.css">
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -30,6 +30,7 @@
   <link rel="icon" type="image/png" sizes="64x64" href="img/ui/logo-64.png">
   <link rel="icon" type="image/png" sizes="192x192" href="img/ui/logo-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="img/ui/logo-180.png">
+  <script defer src="dist/site-shell.a5d45d92.js"></script>
   <script src="js/common/no-js.js"></script>
   <meta name="twitter:title" content="Short Links (Admin) | Daniel Short">
   <meta name="twitter:description" content="Private dashboard for managing short redirect links.">
@@ -40,14 +41,13 @@
   <header id="combined-header-nav">
     <nav class="nav" aria-label="Primary">
       <div class="wrapper nav-wrapper">
-        <a href="/" class="brand" aria-label="Home" data-entry-home-link="true">
-          <img src="img/ui/logo-64.png" srcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" sizes="64px" alt="DS logo" class="brand-logo" decoding="async" loading="eager" width="64" height="64">
+          <a href="/" class="brand" aria-label="Home" data-entry-home-link="true">
+            <img src="img/ui/logo-64.png" srcset="img/ui/logo-64.png 1x, img/ui/logo-192.png 3x" sizes="64px" alt="DS logo" class="brand-logo" decoding="async" loading="eager" width="64" height="64">
             <span class="brand-name">
               <span class="brand-title">Daniel Short</span>
               <span class="brand-divider" aria-hidden="true"></span>
               <span class="brand-tagline">
-                <span class="brand-tagline-chunk">Data Science</span>
-                <span class="brand-tagline-chunk">&amp; Analytics</span>
+                <span class="brand-tagline-chunk" data-brand-tagline-primary="true">Data Analytics</span>
               </span>
             </span>
           </a>
@@ -56,8 +56,8 @@
         </button>
         <div id="primary-menu" class="nav-row" data-collapsible role="navigation">
           <a href="/" class="nav-link" data-entry-home-link="true">Home</a>
-          <div class="nav-item nav-item-portfolio">
-            <a href="portfolio" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-portfolio">
+            <div class="nav-item nav-item-portfolio">
+              <a href="portfolio" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-portfolio" data-portfolio-home-link="true">
               Portfolio
               <span class="nav-link-caret" aria-hidden="true"></span>
             </a>
@@ -106,9 +106,9 @@
                         <span class="nav-dropdown-subtitle">Handwritten shape recognition</span>
                       </span>
                     </a>
-                  </div>
-                  <div class="nav-dropdown-footer nav-dropdown-footer-inline">
-                    <a href="portfolio?view=all#filters" class="nav-dropdown-link nav-dropdown-all">
+                    </div>
+                    <div class="nav-dropdown-footer nav-dropdown-footer-inline">
+                    <a href="portfolio" class="nav-dropdown-link nav-dropdown-all" data-portfolio-default-link="true">
                       <span class="nav-dropdown-title">View all projects</span>
                       <span class="nav-dropdown-subtitle">Browse the complete portfolio</span>
                     </a>
@@ -121,28 +121,28 @@
               </div>
             </div>
           </div>
-          <div class="nav-item nav-item-resume">
-            <a href="resume" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-resume">
+            <div class="nav-item nav-item-resume">
+              <a href="resume" class="nav-link nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-resume" data-resume-home-link="true">
               Resume
               <span class="nav-link-caret" aria-hidden="true"></span>
             </a>
             <div class="nav-dropdown" id="nav-dropdown-resume" aria-label="Resume download">
-              <div class="nav-dropdown-header" aria-hidden="true">Resume shortcuts</div>
-              <div class="nav-dropdown-list" role="list">
-                <a href="resume" class="nav-dropdown-link" role="listitem">
-                  <span class="nav-dropdown-title">View Digital Resume</span>
-                  <span class="nav-dropdown-subtitle">Open the digital resume page</span>
-                </a>
-                <a href="resume-pdf" class="nav-dropdown-link" role="listitem">
-                  <span class="nav-dropdown-title">Preview PDF</span>
-                  <span class="nav-dropdown-subtitle">Open the PDF resume page</span>
-                </a>
-                <a href="documents/Resume.pdf" class="nav-dropdown-link" role="listitem" download>
-                  <span class="nav-dropdown-title">Download Resume</span>
-                  <span class="nav-dropdown-subtitle">Save the latest PDF copy</span>
-                </a>
+                <div class="nav-dropdown-header" aria-hidden="true">Resume shortcuts</div>
+                <div class="nav-dropdown-list" role="list">
+                  <a href="resume" class="nav-dropdown-link" role="listitem" data-resume-home-link="true">
+                    <span class="nav-dropdown-title">View Digital Resume</span>
+                    <span class="nav-dropdown-subtitle">Open the digital resume page</span>
+                  </a>
+                  <a href="resume-pdf" class="nav-dropdown-link" role="listitem" data-resume-preview-link="true">
+                    <span class="nav-dropdown-title">Preview PDF</span>
+                    <span class="nav-dropdown-subtitle">Open the PDF resume page</span>
+                  </a>
+                  <a href="documents/Resume.pdf" class="nav-dropdown-link" role="listitem" download data-resume-download-link="true">
+                    <span class="nav-dropdown-title">Download Resume</span>
+                    <span class="nav-dropdown-subtitle">Save the latest PDF copy</span>
+                  </a>
+                </div>
               </div>
-            </div>
           </div>
           <div class="nav-item nav-item-contact">
             <a href="contact" class="nav-link nav-link-cta nav-link-has-menu" aria-haspopup="true" aria-expanded="false" aria-controls="nav-dropdown-contact">
@@ -212,41 +212,7 @@
   <main id="main">
     <section class="surface-band tools-section reveal shortlinks-dashboard-section">
       <div class="shortlinks-app-shell">
-        <section class="shortlinks-workspace" aria-labelledby="shortlinks-create-title">
-          <section class="shortlinks-shell-card shortlinks-create-card" aria-labelledby="shortlinks-create-title">
-            <div class="shortlinks-card-head shortlinks-card-head-create">
-              <div class="shortlinks-card-copy">
-                <p class="shortlinks-kicker">Create link</p>
-                <h2 id="shortlinks-create-title" class="section-title">Create and update redirects fast</h2>
-                <p class="shortlinks-panel-lead">Paste a destination, choose a clean slug, and publish a ready-to-share redirect without leaving the page.</p>
-              </div>
-              <p class="shortlinks-editor-meta" data-shortlinks="editor-meta" aria-live="polite">New link</p>
-            </div>
-            <form class="contact-form shortlinks-form" data-shortlinks="editor">
-              <div class="shortlinks-form-grid">
-                <div class="form-field shortlinks-field-main">
-                  <label for="shortlinks-destination">Destination</label>
-                  <div class="shortlinks-destination-row">
-                    <input id="shortlinks-destination" type="text" inputmode="url" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="https://example.com" data-shortlinks="destination">
-                    <button type="button" class="btn-ghost" data-shortlinks="destination-picker-open">Browse site pages</button>
-                  </div>
-                  <p class="contact-form-note">Use a full URL or a site path that starts with <code>/</code>.</p>
-                </div>
-                <div class="form-field">
-                  <label for="shortlinks-slug">Custom slug</label>
-                  <input id="shortlinks-slug" type="text" inputmode="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="github" data-shortlinks="slug">
-                  <p class="contact-form-note">Allowed: <code>a-z</code>, <code>0-9</code>, <code>-</code>, <code>_</code>, and <code>/</code>.</p>
-                </div>
-              </div>
-              <div class="form-actions shortlinks-action-row shortlinks-editor-actions">
-                <button type="submit" class="btn-primary" data-shortlinks="get-permanent"><span class="btn-label">Get permanent link</span></button>
-                <button type="button" class="btn-secondary" data-shortlinks="get-temporary">Get temporary link</button>
-                <button type="button" class="btn-ghost" data-shortlinks="clear">Reset</button>
-              </div>
-              <div class="contact-form-status" data-shortlinks="editor-status" role="status" aria-live="polite"></div>
-            </form>
-          </section>
-
+        <section class="shortlinks-workspace" aria-label="Short links dashboard">
           <section class="shortlinks-summary-section" aria-labelledby="shortlinks-summary-title">
             <div class="shortlinks-summary-head">
               <div class="shortlinks-card-copy">
@@ -257,109 +223,332 @@
             </div>
             <div class="shortlinks-snapshot" data-shortlinks="summary" aria-live="polite"></div>
           </section>
-        </section>
 
-        <details class="shortlinks-admin-tools" data-shortlinks="admin-tools">
-          <summary class="shortlinks-admin-summary">
-            <div class="shortlinks-admin-summary-copy">
-              <p class="shortlinks-kicker">Admin tools</p>
-              <h2 class="section-title">Access, exports, and portfolio sync</h2>
-            </div>
-            <div class="shortlinks-admin-summary-status" aria-live="polite">
-              <span class="shortlinks-admin-badge" data-shortlinks="admin-access-summary">Token required</span>
-              <span class="shortlinks-admin-badge" data-shortlinks="admin-project-summary">Project sync loading</span>
-              <span class="shortlinks-admin-badge" data-shortlinks="admin-export-summary">CSV export ready</span>
-            </div>
-          </summary>
-
-          <div class="shortlinks-admin-grid">
-            <section class="shortlinks-shell-card shortlinks-access-card shortlinks-admin-panel" data-shortlinks="access-card" aria-labelledby="shortlinks-access-title">
-              <div class="shortlinks-card-head shortlinks-card-head-tight">
-                <div class="shortlinks-card-copy">
-                  <p class="shortlinks-kicker">Access</p>
-                  <h2 id="shortlinks-access-title" class="section-title">Admin token and health</h2>
-                </div>
+          <section class="shortlinks-shell-card shortlinks-access-card shortlinks-access-card-visible" data-shortlinks="access-card" aria-labelledby="shortlinks-access-title">
+            <div class="shortlinks-card-head shortlinks-card-head-tight">
+              <div class="shortlinks-card-copy">
+                <p class="shortlinks-kicker">Admin access</p>
+                <h2 id="shortlinks-access-title" class="section-title">Unlock redirects and exports</h2>
+                <p class="shortlinks-panel-lead">Save the admin token on this browser, refresh redirect data, and run a quick backend check without opening another panel.</p>
+              </div>
+              <div class="shortlinks-access-status" aria-live="polite">
+                <span class="shortlinks-admin-badge" data-shortlinks="admin-access-summary">Token required</span>
                 <span class="shortlinks-access-meta" data-shortlinks="access-meta"></span>
               </div>
-              <p class="shortlinks-panel-lead">Save the admin token on this device, refresh redirect data, and run a quick backend check when needed.</p>
-              <form class="contact-form shortlinks-form" data-shortlinks="auth">
-                <div class="form-field">
-                  <label for="shortlinks-token">Admin token</label>
-                  <input id="shortlinks-token" type="password" inputmode="text" autocomplete="current-password" data-shortlinks="token">
-                  <p class="contact-form-note">Stored locally on this browser only.</p>
+            </div>
+            <form class="contact-form shortlinks-form" data-shortlinks="auth">
+              <div class="form-field">
+                <label for="shortlinks-token">Admin token</label>
+                <input id="shortlinks-token" type="password" inputmode="text" autocomplete="current-password" data-shortlinks="token">
+                <p class="contact-form-note">Stored locally on this browser only.</p>
+              </div>
+              <div class="form-actions shortlinks-action-row shortlinks-action-row-compact">
+                <button type="submit" class="btn-primary"><span class="btn-label">Save token</span></button>
+                <button type="button" class="btn-secondary" data-shortlinks="refresh">Refresh</button>
+                <button type="button" class="btn-secondary" data-shortlinks="health">Check backend</button>
+                <button type="button" class="btn-ghost" data-shortlinks="forget-token">Forget token</button>
+              </div>
+              <div class="contact-form-status" data-shortlinks="status" role="status" aria-live="polite"></div>
+              <div class="contact-form-status" data-shortlinks="health-status" role="status" aria-live="polite"></div>
+            </form>
+          </section>
+
+          <nav class="shortlinks-mode-tabs" aria-label="Short links workflow" role="tablist">
+            <button id="shortlinks-tab-single" type="button" class="shortlinks-mode-tab is-active" role="tab" aria-selected="true" aria-controls="shortlinks-mode-single" tabindex="0" data-shortlinks="mode-tab" data-shortlinks-mode="single">Single link</button>
+            <button id="shortlinks-tab-templates" type="button" class="shortlinks-mode-tab" role="tab" aria-selected="false" aria-controls="shortlinks-mode-templates" tabindex="-1" data-shortlinks="mode-tab" data-shortlinks-mode="templates">Templates</button>
+            <button id="shortlinks-tab-links" type="button" class="shortlinks-mode-tab" role="tab" aria-selected="false" aria-controls="shortlinks-mode-links" tabindex="-1" data-shortlinks="mode-tab" data-shortlinks-mode="links">All links</button>
+          </nav>
+
+          <section class="shortlinks-mode-panel is-active" id="shortlinks-mode-single" data-shortlinks-mode-panel="single" role="tabpanel" aria-labelledby="shortlinks-tab-single">
+            <section class="shortlinks-shell-card shortlinks-create-card" aria-labelledby="shortlinks-create-title">
+              <div class="shortlinks-card-head shortlinks-card-head-create">
+                <div class="shortlinks-card-copy">
+                  <p class="shortlinks-kicker">Single link</p>
+                  <h2 id="shortlinks-create-title" class="section-title">Create a short link</h2>
+                  <p class="shortlinks-panel-lead">Paste a destination, choose a clean code, and publish a redirect that is ready to share.</p>
                 </div>
-                <div class="form-actions shortlinks-action-row shortlinks-action-row-compact">
-                  <button type="submit" class="btn-primary"><span class="btn-label">Save token</span></button>
-                  <button type="button" class="btn-secondary" data-shortlinks="refresh">Refresh</button>
-                  <button type="button" class="btn-secondary" data-shortlinks="health">Check backend</button>
-                  <button type="button" class="btn-ghost" data-shortlinks="forget-token">Forget token</button>
+                <p class="shortlinks-editor-meta" data-shortlinks="editor-meta" aria-live="polite">New short link</p>
+              </div>
+              <form class="contact-form shortlinks-form" data-shortlinks="editor">
+                <div class="shortlinks-form-grid">
+                  <div class="form-field shortlinks-field-main">
+                    <label for="shortlinks-destination">Destination</label>
+                    <div class="shortlinks-destination-row">
+                      <input id="shortlinks-destination" type="text" inputmode="url" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="https://example.com" data-shortlinks="destination">
+                      <button type="button" class="btn-ghost" data-shortlinks="destination-picker-open">Browse site pages</button>
+                    </div>
+                    <p class="contact-form-note">Use a full URL or a site path that starts with <code>/</code>.</p>
+                  </div>
+                  <div class="shortlinks-form-stack">
+                    <div class="form-field" data-shortlinks="audience-field" hidden>
+                      <label for="shortlinks-audience">Audience target</label>
+                      <select id="shortlinks-audience" data-shortlinks="audience">
+                        <option value="analytics" selected>Data Analytics</option>
+                        <option value="data-science">Data Science</option>
+                        <option value="tourism">Tourism</option>
+                      </select>
+                      <p class="contact-form-note">Shown for internal home, resume, and portfolio links that change by audience.</p>
+                    </div>
+                    <div class="form-field">
+                      <label for="shortlinks-slug-mode">Short code type</label>
+                      <select id="shortlinks-slug-mode" data-shortlinks="slug-mode">
+                        <option value="custom" selected>Custom short code</option>
+                        <option value="random">Random short code</option>
+                      </select>
+                      <p class="contact-form-note">Use a named slug or let the server generate a compact code for <code>dshort.me</code>.</p>
+                    </div>
+                    <div class="form-field" data-shortlinks="slug-field">
+                      <label for="shortlinks-slug">Custom short code</label>
+                      <input id="shortlinks-slug" type="text" inputmode="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="github" data-shortlinks="slug">
+                      <p class="contact-form-note">Allowed: <code>A-Z</code>, <code>a-z</code>, <code>0-9</code>, <code>-</code>, <code>_</code>, and <code>/</code>.</p>
+                    </div>
+                    <div class="form-field" data-shortlinks="random-length-field" hidden>
+                      <label for="shortlinks-random-length">Random length</label>
+                      <input id="shortlinks-random-length" type="number" min="4" max="12" step="1" value="6" inputmode="numeric" autocomplete="off" data-shortlinks="random-length">
+                      <p class="contact-form-note">Generates mixed uppercase and lowercase letters plus numbers such as <code>dshort.me/Ab12Cd</code>.</p>
+                    </div>
+                    <div class="form-field">
+                      <label for="shortlinks-expiration-mode">Expiration</label>
+                      <select id="shortlinks-expiration-mode" data-shortlinks="expiration-mode">
+                        <option value="permanent" selected>Permanent</option>
+                        <option value="temporary">Temporary</option>
+                      </select>
+                      <p class="contact-form-note">Use permanent for resume links and temporary for time-boxed shares.</p>
+                    </div>
+                    <div class="shortlinks-inline-grid" data-shortlinks="expiration-duration-fields" hidden>
+                      <div class="form-field">
+                        <label for="shortlinks-expiration-duration-value">Active for</label>
+                        <input id="shortlinks-expiration-duration-value" type="number" min="1" max="365" step="1" value="7" inputmode="numeric" autocomplete="off" data-shortlinks="expiration-duration-value">
+                      </div>
+                      <div class="form-field">
+                        <label for="shortlinks-expiration-duration-unit">Unit</label>
+                        <select id="shortlinks-expiration-duration-unit" data-shortlinks="expiration-duration-unit">
+                          <option value="hours">Hours</option>
+                          <option value="days" selected>Days</option>
+                          <option value="weeks">Weeks</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div class="contact-form-status" data-shortlinks="status" role="status" aria-live="polite"></div>
-                <div class="contact-form-status" data-shortlinks="health-status" role="status" aria-live="polite"></div>
+                <div class="form-actions shortlinks-action-row shortlinks-editor-actions">
+                  <button type="submit" class="btn-primary" data-shortlinks="create-link"><span class="btn-label">Create short link</span></button>
+                  <button type="button" class="btn-ghost" data-shortlinks="clear">Reset</button>
+                </div>
+                <div class="contact-form-status" data-shortlinks="editor-status" role="status" aria-live="polite"></div>
               </form>
             </section>
+          </section>
 
-            <section class="shortlinks-shell-card shortlinks-export-card shortlinks-admin-panel" aria-labelledby="shortlinks-export-title">
-              <div class="shortlinks-card-head shortlinks-card-head-tight">
+          <section class="shortlinks-mode-panel" id="shortlinks-mode-templates" data-shortlinks-mode-panel="templates" role="tabpanel" aria-labelledby="shortlinks-tab-templates" hidden>
+            <section class="shortlinks-shell-card shortlinks-sets-card" aria-labelledby="shortlinks-sets-title">
+              <div class="shortlinks-card-head">
                 <div class="shortlinks-card-copy">
-                  <p class="shortlinks-kicker">Export</p>
-                  <h2 id="shortlinks-export-title" class="section-title">Download link data</h2>
+                  <p class="shortlinks-kicker">Templates</p>
+                  <h2 id="shortlinks-sets-title" class="section-title">Reusable URL templates</h2>
+                  <p class="shortlinks-panel-lead">Save groups of internal and external URLs, then generate a fresh set of compact short links whenever you need them.</p>
                 </div>
               </div>
-              <p class="shortlinks-panel-lead">Export redirects only as CSV, or include click history as JSON for deeper analysis.</p>
-              <div class="shortlinks-export-controls">
-                <label class="shortlinks-view">
-                  <span class="shortlinks-view-label">Format</span>
-                  <select data-shortlinks="export-mode">
-                    <option value="redirects-only" selected>Redirects only (CSV)</option>
-                    <option value="with-clicks">Redirects + click events (JSON)</option>
-                  </select>
-                </label>
-                <label class="shortlinks-view">
-                  <span class="shortlinks-view-label">Clicks per link</span>
-                  <input type="number" min="1" max="500" step="1" value="100" inputmode="numeric" data-shortlinks="export-click-limit">
-                </label>
-                <button type="button" class="btn-secondary shortlinks-export-button" data-shortlinks="export">Export data</button>
+
+              <div class="shortlinks-set-grid">
+                <section class="shortlinks-set-library">
+                  <div class="shortlinks-toolbar shortlinks-toolbar-stack">
+                    <label class="shortlinks-filter">
+                      <span class="shortlinks-filter-label">Search templates</span>
+                      <input type="search" autocomplete="off" spellcheck="false" placeholder="Search by title" data-shortlinks="sets-filter">
+                    </label>
+                    <div class="shortlinks-action-row">
+                      <button type="button" class="btn-secondary" data-shortlinks="sets-refresh">Refresh</button>
+                      <button type="button" class="btn-ghost" data-shortlinks="set-new">New template</button>
+                    </div>
+                  </div>
+                  <div class="contact-form-status" data-shortlinks="sets-status" role="status" aria-live="polite"></div>
+                  <div class="shortlinks-list shortlinks-results" data-shortlinks="sets-list" aria-live="polite"></div>
+                </section>
+
+                <section class="shortlinks-set-editor-shell">
+                  <form class="contact-form shortlinks-form" data-shortlinks="set-editor">
+                    <div class="shortlinks-form-grid shortlinks-form-grid-set">
+                      <div class="form-field">
+                        <label for="shortlinks-set-title">Template title</label>
+                        <input id="shortlinks-set-title" type="text" autocomplete="off" spellcheck="false" placeholder="Data Analyst Resume" data-shortlinks="set-title">
+                      </div>
+                      <div class="form-field">
+                        <label for="shortlinks-set-default-random-length">Default random length</label>
+                        <input id="shortlinks-set-default-random-length" type="number" min="4" max="12" step="1" value="6" inputmode="numeric" autocomplete="off" data-shortlinks="set-default-random-length">
+                      </div>
+                    </div>
+
+                    <div class="shortlinks-form-grid shortlinks-form-grid-set shortlinks-form-grid-set-timing">
+                      <div class="form-field">
+                        <label for="shortlinks-set-default-expiration-mode">Default expiration</label>
+                        <select id="shortlinks-set-default-expiration-mode" data-shortlinks="set-default-expiration-mode">
+                          <option value="permanent" selected>Permanent</option>
+                          <option value="temporary">Temporary</option>
+                        </select>
+                      </div>
+                      <div class="shortlinks-inline-grid" data-shortlinks="set-default-duration-fields" hidden>
+                        <div class="form-field">
+                          <label for="shortlinks-set-default-duration-value">Active for</label>
+                          <input id="shortlinks-set-default-duration-value" type="number" min="1" max="365" step="1" value="7" inputmode="numeric" autocomplete="off" data-shortlinks="set-default-duration-value">
+                        </div>
+                        <div class="form-field">
+                          <label for="shortlinks-set-default-duration-unit">Unit</label>
+                          <select id="shortlinks-set-default-duration-unit" data-shortlinks="set-default-duration-unit">
+                            <option value="hours">Hours</option>
+                            <option value="days" selected>Days</option>
+                            <option value="weeks">Weeks</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="shortlinks-card-copy shortlinks-set-rows-copy">
+                      <p class="shortlinks-kicker">URLs in this template</p>
+                      <p class="shortlinks-panel-lead">Use full URLs or paths that start with <code>/</code>. Internal paths are expanded to <code>danielshort.me</code> when links are generated.</p>
+                    </div>
+
+                    <div class="shortlinks-set-rows" data-shortlinks="set-rows"></div>
+
+                    <div class="form-actions shortlinks-action-row">
+                      <button type="button" class="btn-secondary" data-shortlinks="set-add-row">Add URL row</button>
+                      <button type="submit" class="btn-primary" data-shortlinks="set-save">Save template</button>
+                      <button type="button" class="btn-ghost" data-shortlinks="set-delete">Delete template</button>
+                    </div>
+                    <div class="contact-form-status" data-shortlinks="set-editor-status" role="status" aria-live="polite"></div>
+                  </form>
+
+                  <section class="shortlinks-set-generate" aria-labelledby="shortlinks-generate-title">
+                    <div class="shortlinks-card-copy">
+                      <p class="shortlinks-kicker">Generate a fresh set</p>
+                      <h3 id="shortlinks-generate-title" class="shortlinks-output-title">Generated links</h3>
+                    </div>
+                    <form class="contact-form shortlinks-form" data-shortlinks="set-generate">
+                      <div class="shortlinks-form-grid shortlinks-form-grid-set">
+                        <div class="form-field">
+                          <label for="shortlinks-batch-title">Generated set name</label>
+                          <input id="shortlinks-batch-title" type="text" autocomplete="off" spellcheck="false" placeholder="Data Analyst Resume · Acme · Data Analyst" data-shortlinks="batch-title">
+                        </div>
+                        <div class="form-field">
+                          <label for="shortlinks-batch-random-length">Random length override</label>
+                          <input id="shortlinks-batch-random-length" type="number" min="4" max="12" step="1" value="6" inputmode="numeric" autocomplete="off" data-shortlinks="batch-random-length">
+                        </div>
+                      </div>
+
+                      <div class="shortlinks-form-grid shortlinks-form-grid-set shortlinks-form-grid-set-timing">
+                        <div class="form-field">
+                          <label for="shortlinks-batch-expiration-mode">Expiration</label>
+                          <select id="shortlinks-batch-expiration-mode" data-shortlinks="batch-expiration-mode">
+                            <option value="permanent" selected>Permanent</option>
+                            <option value="temporary">Temporary</option>
+                          </select>
+                        </div>
+                        <div class="shortlinks-inline-grid" data-shortlinks="batch-duration-fields" hidden>
+                          <div class="form-field">
+                            <label for="shortlinks-batch-duration-value">Active for</label>
+                            <input id="shortlinks-batch-duration-value" type="number" min="1" max="365" step="1" value="7" inputmode="numeric" autocomplete="off" data-shortlinks="batch-duration-value">
+                          </div>
+                          <div class="form-field">
+                            <label for="shortlinks-batch-duration-unit">Unit</label>
+                            <select id="shortlinks-batch-duration-unit" data-shortlinks="batch-duration-unit">
+                              <option value="hours">Hours</option>
+                              <option value="days" selected>Days</option>
+                              <option value="weeks">Weeks</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="form-actions shortlinks-action-row">
+                        <button type="submit" class="btn-primary" data-shortlinks="batch-generate">Generate short links</button>
+                      </div>
+                      <div class="contact-form-status" data-shortlinks="batch-status" role="status" aria-live="polite"></div>
+                    </form>
+
+                    <div class="shortlinks-generated-results" data-shortlinks="batch-results" aria-live="polite"></div>
+                  </section>
+                </section>
               </div>
             </section>
+          </section>
 
-            <section class="shortlinks-shell-card shortlinks-projects-card shortlinks-admin-panel shortlinks-projects-card-wide" aria-labelledby="shortlinks-projects-title">
-              <div class="shortlinks-card-head shortlinks-card-head-tight">
+          <section class="shortlinks-mode-panel" id="shortlinks-mode-links" data-shortlinks-mode-panel="links" role="tabpanel" aria-labelledby="shortlinks-tab-links" hidden>
+            <details class="shortlinks-admin-tools" data-shortlinks="admin-tools">
+              <summary class="shortlinks-admin-summary">
+                <div class="shortlinks-admin-summary-copy">
+                  <p class="shortlinks-kicker">Admin tools</p>
+                  <h2 class="section-title">Exports and portfolio sync</h2>
+                </div>
+                <div class="shortlinks-admin-summary-status" aria-live="polite">
+                  <span class="shortlinks-admin-badge" data-shortlinks="admin-project-summary">Project sync loading</span>
+                  <span class="shortlinks-admin-badge" data-shortlinks="admin-export-summary">CSV export ready</span>
+                </div>
+              </summary>
+
+              <div class="shortlinks-admin-grid">
+                <section class="shortlinks-shell-card shortlinks-export-card shortlinks-admin-panel" aria-labelledby="shortlinks-export-title">
+                  <div class="shortlinks-card-head shortlinks-card-head-tight">
+                    <div class="shortlinks-card-copy">
+                      <p class="shortlinks-kicker">Export</p>
+                      <h2 id="shortlinks-export-title" class="section-title">Download link data</h2>
+                    </div>
+                  </div>
+                  <p class="shortlinks-panel-lead">Export redirects only as CSV, or include click history as JSON for deeper analysis.</p>
+                  <div class="shortlinks-export-controls">
+                    <label class="shortlinks-view">
+                      <span class="shortlinks-view-label">Format</span>
+                      <select data-shortlinks="export-mode">
+                        <option value="redirects-only" selected>Redirects only (CSV)</option>
+                        <option value="with-clicks">Redirects + click events (JSON)</option>
+                      </select>
+                    </label>
+                    <label class="shortlinks-view">
+                      <span class="shortlinks-view-label">Clicks per link</span>
+                      <input type="number" min="1" max="500" step="1" value="100" inputmode="numeric" data-shortlinks="export-click-limit">
+                    </label>
+                    <button type="button" class="btn-secondary shortlinks-export-button" data-shortlinks="export">Export data</button>
+                  </div>
+                </section>
+
+                <section class="shortlinks-shell-card shortlinks-projects-card shortlinks-admin-panel shortlinks-projects-card-wide" aria-labelledby="shortlinks-projects-title">
+                  <div class="shortlinks-card-head shortlinks-card-head-tight">
+                    <div class="shortlinks-card-copy">
+                      <p class="shortlinks-kicker">Portfolio sync</p>
+                      <h2 id="shortlinks-projects-title" class="section-title">Project mappings</h2>
+                    </div>
+                    <p class="shortlinks-output-meta shortlinks-count" data-shortlinks="projects-meta" aria-live="polite"></p>
+                  </div>
+                  <p class="shortlinks-projects-note">Keep published portfolio projects matched with permanent short links and correct destinations without crowding the main redirect view.</p>
+                  <div class="shortlinks-projects-toolbar">
+                    <div class="shortlinks-projects-actions">
+                      <button type="button" class="btn-secondary" data-shortlinks="projects-refresh">Refresh</button>
+                      <button type="button" class="btn-primary" data-shortlinks="projects-ensure">Sync missing + mismatched</button>
+                    </div>
+                  </div>
+                  <div class="contact-form-status" data-shortlinks="projects-status" role="status" aria-live="polite"></div>
+                  <div class="shortlinks-list shortlinks-results" data-shortlinks="projects-list" aria-live="polite"></div>
+                </section>
+              </div>
+            </details>
+
+            <section class="shortlinks-shell-card shortlinks-links-card" aria-labelledby="shortlinks-links-title">
+              <div class="shortlinks-card-head">
                 <div class="shortlinks-card-copy">
-                  <p class="shortlinks-kicker">Portfolio sync</p>
-                  <h2 id="shortlinks-projects-title" class="section-title">Project mappings</h2>
+                  <p class="shortlinks-kicker">All links</p>
+                  <h2 id="shortlinks-links-title" class="section-title">All redirects</h2>
                 </div>
-                <p class="shortlinks-output-meta shortlinks-count" data-shortlinks="projects-meta" aria-live="polite"></p>
+                <p class="shortlinks-output-meta shortlinks-count" data-shortlinks="count" aria-live="polite"></p>
               </div>
-              <p class="shortlinks-projects-note">Keep published portfolio projects matched with permanent short links and correct destinations without crowding the main redirect view.</p>
-              <div class="shortlinks-projects-toolbar">
-                <div class="shortlinks-projects-actions">
-                  <button type="button" class="btn-secondary" data-shortlinks="projects-refresh">Refresh</button>
-                  <button type="button" class="btn-primary" data-shortlinks="projects-ensure">Sync missing + mismatched</button>
-                </div>
+              <div class="shortlinks-toolbar shortlinks-toolbar-main">
+                <label class="shortlinks-filter">
+                  <span class="shortlinks-filter-label">Search links</span>
+                  <input type="search" autocomplete="off" spellcheck="false" placeholder="Search slugs or destinations" data-shortlinks="filter">
+                </label>
               </div>
-              <div class="contact-form-status" data-shortlinks="projects-status" role="status" aria-live="polite"></div>
-              <div class="shortlinks-list shortlinks-results" data-shortlinks="projects-list" aria-live="polite"></div>
+              <div class="contact-form-status" data-shortlinks="list-status" role="status" aria-live="polite"></div>
+              <div class="shortlinks-list shortlinks-results" data-shortlinks="list" aria-live="polite"></div>
             </section>
-          </div>
-        </details>
-
-        <section class="shortlinks-shell-card shortlinks-links-card" aria-labelledby="shortlinks-links-title">
-          <div class="shortlinks-card-head">
-            <div class="shortlinks-card-copy">
-              <p class="shortlinks-kicker">Manage links</p>
-              <h2 id="shortlinks-links-title" class="section-title">All redirects</h2>
-            </div>
-            <p class="shortlinks-output-meta shortlinks-count" data-shortlinks="count" aria-live="polite"></p>
-          </div>
-          <div class="shortlinks-toolbar shortlinks-toolbar-main">
-            <label class="shortlinks-filter">
-              <span class="shortlinks-filter-label">Search links</span>
-              <input type="search" autocomplete="off" spellcheck="false" placeholder="Search slugs or destinations" data-shortlinks="filter">
-            </label>
-          </div>
-          <div class="contact-form-status" data-shortlinks="list-status" role="status" aria-live="polite"></div>
-          <div class="shortlinks-list shortlinks-results" data-shortlinks="list" aria-live="polite"></div>
+          </section>
         </section>
       </div>
     </section>
@@ -440,12 +629,12 @@
           <a href="/" class="footer-link">Home</a>
           <a href="search" class="footer-link">Search</a>
           <a href="tools" class="footer-link">Tools</a>
-          <a href="portfolio" class="footer-link">Portfolio</a>
+          <a href="portfolio" class="footer-link" data-portfolio-home-link="true">Portfolio</a>
         </section>
 
         <section class="footer-col" aria-labelledby="footer-work">
           <h2 class="footer-col-title" id="footer-work">Work</h2>
-          <a href="resume" class="footer-link">Resume</a>
+          <a href="resume" class="footer-link" data-resume-home-link="true">Resume</a>
           <a href="contact" class="footer-link">Contact</a>
         </section>
 
@@ -528,374 +717,6 @@
       </svg>
     </button>
   </div>
-  <div class="cookie-settings" data-cookie-settings="true">
-    <div class="cookie-settings__item">
-      <span class="cookie-settings__label" aria-hidden="true">Cookie settings</span>
-      <button id="privacy-settings-link" type="button" class="cookie-settings__toggle btn-icon btn-icon-featured" aria-label="Cookie settings" aria-haspopup="dialog">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M21 13a4 4 0 0 1-4-4a4 4 0 0 1-4-4A9 9 0 1 0 21 13z"></path>
-          <circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"></circle>
-          <circle cx="13" cy="13" r="1" fill="currentColor" stroke="none"></circle>
-          <circle cx="9" cy="15.5" r="1" fill="currentColor" stroke="none"></circle>
-        </svg>
-      </button>
-    </div>
-  </div>
-  <div class="speed-dial" data-speed-dial="true">
-    <div class="speed-dial__tray" data-speed-dial-tray>
-      <div class="speed-dial__actions" id="speed-dial-menu" role="menu" aria-label="Contact options" aria-hidden="true" data-speed-dial-menu>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">Direct Message</span>
-          <a class="speed-dial__action btn-icon speed-dial__action--direct" href="#contact-modal" data-contact-modal-link="true" aria-label="Send a direct message" role="menuitem" data-speed-dial-action>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-              <path d="M7 9h10"></path>
-              <path d="M7 13h6"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">Send Email</span>
-          <a class="speed-dial__action btn-icon" href="mailto:daniel@danielshort.me" aria-label="Send Email" role="menuitem" data-speed-dial-action>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="3" y="5" width="18" height="14" rx="2"></rect>
-              <path d="M3 7l9 6 9-6"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">View LinkedIn</span>
-          <a class="speed-dial__action btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" rel="noopener noreferrer" aria-label="View LinkedIn" role="menuitem" data-speed-dial-action>
-            <svg class="brand-fill" viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="4" cy="4" r="2"></circle>
-              <rect x="2" y="9" width="4" height="12" rx="1"></rect>
-              <path d="M10 9h3.8v2.1h.1C14.8 9.7 16.1 9 17.9 9c3 0 5.1 1.9 5.1 5.9V21h-4v-5.9c0-1.7-.7-2.9-2.6-2.9s-2.7 1.4-2.7 3V21H10z"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">View GitHub</span>
-          <a class="speed-dial__action btn-icon" href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer" aria-label="View GitHub" role="menuitem" data-speed-dial-action>
-            <span class="icon icon-github" aria-hidden="true"></span>
-          </a>
-        </div>
-      </div>
-    </div>
-    <button class="speed-dial__toggle btn-icon btn-icon-featured" type="button" aria-expanded="false" aria-haspopup="menu" aria-controls="speed-dial-menu" aria-label="Open contact options" data-speed-dial-toggle>
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-        <path d="M12 8v6"></path>
-        <path d="M9 11h6"></path>
-      </svg>
-    </button>
-  </div>
-  <div class="cookie-settings" data-cookie-settings="true">
-    <div class="cookie-settings__item">
-      <span class="cookie-settings__label" aria-hidden="true">Cookie settings</span>
-      <button id="privacy-settings-link" type="button" class="cookie-settings__toggle btn-icon btn-icon-featured" aria-label="Cookie settings" aria-haspopup="dialog">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M21 13a4 4 0 0 1-4-4a4 4 0 0 1-4-4A9 9 0 1 0 21 13z"></path>
-          <circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"></circle>
-          <circle cx="13" cy="13" r="1" fill="currentColor" stroke="none"></circle>
-          <circle cx="9" cy="15.5" r="1" fill="currentColor" stroke="none"></circle>
-        </svg>
-      </button>
-    </div>
-  </div>
-  <div class="speed-dial" data-speed-dial="true">
-    <div class="speed-dial__tray" data-speed-dial-tray>
-      <div class="speed-dial__actions" id="speed-dial-menu" role="menu" aria-label="Contact options" aria-hidden="true" data-speed-dial-menu>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">Direct Message</span>
-          <a class="speed-dial__action btn-icon speed-dial__action--direct" href="#contact-modal" data-contact-modal-link="true" aria-label="Send a direct message" role="menuitem" data-speed-dial-action>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-              <path d="M7 9h10"></path>
-              <path d="M7 13h6"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">Send Email</span>
-          <a class="speed-dial__action btn-icon" href="mailto:daniel@danielshort.me" aria-label="Send Email" role="menuitem" data-speed-dial-action>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="3" y="5" width="18" height="14" rx="2"></rect>
-              <path d="M3 7l9 6 9-6"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">View LinkedIn</span>
-          <a class="speed-dial__action btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" rel="noopener noreferrer" aria-label="View LinkedIn" role="menuitem" data-speed-dial-action>
-            <svg class="brand-fill" viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="4" cy="4" r="2"></circle>
-              <rect x="2" y="9" width="4" height="12" rx="1"></rect>
-              <path d="M10 9h3.8v2.1h.1C14.8 9.7 16.1 9 17.9 9c3 0 5.1 1.9 5.1 5.9V21h-4v-5.9c0-1.7-.7-2.9-2.6-2.9s-2.7 1.4-2.7 3V21H10z"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">View GitHub</span>
-          <a class="speed-dial__action btn-icon" href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer" aria-label="View GitHub" role="menuitem" data-speed-dial-action>
-            <span class="icon icon-github" aria-hidden="true"></span>
-          </a>
-        </div>
-      </div>
-    </div>
-    <button class="speed-dial__toggle btn-icon btn-icon-featured" type="button" aria-expanded="false" aria-haspopup="menu" aria-controls="speed-dial-menu" aria-label="Open contact options" data-speed-dial-toggle>
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-        <path d="M12 8v6"></path>
-        <path d="M9 11h6"></path>
-      </svg>
-    </button>
-  </div>
-  <div class="cookie-settings" data-cookie-settings="true">
-    <div class="cookie-settings__item">
-      <span class="cookie-settings__label" aria-hidden="true">Cookie settings</span>
-      <button id="privacy-settings-link" type="button" class="cookie-settings__toggle btn-icon btn-icon-featured" aria-label="Cookie settings" aria-haspopup="dialog">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M21 13a4 4 0 0 1-4-4a4 4 0 0 1-4-4A9 9 0 1 0 21 13z"></path>
-          <circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"></circle>
-          <circle cx="13" cy="13" r="1" fill="currentColor" stroke="none"></circle>
-          <circle cx="9" cy="15.5" r="1" fill="currentColor" stroke="none"></circle>
-        </svg>
-      </button>
-    </div>
-  </div>
-  <div class="speed-dial" data-speed-dial="true">
-    <div class="speed-dial__tray" data-speed-dial-tray>
-      <div class="speed-dial__actions" id="speed-dial-menu" role="menu" aria-label="Contact options" aria-hidden="true" data-speed-dial-menu>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">Direct Message</span>
-          <a class="speed-dial__action btn-icon speed-dial__action--direct" href="#contact-modal" data-contact-modal-link="true" aria-label="Send a direct message" role="menuitem" data-speed-dial-action>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-              <path d="M7 9h10"></path>
-              <path d="M7 13h6"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">Send Email</span>
-          <a class="speed-dial__action btn-icon" href="mailto:daniel@danielshort.me" aria-label="Send Email" role="menuitem" data-speed-dial-action>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="3" y="5" width="18" height="14" rx="2"></rect>
-              <path d="M3 7l9 6 9-6"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">View LinkedIn</span>
-          <a class="speed-dial__action btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" rel="noopener noreferrer" aria-label="View LinkedIn" role="menuitem" data-speed-dial-action>
-            <svg class="brand-fill" viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="4" cy="4" r="2"></circle>
-              <rect x="2" y="9" width="4" height="12" rx="1"></rect>
-              <path d="M10 9h3.8v2.1h.1C14.8 9.7 16.1 9 17.9 9c3 0 5.1 1.9 5.1 5.9V21h-4v-5.9c0-1.7-.7-2.9-2.6-2.9s-2.7 1.4-2.7 3V21H10z"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">View GitHub</span>
-          <a class="speed-dial__action btn-icon" href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer" aria-label="View GitHub" role="menuitem" data-speed-dial-action>
-            <span class="icon icon-github" aria-hidden="true"></span>
-          </a>
-        </div>
-      </div>
-    </div>
-    <button class="speed-dial__toggle btn-icon btn-icon-featured" type="button" aria-expanded="false" aria-haspopup="menu" aria-controls="speed-dial-menu" aria-label="Open contact options" data-speed-dial-toggle>
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-        <path d="M12 8v6"></path>
-        <path d="M9 11h6"></path>
-      </svg>
-    </button>
-  </div>
-  <div class="cookie-settings" data-cookie-settings="true">
-    <div class="cookie-settings__item">
-      <span class="cookie-settings__label" aria-hidden="true">Cookie settings</span>
-      <button id="privacy-settings-link" type="button" class="cookie-settings__toggle btn-icon btn-icon-featured" aria-label="Cookie settings" aria-haspopup="dialog">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M21 13a4 4 0 0 1-4-4a4 4 0 0 1-4-4A9 9 0 1 0 21 13z"></path>
-          <circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"></circle>
-          <circle cx="13" cy="13" r="1" fill="currentColor" stroke="none"></circle>
-          <circle cx="9" cy="15.5" r="1" fill="currentColor" stroke="none"></circle>
-        </svg>
-      </button>
-    </div>
-  </div>
-  <div class="speed-dial" data-speed-dial="true">
-    <div class="speed-dial__tray" data-speed-dial-tray>
-      <div class="speed-dial__actions" id="speed-dial-menu" role="menu" aria-label="Contact options" aria-hidden="true" data-speed-dial-menu>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">Direct Message</span>
-          <a class="speed-dial__action btn-icon speed-dial__action--direct" href="#contact-modal" data-contact-modal-link="true" aria-label="Send a direct message" role="menuitem" data-speed-dial-action>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-              <path d="M7 9h10"></path>
-              <path d="M7 13h6"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">Send Email</span>
-          <a class="speed-dial__action btn-icon" href="mailto:daniel@danielshort.me" aria-label="Send Email" role="menuitem" data-speed-dial-action>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="3" y="5" width="18" height="14" rx="2"></rect>
-              <path d="M3 7l9 6 9-6"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">View LinkedIn</span>
-          <a class="speed-dial__action btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" rel="noopener noreferrer" aria-label="View LinkedIn" role="menuitem" data-speed-dial-action>
-            <svg class="brand-fill" viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="4" cy="4" r="2"></circle>
-              <rect x="2" y="9" width="4" height="12" rx="1"></rect>
-              <path d="M10 9h3.8v2.1h.1C14.8 9.7 16.1 9 17.9 9c3 0 5.1 1.9 5.1 5.9V21h-4v-5.9c0-1.7-.7-2.9-2.6-2.9s-2.7 1.4-2.7 3V21H10z"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">View GitHub</span>
-          <a class="speed-dial__action btn-icon" href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer" aria-label="View GitHub" role="menuitem" data-speed-dial-action>
-            <span class="icon icon-github" aria-hidden="true"></span>
-          </a>
-        </div>
-      </div>
-    </div>
-    <button class="speed-dial__toggle btn-icon btn-icon-featured" type="button" aria-expanded="false" aria-haspopup="menu" aria-controls="speed-dial-menu" aria-label="Open contact options" data-speed-dial-toggle>
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-        <path d="M12 8v6"></path>
-        <path d="M9 11h6"></path>
-      </svg>
-    </button>
-  </div>
-  <div class="cookie-settings" data-cookie-settings="true">
-    <div class="cookie-settings__item">
-      <span class="cookie-settings__label" aria-hidden="true">Cookie settings</span>
-      <button id="privacy-settings-link" type="button" class="cookie-settings__toggle btn-icon btn-icon-featured" aria-label="Cookie settings" aria-haspopup="dialog">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M21 13a4 4 0 0 1-4-4a4 4 0 0 1-4-4A9 9 0 1 0 21 13z"></path>
-          <circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"></circle>
-          <circle cx="13" cy="13" r="1" fill="currentColor" stroke="none"></circle>
-          <circle cx="9" cy="15.5" r="1" fill="currentColor" stroke="none"></circle>
-        </svg>
-      </button>
-    </div>
-  </div>
-  <div class="speed-dial" data-speed-dial="true">
-    <div class="speed-dial__tray" data-speed-dial-tray>
-      <div class="speed-dial__actions" id="speed-dial-menu" role="menu" aria-label="Contact options" aria-hidden="true" data-speed-dial-menu>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">Direct Message</span>
-          <a class="speed-dial__action btn-icon speed-dial__action--direct" href="#contact-modal" data-contact-modal-link="true" aria-label="Send a direct message" role="menuitem" data-speed-dial-action>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-              <path d="M7 9h10"></path>
-              <path d="M7 13h6"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">Send Email</span>
-          <a class="speed-dial__action btn-icon" href="mailto:daniel@danielshort.me" aria-label="Send Email" role="menuitem" data-speed-dial-action>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="3" y="5" width="18" height="14" rx="2"></rect>
-              <path d="M3 7l9 6 9-6"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">View LinkedIn</span>
-          <a class="speed-dial__action btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" rel="noopener noreferrer" aria-label="View LinkedIn" role="menuitem" data-speed-dial-action>
-            <svg class="brand-fill" viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="4" cy="4" r="2"></circle>
-              <rect x="2" y="9" width="4" height="12" rx="1"></rect>
-              <path d="M10 9h3.8v2.1h.1C14.8 9.7 16.1 9 17.9 9c3 0 5.1 1.9 5.1 5.9V21h-4v-5.9c0-1.7-.7-2.9-2.6-2.9s-2.7 1.4-2.7 3V21H10z"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">View GitHub</span>
-          <a class="speed-dial__action btn-icon" href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer" aria-label="View GitHub" role="menuitem" data-speed-dial-action>
-            <span class="icon icon-github" aria-hidden="true"></span>
-          </a>
-        </div>
-      </div>
-    </div>
-    <button class="speed-dial__toggle btn-icon btn-icon-featured" type="button" aria-expanded="false" aria-haspopup="menu" aria-controls="speed-dial-menu" aria-label="Open contact options" data-speed-dial-toggle>
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-        <path d="M12 8v6"></path>
-        <path d="M9 11h6"></path>
-      </svg>
-    </button>
-  </div>
-  <div class="cookie-settings" data-cookie-settings="true">
-    <div class="cookie-settings__item">
-      <span class="cookie-settings__label" aria-hidden="true">Cookie settings</span>
-      <button id="privacy-settings-link" type="button" class="cookie-settings__toggle btn-icon btn-icon-featured" aria-label="Cookie settings" aria-haspopup="dialog">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M21 13a4 4 0 0 1-4-4a4 4 0 0 1-4-4A9 9 0 1 0 21 13z"></path>
-          <circle cx="10" cy="10" r="1" fill="currentColor" stroke="none"></circle>
-          <circle cx="13" cy="13" r="1" fill="currentColor" stroke="none"></circle>
-          <circle cx="9" cy="15.5" r="1" fill="currentColor" stroke="none"></circle>
-        </svg>
-      </button>
-    </div>
-  </div>
-  <div class="speed-dial" data-speed-dial="true">
-    <div class="speed-dial__tray" data-speed-dial-tray>
-      <div class="speed-dial__actions" id="speed-dial-menu" role="menu" aria-label="Contact options" aria-hidden="true" data-speed-dial-menu>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">Direct Message</span>
-          <a class="speed-dial__action btn-icon speed-dial__action--direct" href="#contact-modal" data-contact-modal-link="true" aria-label="Send a direct message" role="menuitem" data-speed-dial-action>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-              <path d="M7 9h10"></path>
-              <path d="M7 13h6"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">Send Email</span>
-          <a class="speed-dial__action btn-icon" href="mailto:daniel@danielshort.me" aria-label="Send Email" role="menuitem" data-speed-dial-action>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="3" y="5" width="18" height="14" rx="2"></rect>
-              <path d="M3 7l9 6 9-6"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">View LinkedIn</span>
-          <a class="speed-dial__action btn-icon" href="https://www.linkedin.com/in/danielshort3/" target="_blank" rel="noopener noreferrer" aria-label="View LinkedIn" role="menuitem" data-speed-dial-action>
-            <svg class="brand-fill" viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="4" cy="4" r="2"></circle>
-              <rect x="2" y="9" width="4" height="12" rx="1"></rect>
-              <path d="M10 9h3.8v2.1h.1C14.8 9.7 16.1 9 17.9 9c3 0 5.1 1.9 5.1 5.9V21h-4v-5.9c0-1.7-.7-2.9-2.6-2.9s-2.7 1.4-2.7 3V21H10z"></path>
-            </svg>
-          </a>
-        </div>
-        <div class="speed-dial__item">
-          <span class="speed-dial__label" aria-hidden="true">View GitHub</span>
-          <a class="speed-dial__action btn-icon" href="https://github.com/danielshort3" target="_blank" rel="noopener noreferrer" aria-label="View GitHub" role="menuitem" data-speed-dial-action>
-            <span class="icon icon-github" aria-hidden="true"></span>
-          </a>
-        </div>
-      </div>
-    </div>
-    <button class="speed-dial__toggle btn-icon btn-icon-featured" type="button" aria-expanded="false" aria-haspopup="menu" aria-controls="speed-dial-menu" aria-label="Open contact options" data-speed-dial-toggle>
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-5.17L9 22.5V17H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"></path>
-        <path d="M12 8v6"></path>
-        <path d="M9 11h6"></path>
-      </svg>
-    </button>
-  </div>
-
-  <script defer src="dist/site-shell.98277b16.js"></script>
   <script defer src="js/admin/short-links.js"></script>
   <script defer src="dist/site-tools-account.7f479012.js"></script>
   <script defer src="dist/site-consent.c29737aa.js"></script>

@@ -130,6 +130,77 @@ const setupPreviewVideo = (card, options = {}) => {
 
 const isPublishedProject = (project) => project && project.published !== false;
 
+const getAudienceApi = () => window.SITE_AUDIENCE_CONFIG || null;
+const normalizeAudience = (value) => {
+  const api = getAudienceApi();
+  if (api && typeof api.normalizeAudience === 'function') {
+    return api.normalizeAudience(value);
+  }
+  return 'analytics';
+};
+const getAudienceConfig = (value) => {
+  const api = getAudienceApi();
+  if (api && typeof api.getAudience === 'function') {
+    return api.getAudience(value);
+  }
+  return {
+    key: 'analytics',
+    featuredProjectIds: Array.isArray(window.FEATURED_IDS) ? window.FEATURED_IDS : [],
+    portfolioTitle: 'Analytics Portfolio',
+    portfolioDescription: 'Dashboarding, KPI design, SQL workflows, forecasting, and decision-ready reporting.'
+  };
+};
+const getPortfolioAudienceKey = () => {
+  try {
+    const params = new URLSearchParams(window.location.search || '');
+    const audience = params.get('audience');
+    if (audience) return normalizeAudience(audience);
+  } catch {}
+  return null;
+};
+const getFeaturedProjectIds = (audienceKey) => {
+  const audienceApi = getAudienceApi();
+  const fallbackAudience = audienceApi && audienceApi.defaultAudience
+    ? audienceApi.defaultAudience
+    : 'analytics';
+  const resolvedAudience = audienceKey ? normalizeAudience(audienceKey) : fallbackAudience;
+  const config = getAudienceConfig(resolvedAudience);
+  if (config && Array.isArray(config.featuredProjectIds) && config.featuredProjectIds.length) {
+    return config.featuredProjectIds;
+  }
+  return Array.isArray(window.FEATURED_IDS) ? window.FEATURED_IDS : [];
+};
+const applyPortfolioAudienceContent = (audienceKey) => {
+  const config = audienceKey ? getAudienceConfig(audienceKey) : null;
+  const title = document.getElementById('portfolio-hero-title');
+  const tagline = document.getElementById('portfolio-hero-tagline');
+  const eyebrow = document.getElementById('portfolio-hero-eyebrow');
+  const topHeading = document.getElementById('top-projects-title');
+  const allHeading = document.getElementById('all-projects-title');
+  const allCopy = document.getElementById('portfolio-library-copy');
+  if (!config) {
+    if (eyebrow) eyebrow.textContent = 'Portfolio';
+    if (title) title.textContent = 'Project Portfolio';
+    if (tagline) {
+      tagline.textContent = 'Start with five featured case studies, then browse the rest of the published project library below.';
+    }
+    if (topHeading) topHeading.textContent = 'Top 5 Projects';
+    if (allHeading) allHeading.textContent = 'Other Projects';
+    if (allCopy) {
+      allCopy.textContent = 'This is the complete list of my other projects beyond the featured five above.';
+    }
+    return;
+  }
+  if (eyebrow) eyebrow.textContent = config.label || config.shortLabel || 'Portfolio';
+  if (title) title.textContent = config.portfolioTitle || 'Project Portfolio';
+  if (tagline) tagline.textContent = config.portfolioDescription || '';
+  if (topHeading) topHeading.textContent = `Top 5 ${config.label || config.shortLabel || 'Portfolio'} Projects`;
+  if (allHeading) allHeading.textContent = 'Other Projects';
+  if (allCopy) {
+    allCopy.textContent = 'This is the complete list of my other projects beyond the featured five above.';
+  }
+};
+
 const hasModalHelpers = typeof window.openModal === 'function' && typeof window.generateProjectModal === 'function';
 if (!hasModalHelpers) {
   console.warn('modal-helpers.js was not loaded before portfolio.js; modal interactions will be limited.');
@@ -144,6 +215,8 @@ function buildPortfolioCarousel() {
   if (!container || !window.PROJECTS) return;
   const allProjects = (Array.isArray(window.PROJECTS) ? window.PROJECTS : []).filter(isPublishedProject);
   if (!allProjects.length) return;
+  const audienceKey = getPortfolioAudienceKey();
+  const audienceConfig = audienceKey ? getAudienceConfig(audienceKey) : null;
 
   const track = container.querySelector(".carousel-track");
   const dots  = container.querySelector(".carousel-dots");
@@ -166,8 +239,11 @@ function buildPortfolioCarousel() {
 
   // 1‒5 featured projects -------------------------------------------------
   let projects = [];
-  if (Array.isArray(window.FEATURED_IDS) && window.FEATURED_IDS.length) {
-    window.FEATURED_IDS.forEach(id => {
+  const featuredIds = audienceConfig && Array.isArray(audienceConfig.featuredProjectIds) && audienceConfig.featuredProjectIds.length
+    ? audienceConfig.featuredProjectIds
+    : getFeaturedProjectIds(audienceKey);
+  if (featuredIds.length) {
+    featuredIds.forEach(id => {
       const p = allProjects.find(pr => pr.id === id);
       if (p) projects.push(p);
     });
@@ -440,296 +516,30 @@ function buildPortfolioCarousel() {
 }
 
 
-function initSeeMore(){
-  const btn = document.getElementById("see-more");
-  const filters  = document.getElementById("filters");
-  const grid     = document.getElementById("projects");
-  const gap      = document.getElementById("carousel-gap");
-  const menu     = document.getElementById("filter-menu");
-  const mobile   = window.matchMedia("(max-width: 768px)");
-  const gapPad   = gap ? parseFloat(getComputedStyle(gap).paddingTop) || 32 : 0;
-  const carousel = document.getElementById("portfolio-carousel-section");
-  const params   = new URLSearchParams(window.location.search);
-  if(!btn || !filters || !grid) return;
-
-  const selectAll = () => {
-    if (!menu) return;
-    const allBtn = menu.querySelector('[data-filter="all"]');
-    if (!allBtn) return;
-    [...menu.children].forEach(b => {
-      b.classList.replace("btn-primary", "btn-secondary");
-      b.setAttribute("aria-pressed", "false");
-    });
-    allBtn.classList.replace("btn-secondary", "btn-primary");
-    allBtn.setAttribute("aria-pressed", "true");
-    [...grid.children].forEach(c => c.classList.remove("hide"));
-  };
-  btn.addEventListener("click", () => {
-    const expanded = btn.dataset.expanded === "true";
-    const nextExpanded = !expanded;
-    btn.dataset.expanded = nextExpanded ? "true" : "false";
-    btn.textContent = nextExpanded ? "See Less" : "See More";
-    btn.setAttribute('aria-expanded', nextExpanded ? 'true' : 'false');
-    filters.setAttribute('aria-hidden', nextExpanded ? 'false' : 'true');
-    grid.setAttribute('aria-hidden', nextExpanded ? 'false' : 'true');
-    if (gap) gap.setAttribute('aria-hidden', nextExpanded ? 'false' : 'true');
-
-    if (mobile.matches) {
-      filters.classList.toggle("hide", expanded);
-      grid.classList.toggle("hide", expanded);
-      if (gap) gap.classList.toggle("hide", expanded);
-      return;
-    }
-
-    if (expanded) {
-      // collapse grid, filters, and gap smoothly
-      const gStart   = grid.offsetHeight;
-      const fStart   = filters.offsetHeight;
-
-      grid.style.height = `${gStart}px`;
-      filters.style.height = `${fStart}px`;
-      if (gap) {
-        gap.style.paddingTop = `${gapPad}px`;
-        gap.style.paddingBottom = `${gapPad}px`;
-      }
-      filters.classList.add("grid-fade");
-      grid.classList.add("grid-fade");
-      if (gap) gap.classList.add("grid-fade");
-
-      requestAnimationFrame(() => {
-        grid.style.height = "0px";
-        filters.style.height = "0px";
-        if (gap) {
-          gap.style.paddingTop = "0px";
-          gap.style.paddingBottom = "0px";
-        }
-        grid.style.paddingTop = "0px";
-        grid.style.paddingBottom = "0px";
-        filters.style.paddingTop = "0px";
-        filters.style.paddingBottom = "0px";
-      });
-
-      setTimeout(() => {
-        grid.classList.add("hide");
-        filters.classList.add("hide");
-        if (gap) gap.classList.add("hide");
-        grid.classList.remove("grid-fade");
-        filters.classList.remove("grid-fade");
-        if (gap) gap.classList.remove("grid-fade");
-        grid.style.height = "";
-        filters.style.height = "";
-        if (gap) {
-          gap.style.paddingTop = "";
-          gap.style.paddingBottom = "";
-        }
-        grid.style.paddingTop = "";
-        grid.style.paddingBottom = "";
-        filters.style.paddingTop = "";
-        filters.style.paddingBottom = "";
-      const behavior = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
-      carousel?.scrollIntoView({ behavior });
-      }, 450); // height transition duration
-    } else {
-      // expand grid, filters, and gap smoothly
-      selectAll();
-      filters.classList.remove("hide");
-      grid.classList.remove("hide");
-      if (gap) gap.classList.remove("hide");
-      // ensure reveal animations don't keep them hidden
-      filters.classList.add("active");
-      grid.classList.add("active");
-      if (gap) gap.classList.add("active");
-
-      /* Safari sometimes returns 0 if measured immediately */
-      void grid.offsetHeight;
-      void filters.offsetHeight;
-
-      const gTarget = grid.scrollHeight;
-      const fTarget = filters.scrollHeight;
-      const gapTarget = gap ? gapPad : 0;
-
-      grid.style.height = "0px";
-      filters.style.height = "0px";
-      if (gap) {
-        gap.style.paddingTop = "0px";
-        gap.style.paddingBottom = "0px";
-      }
-      grid.style.paddingTop = "0px";
-      grid.style.paddingBottom = "0px";
-      filters.style.paddingTop = "0px";
-      filters.style.paddingBottom = "0px";
-      filters.classList.add("grid-fade");
-      grid.classList.add("grid-fade");
-      if (gap) gap.classList.add("grid-fade");
-
-      requestAnimationFrame(() => {
-        grid.style.height = `${gTarget}px`;
-        filters.style.height = `${fTarget}px`;
-        if (gap) {
-          gap.style.paddingTop = `${gapPad}px`;
-          gap.style.paddingBottom = `${gapPad}px`;
-        }
-        grid.style.paddingTop = "";
-        grid.style.paddingBottom = "";
-        filters.style.paddingTop = "";
-        filters.style.paddingBottom = "";
-        // cascade project cards as they reappear
-        [...grid.children].forEach((card, i) => {
-          if (card.classList.contains("hide")) return;
-          card.classList.remove("ripple-in");
-          void card.offsetWidth;
-          card.style.animationDelay = `${i * 80}ms`;
-          card.classList.add("ripple-in");
-        });
-        grid.classList.remove("grid-fade");
-        filters.classList.remove("grid-fade");
-        if (gap) gap.classList.remove("grid-fade");
-      });
-
-      setTimeout(() => {
-        grid.style.height = "";
-        filters.style.height = "";
-        if (gap) {
-          gap.style.paddingTop = `${gapPad}px`;
-          gap.style.paddingBottom = `${gapPad}px`;
-        }
-
-        // ensure the newly revealed filters are visible on mobile
-        const nav = parseFloat(
-          getComputedStyle(document.documentElement).getPropertyValue(
-            "--nav-height"
-          )
-        ) || 0;
-        const target = gap || filters;
-        const y = target.getBoundingClientRect().top + window.scrollY - nav;
-        window.scrollTo({ top: y, behavior: "smooth" });
-      }, 450);
-    }
-  });
-
-  const desiredView = params.get("view");
-  const shouldAutoExpand =
-    desiredView === "all" ||
-    params.has("q") ||
-    params.has("filterTools") ||
-    params.has("filterConcept");
-  if (shouldAutoExpand && btn.dataset.expanded !== "true") {
-    const hash = location.hash || '';
-    btn.click();
-    if (desiredView === "all") {
-      params.delete("view");
-      const nextSearch = params.toString();
-      const newUrl = `${location.pathname}${nextSearch ? `?${nextSearch}` : ""}${hash}`;
-      if (window.history && window.history.replaceState) {
-        window.history.replaceState(null, "", newUrl);
-      }
-    }
-
-    const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const behavior = prefersReduced ? 'auto' : 'smooth';
-    const scrollToTarget = () => {
-      let targetId = (hash || '').replace(/^#/, '');
-      if (targetId) {
-        try { targetId = decodeURIComponent(targetId); } catch {}
-      }
-      const explicitTarget = targetId ? document.getElementById(targetId) : null;
-      const target = explicitTarget || filters || grid || gap;
-      if (!target) return;
-      const nav = parseFloat(
-        getComputedStyle(document.documentElement).getPropertyValue('--nav-height')
-      ) || 0;
-      const y = target.getBoundingClientRect().top + window.scrollY - nav;
-      window.scrollTo({ top: y, behavior });
-    };
-
-    // Align with the show/hide transitions (desktop animates; mobile is immediate)
-    setTimeout(scrollToTarget, mobile.matches ? 80 : 520);
-  }
-}
-
 /* ────────────────────────────────────────────────────────────
    DOM-builder  (loads all projects immediately)
    ------------------------------------------------------------------
    • Builds cards inside  #projects
    • Builds modals inside #modals
-   • Populates #filter-menu counts & click-to-filter behaviour
+   • Excludes the current audience's featured top five from the grid
    ------------------------------------------------------------------ */
 function buildPortfolio() {
-  const grid   = document.getElementById("projects");
+  const grid = document.getElementById("projects");
   const modals = document.getElementById("modals");
-  const menu   = document.getElementById("filter-menu");
-  if (!grid || !modals || !menu || !window.PROJECTS) return;
-  const projects = (Array.isArray(window.PROJECTS) ? window.PROJECTS : []).filter(isPublishedProject);
-  if (!projects.length) return;
+  if (!grid || !modals || !window.PROJECTS) return;
+
+  const audienceKey = getPortfolioAudienceKey();
+  applyPortfolioAudienceContent(audienceKey);
+
+  const allProjects = (Array.isArray(window.PROJECTS) ? window.PROJECTS : []).filter(isPublishedProject);
+  if (!allProjects.length) return;
+
+  const featuredIds = new Set(getFeaturedProjectIds(audienceKey).slice(0, 5));
+  const libraryProjects = allProjects.filter((project) => !featuredIds.has(project.id));
 
   grid.innerHTML = "";
   modals.innerHTML = "";
-  const TOTAL_PROJECTS = projects.length;
-  const filterGroups = new Map();
-  const groupState = {};
-  const groupButtons = [...menu.querySelectorAll('button[data-filter-group]')];
-  if (!groupButtons.length) return;
-  groupButtons.forEach((btn) => {
-    const group = btn.dataset.filterGroup || 'tools';
-    if (!filterGroups.has(group)) filterGroups.set(group, []);
-    filterGroups.get(group).push(btn);
-    btn.dataset.baseLabel = btn.textContent.trim();
-  });
-  filterGroups.forEach((buttons, group) => {
-    const defaultBtn = buttons.find(btn => (btn.dataset.filter || '').toLowerCase() === 'all') || buttons[0];
-    groupState[group] = defaultBtn?.dataset.filter || 'all';
-  });
-  const params = new URLSearchParams(window.location.search);
 
-  const valueAccessors = {
-    concept: (project) => Array.isArray(project.concepts) ? project.concepts : [],
-    tools: (project) => Array.isArray(project.tools) ? project.tools : []
-  };
-  const filterGroupKeys = [...filterGroups.keys()];
-  const getProjectValues = (project, group) => {
-    const accessor = valueAccessors[group];
-    if (!accessor) return [];
-    const values = accessor(project);
-    return Array.isArray(values) ? values.filter(Boolean) : [];
-  };
-  const matchesState = (project, overrides = {}) => {
-    const state = { ...groupState, ...overrides };
-    return filterGroupKeys.every((group) => {
-      const selected = state[group] || 'all';
-      if (selected === 'all') return true;
-      return getProjectValues(project, group).includes(selected);
-    });
-  };
-  const computeGroupCounts = (group) => {
-    const counts = { all: 0 };
-    projects.forEach((project) => {
-      if (!matchesState(project, { [group]: 'all' })) return;
-      counts.all++;
-      getProjectValues(project, group).forEach((value) => {
-        counts[value] = (counts[value] || 0) + 1;
-      });
-    });
-    return counts;
-  };
-
-  // Data order now reflects desired grid order (no runtime reordering)
-
-  // Optional prefilters from query string (e.g., ?filterTools=Python&filterConcept=Machine%20Learning)
-  const applyPrefilter = (paramName, group) => {
-    const value = params.get(paramName);
-    if (!value || !filterGroups.has(group)) return false;
-    const buttons = filterGroups.get(group);
-    const target = buttons.find(
-      (btn) => (btn.dataset.filter || '').toLowerCase() === value.toLowerCase()
-    );
-    if (!target) return false;
-    groupState[group] = target.dataset.filter || 'all';
-    return true;
-  };
-  applyPrefilter('filterTools', 'tools');
-  applyPrefilter('filterConcept', 'concept');
-
-  /* helper – create & return element */
   const el = (tag, cls = "", html = "") => {
     const n = document.createElement(tag);
     if (cls) n.className = cls;
@@ -737,19 +547,14 @@ function buildPortfolio() {
     return n;
   };
 
-  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const mobileMq = window.matchMedia
     ? window.matchMedia("(max-width: 768px)")
     : { matches: false, addEventListener() {}, addListener() {} };
 
-  const setupCardPreview = (card) => {
-    setupPreviewVideo(card);
-  };
-
   (() => {
     const updateIframes = () => {
       document.querySelectorAll(".modal-embed iframe[data-base]")
-        .forEach(f => {
+        .forEach((f) => {
           const base = f.dataset.base;
           f.src = `${base}?${[
             ":embed=y",
@@ -761,182 +566,41 @@ function buildPortfolio() {
     mobileMq.addEventListener("change", updateIframes);
   })();
 
-
-  /* ➊ Build cards & modals ----------------------------------------- */
-  projects.forEach((p, i) => {
-    /* card */
-    const mediaMarkup = projectMedia(p);
+  libraryProjects.forEach((project, index) => {
+    const mediaMarkup = projectMedia(project);
     const card = el("a", "project-card", `
       <div class="overlay"></div>
       <div class="project-text">
-        <div class="project-title">${p.title}</div>
-        <div class="project-subtitle">${p.subtitle}</div>
+        <div class="project-title">${project.title}</div>
+        <div class="project-subtitle">${project.subtitle}</div>
       </div>
       ${mediaMarkup}`);
-    card.href = `portfolio/${encodeURIComponent(p.id)}`;
+    card.href = `portfolio/${encodeURIComponent(project.id)}`;
     card.target = "_blank";
     card.rel = "noopener noreferrer";
-    card.setAttribute("aria-label", `Read case study: ${p.title}`);
-    card.dataset.index = i;
-    card.dataset.tools = (Array.isArray(p.tools) ? p.tools : []).join('|');
-    card.dataset.concepts = (Array.isArray(p.concepts) ? p.concepts : []).join('|');
-    setupCardPreview(card);
+    card.setAttribute("aria-label", `Read case study: ${project.title}`);
+    card.dataset.index = index;
+    setupPreviewVideo(card);
     grid.appendChild(card);
+  });
 
-    /* modal */
-    const modal = el("div","modal");
-    modal.id = `${p.id}-modal`;
-    modal.innerHTML = window.generateProjectModal(p);
+  allProjects.forEach((project) => {
+    const modal = el("div", "modal");
+    modal.id = `${project.id}-modal`;
+    modal.innerHTML = window.generateProjectModal(project);
     modals.appendChild(modal);
   });
 
-  /* ➋ Animate cards right away (no IntersectionObserver) ----------- */
-  [...grid.children].forEach((c, i) => {
-    c.style.animationDelay = `${i * 80}ms`;
-    c.classList.add("ripple-in");
+  [...grid.children].forEach((card, index) => {
+    card.style.animationDelay = `${index * 80}ms`;
+    card.classList.add("ripple-in");
   });
 
-  /* ➌ Build filter-button counts ----------------------------------- */
-  const refreshFilterLabels = () => {
-    filterGroups.forEach((buttons, group) => {
-      const counts = computeGroupCounts(group);
-      const total = counts.all || TOTAL_PROJECTS;
-      let current = groupState[group] || 'all';
-      if (current !== 'all' && !counts[current]) {
-        current = 'all';
-        groupState[group] = current;
-      }
-      buttons.forEach(btn => {
-        const value = btn.dataset.filter || 'all';
-        const baseLabel = btn.dataset.baseLabel || btn.textContent.trim();
-        const count = value === 'all' ? total : (counts[value] || 0);
-        const isActive = value === current;
-        btn.innerHTML = `${baseLabel} ${count}/${total}`;
-        btn.classList.toggle('btn-primary', isActive);
-        btn.classList.toggle('btn-secondary', !isActive);
-        btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-        const disable = value !== 'all' && count === 0;
-        btn.disabled = disable;
-        btn.setAttribute('aria-disabled', disable ? 'true' : 'false');
-        btn.classList.toggle('filter-chip-disabled', disable);
-      });
-    });
-  };
-  refreshFilterLabels();
+  try {
+    srStatus().textContent = `Showing ${libraryProjects.length} projects in the library.`;
+  } catch {}
 
-  /* ➍ Filter behaviour (fade-out → update → fade-in) --------------- */
-  const GRID_FADE_MS   = reduceMotion ? 0 : 350; // match #projects opacity transition
-  const GRID_RESIZE_MS = reduceMotion ? 0 : 450; // match #projects height transition
-  const GRID_HIDDEN_CLASS = "grid-hidden";
-  let fadeTimer;
-  let revealTimer;
-
-  const FILTER_GROUP_LABELS = {
-    concept: 'Focus',
-    tools: 'Tools'
-  };
-  const matchesSelections = (card) => {
-    const index = Number(card.dataset.index);
-    const project = projects[index];
-    if (!project) return true;
-    return matchesState(project);
-  };
-  const runFilter = () => {
-    clearTimeout(fadeTimer);
-    clearTimeout(revealTimer);
-
-    const startHeight = grid.offsetHeight;
-    grid.style.height = `${startHeight}px`;
-    grid.classList.remove(GRID_HIDDEN_CLASS);
-    if (!reduceMotion) grid.classList.add("grid-fade");
-
-    const applyFilter = () => {
-      if (!reduceMotion) grid.classList.add(GRID_HIDDEN_CLASS);
-      const cards = [...grid.children];
-      cards.forEach(card => {
-        const shouldShow = matchesSelections(card);
-        card.classList.toggle("hide", !shouldShow);
-      });
-
-      const visible = cards.filter(c => !c.classList.contains("hide"));
-      grid.style.height = `${grid.scrollHeight}px`;
-
-      const reveal = () => {
-        visible.forEach((card, i) => {
-          card.classList.remove("ripple-in");
-          void card.offsetWidth;
-          card.style.animationDelay = `${i * 80}ms`;
-          card.classList.add("ripple-in");
-        });
-
-        grid.classList.remove(GRID_HIDDEN_CLASS);
-        grid.classList.remove("grid-fade");
-        grid.style.height = "";
-
-        const isMobileFilter = window.matchMedia("(max-width: 768px)").matches;
-        if (isMobileFilter && !reduceMotion) {
-          const first = visible[0];
-          if (first) {
-            const offset =
-              parseFloat(
-                getComputedStyle(document.documentElement).getPropertyValue(
-                  "--nav-height"
-                )
-              ) || 0;
-            const y = first.getBoundingClientRect().top + window.scrollY - offset;
-            window.scrollTo({ top: y, behavior: "smooth" });
-          }
-        }
-
-	        try {
-	          const visibleCount = visible.length;
-	          const summary = filterGroupKeys
-	            .map(group => `${FILTER_GROUP_LABELS[group] || group}: ${groupState[group] || 'all'}`)
-	            .join('; ');
-	          srStatus().textContent = `Showing ${visibleCount} projects. ${summary}`;
-	        } catch {}
-	      };
-
-      if (GRID_RESIZE_MS) {
-        revealTimer = setTimeout(reveal, GRID_RESIZE_MS);
-      } else {
-        reveal();
-      }
-    };
-
-    if (GRID_FADE_MS) {
-      fadeTimer = setTimeout(applyFilter, GRID_FADE_MS);
-    } else {
-      applyFilter();
-    }
-  };
-
-  menu.addEventListener("click", e => {
-    const resetTarget = e.target.closest('button[data-filter-reset]');
-    if (resetTarget) {
-      const group = resetTarget.dataset.filterReset || 'tools';
-      if (filterGroups.has(group)) {
-        groupState[group] = 'all';
-        refreshFilterLabels();
-        runFilter();
-      }
-      e.preventDefault();
-      return;
-    }
-    const targetBtn = e.target.closest('button[data-filter-group]');
-    if (!targetBtn) return;
-    e.preventDefault();
-    const group = targetBtn.dataset.filterGroup || 'tools';
-    if (!filterGroups.has(group)) return;
-    groupState[group] = targetBtn.dataset.filter || 'all';
-    refreshFilterLabels();
-    runFilter();
-  });
-
-  // Apply any preselected filters immediately on load
-  runFilter();
-
-  /* ➎ Open modal based on URL (hash, clean path, or query) --------- */
+  /* ➊ Open modal based on URL (hash, clean path, or query) --------- */
   const getProjectIdFromQuery = () => {
     try {
       const params = new URLSearchParams(window.location.search || '');

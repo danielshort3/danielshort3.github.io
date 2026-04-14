@@ -1,4 +1,64 @@
 @layer components {
+  body[data-page="destination-analytics"] {
+    --audience-band-border: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
+    --audience-band-1: color-mix(in srgb, var(--surface) 72%, #0e7a6a 28%);
+    --audience-band-2: color-mix(in srgb, var(--surface) 76%, #7b365f 24%);
+    --audience-band-3: color-mix(in srgb, var(--surface) 74%, #2d88a0 26%);
+    --audience-band-4: color-mix(in srgb, var(--surface) 76%, #4f8a32 24%);
+  }
+
+  body[data-page="data-science"] {
+    --audience-band-1: color-mix(in srgb, var(--surface) 72%, #2b7dd3 28%);
+    --audience-band-2: color-mix(in srgb, var(--surface) 76%, #8846b8 24%);
+    --audience-band-3: color-mix(in srgb, var(--surface) 74%, #1f8871 26%);
+    --audience-band-4: color-mix(in srgb, var(--surface) 78%, #a76a23 22%);
+  }
+
+  body[data-page="tourism"] {
+    --audience-band-1: color-mix(in srgb, var(--surface) 72%, #1a7c78 28%);
+    --audience-band-2: color-mix(in srgb, var(--surface) 76%, #5e8f32 24%);
+    --audience-band-3: color-mix(in srgb, var(--surface) 74%, #a45c2a 26%);
+    --audience-band-4: color-mix(in srgb, var(--surface) 78%, #6b3d76 22%);
+  }
+
+  body[data-page="destination-analytics"] .nav-item-audience,
+  body[data-page="destination-analytics"] .footer-col[data-audience-crosslinks="true"] {
+    display: none;
+  }
+
+  body[data-page="destination-analytics"] main > section.surface-band {
+    --audience-band-base: var(--audience-band-1);
+    position: relative;
+    overflow: clip;
+    border-block: var(--audience-band-border);
+    background:
+      radial-gradient(900px circle at 12% 0%, color-mix(in srgb, var(--primary) 16%, transparent), transparent 56%),
+      linear-gradient(120deg,
+        color-mix(in srgb, var(--audience-band-base) 96%, #000 4%) 0%,
+        color-mix(in srgb, var(--audience-band-base) 86%, #000 14%) 100%);
+  }
+
+  body[data-page="destination-analytics"] main > section.surface-band:nth-of-type(4n + 2) {
+    --audience-band-base: var(--audience-band-1);
+  }
+
+  body[data-page="destination-analytics"] main > section.surface-band:nth-of-type(4n + 3) {
+    --audience-band-base: var(--audience-band-2);
+  }
+
+  body[data-page="destination-analytics"] main > section.surface-band:nth-of-type(4n + 4) {
+    --audience-band-base: var(--audience-band-3);
+  }
+
+  body[data-page="destination-analytics"] main > section.surface-band:nth-of-type(4n + 5) {
+    --audience-band-base: var(--audience-band-4);
+  }
+
+  body[data-page="destination-analytics"] main > section.surface-band > .wrapper {
+    position: relative;
+    z-index: 1;
+  }
+
   .hero-bullet-list {
     list-style: none;
     padding: 0;
@@ -123,6 +183,16 @@
     border: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
     background: color-mix(in srgb, var(--surface) 96%, #05070b 4%);
     box-shadow: 0 18px 36px rgba(0, 0, 0, .18);
+  }
+
+  body[data-page="destination-analytics"] .audience-proof-card,
+  body[data-page="destination-analytics"] .audience-feature-card,
+  body[data-page="destination-analytics"] .audience-fit-card,
+  body[data-page="destination-analytics"] .destination-card,
+  body[data-page="destination-analytics"] .destination-proof-link {
+    background: color-mix(in srgb, var(--audience-band-base, var(--surface)) 42%, #04070d 58%);
+    border-color: color-mix(in srgb, var(--primary) 24%, transparent);
+    box-shadow: 0 18px 36px rgba(0, 0, 0, .24);
   }
 
   .destination-card h3,

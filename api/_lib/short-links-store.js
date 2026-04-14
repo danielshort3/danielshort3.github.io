@@ -23,6 +23,14 @@ const {
   ScanCommand,
   UpdateCommand
 } = require('@aws-sdk/lib-dynamodb');
+const {
+  SET_KEY_PREFIX,
+  BATCH_KEY_PREFIX,
+  buildSetRecordKey,
+  buildBatchRecordKey,
+  isInternalRecordSlug,
+  normalizeSlugLower
+} = require('./short-links');
 
 function pickEnv(keys){
   for (const key of keys) {
@@ -141,6 +149,25 @@ function getDocClient(){
   return cachedDocClient;
 }
 
+function isLinkEntity(item){
+  if (!item || typeof item !== 'object') return false;
+  const slug = typeof item.slug === 'string' ? item.slug : '';
+  if (!slug || isInternalRecordSlug(slug)) return false;
+  return !item.entityType || item.entityType === 'link';
+}
+
+function isSetTemplateEntity(item){
+  if (!item || typeof item !== 'object') return false;
+  const slug = typeof item.slug === 'string' ? item.slug : '';
+  return item.entityType === 'setTemplate' && slug.startsWith(SET_KEY_PREFIX);
+}
+
+function isGeneratedBatchEntity(item){
+  if (!item || typeof item !== 'object') return false;
+  const slug = typeof item.slug === 'string' ? item.slug : '';
+  return item.entityType === 'generatedBatch' && slug.startsWith(BATCH_KEY_PREFIX);
+}
+
 async function getLink(slug){
   const { tableName } = getRequiredEnv();
   const client = getDocClient();
@@ -151,10 +178,33 @@ async function getLink(slug){
   return result && result.Item ? result.Item : null;
 }
 
-async function upsertLink({ slug, destination, permanent, expiresAt, updatedAt }){
+async function getLinkWithLegacyFallback(slug){
+  const exact = await getLink(slug);
+  if (isLinkEntity(exact)) return exact;
+
+  const lower = normalizeSlugLower(slug);
+  if (!lower || lower === slug) return null;
+
+  const legacy = await getLink(lower);
+  return isLinkEntity(legacy) ? legacy : null;
+}
+
+async function putItem(item){
+  const { tableName } = getRequiredEnv();
+  const client = getDocClient();
+  await client.send(new PutCommand({
+    TableName: tableName,
+    Item: item
+  }));
+  return item;
+}
+
+async function upsertLink({ slug, destination, permanent, expiresAt, updatedAt, metadata }){
   const { tableName } = getRequiredEnv();
   const client = getDocClient();
   const setExpressions = [
+    'entityType = :entityType',
+    'slugLower = :slugLower',
     'destination = :destination',
     'permanent = :permanent',
     'updatedAt = :updatedAt',
@@ -165,6 +215,8 @@ async function upsertLink({ slug, destination, permanent, expiresAt, updatedAt }
 
   const removeExpressions = [];
   const values = {
+    ':entityType': 'link',
+    ':slugLower': normalizeSlugLower(slug),
     ':destination': destination,
     ':permanent': !!permanent,
     ':updatedAt': updatedAt,
@@ -182,6 +234,28 @@ async function upsertLink({ slug, destination, permanent, expiresAt, updatedAt }
       removeExpressions.push('expiresAt');
     }
   }
+
+  const optionalTextFields = [
+    ['label', 160],
+    ['templateId', 64],
+    ['templateTitle', 160],
+    ['batchId', 64],
+    ['batchTitle', 160],
+    ['contextType', 32],
+    ['contextEntryId', 96],
+    ['contextCompany', 160],
+    ['contextTitle', 160]
+  ];
+
+  optionalTextFields.forEach(([field, maxLen]) => {
+    const cleaned = sanitizeValue(metadata && metadata[field], maxLen);
+    if (cleaned) {
+      setExpressions.push(`${field} = :${field}`);
+      values[`:${field}`] = cleaned;
+    } else {
+      removeExpressions.push(field);
+    }
+  });
 
   const updateExpression = `SET ${setExpressions.join(', ')}${removeExpressions.length ? ` REMOVE ${removeExpressions.join(', ')}` : ''}`;
   const result = await client.send(new UpdateCommand({
@@ -234,7 +308,7 @@ async function incrementClicks(slug){
   }));
 }
 
-async function listLinks(){
+async function listAllItems(){
   const { tableName } = getRequiredEnv();
   const client = getDocClient();
 
@@ -250,6 +324,41 @@ async function listLinks(){
   } while (startKey);
 
   return items;
+}
+
+async function listLinks(){
+  const items = await listAllItems();
+  return items.filter(isLinkEntity);
+}
+
+async function findLinkByLowerSlug(slug){
+  const target = normalizeSlugLower(slug);
+  if (!target) return null;
+  const items = await listLinks();
+  return items.find(item => normalizeSlugLower(item.slug) === target) || null;
+}
+
+async function getSetTemplate(setId){
+  return getLink(buildSetRecordKey(setId));
+}
+
+async function listSetTemplates(){
+  const items = await listAllItems();
+  return items
+    .filter(isSetTemplateEntity)
+    .sort((a, b) => String(a.title || '').localeCompare(String(b.title || '')));
+}
+
+async function saveSetTemplate(template){
+  return putItem(template);
+}
+
+async function deleteSetTemplate(setId){
+  return deleteLink(buildSetRecordKey(setId));
+}
+
+async function saveGeneratedBatch(batch){
+  return putItem(batch);
 }
 
 async function recordClick(event){
@@ -311,11 +420,22 @@ module.exports = {
   getAwsCredentialEnvInfo,
   getRequiredEnv,
   getLink,
+  getLinkWithLegacyFallback,
+  putItem,
   upsertLink,
   setLinkDisabled,
   deleteLink,
   incrementClicks,
+  listAllItems,
   listLinks,
+  findLinkByLowerSlug,
+  getSetTemplate,
+  listSetTemplates,
+  saveSetTemplate,
+  deleteSetTemplate,
+  saveGeneratedBatch,
+  isSetTemplateEntity,
+  isGeneratedBatchEntity,
   recordClick,
   listClicks
 };

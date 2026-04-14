@@ -57,13 +57,7 @@
     max-width: var(--container-max);
     margin-inline: auto;
     align-content:start;
-    transition:height .45s cubic-bezier(.22,.61,.36,1),
-               padding .45s cubic-bezier(.22,.61,.36,1),
-               opacity .35s ease;
-    will-change:height,padding,opacity
   }
-  #projects.grid-fade{opacity:0 !important}
-  #projects.grid-hidden{visibility:hidden}
   .project-metric{
     position:absolute;top:18px;left:18px;
     background:color-mix(in srgb,var(--primary) 15%,transparent);color:var(--primary);
@@ -154,75 +148,44 @@
     outline-offset: 2px;
   }
 
-  .portfolio-see-more{
+  .portfolio-anchor{
+    display:block;
+    height:0;
+    scroll-margin-top:calc(var(--nav-height, 72px) + 24px);
+  }
+  .portfolio-library-section{
+    border-top:1px solid color-mix(in srgb,var(--primary) 14%, transparent);
+  }
+  .portfolio-library-head{
     text-align:center;
-    margin-top:20px;
   }
-
-  .portfolio-filters-head{
-    text-align:center;
+  .portfolio-library-head .contrib-divider{
+    margin:0 auto 24px;
   }
-
-  /* Filter controls */
-  .filter-menu{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
-    gap:20px;
-    max-width:var(--container-max);
-    margin-inline:auto;
-    margin-top:16px;
-  }
-  .filter-panel{
-    border-radius:24px;
-    border:1px solid color-mix(in srgb,var(--primary) 20%, transparent);
-    background:color-mix(in srgb,var(--surface) 94%, #03060d 6%);
-    box-shadow:0 18px 36px rgba(0,0,0,.25);
-    padding:clamp(20px, 3vw, 30px);
-    display:flex;
-    flex-direction:column;
-    gap:14px;
-  }
-  .filter-panel-head h3{
-    margin:.2rem 0;
-    font-size:1.3rem;
-  }
-  .filter-panel-eyebrow{
+  .portfolio-library-eyebrow{
     margin:0;
     text-transform:uppercase;
     letter-spacing:.2em;
     font-size:.72rem;
     color:color-mix(in srgb,var(--text-muted) 88%, #fff 12%);
   }
-  .filter-panel-copy{
-    margin:0;
+  .portfolio-library-copy{
+    margin:12px auto 0;
+    max-width:68ch;
     color:var(--text-muted);
-    font-size:.95rem;
   }
-  .filter-chip-row{
-    display:grid;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:12px;
+  #projects.portfolio-library-grid{
+    grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+    gap:20px;
+    padding-top:20px;
+    padding-bottom:8px;
+    scroll-margin-top:calc(var(--nav-height, 72px) + 24px);
   }
-  .filter-chip-row button{
-    width:100%;
+  #projects.portfolio-library-grid .project-title{
+    font-size:18px;
   }
-  .filter-chip-row .filter-chip-all{
-    grid-column:1 / -1;
-  }
-  .filter-chip-row button.filter-chip-disabled{
-    opacity:.45;
-  }
-  .filter-chip-row button:disabled{
-    cursor:not-allowed;
-  }
-  @media (max-width:640px){
-    .filter-chip-row{
-      grid-template-columns:1fr;
-      justify-items:stretch;
-    }
-    .filter-chip-row button{
-      max-width:none;
-    }
+  #projects.portfolio-library-grid .project-subtitle{
+    font-size:13px;
   }
 
   @media (max-width:900px){
@@ -245,20 +208,6 @@
   }
 
   /* ── No-JS fallbacks ───────────────────────────────────────────── */
-  html.no-js #projects.hide {
-    display: grid !important;
-    opacity: 1;
-    visibility: visible;
-  }
-  html.no-js #filters.hide,
-  html.no-js #carousel-gap.hide {
-    display: block !important;
-    opacity: 1;
-    visibility: visible;
-  }
-  html.no-js #see-more {
-    display: none;
-  }
   html.no-js #portfolio-carousel .carousel-track {
     flex-direction: column;
     gap: 18px;

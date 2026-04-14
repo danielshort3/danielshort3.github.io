@@ -168,7 +168,6 @@
       ensurePortfolioScripts().then(() => {
         run(window.buildPortfolioCarousel);
         run(window.buildPortfolio);
-        run(window.initSeeMore);
       }).catch(err => console.warn('Failed to initialize portfolio page', err));
     }
     if (isPage('home')) {

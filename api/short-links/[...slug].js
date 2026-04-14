@@ -3,7 +3,7 @@
 */
 'use strict';
 
-const { deleteLink, getLink, setLinkDisabled } = require('../_lib/short-links-store');
+const { deleteLink, getLinkWithLegacyFallback, setLinkDisabled } = require('../_lib/short-links-store');
 const {
   getAdminToken,
   isAdminRequest,
@@ -26,6 +26,28 @@ function getSlugFromRequest(req){
   }
 }
 
+function serializeLink(record, fallbackSlug, fallbackUpdatedAt){
+  return {
+    slug: typeof record?.slug === 'string' ? record.slug : fallbackSlug,
+    destination: typeof record?.destination === 'string' ? record.destination : '',
+    permanent: !!record?.permanent,
+    expiresAt: Number.isFinite(Number(record?.expiresAt)) ? Number(record.expiresAt) : 0,
+    disabled: !!record?.disabled,
+    createdAt: typeof record?.createdAt === 'string' ? record.createdAt : '',
+    updatedAt: typeof record?.updatedAt === 'string' ? record.updatedAt : fallbackUpdatedAt,
+    clicks: Number.isFinite(Number(record?.clicks)) ? Number(record.clicks) : 0,
+    label: typeof record?.label === 'string' ? record.label : '',
+    templateId: typeof record?.templateId === 'string' ? record.templateId : '',
+    templateTitle: typeof record?.templateTitle === 'string' ? record.templateTitle : '',
+    batchId: typeof record?.batchId === 'string' ? record.batchId : '',
+    batchTitle: typeof record?.batchTitle === 'string' ? record.batchTitle : '',
+    contextType: typeof record?.contextType === 'string' ? record.contextType : '',
+    contextEntryId: typeof record?.contextEntryId === 'string' ? record.contextEntryId : '',
+    contextCompany: typeof record?.contextCompany === 'string' ? record.contextCompany : '',
+    contextTitle: typeof record?.contextTitle === 'string' ? record.contextTitle : ''
+  };
+}
+
 module.exports = async (req, res) => {
   const adminToken = getAdminToken();
   if (!adminToken) {
@@ -46,7 +68,7 @@ module.exports = async (req, res) => {
   if (req.method === 'GET') {
     let link;
     try {
-      link = await getLink(slug);
+      link = await getLinkWithLegacyFallback(slug);
     } catch (err) {
       if (err.code === 'DDB_ENV_MISSING') {
         sendJson(res, 503, { ok: false, error: err.message });
@@ -61,19 +83,7 @@ module.exports = async (req, res) => {
       return;
     }
 
-    sendJson(res, 200, {
-      ok: true,
-      link: {
-        slug,
-        destination: typeof link.destination === 'string' ? link.destination : '',
-        permanent: !!link.permanent,
-        expiresAt: Number.isFinite(Number(link.expiresAt)) ? Number(link.expiresAt) : 0,
-        disabled: !!link.disabled,
-        createdAt: typeof link.createdAt === 'string' ? link.createdAt : '',
-        updatedAt: typeof link.updatedAt === 'string' ? link.updatedAt : '',
-        clicks: Number.isFinite(Number(link.clicks)) ? Number(link.clicks) : 0
-      }
-    });
+    sendJson(res, 200, { ok: true, link: serializeLink(link, slug, '') });
     return;
   }
 
@@ -111,16 +121,7 @@ module.exports = async (req, res) => {
 
     sendJson(res, 200, {
       ok: true,
-      link: {
-        slug,
-        destination: typeof updated.destination === 'string' ? updated.destination : '',
-        permanent: !!updated.permanent,
-        expiresAt: Number.isFinite(Number(updated.expiresAt)) ? Number(updated.expiresAt) : 0,
-        disabled: !!updated.disabled,
-        createdAt: typeof updated.createdAt === 'string' ? updated.createdAt : '',
-        updatedAt: typeof updated.updatedAt === 'string' ? updated.updatedAt : now,
-        clicks: Number.isFinite(Number(updated.clicks)) ? Number(updated.clicks) : 0
-      }
+      link: serializeLink(updated, slug, now)
     });
     return;
   }

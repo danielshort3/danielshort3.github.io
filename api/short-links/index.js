@@ -4,15 +4,92 @@
 */
 'use strict';
 
-const { listLinks, upsertLink } = require('../_lib/short-links-store');
+const { findLinkByLowerSlug, listLinks, upsertLink } = require('../_lib/short-links-store');
 const {
+  DEFAULT_RANDOM_LENGTH,
+  MAX_RANDOM_LENGTH,
+  MIN_RANDOM_LENGTH,
+  generateRandomSlug,
   getAdminToken,
   isAdminRequest,
   sendJson,
   readJson,
   normalizeSlug,
+  normalizeRandomLength,
   normalizeDestination
 } = require('../_lib/short-links');
+
+const RANDOM_SLUG_RETRY_LIMIT = 40;
+
+function serializeLink(record, fallbackSlug, fallbackUpdatedAt){
+  return {
+    slug: typeof record?.slug === 'string' ? record.slug : fallbackSlug,
+    destination: typeof record?.destination === 'string' ? record.destination : '',
+    permanent: !!record?.permanent,
+    expiresAt: Number.isFinite(Number(record?.expiresAt)) ? Number(record.expiresAt) : 0,
+    disabled: !!record?.disabled,
+    createdAt: typeof record?.createdAt === 'string' ? record.createdAt : fallbackUpdatedAt,
+    updatedAt: typeof record?.updatedAt === 'string' ? record.updatedAt : fallbackUpdatedAt,
+    clicks: Number.isFinite(Number(record?.clicks)) ? Number(record.clicks) : 0,
+    label: typeof record?.label === 'string' ? record.label : '',
+    templateId: typeof record?.templateId === 'string' ? record.templateId : '',
+    templateTitle: typeof record?.templateTitle === 'string' ? record.templateTitle : '',
+    batchId: typeof record?.batchId === 'string' ? record.batchId : '',
+    batchTitle: typeof record?.batchTitle === 'string' ? record.batchTitle : '',
+    contextType: typeof record?.contextType === 'string' ? record.contextType : '',
+    contextEntryId: typeof record?.contextEntryId === 'string' ? record.contextEntryId : '',
+    contextCompany: typeof record?.contextCompany === 'string' ? record.contextCompany : '',
+    contextTitle: typeof record?.contextTitle === 'string' ? record.contextTitle : ''
+  };
+}
+
+function buildMetadata(body){
+  return {
+    label: body?.label,
+    templateId: body?.templateId,
+    templateTitle: body?.templateTitle,
+    batchId: body?.batchId,
+    batchTitle: body?.batchTitle,
+    contextType: body?.contextType,
+    contextEntryId: body?.contextEntryId,
+    contextCompany: body?.contextCompany,
+    contextTitle: body?.contextTitle
+  };
+}
+
+async function resolveRequestedSlug(body){
+  const slugMode = typeof body?.slugMode === 'string' ? body.slugMode.trim().toLowerCase() : '';
+  const randomLength = normalizeRandomLength(body?.randomLength, DEFAULT_RANDOM_LENGTH);
+  const manualSlug = normalizeSlug(body?.slug);
+
+  if (slugMode === 'random') {
+    for (let i = 0; i < RANDOM_SLUG_RETRY_LIMIT; i += 1) {
+      const candidate = generateRandomSlug(randomLength);
+      const conflict = await findLinkByLowerSlug(candidate);
+      if (!conflict) {
+        return { slug: candidate, randomLength, generated: true };
+      }
+    }
+    const err = new Error('Unable to generate a unique short code right now');
+    err.statusCode = 409;
+    throw err;
+  }
+
+  if (!manualSlug) {
+    const err = new Error('Invalid slug (use letters/numbers/-/_ and / for nesting)');
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const conflict = await findLinkByLowerSlug(manualSlug);
+  if (conflict && String(conflict.slug || '') !== manualSlug) {
+    const err = new Error(`Slug conflicts with existing link "${conflict.slug}"`);
+    err.statusCode = 409;
+    throw err;
+  }
+
+  return { slug: manualSlug, randomLength, generated: false };
+}
 
 module.exports = async (req, res) => {
   const adminToken = getAdminToken();
@@ -39,18 +116,9 @@ module.exports = async (req, res) => {
     }
 
     const links = items
-      .map(item => ({
-        slug: normalizeSlug(item.slug),
-        destination: typeof item.destination === 'string' ? item.destination : '',
-        permanent: !!item.permanent,
-        expiresAt: Number.isFinite(Number(item.expiresAt)) ? Number(item.expiresAt) : 0,
-        disabled: !!item.disabled,
-        createdAt: typeof item.createdAt === 'string' ? item.createdAt : '',
-        updatedAt: typeof item.updatedAt === 'string' ? item.updatedAt : '',
-        clicks: Number.isFinite(Number(item.clicks)) ? Number(item.clicks) : 0
-      }))
+      .map(item => serializeLink(item, normalizeSlug(item?.slug), typeof item?.updatedAt === 'string' ? item.updatedAt : ''))
       .filter(link => link.slug && link.destination)
-      .sort((a, b) => a.slug.localeCompare(b.slug));
+      .sort((a, b) => a.slug.localeCompare(b.slug, undefined, { sensitivity: 'base' }) || a.slug.localeCompare(b.slug));
 
     sendJson(res, 200, { ok: true, basePath: 'go', links });
     return;
@@ -65,16 +133,20 @@ module.exports = async (req, res) => {
       return;
     }
 
-    const slug = normalizeSlug(body.slug);
-    const destination = normalizeDestination(body.destination);
+    let requestedSlug;
+    try {
+      requestedSlug = await resolveRequestedSlug(body || {});
+    } catch (err) {
+      sendJson(res, err.statusCode || 400, { ok: false, error: err.message || 'Invalid slug' });
+      return;
+    }
+
+    const slug = requestedSlug.slug;
+    const destination = normalizeDestination(body.destination, { absolutizeInternalPath: true });
     const permanent = !!body.permanent;
     const hasExpiresAt = !!(body && Object.prototype.hasOwnProperty.call(body, 'expiresAt'));
     let expiresAt = 0;
 
-    if (!slug) {
-      sendJson(res, 400, { ok: false, error: 'Invalid slug (use letters/numbers/-/_ and / for nesting)' });
-      return;
-    }
     if (!destination) {
       sendJson(res, 400, { ok: false, error: 'Invalid destination (must start with / or http(s)://)' });
       return;
@@ -107,7 +179,8 @@ module.exports = async (req, res) => {
         destination,
         permanent,
         expiresAt: hasExpiresAt ? expiresAt : undefined,
-        updatedAt: now
+        updatedAt: now,
+        metadata: buildMetadata(body)
       });
     } catch (err) {
       if (err.code === 'DDB_ENV_MISSING') {
@@ -120,16 +193,10 @@ module.exports = async (req, res) => {
 
     sendJson(res, 200, {
       ok: true,
-      link: {
-        slug,
-        destination,
-        permanent,
-        expiresAt: record && Number.isFinite(Number(record.expiresAt)) ? Number(record.expiresAt) : 0,
-        disabled: record ? !!record.disabled : false,
-        createdAt: record && record.createdAt ? record.createdAt : now,
-        updatedAt: now,
-        clicks: record && Number.isFinite(Number(record.clicks)) ? Number(record.clicks) : 0
-      }
+      link: serializeLink(record, slug, now),
+      generated: requestedSlug.generated,
+      randomLength: requestedSlug.generated ? requestedSlug.randomLength : 0,
+      randomLengthRange: { min: MIN_RANDOM_LENGTH, max: MAX_RANDOM_LENGTH }
     });
     return;
   }

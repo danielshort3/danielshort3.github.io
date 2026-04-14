@@ -1001,6 +1001,9 @@
 
   const UTM_RESUME_TEMPLATE_PATH = 'documents/Resume.docx';
   const UTM_BASE_DOMAIN = 'https://www.danielshort.me';
+  const SHORTLINKS_ADMIN_TOKEN_STORAGE_KEY = 'shortlinks_admin_token';
+  const SHORTLINKS_SETS_API_PATH = '/api/short-links/sets';
+  const SHORTLINKS_DEFAULT_RANDOM_LENGTH = 6;
 
   const escapeXmlAttribute = (value) => {
     return (value ?? '')
@@ -1045,6 +1048,54 @@
     const raw = (hostname || '').toString().trim().toLowerCase();
     if (!raw) return false;
     return raw === 'danielshort.me' || raw === 'www.danielshort.me';
+  };
+
+  const getSavedShortlinksToken = () => {
+    try {
+      return (localStorage.getItem(SHORTLINKS_ADMIN_TOKEN_STORAGE_KEY) || '').toString().trim();
+    } catch {
+      return '';
+    }
+  };
+
+  const saveShortlinksToken = (token) => {
+    try {
+      const value = (token || '').toString().trim();
+      if (!value) localStorage.removeItem(SHORTLINKS_ADMIN_TOKEN_STORAGE_KEY);
+      else localStorage.setItem(SHORTLINKS_ADMIN_TOKEN_STORAGE_KEY, value);
+    } catch {}
+  };
+
+  const fetchShortlinksAdmin = async (path, { method = 'GET', body } = {}) => {
+    const token = getSavedShortlinksToken();
+    if (!token) {
+      const err = new Error('Short Links admin token required.');
+      err.code = 'TOKEN_MISSING';
+      throw err;
+    }
+
+    const headers = { Authorization: `Bearer ${token}` };
+    if (typeof body !== 'undefined') headers['Content-Type'] = 'application/json';
+    const res = await fetch(path, {
+      method,
+      headers,
+      body: typeof body !== 'undefined' ? JSON.stringify(body) : undefined
+    });
+    const text = await res.text();
+    let data = null;
+    if (text) {
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = null;
+      }
+    }
+    if (!res.ok || !data || data.ok !== true) {
+      const err = new Error(data?.error || text || `${res.status} ${res.statusText}`);
+      err.status = res.status;
+      throw err;
+    }
+    return data || {};
   };
 
   const normalizeInternalWebsiteUrl = (href) => {
@@ -1589,6 +1640,418 @@
     });
 
     renderLists();
+
+    return wrap;
+  };
+
+  const buildShortlinksSetSection = (entry) => {
+    const company = (entry?.company || '').toString().trim();
+    const title = (entry?.title || '').toString().trim();
+    const entryType = entry?.entryType || getEntryType(entry);
+    const entryId = (entry?.applicationId || '').toString().trim();
+
+    const wrap = document.createElement('div');
+    wrap.className = 'jobtrack-modal-attachments';
+
+    const head = document.createElement('div');
+    head.className = 'jobtrack-modal-attachments-head';
+    const heading = document.createElement('p');
+    heading.className = 'jobtrack-modal-attachments-title';
+    heading.textContent = 'Short-link set';
+    head.appendChild(heading);
+    wrap.appendChild(head);
+
+    const note = document.createElement('p');
+    note.className = 'jobtrack-help';
+    note.textContent = 'Use a saved URL-set template to generate a fresh batch of short links for this prospect or application.';
+    wrap.appendChild(note);
+
+    const statusEl = document.createElement('div');
+    statusEl.className = 'jobtrack-form-status';
+    wrap.appendChild(statusEl);
+
+    const content = document.createElement('div');
+    content.className = 'jobtrack-modal-shortlinks';
+    wrap.appendChild(content);
+
+    const context = {
+      type: entryType,
+      entryId,
+      company,
+      title
+    };
+
+    const clampRandomLength = (value) => {
+      const numeric = Number(value);
+      if (!Number.isFinite(numeric)) return SHORTLINKS_DEFAULT_RANDOM_LENGTH;
+      return Math.max(4, Math.min(12, Math.floor(numeric)));
+    };
+
+    const normalizeDurationValue = (value) => {
+      const numeric = Number(value);
+      if (!Number.isFinite(numeric)) return 7;
+      return Math.max(1, Math.min(365, Math.floor(numeric)));
+    };
+
+    const normalizeDurationUnit = (value) => {
+      const raw = (value || '').toString().trim().toLowerCase();
+      if (raw === 'hours' || raw === 'weeks') return raw;
+      return 'days';
+    };
+
+    const buildDefaultBatchTitle = (template) => {
+      return [template?.title || '', company, title].filter(Boolean).join(' · ');
+    };
+
+    const renderGeneratedLinks = (payload) => {
+      const links = Array.isArray(payload?.links) ? payload.links : [];
+      const batch = payload?.batch || {};
+      const resultsWrap = document.createElement('div');
+      resultsWrap.className = 'jobtrack-modal-attachments';
+
+      const resultsHead = document.createElement('div');
+      resultsHead.className = 'jobtrack-modal-attachments-head';
+      const resultsTitle = document.createElement('p');
+      resultsTitle.className = 'jobtrack-modal-attachments-title';
+      resultsTitle.textContent = batch.batchTitle || 'Generated links';
+      resultsHead.appendChild(resultsTitle);
+
+      const copyAllButton = document.createElement('button');
+      copyAllButton.type = 'button';
+      copyAllButton.className = 'btn-ghost jobtrack-modal-attachment-btn';
+      copyAllButton.textContent = 'Copy all';
+      copyAllButton.addEventListener('click', async () => {
+        const text = links
+          .map((link) => {
+            const label = (link?.label || '').toString().trim();
+            const shortUrl = (link?.shortUrl || '').toString().trim();
+            return label && shortUrl ? `${label}: ${shortUrl}` : shortUrl;
+          })
+          .filter(Boolean)
+          .join('\n');
+        const ok = await copyTextToClipboard(text);
+        setStatus(statusEl, ok ? 'Copied all short links.' : 'Copy failed.', ok ? 'success' : 'error');
+      });
+      resultsHead.appendChild(copyAllButton);
+      resultsWrap.appendChild(resultsHead);
+
+      const meta = document.createElement('p');
+      meta.className = 'jobtrack-help';
+      meta.textContent = batch.permanent
+        ? 'Permanent links'
+        : `Expires ${batch.expiresAt ? new Date(Number(batch.expiresAt) * 1000).toLocaleString() : ''}`;
+      resultsWrap.appendChild(meta);
+
+      const list = document.createElement('ul');
+      list.className = 'jobtrack-modal-attachment-list';
+      links.forEach((link) => {
+        const row = document.createElement('li');
+        row.className = 'jobtrack-modal-attachment';
+
+        const info = document.createElement('div');
+        info.className = 'jobtrack-modal-attachment-info';
+
+        const name = document.createElement('div');
+        name.className = 'jobtrack-modal-attachment-name';
+        name.textContent = (link?.label || '').toString().trim() || 'Link';
+        info.appendChild(name);
+
+        const metaInfo = document.createElement('div');
+        metaInfo.className = 'jobtrack-modal-attachment-meta';
+        const shortUrl = document.createElement('span');
+        shortUrl.textContent = (link?.shortUrl || '').toString().trim();
+        metaInfo.appendChild(shortUrl);
+        info.appendChild(metaInfo);
+
+        const openLink = document.createElement('a');
+        openLink.className = 'jobtrack-prospect-link';
+        openLink.href = (link?.shortUrl || '').toString().trim();
+        openLink.target = '_blank';
+        openLink.rel = 'noopener';
+        openLink.textContent = 'Open';
+        info.appendChild(openLink);
+
+        const copyButton = document.createElement('button');
+        copyButton.type = 'button';
+        copyButton.className = 'btn-ghost jobtrack-modal-attachment-btn';
+        copyButton.textContent = 'Copy';
+        copyButton.addEventListener('click', async () => {
+          const ok = await copyTextToClipboard((link?.shortUrl || '').toString().trim());
+          setStatus(statusEl, ok ? 'Copied short link.' : 'Copy failed.', ok ? 'success' : 'error');
+        });
+
+        row.appendChild(info);
+        row.appendChild(copyButton);
+        list.appendChild(row);
+      });
+      resultsWrap.appendChild(list);
+      return resultsWrap;
+    };
+
+    const renderTokenPrompt = (message) => {
+      content.replaceChildren();
+
+      const tokenField = document.createElement('div');
+      tokenField.className = 'jobtrack-field';
+      const tokenLabel = document.createElement('label');
+      tokenLabel.className = 'jobtrack-label';
+      tokenLabel.textContent = 'Short Links admin token';
+      const tokenInput = document.createElement('input');
+      tokenInput.type = 'password';
+      tokenInput.className = 'jobtrack-input';
+      tokenInput.autocomplete = 'current-password';
+      tokenField.appendChild(tokenLabel);
+      tokenField.appendChild(tokenInput);
+      content.appendChild(tokenField);
+
+      const actions = document.createElement('div');
+      actions.className = 'jobtrack-modal-action-row';
+      const saveButton = document.createElement('button');
+      saveButton.type = 'button';
+      saveButton.className = 'btn-primary jobtrack-modal-status-btn';
+      saveButton.textContent = 'Save token';
+      saveButton.addEventListener('click', async () => {
+        const token = (tokenInput.value || '').toString().trim();
+        if (!token) {
+          setStatus(statusEl, 'Paste the Short Links admin token first.', 'error');
+          tokenInput.focus();
+          return;
+        }
+        saveShortlinksToken(token);
+        await loadTemplates();
+      });
+      actions.appendChild(saveButton);
+
+      const openTool = document.createElement('a');
+      openTool.className = 'btn-ghost jobtrack-modal-attachment-btn';
+      openTool.href = '/tools/short-links';
+      openTool.target = '_blank';
+      openTool.rel = 'noopener';
+      openTool.textContent = 'Open Short Links';
+      actions.appendChild(openTool);
+      content.appendChild(actions);
+
+      setStatus(statusEl, message || 'Save your Short Links admin token to load templates.', message ? 'warning' : 'info');
+    };
+
+    const renderTemplatePicker = (templates) => {
+      content.replaceChildren();
+
+      if (!Array.isArray(templates) || !templates.length) {
+        const empty = document.createElement('p');
+        empty.className = 'jobtrack-help';
+        empty.textContent = 'No saved URL set templates yet. Create them in the Short Links tool first.';
+        content.appendChild(empty);
+
+        const openTool = document.createElement('a');
+        openTool.className = 'jobtrack-prospect-link';
+        openTool.href = '/tools/short-links';
+        openTool.target = '_blank';
+        openTool.rel = 'noopener';
+        openTool.textContent = 'Open Short Links';
+        content.appendChild(openTool);
+        setStatus(statusEl, 'No set templates found.', 'warning');
+        return;
+      }
+
+      const form = document.createElement('form');
+      form.className = 'jobtrack-modal-status-form';
+
+      const fields = document.createElement('div');
+      fields.className = 'jobtrack-modal-status-fields';
+
+      const templateField = document.createElement('div');
+      templateField.className = 'jobtrack-field';
+      const templateLabel = document.createElement('label');
+      templateLabel.className = 'jobtrack-label';
+      templateLabel.textContent = 'Template';
+      const templateSelect = document.createElement('select');
+      templateSelect.className = 'jobtrack-select';
+      templates.forEach((template) => {
+        const option = document.createElement('option');
+        option.value = (template?.setId || '').toString().trim();
+        option.textContent = (template?.title || '').toString().trim() || option.value;
+        templateSelect.appendChild(option);
+      });
+      templateField.appendChild(templateLabel);
+      templateField.appendChild(templateSelect);
+      fields.appendChild(templateField);
+
+      const batchTitleField = document.createElement('div');
+      batchTitleField.className = 'jobtrack-field';
+      const batchTitleLabel = document.createElement('label');
+      batchTitleLabel.className = 'jobtrack-label';
+      batchTitleLabel.textContent = 'Batch title';
+      const batchTitleInput = document.createElement('input');
+      batchTitleInput.type = 'text';
+      batchTitleInput.className = 'jobtrack-input';
+      batchTitleField.appendChild(batchTitleLabel);
+      batchTitleField.appendChild(batchTitleInput);
+      fields.appendChild(batchTitleField);
+
+      const lengthField = document.createElement('div');
+      lengthField.className = 'jobtrack-field';
+      const lengthLabel = document.createElement('label');
+      lengthLabel.className = 'jobtrack-label';
+      lengthLabel.textContent = 'Random length';
+      const lengthInput = document.createElement('input');
+      lengthInput.type = 'number';
+      lengthInput.min = '4';
+      lengthInput.max = '12';
+      lengthInput.step = '1';
+      lengthInput.className = 'jobtrack-input';
+      lengthField.appendChild(lengthLabel);
+      lengthField.appendChild(lengthInput);
+      fields.appendChild(lengthField);
+
+      const expirationField = document.createElement('div');
+      expirationField.className = 'jobtrack-field';
+      const expirationLabel = document.createElement('label');
+      expirationLabel.className = 'jobtrack-label';
+      expirationLabel.textContent = 'Expiration';
+      const expirationSelect = document.createElement('select');
+      expirationSelect.className = 'jobtrack-select';
+      [
+        { value: 'permanent', label: 'Permanent' },
+        { value: 'temporary', label: 'Temporary' }
+      ].forEach((item) => {
+        const option = document.createElement('option');
+        option.value = item.value;
+        option.textContent = item.label;
+        expirationSelect.appendChild(option);
+      });
+      expirationField.appendChild(expirationLabel);
+      expirationField.appendChild(expirationSelect);
+      fields.appendChild(expirationField);
+
+      const durationValueField = document.createElement('div');
+      durationValueField.className = 'jobtrack-field';
+      const durationValueLabel = document.createElement('label');
+      durationValueLabel.className = 'jobtrack-label';
+      durationValueLabel.textContent = 'Active for';
+      const durationValueInput = document.createElement('input');
+      durationValueInput.type = 'number';
+      durationValueInput.min = '1';
+      durationValueInput.max = '365';
+      durationValueInput.step = '1';
+      durationValueInput.className = 'jobtrack-input';
+      durationValueField.appendChild(durationValueLabel);
+      durationValueField.appendChild(durationValueInput);
+      fields.appendChild(durationValueField);
+
+      const durationUnitField = document.createElement('div');
+      durationUnitField.className = 'jobtrack-field';
+      const durationUnitLabel = document.createElement('label');
+      durationUnitLabel.className = 'jobtrack-label';
+      durationUnitLabel.textContent = 'Unit';
+      const durationUnitSelect = document.createElement('select');
+      durationUnitSelect.className = 'jobtrack-select';
+      [
+        { value: 'hours', label: 'Hours' },
+        { value: 'days', label: 'Days' },
+        { value: 'weeks', label: 'Weeks' }
+      ].forEach((item) => {
+        const option = document.createElement('option');
+        option.value = item.value;
+        option.textContent = item.label;
+        durationUnitSelect.appendChild(option);
+      });
+      durationUnitField.appendChild(durationUnitLabel);
+      durationUnitField.appendChild(durationUnitSelect);
+      fields.appendChild(durationUnitField);
+
+      const submitButton = document.createElement('button');
+      submitButton.type = 'submit';
+      submitButton.className = 'btn-primary jobtrack-modal-status-btn';
+      submitButton.textContent = 'Generate short-link set';
+      fields.appendChild(submitButton);
+
+      const resultsHost = document.createElement('div');
+      resultsHost.className = 'jobtrack-modal-shortlinks-results';
+
+      const syncTemplateDefaults = () => {
+        const templateId = (templateSelect.value || '').toString().trim();
+        const current = templates.find((item) => (item?.setId || '').toString().trim() === templateId) || templates[0];
+        batchTitleInput.value = buildDefaultBatchTitle(current);
+        lengthInput.value = String(clampRandomLength(current?.defaultRandomLength));
+        expirationSelect.value = ((current?.defaultExpirationMode || '').toString().trim().toLowerCase() === 'temporary') ? 'temporary' : 'permanent';
+        durationValueInput.value = String(normalizeDurationValue(current?.defaultDurationValue));
+        durationUnitSelect.value = normalizeDurationUnit(current?.defaultDurationUnit);
+        const isTemporary = expirationSelect.value === 'temporary';
+        durationValueField.hidden = !isTemporary;
+        durationUnitField.hidden = !isTemporary;
+      };
+
+      templateSelect.addEventListener('change', syncTemplateDefaults);
+      expirationSelect.addEventListener('change', () => {
+        const isTemporary = expirationSelect.value === 'temporary';
+        durationValueField.hidden = !isTemporary;
+        durationUnitField.hidden = !isTemporary;
+      });
+
+      form.appendChild(fields);
+      content.appendChild(form);
+      content.appendChild(resultsHost);
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const templateId = (templateSelect.value || '').toString().trim();
+        if (!templateId) {
+          setStatus(statusEl, 'Select a template first.', 'error');
+          return;
+        }
+        submitButton.disabled = true;
+        setStatus(statusEl, 'Generating short-link set…', 'info');
+        try {
+          const data = await fetchShortlinksAdmin(`${SHORTLINKS_SETS_API_PATH}/${encodeURIComponent(templateId)}/generate`, {
+            method: 'POST',
+            body: {
+              batchTitle: (batchTitleInput.value || '').toString().trim(),
+              randomLength: clampRandomLength(lengthInput.value),
+              expirationMode: (expirationSelect.value || 'permanent').toString().trim().toLowerCase(),
+              durationValue: normalizeDurationValue(durationValueInput.value),
+              durationUnit: normalizeDurationUnit(durationUnitSelect.value),
+              context
+            }
+          });
+          resultsHost.replaceChildren(renderGeneratedLinks(data));
+          setStatus(statusEl, `Generated ${Array.isArray(data?.links) ? data.links.length : 0} short link(s).`, 'success');
+        } catch (err) {
+          resultsHost.replaceChildren();
+          if (err?.status === 401 || err?.status === 403 || err?.code === 'TOKEN_MISSING') {
+            renderTokenPrompt(err?.message || 'Short Links token required.');
+            return;
+          }
+          setStatus(statusEl, err?.message || 'Unable to generate short-link set.', 'error');
+        } finally {
+          submitButton.disabled = false;
+        }
+      });
+
+      syncTemplateDefaults();
+      setStatus(statusEl, `Loaded ${templates.length} short-link template${templates.length === 1 ? '' : 's'}.`, 'success');
+    };
+
+    const loadTemplates = async () => {
+      if (!getSavedShortlinksToken()) {
+        renderTokenPrompt('Save your Short Links admin token to load templates.');
+        return;
+      }
+      setStatus(statusEl, 'Loading short-link templates…', 'info');
+      try {
+        const data = await fetchShortlinksAdmin(SHORTLINKS_SETS_API_PATH, { method: 'GET' });
+        renderTemplatePicker(Array.isArray(data?.sets) ? data.sets : []);
+      } catch (err) {
+        if (err?.status === 401 || err?.status === 403 || err?.code === 'TOKEN_MISSING') {
+          renderTokenPrompt(err?.message || 'Short Links token required.');
+          return;
+        }
+        content.replaceChildren();
+        setStatus(statusEl, err?.message || 'Unable to load short-link templates.', 'error');
+      }
+    };
+
+    void loadTemplates();
 
     return wrap;
   };
@@ -2400,6 +2863,11 @@
     const utmLinksWrap = buildUtmLinksSection(entry);
     if (utmLinksWrap) {
       els.detailModalBody.appendChild(utmLinksWrap);
+    }
+
+    const shortlinksWrap = buildShortlinksSetSection(entry);
+    if (shortlinksWrap) {
+      els.detailModalBody.appendChild(shortlinksWrap);
     }
 
     const attachments = Array.isArray(entry.attachments) ? entry.attachments : [];

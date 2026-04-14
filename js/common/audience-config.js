@@ -1,0 +1,130 @@
+(function (root, factory) {
+  const api = factory();
+  if (typeof module === 'object' && module.exports) {
+    module.exports = api;
+  }
+  if (root) {
+    root.SITE_AUDIENCE_CONFIG = api;
+    root.SITE_AUDIENCES = api.audiences;
+    root.SITE_AUDIENCE_ORDER = api.order;
+    root.SITE_AUDIENCE_DEFAULT = api.defaultAudience;
+    root.getSiteAudienceConfig = api.getAudience;
+    root.normalizeSiteAudience = api.normalizeAudience;
+    root.detectSiteAudienceFromPath = api.detectAudienceFromPath;
+  }
+})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+  'use strict';
+
+  const audiences = {
+    analytics: {
+      key: 'analytics',
+      label: 'Data Analytics',
+      shortLabel: 'Analytics',
+      homePath: '/analytics',
+      portfolioPath: '/portfolio?audience=analytics',
+      portfolioAllPath: '/portfolio?audience=analytics',
+      resumePath: '/resume-analytics',
+      resumePreviewPath: '/resume-analytics-pdf',
+      resumeDownloadPath: '/documents/Resume-Analytics.pdf',
+      featuredProjectIds: [
+        'retailStore',
+        'targetEmptyPackage',
+        'pizzaDashboard',
+        'deliveryTip',
+        'ufoDashboard'
+      ],
+      portfolioTitle: 'Analytics Portfolio',
+      portfolioDescription: 'Dashboarding, KPI design, SQL workflows, forecasting, and decision-ready reporting.',
+      resumeNavTitle: 'Analytics Resume',
+      resumeNavSubtitle: 'Reporting, BI, SQL, and Tableau',
+      resumePreviewSubtitle: 'Open the analytics PDF preview',
+      resumeDownloadSubtitle: 'Download the analytics PDF',
+      brandNavPrimary: 'Data Analytics'
+    },
+    'data-science': {
+      key: 'data-science',
+      label: 'Data Science',
+      shortLabel: 'Data Science',
+      homePath: '/data-science',
+      portfolioPath: '/portfolio?audience=data-science',
+      portfolioAllPath: '/portfolio?audience=data-science',
+      resumePath: '/resume-data-science',
+      resumePreviewPath: '/resume-data-science-pdf',
+      resumeDownloadPath: '/documents/Resume-Data-Science.pdf',
+      featuredProjectIds: [
+        'smartSentence',
+        'chatbotLora',
+        'shapeClassifier',
+        'digitGenerator',
+        'handwritingRating'
+      ],
+      portfolioTitle: 'Data Science Portfolio',
+      portfolioDescription: 'Machine learning, NLP, modeling, evaluation, and production-minded experimentation.',
+      resumeNavTitle: 'Data Science Resume',
+      resumeNavSubtitle: 'ML, NLP, modeling, and deployment',
+      resumePreviewSubtitle: 'Open the data science PDF preview',
+      resumeDownloadSubtitle: 'Download the data science PDF',
+      brandNavPrimary: 'Data Science'
+    },
+    tourism: {
+      key: 'tourism',
+      label: 'Tourism Analytics',
+      shortLabel: 'Tourism',
+      homePath: '/tourism',
+      portfolioPath: '/portfolio?audience=tourism',
+      portfolioAllPath: '/portfolio?audience=tourism',
+      resumePath: '/resume-tourism',
+      resumePreviewPath: '/resume-tourism-pdf',
+      resumeDownloadPath: '/documents/Resume-Tourism.pdf',
+      featuredProjectIds: [
+        'chatbotLora',
+        'pizzaDashboard',
+        'covidAnalysis',
+        'retailStore',
+        'smartSentence'
+      ],
+      portfolioTitle: 'Tourism Analytics Portfolio',
+      portfolioDescription: 'Destination reporting, visitor demand analysis, stakeholder communication, and public-sector decision support.',
+      resumeNavTitle: 'Tourism Resume',
+      resumeNavSubtitle: 'Destination reporting and stakeholder analytics',
+      resumePreviewSubtitle: 'Open the tourism PDF preview',
+      resumeDownloadSubtitle: 'Download the tourism PDF',
+      brandNavPrimary: 'Tourism Analytics'
+    }
+  };
+
+  const order = ['analytics', 'data-science', 'tourism'];
+  const defaultAudience = 'analytics';
+
+  function normalizeAudience(value) {
+    const raw = String(value || '').trim().toLowerCase();
+    if (!raw) return defaultAudience;
+    if (raw === 'datascience' || raw === 'data_science') return 'data-science';
+    if (raw === 'tourism-analytics') return 'tourism';
+    return audiences[raw] ? raw : defaultAudience;
+  }
+
+  function getAudience(value) {
+    return audiences[normalizeAudience(value)] || audiences[defaultAudience];
+  }
+
+  function detectAudienceFromPath(pathname) {
+    const path = String(pathname || '').trim().replace(/\/+$/, '') || '/';
+    return order.find((key) => {
+      const audience = audiences[key];
+      if (!audience) return false;
+      return path === audience.homePath
+        || path === audience.resumePath
+        || path === audience.resumePreviewPath;
+    }) || null;
+  }
+
+  return {
+    defaultAudience,
+    order,
+    audiences,
+    normalizeAudience,
+    getAudience,
+    detectAudienceFromPath
+  };
+});

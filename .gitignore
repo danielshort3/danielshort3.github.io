@@ -38,3 +38,4 @@ Baby-Names/
 # Local GA4 API experiments / credentials
 /ga4/data/
 /ga4/output/
+/.venv-resume

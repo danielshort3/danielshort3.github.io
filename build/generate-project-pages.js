@@ -377,7 +377,15 @@ function renderProjectPager(projects, currentIndex) {
 function getProjectTagSet(project) {
   const tools = Array.isArray(project?.tools) ? project.tools : [];
   const concepts = Array.isArray(project?.concepts) ? project.concepts : [];
-  const tags = [...tools, ...concepts]
+  const audiences = Array.isArray(project?.audiences) ? project.audiences : [];
+  const audienceLabels = audiences.map((audience) => {
+    const key = normalizeWhitespace(audience).toLowerCase();
+    if (key === 'data-science') return 'Data Science';
+    if (key === 'analytics') return 'Analytics';
+    if (key === 'tourism') return 'Tourism';
+    return '';
+  }).filter(Boolean);
+  const tags = [...tools, ...concepts, ...audiences, ...audienceLabels]
     .map((t) => normalizeWhitespace(t).toLowerCase())
     .filter(Boolean);
   return new Set(tags);
@@ -522,8 +530,16 @@ function renderProjectPage(project, options = {}) {
   const resources = Array.isArray(project.resources) ? project.resources : [];
   const role = project.role;
   const notes = normalizeWhitespace(project.notes || '');
+  const audiences = Array.isArray(project.audiences) ? project.audiences : [];
+  const audienceTags = audiences.map((audience) => {
+    const key = normalizeWhitespace(audience).toLowerCase();
+    if (key === 'data-science') return 'Data Science';
+    if (key === 'analytics') return 'Analytics';
+    if (key === 'tourism') return 'Tourism';
+    return '';
+  }).filter(Boolean);
 
-  const tags = [...new Set([...concepts, ...tools])]
+  const tags = [...new Set([...audienceTags, ...concepts, ...tools])]
     .map((t) => normalizeWhitespace(t))
     .filter(Boolean);
 
@@ -837,6 +853,7 @@ ${ogImageDimensionsMeta}
 
   <meta name="theme-color" content="#0D1117">
   <link rel="stylesheet" href="dist/styles.css">
+  <!-- Legacy source reference retained for tooling: css/components/project-page.css -->
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="img/ui/logo-16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="img/ui/logo-32.png">
@@ -928,12 +945,15 @@ function writeSitemap(projects) {
   const noindexPathnames = loadNoindexPathnamesFromVercel(root);
   const baseEntries = [
     { loc: `${SITE_ORIGIN}/`, sourceFile: 'index.html', priority: 1.0 },
-    { loc: `${SITE_ORIGIN}/destination-analytics`, sourceFile: 'pages/destination-analytics.html', priority: 0.9 },
+    { loc: `${SITE_ORIGIN}/analytics`, sourceFile: 'pages/analytics.html', priority: 0.9 },
+    { loc: `${SITE_ORIGIN}/data-science`, sourceFile: 'pages/data-science.html', priority: 0.9 },
+    { loc: `${SITE_ORIGIN}/tourism`, sourceFile: 'pages/tourism.html', priority: 0.9 },
     { loc: `${SITE_ORIGIN}/portfolio`, sourceFile: 'pages/portfolio.html', priority: 0.9 },
-    { loc: `${SITE_ORIGIN}/resume`, sourceFile: 'pages/resume.html', priority: 0.9 },
+    { loc: `${SITE_ORIGIN}/resume-analytics`, sourceFile: 'pages/resume-analytics.html', priority: 0.8 },
+    { loc: `${SITE_ORIGIN}/resume-data-science`, sourceFile: 'pages/resume-data-science.html', priority: 0.8 },
+    { loc: `${SITE_ORIGIN}/resume-tourism`, sourceFile: 'pages/resume-tourism.html', priority: 0.8 },
     { loc: `${SITE_ORIGIN}/contact`, sourceFile: 'pages/contact.html', priority: 0.7 },
     { loc: `${SITE_ORIGIN}/tools`, sourceFile: 'pages/tools.html', priority: 0.7 },
-    { loc: `${SITE_ORIGIN}/resume-pdf`, sourceFile: 'pages/resume-pdf.html', priority: 0.5 },
     { loc: `${SITE_ORIGIN}/privacy`, sourceFile: 'pages/privacy.html', priority: 0.2 },
     { loc: `${SITE_ORIGIN}/sitemap`, sourceFile: 'pages/sitemap.html', priority: 0.2 }
   ];
