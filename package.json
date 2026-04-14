@@ -18,7 +18,7 @@
     "dev": "node build/dev.js"
   },
   "engines": {
-    "node": ">=18"
+    "node": "22.x"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.962.0",
