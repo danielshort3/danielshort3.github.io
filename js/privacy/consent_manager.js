@@ -30,7 +30,7 @@
   } catch (err) {}
 
   const STYLE_ID = 'pcz-consent-styles';
-  const CSS_VERSION = 'v5';
+  const CSS_VERSION = 'v6';
 
   function loadStyles() {
     if (document.getElementById(STYLE_ID) || document.querySelector('link[href$="privacy.css"]')) return;
@@ -51,9 +51,9 @@
     languages: {
       en: {
         bannerTitle: 'I value your privacy.',
-        bannerDesc: "I use cookies and similar technologies to improve your experience, understand site traffic, and measure performance. If you continue using the site or close this banner, I’ll treat that as acceptance of all cookies; you can change this anytime in Manage settings.",
-        acceptAll: 'Allow all cookies',
-        rejectAll: 'Allow essential only',
+        bannerDesc: "I use cookies to understand site traffic and improve the experience. If you continue using the site or close this banner, I’ll treat that as acceptance of all cookies.",
+        acceptAll: 'Allow all',
+        rejectAll: 'Essential only',
         managePrefs: 'Manage settings',
         privacyPolicy: 'Privacy Policy',
         close: 'Close banner and accept all cookies',
@@ -89,9 +89,9 @@
       },
       es: {
         bannerTitle: 'Valoro tu privacidad',
-        bannerDesc: 'Utilizo cookies y tecnologías similares para mejorar tu experiencia, entender el tráfico del sitio y medir el rendimiento. Al continuar navegando, cerrar este aviso o elegir Permitir todas aceptas las cookies; puedes cambiar tu decisión en Administrar ajustes.',
-        acceptAll: 'Permitir todas las cookies',
-        rejectAll: 'Permitir solo las esenciales',
+        bannerDesc: 'Utilizo cookies para entender el tráfico del sitio y mejorar la experiencia. Si continúas navegando o cierras este aviso, aceptaré todas las cookies.',
+        acceptAll: 'Permitir todas',
+        rejectAll: 'Solo esenciales',
         managePrefs: 'Administrar ajustes',
         privacyPolicy: 'Política de privacidad',
         close: 'Cerrar y aceptar todas las cookies',
@@ -260,6 +260,17 @@
     return result;
   }
 
+  function setBannerUiState(isOpen) {
+    try {
+      if (!document.body) return;
+      if (isOpen) {
+        document.body.setAttribute('data-consent-banner', 'open');
+        return;
+      }
+      document.body.removeAttribute('data-consent-banner');
+    } catch (err) {}
+  }
+
   const isOnline = () => {
     try {
       if (navigator?.onLine === false) return false;
@@ -417,21 +428,22 @@
   function createBanner(localeStrings) {
     const banner = document.createElement('div');
     banner.id = 'pcz-banner';
-    banner.setAttribute('role', 'dialog');
+    banner.setAttribute('role', 'region');
+    banner.setAttribute('aria-live', 'polite');
     banner.setAttribute('aria-label', localeStrings.bannerTitle);
     banner.innerHTML =
-      '<button id="pcz-close" type="button" class="pcz-close" aria-label="' + localeStrings.close + '"><span aria-hidden="true">&times;</span></button>' +
       '<div class="pcz-card">' +
         '<div class="pcz-copy">' +
-          '<p class="pcz-kicker">Privacy</p>' +
-          '<h3 class="pcz-title">' + localeStrings.bannerTitle + '</h3>' +
-          '<p class="pcz-body">' + localeStrings.bannerDesc + '</p>' +
+          '<p class="pcz-body">' +
+            localeStrings.bannerDesc +
+            ' <button id="pcz-manage" type="button" class="pcz-link pcz-inline-link">' + localeStrings.managePrefs + '</button>' +
+          '</p>' +
         '</div>' +
         '<div class="pcz-actions">' +
-          '<button id="pcz-accept" class="pcz-btn pcz-primary">' + localeStrings.acceptAll + '</button>' +
-          '<button id="pcz-reject" class="pcz-btn pcz-secondary">' + localeStrings.rejectAll + '</button>' +
-          '<button id="pcz-manage" class="pcz-btn pcz-ghost">' + localeStrings.managePrefs + '</button>' +
+          '<button id="pcz-accept" type="button" class="pcz-btn pcz-primary">' + localeStrings.acceptAll + '</button>' +
+          '<button id="pcz-reject" type="button" class="pcz-btn pcz-secondary">' + localeStrings.rejectAll + '</button>' +
         '</div>' +
+        '<button id="pcz-close" type="button" class="pcz-close" aria-label="' + localeStrings.close + '"><span aria-hidden="true">&times;</span></button>' +
       '</div>';
     return banner;
   }
@@ -510,11 +522,15 @@
    * Show the consent banner.
    */
   function showBanner(localeStrings) {
-    if (document.getElementById('pcz-banner')) return;
+    if (document.getElementById('pcz-banner')) {
+      setBannerUiState(true);
+      return;
+    }
     const saved = loadConsent();
     const initialState = saved ? saved.categories : getDefaultState();
     const banner = createBanner(localeStrings);
     document.body.appendChild(banner);
+    setBannerUiState(true);
     setTimeout(() => banner.classList.add('pcz-visible'), 16);
     // Banner is non-blocking; ensure the page isn't stuck in a blocked state.
     try { document.body.classList.remove('consent-blocked'); } catch (err) {}
@@ -539,6 +555,7 @@
       if (!banner || banner.dataset.state === 'closing') return;
       cleanupAutoAccept();
       banner.dataset.state = 'closing';
+      setBannerUiState(false);
       banner.classList.remove('pcz-visible');
       banner.classList.add('pcz-exit');
       const cleanup = () => {
@@ -713,6 +730,7 @@
    */
   function init() {
     if (isEmbeddedSameOrigin()) {
+      setBannerUiState(false);
       const saved = loadConsent();
       if (saved) {
         if (hasGPC() && saved.categories && saved.categories.advertising) {
@@ -754,12 +772,14 @@
     } catch (e) {}
     const saved = loadConsent();
     if (saved) {
+      setBannerUiState(false);
       if (hasGPC() && saved.categories && saved.categories.advertising) {
         saved.categories.advertising = false;
         saveConsent(saved.categories);
       }
       applyConsent(saved.categories);
     } else {
+      setBannerUiState(false);
       const defaultState = getDefaultState();
       applyConsent(defaultState);
       showBanner(localeStrings);
