@@ -4,6 +4,7 @@ const vm = require('vm');
 const runSlotDemoTests = require('./tests/slot-machine-demo.test.js');
 const runUtmBatchBuilderTests = require('./tests/utm-batch-builder.test.js');
 const runQrCodeGeneratorUtilsTests = require('./tests/qr-code-generator-utils.test.js');
+const runTextCompareCoreTests = require('./tests/text-compare-core.test.js');
 
 // Assert helper
 let assertCount = 0;
@@ -512,6 +513,10 @@ try {
     runQrCodeGeneratorUtilsTests({ assert });
   });
 
+  section('Text compare core', () => {
+    runTextCompareCoreTests({ assert });
+  });
+
   section('Project pages and sitemap entries', () => {
     const pdata = evalScript('js/portfolio/projects-data.js');
     const ids = pdata.window.PROJECTS
@@ -804,7 +809,7 @@ try {
       'pages/point-of-view-checker.html': ['js/tools/point-of-view-checker.js'],
       'pages/qr-code-generator.html': ['js/tools/qr-code-generator-utils.js', 'js/tools/qr-code-generator.js'],
       'pages/screen-recorder.html': ['js/tools/screen-recorder.js'],
-      'pages/text-compare.html': ['js/tools/text-compare.js'],
+      'pages/text-compare.html': ['js/tools/text-compare-core.js', 'js/tools/text-compare.js'],
       'pages/whisper-transcribe-monitor.html': ['js/tools/whisper-transcribe-monitor.js'],
       'pages/word-frequency.html': ['js/tools/word-frequency.js']
     };
@@ -813,6 +818,13 @@ try {
         checkFileContains(file, scriptPath);
       });
     });
+
+    const textCompareHtml = readFile('pages/text-compare.html');
+    assert(textCompareHtml.includes('id="textcompare-mode-auto"'), 'pages/text-compare.html missing auto mode control');
+    assert(textCompareHtml.includes('id="textcompare-mode-document"'), 'pages/text-compare.html missing document mode control');
+    assert(textCompareHtml.includes('id="textcompare-mode-structured"'), 'pages/text-compare.html missing structured mode control');
+    assert(textCompareHtml.includes('id="textcompare-warning"'), 'pages/text-compare.html missing compare warning status');
+    assert(fs.existsSync('js/tools/text-compare-worker.js'), 'js/tools/text-compare-worker.js missing');
 
     checkFileContains('index.html', 'http-equiv="refresh"');
     checkFileContains('pages/search.html', 'css/components/search.css');

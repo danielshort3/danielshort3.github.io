@@ -212,7 +212,7 @@
       <div class="wrapper">
         <div class="textcompare-card textcompare-input-card">
           <h2>Compare drafts</h2>
-          <p class="textcompare-subtitle">Use plain text (no formatting). Newlines and punctuation are preserved in the output.</p>
+          <p class="textcompare-subtitle">Use plain text (no formatting). Paragraph, list, and sentence boundaries are preserved when the tool groups revisions.</p>
           <div class="textcompare-legend" aria-label="Change legend">
             <span class="textcompare-legend-item"><span class="diff-pill diff-pill-ins">Inserted</span></span>
             <span class="textcompare-legend-item"><span class="diff-pill diff-pill-del">Deleted</span></span>
@@ -246,12 +246,32 @@
               </div>
             </div>
             <div class="textcompare-controls">
+              <details class="textcompare-settings">
+                <summary>Comparison settings</summary>
+                <fieldset class="textcompare-mode-switch" role="radiogroup" aria-label="Comparison mode">
+                  <legend class="visually-hidden">Comparison mode</legend>
+                  <label class="textcompare-mode-option" for="textcompare-mode-auto">
+                    <input id="textcompare-mode-auto" type="radio" name="textcompare-mode" value="auto" checked>
+                    <span>Auto</span>
+                  </label>
+                  <label class="textcompare-mode-option" for="textcompare-mode-document">
+                    <input id="textcompare-mode-document" type="radio" name="textcompare-mode" value="document">
+                    <span>Document</span>
+                  </label>
+                  <label class="textcompare-mode-option" for="textcompare-mode-structured">
+                    <input id="textcompare-mode-structured" type="radio" name="textcompare-mode" value="structured">
+                    <span>Structured</span>
+                  </label>
+                </fieldset>
+                <p class="textcompare-settings-help">Auto picks document or structured comparison from the text shape and any imported file type. Use Document for drafts and pasted prose. Use Structured for tables, JSON, CSV, XML, and other line-oriented content.</p>
+              </details>
               <div class="textcompare-actions">
                 <button type="submit" class="btn-primary">Compare</button>
                 <button type="button" id="textcompare-swap" class="btn-secondary">Swap</button>
                 <button type="button" id="textcompare-clear" class="btn-ghost">Clear</button>
               </div>
-              <p class="textcompare-note">Processing happens locally in your browser, with no uploads and no tracking. Comparison tuning is automatic.</p>
+              <p class="textcompare-note">Processing happens locally in your browser, with no uploads and no tracking. Document comparison is tuned for readable revision chunks.</p>
+              <p id="textcompare-warning" class="textcompare-warning" aria-live="polite"></p>
             </div>
           </form>
         </div>
@@ -401,6 +421,7 @@
       </svg>
     </button>
   </div>
+  <script defer src="js/tools/text-compare-core.js"></script>
   <script defer src="js/tools/text-compare.js"></script>
   <script defer src="dist/site-tools-account.7f479012.js"></script>
   <script defer src="dist/site-shell.a5d45d92.js"></script>
