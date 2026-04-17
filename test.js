@@ -793,6 +793,27 @@ try {
       assert(htmlHasManagedBundle(readFile(file), 'site-tools-account'), `${file} missing tools-account bundle`);
     });
 
+    const toolPageEntryScripts = {
+      'pages/background-remover.html': ['js/tools/background-remover.js'],
+      'pages/ga4-utm-performance.html': ['js/tools/ga4-utm-performance.js'],
+      'pages/image-optimizer.html': ['js/tools/image-optimizer.js'],
+      'pages/job-application-tracker.html': ['js/tools/job-application-tracker.js'],
+      'pages/nbsp-cleaner.html': ['js/tools/nbsp-cleaner.js'],
+      'pages/ocean-wave-simulation.html': ['js/tools/ocean-wave-simulation.js'],
+      'pages/oxford-comma-checker.html': ['js/tools/oxford-comma-checker.js'],
+      'pages/point-of-view-checker.html': ['js/tools/point-of-view-checker.js'],
+      'pages/qr-code-generator.html': ['js/tools/qr-code-generator-utils.js', 'js/tools/qr-code-generator.js'],
+      'pages/screen-recorder.html': ['js/tools/screen-recorder.js'],
+      'pages/text-compare.html': ['js/tools/text-compare.js'],
+      'pages/whisper-transcribe-monitor.html': ['js/tools/whisper-transcribe-monitor.js'],
+      'pages/word-frequency.html': ['js/tools/word-frequency.js']
+    };
+    Object.entries(toolPageEntryScripts).forEach(([file, scripts]) => {
+      scripts.forEach((scriptPath) => {
+        checkFileContains(file, scriptPath);
+      });
+    });
+
     checkFileContains('index.html', 'http-equiv="refresh"');
     checkFileContains('pages/search.html', 'css/components/search.css');
     checkFileContains('pages/contact.html', 'css/components/contact-card.css');
