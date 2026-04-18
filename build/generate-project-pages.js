@@ -17,7 +17,7 @@ const root = path.resolve(__dirname, '..');
 const dataFile = path.join(root, 'js', 'portfolio', 'projects-data.js');
 const outDir = path.join(root, 'pages', 'portfolio');
 const sitemapPath = path.join(root, 'sitemap.xml');
-const sitemapCachePath = path.join(root, 'sitemap-cache.json');
+const sitemapCachePath = path.join(root, 'build', 'cache', 'sitemap-cache.json');
 const SITE_ORIGIN = 'https://www.danielshort.me';
 const toolsIndexPath = path.join(root, 'pages', 'tools.html');
 
@@ -161,6 +161,7 @@ function loadSitemapCache() {
 
 function writeSitemapCache(entries) {
   try {
+    fs.mkdirSync(path.dirname(sitemapCachePath), { recursive: true });
     const record = {};
     [...entries.entries()]
       .sort((a, b) => String(a[0]).localeCompare(String(b[0])))

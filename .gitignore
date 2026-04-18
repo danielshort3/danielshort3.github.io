@@ -34,6 +34,9 @@ Covid-Analysis/
 /aws/target-empty-package/output
 Baby-Names/
 /Project Submission
+/_local/
+/tmp/
+/.codex
 
 # Local GA4 API experiments / credentials
 /ga4/data/
