@@ -121,6 +121,18 @@
     bgColor: '#ffffff',
   };
 
+  const updateLayoutState = () => {
+    const hasResults = state.jobs.some((job) => job.status === 'ready' || job.status === 'error');
+    const nextState = state.working
+      ? 'working'
+      : hasResults
+        ? 'results'
+        : state.jobs.length
+          ? 'ready'
+          : 'empty';
+    if (document.body) document.body.dataset.toolsState = nextState;
+  };
+
   const active = {
     job: null,
     // Processing-size sources used for preview and brush edits.
@@ -284,6 +296,7 @@
     const totalBytes = state.jobs.reduce((sum, j) => sum + (j.bytes || 0), 0);
     if (countEl) countEl.textContent = `${totalFiles} file${totalFiles === 1 ? '' : 's'}`;
     if (totalEl) totalEl.textContent = `Total: ${formatBytes(totalBytes)}`;
+    updateLayoutState();
   };
 
   const updateMethodVisibility = () => {
@@ -1062,6 +1075,7 @@
     if (!jobs.length) return;
     setStatus(`Preparing ${jobs.length} download${jobs.length === 1 ? '' : 's'}…`);
     state.working = true;
+    updateLayoutState();
     updateActionButtons();
     try {
       for (let i = 0; i < jobs.length; i++) {
@@ -1076,6 +1090,7 @@
       setStatus(err?.message || 'Unable to export one of the approved images.');
     } finally {
       state.working = false;
+      updateLayoutState();
       updateActionButtons();
     }
   };
@@ -1304,6 +1319,7 @@
   const processQueue = async () => {
     if (state.working) return;
     state.working = true;
+    updateLayoutState();
     const currentRunId = state.runId;
     updateActionButtons();
     try {
@@ -1331,6 +1347,7 @@
     } finally {
       hideProgress();
       state.working = false;
+      updateLayoutState();
       updateActionButtons();
       updateRefineControls();
     }
@@ -1821,4 +1838,5 @@
   updateOutputControls();
   updateActionButtons();
   updateRefineControls();
+  updateLayoutState();
 })();

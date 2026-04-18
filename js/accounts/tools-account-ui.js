@@ -1995,16 +1995,133 @@
 
   const initDashboard = async ({ setStatus, onViewSession } = {}) => {
     const statusEl = $('[data-tools-dashboard="status"]');
+    const overviewEl = $('[data-tools-dashboard="overview"]');
+    const pinnedCardEl = $('[data-tools-dashboard="pinned-card"]');
+    const pinnedEl = $('[data-tools-dashboard="pinned"]');
     const accountEl = $('[data-tools-dashboard="account"]');
     const sessionsEl = $('[data-tools-dashboard="sessions"]');
     let sessionsPanel = null;
+    let dashboardState = {
+      user: null,
+      sessions: [],
+      tools: [],
+      totalSessions: 0,
+      lastSyncAt: 0
+    };
 
     const setDashboardStatus = (message) => {
       if (statusEl) statusEl.textContent = message || '';
       if (setStatus) setStatus(message || '');
     };
 
+    const normalizeDashboardSession = (session) => ({
+      toolId: String(session?.toolId || '').trim(),
+      sessionId: String(session?.sessionId || '').trim(),
+      createdAt: Number(session?.createdAt) || 0,
+      updatedAt: Number(session?.updatedAt) || 0,
+      outputSummary: String(session?.outputSummary || '').trim(),
+      title: String(session?.title || '').trim(),
+      note: String(session?.note || '').trim(),
+      tags: Array.isArray(session?.tags) ? session.tags.map(v => String(v || '').trim()).filter(Boolean) : [],
+      pinned: Boolean(session?.pinned)
+    });
+
+    const renderOverview = () => {
+      if (!overviewEl) return;
+      const user = dashboardState.user || {};
+      const toolsUsed = new Set(
+        dashboardState.sessions
+          .map(session => String(session?.toolId || '').trim())
+          .filter(Boolean)
+      );
+      dashboardState.tools.forEach((entry) => {
+        const toolId = String(entry?.toolId || '').trim();
+        const sessionCount = Number(entry?.meta?.sessionCount) || 0;
+        if (toolId && sessionCount > 0) toolsUsed.add(toolId);
+      });
+
+      const signedInValue = user?.email || user?.name || 'Private account';
+      const signedInNote = user?.name && user?.email
+        ? user.name
+        : 'Your tools history stays private to this account.';
+      const pinnedCount = dashboardState.sessions.filter(session => session.pinned).length;
+      const summaryCards = [
+        { label: 'Signed in', value: signedInValue, note: signedInNote },
+        { label: 'Saved sessions', value: String(Math.max(0, Number(dashboardState.totalSessions) || 0)), note: 'Across your recent dashboard history.' },
+        { label: 'Pinned', value: String(pinnedCount), note: pinnedCount ? 'Ready for quick reopen.' : 'Pin sessions to keep them handy.' },
+        { label: 'Tools used', value: String(toolsUsed.size), note: toolsUsed.size ? 'Distinct tools with saved work.' : 'Your first saved run will appear here.' }
+      ];
+
+      overviewEl.innerHTML = summaryCards.map((card) => `
+        <section class="tools-dashboard-overview-card">
+          <p class="tools-dashboard-overview-label">${escapeHtml(card.label)}</p>
+          <p class="tools-dashboard-overview-value">${escapeHtml(card.value)}</p>
+          <p class="tools-dashboard-overview-note">${escapeHtml(card.note)}</p>
+        </section>
+      `).join('');
+    };
+
+    const renderPinned = () => {
+      if (!pinnedCardEl || !pinnedEl) return;
+      const pinnedSessions = [...dashboardState.sessions]
+        .filter(session => session.toolId && session.sessionId && session.pinned)
+        .sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0))
+        .slice(0, 6);
+
+      pinnedCardEl.hidden = pinnedSessions.length === 0;
+      if (!pinnedSessions.length) {
+        pinnedEl.innerHTML = '';
+        return;
+      }
+
+      pinnedEl.innerHTML = pinnedSessions.map((session) => {
+        const info = getToolInfo(session.toolId);
+        const updated = session.updatedAt ? formatTime(session.updatedAt) : '';
+        const href = `${info.href}?session=${encodeURIComponent(session.sessionId)}`;
+        const metaParts = [info.name];
+        if (updated) metaParts.push(`Updated ${updated}`);
+        if (session.outputSummary) metaParts.push(session.outputSummary);
+        if (!session.outputSummary && session.note) metaParts.push(session.note);
+        return `
+          <article class="tools-dashboard-item" data-tools-dashboard-session data-session-tool="${escapeHtml(session.toolId)}" data-session-id="${escapeHtml(session.sessionId)}">
+            <div class="tools-dashboard-item-main">
+              <p class="tools-dashboard-item-title"><a href="${escapeHtml(href)}">${escapeHtml(session.title || info.name)}</a></p>
+              <p class="tools-dashboard-item-meta">${escapeHtml(metaParts.join(' · '))}</p>
+            </div>
+            <div class="tools-dashboard-item-actions">
+              <a class="btn-secondary" href="${escapeHtml(href)}">Reopen</a>
+              <button type="button" class="btn-secondary" data-tools-dashboard-action="view-session">View</button>
+            </div>
+          </article>
+        `.trim();
+      }).join('');
+    };
+
+    const renderAccount = () => {
+      if (!accountEl) return;
+      const email = escapeHtml(dashboardState.user?.email || '');
+      const name = escapeHtml(dashboardState.user?.name || '');
+      const sub = escapeHtml(dashboardState.user?.sub || '');
+      accountEl.innerHTML = `
+        <dl class="tools-account-modal-meta">
+          ${email ? `<div class="tools-account-modal-meta-row"><dt>Email</dt><dd>${email}</dd></div>` : ''}
+          ${name ? `<div class="tools-account-modal-meta-row"><dt>Name</dt><dd>${name}</dd></div>` : ''}
+          ${sub ? `<div class="tools-account-modal-meta-row"><dt>User ID</dt><dd><code>${sub}</code></dd></div>` : ''}
+        </dl>
+      `.trim();
+    };
+
     const clearLists = () => {
+      dashboardState = {
+        user: null,
+        sessions: [],
+        tools: [],
+        totalSessions: 0,
+        lastSyncAt: 0
+      };
+      if (overviewEl) overviewEl.innerHTML = '';
+      if (pinnedEl) pinnedEl.innerHTML = '';
+      if (pinnedCardEl) pinnedCardEl.hidden = true;
       if (accountEl) accountEl.innerHTML = '';
       if (sessionsEl) sessionsEl.innerHTML = '';
       if (sessionsPanel) {
@@ -2013,59 +2130,107 @@
       }
     };
 
-    document.addEventListener('tools:auth-changed', () => {
-      const auth = window.ToolsAuth.getAuth();
-      if (window.ToolsAuth.authIsValid(auth)) return;
-      clearLists();
-      setDashboardStatus('Signed out.');
-    });
-
-    const auth = window.ToolsAuth.getAuth();
-    if (!window.ToolsAuth.authIsValid(auth)) {
-      clearLists();
-      setDashboardStatus('Sign in to see your saved sessions.');
-      return;
-    }
-
-    setDashboardStatus('Loading dashboard...');
-    let data;
-    try {
-      data = await window.ToolsState.getDashboard({ sessionsLimit: 50, activityLimit: 200 });
-    } catch (err) {
-      clearLists();
-      setDashboardStatus(err?.message || 'Unable to load dashboard.');
-      return;
-    }
-
-    setDashboardStatus('');
-
-    const user = window.ToolsAuth.getUser(auth);
-    if (accountEl) {
-      const email = escapeHtml(user?.email || '');
-      const name = escapeHtml(user?.name || '');
-      const sub = escapeHtml(user?.sub || '');
-      accountEl.innerHTML = `
-        <dl class="tools-account-modal-meta">
-          ${email ? `<div class="tools-account-modal-meta-row"><dt>Email</dt><dd>${email}</dd></div>` : ''}
-          ${name ? `<div class="tools-account-modal-meta-row"><dt>Name</dt><dd>${name}</dd></div>` : ''}
-          ${sub ? `<div class="tools-account-modal-meta-row"><dt>User ID</dt><dd><code>${sub}</code></dd></div>` : ''}
-        </dl>
-      `.trim();
-    }
-
-    const sessions = Array.isArray(data?.recentSessions) ? data.recentSessions : [];
-    if (sessionsEl) {
-      const tools = Array.isArray(data?.tools) ? data.tools : [];
-      const totalSessions = tools.reduce((sum, entry) => sum + (Number(entry?.meta?.sessionCount) || 0), 0);
-      sessionsPanel = initSessionsPanel({
-        hostEl: sessionsEl,
-        sessions,
-        totalSessions,
-        lastSyncAt: Date.now(),
-        onViewSession,
-        onStatus: setDashboardStatus
+    if (pinnedEl) {
+      pinnedEl.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-tools-dashboard-action="view-session"]');
+        if (!button) return;
+        const row = button.closest('[data-session-tool][data-session-id]');
+        if (!row) return;
+        const toolId = String(row.dataset.sessionTool || '').trim();
+        const sessionId = String(row.dataset.sessionId || '').trim();
+        if (!toolId || !sessionId || typeof onViewSession !== 'function') return;
+        onViewSession({ toolId, sessionId });
       });
     }
+
+    document.addEventListener('tools:session-meta-updated', (event) => {
+      const toolId = String(event?.detail?.toolId || '').trim();
+      const sessionId = String(event?.detail?.sessionId || '').trim();
+      if (!toolId || !sessionId) return;
+      const index = dashboardState.sessions.findIndex((session) => session.toolId === toolId && session.sessionId === sessionId);
+      if (index < 0) return;
+      dashboardState.sessions[index] = normalizeDashboardSession({
+        ...dashboardState.sessions[index],
+        ...(event?.detail?.meta || {})
+      });
+      renderOverview();
+      renderPinned();
+    });
+
+    document.addEventListener('tools:session-deleted', (event) => {
+      const toolId = String(event?.detail?.toolId || '').trim();
+      const sessionId = String(event?.detail?.sessionId || '').trim();
+      if (!toolId || !sessionId) return;
+      const before = dashboardState.sessions.length;
+      dashboardState.sessions = dashboardState.sessions.filter((session) => !(session.toolId === toolId && session.sessionId === sessionId));
+      if (dashboardState.sessions.length === before) return;
+      dashboardState.totalSessions = Math.max(0, dashboardState.totalSessions - 1);
+      renderOverview();
+      renderPinned();
+    });
+
+    const loadDashboard = async () => {
+      const auth = window.ToolsAuth.getAuth();
+      if (!window.ToolsAuth.authIsValid(auth)) {
+        clearLists();
+        setDashboardStatus('Sign in to see your saved sessions.');
+        return;
+      }
+
+      setDashboardStatus('Loading dashboard...');
+      let data;
+      try {
+        data = await window.ToolsState.getDashboard({ sessionsLimit: 50, activityLimit: 200 });
+      } catch (err) {
+        clearLists();
+        setDashboardStatus(err?.message || 'Unable to load dashboard.');
+        return;
+      }
+
+      const tools = Array.isArray(data?.tools) ? data.tools : [];
+      const sessions = Array.isArray(data?.recentSessions)
+        ? data.recentSessions.map(normalizeDashboardSession).filter(session => session.toolId && session.sessionId)
+        : [];
+      const totalSessions = tools.reduce((sum, entry) => sum + (Number(entry?.meta?.sessionCount) || 0), 0) || sessions.length;
+
+      dashboardState = {
+        user: window.ToolsAuth.getUser(auth),
+        sessions,
+        tools,
+        totalSessions,
+        lastSyncAt: Date.now()
+      };
+
+      renderOverview();
+      renderPinned();
+      renderAccount();
+      setDashboardStatus('');
+
+      if (sessionsEl) {
+        if (sessionsPanel) {
+          sessionsPanel.setSessions({
+            sessions: dashboardState.sessions,
+            totalSessions: dashboardState.totalSessions,
+            lastSyncAt: dashboardState.lastSyncAt
+          });
+        } else {
+          sessionsPanel = initSessionsPanel({
+            hostEl: sessionsEl,
+            sessions: dashboardState.sessions,
+            totalSessions: dashboardState.totalSessions,
+            lastSyncAt: dashboardState.lastSyncAt,
+            onViewSession,
+            onStatus: setDashboardStatus
+          });
+        }
+      }
+    };
+
+    document.addEventListener('tools:auth-changed', () => {
+      void loadDashboard();
+    });
+
+    await loadDashboard();
   };
 
   const initToolAutoSave = ({ toolId, root, setStatus }) => {

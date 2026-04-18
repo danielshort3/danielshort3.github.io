@@ -90,6 +90,20 @@
 
   let activeRequest = null;
   let durationProbeSeq = 0;
+  let uiBusy = false;
+
+  const updateLayoutState = () => {
+    const hasTranscript = Boolean(String(transcriptEl?.value || '').trim());
+    const hasFile = Boolean(audioState.file);
+    const nextState = uiBusy
+      ? 'working'
+      : hasTranscript
+        ? 'results'
+        : hasFile
+          ? 'ready'
+          : 'empty';
+    if (document.body) document.body.dataset.toolsState = nextState;
+  };
 
   const safeGet = (key) => {
     if (!key) return null;
@@ -142,10 +156,16 @@
     healthPillEl.textContent = label || '';
   };
 
+  const syncTranscriptUi = () => {
+    const hasText = Boolean(String(transcriptEl?.value || '').trim());
+    if (copyTranscriptBtn) copyTranscriptBtn.disabled = !hasText;
+    updateLayoutState();
+  };
+
   const setTranscript = (text) => {
     const value = (text || '').trim();
     if (transcriptEl) transcriptEl.value = value;
-    if (copyTranscriptBtn) copyTranscriptBtn.disabled = !value;
+    syncTranscriptUi();
     markSessionDirty();
   };
 
@@ -230,6 +250,7 @@
 
   const setBusy = (busy) => {
     const isBusy = Boolean(busy);
+    uiBusy = isBusy;
     if (startBtn) {
       if (isBusy) startBtn.classList.add('is-busy');
       else startBtn.classList.remove('is-busy');
@@ -239,6 +260,7 @@
     if (resetBtn) resetBtn.disabled = isBusy;
     if (fileEl) fileEl.disabled = isBusy;
     if (checkBtn) checkBtn.disabled = isBusy;
+    updateLayoutState();
   };
 
   const setUploadProgress = ({ state, ratio, label }) => {
@@ -946,6 +968,10 @@
   };
 
   if (fileEl) fileEl.addEventListener('change', onAudioChange);
+  if (transcriptEl) {
+    transcriptEl.addEventListener('input', syncTranscriptUi);
+    transcriptEl.addEventListener('change', syncTranscriptUi);
+  }
   if (checkBtn) checkBtn.addEventListener('click', checkAndWarm);
   if (partMinutesEl) {
     partMinutesEl.addEventListener('input', () => {
@@ -989,6 +1015,7 @@
   setServerReadyState(false);
   updateAudioMeta();
   updatePartMinutesMeta();
+  syncTranscriptUi();
 
   window.setTimeout(() => {
     checkAndWarm();

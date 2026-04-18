@@ -32,6 +32,7 @@
   const summaryEl = document.querySelector('[data-shortlinks="summary"]');
   const modeTabEls = Array.from(document.querySelectorAll('[data-shortlinks="mode-tab"]'));
   const modePanelEls = Array.from(document.querySelectorAll('[data-shortlinks-mode-panel]'));
+  const modeSummaryEl = document.querySelector('[data-shortlinks="mode-summary"]');
 
   const tokenInput = authForm.querySelector('[data-shortlinks="token"]');
   const refreshButton = authForm.querySelector('[data-shortlinks="refresh"]');
@@ -263,8 +264,13 @@
       panel.hidden = !isActive;
     });
 
+    const activeTab = modeTabEls.find((tab) => String(tab?.dataset?.shortlinksMode || '').trim().toLowerCase() === nextMode);
+    if (modeSummaryEl) {
+      modeSummaryEl.textContent = activeTab?.textContent?.trim() || 'Single link';
+    }
+    document.body.dataset.shortlinksMode = nextMode;
+
     if (options.focusTab) {
-      const activeTab = modeTabEls.find((tab) => String(tab?.dataset?.shortlinksMode || '').trim().toLowerCase() === nextMode);
       if (activeTab && typeof activeTab.focus === 'function') activeTab.focus();
     }
   }
