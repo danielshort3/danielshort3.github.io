@@ -82,6 +82,58 @@
     line-height:1.6;
   }
 
+  .tools-dashboard-overview{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(170px, 1fr));
+    gap:12px;
+    margin:0 0 clamp(16px, 3vw, 22px);
+  }
+
+  .tools-dashboard-overview-card{
+    display:grid;
+    gap:4px;
+    min-width:0;
+    padding:14px 16px;
+    border-radius:8px;
+    border:1px solid color-mix(in srgb,var(--primary) 18%, transparent);
+    background:linear-gradient(150deg,
+      color-mix(in srgb,var(--surface) 94%, #040910 6%) 0%,
+      color-mix(in srgb,var(--surface) 82%, #040910 18%) 100%);
+    box-shadow:0 12px 24px rgba(0,0,0,.22);
+  }
+
+  .tools-dashboard-overview-label{
+    margin:0;
+    color:var(--text-muted);
+    font-size:.78rem;
+    font-weight:700;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+  }
+
+  .tools-dashboard-overview-value{
+    margin:0;
+    color:var(--text-light);
+    font-size:1.35rem;
+    font-weight:700;
+    line-height:1.2;
+    letter-spacing:0;
+    overflow-wrap:anywhere;
+  }
+
+  .tools-dashboard-overview-note{
+    margin:0;
+    color:var(--text-muted);
+    font-size:.88rem;
+    line-height:1.45;
+  }
+
+  .tools-dashboard-layout{
+    display:grid;
+    gap:clamp(16px,3vw,22px);
+    align-items:start;
+  }
+
   .tools-dashboard-grid{
     display:grid;
     grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
@@ -126,6 +178,15 @@
   .tools-dashboard-list{
     display:grid;
     gap:10px;
+  }
+
+  .tools-dashboard-pinned-list{
+    display:grid;
+    gap:10px;
+  }
+
+  .tools-dashboard-pinned-card[hidden]{
+    display:none !important;
   }
 
   .tools-sessions-panel{
@@ -358,6 +419,27 @@
     flex-wrap:wrap;
     gap:10px;
     justify-content:center;
+  }
+
+  @media (min-width: 1080px){
+    .tools-dashboard-layout{
+      grid-template-columns:minmax(0, 1.12fr) minmax(320px, .88fr);
+    }
+
+    .tools-dashboard-sessions-card{
+      grid-column:1;
+      grid-row:1 / span 2;
+    }
+
+    .tools-dashboard-pinned-card{
+      grid-column:2;
+      grid-row:1;
+    }
+
+    .tools-dashboard-account-card{
+      grid-column:2;
+      grid-row:2;
+    }
   }
 
   .tools-account-modal-status{

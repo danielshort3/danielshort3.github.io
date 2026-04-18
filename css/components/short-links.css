@@ -68,6 +68,13 @@
     gap:1rem;
   }
 
+  .shortlinks-utility-rail,
+  .shortlinks-main-workflow{
+    display:grid;
+    gap:1rem;
+    min-width:0;
+  }
+
   .shortlinks-shell-card{
     display:grid;
     gap:1rem;
@@ -154,6 +161,11 @@
 
   .shortlinks-access-card-visible{
     gap:1.1rem;
+  }
+
+  .shortlinks-mode-summary{
+    display:none;
+    align-content:start;
   }
 
   .shortlinks-access-status{
@@ -1198,6 +1210,78 @@
 
     .shortlinks-admin-summary::after{
       justify-self:end;
+    }
+  }
+
+  @media (min-width: 1120px){
+    .shortlinks-workspace{
+      grid-template-columns:minmax(290px, 336px) minmax(0, 1fr);
+      align-items:start;
+    }
+
+    .shortlinks-utility-rail{
+      position:sticky;
+      top:calc(var(--nav-height, 72px) + 18px);
+      max-height:calc(100svh - var(--nav-height, 72px) - 40px);
+      overflow:auto;
+      scrollbar-gutter:stable;
+    }
+
+    .shortlinks-mode-summary{
+      display:grid;
+    }
+
+    .shortlinks-summary-head{
+      align-items:flex-start;
+    }
+
+    .shortlinks-summary-head .shortlinks-output-meta{
+      max-width:24ch;
+      text-align:right;
+    }
+
+    .shortlinks-snapshot{
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:10px;
+    }
+
+    .shortlinks-snapshot-card{
+      gap:4px;
+      padding:12px 13px;
+      border-radius:8px;
+    }
+
+    .shortlinks-snapshot-value{
+      font-size:1.24rem;
+      letter-spacing:0;
+    }
+
+    .shortlinks-snapshot-note{
+      font-size:.8rem;
+    }
+
+    .shortlinks-access-card{
+      padding:1rem;
+    }
+
+    .shortlinks-access-card .shortlinks-card-head{
+      align-items:flex-start;
+    }
+
+    .shortlinks-access-card .shortlinks-panel-lead{
+      font-size:.88rem;
+    }
+
+    .shortlinks-access-status{
+      justify-content:flex-start;
+    }
+
+    .shortlinks-access-card .shortlinks-action-row{
+      justify-content:flex-start;
+    }
+
+    .shortlinks-access-card .shortlinks-action-row > *{
+      flex:1 1 calc(50% - 8px);
     }
   }
 

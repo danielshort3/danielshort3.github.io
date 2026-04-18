@@ -60,6 +60,17 @@
     supports: {}
   };
 
+  const updateLayoutState = () => {
+    const nextState = state.working
+      ? 'working'
+      : state.outputs.length
+        ? 'results'
+        : state.items.length
+          ? 'ready'
+          : 'empty';
+    if (document.body) document.body.dataset.toolsState = nextState;
+  };
+
   const formatBytes = (bytes) => {
     const n = Number(bytes || 0);
     if (!Number.isFinite(n) || n <= 0) return '0 B';
@@ -202,7 +213,7 @@
 
   const setWorking = (working) => {
     state.working = Boolean(working);
-    if (processBtn) processBtn.disabled = state.working;
+    if (processBtn) processBtn.disabled = state.working || state.items.length === 0;
     if (clearBtn) clearBtn.disabled = state.working;
     if (downloadAllBtn) downloadAllBtn.disabled = state.working || state.outputs.length === 0;
     if (fileInput) fileInput.disabled = state.working;
@@ -219,6 +230,7 @@
     if (responsiveInput) responsiveInput.disabled = state.working;
     if (responsiveWidthsInput) responsiveWidthsInput.disabled = state.working;
     if (suffixInput) suffixInput.disabled = state.working;
+    updateLayoutState();
   };
 
   const revokeOutputs = () => {
@@ -228,6 +240,7 @@
     state.outputs = [];
     if (resultsEl) resultsEl.innerHTML = '';
     if (downloadAllBtn) downloadAllBtn.disabled = true;
+    updateLayoutState();
     markSessionDirty();
   };
 
@@ -250,6 +263,8 @@
     const totalBytes = state.items.reduce((sum, it) => sum + (it.file?.size || 0), 0);
     if (countEl) countEl.textContent = `${state.items.length} ${state.items.length === 1 ? 'image' : 'images'}`;
     if (totalEl) totalEl.textContent = `Total: ${state.items.length ? formatBytes(totalBytes) : '0 B'}`;
+    if (processBtn) processBtn.disabled = state.working || state.items.length === 0;
+    updateLayoutState();
   };
 
   const decodeBitmap = async (file) => {
@@ -824,6 +839,7 @@
   updateQualityLabel();
   updateFlattenLabel();
   updateSummary();
+  updateLayoutState();
 
   dropzone.addEventListener('click', () => fileInput.click());
   dropzone.addEventListener('keydown', (e) => {
