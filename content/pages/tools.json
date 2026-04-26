@@ -1,0 +1,95 @@
+{
+  "id": "tools",
+  "template": "tools-directory",
+  "outputPath": "pages/tools.html",
+  "title": "Tools | Daniel Short",
+  "canonicalPath": "/tools",
+  "description": "Local, privacy-first tools from Daniel Short.",
+  "ogTitle": "Tools | Daniel Short",
+  "ogDescription": "Local, privacy-first tools from Daniel Short.",
+  "siteName": "Daniel Short – Data Science & Analytics",
+  "ogType": "website",
+  "bodyAttributes": {
+    "data-page": "tools",
+    "class": "tools-page site-page",
+    "data-tools-layout": "directory"
+  },
+  "stylesheets": [
+    "dist/styles.css",
+    "dist/styles-tools.css"
+  ],
+  "headScripts": [
+    {
+      "src": "js/common/no-js.js"
+    }
+  ],
+  "bottomScripts": [
+    {
+      "src": "js/tools/tools-directory.js",
+      "defer": true
+    },
+    {
+      "src": "dist/site-shell.js",
+      "defer": true
+    },
+    {
+      "src": "dist/site-tools-landing.js",
+      "defer": true,
+      "attributes": {
+        "data-tools-account-src": "dist/site-tools-account.js"
+      }
+    },
+    {
+      "src": "dist/site-consent.js",
+      "defer": true
+    }
+  ],
+  "heroEyebrow": "Privacy-first utilities",
+  "heroTitle": "Tools",
+  "heroLead": "Quick browser tools for text cleanup, campaign links, QR codes, media work, and private account-backed workflows.",
+  "directoryKicker": "Tool directory",
+  "directoryTitle": "Find the right utility",
+  "directoryDescription": "Filter by task, category, or tag. Local tools run in your browser; account tools appear when you sign in.",
+  "filter": {
+    "placeholder": "Search tools, tags, or categories",
+    "clearLabel": "Clear"
+  },
+  "resumePanel": {
+    "kicker": "Resume work",
+    "title": "Continue where you left off",
+    "dashboardHref": "tools-dashboard",
+    "dashboardLabel": "Open dashboard"
+  },
+  "categories": [
+    {
+      "id": "tools-writing",
+      "title": "Writing & Text",
+      "description": "In-browser helpers for editing, cleanup, and quick analysis.",
+      "order": 1
+    },
+    {
+      "id": "tools-marketing",
+      "title": "Marketing",
+      "description": "Fast, consistent link-building and shareable assets.",
+      "order": 2
+    },
+    {
+      "id": "tools-media",
+      "title": "Images & Video",
+      "description": "Local image processing utilities and lightweight media capture.",
+      "order": 3
+    },
+    {
+      "id": "tools-cloud",
+      "title": "Cloud-backed",
+      "description": "Tools that rely on an account, API, or server-side compute.",
+      "order": 4
+    },
+    {
+      "id": "tools-experiments",
+      "title": "Experiments",
+      "description": "Small creative projects and just-for-fun utilities.",
+      "order": 5
+    }
+  ]
+}

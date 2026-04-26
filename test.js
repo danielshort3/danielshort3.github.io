@@ -1,5 +1,6 @@
 // Lightweight test runner used by `npm test`
 const fs = require('fs');
+const path = require('path');
 const vm = require('vm');
 const runSlotDemoTests = require('./tests/slot-machine-demo.test.js');
 const runUtmBatchBuilderTests = require('./tests/utm-batch-builder.test.js');
@@ -308,6 +309,198 @@ try {
     });
     const consentCode = fs.readFileSync('js/privacy/consent_manager.js', 'utf8');
     assert(consentCode.includes('ga4-helper'), 'consent manager should inject analytics helper script');
+  });
+
+  section('Tools directory contracts', () => {
+    assert(!fs.existsSync('content/tools/.json'), 'content/tools/.json placeholder should not exist');
+
+    const toolFiles = fs.readdirSync('content/tools')
+      .filter((name) => name.endsWith('.json'))
+      .sort();
+    assert(toolFiles.length >= 10, 'tools content catalog unexpectedly small');
+    assert(toolFiles.every((name) => !name.startsWith('.')), 'tools content catalog should ignore dotfiles');
+
+    const vercelConfig = JSON.parse(readFile('vercel.json'));
+    const rewrites = Array.isArray(vercelConfig.rewrites) ? vercelConfig.rewrites : [];
+    const catalogJs = readFile('js/accounts/tools-account-ui.js');
+    const toolsHtml = readFile('pages/tools.html');
+
+    assert(toolsHtml.includes('<h1>Tools</h1>'), 'tools page should expose a visible h1');
+    assert(toolsHtml.includes('data-tools-filter-input'), 'tools page missing directory search input');
+    assert(toolsHtml.includes('data-tools-filter-status'), 'tools page missing filter status');
+    assert(toolsHtml.includes('class="tools-nav"'), 'tools page missing category shortcuts');
+    assert(!toolsHtml.includes('More tools soon'), 'tools page should not render placeholder cards');
+    assert(!toolsHtml.includes('href="tools/"'), 'tools page should not render empty tool links');
+    assert(!toolsHtml.includes('id="tools-experiments"'), 'empty tool categories should not render');
+
+    toolFiles.forEach((fileName) => {
+      const tool = JSON.parse(readFile(path.join('content', 'tools', fileName)));
+      const slug = String(tool.slug || '').trim();
+      const href = String(tool.href || '').trim();
+      assert(/^[-a-z0-9]+$/.test(slug), `${fileName} has invalid or empty slug`);
+      assert(href === `tools/${slug}`, `${fileName} href should match tools/${slug}`);
+      assert(toolsHtml.includes(`href="${href}"`), `${fileName} missing from tools page`);
+      assert(rewrites.some((rule) => rule.source === `/tools/${slug}` && rule.destination === `/pages/${slug}`),
+        `${fileName} missing clean URL rewrite`);
+      assert(catalogJs.includes(`'${slug}':`), `${fileName} missing from TOOL_CATALOG`);
+    });
+
+    ['build/templates/header.partial.html', 'build/templates/footer.partial.html', 'pages/tools.html', 'pages/games.html'].forEach((file) => {
+      assert(!/\bhref=""/.test(readFile(file)), `${file} should not contain empty href attributes`);
+    });
+  });
+
+  section('Local CMS contracts', () => {
+    const pkg = JSON.parse(readFile('package.json'));
+    assert(!pkg.devDependencies || !pkg.devDependencies.vercel, 'vercel should not be a devDependency');
+    assert(!pkg.dependencies || !pkg.dependencies.vercel, 'vercel should not be a dependency');
+    assert(!pkg.scripts['cms:seed'] && !pkg.scripts['cms:export'] && !pkg.scripts['cms:diff'],
+      'database CMS migration scripts should not be exposed');
+
+    const cmsModel = require('./api/_lib/cms-content-model');
+    assert(Array.isArray(cmsModel.CMS_COLLECTIONS) && cmsModel.CMS_COLLECTIONS.length === 6, 'CMS collections should define all managed content groups');
+    ['site', 'pages', 'audiences', 'resumes', 'projects', 'tools'].forEach((collection) => {
+      assert(cmsModel.CMS_COLLECTION_NAMES.includes(collection), `CMS collection missing ${collection}`);
+    });
+
+    const records = cmsModel.listFileContentRecords(process.cwd());
+    assert(records.length >= 40, 'CMS file record catalog unexpectedly small');
+    assert(records.some((record) => record.collection === 'site' && record.id === 'settings'), 'CMS records missing site/settings');
+    assert(records.some((record) => record.collection === 'tools' && record.id === 'word-frequency'), 'CMS records missing word-frequency tool');
+
+    const fileContent = cmsModel.loadFileSiteContent(process.cwd());
+    assert(fileContent.site.settings && fileContent.site.settings.siteName, 'file-backed CMS content missing site settings');
+    assert(fileContent.audiencesByKey.analytics, 'file-backed CMS content missing analytics audience');
+    assert(fileContent.projectsById.website, 'file-backed CMS content missing website project');
+
+    const loader = require('./build/lib/content-loader');
+    assert(loader.normalizeContentSource('files') === 'files', 'content loader should default to files source');
+    assert(loader.normalizeContentSource('db') === 'files', 'content loader should not support DB source');
+
+    const adminHtml = readFile('admin/index.html');
+    const adminJs = readFile('admin/cms-admin.js');
+    const cmsApi = readFile('api/cms/[...slug].js');
+    const cmsStore = readFile('api/_lib/cms-file-store.js');
+    const cmsLibraryStore = readFile('api/_lib/cms-library-store.js');
+    const cmsSnapshotStore = readFile('api/_lib/cms-snapshot-store.js');
+    const cmsWidgets = readFile('api/_lib/cms-widgets.js');
+    const devJs = readFile('build/dev.js');
+    const copyJs = readFile('build/copy-to-public.js');
+    const envExample = readFile('.env.example');
+
+    assert(adminHtml.includes('/admin/cms-admin.js'), 'admin should load custom CMS admin script');
+    assert(adminHtml.includes('cms-builder-layout') && adminHtml.includes('data-cms="preview"'),
+      'admin should default to the visual builder with live preview');
+    assert(adminHtml.includes('data-cms-view-target="dashboard"') && adminHtml.includes('data-cms-view="library"') && adminHtml.includes('data-cms="global-header"'),
+      'admin should expose dashboard, library, and globals CMS views');
+    assert(adminHtml.includes('<select data-cms="ollama-model"') && adminHtml.includes('data-cms="ollama-refresh"') && adminHtml.includes('Preview AI Edit'),
+      'admin should expose installed Ollama models and before/after AI review controls');
+    assert(adminHtml.includes('data-cms-preview-device="desktop"') && adminHtml.includes('data-cms="preview-open"'),
+      'admin should expose responsive live preview controls');
+    assert(adminHtml.includes('data-cms="dashboard-health"') &&
+           adminHtml.includes('data-cms="dashboard-snapshots"') &&
+           adminHtml.includes('data-cms="preview-audience"') &&
+           adminHtml.includes('data-cms-ai-action="metadata"'),
+      'admin should expose CMS health, local snapshots, audience preview, and field-aware AI shortcuts');
+    assert(!adminHtml.includes('/js/accounts/tools-auth.js'), 'local CMS admin should not load Cognito tools auth');
+    assert(!adminHtml.toLowerCase().includes('decap'), 'admin should not load Decap');
+    assert(!adminHtml.includes('unpkg.com'), 'admin should not depend on a CMS CDN');
+    assert(!adminHtml.includes('data-cms="deploy"'), 'admin should not expose deploy hook controls');
+    assert(!fs.existsSync('admin/config.yml'), 'Decap config should not be published under admin/');
+    assert(!fs.existsSync('api/decap/auth.js') && !fs.existsSync('api/decap/callback.js'), 'Decap OAuth endpoints should be removed');
+    assert(!fs.existsSync('api/_lib/cms-auth.js'), 'CMS Cognito auth helper should not exist');
+    assert(!fs.existsSync('api/_lib/cms-store-ddb.js'), 'CMS DynamoDB store should not exist');
+    assert(!fs.existsSync('build/cms-seed.js') && !fs.existsSync('build/cms-export.js') && !fs.existsSync('build/cms-diff.js'),
+      'CMS database scripts should be removed');
+
+    assert(adminJs.includes("API_BASE = '/api/cms'") && adminJs.includes("apiFetch('/content'"), 'admin script missing content API path');
+    assert(adminJs.includes("apiFetch('/widgets'") && adminJs.includes("apiFetch('/preview'") && adminJs.includes("apiFetch('/media'"),
+      'admin script should load widgets, media, and render live previews');
+    assert(adminJs.includes("'/preview-tool'") &&
+           adminJs.includes("'/preview-project'") &&
+           adminJs.includes('normalizePreviewHtml'),
+      'admin script should render project/tool previews and normalize iframe preview assets');
+    assert(adminJs.includes("apiFetch('/library'") && adminJs.includes('local-cms-autosave-v2'),
+      'admin script should use local library files and autosave recovery');
+    assert(adminJs.includes("apiFetch('/health'") &&
+           adminJs.includes("apiFetch('/snapshots") &&
+           adminJs.includes('renderDashboardHealth') &&
+           adminJs.includes('loadSnapshot'),
+      'admin script should use local health checks and save-history snapshots');
+    assert(adminJs.includes('projectResourceField') &&
+           adminJs.includes('projectCaseField') &&
+           adminJs.includes('previewAudience') &&
+           adminJs.includes('sectionLockSummary'),
+      'admin script should expose structured project editing, audience preview, and library section lock metadata');
+    assert(adminJs.includes("apiFetch('/ollama-models'") &&
+           adminJs.includes('pendingOllamaEdit') &&
+           adminJs.includes('applyOllamaEditsToSnapshot') &&
+           adminJs.includes('cms-assistant-review-frame') &&
+           adminJs.includes('data-ollama-preview-device="desktop"') &&
+           adminJs.includes('card.remove()') &&
+           adminJs.includes('Accept Changes'),
+      'admin script should load Ollama models and show pending visual AI edit reviews');
+    assert(adminJs.includes('contenteditable') && adminJs.includes('data-cms-inline-editing'),
+      'admin preview should support inline element editing');
+    assert(adminJs.includes('data-section-setting') && adminJs.includes('renderProjectInspector') && adminJs.includes('renderToolInspector'),
+      'admin should expose structured section, project, and tool inspectors');
+    assert(adminJs.includes('Advanced JSON'), 'admin should keep JSON as an advanced fallback');
+    assert(adminJs.includes('Saved to content/'), 'admin should explain local file saves');
+    assert(!adminJs.includes('/deploy') && !adminJs.includes('/rollback') && !adminJs.includes('/revisions'),
+      'admin script should not call deploy, rollback, or revisions endpoints');
+    assert(!adminJs.includes('ToolsAuth'), 'local CMS admin should not use Cognito tools auth');
+
+    assert(cmsApi.includes('isLocalRequest'), 'CMS API should enforce localhost access');
+    assert(cmsApi.includes('saveCurrentDocument'), 'CMS API should save current documents');
+    assert(cmsApi.includes('handlePreview') && cmsApi.includes('handleWidgets'),
+      'CMS API should expose local preview and widget schema endpoints');
+    assert(cmsApi.includes('handleProjectPreview') && cmsApi.includes('renderProjectPage'),
+      'CMS API should render generated portfolio project previews');
+    assert(cmsApi.includes('handleToolPreview') && cmsApi.includes('renderToolsDirectoryBody') && cmsApi.includes('handleMedia'),
+      'CMS API should render tool previews and expose local media assets');
+    assert(cmsApi.includes('handleLibrary') && cmsApi.includes('saveLibraryItem'),
+      'CMS API should expose local CMS library endpoints');
+    assert(cmsApi.includes('handleOllamaModels') && cmsApi.includes('/api/tags'),
+      'CMS API should expose installed Ollama model discovery');
+    assert(cmsApi.includes('handleHealth') &&
+           cmsApi.includes('buildCmsHealthReport') &&
+           cmsApi.includes('handleSnapshots') &&
+           cmsApi.includes('usageCount') &&
+           cmsApi.includes('readImageDimensions'),
+      'CMS API should expose health checks, local snapshots, and enriched media metadata');
+    assert(!cmsApi.includes('requireCmsAdmin'), 'CMS API should not require Cognito admin auth');
+    assert(!cmsApi.includes('CMS_VERCEL_DEPLOY_HOOK_URL'), 'CMS API should not trigger deploy hooks');
+    assert(!cmsApi.includes('rollbackDocument'), 'CMS API should not expose rollback support');
+    assert(cmsStore.includes('writeFileSync'), 'CMS file store should write local JSON files');
+    assert(cmsStore.includes('createDocumentSnapshot'), 'CMS file store should create local save snapshots before overwriting documents');
+    assert(cmsStore.includes('content'), 'CMS file store should constrain writes to content/');
+    assert(cmsLibraryStore.includes('content/cms-library') && cmsLibraryStore.includes('templates') && cmsLibraryStore.includes('drafts'),
+      'CMS library store should constrain reusable CMS data to content/cms-library/');
+    assert(cmsSnapshotStore.includes('content/cms-library') &&
+           cmsSnapshotStore.includes('snapshots') &&
+           cmsSnapshotStore.includes('createJsonDiffSummary'),
+      'CMS snapshot store should keep local save history under content/cms-library/snapshots/');
+    assert(cmsWidgets.includes("type: 'kpi-band'") &&
+           cmsWidgets.includes("type: 'proof-block'") &&
+           cmsWidgets.includes("type: 'media-showcase'"),
+      'CMS widgets should include portfolio-focused reusable components');
+    assert(fs.existsSync('content/cms-library/templates/basic-page.json'), 'CMS starter basic page template missing');
+    assert(fs.existsSync('content/cms-library/sections/contact-cta.json'), 'CMS starter reusable section missing');
+
+    assert(!envExample.includes('CMS_DDB_TABLE') &&
+           !envExample.includes('CMS_VERCEL_DEPLOY_HOOK_URL') &&
+           !envExample.includes('CMS_ADMIN_GROUPS'),
+           '.env.example should not include CMS database/deploy env vars');
+
+    assert(devJs.includes("const http = require('http')"), 'dev server should use Node http');
+    assert(devJs.includes("loadCmsApi()(req, res)") && devJs.includes('delete require.cache[modulePath]'),
+      'dev server should route local CMS API and reload CMS modules');
+    assert(devJs.includes('generate-project-pages.js'), 'dev server should reload project preview renderer changes');
+    assert(devJs.includes('Local CMS available'), 'dev server should advertise local CMS URL');
+    assert(!devJs.includes('vercel dev') && !devJs.includes('npx --yes vercel'), 'dev server should not launch Vercel CLI');
+    assert(copyJs.includes("path.join(outDir, 'admin')") && !/const dirs = \[[^\]]*'admin'/s.test(copyJs),
+      'copy-to-public.js should keep admin local-only');
+    assert(!fs.existsSync('public/admin'), 'public/admin should not be generated');
   });
 
   section('Short links dashboard hooks', () => {
@@ -906,7 +1099,7 @@ try {
         if (/^(mailto:|tel:|https?:\/\/(?!www\.danielshort\.me))/i.test(href)) continue;
         if (/^(?:https:\/\/www\.danielshort\.me\/|\/)?documents\//i.test(href)) continue;
         if (/^(?:https:\/\/www\.danielshort\.me\/|\/)?(?:demos\/|[^/]*-demo(?:\.html)?)(?:$|[?#])/i.test(href)) continue;
-        if (/^(?:https:\/\/www\.danielshort\.me\/|\/)?games\/(?:stellar-dogfight|slot-machine|roulette|probability-engine)(?:\.html)?(?:$|[?#])/i.test(href)) continue;
+        if (/^(?:https:\/\/www\.danielshort\.me\/|\/)?games\/(?:stellar-dogfight|roulette|probability-engine)(?:\.html)?(?:$|[?#])/i.test(href)) continue;
         assert(false, `${file} internal site link should not open in a new tab: ${href}`);
       }
     });
@@ -1006,6 +1199,11 @@ try {
            copyJs.includes("'documents'") && copyJs.includes("'dist'") &&
            copyJs.includes("'pages'") && copyJs.includes("'demos'"),
            'copy-to-public.js not copying all asset dirs');
+    assert(copyJs.includes('shouldSkipPublicCopy') &&
+           copyJs.includes("rel === 'img/slot'") &&
+           copyJs.includes("rel === 'slot-config'") &&
+           copyJs.includes("rel === 'demos/slot-machine-demo.html'"),
+           'copy-to-public.js should keep slot assets local-only');
 
     const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
     assert(pkg.scripts && pkg.scripts['build:projects'], 'package.json missing build:projects script');
@@ -1072,13 +1270,14 @@ try {
     assert(hasResumeAnalytics && hasResumeDataScience && hasResumeTourism, 'resume rewrites missing');
     assert(hasResumeAnalyticsPdf, 'resume analytics PDF rewrite missing');
     const hasGames = rewrites.some(r => r.source === '/games' && r.destination === '/pages/games');
-    const hasGameSlot = rewrites.some(r => r.source === '/games/slot-machine' && r.destination === '/demos/slot-machine-demo');
+    const hasGameSlot = rewrites.some(r => /slot-machine/i.test(`${r.source || ''} ${r.destination || ''}`));
     const hasGameDogfight = rewrites.some(r => r.source === '/games/stellar-dogfight' && r.destination === '/demos/stellar-dogfight-demo');
     const hasGameDogfightHtml = rewrites.some(r => r.source === '/games/stellar-dogfight.html' && r.destination === '/demos/stellar-dogfight-demo');
     const hasGameRoulette = rewrites.some(r => r.source === '/games/roulette' && r.destination === '/demos/roulette-double-zero-demo');
     const hasGameRouletteHtml = rewrites.some(r => r.source === '/games/roulette.html' && r.destination === '/demos/roulette-double-zero-demo');
     assert(hasGames, 'games landing rewrite missing');
-    assert(hasGameSlot, 'slot machine games rewrite missing');
+    assert(!hasGameSlot, 'slot machine should not be publicly rewritten');
+    assert(!readFile('pages/games.html').includes('games/slot-machine'), 'games page should not link to local-only slot machine');
     assert(hasGameDogfight, 'stellar dogfight games rewrite missing');
     assert(hasGameDogfightHtml, 'stellar dogfight html rewrite missing');
     assert(hasGameRoulette, 'roulette games rewrite missing');

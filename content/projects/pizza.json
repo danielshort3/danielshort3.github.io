@@ -1,0 +1,97 @@
+{
+  "id": "pizza",
+  "title": "Pizza Tips Regression Modeling",
+  "subtitle": "Excel Analytics & Regression Modeling",
+  "image": "img/projects/pizza.png",
+  "imageWidth": 1398,
+  "imageHeight": 1398,
+  "videoWebm": "img/projects/pizza.webm",
+  "videoMp4": "img/projects/pizza.mp4",
+  "tools": [
+    "Excel",
+    "Statistics",
+    "AWS"
+  ],
+  "concepts": [
+    "Analytics"
+  ],
+  "audiences": [
+    "analytics"
+  ],
+  "resources": [
+    {
+      "icon": "img/icons/website-icon.png",
+      "url": "https://www.danielshort.me/pizza-tips-demo",
+      "label": "Live Demo"
+    },
+    {
+      "icon": "img/icons/pdf-icon.png",
+      "url": "documents/Project_1.pdf",
+      "label": "PDF"
+    },
+    {
+      "icon": "img/icons/excel-icon.png",
+      "url": "documents/Project_1.xlsx",
+      "label": "Excel"
+    }
+  ],
+  "embed": {
+    "type": "iframe",
+    "url": "pizza-tips-demo.html"
+  },
+  "demoInstructions": {
+    "lead": "Adjust inputs and estimate a tip using the regression model.",
+    "bullets": [
+      "Use the delivery slider to load an example ticket (or enter values directly).",
+      "Edit order cost and other inputs (housing, time, weather) to test scenarios.",
+      "Click “Estimate Tip” to see the prediction.",
+      "Use “Reset” to return to defaults."
+    ]
+  },
+  "problem": "Tips varied a lot by neighborhood and housing type. I wanted to see what actually drives them.",
+  "actions": [
+    "Merged 1,251 delivery tickets with NOAA weather, then cleaned the data in Power Query.",
+    "Ran a multiple regression in Excel: Tip = f(cost, delivery time, rain, max/min temperature)."
+  ],
+  "results": [
+    "Order cost was the strongest predictor of tip size in the regression.",
+    "Housing type (apartment vs. house) showed a statistically significant difference in this sample.",
+    "Weather and delivery time didn’t show a meaningful effect on tip size."
+  ],
+  "caseStudy": [
+    {
+      "title": "Data Integration",
+      "lead": "I merged delivery tickets with NOAA weather to test common ideas about what drives tipping.",
+      "bullets": [
+        "Combined 1,251 deliveries with daily weather features (rain, max/min temperature, wind).",
+        "Cleaned the dataset in Power Query and derived tip percentage and delivery time (minutes).",
+        "Separated housing types (apartment vs. house) to test neighborhood effects."
+      ]
+    },
+    {
+      "title": "Exploratory Analysis",
+      "bullets": [
+        "Found a strong positive relationship between order cost and tip amount.",
+        "Rainfall had only a mild relationship with delivery duration in this dataset.",
+        "Order volume showed clear seasonality (higher in summer/early fall)."
+      ]
+    },
+    {
+      "title": "Regression and Hypothesis Tests",
+      "bullets": [
+        "Ran a multiple regression: Tip = f(cost, delivery time, rain, max/min temperature).",
+        "Result: order cost was the main driver of tip size in the regression.",
+        "Validated housing differences with a two-sample t-test (apartment vs. house)."
+      ]
+    },
+    {
+      "title": "What I'd Improve",
+      "bullets": [
+        "Add distance, time-of-day, and driver controls to reduce omitted-variable bias.",
+        "Model tip percentage and tip amount separately to avoid conflating larger orders with generosity.",
+        "Use mixed-effects models to capture repeated customers or neighborhood-level variance."
+      ]
+    }
+  ],
+  "order": 12
+}

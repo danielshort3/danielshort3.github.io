@@ -46,7 +46,7 @@ Welcome to the GitHub repository for my personal portfolio website. This site sh
 
 ## Local Development
 
-Run one command to build, serve, and continuously rebuild the full site locally (including `vercel.json` rewrites and `/api` routes):
+Run one command to build, serve, and continuously rebuild the full site locally:
 
 ```bash
 npm run dev
@@ -56,18 +56,12 @@ What `npm run dev` does:
 
 - Runs a full `build/build-site.js` pass first.
 - Watches key source folders/files and reruns that build whenever you change code/content.
-- Starts a local Vercel dev server at `http://localhost:3000` so clean URLs, rewrites, redirects, headers, and serverless functions can be validated before deploy.
+- Starts a repo-native Node server at `http://localhost:3000` for clean URLs, static output, and the local CMS file API.
 
 Use a different port:
 
 ```bash
 npm run dev -- --port 4173
-```
-
-Optional (faster startup after first run):
-
-```bash
-npm i -D vercel
 ```
 
 ## Usage
@@ -110,6 +104,17 @@ Required configuration:
 - Update your Cognito app client **Allowed callback URLs** to include `https://www.danielshort.me/tools/dashboard`.
 - Set `TOOLS_COGNITO_ISSUER` + `TOOLS_COGNITO_CLIENT_ID` in your Vercel environment (used for server-side JWT verification).
 - Create a DynamoDB table with partition key `pk` (string) and sort key `sk` (string), and set `TOOLS_DDB_TABLE` + AWS creds for session/activity storage.
+
+## Local CMS
+
+The custom `/admin` editor is a local-only content editor for managed JSON files under `content/`.
+
+- **Admin:** `http://localhost:3000/admin` while `npm run dev` is running.
+- **Windows launcher:** run `start-local-cms-wsl.bat` from Windows to start the WSL dev server and open `/admin`.
+- **WSL access:** the Windows launcher binds the WSL server to `0.0.0.0`; it opens `localhost` when Windows can reach it, otherwise it falls back to the current WSL IP.
+- **Storage:** local files in `content/site`, `content/pages`, `content/audiences`, `content/resumes`, `content/projects`, and `content/tools`.
+- **Safety:** write APIs only accept localhost requests; `/admin` is not copied into `public/`.
+- **Publishing:** after saving content, run `npm run build && npm test`, review `git diff`, then deploy manually.
 
 ## File Structure
 

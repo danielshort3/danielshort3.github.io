@@ -1,0 +1,24 @@
+{
+  "slug": "image-optimizer",
+  "title": "Image Optimizer",
+  "href": "tools/image-optimizer",
+  "categoryId": "tools-media",
+  "summary": "Batch resize, compress, and convert images (PNG/JPEG/WebP/AVIF) locally with optional responsive widths and “download all”.",
+  "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\">\n                      <rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"3\" class=\"icon-fill\" opacity=\".12\"></rect>\n                      <rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"3\"></rect>\n                      <path d=\"M8 15l2.2-2.2 2.2 2.2 3.6-3.6L19 12.4\"></path>\n                      <path d=\"M12 7v6\"></path>\n                      <path d=\"m9.6 10.6 2.4 2.4 2.4-2.4\"></path>\n                    </svg>",
+  "pills": [
+    {
+      "label": "Local",
+      "variant": "local"
+    },
+    {
+      "label": "Resize"
+    },
+    {
+      "label": "WebP/AVIF"
+    }
+  ],
+  "visibility": "public",
+  "hidden": false,
+  "order": 1,
+  "noindex": false
+}

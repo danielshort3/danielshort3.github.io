@@ -1,0 +1,99 @@
+{
+  "id": "chatbotLora",
+  "title": "Chatbot (LoRA + RAG)",
+  "subtitle": "RAG Chatbot Fine-Tuned with LoRA",
+  "image": "img/projects/chatbotLora.png",
+  "imageWidth": 1280,
+  "imageHeight": 720,
+  "videoWebm": "img/projects/chatbotLora.webm",
+  "videoMp4": "img/projects/chatbotLora.mp4",
+  "tools": [
+    "Python",
+    "Ollama",
+    "AWS",
+    "Docker"
+  ],
+  "concepts": [
+    "Machine Learning",
+    "Automation"
+  ],
+  "audiences": [
+    "data-science",
+    "tourism"
+  ],
+  "resources": [
+    {
+      "icon": "img/icons/github-icon.png",
+      "url": "https://github.com/danielshort3/Chatbot-LoRA-RAG",
+      "label": "GitHub"
+    },
+    {
+      "icon": "img/icons/website-icon.png",
+      "url": "https://www.danielshort.me/chatbot-demo.html",
+      "label": "Live Demo"
+    }
+  ],
+  "embed": {
+    "type": "iframe",
+    "url": "chatbot-demo.html"
+  },
+  "demoInstructions": {
+    "lead": "Ask a question and get an answer grounded in the site content (with citations).",
+    "bullets": [
+      "Click a quick prompt, or type your own question in the chat box.",
+      "Press Enter or click “Send” to submit.",
+      "Use the citations in the response to jump to the referenced pages.",
+      "If the service is warming up after idle time, wait for status to turn ready and try again."
+    ]
+  },
+  "role": [
+    "Built the prototype from crawl to deployment, including the web demo."
+  ],
+  "notes": "Uses public Visit Grand Junction pages. Answers include citations.",
+  "problem": "Off-the-shelf chatbots didn't sound like Visit Grand Junction, and they rarely pointed people to our pages.",
+  "actions": [
+    "Crawled Visit Grand Junction pages and built a FAISS retrieval index.",
+    "Generated a fine-tuning dataset by prompting an open-source LLM locally (via Ollama) to create Q&A pairs from the corpus.",
+    "Fine-tuned Mistral 7B with LoRA on the Q&A set and deployed it to AWS SageMaker.",
+    "Added Lambda endpoints so the website can talk to the model."
+  ],
+  "results": [
+    "The demo answers with citations; the first request after downtime can be slower due to cold-starting the backend."
+  ],
+  "caseStudy": [
+    {
+      "title": "System Design",
+      "lead": "Pipeline: crawl, index, generate training data, LoRA fine-tune, then deploy behind an API the site can call.",
+      "bullets": [
+        "Ingestion: crawl pages and store cleaned text chunks.",
+        "Retrieval: use FAISS so answers can cite the right source passages.",
+        "Fine-tuning: train Mistral 7B with LoRA on auto-generated Q&A pairs."
+      ]
+    },
+    {
+      "title": "Dataset Generation",
+      "bullets": [
+        "Used an open-source LLM via Ollama to turn crawled content into Q&A pairs.",
+        "Automated crawling, indexing, dataset generation, and fine-tuning so runs are repeatable.",
+        "Kept it Docker-friendly so I could run locally and deploy the same artifacts."
+      ]
+    },
+    {
+      "title": "Serving and Deployment",
+      "bullets": [
+        "Merged the LoRA adapter into a 4-bit model and served it with FastAPI.",
+        "Hosted it behind AWS (SageMaker + Lambda) so the browser only calls an API.",
+        "Added status checks and user-facing messaging to handle cold starts after idle time."
+      ]
+    },
+    {
+      "title": "What I'd Improve",
+      "bullets": [
+        "Add basic eval for retrieval quality and citation accuracy.",
+        "Cache common questions and stream tokens to make replies feel faster.",
+        "Add stronger guardrails against prompt injection."
+      ]
+    }
+  ],
+  "order": 2
+}

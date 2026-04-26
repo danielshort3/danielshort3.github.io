@@ -1,0 +1,101 @@
+{
+  "id": "nonogram",
+  "title": "Nonogram Solver",
+  "subtitle": "Reinforcement Learning (RL)",
+  "image": "img/projects/nonogram.png",
+  "imageWidth": 1228,
+  "imageHeight": 1228,
+  "videoWebm": "img/projects/nonogram.webm",
+  "videoMp4": "img/projects/nonogram.mp4",
+  "tools": [
+    "Python",
+    "PyTorch",
+    "AWS",
+    "Docker"
+  ],
+  "concepts": [
+    "Machine Learning"
+  ],
+  "audiences": [
+    "data-science"
+  ],
+  "resources": [
+    {
+      "icon": "img/icons/github-icon.png",
+      "url": "https://github.com/danielshort3/Nonogram-Solver",
+      "label": "GitHub"
+    },
+    {
+      "icon": "img/icons/website-icon.png",
+      "url": "https://www.danielshort.me/nonogram-demo.html",
+      "label": "Live Demo"
+    },
+    {
+      "icon": "img/icons/pdf-icon.png",
+      "url": "documents/Project_4.pdf",
+      "label": "PDF"
+    },
+    {
+      "icon": "img/icons/jupyter-icon.png",
+      "url": "documents/Project_4.ipynb",
+      "label": "Notebook"
+    }
+  ],
+  "embed": {
+    "type": "iframe",
+    "url": "nonogram-demo.html"
+  },
+  "demoInstructions": {
+    "lead": "Generate a new Nonogram puzzle, then watch the agent solve it step-by-step.",
+    "bullets": [
+      "Click “New Puzzle” to generate a board.",
+      "Once it’s ready, the button switches to “Solve With AI”. Click it to start solving.",
+      "Use “Solution” to reveal the full answer key if you want to compare.",
+      "If AWS is warming up, wait for the status to turn ready and try again."
+    ]
+  },
+  "problem": "I wanted to see if an RL agent could learn to solve Nonogram puzzles.",
+  "actions": [
+    "Generated large batches of 5x5 puzzles and trained a hybrid CNN + Transformer policy network to solve them.",
+    "Shaped rewards around unique guesses, row/column completions, and full-board solves to guide exploration."
+  ],
+  "results": [
+    "Achieved strong solve rates on held-out 5x5 boards (see GitHub for evaluation details)."
+  ],
+  "caseStudy": [
+    {
+      "title": "Environment Design",
+      "lead": "I built a reinforcement learning environment for Nonograms: puzzle generation, clue computation, and reward shaping.",
+      "bullets": [
+        "Generated large batches of unique 5x5 puzzles and computed row/column clues automatically.",
+        "Represented state as board + clue embeddings so the agent can act on constraints.",
+        "Rewarded progress (row/column completions) and penalized repeated guesses."
+      ]
+    },
+    {
+      "title": "Policy Network",
+      "bullets": [
+        "Combined a CNN (board) with a Transformer (clues) to capture both spatial and sequence structure.",
+        "Output an action distribution over grid cells so the agent learns a strategy, not a hard-coded solver.",
+        "Kept the network small enough to train over millions of puzzles."
+      ]
+    },
+    {
+      "title": "Training",
+      "bullets": [
+        "Trained with policy gradients at scale (millions of generated puzzles; large batched episodes).",
+        "Used reward shaping around unique guesses, row/column completions, and full-board solves.",
+        "Tracked learning curves and saved checkpoints to compare policy improvements over time."
+      ]
+    },
+    {
+      "title": "What I'd Improve",
+      "bullets": [
+        "Scale beyond 5x5 with curriculum learning (5x5 to 10x10) and stronger value baselines.",
+        "Add search (like MCTS) on top of the learned policy for harder puzzles.",
+        "Evaluate on benchmark Nonogram sets and compare against classical solvers."
+      ]
+    }
+  ],
+  "order": 15
+}

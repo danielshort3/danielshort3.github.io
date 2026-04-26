@@ -1,0 +1,87 @@
+{
+  "id": "website",
+  "title": "danielshort.me",
+  "subtitle": "Responsive Portfolio Site",
+  "image": "img/projects/website.png",
+  "imageWidth": 1464,
+  "imageHeight": 1464,
+  "videoWebm": "img/projects/website.webm",
+  "videoMp4": "img/projects/website.mp4",
+  "tools": [
+    "HTML",
+    "CSS",
+    "JavaScript"
+  ],
+  "concepts": [
+    "Product",
+    "Visualization"
+  ],
+  "audiences": [
+    "analytics"
+  ],
+  "resources": [
+    {
+      "icon": "img/icons/github-icon.png",
+      "url": "https://github.com/danielshort3/danielshort3.github.io",
+      "label": "GitHub"
+    },
+    {
+      "icon": "img/icons/website-icon.png",
+      "url": "https://www.danielshort.me/",
+      "label": "Live Site"
+    }
+  ],
+  "problem": "I needed a fast site to show my work, especially on mobile.",
+  "actions": [
+    "Built a static site and rendered portfolio projects from a single data file.",
+    "Added Google Analytics 4, structured data, and lazy loading for heavy assets."
+  ],
+  "results": [
+    "Optimized for fast, mobile-friendly pages with a hashed CSS bundle, lazy-loaded media, and minimal JavaScript.",
+    "Makes projects easy to share with clean URLs, social previews, and a searchable portfolio."
+  ],
+  "caseStudy": [
+    {
+      "title": "Goals",
+      "lead": "I built this site to be fast, easy to use, and easy to update as I add projects.",
+      "bullets": [
+        "Performance: keep pages light and avoid blocking resources.",
+        "Accessibility: semantic landmarks, keyboard-friendly components, and predictable navigation.",
+        "Maintainability: one project data file + build scripts to generate pages."
+      ]
+    },
+    {
+      "title": "Architecture",
+      "bullets": [
+        "Static HTML pages with shared JS for navigation, lazy loading, and UI behavior.",
+        "Portfolio projects defined in one data file and rendered into modals and filters.",
+        "Progressive enhancement: the portfolio page still works without JS via pre-rendered cards."
+      ]
+    },
+    {
+      "title": "SEO and Sharing",
+      "bullets": [
+        "Generated `/portfolio/<id>` pages for each project (canonical URLs, Open Graph metadata, JSON-LD).",
+        "Kept `sitemap.xml` in sync via a build step.",
+        "Configured Vercel rewrites so clean URLs map to generated pages under `pages/`."
+      ]
+    },
+    {
+      "title": "Build and Deployment",
+      "bullets": [
+        "CSS is bundled into a hashed file for caching while still allowing quick invalidation.",
+        "Build scripts generate project pages and copy deployable artifacts into `public/`.",
+        "Lightweight tests enforce markup contracts and ensure pages exist for every project ID."
+      ]
+    },
+    {
+      "title": "What I'd Improve",
+      "bullets": [
+        "Add richer case studies (diagrams, metrics, and lessons learned) for the top projects.",
+        "Reduce third-party dependencies in demos and tighten CSP over time.",
+        "Automate screenshots so project cards stay consistent."
+      ]
+    }
+  ],
+  "order": 17
+}

@@ -93,8 +93,6 @@
 
     { "source": "/games/stellar-dogfight", "destination": "/demos/stellar-dogfight-demo" },
     { "source": "/games/stellar-dogfight.html", "destination": "/demos/stellar-dogfight-demo" },
-    { "source": "/games/slot-machine", "destination": "/demos/slot-machine-demo" },
-    { "source": "/games/slot-machine.html", "destination": "/demos/slot-machine-demo" },
     { "source": "/games/roulette", "destination": "/demos/roulette-double-zero-demo" },
     { "source": "/games/roulette.html", "destination": "/demos/roulette-double-zero-demo" },
     { "source": "/games/probability-engine", "destination": "/probability-engine" },
@@ -127,9 +125,7 @@
     { "source": "/target-empty-package-demo", "destination": "/demos/target-empty-package-demo" },
     { "source": "/target-empty-package-demo.html", "destination": "/demos/target-empty-package-demo" },
     { "source": "/retail-loss-sales-demo", "destination": "/demos/retail-loss-sales-demo" },
-    { "source": "/retail-loss-sales-demo.html", "destination": "/demos/retail-loss-sales-demo" },
-    { "source": "/slot-machine-demo", "destination": "/demos/slot-machine-demo" },
-    { "source": "/slot-machine-demo.html", "destination": "/demos/slot-machine-demo" }
+    { "source": "/retail-loss-sales-demo.html", "destination": "/demos/retail-loss-sales-demo" }
   ],
   "redirects": [
     { "source": "/", "has": [{ "type": "host", "value": "danielshort.me" }], "destination": "https://www.danielshort.me/analytics", "permanent": true },
@@ -168,6 +164,18 @@
       "source": "/pages/(.*)",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex" }
+      ]
+    },
+    {
+      "source": "/admin",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+      ]
+    },
+    {
+      "source": "/admin/(.*)",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]
     },
     {

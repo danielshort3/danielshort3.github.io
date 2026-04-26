@@ -53,11 +53,36 @@ function copyFile(src, dest){
   fs.copyFileSync(src, dest);
 }
 
+function shouldSkipPublicCopy(absPath) {
+  const rel = path.relative(root, absPath).replace(/\\/g, '/');
+  return rel === 'img/slot'
+    || rel.startsWith('img/slot/')
+    || rel === 'slot-config'
+    || rel.startsWith('slot-config/')
+    || rel === 'demos/slot-machine-demo.html';
+}
+
 function copyDir(src, dest){
-  // Node >=16: cpSync is available
-  if (fs.existsSync(src)) {
-    fs.cpSync(src, dest, { recursive: true });
+  if (!fs.existsSync(src) || shouldSkipPublicCopy(src)) return;
+
+  let entries;
+  try {
+    entries = fs.readdirSync(src, { withFileTypes: true });
+  } catch {
+    return;
   }
+
+  fs.mkdirSync(dest, { recursive: true });
+  entries.forEach((entry) => {
+    const entrySrc = path.join(src, entry.name);
+    if (shouldSkipPublicCopy(entrySrc)) return;
+    const entryDest = path.join(dest, entry.name);
+    if (entry.isDirectory()) {
+      copyDir(entrySrc, entryDest);
+      return;
+    }
+    if (entry.isFile()) copyFile(entrySrc, entryDest);
+  });
 }
 
 function isSafeDistArtifactName(name) {
@@ -290,7 +315,11 @@ function rewriteCssLinksInHtml(html, cssHrefs) {
 function pruneRetiredPublicArtifacts() {
   const retiredTargets = [
     path.join(outDir, 'pages', 'contributions.html'),
-    path.join(outDir, 'js', 'contributions')
+    path.join(outDir, 'admin'),
+    path.join(outDir, 'js', 'contributions'),
+    path.join(outDir, 'img', 'slot'),
+    path.join(outDir, 'slot-config'),
+    path.join(outDir, 'demos', 'slot-machine-demo.html')
   ];
 
   retiredTargets.forEach((target) => {
@@ -321,7 +350,7 @@ function copyStatic(){
 
   // Copy asset and content directories used by the site.
   // Dist artifacts are handled separately via an explicit whitelist.
-  const dirs = ['img', 'js', 'css', 'pages', 'demos', 'slot-config'];
+  const dirs = ['img', 'js', 'css', 'pages', 'demos'];
   dirs.forEach(d => copyDir(path.join(root, d), path.join(outDir, d)));
   copyReferencedDocuments();
   copyDistArtifacts(cssManifest, jsManifest);

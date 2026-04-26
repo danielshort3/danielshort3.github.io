@@ -1,0 +1,24 @@
+{
+  "slug": "utm-batch-builder",
+  "title": "UTM Batch Builder",
+  "href": "tools/utm-batch-builder",
+  "categoryId": "tools-marketing",
+  "summary": "Generate large batches of UTM URLs with normalization helpers, combination modes, per-link copy, and CSV export.",
+  "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\">\n                      <path d=\"M6 7h12v10H6z\" class=\"icon-fill\" opacity=\".12\"></path>\n                      <path d=\"M6 7h12v10H6z\"></path>\n                      <path d=\"M8 10h8M8 13h6\"></path>\n                      <path d=\"M18 9l2 3-2 3\"></path>\n                    </svg>",
+  "pills": [
+    {
+      "label": "Local",
+      "variant": "local"
+    },
+    {
+      "label": "UTM"
+    },
+    {
+      "label": "CSV"
+    }
+  ],
+  "visibility": "public",
+  "hidden": false,
+  "order": 1,
+  "noindex": false
+}

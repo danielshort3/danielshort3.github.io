@@ -8,6 +8,11 @@
   const resumeStatusEl = document.querySelector('[data-tools-resume="status"]');
   const resumeContentEl = document.querySelector('[data-tools-resume="content"]');
   const cards = Array.from(document.querySelectorAll('.tool-card'));
+  const categories = Array.from(document.querySelectorAll('[data-tools-category]'));
+  const filterInput = document.querySelector('[data-tools-filter-input]');
+  const filterClear = document.querySelector('[data-tools-filter-clear]');
+  const filterStatusEl = document.querySelector('[data-tools-filter-status]');
+  const emptyStateEl = document.querySelector('[data-tools-empty-state]');
 
   if (!cards.length) return;
 
@@ -59,6 +64,83 @@
     href: `tools/${toolId}`,
     name: toTitleCase(toolId)
   };
+
+  const getSearchTokens = (value) => cleanText(value).toLowerCase().split(' ').filter(Boolean);
+
+  const buildCardSearchText = (card) => {
+    const category = cleanText(card.dataset.toolsCategoryTitle);
+    const title = cleanText(card.querySelector('h3')?.textContent);
+    const summary = cleanText(card.querySelector('p')?.textContent);
+    const pills = Array.from(card.querySelectorAll('.tool-pill')).map((pill) => cleanText(pill.textContent)).join(' ');
+    return `${category} ${title} ${summary} ${pills}`.toLowerCase();
+  };
+
+  cards.forEach((card) => {
+    card.dataset.toolsSearchText = buildCardSearchText(card);
+  });
+
+  const isCardAvailable = (card) => !card.hasAttribute('hidden');
+  const isCardFilterVisible = (card) => !card.hasAttribute('data-tools-filter-hidden');
+
+  const updateFilterStatus = (visibleCount, availableCount, query) => {
+    if (!filterStatusEl) return;
+    const suffix = query ? ` for "${query}"` : '';
+    filterStatusEl.textContent = `Showing ${visibleCount} of ${availableCount} tools${suffix}.`;
+  };
+
+  const applyToolFilter = () => {
+    const query = cleanText(filterInput?.value || '');
+    const tokens = getSearchTokens(query);
+    let availableCount = 0;
+    let visibleCount = 0;
+
+    cards.forEach((card) => {
+      const available = isCardAvailable(card);
+      if (available) availableCount += 1;
+
+      const searchText = card.dataset.toolsSearchText || '';
+      const matches = !tokens.length || tokens.every((token) => searchText.includes(token));
+      if (matches) {
+        card.removeAttribute('data-tools-filter-hidden');
+      } else {
+        card.setAttribute('data-tools-filter-hidden', 'true');
+      }
+
+      if (available && matches) visibleCount += 1;
+    });
+
+    categories.forEach((category) => {
+      const categoryCards = Array.from(category.querySelectorAll('.tool-card'));
+      const hasVisibleCard = categoryCards.some((card) => isCardAvailable(card) && isCardFilterVisible(card));
+      if (hasVisibleCard) {
+        category.removeAttribute('data-tools-filter-hidden');
+      } else {
+        category.setAttribute('data-tools-filter-hidden', 'true');
+      }
+    });
+
+    if (emptyStateEl) emptyStateEl.hidden = visibleCount > 0;
+    updateFilterStatus(visibleCount, availableCount, query);
+  };
+
+  if (filterInput) {
+    filterInput.addEventListener('input', applyToolFilter);
+  }
+  if (filterClear) {
+    filterClear.addEventListener('click', () => {
+      if (!filterInput) return;
+      filterInput.value = '';
+      applyToolFilter();
+      filterInput.focus();
+    });
+  }
+  if (typeof MutationObserver === 'function') {
+    const observer = new MutationObserver((mutations) => {
+      if (mutations.some((mutation) => mutation.attributeName === 'hidden')) applyToolFilter();
+    });
+    cards.forEach((card) => observer.observe(card, { attributes: true, attributeFilter: ['hidden'] }));
+  }
+  applyToolFilter();
 
   const setResumeStatus = (message) => {
     if (!resumeStatusEl) return;

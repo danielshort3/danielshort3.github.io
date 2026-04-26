@@ -1,0 +1,104 @@
+{
+  "id": "targetEmptyPackage",
+  "title": "Empty-Package Shrink Dashboard",
+  "subtitle": "Excel Forecasting & BI",
+  "image": "img/projects/targetEmptyPackage.png",
+  "imageWidth": 1460,
+  "imageHeight": 1460,
+  "videoWebm": "img/projects/targetEmptyPackage.webm",
+  "videoMp4": "img/projects/targetEmptyPackage.mp4",
+  "tools": [
+    "Excel",
+    "Time-Series",
+    "AWS"
+  ],
+  "concepts": [
+    "Automation",
+    "Analytics"
+  ],
+  "audiences": [
+    "analytics"
+  ],
+  "resources": [
+    {
+      "icon": "img/icons/pdf-icon.png",
+      "url": "documents/Project_7.pdf",
+      "label": "PDF"
+    },
+    {
+      "icon": "img/icons/excel-icon.png",
+      "url": "documents/Project_7.xlsx",
+      "label": "Excel"
+    },
+    {
+      "icon": "img/icons/website-icon.png",
+      "url": "https://www.danielshort.me/target-empty-package-demo.html",
+      "label": "Live Demo"
+    }
+  ],
+  "embed": {
+    "type": "iframe",
+    "url": "target-empty-package-demo.html"
+  },
+  "demoInstructions": {
+    "lead": "Explore shrink trends and hotspots with filters and breakdown tabs.",
+    "bullets": [
+      "Wait for the dashboard to finish warming up and load data.",
+      "Switch between “Retail Value” and “Incident Count” depending on what you want to compare.",
+      "Apply filters (location, condition, department, associate, date range) to narrow the view.",
+      "Use “Reset filters” to quickly return to the full dataset."
+    ]
+  },
+  "role": [
+    "Built the Excel dashboard workflow (cleanup, drill-downs, and reporting)."
+  ],
+  "notes": "Employee and location identifiers are anonymized in the write-up.",
+  "problem": "Empty-package theft was rising, and leaders needed one view of trends and hotspots across locations and departments.",
+  "actions": [
+    "Consolidated thousands of loss-prevention records (2021-2023).",
+    "Cleaned the data and anonymized employee IDs, DPCI codes, dates, locations, and retail values.",
+    "Built an interactive Excel dashboard with drill-downs by associate, department, and recovery location.",
+    "Summarized the findings in a short report."
+  ],
+  "results": [
+    "Two recovery locations (anonymized) stood out as hotspots.",
+    "A small number of departments and associates drove a disproportionate share of recoveries (anonymized).",
+    "Quarterly trend views made it easy to spot rapid growth periods worth investigating."
+  ],
+  "caseStudy": [
+    {
+      "title": "Data Cleanup and Governance",
+      "lead": "I turned messy loss-prevention logs into a usable dashboard while keeping people and locations anonymous.",
+      "bullets": [
+        "Consolidated thousands of records (2021-2023) and standardized dates, locations, departments, and retail values.",
+        "Anonymized employee and store identifiers so the write-up is shareable.",
+        "Added quarter fields so trends are easy to track over time."
+      ]
+    },
+    {
+      "title": "Dashboard and KPIs",
+      "bullets": [
+        "Built pivot-based drill-downs by associate, department, and recovery location.",
+        "Tracked both retail value and item count to separate volume from severity.",
+        "Added trend views to spot fast growth (doubling patterns), not just totals."
+      ]
+    },
+    {
+      "title": "Key Findings",
+      "bullets": [
+        "Recovered value rose significantly over time, with growth concentrated in a small number of hotspots.",
+        "Certain departments and time periods showed unusually rapid increases, prompting targeted follow-up.",
+        "A small set of associates and departments drove a disproportionate share of recoveries (anonymized)."
+      ]
+    },
+    {
+      "title": "What I'd Improve",
+      "bullets": [
+        "Normalize by store traffic or shipments to separate growth from volume changes.",
+        "Add control charts or anomaly alerts to flag spikes automatically.",
+        "Automate refresh via scheduled exports so the dashboard stays current."
+      ]
+    }
+  ],
+  "order": 6
+}

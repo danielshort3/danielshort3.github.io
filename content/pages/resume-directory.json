@@ -1,0 +1,51 @@
+{
+  "id": "resume-directory",
+  "template": "visual-page",
+  "outputPath": "pages/resume.html",
+  "title": "Resume Versions | Daniel Short",
+  "canonicalPath": "/resume-analytics",
+  "description": "Choose the Daniel Short resume version that matches analytics, data science, or tourism roles.",
+  "robots": "noindex, nofollow",
+  "ogTitle": "Resume Versions | Daniel Short",
+  "ogDescription": "Choose the Daniel Short resume version that matches analytics, data science, or tourism roles.",
+  "siteName": "Daniel Short – Analytics, Data Science & Tourism",
+  "ogType": "website",
+  "bodyAttributes": {
+    "data-page": "resume-versions",
+    "class": "resume-page site-page"
+  },
+  "stylesheets": [
+    "dist/styles.css",
+    "css/components/resume.css"
+  ],
+  "headScripts": [
+    {
+      "src": "dist/site-shell.js",
+      "defer": true
+    },
+    {
+      "src": "js/common/no-js.js"
+    }
+  ],
+  "bottomScripts": [
+    {
+      "src": "dist/site-consent.js",
+      "defer": true
+    }
+  ],
+  "mainAttributes": {
+    "id": "main"
+  },
+  "sections": [
+    {
+      "id": "resume-directory-1",
+      "type": "legacy-html",
+      "label": "Choose the track that matches the role.",
+      "enabled": true,
+      "variant": "default",
+      "props": {
+        "html": "<section class=\"surface-band resume-section\">\n      <div class=\"wrapper\">\n        <div class=\"resume-paper\" role=\"document\" aria-label=\"Daniel Short resume versions\">\n          <header class=\"resume-paper-header\">\n            <p class=\"resume-eyebrow\">Resume versions</p>\n            <h1 class=\"resume-name\">Choose the track that matches the role.</h1>\n            <p class=\"resume-summary\">Analytics is the default resume. The data science and tourism versions are available here when the role calls for a different emphasis.</p>\n          </header>\n\n          <section class=\"resume-projects-wide\" aria-label=\"Resume options\">\n            <h2 class=\"resume-block-title resume-wide-category\"><span>Available versions</span></h2>\n            <ul class=\"resume-projects-grid\">\n              <li class=\"resume-project\">\n                <a class=\"resume-project-title\" href=\"resume-analytics\">Analytics Resume</a>\n                <p class=\"resume-project-meta\">Best for data analyst, BI analyst, and reporting-heavy roles.</p>\n              </li>\n              <li class=\"resume-project\">\n                <a class=\"resume-project-title\" href=\"resume-data-science\">Data Science Resume</a>\n                <p class=\"resume-project-meta\">Best for machine learning, NLP, and model-focused roles.</p>\n              </li>\n              <li class=\"resume-project\">\n                <a class=\"resume-project-title\" href=\"resume-tourism\">Tourism Resume</a>\n                <p class=\"resume-project-meta\">Best for tourism, destination, and public-sector analytics roles.</p>\n              </li>\n            </ul>\n          </section>\n        </div>\n      </div>\n    </section>"
+      }
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "siteOrigin": "https://www.danielshort.me",
+  "siteName": "Daniel Short – Data Science & Analytics",
+  "ownerName": "Daniel Short",
+  "themeColor": "#0D1117",
+  "twitterSite": "@danielshort3",
+  "email": "daniel@danielshort.me",
+  "defaultAudience": "analytics",
+  "ogImage": {
+    "url": "https://www.danielshort.me/img/hero/head.jpg",
+    "width": "558",
+    "height": "558",
+    "alt": "Portrait photo of Daniel Short"
+  }
+}

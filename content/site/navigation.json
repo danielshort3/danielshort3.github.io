@@ -1,0 +1,112 @@
+{
+  "brand": {
+    "homePath": "/analytics",
+    "defaultTagline": "Data Analytics",
+    "logoSrc": "img/ui/logo-64.png",
+    "logoSrcSet": "img/ui/logo-64.png 1x, img/ui/logo-192.png 3x",
+    "logoSizes": "64px",
+    "logoAlt": "DS logo",
+    "logoWidth": 64,
+    "logoHeight": 64
+  },
+  "portfolio": {
+    "label": "Portfolio",
+    "href": "portfolio",
+    "header": "Top 5 Projects",
+    "featuredProjectIds": [
+      "retailStore",
+      "smartSentence",
+      "pizzaDashboard",
+      "chatbotLora",
+      "shapeClassifier"
+    ],
+    "links": [
+      {
+        "title": "View all projects",
+        "subtitle": "Browse the complete portfolio",
+        "href": "portfolio",
+        "dataAttributes": {
+          "data-portfolio-default-link": "true"
+        }
+      },
+      {
+        "title": "Tools",
+        "subtitle": "Browse all tools",
+        "href": "tools"
+      }
+    ]
+  },
+  "resume": {
+    "label": "Resume",
+    "href": "resume",
+    "ariaLabel": "Resume download",
+    "header": "Resume shortcuts",
+    "links": [
+      {
+        "title": "View Digital Resume",
+        "subtitle": "Open the digital resume page",
+        "href": "resume",
+        "dataAttributes": {
+          "data-resume-home-link": "true"
+        }
+      },
+      {
+        "title": "Preview PDF",
+        "subtitle": "Open the PDF resume page",
+        "href": "resume-pdf",
+        "dataAttributes": {
+          "data-resume-preview-link": "true"
+        }
+      },
+      {
+        "title": "Download Resume",
+        "subtitle": "Save the latest PDF copy",
+        "href": "documents/Resume.pdf",
+        "download": true,
+        "dataAttributes": {
+          "data-resume-download-link": "true"
+        }
+      }
+    ]
+  },
+  "contact": {
+    "label": "Contact",
+    "href": "contact",
+    "header": "Get in touch",
+    "links": [
+      {
+        "title": "Message through website",
+        "subtitle": "Send a message via website",
+        "href": "contact#contact-modal",
+        "badge": "Recommended",
+        "dataAttributes": {
+          "data-contact-modal-link": "true"
+        }
+      },
+      {
+        "title": "Email",
+        "subtitle": "daniel@danielshort.me",
+        "href": "mailto:daniel@danielshort.me"
+      },
+      {
+        "title": "LinkedIn",
+        "subtitle": "linkedin.com/in/danielshort3",
+        "href": "https://www.linkedin.com/in/danielshort3/",
+        "target": "_blank",
+        "rel": "noopener noreferrer"
+      },
+      {
+        "title": "GitHub",
+        "subtitle": "github.com/danielshort3",
+        "href": "https://github.com/danielshort3",
+        "target": "_blank",
+        "rel": "noopener noreferrer"
+      }
+    ]
+  },
+  "search": {
+    "action": "search",
+    "label": "Search site",
+    "placeholder": "Search…"
+  }
+}

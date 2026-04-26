@@ -1,0 +1,133 @@
+{
+  "copyrightName": "Daniel Short",
+  "cookieSettingsLabel": "Cookie settings",
+  "cookieSettingsButtonId": "privacy-settings-link",
+  "columns": [
+    {
+      "id": "explore",
+      "title": "Explore",
+      "links": [
+        {
+          "label": "Home",
+          "href": "/analytics"
+        },
+        {
+          "label": "Search",
+          "href": "search"
+        },
+        {
+          "label": "Tools",
+          "href": "tools"
+        },
+        {
+          "label": "Portfolio",
+          "href": "portfolio",
+          "dataAttributes": {
+            "data-portfolio-home-link": "true"
+          }
+        }
+      ]
+    },
+    {
+      "id": "work",
+      "title": "Work",
+      "links": [
+        {
+          "label": "Resume",
+          "href": "resume",
+          "dataAttributes": {
+            "data-resume-home-link": "true"
+          }
+        },
+        {
+          "label": "Contact",
+          "href": "contact"
+        }
+      ]
+    },
+    {
+      "id": "connect",
+      "title": "Connect",
+      "links": [
+        {
+          "label": "LinkedIn",
+          "href": "https://www.linkedin.com/in/danielshort3/",
+          "target": "_blank",
+          "rel": "noopener noreferrer"
+        },
+        {
+          "label": "GitHub",
+          "href": "https://github.com/danielshort3",
+          "target": "_blank",
+          "rel": "noopener noreferrer"
+        },
+        {
+          "label": "Email",
+          "href": "mailto:daniel@danielshort.me"
+        }
+      ]
+    },
+    {
+      "id": "site",
+      "title": "Site",
+      "links": [
+        {
+          "label": "Sitemap",
+          "href": "sitemap-pretty"
+        },
+        {
+          "label": "Cookie settings",
+          "type": "button",
+          "id": "privacy-settings-link-footer",
+          "ariaHaspopup": "dialog"
+        },
+        {
+          "label": "Back to top",
+          "href": "#main",
+          "dataAttributes": {
+            "data-smooth-scroll": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "speedDial": {
+    "menuId": "speed-dial-menu",
+    "menuLabel": "Contact options",
+    "toggleLabel": "Open contact options",
+    "items": [
+      {
+        "label": "Direct Message",
+        "href": "#contact-modal",
+        "ariaLabel": "Send a direct message",
+        "iconType": "direct-message",
+        "variant": "direct",
+        "dataAttributes": {
+          "data-contact-modal-link": "true"
+        }
+      },
+      {
+        "label": "Send Email",
+        "href": "mailto:daniel@danielshort.me",
+        "ariaLabel": "Send Email",
+        "iconType": "email"
+      },
+      {
+        "label": "View LinkedIn",
+        "href": "https://www.linkedin.com/in/danielshort3/",
+        "target": "_blank",
+        "rel": "noopener noreferrer",
+        "ariaLabel": "View LinkedIn",
+        "iconType": "linkedin"
+      },
+      {
+        "label": "View GitHub",
+        "href": "https://github.com/danielshort3",
+        "target": "_blank",
+        "rel": "noopener noreferrer",
+        "ariaLabel": "View GitHub",
+        "iconType": "github"
+      }
+    ]
+  }
+}

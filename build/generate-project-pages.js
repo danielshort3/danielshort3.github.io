@@ -995,4 +995,12 @@ function main() {
   process.stdout.write(`Generated ${projects.length} project pages in pages/portfolio/ and updated sitemap.xml\n`);
 }
 
-main();
+if (require.main === module) {
+  main();
+}
+
+module.exports = {
+  isPublishedProject,
+  loadProjects,
+  renderProjectPage
+};

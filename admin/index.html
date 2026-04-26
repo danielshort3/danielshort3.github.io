@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Local Visual CMS | Daniel Short</title>
+  <link rel="icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/admin/cms-admin.css">
+  <script src="/admin/cms-admin.js" defer></script>
+</head>
+<body>
+  <header class="cms-topbar">
+    <a class="cms-brand" href="/analytics" aria-label="Daniel Short home">
+      <img src="/img/ui/logo-32.png" alt="" width="32" height="32">
+      <span>Visual CMS</span>
+    </a>
+    <nav class="cms-top-actions" aria-label="CMS quick actions">
+      <button class="cms-link-button" type="button" data-cms="preview-refresh">Refresh Preview</button>
+      <button class="cms-button cms-button-secondary" type="button" data-cms="save-draft">Save Draft</button>
+      <button class="cms-button" type="button" data-cms="save">Save to File</button>
+    </nav>
+    <div class="cms-auth">
+      <span data-cms="user">Local visual editor</span>
+    </div>
+  </header>
+
+  <main class="cms-shell" id="main">
+    <section class="cms-status" data-cms="status" role="status" aria-live="polite"></section>
+
+    <section class="cms-access" data-cms="access-panel" hidden>
+      <h1>Local Visual CMS</h1>
+      <p data-cms="access-message">Run this from the local development server to edit content files.</p>
+    </section>
+
+    <section class="cms-workspace" data-cms="workspace">
+      <div class="cms-product-layout">
+        <aside class="cms-product-nav" aria-label="CMS navigation">
+          <button class="cms-product-nav-button" type="button" data-cms-view-target="dashboard" aria-current="true">Dashboard</button>
+          <button class="cms-product-nav-button" type="button" data-cms-view-target="builder" aria-current="false">Builder</button>
+          <button class="cms-product-nav-button" type="button" data-cms-view-target="library" aria-current="false">Library</button>
+          <button class="cms-product-nav-button" type="button" data-cms-view-target="globals" aria-current="false">Globals</button>
+          <button class="cms-product-nav-button" type="button" data-cms-view-target="assistant" aria-current="false">Assistant</button>
+        </aside>
+
+        <div class="cms-product-main">
+          <section class="cms-view cms-view-dashboard" data-cms-view="dashboard">
+            <div class="cms-view-head">
+              <div>
+                <p class="cms-kicker">Dashboard</p>
+                <h1>Pages, drafts, and reusable content</h1>
+              </div>
+              <button class="cms-button" type="button" data-cms="dashboard-new">New Page</button>
+            </div>
+            <div class="cms-dashboard-grid">
+              <section class="cms-panel cms-dashboard-wide">
+                <div class="cms-panel-head">
+                  <h2>Content Health</h2>
+                  <button class="cms-link-button" type="button" data-cms="health-refresh">Refresh Checks</button>
+                </div>
+                <div class="cms-dashboard-list cms-health-list" data-cms="dashboard-health"></div>
+              </section>
+              <section class="cms-panel">
+                <div class="cms-panel-head">
+                  <h2>Save History</h2>
+                </div>
+                <div class="cms-dashboard-list" data-cms="dashboard-snapshots"></div>
+              </section>
+              <section class="cms-panel">
+                <div class="cms-panel-head">
+                  <h2>Pages</h2>
+                  <input type="search" data-cms="dashboard-search" placeholder="Search pages">
+                </div>
+                <div class="cms-dashboard-list" data-cms="dashboard-pages"></div>
+              </section>
+              <section class="cms-panel">
+                <div class="cms-panel-head">
+                  <h2>Templates</h2>
+                </div>
+                <div class="cms-dashboard-list" data-cms="dashboard-templates"></div>
+              </section>
+              <section class="cms-panel">
+                <div class="cms-panel-head">
+                  <h2>Drafts</h2>
+                </div>
+                <div class="cms-dashboard-list" data-cms="dashboard-drafts"></div>
+              </section>
+              <section class="cms-panel">
+                <div class="cms-panel-head">
+                  <h2>Autosave</h2>
+                </div>
+                <div class="cms-dashboard-list" data-cms="dashboard-autosave"></div>
+              </section>
+            </div>
+          </section>
+
+          <section class="cms-view cms-view-builder" data-cms-view="builder" hidden>
+            <div class="cms-toolbar">
+              <label>
+                <span>Collection</span>
+                <select data-cms="collection"></select>
+              </label>
+              <label>
+                <span>Document</span>
+                <select data-cms="document"></select>
+              </label>
+              <label>
+                <span>Page</span>
+                <select data-cms="page-target"></select>
+              </label>
+              <label>
+                <span>Document ID</span>
+                <input type="text" data-cms="document-id" autocomplete="off" spellcheck="false">
+              </label>
+              <button class="cms-button cms-button-secondary" type="button" data-cms="new-document">New</button>
+              <button class="cms-button cms-button-secondary" type="button" data-cms="refresh">Refresh</button>
+              <button class="cms-button cms-button-secondary" type="button" data-cms="export">Export JSON</button>
+            </div>
+
+            <div class="cms-builder-layout">
+              <aside class="cms-left-nav" aria-label="CMS page builder controls">
+                <section class="cms-nav-section cms-edit-targets">
+                  <div class="cms-panel-head">
+                    <h2>Builder Tools</h2>
+                  </div>
+                  <div class="cms-mode-list" role="tablist" aria-label="CMS edit targets">
+                    <button class="cms-mode-button" type="button" data-cms-mode="section" aria-selected="true">Outline</button>
+                    <button class="cms-mode-button" type="button" data-cms-mode="add" aria-selected="false">Add Section</button>
+                    <button class="cms-mode-button" type="button" data-cms-mode="library" aria-selected="false">Library Insert</button>
+                    <button class="cms-mode-button" type="button" data-cms-mode="metadata" aria-selected="false">Page Metadata</button>
+                    <button class="cms-mode-button" type="button" data-cms-mode="header" aria-selected="false">Global Header</button>
+                    <button class="cms-mode-button" type="button" data-cms-mode="footer" aria-selected="false">Global Footer</button>
+                  </div>
+                </section>
+
+                <section class="cms-nav-section cms-documents">
+                  <div class="cms-panel-head">
+                    <h2>Documents</h2>
+                  </div>
+                  <div class="cms-document-list" data-cms="document-list"></div>
+                </section>
+
+                <section class="cms-nav-section cms-section-library">
+                  <div class="cms-panel-head">
+                    <h2>Add Sections</h2>
+                  </div>
+                  <div class="cms-library-actions">
+                    <button class="cms-button cms-button-secondary" type="button" data-cms-template="basic-page">Basic Page</button>
+                    <button class="cms-button cms-button-secondary" type="button" data-cms-template="landing-page">Landing Page</button>
+                  </div>
+                  <div class="cms-widget-list" data-cms="widget-list"></div>
+                  <div class="cms-pattern-list" data-cms="pattern-list"></div>
+                </section>
+
+                <section class="cms-nav-section cms-builder">
+                  <div class="cms-panel-head">
+                    <div>
+                      <h2 data-cms="editor-title">Page Builder</h2>
+                      <span data-cms="document-meta"></span>
+                    </div>
+                    <button class="cms-link-button" type="button" data-cms="save-section">Save Section</button>
+                  </div>
+                  <div class="cms-page-message" data-cms="page-message"></div>
+                  <div class="cms-section-list" data-cms="section-list" aria-label="Page sections"></div>
+                  <details class="cms-advanced" data-cms="advanced-panel">
+                    <summary>Advanced JSON</summary>
+                    <textarea data-cms="editor" spellcheck="false" aria-label="CMS document JSON"></textarea>
+                    <button class="cms-button cms-button-secondary" type="button" data-cms="apply-json">Apply JSON</button>
+                  </details>
+                </section>
+
+                <section class="cms-nav-section cms-inspector">
+                  <div class="cms-panel-head">
+                    <h2>Inspector</h2>
+                  </div>
+                  <div class="cms-inspector-body" data-cms="inspector"></div>
+                </section>
+              </aside>
+
+              <section class="cms-panel cms-preview">
+                <div class="cms-panel-head">
+                  <div>
+                    <h2>Live Preview</h2>
+                    <span data-cms="preview-state">Waiting</span>
+                  </div>
+                  <div class="cms-preview-tools" role="group" aria-label="Preview viewport">
+                    <select data-cms="preview-audience" aria-label="Preview audience">
+                      <option value="">Default audience</option>
+                    </select>
+                    <button class="cms-segment-button" type="button" data-cms-preview-device="desktop" aria-pressed="true">Desktop</button>
+                    <button class="cms-segment-button" type="button" data-cms-preview-device="tablet" aria-pressed="false">Tablet</button>
+                    <button class="cms-segment-button" type="button" data-cms-preview-device="mobile" aria-pressed="false">Mobile</button>
+                    <button class="cms-button cms-button-secondary" type="button" data-cms="preview-open">Open</button>
+                  </div>
+                </div>
+                <div class="cms-preview-stage" data-cms="preview-stage">
+                  <div class="cms-preview-viewport" data-cms="preview-viewport">
+                    <iframe data-cms="preview" title="CMS live preview"></iframe>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </section>
+
+          <section class="cms-view cms-view-library" data-cms-view="library" hidden>
+            <div class="cms-view-head">
+              <div>
+                <p class="cms-kicker">Library</p>
+                <h1>Templates and saved sections</h1>
+              </div>
+              <button class="cms-button cms-button-secondary" type="button" data-cms="library-refresh">Refresh Library</button>
+            </div>
+            <div class="cms-library-grid">
+              <section class="cms-panel">
+                <div class="cms-panel-head">
+                  <h2>Templates</h2>
+                </div>
+                <div class="cms-dashboard-list" data-cms="library-templates"></div>
+              </section>
+              <section class="cms-panel">
+                <div class="cms-panel-head">
+                  <h2>Saved Sections</h2>
+                </div>
+                <div class="cms-dashboard-list" data-cms="library-sections"></div>
+              </section>
+              <section class="cms-panel">
+                <div class="cms-panel-head">
+                  <h2>Drafts</h2>
+                </div>
+                <div class="cms-dashboard-list" data-cms="library-drafts"></div>
+              </section>
+            </div>
+          </section>
+
+          <section class="cms-view cms-view-globals" data-cms-view="globals" hidden>
+            <div class="cms-view-head">
+              <div>
+                <p class="cms-kicker">Globals</p>
+                <h1>Shared header, footer, and site settings</h1>
+              </div>
+            </div>
+            <div class="cms-globals-grid">
+              <section class="cms-panel">
+                <div class="cms-panel-head">
+                  <h2>Global Header</h2>
+                </div>
+                <div class="cms-inspector-body" data-cms="global-header"></div>
+              </section>
+              <section class="cms-panel">
+                <div class="cms-panel-head">
+                  <h2>Global Footer</h2>
+                </div>
+                <div class="cms-inspector-body" data-cms="global-footer"></div>
+              </section>
+            </div>
+          </section>
+
+          <section class="cms-view cms-view-assistant" data-cms-view="assistant" hidden>
+            <div class="cms-view-head">
+              <div>
+                <p class="cms-kicker">Assistant</p>
+                <h1>Local Ollama editing</h1>
+              </div>
+            </div>
+            <section class="cms-panel cms-assistant-panel">
+              <div class="cms-assistant-body">
+                <label>
+                  <span>Model</span>
+                  <span class="cms-model-row">
+                    <select data-cms="ollama-model">
+                      <option value="">Loading installed models...</option>
+                    </select>
+                    <button class="cms-button cms-button-secondary" type="button" data-cms="ollama-refresh">Refresh</button>
+                  </span>
+                </label>
+                <p class="cms-model-status" data-cms="ollama-model-status" role="status" aria-live="polite"></p>
+                <div class="cms-ai-actions" aria-label="AI edit shortcuts">
+                  <button class="cms-button cms-button-secondary" type="button" data-cms-ai-action="headline">Improve Headline</button>
+                  <button class="cms-button cms-button-secondary" type="button" data-cms-ai-action="metadata">Improve Metadata</button>
+                  <button class="cms-button cms-button-secondary" type="button" data-cms-ai-action="project">Tighten Project</button>
+                  <button class="cms-button cms-button-secondary" type="button" data-cms-ai-action="structured">Structure Section</button>
+                </div>
+                <label>
+                  <span>Request</span>
+                  <textarea data-cms="ollama-prompt" rows="5" placeholder="Ask Ollama to rewrite the selected section, update metadata, or adjust the global header/footer."></textarea>
+                </label>
+                <button class="cms-button" type="button" data-cms="ollama-send">Preview AI Edit</button>
+                <div class="cms-assistant-log" data-cms="ollama-log" aria-live="polite"></div>
+              </div>
+            </section>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

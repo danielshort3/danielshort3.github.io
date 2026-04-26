@@ -1,0 +1,99 @@
+{
+  "id": "shapeClassifier",
+  "title": "Shape Classifier Demo",
+  "subtitle": "Handwritten Shape Recognition",
+  "image": "img/projects/shapeClassifier.png",
+  "imageWidth": 926,
+  "imageHeight": 926,
+  "videoWebm": "img/projects/shapeClassifier.webm",
+  "videoMp4": "img/projects/shapeClassifier.mp4",
+  "tools": [
+    "Python",
+    "PyTorch",
+    "AWS",
+    "Docker"
+  ],
+  "concepts": [
+    "Machine Learning"
+  ],
+  "audiences": [
+    "data-science"
+  ],
+  "resources": [
+    {
+      "icon": "img/icons/github-icon.png",
+      "url": "https://github.com/danielshort3/Shape-Analyzer",
+      "label": "GitHub"
+    },
+    {
+      "icon": "img/icons/website-icon.png",
+      "url": "https://github.com/googlecreativelab/quickdraw-dataset",
+      "label": "Quick, Draw! Dataset",
+      "type": "data"
+    },
+    {
+      "icon": "img/icons/website-icon.png",
+      "url": "https://www.danielshort.me/shape-demo.html",
+      "label": "Live Demo"
+    }
+  ],
+  "embed": {
+    "type": "iframe",
+    "url": "shape-demo.html"
+  },
+  "demoInstructions": {
+    "lead": "Draw one of the supported shapes and let the model classify it.",
+    "bullets": [
+      "Draw on the canvas (circle, triangle, square, hexagon, or octagon).",
+      "Click “Classify” to submit the drawing.",
+      "Use the eraser button (or press C) to clear and try again.",
+      "Review the confidence bar and per-shape scores on the right."
+    ]
+  },
+  "problem": "I wanted a model that can tell what shape someone drew.",
+  "actions": [
+    "Used Google's QuickDraw sketches and built train/validation splits.",
+    "Trained a small ResNet18 classifier in PyTorch.",
+    "Deployed a CPU-only AWS Lambda endpoint so the browser can request predictions."
+  ],
+  "results": [
+    "High accuracy on a five-shape subset (results vary by split and drawing style): circle, triangle, square, hexagon, and octagon.",
+    "Predictions return quickly once the Lambda container is warm; cold starts can take longer."
+  ],
+  "caseStudy": [
+    {
+      "title": "Data and Training",
+      "lead": "I trained a small classifier on Google’s QuickDraw sketches to recognize five basic shapes from a simple black-and-white drawing.",
+      "bullets": [
+        "Built class-balanced train/validation splits from QuickDraw categories.",
+        "Used ResNet18 to keep the model small and fast.",
+        "Exported plain weights (`model.pt`) so inference stays simple."
+      ]
+    },
+    {
+      "title": "Inference API",
+      "bullets": [
+        "Implemented an AWS Lambda handler that takes a base64 image and returns a class plus confidence.",
+        "Kept the API browser-friendly (CORS and small JSON payloads).",
+        "Ran CPU-only inference so it works well in serverless environments."
+      ]
+    },
+    {
+      "title": "Demo UX",
+      "bullets": [
+        "Canvas drawing UI with a clear submit step and a confidence bar.",
+        "Clear status messaging during warm-up and cold starts.",
+        "Preprocessing tuned so messy real-world strokes still work."
+      ]
+    },
+    {
+      "title": "What I'd Improve",
+      "bullets": [
+        "Calibrate confidence (for example, temperature scaling) so scores are more reliable.",
+        "Expand to more shapes and add augmentation for stroke width and incomplete outlines.",
+        "Create a small human-drawn validation set to measure real-world performance."
+      ]
+    }
+  ],
+  "order": 3
+}
