@@ -1,0 +1,124 @@
+{
+  "id": "covidAnalysis",
+  "title": "COVID-19 Outbreak Drivers",
+  "subtitle": "Python XGBoost & SHAP",
+  "image": "img/projects/covidAnalysis.png",
+  "imageWidth": 1446,
+  "imageHeight": 1446,
+  "videoWebm": "img/projects/covidAnalysis.webm",
+  "videoMp4": "img/projects/covidAnalysis.mp4",
+  "tools": [
+    "Python",
+    "AWS"
+  ],
+  "concepts": [
+    "Analytics"
+  ],
+  "audiences": [
+    "analytics",
+    "tourism"
+  ],
+  "resources": [
+    {
+      "icon": "img/icons/github-icon.png",
+      "url": "https://github.com/danielshort3/Covid-Analysis",
+      "label": "GitHub"
+    },
+    {
+      "icon": "img/icons/website-icon.png",
+      "url": "https://www.danielshort.me/covid-outbreak-demo",
+      "label": "Live Demo"
+    },
+    {
+      "icon": "img/icons/pdf-icon.png",
+      "url": "documents/Project_6.pdf",
+      "label": "PDF"
+    },
+    {
+      "icon": "img/icons/jupyter-icon.png",
+      "url": "documents/Project_6.ipynb",
+      "label": "Notebook"
+    },
+    {
+      "icon": "img/icons/website-icon.png",
+      "url": "https://healthdata.gov/Hospital/COVID-19-Reported-Patient-Impact-and-Hospital-Capa/anag-cw7u",
+      "label": "HHS Dataset",
+      "type": "data"
+    }
+  ],
+  "embed": {
+    "type": "iframe",
+    "url": "covid-outbreak-demo.html"
+  },
+  "demoInstructions": {
+    "lead": "Explore how ICU breach risk changes over time, and what’s driving it.",
+    "bullets": [
+      "Wait for the status pill to show the demo is ready (cold starts can take a moment).",
+      "Drag the date slider to move through time.",
+      "Hover or click a state to see its risk score, top drivers, and recent trend.",
+      "Use the hotspots list to quickly jump to the highest-risk locations."
+    ]
+  },
+  "problem": "Using 2020-2023 HHS hospital-capacity data, I built an early-warning model to flag states at risk of crossing 90% ICU utilization in the next 7 days.",
+  "actions": [
+    "Cleaned and enriched 50k+ rows from the HHS hospital-capacity time series; added rolling stats, trends, and 1/3/7/14-day lag features.",
+    "Trained an XGBoost classifier with class-imbalance weighting and a strict time-based train/test split."
+  ],
+  "results": [
+    "Used SHAP to highlight the top drivers and embedded an interactive plot in the report.",
+    "Top driver was the share of ICU beds occupied by COVID patients.",
+    "Exported daily, per-state risk scores (probability of breaching 90% ICU utilization within 7 days)."
+  ],
+  "caseStudy": [
+    {
+      "title": "Problem Framing",
+      "lead": "Goal: estimate the probability a state will breach 90% ICU utilization within the next 7 days.",
+      "bullets": [
+        "Target label: max(adult ICU bed utilization) over the next 7 days is at least 0.90.",
+        "Breaches are rare, so I focused on ranking and precision/recall tradeoffs.",
+        "Output is a risk score meant to support decisions, not a perfect forecast."
+      ]
+    },
+    {
+      "title": "Data and Feature Engineering",
+      "bullets": [
+        "Started with the HHS hospital-capacity time series (state-by-day) and handled missing data with forward-fills and pruning.",
+        "Added rolling-window features and lag features (1/3/7/14 days) to capture trend and momentum.",
+        "Built ratio features like ICU beds with COVID (%) to normalize across states."
+      ]
+    },
+    {
+      "title": "Modeling and Evaluation",
+      "bullets": [
+        "Trained an XGBoost classifier with a time-based train/test split and class-imbalance handling.",
+        "Measured ranking quality with AUROC/PR-AUC and tuned for class imbalance.",
+        "Used the model as a risk scorer (probability output) rather than a hard yes/no classifier."
+      ]
+    },
+    {
+      "title": "Explainability (SHAP)",
+      "bullets": [
+        "Used SHAP to identify which daily metrics raise or lower the chance of an ICU crisis in the next week.",
+        "Key takeaway: when a high share of ICU beds are already filled by COVID patients, risk rises quickly.",
+        "Renamed feature labels in the SHAP plot to keep it stakeholder-friendly."
+      ]
+    },
+    {
+      "title": "Operational Output",
+      "bullets": [
+        "Exported a per-state, per-day CSV of 7-day breach probabilities for monitoring and reporting.",
+        "Reviewed the highest-risk states per snapshot and tracked how rankings changed over time.",
+        "Designed the workflow to be rerun as new days arrive."
+      ]
+    },
+    {
+      "title": "What I'd Improve",
+      "bullets": [
+        "Calibrate probabilities and tune thresholds for a clear precision/recall target.",
+        "Add outside signals (vaccination, policy, mobility, variants) to improve early warning.",
+        "Monitor drift and retrain when feature patterns shift."
+      ]
+    }
+  ],
+  "order": 5
+}

@@ -162,7 +162,7 @@ function loadToolKeywords() {
   let html;
   try { html = read('pages/tools.html'); } catch { return map; }
 
-  const cards = String(html).split('<article class="tool-card">').slice(1);
+  const cards = String(html).split(/<article\b[^>]*\bclass="[^"]*\btool-card\b[^"]*"[^>]*>/i).slice(1);
   cards.forEach((card) => {
     const hrefMatch = /href="tools\/([^"#?]+)"/i.exec(card);
     if (!hrefMatch) return;

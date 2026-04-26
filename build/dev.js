@@ -5,21 +5,25 @@
   Local developer workflow:
   1) Run a full site build once.
   2) Watch source files and rebuild automatically.
-  3) Serve routes/API locally using Vercel dev routing.
+  3) Serve the static site plus the local-only CMS file API.
 */
 
 const fs = require('fs');
+const http = require('http');
 const path = require('path');
-const { spawn, spawnSync } = require('child_process');
+const { spawnSync } = require('child_process');
 
 const root = path.resolve(__dirname, '..');
-const isWindows = process.platform === 'win32';
-const localVercelConfigPath = path.join(root, '.vercel', 'dev.local.json');
+const publicDir = path.join(root, 'public');
+const adminDir = path.join(root, 'admin');
+const cmsApiPath = path.join(root, 'api', 'cms', '[...slug].js');
 
 const WATCH_ROOTS = [
   'api',
+  'admin',
   'build',
   'css',
+  'content',
   'demos',
   'documents',
   'img',
@@ -35,8 +39,29 @@ const IGNORED_PREFIXES = [
   'dist/',
   'node_modules/',
   'pages/portfolio/',
-  'public/'
+  'public/',
+  'tmp/'
 ];
+
+const MIME_TYPES = {
+  '.css': 'text/css; charset=utf-8',
+  '.csv': 'text/csv; charset=utf-8',
+  '.gif': 'image/gif',
+  '.html': 'text/html; charset=utf-8',
+  '.ico': 'image/x-icon',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.js': 'application/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.mjs': 'application/javascript; charset=utf-8',
+  '.pdf': 'application/pdf',
+  '.png': 'image/png',
+  '.svg': 'image/svg+xml; charset=utf-8',
+  '.txt': 'text/plain; charset=utf-8',
+  '.wasm': 'application/wasm',
+  '.webp': 'image/webp',
+  '.xml': 'application/xml; charset=utf-8'
+};
 
 function log(line) {
   process.stdout.write(`[dev] ${line}\n`);
@@ -54,6 +79,20 @@ function parsePort() {
   }
   if (process.env.PORT) return String(process.env.PORT).trim();
   return '3000';
+}
+
+function parseHost() {
+  const args = process.argv.slice(2);
+  const explicitHostIndex = args.indexOf('--host');
+  if (explicitHostIndex >= 0 && args[explicitHostIndex + 1]) {
+    return String(args[explicitHostIndex + 1]).trim();
+  }
+  if (process.env.HOST) return String(process.env.HOST).trim();
+  return '127.0.0.1';
+}
+
+function getDisplayHost(host) {
+  return host === '0.0.0.0' || host === '::' ? 'localhost' : host;
 }
 
 function runSiteBuild({ exitOnFail }) {
@@ -74,9 +113,7 @@ function runSiteBuild({ exitOnFail }) {
   }
 
   if (result.status !== 0) {
-    if (exitOnFail) {
-      process.exit(result.status || 1);
-    }
+    if (exitOnFail) process.exit(result.status || 1);
     log(`Build exited with status ${result.status}.`);
     return false;
   }
@@ -109,7 +146,6 @@ function collectSnapshot(watchRoots) {
     }
 
     const stack = [absoluteTarget];
-
     while (stack.length) {
       const current = stack.pop();
       const relCurrent = path.relative(root, current);
@@ -129,10 +165,7 @@ function collectSnapshot(watchRoots) {
         } catch {
           continue;
         }
-
-        entries.forEach((entry) => {
-          stack.push(path.join(current, entry.name));
-        });
+        entries.forEach((entry) => stack.push(path.join(current, entry.name)));
         continue;
       }
 
@@ -208,117 +241,219 @@ function startBuildWatcher({ watchRoots, onChange }) {
   };
 }
 
-function quoteForCmd(value) {
-  return `"${String(value).replace(/"/g, '""')}"`;
-}
-
-function ensureLocalVercelConfig() {
-  const sourcePath = path.join(root, 'vercel.json');
-  let parsed;
-
+function safeDecodePathname(value) {
   try {
-    parsed = JSON.parse(fs.readFileSync(sourcePath, 'utf8'));
-  } catch (err) {
-    throw new Error(`Could not parse vercel.json: ${err.message}`);
+    return decodeURIComponent(value);
+  } catch {
+    return value;
   }
-
-  const localConfig = JSON.parse(JSON.stringify(parsed || {}));
-  delete localConfig.framework;
-  delete localConfig.installCommand;
-
-  // Vercel dev ignores `has` matching, so host/query-specific rules can hijack
-  // local asset requests (e.g. /dist/styles.css). Remove those rules locally.
-  if (Array.isArray(localConfig.rewrites)) {
-    localConfig.rewrites = localConfig.rewrites
-      .filter((rule) => {
-        return !(rule && Object.prototype.hasOwnProperty.call(rule, 'has'));
-      })
-      .map((rule) => {
-        if (!rule || typeof rule !== 'object') return rule;
-        const next = { ...rule };
-
-        // Avoid noisy path-to-regexp warnings in local Vercel dev output.
-        if (typeof next.destination === 'string') {
-          next.destination = next.destination.replace(':first%2F:rest', ':first/:rest');
-        }
-
-        return next;
-      });
-  }
-  if (Array.isArray(localConfig.redirects)) {
-    localConfig.redirects = localConfig.redirects.filter((rule) => {
-      return !(rule && Object.prototype.hasOwnProperty.call(rule, 'has'));
-    });
-  }
-
-  localConfig.builds = [
-    { src: 'api/**/*.js', use: '@vercel/node' },
-    { src: '**/*', use: '@vercel/static' }
-  ];
-
-  fs.mkdirSync(path.dirname(localVercelConfigPath), { recursive: true });
-  fs.writeFileSync(localVercelConfigPath, `${JSON.stringify(localConfig, null, 2)}\n`, 'utf8');
 }
 
-function buildDevEnv(port) {
-  const env = { ...process.env, PORT: port };
-  const key = Object.prototype.hasOwnProperty.call(env, 'Path') ? 'Path' : 'PATH';
-  const delim = isWindows ? ';' : ':';
-  const existing = env[key] || '';
-  env[key] = existing ? `${root}${delim}${existing}` : root;
-  return env;
+function readVercelConfig() {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(root, 'vercel.json'), 'utf8'));
+  } catch {
+    return {};
+  }
 }
 
-function resolveVercelCommand(port) {
-  const localVercel = path.join(root, 'node_modules', '.bin', isWindows ? 'vercel.cmd' : 'vercel');
+function compileRoute(source) {
+  const names = [];
+  const pattern = String(source || '').replace(/\/\(\.\*\)$/g, '/:path*');
+  let regexSource = '^';
 
-  if (isWindows) {
-    if (fs.existsSync(localVercel)) {
-      return {
-        command: 'cmd.exe',
-        args: ['/d', '/s', '/c', `${quoteForCmd(localVercel)} dev --listen ${port} --local-config ${quoteForCmd(localVercelConfigPath)}`],
-        viaNpx: false
-      };
+  for (let index = 0; index < pattern.length; index += 1) {
+    const char = pattern[index];
+    if (char === ':') {
+      let end = index + 1;
+      while (end < pattern.length && /[A-Za-z0-9_]/.test(pattern[end])) end += 1;
+      const name = pattern.slice(index + 1, end);
+      const wildcard = pattern[end] === '*';
+      if (name) {
+        names.push(name);
+        regexSource += wildcard ? '(.*)' : '([^/]+)';
+        index = wildcard ? end : end - 1;
+        continue;
+      }
     }
-
-    return {
-      command: 'cmd.exe',
-      args: ['/d', '/s', '/c', `npx --yes vercel dev --listen ${port} --local-config ${quoteForCmd(localVercelConfigPath)}`],
-      viaNpx: true
-    };
+    regexSource += char.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
-
-  if (fs.existsSync(localVercel)) {
-    return {
-      command: localVercel,
-      args: ['dev', '--listen', port, '--local-config', localVercelConfigPath],
-      viaNpx: false
-    };
-  }
+  regexSource += '$';
 
   return {
-    command: 'npx',
-    args: ['--yes', 'vercel', 'dev', '--listen', port, '--local-config', localVercelConfigPath],
-    viaNpx: true
+    source,
+    names,
+    regex: new RegExp(regexSource)
   };
 }
 
-function startVercelDev(port) {
-  ensureLocalVercelConfig();
-  const vercel = resolveVercelCommand(port);
-  if (vercel.viaNpx) {
-    log('Using npx to run Vercel CLI (first run may download the package).');
+function compileRoutes(rules) {
+  return (Array.isArray(rules) ? rules : [])
+    .filter((rule) => rule && !Object.prototype.hasOwnProperty.call(rule, 'has'))
+    .map((rule) => ({
+      ...rule,
+      compiled: compileRoute(rule.source)
+    }));
+}
+
+function matchRule(pathname, rules) {
+  for (const rule of rules) {
+    const match = rule.compiled.regex.exec(pathname);
+    if (!match) continue;
+    const params = {};
+    rule.compiled.names.forEach((name, index) => {
+      params[name] = match[index + 1] || '';
+    });
+    return { rule, params };
   }
-  log(`Starting local server on http://localhost:${port} ...`);
-  return spawn(vercel.command, vercel.args, {
-    cwd: root,
-    env: buildDevEnv(port),
-    stdio: 'inherit'
+  return null;
+}
+
+function applyParams(value, params) {
+  let next = String(value || '');
+  Object.entries(params || {}).forEach(([key, raw]) => {
+    const encoded = encodeURIComponent(raw);
+    next = next.replace(new RegExp(`:${key}\\*`, 'g'), raw);
+    next = next.replace(new RegExp(`:${key}`, 'g'), encoded);
+  });
+  return next;
+}
+
+function isInside(baseDir, filePath) {
+  const rel = path.relative(baseDir, filePath);
+  return !!rel && !rel.startsWith('..') && !path.isAbsolute(rel);
+}
+
+function resolveStaticFile(baseDir, pathname) {
+  const decoded = safeDecodePathname(pathname).replace(/\\/g, '/');
+  const clean = decoded.split('?')[0].split('#')[0];
+  const withoutLeading = clean.replace(/^\/+/, '');
+  const candidates = [];
+
+  if (!withoutLeading) {
+    candidates.push(path.join(baseDir, 'index.html'));
+  } else {
+    candidates.push(path.join(baseDir, withoutLeading));
+    if (!path.extname(withoutLeading)) {
+      candidates.push(path.join(baseDir, `${withoutLeading}.html`));
+      candidates.push(path.join(baseDir, withoutLeading, 'index.html'));
+    }
+  }
+
+  for (const candidate of candidates) {
+    if (!isInside(baseDir, candidate)) continue;
+    try {
+      const stat = fs.statSync(candidate);
+      if (stat.isFile()) return candidate;
+    } catch {}
+  }
+
+  return null;
+}
+
+function sendFile(res, filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  res.statusCode = 200;
+  res.setHeader('Content-Type', MIME_TYPES[ext] || 'application/octet-stream');
+  fs.createReadStream(filePath).pipe(res);
+}
+
+function sendNotFound(res) {
+  const notFound = path.join(publicDir, '404.html');
+  if (fs.existsSync(notFound)) {
+    res.statusCode = 404;
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    fs.createReadStream(notFound).pipe(res);
+    return;
+  }
+  res.statusCode = 404;
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.end('Not found');
+}
+
+function clearCmsApiCache() {
+  const prefixes = [
+    path.join(root, 'api', 'cms'),
+    path.join(root, 'api', '_lib', 'cms'),
+    path.join(root, 'build', 'generate-project-pages.js'),
+    path.join(root, 'build', 'lib', 'cms-renderers')
+  ];
+  Object.keys(require.cache).forEach((modulePath) => {
+    if (prefixes.some((prefix) => modulePath.startsWith(prefix))) {
+      delete require.cache[modulePath];
+    }
+  });
+}
+
+function loadCmsApi() {
+  clearCmsApiCache();
+  return require(cmsApiPath);
+}
+
+function createLocalServer() {
+  const vercelConfig = readVercelConfig();
+  const redirects = compileRoutes(vercelConfig.redirects);
+  const rewrites = compileRoutes(vercelConfig.rewrites);
+
+  return http.createServer((req, res) => {
+    const url = new URL(req.url, 'http://localhost');
+    const pathname = url.pathname.replace(/\/+$/, '') || '/';
+
+    if (pathname.startsWith('/api/cms/')) {
+      req.query = Object.fromEntries(url.searchParams.entries());
+      req.query.slug = pathname.slice('/api/cms/'.length).split('/')[0] || '';
+      try {
+        loadCmsApi()(req, res);
+      } catch (err) {
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.end(JSON.stringify({
+          ok: false,
+          error: err && err.message ? err.message : 'Local CMS API failed to load'
+        }));
+      }
+      return;
+    }
+
+    if (pathname === '/admin' || pathname.startsWith('/admin/')) {
+      const adminPath = pathname === '/admin' ? '/index.html' : pathname.slice('/admin'.length);
+      const filePath = resolveStaticFile(adminDir, adminPath);
+      if (filePath) {
+        sendFile(res, filePath);
+        return;
+      }
+      sendNotFound(res);
+      return;
+    }
+
+    const redirectMatch = matchRule(pathname, redirects);
+    if (redirectMatch) {
+      const destination = applyParams(redirectMatch.rule.destination, redirectMatch.params);
+      res.statusCode = redirectMatch.rule.permanent ? 308 : 307;
+      res.setHeader('Location', destination);
+      res.end();
+      return;
+    }
+
+    const rewriteMatch = matchRule(pathname, rewrites);
+    const rewrittenPath = rewriteMatch
+      ? applyParams(rewriteMatch.rule.destination, rewriteMatch.params)
+      : pathname;
+
+    const filePath = resolveStaticFile(publicDir, rewrittenPath);
+    if (filePath) {
+      sendFile(res, filePath);
+      return;
+    }
+
+    sendNotFound(res);
   });
 }
 
 function main() {
   const port = parsePort();
+  const host = parseHost();
+  const displayHost = getDisplayHost(host);
   const noWatch = hasFlag('--no-watch');
 
   log('Running initial build...');
@@ -331,38 +466,28 @@ function main() {
       onChange: () => runSiteBuild({ exitOnFail: false })
     });
 
-  if (noWatch) {
-    log('Build watcher disabled (--no-watch).');
-  }
+  if (noWatch) log('Build watcher disabled (--no-watch).');
 
-  const server = startVercelDev(port);
-  let shuttingDown = false;
+  const server = createLocalServer();
+  server.on('error', (err) => {
+    log(`Local server failed: ${err && err.message ? err.message : err}`);
+    if (watcher) watcher.close();
+    process.exit(1);
+  });
+  server.listen(Number(port), host, () => {
+    log(`Serving local site on http://${displayHost}:${port}`);
+    if (displayHost !== host) log(`Bound to ${host} for WSL/host access.`);
+    log(`Local CMS available at http://${displayHost}:${port}/admin`);
+  });
 
   function shutdown(exitCode) {
-    if (shuttingDown) return;
-    shuttingDown = true;
-
     if (watcher) watcher.close();
-
-    if (server && server.exitCode == null) {
-      server.kill('SIGTERM');
-    }
-
-    setTimeout(() => {
-      process.exit(exitCode);
-    }, 200);
+    server.close(() => process.exit(exitCode));
+    setTimeout(() => process.exit(exitCode), 500).unref();
   }
-
-  server.on('exit', (code, signal) => {
-    if (shuttingDown) return;
-    log(`Local server exited (${signal || code || 'unknown'}).`);
-    shutdown(typeof code === 'number' ? code : 1);
-  });
 
   process.on('SIGINT', () => shutdown(0));
   process.on('SIGTERM', () => shutdown(0));
 }
 
 main();
-
-

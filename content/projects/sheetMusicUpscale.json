@@ -1,0 +1,91 @@
+{
+  "id": "sheetMusicUpscale",
+  "title": "Sheet Music Watermark Removal & Upscale",
+  "subtitle": "UNet & VDSR Pipeline",
+  "image": "img/projects/sheetMusicUpscale.png",
+  "imageWidth": 1604,
+  "imageHeight": 1230,
+  "videoWebm": "img/projects/sheetMusicUpscale.webm",
+  "videoMp4": "img/projects/sheetMusicUpscale.mp4",
+  "tools": [
+    "Python",
+    "Computer Vision"
+  ],
+  "concepts": [
+    "Machine Learning"
+  ],
+  "audiences": [
+    "data-science"
+  ],
+  "resources": [
+    {
+      "icon": "img/icons/github-icon.png",
+      "url": "https://github.com/danielshort3/Watermark-Remover",
+      "label": "GitHub"
+    },
+    {
+      "icon": "img/icons/pdf-icon.png",
+      "url": "documents/Project_10_pdf.zip",
+      "label": "PDFs"
+    },
+    {
+      "icon": "img/icons/jupyter-icon.png",
+      "url": "documents/Project_10.zip",
+      "label": "Notebook"
+    }
+  ],
+  "problem": "I needed clean, readable sheet music. Most of what I could find was low-res and watermarked.",
+  "actions": [
+    "Trained a UNet model on paired page images for watermark removal.",
+    "Upscaled low-resolution scans (e.g., ~612x792) to print-friendly resolution (e.g., ~1700x2200) with Very Deep Super-Resolution (VDSR).",
+    "Wrapped it in a simple GUI so I could run the full pipeline."
+  ],
+  "results": [
+    "Typical runs produce cleaner, more readable output in seconds per page (hardware- and batch-dependent)."
+  ],
+  "caseStudy": [
+    {
+      "title": "End-to-End Pipeline",
+      "lead": "One workflow: pull pages, clean them up, upscale them, and rebuild the PDF.",
+      "bullets": [
+        "Input: low-resolution, watermarked page images.",
+        "Step 1: remove watermark artifacts with a UNet model.",
+        "Step 2: upscale with VDSR for print-friendly pages.",
+        "Output: cleaned images compiled into a PDF."
+      ]
+    },
+    {
+      "title": "Modeling Choices",
+      "bullets": [
+        "UNet handles local watermark artifacts while preserving staff lines and note heads.",
+        "VDSR improves readability when starting from low-resolution scans.",
+        "Saved model weights so the pipeline runs without retraining."
+      ]
+    },
+    {
+      "title": "GUI and Automation",
+      "bullets": [
+        "Built a PyQt5 GUI to scrape, process, and compile pages without running a notebook.",
+        "Used background worker threads so the UI stays responsive during batches.",
+        "Designed it for repeat use: new songs in, clean PDFs out."
+      ]
+    },
+    {
+      "title": "Performance and Reliability",
+      "bullets": [
+        "Kept it fast enough for real use (seconds per page on a modern machine; varies by hardware and page size).",
+        "Added sensible defaults and a simple flow so it runs without tuning.",
+        "Kept steps modular so either model can be swapped or improved later."
+      ]
+    },
+    {
+      "title": "What I'd Improve",
+      "bullets": [
+        "Add tiled inference for very large pages and better memory usage.",
+        "Measure quality with objective metrics (PSNR/SSIM) and small human readability tests.",
+        "Explore more modern restoration approaches for better note/staff preservation."
+      ]
+    }
+  ],
+  "order": 9
+}

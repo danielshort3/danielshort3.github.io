@@ -1,0 +1,89 @@
+{
+  "id": "ufoDashboard",
+  "title": "UFO Sightings Dashboard",
+  "subtitle": "Tableau Geospatial Analytics",
+  "image": "img/projects/ufoDashboard.png",
+  "imageWidth": 2008,
+  "imageHeight": 1116,
+  "tools": [
+    "Tableau"
+  ],
+  "concepts": [
+    "Visualization",
+    "Analytics"
+  ],
+  "audiences": [
+    "analytics"
+  ],
+  "resources": [
+    {
+      "icon": "img/icons/tableau-icon.png",
+      "url": "https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013?:language=en-US&:display_count=n&:origin=viz_share_link",
+      "label": "Interactive Dashboard"
+    },
+    {
+      "icon": "img/icons/website-icon.png",
+      "url": "https://nuforc.org/databank/",
+      "label": "NUFORC Database",
+      "type": "data"
+    }
+  ],
+  "embed": {
+    "type": "tableau",
+    "base": "https://public.tableau.com/views/UFO_Sightings_16769494135040/UFOSightingDashboard-2013"
+  },
+  "demoInstructions": {
+    "lead": "Use the interactive Tableau dashboard to explore sightings by place, time, and shape.",
+    "bullets": [
+      "Hover charts/maps for tooltips and quick readouts.",
+      "Click marks (states/cities/shapes) to filter and cross-highlight views.",
+      "Use Tableau controls to refine the slice you’re looking at.",
+      "Scroll to compare time-of-day and seasonality patterns across views."
+    ]
+  },
+  "problem": "I wanted to see patterns in UFO sighting reports across the U.S.",
+  "actions": [
+    "Cleaned and standardized a public UFO sightings dataset.",
+    "Built a Tableau dashboard with maps and time-based charts."
+  ],
+  "results": [
+    "In this dataset, reports are most common in the evening/night hours (and shift seasonally with daylight).",
+    "California has the most reports in the dataset, while many central states have fewer."
+  ],
+  "caseStudy": [
+    {
+      "title": "Dashboard Design",
+      "lead": "I built a one-page Tableau dashboard to explore sightings by place, time, and reported shape.",
+      "bullets": [
+        "Maps: state and city views to compare hotspots at different levels.",
+        "Time: a month/hour heatmap to spot seasonal and time-of-day patterns.",
+        "Shapes: a breakdown of common shapes and how they change over the year."
+      ]
+    },
+    {
+      "title": "Data Preparation",
+      "bullets": [
+        "Standardized location fields so points map consistently.",
+        "Normalized timestamps so reports compare cleanly by month and hour.",
+        "Cleaned shape labels to reduce duplicates from spelling and formatting."
+      ]
+    },
+    {
+      "title": "Insights and Interpretation",
+      "bullets": [
+        "Reports cluster in the evening/night hours in this dataset.",
+        "The peak hour shifts with daylight (later in summer, earlier in winter).",
+        "California stands out in volume; central regions are lower."
+      ]
+    },
+    {
+      "title": "What I'd Improve",
+      "bullets": [
+        "Normalize by population (per-capita rates), especially for smaller areas.",
+        "Add filters for year, duration, and report quality.",
+        "Surface data-quality issues (missing locations, unclear shapes) in the UI."
+      ]
+    }
+  ],
+  "order": 4
+}

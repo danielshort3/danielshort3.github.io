@@ -1,0 +1,115 @@
+{
+  "id": "babynames",
+  "title": "Baby Name Predictor",
+  "subtitle": "Python ML Pipeline",
+  "image": "img/projects/babynames.png",
+  "imageWidth": 1238,
+  "imageHeight": 1238,
+  "videoWebm": "img/projects/babynames.webm",
+  "videoMp4": "img/projects/babynames.mp4",
+  "tools": [
+    "Python",
+    "scikit-learn"
+  ],
+  "concepts": [
+    "Machine Learning"
+  ],
+  "audiences": [
+    "analytics"
+  ],
+  "resources": [
+    {
+      "icon": "img/icons/website-icon.png",
+      "url": "https://www.danielshort.me/baby-names-demo",
+      "label": "Live Demo"
+    },
+    {
+      "icon": "img/icons/github-icon.png",
+      "url": "https://github.com/danielshort3/Baby-Names",
+      "label": "GitHub"
+    },
+    {
+      "icon": "img/icons/pdf-icon.png",
+      "url": "documents/Project_2.pdf",
+      "label": "PDFs"
+    },
+    {
+      "icon": "img/icons/jupyter-icon.png",
+      "url": "documents/Project_2.ipynb",
+      "label": "Notebook"
+    },
+    {
+      "icon": "img/icons/website-icon.png",
+      "url": "https://www.ssa.gov/oact/babynames/",
+      "label": "SSA Baby Names Data",
+      "type": "data"
+    }
+  ],
+  "embed": {
+    "type": "iframe",
+    "url": "baby-names-demo.html"
+  },
+  "demoInstructions": {
+    "lead": "Explore rated names and similarity-based recommendations.",
+    "bullets": [
+      "Choose Girls, Boys, or All at the top to change the dataset slice.",
+      "In “Ratings Snapshot”, click a rating bar to see the names at that score.",
+      "In “Name Explorer”, switch between Recommendations and Rated Names.",
+      "Use search + sort to find names quickly."
+    ]
+  },
+  "problem": "My wife asked me to suggest baby names. I wanted something that learns her taste instead of guessing.",
+  "actions": [
+    "Aggregated SSA baby-name records (1880-present) and engineered trend features.",
+    "Built a simple 'quiz' script to collect like/dislike labels.",
+    "Trained several models and averaged their scores to produce recommendations."
+  ],
+  "results": [
+    "Generated personalized top 50 name lists for boys and girls.",
+    "Helped us narrow the list when naming our child."
+  ],
+  "caseStudy": [
+    {
+      "title": "Data and Labeling",
+      "lead": "I combined Social Security Administration name data with preference labels to build a personalized recommender.",
+      "bullets": [
+        "Aggregated SSA baby-name records (1880-present) and added recency/trend features so it doesn’t just recommend the most common names.",
+        "Focused on Colorado to keep suggestions closer to what my wife actually hears day to day.",
+        "Collected labels through quick quizzes so the model learns her taste over time."
+      ]
+    },
+    {
+      "title": "Feature Engineering",
+      "bullets": [
+        "Name shape features: length, vowel/consonant mix, syllable count, start/end vowel flags, and entropy.",
+        "Popularity features: total count, peak year, and recent-count features to capture saturation and momentum.",
+        "A rough origin signal via `langdetect` as a lightweight proxy."
+      ]
+    },
+    {
+      "title": "Modeling Strategy",
+      "bullets": [
+        "Trained multiple models (Random Forest, XGBoost, SVM, KNN, plus a deep learning baseline) with randomized hyperparameter search.",
+        "Optimized for weighted F1 to handle class imbalance in 'liked' vs. 'not liked' labels.",
+        "Averaged predictions across models to reduce quirks from any single model."
+      ]
+    },
+    {
+      "title": "Recommendation Workflow",
+      "bullets": [
+        "Generated a ranked Top 50 list for boys and girls and exported results for easy review.",
+        "Designed the loop so new feedback becomes new training data.",
+        "Kept it explainable by surfacing which features correlated with higher predicted preference."
+      ]
+    },
+    {
+      "title": "What I'd Improve",
+      "bullets": [
+        "Collect more labels and add calibration so probabilities map to real acceptance rates.",
+        "Use name embeddings (character-level or phonetic) instead of hand-crafted features alone.",
+        "Add diversity constraints so recommendations aren’t overly similar to each other."
+      ]
+    }
+  ],
+  "order": 13
+}

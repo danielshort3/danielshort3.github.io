@@ -1,0 +1,24 @@
+{
+  "slug": "word-frequency",
+  "title": "Word Frequency Analyzer",
+  "href": "tools/word-frequency",
+  "categoryId": "tools-writing",
+  "summary": "Paste text, strip stopwords, and see the most frequent words calculated entirely in-browser.",
+  "iconHtml": "<svg viewBox=\"0 0 24 24\" role=\"presentation\">\n                      <path d=\"M5 4h14v16H5z\" class=\"icon-fill\" opacity=\".12\"></path>\n                      <path d=\"M5 4h14v16H5z\"></path>\n                      <path d=\"M8 8h8M8 12h5M8 16h7\"></path>\n                    </svg>",
+  "pills": [
+    {
+      "label": "Local",
+      "variant": "local"
+    },
+    {
+      "label": "Text"
+    },
+    {
+      "label": "Stopwords"
+    }
+  ],
+  "visibility": "public",
+  "hidden": false,
+  "order": 5,
+  "noindex": false
+}

@@ -1,0 +1,76 @@
+{
+  "id": "basic-page",
+  "name": "Basic Page",
+  "description": "A simple page with hero, content, and call-to-action sections.",
+  "folder": "Starter Templates",
+  "tags": [
+    "starter",
+    "page"
+  ],
+  "updatedAt": "2026-04-25T00:00:00.000Z",
+  "page": {
+    "id": "new-page",
+    "template": "visual-page",
+    "outputPath": "pages/new-page.html",
+    "title": "New Page | Daniel Short",
+    "canonicalPath": "/new-page",
+    "description": "New managed page.",
+    "bodyAttributes": {
+      "data-page": "new-page",
+      "class": "site-page"
+    },
+    "stylesheets": [
+      "dist/styles.css"
+    ],
+    "headScripts": [
+      {
+        "src": "dist/site-shell.js",
+        "defer": true
+      },
+      {
+        "src": "js/common/no-js.js"
+      }
+    ],
+    "bottomScripts": [
+      {
+        "src": "dist/site-consent.js",
+        "defer": true
+      }
+    ],
+    "mainAttributes": {
+      "id": "main"
+    },
+    "sections": [
+      {
+        "id": "hero",
+        "type": "legacy-html",
+        "label": "Hero",
+        "enabled": true,
+        "variant": "default",
+        "props": {
+          "html": "<section class=\"hero hero--default alt-band\"><div class=\"wrapper\"><p class=\"hero-eyebrow\">Page</p><h1>New page</h1><p class=\"hero-tagline\">Add a concise supporting message.</p></div></section>"
+        }
+      },
+      {
+        "id": "content",
+        "type": "legacy-html",
+        "label": "Content",
+        "enabled": true,
+        "variant": "default",
+        "props": {
+          "html": "<section class=\"surface-band reveal\"><div class=\"wrapper\"><h2 class=\"section-title\">Section title</h2><p>Add body copy here.</p></div></section>"
+        }
+      },
+      {
+        "id": "cta",
+        "type": "legacy-html",
+        "label": "Call to Action",
+        "enabled": true,
+        "variant": "default",
+        "props": {
+          "html": "<section class=\"surface-band reveal\"><div class=\"wrapper\"><div id=\"cta-link\" role=\"group\" aria-label=\"Contact call to action\"><h2 class=\"section-title\">Ready to connect?</h2><p>Add a short call to action.</p><div><a href=\"contact\" class=\"btn-primary\">Contact</a></div></div></div></section>"
+        }
+      }
+    ]
+  }
+}

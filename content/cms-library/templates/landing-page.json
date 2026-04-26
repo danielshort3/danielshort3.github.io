@@ -1,0 +1,86 @@
+{
+  "id": "landing-page",
+  "name": "Landing Page",
+  "description": "A longer landing page starter with hero, gallery, content, and call-to-action sections.",
+  "folder": "Starter Templates",
+  "tags": [
+    "starter",
+    "landing"
+  ],
+  "updatedAt": "2026-04-25T00:00:00.000Z",
+  "page": {
+    "id": "new-landing-page",
+    "template": "visual-page",
+    "outputPath": "pages/new-landing-page.html",
+    "title": "New Landing Page | Daniel Short",
+    "canonicalPath": "/new-landing-page",
+    "description": "New managed landing page.",
+    "bodyAttributes": {
+      "data-page": "new-landing-page",
+      "class": "site-page"
+    },
+    "stylesheets": [
+      "dist/styles.css"
+    ],
+    "headScripts": [
+      {
+        "src": "dist/site-shell.js",
+        "defer": true
+      },
+      {
+        "src": "js/common/no-js.js"
+      }
+    ],
+    "bottomScripts": [
+      {
+        "src": "dist/site-consent.js",
+        "defer": true
+      }
+    ],
+    "mainAttributes": {
+      "id": "main"
+    },
+    "sections": [
+      {
+        "id": "hero",
+        "type": "legacy-html",
+        "label": "Hero",
+        "enabled": true,
+        "variant": "default",
+        "props": {
+          "html": "<section class=\"hero hero--default alt-band\"><div class=\"wrapper\"><p class=\"hero-eyebrow\">Landing page</p><h1>New landing page</h1><p class=\"hero-tagline\">Add a focused value proposition.</p><div class=\"cta-group\"><a href=\"#main\" class=\"btn-primary hero-cta\">Primary action</a></div></div></section>"
+        }
+      },
+      {
+        "id": "gallery",
+        "type": "legacy-html",
+        "label": "Image Gallery",
+        "enabled": true,
+        "variant": "default",
+        "props": {
+          "html": "<section class=\"surface-band reveal\"><div class=\"wrapper\"><h2 class=\"section-title\">Featured visuals</h2><div class=\"project-examples-grid\" role=\"list\"><figure class=\"project-card\"><img src=\"img/hero/head.jpg\" alt=\"Gallery image\" loading=\"lazy\" decoding=\"async\"><figcaption class=\"project-text\"><span class=\"project-title\">Gallery image</span></figcaption></figure></div></div></section>"
+        }
+      },
+      {
+        "id": "content",
+        "type": "legacy-html",
+        "label": "Content",
+        "enabled": true,
+        "variant": "default",
+        "props": {
+          "html": "<section class=\"surface-band reveal\"><div class=\"wrapper\"><h2 class=\"section-title\">Section title</h2><p>Add supporting content here.</p></div></section>"
+        }
+      },
+      {
+        "id": "cta",
+        "type": "legacy-html",
+        "label": "Call to Action",
+        "enabled": true,
+        "variant": "default",
+        "props": {
+          "html": "<section class=\"surface-band reveal\"><div class=\"wrapper\"><div id=\"cta-link\" role=\"group\" aria-label=\"Contact call to action\"><h2 class=\"section-title\">Ready to connect?</h2><p>Add a short call to action.</p><div><a href=\"contact\" class=\"btn-primary\">Contact</a></div></div></div></section>"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "id": "smartSentence",
+  "title": "Smart Sentence Retriever",
+  "subtitle": "NLP Embeddings & Serverless Retrieval",
+  "image": "img/projects/smartSentence.png",
+  "imageWidth": 952,
+  "imageHeight": 952,
+  "videoWebm": "img/projects/smartSentence.webm",
+  "videoMp4": "img/projects/smartSentence.mp4",
+  "tools": [
+    "Python",
+    "AWS",
+    "Docker",
+    "NLP"
+  ],
+  "concepts": [
+    "Machine Learning",
+    "Automation"
+  ],
+  "audiences": [
+    "data-science"
+  ],
+  "resources": [
+    {
+      "icon": "img/icons/github-icon.png",
+      "url": "https://github.com/danielshort3/Smart-Sentence-Finder",
+      "label": "GitHub"
+    },
+    {
+      "icon": "img/icons/pdf-icon.png",
+      "url": "documents/Project_13.pdf",
+      "label": "PDF"
+    },
+    {
+      "icon": "img/icons/jupyter-icon.png",
+      "url": "documents/Project_13.ipynb",
+      "label": "Notebook"
+    },
+    {
+      "icon": "img/icons/website-icon.png",
+      "url": "https://www.danielshort.me/sentence-demo.html",
+      "label": "Live Demo"
+    },
+    {
+      "icon": "img/icons/website-icon.png",
+      "url": "https://www.gutenberg.org/ebooks/11",
+      "label": "Corpus (Project Gutenberg)",
+      "type": "data"
+    }
+  ],
+  "embed": {
+    "type": "iframe",
+    "url": "sentence-demo.html"
+  },
+  "demoInstructions": {
+    "lead": "Search a fixed Alice in Wonderland corpus by meaning, not exact wording.",
+    "bullets": [
+      "Type a query (a phrase or full sentence).",
+      "Adjust “Top results” to control how many matches are returned.",
+      "Click “Find Sentences” and review the ranked semantic matches.",
+      "If the demo is warming up after idle time, wait for the status to turn ready and try again."
+    ]
+  },
+  "role": [
+    "Built the retrieval pipeline, Lambda API, and browser demo end to end."
+  ],
+  "notes": "The live demo uses a fixed Alice in Wonderland corpus and checks endpoint health before enabling queries because cold starts can happen after idle time.",
+  "problem": "I wanted a fast way to retrieve sentences that answer a question even when the wording doesn't match exactly.",
+  "actions": [
+    "Cleaned Project Gutenberg text, split it into sentences, and precomputed embeddings for the fixed corpus.",
+    "Compared several embedding models on a sample subset and balanced clustering quality against model size and serverless deployment cost.",
+    "Deployed the selected model behind an AWS Lambda Function URL and built a browser demo that checks `/health` before ranking top-k matches by cosine similarity."
+  ],
+  "results": [
+    "Shipped a working semantic-search demo for Alice in Wonderland that returns ranked sentence matches instead of keyword hits.",
+    "Kept the site embed usable with warm-up status, inline similarity bars, and an open-in-new-tab fallback for a larger view."
+  ],
+  "caseStudy": [
+    {
+      "title": "System Design",
+      "lead": "This uses a fixed Alice in Wonderland corpus: embed each sentence once, then embed each query and rank by cosine similarity.",
+      "bullets": [
+        "Offline: clean the text, split it into sentences, and cache the sentence embeddings.",
+        "Online: embed the query, score against the cached matrix, and return the top-k matches with scores.",
+        "Frontend: check `/health` before submit, call `/rank`, and render the ranked results in an embeddable demo."
+      ]
+    },
+    {
+      "title": "Model Selection",
+      "bullets": [
+        "Compared several embedding models using silhouette score on a small sample as a rough clustering heuristic.",
+        "Balanced retrieval quality against model size, memory footprint, and cold-start cost.",
+        "Kept the corpus, sample, and k range fixed so the comparisons were consistent."
+      ]
+    },
+    {
+      "title": "Serverless Deployment",
+      "bullets": [
+        "Built a Lambda container with CPU PyTorch, FastAPI/Mangum, and the precomputed artifacts.",
+        "Used the plain Hugging Face stack (no sentence-transformers) to keep the deployment smaller.",
+        "Exposed a Lambda Function URL with CORS plus a lightweight `/health` and `/rank` contract for the site demo."
+      ]
+    },
+    {
+      "title": "Demo and Site Integration",
+      "bullets": [
+        "Used the shared demo AWS client for endpoint resolution, retry logic, and warm-up polling.",
+        "Kept the embedded iframe responsive by posting resize messages back to the project page.",
+        "Supported both inline demo tabs and a separate-tab fallback from the portfolio page."
+      ]
+    },
+    {
+      "title": "What I'd Improve",
+      "bullets": [
+        "Let users upload documents and build embeddings in the background.",
+        "Add ANN search (HNSW/FAISS) for bigger corpora and faster top-k.",
+        "Add a small labeled set and evaluate with metrics like nDCG@k."
+      ]
+    }
+  ],
+  "order": 1
+}

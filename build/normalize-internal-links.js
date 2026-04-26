@@ -89,7 +89,7 @@ function shouldKeepNewTab(href) {
 
   if (/^\/documents\//i.test(pathname)) return true;
   if (/\/(?:demos\/|[^/]*-demo(?:\.html)?)(?:$|[?#/])/i.test(pathname)) return true;
-  if (/^\/games\/(?:stellar-dogfight|slot-machine|roulette|probability-engine)(?:\.html)?(?:$|[?#])/i.test(pathname)) return true;
+  if (/^\/games\/(?:stellar-dogfight|roulette|probability-engine)(?:\.html)?(?:$|[?#])/i.test(pathname)) return true;
   return false;
 }
 

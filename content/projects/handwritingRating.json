@@ -1,0 +1,112 @@
+{
+  "id": "handwritingRating",
+  "title": "Handwriting Legibility Scoring",
+  "subtitle": "PyTorch CNN Fine-Tuning",
+  "image": "img/projects/handwritingRating.png",
+  "imageWidth": 1138,
+  "imageHeight": 1138,
+  "videoWebm": "img/projects/handwritingRating.webm",
+  "videoMp4": "img/projects/handwritingRating.mp4",
+  "videoOnly": true,
+  "tools": [
+    "Python",
+    "PyTorch",
+    "AWS",
+    "Docker",
+    "CNN"
+  ],
+  "concepts": [
+    "Machine Learning"
+  ],
+  "audiences": [
+    "data-science"
+  ],
+  "resources": [
+    {
+      "icon": "img/icons/github-icon.png",
+      "url": "https://github.com/danielshort3/Handwriting-Rating",
+      "label": "GitHub"
+    },
+    {
+      "icon": "img/icons/website-icon.png",
+      "url": "https://www.danielshort.me/handwriting-rating-demo.html",
+      "label": "Live Demo"
+    },
+    {
+      "icon": "img/icons/pdf-icon.png",
+      "url": "documents/Project_8.pdf",
+      "label": "PDF"
+    },
+    {
+      "icon": "img/icons/jupyter-icon.png",
+      "url": "documents/Project_8.ipynb",
+      "label": "Notebook"
+    },
+    {
+      "icon": "img/icons/website-icon.png",
+      "url": "https://www.tensorflow.org/datasets/catalog/mnist",
+      "label": "MNIST Dataset",
+      "type": "data"
+    }
+  ],
+  "embed": {
+    "type": "iframe",
+    "url": "handwriting-rating-demo.html"
+  },
+  "demoInstructions": {
+    "lead": "Draw a digit (0-9) or load a sample, then score how legible it is.",
+    "bullets": [
+      "Pick a sample from “Daniel’s Handwritten Numbers”, or draw a digit on the canvas.",
+      "Click “Rate digit” to submit.",
+      "Use the eraser to clear the canvas and try another digit.",
+      "Review the predicted digit, confidence, and legibility score breakdown."
+    ]
+  },
+  "problem": "My wife says my handwriting is hard to read. I wanted an objective score.",
+  "actions": [
+    "Built three digit-recognition models, moving from a simple baseline to a CNN.",
+    "Trained on MNIST (60,000 digits) and selected the best model.",
+    "Deployed it behind a serverless scoring API for the live demo."
+  ],
+  "results": [
+    "The best model reached ~99% test accuracy on MNIST (see notebook).",
+    "On a small personal handwriting set, accuracy was ~75.6% (not a benchmark; see notebook).",
+    "My wife was right."
+  ],
+  "caseStudy": [
+    {
+      "title": "Experiment Setup",
+      "lead": "I used MNIST as a baseline, then scored my own handwriting with the same setup.",
+      "bullets": [
+        "Dataset: MNIST (60,000 train / 10,000 test) for digit recognition.",
+        "Goal: compare model types and quantify my own legibility with a consistent metric.",
+        "Output: per-digit accuracy and a confusion matrix to see which digits I write most ambiguously."
+      ]
+    },
+    {
+      "title": "Model Iteration",
+      "bullets": [
+        "Model 1: simple linear classifier as a baseline.",
+        "Model 2: small CNN (TinyVGG-style) to capture strokes and curves.",
+        "Model 3: deeper CNN (VGG16-style) with the best test accuracy (99.1%)."
+      ]
+    },
+    {
+      "title": "Custom Handwriting Evaluation",
+      "bullets": [
+        "Built a loader so new images can be preprocessed and scored consistently.",
+        "Scored a small personal handwriting set (~75.6% accuracy) and used the confusion matrix to see which digits were most ambiguous.",
+        "Used the breakdown to make it actionable (which digits to practice)."
+      ]
+    },
+    {
+      "title": "What I'd Improve",
+      "bullets": [
+        "Train on EMNIST or other real handwriting datasets to reduce domain shift from MNIST.",
+        "Add augmentation (stroke thickness, rotation, blur) to better match camera/scanner variation.",
+        "Calibrate confidence so the model can say 'uncertain' instead of forcing a guess."
+      ]
+    }
+  ],
+  "order": 7
+}

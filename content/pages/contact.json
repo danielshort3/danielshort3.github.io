@@ -1,0 +1,85 @@
+{
+  "id": "contact",
+  "template": "visual-page",
+  "outputPath": "pages/contact.html",
+  "title": "Contact | Daniel Short",
+  "canonicalPath": "/contact",
+  "description": "Get in touch about data analyst, BI, reporting, insights, and stakeholder-facing analytics work.",
+  "ogTitle": "Contact | Daniel Short",
+  "ogDescription": "Get in touch about data analyst, BI, reporting, insights, and stakeholder-facing analytics work.",
+  "siteName": "Daniel Short – Data Science & Analytics",
+  "ogType": "website",
+  "bodyAttributes": {
+    "data-page": "contact",
+    "class": "contact-page site-page"
+  },
+  "stylesheets": [
+    "dist/styles.css",
+    "css/components/destination-analytics.css",
+    "css/components/contact-card.css"
+  ],
+  "headScripts": [
+    {
+      "src": "dist/site-shell.js",
+      "defer": true
+    },
+    {
+      "src": "js/common/no-js.js"
+    }
+  ],
+  "bottomScripts": [
+    {
+      "src": "dist/site-contact.js",
+      "defer": true
+    },
+    {
+      "src": "dist/site-consent.js",
+      "defer": true
+    }
+  ],
+  "mainAttributes": {
+    "id": "main"
+  },
+  "sections": [
+    {
+      "id": "contact-1",
+      "type": "legacy-html",
+      "label": "Let's Connect",
+      "enabled": true,
+      "variant": "default",
+      "props": {
+        "html": "<section class=\"hero hero--default alt-band\">\n    <div class=\"wrapper\">\n      <h1>Let's Connect</h1>\n      <p class=\"hero-tagline\">Hiring for a data analyst, BI, reporting, or strategy role?<br>Send a message and I’ll reply shortly.</p>\n        <div class=\"cta-group\">\n          <button id=\"contact-form-toggle\" class=\"btn-primary hero-cta\">Send a Message</button>\n        </div>\n    </div>\n      <a class=\"chevron-hint scroll-indicator\" href=\"#contact-options\" data-smooth-scroll=\"true\">\n        <span class=\"chevron-label\">Scroll for ways to connect</span>\n        <svg width=\"28\" height=\"28\" viewBox=\"0 0 24 24\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M12 16.5a1 1 0 0 1-.7-.29l-6-6a1 1 0 1 1 1.4-1.42L12 14.08l5.3-5.29a1 1 0 0 1 1.4 1.42l-6 6a1 1 0 0 1-.7.29z\"/></svg>\n      </a>\n  </section>"
+      }
+    },
+    {
+      "id": "contact-2",
+      "type": "legacy-html",
+      "label": "Send a Message",
+      "enabled": true,
+      "variant": "default",
+      "props": {
+        "html": "<div id=\"contact-modal\" class=\"modal\">\n    <div class=\"modal-content\" role=\"dialog\" aria-modal=\"true\" tabindex=\"0\" aria-labelledby=\"contact-modal-title\">\n      <button class=\"modal-close\" aria-label=\"Close dialog\">&times;</button>\n      <div class=\"modal-title-strip\"><h3 class=\"modal-title\" id=\"contact-modal-title\">Send a Message</h3></div>\n      <div class=\"modal-body\">\n        <form id=\"contact-form\" class=\"contact-form\" method=\"post\" action=\"/api/contact\" data-endpoint=\"/api/contact\" novalidate>\n          <div class=\"form-field\">\n            <label for=\"contact-name\">Name <span class=\"field-required\" id=\"contact-name-required\" hidden>- Required</span></label>\n            <input id=\"contact-name\" name=\"name\" type=\"text\" autocomplete=\"name\" required maxlength=\"200\" placeholder=\"Jane Doe\" aria-describedby=\"contact-name-required\">\n          </div>\n          <div class=\"form-field\">\n            <label for=\"contact-email\">Email <span class=\"field-required\" id=\"contact-email-required\" hidden>- Required</span></label>\n            <input id=\"contact-email\" name=\"email\" type=\"email\" autocomplete=\"email\" required placeholder=\"you@example.com\" aria-describedby=\"contact-email-required\">\n          </div>\n          <div class=\"form-field\">\n            <label for=\"contact-message\">How can I help? <span class=\"field-required\" id=\"contact-message-required\" hidden>- Required</span></label>\n            <textarea id=\"contact-message\" name=\"message\" rows=\"5\" maxlength=\"4000\" required placeholder=\"Share a few details about your project, role, or opportunity.\" aria-describedby=\"contact-message-required\"></textarea>\n          </div>\n          <div class=\"form-field honeypot\" aria-hidden=\"true\">\n            <label for=\"contact-company\">Company</label>\n            <input id=\"contact-company\" name=\"company\" type=\"text\" tabindex=\"-1\" autocomplete=\"off\">\n          </div>\n          <p id=\"contact-status\" class=\"contact-form-status\" role=\"status\" aria-live=\"polite\" tabindex=\"-1\"></p>\n          <div id=\"contact-alt\" class=\"contact-form-alt\" hidden>\n            <a href=\"mailto:daniel@danielshort.me\" class=\"btn-ghost\">Email me directly</a>\n          </div>\n          <div class=\"form-actions\">\n            <button type=\"submit\" class=\"btn-primary\">\n              <span class=\"btn-spinner\" aria-hidden=\"true\"></span>\n              <span class=\"btn-label\">Send Message</span>\n            </button>\n            <button type=\"button\" class=\"btn-secondary\" data-contact-close>Close</button>\n            <button type=\"button\" class=\"btn-ghost\" data-contact-reset>Clear form</button>\n          </div>\n        </form>\n        <div class=\"contact-form-success\" id=\"contact-success\" hidden tabindex=\"-1\" role=\"status\" aria-live=\"polite\">\n          <span class=\"success-icon\" aria-hidden=\"true\"></span>\n          <h4>Message sent</h4>\n          <p>Thanks for reaching out. I received your note and will reply shortly. If it’s urgent, feel free to send a direct email as well.</p>\n          <div class=\"form-actions\">\n            <button type=\"button\" class=\"btn-primary\" data-contact-new>Start another message</button>\n            <a href=\"mailto:daniel@danielshort.me\" class=\"btn-secondary\">Email me directly</a>\n          </div>\n        </div>\n      </div>\n    </div>\n  </div>"
+      }
+    },
+    {
+      "id": "contact-3",
+      "type": "legacy-html",
+      "label": "Contact Options",
+      "enabled": true,
+      "variant": "default",
+      "props": {
+        "html": "<section id=\"contact-options\" class=\"surface-band reveal\">\n    <div class=\"wrapper\">\n      <div class=\"contact-options-heading\">\n        <h2 class=\"section-title\">Contact Options</h2>\n        <p class=\"section-subtitle\">Email is fastest. LinkedIn works well for recruiters, introductions, and hiring teams.</p>\n      </div>\n      <div class=\"contact-grid contact-big\">\n      <a href=\"mailto:daniel@danielshort.me\" class=\"contact-card\">\n        <svg viewBox=\"0 0 24 24\" aria-hidden=\"true\">\n          <rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"2\"></rect>\n          <path d=\"M3 7l9 6 9-6\"></path>\n        </svg>\n        <span>Email</span><small>daniel@danielshort.me</small>\n      </a>\n      <a href=\"https://www.linkedin.com/in/danielshort3/\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"contact-card\">\n        <svg class=\"brand-fill\" viewBox=\"0 0 24 24\" aria-hidden=\"true\">\n          <circle cx=\"4\" cy=\"4\" r=\"2\"></circle>\n          <rect x=\"2\" y=\"9\" width=\"4\" height=\"12\" rx=\"1\"></rect>\n          <path d=\"M10 9h3.8v2.1h.1C14.8 9.7 16.1 9 17.9 9c3 0 5.1 1.9 5.1 5.9V21h-4v-5.9c0-1.7-.7-2.9-2.6-2.9s-2.7 1.4-2.7 3V21H10z\"></path>\n        </svg>\n        <span>LinkedIn</span><small>/in/danielshort3</small>\n      </a>\n      <a href=\"https://github.com/danielshort3\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"contact-card\">\n        <span class=\"icon icon-github\" aria-hidden=\"true\"></span>\n        <span>GitHub</span><small>@danielshort3</small>\n      </a>\n      </div>\n    </div>\n    </section>"
+      }
+    },
+    {
+      "id": "contact-4",
+      "type": "legacy-html",
+      "label": "Who I Work With",
+      "enabled": true,
+      "variant": "default",
+      "props": {
+        "html": "<section class=\"surface-band reveal destination-section\" aria-labelledby=\"who-i-work-with-title\">\n    <div class=\"wrapper\">\n      <div class=\"destination-section-head\">\n        <h2 id=\"who-i-work-with-title\">Who I Work With</h2>\n        <p>I’m most relevant when a team needs business-facing analytics, recurring reporting, and clear translation between messy data and stakeholder decisions.</p>\n      </div>\n      <div class=\"who-i-work-with-grid\">\n        <article class=\"who-i-work-with-card\">\n          <h3>Business &amp; Operations Teams</h3>\n          <p>KPI reporting, forecasting, insights, and decision support for day-to-day business performance.</p>\n        </article>\n        <article class=\"who-i-work-with-card\">\n          <h3>Marketing Teams</h3>\n          <p>Campaign performance reporting, dashboarding, segmentation, and measurement that supports clearer decisions.</p>\n        </article>\n        <article class=\"who-i-work-with-card\">\n          <h3>Leadership &amp; Public Sector Teams</h3>\n          <p>Board, council, and executive reporting that connects analytics to strategic and public-facing outcomes.</p>\n        </article>\n        <article class=\"who-i-work-with-card\">\n          <h3>Product &amp; Analytics Teams</h3>\n          <p>Performance analysis, stakeholder-ready reporting, and process improvement across multi-source datasets.</p>\n        </article>\n      </div>\n    </div>\n  </section>"
+      }
+    }
+  ]
+}

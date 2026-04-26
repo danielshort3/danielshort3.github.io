@@ -1,0 +1,110 @@
+{
+  "id": "retailStore",
+  "title": "Store-Level Loss & Sales ETL",
+  "subtitle": "SQL ETL + Anomaly Detection",
+  "image": "img/projects/retailStore.png",
+  "imageWidth": 1410,
+  "imageHeight": 1410,
+  "videoWebm": "img/projects/retailStore.webm",
+  "videoMp4": "img/projects/retailStore.mp4",
+  "tools": [
+    "SQL",
+    "Python",
+    "AWS"
+  ],
+  "concepts": [
+    "Automation",
+    "Analytics"
+  ],
+  "audiences": [
+    "analytics",
+    "tourism"
+  ],
+  "resources": [
+    {
+      "icon": "img/icons/github-icon.png",
+      "url": "https://github.com/danielshort3/target-packaging-analysis-mssql",
+      "label": "GitHub"
+    },
+    {
+      "icon": "img/icons/pdf-icon.png",
+      "url": "documents/Project_12.pdf",
+      "label": "PDF"
+    },
+    {
+      "icon": "img/icons/jupyter-icon.png",
+      "url": "documents/Project_12.ipynb",
+      "label": "Notebook"
+    },
+    {
+      "icon": "img/icons/website-icon.png",
+      "url": "https://www.danielshort.me/retail-loss-sales-demo.html",
+      "label": "Live Demo"
+    }
+  ],
+  "embed": {
+    "type": "iframe",
+    "url": "retail-loss-sales-demo.html"
+  },
+  "demoInstructions": {
+    "lead": "Compare store-level incident signals against sales metrics using tabs and filters.",
+    "bullets": [
+      "Pick a region to filter incidents and trends.",
+      "Switch sales metrics (Total, Online, Drive-up) to change the sales view.",
+      "Switch incident metrics (Count vs. Proven $) to change the incident view.",
+      "Use “Reset view” to return to the default slice."
+    ]
+  },
+  "role": [
+    "Led the analysis: SQL modeling/ETL, anomaly detection, and reporting."
+  ],
+  "notes": "Store, state, and employee identifiers are anonymized in the case study.",
+  "problem": "We didn't have a single view of security incidents, theft hotspots, and boycott-driven sales swings.",
+  "actions": [
+    "Joined incident, sales, and HR tables in SQL and automated KPIs with views and stored procedures.",
+    "Built Python dashboards to compare theft vs. sales by format, state, and time.",
+    "Used anomaly detection to flag outlier stores and associates."
+  ],
+  "results": [
+    "Found a cluster of outlier stores with incident rates several times higher than typical peers.",
+    "Flagged regions and stores with substantially higher estimated loss rates (figures anonymized).",
+    "Measured year-over-year sales changes around boycott periods (exact figures anonymized).",
+    "Flagged a small set of high-risk associates and patterns using anomaly detection (identifiers anonymized)."
+  ],
+  "caseStudy": [
+    {
+      "title": "Data Modeling and ETL",
+      "lead": "I built a SQL layer that joins incidents, theft, sales, and HR attributes so the team can slice risk by store, region, and time.",
+      "bullets": [
+        "Joined incident, sales, and employee tables and created reusable KPI views.",
+        "Standardized date keys and dimensions (store format, region/state) so filters stay consistent.",
+        "Anonymized identifiers so insights can be shared safely."
+      ]
+    },
+    {
+      "title": "Analysis Workflow",
+      "bullets": [
+        "Ran targeted queries to find high-incident formats, top-theft states, and high-risk associates.",
+        "Measured boycott impact with year-over-year comparisons around the timeline.",
+        "Used Python charts to highlight hotspots, trends, and outliers."
+      ]
+    },
+    {
+      "title": "Anomaly Detection",
+      "bullets": [
+        "Flagged outlier stores and associates by comparing against peer baselines, not raw totals.",
+        "Separated 'high frequency' (incidents per store) from 'high severity' (value per item).",
+        "Kept the output focused on a short list people can investigate."
+      ]
+    },
+    {
+      "title": "What I'd Improve",
+      "bullets": [
+        "Add automated weekly anomaly alerts and an audit trail for investigations.",
+        "Normalize by traffic or shipments to separate volume from risk changes.",
+        "Explore causal analysis for boycott drivers and mitigation tests."
+      ]
+    }
+  ],
+  "order": 11
+}
