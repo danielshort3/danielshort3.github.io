@@ -21,6 +21,7 @@ node_modules/
 /_local/
 
 # Local-only artifacts / large folders
+/api/cms/
 /go/
 /.short-links-generated
 /Slot-Machine-v4/
