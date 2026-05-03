@@ -1394,9 +1394,16 @@ try {
 
   section('Chatbot demo startup timer', () => {
     const chatbotHtml = fs.readFileSync('demos/chatbot-demo.html', 'utf8');
+    const vercel = fs.readFileSync('vercel.json', 'utf8');
+    assert(chatbotHtml.includes("const DEFAULT_API_URL = 'https://k8bys9gicf.execute-api.us-east-2.amazonaws.com/prod';"), 'chatbot-demo missing new API URL');
+    assert(!chatbotHtml.includes('ovodkr9oad'), 'chatbot-demo still references old API');
+    assert(chatbotHtml.includes("postJson(`${API_URL}/warmup`"), 'chatbot-demo missing warm-up API call');
+    assert(chatbotHtml.includes('let serverReady = false;'), 'chatbot-demo should gate sending on warm server state');
+    assert(vercel.includes('k8bys9gicf.execute-api.us-east-2.amazonaws.com'), 'vercel.json missing new chatbot API host');
+    assert(!vercel.includes('ovodkr9oad.execute-api.us-east-2.amazonaws.com'), 'vercel.json still allows old chatbot API host');
     const startConst = chatbotHtml.match(/const START_TIMEOUT_SEC = (\d+);/);
     const warmSec = startConst ? parseInt(startConst[1], 10) : 0;
-    assert(warmSec >= 600, 'chatbot-demo start timeout < 10 minutes');
+    assert(warmSec >= 270, 'chatbot-demo start timeout < measured cold-start estimate');
 
     const startSection = chatbotHtml.match(/\/\/ Starting timer helpers[\s\S]*?\/\/ End starting timer helpers/);
     assert(startSection, 'chatbot-demo starting timer section missing');
@@ -1416,6 +1423,8 @@ try {
       svcText: { textContent: '' },
       svcETA: { textContent: '' },
       setDot: () => {},
+      setServerReady: () => {},
+      setWarmupButton: () => {},
       startGraceCycle: () => {},
       fmtClock: () => '',
       setInterval: () => 1,
@@ -1423,10 +1432,10 @@ try {
     };
     vm.runInNewContext(startSection[0], warmEnv);
     warmEnv.startStartingTimer();
-    warmEnv.Date.now = () => 599 * 1000;
+    warmEnv.Date.now = () => (warmSec - 1) * 1000;
     assert(warmEnv.currentStartingRemaining() > 0, 'starting countdown ended too early');
-    warmEnv.Date.now = () => 601 * 1000;
-    assert(warmEnv.currentStartingRemaining() === 0, 'starting countdown did not finish after ten minutes');
+    warmEnv.Date.now = () => (warmSec + 1) * 1000;
+    assert(warmEnv.currentStartingRemaining() === 0, 'starting countdown did not finish after configured startup budget');
   });
 
   section('404 rewrites and portfolio page sections', () => {
