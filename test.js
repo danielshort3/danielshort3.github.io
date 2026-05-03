@@ -1399,11 +1399,33 @@ try {
     assert(!chatbotHtml.includes('ovodkr9oad'), 'chatbot-demo still references old API');
     assert(chatbotHtml.includes("postJson(`${API_URL}/warmup`"), 'chatbot-demo missing warm-up API call');
     assert(chatbotHtml.includes('let serverReady = false;'), 'chatbot-demo should gate sending on warm server state');
+    assert(chatbotHtml.includes('function isStartupInProgressPayload(payload)'), 'chatbot-demo missing startup-in-progress status helper');
+    assert(chatbotHtml.includes('if (status.startupInProgress)'), 'chatbot-demo should only start countdown when AWS is actively starting');
     assert(vercel.includes('k8bys9gicf.execute-api.us-east-2.amazonaws.com'), 'vercel.json missing new chatbot API host');
     assert(!vercel.includes('ovodkr9oad.execute-api.us-east-2.amazonaws.com'), 'vercel.json still allows old chatbot API host');
     const startConst = chatbotHtml.match(/const START_TIMEOUT_SEC = (\d+);/);
     const warmSec = startConst ? parseInt(startConst[1], 10) : 0;
     assert(warmSec >= 270, 'chatbot-demo start timeout < measured cold-start estimate');
+
+    const startupSection = chatbotHtml.match(/function isStartupInProgressPayload\(payload\) \{[\s\S]*?\n        function updateQueueIndicators/);
+    assert(startupSection, 'chatbot-demo startup-in-progress helper section missing');
+    const startupEnv = {};
+    vm.runInNewContext(`${startupSection[0].replace(/\n        function updateQueueIndicators$/, '')}
+      checks = [
+        isStartupInProgressPayload({
+          status: 'Off',
+          current: 0,
+          desired: 0,
+          eta: { to_warm_seconds: 270 },
+          stage: { name: 'accepted', endpoint: { current: 0, desired: 0 }, metrics: { approx_backlog_per_instance: 0, has_backlog_without_capacity: 0 } }
+        }),
+        isStartupInProgressPayload({ status: 'Starting', current: 0, desired: 1 }),
+        isStartupInProgressPayload({ stage: { name: 'booting', endpoint: { current: 0, desired: 1 } } }),
+        isStartupInProgressPayload({ queue_estimate: 1 }),
+        isStartupInProgressPayload({ stage: { name: 'accepted', metrics: { approx_backlog_per_instance: 1 } } })
+      ];`, startupEnv);
+    assert(startupEnv.checks[0] === false, 'cold off status with ETA should not start timer');
+    assert(startupEnv.checks.slice(1).every(Boolean), 'active startup statuses should start timer');
 
     const startSection = chatbotHtml.match(/\/\/ Starting timer helpers[\s\S]*?\/\/ End starting timer helpers/);
     assert(startSection, 'chatbot-demo starting timer section missing');

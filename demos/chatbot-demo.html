@@ -1328,6 +1328,23 @@
             if (typeof payload.current === 'number' && payload.current > 0) return true;
             return false;
         }
+        function isStartupInProgressPayload(payload) {
+            if (!payload) return false;
+            const status = String(payload.status || payload.state || '').toLowerCase().replace(/\s+/g, '');
+            if (['starting', 'pending', 'queued', 'booting', 'processing', 'scaling', 'warming'].includes(status)) return true;
+            const stage = String(payload.stage?.name || payload.stage || '').toLowerCase().replace(/\s+/g, '');
+            if (['queued', 'booting', 'processing', 'starting', 'warming'].includes(stage)) return true;
+            const endpoint = payload.stage?.endpoint || {};
+            const desired = Number(payload.desired ?? endpoint.desired);
+            if (Number.isFinite(desired) && desired > 0) return true;
+            const queueEstimate = Number(payload.queue_estimate);
+            if (Number.isFinite(queueEstimate) && queueEstimate > 0) return true;
+            const metrics = payload.metrics || payload.stage?.metrics || {};
+            const backlog = Number(metrics.approx_backlog_per_instance);
+            const backlogWithoutCapacity = Number(metrics.has_backlog_without_capacity);
+            return (Number.isFinite(backlog) && backlog > 0)
+                || (Number.isFinite(backlogWithoutCapacity) && backlogWithoutCapacity > 0);
+        }
         function updateQueueIndicators(payload) {
             if (!svcQueueWrap) return;
             const q = typeof payload?.queue_estimate === 'number' ? payload.queue_estimate : null;
@@ -1350,13 +1367,14 @@
                 );
                 updateQueueIndicators(payload);
                 const online = isOnlinePayload(payload);
+                const startupInProgress = !online && isStartupInProgressPayload(payload);
                 const warmSeconds = secondsFromEta(payload?.eta?.to_warm_seconds);
                 const shutdownSeconds = secondsFromEta(payload?.eta?.to_scale_to_zero_seconds);
-                recordLog('status:payload', { online, warmSeconds, shutdownSeconds });
-                return { online, warmSeconds, shutdownSeconds, payload };
+                recordLog('status:payload', { online, startupInProgress, warmSeconds, shutdownSeconds });
+                return { online, startupInProgress, warmSeconds, shutdownSeconds, payload };
             } catch (err) {
                 recordLog('status:error', { error: describeError(err) }, 'error');
-                return { online: false, warmSeconds: null, shutdownSeconds: null, payload: null };
+                return { online: false, startupInProgress: false, warmSeconds: null, shutdownSeconds: null, payload: null };
             }
         }
         function setDot(status) {
@@ -1432,19 +1450,13 @@
                     const ts = getStoredStartDeadline();
                     return ts ? Math.max(0, Math.round((ts - Date.now()) / 1000)) : null;
                 })();
-                if (status.warmSeconds && status.warmSeconds > 0) {
+                if (status.startupInProgress) {
                     setServerReady(false);
                     setWarmupButton('starting');
-                    startStartingTimer({ durationSec: status.warmSeconds, force: true, reason: 'status-eta' });
-                } else if (storedRemaining && storedRemaining > 0) {
-                    setServerReady(false);
-                    setWarmupButton('starting');
-                    startStartingTimer({ durationSec: storedRemaining, force: true, reason: 'storage-resume' });
-                } else if (typeof status.payload?.desired === 'number' && status.payload.desired > 0) {
-                    setServerReady(false);
-                    setWarmupButton('starting');
-                    startStartingTimer({ durationSec: START_TIMEOUT_SEC, force: true, reason: 'pending-scale' });
+                    const durationSec = status.warmSeconds || storedRemaining || START_TIMEOUT_SEC;
+                    startStartingTimer({ durationSec, force: true, reason: 'startup-in-progress' });
                 } else {
+                    stopStartingTimer();
                     currentState = STATE.OFFLINE_DETECTED;
                     setDot(currentState);
                     svcText.textContent = 'Start server before asking.';
