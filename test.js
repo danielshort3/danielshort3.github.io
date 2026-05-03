@@ -1392,7 +1392,7 @@ try {
     assert(ga4Tool.includes('requestId !== accessRequestSeq'), 'GA4 tool should ignore stale access responses');
   });
 
-  section('Chatbot demo startup timer', () => {
+  section('Chatbot demo manual warmup and views', () => {
     const chatbotHtml = fs.readFileSync('demos/chatbot-demo.html', 'utf8');
     const vercel = fs.readFileSync('vercel.json', 'utf8');
     assert(chatbotHtml.includes("const DEFAULT_API_URL = 'https://k8bys9gicf.execute-api.us-east-2.amazonaws.com/prod';"), 'chatbot-demo missing new API URL');
@@ -1400,17 +1400,38 @@ try {
     assert(chatbotHtml.includes("postJson(`${API_URL}/warmup`"), 'chatbot-demo missing warm-up API call');
     assert(chatbotHtml.includes('let serverReady = false;'), 'chatbot-demo should gate sending on warm server state');
     assert(chatbotHtml.includes('function isStartupInProgressPayload(payload)'), 'chatbot-demo missing startup-in-progress status helper');
-    assert(chatbotHtml.includes('if (status.startupInProgress)'), 'chatbot-demo should only start countdown when AWS is actively starting');
+    assert(chatbotHtml.includes("createChatContext('regular')"), 'chatbot-demo missing regular chat context');
+    assert(chatbotHtml.includes("createChatContext('popup')"), 'chatbot-demo missing pop-up chat context');
+    assert(chatbotHtml.includes('id="regular-view"'), 'chatbot-demo missing regular view');
+    assert(chatbotHtml.includes('id="popup-view"'), 'chatbot-demo missing pop-up view');
+    assert(chatbotHtml.includes('id="popup-launcher"'), 'chatbot-demo missing pop-up launcher');
+    assert(chatbotHtml.includes('ctx.send.disabled = active ? false : !serverReady;'), 'chatbot-demo send buttons should be gated by shared serverReady state');
+    assert(!chatbotHtml.includes('id="start-notice"'), 'chatbot-demo should not show startup modal on load');
+    assert(!chatbotHtml.includes('chatbot-start-deadline'), 'chatbot-demo should not persist startup countdown deadlines');
     assert(vercel.includes('k8bys9gicf.execute-api.us-east-2.amazonaws.com'), 'vercel.json missing new chatbot API host');
     assert(!vercel.includes('ovodkr9oad.execute-api.us-east-2.amazonaws.com'), 'vercel.json still allows old chatbot API host');
     const startConst = chatbotHtml.match(/const START_TIMEOUT_SEC = (\d+);/);
     const warmSec = startConst ? parseInt(startConst[1], 10) : 0;
     assert(warmSec >= 270, 'chatbot-demo start timeout < measured cold-start estimate');
 
-    const startupSection = chatbotHtml.match(/function isStartupInProgressPayload\(payload\) \{[\s\S]*?\n        function updateQueueIndicators/);
+    const passiveStart = chatbotHtml.indexOf('async function syncPassiveStatus()');
+    const passiveEnd = chatbotHtml.indexOf('function stageMessage', passiveStart);
+    const passiveSection = chatbotHtml.slice(passiveStart, passiveEnd);
+    assert(passiveSection.includes('fetchStatusInfo()'), 'passive status should only fetch status');
+    assert(!passiveSection.includes("postJson(`${API_URL}/warmup`"), 'passive status must not initiate warmup');
+    assert(!passiveSection.includes('startWarmupTimer('), 'passive status must not start countdown timer');
+
+    const warmupStart = chatbotHtml.indexOf('async function warmupServer()');
+    const warmupEnd = chatbotHtml.indexOf('async function pollWarmup', warmupStart);
+    const warmupSection = chatbotHtml.slice(warmupStart, warmupEnd);
+    assert(warmupSection.includes('userStartedWarmup = true;'), 'warmup should be explicitly user initiated');
+    assert(warmupSection.includes('startWarmupTimer({ durationSec: START_TIMEOUT_SEC, reason: \'manual-warmup\' });'), 'manual warmup should start countdown timer');
+    assert(warmupSection.includes("postJson(`${API_URL}/warmup`, {})"), 'manual warmup should call AWS warmup endpoint');
+
+    const startupSection = chatbotHtml.match(/\/\/ Startup status helpers[\s\S]*?\/\/ End startup status helpers/);
     assert(startupSection, 'chatbot-demo startup-in-progress helper section missing');
     const startupEnv = {};
-    vm.runInNewContext(`${startupSection[0].replace(/\n        function updateQueueIndicators$/, '')}
+    vm.runInNewContext(`${startupSection[0]}
       checks = [
         isStartupInProgressPayload({
           status: 'Off',
@@ -1427,33 +1448,28 @@ try {
     assert(startupEnv.checks[0] === false, 'cold off status with ETA should not start timer');
     assert(startupEnv.checks.slice(1).every(Boolean), 'active startup statuses should start timer');
 
-    const startSection = chatbotHtml.match(/\/\/ Starting timer helpers[\s\S]*?\/\/ End starting timer helpers/);
-    assert(startSection, 'chatbot-demo starting timer section missing');
+    const timerStart = chatbotHtml.indexOf('function startWarmupTimer');
+    const timerEnd = chatbotHtml.indexOf('function startReadyTimer', timerStart);
+    const startSection = chatbotHtml.slice(timerStart, timerEnd);
+    assert(startSection.includes('function currentStartingRemaining()'), 'chatbot-demo starting countdown helper missing');
     const warmEnv = {
       startingTimer: null,
-      startingDeadline: 0,
+      startupTimer: null,
+      startupDeadline: 0,
       START_TIMEOUT_SEC: warmSec,
-      STATE: {
-        OFFLINE_DETECTED: 'OFFLINE_DETECTED',
-        STARTING: 'STARTING',
-        ONLINE: 'ONLINE',
-        ONLINE_GRACE: 'ONLINE_GRACE',
-        SHUTDOWN: 'SHUTDOWN'
-      },
       Date: { now: () => 0 },
       Math,
-      svcText: { textContent: '' },
-      svcETA: { textContent: '' },
-      setDot: () => {},
-      setServerReady: () => {},
-      setWarmupButton: () => {},
-      startGraceCycle: () => {},
-      fmtClock: () => '',
-      setInterval: () => 1,
-      clearInterval: () => {}
+      serverTimer: { textContent: '' },
+      recordLog: () => {},
+      setServerVisual: () => {},
+      formatClock: () => '',
+      window: {
+        setInterval: () => 1,
+        clearInterval: () => {}
+      }
     };
-    vm.runInNewContext(startSection[0], warmEnv);
-    warmEnv.startStartingTimer();
+    vm.runInNewContext(startSection, warmEnv);
+    warmEnv.startWarmupTimer({ durationSec: warmSec });
     warmEnv.Date.now = () => (warmSec - 1) * 1000;
     assert(warmEnv.currentStartingRemaining() > 0, 'starting countdown ended too early');
     warmEnv.Date.now = () => (warmSec + 1) * 1000;

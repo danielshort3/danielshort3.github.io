@@ -1,1941 +1,1424 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="auto">
+<!doctype html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <base href="/">
-    <title>Chatbot Demo</title>
-  <meta name="robots" content="noindex, nofollow">
-
-    <!-- Optional external stylesheet -->
-  <meta name="theme-color" content="#0D1117">
-  <link rel="stylesheet" href="dist/styles.css"><!-- Icons & Fonts -->
-  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Poppins:wght@600&display=swap">
-
-    <!-- Markdown libs -->
-    <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
-
-    <style>
-        /* ---------- Theme & base ---------- */
-        :root {
-            --radius: 12px;
-            --shadow-1: 0 2px 10px rgba(0,0,0,.06), 0 1px 4px rgba(0,0,0,.06);
-            --shadow-2: 0 8px 30px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.08);
-            --focus: 2px solid var(--primary);
-            --surface-2: var(--surface-light);
-            --text: var(--text-light);
-            --ring: var(--primary);
-            --link: var(--primary);
-            --page-pad: clamp(12px, 3vw, 24px);
-            --qp-speed: 15s;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        html, body {
-            height: 100%;
-        }
-        html[data-embedded="true"],
-        html[data-embedded="true"] body{
-            height:auto !important;
-            min-height:0 !important;
-        }
-        html[data-embedded="true"] {
-            --page-pad: clamp(8px, 2vw, 16px);
-        }
-
-        body {
-            margin: 0;
-            font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
-            color: var(--text);
-            background: radial-gradient(1200px 500px at 50% -10%, color-mix(in srgb, var(--primary) 15%, transparent), transparent 60%) var(--bg);
-            display: grid;
-            place-items: start center;
-            padding: var(--page-pad);
-            overflow-x: hidden;
-        }
-
-        /* ---------- Card ---------- */
-        #demo-box {
-            width: min(100%,820px);
-            background: var(--surface);
-            border: 1px solid var(--surface-accent);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow-2);
-            overflow: hidden;
-            display: grid;
-            /* header, service status, stepper, chat, input */
-            grid-template-rows: auto auto auto auto 1fr auto;
-            height: calc(100vh - var(--page-pad) * 2);
-        }
-
-        @supports (height: 100dvh) {
-            #demo-box {
-                height: calc(100dvh - var(--page-pad) * 2 - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-            }
-        }
-
-        html[data-embedded="true"] #demo-box{
-            height:auto !important;
-            min-height:0;
-        }
-
-        header.card-header {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 12px;
-            padding: 16px 18px;
-            background: linear-gradient(0deg, var(--surface), var(--surface-2));
-            border-bottom: 1px solid var(--surface-accent);
-            align-items: center;
-        }
-
-        .card-header > div:first-child {
-            min-width: 0;
-        }
-
-        #demo-box[data-disabled="true"] {
-            position: relative;
-        }
-
-        #demo-box[data-disabled="true"] #service-status,
-        #demo-box[data-disabled="true"] #status,
-        #demo-box[data-disabled="true"] #answer,
-        #demo-box[data-disabled="true"] .input-wrap {
-            opacity: .55;
-        }
-
-        #demo-box[data-disabled="true"] .input-wrap {
-            pointer-events: none;
-        }
-
-        .demo-disabled-banner {
-            display: flex;
-            gap: 12px;
-            align-items: flex-start;
-            margin: 0 16px 12px;
-            padding: 12px 16px;
-            border-radius: 14px;
-            border: 1px solid color-mix(in srgb, #f6c026 45%, var(--surface-accent) 55%);
-            background: color-mix(in srgb, #f6c026 18%, var(--surface) 82%);
-            color: color-mix(in srgb, var(--text) 88%, #000 12%);
-            box-shadow: var(--shadow-1);
-        }
-
-        .demo-disabled-banner strong {
-            display: block;
-            font-size: 1rem;
-            margin-bottom: 4px;
-        }
-
-        .demo-disabled-banner .banner-icon {
-            font-size: 1.25rem;
-            color: #a35b00;
-            line-height: 1;
-        }
-
-        .title {
-            font-family: Poppins, Inter, system-ui, sans-serif;
-            font-weight: 600;
-            margin: 0 0 4px;
-            font-size: 1.1rem;
-        }
-
-        .subtitle {
-            margin: 0;
-            color: var(--text-muted);
-            font-size: .85rem;
-            display: flex;
-            align-items: center;
-            gap: .5rem;
-            overflow-wrap: anywhere;
-        }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: .4rem;
-            padding: .25rem .5rem;
-            border-radius: 999px;
-            font-size: .75rem;
-            background: var(--surface-2);
-            border: 1px solid var(--surface-accent);
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-        }
-
-        .icon-btn {
-            border: 1px solid var(--surface-accent);
-            background: var(--surface);
-            border-radius: 8px;
-            padding: 8px 10px;
-            cursor: pointer;
-            color: var(--text);
-        }
-
-            .icon-btn:focus-visible {
-                outline: var(--focus);
-                outline-offset: 2px;
-            }
-
-        /* ---------- Service status bar ---------- */
-        #service-status {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 16px 4px;
-            background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--primary) 4%, transparent));
-            border-bottom: 1px solid var(--surface-accent);
-            min-height: 38px;
-            flex-wrap: wrap;
-            row-gap: 4px;
-        }
-
-        .svc-label {
-            color: var(--text-muted);
-            font-size: .85rem;
-        }
-
-        .svc-text {
-            font-size: .9rem;
-            flex: 1 1 auto;
-            min-width: 180px;
-        }
-
-        .svc-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 999px;
-            display: inline-block;
-            box-sizing: border-box;
-            border: 1px solid var(--surface-accent);
-            box-shadow: var(--shadow-1);
-        }
-
-            .svc-dot.green {
-                background: #1db954;
-                border-color: #1db954;
-            }
-
-            .svc-dot.amber {
-                background: transparent;
-                border: 2px solid #f6c026;
-                border-right-color: transparent;
-                animation: modal-spin .9s linear infinite;
-            }
-
-            .svc-dot.gray {
-                background: #9aa0a6;
-                border-color: #9aa0a6;
-            }
-
-        @media (prefers-reduced-motion: reduce) {
-            .svc-dot.amber {
-                animation: none;
-                border-right-color: #f6c026;
-            }
-        }
-
-        .svc-meta {
-            color: var(--text-muted);
-            font-size: .85rem;
-            display: inline-flex;
-            gap: 8px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-            .svc-meta > span {
-                display: inline-flex;
-                align-items: center;
-                white-space: nowrap;
-            }
-
-            .svc-meta .sep {
-                color: var(--surface-accent);
-            }
-
-        .svc-queue {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .svc-queue[hidden] {
-            display: none;
-        }
-
-        .svc-progress {
-            position: relative;
-            flex: 1 1 auto;
-            height: 4px;
-            background: var(--surface-2);
-            border: 1px solid var(--surface-accent);
-            border-radius: 999px;
-            overflow: hidden;
-            max-width: 220px;
-        }
-
-            .svc-progress .fill {
-                height: 100%;
-                width: 0%;
-                background: linear-gradient(90deg, var(--primary), color-mix(in srgb, var(--primary) 60%, #fff));
-                transition: width .4s ease;
-            }
-
-        /* ---------- Stepper ---------- */
-        #status {
-            padding: 10px 16px 0;
-            min-height: 34px;
-        }
-
-        .stepper {
-            display: grid;
-            grid-template-columns: repeat(4,minmax(0,1fr));
-            gap: 8px;
-            align-items: center;
-            font-size: .85rem;
-            color: var(--text-muted);
-            margin: 0 0 8px;
-            list-style: none;
-            padding: 0;
-        }
-
-        .step {
-            display: grid;
-            grid-template-columns: 28px minmax(0,1fr);
-            gap: 8px;
-            align-items: center;
-            background: var(--surface-2);
-            border: 1px solid var(--surface-accent);
-            padding: 6px 10px;
-            border-radius: 10px;
-            min-width: 0;
-            position: relative;
-        }
-
-            .step .dot {
-                width: 22px;
-                height: 22px;
-                border-radius: 999px;
-                display: grid;
-                place-items: center;
-                background: var(--surface);
-                border: 1px solid var(--surface-accent);
-                font-size: .75rem;
-                position: relative;
-            }
-
-            .step.in-progress {
-                color: var(--text);
-                border-color: var(--primary);
-            }
-
-                .step.in-progress .dot {
-                    border-color: var(--primary);
-                }
-
-            .step.done {
-                color: var(--text);
-            }
-
-                .step.done .dot {
-                    background: var(--primary);
-                    color: var(--bg);
-                    border-color: var(--primary);
-                }
-
-        #step-process.in-progress .dot::after {
-            content: '';
-            position: absolute;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            border: 2px solid currentColor;
-            border-top-color: transparent;
-            animation: spin .8s linear infinite;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        @media (max-width:520px) {
-            .step {
-                grid-template-columns: 1fr;
-                justify-items: center;
-                padding: 8px;
-                cursor: pointer;
-            }
-
-                .step .label {
-                    display: none;
-                }
-
-                .step.show-tip::after {
-                    content: attr(data-label);
-                    position: absolute;
-                    bottom: calc(100% + 6px);
-                    left: 50%;
-                    transform: translateX(-50%);
-                    background: var(--surface);
-                    border: 1px solid var(--surface-accent);
-                    color: var(--text);
-                    padding: 4px 8px;
-                    border-radius: 8px;
-                    white-space: nowrap;
-                    font-size: .75rem;
-                    box-shadow: var(--shadow-1);
-                    z-index: 5;
-                }
-        }
-
-        /* ---------- Chat area ---------- */
-        #answer {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            padding: 12px 16px 0;
-            min-height: 0;
-            overflow: auto;
-            scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch;
-            overscroll-behavior: contain;
-            min-width: 0;
-        }
-
-        .exchange-wrapper {
-            display: grid;
-            gap: 8px;
-            content-visibility: auto;
-            contain-intrinsic-size: 0 120px;
-        }
-
-        .message {
-            display: grid;
-            grid-template-columns: 36px minmax(0,1fr);
-            gap: 10px;
-            align-items: start;
-            min-width: 0;
-        }
-
-        .avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: grid;
-            place-items: center;
-            border: 1px solid var(--surface-accent);
-            background: var(--surface-2);
-            color: var(--text-muted);
-            flex: none;
-        }
-
-        .bubble {
-            background: var(--surface-2);
-            border: 1px solid var(--surface-accent);
-            border-radius: 12px;
-            padding: 10px 12px;
-            line-height: 1.45;
-            font-size: .9rem;
-            overflow-wrap: anywhere;
-            position: relative;
-            box-shadow: var(--shadow-1);
-            min-width: 0;
-        }
-
-        @media (max-width:600px) {
-            .bubble {
-                font-size: .8rem;
-            }
-        }
-
-        .bubble pre, .bubble code, .bubble table {
-            max-width: 100%;
-            overflow: auto;
-        }
-
-        .bubble img, .bubble video {
-            max-width: 100%;
-            height: auto;
-            display: block;
-        }
-
-        .bubble .tools {
-            display: flex;
-            gap: 6px;
-            position: absolute;
-            top: 6px;
-            right: 6px;
-            opacity: 0;
-            transition: opacity .15s ease;
-        }
-
-        .bubble:hover .tools, .bubble:focus-within .tools {
-            opacity: 1;
-        }
-
-        .message.user .bubble {
-            background: linear-gradient(0deg, var(--surface-2), color-mix(in srgb, var(--primary) 8%, transparent));
-            border-color: var(--surface-accent);
-        }
-
-        .message.user .avatar {
-            background: color-mix(in srgb, var(--primary) 15%, var(--surface-2));
-            color: var(--primary);
-        }
-
-        .message.bot .avatar {
-            background: color-mix(in srgb, var(--secondary) 15%, var(--surface-2));
-            color: var(--secondary);
-        }
-
-        .skeleton {
-            background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface) 37%, var(--surface-2) 63%);
-            background-size: 400% 100%;
-            animation: shimmer 1.2s ease-in-out infinite;
-            height: 1em;
-            width: 60%;
-            border-radius: 6px;
-        }
-
-        @keyframes shimmer {
-            0% {
-                background-position: 100% 0
-            }
-
-            100% {
-                background-position: 0 0
-            }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .bubble:hover .tools, .bubble:focus-within .tools {
-                opacity: 1
-            }
-
-            .skeleton {
-                animation: none
-            }
-        }
-
-        /* ---------- Sources ---------- */
-        .sources {
-            display: grid;
-            gap: 6px;
-            margin-top: 8px;
-            font-size: .85rem;
-            border-top: 1px dashed var(--surface-accent);
-            padding-top: 6px;
-        }
-
-            .sources a {
-                color: var(--link);
-                text-decoration: none;
-                word-break: break-all;
-                overflow-wrap: anywhere;
-            }
-
-        /* ---------- Input ---------- */
-        .input-wrap {
-            position: sticky;
-            bottom: 0;
-            z-index: 2;
-            background: linear-gradient(180deg, transparent, var(--surface) 24%);
-            padding: 10px 16px calc(16px + env(safe-area-inset-bottom) + var(--kb-offset, 0px));
-            border-top: 1px solid var(--surface-accent);
-            display: grid;
-            gap: 10px;
-        }
-
-        .qp-viewport {
-            width: 100%;
-        }
-
-        #quick-prompts {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .chip {
-            display: inline-flex;
-            align-items: center;
-            gap: .4rem;
-            padding: .35rem .65rem;
-            border-radius: 999px;
-            background: var(--surface);
-            border: 1px solid var(--surface-accent);
-            font-size: .85rem;
-            color: var(--link);
-            text-decoration: none;
-            max-width: 100%;
-            cursor: pointer;
-            flex-wrap: wrap;
-            white-space: normal;
-            overflow-wrap: anywhere;
-        }
-
-        button.chip {
-            appearance: none;
-            background: var(--surface);
-            border: 1px solid var(--surface-accent);
-            color: var(--link);
-        }
-
-        .chip:focus-visible {
-            outline: var(--focus);
-            outline-offset: 2px;
-        }
-
-        form#chat-form {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            grid-template-areas: "input buttons";
-            gap: 8px;
-            align-items: end;
-        }
-
-        #prompt {
-            grid-area: input;
-            width: 100%;
-            min-height: 52px;
-            max-height: 200px;
-            resize: none;
-            border: 1px solid var(--surface-accent);
-            background: var(--surface-2);
-            color: var(--text);
-            border-radius: 10px;
-            padding: 10px 12px;
-            font-size: 1rem;
-            line-height: 1.35;
-        }
-
-            #prompt::placeholder {
-                color: var(--text-muted);
-            }
-
-            #prompt:focus-visible {
-                outline: var(--focus);
-                outline-offset: 2px;
-            }
-
-        .bar-actions {
-            grid-area: buttons;
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .btn-primary {
-            border: 1px solid var(--primary);
-            background: var(--primary);
-            color: var(--bg);
-            padding: 10px 14px;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-            .btn-primary[disabled] {
-                opacity: .7;
-                cursor: not-allowed;
-            }
-
-        .btn-ghost {
-            border: 1px solid var(--surface-accent);
-            background: var(--surface);
-            color: var(--text);
-            padding: 10px 12px;
-            border-radius: 10px;
-            cursor: pointer;
-        }
-
-        #ask {
-            min-width: 180px;
-            justify-content: center;
-        }
-
-        @media (max-width:520px) {
-            form#chat-form {
-                grid-template-columns: 1fr;
-                grid-template-areas: "input" "buttons";
-            }
-
-            .bar-actions {
-                justify-content: center;
-                width: 100%;
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .svc-text {
-                min-width: 0;
-            }
-
-            #prompt {
-                font-size: 16px;
-            }
-            /* prevent iOS zoom */
-            .title {
-                font-size: 1rem;
-            }
-
-            .subtitle {
-                font-size: .8rem;
-            }
-
-            .icon-btn, .btn-primary, .btn-ghost {
-                min-height: 44px;
-                min-width: 44px;
-            }
-
-            #ask,
-            .btn-ghost {
-                width: 100%;
-                min-width: 0;
-            }
-
-            .qp-viewport {
-                overflow: hidden;
-                position: relative;
-            }
-
-            #quick-prompts {
-                flex-wrap: nowrap;
-                white-space: nowrap;
-                will-change: transform;
-                scroll-snap-type: none;
-            }
-
-            .chip {
-                white-space: nowrap;
-            }
-        }
-
-        @keyframes qp-scroll {
-            from {
-                transform: translateX(0)
-            }
-
-            to {
-                transform: translateX(-50%)
-            }
-        }
-
-        @media (max-width:520px) and (prefers-reduced-motion: reduce) {
-            .qp-viewport {
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-            }
-        }
-
-        @media (hover:none) and (pointer:coarse) {
-            .bubble .tools {
-                opacity: 1;
-            }
-        }
-
-        .tool-btn {
-            padding: 6px;
-            border: 0;
-            background: transparent;
-            cursor: pointer;
-            touch-action: manipulation;
-        }
-
-        @media (max-width:360px) {
-            #status {
-                display: none;
-            }
-            .svc-text {
-                min-width: 0;
-            }
-            .bar-actions {
-                flex-direction: column;
-            }
-            #ask,
-            .btn-ghost {
-                width: 100%;
-                min-width: 0;
-            }
-        }
-
-        a {
-            color: var(--link);
-        }
-
-        /* ---------- Startup notice (modal) ---------- */
-        .notice-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; place-items: center; z-index: 9999; }
-        .notice-modal { background: var(--surface); color: var(--text); border: 1px solid var(--surface-accent); border-radius: 12px; box-shadow: var(--shadow-2); width: min(92vw, 640px); max-width: 640px; padding: 16px; }
-        .notice-modal h2 { margin: 0 0 8px; font-family: Poppins, Inter, system-ui, sans-serif; font-weight: 600; font-size: 1.05rem; }
-        .notice-modal p { margin: 0; color: var(--text-muted); line-height: 1.5; }
-        .notice-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; align-items: center; }
-        .notice-actions .opt { margin-right: auto; display: inline-flex; align-items: center; gap: 8px; font-size: .9rem; color: var(--text-muted); }
-        .btn-ghost { border: 1px solid var(--surface-accent); background: var(--surface); color: var(--text); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
-    </style>
-    <script>
-        if (window.self !== window.top) {
-            document.documentElement.setAttribute('data-embedded', 'true');
-        }
-    </script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <base href="/">
+  <title>Chatbot Demo</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#f5f7fb" />
+  <link rel="stylesheet" href="dist/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+  <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --panel-soft: #f8fafc;
+      --text: #172033;
+      --muted: #667085;
+      --line: #d6dde8;
+      --line-strong: #c3ccda;
+      --accent: #355fd6;
+      --accent-strong: #2749a8;
+      --accent-soft: #eef3ff;
+      --success: #16774a;
+      --warning: #9a6700;
+      --danger: #a72a1f;
+      --shadow: 0 18px 48px rgba(23, 32, 51, 0.14);
+      --chat-height: min(720px, calc(100dvh - 118px));
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+      margin: 0;
+    }
+
+    html[data-embedded="true"],
+    html[data-embedded="true"] body {
+      min-height: 0;
+      height: auto;
+    }
+
+    body {
+      background: linear-gradient(180deg, #eef2f8, #ffffff);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    button,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+      transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, opacity 160ms ease, transform 160ms ease;
+    }
+
+    button:disabled {
+      opacity: 0.62;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    button:not(:disabled):active {
+      transform: translateY(1px);
+    }
+
+    a {
+      color: var(--accent-strong);
+    }
+
+    .demo-root {
+      width: min(1120px, 100%);
+      margin: 0 auto;
+      padding: clamp(12px, 2.4vw, 22px);
+      min-height: 100dvh;
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+      gap: 12px;
+    }
+
+    html[data-embedded="true"] .demo-root {
+      min-height: 0;
+      padding: clamp(8px, 2vw, 16px);
+    }
+
+    .demo-toolbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      align-items: center;
+      gap: 12px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      box-shadow: 0 10px 30px rgba(23, 32, 51, 0.08);
+    }
+
+    .demo-title {
+      min-width: 0;
+    }
+
+    .demo-title h1 {
+      margin: 0;
+      font-size: clamp(18px, 3vw, 24px);
+      line-height: 1.15;
+      font-weight: 800;
+      letter-spacing: 0;
+      color: #172033;
+    }
+
+    .demo-title p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .view-tabs {
+      display: inline-grid;
+      grid-template-columns: repeat(2, minmax(88px, 1fr));
+      gap: 3px;
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-soft);
+    }
+
+    .view-tab {
+      min-height: 38px;
+      border-radius: 6px;
+      padding: 0 12px;
+      color: var(--muted);
+      background: transparent;
+      font-weight: 800;
+    }
+
+    .view-tab.active {
+      color: #ffffff;
+      background: var(--accent-strong);
+    }
+
+    .warmup-button,
+    .chat-send,
+    .clear-button {
+      min-height: 40px;
+      border-radius: 8px;
+      font-weight: 800;
+    }
+
+    .warmup-button {
+      padding: 0 16px;
+      color: #ffffff;
+      background: var(--accent-strong);
+      min-width: 138px;
+    }
+
+    .warmup-button.ready {
+      background: var(--success);
+    }
+
+    .warmup-button.starting {
+      background: #6b7280;
+    }
+
+    .clear-button {
+      padding: 0 11px;
+      color: var(--accent-strong);
+      background: var(--panel);
+      border: 1px solid var(--line);
+    }
+
+    .server-panel {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: var(--muted);
+      min-height: 52px;
+    }
+
+    .server-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 999px;
+      border: 1px solid var(--line-strong);
+      background: #98a2b3;
+    }
+
+    .server-dot.off {
+      background: #98a2b3;
+    }
+
+    .server-dot.starting {
+      background: transparent;
+      border: 2px solid #f3b544;
+      border-right-color: transparent;
+      animation: spin 900ms linear infinite;
+    }
+
+    .server-dot.ready {
+      background: var(--success);
+      border-color: var(--success);
+    }
+
+    .server-copy {
+      min-width: 0;
+      display: grid;
+      gap: 2px;
+    }
+
+    .server-text {
+      color: var(--text);
+      font-weight: 800;
+      font-size: 14px;
+      line-height: 1.25;
+    }
+
+    .server-stage {
+      font-size: 12px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .timer {
+      min-width: 64px;
+      text-align: right;
+      color: var(--accent-strong);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .views {
+      min-height: 0;
+      display: grid;
+    }
+
+    .view-panel {
+      min-height: 0;
+      display: none;
+    }
+
+    .view-panel.active {
+      display: grid;
+      place-items: center;
+    }
+
+    .chat-stage {
+      width: min(640px, 100%);
+      height: var(--chat-height);
+      min-height: 0;
+    }
+
+    html[data-embedded="true"] .chat-stage {
+      height: min(720px, 78vh);
+    }
+
+    .chat-shell {
+      height: 100%;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .chat-head {
+      min-height: 72px;
+      padding: 13px 15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--line);
+      background: #ffffff;
+    }
+
+    .chat-brand {
+      display: grid;
+      gap: 3px;
+      min-width: 0;
+    }
+
+    .chat-brand strong {
+      color: #172033;
+      font-size: 17px;
+      line-height: 1.15;
+      font-weight: 800;
+    }
+
+    .chat-brand span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .head-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .chat-messages {
+      min-height: 0;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: linear-gradient(180deg, #ffffff, #f8fafc);
+    }
+
+    .empty-state {
+      margin: auto;
+      max-width: 520px;
+      display: grid;
+      gap: 12px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .empty-state h2 {
+      margin: 0;
+      color: #172033;
+      font-size: clamp(22px, 4vw, 30px);
+      line-height: 1.12;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .empty-state p {
+      margin: 0;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .suggestions {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .suggestion {
+      min-height: 36px;
+      border-radius: 999px;
+      padding: 0 12px;
+      background: var(--accent-soft);
+      border: 1px solid #c9d6f5;
+      color: #243044;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .message {
+      max-width: min(100%, 720px);
+      padding: 12px 14px;
+      border-radius: 8px;
+      line-height: 1.52;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+      font-size: 14px;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background: #2749a8;
+      color: #ffffff;
+    }
+
+    .message.assistant {
+      align-self: flex-start;
+      background: #ffffff;
+      color: #172033;
+      border: 1px solid var(--line);
+      box-shadow: 0 8px 22px rgba(23, 32, 51, 0.08);
+    }
+
+    .message.assistant p {
+      margin: 0;
+    }
+
+    .message.assistant p + p {
+      margin-top: 0.8em;
+    }
+
+    .waiting {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+    }
+
+    .spinner {
+      width: 15px;
+      height: 15px;
+      border-radius: 999px;
+      border: 2px solid #d6dde8;
+      border-top-color: var(--accent-strong);
+      animation: spin 900ms linear infinite;
+      flex: 0 0 auto;
+    }
+
+    .sources {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .sources a {
+      max-width: 100%;
+      border-radius: 999px;
+      padding: 5px 9px;
+      background: var(--accent-soft);
+      border: 1px solid #c9d6f5;
+      color: var(--accent-strong);
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .chat-composer {
+      border-top: 1px solid var(--line);
+      background: #ffffff;
+      padding: 12px;
+    }
+
+    .chat-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .chat-form textarea {
+      width: 100%;
+      min-height: 48px;
+      max-height: 160px;
+      resize: none;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 13px 14px;
+      line-height: 1.4;
+      background: #ffffff;
+      color: var(--text);
+    }
+
+    .chat-form textarea:disabled {
+      background: #f2f4f7;
+      color: #98a2b3;
+      cursor: not-allowed;
+    }
+
+    .chat-send {
+      min-width: 88px;
+      padding: 0 14px;
+      color: #ffffff;
+      background: var(--accent-strong);
+      border: 1px solid var(--accent-strong);
+    }
+
+    .chat-send.stop {
+      background: var(--danger);
+      border-color: var(--danger);
+    }
+
+    .popup-preview {
+      position: relative;
+      width: min(900px, 100%);
+      height: var(--chat-height);
+      min-height: 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: linear-gradient(160deg, #eef2f8, #ffffff);
+      box-shadow: var(--shadow);
+    }
+
+    .popup-preview-copy {
+      max-width: 520px;
+      padding: clamp(24px, 6vw, 48px);
+      color: #172033;
+    }
+
+    .popup-preview-copy h2 {
+      margin: 0 0 10px;
+      font-size: clamp(28px, 5vw, 42px);
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .popup-preview-copy p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.55;
+      max-width: 44rem;
+    }
+
+    .popup-launcher {
+      position: absolute;
+      right: 30px;
+      bottom: 28px;
+      width: 66px;
+      height: 66px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--accent-strong);
+      color: #ffffff;
+      box-shadow: 0 18px 42px rgba(23, 32, 51, 0.22);
+      z-index: 3;
+    }
+
+    .popup-launcher svg {
+      width: 30px;
+      height: 30px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .popup-window {
+      position: absolute;
+      right: 30px;
+      bottom: 104px;
+      width: min(390px, calc(100% - 32px));
+      height: min(640px, calc(100% - 132px));
+      min-height: 0;
+      transform: translateY(18px) scale(0.96);
+      transform-origin: bottom right;
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 220ms ease, opacity 220ms ease;
+      z-index: 4;
+    }
+
+    .popup-window.open {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .popup-window .chat-shell {
+      box-shadow: 0 18px 48px rgba(23, 32, 51, 0.18);
+    }
+
+    .popup-window .chat-head {
+      min-height: 58px;
+      padding: 10px 12px;
+    }
+
+    .popup-window .chat-messages {
+      padding: 12px;
+    }
+
+    .popup-window .empty-state h2 {
+      font-size: 23px;
+    }
+
+    .popup-close {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: #eef3ff;
+      color: #172033;
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    @media (max-width: 820px) {
+      .demo-root {
+        padding: 0;
+        gap: 0;
+      }
+
+      .demo-toolbar,
+      .server-panel {
+        border-radius: 0;
+        border-left: 0;
+        border-right: 0;
+      }
+
+      .demo-toolbar {
+        grid-template-columns: 1fr;
+      }
+
+      .view-tabs {
+        width: 100%;
+      }
+
+      .warmup-button {
+        width: 100%;
+      }
+
+      .server-panel {
+        grid-template-columns: auto minmax(0, 1fr);
+      }
+
+      .timer {
+        grid-column: 2;
+        text-align: left;
+      }
+
+      .chat-stage,
+      .popup-preview {
+        width: 100%;
+        height: calc(100dvh - 177px);
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      .chat-shell {
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      .popup-preview-copy {
+        padding: 28px 20px;
+      }
+
+      .popup-window {
+        right: 10px;
+        bottom: 88px;
+        width: calc(100% - 20px);
+        height: min(650px, calc(100% - 104px));
+        transform-origin: bottom center;
+      }
+
+      .popup-window .chat-shell {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+      }
+
+      .popup-launcher {
+        right: 18px;
+        bottom: 18px;
+        width: 58px;
+        height: 58px;
+      }
+    }
+
+    @media (max-width: 430px) {
+      .chat-form {
+        grid-template-columns: 1fr;
+      }
+
+      .chat-send {
+        width: 100%;
+      }
+    }
+  </style>
+  <script>
+    if (window.self !== window.top) {
+      document.documentElement.setAttribute('data-embedded', 'true');
+    }
+  </script>
 </head>
 <body>
-    <script>
-        const notifyResize = (() => {
-            const CHANNEL = 'chatbot-demo-resize';
-            function calcHeight() {
-                const doc = document.documentElement;
-                const body = document.body || doc;
-                return Math.ceil(Math.max(
-                    body.scrollHeight,
-                    body.offsetHeight,
-                    doc.clientHeight,
-                    doc.scrollHeight,
-                    doc.offsetHeight
-                ));
-            }
-            function postHeight() {
-                try { parent.postMessage({ type: CHANNEL, height: calcHeight() }, '*'); } catch (e) { /* not embedded */ }
-            }
-            window.addEventListener('load', postHeight);
-            try { document.fonts?.ready?.then(postHeight); } catch (e) { /* optional */ }
-            if ('ResizeObserver' in window) {
-                const ro = new ResizeObserver(() => postHeight());
-                ro.observe(document.documentElement);
-            } else {
-                let prev = 0;
-                setInterval(() => {
-                    const h = calcHeight();
-                    if (Math.abs(h - prev) > 4) {
-                        prev = h;
-                        postHeight();
-                    }
-                }, 750);
-            }
-            return postHeight;
-        })();
-    </script>
+  <script>
+    const notifyResize = (() => {
+      const CHANNEL = 'chatbot-demo-resize';
+      function calcHeight() {
+        const doc = document.documentElement;
+        const body = document.body || doc;
+        return Math.ceil(Math.max(
+          body.scrollHeight,
+          body.offsetHeight,
+          doc.clientHeight,
+          doc.scrollHeight,
+          doc.offsetHeight
+        ));
+      }
+      function postHeight() {
+        try { parent.postMessage({ type: CHANNEL, height: calcHeight() }, '*'); } catch { /* not embedded */ }
+      }
+      window.addEventListener('load', postHeight);
+      try { document.fonts?.ready?.then(postHeight); } catch { /* optional */ }
+      if ('ResizeObserver' in window) {
+        const ro = new ResizeObserver(postHeight);
+        ro.observe(document.documentElement);
+      } else {
+        window.setInterval(postHeight, 750);
+      }
+      return postHeight;
+    })();
+  </script>
 
-    <!-- Startup cost/latency notice -->
-    <div id="start-notice" class="notice-backdrop" role="dialog" aria-modal="true" aria-labelledby="notice-title">
-        <div class="notice-modal" role="document">
-            <h2 id="notice-title">Heads up about server startup</h2>
-            <p id="notice-body">Loading…</p>
-            <div class="notice-actions">
-                <label class="opt"><input type="checkbox" id="notice-never"> Don't show again</label>
-                <button id="notice-ok" type="button" class="btn-primary">OK</button>
-            </div>
+  <div class="demo-root">
+    <header class="demo-toolbar">
+      <div class="demo-title">
+        <h1>Travel Assistant Demo</h1>
+        <p>Input and output are saved on AWS for this portfolio demo.</p>
+      </div>
+      <div class="view-tabs" role="tablist" aria-label="Chatbot view">
+        <button class="view-tab active" id="regular-view-button" type="button" role="tab" aria-selected="true" aria-controls="regular-view" data-view="regular">Regular</button>
+        <button class="view-tab" id="popup-view-button" type="button" role="tab" aria-selected="false" aria-controls="popup-view" data-view="popup">Pop-up</button>
+      </div>
+      <button class="warmup-button" id="warmup-button" type="button">Start server</button>
+    </header>
+
+    <section class="server-panel" id="server-panel" role="status" aria-live="polite">
+      <span class="server-dot off" id="server-dot" aria-hidden="true"></span>
+      <div class="server-copy">
+        <span class="server-text" id="server-text">Server off</span>
+        <span class="server-stage" id="server-stage">Ready to start on demand.</span>
+      </div>
+      <span class="timer" id="server-timer" aria-label="Server timer"></span>
+    </section>
+
+    <main class="views">
+      <section class="view-panel active" id="regular-view" role="tabpanel" aria-labelledby="regular-view-button">
+        <div class="chat-stage">
+          <article class="chat-shell" aria-label="Regular chatbot">
+            <header class="chat-head">
+              <div class="chat-brand">
+                <strong>Travel Assistant</strong>
+                <span>Source-grounded chat demo</span>
+              </div>
+              <div class="head-actions">
+                <button class="clear-button" id="regular-clear" type="button">Clear</button>
+              </div>
+            </header>
+            <section class="chat-messages" id="regular-messages" aria-live="polite"></section>
+            <section class="chat-composer">
+              <form class="chat-form" id="regular-form" novalidate>
+                <textarea id="regular-prompt" name="regular-prompt" placeholder="Ask about Grand Junction" rows="1" autocomplete="off" required></textarea>
+                <button class="chat-send" id="regular-send" type="submit">Send</button>
+              </form>
+            </section>
+          </article>
         </div>
-    </div>
+      </section>
 
-    <div id="demo-box" role="application" aria-label="Chatbot demo">
-        <header class="card-header">
-            <div>
-                <h1 class="title">Ask the Demo Chatbot</h1>
-                <p class="subtitle">
-                    <span class="badge" title="Data handling notice">
-                        <i class="fa-solid fa-shield-halved"></i> Input and output are saved on AWS
-                    </span>
-                </p>
-            </div>
-            <div class="header-actions">
-                <button id="warmup" class="btn-ghost" type="button">
-                    <i class="fa-solid fa-power-off"></i> Start server
-                </button>
-                <button id="clear-all" class="icon-btn" type="button" aria-label="Clear conversation">
-                    <i class="fa-solid fa-broom"></i>
-                </button>
-            </div>
-        </header>
-        <div id="demo-disabled-banner" class="demo-disabled-banner" role="alert" hidden>
-            <div class="banner-icon" aria-hidden="true">
-                <i class="fa-solid fa-circle-exclamation"></i>
-            </div>
-            <div class="banner-text">
-                <strong>Chatbot demo unavailable</strong>
-                <span id="demo-disabled-copy">This experience is temporarily disabled due to technical issues with AWS.</span>
-            </div>
-        </div>
-
-        <!-- Service status (does not invoke the model) -->
-        <div id="service-status" role="status" aria-live="polite">
-            <span class="svc-dot gray" id="svc-dot" aria-hidden="true"></span>
-            <span class="svc-label">Status</span>
-            <span class="svc-text" id="svc-text">Checking...</span>
-            <span class="svc-meta">
-                <span class="sep">•</span>
-                <span id="svc-eta"></span>
-                <span class="svc-queue" id="svc-queue" hidden>• queue≈<span id="svc-q">0</span></span>
-            </span>
-            <div class="svc-progress" id="svc-progress" hidden><div class="fill" id="svc-fill"></div></div>
-        </div>
-
-        <!-- Request lifecycle stepper -->
-        <div id="status" role="status" aria-live="polite"></div>
-
-        <div id="answer" aria-live="polite" aria-busy="false"></div>
-
-        <div class="input-wrap">
-            <div class="qp-viewport" aria-label="Quick prompts">
-                <div id="quick-prompts" role="list">
-                    <button class="chip" type="button" data-text="Where can I eat dinner?">Where can I eat dinner?</button>
-                    <button class="chip" type="button" data-text="What kid-friendly activities are there?">What kid-friendly activities are there?</button>
-                    <button class="chip" type="button" data-text="Where should I go on vacation?">Where should I go on vacation?</button>
+      <section class="view-panel" id="popup-view" role="tabpanel" aria-labelledby="popup-view-button">
+        <div class="popup-preview">
+          <div class="popup-preview-copy">
+            <h2>Travel Planning Chat</h2>
+            <p>A compact source-grounded chatbot preview in a floating customer-support style window.</p>
+          </div>
+          <button class="popup-launcher" id="popup-launcher" type="button" aria-controls="popup-window" aria-expanded="false" title="Open chat">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path>
+              <path d="M8 9h8"></path>
+              <path d="M8 13h5"></path>
+            </svg>
+          </button>
+          <aside class="popup-window" id="popup-window" aria-label="Pop-up chatbot">
+            <article class="chat-shell">
+              <header class="chat-head">
+                <div class="chat-brand">
+                  <strong>Travel Assistant</strong>
+                  <span>Pop-up preview</span>
                 </div>
-            </div>
-
-            <form id="chat-form" novalidate>
-                <textarea id="prompt" placeholder="Type your message. Enter to send, Shift+Enter for a new line." aria-label="Your message"></textarea>
-                <div class="bar-actions">
-                    <button id="ask" type="submit" class="btn-primary">
-                        <i class="fa-solid fa-paper-plane"></i> Send
-                    </button>
-                    <button id="stop" type="button" class="btn-ghost" hidden>
-                        <i class="fa-solid fa-stop"></i> Stop
-                    </button>
+                <div class="head-actions">
+                  <button class="clear-button" id="popup-clear" type="button">Clear</button>
+                  <button class="popup-close" id="popup-close" type="button" aria-label="Close pop-up chat">×</button>
                 </div>
-            </form>
+              </header>
+              <section class="chat-messages" id="popup-messages" aria-live="polite"></section>
+              <section class="chat-composer">
+                <form class="chat-form" id="popup-form" novalidate>
+                  <textarea id="popup-prompt" name="popup-prompt" placeholder="Ask about Grand Junction" rows="1" autocomplete="off" required></textarea>
+                  <button class="chat-send" id="popup-send" type="submit">Send</button>
+                </form>
+              </section>
+            </article>
+          </aside>
         </div>
-    </div>
+      </section>
+    </main>
+  </div>
 
-    <script src="js/demos/aws-client.js"></script>
-    <script>
-        const DEFAULT_API_URL = 'https://k8bys9gicf.execute-api.us-east-2.amazonaws.com/prod';
-        const STORAGE_KEY = 'demo.endpoint.chatbot.markdown';
-        const { resolveEndpoint, getJson, postJson, retryRequest } = window.DemoAws;
-        const endpointConfig = { defaultUrl: DEFAULT_API_URL, storageKey: STORAGE_KEY };
-        const API_URL = resolveEndpoint(endpointConfig).replace(/\/$/, '');
-        const STATUS_URL = `${API_URL}/status`;
-        // Keep chatbot warmup semantics driven by START_TIMEOUT_SEC/GRACE_SEC.
-        // This only retries transient status endpoint failures.
-        const STATUS_RETRY_OPTIONS = {
-            retries: 12,
-            baseDelayMs: 1000,
-            factor: 1.8,
-            maxDelayMs: 10000
-        };
-        const DEMO_DISABLED = false; // Toggle to true to temporarily disable the AWS-backed demo
-        const DEMO_DISABLED_REASON = 'This demo is temporarily disabled due to technical issues with AWS.';
+  <script src="js/demos/aws-client.js"></script>
+  <script>
+    const DEFAULT_API_URL = 'https://k8bys9gicf.execute-api.us-east-2.amazonaws.com/prod';
+    const STORAGE_KEY = 'demo.endpoint.chatbot.markdown';
+    const { resolveEndpoint, getJson, postJson, retryRequest } = window.DemoAws;
+    const endpointConfig = { defaultUrl: DEFAULT_API_URL, storageKey: STORAGE_KEY };
+    const API_URL = resolveEndpoint(endpointConfig).replace(/\/$/, '');
+    const STATUS_URL = `${API_URL}/status`;
+    const START_TIMEOUT_SEC = 300;
+    const DEFAULT_WARM_HOLD_SEC = 300;
+    const STATUS_RETRY_OPTIONS = {
+      retries: 2,
+      baseDelayMs: 600,
+      factor: 1.8,
+      maxDelayMs: 2500
+    };
 
-        /* ---------- DOM refs ---------- */
-        const demoBox = document.getElementById('demo-box');
-        const disabledBanner = document.getElementById('demo-disabled-banner');
-        const disabledCopy = document.getElementById('demo-disabled-copy');
-        const startNotice = document.getElementById('start-notice');
-        const promptEl = document.getElementById('prompt');
-        const statusEl = document.getElementById('status');
-        const answerEl = document.getElementById('answer');
-        const askBtn = document.getElementById('ask');
-        const warmupBtn = document.getElementById('warmup');
-        const stopBtn = document.getElementById('stop');
-        const form = document.getElementById('chat-form');
-        const clearBtn = document.getElementById('clear-all');
-        const quickPrompts = document.getElementById('quick-prompts');
-        const DEFAULT_PROMPT_PLACEHOLDER = promptEl?.getAttribute('placeholder') || 'Type your message. Enter to send, Shift+Enter for a new line.';
+    const serverDot = document.getElementById('server-dot');
+    const serverText = document.getElementById('server-text');
+    const serverStage = document.getElementById('server-stage');
+    const serverTimer = document.getElementById('server-timer');
+    const warmupButton = document.getElementById('warmup-button');
+    const popupLauncher = document.getElementById('popup-launcher');
+    const popupWindow = document.getElementById('popup-window');
+    const popupClose = document.getElementById('popup-close');
+    const viewButtons = [...document.querySelectorAll('[data-view]')];
+    const viewPanels = {
+      regular: document.getElementById('regular-view'),
+      popup: document.getElementById('popup-view')
+    };
 
-        /* ---------- Debug logging helpers ---------- */
-        const rootScope = typeof window !== 'undefined' ? window : globalThis;
-        const CHATBOT_LOG_LIMIT = 500;
-        const sessionId = (() => {
-            try {
-                if (rootScope.crypto?.randomUUID) return rootScope.crypto.randomUUID();
-            } catch { }
-            return `session-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-        })();
-        const debugLogStore = rootScope.__chatbotDebugLogs = rootScope.__chatbotDebugLogs || [];
-        function describeError(err) {
-            if (!err) return 'Unknown error';
-            if (typeof err === 'string') return err;
-            if (err && typeof err.message === 'string') return err.message;
-            try {
-                return JSON.stringify(err);
-            } catch {
-                return String(err);
-            }
-        }
-        function withRequestId(err, requestId) {
-            if (err && typeof err === 'object') {
-                err.requestId = requestId;
-                return err;
-            }
-            const wrapped = new Error(describeError(err));
-            wrapped.requestId = requestId;
-            return wrapped;
-        }
-        function recordLog(event, details = {}, level = 'log') {
-            const entry = {
-                timestamp: new Date().toISOString(),
-                sessionId,
-                event,
-                ...details
-            };
-            debugLogStore.push(entry);
-            if (debugLogStore.length > CHATBOT_LOG_LIMIT) debugLogStore.shift();
-            const logger = level === 'error' ? console?.error : console?.log;
-            try {
-                logger?.call(console, `[chatbot-demo] ${event}`, entry);
-            } catch { /* noop in non-browser environments */ }
-            try {
-                rootScope.dispatchEvent?.(new CustomEvent('chatbot-demo-log', { detail: entry }));
-            } catch { /* CustomEvent may be unavailable in some environments */ }
-            return entry;
-        }
-        function createRequestId() {
-            try {
-                if (rootScope.crypto?.randomUUID) return rootScope.crypto.randomUUID();
-            } catch { }
-            return `req-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-        }
+    let serverReady = false;
+    let warmupActive = false;
+    let userStartedWarmup = false;
+    let startupTimer = null;
+    let startupDeadline = 0;
+    let readyTimer = null;
+    let readyDeadline = 0;
 
-        /* ---------- Deadline persistence ---------- */
-        const STORAGE_VERSION = 'v2';
-        const STORAGE_KEYS = Object.freeze({
-            startDeadline: `chatbot-start-deadline-${STORAGE_VERSION}`,
-            graceDeadline: `chatbot-grace-deadline-${STORAGE_VERSION}`
+    const contexts = [
+      createChatContext('regular'),
+      createChatContext('popup')
+    ];
+
+    function createChatContext(id) {
+      return {
+        id,
+        form: document.getElementById(`${id}-form`),
+        prompt: document.getElementById(`${id}-prompt`),
+        messages: document.getElementById(`${id}-messages`),
+        send: document.getElementById(`${id}-send`),
+        clear: document.getElementById(`${id}-clear`),
+        controller: null
+      };
+    }
+
+    function recordLog(event, details = {}, level = 'log') {
+      const entry = { timestamp: new Date().toISOString(), event, ...details };
+      window.__chatbotDebugLogs = window.__chatbotDebugLogs || [];
+      window.__chatbotDebugLogs.push(entry);
+      if (window.__chatbotDebugLogs.length > 400) window.__chatbotDebugLogs.shift();
+      try {
+        const logger = level === 'error' ? console.error : console.log;
+        logger.call(console, `[chatbot-demo] ${event}`, entry);
+      } catch { /* console unavailable */ }
+      return entry;
+    }
+
+    function describeError(err) {
+      if (!err) return 'Unknown error';
+      if (typeof err === 'string') return err;
+      return err.message || String(err);
+    }
+
+    function delay(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function formatClock(seconds) {
+      const value = Math.max(0, Math.round(Number(seconds) || 0));
+      const minutes = Math.floor(value / 60);
+      const sec = value % 60;
+      return `${minutes}:${String(sec).padStart(2, '0')}`;
+    }
+
+    function secondsFromEta(value) {
+      if (typeof value !== 'number' || !Number.isFinite(value)) return null;
+      return Math.max(0, Math.round(value));
+    }
+
+    // Startup status helpers
+    function isOnlinePayload(payload) {
+      if (!payload) return false;
+      if (typeof payload.online === 'boolean') return payload.online;
+      const status = String(payload.status || payload.state || '').toLowerCase().replace(/\s+/g, '');
+      if (['on', 'online', 'inservice', 'ready', 'warm'].includes(status)) return true;
+      const endpoint = payload.stage?.endpoint || {};
+      const current = Number(payload.current ?? endpoint.current);
+      return Number.isFinite(current) && current > 0;
+    }
+
+    function isStartupInProgressPayload(payload) {
+      if (!payload) return false;
+      const status = String(payload.status || payload.state || '').toLowerCase().replace(/\s+/g, '');
+      if (['starting', 'pending', 'queued', 'booting', 'processing', 'scaling', 'warming'].includes(status)) return true;
+      const stage = String(payload.stage?.name || payload.stage || '').toLowerCase().replace(/\s+/g, '');
+      if (['queued', 'booting', 'processing', 'starting', 'warming'].includes(stage)) return true;
+      const endpoint = payload.stage?.endpoint || {};
+      const desired = Number(payload.desired ?? endpoint.desired);
+      if (Number.isFinite(desired) && desired > 0) return true;
+      const queueEstimate = Number(payload.queue_estimate);
+      if (Number.isFinite(queueEstimate) && queueEstimate > 0) return true;
+      const metrics = payload.metrics || payload.stage?.metrics || {};
+      const backlog = Number(metrics.approx_backlog_per_instance);
+      const backlogWithoutCapacity = Number(metrics.has_backlog_without_capacity);
+      return (Number.isFinite(backlog) && backlog > 0)
+        || (Number.isFinite(backlogWithoutCapacity) && backlogWithoutCapacity > 0);
+    }
+
+    function statusInfoFromPayload(payload) {
+      const online = isOnlinePayload(payload);
+      return {
+        online,
+        startupInProgress: !online && isStartupInProgressPayload(payload),
+        warmSeconds: secondsFromEta(payload?.eta?.to_warm_seconds),
+        shutdownSeconds: secondsFromEta(payload?.eta?.to_scale_to_zero_seconds),
+        stageName: String(payload?.stage?.name || '').toLowerCase(),
+        payload
+      };
+    }
+    // End startup status helpers
+
+    async function fetchStatusInfo() {
+      const payload = await retryRequest(
+        () => getJson(STATUS_URL, { cache: 'no-store' }),
+        STATUS_RETRY_OPTIONS
+      );
+      const info = statusInfoFromPayload(payload);
+      recordLog('status:payload', info);
+      return info;
+    }
+
+    function setServerVisual(mode, text, stage = '', timer = '') {
+      serverDot.className = `server-dot ${mode}`;
+      serverText.textContent = text;
+      serverStage.textContent = stage;
+      serverTimer.textContent = timer;
+      warmupButton.classList.toggle('ready', mode === 'ready');
+      warmupButton.classList.toggle('starting', mode === 'starting');
+      notifyResize();
+    }
+
+    function updateSendButtons() {
+      contexts.forEach(ctx => {
+        const active = Boolean(ctx.controller);
+        ctx.prompt.disabled = active ? false : !serverReady;
+        ctx.send.disabled = active ? false : !serverReady;
+        ctx.send.textContent = active ? 'Stop' : 'Send';
+        ctx.send.classList.toggle('stop', active);
+        ctx.send.title = serverReady ? '' : 'Start the server first.';
+      });
+    }
+
+    function setWarmupButtonState(state) {
+      if (state === 'ready') {
+        warmupButton.disabled = true;
+        warmupButton.textContent = 'Server ready';
+        return;
+      }
+      if (state === 'starting') {
+        warmupButton.disabled = true;
+        warmupButton.textContent = 'Starting';
+        return;
+      }
+      warmupButton.disabled = false;
+      warmupButton.textContent = 'Start server';
+    }
+
+    function markServerCold(stage = 'Server starts only after you press Start server.') {
+      serverReady = false;
+      warmupActive = false;
+      stopStartupTimer();
+      stopReadyTimer();
+      setWarmupButtonState('idle');
+      setServerVisual('off', 'Server off', stage, '');
+      updateSendButtons();
+    }
+
+    function markServerStarting(stage = 'Starting AWS model endpoint...') {
+      serverReady = false;
+      warmupActive = true;
+      setWarmupButtonState('starting');
+      const remaining = currentStartingRemaining();
+      setServerVisual('starting', 'Starting server', stage, remaining == null ? '' : formatClock(remaining));
+      updateSendButtons();
+    }
+
+    function markServerOnline(source = 'status', warmHoldSeconds = DEFAULT_WARM_HOLD_SEC) {
+      recordLog('status:online', { source, warmHoldSeconds });
+      serverReady = true;
+      warmupActive = false;
+      stopStartupTimer();
+      setWarmupButtonState('ready');
+      startReadyTimer(warmHoldSeconds);
+      updateSendButtons();
+    }
+
+    function startWarmupTimer({ durationSec = START_TIMEOUT_SEC, reason = 'manual-warmup' } = {}) {
+      stopStartupTimer();
+      startupDeadline = Date.now() + Math.max(1, Math.round(durationSec)) * 1000;
+      recordLog('status:starting-timer', { reason, durationSec });
+      updateStartupTimer();
+      startupTimer = window.setInterval(updateStartupTimer, 1000);
+    }
+
+    function updateStartupTimer() {
+      const remaining = currentStartingRemaining();
+      if (remaining == null) return;
+      serverTimer.textContent = formatClock(remaining);
+      if (remaining <= 0) {
+        stopStartupTimer();
+        setServerVisual('starting', 'Still starting', 'AWS is taking longer than the estimate.', '');
+      }
+    }
+
+    function currentStartingRemaining() {
+      if (!startupDeadline) return null;
+      return Math.max(0, Math.round((startupDeadline - Date.now()) / 1000));
+    }
+
+    function stopStartupTimer() {
+      if (startupTimer) {
+        window.clearInterval(startupTimer);
+        startupTimer = null;
+      }
+      startupDeadline = 0;
+    }
+
+    function startReadyTimer(durationSec = DEFAULT_WARM_HOLD_SEC) {
+      stopReadyTimer();
+      readyDeadline = Date.now() + Math.max(1, Math.round(durationSec || DEFAULT_WARM_HOLD_SEC)) * 1000;
+      updateReadyTimer();
+      readyTimer = window.setInterval(updateReadyTimer, 1000);
+    }
+
+    function updateReadyTimer() {
+      const remaining = Math.max(0, Math.round((readyDeadline - Date.now()) / 1000));
+      setServerVisual('ready', 'Server ready', 'Fast queries are available until the warm window ends.', formatClock(remaining));
+      if (remaining <= 0) {
+        stopReadyTimer();
+        syncPassiveStatus().catch(err => {
+          recordLog('status:ready-refresh-error', { error: describeError(err) }, 'error');
+          markServerCold('Warm window ended. Status refresh failed.');
         });
-        (function purgeLegacyDeadlineKeys() {
-            const legacyKeys = ['chatbot-start-deadline', 'chatbot-grace-deadline'];
-            legacyKeys.forEach((key) => {
-                try { localStorage.removeItem(key); } catch { /* ignore */ }
-            });
-        })();
-        function readDeadline(key) {
-            try {
-                const raw = localStorage.getItem(key);
-                if (!raw) return null;
-                const ts = parseInt(raw, 10);
-                return Number.isFinite(ts) ? ts : null;
-            } catch {
-                return null;
-            }
-        }
-        function writeDeadline(key, value) {
-            try {
-                if (typeof value === 'number' && Number.isFinite(value)) {
-                    localStorage.setItem(key, String(value));
-                } else {
-                    localStorage.removeItem(key);
-                }
-            } catch {
-                /* storage may be unavailable */
-            }
-        }
-        function restoreDeadline(key) {
-            const ts = readDeadline(key);
-            if (!ts) return null;
-            if (ts <= Date.now()) {
-                writeDeadline(key, null);
-                return null;
-            }
-            return ts;
-        }
+      }
+    }
 
-        // Service status elements
-        const svcDot = document.getElementById('svc-dot');
-        const svcText = document.getElementById('svc-text');
-        const svcETA = document.getElementById('svc-eta');
-        const svcQueueWrap = document.getElementById('svc-queue');
-        const svcQ = document.getElementById('svc-q');
-        const svcProg = document.getElementById('svc-progress');
-        const svcFill = document.getElementById('svc-fill');
+    function stopReadyTimer() {
+      if (readyTimer) {
+        window.clearInterval(readyTimer);
+        readyTimer = null;
+      }
+      readyDeadline = 0;
+    }
 
-        function applyDemoDisabledState() {
-            document.body.setAttribute('data-demo-disabled', 'true');
-            demoBox?.setAttribute('data-disabled', 'true');
-            if (disabledBanner) {
-                disabledBanner.hidden = false;
-                if (disabledCopy) disabledCopy.textContent = DEMO_DISABLED_REASON;
-            }
-            startNotice?.setAttribute('hidden', 'true');
-            svcDot?.classList.remove('green', 'amber');
-            svcDot?.classList.add('gray');
-            svcText.textContent = 'Unavailable';
-            svcETA.textContent = 'AWS maintenance';
-            svcQueueWrap?.setAttribute('hidden', 'true');
-            svcProg?.setAttribute('hidden', 'true');
-            promptEl.value = '';
-            promptEl.placeholder = 'Demo unavailable while AWS issues are resolved.';
-            promptEl.setAttribute('disabled', 'true');
-            form?.setAttribute('aria-disabled', 'true');
-            askBtn.disabled = true;
-            askBtn.setAttribute('aria-disabled', 'true');
-            askBtn.title = DEMO_DISABLED_REASON;
-            if (warmupBtn) {
-                warmupBtn.disabled = true;
-                warmupBtn.setAttribute('aria-disabled', 'true');
-                warmupBtn.title = DEMO_DISABLED_REASON;
-            }
-            promptEl.setAttribute('aria-disabled', 'true');
-            promptEl.title = DEMO_DISABLED_REASON;
-            if (stopBtn) {
-                stopBtn.hidden = true;
-                stopBtn.disabled = true;
-                stopBtn.setAttribute('aria-disabled', 'true');
-            }
-            quickPrompts?.setAttribute('aria-disabled', 'true');
-            quickPrompts?.querySelectorAll('button').forEach(btn => {
-                btn.disabled = true;
-                btn.setAttribute('aria-disabled', 'true');
-            });
+    async function syncPassiveStatus() {
+      const status = await fetchStatusInfo();
+      if (status.online) {
+        markServerOnline('passive-status', status.shutdownSeconds || DEFAULT_WARM_HOLD_SEC);
+        return;
+      }
+      if (status.startupInProgress && userStartedWarmup) {
+        markServerStarting('Startup already in progress.');
+        return;
+      }
+      markServerCold(status.startupInProgress
+        ? 'Startup is already in progress from another request.'
+        : 'Server starts only after you press Start server.');
+    }
+
+    function stageMessage(stage) {
+      const name = String(stage?.name || '').toLowerCase();
+      if (name === 'queued') return 'Request queued. Waiting for AWS capacity.';
+      if (name === 'booting') return 'GPU instance is starting and loading the model.';
+      if (name === 'processing') return 'Model is completing the warmup request.';
+      if (name === 'ready') return 'Warmup complete.';
+      return stage?.message || 'Starting AWS model endpoint...';
+    }
+
+    async function warmupServer() {
+      if (warmupActive || serverReady) return;
+      userStartedWarmup = true;
+      warmupActive = true;
+      startWarmupTimer({ durationSec: START_TIMEOUT_SEC, reason: 'manual-warmup' });
+      markServerStarting('Submitting warmup request to AWS...');
+      try {
+        const submit = await postJson(`${API_URL}/warmup`, {});
+        recordLog('warmup:submit', { status: submit.status, jobId: submit.jobId, warm: submit.warm });
+        if (submit.status === 'READY' || submit.warm || !submit.jobId) {
+          markServerOnline('warmup-ready', submit.warm_hold_seconds || DEFAULT_WARM_HOLD_SEC);
+          return;
         }
+        await pollWarmup(submit);
+      } catch (err) {
+        recordLog('warmup:error', { error: describeError(err) }, 'error');
+        markServerCold(`Warmup failed: ${describeError(err)}`);
+      }
+    }
 
-        function applyDemoEnabledState() {
-            document.body.removeAttribute('data-demo-disabled');
-            demoBox?.removeAttribute('data-disabled');
-            if (disabledBanner) disabledBanner.hidden = true;
-            if (disabledCopy) disabledCopy.textContent = '';
-            svcDot?.classList.remove('gray');
-            svcText.textContent = 'Checking...';
-            svcETA.textContent = '';
-            svcQueueWrap?.setAttribute('hidden', 'true');
-            svcProg?.setAttribute('hidden', 'true');
-            promptEl.removeAttribute('disabled');
-            promptEl.removeAttribute('aria-disabled');
-            promptEl.placeholder = DEFAULT_PROMPT_PLACEHOLDER;
-            promptEl.title = '';
-            form?.removeAttribute('aria-disabled');
-            askBtn.disabled = false;
-            askBtn.removeAttribute('aria-disabled');
-            askBtn.removeAttribute('title');
-            if (warmupBtn) {
-                warmupBtn.disabled = false;
-                warmupBtn.removeAttribute('aria-disabled');
-                warmupBtn.removeAttribute('title');
-            }
-            if (stopBtn) {
-                stopBtn.hidden = true;
-                stopBtn.disabled = true;
-                stopBtn.removeAttribute('aria-disabled');
-            }
-            quickPrompts?.removeAttribute('aria-disabled');
-            quickPrompts?.querySelectorAll('button').forEach(btn => {
-                btn.disabled = false;
-                btn.removeAttribute('aria-disabled');
-            });
+    async function pollWarmup(submit) {
+      const query = submit.jobId
+        ? `jobId=${encodeURIComponent(submit.jobId)}`
+        : `outputUri=${encodeURIComponent(submit.outputUri)}`;
+      while (warmupActive) {
+        const result = await getJson(`${API_URL}/result?${query}`, { cache: 'no-store' });
+        const stage = result.stage || {};
+        recordLog('warmup:poll', { status: result.status, stage: stage.name });
+        if (result.status === 'READY') {
+          markServerOnline('warmup-complete', submit.warm_hold_seconds || DEFAULT_WARM_HOLD_SEC);
+          return;
         }
+        if (result.status === 'FAILED') {
+          throw new Error(result.error || 'Warmup failed');
+        }
+        markServerStarting(stageMessage(stage));
+        await delay(2000);
+      }
+    }
 
-        if (DEMO_DISABLED) {
-            applyDemoDisabledState();
+    function setView(view) {
+      const target = view === 'popup' ? 'popup' : 'regular';
+      viewButtons.forEach(button => {
+        const active = button.dataset.view === target;
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-selected', String(active));
+      });
+      Object.entries(viewPanels).forEach(([name, panel]) => {
+        panel.classList.toggle('active', name === target);
+      });
+      if (target === 'popup') {
+        popupLauncher.focus();
+      } else {
+        contexts[0].prompt.focus();
+      }
+      notifyResize();
+    }
+
+    function togglePopup(open) {
+      const shouldOpen = typeof open === 'boolean' ? open : !popupWindow.classList.contains('open');
+      popupWindow.classList.toggle('open', shouldOpen);
+      popupLauncher.setAttribute('aria-expanded', String(shouldOpen));
+      if (shouldOpen) {
+        contexts[1].prompt.focus();
+      } else {
+        popupLauncher.focus();
+      }
+      notifyResize();
+    }
+
+    function escapeHtml(value) {
+      return String(value || '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[char]));
+    }
+
+    function renderMarkdown(value) {
+      const raw = String(value || '');
+      if (window.marked && window.DOMPurify) {
+        return window.DOMPurify.sanitize(window.marked.parse(raw));
+      }
+      return escapeHtml(raw).replace(/\n/g, '<br>');
+    }
+
+    function sourceLabel(url, index) {
+      try {
+        const parsed = new URL(url);
+        const parts = parsed.pathname.split('/').filter(Boolean);
+        const slug = parts[parts.length - 1] || parsed.hostname;
+        return slug.replace(/[-_]+/g, ' ').replace(/\b\w/g, char => char.toUpperCase()) || `Source ${index + 1}`;
+      } catch {
+        return `Source ${index + 1}`;
+      }
+    }
+
+    function sourceUrls(data) {
+      const urls = [];
+      (data?.source_details || []).forEach(item => {
+        if (item?.url) urls.push(item.url);
+      });
+      (data?.source_urls || data?.sources || data?.urls || []).forEach(url => {
+        if (url) urls.push(url);
+      });
+      return [...new Set(urls)];
+    }
+
+    function appendSources(container, urls) {
+      if (!urls.length) return;
+      const wrap = document.createElement('div');
+      wrap.className = 'sources';
+      urls.slice(0, 8).forEach((url, index) => {
+        const link = document.createElement('a');
+        link.href = url;
+        link.target = '_blank';
+        link.rel = 'noreferrer';
+        link.textContent = sourceLabel(url, index);
+        wrap.appendChild(link);
+      });
+      container.appendChild(wrap);
+    }
+
+    function scrollMessages(ctx) {
+      ctx.messages.scrollTop = ctx.messages.scrollHeight;
+    }
+
+    function addMessage(ctx, role, text = '') {
+      const node = document.createElement('article');
+      node.className = `message ${role}`;
+      if (role === 'assistant') {
+        node.innerHTML = renderMarkdown(text);
+      } else {
+        node.textContent = text;
+      }
+      ctx.messages.appendChild(node);
+      scrollMessages(ctx);
+      notifyResize();
+      return node;
+    }
+
+    function addWaitingMessage(ctx, text) {
+      const node = addMessage(ctx, 'assistant', '');
+      node.innerHTML = '';
+      const wait = document.createElement('span');
+      wait.className = 'waiting';
+      const spinner = document.createElement('span');
+      spinner.className = 'spinner';
+      spinner.setAttribute('aria-hidden', 'true');
+      const label = document.createElement('span');
+      label.textContent = text;
+      wait.append(spinner, label);
+      node.appendChild(wait);
+      return node;
+    }
+
+    function emptyState(ctx) {
+      ctx.messages.replaceChildren();
+      const node = document.createElement('div');
+      node.className = 'empty-state';
+      const title = document.createElement('h2');
+      title.textContent = 'Travel Planning Chat';
+      const copy = document.createElement('p');
+      copy.textContent = 'Ask for destination ideas, itinerary help, current-resource links, and practical planning details.';
+      const suggestions = document.createElement('div');
+      suggestions.className = 'suggestions';
+      [
+        'Plan a scenic first day',
+        'Build a weekend itinerary',
+        'Find outdoor ideas'
+      ].forEach(text => {
+        const button = document.createElement('button');
+        button.className = 'suggestion';
+        button.type = 'button';
+        button.textContent = text;
+        button.addEventListener('click', () => {
+          ctx.prompt.value = text;
+          autoResize(ctx.prompt);
+          ctx.prompt.focus();
+        });
+        suggestions.appendChild(button);
+      });
+      node.append(title, copy, suggestions);
+      ctx.messages.appendChild(node);
+    }
+
+    function clearContext(ctx) {
+      if (ctx.controller) ctx.controller.abort();
+      ctx.controller = null;
+      ctx.prompt.value = '';
+      autoResize(ctx.prompt);
+      emptyState(ctx);
+      updateSendButtons();
+      notifyResize();
+    }
+
+    function autoResize(textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${Math.min(160, textarea.scrollHeight)}px`;
+    }
+
+    async function submitPrompt(ctx, prompt) {
+      const requestId = `req-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      ctx.controller = new AbortController();
+      updateSendButtons();
+      recordLog('submit:init', { requestId, prompt });
+
+      const submit = await postJson(`${API_URL}/submit`, { prompt }, { signal: ctx.controller.signal });
+      recordLog('submit:accepted', { requestId, jobId: submit.jobId, outputUri: submit.outputUri });
+      if (!submit.jobId && !submit.outputUri) {
+        throw new Error('Server returned an invalid job response');
+      }
+
+      const query = submit.jobId
+        ? `jobId=${encodeURIComponent(submit.jobId)}`
+        : `outputUri=${encodeURIComponent(submit.outputUri)}`;
+
+      while (ctx.controller) {
+        const result = await getJson(`${API_URL}/result?${query}`, {
+          cache: 'no-store',
+          signal: ctx.controller.signal
+        });
+        recordLog('poll:status', { requestId, status: result.status, stage: result.stage?.name });
+        if (result.status === 'READY') {
+          markServerOnline('request-complete', DEFAULT_WARM_HOLD_SEC);
+          return result.data || {};
+        }
+        if (result.status === 'FAILED') {
+          throw new Error(result.error || 'Request failed');
+        }
+        await delay(1500);
+      }
+      throw new DOMException('Stopped', 'AbortError');
+    }
+
+    async function handleSubmit(ctx, event) {
+      event.preventDefault();
+      if (ctx.controller) {
+        ctx.controller.abort();
+        return;
+      }
+      const prompt = ctx.prompt.value.trim();
+      if (!prompt) return;
+      if (!serverReady) {
+        setServerVisual('off', 'Server off', 'Press Start server before sending a query.', '');
+        warmupButton.focus();
+        return;
+      }
+
+      const empty = ctx.messages.querySelector('.empty-state');
+      if (empty) empty.remove();
+      addMessage(ctx, 'user', prompt);
+      ctx.prompt.value = '';
+      autoResize(ctx.prompt);
+      const answer = addWaitingMessage(ctx, 'Running model...');
+
+      try {
+        const data = await submitPrompt(ctx, prompt);
+        answer.innerHTML = renderMarkdown(data.generated_text || data.answer || JSON.stringify(data));
+        appendSources(answer, sourceUrls(data));
+      } catch (err) {
+        if (err.name === 'AbortError') {
+          answer.textContent = 'Stopped before final answer.';
         } else {
-            applyDemoEnabledState();
-            if (disabledBanner) {
-                disabledBanner.hidden = true;
-                disabledBanner.setAttribute('aria-hidden', 'true');
-                disabledBanner.style.display = 'none';
-            }
+          answer.textContent = `Request failed: ${describeError(err)}`;
+          recordLog('submit:error', { error: describeError(err) }, 'error');
         }
+      } finally {
+        ctx.controller = null;
+        updateSendButtons();
+        ctx.prompt.focus();
+        notifyResize();
+      }
+    }
 
-        /* ---------- Stepper ---------- */
-        const steps = [
-            { id: 'submit', label: 'Request received' },
-            { id: 'boot', label: 'Start model' },
-            { id: 'process', label: 'Run model' },
-            { id: 'complete', label: 'Complete' }
-        ];
-        function renderStepper() {
-            const ul = document.createElement('ul'); ul.className = 'stepper';
-            steps.forEach((s, i) => {
-                const li = document.createElement('li'); li.className = 'step not-started'; li.id = `step-${s.id}`;
-                li.dataset.label = s.label; li.setAttribute('role', 'button'); li.setAttribute('tabindex', '0'); li.setAttribute('aria-label', s.label);
-                const dot = document.createElement('div'); dot.className = 'dot'; dot.textContent = i + 1;
-                const label = document.createElement('span'); label.className = 'label'; label.textContent = s.label;
-                li.append(dot, label); ul.appendChild(li);
-            });
-            statusEl.innerHTML = ''; statusEl.appendChild(ul);
+    function bindContext(ctx) {
+      emptyState(ctx);
+      ctx.form.addEventListener('submit', event => handleSubmit(ctx, event));
+      ctx.send.addEventListener('click', event => {
+        if (ctx.controller) {
+          event.preventDefault();
+          ctx.controller.abort();
         }
-        function setStep(id, state) {
-            const el = document.getElementById(`step-${id}`); if (!el) return;
-            el.classList.remove('not-started', 'in-progress', 'done'); el.classList.add(state);
+      });
+      ctx.clear.addEventListener('click', () => clearContext(ctx));
+      ctx.prompt.addEventListener('input', () => autoResize(ctx.prompt));
+      ctx.prompt.addEventListener('keydown', event => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+          event.preventDefault();
+          if (!ctx.send.disabled && !ctx.controller) ctx.form.requestSubmit();
         }
-        renderStepper();
+      });
+      autoResize(ctx.prompt);
+    }
 
-        const mqCompact = window.matchMedia('(max-width: 520px)');
-        statusEl.addEventListener('click', e => {
-            const step = e.target.closest('.step'); if (!step || !mqCompact.matches) return;
-            step.classList.add('show-tip'); clearTimeout(step._tipTimer);
-            step._tipTimer = setTimeout(() => step.classList.remove('show-tip'), 1500);
-        });
-        statusEl.addEventListener('keydown', e => {
-            if (!mqCompact.matches) return;
-            const step = e.target.closest('.step'); if (!step) return;
-            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); step.click(); }
-        });
-        window.addEventListener('resize', () => { if (!mqCompact.matches) { document.querySelectorAll('.step.show-tip').forEach(s => s.classList.remove('show-tip')); } });
-
-        /* ---------- Utilities ---------- */
-        function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
-        async function waitForServerOnline(maxWaitMs = START_TIMEOUT_SEC * 1000) {
-            const start = Date.now();
-            const pollDelay = 5000;
-            while (Date.now() - start < maxWaitMs) {
-                const status = await fetchStatusInfo();
-                if (status.online) {
-                    recordLog('status:online-detected', { source: 'wait-helper' });
-                    return true;
-                }
-                recordLog('status:waiting-online', { elapsedMs: Date.now() - start });
-                await delay(pollDelay);
-            }
-            throw new Error('Server is still starting. Please try again soon.');
-        }
-        function autoResize() { promptEl.style.height = 'auto'; promptEl.style.height = Math.min(200, promptEl.scrollHeight) + 'px'; }
-        promptEl.addEventListener('input', autoResize); window.addEventListener('load', autoResize);
-        promptEl.addEventListener('keydown', (e) => {
-            if (DEMO_DISABLED) return;
-            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); }
-        });
-
-        quickPrompts.addEventListener('click', (e) => {
-            if (DEMO_DISABLED) return;
-            const btn = e.target.closest('[data-text]'); if (!btn) return;
-            const text = (btn.getAttribute('data-text') || '').replace(/\s+/g, ' ').trim();
-            promptEl.value = text; autoResize(); promptEl.focus();
-            try { promptEl.setSelectionRange(text.length, text.length); } catch { }
-        });
-
-        clearBtn.addEventListener('click', () => {
-            answerEl.innerHTML = ''; localStorage.removeItem('chatbot-demo-history'); requestAnimationFrame(() => notifyResize());
-        });
-
-        answerEl.addEventListener('click', async (e) => {
-            const btn = e.target.closest('[data-copy]'); if (!btn) return;
-            const bubble = btn.closest('.bubble'); const html = bubble.querySelector('.content')?.innerHTML || '';
-            const text = (new DOMParser()).parseFromString(html, 'text/html').documentElement.textContent || '';
-            try { await navigator.clipboard.writeText(text.trim()); btn.innerHTML = '<i class="fa-solid fa-check"></i>'; setTimeout(() => btn.innerHTML = '<i class=\"fa-solid fa-copy\"></i>', 1200); } catch { }
-        });
-
-        /* ---------- Rendering ---------- */
-        let exchangeCount = 0;
-        function createExchange(prompt) {
-            exchangeCount++;
-            const wrap = document.createElement('div'); wrap.className = 'exchange-wrapper';
-            appendMessage(wrap, 'user', prompt);
-            const { contentEl, bubble } = appendMessage(wrap, 'bot', '', { loading: true });
-            answerEl.appendChild(wrap); answerEl.scrollTop = answerEl.scrollHeight; notifyResize();
-            return { contentEl, bubble };
-        }
-        function renderMarkdown(text) {
-            if (window.marked && window.DOMPurify) {
-                marked.setOptions({ breaks: true });
-                const dirty = marked.parse(text || '');
-                return DOMPurify.sanitize(dirty, { USE_PROFILES: { html: true } });
-            }
-            const esc = s => s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
-            return esc(text || '').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        }
-        function appendMessage(container, role, text, opts = {}) {
-            const msg = document.createElement('div'); msg.className = `message ${role}`;
-            const avatar = document.createElement('div'); avatar.className = 'avatar';
-            avatar.innerHTML = role === 'user' ? '<i class="fa-solid fa-user"></i>' : '<i class="fa-solid fa-robot"></i>';
-            const bubble = document.createElement('div'); bubble.className = 'bubble'; bubble.setAttribute('tabindex', '0');
-            const tools = document.createElement('div'); tools.className = 'tools';
-            const copyBtn = document.createElement('button'); copyBtn.className = 'tool-btn'; copyBtn.type = 'button'; copyBtn.setAttribute('data-copy', '1'); copyBtn.innerHTML = '<i class=\"fa-solid fa-copy\"></i>';
-            tools.appendChild(copyBtn);
-            const content = document.createElement('div'); content.className = 'content';
-            if (opts.loading) { content.innerHTML = '<div class="skeleton" style="width:72%"></div><div class="skeleton" style="width:46%;margin-top:6px;"></div>'; }
-            else { content.innerHTML = renderMarkdown(text); }
-            bubble.append(tools, content); msg.append(avatar, bubble); container.appendChild(msg);
-            return { contentEl: content, bubble };
-        }
-        function renderSources(parentBubble, urls) {
-            if (!Array.isArray(urls) || !urls.length) return;
-            const div = document.createElement('div'); div.className = 'sources';
-            urls.forEach(u => { try { const a = document.createElement('a'); a.href = u; a.target = '_blank'; a.rel = 'noopener'; a.textContent = u; const line = document.createElement('div'); line.appendChild(a); div.appendChild(line); } catch { } });
-            parentBubble.appendChild(div);
-        }
-
-        /* ---------- Server status ---------- */
-        const START_TIMEOUT_SEC = 300; // conservative fallback; backend stage estimates refine this
-        const GRACE_SEC = 300;         // five-minute warm hold after output
-        const STATUS_POLL_INTERVAL_MS = 60000; // Periodic status refresh cadence
-
-        const STATE = {
-            OFFLINE_DETECTED: 'OFFLINE_DETECTED',
-            STARTING: 'STARTING',
-            ONLINE: 'ONLINE',
-            ONLINE_GRACE: 'ONLINE_GRACE',
-            SHUTDOWN: 'SHUTDOWN'
-        };
-
-        let currentState = STATE.OFFLINE_DETECTED;
-        let startingTimer = null, startingDeadline = 0;
-        let graceTimer = null, graceDeadline = 0;
-        let statusSyncPending = false;
-        let statusPoller = null;
-        let serverReady = false;
-        let requestActive = false;
-
-        function updateAskButton() {
-            if (DEMO_DISABLED) return;
-            askBtn.disabled = requestActive || !serverReady;
-            askBtn.setAttribute('aria-disabled', String(askBtn.disabled));
-            askBtn.title = serverReady ? '' : 'Start the server before sending a query.';
-        }
-        function setWarmupButton(state) {
-            if (!warmupBtn || DEMO_DISABLED) return;
-            if (state === 'warm') {
-                warmupBtn.disabled = true;
-                warmupBtn.setAttribute('aria-disabled', 'true');
-                warmupBtn.innerHTML = '<i class="fa-solid fa-check"></i> Server ready';
-                warmupBtn.title = 'Server is warm and ready.';
-            } else if (state === 'starting') {
-                warmupBtn.disabled = true;
-                warmupBtn.setAttribute('aria-disabled', 'true');
-                warmupBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Starting';
-                warmupBtn.title = 'Server is starting.';
-            } else {
-                warmupBtn.disabled = false;
-                warmupBtn.setAttribute('aria-disabled', 'false');
-                warmupBtn.innerHTML = '<i class="fa-solid fa-power-off"></i> Start server';
-                warmupBtn.title = 'Start the server before asking questions.';
-            }
-        }
-        function setServerReady(value) {
-            serverReady = Boolean(value);
-            updateAskButton();
-            setWarmupButton(serverReady ? 'warm' : 'idle');
-        }
-        updateAskButton();
-        setWarmupButton('idle');
-
-        const getStoredStartDeadline = () => restoreDeadline(STORAGE_KEYS.startDeadline);
-        const getStoredGraceDeadline = () => restoreDeadline(STORAGE_KEYS.graceDeadline);
-
-        function isOnlinePayload(payload) {
-            if (!payload) return false;
-            if (typeof payload.online === 'boolean') return payload.online;
-            const status = String(payload.status || payload.state || '').toLowerCase();
-            if (status === 'on' || status === 'online' || status === 'inservice' || status === 'ready') return true;
-            if (typeof payload.current === 'number' && payload.current > 0) return true;
-            return false;
-        }
-        function isStartupInProgressPayload(payload) {
-            if (!payload) return false;
-            const status = String(payload.status || payload.state || '').toLowerCase().replace(/\s+/g, '');
-            if (['starting', 'pending', 'queued', 'booting', 'processing', 'scaling', 'warming'].includes(status)) return true;
-            const stage = String(payload.stage?.name || payload.stage || '').toLowerCase().replace(/\s+/g, '');
-            if (['queued', 'booting', 'processing', 'starting', 'warming'].includes(stage)) return true;
-            const endpoint = payload.stage?.endpoint || {};
-            const desired = Number(payload.desired ?? endpoint.desired);
-            if (Number.isFinite(desired) && desired > 0) return true;
-            const queueEstimate = Number(payload.queue_estimate);
-            if (Number.isFinite(queueEstimate) && queueEstimate > 0) return true;
-            const metrics = payload.metrics || payload.stage?.metrics || {};
-            const backlog = Number(metrics.approx_backlog_per_instance);
-            const backlogWithoutCapacity = Number(metrics.has_backlog_without_capacity);
-            return (Number.isFinite(backlog) && backlog > 0)
-                || (Number.isFinite(backlogWithoutCapacity) && backlogWithoutCapacity > 0);
-        }
-        function updateQueueIndicators(payload) {
-            if (!svcQueueWrap) return;
-            const q = typeof payload?.queue_estimate === 'number' ? payload.queue_estimate : null;
-            if (q == null) {
-                svcQueueWrap.setAttribute('hidden', 'true');
-            } else {
-                svcQueueWrap.removeAttribute('hidden');
-                svcQ.textContent = q.toFixed(1);
-            }
-        }
-        function secondsFromEta(value) {
-            if (typeof value !== 'number' || !Number.isFinite(value)) return null;
-            return Math.max(0, Math.round(value));
-        }
-        async function fetchStatusInfo() {
-            try {
-                const payload = await retryRequest(
-                    () => getJson(STATUS_URL, { cache: 'no-store' }),
-                    STATUS_RETRY_OPTIONS
-                );
-                updateQueueIndicators(payload);
-                const online = isOnlinePayload(payload);
-                const startupInProgress = !online && isStartupInProgressPayload(payload);
-                const warmSeconds = secondsFromEta(payload?.eta?.to_warm_seconds);
-                const shutdownSeconds = secondsFromEta(payload?.eta?.to_scale_to_zero_seconds);
-                recordLog('status:payload', { online, startupInProgress, warmSeconds, shutdownSeconds });
-                return { online, startupInProgress, warmSeconds, shutdownSeconds, payload };
-            } catch (err) {
-                recordLog('status:error', { error: describeError(err) }, 'error');
-                return { online: false, startupInProgress: false, warmSeconds: null, shutdownSeconds: null, payload: null };
-            }
-        }
-        function setDot(status) {
-            const cls = status === STATE.ONLINE || status === STATE.ONLINE_GRACE ? 'green'
-                : status === STATE.STARTING ? 'amber' : 'gray';
-            svcDot.className = 'svc-dot ' + cls;
-        }
-        function fmtClock(s) {
-            const m = Math.floor(s / 60);
-            const sec = s % 60;
-            return `${m}:${String(sec).padStart(2, '0')}`;
-        }
-        function stopStartingTimer(opts = { clearStorage: true }) {
-            if (startingTimer) {
-                clearInterval(startingTimer);
-                startingTimer = null;
-            }
-            if (opts?.clearStorage) {
-                startingDeadline = 0;
-                if (typeof STORAGE_KEYS !== 'undefined' && typeof writeDeadline === 'function') {
-                    writeDeadline(STORAGE_KEYS.startDeadline, null);
-                }
-            }
-        }
-        function stopGraceCycle(opts = { clearStorage: true }) {
-            if (graceTimer) {
-                clearInterval(graceTimer);
-                graceTimer = null;
-            }
-            if (opts?.clearStorage) {
-                graceDeadline = 0;
-                if (typeof STORAGE_KEYS !== 'undefined' && typeof writeDeadline === 'function') {
-                    writeDeadline(STORAGE_KEYS.graceDeadline, null);
-                }
-            }
-        }
-        function markServerOnline(source = 'status', options = {}) {
-            if (DEMO_DISABLED) return;
-            const { remainingSec = null, useStoredDeadline = false, forceReset = false } = options;
-            recordLog('status:online', { source, remainingSec, forceReset });
-            stopStartingTimer();
-            setServerReady(true);
-            let deadlineMs = null;
-            if (typeof remainingSec === 'number' && remainingSec > 0) {
-                deadlineMs = Date.now() + remainingSec * 1000;
-            } else if (!forceReset && useStoredDeadline) {
-                deadlineMs = getStoredGraceDeadline();
-            }
-            if (!deadlineMs || forceReset) {
-                deadlineMs = Date.now() + GRACE_SEC * 1000;
-            }
-            startGraceCycle({ deadlineMs, source });
-        }
-        async function syncStatus(reason = 'status-check') {
-            if (statusSyncPending) return;
-            statusSyncPending = true;
-            let status = null;
-            try {
-                status = await fetchStatusInfo();
-            } catch (err) {
-                statusSyncPending = false;
-                throw err;
-            }
-            if (status.online) {
-                if (status.shutdownSeconds && status.shutdownSeconds > 0) {
-                    markServerOnline(reason, { remainingSec: status.shutdownSeconds, forceReset: true });
-                } else {
-                    markServerOnline(reason, { useStoredDeadline: true });
-                }
-            } else {
-                stopGraceCycle();
-                const storedRemaining = (() => {
-                    const ts = getStoredStartDeadline();
-                    return ts ? Math.max(0, Math.round((ts - Date.now()) / 1000)) : null;
-                })();
-                if (status.startupInProgress) {
-                    setServerReady(false);
-                    setWarmupButton('starting');
-                    const durationSec = status.warmSeconds || storedRemaining || START_TIMEOUT_SEC;
-                    startStartingTimer({ durationSec, force: true, reason: 'startup-in-progress' });
-                } else {
-                    stopStartingTimer();
-                    currentState = STATE.OFFLINE_DETECTED;
-                    setDot(currentState);
-                    svcText.textContent = 'Start server before asking.';
-                    svcETA.textContent = '';
-                    setServerReady(false);
-                }
-            }
-            statusSyncPending = false;
-        }
-        function startStatusPolling() {
-            if (DEMO_DISABLED || statusPoller) return;
-            statusPoller = setInterval(() => {
-                if (document?.visibilityState === 'hidden') return;
-                syncStatus('status-poll').catch(err => {
-                    recordLog('status:poll-error', { error: describeError(err) }, 'error');
-                });
-            }, STATUS_POLL_INTERVAL_MS);
-        }
-        if (!DEMO_DISABLED) {
-            syncStatus('status-check').catch(err => {
-                recordLog('status:init-error', { error: describeError(err) }, 'error');
-            });
-            startStatusPolling();
-            document.addEventListener('visibilitychange', () => {
-                if (document.visibilityState === 'visible') {
-                    syncStatus('status-visibility').catch(err => {
-                        recordLog('status:visibility-error', { error: describeError(err) }, 'error');
-                    });
-                }
-            });
-        }
-
-        /* ---------- Startup notice logic ---------- */
-        (function initNotice(){
-            if (DEMO_DISABLED) {
-                return;
-            }
-            const backdrop = document.getElementById('start-notice');
-            const ok = document.getElementById('notice-ok');
-            const body = document.getElementById('notice-body');
-            const never = document.getElementById('notice-never');
-            if (!backdrop || !ok || !body) return;
-
-            const LS_KEY = 'chatbot-start-notice:hide';
-            try { if (localStorage.getItem(LS_KEY) === '1') return; } catch {}
-
-            function minutesRound(sec){ return Math.max(1, Math.round(sec/60)); }
-            // Compose message from constants so it stays accurate with future tweaks
-            const warmMin = minutesRound(START_TIMEOUT_SEC);
-            const shutMin = minutesRound(GRACE_SEC);
-            const warmLabel = describeMinutesLabel(warmMin);
-            const shutLabel = describeMinutesLabel(shutMin);
-            body.textContent = `To control hosting costs, the demo server starts from off on demand (cold start, up to about ${warmLabel}). Use Start server to warm it before asking questions. The status bar updates as AWS queues, boots, and runs the model, then the server stays warm for about ${shutLabel} after the last output.`;
-
-            function close(){
-                try { if (never && never.checked) localStorage.setItem(LS_KEY, '1'); } catch {}
-                backdrop.style.display = 'none';
-                try { document.getElementById('prompt')?.focus(); } catch {}
-            }
-            ok.addEventListener('click', close);
-            backdrop.addEventListener('click', (e)=>{ if (e.target === backdrop) close(); });
-            window.addEventListener('keydown', (e)=>{ if (e.key === 'Escape' && backdrop.style.display !== 'none') close(); });
-
-            // Show immediately on load
-            backdrop.style.display = 'grid';
-            // Focus the OK button for accessibility
-            try { ok.focus(); } catch {}
-        })();
-
-        // Starting timer helpers
-        function describeMinutesLabel(value) {
-            const minutes = Math.max(1, Math.round(Number(value) || 0));
-            return `${minutes} minute${minutes === 1 ? '' : 's'}`;
-        }
-        function startStartingTimer(opts = {}) {
-            const { durationSec = START_TIMEOUT_SEC, force = false, reason = 'manual' } = opts;
-            if (startingTimer && !force) return;
-            if (startingTimer) {
-                clearInterval(startingTimer);
-                startingTimer = null;
-            }
-            const minutes = Math.max(1, Math.round(durationSec / 60));
-            currentState = STATE.STARTING;
-            setDot(currentState);
-            setServerReady(false);
-            setWarmupButton('starting');
-            const label = describeMinutesLabel(minutes);
-            svcText.textContent = `Starting... (up to ~${label})`;
-            startingDeadline = Date.now() + Math.max(1, Math.round(durationSec)) * 1000;
-            if (typeof STORAGE_KEYS !== 'undefined' && typeof writeDeadline === 'function') {
-                writeDeadline(STORAGE_KEYS.startDeadline, startingDeadline);
-            }
-            if (typeof recordLog === 'function') {
-                recordLog('status:starting-timer', { reason, durationSec });
-            }
-            updateStarting();
-            startingTimer = setInterval(updateStarting, 1000);
-        }
-        function updateStarting() {
-            const remaining = Math.max(0, Math.round((startingDeadline - Date.now()) / 1000));
-            svcETA.textContent = fmtClock(remaining);
-            if (remaining <= 0) {
-                stopStartingTimer();
-                svcText.textContent = 'Starting... (taking longer than expected)';
-                svcETA.textContent = '';
-            }
-        }
-        function currentStartingRemaining() {
-            if (!startingTimer) return null;
-            return Math.max(0, Math.round((startingDeadline - Date.now()) / 1000));
-        }
-        // End starting timer helpers
-
-        // Grace period helpers
-        function startGraceCycle(opts = {}) {
-            const { deadlineMs = null, durationSec = null, source = 'default' } = opts;
-            stopGraceCycle({ clearStorage: false });
-            currentState = STATE.ONLINE_GRACE;
-            setDot(currentState);
-            setServerReady(true);
-            const now = Date.now();
-            if (typeof deadlineMs === 'number' && deadlineMs > now) {
-                graceDeadline = deadlineMs;
-            } else if (typeof durationSec === 'number' && durationSec > 0) {
-                graceDeadline = now + Math.round(durationSec) * 1000;
-            } else if (!graceDeadline || graceDeadline <= now) {
-                graceDeadline = now + GRACE_SEC * 1000;
-            }
-            if (typeof STORAGE_KEYS !== 'undefined' && typeof writeDeadline === 'function') {
-                writeDeadline(STORAGE_KEYS.graceDeadline, graceDeadline);
-            }
-            const minutesLeft = Math.max(1, Math.ceil((graceDeadline - now) / 60000));
-            const label = describeMinutesLabel(minutesLeft);
-            svcText.textContent = `Ready (auto-shutdown in ~${label})`;
-            if (typeof recordLog === 'function') {
-                recordLog('status:grace-cycle', { source, deadline: graceDeadline });
-            }
-            updateGrace();
-            graceTimer = setInterval(updateGrace, 1000);
-        }
-        function updateGrace() {
-            const remaining = Math.max(0, Math.round((graceDeadline - Date.now()) / 1000));
-            svcETA.textContent = fmtClock(remaining);
-            if (remaining <= 0) {
-                stopGraceCycle();
-                fetchStatusInfo().then(status => {
-                    if (!status.online) {
-                        currentState = STATE.SHUTDOWN;
-                        setDot(currentState);
-                        svcText.textContent = 'Start server before asking.';
-                        svcETA.textContent = '';
-                        setServerReady(false);
-                    } else if (typeof status.payload?.shutdownSeconds === 'number' && status.payload.shutdownSeconds > 0) {
-                        markServerOnline('grace-refresh', {
-                            remainingSec: status.payload.shutdownSeconds,
-                            forceReset: false
-                        });
-                    } else if (typeof status.payload?.current === 'number' && status.payload.current <= 0) {
-                        currentState = STATE.SHUTDOWN;
-                        setDot(currentState);
-                        svcText.textContent = 'Start server before asking.';
-                        svcETA.textContent = '';
-                        setServerReady(false);
-                    } else {
-                        markServerOnline('grace-refresh', { useStoredDeadline: true });
-                    }
-                }).catch(() => {
-                    setTimeout(() => startGraceCycle({ source: 'retry' }), 0);
-                });
-            }
-        }
-        // End grace period helpers
-
-        function onFirstUserRequest() {
-            if (DEMO_DISABLED) return;
-            recordLog('ui:first-request');
-            if (currentState === STATE.OFFLINE_DETECTED) startStartingTimer();
-        }
-        async function warmupServer() {
-            if (DEMO_DISABLED || !warmupBtn || warmupBtn.disabled) return;
-            recordLog('warmup:init');
-            setServerReady(false);
-            setWarmupButton('starting');
-            setStep('submit', 'in-progress');
-            setStep('boot', 'in-progress');
-            setStep('process', 'not-started');
-            setStep('complete', 'not-started');
-            startStartingTimer({ durationSec: START_TIMEOUT_SEC, force: true, reason: 'manual-warmup' });
-
-            try {
-                const submit = await postJson(`${API_URL}/warmup`, {});
-                recordLog('warmup:submit', { status: submit.status, jobId: submit.jobId, warm: submit.warm });
-                if (submit.status === 'READY' || submit.warm || !submit.jobId) {
-                    setStep('submit', 'done');
-                    setStep('boot', 'done');
-                    setStep('process', 'done');
-                    setStep('complete', 'done');
-                    markServerOnline('warmup-ready', {
-                        remainingSec: submit.warm_hold_seconds || GRACE_SEC,
-                        forceReset: true
-                    });
-                    return;
-                }
-
-                async function pollWarmup() {
-                    const query = submit.jobId
-                        ? `jobId=${encodeURIComponent(submit.jobId)}`
-                        : `outputUri=${encodeURIComponent(submit.outputUri)}`;
-                    const res = await getJson(`${API_URL}/result?${query}`, { cache: 'no-store' });
-                    const stageName = String(res?.stage?.name || '').toLowerCase();
-                    recordLog('warmup:poll', { status: res.status, stage: stageName });
-                    if (stageName === 'processing') {
-                        setStep('submit', 'done');
-                        setStep('boot', 'done');
-                        setStep('process', 'in-progress');
-                    }
-                    if (res.status === 'READY') {
-                        setStep('submit', 'done');
-                        setStep('boot', 'done');
-                        setStep('process', 'done');
-                        setStep('complete', 'done');
-                        markServerOnline('warmup-complete', {
-                            remainingSec: submit.warm_hold_seconds || GRACE_SEC,
-                            forceReset: true
-                        });
-                        return;
-                    }
-                    if (res.status === 'FAILED') {
-                        throw new Error(res.error || 'Warm-up failed');
-                    }
-                    await delay(2000);
-                    return pollWarmup();
-                }
-                await pollWarmup();
-            } catch (err) {
-                recordLog('warmup:error', { error: describeError(err) }, 'error');
-                setServerReady(false);
-                setWarmupButton('idle');
-                stopStartingTimer();
-                svcText.textContent = `Warm-up failed: ${describeError(err)}`;
-                svcETA.textContent = '';
-                setStep('boot', 'not-started');
-                setStep('process', 'not-started');
-                setStep('complete', 'not-started');
-            }
-        }
-        /* ---------- Networking ---------- */
-        let abort = null; let cancelled = false;
-        async function ask(prompt, onStatus = () => { }, retryCount = 0) {
-            if (DEMO_DISABLED) {
-                throw new Error(DEMO_DISABLED_REASON);
-            }
-            const requestId = createRequestId();
-            recordLog('submit:init', { requestId, prompt });
-            cancelled = false; abort = new AbortController(); onStatus('SUBMITTING', requestId);
-
-            let submitResponse;
-            try {
-                submitResponse = await fetch(`${API_URL}/submit`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ prompt }),
-                    signal: abort.signal
-                });
-                recordLog('submit:http', { requestId, status: submitResponse.status, ok: submitResponse.ok });
-            } catch (err) {
-                recordLog('submit:network-error', { requestId, error: describeError(err) }, 'error');
-                throw withRequestId(err, requestId);
-            }
-
-            let submit;
-            try {
-                submit = await submitResponse.json();
-            } catch (err) {
-                recordLog('submit:parse-error', { requestId, error: describeError(err) }, 'error');
-                throw withRequestId(err, requestId);
-            }
-
-            if (submit?.starting) {
-                if (retryCount > 2) {
-                    throw withRequestId(new Error('Server is still starting. Please try again shortly.'), requestId);
-                }
-                recordLog('submit:starting', { requestId, retryCount });
-                await waitForServerOnline();
-                return ask(prompt, onStatus, retryCount + 1);
-            }
-
-            if (!submitResponse.ok) {
-                const errorMessage = submit?.error || submitResponse.statusText || 'Submit request failed';
-                recordLog('submit:http-error', { requestId, status: submitResponse.status, error: errorMessage }, 'error');
-                throw withRequestId(new Error(errorMessage), requestId);
-            }
-
-            const outputUri = submit.outputUri;
-            if (!outputUri || !outputUri.startsWith('s3://')) {
-                recordLog('submit:invalid-output', { requestId, jobId: submit.jobId, outputUri }, 'error');
-                throw withRequestId(new Error('Server returned an invalid response'), requestId);
-            }
-            recordLog('submit:accepted', { requestId, jobId: submit.jobId, outputUri });
-
-            onStatus('PENDING', requestId);
-
-            let pollAttempt = 0;
-            async function poll() {
-                pollAttempt += 1;
-                if (cancelled) {
-                    recordLog('poll:cancelled', { requestId, pollAttempt });
-                    throw withRequestId(new Error('stopped'), requestId);
-                }
-                const query = submit.jobId
-                    ? `jobId=${encodeURIComponent(submit.jobId)}`
-                    : `outputUri=${encodeURIComponent(outputUri)}`;
-                const url = `${API_URL}/result?${query}`;
-                let pollResponse;
-                try {
-                    pollResponse = await fetch(url, { signal: abort.signal });
-                    recordLog('poll:http', { requestId, pollAttempt, status: pollResponse.status, ok: pollResponse.ok });
-                } catch (err) {
-                    recordLog('poll:network-error', { requestId, pollAttempt, error: describeError(err) }, 'error');
-                    throw withRequestId(err, requestId);
-                }
-
-                if (!pollResponse.ok) {
-                    let errMsg = '';
-                    let parsed = null;
-                    try {
-                        const bodyText = await pollResponse.text();
-                        errMsg = bodyText;
-                        parsed = bodyText ? JSON.parse(bodyText) : null;
-                    } catch {
-                        errMsg = '';
-                    }
-                    const message = parsed?.error || errMsg || pollResponse.statusText || 'Result request failed';
-                    recordLog('poll:http-error', { requestId, pollAttempt, status: pollResponse.status, error: message }, 'error');
-                    throw withRequestId(new Error(message), requestId);
-                }
-                let res;
-                try {
-                    res = await pollResponse.json();
-                } catch (err) {
-                    recordLog('poll:parse-error', { requestId, pollAttempt, error: describeError(err) }, 'error');
-                    throw withRequestId(err, requestId);
-                }
-                onStatus(res.status, requestId);
-                recordLog('poll:status', { requestId, pollAttempt, status: res.status });
-                if (res.status === 'READY') {
-                    recordLog('result:ready', {
-                        requestId,
-                        pollAttempt,
-                        outputUri,
-                        tokens: res.data?.token_usage,
-                        sourceCount: Array.isArray(res.data?.sources || res.data?.source_urls) ? (res.data.sources || res.data.source_urls).length : 0
-                    });
-                    return res.data;
-                }
-                if (res.status === 'FAILED') {
-                    recordLog('result:failed', { requestId, pollAttempt, outputUri, error: res.error }, 'error');
-                    throw withRequestId(new Error(res.error || 'Request failed'), requestId);
-                }
-                recordLog('poll:waiting', { requestId, pollAttempt, delayMs: 1500 });
-                await new Promise(r => setTimeout(r, 1500));
-                return poll();
-            }
-            const data = await poll();
-            markServerOnline('request-complete', { forceReset: true });
-            return { data, requestId };
-        }
-
-        /* ---------- Submit flow ---------- */
-        function saveHistory() { localStorage.setItem('chatbot-demo-history', answerEl.innerHTML); }
-        function restoreHistory() { const html = localStorage.getItem('chatbot-demo-history'); if (html) { answerEl.innerHTML = html; } }
-        restoreHistory();
-
-        async function handleSubmit(e) {
-            if (e) e.preventDefault();
-            if (DEMO_DISABLED) return;
-            const prompt = promptEl.value.trim(); if (!prompt) return;
-            if (!serverReady) {
-                svcText.textContent = 'Start the server before sending a query.';
-                svcETA.textContent = '';
-                warmupBtn?.focus();
-                recordLog('ui:submit-blocked-cold');
-                return;
-            }
-            recordLog('ui:submit', { promptLength: prompt.length });
-            onFirstUserRequest();
-            requestActive = true;
-            updateAskButton();
-            setStep('submit', 'in-progress'); stopBtn.hidden = false; form.setAttribute('aria-busy', 'true');
-            const { contentEl, bubble } = createExchange(prompt);
-            promptEl.value = ''; autoResize();
-
-            try {
-                const result = await ask(prompt, status => {
-                    if (status === 'PENDING') {
-                        setStep('submit', 'done'); setStep('process', 'in-progress');
-                    } else if (status === 'READY') {
-                        setStep('process', 'done'); setStep('complete', 'done');
-                    }
-                });
-                const { data, requestId } = result;
-                contentEl.innerHTML = renderMarkdown(data.generated_text || JSON.stringify(data));
-                const urls = data.source_urls || data.sources || data.urls; renderSources(bubble, urls);
-                recordLog('ui:rendered', { requestId, sourceCount: Array.isArray(urls) ? urls.length : 0 });
-            } catch (err) {
-                setStep('boot', 'not-started');
-                setStep('process', 'not-started'); setStep('complete', 'not-started');
-                contentEl.innerHTML = `<div><strong>Error:</strong> ${String(err.message || err)}</div>`;
-                recordLog('ui:error', { requestId: err?.requestId, error: describeError(err) }, 'error');
-            } finally {
-                requestActive = false;
-                updateAskButton();
-                stopBtn.hidden = true; form.setAttribute('aria-busy', 'false');
-                saveHistory(); notifyResize();
-            }
-        }
-        askBtn.addEventListener('click', handleSubmit);
-        warmupBtn?.addEventListener('click', warmupServer);
-        form.addEventListener('submit', handleSubmit);
-
-        /* ---------- Quick Prompts marquee (JS-driven) ---------- */
-        (function () {
-            if (DEMO_DISABLED) return;
-            const track = quickPrompts; if (!track) return;
-            const mqPhone = window.matchMedia('(max-width: 520px)');
-            const mqReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
-            let enabled = false, rafId = null, offsetPx = 0, baseWidth = 0, pxPerSec = 0, paused = false, lastTs = 0;
-
-            function ensureClones() {
-                if (track.querySelector('.chip[aria-hidden="true"]')) return;
-                Array.from(track.querySelectorAll('.chip:not([aria-hidden="true"])')).forEach(chip => {
-                    const clone = chip.cloneNode(true); clone.setAttribute('aria-hidden', 'true'); track.appendChild(clone);
-                });
-            }
-            function removeClones() { track.querySelectorAll('.chip[aria-hidden="true"]').forEach(n => n.remove()); }
-            function readSpeed() {
-                const s = getComputedStyle(document.documentElement).getPropertyValue('--qp-speed').trim();
-                const secondsPerLoop = parseFloat(s) || 5; pxPerSec = baseWidth > 0 ? (baseWidth / secondsPerLoop) : 0;
-            }
-            function measure() { baseWidth = track.scrollWidth / 2; readSpeed(); if (baseWidth > 0) { offsetPx = offsetPx % baseWidth; if (offsetPx < 0) offsetPx += baseWidth; } }
-            function start() { if (rafId != null) return; lastTs = 0; rafId = requestAnimationFrame(tick); }
-            function stop() { if (rafId != null) cancelAnimationFrame(rafId); rafId = null; }
-            function tick(ts) {
-                if (!enabled) return; if (!lastTs) lastTs = ts; const dt = ts - lastTs; lastTs = ts;
-                if (!paused && baseWidth > 0 && pxPerSec > 0) { offsetPx += (pxPerSec * dt / 1000); if (offsetPx >= baseWidth) offsetPx -= baseWidth; track.style.transform = `translateX(${-offsetPx}px)`; }
-                rafId = requestAnimationFrame(tick);
-            }
-            function enable() { if (enabled) return; ensureClones(); track.style.animation = 'none'; track.style.willChange = 'transform'; measure(); enabled = true; start(); }
-            function disable() { if (!enabled) return; enabled = false; stop(); track.style.transform = ''; track.style.willChange = ''; removeClones(); }
-            function apply() { if (mqPhone.matches && !mqReduce.matches) enable(); else disable(); }
-
-            const pause = () => { paused = true; track.setAttribute('data-paused', '1'); };
-            const resume = () => { paused = false; track.removeAttribute('data-paused'); };
-            track.addEventListener('pointerdown', pause); window.addEventListener('pointerup', resume); window.addEventListener('pointercancel', resume);
-            track.addEventListener('mouseenter', pause); track.addEventListener('mouseleave', resume);
-            track.addEventListener('focusin', pause); track.addEventListener('focusout', resume);
-            document.addEventListener('visibilitychange', () => document.hidden ? pause() : resume());
-
-            mqPhone.addEventListener('change', apply); mqReduce.addEventListener('change', apply);
-            window.addEventListener('resize', () => { if (!enabled) return; const prev = baseWidth; measure(); if (baseWidth && prev) offsetPx = offsetPx % baseWidth; });
-
-            window.addEventListener('load', apply); apply();
-        })();
-    </script>
-
-    <!-- Keyboard offset handling -->
-    <script>
-        (function () {
-            if (!window.visualViewport) return;
-            const wrap = document.querySelector('.input-wrap'); if (!wrap) return;
-            function update() { const offset = Math.max(0, window.innerHeight - visualViewport.height); wrap.style.setProperty('--kb-offset', offset + 'px'); }
-            visualViewport.addEventListener('resize', update);
-            visualViewport.addEventListener('scroll', update);
-            window.addEventListener('resize', update);
-            update();
-        })();
-    </script>
-    <footer></footer>
-    <script src="js/privacy/config.js"></script>
-    <script defer src="js/privacy/consent_manager.js"></script>
+    viewButtons.forEach(button => {
+      button.addEventListener('click', () => setView(button.dataset.view));
+    });
+    popupLauncher.addEventListener('click', () => togglePopup());
+    popupClose.addEventListener('click', () => togglePopup(false));
+    warmupButton.addEventListener('click', warmupServer);
+    contexts.forEach(bindContext);
+    updateSendButtons();
+    syncPassiveStatus().catch(err => {
+      recordLog('status:init-error', { error: describeError(err) }, 'error');
+      markServerCold('Status check failed. Start server can try again.');
+    });
+  </script>
 </body>
 </html>
