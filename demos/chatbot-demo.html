@@ -1018,13 +1018,19 @@
       updateSendButtons();
     }
 
+    function readySecondsFrom(value) {
+      const seconds = secondsFromEta(value);
+      return seconds == null ? DEFAULT_WARM_HOLD_SEC : seconds;
+    }
+
     function markServerOnline(source = 'status', warmHoldSeconds = DEFAULT_WARM_HOLD_SEC) {
-      recordLog('status:online', { source, warmHoldSeconds });
+      const readySeconds = readySecondsFrom(warmHoldSeconds);
+      recordLog('status:online', { source, warmHoldSeconds: readySeconds });
       serverReady = true;
       warmupActive = false;
       stopStartupTimer();
       setWarmupButtonState('ready');
-      startReadyTimer(warmHoldSeconds);
+      startReadyTimer(readySeconds);
       updateSendButtons();
     }
 
@@ -1061,20 +1067,24 @@
 
     function startReadyTimer(durationSec = DEFAULT_WARM_HOLD_SEC) {
       stopReadyTimer();
-      readyDeadline = Date.now() + Math.max(1, Math.round(durationSec || DEFAULT_WARM_HOLD_SEC)) * 1000;
+      const parsed = Number(durationSec);
+      const duration = Number.isFinite(parsed)
+        ? Math.max(0, Math.round(parsed))
+        : DEFAULT_WARM_HOLD_SEC;
+      readyDeadline = Date.now() + duration * 1000;
       updateReadyTimer();
+      if (duration <= 0) return;
       readyTimer = window.setInterval(updateReadyTimer, 1000);
     }
 
     function updateReadyTimer() {
       const remaining = Math.max(0, Math.round((readyDeadline - Date.now()) / 1000));
-      setServerVisual('ready', 'Server ready', 'Fast queries are available until the warm window ends.', formatClock(remaining));
+      const stage = remaining > 0
+        ? 'Fast queries are available until the warm window ends.'
+        : 'Warm window is ending; AWS may scale down soon.';
+      setServerVisual('ready', 'Server ready', stage, formatClock(remaining));
       if (remaining <= 0) {
         stopReadyTimer();
-        syncPassiveStatus().catch(err => {
-          recordLog('status:ready-refresh-error', { error: describeError(err) }, 'error');
-          markServerCold('Warm window ended. Status refresh failed.');
-        });
       }
     }
 
@@ -1089,7 +1099,7 @@
     async function syncPassiveStatus() {
       const status = await fetchStatusInfo();
       if (status.online) {
-        markServerOnline('passive-status', status.shutdownSeconds || DEFAULT_WARM_HOLD_SEC);
+        markServerOnline('passive-status', status.shutdownSeconds ?? DEFAULT_WARM_HOLD_SEC);
         return;
       }
       if (status.startupInProgress && userStartedWarmup) {
@@ -1120,7 +1130,10 @@
         const submit = await postJson(`${API_URL}/warmup`, {});
         recordLog('warmup:submit', { status: submit.status, jobId: submit.jobId, warm: submit.warm });
         if (submit.status === 'READY' || submit.warm || !submit.jobId) {
-          markServerOnline('warmup-ready', submit.warm_hold_seconds || DEFAULT_WARM_HOLD_SEC);
+          const readySeconds = statusInfoFromPayload(submit).shutdownSeconds
+            ?? submit.warm_hold_seconds
+            ?? DEFAULT_WARM_HOLD_SEC;
+          markServerOnline('warmup-ready', readySeconds);
           return;
         }
         await pollWarmup(submit);
@@ -1139,7 +1152,10 @@
         const stage = result.stage || {};
         recordLog('warmup:poll', { status: result.status, stage: stage.name });
         if (result.status === 'READY') {
-          markServerOnline('warmup-complete', submit.warm_hold_seconds || DEFAULT_WARM_HOLD_SEC);
+          const readySeconds = statusInfoFromPayload(result).shutdownSeconds
+            ?? submit.warm_hold_seconds
+            ?? DEFAULT_WARM_HOLD_SEC;
+          markServerOnline('warmup-complete', readySeconds);
           return;
         }
         if (result.status === 'FAILED') {
@@ -1336,7 +1352,8 @@
         });
         recordLog('poll:status', { requestId, status: result.status, stage: result.stage?.name });
         if (result.status === 'READY') {
-          markServerOnline('request-complete', DEFAULT_WARM_HOLD_SEC);
+          const readySeconds = statusInfoFromPayload(result).shutdownSeconds ?? DEFAULT_WARM_HOLD_SEC;
+          markServerOnline('request-complete', readySeconds);
           return result.data || {};
         }
         if (result.status === 'FAILED') {

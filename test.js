@@ -1406,6 +1406,10 @@ try {
     assert(chatbotHtml.includes('id="popup-view"'), 'chatbot-demo missing pop-up view');
     assert(chatbotHtml.includes('id="popup-launcher"'), 'chatbot-demo missing pop-up launcher');
     assert(chatbotHtml.includes('ctx.send.disabled = active ? false : !serverReady;'), 'chatbot-demo send buttons should be gated by shared serverReady state');
+    assert(chatbotHtml.includes('status.shutdownSeconds ?? DEFAULT_WARM_HOLD_SEC'), 'chatbot-demo should preserve accurate zero-second shutdown estimates');
+    assert(chatbotHtml.includes('statusInfoFromPayload(result).shutdownSeconds'), 'chatbot-demo should use API shutdown estimates from completed jobs');
+    assert(chatbotHtml.includes('if (duration <= 0) return;'), 'chatbot-demo ready timer should not loop when AWS reports zero seconds remaining');
+    assert(!chatbotHtml.includes('status.shutdownSeconds || DEFAULT_WARM_HOLD_SEC'), 'chatbot-demo should not replace an accurate zero-second shutdown estimate');
     assert(!chatbotHtml.includes('id="start-notice"'), 'chatbot-demo should not show startup modal on load');
     assert(!chatbotHtml.includes('chatbot-start-deadline'), 'chatbot-demo should not persist startup countdown deadlines');
     assert(vercel.includes('k8bys9gicf.execute-api.us-east-2.amazonaws.com'), 'vercel.json missing new chatbot API host');
