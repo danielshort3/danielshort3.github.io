@@ -7,7 +7,7 @@ Server-side logic for the slot machine demo. The function keeps authoritative pl
 - **DynamoDB**: `slot-machine-demo-players` (partition key `playerId`)
 - **DynamoDB**: `slot-machine-users` (partition key `username`, GSI `sessionToken-index`)
 - **DynamoDB**: `slot-machine-spin-history` (partition key `playerId`, sort key `spinTime`)
-- **Lambda**: `slot-machine-demo` (runtime `nodejs18.x`)
+- **Lambda**: `slot-machine-demo` (runtime `nodejs24.x`)
 - **IAM role**: `slotMachineDemoLambdaRole`
 - **API Gateway**: HTTP API `slot-machine-demo-api` (`4kvebym8b3`, stage `prod`)
 - **Public endpoint**: `https://4kvebym8b3.execute-api.us-east-2.amazonaws.com/prod`

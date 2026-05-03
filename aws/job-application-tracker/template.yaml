@@ -133,7 +133,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: !Sub '${ProjectName}-api'
-      Runtime: nodejs18.x
+      Runtime: nodejs24.x
       Handler: index.handler
       Role: !GetAtt TrackerFunctionRole.Arn
       Code:
