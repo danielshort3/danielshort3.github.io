@@ -1405,6 +1405,18 @@ try {
     assert(chatbotHtml.includes('id="regular-view"'), 'chatbot-demo missing regular view');
     assert(chatbotHtml.includes('id="popup-view"'), 'chatbot-demo missing pop-up view');
     assert(chatbotHtml.includes('id="popup-launcher"'), 'chatbot-demo missing pop-up launcher');
+    assert(chatbotHtml.includes('id="server-timer-label"'), 'chatbot-demo radial timer missing label');
+    assert(chatbotHtml.includes('class="timer-ring"'), 'chatbot-demo radial timer missing ring');
+    assert(chatbotHtml.includes('id="server-timer-value"'), 'chatbot-demo radial timer missing counter');
+    assert(chatbotHtml.includes('--timer-progress'), 'chatbot-demo radial timer missing progress CSS variable');
+    assert(chatbotHtml.includes('conic-gradient(var(--timer-color) var(--timer-progress)'), 'chatbot-demo radial timer missing conic progress ring');
+    assert(chatbotHtml.includes("serverTimer.style.setProperty('--timer-progress'"), 'chatbot-demo radial timer should update progress dynamically');
+    assert(chatbotHtml.includes("label: 'Starts in'"), 'chatbot-demo startup timer should label time until start');
+    assert(chatbotHtml.includes("label: 'Shuts off in'"), 'chatbot-demo ready timer should label time until shutoff');
+    assert(chatbotHtml.includes('function readyTimerColor(remaining)'), 'chatbot-demo missing ready timer color helper');
+    assert(chatbotHtml.includes("if (remaining <= 60) return 'var(--danger)';"), 'chatbot-demo ready timer should turn red in the final minute');
+    assert(chatbotHtml.includes('syncStartupEta(statusInfoFromPayload(submit).warmSeconds'), 'chatbot-demo should sync startup timer to AWS submit ETA');
+    assert(chatbotHtml.includes('syncStartupEta(statusInfoFromPayload(result).warmSeconds'), 'chatbot-demo should sync startup timer to AWS poll ETA');
     assert(chatbotHtml.includes('ctx.send.disabled = active ? false : !serverReady;'), 'chatbot-demo send buttons should be gated by shared serverReady state');
     assert(chatbotHtml.includes('suggestions: []'), 'chatbot-demo should track shortcut buttons by context');
     assert(chatbotHtml.includes('followups: []'), 'chatbot-demo should track follow-up buttons by context');
@@ -1482,12 +1494,14 @@ try {
       startingTimer: null,
       startupTimer: null,
       startupDeadline: 0,
+      startupDuration: 0,
       START_TIMEOUT_SEC: warmSec,
       Date: { now: () => 0 },
       Math,
       serverTimer: { textContent: '' },
       recordLog: () => {},
       setServerVisual: () => {},
+      setTimerDisplay: () => {},
       formatClock: () => '',
       window: {
         setInterval: () => 1,

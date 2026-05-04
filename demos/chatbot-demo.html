@@ -243,11 +243,60 @@
     }
 
     .timer {
-      min-width: 64px;
-      text-align: right;
+      --timer-progress: 0deg;
+      --timer-color: #98a2b3;
+      --timer-track: #e6ebf2;
+      min-width: 78px;
+      display: grid;
+      justify-items: center;
+      gap: 4px;
       color: var(--accent-strong);
+      opacity: .5;
+      transition: opacity 160ms ease;
+    }
+
+    .timer.active {
+      opacity: 1;
+    }
+
+    .timer-label {
+      color: var(--muted);
+      font-size: 10px;
       font-weight: 800;
+      line-height: 1;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .timer-ring {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: conic-gradient(var(--timer-color) var(--timer-progress), var(--timer-track) 0);
+      position: relative;
+      box-shadow: inset 0 0 0 1px rgba(23, 32, 51, 0.05);
+    }
+
+    .timer-ring::after {
+      content: "";
+      position: absolute;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--panel);
+      box-shadow: 0 0 0 1px rgba(23, 32, 51, 0.04);
+    }
+
+    .timer-value {
+      position: relative;
+      z-index: 1;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 900;
       font-variant-numeric: tabular-nums;
+      line-height: 1;
     }
 
     .views {
@@ -810,7 +859,12 @@
         <span class="server-text" id="server-text">Server off</span>
         <span class="server-stage" id="server-stage">Ready to start on demand.</span>
       </div>
-      <span class="timer" id="server-timer" aria-label="Server timer"></span>
+      <div class="timer" id="server-timer" data-timer-mode="idle" aria-label="Server timer inactive">
+        <span class="timer-label" id="server-timer-label">Idle</span>
+        <span class="timer-ring" aria-hidden="true">
+          <span class="timer-value" id="server-timer-value">--</span>
+        </span>
+      </div>
     </section>
 
     <main class="views">
@@ -897,6 +951,8 @@
     const serverText = document.getElementById('server-text');
     const serverStage = document.getElementById('server-stage');
     const serverTimer = document.getElementById('server-timer');
+    const serverTimerLabel = document.getElementById('server-timer-label');
+    const serverTimerValue = document.getElementById('server-timer-value');
     const warmupButton = document.getElementById('warmup-button');
     const popupLauncher = document.getElementById('popup-launcher');
     const popupWindow = document.getElementById('popup-window');
@@ -912,8 +968,10 @@
     let userStartedWarmup = false;
     let startupTimer = null;
     let startupDeadline = 0;
+    let startupDuration = 0;
     let readyTimer = null;
     let readyDeadline = 0;
+    let readyDuration = 0;
 
     const contexts = [
       createChatContext('regular'),
@@ -971,6 +1029,31 @@
       return Math.max(0, Math.round(value));
     }
 
+    function readyTimerColor(remaining) {
+      if (remaining <= 60) return 'var(--danger)';
+      if (remaining <= 120) return '#f3b544';
+      return 'var(--success)';
+    }
+
+    function setTimerDisplay({ mode = 'idle', label = 'Idle', seconds = null, totalSeconds = null } = {}) {
+      const active = mode !== 'idle' && seconds !== null && Number.isFinite(Number(seconds));
+      const remaining = active ? Math.max(0, Math.round(Number(seconds))) : 0;
+      const total = Math.max(1, Math.round(Number(totalSeconds) || remaining || 1));
+      const clamped = Math.min(total, remaining);
+      const ratio = active
+        ? (mode === 'starting' ? 1 - (clamped / total) : clamped / total)
+        : 0;
+      const progress = Math.max(0, Math.min(360, Math.round(ratio * 360)));
+      const color = mode === 'ready' ? readyTimerColor(remaining) : '#2749a8';
+      serverTimer.classList.toggle('active', active);
+      serverTimer.dataset.timerMode = mode;
+      serverTimer.style.setProperty('--timer-progress', `${progress}deg`);
+      serverTimer.style.setProperty('--timer-color', active ? color : '#98a2b3');
+      serverTimerLabel.textContent = active ? label : 'Idle';
+      serverTimerValue.textContent = active ? formatClock(remaining) : '--';
+      serverTimer.setAttribute('aria-label', active ? `${label}: ${formatClock(remaining)}` : 'Server timer inactive');
+    }
+
     // Startup status helpers
     function isOnlinePayload(payload) {
       if (!payload) return false;
@@ -1023,11 +1106,11 @@
       return info;
     }
 
-    function setServerVisual(mode, text, stage = '', timer = '') {
+    function setServerVisual(mode, text, stage = '') {
       serverDot.className = `server-dot ${mode}`;
       serverText.textContent = text;
       serverStage.textContent = stage;
-      serverTimer.textContent = timer;
+      if (mode === 'off') setTimerDisplay({ mode: 'idle' });
       warmupButton.classList.toggle('ready', mode === 'ready');
       warmupButton.classList.toggle('starting', mode === 'starting');
       notifyResize();
@@ -1078,7 +1161,15 @@
       warmupActive = true;
       setWarmupButtonState('starting');
       const remaining = currentStartingRemaining();
-      setServerVisual('starting', 'Starting server', stage, remaining == null ? '' : formatClock(remaining));
+      setServerVisual('starting', 'Starting server', stage);
+      if (remaining !== null) {
+        setTimerDisplay({
+          mode: 'starting',
+          label: 'Starts in',
+          seconds: remaining,
+          totalSeconds: startupDuration || START_TIMEOUT_SEC
+        });
+      }
       updateSendButtons();
     }
 
@@ -1100,19 +1191,34 @@
 
     function startWarmupTimer({ durationSec = START_TIMEOUT_SEC, reason = 'manual-warmup' } = {}) {
       stopStartupTimer();
-      startupDeadline = Date.now() + Math.max(1, Math.round(durationSec)) * 1000;
-      recordLog('status:starting-timer', { reason, durationSec });
+      startupDuration = Math.max(1, Math.round(Number(durationSec) || START_TIMEOUT_SEC));
+      startupDeadline = Date.now() + startupDuration * 1000;
+      recordLog('status:starting-timer', { reason, durationSec: startupDuration });
       updateStartupTimer();
       startupTimer = window.setInterval(updateStartupTimer, 1000);
+    }
+
+    function syncStartupEta(seconds, reason = 'aws-eta') {
+      const remaining = secondsFromEta(seconds);
+      if (remaining === null || !warmupActive) return;
+      startupDuration = Math.max(startupDuration || remaining || START_TIMEOUT_SEC, remaining || 1);
+      startupDeadline = Date.now() + remaining * 1000;
+      recordLog('status:starting-eta', { reason, remaining });
+      updateStartupTimer();
     }
 
     function updateStartupTimer() {
       const remaining = currentStartingRemaining();
       if (remaining == null) return;
-      serverTimer.textContent = formatClock(remaining);
+      setTimerDisplay({
+        mode: 'starting',
+        label: 'Starts in',
+        seconds: remaining,
+        totalSeconds: startupDuration || START_TIMEOUT_SEC
+      });
       if (remaining <= 0) {
         stopStartupTimer();
-        setServerVisual('starting', 'Still starting', 'AWS is taking longer than the estimate.', '');
+        setServerVisual('starting', 'Still starting', 'AWS is taking longer than the estimate.');
       }
     }
 
@@ -1127,6 +1233,7 @@
         startupTimer = null;
       }
       startupDeadline = 0;
+      startupDuration = 0;
     }
 
     function startReadyTimer(durationSec = DEFAULT_WARM_HOLD_SEC) {
@@ -1135,6 +1242,7 @@
       const duration = Number.isFinite(parsed)
         ? Math.max(0, Math.round(parsed))
         : DEFAULT_WARM_HOLD_SEC;
+      readyDuration = duration;
       readyDeadline = Date.now() + duration * 1000;
       updateReadyTimer();
       if (duration <= 0) return;
@@ -1146,7 +1254,13 @@
       const stage = remaining > 0
         ? 'Fast queries are available until the warm window ends.'
         : 'Warm window is ending; AWS may scale down soon.';
-      setServerVisual('ready', 'Server ready', stage, formatClock(remaining));
+      setServerVisual('ready', 'Server ready', stage);
+      setTimerDisplay({
+        mode: 'ready',
+        label: 'Shuts off in',
+        seconds: remaining,
+        totalSeconds: readyDuration || DEFAULT_WARM_HOLD_SEC
+      });
       if (remaining <= 0) {
         stopReadyTimer();
       }
@@ -1158,6 +1272,7 @@
         readyTimer = null;
       }
       readyDeadline = 0;
+      readyDuration = 0;
     }
 
     async function syncPassiveStatus() {
@@ -1193,6 +1308,7 @@
       try {
         const submit = await postJson(`${API_URL}/warmup`, {});
         recordLog('warmup:submit', { status: submit.status, jobId: submit.jobId, warm: submit.warm });
+        syncStartupEta(statusInfoFromPayload(submit).warmSeconds, 'warmup-submit');
         if (submit.status === 'READY' || submit.warm || !submit.jobId) {
           const readySeconds = statusInfoFromPayload(submit).shutdownSeconds
             ?? submit.warm_hold_seconds
@@ -1215,6 +1331,7 @@
         const result = await getJson(`${API_URL}/result?${query}`, { cache: 'no-store' });
         const stage = result.stage || {};
         recordLog('warmup:poll', { status: result.status, stage: stage.name });
+        syncStartupEta(statusInfoFromPayload(result).warmSeconds, 'warmup-poll');
         if (result.status === 'READY') {
           const readySeconds = statusInfoFromPayload(result).shutdownSeconds
             ?? submit.warm_hold_seconds
