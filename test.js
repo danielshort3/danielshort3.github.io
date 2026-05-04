@@ -1406,6 +1406,11 @@ try {
     assert(chatbotHtml.includes('id="popup-view"'), 'chatbot-demo missing pop-up view');
     assert(chatbotHtml.includes('id="popup-launcher"'), 'chatbot-demo missing pop-up launcher');
     assert(chatbotHtml.includes('ctx.send.disabled = active ? false : !serverReady;'), 'chatbot-demo send buttons should be gated by shared serverReady state');
+    assert(chatbotHtml.includes('suggestions: []'), 'chatbot-demo should track shortcut buttons by context');
+    assert(chatbotHtml.includes('ctx.suggestions.forEach(button =>'), 'chatbot-demo readiness updates should include shortcut buttons');
+    assert(chatbotHtml.includes('button.disabled = !serverReady;'), 'chatbot-demo shortcut buttons should be disabled until the server is ready');
+    assert(chatbotHtml.includes('if (!serverReady) return;'), 'chatbot-demo shortcut click handlers should guard against cold server state');
+    assert(chatbotHtml.includes('ctx.suggestions.push(button);'), 'chatbot-demo should register generated shortcut buttons');
     assert(chatbotHtml.includes('status.shutdownSeconds ?? DEFAULT_WARM_HOLD_SEC'), 'chatbot-demo should preserve accurate zero-second shutdown estimates');
     assert(chatbotHtml.includes('statusInfoFromPayload(result).shutdownSeconds'), 'chatbot-demo should use API shutdown estimates from completed jobs');
     assert(chatbotHtml.includes('if (duration <= 0) return;'), 'chatbot-demo ready timer should not loop when AWS reports zero seconds remaining');

@@ -377,6 +377,11 @@
       font-size: 13px;
     }
 
+    .suggestion:disabled {
+      cursor: not-allowed;
+      opacity: .55;
+    }
+
     .message {
       max-width: min(100%, 720px);
       padding: 12px 14px;
@@ -873,6 +878,7 @@
         messages: document.getElementById(`${id}-messages`),
         send: document.getElementById(`${id}-send`),
         clear: document.getElementById(`${id}-clear`),
+        suggestions: [],
         controller: null
       };
     }
@@ -981,6 +987,10 @@
         ctx.send.textContent = active ? 'Stop' : 'Send';
         ctx.send.classList.toggle('stop', active);
         ctx.send.title = serverReady ? '' : 'Start the server first.';
+        ctx.suggestions.forEach(button => {
+          button.disabled = !serverReady;
+          button.title = serverReady ? '' : 'Start the server first.';
+        });
       });
     }
 
@@ -1286,6 +1296,7 @@
 
     function emptyState(ctx) {
       ctx.messages.replaceChildren();
+      ctx.suggestions = [];
       const node = document.createElement('div');
       node.className = 'empty-state';
       const title = document.createElement('h2');
@@ -1303,11 +1314,15 @@
         button.className = 'suggestion';
         button.type = 'button';
         button.textContent = text;
+        button.disabled = !serverReady;
+        button.title = serverReady ? '' : 'Start the server first.';
         button.addEventListener('click', () => {
+          if (!serverReady) return;
           ctx.prompt.value = text;
           autoResize(ctx.prompt);
           ctx.prompt.focus();
         });
+        ctx.suggestions.push(button);
         suggestions.appendChild(button);
       });
       node.append(title, copy, suggestions);
