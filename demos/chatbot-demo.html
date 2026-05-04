@@ -382,6 +382,29 @@
       opacity: .55;
     }
 
+    .followups {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .followup {
+      min-height: 34px;
+      border-radius: 999px;
+      padding: 0 11px;
+      background: #f7f9fd;
+      border: 1px solid #d6dde8;
+      color: #243044;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .followup:disabled {
+      cursor: not-allowed;
+      opacity: .55;
+    }
+
     .message {
       max-width: min(100%, 720px);
       padding: 12px 14px;
@@ -404,6 +427,7 @@
       color: #172033;
       border: 1px solid var(--line);
       box-shadow: 0 8px 22px rgba(23, 32, 51, 0.08);
+      white-space: normal;
     }
 
     .message.assistant p {
@@ -411,7 +435,7 @@
     }
 
     .message.assistant p + p {
-      margin-top: 0.8em;
+      margin-top: 0.45em;
     }
 
     .waiting {
@@ -431,23 +455,49 @@
       flex: 0 0 auto;
     }
 
-    .sources {
+    .message.assistant a {
+      color: var(--accent-strong);
+      font-weight: 700;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 2px;
+    }
+
+    .source-menu {
+      width: min(100%, 420px);
       margin-top: 10px;
+      border-top: 1px solid var(--line);
+    }
+
+    .source-menu summary {
+      min-height: 28px;
+      padding: 6px 0;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1.3;
+      text-transform: uppercase;
+      user-select: none;
+    }
+
+    .source-pills {
       display: flex;
       flex-wrap: wrap;
       gap: 7px;
+      padding: 7px 0 2px;
     }
 
-    .sources a {
+    .source-pill {
       max-width: 100%;
-      border-radius: 999px;
-      padding: 5px 9px;
-      background: var(--accent-soft);
-      border: 1px solid #c9d6f5;
+      border-radius: 4px;
+      padding: 6px 8px;
+      background: #f7f9fd;
+      border: 1px solid #d6dde8;
       color: var(--accent-strong);
       text-decoration: none;
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 800;
+      line-height: 1.2;
       overflow-wrap: anywhere;
     }
 
@@ -879,6 +929,10 @@
         send: document.getElementById(`${id}-send`),
         clear: document.getElementById(`${id}-clear`),
         suggestions: [],
+        followups: [],
+        transcript: [],
+        followupHistory: [],
+        pendingFollowupContext: null,
         controller: null
       };
     }
@@ -987,7 +1041,7 @@
         ctx.send.textContent = active ? 'Stop' : 'Send';
         ctx.send.classList.toggle('stop', active);
         ctx.send.title = serverReady ? '' : 'Start the server first.';
-        ctx.suggestions.forEach(button => {
+        [...ctx.suggestions, ...ctx.followups].forEach(button => {
           button.disabled = !serverReady;
           button.title = serverReady ? '' : 'Start the server first.';
         });
@@ -1206,24 +1260,6 @@
       notifyResize();
     }
 
-    function escapeHtml(value) {
-      return String(value || '').replace(/[&<>"']/g, char => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;'
-      }[char]));
-    }
-
-    function renderMarkdown(value) {
-      const raw = String(value || '');
-      if (window.marked && window.DOMPurify) {
-        return window.DOMPurify.sanitize(window.marked.parse(raw));
-      }
-      return escapeHtml(raw).replace(/\n/g, '<br>');
-    }
-
     function sourceLabel(url, index) {
       try {
         const parsed = new URL(url);
@@ -1235,30 +1271,466 @@
       }
     }
 
-    function sourceUrls(data) {
-      const urls = [];
-      (data?.source_details || []).forEach(item => {
-        if (item?.url) urls.push(item.url);
-      });
-      (data?.source_urls || data?.sources || data?.urls || []).forEach(url => {
-        if (url) urls.push(url);
-      });
-      return [...new Set(urls)];
+    function titleCase(value) {
+      return String(value || '').replace(/\b[a-z]/g, char => char.toUpperCase());
     }
 
-    function appendSources(container, urls) {
-      if (!urls.length) return;
-      const wrap = document.createElement('div');
-      wrap.className = 'sources';
-      urls.slice(0, 8).forEach((url, index) => {
+    function sourceKey(url) {
+      return String(url || '').split('#')[0].replace(/\/+$/, '').toLowerCase();
+    }
+
+    function sourceItems(data) {
+      const items = new Map();
+      const add = (url, label) => {
+        if (!url) return;
+        const href = String(url).trim();
+        const key = sourceKey(href);
+        if (!key || items.has(key)) return;
+        items.set(key, { url: href, label: label || sourceLabel(href, items.size) });
+      };
+      (data?.source_details || []).forEach(item => {
+        add(item?.url, item?.label);
+      });
+      (data?.resource_suggestions || []).forEach(item => {
+        add(item?.url, item?.label);
+      });
+      (data?.source_urls || data?.sources || data?.urls || []).forEach(url => {
+        add(url);
+      });
+      return [...items.values()];
+    }
+
+    function cleanLinkedUrl(rawUrl) {
+      return String(rawUrl || '').replace(/[.,;:!?]+$/, '');
+    }
+
+    function linkState(maxLinks = 8) {
+      return {
+        usedUrls: new Set(),
+        inlineCount: 0,
+        maxLinks
+      };
+    }
+
+    function reserveLinkUrl(href, state) {
+      if (!state) return true;
+      const key = sourceKey(href);
+      if (!key || state.usedUrls.has(key) || state.inlineCount >= state.maxLinks) return false;
+      state.usedUrls.add(key);
+      state.inlineCount += 1;
+      return true;
+    }
+
+    function noteExistingLinks(container, state) {
+      container.querySelectorAll('a[href]').forEach(link => {
+        const href = link.getAttribute('href');
+        const key = sourceKey(href);
+        if (key) state.usedUrls.add(key);
+      });
+    }
+
+    function appendAnswerLink(container, text, href, state = null) {
+      if (!reserveLinkUrl(href, state)) {
+        container.append(document.createTextNode(text));
+        return null;
+      }
+      const link = document.createElement('a');
+      link.href = href;
+      link.target = '_blank';
+      link.rel = 'noreferrer';
+      link.textContent = text;
+      container.appendChild(link);
+      return link;
+    }
+
+    function nextRegexMatch(pattern, text, index) {
+      pattern.lastIndex = index;
+      return pattern.exec(text);
+    }
+
+    function appendInlineMarkdown(container, text, state, options = {}) {
+      const allowLinks = options.allowLinks !== false;
+      let index = 0;
+      while (index < text.length) {
+        const boldDouble = text.indexOf('**', index);
+        const boldUnderscore = text.indexOf('__', index);
+        const italicAsterisk = text.indexOf('*', index);
+        const italicUnderscore = text.indexOf('_', index);
+        const markdownLink = nextRegexMatch(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, text, index);
+        const bareUrl = nextRegexMatch(/https?:\/\/[^\s<>)"']+/g, text, index);
+        const candidates = [
+          { type: 'bold_double', index: boldDouble },
+          { type: 'bold_underscore', index: boldUnderscore },
+          { type: 'italic_asterisk', index: italicAsterisk },
+          { type: 'italic_underscore', index: italicUnderscore },
+          markdownLink ? { type: 'markdown_link', index: markdownLink.index, match: markdownLink } : null,
+          bareUrl ? { type: 'bare_url', index: bareUrl.index, match: bareUrl } : null
+        ].filter(value => value && value.index >= 0).sort((a, b) => a.index - b.index);
+        const nextToken = candidates[0];
+        const next = nextToken ? nextToken.index : -1;
+        if (next < 0) {
+          container.append(document.createTextNode(text.slice(index)));
+          return;
+        }
+        if (next > index) {
+          container.append(document.createTextNode(text.slice(index, next)));
+        }
+        if (nextToken.type === 'markdown_link') {
+          const [, label, rawUrl] = nextToken.match;
+          const href = cleanLinkedUrl(rawUrl);
+          if (allowLinks) {
+            const link = appendAnswerLink(container, '', href, state);
+            if (link) {
+              appendInlineMarkdown(link, label, state, { allowLinks: false });
+            } else {
+              appendInlineMarkdown(container, label, state, { allowLinks: false });
+            }
+          } else {
+            appendInlineMarkdown(container, label, state, { allowLinks: false });
+          }
+          index = next + nextToken.match[0].length;
+          continue;
+        }
+        if (nextToken.type === 'bare_url') {
+          const url = cleanLinkedUrl(nextToken.match[0]);
+          if (allowLinks) {
+            appendAnswerLink(container, url, url, state);
+          } else {
+            container.append(document.createTextNode(url));
+          }
+          index = next + nextToken.match[0].length;
+          continue;
+        }
+        const tokenConfig = {
+          bold_double: ['**', 'strong'],
+          bold_underscore: ['__', 'strong'],
+          italic_asterisk: ['*', 'em'],
+          italic_underscore: ['_', 'em']
+        }[nextToken.type];
+        if (tokenConfig) {
+          const [marker, tag] = tokenConfig;
+          const end = text.indexOf(marker, next + marker.length);
+          if (end > next + marker.length) {
+            const node = document.createElement(tag);
+            appendInlineMarkdown(node, text.slice(next + marker.length, end), state, options);
+            container.appendChild(node);
+            index = end + marker.length;
+            continue;
+          }
+        }
+        container.append(document.createTextNode(text.charAt(next)));
+        index = next + 1;
+      }
+    }
+
+    function renderMarkdownFallback(container, text, state) {
+      const normalized = String(text || '').replace(/\r\n?/g, '\n').trim();
+      if (!normalized) return;
+      normalized.split(/\n{2,}/).forEach(paragraphText => {
+        const paragraph = document.createElement('p');
+        paragraphText.split('\n').forEach((line, lineIndex) => {
+          if (lineIndex > 0) paragraph.appendChild(document.createElement('br'));
+          appendInlineMarkdown(paragraph, line, state);
+        });
+        container.appendChild(paragraph);
+      });
+    }
+
+    function renderFormattedAnswer(container, text, state) {
+      container.replaceChildren();
+      const raw = String(text || '');
+      if (window.marked && window.DOMPurify) {
+        const template = document.createElement('template');
+        template.innerHTML = window.DOMPurify.sanitize(window.marked.parse(raw));
+        container.appendChild(template.content);
+      } else {
+        renderMarkdownFallback(container, raw, state);
+      }
+      noteExistingLinks(container, state);
+    }
+
+    function shouldSkipAutoLinkNode(node, root) {
+      let parent = node.parentElement;
+      while (parent && parent !== root) {
+        if (parent.tagName === 'A') return true;
+        parent = parent.parentElement;
+      }
+      return false;
+    }
+
+    function linkBareUrls(container, state) {
+      const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+      const nodes = [];
+      while (walker.nextNode()) nodes.push(walker.currentNode);
+      nodes.forEach(node => {
+        if (shouldSkipAutoLinkNode(node, container)) return;
+        const text = node.nodeValue || '';
+        const parts = [];
+        let index = 0;
+        const pattern = /https?:\/\/[^\s<>)"']+/g;
+        let match;
+        while ((match = pattern.exec(text))) {
+          if (match.index > index) parts.push(document.createTextNode(text.slice(index, match.index)));
+          const url = cleanLinkedUrl(match[0]);
+          const link = document.createElement('a');
+          link.href = url;
+          link.target = '_blank';
+          link.rel = 'noreferrer';
+          link.textContent = url;
+          parts.push(link);
+          index = match.index + match[0].length;
+        }
+        if (!parts.length) return;
+        if (index < text.length) parts.push(document.createTextNode(text.slice(index)));
+        node.replaceWith(...parts);
+        noteExistingLinks(container, state);
+      });
+    }
+
+    const SOURCE_PHRASES = [
+      ['colorado-national-monument', ['Colorado National Monument', 'the Monument']],
+      ['grand-mesa', ['Grand Mesa']],
+      ['rattlesnake-arches', ['Rattlesnake Arches']],
+      ['downtown', ['Downtown Grand Junction', 'downtown']],
+      ['restaurants', ['restaurant listings', 'restaurants', 'dining options']],
+      ['places-to-stay', ['places to stay', 'lodging listings', 'lodging options']],
+      ['events', ['Grand Junction Events', 'Events page', 'events']],
+      ['weather', ['Grand Junction Weather', 'Weather page', 'weather']],
+      ['visitor-guide', ['Official Grand Junction Visitor Guide', 'Official Visitor Guide', 'Visitor Guide']],
+      ['plan-your-visit', ['Plan Your Visit']],
+      ['craft-beverages', ['Craft Beverages', 'wineries', 'tasting rooms']],
+      ['shopping', ['Shopping', 'shops']],
+      ['outdoor-recreation', ['Outdoor Recreation', 'outdoor recreation']],
+      ['hiking', ['hiking', 'hiking trails', 'Colorado hiking']],
+      ['biking', ['biking', 'mountain biking', 'biking trails']],
+      ['riverfront', ['Riverfront Trail', 'Colorado Riverfront Trail', 'riverfront']],
+      ['colorado-river', ['Colorado River', 'river']],
+      ['palisade', ['Palisade']]
+    ];
+
+    function slugTitleFromUrl(url = '') {
+      try {
+        const parsed = new URL(url);
+        const parts = parsed.pathname.split('/').filter(Boolean);
+        const slug = parts[parts.length - 1] || '';
+        return titleCase(slug.replace(/^\d+-/, '').replace(/[-_]+/g, ' '));
+      } catch {
+        return '';
+      }
+    }
+
+    function linkPhraseCandidates(label, url = '') {
+      const candidates = [];
+      const addPhrase = (phrase, priority) => {
+        const text = String(phrase || '').trim();
+        if (text.length > 3 && !candidates.some(item => item.phrase.toLowerCase() === text.toLowerCase())) {
+          candidates.push({ phrase: text, priority });
+        }
+      };
+      addPhrase(label, 120);
+      const shortLabel = String(label || '').split(':')[0].trim();
+      if (shortLabel && shortLabel !== label) addPhrase(shortLabel, 112);
+      const dashLabel = String(label || '').split(' - ')[0].trim();
+      if (dashLabel && dashLabel !== label) addPhrase(dashLabel, 108);
+      const withoutBrand = String(label || '').replace(/^Visit Grand Junction\s*[-:]?\s*/i, '').trim();
+      if (withoutBrand && withoutBrand !== label) addPhrase(withoutBrand, 109);
+      const slugTitle = slugTitleFromUrl(url);
+      if (slugTitle) addPhrase(slugTitle, 106);
+      SOURCE_PHRASES.forEach(([needle, values]) => {
+        if (String(url).toLowerCase().includes(needle)) {
+          values.forEach(phrase => addPhrase(phrase, phrase.length > 11 ? 78 : 42));
+        }
+      });
+      return candidates.sort((a, b) => b.priority - a.priority || b.phrase.length - a.phrase.length);
+    }
+
+    function autoLinkSourcePhrases(container, links, state) {
+      if (!links.length || state.inlineCount >= state.maxLinks) return;
+      const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+      const nodes = [];
+      while (walker.nextNode()) nodes.push(walker.currentNode);
+      for (const node of nodes) {
+        let current = node;
+        while (current && current.nodeValue && state.inlineCount < state.maxLinks) {
+          if (shouldSkipAutoLinkNode(current, container)) break;
+          const text = current.nodeValue;
+          const lower = text.toLowerCase();
+          const candidate = links
+            .flatMap(link => linkPhraseCandidates(link.label, link.url).map(item => ({ ...item, url: link.url })))
+            .filter(item => !state.usedUrls.has(sourceKey(item.url)))
+            .map(item => ({ ...item, index: lower.indexOf(item.phrase.toLowerCase()) }))
+            .filter(item => item.index >= 0)
+            .sort((a, b) => b.priority - a.priority || a.index - b.index || b.phrase.length - a.phrase.length)[0];
+          if (!candidate || !reserveLinkUrl(candidate.url, state)) break;
+          const after = current.splitText(candidate.index);
+          const rest = after.splitText(candidate.phrase.length);
+          const link = document.createElement('a');
+          link.href = candidate.url;
+          link.target = '_blank';
+          link.rel = 'noreferrer';
+          link.textContent = after.nodeValue;
+          after.parentNode.replaceChild(link, after);
+          current = rest;
+        }
+      }
+    }
+
+    function appendSourceDropdown(container, links) {
+      if (!links.length) return;
+      const details = document.createElement('details');
+      details.className = 'source-menu';
+      const summary = document.createElement('summary');
+      summary.textContent = `Other Relevant Sources (${links.length})`;
+      const pills = document.createElement('div');
+      pills.className = 'source-pills';
+      links.slice(0, 10).forEach(linkItem => {
         const link = document.createElement('a');
-        link.href = url;
+        link.className = 'source-pill';
+        link.href = linkItem.url;
         link.target = '_blank';
         link.rel = 'noreferrer';
-        link.textContent = sourceLabel(url, index);
-        wrap.appendChild(link);
+        link.title = linkItem.url;
+        link.textContent = linkItem.label;
+        pills.appendChild(link);
+      });
+      details.append(summary, pills);
+      container.appendChild(details);
+    }
+
+    function renderAssistantAnswer(container, text, links) {
+      const state = linkState(8);
+      renderFormattedAnswer(container, text, state);
+      linkBareUrls(container, state);
+      autoLinkSourcePhrases(container, links, state);
+      appendSourceDropdown(container, links);
+    }
+
+    function answerText(data) {
+      return String(data?.generated_text || data?.answer || '').trim();
+    }
+
+    function normalizePrompt(value) {
+      return String(value || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim();
+    }
+
+    function addFollowupCandidate(items, seen, priorPrompts, text) {
+      const normalized = normalizePrompt(text);
+      if (!normalized || seen.has(normalized) || priorPrompts.has(normalized)) return;
+      seen.add(normalized);
+      items.push(text);
+    }
+
+    function followupCandidates(data, links, ctx) {
+      const intent = data?.intent || {};
+      const category = String(intent.category || '').toLowerCase();
+      const route = String(data?.routing_decision || '').toLowerCase();
+      const answer = answerText(data).toLowerCase();
+      const labels = links.map(item => item.label).join(' ').toLowerCase();
+      const conversation = ctx.transcript.map(turn => `${turn.question} ${turn.answer}`).join(' ').toLowerCase();
+      const priorPrompts = new Set(ctx.transcript.map(turn => normalizePrompt(turn.question)));
+      const seen = new Set(ctx.followupHistory || []);
+      const items = [];
+      const addMany = prompts => prompts.forEach(text => addFollowupCandidate(items, seen, priorPrompts, text));
+
+      if (category === 'lodging' || /hotel|lodging|places to stay|vacation home/.test(answer + labels + conversation)) {
+        addMany(['Pair this stay with a red-rock morning', 'Plan an easy downtown evening', 'Add a scenic day trip nearby']);
+      }
+      if (category === 'restaurants' || /restaurant|dining|food|downtown flavor/.test(answer + labels)) {
+        addMany(['Build an evening around local flavor', 'Add a sunset walk after dinner', 'Make it part of a weekend escape']);
+      }
+      if (['wineries', 'craft_beverages', 'orchards'].includes(category) || /wine|craft beverage|palisade|orchard/.test(answer + labels)) {
+        addMany(['Shape this into a tasting-day itinerary', 'Add a scenic Palisade afternoon', 'Pair it with a downtown evening']);
+      }
+      if (category === 'weather') {
+        addMany(['Build a flexible indoor-outdoor day', 'Plan a weather-ready scenic drive']);
+      }
+      if (category === 'events') {
+        addMany(['Pair an event with a downtown stop', 'Make this a weekend plan']);
+      }
+      if (/colorado national monument|monument/.test(answer + labels)) {
+        addMany([conversation.includes('downtown') ? 'Add an easy overlook stop' : 'Pair the Monument with downtown time']);
+      }
+      if (/grand mesa/.test(answer + labels)) {
+        addMany([conversation.includes('weather') ? 'Build a weather-flexible Grand Mesa plan' : 'Make this a Grand Mesa day trip']);
+      }
+      if (/downtown/.test(answer + labels) && category !== 'lodging') {
+        addMany([conversation.includes('events') ? 'Add a pre-event downtown plan' : 'Add public art and river time downtown']);
+      }
+      if (/river|riverfront/.test(answer + labels)) {
+        addMany([conversation.includes('bike') ? 'Connect this to a bike-friendly route' : 'Plan a Colorado River stop']);
+      }
+      if (/visitor guide/.test(answer + labels)) {
+        addMany(['Use the Visitor Guide to shape my trip']);
+      }
+      if (category === 'outdoor' || /outdoor|destination|itinerary/.test(route) || /trail|hike|bike|mesa|monument/.test(answer)) {
+        addMany(['Make this easier for a relaxed day', 'Add a scenic backup plan']);
+      }
+
+      addMany([
+        conversation.includes('one day') ? 'Stretch this into a weekend' : 'Turn this into a one-day plan',
+        'Inspire a first full day',
+        'Keep shaping this Grand Junction trip',
+        'Find another scenic stop'
+      ]);
+      return items.slice(0, 3);
+    }
+
+    function followupContext(ctx, data, links, prompt, previousQuestion) {
+      const intent = data?.intent || {};
+      return {
+        source: 'recommended_followup',
+        prompt,
+        previous_question: previousQuestion,
+        previous_answer: answerText(data).slice(0, 650),
+        previous_intent: intent.intent || '',
+        previous_category: intent.category || '',
+        previous_route: data?.routing_decision || '',
+        source_labels: links.map(item => item.label).slice(0, 10),
+        source_urls: links.map(item => item.url).slice(0, 10)
+      };
+    }
+
+    function clearFollowups(ctx) {
+      ctx.messages.querySelectorAll('.followups').forEach(node => node.remove());
+      ctx.followups = [];
+    }
+
+    function submitSuggestedPrompt(ctx, text, context = null) {
+      if (!serverReady || ctx.controller) return;
+      ctx.pendingFollowupContext = context;
+      ctx.prompt.value = text;
+      autoResize(ctx.prompt);
+      ctx.form.requestSubmit();
+    }
+
+    function addFollowups(container, ctx, data, links, previousQuestion) {
+      clearFollowups(ctx);
+      const prompts = followupCandidates(data, links, ctx);
+      if (!prompts.length) return;
+      const wrap = document.createElement('div');
+      wrap.className = 'followups';
+      prompts.forEach(text => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'followup';
+        button.textContent = text;
+        button.disabled = !serverReady;
+        button.title = serverReady ? '' : 'Start the server first.';
+        button.addEventListener('click', () => {
+          submitSuggestedPrompt(ctx, text, followupContext(ctx, data, links, text, previousQuestion));
+        });
+        ctx.followups.push(button);
+        wrap.appendChild(button);
       });
       container.appendChild(wrap);
+      ctx.followupHistory = [
+        ...ctx.followupHistory,
+        ...prompts.map(text => normalizePrompt(text))
+      ].slice(-36);
+      updateSendButtons();
     }
 
     function scrollMessages(ctx) {
@@ -1269,7 +1741,7 @@
       const node = document.createElement('article');
       node.className = `message ${role}`;
       if (role === 'assistant') {
-        node.innerHTML = renderMarkdown(text);
+        renderAssistantAnswer(node, text, []);
       } else {
         node.textContent = text;
       }
@@ -1297,6 +1769,7 @@
     function emptyState(ctx) {
       ctx.messages.replaceChildren();
       ctx.suggestions = [];
+      ctx.followups = [];
       const node = document.createElement('div');
       node.className = 'empty-state';
       const title = document.createElement('h2');
@@ -1332,6 +1805,9 @@
     function clearContext(ctx) {
       if (ctx.controller) ctx.controller.abort();
       ctx.controller = null;
+      ctx.pendingFollowupContext = null;
+      ctx.transcript = [];
+      ctx.followupHistory = [];
       ctx.prompt.value = '';
       autoResize(ctx.prompt);
       emptyState(ctx);
@@ -1344,13 +1820,15 @@
       textarea.style.height = `${Math.min(160, textarea.scrollHeight)}px`;
     }
 
-    async function submitPrompt(ctx, prompt) {
+    async function submitPrompt(ctx, prompt, followupContext = null) {
       const requestId = `req-${Date.now()}-${Math.random().toString(16).slice(2)}`;
       ctx.controller = new AbortController();
       updateSendButtons();
-      recordLog('submit:init', { requestId, prompt });
+      recordLog('submit:init', { requestId, prompt, hasFollowupContext: Boolean(followupContext) });
 
-      const submit = await postJson(`${API_URL}/submit`, { prompt }, { signal: ctx.controller.signal });
+      const body = { prompt };
+      if (followupContext) body.followup_context = followupContext;
+      const submit = await postJson(`${API_URL}/submit`, body, { signal: ctx.controller.signal });
       recordLog('submit:accepted', { requestId, jobId: submit.jobId, outputUri: submit.outputUri });
       if (!submit.jobId && !submit.outputUri) {
         throw new Error('Server returned an invalid job response');
@@ -1392,6 +1870,9 @@
         warmupButton.focus();
         return;
       }
+      const followupContext = ctx.pendingFollowupContext;
+      ctx.pendingFollowupContext = null;
+      clearFollowups(ctx);
 
       const empty = ctx.messages.querySelector('.empty-state');
       if (empty) empty.remove();
@@ -1401,9 +1882,17 @@
       const answer = addWaitingMessage(ctx, 'Running model...');
 
       try {
-        const data = await submitPrompt(ctx, prompt);
-        answer.innerHTML = renderMarkdown(data.generated_text || data.answer || JSON.stringify(data));
-        appendSources(answer, sourceUrls(data));
+        const data = await submitPrompt(ctx, prompt, followupContext);
+        const text = answerText(data) || JSON.stringify(data);
+        const links = sourceItems(data);
+        renderAssistantAnswer(answer, text, links);
+        ctx.transcript.push({
+          question: prompt,
+          answer: text,
+          links,
+          followup_context: followupContext
+        });
+        addFollowups(answer, ctx, data, links, prompt);
       } catch (err) {
         if (err.name === 'AbortError') {
           answer.textContent = 'Stopped before final answer.';
