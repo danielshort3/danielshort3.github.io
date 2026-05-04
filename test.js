@@ -1405,9 +1405,18 @@ try {
     assert(chatbotHtml.includes('id="regular-view"'), 'chatbot-demo missing regular view');
     assert(chatbotHtml.includes('id="popup-view"'), 'chatbot-demo missing pop-up view');
     assert(chatbotHtml.includes('id="popup-launcher"'), 'chatbot-demo missing pop-up launcher');
+    assert(chatbotHtml.includes('class="server-control"'), 'chatbot-demo server control should live in toolbar');
+    assert(!chatbotHtml.includes('id="server-panel"'), 'chatbot-demo should not render a standalone server panel');
+    assert(chatbotHtml.includes('<details class="timer-details" id="timer-details">'), 'chatbot-demo timer should reveal details on tap');
     assert(chatbotHtml.includes('id="server-timer-label"'), 'chatbot-demo radial timer missing label');
     assert(chatbotHtml.includes('class="timer-ring"'), 'chatbot-demo radial timer missing ring');
     assert(chatbotHtml.includes('id="server-timer-value"'), 'chatbot-demo radial timer missing counter');
+    assert(chatbotHtml.includes('id="server-detail-endpoint"'), 'chatbot-demo timer details missing endpoint status');
+    assert(chatbotHtml.includes('id="server-detail-instances"'), 'chatbot-demo timer details missing instance counts');
+    assert(chatbotHtml.includes('id="server-detail-warm"'), 'chatbot-demo timer details missing warm ETA');
+    assert(chatbotHtml.includes('id="server-detail-shutoff"'), 'chatbot-demo timer details missing shutoff ETA');
+    assert(chatbotHtml.includes('id="server-detail-basis"'), 'chatbot-demo timer details missing timer basis');
+    assert(chatbotHtml.includes('function updateTimerDetails(info, basis'), 'chatbot-demo should update AWS timer details from status payloads');
     assert(chatbotHtml.includes('--timer-progress'), 'chatbot-demo radial timer missing progress CSS variable');
     assert(chatbotHtml.includes('conic-gradient(var(--timer-color) var(--timer-progress)'), 'chatbot-demo radial timer missing conic progress ring');
     assert(chatbotHtml.includes("serverTimer.style.setProperty('--timer-progress'"), 'chatbot-demo radial timer should update progress dynamically');
@@ -1415,8 +1424,11 @@ try {
     assert(chatbotHtml.includes("label: 'Shuts off in'"), 'chatbot-demo ready timer should label time until shutoff');
     assert(chatbotHtml.includes('function readyTimerColor(remaining)'), 'chatbot-demo missing ready timer color helper');
     assert(chatbotHtml.includes("if (remaining <= 60) return 'var(--danger)';"), 'chatbot-demo ready timer should turn red in the final minute');
-    assert(chatbotHtml.includes('syncStartupEta(statusInfoFromPayload(submit).warmSeconds'), 'chatbot-demo should sync startup timer to AWS submit ETA');
-    assert(chatbotHtml.includes('syncStartupEta(statusInfoFromPayload(result).warmSeconds'), 'chatbot-demo should sync startup timer to AWS poll ETA');
+    assert(chatbotHtml.includes('syncStartupEta(submitInfo.warmSeconds'), 'chatbot-demo should sync startup timer to AWS submit ETA');
+    assert(chatbotHtml.includes('syncStartupEta(resultInfo.warmSeconds'), 'chatbot-demo should sync startup timer to AWS poll ETA');
+    assert(chatbotHtml.includes('function beginSharedStartup(status, reason'), 'chatbot-demo should resume shared AWS warmup from status');
+    assert(chatbotHtml.includes('function pollSharedStartupStatus()'), 'chatbot-demo should poll shared startup status');
+    assert(chatbotHtml.includes('sharedStatusTimer = window.setInterval(pollSharedStartupStatus, 3000);'), 'chatbot-demo should keep polling shared startup status');
     assert(chatbotHtml.includes('ctx.send.disabled = active ? false : !serverReady;'), 'chatbot-demo send buttons should be gated by shared serverReady state');
     assert(chatbotHtml.includes('suggestions: []'), 'chatbot-demo should track shortcut buttons by context');
     assert(chatbotHtml.includes('followups: []'), 'chatbot-demo should track follow-up buttons by context');
@@ -1435,9 +1447,16 @@ try {
     assert(chatbotHtml.includes('Other Relevant Sources'), 'chatbot-demo source dropdown missing label');
     assert(chatbotHtml.includes("link.className = 'source-pill'"), 'chatbot-demo source dropdown missing source link pills');
     assert(chatbotHtml.includes('function addFollowups(container, ctx, data, links, previousQuestion)'), 'chatbot-demo should render post-answer follow-up chips');
+    assert(chatbotHtml.includes('grid-template-columns: minmax(0, 1fr);'), 'chatbot-demo follow-up questions should stack vertically');
+    assert(chatbotHtml.includes('width: 100%;'), 'chatbot-demo follow-up question buttons should span the response width');
     assert(chatbotHtml.includes("source: 'recommended_followup'"), 'chatbot-demo follow-up context should identify recommended follow-ups');
     assert(chatbotHtml.includes('body.followup_context = followupContext'), 'chatbot-demo should submit follow-up context to the API');
     assert(chatbotHtml.includes('submitSuggestedPrompt(ctx, text, followupContext'), 'chatbot-demo follow-up chips should submit through the guarded prompt flow');
+    assert(chatbotHtml.includes('Plan a red-rock first day in Grand Junction'), 'chatbot-demo default prompts should be on-brand for Grand Junction travel');
+    assert(chatbotHtml.includes('Build a weekend with downtown, trails, and wineries'), 'chatbot-demo default prompts should include a weekend planning prompt');
+    assert(chatbotHtml.includes('Find family-friendly stops near Colorado National Monument'), 'chatbot-demo default prompts should include a family-friendly Monument prompt');
+    assert(!chatbotHtml.includes('Plan a scenic first day'), 'chatbot-demo should not use generic default prompts');
+    assert(!chatbotHtml.includes('Find outdoor ideas'), 'chatbot-demo should not use generic default prompts');
     assert(chatbotHtml.includes('white-space: normal;'), 'chatbot-demo assistant markdown should not preserve extra source newlines as visual gaps');
     assert(!chatbotHtml.includes('appendSources(answer'), 'chatbot-demo should not render always-visible source chips after answers');
     assert(chatbotHtml.includes('status.shutdownSeconds ?? DEFAULT_WARM_HOLD_SEC'), 'chatbot-demo should preserve accurate zero-second shutdown estimates');
@@ -1456,8 +1475,16 @@ try {
     const passiveEnd = chatbotHtml.indexOf('function stageMessage', passiveStart);
     const passiveSection = chatbotHtml.slice(passiveStart, passiveEnd);
     assert(passiveSection.includes('fetchStatusInfo()'), 'passive status should only fetch status');
+    assert(passiveSection.includes("beginSharedStartup(status, 'passive-status')"), 'passive status should resume a warmup started elsewhere');
+    assert(!passiveSection.includes('userStartedWarmup'), 'passive shared warmup pickup should not depend on this instance starting it');
     assert(!passiveSection.includes("postJson(`${API_URL}/warmup`"), 'passive status must not initiate warmup');
     assert(!passiveSection.includes('startWarmupTimer('), 'passive status must not start countdown timer');
+
+    const sharedStart = chatbotHtml.indexOf('async function pollSharedStartupStatus()');
+    const sharedEnd = chatbotHtml.indexOf('async function syncPassiveStatus()', sharedStart);
+    const sharedSection = chatbotHtml.slice(sharedStart, sharedEnd);
+    assert(sharedSection.includes('fetchStatusInfo()'), 'shared startup polling should use status endpoint');
+    assert(!sharedSection.includes("postJson(`${API_URL}/warmup`"), 'shared startup polling must not submit a warmup job');
 
     const warmupStart = chatbotHtml.indexOf('async function warmupServer()');
     const warmupEnd = chatbotHtml.indexOf('async function pollWarmup', warmupStart);

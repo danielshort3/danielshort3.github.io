@@ -91,7 +91,7 @@
       padding: clamp(12px, 2.4vw, 22px);
       min-height: 100dvh;
       display: grid;
-      grid-template-rows: auto auto minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 1fr);
       gap: 12px;
     }
 
@@ -186,17 +186,13 @@
       border: 1px solid var(--line);
     }
 
-    .server-panel {
-      display: grid;
-      grid-template-columns: auto minmax(0, 1fr) auto;
-      gap: 10px;
+    .server-control {
+      position: relative;
+      display: inline-flex;
       align-items: center;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 10px 12px;
-      color: var(--muted);
-      min-height: 52px;
+      justify-content: flex-end;
+      gap: 8px;
+      min-width: 0;
     }
 
     .server-dot {
@@ -242,6 +238,18 @@
       overflow-wrap: anywhere;
     }
 
+    .timer-details {
+      position: relative;
+    }
+
+    .timer-details summary {
+      list-style: none;
+    }
+
+    .timer-details summary::-webkit-details-marker {
+      display: none;
+    }
+
     .timer {
       --timer-progress: 0deg;
       --timer-color: #98a2b3;
@@ -253,6 +261,7 @@
       color: var(--accent-strong);
       opacity: .5;
       transition: opacity 160ms ease;
+      cursor: pointer;
     }
 
     .timer.active {
@@ -297,6 +306,45 @@
       font-weight: 900;
       font-variant-numeric: tabular-nums;
       line-height: 1;
+    }
+
+    .timer-detail-panel {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      z-index: 20;
+      width: min(340px, calc(100vw - 24px));
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      color: var(--muted);
+    }
+
+    .timer-detail-row {
+      display: grid;
+      grid-template-columns: minmax(94px, auto) minmax(0, 1fr);
+      gap: 10px;
+      align-items: baseline;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .timer-detail-row span {
+      color: var(--muted);
+      font-weight: 800;
+      text-transform: uppercase;
+      font-size: 10px;
+    }
+
+    .timer-detail-row strong {
+      min-width: 0;
+      color: var(--text);
+      font-weight: 800;
+      overflow-wrap: anywhere;
     }
 
     .views {
@@ -433,20 +481,23 @@
 
     .followups {
       margin-top: 12px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 7px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 8px;
     }
 
     .followup {
-      min-height: 34px;
-      border-radius: 999px;
-      padding: 0 11px;
+      width: 100%;
+      min-height: 38px;
+      border-radius: 8px;
+      padding: 9px 11px;
       background: #f7f9fd;
       border: 1px solid #d6dde8;
       color: #243044;
       font-size: 12px;
       font-weight: 700;
+      line-height: 1.25;
+      text-align: left;
     }
 
     .followup:disabled {
@@ -725,8 +776,7 @@
         gap: 0;
       }
 
-      .demo-toolbar,
-      .server-panel {
+      .demo-toolbar {
         border-radius: 0;
         border-left: 0;
         border-right: 0;
@@ -744,19 +794,19 @@
         width: 100%;
       }
 
-      .server-panel {
-        grid-template-columns: auto minmax(0, 1fr);
+      .server-control {
+        width: 100%;
+        justify-content: space-between;
       }
 
       .timer {
-        grid-column: 2;
-        text-align: left;
+        min-width: 86px;
       }
 
       .chat-stage,
       .popup-preview {
         width: 100%;
-        height: calc(100dvh - 177px);
+        height: calc(100dvh - 125px);
         border: 0;
         border-radius: 0;
         box-shadow: none;
@@ -850,22 +900,28 @@
         <button class="view-tab active" id="regular-view-button" type="button" role="tab" aria-selected="true" aria-controls="regular-view" data-view="regular">Regular</button>
         <button class="view-tab" id="popup-view-button" type="button" role="tab" aria-selected="false" aria-controls="popup-view" data-view="popup">Pop-up</button>
       </div>
-      <button class="warmup-button" id="warmup-button" type="button">Start server</button>
+      <div class="server-control" id="server-control" role="status" aria-live="polite">
+        <span class="server-dot off" id="server-dot" aria-hidden="true"></span>
+        <button class="warmup-button" id="warmup-button" type="button">Start server</button>
+        <details class="timer-details" id="timer-details">
+          <summary class="timer" id="server-timer" data-timer-mode="idle" aria-label="Server timer inactive">
+            <span class="timer-label" id="server-timer-label">Idle</span>
+            <span class="timer-ring" aria-hidden="true">
+              <span class="timer-value" id="server-timer-value">--</span>
+            </span>
+          </summary>
+          <div class="timer-detail-panel" id="timer-detail-panel">
+            <div class="timer-detail-row"><span>Status</span><strong id="server-text">Server off</strong></div>
+            <div class="timer-detail-row"><span>Stage</span><strong id="server-stage">Ready to start on demand.</strong></div>
+            <div class="timer-detail-row"><span>Endpoint</span><strong id="server-detail-endpoint">Unknown</strong></div>
+            <div class="timer-detail-row"><span>Instances</span><strong id="server-detail-instances">0 current / 0 desired</strong></div>
+            <div class="timer-detail-row"><span>Warm ETA</span><strong id="server-detail-warm">--</strong></div>
+            <div class="timer-detail-row"><span>Shutoff ETA</span><strong id="server-detail-shutoff">--</strong></div>
+            <div class="timer-detail-row"><span>Basis</span><strong id="server-detail-basis">Local status check</strong></div>
+          </div>
+        </details>
+      </div>
     </header>
-
-    <section class="server-panel" id="server-panel" role="status" aria-live="polite">
-      <span class="server-dot off" id="server-dot" aria-hidden="true"></span>
-      <div class="server-copy">
-        <span class="server-text" id="server-text">Server off</span>
-        <span class="server-stage" id="server-stage">Ready to start on demand.</span>
-      </div>
-      <div class="timer" id="server-timer" data-timer-mode="idle" aria-label="Server timer inactive">
-        <span class="timer-label" id="server-timer-label">Idle</span>
-        <span class="timer-ring" aria-hidden="true">
-          <span class="timer-value" id="server-timer-value">--</span>
-        </span>
-      </div>
-    </section>
 
     <main class="views">
       <section class="view-panel active" id="regular-view" role="tabpanel" aria-labelledby="regular-view-button">
@@ -953,6 +1009,11 @@
     const serverTimer = document.getElementById('server-timer');
     const serverTimerLabel = document.getElementById('server-timer-label');
     const serverTimerValue = document.getElementById('server-timer-value');
+    const serverDetailEndpoint = document.getElementById('server-detail-endpoint');
+    const serverDetailInstances = document.getElementById('server-detail-instances');
+    const serverDetailWarm = document.getElementById('server-detail-warm');
+    const serverDetailShutoff = document.getElementById('server-detail-shutoff');
+    const serverDetailBasis = document.getElementById('server-detail-basis');
     const warmupButton = document.getElementById('warmup-button');
     const popupLauncher = document.getElementById('popup-launcher');
     const popupWindow = document.getElementById('popup-window');
@@ -972,6 +1033,7 @@
     let readyTimer = null;
     let readyDeadline = 0;
     let readyDuration = 0;
+    let sharedStatusTimer = null;
 
     const contexts = [
       createChatContext('regular'),
@@ -1054,6 +1116,35 @@
       serverTimer.setAttribute('aria-label', active ? `${label}: ${formatClock(remaining)}` : 'Server timer inactive');
     }
 
+    function detailClock(seconds) {
+      const parsed = secondsFromEta(seconds);
+      return parsed === null ? '--' : formatClock(parsed);
+    }
+
+    function updateTimerDetails(info, basis = 'Local status check') {
+      const payload = info?.payload || info || {};
+      const endpoint = payload.stage?.endpoint || {};
+      const stage = payload.stage || {};
+      const lifecycle = payload.lifecycle || {};
+      const warmBasis = lifecycle.warm_hold || {};
+      const status = payload.status || payload.state || (info?.online ? 'On' : 'Off');
+      const endpointName = payload.endpoint || endpoint.name || 'Unknown';
+      const endpointStatus = endpoint.endpoint_status || status || 'Unknown';
+      const current = Number(payload.current ?? endpoint.current ?? 0);
+      const desired = Number(payload.desired ?? endpoint.desired ?? 0);
+      serverText.textContent = info?.online ? 'Server ready' : (info?.startupInProgress ? 'Starting server' : 'Server off');
+      serverStage.textContent = stageMessage(stage);
+      serverDetailEndpoint.textContent = `${endpointName} (${endpointStatus})`;
+      serverDetailInstances.textContent = `${Number.isFinite(current) ? current : 0} current / ${Number.isFinite(desired) ? desired : 0} desired`;
+      serverDetailWarm.textContent = detailClock(info?.warmSeconds ?? payload.eta?.to_warm_seconds);
+      serverDetailShutoff.textContent = detailClock(info?.shutdownSeconds ?? payload.eta?.to_scale_to_zero_seconds);
+      serverDetailBasis.textContent = [
+        basis,
+        stage.name ? `stage: ${stage.name}` : '',
+        warmBasis.basis ? `warm hold: ${warmBasis.basis}` : ''
+      ].filter(Boolean).join(' | ');
+    }
+
     // Startup status helpers
     function isOnlinePayload(payload) {
       if (!payload) return false;
@@ -1103,6 +1194,7 @@
       );
       const info = statusInfoFromPayload(payload);
       recordLog('status:payload', info);
+      updateTimerDetails(info, 'AWS status');
       return info;
     }
 
@@ -1146,9 +1238,17 @@
       warmupButton.textContent = 'Start server';
     }
 
+    function stopSharedStatusPolling() {
+      if (sharedStatusTimer) {
+        window.clearInterval(sharedStatusTimer);
+        sharedStatusTimer = null;
+      }
+    }
+
     function markServerCold(stage = 'Server starts only after you press Start server.') {
       serverReady = false;
       warmupActive = false;
+      stopSharedStatusPolling();
       stopStartupTimer();
       stopReadyTimer();
       setWarmupButtonState('idle');
@@ -1183,6 +1283,7 @@
       recordLog('status:online', { source, warmHoldSeconds: readySeconds });
       serverReady = true;
       warmupActive = false;
+      stopSharedStatusPolling();
       stopStartupTimer();
       setWarmupButtonState('ready');
       startReadyTimer(readySeconds);
@@ -1205,6 +1306,9 @@
       startupDeadline = Date.now() + remaining * 1000;
       recordLog('status:starting-eta', { reason, remaining });
       updateStartupTimer();
+      if (!startupTimer) {
+        startupTimer = window.setInterval(updateStartupTimer, 1000);
+      }
     }
 
     function updateStartupTimer() {
@@ -1275,19 +1379,47 @@
       readyDuration = 0;
     }
 
+    function beginSharedStartup(status, reason = 'shared-status') {
+      serverReady = false;
+      warmupActive = true;
+      setWarmupButtonState('starting');
+      syncStartupEta(status.warmSeconds ?? START_TIMEOUT_SEC, reason);
+      markServerStarting('Startup is already in progress from another request.');
+      updateTimerDetails(status, 'Shared AWS startup');
+      if (!sharedStatusTimer) {
+        sharedStatusTimer = window.setInterval(pollSharedStartupStatus, 3000);
+      }
+    }
+
+    async function pollSharedStartupStatus() {
+      try {
+        const status = await fetchStatusInfo();
+        if (status.online) {
+          markServerOnline('shared-status-ready', status.shutdownSeconds ?? DEFAULT_WARM_HOLD_SEC);
+          return;
+        }
+        if (status.startupInProgress) {
+          beginSharedStartup(status, 'shared-status-poll');
+          return;
+        }
+        markServerCold('Server starts only after you press Start server.');
+      } catch (err) {
+        recordLog('status:shared-poll-error', { error: describeError(err) }, 'error');
+        setServerVisual('starting', 'Starting server', `Status refresh failed: ${describeError(err)}`);
+      }
+    }
+
     async function syncPassiveStatus() {
       const status = await fetchStatusInfo();
       if (status.online) {
         markServerOnline('passive-status', status.shutdownSeconds ?? DEFAULT_WARM_HOLD_SEC);
         return;
       }
-      if (status.startupInProgress && userStartedWarmup) {
-        markServerStarting('Startup already in progress.');
+      if (status.startupInProgress) {
+        beginSharedStartup(status, 'passive-status');
         return;
       }
-      markServerCold(status.startupInProgress
-        ? 'Startup is already in progress from another request.'
-        : 'Server starts only after you press Start server.');
+      markServerCold('Server starts only after you press Start server.');
     }
 
     function stageMessage(stage) {
@@ -1303,14 +1435,17 @@
       if (warmupActive || serverReady) return;
       userStartedWarmup = true;
       warmupActive = true;
+      stopSharedStatusPolling();
       startWarmupTimer({ durationSec: START_TIMEOUT_SEC, reason: 'manual-warmup' });
       markServerStarting('Submitting warmup request to AWS...');
       try {
         const submit = await postJson(`${API_URL}/warmup`, {});
         recordLog('warmup:submit', { status: submit.status, jobId: submit.jobId, warm: submit.warm });
-        syncStartupEta(statusInfoFromPayload(submit).warmSeconds, 'warmup-submit');
+        const submitInfo = statusInfoFromPayload(submit);
+        updateTimerDetails(submitInfo, 'Manual warmup submit');
+        syncStartupEta(submitInfo.warmSeconds, 'warmup-submit');
         if (submit.status === 'READY' || submit.warm || !submit.jobId) {
-          const readySeconds = statusInfoFromPayload(submit).shutdownSeconds
+          const readySeconds = submitInfo.shutdownSeconds
             ?? submit.warm_hold_seconds
             ?? DEFAULT_WARM_HOLD_SEC;
           markServerOnline('warmup-ready', readySeconds);
@@ -1331,9 +1466,11 @@
         const result = await getJson(`${API_URL}/result?${query}`, { cache: 'no-store' });
         const stage = result.stage || {};
         recordLog('warmup:poll', { status: result.status, stage: stage.name });
-        syncStartupEta(statusInfoFromPayload(result).warmSeconds, 'warmup-poll');
+        const resultInfo = statusInfoFromPayload(result);
+        updateTimerDetails(resultInfo, 'Manual warmup poll');
+        syncStartupEta(resultInfo.warmSeconds, 'warmup-poll');
         if (result.status === 'READY') {
-          const readySeconds = statusInfoFromPayload(result).shutdownSeconds
+          const readySeconds = resultInfo.shutdownSeconds
             ?? submit.warm_hold_seconds
             ?? DEFAULT_WARM_HOLD_SEC;
           markServerOnline('warmup-complete', readySeconds);
@@ -1896,9 +2033,9 @@
       const suggestions = document.createElement('div');
       suggestions.className = 'suggestions';
       [
-        'Plan a scenic first day',
-        'Build a weekend itinerary',
-        'Find outdoor ideas'
+        'Plan a red-rock first day in Grand Junction',
+        'Build a weekend with downtown, trails, and wineries',
+        'Find family-friendly stops near Colorado National Monument'
       ].forEach(text => {
         const button = document.createElement('button');
         button.className = 'suggestion';
